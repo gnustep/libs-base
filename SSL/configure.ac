@@ -1,5 +1,3 @@
-AC_INIT(GSUnixSSLHandle.m)
-
 # configure.in for GNUstep base SSL bundle
 # Process this file with autoconf to produce a configure script.
 #
@@ -22,12 +20,11 @@ AC_INIT(GSUnixSSLHandle.m)
 #   You should have received a copy of the GNU Library General Public
 #   License along with this library; if not, write to the Free
 #   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA
+AC_INIT
+AC_CONFIG_SRCDIR([GSUnixSSLHandle.m])
 
 if test -z "$GNUSTEP_SYSTEM_ROOT"; then
-  {
-   echo "ERROR: You must run the GNUstep initialization script before configuring the SSL bundle!" 1>&2;
-  exit 1; 
-  }
+  AC_MSG_ERROR([You must run the GNUstep initialization script first!])
 fi
 
 #--------------------------------------------------------------------
@@ -64,7 +61,7 @@ LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
 #--------------------------------------------------------------------
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET([])
 
 #--------------------------------------------------------------------
 # Find the compiler
@@ -120,9 +117,6 @@ fi
 if test $enable_openssl = yes; then
   AC_CHECK_HEADERS(openssl/ssl.h)
   if test $ac_cv_header_openssl_ssl_h = no; then
-    echo "Could not find openssl headers"
-    echo "Check to make sure you have a recent version of openssl installed"
-    echo "The SSL bundle will not be built"
     AC_MSG_WARN(Could not find openssl headers)
     AC_MSG_WARN(The SSL bundle will not be built)
     ssl_ok=no
@@ -138,9 +132,6 @@ if test $enable_openssl = yes; then
 	SSLLIBS="$SSLLIBS -lssl -lcrypto"
       else
 	SSLLIBS="$SSLLIBS -lcrypto"
-        echo "Could not find openssl crypto library"
-        echo "Check to make sure you have a recent version of openssl installed"
-	echo "The SSL bundle will not be built"
         AC_MSG_WARN(Could not find openssl libraries)
 	AC_MSG_WARN(The SSL bundle will not be built)
       fi
@@ -152,16 +143,11 @@ if test $enable_openssl = yes; then
         SSLLIBS="$SSLLIBS -lcipher"
       fi
     else
-      echo "Could not find openssl library"
-      echo "Check to make sure you have a recent version of openssl installed"
-      echo "The SSL bundle will not be built"
       AC_MSG_WARN(Could not find openssl libraries)
       AC_MSG_WARN(The SSL bundle will not be built)
     fi
   fi
 else
-  echo "The use of openssl was disabled"
-  echo "The SSL bundle will not be built"
   AC_MSG_WARN(The use of openssl was disabled)
   AC_MSG_WARN(The SSL bundle will not be built)
 fi
@@ -176,11 +162,5 @@ LIBS="$libs_temp";
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(config.mak)
-
-dnl Local Variables:
-dnl comment-start: "dnl "
-dnl comment-end: ""
-dnl comment-start-skip: "\\bdnl\\b\\s *"
-dnl compile-command: "autoconf"
-dnl End:
+AC_CONFIG_FILES([config.mak])
+AC_OUTPUT

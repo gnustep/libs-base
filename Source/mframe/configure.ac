@@ -1,5 +1,3 @@
-AC_INIT(mframe.head)
-
 # configure.in for mframe software
 # Process this file with autoconf to produce a configure script.
 #
@@ -22,6 +20,8 @@ AC_INIT(mframe.head)
 #   You should have received a copy of the GNU Library General Public
 #   License along with this library; if not, write to the Free
 #   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+AC_INIT
+AC_CONFIG_SRCDIR([mframe.head])
 
 #--------------------------------------------------------------------
 # Use config.guess, config.sub and install-sh provided by gnustep-make
@@ -31,7 +31,7 @@ AC_CONFIG_AUX_DIR($GNUSTEP_SYSTEM_ROOT/Makefiles)
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
 #--------------------------------------------------------------------
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET([])
 
 dnl Checking CPU and Operating-System information for mframe.h
 
@@ -80,11 +80,4 @@ echo "*  PROCESS IN THE 'mframe' SUBDIRECTORY.  *" >> mframe.h
 echo "****************** WARNING ***************/" >> mframe.h
 cat mframe.head $my_path mframe.foot >> mframe.h
 
-AC_OUTPUT()
-
-dnl Local Variables:
-dnl comment-start: "dnl "
-dnl comment-end: ""
-dnl comment-start-skip: "\\bdnl\\b\\s *"
-dnl compile-command: "autoconf"
-dnl End:
+AC_OUTPUT

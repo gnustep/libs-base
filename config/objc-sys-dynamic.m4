@@ -22,7 +22,7 @@ fi
 
 if test $DYNAMIC_LINKER = simple; then
   AC_TRY_LINK([#include <dlfcn.h>], dladdr(0,0);, 
-	      AC_DEFINE(HAVE_DLADDR))
+	      AC_DEFINE(HAVE_DLADDR,, [Define if you have dladdr]))
 fi
 
 AC_SUBST(DYNAMIC_LINKER)dnl

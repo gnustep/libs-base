@@ -1,65 +1,4 @@
-/* Headers/gnustep/base/config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
-
-/* Define as __inline if that's what the C compiler calls it.  */
-#undef inline
-
-/* Define if the `setpgrp' function takes no argument.  */
-#undef SETPGRP_VOID
-
-/* Define to `unsigned' if <sys/types.h> doesn't define.  */
-#undef size_t
-
-/* Define if you have the ANSI C header files.  */
-#undef STDC_HEADERS
-
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-#undef WORDS_BIGENDIAN
-
-#undef CON_AUTOLOAD
-
-#undef VSPRINTF_RETURNS_LENGTH
-#undef VASPRINTF_RETURNS_LENGTH
-
-/* Define if you have the dladdr function.  */
-#undef HAVE_DLADDR
-
-/* Define if your system terminates the final argument in /proc/$$/cmdline */
-#undef CMDLINE_TERMINATED
-
-/* Define if your system needs to have short/int word aligned */
-#undef NEED_WORD_ALIGNMENT
-
-/* Define if you have the register_printf_function function.  */
-#undef HAVE_REGISTER_PRINTF_FUNCTION
-
-/* Define if your Obj-C compiler calls +load methods before main */
-#undef HAVE_LOAD_METHOD 
-
-/* Define if objc-api.h defines this function */
-#undef HAVE_OBJC_GET_UNINSTALLED_DTABLE
-
-/* Define if your Lib C defines program_invocation_name */
-#undef HAVE_PROGRAM_INVOCATION_NAME
-
-/* Define if your system has variable length network addresses */
-#undef HAVE_SA_LEN
-
-/* Define if using the libffi library for invocations */
-#undef USE_LIBFFI
-
-/* Define if using the ffcall library for invocations */
-#undef USE_FFCALL
-
-/* Define if libxml available */
-#undef HAVE_LIBXML
-
-#undef HAVE_PTS_STREAM_MODULES
-#undef HAVE_UINTMAX_T
-
-/* Define one of the following if you have the appropriate constant */
-#undef HANDLE_LONG_LONG_MAX
-#undef HANDLE_LLONG_MAX
+/* Headers/gnustep/base/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define if nested functions are broken on this compiler */
 #undef BROKEN_NESTED_FUNCTIONS
@@ -67,279 +6,373 @@
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
 
+/* Define if your system terminates the final argument in /proc/11416/cmdline */
+#undef CMDLINE_TERMINATED
+
+/* Define if constructors are automatically loaded */
+#undef CON_AUTOLOAD
+
+/* Define if this constant is defined */
+#undef HANDLE_LLONG_MAX
+
+/* Define if this constant is defined */
+#undef HANDLE_LONG_LONG_MAX
+
+/* Define to 1 if you have the <callback.h> header file. */
+#undef HAVE_CALLBACK_H
+
+/* Define to 1 if you have the `ctime' function. */
+#undef HAVE_CTIME
+
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_DIRENT_H
+
+/* Define if you have dladdr */
+#undef HAVE_DLADDR
+
+/* Define to 1 if you have the <float.h> header file. */
+#undef HAVE_FLOAT_H
+
+/* Define to 1 if you have the `getcwd' function. */
+#undef HAVE_GETCWD
+
+/* Define to 1 if you have the `geteuid' function. */
+#undef HAVE_GETEUID
+
+/* Define to 1 if you have the `getlogin' function. */
+#undef HAVE_GETLOGIN
+
+/* Define to 1 if you have the <getopt.h> header file. */
+#undef HAVE_GETOPT_H
+
+/* Define to 1 if you have the `getpwnam' function. */
+#undef HAVE_GETPWNAM
+
+/* Define to 1 if you have the `getpwuid' function. */
+#undef HAVE_GETPWUID
+
 /* Define if you have this header */
 #undef HAVE_GICONV_H
+
+/* Define to 1 if you have the <gmp.h> header file. */
+#undef HAVE_GMP_H
+
+/* Define to 1 if you have the <grp.h> header file. */
+#undef HAVE_GRP_H
 
 /* Define if you have this function */
 #undef HAVE_ICONV
 
-/* The number of bytes in a double.  */
-#undef SIZEOF_DOUBLE
-
-/* The number of bytes in a float.  */
-#undef SIZEOF_FLOAT
-
-/* The number of bytes in a int.  */
-#undef SIZEOF_INT
-
-/* The number of bytes in a long.  */
-#undef SIZEOF_LONG
-
-/* The number of bytes in a long long.  */
-#undef SIZEOF_LONG_LONG
-
-/* The number of bytes in a short.  */
-#undef SIZEOF_SHORT
-
-/* The number of bytes in a void*.  */
-#undef SIZEOF_VOIDP
-
-/* Define if you have the ctime function.  */
-#undef HAVE_CTIME
-
-/* Define if you have the getcwd function.  */
-#undef HAVE_GETCWD
-
-/* Define if you have the geteuid function.  */
-#undef HAVE_GETEUID
-
-/* Define if you have the getlogin function.  */
-#undef HAVE_GETLOGIN
-
-/* Define if you have the getpwnam function.  */
-#undef HAVE_GETPWNAM
-
-/* Define if you have the getpwuid function.  */
-#undef HAVE_GETPWUID
-
-/* Define if you have the iconv function.  */
-#undef HAVE_ICONV
-
-/* Define if you have the inet_aton function.  */
+/* Define to 1 if you have the `inet_aton' function. */
 #undef HAVE_INET_ATON
 
-/* Define if you have the killpg function.  */
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `killpg' function. */
 #undef HAVE_KILLPG
 
-/* Define if you have the mkstemp function.  */
-#undef HAVE_MKSTEMP
-
-/* Define if you have the mmap function.  */
-#undef HAVE_MMAP
-
-/* Define if you have the objc_condition_timedwait function.  */
-#undef HAVE_OBJC_CONDITION_TIMEDWAIT
-
-/* Define if you have the objc_thread_add function.  */
-#undef HAVE_OBJC_THREAD_ADD
-
-/* Define if you have the poll function.  */
-#undef HAVE_POLL
-
-/* Define if you have the readlink function.  */
-#undef HAVE_READLINK
-
-/* Define if you have the realpath function.  */
-#undef HAVE_REALPATH
-
-/* Define if you have the rint function.  */
-#undef HAVE_RINT
-
-/* Define if you have the setpgid function.  */
-#undef HAVE_SETPGID
-
-/* Define if you have the setpgrp function.  */
-#undef HAVE_SETPGRP
-
-/* Define if you have the shmctl function.  */
-#undef HAVE_SHMCTL
-
-/* Define if you have the statvfs function.  */
-#undef HAVE_STATVFS
-
-/* Define if you have the strerror function.  */
-#undef HAVE_STRERROR
-
-/* Define if you have the symlink function.  */
-#undef HAVE_SYMLINK
-
-/* Define if you have the syslog function.  */
-#undef HAVE_SYSLOG
-
-/* Define if you have the time function.  */
-#undef HAVE_TIME
-
-/* Define if you have the times function.  */
-#undef HAVE_TIMES
-
-/* Define if you have the usleep function.  */
-#undef HAVE_USLEEP
-
-/* Define if you have the valloc function.  */
-#undef HAVE_VALLOC
-
-/* Define if you have the vasprintf function.  */
-#undef HAVE_VASPRINTF
-
-/* Define if you have the vsprintf function.  */
-#undef HAVE_VSPRINTF
-
-/* Define if you have the <callback.h> header file.  */
-#undef HAVE_CALLBACK_H
-
-/* Define if you have the <dirent.h> header file.  */
-#undef HAVE_DIRENT_H
-
-/* Define if you have the <float.h> header file.  */
-#undef HAVE_FLOAT_H
-
-/* Define if you have the <getopt.h> header file.  */
-#undef HAVE_GETOPT_H
-
-/* Define if you have the <gmp.h> header file.  */
-#undef HAVE_GMP_H
-
-/* Define if you have the <grp.h> header file.  */
-#undef HAVE_GRP_H
-
-/* Define if you have the <langinfo.h> header file.  */
+/* Define to 1 if you have the <langinfo.h> header file. */
 #undef HAVE_LANGINFO_H
 
-/* Define if you have the <libc.h> header file.  */
+/* Define to 1 if you have the <libc.h> header file. */
 #undef HAVE_LIBC_H
 
-/* Define if you have the <limits.h> header file.  */
-#undef HAVE_LIMITS_H
-
-/* Define if you have the <locale.h> header file.  */
-#undef HAVE_LOCALE_H
-
-/* Define if you have the <malloc.h> header file.  */
-#undef HAVE_MALLOC_H
-
-/* Define if you have the <memory.h> header file.  */
-#undef HAVE_MEMORY_H
-
-/* Define if you have the <ndir.h> header file.  */
-#undef HAVE_NDIR_H
-
-/* Define if you have the <netinet/in.h> header file.  */
-#undef HAVE_NETINET_IN_H
-
-/* Define if you have the <objc/objc.h> header file.  */
-#undef HAVE_OBJC_OBJC_H
-
-/* Define if you have the <poll.h> header file.  */
-#undef HAVE_POLL_H
-
-/* Define if you have the <pthread.h> header file.  */
-#undef HAVE_PTHREAD_H
-
-/* Define if you have the <pwd.h> header file.  */
-#undef HAVE_PWD_H
-
-/* Define if you have the <signal.h> header file.  */
-#undef HAVE_SIGNAL_H
-
-/* Define if you have the <stdint.h> header file.  */
-#undef HAVE_STDINT_H
-
-/* Define if you have the <string.h> header file.  */
-#undef HAVE_STRING_H
-
-/* Define if you have the <sys/dir.h> header file.  */
-#undef HAVE_SYS_DIR_H
-
-/* Define if you have the <sys/fcntl.h> header file.  */
-#undef HAVE_SYS_FCNTL_H
-
-/* Define if you have the <sys/file.h> header file.  */
-#undef HAVE_SYS_FILE_H
-
-/* Define if you have the <sys/inttypes.h> header file.  */
-#undef HAVE_SYS_INTTYPES_H
-
-/* Define if you have the <sys/ioctl.h> header file.  */
-#undef HAVE_SYS_IOCTL_H
-
-/* Define if you have the <sys/mount.h> header file.  */
-#undef HAVE_SYS_MOUNT_H
-
-/* Define if you have the <sys/ndir.h> header file.  */
-#undef HAVE_SYS_NDIR_H
-
-/* Define if you have the <sys/param.h> header file.  */
-#undef HAVE_SYS_PARAM_H
-
-/* Define if you have the <sys/rusage.h> header file.  */
-#undef HAVE_SYS_RUSAGE_H
-
-/* Define if you have the <sys/signal.h> header file.  */
-#undef HAVE_SYS_SIGNAL_H
-
-/* Define if you have the <sys/socket.h> header file.  */
-#undef HAVE_SYS_SOCKET_H
-
-/* Define if you have the <sys/stat.h> header file.  */
-#undef HAVE_SYS_STAT_H
-
-/* Define if you have the <sys/statfs.h> header file.  */
-#undef HAVE_SYS_STATFS_H
-
-/* Define if you have the <sys/statvfs.h> header file.  */
-#undef HAVE_SYS_STATVFS_H
-
-/* Define if you have the <sys/stropts.h> header file.  */
-#undef HAVE_SYS_STROPTS_H
-
-/* Define if you have the <sys/time.h> header file.  */
-#undef HAVE_SYS_TIME_H
-
-/* Define if you have the <sys/types.h> header file.  */
-#undef HAVE_SYS_TYPES_H
-
-/* Define if you have the <sys/vfs.h> header file.  */
-#undef HAVE_SYS_VFS_H
-
-/* Define if you have the <sys/wait.h> header file.  */
-#undef HAVE_SYS_WAIT_H
-
-/* Define if you have the <syslog.h> header file.  */
-#undef HAVE_SYSLOG_H
-
-/* Define if you have the <time.h> header file.  */
-#undef HAVE_TIME_H
-
-/* Define if you have the <ucbinclude/sys/resource.h> header file.  */
-#undef HAVE_UCBINCLUDE_SYS_RESOURCE_H
-
-/* Define if you have the <unistd.h> header file.  */
-#undef HAVE_UNISTD_H
-
-/* Define if you have the <utime.h> header file.  */
-#undef HAVE_UTIME_H
-
-/* Define if you have the <wchar.h> header file.  */
-#undef HAVE_WCHAR_H
-
-/* Define if you have the <windows.h> header file.  */
-#undef HAVE_WINDOWS_H
-
-/* Define if you have the <zlib.h> header file.  */
-#undef HAVE_ZLIB_H
-
-/* Define if you have the giconv library (-lgiconv).  */
+/* Define to 1 if you have the `giconv' library (-lgiconv). */
 #undef HAVE_LIBGICONV
 
-/* Define if you have the iconv library (-liconv).  */
+/* Define to 1 if you have the `iconv' library (-liconv). */
 #undef HAVE_LIBICONV
 
-/* Define if you have the m library (-lm).  */
+/* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
+
+/* Define if libxml available */
+#undef HAVE_LIBXML
+
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define if your Obj-C compiler calls +load methods before main */
+#undef HAVE_LOAD_METHOD
+
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
+
+/* Define to 1 if you have the <malloc.h> header file. */
+#undef HAVE_MALLOC_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mkstemp' function. */
+#undef HAVE_MKSTEMP
+
+/* Define to 1 if you have the `mmap' function. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_NDIR_H
+
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#undef HAVE_NETINET_IN_H
+
+/* Define to 1 if you have the `objc_condition_timedwait' function. */
+#undef HAVE_OBJC_CONDITION_TIMEDWAIT
+
+/* Define if objc-api.h defines this function */
+#undef HAVE_OBJC_GET_UNINSTALLED_DTABLE
+
+/* Define to 1 if you have the <objc/objc.h> header file. */
+#undef HAVE_OBJC_OBJC_H
+
+/* Define to 1 if you have the `objc_thread_add' function. */
+#undef HAVE_OBJC_THREAD_ADD
+
+/* Define to 1 if you have the `poll' function. */
+#undef HAVE_POLL
+
+/* Define to 1 if you have the <poll.h> header file. */
+#undef HAVE_POLL_H
 
 /* Define if system supports the /proc filesystem */
 #undef HAVE_PROCFS
 
+/* Define if your Lib C defines program_invocation_name */
+#undef HAVE_PROGRAM_INVOCATION_NAME
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
+
+/* Define this if you work on sysv */
+#undef HAVE_PTS_STREAM_MODULES
+
+/* Define to 1 if you have the <pwd.h> header file. */
+#undef HAVE_PWD_H
+
+/* Define to 1 if you have the `readlink' function. */
+#undef HAVE_READLINK
+
+/* Define to 1 if you have the `realpath' function. */
+#undef HAVE_REALPATH
+
+/* Define if you have the register_printf_function function */
+#undef HAVE_REGISTER_PRINTF_FUNCTION
+
+/* Define to 1 if you have the `rint' function. */
+#undef HAVE_RINT
+
+/* Define if your system has variable length network addresses */
+#undef HAVE_SA_LEN
+
+/* Define to 1 if you have the `setpgid' function. */
+#undef HAVE_SETPGID
+
+/* Define to 1 if you have the `setpgrp' function. */
+#undef HAVE_SETPGRP
+
+/* Define to 1 if you have the `shmctl' function. */
+#undef HAVE_SHMCTL
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
+
+/* Define to 1 if you have the `statvfs' function. */
+#undef HAVE_STATVFS
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `symlink' function. */
+#undef HAVE_SYMLINK
+
+/* Define to 1 if you have the `syslog' function. */
+#undef HAVE_SYSLOG
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/fcntl.h> header file. */
+#undef HAVE_SYS_FCNTL_H
+
+/* Define to 1 if you have the <sys/file.h> header file. */
+#undef HAVE_SYS_FILE_H
+
+/* Define to 1 if you have the <sys/inttypes.h> header file. */
+#undef HAVE_SYS_INTTYPES_H
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
+
+/* Define to 1 if you have the <sys/mount.h> header file. */
+#undef HAVE_SYS_MOUNT_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/rusage.h> header file. */
+#undef HAVE_SYS_RUSAGE_H
+
+/* Define to 1 if you have the <sys/signal.h> header file. */
+#undef HAVE_SYS_SIGNAL_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/statfs.h> header file. */
+#undef HAVE_SYS_STATFS_H
+
+/* Define to 1 if you have the <sys/statvfs.h> header file. */
+#undef HAVE_SYS_STATVFS_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/stropts.h> header file. */
+#undef HAVE_SYS_STROPTS_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/vfs.h> header file. */
+#undef HAVE_SYS_VFS_H
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
+#undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the `time' function. */
+#undef HAVE_TIME
+
+/* Define to 1 if you have the `times' function. */
+#undef HAVE_TIMES
+
+/* Define to 1 if you have the <time.h> header file. */
+#undef HAVE_TIME_H
+
+/* Define to 1 if you have the <ucbinclude/sys/resource.h> header file. */
+#undef HAVE_UCBINCLUDE_SYS_RESOURCE_H
+
+/* Define to 1 if the system has the type `uintmax_t'. */
+#undef HAVE_UINTMAX_T
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `usleep' function. */
+#undef HAVE_USLEEP
+
+/* Define to 1 if you have the <utime.h> header file. */
+#undef HAVE_UTIME_H
+
+/* Define to 1 if you have the `valloc' function. */
+#undef HAVE_VALLOC
+
+/* Define to 1 if you have the `vasprintf' function. */
+#undef HAVE_VASPRINTF
+
+/* Define to 1 if you have the `vsprintf' function. */
+#undef HAVE_VSPRINTF
+
+/* Define to 1 if you have the <wchar.h> header file. */
+#undef HAVE_WCHAR_H
+
+/* Define to 1 if you have the <windows.h> header file. */
+#undef HAVE_WINDOWS_H
+
+/* Define to 1 if you have the <zlib.h> header file. */
+#undef HAVE_ZLIB_H
+
+/* Define if your system needs to have short/int word aligned */
+#undef NEED_WORD_ALIGNMENT
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
 
+/* Define to 1 if the `setpgrp' function takes no argument. */
+#undef SETPGRP_VOID
+
+/* The size of a `double', as computed by sizeof. */
+#undef SIZEOF_DOUBLE
+
+/* The size of a `float', as computed by sizeof. */
+#undef SIZEOF_FLOAT
+
+/* The size of a `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of a `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of a `long long', as computed by sizeof. */
+#undef SIZEOF_LONG_LONG
+
+/* The size of a `short', as computed by sizeof. */
+#undef SIZEOF_SHORT
+
+/* The size of a `void*', as computed by sizeof. */
+#undef SIZEOF_VOIDP
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define if using the ffcall library for invocations */
+#undef USE_FFCALL
+
+/* Define if using the libffi library for invocations */
+#undef USE_LIBFFI
+
+/* Define if vasprintf returns the length printed */
+#undef VASPRINTF_RETURNS_LENGTH
+
+/* Define if vsprintf returns the length printed */
+#undef VSPRINTF_RETURNS_LENGTH
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
+#undef inline
+
+/* Define to `unsigned' if <sys/types.h> does not define. */
+#undef size_t
