@@ -381,7 +381,7 @@ else
   AC_MSG_ERROR(The Objective-C compiler doesn't work or is not installed properly.)
 fi
 
-# Don't rever any Objective-C flags as they are used in the next test
+# Don't revert any Objective-C flags as they are used in the next test
 
 #---------------------------------------------------------------------
 # Guess if we are using a compiler which allows us to change the class
@@ -821,7 +821,7 @@ AC_ARG_WITH(openssl-library,
   [  --with-openssl-library=PATH  library path for openssl libraries],
   openssl_libdir="$withval", openssl_libdir="no")
 
-cppflags_temp=$CPPFLAGS
+cppflags_temp="$CPPFLAGS"
 libs_temp=$LIBS
 
 if test "$openssl_incdir" != "no"; then
@@ -868,7 +868,7 @@ AC_ARG_WITH(gmp-library,
   [  --with-gmp-library=PATH  library path for gmp libraries],
   gmp_libdir="$withval", gmp_libdir="no")
 
-cppflags_temp=$CPPFLAGS
+cppflags_temp="$CPPFLAGS"
 libs_temp=$LIBS
 
 if test "$gmp_incdir" != "no"; then
@@ -908,7 +908,7 @@ if test $ac_cv_func_iconv = no; then
   AC_ARG_WITH(libiconv-library,
     [  --with-libiconv-library=PATH  library path for libiconv libraries],
     libiconv_libdir="$withval", libiconv_libdir="no")
-  cppflags_temp=$CPPFLAGS
+  cppflags_temp="$CPPFLAGS"
 
   if test "$libiconv_libdir" != "no"; then
     CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
@@ -925,7 +925,7 @@ if test $ac_cv_func_iconv = no; then
       AC_DEFINE(HAVE_ICONV)
     fi
   fi
-  CPPFLAGS=$cppflag_temp
+  CPPFLAGS="$cppflag_temp"
 fi
 
 AC_SUBST(SYSTEM_DEFS)

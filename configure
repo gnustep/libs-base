@@ -2121,7 +2121,7 @@ else
   { echo "configure: error: The Objective-C compiler doesn't work or is not installed properly." 1>&2; exit 1; }
 fi
 
-# Don't rever any Objective-C flags as they are used in the next test
+# Don't revert any Objective-C flags as they are used in the next test
 
 #---------------------------------------------------------------------
 # Guess if we are using a compiler which allows us to change the class
@@ -5016,7 +5016,7 @@ else
 fi
 
 
-cppflags_temp=$CPPFLAGS
+cppflags_temp="$CPPFLAGS"
 libs_temp=$LIBS
 
 if test "$openssl_incdir" != "no"; then
@@ -5195,7 +5195,7 @@ else
 fi
 
 
-cppflags_temp=$CPPFLAGS
+cppflags_temp="$CPPFLAGS"
 libs_temp=$LIBS
 
 if test "$gmp_incdir" != "no"; then
@@ -5413,7 +5413,7 @@ else
   libiconv_libdir="no"
 fi
 
-  cppflags_temp=$CPPFLAGS
+  cppflags_temp="$CPPFLAGS"
 
   if test "$libiconv_libdir" != "no"; then
     CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
@@ -5465,7 +5465,7 @@ fi
 
   if test x"$av_cv_lib_giconv_main" = xyes; then
     cat >> confdefs.h <<\EOF
-#define HAVE_ICONV_H 1
+#define HAVE_ICONV 1
 EOF
 
     cat >> confdefs.h <<\EOF
@@ -5518,12 +5518,12 @@ fi
 
     if test x"$av_cv_lib_iconv_main" = xyes; then
       cat >> confdefs.h <<\EOF
-#define HAVE_ICONV_H 1
+#define HAVE_ICONV 1
 EOF
 
     fi
   fi
-  CPPFLAGS=$cppflag_temp
+  CPPFLAGS="$cppflag_temp"
 fi
 
 
