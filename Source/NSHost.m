@@ -279,7 +279,6 @@ static NSString	*myHost = nil;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   [aCoder encodeObject: [self address]];
 }
 
@@ -288,7 +287,6 @@ static NSString	*myHost = nil;
   NSString	*address;
   NSHost	*host;
 
-  self = [super initWithCoder: aCoder];
   address = [aCoder decodeObject];
   host = RETAIN([NSHost hostWithAddress: address]);
   RELEASE(self);

@@ -29,7 +29,7 @@
 @class NSTimer, NSDate, NSPort;
 
 /* Mode strings. */
-GS_EXPORT id NSDefaultRunLoopMode;
+GS_EXPORT NSString* const NSDefaultRunLoopMode;
 
 @interface NSRunLoop : NSObject <GCFinalization>
 {

@@ -677,10 +677,10 @@ static BOOL deallocNotifications = NO;
   return YES;
 }
 
-- free
+- (id) free
 {
   [NSException raise: NSGenericException
-	       format: @"Use `dealloc' instead of `free' for %@.", self];
+	      format: @"Use `dealloc' instead of `free' for %@.", self];
   return nil;
 }
 
@@ -761,19 +761,19 @@ static BOOL deallocNotifications = NO;
 
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
 {
-    struct objc_method* mth = class_get_instance_method(self, aSelector);
-    return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
-		: nil;
+  struct objc_method* mth = class_get_instance_method(self, aSelector);
+  return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
+    : nil;
 }
   
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-    struct objc_method* mth =
+  struct objc_method* mth =
 	    (object_is_instance(self) ?
 		  class_get_instance_method(self->isa, aSelector)
 		: class_get_class_method(self->isa, aSelector));
-    return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
-		: nil;
+  return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
+    : nil;
 }
 
 - (NSString*) description
@@ -873,7 +873,7 @@ static BOOL deallocNotifications = NO;
 
 - (Class) classForPortCoder
 {
-    return [self classForCoder];
+  return [self classForCoder];
 }
 
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver
@@ -940,7 +940,7 @@ static BOOL deallocNotifications = NO;
   return self;
 }
 
-+ autorelease
++ (id) autorelease
 {
   return self;
 }
@@ -960,7 +960,7 @@ static BOOL deallocNotifications = NO;
   return (unsigned)self;
 }
 
-- (BOOL) isEqual: anObject
+- (BOOL) isEqual: (id)anObject
 {
   return (self == anObject);
 }
@@ -1001,7 +1001,7 @@ static BOOL deallocNotifications = NO;
   return NO;
 }
 
-- performSelector: (SEL)aSelector
+- (id) performSelector: (SEL)aSelector
 {
   IMP msg;
 
@@ -1022,7 +1022,7 @@ static BOOL deallocNotifications = NO;
   return (*msg)(self, aSelector);
 }
 
-- performSelector: (SEL)aSelector withObject: anObject
+- (id) performSelector: (SEL)aSelector withObject: (id) anObject
 {
   IMP msg;
 
@@ -1044,7 +1044,9 @@ static BOOL deallocNotifications = NO;
   return (*msg)(self, aSelector, anObject);
 }
 
-- performSelector: (SEL)aSelector withObject: object1 withObject: object2
+- (id) performSelector: (SEL)aSelector
+	    withObject: (id) object1
+	    withObject: (id) object2
 {
   IMP msg;
 
@@ -1106,7 +1108,7 @@ static BOOL deallocNotifications = NO;
 #endif
 }
 
-- retain
+- (id) retain
 {
 #if	GS_WITH_GC == 0
   NSIncrementExtraRefCount(self);
@@ -1114,7 +1116,7 @@ static BOOL deallocNotifications = NO;
   return self;
 }
 
-+ retain
++ (id) retain
 {
   return self;
 }
@@ -1133,14 +1135,14 @@ static BOOL deallocNotifications = NO;
   return UINT_MAX;
 }
 
-- self
+- (id) self
 {
   return self;
 }
 
-- (NSZone *)zone
+- (NSZone*) zone
 {
-    return fastZone(self);
+  return fastZone(self);
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -1148,17 +1150,17 @@ static BOOL deallocNotifications = NO;
   return;
 }
 
-- initWithCoder: (NSCoder*)aDecoder
+- (id) initWithCoder: (NSCoder*)aDecoder
 {
   return self;
 }
 
-+ (int)version
++ (int) version
 {
   return class_get_version(self);
 }
 
-+ setVersion:(int)aVersion
++ (id) setVersion: (int)aVersion
 {
   if (aVersion < 0)
     [NSException raise: NSInvalidArgumentException
@@ -1175,7 +1177,7 @@ static BOOL deallocNotifications = NO;
 
 /* NEXTSTEP Object class compatibility */
 
-- error:(const char *)aString, ...
+- error: (const char *)aString, ...
 {
 #define FMT "error: %s (%s)\n%s\n"
   char fmt[(strlen((char*)FMT)+strlen((char*)object_get_class_name(self))
@@ -1198,42 +1200,42 @@ static BOOL deallocNotifications = NO;
   return object_get_class_name(self);
 }
 
-- (BOOL)isKindOf:(Class)aClassObject
+- (BOOL) isKindOf: (Class)aClassObject
 {
-  return [self isKindOfClass:aClassObject];
+  return [self isKindOfClass: aClassObject];
 }
 
-- (BOOL)isMemberOf:(Class)aClassObject
+- (BOOL) isMemberOf: (Class)aClassObject
 {
-  return [self isMemberOfClass:aClassObject];
+  return [self isMemberOfClass: aClassObject];
 }
 
-+ (BOOL)instancesRespondTo:(SEL)aSel
++ (BOOL) instancesRespondTo: (SEL)aSel
 {
-  return [self instancesRespondToSelector:aSel];
+  return [self instancesRespondToSelector: aSel];
 }
 
-- (BOOL)respondsTo:(SEL)aSel
+- (BOOL) respondsTo: (SEL)aSel
 {
-  return [self respondsToSelector:aSel];
+  return [self respondsToSelector: aSel];
 }
 
 + (BOOL) conformsTo: (Protocol*)aProtocol
 {
-  return [self conformsToProtocol:aProtocol];
+  return [self conformsToProtocol: aProtocol];
 }
 
 - (BOOL) conformsTo: (Protocol*)aProtocol
 {
-  return [self conformsToProtocol:aProtocol];
+  return [self conformsToProtocol: aProtocol];
 }
 
-- (retval_t)performv:(SEL)aSel :(arglist_t)argFrame
+- (retval_t) performv: (SEL)aSel :(arglist_t)argFrame
 {
   return objc_msg_sendv(self, aSel, argFrame);
 }
 
-+ (IMP) instanceMethodFor:(SEL)aSel
++ (IMP) instanceMethodFor: (SEL)aSel
 {
   return [self instanceMethodForSelector:aSel];
 }
@@ -1246,18 +1248,18 @@ static BOOL deallocNotifications = NO;
     : nil;
 }
 
-- (IMP) methodFor:(SEL)aSel
+- (IMP) methodFor: (SEL)aSel
 {
-  return [self methodForSelector:aSel];
+  return [self methodForSelector: aSel];
 }
 
-+ poseAs:(Class)aClassObject
++ (id) poseAs: (Class)aClassObject
 {
-  [self poseAsClass:aClassObject];
+  [self poseAsClass: aClassObject];
   return self;
 }
 
-- notImplemented:(SEL)aSel
+- (id) notImplemented: (SEL)aSel
 {
   [NSException
     raise: NSGenericException
@@ -1265,7 +1267,7 @@ static BOOL deallocNotifications = NO;
   return nil;
 }
 
-- doesNotRecognize:(SEL)aSel
+- (id) doesNotRecognize: (SEL)aSel
 {
   [NSException raise: NSGenericException
 	       format: @"%s does not recognize %s",
@@ -1273,12 +1275,12 @@ static BOOL deallocNotifications = NO;
   return nil;
 }
 
-- perform: (SEL)sel with: anObject
+- (id) perform: (SEL)sel with: (id)anObject
 {
   return [self performSelector:sel withObject:anObject];
 }
 
-- perform: (SEL)sel with: anObject with: anotherObject
+- (id) perform: (SEL)sel with: (id)anObject with: (id)anotherObject
 {
   return [self performSelector:sel withObject:anObject 
 	       withObject:anotherObject];
@@ -1399,19 +1401,19 @@ static BOOL deallocNotifications = NO;
 // before doing their own archiving.  These methods are private, in
 // the sense that they should only be called from subclasses.
 
-- read: (TypedStream*)aStream
+- (id) read: (TypedStream*)aStream
 {
   // [super read: aStream];  
   return self;
 }
 
-- write: (TypedStream*)aStream
+- (id) write: (TypedStream*)aStream
 {
   // [super write: aStream];
   return self;
 }
 
-- awake
+- (id) awake
 {
   // [super awake];
   return self;

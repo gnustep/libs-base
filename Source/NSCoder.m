@@ -276,6 +276,88 @@
   va_end(ap);
 }
 
+- (void) decodeArrayOfObjCType: (const char*)type
+		         count: (unsigned)count
+			    at: (void*)buf
+		      withName: (id*)name
+{
+  if (name)
+    {
+      *name = [self decodeObject];
+    }
+  else
+    {
+      (void)[self decodeObject];
+    }
+  [self decodeArrayOfObjCType: type count: count at: buf];
+}
+
+- (void) decodeIndent
+{
+}
+
+- (void) decodeObjectAt: (id*)anObject
+	       withName: (id*)name
+{
+  [self decodeValueOfObjCType: @encode(id) at: anObject withName: name];
+}
+
+- (void) decodeValueOfCType: (const char*)type
+			 at: (void*)buf
+		   withName: (id*)name
+{
+  [self decodeValueOfObjCType: type at: buf withName: name];
+}
+
+- (void) decodeValueOfObjCType: (const char*)type
+			    at: (void*)buf
+		      withName: (id*)name
+{
+  if (name != 0)
+    {
+      *name = [self decodeObject];
+    }
+  else
+    {
+      (void)[self decodeObject];
+    }
+  [self decodeValueOfObjCType: type at: buf];
+}
+
+- (void) encodeArrayOfObjCType: (const char*)type
+		         count: (unsigned)count
+			    at: (const void*)buf
+		      withName: (id)name
+{
+  [self encodeObject: name];
+  [self encodeArrayOfObjCType: type count: count at: buf];
+}
+
+- (void) encodeIndent
+{
+}
+
+- (void) encodeValueOfCType: (const char*)type
+			 at: (const void*)buf
+		   withName: (id)name
+{
+  [self encodeValueOfObjCType: type at: buf withName: name];
+}
+
+- (void) encodeValueOfObjCType: (const char*)type
+			    at: (const void*)buf
+		      withName: (id)name
+{
+  [self encodeObject: name];
+  [self encodeValueOfObjCType: type at: buf];
+}
+
+- (void) encodeObjectAt: (id*)anObject
+	       withName: (id)name
+{
+  [self encodeValueOfObjCType: @encode(id) at: anObject withName: name];
+}
+
 // Managing Zones
 
 - (NSZone*) objectZone

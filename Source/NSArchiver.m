@@ -952,42 +952,5 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
     }
 }
 
-/* libObjects compatibility */
- 
-- (void) encodeArrayOfObjCType: (const char*) type
-		         count: (unsigned)count
-			    at: (const void*)buf
-		      withName: (id)name
-{
-  (*_eObjImp)(self, eObjSel, name);
-  [self encodeArrayOfObjCType: type count: count at: buf];
-}
-
-- (void) encodeIndent
-{
-}
-
-- (void) encodeValueOfCType: (const char*) type
-			 at: (const void*)buf
-		   withName: (id)name
-{
-  (*_eObjImp)(self, eObjSel, name);
-  (*_eValImp)(self, eValSel, type, buf);
-}
-
-- (void) encodeValueOfObjCType: (const char*) type
-			    at: (const void*)buf
-		      withName: (id)name
-{
-  (*_eObjImp)(self, eObjSel, name);
-  (*_eValImp)(self, eValSel, type, buf);
-}
-
-- (void) encodeObject: (id)anObject
-	     withName: (id)name
-{
-  (*_eObjImp)(self, eObjSel, name);
-  (*_eObjImp)(self, eObjSel, anObject);
-}
 @end
 

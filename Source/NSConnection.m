@@ -52,20 +52,6 @@
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSNotification.h>
 
-NSString* NSConnectionReplyMode = @"NSConnectionReplyMode";
-
-/*
- *      Keys for the NSDictionary returned by [NSConnection -statistics]
- */
-/* These in OPENSTEP 4.2 */
-NSString *NSConnectionRepliesReceived = @"NSConnectionRepliesReceived";
-NSString *NSConnectionRepliesSent = @"NSConnectionRepliesSent";
-NSString *NSConnectionRequestsReceived = @"NSConnectionRequestsReceived";
-NSString *NSConnectionRequestsSent = @"NSConnectionRequestsSent";
-/* These Are GNUstep extras */
-NSString *NSConnectionLocalCount = @"NSConnectionLocalCount";
-NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
-
 @interface	NSDistantObject (NSConnection)
 - (id) localForProxy;
 - (void) setProxyTarget: (unsigned)target;
@@ -2393,13 +2379,4 @@ static int messages_received_count;
 }
 
 @end
-
-
-/* Notification Strings. */
-
-NSString *NSConnectionDidDieNotification
-= @"NSConnectionDidDieNotification";
-
-NSString *NSConnectionDidInitializeNotification
-= @"NSConnectionDidInitializeNotification";
 

@@ -104,7 +104,6 @@
  */
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: aCoder];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_name];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_object];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_info];
@@ -112,7 +111,6 @@
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [super initWithCoder: aCoder];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_name];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_object];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_info];

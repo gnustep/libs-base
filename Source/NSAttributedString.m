@@ -138,15 +138,15 @@ static Class NSMutableAttributedString_concrete_class;
     return NSAllocateObject(self, 0, z);
 }
 
-//NSCoding protocol
-- (void) encodeWithCoder: (NSCoder*)anEncoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [super encodeWithCoder: anEncoder];
+  [self subclassResponsibility: _cmd];
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
-  return [super initWithCoder: aDecoder];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (Class) classForPortCoder
