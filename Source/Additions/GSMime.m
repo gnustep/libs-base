@@ -2419,10 +2419,6 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  if (doc != nil)
 		    {
 		      [document addContent: doc];
-if ([doc headerNamed: @"content-type"] == nil)
-{
-  NSLog(@"Content: %@", [[doc convertToText] dataUsingEncoding: NSUnicodeStringEncoding]);
-}
 		    }
 		  [self _child];
 		}
