@@ -1,3 +1,18 @@
+2005-02-18 06:20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Tidy up some of last patch for unicode filesystem
+	support.
+	* Source/NSFileManager.m: Complete rewrite of  unicode filesystem
+	support to make code more readable and to allow it to easily be
+	turned off by commenting out the 'UNICODE' and '_UNICODE'
+	definitions at the start of the file.
+	There is a bug in the mingw runtime which is (currently) still
+	distributed in the 'current' complete mingw distribution ... which
+	breaks unicode filesystem support very badly.
+	So ... you can now either revert to 8bit charset filesystem support,
+	or download a more recent version of the mingw runtime from the
+	mingw site.
+
 2005-02-16 14:40 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/patchxml.m4: Try to detect libxml2 in standard directories
