@@ -8,13 +8,13 @@
 
    This file is part of the GNUstep Project
 
-   This library is free software; you can redistribute it and/or
+   This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
    of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this library; see the file COPYING.LIB.
+   License along with this program; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
@@ -262,13 +262,16 @@
   <section>
     <heading>Inter-document linkage</heading>
     <p>
-      When supplied with a list of documents to process, the tool will
-      set up linkage between documents using the gsdoc 'prev', 'next',
-      and 'up' attributes.
+      When supplied with a list of files to process, the tool will
+      set up linkage between resulting documents using the gsdoc
+      'prev', 'next', and 'up' attributes.
     </p>
     <p>
-      The first document processed will be the 'up' link for all
-      subsequent documents.
+      If the first file listed on the command line is a gsdoc document,
+      it will be assumed to be the 'top' document and will be referenced
+      in the 'up' link for all subsequent documents.<br />
+      Otherwise, autogsdoc will generate an index file called 'index.gsdoc'
+      which will be used as the 'top' file.
     </p>
     <p>
       The 'prev' and 'next' links will be set up to link the documents
@@ -313,6 +316,7 @@ main(int argc, char **argv, char **env)
   NSString		*up = nil;
   NSString		*prev = nil;
   BOOL			showDependencies = YES;
+  BOOL			haveAutoIndex = NO;
   CREATE_AUTORELEASE_POOL(outer);
   CREATE_AUTORELEASE_POOL(pool);
 
@@ -566,6 +570,47 @@ main(int argc, char **argv, char **env)
 		}
 	    }
 
+	  if (up == nil)
+	    {
+	      if (isDocumentation == YES)
+		{
+		  ASSIGN(up, file);
+		}
+	      else
+		{
+		  NSString	*upFile = [documentationDirectory
+		    stringByAppendingPathComponent: @"index.gsdoc"];
+
+		  if ([mgr isReadableFileAtPath: upFile] == NO)
+		    {
+		      NSString	*upString = [NSString stringWithFormat:
+			@"<?xml version=\"1.0\"?>\n"
+			@"<!DOCTYPE gsdoc PUBLIC "
+			@"\"-//GNUstep//DTD gsdoc 0.6.7//EN\" "
+			@"\"http://www.gnustep.org/gsdoc-0_6_7.xml\">\n"
+			@"<gsdoc base=\"index\" next=\"%@\">\n"
+			@"  <head>\n"
+			@"    <title>%@ project reference</title>\n"
+			@"    <author name=\"autogsdoc\"></author>\n"
+			@"  </head>\n"
+			@"  <body>\n"
+			@"    <back>\n"
+			@"      <index scope=\"project\" type=\"title\" />\n"
+			@"    </back>\n"
+			@"  </body>\n"
+			@"</gsdoc>\n",
+			  file, project];
+
+		      if ([upString writeToFile: upFile atomically: YES] == NO)
+			{
+			  NSLog(@"Unable to write %@", upFile);
+			}
+		    }
+		  haveAutoIndex = YES;
+		  ASSIGN(up, @"index");
+		}
+	    }
+
 	  if (isDocumentation == NO)
 	    {
 	      /*
@@ -638,14 +683,7 @@ main(int argc, char **argv, char **env)
 		   * Set up linkage for this file.
 		   */
 		  [[parser info] setObject: file forKey: @"base"];
-		  if (up == nil)
-		    {
-		      ASSIGN(up, file);
-		    }
-		  else
-		    {
-		      [[parser info] setObject: up forKey: @"up"];
-		    }
+		  [[parser info] setObject: up forKey: @"up"];
 		  if (prev != nil)
 		    {
 		      [[parser info] setObject: prev forKey: @"prev"];
@@ -740,13 +778,22 @@ main(int argc, char **argv, char **env)
     }
 
   /*
-   * accumulate project index info into global index
+   * Accumulate project index info into global index
    */
   [indexer mergeRefs: [prjRefs refs] override: YES];
 
-  for (i = 1; i < [args count]; i++)
+  for (i = (haveAutoIndex ? 0 : 1); i < [args count]; i++)
     {
-      NSString *arg = [args objectAtIndex: i];
+      NSString *arg;
+
+      if (i == 0)
+	{
+	  arg = @"index.gsdoc";		// Auto generated.
+	}
+      else
+	{
+	  arg = [args objectAtIndex: i];
+	}
 
       if ([arg hasPrefix: @"-"])
 	{

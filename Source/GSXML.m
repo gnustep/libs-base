@@ -1354,26 +1354,32 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (BOOL) substituteEntities: (BOOL)yesno
 {
-  BOOL	result = ((xmlParserCtxtPtr)lib)->replaceEntities ? YES : NO;
+  int	oldVal;
+  int	newVal = (yesno == YES) ? 1 : 0;
 
-  ((xmlParserCtxtPtr)lib)->replaceEntities = (yesno == YES) ? 1 : 0;
-  return result;
+  xmlGetFeature((xmlParserCtxtPtr)lib, "substitute entities", (void*)&oldVal);
+  xmlSetFeature((xmlParserCtxtPtr)lib, "substitute entities", (void*)&newVal);
+  return (oldVal == 1) ? YES : NO;
 }
 
 - (BOOL) keepBlanks: (BOOL)yesno
 {
-  BOOL	result = ((xmlParserCtxtPtr)lib)->keepBlanks ? YES : NO;
+  int	oldVal;
+  int	newVal = (yesno == YES) ? 1 : 0;
 
-  ((xmlParserCtxtPtr)lib)->keepBlanks = (yesno == YES) ? 1 : 0;
-  return result;
+  xmlGetFeature((xmlParserCtxtPtr)lib, "keep blanks", (void*)&oldVal);
+  xmlSetFeature((xmlParserCtxtPtr)lib, "keep blanks", (void*)&newVal);
+  return (oldVal == 1) ? YES : NO;
 }
 
 - (BOOL) doValidityChecking: (BOOL)yesno
 {
-  BOOL	result = ((xmlParserCtxtPtr)lib)->validate ? YES : NO;
+  int	oldVal;
+  int	newVal = (yesno == YES) ? 1 : 0;
 
-  ((xmlParserCtxtPtr)lib)->validate = (yesno == YES) ? 1 : 0;
-  return result;
+  xmlGetFeature((xmlParserCtxtPtr)lib, "validate", (void*)&oldVal);
+  xmlSetFeature((xmlParserCtxtPtr)lib, "validate", (void*)&newVal);
+  return (oldVal == 1) ? YES : NO;
 }
 
 - (BOOL) getWarnings: (BOOL)yesno

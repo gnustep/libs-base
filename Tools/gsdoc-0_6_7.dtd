@@ -496,7 +496,7 @@
 <!ELEMENT index EMPTY>
 <!ATTLIST index
   type (class | protocol | method | ivariable | function | type | macro | variable | constant | label | title) "label"
-  scope (title | project) "file"
+  scope (file | project) "file"
 >
 
 
