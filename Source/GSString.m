@@ -3127,6 +3127,10 @@ agree, create a new GSUnicodeInlineString otherwise.
   fmt[len] = '\0';
 
   GSFormat((GSStr)self, fmt, argList, locale);
+  if (fmt != fbuf)
+    {
+      objc_free(fmt);
+    }
   return self;
 }
 
