@@ -24,7 +24,7 @@
 #include <config.h>
 #include <base/Port.h>
 #include <base/Coder.h>	/* for Coding protocol in Object category */
-#include <base/NotificationDispatcher.h>
+#include <Foundation/NSNotification.h>
 #include <Foundation/NSException.h>
 
 @implementation Port
