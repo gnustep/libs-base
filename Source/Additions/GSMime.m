@@ -599,7 +599,7 @@ wordData(NSString *word)
  * </p>
  * <p>
  *   On completion of parsing a valid document, the
- *   [GSMimeDocument-mimeDocument] method returns the
+ *   [GSMimeParser-mimeDocument] method returns the
  *   resulting parsed document.
  * </p>
  */
@@ -3657,7 +3657,7 @@ static NSCharacterSet	*tokenSet = nil;
  * Create new content ID header, set it as the content ID of the document
  * and return it.<br />
  * This is a convenience method which simply places angle brackets around
- * an [NSProcessInfo+globallyUniqueString] to form the header value.
+ * an [NSProcessInfo-globallyUniqueString] to form the header value.
  */
 - (GSMimeHeader*) makeContentID
 {
@@ -3677,7 +3677,7 @@ static NSCharacterSet	*tokenSet = nil;
  * Create new message ID header, set it as the message ID of the document
  * and return it.<br />
  * This is a convenience method which simply places angle brackets around
- * an [NSProcessInfo+globallyUniqueString] to form the header value.
+ * an [NSProcessInfo-globallyUniqueString] to form the header value.
  */
 - (GSMimeHeader*) makeMessageID
 {
