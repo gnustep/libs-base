@@ -28,13 +28,22 @@ AC_DEFUN(OBJC_SYS_AUTOLOAD,
 # loading of constructor functions, et. al. (e.g. ELF format).
 #
 # Currently only looks for ELF format. NOTE: Checking for __ELF__ being
-# defined doesnt work, since gcc on Solaris does not define this
+# defined doesnt work, since gcc on Solaris does not define this. I'm 
+# assuming that machines that have elf.h use the ELF library format, what
+# is really needed is to check if this is true directly.
 #
 # Makes the following substitutions:
-#	Defines SYS_AUTOLOAD
+#	Defines SYS_AUTOLOAD (whether initializer functions are autoloaded)
+#	Defines CON_AUTOLOAD (whether constructor functions are autoloaded)
 #--------------------------------------------------------------------
+AC_CACHE_VAL(objc_cv_sys_autoload,
+[AC_CHECK_HEADER(elf.h, [objc_cv_sys_autoload=yes], [objc_cv_sys_autoload=no])
+])
+if test $objc_cv_sys_autoload = yes; then
+  AC_DEFINE(CON_AUTOLOAD)
+fi
 AC_CACHE_VAL(objc_subinit_worked,
-[AC_MSG_CHECKING(loading of contructor functions)
+[AC_MSG_CHECKING(loading of initializer functions)
 AC_TRY_RUN([
 static int did_subinit = 0;
 static char *name;
@@ -54,8 +63,8 @@ int main(int argc, char *argv[])
     exit (0);
   exit (1);
 }
-], objc_subinit_worked=1, objc_subinit_worked=0, objc_subinit_worked=0)])
-if test $objc_subinit_worked = 1; then
+], objc_subinit_worked=yes, objc_subinit_worked=no, objc_subinit_worked=no)])
+if test $objc_subinit_worked = yes; then
   AC_DEFINE(SYS_AUTOLOAD)
   AC_MSG_RESULT(yes)
 else
@@ -114,7 +123,7 @@ if test $DYNAMIC_LINKER = dld; then
     DYNAMIC_LDFLAGS="-static"
     DYNAMIC_CFLAGS=""
 elif test $DYNAMIC_LINKER = simple; then
-    if test $objc_subinit_worked = yes; then 
+    if test $objc_cv_sys_autoload = yes; then 
       DYNAMIC_BUNDLER_LINKER="$(CC) -Xlinker -r"
     else
       DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib"
