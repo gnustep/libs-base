@@ -1,8 +1,9 @@
 /** Mutual exclusion locking classes
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996,2003 Free Software Foundation, Inc.
 
    Author:  Scott Christley <scottc@net-community.com>
    Created: 1996
+   Author:  Richard Frith-Macdonald <rfm@gnu.org>
    
    This file is part of the GNUstep Objective-C Library.
 
@@ -33,6 +34,63 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSThread.h"
+
+extern void		GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval);
+extern NSTimeInterval	GSTimeNow();
+
+typedef struct {
+  NSTimeInterval	end;
+  NSTimeInterval	i0;
+  NSTimeInterval	i1;
+  NSTimeInterval	max;
+} GSSleepInfo;
+
+static void GSSleepInit(NSDate *limit, GSSleepInfo *context)
+{
+  context->end = [limit timeIntervalSinceReferenceDate];
+  context->i0 = 0.0;
+  context->i1 = 0.0001;		// Initial pause interval.
+  context->max = 0.25;		// Maximum pause interval.
+}
+
+/**
+ * <p>Using a pointer to a context structure initialised using GSSleepInit()
+ * we either pause for a while and return YES or, if the limit date
+ * has passed, return NO.
+ * </p>
+ * <p>The pause intervals start off very small, but rapidly increase
+ * (following a fibonacci sequence) up to a maximum value.
+ * </p>
+ * <p>We use the GSSleepUntilIntervalSinceReferenceDate() function to
+ * avoid objc runtime messaging overheads and overheads of creating and
+ * destroying temporary date objects.
+ * </p>
+ */
+static BOOL GSSleepOrFail(GSSleepInfo *context)
+{
+  NSTimeInterval	when = GSTimeNow();
+  NSTimeInterval	tmp;
+
+  if (when >= context->end)
+    {
+      return NO;
+    }
+  tmp = context->i0 + context->i1;
+  context->i0 = context->i1;
+  context->i1 = tmp;
+  if (tmp > context->max)
+    {
+      tmp = context->max;
+    }
+  when += tmp;
+  if (when > context->end)
+    {
+      when = context->end;
+    }
+  GSSleepUntilIntervalSinceReferenceDate(when);
+  return YES;		// Paused.
+}
 
 // Exceptions
 
@@ -145,32 +203,22 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
  * has the lock (but it waits until the time limit is up before returning
  * NO).
  */
-- (BOOL) lockBeforeDate: (NSDate *)limit
+- (BOOL) lockBeforeDate: (NSDate*)limit
 {
-  int x;
+  int		x;
+  GSSleepInfo	ctxt;
+
+  GSSleepInit(limit, &ctxt);
 
   /* This is really the behavior of OpenStep, if the current thread has
      the lock, we just block until the time limit is up. Very odd */
   while (_mutex->owner == objc_thread_id()
     || (x = objc_mutex_trylock(_mutex)) == -1)
     {
-      NSDate *current = [NSDate date];
-      NSComparisonResult compare;
-      
-      compare = [current compare: limit];
-      if (compare == NSOrderedSame || compare == NSOrderedDescending)
+      if (GSSleepOrFail(&ctxt) == NO)
 	{
 	  return NO;
 	}
-#if defined(__MINGW__)
-      Sleep(250);	// 0.25 second
-#else
-      /*
-       * This should probably be more accurate like usleep(250)
-       * but usleep is known to NOT be thread safe under all architectures.
-       */
-      sleep(1);
-#endif
     }
   return YES;
 }
@@ -378,27 +426,18 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // Acquiring the lock with a date condition
 - (BOOL) lockBeforeDate: (NSDate*)limit
 { 
+  GSSleepInfo	ctxt;
+
   CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+
+  GSSleepInit(limit, &ctxt);
 
   while (objc_mutex_trylock(_mutex) == -1)
     {
-      NSDate *current = [NSDate date];
-      NSComparisonResult compare;
-      
-      compare = [current compare: limit];
-      if (compare == NSOrderedSame || compare == NSOrderedDescending)
+      if (GSSleepOrFail(&ctxt) == NO)
 	{
 	  return NO;
 	}
-#if defined(__MINGW__)
-      Sleep(250);	// 0.25 second
-#else
-      /*
-       * This should probably be more accurate like usleep(250)
-       * but usleep is known to NOT be thread safe under all architectures.
-       */
-      sleep(1);
-#endif
     }
   return YES;
 }
@@ -556,27 +595,17 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
  * YES if it can. It returns NO if it cannot
  * (but it waits until the time limit is up before returning NO).
  */
-- (BOOL) lockBeforeDate: (NSDate *)limit
+- (BOOL) lockBeforeDate: (NSDate*)limit
 {
+  GSSleepInfo	ctxt;
+
+  GSSleepInit(limit, &ctxt);
   while (objc_mutex_trylock(_mutex) == -1)
     {
-      NSDate *current = [NSDate date];
-      NSComparisonResult compare;
-      
-      compare = [current compare: limit];
-      if (compare == NSOrderedSame || compare == NSOrderedDescending)
+      if (GSSleepOrFail(&ctxt) == NO)
 	{
 	  return NO;
 	}
-#if defined(__MINGW__)
-      Sleep(250);	// 0.25 second
-#else
-      /*
-       * This should probably be more accurate like usleep(250)
-       * but usleep is known to NOT be thread safe under all architectures.
-       */
-      sleep(1);
-#endif
     }
   return YES;
 }
