@@ -52,10 +52,14 @@ struct _ucc_ {unichar from; char to;};
 // The rest of the GNUstep code stores UNICODE in internal byte order,
 // so we do the same. This should be UCS-2-INTERNAL for libiconv
 #ifdef WORDS_BIGENDIAN
-#define UNICODE_ENC "UNICODEBIG"
+#define UNICODE_INT "UNICODEBIGL"
 #else
-#define UNICODE_ENC "UNICODELITTLE"
+#define UNICODE_INT "UNICODELITTLE"
 #endif
+
+#define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
+
+static const char *unicode_enc = NULL;
 
 #endif 
 
@@ -174,6 +178,8 @@ const struct _strenc_ str_encoding_table[]=
   {0, "Unknown encoding"}
 };
 
+
+
 NSStringEncoding *GetAvailableEncodings()
 {
   // FIXME: This should check which iconv definitions are available and 
@@ -278,6 +284,30 @@ GetEncodingName(NSStringEncoding encoding)
 }
 
 #ifdef HAVE_ICONV
+
+/* Check to see what type of internal unicode format the library supports */
+static const char *
+internal_unicode_enc()
+{
+  iconv_t conv;
+  unicode_enc = UNICODE_INT;
+  conv = iconv_open(unicode_enc, "ASCII");
+  if (conv != (iconv_t)-1)
+    {
+      iconv_close(conv);
+      return unicode_enc;
+    }
+  unicode_enc = "UCS-2-INTERNAL";
+  conv = iconv_open(unicode_enc, "ASCII");
+  if (conv != (iconv_t)-1)
+    {
+      iconv_close(conv);
+      return unicode_enc;
+    }
+  unicode_enc = "UCS-2";
+  /* This had better work */
+  return unicode_enc;
+}
 
 static char *
 iconv_stringforencoding(NSStringEncoding enc)

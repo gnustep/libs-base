@@ -1,3 +1,10 @@
+2001-09-21  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Typo in iconv cached value.
+	* Headers/gnustep/base/NSGeometry.h: Make const values static also.
+	* Source/NSConnection.m: Remove obsolete BROKEN_NESTED code.
+	* Source/Unicode.m: Dynamically determine best Unicode encoding.
+
 2001-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/gnustep/base/DistributedObjects.h:

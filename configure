@@ -5463,7 +5463,7 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-  if test x"$av_cv_lib_giconv_main" = xyes; then
+  if test x"$ac_cv_lib_giconv_main" = xyes; then
     cat >> confdefs.h <<\EOF
 #define HAVE_ICONV 1
 EOF
@@ -5516,7 +5516,7 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-    if test x"$av_cv_lib_iconv_main" = xyes; then
+    if test x"$ac_cv_lib_iconv_main" = xyes; then
       cat >> confdefs.h <<\EOF
 #define HAVE_ICONV 1
 EOF
