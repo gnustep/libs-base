@@ -38,6 +38,21 @@
 /**** Function Implementations ***********************************************/
 /* Most of these are implemented in the header file as inline functkions */
 
+NSRect
+NSIntegralRect(NSRect aRect)
+{
+  NSRect rect;
+
+  if (NSIsEmptyRect(aRect))
+    return NSMakeRect(0, 0, 0, 0);
+
+  rect.origin.x = floor(aRect.origin.x);
+  rect.origin.y = floor(aRect.origin.y);
+  rect.size.width = ceil(aRect.size.width);
+  rect.size.height = ceil(aRect.size.height);
+  return rect;
+}
+
 void 	
 NSDivideRect(NSRect aRect,
              NSRect *slice,
