@@ -606,19 +606,16 @@
 	      CASE_TYPE(_C_DBL, double);
 	      CASE_TYPE(_C_PTR, void*);
 	      case _C_STRUCT_B:
+	      default:
 #if defined(sparc) || defined(powerpc)
 		/* FIXME: This only appears on sparc and ppc machines so far.
 		structures appear to be aligned on word boundaries. 
 		Hopefully there is a more general way to figure this out */
 		size = (size<sizeof(int))?4:size;
 #endif
-		memcpy(datum, &va_arg(ap, typeof(struct{char x[size];})), size);
-		break;
-	      default:
-		{
-		  [NSException raise: NSInvalidArgumentException
-			format: @"Could not handle type of %d argument.", i-1];
-		} /* default */
+	      NSLog(@"Unsafe handling of type of %d argument.", i-1];
+	      memcpy(datum, (char)va_arg(ap, int), copysize);
+	      break;
 	    }
 	}
     }
