@@ -1,5 +1,5 @@
 /* Implementation of NSPortNameServer class for Distributed Objects
-   Copyright (C) 1998,1999 Free Software Foundation, Inc.
+   Copyright (C) 1998,1999,2000 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -57,12 +57,18 @@
 #define	make_gdomap_port(X)	stringify_it(X)
 
 /*
- * to suppress warnings about using this private method.
+ * to suppress warnings about using private methods.
  */
-@interface TcpOutPort (Hack)
+@class	GSTcpPort;
+@class	TcpOutPort;
+@interface NSPort (Hack)
 + newForSendingToSockaddr: (struct sockaddr_in*)sockaddr
        withAcceptedSocket: (int)sock
             pollingInPort: (id)ip;
+
++ (GSTcpPort*) portWithNumber: (gsu16)number
+		       onHost: (NSHost*)host
+		 forceAddress: (NSString*)addr;
 @end
 
 /*
@@ -76,6 +82,7 @@ static NSArray		*modes = nil;
 static NSRecursiveLock	*serverLock = nil;
 static NSPortNameServer	*defaultServer = nil;
 static NSString		*launchCmd = nil;
+static Class		portClass = 0;
 
 
 
@@ -509,6 +516,7 @@ typedef enum {
 #endif
       launchCmd = [NSString stringWithCString:
 	make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX)]; 
+      portClass = [TcpOutPort class];
     }
 }
 
@@ -753,31 +761,50 @@ typedef enum {
 
   if (portNum)
     {
-      struct sockaddr_in	sin;
-      NSPort			*p;
-      unsigned short		n;
+      if (portClass == [TcpOutPort class])
+	{
+	  struct sockaddr_in	sin;
+	  NSPort			*p;
+	  unsigned short		n;
 
-      memset(&sin, '\0', sizeof(sin));
-      sin.sin_family = AF_INET;
+	  memset(&sin, '\0', sizeof(sin));
+	  sin.sin_family = AF_INET;
 
-      /*
-       *	The returned port is an unsigned int - so we have to
-       *	convert to a short in network byte order (big endian).
-       */
-      n = (unsigned short)portNum;
-      sin.sin_port = NSSwapHostShortToBig(n);
+	  /*
+	   *	The returned port is an unsigned int - so we have to
+	   *	convert to a short in network byte order (big endian).
+	   */
+	  n = (unsigned short)portNum;
+	  sin.sin_port = NSSwapHostShortToBig(n);
 
-      /*
-       *	The host addresses are given to us in network byte order
-       *	so we just copy the address into place.
-       */
-      sin.sin_addr = singleServer;
+	  /*
+	   *	The host addresses are given to us in network byte order
+	   *	so we just copy the address into place.
+	   */
+	  sin.sin_addr = singleServer;
 
-      p = [TcpOutPort newForSendingToSockaddr: &sin
-			   withAcceptedSocket: 0
-				pollingInPort: nil];
-      return AUTORELEASE(p);
-    }
+	  p = [TcpOutPort newForSendingToSockaddr: &sin
+			       withAcceptedSocket: 0
+				    pollingInPort: nil];
+	  return AUTORELEASE(p);
+	}
+      else if (portClass == [GSTcpPort class])
+	{
+	  NSString	*addr;
+	  NSHost	*host;
+
+	  addr = [NSString stringWithCString: inet_ntoa(singleServer)];
+	  host = [NSHost hostWithAddress: addr];
+	  return (NSPort*)[GSTcpPort portWithNumber: portNum
+					     onHost: host
+				       forceAddress: addr];
+	}
+      else
+	{
+	  NSLog(@"Unknown port class (%@) set for new port!", portClass);
+	  return nil;
+	}
+    }	
   else
     {
       return nil;
@@ -1017,6 +1044,14 @@ typedef enum {
 @end
 
 @implementation	NSPortNameServer (GNUstep)
+
++ (Class) setPortClass: (Class)c
+{
+  Class	old = portClass;
+
+  portClass = c;
+  return old;
+}
 
 /*
  * Return the names under which the port is currently registered.
