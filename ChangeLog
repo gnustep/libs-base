@@ -8,6 +8,8 @@
 	categpory of Object.
 	* Source/Additions/GSMime.m: Add a couple of convenience methods.
 	* Source/GSHTTPURLHandle.m: Use one of them.
+	* SSL/Makefile.postample: on distclean, don't need to delete
+	bundle, but do delete config.h explicitly.
 
 2002-06-13  Richard Frith-Macdonald <rfm@gnu.org>
 
