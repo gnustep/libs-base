@@ -254,7 +254,7 @@ $(GNUSTEP_OBJ_DIR)/NSGeometry.o \
 # Make list of class names for DLL exports. I'm not sure how to make this
 # work with the correct dependencies, so for now it should be regenerated
 # by hand when new classes get added. Then mv libgnustep-base.def.new to
-# libgnustep-base.def
+# libgnustep-base.def.in
 #
 libgnustep-base.def.new: $(GNUSTEP_OBJ_DIR)/*o Additions/$(GNUSTEP_OBJ_DIR)/*o
 	rm -f $@
@@ -264,6 +264,17 @@ libgnustep-base.def.new: $(GNUSTEP_OBJ_DIR)/*o Additions/$(GNUSTEP_OBJ_DIR)/*o
 	cat _tmp.def | grep "_class_name_" >> $@
 	rm -rf _tmp.def
 
+#
+# Build the .def file depending on the objc runtime in use.
+# 
+ifeq ($(NX_CONST_STRING_CLASS),NXConstantString)
+libgnustep-base.def: libgnustep-base.def.in
+	sed -e 's/NSConstantString/NXConstantString/' < $<  > $@
+endif
+ifeq ($(NX_CONST_STRING_CLASS),NSConstantString)
+libgnustep-base.def: libgnustep-base.def.in
+	sed -e 's/NXConstantString/NSConstantString/' < $<  > $@
+endif
 
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)
