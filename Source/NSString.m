@@ -2361,7 +2361,14 @@ handle_printf_atsign (FILE *stream,
 /* Return a string for passing to OS calls to handle file system objects. */
 - (const char*) fileSystemRepresentation
 {
-  return [[NSFileManager defaultManager] fileSystemRepresentationWithPath: self];
+  static NSFileManager *fm = nil;
+
+  if (fm == nil)
+    {
+      fm = [NSFileManager defaultManager];
+    }
+  
+  return [fm fileSystemRepresentationWithPath: self];
 }
 
 - (BOOL) getFileSystemRepresentation: (char*)buffer maxLength: (unsigned)size
