@@ -1,3 +1,15 @@
+2002-11-02  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
+
+	* Source/NSRunLoop.m ([NSRunLoop -init]): ask to be informed about
+	NSWillBecomeMultiThreadedNotification if _willBecomeMultiThreaded:
+	method existes.
+	* Source/NSRunLoop.m: new GSAppKitInterThreadRunLoopWatcher private
+	class.
+	([NSRunLoop -_willBecomeMultiThreaded:]): new method, sets up the 
+	lock, the socket and new run loop watcher that'll listen on the socket.
+	([NSObject -performSelectorOnMainThread:withObject:waitUntilDone:modes:]):
+	modified to use the previous changes.
+
 2002-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSBundle.h: Tidied/corrected documentation
