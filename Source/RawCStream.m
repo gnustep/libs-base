@@ -37,7 +37,7 @@
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \
      __a*((__v+__a-1)/__a); })
 
-@implementation BinaryCStream
+@implementation RawCStream
 
 
 /* For debugging */
@@ -140,7 +140,7 @@ static BOOL debug_binary_coder;
 	    /* Change this so we don't re-write type info every time. */
 	    [self encodeValueOfCType: type 
 		  at: d 
-		  withName:z NULL];
+		  withName: NULL];
 	    ((char*)d) += offset;
 	  }
 	break; 
@@ -243,7 +243,7 @@ static BOOL debug_binary_coder;
 	/* xxx Do we need to allocate space just like char* ?  No. */
 	int acc_size = 0;
 	int align;
-	char *save_type = type;
+	const char *save_type = type;
 
 	while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
 	while (*type != _C_STRUCT_E)
