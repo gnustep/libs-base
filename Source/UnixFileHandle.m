@@ -77,6 +77,10 @@
 #endif
 #endif
 
+#ifndef	INADDR_NONE
+#define	INADDR_NONE	-1
+#endif
+
 // Maximum data in single I/O operation
 #define	NETBUF_SIZE	4096
 
@@ -119,6 +123,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 #ifndef	HAVE_INET_ATON
       sin->sin_addr.s_addr = inet_addr([name cString]);
+      if (sin->sin_addr.s_addr == INADDR_NONE)
+	return NO;
 #else
       if (inet_aton([name cString], &sin->sin_addr) == 0)
 	return NO;
