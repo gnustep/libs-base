@@ -31,6 +31,11 @@
 
 #include <objc/objc.h>
 #include <objc/objc-api.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdarg.h>
 
 #ifdef GNUSTEP_WITH_DLL
@@ -157,13 +162,13 @@ GSObjCClass(id obj)
  * Returns the superclass of this.
  */
 GS_STATIC_INLINE Class
-GSObjCSuper(Class class)
+GSObjCSuper(Class cls)
 {
 #ifndef NeXT_RUNTIME
-  if (class != 0 && CLS_ISRESOLV (class) == NO)
+  if (cls != 0 && CLS_ISRESOLV (cls) == NO)
     {
       const char *name;
-      name = (const char *)class->super_class;
+      name = (const char *)cls->super_class;
       if (name == NULL)
 	{
 	  return 0;
@@ -171,7 +176,7 @@ GSObjCSuper(Class class)
       return objc_lookup_class (name);
     }
 #endif
-  return class_get_super_class(class);
+  return class_get_super_class(cls);
 }
 
 /**
@@ -203,15 +208,15 @@ GSObjCIsClass(Class cls)
  * The argument to this function must NOT be nil.
  */
 GS_STATIC_INLINE BOOL
-GSObjCIsKindOf(Class this, Class other)
+GSObjCIsKindOf(Class cls, Class other)
 {
-  while (this != Nil)
+  while (cls != Nil)
     {
-      if (this == other)
+      if (cls == other)
 	{
 	  return YES;
 	}
-      this = GSObjCSuper(this);
+      cls = GSObjCSuper(cls);
     }
   return NO;
 }
@@ -234,11 +239,11 @@ GSClassFromName(const char *name)
  * was supplied.
  */
 GS_STATIC_INLINE const char *
-GSNameFromClass(Class this)
+GSNameFromClass(Class cls)
 {
-  if (this == 0)
+  if (cls == 0)
     return 0;
-  return class_get_class_name(this);
+  return class_get_class_name(cls);
 }
 
 /**
@@ -330,11 +335,11 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
  * was not typed.
  */
 GS_STATIC_INLINE const char *
-GSTypesFromSelector(SEL this)
+GSTypesFromSelector(SEL sel)
 {
-  if (this == 0)
+  if (sel == 0)
     return 0;
-  return sel_get_type(this);
+  return sel_get_type(sel);
 }
 
 /**
@@ -381,7 +386,7 @@ typedef struct objc_ivar        *GSIVar;
  * it stabilizes.
  */
 GS_EXPORT GSMethod
-GSGetMethod(Class class, SEL sel,
+GSGetMethod(Class cls, SEL sel,
 	    BOOL searchInstanceMethods,
 	    BOOL searchSuperClasses);
 
@@ -394,10 +399,10 @@ GSGetMethod(Class class, SEL sel,
  * it stabilizes.
  */
 GS_STATIC_INLINE void
-GSFlushMethodCacheForClass (Class class)
+GSFlushMethodCacheForClass (Class cls)
 {
   extern void __objc_update_dispatch_table_for_class (Class);
-  __objc_update_dispatch_table_for_class (class);
+  __objc_update_dispatch_table_for_class (cls);
 }
 
 /**
@@ -410,7 +415,7 @@ GSFlushMethodCacheForClass (Class class)
  * it stabilizes.
  */
 GS_EXPORT GSIVar
-GSCGetInstanceVariableDefinition(Class class, const char *name);
+GSCGetInstanceVariableDefinition(Class cls, const char *name);
 
 /**
  * Returns the pointer to the instance variable structure
@@ -423,7 +428,7 @@ GSCGetInstanceVariableDefinition(Class class, const char *name);
  * it stabilizes.
  */
 GS_EXPORT GSIVar
-GSObjCGetInstanceVariableDefinition(Class class, NSString *name);
+GSObjCGetInstanceVariableDefinition(Class cls, NSString *name);
 
 /**
  * <p>Returns a pointer to objc_malloc'ed memory large enough
@@ -525,7 +530,7 @@ GSRemoveMethodFromList (GSMethodList list,
  * it stabilizes.</p>
  */
 GSMethodList
-GSMethodListForSelector(Class class,
+GSMethodListForSelector(Class cls,
 			SEL selector,
 			void **iterator,
 			BOOL searchInstanceMethods);
@@ -561,7 +566,7 @@ GSMethodFromList(GSMethodList list,
  * it stabilizes.</p>
  */
 void
-GSAddMethodList(Class class,
+GSAddMethodList(Class cls,
 		GSMethodList list,
 		BOOL toInstanceMethods);
 
@@ -576,7 +581,7 @@ GSAddMethodList(Class class,
  * it stabilizes.</p>
  */
 void
-GSRemoveMethodList(Class class,
+GSRemoveMethodList(Class cls,
 		   GSMethodList list,
 		   BOOL fromInstanceMethods);
 
@@ -585,9 +590,9 @@ GSRemoveMethodList(Class class,
  * Returns the version number of this.
  */
 GS_STATIC_INLINE int
-GSObjCVersion(Class this)
+GSObjCVersion(Class cls)
 {
-  return class_get_version(this);
+  return class_get_version(cls);
 }
 
 #ifndef NeXT_Foundation_LIBRARY
@@ -680,51 +685,51 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCName(Class this)
+GSObjCName(Class cls)
 {
-  return class_get_class_name(this);
+  return class_get_class_name(cls);
 }
 
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCSelectorName(SEL this)
+GSObjCSelectorName(SEL sel)
 {
-  if (this == 0)
+  if (sel == 0)
     return 0;
-  return sel_get_name(this);
+  return sel_get_name(sel);
 }
 
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCSelectorTypes(SEL this)
+GSObjCSelectorTypes(SEL sel)
 {
-  return sel_get_type(this);
+  return sel_get_type(sel);
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetInstanceMethod(Class class, SEL sel)
+GSGetInstanceMethod(Class cls, SEL sel)
 {
-  return GSGetMethod(class, sel, YES, YES);
+  return GSGetMethod(cls, sel, YES, YES);
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetClassMethod(Class class, SEL sel)
+GSGetClassMethod(Class cls, SEL sel)
 {
-  return GSGetMethod(class, sel, NO, YES);
+  return GSGetMethod(cls, sel, NO, YES);
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetInstanceMethodNotInherited(Class class, SEL sel)
+GSGetInstanceMethodNotInherited(Class cls, SEL sel)
 {
-  return GSGetMethod(class, sel, YES, NO);
+  return GSGetMethod(cls, sel, YES, NO);
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetClassMethodNotInherited(Class class, SEL sel)
+GSGetClassMethodNotInherited(Class cls, SEL sel)
 {
-  return GSGetMethod(class, sel, NO, NO);
+  return GSGetMethod(cls, sel, NO, NO);
 }
 
 
@@ -879,5 +884,9 @@ GSGetClassMethodNotInherited(Class class, SEL sel)
 
 
 #endif /* NO_GNUSTEP */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */

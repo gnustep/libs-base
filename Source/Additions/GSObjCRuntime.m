@@ -602,10 +602,10 @@ GSObjCBehaviorDebug(int i)
 
 #if NeXT_RUNTIME
 
-static GSMethod search_for_method_in_class (Class class, SEL op);
+static GSMethod search_for_method_in_class (Class cls, SEL op);
 
 void 
-GSObjCAddMethods (Class class, GSMethodList methods)
+GSObjCAddMethods (Class cls, GSMethodList methods)
 {
   static SEL initialize_sel = 0;
   GSMethodList mlist;
@@ -613,7 +613,7 @@ GSObjCAddMethods (Class class, GSMethodList methods)
   if (!initialize_sel)
     initialize_sel = sel_register_name ("initialize");
 
-  /* Add methods to class->dtable and class->methods */
+  /* Add methods to cls->dtable and cls->methods */
   mlist = methods;
     {
       int counter;
@@ -635,7 +635,7 @@ GSObjCAddMethods (Class class, GSMethodList methods)
 	  BDBGPrintf("   processing method [%s] ... ", 
 		     GSNameFromSelector(method->method_name));
 
-	  if (!search_for_method_in_class(class,method->method_name)
+	  if (!search_for_method_in_class(cls, method->method_name)
 	    && !sel_eq(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
@@ -654,7 +654,7 @@ GSObjCAddMethods (Class class, GSMethodList methods)
         }
       if (new_list->method_count)
 	{
-	  class_add_method_list(class, new_list);
+	  class_add_method_list(cls, new_list);
 	}
       else
 	{
@@ -666,7 +666,7 @@ GSObjCAddMethods (Class class, GSMethodList methods)
 /* Search for the named method's method structure.  Return a pointer
    to the method's method structure if found.  NULL otherwise. */
 static GSMethod
-search_for_method_in_class (Class class, SEL op)
+search_for_method_in_class (Class cls, SEL op)
 {
   void *iterator = 0;
   GSMethodList method_list;
@@ -675,7 +675,7 @@ search_for_method_in_class (Class class, SEL op)
     return NULL;
 
   /* If not found then we'll search the list.  */
-  while ( (method_list = class_nextMethodList(class, &iterator)) )
+  while ( (method_list = class_nextMethodList(cls, &iterator)) )
     {
       int i;
 
@@ -703,10 +703,10 @@ search_for_method_in_class (Class class, SEL op)
 extern Method_t search_for_method_in_list(MethodList_t list, SEL op);
 extern void class_add_method_list(Class, MethodList_t);
 
-static Method_t search_for_method_in_class (Class class, SEL op);
+static Method_t search_for_method_in_class (Class cls, SEL op);
 
 void
-GSObjCAddMethods (Class class, GSMethodList methods)
+GSObjCAddMethods (Class cls, GSMethodList methods)
 {
   static SEL initialize_sel = 0;
   GSMethodList mlist;
@@ -739,7 +739,7 @@ GSObjCAddMethods (Class class, GSMethodList methods)
 
 	  BDBGPrintf("   processing method [%s] ... ", name);
 
-	  if (!search_for_method_in_list(class->methods, method->method_name)
+	  if (!search_for_method_in_list(cls->methods, method->method_name)
 	    && !sel_eq(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
@@ -766,7 +766,7 @@ GSObjCAddMethods (Class class, GSMethodList methods)
         }
       if (new_list->method_count)
 	{
-	  class_add_method_list(class, new_list);
+	  class_add_method_list(cls, new_list);
 	}
       else
 	{
@@ -776,19 +776,19 @@ GSObjCAddMethods (Class class, GSMethodList methods)
 }
 
 static Method_t
-search_for_method_in_class (Class class, SEL op)
+search_for_method_in_class (Class cls, SEL op)
 {
-  return class != NULL ? search_for_method_in_list(class->methods, op) : NULL;
+  return cls != NULL ? search_for_method_in_list(cls->methods, op) : NULL;
 }
 
 #endif /* NeXT runtime */
 
 GSMethod
-GSGetMethod(Class class, SEL sel,
+GSGetMethod(Class cls, SEL sel,
 	    BOOL searchInstanceMethods,
 	    BOOL searchSuperClasses)
 {
-  if (class == 0 || sel == 0)
+  if (cls == 0 || sel == 0)
     {
       return 0;
     }
@@ -797,11 +797,11 @@ GSGetMethod(Class class, SEL sel,
     {
       if (searchInstanceMethods == NO)
 	{
-	  return search_for_method_in_class(class->class_pointer, sel);
+	  return search_for_method_in_class(cls->class_pointer, sel);
 	}
       else
 	{
-	  return search_for_method_in_class(class, sel);
+	  return search_for_method_in_class(cls, sel);
 	}
     }
   else
@@ -815,14 +815,14 @@ GSGetMethod(Class class, SEL sel,
 	    Therefor we refrain from simply using class_getClassMethod().
 	  */
 #ifdef NeXT_RUNTIME
-	  return class_getClassMethod(class, sel);
+	  return class_getClassMethod(cls, sel);
 #else
-	  return class_get_class_method(class->class_pointer, sel);
+	  return class_get_class_method(cls->class_pointer, sel);
 #endif
 	}
       else
 	{
-	  return class_get_instance_method(class, sel);
+	  return class_get_instance_method(cls, sel);
 	}
     }
 }
@@ -933,21 +933,21 @@ GSRemoveMethodFromList (GSMethodList list,
 
 /* See header for documentation. */
 GSMethodList
-GSMethodListForSelector(Class class,
+GSMethodListForSelector(Class cls,
                         SEL selector,
                         void **iterator,
                         BOOL searchInstanceMethods)
 {
   void *local_iterator = 0;
 
-  if (class == 0 || selector == 0)
+  if (cls == 0 || selector == 0)
     {
       return 0;
     }
 
   if (searchInstanceMethods == NO)
     {
-      class = class->class_pointer;
+      cls = cls->class_pointer;
     }
 
   if(sel_is_mapped(selector))
@@ -956,7 +956,7 @@ GSMethodListForSelector(Class class,
       GSMethodList method_list;
 
       iterator_pointer = (iterator == 0 ? &local_iterator : iterator);
-      while((method_list = class_nextMethodList(class, iterator_pointer)))
+      while((method_list = class_nextMethodList(cls, iterator_pointer)))
         {
 	  /* Search the method in the current list.  */
 	  if (GSMethodFromList(method_list, selector, NO) != 0)
@@ -1004,21 +1004,21 @@ GSMethodFromList(GSMethodList list,
 
 /* See header for documentation. */
 void
-GSAddMethodList(Class class,
+GSAddMethodList(Class cls,
                 GSMethodList list,
                 BOOL toInstanceMethods)
 {
-  if (class == 0 || list == 0)
+  if (cls == 0 || list == 0)
     {
       return;
     }
 
   if (toInstanceMethods == NO)
     {
-      class = class->class_pointer;
+      cls = cls->class_pointer;
     }
 
-  class_add_method_list(class, list);
+  class_add_method_list(cls, list);
 }
 
 GS_STATIC_INLINE void
@@ -1039,26 +1039,26 @@ gs_revert_selector_names_in_list(GSMethodList list)
 
 /* See header for documentation. */
 void
-GSRemoveMethodList(Class class,
+GSRemoveMethodList(Class cls,
                    GSMethodList list,
                    BOOL fromInstanceMethods)
 {
-  if (class == 0 || list == 0)
+  if (cls == 0 || list == 0)
     {
       return;
     }
 
   if (fromInstanceMethods == NO)
     {
-      class = class->class_pointer;
+      cls = cls->class_pointer;
     }
 
 #ifdef NeXT_RUNTIME
-  class_removeMethods(class, list);
+  class_removeMethods(cls, list);
 #else
-  if (list == class->methods)
+  if (list == cls->methods)
     {
-      class->methods = list->method_next;
+      cls->methods = list->method_next;
       list->method_next = 0;
 
       /*
@@ -1072,7 +1072,7 @@ GSRemoveMethodList(Class class,
   else
     {
       GSMethodList current_list;
-      for (current_list = class->methods;
+      for (current_list = cls->methods;
            current_list != 0;
            current_list = current_list->method_next)
         {
@@ -1097,32 +1097,32 @@ GSRemoveMethodList(Class class,
 
 /* See header for documentation. */
 GSIVar
-GSCGetInstanceVariableDefinition(Class class, const char *name)
+GSCGetInstanceVariableDefinition(Class cls, const char *name)
 {
   struct objc_ivar_list *list;
   int i;
 
-  if (class == 0)
+  if (cls == 0)
     return 0;
 
-  list = class->ivars;
+  list = cls->ivars;
   for (i = 0; (list != 0) && i < list->ivar_count; i++)
     {
       if (strcmp (list->ivar_list[i].ivar_name, name) == 0)
 	return &(list->ivar_list[i]);
     }
-  class = GSObjCSuper(class);
-  if (class != 0)
+  cls = GSObjCSuper(cls);
+  if (cls != 0)
     {
-      return GSCGetInstanceVariableDefinition(class, name);
+      return GSCGetInstanceVariableDefinition(cls, name);
     }
   return 0;
 }
 
 GSIVar
-GSObjCGetInstanceVariableDefinition(Class class, NSString *name)
+GSObjCGetInstanceVariableDefinition(Class cls, NSString *name)
 {
-  return GSCGetInstanceVariableDefinition(class, [name cString]);
+  return GSCGetInstanceVariableDefinition(cls, [name cString]);
 }
 
 typedef struct {
