@@ -116,6 +116,7 @@ int	udp_sent = 0;
 int	tcp_sent = 0;
 int	udp_read = 0;
 int	tcp_read = 0;
+int	soft_int = 0;
 
 long	last_probe;
 struct in_addr	loopback;
@@ -133,6 +134,7 @@ struct in_addr	class_c_mask;
  *	Predeclare some of the functions used.
  */
 static void	dump_stats();
+static void	dump_tables();
 static void	handle_accept();
 static void	handle_io();
 static void	handle_read(int);
@@ -1023,6 +1025,42 @@ dump_stats()
   fprintf(stderr, "UDP %d read, %d sent\n", udp_read, udp_sent);
 }
 
+static void
+dump_tables()
+{
+  FILE	*fptr;
+
+  soft_int++;
+  fptr = fopen("gdomap.dump", "w");
+  if (fptr != 0)
+    {
+      fprintf(fptr, "\n");
+      fprintf(fptr, "Known nameserver addresses\n");
+      fprintf(fptr, "==========================\n");
+      if (prb_used == 0)
+	{
+	  fprintf(fptr, "None.\n");
+	}
+      else
+	{
+	  int	i;
+
+	  for (i = 0; i < prb_used; i++)
+	    {
+	      fprintf(fptr, "%16s %s\n",
+		inet_ntoa(prb[i]->sin), ctime(&prb[i]->when));
+	    }
+	}
+
+      fprintf(fptr, "\n");
+      fclose(fptr);
+    }
+  else
+    {
+      perror("failed to open gdomap.dump for write");
+    }
+}
+
 /*
  *	Name -		init_iface()
  *	Purpose -	Build up an array of the IP addresses supported on
@@ -1560,12 +1598,16 @@ if ((tcp_desc = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
   FD_SET(tcp_desc, &read_fds);
   FD_SET(udp_desc, &read_fds);
 
+#ifndef __MINGW__
   /*
    *	Turn off pipe signals so we don't get interrupted if we attempt
    *	to write a response to a process which has died.
    */
-#ifndef __MINGW__
   signal(SIGPIPE, SIG_IGN);
+  /*
+   *	Enable table dumping to /tmp/gdomap.dump
+   */
+  signal(SIGUSR1, dump_tables);
 #endif /* !__MINGW__  */
 }
 
@@ -1968,6 +2010,7 @@ handle_io()
       timeout.tv_sec = 10;
       timeout.tv_usec = 0;
       to = &timeout;
+      soft_int = 0;
       rval = select(FD_SETSIZE, &rfds, &wfds, 0, to);
 
       if (rval < 0)
@@ -2007,6 +2050,13 @@ handle_io()
 			}
 		    }
 		}
+	      rval = 0;
+	    }
+	  else if (soft_int > 0)
+	    {
+	      /*
+	       * We were interrupted - but it was one we were expecting.
+	       */
 	      rval = 0;
 	    }
 	  else
@@ -2580,7 +2630,7 @@ handle_request(int desc)
        */
       for (i = 0; i < map_used; i++)
 	{
-	  bytes += 2 + strlen(map[i]->name);
+	  bytes += 2 + map[i]->size;
 	}
       /*
        * Allocate with space for number of names and set it up.
@@ -2591,7 +2641,7 @@ handle_request(int desc)
       ptr += 4;
       for (i = 0; i < map_used; i++)
 	{
-	  ptr[0] = (unsigned char)strlen(map[i]->name);
+	  ptr[0] = (unsigned char)map[i]->size;
 	  ptr[1] = (unsigned char)(map[i]->net | map[i]->svc);
 	  memcpy(&ptr[2], map[i]->name, ptr[0]);
 	  ptr += 2 + ptr[0];
@@ -2634,15 +2684,17 @@ handle_request(int desc)
 	  ptr = (struct in_addr*)&r_info(desc)->buf.r.name[2*IASIZE];
 	  c = (r_info(desc)->buf.r.nsize - 2*IASIZE)/IASIZE;
 	  prb_add(&sin);
+#if 0
 	  while (c-- > 0)
 	    {
 	      if (debug > 2)
 		{
-		  fprintf(stderr, "Delete server '%s'\n", inet_ntoa(*ptr));
+		  fprintf(stderr, "Add server '%s'\n", inet_ntoa(*ptr));
 		}
-	      prb_del(ptr);
+	      prb_add(ptr);
 	      ptr++;
 	    }
+#endif
 	  /*
 	   *	Irrespective of what we are told to do - we also add the
 	   *	interface from which this packet arrived so we have a
@@ -2765,15 +2817,17 @@ handle_request(int desc)
 	  ptr = (struct in_addr*)&r_info(desc)->buf.r.name[2*IASIZE];
 	  c = (r_info(desc)->buf.r.nsize - 2*IASIZE)/IASIZE;
 	  prb_add(&sin);
+#if 0
 	  while (c-- > 0)
 	    {
 	      if (debug > 2)
 		{
-		  fprintf(stderr, "Delete server '%s'\n", inet_ntoa(*ptr));
+		  fprintf(stderr, "Add server '%s'\n", inet_ntoa(*ptr));
 		}
-	      prb_del(ptr);
+	      prb_add(ptr);
 	      ptr++;
 	    }
+#endif
 	  /*
 	   *	Irrespective of what we are told to do - we also add the
 	   *	interface from which this packet arrived so we have a
@@ -3789,6 +3843,9 @@ main(int argc, char** argv)
 	    printf("-f		avoid fork() to make debugging easy\n");
 	    printf("-i seconds	re-probe at this interval (roughly), min 60\n");
 	    printf("-p		disable probing for other servers\n");
+	    printf("\n");
+	    printf("Kill with SIGUSR1 to obtain a dump of all known peers\n");
+	    printf("in /tmp/gdomap.dump\n");
 	    printf("\n");
 	    exit(0);
 

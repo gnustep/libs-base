@@ -1,3 +1,12 @@
+2000-07-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Permit dumping of internal table of known peer
+	nameservers when sent SIGUSR1
+
+2000-07-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Bugfix for GDO_NAMES (patch provided by Bjoern)
+
 2000-07-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.h: Add new GDO_NAMES command.
