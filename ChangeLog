@@ -1,6 +1,11 @@
 2004-11-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: make respond to --help as to -H
+	* Source/NSConnection.m: ([_threadWillExit:]) change to be a class
+	method rather then instance method.  Implement removeal of runloop
+	of exiting thread unconditionally from all threads...
+	the code in [removeRunLoop:] is safely lock protected.
+	Use GSRunLoopForThread() for performance throughout.
 
 2004-11-24 15:08  Patrick McFarland  <unknown@panax.com>
 
