@@ -385,8 +385,17 @@ static Class NSMutableDictionary_concrete_class;
   myString = [[NSString alloc] initWithContentsOfFile: path];
   if (myString)
     {
-      id result = [myString propertyList];
+      id result;
 
+      NS_DURING
+	{
+	  result = [myString propertyList];
+	}
+      NS_HANDLER
+	{
+          result = nil;
+	}
+      NS_ENDHANDLER
       [myString release];
       if ([result isKindOfClass: [NSDictionary class]])
 	{

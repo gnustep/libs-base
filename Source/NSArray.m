@@ -317,6 +317,15 @@ static Class NSMutableArray_concrete_class;
     {
       id result = [myString propertyList];
 
+      NS_DURING
+	{
+	  result = [myString propertyList];
+	}
+      NS_HANDLER
+	{
+          result = nil;
+	}
+      NS_ENDHANDLER
       [myString release];
       if ([result isKindOfClass: [NSArray class]])
 	{
