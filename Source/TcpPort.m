@@ -44,11 +44,14 @@
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #include <string.h>		/* for memset() */
-
 #ifndef WIN32
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
+
+/* On some systems FD_ZERO is a macro that uses bzero().
+   Just define it to use GCC's builtin memset(). */
+#define bzero(PTR, LEN) memset (PTR, 0, LEN)
 
 static int debug_tcp_port = 0;
 
