@@ -25,15 +25,15 @@ releases (e.g. 1.4.1).
 License
 =======
 
-   The GNUstep libraries are covered under the GNU Lesser Public
-License.  This means you can use these libraries in any program (even
-non-free programs). If you distribute the libraries along with your
-program, you must make the improvements you have made to the libraries
-freely available. You should read the COPYING.LIB file for more
-information.
+   The GNUstep libraries and bundles are covered under the GNU Lesser
+Public License (formerly the GNU Library Public License).  This means
+you can use these libraries in any program (even non-free programs).
+If you distribute the libraries along with your program, you must
+make the improvements you have made to the libraries freely available.
+You should read the COPYING.LIB file for more information.
 
-   GNUstep tools, test programs, and other files are covered under the
-GNU Public License. This means if you make changes to these programs,
+   GNUstep tools, test programs, and documentation files are covered under
+the GNU Public License. This means if you make changes to these programs,
 you cannot charge a fee, other than distribution fees, for others to
 use the program. You should read the COPYING file for more information.
 
