@@ -126,6 +126,7 @@
 	  <item><uref url="NSNotification.html">NSNotification</uref></item>
 	  <item><uref url="NSNotificationCenter.html">NSNotificationCenter</uref></item>
 	  <item><uref url="NSNotificationQueue.html">NSNotificationQueue</uref></item>
+	  <item><uref url="NSNull.html">NSNull</uref></item>
 	  <item><uref url="NSNumber.html">NSNumber</uref></item>
 	  <item><uref url="NSNumberFormatter.html">NSNumberFormatter</uref></item>
 	  <item><uref url="NSObject.html">NSObject</uref></item>

@@ -1,3 +1,11 @@
+2000-10-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSNull.h: New placeholder class.
+	* Source/NSNull.m: New placeholder class.
+	* Source/GNUmakefile: Build NSNull and install header.
+	* Documentation/gsdoc/GNUmakefile: Build NSNull documentation
+	* Documentation/gsdoc/NSNull.gsdoc: NSNull documentation
+
 2000-10-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([-initWithCharacters:length:]) use

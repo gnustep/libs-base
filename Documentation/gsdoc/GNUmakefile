@@ -73,6 +73,7 @@ Base_GSDOC_FILES = Base.gsdoc \
 	NSNotification.gsdoc \
 	NSNotificationCenter.gsdoc \
 	NSNotificationQueue.gsdoc \
+	NSNull.gsdoc \
 	NSNumber.gsdoc \
 	NSNumberFormatter.gsdoc \
 	NSObject.gsdoc \
