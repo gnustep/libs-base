@@ -50,9 +50,9 @@ int main()
   [coder encodeObject:ll withName:"Test EltNodeCollector LinkedList"];
 
   /* Free the objects */
-  [coder free];
-  [set free];
-  [ll free];
+  [coder release];
+  [set release];
+  [ll release];
 
   /* Read them back in from the file */
   /* First init the stream and coder */
@@ -78,9 +78,9 @@ int main()
   [ll printForDebugger];
 
   /* Free the objects */
-  [coder free];
-  [set free];
-  [ll free];
+  [coder release];
+  [set release];
+  [ll release];
   
   exit(0);
 }

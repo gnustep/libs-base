@@ -60,7 +60,7 @@
 	      [array removeObjectAtIndex:j];
 	      break;
 	    }
-      [remotes free];
+      [remotes release];
     }
   else
     {

@@ -20,7 +20,7 @@ int main()
 	    fmode:"w"];
   [stream writeFormat:"testing %d %u %f %f 0x%x \"cow\"\n", 
 	  1234, 55, 3.14159, 1.23456789, 0xfeedface];
-  [stream free];
+  [stream release];
 
   stream = [[StdioStream alloc] 
 	    initWithFilename:"./stdio-stream.txt"
@@ -28,7 +28,7 @@ int main()
   count = [stream readFormat:"testing %d %u %f %lf 0x%x \"%a[^\"]\"\n", 
 	  &i, &u, &f, &d, &ux, &cp];
   uc = (unsigned char) ux;
-  [stream free];
+  [stream release];
   printf("Read count=%d, int=%d unsigned=%u float=%f double=%f "
 	 "uchar=0x%x char*=%s\n", 
 	 count, i, u, f, d, (unsigned)uc, cp);
