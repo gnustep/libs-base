@@ -1,3 +1,8 @@
+2004-07-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: don't escape tab,cr,lf in output of old
+	style property lists.
+
 2004-07-21  David Ayers  <d.ayers@inode.at>
 
 	* Source/Additions/GSObjCRuntime.m
