@@ -121,6 +121,7 @@
 
 - (void) removeObject: oldObject
 {
+  /* xxx Could be more efficient! */
   int count = [self count];
   id keys_to_remove[count];
   int num_keys_to_remove = 0;
