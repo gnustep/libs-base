@@ -5,6 +5,7 @@
 	* Tools/gdnc.m: ditto
 	* Source/NSDistantObject.m: Fix for calls to remote system where we
 	can get no method signature.
+	Documented.
 
 2003-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -53,6 +53,7 @@
 	  connection: (NSConnection*)aConnection;
 - (id) initWithTarget: (unsigned)target
 	   connection: (NSConnection*)aConnection;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 - (void) setProtocolForProxy: (Protocol*)aProtocol;
 
 @end
