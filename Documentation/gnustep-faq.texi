@@ -1,10 +1,34 @@
-@chapter GNUstep Frequently Asked Questions with Answers
+@c A FAQ for GNUstep
+@c
+@c This file uses the special commands @url{} and @email{}.  They are
+@c handled by the libobjects/doc/Makefile.
 
-Last updated 11 March 1996.
-Maintained by Andrew McCallum <mccallum@@gnu.ai.mit.edu>, with
-contributions by Pascal Forget <pascal@@wsc.com>, Scott Christley
-<scottc@@net-community.com>, and Randy Chapman <chapman@@u.washington.edu>.
-Please send corrections to <mccallum@@gnu.ai.mit.edu>.
+@setfilename GNUstep-FAQ.info
+@settitle GNUstep Frequently Asked Questions with Answers
+
+@iftex
+@global@let@email=@i
+@global@let@url=@samp
+@end iftex
+
+@c @ifinfo
+@c @definfoenclose email, <, >
+@c @definfoenclose url `, '
+@c @end ifinfo
+
+@iftex
+@chapter GNUstep Frequently Asked Questions with Answers
+@end iftex
+
+Maintained by Andrew McCallum @email{mccallum@@gnu.ai.mit.edu}, with
+contributions by Pascal Forget @email{pascal@@wsc.com}, Scott Christley
+@email{scottc@@net-community.com}, and Randy Chapman
+@email{chapman@@u.washington.edu}.
+
+Last updated 15 March 1996.  
+The most up-to-date version of this FAQ is
+available at @url{ftp://ftp.cs.rochester.edu/pub/u/mccallum/libobjects}.
+Please send corrections to @email{mccallum@@gnu.ai.mit.edu}.
 
 The intended audience of this FAQ is future and present code developers
 for GNUstep.  This FAQ serves a purpose complementary to the GNUstep WWW
@@ -22,7 +46,7 @@ which to find GNUstep information without hype.
 @item What is GNUstep?
 
 GNUstep is the Free Software Foundation's effort to implement NeXT
-Computer Inc.'s OpenStep Standard.  The project is not finished, however
+Software Inc.'s OpenStep Standard.  The project is not finished, however
 some components are useable now.
 
 The GNUstep project consists of the following sub-projects:
@@ -58,12 +82,12 @@ in their own sections below.
 
 There are several projects related to GNUstep that are not officially
 part of the GNU project and GNUstep, but may become so in the future.
-These include: the @samp{G3DKit} project, (contact Thoman Engle
-<tsengel@@cip.informatik.uni-erlangen.de>); an application library based
-on OpenGL, (contact Georg Tuparev <Tuparev@@EMBL-Heidelberg>); and
-@samp{ProjectCenter}, a source code management and development
-environment, (contact unknown).  If you know of others, please contact
-the FAQ maintainer.
+These include: the @samp{G3DKit} project, (contact Thomas Engle
+@email{tsengel@@cip.informatik.uni-erlangen.de}); an application library
+based on OpenGL, (contact Georg Tuparev
+@email{Tuparev@@EMBL-Heidelberg.de}); and @samp{ProjectCenter}, a source
+code management and development environment, (contact unknown).  If you
+know of others, please contact the FAQ maintainer.
 
 The initial target platforms for GNUstep are Linux and other UN*X's.
 There has been some OS/2 WARP work, but I have not seen any ongoing work
@@ -85,9 +109,9 @@ language.
 You can obtain a copy of the OpenStep standard in 
 
 @itemize @bullet
-@item texinfo at @samp{http://www.dartmouth.edu/~ajones/Projects/ OpenStepSpec.tar.gz}.
-@item HTML at @samp{http://www.nmr.embl-heidelberg.de/GNUstep/ GNUOpenStep/OpenStepSpec/OpenStepSpec.html}.
-@item PostScript and RTF at @samp{ftp://ftp.next.com/pub/OpenStepSpec/}.
+@item texinfo at @url{http://www.dartmouth.edu/~ajones/Projects}.
+@item HTML at @url{http://www.nmr.embl-heidelberg.de/GNUstep/GNUOpenStep}.
+@item PostScript and RTF at @url{ftp://ftp.next.com/pub/OpenStepSpec/}.
 @end itemize
 
 
@@ -100,28 +124,28 @@ involvement in the GNUstep coding efforts.
 
 @itemize @bullet
 
-@item Adam Fedor <fedor@@mode.colorado.edu> continues his excellent, long
-service as user, tester, and code contributor to both the Base Library
-and the GUI Library.
+@item Adam Fedor @email{fedor@@mode.colorado.edu} continues his
+excellent, long service as user, tester, and code contributor to both
+the Base Library and the GUI Library.
 
-@item Andrew McCallum <mccallum@@gnu.ai.mit.edu> was appointed chief
+@item Andrew McCallum @email{mccallum@@gnu.ai.mit.edu} was appointed chief
 maintainer of the GNUstep project by Richard Stallman in January 1996.
 He has been involved and hacking in the NeXT community since NeXTSTEP
 version 0.8; he has been working on GNU Objective C and the Base Library
 since 1993.
 
-@item Pascal Forget <pascal@@wsc.com> is working on the GUI Library in
-conjunction with Scott Christley.  He has worked with Randy Chapman's
-DisplayGhostScript and X Windows as a GNUstep GUI backend.
+@item Pascal Forget @email{pascal@@wsc.com} is working on the GUI
+Library in conjunction with Scott Christley.  He has worked with Randy
+Chapman's DisplayGhostScript and X Windows as a GNUstep GUI backend.
 
-@item Randy Chapman <chapman@@u.washington.edu> has been working on the
-GNUstep DisplayGhostScript Server, adding DPS extensions to GhostScript,
-including pswrap work.
+@item Randy Chapman @email{chapman@@u.washington.edu} has been working
+on the GNUstep DisplayGhostScript Server, adding DPS extensions to
+GhostScript, including pswrap work.
 
-@item Scott Christley <scottc@@net-community.com> is in charge of the
-InterfaceModeler project, which is currently in the design stages.  He
-is working on the GUI Library in conjunction with Pascal Forget.  He has
-already written much of the GUI Library frontend.
+@item Scott Christley @email{scottc@@net-community.com} is in charge of
+the InterfaceModeler project, which is currently in the design stages.
+He is working on the GUI Library in conjunction with Pascal Forget.  He
+has already written much of the GUI Library frontend.
 
 @end itemize
 
@@ -146,8 +170,8 @@ Please send corrections to the FAQ maintainer.
 
 @item Is there a WWW site for GNUstep?  Are there mailing lists for GNUstep?
 
-There is a WWW site at @samp{http://www.gnustep.org}, (and its mirror
-@samp{http://www.NMR.EMBL-Heidelberg.DE/GNUstep), that contains many
+There is a WWW site at @url{http://www.gnustep.org}, (and its mirror
+@url{http://www.NMR.EMBL-Heidelberg.DE/GNUstep}, that contains many
 useful pointers.  The technical information in this FAQ may be more up
 to date than the WWW pages since this FAQ is maintained directly by the
 people who are developing GNUstep code.
@@ -156,24 +180,24 @@ There are several mailing lists:
 
 @itemize @bullet
 
-@item @samp{discussion@@gnustep.org} is a mailing list for general
+@item @email{discussion@@gnustep.org} is a mailing list for general
 discussion of GNUstep developments.  Announcements about GNUstep
 progress are also made there.  The list is maintained by Georg Tuparev
-<Tuparev@@EMBL-Heidelberg.de>.
+@email{Tuparev@@EMBL-Heidelberg.de}.
 
-To join, send mail to @samp{discussion-request@@gnustep.org}.
+To join, send mail to @email{discussion-request@@gnustep.org}.
 
-@item @samp{webmasters@@gnustep.org} is a mailing list for discussion of
+@item @email{webmasters@@gnustep.org} is a mailing list for discussion of
 the GNUstep WWW site.
 
-To join, send mail to @samp{webmasters-request@@gnustep.org}.
+To join, send mail to @email{webmasters-request@@gnustep.org}.
 
-@item @samp{g3dkit@@gnustep.org} is a mailing list for discussion of a
+@item @email{g3dkit@@gnustep.org} is a mailing list for discussion of a
 library for drawing 3D graphics; it is based on OpenGL and RenderMan.
 The Free Software Foundation is hoping that this work can become an
 official part of the GNU project and the GNUstep project.
 
-To join, send mail to @samp{g3dkit@@gnustep.org}.
+To join, send mail to @email{g3dkit@@gnustep.org}.
 
 @item There is also a private mailing list for the core active
 developers of GNUstep.  Those people who contribute large sections of
@@ -184,7 +208,7 @@ actively contributing significant coding work to the project; don't
 bother asking to be added unless you have already been in contact with
 Andrew McCallum about source code contributions.  If you would like to
 make code contributions, by all means, contact McCallum.  This list is
-maintained by McCallum <mccallum@@gnu.ai.mit.edu>.
+maintained by McCallum @email{mccallum@@gnu.ai.mit.edu}.
 
 @end itemize
 
@@ -196,7 +220,7 @@ The Base Library is about 85 percent done.  Significant useful work can
 already be done using the library.  The GUI library is about 25
 percent done.  It is going through a major transition at the moment
 to coordinate work from multiple developers, DisplayPostscript, and
-the non-OPENSTEP objcX library into a single package that will be made
+the non-OpenStep objcX library into a single package that will be made
 available to the public.  The DisplayPostscript and drawing support 
 is also in transition.
 
@@ -213,7 +237,7 @@ libraries working by the end of Summer 1996.
 If you have a specific piece of functionality that you would like to
 contribute, or if you would like to ask for suggestions about what
 coding work you can do to help, contact the GNUstep Chief Maintainer,
-Andrew McCallum <mccallum@@gnu.ai.mit.edu>.
+Andrew McCallum @email{mccallum@@gnu.ai.mit.edu}.
 
 @end enumerate
 @c GNUstep General
@@ -230,9 +254,9 @@ found below.
 The Objective C Runtime Library provides C functions and data structures
 required to execute an Objective C program.  An introduction to the
 Objective C Language is provided at
-@samp{http://www.next.com/Pubs/Documents/OPENSTEP/ObjectiveC/
-objctoc.htm}.  The Frequently Asked Questions list for
-@samp{comp.lang.objective-c} can be found at @samp{??}.
+@url{http://www.next.com/Pubs/Documents/OPENSTEP/ObjectiveC/objctoc.htm}.
+The Frequently Asked Questions list for
+@url{news://comp.lang.objective-c} can be found at @url{??}.
 
 The GNU Objective C Runtime Library offers everything NeXT's runtime
 does, including Categories, Protocols, @samp{+poseAs:}, thread-safety,
@@ -288,7 +312,7 @@ GNU's Objective C Runtime library has been stable and useable since
 
 The package @samp{gcc-2.7.2} contains the source for the GNU Objective C
 compiler and runtime library.  It can be obtained from
-@samp{ftp://prep.ai.mit.edu/pub/gnu}, or any other mirror of the GNU
+@url{ftp://prep.ai.mit.edu/pub/gnu}, or any other mirror of the GNU
 archives.  As far as I know, the GNU Objective C Runtime runs on all,
 platforms on which GCC runs.
 
@@ -322,7 +346,7 @@ featureful GNU classes.
 
 There is more (although perhaps out-of-date) information available at
 the libobjects homepage at
-@samp{http://www.cs.rochester.edu/u/mccallum/libobjects}.
+@url{http://www.cs.rochester.edu/u/mccallum/libobjects}.
 
 
 @item What is its current state of development?
@@ -406,16 +430,17 @@ this is useful for distributed objects connections on machines of the
 same architecture.
 
 I'm not sure how OpenStep's archiving system implements forward
-references, (that is, calls to -encodeConditionalObject: for which the
-object argument has not yet been encoded, but will be encoded later.)
-According to its restricted interface, NeXT's implementation must either
-(1) make two passes through all the -encodeWithCoder: methods of the
-objects to be encoded, or (2) not handle forward references with
--encodeConditionalObject:, only backward references.  GNU's archiving
-system, on the other hand, implements forward references efficiently,
-without making two passes.  It does this by using an object decoding
-method (-decodeObjectAt:...) that back-patches id-pointers when the
-conditionally encoded objects are found in the coded stream.
+references, (that is, calls to @samp{encodeConditionalObject:} for which
+the object argument has not yet been encoded, but will be encoded
+later.)  According to its restricted interface, NeXT's implementation
+must either (1) make two passes through all the -encodeWithCoder:
+methods of the objects to be encoded, or (2) not handle forward
+references with @samp{-encodeConditionalObject:}, only backward
+references.  GNU's archiving system, on the other hand, implements
+forward references efficiently, without making two passes.  It does this
+by using an object decoding method (@samp{-decodeObjectAt:..}) that
+back-patches @code{id}-pointers when the conditionally encoded objects
+are found in the coded stream.
 
 @item OpenStep's distributed objects mechanism requires four network
 ``hops'' when sending and responding to each new method---one to send
@@ -527,13 +552,13 @@ Packet                     holds data and reply port
 @item Where can I get a copy?
 
 The most recently released ``official'' version can be obtained from
-@samp{ftp://prep.ai.mit.edu}.
+@url{ftp://prep.ai.mit.edu}.
 
 The most recently released alpha version can be obtained from
-@samp{ftp://alpha.gnu.ai.mit.edu}.
+@url{ftp://alpha.gnu.ai.mit.edu}.
 
 The most recent developer's snapshot can be obtained from
-@samp{ftp://ftp.cs.rochester.edu/pub/u/mccallum/libobjects}.  These
+@url{ftp://ftp.cs.rochester.edu/pub/u/mccallum/libobjects}.  These
 releases are there for exchange between active GNUstep coders, and for
 curious code-readers, not for naive users; read the README.first file in
 the FTP directory.
@@ -607,7 +632,7 @@ All remaining classes have stub implementations.
 @item Where can I get a copy?
 
 It is not yet publically available.  When it is available you will be
-able to find it in @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
+able to find it in @url{ftp://alpha.gnu.ai.mit.edu/gnu}.
 
 @end enumerate
 @c GNUstep GUI Library
@@ -665,8 +690,7 @@ managers or publicity people.]
 @format
 
 
-All trademarks mentioned on in this FAQ belong to their respectful
-owners.
+All trademarks mentioned on in this FAQ belong to their owners.
 @end format
 
 @c Local variables:
