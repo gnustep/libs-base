@@ -311,6 +311,7 @@ static IMP	initImp;
 
 - (void) dealloc
 {
+  //  fprintf (stderr, "Deallocating an NSAutoreleasePool\n");
   /* If there are NSAutoreleasePool below us in the stack of
      NSAutoreleasePools, then deallocate them also.  The (only) way we
      could get in this situation (in correctly written programs, that
