@@ -504,6 +504,7 @@ fillHole(ivars self, unsigned index, unsigned size)
   NSCAssert(size > 0, @"size <= zero");
   NSCAssert(index + size <= self->_count, @"index + size > length");
 
+  self->_count -= size;
 #ifndef STABLE_MEMCPY
   {
     int i;
@@ -536,8 +537,6 @@ fillHole(ivars self, unsigned index, unsigned size)
 	self->_contents.c + index, (self->_count - index));
     }
 #endif // STABLE_MEMCPY
-
-  self->_count -= size;
   self->_flags.hash = 0;
 }
 

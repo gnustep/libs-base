@@ -1,3 +1,7 @@
+2000-10-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: fillHole() fixed error in copying bytes.
+
 2000-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSGAttributedString.m: ([-setAttributes:range:])
