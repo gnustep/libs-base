@@ -406,6 +406,12 @@
 	{
 	  [aCoder encodeObject: *(id*)datum];
 	}
+#if     MFRAME_STRUCT_BYREF
+      else if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B)
+        {
+	  [aCoder encodeValueOfObjCType: type at: *(void**)datum];
+        }
+#endif
       else
 	{
 	  [aCoder encodeValueOfObjCType: type at: datum];
@@ -439,6 +445,16 @@
   for (i = 3; i <= numArgs; i++)
     {
       datum = mframe_arg_addr(argframe, &info[i]);
+#if     MFRAME_STRUCT_BYREF
+      {
+        const char      *t = info[i].type;
+        if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
+          {
+	    *(void**)datum = _fastMallocBuffer(info[i].size);
+            [aCoder decodeValueOfObjCType: type at: *(void**)datum];
+          }
+      }
+#endif
       [aCoder decodeValueOfObjCType: info[i].type at: datum];
     }
   argsRetained = YES;
