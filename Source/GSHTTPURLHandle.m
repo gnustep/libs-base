@@ -310,7 +310,9 @@ static void debugWrite(NSData *data)
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason: @"Response parse failed"];
     }
-  else if ([parser isComplete] == YES)
+  else if ([parser isComplete] == YES
+    || ([parser isInHeaders] == NO &&
+      [[[document headerNamed: @"http"] objectForKey: NSHTTPPropertyStatusCodeKey] intValue] == 204))
     {
       GSMimeHeader	*info;
       NSString		*val;
