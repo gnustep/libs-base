@@ -1247,7 +1247,7 @@ static int messages_received_count;
   NS_ENDHANDLER;
 
   if (forward_type)
-    (*objc_free) (forward_type);
+    objc_free (forward_type);
 }
 
 - (void) _service_rootObject: rmc

@@ -413,7 +413,7 @@ static id dummyObject;
 	    fprintf(stderr,
 		    "Decoder decoding registered class xref %u\n", xref);
 	}
-	(*objc_free) (class_name);
+	objc_free (class_name);
 	break;
       }
     default:
@@ -496,8 +496,8 @@ static id dummyObject;
 	    fprintf(stderr,
 		    "Decoder decoding registered sel xref %u\n", xref);
 	}
-	(*objc_free)(sel_name);
-	(*objc_free)(sel_types);
+	objc_free(sel_name);
+	objc_free(sel_types);
 	break;
       }
     default:

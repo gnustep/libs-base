@@ -149,7 +149,7 @@ extraRefCount (id anObject)
   return [[self alloc] init];
 }
 
-- copyWithZone:(NSZone *)zone;
+- copyWithZone:(NSZone *)zone
 {
   return NSCopyObject (self, 0, zone);
 }

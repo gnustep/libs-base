@@ -332,7 +332,7 @@ if (debug_textcoder) \
 				  freeWhenDone: YES]
 		 autorelease];
   else
-    (*objc_free) (tmpname);
+    objc_free (tmpname);
 }
 
 

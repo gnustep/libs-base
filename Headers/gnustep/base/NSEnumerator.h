@@ -1,8 +1,10 @@
-/* Utilities for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+/* 
+   NSEnumerator.h
 
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Date: March 1995
+   Copyright (C) 1998 Free Software Foundation, Inc.
+
+   Author:  Scott Christley <scottc@net-community.com>
+   Date: January 1998
 
    This file is part of the GNUstep Base Library.
 
@@ -21,12 +23,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#ifndef __NSUtilties_h_GNUSTEP_BASE_INCLUDE
-#define __NSUtilties_h_GNUSTEP_BASE_INCLUDE
+#ifndef __NSEnumerator_h_GNUSTEP_BASE_INCLUDE
+#define __NSEnumerator_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
+#include <Foundation/NSObject.h>
 
-#endif /* __NSUtilties_h_GNUSTEP_BASE_INCLUDE */
+@interface NSEnumerator : NSObject
+- (id) nextObject;
+@end
+
+#endif /* __NSEnumerator_h_GNUSTEP_BASE_INCLUDE */
