@@ -140,6 +140,7 @@ my_object_is_class(id object)
   object_2_xref = NULL;
   object_2_fref = NULL;
   const_ptr_2_xref = NULL;
+  fref_counter = 0;
   [self writeSignature];
   return self;
 }
@@ -295,7 +296,7 @@ my_object_is_class(id object)
     object_2_fref = 
       NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
 			NSIntMapValueCallBacks, 0);
-  fref = NSCountMapTable (object_2_fref) + 1;
+  fref = ++fref_counter;
   assert ( ! NSMapGet (object_2_fref, anObject));
   NSMapInsert (object_2_fref, anObject, (void*)fref);
   return fref;
@@ -656,6 +657,11 @@ my_object_is_class(id object)
 	      [self encodeValueOfCType: @encode(unsigned)
 		    at: &fref 
 		    withName: @"Object forward cross-reference number"];
+	      /* xxx This code used to be below at the place marked `1234' */
+	      /* Remove it from the forward reference table, since we'll never
+		 have another forward reference for this object. */
+	      if (fref)
+		[self _coderRemoveForwardReferenceForObject: anObj];
 	    }
 	  else
 	    {
@@ -671,14 +677,11 @@ my_object_is_class(id object)
 	  else
 	    [self _doEncodeObject:anObj];	    
 	  [self encodeUnindent];
-
+	  /* The code above marked `1234' used to be here. */
 	  /* Register that we have encoded it so that future encoding can 
 	     do backward references properly. */
 	  [self _coderInternalCreateReferenceForObject: anObj];
-	  /* Remove it from the forward reference table, since we'll never
-	     have another forward reference for this object. */
-	  if (fref)
-	    [self _coderRemoveForwardReferenceForObject: anObj];
+
 	  /* We're done encoding the object, it's no longer in progress. */
 	  NSMapRemove (in_progress_table, anObj);
 	}
