@@ -1,3 +1,8 @@
+2004-09-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m:
+	Make objects perform selector in same order as MacOS-X
+
 2004-09-16  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Define encoding

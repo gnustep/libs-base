@@ -863,18 +863,21 @@ static SEL	rlSel;
 
 /**
  * Makes each object in the array perform aSelector.<br />
- * This is done sequentially from the last to the first object.
+ * This is done sequentially from the first to the last object.
  */
 - (void) makeObjectsPerformSelector: (SEL)aSelector
 {
-  unsigned i = [self count];
+  unsigned	c = [self count];
 
-  if (i > 0)
+  if (c > 0)
     {
       IMP	get = [self methodForSelector: oaiSel];
+      unsigned	i = 0;
 
-      while (i-- > 0)
-	[(*get)(self, oaiSel, i) performSelector: aSelector];
+      while (i < c)
+	{
+	  [(*get)(self, oaiSel, i++) performSelector: aSelector];
+	}
     }
 }
 
@@ -888,18 +891,22 @@ static SEL	rlSel;
 
 /**
  * Makes each object in the array perform aSelector with arg.<br />
- * This is done sequentially from the last to the first object.
+ * This is done sequentially from the first to the last object.
  */
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)arg
 {
-  unsigned i = [self count];
+  unsigned	c = [self count];
 
-  if (i > 0)
+  if (c > 0)
     {
       IMP	get = [self methodForSelector: oaiSel];
+      unsigned	i = 0;
 
-      while (i-- > 0)
-	[(*get)(self, oaiSel, i) performSelector: aSelector withObject: arg];
+      while (i < c)
+	{
+	  [(*get)(self, oaiSel, i++) performSelector: aSelector
+					  withObject: arg];
+	}
     }
 }
 
