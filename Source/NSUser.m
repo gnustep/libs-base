@@ -260,20 +260,6 @@ NSHomeDirectoryForUser(NSString *loginName)
 	     for the user on more modern versions of windoze. */
 	  s = GSStringFromWin32EnvironmentVariable("USERPROFILE");
 	}
-      if (s != nil)
-	{
-	  const char	*str = [s cString];
-
-	  while (*str != '\0')
-	    {
-	      if (isspace(*str))
-		{
-		  s = nil;	// Whitespace not permitted in home directory
-		  break;
-		}
-	      str++;
-	    }
-	}
       [gnustep_global_lock unlock];
     }
   if ([s length] == 0 && [loginName length] != 1)
