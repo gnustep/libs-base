@@ -307,6 +307,17 @@ static NSLock* cache_lock = nil;
   return 0;
 }
 
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
 - (NSCharacterSet *)invertedSet
 {
   int   i, length;

@@ -124,23 +124,11 @@ static Class NSMutableAttributedString_concrete_class;
   return [[[self class] allocWithZone:zone] initWithAttributedString:self];
 }
 
-//FIXME: Should this one be here? The compiler complains if it's not
-- copy
-{
-  return [self copyWithZone: NSDefaultMallocZone ()];
-}
-
 //NSMutableCopying protocol
 - mutableCopyWithZone: (NSZone*)zone
 {
   return [[[[self class] _mutableConcreteClass] allocWithZone:zone]
 	  initWithAttributedString:self];
-}
-
-//FIXME: Should this one be here? The compiler complains if it's not
-- mutableCopy
-{
-  return [self mutableCopyWithZone: NSDefaultMallocZone ()];
 }
 
 //Creating an NSAttributedString

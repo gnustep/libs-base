@@ -46,7 +46,7 @@ NSString *NSPortTimeoutException
 
 - copyWithZone: (NSZone*)aZone
 {
-    return NSCopyObject(self, 0, zone);
+    return NSCopyObject(self, 0, aZone);
 }
 
 - delegate

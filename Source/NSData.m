@@ -737,11 +737,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	intBuffer[i] = NSSwapBigIntToHost (intBuffer[i]);
 }
 
-- (id) copy
-{
-  return [self copyWithZone: NSDefaultMallocZone()];
-}
-
 - (id) copyWithZone: (NSZone*)zone
 {
   if (NSShouldRetainWithZone(self, zone) &&
@@ -750,11 +745,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   else
     return [[NSDataMalloc allocWithZone: zone]
 	initWithBytes: [self bytes] length: [self length]];
-}
-
-- (id) mutableCopy
-{
-  return [self mutableCopyWithZone: NSDefaultMallocZone()];
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone

@@ -2607,16 +2607,6 @@ else
    we don't get String's Collection implementation. 
    When we separate Core from NonCore methods, this problem will
    go away. */
-- copy
-{
-  return [self copyWithZone: NSDefaultMallocZone ()];
-}
-
-- mutableCopy
-{
-  return [self mutableCopyWithZone: NSDefaultMallocZone ()];
-}
-
 - mutableCopyWithZone: (NSZone*)zone
 {
   return [[[[self class] _mutableConcreteClass] allocWithZone:zone]

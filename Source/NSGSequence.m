@@ -416,12 +416,6 @@
 
 
 // **************** do I need this?
-- copy
-{
-  return [self copyWithZone: NSDefaultMallocZone ()];
-}
-
-// **************** do I need this?
 - mutableCopyWithZone: (NSZone*)zone
 {
   return [[[self class] allocWithZone:zone]
