@@ -1,3 +1,8 @@
+2002-11-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Work around bug in the redhat 8 iconv
+	library ... was sucessfully opening the encoding "" when it shouldn't.
+
 2002-11-19  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.5.1

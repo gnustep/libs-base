@@ -592,7 +592,7 @@ iconv_stringforencoding(NSStringEncoding encoding)
 {
   if (GSEncodingSupported(encoding) == NO)
     {
-      return "";
+      return 0;
     }
   return encodingTable[encoding]->iconv;
 }
@@ -1065,12 +1065,19 @@ tables:
 	  size_t	outbytesleft;
 	  size_t	rval;
 	  iconv_t	cd;
+	  const char	*estr = iconv_stringforencoding(enc);
 
-	  cd = iconv_open(UNICODE_ENC, iconv_stringforencoding(enc));
+	  if (estr == 0)
+	    {
+	      NSLog(@"No iconv for encoding x%02x", enc);
+	      result = NO;
+	      break;
+	    }
+	  cd = iconv_open(UNICODE_ENC, estr);
 	  if (cd == (iconv_t)-1)
 	    {
 	      NSLog(@"No iconv for encoding %@ tried to use %s", 
-		GetEncodingName(enc), iconv_stringforencoding(enc));
+		GetEncodingName(enc), estr);
 	      result = NO;
 	      break;
 	    }
@@ -1567,12 +1574,19 @@ tables:
 	  size_t	inbytesleft;
 	  size_t	outbytesleft;
 	  size_t	rval;
+	  const char	*estr = iconv_stringforencoding(enc);
 
-	  cd = iconv_open(iconv_stringforencoding(enc), UNICODE_ENC);
+	  if (estr == 0)
+	    {
+	      NSLog(@"No iconv for encoding x%02x", enc);
+	      result = NO;
+	      break;
+	    }
+	  cd = iconv_open(estr, UNICODE_ENC);
 	  if (cd == (iconv_t)-1)
 	    {
 	      NSLog(@"No iconv for encoding %@ tried to use %s", 
-		GetEncodingName(enc), iconv_stringforencoding(enc));
+		GetEncodingName(enc), estr);
 	      result = NO;
 	      break;
 	    }
