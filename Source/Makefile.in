@@ -491,7 +491,7 @@ RCS_FILES = \
         $(GNUSTEP_HEADERS) \
         $(GNUSTEP_OTHER_SRCFILES)
 
-all: gnustep/base lib$(LIBRARY_NAME)$(LIBEXT) @SHARED_LIBRARY@
+all: gnustep/base Foundation lib$(LIBRARY_NAME)$(LIBEXT) @SHARED_LIBRARY@
 
 lib$(LIBRARY_NAME).so.$(VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
 	$(CC) -shared -o lib$(LIBRARY_NAME).so.$(VERSION) \
@@ -508,9 +508,11 @@ lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL)
 	$(AR) $(ARFLAGS) $(AROUT)lib$(LIBRARY_NAME)$(LIBEXT) $(OBJS_INSTALL)
 	$(RANLIB) lib$(LIBRARY_NAME)$(LIBEXT)
 
+# Local links to the include files
 gnustep/base:
 	mkdir gnustep
 	ln -s $(srcdir)/include gnustep/base
+Foundation:
 	ln -s $(srcdir)/include Foundation
 
 install: installdirs all
