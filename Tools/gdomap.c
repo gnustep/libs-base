@@ -4566,7 +4566,8 @@ printf(
 
   /* Write the pidfile, but only if the user is root. This allows us
      to write to restricted directories without allowing normal users
-     to mess it up. */
+     to mess it up. Because we are writing as root, we must be careful
+     to create/open the file in exclusive mode */
   if (pidfile)
     {
       FILE	*fptr;
@@ -4575,11 +4576,12 @@ printf(
       if (getuid () == 0)
 #endif
 	{
-	  fptr = fopen(pidfile, "at");
+	  int	desc = open(pidfile, O_EXCL|O_CREAT, 0644);
+	  fptr = fdopen(desc, "w");
 
 	  if (fptr == 0)
 	    {
-	      sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
+	      sprintf(ebuf, "Unable to create new pid file - '%s'", pidfile);
 	      gdomap_log(LOG_CRIT);
 	      exit(EXIT_FAILURE);
 	    }
@@ -4595,6 +4597,30 @@ printf(
 	}
 #endif
     }
+
+#if	!defined(__svr4__)
+  /*
+   * As another level of paranoia - restrict this process to /tmp
+   */
+  if (chdir("/tmp") < 0)
+    {
+      sprintf(ebuf, "Unable to change directory to /tmp");
+      gdomap_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
+    }
+#ifndef __MINGW__
+  if (geteuid() == 0)
+    {
+      if (chroot("/tmp") < 0)
+	{
+	  sprintf(ebuf, "Unable to change root to /tmp");
+	  gdomap_log(LOG_CRIT);
+	  exit(EXIT_FAILURE);
+	}
+      chdir("/");
+    }
+#endif /* __MINGW__ */
+#endif /* __svr4__ */
 
 #ifndef __MINGW__
   /*
@@ -4630,15 +4656,12 @@ printf(
     }
 #endif /* __MINGW__ */
 
-#if	!defined(__svr4__)
-  /*
-   * As another level of paranoia - restrict this process to /tmp
-   */
-  chdir("/tmp");
-#ifndef __MINGW__
-  chroot("/tmp");
-#endif /* __MINGW__ */
-#endif /* __svr4__ */
+  if (getuid() == 0)
+    {
+      sprintf(ebuf, "Still running as root after trying to change");
+      gdomap_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
+    }
 
   init_probe();	/* Probe other name servers on net.	*/
 
