@@ -67,6 +67,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <wchar.h>
 #include <stdio.h>
 #ifdef HAVE_UINTMAX_T
 #include <stdint.h>
