@@ -148,12 +148,18 @@ library.
 The library has been successfully compiled and tested with the following
 configurations:
 @smallexample
-  m68k-next-ns3.0
   mips-sgi-irix5.2
   sparc-sun-sunos4.1.3
-  sparc-sun-solaris2.3
+  m68k-next-nextstep3.0
+@end smallexample
+
+Some previous snapshots of the library worked with these configurations,
+but they haven't been tested recently:
+@smallexample
+  i386-unknown-linux
   i386-sun-solaris2.4
-  i386-unknown-linux ???
+  i386-unknown-sysv4.0
+  sparc-sun-solaris2.3
 @end smallexample
 
 It is known not to work with:
@@ -174,10 +180,10 @@ NeXTSTEP: List, HashTable, Storage, NXStringTable.  In the future it
 will also contain classes compatible with the OpenStep Foundation Kit.
 Rapid progress is already being made on this front.
 
+@section Contact:
 @example
-Contact:
-        Andrew McCallum
-        mccallum@@gnu.ai.mit.edu
+Andrew McCallum
+mccallum@@gnu.ai.mit.edu
 @end example
 
 @bye
