@@ -1,8 +1,14 @@
+2004-03-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDictionary.m: Don't use stack as temporary storage for
+	large numbers of objects ... reduce chances of stack overflow.
+	* Source/NSIndexSet.m: Added a few range checks.
+
 2004-03-16  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
 	* Source/NSNotificationCenter.m ([NSNotificationCenter -removeObserver:name:object:]): 
-	Just return if all arguments are nil instead of throwing exception.  The new
-	behaviour is compatible with MacOSX.
+	Just return if all arguments are nil instead of throwing exception.
+	The new behaviour is compatible with MacOSX.
 
 2004-03-15 Richard Frith-Macdonald <rfm@gnu.org>
 
