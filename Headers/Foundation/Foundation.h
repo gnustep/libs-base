@@ -61,6 +61,7 @@
 #include <Foundation/NSIndexSet.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSKeyValueCoding.h>
+#include <Foundation/NSKeyedArchiver.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSMethodSignature.h>
