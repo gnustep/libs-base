@@ -932,7 +932,7 @@ NSOpenStepRootDirectory(void)
 #ifdef  __CYGWIN__
       root = @"/cygdrive/c/";
 #else
-      root = @"/c/";
+      root = @"~c/";
 #endif
 #else
       root = @"/";
