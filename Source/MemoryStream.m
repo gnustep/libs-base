@@ -241,6 +241,11 @@ void unchar_func(void *s, int c)
   return position;
 }
 
+- (void) closeStream
+{
+  [self flushStream];
+}
+
 - (void) dealloc
 {
   OBJC_FREE(buffer);
