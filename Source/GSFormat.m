@@ -607,23 +607,29 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
     case 'Z':
       /* ints are size_ts.  */
       assert (sizeof (size_t) <= sizeof (unsigned long long int));
+#if defined(LONG_LONG_MAX)
 #if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = sizeof (size_t) > sizeof (unsigned long int);
+#endif
 #endif
       spec->info.is_long = sizeof (size_t) > sizeof (unsigned int);
       break;
     case 't':
       assert (sizeof (ptrdiff_t) <= sizeof (long long int));
+#if defined(LONG_LONG_MAX)
 #if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = (sizeof (ptrdiff_t) > sizeof (long int));
+#endif
 #endif
       spec->info.is_long = sizeof (ptrdiff_t) > sizeof (int);
       break;
     case 'j':
       assert (sizeof (uintmax_t) <= sizeof (unsigned long long int));
+#if defined(LONG_LONG_MAX)
 #if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = (sizeof (uintmax_t)
 				   > sizeof (unsigned long int));
+#endif
 #endif
       spec->info.is_long = sizeof (uintmax_t) > sizeof (unsigned int);
       break;
@@ -647,10 +653,12 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
 	case 'o':
 	case 'X':
 	case 'x':
+#if defined(LONG_LONG_MAX)
 #if LONG_MAX != LONG_LONG_MAX
 	  if (spec->info.is_long_double)
 	    spec->data_arg_type = PA_INT|PA_FLAG_LONG_LONG;
 	  else
+#endif
 #endif
 	    if (spec->info.is_long)
 	      spec->data_arg_type = PA_INT|PA_FLAG_LONG;
@@ -756,10 +764,14 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
 /* For handling long_double and longlong we use the same flag.  If
    `long' and `long long' are effectively the same type define it to
    zero.  */
+#if defined(LONG_LONG_MAX)
 #if LONG_MAX == LONG_LONG_MAX
 # define is_longlong 0
 #else
 # define is_longlong is_long_double
+#endif
+#else
+# define is_longlong 0
 #endif
 
 /* If `long' and `int' is effectively the same type we don't have to
