@@ -259,6 +259,131 @@ static NSMutableSet	*textNodes = nil;
   return buf;
 }
 
+- (void) outputIndex: (NSString*)type
+	       scope: (NSString*)scope
+	       title: (NSString*)title
+		  to: (NSMutableString*)buf
+{
+  NSDictionary	*dict = [localRefs refs];
+
+  if (globalRefs != nil && [scope isEqual: @"global"] == YES)
+    {
+      dict = [globalRefs refs];
+    }
+  else if (projectRefs != nil && [scope isEqual: @"project"] == YES)
+    {
+      dict = [projectRefs refs];
+    }
+
+  dict = [dict objectForKey: type];
+  if ([dict count] > 1
+    || ([dict count] > 0 && [type isEqual: @"title"] == NO))
+    {
+      NSArray	*a = [dict allKeys];
+      unsigned	c = [a count];
+      unsigned	i;
+      NSString	*sep = @"";
+
+      if ([type isEqual: @"ivariable"])
+	{
+	  sep = @"*";
+	}
+      a = [a sortedArrayUsingSelector: @selector(compare:)];
+
+      [buf appendString: indent];
+      [buf appendFormat: @"<b>%@</b>\n", title];
+      [buf appendString: indent];
+      [buf appendString: @"<ul>\n"];
+      [self incIndent];
+
+      for (i = 0; i < c; i++)
+	{
+	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
+	    {
+	      NSString		*ref = [a objectAtIndex: i];
+	      NSDictionary	*units = [dict objectForKey: ref];
+	      NSMutableArray	*b = [[units allKeys] mutableCopy];
+	      unsigned		j;
+
+	      if (unit != nil)
+		{
+		  /*
+		   * Remove any listing for methods not in the
+		   * current unit or in categories of the
+		   * current class.
+		   */
+		  for (j = 0; j < [b count]; j++)
+		    {
+		      NSString	*u = [b objectAtIndex: j];
+
+		      if ([unit isEqual: u] == NO)
+			{
+			  if ([unit hasSuffix: @")"] == NO
+			    && [u hasPrefix: unit] == YES
+			    && [u characterAtIndex: [unit length]]
+			    == '(')
+			    {
+			      continue;
+			    }
+			  [b removeObjectAtIndex: j--];
+			}
+		    }
+		}
+	      [b sortUsingSelector: @selector(compare:)];
+	      for (j = 0; j < [b count]; j++)
+		{
+		  NSString	*u = [b objectAtIndex: j];
+		  NSString	*file = [units objectForKey: u];
+
+		  [buf appendString: indent];
+		  [buf appendFormat: @"<li><a rel=\"gsdoc\" href="];
+		  [buf appendFormat: @"\"%@.html#%@$%@%@%@\">",
+		    file, type, u, sep, ref];
+		  if ([u isEqual: unit] == YES)
+		    {
+		      [buf appendFormat: @"%@</a></li>\n", ref];
+		    }
+		  else
+		    {
+		      [buf appendFormat: @"%@</a> in %@</li>\n", ref, u];
+		    }
+		}
+	      RELEASE(b);
+	    }
+	  else
+	    {
+	      NSString	*ref = [a objectAtIndex: i];
+	      NSString	*file = [dict objectForKey: ref];
+	      NSString	*text = ref;
+
+	      /*
+	       * Special case ... title listings are done 
+	       * with the name of the file being the unique key
+	       * and the value being the title string.
+	       */
+	      if ([type isEqual: @"title"] == YES)
+		{
+		  text = file;
+		  file = ref;
+		  if ([file isEqual: base] == YES)
+		    {
+		      continue;	// Don't list current file.
+		    }
+		}
+
+	      [buf appendString: indent];
+	      [buf appendString: @"<li><a rel=\"gsdoc\" href="];
+	      [buf appendFormat: @"\"%@.html#%@$%@\">%@</a></li>\n",
+		file, type, ref, text];
+	    }
+	}
+
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</ul>\n"];
+    }
+}
+
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf
 {
   CREATE_AUTORELEASE_POOL(arp);
@@ -756,120 +881,9 @@ static NSMutableSet	*textNodes = nil;
         {
 	  NSString	*scope = [prop objectForKey: @"scope"];
 	  NSString	*type = [prop objectForKey: @"type"];
-	  NSDictionary	*dict = [localRefs refs];
+	  NSString	*title = [type capitalizedString];
 
-	  if (globalRefs != nil && [scope isEqual: @"global"] == YES)
-	    {
-	      dict = [globalRefs refs];
-	    }
-	  else if (projectRefs != nil && [scope isEqual: @"project"] == YES)
-	    {
-	      dict = [projectRefs refs];
-	    }
-
-	  dict = [dict objectForKey: type];
-	  if ([dict count] > 1
-	    || ([dict count] > 0 && [type isEqual: @"title"] == NO))
-	    {
-	      NSArray	*a = [dict allKeys];
-	      unsigned	c = [a count];
-	      unsigned	i;
-	      NSString	*sep = @"";
-
-	      if ([type isEqual: @"ivariable"])
-		{
-		  sep = @"*";
-		}
-	      a = [a sortedArrayUsingSelector: @selector(compare:)];
-
-	      [buf appendString: indent];
-	      [buf appendString: @"<hr />\n"];
-	      [buf appendString: indent];
-	      [buf appendFormat: @"<b>%@ index</b>\n",
-		[type capitalizedString]];
-	      [buf appendString: indent];
-	      [buf appendString: @"<ul>\n"];
-	      [self incIndent];
-
-	      for (i = 0; i < c; i++)
-		{
-		  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
-		    {
-		      NSString		*ref = [a objectAtIndex: i];
-		      NSDictionary	*units = [dict objectForKey: ref];
-		      NSMutableArray	*b = [[units allKeys] mutableCopy];
-		      unsigned		j;
-
-		      if (unit != nil)
-			{
-			  /*
-			   * Remove any listing for methods not in the
-			   * current unit or in categories of the
-			   * current class.
-			   */
-			  for (j = 0; j < [b count]; j++)
-			    {
-			      NSString	*u = [b objectAtIndex: j];
-
-			      if ([unit isEqual: u] == NO)
-				{
-				  if ([unit hasSuffix: @")"] == NO
-				    && [u hasPrefix: unit] == YES
-				    && [u characterAtIndex: [unit length]]
-				    == '(')
-				    {
-				      continue;
-				    }
-				  [b removeObjectAtIndex: j--];
-				}
-			    }
-			}
-		      [b sortUsingSelector: @selector(compare:)];
-		      for (j = 0; j < [b count]; j++)
-			{
-			  NSString	*u = [b objectAtIndex: j];
-			  NSString	*file = [units objectForKey: u];
-
-			  [buf appendString: indent];
-			  [buf appendFormat: @"<li><a rel=\"gsdoc\" href="];
-			  [buf appendFormat: @"\"%@.html#%@$%@%@%@\">",
-			    file, type, u, sep, ref];
-			  [buf appendFormat: @"%@</a> in %@</li>\n", ref, u];
-			}
-		      RELEASE(b);
-		    }
-		  else
-		    {
-		      NSString	*ref = [a objectAtIndex: i];
-		      NSString	*file = [dict objectForKey: ref];
-		      NSString	*text = ref;
-
-		      /*
-		       * Special case ... title listings are done 
-		       * with the name of the file being the unique key
-		       * and the value being the title string.
-		       */
-		      if ([type isEqual: @"title"] == YES)
-			{
-			  text = file;
-			  file = ref;
-			  if ([file isEqual: base] == YES)
-			    {
-			      continue;	// Don't list current file.
-			    }
-			}
-
-		      [buf appendString: indent];
-		      [buf appendString: @"<li><a rel=\"gsdoc\" href="];
-		      [buf appendFormat: @"\"%@.html#%@$%@\">%@</a></li>\n",
-			file, type, ref, text];
-		    }
-		}
-
-	      [self decIndent];
-	      [buf appendString: indent];
-	      [buf appendString: @"</ul>\n"];
-	    }
+	  [self outputIndex: type scope: scope title: title to: buf];
 	}
       else if ([name isEqual: @"ivar"] == YES)	// %phrase
 	{
@@ -1570,31 +1584,10 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
   a = [localRefs methodsInUnit: unit];
   if ([a count] > 0)
     {
-      NSEnumerator	*e;
-      NSString		*s;
-
-      [a sortUsingSelector: @selector(compare:)];
-      [buf appendString: indent];
-      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
-      [buf appendString: indent];
-      [buf appendString: @"<h2>Method summary</h2>\n"];
-      [buf appendString: indent];
-      [buf appendString: @"<ul>\n"];
-      [self incIndent];
-      e = [a objectEnumerator];
-      while ((s = [e nextObject]) != nil)
-	{
-	  [buf appendString: indent];
-	  [buf appendString: @"<li>"];
-	  [buf appendString:
-	    [self makeLink: s ofType: @"method" inUnit: unit isRef: YES]];
-	  [buf appendString: s];
-	  [buf appendString: @"</a></li>\n"];
-	}
-      [self decIndent];
-      [buf appendString: indent];
-      [buf appendString: @"</ul>\n"];
-      [buf appendString: indent];
+      [self outputIndex: @"method"
+		  scope: @"global"
+		  title: @"Method summary"
+		     to: buf];
       [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
     }
   while (node != nil && [[node name] isEqual: @"method"] == YES)
