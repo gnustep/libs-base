@@ -10,7 +10,7 @@
 int main(int argc, char *argv[])
 {
   id p;
-  id callback_receiver = [Object new];
+  id callback_receiver = [NSObject new];
   id o;
   id localObj;
   unsigned long i = 4;
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
   [p sendCharPtrPtr:&string];
   /* testing "-perform:" */
   if (p != [p perform:sel_get_any_uid("self")])
-    [Object error:"trying perform:"];
+    [NSObject error:"trying perform:"];
   /* testing "bycopy" */
   /* reverse the order on these next two and it doesn't crash,
      however, having manyArgs called always seems to crash.
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
   printf(">>returned float %f\n", [p returnFloat]);
   printf(">>returned double %f\n", [p returnDouble]);
 
-  localObj = [[Object alloc] init];
+  localObj = [[NSObject alloc] init];
   [p addObject:localObj];
   k = [p count];
   for (j = 0; j < k; j++)
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	     j, (unsigned)[remote_peer_obj hash]);
     }
   [c runConnectionWithTimeout:1500];
-  [c dealloc];
+  [c release];
 
   exit(0);
 }
