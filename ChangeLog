@@ -2,6 +2,11 @@
 
 	* Source/NSSerializer.m: Fix crash when deserializing a corrupt or
 	truncated archive ... raise exception rather than segfaulting.
+	Added code to recognize newer versions of the serialiser format and
+	give up if they are encountered and cannot be handled.
+	* Source/GSTcpPort.m: Added code to recognise newer versions of the
+	port format and give up if they are encountered and cannot be handled.
+	This allows for the addition of decent versioning in later formats.
 
 2003-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
