@@ -83,8 +83,8 @@ typedef enum _NSStringEncoding
   NSISOHebrewStringEncoding = 55,	// ISO-8859-8
   NSISOLatin5StringEncoding = 57,	// ISO-8859-9; Turkish
   NSISOLatin6StringEncoding = 58,	// ISO-8859-10; Nordic
-/* Possible future ISO-8859 additions
   NSISOThaiStringEncoding = 59,		// ISO-8859-11
+/* Possible future ISO-8859 additions
 					// ISO-8859-12
 */
   NSISOLatin7StringEncoding = 61,	// ISO-8859-13

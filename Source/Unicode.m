@@ -48,6 +48,7 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #include "unicode/cop.h"
 #include "unicode/decomp.h"
 #include "unicode/gsm0338.h"
+#include "unicode/thai.h"
 
 #ifdef HAVE_ICONV
 #ifdef HAVE_GICONV_H
@@ -163,6 +164,7 @@ static struct _strenc_ str_encoding_table[] = {
   {NSISOHebrewStringEncoding, "NSISOHebrewStringEncoding","ISO-8859-8",0,0},
   {NSISOLatin5StringEncoding, "NSISOLatin5StringEncoding","ISO-8859-9",0,0},
   {NSISOLatin6StringEncoding, "NSISOLatin6StringEncoding","ISO-8859-10",0,0},
+  {NSISOThaiStringEncoding, "NSISOThaiStringEncoding","ISO-8859-11",1,1},
   {NSISOLatin7StringEncoding, "NSISOLatin7StringEncoding","ISO-8859-13",0,0},
   {NSISOLatin8StringEncoding, "NSISOLatin8StringEncoding","ISO-8859-14",0,0},
   {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding","ISO-8859-15",0,0},
@@ -348,6 +350,8 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
 	return NSISOGreekStringEncoding;
       else if ([encoding isEqualToString: @"8"])
 	return NSISOHebrewStringEncoding;
+      else if ([encoding isEqualToString: @"11"])
+	return NSISOThaiStringEncoding;
       // Other latin encodings are currently not supported
     }
   else if ([registry isEqualToString: @"iso10646"])
@@ -986,6 +990,11 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	base = Latin2_conv_base;
 	table = Latin2_char_to_uni_table;
 	goto tables;
+
+      case NSISOThaiStringEncoding:
+        base = Thai_conv_base;
+	table = Thai_char_to_uni_table;
+	goto tables;
 	    
 #if 0
       case NSSymbolStringEncoding:
@@ -1446,6 +1455,12 @@ bases:
 	base = (unichar)Latin2_conv_base;
 	table = Latin2_uni_to_char_table;
 	tsize = Latin2_uni_to_char_table_size;
+	goto tables;
+
+      case NSISOThaiStringEncoding:
+        base = (unichar)Thai_conv_base;
+	table = Thai_uni_to_char_table;
+	tsize = Thai_uni_to_char_table_size;
 	goto tables;
 
 #if 0

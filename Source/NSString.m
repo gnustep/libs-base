@@ -2495,7 +2495,8 @@ handle_printf_atsign (FILE *stream,
     || (encoding == NSNEXTSTEPStringEncoding)
     || (encoding == NSNonLossyASCIIStringEncoding)
     || (encoding == NSSymbolStringEncoding)
-    || (encoding == NSISOCyrillicStringEncoding))
+    || (encoding == NSISOCyrillicStringEncoding)
+    || (encoding == NSISOThaiStringEncoding))
     {
       char		t;
       unsigned char	*buff;
