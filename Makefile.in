@@ -62,7 +62,7 @@ src doc checks examples: FORCE
 
 install uninstall TAGS:
 	for i in $(SUBDIRS); do \
-	  (cd $@; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) $@); \
+	  (cd $$i; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) $@); \
 	done
 
 info dvi:
