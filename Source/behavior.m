@@ -180,8 +180,8 @@ behavior_class_add_methods (Class class,
       /* xxx This is a little wasteful of memory, since not necessarily 
 	 all methods will go in here. */
       new_list = (MethodList_t)
-	(*objc_malloc)
-	  (sizeof(MethodList) + sizeof(struct objc_method[counter+1]));
+	objc_malloc (sizeof(MethodList) +
+		     sizeof(struct objc_method[counter+1]));
       new_list->method_count = 0;
 
       while (counter >= 0)
