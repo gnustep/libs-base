@@ -7,6 +7,8 @@
 	* Source/NSKeyValueCoding.m: Fix termination of method names with nuls
 	from report by Manuel Guesdon.
 	* Source/NSDictionary.m: Implement MacOS-X compatible KVC behavior.
+	* Headers/Foundation/NSProtocolChecker.h: Change deprecated import to
+	include.
 
 2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
 
