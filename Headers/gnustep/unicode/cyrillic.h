@@ -138,7 +138,7 @@ unichar Cyrillic_char_to_uni_table[] =
 
 const unsigned int Cyrillic_uni_to_char_table_size = 128;
 
-struct _ucc_ Cyrillic_uni_to_char_table[]=
+_ucc_ Cyrillic_uni_to_char_table[]=
 {
   {0x0080,0x80},
   {0x0081,0x81},
