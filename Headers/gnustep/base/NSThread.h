@@ -50,6 +50,7 @@ extern NSString *NSThreadExiting;
 @private
     _objc_thread_t thread_id;
     NSMutableDictionary *thread_dictionary;
+    id _thread_autorelease_pool;
 }
 
 + (NSThread *)currentThread;
