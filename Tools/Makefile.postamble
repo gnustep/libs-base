@@ -26,6 +26,7 @@ after-install::
 	  echo "in which case you should install it by hand."; \
 	else \
 	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR); \
+	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdnc $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR); \
 	fi; \
 
 # Things to do before uninstalling
