@@ -122,6 +122,7 @@ enum
   gsu8			proxy_tag;
   unsigned		target;
   id			decoder_connection;
+  NSDistantObject	*o;
 
 /*
   if ([aCoder isKindOfClass: [NSPortCoder class]] == NO)
@@ -155,7 +156,8 @@ enum
 	  NSLog(@"Receiving a proxy for local object 0x%x "
 		@"connection 0x%x\n", target, (gsaddr)decoder_connection);
 
-        if (![[decoder_connection class] includesLocalTarget: target])
+	o = [decoder_connection locateLocalTarget: target];
+        if (o == nil)
 	  {
 	    [NSException raise: @"ProxyDecodedBadTarget"
 			format: @"No local object with given target (0x%x)",
@@ -163,9 +165,6 @@ enum
 	  }
 	else
 	  {
-	    NSDistantObject	*o;
-
-	    o = [decoder_connection includesLocalTarget: target];
 	    if (debug_proxy)
 	      {
 		NSLog(@"Local object is 0x%x (0x%x)\n",
@@ -511,9 +510,10 @@ enum
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  gsu8		proxy_tag;
-  unsigned	target;
-  id		decoder_connection;
+  gsu8			proxy_tag;
+  unsigned		target;
+  id			decoder_connection;
+  NSDistantObject	*o;
 
 /*
   if ([aCoder isKindOfClass: [NSPortCoder class]] == NO)
@@ -548,7 +548,8 @@ enum
 	  NSLog(@"Receiving a proxy for local object 0x%x "
 		@"connection 0x%x\n", target, (gsaddr)decoder_connection);
 
-        if (![[decoder_connection class] includesLocalTarget: target])
+	o = [decoder_connection locateLocalTarget: target];
+        if (o == nil)
 	  {
 	    RELEASE(self);
 	    [NSException raise: @"ProxyDecodedBadTarget"
@@ -557,9 +558,6 @@ enum
 	  }
 	else
 	  {
-	    NSDistantObject	*o;
-
-	    o = [decoder_connection includesLocalTarget: target];
 	    if (debug_proxy)
 	      {
 		NSLog(@"Local object is 0x%x (0x%x)\n",
