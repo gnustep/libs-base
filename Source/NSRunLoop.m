@@ -1699,8 +1699,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 
 /**
- * Fire appropriate timers and determine the earliest time that anything
- * watched for becomes useless.
+ * Fires timers whose fire date has passed, and checks timers and limit dates
+ * for input sources, determining the earliest time that anything watched for
+ * becomes useless.  Returns that date/time.
  */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
@@ -1889,7 +1890,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 }
 
 /**
- * Listen to input sources.<br />
+ * Listen for events from input sources.<br />
  * If limit_date is nil or in the past, then don't wait;
  * just poll inputs and return,
  * otherwise block until input is available or until the
@@ -1943,12 +1944,13 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	}
 
       /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
-      if (!limit_date)
+      if (limit_date == nil
+       || (ti = [limit_date timeIntervalSinceNow]) <= 0.0)
 	{
 	  /* Don't wait at all. */
 	  timeout_ms = 0;
 	}
-      else if ((ti = [limit_date timeIntervalSinceNow]) > 0.0)
+      else
 	{
 	  /* Wait until the LIMIT_DATE. */
 	  NSDebugMLLog(@"NSRunLoop", @"accept I/P before %f (sec from now %f)", 
@@ -1961,24 +1963,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    {
 	      timeout_ms = ti * 1000;
 	    }
-	}
-      else if (ti <= 0.0)
-	{
-	  /* The LIMIT_DATE has already past; return immediately without
-	     polling any inputs. */
-	  GSCheckTasks();
-	  [self _checkPerformers: context];
-	  GSNotifyASAP();
-	  NSDebugMLLog(@"NSRunLoop", @"limit date past, returning");
-	  _currentMode = savedMode;
-	  RELEASE(arp);
-	  NS_VOIDRETURN;
-	}
-      else
-	{
-	  /* Wait forever. */
-	  NSDebugMLLog(@"NSRunLoop", @"accept input waiting forever");
-	  timeout_ms = -1;
 	}
 
       if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
@@ -2016,28 +2000,17 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 /**
  * Calls -acceptInputForMode:beforeDate: to run the loop once.<br />
  * The specified date may be nil ... in which case the loop runs
- * until the first input or timeout.<br />
- * If the limit dates for all of mode's input sources have passed,
- * returns NO without running the loop, otherwise returns YES.
+ * until the limit date of the first input or timeout.<br />
+ * If the specified date is in the past, runs the loop once only, to
+ * handle any events already available.<br />
+ * If there are no input sources in mode, returns NO without running the loop,
+ * otherwise returns YES.
  */
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   id	d;
 
   NSAssert(mode != nil, NSInvalidArgumentException);
-  /* If date has already passed, simply return. */
-  if (date != nil && [date timeIntervalSinceNow] < 0)
-    {
-      NSDebugMLLog(@"NSRunLoop", @"run mode with date already past");
-      /*
-       * Notify if any tasks have completed.
-       */
-      if (GSCheckTasks() == YES)
-	{
-	  GSNotifyASAP();
-	}
-      return NO;
-    }
 
   /* Find out how long we can wait before first limit date. */
   d = [self limitDateForMode: mode];
