@@ -1,3 +1,17 @@
+2001-06-06  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	Configuration part of constant string support with gcc-3.0
+	* config/config.constant-string-class.m: New config test.
+	* configure.in: Added test for -fconstant-string-class option in
+	compiler, by compiling and running config.constant-string-class.m.
+	Output different NX_CONST_STRING_CLASS and
+	NX_CONST_STRING_CPPFLAGS depending on results of this test.
+	* base.make.in (CONFIG_SYSTEM_INCL): Added
+	NX_CONST_STRING_CPPFLAGS.
+	* Headers/gnustep/base/GSConfig.h.in: Renamed NXCONST to
+	NX_CONST_STRING_CLASS.
+	* configure: Updated.
+
 2001-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSScanner.m: ([scanHexInt:]) fix for scanning number
