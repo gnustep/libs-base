@@ -621,17 +621,18 @@ static Class NSMutableAttributedString_concrete_class;
   NSRange	ownRange;
   NSDictionary	*attrDict;
   NSString	*tmpStr;
+  unsigned	loc;
   
   tmpStr = [attributedString string];
   [self replaceCharactersInRange: aRange withString: tmpStr];
   
   effectiveRange = NSMakeRange(0,0);
   clipRange = NSMakeRange(0,[tmpStr length]);
-  while (NSMaxRange(effectiveRange) < NSMaxRange(clipRange))
+  while ((loc = NSMaxRange(effectiveRange)) < NSMaxRange(clipRange))
     {
-      attrDict = [attributedString attributesAtIndex: effectiveRange.location
+      attrDict = [attributedString attributesAtIndex: loc
 				      effectiveRange: &effectiveRange];
-      ownRange = NSIntersectionRange(clipRange,effectiveRange);
+      ownRange = NSIntersectionRange(clipRange, effectiveRange);
       ownRange.location += aRange.location;
       [self setAttributes: attrDict range: ownRange];
     }
