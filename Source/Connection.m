@@ -124,6 +124,8 @@ static Lock *connection_array_gate;
 static Dictionary *root_object_dictionary;
 static Lock *root_object_dictionary_gate;
 
+static NSMapTable *in_port_2_ancestor;
+
 static NSMapTable *all_connections_local_targets = NULL;
 
 /* rmc handling */
@@ -150,6 +152,9 @@ static int messages_received_count;
   received_reply_rmc_queue_gate = [Lock new];
   root_object_dictionary = [[Dictionary alloc] init];
   root_object_dictionary_gate = [Lock new];
+  in_port_2_ancestor = 
+    NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
   messages_received_count = 0;
   default_in_port_class = [TcpInPort class];
   default_out_port_class = [TcpOutPort class];
@@ -340,7 +345,7 @@ static int messages_received_count;
 /* This is the designated initializer for Connection */
 
 + (Connection*) newForInPort: (InPort*)ip outPort: (OutPort*)op
-   ancestorConnection: (Connection*)ancestor;
+   ancestorConnection: ancestor
 {
   Connection *newConn;
   int i, count;
@@ -367,12 +372,12 @@ static int messages_received_count;
     }
 
   newConn = [[Connection alloc] _superInit];
-  newConn->is_valid = 1;
   if (debug_connection)
     fprintf(stderr, "Created new connection 0x%x\n\t%s\n\t%s\n", 
 	    (unsigned)newConn, 
 	    [[ip description] cStringNoCopy], 
 	    [[op description] cStringNoCopy]);
+  newConn->is_valid = 1;
   newConn->in_port = ip;
   [ip retain];
   newConn->out_port = op;
@@ -401,6 +406,24 @@ static int messages_received_count;
   newConn->in_timeout = [self defaultInTimeout];
   newConn->out_timeout = [self defaultOutTimeout];
   newConn->encoding_class = default_encoding_class;
+
+  /* xxx ANCESTOR argument is currently ignored; in the future it
+     will be removed. */
+  /* xxx It this the correct behavior? */
+  if (!(ancestor = NSMapGet (in_port_2_ancestor, ip)))
+    {
+      NSMapInsert (in_port_2_ancestor, ip, newConn);
+      [ip addToRunLoop: [RunLoop currentInstance] forMode: nil];
+      /* This will cause the connection with the registered name
+	 to receive the -invokeWithObject: from the IN_PORT.
+	 This ends up being the ancestor of future new Connections
+	 on this in port. */
+      /* xxx Could it happen that this connection was invalidated, but
+	 the others would still be OK?  That would cause problems.
+	 No.  I don't think that can happen. */
+      [ip setReceivedPacketInvocation: (id)[self class]];
+    }
+
   if (ancestor)
     {
       newConn->in_port_class = [ancestor inPortClass];
@@ -445,6 +468,9 @@ static int messages_received_count;
   [connection_array addObject: newConn];
 
   [connection_array_gate unlock];
+
+  /* [newConn addToRunLoop: [RunLoop currentInstance] forMode: nil];
+     This already done above. */
 
   [NotificationDispatcher 
     postNotificationName: ConnectionWasCreatedNotification
@@ -766,8 +792,17 @@ static int messages_received_count;
 
 - (void) addToRunLoop: run_loop forMode: (id <String>)mode
 {
+  [self notImplemented: _cmd];
   [in_port addToRunLoop: run_loop forMode: mode];
-  [in_port setReceivedPacketInvocation: (id)self];
+  if (out_port == nil)
+    /* This will cause the connection with the registered name
+       to receive the -invokeWithObject: from the IN_PORT.
+       This ends up being the `ancestorConnection:' argument in
+       [ConnectedDecoder newDecodingWithPacket:connection:]. */
+    /* xxx Could it happen that this connection was invalidated, but
+       the others would still be OK?  That would cause problems.
+       No.  I don't think that can happen. */
+    [in_port setReceivedPacketInvocation: (id)[self class]];
 }
 
 - (void) removeFromRunLoop: run_loop forMode: (id <String>)mode
@@ -777,7 +812,6 @@ static int messages_received_count;
 
 - (void) runConnectionUntilDate: date
 {
-  [self addToRunLoop: [RunLoop currentInstance] forMode: nil];
   [RunLoop runUntilDate: date];
 }
 
@@ -909,12 +943,14 @@ static int messages_received_count;
 }
 
 /* Sneaky, sneaky.  See "sneaky" comment in TcpPort.m.
-   This method will be called by InPort when I receives a new packet. */
-- (void) invokeWithObject: packet
+   This method is called by InPort when it receives a new packet. */
++ (void) invokeWithObject: packet
 {
-  [self _handleRmc:
-	  [ConnectedDecoder newDecodingWithPacket: packet
-			    connection: self]];
+  id rmc = [ConnectedDecoder 
+	     newDecodingWithPacket: packet
+	     connection: NSMapGet (in_port_2_ancestor, 
+				   [packet receivingInPort])];
+  [[rmc connection] _handleRmc: rmc];
 }
 
 - (int) _newMsgNumber
@@ -1265,6 +1301,16 @@ static int messages_received_count;
      with the NotificationDispatcher in 
      +newForInPort:outPort:ancestorConnection. */
   assert (port == in_port || port == out_port);
+
+  /* xxx This also needs to be done properly in cases where the
+     Connection invalidates itself. */
+  /* Remove ourselves from the in_port_2_ancestor, if necessary. */
+  {
+    id ancestor;
+    if ([port isKindOfClass: [InPort class]]
+	&& (self == (ancestor = NSMapGet (in_port_2_ancestor, port))))
+      NSMapRemove (in_port_2_ancestor, port);
+  }
   [self invalidate];
   /* xxx Anything else? */
 }
@@ -1289,6 +1335,14 @@ static int messages_received_count;
 		(unsigned)self,
 		[[in_port description] cStringNoCopy], 
 		[[out_port description] cStringNoCopy]);
+
+      /* We actually need to know *which* RunLoops to remove
+	 outselves from. */
+      /* xxx No.  We aren't the only Connection listening to this in
+	 port.  This would be correct if we properly counted that adds
+	 and removes. 
+	 [self removeFromRunLoop: [RunLoop currentInstance]
+	 forMode: nil]; */
     
       [NotificationDispatcher 
 	postNotificationName: ConnectionBecameInvalidNotification
