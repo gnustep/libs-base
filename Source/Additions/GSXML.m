@@ -209,6 +209,9 @@ static NSMapTable	*attrNames = 0;
   return desc;
 }
 
+/**
+ * Return the next sibling node.
+ */
 - (GSXMLNode*) next
 {
   if (((xmlAttrPtr)(lib))->next != NULL)
@@ -1213,6 +1216,27 @@ static NSMapTable	*nodeNames = 0;
     {
       return nil;
     }
+}
+
+/**
+ * Return the previous element node at this level.
+ */
+- (GSXMLNode*) previousElement
+{
+  xmlNodePtr	ptr = (xmlNodePtr)lib;
+
+  while (ptr->prev != NULL)
+    {
+      ptr = ptr->prev;
+      if (ptr->type == XML_ELEMENT_NODE)
+	{
+	  GSXMLNode	*n = [GSXMLNode alloc];
+
+	  n = [n _initFrom: ptr parent: self];
+	  return AUTORELEASE(n);
+	}
+    }
+  return nil;
 }
 
 
