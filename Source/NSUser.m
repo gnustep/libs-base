@@ -495,9 +495,11 @@ userDirectory(NSString *name, BOOL defaults)
   NSString	*defs = nil;
   BOOL		forceD = NO;
   BOOL		forceU = NO;
+  NSDictionary	*attributes;
 
   NSCAssert([name length] > 0, NSInvalidArgumentException);
 
+  home = NSHomeDirectoryForUser(name);
   manager = [NSFileManager defaultManager];
 
   if (gnustep_system_root == nil)
@@ -509,8 +511,13 @@ userDirectory(NSString *name, BOOL defaults)
       [gnustep_global_lock unlock];
     }
   file = [gnustep_system_root stringByAppendingPathComponent: @".GNUsteprc"];
-
-  if ([manager isReadableFileAtPath: file] == YES)
+  attributes = [manager fileAttributesAtPath: file traverseLink: YES];
+  if (([attributes filePosixPermissions] & 022) != 0)
+    {
+      fprintf(stderr, "The file '%s' is writable by someone other than"
+	" its owner.\nIgnoring it.\n", [file fileSystemRepresentation]);
+    }
+  else if ([manager isReadableFileAtPath: file] == YES)
     {
       NSArray	*lines;
       unsigned	count;
@@ -572,10 +579,20 @@ userDirectory(NSString *name, BOOL defaults)
 
   if (forceD == NO || defs == nil || forceU == NO || user == nil)
     {
-      home = NSHomeDirectoryForUser(name);
       file = [home stringByAppendingPathComponent: @".GNUsteprc"];
 
-      if ([manager isReadableFileAtPath: file] == YES)
+      attributes = [manager fileAttributesAtPath: file traverseLink: YES];
+      if (([attributes filePosixPermissions] & 022) != 0)
+	{
+	  fprintf(stderr, "The file '%s' is writable by someone other than"
+	    " its owner.\nIgnoring it.\n", [file fileSystemRepresentation]);
+	}
+      else if ([[attributes fileOwnerAccountName] isEqual: NSUserName()] == NO)
+	{
+	  fprintf(stderr, "The file '%s' is not owned by the current user."
+	    "\nIgnoring it.\n", [file fileSystemRepresentation]);
+	}
+      else if ([manager isReadableFileAtPath: file] == YES)
 	{
 	  NSArray	*lines;
 	  unsigned	count;
