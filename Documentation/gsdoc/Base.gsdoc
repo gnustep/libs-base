@@ -7,8 +7,8 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <version>0.2</version>
-    <date>25 January, 2001</date>
+    <version>$Revision$>/version>
+    <date>$Date$</date>
   </head>
   <body>
     <chapter>
@@ -176,6 +176,12 @@
 	  <item><uref url="NSUndoManager.html">NSUndoManager</uref></item>
 	  <item><uref url="NSUserDefaults.html">NSUserDefaults</uref></item>
 	  <item><uref url="NSValue.html">NSValue</uref></item>
+	</list>
+      </section>
+      <section>
+	<heading>The OpenStep functions</heading>
+	<list>
+	  <item><uref url="NSFunctions.html">Functions</uref></item>
 	</list>
       </section>
       <section>

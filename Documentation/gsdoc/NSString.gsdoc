@@ -10,8 +10,8 @@
     <author name="James Dessart">
       <email address="skwirl@cam.org"/>
     </author>
-    <version>0.2</version>
-    <date>31 October, 2000</date>
+    <version>$Revision$>/version>
+    <date>$Date$</date>
   </head>
   <body>
     <chapter>

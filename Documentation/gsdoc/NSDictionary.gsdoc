@@ -11,8 +11,8 @@
       <email address="pyhrr@altern.org"/>
       <url url="http://altern.org/pyhrr"/>
     </author>
-    <version>0.2</version>
-    <date>25 April, 2000</date>
+    <version>$Revision$>/version>
+    <date>$Date$</date>
   </head>
   <body>
     <chapter>

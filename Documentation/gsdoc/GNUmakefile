@@ -101,6 +101,7 @@ Base_GSDOC_FILES = Base.gsdoc \
 	NSUndoManager.gsdoc \
 	NSUserDefaults.gsdoc \
 	NSValue.gsdoc \
+	NSFunctions.gsdoc \
 	GSMime.gsdoc \
 	GSMimeDocument.gsdoc \
 	GSMimeParser.gsdoc \

@@ -7,8 +7,8 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <version>1.0</version>
-    <date>18 April, 2000</date>
+    <version>$Revision$>/version>
+    <date>$Date$</date>
   </head>
   <body>
     <chapter>
