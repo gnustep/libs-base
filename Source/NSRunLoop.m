@@ -1529,7 +1529,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
   info = [self _getWatcher: data type: type forMode: mode];
 
-  if (info != nil && info->receiver == (id)watcher)
+  if (info != nil && (id)info->receiver == (id)watcher)
     {
       /* Increment usage count for this watcher. */
       info->count++;

@@ -779,7 +779,7 @@ wordData(NSString *word)
       unsigned char		*dst;
       const char		*src;
       const char		*end;
-      const char		*footers = src;
+      const char		*footers;
 
       ctxt = (GSMimeChunkedDecoderContext*)con;
 
@@ -787,6 +787,7 @@ wordData(NSString *word)
        * Get pointers into source data buffer.
        */
       src = (const char *)[sData bytes];
+      footers = src;
       src += aRange.location;
       end = src + aRange.length;
       beg = 0;
@@ -3850,7 +3851,7 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*type;
   GSMimeHeader	*enc;
   GSMimeHeader	*hdr;
-  NSData	*boundary;
+  NSData	*boundary = 0;
   BOOL		contentIsBinary = NO;
   BOOL		contentIs7bit = YES;
   unsigned int	count;

@@ -424,6 +424,7 @@ static void unescape(const char *from, char * to)
 	    }
 	  else
 	    {
+	      c = 0;	// Avoid compiler warning
 	      [NSException raise: NSGenericException
 			  format: @"Bad percent escape sequence in URL string"];
 	    }

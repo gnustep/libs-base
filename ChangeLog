@@ -6,6 +6,12 @@
 	test node type.
 	* Source/Additions/GSMime.m: Add convenience method for putting
 	a new header in a document.
+	* Source/NSCalendarDate.m: Tweak to avoid useless compiler warning.
+	* Source/NSRunLoop.m: ditto
+	* Source/NSURL.m: ditto
+	* Source/Additions/GSMime.m: ditto
+	* Source/Additions/Unicode.m: ditto
+
 
 2003-07-27  Gregory John Casamento <greg_casamento@yahoo.com> & 
 	Alexander Malmberg <alexander@malmberg.org>
