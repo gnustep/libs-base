@@ -355,6 +355,9 @@ AC_SUBST(no_whole_archive)
 #--------------------------------------------------------------------
 AC_OUTPUT(config.mak)
 
+echo "Running 'configure' in src/mframe"
+(cd src/mframe; ./configure)
+
 dnl Local Variables:
 dnl comment-start: "dnl "
 dnl comment-end: ""
