@@ -428,7 +428,7 @@ static SEL	appSel;
 	  return self;
 	}
     }
-  NSLog(@"Contents of file '%@' does not contain a dictionary", path);
+  NSWarnMLog(@"Contents of file '%@' does not contain a dictionary", path);
   RELEASE(self);
   return nil;
 }
