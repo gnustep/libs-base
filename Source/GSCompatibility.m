@@ -495,7 +495,7 @@ XMLPlObject(NSMutableString *dest, id obj, NSDictionary *loc, unsigned lev)
 }
 
 NSString*
-GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev)
+GSXMLPlMake(id obj, NSDictionary *loc)
 {
   NSMutableString	*dest;
 

@@ -3172,18 +3172,6 @@ handle_printf_atsign (FILE *stream,
 			    to: (id<GNUDescriptionDestination>)output
 {
   unsigned	length;
-/*
- * Don't think the following should be there.
-  extern BOOL	GSMacOSXCompatiblePropertyLists();
-
-  if (GSMacOSXCompatiblePropertyLists() == YES)
-    {
-      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev);
-
-      [output appendString: GSXMLPlMake(self, aLocale, level)];
-      return;
-    }
-*/
 
   if ((length = [self length]) == 0)
     {
