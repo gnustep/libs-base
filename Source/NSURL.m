@@ -358,7 +358,7 @@ NSString	*NSURLPartKey_query = @"query";
 		{
 		  NSString	*sub;
 
-		  sub = [userPassword substringToIndex:
+		  sub = [userPassword substringFromIndex:
 		    range.location + 1];
 		  [elements setObject: sub
 			       forKey: NSURLPartKey_password];
