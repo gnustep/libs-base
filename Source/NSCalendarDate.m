@@ -992,7 +992,7 @@
 	      if (ycent)
 		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%04d", yd));
 	      else
-		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", (yd - 1900)));
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", yd % 100));
 	      j += k;
 	      break;
 
