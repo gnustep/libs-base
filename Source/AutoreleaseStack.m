@@ -1,0 +1,123 @@
+#include <assert.h>
+
+/* The initial size of the released_objects array */
+#define DEFAULT_SIZE 64
+
+/* Array of objects to be released later */
+static unsigned released_capacity = 0;
+static unsigned released_index = 0;
+static id *released_objects = NULL;
+static void **released_frame_pointers = NULL;
+
+static inline void
+grow_released_arrays()
+{
+  assert(released_objects);
+  if (released_index == released_capacity)
+    {
+      released_capacity *= 2;
+      OBJC_REALLOC(released_objects, id, released_capacity);
+      OBJC_REALLOC(released_frame_pointers, void*, released_capacity);
+    }
+}
+
+void
+objc_release_stack_objects_to_frame_address(void *frame_address)
+{
+  assert(released_objects);
+  /* xxx This assumes stack grows up */
+  while ((released_frame_pointers[released_index] 
+	  > frame_address)
+	 && released_index)
+    {
+      [released_objects[released_index] release];
+      released_index--;
+    }
+}
+
+void
+objc_release_stack_objects()
+{
+  assert(released_objects);
+  objc_release_stack_objects_to_frame_address(__builtin_frame_address(1));
+}
+
+void
+objc_stack_release_object_with_address (id o, void *a)
+{
+  released_index++;
+  grow_released_arrays();
+  released_objects[released_index] = o;
+  released_frame_pointers[released_index] = a;
+}
+
+/* The object will not be released until after the function that is 3
+   stack frames up exits.  One frame for this function, one frame for
+   the "stackRelease" method that calls this, and one for the method
+   that called "stackRelease". 
+   Careful, if you try to call this too few stack frames away from main,
+   you get a seg fault
+*/
+void
+objc_stack_release_object(id anObj)
+{
+  void *s;
+
+  /* assert(__builtin_frame_address(2)); */
+  s = __builtin_frame_address(3);
+
+  /* Do the pending releases of other objects */
+  objc_release_stack_objects_to_frame_address(s);
+
+  /* Queue this object for later release */
+  objc_stack_release_object_with_address(anObj, s);
+}
+
+unsigned
+objc_stack_release_count()
+{
+  return released_index;
+}
+
+@implementation AutoreleaseStack
+
++ initialize
+{
+  static init_done = 0;
+
+  /* Initialize if we haven't done it yet */
+  if (!init_done)
+    {
+      init_done = 1;
+      
+      released_capacity = DEFAULT_SIZE;
+      OBJC_MALLOC(released_objects, id, released_capacity);
+      OBJC_MALLOC(released_frame_pointers, void*, released_capacity);
+    }
+  return self;
+}
+
+- init
+{
+  objc_stack_release_object(self, 0);
+  return self;
+}
+
+- (void) dealloc
+{
+  while (released_objects[release_index] != self)
+    {
+      [released_objects[released_index] release];
+      released_index--;
+    }
+  released_index--;
+  [super dealloc];
+}
+
+- addObject: anObject
+{
+  objc_stack_release_object(anObject);
+  return self;
+}
+
+@end
