@@ -317,8 +317,12 @@ main(int argc, char **argv, char **env)
   NSString		*prev = nil;
   BOOL			showDependencies = YES;
   BOOL			haveAutoIndex = NO;
+  BOOL			modifiedRefs = NO;
+  NSDate		*rDate = nil;
   CREATE_AUTORELEASE_POOL(outer);
   CREATE_AUTORELEASE_POOL(pool);
+
+  RELEASE(pool);
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
@@ -332,6 +336,7 @@ main(int argc, char **argv, char **env)
   showDependencies = [defs boolForKey: @"ShowDependencies"];
   declared = [defs stringForKey: @"Declared"];
   project = [defs stringForKey: @"Project"];
+
   localProjects = [defs stringForKey: @"LocalProjects"];
   if (localProjects == nil)
     {
@@ -363,6 +368,10 @@ main(int argc, char **argv, char **env)
       documentationDirectory = @"";
     }
 
+  refsFile = [documentationDirectory stringByAppendingPathComponent: project];
+  refsFile = [refsFile stringByAppendingPathExtension: @"igsdoc"];
+
+
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {
@@ -378,10 +387,36 @@ main(int argc, char **argv, char **env)
   output = [AGSOutput new];
 
   /*
+   * Load any old project indexing information.
+   */
+  if ([mgr isReadableFileAtPath: refsFile] == YES)
+    {
+      NSDictionary	*dict;
+
+      dict = [[NSDictionary alloc] initWithContentsOfFile: refsFile];
+      if (dict == nil)
+	{
+	  NSLog(@"Unable to read project file '%@'", refsFile);
+	}
+      else
+	{
+	  [prjRefs mergeRefs: dict override: NO];
+	  RELEASE(dict);
+	  dict = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
+	  rDate = [dict objectForKey: NSFileModificationDate];
+	}
+    }
+  if (rDate == nil)
+    {
+      rDate = [NSDate distantPast];
+    }
+
+  /*
    * Merge any external project references into the
    * main cross reference index.
    */
 
+  pool = [NSAutoreleasePool new];
   if ([systemProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
     {
       NSString	*base = [NSSearchPathForDirectoriesInDomains(
@@ -492,9 +527,10 @@ main(int argc, char **argv, char **env)
 	    }
 	}
     }
+  RELEASE(pool);
 
+  pool = [NSAutoreleasePool new];
   args = [proc arguments];
-
   for (i = 1; i < [args count]; i++)
     {
       NSString *arg = [args objectAtIndex: i];
@@ -720,6 +756,10 @@ main(int argc, char **argv, char **env)
 		    {
 		      NSLog(@"Sorry unable to write %@", gsdocfile);
 		    }
+		  else
+		    {
+		      gDate = [NSDate date];	// Just generated.
+		    }
 		}
 	    }
 	  else
@@ -735,43 +775,57 @@ main(int argc, char **argv, char **env)
 		  gsdocfile = [gsdocfile stringByAppendingPathExtension:
 		    @"gsdoc"];
 		}
+	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
+	      gDate = [attrs objectForKey: NSFileModificationDate];
+	      AUTORELEASE(RETAIN(gDate));
 	    }
 
 	  /*
-	   * Now we try to process the gsdoc data to make index info.
+	   * Now we try to process the gsdoc data to make index info
+	   * unless the project index is already more up to date than
+	   * this file.
 	   */
-	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)
+	  if ([gDate earlierDate: rDate] == rDate)
 	    {
-	      GSXMLParser	*parser;
-	      AGSIndex		*locRefs;
-
-	      parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-	      [parser substituteEntities: NO];
-	      [parser doValidityChecking: YES];
-	      [parser keepBlanks: NO];
-	      if ([parser parse] == NO)
+	      if (showDependencies == YES)
 		{
-		  NSLog(@"WARNING %@ is not a valid document", gsdocfile);
+		  NSLog(@"%@: gsdoc %@, index %@ ==> regenerate",
+		    file, sDate, gDate);
 		}
-	      if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
+	      if ([mgr isReadableFileAtPath: gsdocfile] == YES)
 		{
-		  NSLog(@"not a gsdoc document - because name node is %@",
-		    [[[parser doc] root] name]);
-		  return 1;
+		  GSXMLParser	*parser;
+		  AGSIndex		*locRefs;
+
+		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
+		  [parser substituteEntities: NO];
+		  [parser doValidityChecking: YES];
+		  [parser keepBlanks: NO];
+		  if ([parser parse] == NO)
+		    {
+		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);
+		    }
+		  if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
+		    {
+		      NSLog(@"not a gsdoc document - because name node is %@",
+			[[[parser doc] root] name]);
+		      return 1;
+		    }
+
+		  locRefs = AUTORELEASE([AGSIndex new]);
+		  [locRefs makeRefs: [[parser doc] root]];
+
+		  /*
+		   * accumulate index info in project references
+		   */
+		  [prjRefs mergeRefs: [locRefs refs] override: NO];
+		  modifiedRefs = YES;
 		}
-
-	      locRefs = AUTORELEASE([AGSIndex new]);
-	      [locRefs makeRefs: [[parser doc] root]];
-
-	      /*
-	       * accumulate index info in project references
-	       */
-	      [prjRefs mergeRefs: [locRefs refs] override: NO];
-	    }
-	  else if (isDocumentation)
-	    {
-	      NSLog(@"No readable documentation at '%@' ... skipping",
-		gsdocfile);
+	      else if (isDocumentation)
+		{
+		  NSLog(@"No readable documentation at '%@' ... skipping",
+		    gsdocfile);
+		}
 	    }
 	}
       else
@@ -779,12 +833,13 @@ main(int argc, char **argv, char **env)
 	  NSLog(@"Unknown argument '%@' ... ignored", arg);
 	}
     }
-
   /*
    * Accumulate project index info into global index
    */
   [indexer mergeRefs: [prjRefs refs] override: YES];
+  RELEASE(pool);
 
+  pool = [NSAutoreleasePool new];
   for (i = (haveAutoIndex ? 0 : 1); i < [args count]; i++)
     {
       NSString *arg;
@@ -921,14 +976,15 @@ main(int argc, char **argv, char **env)
   DESTROY(up);
   DESTROY(prev);
 
-  /*
-   * Save references.
-   */
-  refsFile = [documentationDirectory stringByAppendingPathComponent: project];
-  refsFile = [refsFile stringByAppendingPathExtension: @"igsdoc"];
-  if ([[prjRefs refs] writeToFile: refsFile atomically: YES] == NO)
+  if (modifiedRefs == YES)
     {
-      NSLog(@"Sorry unable to write %@", refsFile);
+      /*
+       * Save references.
+       */
+      if ([[prjRefs refs] writeToFile: refsFile atomically: YES] == NO)
+	{
+	  NSLog(@"Sorry unable to write %@", refsFile);
+	}
     }
 
   RELEASE(outer);
