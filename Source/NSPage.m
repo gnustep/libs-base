@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <Foundation/NSZone.h>
 #include <string.h>
 #ifndef __WIN32__
 #include <unistd.h>

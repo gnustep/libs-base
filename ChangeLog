@@ -1,3 +1,10 @@
+Thu Nov 18 15:23:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/Foundation/NSPage.h: removed
+	* Headers/Foundation/NSZone.h: incorporated NSPage.h
+	* Source/GNUmakefile: Remove reference to NSPage.h
+	* Source/NSZone.m: Remove reference to NSPage.h
+
 Sun Nov  7 14:04:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/o_vscanf.c Reverted to earlier version - the last fix was

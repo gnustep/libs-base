@@ -238,4 +238,23 @@ extern inline struct NSZoneStats NSZoneStats (NSZone *zone)
 
 #endif	/* GS_WITH_GC */
 
+
+extern unsigned NSPageSize (void) __attribute__ ((const));
+
+extern unsigned NSLogPageSize (void) __attribute__ ((const));
+
+extern unsigned NSRoundDownToMultipleOfPageSize (unsigned bytes)
+  __attribute__ ((const));
+
+extern unsigned NSRoundUpToMultipleOfPageSize (unsigned bytes)
+  __attribute__ ((const));
+
+extern unsigned NSRealMemoryAvailable (void);
+
+extern void* NSAllocateMemoryPages (unsigned bytes);
+
+extern void NSDeallocateMemoryPages (void *ptr, unsigned bytes);
+
+extern void NSCopyMemoryPages (const void *src, void *dest, unsigned bytes);
+
 #endif /* not __NSZone_h_GNUSTEP_BASE_INCLUDE */
