@@ -1,3 +1,9 @@
+Fre Jul  2  8:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSUnarchiver.m: In designated initialiser, catch exceptions
+	and deallocate self before re-throwing in order to prevent memory
+	leak.
+
 Thu Jul  1 14:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Patch by Kai Henningsen to improve debug slightly.

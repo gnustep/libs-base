@@ -309,10 +309,9 @@ mapClassName(NSUnarchiverObjectInfo *info)
   NSUnarchiver	*unarchiver;
   id		obj;
 
-  unarchiver = [self allocWithZone: NSDefaultMallocZone()];
+  unarchiver = [[self alloc] initForReadingWithData: anObject];
   NS_DURING
     {
-      unarchiver = [unarchiver initForReadingWithData: anObject];
       obj = [unarchiver decodeObject];
     }
   NS_HANDLER
@@ -386,7 +385,16 @@ mapClassName(NSUnarchiverObjectInfo *info)
       objDict = [[NSMutableDictionary allocWithZone: zone]
 			initWithCapacity: 200];
 
-      [self resetUnarchiverWithData: anObject atIndex: 0];
+      NS_DURING
+	{
+	  [self resetUnarchiverWithData: anObject atIndex: 0];
+	}
+      NS_HANDLER
+	{
+	  RELEASE(self);
+	  [localException raise];
+	}
+      NS_ENDHANDLER
     }
   return self;
 }
@@ -1198,7 +1206,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
     {
       Class	c;
 
-      RELEASE(data);
+      TEST_RELEASE(data);
       data = RETAIN(anObject);
       c = fastClass(data);
       if (src != self)
