@@ -60,7 +60,7 @@ exec_prefix = @exec_prefix@
 libdir = $(exec_prefix)/lib
 includedir = $(prefix)/include
 infodir = $(prefix)/info
-datadir = $(prefix)/lib
+datadir = $(prefix)/share
 charsetdir = $(datadir)/NSCharacterSets
 
 #### End of system configuration section. ####
