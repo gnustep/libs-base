@@ -65,7 +65,7 @@
 {
   /* xxx Should be:
      DelegatePool *n = NSAllocateObject(self, 0, [aDecoder objectZone]); */
-  DelegatePool *n = (id) NSAllocateObject(self, 0, NS_NOZONE);
+  DelegatePool *n = (id) NSAllocateObject(self, 0, NSDefaultMallocZone());
   [aDecoder decodeValueOfCType:@encode(unsigned char)
 	    at:&(n->_send_behavior)
 	    withName:NULL];
