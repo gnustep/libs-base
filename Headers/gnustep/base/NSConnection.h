@@ -187,10 +187,14 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 - (NSConnection*) connection: (NSConnection*)ancestorConn
 		  didConnect: (NSConnection*)newConn;
 
-
-- (BOOL) authenticateComponents: (NSArray*)components
+/*
+ * These are like the MacOS-X delegate methods, except that we provide the
+ * components in mutable arrays, so that the delegate can alter the data
+ * items in the array.  Of course, you must do that WITH CARE.
+ */ 
+- (BOOL) authenticateComponents: (NSMutableArray*)components
 		       withData: (NSData*)authenticationData;
-- (NSData*) authenticationDataForComponents: (NSArray*)components;
+- (NSData*) authenticationDataForComponents: (NSMutableArray*)components;
 
 @end
 

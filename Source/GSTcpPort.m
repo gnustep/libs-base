@@ -517,6 +517,7 @@ static Class	runLoopClass;
   [pm setMsgid: rId];
   rId = 0;
   DESTROY(rItems);
+  NSDebugMLLog(@"GSTcpHandle", @"got message %@", pm);
   [rp handlePortMessage: pm];
   RELEASE(pm);
 }
@@ -664,6 +665,7 @@ static Class	runLoopClass;
 		       * For a zero-length data chunk, we create an empty
 		       * data object and add it to the current message.
 		       */
+		      rType = GSP_NONE;	/* ready for a new item	*/
 		      rLength -= rWant;
 		      if (rLength > 0)
 			{
@@ -699,7 +701,7 @@ static Class	runLoopClass;
 		{
 		  GSPortMsgHeader	*h;
 
-		  rType = GSP_NONE;
+		  rType = GSP_NONE;	/* ready for a new item	*/
 		  /*
 		   * We have read a message header - set up to read the
 		   * remainder of the message.
@@ -756,7 +758,7 @@ static Class	runLoopClass;
 		{
 		  NSData	*d;
 
-		  rType = GSP_NONE;
+		  rType = GSP_NONE;	/* ready for a new item	*/
 		  d = [mutableDataClass allocWithZone: NSDefaultMallocZone()];
 		  d = [d initWithBytes: bytes length: rWant];
 		  [rItems addObject: d];
@@ -777,7 +779,7 @@ static Class	runLoopClass;
 		{
 		  GSTcpPort	*p;
 
-		  rType = GSP_NONE;
+		  rType = GSP_NONE;	/* ready for a new item	*/
 		  p = decodePort(rData);
 		  /*
 		   * Set up to read another item header.
@@ -931,8 +933,8 @@ static Class	runLoopClass;
   BOOL		sent = NO;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
-  NSDebugMLLog(@"GSTcpHandle", @"Sending message 0x%x on 0x%x(%d) before %@",
-    components, self, desc, when);
+  NSDebugMLLog(@"GSTcpHandle", @"Sending message 0x%x %@ on 0x%x(%d) before %@",
+    components, components, self, desc, when);
   [wMsgs addObject: components];
 
   l = [runLoopClass currentRunLoop];

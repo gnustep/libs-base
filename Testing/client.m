@@ -5,12 +5,41 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSDebug.h>
 #include <assert.h>
 #include "server.h"
 
+@interface	Auth : NSObject
+@end
+
+@implementation	Auth
+- (BOOL) authenticateComponents: (NSMutableArray*)components
+		       withData: (NSData*)authData
+{
+  unsigned	count = [components count];
+
+  while (count-- > 0)
+    {
+      id	obj = [components objectAtIndex: count];
+
+      if ([obj isKindOfClass: [NSData class]] == YES)
+	{
+	  NSMutableData	*d = [obj mutableCopy];
+	  unsigned	l = [d length];
+	  char		*p = (char*)[d mutableBytes];
+
+	  while (l-- > 0)
+	    p[l] ^= 42;
+	  [components replaceObjectAtIndex: count withObject: d];
+	  RELEASE(d);
+	}
+    }
+  return YES;
+}
+@end
 
 int main (int argc, char *argv[])
 {
@@ -36,6 +65,7 @@ int main (int argc, char *argv[])
   BOOL b;
   const char *type;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  Auth	*auth = [Auth new];
 
 GSDebugAllocationActive(YES);
   [NSConnection setDebug: 10];
@@ -59,6 +89,7 @@ printf("oneway %d\n", _F_ONEWAY);
     p = [NSConnection rootProxyForConnectionWithRegisteredName:@"test2server" 
 		    host:nil];
   c = [p connectionForProxy];
+  [c setDelegate:auth];
   [c setRequestTimeout:180.0];
   [c setReplyTimeout:180.0];
   localObj = [[NSObject alloc] init];

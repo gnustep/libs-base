@@ -43,9 +43,6 @@
   BOOL			_encodingRoot;
   BOOL			_initialPass;
   id			_dst;		/* Serialization destination.	*/
-  IMP			_eSerImp;	/* Method to serialize with.	*/
-  IMP			_eTagImp;	/* Serialize a type tag.	*/
-  IMP			_xRefImp;	/* Serialize a crossref.	*/
   IMP			_eObjImp;	/* Method to encode an id.	*/
   IMP			_eValImp;	/* Method to encode others.	*/
 #ifndef	_IN_PORT_CODER_M
