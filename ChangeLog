@@ -3,10 +3,11 @@
 	* Tools/AGSIndex.h: improve merge control
 	* Tools/AGSIndex.m: ditto
 	* Tools/AGSHtml.h: new methods for cleaner indexing.
-	* Tools/AGSHtml.m: new methods for cleaner indexing.
+	* Tools/AGSHtml.m: ditto
 	* Tools/AGSParser.m: minor bugfixes.
-	* Tools/GNUmakefile: Build autogsdoc documentation using autogsdoc.
-	* Tools/autogsdoc.m: Fix minor dependency error.
+	  Tools/GNUmakefile: Build autogsdoc documentation using autogsdoc.
+	* Tools/autogsdoc.m: Fix minor dependency error.  Fix for indexing
+	where a version of the project being built is already installed.
 	* Tools/gsdoc-0_6_7.dtd: Fix ivar support
 	* Source/GSFFCallInvocation.m: minor debug output improvement.
 
