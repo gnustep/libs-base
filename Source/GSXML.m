@@ -29,6 +29,7 @@
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
 #include <libxml/SAX.h>
+#include <libxml/HTMLparser.h>
 
 #include <Foundation/GSXML.h>
 #include <Foundation/NSData.h>
@@ -941,10 +942,8 @@ static NSString	*endMarker = @"At end of incremental parse";
     }
   saxHandler = RETAIN(handler);
   [saxHandler parser: self];
-  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], saxHandler, 0, 0, "");
-  if (lib == NULL)
+  if (![self createCreatePushParserCtxt])
     {
-      NSLog(@"Failed to create libxml parser context");
       RELEASE(self);
       return nil;
     }
@@ -1050,8 +1049,8 @@ static NSString	*endMarker = @"At end of incremental parse";
 
   tmp = RETAIN(src);
   ASSIGN(src, endMarker);
-  xmlParseChunk(lib, [tmp bytes], [tmp length], 0);
-  xmlParseChunk(lib, 0, 0, 0);
+  [self parseChunk:tmp];
+  [self parseChunk:nil];
   RELEASE(tmp);
 
   if (((xmlParserCtxtPtr)lib)->wellFormed)
@@ -1095,7 +1094,7 @@ static NSString	*endMarker = @"At end of incremental parse";
     }
   else
     {
-      xmlParseChunk(lib, [data bytes], [data length], 0);
+      [self parseChunk:data];
       return YES;
     }
 }
@@ -1157,9 +1156,56 @@ static NSString	*endMarker = @"At end of incremental parse";
   return ((xmlParserCtxtPtr)lib)->errNo;
 }
 
+- (BOOL) createCreatePushParserCtxt
+{
+  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib],NULL, 0, 0, "");  
+  if (lib == NULL)
+    {
+      NSLog(@"Failed to create libxml parser context");
+      return NO;
+    }
+  else
+    {
+      // Put saxHandler address in _private member, so we can retrieve 
+      // the GSXMLHandler to use in our SAX C Functions.
+      ((xmlParserCtxtPtr)lib)->_private=saxHandler;
+    };
+  return YES;
+};
+
+//nil data allowed
+- (void) parseChunk: (NSData*)data
+{
+  xmlParseChunk(lib, [data bytes], [data length], 0);
+};
+
 @end
 
+@implementation GSHTMLParser
 
+- (BOOL) createCreatePushParserCtxt
+{
+  lib = (void*)htmlCreatePushParserCtxt([saxHandler lib],NULL, 0, 0, "",XML_CHAR_ENCODING_NONE);
+  if (lib == NULL)
+    {
+      NSLog(@"Failed to create libxml parser context");
+      return NO;
+    }
+  else
+    {
+      // Put saxHandler address in _private member, so we can retrieve 
+      // the GSXMLHandler to use in our SAX C Functions.
+      ((htmlParserCtxtPtr)lib)->_private=saxHandler;
+    };
+  return YES;
+};
+
+- (void) parseChunk: (NSData*)data
+{
+  htmlParseChunk(lib, [data bytes], [data length], 0);
+};
+
+@end
 
 @implementation GSSAXHandler : NSObject
 
@@ -1170,37 +1216,45 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /*
- * The parser passes a pointer to the GSSAXHandler object as context.
+ * The context is a xmlParserCtxtPtr or htmlParserCtxtPtr. Its _private member contain 
+ * address of our Sax Handler Object.
+ * We can use a (xmlParserCtxtPtr) cast because xmlParserCtxt and htmlParserCtxt are
+ * the same structure (and will remain, cf libxml author).
  */
-#define	HANDLER	(GSSAXHandler*)(ctx)
+#define	HANDLER	(GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private)
 
 static void
 startDocumentFunction(void *ctx)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER startDocument];
 }
 
 static void
 endDocumentFunction(void *ctx)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER endDocument];
 }
 
 static int
 isStandaloneFunction(void *ctx)
 {
+  NSCAssert(ctx,@"No Context");
   return [HANDLER isStandalone];
 }
 
 static int
 hasInternalSubsetFunction(void *ctx)
 {
+  NSCAssert(ctx,@"No Context");
   return [HANDLER hasInternalSubset];
 }
 
 static int
 hasExternalSubsetFunction(void *ctx)
 {
+  NSCAssert(ctx,@"No Context");
   return [HANDLER hasExternalSubset];
 }
 
@@ -1208,6 +1262,7 @@ static void
 internalSubsetFunction(void *ctx, const char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER internalSubset: (*csImp)(NSString_class, csSel, name)
 	       externalID: (*csImp)(NSString_class, csSel, ExternalID)
 		 systemID: (*csImp)(NSString_class, csSel, SystemID)];
@@ -1217,6 +1272,7 @@ static void
 externalSubsetFunction(void *ctx, const char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER externalSubset: (*csImp)(NSString_class, csSel, name)
 	       externalID: (*csImp)(NSString_class, csSel, ExternalID)
 		 systemID: (*csImp)(NSString_class, csSel, SystemID)];
@@ -1225,6 +1281,7 @@ externalSubsetFunction(void *ctx, const char *name,
 static xmlParserInputPtr
 resolveEntityFunction(void *ctx, const char *publicId, const char *systemId)
 {
+  NSCAssert(ctx,@"No Context");
   return [HANDLER resolveEntity: (*csImp)(NSString_class, csSel, publicId)
 		       systemID: (*csImp)(NSString_class, csSel, systemId)];
 }
@@ -1232,12 +1289,14 @@ resolveEntityFunction(void *ctx, const char *publicId, const char *systemId)
 static xmlEntityPtr
 getEntityFunction(void *ctx, const char *name)
 {
+  NSCAssert(ctx,@"No Context");
   return [HANDLER getEntity: (*csImp)(NSString_class, csSel, name)];
 }
 
 static xmlEntityPtr
 getParameterEntityFunction(void *ctx, const char *name)
 {
+  NSCAssert(ctx,@"No Context");
   return [HANDLER getParameterEntity: (*csImp)(NSString_class, csSel, name)];
 }
 
@@ -1245,6 +1304,7 @@ static void
 entityDeclFunction(void *ctx, const char *name, int type,
   const char *publicId, const char *systemId, char *content)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER entityDecl: (*csImp)(NSString_class, csSel, name)
 		 type: type
 	       public: (*csImp)(NSString_class, csSel, publicId)
@@ -1256,6 +1316,7 @@ static void
 attributeDeclFunction(void *ctx, const char *elem, const char *name,
   int type, int def, const char *defaultValue, xmlEnumerationPtr tree)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER attributeDecl: (*csImp)(NSString_class, csSel, elem)
 		    name: (*csImp)(NSString_class, csSel, name)
 		    type: type
@@ -1267,6 +1328,7 @@ static void
 elementDeclFunction(void *ctx, const char *name, int type,
   xmlElementContentPtr content)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER elementDecl: (*csImp)(NSString_class, csSel, name)
 		  type: type];
 
@@ -1276,6 +1338,7 @@ static void
 notationDeclFunction(void *ctx, const char *name,
   const char *publicId, const char *systemId)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER notationDecl: (*csImp)(NSString_class, csSel, name)
 		 public: (*csImp)(NSString_class, csSel, publicId)
 		 system: (*csImp)(NSString_class, csSel, systemId)];
@@ -1285,6 +1348,7 @@ static void
 unparsedEntityDeclFunction(void *ctx, const char *name,
   const char *publicId, const char *systemId, const char *notationName)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER unparsedEntityDecl: (*csImp)(NSString_class, csSel, name)
 		       public: (*csImp)(NSString_class, csSel, publicId)
 		       system: (*csImp)(NSString_class, csSel, systemId)
@@ -1297,6 +1361,7 @@ startElementFunction(void *ctx, const char *name, const char **atts)
   int i;
   NSMutableDictionary *dict = [NSMutableDictionary dictionary];
   NSString *key, *obj;
+  NSCAssert(ctx,@"No Context");
 
   if (atts != NULL)
     {
@@ -1314,30 +1379,35 @@ startElementFunction(void *ctx, const char *name, const char **atts)
 static void
 endElementFunction(void *ctx, const char *name)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER endElement: (*csImp)(NSString_class, csSel, name)];
 }
 
 static void
 charactersFunction(void *ctx, const char *ch, int len)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER characters: (*cslImp)(NSString_class, cslSel, ch, len)];
 }
 
 static void
 referenceFunction(void *ctx, const char *name)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER reference: (*csImp)(NSString_class, csSel, name)];
 }
 
 static void
 ignorableWhitespaceFunction(void *ctx, const char *ch, int len)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER ignoreWhitespace: (*cslImp)(NSString_class, cslSel, ch, len)];
 }
 
 static void
 processInstructionFunction(void *ctx, const char *target,  const char *data)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER processInstruction: (*csImp)(NSString_class, csSel, target)
 			 data: (*csImp)(NSString_class, csSel, data)];
 }
@@ -1345,12 +1415,14 @@ processInstructionFunction(void *ctx, const char *target,  const char *data)
 static void
 cdataBlockFunction(void *ctx, const char *value, int len)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER cdataBlock: (*cslImp)(NSString_class, cslSel, value, len)];
 }
 
 static void
 commentFunction(void *ctx, const char *value)
 {
+  NSCAssert(ctx,@"No Context");
   [HANDLER comment: (*csImp)(NSString_class, csSel, value)];
 }
 
@@ -1364,6 +1436,7 @@ warningFunction(void *ctx, const char *msg, ...)
   vsprintf(allMsg, msg, args);
   va_end(args);
 
+  NSCAssert(ctx,@"No Context");
   [HANDLER warning: (*csImp)(NSString_class, csSel, allMsg)];
 }
 
@@ -1376,6 +1449,7 @@ errorFunction(void *ctx, const char *msg, ...)
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
+  NSCAssert(ctx,@"No Context");
   [HANDLER error: (*csImp)(NSString_class, csSel, allMsg)];
 }
 
@@ -1388,6 +1462,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
+  NSCAssert(ctx,@"No Context");
   [HANDLER fatalError: (*csImp)(NSString_class, csSel, allMsg)];
 }
 
@@ -1406,46 +1481,57 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   self = [super init];
   if (self != nil)
     {
-     lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
-     if (lib == NULL)
+      if (![self initLib])
         {
           NSLog(@"GSSAXHandler: out of memory\n");
 	  RELEASE(self);
 	  return nil;
-        }
-     memset(lib, 0, sizeof(xmlSAXHandler));
-
-#define	LIB	((xmlSAXHandlerPtr)lib)
-     LIB->internalSubset         = internalSubsetFunction;
-     LIB->externalSubset         = externalSubsetFunction;
-     LIB->isStandalone           = isStandaloneFunction;
-     LIB->hasInternalSubset      = hasInternalSubsetFunction;
-     LIB->hasExternalSubset      = hasExternalSubsetFunction;
-     LIB->resolveEntity          = resolveEntityFunction;
-     LIB->getEntity              = getEntityFunction;
-     LIB->entityDecl             = entityDeclFunction;
-     LIB->notationDecl           = notationDeclFunction;
-     LIB->attributeDecl          = attributeDeclFunction;
-     LIB->elementDecl            = elementDeclFunction;
-     LIB->unparsedEntityDecl     = unparsedEntityDeclFunction;
-     LIB->startDocument          = startDocumentFunction;
-     LIB->endDocument            = endDocumentFunction;
-     LIB->startElement           = startElementFunction;
-     LIB->endElement             = endElementFunction;
-     LIB->reference              = referenceFunction;
-     LIB->characters             = charactersFunction;
-     LIB->ignorableWhitespace    = ignorableWhitespaceFunction;
-     LIB->processingInstruction  = processInstructionFunction;
-     LIB->comment                = commentFunction;
-     LIB->warning                = warningFunction;
-     LIB->error                  = errorFunction;
-     LIB->fatalError             = fatalErrorFunction;
-     LIB->getParameterEntity     = getParameterEntityFunction;
-     LIB->cdataBlock             = cdataBlockFunction;
-#undef	LIB
+        };
     }
   return self;
 }
+
+- (BOOL) initLib
+{
+  NSAssert(!lib,@"Already created lib");
+  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
+  if (lib == NULL)
+    return NO;
+  else
+    {
+      memset(lib, 0, sizeof(xmlSAXHandler));
+
+#define	LIB	((xmlSAXHandlerPtr)lib)
+      LIB->internalSubset         = internalSubsetFunction;
+      LIB->externalSubset         = externalSubsetFunction;
+      LIB->isStandalone           = isStandaloneFunction;
+      LIB->hasInternalSubset      = hasInternalSubsetFunction;
+      LIB->hasExternalSubset      = hasExternalSubsetFunction;
+      LIB->resolveEntity          = resolveEntityFunction;
+      LIB->getEntity              = getEntityFunction;
+      LIB->entityDecl             = entityDeclFunction;
+      LIB->notationDecl           = notationDeclFunction;
+      LIB->attributeDecl          = attributeDeclFunction;
+      LIB->elementDecl            = elementDeclFunction;
+      LIB->unparsedEntityDecl     = unparsedEntityDeclFunction;
+      LIB->startDocument          = startDocumentFunction;
+      LIB->endDocument            = endDocumentFunction;
+      LIB->startElement           = startElementFunction;
+      LIB->endElement             = endElementFunction;
+      LIB->reference              = referenceFunction;
+      LIB->characters             = charactersFunction;
+      LIB->ignorableWhitespace    = ignorableWhitespaceFunction;
+      LIB->processingInstruction  = processInstructionFunction;
+      LIB->comment                = commentFunction;
+      LIB->warning                = warningFunction;
+      LIB->error                  = errorFunction;
+      LIB->fatalError             = fatalErrorFunction;
+      LIB->getParameterEntity     = getParameterEntityFunction;
+      LIB->cdataBlock             = cdataBlockFunction;
+#undef	LIB
+      return YES;
+    };
+};
 
 - (void*) lib
 {
@@ -1603,4 +1689,48 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 }
 
 
+@end
+
+@implementation GSHTMLSAXHandler
+- (BOOL) initLib
+{
+  NSAssert(!lib,@"Already created lib");
+  lib = (xmlSAXHandler*)malloc(sizeof(htmlSAXHandler));
+  if (lib == NULL)
+    return NO;
+  else
+    {
+      memset(lib, 0, sizeof(htmlSAXHandler));
+
+#define	LIB	((htmlSAXHandlerPtr)lib)
+      LIB->internalSubset         = internalSubsetFunction;
+      LIB->externalSubset         = externalSubsetFunction;
+      LIB->isStandalone           = isStandaloneFunction;
+      LIB->hasInternalSubset      = hasInternalSubsetFunction;
+      LIB->hasExternalSubset      = hasExternalSubsetFunction;
+      LIB->resolveEntity          = resolveEntityFunction;
+      LIB->getEntity              = getEntityFunction;
+      LIB->entityDecl             = entityDeclFunction;
+      LIB->notationDecl           = notationDeclFunction;
+      LIB->attributeDecl          = attributeDeclFunction;
+      LIB->elementDecl            = elementDeclFunction;
+      LIB->unparsedEntityDecl     = unparsedEntityDeclFunction;
+      LIB->startDocument          = startDocumentFunction;
+      LIB->endDocument            = endDocumentFunction;
+      LIB->startElement           = startElementFunction;
+      LIB->endElement             = endElementFunction;
+      LIB->reference              = referenceFunction;
+      LIB->characters             = charactersFunction;
+      LIB->ignorableWhitespace    = ignorableWhitespaceFunction;
+      LIB->processingInstruction  = processInstructionFunction;
+      LIB->comment                = commentFunction;
+      LIB->warning                = warningFunction;
+      LIB->error                  = errorFunction;
+      LIB->fatalError             = fatalErrorFunction;
+      LIB->getParameterEntity     = getParameterEntityFunction;
+      LIB->cdataBlock             = cdataBlockFunction;
+#undef	LIB
+      return YES;
+    };
+};
 @end

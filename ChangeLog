@@ -1,3 +1,10 @@
+2000-09-29  Manuel Guesdon <mguesdon@orange-concept.com>
+	-- You'll need libxml2 v >= 2.2.3 to compile GSXML --
+	* Headers/Foundation/GSXML.h: added GSHTMLParser and GSHTMLSAXHandler
+	* Source/GSXML.m: added GSHTMLParser and GSHTMLSAXHandler
+		use of _private member of parser context instead of user_data
+		which is not a freely useable user_data in libxml
+
 2000-09-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSCompatibility.m: Use OpenStep standard string initialisation.

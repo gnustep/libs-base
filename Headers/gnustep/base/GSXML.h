@@ -209,8 +209,20 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (void) setExternalEntityLoader: (void*)function;
 - (BOOL) substituteEntities: (BOOL)yesno;
 
+//libxml base functions
+- (BOOL) createCreatePushParserCtxt;
+- (void) parseChunk: (NSData*)data;
+
 @end
 
+@interface GSHTMLParser : GSXMLParser
+{
+}
+
+//libxml base functions
+- (BOOL) createCreatePushParserCtxt;
+- (void) parseChunk: (NSData*)data;
+@end
 
 @interface GSSAXHandler : NSObject
 {
@@ -218,6 +230,7 @@ typedef xmlNsType		GSXMLNamespaceType;
   GSXMLParser	*parser;
 }
 + (GSSAXHandler*) handler;
+- (BOOL) initLib;
 - (void*) lib;
 - (GSXMLParser*) parser;
 @end
@@ -287,6 +300,10 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (void) error: (NSString*)e;
 - (void) fatalError: (NSString*)e;
 
+@end
+
+@interface GSHTMLSAXHandler : GSSAXHandler
+- (BOOL) initLib;
 @end
 
 #endif __GSXML_H__
