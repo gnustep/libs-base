@@ -1,5 +1,10 @@
 2002-09-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/AGSParser.m: Bugfix ... look for source files more
+	intelligently. Try both current directory and relative to header.
+
+2002-09-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSFileManager.m: Basic/dummy implementations of new MacOS-X
 	methods added. Attribute handling totally rewritten to work in a lazy
 	way ... so we only set up attribute info in the dictionary when we
