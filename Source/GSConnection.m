@@ -337,7 +337,7 @@ static NSLock		*global_proxies_gate;
 {
   NSPortNameServer	*s;
 
-  s = [NSPortNameServer defaultPortNameServer];
+  s = [NSPortNameServer systemDefaultPortNameServer];
   return [self connectionWithRegisteredName: n
 				       host: h
 			    usingNameServer: s];
@@ -891,7 +891,7 @@ static NSLock		*global_proxies_gate;
 
 - (BOOL) registerName: (NSString*)name
 {
-  NSPortNameServer	*svr = [NSPortNameServer defaultPortNameServer];
+  NSPortNameServer	*svr = [NSPortNameServer systemDefaultPortNameServer];
 
   return [self registerName: name withNameServer: svr];
 }

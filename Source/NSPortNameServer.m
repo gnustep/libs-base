@@ -522,7 +522,7 @@ typedef enum {
     }
 }
 
-+ (id) defaultPortNameServer
++ (id) systemDefaultPortNameServer
 {
   if (defaultServer == nil)
     {

@@ -509,7 +509,7 @@ static int messages_received_count;
 
 - (BOOL) registerName: (NSString*)name
 {
-  NSPortNameServer	*svr = [NSPortNameServer defaultPortNameServer];
+  NSPortNameServer	*svr = [NSPortNameServer systemDefaultPortNameServer];
   NSArray		*names = [svr namesForPort: receive_port];
   BOOL			result = YES;
 

@@ -550,8 +550,8 @@ static NSMapTable* port_number_2_port;
   TcpInPort*		p = [self newForReceivingFromPortNumber: portn];
 
   if (p) {
-    [[NSPortNameServer defaultPortNameServer] registerPort: p
-						   forName: name];
+    [[NSPortNameServer systemDefaultPortNameServer] registerPort: p
+							 forName: name];
   }
   return p;
 }
@@ -1225,8 +1225,8 @@ static NSMapTable *out_port_bag = NULL;
 {
   id	c;
 
-  c = [[NSPortNameServer defaultPortNameServer] portForName: name
-						     onHost: hostname];
+  c = [[NSPortNameServer systemDefaultPortNameServer] portForName: name
+							   onHost: hostname];
   return [c retain];
 }
 
