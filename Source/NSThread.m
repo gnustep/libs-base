@@ -421,21 +421,6 @@ gnustep_base_thread_callback()
 
 @end
 
-@implementation NSThread (GNUstepRegister)
-#warning "NSThread +registerCurrentThread will be removed in 1.0.0"
-/* Deprecated - will be removed in 1.0.0 */
-+ (BOOL) registerCurrentThread 
-{
-  return GSRegisterCurrentThread ();
-}
-
-/* Deprecated - will be removed in 1.0.0 */
-+ (void) unregisterCurrentThread
-{
-  GSUnregisterCurrentThread ();
-}
-@end
-
 BOOL
 GSRegisterCurrentThread (void)
 {
