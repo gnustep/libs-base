@@ -45,6 +45,7 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <base/behavior.h>
+#include <limits.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 #include <base/Unicode.h>
