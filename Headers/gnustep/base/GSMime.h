@@ -97,6 +97,8 @@
 - (NSString*) contentName;
 - (NSString*) contentSubType;
 - (NSString*) contentType;
+- (NSData*) convertToData;
+- (NSString*) convertToText;
 - (void) deleteHeader: (GSMimeHeader*)aHeader;
 - (void) deleteHeaderNamed: (NSString*)name;
 - (GSMimeHeader*) headerNamed: (NSString*)name;

@@ -964,6 +964,16 @@ parseCharacterSet(NSString *token)
  *   passed all the data to it ... this tells it that the data
  *   is complete.
  * </p>
+ * <p>
+ *   A multipart document will be parsed to content consisting of an
+ *   NSArray of GSMimeDocument instances representing each part.<br />
+ *   Otherwise, a document will become content of type NSData, unless
+ *   it is of content type <em>text</em>, in which case it will be an
+ *   NSString.<br />
+ *   If a document has no content type specified, it will be treated as
+ *   <em>text</em>, unless it is identifiable as a <em>file</em>
+ *   (eg. t has a content-disposition header containing a filename parameter). 
+ * </p>
  */
 - (BOOL) parse: (NSData*)d
 {
@@ -1264,6 +1274,42 @@ parseCharacterSet(NSString *token)
   return [document addHeader: info];
 }
 
+- (BOOL) scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info
+{
+  [self scanPastSpace: scanner];
+  while ([scanner scanString: @";" intoString: 0] == YES)
+    {
+      NSString	*paramName;
+
+      paramName = [self scanToken: scanner];
+      if ([paramName length] == 0)
+	{
+	  NSLog(@"Invalid Mime %@ field (parameter name)", [info name]);
+	  return NO;
+	}
+      [self scanPastSpace: scanner];
+      if ([scanner scanString: @"=" intoString: 0] == YES)
+	{
+	  NSString	*paramValue;
+
+	  [self scanPastSpace: scanner];
+	  paramValue = [self scanToken: scanner];
+	  [self scanPastSpace: scanner];
+	  if (paramValue == nil)
+	    {
+	      paramValue = @"";
+	    }
+	  [info setParameter: paramValue forKey: paramName];
+	}
+      else
+	{
+	  NSLog(@"Ignoring Mime %@ field parameter (%@)",
+	    [info name], paramName);
+	}
+    }
+  return YES;
+}
+
 /**
  * <p>
  *   This method is called to parse a header line and split its
@@ -1449,32 +1495,7 @@ parseCharacterSet(NSString *token)
 	  value = type;
 	}
 
-      while ([scanner scanString: @";" intoString: 0] == YES)
-	{
-	  NSString	*paramName;
-
-	  paramName = [self scanToken: scanner];
-	  if ([paramName length] == 0)
-	    {
-	      NSLog(@"Invalid Mime content-type (parameter name)");
-	      return NO;
-	    }
-	  if ([scanner scanString: @"=" intoString: 0] == YES)
-	    {
-	      NSString	*paramValue;
-
-	      paramValue = [self scanToken: scanner];
-	      if (paramValue == nil)
-		{
-		  paramValue = @"";
-		}
-	      [info setParameter: paramValue forKey: paramName];
-	    }
-	  else
-	    {
-	      NSLog(@"Ignoring Mime content-type parameter (%@)", paramName);
-	    }
-	}
+      [self scanHeaderParameters: scanner into: info];
     }
   else if ([name isEqualToString: @"content-disposition"] == YES)
     {
@@ -1497,33 +1518,7 @@ parseCharacterSet(NSString *token)
       /*
        *	Expect anything else to be 'name=value' parameters.
        */
-      while ([scanner scanString: @";" intoString: 0] == YES)
-	{
-	  NSString	*paramName;
-
-	  paramName = [self scanToken: scanner];
-	  if ([paramName length] == 0)
-	    {
-	      NSLog(@"Invalid Mime content-type (parameter name)");
-	      return NO;
-	    }
-	  if ([scanner scanString: @"=" intoString: 0] == YES)
-	    {
-	      NSString	*paramValue;
-
-	      paramValue = [self scanToken: scanner];
-	      if (paramValue == nil)
-		{
-		  paramValue = @"";
-		}
-	      [info setParameter: paramValue forKey: paramName];
-	    }
-	  else
-	    {
-	      NSLog(@"Ignoring Mime content-disposition parameter (%@)",
-		paramName);
-	    }
-	}
+      [self scanHeaderParameters: scanner into: info];
     }
   else
     {
@@ -1650,7 +1645,7 @@ parseCharacterSet(NSString *token)
 	      done = YES;
 	    }
 	}
-      [scanner setScanLocation: r.length + 1];
+      [scanner setScanLocation: r.location + 1];
       length = r.location - start;
       if (length == 0)
 	{
@@ -1947,9 +1942,22 @@ parseCharacterSet(NSString *token)
 
 	      NSDebugMLLog(@"GSMime", @"Parse body complete");
 	      /*
-	       * If no content type is supplied, we assume text.
+	       * If no content type is supplied, we assume text ... unless
+	       * we have something that's known to be a file.
 	       */
-	      if (type == nil || [type isEqualToString: @"text"] == YES)
+	      if (type == nil)
+		{
+		  if ([document contentFile] != nil)
+		    {
+		      type = @"application";
+		    }
+		  else
+		    {
+		      type = @"text";
+		    }
+		}
+
+	      if ([type isEqualToString: @"text"] == YES)
 		{
 		  NSDictionary		*params;
 		  NSString		*charset;
@@ -2673,12 +2681,14 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Search the content of this document to locate a part whose content name
- * matches the specified key.  Recursively descend into other documents.<br />
+ * Search the content of this document to locate a part whose content-type
+ * name or content-disposition name matches the specified key.
+ * Recursively descend into other documents.<br />
  * Return nil if no match is found, the matching GSMimeDocument otherwise.
  */ 
 - (id) contentByName: (NSString*)key
 {
+
   if ([content isKindOfClass: [NSArray class]] == YES)
     {
       NSEnumerator	*e = [content objectEnumerator];
@@ -2686,7 +2696,15 @@ static NSCharacterSet	*tokenSet = nil;
 
       while ((d = [e nextObject]) != nil)
 	{
-	  if ([[d contentName] isEqualToString: key] == YES)
+	  GSMimeHeader	*hdr;
+
+	  hdr = [d headerNamed: @"content-type"];
+	  if ([[hdr parameterForKey: @"name"] isEqualToString: key] == YES)
+	    {
+	      return d;
+	    }
+	  hdr = [d headerNamed: @"content-disposition"];
+	  if ([[hdr parameterForKey: @"name"] isEqualToString: key] == YES)
 	    {
 	      return d;
 	    }
@@ -2748,6 +2766,47 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
 
   return [hdr objectForKey: @"Type"];
+}
+
+/**
+ * Return the content as an NSData object (unless it is multipart)
+ */
+- (NSData*) convertToData
+{
+  NSData	*d = nil;
+
+  if ([content isKindOfClass: [NSString class]] == YES)
+    {
+      NSStringEncoding	enc = NSUTF8StringEncoding;
+
+      d = [content dataUsingEncoding: enc];
+    }
+  else if ([content isKindOfClass: [NSData class]] == YES)
+    {
+      d = content;
+    }
+  return d;
+}
+
+/**
+ * Return the content as an NSString object (unless it is multipart)
+ */
+- (NSString*) convertToText
+{
+  NSString	*s = nil;
+
+  if ([content isKindOfClass: [NSString class]] == YES)
+    {
+      s = content;
+    }
+  else if ([content isKindOfClass: [NSData class]] == YES)
+    {
+      NSStringEncoding	enc = NSUTF8StringEncoding;
+
+      s = [[NSString alloc] initWithData: content encoding: enc];
+      AUTORELEASE(s);
+    }
+  return s;
 }
 
 - (id) copyWithZone: (NSZone*)z
