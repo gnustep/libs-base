@@ -6,7 +6,7 @@
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
 
-/* Define if your system terminates the final argument in /proc/28891/cmdline */
+/* Define if your system terminates the final argument in /proc/$$/cmdline */
 #undef CMDLINE_TERMINATED
 
 /* Define if constructors are automatically loaded */
@@ -120,6 +120,9 @@
 
 /* Define to 1 if you have the `mmap' function. */
 #undef HAVE_MMAP
+
+/* Define to 1 if you have the `nanosleep' function. */
+#undef HAVE_NANOSLEEP
 
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
@@ -282,6 +285,9 @@
 /* Define to 1 if you have the <time.h> header file. */
 #undef HAVE_TIME_H
 
+/* Define to 1 if you have the `tzset' function. */
+#undef HAVE_TZSET
+
 /* Define to 1 if you have the <ucbinclude/sys/resource.h> header file. */
 #undef HAVE_UCBINCLUDE_SYS_RESOURCE_H
 
@@ -290,9 +296,6 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
-
-/* Define to 1 if you have the `nanosleep' function. */
-#undef HAVE_NANOSLEEP
 
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP

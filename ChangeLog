@@ -1,5 +1,11 @@
 2003-09-02  Adam Fedor  <fedor@gnu.org>
 
+	* configure.ac: Check for tzset
+	* Source/NSTimeZone.m (+systemTimeZone): Use it to find time zone
+	(as a last resort).
+
+2003-09-02  Adam Fedor  <fedor@gnu.org>
+
 	* Tools/gdnc.m (main): Don't mess with file descriptors on MinGW.
 
 2003-09-01  Adam Fedor  <fedor@gnu.org>
