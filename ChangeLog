@@ -1,3 +1,11 @@
+2005-03-01 02:50 Nicola Pero <n.pero@mi.flashnet.it>
+
+	* Source/Makefile.preamble (ADDITIONAL_LIB_DIRS): When building a
+	shared library, depend on all TARGET_SYSTEM_LIBS, not just
+	CONFIG_SYSTEM_LIBS.
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Do not use
+	__declspec(dllexport) on mingw.  Use extern instead.
+	
 2005-02-28 17:45 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSCharacterSets/GNUmakefile: Use GNUSTEP_OBJ_DIR_NAME to run
