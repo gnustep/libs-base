@@ -1,3 +1,8 @@
+2001-02-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: permit nil string when replacing characters
+	in range.  Treat as an empty string rather than raising exception.
+
 2001-02-07  Jonathan Gapen  <jagapen@home.com>
 
 	* Source/NSFileManager.m: Make disk space report work on FreeBSD.
