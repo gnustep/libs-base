@@ -1,5 +1,5 @@
 /* Implementation of NSPortMessage for GNUstep
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998,2000 Free Software Foundation, Inc.
    
    Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>
    Created: October 1998
@@ -32,8 +32,17 @@
 
 - (void) dealloc
 {
+  RELEASE(_recv);
+  RELEASE(_send);
   RELEASE(_components);
   [super dealloc];
+}
+
+- (NSString*) description
+{
+  return [NSString stringWithFormat:
+    @"NSPortMessage (Id %u)\n  Send: %@\n  Recv: %@\n  Components -\n%@",
+    _msgid, _send, _recv, _components];
 }
 
 /*	PortMessages MUST be initialised with ports and data.	*/
@@ -43,6 +52,7 @@
   return nil;
 }
 
+/*	PortMessages MUST be initialised with ports and data.	*/
 - (id) initWithMachMessage: (void*)buffer
 {
   [self shouldNotImplement: _cmd];
@@ -55,13 +65,12 @@
 	     components: (NSArray*)items
 {
   self = [super init];
-  if (self)
+  if (self != nil)
     {
+      _send = RETAIN(aPort);
+      _recv = RETAIN(anotherPort);
       _components = [[NSMutableArray allocWithZone: [self zone]]
-				 initWithCapacity: [items count] + 2];
-      [_components addObject: aPort];
-      [_components addObject: anotherPort];
-      [_components addObjectsFromArray: items];
+				     initWithArray: items];
     }
   return self;
 }
@@ -76,9 +85,7 @@
 
 - (NSArray*) components
 {
-  NSRange	r = NSMakeRange(2, [_components count]-2);
-
-  return [_components subarrayWithRange: r];
+  return AUTORELEASE([_components copy]);
 }
 
 - (unsigned) msgid
@@ -88,22 +95,20 @@
 
 - (NSPort*) receivePort
 {
-  return [_components objectAtIndex: 1];
+  return _recv;
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
 {
-  NSPort	*port = [self sendPort];
-
-  return [port sendBeforeDate: when
-	    components: [self components]
-		  from: [self receivePort]
-	      reserved: [port reservedSpaceLength]];
+  return [_send sendBeforeDate: when
+		    components: _components
+			  from: _recv
+		      reserved: 0];
 }
 
 - (NSPort*) sendPort
 {
-  return [_components objectAtIndex: 0];
+  return _send;
 }
 
 - (void) setMsgid: (unsigned)anId

@@ -30,6 +30,8 @@
 @interface	NSPortMessage : NSObject
 {
   unsigned		_msgid;
+  NSPort		*_recv;
+  NSPort		*_send;
   NSMutableArray	*_components;
 }
 - (id) initWithMachMessage: (void*)buffer;

@@ -713,8 +713,11 @@ static NSMapTable	*tcpHandleTable = 0;
 		       * the header - so add it to the rItems array.
 		       */
 		      rWant -= sizeof(GSPortMsgHeader);
-		      d = [NSData dataWithBytes: bytes + sizeof(GSPortMsgHeader)
-					 length: rWant];
+		      d = [NSData alloc];
+		      d = [d initWithBytes: bytes + sizeof(GSPortMsgHeader)
+				    length: rWant];
+		      [rItems addObject: d];
+		      RELEASE(d);
 		      rWant += sizeof(GSPortMsgHeader);
 		      rLength -= rWant;
 		      if (rLength > 0)
@@ -722,7 +725,6 @@ static NSMapTable	*tcpHandleTable = 0;
 			  memcpy(bytes, bytes + rWant, rLength);
 			}
 		      rWant = sizeof(GSPortItemHeader);
-		      [rItems addObject: rData];
 		      if (nItems == 1)
 			{
 			  [self dispatch];
@@ -748,8 +750,9 @@ static NSMapTable	*tcpHandleTable = 0;
 		  NSData	*d;
 
 		  rType = GSP_NONE;
-		  d = [NSData dataWithBytes: bytes length: rWant];
-		  [rItems addObject: rData];
+		  d = [[NSData alloc] initWithBytes: bytes length: rWant];
+		  [rItems addObject: d];
+		  RELEASE(d);
 		  rLength -= rWant;
 		  if (rLength > 0)
 		    {
