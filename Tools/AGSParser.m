@@ -1146,15 +1146,17 @@ try:
 	  NSString	*tmp;
 	  NSString	*val;
 
-	  tmp = [NSString stringWithCharacters: &buffer[start]
-					length: pos - start];
+	  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
+					      length: pos - start];
 	  val = [wordMap objectForKey: tmp];
 	  if (val == nil)
 	    {
-	      return tmp;	// No mapping found.
+	      return AUTORELEASE(tmp);	// No mapping found.
 	    }
-	  else if ([val length] > 0)
+	  RELEASE(tmp);
+	  if ([val length] > 0)
 	    {
+	      
 	      if ([val isEqualToString: @"//"] == YES)
 		{
 		  [self skipRemainderOfLine];
@@ -2965,25 +2967,74 @@ fail:
  */
 - (unsigned) skipWhiteSpace
 {
-  while (pos < length)
+  BOOL		tryAgain;
+
+  do
     {
-      unichar	c = buffer[pos];
+      unsigned	start;
 
-      if (c == '/')
+      tryAgain = NO;
+      while (pos < length)
 	{
-	  unsigned	old = pos;
+	  unichar	c = buffer[pos];
 
-	  if ([self skipComment] > old)
+	  if (c == '/')
 	    {
-	      continue;	// Found a comment ... go on as if it was a space.
+	      unsigned	old = pos;
+
+	      if ([self skipComment] > old)
+		{
+		  continue;	// Found a comment ... act as if it was a space.
+		}
+	    }
+	  if ([spacenl characterIsMember: c] == NO)
+	    {
+	      break;		// Not whitespace ... done.
+	    }
+	  pos++;		// Step past space character.
+	}
+      start = pos;
+      if (pos < length && [identifier characterIsMember: buffer[pos]] == YES)
+	{
+	  while (pos < length)
+	    {
+	      if ([identifier characterIsMember: buffer[pos]] == NO)
+		{
+		  NSString	*tmp;
+		  NSString	*val;
+
+		  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
+						      length: pos - start];
+		  val = [wordMap objectForKey: tmp];
+		  RELEASE(tmp);
+		  if (val == nil)
+		    {
+		      pos = start;	// No mapping found
+		    }
+		  else if ([val length] > 0)
+		    {
+		      if ([val isEqualToString: @"//"] == YES)
+			{
+			  [self skipRemainderOfLine];
+			  tryAgain = YES;
+			}
+		      else
+			{
+			  pos = start;	// Not mapped to a comment.
+			}
+		    }
+		  else
+		    {
+		      tryAgain = YES;	// Identifier ignored.
+		    }
+		  break;
+		}
+	      pos++;
 	    }
 	}
-      if ([spacenl characterIsMember: c] == NO)
-	{
-	  break;	// Not whitespace ... done.
-	}
-      pos++;		// Step past space character.
     }
+  while (tryAgain == YES);
+
   return pos;
 }
 
