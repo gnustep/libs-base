@@ -19,6 +19,22 @@
 <p><b>Inherits from: </b> NSObject</p>
 <hr>
 
+	    <p>
+
+	      An NSURLHandle instance is used to manage the resource data
+	      corresponding to an NSURL object. A single NSURLHandle can
+	      be used to manage multiple NSURL objects as long as those
+	      objects all refer to the same resource.
+	    </p>
+
+	    <p>
+
+	      Different NSURLHandle subclasses are used to manage different
+	      types of URL (usually based on the scheme of the URL), and you
+	      can register new subclasses to extend (or replace) the
+	      standard ones.
+	    </p>
+
           
 <h2>Instance Variables </h2>
 <ul>
@@ -27,144 +43,274 @@
 <ul>
 <li><a href ="NSURLHandle.html#method-0">+URLHandleClassForURL:</a>
 <li><a href ="NSURLHandle.html#method-1">+cachedHandleForURL:</a>
-<li><a href ="NSURLHandle.html#method-2">+canInitWithURL:</a>
-<li><a href ="NSURLHandle.html#method-3">+registerURLHandleClass:</a>
-<li><a href ="NSURLHandle.html#method-4">-addClient:</a>
-<li><a href ="NSURLHandle.html#method-5">-availableResourceData</a>
-<li><a href ="NSURLHandle.html#method-6">-backgroundLoadDidFailWithReason:</a>
-<li><a href ="NSURLHandle.html#method-7">-beginLoadInBackground</a>
-<li><a href ="NSURLHandle.html#method-8">-cancelLoadInBackground</a>
-<li><a href ="NSURLHandle.html#method-9">-didLoadBytes:loadComplete:</a>
-<li><a href ="NSURLHandle.html#method-10">-endLoadInBackground</a>
-<li><a href ="NSURLHandle.html#method-11">-failureReason</a>
-<li><a href ="NSURLHandle.html#method-12">-flushCachedData</a>
-<li><a href ="NSURLHandle.html#method-13">-loadInBackground</a>
-<li><a href ="NSURLHandle.html#method-14">-loadInForeground</a>
-<li><a href ="NSURLHandle.html#method-15">-propertyForKey:</a>
-<li><a href ="NSURLHandle.html#method-16">-propertyForKeyIfAvailable:</a>
-<li><a href ="NSURLHandle.html#method-17">-removeClient:</a>
-<li><a href ="NSURLHandle.html#method-18">-resourceData</a>
-<li><a href ="NSURLHandle.html#method-19">-status</a>
-<li><a href ="NSURLHandle.html#method-20">-writeData:</a>
-<li><a href ="NSURLHandle.html#method-21">-writeProperty:</a>
+<li><a href ="NSURLHandle.html#canInitWithURL:">+canInitWithURL:</a>
+<li><a href ="NSURLHandle.html#method-2">+registerURLHandleClass:</a>
+<li><a href ="NSURLHandle.html#method-3">-addClient:</a>
+<li><a href ="NSURLHandle.html#method-4">-availableResourceData</a>
+<li><a href ="NSURLHandle.html#method-5">-backgroundLoadDidFailWithReason:</a>
+<li><a href ="NSURLHandle.html#method-6">-beginLoadInBackground</a>
+<li><a href ="NSURLHandle.html#cancelLoadInBackground">-cancelLoadInBackground</a>
+<li><a href ="NSURLHandle.html#method-7">-didLoadBytes:loadComplete:</a>
+<li><a href ="NSURLHandle.html#endLoadInBackground">-endLoadInBackground</a>
+<li><a href ="NSURLHandle.html#method-8">-failureReason</a>
+<li><a href ="NSURLHandle.html#method-9">-flushCachedData</a>
+<li><a href ="NSURLHandle.html#method-10">-initWithURL:cached:</a>
+<li><a href ="NSURLHandle.html#method-11">-loadInBackground</a>
+<li><a href ="NSURLHandle.html#loadInForeground">-loadInForeground</a>
+<li><a href ="NSURLHandle.html#method-12">-propertyForKey:</a>
+<li><a href ="NSURLHandle.html#method-13">-propertyForKeyIfAvailable:</a>
+<li><a href ="NSURLHandle.html#method-14">-removeClient:</a>
+<li><a href ="NSURLHandle.html#method-15">-resourceData</a>
+<li><a href ="NSURLHandle.html#method-16">-status</a>
+<li><a href ="NSURLHandle.html#method-17">-writeData:</a>
+<li><a href ="NSURLHandle.html#method-18">-writeProperty:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">URLHandleClassForURL:</a></h3>
 + (Class) <b>URLHandleClassForURL:</b> (NSURL*)anURL;<br>
 
 	    Returns the most recently registered NSURLHandle subclass that
-	    responds to <code>canInitWithURL:</code> with <code>YES</code>
+	    responds to <a href ="#canInitWithURL:">canInitWithURL:</a>
+	    with <code>YES</code>.  If there is no such subclass, returns nil.
           
  <hr>
 <h3><a name ="method-1">cachedHandleForURL:</a></h3>
 + (NSURLHandle*) <b>cachedHandleForURL:</b> (NSURL*)anURL;<br>
 
 	    Returns a previously created object that handles the specified
-	    URL (if any exists).
+	    URL (if any exists), otherwise returns nil.
           
  <hr>
-<h3><a name ="method-2">canInitWithURL:</a></h3>
+<h3><a name ="canInitWithURL:">canInitWithURL:</a></h3>
 + (BOOL) <b>canInitWithURL:</b> (NSURL*)anURL;<br>
+Your subclass <em>must </em> override this abstract method.<br>
 
 	    Implemented by subclasses to say which URLs they can handle.
+	    This method is used to determine which subclasses can be used
+	    to handle a particular URL.
           
  <hr>
-<h3><a name ="method-3">registerURLHandleClass:</a></h3>
+<h3><a name ="method-2">registerURLHandleClass:</a></h3>
 + (void) <b>registerURLHandleClass:</b> (Class)anURLHandleSubclass;<br>
 
 	    Used to register a subclass as being available to handle URLs.
           
  <hr>
 <hr><h2>Instances Methods </h2>
-<h3><a name ="method-4">addClient:</a></h3>
+<h3><a name ="method-3">addClient:</a></h3>
 - (void) <b>addClient:</b> (id&#60;NSURLHandleClient>)client;<br>
 
+	    Adds an object conforming to the
+	    <a href ="#NSURLHandleClient">NSURLHandleClient protocol</a>
+	    as a client of the URL handle.
           
  <hr>
-<h3><a name ="method-5">availableResourceData</a></h3>
+<h3><a name ="method-4">availableResourceData</a></h3>
 - (NSData*) <b>availableResourceData</b>;<br>
 
+	    Returns the resource data that is currently available for the
+	    handle.  This may be a partially loaded resource or may be
+	    empty of no data has been loaded yet.
           
  <hr>
-<h3><a name ="method-6">backgroundLoadDidFailWithReason:</a></h3>
+<h3><a name ="method-5">backgroundLoadDidFailWithReason:</a></h3>
 - (void) <b>backgroundLoadDidFailWithReason:</b> (NSString*)reason;<br>
 
+	    This method should be called when a background load fails.
+	    The method passes the failure notification to the clients of
+	    the handle - so subclasses should call super's implementation
+	    at the end of their implementation of this method.
           
  <hr>
-<h3><a name ="method-7">beginLoadInBackground</a></h3>
+<h3><a name ="method-6">beginLoadInBackground</a></h3>
 - (void) <b>beginLoadInBackground</b>;<br>
 
+	    This method is called by when a background load begins.
+	    Subclasses should call super's implementation at
+	    the end of their implementation of this method.
           
  <hr>
-<h3><a name ="method-8">cancelLoadInBackground</a></h3>
+<h3><a name ="cancelLoadInBackground">cancelLoadInBackground</a></h3>
 - (void) <b>cancelLoadInBackground</b>;<br>
 
+	    This method should be called to cancel a load currently in
+	    progress.  The method calls
+	    <a href ="#endLoadInBackground">endLoadInBackground</a>
+	    Subclasses should call super's implementation at
+	    the end of their implementation of this method.
           
  <hr>
-<h3><a name ="method-9">didLoadBytes:loadComplete:</a></h3>
+<h3><a name ="method-7">didLoadBytes:loadComplete:</a></h3>
 - (void) <b>didLoadBytes:</b> (NSData*)newBytes <b>loadComplete:</b> (BOOL)yorn;<br>
 
+	    This method must be called by subclasses whenever data is
+	    loaded.
           
  <hr>
-<h3><a name ="method-10">endLoadInBackground</a></h3>
+<h3><a name ="endLoadInBackground">endLoadInBackground</a></h3>
 - (void) <b>endLoadInBackground</b>;<br>
 
+	    This method is called to stop any background loading process.
+	    <a href ="NSURLHandle.html#cancelLoadInBackground">cancelLoadInBackground</a>
+	    uses this method to cancel loading.
+	    Subclasses should call super's implementation at
+	    the end of their implementation of this method.
           
  <hr>
-<h3><a name ="method-11">failureReason</a></h3>
+<h3><a name ="method-8">failureReason</a></h3>
 - (NSString*) <b>failureReason</b>;<br>
 
+	    Returns the failure reason for the last failure to load
+	    the resource data.
           
  <hr>
-<h3><a name ="method-12">flushCachedData</a></h3>
+<h3><a name ="method-9">flushCachedData</a></h3>
 - (void) <b>flushCachedData</b>;<br>
 
+	    Flushes any cached resource data.
           
  <hr>
-<h3><a name ="method-13">loadInBackground</a></h3>
-- (void) <b>loadInBackground</b>;<br>
+<h3><a name ="method-10">initWithURL:cached:</a></h3>
+<b>This is the designated initialiser </b><br>
+- (init) <b>initWithURL:</b> (NSURL*)url <b>cached:</b> (BOOL)yesno;<br>
+Your subclass <em>must </em> override this abstract method.<br>
 
+	    Initialises a handle with the specified URL.
+	    The flag determines whether the handle will cache resource data
+	    and respond to requests from equivalent URLs for the cached data.
           
  <hr>
-<h3><a name ="method-14">loadInForeground</a></h3>
+<h3><a name ="method-11">loadInBackground</a></h3>
+- (void) <b>loadInBackground</b>;<br>
+Your subclass <em>must </em> override this abstract method.<br>
+
+	    Starts (or queues) loading of the handle's resource data
+	    in the background (asynchronously).
+          
+ <hr>
+<h3><a name ="loadInForeground">loadInForeground</a></h3>
 - (NSData*) <b>loadInForeground</b>;<br>
 
+	    Loads the handle's resource data in the foreground (synchronously).
+	    This may be implemented by starting a background load and
+	    waiting for it to complete.
           
  <hr>
-<h3><a name ="method-15">propertyForKey:</a></h3>
+<h3><a name ="method-12">propertyForKey:</a></h3>
 - (id) <b>propertyForKey:</b> (NSString*)propertyKey;<br>
+Your subclass <em>must </em> override this abstract method.<br>
 
+	    Returns the property for the specified key, or nil if the
+	    key does not exist.
           
  <hr>
-<h3><a name ="method-16">propertyForKeyIfAvailable:</a></h3>
+<h3><a name ="method-13">propertyForKeyIfAvailable:</a></h3>
 - (id) <b>propertyForKeyIfAvailable:</b> (NSString*)propertyKey;<br>
+Your subclass <em>must </em> override this abstract method.<br>
 
+	    Returns the property for the specified key, but only if the
+	    handle does not need to do any work to retrieve it.
           
  <hr>
-<h3><a name ="method-17">removeClient:</a></h3>
+<h3><a name ="method-14">removeClient:</a></h3>
 - (void) <b>removeClient:</b> (id&#60;NSURLHandleClient>)client;<br>
 
+	    Removes an object from them list of clients notified of
+	    resource loading events by the URL handle.
           
  <hr>
-<h3><a name ="method-18">resourceData</a></h3>
+<h3><a name ="method-15">resourceData</a></h3>
 - (NSData*) <b>resourceData</b>;<br>
 
+	    Returns the resource data belonging to the handler.
+	    Calls <a href ="NSURLHandle.html#loadInForeground">loadInForeground</a> if
+	    necessary.
           
  <hr>
-<h3><a name ="method-19">status</a></h3>
+<h3><a name ="method-16">status</a></h3>
 - (NSURLHandleStatus) <b>status</b>;<br>
 
+	    Returns the current status of the handle.
           
  <hr>
-<h3><a name ="method-20">writeData:</a></h3>
+<h3><a name ="method-17">writeData:</a></h3>
 - (BOOL) <b>writeData:</b> (NSData*)data;<br>
+Your subclass <em>must </em> override this abstract method.<br>
 
+	    Writes resource data to the handle.  Returns YES on success,
+	    NO on failure.
           
  <hr>
-<h3><a name ="method-21">writeProperty:</a></h3>
+<h3><a name ="method-18">writeProperty:</a></h3>
 - (BOOL) <b>writeProperty:</b> (id)propertyValue;<br>
+Your subclass <em>must </em> override this abstract method.<br>
 
+	    Attempts to set property for handle.
           
+ <hr>
+<h2><a name ="NSURLHandleClient">NSURLHandleClient Protocol </a></h2>
+<p><b>Declared in: </b> Foundation/NSURLHandle.h</p>
+<hr>
+
+	
+<ul>
+<li><a href ="NSURLHandle.html#method-22">-URLHandle:resourceDidBecomeAvailable:</a>
+<li><a href ="NSURLHandle.html#method-23">-URLHandle:resourceDidFailLoadingWithReason:</a>
+<li><a href ="NSURLHandle.html#method-19">-URLHandleResourceDidBeginLoading:</a>
+<li><a href ="NSURLHandle.html#method-20">-URLHandleResourceDidCancelLoading:</a>
+<li><a href ="NSURLHandle.html#method-21">-URLHandleResourceDidFinishLoading:</a>
+</ul>
+<hr>
+<h3><a name ="method-19">URLHandleResourceDidBeginLoading:</a></h3>
+- (void) <b>URLHandleResourceDidBeginLoading:</b> (NSURLHandle*)sender;<br>
+
+	    Sent by the NSURLHandle object when it begins loading
+	    resource data.
+          
+ <hr>
+<h3><a name ="method-20">URLHandleResourceDidCancelLoading:</a></h3>
+- (void) <b>URLHandleResourceDidCancelLoading:</b> (NSURLHandle*)sender;<br>
+
+	    Sent by the NSURLHandle object when resource loading is cancelled
+	    by programmatic request (rather than by failure).
+          
+ <hr>
+<h3><a name ="method-21">URLHandleResourceDidFinishLoading:</a></h3>
+- (void) <b>URLHandleResourceDidFinishLoading:</b> (NSURLHandle*)sender;<br>
+
+	    Sent by the NSURLHandle object when it completes loading
+	    resource data.
+          
+ <hr>
+<h3><a name ="method-22">URLHandle:resourceDidBecomeAvailable:</a></h3>
+- (void) <b>URLHandle:</b> (NSURLHandle*)sender <b>resourceDidBecomeAvailable:</b> (NSData*)data;<br>
+
+	    Sent by the NSURLHandle object when some data becomes available
+	    from the handle.
+          
+ <hr>
+<h3><a name ="method-23">URLHandle:resourceDidFailLoadingWithReason:</a></h3>
+- (void) <b>URLHandle:</b> (NSURLHandle*)sender <b>resourceDidFailLoadingWithReason:</b> (NSString*)reason;<br>
+
+	    Sent by the NSURLHandle object on resource load failure.
+	    Supplies a human readable failure reason.
+          
+ <hr>
+<h3><a name ="NSURLHandleStatus">NSURLHandleStatus</a></h3>
+<p><b>Declared in: </b> Foundation/NSURLHandle.h</p>
+<b>typedef </b> int NSURLHandleStatus<br>
+
+
+	  An NSURLHandleStatus is used to report the current state of an
+	  NSURLHandle object, it can take the following values -
+	  <ul>
+<li>NSURLHandleNotLoaded
+<li>NSURLHandleLoadSucceeded
+<li>NSURLHandleLoadInProgress
+<li>NSURLHandleLoadFailed
+</ul>
+
+	
  <hr>
 </body>
 
