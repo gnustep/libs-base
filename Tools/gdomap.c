@@ -4222,11 +4222,25 @@ printf(
    */ 
   if (getuid () != 0)
     {
+      /*
+       * Try to be the user who launched us ... so they can kill us too.
+       */
       setuid (getuid ());
     }
   else
     {
-      setuid (-1);
+      int	uid = -1;
+#ifdef	HAVE_PWD
+#ifdef	HAVE_GETPWNAM
+      struct passwd *pw = getpwnam("nobody");
+  
+      if (pw != 0)
+	{
+	  uid = pw->pw_uid;
+	}
+#endif
+#endif
+      setuid (uid);
     }
 #endif /* __MINGW__ */
 #if	!defined(__svr4__)
