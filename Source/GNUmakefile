@@ -31,10 +31,13 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ../Version
 include ../config.mak
 
+# Interface version changes with each minor release
+libgnustep-base_INTERFACE_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}
+libgnustep-baseadd_INTERFACE_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}
+
 PACKAGE_NAME = gnustep-base
 
 # The library to be compiled
-
 LIBRARY_NAME=
 ifeq ($(add),yes)
 LIBRARY_NAME += libgnustep-baseadd
