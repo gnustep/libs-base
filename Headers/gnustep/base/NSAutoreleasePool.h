@@ -81,6 +81,8 @@ struct autorelease_array_list
   struct autorelease_array_list *_released_head;
   /* The total number of objects autoreleased in this pool. */
   unsigned _released_count;
+  /* The method to add an object to this pool */
+  void 	(*addImp)(id, SEL, id);
 }
 
 + (void)addObject: anObject;
