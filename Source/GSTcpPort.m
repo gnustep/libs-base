@@ -1312,6 +1312,7 @@ static Class		tcpPortClass;
   if (thePorts != 0)
     {
       port = (GSTcpPort*)NSMapGet(thePorts, (void*)aHost);
+      IF_NO_GC(AUTORELEASE(RETAIN(port)));
     }
   [tcpPortLock unlock];
   return port;
@@ -1510,12 +1511,13 @@ static Class		tcpPortClass;
 	  NSMapInsert(thePorts, (void*)aHost, (void*)port);
 	  NSDebugMLLog(@"NSPort", @"Created speaking port: %@", port);
 	}
-      IF_NO_GC(AUTORELEASE(port));
     }
   else
     {
+      RETAIN(port);
       NSDebugMLLog(@"NSPort", @"Using pre-existing port: %@", port);
     }
+  IF_NO_GC(AUTORELEASE(port));
 
   [tcpPortLock unlock];
   return port;
@@ -1806,7 +1808,7 @@ static Class		tcpPortClass;
     {
       DO_LOCK(myLock);
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
-      AUTORELEASE(RETAIN(handle));
+      IF_NO_GC(AUTORELEASE(RETAIN(handle)));
       DO_UNLOCK(myLock);
       if (handle == nil)
 	{
