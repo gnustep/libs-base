@@ -1,3 +1,9 @@
+Sat Mar  9 12:02:45 2002  Adam Fedor  <fedor@yogi.doc.com>
+
+	* configure.in: Change constant string to FooConstantString
+	* config/config.constant-string-class.m: Work with NeXT_RUNTIME
+	(patch from Markus Hitter [mah@jump-ing.de]).
+
 2002-03-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Change copy so that, if the source argument

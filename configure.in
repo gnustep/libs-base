@@ -411,7 +411,7 @@ fi
 # to be used for constant strings by using the -fconstant-string-class
 # option.  If that is the case, we change it to NSConstantString.
 #---------------------------------------------------------------------
-CPPFLAGS="$CPPFLAGS -fconstant-string-class=NSConstantString"
+CPPFLAGS="$CPPFLAGS -fconstant-string-class=FooConstantString"
 AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
 AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
   AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
