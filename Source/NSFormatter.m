@@ -71,6 +71,17 @@
   return YES;
 }
 
+- (BOOL) isPartialStringValid: (NSString**)partialStringPtr
+	proposedSelectedRange: (NSRange*)proposedSelRangePtr
+	       originalString: (NSString*)origString
+	originalSelectedRange: (NSRange)originalSelRangePtr
+	     errorDescription: (NSString**)error
+{
+  *newString = nil;
+  *error = nil;
+  return YES;
+}
+
 - (NSString*) stringForObjectValue: (id)anObject
 {
   [self subclassResponsibility: _cmd];
