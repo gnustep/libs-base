@@ -39,7 +39,7 @@
 before-all::  $(GENERATED_HFILES)
 
 # Things to do after compiling
-# after-all::
+after-all:: Info-gnustep.plist
 
 # Things to do before installing
 # before-install::
@@ -170,4 +170,15 @@ libgnustep-base.def: $(OBJ_FILES_TO_LINK)
 	nm $^ | grep '^........ [TR] _' | sed 's/[^_]*_//' > _tmp.def
 	cat _tmp.def | grep "_class_name_" >> $@
 	rm -rf _tmp.def
+
+#
+# Make an Info.plist since libraries don't have these normally
+#
+Info-gnustep.plist:
+	$(ECHO_CREATING)(echo "{"; \
+	echo "  NSExecutable = \"gnustep-base\";"; \
+	echo "  NSPrincipalClass = \"NSObject\";"; \
+	echo "  GSBundleShortVersionString = \"$(VERSION)\";"; \
+	echo "  GSBundleVersion = $(VERSION_NUMBER);"; \
+	echo "}") > $@$(END_ECHO)
 

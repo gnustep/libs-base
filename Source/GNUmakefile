@@ -368,11 +368,21 @@ libgnustep-base_HEADER_FILES_INSTALL_DIR = /Foundation
 
 libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 
+# Resources
+RESOURCE_SET_NAME = libbase-resources
+libbase-resources_RESOURCE_FILES_INSTALL_DIR = Library/Libraries/Resources/gnustep-base
+libbase-resources_LANGUAGES =
+libbase-resources_LOCALIZED_RESOURCE_FILES =
+libbase-resources_RESOURCE_DIRS =
+libbase-resources_RESOURCE_FILES = Info-gnustep.plist
+
+
 -include Makefile.preamble
 
 -include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/library.make
+include $(GNUSTEP_MAKEFILES)/resource-set.make
 
 -include Makefile.postamble
 

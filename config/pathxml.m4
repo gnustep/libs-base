@@ -5,7 +5,7 @@ AC_ARG_WITH(xml-prefix,
             [  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)],
             xml_config_prefix="$withval", xml_config_prefix="")
 AC_ARG_ENABLE(xmltest,
-              [  --disable-xmltest        Do not try to compile and run a test XML program],,
+              [  --disable-xmltest		Do not try to compile and run a test XML program],,
               enable_xmltest=yes)
 
   if test x$xml_config_prefix != x ; then

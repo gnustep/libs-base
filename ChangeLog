@@ -1,3 +1,19 @@
+2004-10-26  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Standardize order of flags and libs
+	Check for proper defs in tzfile.h. Add sub-configure options
+	so they are listed in help. Add generic include/lib flags option.
+	* config.mak.in: Add load flags variable
+	* base.make.in: Idem.
+	* SSL/configure.ac: Add generic include/lib flags option.
+
+	* Version: Add numeric value for runtime versioning.
+	* Souce/GNUmakeifle: Add resource set install
+	* Source/Makefile.postamble (Info-gnustep.plist): New target.
+	* Testing/nsbundle.m: Additional tests.
+
+	* Source/NSTimeZone.m: Check for proper tzfile defs (Fixes #10724).
+
 2004-10-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCenter.m: Changed to explicitly

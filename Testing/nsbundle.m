@@ -34,7 +34,15 @@ main(int argc, char *argv[], char **env)
     arp = [NSAutoreleasePool new];
     
     setbuf(stdout, 0);
-    printf("  GNUstep bundle directory is %s\n", [[[NSBundle gnustepBundle] bundlePath] cString]);
+    /* Test bundle version and info files */
+    bundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+    GSPrintf(stdout, @"  GNUstep Base Resources: %@\n", [bundle bundlePath]);
+    object = [bundle infoDictionary];
+    GSPrintf(stdout, @"  gnustep-base version string = %@\n",
+    	     [object objectForKey: @"GSBundleShortVersionString"]);
+    GSPrintf(stdout, @"  gnustep-base version number = %g\n\n",
+    	     [[object objectForKey: @"GSBundleVersion"] doubleValue]);
+
 
     path = [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
     printf("  Executable is in %s\n", [path cString]);
@@ -119,6 +127,8 @@ main(int argc, char *argv[], char **env)
 	[object printMyName];
 	[object release];
       }
+
+
     [arp release];
     return 0;
 }

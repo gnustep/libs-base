@@ -310,7 +310,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all Source/mframe SSL"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_ADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_PTHREAD_H HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_UINT8_T DEFINE_INT32_T DEFINE_INT64_T USE_ZLIB GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML USE_GMP INCLUDE_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_ADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_PTHREAD_H HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_UINT8_T DEFINE_INT32_T DEFINE_INT64_T USE_ZLIB GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -853,18 +853,23 @@ Optional Features:
   --enable-ffcall  		Enable use of ffcall library
   --disable-do			Compile even if DO-dependencies are not met
   --disable-xml			Compile even if XML-dependencies are not met
-  --disable-xmltest        Do not try to compile and run a test XML program
-  --disable-xslt				Compile even if XSLT-dependency is not met
+  --disable-xmltest		Do not try to compile and run a test XML program
+  --disable-xslt		Compile even if XSLT-dependency is not met
+  --disable-openssl		Disable support for openssl in URL classes
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-include-flags=FLAGS specify all include flags at once
+  --with-library-flags=FLAGS specify all library flags at once
   --with-ffi-include=PATH include path for ffi (ffcall/libffi) headers
   --with-ffi-library=PATH library path for ffi (ffcall/libffi) libraries
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
   --with-libiconv-library=PATH  library path for libiconv libraries
+  --with-openssl-include=PATH  include path for openssl headers
+  --with-openssl-library=PATH  library path for openssl libraries
 
 Some influential environment variables:
   CC          C compiler command
@@ -2656,7 +2661,7 @@ fi
 # specific target_os options
 #--------------------------------------------------------------------
 INCLUDE_FLAGS="$CPPFLAGS"
-LIBS="$LDFLAGS $LIBS"
+LDIR_FLAGS="$LDFLAGS"
 # This is just for configuring. Later, in config.make, INCLUDE_FLAGS
 # goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
 case "$target_os" in
@@ -9327,6 +9332,29 @@ fi
 done
 
 
+# Check if tzfile contains the proper definitions
+if test $ac_cv_header_tzfile_h = yes; then
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <tzfile.h>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "tzhead" >/dev/null 2>&1; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_TZHEAD 1
+_ACEOF
+
+fi
+rm -f conftest*
+
+fi
+
 #--------------------------------------------------------------------
 # These headers/functions needed by GSTcpPort.m
 #--------------------------------------------------------------------
@@ -13412,6 +13440,35 @@ echo "$as_me:$LINENO: result: $enable_fake_main" >&5
 echo "${ECHO_T}$enable_fake_main" >&6
 
 #--------------------------------------------------------------------
+# Simple way to add a bunch of paths to the flags
+#--------------------------------------------------------------------
+
+# Check whether --with-include-flags or --without-include-flags was given.
+if test "${with_include_flags+set}" = set; then
+  withval="$with_include_flags"
+  include_flags="$withval"
+else
+  include_flags="no"
+fi;
+if test ${include_flags} != "no"; then
+    CPPFLAGS="$CPPFLAGS ${include_flags}"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS ${include_flags}"
+fi
+
+
+# Check whether --with-library-flags or --without-library-flags was given.
+if test "${with_library_flags+set}" = set; then
+  withval="$with_library_flags"
+  library_flags="$withval"
+else
+  library_flags="no"
+fi;
+if test ${library_flags} != "no"; then
+    LDFLAGS="$LDFLAGS ${library_flags}"
+    LDIR_FLAGS="$LDIR_FLAGS ${library_flags}"
+fi
+
+#--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
 # We enable ffcall by default now.
 #--------------------------------------------------------------------
@@ -13459,8 +13516,8 @@ else
   ffi_incdir="no"
 fi;
 if test ${ffi_incdir} != "no"; then
-    CPPFLAGS="-I${ffi_incdir} $CPPFLAGS"
-    INCLUDE_FLAGS="-I${ffi_incdir} $INCLUDE_FLAGS"
+    CPPFLAGS="$CPPFLAGS -I${ffi_incdir}"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS -I${ffi_incdir}"
 fi
 
 
@@ -13472,7 +13529,8 @@ else
   ffi_libdir="no"
 fi;
 if test ${ffi_libdir} != "no"; then
-    LIBS="-L${ffi_libdir} $LIBS"
+    LDFLAGS="$LDFLAGS -L${ffi_libdir}"
+    LDIR_FLAGS="$LDIR_FLAGS -L${ffi_libdir}"
 fi
 
 if test "${ac_cv_header_ffi_h+set}" = set; then
@@ -13819,7 +13877,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   WITH_FFI=libffi
-  LIBS="$LIBS -lffi"
+  LIBS="-lffi $LIBS"
   echo "$as_me:$LINENO: result: libffi" >&5
 echo "${ECHO_T}libffi" >&6
 elif test $enable_ffcall = yes; then
@@ -13829,7 +13887,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   WITH_FFI=ffcall
-  LIBS="$LIBS -lcallback -lavcall"
+  LIBS="-lcallback -lavcall $LIBS"
   echo "$as_me:$LINENO: result: ffcall" >&5
 echo "${ECHO_T}ffcall" >&6
 else
@@ -14155,7 +14213,7 @@ echo "${ECHO_T}no" >&6
   if test $enable_libxml = yes; then
     CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
     INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
-    LIBS="$LIBS $XML_LIBS"
+    LIBS="$XML_LIBS $LIBS"
     HAVE_LIBXML=1
 
 cat >>confdefs.h <<\_ACEOF
@@ -14550,7 +14608,7 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBXSLT 1
 _ACEOF
 
-	LIBS="$LIBS -lxslt"
+	LIBS="-lxslt $LIBS"
       else
 	echo
 	echo "You most likely do not want to build base without XSLT support."
@@ -14608,7 +14666,6 @@ else
   gmp_libdir="no"
 fi;
 
-cppflags_temp="$CPPFLAGS"
 libs_temp=$LIBS
 
 if test "$gmp_incdir" != "no"; then
@@ -14616,7 +14673,8 @@ if test "$gmp_incdir" != "no"; then
   INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
 fi
 if test "$gmp_libdir" != "no"; then
-  LIBS="$LIBS -L$gmp_libdir"
+  LDFLAGS="$LDFLAGS -L$gmp_libdir"
+  LDIR_FLAGS="$LDIR_FLAGS -L$gmp_libdir"
 fi
 
 USE_GMP=0
@@ -14914,15 +14972,11 @@ fi
 
   fi
   if test "$gmp_ok" = yes; then
-    LIBS="$LIBS -lgmp"
+    LIBS="-lgmp $LIBS"
     USE_GMP=1
   fi
 fi
 
-if test "$USE_GMP" = "0"; then
-  CPPFLAGS="$cppflags_temp";
-  LIBS="$libs_temp";
-fi
 
 
 #--------------------------------------------------------------------
@@ -15065,14 +15119,14 @@ if test "${with_libiconv_library+set}" = set; then
 else
   libiconv_libdir="no"
 fi;
-  ldflags_temp="$LDFLAGS"
 
   if test "$libiconv_libdir" != "no"; then
     LDFLAGS="$LDFLAGS -L$libiconv_libdir"
+    LDIR_FLAGS="$LDIR_FLAGS -L$libiconv_libdir"
   fi
 
   old_LIBS="$LIBS"
-  LIBS="$LIBS -liconv"
+  LIBS="-liconv $LIBS"
   cat >conftest.$ac_ext <<_ACEOF
 #include <iconv.h>
   int main(int argc,char **argv) { iconv_open("foo","bar"); }
@@ -15115,7 +15169,6 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
 found_iconv=no
-    LDFLAGS="$ldflags_temp"
     LIBS="$old_LIBS"
 
 fi
@@ -15127,7 +15180,7 @@ if test $found_iconv = no ; then
   # -liconv didn't work. Try giconv.h and -lgiconv.
   # BSDs install this lib as libgiconv.
   old_LIBS="$LIBS"
-  LIBS="$LIBS -lgiconv"
+  LIBS="-lgiconv $LIBS"
   cat >conftest.$ac_ext <<_ACEOF
 #include <giconv.h>
   int main(int argc,char **argv) { iconv_open("foo","bar"); }
@@ -15182,6 +15235,35 @@ rm -f conftest.err conftest.$ac_objext \
 fi
 
 
+
+
+#--------------------------------------------------------------------
+# Configure flags from sub-configure runs, so they show up in our
+# help file.
+#--------------------------------------------------------------------
+# Check whether --enable-openssl or --disable-openssl was given.
+if test "${enable_openssl+set}" = set; then
+  enableval="$enable_openssl"
+
+else
+  enable_openssl=yes
+fi;
+
+# Check whether --with-openssl-include or --without-openssl-include was given.
+if test "${with_openssl_include+set}" = set; then
+  withval="$with_openssl_include"
+  openssl_incdir="$withval"
+else
+  openssl_incdir="no"
+fi;
+
+# Check whether --with-openssl-library or --without-openssl-library was given.
+if test "${with_openssl_library+set}" = set; then
+  withval="$with_openssl_library"
+  openssl_libdir="$withval"
+else
+  openssl_libdir="no"
+fi;
 
 
 
@@ -15892,6 +15974,7 @@ s,@HAVE_LIBXSLT@,$HAVE_LIBXSLT,;t t
 s,@HAVE_LIBXML@,$HAVE_LIBXML,;t t
 s,@USE_GMP@,$USE_GMP,;t t
 s,@INCLUDE_FLAGS@,$INCLUDE_FLAGS,;t t
+s,@LDIR_FLAGS@,$LDIR_FLAGS,;t t
 s,@subdirs@,$subdirs,;t t
 s,@VERSION@,$VERSION,;t t
 s,@MAJOR_VERSION@,$MAJOR_VERSION,;t t
