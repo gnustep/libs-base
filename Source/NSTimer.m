@@ -26,7 +26,7 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSRunLoop.h>
-#include <gnustep/base/Invocation.h>
+#include <Foundation/NSInvocation.h>
 
 @implementation NSTimer
 
@@ -121,7 +121,7 @@
     {
       NSTimeInterval ti = [_fire_date timeIntervalSinceReferenceDate];
       NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-      assert (now < 0.0);
+      NSAssert(now < 0.0, NSInternalInconsistencyException);
       while (ti < now)		// xxx remove this
 	ti += _interval;
       [_fire_date release];
@@ -131,7 +131,7 @@
 
 - (void) invalidate
 {
-  assert (_is_valid);
+  NSAssert(_is_valid, NSInternalInconsistencyException);
   _is_valid = NO;
 }
 

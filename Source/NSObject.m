@@ -198,7 +198,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
       objc_mutex_unlock (retain_counts_gate);
       return YES;
     }
-  assert ((int)(node->value) > 0);
+  NSAssert((int)(node->value) > 0, NSInternalInconsistencyException);
   if (!--((int)(node->value)))
     o_map_remove_node (node);
   objc_mutex_unlock (retain_counts_gate);

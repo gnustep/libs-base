@@ -24,7 +24,6 @@
 #include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Archiver.h>
-#include <assert.h>
 
 /* Eventually some functionality may be moved out of Encoder and
    Decoder and into these objects.

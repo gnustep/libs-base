@@ -763,7 +763,7 @@ static NSMapTable* port_number_2_port;
      don't create a new one, just return the old one. */
   if ((p = (id) NSMapGet (port_number_2_port, (void*)((int)n))))
     {
-      assert (p->is_valid);
+      NSAssert(p->is_valid, NSInternalInconsistencyException);
       return [p retain];
     }
 
@@ -784,7 +784,7 @@ static NSMapTable* port_number_2_port;
     }
 
   /* Register the port object according to its socket. */
-  assert (!NSMapGet (socket_2_port, (void*)p->_port_socket));
+  NSAssert(!NSMapGet (socket_2_port, (void*)p->_port_socket), NSInternalInconsistencyException);
   NSMapInsert (socket_2_port, (void*)p->_port_socket, p);
   
   /* Give the socket a name using bind() and INADDR_ANY for the
@@ -861,7 +861,7 @@ static NSMapTable* port_number_2_port;
 	      strerror(errno)];
 
 	  }
-	assert (p->_listening_address.sin_port);
+	NSAssert(p->_listening_address.sin_port, NSInternalInconsistencyException);
 	n = ntohs(p->_listening_address.sin_port);
       }
 
@@ -885,7 +885,7 @@ static NSMapTable* port_number_2_port;
     hp = gethostbyname (hostname);
     if (!hp)
       [self error: "Could not get address of local host \"%s\"", hostname];
-    assert (hp);
+    NSAssert(hp, NSInternalInconsistencyException);
     memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
   }
 
@@ -967,7 +967,7 @@ static NSMapTable* port_number_2_port;
 
 - (struct sockaddr_in*) _listeningSockaddr
 {
-  assert (is_valid);
+  NSAssert(is_valid, NSInternalInconsistencyException);
   return &_listening_address;
 }
 
@@ -1127,7 +1127,7 @@ static NSMapTable* port_number_2_port;
 	{
 	  /* No bytes are remaining to be read for this packet; 
 	     the packet is complete; return it. */
-	  assert (packet && [packet class]);
+	  NSAssert(packet && [packet class], NSInternalInconsistencyException);
           NSMapRemove(_client_sock_2_packet, (void*)fd_index);
 	  if (debug_tcp_port > 1)
 	    NSLog(@"%s: Read from socket %d\n",
@@ -1153,7 +1153,7 @@ static NSMapTable* port_number_2_port;
   id out_port;
 
   /* Make sure there is enough room in the provided array. */
-  assert (*count > NSCountMapTable (_client_sock_2_out_port));
+  NSAssert(*count > NSCountMapTable (_client_sock_2_out_port), NSInternalInconsistencyException);
 
   /* Put in our listening socket. */
   *count = 0;
@@ -1177,7 +1177,7 @@ static NSMapTable* port_number_2_port;
   id arp = [NSAutoreleasePool new];
   id packet;
 
-assert(type == ET_RPORT);
+  NSAssert(type == ET_RPORT, NSInvalidArgumentException);
 
   packet = [self _tryToGetPacketFromReadableFD: (int)extra];
   if (packet) {
@@ -1203,9 +1203,9 @@ assert(type == ET_RPORT);
 {
   int s = [p _port_socket];
 
-  assert (is_valid);
+  NSAssert(is_valid, NSInternalInconsistencyException);
   /* Make sure it hasn't already been added. */
-  assert (!NSMapGet (_client_sock_2_out_port, (void*)s));
+  NSAssert(!NSMapGet (_client_sock_2_out_port, (void*)s), NSInternalInconsistencyException);
 
  /* Add it, and put its socket in the set of file descriptors we poll. */
   NSMapInsert (_client_sock_2_out_port, (void*)s, p);
@@ -1217,7 +1217,7 @@ assert(type == ET_RPORT);
   id packet;
   int s = [p _port_socket];
 
-  assert (is_valid);
+  NSAssert(is_valid, NSInternalInconsistencyException);
   if (debug_tcp_port)
     NSLog(@"%s: Closed connection from\n %@\n",
 	     object_get_class_name (self), [p description]);
@@ -1279,7 +1279,7 @@ assert(type == ET_RPORT);
 	  /* This will call [self _invalidateConnectedOutPort: for each. */
 	  [out_ports[i] invalidate];
 	}
-      assert (!NSCountMapTable (_client_sock_2_out_port));
+      NSAssert(!NSCountMapTable (_client_sock_2_out_port), NSInternalInconsistencyException);
 
       /* xxx Perhaps should delay this close() to keep another port from
 	 getting it.  This may help Connection invalidation confusion. 
@@ -1302,7 +1302,6 @@ assert(type == ET_RPORT);
 - (void) dealloc
 {
   [self invalidate];
-  /* assert that these are empty? */
   NSFreeMapTable (_client_sock_2_out_port);
   NSFreeMapTable (_client_sock_2_packet);
   [super dealloc];
@@ -1352,7 +1351,7 @@ assert(type == ET_RPORT);
 
 - (void) encodeWithCoder: aCoder
 {
-  assert (is_valid);
+  NSAssert(is_valid, NSInternalInconsistencyException);
   /* We are actually encoding a "send right" (ala Mach), 
      not a receive right.  
      These values must match those expected by [TcpOutPort +newWithCoder] */
@@ -1443,7 +1442,7 @@ static NSMapTable *out_port_bag = NULL;
       NSMapEnumerator me = NSEnumerateMapTable (out_port_bag);
       void *k;
 
-      assert (sockaddr);
+      NSAssert(sockaddr, NSInternalInconsistencyException);
       while (NSNextMapEnumeratorPair (&me, &k, (void**)&p))
 	{
 	  /* xxx Do I need to make sure connectedInPort is the same too? */
@@ -1455,7 +1454,7 @@ static NSMapTable *out_port_bag = NULL;
 	    /* Assume that sin_family is equal.  Using memcmp() doesn't
 	       work because sin_zero's may differ. */
 	    {
-	      assert (p->is_valid);
+	      NSAssert(p->is_valid, NSInternalInconsistencyException);
 	      return [p retain];
 	    }
 	}
@@ -1470,11 +1469,11 @@ static NSMapTable *out_port_bag = NULL;
      ivar. */
   if (sock && (p = NSMapGet (socket_2_port, (void*)sock)))
     {
-      assert ([p isKindOfClass: [TcpOutPort class]]);
+      NSAssert([p isKindOfClass: [TcpOutPort class]], NSInternalInconsistencyException);
       if (sockaddr)
 	{
 	  /* Make sure the address we're setting it to is non-zero. */
-	  assert (sockaddr->sin_port);
+	  NSAssert(sockaddr->sin_port, NSInternalInconsistencyException);
 
 	  /* See if the _remote_in_port_address is already set */
 	  if (p->_remote_in_port_address.sin_family)
@@ -1520,7 +1519,7 @@ static NSMapTable *out_port_bag = NULL;
 	}
       if (p)
 	{
-	  assert (p->is_valid);
+	  NSAssert(p->is_valid, NSInternalInconsistencyException);
 	  return [p retain];
 	}
     }
@@ -1551,7 +1550,7 @@ static NSMapTable *out_port_bag = NULL;
   /* Set the port's address. */
   if (sockaddr)
     {
-      assert (sockaddr->sin_port);
+      NSAssert(sockaddr->sin_port, NSInternalInconsistencyException);
       memcpy (&(p->_remote_in_port_address), sockaddr, sizeof(*sockaddr));
     }
   else
@@ -1570,7 +1569,7 @@ static NSMapTable *out_port_bag = NULL;
   if (!sock) {
       int	rval;
 
-      assert (p->_remote_in_port_address.sin_family);
+      NSAssert(p->_remote_in_port_address.sin_family, NSInternalInconsistencyException);
 
       if (connect (p->_port_socket,
 		   (struct sockaddr*)&(p->_remote_in_port_address), 
@@ -1604,7 +1603,7 @@ static NSMapTable *out_port_bag = NULL;
     }
 
   /* Put it in the shared socket->port map table. */
-  assert (!NSMapGet (socket_2_port, (void*)p->_port_socket));
+  NSAssert(!NSMapGet (socket_2_port, (void*)p->_port_socket), NSInternalInconsistencyException);
   NSMapInsert (socket_2_port, (void*)p->_port_socket, p);
 
   /* Put it in TcpOutPort's registry. */
@@ -1701,9 +1700,9 @@ static NSMapTable *out_port_bag = NULL;
 	  format: @"[TcpInPort newWithAcceptedSocket:] getsockname(): %s",
 	  strerror(errno)];
     }
-  assert (size == sizeof (struct sockaddr_in));
+  NSAssert(size == sizeof (struct sockaddr_in), NSInternalInconsistencyException);
   /* xxx Perhaps I have to get peer name here!! */
-  assert (ntohs (addr.sin_port) != [p portNumber]);
+  NSAssert(ntohs (addr.sin_port) != [p portNumber], NSInternalInconsistencyException);
 #elif 0
   struct sockaddr_in in_port_address;
   c = read (s, &in_port_address, sizeof(struct sockaddr_in));
@@ -1723,7 +1722,7 @@ static NSMapTable *out_port_bag = NULL;
 {
   id reply_port = [packet replyInPort];
 
-  assert (is_valid);
+  NSAssert(is_valid, NSInternalInconsistencyException);
 
   /* If the socket of this TcpOutPort isn't already being polled
      for incoming data by a TcpInPort, and if the packet's REPLY_PORT
@@ -1858,11 +1857,11 @@ static NSMapTable *out_port_bag = NULL;
 
 - (void) encodeWithCoder: aCoder
 {
-  assert (is_valid);
+  NSAssert(is_valid, NSInternalInconsistencyException);
   [super encodeWithCoder: aCoder];
-  assert (!_polling_in_port 
+  NSAssert(!_polling_in_port 
 	  || (ntohs (_remote_in_port_address.sin_port)
-	      != [_polling_in_port portNumber]));
+      != [_polling_in_port portNumber]), NSInternalInconsistencyException);
   /* Encode these at bytes, not as C-variables, because they are
      already in "network byte-order". */
   [aCoder encodeBytes: &_remote_in_port_address.sin_port
@@ -1948,7 +1947,7 @@ static NSMapTable *out_port_bag = NULL;
   /* *size is the number of bytes in the packet, not including 
      the PREFIX_SIZE-byte header. */
   *packet_size = ntohl (*(PREFIX_LENGTH_TYPE*) prefix_buffer);
-  assert (packet_size);
+  NSAssert(packet_size, NSInternalInconsistencyException);
 
   /* If the reply address is non-zero, and the TcpOutPort for this socket
      doesn't already have its _address ivar set, then set it now. */
@@ -2011,7 +2010,7 @@ static NSMapTable *out_port_bag = NULL;
     NSLog(@"%s: Write to socket %d\n", object_get_class_name (self), s);
 
   /* Put the packet size in the first four bytes of the packet. */
-  assert (prefix == PREFIX_SIZE);
+  NSAssert(prefix == PREFIX_SIZE, NSInternalInconsistencyException);
   *(PREFIX_LENGTH_TYPE*)[data mutableBytes] = htonl (eof_position);
 
   /* Put the sockaddr_in for replies in the next bytes of the prefix

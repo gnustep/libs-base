@@ -410,19 +410,19 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
       id nr_object;
       LinkedList *mapped_nr_list;
 
-      assert ([nr_list firstObject] == nr);
+      NSAssert([nr_list firstObject] == nr, NSInternalInconsistencyException);
       if ((nr_name = [nr notificationName]))
 	{
 	  mapped_nr_list = NSMapGet (_name_2_nr_list, nr_name);
-	  assert (mapped_nr_list == nr_list);
+	  NSAssert(mapped_nr_list == nr_list, NSInternalInconsistencyException);
 	  NSMapRemove (_name_2_nr_list, nr_name);
 	}
       else 
 	{
 	  nr_object = [nr notificationObject];
-	  assert (nr_object);
+	  NSAssert(nr_object, NSInternalInconsistencyException);
 	  mapped_nr_list = NSMapGet (_object_2_nr_list, nr_object);
-	  assert (mapped_nr_list == nr_list);
+	  NSAssert(mapped_nr_list == nr_list, NSInternalInconsistencyException);
 	  NSMapRemove (_object_2_nr_list, nr_object);
 	}
     }

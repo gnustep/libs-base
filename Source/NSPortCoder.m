@@ -37,7 +37,6 @@
 #include <gnustep/base/MemoryStream.h>
 #include <Foundation/NSException.h>
 #include <Foundation/DistributedObjects.h>
-#include <assert.h>
 
 #define DEFAULT_SIZE 256
 

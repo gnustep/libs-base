@@ -164,8 +164,9 @@
 
 - (unichar) characterAtIndex: (unsigned int)index
 {
-  /* xxx raise NSException instead of assert. */
-  assert(index < [self length]);
+  if (index >= [self length])
+    [NSException raise: NSRangeException
+		format: @"index greater than sequence length"];
   return _contents_chars[index];
 }
 

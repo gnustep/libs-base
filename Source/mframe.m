@@ -34,7 +34,6 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <stdlib.h>
-#include <assert.h>
 
 /* Deal with strrchr: */
 #if STDC_HEADERS || HAVE_STRING_H

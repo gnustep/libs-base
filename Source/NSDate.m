@@ -32,6 +32,7 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSException.h>
 #ifndef __WIN32__
 #include <time.h>
 #endif /* !__WIN32__ */
@@ -74,7 +75,7 @@
   interval += (double)tp.tv_usec / 1000000.0;
 
   /* There seems to be a problem with bad double arithmetic... */
-  assert (interval < 0);
+  NSAssert(interval < 0, NSInternalInconsistencyException);
 
   return interval;
 #else

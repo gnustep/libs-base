@@ -1040,7 +1040,7 @@ static int debug_run_loop = 0;
   id saved_mode;
   int num_inputs = 0;
 
-  assert (mode);
+  NSAssert(mode, NSInvalidArgumentException);
   saved_mode = _current_mode;
   _current_mode = mode;
 
@@ -1209,14 +1209,14 @@ static int debug_run_loop = 0;
       if (FD_ISSET (fd_index, &write_fds))
         {
 	  id watcher = (id) NSMapGet (wfd_2_object, (void*)fd_index);
-	  assert (watcher);
+	  NSAssert(watcher, NSInternalInconsistencyException);
 	  [watcher eventFor:(void*)fd_index mode:_current_mode];
           [NSNotificationQueue runLoopASAP];
         }
       if (FD_ISSET (fd_index, &read_fds))
         {
 	  id watcher = (id) NSMapGet (rfd_2_object, (void*)fd_index);
-	  assert (watcher);
+	  NSAssert(watcher, NSInternalInconsistencyException);
 	  [watcher eventFor:(void*)fd_index mode:_current_mode];
           [NSNotificationQueue runLoopASAP];
         }

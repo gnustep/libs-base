@@ -28,6 +28,7 @@
 #include <config.h>
 #include <gnustep/base/MachPort.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSException.h>
 #include <gnustep/base/Set.h>
 
 #include <mach/cthreads.h>
@@ -41,7 +42,7 @@ static NSLock *portDictionaryGate;
 + initialize
 {
   portDictionaryGate = [NSLock new];
-  assert(sizeof(int) == sizeof(port_t));
+  NSAssert(sizeof(int) == sizeof(port_t), NSInternalInconsistencyException);
   portDictionary = [[Dictionary alloc] 
 		    initWithType:@encode(id)
 		    keyType:@encode(int)];
