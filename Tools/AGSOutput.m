@@ -187,6 +187,7 @@ static BOOL snuggleStart(NSString *t)
   NSDictionary		*protocols;
   NSArray		*authors;
   NSString		*tmp;
+  unsigned		chapters = 0;
 
   info = d;
 
@@ -338,16 +339,19 @@ static BOOL snuggleStart(NSString *t)
   if (tmp != nil)
     {
       [self reformat: tmp withIndent: 4 to: str];
+      chapters++;
     }
 
   if ([classes count] > 0)
     {
       NSArray	*names;
       unsigned	i;
+      unsigned	c = [classes count];
 
+      chapters += c;
       names = [classes allKeys];
       names = [names sortedArrayUsingSelector: @selector(compare:)];
-      for (i = 0; i < [names count]; i++)
+      for (i = 0; i < c; i++)
 	{
 	  NSString	*name = [names objectAtIndex: i];
 	  NSDictionary	*d = [classes objectForKey: name];
@@ -360,10 +364,12 @@ static BOOL snuggleStart(NSString *t)
     {
       NSArray	*names;
       unsigned	i;
+      unsigned	c = [categories count];
 
+      chapters += c;
       names = [categories allKeys];
       names = [names sortedArrayUsingSelector: @selector(compare:)];
-      for (i = 0; i < [names count]; i++)
+      for (i = 0; i < c; i++)
 	{
 	  NSString	*name = [names objectAtIndex: i];
 	  NSDictionary	*d = [categories objectForKey: name];
@@ -376,16 +382,28 @@ static BOOL snuggleStart(NSString *t)
     {
       NSArray	*names;
       unsigned	i;
+      unsigned	c = [protocols count];
 
+      chapters += c;
       names = [protocols allKeys];
       names = [names sortedArrayUsingSelector: @selector(compare:)];
-      for (i = 0; i < [names count]; i++)
+      for (i = 0; i < c; i++)
 	{
 	  NSString	*name = [names objectAtIndex: i];
 	  NSDictionary	*d = [protocols objectForKey: name];
 
 	  [self outputUnit: d to: str];
 	}
+    }
+
+  if (chapters == 0)
+    {
+      // We must have at least one chapter!
+      [str appendString: @"    <chapter>\n"];
+      [str appendString:
+	@"      <heading>No contents found by autogsdoc</heading>\n"];
+      [str appendString: @"      <p></p>\n"];
+      [str appendString: @"    </chapter>\n"];
     }
 
   // Output document appendix if available.

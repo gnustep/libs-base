@@ -732,7 +732,7 @@ static NSMutableSet	*textNodes = nil;
 	  if ([[children name] isEqual: @"copy"] == YES)
 	    {
 	      [buf appendString: indent];
-	      [buf appendString: @"<p>Copyright: (C) "];
+	      [buf appendString: @"<p><b>Copyright:</b> (C) "];
 	      [self outputText: [children children] to: buf];
 	      [buf appendString: @"</p>\n"];
 	      children = firstElement([children next]);
