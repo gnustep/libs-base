@@ -1937,7 +1937,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	{
 	  for (i = 0; i < numKeys; i++)
 	    {
-	      plists[i] = [obj objectForKey: keys[i]];
+	      plists[i] = [(NSDictionary*)obj objectForKey: keys[i]];
 	    }
 	}
       else

@@ -1301,8 +1301,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if ([writeInfo count] > 0)
     {
-      id	info = [writeInfo objectAtIndex: 0];
-      id	operation = [info objectForKey: NotificationKey];
+      NSDictionary	*info = [writeInfo objectAtIndex: 0];
+      id		operation = [info objectForKey: NotificationKey];
 
       if (operation == GSFileHandleConnectCompletionNotification)
 	{
@@ -1350,8 +1350,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if ([writeInfo count] > 0)
     {
-      id	info = [writeInfo objectAtIndex: 0];
-      id	operation = [info objectForKey: NotificationKey];
+      NSDictionary	*info = [writeInfo objectAtIndex: 0];
+      id		operation = [info objectForKey: NotificationKey];
 
       if (operation != GSFileHandleWriteCompletionNotification)
 	{

@@ -674,9 +674,9 @@ static NSMapTable	*absolutes = 0;
   return offset;
 }
 
-- (NSTimeZone*) timeZoneDetailTimeZone
+- (NSArray*) timeZoneDetailArray
 {
-  return [NSTimeZone arrayWithObject: detail];
+  return [NSArray arrayWithObject: detail];
 }
 
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
@@ -2007,15 +2007,15 @@ int dayOfCommonEra(NSTimeInterval when);
 
 - (NSArray*) timeZoneDetailArray
 {
-	return [NSArray arrayWithObjects:
-	         [[[GSTimeZoneDetail alloc] initWithTimeZone:self
-			    withAbbrev:timeZoneNameAbbr
-			    withOffset:-Bias*60 - StandardBias*60
-			    withDST:NO] autorelease],
-		 [[[GSTimeZoneDetail alloc] initWithTimeZone:self
-			    withAbbrev:daylightZoneNameAbbr
-			    withOffset:-Bias*60 - DaylightBias*60
-			    withDST:YES] autorelease], 0];
+  return [NSArray arrayWithObjects:
+    [[[GSTimeZoneDetail alloc] initWithTimeZone:self
+      withAbbrev:timeZoneNameAbbr
+      withOffset:-Bias*60 - StandardBias*60
+      withDST:NO] autorelease],
+    [[[GSTimeZoneDetail alloc] initWithTimeZone:self
+      withAbbrev:daylightZoneNameAbbr
+      withOffset:-Bias*60 - DaylightBias*60
+      withDST:YES] autorelease], 0];
 }
 
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)aDate

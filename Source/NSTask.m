@@ -1137,7 +1137,7 @@ quotedFromString(NSString *aString)
 	}
       [data appendBytes: &terminator length: 2];	// end of environment
       RELEASE(pool);
-      envp = [data bytes];
+      envp = [data mutableBytes];
     }
 
   memset (&start_info, 0, sizeof(start_info));
