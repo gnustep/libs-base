@@ -38,14 +38,20 @@ int main(int argc, char *argv[])
 #endif
 
   if (argc > 1)
-    p = [Connection rootProxyAtName:@"test2server" 
-		    onHost:[String stringWithCString:argv[1]]];
+    {
+      if (argc > 2)
+	p = [Connection rootProxyAtName: [String stringWithCString: argv[2]]
+			onHost: [String stringWithCString:argv[1]]];
+      else
+	p = [Connection rootProxyAtName:@"test2server" 
+			onHost:[String stringWithCString:argv[1]]];
+    }
   else
     p = [Connection rootProxyAtName:@"test2server" 
 		    onHost:nil];
   c = [p connectionForProxy];
 
-  type = [c _typeForSelector:sel_get_any_uid("name") 
+  type = [c typeForSelector:sel_get_any_uid("name") 
 	    remoteTarget:[p targetForProxy]];
   printf(">>type = %s\n", type);
 
