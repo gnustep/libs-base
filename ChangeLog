@@ -1,3 +1,19 @@
+Thu Nov  6 19:00:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/Makefile.postamble: Modified to install gdomap in cpu/os
+	specific location.
+
+	* src/Dictionary.m: ([-descriptionWithIndent:]) Modified to encode
+	empty strings as "" so that ascii property lists work when a
+	dictionary entry is empty.
+
+	* src/NSArray.m: ([-descriptionWithIndent:]) Modified to encode empty
+	strings as "" so that ascii property lists work when a string in the
+	array is empty.
+
+	* src/TcpPort.m: Modified in various places so that we look in the
+	correct location for gdomap.
+
 Thu Nov  6 10:14:39 1997  Adam Fedor  <fedor@doc.com>
 
 	* src/GNUmakefile (DEFS): Remove PLATFORM_OS.

@@ -390,6 +390,11 @@ static Class NSMutableArray_concrete_class;
 
 - (NSString*) description
 {
+  return [self descriptionWithIndent: 0];
+}
+
+- (NSString*) descriptionWithIndent: (int)level
+{
   id string;
   id desc;
   id object;
@@ -415,7 +420,8 @@ static Class NSMutableArray_concrete_class;
           /* This should be a string or number, so decide if we need to
              quote it */
           string = [object description];
-          if ([string rangeOfCharacterFromSet: quotables].length > 0)
+          if ([string length] == 0
+		|| [string rangeOfCharacterFromSet: quotables].length > 0)
             [desc appendFormat: @"%s", [string quotedCString]];
           else
             [desc appendString: string];
@@ -437,7 +443,8 @@ static Class NSMutableArray_concrete_class;
           /* This should be a string or number, so decide if we need to
              quote it */
           string = [object description];
-          if ([string rangeOfCharacterFromSet: quotables].length > 0)
+          if ([string length] == 0
+		|| [string rangeOfCharacterFromSet: quotables].length > 0)
             [desc appendString: [NSString stringWithCString:
 			[string quotedCString]]];
           else
@@ -446,11 +453,6 @@ static Class NSMutableArray_concrete_class;
     }
   [desc appendString: @")"];
   return desc;
-}
-
-- (NSString*) descriptionWithIndent: (unsigned)level
-{
-  return [self description];
 }
 
 /* The NSCopying Protocol */
