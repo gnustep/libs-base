@@ -1,5 +1,5 @@
 /* Interface for NSDictionary for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -68,5 +68,23 @@
 - (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary;
 
 @end
+
+#ifndef NO_GNUSTEP
+
+#include <objects/KeyedCollecting.h>
+#include <Foundation/NSDictionary.h>
+
+/* Eventually we'll make a Constant version of this protocol. */
+@interface NSDictionary (GNU) <KeyedCollecting>
+@end
+
+@interface NSMutableDictionary (GNU)
++ (unsigned) defaultCapacity;
+- initWithType: (const char *)contentEncoding
+    keyType: (const char *)keyEncoding
+    capacity: (unsigned)aCapacity;
+@end
+
+#endif /* NO_GNUSTEP */
 
 #endif
