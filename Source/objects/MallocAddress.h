@@ -1,5 +1,5 @@
 /* Provides autoreleasing of malloc'ed pointers
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
@@ -31,7 +31,7 @@
   void *address;
 }
 
-+ autoreleaseMallocAddresss: (void*)addr;
++ autoreleaseMallocAddress: (void*)addr;
 + objectForAddress: (void*)addr;
 
 - initWithAddress: (void*)addr;
