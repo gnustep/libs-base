@@ -507,6 +507,9 @@
 #include "AGSIndex.h"
 #include "AGSHtml.h"
 #include "gnustep/base/GNUstep.h"
+#ifdef NeXT_Foundation_LIBRARY
+#include "gnustep/base/GSCategories.h"
+#endif
 
 int
 main(int argc, char **argv, char **env)

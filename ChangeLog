@@ -1,3 +1,11 @@
+2003-03-27  Stephane Corthesy <stephane@sente.ch>
+
+	* Tools/autogsdoc.m, AGSHtml.m, AGSIndex.m, AGSOutput.m: Add
+	MacOSX compatibility headers.
+	* Tools/AGSParser.m: Idem.
+	(-log:arguments:): Replace strinWithFormat:arguments: with
+	initWithFormat:arguments:
+
 2003-03-26  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSKeyValueCoding.m: Added documentation. 
