@@ -1461,13 +1461,13 @@ static Class		tcpPortClass;
 	      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
 	      DESTROY(port);
 	    }
-#ifndef	__MINGW__
-      /*
-       * Under unix, SO_REUSEADDR means that the port can be reused
-       * immediately that this porcess exits.  Under windoze it means
-       * that multiple processes can serve the same port simultaneously.
-       * We don't want that windows behavior!
-       */
+#ifndef	BROKEN_SO_REUSEADDR
+	  /*
+	   * Under decent systems, SO_REUSEADDR means that the port can be
+	   * reused immediately that this porcess exits.  Under some it means
+	   * that multiple processes can serve the same port simultaneously.
+	   * We don't want that broken behavior!
+	   */
 	  else if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse,
 	    sizeof(reuse)) < 0)
 	    {
@@ -1686,12 +1686,12 @@ static Class		tcpPortClass;
 	{
 	  NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
 	}
-#ifndef	__MINGW__
+#ifndef	BROKEN_SO_REUSEADDR
       /*
-       * Under unix, SO_REUSEADDR means that the port can be reused
-       * immediately that this porcess exits.  Under windoze it means
+       * Under decent systems, SO_REUSEADDR means that the port can be reused
+       * immediately that this process exits.  Under some it means
        * that multiple processes can serve the same port simultaneously.
-       * We don't want that windows behavior!
+       * We don't want that broken behavior!
        */
       else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&opt,
 	sizeof(opt)) < 0)

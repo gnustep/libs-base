@@ -384,7 +384,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       return nil;
     }
 
+#ifndef	BROKEN_SO_REUSEADDR
+  /*
+   * Under decent systems, SO_REUSEADDR means that the port can be reused
+   * immediately that this process exits.  Under some it means
+   * that multiple processes can serve the same port simultaneously.
+   * We don't want that broken behavior!
+   */
   setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
+#endif
 
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
