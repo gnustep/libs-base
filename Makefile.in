@@ -91,9 +91,9 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 
 .SUFFIXES: .m
 .m.o:
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $<
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -o $*.o $<
 .c.o:
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $<
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -o $*.o $<
 
 # Grep for these names to build the legally-required "AUTHORS" file.
 FILE_AUTHORS = \
@@ -106,66 +106,66 @@ FILE_AUTHORS = \
 # GNU Class source files
 
 GNU_MFILES = \
-Array.m \
-Bag.m \
-BinaryCoder.m \
-BinaryTree.m \
-BinaryTreeEltNode.m \
-BinaryTreeNode.m \
-CircularArray.m \
-Coder.m \
-Collection.m \
-CString.m \
-ConnectedCoder.m \
-Connection.m \
-ConstantString.m \
-DelegatePool.m \
-Dictionary.m \
-EltNodeCollector.m \
-GapArray.m \
-Heap.m \
-IndexedCollection.m \
-Invocation.m \
-KeyedCollection.m \
-LinkedList.m \
-LinkedListEltNode.m \
-LinkedListNode.m \
-Lock.m \
-Magnitude.m \
-MallocAddress.m \
-MappedCollector.m \
-MemoryStream.m \
-MutableCString.m \
-MutableString.m \
-Port.m \
-Proxy.m \
-Queue.m \
-Random.m \
-RBTree.m \
-RBTreeEltNode.m \
-RBTreeNode.m \
-RNGAdditiveCongruential.m \
-RNGBerkeley.m \
-RetainingNotifier.m \
-Set.m \
-SocketPort.m \
-SplayTree.m \
-Stack.m \
-StdioStream.m \
-Stream.m \
-String.m \
-TextCoder.m \
-Time.m \
-stdobjects.m \
-mframe.m \
-objc-gnu2next.m \
-eltfuncs.m
+src/Array.m \
+src/Bag.m \
+src/BinaryCoder.m \
+src/BinaryTree.m \
+src/BinaryTreeEltNode.m \
+src/BinaryTreeNode.m \
+src/CircularArray.m \
+src/Coder.m \
+src/Collection.m \
+src/CString.m \
+src/ConnectedCoder.m \
+src/Connection.m \
+src/ConstantString.m \
+src/DelegatePool.m \
+src/Dictionary.m \
+src/EltNodeCollector.m \
+src/GapArray.m \
+src/Heap.m \
+src/IndexedCollection.m \
+src/Invocation.m \
+src/KeyedCollection.m \
+src/LinkedList.m \
+src/LinkedListEltNode.m \
+src/LinkedListNode.m \
+src/Lock.m \
+src/Magnitude.m \
+src/MallocAddress.m \
+src/MappedCollector.m \
+src/MemoryStream.m \
+src/MutableCString.m \
+src/MutableString.m \
+src/Port.m \
+src/Proxy.m \
+src/Queue.m \
+src/Random.m \
+src/RBTree.m \
+src/RBTreeEltNode.m \
+src/RBTreeNode.m \
+src/RNGAdditiveCongruential.m \
+src/RNGBerkeley.m \
+src/RetainingNotifier.m \
+src/Set.m \
+src/SocketPort.m \
+src/SplayTree.m \
+src/Stack.m \
+src/StdioStream.m \
+src/Stream.m \
+src/String.m \
+src/TextCoder.m \
+src/Time.m \
+src/stdobjects.m \
+src/mframe.m \
+src/objc-gnu2next.m \
+src/eltfuncs.m
 
 GNU_CFILES = \
-behavior.c \
-collhash.c \
-objc-malloc.c \
-o_vscanf.c 
+src/behavior.c \
+src/collhash.c \
+src/objc-malloc.c \
+src/o_vscanf.c 
 
 GNU_OTHER_SRCFILES = 
 
@@ -255,18 +255,18 @@ objects/README
 # NEXTSTEP source files
 
 NEXTSTEP_MFILES = \
-HashTable.m \
-List.m \
-NXStringTable.m \
-Storage.m
+src/HashTable.m \
+src/List.m \
+src/NXStringTable.m \
+src/Storage.m
 
 NEXTSTEP_CFILES = 
 
 NEXTSTEP_DERIVED_CFILES = \
-NXStringTable_scan.c
+src/NXStringTable_scan.c
 
 NEXTSTEP_OTHER_SRCFILES = \
-NXStringTable_scan.l 
+src/NXStringTable_scan.l 
 
 NEXTSTEP_OBJS = \
 	$(NEXTSTEP_MFILES:.m=.o) \
@@ -283,57 +283,63 @@ objc/zone.h
 # GNUStep source files
 
 GNUSTEP_MFILES = \
-NSAllocateObject.m \
-NSArchiver.m \
-NSArray.m \
-NSAssertionHandler.m \
-NSArrayEnumerator.m \
-NSAutoreleasePool.m \
-NSBundle.m \
-NSCoder.m \
-NSCopyObject.m \
-NSConcreteValue.m \
-NSCString.m \
-NSData.m \
-NSDeallocateObject.m \
-NSDictionary.m \
-NSEnumerator.m \
-NSException.m \
-NSGeometry.m \
-NSGArchiver.m \
-NSGArray.m \
-NSGCoder.m \
-NSGData.m \
-NSGDictionary.m \
-NSGUnarchiver.m \
-NSNumber.m \
-NSObject.m \
-NSRange.m \
-NSString.m \
-NSUnarchiver.m \
-NSValue.m
+src/NSAllocateObject.m \
+src/NSArchiver.m \
+src/NSArray.m \
+src/NSAssertionHandler.m \
+src/NSArrayEnumerator.m \
+src/NSAutoreleasePool.m \
+src/NSBitmapCharSet.m \
+src/NSBundle.m \
+src/NSCharacterSet.m \
+src/NSCoder.m \
+src/NSCopyObject.m \
+src/NSConcreteValue.m \
+src/NSCString.m \
+src/NSData.m \
+src/NSDeallocateObject.m \
+src/NSDictionary.m \
+src/NSEnumerator.m \
+src/NSException.m \
+src/NSGeometry.m \
+src/NSGArchiver.m \
+src/NSGArray.m \
+src/NSGCoder.m \
+src/NSGData.m \
+src/NSGDictionary.m \
+src/NSGUnarchiver.m \
+src/NSNumber.m \
+src/NSObject.m \
+src/NSRange.m \
+src/NSString.m \
+src/NSUnarchiver.m \
+src/NSValue.m
 
 NSVALUE_CLUSTER = 0 1 2 3 4
-NSVALUE_OFILES  = NSValue0.o NSValue1.o NSValue2.o NSValue3.o NSValue4.o
+NSVALUE_OFILES  = \
+	src/NSValue0.o src/NSValue1.o src/NSValue2.o src/NSValue3.o \
+	src/NSValue4.o
 NSNUMBER_CLUSTER = 0 1 2 3 4 5 6 7 8 9 10 11 12
-NSNUMBER_OFILES  = NSNumber0.o NSNumber1.o NSNumber2.o NSNumber3.o \
-	NSNumber4.o NSNumber5.o NSNumber6.o NSNumber7.o NSNumber8.o \
-	NSNumber9.o NSNumber10.o NSNumber11.o NSNumber12.o
+NSNUMBER_OFILES  = \
+	src/NSNumber0.o src/NSNumber1.o src/NSNumber2.o src/NSNumber3.o \
+	src/NSNumber4.o src/NSNumber5.o src/NSNumber6.o src/NSNumber7.o \
+	src/NSNumber8.o src/NSNumber9.o src/NSNumber10.o src/NSNumber11.o \
+	src/NSNumber12.o
 
 GNUSTEP_CFILES = \
-NSZone.c \
-find_exec.c \
-objc-load.c
+src/NSZone.c \
+src/find_exec.c \
+src/objc-load.c
 
 GNUSTEP_OTHER_SRCFILES = \
-NSConcreteNumber.m \
-NSCTemplateValue.m \
-dld-load.h \
-hpux-load.h \
-null-load.h \
+src/NSConcreteNumber.m \
+src/NSCTemplateValue.m \
+src/dld-load.h \
+src/hpux-load.h \
+src/null-load.h \
 Foundation/NSDate.h \
-NSDate.m \
-simple-load.h 
+src/NSDate.m \
+src/simple-load.h 
 
 GNUSTEP_OBJS = \
 	$(GNUSTEP_MFILES:.m=.o) \
@@ -345,7 +351,9 @@ Foundation/NSArchiver.h \
 Foundation/NSArray.h \
 Foundation/NSArrayEnumerator.h \
 Foundation/NSAutoreleasePool.h \
+Foundation/NSBitmapCharSet.h \
 Foundation/NSBundle.h \
+Foundation/NSCharacterSet.h \
 Foundation/NSCString.h \
 Foundation/NSCoder.h \
 Foundation/NSConcreteNumber.h \
@@ -377,21 +385,13 @@ INSTALL_HEADERS = @INSTALL_HEADERS@ objects/config.h objects/stdobjects.h
 INSTALL_OBJS = @INSTALL_OBJS@ 
 
 DIST_FILES = \
-README readme.texi \
-ANNOUNCE announce.texi \
-INSTALL install.texi \
-TODO todo.texi \
-NEWS news.texi \
 AUTHORS CREDITS README.ULTRIX MACHINES GNUStep-volunteers \
 COPYING COPYING.LIB DISCUSSION ChangeLog \
-Makefile.in configure configure.in \
+Makefile.in configure configure.in src/Makefile \
 objects/config.h.in objects/stdobjects.h.in \
-config.guess config.nested.c config.nextcc.h config.nextrt.m \
+config.guess \
+config/config.nested.c config/config.nextcc.h config/config.nextrt.m \
 mkinstalldirs install-sh \
-version.texi \
-libobjects.info libobjects.texi \
-objective-c.info objective-c.texi \
-texinfo.tex \
 gcc-class.patch gcc-string.patch \
 gcc-dynamic.patch NSBundle.README \
 $(GNU_MFILES) \
@@ -409,16 +409,9 @@ $(GNUSTEP_HEADERS) \
 $(GNUSTEP_OTHER_SRCFILES)
 
 RCS_FILES = \
-readme.texi \
-announce.texi \
-install.texi \
-todo.texi \
-news.texi \
 CREDITS MACHINES \
 Makefile.in configure.in objects/config.h.in objects/stdobjects.h.in \
-config.nested.c config.nextcc.h config.nextrt.m \
-libobjects.texi \
-objective-c.texi \
+config/config.nested.c config/config.nextcc.h config/config.nextrt.m \
 $(GNU_MFILES) \
 $(GNU_CFILES) \
 $(GNU_HEADERS) \
@@ -467,37 +460,42 @@ depend:
 	$(CC) $(ALL_INCLUDE_FLAGS) -M $(SRCS) > $(srcdir)/Makefile.depend
 
 # Compilation of class clusters
-$(NSVALUE_OFILES) : NSCTemplateValue.m
+$(NSVALUE_OFILES) : src/NSCTemplateValue.m
 	for i in ${NSVALUE_CLUSTER}; do \
-	    cp NSCTemplateValue.m NSCTemplateValue$$i.m; \
+	    cp src/NSCTemplateValue.m src/NSCTemplateValue$$i.m; \
 	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
-	    -DTYPE_ORDER=$$i NSCTemplateValue$$i.m -o NSValue$$i.o; \
-	    rm -f NSCTemplateValue$$i.m; \
+		-DTYPE_ORDER=$$i src/NSCTemplateValue$$i.m \
+		-o src/NSValue$$i.o; \
+	    rm -f src/NSCTemplateValue$$i.m; \
 	done
 
-$(NSNUMBER_OFILES) : NSConcreteNumber.m
+$(NSNUMBER_OFILES) : src/NSConcreteNumber.m
 	for i in ${NSNUMBER_CLUSTER}; do \
-	    cp NSConcreteNumber.m NSConcreteNumber$$i.m; \
+	    cp src/NSConcreteNumber.m src/NSConcreteNumber$$i.m; \
 	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
-	    -DTYPE_ORDER=$$i -c NSConcreteNumber$$i.m -o NSNumber$$i.o; \
-	    rm -f NSConcreteNumber$$i.m; \
+		-DTYPE_ORDER=$$i -c src/NSConcreteNumber$$i.m \
+		-o src/NSNumber$$i.o; \
+	    rm -f src/NSConcreteNumber$$i.m; \
 	done
 
-NXStringTable_scan.c: NXStringTable_scan.l
-	$(LEX) $(LFLAGS) -t NXStringTable_scan.l > NXStringTable_scan.temp
-	sed 's/yy/NXlex_/g' < NXStringTable_scan.temp > NXStringTable_scan.c
-	$(RM) -f NXStringTable_scan.temp
+src/NXStringTable_scan.c: src/NXStringTable_scan.l
+	$(LEX) $(LFLAGS) -t src/NXStringTable_scan.l \
+		> src/NXStringTable_scan.temp
+	sed 's/yy/NXlex_/g' < src/NXStringTable_scan.temp \
+		> src/NXStringTable_scan.c
+	$(RM) -f src/NXStringTable_scan.temp
 
 # remove this special case?
 # turn off warnings while compiling NXStringTable_scan.c
-NXStringTable_scan.o: NXStringTable_scan.c
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -w NXStringTable_scan.c
+src/NXStringTable_scan.o: src/NXStringTable_scan.c
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -w \
+		src/NXStringTable_scan.c -o $*.o
 
-objc-load.o: dynamic-load.h
+src/objc-load.o: src/dynamic-load.h
 
-dynamic-load.h: config.status
-	rm -f dynamic-load.h
-	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
+src/dynamic-load.h: config.status
+	rm -f src/dynamic-load.h
+	cp src/$(DYNAMIC_LINKER)-load.h src/dynamic-load.h
 
 objects/stdobjects.h: Makefile.in objects/stdobjects.h.in
 	rm -f $(srcdir)/objects/stdobjects.h
@@ -510,47 +508,24 @@ objects/stdobjects.h: Makefile.in objects/stdobjects.h.in
 	> $(srcdir)/objects/stdobjects.h
 stdobjects.m: objects/stdobjects.h
 
-version.texi: Makefile.in
-	rm -f $(srcdir)/version.texi
+doc/version.texi: Makefile.in
+	rm -f $(srcdir)/doc/version.texi
 	echo '@set OBJECTS_VERSION' $(OBJECTS_VERSION) \
-		> $(srcdir)/version.texi
+		> $(srcdir)/doc/version.texi
 	echo '@set OBJECTS_GCC_VERSION' $(OBJECTS_GCC_VERSION) \
-		>> $(srcdir)/version.texi
+		>> $(srcdir)/doc/version.texi
 	if [ $(OBJECTS_FTP_MACHINE) ]; then \
 		echo '@set OBJECTS_FTP_MACHINE' $(OBJECTS_FTP_MACHINE) \
-		>> $(srcdir)/version.texi; fi
+		>> $(srcdir)/doc/version.texi; fi
 	if [ $(OBJECTS_FTP_DIRECTORY) ]; then \
 		echo '@set OBJECTS_FTP_DIRECTORY' $(OBJECTS_FTP_DIRECTORY) \
-		>> $(srcdir)/version.texi; fi
+		>> $(srcdir)/doc/version.texi; fi
 
-info: libobjects.info TODO INSTALL NEWS README ANNOUNCE objective-c.info
-dvi: libobjects.dvi
-libobjects.dvi: libobjects.texi version.texi
-	@echo Sorry, libobjects/texinfo.tex still needs work.
-	:$(TEXI2DVI) $(srcdir)/libobjects.texi
+info:
+	cd doc; $(MAKE) $(MAKEFLAGS) info
+dvi:
+	cd doc; $(MAKE) $(MAKEFLAGS) dvi
 
-libobjects.info: libobjects.texi todo.texi version.texi
-	$(MAKEINFO) $(srcdir)/libobjects.texi
-objective-c.info: objective-c.texi
-	$(MAKEINFO) $(srcdir)/objective-c.texi
-TODO: todo.texi version.texi
-	$(MAKEINFO) -o TODO -D TODO_ONLY \
-	--no-header --no-split $(srcdir)/todo.texi
-INSTALL: install.texi version.texi
-	$(MAKEINFO) -o INSTALL -D INSTALL_ONLY \
-	--no-header --no-split $(srcdir)/install.texi
-README: readme.texi version.texi
-	$(MAKEINFO) -o README -D README_ONLY \
-	--no-header --no-split $(srcdir)/readme.texi
-ANNOUNCE: announce.texi version.texi news.texi
-	$(MAKEINFO) -o ANNOUNCE -D ANNOUNCE_ONLY \
-	--no-header --no-split $(srcdir)/announce.texi
-NEWS: news.texi version.texi
-	$(MAKEINFO) -o NEWS -D NEWS_ONLY \
-	--no-header --no-split $(srcdir)/news.texi
-ADVERTISEMENT: advertisement.texi version.texi
-	$(MAKEINFO) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
-	--no-header --no-split $(srcdir)/advertisement.texi
 AUTHORS: Makefile.in
 	rm -f AUTHORS
 	@echo Finding file authors...
@@ -575,17 +550,13 @@ TAGS: $(DIST_FILES)
 mostlyclean:
 	rm -f  core \
 	*~ \
+	src/*~ \
 	objects/*~ \
 	Foundation/*~ \
 	objc/*~
 
 clean: mostlyclean
-	rm -f libobjects.a *.o
-	rm -f libobjects.dvi libobjects.aux libobjects.log \
-	libobjects.toc libobjects.cl \
-	libobjects.cp libobjects.cps libobjects.fn libobjects.fns \
-	libobjects.ky libobjects.pg libobjects.pr libobjects.tp \
-	libobjects.vr 
+	rm -f libobjects.a src/*.o
 
 distclean: clean
 	rm -f Makefile config.status config.log config.cache
@@ -593,9 +564,7 @@ distclean: clean
 
 realclean: distclean
 	rm -f TAGS configure \
-		libobjects.info version.texi \
 		objects/stdobjects.h objects/config.h
-		README TODO INSTALL NEWS ANNOUNCE
 
 GNUStep-volunteers: volunteers-gnustep
 	rm -f GNUStep-volunteers
@@ -616,6 +585,7 @@ dist: $(DIST_FILES)
 	touch `cat .fname`/Makefile.depend
 	cd checks; $(MAKE) $(MAKEFLAGS) dist
 	cd examples; $(MAKE) $(MAKEFLAGS) dist
+	cd doc; $(MAKE) $(MAKEFLAGS) dist
 	tar -chvf `cat .fname`.tar `cat .fname`
 	gzip `cat .fname`.tar
 	rm -rf `cat .fname` .fname
