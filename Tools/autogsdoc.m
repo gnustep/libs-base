@@ -432,8 +432,8 @@
     </p>
 <example>
   &lt;?xml version="1.0"?&gt;
-  &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.7//EN" 
-  "http://www.gnustep.org/gsdoc-0_6_7.xml"&gt;
+  &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.0//EN" 
+  "http://www.gnustep.org/gsdoc-1_0_0.xml"&gt;
   &lt;gsdoc base="index"&gt;
     &lt;head&gt;
       &lt;title&gt;My project reference&lt;/title&gt;
