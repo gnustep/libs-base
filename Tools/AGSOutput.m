@@ -32,7 +32,7 @@ static BOOL snuggleEnd(NSString *t)
     }
   if (set == nil)
     {
-      set = [NSCharacterSet characterSetWithCharactersInString: @"]}).,;?!"];
+      set = [NSCharacterSet characterSetWithCharactersInString: @"]}).,;"];
       RETAIN(set);
     }
   return [set characterIsMember: [t characterAtIndex: 0]];
@@ -50,7 +50,16 @@ static BOOL snuggleStart(NSString *t)
   return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
 }
 
-
+/**
+ * <unit>
+ *  <heading>The AGSOutput class</heading>
+ *  <p>This is a really great class ... but it's not really reusable since it's
+ *  far too special purpose.</p>
+ *  <unit />
+ *  <p>Here is the afterword for the class.</p>
+ * </unit>
+ * And finally, here is the actual class description ... outside the chapter.
+ */
 @implementation	AGSOutput
 
 - (void) dealloc
@@ -536,21 +545,96 @@ static BOOL snuggleStart(NSString *t)
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*type = [d objectForKey: @"Type"];
   NSDictionary	*methods = [d objectForKey: @"Methods"];
+  NSString	*comment = [d objectForKey: @"Comment"];
   NSArray	*names;
   NSArray	*protocols;
   NSString	*tmp;
+  NSString	*unit;
+  NSRange	r;
+  unsigned	ind;
   unsigned	i;
+  unsigned	j;
 
-  [str appendString: @"    <chapter>\n"];
+  /*
+   * Make sure we have a 'unit' part and a class 'desc' part (comment)
+   * to be output.
+   */
+  r = [comment rangeOfString: @"<unit>"];
+  if (comment != nil && r.length > 0)
+    {
+      unsigned	pos = r.location;
 
-  [str appendString: @"      <heading>"];
-  [str appendString: @"Software documentation for the "];
-  [str appendString: name];
-  [str appendString: @" "];
-  [str appendString: type];
-  [str appendString: @"</heading>\n"];
+      r = [comment rangeOfString: @"</unit>"];
+      if (r.length == 0 || r.location < pos)
+	{
+	  NSLog(@"Unterminated <unit> in comment for %@", name);
+	  return;
+	}
+      
+      if (pos == 0)
+	{
+	  if (NSMaxRange(r) == [comment length])
+	    {
+	      unit = comment;
+	      comment = nil;
+	    }
+	  else
+	    {
+	      unit = [comment substringToIndex: NSMaxRange(r)];
+	      comment = [comment substringFromIndex: NSMaxRange(r)];
+	    }
+	}
+      else
+	{
+	  if (NSMaxRange(r) == [comment length])
+	    {
+	      unit = [comment substringFromIndex: pos];
+	      comment = [comment substringToIndex: pos];
+	    }
+	  else
+	    {
+	      unsigned	end = NSMaxRange(r);
 
-  [str appendString: @"      <"];
+	      r = NSMakeRange(pos, end-pos);
+	      unit = [comment substringWithRange: r];
+	      comment = [[comment substringToIndex: pos]
+		stringByAppendingString: [comment substringFromIndex: end]];
+	    }
+	}
+      unit = [unit stringByReplacingString: @"unit>" withString: @"chapter>"];
+    }
+  else
+    {
+      unit = [NSString stringWithFormat:
+        @"    <chapter>\n      <heading>Software documentation "
+	@"for the %@ %@</heading>\n    </chapter>\n", name, type];
+    }
+
+  /*
+   * Get the range of the location in the chapter where the class
+   * details should get substituted in.  If there is nowhere marked,
+   * create a zero length range just before the end of the chapter.
+   */
+  r = [unit rangeOfString: @"<unit />"];
+  if (r.length == 0)
+    {
+      r = [unit rangeOfString: @"<unit/>"];
+    }
+  if (r.length == 0)
+    {
+      r = [unit rangeOfString: @"</chapter>"];
+      r.length = 0;
+    }
+
+  /*
+   * Output first part of chapter and note indentation.
+   */
+  ind = [self reformat: [unit substringToIndex: r.location]
+	    withIndent: 4
+		    to: str];
+
+  for (j = 0; j < ind; j++) [str appendString: @" "];
+  [str appendString: @"<"];
   [str appendString: type];
   [str appendString: @" name=\""];
   if ([type isEqual: @"category"] == YES)
@@ -576,7 +660,9 @@ static BOOL snuggleStart(NSString *t)
     }
   [str appendString: @"\">\n"];
 
-  [str appendString: @"        <declared>"];
+  ind += 2;
+  for (j = 0; j < ind; j++) [str appendString: @" "];
+  [str appendString: @"<declared>"];
   [str appendString: [d objectForKey: @"Declared"]];
   [str appendString: @"</declared>\n"];
 
@@ -585,19 +671,21 @@ static BOOL snuggleStart(NSString *t)
     {
       for (i = 0; i < [protocols count]; i++)
 	{
-	  [str appendString: @"        <conform>"];
+	  for (j = 0; j < ind; j++) [str appendString: @" "];
+	  [str appendString: @"<conform>"];
 	  [str appendString: [protocols objectAtIndex: i]];
 	  [str appendString: @"</conform>\n"];
 	}
     }
 
-  [str appendString: @"        <desc>\n"];
-  tmp = [d objectForKey: @"Comment"];
-  if (tmp != nil)
+  for (j = 0; j < ind; j++) [str appendString: @" "];
+  [str appendString: @"<desc>\n"];
+  if (comment != nil)
     {
-      [self reformat: tmp withIndent: 10 to: str];
+      [self reformat: comment withIndent: ind + 2 to: str];
     }
-  [str appendString: @"        </desc>\n"];
+  for (j = 0; j < ind; j++) [str appendString: @" "];
+  [str appendString: @"</desc>\n"];
   
   names = [[methods allKeys] sortedArrayUsingSelector: @selector(compare:)];
   for (i = 0; i < [names count]; i++)
@@ -607,15 +695,23 @@ static BOOL snuggleStart(NSString *t)
       [self outputMethod: [methods objectForKey: mName] to: str];
     }
 
-  [str appendString: @"      </"];
+  ind -= 2;
+  for (j = 0; j < ind; j++) [str appendString: @" "];
+  [str appendString: @"</"];
   [str appendString: type];
   [str appendString: @">\n"];
-  [str appendString: @"    </chapter>\n"];
+
+  /*
+   * Output tail end of chapter.
+   */
+  [self reformat: [unit substringFromIndex: NSMaxRange(r)]
+      withIndent: ind
+	      to: str];
 }
 
-- (void) reformat: (NSString*)str
-       withIndent: (unsigned)ind
-	       to: (NSMutableString*)buf
+- (unsigned) reformat: (NSString*)str
+	   withIndent: (unsigned)ind
+		   to: (NSMutableString*)buf
 {
   CREATE_AUTORELEASE_POOL(arp);
   unsigned	l = [str length];
@@ -652,7 +748,7 @@ static BOOL snuggleStart(NSString *t)
       if (r.length == 0)
 	{
 	  NSLog(@"unterminated <example>");
-	  return;
+	  return ind;
 	}
       tmp = [str substringWithRange: NSMakeRange(i, NSMaxRange(r) - i)];
       [buf appendString: tmp];
@@ -737,6 +833,7 @@ static BOOL snuggleStart(NSString *t)
 	}
     }
   RELEASE(arp);
+  return ind;
 }
 
 - (NSArray*) split: (NSString*)str

@@ -40,9 +40,9 @@
 - (BOOL) output: (NSDictionary*)d file: (NSString*)name;
 - (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str;
 - (void) outputUnit: (NSDictionary*)d to: (NSMutableString*)str;
-- (void) reformat: (NSString*)str
-       withIndent: (unsigned)ind
-	       to: (NSMutableString*)buf;
+- (unsigned) reformat: (NSString*)str
+	   withIndent: (unsigned)ind
+		   to: (NSMutableString*)buf;
 - (NSArray*) split: (NSString*)str;
 @end
 
