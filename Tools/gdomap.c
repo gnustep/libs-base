@@ -54,6 +54,11 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include <sys/file.h>
+#include "config.h"
+#ifdef	HAVE_PWD_H
+#include <pwd.h>
+#endif
+
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
@@ -4230,7 +4235,7 @@ printf(
   else
     {
       int	uid = -2;
-#ifdef	HAVE_PWD
+#ifdef	HAVE_PWD_H
 #ifdef	HAVE_GETPWNAM
       struct passwd *pw = getpwnam("nobody");
   
