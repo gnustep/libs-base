@@ -1344,20 +1344,28 @@ static NSFileManager* defaultManager = nil;
   else if (c_path[0] == '/')
     {
 #ifdef	__CYGWIN__
-      NSDictionary	*env;
-      NSString		*cyghome;
-
-      env = [[NSProcessInfo processInfo] environment];
-      cyghome = [env objectForKey: @"CYGWIN_HOME"];
-      if (cyghome != nil)
-        {
-          /* FIXME: Find cygwin drive? */
-	  newpath = cyghome;
-          newpath = [newpath stringByAppendingPathComponent: path];
-        }
+      if (l > 11 && strncmp(c_path, "/cygdrive/", 10) == 0 && c_path[11] == '/')
+	{
+          newpath = [NSString stringWithFormat: @"%c:%s", c_path[10],
+	    &c_path[11]];
+	}
       else
 	{
-	  newpath = path;
+	  NSDictionary	*env;
+	  NSString	*cyghome;
+
+	  env = [[NSProcessInfo processInfo] environment];
+	  cyghome = [env objectForKey: @"CYGWIN_HOME"];
+	  if (cyghome != nil)
+	    {
+	      /* FIXME: Find cygwin drive? */
+	      newpath = cyghome;
+	      newpath = [newpath stringByAppendingPathComponent: path];
+	    }
+	  else
+	    {
+	      newpath = path;
+	    }
 	}
 #else
       if (l >= 3 && c_path[0] == '/' && c_path[2] == '/' && isalpha(c_path[1]))
@@ -1386,6 +1394,73 @@ static NSFileManager* defaultManager = nil;
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len
 {
+#ifdef __MINGW__
+  char		buf[len + 20];
+  unsigned	i;
+
+  /*
+   * If path is in Windows format, transmogrify it so Unix functions
+   * can handle it
+   */  
+  if (len == 0)
+    {
+      return @"";
+    }
+  if (len >= 2 && string[1] == ':' && isalpha(string[0]))
+    {
+      /*
+       * Convert '<driveletter>:' to '/<driveletter>/' sequences on MSYS
+       * or '/cygdrive/<driveletter>/' on CYGWIN
+       */
+#ifdef	__CYGWIN__
+      strcpy(buf, "/cygdrive/");
+      buf[10] = string[0];
+      buf[11] = '/';
+      string -= 9;
+      len += 9;
+      i = 11;
+#else
+      buf[0] = '/';
+      buf[1] = string[0];
+      buf[2] = '/';
+      string--;
+      len++;
+      i = 3;
+#endif
+    }
+  else
+    {
+      i = 0;
+    }
+  /*
+   * Convert backslashes to slashes.
+   */
+  while (i < len)
+    {
+      if (string[i] == '\\')
+	{
+	  buf[i] = '/';
+	}
+      else
+	{
+	  buf[i] = string[i];
+	}
+      i++;
+    }
+  /*
+   * Coalesce multiple slashes into a single one.
+   */
+  for (i = 1; i < len; i++)
+    {
+      if (buf[i] == '/' && buf[i - 1] == '/')
+	{
+	  len--;
+	  memmove(&buf[i], &buf[i+1], len - i);
+	  i--;
+	}
+    }
+  return [NSString stringWithCString: buf length: len];
+#endif
   return [NSString stringWithCString: string length: len];
 }
 
