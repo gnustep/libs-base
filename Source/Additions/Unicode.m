@@ -1640,7 +1640,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		  u1 = ((u1 & 0xff00 >> 8) + ((u1 & 0x00ff) << 8));
 		}
 
-	      /* possibly get second character and caculate 'u' */
+	      /* possibly get second character and calculate 'u' */
 	      if ((u1 >= 0xd800) && (u1 < 0xdc00))
                 {
 	  	  if (spos >= slen)
@@ -1653,11 +1653,12 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	          u2 = src[spos++];
 	          if (swapped == YES)
 		    {
-		      u2 = ((u1 & 0xff00 >> 8) + ((u1 & 0x00ff) << 8));
+		      u2 = ((u2 & 0xff00 >> 8) + ((u2 & 0x00ff) << 8));
 		    }
 
 	          if ((u2 < 0xdc00) && (u2 > 0xdfff))
                     {
+		      spos--;
 		      result = NO;
 		      break;
                     }
@@ -1709,7 +1710,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
                 }
               else
                 {
-                  unsigned	i;
+                  int		i;
                   unsigned char	reversed[8];
 
                   /* split value into reversed array */
