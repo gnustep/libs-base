@@ -1,10 +1,16 @@
-Wed Oct 28 11:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Oct 28 14:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/gdomap.c: Added command-line options to lookup, register, and
 	unregister a name for a port - basically for debugging purposes.
 	* src/TcpPort.m: Modified port registration code to cope with the
 	case where a server dies and is restarted, and tries to use the
 	same ip port number it has before it died.
+	* checks/nsinvocation.m: Added archiving checks.
+	* src/NSInvocation.m: Archiver bugfixes
+	* src/include/NSInvocation.h: Archiver bugfixes
+	* src/NSData.m: Serialisation bugfixes
+	* src/NSArchiver.m: Archiver bugfixes
+	* src/NSUnarchiver.m: Archiver bugfixes
 
 Tue Oct 27 08:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
