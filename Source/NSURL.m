@@ -260,7 +260,7 @@ NSString* NSURLPartKey_query = @"query";
 {
   NSString	*scheme = nil;
   NSString	*absoluteString = [self absoluteString];
-  NSRange	range = [absoluteString rangeOfString: @": //"];
+  NSRange	range = [absoluteString rangeOfString: @"://"];
 
   if (range.length>0)
     scheme = [absoluteString substringToIndex: range.location];
