@@ -1,7 +1,3 @@
-2000-07-25  Adam Fedor  <fedor@gnu.org>
-
-	* Documentation/gnustep-hotwo.tmpl.texi: Update
-
 2000-07-24  Adam Fedor  <fedor@gnu.org>
 
 	* Source/GSTcpPort.m
