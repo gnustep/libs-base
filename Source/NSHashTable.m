@@ -35,6 +35,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHashTable.h>
+#include <Foundation/NSDebug.h>
 #include "NSCallBacks.h"
 
 
@@ -69,6 +70,12 @@ NSAllHashTableObjects(NSHashTable *table)
   NSHashEnumerator	enumerator;
   id			element;
 
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return nil;
+    }
+
   array = [NSMutableArray arrayWithCapacity: NSCountHashTable(table)];
 
   /* Get an enumerator for TABLE. */
@@ -94,6 +101,21 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
 {
   GSIMapTable   t1 = (GSIMapTable)table1;
   GSIMapTable   t2 = (GSIMapTable)table2;
+
+  if (t1 == t2)
+    {
+      return YES;
+    }
+  if (t1 == 0)
+    {
+      NSWarnLog(@"Nul first argument supplied");
+      return NO;
+    }
+  if (t2 == 0)
+    {
+      NSWarnLog(@"Nul second argument supplied");
+      return NO;
+    }
 
   if (t1->nodeCount != t2->nodeCount)
     {
@@ -124,6 +146,12 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
   GSIMapTable   t;
   GSIMapNode    n;
 
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return 0;
+    }
+
   t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
   t->extra = ((GSIMapTable)table)->extra;
@@ -143,6 +171,11 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 unsigned int
 NSCountHashTable(NSHashTable *table)
 {
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return 0;
+    }
   return ((GSIMapTable)table)->nodeCount;
 }
 
@@ -198,6 +231,10 @@ NSCreateHashTableWithZone(
 void
 NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
 {
+  if (enumerator == 0)
+    {
+      NSWarnLog(@"Nul enumerator argument supplied");
+    }
 }
 
 /**
@@ -207,7 +244,17 @@ NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
 NSHashEnumerator
 NSEnumerateHashTable(NSHashTable *table)
 {
-  return GSIMapEnumeratorForMap((GSIMapTable)table);
+  if (table == 0)
+    {
+      NSHashEnumerator	v = { 0, 0 };
+
+      NSWarnLog(@"Nul table argument supplied");
+      return v;
+    }
+  else
+    {
+      return GSIMapEnumeratorForMap((GSIMapTable)table);
+    }
 }
 
 /**
@@ -216,10 +263,17 @@ NSEnumerateHashTable(NSHashTable *table)
 void
 NSFreeHashTable(NSHashTable *table)
 {
-  NSZone        *z = ((GSIMapTable)table)->zone;
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+    }
+  else
+    {
+      NSZone	*z = ((GSIMapTable)table)->zone;
 
-  GSIMapEmptyMap((GSIMapTable)table);
-  NSZoneFree(z, table);
+      GSIMapEmptyMap((GSIMapTable)table);
+      NSZoneFree(z, table);
+    }
 }
 
 /**
@@ -229,8 +283,14 @@ NSFreeHashTable(NSHashTable *table)
 void *
 NSHashGet(NSHashTable *table, const void *element)
 {
-  GSIMapNode    n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)element);
+  GSIMapNode    n;
 
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return 0;
+    }
+  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)element);
   if (n == 0)
     {
       return 0;
@@ -251,6 +311,11 @@ NSHashInsert(NSHashTable *table, const void *element)
 {
   GSIMapTable   t = (GSIMapTable)table;
 
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place value in nul hash table"];
+    }
   if (element == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -271,6 +336,11 @@ NSHashInsertIfAbsent(NSHashTable *table, const void *element)
   GSIMapTable   t = (GSIMapTable)table;
   GSIMapNode    n;
 
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place value in nul hash table"];
+    }
   if (element == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -299,6 +369,11 @@ NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
   GSIMapTable   t = (GSIMapTable)table;
   GSIMapNode    n;
 
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place value in nul hash table"];
+    }
   if (element == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -322,7 +397,14 @@ NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
 void
 NSHashRemove(NSHashTable *table, const void *element)
 {
-  GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)element);
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+    }
+  else
+    {
+      GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)element);
+    }
 }
 
 /**
@@ -334,6 +416,12 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 {
   GSIMapNode    n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
  
+  if (enumerator == 0)
+    {
+      NSWarnLog(@"Nul enumerator argument supplied");
+      return 0;
+    }
+  n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
   if (n == 0)
     {
       return 0;
@@ -350,7 +438,14 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 void
 NSResetHashTable(NSHashTable *table)
 {
-  GSIMapCleanMap((GSIMapTable)table);
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+    }
+  else
+    {
+      GSIMapCleanMap((GSIMapTable)table);
+    }
 }
 
 /**
@@ -366,6 +461,12 @@ NSStringFromHashTable(NSHashTable *table)
   NSMutableString	*string;
   NSHashEnumerator	enumerator;
   const void		*element;
+
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return nil;
+    }
 
   /* This will be our string. */
   string = [NSMutableString stringWithCapacity: 0];
