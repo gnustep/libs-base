@@ -97,7 +97,8 @@ tcpport-client.m \
 nsnotification.m \
 nstimer.m \
 coder.m \
-cstream.m
+cstream.m \
+fref.m
 
 # nsarchiving.m
 
