@@ -35,6 +35,7 @@
 #include "Foundation/NSObjCRuntime.h"
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
+#include "GSPrivate.h"
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
@@ -117,19 +118,22 @@ static Class	mutableSetClass;
 
 - (NSArray*) allObjects
 {
-  id			objs[map.nodeCount];
   GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
   GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
   unsigned		i = 0;
+  NSArray		*result;
+  GS_BEGINIDBUF(objects, map.nodeCount);
 
   while (node != 0)
     {
-      objs[i++] = node->key.obj;
+      objects[i++] = node->key.obj;
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
   GSIMapEndEnumerator(&enumerator);
-  return AUTORELEASE([[arrayClass allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: objs count: i]);
+  result = AUTORELEASE([[arrayClass allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects count: i]);
+  GS_ENDIDBUF();
+  return result;
 }
 
 - (id) anyObject
@@ -137,11 +141,18 @@ static Class	mutableSetClass;
   if (map.nodeCount > 0)
     {
       GSIMapBucket bucket = map.buckets;
-      while(1)
-	if(bucket->firstNode)
-	  return bucket->firstNode->key.obj;
-	else
-	  bucket++;
+
+      while (1)
+	{
+	  if (bucket->firstNode)
+	    {
+	      return bucket->firstNode->key.obj;
+	    }
+	  else
+	    {
+	      bucket++;
+	    }
+	}
     }
   else
     {
