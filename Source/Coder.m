@@ -984,7 +984,7 @@ exc_return_null(arglist_t f)
       {
 	unsigned xref;
 	SEL decode_sel = sel_get_any_uid("newWithCoder:");
-	CLASS object_class;
+	Class object_class;
 	IMP imp;
 
 	[self decodeValueOfSimpleType:@encode(unsigned) 
