@@ -907,6 +907,18 @@ failure:
   return NO;
 }
 
+- (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)flag
+{
+  if ([anURL isFileURL] == YES)
+    {
+      return [self writeToFile: [anURL path] atomically: flag];
+    }
+  else
+    {
+      return [anURL setResourceData: self];
+    }
+}
+
 
 // Deserializing Data
 

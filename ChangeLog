@@ -1,5 +1,8 @@
 2002-01-02  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSData.[hm]: implement ([-writeToURL:atomically:])
+	* Source/GSXML.[hm]: Tidy document API to be more consistent
+	with other classes.  Add some autogsdoc comments.
 	* Tools/AGSIndex.m: Bugfix in setting links to superclasses.
 
 2002-01-01  Richard Frith-Macdonald <rfm@gnu.org>
