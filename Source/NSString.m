@@ -43,6 +43,54 @@
 
 @implementation NSString
 
+/* For unichar strings.  (Not implemented---using cStrings) */
+static Class NSString_concrete_class;
+static Class NSMutableString_concrete_class;
+
+/* For CString's */
+static Class NSString_c_concrete_class;
+static Class NSMutableString_c_concrete_class;
+
++ (void) _setConcreteClass: (Class)c
+{
+  NSString_concrete_class = c;
+}
+
++ (void) _setConcreteCClass: (Class)c
+{
+  NSString_c_concrete_class = c;
+}
+
++ (void) _setMutableConcreteClass: (Class)c
+{
+  NSMutableString_concrete_class = c;
+}
+
++ (void) _setMutableConcreteCClass: (Class)c
+{
+  NSMutableString_c_concrete_class = c;
+}
+
++ (Class) _concreteClass
+{
+  return NSString_concrete_class;
+}
+
++ (Class) _concreteCClass
+{
+  return NSString_c_concrete_class;
+}
+
++ (Class) _mutableConcreteClass
+{
+  return NSMutableString_concrete_class;
+}
+
++ (Class) _mutableConcreteCClass
+{
+  return NSMutableString_c_concrete_class;
+}
+
 + (void) initialize
 {
   static int done = 0;
@@ -50,6 +98,10 @@
     {
       done = 1;
       class_add_behavior([NSString class], [String class]);
+      NSString_concrete_class = [NSGCString class];
+      NSString_c_concrete_class = [NSGCString class];
+      NSMutableString_concrete_class = [NSGMutableCString class];
+      NSMutableString_c_concrete_class = [NSGMutableCString class];
     }
 }
 
@@ -63,14 +115,15 @@
 
 + (NSString*) stringWithCString: (const char*) byteString
 {
-  return [[[NSCString alloc] initWithCString:byteString]
+  return [[[[self _concreteCClass] alloc] initWithCString:byteString]
 	  autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length
 {
-  return [[[NSCString alloc] initWithCString:byteString length:length]
+  return [[[[self _concreteCClass] alloc]
+	   initWithCString:byteString length:length]
 	  autorelease];
 }
 
@@ -87,7 +140,7 @@
   id ret;
 
   va_start(ap, format);
-  ret = [[[NSCString alloc] initWithFormat:format arguments:ap]
+  ret = [[[[self _concreteClass] alloc] initWithFormat:format arguments:ap]
 	 autorelease];
   va_end(ap);
   return ret;
@@ -96,7 +149,8 @@
 + (NSString*) stringWithFormat: (NSString*)format
    arguments: (va_list)argList
 {
-  return [[[NSCString alloc] initWithFormat:format arguments:argList]
+  return [[[[self _concreteClass] alloc]
+	   initWithFormat:format arguments:argList]
 	  autorelease];
 }
 
@@ -831,10 +885,10 @@
   return [[[self class] allocWithZone:zone] initWithString:self];
 }
 
-/* xxx Change this when we have non-CString classes */
 - mutableCopyWithZone: (NSZone*)zone
 {
-  return [[NSMutableCString allocWithZone:zone] initWithString:self];
+  return [[[[self class] _mutableConcreteClass] allocWithZone:zone]
+	  initWithString:self];
 }
 
 /* NSCoding Protocol */
@@ -895,7 +949,7 @@
 
 + (NSMutableString*) stringWithCapacity:(unsigned)capacity
 {
-  return [[[NSMutableCString alloc] initWithCapacity:capacity] 
+  return [[[[self _mutableConcreteClass] alloc] initWithCapacity:capacity] 
 	  autorelease];
 }
 
@@ -917,7 +971,7 @@
 + (NSString*) stringWithCString: (const char*)bytes
    length:(unsigned)length
 {
-  id n = [[NSMutableCString alloc] initWithCapacity:length];
+  id n = [[[self _mutableConcreteCClass] alloc] initWithCapacity:length];
   [n setCString:bytes length:length];
   return n;
 }
@@ -998,9 +1052,9 @@
   return self;
 }
 
-- release
+- (oneway void) release
 {
-  return self;
+  return;
 }
 
 - autorelease
