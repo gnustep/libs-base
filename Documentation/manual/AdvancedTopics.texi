@@ -1,0 +1,130 @@
+@paragraphindent 0
+
+@node Advanced Topics
+@chapter Advanced Topics
+@cindex advanced topics
+
+@section Forwarding
+@cindex forwarding
+
+When an object is unable to respond to a message, the Objective-C
+runtime sends a @code{forwardInvocation:} message to the object, and
+the object is then able to use the information provided to handle the
+message in some way, a common mechanism being to forward the message
+to another object known as a @b{delegate}, so that the other object
+can deal with it.
+
+@example
+- (void) forwardInvocation: (NSInvocation*)objectInvoke
+@{
+  if ([forwardObject respondsToSelector: [objectInvoke selector]])
+    return [objectInvoke invokeWithTarget: forwardObject];
+  else
+    return [self doesNotRecognizeSelector: [objectInvoke selector]];
+@}
+@end example
+
+@itemize @bullet
+@item
+@code{objectInvoke} is another object (of the @code{NSInvocation} class)
+which has all the information about the original message sent, including
+its @b{selector} and its arguments.
+
+@item
+ @code{self} refers to the object or receiver.
+@end itemize
+
+@b{Note.  this is a powerful method for creating software patterns for
+multiple inheritance, journaling, and dispatching messages to
+dynamically loaded code.}
+
+@subsection Forwarding and Multiple Inheritance
+Forwarding is a form of multiple inheritance. The diagram below shows a simple scenario where an instance of the @code{Chat} class passes the @b{negotiate} message to an instance of the @code{ChatTwo} class. The forwarding object therefore inherits methods from its own inheritance path and from that of the receiving object.
+
+
+
+
+@subsection Surrogate Objects
+Surrogate objects forward messages to objects that can be assumed to be more complex. The @code{forwardInvocation:} method of the surrogate object receives a message that is to be forwarded; it determines whether or not the receiver exists, and if it does not, then it will attempt to create it. A @b{proxy object} is a common example of a surrogate object. A proxy object performs obvious functions that we have already discussed:
+
+@itemize @bullet
+@item
+provides a local address for a remote object 
+
+@item
+queues messages
+
+@item
+forwards messages to typically remote receivers
+
+@item
+copies and retrieves arguments over the connection. 
+@end itemize
+
+
+@subsection Forwarding vs Inheritance
+The main difference between @b{Forwarding} and @b{Inheritance} surfaces in the application of methods like @code{respondsToSelector} and @code{isKindOfClass:}. This is because these methods search the inheritance path, but ignore the forwarding path. 
+
+(See Section 1.6.6 @code{respondsToSelector.})
+
+@b{Note. @code{respondsToSelector} does not trace the forwarding chain, and can therefore erroneously report that an object does not respond to a particular message, when it does.}
+
+
+@comment Making Forwarding Transparent
+
+
+@section Exception Handling
+
+
+@section Copying, Comparing, Hashing Objects
+
+
+
+@itemize @bullet 
+
+@item
+deep copy vs swallow copy
+
+@item
+simple copy vs mutable copy
+
+@item
+isEqual:, hash
+
+@end itemize
+
+
+@section Dictionaries, Arrays, Containers
+
+@section Coding 
+
+@itemize @bullet 
+
+@item 
+Possibilities offered by Coding
+
+@item 
+Type Encoding
+
+@end itemize
+
+
+@section Property Lists
+
+@itemize @bullet 
+@item
+What are property lists
+@end itemize
+
+
+@section Bundles
+
+@section UserDefaults
+
+@section Threading
+
+General discussion about threading with gnustep base, what is
+thread-safe, what is not, how to start new threads, NSThread briefly
+introduced with examples.
+
+[Nicola: important: talk about NSConnection enableMultipleThreads]].

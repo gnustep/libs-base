@@ -1,0 +1,36 @@
+@paragraphindent 0
+
+@node Glossary
+@appendix Glossary
+@cindex glossary
+
+@c /* Empty glossary (to be completed). */
+
+
+Object
+
+
+Class
+
+
+Inheritance
+
+
+Polymorphism
+
+
+Encapsulation
+
+
+Invoke
+
+
+Method
+
+
+Makefile
+
+
+
+
+

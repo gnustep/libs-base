@@ -1,0 +1,1028 @@
+@paragraphindent 0
+
+@node Objects
+@chapter Working with Objects
+@cindex working with objects
+@cindex objects, working with
+
+@section Selectors
+@cindex selectors
+
+A principal OO addition to Objective-C is the syntax to send
+messages to objects:
+
+@example
+[myArray removeObjectIdenticalTo: anObject];
+@end example
+
+The example sends the message named @code{removeObjectIdenticalTo:} to
+@code{myArray} with the argument @code{anObject}.
+
+Instead of using this syntax to send a message, the @b{selector} of a
+message may be used.  The @b{selector} is a way of referring to an
+abstract message, it is a representation of the message name without
+the argument or the receiver.
+
+Objective-C introduces a new data type: @code{SEL} for variables that
+hold selectors.  A @code{SEL} variable is implemented as a pointer to
+a structure containing the name (and often incidental information
+about the return type and argument types) of the selector.
+
+You can obtain a selector in a variety of ways -
+
+@itemize @bullet
+@item
+At compile time, you can use the @code{@@selector()} directive -
+@example
+  SEL	mySelector = @@selector(removeObjectIdenticalTo:);
+@end example
+
+@item
+At runtime, you can use the @code{NSSelectorFromString()} function -
+@example
+  SEL	mySelector = NSSelectorFromString(@"removeObjectIdenticalTo:");
+@end example
+
+@item
+In a method, you can refer to the variable @code{_cmd} which contains
+the selector for the current method -
+@example
+- (void) removeObjectIdenticalTo: (id)anObject
+@{
+  SEL	mySelector = _cmd;
+
+  // Method implementation here ...
+@}
+@end example
+
+@end itemize
+
+Sending messages to objects, and invoking methods that are named
+by the message @b{selector} can be achieved using 
+@code{performSelector:} and related methods:
+
+@example
+[receiver performSelector: mySelector];
+[receiver performSelector: mySelector withObject: arg1];
+[receiver performSelector: mySelector withObject: arg1 
+  withObject: arg2];
+@end example
+
+@itemize @bullet
+
+@item
+@code{receiver}
+- the object receiving the message.
+
+@item
+@code{mySelector}
+- the @b{selector} of the method to be performed.
+
+@item
+@code{arg1} @code{arg2}
+- arguments sent with message.
+
+@end itemize
+
+
+@itemize @bullet
+
+@item
+messaging instructions are converted into runtime calls, explanation
+
+@item
+what are selectors, efficiency reasons.  
+
+@item
+using selectors in practice <Use NSStringFromSelector etc, only quote
+the existence of low level runtime calls>
+ 
+@item
+methods and selectors
+ 
+@item
+method return and argument types 
+
+@item
+varying the message at run-time
+
+@end itemize
+
+The GNU Objective-C runtime library provides a function @code{sel_eq()}
+which may be used to test for selector equality.  This is necessary
+because, while the compiler tries to ensure that compile-time generated
+references to selectors for a particular message point to the same
+structure, selectors produced at runtime, or in different compilation
+units, will be different and a simple pointer equality test will not do.
+
+@subsection Target-Action concept
+
+The Target-Action paradigm is used a great deal in the GNUstep GUI,
+but infrequently in other code,  it is most applicable when building
+a network of related objects that can interact relatively simply.
+
+The idea is that an object may have a @b{target} ... an instance
+variable of type @code{id} which refers to a target object, and
+an @b{action} ... an instance variable of type @code{SEL}.
+
+When the object is told to perform its action, it asks the @b{target}
+to perform the @b{action}, passing itsself as the argument.
+
+Neither object needs to know anything about the other object at compile
+time, so such objects can be connected together in a running program
+to build new behaviors into applications.
+
+The code to implement this paradigm is simple -
+@example
+- (id) performAction
+@{
+  if (action == 0)
+    @{
+      return nil;	// No action set ... do nothing
+    @}
+  if (target == nil)
+    @{
+      return nil;	// No target set ... do nothing
+    @}
+  if ([target respondsToSelector: action] == NO)
+    @{
+      return nil;	// Target cannot deal with action ... do nothing
+    @}
+  return [target performSelector: action withObject: self];
+@}
+@end example
+
+As an example, consider a character attempting to make use of an object
+they have found while they are standing in front of a door -
+
+@example
+  [obj setAction: @@selector(openWith:)];
+  [obj setTarget: theDoor];
+  if ([obj performAction] == nil)
+    @{
+      // Door didn't open.
+    @}
+  else
+   @{
+    // Door opened.
+   @}
+@end example
+
+The door object will be sent the @code{openWith:} message with the new
+object as its argument.  If @b{obj} happens to be a key, the door may
+decide to open.  It may also open in response to an object that happens
+to be a battering ram.  The same fragment of code would handle both cases.
+
+
+
+@subsection Avoiding Messaging Errors with @code{respondsToSelector:}
+
+Using @b{typed} objects as shown below, the compiler would forewarn
+you if the @code{anObject} was unable to respond to the @code{alert:}
+message, as it knows what type of object @code{anObject} is:
+
+@example
+AnObject	*anObject;		// an instance of AnObject class
+
+anObject = [[AnObject alloc] init];	// build and initialize the object
+[anObject alert: additionalObject];	// send it a message.
+@end example
+
+However at times the compiler will not forewarn you that a message
+will attempt to invoke a method that is not in the @b{receiver's}
+repertoire. For instance, consider the code below where @code{anObject}
+is not known to implement the @code{alert:} message:
+
+@example
+  id		anObject;		// arbitrary object;
+
+  anObject = [[AnObject alloc] init];	// build and initialize object
+  [anObject alert: additionalObject];	// send it a message.
+@end example
+
+In this case, the compiler will not issue a warning, because it only knows
+that @code{anObject} is of type @code{id} ... so it doesn't know what
+methods the object implements.
+
+At runtime, the Objective-C runtime library will fail to find a
+@b{method implementation} for the @code{alert:} message in the
+@code{AnObject} class, so it will send a @code{forwardInvocation:}
+message to @code{anObject} instead.
+The default implementation of the @code{forwardInvocation:} in the
+@code{NSObject} class will then raise a runtime exception which,
+if uncaught, will cause the program to crash.
+
+In order to avoid this sort of problem, your code can use the
+@code{respondsToSelector:} method to see if an object can handle
+a particular message -
+
+@example
+  id		anObject;
+
+  anObject = [[AnObject alloc] init];
+  if ([anObject respondsToSelector: @@selector(alert:)] == YES)
+    @{
+      [anObject alert: additionalObject];	// send it a message.
+    @}
+  else
+    @{
+      // Do something else if the object can't be alerted
+    @}
+@end example
+
+@b{Note. Protocols may be used to handle unrecogized message
+checking at compile time.}
+
+
+@section Initializing and Allocating Objects
+
+The NSObject class defines two @b{allocation} methods namely
+@code{alloc} and @code{allocWithZone:}.
+
+@example
++ (id) alloc;
++ (id) allocWithZone: (NSZone*)zone;
+@end example
+
+Both methods will allocate memory to hold an object, and
+initialise the objects' @code{isa} pointer,
+which as previously discussed defines the class to which
+the object belongs.
+The same initialization procedure sets all remaining instance
+variables to 0.
+
+In practice further initialization procedures are implemented by
+instance methods beginning with the familiar @code{init...} syntax,
+and an object is not considered @b{initialised} until one of these
+methods has been executed (the exception being in the case of
+copied objects).
+
+@b{Note. Classes must provide @code{init} methods to initialize
+their declared instance variables.} 
+
+
+@subsection @code{init} and Returned Objects
+After initializing the instance variables of the receiver,
+an @code{init...} method returns a @b{usable} object,
+which might not be the receiver, however.
+
+Here is an scenario where the returned object is not the receiver:
+the class @code{NSConnection} only permits one connection to exist
+between any two ports, so if you call @code{initWithReceivePort:sendPort:}
+when a connection for the ports exists, the method will deallocate
+the newly allocated instance, and return the current conflicting object,
+rather than the receiver.
+
+The @code{init...} method may also return @code{nil} at times when
+it is passed an argument that does not compute; for example the
+argument to the @code{NSString} method @code{initWithContentsOfFile:}
+may be an erroneous file name.
+
+
+@itemize @bullet
+
+@item
+allocating vs initializing objects
+
+@subsection Allocating Memory
+
+Typically memory is allocated in zones, and most memory is
+allocated from the default area
+(which is returned by the @code{NSDefaultMallocZone()}) function.
+When it is necessary to group objects in the same area of memory -
+perhaps for performance reasons, you may create a zone from where you
+would allocate those objects. This will minimise the paging required by
+your application when accessing those objects frequently. 
+
+Low level memory allocation is performed by:
+@itemize @bullet
+@item
+@code{NSAllocateObject()} 
+
+@item
+@code{NSDeallocateObject()}
+@end itemize
+
+These are rarely used but are available when you require more
+advanced control or performance. These functions are called by
+@code{[NSObject +allocWithZone:]} and @code{[NSObject -dealloc]}.
+If you call @code{NSAllocateObject()} directly to create an instance
+of a class, you may break some functionality of that class,
+such as caching of frequently used objects.
+
+Objects are destroyed using @code{dealloc}, and are created using:
+
+@itemize @bullet
+@item
+@code{+alloc}
+
+@item
+@code{-copy}
+
+@item
+@code{-mutableCopy} 
+
+@end itemize 
+
+The allocation methods are covers for the following more versatile methods:
+@itemize @bullet
+@item
+@code{+allocWithZone:}
+
+@item
+@code{-copyWithZone:}
+
+@item
+@code{-mutableCopyWithZone:}
+@end itemize
+
+These methods may specify zones from which the memory is allocated,
+rather than use the default zone. NSObject also provides @code{+new},
+which is simply a cover for the combination of @code{+alloc} and @code{-init}. 
+
+The @code{-dealloc} method returns the memory occupied by the object
+to the zone from which it was originally allocated; it can use the @code{-zone} method to determine which zone this is. 
+
+Explicit memory allocation and deallocation is efficient -
+but when you pass objects around inside a program (and especially
+from/to libraries etc.,) it quickly becomes difficult and/or
+inefficient to keep track of who owns an object, and who should be
+responsible for calling its @b{deallocation} method. 
+
+The OpenStep specification remedies this problem by providing a
+reference counting mechanism along with a set of conventions that
+make memory management easy.
+
+Additionally, the GNU Objective-C compiler and the GNUstep system
+provide a memory sweeping @b{garbage collection} mechanism using
+the Boehm conservative garbage collection library. 
+
+
+@subsection Memory Deallocation
+
+The @code{dealloc} method is defined in the NSObject class and
+releases memory allocated to the receiver.
+The @code{NSObject} implementation of the method @b{deallocates}
+only instance variables. Additional allocated, unshared memory
+used by the object is deallocated separately.
+Other entities that depend solely on the deallocated receiver,
+including complete objects, must also be deallocated separately. 
+
+In this instance subclasses of @code{NSObject} override 
+the @code{dealloc} method. Every class that has its objects allocate
+additional memory must have its own @code{dealloc} method.
+Each version of dealloc ends with a message to super to
+perform an inherited version of the method, as illustrated in
+the following example:
+
+@example
+- (void) dealloc
+@{
+  RELEASE(anObject);
+  NSZoneFree(myZone, myMemory);
+  [super dealloc];
+@}
+@end example
+
+(See Section Memory Deallocation.)
+
+
+@item
+The @code{+alloc} method is not guaranteed to return an object
+created using @code{NSAllocateObject()}.  It may actually return
+any object, though convention dictates that the return value is
+an object with its @code{isa} instance variable set to point to
+a class which is a subclass of that to which the @code{alloc}
+message was sent, and which can respond to the initialisation
+methods of that class.@*
+For instance, the method may return a @b{placeholder} object that
+will be replaced by another object depending on the initialisation
+method that is sent to it.@*
+NB. exception ... it is permitted to return nil on allocation failure.
+
+@item
+When an object is initialised, the return value of the initialiser
+is the new value of the object (or @b{nil}) ... the initialiser is
+permitted to replace one object with another.
+This behavior enables a class to 
+share objects (and do other tricky things) -
+
+@example
+@@implementation Crown
+- (id) initWithLevel: (CharacterLevel)level
+@{
+  if (level > wizardLevel && [crownOfTheEmperor isOwned] == NO)
+    @{
+      RELEASE(self);
+      [crownOfTheEmperor setOwned: YES];
+      self = RETAIN(crownOfTheEmperor);
+    @}
+  else
+    @{
+      self = [super init];
+      if (self != nil)
+        @{
+          // Perform standard initialisation here.
+        @}
+    @}
+  return self;
+@}
+@@end
+@end example
+
+In the above example, the @code{initWithLevel:} method is used to
+create a crown discovered in a random treasure store.  If certain
+conditions are met, the system returns a special object ... only
+one of which may exist and be owned by a character.
+
+In this case, the initialiser for a crown expects a character level
+as an argument, and the old crown object is released and replaced
+by a special one.
+
+@item
+In the preceding example, the standard route through the initialiser
+was to call the initialiser of the superclass, and assign the result
+to @code{self} before initialising instance variables and returning
+@code{self}.
+
+This is necessary because, unlike in C++ or Java, the Objective-C
+language does not enforce initialisation ... so it's up to you as
+the programmer to ensure that superclasses are permitted to
+perform their object initialisation code before the subclass
+performs its initialisation (actually, this gives you the flexibility
+to change how things are initialised ... but you should obey the
+conventions unless you are sure you know what you are doing).
+
+An initialiser of any class intended for re-use/subclassing should
+therefore @b{not} replace @code{self} with an object of a class that
+is not a subclass of the original (though it is legal to return @b{nil},
+and you should therefore check for that in your code).
+
+This rule is essential because, if the initialiser of the original
+subclass receives another object from the superclass initialiser, the
+new object needs to have enough memory allocated, and the same
+initial instance variable layout, as the original object, or assigning
+values into it may overwrite memory that's not part of the initialised
+object ... causing a crash or other runtime problems.
+
+So, to correct our example, we should only return the special object if
+it is a subclass of the original object  ...
+
+@example
+  if (level > wizardLevel && [crownOfTheEmperor isOwned] == NO
+    && [crownOfTheEmperor isKindOfClass: [self class]] == YES)
+    @{
+      RELEASE(self);
+      [crownOfTheEmperor setOwned: YES];
+      self = RETAIN(crownOfTheEmperor);
+    @}
+@end example
+
+The @code{isKindOfClass:} method is used to test that the object we
+are intending to return is legitimate ... a subclass of whatever
+class the original item (@code{self}) allocated was.
+
+@item
+All classes should have a single @b{designated initialiser}.  This is
+the initialisation method that any direct subclass should call in order
+to ensure that initialisation is done correctly.  The other initialisers
+for the class (if any) should call the designated initialier, and the
+designated initialiser should @b{not} call any other initialisers that
+could be overridden by subclasses.
+
+Since the @code{init} method is defined in the root class
+(@code{NSObject}), it's quite likely that any class could be initialised
+by calling this method.  If @code{init} is not the designated initialiser
+for your class, you should therefore write an implementation of
+@code{init} which @b{does} call the designated initialiser ...
+
+@example
+- (id) init
+@{
+  self = [self initWithLevel: noviceLevel];
+  return self;
+@}
+@end example
+
+@item
+Often, convenience methods are provided to avoid the necessity
+of allocating and initialising objects as two separate operations.
+The most basic of these is the @code{+new} method provided by the
+@code{NSObject} class.  This is simply an @code{alloc} followed
+by an @code{init}.
+
+More sophisticated methods combine allocation, initialisation, and
+autoreleasing of objects.  These methods return objects which have
+been added to the current autorelease pool (see later in this chapter
+for details).  By convention, these methods have names beginning with
+something like the name of the class ...
+
+@example
++ (Crown*) crown
+@{
+  return AUTORELEASE([[self alloc] init]);
+@}
++ (Crown*) crownWithLevel: (CharacterLevel)level
+@{
+  return AUTORELEASE([[self alloc] initWithLevel: level]);
+@}
+@end example
+@item
+You handle deallocation of your objects by writing a @code{dealloc}
+method.  The last thing that this method needs to do is call the
+@code{dealloc} method of the superclass ... since it is normally
+the deallocation method of the root class that actually frees the
+memory used by the object.
+
+The @code{dealloc} method is analogous to the destructor in a C++
+class but, as with initialisation, the Objective-C language does
+not call this method for you, and you must explicitly call it
+(or refrain from calling it perhaps if you are caching the object
+for latert re-use).  Often, if you have not allocated memory or
+olther objects as instance variables in your object, you don't
+have to write a @code{dealloc} method, as the method in the superclass
+will do.
+
+@example
+@@implementation	Crown
+- (void) dealloc
+@{
+  if (self == crownOfTheEmperor)
+    @{
+      /*
+       * The crown of the emperor can not be destroyed ... but it
+       * can be made available for someone else to find.
+       */
+      [crownOfTheEmperor setOwned: NO];
+    @}
+  else
+    @{
+      // Release instance variables here.
+      [super dealloc];
+    @}
+@}
+@@end
+@end example
+@end itemize
+
+
+@section Protocols
+
+We use tweo types of protocol in Objective-C ... @b{informal} protocols,
+where we document methods to which objects will respond, and specify
+how they should behave, and @b{formal} protocols, where we provide a
+list of methods that an object will support in a format where the
+compiler can check things, and the runtime can also check that an
+object conforms to the protocol.  Informal protocols are merely convention,
+but are useful where we want to say that some system will work as long
+as it (or its delegate) implements some subset of a group of methods.  Formal protocols are more use when we want the compiler or runtime to
+check that an object implements all of a group of methods itsself.
+
+@itemize @bullet
+
+@item
+The formal protocol provides a mechanism similar to the Java @b{interface},
+in that it specifies an API to which instances of a class must conform.
+The Objective-C language provides mechanisms for checking that a class
+conforms to one or more protocols at compile time, while the runtime
+can chjeck that an object conforms to a protocol at runtime.  Protocols
+form an inheritance hierarchy much like that of classes.
+
+A particularly important use of protocols is in defining the methods
+that an object in a remote process can respond to ... by setting the
+protocol used by a local proxy object, you can avoid having to send
+messages to the remote process to check what methods are available -
+you can simply check the local protocol object.
+
+@itemize @minus
+
+@item
+Syntax
+
+A protocol is declared as a series of method declarations, just like
+a class interface.  The difference is that a protocol declaration
+begins with @code{@@protocol} rather than @code{@@class}, and has
+an optional @b{super} protocol specified in angle brackets.
+
+Another difference is that within a protocol declaration, certain
+additional type qualifiers used for Distributed Objects are valid -
+
+@example
+@@protocol GameServer
+- (oneway void) handleClient: (id)client event: 
+    (in bycopy NSData*) event;
+- (BOOL) registerClient: (id)client byName: 
+    (in bycopy NSString*) name;
+@@end
+
+@@protocol MasterServer <GameServer>
+- (oneway void) systemShutdownBy: (id)client;
+@@end
+@end example
+
+@item
+Protocol Objects
+ 
+@item
+Conforming to a Protocol
+
+An object is said to @b{conform} to a protocol if it implements all
+the methods listed in that protocol.  The @code{NSObject} class provides
+a method for runtime testing to see if an object conforms to a protocol -
+
+@example
+if ([anObject conformsToProtocol: aProtocol] == YES)
+  @{
+    // We can go ahead and use the object.
+  @}
+else
+  @{
+    NSLog(@@"Object of class %@@ ignored ... does not conform to 
+      protocol", NSStringFromClass([anObject class]));
+  @}
+@end example
+
+@item
+Type checking
+
+@item
+Protocols within Protocols 
+
+@item
+Referring to Other Protocols
+
+@end itemize
+
+@item
+Informal Protocols 
+
+@itemize @minus
+
+@item
+What are they, syntax
+
+@item
+Example: delegates
+
+@end itemize
+
+@end itemize
+
+@section Memory Management
+
+There are three forms of memory management available in Objective-C
+@itemize @minus
+@item Explicit@*
+You allocate objects using @code{alloc}, @code{copy} etc, and deallocate
+them when you have finished with them (using @code{dealloc}).
+This gives you complete control over memory management, and is highly
+efficient, but error prone.
+
+@item Retain count@*
+You use the OpenStep retain/release mechanism, allong with autorelease
+pools which provide a degree of automated memory management.  This gives
+a good degree of control over memory management, but requires some care
+in following simple rules.  It's pretty efficient.
+
+@item Garbage collection@*
+You build the GNUstep base library with garbage collection, and link
+with the Boehm GC library ... then never bother about
+releasing/deallocating memory.  This requires a slightly different
+approach to programming ... you need to take care about what happens
+when objects are deallocated ... but don't need to worry about
+deallocating them.
+@end itemize
+
+The recommended approach is to use some standard macros defined in
+@code{NSObject.h} which encapsulate the retain/release/autorelease
+mechanism, but which permit efficient use of the garbage collection
+system if you build your software with that.
+
+
+@itemize @bullet
+
+@item
+The standard OpenStep system of memory management employs retain counts.
+When an object is created, it has a retain count of 1.  When an object
+is retained, the retain count is incremented.  When it is released the
+retain count is decremented, and when the retain count goes to zero the
+object gets deallocated.
+
+@example
+  Coin	*c = [[Coin alloc] initWithValue: 10];
+
+  // Put coin in pouch,
+  RETAIN(c);	// Calls 'retain' method (retain count now 2)
+  // Remove coin from pouch
+  RELEASE(c);	// Calls 'release' method (retain count now 1)
+  // Drop in bottomless well
+  RELEASE(c);	// Calls 'release' ... (retain count 0) then 'dealloc'
+
+@end example
+
+@item
+A simple retain/release mechanism is not very interesting ... so it's
+spiced up with autorelease pools.  You can use the @code{AUTORELEASE}
+macro to call the @code{autorelease} method, which adds an object to
+the current autorelease pool.  An autorelease pool simply maintains
+a reference to each object added to it, and for each addition, the
+autorelease pool will call the @code{release} method of the object
+when the pool is released.  So doing an @code{AUTORELEASE} is just
+the same as doing a @code{RELEASE}, but deferred until the current
+autorelease pool is deallocated.
+
+@item
+The General Convention About the Owner
+
+@item
+Special cases: copy, mutableCopy, new
+
+@item
+Full example for instance variable
+
+@item
+Using ASSIGN to keep instance variables
+
+@item
+Avoiding Retain Cycles
+
+@item
+Special examples: delegate, target
+
+@end itemize
+
+
+@section How Messaging Works
+Objective-C messaging requires three types of information:
+
+@itemize @bullet
+@item
+The message @b{receiver} - this contains @code{isa}, an instance
+variable of type @code{Class}, which points to a structure containing
+links into the class hierarchy, information specifying instance variable
+layout for the object, and a dispatch table specifying what code should
+be executed for each supported message.
+
+@item
+The message @b{selector} - this identifies the message, and is used to
+locate the excecutable code of the corresponding @b{method} by performing
+a lookup in the dispatch table of the receiving objects class.
+
+@item
+The message @b{arguments} - these are simply passed to the method on
+the stack.
+@end itemize
+
+When you send a message like @code{obj = [array objectAtIndex: i];}, the
+compiler actually does several things for you -
+
+@itemize @bullet
+@item
+It generates code to place the @b{receiver} (@code{array}) on the stack.
+
+@item
+It builds a @b{selector} for the message named @code{objectAtIndex:}
+and generates code to put it on the stack.
+
+@item
+It generates code to put the argument (@code{i}) on the stack.
+
+@item
+It generates code to ask the Objective-C runtime library to look up
+the @b{selector} in the @b{receiver}, return the @b{method implementation}
+for that @b{selector} (this is just a C function), and call that
+@b{method implementation}.
+
+@end itemize
+
+When a method is executed, it therefore has the message arguments
+available to it on the stack, but also has two additional values -
+the @b{receiver} and the @b{selector}.  These additional hidden
+arguments are referred to in the source code by the names @code{self}
+and @code{_cmd}.
+
+The process of looking up the @b{method implementation} in the @b{receiver}
+at runtime is known as dynamic binding.  This is part of what makes the
+language powerful and flexible, but it is inevitably (despite clever
+caching strategies used in the runtime library) a little slower than a
+simple function call in C.
+
+
+@section Hacking for Efficiency
+
+@itemize @bullet
+
+@item
+Getting a Method Address (discussion about reasons why doing it, and
+where it makes sense to do it)
+
+@item
+Getting an Object Data Structure (short discussion about why doing it)
+
+@end itemize
+@section NSString
+
+The NSString class defines objects holding raw @b{Unicode} character streams
+or @b{strings}. Unicode is a 16bit worldwide standard used to define character
+sets for all spoken languages.
+In GNUstep parlance the Unicode character is of type @b{unichar}.
+
+@subsection Creating NSString Static Instances 
+
+A @b{static} instance is allocated at compile time. The creation of a static
+instance of NSString is achieved using the @code{@@"..."}
+construct and a pointer:
+
+@example
+NSString *wasp = @@"Brainstorm";
+@end example
+@code{wasp} is a variable that refers to an NSString object representing
+the ASCII string "Brainstorm".
+
+@subsection NSString - +stringWithFormat: 
+
+The class method @code{stringWithFormat:} may also be used to create
+instances of NSString, and broadly echoes the @code{printf} function
+in the C programming language. @code{stringWithFormat:} accepts a list
+of arguments whose processed result is placed in an @code{NSString}
+that becomes a return value as illustrated below: 
+@example
+int		qos = 5;
+NSString	*gprschannel;
+
+gprschannel = [NSString stringWithFormat: @@"The GPRS channel is %d", 
+                qos];
+
+@end example
+
+The example will produce an @code{NSString} called @code{gprschannel}
+holding the string "The gprschannel is 5". 
+
+@code{stringWithFormat:} recognises the @code{%@@} conversion specification
+that is used to specify an additional @code{NSString}: 
+@example
+NSString *one;
+NSString *two;
+
+one = @@"Brainstorm";
+two = [NSString stringWithFormat: @@"Our trading name is %@@", one];
+@end example
+
+The example assigns the variable @code{two} the string
+"Our trading name is Brainstorm."
+The %@@ specification can be used to output an object's description -
+as returned by the NSObject's -description), which is useful
+when debugging, as in: 
+@example
+NSObject *obj = [anObject aMethod];
+
+NSLog (@@"The method returned: %@@", obj);
+@end example
+
+@subsection C String Conversion
+When a program needs to call a C library function it is useful to
+create an @code{NSString} from a standard ASCII C string (not fixed at
+compile time): 
+@example
+char *function (void);
+@end example
+To create an @code{NSString} using the contents of the returned C string
+(from the above example), use the @code{NSString} class method
+@code{stringWithCString:}: 
+
+@example
+char *result;
+NSString *string;
+
+result = function ();
+string = [NSString stringWithCString: result];
+@end example
+
+To convert an @code{NSString} to a standard C ASCII string,
+use the @code{cString} method of the @code{NSString} class: 
+@example
+char		*result;
+NSString	*string;
+
+string = @@"Hi!";
+result = [string cString];
+@end example
+
+@subsection NSMutableString 
+@code{NSString}s are immutable objects; meaning that once they are created,
+they cannot be modified. This results in optimised NSString code. To modify
+a string, use the subclass of @code{NSString}, called @code{NSMutableString}.
+Use a @code{NSMutableString} wherever a @code{NSString} could be used. 
+
+An @code{NSMutableString} responds to methods that modify the string directly -
+which is not possible with a generic @code{NSString}. 
+To create a @code{NSMutableString}use @code{stringWithFormat:}: 
+@example
+NSString *name = @@"Brainstorm";
+NSMutableString *str;
+str = [NSMutableString stringWithFormat: @@"Hi!, %@@", name];
+@end example
+
+While @code{NSString}'s implementation of @code{stringWithFormat:} returns
+a @code{NSString}, @code{NSMutableString}'s implementation returns an
+@code{NSMutableString}. 
+
+@b{Note. Static strings created with the @@"..." construct are
+always immutable.}
+
+NSMutableStrings are rarely used because to modify a string,
+you normally create a new string derived from an existing one. 
+
+A useful method of the NSMutableString class is @code{appendString:},
+which takes an @code{NSString} argument, and appends it to the receiver: 
+
+@example
+NSString	*name = @@"Brainstorm";
+NSString	*greeting = @@"Hello";
+NSMutableString	*s;
+
+s = AUTORELEASE ([NSMutableString new]);
+[s appendString: greeting];
+[s appendString: @@", "];
+[s appendString: name];
+@end example
+
+This code produces the same result as:
+@example
+NSString *name = @@"Brainstorm";
+NSString *greeting = @@"Hello";
+NSMutableString *s;
+
+s = [NSMutableString stringWithFormat: @@"%@@, %@@", greeting, name];
+@end example
+
+@subsection Reading and Saving Strings 
+The the GNUstep base library has numerous string manipulation features,
+and among their most notable are those relating to writing/reading
+strings to/from files. To write the contents of a string to a file,
+use the @code{writeToFile:atomically:} method: 
+
+@example
+#include <Foundation/Foundation.h>
+
+int
+main (void)
+@{
+  CREATE_AUTORELEASE_POOL(pool);
+  NSString *name = @@"This string was created by GNUstep";
+
+  if ([name writeToFile: @@"/home/nico/testing" atomically: YES])
+    @{
+      NSLog (@@"Success");
+    @}
+  else 
+    @{
+      NSLog (@@"Failure");
+    @}
+  RELEASE(pool);
+  return 0;
+@}
+@end example
+
+@code{writeToFile:atomically:} returns YES for success, and NO for failure.
+If the atomically flag is YES, then the library first writes the string
+into a file with a temporary name, and, when the writing has been
+successfully done, renames the file to the specified filename.
+This prevents erasing the previous version of filename unless
+writing has been successful. This is a useful feature, which should be enabled.
+
+To read the contents of a file into a string, use
+@code{stringWithContentsOfFile:}, as shown in the following
+example that reads @code{@@"/home/Brainstorm/test"}: 
+
+
+@example
+#include <Foundation/Foundation.h>
+
+int
+main (void)
+@{
+  CREATE_AUTORELEASE_POOL(pool);
+  NSString *string;
+  NSString *filename = @@"/home/nico/test";
+
+  string = [NSString stringWithContentsOfFile: filename];
+  if (string == nil)
+    @{
+      NSLog (@@"Problem reading file %@@", filename);
+      /*
+       * <missing code: do something to manage the error...>
+       * <exit perhaps ?>
+       */
+    @}
+
+  /*
+   * <missing code: do something with string...>
+   */
+
+  RELEASE(pool);
+  return 0;
+@}
+
+@end example
+

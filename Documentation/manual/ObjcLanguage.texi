@@ -1,0 +1,609 @@
+@paragraphindent 0
+
+@node Objective-C
+@chapter The Objective-C Language
+
+In the previous chapter you were introduced to some basic object-oriented programming terms. This chapter will expand on these terms, and introduce you to some new ones, while concentrating on how they apply to the Objective-C language and the GNUstep base library. First let us look at some non OO additions that Objective-C makes to ANSI C.
+
+@section Non OO Additions
+
+Objective-C makes a few non OO additions to the syntax of the C programming
+language that include:
+@itemize @bullet
+
+@item
+A boolean data type (@code{BOOL}) capable of storing either of the
+values @code{YES} or @code{NO}.@*
+A @code{BOOL} is a scalar value and can be used like the familiar
+@code{int} and @code{char} data types.@*
+A @code{BOOL} value of @code{NO} is zero, while @code{YES} is non-zero.
+
+@item
+The use of a pair of slashes (@code{//}) to mark text up to the end
+of the line as a comment.
+
+@item
+The @code{#import} preprocessor directive was added, but its use is deprecated (it still works but it should not be used for new programs).
+@end itemize
+
+
+@section Objects
+@cindex objects
+@c objects
+
+Object-oriented (OO) programming is based on the notion that a software system can be composed of objects that interact with each other in a manner that parallels the interaction of objects in the physical world.
+
+This model makes it easier for the programmer to understand how software works since it makes programming more intuitive. The use of objects also makes it easier during program design: take a big problem and consider it in small pieces, the individual objects, and how they relate to each other.
+
+Objects are like mini programs that can function on their own when requested by the program or even another object. An object can receive messages and then act on these messages to alter the state of itself (the size and position of a rectangle object in a drawing program for example).
+
+In software an object consists of instance variables (data) that represent the state of the object, and methods (like C functions) that act on these variables in response to messages.
+
+As a programmer creating an application or tool, all you need do is send messages to the appropriate objects rather than call functions that manipulate data as you would with a procedural program. 
+
+The syntax for sending a message to an object, as shown below, is one of the additions that Objective-C adds to ANSI C.
+
+@example 
+[objectName message]; 
+@end example
+
+Note the use of the square [ ] brackets surrounding the name of the object and message.
+
+Rather than 'calling' one of its methods, an object is said to 'perform' one of its methods in response to a message. The format that a message can take is discussed later in this section.  
+
+@subsection Id and nil
+
+Objective-C defines a new type to identify an object: @code{id}, a type that points to an object's data (its instance variables). The following code declares the variable 'button' as an object (as opposed to 'button' being declared an integer, character or some other data type).
+@example
+id button;
+@end example
+
+When the button object is eventually created the variable name 'button' will point to the object's data, but before it is created the variable could be assigned the numeric value 0, to indicate to other code that the object does not yet exist.
+
+Objective-C defines a new keyword @code{nil} for this assignment, where @code{nil} is of type @code{id} with the numeric value 0. In the button example, the assignment could look like this:
+
+@example
+id button = nil;
+@end example
+
+which assigns @code{nil} in the declaration of the variable.
+
+You can then test the value of an object to determine whether the object exists, perhaps before sending the object a message. If the test fails, then the object does not exist and your code can execute an alternative statement.
+@example
+if (anObject != nil)
+  ... /* send message */
+else ... /* do something else */
+@end example
+
+The header file @code{objc/objc.h} defines @code{id}, @code{nil}, and other basic types of the Objective-C language. It can be included in your source code with the compiler directive @code{#include <Foundation/Foundation.h>}.
+
+@subsection Messages
+@cindex messages
+
+A message in Objective-C is the mechanism by which you pass instructions
+to objects.  You may tell the object to do something for you, tell it to
+change its internal state, or ask it for information.
+
+A message usually invokes a method, causing the receiving object
+to respond in some way.
+Objects and data are manipulated by sending messages to them.
+Like C-functions they have return types, but function specific to the object.
+
+Objects respond to messages that make specific requests.
+Message expressions are enclosed in square brackets and include the
+receiver or object name and the message or method name along with
+any arguments.
+
+To send a message to an object, use the syntax:
+
+@code{[receiver messagename];}
+
+where @code{receiver} is the object.
+@sp 1
+
+The run-time system invokes object methods that are specified by messages.
+For example, to invoke the display method of the mySquare object the
+following message is used:
+
+@code{[mySquare display];}
+@sp 1
+Messages may include arguments that are prefixed by colons, in which
+case the colons are part of the message name, so the following message
+is used to invoke the @code{setFrameOrigin::} method:
+
+@code{[button setFrameOrigin: 10.0 : 10.0];}
+@sp 1
+
+Labels describing arguments precede colons:
+
+@code{[button setWidth: 20.0 height: 122.0];}
+invokes the method named @code{setWidth:height:}
+@sp 1
+Messages that take a variable number of arguments are of the form:
+
+@code{[receiver makeList: list, argOne, argTwo, argThree];}
+@sp 1
+
+A message to nil does NOT crash the application (while in Java messages
+to null raise exceptions); the Objective-C application does nothing.
+
+For example:
+
+@code{[nil display];}
+
+will do nothing.
+
+If a message to nil is supposed to return an object, it will return nil.
+But if the method is supposed to return something else, then the
+return value of that method when invoked on nil, is undefined.
+The programmer therefore
+needs to avoid using the return value in this instance.
+
+
+@subsection Polymorphism
+@cindex polymorphism
+
+Polymorphism refers to the fact that two different objects may
+respond differently to the same message. For example when client
+objects receive an alike message from a server object, they may
+respond differently. Using Dynamic Binding, the run-time system
+determines which code to execute according to the object type.
+
+
+@section Classes
+@cindex classes
+@emph{needs to be clearer/readable and say what a class is? also explain
+instances!}@*
+Objects form groups or classes, and those in the same class hold
+the same type of data, and may execute the same methods.
+Objects are defined by their originating classes.
+Each class compilation sees the creation of a factory or class object
+that builds instances of the class. Instances and Objects are synonymous,
+and are the components that are operating entities in the running program.
+
+
+@subsection Inheritance
+@cindex inheritance
+
+Most of the programmer's time is spent defining classes.
+Inheritance helps reduce coding time by providing a convenient way of
+reusing code.
+For example, the NSButton class defines data (or instance variables) and methods to create button objects of a certain type, so a subclass of NSButton could be produced to create buttons of another type - which may perhaps have a different border colour. Equally NSTextField can be used to define a subclass that perhaps draws a different border, by reusing definitions and data in the superclass.
+
+Inheritance places all classes in a logical hierarchy or tree
+structure that may have the NSObject class at its root.
+All classes may have subclasses, and all except the root class
+may have superclasses. When a class object creates a new instance,
+the new object holds the data for its class, superclass,
+and superclasses extending to the root class (typically NSObject).
+Additional data may be added to classes so as to provide
+specific functions and application logic.
+
+When a new object is created, it is allocated memory space,
+and its data in the form of its instance variables are initialised.
+The object holds the @code{isa} variable refers to the object's class,
+and this also provides access to classes in the object's inheritance
+path.
+
+An Objective-C class has an:
+
+@itemize @bullet
+@item
+interface declaring instance variables, methods and the superclass name.
+
+@item
+implementation that defines the class in terms of operational code that
+implements the methods.
+@end itemize
+
+Typically these entities are confined to separate files
+with .h and .m extensions for Interface and Implementation files,
+respectively. However they may be merged
+into one file, and a single file may implement multiple classes.
+
+@subsection Inheritance of Methods
+@cindex inheriting methods
+
+Each new class inherits methods and instance variables from another class. This
+results in a class hierarchy with the root class at the core, and every class
+(except the root) has a superclass as its parent, and all classes may have
+numerous subclasses as their children. Each class therefore is a refinement of
+its superclass(es).
+
+
+@subsection Overriding Methods
+@cindex overriding methods
+
+Objects may access methods defined for their class, superclass,
+superclass' superclass, extending to the root class.
+Classes may be defined with methods that overwrite their namesakes
+in ancestor classes. These new methods are then inherited by
+subclasses, but other methods in the new class can locate the
+overridden methods. Additionally redefined methods may include
+overridden methods.
+
+
+@subsection Abstract Classes
+@cindex abstract class
+@cindex class, abstract
+
+Abstract classes or abstract superclasses such as NSObject define
+methods and instance variables used by multiple subclasses.
+Their purpose is to reduce the development effort required to
+create subclasses and application structures.
+When we get technical, we make a distinction between a pure abstract
+class whose methods are defined but instance variables are not,
+and a semi-abstract class where instance variables are defined).
+An abstract class is not expected to actually produce functional
+instances since crucial parts of the code are expected to be
+provided by subclasses.
+Abstract classes reduce the development effort required to create
+subclasses and application structures.
+
+
+@subsection Class Clusters
+@cindex class cluster
+@cindex cluster, classes
+
+A class cluster is an abstract base class, and a group of private, concrete
+subclasses.  It is used to hide implementation details from the programmer
+(who is only allowed to use the interface provided by the abstract class),
+so that the actual design can be modified (probably optimised) at a later
+date, without breaking any code that uses the cluster.
+Consider a scenario where it is necessary to create a class hierarchy
+to define objects holding different types including @b{chars}, @b{ints},
+@b{short}, @b{LongInt}, @b{floats} and @b{doubles}.
+Of course, different types could be defined in the same class
+since it is possible to @b{cast} or @b{change} them from one to the next.
+Their allocated storage differs, however, so it would be inefficient
+to bundle them in the same class and to convert them in this way.
+
+The solution to this problem is to use a class cluster:
+define an abstract superclass that specifies and declares
+components for subclasses, but does not declare instance variables.
+Rather this declaration is left to its subclasses, which share the
+@b{programmatic interface} that is declared by the abstract superclass.
+
+When you create an object using a cluster interface, you are
+given an object of another class - from a concrete class in the cluster.
+
+@section Using the GNUstep Base Library
+@cindex GNUstep base library, class documentation
+@cindex class documentation for the base library
+
+*** 
+Add something here about using the base library. Some suggestions:
+
+Explain class documentation, what it is (documented class interface that programmers can use), how to use it (the need to read it and comply with the  interface methods and arguments), and how to get it (www.gnustep.org).
+
+Also explain some of the terminology, like 'returns a copy of the receiving object'.
+***
+
+@section NSObject: The Root Class
+@cindex NSObject
+@cindex root class
+@cindex class, root
+
+NSObject is a root class that provides the framework for all objects,
+their interactions, and their integration in the run-time system.
+NSObject defines the @code{isa} instance variable that connects
+every object with its class
+NSObject or an alternative root class:
+
+@itemize @bullet
+
+@item
+allocates instances
+
+@item
+connects instances to their class
+
+@item
+forces the run-time system to discover instances involuntarily.
+@end itemize
+
+The NSObject interface is defined as the methods declared by itself, and
+those defined by the NSObject protocol. This division ensures that objects
+inheriting from other root classes can act as ordinary objects that do not
+inherit from NSObject. NSObject provides the facilities for inheriting
+classes whose instances are given a behaviour that includes the
+ability to:
+
+@itemize @bullet
+@item
+create objects.
+
+@item
+initialize objects.
+
+@item
+deallocate objects.
+
+@item
+compare objects.
+
+@item
+archive objects.
+
+@item
+perform methods selected at run-time.
+
+@item
+query objects about their methods.
+
+@item
+query objects about their position in the inheritance hierarchy.
+
+@item
+forward messages to other objects (See Section respondsToSelector).
+@end itemize
+
+@subsection Initializing Objects
+All objects inherit from the NSObject class, and their initialization requires:
+@itemize @bullet
+@item
+ an @code{isa} instance variable that points to a class structure.
+@item
+ initialization of @code{isa} is performed by @code{alloc} and
+ @code{allocWithZone:} methods that are also used to create
+ (allocate memory for) new instances of classes.
+@end itemize
+
+
+@section Static Typing
+
+Type checking is good programming practice because it catches errors;
+it checks code, but does not change compiled code.
+
+
+When declaring an object type, static typing permits a class name to
+be used instead of an @code{id}. In the
+following example Type Checking verifies that the myString object
+is an appropriate type.
+
+@example
+NSString *myString = anObject;
+@end example
+
+Objects can be statically typed as pointers to a class,
+by making the pointer explicit (as opposed to hidden using @code{id}).
+Static typing permits the compiler to run some obvious checks,
+forewarning of such errors as message incompatibilities.
+A subclass can be used where a superclass is expected, but not vice-versa.
+
+Formal protocols may be included in type definitions, giving another tier of
+type checking to the compiler. Protocol names are included between angle
+brackets:
+
+@example
+
+- (id <Formatting>) formattingService;
+id <ReferenceCounting,AutoFreeing> specificObject;
+
+@end example
+
+Formal protocols may declare a list of methods that are visible at source and
+run-time levels, so objects may introspect themselves at runtime to verify that
+they conform to protocols, and the compiler may check for types:
+
+@example
+
+@@protocol ProtocolTitle
+declare methods
+@@end
+
+@end example
+
+@subsection Type Introspection
+
+Before sending a message you should check that the receiver is the
+correct class or has the appropriate method.
+The @code{isMemberOfClass:} method defined in the NSObject class
+verifies that the receiver is of a specific class:
+
+@example
+if ([namedObject isMemberOfClass: specificClass] == YES)
+@{
+  // code here
+@}
+@end example
+
+The @code{isKindOfClass:} method checks to see if the receiver is
+in a specific inheritance path:
+
+@example
+if ([namedObject isKindOfClass: specificClass] == YES)
+@{
+  // code here
+@}
+@end example
+
+
+@section Working with Class Objects
+
+
+The compiler creates a class or factory object that instantiates objects
+or instances based on the class definitions; class objects are agents
+able to instantiate instances in the run-time system. A class object is
+not an instance and is without instance variables, though it does holds
+static variables and the class instance's prototype also; but it cannot
+implement methods for instances of the class.
+
+A class definition may include class methods that are defined for the
+class object.
+A class object inherits class methods from superclasses,
+while instances inherit instance methods. Class objects may receive messages, 
+and inherit methods from superclasses, but are without instance variables 
+except those created using the class definition.
+
+
+@subsection Referring to Class Objects
+
+To return the class version number of the @code{NSString} class
+using a method inherited from the NSObject class:
+
+@code{int versionNumber = [NSString version];}
+
+The class name @code{NSString} is that of the class object, which is the receiver 
+in the above message expression. When not dealing with class objects, 
+instances and classes are used to obtain the class @code{id}:
+
+@example
+id stringClass = [stringObject class];
+id mStringClass = [NSMutableString class];
+@end example
+
+Class objects may be typed @code{id}, and specifically typed to the Class:
+
+@example
+Class stringClass = [stringObject class];
+Class mStringClass = [NSMutableString class];
+@end example
+
+Class objects are of the type Class, rather like the class name is
+used to statically type instances.
+
+@subsection Creating Instances
+
+Class objects create new instances; to use the NSDate class to create
+a new @code{NSDate} instance and assign it to the @code{date} variable:
+
+@example
+id date;
+date = [NSDate alloc];
+@end example
+
+The alloc method equates the object's instance variables to zero
+with the exception of the @code{isa} variable, and also allocates
+memory for them. Complete initialisation of the object however
+relies on the @code{init} method that primes 'date' to receive messages:
+
+@code{date = [[NSDate alloc] init];}
+
+The alloc method returns a new instance that implements the
+@code{init} method, and like all instances and class objects
+it holds at least one method. The @code{init} method may take
+arguments so as to pass values.
+
+@subsection Factory Patterns
+@emph{Nicola to complete}@*
+(To be completed.)
+
+
+
+@subsection Factory or Class Objects
+Each class compilation sees the creation of a @b{factory object}
+or @b{class object} that builds class-specific objects. Objects
+instantiated by the factory object at run-time are @b{instances}
+of the class. Class names begin with an uppercase letter, while
+instance names begin with lowercase letter.
+
+The compiler may create as many class objects as there are defined classes.
+The class objects are conventional objects that may be dynamically typed,
+receivers, and the recipients of class methods in superclasses.
+
+
+@subsection NSClassFromString
+
+Class names are about the only names with global visibility in Objective-C.
+If a class is unknown at compilation but is available as a string at run time,
+@code{NSClassFromString} may be used to return the class object:
+
+
+@example
+..
+if ([anObject isKindOf: NSClassFromString(classTitle)] == YES)
+..
+@end example
+
+The function returns nil if it is passed a string holding an invalid class name.
+Class names, global variables and function exist in the same
+name space, so classes and global variables may not share the same name.
+
+@subsection respondsToSelector and NSStringFromClass
+
+Run-time errors result when objects are stimulated to perform methods
+absent from their repertoire. These errors are avoided by checking the
+receiver's available methods, and if statically typed the compiler will
+report them. Testing for this error may be left until run-time when the
+message selector or the receiver's class varies.
+The @code{respondsToSelector:} method inspects a receiver for compatibility
+by sending them the method selector as an argument, and subsequently
+returning a verification.
+@example
+
+if ([userObject respondsToSelector: @@selector(setOrigin::)] == YES)
+  @{
+    [userObject setOrigin: 2.0 : 2.0];
+  @}
+else
+  @{
+    NSLog(@"%@ out of range", NSStringFromClass([userObject class]));
+  @}
+@end example
+
+@section Naming Conventions
+
+
+@itemize @bullet
+
+@item
+Global variables may NOT share the same name as classes, because both
+entities are allocated the same name space.
+
+@item
+Files with an .m extension hold Objective-C source code, while those with a
+.h extension define protocols, or define classes and category interfaces.
+
+@item
+Implementation files have an @code{.m} extension.
+
+@item
+Interface files have a @code{.h} extension.
+
+@item
+Class, category and protocol names begin with an uppercase letter.
+
+@item
+Methods, instance variables, and variables holding instances begin
+with a lowercase letter.
+
+@item
+A class may define methods using the same names as those held in other classes.
+(See Overriding Methods.)
+
+@item
+A class may define instance variables using the same names as those
+held in other classes.
+
+@item
+A class category may have the same name as another class category.
+
+@item
+An instance method and a class method may share the same name.
+
+@item
+A protocol may have the same name as a class, category, or any other entity.
+
+@item
+A method and an instance variable may share the same name.
+
+@end itemize
+
+@subsection Pitfalls of Using Class Names
+@emph{Richard to complete}@*
+(To be completed.)
+
+@section The NSString Class
+
+The NSString class defines objects holding character streams or @b{strings} using any spoken language. A 
+@b{static} instance of NSString is allocated at compile time. The creation of a static
+instance of NSString is achieved using the @code{@@"..."} construct and a pointer:
+
+@example
+NSString *wasp = @@"Brainstorm";
+@end example
+@code{wasp} is a variable that refers to an NSString object representing
+the ASCII string "Brainstorm".
+
+@page
