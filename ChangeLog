@@ -1,3 +1,8 @@
+2004-10-05  Georg Fleischmann
+
+	* Source/NSCalendarDate.m [-initWithString:] Revert to previous
+	  code, and try to load time zone abbreviation from name first.
+
 2004-10-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Don't expect a baody where status is 204
