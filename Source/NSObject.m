@@ -1,5 +1,5 @@
 /* Implementation of NSObject for GNUStep
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: August 1994
@@ -109,7 +109,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject(self, 0, z);
+  return NSAllocateObject (self, 0, z);
 }
 
 + (id) new
@@ -119,7 +119,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - copyWithZone:(NSZone *)zone;
 {
-  return NSCopyObject(self, 0, zone);
+  return NSCopyObject (self, 0, zone);
 }
 
 - (id) copy
@@ -129,7 +129,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - (void) dealloc
 {
-  NSDeallocateObject(self);
+  NSDeallocateObject (self);
 }
 
 - free
@@ -155,12 +155,12 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 + (Class) superclass
 {
-  return class_get_super_class(self);
+  return class_get_super_class (self);
 }
 
 - (Class) superclass
 {
-  return object_get_super_class(self);
+  return object_get_super_class (self);
 }
 
 + (BOOL) instancesRespondToSelector: (SEL)aSelector
@@ -264,11 +264,6 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return self;
 }
 
-- (Class) classForArchiver
-{
-  return [self classForCoder];
-}
-
 - (Class) classForCoder
 {
   return [self class];
@@ -279,11 +274,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return self;
 }
 
-- (id) replacementObjectForArchiveer: (NSArchiver*)anArchiver
-{
-  return [self replacementObjectForCoder:(NSCoder*)anArchiver];
-}
-
+
 /* NSObject protocol */
 
 - autorelease
