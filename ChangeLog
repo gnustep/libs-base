@@ -1,3 +1,116 @@
+Sat Sep  7 13:37:32 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* Version (SUBMINOR_VERSION): Version 0.2.8.
+
+	* configure.in: Insert -lobjc before rest of LIBS, not after.
+
+	* src/include/NSThread.h: Remove underscore from front of
+ 	objc_thread type.
+
+	* src/NSObject.m: Remove underscores from front of objc_mutex
+ 	types.
+	([NSObject -error:]): Use objc_verror(), not _objc_error.
+
+	* doc/install.texi: Refine instructions for installing pthreads.
+  	Wow, is it yucky.
+
+	* configure.in: Remove check for sel_types_match.  That patch was
+ 	added long ago.
+
+	* src/include/preface.h.in (OBJC_STRINGIFY): New macro.
+
+	* src/include/preface.h.in: Don't include objc-malloc.h.
+
+	* src/Foundation/NSLock.h: Remove underscore from before
+ 	objc_mutex_t.
+
+	* src/include/preface.h.in (OBJC_MALLOC): Macro moved here from
+ 	src/include/objc-malloc.h.
+	(OBJC_VALLOC): Likewise.
+	(OBJC_ATOMIC_MALLOC): Likewise.
+	(OBJC_REALLOC): Likewise.
+	(OBJC_CALLOC): Likewise.
+	(OBJC_FREE): Likewise.
+
+	* src/mframe.m: Don't include objc-malloc.h.
+	* src/RNGAdditiveCongruential.m: Likewise.
+	* src/NSAutoreleasePool.m: Likewise.
+	* src/MemoryStream.m: Likewise.
+	* src/AutoreleasePool.m: Likewise.
+
+	* src/Makefile.in (GNU_MFILES): Remove objc-malloc.m.
+	(GNU_HEADERS): Remove include/objc-malloc.h.
+
+	* src/mframe.m (mframe_build_return): In accordance with Objective
+ 	C runtime change, use objc_malloc as a function, not a function
+ 	pointer.
+	* src/behavior.m (behavior_class_add_methods): Likewise.
+	* src/Storage.m ([Storage -initCount:elementSize:description:]):
+	Likewise.
+	([Storage -shallowCopy]): Likewise.
+	([Storage -read:]): Likewise.
+	* src/Storage.m ([Storage -initCount:elementSize:description:]):
+	Likewise.
+	* src/NSMutableData.m ([NSMutableData -initWithCapacity:]): Likewise.
+	* src/NSGData.m ([NSGMutableData -initWithCapacity:]): Likewise.
+	* src/NSData.m ([NSMutableData -initWithCapacity:]): Likewise.
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool -init]): Likewise.
+	([NSAutoreleasePool -addObject:]): Likewise.
+	* src/MemoryStream.m ([MemoryStream -readLine]): Likewise.
+	* src/Invocation.m ([Invocation -initWithCoder:]): Likewise.
+	* src/o_vscanf.c (STRING_ARG): Likewise.
+	(STRING_ADD_CHAR): Likewise, with objc_realloc.
+	* src/NSZone.m: Likewise.
+	* src/Storage.m: Likewise.
+	* src/MemoryStream.m ([MemoryStream -writeBytes:length:]): Likewise.
+
+	* doc/install.texi: Update instructions for new Objective C
+ 	runtime patches and for new pthreads.
+
+	* RELEASE-NOTES: Talk about need for new Objective C runtime to
+	compile this release.
+
+	* config.guess: New version from FSF.
+
+	* doc/Makefile.in: Added some pattern rules, but commented them
+ 	out for now.
+
+	* src/NSGCString.m ([NSGCString -substringFromRange:]): Don't
+ 	always return a mutable string class; return the same
+ 	mutable/immutable string class as self.  This also simplies the
+ 	code.
+
+	* src/NSGCString.m ([NSGCString -substringFromRange:]): New
+ 	method, overrides superclass method with more efficient
+ 	implementation.  (From Eric Norum.)
+
+	* src/NSScanner.m: Now that NSCharacterSet's does its own caching,
+ 	simplify this code.
+	(Changes from Eric Norum <Eric.Norum@usask.ca>.)
+
+	* src/NSCharacterSet.m (NSCharacterSet_PATH): New macro, replacing
+ 	BITMAP_PATH.  Value partially determined by
+ 	GNUSTEP_INSTALL_PREFIX.
+
+	* configure.in: Use AC_CHECKING instead of `echo', so ./configure
+ 	obeys --quiet and --silent.
+
+	* src/Makefile.in (DEFS): Add definition of
+ 	GNUSTEP_INSTALL_PREFIX, equal to $(prefix).  This is needed by
+ 	NSCharacterSet, so it knows where to find the char set data files.
+
+Thu Aug  1 10:42:19 1996  Adam Fedor  <fedor@wave.Colorado.edu>
+
+        *  src/NSCharacterSet.m ([NSCharacterSet -_bitmapForSet:number:]):
+        Retain cached set.
+
+Wed Sep  4 11:29:31 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* doc/gnustep-faq.texi (Why don't we separate the OpenStep
+ 	standard classes from the GNU-specific classes?): New Q/A pair.
+	(Where can I get a copy?): Removed reference to Rochester's FTP site,
+	which will no longer be used, now that I'm at CMU.
+
 Mon Sep  2 10:00:05 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.7.
