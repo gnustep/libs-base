@@ -119,7 +119,7 @@ static id nilBinaryTreeNode;
 }
 
 /* This must work without sending any messages to content objects */
-- empty
+- _empty
 {
   _count = 0;
   _contents_root = [self nilNode];
