@@ -26,6 +26,8 @@
 #include <objects/Coder.h>
 #include <stdarg.h>
 
+/* xxx I should test return values of all functions on the FILE*. */
+
 enum {
   STREAM_READONLY = 0,
   STREAM_READWRITE,
@@ -198,8 +200,9 @@ stdio_unchar_func(void *s, int c)
 
 - (BOOL) isClosed
 {
-  /* xxx Ideas about a better way to do this? */
-  return (fstat(fp) == 0);
+  /* xxx How should this be implemented? */
+  [self notImplemented:_cmd];
+  return NO;
 }
 
 /* xxx Add "- (BOOL) isOpen" method? */
