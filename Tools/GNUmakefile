@@ -41,7 +41,7 @@ DOCTEMPLATES_FILES = indextemplate.gsdoc AutoDocTemplate.gsdoc
 
 # The application to be compiled
 TOOL_NAME = autogsdoc gdnc gsdoc defaults plmerge \
-		plparse sfparse pldes plser pl2link
+		plparse sfparse pldes plser pl2link HTMLLinker
 CTOOL_NAME = gdomap
 
 TEST_TOOL_NAME = locale_alias
@@ -62,6 +62,7 @@ plparse_OBJC_FILES = plparse.m
 sfparse_OBJC_FILES = sfparse.m
 pl2link_OBJC_FILES = pl2link.m
 locale_alias_OBJC_FILES = locale_alias.m
+HTMLLinker_OBJC_FILES = HTMLLinker.m
 
 DOCUMENT_NAME = autogsdoc
 
