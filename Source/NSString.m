@@ -1154,6 +1154,7 @@ handle_printf_atsign (FILE *stream,
                locale: (NSDictionary*)locale
             arguments: (va_list)argList
 {
+  extern void GSStrExternalize();
   unsigned char	buf[2048];
   GSStr_t	f;
   unichar	fbuf[1024];
@@ -1186,6 +1187,7 @@ handle_printf_atsign (FILE *stream,
   f._flags.wide = 0;
   f._flags.free = 0;
   GSFormat(&f, fmt, argList, locale);
+  GSStrExternalize(&f);
   if (fmt != fbuf)
     {
       objc_free(fmt);
