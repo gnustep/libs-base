@@ -505,6 +505,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return [self perform:sel withObject:anObject];
 }
 
+- perform: (SEL)sel with: anObject with: anotherObject
+{
+  return [self perform:sel withObject:anObject withObject:anotherObject];
+}
+
 @end
 
 @implementation NSObject (GNU)
