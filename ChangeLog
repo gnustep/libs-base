@@ -1,3 +1,8 @@
+2001-11-24  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSURL.h
+	Declare NSNumber, so that it compiles without complaining.
+	
 2001-11-23  Laurent Julliard  <laurent@julliard-online.org>
 
 	* Source/NSNumberFormatter.m (-encodeWithCoder:, -initWithCode:):
