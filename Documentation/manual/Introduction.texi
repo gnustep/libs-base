@@ -291,15 +291,15 @@ shown.  For a full description of the make utility see its
 @cindex GUI
 
 The GNUstep @b{GUI} component is discussed
-@uref{../../Gui/ProgrammingManual/manual_toc.html, elsewhere}), but a brief
+@uref{../../Gui/ProgrammingManual/manual_toc.html, elsewhere}, but a brief
 overview is useful here.  GNUstep GUI provides a collection of classes for
-developing graphical applications, including windows, widgets, and back-end
-components for event handling and other functions.  Internally, the
-implementation is divided into two components, the @i{back end} and the
-@i{front end}.  The front end provides the API to the developer, and makes
-display postscript (DPS) calls to the back end to implement it.  The back-end
-converts the DPS calls into calls to the underlying window system.  If you
-install GNUstep from source, you must first compile and install the front end,
+developing graphical applications, including windows, controls (also known as
+widgets, and back-end components for event handling and other functions. 
+Internally, the implementation is divided into two components, the @i{back end} 
+and the @i{front end}.  The front end provides the API to the developer, and 
+makes display postscript (DPS) calls to the back end to implement it.  The 
+back-end converts the DPS calls into calls to the underlying window system.  If 
+you install GNUstep from source, you must first compile and install the front end,
 then compile and install the back end.
 
 Implementations of the back-end have been produced for both X11 (Linux/UNIX
@@ -435,10 +435,10 @@ this is to execute one of the following commands (you must first locate your
 GNUstep installation manually):
 
 C shell:@*
-@code{source <GNUstep root>/System/Makefiles/GNUstep.csh}
+@code{source <GNUstep root>/System/Library/Makefiles/GNUstep.csh}
 
 Bourne shell:@*
-@code{. <GNUstep root>/System/Makefiles/GNUstep.sh}
+@code{. <GNUstep root>/System/Library/Makefiles/GNUstep.sh}
 
 On most Unix systems, GNUstep is installed in @code{/usr/lib/GNUstep}.
 (@uref{../../../User/GNUstep/filesystem_toc.html, Directory layout
@@ -449,9 +449,9 @@ You can now compile the project using make. At the system command prompt,
 change to the project directory and enter the @b{make} command.@*@*
 
 @item
-Run the program (on Unix enter @b{./LogTest} at the command prompt). The
-message "This is the string value of the Test class" will be displayed
-(assuming there were no errors).
+Run the program (on Unix enter @b{./obj/LogTest}
+at the command prompt). The message "This is the string value of the Test class" 
+will be displayed (assuming there were no errors).
 
 @end enumerate
 
