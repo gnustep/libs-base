@@ -1,5 +1,7 @@
 #include <Foundation/Foundation.h>
 
+static int errors = 0;
+
 @interface Handler : NSObject
 - (BOOL) fileManager: (NSFileManager*)manager
 shouldProceedAfterError: (NSString*)error;
@@ -12,12 +14,14 @@ willProcessPath: (NSString*)path;
 shouldProceedAfterError: (NSString*)error
 {
   NSLog(@"Error - %@", error);
+  errors++;
   return NO;
 }
 - (BOOL) fileManager: (NSFileManager*)manager
 willProcessPath: (NSString*)path
 {
   NSLog(@"Processing %@", path);
+  errors++;
   return NO;
 }
 @end
@@ -39,6 +43,7 @@ main ()
       if ([mgr copyPath: src toPath: dst handler: handler] ==  NO)
 	{
 	  NSLog(@"Copy %@ to %@ failed", src, dst);
+          errors++;
 	}
     }
 
@@ -48,10 +53,13 @@ main ()
       if ([mgr removeFileAtPath: src handler: handler] ==  NO)
 	{
 	  NSLog(@"Remove %@ failed", src);
+          errors++;
 	}
       
     }
 
   RELEASE(arp);
+  if (errors == 0)
+    printf("Tests passed\n");
   exit (0);
 }

@@ -4,6 +4,11 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 
+int compare(id elem1, id elem2, void* context)
+{
+  return (int)[elem1 performSelector:@selector(compare:) withObject:elem2];
+}
+
 int
 main()
 {
@@ -129,11 +134,6 @@ main()
   }
 
   {
-    int compare(id elem1, id elem2, void* context)
-      {
-	return (int)[elem1 performSelector:@selector(compare:) withObject:elem2];
-      }
-
     // Deriving new arrays
     NSRange r = NSMakeRange(0, 3);
 

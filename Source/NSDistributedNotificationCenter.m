@@ -484,6 +484,10 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 
 @implementation	NSDistributedNotificationCenter (Private)
 
+/**
+ * Establish a connection to the server.  This method should only be called
+ * when protected by the centres lock, so that it is thread-safe.
+ */
 - (void) _connect
 {
   if (_remote == nil)
@@ -574,6 +578,12 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  Protocol	*p = @protocol(GDNCProtocol);
 
 	  [_remote setProtocolForProxy: p];
+	  
+	  /*
+           * Ensure that this center can be used safely from different
+	   * threads.
+	   */
+	  [c enableMultipleThreads];
 
 	  /*
 	   *	Ask to be told if the connection goes away.

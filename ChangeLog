@@ -1,3 +1,139 @@
+2003-03-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Completed merge of changes from 1.6.0 branch.
+
+2003-03-17  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.6.0
+
+2003-03-17  Adam Fedor  <fedor@gnu.org>
+
+	* Testing/LoadMe.m (afterLoad): Use description, not name.
+	* Testing/nsfilemanager.m: Print some output. Clean up.
+	* Testing/scanner.m, nstimezone.m, release.m: Idem.
+
+	* config/config.vsprintf, config/config.vasprintf: Rewrite to
+	properly call a variable argument function.
+
+2003-03-14  Adam Fedor  <fedor@Eldorado.local.>
+
+	* Testing/nsarray.m (compare): Un-nest function.
+
+	* Source/NSProcessInfo.m (-operatingSystem): Add darwin. 
+
+2003-03-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: ([-isDeletableFileAtPath:]) Fix for the
+	case where the path is a file in the current directory.
+
+2003-03-11  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Fix some typos (Reported by
+	Alexander Malmberg <alexander@malmberg.org>).
+
+2003-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSSet.h: Added a few non-openstep declarations
+	* Source/GSCompatibility.m: OAppend() sort dictionary keys even if
+	locale is nil.
+
+2003-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Fix reference to zone of deallocated object.
+	Bug reported by Roland Schwingel
+	* Source/NSFileManager.m: Fix typo (using logical or rather than
+	bitwise or) in call to access()
+	Bug reported by Roland Schwingel
+
+2003-02-17    <woudshoo@agilisys.com>
+
+	* GNUmakefile (GNUSTEP_TARGET_INSTALL_PREFIX)
+	(GNUSTEP_TARGET_LOCAL_ROOT, GNUSTEP_TARGET_NETWORK_ROOT): On
+	mingw32 replace / with \\057 to avoid the msys shell translating /
+	with \.
+
+2003-03-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.vasprintf.c:
+	* config/config.vsprintf.c: Correct the number of arguments passed
+	so that modern compilers don't fail on these files.  A compiler
+	failure is seen by configure as the same as a runtime failure, and
+	configure would infer incorrect runtime behavior!
+
+2003-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSerializer.m: Fix crash when deserializing a corrupt or
+	truncated archive ... raise exception rather than segfaulting.
+	Added code to recognize newer versions of the serialiser format and
+	give up if they are encountered and cannot be handled.
+	* Source/GSTcpPort.m: Added code to recognise newer versions of the
+	port format and give up if they are encountered and cannot be handled.
+	This allows for the addition of decent versioning in later formats.
+
+2003-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Fix to understand __attribute__() in declaration.
+
+2003-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSIndex.m: Convert nil content to empty strings before use.
+	* Tools/AGSHtml.m: ditto ... prevent some crashes.
+
+2003-02-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m (_gnu_process_args): Tidied patch and add
+	code to print error and abort if argv is null under unixy systems.
+
+2003-02-24  Tom Koelman <tkoelman@xs4all.nl>
+
+	* Source/NSProcessInfo.m (_gnu_process_args): If argv is 0 (e.g.
+	on MingW) set executable name using module name info.
+
+2003-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUser.m: Don't prepend HOMEDRIVE to HOMEPATH if HOMEPATH
+	already contains a drive letter.
+
+2003-02-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: GSObjCSetValue() correct to call
+	([unableToSetNilForKey:]) when it should.
+	* Source/NSDecimalNumber.m: Override initialisers from NSNumber to
+	create NSDecimalNumber objects ... bug report by David Ayers.
+
+2003-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m: ([_connect]) make the
+	connection to the server usable from any thread.
+
+2003-02-19  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSKeyValueCoding.m ([NSObject -handleQueryWithUnboundKey:]): 
+	Raise NSUnknownKeyException.
+	([NSObject -handleTakeValue:forUnboundKey:]): Idem.
+
+2003-02-18  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSFFIInvocation.m (GSFFIInvocationCallback): Cast
+	invocation to access ivars correctly. Check validReturn.
+
+2003-02-18  Tom Koelman <tkoelman@xs4all.nl>
+
+	* Source/NSProcessInfo.m (_gnu_process_args): If argv is 0 (e.g.
+	on MingW) set executable name to empty string.
+
+2003-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: (fillHole) fix memory overrun (read only) and
+	argument order errors (in code not normally compiled) spotted by
+	Manuel Guesdon.
+
+
+2003-03-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Start merged of changes from 1.6.0 branch.
+
+
 2003-03-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSMime.m: (_unfoldHeader) Check that input pointer doesn't

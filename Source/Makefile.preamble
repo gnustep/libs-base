@@ -77,9 +77,6 @@ endif
 ifeq ($(GNUSTEP_TARGET_OS),cygwin)
 libgnustep-base_LIBRARIES_DEPEND_UPON += -lobjc
 endif
-ifeq ($(findstring darwin, $(GNUSTEP_TARGET_OS)), darwin)
-libgnustep-base_LIBRARIES_DEPEND_UPON += -flat_namespace
-endif
 ifeq ($(shared),yes)
 libgnustep-base_LIBRARIES_DEPEND_UPON += $(CONFIG_SYSTEM_LIBS) 
 endif

@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.5.2, is now available.
+The GNUstep Base Library, version 1.6.0, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -19,11 +19,11 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-   Note that versions that have a odd minor release number are unstable
-releases (like 1.5.2), which even minor release numbers (1.4.1) are
-stable releases.
+   Note that versions that have a odd minor release number (the second
+number, y, in x.y.z) are unstable releases (like 1.5.2), which even
+minor release numbers (1.4.1) are stable releases.
 
-Noteworthy changes in version `1.5.2'
+Noteworthy changes in version `1.6.0'
 =====================================
 
    * More MinGW support
@@ -41,7 +41,7 @@ Noteworthy changes in version `1.5.2'
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.5.2.tar.gz distribution file has been placed on
+   The gnustep-base-1.6.0.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    Please log bug reports on the GNUstep project page

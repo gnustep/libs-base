@@ -410,10 +410,8 @@ static BOOL	shouldBeCompact = NO;
  *	Variables to cache class information.
  */
 static BOOL	uniquing = NO;	/* Make incoming strings unique	*/
-static Class	IACls = 0;	/* Immutable Array	*/
 static Class	MACls = 0;	/* Mutable Array	*/
 static Class	DCls = 0;	/* Data			*/
-static Class	IDCls = 0;	/* Immutable Dictionary	*/
 static Class	MDCls = 0;	/* Mutable Dictionary	*/
 static Class	USCls = 0;	/* Unicode String	*/
 static Class	CSCls = 0;	/* C String 		*/
@@ -433,29 +431,57 @@ static SEL deiSel;
 static SEL csInitSel;
 static SEL usInitSel;
 static SEL dInitSel;
-static SEL iaInitSel;
 static SEL maInitSel;
-static SEL idInitSel;
 static SEL mdInitSel;
+static SEL maAddSel;
+static SEL mdSetSel;
 static IMP csInitImp;
 static IMP usInitImp;
 static IMP dInitImp;
-static IMP iaInitImp;
 static IMP maInitImp;
-static IMP idInitImp;
 static IMP mdInitImp;
+static IMP maAddImp;
+static IMP mdSetImp;
 
-static void
+static BOOL
 initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
 {
+  unsigned char	u;
+
   info->data = d;
   info->cursor = c;
   info->mutable = m;
   info->debImp = (void (*)())[d methodForSelector: debSel];
   info->deiImp = (unsigned int (*)())[d methodForSelector: deiSel];
-  (*info->debImp)(d, debSel, &info->didUnique, 1, c);
+  (*info->debImp)(d, debSel, &u, 1, c);
+  if (u == 0 || u == 1)
+    {
+      info->didUnique = u;		// Old (current) format
+    }
+  else
+    {
+      if (u == 'G')
+	{
+	  const unsigned char	*b = [d bytes];
+	  unsigned int		l = [d length];
+
+	  if (*c + 11 < l && memcmp(&b[*c-1], "GNUstepSer", 10) == 0)
+	    {
+	      *c += 9; 
+	      (*info->debImp)(d, debSel, &u, 1, c);
+	      NSLog(@"Serialised data version %d not supported ..."
+		@" try another version of GNUstep");
+	      return NO;
+	    }
+	}
+      NSLog(@"Bad serialised data");
+      return NO;
+    }
   if (info->didUnique)
-    GSIArrayInitWithZoneAndCapacity(&info->array, NSDefaultMallocZone(), 16);
+    {
+      GSIArrayInitWithZoneAndCapacity(&info->array, NSDefaultMallocZone(), 16);
+    }
+  return YES;
 }
 
 static void
@@ -565,42 +591,31 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_MARRAY:
 	size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	{
-	  id		objects[size];
 	  id		a;
-	  unsigned	i;
 
-	  for (i = 0; i < size; i++)
+	  a = NSAllocateObject(MACls, 0, NSDefaultMallocZone());
+	  a = (*maInitImp)(a, maInitSel, size);
+	  if (a != nil)
 	    {
-	      objects[i] = deserializeFromInfo(info);
-	      if (objects[i] == nil)
+	      unsigned	i;
+
+	      for (i = 0; i < size; i++)
 		{
-#if	!GS_WITH_GC
-		  while (i > 0)
+		  id	o = deserializeFromInfo(info);
+
+		  if (o == nil)
 		    {
-		      [objects[--i] release];
+		      RELEASE(a);
+		      return nil;
 		    }
-#endif
-		  objc_free(objects);
-		  return nil;
+		  (*maAddImp)(a, maAddSel, o);
+		  RELEASE(o);
+		}
+	      if (code != ST_MARRAY && info->mutable == NO)
+		{
+		  [a makeImmutableCopyOnFail: NO];
 		}
 	    }
-	  if (code == ST_MARRAY || info->mutable)
-	    {
-	      a = NSAllocateObject(MACls, 0, NSDefaultMallocZone());
-	      a = (*maInitImp)(a, maInitSel, objects, size);
-	    }
-	  else
-	    {
-	      a = NSAllocateObject(IACls, sizeof(id)*size,
-		NSDefaultMallocZone());
-	      a = (*iaInitImp)(a, iaInitSel, objects, size);
-	    }
-#if	!GS_WITH_GC
-	  for (i = 0; i < size; i++)
-	    {
-	      [objects[i] release];
-	    }
-#endif
 	  return a;
 	}
 
@@ -608,56 +623,46 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_MDICT:
 	size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	{
-	  id		keys[size];
-	  id		objects[size];
 	  id		d;
-	  unsigned int	i;
 
-	  for (i = 0; i < size; i++)
+	  d = NSAllocateObject(MDCls, 0, NSDefaultMallocZone());
+	  d = (*mdInitImp)(d, mdInitSel, size);
+	  if (d != nil)
 	    {
-	      keys[i] = deserializeFromInfo(info);
-	      if (keys[i] == nil)
+	      unsigned int	i;
+
+	      for (i = 0; i < size; i++)
 		{
-#if	!GS_WITH_GC
-		  while (i > 0)
+		  id	k = deserializeFromInfo(info);
+
+		  if (k == nil)
 		    {
-		      [keys[--i] release];
-		      [objects[i] release];
+		      RELEASE(d);
+		      return nil;
 		    }
-#endif
-		  return nil;
+		  else
+		    {
+		      id	o = deserializeFromInfo(info);
+
+		      if (o == nil)
+			{
+			  RELEASE(k);
+			  RELEASE(d);
+			  return nil;
+			}
+		      else
+			{
+			  (*mdSetImp)(d, mdSetSel, o, k);
+			  RELEASE(k);
+			  RELEASE(o);
+			}
+		    }
 		}
-	      objects[i] = deserializeFromInfo(info);
-	      if (objects[i] == nil)
+	      if (code != ST_MDICT && info->mutable == NO)
 		{
-#if	!GS_WITH_GC
-		  [keys[i] release];
-		  while (i > 0)
-		    {
-		      [keys[--i] release];
-		      [objects[i] release];
-		    }
-#endif
-		  return nil;
+		  [d makeImmutableCopyOnFail: NO];
 		}
 	    }
-	  if (code == ST_MDICT || info->mutable)
-	    {
-	      d = NSAllocateObject(MDCls, 0, NSDefaultMallocZone());
-	      d = (*mdInitImp)(d, mdInitSel, objects, keys, size);
-	    }
-	  else
-	    {
-	      d = NSAllocateObject(IDCls, 0, NSDefaultMallocZone());
-	      d = (*idInitImp)(d, idInitSel, objects, keys, size);
-	    }
-#if	!GS_WITH_GC
-	  for (i = 0; i < size; i++)
-	    {
-	      [keys[i] release];
-	      [objects[i] release];
-	    }
-#endif
 	  return d;
 	}
 
@@ -728,8 +733,15 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   _NSDeserializerProxy	*proxy;
 
   proxy = (_NSDeserializerProxy*)NSAllocateObject(self,0,NSDefaultMallocZone());
-  initDeserializerInfo(&proxy->info, RETAIN(d), c, m);
-  return AUTORELEASE(proxy);
+  if (initDeserializerInfo(&proxy->info, RETAIN(d), c, m) == YES)
+    {
+      return AUTORELEASE(proxy);
+    }
+  else
+    {
+      DESTROY(proxy);
+      return nil;
+    }
 }
 
 - (void) dealloc
@@ -784,24 +796,22 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       csInitSel = @selector(initWithCStringNoCopy:length:freeWhenDone:);
       usInitSel = @selector(initWithCharactersNoCopy:length:freeWhenDone:);
       dInitSel = @selector(initWithBytesNoCopy:length:);
-      iaInitSel = @selector(initWithObjects:count:);
-      maInitSel = @selector(initWithObjects:count:);
-      idInitSel = @selector(initWithObjects:forKeys:count:);
-      mdInitSel = @selector(initWithObjects:forKeys:count:);
-      IACls = [GSInlineArray class];
+      maInitSel = @selector(initWithCapacity:);
+      mdInitSel = @selector(initWithCapacity:);
+      maAddSel = @selector(addObject:);
+      mdSetSel = @selector(setObject:forKey:);
       MACls = [GSMutableArray class];
       DCls = [NSDataMalloc class];
-      IDCls = [GSDictionary class];
       MDCls = [GSMutableDictionary class];
       USCls = [GSUnicodeString class];
       CSCls = [GSCString class];
       csInitImp = [CSCls instanceMethodForSelector: csInitSel];
       usInitImp = [USCls instanceMethodForSelector: usInitSel];
       dInitImp = [DCls instanceMethodForSelector: dInitSel];
-      iaInitImp = [IACls instanceMethodForSelector: iaInitSel];
       maInitImp = [MACls instanceMethodForSelector: maInitSel];
-      idInitImp = [IDCls instanceMethodForSelector: idInitSel];
       mdInitImp = [MDCls instanceMethodForSelector: mdInitSel];
+      maAddImp = [MACls instanceMethodForSelector: maAddSel];
+      mdSetImp = [MDCls instanceMethodForSelector: mdSetSel];
     }
 }
 
@@ -817,10 +827,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       return nil;
     }
   NSAssert(cursor != 0, NSInvalidArgumentException);
-  initDeserializerInfo(&info, data, cursor, flag);
-  o = deserializeFromInfo(&info);
-  endDeserializerInfo(&info);
-  return AUTORELEASE(o);
+  if (initDeserializerInfo(&info, data, cursor, flag) == YES)
+    {
+      o = deserializeFromInfo(&info);
+      endDeserializerInfo(&info);
+      return AUTORELEASE(o);
+    }
+  else
+    {
+      return nil;
+    }
 }
 
 + (id) deserializePropertyListFromData: (NSData*)data
@@ -834,10 +850,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     {
       return nil;
     }
-  initDeserializerInfo(&info, data, &cursor, flag);
-  o = deserializeFromInfo(&info);
-  endDeserializerInfo(&info);
-  return AUTORELEASE(o);
+  if (initDeserializerInfo(&info, data, &cursor, flag) == YES)
+    {
+      o = deserializeFromInfo(&info);
+      endDeserializerInfo(&info);
+      return AUTORELEASE(o);
+    }
+  else
+    {
+      return nil;
+    }
 }
 
 + (id) deserializePropertyListLazilyFromData: (NSData*)data
@@ -855,10 +877,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       _NSDeserializerInfo   info;
       id    o;
 
-      initDeserializerInfo(&info, data, cursor, flag);
-      o = deserializeFromInfo(&info);
-      endDeserializerInfo(&info);
-      return AUTORELEASE(o);
+      if (initDeserializerInfo(&info, data, cursor, flag) == YES)
+	{
+	  o = deserializeFromInfo(&info);
+	  endDeserializerInfo(&info);
+	  return AUTORELEASE(o);
+	}
+      else
+	{
+	  return nil;
+	}
     }
   else
     {
