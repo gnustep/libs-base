@@ -1,3 +1,7 @@
+2005-03-12  Sungjin Chun <chuns@embian.com>
+
+	* Source/Additions/GSXML.m: Port to MacOS-X
+
 2005-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Handle null object passed to OAppend()

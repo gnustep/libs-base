@@ -2532,9 +2532,16 @@ loadEntityFunction(const unsigned char *url, const unsigned char *eid,
 					 range: r];
 	    }
 
+#ifdef GNUSTEP
 	  found = [NSBundle pathForLibraryResource: name
 					    ofType: @"dtd"
 				       inDirectory: @"DTDs"];
+#else
+	  found = [[NSBundle bundleForClass:NSClassFromString(@"GSXMLNode")]
+                    pathForResource:name
+		                     ofType:@"dtd"
+		                inDirectory:@"DTDs"];
+#endif
 	  if (found == nil)
 	    {
 	      NSLog(@"unable to find GNUstep DTD - '%@' for '%s'", name, eid);
@@ -4832,9 +4839,20 @@ static void indentation(unsigned level, NSMutableString *str)
     {
       [self timeout: nil];	// Treat as immediate timeout.
     }
+#ifdef GNUSTEP
   [handle removeClient: self];
+#endif
   DESTROY(result);
+#ifdef GNUSTEP
   DESTROY(handle);
+#else
+  if (connection)
+    {
+      [connection release];
+    }
+  [response release];
+  [connectionURL release];
+#endif
   [super dealloc];
 }
 
@@ -4857,8 +4875,9 @@ static void indentation(unsigned level, NSMutableString *str)
     {
       NS_DURING
 	{
+#ifdef GNUSTEP
 	  NSURL	*u = [NSURL URLWithString: url];
-
+        
 	  handle = RETAIN([u URLHandleUsingCache: NO]);
 	  if (cert != nil && pKey != nil && pwd != nil)
 	    {
@@ -4868,6 +4887,11 @@ static void indentation(unsigned level, NSMutableString *str)
 	      [handle writeProperty: pwd forKey: GSHTTPPropertyPasswordKey];
 	    }
 	  [handle addClient: self];
+#else
+	  connectionURL = [url copy];
+	  connection = nil;
+	  response = [[NSMutableData alloc] init];
+#endif
 	}
       NS_HANDLER
 	{
@@ -4980,7 +5004,7 @@ static void indentation(unsigned level, NSMutableString *str)
   return method;
 }
 
-- (NSDictionary*) parseResponse: (NSData*) response
+- (NSDictionary*) parseResponse: (NSData*)response
 			 params: (NSMutableArray*)params
 {
   GSXPathContext	*ctx = nil;
@@ -5015,7 +5039,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
   NS_DURING
     {
-      int		i;
+      int	i;
 
       if ([ns count] > 0)
 	{
@@ -5076,10 +5100,12 @@ static void indentation(unsigned level, NSMutableString *str)
 
   ASSIGN(result, @"unable to send");
 
+#ifdef GNUSTEP
   if (handle == nil)
     {
       return NO;	// Not initialised to send.
     }
+#endif
   if (timer != nil)
     {
       return NO;	// Send already in progress.
@@ -5097,20 +5123,40 @@ static void indentation(unsigned level, NSMutableString *str)
 					 userInfo: nil
 					  repeats: NO];
 
+#ifdef GNUSTEP
   [handle writeProperty: @"POST" forKey: GSHTTPPropertyMethodKey];
   [handle writeProperty: @"GSXMLRPC/1.0.0" forKey: @"User-Agent"];
   [handle writeProperty: @"text/xml" forKey: @"Content-Type"];
   [handle writeData: data];
   [handle loadInBackground];
+#else
+  {
+    NSMutableURLRequest *request;
+
+    request = [NSMutableURLRequest alloc];
+    request = [tequest initWithURL: [NSURL URLWithString: connectionURL]];
+    [request setCachePolicy: NSURLRequestReloadIgnoringCacheData];
+    [request setHTTPMethod: @"POST"];  
+    [request setValue: @"GSXMLRPC/1.0.0" forHTTPHeaderField: @"User-Agent"];
+    [request setValue: @"text/xml" forHTTPHeaderField: @"Content-Type"];
+    [request setHTTPBody: data];
+  
+    connection = [NSURLConnection alloc];
+    connection = [connection initWithRequest: request delegate: self];
+    [request release];
+  }
+#endif
   return YES;
 }
 
 - (void) setDebug: (BOOL)flag
 {
+#ifdef GNUSTEP
   if ([handle respondsToSelector: _cmd] == YES)
     {
       [(id)handle setDebug: flag];
     }
+#endif
 }
 
 - (void) setDelegate: (id)aDelegate
@@ -5122,9 +5168,14 @@ static void indentation(unsigned level, NSMutableString *str)
 {
   [timer invalidate];
   timer = nil;
+#ifdef GNUSTEP
   [handle cancelLoadInBackground];
+#else
+  [connection cancel];
+#endif
 }
 
+#ifdef GNUSTEP
 
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDataDidBecomeAvailable: (NSData*)newData
@@ -5203,6 +5254,91 @@ static void indentation(unsigned level, NSMutableString *str)
       [delegate completedXMLRPC: self];
     }
 }
+
+#else /* !GNUSTEP */
+
+- (void) connection: (NSURLConnection*)connection
+didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge*)challenge
+{
+  /* DO NOTHING */
+}
+
+- (void) connection: (NSURLConnection*)connection
+   didFailWithError: (NSError*)error
+{
+  ASSIGN(result, [error localizedDescription]);
+  [timer invalidate];
+  timer = nil;
+  if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
+    {
+      [delegate completedXMLRPC: self];
+    }    
+}
+
+- (void) connection: (NSURLConnection*)connection
+didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge*)challenge 
+{
+}
+
+- (void) connection: (NSURLConnection*)connection didReceiveData: (NSData*)data 
+{
+  [response appendData: data];
+}
+
+- (void) connection: (NSURLConnection*)connection
+ didReceiveResponse: (NSURLResponse*)response 
+{
+  /* DO NOTHING */
+}
+
+- (NSCachedURLResponse*) connection: (NSURLConnection*)connection
+		  willCacheResponse: (NSCachedURLResponse*)cachedResponse
+{
+  return nil;
+}
+
+- (NSURLRequest*) connection: (NSURLConnection*)connection
+	     willSendRequest: (NSURLRequest*)request
+	    redirectResponse: (NSURLResponse*)redirectResponse 
+{
+  return nil;
+}
+
+-(void) connectionDidFinishLoading: (NSURLConnection*)connection 
+{
+  NSMutableArray	*params = [NSMutableArray array];
+  id			fault = nil;
+  int			code;
+
+  NS_DURING
+    {
+      fault = [self parseResponse: response params:   params];
+    }
+  NS_HANDLER
+    {
+      fault = [localException reason];
+    }
+  NS_ENDHANDLER
+    
+  if (fault == nil)
+    {
+      ASSIGNCOPY(result, params);
+    }
+  else
+    {
+      ASSIGNCOPY(result, fault);
+    }
+    
+  [timer invalidate];
+  timer = nil;
+    
+  if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
+    {
+      [delegate completedXMLRPC: self];
+    }        
+}
+
+#endif
 
 @end
 

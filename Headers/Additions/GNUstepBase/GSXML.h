@@ -450,7 +450,13 @@
 @interface	GSXMLRPC : NSObject <NSURLHandleClient>
 {
 @private
+#ifdef GNUSTEP
   NSURLHandle		*handle;
+#else
+  NSString *connectionURL;
+  NSURLConnection *connection;
+  NSMutableData *response;
+#endif
   NSTimer		*timer;
   id			result;
   id			delegate;	// Not retained.
@@ -605,7 +611,7 @@
  */
 - (void) timeout: (NSTimer*)t;
 
-
+#ifdef GNUSTEP
 /** Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDataDidBecomeAvailable: (NSData*)newData;
@@ -618,6 +624,7 @@
 - (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender;
 /** Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
 - (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender;
+#endif
 
 @end
 
