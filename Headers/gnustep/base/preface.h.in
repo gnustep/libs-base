@@ -48,21 +48,19 @@
  #define _C_OUT      'o'
  #define _C_BYCOPY   'O'
  #define _C_ONEWAY   'V'
- #define CLASS Class
 #else				/* GNU Objective C Runtime */
  #include <objc/objc.h>
  #include <objc/objc-api.h>
  #include <objc/encoding.h>
  #include <objc/sarray.h>
  #include <objc/list.h>
- #define CLASS Class*
 #endif
 
 #include <objc/Object.h>
 #include <objects/objc-malloc.h>
 
 /* The following two lines are maintained by the libobjects Makefile */
-#define OBJECTS_VERSION 0.1.1
+#define OBJECTS_VERSION 0.1.4
 #define OBJECTS_GCC_VERSION 2.6.1
 
 extern const char objects_version[];
