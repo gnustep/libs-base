@@ -46,6 +46,18 @@ extern int	errno;
  *		Returns the number of instances of the specified class
  *		which are currently allocated.
  *
+ *      GSDebugAllocationTotal()
+ *		Returns the total number of instances of the specified class
+ *		which have been allocated.
+ *
+ *      GSDebugAllocationPeak()
+ *		Returns the peak number of instances of the specified class
+ *		which have been concurrently allocated.
+ *
+ *      GSDebugAllocationClassList()
+ *              Returns a NULL terminated array listing all the classes 
+ *              for which statistical information have been collected.
+ *
  *	GSDebugAllocationList()
  *		Returns a newline separated list of the classes which
  *		have instances allocated, and the instance counts.
@@ -64,6 +76,9 @@ GS_EXPORT void		GSDebugAllocationRemove(Class c);
 
 GS_EXPORT BOOL		GSDebugAllocationActive(BOOL active);
 GS_EXPORT int		GSDebugAllocationCount(Class c);
+GS_EXPORT int		GSDebugAllocationPeak(Class c);
+GS_EXPORT int		GSDebugAllocationTotal(Class c);
+GS_EXPORT Class*        GSDebugAllocationClassList();
 GS_EXPORT const char*	GSDebugAllocationList(BOOL changeFlag);
 GS_EXPORT const char*	GSDebugAllocationListAll();
 
