@@ -214,6 +214,7 @@ $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 #
 #	Files that include FastArray.x will need a rebuild if it is changed.
 #
+$(GNUSTEP_OBJ_DIR)/NSRunLoop.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 	: include/FastArray.x include/GSUnion.h

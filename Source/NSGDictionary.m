@@ -37,11 +37,7 @@
  *	instances of the string classes we know about!
  */
 typedef struct {
-  Class		*isa;
-  char		*_contents_chars;
-  int		_count;
-  NSZone	*_zone;
-  unsigned	_hash;
+  @defs(NSGCString)
 } *dictAccessToStringHack;
 
 static inline unsigned

@@ -24,7 +24,7 @@
 /* Interface for NSNotificationQueue for GNUStep
    Copyright (C) 1996 Free Software Foundation, Inc.
 
-   Modified by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Modified by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
    This file is part of the GNUstep Base Library.
 
@@ -55,15 +55,15 @@
  */
 
 typedef enum {
-    NSPostWhenIdle,	
-    NSPostASAP,		
-    NSPostNow		
+  NSPostWhenIdle,	
+  NSPostASAP,		
+  NSPostNow		
 } NSPostingStyle;
 
 typedef enum {
-    NSNotificationNoCoalescing = 0,	
-    NSNotificationCoalescingOnName = 1,	
-    NSNotificationCoalescingOnSender = 2,	
+  NSNotificationNoCoalescing = 0,	
+  NSNotificationCoalescingOnName = 1,	
+  NSNotificationCoalescingOnSender = 2,	
 } NSNotificationCoalescing;
 
 /*
@@ -74,40 +74,39 @@ struct _NSNotificationQueueList;
 
 @interface NSNotificationQueue : NSObject
 {
-    NSNotificationCenter* center;
-    struct _NSNotificationQueueList* asapQueue;
-    struct _NSNotificationQueueList* idleQueue;
-    NSZone* zone;
+  NSNotificationCenter			*center;
+  struct _NSNotificationQueueList	*asapQueue;
+  struct _NSNotificationQueueList	*idleQueue;
+  NSZone				*zone;
 }
 
 /* Creating Notification Queues */
 
-+ (NSNotificationQueue*)defaultQueue;
-- (id)init;
-- (id)initWithNotificationCenter:(NSNotificationCenter*)notificationCenter;
++ (NSNotificationQueue*) defaultQueue;
+- (id) initWithNotificationCenter: (NSNotificationCenter*)notificationCenter;
 
 /* Inserting and Removing Notifications From a Queue */
 
-- (void)dequeueNotificationsMatching:(NSNotification*)notification
-  coalesceMask:(unsigned int)coalesceMask;
+- (void) dequeueNotificationsMatching:(NSNotification*)notification
+			 coalesceMask:(unsigned int)coalesceMask;
 
-- (void)enqueueNotification:(NSNotification*)notification
-  postingStyle:(NSPostingStyle)postingStyle;
+- (void) enqueueNotification:(NSNotification*)notification
+	        postingStyle:(NSPostingStyle)postingStyle;
 
-- (void)enqueueNotification:(NSNotification*)notification
-  postingStyle:(NSPostingStyle)postingStyle
-  coalesceMask:(unsigned int)coalesceMask
-  forModes:(NSArray*)modes;
-
-/* Implementation used by the the NSRunLoop */
-
-+ (void)runLoopIdle;
-+ (void)runLoopASAP;
-+ (BOOL)runLoopMore;
-- (void)notifyIdle;
-- (void)notifyASAP;
-- (BOOL)notifyMore;
+- (void) enqueueNotification:(NSNotification*)notification
+	        postingStyle:(NSPostingStyle)postingStyle
+	        coalesceMask:(unsigned int)coalesceMask
+		    forModes:(NSArray*)modes;
 
 @end
+
+#ifndef	NO_GNUSTEP
+/*
+ *	Functions used by the the NSRunLoop
+ */
+extern void GSNotifyASAP();
+extern void GSNotifyIdle();
+extern BOOL GSNotifyMore();
+#endif
 
 #endif /* __NSNotificationQueue_h__ */

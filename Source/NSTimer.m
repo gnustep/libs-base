@@ -37,11 +37,8 @@
               userInfo: info
                repeats: (BOOL)f
 {
-  [super init];
   _interval = seconds;
-  _fire_date = [[NSDate alloc] initWithTimeIntervalSinceNow: seconds];
-  _retain_count = 0;
-  _is_valid = YES;
+  _date = [[NSDate alloc] initWithTimeIntervalSinceNow: seconds];
   _target = t;
   _selector = sel;
   _info = info;
@@ -51,7 +48,7 @@
 
 - (void) dealloc
 {
-  [_fire_date release];
+  RELEASE(_date);
   [super dealloc];
 }
 
@@ -59,12 +56,11 @@
 	     invocation: invocation
 		repeats: (BOOL)f
 {
-  return [[[self alloc] initWithTimeInterval: ti
+  return AUTORELEASE([[self alloc] initWithTimeInterval: ti
 			targetOrInvocation: invocation
 			selector: NULL
 			userInfo: nil
-			repeats: f]
-	   autorelease];
+			repeats: f]);
 }
 
 + timerWithTimeInterval: (NSTimeInterval)ti
@@ -73,12 +69,11 @@
                userInfo: info
 	        repeats: (BOOL)f
 {
-  return [[[self alloc] initWithTimeInterval: ti
+  return AUTORELEASE([[self alloc] initWithTimeInterval: ti
 			targetOrInvocation: object
 			selector: selector
 			userInfo: info
-			repeats: f]
-	   autorelease];
+			repeats: f]);
 }
 
 + scheduledTimerWithTimeInterval: (NSTimeInterval)ti
@@ -117,32 +112,44 @@
 
   if (!_repeats)
     [self invalidate];
-  else if (_is_valid)
+  else if (!_invalidated)
     {
-      NSTimeInterval ti = [_fire_date timeIntervalSinceReferenceDate];
-      NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+      NSTimeInterval	ti = [_date timeIntervalSinceReferenceDate];
+      NSTimeInterval	now = GSTimeNow();
+      int		inc = -1;
+
       NSAssert(now < 0.0, NSInternalInconsistencyException);
-      while (ti < now)		// xxx remove this
-	ti += _interval;
-      [_fire_date release];
-      _fire_date = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: ti];
+      while (ti <= now)		// xxx remove this
+	{
+	  inc++;
+	  ti += _interval;
+	}
+#ifdef	LOG_MISSED
+      if (inc > 0)
+	NSLog(@"Missed %d timeouts at %f second intervals", inc, _interval);
+#endif
+      /*
+       * Rely on feature of NSDate implementation that it's possible to
+       * re-initialize a date!
+       */
+      _date = [_date initWithTimeIntervalSinceReferenceDate: ti];
     }
 }
 
 - (void) invalidate
 {
-  NSAssert(_is_valid, NSInternalInconsistencyException);
-  _is_valid = NO;
+  NSAssert(_invalidated == NO, NSInternalInconsistencyException);
+  _invalidated = YES;
 }
 
 - (BOOL) isValid
 {
-  return _is_valid;
+  return !_invalidated;
 }
 
 - fireDate
 {
-  return _fire_date;
+  return _date;
 }
 
 - userInfo
@@ -152,6 +159,6 @@
 
 - (int)compare:(NSTimer*)anotherTimer
 {
-    return [_fire_date compare: anotherTimer->_fire_date];
+    return [_date compare: anotherTimer->_date];
 }
 @end

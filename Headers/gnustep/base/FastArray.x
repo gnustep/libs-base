@@ -58,7 +58,7 @@
  *		Defined if no release operation is needed for an item
  *	FAST_ARRAY_NO_RETAIN
  *		Defined if no retain operation is needed for a an item
-
+ */
 #ifndef	FAST_ARRAY_RETAIN
 #define	FAST_ARRAY_RETAIN(X)	[(X).obj retain]
 #endif
@@ -103,7 +103,6 @@
  */
 #include <base/GSUnion.h>
 
-
 struct	_FastArray {
   FastArrayItem	*ptr;
   unsigned	count;
@@ -114,6 +113,67 @@ struct	_FastArray {
 typedef	struct	_FastArray	FastArray_t;
 typedef	struct	_FastArray	*FastArray;
 
+static INLINE void
+FastArrayGrow(FastArray array)
+{
+  unsigned	next;
+  unsigned	size;
+  FastArrayItem	*tmp;
+
+  next = array->cap + array->old;
+  size = next*sizeof(FastArrayItem);
+#if	GS_WITH_GC
+  tmp = (FastArrayItem*)GC_REALLOC(size);
+#else
+  tmp = NSZoneRealloc(array->zone, array->ptr, size);
+#endif
+
+  if (tmp == 0)
+    {
+      [NSException raise: NSMallocException
+		  format: @"failed to grow FastArray"];
+    }
+  array->ptr = tmp;
+  array->old = array->cap;
+  array->cap = next;
+}
+
+static INLINE void
+FastArrayInsertItem(FastArray array, FastArrayItem item, unsigned index)
+{
+  unsigned	i;
+
+  FAST_ARRAY_RETAIN(item);
+  FAST_ARRAY_CHECK;
+  if (array->count == array->cap)
+    {
+      FastArrayGrow(array);
+    }
+  for (i = ++array->count; i > index; i--)
+    {
+      array->ptr[i] = array->ptr[i-1];
+    }
+  array->ptr[i] = item;
+  FAST_ARRAY_CHECK;
+}
+
+static INLINE void
+FastArrayInsertItemNoRetain(FastArray array, FastArrayItem item, unsigned index)
+{
+  unsigned	i;
+
+  FAST_ARRAY_CHECK;
+  if (array->count == array->cap)
+    {
+      FastArrayGrow(array);
+    }
+  for (i = ++array->count; i > index; i--)
+    {
+      array->ptr[i] = array->ptr[i-1];
+    }
+  array->ptr[i] = item;
+  FAST_ARRAY_CHECK;
+}
 
 static INLINE void
 FastArrayAddItem(FastArray array, FastArrayItem item)
@@ -122,29 +182,76 @@ FastArrayAddItem(FastArray array, FastArrayItem item)
   FAST_ARRAY_CHECK;
   if (array->count == array->cap)
     {
-      unsigned		next;
-      unsigned		size;
-      FastArrayItem	*tmp;
-
-      next = array->cap + array->old;
-      size = next*sizeof(FastArrayItem);
-#if	GS_WITH_GC
-      tmp = (FastArrayItem*)GC_REALLOC(size);
-#else
-      tmp = NSZoneRealloc(array->zone, array->ptr, size);
-#endif
-
-      if (tmp == 0)
-	{
-	  [NSException raise: NSMallocException
-		      format: @"failed to grow FastArray"];
-	}
-      array->ptr = tmp;
-      array->old = array->cap;
-      array->cap = next;
+      FastArrayGrow(array);
     }
   array->ptr[array->count++] = item;
   FAST_ARRAY_CHECK;
+}
+
+static INLINE void
+FastArrayAddItemNoRetain(FastArray array, FastArrayItem item)
+{
+  FAST_ARRAY_CHECK;
+  if (array->count == array->cap)
+    {
+      FastArrayGrow(array);
+    }
+  array->ptr[array->count++] = item;
+  FAST_ARRAY_CHECK;
+}
+
+/*
+ *	The comparator function takes two items as arguments, the first is the
+ *	item to be added, the second is the item already in the array.
+ *	The function should return <0 if the item to be added is 'less than'
+ *	the item in the array, >0 if it is greater, and 0 if it is equal.
+ */
+static INLINE unsigned
+FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
+{
+  unsigned	upper = array->count;
+  unsigned	index = upper/2;
+  unsigned	lower = 0;
+
+  /*
+   *	Binary search for an item equal to the one to be inserted.
+   *
+  while (upper != lower)
+    {
+      int	comparison = (*sorter)(item, array->ptr[index]);
+
+      if (comparison < 0)
+	{
+	  upper = index;
+        }
+      else if (comparison > 0)
+	{
+	  lower = index + 1;
+        }
+      else
+	{
+	  break;
+        } 
+      index = lower+(upper-lower)/2;
+    }
+  /*
+   *	Now skip past any equal items so the insertion point is AFTER any
+   *	items that are equal to the new one.
+   */
+  while (index < array->count && (*sorter)(item, array->ptr[index]) >= 0)
+    {
+      index++;
+    }
+  return index;
+}
+
+static INLINE void
+FastArrayInsertSorted(FastArray array, FastArrayItem item, int (*sorter)())
+{
+  unsigned	index;
+
+  index = FastArrayInsertionPosition(array, item, sorter);
+  FastArrayInsertItem(array, item, index);
 }
 
 static INLINE void
@@ -157,6 +264,17 @@ FastArrayRemoveItemAtIndex(FastArray array, unsigned index)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
   FAST_ARRAY_RELEASE(tmp);
+}
+
+static INLINE void
+FastArrayRemoveItemAtIndexNoRelease(FastArray array, unsigned index)
+{
+  FastArrayItem	tmp;
+  NSCAssert(index < array->count, NSInvalidArgumentException);
+  tmp = array->ptr[index];
+  while (++index < array->count)
+    array->ptr[index-1] = array->ptr[index];
+  array->count--;
 }
 
 static INLINE void

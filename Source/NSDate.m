@@ -91,8 +91,8 @@ otherTime(NSDate* other)
     return [other timeIntervalSinceReferenceDate];
 }
 
-static NSTimeInterval
-timeNow()
+NSTimeInterval
+GSTimeNow()
 {
 #if !defined(__WIN32__) && !defined(_WIN32)
   volatile NSTimeInterval interval;
@@ -163,7 +163,7 @@ timeNow()
 
 + (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-  return timeNow();
+  return GSTimeNow();
 }
 
 // Allocation and initializing
@@ -171,7 +171,7 @@ timeNow()
 + (id) date
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-	initWithTimeIntervalSinceReferenceDate: timeNow()]);
+	initWithTimeIntervalSinceReferenceDate: GSTimeNow()]);
 }
 
 + (id) dateWithNaturalLanguageString: (NSString*)string
@@ -892,7 +892,7 @@ timeNow()
 
 - (id) init
 {
-  return [self initWithTimeIntervalSinceReferenceDate: timeNow()];
+  return [self initWithTimeIntervalSinceReferenceDate: GSTimeNow()];
 }
 
 - (id) initWithString: (NSString*)description
@@ -919,7 +919,7 @@ timeNow()
 {
   // Get the current time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:
-	       timeNow() + secsToBeAdded];
+	       GSTimeNow() + secsToBeAdded];
 }
 
 - (id)initWithTimeIntervalSince1970: (NSTimeInterval)seconds
@@ -1013,7 +1013,7 @@ timeNow()
 
 - (NSTimeInterval) timeIntervalSinceNow
 {
-  return otherTime(self) - timeNow();
+  return otherTime(self) - GSTimeNow();
 }
 
 - (NSTimeInterval) timeIntervalSinceReferenceDate
@@ -1126,7 +1126,7 @@ timeNow()
 
 - (NSTimeInterval) timeIntervalSinceNow
 {
-  return seconds_since_ref - timeNow();
+  return seconds_since_ref - GSTimeNow();
 }
 
 - (NSTimeInterval) timeIntervalSinceReferenceDate

@@ -32,7 +32,7 @@
  */
 #define	FAST_ARRAY_RETAIN(X)	X
 #define	FAST_ARRAY_RELEASE(X)	
-#define	FAST_ARRAY__TYPES	GSUNION_OBJ
+#define	FAST_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_STR
 
 #include <base/FastArray.x>
 
