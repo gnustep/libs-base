@@ -1,3 +1,10 @@
+Fri Sep 04 08:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSUserDefaults.m: ([-setObjectsforKey:], [-removeObjectForKey:])
+	fixed to make domain dictionarys mutable if required.
+	* src/externs.m: Updated notification name for defaults.
+	* src/include/NSUserDefaults.h: Updated notification name.
+	
 Mon Aug 31 16:28:58 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/NSBundle.m (+mainBundle:): Remove *_obj directory to
