@@ -1287,608 +1287,6 @@ static BOOL double_release_check_enabled = NO;
 
 @implementation NSObject (KeyValueCoding)
 
-static id
-GSGetValue(NSObject *self, NSString *key, SEL sel,
-  const char *type, unsigned size, int off)
-{
-  if (sel != 0)
-    {
-      NSMethodSignature	*sig = [self methodSignatureForSelector: sel];
-
-      if ([sig numberOfArguments] != 2)
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"key-value get method has wrong number of args"];
-	}
-      type = [sig methodReturnType];
-    }
-  if (type == NULL)
-    {
-      return [self handleQueryWithUnboundKey: key];
-    }
-  else
-    {
-      id	val = nil;
-
-      switch (*type)
-	{
-	  case _C_ID:
-	  case _C_CLASS:
-	    {
-	      id	v;
-
-	      if (sel == 0)
-		{
-		  v = *(id *)((char *)self + off);
-		}
-	      else
-		{
-		  id	(*imp)(id, SEL) =
-		    (id (*)(id, SEL))[self methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = v;
-	    }
-	    break;
-
-	  case _C_CHR:
-	    {
-	      signed char	v;
-
-	      if (sel == 0)
-		{
-		  v = *(char *)((char *)self + off);
-		}
-	      else
-		{
-		  signed char	(*imp)(id, SEL) =
-		    (signed char (*)(id, SEL))[self methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithChar: v];
-	    }
-	    break;
-
-	  case _C_UCHR:
-	    {
-	      unsigned char	v;
-
-	      if (sel == 0)
-		{
-		  v = *(unsigned char *)((char *)self + off);
-		}
-	      else
-		{
-		  unsigned char	(*imp)(id, SEL) =
-		    (unsigned char (*)(id, SEL))[self methodForSelector:
-		    sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithUnsignedChar: v];
-	    }
-	    break;
-
-	  case _C_SHT:
-	    {
-	      short	v;
-
-	      if (sel == 0)
-		{
-		  v = *(short *)((char *)self + off);
-		}
-	      else
-		{
-		  short	(*imp)(id, SEL) =
-		    (short (*)(id, SEL))[self methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithShort: v];
-	    }
-	    break;
-
-	  case _C_USHT:
-	    {
-	      unsigned short	v;
-
-	      if (sel == 0)
-		{
-		  v = *(unsigned short *)((char *)self + off);
-		}
-	      else
-		{
-		  unsigned short	(*imp)(id, SEL) =
-		    (unsigned short (*)(id, SEL))[self methodForSelector:
-		    sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithUnsignedShort: v];
-	    }
-	    break;
-
-	  case _C_INT:
-	    {
-	      int	v;
-
-	      if (sel == 0)
-		{
-		  v = *(int *)((char *)self + off);
-		}
-	      else
-		{
-		  int	(*imp)(id, SEL) =
-		    (int (*)(id, SEL))[self methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithInt: v];
-	    }
-	    break;
-
-	  case _C_UINT:
-	    {
-	      unsigned int	v;
-
-	      if (sel == 0)
-		{
-		  v = *(unsigned int *)((char *)self + off);
-		}
-	      else
-		{
-		  unsigned int	(*imp)(id, SEL) =
-		    (unsigned int (*)(id, SEL))[self methodForSelector:
-		    sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithUnsignedInt: v];
-	    }
-	    break;
-
-	  case _C_LNG:
-	    {
-	      long	v;
-
-	      if (sel == 0)
-		{
-		  v = *(long *)((char *)self + off);
-		}
-	      else
-		{
-		  long	(*imp)(id, SEL) =
-		    (long (*)(id, SEL))[self methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithLong: v];
-	    }
-	    break;
-
-	  case _C_ULNG:
-	    {
-	      unsigned long	v;
-
-	      if (sel == 0)
-		{
-		  v = *(unsigned long *)((char *)self + off);
-		}
-	      else
-		{
-		  unsigned long	(*imp)(id, SEL) =
-		    (unsigned long (*)(id, SEL))[self methodForSelector:
-		    sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithUnsignedLong: v];
-	    }
-	    break;
-
-#ifdef	_C_LNG_LNG
-	  case _C_LNG_LNG:
-	    {
-	      long long	v;
-
-	      if (sel == 0)
-		{
-		  v = *(long long *)((char *)self + off);
-		}
-	      else
-		{
-		   long long	(*imp)(id, SEL) =
-		    (long long (*)(id, SEL))[self methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithLongLong: v];
-	    }
-	    break;
-#endif
-
-#ifdef	_C_ULNG_LNG
-	  case _C_ULNG_LNG:
-	    {
-	      unsigned long long	v;
-
-	      if (sel == 0)
-		{
-		  v = *(unsigned long long *)((char *)self + off);
-		}
-	      else
-		{
-		  unsigned long long	(*imp)(id, SEL) =
-		    (unsigned long long (*)(id, SEL))[self
-		    methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithUnsignedLongLong: v];
-	    }
-	    break;
-#endif
-
-	  case _C_FLT:
-	    {
-	      float	v;
-
-	      if (sel == 0)
-		{
-		  v = *(float *)((char *)self + off);
-		}
-	      else
-		{
-		  float	(*imp)(id, SEL) =
-		    (float (*)(id, SEL))[self methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithFloat: v];
-	    }
-	    break;
-
-	  case _C_DBL:
-	    {
-	      double	v;
-
-	      if (sel == 0)
-		{
-		  v = *(double *)((char *)self + off);
-		}
-	      else
-		{
-		  double	(*imp)(id, SEL) =
-		    (double (*)(id, SEL))[self methodForSelector: sel];
-
-		  v = (*imp)(self, sel);
-		}
-	      val = [NSNumber numberWithDouble: v];
-	    }
-	    break;
-
-	  case _C_VOID:
-            {
-              void        (*imp)(id, SEL) =
-                (void (*)(id, SEL))[self methodForSelector: sel];
-              
-              (*imp)(self, sel);
-            }
-            val = nil;
-            break;
-
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"key-value get method has unsupported type"];
-	}
-      return val;
-    }
-}
-
-static void
-GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-  const char *type, unsigned size, int off)
-{
-  if (sel != 0)
-    {
-      NSMethodSignature	*sig = [self methodSignatureForSelector: sel];
-
-      if ([sig numberOfArguments] != 3)
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"key-value set method has wrong number of args"];
-	}
-      type = [sig getArgumentTypeAtIndex: 2];
-    }
-  if (type == NULL)
-    {
-      [self handleTakeValue: val forUnboundKey: key];
-    }
-  else
-    {
-      switch (*type)
-	{
-	  case _C_ID:
-	  case _C_CLASS:
-	    {
-	      id	v = val;
-
-	      if (sel == 0)
-		{
-		  id *ptr = (id *)((char *)self + off);
-
-		  [*ptr autorelease];
-		  *ptr = [v retain];
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, id) =
-		    (void (*)(id, SEL, id))[self methodForSelector: sel];
-
-		  (*imp)(self, sel, val);
-		}
-	    }
-	    break;
-
-	  case _C_CHR:
-	    {
-	      char	v = [val charValue];
-
-	      if (sel == 0)
-		{
-		  char *ptr = (char *)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, char) =
-		    (void (*)(id, SEL, char))[self methodForSelector: sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  case _C_UCHR:
-	    {
-	      unsigned char	v = [val unsignedCharValue];
-
-	      if (sel == 0)
-		{
-		  unsigned char *ptr = (unsigned char*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, unsigned char) =
-		    (void (*)(id, SEL, unsigned char))[self methodForSelector:
-		    sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  case _C_SHT:
-	    {
-	      short	v = [val shortValue];
-
-	      if (sel == 0)
-		{
-		  short *ptr = (short*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, short) =
-		    (void (*)(id, SEL, short))[self methodForSelector: sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  case _C_USHT:
-	    {
-	      unsigned short	v = [val unsignedShortValue];
-
-	      if (sel == 0)
-		{
-		  unsigned short *ptr = (unsigned short*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, unsigned short) =
-		    (void (*)(id, SEL, unsigned short))[self methodForSelector:
-		    sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  case _C_INT:
-	    {
-	      int	v = [val intValue];
-
-	      if (sel == 0)
-		{
-		  int *ptr = (int*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, int) =
-		    (void (*)(id, SEL, int))[self methodForSelector: sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  case _C_UINT:
-	    {
-	      unsigned int	v = [val unsignedIntValue];
-
-	      if (sel == 0)
-		{
-		  unsigned int *ptr = (unsigned int*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, unsigned int) =
-		    (void (*)(id, SEL, unsigned int))[self methodForSelector:
-		    sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  case _C_LNG:
-	    {
-	      long	v = [val longValue];
-
-	      if (sel == 0)
-		{
-		  long *ptr = (long*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, long) =
-		    (void (*)(id, SEL, long))[self methodForSelector: sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  case _C_ULNG:
-	    {
-	      unsigned long	v = [val unsignedLongValue];
-
-	      if (sel == 0)
-		{
-		  unsigned long *ptr = (unsigned long*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, unsigned long) =
-		    (void (*)(id, SEL, unsigned long))[self methodForSelector:
-		    sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-#ifdef	_C_LNG_LNG
-	  case _C_LNG_LNG:
-	    {
-	      long long	v = [val longLongValue];
-
-	      if (sel == 0)
-		{
-		  long long *ptr = (long long*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, long long) =
-		    (void (*)(id, SEL, long long))[self methodForSelector: sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-#endif
-
-#ifdef	_C_ULNG_LNG
-	  case _C_ULNG_LNG:
-	    {
-	      unsigned long long	v = [val unsignedLongLongValue];
-
-	      if (sel == 0)
-		{
-		  unsigned long long *ptr = (unsigned long long*)((char*)self +
-								  off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, unsigned long long) =
-		    (void (*)(id, SEL, unsigned long long))[self
-		    methodForSelector: sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-#endif
-
-	  case _C_FLT:
-	    {
-	      float	v = [val floatValue];
-
-	      if (sel == 0)
-		{
-		  float *ptr = (float*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, float) =
-		    (void (*)(id, SEL, float))[self methodForSelector: sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  case _C_DBL:
-	    {
-	      double	v = [val doubleValue];
-
-	      if (sel == 0)
-		{
-		  double *ptr = (double*)((char *)self + off);
-
-		  *ptr = v;
-		}
-	      else
-		{
-		  void	(*imp)(id, SEL, double) =
-		    (void (*)(id, SEL, double))[self methodForSelector: sel];
-
-		  (*imp)(self, sel, v);
-		}
-	    }
-	    break;
-
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"key-value set method has unsupported type"];
-	}
-    }
-}
-
 + (BOOL) accessInstanceVariablesDirectly
 {
   return YES;
@@ -1902,7 +1300,8 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 - (id) handleQueryWithUnboundKey: (NSString*)aKey
 {
   [NSException raise: NSGenericException
-	      format: @"%@ -- %@ 0x%x: Unable to find value for key \"%@\"", NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
+	      format: @"%@ -- %@ 0x%x: Unable to find value for key \"%@\"",
+    NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
 
   return nil;
 }
@@ -1910,7 +1309,9 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 - (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey
 {
   [NSException raise: NSGenericException
-	      format: @"%@ -- %@ 0x%x: Unable set value \"%@\" for key \"%@\"", NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, anObject, aKey];
+	      format: @"%@ -- %@ 0x%x: Unable set value \"%@\" for key \"%@\"",
+    NSStringFromSelector(_cmd), NSStringFromClass([self class]),
+    self, anObject, aKey];
 }
 
 - (id) storedValueForKey: (NSString*)aKey
@@ -1993,12 +1394,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 - (void) takeStoredValue: (id)anObject forKey: (NSString*)aKey
 {
-  SEL		sel;
-  const char	*type;
   unsigned	size;
-  int		off;
-  NSString	*cap;
-  NSString	*name;
 
   if ([[self class] useStoredAccessor] == NO)
     {
@@ -2012,49 +1408,61 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
       [NSException raise: NSInvalidArgumentException
 		  format: @"takeStoredValue:forKey: ... empty key"];
     }
-  cap = [[aKey substringToIndex: 1] uppercaseString];
-  if (size > 1)
+  else
     {
-      cap = [cap stringByAppendingString: [aKey substringFromIndex: 1]];
-    }
+      SEL		sel;
+      const char	*type;
+      int		off;
+      const char	*name;
+      char		buf[size+6];
+      char		lo;
+      char		hi;
 
-  name = [NSString stringWithFormat: @"_set%@:", cap];
-  type = NULL;
-  sel = NSSelectorFromString(name);
-  if (sel == 0 || [self respondsToSelector: sel] == NO)
-    {
-      sel = 0;
-      if ([[self class] accessInstanceVariablesDirectly] == YES)
+      strcpy(buf, "_set");
+      [aKey getCString: &buf[4]];
+      lo = buf[4];
+      hi = islower(lo) ? toupper(lo) : lo;
+      buf[4] = hi;
+      buf[size+4] = ':';
+
+      name = buf;	// _setKey:
+      type = NULL;
+      sel = GSSelectorFromName(name);
+      if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
-	  name = [NSString stringWithFormat: @"_%@", aKey];
-	  if (GSInstanceVariableInfo(self, name, &type, &size, &off) == NO)
+	  sel = 0;
+	  if ([[self class] accessInstanceVariablesDirectly] == YES)
 	    {
-	      name = aKey;
-	      GSInstanceVariableInfo(self, name, &type, &size, &off);
+	      buf[size+4] = '\0';
+	      buf[4] = lo;
+	      buf[3] = '_';
+	      name = &buf[3];		// _key
+	      if (GSFindInstanceVariable(self, name, &type, &size, &off) == NO)
+		{
+		  name = &buf[4];	// key
+		  GSFindInstanceVariable(self, name, &type, &size, &off);
+		}
+	    }
+	  if (type == NULL)
+	    {
+	      buf[size+4] = ':';
+	      buf[4] = hi;
+	      buf[3] = 't';
+	      name = &buf[1];		// setKey:
+	      sel = GSSelectorFromName(name);
+	      if (sel == 0 || [self respondsToSelector: sel] == NO)
+		{
+		  sel = 0;
+		}
 	    }
 	}
-      if (type == NULL)
-	{
-	  name = [NSString stringWithFormat: @"set%@:", cap];
-	  sel = NSSelectorFromString(name);
-	  if (sel == 0 || [self respondsToSelector: sel] == NO)
-	    {
-	      sel = 0;
-	    }
-	}
-    }
-
-  GSSetValue(self, aKey, anObject, sel, type, size, off);
+      GSSetValue(self, aKey, anObject, sel, type, size, off);
+   }
 }
 
 - (void) takeValue: (id)anObject forKey: (NSString*)aKey
 {
-  SEL		sel;
-  const char	*type;
   unsigned	size;
-  int		off;
-  NSString	*cap;
-  NSString	*name;
 
   size = [aKey length];
   if (size < 1)
@@ -2062,51 +1470,66 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
       [NSException raise: NSInvalidArgumentException
 		  format: @"takeValue:forKey: ... empty key"];
     }
-  cap = [[aKey substringToIndex: 1] uppercaseString];
-  if (size > 1)
+  else
     {
-      cap = [cap stringByAppendingString: [aKey substringFromIndex: 1]];
-    }
+      SEL		sel;
+      const char	*type;
+      int		off;
+      const char	*name;
+      char		buf[size+6];
+      char		lo;
+      char		hi;
 
-  name = [NSString stringWithFormat: @"set%@:", cap];
-  type = NULL;
-  sel = NSSelectorFromString(name);
-  if (sel == 0 || [self respondsToSelector: sel] == NO)
-    {
-      name = [NSString stringWithFormat: @"_set%@:", cap];
-      sel = NSSelectorFromString(name);
+      strcpy(buf, "_set");
+      [aKey getCString: &buf[4]];
+      lo = buf[4];
+      hi = islower(lo) ? toupper(lo) : lo;
+      buf[4] = hi;
+      buf[size+4] = ':';
+
+      name = &buf[1];	// setKey:
+      type = NULL;
+      sel = GSSelectorFromName(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
-	  sel = 0;
-	  if ([[self class] accessInstanceVariablesDirectly] == YES)
+	  name = buf;	// _setKey:
+	  sel = GSSelectorFromName(name);
+	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
-	      name = [NSString stringWithFormat: @"_%@", aKey];
-	      if (GSInstanceVariableInfo(self, name, &type, &size, &off) == NO)
+	      sel = 0;
+	      if ([[self class] accessInstanceVariablesDirectly] == YES)
 		{
-		  name = aKey;
-		  GSInstanceVariableInfo(self, name, &type, &size, &off);
+		  buf[size+4] = '\0';
+		  buf[3] = '_';
+		  buf[4] = lo;
+		  name = &buf[3];	// _key
+		  if (GSFindInstanceVariable(self, name, &type, &size, &off)
+		    == NO)
+		    {
+		      name = &buf[4];	// key
+		      GSFindInstanceVariable(self, name, &type, &size, &off);
+		    }
 		}
 	    }
 	}
+      GSSetValue(self, aKey, anObject, sel, type, size, off);
     }
-
-  GSSetValue(self, aKey, anObject, sel, type, size, off);
 }
 
 - (void) takeValue: (id)anObject forKeyPath: (NSString*)aKey
 {
-  NSArray	*keys = [aKey componentsSeparatedByString: @"."];
-  id		obj = self;
-  unsigned	count = [keys count];
-  unsigned	pos;
+  NSRange	r = [aKey rangeOfString: @"."];
 
-  for (pos = 0; pos + 1 < count; pos++)
+  if (r.length == 0)
     {
-      obj = [obj valueForKey: [keys objectAtIndex: pos]];
+      [self takeValue: anObject forKey: aKey];
     }
-  if (pos < count)
+  else
     {
-      [obj takeValue: anObject forKey: [keys objectAtIndex: pos]];
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+
+      [[self valueForKey: key] takeValue: anObject forKeyPath: path];
     }
 }
 
@@ -2131,77 +1554,95 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 - (void) unableToSetNilForKey: (NSString*)aKey
 {
   [NSException raise: NSInvalidArgumentException
-	      format: @"%@ -- %@ 0x%x: Given nil value to set for key \"%@\"", NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
+	      format: @"%@ -- %@ 0x%x: Given nil value to set for key \"%@\"",
+    NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
 }
 
 - (id) valueForKey: (NSString*)aKey
 {
-  SEL		sel = 0;
-  NSString	*cap;
-  NSString	*name = nil;
-  const char	*type = NULL;
   unsigned	size;
-  int		off;
 
   size = [aKey length];
   if (size < 1)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"valueForKey: ... empty key"];
+      return nil;
     }
-  cap = [[aKey substringToIndex: 1] uppercaseString];
-  if (size > 1)
+  else
     {
-      cap = [cap stringByAppendingString: [aKey substringFromIndex: 1]];
-    }
+      SEL		sel = 0;
+      const char	*type = NULL;
+      unsigned		off;
+      const char	*name;
+      char		buf[size+5];
+      char		lo;
+      char		hi;
 
-  name = [@"get" stringByAppendingString: cap];
-  sel = NSSelectorFromString(name);
-  if (sel == 0 || [self respondsToSelector: sel] == NO)
-    {
-      name = aKey;
-      sel = NSSelectorFromString(name);
+      strcpy(buf, "_get");
+      [aKey getCString: &buf[4]];
+      lo = buf[4];
+      hi = islower(lo) ? toupper(lo) : lo;
+      buf[4] = hi;
+
+      name = &buf[1];	// getKey
+      sel = GSSelectorFromName(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
-	  name = [@"_get" stringByAppendingString: cap];
-	  sel = NSSelectorFromString(name);
+	  buf[4] = lo;
+	  name = &buf[4];	// key
+	  sel = GSSelectorFromName(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
-	      name = [NSString stringWithFormat: @"_%@", aKey];
-	      sel = NSSelectorFromString(name);
+	      buf[4] = hi;
+	      name = buf;	// _getKey
+	      sel = GSSelectorFromName(name);
 	      if (sel == 0 || [self respondsToSelector: sel] == NO)
 		{
-		  sel = 0;
+		  buf[4] = lo;
+		  buf[3] = '_';
+		  name = &buf[3];	// _key
+		  sel = GSSelectorFromName(name);
+		  if (sel == 0 || [self respondsToSelector: sel] == NO)
+		    {
+		      sel = 0;
+		    }
 		}
 	    }
 	}
-    }
 
-  if (sel == 0 && [[self class] accessInstanceVariablesDirectly] == YES)
-    {
-      name = [NSString stringWithFormat: @"_%@", aKey];
-      if (GSInstanceVariableInfo(self, name, &type, &size, &off) == NO)
+      if (sel == 0 && [[self class] accessInstanceVariablesDirectly] == YES)
 	{
-	  name = aKey;
-	  GSInstanceVariableInfo(self, name, &type, &size, &off);
+	  buf[4] = lo;
+	  buf[3] = '_';
+	  name = &buf[3];	// _key
+	  if (GSFindInstanceVariable(self, name, &type, &size, &off) == NO)
+	    {
+	      name = &buf[4];	// key
+	      GSFindInstanceVariable(self, name, &type, &size, &off);
+	    }
 	}
+      return GSGetValue(self, aKey, sel, type, size, off);
     }
-
-  return GSGetValue(self, aKey, sel, type, size, off);
 }
 
 - (id) valueForKeyPath: (NSString*)aKey
 {
-  NSArray	*keys = [aKey  componentsSeparatedByString: @"."];
-  id		obj = self;
-  unsigned	count = [keys count];
-  unsigned	pos;
+  NSRange	r = [aKey rangeOfString: @"."];
+  id		o;
 
-  for (pos = 0; pos < count; pos++)
+  if (r.length == 0)
     {
-      obj = [obj valueForKey: [keys objectAtIndex: pos]];
+      o = [self valueForKey: aKey];
     }
-  return obj;
+  else
+    {
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+
+      o = [[self valueForKey: key] valueForKeyPath: path];
+    }
+  return o;
 }
 
 - (NSDictionary*) valuesForKeys: (NSArray*)keys
@@ -2265,8 +1706,10 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
     {
       return NSOrderedSame;
     }
-  // Ordering objects by their address is pretty useless, 
-  // so subclasses should override this is some useful way.
+  /*
+   * Ordering objects by their address is pretty useless, 
+   * so subclasses should override this is some useful way.
+   */
   if (self > anObject)
     {
       return NSOrderedDescending;

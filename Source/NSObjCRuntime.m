@@ -191,6 +191,611 @@ GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
   return NO;
 }
 
+#include	<Foundation/NSValue.h>
+#include	<Foundation/NSKeyValueCoding.h>
+id
+GSGetValue(NSObject *self, NSString *key, SEL sel,
+  const char *type, unsigned size, int off)
+{
+  if (sel != 0)
+    {
+      NSMethodSignature	*sig = [self methodSignatureForSelector: sel];
+
+      if ([sig numberOfArguments] != 2)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"key-value get method has wrong number of args"];
+	}
+      type = [sig methodReturnType];
+    }
+  if (type == NULL)
+    {
+      return [self handleQueryWithUnboundKey: key];
+    }
+  else
+    {
+      id	val = nil;
+
+      switch (*type)
+	{
+	  case _C_ID:
+	  case _C_CLASS:
+	    {
+	      id	v;
+
+	      if (sel == 0)
+		{
+		  v = *(id *)((char *)self + off);
+		}
+	      else
+		{
+		  id	(*imp)(id, SEL) =
+		    (id (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = v;
+	    }
+	    break;
+
+	  case _C_CHR:
+	    {
+	      signed char	v;
+
+	      if (sel == 0)
+		{
+		  v = *(char *)((char *)self + off);
+		}
+	      else
+		{
+		  signed char	(*imp)(id, SEL) =
+		    (signed char (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithChar: v];
+	    }
+	    break;
+
+	  case _C_UCHR:
+	    {
+	      unsigned char	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned char *)((char *)self + off);
+		}
+	      else
+		{
+		  unsigned char	(*imp)(id, SEL) =
+		    (unsigned char (*)(id, SEL))[self methodForSelector:
+		    sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedChar: v];
+	    }
+	    break;
+
+	  case _C_SHT:
+	    {
+	      short	v;
+
+	      if (sel == 0)
+		{
+		  v = *(short *)((char *)self + off);
+		}
+	      else
+		{
+		  short	(*imp)(id, SEL) =
+		    (short (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithShort: v];
+	    }
+	    break;
+
+	  case _C_USHT:
+	    {
+	      unsigned short	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned short *)((char *)self + off);
+		}
+	      else
+		{
+		  unsigned short	(*imp)(id, SEL) =
+		    (unsigned short (*)(id, SEL))[self methodForSelector:
+		    sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedShort: v];
+	    }
+	    break;
+
+	  case _C_INT:
+	    {
+	      int	v;
+
+	      if (sel == 0)
+		{
+		  v = *(int *)((char *)self + off);
+		}
+	      else
+		{
+		  int	(*imp)(id, SEL) =
+		    (int (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithInt: v];
+	    }
+	    break;
+
+	  case _C_UINT:
+	    {
+	      unsigned int	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned int *)((char *)self + off);
+		}
+	      else
+		{
+		  unsigned int	(*imp)(id, SEL) =
+		    (unsigned int (*)(id, SEL))[self methodForSelector:
+		    sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedInt: v];
+	    }
+	    break;
+
+	  case _C_LNG:
+	    {
+	      long	v;
+
+	      if (sel == 0)
+		{
+		  v = *(long *)((char *)self + off);
+		}
+	      else
+		{
+		  long	(*imp)(id, SEL) =
+		    (long (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithLong: v];
+	    }
+	    break;
+
+	  case _C_ULNG:
+	    {
+	      unsigned long	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned long *)((char *)self + off);
+		}
+	      else
+		{
+		  unsigned long	(*imp)(id, SEL) =
+		    (unsigned long (*)(id, SEL))[self methodForSelector:
+		    sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedLong: v];
+	    }
+	    break;
+
+#ifdef	_C_LNG_LNG
+	  case _C_LNG_LNG:
+	    {
+	      long long	v;
+
+	      if (sel == 0)
+		{
+		  v = *(long long *)((char *)self + off);
+		}
+	      else
+		{
+		   long long	(*imp)(id, SEL) =
+		    (long long (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithLongLong: v];
+	    }
+	    break;
+#endif
+
+#ifdef	_C_ULNG_LNG
+	  case _C_ULNG_LNG:
+	    {
+	      unsigned long long	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned long long *)((char *)self + off);
+		}
+	      else
+		{
+		  unsigned long long	(*imp)(id, SEL) =
+		    (unsigned long long (*)(id, SEL))[self
+		    methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedLongLong: v];
+	    }
+	    break;
+#endif
+
+	  case _C_FLT:
+	    {
+	      float	v;
+
+	      if (sel == 0)
+		{
+		  v = *(float *)((char *)self + off);
+		}
+	      else
+		{
+		  float	(*imp)(id, SEL) =
+		    (float (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithFloat: v];
+	    }
+	    break;
+
+	  case _C_DBL:
+	    {
+	      double	v;
+
+	      if (sel == 0)
+		{
+		  v = *(double *)((char *)self + off);
+		}
+	      else
+		{
+		  double	(*imp)(id, SEL) =
+		    (double (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithDouble: v];
+	    }
+	    break;
+
+	  case _C_VOID:
+            {
+              void        (*imp)(id, SEL) =
+                (void (*)(id, SEL))[self methodForSelector: sel];
+              
+              (*imp)(self, sel);
+            }
+            val = nil;
+            break;
+
+	  default:
+	    [NSException raise: NSInvalidArgumentException
+			format: @"key-value get method has unsupported type"];
+	}
+      return val;
+    }
+}
+
+void
+GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
+  const char *type, unsigned size, int off)
+{
+  if (sel != 0)
+    {
+      NSMethodSignature	*sig = [self methodSignatureForSelector: sel];
+
+      if ([sig numberOfArguments] != 3)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"key-value set method has wrong number of args"];
+	}
+      type = [sig getArgumentTypeAtIndex: 2];
+    }
+  if (type == NULL)
+    {
+      [self handleTakeValue: val forUnboundKey: key];
+    }
+  else
+    {
+      switch (*type)
+	{
+	  case _C_ID:
+	  case _C_CLASS:
+	    {
+	      id	v = val;
+
+	      if (sel == 0)
+		{
+		  id *ptr = (id *)((char *)self + off);
+
+		  [*ptr autorelease];
+		  *ptr = [v retain];
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, id) =
+		    (void (*)(id, SEL, id))[self methodForSelector: sel];
+
+		  (*imp)(self, sel, val);
+		}
+	    }
+	    break;
+
+	  case _C_CHR:
+	    {
+	      char	v = [val charValue];
+
+	      if (sel == 0)
+		{
+		  char *ptr = (char *)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, char) =
+		    (void (*)(id, SEL, char))[self methodForSelector: sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  case _C_UCHR:
+	    {
+	      unsigned char	v = [val unsignedCharValue];
+
+	      if (sel == 0)
+		{
+		  unsigned char *ptr = (unsigned char*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, unsigned char) =
+		    (void (*)(id, SEL, unsigned char))[self methodForSelector:
+		    sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  case _C_SHT:
+	    {
+	      short	v = [val shortValue];
+
+	      if (sel == 0)
+		{
+		  short *ptr = (short*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, short) =
+		    (void (*)(id, SEL, short))[self methodForSelector: sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  case _C_USHT:
+	    {
+	      unsigned short	v = [val unsignedShortValue];
+
+	      if (sel == 0)
+		{
+		  unsigned short *ptr = (unsigned short*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, unsigned short) =
+		    (void (*)(id, SEL, unsigned short))[self methodForSelector:
+		    sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  case _C_INT:
+	    {
+	      int	v = [val intValue];
+
+	      if (sel == 0)
+		{
+		  int *ptr = (int*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, int) =
+		    (void (*)(id, SEL, int))[self methodForSelector: sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  case _C_UINT:
+	    {
+	      unsigned int	v = [val unsignedIntValue];
+
+	      if (sel == 0)
+		{
+		  unsigned int *ptr = (unsigned int*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, unsigned int) =
+		    (void (*)(id, SEL, unsigned int))[self methodForSelector:
+		    sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  case _C_LNG:
+	    {
+	      long	v = [val longValue];
+
+	      if (sel == 0)
+		{
+		  long *ptr = (long*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, long) =
+		    (void (*)(id, SEL, long))[self methodForSelector: sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  case _C_ULNG:
+	    {
+	      unsigned long	v = [val unsignedLongValue];
+
+	      if (sel == 0)
+		{
+		  unsigned long *ptr = (unsigned long*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, unsigned long) =
+		    (void (*)(id, SEL, unsigned long))[self methodForSelector:
+		    sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+#ifdef	_C_LNG_LNG
+	  case _C_LNG_LNG:
+	    {
+	      long long	v = [val longLongValue];
+
+	      if (sel == 0)
+		{
+		  long long *ptr = (long long*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, long long) =
+		    (void (*)(id, SEL, long long))[self methodForSelector: sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+#endif
+
+#ifdef	_C_ULNG_LNG
+	  case _C_ULNG_LNG:
+	    {
+	      unsigned long long	v = [val unsignedLongLongValue];
+
+	      if (sel == 0)
+		{
+		  unsigned long long *ptr = (unsigned long long*)((char*)self +
+								  off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, unsigned long long) =
+		    (void (*)(id, SEL, unsigned long long))[self
+		    methodForSelector: sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+#endif
+
+	  case _C_FLT:
+	    {
+	      float	v = [val floatValue];
+
+	      if (sel == 0)
+		{
+		  float *ptr = (float*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, float) =
+		    (void (*)(id, SEL, float))[self methodForSelector: sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  case _C_DBL:
+	    {
+	      double	v = [val doubleValue];
+
+	      if (sel == 0)
+		{
+		  double *ptr = (double*)((char *)self + off);
+
+		  *ptr = v;
+		}
+	      else
+		{
+		  void	(*imp)(id, SEL, double) =
+		    (void (*)(id, SEL, double))[self methodForSelector: sel];
+
+		  (*imp)(self, sel, v);
+		}
+	    }
+	    break;
+
+	  default:
+	    [NSException raise: NSInvalidArgumentException
+			format: @"key-value set method has unsupported type"];
+	}
+    }
+}
+
+
 /* Getting a system error message on a variety of systems */
 #ifdef __MINGW__
 LPTSTR GetErrorMsg(DWORD msgId)

@@ -1,3 +1,11 @@
+2002-02-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Rewrote key-value coding key manipulation to use
+	a char array for speed.  Moved functions for converting between object
+	internals in scalar types and NSNumbers etc to NSObjCRuntime.m.
+	Re-implemented path methods to fix incorrect implementation as pointed
+	out by Manuel Guesdon.
+
 2002-02-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: Removed NSLogs() accidantally left in after
