@@ -116,7 +116,7 @@ struct _strenc_ {
   BOOL			eightBit;	/* Flag to say whether this encoding
 					 * can be stored in a byte array ...
 					 * ie whether the encoding consists
-					 * entirely of single byte charcters
+					 * entirely of single byte characters
 					 * and the first 128 are identical to
 					 * the ASCII character set.
 					 */
@@ -139,7 +139,7 @@ static struct _strenc_ str_encoding_table[] = {
   {NSASCIIStringEncoding,"NSASCIIStringEncoding","ASCII",1,1},
   {NSNEXTSTEPStringEncoding,"NSNEXTSTEPStringEncoding","NEXTSTEP",1,1},
   {NSJapaneseEUCStringEncoding, "NSJapaneseEUCStringEncoding","EUC-JP",0,0},
-  {NSUTF8StringEncoding,"NSUTF8StringEncoding","UTF-8",0,0},
+  {NSUTF8StringEncoding,"NSUTF8StringEncoding","UTF-8",0,1},
   {NSISOLatin1StringEncoding,"NSISOLatin1StringEncoding","ISO-8859-1",1,1},
   {NSSymbolStringEncoding,"NSSymbolStringEncoding","",0,0},
   {NSNonLossyASCIIStringEncoding,"NSNonLossyASCIIStringEncoding","",1,1},
@@ -970,6 +970,89 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 
   switch (enc)
     {
+      case NSUTF8StringEncoding:
+	{
+	  result = YES;
+
+	  while (spos < slen)
+	    {
+	      unsigned char	c = src[spos++];
+	      unichar		u = c;
+
+	      if (c > 0x7f)
+		{
+		  unsigned char	c1;
+
+		  if (spos == slen)
+		    {
+		      result = NO;	// Second byte is missing.
+		      break;
+		    }
+		  if (c < 0xe0)
+		    {
+		      if (c < 0xc2)
+			{
+			  /*
+			   * Either we are inside a multibyte sequence or
+			   * we have a bad multibyte character count.
+			   */
+			  result = NO;
+			  break;
+			}
+		      c1 = src[spos++];
+		      if (!((c1 ^ 0x80) < 0x40))
+			{
+			  /*
+			   * Second byte in sequence is not a legal
+			   * continuation.
+			   */
+			  result = NO;
+			  break;
+			}
+		      u = ((c & 0x1f) << 6) | (c1 ^ 0x80);
+		    }
+		  else if (c < 0xf0)
+		    {
+		      unsigned char	c1;
+		      unsigned char	c2;
+
+		      c1 = src[spos++];
+		      if (spos == slen)
+			{
+			  result = NO;	// Third byte is missing.
+			  break;
+			}
+		      c2 = src[spos++];
+		      if (!(((c1 ^ 0x80) < 0x40) && ((c2 ^ 0x80) < 0x40)
+			&& (c1 >= 0xa0)))
+			{
+			  result = NO;	// Invalid sequence.
+			  break;
+			}
+		      u = ((c & 0x0f) << 12) | ((c1 ^ 0x80) << 6)
+			| (c2 ^ 0x80);
+		    }
+		  else
+		    {
+		      /*
+		       * Sequence not legal or too long for conversion to
+		       * two byte unicode.
+		       */
+		      result = NO;
+		      break;
+		    }
+		}
+
+	      if (dpos >= bsize)
+		{
+		  GROW();
+		}
+
+	      ptr[dpos++] = u;
+	    }
+	}
+	break;
+
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
       case NSISOLatin1StringEncoding:
@@ -1395,10 +1478,61 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 
   switch (enc)
     {
+      case NSUTF8StringEncoding:
+	{
+	  while (spos < slen)
+	    {
+	      unichar	u = src[spos++];
+	      unsigned	multi;
+
+	      if (swapped == YES)
+		{
+		  u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
+		}
+
+	      if (u < 0x0080)
+		{
+		  multi = 0;
+		}
+	      else if (u < 0x0800)
+		{
+		  multi = 1;
+		}
+	      else
+		{
+		  multi = 2;
+		}
+
+	      if (dpos + multi >= bsize)
+		{
+		  GROW();
+		}
+
+	      if (u < 0x80)
+		{
+		  ptr[dpos++] = u;
+		}
+	      else if (u < 0x800)
+	        {
+		  ptr[dpos++] = (u >> 6) | 0xc0;
+		  ptr[dpos++] = (u & 0x3f) | 0x80;
+		}
+	      else
+		{
+		  ptr[dpos++] = (u >> 12) | 0xe0;
+		  ptr[dpos++] = (u >> 6) | 0x80;
+		  ptr[dpos++] = (u & 0x3f) | 0x80;
+	        }
+	    }
+	  result = YES;
+        }
+        break;
+
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
 	base = 128;
 	goto bases;
+
       case NSISOLatin1StringEncoding:
       case NSUnicodeStringEncoding: 	  
 	base = 256;

@@ -1,6 +1,8 @@
 2002-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSIndex.m: Fix error indexing vararg methods.
+	* Source/Additions/Unicode.m: Added home-brewed support for UTF8 to
+	avoid use of iconv where not necessary.q  Hope the code is OK :-)
 
 2002-12-12  Richard Frith-Macdonald <rfm@gnu.org>
 
