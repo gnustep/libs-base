@@ -89,6 +89,25 @@ absoluteGregorianDay(int day, int month, int year)
      + (year - 1)/400);   // ...plus prior years divisible by 400
 }
 
+static void
+gregorianDateFromAbsolute(int abs, int *day, int *month, int *year)
+{
+  // Search forward year by year from approximate year
+  *year = abs/366;
+  while (abs >= absoluteGregorianDay(1, 1, (*year)+1))
+    {
+      (*year)++;
+    }
+  // Search forward month by month from January
+  (*month) = 1;
+  while (abs > absoluteGregorianDay(lastDayOfGregorianMonth(*month, *year),
+    *month, *year))
+    {
+      (*month)++;
+    }
+  *day = abs - absoluteGregorianDay(1, *month, *year) + 1;
+}
+
 /**
  * Convert a broken out time specification into a time interval
  * since the reference date.<br />
@@ -109,6 +128,41 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
   a += s;
   a += mil/1000.0;
   return a;
+}
+
+static void
+GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
+  int *hour, int *minute, int *second, int *mil)
+{
+  int h, m, dayOfEra;
+  double a, b, c, d;
+
+  // Get reference date in terms of days
+  a = when / 86400.0;
+  // Offset by Gregorian reference
+  a += GREGORIAN_REFERENCE;
+  // result is the day of common era.
+  dayOfEra = (int)a;
+
+  // Calculate year, month, and day
+  gregorianDateFromAbsolute(dayOfEra, day, month, year);
+
+  // Calculate hour, minute, and seconds
+  d = dayOfEra - GREGORIAN_REFERENCE;
+  d *= 86400;
+  a = abs(d - when);
+  b = a / 3600;
+  *hour = (int)b;
+  h = *hour;
+  h = h * 3600;
+  b = a - h;
+  b = b / 60;
+  *minute = (int)b;
+  m = *minute;
+  m = m * 60;
+  c = a - h - m;
+  *second = (int)c;
+  *mil = (a - h - m - c) * 1000;
 }
 
 @interface NSCalendarDate (Private)
@@ -168,12 +222,12 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
 	   timeZone: (NSTimeZone *)aTimeZone
 {
   NSCalendarDate *d = [[self alloc] initWithYear: year
-				    month: month
-				    day: day
-				    hour: hour
-				    minute: minute
-				    second: second
-				    timeZone: aTimeZone];
+					   month: month
+					     day: day
+					    hour: hour
+					  minute: minute
+					  second: second
+					timeZone: aTimeZone];
   return AUTORELEASE(d);
 }
 
@@ -907,7 +961,18 @@ static inline int getDigits(const char *from, char *to, int limit)
     }
 }
 
-
+/**
+ * Returns an NSCalendarDate instance with the given year, month, day,
+ * hour, minute, and second, using aTimeZone.<br />
+ * The year includes the century (ie you can't just say '02' when you
+ * mean '2002').<br />
+ * The month is in the range 1 to 12,<br />
+ * The day is in th range 1 to 31,<br />
+ * The hour is in the range 0 to 23,<br />
+ * The minute is in the range 0 to 59,<br />
+ * The second is in the range 0 to 59.<br />
+ * If aTimeZone is nil, the [NSTimeZone+localTimeZone] value is used.
+ */
 - (id) initWithYear: (int)year
 	      month: (unsigned int)month
 	        day: (unsigned int)day
@@ -920,6 +985,39 @@ static inline int getDigits(const char *from, char *to, int limit)
   NSDate		*d;
   NSTimeInterval	s;
   NSTimeInterval	oldOffset;
+  NSTimeInterval	newOffset;
+
+  if (month < 1 || month > 12)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-%@] invalid month given - %u",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), month];
+    }
+  c = lastDayOfGregorianMonth(month, year);
+  if (day < 1 || day > c)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-%@] invalid day given - %u",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), day];
+    }
+  if (hour > 23)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-%@] invalid hour given - %u",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), hour];
+    }
+  if (minute > 59)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-%@] invalid minute given - %u",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), minute];
+    }
+  if (second > 59)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-%@] invalid second given - %u",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), second];
+    }
 
   // Calculate date as GMT
   s = GSTime(day, month, year, hour, minute, second, 0);
@@ -933,13 +1031,25 @@ static inline int getDigits(const char *from, char *to, int limit)
     {
       _time_zone = RETAIN(aTimeZone);
     }
-  d = [NSDate dateWithTimeIntervalSinceReferenceDate: s];
 
   // Adjust date so it is correct for time zone.
+  d = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: s];
   oldOffset = [_time_zone secondsFromGMTForDate: d];
+  RELEASE(d);
   s -= oldOffset;
   self = [self initWithTimeIntervalSinceReferenceDate: s];
 
+  /*
+   * See if we need to adjust for daylight savings time
+   */
+  newOffset = [_time_zone secondsFromGMTForDate: self];
+  if (oldOffset != newOffset)
+    {
+      s -= (newOffset - oldOffset);
+      self = [self initWithTimeIntervalSinceReferenceDate: s];
+    }
+
+#if 0
   /* Now permit up to five cycles of adjustment to allow for daylight savings.
      NB. this depends on it being OK to call the
       [-initWithTimeIntervalSinceReferenceDate: ] method repeatedly! */
@@ -947,7 +1057,6 @@ static inline int getDigits(const char *from, char *to, int limit)
   for (c = 0; c < 5 && self != nil; c++)
     {
       int	y, m, d, h, mm, ss;
-      NSTimeInterval	newOffset;
 
       [self getYear: &y month: &m day: &d hour: &h minute: &mm second: &ss];
       if (y==year && m==month && d==day && h==hour && mm==minute && ss==second)
@@ -967,30 +1076,31 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 	  /* Do we need to go back or forwards in time?
 	     Shift at most two hours - we know of no daylight savings time
-	     which is an offset of more than two hourts */
+	     which is an offset of more than two hours */
 	  if (y > year)
 	    move = -7200.0;
 	  else if (y < year)
 	    move = +7200.0;
-	  else if (m > month)
+	  else if (m > (int)month)
 	    move = -7200.0;
-	  else if (m < month)
+	  else if (m < (int)month)
 	    move = +7200.0;
-	  else if (d > day)
+	  else if (d > (int)day)
 	    move = -7200.0;
-	  else if (d < day)
+	  else if (d < (int)day)
 	    move = +7200.0;
-	  else if (h > hour || h < hour)
-	    move = (hour - h)*3600.0;
-	  else if (mm > minute || mm < minute)
-	    move = (minute - mm)*60.0;
+	  else if (h > (int)hour || h < (int)hour)
+	    move = ((int)hour - h)*3600.0;
+	  else if (mm > (int)minute || mm < (int)minute)
+	    move = ((int)minute - mm)*60.0;
 	  else
-	    move = (second - ss);
+	    move = ((int)second - ss);
 
 	  s += move;
 	}
       self = [self initWithTimeIntervalSinceReferenceDate: s];
     }
+#endif
   return self;
 }
 
@@ -1005,7 +1115,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   return self;
 }
 
-// Retreiving Date Elements
+// Retrieving Date Elements
 - (void) getYear: (int *)year
 	   month: (int *)month
 	     day: (int *)day
@@ -1013,27 +1123,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 	  minute: (int *)minute
 	  second: (int *)second
 {
-  int h, m;
-  double a, b, c, d = [self dayOfCommonEra];
+  int	mil;
 
-  // Calculate year, month, and day
-  [self gregorianDateFromAbsolute: d day: day month: month year: year];
-
-  // Calculate hour, minute, and seconds
-  d -= GREGORIAN_REFERENCE;
-  d *= 86400;
-  a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
-  b = a / 3600;
-  *hour = (int)b;
-  h = *hour;
-  h = h * 3600;
-  b = a - h;
-  b = b / 60;
-  *minute = (int)b;
-  m = *minute;
-  m = m * 60;
-  c = a - h - m;
-  *second = (int)c;
+  GSBreakTime(_seconds_since_ref + [_time_zone secondsFromGMTForDate: self],
+   year, month, day, hour, minute, second, &mil);
 }
 
 - (int) dayOfCommonEra
@@ -1557,114 +1650,146 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 @implementation NSCalendarDate (OPENSTEP)
 
-- (NSCalendarDate *)dateByAddingYears: (int)years
+- (NSCalendarDate*) dateByAddingYears: (int)years
 			       months: (int)months
 				 days: (int)days
 			        hours: (int)hours
 			      minutes: (int)minutes
 			      seconds: (int)seconds
 {
-  int		i, year, month, day, hour, minute, second;
+  NSCalendarDate	*c;
+  NSTimeInterval	s;
+  NSTimeInterval	oldOffset;
+  NSTimeInterval	newOffset;
+  int			i, year, month, day, hour, minute, second, mil;
 
-  [self getYear: &year
-	  month: &month
-	    day: &day
-	   hour: &hour
-	 minute: &minute
-	 second: &second];
+  oldOffset = [_time_zone secondsFromGMTForDate: self];
+  /*
+   * Break into components in GMT time zone.
+   */
+  GSBreakTime(_seconds_since_ref, &year, &month, &day, &hour, &minute,
+    &second, &mil);
 
-  second += seconds;
-  minute += second/60;
-  second %= 60;
-  if (second < 0)
+  while (years != 0 || months != 0 || days != 0
+    || hours != 0 || minutes != 0 || seconds != 0)
     {
-      minute--;
-      second += 60;
-    }
+      year += years;
+      years = 0;
 
-  minute += minutes;
-  hour += minute/60;
-  minute %= 60;
-  if (minute < 0)
-    {
-      hour--;
-      minute += 60;
-    }
-
-  hour += hours;
-  day += hour/24;
-  hour %= 24;
-  if (hour < 0)
-    {
-      day--;
-      hour += 24;
-    }
-
-  day += days;
-  if (day > 28)
-    {
-      i = [self lastDayOfGregorianMonth: month year: year];
-      while (day > i)
+      month += months;
+      months = 0;
+      while (month > 12)
 	{
-	  day -= i;
-	  if (month < 12)
-	    month++;
-	  else
+	  year++;
+	  month -= 12;
+	}
+      while (month < 1)
+	{
+	  year--;
+	  month += 12;
+	}
+
+      day += days;
+      days = 0;
+      if (day > 28)
+	{
+	  i = lastDayOfGregorianMonth(month, year);
+	  while (day > i)
 	    {
-	      month = 1;
-	      year++;
+	      day -= i;
+	      if (month < 12)
+		{
+		  month++;
+		}
+	      else
+		{
+		  month = 1;
+		  year++;
+		}
+	      i = lastDayOfGregorianMonth(month, year);
 	    }
-	  i = [self lastDayOfGregorianMonth: month year: year];
+	}
+      else
+	{
+	  while (day < 1)
+	    {
+	      if (month == 1)
+		{
+		  year--;
+		  month = 12;
+		}
+	      else
+		{
+		  month--;
+		}
+	      day += lastDayOfGregorianMonth(month, year);
+	    }
+	}
+
+      hour += hours;
+      hours = 0;
+      days += hour/24;
+      hour %= 24;
+      if (hour < 0)
+	{
+	  days--;
+	  hour += 24;
+	}
+
+      minute += minutes;
+      minutes = 0;
+      hours += minute/60;
+      minute %= 60;
+      if (minute < 0)
+	{
+	  hours++;
+	  minute += 60;
+	}
+
+      second += seconds;
+      seconds = 0;
+      minutes += second/60;
+      second %= 60;
+      if (second < 0)
+	{
+	  minutes--;
+	  second += 60;
 	}
     }
-  else
-    while (day < 1)
-      {
-        if (month == 1)
-	  {
-	    year--;
-	    month = 12;
-	  }
-	else
-          month--;
-        day += [self lastDayOfGregorianMonth: month year: year];
-      }
-
-  month += months;
-  while (month > 12)
-    {
-      year++;
-      month -= 12;
-    }
-  while (month < 1)
-    {
-      year--;
-      month += 12;
-    }
-
-  year += years;
 
   /*
-   * Special case - we adjusted to the correct day for the month in the
-   * starting date - but our month and year adjustment may have made that
-   * invalid for the final month and year - in which case we may have to
-   * advance to the next month.
+   * Reassemble in GMT time zone.
    */
-  if (day > 28 && day > [self lastDayOfGregorianMonth: month year: year])
-    {
-      day -= [self lastDayOfGregorianMonth: month year: year];
-      month++;
-      if (month > 12)
-	year++;
-    }
+  s = GSTime(day, month, year, hour, minute, second, mil);
+  c = [NSCalendarDate alloc];
+  c->_calendar_format = @"%Y-%m-%d %H:%M:%S %z";
+  c->_time_zone = RETAIN([self timeZone]);
+  c->_seconds_since_ref = s;
 
-  return [NSCalendarDate dateWithYear: year
-			        month: month
-			          day: day
-			         hour: hour
-			       minute: minute
-			       second: second
-			     timeZone: [self timeZoneDetail]];
+  /*
+   * Adjust date to try to maintain the time of day over
+   * a daylight savings time boundary if necessary.
+   */
+  newOffset = [_time_zone secondsFromGMTForDate: c];
+  if (newOffset != oldOffset)
+    {
+      NSTimeInterval	tmpOffset = newOffset;
+
+      s -= (newOffset - oldOffset);
+      c->_seconds_since_ref = s;
+      /*
+       * If the date we have lies within a missing hour at a
+       * daylight savings time transition, we use the original
+       * date rather than the adjusted one.
+       */
+      newOffset = [_time_zone secondsFromGMTForDate: c];
+      if (newOffset == oldOffset)
+	{
+	  s += (tmpOffset - oldOffset);
+	  c->_seconds_since_ref = s;
+	}
+    }
+  return AUTORELEASE(c);
 }
 
 - (void) years: (int*)years

@@ -1311,6 +1311,12 @@ static NSMapTable	*absolutes = 0;
   return [self secondsFromGMTForDate: [NSDate date]];
 }
 
+/**
+ * Returns the number of seconds by which the receiver differs
+ * from Greenwich Mean Time at the date when.<br />
+ * If the time zone uses dayl;ight savings time, the returned value
+ * will vary at different times of year.
+ */
 - (int) secondsFromGMTForDate: (NSDate*)when
 {
   NSTimeZoneDetail	*detail;

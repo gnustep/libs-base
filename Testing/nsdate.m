@@ -92,6 +92,7 @@ if ([(NSDate*) [NSCalendarDate date] compare:
   // NSCalendarDate tests
   printf("NSCalendarDate tests\n");
   {
+    NSCalendarDate	*c1;
     int m, y, d, a;
 
     // Create an NSCalendarDate with current date and time
@@ -212,6 +213,30 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     printf("Add an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:-2 minute:0 second:0];
     printf("Subtract two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+
+    c = [NSCalendarDate dateWithString: @"2002-03-31 00:30:00 GB"
+			calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"];
+    printf("\nSavings time checks at %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:1 minute:0 second:0];
+    printf("Add an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:-1 minute:0 second:0];
+    printf("Subtract an hour - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:2 minute:0 second:0];
+    printf("Add two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:-2 minute:0 second:0];
+    printf("Subtract two hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+
+    c = [NSCalendarDate dateWithString: @"2002-09-27 01:59:00"
+			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
+    printf("Start at %s\n", [DESCRIP_FORMAT(c) cString]);
+    c1 = [c dateByAddingYears: 0
+		       months: 0
+			 days: -180
+		        hours: 0
+		      minutes: 0
+		      seconds: 0];
+    printf("Subtract 180 %s\n", [DESCRIP_FORMAT(c1) cString]);
+
   }
 
   [pool release];
