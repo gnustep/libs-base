@@ -1182,7 +1182,7 @@ intValue_u(ivars self)
     }
   else
     {
-      unsigned int	l = self->_count < 10 ? self->_count : 9;
+      unsigned int	l = self->_count < 32 ? self->_count : 31;
       unsigned char	buf[l+1];
       unsigned char	*b = buf;
 
