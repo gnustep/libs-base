@@ -173,7 +173,22 @@ enum {
  */
 @interface NSString :NSObject <NSCoding, NSCopying, NSMutableCopying>
 
-// Creating Temporary Strings
+#ifndef	NO_GNUSTEP
+/**
+ * Sets the path handling mode for the NSString path manipulation methods.<br />
+ * <em>unix</em> mode treats paths as Unix/POSIX  paths in which a slash (/)
+ * is the only path separator, and a single leading slash indicates an
+ * absolute path.<br />
+ * <em>windows</em> mode treats paths as windows drive-relative or UNC paths
+ * in which either slash (/) or backslash (\) may be used as path separators
+ * and the 'root' of a path may be of the form 'C:/' or '//host/share/'.<br />
+ * The mode selected if you provide any other argument to this
+ * method is the default <em>gnustep</em> mode, in which the system tries
+ * to <em>do-the-right-thing</em> and support both windows and unix style
+ * paths at the same time.
+ */
++ (void) setPathHandling: (NSString*)mode;
+#endif
 + (id) string;
 + (id) stringWithCharacters: (const unichar*)chars
 		     length: (unsigned int)length;
@@ -304,7 +319,16 @@ enum {
 - (NSStringEncoding) fastestEncoding;
 - (NSStringEncoding) smallestEncoding;
 
-// Manipulating File System Paths
+/**
+ * Attempts to complete this string as a path in the filesystem by finding
+ * a unique completion if one exists and returning it by reference in
+ * outputName (which must be a non-nil pointer), or if it finds a set of
+ * completions they are returned by reference in outputArray, if it is non-nil.
+ * filterTypes can be an array of strings specifying extensions to consider;
+ * files without these extensions will be ignored and will not constitute
+ * completions.  Returns 0 if no match found, else a positive number that is
+ * only accurate if outputArray was non-nil.
+ */
 - (unsigned int) completePathIntoString: (NSString**)outputName
 			  caseSensitive: (BOOL)flag
 		       matchesIntoArray: (NSArray**)outputArray
@@ -313,18 +337,188 @@ enum {
 - (NSString*) localFromOpenStepPath;
 - (NSString*) openStepPathFromLocal;
 #endif
+
+/**
+ * Converts the receiver to a C string path expressed in the character
+ * encoding appropriate for the local host file system.  This string will be
+ * automatically freed soon after it is returned, so copy it if you need it
+ * for long.
+ */
 - (const char*) fileSystemRepresentation;
+
+/**
+ * Converts the receiver to a C string path using the character encoding
+ * appropriate to the local file system.  This string will be
+ * stored into buffer if it is shorter than size, otherwise NO is returned.
+ */
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size;
+
+/**
+ * Returns a string containing the last path component of the receiver.<br />
+ * The path component is the last non-empty substring delimited by the ends
+ * of the string, or by path separator characters.<br />
+ * If the receiver only contains a root part, this method returns it.<br />
+ * If there are no non-empty substrings, this returns an empty string.<br />
+ * NB. In a windows UNC path, the host and share specification is treated as
+ * a single path component, even though it contains separators.
+ * So a string of the form '//host/share' may be returned.<br />
+ * Other special cases are apply when the string is the root.
+ * <example>
+ *   @"foo/bar" produces @"bar"
+ *   @"foo/bar/" produces @"bar"
+ *   @"/foo/bar" produces @"bar"
+ *   @"/foo" produces @"foo"
+ *   @"/" produces @"/" (root is a special case)
+ *   @"" produces @""
+ *   @"C:/" produces @"C:/" (root is a special case)
+ *   @"C:" produces @"C:"
+ *   @"//host/share/" produces @"//host/share/" (root is a special case)
+ *   @"//host/share" produces @"//host/share"
+ * </example>
+ */
 - (NSString*) lastPathComponent;
+
+/**
+ * Returns a new string containing the path extension of the receiver.<br />
+ * The path extension is a suffix on the last path component which starts
+ * with the extension separator (a '.') (for example .tiff is the
+ * pathExtension for /foo/bar.tiff).<br />
+ * Returns an empty string if no such extension exists.
+ * <example>
+ *   @"a.b" produces @"b"
+ *   @"a.b/" produces @"b"
+ *   @"/path/a.ext" produces @"ext"
+ *   @"/path/a." produces @""
+ *   @"/path/.a" produces @"" (.a is not an extension to a file)
+ *   @".a" produces @"" (.a is not an extension to a file)
+ * </example>
+ */
 - (NSString*) pathExtension;
+
+/**
+ * Returns a string where a prefix of the current user's home directory is
+ * abbreviated by '~', or returns the receiver (or an immutable copy) if
+ * it was not found to have the home directory as a prefix.
+ */
 - (NSString*) stringByAbbreviatingWithTildeInPath;
+
+/**
+ * Returns a new string with the path component given in aString
+ * appended to the receiver.<br />
+ * This removes trailing path separators from the receiver and the root
+ * part from aString and replaces them with a single slash as a path
+ * separator.<br />
+ * Also condenses any multiple separator sequences in the result into
+ * single path separators.
+ * <example>
+ *   @"" with @"file" produces @"file"
+ *   @"path" with @"file" produces @"path/file"
+ *   @"/" with @"file" produces @"/file"
+ *   @"/" with @"file" produces @"/file"
+ *   @"/" with @"/file" produces @"/file"
+ *   @"path with @"C:/file" produces @"path/file"
+ * </example>
+ */
 - (NSString*) stringByAppendingPathComponent: (NSString*)aString;
+
+/**
+ * Returns a new string with the path extension given in aString
+ * appended to the receiver after an extensionSeparator ('.').<br />
+ * If the receiver has trailing path separator characters, they are
+ * stripped before the extension separator is added.<br />
+ * If the receiver contains no components after the root, the extension
+ * cannot be apppended (an extension can only be appended to a file name),
+ * so a copy of the unmodified receiver is returned.<br />
+ * An empty string may be used as an extension ... in which case the extension
+ * separator is appended.<br />
+ * This behavior mirrors that of the -stringByDeletingPathExtension method.
+ * <example>
+ *   @"Mail" with @"app" produces @"Mail.app"
+ *   @"Mail.app" with @"old" produces @"Mail.app.old"
+ *   @"file" with @"" produces @"file."
+ *   @"/" with @"app" produces @"/" (no file name to append to)
+ *   @"" with @"app" produces @"" (no file name to append to)
+ * </example>
+ */
 - (NSString*) stringByAppendingPathExtension: (NSString*)aString;
+
+/**
+ * Returns a new string with the last path component (including any final
+ * path separators) removed from the receiver.<br />
+ * A string without a path component other than the root is returned
+ * without alteration.<br />
+ * See -lastPathComponent for a definition of a path component.
+ * <example>
+ *   @"hello/there" produces @"hello"
+ *   @"hello" produces @""
+ *   @"/hello" produces @"/"
+ *   @"/" produces @"/"
+ *   @"C:file" produces @"C:"
+ *   @"C:" produces @"C:"
+ *   @"C:/file" produces @"C:/"
+ *   @"C:/" produces @"C:/"
+ *   @"//host/share/file" produces @"//host/share/"
+ *   @"//host/share/" produces @"/host/share/"
+ *   @"//host/share" produces @"/host/share"
+ * <example>
+ */
 - (NSString*) stringByDeletingLastPathComponent;
+
+/**
+ * Returns a new string with the path extension removed from the receiver.<br />
+ * Strips any trailing path separators before checking for the extension
+ * separator.<br />
+ * NB. This method does not consider a string which contains nothing
+ * between the root part and the extension separator ('.') to be a path
+ * extension. This mirrors the behavior of the -stringByAppendingPathExtension:
+ * method.
+ * <example>
+ *   @"file.ext" produces @"file"
+ *   @"/file.ext" produces @"/file"
+ *   @"/file.ext/" produces @"/file" (trailing path separators are ignored)
+ *   @"/file..ext" produces @"/file."
+ *   @"/file." produces @"/file"
+ *   @"/.ext" produces @"/.ext" (there is no file to strip from)
+ *   @".ext" produces @".ext" (there is no file to strip from)
+ * </example>
+ */
 - (NSString*) stringByDeletingPathExtension;
+
+/**
+ * Returns a string created by expanding the initial tilde ('~') and any
+ * following username to be the home directory of the current user or the
+ * named user.<br />
+ * Returns the receiver or an immutable copy if it was not possible to
+ * expand it.
+ */
 - (NSString*) stringByExpandingTildeInPath;
+
+/**
+ * Replaces path string by one in which path components representing symbolic
+ * links have been replaced by their referents.<br />
+ * If links cannot be resolved, returns an unmodified coopy of the receiver.
+ */
 - (NSString*) stringByResolvingSymlinksInPath;
+
+/**
+ * Returns a standardised form of the receiver, with unnecessary parts
+ * removed, tilde characters expanded, and symbolic links resolved
+ * where possible.<br />
+ * NB. Refers to the local filesystem to resolve symbolic links in
+ * absolute paths, and to expand tildes ... so this can't be used for
+ * general path manipulation.<br />
+ * If the string is an invalid path, the unmodified receiver is returned.<br />
+ * <p>
+ *   Uses -stringByExpandingTildeInPath to expand tilde expressions.<br />
+ *   Simplifies '//' and '/./' sequences and removes trailing '/' or '.'.<br />
+ * </p>
+ * <p>
+ *  For absolute paths, uses -stringByResolvingSymlinksInPath to resolve
+ *  any links, then gets rid of '/../' sequences and removes any '/private'
+ *  prefix.
+ * </p>
+ */
 - (NSString*) stringByStandardizingPath;
 
 
@@ -332,10 +526,45 @@ enum {
 - (int) _baseLength;
 
 #ifndef STRICT_OPENSTEP
+/**
+ * Concatenates the path components in the array and returns the result.<br />
+ * This method does not remove empty path components, but does recognize an
+ * empty initial component as a special case meaning that the string
+ * returned will begin with a slash.
+ */
 + (NSString*) pathWithComponents: (NSArray*)components;
+
+/**
+ * Returns YES if the receiver represents an absolute path ...<br />
+ * Returns NO otherwise.<br />
+ * An absolute path in unix mode is one which begins
+ * with a slash or tilde.<br />
+ * In windows mode a drive specification (eg C:) or a UNC server and share
+ * (eg //host/share) followed by a slash or backslash, is an absolute path,
+ * as is any path beginning with a tilde.<br />
+ * In gnustep path handling mode, the rules are the same as for windows,
+ * except that a path whose root is a slash denotes an absolute path
+ * when running on unix and a relative path when running under windows.
+ */
 - (BOOL) isAbsolutePath;
+
+/**
+ * Returns the path components of the receiver separated into an array.<br />
+ * If the receiver begins with a root sequence such as the path separator
+ * character (or a drive specification in windows) then that is used as the
+ * first element in the array.<br />
+ * Empty components are removed.<br />
+ * A trailing path separator (which was not part of the root) is added as the
+ * last element in the array.
+ */
 - (NSArray*) pathComponents;
+
+/**
+ * Returns an array of strings made by appending the values in paths
+ * to the receiver.
+ */
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths;
+
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...;
 
 + (id) stringWithString: (NSString*) aString;

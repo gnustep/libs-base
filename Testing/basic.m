@@ -88,6 +88,8 @@ int main ()
   struct objc_struct_layout layout;
   unsigned i;
 
+  NSLog(@"%@", [@"//home//nicola" pathComponents]);
+
   NSLog(@"Orig: %@", [NSUserDefaults userLanguages]);
   [NSUserDefaults setUserLanguages: [NSArray arrayWithObject: @"Bletch"]];
   NSLog(@"Set: %@", [NSUserDefaults userLanguages]);
