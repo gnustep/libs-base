@@ -237,6 +237,10 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     printf("Add four hours - %s\n", [DESCRIP_FORMAT(c) cString]);
     c = [c addYear:0 month:0 day:0 hour:-24 minute:0 second:0];
     printf("Subtract twentyfour hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:0 hour:24 minute:0 second:0];
+    printf("Add twentyfour hours - %s\n", [DESCRIP_FORMAT(c) cString]);
+    c = [c addYear:0 month:0 day:-1 hour:0 minute:0 second:0];
+    printf("Subtract a day - %s\n", [DESCRIP_FORMAT(c) cString]);
 
     c = [NSCalendarDate dateWithString: @"2002-10-27 00:30:00 GB"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"];
