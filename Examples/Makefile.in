@@ -78,29 +78,29 @@ EXCS = $(SRCS:.m=)
 all: $(EXCS)
 
 # This works for GNU make, but not others.
-# %: %.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+# %: %.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 # 	$(CC) $(ALL_CFLAGS) $< -o $@ $(ALL_LDFLAGS)
 # How can I do this in a better way than the ugliness below?
 # (but also have it work on old-style /bin/make)
 
 LINK_CMD = $(CC) $(ALL_CFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
-dictionary: dictionary.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+dictionary: dictionary.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-stdio-stream: stdio-stream.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+stdio-stream: stdio-stream.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-textcoding: textcoding.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+textcoding: textcoding.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-port-server: port-server.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+port-server: port-server.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-port-client: port-client.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+port-client: port-client.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-first-server: first-server.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+first-server: first-server.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-first-client: first-client.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+first-client: first-client.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-second-server: second-server.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+second-server: second-server.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-second-client: second-client.o $(srcdir)/../src/$(LIBOBJECTS_A_OR_SO)
+second-client: second-client.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
 
 first: first-server first-client
