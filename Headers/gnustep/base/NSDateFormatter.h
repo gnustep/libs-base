@@ -29,7 +29,7 @@
 
 #ifndef	STRICT_OPENSTEP
 
-@class NSString;
+#include <Foundation/NSFormatter.h>
 
 @interface NSDateFormatter : NSFormatter <NSCoding, NSCopying>
 {
