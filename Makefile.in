@@ -121,4 +121,13 @@ dist: snap
 	gzip -9 $(PACKAGE_NAME)-$(VERSION).tar
 	rm -rf $(PACKAGE_NAME)-$(VERSION)
 
+snapshot-rtag:
+	cvs rtag snapshot-`date +%y%m%d` $(PACKAGE_NAME)
+
+dist-rtag:
+	cvs rtag release-`echo $(VERSION) | tr . -` $(PACKAGE_NAME)
+
+rdiff:
+	cvs rdiff -u -r $(OLD) $(PACKAGE_NAME)
+
 FORCE:
