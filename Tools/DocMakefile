@@ -34,6 +34,7 @@ BaseTools_DOC_INSTALL_DIR = Developer
 BaseTools_AGSDOC_FILES = \
 ../Tools/BaseTools.gsdoc \
 ../Tools/gsdoc.gsdoc \
+../Tools/gdomap.gsdoc \
 AGSHtml.h \
 AGSIndex.h \
 AGSOutput.h \
@@ -42,6 +43,7 @@ autogsdoc.m \
 cvtenc.m \
 defaults.m \
 gdnc.m \
+gdomap.c \
 pldes.m \
 plser.m \
 plmerge.m \
@@ -83,7 +85,8 @@ include $(GNUSTEP_MAKEFILES)/documentation.make
 # to use.
 #
 before-all::	../Documentation/BaseTools \
-	../Documentation/BaseTools/gsdoc.gsdoc
+	../Documentation/BaseTools/gsdoc.gsdoc \
+	../Documentation/BaseTools/gdomap.gsdoc
 	cp -f ../Tools/BaseTools.gsdoc ../Documentation/BaseTools
 
 ../Documentation/BaseTools:
@@ -91,6 +94,9 @@ before-all::	../Documentation/BaseTools \
 
 ../Documentation/BaseTools/gsdoc.gsdoc: ../Tools/gsdoc.gsdoc
 	cp -f ../Tools/gsdoc.gsdoc ../Documentation/BaseTools
+
+../Documentation/BaseTools/gdomap.gsdoc: ../Tools/gdomap.gsdoc
+	cp -f ../Tools/gdomap.gsdoc ../Documentation/BaseTools
 
 #
 # Clean up temporary files used while generating documentation.
