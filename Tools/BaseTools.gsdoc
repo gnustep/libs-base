@@ -25,6 +25,8 @@
         </desc>
         <term><ref type="tool" id="gdnc"/></term>
         <desc>GNUstep distributed notification center.</desc>
+        <term><ref type="tool" id="gdomap"/></term>
+        <desc>GNUstep distributed object mapper.</desc>
         <term><ref type="tool" id="pldes"/></term>
         <desc>Converts a binary serialized property list (class instance)
           to a text representation.</desc>
