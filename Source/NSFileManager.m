@@ -107,9 +107,10 @@
 
 #ifdef HAVE_SYS_VFS_H
 # include <sys/vfs.h>
-# ifdef HAVE_SYS_STATVFS_H
-#  include <sys/statvfs.h>
-# endif
+#endif
+
+#ifdef HAVE_SYS_STATVFS_H
+# include <sys/statvfs.h>
 #endif
 
 #ifdef HAVE_SYS_STATFS_H

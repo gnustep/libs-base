@@ -1,3 +1,7 @@
+2002-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: include statvfs.h if available.
+
 2002-10-26  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSException.m: Document.
