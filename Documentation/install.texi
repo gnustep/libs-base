@@ -18,31 +18,30 @@ To compile and install @samp{libgnustep-base}:
 @enumerate
 
 @item
-If you are running GNU/Linux, first install pthreads.  gnustep-base has
-been tested with pthreads-0.9.2.  You can just copying the libaries from
-the @file{lib} directory of the distribution to /usr/local/lib, and the
-@file{pthreads} directory from the @file{include} directory of the
-distribution to /usr/local/include.  For example:
+If you are running GNU/Linux, first install pthreads.  A copy that is
+known to work with GNU Objective C can be found at
+@file{ftp://ftp.ocbi.com/pub/GNUstep/pthreads.tar.gz}
+I ignored the installation instructions, and instead did the following:
 
 @example
-cd pthreads-0.9.2/lib
-tar -cf - * | (cd /usr/local/lib ; tar -xvf -)
-cd ../include
-tar -cf - pthreads | (cd /usr/local/include ; tar -xvf -)
-cd /usr/local/include; ln -s pthreads/pthread.h .
-mkdirs /usr/local/src/linux_threads/kits/pthreads-0.9.2/lib/pthreads
-cd !$
-ln /usr/local/lib/libpthreads.so.1 .
+cd pthreads-0.9.2
+tar -cf - lib | (cd /usr/local ; tar -xvf -)
+tar -cf - include | (cd /usr/local ; tar -xvf -)
 @end example
 
+(And on my system, I also had to comment out the code between
+@code{#ifndef _TIMESPEC_} and the following @code {#endif} in
+@file{/usr/local/include/pthreads/typedefs.h}.)
+
 @item
-Then install the GNU Objective C runtime patch (gcc-objc.patch),
+Then install the GNU Objective C runtime patch (both gcc-2.7.2-objc.diff
+and gcc-2.7.2.1-objc.diff are included with this gnustep-base release),
 possibly like this:
 
 @example
-cd gcc-2.7.2
+cd gcc-2.7.2.1
+patch -p1 < ../gstep-base*/gcc-2.7.2.1-objc.diff
 rm -f objc/list.h
-patch -p1 < ../gstep-base*/gcc-objc.patch
 @end example
 
 @item
@@ -51,8 +50,12 @@ Make and install gcc, possibly like this:
 @example
 ./configure --prefix=/usr/local
 make OBJC_THREAD_FILE=thr-pthreads
-make install
+make OBJC_THREAD_FILE=thr-pthreads install
 @end example
+
+If you are not sure that threads are available on your system, and you
+don't need to use threads, you can substitute @samp{thr-single} for
+@samp{thr-pthreads}.
 
 @item
 Then configure and make libgnustep-base:
