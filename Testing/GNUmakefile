@@ -37,7 +37,6 @@ TEST_TOOL_NAME = \
 test01 \
 test02 \
 heap \
-nxst \
 prepend \
 pipes \
 server \
