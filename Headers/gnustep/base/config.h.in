@@ -122,6 +122,9 @@
 /* Define if you have the <netinet/in.h> header file.  */
 #undef HAVE_NETINET_IN_H
 
+/* Define if you have the <objc/objc.h> header file.  */
+#undef HAVE_OBJC_OBJC_H
+
 /* Define if you have the <pwd.h> header file.  */
 #undef HAVE_PWD_H
 
@@ -137,9 +140,6 @@
 /* Define if you have the <sys/ndir.h> header file.  */
 #undef HAVE_SYS_NDIR_H
 
-/* Define if you have the <sys/resource.h> header file.  */
-#undef HAVE_SYS_RESOURCE_H
-
 /* Define if you have the <sys/rusage.h> header file.  */
 #undef HAVE_SYS_RUSAGE_H
 
@@ -154,9 +154,6 @@
 
 /* Define if you have the <sys/statvfs.h> header file.  */
 #undef HAVE_SYS_STATVFS_H
-
-/* Define if you have the <sys/time.h> header file.  */
-#undef HAVE_SYS_TIME_H
 
 /* Define if you have the <sys/vfs.h> header file.  */
 #undef HAVE_SYS_VFS_H
