@@ -46,7 +46,7 @@ struct _ucc_ {unichar from; char to;};
 #include <errno.h>
 
 // The rest of the GNUstep code stores UNICODE in internal byte order,
-// so we do the same
+// so we do the same. This should be UCS-2-INTERNAL for libiconv
 #ifdef WORDS_BIGENDIAN
 #define UNICODE_ENC "UNICODEBIG"
 #else
@@ -59,6 +59,40 @@ struct _ucc_ {unichar from; char to;};
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
 
+#ifdef HAVE_ICONV
+// FIXME: We should check dynamically which encodings are found on this computer,
+// as different implementation of iconv will support different encodings. 
+static NSStringEncoding _availableEncodings[] = {
+    NSASCIIStringEncoding,
+    NSNEXTSTEPStringEncoding,
+    NSJapaneseEUCStringEncoding,
+    NSUTF8StringEncoding,
+    NSISOLatin1StringEncoding,
+//    NSSymbolStringEncoding,
+//    NSNonLossyASCIIStringEncoding,
+    NSShiftJISStringEncoding,
+    NSISOLatin2StringEncoding,
+    NSUnicodeStringEncoding,
+    NSWindowsCP1251StringEncoding,
+    NSWindowsCP1252StringEncoding,
+    NSWindowsCP1253StringEncoding,
+    NSWindowsCP1254StringEncoding,
+    NSWindowsCP1250StringEncoding,
+    NSISO2022JPStringEncoding,
+    NSMacOSRomanStringEncoding,
+//    NSProprietaryStringEncoding,
+// GNUstep additions
+    NSCyrillicStringEncoding,
+    NSKOI8RStringEncoding,
+    NSISOLatin3StringEncoding,
+    NSISOLatin4StringEncoding,
+    NSArabicStringEncoding,
+    NSGreekStringEncoding,
+    NSHebrewStringEncoding,
+    NSGB2312StringEncoding,
+    0
+};
+#else
 // Uncomment when implemented
 static NSStringEncoding _availableEncodings[] = {
     NSASCIIStringEncoding,
@@ -90,6 +124,7 @@ static NSStringEncoding _availableEncodings[] = {
 //    NSGB2312StringEncoding,
     0
 };
+#endif 
 
 struct _strenc_ {NSStringEncoding enc; char *ename;};
 const struct _strenc_ str_encoding_table[]=
@@ -227,10 +262,12 @@ iconv_stringforencoding(NSStringEncoding enc)
     {
       case NSASCIIStringEncoding: 
 	return "ASCII";
+      case NSNEXTSTEPStringEncoding:
+	return "NEXTSTEP";
       case NSISOLatin1StringEncoding: 
-	return "LATIN1";
+	return "ISO-8859-1";
       case NSISOLatin2StringEncoding: 
-	return "LATIN2";
+	return "ISO-8859-2";
       case NSUnicodeStringEncoding: 
 	return UNICODE_ENC;
       case NSJapaneseEUCStringEncoding: 
@@ -255,22 +292,22 @@ iconv_stringforencoding(NSStringEncoding enc)
 	return "MACINTOSH";
 
       // GNUstep extensions
-      case NSCyrillicStringEncoding:
-	return "CYRILLIC";
       case NSKOI8RStringEncoding: 
 	return "KOI8-R";
       case NSISOLatin3StringEncoding: 
-	return "LATIN3";
+	return "ISO-8859-3";
       case NSISOLatin4StringEncoding: 
-	return "LATIN4";
+	return "ISO-8859-4";
+      case NSCyrillicStringEncoding:
+	return "ISO-8859-5";
       case NSArabicStringEncoding: 
-	return "ARABIC";
+	return "ISO-8859-6";
       case NSGreekStringEncoding: 
-	return "GREEK";
+	return "ISO-8859-7";
       case NSHebrewStringEncoding:
-	return "HEBREW";
+	return "ISO-8859-8";
       case NSGB2312StringEncoding:
-	return "GB2312";
+	return "EUC-CN";
       default:
 	return "";
     }
