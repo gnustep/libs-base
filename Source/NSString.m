@@ -119,11 +119,12 @@ static void setupHexdigits()
   if (hexdigitsBitmapRep == NULL)
     {
       NSCharacterSet *hexdigits;
+      NSData *bitmap;
       
       hexdigits = [NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789abcdefABCDEF"];
-      IF_NO_GC(RETAIN(hexdigits));
-      hexdigitsBitmapRep = [[hexdigits bitmapRepresentation] bytes];
+      bitmap = RETAIN([hexdigits bitmapRepresentation]);
+      hexdigitsBitmapRep = [bitmap bytes];
     }
 }
 
@@ -136,6 +137,7 @@ static void setupQuotables()
   if (quotablesBitmapRep == NULL)
     {
       NSMutableCharacterSet	*s;
+      NSData *bitmap;
 
       s = [[NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$./_"]
@@ -143,7 +145,8 @@ static void setupQuotables()
       [s invert];
       quotables = [s copy];
       RELEASE(s);
-      quotablesBitmapRep = [[quotables bitmapRepresentation] bytes];
+      bitmap = RETAIN([quotables bitmapRepresentation]);
+      quotablesBitmapRep = [bitmap bytes];
     }
 }
 
@@ -155,11 +158,16 @@ static void setupWhitespace()
   if (whitespaceBitmapRep == NULL)
     {
       NSCharacterSet *whitespace;
+      NSData *bitmap;
 
+/*
       whitespace = [NSCharacterSet characterSetWithCharactersInString:
 				    @" \t\r\n\f\b"];
-      IF_NO_GC(RETAIN(whitespace));
-      whitespaceBitmapRep = [[whitespace bitmapRepresentation] bytes];
+*/
+      whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+
+      bitmap = RETAIN([whitespace bitmapRepresentation]);
+      whitespaceBitmapRep = [bitmap bytes];
     }
 }
 
