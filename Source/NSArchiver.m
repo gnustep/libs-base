@@ -2,7 +2,7 @@
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: March 1995
+   Created: March 1995
    
    This file is part of the GNU Objective C Class Library.
    
@@ -25,7 +25,7 @@
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSGArchiver.h>
 #include <Foundation/NSData.h>
-#include <objects/NSCoder.h>
+#include <objects/Coder.h>
 
 @implementation NSArchiver
 
@@ -43,19 +43,27 @@ static Class NSArchiver_concrete_class;
 
 + (void) initialize
 {
-  NSArchiver_concrete_class = [NSGArchiver class];
+  /* xxx clean this up eventually */
+  NSArchiver_concrete_class = [Coder class];
 }
 
-// Initializing an archiver
+
+/* Allocating and Initializing an archiver */
+
++ allocWithZone:(NSZone *)zone
+{
+  return NSAllocateObject([self _concreteClass], 0, zone);
+}
 
 /* This is the designated initializer */
 - (id) initForWritingWithMutableData: (NSMutableData*)mdata
 {
-  [self notImplemented:_cmd];
-  return nil;
+  [self subclassResponsibility:_cmd];
+  return self;
 }
 
-// Archiving Data
+
+/* Archiving Data */
 
 + (NSData*) archivedDataWithRootObject: (id)rootObject
 {
@@ -73,26 +81,53 @@ static Class NSArchiver_concrete_class;
   return YES;
 }
 
+- (unsigned int) versionForClassName: (NSString*)className;
+{
+  [self notImplemented:_cmd];
+  return 0;
+}
 
-// Getting data from the archiver
+
+/* Getting data from the archiver */
+
++ unarchiveObjectWithData: (NSData*) data
+{
+  return [[self _concreteClass] unarchiveObjectWithData: data];
+}
+
++ unarchiveObjectWithFile: (NSString*) path
+{
+  return [[self _concreteClass] unarchiveObjectWithFile: path];
+}
 
 - (NSMutableData*) archiverData
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
-
-// Substituting Classes
+
+/* Substituting Classes */
 
 + (NSString*) classNameEncodedForTrueClassName: (NSString*)trueName
 {
-  [self notImplemented:_cmd];
-  return nil;
+  return [[self _concreteClass] classNameEncodedForTrueClassName: trueName];
 }
 
 - (void) enocdeClassName: (NSString*)trueName
    intoClassName: (NSString*)inArchiveName
+{
+  [self subclassResponsibility:_cmd];
+}
+
++ (NSString*) classNameDecodedForArchiveClassName: (NSString*) inArchiveName
+{
+  return [[self _concreteClass] 
+	   classNameDecodedForArchiveClassName: inArchiveName];
+}
+
++ (void) decodeClassName: (NSString*) inArchiveName
+             asClassName:(NSString *)trueName
 {
   [self notImplemented:_cmd];
 }
