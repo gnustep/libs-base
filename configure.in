@@ -542,6 +542,7 @@ AC_CHECK_HEADERS(values.h)
 AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
 AC_CHECK_HEADERS(sys/mount.h sys/types.h)
 AC_CHECK_FUNCS(statvfs symlink readlink geteuid)
+AC_CHECK_FUNCS(windows)
 
 #--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m
