@@ -854,10 +854,10 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
       [NSException raise: NSInternalInconsistencyException
 		  format: @"attempt to remap object to nil"];
     }
-  node = GSIMapNodeForKey(_namMap, (GSIMapKey)object);
+  node = GSIMapNodeForKey(_repMap, (GSIMapKey)object);
   if (node == 0)
     {
-      GSIMapAddPair(_namMap, (GSIMapKey)object, (GSIMapVal)newObject);
+      GSIMapAddPair(_repMap, (GSIMapKey)object, (GSIMapVal)newObject);
     }
   else
     {

@@ -888,15 +888,28 @@ static BOOL deallocNotifications = NO;
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
-    if ([aCoder isBycopy]) {
-	return self;
+  static Class	proxyClass = 0;
+  static IMP	proxyImp = 0;
+
+  if (proxyImp == 0)
+    {
+      proxyClass = [NSDistantObject class];
+      proxyImp = [proxyClass methodForSelector:
+	@selector(proxyWithLocal:connection:)];
     }
-    else if ([self isKindOfClass: [NSDistantObject class]]) {
-	return self;
+
+  if ([aCoder isBycopy])
+    {
+      return self;
     }
-    else {
-	return [NSDistantObject proxyWithLocal: self
-				    connection: [aCoder connection]];
+  else if ([self isKindOfClass: proxyClass])
+    {
+      return self;
+    }
+  else
+    {
+      return (*proxyImp)(proxyClass, @selector(proxyWithLocal:connection:),
+	self, [aCoder connection]);
     }
 }
 
