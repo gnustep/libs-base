@@ -413,7 +413,10 @@ static int messages_received_count;
   if (!(ancestor = NSMapGet (in_port_2_ancestor, ip)))
     {
       NSMapInsert (in_port_2_ancestor, ip, newConn);
-      [ip addToRunLoop: [RunLoop currentInstance] forMode: nil];
+      [[RunLoop currentInstance] addPort: ip 
+				 forMode: RunLoopDefaultMode];
+      [[RunLoop currentInstance] addPort: ip 
+				 forMode: RunLoopConnectionReplyMode];
       /* This will cause the connection with the registered name
 	 to receive the -invokeWithObject: from the IN_PORT.
 	 This ends up being the ancestor of future new Connections
@@ -468,9 +471,6 @@ static int messages_received_count;
   [connection_array addObject: newConn];
 
   [connection_array_gate unlock];
-
-  /* [newConn addToRunLoop: [RunLoop currentInstance] forMode: nil];
-     This already done above. */
 
   [NotificationDispatcher 
     postNotificationName: ConnectionWasCreatedNotification
@@ -790,26 +790,6 @@ static int messages_received_count;
 
 /* Running the connection, getting/sending requests/replies. */
 
-- (void) addToRunLoop: run_loop forMode: (id <String>)mode
-{
-  [self notImplemented: _cmd];
-  [in_port addToRunLoop: run_loop forMode: mode];
-  if (out_port == nil)
-    /* This will cause the connection with the registered name
-       to receive the -invokeWithObject: from the IN_PORT.
-       This ends up being the `ancestorConnection:' argument in
-       [ConnectedDecoder newDecodingWithPacket:connection:]. */
-    /* xxx Could it happen that this connection was invalidated, but
-       the others would still be OK?  That would cause problems.
-       No.  I don't think that can happen. */
-    [in_port setReceivedPacketInvocation: (id)[self class]];
-}
-
-- (void) removeFromRunLoop: run_loop forMode: (id <String>)mode
-{
-  [in_port removeFromRunLoop: run_loop forMode: mode];
-}
-
 - (void) runConnectionUntilDate: date
 {
   [RunLoop runUntilDate: date];
@@ -935,8 +915,8 @@ static int messages_received_count;
       if (!timeout_date)
 	timeout_date = [[NSDate alloc] 
 			 initWithTimeIntervalSinceNow: in_timeout];
-      [[RunLoop currentInstance] runOnceBeforeDate: timeout_date 
-				 forMode: nil];
+      [RunLoop runOnceBeforeDate: timeout_date 
+	       forMode: nil];
     }
   reply_depth--;
   return rmc;
@@ -1336,14 +1316,6 @@ static int messages_received_count;
 		[[in_port description] cStringNoCopy], 
 		[[out_port description] cStringNoCopy]);
 
-      /* We actually need to know *which* RunLoops to remove
-	 outselves from. */
-      /* xxx No.  We aren't the only Connection listening to this in
-	 port.  This would be correct if we properly counted that adds
-	 and removes. 
-	 [self removeFromRunLoop: [RunLoop currentInstance]
-	 forMode: nil]; */
-    
       [NotificationDispatcher 
 	postNotificationName: ConnectionBecameInvalidNotification
 	object: self];
@@ -1393,3 +1365,8 @@ NSString *ConnectionBecameInvalidNotification
 
 NSString *ConnectionWasCreatedNotification 
 = @"ConnectionWasCreatedNotification";
+
+
+/* RunLoop modes */
+NSString *RunLoopConnectionReplyMode
+= @"RunLoopConnectionReplyMode";
