@@ -38,6 +38,7 @@
 #include <errno.h>
 
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSFileManager.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
@@ -505,11 +506,20 @@ static NSMutableString   *processName = nil;
       return NO;
 	
   // Read the persistent data from the stored database
-  newDict = [[NSMutableDictionary allocWithZone:[self zone]]
-	      initWithContentsOfFile:defaultsDatabase];
-  if (!newDict)
+  if ([[NSFileManager defaultManager] fileExistsAtPath: defaultsDatabase])
     newDict = [[NSMutableDictionary allocWithZone:[self zone]]
-		initWithCapacity:1];
+		initWithContentsOfFile:defaultsDatabase];
+  else
+    {
+      NSLog(@"Creating defaults database file %@", defaultsDatabase);
+      [[NSFileManager defaultManager] createFileAtPath: defaultsDatabase
+				  contents: nil
+				  attributes: nil];
+    }
+
+    if (!newDict)
+      newDict = [[NSMutableDictionary allocWithZone:[self zone]]
+		  initWithCapacity:1];
 
   if (changedDomains)
     {           // Synchronize both dictionaries

@@ -116,6 +116,7 @@ static BOOL entered_multi_threaded_state;
      start-up, and for thread's created by calling
      objc_thread_detach() directly.) */
   t = [[NSThread alloc] init];
+  objc_thread_set_data (t);
   return t;
 }
 

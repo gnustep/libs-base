@@ -1,0 +1,84 @@
+Announcement
+************
+
+The GNUstep Base Library, version 0.4.0, is now available.
+
+What is the GNUstep Base Library?
+=================================
+
+   The GNUstep Base Library is a library of general-purpose,
+non-graphical Objective C objects.  For example, it includes classes
+for strings, object collections, byte streams, typed coders,
+invocations, notifications, notification dispatchers, moments in time,
+network ports, remote object messaging support (distributed objects),
+event loops, and random number generators.
+
+   It provides functionality that aims to implement the non-graphical
+portion of the OpenStep standard.  In many cases, the `NS*' classes are
+implemented as wrappers around more featureful GNU classes.
+
+   There is more information available at the GNUstep homepage at
+`http://www.gnustep.org'.
+
+Where can you get it?  How can you compile it?
+==============================================
+
+   The gstepbase-0.4.0.tar.gz distribution file has been placed on
+`ftp.gnu.org' in `pub/gnu'.
+
+   The library requires gcc 2.8.0 or higher.  Significant sections of
+the library do not work with the NeXT runtime, so we recommend using
+gcc instead of NeXT's cc.  See the `GNUstep-HOWTO' file for more
+instructions about compiling and installing the library.
+
+   The `.tar' file is compressed with GNU gzip.  Gzip can be obtained by
+anonymous ftp at any of the GNU archive sites.
+
+   For info about FTP via email, send email to `ftpmail@decwrl.dec.com'
+with no subject line, and two-line body with line one `help' and line
+two `quit'.
+
+   The most recent (not necessarily tested) snapshots of the library
+will be placed on `alpha.gnu.org'.
+
+
+
+[ Most GNU software is packed using the GNU `gzip' compression program.
+  Source code is available on most sites distributing GNU software.
+
+  For information on how to order GNU software on tape, floppy or cd-rom, or
+  printed GNU manuals, check the file etc/ORDERS in the GNU Emacs distribution
+  or in GNUinfo/ORDERS on prep, or e-mail a request to: gnu@prep.ai.mit.edu
+
+  By ordering your GNU software from the FSF, you help us continue to
+  develop more free software.  Media revenues are our primary source of
+  support.  Donations to FSF are deductible on US tax returns.
+
+  The above software will soon be at these ftp sites as well.
+  Please try them before prep.ai.mit.edu as prep is very busy!
+
+  thanx -gnu@prep.ai.mit.edu
+
+	ASIA: ftp.cs.titech.ac.jp, utsun.s.u-tokyo.ac.jp:/ftpsync/prep,
+  cair.kaist.ac.kr:/pub/gnu, ftp.nectec.or.th:/pub/mirrors/gnu
+	AUSTRALIA: archie.au:/gnu (archie.oz or archie.oz.au for ACSnet)
+	AFRICA: ftp.sun.ac.za:/pub/gnu
+	MIDDLE-EAST: ftp.technion.ac.il:/pub/unsupported/gnu
+	EUROPE: irisa.irisa.fr:/pub/gnu, ftp.univ-lyon1.fr:pub/gnu,
+  ftp.mcc.ac.uk, unix.hensa.ac.uk:/pub/uunet/systems/gnu,
+  src.doc.ic.ac.uk:/gnu, ftp.ieunet.ie:pub/gnu, ftp.eunet.ch,
+  nic.switch.ch:/mirror/gnu, ftp.informatik.rwth-aachen.de:/pub/gnu,
+  ftp.informatik.tu-muenchen.de, ftp.win.tue.nl:/pub/gnu,
+  ftp.funet.fi:/pub/gnu, ftp.denet.dk, ftp.stacken.kth.se, isy.liu.se,
+  ftp.luth.se:/pub/unix/gnu, ftp.sunet.se:/pub/gnu, archive.eu.net
+	SOUTH AMERICA: ftp.unicamp.br:/pub/gnu
+	WESTERN CANADA: ftp.cs.ubc.ca:/mirror2/gnu
+	USA: wuarchive.wustl.edu:/systems/gnu, labrea.stanford.edu,
+  ftp.digex.net:/pub/gnu, ftp.kpc.com:/pub/mirror/gnu, f.ms.uky.edu:/pub3/gnu,
+  jaguar.utah.edu:/gnustuff, ftp.hawaii.edu:/mirrors/gnu,
+  vixen.cso.uiuc.edu:/gnu, mrcnext.cso.uiuc.edu:/pub/gnu,
+  ftp.cs.columbia.edu:/archives/gnu/prep, col.hp.com:/mirrors/gnu,
+  gatekeeper.dec.com:/pub/GNU, ftp.uu.net:/systems/gnu
+
+]
+

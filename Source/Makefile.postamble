@@ -201,6 +201,9 @@ AUTHORS: GNUmakefile
 			$(DIST_FILES) >>AUTHORS; \
 	done
 
+regenerate: $(DIST_FILES)
+	mv AUTHORS ..
+
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/src
 	mkdir ../snap/src/include

@@ -1,3 +1,34 @@
+Mon Feb  9 13:08:27 1998  Adam Fedor  <fedor@doc.com>
+
+	* AUTHORS, ANNOUNCE, README, INSTALL, STATUS, TODO: New files.
+	* configure: Likewise.
+	* +cronscript, +crontab, +patch.sh, Makefile.local, make-*,
+	upload-dist: Removed non-dist files.
+	* src/Makefile.local, src/Makefile.set.nt: Likewise.
+	* GNUmakefile (DIST_FILES): Remove gcc diffs.
+	* Makefile.postamble (regenerate): New target.
+	(snapshot, dist): Update for cvs export.
+	* NSCharacterSets/Makefile.postamble (regenerate): New target.
+	* NSTimeZones/Makefile.postamble: Likewise
+	* Tools/Makefile.postamble: Likewise.
+	* admin/Makefile.postamble: Likewise
+	* checks/Makefile.postamble: Likewise
+	* doc/Makefile.postamble: Likewise
+	* examples/Makefile.postamble: Likewise
+	* src/Makefile.postamble: Likewise
+
+	* src/NSUserDefaults ([-synchronize]): Check for defaultDatabase
+	and create it it doesn't exist.
+	* src/NSThread.m ([-currentThread]): Set thread data for new
+	thread.
+	* src/NSString.m ([-initWithContentsOfFile:]): Check for NULL
+	data. Patches suggested by Ulrich Steinmetz <ulrich@mis.mpg.de>
+
+	* src/NSHost.m: Remove arpa/inet.h
+	* src/TcpPort.m: Likewise.
+	* src/UnixFileHandle.m: Likewise.
+	  patches from Paul Kunz <Paul_Kunz@slac.stanford.edu>
+	
 Thu Feb  5 10:12:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/NSConcreteNumber.m: Defined preprocessor values to handle
