@@ -744,6 +744,7 @@ if (0) {
 
   if (poll_return == 0)
     {
+      completed = YES;
       return NO;
     }
 
@@ -1071,6 +1072,7 @@ if (0) {
     }
   if (select_return == 0)
     {
+      completed = YES;
       return NO;
     }
       
