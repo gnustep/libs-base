@@ -1,3 +1,8 @@
+2004-01-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSCompatiblity.m: PString() fix erroneous use of unichar
+	pointer as if it was a char pointer.
+
 2004-01-08 Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/Additions/GSMiume.m: Fix bad use of NSString as C-string
