@@ -51,7 +51,7 @@ SSL_OBJC_FILES = GSUnixSSLHandle.m
 # The principal class in the bundle
 SSL_PRINCIPAL_CLASS = GSUnixSSLHandle
 
-SSL_BUNDLE_LIBS = $(SSLLIBS)
+SSL_BUNDLE_LIBS = -lgnustep-base -lobjc $(SSLLIBS)
 
 endif
 
