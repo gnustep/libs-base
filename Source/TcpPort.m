@@ -502,159 +502,198 @@ nameFail(int why)
 static int
 nameServer(const char* name, const char* host, int op, struct sockaddr_in* addr, int pnum, int max)
 {
-    struct sockaddr_in	sin;
-    struct servent*	sp;
-    struct hostent*	hp;
-    unsigned short	p = htons(GDOMAP_PORT);
-    unsigned short	port = 0;
-    int			len = strlen(name);
-    int			multi = 0;
-    int			found = 0;
-    int			rval;
-    char local_hostname[MAXHOSTNAMELEN];
+  struct sockaddr_in	sin;
+  struct servent*	sp;
+  struct hostent*	hp;
+  unsigned short	p = htons(GDOMAP_PORT);
+  unsigned short	port = 0;
+  int			len = strlen(name);
+  int			multi = 0;
+  int			found = 0;
+  int			rval;
+  char local_hostname[MAXHOSTNAMELEN];
 
-    if (len == 0) {
-        [NSException raise: NSInternalInconsistencyException
-		format: @"no name specified"];
+  if (len == 0)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"no name specified"];
     }
-    if (len > 255) {
-        [NSException raise: NSInternalInconsistencyException
-		format: @"name length to large (>255 characters)"];
+  if (len > 255)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"name length to large (>255 characters)"];
     }
 
 #if	GDOMAP_PORT_OVERRIDE
-    p = htons(GDOMAP_PORT_OVERRIDE);
+  p = htons(GDOMAP_PORT_OVERRIDE);
 #else
-    /*
-     *	Ensure we have port number to connect to name server.
-     *	The TCP service name 'gdomap' overrides the default port.
-     */
-    if ((sp = getservbyname("gdomap", "tcp")) != 0) {
-	p = sp->s_port;		/* Network byte order.	*/
+  /*
+   *	Ensure we have port number to connect to name server.
+   *	The TCP service name 'gdomap' overrides the default port.
+   */
+  if ((sp = getservbyname("gdomap", "tcp")) != 0)
+    {
+      p = sp->s_port;		/* Network byte order.	*/
     }
 #endif
 
-    /*
-     *	The host name '*' matches any host on the local network.
-     */
-    if (host && host[0] == '*' && host[1] == '\0') {
-	multi = 1;
+  /*
+   *	The host name '*' matches any host on the local network.
+   */
+  if (host && host[0] == '*' && host[1] == '\0')
+    {
+      multi = 1;
     }
-    /*
-     *	If no host name is given, we use the name of the local host.
-     *	NB. This should always be the case for operations other than lookup.
-     */
-    if (multi || host == 0 || *host == '\0') {
-        char *first_dot;
+  /*
+   *	If no host name is given, we use the name of the local host.
+   *	NB. This should always be the case for operations other than lookup.
+   */
+  if (multi || host == 0 || *host == '\0')
+    {
+      char *first_dot;
 
-        if (gethostname(local_hostname, sizeof(local_hostname)) < 0) {
-	    [NSException raise: NSInternalInconsistencyException
-		format: @"gethostname() failed: %s", strerror(errno)];
+      if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"gethostname() failed: %s", strerror(errno)];
 	}
-        first_dot = strchr(local_hostname, '.');
-        if (first_dot) {
-	    *first_dot = '\0';
+      first_dot = strchr(local_hostname, '.');
+      if (first_dot)
+	{
+	  *first_dot = '\0';
 	}
-	host = local_hostname;
+      host = local_hostname;
     }
-    if ((hp = gethostbyname(host)) == 0) {
-	[NSException raise: NSInternalInconsistencyException
-		format: @"get host address for %s", host];
+  if ((hp = gethostbyname(host)) == 0)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"get host address for %s", host];
     }
-    if (hp->h_addrtype != AF_INET) {
-	[NSException raise: NSInternalInconsistencyException
-		format: @"non-internet network not supported for %s", host];
+  if (hp->h_addrtype != AF_INET)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"non-internet network not supported for %s", host];
     }
 
-    memset((char*)&sin, '\0', sizeof(sin));
-    sin.sin_family = AF_INET;
-    sin.sin_port = p;
-    memcpy((caddr_t)&sin.sin_addr, hp->h_addr, hp->h_length);
+  memset((char*)&sin, '\0', sizeof(sin));
+  sin.sin_family = AF_INET;
+  sin.sin_port = p;
+  memcpy((caddr_t)&sin.sin_addr, hp->h_addr, hp->h_length);
 
-    if (multi) {
-	unsigned short	num;
-	struct in_addr*	b;
+  if (multi)
+    {
+      unsigned short	num;
+      struct in_addr*	b;
 
-	/*
-	 *	A host name of '*' is a special case which should do lookup on
-	 *	all machines on the local network until one is found which has 
-	 *	the specified server on it.
-	 */
-	rval = tryHost(GDO_SERVERS, 0, 0, &sin, &num, (unsigned char**)&b);
-	/*
-	 *	If the connection to the local name server fails,
-	 *	attempt to start it us and retry the lookup.
-	 */
-	if (rval != 0 && host == local_hostname) {
-	    system(make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX));
-	    sleep(5);
-	    rval = tryHost(GDO_SERVERS, 0, 0, &sin, &num, (unsigned char**)&b);
+      /*
+       *	A host name of '*' is a special case which should do lookup on
+       *	all machines on the local network until one is found which has 
+       *	the specified server on it.
+       */
+      rval = tryHost(GDO_SERVERS, 0, 0, &sin, &num, (unsigned char**)&b);
+      /*
+       *	If the connection to the local name server fails,
+       *	attempt to start it us and retry the lookup.
+       */
+      if (rval != 0 && host == local_hostname)
+	{
+	  system(make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX));
+	  sleep(5);
+	  rval = tryHost(GDO_SERVERS, 0, 0, &sin, &num, (unsigned char**)&b);
 	}
-	if (rval == 0) {
-	    int	i;
+      if (rval == 0)
+	{
+	  int	i;
 
-	    for (i = 0; found == 0 && i < num; i++) {
-		memset((char*)&sin, '\0', sizeof(sin));
-		sin.sin_family = AF_INET;
-		sin.sin_port = p;
-		memcpy((caddr_t)&sin.sin_addr, &b[i], sizeof(struct in_addr));
-		if (sin.sin_addr.s_addr == 0) continue;
+	  for (i = 0; found == 0 && i < num; i++)
+	    {
+	      memset((char*)&sin, '\0', sizeof(sin));
+	      sin.sin_family = AF_INET;
+	      sin.sin_port = p;
+	      memcpy((caddr_t)&sin.sin_addr, &b[i], sizeof(struct in_addr));
+	      if (sin.sin_addr.s_addr == 0)
+		continue;
 
-		if (tryHost(GDO_LOOKUP, len, name, &sin, &port, 0) == 0) {
-		    if (port != 0) {
-			memset((char*)&addr[found], '\0', sizeof(*addr));
-			memcpy((caddr_t)&addr[found].sin_addr, &sin.sin_addr,
+	      if (tryHost(GDO_LOOKUP, len, name, &sin, &port, 0) == 0)
+		{
+		  if (port != 0)
+		    {
+		      memset((char*)&addr[found], '\0', sizeof(*addr));
+		      memcpy((caddr_t)&addr[found].sin_addr, &sin.sin_addr,
 				sizeof(sin.sin_addr));
-			addr[found].sin_family = AF_INET;
-			addr[found].sin_port = htons(port);
-			found++;
-			if (found == max) {
-			    break;
+		      addr[found].sin_family = AF_INET;
+		      addr[found].sin_port = htons(port);
+		      found++;
+		      if (found == max)
+			{
+			  break;
 			}
 		    }
 		}
 	    }
-	    objc_free(b);
-	    return(found);
+	  objc_free(b);
+	  return(found);
 	}
-	else {
-	    nameFail(rval);
+      else
+	{
+	  nameFail(rval);
 	}
     }
-    else {
-        if (op == GDO_REGISTER) {
-	    port = (unsigned short)pnum;
+  else
+    {
+      if (op == GDO_REGISTER)
+	{
+	  port = (unsigned short)pnum;
 	}
-	rval = tryHost(op, len, name, &sin, &port, 0);
-	/*
-	 *	If the connection to the local name server fails,
-	 *	attempt to start it us and retry the lookup.
-	 */
-	if (rval != 0 && host == local_hostname) {
-	    system(make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX));
-	    sleep(5);
-            if (op == GDO_REGISTER) {
-	        port = (unsigned short)pnum;
+      rval = tryHost(op, len, name, &sin, &port, 0);
+      /*
+       *	If the connection to the local name server fails,
+       *	attempt to start it us and retry the lookup.
+       */
+      if (rval != 0 && host == local_hostname)
+	{
+	  system(make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX));
+	  sleep(5);
+	  if (op == GDO_REGISTER)
+	    {
+	      port = (unsigned short)pnum;
 	    }
-	    rval = tryHost(op, len, name, &sin, &port, 0);
+	  rval = tryHost(op, len, name, &sin, &port, 0);
 	}
-	nameFail(rval);
+      nameFail(rval);
     }
 
-    if (op == GDO_REGISTER) {
-	if (port == 0 || (pnum != 0 && port != pnum)) {
-	    [NSException raise: NSInternalInconsistencyException
-		format: @"service already registered"];
+  if (op == GDO_REGISTER)
+    {
+      if (port == 0 || (pnum != 0 && port != pnum))
+	{
+	  /*
+	   *	If the name server thinks we are already registered on this
+	   *	port, we must have crashed, restarted, and got the same port
+	   *	number we used to have before we crashed.  The solution is to
+	   *	unregister our name from the port and retry the registration.
+	   */
+	  rval = tryHost(GDO_UNREG, len, name, &sin, &port, 0);
+	  nameFail(rval);
+	  port = (unsigned short)pnum;
+	  rval = tryHost(op, len, name, &sin, &port, 0);
+	  nameFail(rval);
+	  if (port == 0 || (pnum != 0 && port != pnum))
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"service already registered"];
+	    }
 	}
     }
-    if (port == 0) {
-	return 0;
+  if (port == 0)
+    {
+      return 0;
     }
-    memset((char*)addr, '\0', sizeof(*addr));
-    memcpy((caddr_t)&addr->sin_addr, &sin.sin_addr, sizeof(sin.sin_addr));
-    addr->sin_family = AF_INET;
-    addr->sin_port = htons(port);
-    return 1;
+  memset((char*)addr, '\0', sizeof(*addr));
+  memcpy((caddr_t)&addr->sin_addr, &sin.sin_addr, sizeof(sin.sin_addr));
+  addr->sin_family = AF_INET;
+  addr->sin_port = htons(port);
+  return 1;
 }
 
 #else
