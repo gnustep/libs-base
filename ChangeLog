@@ -1,3 +1,10 @@
+2001-06-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: ([runMode:beforeDate:]) Check for task
+	completion and send out notifications if required.
+        * Source/NSTask.m: ([waitUntilExit]) schedule a timer so that the
+	run loop waits rather than polling as fast as the CPU allows.
+
 2001-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSTask.m: handleSignal() ... reset signal handler for

@@ -515,6 +515,8 @@ pty_slave(const char* name)
 
 - (void) waitUntilExit
 {
+  NSTimer	*timer = nil;
+
   while ([self isRunning])
     {
       NSDate	*limit;
@@ -523,10 +525,19 @@ pty_slave(const char* name)
        *	Poll at 0.1 second intervals.
        */
       limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
+      if (timer = nil)
+	{
+	  timer = [NSTimer scheduledTimerWithTimeInterval: 0.1
+						   target: nil
+						 selector: @selector(class)
+						 userInfo: nil
+						  repeats: YES];
+	}
       [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
 			       beforeDate: limit];
       RELEASE(limit);
     }
+  [timer invalidate];
 }
 @end
 
