@@ -100,37 +100,38 @@
 </ul>
 <h2>Methods </h2>
 <ul>
+<li><a href ="NSUserDefaults.html#method-2">+setUserLanguages:</a>
 <li><a href ="NSUserDefaults.html#method-0">+standardUserDefaults</a>
 <li><a href ="NSUserDefaults.html#method-1">+userLanguages</a>
-<li><a href ="NSUserDefaults.html#method-2">-arrayForKey:</a>
-<li><a href ="NSUserDefaults.html#method-3">-boolForKey:</a>
-<li><a href ="NSUserDefaults.html#method-4">-dataForKey:</a>
-<li><a href ="NSUserDefaults.html#method-5">-dictionaryForKey:</a>
-<li><a href ="NSUserDefaults.html#method-6">-dictionaryRepresentation</a>
-<li><a href ="NSUserDefaults.html#method-7">-floatForKey:</a>
-<li><a href ="NSUserDefaults.html#method-8">-init</a>
-<li><a href ="NSUserDefaults.html#method-9">-initWithUser:</a>
-<li><a href ="NSUserDefaults.html#method-10">-integerForKey:</a>
-<li><a href ="NSUserDefaults.html#method-11">-objectForKey:</a>
-<li><a href ="NSUserDefaults.html#method-12">-persistentDomainForName:</a>
-<li><a href ="NSUserDefaults.html#method-13">-persistentDomainNames</a>
-<li><a href ="NSUserDefaults.html#method-14">-registerDefaults:</a>
-<li><a href ="NSUserDefaults.html#method-15">-removeObjectForKey:</a>
-<li><a href ="NSUserDefaults.html#method-16">-removePersistentDomainForName:</a>
-<li><a href ="NSUserDefaults.html#method-17">-removeVolatileDomainForName:</a>
-<li><a href ="NSUserDefaults.html#method-18">-searchList</a>
-<li><a href ="NSUserDefaults.html#method-19">-setBool:forKey:</a>
-<li><a href ="NSUserDefaults.html#method-20">-setFloat:forKey:</a>
-<li><a href ="NSUserDefaults.html#method-21">-setInteger:forKey:</a>
-<li><a href ="NSUserDefaults.html#method-22">-setObject:forKey:</a>
-<li><a href ="NSUserDefaults.html#method-23">-setPersistentDomain:forName:</a>
-<li><a href ="NSUserDefaults.html#method-24">-setSearchList:</a>
-<li><a href ="NSUserDefaults.html#method-25">-setVolatileDomain:forName:</a>
-<li><a href ="NSUserDefaults.html#method-26">-stringArrayForKey:</a>
-<li><a href ="NSUserDefaults.html#method-27">-stringForKey:</a>
-<li><a href ="NSUserDefaults.html#method-28">-synchronize</a>
-<li><a href ="NSUserDefaults.html#method-29">-volatileDomainForName:</a>
-<li><a href ="NSUserDefaults.html#method-30">-volatileDomainNames</a>
+<li><a href ="NSUserDefaults.html#method-3">-arrayForKey:</a>
+<li><a href ="NSUserDefaults.html#method-4">-boolForKey:</a>
+<li><a href ="NSUserDefaults.html#method-5">-dataForKey:</a>
+<li><a href ="NSUserDefaults.html#method-6">-dictionaryForKey:</a>
+<li><a href ="NSUserDefaults.html#method-7">-dictionaryRepresentation</a>
+<li><a href ="NSUserDefaults.html#method-8">-floatForKey:</a>
+<li><a href ="NSUserDefaults.html#method-9">-init</a>
+<li><a href ="NSUserDefaults.html#method-10">-initWithUser:</a>
+<li><a href ="NSUserDefaults.html#method-11">-integerForKey:</a>
+<li><a href ="NSUserDefaults.html#method-12">-objectForKey:</a>
+<li><a href ="NSUserDefaults.html#method-13">-persistentDomainForName:</a>
+<li><a href ="NSUserDefaults.html#method-14">-persistentDomainNames</a>
+<li><a href ="NSUserDefaults.html#method-15">-registerDefaults:</a>
+<li><a href ="NSUserDefaults.html#method-16">-removeObjectForKey:</a>
+<li><a href ="NSUserDefaults.html#method-17">-removePersistentDomainForName:</a>
+<li><a href ="NSUserDefaults.html#method-18">-removeVolatileDomainForName:</a>
+<li><a href ="NSUserDefaults.html#method-19">-searchList</a>
+<li><a href ="NSUserDefaults.html#method-20">-setBool:forKey:</a>
+<li><a href ="NSUserDefaults.html#method-21">-setFloat:forKey:</a>
+<li><a href ="NSUserDefaults.html#method-22">-setInteger:forKey:</a>
+<li><a href ="NSUserDefaults.html#method-23">-setObject:forKey:</a>
+<li><a href ="NSUserDefaults.html#method-24">-setPersistentDomain:forName:</a>
+<li><a href ="NSUserDefaults.html#method-25">-setSearchList:</a>
+<li><a href ="NSUserDefaults.html#method-26">-setVolatileDomain:forName:</a>
+<li><a href ="NSUserDefaults.html#method-27">-stringArrayForKey:</a>
+<li><a href ="NSUserDefaults.html#method-28">-stringForKey:</a>
+<li><a href ="NSUserDefaults.html#method-29">-synchronize</a>
+<li><a href ="NSUserDefaults.html#method-30">-volatileDomainForName:</a>
+<li><a href ="NSUserDefaults.html#method-31">-volatileDomainNames</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">standardUserDefaults</a></h3>
@@ -150,156 +151,164 @@ Standards:  GNUstep NotMacOS-X NotOpenStep<br>
 	    (in particular, uses the <em>LANGUAGES</em> environment variable).
           
  <hr>
+<h3><a name ="method-2">setUserLanguages:</a></h3>
++ (void) <b>setUserLanguages:</b> (NSArray*)languages;<br>
+Standards:  GNUstep NotMacOS-X NotOpenStep<br>
+
+	    Sets the array of user languages preferences.  Places the specified
+	    array in the <em>NSLanguages</em> user default.
+          
+ <hr>
 <hr><h2>Instances Methods </h2>
-<h3><a name ="method-2">arrayForKey:</a></h3>
+<h3><a name ="method-3">arrayForKey:</a></h3>
 - (NSArray*) <b>arrayForKey:</b> (NSString*)defaultName;<br>
 
 	    Looks up a value for a specified default, checks that it is
 	    an array.  Returns nil if it is not.
           
  <hr>
-<h3><a name ="method-3">boolForKey:</a></h3>
+<h3><a name ="method-4">boolForKey:</a></h3>
 - (BOOL) <b>boolForKey:</b> (NSString*)defaultName;<br>
 
 	    Looks up a value for a specified default, checks that it is
 	    a boolean.  Returns NO if it is not present.
           
  <hr>
-<h3><a name ="method-4">dataForKey:</a></h3>
+<h3><a name ="method-5">dataForKey:</a></h3>
 - (NSData*) <b>dataForKey:</b> (NSString*)defaultName;<br>
 
 	    Looks up a value for a specified default, checks that it is
 	    an NSData object.  Returns nil if it is not.
           
  <hr>
-<h3><a name ="method-5">dictionaryForKey:</a></h3>
+<h3><a name ="method-6">dictionaryForKey:</a></h3>
 - (NSDictionary*) <b>dictionaryForKey:</b> (NSString*)defaultName;<br>
 
 	    Looks up a value for a specified default, checks that it is
 	    an NSDictionary object.  Returns nil if it is not.
           
  <hr>
-<h3><a name ="method-6">dictionaryRepresentation</a></h3>
+<h3><a name ="method-7">dictionaryRepresentation</a></h3>
 - (NSDictionary*) <b>dictionaryRepresentation</b>;<br>
 
           
  <hr>
-<h3><a name ="method-7">floatForKey:</a></h3>
+<h3><a name ="method-8">floatForKey:</a></h3>
 - (float) <b>floatForKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-8">init</a></h3>
+<h3><a name ="method-9">init</a></h3>
 - (id) <b>init</b>;<br>
 
           
  <hr>
-<h3><a name ="method-9">initWithUser:</a></h3>
+<h3><a name ="method-10">initWithUser:</a></h3>
 - (id) <b>initWithUser:</b> (NSString*)username;<br>
 
           
  <hr>
-<h3><a name ="method-10">integerForKey:</a></h3>
+<h3><a name ="method-11">integerForKey:</a></h3>
 - (int) <b>integerForKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-11">objectForKey:</a></h3>
+<h3><a name ="method-12">objectForKey:</a></h3>
 - (id) <b>objectForKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-12">persistentDomainForName:</a></h3>
+<h3><a name ="method-13">persistentDomainForName:</a></h3>
 - (NSDictionary*) <b>persistentDomainForName:</b> (NSString*)domainName;<br>
 
           
  <hr>
-<h3><a name ="method-13">persistentDomainNames</a></h3>
+<h3><a name ="method-14">persistentDomainNames</a></h3>
 - (NSArray*) <b>persistentDomainNames</b>;<br>
 
           
  <hr>
-<h3><a name ="method-14">registerDefaults:</a></h3>
+<h3><a name ="method-15">registerDefaults:</a></h3>
 - (void) <b>registerDefaults:</b> (NSDictionary*)dictionary;<br>
 
           
  <hr>
-<h3><a name ="method-15">removeObjectForKey:</a></h3>
+<h3><a name ="method-16">removeObjectForKey:</a></h3>
 - (void) <b>removeObjectForKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-16">removePersistentDomainForName:</a></h3>
+<h3><a name ="method-17">removePersistentDomainForName:</a></h3>
 - (void) <b>removePersistentDomainForName:</b> (NSString*)domainName;<br>
 
           
  <hr>
-<h3><a name ="method-17">removeVolatileDomainForName:</a></h3>
+<h3><a name ="method-18">removeVolatileDomainForName:</a></h3>
 - (void) <b>removeVolatileDomainForName:</b> (NSString*)domainName;<br>
 
           
  <hr>
-<h3><a name ="method-18">searchList</a></h3>
+<h3><a name ="method-19">searchList</a></h3>
 - (NSArray*) <b>searchList</b>;<br>
 
           
  <hr>
-<h3><a name ="method-19">setBool:forKey:</a></h3>
+<h3><a name ="method-20">setBool:forKey:</a></h3>
 - (void) <b>setBool:</b> (BOOL)value <b>forKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-20">setFloat:forKey:</a></h3>
+<h3><a name ="method-21">setFloat:forKey:</a></h3>
 - (void) <b>setFloat:</b> (float)value <b>forKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-21">setInteger:forKey:</a></h3>
+<h3><a name ="method-22">setInteger:forKey:</a></h3>
 - (void) <b>setInteger:</b> (int)value <b>forKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-22">setObject:forKey:</a></h3>
+<h3><a name ="method-23">setObject:forKey:</a></h3>
 - (void) <b>setObject:</b> (id)value <b>forKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-23">setPersistentDomain:forName:</a></h3>
+<h3><a name ="method-24">setPersistentDomain:forName:</a></h3>
 - (void) <b>setPersistentDomain:</b> (NSDictionary*)domain <b>forName:</b> (NSString*)domainName;<br>
 
           
  <hr>
-<h3><a name ="method-24">setSearchList:</a></h3>
+<h3><a name ="method-25">setSearchList:</a></h3>
 - (void) <b>setSearchList:</b> (NSArray*)array;<br>
 
           
  <hr>
-<h3><a name ="method-25">setVolatileDomain:forName:</a></h3>
+<h3><a name ="method-26">setVolatileDomain:forName:</a></h3>
 - (void) <b>setVolatileDomain:</b> (NSDictionary*)domain <b>forName:</b> (NSString*)domainName;<br>
 
           
  <hr>
-<h3><a name ="method-26">stringArrayForKey:</a></h3>
+<h3><a name ="method-27">stringArrayForKey:</a></h3>
 - (NSArray*) <b>stringArrayForKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-27">stringForKey:</a></h3>
+<h3><a name ="method-28">stringForKey:</a></h3>
 - (NSString*) <b>stringForKey:</b> (NSString*)defaultName;<br>
 
           
  <hr>
-<h3><a name ="method-28">synchronize</a></h3>
+<h3><a name ="method-29">synchronize</a></h3>
 - (BOOL) <b>synchronize</b>;<br>
 
           
  <hr>
-<h3><a name ="method-29">volatileDomainForName:</a></h3>
+<h3><a name ="method-30">volatileDomainForName:</a></h3>
 - (NSDictionary*) <b>volatileDomainForName:</b> (NSString*)domainName;<br>
 
           
  <hr>
-<h3><a name ="method-30">volatileDomainNames</a></h3>
+<h3><a name ="method-31">volatileDomainNames</a></h3>
 - (NSArray*) <b>volatileDomainNames</b>;<br>
 
           
