@@ -759,10 +759,9 @@ main(int argc, char **argv, char **env)
 	  else
 	    {
 	      /*
-	       * Add the gsdoc file corresponding to the .h file to the list of
-	       * those to process.
+	       * Add the .h file to the list of those to process.
 	       */
-	      [gFiles addObject: [gsdocfile lastPathComponent]];
+	      [gFiles addObject: [hfile lastPathComponent]];
 	    }
 	}
       DESTROY(pool);
@@ -796,7 +795,7 @@ main(int argc, char **argv, char **env)
 	  gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
 
 	  /*
-	   * Our source file is a gsdoc file ... so it may be located
+	   * If our source file is a gsdoc file ... it may be located
 	   * in the current (input) directory rather than the documentation
 	   * (output) directory.
 	   */
@@ -1137,7 +1136,7 @@ main(int argc, char **argv, char **env)
 		    }
 		}
 	    }
-	  else
+	  else if ([arg hasSuffix: @".gsdoc"] == YES)
 	    {
 	      NSLog(@"No readable documentation at '%@' ... skipping",
 		gsdocfile);
@@ -1329,7 +1328,7 @@ main(int argc, char **argv, char **env)
 	      d = [s dataUsingEncoding: NSUTF8StringEncoding];
 	      [d writeToFile: dst atomically: YES];
 	    }
-	  else
+	  else if ([file hasSuffix: @".gsdoc"] == YES)
 	    {
 	      NSLog(@"No readable documentation at '%@' ... skipping", src);
 	    }
