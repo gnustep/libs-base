@@ -134,25 +134,17 @@ x++, y++;
 @end example
 
 Brackets should have space only before the leading bracket and after
-the trailing bracket (as in this example).
+the trailing bracket (as in this example), though there are odd occasions
+where those spcaes might be omitted ((eg. when brackets are doubled)).
 This applies to square brackets too.
 
-Where round brackets are used specially (type-casts and function/macro calls)
-different rules may be applied.
-
-For brackets in function and macro calls or specifications, there is normally
-no space between the function/macro name and the opening bracket -
-@example
-a = AMACRO();
-b = aFunctionCallWithArguments(c, d);
-@end example
-
-For type-casts and specification of method argument types, there is normally
-no space between the closing bracket and the expression whose type is being
-specified -
+Where round brackets are used for type-casts or at the end of a statement,
+there is normally no space between the closing bracket and the following
+expression or semicolon-
 @example
 a = (int)b;
 - (void) methodWithArg1: (int)arg1 andArg2: (float)arg2;
+a = foo (ax, y, z);
 @end example
 
 The placement of curly brackets is part of the indentation rules. the
