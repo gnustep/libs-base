@@ -580,7 +580,7 @@ if test -z "$GNUSTEP_SYSTEM_ROOT"; then
 fi
 
 #--------------------------------------------------------------------
-# Use config.guess, config.sub and install.sh provided by gnustep-make
+# Use config.guess, config.sub and install-sh provided by gnustep-make
 #--------------------------------------------------------------------
 ac_aux_dir=
 for ac_dir in $GNUSTEP_SYSTEM_ROOT/Makefiles $srcdir/$GNUSTEP_SYSTEM_ROOT/Makefiles; do
