@@ -1,3 +1,8 @@
+Thu Sep 26 12:39:18 1996  Adam Fedor  <fedor@pulse.Colorado.edu>
+
+	*  src/ostream.m (ostream_close_memory): Change to
+	OSTREAM_SAVEBUFFER constant.
+
 Wed Sep 25 18:32:14 1996  Scott Christley  <scottc@net-community.com>
 
 	* src/include/config-win32.sed: Delete file.
