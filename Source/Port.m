@@ -73,7 +73,13 @@
   is_valid = NO;
 }
 
-- (Class) packetClass
++ (Class) outPacketClass
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (Class) outPacketClass
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -128,7 +134,7 @@
   return nil;
 }
 
-- (void) setPacketInvocation: (id <Invoking>)invocation
+- (void) setReceivedPacketInvocation: (id <Invoking>)invocation
 {
   _packet_invocation = invocation;
 }
@@ -155,7 +161,7 @@
   return nil;
 }
 
-- (BOOL) sendPacket: packet withTimeout: (int)milliseconds
+- (BOOL) sendPacket: packet
 {
   [self subclassResponsibility:_cmd];
   return NO;
@@ -164,23 +170,56 @@
 @end
 
 
-@implementation Packet
+@implementation InPacket
 
-/* xxx There should be a designated initializer for the Packet class.
-   Currently some subclasses and users, bypass this by calling
-   MemoryStream initializers. */
-
-- initForSendingWithCapacity: (unsigned)c
-   replyPort: p
+/* The designated initializer. */
+- initForReceivingWithCapacity: (unsigned)c
+	       receivingInPort: ip
+		  replyOutPort: op
 {
-  [super initWithCapacity: c];
-  reply_port = p;
+  [super initWithCapacity: c
+	 prefix: 0];
+  assert ([op isValid]);
+  assert (!ip || [ip isValid]);
+  _reply_out_port = op;
+  _receiving_in_port = ip;
   return self;
 }
 
-- replyPort
+- replyOutPort
 {
-  return reply_port;
+  return _reply_out_port;
+}
+
+- receivingInPort
+{
+  return _receiving_in_port;
+}
+
+@end
+
+
+@implementation OutPacket
+
+/* The designated initializer. */
+- initForSendingWithCapacity: (unsigned)c
+		replyInPort: ip
+{
+  [super initWithCapacity: c
+	 prefix: [[self class] prefixSize]];
+  assert ([ip isValid]);
+  _reply_in_port = ip;
+  return self;
+}
+
++ (unsigned) prefixSize
+{
+  return 0;
+}
+
+- replyInPort
+{
+  return _reply_in_port;
 }
 
 @end
