@@ -33,27 +33,7 @@
 
 #define arglist_t marg_list
 #define retval_t void*
-#define TypedStream NXTypedStream
-
-#define objc_write_type(STREAM, TYPE, VAR) \
-     NXWriteType(STREAM, TYPE, VAR)
-#define objc_write_types(STREAM, TYPE, args...) \
-     NXWriteTypes(STREAM, TYPE, args)
-#define objc_write_object(STREAM, VAR) \
-     NXWriteObject(STREAM, VAR)
-#define objc_write_object_reference(STREAM, VAR) \
-     NXWriteObjectReference(STREAM, VAR)
-#define objc_read_type(STREAM, TYPE, VAR) \
-     NXReadType(STREAM, TYPE, VAR)
-#define objc_read_types(STREAM, TYPE, args...) \
-     NXReadTypes(STREAM, TYPE, args)
-#define objc_read_object(STREAM, VAR) \
-     do { (*(VAR)) = NXReadObject(STREAM); } while (0)
-#define objc_write_root_object \
-     NXWriteRootObject
-#define objc_open_typed_stream_for_file \
-    NXOpenTypedStreamForFile
-#define objc_close_typed_stream NXCloseTypedStream
+#define TypedStream void*
 
 #define class_pointer isa
 
