@@ -528,3 +528,17 @@ static NSDecimalNumber *one;
 }
 
 @end
+
+@implementation NSNumber (NSDecimalNumber)
+/** Returns an NSDecimal representation of the number. Float and double
+    values may not be converted exactly */
+- (NSDecimal) decimalValue
+{
+  double num;
+  NSDecimalNumber *dnum;
+  num = [self doubleValue];
+  dnum = [[NSDecimalNumber alloc] initWithBytes: &num objCType: "d"];
+  return [dnum decimalValue];
+}
+@end
+
