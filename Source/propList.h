@@ -21,6 +21,107 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
+#if	HAVE_LIBXML
+#include	<Foundation/GSXML.h>
+
+static char base64[]
+  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+
+static void
+decodeBase64Unit(const char* ptr, unsigned char *out)
+{
+  out[0] =  (ptr[0]         << 2) | ((ptr[1] & 0x30) >> 4);
+  out[1] = ((ptr[1] & 0x0F) << 4) | ((ptr[2] & 0x3C) >> 2);
+  out[2] = ((ptr[2] & 0x03) << 6) |  (ptr[3] & 0x3F);
+  out[3] = 0;
+}
+
+static NSData*
+decodeBase64(const char *source)
+{
+  int		length = strlen(source);
+  char		*sourceBuffer = objc_malloc(length+1);
+  NSMutableData	*data = [NSMutableData dataWithCapacity:0];
+  int i, j;
+  unsigned char	tmp[4];
+
+  strcpy(sourceBuffer, source);
+  j = 0;
+
+  for (i = 0; i < length; i++)
+    {
+      if (!isspace(source[i]))
+        {
+          sourceBuffer[j++] = source[i];
+        }
+    }
+
+  sourceBuffer[j] = '\0';
+  length = strlen(sourceBuffer);
+  while (length > 0 && sourceBuffer[length-1] == '=')
+    {
+      sourceBuffer[--length] = '\0';
+    }
+  for (i = 0; i < length; i += 4)
+    {
+       decodeBase64Unit(&sourceBuffer[i], tmp);
+       [data appendBytes: tmp length: strlen(tmp)];
+    }
+
+  objc_free(sourceBuffer);
+
+  return data;
+}
+
+
+static char*
+encodeBase64(NSData *source)
+{
+  int length = [source length];
+  int enclen = length / 3;
+  int remlen = length - 3 * enclen;
+  int destlen = 4 * ((length - 1) / 3) + 5;
+  unsigned char *sourceBuffer = malloc(length);
+  unsigned char *destBuffer = malloc(destlen);
+  int sourceIndex = 0, destIndex = 0;
+
+  [source getBytes:sourceBuffer];
+  destBuffer[destlen - 1] = '\0';
+
+  for (sourceIndex = 0; sourceIndex < length - 2; sourceIndex += 3, destIndex += 4)
+    {
+      destBuffer[destIndex] = base64[sourceBuffer[sourceIndex] >> 2];
+      destBuffer[destIndex + 1] = base64[((sourceBuffer[sourceIndex] << 4) | (sourceBuffer[sourceIndex + 1] >> 4)) & 0x3f];
+      destBuffer[destIndex + 2] = base64[((sourceBuffer[sourceIndex + 1] << 2) | (sourceBuffer[sourceIndex + 2] >> 6)) & 0x3f];
+      destBuffer[destIndex + 3] = base64[sourceBuffer[sourceIndex + 2] & 0x3f];
+    }
+
+  if (remlen == 1)
+    {
+      destBuffer[destIndex] = base64[sourceBuffer[sourceIndex] >> 2];
+      destBuffer[destIndex + 1] = (sourceBuffer[sourceIndex] << 4) & 0x30;
+      destBuffer[destIndex + 1] = base64[destBuffer[destIndex + 1]];
+      destBuffer[destIndex + 2] = '=';
+      destBuffer[destIndex + 3] = '=';
+    }
+  else if (remlen == 2)
+    {
+      destBuffer[destIndex] = base64[sourceBuffer[sourceIndex] >> 2];
+      destBuffer[destIndex + 1] = (sourceBuffer[sourceIndex] << 4) & 0x30;
+      destBuffer[destIndex + 1] |= sourceBuffer[sourceIndex + 1] >> 4;
+      destBuffer[destIndex + 1] = base64[destBuffer[destIndex + 1]];
+      destBuffer[destIndex + 2] = (sourceBuffer[sourceIndex + 1] << 2) & 0x3c;
+      destBuffer[destIndex + 2] = base64[destBuffer[destIndex + 2]];
+      destBuffer[destIndex + 3] = '=';
+    }
+
+  free(sourceBuffer);
+  return destBuffer;
+}
+
+#endif
+
 /*
  *	Cache some commonly used character sets along with methods to
  *	check membership.
@@ -553,6 +654,142 @@ static id parsePlItem(pldata* pld)
       default:
 	return parseUnquotedString(pld);
     }
+}
+
+#if	HAVE_LIBXML
+static GSXMLNode*
+elementNode(GSXMLNode* node)
+{
+  while (node != nil)
+    {
+      if ([node type] == XML_ELEMENT_NODE)
+        {
+          break;
+        }
+      node = [node next];
+    }
+  return node;
+}
+
+static id
+nodeToObject(GSXMLNode* node)
+{
+  NSString	*name;
+  NSString	*content;
+  GSXMLNode	*children;
+
+  node = elementNode(node);
+  if (node == nil)
+    {
+      return nil;
+    }
+  name = [node name];
+  children = elementNode([node children]);
+  content = [children content];
+
+  if ([name isEqualToString: @"string"])
+    {
+      return content;
+    }
+  else if ([name isEqualToString: @"key"])
+    {
+      return content;
+    }
+  else if ([name isEqualToString: @"true"])
+    {
+      return [NSNumber numberWithBool: YES];
+    }
+  else if ([name isEqualToString: @"false"])
+    {
+      return [NSNumber numberWithBool: NO];
+    }
+  else if ([name isEqualToString: @"integer"])
+    {
+      return [NSNumber numberWithInt: [content intValue]];
+    }
+  else if ([name isEqualToString: @"real"])
+    {
+      return [NSNumber numberWithDouble: [content doubleValue]];
+    }
+  else if ([name isEqualToString: @"date"])
+    {
+      return [NSCalendarDate dateWithString: content
+                             calendarFormat: @"%Y-%m-%d %H:%M:%S"];
+    }
+  else if ([name isEqualToString: @"data"])
+    {
+      return decodeBase64([content cString]);
+    }
+  // container class
+  else if ([name isEqualToString: @"array"])
+    {
+      NSMutableArray	*container = [NSMutableArray array];
+
+      while (children != nil)
+        {
+          [container addObject: nodeToObject(children)];
+          children = elementNode([children next]);
+        }
+      return container;
+    }
+  else if ([name isEqualToString: @"dict"])
+    {
+      NSMutableDictionary	*container = [NSMutableDictionary dictionary];
+
+      while (children != nil)
+        {
+	  NSString	*key = nodeToObject(children);
+
+          children = elementNode([children next]);
+          [container setObject: nodeToObject(children) forKey: key];
+          children = elementNode([children next]);
+        }
+      return container;
+    }
+  else
+    {
+      return nil;
+    }
+}
+#endif
+
+static id parsePl(pldata* pld)
+{
+#if	HAVE_LIBXML
+  while (pld->pos < pld->end && isspace(pld->ptr[pld->pos]))
+    {
+      pld->pos++;
+    }
+  /*
+   * A string beginning with a '<?' must be an XML file
+   */
+  if (pld->pos + 1 < pld->end && pld->ptr[pld->pos] == '<'
+    && pld->ptr[pld->pos+1] == '?')
+    {
+      NSData		*data;
+      GSXMLParser	*parser;
+
+      data = [NSData dataWithBytes: pld->ptr length: pld->end]; 
+      NSLog(@"Parsing '%*s'", pld->end, pld->ptr);
+      parser = [GSXMLParser parser: data];
+      if ([parser parse] == YES)
+	{
+	  if (![[[[parser doc] root] name] isEqualToString: @"plist"])
+	    {
+	      NSLog(@"not a property list - because name node is %@",
+		[[[parser doc] root] name]);
+	      return nil;
+	    }
+	  return nodeToObject([[[parser doc] root] children]);
+	}
+      else
+	{
+	  NSLog(@"not a property list - failed to parse as XML");
+	  return nil;
+	}
+    }
+#endif
+  return parsePlItem(pld);
 }
 
 static id parseSfItem(pldata* pld)

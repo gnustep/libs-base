@@ -771,7 +771,7 @@ AC_SUBST(GS_FAKE_MAIN)
 AC_MSG_RESULT($enable_fake_main)
 
 #--------------------------------------------------------------------
-# Check recent libxlm for GSDoc etc.
+# Check recent libxlm for Properytlists, GSXML, GSDoc etc.
 #--------------------------------------------------------------------
 echo "Checking for libxml"
 AC_CHECK_HEADERS(libxml/xmlversion.h)

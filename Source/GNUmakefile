@@ -95,8 +95,6 @@ preface.m \
 mframe.m \
 objc-gnu2next.m
 
-GNU_EXTRAS_MFILES = \
-
 GNU_CFILES = \
 md5.c \
 numbers.c \
@@ -137,8 +135,6 @@ o_map_bas.h \
 o_map_cbs.h \
 objc-gnu2next.h \
 preface.h
-
-GNU_EXTRAS_HFILES = \
 
 # GNUStep source files
 
@@ -225,6 +221,10 @@ externs.m \
 objc-load.m \
 NSURL.m \
 NSURLHandle.m
+
+ifeq ($(HAVE_LIBXML),1)
+BASE_MFILES += GSXML.m
+endif
 
 NSVALUE_MFILES = \
 	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
@@ -318,6 +318,10 @@ Foundation/NSZone.h \
 Foundation/objc-load.h \
 Foundation/NSURL.h \
 Foundation/NSURLHandle.h
+
+ifeq ($(HAVE_LIBXML),1)
+BASE_HEADERS += Foundation/GSXML.h
+endif
 
 UNICODE_HEADERS = \
 unicode/caseconv.h \

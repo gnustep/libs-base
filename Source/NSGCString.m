@@ -718,7 +718,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   if (plInit == 0)
     setupPl([NSGCString class]);
 
-  result = parsePlItem(&data);
+  result = parsePl(&data);
 
   if (result == nil && data.err != nil)
     {
