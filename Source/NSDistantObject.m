@@ -339,6 +339,11 @@ enum
 }
 @end
 
+/**
+ * Instances of this class act as proxies to remote objects using
+ * the Distributed Objects system.  They also hold references to
+ * local objects which are vended to remote processes.
+ */
 @implementation NSDistantObject
 
 + (void) initialize
@@ -354,6 +359,10 @@ enum
   return placeHolder;
 }
 
+/**
+ * Creates and returns a proxy associated with aConnection
+ * which will hold a reference to the local object anObject.
+ */
 + (NSDistantObject*) proxyWithLocal: (id)anObject
 			 connection: (NSConnection*)aConnection
 {
@@ -361,6 +370,11 @@ enum
 				     connection: aConnection]);
 }
 
+/**
+ * Creates and returns a proxy associated with aConnection
+ * which will provide a link to a remote object whose reference
+ * locally is anObject.
+ */
 + (NSDistantObject*) proxyWithTarget: (unsigned)anObject
 			  connection: (NSConnection*)aConnection
 {
@@ -368,6 +382,10 @@ enum
 				      connection: aConnection]);
 }
 
+/**
+ * Returns the [NSConnection] instance with which the receiver is
+ * associated.
+ */
 - (NSConnection*) connectionForProxy
 {
   return _connection;
@@ -687,6 +705,10 @@ enum
   return nil;
 }
 
+/**
+ * Initialises and returns a proxy associated with aConnection
+ * which will hold a reference to the local object anObject.
+ */
 - (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection
 {
   NSDistantObject	*new_proxy;
@@ -724,6 +746,11 @@ enum
   return self;
 }
 
+/**
+ * Initialises and returns a proxy associated with aConnection
+ * which will provide a link to a remote object whose reference
+ * locally is target.
+ */
 - (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection
 {
   NSDistantObject	*new_proxy;
@@ -898,6 +925,22 @@ enum
  * is used to refer to the protocol by name, a runtime error will occur
  * when you try to use it.
  * </p>
+ * <p>Beware, if you don't use this method to set the protocol, the system
+ * might well ask the remote process for method signature information, and
+ * the remote process might get it <em>wrong</em>.  This is because the
+ * class of the remote object needs to have been declared to conform to the
+ * protocol in order for it to know about any protocol qualifiers (the
+ * keywords <code>bycopy, byref, in, out, inout,</code> and
+ * <code>oneway</code>).  If the author of the server process forgot to do
+ * this, the type information returned from that process may not be what
+ * you are expecting.
+ * </p>
+ * The class of the server object should be declared like this ...
+ * <example>
+ * @interface MyServerClass : NSObject &lt;MyProtocol&gt;
+ * ...
+ * @end
+ * </example>
  */
 - (void) setProtocolForProxy: (Protocol*)aProtocol
 {
@@ -908,6 +951,9 @@ enum
 
 @implementation NSDistantObject(GNUstepExtensions)
 
+/**
+ * Used by the garbage collection system to tidy up when a proxy is destroyed.
+ */
 - (void) gcFinalize
 {
   if (_connection)
@@ -933,6 +979,9 @@ enum
     }
 }
 
+/**
+ * Dummy method ... returns the receiver.
+ */
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder
 {
   return self;
@@ -950,6 +999,11 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 
 
 
+/**
+ * For backward compatibility ... do not use this method.<br />
+ * Returns the type information ... the modern way of doing this is
+ * with the -methodSignatureForSelector: method.
+ */
 - (const char *) selectorTypeForProxy: (SEL)selector
 {
 #if NeXT_RUNTIME
@@ -963,6 +1017,10 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 #endif
 }
 
+/**
+ * For backward compatibility ... do not use this method.<br />
+ * Handle old fashioned forwarding to the proxy.
+ */
 - (id) forward: (SEL)aSel :(arglist_t)frame
 {
   if (debug_proxy)
@@ -985,6 +1043,9 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
   return object_get_class (self);
 }
 
+/**
+ * Returns the class of the receiver.
+ */
 - (Class) classForPortCoder
 {
   return object_get_class (self);
