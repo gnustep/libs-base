@@ -1,3 +1,9 @@
+Thu Oct 23 17:45:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPort.m:
+	([portWithNumber:onHost:forceAddress:listener:]) minor fix for bug
+	reported by Bjorn Giesler ... was ignoring requested listening port.
+
 2003-10-22  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSConcreteNumber.h: Moved here from
