@@ -795,7 +795,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
 {
   NSFileManager		*fm;
   NSString		*adminDir = @"Administrator";
-  NSString		*appsDir = @"Apps";
+  NSString		*appsDir = @"Applications";
   NSString		*demosDir = @"Demos";
   NSString		*devDir = @"Developer";
   NSString		*libraryDir = @"Library";
