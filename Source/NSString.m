@@ -137,6 +137,7 @@ static void setupHexdigits()
 }
 
 static NSCharacterSet *quotables = nil;
+static NSCharacterSet *oldQuotables = nil;
 static unsigned const char *quotablesBitmapRep = NULL;
 #define GS_IS_QUOTABLE(X) IS_BIT_SET(quotablesBitmapRep[(X)/8], (X) % 8)
 
@@ -145,7 +146,7 @@ static void setupQuotables()
   if (quotablesBitmapRep == NULL)
     {
       NSMutableCharacterSet	*s;
-      NSData *bitmap;
+      NSData			*bitmap;
 
       s = [[NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -156,6 +157,13 @@ static void setupQuotables()
       RELEASE(s);
       bitmap = RETAIN([quotables bitmapRepresentation]);
       quotablesBitmapRep = [bitmap bytes];
+      s = [[NSCharacterSet characterSetWithCharactersInString:
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	@"abcdefghijklmnopqrstuvwxyz$./_"]
+	mutableCopy];
+      [s invert];
+      oldQuotables = [s copy];
+      RELEASE(s);
     }
 }
 
@@ -3371,7 +3379,7 @@ handle_printf_atsign (FILE *stream,
     {
       setupQuotables();
     }
-  if ([self rangeOfCharacterFromSet: quotables].length > 0
+  if ([self rangeOfCharacterFromSet: oldQuotables].length > 0
     || [self characterAtIndex: 0] == '/')
     {
       unichar	tmp[length <= 1024 ? length : 0];
