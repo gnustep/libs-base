@@ -225,7 +225,8 @@ static int debug_binary_coder = 0;
 	volatile double value;
 	int exponent, mantissa;
 	short exponent_encoded;
-	value = *(float*)d;
+
+	memcpy (&value, d, sizeof (float));
 	/* Get the exponent */
 	value = frexp (value, &exponent);
 	exponent_encoded = exponent;
@@ -245,7 +246,8 @@ static int debug_binary_coder = 0;
 	volatile double value;
 	int exponent, mantissa1, mantissa2;
 	short exponent_encoded;
-	value = *(double*)d;
+
+	memcpy (&value, d, sizeof (double));
 	/* Get the exponent */
 	value = frexp (value, &exponent);
 	exponent_encoded = exponent;
@@ -383,7 +385,7 @@ static int debug_binary_coder = 0;
       {
 	short exponent;
 	int mantissa;
-	double value;
+	volatile double value;
 	/* Decode the exponent and mantissa. */
 	READ_SIGNED_TYPE (&exponent, short, ntohs);
 	READ_SIGNED_TYPE (&mantissa, int, ntohl);
@@ -391,7 +393,7 @@ static int debug_binary_coder = 0;
 	value = mantissa / FLOAT_FACTOR;
 	value = ldexp (value, exponent);
 	/* Put the double into the requested memory location as a float */
-	*(float*)d = value;
+	memcpy (d, &value, sizeof (float));
 	break;
       }
 
@@ -408,7 +410,7 @@ static int debug_binary_coder = 0;
 	value = ((mantissa2 / FLOAT_FACTOR) + mantissa1) / FLOAT_FACTOR;
 	value = ldexp (value, exponent);
 	/* Put the double into the requested memory location. */
-	*(double*)d = value;
+	memcpy (d, &value, sizeof (double));
 	break;
       }
 
