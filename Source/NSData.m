@@ -158,7 +158,11 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
       goto failure;
     }
 
+#if	GS_WITH_GC == 1
+  tmp = NSZoneMalloc(GSAtomicMallocZone(), fileLength);
+#else
   tmp = NSZoneMalloc(zone, fileLength);
+#endif
   if (tmp == 0)
     {
       NSLog(@"Malloc failed for file of length %d- %s",
@@ -397,7 +401,11 @@ failure:
 #define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
 
   /* we can just build a cString and convert it to an NSString */
+#if	GS_WITH_GC
+  dest = (char*) NSZoneMalloc(GSAtomicMallocZone(), 2*length+length/4+3);
+#else
   dest = (char*) NSZoneMalloc(z, 2*length+length/4+3);
+#endif
   if (dest == 0)
     [NSException raise: NSMallocException
 		format: @"No memory for description of NSData object"];
@@ -412,9 +420,14 @@ failure:
     }
   dest[j++] = '>';
   dest[j] = '\0';
+#if	GS_WITH_GC
+  str = [[NSString allocWithZone: z]
+    initWithCStringNoCopy: dest length: j fromZone: GSAtomicMallocZone()];
+#else
   str = [[NSString allocWithZone: z] initWithCStringNoCopy: dest
 						    length: j
 						  fromZone: z];
+#endif
   return AUTORELEASE(str);
 }
 
@@ -450,7 +463,11 @@ failure:
 
   GS_RANGE_CHECK(aRange, l);
 
+#if	GS_WITH_GC
+  buffer = NSZoneMalloc(GSAtomicMallocZone(), aRange.length);
+#else
   buffer = NSZoneMalloc([self zone], aRange.length);
+#endif
   if (buffer == 0)
     [NSException raise: NSMallocException
 		format: @"No memory for subdata of NSData object"];
@@ -2090,7 +2107,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
   if (aBuffer != 0 && bufferSize > 0)
     {
+#if	GS_WITH_GC
+      zone = GSAtomicMallocZone();
+#else
       zone = [self zone];
+#endif
       tmp = NSZoneMalloc(zone, bufferSize);
       if (tmp == 0)
 	{
@@ -2133,7 +2154,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       return data;
     }
 
+#if	GS_WITH_GC
+  zone = GSAtomicMallocZone();
+#else
   zone = aZone;
+#endif
   bytes = aBuffer;
   if (bytes)
     {
@@ -2147,7 +2172,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   unsigned	l;
   void*		b;
 
+#if	GS_WITH_GC
+  zone = GSAtomicMallocZone();
+#else
   zone = [self zone];
+#endif
 
   [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
   if (l)
@@ -2170,7 +2199,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) initWithContentsOfFile: (NSString *)path
 {
+#if	GS_WITH_GC
+  zone = GSAtomicMallocZone();
+#else
   zone = [self zone];
+#endif
   if (readContentsOfFile(path, &bytes, &length, zone) == NO)
     {
       RELEASE(self);
@@ -2401,8 +2434,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 @implementation	NSMutableDataMalloc
 + (void) initialize
 {
-    if ([self class] == [NSMutableDataMalloc class]) {
-        behavior_class_add_class(self, [NSDataMalloc class]);
+  if (self == [NSMutableDataMalloc class])
+    {
+      behavior_class_add_class(self, [NSDataMalloc class]);
     }
 }
 
@@ -2413,17 +2447,17 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (Class) classForArchiver
 {
-    return mutableDataMalloc;
+  return mutableDataMalloc;
 }
 
 - (Class) classForCoder
 {
-    return mutableDataMalloc;
+  return mutableDataMalloc;
 }
 
 - (Class) classForPortCoder
 {
-    return mutableDataMalloc;
+  return mutableDataMalloc;
 }
 
 - (id) copy
@@ -2435,7 +2469,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 - (id) copyWithZone: (NSZone*)z
 {
   return [[dataMalloc allocWithZone: z]
-	    initWithBytes: bytes length: length];
+    initWithBytes: bytes length: length];
 }
 
 - (id) initWithBytes: (const void*)aBuffer length: (unsigned)bufferSize
@@ -2463,30 +2497,39 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		    length: (unsigned)bufferSize
 		  fromZone: (NSZone*)aZone
 {
-    if (aZone == 0) {
-	self = [self initWithBytes: aBuffer length: bufferSize];
-	return self;
+  if (aZone == 0)
+    {
+      self = [self initWithBytes: aBuffer length: bufferSize];
+      return self;
     }
 
-    if (aBuffer == 0) {
-	self = [self initWithCapacity: bufferSize];
-	if (self) {
-	    [self setLength: bufferSize];
+  if (aBuffer == 0)
+    {
+      self = [self initWithCapacity: bufferSize];
+      if (self)
+	{
+	  [self setLength: bufferSize];
 	}
-	return self;
+      return self;
     }
-    self = [self initWithCapacity: 0];
-    if (self) {
-	zone = aZone;
-	bytes = aBuffer;
-	length = bufferSize;
-	capacity = bufferSize;
-	growth = capacity/2;
-	if (growth == 0) {
-	    growth = 1;
+  self = [self initWithCapacity: 0];
+  if (self)
+    {
+#if	GS_WITH_GC
+      zone = GSAtomicMallocZone();
+#else
+      zone = aZone;
+#endif
+      bytes = aBuffer;
+      length = bufferSize;
+      capacity = bufferSize;
+      growth = capacity/2;
+      if (growth == 0)
+	{
+	  growth = 1;
 	}
     }
-    return self;
+  return self;
 }
 
 /*
@@ -2494,23 +2537,30 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
  */
 - (id) initWithCapacity: (unsigned)size
 {
-    zone = [self zone];
-    if (size) {
-	bytes = NSZoneMalloc(zone, size);
-	if (bytes == 0) {
-	    NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory for %u bytes - %s", size, strerror(errno));
-	    RELEASE(self);
-	    return nil;
+#if	GS_WITH_GC
+  zone = GSAtomicMallocZone();
+#else
+  zone = [self zone];
+#endif
+  if (size)
+    {
+      bytes = NSZoneMalloc(zone, size);
+      if (bytes == 0)
+	{
+	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory for %u bytes - %s", size, strerror(errno));
+	  RELEASE(self);
+	  return nil;
 	}
     }
-    capacity = size;
-    growth = capacity/2;
-    if (growth == 0) {
-	growth = 1;
+  capacity = size;
+  growth = capacity/2;
+  if (growth == 0)
+    {
+      growth = 1;
     }
-    length = 0;
+  length = 0;
 
-    return self;
+  return self;
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -2537,56 +2587,62 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) initWithLength: (unsigned)size
 {
-    self = [self initWithCapacity: size];
-    if (self) {
-	memset(bytes, '\0', size);
-	length = size;
+  self = [self initWithCapacity: size];
+  if (self)
+    {
+      memset(bytes, '\0', size);
+      length = size;
     }
-    return self;
+  return self;
 }
 
 - (id) initWithContentsOfFile: (NSString *)path
 {
-    self = [self initWithCapacity: 0];
-    if (readContentsOfFile(path, &bytes, &length, zone) == NO) {
-	RELEASE(self);
-	self = nil;
+  self = [self initWithCapacity: 0];
+  if (readContentsOfFile(path, &bytes, &length, zone) == NO)
+    {
+      RELEASE(self);
+      self = nil;
     }
-    else {
-	capacity = length;
+  else
+    {
+      capacity = length;
     }
-    return self;
+  return self;
 }
 
 - (id) initWithContentsOfMappedFile: (NSString *)path
 {
-    return [self initWithContentsOfFile: path];
+  return [self initWithContentsOfFile: path];
 }
 
 - (id) initWithData: (NSData*)anObject
 {
-    if (anObject == nil) {
-	return [self initWithCapacity: 0];
+  if (anObject == nil)
+    {
+      return [self initWithCapacity: 0];
     }
-    if ([anObject isKindOfClass: [NSData class]] == NO) {
-        NSLog(@"-initWithData: passed a non-data object");
-	RELEASE(self);
-	return nil;
+  if ([anObject isKindOfClass: [NSData class]] == NO)
+    {
+      NSLog(@"-initWithData: passed a non-data object");
+      RELEASE(self);
+      return nil;
     }
-    return [self initWithBytes: [anObject bytes] length: [anObject length]];
+  return [self initWithBytes: [anObject bytes] length: [anObject length]];
 }
 
 - (void) appendBytes: (const void*)aBuffer
 	      length: (unsigned)bufferSize
 {
-    unsigned	oldLength = length;
-    unsigned	minimum = length + bufferSize;
+  unsigned	oldLength = length;
+  unsigned	minimum = length + bufferSize;
 
-    if (minimum > capacity) {
-	[self _grow: minimum];
+  if (minimum > capacity)
+    {
+      [self _grow: minimum];
     }
-    memcpy(bytes + oldLength, aBuffer, bufferSize);
-    length = minimum;
+  memcpy(bytes + oldLength, aBuffer, bufferSize);
+  length = minimum;
 }
 
 - (unsigned) capacity
@@ -2596,34 +2652,38 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (void) _grow: (unsigned)minimum
 {
-    if (minimum > capacity) {
-	unsigned	nextCapacity = capacity + growth;
-	unsigned	nextGrowth = capacity ? capacity : 1;
+  if (minimum > capacity)
+    {
+      unsigned	nextCapacity = capacity + growth;
+      unsigned	nextGrowth = capacity ? capacity : 1;
 
-	while (nextCapacity < minimum) {
-	    unsigned	tmp = nextCapacity + nextGrowth;
-	    nextGrowth = nextCapacity;
-	    nextCapacity = tmp;
+      while (nextCapacity < minimum)
+	{
+	  unsigned	tmp = nextCapacity + nextGrowth;
+
+	  nextGrowth = nextCapacity;
+	  nextCapacity = tmp;
 	}
-	[self setCapacity: nextCapacity];
-	growth = nextGrowth;
+      [self setCapacity: nextCapacity];
+      growth = nextGrowth;
     }
 }
 
 - (void*) mutableBytes
 {
-    return bytes;
+  return bytes;
 }
 
 - (void*) relinquishAllocatedBytesFromZone: (NSZone*)aZone
 {
-    void	*ptr = [super relinquishAllocatedBytesFromZone: aZone];
+  void	*ptr = [super relinquishAllocatedBytesFromZone: aZone];
 
-    if (ptr != 0) {
-	capacity = 0;
-	growth = 1;
+  if (ptr != 0)
+    {
+      capacity = 0;
+      growth = 1;
     }
-    return ptr;
+  return ptr;
 }
 
 - (void) replaceBytesInRange: (NSRange)aRange
@@ -2909,30 +2969,36 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) setCapacity: (unsigned)size
 {
-    if (size != capacity) {
-	void*	tmp;
+  if (size != capacity)
+    {
+      void*	tmp;
 
-	if (bytes) {
-	    tmp = NSZoneRealloc(zone, bytes, size);
+      if (bytes)
+	{
+	  tmp = NSZoneRealloc(zone, bytes, size);
 	}
-	else {
-	    tmp = NSZoneMalloc(zone, size);
+      else
+	{
+	  tmp = NSZoneMalloc(zone, size);
 	}
-	if (tmp == 0) {
-	    [NSException raise: NSMallocException
-			format: @"Unable to set data capacity to '%d'", size];
+      if (tmp == 0)
+	{
+	  [NSException raise: NSMallocException
+		      format: @"Unable to set data capacity to '%d'", size];
 	}
-	bytes = tmp;
-	capacity = size;
-	growth = capacity/2;
-	if (growth == 0) {
-	    growth = 1;
+      bytes = tmp;
+      capacity = size;
+      growth = capacity/2;
+      if (growth == 0)
+	{
+	  growth = 1;
 	}
     }
-    if (size < length) {
-	length = size;
+  if (size < length)
+    {
+      length = size;
     }
-    return self;
+  return self;
 }
 
 - (void) setLength: (unsigned)size

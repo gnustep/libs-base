@@ -185,7 +185,11 @@
     {
       _count = length;
       _contents_chars = chars;
+#if	GS_WITH_GC
+      _zone = chars ? GSAtomicMallocZone() : 0;
+#else
       _zone = chars ? zone : 0;
+#endif
     }
   return self;
 }
@@ -202,7 +206,11 @@
       _contents_chars = chars;
       if (flag && chars)
 	{
+#if	GS_WITH_GC
+	  _zone = GSAtomicMallocZone();
+#else
 	  _zone = NSZoneFromPointer(chars);
+#endif
 	}
       else
 	{
@@ -350,7 +358,11 @@
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count)
     {
+#if	GS_WITH_GC
+      _zone = GSAtomicMallocZone();
+#else
       _zone = fastZone(self);
+#endif
       _contents_chars = NSZoneMalloc(_zone, sizeof(unichar)*_count);
       [aCoder decodeArrayOfObjCType: @encode(unichar)
 			      count: _count
@@ -585,7 +597,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
       _count = length;
       _capacity = length;
       _contents_chars = chars;
+#if	GS_WITH_GC
+      _zone = _zone ? GSAtomicMallocZone() : 0;
+#else
       _zone = zone;
+#endif
     }
   return self;
 }
@@ -602,7 +618,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
       _contents_chars = chars;
       if (flag && chars)
 	{
+#if	GS_WITH_GC
+	  _zone = GSAtomicMallocZone();
+#else
 	  _zone = NSZoneFromPointer(chars);
+#endif
 	}
       else
 	{
@@ -623,7 +643,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 	}
       _count = 0;
       _capacity = capacity;
+#if	GS_WITH_GC
+      _zone = GSAtomicMallocZone();
+#else
       _zone = fastZone(self);
+#endif
       _contents_chars = NSZoneMalloc(_zone, sizeof(unichar)*capacity);
     }
   return self;

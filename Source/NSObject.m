@@ -304,7 +304,7 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
     }
   else
     {
-      GC_descr	gc_type = aClass->gc_object_type;
+      GC_descr	gc_type = (GC_descr)aClass->gc_object_type;
 
       if (gc_type == 0)
 	{

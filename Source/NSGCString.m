@@ -133,7 +133,11 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 {
   _count = length;
   _contents_chars = (unsigned char*)byteString;
+#if	GS_WITH_GC
+  _zone = byteString ? GSAtomicMallocZone() : 0;
+#else
   _zone = byteString ? zone : 0;
+#endif
   return self;
 }
 
@@ -215,7 +219,11 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 			     at: &_count];
   if (_count > 0)
     {
+#if	GS_WITH_GC
+      _zone = GSAtomicMallocZone();
+#else
       _zone = fastZone(self);
+#endif
       _contents_chars = NSZoneMalloc(_zone, _count);
       [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 			      count: _count
@@ -883,7 +891,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   _capacity = capacity;
   if (capacity)
     {
+#if	GS_WITH_GC
+      _zone = GSAtomicMallocZone();
+#else
       _zone = fastZone(self);
+#endif
       _contents_chars = NSZoneMalloc(_zone, _capacity);
     }
   return self;
@@ -899,7 +911,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
       _count = length;
       _capacity = length;
       _contents_chars = (unsigned char*)byteString;
+#if	GS_WITH_GC
+      _zone = byteString ? GSAtomicMallocZone() : 0;
+#else
       _zone = byteString ? zone : 0;
+#endif
     }
   return self;
 }
