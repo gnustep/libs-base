@@ -1,0 +1,119 @@
+#
+#  Documentation makefile for Objective-C Class Library
+#  Copyright (C) 1995 Free Software Foundation, Inc.
+#
+#  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+#
+#  This file is part of the GNU Objective-C Class Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+SHELL = /bin/sh
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+MAKEINFO = makeinfo
+TEXI2DVI = texi2dvi
+
+#### End of system configuration section. ####
+
+.SUFFIXES: .m
+.m.o:
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $< -o $*.o
+.c.o:
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $< -o $*.o
+
+TEXI_FILES = \
+advertisement.texi \
+announce.texi \
+install.texi \
+libobjects.texi \
+news.texi \
+objective-c.texi \
+readme.texi \
+todo.texi \
+version.texi
+
+all: info
+
+
+info: libobjects.info objective-c.info \
+	../TODO ../INSTALL ../NEWS ../README ../ANNOUNCE ../ADVERTISEMENT
+dvi: libobjects.dvi objective-c.dvi
+
+version.texi: ../Makefile.in
+	cd ..; $(MAKE) $(MAKEFLAGS) doc/version.texi
+
+libobjects.dvi: libobjects.texi version.texi
+	$(TEXI2DVI) $(srcdir)/libobjects.texi
+objective-c.dvi: objective-c.texi 
+	$(TEXI2DVI) $(srcdir)/objective-c.texi
+
+libobjects.info: libobjects.texi todo.texi version.texi
+	@echo Sorry, makeinfo does not yet support Objective C documentation.
+	:$(MAKEINFO) $(srcdir)/libobjects.texi
+objective-c.info: objective-c.texi
+	$(MAKEINFO) $(srcdir)/objective-c.texi
+../TODO: todo.texi version.texi
+	$(MAKEINFO) -o ../TODO -D TODO_ONLY \
+	--no-header --no-split $(srcdir)/todo.texi
+../INSTALL: install.texi version.texi
+	$(MAKEINFO) -o ../INSTALL -D INSTALL_ONLY \
+	--no-header --no-split $(srcdir)/install.texi
+../README: readme.texi version.texi
+	$(MAKEINFO) -o ../README -D README_ONLY \
+	--no-header --no-split $(srcdir)/readme.texi
+../ANNOUNCE: announce.texi version.texi news.texi
+	$(MAKEINFO) -o ../ANNOUNCE -D ANNOUNCE_ONLY \
+	--no-header --no-split $(srcdir)/announce.texi
+../NEWS: news.texi version.texi
+	$(MAKEINFO) -o ../NEWS -D NEWS_ONLY \
+	--no-header --no-split $(srcdir)/news.texi
+../ADVERTISEMENT: advertisement.texi version.texi
+	$(MAKEINFO) -o ../ADVERTISEMENT -D ADVERTISEMENT_ONLY \
+	--no-header --no-split $(srcdir)/advertisement.texi
+
+DISTFILES = $(TEXI_FILES) Makefile.in texinfo.tex
+
+mostlyclean:
+	rm -f *~
+
+clean: mostlyclean
+	rm -f *.info
+	rm -f libobjects.dvi libobjects.aux libobjects.log \
+	libobjects.toc libobjects.cl \
+	libobjects.cp libobjects.cps libobjects.fn libobjects.fns \
+	libobjects.ky libobjects.pg libobjects.pr libobjects.tp \
+	libobjects.vr 
+
+distclean: clean
+	rm -f Makefile 
+
+realclean: distclean
+	rm -f libobjects.info version.texi \
+		README TODO INSTALL NEWS ANNOUNCE
+
+dist-dir: $(srcdir)/../.fname
+	@echo Run "make dist" from the parent directory.
+
+dist: $(DISTFILES) dist-dir
+	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/doc
+	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/doc
+
+Makefile: Makefile.in
+	cd $(srcdir)/..; $(SHELL) config.status
