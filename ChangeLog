@@ -1,3 +1,8 @@
+2003-10-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Added some checks that getting/setting uid/gid
+	worked as expected and moved getpwnam() call to where it works.
+
 2003-10-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: ([GSMimeDocument-setContentType:])

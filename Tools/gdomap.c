@@ -4598,6 +4598,21 @@ printf(
 	}
 #endif
     }
+{
+  int uid = -2;
+  int gid = -2;
+
+#ifdef	HAVE_PWD_H
+#ifdef	HAVE_GETPWNAM
+  struct passwd *pw = getpwnam("nobody");
+
+  if (pw != 0)
+    {
+      uid = pw->pw_uid;
+      gid = pw->pw_gid;
+    }
+#endif
+#endif
 
 #if	!defined(__svr4__)
   /*
@@ -4627,42 +4642,35 @@ printf(
   /*
    * Try to become a 'safe' user now that we have
    * done everything that needs root priv.
+   *
+   * Try to be the user who launched us ... so they can kill us too.
+   * Otherwise default to user nobody.
    */
   if (getuid () != 0)
     {
-      /*
-       * Try to be the user who launched us ... so they can kill us too.
-       */
-      setuid (getuid ());
-      setgid (getgid ());
+      uid = getuid();
+      gid = getgid();
     }
-  else
+  if (setgid (gid) < 0)
     {
-      int	uid = -2;
-      int	gid = -2;
-#ifdef	HAVE_PWD_H
-#ifdef	HAVE_GETPWNAM
-      struct passwd *pw = getpwnam("nobody");
-
-      if (pw != 0)
-	{
-	  uid = pw->pw_uid;
-	  gid = pw->pw_gid;
-	}
-#endif
-#endif
-      setuid (uid);
-      setgid (gid);
-      setgroups (0, 0);	/* Empty additional groups list */
+      sprintf(ebuf, "Failed setgid(%d) - %s", gid, strerror(errno));
+      gdomap_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
     }
-  if (getuid() == 0)
+  if (setuid (uid) < 0)
+    {
+      sprintf(ebuf, "Failed setuid(%d) - %s", uid, strerror(errno));
+      gdomap_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
+    }
+  if (getuid () == 0)
     {
       sprintf(ebuf, "Still running as root after trying to change");
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
-
 #endif /* __MINGW__ */
+}
 
   init_probe();	/* Probe other name servers on net.	*/
 
