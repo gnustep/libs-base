@@ -546,6 +546,12 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		    }
 		  (*_dValImp)(self, dValSel, @encode(Class), &c);
 
+		  if (c == 0)
+		    {
+		      NSLog(@"[%s %s] decoded nil class",
+			GSNameFromClass([self class]),
+			GSNameFromSelector(_cmd));
+		    }
 		  obj = [c allocWithZone: _zone];
 		  GSIArrayAddItem(_objAry, (GSIArrayItem)obj);
 
@@ -657,8 +663,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		nil);
 	      if (c == 0)
 		{
-		  [NSException raise: NSInternalInconsistencyException
-			      format: @"decoded nil class"];
+		  NSLog(@"[%s %s] decoded nil class",
+		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
 		}
 	      classInfo = [GSClassInfo newWithClass: c andVersion: cver];
 	      GSIArrayAddItem(_clsAry, (GSIArrayItem)classInfo);
@@ -1860,7 +1866,10 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       while (count-- > 0)
 	{
 	  info = GSIArrayItemAtIndex(_clsAry, count).obj;
-	  [_cInfo setObject: info forKey: NSStringFromClass(info->class)];
+	  if (info->class != 0)
+	    {
+	      [_cInfo setObject: info forKey: NSStringFromClass(info->class)];
+	    }
 	}
     }
   info = [_cInfo objectForKey: className];

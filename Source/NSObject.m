@@ -395,7 +395,7 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 	{
 	  new = NSZoneMalloc(zone, size);
 	  NSLog(@"No garbage collection information for '%s'",
-	    GSObjCName(aClass));
+	    GSNameFromClass(aClass));
 	}
       else if ([aClass requiresTypedMemory])
 	{
@@ -1289,7 +1289,7 @@ static BOOL double_release_check_enabled = NO;
 
 static id
 GSGetValue(NSObject *self, NSString *key, SEL sel,
-  const char *type, unsigned size, unsigned off)
+  const char *type, unsigned size, int off)
 {
   if (sel != 0)
     {
@@ -1589,7 +1589,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 static void
 GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-  const char *type, unsigned size, unsigned off)
+  const char *type, unsigned size, int off)
 {
   if (sel != 0)
     {
@@ -1915,69 +1915,80 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 - (id) storedValueForKey: (NSString*)aKey
 {
-  SEL		sel = 0;
-  const char	*type = NULL;
   unsigned	size;
-  unsigned	off;
-  NSString	*name;
-  NSString	*cap;
 
   if ([[self class] useStoredAccessor] == NO)
     {
       return [self valueForKey: aKey];
     }
 
-  size = [aKey length];
+  size = [aKey cStringLength];
   if (size < 1)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"storedValueForKey: ... empty key"];
+      return NO;	// avoid compiler warnings.
     }
-  cap = [[aKey substringToIndex: 1] uppercaseString];
-  if (size > 1)
+  else
     {
-      cap = [cap stringByAppendingString: [aKey substringFromIndex: 1]];
-    }
+      SEL		sel = 0;
+      const char	*type = NULL;
+      unsigned		off;
+      const char	*name;
+      char		buf[size+5];
+      char		lo;
+      char		hi;
 
-  name = [NSString stringWithFormat: @"_get%@", cap];
-  sel = NSSelectorFromString(name);
-  if (sel == 0 || [self respondsToSelector: sel] == NO)
-    {
-      name = [NSString stringWithFormat: @"_%@", aKey];
-      sel = NSSelectorFromString(name);
+      strcpy(buf, "_get");
+      [aKey getCString: &buf[4]];
+      lo = buf[4];
+      hi = islower(lo) ? toupper(lo) : lo;
+      buf[4] = hi;
+
+      name = buf;	// _getKey
+      sel = sel_get_any_uid(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
-	  sel = 0;
-	}     
-    }
-  if (sel == 0)
-    {
-      if ([[self class] accessInstanceVariablesDirectly] == YES)
-	{
-	  name = [NSString stringWithFormat: @"_%@", aKey];
-	  if (GSInstanceVariableInfo(self, name, &type, &size, &off) == NO)
-	    {
-	      name = aKey;
-	      GSInstanceVariableInfo(self, name, &type, &size, &off);
-	    }
-	}
-      if (type == NULL)
-	{
-	  name = [NSString stringWithFormat: @"get%@", cap];
-	  sel = NSSelectorFromString(name);
+	  buf[3] = '_';
+	  buf[4] = lo;
+	  name = &buf[3]; // _key
+	  sel = sel_get_any_uid(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
-	      name = aKey;
-	      sel = NSSelectorFromString(name);
+	      sel = 0;
+	    }     
+	}
+      if (sel == 0)
+	{
+	  if ([[self class] accessInstanceVariablesDirectly] == YES)
+	    {
+	      // _key
+	      if (GSFindInstanceVariable(self, name, &type, &size, &off) == NO)
+		{
+		  name = &buf[4]; // key
+		  GSFindInstanceVariable(self, name, &type, &size, &off);
+		}
+	    }
+	  if (type == NULL)
+	    {
+	      buf[3] = 't';
+	      buf[4] = hi;
+	      name = &buf[1]; // getKey
+	      sel = sel_get_any_uid(name);
 	      if (sel == 0 || [self respondsToSelector: sel] == NO)
 		{
-		  sel = 0;
+		  buf[4] = lo;
+		  name = &buf[4];	// key
+		  sel = sel_get_any_uid(name);
+		  if (sel == 0 || [self respondsToSelector: sel] == NO)
+		    {
+		      sel = 0;
+		    }
 		}
 	    }
 	}
+      return GSGetValue(self, aKey, sel, type, size, off);
     }
-
-  return GSGetValue(self, aKey, sel, type, size, off);
 }
 
 - (void) takeStoredValue: (id)anObject forKey: (NSString*)aKey
@@ -1985,7 +1996,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
   SEL		sel;
   const char	*type;
   unsigned	size;
-  unsigned	off;
+  int		off;
   NSString	*cap;
   NSString	*name;
 
@@ -2041,7 +2052,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
   SEL		sel;
   const char	*type;
   unsigned	size;
-  unsigned	off;
+  int		off;
   NSString	*cap;
   NSString	*name;
 
@@ -2130,7 +2141,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
   NSString	*name = nil;
   const char	*type = NULL;
   unsigned	size;
-  unsigned	off;
+  int		off;
 
   size = [aKey length];
   if (size < 1)
@@ -2337,7 +2348,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 - (BOOL) isMemberOfClassNamed: (const char*)aClassName
 {
   return ((aClassName!=NULL)
-          &&!strcmp(GSObjCName(GSObjCClass(self)), aClassName));
+          &&!strcmp(GSNameFromClass(GSObjCClass(self)), aClassName));
 }
 
 + (struct objc_method_description *) descriptionForInstanceMethod: (SEL)aSel

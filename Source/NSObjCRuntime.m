@@ -36,7 +36,7 @@ NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
-    return [NSString stringWithCString: GSObjCSelectorName(aSelector)];
+    return [NSString stringWithCString: GSNameFromSelector(aSelector)];
   return nil;
 }
 
@@ -44,7 +44,7 @@ SEL
 NSSelectorFromString(NSString *aSelectorName)
 {
   if (aSelectorName != nil)
-    return sel_get_any_uid ([aSelectorName cString]);
+    return GSSelectorFromName ([aSelectorName lossyCString]);
   return (SEL)0;
 }
 
@@ -52,7 +52,7 @@ Class
 NSClassFromString(NSString *aClassName)
 {
   if (aClassName != nil)
-    return objc_lookup_class ([aClassName cString]);
+    return GSClassFromName ([aClassName lossyCString]);
   return (Class)0;
 }
 
@@ -60,7 +60,7 @@ NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
-    return [NSString stringWithCString: (char*)GSObjCName(aClass)];
+    return [NSString stringWithCString: (char*)GSNameFromClass(aClass)];
   return nil;
 }
 
@@ -76,11 +76,17 @@ NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
   return typePtr;
 }
  
+/**
+ * This function is used to locate information about the instance
+ * variable of obj called name.  It returns YES if the variable
+ * was found, NO otherwise.  If it returns YES, then the values
+ * pointed to by type, size, and offset will be set (except where
+ * they are nul pointers).
+ */
 BOOL
-GSInstanceVariableInfo(id obj, NSString *iVarName,
-  const char **type, unsigned *size, unsigned *offset)
+GSFindInstanceVariable(id obj, const char *name,
+  const char **type, unsigned int *size, int *offset)
 {
-  const char		*name = [iVarName cString];
   Class			class;
   struct objc_ivar_list	*ivars;
   struct objc_ivar	*ivar = 0;
@@ -118,38 +124,71 @@ GSInstanceVariableInfo(id obj, NSString *iVarName,
   return YES;
 }
 
-BOOL
-GSGetInstanceVariable(id obj, NSString *name, void *data)
+/**
+ * This function performs no checking ... you should use it only where
+ * you are providing information from a call to GSFindInstanceVariable()
+ * and you know that the data area provided is the correct size.
+ */
+void
+GSGetVariable(id obj, int offset, unsigned int size, void *data)
 {
-  int			offset;
-  const char		*type;
-  unsigned int		size;
-
-  if (GSInstanceVariableInfo(obj, name, &type, &size, &offset) == NO)
-    {
-      return NO;
-    }
-  //This very highly unprobable value can be used as a marker
-  NSCAssert(offset != UINT_MAX, @"Bad Offset");
   memcpy(data, ((void*)obj) + offset, size);
-  return YES;
 }
 
-BOOL
-GSSetInstanceVariable(id obj, NSString *name, const void *data)
+/**
+ * This function performs no checking ... you should use it only where
+ * you are providing information from a call to GSFindInstanceVariable()
+ * and you know that the data area provided is the correct size.
+ */
+void
+GSSetVariable(id obj, int offset, unsigned int size, const void *data)
 {
-  int			offset;
-  const char		*type;
-  unsigned int		size;
-
-  if (GSInstanceVariableInfo(obj, name, &type, &size, &offset) == NO)
-    {
-      return NO;
-    }
-  //This very highly unprobable value can be used as a marker
-  NSCAssert(offset != UINT_MAX, @"Bad Offset");
   memcpy(((void*)obj) + offset, data, size);
-  return YES;
+}
+
+/** <deprecated />
+ */
+BOOL
+GSInstanceVariableInfo(id obj, NSString *iVarName,
+  const char **type, unsigned *size, unsigned *offset)
+{
+  const char	*name = [iVarName cString];
+
+  return GSFindInstanceVariable(obj, name, type, size, offset);
+}
+
+/** <deprecated />
+ */
+BOOL
+GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
+{
+  const char	*name = [iVarName cString];
+  int		offset;
+  unsigned int	size;
+
+  if (GSFindInstanceVariable(obj, name, 0, &size, &offset) == YES)
+    {
+      GSGetVariable(obj, offset, size, data);
+      return YES;
+    }
+  return NO;
+}
+
+/** <deprecated />
+ */
+BOOL
+GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
+{
+  const char	*name = [iVarName cString];
+  int		offset;
+  unsigned int	size;
+
+  if (GSFindInstanceVariable(obj, name, 0, &size, &offset) == YES)
+    {
+      GSSetVariable(obj, offset, size, data);
+      return YES;
+    }
+  return NO;
 }
 
 /* Getting a system error message on a variety of systems */

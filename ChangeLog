@@ -2,10 +2,18 @@
 
 	* Source/NSValue.m: Fixed bug in archiving NSValue objects ... was
 	creating faulty archives which would crash on unarchiving.
-	If you have any archives created using the buggy code, try to
-	unarchive them by using the previous version of this file but
-	with the RELEASE() of the decoded NSData object removed.  This
-	*might* permit archive recovery, though it will cause a memory leak.
+	* Headers/Foundation/NSObjCRuntime.h: Made GS... function names more
+	consistent with NeXT/Apple ones.  Provide new ivar handling API.
+	Don't crash when asked for a class which does not exist.
+	* Source/NSObject.m: partial conversion to new runtime api.
+	* Source/NSData.m: partial conversion to new runtime api.  Don't
+	raise an exception if a class we are deserializing does not exist.
+	Just warn and return a nul class.
+	* Source/NSArchiver.m: better clasname handling. 
+	* Source/NSUnarchiver.m: try to gracefully handle the case where an
+	archive contains the name of a class we don't have linked in to our
+	code.
+	* Source/NSPortCoder.m: ditto.
 
 2002-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
