@@ -63,9 +63,9 @@ static Class	NSDate_class;
   _interval = ti;
   _date = [[NSDate_class allocWithZone: [self zone]]
     initWithTimeIntervalSinceNow: ti];
-  _target = object;
+  _target = RETAIN(object);
   _selector = selector;
-  _info = info;
+  _info = RETAIN(info);
   _repeats = f;
   return self;
 }
@@ -122,6 +122,10 @@ static Class	NSDate_class;
 
 - (void) dealloc
 {
+  if (_invalidated == NO)
+    {
+      [self invalidate];
+    }
   RELEASE(_date);
   [super dealloc];
 }
@@ -166,6 +170,14 @@ static Class	NSDate_class;
 
 - (void) invalidate
 {
+  if (_target != nil)
+    {
+      DESTROY(_target);
+    }
+  if (_info != nil)
+    {
+      DESTROY(_info);
+    }
   /* OPENSTEP allows this method to be called multiple times. */
   //NSAssert(_invalidated == NO, NSInternalInconsistencyException);
   _invalidated = YES;
@@ -174,9 +186,13 @@ static Class	NSDate_class;
 - (BOOL) isValid
 {
   if (_invalidated == NO)
-    return YES;
+    {
+      return YES;
+    }
   else
-    return NO;
+    {
+      return NO;
+    }
 }
 
 - (NSDate*) fireDate
