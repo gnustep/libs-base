@@ -216,16 +216,23 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	}
       else if ([name isEqual: @"class"] == YES)
 	{
-	  NSString		*tmp;
+	  NSString	*tmp;
 
 	  newUnit = YES;
 	  unit = [prop objectForKey: @"name"];
-	  [self setGlobalRef: unit type: name];
-
 	  tmp = [prop objectForKey: @"super"];
 	  if (tmp != nil)
 	    {
-	      [self setGlobalRef: unit type: @"super"];
+	      NSMutableDictionary	*t;
+
+	      t = [refs objectForKey: @"super"];
+	      if (t == nil)
+		{
+		  t = [NSMutableDictionary new];
+		  [refs setObject: t forKey: @"super"];
+		  RELEASE(t);
+		}
+	      [t setObject: tmp forKey: unit];
 	    }
 	}
       else if ([name isEqual: @"gsdoc"] == YES)
