@@ -157,13 +157,25 @@ static IMP gs_objc_msg_forward (SEL sel)
      get the right one, though. What to do then? Perhaps it can be fixed up
      in the callback, but only under limited circumstances.
    */
-  sel = gs_find_best_typed_sel (sel);
   sel_type = sel_get_type (sel);
   sig = nil;
   
   if (sel_type)
     {
       sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
+    }
+  else
+    {
+      static NSMethodSignature *def = nil;
+
+      /*
+       * Default signature is for a method returning an object.
+       */
+      if (def == nil)
+	{
+	  def = RETAIN([NSMethodSignature signatureWithObjCTypes: "@@:"]);
+	}
+      sig = def;
     }
 
   NSCAssert1(sig, @"No signature for selector %@", NSStringFromSelector(sel));

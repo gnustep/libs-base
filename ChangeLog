@@ -1,3 +1,9 @@
+2003-07-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Source/GSFFCallInvocation.m: gs_objc_msg_forward() trust the
+	selector we are given. Rather than trying to find a better one.
+	* Source/GSFFIInvocation.m: ditto
+
 2003-07-06  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add -R flags for netbsdelf

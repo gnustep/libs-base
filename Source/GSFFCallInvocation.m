@@ -377,9 +377,9 @@ static IMP gs_objc_msg_forward (SEL sel)
   void			*forwarding_callback;
 
   /*
-   * 1. determine return type.
+   * 1. determine return type.  The compiler should have provided us with
+   * a typed selector if possible, if not we have to assume an id return.
    */
-  sel = gs_find_best_typed_sel (sel);
   sel_type = sel_get_type (sel);
 
   if (!sel_type)
