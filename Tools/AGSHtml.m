@@ -758,7 +758,11 @@ static NSMutableSet	*textNodes = nil;
 	  NSString	*type = [prop objectForKey: @"type"];
 	  NSDictionary	*dict = [localRefs refs];
 
-	  if (projectRefs != nil && [scope isEqual: @"project"] == YES)
+	  if (globalRefs != nil && [scope isEqual: @"global"] == YES)
+	    {
+	      dict = [globalRefs refs];
+	    }
+	  else if (projectRefs != nil && [scope isEqual: @"project"] == YES)
 	    {
 	      dict = [projectRefs refs];
 	    }
