@@ -47,7 +47,6 @@ Sat Aug  7 17:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	
 	* many files: Changed FSF mailing address
 
->>>>>>> 1.463.2.5
 Fri Aug  6 13:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Portability fixes for compilers that don't leave enough space in an
