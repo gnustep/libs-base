@@ -14,6 +14,8 @@
 	* Source/NSUserDefaults.m: Locking bug fixed ... was locking before
 	lock had been created.
 	* Source/libgnustep-base.def: Removed defunct class
+	* Source/NSHost.m: Support initialisation with an address for which
+	there is no corrsponding host name.
 
 2001-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 
