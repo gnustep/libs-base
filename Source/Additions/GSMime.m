@@ -3366,6 +3366,10 @@ static NSCharacterSet	*tokenSet = nil;
     return NSWindowsCP1253StringEncoding;
   if ([charset isEqualToString: @"windows-1254"] == YES)
     return NSWindowsCP1254StringEncoding;
+  if ([charset isEqualToString: @"iso-10646-ucs-2"] == YES)
+    return NSUnicodeStringEncoding;
+  if ([charset isEqualToString: @"iso-10646"] == YES)
+    return NSUnicodeStringEncoding;
 
   return NSASCIIStringEncoding;		// Default character set.
 }
