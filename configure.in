@@ -548,7 +548,7 @@ AC_CHECK_HEADERS(values.h)
 # Header files and functions for files and filesystems
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
-AC_CHECK_HEADERS(sys/mount.h sys/types.h windows.h locale.h)
+AC_CHECK_HEADERS(sys/mount.h sys/types.h windows.h locale.h langinfo.h)
 saved_LIBS="$LIBS"
 LIBS="$LIBS -lm"
 AC_CHECK_FUNCS(statvfs symlink readlink geteuid rint)
