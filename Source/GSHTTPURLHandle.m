@@ -702,11 +702,14 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   if (sock == nil)
     {
+      extern int errno;
+
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
       [self backgroundLoadDidFailWithReason: [NSString stringWithFormat:
-	@"Unable to connect to %@:%@", host, port]];
+	@"Unable to connect to %@:%@ ... %s",
+	host, port, GSLastErrorStr(errno)]];
       return;
     }
   RETAIN(sock);
@@ -762,8 +765,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
-      NSLog(@"Unable to connect to %@:%@ via socket",
-	[sock socketAddress], [sock socketService]);
+      NSLog(@"Unable to connect to %@:%@ via socket ... %@",
+	[sock socketAddress], [sock socketService], e);
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
