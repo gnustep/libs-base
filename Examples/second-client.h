@@ -5,7 +5,7 @@
 #include <objects/Proxy.h>
 #include "second-server.h"
 
-@interface AppellationObject : Object
+@interface AppellationObject : NSObject
 {
   const char *appellation;
 }
