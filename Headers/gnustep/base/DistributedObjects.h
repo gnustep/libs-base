@@ -62,7 +62,7 @@ enum {
 
 
 /*
- *	Catagory containing the methods by which the public interface to
+ *	Category containing the methods by which the public interface to
  *	NSConnection must be extended in order to allow it's use by
  *	by NSDistantObject et al for implementation of Distributed objects.
  */
@@ -73,5 +73,19 @@ enum {
 - (NSDistantObject*) proxyForTarget: (unsigned)target;
 - (void) retainTarget: (unsigned)target;
 @end
+
+/*
+ * A structure for passing context information using in encoding/decoding
+ * arguments for DO
+ */
+typedef struct {
+  const char	*type;		// The type of the data
+  int		flags;		// Type qualifier flags
+  void		*datum;		// Where to get/store data
+  NSConnection	*connection;	// The connection in use
+  NSPortCoder	*decoder;	// The coder to use
+  NSPortCoder	*encoder;	// The coder to use
+  unsigned	seq;		// Sequence number
+} DOContext;
 
 #endif /* __DistributedObjects_h */

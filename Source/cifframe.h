@@ -43,8 +43,7 @@ extern void cifframe_get_arg(cifframe_t *cframe, int index, void *buffer);
 extern void *cifframe_arg_addr(cifframe_t *cframe, int index);
 extern BOOL cifframe_decode_return (const char *type, void* buffer);
 
-extern void cifframe_do_call (const char *encoded_types,
-		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int));
-
+extern void cifframe_do_call (DOContext *ctxt,
+		void(*decoder)(DOContext*),
+		void(*encoder)(DOContext*));
 #endif

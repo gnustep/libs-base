@@ -26,6 +26,7 @@
 #define callframe_h_INCLUDE
 
 #include <Foundation/NSMethodSignature.h>
+#include <base/DistributedObjects.h>
 
 @class NSInvocation;
 
@@ -44,12 +45,13 @@ extern void callframe_get_arg(callframe_t *cframe, int index, void *buffer,
 			      int size);
 extern void *callframe_arg_addr(callframe_t *cframe, int index);
 
-extern void callframe_do_call (const char *encoded_types,
-		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int));
+extern void callframe_do_call (DOContext *ctxt,
+		void(*decoder)(DOContext*),
+		void(*encoder)(DOContext*));
 extern void callframe_build_return (NSInvocation *inv,
 		const char *type, 
 		BOOL out_parameters,
-		void(*decoder)(int,void*,const char*,int));
+		void(*decoder)(DOContext*),
+		DOContext* ctxt);
 #endif
 

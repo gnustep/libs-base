@@ -152,22 +152,21 @@ typedef struct _NSInvocation_t {
 
 /* callframe_do_call()
 
-   This function decodes the arguments of method call, builds an
-   argframe of type arglist_t, and invokes the method using
-   __builtin_apply; then it encodes the return value and any
-   pass-by-reference arguments.
+   This function decodes the arguments of method call, builds a
+   callframe, and invokes the method using GSFFCallInvokeWithTargetAndImp
+   then it encodes the return value and any pass-by-reference arguments.
 
-   ENCODED_TYPES should be a string that describes the return value
+   An entry, ctxt->type should be a string that describes the return value
    and arguments.  It's argument types and argument type qualifiers
    should match exactly those that were used when the arguments were
-   encoded with callframe_dissect_call()---callframe_do_call() uses
-   ENCODED_TYPES to determine which variable types it should decode.
+   encoded. callframe_do_call() uses this information to determine
+   which variable types it should decode.
 
-   ENCODED_TYPES is used to get the types and type qualifiers, but not
+   The type info is used to get the types and type qualifiers, but not
    to get the register and stack locations---we get that information
    from the selector type of the SEL that is decoded as the second
-   argument.  In this way, the ENCODED_TYPES may come from a machine
-   of a different architecture.  Having the original ENCODED_TYPES is
+   argument.  In this way, the type info may come from a machine
+   of a different architecture.  Having the original type info is
    good, just in case the machine running callframe_do_call() has some
    slightly different qualifiers.  Using different qualifiers for
    encoding and decoding could lead to massive confusion.
@@ -176,17 +175,15 @@ typedef struct _NSInvocation_t {
    DECODER should be a pointer to a function that obtains the method's
    argument values.  For example:
 
-     void my_decoder (int argnum, void *data, const char *type)
+     void my_decoder (DOContext *ctxt)
 
-     ARGNUM is the number of the argument, beginning at 0.
-     DATA is a pointer to the memory where the value should be placed.
-     TYPE is a pointer to the type string of this value.
+     CTXT contains the context information for the item to decode.
 
      callframe_do_call() calls this function once for each of the methods
      arguments.  The DECODER function should place the ARGNUM'th
-     argument's value at the memory location DATA.
-     callframe_do_call() calls this function once with ARGNUM -1, DATA 0,
-     and TYPE 0 to denote completion of decoding.
+     argument's value at the memory location ctxt->datum.
+     callframe_do_call() calls this function once with ctxt->datum 0,
+     and ctxt->type 0 to denote completion of decoding.
 
 
      If DECODER malloc's new memory in the course of doing its
@@ -201,32 +198,22 @@ typedef struct _NSInvocation_t {
    ENCODER should be a pointer to a function that records the method's
    return value and pass-by-reference values.  For example:
 
-     void my_encoder (int argnum, void *data, const char *type, int flags)
+     void my_encoder (DOContext *ctxt)
 
-     ARGNUM is the number of the argument; this will be -1 for the
-       return value, and the argument index for the pass-by-reference
-       values; the indices start at 0.
-     DATA is a pointer to the memory where the value can be found.
-     TYPE is a pointer to the type string of this value.
-     FLAGS is a copy of the type qualifier flags for this argument; 
-       (see <objc/objc-api.h>).
+     CTXT contains the context information for the item to encode.
 
      callframe_do_call() calls this function after the method has been
      run---once for the return value, and once for each of the
      pass-by-reference parameters.  The ENCODER function should place
-     the value at memory location DATA wherever the user wants to
+     the value at memory location ctxt->datum wherever the user wants to
      record the ARGNUM'th return value.
 
-  PASS_POINTERS is a flag saying whether pointers should be passed
-  as pointers (for local stuff) or should be assumed to point to a
-  single data item (for distributed objects).
 */
 
 void
-callframe_do_call_opts (const char *encoded_types,
-		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int),
-		BOOL pass_pointers)
+callframe_do_call (DOContext *ctxt,
+		void(*decoder)(DOContext*),
+		void(*encoder)(DOContext*))
 {
   /* The method type string obtained from the target's OBJC_METHOD 
      structure for the selector we're sending. */
@@ -241,8 +228,6 @@ callframe_do_call_opts (const char *encoded_types,
   SEL selector;
   /* The OBJECT's implementation of the SELECTOR. */
   IMP method_implementation;
-  /* A pointer into the ARGFRAME; points at individual arguments. */
-  char *datum;
   /* Type qualifier flags; see <objc/objc-api.h>. */
   unsigned flags;
   /* Which argument number are we processing now? */
@@ -254,21 +239,25 @@ callframe_do_call_opts (const char *encoded_types,
   /* Does the method have any arguments that are passed by reference?
      If so, we need to encode them, since the method may have changed them. */
   BOOL out_parameters = NO;
-  BOOL one_way = NO;
   /* A dummy invocation to pass to the function that invokes our method */
   NSInvocation_t *inv;
   /* Signature information */
   NSMethodSignature *sig;
+  const char *encoded_types = ctxt->type;
 
   /* Decode the object, (which is always the first argument to a method),
      into the local variable OBJECT. */
-  (*decoder) (0, &object, @encode(id));
+  ctxt->type = @encode(id);
+  ctxt->datum = &object;
+  (*decoder) (ctxt);
   NSCParameterAssert (object);
 
   /* Decode the selector, (which is always the second argument to a
      method), into the local variable SELECTOR. */
   /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
-  (*decoder) (1, &selector, ":");
+  ctxt->type = @encode(SEL);
+  ctxt->datum = &selector;
+  (*decoder) (ctxt);
   NSCParameterAssert (selector);
 
   /* Get the "selector type" for this method.  The "selector type" is
@@ -343,7 +332,12 @@ callframe_do_call_opts (const char *encoded_types,
 	 in <objc/objc-api.h> */
       tmptype = objc_skip_type_qualifiers(tmptype);
 
-      datum = callframe_arg_addr(cframe, argnum);
+      /*
+       * Setup information in context.
+       */
+      ctxt->datum = callframe_arg_addr(cframe, argnum);
+      ctxt->type = tmptype;
+      ctxt->flags = flags;
 
       /* Decide how, (or whether or not), to decode the argument
 	 depending on its FLAGS and TMPTYPE.  Only the first two cases
@@ -372,7 +366,7 @@ callframe_do_call_opts (const char *encoded_types,
 	     the memory gets freed eventually, (usually through the
 	     autorelease of NSData object). */
 	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    (*decoder) (argnum, datum, tmptype);
+	    (*decoder) (ctxt);
 
 	  break;
 
@@ -384,36 +378,24 @@ callframe_do_call_opts (const char *encoded_types,
 	     it.  Set OUT_PARAMETERS accordingly. */
 	  if ((flags & _F_OUT) || !(flags & _F_IN))
 	    out_parameters = YES;
-	  if (pass_pointers)
-	    {
-	      if ((flags & _F_IN) || !(flags & _F_OUT))
-		(*decoder) (argnum, datum, tmptype);
-	    }
-	  else
-	    {
-	      /* Handle an argument that is a pointer to a non-char.  But
-		 (void*) and (anything**) is not allowed. */
-	      /* The argument is a pointer to something; increment TYPE
-		   so we can see what it is a pointer to. */
-	      tmptype++;
-	      /* Allocate some memory to be pointed to, and to hold the
-		 value.  Note that it is allocated on the stack, and
-		 methods that want to keep the data pointed to, will have
-		 to make their own copies. */
-	      *(void**)datum = alloca (objc_sizeof_type (tmptype));
-	      /* If the pointer's value is qualified as an IN parameter,
-		 or not explicity qualified as an OUT parameter, then
-		 decode it. */
-	      if ((flags & _F_IN) || !(flags & _F_OUT))
-		(*decoder) (argnum, *(void**)datum, tmptype);
-	    }
-	  break;
 
-	case _C_STRUCT_B:
-	case _C_UNION_B:
-	case _C_ARY_B:
-	  /* Handle struct and array arguments. */
-	  (*decoder) (argnum, datum, tmptype);
+	  /* Handle an argument that is a pointer to a non-char.  But
+	     (void*) and (anything**) is not allowed. */
+	  /* The argument is a pointer to something; increment TYPE
+	       so we can see what it is a pointer to. */
+	  tmptype++;
+	  ctxt->type = tmptype;
+	  /* Allocate some memory to be pointed to, and to hold the
+	     value.  Note that it is allocated on the stack, and
+	     methods that want to keep the data pointed to, will have
+	     to make their own copies. */
+	  *(void**)ctxt->datum = alloca (objc_sizeof_type (tmptype));
+	  ctxt->datum = *(void**)ctxt->datum;
+	  /* If the pointer's value is qualified as an IN parameter,
+	     or not explicity qualified as an OUT parameter, then
+	     decode it. */
+	  if ((flags & _F_IN) || !(flags & _F_OUT))
+	    (*decoder) (ctxt);
 	  break;
 
 	default:
@@ -423,11 +405,13 @@ callframe_do_call_opts (const char *encoded_types,
 	     object; the object may be autoreleased; if the method
 	     wants to keep a reference to the object, it will have to
 	     -retain it. */
-	  (*decoder) (argnum, datum, tmptype);
+	  (*decoder) (ctxt);
 	}
     }
   /* End of the for() loop that enumerates the method's arguments. */
-  (*decoder) (-1, 0, 0);
+  ctxt->type = 0;
+  ctxt->datum = 0;
+  (*decoder) (ctxt);
 
 
   /* Invoke the method! */
@@ -436,7 +420,7 @@ callframe_do_call_opts (const char *encoded_types,
   method_implementation = objc_msg_lookup (object, selector);
   NSCParameterAssert (method_implementation);
   /* Do it!  Send the message to the target, and get the return value
-     in retval.  We need to rencode any pass-by-reference info */
+     in retval.  We need to encode any pass-by-reference info */
   inv = (NSInvocation_t *)NSAllocateObject([NSInvocation class], 0, 
 					   NSDefaultMallocZone());
   inv->_retval = retval;
@@ -464,76 +448,38 @@ callframe_do_call_opts (const char *encoded_types,
      a non-oneway void return value, or if there are values that were
      passed by reference. */
 
+  ctxt->flags = flags;
+
   /* If there is a return value, encode it. */
-  switch (*tmptype)
+  if (*tmptype == _C_VOID)
     {
-    case _C_VOID:
       if ((flags & _F_ONEWAY) == 0)
 	{
-	   int	dummy = 0;
-          (*encoder) (-1, (void*)&dummy, @encode(int), 0);
-	}
-      else
-	{
-	  one_way = YES;
+	  int	dummy = 0;
+
+	  ctxt->type = @encode(int);
+	  ctxt->datum = (void*)&dummy;
+	  (*encoder) (ctxt);
 	}
       /* No return value to encode; do nothing. */
-      break;
-
-    case _C_PTR:
-      if (pass_pointers)
-	{
-	  (*encoder) (-1, retval, tmptype, flags);
-	}
-      else
+    }
+  else
+    {
+      if (*tmptype == _C_PTR)
 	{
 	  /* The argument is a pointer to something; increment TYPE
 	     so we can see what it is a pointer to. */
 	  tmptype++;
-	  /* Encode the value that was pointed to. */
-	  (*encoder) (-1, *(void**)retval, tmptype, flags);
+	  ctxt->type = tmptype;
+	  ctxt->datum = *(void**)ctxt->datum;
 	}
-      break;
-
-    case _C_STRUCT_B:
-    case _C_UNION_B:
-    case _C_ARY_B:
-      /* The argument is a structure or array returned by value.
-	 (In C, are array's allowed to be returned by value?) */
-      (*encoder)(-1, retval, tmptype, flags);
-      break;
-
-    case _C_FLT:
-      {
-	(*encoder) (-1, retval, tmptype, flags);
-	break;
-      }
-
-    case _C_DBL:
-      {
-	(*encoder) (-1, retval, tmptype, flags);
-	break;
-      }
-
-    case _C_SHT:
-    case _C_USHT:
-      {
-	(*encoder) (-1, retval, tmptype, flags);
-	break;
-      }
-
-    case _C_CHR:
-    case _C_UCHR:
-      {
-	(*encoder) (-1, retval, tmptype, flags);
-	break;
-      }
-
-    default:
-      /* case _C_INT: case _C_UINT: case _C_LNG: case _C_ULNG:
-	 case _C_CHARPTR: case: _C_ID: */
-      /* xxx I think this assumes that sizeof(int)==sizeof(void*) */
-      (*encoder) (-1, retval, tmptype, flags);
+      else
+	{
+	  ctxt->type = tmptype;
+	  ctxt->datum = retval;
+	}
+      /* Encode the value that was pointed to. */
+      (*encoder) (ctxt);
     }
 
 
@@ -562,30 +508,30 @@ callframe_do_call_opts (const char *encoded_types,
 
 	  /* Decide how, (or whether or not), to encode the argument
 	     depending on its FLAGS and TMPTYPE. */
-	  datum = callframe_arg_addr(cframe, argnum);
+	  if (((flags & _F_OUT) || !(flags & _F_IN))
+	    && (*tmptype == _C_PTR || *tmptype == _C_CHARPTR))
+	    {
+	      ctxt->flags = flags;
+	      ctxt->datum = callframe_arg_addr(cframe, argnum);
 
-	  if ((*tmptype == _C_PTR) 
-	      && ((flags & _F_OUT) || !(flags & _F_IN)))
-	    {
-	      /* The argument is a pointer (to a non-char), and the
-		 pointer's value is qualified as an OUT parameter, or
-		 it not explicitly qualified as an IN parameter, then
-		 it is a pass-by-reference argument.*/
-	      /* Encode it. */
-	      (*encoder) (argnum, datum, tmptype, flags);
-	    }
-	  else if (*tmptype == _C_CHARPTR
-		   && ((flags & _F_OUT) || !(flags & _F_IN)))
-	    {
-	      /* The argument is a pointer char string, and the
-		 pointer's value is qualified as an OUT parameter, or
-		 it not explicitly qualified as an IN parameter, then
-		 it is a pass-by-reference argument.  Encode it.*/
-	      /* xxx Perhaps we could save time and space by saving
-		 a copy of the string before the method call, and then
-		 comparing it to this string; if it didn't change, don't
-		 bother to send it back again. */
-	      (*encoder) (argnum, datum, tmptype, flags);
+	      if (*tmptype == _C_PTR) 
+		{
+		  /* The argument is a pointer (to a non-char), and the
+		     pointer's value is qualified as an OUT parameter, or
+		     it not explicitly qualified as an IN parameter, then
+		     it is a pass-by-reference argument.*/
+		  ctxt->type = ++tmptype;
+		  ctxt->datum = *(void**)ctxt->datum;
+		}
+	      else if (*tmptype == _C_CHARPTR)
+		{
+		  ctxt->type = tmptype;
+		  /* The argument is a pointer char string, and the
+		     pointer's value is qualified as an OUT parameter, or
+		     it not explicitly qualified as an IN parameter, then
+		     it is a pass-by-reference argument. */
+		}
+	      (*encoder) (ctxt);
 	    }
 	}
     }
@@ -595,14 +541,6 @@ callframe_do_call_opts (const char *encoded_types,
   callframe_free(cframe);
 
   return;
-}
-
-void
-callframe_do_call (const char *encoded_types,
-		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int))
-{
-  callframe_do_call_opts(encoded_types, decoder, encoder, YES);
 }
 
 /* callframe_build_return()
@@ -616,14 +554,12 @@ callframe_do_call (const char *encoded_types,
    dealt with.  This permits the function to do any tidying up necessary.  */
 
 void
-callframe_build_return_opts (NSInvocation *inv,
+callframe_build_return (NSInvocation *inv,
 		     const char *type, 
 		     BOOL out_parameters,
-		     void(*decoder)(int,void*,const char*,int),
-		     BOOL pass_pointers)
+		     void(*decoder)(DOContext *ctxt),
+		     DOContext *ctxt)
 {
-  /* The size, in bytes, of memory pointed to by RETFRAME. */
-  int retsize;
   /* Which argument number are we processing now? */
   int argnum;
   /* Type qualifier flags; see <objc/objc-api.h>. */
@@ -664,74 +600,56 @@ callframe_build_return_opts (NSInvocation *inv,
       /* If there is a return value, decode it, and put it in retval. */
       if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
 	{	  
+	  ctxt->type = tmptype;
+	  ctxt->datum = retval;
+	  ctxt->flags = flags;
+
 	  switch (*tmptype)
 	    {
 	    case _C_PTR:
-	      if (pass_pointers)
-		{
-		  (*decoder) (-1, retval, tmptype, flags);
-		}
-	      else
-		{
-		  unsigned retLength;
+	      {
+		unsigned retLength;
 
-		  /* We are returning a pointer to something. */
-		  /* Increment TYPE so we can see what it is a pointer to. */
-		  tmptype++;
-		  retLength = objc_sizeof_type(tmptype);
-		  /* Allocate memory to hold the value we're pointing to. */
-		  *(void**)retval = 
-		    NSZoneMalloc(NSDefaultMallocZone(), retLength);
-		  /* We are responsible for making sure this memory gets free'd
-		     eventually.  Ask NSData class to autorelease it. */
-		  [NSData dataWithBytesNoCopy: *(void**)retval
-				       length: retLength];
-		  /* Decode the return value into the memory we allocated. */
-		  (*decoder) (-1, *(void**)retval, tmptype, flags);
-		}
+		/* We are returning a pointer to something. */
+		/* Increment TYPE so we can see what it is a pointer to. */
+		tmptype++;
+		retLength = objc_sizeof_type(tmptype);
+		/* Allocate memory to hold the value we're pointing to. */
+		*(void**)retval = 
+		  NSZoneMalloc(NSDefaultMallocZone(), retLength);
+		/* We are responsible for making sure this memory gets free'd
+		   eventually.  Ask NSData class to autorelease it. */
+		[NSData dataWithBytesNoCopy: *(void**)retval
+				     length: retLength];
+		ctxt->type = tmptype;
+		ctxt->datum = *(void**)retval;
+		/* Decode the return value into the memory we allocated. */
+		(*decoder) (ctxt);
+	      }
 	      break;
 
 	    case _C_STRUCT_B: 
 	    case _C_UNION_B:
 	    case _C_ARY_B:
 	      /* Decode the return value into the memory we allocated. */
-	      (*decoder) (-1, retval, tmptype, flags);
+	      (*decoder) (ctxt);
 	      break;
 
 	    case _C_FLT: 
 	    case _C_DBL:
-	      (*decoder) (-1, ((char*)retval), tmptype, flags);
+	      (*decoder) (ctxt);
 	      break;
 
 	    case _C_VOID:
 		{
-		  (*decoder) (-1, retval, @encode(int), 0);
+		  ctxt->type = @encode(int);
+		  ctxt->flags = 0;
+		  (*decoder) (ctxt);
 		}
 		break;
 
 	    default:
-	      /* (Among other things, _C_CHARPTR is handled here). */
-	      /* Special case BOOL (and other types smaller than int)
-		 because retval doesn't actually point to the char */
-	      /* xxx What about structures smaller than int's that
-		 are passed by reference on true structure reference-
-		 passing architectures? */
-	      /* xxx Is this the right test?  Use sizeof(int) instead? */
-	      if (retsize < sizeof(void*))
-		{
-#if 1
-		  /* Frith-Macdonald said this worked better 21 Nov 96. */
-		  (*decoder) (-1, retval, tmptype, flags);
-#else
-		  *(void**)retval = 0;
-		  (*decoder) (-1, ((char*)retval)+sizeof(void*)-retsize,
-			      tmptype, flags);
-#endif
-		}
-	      else
-		{
-		  (*decoder) (-1, retval, tmptype, flags);
-		}
+		(*decoder) (ctxt);
 	    }
 	}
       [inv setReturnValue: retval];
@@ -759,6 +677,10 @@ callframe_build_return_opts (NSInvocation *inv,
 		 argument depending on its FLAGS and TMPTYPE. */
 	      datum = callframe_arg_addr(cframe, argnum);
 
+	      ctxt->type = tmptype;
+	      ctxt->datum = datum;
+	      ctxt->flags = flags;
+
 	      if (*tmptype == _C_PTR
 		  && ((flags & _F_OUT) || !(flags & _F_IN)))
 		{
@@ -768,14 +690,17 @@ callframe_build_return_opts (NSInvocation *inv,
 		     parameter, or it not explicitly qualified as an
 		     IN parameter, then it is a pass-by-reference
 		     argument.*/
-		  (*decoder) (argnum, datum, tmptype, flags);
+		  tmptype++;
+		  ctxt->type = tmptype;
+
+		  (*decoder) (ctxt);
 		  /* Copy the pointed-to data back to the original
 		     pointer */
 		  [inv getArgument: &ptr atIndex: argnum];
-		  memcpy(ptr, *(void **)datum, objc_sizeof_type(tmptype+1));
+		  memcpy(ptr, datum, objc_sizeof_type(tmptype));
 		}
 	      else if (*tmptype == _C_CHARPTR
-		       && ((flags & _F_OUT) || !(flags & _F_IN)))
+		&& ((flags & _F_OUT) || !(flags & _F_IN)))
 		{
 		  /* The argument is a pointer char string, and the
 		     pointer's value is qualified as an OUT parameter,
@@ -787,12 +712,14 @@ callframe_build_return_opts (NSInvocation *inv,
 		     call, and then comparing it to this string; if it
 		     didn't change, don't bother to send it back
 		     again. */
-		  (*decoder) (argnum, datum, tmptype, flags);
+		  (*decoder) (ctxt);
 		  [inv setArgument: datum atIndex: argnum];
 		}
 	    }
 	}
-      (*decoder) (0, 0, 0, 0);	/* Tell it we have finished.	*/
+      ctxt->type = 0;
+      ctxt->datum = 0;
+      (*decoder) (ctxt);	/* Tell it we have finished.	*/
     }
 
   if (retval != 0)
@@ -802,11 +729,3 @@ callframe_build_return_opts (NSInvocation *inv,
   return;
 }
 
-void
-callframe_build_return (NSInvocation *inv,
-			const char *type, 
-			BOOL out_parameters,
-			void(*decoder)(int,void*,const char*,int))
-{
-  callframe_build_return_opts(inv, type, out_parameters, decoder, YES);
-}
