@@ -321,7 +321,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 	{
 	  GSTimedPerformer	*p = array[count];
 
-	  if (p->selector == aSelector && p->target == target
+	  if (p->target == target && sel_eq(p->selector, aSelector)
 	    && [p->argument isEqual: arg])
 	    {
 	      [perf removeObjectAtIndex: count];
@@ -1363,7 +1363,7 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 	  GSRunLoopPerformer	*p;
 
 	  p = GSIArrayItemAtIndex(performers, count).obj;
-	  if (p->selector == aSelector && p->target == target
+	  if (p->target == target && sel_eq(p->selector, aSelector)
 	    && p->argument == argument)
 	    {
 	      GSIArrayRemoveItemAtIndex(performers, count);

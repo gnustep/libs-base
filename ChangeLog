@@ -1,3 +1,9 @@
+Mon Feb 21 13:44:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSRunLoop.m: Use sel_eq() for selector comparison so that
+	we are guaranteed to match correctly when removing actions from the
+	runloop.
+
 Fri Feb  6 14:54:00 2000  Manuel Guesdon <mguesdon@sbuilders.com>
 
 	* Source/NSCalendarDate.m: handle nil and empry string in 
