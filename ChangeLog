@@ -1,11 +1,12 @@
 Tue Jul 14 16:26:36 1998  Adam Fedor  <fedor@doc.com>
 
-	* src/Makefile.postamble (gnustep-base): Fixup dir creation.
+	* src/Makefile.postamble (gnustep/base): Fixup dir creation.
 	(Foundation): Likewise.
 
 	* src/externs.m: New NSDebugLogging variable.
 	* src/include/NSObjCRuntime: Change NSDebugLog so it works when
 	DEBUG is defined and NSDebugLogging is set.
+	* src/NSBundle.m: Use it.
 
 	* src/include/Foundation.h: Include NSTimer.h
 	* src/include/NSObject.h: Define +instanceMethodSignatureForSelector:
