@@ -1,3 +1,16 @@
+2001-04-23  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSBundle.m ([+initialize]): Fixed segmentation fault when
+	NSSearchPathForDirectoriesInDomains returns an empty array.  This
+	used to appear when GNUSTEP_SYSTEM_ROOT was unset.
+	* Source/NSUser.m (NSSearchPathForDirectoriesInDomains): Read
+	GNUSTEP_SYSTEM_ROOT, GNUSTEP_LOCAL_ROOT, GNUSTEP_NETWORK_ROOT and
+	GNUSTEP_USER_ROOT only once, then cache them.  Do not crash if
+	some of them are nil.  If GNUSTEP_SYSTEM_ROOT is nil, fprintf a
+	log message, and try using /usr/GNUstep/System.  Use new ADD_PATH
+	macro to simplify code.  Autorelease returned array which was
+	previously leaked.
+
 2001-04-22  Georg Fleischmann
 
 	* Source/GSAttributedString.m:
