@@ -21,14 +21,14 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __stdobjects_h_OBJECTS_INCLUDE
-#define __stdobjects_h_OBJECTS_INCLUDE
+#ifndef __preface_h_OBJECTS_INCLUDE
+#define __preface_h_OBJECTS_INCLUDE
 
-#include <objects/config.h>
+#include <gnustep/base/config.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <objects/objc-gnu2next.h>
-#include <objects/LibobjectsMain.h>
+#include <gnustep/base/objc-gnu2next.h>
+#include <gnustep/base/fake-main.h>
 
 #if NeXT_runtime
  #include <objc/objc.h>
@@ -111,4 +111,4 @@ extern const char objects_NeXT_cc_version[];
 #define LONG2PTR(L) (((char*)0)+(L))
 #endif
 
-#endif /* __stdobjects_h_OBJECTS_INCLUDE */
+#endif /* __preface_h_OBJECTS_INCLUDE */
