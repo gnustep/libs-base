@@ -34,10 +34,10 @@ typedef struct _cifframe_t {
   int nargs;
   ffi_type **arg_types;
   void **values;
-  void *retval;
 } cifframe_t;
 
-extern cifframe_t *cifframe_from_info (NSArgumentInfo *info, int numargs);
+extern cifframe_t *cifframe_from_info (NSArgumentInfo *info, int numargs,
+					 void **retval);
 extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, 
 			     int size);
 extern void cifframe_get_arg(cifframe_t *cframe, int index, void *buffer,

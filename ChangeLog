@@ -3,12 +3,8 @@
 	* Version 1.5.2
 	* Documentation: Update.
 
-	* Source/cifframe.m (cifframe_from_info): Include retval in
-	cifframe_t struct not as pass-back argument.
-	* Source/GSFFIInvocation.m (-initWithMethodSignature:): Get retval
-	from cifframe.
-	(-initWithCallback:...): Idem.
-	(GSFFIInvocationCallback): Set return pointer in closure.
+	* Source/GSFFIInvocation.m (GSFFIInvocationCallback): Autorelease
+	and invalidate the return value object before returning.
 
 2003-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
