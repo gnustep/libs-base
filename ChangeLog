@@ -1,3 +1,18 @@
+2003-11-06  David Ayers  <d.ayers@inode.at>
+
+	* Source/GSPrivate.h (GS_REPLACE_CONSTANT_STRING): New macro.
+	* Source/externs.m: Initialize constant strings statically.
+	(GSBuildStrings): Replace static strings with dynamic
+	versions.
+	* Testing/benchmark.m: Added tests for NSString -hash and 
+	-copy.  Aligned ouput.
+	* Testing/externs.m: New test.
+	* Testing/GNUmakefile: Added externs.m test.  Activated
+	ADDITIONAL_TOOLS tests excluding gstcpport tests.
+
+	* Source/Additions/GSCategories.m: Adjust declared lock type.
+	Added comment.
+
 2003-11-05 18:26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/GSSSLHandle.m: Add support for server end handles.

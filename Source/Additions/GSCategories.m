@@ -880,7 +880,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
  * GNUstep specific (non-standard) additions to the NSLock class.
  */
 
-static NSRecursiveLock *local_lock = nil;
+static GSLazyRecursiveLock *local_lock = nil;
 
 /* 
    This class only exists to provide 
@@ -897,9 +897,13 @@ static NSRecursiveLock *local_lock = nil;
 {
   if (local_lock == nil)
     {
+      /* As we do not know whether creating custom locks
+	 may implicitly create other locks,
+	 we use a recursive lock.  */
       local_lock = [GSLazyRecursiveLock new];
     }
 }
+
 @end
 
 GS_STATIC_INLINE id

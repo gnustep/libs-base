@@ -28,6 +28,8 @@
 #include "Foundation/NSArray.h"
 #include "Foundation/NSException.h"
 
+#include "GSPrivate.h"
+
 /* Global lock to be used by classes when operating on any global
    data that invoke other methods which also access global; thus,
    creating the potential for deadlock. */
@@ -35,39 +37,39 @@
 NSRecursiveLock *gnustep_global_lock = nil;
 
 /*
- * Connection Notification Strings.
+ * NSConnection Notification Strings.
  */
-NSString *NSConnectionDidDieNotification;
+NSString *NSConnectionDidDieNotification = @"NSConnectionDidDieNotification";
 
-NSString *NSConnectionDidInitializeNotification;
+NSString *NSConnectionDidInitializeNotification = @"NSConnectionDidInitializeNotification";
 
 
 /*
  * NSThread Notifications
  */
-NSString *NSWillBecomeMultiThreadedNotification;
+NSString *NSWillBecomeMultiThreadedNotification = @"NSWillBecomeMultiThreadedNotification";
 
-NSString *NSThreadDidStartNotification;
+NSString *NSThreadDidStartNotification = @"NSThreadDidStartNotification";
 
-NSString *NSThreadWillExitNotification;
+NSString *NSThreadWillExitNotification = @"NSThreadWillExitNotification";
 
 
 /*
  * Port Notifications
  */
-NSString *PortBecameInvalidNotification;
+NSString *PortBecameInvalidNotification = @"PortBecameInvalidNotification";
 
-NSString *InPortClientBecameInvalidNotification;
+NSString *InPortClientBecameInvalidNotification = @"InPortClientBecameInvalidNotification";
 
-NSString *InPortAcceptedClientNotification;
+NSString *InPortAcceptedClientNotification = @"InPortAcceptedClientNotification";
 
 
-NSString *NSPortDidBecomeInvalidNotification;
+NSString *NSPortDidBecomeInvalidNotification = @"NSPortDidBecomeInvalidNotification";
 
 
 
 /* RunLoop modes */
-NSString *NSConnectionReplyMode;
+NSString *NSConnectionReplyMode = @"NSConnectionReplyMode";
 
 
 
@@ -75,133 +77,137 @@ NSString *NSConnectionReplyMode;
 NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
 /* NSBundle */
-NSString *NSBundleDidLoadNotification;
+NSString *NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
 
-NSString *NSShowNonLocalizedStrings;
+NSString *NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
 
-NSString *NSLoadedClasses;
+NSString *NSLoadedClasses = @"NSLoadedClasses";
 
 
 /* Stream */
-NSString *StreamException;
+NSString *StreamException = @"StreamException";
 
 
 
 /* Standard domains */
-NSString *NSArgumentDomain;
+NSString *NSArgumentDomain = @"NSArgumentDomain";
 
-NSString *NSGlobalDomain;
+NSString *NSGlobalDomain = @"NSGlobalDomain";
 
-NSString *NSRegistrationDomain;
+NSString *NSRegistrationDomain = @"NSRegistrationDomain";
 
 
 /* Public notification */
-NSString *NSUserDefaultsDidChangeNotification;
+NSString *NSUserDefaultsDidChangeNotification = @"NSUserDefaultsDidChangeNotification";
 
 
 /* Keys for language-dependent information */
-NSString *NSWeekDayNameArray;
+NSString *NSWeekDayNameArray = @"NSWeekDayNameArray";
 
-NSString *NSShortWeekDayNameArray;
+NSString *NSShortWeekDayNameArray = @"NSShortWeekDayNameArray";
 
-NSString *NSMonthNameArray;
+NSString *NSMonthNameArray = @"NSMonthNameArray";
 
-NSString *NSShortMonthNameArray;
+NSString *NSShortMonthNameArray = @"NSShortMonthNameArray";
 
-NSString *NSTimeFormatString;
+NSString *NSTimeFormatString = @"NSTimeFormatString";
 
-NSString *NSDateFormatString;
+NSString *NSDateFormatString = @"NSDateFormatString";
 
-NSString *NSShortDateFormatString;
+NSString *NSShortDateFormatString = @"NSShortDateFormatString";
 
-NSString *NSTimeDateFormatString;
+NSString *NSTimeDateFormatString = @"NSTimeDateFormatString";
 
-NSString *NSShortTimeDateFormatString;
+NSString *NSShortTimeDateFormatString = @"NSShortTimeDateFormatString";
 
-NSString *NSCurrencySymbol;
+NSString *NSCurrencySymbol = @"NSCurrencySymbol";
 
-NSString *NSDecimalSeparator;
+NSString *NSDecimalSeparator = @"NSDecimalSeparator";
 
-NSString *NSThousandsSeparator;
+NSString *NSThousandsSeparator = @"NSThousandsSeparator";
 
-NSString *NSInternationalCurrencyString;
+NSString *NSInternationalCurrencyString = @"NSInternationalCurrencyString";
 
-NSString *NSCurrencyString;
+NSString *NSCurrencyString = @"NSCurrencyString";
 
-NSString *NSNegativeCurrencyFormatString;
+NSString *NSNegativeCurrencyFormatString = @"NSNegativeCurrencyFormatString";
 
-NSString *NSPositiveCurrencyFormatString;
+NSString *NSPositiveCurrencyFormatString = @"NSPositiveCurrencyFormatString";
 
-NSString *NSDecimalDigits;
+NSString *NSDecimalDigits = @"NSDecimalDigits";
 
-NSString *NSAMPMDesignation;
+NSString *NSAMPMDesignation = @"NSAMPMDesignation";
 
 
-NSString *NSHourNameDesignations;
+NSString *NSHourNameDesignations = @"NSHourNameDesignations";
 
-NSString *NSYearMonthWeekDesignations;
+NSString *NSYearMonthWeekDesignations = @"NSYearMonthWeekDesignations";
 
-NSString *NSEarlierTimeDesignations;
+NSString *NSEarlierTimeDesignations = @"NSEarlierTimeDesignations";
 
-NSString *NSLaterTimeDesignations;
+NSString *NSLaterTimeDesignations = @"NSLaterTimeDesignations";
 
-NSString *NSThisDayDesignations;
+NSString *NSThisDayDesignations = @"NSThisDayDesignations";
 
-NSString *NSNextDayDesignations;
+NSString *NSNextDayDesignations = @"NSNextDayDesignations";
 
-NSString *NSNextNextDayDesignations;
+NSString *NSNextNextDayDesignations = @"NSNextNextDayDesignations";
 
-NSString *NSPriorDayDesignations;
+NSString *NSPriorDayDesignations = @"NSPriorDayDesignations";
 
-NSString *NSDateTimeOrdering;
+NSString *NSDateTimeOrdering = @"NSDateTimeOrdering";
 
 
 /* These are in OPENSTEP 4.2 */
-NSString *NSLanguageCode;
+NSString *NSLanguageCode = @"NSLanguageCode";
 
-NSString *NSLanguageName;
+NSString *NSLanguageName = @"NSLanguageName";
 
-NSString *NSFormalName;
+NSString *NSFormalName = @"NSFormalName";
 
 /* For GNUstep */
-NSString *NSLocale;
+NSString *NSLocale = @"NSLocale";
 
 
 /*
  * Keys for the NSDictionary returned by [NSConnection -statistics]
  */
 /* These in OPENSTEP 4.2 */
-NSString *NSConnectionRepliesReceived;
+NSString *NSConnectionRepliesReceived = @"NSConnectionRepliesReceived";
 
-NSString *NSConnectionRepliesSent;
+NSString *NSConnectionRepliesSent = @"NSConnectionRepliesSent";
 
-NSString *NSConnectionRequestsReceived;
+NSString *NSConnectionRequestsReceived = @"NSConnectionRequestsReceived";
 
-NSString *NSConnectionRequestsSent;
+NSString *NSConnectionRequestsSent = @"NSConnectionRequestsSent";
 
 /* These Are GNUstep extras */
-NSString *NSConnectionLocalCount;
+NSString *NSConnectionLocalCount = @"NSConnectionLocalCount";
 
-NSString *NSConnectionProxyCount;
+NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
 /* Class description notification */
-NSString *NSClassDescriptionNeededForClassNotification;
+NSString *NSClassDescriptionNeededForClassNotification = @"NSClassDescriptionNeededForClassNotification";
 
 
 /*
- *	Setup function called when NSString is initialised.
- *	We make all the constant strings not be constant strings so they can
- *	cache their hash values and be used much more efficiently as keys in
- *	dictionaries etc.
+ * Opimization function called when NSObject is initialised.
+ * We replace all the constant strings so they can
+ * cache their hash values and be used much more efficiently as keys in
+ * dictionaries etc.
+ * We initialize with constant strings so that
+ * code executed before NSObject +initialize calls us,
+ * will have valid values.
  */
+
 void
 GSBuildStrings()
 {
-  static Class	SClass = 0;
+  static Class	NSStringClass = 0;
 
-  if (SClass == 0)
+  if (NSStringClass == 0)
     {
-      SClass = [NSString class];
+      NSStringClass = [NSString class];
 
       /*
        * Ensure that NSString is initialized ... because we are called
@@ -210,131 +216,64 @@ GSBuildStrings()
        * Use performSelector: to avoid compiler warning about clash of
        * return value types in two different versions of initialize.
        */
-      [SClass performSelector: @selector(initialize)];
+      [NSStringClass performSelector: @selector(initialize)];
 
-      InPortAcceptedClientNotification
-	= [[SClass alloc] initWithCString:
-	"InPortAcceptedClientNotification"];
-      InPortClientBecameInvalidNotification
-	= [[SClass alloc] initWithCString:
-	"InPortClientBecameInvalidNotification"];
-      NSAMPMDesignation
-	= [[SClass alloc] initWithCString: "NSAMPMDesignation"];
-      NSArgumentDomain
-	= [[SClass alloc] initWithCString: "NSArgumentDomain"];
-      NSBundleDidLoadNotification
-	= [[SClass alloc] initWithCString: "NSBundleDidLoadNotification"];
-      NSConnectionDidDieNotification
-	= [[SClass alloc] initWithCString:
-	"NSConnectionDidDieNotification"];
-      NSConnectionDidInitializeNotification
-	= [[SClass alloc] initWithCString:
-	"NSConnectionDidInitializeNotification"];
-      NSConnectionLocalCount
-	= [[SClass alloc] initWithCString: "NSConnectionLocalCount"];
-      NSConnectionProxyCount
-	= [[SClass alloc] initWithCString: "NSConnectionProxyCount"];
-      NSConnectionRepliesReceived
-	= [[SClass alloc] initWithCString: "NSConnectionRepliesReceived"];
-      NSConnectionRepliesSent
-	= [[SClass alloc] initWithCString: "NSConnectionRepliesSent"];
-      NSConnectionReplyMode
-	= [[SClass alloc] initWithCString: "NSConnectionReplyMode"];
-      NSConnectionRequestsReceived
-	= [[SClass alloc] initWithCString: "NSConnectionRequestsReceived"];
-      NSConnectionRequestsSent
-	= [[SClass alloc] initWithCString: "NSConnectionRequestsSent"];
-      NSCurrencyString
-	= [[SClass alloc] initWithCString: "NSCurrencyString"];
-      NSCurrencySymbol
-	= [[SClass alloc] initWithCString: "NSCurrencySymbol"];
-      NSDateFormatString
-	= [[SClass alloc] initWithCString: "NSDateFormatString"];
-      NSDateTimeOrdering
-	= [[SClass alloc] initWithCString: "NSDateTimeOrdering"];
-      NSDecimalDigits
-	= [[SClass alloc] initWithCString: "NSDecimalDigits"];
-      NSDecimalSeparator
-	= [[SClass alloc] initWithCString: "NSDecimalSeparator"];
-      NSEarlierTimeDesignations
-	= [[SClass alloc] initWithCString: "NSEarlierTimeDesignations"];
-      NSFormalName
-        = [[SClass alloc] initWithCString: "NSFormalName"];
-      NSGlobalDomain
-	= [[SClass alloc] initWithCString: "NSGlobalDomain"];
-      NSHourNameDesignations
-	= [[SClass alloc] initWithCString: "NSHourNameDesignations"];
-      NSInternationalCurrencyString
-	= [[SClass alloc] initWithCString: "NSInternationalCurrencyString"];
-      NSLanguageCode
-        = [[SClass alloc] initWithCString: "NSLanguageCode"];
-      NSLanguageName
-        = [[SClass alloc] initWithCString: "NSLanguageName"];
-      NSLaterTimeDesignations
-	= [[SClass alloc] initWithCString: "NSLaterTimeDesignations"];
-      NSLoadedClasses
-	= [[SClass alloc] initWithCString: "NSLoadedClasses"];
-      NSLocale
-	= [[SClass alloc] initWithCString: "NSLocale"];
-      NSMonthNameArray
-	= [[SClass alloc] initWithCString: "NSMonthNameArray"];
-      NSNegativeCurrencyFormatString
-        = [[SClass alloc] initWithCString:
-	"NSNegativeCurrencyFormatString"];
-      NSNextDayDesignations
-	= [[SClass alloc] initWithCString: "NSNextDayDesignations"];
-      NSNextNextDayDesignations
-	= [[SClass alloc] initWithCString: "NSNextNextDayDesignations"];
-      NSPortDidBecomeInvalidNotification
-	= [[SClass alloc] initWithCString:
-	"NSPortDidBecomeInvalidNotification"];
-      NSPositiveCurrencyFormatString
-        = [[SClass alloc] initWithCString:
-	"NSPositiveCurrencyFormatString"];
-      NSPriorDayDesignations
-	= [[SClass alloc] initWithCString: "NSPriorDayDesignations"];
-      NSRegistrationDomain
-	= [[SClass alloc] initWithCString: "NSRegistrationDomain"];
-      NSShortDateFormatString
-        = [[SClass alloc] initWithCString: "NSShortDateFormatString"];
-      NSShortMonthNameArray
-	= [[SClass alloc] initWithCString: "NSShortMonthNameArray"];
-      NSShortTimeDateFormatString
-	= [[SClass alloc] initWithCString: "NSShortTimeDateFormatString"];
-      NSShortWeekDayNameArray
-	= [[SClass alloc] initWithCString: "NSShortWeekDayNameArray"];
-      NSShowNonLocalizedStrings
-	= [[SClass alloc] initWithCString: "NSShowNonLocalizedStrings"];
-      NSThisDayDesignations
-	= [[SClass alloc] initWithCString: "NSThisDayDesignations"];
-      NSThousandsSeparator
-	= [[SClass alloc] initWithCString: "NSThousandsSeparator"];
-      NSThreadDidStartNotification
-	= [[SClass alloc] initWithCString: "NSThreadDidStartNotification"];
-      NSThreadWillExitNotification
-	= [[SClass alloc] initWithCString: "NSThreadWillExitNotification"];
-      NSTimeDateFormatString
-	= [[SClass alloc] initWithCString: "NSTimeDateFormatString"];
-      NSTimeFormatString
-	= [[SClass alloc] initWithCString: "NSTimeFormatString"];
-      NSUserDefaultsDidChangeNotification
-	= [[SClass alloc] initWithCString:
-	"NSUserDefaultsDidChangeNotification"];
-      NSWeekDayNameArray
-	= [[SClass alloc] initWithCString: "NSWeekDayNameArray"];
-      NSWillBecomeMultiThreadedNotification
-	= [[SClass alloc] initWithCString:
-	"NSWillBecomeMultiThreadedNotification"];
-      NSYearMonthWeekDesignations
-	= [[SClass alloc] initWithCString: "NSYearMonthWeekDesignations"];
-      PortBecameInvalidNotification
-	= [[SClass alloc] initWithCString: "PortBecameInvalidNotification"];
-      StreamException
-	= [[SClass alloc] initWithCString: "StreamException"];
-
-      NSClassDescriptionNeededForClassNotification
-        = [[SClass alloc] initWithCString:
-	"NSClassDescriptionNeededForClassNotification"];
+      GS_REPLACE_CONSTANT_STRING(InPortAcceptedClientNotification);
+      GS_REPLACE_CONSTANT_STRING(InPortClientBecameInvalidNotification);
+      GS_REPLACE_CONSTANT_STRING(NSAMPMDesignation);
+      GS_REPLACE_CONSTANT_STRING(NSArgumentDomain);
+      GS_REPLACE_CONSTANT_STRING(NSBundleDidLoadNotification);
+      GS_REPLACE_CONSTANT_STRING(NSClassDescriptionNeededForClassNotification);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionDidDieNotification);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionDidInitializeNotification);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionLocalCount);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionProxyCount);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionRepliesReceived);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionRepliesSent);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionReplyMode);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionRequestsReceived);
+      GS_REPLACE_CONSTANT_STRING(NSConnectionRequestsSent);
+      GS_REPLACE_CONSTANT_STRING(NSCurrencyString);
+      GS_REPLACE_CONSTANT_STRING(NSCurrencySymbol);
+      GS_REPLACE_CONSTANT_STRING(NSDateFormatString);
+      GS_REPLACE_CONSTANT_STRING(NSDateTimeOrdering);
+      GS_REPLACE_CONSTANT_STRING(NSDecimalDigits);
+      GS_REPLACE_CONSTANT_STRING(NSDecimalSeparator);
+      GS_REPLACE_CONSTANT_STRING(NSEarlierTimeDesignations);
+      GS_REPLACE_CONSTANT_STRING(NSFormalName);
+      GS_REPLACE_CONSTANT_STRING(NSGlobalDomain);
+      GS_REPLACE_CONSTANT_STRING(NSHourNameDesignations);
+      GS_REPLACE_CONSTANT_STRING(NSInternationalCurrencyString);
+      GS_REPLACE_CONSTANT_STRING(NSLanguageCode);
+      GS_REPLACE_CONSTANT_STRING(NSLanguageName);
+      GS_REPLACE_CONSTANT_STRING(NSLaterTimeDesignations);
+      GS_REPLACE_CONSTANT_STRING(NSLoadedClasses);
+      GS_REPLACE_CONSTANT_STRING(NSLocale);
+      GS_REPLACE_CONSTANT_STRING(NSMonthNameArray);
+      GS_REPLACE_CONSTANT_STRING(NSNegativeCurrencyFormatString);
+      GS_REPLACE_CONSTANT_STRING(NSNextDayDesignations);
+      GS_REPLACE_CONSTANT_STRING(NSNextNextDayDesignations);
+      GS_REPLACE_CONSTANT_STRING(NSPortDidBecomeInvalidNotification);
+      GS_REPLACE_CONSTANT_STRING(NSPositiveCurrencyFormatString);
+      GS_REPLACE_CONSTANT_STRING(NSPriorDayDesignations);
+      GS_REPLACE_CONSTANT_STRING(NSRegistrationDomain);
+      GS_REPLACE_CONSTANT_STRING(NSShortDateFormatString);
+      GS_REPLACE_CONSTANT_STRING(NSShortMonthNameArray);
+      GS_REPLACE_CONSTANT_STRING(NSShortTimeDateFormatString);
+      GS_REPLACE_CONSTANT_STRING(NSShortWeekDayNameArray);
+      GS_REPLACE_CONSTANT_STRING(NSShowNonLocalizedStrings);
+      GS_REPLACE_CONSTANT_STRING(NSThisDayDesignations);
+      GS_REPLACE_CONSTANT_STRING(NSThousandsSeparator);
+      GS_REPLACE_CONSTANT_STRING(NSThreadDidStartNotification);
+      GS_REPLACE_CONSTANT_STRING(NSThreadWillExitNotification);
+      GS_REPLACE_CONSTANT_STRING(NSTimeDateFormatString);
+      GS_REPLACE_CONSTANT_STRING(NSTimeFormatString);
+      GS_REPLACE_CONSTANT_STRING(NSUserDefaultsDidChangeNotification);
+      GS_REPLACE_CONSTANT_STRING(NSWeekDayNameArray);
+      GS_REPLACE_CONSTANT_STRING(NSWillBecomeMultiThreadedNotification);
+      GS_REPLACE_CONSTANT_STRING(NSYearMonthWeekDesignations);
+      GS_REPLACE_CONSTANT_STRING(PortBecameInvalidNotification);
+      GS_REPLACE_CONSTANT_STRING(StreamException);
     }
 }
 

@@ -48,6 +48,28 @@
     NSZoneFree(NSDefaultMallocZone(), _base); \
   }
 
+/**
+ * Macro to consistently replace public accessable
+ * constant strings with dynamically allocated versions.
+ * This method assumes an initialzed NSStringClass symbol
+ * which contains the Class object of NSString.  <br>
+ * Most public accesable strings are used in collection classes
+ * like NSDictionary, and therefor tend to receive -isEqual:
+ * messages (and therefore -hash) rather often.  Statically
+ * allocated strings must calculate thier hash values where
+ * dynamically allocated strings can store them.  This optimization
+ * is by far more effective than using NSString * const.  
+ * The backdraw is that the memory managent cannot enforce these values
+ * to remain unaltered as it would for variables declared NSString * const.
+ * Yet the optimization of the stored hash value is currently deemed
+ * more important.
+ */
+#define GS_REPLACE_CONSTANT_STRING(ID) \
+  ID = [[NSStringClass alloc] initWithCString: [ID cString]]
+/* Using cString here is OK here
+   because NXConstantString returns a pointer
+   to it's internal pointer.  */
+
 /*
  * Function to get the name of a string encoding as an NSString.
  */
