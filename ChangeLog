@@ -2,6 +2,7 @@
 
 	* Source/NSGString.m: Removed obsolete methods and added range checks.
 	* Source/NSGCString.m: ditto.
+	* Source/NSAttributedString.m: Fix fencepost error in -description.
 
 2000-09-08  Richard Frith-Macdonald <rfm@gnu.org>
 

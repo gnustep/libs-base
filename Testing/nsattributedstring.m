@@ -42,6 +42,7 @@ NSString *NSBackgroundColorAttributeName = @"NSBackgroundColor";
 
 void printAttrString(NSAttributedString *attrStr)
 {
+#if 0
   NSDictionary *tmpAttrDict;
   NSEnumerator *keyEnumerator;
   NSString *tmpStr;
@@ -63,6 +64,9 @@ void printAttrString(NSAttributedString *attrStr)
       (long)effectiveRange.location,
       (long)effectiveRange.length);
   }
+#else
+  printf("%s\n", [[attrStr description] cString]);
+#endif
 }
 
 void testAttributedString(void)

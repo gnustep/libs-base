@@ -191,7 +191,8 @@ static Class NSMutableAttributedString_concrete_class;
   NSMutableString	*desc;
 
   desc = AUTORELEASE([[super description] mutableCopy]);
-  while (index <= length &&
+  [desc appendFormat: @" Length: %u", length];
+  while (index < length &&
     (attrs = [self attributesAtIndex: index effectiveRange: &r]) != nil)
     {
       index = NSMaxRange(r);
