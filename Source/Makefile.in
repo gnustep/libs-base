@@ -159,6 +159,7 @@ Stack.m \
 StdioStream.m \
 Stream.m \
 String.m \
+TcpPort.m \
 TextCStream.m \
 atoz.m \
 callbacks-id.m \
@@ -295,6 +296,7 @@ objects/StdioStream.h \
 objects/Stream.h \
 objects/Streaming.h \
 objects/String.h \
+objects/TcpPort.h \
 objects/TextCStream.h \
 objects/Time.h \
 objects/ValueHolding.h \
