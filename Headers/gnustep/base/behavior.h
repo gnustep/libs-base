@@ -1,5 +1,5 @@
 /* Interface for behaviors for Obj-C, "for Protocols with implementations".
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -41,6 +41,14 @@
 
 */
 
+void behavior_class_add_class (Class class, 
+			       Class behavior);
+void behavior_class_add_category (Class class, 
+				  struct objc_category *category);
+void behavior_class_add_methods (Class class, 
+				 struct objc_method_list *methods);
+
+/* The old deprecated interface */
 void class_add_behavior (Class class, Class behavior);
 
 /* This macro may go away in future.
