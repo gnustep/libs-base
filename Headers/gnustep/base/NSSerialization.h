@@ -80,4 +80,29 @@
 
 @end
 
+#ifndef	NO_GNUSTEP
+/*
+ *	GNUstep extends deserialization by having the option to make the
+ *	resulting data more compact by ensuring that repeated strings
+ *	are only stored once.  If the property-list has a lot of repeated
+ *	strings in it, this will be more space efficient but it will be
+ *	slower (though other parts of your code may speed up through more
+ *	efficient equality testing of uniqued strings).
+ *	The default is NOT to deserialize uniqued strings.
+ *
+ *	The [+uniquing:] method turns uniquing on/off.  Turning off uniquing
+ *	destroys the NSCountedSet used for uniquing.
+ *	The [+purge] method lets you remove some of the objects from the
+ *	NSCountedSet used for uniquing.  The count of each string in the
+ *	set is decreased, so that strings that have only been deserialized
+ *	once are removed.
+ */
+@interface NSDeserializer (GNUstep)
++ (void) _becomeThreaded: (id)notification; /* private */
++ (void) purge;
++ (void) uniquing: (BOOL)flag;
+@end
+
+#endif
+
 #endif /* __NSSerialization_h_GNUSTEP_BASE_INCLUDE */
