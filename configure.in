@@ -36,7 +36,7 @@ AC_PROG_CPP
 # if yes:
 #   add -cpp-traditional to CPP
 # if no:
-#   include implementations of List, HashTable etc. objects 
+#   include implementations of List, HashTable etc.
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(whether we are using NeXT's compiler)
 AC_TRY_CPP([#include "$srcdir/config/config.nextcc.h"], NeXTCC=0, NeXTCC=1)
