@@ -30,6 +30,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSAutoreleasePool.h>
 #endif
+#include <Foundation/NSDebug.h>
 
 #define GNU_ARCHIVING \
 (TRY_GNU_ARCHIVING && defined(GNUSTEP_BASE_MAJOR_VERSION))
@@ -289,17 +290,24 @@ test_self_fref ()
 int
 main ()
 {
-  id arp = [NSAutoreleasePool new];
+  id arp;
+
+  arp = [NSAutoreleasePool new];
+  [NSAutoreleasePool enableDoubleReleaseCheck:YES];
+  GSDebugAllocationActive(YES);
 
 #if TEXTCSTREAM
   [Archiver setDefaultCStreamClass: [TextCStream class]];
 #endif
 
+  [arp release];
+  arp = [NSAutoreleasePool new];
   printf ("Decoded SubFoo label's should be 100 more than Encoded.\n");
   test_fref ();
-  test_self_fref ();
-
   [arp release];
-
+  arp = [NSAutoreleasePool new];
+  test_self_fref ();
+  [arp release];
+  printf("Object allocation info -\n%s\n", GSDebugAllocationList(0));
   exit (0);
 }
