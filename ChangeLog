@@ -1,3 +1,8 @@
+2003-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Avoid using atof() in parsing plists ... we
+	don't want libc localised handling of numbers.
+
 2003-07-08 03:44  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/Additions/Unicode.m (GSToUnicode, GSFromUnicode): In iconv

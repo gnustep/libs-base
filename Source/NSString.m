@@ -80,6 +80,8 @@
 
 #include "GSPrivate.h"
 
+extern BOOL GSScanDouble(unichar*, unsigned, double*);
+
 @class	GSString;
 @class	GSMutableString;
 @class	GSPlaceholderString;
@@ -2424,8 +2426,6 @@ handle_printf_atsign (FILE *stream,
     }
   return [self intValue] != 0 ? YES : NO;
 }
-
-extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
 /**
  * Returns the strings content as a double.  Skips leading whitespace.<br />
@@ -4858,11 +4858,12 @@ static id parsePlItem(pldata* pld)
 		  }
 		else if (type == 'R')
 		  {
-		    char	buf[len+1];
+		    unichar	buf[len];
+		    double	d = 0.0;
 
 		    for (i = 0; i < len; i++) buf[i] = (char)ptr[i];
-		    buf[len] = '\0';
-		    result = [[NSNumber alloc] initWithDouble: atof(buf)];
+		    GSScanDouble(buf, len, &d);
+		    result = [[NSNumber alloc] initWithDouble: d];
 		  }
 		else
 		  {
