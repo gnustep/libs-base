@@ -1,5 +1,5 @@
 /* Implementation for GNU Objective-C CString object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -28,7 +28,7 @@
 
 @implementation CString
 
-/* This is the designated initializer for this class */
+/* These next two methods are the two designated initializers for this class */
 - initWithCString: (const char*)aCharPtr range: (IndexRange)aRange
 {
   [super initWithType:@encode(char)];
@@ -37,6 +37,15 @@
   memcpy(_contents_chars, aCharPtr + aRange.location, _count);
   _contents_chars[_count] = '\0';
   _free_contents = YES;
+  return self;
+}
+
+- initWithCStringNoCopy: (const char*)aCharPtr freeWhenDone: (BOOL)f
+{
+  [super initWithType:@encode(char)];
+  _count = strlen(aCharPtr);
+  _contents_chars = aCharPtr;
+  _free_contents = f;
   return self;
 }
 
