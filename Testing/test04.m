@@ -1,6 +1,6 @@
 /* Test Heap class. */
 
-#include <gnustep/base/objects.h>
+#include <gnustep/base/all.h>
 
 #define N 20
 

@@ -1,4 +1,4 @@
-#include <gnustep/base/objects.h>
+#include <gnustep/base/all.h>
 
 int main()
 {
