@@ -74,9 +74,12 @@ enum {
 + (NSConnection*) connectionByInPort: (NSPort*)ip
 			     outPort: (NSPort*)op;
 + (NSConnection*) connectionByOutPort: (NSPort*)op;
-- (NSDistantObject*) localForTarget: (void*)target;
-- (NSDistantObject*) proxyForTarget: (void*)target;
-- (void) retainTarget: (unsigned)target;
++ (NSDistantObject*) includesLocalTarget: (gsu32)target;
+- (NSDistantObject*) includesLocalTarget: (gsu32)target;
+- (NSDistantObject*) localForObject: (id)object;
+- (NSDistantObject*) localForTarget: (gsu32)target;
+- (NSDistantObject*) proxyForTarget: (gsu32)target;
+- (void) retainTarget: (gsu32)target;
 - (void) setNotOwned;
 @end
 
