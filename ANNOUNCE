@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 0.9.1, is now available.
+The GNUstep Base Library, version 0.9.2, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -22,7 +22,7 @@ portion of the OpenStep standard (the Foundation library).
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gstepbase-0.9.1.tar.gz distribution file has been placed on
+   The gstepbase-0.9.2.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    The library requires gcc 2.8.0 or higher.  Significant sections of
