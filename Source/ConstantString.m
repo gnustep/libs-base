@@ -104,6 +104,7 @@
 
 @end
 
-
+#if 0 /* Moved to NSString.m */
 @implementation NXConstantString
 @end
+#endif
