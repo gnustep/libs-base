@@ -620,11 +620,11 @@ queue_pop()
 unsigned short	next_port = IPPORT_USERRESERVED;
 
 typedef struct {
-  uptr		name;	/* Service name registered.	*/
-  unsigned int	port;	/* Port it was mapped to.	*/
+  uptr			name;	/* Service name registered.	*/
+  unsigned int		port;	/* Port it was mapped to.	*/
   unsigned short	size;	/* Number of bytes in name.	*/
-  unsigned char	net;	/* Type of port registered.	*/
-  unsigned char	svc;	/* Type of port registered.	*/
+  unsigned char		net;	/* Type of port registered.	*/
+  unsigned char		svc;	/* Type of port registered.	*/
 } map_ent;
 
 int	map_used = 0;
@@ -2251,7 +2251,8 @@ handle_request(int desc)
 	{
 	  fprintf(stderr, "request type '%c' from chan %d", type, desc);
 	}
-      if (type == GDO_PROBE || type == GDO_PREPLY)
+      if (type == GDO_PROBE || type == GDO_PREPLY || type == GDO_SERVERS
+	|| type == GDO_NAMES)
 	{
 	  fprintf(stderr, "\n");
 	}
@@ -2264,8 +2265,8 @@ handle_request(int desc)
   if (ptype != GDO_TCP_GDO && ptype != GDO_TCP_FOREIGN
     && ptype != GDO_UDP_GDO && ptype != GDO_UDP_FOREIGN)
     {
-      if (ptype != 0 || (type != GDO_PROBE && type != GDO_PREPLY &&
-	    type != GDO_SERVERS))
+      if (ptype != 0 || (type != GDO_PROBE && type != GDO_PREPLY
+	&& type != GDO_SERVERS && type != GDO_NAMES))
 	{
 	  if (debug)
 	    {
@@ -2444,7 +2445,7 @@ handle_request(int desc)
 #ifndef __MINGW__
 	      int	r = 1;
 	      if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-			    (char*)&r, sizeof(r)) < 0)
+		(char*)&r, sizeof(r)) < 0)
 		{
 		  perror("unable to set socket options");
 		}
@@ -2565,6 +2566,37 @@ handle_request(int desc)
 	  mcopy(&w_info(desc)->buf[4+(i+1)*IASIZE], &prb[--j]->sin, IASIZE);
 	}
       w_info(desc)->len = 4 + (prb_used+1)*IASIZE;
+    }
+  else if (type == GDO_NAMES)
+    {
+      int	bytes = 0;
+      uptr	ptr;
+      int	i;
+
+      free(w_info(desc)->buf);
+
+      /*
+       * Size buffer for names.
+       */
+      for (i = 0; i < map_used; i++)
+	{
+	  bytes += 2 + strlen(map[i]->name);
+	}
+      /*
+       * Allocate with space for number of names and set it up.
+       */
+      w_info(desc)->buf = (char*)malloc(4 + bytes);
+      *(unsigned long*)w_info(desc)->buf = htonl(bytes);
+      ptr = (uptr)w_info(desc)->buf;
+      ptr += 4;
+      for (i = 0; i < map_used; i++)
+	{
+	  ptr[0] = (unsigned char)strlen(map[i]->name);
+	  ptr[1] = (unsigned char)(map[i]->net | map[i]->svc);
+	  memcpy(&ptr[2], map[i]->name, ptr[0]);
+	  ptr += 2 + ptr[0];
+	}
+      w_info(desc)->len = 4 + bytes;
     }
   else if (type == GDO_PROBE)
     {
@@ -3286,6 +3318,47 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	}
       *v = b;
     }
+  /*
+   *	Special case for GDO_NAMES - allocate buffer and read list.
+   */
+  else if (op == GDO_NAMES)
+    {
+      int	len = port;
+      uptr	ptr;
+      uptr	b;
+
+      b = (uptr)malloc(len);
+      if (tryRead(desc, 3, b, len) != len)
+	{
+	  free(b);
+#ifdef __MINGW__
+	  e = WSAGetLastError();
+	  closesocket(desc);
+	  WSASetLastError(e);
+#else
+	  e = errno;
+	  close(desc);
+	  errno = e;
+#endif
+	  return 5;
+	}
+      /*
+       * Count the number of registered names and return them.
+       */
+      ptr = b;
+      port = 0;
+      while (ptr < &b[len])
+	{
+	  ptr += 2 + ptr[0];
+	  port++;
+	}
+      if ((port & 0xffff) != port)
+	{
+	  fprintf(stderr, "Insanely large number of registered names");
+	  port = 0;
+	}
+      *v = b;
+    }
 
   *p = (unsigned short)port;
 #ifdef __MINGW__
@@ -3310,13 +3383,13 @@ nameFail(int why)
       case 0:	break;
       case 1:
 	fprintf(stderr, "failed to contact name server - socket - %s",
-	      strerror(errno));
+	  strerror(errno));
       case 2:
 	fprintf(stderr, "failed to contact name server - socket - %s",
-	      strerror(errno));
+	  strerror(errno));
       case 3:
 	fprintf(stderr, "failed to contact name server - socket - %s",
-	      strerror(errno));
+	  strerror(errno));
       case 4:
 	fprintf(stderr, "failed to contact name server - socket - %s",
 	      strerror(errno));
@@ -3527,6 +3600,95 @@ lookup(const char *name, const char *host, int ptype)
 }
 
 static void
+donames()
+{
+  struct sockaddr_in	sin;
+  struct servent*	sp;
+  struct hostent*	hp;
+  unsigned short	p = htons(GDOMAP_PORT);
+  unsigned short	num = 0;
+  int			rval;
+  uptr			b;
+  char			*first_dot;
+  const char		*host;
+#ifdef __MINGW__
+  char local_hostname[INTERNET_MAX_HOST_NAME_LENGTH];
+#else
+  char local_hostname[MAXHOSTNAMELEN];
+#endif
+
+#if	GDOMAP_PORT_OVERRIDE
+  p = htons(GDOMAP_PORT_OVERRIDE);
+#else
+  /*
+   *	Ensure we have port number to connect to name server.
+   *	The TCP service name 'gdomap' overrides the default port.
+   */
+  if ((sp = getservbyname("gdomap", "tcp")) != 0)
+    {
+      p = sp->s_port;		/* Network byte order.	*/
+    }
+#endif
+
+  /*
+   *	If no host name is given, we use the name of the local host.
+   *	NB. This should always be the case for operations other than lookup.
+   */
+
+  if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
+    {
+      fprintf(stderr, "gethostname() failed: %s", strerror(errno));
+      return;
+    }
+  first_dot = strchr(local_hostname, '.');
+  if (first_dot)
+    {
+      *first_dot = '\0';
+    }
+  host = local_hostname;
+  if ((hp = gethostbyname(host)) == 0)
+    {
+      fprintf(stderr, "gethostbyname() failed: %s", strerror(errno));
+      return;
+    }
+  if (hp->h_addrtype != AF_INET)
+    {
+      fprintf(stderr, "non-internet network not supported for %s\n", host);
+      return;
+    }
+
+  memset((char*)&sin, '\0', sizeof(sin));
+  sin.sin_family = AF_INET;
+  sin.sin_port = p;
+  memcpy(&sin.sin_addr, hp->h_addr, hp->h_length);
+
+  rval = tryHost(GDO_NAMES, 0, 0, 0, &sin, &num, (uptr*)&b);
+  if (rval != 0)
+    {
+      fprintf(stderr, "failed to contact gdomap\n");
+      return;
+    }
+  if (num == 0)
+    {
+      printf("No names currently registered with gdomap\n");
+    }
+  else
+    {
+      printf("Registered names are -\n");
+      while (num-- > 0)
+	{
+	  char	buf[256];
+
+	  memcpy(buf, &b[2], b[0]);
+	  buf[b[0]] = '\0';
+	  printf("%s\n", buf);
+	  b += 2 + b[0];
+	}
+    }
+  free(b);
+}
+
+static void
 doregister(const char *name, int port, int ptype)
 {
   struct sockaddr_in	sin;
@@ -3568,7 +3730,7 @@ int
 main(int argc, char** argv)
 {
   extern char	*optarg;
-  char	*options = "CHI:L:M:P:R:T:U:a:bc:dfi:p";
+  char	*options = "CHI:L:M:NP:R:T:U:a:bc:dfi:p";
   int		c;
   int		ptype = GDO_TCP_GDO;
   int		port = 0;
@@ -3614,6 +3776,7 @@ main(int argc, char** argv)
 	    printf("-I		pid file to write pid\n");
 	    printf("-L name		perform lookup for name then quit.\n");
 	    printf("-M name		machine name for L (default local)\n");
+	    printf("-N		list all names registered on this host\n");
 	    printf("-P number	port number required for R option.\n");
 	    printf("-R name		register name locally then quit.\n");
 	    printf("-T type		port type for L, R and U options -\n");
@@ -3679,6 +3842,10 @@ printf(
 	  case 'M':
 	    machine = optarg;
 	    break;
+
+	  case 'N':
+	    donames();
+	    exit(0);
 
 	  case 'P':
 	    port = atoi(optarg);
