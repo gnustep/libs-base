@@ -203,7 +203,7 @@
               <item>
                   a service name of 0 to GDO_NAME_MAX_LEN bytes (or two IP
                   addresses in network byte order and an optional list of
-                  additional addresseso for probe operations)
+                  additional addresses for probe operations)
               </item>
               <item>
                   0 to GDO_NAME_MAX_LEN nul bytes padding the service name to
