@@ -100,7 +100,7 @@ remove-header-links:
 endif
 
 configure: configure.in
-	autoreconf
+	autoconf
 
 base.make: base.make.in configure
 	./configure
