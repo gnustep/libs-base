@@ -1,3 +1,7 @@
+1999-02-19  Michael Hanni <mhanni@sprintmail.com
+
+	* Source/NSArray.m: Added @end for NSArrayEnumeratorReverse.
+
 1999-02-19  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSHost.m ([NSHost +currentHost]): Check for host not found.
