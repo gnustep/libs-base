@@ -1,0 +1,8 @@
+This directory contains header files for the GNU Objective C Class
+Library, `libobjects'.
+
+The complete list of include file directories belonging to libobjects
+is:
+	../objects
+	../objc
+	../foundation
