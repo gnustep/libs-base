@@ -1,3 +1,8 @@
+2004-07-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/plmerge.m: Bugfix ... was attempting to set values in a
+	dictionary which was not mutable.
+
 2004-07-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHost.m: Use UTF8String rather than cString throughout

@@ -91,6 +91,7 @@ main(int argc, char** argv, char **env)
           [pool release];
           exit(EXIT_FAILURE);
         }
+      plist = [plist mutableCopy];
     }
   else
     {
@@ -138,6 +139,7 @@ main(int argc, char** argv, char **env)
   if ([plist writeToFile: destName atomically: YES] == NO)
     GSPrintf(stderr, @"Error writing property list to '%@'\n", destName);
 
+  RELEASE(plist);
   [pool release];
   exit(EXIT_SUCCESS);
 }
