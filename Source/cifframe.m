@@ -1102,11 +1102,12 @@ cifframe_build_return (NSInvocation *inv,
 		  tmptype++;
 		  ctxt->type = tmptype;
 
-		  (*decoder) (ctxt);
-		  /* Copy the pointed-to data back to the original
-		     pointer */
+		  /* Use the original pointer to find the buffer
+		   * to store the returned data */
 		  [inv getArgument: &ptr atIndex: argnum];
-		  memcpy(ptr, datum, objc_sizeof_type(tmptype));
+		  ctxt->datum = ptr;
+
+		  (*decoder) (ctxt);
 		}
 	      else if (*tmptype == _C_CHARPTR
 		&& ((flags & _F_OUT) || !(flags & _F_IN)))

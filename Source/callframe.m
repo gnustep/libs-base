@@ -674,7 +674,7 @@ callframe_build_return (NSInvocation *inv,
 	{
 	  /* Step through all the arguments, finding the ones that were
 	     passed by reference. */
-      for (tmptype = objc_skip_argspec (tmptype), argnum = 0;
+	  for (tmptype = objc_skip_argspec (tmptype), argnum = 0;
 	   *tmptype != '\0';
 	   tmptype = objc_skip_argspec (tmptype), argnum++)
 	    {
@@ -694,9 +694,10 @@ callframe_build_return (NSInvocation *inv,
 	      ctxt->flags = flags;
 
 	      if (*tmptype == _C_PTR
-		  && ((flags & _F_OUT) || !(flags & _F_IN)))
+		&& ((flags & _F_OUT) || !(flags & _F_IN)))
 		{
 		  void *ptr;
+
 		  /* The argument is a pointer (to a non-char), and
 		     the pointer's value is qualified as an OUT
 		     parameter, or it not explicitly qualified as an
@@ -705,11 +706,12 @@ callframe_build_return (NSInvocation *inv,
 		  tmptype++;
 		  ctxt->type = tmptype;
 
-		  (*decoder) (ctxt);
-		  /* Copy the pointed-to data back to the original
-		     pointer */
+                  /* Use the original pointer to find the buffer
+                   * to store the returned data */
 		  [inv getArgument: &ptr atIndex: argnum];
-		  memcpy(ptr, datum, objc_sizeof_type(tmptype));
+		  ctxt->datum = ptr;
+
+		  (*decoder) (ctxt);
 		}
 	      else if (*tmptype == _C_CHARPTR
 		&& ((flags & _F_OUT) || !(flags & _F_IN)))

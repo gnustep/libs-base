@@ -1,3 +1,10 @@
+2003-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/callframe.m:
+	* Source/cifframe.m:
+	Fix error in returning data via pointer arguments ... was writing to
+	wrong memory location.
+
 2003-04-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m:
