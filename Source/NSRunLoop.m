@@ -1,5 +1,5 @@
 /* Implementation of object for waiting on several input sources
-   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1996-1999 Free Software Foundation, Inc.
 
    Original by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: March 1996
@@ -23,36 +23,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* October 1996 - extensions to permit file descriptors to be watched
-   for being readable or writable added by Richard Frith-Macdonald
-   (richard@brainstorm.co.uk) */
-
-/* Andrews original comments - may still be valid even now -
-
-   Does it strike anyone else that NSNotificationCenter,
-   NSNotificationQueue, NSNotification, NSRunLoop, the "notifications"
-   a run loop sends the objects on which it is listening, NSEvent, and
-   the event queue maintained by NSApplication are all much more
-   intertwined/similar than OpenStep gives them credit for?
-
-   I wonder if these classes could be re-organized a little to make a
-   more uniform, "grand-unified" mechanism for: events,
-   event-listening, event-queuing, and event-distributing.  It could
-   be quite pretty.
-
-   (GNUstep would definitely provide classes that were compatible with
-   all these OpenStep classes, but those classes could be wrappers
-   around fundamentally cleaner GNU classes.  RMS has advised using an
-   underlying organization/implementation different from NeXT's
-   whenever that makes sense---it helps legally distinguish our work.)
-
-   Thoughts and insights, anyone?
-
-   */
-
 #include <config.h>
 #include <base/preface.h>
-#include <base/Heap.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSValue.h>
@@ -73,8 +45,8 @@
 #include <string.h>		/* for memset() */
 
 static int	debug_run_loop = 0;
+static NSDate	*theFuture = nil;
 
-static SEL	isValidSel = @selector(isValid);
 
 
 /*
@@ -85,7 +57,11 @@ static SEL	isValidSel = @selector(isValid);
  *	extended, and the methods must be modified to handle the new type.
  *
  *	The internal variables if the RunLoopWatcher are used as follows -
- *	If 'invalidated' is set, the wather should be disabled and should
+ *
+ *	The '_date' variable contains a date after which the event is useless
+ *	and the watcher can be removed from the runloop.
+ *
+ *	If '_invalidated' is set, the watcher should be disabled and should
  *	be removed from the runloop when next encountered.
  *
  *	The 'data' variable is used to identify the  resource/event that the
@@ -99,10 +75,6 @@ static SEL	isValidSel = @selector(isValid);
  *	NSRunLoops [-acceptInputForMode: beforeDate: ] method MUST contain
  *	code to watch for events of each type.
  *
- *	The 'limit' variable contains a date after which the event is useless
- *	and the watcher can be removed from the runloop.  If this is nil
- *	then the watcher will only be removed if explicitly requested.
- *
  *	To set this variable, the method adding the RunLoopWatcher to the
  *	runloop must ask the 'receiver' (or its delegate) to supply a date
  *	using the '[-limitDateForMode: ]' message.
@@ -110,75 +82,38 @@ static SEL	isValidSel = @selector(isValid);
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
  
-@interface RunLoopWatcher: NSObject <GCFinalization>
+static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
+
+@interface RunLoopWatcher: NSObject
 {
 @public
-  BOOL			invalidated;
-  BOOL			handleEvent;	// New-style event handling
-  BOOL			(*handleIsValid)();
+  NSDate		*_date;		/* First to match layout of NSTimer */
+  BOOL			_invalidated;	/* 2nd to match layout of NSTimer */
+  IMP			handleEvent;	/* New-style event handling */
   void			*data;
   id			receiver;
   RunLoopEventType	type;
-  NSDate		*limit;
   unsigned 		count;
 }
-- (void) eventFor: (void*)info
-	     mode: (NSString*)mode;
 - initWithType: (RunLoopEventType)type
       receiver: (id)anObj
           data: (void*)data;
-- (void) invalidate;
-- (BOOL) isValid;
 @end
 
 @implementation	RunLoopWatcher
 
 - (void) dealloc
 {
-  [self gcFinalize];
-  RELEASE(limit);
+  RELEASE(_date);
   RELEASE(receiver);
   [super dealloc];
-}
-
-- (void) eventFor: (void*)info
-	     mode: (NSString*)mode
-{
-  if ([self isValid] == NO)
-    {
-      return;
-    }
-
-  if (handleEvent)
-    {
-      [receiver receivedEvent: data type: type extra: info forMode: mode];
-    }
-  else
-    {
-      switch (type)
-	{
-	  case ET_RDESC: 
-	  case ET_RPORT: 
-	    [receiver readyForReadingOnFileDescriptor: (int)(gsaddr)info];
-	    break;
-
-	  case ET_WDESC: 
-	    [receiver readyForWritingOnFileDescriptor: (int)(gsaddr)info];
-	    break;
-	}
-    }
-}
-
-- (void) gcFinalize
-{
-  [self invalidate];
 }
 
 - (id) initWithType: (RunLoopEventType)aType
 	   receiver: (id)anObj
 	       data: (void*)item
 {
-  invalidated = NO;
+  _invalidated = NO;
 
   switch (aType)
     {
@@ -190,37 +125,53 @@ static SEL	isValidSel = @selector(isValid);
 		    format: @"NSRunLoop - unknown event type"];
     }
   receiver = RETAIN(anObj);
-  if ([receiver respondsToSelector: 
-		@selector(receivedEvent:type:extra:forMode:)])
-    handleEvent = YES;
+  if ([receiver respondsToSelector: eventSel] == YES) 
+    handleEvent = [receiver methodForSelector: eventSel];
   else
-    handleEvent = NO;
+    handleEvent = 0;
   data = item;
-  if ([receiver respondsToSelector: isValidSel])
-    handleIsValid = (BOOL(*)())[receiver methodForSelector: isValidSel];
   return self;
 }
 
-- (void) invalidate
-{
-  invalidated = YES;
-}
-
-- (BOOL) isValid
-{
-  if (invalidated == YES)
-    {
-      return NO;
-    }
-  if (handleIsValid != 0 && (*handleIsValid)(receiver, isValidSel) == NO)
-    {
-      [self invalidate];
-      return NO;
-    }
-  return YES;
-}
-
 @end
+
+/*
+ *	Two optimisation functions that depend on a hack that the layout of
+ *	the NSTimer class is known to be the same as RunLoopWatcher for the
+ *	first two elements.
+ */
+static inline NSDate* timerDate(NSTimer* timer)
+{
+  return ((RunLoopWatcher*)timer)->_date;
+}
+
+static inline BOOL timerInvalidated(NSTimer* timer)
+{
+  return ((RunLoopWatcher*)timer)->_invalidated;
+}
+
+static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
+{
+  return [i0->_date compare: i1->_date];
+}
+
+
+
+/*
+ *      Setup for inline operation of arrays.
+ */
+
+#define FAST_ARRAY_TYPES       GSUNION_OBJ
+
+#if	GS_WITH_GC == 0
+#define FAST_ARRAY_RELEASE(X)	[(X).obj release]
+#define FAST_ARRAY_RETAIN(X)	[(X).obj retain]
+#else
+#define FAST_ARRAY_RELEASE(X)	
+#define FAST_ARRAY_RETAIN(X)	(X).obj
+#endif
+
+#include <base/FastArray.x>
 
 
 
@@ -450,22 +401,17 @@ static SEL	isValidSel = @selector(isValid);
    limit-date order. */
 - (void) _addWatcher: (RunLoopWatcher*) item forMode: (NSString*)mode
 {
-  NSMutableArray	*watchers;
-  id			obj;
-  NSDate		*limit;
-  int			count;
+  FastArray	watchers;
+  id		obj;
 
   watchers = NSMapGet(_mode_2_watchers, mode);
-  if (watchers == nil)
+  if (watchers == 0)
     {
-      watchers = [NSMutableArray new];
+      NSZone	*z = [self zone];
+
+      watchers = NSZoneMalloc(z, sizeof(FastArray_t));
+      FastArrayInitWithZoneAndCapacity(watchers, z, 8);
       NSMapInsert(_mode_2_watchers, mode, watchers);
-      RELEASE(watchers);
-      count = 0;
-    }
-  else
-    {
-      count = [watchers count];
     }
 
   /*
@@ -478,7 +424,7 @@ static SEL	isValidSel = @selector(isValid);
     {
       NSDate	*d = [obj limitDateForMode: mode];
 
-      ASSIGN(item->limit, d);
+      ASSIGN(item->_date, d);
     }
   else if ([obj respondsToSelector: @selector(delegate)])
     {
@@ -487,38 +433,14 @@ static SEL	isValidSel = @selector(isValid);
 	{
 	  NSDate	*d = [obj limitDateForMode: mode];
 
-	  ASSIGN(item->limit, d);
+	  ASSIGN(item->_date, d);
 	}
-    }
-  limit = item->limit;
-
-  /*
-   *	Make sure that the items in the watchers list are ordered.
-   */
-  if (limit == nil || count == 0)
-    {
-      [watchers addObject: item];
+      else
+	ASSIGN(item->_date, theFuture);
     }
   else
-    {
-      int	i;
-
-      for (i = 0; i < count; i++)
-	{
-	  RunLoopWatcher	*watcher = [watchers objectAtIndex: i];
-	  NSDate		*when = watcher->limit;
-
-	  if (when == nil || [limit earlierDate: when] == when)
-	    {
-	      [watchers insertObject: item atIndex: i];
-	      break;
-	    }
-	}
-      if (i == count)
-	{
-	  [watchers addObject: item];
-	}
-    }
+    ASSIGN(item->_date, theFuture);
+  FastArrayInsertSorted(watchers, (FastArrayItem)item, aSort);
 }
 
 - (void) _checkPerformers
@@ -720,8 +642,6 @@ static SEL	isValidSel = @selector(isValid);
 
 @implementation NSRunLoop
 
-static NSDate	*theFuture;
-
 #if	GS_WITH_GC == 0
 static SEL	wRelSel = @selector(release);
 static SEL	wRetSel = @selector(retain);
@@ -749,6 +669,27 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #else
 #define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks 
 #endif
+
+static void*
+aRetain(void* t, FastArray a)
+{
+  return t;
+}
+
+static void
+aRelease(void* t, FastArray a)
+{
+  FastArrayEmpty(a);
+  NSZoneFree(a->zone, (void*)a);
+}
+
+const NSMapTableValueCallBacks ArrayMapValueCallBacks = 
+{
+  (NSMT_retain_func_t) aRetain,
+  (NSMT_release_func_t) aRelease,
+  (NSMT_describe_func_t) 0
+};
+
 
 + (void) initialize
 {
@@ -786,9 +727,9 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   [super init];
   _current_mode = NSDefaultRunLoopMode;
   _mode_2_timers = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
-				     NSObjectMapValueCallBacks, 0);
+				     ArrayMapValueCallBacks, 0);
   _mode_2_watchers = NSCreateMapTable (NSObjectMapKeyCallBacks,
-					   NSObjectMapValueCallBacks, 0);
+					   ArrayMapValueCallBacks, 0);
   _performers = [[NSMutableArray alloc] initWithCapacity: 8];
   _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
   _rfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
@@ -825,17 +766,18 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 - (void) addTimer: timer
 	  forMode: (NSString*)mode
 {
-  Heap *timers;
+  FastArray timers;
 
   timers = NSMapGet(_mode_2_timers, mode);
   if (!timers)
     {
-      timers = [Heap new];
+      NSZone	*z = [self zone];
+
+      timers = NSZoneMalloc(z, sizeof(FastArray_t));
+      FastArrayInitWithZoneAndCapacity(timers, z, 8);
       NSMapInsert(_mode_2_timers, mode, timers);
-      RELEASE(timers);
     }
-  /* xxx Should we make sure it isn't already there? */
-  [timers addObject: timer];
+  FastArrayInsertSorted(timers, (FastArrayItem)timer, aSort);
 }
 
 
@@ -845,10 +787,10 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 - limitDateForMode: (NSString*)mode
 {
   id			saved_mode;
-  Heap			*timers;
+  FastArray		timers;
   NSTimer		*min_timer = nil;
   RunLoopWatcher	*min_watcher = nil;
-  NSMutableArray	*watchers;
+  FastArray		watchers;
   NSDate		*when;
 
   saved_mode = _current_mode;
@@ -857,31 +799,39 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   timers = NSMapGet(_mode_2_timers, mode);
   if (timers)
     {
-      while ((min_timer = [timers minObject]) != nil)
+      while (FastArrayCount(timers) != 0)
 	{
-	  if (![min_timer isValid])
+	  min_timer = FastArrayItemAtIndex(timers, 0).obj;
+	  if (timerInvalidated(min_timer) == YES)
 	    {
-	      [timers removeFirstObject];
+	      FastArrayRemoveItemAtIndex(timers, 0);
 	      min_timer = nil;
 	      continue;
 	    }
 
-	  if ([[min_timer fireDate] timeIntervalSinceNow] > 0)
+	  if ([timerDate(min_timer) timeIntervalSinceNow] > 0)
 	    {
 	      break;
 	    }
 
-	  RETAIN(min_timer);
-	  [timers removeFirstObject];
+	  FastArrayRemoveItemAtIndexNoRelease(timers, 0);
 	  /* Firing will also increment its fireDate, if it is repeating. */
 	  [min_timer fire];
-	  if ([min_timer isValid])
+	  if (timerInvalidated(min_timer) == NO)
 	    {
-	      [timers addObject: min_timer];
+	      unsigned	index;
+
+	      index = FastArrayInsertionPosition(timers,
+		(FastArrayItem)min_timer, aSort);
+	      FastArrayInsertItemNoRetain(timers,
+		(FastArrayItem)min_timer, index);
 	    }
-	  RELEASE(min_timer);
+	  else
+	    {
+	      RELEASE(min_timer);
+	    }
 	  min_timer = nil;
-	  [NSNotificationQueue runLoopASAP];	/* Post notifications. */
+	  GSNotifyASAP();		/* Post notifications. */
 	}
     }
 
@@ -890,19 +840,19 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   watchers = NSMapGet(_mode_2_watchers, mode);
   if (watchers)
     {
-      while ([watchers count] > 0)
+      while (FastArrayCount(watchers) != 0)
 	{
-	  min_watcher = (RunLoopWatcher*)[watchers objectAtIndex: 0];
+	  min_watcher = FastArrayItemAtIndex(watchers, 0).obj;
 
-	  if (![min_watcher isValid])
+	  if (min_watcher->_invalidated == YES)
 	    {
-	      [watchers removeObjectAtIndex: 0];
+	      FastArrayRemoveItemAtIndex(watchers, 0);
 	      min_watcher = nil;
 	      continue;
 	    }
 
-	  when = min_watcher->limit;
-	  if (when == nil || [when timeIntervalSinceNow] > 0)
+	  when = min_watcher->_date;
+	  if ([when timeIntervalSinceNow] > 0)
 	    {
 	      break;
 	    }
@@ -937,15 +887,18 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 		}
 	      if (nxt && [nxt timeIntervalSinceNow] > 0.0)
 		{
+		  unsigned	index;
+
 		  /*
 		   *	If the watcher has been given a revised limit date -
 		   *	re-insert it into the queue in the correct place.
 		   */
-		  RETAIN(min_watcher);
-		  ASSIGN(min_watcher->limit, nxt);
-		  [watchers removeObjectAtIndex: 0];
-		  [self _addWatcher: min_watcher forMode: mode];
-		  RELEASE(min_watcher);
+		  FastArrayRemoveItemAtIndexNoRelease(watchers, 0);
+		  ASSIGN(min_watcher->_date, nxt);
+		  index = FastArrayInsertionPosition(watchers,
+			(FastArrayItem)min_watcher, aSort);
+		  FastArrayInsertItemNoRetain(watchers,
+			(FastArrayItem)min_watcher, index);
 		}
 	      else
 		{
@@ -954,8 +907,8 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 		   *	remove it from the queue so that we don't need to
 		   *	check it again.
 		   */
-		  [min_watcher invalidate];
-		  [watchers removeObjectAtIndex: 0];
+		  min_watcher->_invalidated = YES;
+		  FastArrayRemoveItemAtIndex(watchers, 0);
 		}
 	      min_watcher = nil;
 	    }
@@ -978,29 +931,16 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    *	If there are watchers, set the limit date to that of the earliest
    *	watcher (or leave it as the date of the earliest timer if that is
    *	before the watchers limit).
-   *	NB. A watcher without a limit date watches forever - so it's limit
-   *	is effectively some time in the distant future.
    */
   if (min_watcher)
     {
-      NSDate*	lim;
-
-      if (min_watcher->limit == nil)		/* No limit for watcher	*/
-	{
-	  lim = theFuture;		/* - watches forever.	*/
-	}
-      else
-	{
-	  lim = min_watcher->limit;
-	}
-
       if (when == nil)
 	{
-	  when = lim;
+	  when = min_watcher->_date;
 	}
       else
 	{
-	  when = [when earlierDate: lim];
+	  when = [when earlierDate: min_watcher->_date];
 	}
     }
 
@@ -1022,9 +962,7 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 			   type: (RunLoopEventType)type
 		        forMode: (NSString*)mode
 {
-  NSArray		*watchers;
-  RunLoopWatcher	*info;
-  int			count;
+  FastArray		watchers;
 
   if (mode == nil)
     {
@@ -1032,17 +970,16 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
 
   watchers = NSMapGet(_mode_2_watchers, mode);
-  if (watchers == nil)
+  if (watchers)
     {
-      return nil;
-    }
-  for (count = 0; count < [watchers count]; count++)
-    {
-      info = [watchers objectAtIndex: count];
+      unsigned		i = FastArrayCount(watchers);
 
-      if (info->type == type)
+      while (i-- > 0)
 	{
-	  if (info->data == data)
+	  RunLoopWatcher	*info;
+
+	  info = FastArrayItemAtIndex(watchers, i).obj;
+	  if (info->type == type && info->data == data)
 	    {
 	      return info;
 	    }
@@ -1055,7 +992,7 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
                    type: (RunLoopEventType)type
                 forMode: (NSString*)mode
 {
-  NSMutableArray	*watchers;
+  FastArray	watchers;
 
   if (mode == nil)
     {
@@ -1065,17 +1002,17 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   watchers = NSMapGet(_mode_2_watchers, mode);
   if (watchers)
     {
-      int	i;
+      unsigned	i = FastArrayCount(watchers);
 
-      for (i = [watchers count]; i > 0; i--)
+      while (i-- > 0)
 	{
-	  RunLoopWatcher*	info;
+	  RunLoopWatcher	*info;
 
-	  info = (RunLoopWatcher*)[watchers objectAtIndex: (i-1)];
+	  info = FastArrayItemAtIndex(watchers, i).obj;
 	  if (info->type == type && info->data == data)
 	    {
-	      [info invalidate];
-	      [watchers removeObject: info];
+	      info->_invalidated = YES;
+	      FastArrayRemoveItemAtIndex(watchers, i);
 	    }
 	}
     }
@@ -1164,18 +1101,19 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
   /* Do the pre-listening set-up for the file descriptors of this mode. */
   {
-      NSMutableArray	*watchers;
+      FastArray	watchers;
 
       watchers = NSMapGet(_mode_2_watchers, mode);
       if (watchers) {
 	  int	i;
 
-	  for (i = [watchers count]; i > 0; i--) {
-	      RunLoopWatcher*	info = [watchers objectAtIndex: (i-1)];
-	      int fd;
+	  for (i = FastArrayCount(watchers); i > 0; i--) {
+	      RunLoopWatcher	*info;
+	      int		fd;
 
-	      if ([info isValid] == NO) {
-		[watchers removeObjectAtIndex: (i-1)];
+	      info = FastArrayItemAtIndex(watchers, i-1).obj;
+	      if (info->_invalidated == YES) {
+		FastArrayRemoveItemAtIndex(watchers, i-1);
 		continue;
               }
 	      switch (info->type) {
@@ -1226,7 +1164,7 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
   /* Detect if the NSRunLoop is idle, and if necessary - dispatch the
      notifications from NSNotificationQueue's idle queue? */
-  if (num_inputs == 0 && [NSNotificationQueue runLoopMore])
+  if (num_inputs == 0 && GSNotifyMore())
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
@@ -1260,7 +1198,7 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     {
       NSResetMapTable(_rfdMap);
       NSResetMapTable(_wfdMap);
-      [NSNotificationQueue runLoopIdle];
+      GSNotifyIdle();
       [self _checkPerformers];
       _current_mode = saved_mode;
       return;
@@ -1280,25 +1218,64 @@ const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	  RunLoopWatcher	*watcher;
 
 	  watcher = NSMapGet(_wfdMap, (void*)fd_index);
-	  [watcher eventFor: (void*)(gsaddr)fd_index mode: _current_mode];
-	  [NSNotificationQueue runLoopASAP];
+	  if (watcher->_invalidated == NO)
+	    {
+	      /*
+	       * The watcher is still valid - so call it's receivers
+	       * event handling method.
+	       */
+	      if (watcher->handleEvent != 0)
+		{
+		  (*watcher->handleEvent)(watcher->receiver,
+			eventSel, watcher->data, watcher->type,
+			(void*)(gsaddr)fd_index, _current_mode);
+		}
+	      else if (watcher->type == ET_WDESC)
+		{
+		  [watcher->receiver readyForWritingOnFileDescriptor:
+				(int)(gsaddr)fd_index];
+		}
+	    }
+	  GSNotifyASAP();
+	  if (--select_return == 0)
+	    break;
         }
       if (FD_ISSET (fd_index, &read_fds))
         {
 	  RunLoopWatcher	*watcher;
 
 	  watcher = (RunLoopWatcher*)NSMapGet(_rfdMap, (void*)fd_index);
-	  [watcher eventFor: (void*)(gsaddr)fd_index mode: _current_mode];
-	  [NSNotificationQueue runLoopASAP];
+	  if (watcher->_invalidated == NO)
+	    {
+	      /*
+	       * The watcher is still valid - so call it's receivers
+	       * event handling method.
+	       */
+	      if (watcher->handleEvent != 0)
+		{
+		  (*watcher->handleEvent)(watcher->receiver,
+			eventSel, watcher->data, watcher->type,
+			(void*)(gsaddr)fd_index, _current_mode);
+		}
+	      else if (watcher->type == ET_RDESC || watcher->type == ET_RPORT)
+		{
+		  [watcher->receiver readyForReadingOnFileDescriptor:
+				(int)(gsaddr)fd_index];
+		}
+	    }
+	  GSNotifyASAP();
+	  if (--select_return == 0)
+	    break;
         }
     }
+
 
   /* Clean up before returning. */
   NSResetMapTable(_rfdMap);
   NSResetMapTable(_wfdMap);
 
   [self _checkPerformers];
-  [NSNotificationQueue runLoopASAP];
+  GSNotifyASAP();
   _current_mode = saved_mode;
 }
 

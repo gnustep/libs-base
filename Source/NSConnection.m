@@ -293,23 +293,23 @@ static int messages_received_count;
  */
 + (NSConnection*) defaultConnection
 {
-  static NSString*	tkey = @"NSConnectionThreadKey";
-  NSConnection*	c;
-  NSThread*	t;
+  static NSString	*tkey = @"NSConnectionThreadKey";
+  NSConnection		*c;
+  NSMutableDictionary	*d;
 
-  t = GSCurrentThread();
-  c = (NSConnection*)[[t threadDictionary] objectForKey:tkey];
+  d = GSCurrentThreadDictionary();
+  c = (NSConnection*)[d objectForKey:tkey];
   if (c != nil && [c isValid] == NO) {
     /*
      *	If the default connection for this thread has been invalidated -
      *	release it and create a new one.
      */
-    [[t threadDictionary] removeObjectForKey:tkey];
+    [d removeObjectForKey:tkey];
     c = nil;
   }
   if (c == nil) {
     c = [NSConnection new];
-    [[t threadDictionary] setObject:c forKey:tkey];
+    [d setObject:c forKey:tkey];
     [c release];	/* retained in dictionary.	*/
   }
   return c;

@@ -105,6 +105,8 @@ typedef double NSTimeInterval;
   NSTimeInterval seconds_since_ref;
 }
 @end
+
+NSTimeInterval GSTimeNow();	/* Get time since reference date */
 #endif
 
 

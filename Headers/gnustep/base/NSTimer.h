@@ -30,17 +30,20 @@
 #include <base/preface.h>
 #include <Foundation/NSDate.h>
 
+/*
+ *	NB. NSRunLoop is optimised using a hack that knows about the
+ *	class layout for the fire date and invialidation flag in NSTimer.
+ *	These MUST remain the first two items in the class.
+ */
 @interface NSTimer : NSObject
 {
-  unsigned _repeats:1;
-  unsigned _is_valid:1;
-  unsigned _timer_filler:6;
-  unsigned _retain_count:24;
-  NSDate *_fire_date;
+  NSDate	*_date;		/* Must be first - for NSRunLoop optimisation */
+  BOOL		_invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
+  BOOL		_repeats;
   NSTimeInterval _interval;
-  id _target;
-  SEL _selector;
-  id _info;
+  id	_target;
+  SEL	_selector;
+  id	_info;
 }
 
 /* Creating timer objects. */
