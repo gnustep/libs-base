@@ -2,10 +2,9 @@
 
 	* Source/NSKeyedArchiver.m: Encode archive version as a number rather
 	than a string.
-	* Source/NSString.m: ([-hash]) include the string length in the hash.
+	* Source/NSString.m: ([-hash]) include full string length in the hash.
 	* Source/GSString.m: ditto
-	Disambiguates long strings with a common prefix (unless they are all
-	the same length).
+	Disambiguates long strings with a common prefix.
 
 2004-03-30  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
