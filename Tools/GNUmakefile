@@ -42,8 +42,8 @@ doctemplatesdir = $(GNUSTEP_LIBRARY)/DocTemplates
 DOCTEMPLATES_FILES = indextemplate.gsdoc AutoDocTemplate.gsdoc
 
 # Manual pages to install
-MAN1_PAGES = gdnc.1.gz
-MAN8_PAGES = gdomap.8.gz
+MAN1_PAGES = gdnc.1
+MAN8_PAGES = gdomap.8
 
 # The application to be compiled
 ifeq ($(add),yes)

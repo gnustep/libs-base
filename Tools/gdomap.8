@@ -1,0 +1,141 @@
+GDOMAP(8)                 System Manuals                GDOMAP(8)
+
+
+
+NNAAMMEE
+       gdomap - GNU Distributed Objects name server
+
+
+SSYYNNOOPPSSIISS
+       ggddoommaapp  [[--CC || --HH]] [[--II <<ppiiddffiillee>> ]] [[--LL <<nnaammee>> ]] [[--MM <<nnaammee>>]]
+       [[--NN]] [[--PP <<nnuummbbeerr>>]] [[--RR <<nnaammee>>]] [[--TT <<ttyyppee>>]] [[--UU <<nnaammee>>]] [[--aa
+       <<ffiillee>>]] [[--cc <<ffiillee>>]] [[--dd]] [[--ff]] [[--ii <<sseeccoonnddss>>]] [[--pp]]
+
+
+DDEESSCCRRIIPPTTIIOONN
+       ggddoommaapp  The  gdomap  daemon is used by GNUstep programs to
+       lookup distributed objects of  processes  running  on  the
+       local machine as well as across the network.
+
+       Usually  the  gdomap daemon is started at system boot time
+       and binds itself to port 538. See the _G_N_U_s_t_e_p _B_u_i_l_d  _G_u_i_d_e
+       for a sample startup script.
+
+
+       Gdomap  normally probes every machine on the local network
+       to see if there is a copy of gdomap running on  it.   This
+       is  done  for class-C networks and subnets of class-C net-
+       works.  If your host is on a class-B or class-A  net  then
+       the  default behaviour is to treat it as a class-C net and
+       probe only the hosts that would be expected on  a  class-C
+       network of the same number.
+
+       If  you are running on a class-A or class-B network, or if
+       your net has a large number of hosts which will  not  have
+       gdomap  on  them  - you may want to supply a configuration
+       file listing the hosts to  be  probed  explicitly,  rather
+       than getting gdomap to probe all hosts on the local net.
+
+       You may also want to supply the _c_o_n_f_i_g_u_r_a_t_i_o_n _f_i_l_e so that
+       hosts which are not actually on  your  local  network  can
+       still  be  found when your code tries to connect to a host
+       using @"*" as the host name.  NB. this functionality  does
+       not exist in OpenStep.
+
+       A _c_o_n_f_i_g_u_r_a_t_i_o_n _f_i_l_e consists of a list of IP addresses to
+       be probed.  The IP addresses should be in  standard  'dot'
+       notation,  one per line.  Empty lines are permitted in the
+       configuration file.  Anything on a line after a hash ('#')
+       is  ignored.   You  tell gdomap about the config file with
+       the '-c' command line option.
+
+
+       gdomap uses the SIOCGIFCONF ioctl to build a  list  of  IP
+       addresses  and netmasks for the network interface cards on
+       your machine.  On some operating systems, this facility is
+       not  available (or is broken), so you must tell gdomap the
+       addresses and masks of the interfaces using the '-a'  com-
+       mand line option.  The file named with '-a' should contain
+       a series of lines with space separated pairs of  addresses
+       and  masks  in 'dot' notation.  You must NOT include loop-
+       back interfaces in this list.   If  you  want  to  support
+       broadcasting  of  probe  information on a network, you may
+       supply the broadcast address as a third item on the  line.
+       If  your  operating system has some other method of giving
+       you a list of network interfaces and masks, please send me
+       example code so that I can implement it in gdomap.
+
+
+OOPPTTIIOONNSS
+       -C     help about configuration
+
+       -H     general help
+
+       -I     pid file to write pid
+
+       -L name
+              perform lookup for name then quit.
+
+       -M name
+              machine name for -L and -N
+
+       -N     list all names registered on host
+
+       -P number
+              port number required for R option.
+
+       -R name
+              register name locally then quit.
+
+       -T type
+              port  type  for  L,  R  and  U  options  - tcp_gdo,
+              udp_gdo, tcp_foreign, udp_foreign.
+
+       -U name
+              unregister name locally then quit.
+
+       -a file
+              use config file for interface list.
+
+       -c file
+              use config file for probe.
+
+       -d     extra debug logging (normally via syslog).
+
+       -f     avoid fork() to make debugging easy
+
+       -i seconds
+              re-probe at this interval (roughly), min 60
+
+       -p     disable probing for other servers
+
+
+FFIILLEESS
+       Use the -c option to  specify  a  configuration  file  for
+       gdomap. See under DDEESSCCRRIIPPTTIIOONN for possible configurations.
+
+
+DDIIAAGGNNOOSSTTIICCSS
+       Kill with SIGUSR1 to obtain a dump of all known  peers  in
+       /tmp/gdomap.dump
+
+       ggddoommaapp --NN lists all registered names on the local host.
+
+
+SSEEEE AALLSSOO
+       ggddoommaapp  --CC  gives  above  instructions  on  how  to set up
+       gdomap.
+
+       gdnc(1), GNUstep(7), gpbs(1)
+
+       _T_h_e _G_N_U_s_t_e_p _B_u_i_l_d _G_u_i_d_e example rc script:
+        <http://documents.made-it.com/GNUstep/Build/
+        #GNUSTEP.SERVICES>
+
+
+AAUUTTHHOORR
+       Richard Frith-McDonald <rfm@gnu.org>
+
+
+
+GNUstep                     June 2003                   GDOMAP(8)

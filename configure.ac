@@ -65,7 +65,8 @@ LIBS="$LDFLAGS $LIBS"
 # This is just for configuring. Later, in config.make, INCLUDE_FLAGS
 # goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
 case "$target_os" in
-  freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+  freebsd* | openbsd* )	
+	        CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
   netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
 		LDFLAGS="$LDFLAGS -L/usr/pkg/lib";;

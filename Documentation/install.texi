@@ -37,6 +37,22 @@ When you configure this library, make sure you use the same
 configuration options as with gstep-make. Some additional options to
 configure are described below.
 
+Quick installation instructions:
+
+@example
+./configure
+make
+make install
+@end example
+
+To make and install the documentation:
+
+@example
+cd Documentation
+make
+make install
+@end example
+
 @node Configuration, Compilation, Introduction, Top
 @section Configuration
 
