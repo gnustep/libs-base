@@ -532,8 +532,6 @@ static void handleSignal(int sig)
 
 - (void) _collectChild
 {
-  extern int errno;
-
   if (hasCollected == NO)
     {
       int       result;
