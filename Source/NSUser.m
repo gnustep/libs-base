@@ -1037,7 +1037,7 @@ if (domainMask & mask) \
     }
   if (directoryKey == NSDeveloperDirectory)
     {
-      ADD_PATH(NSUserDomainMask, gnustep_local_root, devDir);
+      ADD_PATH(NSUserDomainMask, gnustep_user_root, devDir);
       ADD_PATH(NSLocalDomainMask, gnustep_local_root, devDir);
       ADD_PATH(NSNetworkDomainMask, gnustep_network_root, devDir);
       ADD_PATH(NSSystemDomainMask, gnustep_system_root, devDir);
