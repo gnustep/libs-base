@@ -1,0 +1,185 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="GSXMLParser" prev="GSXMLAttribute" up="GSXML" next="GSSAXHandler">
+  <head>
+    <title>GSXMLParser</title>
+    <author name="Michael Pakhantsov">
+      <email address="mishel@berest.dp.ua"/>
+    </author>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+    </author>
+    <version>0.1</version>
+    <date>15 September, 2000</date>
+  </head>
+
+  <body>
+    <chapter>
+      <heading>GSXMLParser</heading>
+      <class name="GSXMLParser" super="NSObject">
+        <declared>GSXML.h</declared>
+          <desc>
+             <p>XML Parser.
+              </p>
+          </desc>
+
+
+        <method type="GSXMLParser*" factory="yes">
+          <sel>parser:</sel>
+          <arg type="id">source</arg>
+          <desc>
+	    <p>Creation of a new Parser.
+            </p>
+	    <p>
+	      Source must be <code>NSString</code> or <code>NSData</code>.
+            </p>
+            <example>
+  GSXMLParser       *p = [GSXMLParser parser:@"macos.xml"];
+
+  if ([p parse])
+    {
+      [[p doc] dump];
+    }
+  else
+    {
+      printf("error parse file\n");
+    }
+
+            </example>
+
+          </desc>
+        </method>
+
+        <method type="GSXMlParser*" factory="yes">
+          <sel>parserWithSAXHandler:</sel>
+          <arg type="GSSAXHandler*">handler</arg>
+          <sel>source:</sel>
+          <arg type="id">source</arg>
+          <desc>
+	    <p>Creation of a new Parser with SAX handler.
+            </p>
+            <example>
+  NSAutoreleasePool *arp = [[NSAutoreleasePool alloc] init];
+  GSSAXHandler *h = [GSDebugSAXHandler handler];
+  GSXMLParser       *p = [GSXMLParser parserWithSAXHandler: h
+						    source: @"macos.xml"];
+
+  if ([p parse])
+    {
+       printf("ok\n");
+    }
+
+
+  [arp release];
+            </example>
+          </desc>
+        </method>
+
+        <method type="id" init="yes">
+          <sel>initWithSAXHandler:</sel>
+          <arg type="GSSAXHandler*">handler</arg>
+          <sel>source:</sel>
+          <arg type="id">source</arg>
+          <desc>
+          <p>Creation of a new Parser with SAX handler.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void*">
+          <sel>lib</sel>
+          <desc>
+          <p>Return pointer to xmlParserCtxt structure.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLDocument*">
+          <sel>doc</sel>
+          <desc>
+          <p>Return GSXMLDocument object.
+            </p>
+
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>parse</sel>
+          <desc>
+          <p>Parse source. Return YES if parsed, otherwise NO.
+            </p>
+            <example>
+  GSXMLParser       *p = [GSXMLParser parser:@"macos.xml"];
+
+  if ([p parse])
+    {
+      [[p doc] dump];
+    }
+  else
+    {
+      printf("error parse file\n");
+    }
+
+            </example>
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>substituteEntites:</sel>
+          <arg type="BOOL">yesno</arg>
+          <desc>
+          <p>Set and return the previous value for default entity support.
+             Initially the parser always keep entity references instead of substituting
+          entity values in the output.
+          </p>
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>keepBlanks:</sel>
+          <arg type="BOOL">yesno</arg>
+          <desc>
+          <p>Set and return the previous value for default blanks text nodes support.
+          ignorableWhitespace() are only generated when running the parser in validating mode
+          and when the current element doesn't allow CDATA or mixed content.
+          </p>
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>getWarnings:</sel>
+          <arg type="BOOL">yesno</arg>
+          <desc>
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>doValidityChecking:</sel>
+          <arg type="BOOL">yesno</arg>
+          <desc>
+          <p>Sets whether the document needs to be validated.
+            </p>
+          </desc>
+        </method>
+
+        <method type="int">
+          <sel>errNo</sel>
+          <desc>
+          <p>Return error code.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>setExternalEntityLoader</sel>
+          <arg type="void*">function</arg>
+          <desc>
+          <p>Set a external entity loader.
+            </p>
+          </desc>
+        </method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>
+

@@ -1,5 +1,19 @@
 2000-09-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSXML.m: made method names more consistent.
+	* Headers/gnustep/base/GSXML.h: made method names more consistent.
+	* Documentation/gsdoc/GNUmakefile: Added GSXML files
+	* Documentation/gsdoc/base.gsdoc: Added link to GSXML
+	* Documentation/gsdoc/GSXML.gsdoc: Overview of XML parsing.
+	* Documentation/gsdoc/GSSAXHandler.gsdoc: event parsing handler class.
+	* Documentation/gsdoc/GSXMLAttribute.gsdoc: xml attribute wrapper.
+	* Documentation/gsdoc/GSXMLDocument.gsdoc: xml document wrapper.
+	* Documentation/gsdoc/GSXMLNamespace.gsdoc: xml namespace wrapper.
+	* Documentation/gsdoc/GSXMLNode.gsdoc: xml node wrapper.
+	* Documentation/gsdoc/GSXMLParser.gsdoc: xml parser wrapper.
+
+2000-09-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/UnixFileHandle.m: conform to GCFinalization protocol.
 
 2000-09-14  Adam Fedor  <fedor@gnu.org>

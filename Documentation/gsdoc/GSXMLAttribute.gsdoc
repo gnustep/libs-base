@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="GSXMLAttribute" next="GSXMLDocument" up="GSXML" prev="GSXMLNode">
+  <head>
+    <title>GSXMLAttribute</title>
+    <author name="Michael Pakhantsov">
+      <email address="mishel@berest.dp.ua"/>
+    </author>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+    </author>
+    <version>0.2</version>
+    <date>15 September, 2000</date>
+  </head>
+
+  <body>
+    <chapter>
+      <heading>GSXMLAttribute</heading>
+      <class name="GSXMLAttribute" super="GSXMLNode">
+        <declared>GSXML.h</declared>
+	<desc>
+	   XML Attribute.
+	</desc>
+
+        <method type="GSXMLAttribute*" factory="yes">
+          <sel>attributeWithNode:</sel>
+          <arg type="GSXMLNode*">node</arg>
+          <sel>name:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>value:</sel>
+          <arg type="NSString*">value</arg>
+          <desc>
+	    <p>Create a new property carried by a node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="id" >
+          <sel>initWithNode:</sel>
+          <arg type="GSXMLNode*">node</arg>
+          <sel>name:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>value:</sel>
+          <arg type="NSString*">value</arg>
+          <desc>
+	    <p>Create a new property carried by a node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLAttribute*" factory="yes">
+          <sel>attributeFrom:</sel>
+          <arg type="void*">data</arg>
+          <desc>
+	    <p>Creation of a new Attribute from libxml data.
+            </p>
+          </desc>
+        </method>
+
+        <method type="id" init="yes">
+          <sel>initFrom:</sel>
+          <arg type="void*">data</arg>
+          <desc>
+	    <p>Creation of a new Attribute from libxml data.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void*" >
+          <sel>lib</sel>
+          <desc>
+	    <p>Return pointer to xmlAttribute structure.
+            </p>
+          </desc>
+        </method>
+
+        <method type="NSString*" >
+          <sel>name</sel>
+          <desc>
+          <p>Return a Attribute name.
+            </p>
+          </desc>
+        </method>
+
+        <method type="NSString*" >
+          <sel>value</sel>
+          <desc>
+          <p>Return a value of this attribute.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLAttribute*" >
+          <sel>next</sel>
+          <desc>
+	    <p>Return next Attribute.
+            </p>
+	    <example>
+
+            id a = [node properties];
+            NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+            while ((a = [a next]) != nil)
+              {
+                NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+              }
+
+	     </example>
+          </desc>
+        </method>
+
+        <method type="GSXMLAttribute*" >
+          <sel>prev</sel>
+          <desc>
+	    <p>Return previous Attribute.
+            </p>
+          </desc>
+        </method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>
+

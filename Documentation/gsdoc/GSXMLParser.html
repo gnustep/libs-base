@@ -1,0 +1,219 @@
+<html><head>
+<title>GSXMLParser</title>
+</head>
+<body>
+<a href="GSXMLAttribute.html">[Previous]</a>
+<a href="GSXML.html">[Up]</a>
+<a href="GSSAXHandler.html">[Next]</a>
+<h1>GSXMLParser</h1>
+<h3>Authors</h3>
+<dl>
+<dt>Michael Pakhantsov
+<dd>
+<dt>Richard Frith-Macdonald
+<dd>
+</dl>
+<p>Version: 0.1</p>
+<p>Date: 15 September, 2000</p>
+<h2><a name="cont-0">GSXMLParser</a></h2>
+<h2><a name="GSXMLParser">GSXMLParser</a></h2>
+<p><b>Declared in:</b> GSXML.h</p>
+<p><b>Inherits from:</b> NSObject</p>
+<hr>
+
+             <p>
+XML Parser.
+              </p>
+
+          
+<h2>Instance Variables</h2>
+<ul>
+</ul>
+<h2>Methods</h2>
+<ul>
+<li><a href="GSXMLParser.html#method-0">+parser:</a>
+<li><a href="GSXMLParser.html#method-2">+parserWithSAXHandler:source:</a>
+<li><a href="GSXMLParser.html#method-12">-doValidityChecking:</a>
+<li><a href="GSXMLParser.html#method-6">-doc</a>
+<li><a href="GSXMLParser.html#method-13">-errNo</a>
+<li><a href="GSXMLParser.html#method-11">-getWarnings:</a>
+<li><a href="GSXMLParser.html#method-4">-initWithSAXHandler:source:</a>
+<li><a href="GSXMLParser.html#method-10">-keepBlanks:</a>
+<li><a href="GSXMLParser.html#method-5">-lib</a>
+<li><a href="GSXMLParser.html#method-7">-parse</a>
+<li><a href="GSXMLParser.html#method-14">-setExternalEntityLoader</a>
+<li><a href="GSXMLParser.html#method-9">-substituteEntites:</a>
+</ul>
+<hr><h2>Class Methods</h2>
+<h3><a name="method-0">parser:</a></h3>
++ (<A HREF="GSXMLParser.html#GSXMLParser">GSXMLParser</A>*) <b>parser:</b> (id)source;<br>
+
+	    <p>
+Creation of a new Parser.
+            </p>
+
+	    <p>
+
+	      Source must be <code>NSString</code> or <code>NSData</code>.
+            </p>
+
+            <a name="label-1">example</a>
+<pre>
+
+  GSXMLParser       *p = [GSXMLParser parser:@"macos.xml"];
+
+  if ([p parse])
+    {
+      [[p doc] dump];
+    }
+  else
+    {
+      printf("error parse file\n");
+    }
+
+            
+</pre>
+
+
+          
+<hr>
+<h3><a name="method-2">parserWithSAXHandler:source:</a></h3>
++ (GSXMlParser*) <b>parserWithSAXHandler:</b> (<A HREF="GSSAXHandler.html#GSSAXHandler">GSSAXHandler</A>*)handler <b>source:</b> (id)source;<br>
+
+	    <p>
+Creation of a new Parser with SAX handler.
+            </p>
+
+            <a name="label-3">example</a>
+<pre>
+
+  NSAutoreleasePool *arp = [[NSAutoreleasePool alloc] init];
+  GSSAXHandler *h = [GSDebugSAXHandler handler];
+  GSXMLParser       *p = [GSXMLParser parserWithSAXHandler: h
+						    source: @"macos.xml"];
+
+  if ([p parse])
+    {
+       printf("ok\n");
+    }
+
+
+  [arp release];
+            
+</pre>
+
+          
+<hr>
+<hr><h2>Instances Methods</h2>
+<h3><a name="method-4">initWithSAXHandler:source:</a></h3>
+<b>This is the designated initialiser</b><br>
+- (id) <b>initWithSAXHandler:</b> (<A HREF="GSSAXHandler.html#GSSAXHandler">GSSAXHandler</A>*)handler <b>source:</b> (id)source;<br>
+
+          <p>
+Creation of a new Parser with SAX handler.
+            </p>
+
+          
+<hr>
+<h3><a name="method-5">lib</a></h3>
+- (void*) <b>lib</b>;<br>
+
+          <p>
+Return pointer to xmlParserCtxt structure.
+            </p>
+
+          
+<hr>
+<h3><a name="method-6">doc</a></h3>
+- (<A HREF="GSXMLDocument.html#GSXMLDocument">GSXMLDocument</A>*) <b>doc</b>;<br>
+
+          <p>
+Return GSXMLDocument object.
+            </p>
+
+
+          
+<hr>
+<h3><a name="method-7">parse</a></h3>
+- (BOOL) <b>parse</b>;<br>
+
+          <p>
+Parse source. Return YES if parsed, otherwise NO.
+            </p>
+
+            <a name="label-8">example</a>
+<pre>
+
+  GSXMLParser       *p = [GSXMLParser parser:@"macos.xml"];
+
+  if ([p parse])
+    {
+      [[p doc] dump];
+    }
+  else
+    {
+      printf("error parse file\n");
+    }
+
+            
+</pre>
+
+          
+<hr>
+<h3><a name="method-9">substituteEntites:</a></h3>
+- (BOOL) <b>substituteEntites:</b> (BOOL)yesno;<br>
+
+          <p>
+Set and return the previous value for default entity support.
+             Initially the parser always keep entity references instead of substituting
+          entity values in the output.
+          </p>
+
+          
+<hr>
+<h3><a name="method-10">keepBlanks:</a></h3>
+- (BOOL) <b>keepBlanks:</b> (BOOL)yesno;<br>
+
+          <p>
+Set and return the previous value for default blanks text nodes support.
+          ignorableWhitespace() are only generated when running the parser in validating mode
+          and when the current element doesn't allow CDATA or mixed content.
+          </p>
+
+          
+<hr>
+<h3><a name="method-11">getWarnings:</a></h3>
+- (BOOL) <b>getWarnings:</b> (BOOL)yesno;<br>
+
+          
+<hr>
+<h3><a name="method-12">doValidityChecking:</a></h3>
+- (BOOL) <b>doValidityChecking:</b> (BOOL)yesno;<br>
+
+          <p>
+Sets whether the document needs to be validated.
+            </p>
+
+          
+<hr>
+<h3><a name="method-13">errNo</a></h3>
+- (int) <b>errNo</b>;<br>
+
+          <p>
+Return error code.
+            </p>
+
+          
+<hr>
+<h3><a name="method-14">setExternalEntityLoader</a></h3>
+- (void) <b>setExternalEntityLoader</b> (void*)function;<br>
+
+          <p>
+Set a external entity loader.
+            </p>
+
+          
+<hr>
+</body>
+
+</html>

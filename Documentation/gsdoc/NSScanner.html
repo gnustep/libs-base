@@ -16,7 +16,7 @@
 <h2><a name="cont-0">The NSScanner class documentation</a></h2>
 <h2><a name="NSScanner">NSScanner</a></h2>
 <p><b>Declared in:</b> Foundation/NSScanner.h</p>
-<p><b>Inherits from:</b> NSObject</p>
+<p><b>Inherits from:</b> <A HREF="NSObject.html#NSObject">NSObject</A></p>
 <p><b>Conforms to:</b> NSCopying
 </p>
 <hr>
@@ -38,6 +38,10 @@
 	  </p>
 
 	
+<h2>Instance Variables</h2>
+<ul>
+</ul>
+<h2>Methods</h2>
 <ul>
 <li><a href="NSScanner.html#method-0">+localizedScannerWithString:</a>
 <li><a href="NSScanner.html#method-1">+scannerWithString:</a>
@@ -64,9 +68,9 @@
 <li><a href="NSScanner.html#method-20">-setScanLocation:</a>
 <li><a href="NSScanner.html#method-21">-string</a>
 </ul>
-<hr>
-<h2><a name="method-0">localizedScannerWithString:</a></h2>
-+ (id) <b>localizedScannerWithString:</b> (NSString*)aString;<br>
+<hr><h2>Class Methods</h2>
+<h3><a name="method-0">localizedScannerWithString:</a></h3>
++ (id) <b>localizedScannerWithString:</b> (<A HREF="NSString.html#NSString">NSString</A>*)aString;<br>
 
 	    Returns an NSScanner instance set up to scan aString
 	    (using <a href="#initWithString:">initWithString:</a>)
@@ -74,15 +78,16 @@
 	    (using <a href="#setLocale:">setLocale:</a>).
           
 <hr>
-<h2><a name="method-1">scannerWithString:</a></h2>
-+ (id) <b>scannerWithString:</b> (NSString*)aString;<br>
+<h3><a name="method-1">scannerWithString:</a></h3>
++ (id) <b>scannerWithString:</b> (<A HREF="NSString.html#NSString">NSString</A>*)aString;<br>
 
 	    Returns an NSScanner instance set up to scan aString
 	    (using <a href="#initWithString:">initWithString:</a>)
 	    and with no locale set.
           
 <hr>
-<h2><a name="method-2">caseSensitive</a></h2>
+<hr><h2>Instances Methods</h2>
+<h3><a name="method-2">caseSensitive</a></h3>
 - (BOOL) <b>caseSensitive</b>;<br>
 
 	    If the scanner is set to be case-sensitive in its scanning of
@@ -92,8 +97,8 @@
 	    The default is for a scanner to <em>not</em> be case sensitive.
           
 <hr>
-<h2><a name="method-3">charactersToBeSkipped</a></h2>
-- (NSCharacterSet*) <b>charactersToBeSkipped</b>;<br>
+<h3><a name="method-3">charactersToBeSkipped</a></h3>
+- (<A HREF="NSCharacterSet.html#NSCharacterSet">NSCharacterSet</A>*) <b>charactersToBeSkipped</b>;<br>
 
 	    Returns a set of characters containing those characters that the
 	    scanner ignores when starting any scan operation.  Once a character
@@ -104,9 +109,9 @@
 	    The default for this is the whitespaceAndNewlineCharacterSet.
           
 <hr>
-<h2><a name="initWithString:">initWithString:</a></h2>
+<h3><a name="initWithString:">initWithString:</a></h3>
 <b>This is the designated initialiser</b><br>
-- (id) <b>initWithString:</b> (NSString*)aString;<br>
+- (id) <b>initWithString:</b> (<A HREF="NSString.html#NSString">NSString</A>*)aString;<br>
 
 	    Initialises the scanner to scan aString.  The GNUstep
 	    implementation may make an internal copy of the original
@@ -117,7 +122,7 @@
 	    Returns the scanner object.
           
 <hr>
-<h2><a name="method-4">isAtEnd</a></h2>
+<h3><a name="method-4">isAtEnd</a></h3>
 - (BOOL) <b>isAtEnd</b>;<br>
 
 	    Returns YES if there are no characters left to be scanned in the
@@ -125,8 +130,8 @@
 	    characters to be skipped).  Returns NO otherwise.
           
 <hr>
-<h2><a name="method-5">locale</a></h2>
-- (NSDictionary*) <b>locale</b>;<br>
+<h3><a name="method-5">locale</a></h3>
+- (<A HREF="NSDictionary.html#NSDictionary">NSDictionary</A>*) <b>locale</b>;<br>
 
 	    Returns the locale set for the scanner, or nil if no locale has
 	    been set.  A scanner uses it's locale to alter the way it handles
@@ -134,8 +139,8 @@
 	    numbers.
           
 <hr>
-<h2><a name="method-6">scanCharactersFromSet:intoString:</a></h2>
-- (BOOL) <b>scanCharactersFromSet:</b> (NSCharacterSet*)set <b>intoString:</b> (NSString**)stringValue;<br>
+<h3><a name="method-6">scanCharactersFromSet:intoString:</a></h3>
+- (BOOL) <b>scanCharactersFromSet:</b> (<A HREF="NSCharacterSet.html#NSCharacterSet">NSCharacterSet</A>*)set <b>intoString:</b> (<A HREF="NSString.html#NSString">NSString</A>**)stringValue;<br>
 
 	    After initial skipping (if any), this method scans any characters
 	    from <em>set</em>, terminating when a character not in the set
@@ -145,14 +150,14 @@
 	    stored in a string returned in this value. 
           
 <hr>
-<h2><a name="method-7">scanDecimal:</a></h2>
+<h3><a name="method-7">scanDecimal:</a></h3>
 - (BOOL) <b>scanDecimal:</b> (NSDecimal*)decimalValue;<br>
 Standards: MacOS-X NotOpenStep<br>
 
 	    Not implemented.
           
 <hr>
-<h2><a name="method-8">scanDouble:</a></h2>
+<h3><a name="method-8">scanDouble:</a></h3>
 - (BOOL) <b>scanDouble:</b> (double*)doubleValue;<br>
 
 	    After initial skipping (if any), this method scans a double value,
@@ -166,7 +171,7 @@ Standards: MacOS-X NotOpenStep<br>
 	    Scans past any excess digits
           
 <hr>
-<h2><a name="method-9">scanFloat:</a></h2>
+<h3><a name="method-9">scanFloat:</a></h3>
 - (BOOL) <b>scanFloat:</b> (float*)floatValue;<br>
 
 	    After initial skipping (if any), this method scans a float value,
@@ -180,7 +185,7 @@ Standards: MacOS-X NotOpenStep<br>
 	    Scans past any excess digits
           
 <hr>
-<h2><a name="method-10">scanHexInt:</a></h2>
+<h3><a name="method-10">scanHexInt:</a></h3>
 - (BOOL) <b>scanHexInt:</b> (unsigned int*)intValue;<br>
 
 	    After initial skipping (if any), this method scans a hexadecimal
@@ -194,7 +199,7 @@ Standards: MacOS-X NotOpenStep<br>
 	    Scans past any excess digits
           
 <hr>
-<h2><a name="method-11">scanInt:</a></h2>
+<h3><a name="method-11">scanInt:</a></h3>
 - (BOOL) <b>scanInt:</b> (int*)intValue;<br>
 
 	    After initial skipping (if any), this method scans a integer value,
@@ -207,7 +212,7 @@ Standards: MacOS-X NotOpenStep<br>
 	    Scans past any excess digits
           
 <hr>
-<h2><a name="method-12">scanLocation</a></h2>
+<h3><a name="method-12">scanLocation</a></h3>
 - (unsigned int) <b>scanLocation</b>;<br>
 
 	    Returns the current position that the scanner has reached in
@@ -215,7 +220,7 @@ Standards: MacOS-X NotOpenStep<br>
 	    operation will begin.
           
 <hr>
-<h2><a name="method-13">scanLongLong:</a></h2>
+<h3><a name="method-13">scanLongLong:</a></h3>
 - (BOOL) <b>scanLongLong:</b> (longlong*)longLongValue;<br>
 
 	    After initial skipping (if any), this method scans a long
@@ -230,7 +235,7 @@ Standards: MacOS-X NotOpenStep<br>
 	    Scans past any excess digits
           
 <hr>
-<h2><a name="method-14">scanRadixUnsignedInt:</a></h2>
+<h3><a name="method-14">scanRadixUnsignedInt:</a></h3>
 - (BOOL) <b>scanRadixUnsignedInt:</b> (unsigned int*)intValue;<br>
 Standards: GNUstep NotOpenStep NotMacOS-X<br>
 
@@ -247,8 +252,8 @@ Standards: GNUstep NotOpenStep NotMacOS-X<br>
 	    Scans past any excess digits
           
 <hr>
-<h2><a name="method-15">scanString:intoString:</a></h2>
-- (BOOL) <b>scanString:</b> (NSString*)aString <b>intoString:</b> (NSString**)stringValue;<br>
+<h3><a name="method-15">scanString:intoString:</a></h3>
+- (BOOL) <b>scanString:</b> (<A HREF="NSString.html#NSString">NSString</A>*)aString <b>intoString:</b> (<A HREF="NSString.html#NSString">NSString</A>**)stringValue;<br>
 
 	    After initial skipping (if any), this method scans for
 	    <em>aString</em> and places the string ound in <em>stringValue</em>
@@ -257,8 +262,8 @@ Standards: GNUstep NotOpenStep NotMacOS-X<br>
 	    Returns YES if anything is scanned, NO otherwise.
           
 <hr>
-<h2><a name="method-16">scanUpToCharactersFromSet:intoString:</a></h2>
-- (BOOL) <b>scanUpToCharactersFromSet:</b> (NSCharacterSet*)set <b>intoString:</b> (NSString**)stringValue;<br>
+<h3><a name="method-16">scanUpToCharactersFromSet:intoString:</a></h3>
+- (BOOL) <b>scanUpToCharactersFromSet:</b> (<A HREF="NSCharacterSet.html#NSCharacterSet">NSCharacterSet</A>*)set <b>intoString:</b> (<A HREF="NSString.html#NSString">NSString</A>**)stringValue;<br>
 
 	    After initial skipping (if any), this method scans characters until
 	    it finds one in <em>set</em>.  The scanned characters are placed in
@@ -267,8 +272,8 @@ Standards: GNUstep NotOpenStep NotMacOS-X<br>
 	    Returns YES if anything is scanned, NO otherwise.
           
 <hr>
-<h2><a name="method-17">scanUpToString:intoString:</a></h2>
-- (BOOL) <b>scanUpToString:</b> (NSString*)aString <b>intoString:</b> (NSString**)stringValue;<br>
+<h3><a name="method-17">scanUpToString:intoString:</a></h3>
+- (BOOL) <b>scanUpToString:</b> (<A HREF="NSString.html#NSString">NSString</A>*)aString <b>intoString:</b> (<A HREF="NSString.html#NSString">NSString</A>**)stringValue;<br>
 
 	    After initial skipping (if any), this method scans characters until
 	    it finds <em>aString</em>.  The scanned characters are placed in
@@ -279,7 +284,7 @@ Standards: GNUstep NotOpenStep NotMacOS-X<br>
 	    Returns YES if anything is scanned, NO otherwise.
           
 <hr>
-<h2><a name="method-18">setCaseSensitive:</a></h2>
+<h3><a name="method-18">setCaseSensitive:</a></h3>
 - (void) <b>setCaseSensitive:</b> (BOOL)flag;<br>
 
 	    Sets the case sensitivity of the scanner.
@@ -290,8 +295,8 @@ Standards: GNUstep NotOpenStep NotMacOS-X<br>
 	    The default is for a scanner to <em>not</em> be case sensitive.
           
 <hr>
-<h2><a name="method-19">setCharactersToBeSkipped:</a></h2>
-- (void) <b>setCharactersToBeSkipped:</b> (NSCharacterSet*)skipSet;<br>
+<h3><a name="method-19">setCharactersToBeSkipped:</a></h3>
+- (void) <b>setCharactersToBeSkipped:</b> (<A HREF="NSCharacterSet.html#NSCharacterSet">NSCharacterSet</A>*)skipSet;<br>
 
 	    Sets the set of characters that the scanner will skip over at the
 	    start of each scanning operation to be <em>skipSet</em>.
@@ -302,14 +307,14 @@ Standards: GNUstep NotOpenStep NotMacOS-X<br>
 	    The default for this is the whitespaceAndNewlineCharacterSet.
           
 <hr>
-<h2><a name="setLocale:">setLocale:</a></h2>
-- (void) <b>setLocale:</b> (NSDictionary*)aLocale;<br>
+<h3><a name="setLocale:">setLocale:</a></h3>
+- (void) <b>setLocale:</b> (<A HREF="NSDictionary.html#NSDictionary">NSDictionary</A>*)aLocale;<br>
 
 	    This method sets the locale used by the scanner to <em>aLocale</em>.
 	    The locale may be set to nil.
           
 <hr>
-<h2><a name="method-20">setScanLocation:</a></h2>
+<h3><a name="method-20">setScanLocation:</a></h3>
 - (void) <b>setScanLocation:</b> (unsigned int)index;<br>
 
 	    This method sets the location in the scanned string at which the
@@ -318,8 +323,8 @@ Standards: GNUstep NotOpenStep NotMacOS-X<br>
 	    scanned string.
           
 <hr>
-<h2><a name="method-21">string</a></h2>
-- (NSString*) <b>string</b>;<br>
+<h3><a name="method-21">string</a></h3>
+- (<A HREF="NSString.html#NSString">NSString</A>*) <b>string</b>;<br>
 
 	    Returns the string used by the scanner.
           

@@ -1,8 +1,31 @@
 
-/* Implementation for GSPropertyList
+/* Interface for XML parsing classes
 
-   Written by:  Michael Pakhantsov  <mishel@berest.dp.ua>
+   Copyright (C) 2000 Free Software Foundation, Inc.
+
+   Written by:  Michael Pakhantsov  <mishel@berest.dp.ua> on behalf of
+   Brainstorm computer solutions.
+
    Date: Jule 2000
+   
+   Integrated by Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: September 2000
+
+   This file is part of the GNUstep Base Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */
 
 #ifndef __GSXML_H__
@@ -56,9 +79,9 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (GSXMLNode*) root;
 - (GSXMLNode*) setRoot: (GSXMLNode*)node;
 
-- (GSXMLNode*) makeNode: (GSXMLNamespace*)ns
-		   name: (NSString*)name
-	        content: (NSString*)content;
+- (GSXMLNode*) makeNodeWithNamespace: (GSXMLNamespace*)ns
+				name: (NSString*)name
+			     content: (NSString*)content;
 
 - (NSString*) version;
 - (NSString*) encoding;
@@ -75,9 +98,9 @@ typedef xmlNsType		GSXMLNamespaceType;
    BOOL native;
 }
 
-+ (GSXMLNamespace*) namespace: (GSXMLNode*)node
-			 href: (NSString*)href
-		       prefix: (NSString*)prefix;
++ (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
+				 href: (NSString*)href
+			       prefix: (NSString*)prefix;
 + (GSXMLNamespace*) namespaceFrom: (void*)data;
 
 - (id) initWithNode: (GSXMLNode*)node
@@ -120,9 +143,9 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (NSMutableDictionary*) propertiesAsDictionary;
 - (GSXMLElementType) type;
 
-- (GSXMLNode*) makeChild: (GSXMLNamespace*)ns
-		    name: (NSString*)name
-		 content: (NSString*)content;
+- (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
+				 name: (NSString*)name
+			      content: (NSString*)content;
 - (GSXMLNode*) makeComment: (NSString*)content;
 - (GSXMLNode*) makePI: (NSString*)name
 	      content: (NSString*)content;
@@ -136,12 +159,12 @@ typedef xmlNsType		GSXMLNamespaceType;
 @interface GSXMLAttribute : GSXMLNode
 {
 }
-+ (GSXMLAttribute*) attributeFromNode: (GSXMLNode*)node
++ (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
 				 name: (NSString*)name
 				value: (NSString*)value;
 + (GSXMLAttribute*) attributeFrom: (void*)data;
 
-- (id) initFromNode: (GSXMLNode*)node
+- (id) initWithNode: (GSXMLNode*)node
 	       name: (NSString*)name
 	      value: (NSString*)value;
 - (id) initFrom: (void*)data;

@@ -1,0 +1,141 @@
+<html><head>
+<title>GSXMLAttribute</title>
+</head>
+<body>
+<a href="GSXMLNode.html">[Previous]</a>
+<a href="GSXML.html">[Up]</a>
+<a href="GSXMLDocument.html">[Next]</a>
+<h1>GSXMLAttribute</h1>
+<h3>Authors</h3>
+<dl>
+<dt>Michael Pakhantsov
+<dd>
+<dt>Richard Frith-Macdonald
+<dd>
+</dl>
+<p>Version: 0.2</p>
+<p>Date: 15 September, 2000</p>
+<h2><a name="cont-0">GSXMLAttribute</a></h2>
+<h2><a name="GSXMLAttribute">GSXMLAttribute</a></h2>
+<p><b>Declared in:</b> GSXML.h</p>
+<p><b>Inherits from:</b> <A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A></p>
+<hr>
+
+	   XML Attribute.
+	
+<h2>Instance Variables</h2>
+<ul>
+</ul>
+<h2>Methods</h2>
+<ul>
+<li><a href="GSXMLAttribute.html#method-2">+attributeFrom:</a>
+<li><a href="GSXMLAttribute.html#method-0">+attributeWithNode:name:value:</a>
+<li><a href="GSXMLAttribute.html#method-3">-initFrom:</a>
+<li><a href="GSXMLAttribute.html#method-1">-initWithNode:name:value:</a>
+<li><a href="GSXMLAttribute.html#method-4">-lib</a>
+<li><a href="GSXMLAttribute.html#method-5">-name</a>
+<li><a href="GSXMLAttribute.html#method-7">-next</a>
+<li><a href="GSXMLAttribute.html#method-9">-prev</a>
+<li><a href="GSXMLAttribute.html#method-6">-value</a>
+</ul>
+<hr><h2>Class Methods</h2>
+<h3><a name="method-0">attributeWithNode:name:value:</a></h3>
++ (<A HREF="GSXMLAttribute.html#GSXMLAttribute">GSXMLAttribute</A>*) <b>attributeWithNode:</b> (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*)node <b>name:</b> (NSString*)name <b>value:</b> (NSString*)value;<br>
+
+	    <p>
+Create a new property carried by a node.
+            </p>
+
+          
+<hr>
+<h3><a name="method-2">attributeFrom:</a></h3>
++ (<A HREF="GSXMLAttribute.html#GSXMLAttribute">GSXMLAttribute</A>*) <b>attributeFrom:</b> (void*)data;<br>
+
+	    <p>
+Creation of a new Attribute from libxml data.
+            </p>
+
+          
+<hr>
+<hr><h2>Instances Methods</h2>
+<h3><a name="method-1">initWithNode:name:value:</a></h3>
+- (id) <b>initWithNode:</b> (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*)node <b>name:</b> (NSString*)name <b>value:</b> (NSString*)value;<br>
+
+	    <p>
+Create a new property carried by a node.
+            </p>
+
+          
+<hr>
+<h3><a name="method-3">initFrom:</a></h3>
+<b>This is the designated initialiser</b><br>
+- (id) <b>initFrom:</b> (void*)data;<br>
+
+	    <p>
+Creation of a new Attribute from libxml data.
+            </p>
+
+          
+<hr>
+<h3><a name="method-4">lib</a></h3>
+- (void*) <b>lib</b>;<br>
+
+	    <p>
+Return pointer to xmlAttribute structure.
+            </p>
+
+          
+<hr>
+<h3><a name="method-5">name</a></h3>
+- (NSString*) <b>name</b>;<br>
+
+          <p>
+Return a Attribute name.
+            </p>
+
+          
+<hr>
+<h3><a name="method-6">value</a></h3>
+- (NSString*) <b>value</b>;<br>
+
+          <p>
+Return a value of this attribute.
+            </p>
+
+          
+<hr>
+<h3><a name="method-7">next</a></h3>
+- (<A HREF="GSXMLAttribute.html#GSXMLAttribute">GSXMLAttribute</A>*) <b>next</b>;<br>
+
+	    <p>
+Return next Attribute.
+            </p>
+
+	    <a name="label-8">example</a>
+<pre>
+
+
+            id a = [node properties];
+            NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+            while ((a = [a next]) != nil)
+              {
+                NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+              }
+
+	     
+</pre>
+
+          
+<hr>
+<h3><a name="method-9">prev</a></h3>
+- (<A HREF="GSXMLAttribute.html#GSXMLAttribute">GSXMLAttribute</A>*) <b>prev</b>;<br>
+
+	    <p>
+Return previous Attribute.
+            </p>
+
+          
+<hr>
+</body>
+
+</html>

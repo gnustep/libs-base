@@ -16,10 +16,14 @@
 <h2><a name="cont-0">NSURLHandle</a></h2>
 <h2><a name="NSURLHandle">NSURLHandle</a></h2>
 <p><b>Declared in:</b> Foundation/NSURLHandle.h</p>
-<p><b>Inherits from:</b> NSObject</p>
+<p><b>Inherits from:</b> <A HREF="NSObject.html#NSObject">NSObject</A></p>
 <hr>
 
           
+<h2>Instance Variables</h2>
+<ul>
+</ul>
+<h2>Methods</h2>
 <ul>
 <li><a href="NSURLHandle.html#method-0">+URLHandleClassForURL:</a>
 <li><a href="NSURLHandle.html#method-1">+cachedHandleForURL:</a>
@@ -44,113 +48,114 @@
 <li><a href="NSURLHandle.html#method-20">-writeData:</a>
 <li><a href="NSURLHandle.html#method-21">-writeProperty:</a>
 </ul>
-<hr>
-<h2><a name="method-0">URLHandleClassForURL:</a></h2>
-+ (Class) <b>URLHandleClassForURL:</b> (NSURL*)anURL;<br>
+<hr><h2>Class Methods</h2>
+<h3><a name="method-0">URLHandleClassForURL:</a></h3>
++ (Class) <b>URLHandleClassForURL:</b> (<A HREF="NSURL.html#NSURL">NSURL</A>*)anURL;<br>
 
           
 <hr>
-<h2><a name="method-1">cachedHandleForURL:</a></h2>
-+ (NSURLHandle*) <b>cachedHandleForURL:</b> (NSURL*)anURL;<br>
+<h3><a name="method-1">cachedHandleForURL:</a></h3>
++ (<A HREF="NSURLHandle.html#NSURLHandle">NSURLHandle</A>*) <b>cachedHandleForURL:</b> (<A HREF="NSURL.html#NSURL">NSURL</A>*)anURL;<br>
 
           
 <hr>
-<h2><a name="method-2">canInitWithURL:</a></h2>
-+ (BOOL) <b>canInitWithURL:</b> (NSURL*)anURL;<br>
+<h3><a name="method-2">canInitWithURL:</a></h3>
++ (BOOL) <b>canInitWithURL:</b> (<A HREF="NSURL.html#NSURL">NSURL</A>*)anURL;<br>
 
           
 <hr>
-<h2><a name="method-3">registerURLHandleClass:</a></h2>
+<h3><a name="method-3">registerURLHandleClass:</a></h3>
 + (void) <b>registerURLHandleClass:</b> (Class)anURLHandleSubclass;<br>
 
           
 <hr>
-<h2><a name="method-4">addClient:</a></h2>
+<hr><h2>Instances Methods</h2>
+<h3><a name="method-4">addClient:</a></h3>
 - (void) <b>addClient:</b> (id&#60;NSURLHandleClient>)client;<br>
 
           
 <hr>
-<h2><a name="method-5">availableResourceData</a></h2>
+<h3><a name="method-5">availableResourceData</a></h3>
 - (NSData*) <b>availableResourceData</b>;<br>
 
           
 <hr>
-<h2><a name="method-6">backgroundLoadDidFailWithReason:</a></h2>
-- (void) <b>backgroundLoadDidFailWithReason:</b> (NSString*)reason;<br>
+<h3><a name="method-6">backgroundLoadDidFailWithReason:</a></h3>
+- (void) <b>backgroundLoadDidFailWithReason:</b> (<A HREF="NSString.html#NSString">NSString</A>*)reason;<br>
 
           
 <hr>
-<h2><a name="method-7">beginLoadInBackground</a></h2>
+<h3><a name="method-7">beginLoadInBackground</a></h3>
 - (void) <b>beginLoadInBackground</b>;<br>
 
           
 <hr>
-<h2><a name="method-8">cancelLoadInBackground</a></h2>
+<h3><a name="method-8">cancelLoadInBackground</a></h3>
 - (void) <b>cancelLoadInBackground</b>;<br>
 
           
 <hr>
-<h2><a name="method-9">didLoadBytes:loadComplete:</a></h2>
+<h3><a name="method-9">didLoadBytes:loadComplete:</a></h3>
 - (void) <b>didLoadBytes:</b> (NSData*)newBytes <b>loadComplete:</b> (BOOL)yorn;<br>
 
           
 <hr>
-<h2><a name="method-10">endLoadInBackground</a></h2>
+<h3><a name="method-10">endLoadInBackground</a></h3>
 - (void) <b>endLoadInBackground</b>;<br>
 
           
 <hr>
-<h2><a name="method-11">failureReason</a></h2>
-- (NSString*) <b>failureReason</b>;<br>
+<h3><a name="method-11">failureReason</a></h3>
+- (<A HREF="NSString.html#NSString">NSString</A>*) <b>failureReason</b>;<br>
 
           
 <hr>
-<h2><a name="method-12">flushCachedData</a></h2>
+<h3><a name="method-12">flushCachedData</a></h3>
 - (void) <b>flushCachedData</b>;<br>
 
           
 <hr>
-<h2><a name="method-13">loadInBackground</a></h2>
+<h3><a name="method-13">loadInBackground</a></h3>
 - (void) <b>loadInBackground</b>;<br>
 
           
 <hr>
-<h2><a name="method-14">loadInForeground</a></h2>
+<h3><a name="method-14">loadInForeground</a></h3>
 - (NSData*) <b>loadInForeground</b>;<br>
 
           
 <hr>
-<h2><a name="method-15">propertyForKey:</a></h2>
-- (id) <b>propertyForKey:</b> (NSString*)propertyKey;<br>
+<h3><a name="method-15">propertyForKey:</a></h3>
+- (id) <b>propertyForKey:</b> (<A HREF="NSString.html#NSString">NSString</A>*)propertyKey;<br>
 
           
 <hr>
-<h2><a name="method-16">propertyForKeyIfAvailable:</a></h2>
-- (id) <b>propertyForKeyIfAvailable:</b> (NSString*)propertyKey;<br>
+<h3><a name="method-16">propertyForKeyIfAvailable:</a></h3>
+- (id) <b>propertyForKeyIfAvailable:</b> (<A HREF="NSString.html#NSString">NSString</A>*)propertyKey;<br>
 
           
 <hr>
-<h2><a name="method-17">removeClient:</a></h2>
+<h3><a name="method-17">removeClient:</a></h3>
 - (void) <b>removeClient:</b> (id&#60;NSURLHandleClient>)client;<br>
 
           
 <hr>
-<h2><a name="method-18">resourceData</a></h2>
+<h3><a name="method-18">resourceData</a></h3>
 - (NSData*) <b>resourceData</b>;<br>
 
           
 <hr>
-<h2><a name="method-19">status</a></h2>
+<h3><a name="method-19">status</a></h3>
 - (NSURLHandleStatus) <b>status</b>;<br>
 
           
 <hr>
-<h2><a name="method-20">writeData:</a></h2>
+<h3><a name="method-20">writeData:</a></h3>
 - (BOOL) <b>writeData:</b> (NSData*)data;<br>
 
           
 <hr>
-<h2><a name="method-21">writeProperty:</a></h2>
+<h3><a name="method-21">writeProperty:</a></h3>
 - (BOOL) <b>writeProperty:</b> (id)propertyValue;<br>
 
           
