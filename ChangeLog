@@ -1,3 +1,15 @@
+2001-04-20  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSFileManager.m (NSDirectoryEnumerator): Rewritten to be
+	faster.  ([NSFileManager -directoryContentsAtPath:]),
+	([NSFileManager -subpathsAtPath:]): Use the new init method for
+	NSDirectoryEnumerator.  ([NSFileManager
+	-contentsEqualAtPath:andPath:]): Spare some method calls.
+	([NSFileManager -fileSystemRepresentationWithPath:]): Cleaned
+	preprocessor directives.
+	* Headers/gnustep/base/NSFileManager.h (NSDirectoryEnumerator):
+	Changed ivars in sync.
+	
 2001-04-19  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Documentation/gsdoc/NSFunctions.gsdoc: Documented
