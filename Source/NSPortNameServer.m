@@ -787,6 +787,7 @@ static NSPortNameServer	*defaultServer = nil;
 
 - (void) _open: (NSString*)host
 {
+  NSNotificationCenter *nc;
   NSRunLoop	*loop;
   NSString	*hostname = host;
   BOOL		isLocal = NO;
@@ -870,18 +871,19 @@ static NSPortNameServer	*defaultServer = nil;
 
   expecting = 1;
   [handle retain];
-  [NSNotificationCenter addObserver: self
-			   selector: @selector(_didConnect:)
-			       name: GSFileHandleConnectCompletionNotification
-			     object: handle];
-  [NSNotificationCenter addObserver: self
-			   selector: @selector(_didRead:)
-			       name: NSFileHandleReadCompletionNotification
-			     object: handle];
-  [NSNotificationCenter addObserver: self
-			   selector: @selector(_didWrite:)
-			       name: GSFileHandleWriteCompletionNotification
-			     object: handle];
+  nc = [NSNotificationCenter defaultCenter];
+  [nc addObserver: self
+	 selector: @selector(_didConnect:)
+	     name: GSFileHandleConnectCompletionNotification
+	   object: handle];
+  [nc addObserver: self
+	 selector: @selector(_didRead:)
+	     name: NSFileHandleReadCompletionNotification
+	   object: handle];
+  [nc addObserver: self
+	 selector: @selector(_didWrite:)
+	     name: GSFileHandleWriteCompletionNotification
+	   object: handle];
   loop = [NSRunLoop currentRunLoop];
   [loop runMode: mode
      beforeDate: [NSDate dateWithTimeIntervalSinceNow: connectTimeout]];
