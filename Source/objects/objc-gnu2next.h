@@ -30,6 +30,8 @@
 
 #if NeXT_runtime
 
+#include <objc/objc-class.h>
+
 #define arglist_t marg_list
 #define retval_t void*
 #define TypedStream NXTypedStream
@@ -56,7 +58,7 @@
 
 #define class_create_instance(CLASS) class_createInstance(CLASS, 0)
 #define sel_get_name(ASEL) sel_getName(ASEL)
-#define sel_get_uid(METHODNAME) set_getUid(METHODNAME)
+#define sel_get_uid(METHODNAME) sel_getUid(METHODNAME)
 #define class_get_instance_method(CLASSPOINTER, SEL) \
      class_getInstanceMethod(CLASSPOINTER, SEL)
 #define class_get_class_method(CLASSPOINTER, SEL) \
@@ -79,6 +81,8 @@
     (((struct objc_class*)(CLASSPOINTER))->version)
 #define __objc_responds_to(OBJECT,SEL) \
     class_getInstanceMethod(object_get_class(OBJECT), SEL)
+#define CLS_ISCLASS(CLASSPOINTER) \
+    ((((struct objc_class*)(CLASSPOINTER))->info) & CLS_CLASS)
 #define CLS_ISMETA(CLASSPOINTER) \
     ((((struct objc_class*)(CLASSPOINTER))->info) & CLS_META)
 #define objc_msg_lookup(OBJ,SEL) \
@@ -107,6 +111,42 @@ const char* objc_skip_typespec (const char* type);
 inline const char* objc_skip_offset (const char* type);
 const char* objc_skip_argspec (const char* type);
 unsigned objc_get_type_qualifiers (const char* type);
+
+/* The following from GNU's objc/objc-api.h */
+
+/* For functions which return Method_t */
+#define METHOD_NULL	(Method_t)0
+
+static inline BOOL
+class_is_class(Class* class)
+{
+  return CLS_ISCLASS(class);
+}
+
+static inline BOOL
+class_is_meta_class(Class* class)
+{
+  return CLS_ISMETA(class);
+}
+
+static inline BOOL
+object_is_class(id object)
+{
+  return CLS_ISCLASS((Class*)object);
+}
+
+static inline BOOL
+object_is_instance(id object)
+{
+  return (object!=nil)&&CLS_ISCLASS(object_get_class(object));
+}
+
+static inline BOOL
+object_is_meta_class(id object)
+{
+  return CLS_ISMETA((Class*)object);
+}
+
 
 /* The following from GNU's objc/list.h */
 
