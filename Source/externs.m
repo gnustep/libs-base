@@ -124,7 +124,7 @@ NSString* NSGlobalDomain = @"NSGlobalDomain";
 NSString* NSRegistrationDomain = @"NSRegistrationDomain";
 
 /* Public notification */
-NSString *NSUserDefaultsDidChange = @"NSUserDefaultsDidChange";
+NSString *NSUserDefaultsDidChangeNotification = @"NSUserDefaultsDidChangeNotification";
 
 /* Keys for language-dependent information */
 NSString *NSWeekDayNameArray = @"NSWeekDayNameArray";

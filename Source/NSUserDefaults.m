@@ -726,7 +726,7 @@ static NSMutableString   *processName = nil;
     {
       changedDomains = [[NSMutableArray arrayWithCapacity:5] retain];
       [[NSNotificationCenter defaultCenter] 
-	postNotificationName:NSUserDefaultsDidChange object:nil];
+	postNotificationName:NSUserDefaultsDidChangeNotification object:nil];
     }
 	
   if (!tickingTimer)

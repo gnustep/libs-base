@@ -1,3 +1,9 @@
+Mon Nov  9 20:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/externs.m: corrected notification name for user defaults.
+	* src/NSUserDefaults.m: corrected notification name.
+	* src/include/NSUserDefaults.h: corrected notification name.
+
 Mon Nov  9 11:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/externs.m: fixed error in hashtable constants.
