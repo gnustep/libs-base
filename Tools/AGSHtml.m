@@ -78,7 +78,7 @@ static NSString		*mainFont = nil;
 
       // default fonts
       tocFont = @"sans";
-      mainFont = @"palatino linotype"; // good on linux, elsewhere gets 'serif'
+      mainFont = @"palatino linotype,times,serif";
     }
 }
 
@@ -408,7 +408,7 @@ static NSString		*mainFont = nil;
 
 		  /*
 		   * For a class, we want to list methods in any associated
-		   * categories as well as those of the class itsself.
+		   * categories as well as those of the class itself.
 		   */
 		  catNames = [[[refs objectForKey: @"categories"]
 		    objectForKey: classname] allKeys];
