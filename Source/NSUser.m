@@ -80,13 +80,13 @@ GSSetUserName(NSString* name)
   if ([theUserName isEqualToString: name] == NO)
     {
       /*
-       * We must ensure that setupPathNames() has been called to set
-       * up the template user path from the environment variable.
+       * We must ensure that userDirectory() has been called to set
+       * up the template user paths from the environment variables.
        * Then we can destroy the cached user path so that next time
        * anything wants it, it will be regenerated from the template
        * and the new user details.
        */
-      setupPathNames();
+      userDirectory(theUserName, YES);
       DESTROY(gnustep_user_root);
       /*
        * Next we can set up the new user name, and reset the user defaults
@@ -454,6 +454,22 @@ userDirectory(NSString *name, BOOL defaults)
 
   NSCAssert([name length] > 0, NSInvalidArgumentException);
 
+  /**
+   * If we don't have templates set up, ensure that it's set up for
+   * the original user by pre-calling ourself for that user.
+   */
+  if ([name isEqual: NSUserName()] == NO)
+    {
+      if (defsTemplate == nil)
+	{
+	  userDirectory(NSUserName(), YES);
+	}
+      if (fileTemplate == nil)
+	{
+	  userDirectory(NSUserName(), NO);
+	}
+    }
+
   if (defaults == YES)
     {
       template = defsTemplate;
@@ -461,14 +477,6 @@ userDirectory(NSString *name, BOOL defaults)
   else
     {
       template = fileTemplate;
-    }
-  /**
-   * If we don't have a template set up, ensure that it's set up for
-   * the original user by pre-calling ourself for that user.
-   */
-  if (template == nil && [name isEqual: NSUserName()] == NO)
-    {
-      userDirectory(NSUserName(), defaults);
     }
   home = NSHomeDirectoryForUser(name);
 
