@@ -172,7 +172,7 @@ o_array.m \
 o_array_bas.m \
 o_array_cbs.m \
 o_cbs.m \
-o_cbs_char-p.m \
+o_cbs_char_p.m \
 o_cbs_id.m \
 o_cbs_int.m \
 o_cbs_int_p.m \
@@ -654,6 +654,7 @@ distclean: clean
 	rm -f dynamic-load.h
 maintainer-clean: distclean
 	rm -f TAGS include/preface.h include/config.h
+	rm -f o_*_bas.m o_*_cbs.m include/o_*_bas.h include/o_*_cbs.h
 
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/src
