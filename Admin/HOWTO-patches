@@ -1,0 +1,34 @@
+
+Directions for creating a libobjects patch
+---------------------------------------------------------------
+
+0. Have somewhere an old, pristine version of the libobjects
+directory.  We'll assume this directory is called "libobjects-old".
+
+1. Have somewhere a new, changed version of the libobjects directory.
+We'll assume this directory is called "libobjects", and that it has
+the same parent directory as "libobjects-old"
+
+2. cd to the common parent directory of your two libobjects directories.
+
+3. Create the patch with 
+	diff -r -c2 libobjects-old libobjects >my.patch"
+
+4. Add a GNU-style ChangeLog entry to the top of the patch.  You can
+do this from within emacs using M-x add-change-log-entry.
+
+5. If you want to include a short note of explanation to me
+personally, put it at the top, above the ChangeLog entry.
+
+6. Mail the file to mccallum@gnu.ai.mit.edu.
+
+---------------------------------------------------------------
+
+For a beautiful example from Adam Fedor, see the file example.patch.
+
+If you send me multiple patches to the same file between releases of
+libobjects, please diff against a version that has your previous patches.
+
+[I just threw these directions together.  If you have constructive
+suggestions for improving these directions, please send them to me.
+	mccallum@gnu.ai.mit.edu]
