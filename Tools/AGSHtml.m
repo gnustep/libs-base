@@ -45,6 +45,8 @@ static GSXMLNode	*firstElement(GSXMLNode *nodes)
 @implementation	AGSHtml
 
 static NSMutableSet	*textNodes = nil;
+static NSString		*tocFont = nil;
+static NSString		*mainFont = nil;
 
 + (void) initialize
 {
@@ -73,6 +75,10 @@ static NSMutableSet	*textNodes = nil;
       [textNodes addObject: @"url"];
       [textNodes addObject: @"var"];
       [textNodes addObject: @"footnote"];
+
+      // default fonts
+      tocFont = @"sans";
+      mainFont = @"palatino linotype"; // good on linux, elsewhere gets 'serif'
     }
 }
 
@@ -580,13 +586,8 @@ static NSMutableSet	*textNodes = nil;
 	  [self decIndent];
 	  [buf appendString: indent];
 
-          // special formatting for table-of-contents frames; ultimately
-          // this should be moved to stylesheet
-          if (isContentsDoc)
-            {
-              [buf appendString: indent];
-              [buf appendString: @"</font>\n"];
-            }
+          [buf appendString: indent];
+          [buf appendString: @"</font>\n"];
 
 	  [buf appendString: @"</body>\n"];
 	}
@@ -1077,7 +1078,12 @@ static NSMutableSet	*textNodes = nil;
           if (isContentsDoc)
             {
               [buf appendString: indent];
-              [buf appendString: @"<font face=\"sans\" size=\"-1\">\n"];
+              [buf appendFormat: @"<font face=\"%@\" size=\"-1\">\n", tocFont];
+            }
+          else
+            {
+              [buf appendString: indent];
+              [buf appendFormat: @"<font face=\"%@\">\n", mainFont];
             }
 
 	  if (prevFile != nil)
@@ -1488,6 +1494,9 @@ static NSMutableSet	*textNodes = nil;
 
 			      if (content == nil) content = @"";
 			      sel = [sel stringByAppendingString: content];
+                              // these nbsp added for readability, but must
+                              // be removed below when making href link
+                              sel = [sel stringByAppendingString: @"&nbsp;"];
 			      if (hadArg == YES)
 				{
 				  str = [str stringByAppendingString: @" "];
@@ -1537,13 +1546,19 @@ static NSMutableSet	*textNodes = nil;
 	  if ([sel length] > 1)
 	    {
 	      NSString	*s;
+              NSMutableString *linkRef;
 
 	      /*
 	       * Output selector heading.
 	       */
 	      [buf appendString: indent];
 	      [buf appendString: @"<h3>"];
-	      s = [self makeLink: sel ofType: @"method" inUnit: nil isRef: NO];
+              // get rid of nbsps put in for readability above
+              linkRef = [NSMutableString stringWithCapacity: [sel length]];
+              [linkRef setString:sel];
+              [linkRef replaceOccurrencesOfString:@"&nbsp;" withString:@""
+                  options: 0 range: NSMakeRange(0, [sel length])];
+	      s = [self makeLink: linkRef ofType: @"method" inUnit: nil isRef: NO];
 	      if (s != nil)
 		{
 		  [buf appendString: s];
@@ -2232,6 +2247,8 @@ static NSMutableSet	*textNodes = nil;
 {
   GSXMLNode	*t;
   NSArray	*a;
+  NSMutableString *ivarBuf = ivarsAtEnd ?
+    [NSMutableString stringWithCapacity: 1024] : nil;
 
   node = [node firstChildElement];
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
@@ -2312,15 +2329,34 @@ static NSMutableSet	*textNodes = nil;
 
   if (node != nil && [[node name] isEqual: @"ivariable"] == YES)
     {
-      [buf appendString: indent];
-      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
-      [buf appendString: indent];
-      [buf appendString: @"<h3>Instance variables</h3>\n"];
+      /*
+       * If want instance variables at end, throw it all into an alternate
+       * buffer and just put a link here; later alt buf must be appended.
+       */
+      NSMutableString *ibuf = buf;
+      if (ivarsAtEnd) {
+        ibuf = ivarBuf;
+        [buf appendString: indent];
+        [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+        [buf appendString: indent];
+        [buf appendFormat: @"<a href=\"#_%@_ivars\">Instance Variables</a>\n",
+                           classname];
+        [buf appendString: indent];
+        [buf appendString: @"<br/><br/>\n"];
+        [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>"];
+      }
+      [ibuf appendString: indent];
+      [ibuf appendString: @"<br/><hr width=\"50%\" align=\"left\" />\n"];
+      [ibuf appendString: indent];
+      [ibuf appendFormat: @"<h2>Instance Variables for %@ Class</h2>\n",
+            classname];
       while (node != nil && [[node name] isEqual: @"ivariable"] == YES)
 	{
-	  [self outputNode: node to: buf];
+	  [self outputNode: node to: ibuf];
 	  node = [node nextElement];
 	}
+      [ibuf appendString: indent];
+      [ibuf appendString: @"<br/><hr width=\"50%\" align=\"left\" /><br/>\n"];
     }
 
   a = [localRefs methodsInUnit: unit];
@@ -2342,6 +2378,12 @@ static NSMutableSet	*textNodes = nil;
 	    }
 	  node = [node nextElement];
 	}
+    }
+
+  // if had ivars docs, insert them now
+  if (ivarsAtEnd)
+    {
+      [buf appendString: ivarBuf];
     }
 }
 
@@ -2377,6 +2419,11 @@ static NSMutableSet	*textNodes = nil;
 - (void) setProjectRefs: (AGSIndex*)r
 {
   ASSIGN(projectRefs, r);
+}
+
+- (void) setInstanceVariablesAtEnd: (BOOL)val
+{
+  ivarsAtEnd = val;
 }
 
 /**

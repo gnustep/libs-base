@@ -43,6 +43,7 @@
   unsigned		ssect;
   unsigned		sssect;
   BOOL			isContentsDoc;
+  BOOL			ivarsAtEnd;
 }
 - (void) decIndent;
 - (void) incIndent;
@@ -69,6 +70,7 @@
 - (void) setGlobalRefs: (AGSIndex*)r;
 - (void) setLocalRefs: (AGSIndex*)r;
 - (void) setProjectRefs: (AGSIndex*)r;
+- (void) setInstanceVariablesAtEnd: (BOOL)val;
 - (NSString*) typeRef: (NSString*)t;
 @end
 #endif

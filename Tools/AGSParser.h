@@ -53,6 +53,7 @@
   BOOL		haveSource;
   BOOL		inInstanceVariables;
   BOOL		inArgList;
+  BOOL		documentInstanceVariables;
   BOOL		documentAllInstanceVariables;
   BOOL		verbose;
   BOOL		warn;
@@ -91,6 +92,7 @@
 - (unsigned) parseSpace;
 - (void) reset;
 - (void) setDeclared: (NSString*)name;
+- (void) setDocumentInstanceVariables: (BOOL)flag;
 - (void) setDocumentAllInstanceVariables: (BOOL)flag;
 - (void) setGenerateStandards: (BOOL)flag;
 - (void) setStandards: (NSMutableDictionary*)dict;
