@@ -112,11 +112,11 @@
 
 // COPYING 
 - emptyCopy;
-- emptyCopyAs: (id <Collecting>)aCollectionClass;
+- emptyCopyAs: (Class)aCollectionClass;
 - shallowCopy;
-- shallowCopyAs: (id <Collecting>)aCollectionClass;
+- shallowCopyAs: (Class)aCollectionClass;
 - copy;
-- copyAs: (id <Collecting>)aCollectionClass;
+- copyAs: (Class)aCollectionClass;
 - species;
 
 

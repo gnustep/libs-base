@@ -218,7 +218,7 @@
 
 // COPYING;
 
-- shallowCopyAs: (id <Collecting>)aCollectionClass
+- shallowCopyAs: (Class)aCollectionClass
 {
   id (*putElementAtKeyImp)(id,SEL,elt,elt);
   id newColl;
@@ -229,7 +229,7 @@
 			    content, key);
     }
 
-  if ([aCollectionClass conformsToProtocol:@protocol(KeyedCollecting)])
+  if ([(id)aCollectionClass conformsToProtocol:@protocol(KeyedCollecting)])
     {
       newColl = [self emptyCopyAs:aCollectionClass];
       putElementAtKeyImp = (id(*)(id,SEL,elt,elt))
