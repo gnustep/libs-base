@@ -482,6 +482,34 @@ main(int argc, char **argv, char **env)
 
   mgr = [NSFileManager defaultManager];
 
+  /*
+   * Load any old project indexing information and determine when the
+   * indexing information was last updated (never ==> distant past)
+   */
+  refsFile = [documentationDirectory
+    stringByAppendingPathComponent: project];
+  refsFile = [refsFile stringByAppendingPathExtension: @"igsdoc"];
+  projectRefs = [AGSIndex new];
+  originalIndex = nil;
+  rDate = [NSDate distantPast];
+  if ([mgr isReadableFileAtPath: refsFile] == YES)
+    {
+      originalIndex
+	= [[NSDictionary alloc] initWithContentsOfFile: refsFile];
+      if (originalIndex == nil)
+	{
+	  NSLog(@"Unable to read project file '%@'", refsFile);
+	}
+      else
+	{
+	  NSDictionary	*dict;
+
+	  [projectRefs mergeRefs: originalIndex override: NO];
+	  dict = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
+	  rDate = [dict objectForKey: NSFileModificationDate];
+	}
+    }
+
   count = [sFiles count];
   if (count > 0)
     {
@@ -563,13 +591,10 @@ main(int argc, char **argv, char **env)
 		  AUTORELEASE(RETAIN(sDate));
 		}
 	      /*
-	       * FIXME work out dependencies for .m files.
-	       * for the moment, hack in an assumption that the .h simply
-	       * depends on the corresponding .m
+	       * Ask existing project info (.gsdoc file) for dependency
+	       * information.  Then check the dates on the source files.
 	       */
-	      a = [NSArray arrayWithObject:
-		[[[hfile lastPathComponent] stringByDeletingPathExtension]
-		  stringByAppendingPathExtension: @"m"]];
+	      a = [projectRefs sourcesForHeader: hfile];
 	      for (i = 0; i < [a count]; i++)
 		{
 		  NSString	*sfile = [a objectAtIndex: i];
@@ -619,6 +644,14 @@ main(int argc, char **argv, char **env)
 	      [parser parseFile: hfile isSource: NO];
 
 	      a = [parser source];
+	      /*
+	       * Record dependency information.
+	       */
+	      if ([a count] > 0)
+		{
+		  [projectRefs setSources: a forHeader: hfile];
+		}
+
 	      for (i = 0; i < [a count]; i++)
 		{
 		  NSString	*sfile = [a objectAtIndex: i];
@@ -686,34 +719,6 @@ main(int argc, char **argv, char **env)
       DESTROY(pool);
       DESTROY(parser);
       DESTROY(output);
-    }
-
-  /*
-   * Load any old project indexing information and determine when the
-   * indexing information was last updated (never ==> distant past)
-   */
-  refsFile = [documentationDirectory
-    stringByAppendingPathComponent: project];
-  refsFile = [refsFile stringByAppendingPathExtension: @"igsdoc"];
-  projectRefs = [AGSIndex new];
-  originalIndex = nil;
-  rDate = [NSDate distantPast];
-  if ([mgr isReadableFileAtPath: refsFile] == YES)
-    {
-      originalIndex
-	= [[NSDictionary alloc] initWithContentsOfFile: refsFile];
-      if (originalIndex == nil)
-	{
-	  NSLog(@"Unable to read project file '%@'", refsFile);
-	}
-      else
-	{
-	  NSDictionary	*dict;
-
-	  [projectRefs mergeRefs: originalIndex override: NO];
-	  dict = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
-	  rDate = [dict objectForKey: NSFileModificationDate];
-	}
     }
 
   count = [gFiles count];
