@@ -14,20 +14,30 @@
 
 @item Implement NSDecimalNumber stuff [5] (981119).
 
-@item Check that every class implements coding (correctly). [2, NSCoder] (980721).
+@item Write tests for various classes using the testsuite built
+by Richard Frith-Macdonald  @email{richard@@brainstorm.co.uk}. Contact
+him for details. [3, guile] (980629)
 
-@item Check that every class implements copying (correctly) - i.e. non-mutable classes should just retain, etc. [1, NSCopying] (980721).
+@item Check that every class implements coding (correctly). [2, NSCoder] (980721) - contribute to the testuite.
 
-@item   Improve initWithFormat releated methods for NSString and find out how to implemente the locale stuff [4 OPENSTEP/Rhapsody]  (980712)
+@item Check that every class implements copying (correctly) - i.e. non-mutable classes should just retain, etc. [1, NSCopying] (980721) - contribute to the testsuite.
+
+@item Check that every class raises the NSExceptions it is supposed to.
+Change many NSParameterAssert()'s into NSAssert()'s with
+explanations. [2, exceptions] (970101) - contribute to the testsuite.
+
+@item   Improve initWithFormat related methods for NSString and find out how to implement the locale stuff [4 OPENSTEP/Rhapsody]  (980712)
 
 @item Make gstep-base 64bit clean [5, 64bit machine] (980629)
+Donating internet access to a 64bit machine for someone else to do the
+work on would also be helpful.
 
 @item Make gstep-base smaller. Perhaps we can get rid of classes that
 aren't strictly part of OpenStep and put them in an extensions-type
 library. [5] (980629)
 
 @item Fix NSLog so it conforms to specs.  Need to check that write to
-stderr went ok, and if not write to syslog. Also need to serealize
+stderr went ok, and if not write to syslog. Also need to serialize
 output (with threads). [3, OpenStep specs, threads] (980220)
 
 @item Simplify NSException and NSAssertionHandler and make sure they
@@ -35,14 +45,6 @@ don't cause race conditions (if an exception is raised while processing
 an exception. [4, exceptions, threads] (980220)
 
 @item Fix all the places marked FIXME or xxx. [3-9] (980629)
-
-@item Write tests for various classes using the testsuite built
-by Richard Frith-Macdonald  @email{richard@@brainstorm.co.uk}. Contact
-him for details. [3, guile] (980629)
-
-@item Make NS... classes raise the NSExceptions they are supposed to.
-Change many NSParameterAssert()'s into NSAssert()'s with
-explanations. [2, exceptions] (970101)
 
 @end itemize
 
@@ -155,7 +157,7 @@ I'm sure that there're other things to do, but these are the ones I know now:
 @item (@file{src/map.m}) @samp{objects_map_all_values}
 @end itemize
 
-@item Improve the effeciency of:
+@item Improve the efficiency of:
 @itemize +
 @item (@file{src/array.m}) @samp{_objects_array_insert_bucket}
 @item (@file{src/hash.m}) @samp{objects_hash_minus_hash}
