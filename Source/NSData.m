@@ -119,14 +119,16 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 {
   char		thePath[BUFSIZ*2];
   FILE		*theFile = 0;
-  unsigned	fileLength;
   void		*tmp = 0;
   int		c;
 #if defined(__MINGW__)
   HANDLE	fh;
-  DWORD		fileLength
+  DWORD		fileLength;
+  DWORD		fileSize;
   DWORD		high;
   DWORD		got;
+#else
+  unsigned	fileLength;
 #endif
 
   if ([path getFileSystemRepresentation: thePath
@@ -617,6 +619,11 @@ failure:
   char	theRealPath[BUFSIZ*2];
   FILE	*theFile;
   int	c;
+#if defined(__MINGW__)
+  HANDLE	fh;
+  DWORD		wroteBytes;
+#endif
+
 
   if ([path getFileSystemRepresentation: theRealPath
 			      maxLength: sizeof(theRealPath)-1] == NO)
@@ -626,9 +633,6 @@ failure:
     }
 
 #if defined(__MINGW__)
-  HANDLE	fh;
-  DWORD		wroteBytes;
-
   if (useAuxiliaryFile)
     {
       path = [path stringByAppendingPathExtension: @"tmp"];
@@ -772,6 +776,7 @@ failure:
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
 	    NSLog(@"Unable to correctly set all attributes for '%@'", path);
 	}
+#ifndef __MINGW__
       else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
 	{
 	  att = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -779,6 +784,7 @@ failure:
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
 	    NSLog(@"Unable to correctly set ownership for '%@'", path);
 	}
+#endif
     }
 
   /* success: */

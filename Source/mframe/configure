@@ -659,10 +659,10 @@ test "$host_alias" != "$target_alias" &&
 
 
 case "$target_cpu" in
-    alpha*)		host_cpu=alpha;;
-    hppa*)		host_cpu=hppa;;
-    i[456]86*)	host_cpu=i386;;
-    sparc*)		host_cpu=sparc;;
+    alpha*)		target_cpu=alpha;;
+    hppa*)		target_cpu=hppa;;
+    i[3456]86*)	target_cpu=i386;;
+    sparc*)		target_cpu=sparc;;
 esac
 
 case "$target_os" in
@@ -671,9 +671,9 @@ case "$target_os" in
 esac
 
 
-if test -d $host_cpu -a "`echo $host_cpu/*`" != "$host_cpu/*"
+if test -d $target_cpu -a "`echo $target_cpu/*`" != "$target_cpu/*"
 then
-    my_dir=$host_cpu
+    my_dir=$target_cpu
 else
     echo '*************** Warning ****************'
     echo The 'mframe' software has not been ported to $target_cpu.
