@@ -1,3 +1,11 @@
+2001-03-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Corrected 
+	([-_bundleResourcePathsWithRootPath:subPath:]) to use
+	([NSUserDefaults +userLanguages]) to get language array again.
+	* Documentation/gsdoc/NSUserDefaults.gsdoc: Updated and added
+	information about +userLanguages
+
 2001-03-03  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSInvocation.m: Add missing static inline to __get_arg
