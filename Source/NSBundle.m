@@ -183,14 +183,17 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 {
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSEnumerator *filelist;
-  NSString *path, *match;
+  NSString *path, *match, *cleanname;
 
-  path = [directory stringByAppendingPathComponent: name];
-  filelist = [[mgr directoryContentsAtPath: directory] objectEnumerator];
+  /* name might have a directory in it also, so account for this */
+  path = [[directory stringByAppendingPathComponent: name] 
+	  stringByDeletingLastPathComponent];
+  cleanname = [name lastPathComponent];
+  filelist = [[mgr directoryContentsAtPath: path] objectEnumerator];
   while ((match = [filelist nextObject]))
     {
-      if ([name isEqual: [match stringByDeletingPathExtension]])
-	return [directory stringByAppendingPathComponent: match];
+      if ([cleanname isEqual: [match stringByDeletingPathExtension]])
+	return [path stringByAppendingPathComponent: match];
     }
 
   return nil;
