@@ -420,7 +420,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 	  else
 	    {
 	      [NSException raise: NSInternalInconsistencyException
-			  format: @"forwardInvocation without beginUndoGrouping"];
+		format: @"forwardInvocation without beginUndoGrouping"];
 	    }
 	}
       [anInvocation setTarget: _nextTarget];
