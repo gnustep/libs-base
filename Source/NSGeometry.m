@@ -1,4 +1,4 @@
-/* NSGeometry.m - geometry functions
+/** NSGeometry.m - geometry functions
  * Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
  * 
  * Written by:  Adam Fedor <fedor@boulder.colorado.edu>

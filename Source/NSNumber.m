@@ -1,4 +1,4 @@
-/* NSNumber - Object encapsulation of numbers
+/** NSNumber - Object encapsulation of numbers
     
    Copyright (C) 1993, 1994, 1996, 2000 Free Software Foundation, Inc.
 

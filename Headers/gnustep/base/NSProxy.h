@@ -35,7 +35,7 @@
 }
 
 + (id) alloc;
-+ (id) allocWithZone: (NSZone*)zone;
++ (id) allocWithZone: (NSZone*)z;
 + (Class) class;
 + (void) load;
 + (BOOL) respondsToSelector: (SEL)aSelector;

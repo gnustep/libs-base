@@ -38,7 +38,7 @@
 			    at: (const void*)array;
 - (void) encodeBycopyObject: (id)anObject;
 - (void) encodeByrefObject: (id)anObject;
-- (void) encodeBytes: (void*)addr length: (unsigned)l;
+- (void) encodeBytes: (void*)d length: (unsigned)l;
 - (void) encodeConditionalObject: (id)anObject;
 - (void) encodeDataObject: (NSData*)data;
 - (void) encodeObject: (id)anObject;

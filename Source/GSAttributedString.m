@@ -1,4 +1,4 @@
-/* 
+/** 
    GSAttributedString.m
 
    Implementation of concrete subclass of a string class with attributes

@@ -1,4 +1,4 @@
-/* 
+/** 
    NSDecimal functions
    Copyright (C) 2000 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-/* Implementation of NSMethodSignature for GNUStep
+/** Implementation of NSMethodSignature for GNUStep
    Copyright (C) 1994, 1995, 1996, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

@@ -1,9 +1,11 @@
-/* Implementation of NSTimer for GNUstep
+/** Implementation of NSTimer for GNUstep
    Copyright (C) 1995, 1996, 1999 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: March 1996
    
+   Rewrite by: Richard Frith-Macdonald <rfm@gnu.org>
+
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or

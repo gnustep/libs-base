@@ -1,4 +1,4 @@
-/* NSAssertionHandler - Object encapsulation of assertions
+/** NSAssertionHandler - Object encapsulation of assertions
    Copyright (C) 1995, 1997 Free Software Foundation, Inc.
    
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>

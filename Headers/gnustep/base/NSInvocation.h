@@ -45,7 +45,7 @@
 /*
  *	Creating instances.
  */
-+ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)signature;
++ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)_signature;
 
 /*
  *	Accessing message elements.
@@ -57,8 +57,8 @@
 - (void) setArgument: (void*)buffer
 	     atIndex: (int)index;
 - (void) setReturnValue: (void*)buffer;
-- (void) setSelector: (SEL)selector;
-- (void) setTarget: (id)target;
+- (void) setSelector: (SEL)aSelector;
+- (void) setTarget: (id)anObject;
 - (id) target;
 
 /*
@@ -71,7 +71,7 @@
  *	Dispatching an Invocation.
  */
 - (void) invoke;
-- (void) invokeWithTarget: (id)target;
+- (void) invokeWithTarget: (id)anObject;
 
 /*
  *	Getting the method signature.
@@ -85,7 +85,7 @@
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
 - (id) initWithSelector: (SEL)aSelector;
-- (id) initWithTarget: target selector: (SEL)aSelector, ...;
+- (id) initWithTarget: (id)anObject selector: (SEL)aSelector, ...;
 - (void*) returnFrame: (arglist_t)argFrame;
 - (BOOL) sendsToSuper;
 - (void) setSendsToSuper: (BOOL)flag;

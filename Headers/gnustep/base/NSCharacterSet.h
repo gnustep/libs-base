@@ -55,7 +55,7 @@
 - (NSCharacterSet*) invertedSet;
 
 #ifndef	STRICT_MACOS_X
-+ (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)file;
++ (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile;
 #endif
 @end
 

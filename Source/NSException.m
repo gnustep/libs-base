@@ -1,4 +1,4 @@
-/* NSException - Object encapsulation of a general exception handler
+/** NSException - Object encapsulation of a general exception handler
    Copyright (C) 1993, 1994, 1996, 1997, 1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>

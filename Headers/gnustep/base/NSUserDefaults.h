@@ -184,7 +184,7 @@ GS_EXPORT NSString* const NSLocale;
 
 /* Making Advanced Use of Defaults */
 - (NSDictionary*) dictionaryRepresentation;
-- (void) registerDefaults: (NSDictionary*)dictionary;
+- (void) registerDefaults: (NSDictionary*)newVals;
 @end
 
 #endif /* __NSUserDefaults_h_OBJECTS_INCLUDE */

@@ -1,4 +1,4 @@
-/* Implementation of NSNotificationCenter for GNUstep
+/** Implementation of NSNotificationCenter for GNUstep
    Copyright (C) 1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

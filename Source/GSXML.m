@@ -1,4 +1,4 @@
-/* Implementation for GSXMLDocument for GNUstep xmlparser
+/** Implementation for GSXMLDocument for GNUstep xmlparser
 
    Copyright (C) 2000 Free Software Foundation, Inc.
 
@@ -180,7 +180,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 - (id) initWithVersion: (NSString*)version
 {
-  void	*data = xmlNewDoc([version cString]);
+  void	*data = xmlNewDoc([version lossyCString]);
 
   if (data == 0)
     {
@@ -240,15 +240,16 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 - (GSXMLNode*) makeNodeWithNamespace: (GSXMLNamespace*)ns
 				name: (NSString*)name
-			     content: (NSString*)content;
+			     content: (NSString*)content
 {
   return [GSXMLNode nodeFrom: 
-    xmlNewDocNode(lib, [ns lib], [name cString], [content cString])];
+    xmlNewDocNode(lib, [ns lib], [name lossyCString],
+    [content lossyCString])];
 }
 
 - (void) save: (NSString*) filename
 {
-  xmlSaveFile([filename cString], lib);
+  xmlSaveFile([filename lossyCString], lib);
 }
 
 - (NSString*) stringValue
@@ -334,7 +335,8 @@ static NSMapTable	*nsNames = 0;
 
   if (node != nil)
     {
-      data = xmlNewNs((xmlNodePtr)[node lib], [href cString], [prefix cString]);
+      data = xmlNewNs((xmlNodePtr)[node lib], [href lossyCString],
+	[prefix lossyCString]);
       if (data == NULL)
         {
           NSLog(@"Can't create GSXMLNamespace object");
@@ -345,7 +347,7 @@ static NSMapTable	*nsNames = 0;
     }
   else
     {
-      data = xmlNewNs(NULL, [href cString], [prefix cString]);
+      data = xmlNewNs(NULL, [href lossyCString], [prefix lossyCString]);
       if (data == NULL)
         {
           NSLog(@"Can't create GSXMLNamespace object");
@@ -563,11 +565,11 @@ static NSMapTable	*nodeNames = 0;
       if (ns != nil)
         {
           [ns _native: NO];
-          lib = xmlNewNode((xmlNsPtr)[ns lib], [name cString]);
+          lib = xmlNewNode((xmlNsPtr)[ns lib], [name lossyCString]);
         }
       else
         {
-          lib = xmlNewNode(NULL, [name cString]);
+          lib = xmlNewNode(NULL, [name lossyCString]);
         }
       if (lib == NULL)
         {
@@ -792,28 +794,30 @@ static NSMapTable	*nodeNames = 0;
 
 - (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
 				 name: (NSString*)name
-			      content: (NSString*)content;
+			      content: (NSString*)content
 {
   return [GSXMLNode nodeFrom: 
-    xmlNewChild(lib, [ns lib], [name cString], [content cString])];
+    xmlNewChild(lib, [ns lib], [name lossyCString], [content lossyCString])];
 }
 
 - (GSXMLAttribute*) setProp: (NSString*)name value: (NSString*)value
 {
   return [GSXMLAttribute attributeFrom: 
-    xmlSetProp(lib, [name cString], [value cString])];
+    xmlSetProp(lib, [name lossyCString], [value lossyCString])];
 }
 
 
 - (GSXMLNode*) makeComment: (NSString*)content
 {
-  return [GSXMLNode nodeFrom: xmlAddChild((xmlNodePtr)lib, xmlNewComment([content cString]))];
+  return [GSXMLNode nodeFrom: xmlAddChild((xmlNodePtr)lib,
+    xmlNewComment([content lossyCString]))];
 }
 
 - (GSXMLNode*) makePI: (NSString*)name content: (NSString*)content
 {
   return [GSXMLNode nodeFrom: 
-    xmlAddChild((xmlNodePtr)lib, xmlNewPI([name cString], [content cString]))];
+    xmlAddChild((xmlNodePtr)lib, xmlNewPI([name lossyCString],
+    [content lossyCString]))];
 }
 
 - (unsigned) hash
@@ -935,17 +939,18 @@ static NSMapTable	*attrNames = 0;
 
 + (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
 				 name: (NSString*)name
-				value: (NSString*)value;
+				value: (NSString*)value
 {
   return AUTORELEASE([[self alloc] initWithNode: node name: name value: value]);
 }
 
 - (id) initWithNode: (GSXMLNode*)node
 	       name: (NSString*)name
-	      value: (NSString*)value;
+	      value: (NSString*)value
 {
   self = [super init];
-  lib = xmlNewProp((xmlNodePtr)[node lib], [name cString], [value cString]);
+  lib = xmlNewProp((xmlNodePtr)[node lib], [name lossyCString],
+    [value lossyCString]);
   return self;
 }
 
@@ -1916,7 +1921,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 }
 
 - (void) startElement: (NSString*)elementName
-	   attributes: (NSMutableDictionary*)elementAttributes;
+	   attributes: (NSMutableDictionary*)elementAttributes
 {
 }
 

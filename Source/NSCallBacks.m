@@ -1,4 +1,4 @@
-/* GNUStep callback functions.  Implicitly required by the standard.
+/** GNUStep callback functions.  Implicitly required by the standard.
  * Copyright(C) 1996  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>

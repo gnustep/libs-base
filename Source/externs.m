@@ -1,4 +1,4 @@
-/* All of the external data
+/** All of the external data
    Copyright (C) 1997 Free Software Foundation, Inc.
    
    Written by:  Scott Christley <scottc@net-community.com>

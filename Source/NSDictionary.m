@@ -1,4 +1,4 @@
-/* NSDictionary - Dictionary object to store key/value pairs
+/** NSDictionary - Dictionary object to store key/value pairs
    Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

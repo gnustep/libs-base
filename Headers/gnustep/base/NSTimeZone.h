@@ -56,7 +56,7 @@
 + (NSTimeZone*) systemTimeZone;
 + (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data;
 - (NSString*) abbreviation;
-- (NSString*) abbreviationForDate: (NSDate*)aDate;
+- (NSString*) abbreviationForDate: (NSDate*)when;
 - (id) initWithName: (NSString*)name;
 - (id) initWithName: (NSString*)name data: (NSData*)data;
 - (BOOL) isDaylightSavingTime;
@@ -64,7 +64,7 @@
 - (BOOL) isEqualToTimeZone: (NSTimeZone*)aTimeZone;
 - (NSString*) name;
 - (int) secondsFromGMT;
-- (int) secondsFromGMTForDate: (NSDate*)aDate;
+- (int) secondsFromGMTForDate: (NSDate*)when;
 #endif
 
 #ifndef	STRICT_MACOS_X

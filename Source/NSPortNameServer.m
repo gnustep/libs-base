@@ -1,4 +1,4 @@
-/* Implementation of NSPortNameServer class for Distributed Objects
+/** Implementation of NSPortNameServer class for Distributed Objects
    Copyright (C) 1998,1999,2000 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

@@ -1,4 +1,4 @@
-/* Concrete implementation of NSCountedSet based on GNU Set class
+/** Concrete implementation of NSCountedSet based on GNU Set class
    Copyright (C) 1998,2000 Free Software Foundation, Inc.
    
    Written by:  Richard frith-Macdonald <richard@brainstorm.co.uk>

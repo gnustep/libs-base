@@ -37,31 +37,31 @@ GS_EXPORT NSString* NSURLFileScheme; //file
   NSURL		*_baseURL;
 }
         
-+ (id) fileURLWithPath: (NSString*)path;
-+ (id) URLWithString: (NSString*)URLString;
-+ (id) URLWithString: (NSString*)URLString
-       relativeToURL: (NSURL*)baseURL;
++ (id) fileURLWithPath: (NSString*)aPath;
++ (id) URLWithString: (NSString*)aUrlString;
++ (id) URLWithString: (NSString*)aUrlString
+       relativeToURL: (NSURL*)aBaseUrl;
 
-- (id) initWithScheme: (NSString*)scheme
-		 host: (NSString*)host
-		 path: (NSString*)path;
+- (id) initWithScheme: (NSString*)aScheme
+		 host: (NSString*)aHost
+		 path: (NSString*)aPath;
 
 //Non Standard Function
-- (id) initWithScheme: (NSString*)scheme
-		 host: (NSString*)host
-		 port: (NSNumber*)port
-		 path: (NSString*)path;
+- (id) initWithScheme: (NSString*)aScheme
+		 host: (NSString*)aHost
+		 port: (NSNumber*)aPort
+		 path: (NSString*)aPath;
 
 //Do a initWithScheme: NSFileScheme host: nil path: path
-- (id) initFileURLWithPath: (NSString*)path;
+- (id) initFileURLWithPath: (NSString*)aPath;
 
 // urlString is escaped
-- (id) initWithString: (NSString*)URLString;
+- (id) initWithString: (NSString*)aUrlString;
 
 //URLString!=nil !
 // urlString is escaped
-- (id) initWithString: (NSString*)URLString
-	relativeToURL: (NSURL*)baseURL;
+- (id) initWithString: (NSString*)aUrlString
+	relativeToURL: (NSURL*)aBaseUrl;
 
 - (NSString*) description;
 - (NSString*) absoluteString;

@@ -1,4 +1,4 @@
-/* Implementation of login-related functions for GNUstep
+/** Implementation of login-related functions for GNUstep
    Copyright (C) 1996 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

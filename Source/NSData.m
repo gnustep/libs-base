@@ -1,4 +1,4 @@
-/* Stream of bytes class for serialization and persistance in GNUStep
+/** Stream of bytes class for serialization and persistance in GNUStep
    Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -120,7 +120,7 @@ static SEL	appendSel;
 static IMP	appendImp;
 
 static BOOL
-readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
+readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 {
   char		thePath[BUFSIZ*2];
   FILE		*theFile = 0;
@@ -343,7 +343,7 @@ failure:
   unsigned	growth;
 }
 /* Increase capacity to at least the specified minimum value.	*/ 
-- (void) _grow: (unsigned)minimum;
+- (void) _grow: (unsigned int)minimum;
 @end
 
 #if	HAVE_MMAP
@@ -356,14 +356,14 @@ failure:
 {
   int		shmid;
 }
-- (id) initWithShmID: (int)anId length: (unsigned)bufferSize;
+- (id) initWithShmID: (int)anId length: (unsigned int)bufferSize;
 @end
 
 @interface	NSMutableDataShared : NSMutableDataMalloc
 {
   int		shmid;
 }
-- (id) initWithShmID: (int)anId length: (unsigned)bufferSize;
+- (id) initWithShmID: (int)anId length: (unsigned int)bufferSize;
 @end
 #endif
 
@@ -406,7 +406,7 @@ failure:
 }
 
 + (id) dataWithBytes: (const void*)bytes
-	      length: (unsigned)length
+	      length: (unsigned int)length
 {
   NSData	*d;
 
@@ -416,7 +416,7 @@ failure:
 }
 
 + (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (unsigned)length
+		    length: (unsigned int)length
 {
   NSData	*d;
 
@@ -480,7 +480,7 @@ failure:
 }
 
 - (id) initWithBytes: (const void*)aBuffer
-	      length: (unsigned)bufferSize
+	      length: (unsigned int)bufferSize
 {
   void	*ptr = 0;
 
@@ -493,7 +493,7 @@ failure:
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned)bufferSize
+		    length: (unsigned int)bufferSize
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -522,7 +522,7 @@ failure:
   return self;
 }
 
-- (id) initWithContentsOfMappedFile: (NSString *)path;
+- (id) initWithContentsOfMappedFile: (NSString *)path
 {
 #if	HAVE_MMAP
   RELEASE(self);
@@ -615,7 +615,7 @@ failure:
   [self getBytes: buffer range: NSMakeRange(0, [self length])];
 }
 
-- (void) getBytes: (void*)buffer length: (unsigned)length
+- (void) getBytes: (void*)buffer length: (unsigned int)length
 {
   [self getBytes: buffer range: NSMakeRange(0, length)];
 }
@@ -653,7 +653,7 @@ failure:
   return [NSData dataWithBytesNoCopy: buffer length: aRange.length];
 }
 
-- (unsigned) hash
+- (unsigned int) hash
 {
   unsigned char	buf[64];
   unsigned	l = [self length];
@@ -691,7 +691,7 @@ failure:
 }
 
 // Querying a Data Object
-- (BOOL) isEqualToData: (NSData*)other;
+- (BOOL) isEqualToData: (NSData*)other
 {
   int len;
   if ((len = [self length]) != [other length])
@@ -699,7 +699,7 @@ failure:
   return (memcmp([self bytes], [other bytes], len) ? NO : YES);
 }
 
-- (unsigned) length;
+- (unsigned int) length
 {
   /* This is left to concrete subclasses to implement. */
   [self subclassResponsibility: _cmd];
@@ -907,14 +907,14 @@ failure:
 
 // Deserializing Data
 
-- (unsigned) deserializeAlignedBytesLengthAtCursor: (unsigned int*)cursor
+- (unsigned int) deserializeAlignedBytesLengthAtCursor: (unsigned int*)cursor
 {
   return (unsigned)[self deserializeIntAtCursor: cursor];
 }
 
 - (void) deserializeBytes: (void*)buffer
-		   length: (unsigned)bytes
-		 atCursor: (unsigned*)cursor
+		   length: (unsigned int)bytes
+		 atCursor: (unsigned int*)cursor
 {
   NSRange	range = { *cursor, bytes };
 
@@ -924,7 +924,7 @@ failure:
 
 - (void) deserializeDataAt: (void*)data
 	        ofObjCType: (const char*)type
-		  atCursor: (unsigned*)cursor
+		  atCursor: (unsigned int*)cursor
 		   context: (id <NSObjCTypeSerializationCallBack>)callback
 {
   if (!type || !data)
@@ -1205,7 +1205,7 @@ failure:
     }
 }
 
-- (int) deserializeIntAtCursor: (unsigned*)cursor
+- (int) deserializeIntAtCursor: (unsigned int*)cursor
 {
   unsigned ni, result;
 
@@ -1214,7 +1214,7 @@ failure:
   return result;
 }
 
-- (int) deserializeIntAtIndex: (unsigned)index
+- (int) deserializeIntAtIndex: (unsigned int)index
 {
   unsigned ni, result;
 
@@ -1224,8 +1224,8 @@ failure:
 }
 
 - (void) deserializeInts: (int*)intBuffer
-		   count: (unsigned)numInts
-	        atCursor: (unsigned*)cursor
+		   count: (unsigned int)numInts
+	        atCursor: (unsigned int*)cursor
 {
   unsigned i;
 
@@ -1237,8 +1237,8 @@ failure:
 }
 
 - (void) deserializeInts: (int*)intBuffer
-		   count: (unsigned)numInts
-		 atIndex: (unsigned)index
+		   count: (unsigned int)numInts
+		 atIndex: (unsigned int)index
 {
   unsigned i;
 
@@ -1286,7 +1286,7 @@ failure:
 @end
 
 @implementation	NSData (GNUstepExtensions)
-+ (id) dataWithShmID: (int)anID length: (unsigned)length
++ (id) dataWithShmID: (int)anID length: (unsigned int)length
 {
 #if	HAVE_SHMCTL
   NSDataShared	*d;
@@ -1300,7 +1300,7 @@ failure:
 #endif
 }
 
-+ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned)length
++ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int)length
 {
   NSData	*d;
 
@@ -1314,7 +1314,7 @@ failure:
   return AUTORELEASE(d);
 }
 
-+ (id) dataWithStaticBytes: (const void*)bytes length: (unsigned)length
++ (id) dataWithStaticBytes: (const void*)bytes length: (unsigned int)length
 {
   NSDataStatic	*d;
 
@@ -1325,7 +1325,7 @@ failure:
 
 - (void) deserializeTypeTag: (unsigned char*)tag
 		andCrossRef: (unsigned int*)ref
-		   atCursor: (unsigned*)cursor
+		   atCursor: (unsigned int*)cursor
 {
   [self deserializeDataAt: (void*)tag
 	       ofObjCType: @encode(gsu8) 
@@ -1402,7 +1402,7 @@ failure:
 }
 
 + (id) dataWithBytes: (const void*)bytes
-	      length: (unsigned)length
+	      length: (unsigned int)length
 {
   NSData	*d;
 
@@ -1412,7 +1412,7 @@ failure:
 }
 
 + (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (unsigned)length
+		    length: (unsigned int)length
 {
   NSData	*d;
 
@@ -1421,7 +1421,7 @@ failure:
   return AUTORELEASE(d);
 }
 
-+ (id) dataWithCapacity: (unsigned)numBytes
++ (id) dataWithCapacity: (unsigned int)numBytes
 {
   NSMutableData	*d;
 
@@ -1468,7 +1468,7 @@ failure:
   return AUTORELEASE(d);
 }
 
-+ (id) dataWithLength: (unsigned)length
++ (id) dataWithLength: (unsigned int)length
 {
   NSMutableData	*d;
 
@@ -1506,7 +1506,7 @@ failure:
     }
 }
 
-- (id) initWithCapacity: (unsigned)capacity
+- (id) initWithCapacity: (unsigned int)capacity
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -1544,7 +1544,7 @@ failure:
   return self;
 }
 
-- (id) initWithLength: (unsigned)length
+- (id) initWithLength: (unsigned int)length
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -1552,12 +1552,12 @@ failure:
 
 // Adjusting Capacity
 
-- (void) increaseLengthBy: (unsigned)extraLength
+- (void) increaseLengthBy: (unsigned int)extraLength
 {
   [self setLength: [self length]+extraLength];
 }
 
-- (void) setLength: (unsigned)size
+- (void) setLength: (unsigned int)size
 {
   [self subclassResponsibility: _cmd];
 }
@@ -1571,7 +1571,7 @@ failure:
 // Appending Data
 
 - (void) appendBytes: (const void*)aBuffer
-	      length: (unsigned)bufferSize
+	      length: (unsigned int)bufferSize
 {
   unsigned	oldLength = [self length];
   void*		buffer;
@@ -1628,7 +1628,7 @@ failure:
 
 // Serializing Data
 
-- (void) serializeAlignedBytesLength: (unsigned)length
+- (void) serializeAlignedBytesLength: (unsigned int)length
 {
   [self serializeInt: length];
 }
@@ -1812,7 +1812,7 @@ failure:
   [self appendBytes: &ni length: sizeof(unsigned)];
 }
 
-- (void) serializeInt: (int)value atIndex: (unsigned)index
+- (void) serializeInt: (int)value atIndex: (unsigned int)index
 {
   unsigned ni = NSSwapHostIntToBig(value);
   NSRange range = { index, sizeof(int) };
@@ -1821,7 +1821,7 @@ failure:
 }
 
 - (void) serializeInts: (int*)intBuffer
-		 count: (unsigned)numInts
+		 count: (unsigned int)numInts
 {
   unsigned	i;
   SEL		sel = @selector(serializeInt:);
@@ -1834,8 +1834,8 @@ failure:
 }
 
 - (void) serializeInts: (int*)intBuffer
-		 count: (unsigned)numInts
-	       atIndex: (unsigned)index
+		 count: (unsigned int)numInts
+	       atIndex: (unsigned int)index
 {
   unsigned	i;
   SEL		sel = @selector(serializeInt:atIndex:);
@@ -1850,7 +1850,7 @@ failure:
 @end
 
 @implementation	NSMutableData (GNUstepExtensions)
-+ (id) dataWithShmID: (int)anID length: (unsigned)length
++ (id) dataWithShmID: (int)anID length: (unsigned int)length
 {
 #if	HAVE_SHMCTL
   NSDataShared	*d;
@@ -1864,7 +1864,7 @@ failure:
 #endif
 }
 
-+ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned)length
++ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int)length
 {
   NSData	*d;
 
@@ -1878,13 +1878,13 @@ failure:
   return AUTORELEASE(d);
 }
 
-- (unsigned) capacity
+- (unsigned int) capacity
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
-- (id) setCapacity: (unsigned)newCapacity
+- (id) setCapacity: (unsigned int)newCapacity
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -1903,7 +1903,7 @@ failure:
 }
 
 - (void) serializeTypeTag: (unsigned char)tag
-	      andCrossRef: (unsigned)xref
+	      andCrossRef: (unsigned int)xref
 {
   if (xref <= 0xff)
     {
@@ -1988,7 +1988,7 @@ failure:
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned)bufferSize
+		    length: (unsigned int)bufferSize
 {
   bytes = aBuffer;
   length = bufferSize;
@@ -2014,7 +2014,7 @@ failure:
   memcpy(buffer, bytes + aRange.location, aRange.length);
 }
 
-- (unsigned) length
+- (unsigned int) length
 {
   return length;
 }
@@ -2034,7 +2034,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (void) deserializeDataAt: (void*)data
 	        ofObjCType: (const char*)type
-		  atCursor: (unsigned*)cursor
+		  atCursor: (unsigned int*)cursor
 		   context: (id <NSObjCTypeSerializationCallBack>)callback
 {
   if (data == 0 || type == 0)
@@ -2296,7 +2296,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (void) deserializeTypeTag: (unsigned char*)tag
 		andCrossRef: (unsigned int*)ref
-		   atCursor: (unsigned*)cursor
+		   atCursor: (unsigned int*)cursor
 {
   if (*cursor >= length)
     {
@@ -2401,7 +2401,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned)bufferSize
+		    length: (unsigned int)bufferSize
 {
   bytes = aBuffer;
   length = bufferSize;
@@ -2508,7 +2508,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super dealloc];
 }
 
-- (id) initWithBytes: (const void*)aBuffer length: (unsigned)bufferSize
+- (id) initWithBytes: (const void*)aBuffer length: (unsigned int)bufferSize
 {
   shmid = -1;
   if (aBuffer && bufferSize)
@@ -2538,7 +2538,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithShmID: (int)anId length: (unsigned)bufferSize
+- (id) initWithShmID: (int)anId length: (unsigned int)bufferSize
 {
   struct shmid_ds	buf;
 
@@ -2618,7 +2618,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super dealloc];
 }
 
-- (id) initWithBytes: (const void*)aBuffer length: (unsigned)bufferSize
+- (id) initWithBytes: (const void*)aBuffer length: (unsigned int)bufferSize
 {
   self = [self initWithCapacity: bufferSize];
   if (self)
@@ -2633,7 +2633,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned)bufferSize
+		    length: (unsigned int)bufferSize
 {
   if (aBuffer == 0)
     {
@@ -2667,7 +2667,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 /*
  *	THIS IS THE DESIGNATED INITIALISER
  */
-- (id) initWithCapacity: (unsigned)size
+- (id) initWithCapacity: (unsigned int)size
 {
 #if	GS_WITH_GC
   zone = GSAtomicMallocZone();
@@ -2695,7 +2695,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithLength: (unsigned)size
+- (id) initWithLength: (unsigned int)size
 {
   self = [self initWithCapacity: size];
   if (self)
@@ -2727,7 +2727,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 - (void) appendBytes: (const void*)aBuffer
-	      length: (unsigned)bufferSize
+	      length: (unsigned int)bufferSize
 {
   unsigned	oldLength = length;
   unsigned	minimum = length + bufferSize;
@@ -2740,12 +2740,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   length = minimum;
 }
 
-- (unsigned) capacity
+- (unsigned int) capacity
 {
   return capacity;
 }
 
-- (void) _grow: (unsigned)minimum
+- (void) _grow: (unsigned int)minimum
 {
   if (minimum > capacity)
     {
@@ -3022,7 +3022,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 - (void) serializeTypeTag: (unsigned char)tag
-	      andCrossRef: (unsigned)xref
+	      andCrossRef: (unsigned int)xref
 {
   if (xref <= 0xff)
     {
@@ -3078,7 +3078,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 }
 
-- (id) setCapacity: (unsigned)size
+- (id) setCapacity: (unsigned int)size
 {
   if (size != capacity)
     {
@@ -3121,7 +3121,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   memcpy(bytes, [data bytes], length);
 }
 
-- (void) setLength: (unsigned)size
+- (void) setLength: (unsigned int)size
 {
   if (size > capacity)
     {
@@ -3165,7 +3165,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super dealloc];
 }
 
-- (id) initWithBytes: (const void*)aBuffer length: (unsigned)bufferSize
+- (id) initWithBytes: (const void*)aBuffer length: (unsigned int)bufferSize
 {
   self = [self initWithCapacity: bufferSize];
   if (self)
@@ -3177,7 +3177,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithCapacity: (unsigned)bufferSize
+- (id) initWithCapacity: (unsigned int)bufferSize
 {
   int	e;
 
@@ -3206,7 +3206,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithShmID: (int)anId length: (unsigned)bufferSize
+- (id) initWithShmID: (int)anId length: (unsigned int)bufferSize
 {
   struct shmid_ds	buf;
 
@@ -3237,7 +3237,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) setCapacity: (unsigned)size
+- (id) setCapacity: (unsigned int)size
 {
   if (size != capacity)
     {

@@ -1,4 +1,4 @@
-/* GSValue - Object encapsulation for C types.
+/** GSValue - Object encapsulation for C types.
    Copyright (C) 1993,1994,1995,1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>

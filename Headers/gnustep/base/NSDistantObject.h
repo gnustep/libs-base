@@ -51,7 +51,7 @@
 - (NSConnection*) connectionForProxy;
 - (id) initWithLocal: (id)anObject
 	  connection: (NSConnection*)aConnection;
-- (id) initWithTarget: (unsigned)anObject
+- (id) initWithTarget: (unsigned)target
 	   connection: (NSConnection*)aConnection;
 - (void) setProtocolForProxy: (Protocol*)aProtocol;
 

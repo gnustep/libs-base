@@ -1,4 +1,4 @@
-/* Implementation of GNUSTEP printf-style formatting
+/** Implementation of GNUSTEP printf-style formatting
    Copyright (C) 1994-2000, 2001 Free Software Foundation, Inc.
 
    Hacked together by Kai Henningsen <kai@cats.ms>

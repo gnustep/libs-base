@@ -1,4 +1,4 @@
-/* Implementation of NSDistributedNotificationCenter class
+/** Implementation of NSDistributedNotificationCenter class
    Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

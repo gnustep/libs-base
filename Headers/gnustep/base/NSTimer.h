@@ -48,7 +48,7 @@
 /* Creating timer objects. */
 
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
-				 invocation: invocation
+				 invocation: (NSInvocation*)invocation
 				    repeats: (BOOL)f;
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
 				     target: object
@@ -57,7 +57,7 @@
 				    repeats: (BOOL)f;
 
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
-		        invocation: invocation
+		        invocation: (NSInvocation*)invocation
 			   repeats: (BOOL)f;
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 			    target: object

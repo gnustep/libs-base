@@ -1,9 +1,10 @@
-/* Implementation for NSProcessInfo for GNUStep
-   Copyright (C) 1995-1999 Free Software Foundation, Inc.
+/** Implementation for NSProcessInfo for GNUStep
+   Copyright (C) 1995-2001 Free Software Foundation, Inc.
 
-   Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
+   Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
                 Heidelberg, Germany
                 Tuparev@EMBL-Heidelberg.de
+   Modified by:  Richard Frith-Macdonald <rfm@gnu.org>
    
    This file is part of the GNUstep Base Library.
 
@@ -523,7 +524,7 @@ int main(int argc, char *argv[], char *env[])
 */
 + (void)initializeWithArguments:(char**)argv
                           count:(int)argc
-                    environment:(char**)env;
+                    environment:(char**)env
 {
   if (!_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {

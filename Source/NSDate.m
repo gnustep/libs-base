@@ -1,4 +1,4 @@
-/* Implementation for NSDate for GNUStep
+/** Implementation for NSDate for GNUStep
    Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Jeremy Bettis <jeremy@hksys.com>
@@ -950,7 +950,7 @@ GSTimeNow()
 }
 
 - (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
-		  sinceDate: (NSDate*)anotherDate;
+		  sinceDate: (NSDate*)anotherDate
 {
   if (anotherDate == nil)
     {
@@ -963,7 +963,7 @@ GSTimeNow()
     otherTime(anotherDate) + secsToBeAdded];
 }
 
-- (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
+- (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded
 {
   // Get the current time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:

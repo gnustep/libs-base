@@ -1,4 +1,4 @@
-/* Implementation of NSPortCoder object for remote messaging
+/** Implementation of NSPortCoder object for remote messaging
    Copyright (C) 1997,2000 Free Software Foundation, Inc.
 
    This implementation for OPENSTEP conformance written by

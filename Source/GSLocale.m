@@ -1,4 +1,4 @@
-/* GSLocale - various functions for localization
+/** GSLocale - various functions for localization
     
    Copyright (C) 2000 Free Software Foundation, Inc.
 

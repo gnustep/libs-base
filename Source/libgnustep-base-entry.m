@@ -1,4 +1,4 @@
-/* DLL entry routine
+/** DLL entry routine
    Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
    Original Author:  Scott Christley <scottc@net-community.com>

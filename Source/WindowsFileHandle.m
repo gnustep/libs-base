@@ -1,4 +1,4 @@
-/* Implementation for WindowsFileHandle for GNUStep
+/** Implementation for WindowsFileHandle for GNUStep
    Copyright (C) 1997-1999 Free Software Foundation, Inc.
 
    Rewritten: Adam Fedor <fedor@gnu.org>

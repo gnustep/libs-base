@@ -1,4 +1,4 @@
-/* 
+/** 
    NSFileManager.m
 
    Copyright (C) 1997-1999 Free Software Foundation, Inc.

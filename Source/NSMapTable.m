@@ -1,4 +1,4 @@
-/* NSMapTable implementation for GNUStep.
+/** NSMapTable implementation for GNUStep.
  * Copyright (C) 1994, 1995, 1996  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>

@@ -1,4 +1,4 @@
-/* Implementation for GNU Objective-C version of NSDistributedLock
+/** Implementation for GNU Objective-C version of NSDistributedLock
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

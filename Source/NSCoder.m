@@ -1,4 +1,4 @@
-/* NSCoder - coder object for serialization and persistance.
+/** NSCoder - coder object for serialization and persistance.
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

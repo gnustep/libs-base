@@ -36,22 +36,22 @@
 + (id) arrayWithArray: (NSArray*)array;
 + (id) arrayWithContentsOfFile: (NSString*)file;
 + (id) arrayWithObject: (id)anObject;
-+ (id) arrayWithObjects: (id)firstObj, ...;
++ (id) arrayWithObjects: (id)firstObject, ...;
 + (id) arrayWithObjects: (id*)objects count: (unsigned)count;
 
 - (NSArray*) arrayByAddingObject: (id)anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
 - (BOOL) containsObject: anObject;
 - (unsigned) count;						// Primitive
-- (void) getObjects: (id*)objs;
-- (void) getObjects: (id*)objs range: (NSRange)aRange;
+- (void) getObjects: (id*)aBuffer;
+- (void) getObjects: (id*)aBuffer range: (NSRange)aRange;
 - (unsigned) indexOfObject: (id)anObject;
 - (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange;
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject;
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (id) initWithArray: (NSArray*)array;
 - (id) initWithContentsOfFile: (NSString*)file;
-- (id) initWithObjects: firstObj, ...;
+- (id) initWithObjects: firstObject, ...;
 - (id) initWithObjects: (id*)objects count: (unsigned)count;	// Primitive
 
 - (id) lastObject;
@@ -66,7 +66,7 @@
 #endif
 #ifndef	STRICT_OPENSTEP
 - (void) makeObjectsPerformSelector: (SEL)aSelector;
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)argument;
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)arg;
 #endif
 
 - (NSData*) sortedArrayHint;
@@ -76,7 +76,7 @@
 			      context: (void*)context
 				 hint: (NSData*)hint;
 - (NSArray*) sortedArrayUsingSelector: (SEL)comparator;
-- (NSArray*) subarrayWithRange: (NSRange)range;
+- (NSArray*) subarrayWithRange: (NSRange)aRange;
 
 - (NSString*) componentsJoinedByString: (NSString*)separator;
 - (NSArray*) pathsMatchingExtensions: (NSArray*)extensions;
@@ -127,7 +127,7 @@
 
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 
 		   context: (void*)context;
-- (void) sortUsingSelector: (SEL) aSelector;
+- (void) sortUsingSelector: (SEL)comparator;
 
 @end
 

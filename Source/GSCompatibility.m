@@ -1,4 +1,4 @@
-/* Runtime MacOSX compatibility functionality
+/** Runtime MacOSX compatibility functionality
    Copyright (C) 2000 Free Software Foundation, Inc.
    
    Written by:  Richard frith-Macdonald <rfm@gnu.org>

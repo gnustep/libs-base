@@ -1,4 +1,4 @@
-/* Implementation of NSInvocation for GNUStep
+/** Implementation of NSInvocation for GNUStep
    Copyright (C) 1998 Free Software Foundation, Inc.
    
    Written:     Richard Frith-Macdonald <richard@brainstorm.co.uk>

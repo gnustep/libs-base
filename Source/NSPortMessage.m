@@ -1,4 +1,4 @@
-/* Implementation of NSPortMessage for GNUstep
+/** Implementation of NSPortMessage for GNUstep
    Copyright (C) 1998,2000 Free Software Foundation, Inc.
    
    Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>

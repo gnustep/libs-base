@@ -1,4 +1,4 @@
-/* Implementation of object for waiting on several input seurces
+/** Implementation of object for waiting on several input seurces
    Copyright (C) 1996-1999 Free Software Foundation, Inc.
 
    Original by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -650,12 +650,12 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 
 /* Running the run loop once through for timers and input listening. */
 
-- (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
+- (BOOL) runOnceBeforeDate: (NSDate*)date forMode: (NSString*)mode
 {
   return [self runMode: mode beforeDate: date];
 }
 
-- (BOOL) runOnceBeforeDate: date
+- (BOOL) runOnceBeforeDate: (NSDate*)date
 {
   return [self runOnceBeforeDate: date forMode: _current_mode];
 }
@@ -685,7 +685,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   [[self currentRunLoop] runUntilDate: date];
 }
 
-+ (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode
++ (BOOL) runOnceBeforeDate: (NSDate*)date forMode: (NSString*)mode
 {
   return [[self currentRunLoop] runOnceBeforeDate: date forMode: mode];
 }
@@ -832,7 +832,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 /* Adding timers.  They are removed when they are invalid. */
 
-- (void) addTimer: timer
+- (void) addTimer: (NSTimer*)timer
 	  forMode: (NSString*)mode
 {
   GSIArray timers;
@@ -1015,7 +1015,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
    If LIMIT_DATE is nil, then don't wait; i.e. call select() with 0 timeout */
 
 - (void) acceptInputForMode: (NSString*)mode 
-		 beforeDate: limit_date
+		 beforeDate: (NSDate*)limit_date
 {
   NSTimeInterval ti;
   struct timeval timeout;
@@ -1404,7 +1404,17 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 - (void) runUntilDate: (NSDate*)date
 {
-  [self runUntilDate: date forMode: _current_mode];
+  double	ti = [date timeIntervalSinceNow];
+  BOOL		mayDoMore = YES;
+
+  /* Positive values are in the future. */
+  while (ti > 0 && mayDoMore == YES)
+    {
+      if (debug_run_loop)
+	printf ("\tNSRunLoop run until date %f seconds from now\n", ti);
+      mayDoMore = [self runMode: NSDefaultRunLoopMode beforeDate: date];
+      ti = [date timeIntervalSinceNow];
+    }
 }
 
 @end

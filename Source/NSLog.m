@@ -1,4 +1,4 @@
-/* Interface for NSLog for GNUStep
+/** Interface for NSLog for GNUStep
    Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>

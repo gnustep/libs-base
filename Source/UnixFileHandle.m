@@ -1,4 +1,4 @@
-/* Implementation for UnixFileHandle for GNUStep
+/** Implementation for UnixFileHandle for GNUStep
    Copyright (C) 1997-1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>

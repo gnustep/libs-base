@@ -1,4 +1,4 @@
-/* Implementation of host class
+/** Implementation of host class
    Copyright (C) 1996, 1997,1999 Free Software Foundation, Inc.
 
    Written by: Luke Howard <lukeh@xedoc.com.au>
@@ -416,7 +416,7 @@ static NSString			*myHostName = nil;
   [_hostCacheLock unlock];
 }
 
-+ (BOOL) isHostCacheEnabled;
++ (BOOL) isHostCacheEnabled
 {
   return _hostCacheEnabled;
 }

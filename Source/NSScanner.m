@@ -1,8 +1,10 @@
-/* Implemenation of NSScanner class
+/** Implemenation of NSScanner class
    Copyright (C) 1996,1999 Free Software Foundation, Inc.
 
    Author:  Eric Norum <eric@skatter.usask.ca>
    Date: 1996
+   Rewrite/optimisation by:  Richard Frith-Macdonald <rfm@gnu.org>
+   Date: 1998
    
    This file is part of the GNUstep Objective-C Library.
 

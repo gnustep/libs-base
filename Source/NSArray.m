@@ -1,4 +1,4 @@
-/* NSArray - Array object to hold other objects.
+/** NSArray - Array object to hold other objects.
    Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -828,7 +828,7 @@ static NSString	*indentStrings[] = {
     }
 }
 
-- (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
+- (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxilliaryFile
 {
   extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
@@ -854,10 +854,10 @@ static NSString	*indentStrings[] = {
       desc = result;
     }
 
-  return [desc writeToFile: path atomically: useAuxiliaryFile];
+  return [desc writeToFile: path atomically: useAuxilliaryFile];
 }
 
-- (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
+- (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxilliaryFile
 {
   extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
@@ -883,7 +883,7 @@ static NSString	*indentStrings[] = {
       desc = result;
     }
 
-  return [desc writeToURL: url atomically: useAuxiliaryFile];
+  return [desc writeToURL: url atomically: useAuxilliaryFile];
 }
 
 @end

@@ -1,4 +1,4 @@
-/* NSCountedSet - CountedSet object 
+/** NSCountedSet - CountedSet object 
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

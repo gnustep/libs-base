@@ -1,4 +1,4 @@
-/* Behaviors for Objective-C, "for Protocols with implementations".
+/** Behaviors for Objective-C, "for Protocols with implementations".
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

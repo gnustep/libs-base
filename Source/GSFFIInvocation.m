@@ -1,4 +1,4 @@
-/* Implementation of GSFFIInvocation for GNUStep
+/** Implementation of GSFFIInvocation for GNUStep
    Copyright (C) 2000 Free Software Foundation, Inc.
    
    Written: Adam Fedor <fedor@gnu.org>

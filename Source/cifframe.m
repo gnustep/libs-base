@@ -1,4 +1,4 @@
-/* cifframe.m - Wrapper/Objective-C interface for ffi function interface
+/** cifframe.m - Wrapper/Objective-C interface for ffi function interface
 
    Copyright (C) 1999, Free Software Foundation, Inc.
    

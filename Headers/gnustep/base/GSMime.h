@@ -59,15 +59,15 @@
 
 + (GSMimeDocument*) mimeDocument;
 
-- (BOOL) addHeader: (NSDictionary*)headerInfo;
+- (BOOL) addHeader: (NSDictionary*)info;
 - (NSArray*) allHeaders;
 - (id) content;
-- (void) deleteHeader: (NSString*)rawHeader;
-- (void) deleteHeaderNamed: (NSString*)aName;
+- (void) deleteHeader: (NSString*)aHeader;
+- (void) deleteHeaderNamed: (NSString*)name;
 - (NSDictionary*) headerNamed: (NSString*)name;
 - (NSArray*) headersNamed: (NSString*)name;
 - (BOOL) setContent: (id)newContent;
-- (BOOL) setHeader: (NSDictionary*)headerInfo;
+- (BOOL) setHeader: (NSDictionary*)info;
 
 @end
 
@@ -92,25 +92,25 @@
 
 + (GSMimeParser*) mimeParser;
 
-- (GSMimeCodingContext*) contextFor: (NSDictionary*)headerInfo;
+- (GSMimeCodingContext*) contextFor: (NSDictionary*)info;
 - (NSData*) data;
 - (BOOL) decodeData: (NSData*)sData
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData
-	withContext: (GSMimeCodingContext*)ctxt;
+	withContext: (GSMimeCodingContext*)con;
 - (GSMimeDocument*) document;
 - (BOOL) isComplete;
 - (BOOL) isInBody;
 - (BOOL) isInHeaders;
-- (BOOL) parse: (NSData*)input;
-- (BOOL) parseHeader: (NSString*)aRawHeader;
+- (BOOL) parse: (NSData*)d;
+- (BOOL) parseHeader: (NSString*)aHeader;
 - (BOOL) parsedHeaders;
-- (BOOL) scanHeader: (NSScanner*)aScanner
-	      named: (NSString*)headerName
+- (BOOL) scanHeader: (NSScanner*)scanner
+	      named: (NSString*)name
 	       inTo: (NSMutableDictionary*)info;
-- (BOOL) scanPastSpace: (NSScanner*)aScanner;
-- (NSString*) scanSpecial: (NSScanner*)aScanner;
-- (NSString*) scanToken: (NSScanner*)aScanner;
+- (BOOL) scanPastSpace: (NSScanner*)scanner;
+- (NSString*) scanSpecial: (NSScanner*)scanner;
+- (NSString*) scanToken: (NSScanner*)scanner;
 
 @end
 

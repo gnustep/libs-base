@@ -1,12 +1,149 @@
 2001-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/gnustep/base/GSMime.h: Updates for autogsdoc
+	* Headers/gnustep/base/GSXML.h: ditto
+	* Headers/gnustep/base/NSArray.h: ditto
+	* Headers/gnustep/base/NSAttributedString.h: ditto
+	* Headers/gnustep/base/NSAutoreleasePool.h: ditto
+	* Headers/gnustep/base/NSCalendarDate.h: ditto
+	* Headers/gnustep/base/NSCharacterSet.h: ditto
+	* Headers/gnustep/base/NSCoder.h: ditto
+	* Headers/gnustep/base/NSConnection.h: ditto
+	* Headers/gnustep/base/NSData.h: ditto
+	* Headers/gnustep/base/NSDate.h: ditto
+	* Headers/gnustep/base/NSDistantObject.h: ditto
+	* Headers/gnustep/base/NSDistributedNotificationCenter.h: ditto
+	* Headers/gnustep/base/NSInvocation.h: ditto
+	* Headers/gnustep/base/NSLock.h: ditto
+	* Headers/gnustep/base/NSMethodSignature.h: ditto
+	* Headers/gnustep/base/NSNotification.h: ditto
+	* Headers/gnustep/base/NSObject.h: ditto
+	* Headers/gnustep/base/NSProxy.h: ditto
+	* Headers/gnustep/base/NSRunLoop.h: ditto
+	* Headers/gnustep/base/NSSet.h: ditto
+	* Headers/gnustep/base/NSTimeZone.h: ditto
+	* Headers/gnustep/base/NSTimer.h: ditto
+	* Headers/gnustep/base/NSURL.h: ditto
+	* Headers/gnustep/base/NSUndoManager.h: ditto
+	* Headers/gnustep/base/NSUserDefaults.h: ditto
+	* Headers/gnustep/base/NSValue.h: ditto
+	* Source/GSArray.m: ditto
+	* Source/GSAttributedString.m: ditto
+	* Source/GSCompatibility.m: ditto
+	* Source/GSCountedSet.m: ditto
+	* Source/GSDictionary.m: ditto
+	* Source/GSFFCallInvocation.m: ditto
+	* Source/GSFFIInvocation.m: ditto
+	* Source/GSFormat.m: ditto
+	* Source/GSHTTPURLHandle.m: ditto
+	* Source/GSLocale.m: ditto
+	* Source/GSMime.m: ditto
+	* Source/GSSet.m: ditto
+	* Source/GSString.m: ditto
+	* Source/GSTcpPort.m: ditto
+	* Source/GSUnixSSLHandle.m: ditto
+	* Source/GSValue.m: ditto
+	* Source/GSXML.m: ditto
+	* Source/NSArchiver.m: ditto
+	* Source/NSArray.m: ditto
+	* Source/NSAssertionHandler.m: ditto
+	* Source/NSAttributedString.m: ditto
+	* Source/NSAutoreleasePool.m: ditto
+	* Source/NSBitmapCharSet.m: ditto
+	* Source/NSBundle.m: ditto
+	* Source/NSCalendarDate.m: ditto
+	* Source/NSCallBacks.m: ditto
+	* Source/NSCharacterSet.m: ditto
+	* Source/NSClassDescription.m: ditto
+	* Source/NSCoder.m: ditto
+	* Source/NSConnection.m: ditto
+	* Source/NSCopyObject.m: ditto
+	* Source/NSCountedSet.m: ditto
+	* Source/NSData.m: ditto
+	* Source/NSDate.m: ditto
+	* Source/NSDateFormatter.m: ditto
+	* Source/NSDebug.m: ditto
+	* Source/NSDecimal.m: ditto
+	* Source/NSDecimalNumber.m: ditto
+	* Source/NSDictionary.m: ditto
+	* Source/NSDistantObject.m: ditto
+	* Source/NSDistributedLock.m: ditto
+	* Source/NSDistributedNotificationCenter.m: ditto
+	* Source/NSEnumerator.m: ditto
+	* Source/NSException.m: ditto
+	* Source/NSFileHandle.m: ditto
+	* Source/NSFileManager.m: ditto
+	* Source/NSFormatter.m: ditto
+	* Source/NSGeometry.m: ditto
+	* Source/NSHashTable.m: ditto
+	* Source/NSHost.m: ditto
+	* Source/NSInvocation.m: ditto
+	* Source/NSLock.m: ditto
+	* Source/NSLog.m: ditto
+	* Source/NSMapTable.m: ditto
+	* Source/NSMethodSignature.m: ditto
+	* Source/NSNotification.m: ditto
+	* Source/NSNotificationCenter.m: ditto
+	* Source/NSNotificationQueue.m: ditto
+	* Source/NSNull.m: ditto
+	* Source/NSNumber.m: ditto
+	* Source/NSNumberFormatter.m: ditto
+	* Source/NSObjCRuntime.m: ditto
+	* Source/NSPage.m: ditto
+	* Source/NSPipe.m: ditto
+	* Source/NSPort.m: ditto
+	* Source/NSPortCoder.m: ditto
+	* Source/NSPortMessage.m: ditto
+	* Source/NSPortNameServer.m: ditto
+	* Source/NSProcessInfo.m: ditto
+	* Source/NSProtocolChecker.m: ditto
+	* Source/NSProxy.m: ditto
+	* Source/NSRange.m: ditto
+	* Source/NSRunLoop.m: ditto
+	* Source/NSScanner.m: ditto
+	* Source/NSSerializer.m: ditto
+	* Source/NSSet.m: ditto
+	* Source/NSString.m: ditto
+	* Source/NSTask.m: ditto
+	* Source/NSThread.m: ditto
+	* Source/NSTimeZone.m: ditto
+	* Source/NSTimer.m: ditto
+	* Source/NSURL.m: ditto
+	* Source/NSURLHandle.m: ditto
+	* Source/NSUnarchiver.m: ditto
+	* Source/NSUndoManager.m: ditto
+	* Source/NSUser.m: ditto
+	* Source/NSUserDefaults.m: ditto
+	* Source/NSValue.m: ditto
+	* Source/NSZone.m: ditto
+	* Source/Unicode.m: ditto
+	* Source/UnixFileHandle.m: ditto
+	* Source/WindowsFileHandle.m: ditto
+	* Source/behavior.m: ditto
+	* Source/callframe.m: ditto
+	* Source/cifframe.m: ditto
+	* Source/externs.m: ditto
+	* Source/libgnustep-base-entry.m: ditto
+	* Source/mframe.m: ditto
+	* Source/o_array.m: ditto
+	* Tools/AGSParser.m: ditto
+	Ensure that initial comments in source code are sutogsdoc comments
+	so copyright and author information will be used.
+	Fix inconsistencies between arguments in headers and source files.
+	Fix various bugs exposed by autogsdoc ... mostly cases where there
+	is a semicolon after a method name in a method implementation
+	(this is illegal, but the gcc compiler currently ignores it).
+
+2001-12-17  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/AGSHtml.m: Provide list of methods in each class.
 	* Tools/AGSIndex.m: New method to list methods in a unit.
 	* Tools/AGSIndex.h: New method to list methods in a unit.
 	* Tools/AGSOutput.m: Support (name) syntax for specifying a protocol
 	cross reference using [(name)-method]
 	* Tools/autogsdoc.m: Improve documentation of method references.
-	* Tools/AGSparser.m: Handle @class statements.
+	* Tools/AGSparser.m: Handle @class statements. Improve standardisation
+	of the format of types.
 
 2001-12-16  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -1,4 +1,4 @@
-/* A (pretty good) implementation of a sparse array.
+/** A (pretty good) implementation of a sparse array.
  * Copyright (C) 1994, 1995, 1996  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>

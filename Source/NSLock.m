@@ -1,4 +1,4 @@
-/* Mutual exclusion locking classes
+/** Mutual exclusion locking classes
    Copyright (C) 1996 Free Software Foundation, Inc.
 
    Author:  Scott Christley <scottc@net-community.com>

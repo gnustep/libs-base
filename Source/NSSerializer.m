@@ -1,4 +1,4 @@
-/* Class for serialization in GNUStep
+/** Class for serialization in GNUStep
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdoanld <richard@brainstorm.co.uk>

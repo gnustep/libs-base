@@ -80,12 +80,12 @@
   BOOL	native;
 }
 
-+ (NSString*) descriptionFromType:  (int)t;
++ (NSString*) descriptionFromType: (int)type;
 + (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
 				 href: (NSString*)href
 			       prefix: (NSString*)prefix;
 + (GSXMLNamespace*) namespaceFrom: (void*)data;
-+ (int) typeFromDescription:  (NSString*)d;
++ (int) typeFromDescription: (NSString*)desc;
 
 - (id) initWithNode: (GSXMLNode*)node
 	       href: (NSString*)href
@@ -109,10 +109,10 @@
   BOOL  native;
 }
 
-+ (NSString*) descriptionFromType:  (int)t;
++ (NSString*) descriptionFromType: (int)type;
 + (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 + (GSXMLNode*) nodeFrom: (void*) data;
-+ (int) typeFromDescription:  (NSString*)d;
++ (int) typeFromDescription: (NSString*)desc;
 
 - (id) initWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 - (id) initFrom: (void*) data;
@@ -151,12 +151,12 @@
 {
 }
 
-+ (NSString*) descriptionFromType:  (int)t;
++ (NSString*) descriptionFromType: (int)type;
 + (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
 				 name: (NSString*)name
 				value: (NSString*)value;
 + (GSXMLAttribute*) attributeFrom: (void*)data;
-+ (int) typeFromDescription:  (NSString*)d;
++ (int) typeFromDescription: (NSString*)desc;
 
 - (id) initWithNode: (GSXMLNode*)node
 	       name: (NSString*)name
@@ -180,8 +180,7 @@
    void          *lib;                  /* parser context       */
    GSSAXHandler  *saxHandler;
 }
-+ (NSString*) loadEntity: (NSString*)publicId
-		      at: (NSString*)locationURL;
++ (NSString*) loadEntity: (NSString*)publicId at: (NSString*)location;
 + (GSXMLParser*) parser;
 + (GSXMLParser*) parserWithContentsOfFile: (NSString*)path;
 + (GSXMLParser*) parserWithContentsOfURL: (NSURL*)url;

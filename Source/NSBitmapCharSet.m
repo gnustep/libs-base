@@ -1,4 +1,4 @@
-/* NSBitmapCharSet - Concrete character set holder
+/** NSBitmapCharSet - Concrete character set holder
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>

@@ -71,7 +71,7 @@ GS_EXPORT NSString	*NSLocalNotificationCenterType;
 - (void) removeObserver: (id)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)anObject;
-- (void) setSuspended: (BOOL)suspended;
+- (void) setSuspended: (BOOL)flag;
 - (BOOL) suspended;
 
 @end
