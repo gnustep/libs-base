@@ -435,7 +435,6 @@ delRInfo(int s)
 #endif /* __MINGW__ */
 {
   int	i;
-  RInfo	*tmp;
 
   for (i = 0; i < _rInfoCount; i++)
     {
@@ -451,26 +450,12 @@ delRInfo(int s)
       log(LOG_ERR);
       return;
     }
-  if (_rInfoCount-1) /* Something to do? */
-    {
-      tmp = (RInfo *)calloc(_rInfoCount-1, sizeof(RInfo));
-    }
-  else
-    {
-      tmp = NULL;
-    }
-  if (i != 0) /* not first element */
-    {
-      memcpy(tmp, _rInfo, i*sizeof(RInfo));
-    }
-  if (i != _rInfoCount - 1) /* not last element */
-    {
-      memcpy(&(tmp[i]), &(_rInfo[i+1]),
-       (_rInfoCount-i-1)*sizeof(RInfo));
-    }
-  free(_rInfo);
-  _rInfo = tmp;
   _rInfoCount--;
+  if (i != _rInfoCount) /* not last element */
+    {
+      memcpy(&(_rInfo[i]), &(_rInfo[i+1]),
+       (_rInfoCount-i)*sizeof(RInfo));
+    }
 }
 
 
@@ -524,7 +509,6 @@ delWInfo(int s)
 #endif /* __MINGW__ */
 {
   int	i;
-  WInfo	*tmp;
 
   for (i = 0; i < _wInfoCount; i++)
     {
@@ -540,26 +524,12 @@ delWInfo(int s)
       log(LOG_ERR);
       return;
     }
-  if (_wInfoCount-1) /* Something to do? */
-    {
-      tmp = (WInfo *)calloc(_wInfoCount-1, sizeof(WInfo));
-    }
-  else
-    {
-      tmp = NULL;
-    }
-  if (i != 0) /* not first element */
-    {
-      memcpy(tmp, _wInfo, i*sizeof(WInfo));
-    }
-  if (i != _wInfoCount - 1) /* not last element */
-    {
-      memcpy(&(tmp[i]), &(_wInfo[i+1]),
-       (_wInfoCount-i-1)*sizeof(WInfo));
-    }
-  free(_wInfo);
-  _wInfo = tmp;
   _wInfoCount--;
+  if (i != _wInfoCount) /* not last element */
+    {
+      memcpy(&(_wInfo[i]), &(_wInfo[i+1]),
+       (_wInfoCount-i)*sizeof(WInfo));
+    }
 }
 
 
