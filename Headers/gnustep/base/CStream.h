@@ -35,7 +35,7 @@
   int indentation;
 }
 
-/* These are standard ways to create a new CStream from a Stream
+/* These are the standard ways to create a new CStream from a Stream
    that is open for reading.
    It reads the CStream signature at the beginning of the file, and
    automatically creates the appropriate subclass of CStream with
@@ -47,6 +47,10 @@
    that is open for writing. */
 - initForWritingToFile: (id <String>) filename;
 - initForWritingToStream: (id <Streaming>) stream;
+
+- initForWritingToStream: (id <Streaming>) s
+       withFormatVersion: (int)version;
+
 + cStreamWritingToStream: (id <Streaming>) stream;
 + cStreamWritingToFile: (id <String>) filename;
 
