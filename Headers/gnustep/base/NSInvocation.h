@@ -35,7 +35,7 @@
   void			*_retval;
   id			_target;
   SEL			_selector;
-  int			_numArgs;
+  unsigned int		_numArgs;
 #ifndef	STRICT_MACOS_X
   NSArgumentInfo	*_info;
 #else

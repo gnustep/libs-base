@@ -310,7 +310,7 @@ static NSString *parse_string(NSString **ptr)
 
 -(BOOL) writeToFile: (NSString *)filename
 {
-  int i,c;
+  unsigned  i,c;
   BOOL result;
   NSMutableString *str=[[NSMutableString alloc] initWithCapacity: 32*1024];
   StringsEntry *se;

@@ -156,8 +156,8 @@ GSIArrayCount(GSIArray array)
 static INLINE void
 GSIArrayGrow(GSIArray array)
 {
-  unsigned	next;
-  unsigned	size;
+  unsigned int	next;
+  unsigned int	size;
   GSIArrayItem	*tmp;
 
   next = array->cap + array->old;
@@ -177,7 +177,7 @@ GSIArrayGrow(GSIArray array)
 static INLINE void
 GSIArrayGrowTo(GSIArray array, unsigned next)
 {
-  unsigned	size;
+  unsigned int	size;
   GSIArrayItem	*tmp;
 
   if (next < array->count)
@@ -201,7 +201,7 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
 static INLINE void
 GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
 {
-  unsigned	i;
+  unsigned int	i;
 
   GSI_ARRAY_RETAIN(array, item);
   GSI_ARRAY_CHECK;
@@ -220,7 +220,7 @@ GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
 static INLINE void
 GSIArrayInsertItemNoRetain(GSIArray array, GSIArrayItem item, unsigned index)
 {
-  unsigned	i;
+  unsigned int	i;
 
   GSI_ARRAY_CHECK;
   if (array->count == array->cap)
@@ -271,9 +271,9 @@ static INLINE unsigned
 GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item, 
 	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
-  unsigned	upper = array->count;
-  unsigned	lower = 0;
-  unsigned	index;
+  unsigned int	upper = array->count;
+  unsigned int	lower = 0;
+  unsigned int	index;
 
   /*
    *	Binary search for an item equal to the one to be inserted.
@@ -316,7 +316,7 @@ static INLINE void
 GSIArrayCheckSort(GSIArray array, 
 	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
-  unsigned	i;
+  unsigned int	i;
 
   for (i = 1; i < array->count; i++)
     {
@@ -332,7 +332,7 @@ static INLINE void
 GSIArrayInsertSorted(GSIArray array, GSIArrayItem item, 
 	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
-  unsigned	index;
+  unsigned int	index;
 
   index = GSIArrayInsertionPosition(array, item, sorter);
   GSIArrayInsertItem(array, item, index);
@@ -345,7 +345,7 @@ static INLINE void
 GSIArrayInsertSortedNoRetain(GSIArray array, GSIArrayItem item,
 	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
-  unsigned	index;
+  unsigned int	index;
 
   index = GSIArrayInsertionPosition(array, item, sorter);
   GSIArrayInsertItemNoRetain(array, item, index);
@@ -480,7 +480,7 @@ GSIArrayEmpty(GSIArray array)
 static INLINE GSIArray
 GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
 {
-  unsigned	size;
+  unsigned int	size;
 
   array->zone = zone;
   array->count = 0;
@@ -496,7 +496,7 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
 static INLINE GSIArray
 GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
 {
-  int i;
+  unsigned int i;
   GSIArray new;
   new = NSZoneMalloc(zone, sizeof(GSIArray_t));
   GSIArrayInitWithZoneAndCapacity(new, zone, array->count);

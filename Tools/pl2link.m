@@ -124,28 +124,28 @@ main(int argc, char** argv, char **env)
 
   list = [plist objectForKey: @"NSTypes"];
   if (list != nil)
-  {
-    int i;
-
-    [fileContents appendString: @"MimeType="];
-    for (i = 0; i < [list count]; i++)
     {
-      NSArray *types;
-      int j;
+      unsigned int i;
 
-      plist = [list objectAtIndex: i];
-      types = [plist objectForKey: @"NSMIMETypes"];
-      if (types != nil)
-        {
-	  for (j = 0; j < [types count]; j++)
-	  {
-	    entry = [types objectAtIndex: j];
-	    [fileContents appendFormat: @"%@;", entry];
-	  }
+      [fileContents appendString: @"MimeType="];
+      for (i = 0; i < [list count]; i++)
+	{
+	  NSArray *types;
+	  unsigned int j;
+
+	  plist = [list objectAtIndex: i];
+	  types = [plist objectForKey: @"NSMIMETypes"];
+	  if (types != nil)
+	    {
+	      for (j = 0; j < [types count]; j++)
+		{
+		  entry = [types objectAtIndex: j];
+		  [fileContents appendFormat: @"%@;", entry];
+		}
+	    }
 	}
+      [fileContents appendString: @"\n"];
     }
-    [fileContents appendString: @"\n"];
-  }
 
   if ([[fileContents dataUsingEncoding: NSUTF8StringEncoding] 
     writeToFile: destName atomically: YES] == NO)

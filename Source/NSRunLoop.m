@@ -357,25 +357,6 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks 
 #endif
 
-static void
-aRetain(NSMapTable* t, const void* a)
-{
-}
-
-static void
-aRelease(NSMapTable* t, const void* a)
-{
-  GSIArrayEmpty((GSIArray)a);
-  NSZoneFree(((GSIArray)a)->zone, (void*)a);
-}
-
-static const NSMapTableValueCallBacks ArrayMapValueCallBacks = 
-{
-  aRetain,
-  aRelease,
-  0
-};
-
 
 
 /**
@@ -400,8 +381,8 @@ static const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   int		fairStart;	// For trying to ensure fair handling.
   BOOL		completed;	// To mark operation as completed.
 #ifdef	HAVE_POLL
-  int		pollfds_capacity;
-  int		pollfds_count;
+  unsigned int	pollfds_capacity;
+  unsigned int	pollfds_count;
   struct pollfd	*pollfds;
 #endif
 }
@@ -577,7 +558,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   int		fdEnd = 0;	/* Number of descriptors being monitored. */
   int		fdIndex;
   int		fdFinish;
-  unsigned	i;
+  unsigned int	i;
 
   i = GSIArrayCount(watchers);
 
@@ -689,21 +670,25 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       milliseconds = 0;
     }
 
-if (0) {
-  int i;
+#if 0
+{
+  unsigned int i;
   fprintf(stderr, "poll %d %d:", milliseconds, pollfds_count);
   for (i = 0; i < pollfds_count; i++)
     fprintf(stderr, " %d,%x", pollfds[i].fd, pollfds[i].events);
   fprintf(stderr, "\n");
 }
+#endif
   poll_return = poll (pollfds, pollfds_count, milliseconds);
-if (0) {
-  int i;
+#if 0
+{
+  unsigned int i;
   fprintf(stderr, "ret %d %d:", poll_return, pollfds_count);
   for (i = 0; i < pollfds_count; i++)
     fprintf(stderr, " %d,%x", pollfds[i].fd, pollfds[i].revents);
   fprintf(stderr, "\n");
 }
+#endif
 
   NSDebugMLLog(@"NSRunLoop", @"poll returned %d\n", poll_return);
 

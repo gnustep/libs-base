@@ -807,7 +807,7 @@ SANITY();
       info = OBJECTAT(arrayIndex);
       if (info->loc < NSMaxRange(range))
 	{
-	  int	next = arrayIndex + 1;
+	  unsigned int	next = arrayIndex + 1;
 
 	  while (next < arraySize)
 	    {

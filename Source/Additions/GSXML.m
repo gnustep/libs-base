@@ -3100,7 +3100,8 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
       xmlNode	*node;
       GSXMLNode *n;
 
-      node = xmlXPathNodeSetItem (((xmlXPathObject*)_lib)->nodesetval, index);
+      node = xmlXPathNodeSetItem (((xmlXPathObject*)_lib)->nodesetval,
+	(int)index);
       n = [GSXMLNode alloc];
       
       return [n _initFrom: node  parent: self];

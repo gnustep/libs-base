@@ -832,8 +832,8 @@ wordData(NSString *word)
 		src++;
 		if (ctxt->state != ChunkSize)
 		  {
-		    int	val = 0;
-		    int	index;
+		    unsigned int	val = 0;
+		    unsigned int	index;
 
 		    for (index = 0; index < ctxt->pos; index++)
 		      {
@@ -2752,7 +2752,7 @@ static NSCharacterSet	*tokenSet = nil;
   NSData	*d = [[self name] dataUsingEncoding: NSASCIIStringEncoding];
   unsigned	l = [d length];
   char		buf[l];
-  int		i = 0;
+  unsigned int	i = 0;
   BOOL		conv = YES;
 
 #define	LIM	120

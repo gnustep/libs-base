@@ -143,7 +143,7 @@ static SEL	objSel;
 /* Designated initialiser */
 - (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (unsigned)c
 {
-  int	i;
+  unsigned int	i;
 
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
   for (i = 0; i < c; i++)

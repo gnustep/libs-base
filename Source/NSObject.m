@@ -1148,16 +1148,16 @@ static BOOL double_release_check_enabled = NO;
   for (proto_list = ((struct objc_class*)self)->protocols;
        proto_list; proto_list = proto_list->next)
     {
-      int i;
+      unsigned int i;
       
       for (i = 0; i < proto_list->count; i++)
-      {
-	/* xxx We should add conformsToProtocol to Protocol class. */
-        if ([proto_list->list[i] conformsTo: aProtocol])
-	  {
-	    return YES;
-	  }
-      }
+	{
+	  /* xxx We should add conformsToProtocol to Protocol class. */
+	  if ([proto_list->list[i] conformsTo: aProtocol])
+	    {
+	      return YES;
+	    }
+	}
     }
   
   if ([self superclass])

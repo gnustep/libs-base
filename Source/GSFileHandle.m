@@ -1796,7 +1796,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (modes && [modes count])
     {
-      int		i;
+      unsigned int	i;
 
       for (i = 0; i < [modes count]; i++)
 	{
@@ -1836,7 +1836,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (modes && [modes count])
     {
-      int		i;
+      unsigned int	i;
 
       for (i = 0; i < [modes count]; i++)
 	{
@@ -1867,7 +1867,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   [self setNonBlocking: YES];
   if (modes && [modes count])
     {
-      int		i;
+      unsigned int	i;
 
       for (i = 0; i < [modes count]; i++)
 	{
@@ -1904,7 +1904,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       [self setNonBlocking: YES];
       if (modes && [modes count])
 	{
-	  int		i;
+	  unsigned int	i;
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
@@ -1990,8 +1990,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	   */
 	  if (readMax > 0)
 	    {
-	      length = readMax - [item length];
-	      if (length > sizeof(buf))
+	      length = (unsigned int)readMax - [item length];
+	      if (length > (int)sizeof(buf))
 		{
 		  length = sizeof(buf);
 		}
@@ -2021,7 +2021,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  else
 	    {
 	      [item appendBytes: buf length: received];
-	      if (readMax < 0 || (readMax > 0 && [item length] == readMax))
+	      if (readMax < 0 || (readMax > 0 && (int)[item length] == readMax))
 		{
 		  // Read a single chunk of data
 		  [self postReadNotification];

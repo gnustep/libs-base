@@ -169,7 +169,7 @@
   if (_info == 0)
     {
       const char	*types = _methodTypes;
-      int		i;
+      unsigned int	i;
 
       _info = NSZoneMalloc(NSDefaultMallocZone(),
 	sizeof(NSArgumentInfo)*(_numArgs+1));

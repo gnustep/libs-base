@@ -247,8 +247,8 @@ typedef struct NCTbl {
   Observation	**chunks;
   unsigned	numChunks;
   GSIMapTable	cache[CACHESIZE];
-  short		chunkIndex;
-  short		cacheIndex;
+  unsigned short	chunkIndex;
+  unsigned short	cacheIndex;
 } NCTable;
 
 #define	TABLE		((NCTable*)_table)

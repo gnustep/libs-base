@@ -185,7 +185,7 @@
     unsigned char c[sizeof(double)];
   } val;
   unsigned      hash = 0;
-  int           i;
+  unsigned int	i;
 
   val.d = data.x + data.y;
   for (i = 0; i < sizeof(double); i++)
@@ -201,7 +201,7 @@
     unsigned char c[sizeof(double)];
   } val;
   unsigned      hash = 0;
-  int           i;
+  unsigned int	i;
 
   val.d = data.origin.x + data.origin.y + data.size.width + data.size.height;
   for (i = 0; i < sizeof(double); i++)
@@ -213,7 +213,7 @@
     unsigned char c[sizeof(double)];
   } val;
   unsigned      hash = 0;
-  int           i;
+  unsigned int	i;
 
   val.d = data.width + data.height;
   for (i = 0; i < sizeof(double); i++)

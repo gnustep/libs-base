@@ -263,8 +263,8 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
       unsigned char	*ptr;
       unsigned char	c;
       unsigned int	s = 0;
-      unsigned int	old;
-      unsigned int	len;
+      int		old;
+      int		len;
       int		i;	// May be negative.
 
       if (d != nil)
@@ -272,7 +272,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
 //  NSLog(@"Read - '%@'", d);
 	  [ibuf appendData: d];
 	}
-      old = len = [ibuf length];
+      old = len = (int)[ibuf length];
       ptr = [ibuf mutableBytes];
 
       for (i = pos; i < len; i++)
@@ -355,7 +355,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
 		  break;	// Need more data
 		}
 	    }
-	  else if (c == '\r' && i < len - 1 && ptr[i+1] == '\n')
+	  else if (c == '\r' && (int)i < len - 1 && ptr[i+1] == '\n')
 	    {
 	      line = [[NSData alloc] initWithBytes: &ptr[s] length: i-s+2];
 	      i++;

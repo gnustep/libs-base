@@ -631,14 +631,15 @@ static SEL	eqSel;
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
 #define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
                         // 3 is a fairly good choice (Sedgewick)
-  unsigned	c,d, stride;
+  unsigned int	c;
+  unsigned int	d;
+  unsigned int	stride = 1;
   BOOL		found;
-  int		count = _count;
+  unsigned int	count = _count;
 #ifdef	GSWARN
   BOOL		badComparison = NO;
 #endif
 
-  stride = 1;
   while (stride <= count)
     {
       stride = stride * STRIDE_FACTOR + 1;

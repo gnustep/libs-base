@@ -1,5 +1,59 @@
 2003-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* base.make.in:
+	* configure:
+	* configure.ac:
+	* Headers/gnustep/base/GSIArray.h:
+	* Headers/gnustep/base/GSIMap.h:
+	* Headers/gnustep/base/NSGeometry.h:
+	* Headers/gnustep/base/NSInvocation.h:
+	* Source/GSArray.m:
+	* Source/GSAttributedString.m:
+	* Source/GSCompatibility.m:
+	* Source/GSCountedSet.m:
+	* Source/GSDictionary.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFTPURLHandle.m:
+	* Source/GSFileHandle.m:
+	* Source/GSFormat.m:
+	* Source/GSString.m:
+	* Source/GSTcpPort.m:
+	* Source/GSTemplateValue.m:
+	* Source/NSArray.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSBundle.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSConcreteNumber.m:
+	* Source/NSCountedSet.m:
+	* Source/NSData.m:
+	* Source/NSDebug.m:
+	* Source/NSInvocation.m:
+	* Source/NSLog.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObject.m:
+	* Source/NSPortCoder.m:
+	* Source/NSRunLoop.m:
+	* Source/NSScanner.m:
+	* Source/NSSerializer.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/NSUnarchiver.m:
+	* Source/mframe.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSXML.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.m:
+	* Tools/defaults.m:
+	* Tools/gdomap.c:
+	* Tools/pl2link.m:
+	* Tools/sfparse.m:
+	* Tools/make_strings/StringsFile.m:
+	Tweaks for warning free compilation with gcc-3.4 ... many comparisons
+	os signed and un signed values avoided etc.
+
+2003-01-03  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/AGSHtml.m: Don't try to make a type reference to the
 	superclass of NSObject.
 

@@ -488,7 +488,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 void
 GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 {
-  int			i;
+  unsigned int		i;
   av_alist		alist;
   NSInvocation_t	*inv = (NSInvocation_t*)_inv;
   void			*retval = inv->_retval;
@@ -919,7 +919,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
    to send over the wire */
 - (BOOL) encodeWithDistantCoder: (NSCoder*)coder passPointers: (BOOL)passp
 {
-  int		i;
+  unsigned int	i;
   BOOL		out_parameters = NO;
   const char	*type = [_sig methodType];
 

@@ -37,7 +37,7 @@
 #include <Foundation/NSCoder.h>
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
-   defined to a number from 0 to 12 cooresponding to each number type */
+   defined to a number from 0 to 12 corresponding to each number type */
 #if TYPE_ORDER == 0
 #  define NumberTemplate	NSBoolNumber
 #  define TYPE_TYPE	BOOL

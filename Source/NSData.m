@@ -138,7 +138,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   DWORD		high;
   DWORD		got;
 #else
-  unsigned	fileLength;
+  long		fileLength;
 #endif
 
 #if	GS_WITH_GC == 1
@@ -294,7 +294,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 	}
 
       c = fread(tmp, 1, fileLength, theFile);
-      if (c != fileLength)
+      if (c != (int)fileLength)
 	{
 	  NSWarnFLog(@"read of file (%s) contents failed - %s",
 	    thePath, GSLastErrorStr(errno));
@@ -800,7 +800,7 @@ failure:
  */
 - (BOOL) isEqualToData: (NSData*)other
 {
-  int len;
+  unsigned int len;
   if (other == self)
     {
       return YES;
@@ -947,7 +947,7 @@ failure:
    * in the fwrite() call. */
   c = fwrite([self bytes], sizeof(char), [self length], theFile);
 
-  if (c < [self length])        /* We failed to write everything for
+  if (c < (int)[self length])        /* We failed to write everything for
                                  * some reason. */
     {
       NSWarnMLog(@"Fwrite (%s) failed - %s", thePath, GSLastErrorStr(errno));

@@ -250,7 +250,7 @@ static Class NSCountedSet_concrete_class;
 	    {
 	      unsigned	c = (*cImp)(self, @selector(countForObject:), obj);
 
-	      if (c <= level)
+	      if (c <= (unsigned int)level)
 		{
 		  while (c-- > 0)
 		    {

@@ -143,7 +143,7 @@ abbrev(NSTimeZone *tz, NSDate *d)
     }
 }
 
-static inline int
+static inline unsigned int
 lastDayOfGregorianMonth(int month, int year)
 {
   switch (month)
@@ -485,9 +485,9 @@ static inline int getDigits(const char *from, char *to, int limit)
       unsigned		formatIdx = 0;
       unsigned		sourceIdx = 0;
       char		tmpStr[20];
-      int		tmpIdx;
+      unsigned int	tmpIdx;
       unsigned		had = 0;
-      int		pos;
+      unsigned int	pos;
       BOOL		hadPercent = NO;
       NSString		*dForm;
       NSString		*tForm;
@@ -574,21 +574,21 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  if (sub != nil)
 		    {
 		      unsigned	sLen = [sub length];
-		      unsigned	i;
+		      int	i;
 
 		      if (sLen > 2)
 			{
 			  [fd setLength:
 			    (formatLen + sLen - 2) * sizeof(unichar)];
 			  format = (unichar*)[fd mutableBytes];
-			  for (i = formatLen-1; i > pos; i--)
+			  for (i = formatLen-1; i > (int)pos; i--)
 			    {
 			      format[i+sLen-2] = format[i];
 			    }
 			}
 		      else
 			{
-			  for (i = pos+1; i < formatLen; i++)
+			  for (i = pos+1; i < (int)formatLen; i++)
 			    {
 			      format[i+sLen-2] = format[i];
 			    }
@@ -1141,7 +1141,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 	     second: (unsigned int)second
 	   timeZone: (NSTimeZone *)aTimeZone
 {
-  int			c;
+  unsigned int		c;
   NSTimeInterval	s;
   NSTimeInterval	oldOffset;
   NSTimeInterval	newOffset;

@@ -608,10 +608,10 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_MDICT:
 	size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	{
-	  id	keys[size];
-	  id	objects[size];
-	  id	d;
-	  int	i;
+	  id		keys[size];
+	  id		objects[size];
+	  id		d;
+	  unsigned int	i;
 
 	  for (i = 0; i < size; i++)
 	    {

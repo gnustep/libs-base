@@ -1618,14 +1618,15 @@ static int compare(id elem1, id elem2, void* context)
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
 #define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
                         // 3 is a fairly good choice (Sedgewick)
-  unsigned	c,d, stride;
+  unsigned int	c;
+  unsigned int	d;
+  unsigned int	stride = 1;
   BOOL		found;
-  int		count = [self count];
+  unsigned int	count = [self count];
 #ifdef	GSWARN
   BOOL		badComparison = NO;
 #endif
 
-  stride = 1;
   while (stride <= count)
     {
       stride = stride * STRIDE_FACTOR + 1;

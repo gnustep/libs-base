@@ -248,7 +248,7 @@ static IMP	initImp;
 {
   unsigned count = 0;
   struct autorelease_array_list *released = _released_head;
-  int i;
+  unsigned int i;
 
   while (released && released->count)
     {
@@ -412,7 +412,7 @@ static IMP	initImp;
      releasing. */
   {
     struct autorelease_array_list *released = _released_head;
-    int i;
+    unsigned int i;
 
     while (released)
       {

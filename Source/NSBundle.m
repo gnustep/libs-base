@@ -282,10 +282,10 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 */
 + (void) _addFrameworkFromClass: (Class)frameworkClass
 {
-  NSBundle	 *bundle = nil;
+  NSBundle	*bundle = nil;
   NSString	**fmClasses;
-  NSString	 *bundlePath = nil;
-  int		  len;
+  NSString	*bundlePath = nil;
+  unsigned int	len;
 
   if (frameworkClass == Nil)
     {
@@ -295,7 +295,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
   len = strlen (frameworkClass->name);
 
   if (len > 12 * sizeof(char)
-      && !strncmp("NSFramework_", frameworkClass->name, 12))
+    && !strncmp("NSFramework_", frameworkClass->name, 12))
     {
       /* The name of the framework.  */
       NSString *name = [NSString stringWithCString: &frameworkClass->name[12]];
@@ -627,12 +627,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 	    while ((class = objc_next_class(&state)))
 	      {
-		int len = strlen (class->name);
+		unsigned int len = strlen (class->name);
 
 		if (len > 12 * sizeof(char)
-		    && !strncmp("NSFramework_", class->name, 12))
-		  classes[numClasses++] = class;
-
+		  && !strncmp("NSFramework_", class->name, 12))
+		  {
+		    classes[numClasses++] = class;
+		  }
 		if (numClasses == numBufClasses)
 		  {
 		    Class *ptr;
