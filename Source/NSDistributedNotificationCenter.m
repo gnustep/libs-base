@@ -37,8 +37,8 @@
  *      message about it - they include installation path information.
  */
 #define stringify_it(X) #X
-#define make_gdnc_cmd(X)      stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdnc &"
-#define make_gdnc_err(X)      "check that " stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdnc is running."
+#define make_gdnc_cmd(X)      stringify_it(X) "/Tools/" GNUSTEP_TARGET_DIR "/" stringify_it(GNUSTEP_LIB_COMBO) "/gdnc &"
+#define make_gdnc_err(X)      "check that " stringify_it(X) "/Tools/" GNUSTEP_TARGET_DIR "/" stringify_it(GNUSTEP_LIB_COMBO) "/gdnc is running."
 
 /*
  *	Global variables for distributed notification center types.
