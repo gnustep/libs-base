@@ -34,6 +34,8 @@
 @class Stack;
 @class Array;			/* xxx Change this to "Set" */
 
+/* xxx Should I split this into Encoder and Decoder classes? */
+
 @interface Coder : NSObject <Encoding, Decoding>
 {
   int format_version;
@@ -46,6 +48,7 @@
   Dictionary *forward_object_table;  /* table of forward references */
   Array *in_progress_table;          /* objects started r/w, but !finished */
   int interconnected_stack_height;   /* number of nested root objects */
+  NSZone *zone;
 }
 
 /* Encoding */
