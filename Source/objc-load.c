@@ -33,9 +33,7 @@
 #include <stdlib.h>
 #include <objc/objc-api.h>
 #include <objc/objc-list.h>
-#ifdef HAVE_CONFIG_H
-#include <gnustep/base/config.h>
-#endif
+#include <config.h>
 #include <Foundation/objc-load.h>
 
 /* include the interface to the dynamic linker */

@@ -34,8 +34,12 @@
 
 - initWithCollection: coll
 {
-  collection = [coll retain];
-  enum_state = [coll newEnumState];
+  self = [super init];
+  if (self)
+    {
+      collection = [coll retain];
+      enum_state = [coll newEnumState];
+    }
   return self;
 }
 
@@ -48,6 +52,7 @@
 {
   [collection freeEnumState: &enum_state];
   [collection release];
+  [super dealloc];
 }
 
 @end

@@ -31,29 +31,11 @@
 
 @implementation KeyEnumerator
 
-- initWithCollection: coll
-{
-  collection = [coll retain];
-  enum_state = [coll newEnumState];
-  return self;
-}
-
 - nextObject
 {
   id k;
   [collection nextObjectAndKey: &k withEnumState: &enum_state];
   return k;
-}
-
-- (void) dealloc
-{
-  [collection freeEnumState: &enum_state];
-  [collection release];
-/*	xxx
- *	I don't understand this - but calling [super dealloc] screws up
- *	so we use NSDeallocateObject() instead.
- */
-  NSDeallocateObject(self);
 }
 
 @end
