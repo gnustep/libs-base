@@ -290,53 +290,70 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 + (NSArray*) userLanguages
 {
-  NSArray  *currLang = nil;
-  NSString *locale;
+  NSArray	*currLang = nil;
+  NSString	*locale;
 
-  if (userLanguages)
-    return userLanguages;
-
+  if (userLanguages != nil)
+    {
+      return userLanguages;
+    }
   userLanguages = RETAIN([NSMutableArray arrayWithCapacity: 5]);
   locale = GSSetLocale(@"");
   if (sharedDefaults == nil)
     {
       /* Create our own defaults to get "Languages" since sharedDefaults
 	 depends on us */
-      NSUserDefaults *tempDefaults;
+      NSUserDefaults	*tempDefaults;
+
       tempDefaults = [[self alloc] init];
-      if (tempDefaults)
+      if (tempDefaults != nil)
 	{	
 	  [tempDefaults __createStandardSearchList];
-	  currLang =  [tempDefaults stringArrayForKey: @"Languages"];
+	  currLang = [tempDefaults stringArrayForKey: @"Languages"];
 	  RELEASE(tempDefaults);
 	}
     }
   else
-    currLang =  [[self standardUserDefaults] stringArrayForKey: @"Languages"];
-  if (currLang == nil && locale && GSLanguageFromLocale(locale))
-    currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
+    {
+      currLang =  [[self standardUserDefaults] stringArrayForKey: @"Languages"];
+    }
+  if (currLang == nil && locale != 0 && GSLanguageFromLocale(locale))
+    {
+      currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
+    }
   if (currLang == nil)
     { 
       const char	*env_list;
       NSString		*env;
 
       env_list = getenv("LANGUAGES");
-      if (env_list)
+      if (env_list != 0)
 	{
 	  env = [NSStringClass stringWithCString: env_list];
-	  currLang = RETAIN([env componentsSeparatedByString: @";"]);
+	  currLang = [env componentsSeparatedByString: @";"];
 	}
     }
 
   if (currLang != nil)
-    [userLanguages addObjectsFromArray: currLang];
+    {
+      if ([currLang containsObject: @""] == YES)
+	{
+	  NSMutableArray	*a = [currLang mutableCopy];
+
+	  [a removeObject: @""];
+	  currLang = (NSArray*)AUTORELEASE(a);
+	}
+      [userLanguages addObjectsFromArray: currLang];
+    }
 
   /* Check if "English" is included. We do this to make sure all the
      required language constants are set somewhere if they aren't set
      in the default language */
   if ([userLanguages containsObject: @"English"] == NO)
-    [userLanguages addObject: @"English"];
-	
+    {
+      [userLanguages addObject: @"English"];
+    }
+
   return userLanguages;
 }
 
@@ -683,14 +700,18 @@ static NSString	*pathForUser(NSString *user)
 {
   id	arr = [self arrayForKey: defaultName];
 	
-  if (arr)
+  if (arr != nil)
     {
       NSEnumerator	*enumerator = [arr objectEnumerator];
       id		obj;
 		
       while ((obj = [enumerator nextObject]))
-	if ( ! [obj isKindOfClass: NSStringClass])
-	  return nil;
+	{
+	  if ([obj isKindOfClass: NSStringClass] == NO)
+	    {
+	      return nil;
+	    }
+	}
       return arr;
     }
   return nil;

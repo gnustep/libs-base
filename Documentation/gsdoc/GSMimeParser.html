@@ -10,8 +10,8 @@
 <dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
 <dd>
 </dl>
-<p>Version: 0.1</p>
-<p>Date: 26 October, 2000</p>
+<p>Version: 0.2</p>
+<p>Date: 16 November, 2000</p>
 <h2><a name ="cont-0">GSMimeParser</a></h2>
 <h2><a name ="GSMimeParser">GSMimeParser</a></h2>
 <p><b>Declared in: </b> Foundation/GSMime.h</p>
@@ -35,9 +35,13 @@
 <h2>Methods </h2>
 <ul>
 <li><a href ="GSMimeParser.html#method-0">+mimeParser</a>
-<li><a href ="GSMimeParser.html#method-2">-document</a>
-<li><a href ="GSMimeParser.html#method-1">-parse:</a>
-<li><a href ="GSMimeParser.html#method-3">-parsingHeaders</a>
+<li><a href ="GSMimeParser.html#method-1">-document</a>
+<li><a href ="GSMimeParser.html#method-2">-parse:</a>
+<li><a href ="GSMimeParser.html#method-3">-parseHeader:</a>
+<li><a href ="GSMimeParser.html#method-4">-parsingHeaders</a>
+<li><a href ="GSMimeParser.html#method-5">-scanHeader:named:inTo:</a>
+<li><a href ="GSMimeParser.html#method-6">-scanSpecial:</a>
+<li><a href ="GSMimeParser.html#method-7">-scanToken:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">mimeParser</a></h3>
@@ -47,7 +51,13 @@
           
  <hr>
 <hr><h2>Instances Methods </h2>
-<h3><a name ="method-1">parse:</a></h3>
+<h3><a name ="method-1">document</a></h3>
+- (GSMimeDocument*) <b>document</b>;<br>
+
+	    Returns the object into which raw mime data is being parsed.
+          
+ <hr>
+<h3><a name ="method-2">parse:</a></h3>
 - (BOOL) <b>parse:</b> (NSData*)rawData;<br>
 
 	    This method is called repeatedly to pass raw mime data into
@@ -56,13 +66,34 @@
 	    all the available information.
           
  <hr>
-<h3><a name ="method-2">document</a></h3>
-- (GSMimeDocument*) <b>document</b>;<br>
+<h3><a name ="method-3">parseHeader:</a></h3>
+- (BOOL) <b>parseHeader:</b> (NSString*)aRawHeader;<br>
 
-	    Returns the object into which raw mime data is being parsed.
-          
+	    <p>
+
+	      This method is called to parse a header line <em>for the
+	      current document</em>, split its contents into an info
+	      dictionary, and add that information to the document.
+	    </p>
+
+	    <p>
+
+	      The standard implementation of this method scans basic
+	      information and then calls <code>scanHeaders:named:into:</code>
+	      to complete the parsing of the header.
+	    </p>
+
+	    <p>
+
+	      This method also performs consistency checks on headers scanned
+	      so it is recommended that it is not overridden, but that
+	      subclasses override <code>scanHeaders:named:into:</code> to
+	      implement custom scanning.
+	    </p>
+
+	  
  <hr>
-<h3><a name ="method-3">parsingHeaders</a></h3>
+<h3><a name ="method-4">parsingHeaders</a></h3>
 - (BOOL) <b>parsingHeaders</b>;<br>
 
 	    Returns YES if the parser is expecting to read mime headers,
@@ -70,6 +101,60 @@
 	    data containing headers, and is now waiting for the body of
             trhe mime message (or has been passed all data).
           
+ <hr>
+<h3><a name ="method-5">scanHeader:named:inTo:</a></h3>
+- (BOOL) <b>scanHeader:</b> (NSScanner*)aScanner <b>named:</b> (NSString*)aName <b>inTo:</b> (NSMutableDictionary*)info;<br>
+
+	    <p>
+
+	      This method is called to parse a header line and split its
+	      contents into an info dictionary.
+	    </p>
+
+	    <p>
+
+	      On entry, the dictionary is already partially filled,
+	      the name argument is a lowercase representation of the
+	      header name, and the scanner is set to a scan location
+              immediately after the colon in the header string.
+	    </p>
+
+	    <p>
+
+	      If the header is parsed successfully, the method should
+	      return YES, otherwise NO.
+	    </p>
+
+	    <p>
+
+	      You should not call this method directly yourself, but may
+	      override it to support parsing of new headers.
+	    </p>
+
+	  
+ <hr>
+<h3><a name ="method-6">scanSpecial:</a></h3>
+- (NSString*) <b>scanSpecial:</b> (NSScanner*)aScanner;<br>
+
+	    A convenience method to use a scanner (that is set up to scan a
+	    header line) to scan in a special character that terminated a
+	    token previously scanned.  If the token was terminated by
+	    whitespace and no other special character, the string returned
+	    will contain a single space character.
+	  
+ <hr>
+<h3><a name ="method-7">scanToken:</a></h3>
+- (NSString*) <b>scanToken:</b> (NSScanner*)aScanner;<br>
+
+	    A convenience method to use a scanner (that is set up to scan a
+	    header line) to scan a header token - either a quoted string or
+	    a simple word.
+	    <ul>
+<li>Leading whitespace is ignored.
+<li>Backslash escapes in quoted text are converted
+</ul>
+
+	  
  <hr>
 </body>
 

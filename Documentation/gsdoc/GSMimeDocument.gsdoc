@@ -7,8 +7,8 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <version>0.1</version>
-    <date>25 October, 2000</date>
+    <version>0.2</version>
+    <date>16 November, 2000</date>
   </head>
   <body>
     <chapter>
@@ -62,23 +62,29 @@
 
         <method type="BOOL">
           <sel>addHeader:</sel>
-          <arg type="NSString*">aHeader</arg>
+          <arg type="NSDictionary*">headerInfo</arg>
           <desc>
-	    This method may be called to add a header to the document.
-	    The header must be a single line of text in the standard
-	    format (begining with a name and a colon).  It will be
-	    added after all other headers in the document.
+	    <p>
+	      This method may be called to add a header to the document.
+	      The header must be a mutable dictionary object that contains
+	      at least the fields that are standard for all headers.
+	    </p>
           </desc>
         </method>
 
-        <method type="NSData*">
-          <sel>boundary</sel>
+        <method type="NSArray">
+          <sel>allHeaders</sel>
           <desc>
-	    For a multipart document, return the raw data used to
-	    delimit the parts of the document.
-	    Otherwise, return nil.
-          </desc>
-        </method>
+	    <p>
+	      This method returns an array containing NSDictionary objects
+	      representing the headers associated with the document.
+	    </p>
+	    <p>
+	      The order of the headers in the array is the order of the
+	      headers in the document.
+	    </p>
+	  </desc>
+	</method>
 
         <method type="id">
           <sel>content</sel>
@@ -98,7 +104,7 @@
 
         <method type="void">
           <sel>deleteHeader:</sel>
-          <arg type="NSString*">aHeader</arg>
+          <arg type="NSString*">rawHeader</arg>
           <desc>
 	    This method removes all occurrances of headers whose raw data
 	    exactly matches the supplied string.
@@ -114,16 +120,8 @@
 	  </desc>
 	</method>
 
-        <method type="NSArray">
-          <sel>infoForAllHeaders</sel>
-          <desc>
-	    This method returns an array containing info dictionaries that
-	    represent all the headers of the document.
-	  </desc>
-	</method>
-
         <method type="NSDictionary*">
-          <sel>infoForHeaderNamed:</sel>
+          <sel>headerNamed:</sel>
           <arg type="NSString*">aName</arg>
           <desc>
 	    This method returns the info dictionary for the first header
@@ -132,64 +130,11 @@
 	</method>
 
         <method type="NSArray*">
-          <sel>infoForHeadersNamed:</sel>
+          <sel>headersNamed:</sel>
           <arg type="NSString*">aName</arg>
           <desc>
 	    This method returns an array of info dictionaries for all headers
 	    whose names equal the supplied argument.
-	  </desc>
-	</method>
-
-        <method type="BOOL">
-          <sel>parseHeader:</sel>
-          <arg type="NSScanner*">aScanner</arg>
-          <sel>named:</sel>
-          <arg type="NSString*">aName</arg>
-          <sel>inTo:</sel>
-          <arg type="NSMutableDictionary*">info</arg>
-          <desc>
-	    This method is called to parse a header line and split its
-	    contents into an info dictionary.
-	    <p>
-	      On entry, the dictionary is already partially filled,
-	      the name argument is a lowercase representation of the
-	      header name, and the scanner is set to a scan location
-              immediately after the colon in the header string.
-	    </p>
-	    <p>
-	      If the header is parsed successfully, the method should
-	      return YES, otherwise NO.
-	    </p>
-	    <p>
-	      You should not call this method directly yourself, but may
-	      override it to support parsing of new headers.
-	    </p>
-	  </desc>
-	</method>
-
-        <method type="NSString*">
-          <sel>scanSpecial:</sel>
-          <arg type="NSScanner*">aScanner</arg>
-          <desc>
-	    A convenience method to use a scanner (that is set up to scan a
-	    header line) to scan in a special character that terminated a
-	    token previously scanned.  If the token was terminated by
-	    whitespace and no other special character, the string returned
-	    will contain a single space character.
-	  </desc>
-	</method>
-
-        <method type="NSString*">
-          <sel>scanToken:</sel>
-          <arg type="NSScanner*">aScanner</arg>
-          <desc>
-	    A convenience method to use a scanner (that is set up to scan a
-	    header line) to scan a header token - either a quoted string or
-	    a simple word.
-	    <list>
-	      <item>Leading whitespace is ignored.</item>
-	      <item>Backslash escapes in quoted text are converted</item>
-	    </list>
 	  </desc>
 	</method>
 
@@ -203,12 +148,9 @@
 
         <method type="BOOL">
           <sel>setHeader:</sel>
-          <arg type="NSString*">aHeader</arg>
+          <arg type="NSDictionary*">headerInfo</arg>
           <desc>
 	    This method may be called to set a header in the document.
-	    The header must be a single line of text in the standard
-	    format (begining with a name and a colon).  It will be
-	    added after all other headers in the document.
 	    Any other headers with the same name will be removed from
 	    the document.
           </desc>

@@ -7,8 +7,8 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <version>0.1</version>
-    <date>26 October, 2000</date>
+    <version>0.2</version>
+    <date>16 November, 2000</date>
   </head>
   <body>
     <chapter>
@@ -24,12 +24,21 @@
 	    aspects of the parsing operation.
 	  </p>
 	</desc>
+
         <method type="GSMimeParser*" factory="yes">
           <sel>mimeParser</sel>
           <desc>
 	    Create a parser.
           </desc>
         </method>
+
+        <method type="GSMimeDocument*">
+          <sel>document</sel>
+          <desc>
+	    Returns the object into which raw mime data is being parsed.
+          </desc>
+        </method>
+
         <method type="BOOL">
           <sel>parse:</sel>
           <arg type="NSData*">rawData</arg>
@@ -40,12 +49,30 @@
 	    all the available information.
           </desc>
         </method>
-        <method type="GSMimeDocument*">
-          <sel>document</sel>
+
+        <method type="BOOL">
+          <sel>parseHeader:</sel>
+          <arg type="NSString*">aRawHeader</arg>
           <desc>
-	    Returns the object into which raw mime data is being parsed.
-          </desc>
-        </method>
+	    <p>
+	      This method is called to parse a header line <em>for the
+	      current document</em>, split its contents into an info
+	      dictionary, and add that information to the document.
+	    </p>
+	    <p>
+	      The standard implementation of this method scans basic
+	      information and then calls <code>scanHeaders:named:into:</code>
+	      to complete the parsing of the header.
+	    </p>
+	    <p>
+	      This method also performs consistency checks on headers scanned
+	      so it is recommended that it is not overridden, but that
+	      subclasses override <code>scanHeaders:named:into:</code> to
+	      implement custom scanning.
+	    </p>
+	  </desc>
+	</method>
+
         <method type="BOOL">
           <sel>parsingHeaders</sel>
           <desc>
@@ -55,6 +82,62 @@
             trhe mime message (or has been passed all data).
           </desc>
         </method>
+
+        <method type="BOOL">
+          <sel>scanHeader:</sel>
+          <arg type="NSScanner*">aScanner</arg>
+          <sel>named:</sel>
+          <arg type="NSString*">aName</arg>
+          <sel>inTo:</sel>
+          <arg type="NSMutableDictionary*">info</arg>
+          <desc>
+	    <p>
+	      This method is called to parse a header line and split its
+	      contents into an info dictionary.
+	    </p>
+	    <p>
+	      On entry, the dictionary is already partially filled,
+	      the name argument is a lowercase representation of the
+	      header name, and the scanner is set to a scan location
+              immediately after the colon in the header string.
+	    </p>
+	    <p>
+	      If the header is parsed successfully, the method should
+	      return YES, otherwise NO.
+	    </p>
+	    <p>
+	      You should not call this method directly yourself, but may
+	      override it to support parsing of new headers.
+	    </p>
+	  </desc>
+	</method>
+
+        <method type="NSString*">
+          <sel>scanSpecial:</sel>
+          <arg type="NSScanner*">aScanner</arg>
+          <desc>
+	    A convenience method to use a scanner (that is set up to scan a
+	    header line) to scan in a special character that terminated a
+	    token previously scanned.  If the token was terminated by
+	    whitespace and no other special character, the string returned
+	    will contain a single space character.
+	  </desc>
+	</method>
+
+        <method type="NSString*">
+          <sel>scanToken:</sel>
+          <arg type="NSScanner*">aScanner</arg>
+          <desc>
+	    A convenience method to use a scanner (that is set up to scan a
+	    header line) to scan a header token - either a quoted string or
+	    a simple word.
+	    <list>
+	      <item>Leading whitespace is ignored.</item>
+	      <item>Backslash escapes in quoted text are converted</item>
+	    </list>
+	  </desc>
+	</method>
+
       </class>
     </chapter>
   </body>
