@@ -67,7 +67,10 @@ CHECKABLE_TOOLS = \
 		thread-except \
 		values \
 
-TEST_TOOL_NAME = $(CHECKABLE_TOOLS) \
+TEST_TOOL_NAME = $(CHECKABLE_TOOLS)
+
+# Don't make these normally
+ADDITIONAL_TOOLS = \
 		diningPhilosophers \
 		gstcpport-client \
 		gstcpport-server \

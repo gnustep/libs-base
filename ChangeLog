@@ -1,3 +1,9 @@
+2003-10-09  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add special check for sys/mount.h for NetBSD.
+
+	* Testing/GNUmakefile: Only make CHECKABLE_TOOLS by default.
+
 2003-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* GSArray.m: memory leak decoding a placeholder fixed.
