@@ -35,6 +35,8 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotificationQueue.h>
 
+static Class threadClass = Nil;
+
 #ifndef NO_GNUSTEP
 #ifndef HAVE_OBJC_THREAD_ADD
 /* We need to access these private vars in the objc runtime - because
@@ -265,6 +267,7 @@ gnustep_base_thread_callback()
 					    withObject: nil];
       defaultThread->_active = YES;
       objc_thread_set_data(defaultThread);
+      threadClass = self;
     }
 }
 
@@ -419,7 +422,22 @@ gnustep_base_thread_callback()
 @end
 
 @implementation NSThread (GNUstepRegister)
+#warning "NSThread +registerCurrentThread will be removed in 1.0.0"
+/* Deprecated - will be removed in 1.0.0 */
 + (BOOL) registerCurrentThread 
+{
+  return GSRegisterCurrentThread ();
+}
+
+/* Deprecated - will be removed in 1.0.0 */
++ (void) unregisterCurrentThread
+{
+  GSUnregisterCurrentThread ();
+}
+@end
+
+BOOL
+GSRegisterCurrentThread (void)
 {
   NSThread *thread;
 
@@ -432,17 +450,18 @@ gnustep_base_thread_callback()
     }
 
   /*
-   * Create the new thread object.
-   */
-  thread = (NSThread*)NSAllocateObject (self, 0, NSDefaultMallocZone ());
-  thread = [thread _initWithSelector: NULL  toTarget: nil  withObject: nil];
-  objc_thread_set_data (thread);
-  ((NSThread *)thread)->_active = YES;
-
-  /*
    * Make sure the Objective-C runtime knows there is an additional thread.
    */
   objc_thread_add ();
+
+  /*
+   * Create the new thread object.
+   */
+  thread = (NSThread*)NSAllocateObject (threadClass, 0, 
+					NSDefaultMallocZone ());
+  thread = [thread _initWithSelector: NULL  toTarget: nil  withObject: nil];
+  objc_thread_set_data (thread);
+  ((NSThread *)thread)->_active = YES;
 
   /*
    * We post the notification after we register the thread.  
@@ -452,12 +471,13 @@ gnustep_base_thread_callback()
   return YES;
 }
 
-+ (void) unregisterCurrentThread
+void
+GSUnregisterCurrentThread (void)
 {
   NSThread *thread;
 
   thread = GSCurrentThread();
-
+  
   if (thread->_active == YES)
     {
       /*
@@ -478,5 +498,3 @@ gnustep_base_thread_callback()
       objc_thread_remove ();
     }
 }
-@end
-

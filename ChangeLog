@@ -1,3 +1,14 @@
+2001-03-19  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSThread.m: registerCurrentThread and
+	unregisterCurrentThread turned into functions - called
+	GSRegisterCurrentThread and GSUnregisterCurrentThread.
+	* Headers/gnustep/base/NSThread.h: Updated for change.
+
+	* Source/NSThread.m (GSRegisterCurrentThread): Call
+	objc_thread_add before creating the NSThread object using a method
+	call.
+
 2001-03-19  Jonathan Gapen  <jagapen@home.com>
 
 	* Source/NSString.m: In ([-rangeOfComposedCharacterSequenceAtIndex:]),
