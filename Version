@@ -1,17 +1,16 @@
 # This file is included in various Makefile's to get version information.
 
 # The gcc version required to compile the library.
-OBJECTS_GCC_VERSION = 2.7.2
+GCC_VERSION = 2.7.2
 
 # The version number of this release.
-OBJECTS_MAJOR_VERSION = 0
-OBJECTS_MINOR_VERSION = 2
-OBJECTS_SUBMINOR_VERSION = 1
-OBJECTS_VERSION = \
-$(OBJECTS_MAJOR_VERSION).$(OBJECTS_MINOR_VERSION).$(OBJECTS_SUBMINOR_VERSION)
+MAJOR_VERSION = 0
+MINOR_VERSION = 2
+SUBMINOR_VERSION = 1
+VERSION = $(MAJOR_VERSION).$(MINOR_VERSION).$(SUBMINOR_VERSION)
 
-#OBJECTS_FTP_MACHINE = prep.ai.mit.edu
-#OBJECTS_FTP_DIRECTORY = pub/gnu
-OBJECTS_FTP_MACHINE = alpha.gnu.ai.mit.edu
-OBJECTS_FTP_DIRECTORY = gnu
+#FTP_MACHINE = prep.ai.mit.edu
+#FTP_DIRECTORY = pub/gnu
+FTP_MACHINE = alpha.gnu.ai.mit.edu
+FTP_DIRECTORY = gnu
 
