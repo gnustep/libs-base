@@ -93,10 +93,10 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 }
 
 - initForReadingFromStream: (id <Streaming>) s
-   formatVersion: (int)version
+	     withFormatVersion: (int)version
 {
   [self _initWithStream: s
-	 formatVersion: version];
+	formatVersion: version];
   if ([stream streamPosition] != 0)
     {
       char name[128];		/* max class name length. */
@@ -137,10 +137,10 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 
 /* This is a designated initializer for writing. */
 - initForWritingToStream: (id <Streaming>) s
-   formatVersion: (int)version
+       withFormatVersion: (int)version
 {
   [self _initWithStream: s
-	 formatVersion: version];
+	formatVersion: version];
   [self writeSignature];
   return self;
 }
@@ -148,7 +148,7 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 - initForWritingToStream: (id <Streaming>) s
 {
   [self initForWritingToStream: s
-	formatVersion: [[self class] defaultFormatVersion]];
+	withFormatVersion: [[self class] defaultFormatVersion]];
 }
 
 - initForWritingToFile: (id <String>) file
