@@ -26,6 +26,7 @@
 
 /* I do this to make substituting Boehm's Garbage Collection easy. */
 extern void *(*objc_malloc)(size_t);
+extern void *(*objc_valloc)(size_t);
 extern void *(*objc_atomic_malloc)(size_t);
 extern void *(*objc_realloc)(void *, size_t);
 extern void *(*objc_calloc)(size_t, size_t);
@@ -33,6 +34,8 @@ extern void (*objc_free)(void *);
 
 #define OBJC_MALLOC(VAR, TYPE, NUM) \
    ((VAR) = (TYPE *) (*objc_malloc)((unsigned)(NUM)*sizeof(TYPE))) 
+#define OBJC_VALLOC(VAR, TYPE, NUM) \
+   ((VAR) = (TYPE *) (*objc_valloc)((unsigned)(NUM)*sizeof(TYPE))) 
 #define OBJC_ATOMIC_MALLOC(VAR, TYPE, NUM) \
    ((VAR) = (TYPE *) (*objc_atomic_malloc)((unsigned)(NUM)*sizeof(TYPE))) 
 #define OBJC_REALLOC(VAR, TYPE, NUM) \
