@@ -950,6 +950,39 @@ mapClassName(NSUnarchiverObjectInfo *info)
     }
 }
 
+- (NSData*) decodeDataObject
+{
+  unsigned	l;
+
+  (*dValImp)(self, dValSel, @encode(unsigned int), &l);
+  if (l)
+    {
+      unsigned char	c;
+
+      (*dValImp)(self, dValSel, @encode(unsigned char), &c);
+      if (c == 0)
+	{
+	  void		*b;
+	  NSData	*d;
+
+	  b = NSZoneMalloc(zone, l);
+	  d = [[NSData allocWithZone: zone] initWithBytesNoCopy: b
+							 length: l
+						       fromZone: zone];
+	  [d autorelease];
+	  [self decodeArrayOfObjCType: @encode(unsigned char)
+				count: l
+				   at: b];
+	  return d;
+	}
+      else
+	[NSException raise: NSInternalInconsistencyException
+		    format: @"Decoding data object with unknown type"];
+    }
+  else
+    return [NSData data];
+}
+
 /*
  *	The [-decodeObject] method is implemented purely for performance -
  *	It duplicates the code for handling objects in the
