@@ -11,7 +11,7 @@
 @itemize @bullet
 
 @item NSZone memory allocation may not work correctly. If you
-encounter a problem with NSZones, use switch to using the
+encounter a problem with NSZones, switch to using the
 default zone instead of creating one. 
 
 @item Invocations (and by extension, Distributed Objects) work well only
