@@ -8,7 +8,7 @@ The currently released version of the library is
 
 @section Noteworthy changes since version @samp{0.1.14}
 
-@itemize
+@itemize @bullet
 
 @item Can be made as a shared library by passing @samp{--enabled-shared} to
 `configure'.  Thanks to Jan Kybic <kybic@@earn.cvut.cz> and Bryan Headley
@@ -48,7 +48,7 @@ places.
 
 @section Noteworthy changes since version @samp{0.1.13}
 
-@itemize
+@itemize @bullet
 
 @item NSProcessInfo class, thanks to Georg Tuparev.
 
@@ -65,7 +65,7 @@ methods implemented.
 
 @section Noteworthy changes since version @samp{0.1.12}
 
-@itemize
+@itemize @bullet
 
 @item Bug fixes: installation; NSArray and NSDictionary copying;
 NSArray, NSDictionary, NSData, NSArchiver, NSUnarchiver concrete class
@@ -76,7 +76,7 @@ more details.
 
 @section Noteworthy changes since version @samp{0.1.10}
 
-@itemize
+@itemize @bullet
 
 @item Now using @file{src}, @file{config} and @file{doc} directories to
 un-clutter the top-level directory.
@@ -100,7 +100,7 @@ And several bug fixes.  See the ChangeLog for details.
 
 @section Noteworthy changes since version @samp{0.1.9}
 
-@itemize
+@itemize @bullet
 
 @item
 Renamed "foundation" include file directory to "Foundation", in
@@ -113,7 +113,7 @@ Several bug fixes, including a problem with a missing file in 0.1.9.
 
 @section Noteworthy changes since version @samp{0.1.8}
 
-@itemize
+@itemize @bullet
 
 @item
 Many new GNUStep classes: NSEnumerator, NSArrayEnumerator, NSCoder,
@@ -159,7 +159,7 @@ implementations back in Collection.m.
 
 @section Noteworthy changes since version @samp{0.1.7}
 
-@itemize
+@itemize @bullet
 
 @item
 Thanks to Adam Fedor <fedor@@boulder.colorado.edu>, classes NSBundle,
@@ -185,7 +185,7 @@ and behavior adding.  See the ChangeLog for details.
 
 @section Noteworthy changes since version @samp{0.1.5}
 
-@itemize
+@itemize @bullet
 
 @item
 Better string handling.  NSString is now fleshed out, and I've
@@ -233,7 +233,7 @@ write a test suite using dejagnu.  Any volunteers?
 I made this release now in order to share the progress that is being
 made on GNUSTEP.
 
-@itemize
+@itemize @bullet
 
 @item
 New GNUSTEP implementations: NSObject, NSAutoreleasePool, NSZone.
@@ -258,7 +258,7 @@ ConstantStrings using the @@"" syntax.
 
 @section Noteworthy changes since version @samp{0.1.0}
 
-@itemize
+@itemize @bullet
 
 @item New category: ObjectRetaining.  New classes: AutoreleasePool,
 AutoreleaseStack.
@@ -270,7 +270,7 @@ README.ULTRIX.  Time.m patched for Solaris 2.4.  test12.m free fix.
 
 @section Noteworthy changes in version @samp{0.1.0}
 
-@itemize
+@itemize @bullet
 
 @item Renamed the library from @samp{libcoll} to @samp{libobjects}.
 (See the end of the file @samp{DISCUSSION} for the background on this
@@ -305,7 +305,7 @@ NeXT-compatible zone functions.
 
 @section Noteworthy changes in verion @samp{940524}
 
-@itemize
+@itemize @bullet
 
 @item A NeXT-compatible NXStringTable object, thanks to Adam Fedor
 <adam@@bastille.rmnug.org>.
@@ -337,7 +337,7 @@ for better NeXT-compability.  And more.
 
 @section Noteworthy changes in version @samp{931026}
 
-@itemize
+@itemize @bullet
 
 @item
 Installation using @samp{./configure} and @samp{autoconf}

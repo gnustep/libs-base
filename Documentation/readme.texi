@@ -95,7 +95,7 @@ distributed object support.
 @c There are several GNU protocols also.  You can recognize the protocols
 @c by their name: they all end with ``ing''.
 
-@itemize
+@itemize @bullet
 
 @item The collection objects all conform to the @samp{Collecting}
 protocol.  Reading @samp{./objects/Collecting.h} is a good place to
@@ -249,7 +249,7 @@ A few simple example programs can be found in @samp{./examples}.
 Read and enjoy.  To compile them (after having compiled the library),
 type @samp{make} in the @samp{examples} directory.
 
-@itemize
+@itemize @bullet
 
 @item @samp{dictionary.m} demonstrates the basic features of the
 Dictionary object.
@@ -287,7 +287,7 @@ takers?
 
 @section How can you help?
 
-@itemize
+@itemize @bullet
 
 @item Read the projects and  questions in the @samp{TODO} file.  If you
 can volunteer for any of the projects, or if you have any useful

@@ -15,7 +15,7 @@ and C types to byte streams, ports for network packet transmission,
 distributed objects (remote object messaging), pseudo-random number
 generators, and time handling facilities.
 
-@itemize
+@itemize @bullet
 
 @item
 The heirarchy of collection objects are similar in spirit to Smalltalk's
