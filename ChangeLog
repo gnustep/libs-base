@@ -1,3 +1,8 @@
+2002-01-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Correct returns from within exception handler.
+	* Source/NSUserDefaults.m: use NSDefaultRunLoopMode.
+
 Mon Jan 21 17:08:42 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/Makefile.postamble (after-uninstall): Removed GSConfig.h 
