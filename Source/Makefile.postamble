@@ -83,13 +83,13 @@ after-install::
 # Things to do after uninstalling
 after-uninstall::
 	for file in $(GNU_HEADERS); do \
-	  rm $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
+	  rm -f $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
 	done
 	for file in $(UNICODE_HEADERS); do \
-	  rm $(GNUSTEP_HEADERS)/gnustep/$$file ; \
+	  rm -f $(GNUSTEP_HEADERS)/gnustep/$$file ; \
 	done
-	rm $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GSConfig.h
-	rm $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/mframe.h
+	rm -f $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GSConfig.h
+	rm -f $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/mframe.h
 
 # Things to do before cleaning
 # before-clean::
