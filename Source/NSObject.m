@@ -211,7 +211,7 @@ typedef	struct obj_layout *obj;
 
 #include <base/GSIMap.h>
 
-static GSIMapTable_t	retain_counts = 0;
+static GSIMapTable_t	retain_counts = {0};
 
 #endif	/* !defined(REFCNT_LOCAL) */
 
@@ -288,7 +288,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	{
 	  return YES;
 	}
-      if (node->value.uint) == 0)
+      if ((node->value.uint) == 0)
 	{
 	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
 	  return YES;
@@ -738,7 +738,7 @@ static BOOL double_release_check_enabled = NO;
       GSSetLocaleC("");		// Set up locale from environment.
 
       // Create the global lock
-      gnustep_global_lock = [[NSRecursiveLock alloc] init];
+      gnustep_global_lock = [NSRecursiveLock new];
 
       // Zombie management stuff.
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,

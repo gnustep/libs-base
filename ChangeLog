@@ -1,4 +1,9 @@
-2002-06-00  Richard Frith-Macdonald <rfm@gnu.org>
+2002-06-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Fix a few errors which crept in to the map
+	table based reference counting.
+
+2002-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/UnixFileHandle.m: Avoid some unnecessary autoreleases.
 
