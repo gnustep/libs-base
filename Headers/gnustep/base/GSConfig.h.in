@@ -137,6 +137,12 @@ typedef	@GS_ADDR@ gsaddr;
 #define GS_HAVE_I128	@GS_HAVE_I128@
 
 /*
+ *	Do we have the GNU Multiple-precision library for NSDecimal?
+ */
+//#define HAVE_GMP	@HAVE_GMP@
+#define HAVE_GMP	0
+
+/*
  * Macros to deal with hiding an object from the garbage collector
  * This macro employs the procesor-dependent knowledge that a pointer to an
  * object will always be on an even address boundary.  If we ever port to a

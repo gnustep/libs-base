@@ -59,7 +59,7 @@
   
  */
 
-#ifdef HAVE_GMP
+#if	HAVE_GMP
 
 // Define GSDecimal as using a character vector
 typedef struct {
@@ -1021,7 +1021,7 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
   GSDecimalCompact(result);
 }
 
-#ifdef HAVE_GMP
+#if	HAVE_GMP
 
 static void CharvecToDecimal(const GSDecimal *m, NSDecimal *n)
 {
