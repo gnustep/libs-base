@@ -21,6 +21,24 @@
 </p>
 <hr>
 
+	    <p>
+
+	      This class maintains a stack of autorelease pools objects
+	      in each thread.
+	    </p>
+
+	    <p>
+
+	      When an autorelease pool is created, it is automatically
+	      added to the stack of pools in the thread.
+	    </p>
+
+	    <p>
+
+	      When a pool is destroyed, it (and any pool later in
+	      the stack) is removed from the stack.
+	    </p>
+
           
 <h2>Instance Variables </h2>
 <ul>
@@ -28,17 +46,111 @@
 <h2>Methods </h2>
 <ul>
 <li ><a href ="NSAutoreleasePool.html#method-0">+addObject:</a>
+<li ><a href ="NSAutoreleasePool.html#method-3">+autoreleaseCountForObject:</a>
+<li ><a href ="NSAutoreleasePool.html#method-2">+enableRelease:</a>
+<li ><a href ="NSAutoreleasePool.html#method-4">+freeCache</a>
+<li ><a href ="NSAutoreleasePool.html#method-5">+setPoolCountThreshold:</a>
 <li ><a href ="NSAutoreleasePool.html#method-1">-addObject:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">addObject:</a></h3>
 + (void) <b>addObject:</b> (id)anObject;<br>
 
+	    <p>
+
+	      Adds the specified object to the current autorelease pool.
+	      If there is no autorelease pool in the thread,
+	      a warning is logged.
+	    </p>
+
+          
+ <hr>
+<h3><a name ="method-2">enableRelease:</a></h3>
++ (void) <b>enableRelease:</b> (BOOL)flag;<br>
+Standards:  GNUstep NotMacOS-X NotOpenStep<br>
+
+	    <p>
+
+	      Specifies whether objects contained in autorelease pools are to
+	      be released when the pools are deallocated (by default YES).
+	    </p>
+
+	    <p>
+
+	      You can set this to NO for debugging purposes.
+	    </p>
+
+          
+ <hr>
+<h3><a name ="method-3">autoreleaseCountForObject:</a></h3>
++ (unsigned) <b>autoreleaseCountForObject:</b> (id)anObject;<br>
+Standards:  GNUstep NotMacOS-X NotOpenStep<br>
+
+	    <p>
+
+	      Counts the number of times that the specified object occurs
+	      in autorelease pools in the current thread.
+	    </p>
+
+	    <p>
+
+	      This method is <em>slow</em> and should probably only be
+	      used for debugging purposes.
+	    </p>
+
+          
+ <hr>
+<h3><a name ="method-4">freeCache</a></h3>
++ (void) <b>freeCache</b>;<br>
+Standards:  GNUstep NotMacOS-X NotOpenStep<br>
+
+	    <p>
+
+	      When autorelease pools are deallocated, the memory they used
+	      is retained in a cache for re-use so that new polls can be
+	      created very quickly.
+	    </p>
+
+	    <p>
+
+	      This method may be used to empty that cache, ensuring that
+	      the minimum memory is used by the application.
+	    </p>
+
+          
+ <hr>
+<h3><a name ="method-5">setPoolCountThreshold:</a></h3>
++ (void) <b>setPoolCountThreshold:</b> (unsigned)c;<br>
+Standards:  GNUstep NotMacOS-X NotOpenStep<br>
+
+	    <p>
+
+	      Specifies a limit to the number of objects that may be added to
+	      an autorelease pool.  When this limit is reached an exception is
+	      raised.
+	    </p>
+
+	    <p>
+
+	      You can set this to a smallish value to catch problems with code
+	      that autoreleases too many objects to operate efficiently.
+	    </p>
+
+	    <p>
+
+	      Default value is maxint.
+	    </p>
+
           
  <hr>
 <hr><h2>Instances Methods </h2>
 <h3><a name ="method-1">addObject:</a></h3>
 - (void) <b>addObject:</b> (id)anObject;<br>
+
+	    <p>
+
+	      Adds the specified object to this autorelease pool.
+	    </p>
 
           
  <hr>

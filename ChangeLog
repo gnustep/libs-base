@@ -3,6 +3,10 @@
 	* Source/NSConnection.m: Use respondsToSelector rather than respondsTo
 	* Source/NSRunLoop.m: ditto ... and tidy up categories to avoid
 	compiler warnings.
+	* Source/NSAutoreleasePool.m: Add ([+freeCache]) method to clear out
+	the cache of pools in the current thread.
+	* Documentation/gsdoc/NSAutoreleasePool.gsdoc: basic class
+	documentation inlcuding normal GNUstep extensions.
 
 2001-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
