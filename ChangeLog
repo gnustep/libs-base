@@ -1,6 +1,7 @@
 2004-02-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: added a couple of uuencoding methods.
+	Integrated (crudely) uuencoding/uudecoding support based on x-uuencode
 
 2004-02-18  David Ayers  <d.ayers@inode.at>
 

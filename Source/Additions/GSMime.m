@@ -574,6 +574,27 @@ wordData(NSString *word)
 }
 @end
 
+/**
+ * Inefficient ... copies data into output object and only performs
+ * the actual decoding at the end.
+ */
+@interface	GSMimeUUCodingContext : GSMimeCodingContext
+@end
+
+@implementation	GSMimeUUCodingContext
+- (BOOL) decodeData: (const void*)sData
+	     length: (unsigned)length
+	   intoData: (NSMutableData*)dData
+{
+  [super decodeData: sData length: length intoData: dData];
+
+  if ([self atEnd] == YES)
+    {
+      [dData setData: [GSMimeDocument decode: dData UUName: 0]];
+    }
+  return YES;
+}
+@end
 
 
 @interface GSMimeParser (Private)
@@ -649,6 +670,7 @@ wordData(NSString *word)
  *   <item>7bit (no coding actually performed)</item>
  *   <item>8bit (no coding actually performed)</item>
  *   <item>chunked (for HTTP/1.1)</item>
+ *   <item>x-uuencode</item>
  * </list>
  * To add new coding schemes to the parser, you need to ovrride
  * this method to return a new coding context for your scheme
@@ -697,6 +719,10 @@ wordData(NSString *word)
       else if ([value isEqualToString: @"chunked"] == YES)
 	{
 	  return AUTORELEASE([GSMimeChunkedDecoderContext new]);
+	}
+      else if ([value isEqualToString: @"x-uuencode"] == YES)
+	{
+	  return AUTORELEASE([GSMimeUUCodingContext new]);
 	}
     }
 
@@ -4600,6 +4626,18 @@ static NSCharacterSet	*tokenSet = nil;
 	      pos += 76;
 	    }
 	  [md appendBytes: &ptr[pos] length: len-pos];
+	}
+      else if ([[enc value] isEqualToString: @"x-uuencode"] == YES)
+        {
+	  NSString	*name;
+
+	  name = [[self headerNamed: @"content-type"] parameterForKey: @"name"];
+	  if (name == nil)
+	    {
+	      name = @"data";
+	    }
+	  d = [GSMimeDocument encode: d UUName: name];
+	  [md appendData: d];
 	}
       else
 	{
