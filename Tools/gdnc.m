@@ -1036,7 +1036,6 @@ main(int argc, char** argv, char** env)
 	    exit(EXIT_SUCCESS);
 	}
     }
-#endif /* !MINGW */
 
   /*
    *	Ensure we don't have any open file descriptors which may refer
@@ -1072,6 +1071,7 @@ main(int argc, char** argv, char** env)
       gdnc_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
+#endif /* !MINGW */
 
   {
 #if GS_WITH_GC == 0
