@@ -1,3 +1,20 @@
+2005-03-03  Adam Fedor  <fedor@gnu.org>
+
+	* Start on integrating Sheldon Gills NSPathUtilities patches.
+	* Headers/Foundation/NSPathUtilities.h: Depreciate 
+	GSSystemRootDirectory, GSStandardPathPrefixes. Add 
+	GSPreferencesDirectory to NSSearchPathDirectory enum. Enumerate
+	NSSearchPathDomainMask values.
+	* Headers/Additions/GNUStepBase/Win32Support.h,
+	Headers/Additions/GNUStepBase/Win32_Utilites.h: New files.
+	* Source/GNUmakefile: Add NSPathUtilities.m
+	* Source/NSUser.m: Move everything in here...
+	* Source/NSPathUtilities.m: to here.
+	* Source/win32/GNUmakefile: Add Win32Support.m, Win32_Utilities.m
+	* Source/win32Win32Support.m, Win32_Utilities.m: New files
+	* Testing/nspathutilites.m: New file.
+	(Files and patches from Sheldon Gill with minor modifications).
+
 2005-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSKeyValueCoding.h:

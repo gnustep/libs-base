@@ -205,6 +205,7 @@ NSNumberFormatter.m \
 NSObjCRuntime.m \
 NSObject.m \
 NSPage.m \
+NSPathUtilities.m \
 NSPipe.m \
 NSPort.m \
 NSPortCoder.m \
@@ -239,6 +240,9 @@ externs.m \
 objc-load.m 
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
+ADD_HEADERS += \
+Win32_Utilities.h
+
 BASE_MFILES += \
 NSMessagePort.m \
 NSMessagePortNameServer.m

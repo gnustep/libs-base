@@ -32,7 +32,9 @@ SUBPROJECT_NAME = win32
 win32_OBJC_FILES =\
 	GSRunLoopCtxt.m \
 	GSRunLoopWatcher.m \
-	NSRunLoopWin32.m
+	NSRunLoopWin33.m \
+	Win32Support.m \
+	Win32_Utilities.m
 
 -include Makefile.preamble
 
