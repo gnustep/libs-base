@@ -29,6 +29,8 @@
 #define INLINE inline
 #endif
 
+#define	NS_BLOCK_ASSERTIONS	1
+
 /*
  *	This file should be INCLUDED in files wanting to use the FastArray
  *	functions - these are all declared inline for maximum performance.
@@ -54,16 +56,17 @@
 #endif
 
 typedef	union {
-    id		o;
-    Class	c;
-    int		i;
-    unsigned	I;
-    long 	l;
-    unsigned long	L;
-    void	*p;
-    const void	*P;
-    char	*s;
-    const char	*S;
+  id		o;
+  Class		c;
+  int		i;
+  unsigned	I;
+  long 		l;
+  unsigned long	L;
+  void		*p;
+  const void	*P;
+  char		*s;
+  const char	*S;
+  SEL		C;
 } FastArrayItem;
 
 struct	_FastArray {
@@ -109,16 +112,38 @@ FastArrayRemoveItemAtIndex(FastArray array, unsigned index)
   array->count--;
 }
 
+static INLINE void
+FastArraySetItemAtIndex(FastArray array, FastArrayItem item, unsigned index)
+{
+  NSCAssert(index < array->count, NSInvalidArgumentException);
+  if (array->ptr[index].o != item.o)
+    {
+      FAST_ARRAY_RELEASE(array->ptr[index]);
+      array->ptr[index] = FAST_ARRAY_RETAIN(item);
+    }
+}
+
 static INLINE FastArrayItem
 FastArrayItemAtIndex(FastArray array, unsigned index)
 {
+  NSCAssert(index < array->count, NSInvalidArgumentException);
   return array->ptr[index];
 }
 
 static INLINE unsigned
-FastArrayLength(FastArray array)
+FastArrayCount(FastArray array)
 {
   return array->count;
+}
+
+static INLINE void
+FastArrayClear(FastArray array)
+{
+  if (array->ptr)
+    {
+      NSZoneFree(array->zone, (void*)array->ptr);
+      array->ptr = 0;
+    }
 }
 
 static INLINE void
@@ -128,7 +153,9 @@ FastArrayEmpty(FastArray array)
 
   while (i-- > 0)
     FAST_ARRAY_RELEASE(array->ptr[i]);
-  NSZoneFree(array->zone, (void*)array->ptr);
+  FastArrayClear(array);
+  array->cap = 0;
+  array->count = 0;
 }
 
 static INLINE FastArray

@@ -24,26 +24,23 @@
 #include <config.h>
 #include <objc/objc-api.h>
 #include <Foundation/NSZone.h>
+#include <Foundation/NSException.h>
+
+/*
+ *	Setup for inline operation of arrays.
+ */
+#define	FAST_ARRAY_RETAIN(X)	X
+#define	FAST_ARRAY_RELEASE(X)	
+
+#include "FastArray.x"
 
 #define	_IN_NSUNARCHIVER_M
-struct GSUnarchiverArrayStruct {
-  void		**ptr;
-  unsigned	count;
-  unsigned	cap;
-  unsigned	old;
-  NSZone	*zone;
-};
-
-typedef struct GSUnarchiverArrayStruct GSUnarchiverArray_t;
-typedef GSUnarchiverArray_t *GSUnarchiverArray;
-
 #include <Foundation/NSArchiver.h>
 #undef	_IN_NSUNARCHIVER_M
 
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSData.h>
-#include <Foundation/NSException.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 
@@ -109,30 +106,6 @@ typeCheck(char t1, char t2)
 }
 
 #define	PREFIX		"GNUstep archive"
-
-static inline void
-arrayAddItem(GSUnarchiverArray array, void* value)
-{
-  if (array->count == array->cap)
-    {
-      unsigned	next;
-      void	**tmp;
-
-      next = array->cap + array->old;
-      tmp = NSZoneRealloc(array->zone, array->ptr, next*sizeof(void*));
-
-      if (tmp == 0)
-	{
-	  [NSException raise: NSMallocException
-		      format: @"failed to grow unarchiver crossref array"];
-	}
-      array->ptr = tmp;
-      array->old = array->cap;
-      array->cap = next;
-    }
-  array->ptr[array->count++] = value;
-}
-
 
 static SEL desSel = @selector(deserializeDataAt:ofObjCType:atCursor:context:);
 static SEL tagSel = @selector(deserializeTypeTagAtCursor:);
@@ -309,19 +282,12 @@ static IMP	rDatImp;	/* To autorelease it.		*/
   [objDict release];
   if (clsMap)
     {
-      if (clsMap->ptr)
-	{
-	  NSZoneFree(clsMap->zone, clsMap->ptr);
-	}
-      if (objMap->ptr)
-	{
-	  NSZoneFree(objMap->zone, objMap->ptr);
-	}
-      if (ptrMap->ptr)
-	{
-	  NSZoneFree(ptrMap->zone, ptrMap->ptr);
-	}
-      NSZoneFree(clsMap->zone, (void*)clsMap);
+      NSZone	*z = clsMap->zone;
+
+      FastArrayClear(clsMap);
+      FastArrayClear(objMap);
+      FastArrayClear(ptrMap);
+      NSZoneFree(z, (void*)clsMap);
     }
   [super dealloc];
 }
@@ -462,13 +428,13 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	    {
 	      if (info & _C_XREF)
 		{
-		  if (xref >= objMap->count)
+		  if (xref >= FastArrayCount(objMap))
 		    {
 		      [NSException raise: NSInternalInconsistencyException
 				  format: @"object crossref missing - %d",
 					xref];
 		    }
-		  obj = (id)objMap->ptr[xref];
+		  obj = FastArrayItemAtIndex(objMap, xref).o;
 		  /*
 		   *	If it's a cross-reference, we need to retain it in
 		   *	order to give the appearance that it's actually a
@@ -481,7 +447,7 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 		  Class	c;
 		  id	rep;
 
-		  if (xref != objMap->count)
+		  if (xref != FastArrayCount(objMap))
 		    {
 		      [NSException raise: NSInternalInconsistencyException
 				  format: @"extra object crossref - %d",
@@ -490,20 +456,20 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 		  (*dValImp)(self, dValSel, @encode(Class), &c);
 
 		  obj = [c allocWithZone: zone];
-		  arrayAddItem(objMap, (void*)obj);
+		  FastArrayAddItem(objMap, (FastArrayItem)obj);
 
 		  rep = [obj initWithCoder: self];
 		  if (rep != obj)
 		    {
 		      obj = rep;
-		      objMap->ptr[xref] = (void*)obj;
+		      FastArraySetItemAtIndex(objMap, (FastArrayItem)obj, xref);
 		    }
 
 		  rep = [obj awakeAfterUsingCoder: self];
 		  if (rep != obj)
 		    {
 		      obj = rep;
-		      objMap->ptr[xref] = (void*)obj;
+		      FastArraySetItemAtIndex(objMap, (FastArrayItem)obj, xref);
 		    }
 		}
 	    }
@@ -529,12 +495,12 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	    }
 	  if (info & _C_XREF)
 	    {
-	      if (xref >= clsMap->count)
+	      if (xref >= FastArrayCount(clsMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"class crossref missing - %d", xref];
 		}
-	      classInfo = (_GSObjInfo*)clsMap->ptr[xref];
+	      classInfo = (_GSObjInfo*)FastArrayItemAtIndex(clsMap, xref).o;
 	      *(Class*)address = [classInfo classObject];
 	      return;
 	    }
@@ -543,7 +509,7 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	      unsigned	cver;
 	      NSString	*className;
 
-	      if (xref != clsMap->count)
+	      if (xref != FastArrayCount(clsMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 				format: @"extra class crossref - %d", xref];
@@ -565,7 +531,7 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 		  [classInfo release];
 		}
 	      [classInfo setVersion: cver];
-	      arrayAddItem(clsMap, (void*)classInfo);
+	      FastArrayAddItem(clsMap, (FastArrayItem)classInfo);
 	      *(Class*)address = [classInfo classObject];
 	      /*
 	       *	Point the address to a dummy location and read the
@@ -602,22 +568,22 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	    }
 	  if (info & _C_XREF)
 	    {
-	      if (xref >= ptrMap->count)
+	      if (xref >= FastArrayCount(ptrMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"sel crossref missing - %d", xref];
 		}
-	      sel = (SEL)ptrMap->ptr[xref];
+	      sel = FastArrayItemAtIndex(ptrMap, xref).C;
 	    }
 	  else
 	    {
-	      if (xref != ptrMap->count)
+	      if (xref != FastArrayCount(ptrMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"extra sel crossref - %d", xref];
 		}
 	      (*desImp)(src, desSel, &sel, @encode(SEL), &cursor, nil);
-	      arrayAddItem(ptrMap, (void*)sel);
+	      FastArrayAddItem(ptrMap, (FastArrayItem)sel);
 	    }
 	  *(SEL*)address = sel;
 	  return;
@@ -679,19 +645,19 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	    }
 	  if (info & _C_XREF)
 	    {
-	      if (xref >= ptrMap->count)
+	      if (xref >= FastArrayCount(ptrMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"ptr crossref missing - %d", xref];
 		}
-	      *(void**)address = ptrMap->ptr[xref];
+	      *(void**)address = FastArrayItemAtIndex(ptrMap, xref).p;
 	    }
 	  else
 	    {
 	      unsigned	size;
 	      NSData	*dat;
 
-	      if (ptrMap->count != xref)
+	      if (FastArrayCount(ptrMap) != xref)
 		{
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"extra ptr crossref - %d", xref];
@@ -703,7 +669,7 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	       */
 	      size = objc_sizeof_type(++type);
 	      *(void**)address = NSZoneMalloc(zone, size);
-	      arrayAddItem(ptrMap, *(void**)address);
+	      FastArrayAddItem(ptrMap, (FastArrayItem)*(void**)address);
 
 	      /*
 	       *	Decode value and add memory to map for crossrefs.
@@ -737,24 +703,24 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	    }
 	  if (info & _C_XREF)
 	    {
-	      if (xref >= ptrMap->count)
+	      if (xref >= FastArrayCount(ptrMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"string crossref missing - %d", xref];
 		}
-	      *(char**)address = (char*)ptrMap->ptr[xref];
+	      *(char**)address = FastArrayItemAtIndex(ptrMap, xref).s;
 	    }
 	  else
 	    {
 	      int	length;
 
-	      if (xref != ptrMap->count)
+	      if (xref != FastArrayCount(ptrMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"extra string crossref - %d", xref];
 		}
 	      (*desImp)(src, desSel, address, @encode(char*), &cursor, nil);
-	      arrayAddItem(ptrMap, *(void**)address);
+	      FastArrayAddItem(ptrMap, (FastArrayItem)*(void**)address);
 	    }
 	  return;
 	}
@@ -844,13 +810,13 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 
   if (info & _C_XREF)
     {
-      if (xref >= objMap->count)
+      if (xref >= FastArrayCount(objMap))
 	{
 	  [NSException raise: NSInternalInconsistencyException
 		      format: @"object crossref missing - %d",
 			    xref];
 	}
-      obj = (id)objMap->ptr[xref];
+      obj = FastArrayItemAtIndex(objMap, xref).o;
       /*
        *	If it's a cross-reference, we don't need to autorelease it
        *	since we don't own it.
@@ -862,7 +828,7 @@ static IMP	rDatImp;	/* To autorelease it.		*/
       Class	c;
       id	rep;
 
-      if (xref != objMap->count)
+      if (xref != FastArrayCount(objMap))
 	{
 	  [NSException raise: NSInternalInconsistencyException
 		      format: @"extra object crossref - %d",
@@ -871,20 +837,20 @@ static IMP	rDatImp;	/* To autorelease it.		*/
       (*dValImp)(self, dValSel, @encode(Class), &c);
 
       obj = [c allocWithZone: zone];
-      arrayAddItem(objMap, (void*)obj);
+      FastArrayAddItem(objMap, (FastArrayItem)obj);
 
       rep = [obj initWithCoder: self];
       if (rep != obj)
 	{
 	  obj = rep;
-	  objMap->ptr[xref] = (void*)obj;
+	  FastArraySetItemAtIndex(objMap, (FastArrayItem)obj, xref);
 	}
 
       rep = [obj awakeAfterUsingCoder: self];
       if (rep != obj)
 	{
 	  obj = rep;
-	  objMap->ptr[xref] = (void*)obj;
+	  FastArraySetItemAtIndex(objMap, (FastArrayItem)obj, xref);
 	}
       /*
        *	A newly allocated object needs to be autoreleased.
@@ -992,11 +958,11 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 {
   unsigned i;
 
-  for (i = objMap->count - 1; i > 0; i--)
+  for (i = FastArrayCount(objMap) - 1; i > 0; i--)
     {
-      if (objMap->ptr[i] == (void*)anObject)
+      if (FastArrayItemAtIndex(objMap, i).o == anObject)
 	{
-	  objMap->ptr[i] = (void*)replacement;
+	  FastArraySetItemAtIndex(objMap, (FastArrayItem)replacement, i);
 	  return;
 	}
     }
@@ -1075,26 +1041,17 @@ static IMP	rDatImp;	/* To autorelease it.		*/
       /*
        *	Allocate and initialise arrays to build crossref maps in.
        */
-      clsMap = NSZoneMalloc(zone, sizeof(GSUnarchiverArray_t)*3);
-      clsMap->zone = zone;
-      clsMap->count = 1;
-      clsMap->cap = sizeC;
-      clsMap->old = sizeC/2 ? sizeC/2 : 1;
-      clsMap->ptr = (void**)NSZoneMalloc(zone, sizeof(void*)*clsMap->cap);
+      clsMap = NSZoneMalloc(zone, sizeof(FastArray_t)*3);
+      FastArrayInitWithZoneAndCapacity(clsMap, zone, sizeC);
+      FastArrayAddItem(clsMap, (FastArrayItem)0);
 
       objMap = &clsMap[1];
-      objMap->zone = zone;
-      objMap->count = 1;
-      objMap->cap = sizeO;
-      objMap->old = sizeO/2 ? sizeO/2 : 1;
-      objMap->ptr = (void**)NSZoneMalloc(zone, sizeof(void*)*objMap->cap);
+      FastArrayInitWithZoneAndCapacity(objMap, zone, sizeO);
+      FastArrayAddItem(objMap, (FastArrayItem)0);
 
       ptrMap = &clsMap[2];
-      ptrMap->zone = zone;
-      ptrMap->count = 1;
-      ptrMap->cap = sizeP;
-      ptrMap->old = sizeP/2 ? sizeP/2 : 1;
-      ptrMap->ptr = (void**)NSZoneMalloc(zone, sizeof(void*)*ptrMap->cap);
+      FastArrayInitWithZoneAndCapacity(ptrMap, zone, sizeP);
+      FastArrayAddItem(ptrMap, (FastArrayItem)0);
     }
   else
     {
