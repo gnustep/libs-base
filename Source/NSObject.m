@@ -109,7 +109,7 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 {
   if (self == [NSObject class])
     {
-      retain_counts = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
+      retain_counts = NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
 					NSIntMapValueCallBacks, 64);
       autorelease_class = [NSAutoreleasePool class];
     }
