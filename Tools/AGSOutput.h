@@ -39,8 +39,9 @@
 		   to: (unsigned)end
 	      maxSize: (unsigned)limit
 	       output: (NSMutableString*)buf;
-- (NSString*) output: (NSDictionary*)d;
-- (BOOL) output: (NSDictionary*)d file: (NSString*)name;
+- (BOOL) output: (NSDictionary*)d
+	   file: (NSString*)name
+      directory: (NSString*)dest;
 - (void) outputDecl: (NSDictionary*)d
 	       kind: (NSString*)kind
 		 to: (NSMutableString*)str;

@@ -512,7 +512,6 @@ main(int argc, char **argv, char **env)
 	  NSString	*gsdocfile;
 	  NSString	*file;
 	  NSArray	*a;
-	  NSString	*generated;
 	  NSDictionary	*attrs;
 	  NSDate	*sDate = nil;
 	  NSDate	*gDate = nil;
@@ -650,10 +649,9 @@ main(int argc, char **argv, char **env)
 		  [[parser info] setObject: up forKey: @"up"];
 		}
 
-	      generated = [output output: [parser info]];
-
-	      if ([generated writeToFile: gsdocfile
-			      atomically: YES] == NO)
+	      if ([output output: [parser info]
+			    file: gsdocfile
+		       directory: documentationDirectory] == NO)
 		{
 		  NSLog(@"Sorry unable to write %@", gsdocfile);
 		}

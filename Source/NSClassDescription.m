@@ -150,7 +150,7 @@ static Class	NSClassDescriptionClass = 0;
 
 /**
  * Returns the attribute keys supplied by the
- * <ref id="NSClassDescription" type="class" />
+ * <ref id="NSClassDescription" type="class"/>
  * object for the receivers class.
  */
 - (NSArray*) attributeKeys

@@ -22,6 +22,12 @@
 
 #include "AGSOutput.h"
 
+@interface AGSOutput (Private)
+- (BOOL) mergeMarkup: (NSString*)markup
+	      ofKind: (NSString*)kind
+	   directory: (NSString*)dest;
+@end
+
 static NSString *escapeType(NSString *str)
 {
   str = [str stringByReplacingString: @"<" withString: @"&lt;"];
@@ -68,6 +74,18 @@ static BOOL snuggleStart(NSString *t)
  * And finally, here is the actual class description ... outside the chapter.
  */
 @implementation	AGSOutput
+
++ (void) initialize
+{
+  NSUserDefaults	*ud = [NSUserDefaults standardUserDefaults];
+
+  [ud registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
+    @"TypesAndConstants", @"ConstantsTemplate",
+    @"Functions", @"FunctionsTemplate",
+    @"TypesAndConstants", @"TypedefsTemplate",
+    @"TypesAndConstants", @"VariablesTemplate",
+    nil]];
+}
 
 - (void) dealloc
 {
@@ -183,7 +201,9 @@ static BOOL snuggleStart(NSString *t)
  * Return a string containing a gsdoc document generated from d (the
  * parse tree)
  */
-- (NSString*) output: (NSDictionary*)d
+- (BOOL) output: (NSDictionary*)d
+	   file: (NSString*)name
+      directory: (NSString*)dest
 {
   NSMutableString	*str = [NSMutableString stringWithCapacity: 10240];
   NSDictionary		*classes;
@@ -394,14 +414,14 @@ static BOOL snuggleStart(NSString *t)
 
   if ([types count] > 0)
     {
-      NSArray	*names;
-      unsigned	i;
-      unsigned	c = [types count];
+      NSMutableString	*m = [NSMutableString new];
+      NSArray		*names;
+      unsigned		i;
+      unsigned		c = [types count];
 
-      [str appendString: @"    <chapter>\n"];
-      [str appendString:
-	@"      <heading>Types</heading>\n"];
-      [str appendString: @"      <p></p>\n"];
+      [m appendString: @"    <chapter>\n"];
+      [m appendString: @"      <heading>Types</heading>\n"];
+      [m appendString: @"      <p></p>\n"];
 
       chapters++;
       names = [types allKeys];
@@ -411,22 +431,29 @@ static BOOL snuggleStart(NSString *t)
 	  NSString	*name = [names objectAtIndex: i];
 	  NSDictionary	*d = [types objectForKey: name];
 
-	  [self outputDecl: d kind: @"type" to: str];
+	  [self outputDecl: d kind: @"type" to: m];
 	}
 
-      [str appendString: @"    </chapter>\n"];
+      [m appendString: @"    </chapter>\n"];
+      
+      if ([self mergeMarkup: m ofKind: @"Typedefs" directory: dest] == NO)
+	{
+	  [str appendString: m];
+	  chapters++;
+	}
+      RELEASE(m);
     }
 
   if ([constants count] > 0)
     {
-      NSArray	*names;
-      unsigned	i;
-      unsigned	c = [constants count];
+      NSMutableString	*m = [NSMutableString new];
+      NSArray		*names;
+      unsigned		i;
+      unsigned		c = [constants count];
 
-      [str appendString: @"    <chapter>\n"];
-      [str appendString:
-	@"      <heading>Constants</heading>\n"];
-      [str appendString: @"      <p></p>\n"];
+      [m appendString: @"    <chapter>\n"];
+      [m appendString: @"      <heading>Constants</heading>\n"];
+      [m appendString: @"      <p></p>\n"];
 
       chapters++;
       names = [constants allKeys];
@@ -436,22 +463,29 @@ static BOOL snuggleStart(NSString *t)
 	  NSString	*name = [names objectAtIndex: i];
 	  NSDictionary	*d = [constants objectForKey: name];
 
-	  [self outputDecl: d kind: @"constant" to: str];
+	  [self outputDecl: d kind: @"constant" to: m];
 	}
 
-      [str appendString: @"    </chapter>\n"];
+      [m appendString: @"    </chapter>\n"];
+
+      if ([self mergeMarkup: m ofKind: @"Constants" directory: dest] == NO)
+	{
+	  [str appendString: m];
+	  chapters++;
+	}
+      RELEASE(m);
     }
 
   if ([variables count] > 0)
     {
-      NSArray	*names;
-      unsigned	i;
-      unsigned	c = [variables count];
+      NSMutableString	*m = [NSMutableString new];
+      NSArray		*names;
+      unsigned		i;
+      unsigned		c = [variables count];
 
-      [str appendString: @"    <chapter>\n"];
-      [str appendString:
-	@"      <heading>Variables</heading>\n"];
-      [str appendString: @"      <p></p>\n"];
+      [m appendString: @"    <chapter>\n"];
+      [m appendString: @"      <heading>Variables</heading>\n"];
+      [m appendString: @"      <p></p>\n"];
 
       chapters++;
       names = [variables allKeys];
@@ -461,24 +495,30 @@ static BOOL snuggleStart(NSString *t)
 	  NSString	*name = [names objectAtIndex: i];
 	  NSDictionary	*d = [variables objectForKey: name];
 
-	  [self outputDecl: d kind: @"variable" to: str];
+	  [self outputDecl: d kind: @"variable" to: m];
 	}
 
-      [str appendString: @"    </chapter>\n"];
+      [m appendString: @"    </chapter>\n"];
+
+      if ([self mergeMarkup: m ofKind: @"Variables" directory: dest] == NO)
+	{
+	  [str appendString: m];
+	  chapters++;
+	}
+      RELEASE(m);
     }
 
   if ([functions count] > 0)
     {
-      NSArray	*names;
-      unsigned	i;
-      unsigned	c = [functions count];
+      NSMutableString	*m = [NSMutableString new];
+      NSArray		*names;
+      unsigned		i;
+      unsigned		c = [functions count];
 
-      [str appendString: @"    <chapter>\n"];
-      [str appendString:
-	@"      <heading>Functions</heading>\n"];
-      [str appendString: @"      <p></p>\n"];
+      [m appendString: @"    <chapter>\n"];
+      [m appendString: @"      <heading>Functions</heading>\n"];
+      [m appendString: @"      <p></p>\n"];
 
-      chapters++;
       names = [functions allKeys];
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
@@ -486,10 +526,16 @@ static BOOL snuggleStart(NSString *t)
 	  NSString	*name = [names objectAtIndex: i];
 	  NSDictionary	*d = [functions objectForKey: name];
 
-	  [self outputFunction: d to: str];
+	  [self outputFunction: d to: m];
 	}
 
-      [str appendString: @"    </chapter>\n"];
+      [m appendString: @"    </chapter>\n"];
+      if ([self mergeMarkup: m ofKind: @"Functions" directory: dest] == NO)
+	{
+	  [str appendString: m];
+	  chapters++;
+	}
+      RELEASE(m);
     }
 
   if (chapters == 0)
@@ -511,13 +557,6 @@ static BOOL snuggleStart(NSString *t)
 
   [str appendString: @"  </body>\n"];
   [str appendString: @"</gsdoc>\n"];
-  return str;
-}
-
-- (BOOL) output: (NSDictionary*)d file: (NSString*)name
-{
-  NSString	*str = [self output: d];
-
   return [str writeToFile: name atomically: YES];
 }
 
@@ -1841,4 +1880,140 @@ static BOOL snuggleStart(NSString *t)
 
 @end
 
+
+@implementation AGSOutput (Private)
+- (BOOL) mergeMarkup: (NSString*)markup
+	      ofKind: (NSString*)kind
+	   directory: (NSString*)dest
+{
+  NSUserDefaults	*ud = [NSUserDefaults standardUserDefaults];
+  NSString		*key = [kind stringByAppendingString: @"Template"];
+  NSString		*name = [ud stringForKey: key];
+  NSString		*file;
+  NSFileManager		*mgr;
+  NSString		*base;
+  NSString		*tmp;
+  NSMutableString	*str;
+  NSRange		range;
+  NSRange		start;
+  NSRange		end;
+
+  if ([name length] == 0)
+    {
+      return NO;	// No common document.
+    }
+
+  file = [name stringByAppendingPathExtension: @"gsdoc"];
+  if (dest != nil && [file isAbsolutePath] == NO)
+    {
+      file = [dest stringByAppendingPathComponent: file];
+    }
+  mgr = [NSFileManager defaultManager];
+  base = [info objectForKey: @"base"];
+
+  /*
+   * Load the current file that info should be merged into.
+   */
+  if ([mgr isReadableFileAtPath: file] == YES)
+    {
+      str = [NSMutableString stringWithContentsOfFile: file];
+    }
+  else
+    {
+      tmp = [name stringByAppendingPathExtension: @"template"];
+
+      if ([mgr isReadableFileAtPath: tmp] == YES)
+	{
+	  str = [NSMutableString stringWithContentsOfFile: tmp];
+	}
+      else
+	{
+	  /*
+	   * No pre-existing file, and no blank template available ...
+	   * Generate a standard template.
+	   */
+	  str = [[NSMutableString alloc] initWithCapacity: 1024];
+
+	  [str appendString: @"<?xml version=\"1.0\"?>\n"];
+	  [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
+	  [str appendString: @"\"-//GNUstep//DTD gsdoc 0.6.7//EN\" "];
+	  [str appendString: @"\"http://www.gnustep.org/gsdoc-0_6_7.xml\">\n"];
+	  [str appendString: @"<gsdoc base=\""];
+	  [str appendString: [name lastPathComponent]];
+	  [str appendString: @"\">\n"];
+	  [str appendString: @"  <head>\n"];
+	  [str appendString: @"    <title>"];
+	  [str appendString: kind];
+	  [str appendString: @"<\title>\n"];
+	  tmp = [NSString stringWithFormat: @"Generated by %@", NSUserName()];
+	  [str appendString: @"    <author name=\""];
+	  [str appendString: tmp];
+	  [str appendString: @"\"></author>\n"];
+	  [str appendString: @"  </head>\n"];
+	  [str appendString: @"  <body>\n"];
+	  [str appendString: @"  </body>\n"];
+	  [str appendString: @"</gsdoc>\n"];
+	}
+    }
+
+  /*
+   * Locate  start and end points for all markup of this 'kind'.
+   */
+  tmp = [NSString stringWithFormat: @"<!--Start%@-->", kind];
+  start = [str rangeOfString: tmp];
+  if (start.length == 0)
+    {
+      start = [str rangeOfString: @"</body>"];
+      if (start.length == 0)
+	{
+	  NSLog(@"No </body> markup in %@ document", kind);
+	  return NO;
+	}
+      [str insertString: tmp atIndex: start.location];
+      start.length = [tmp length];
+    }
+  tmp = [NSString stringWithFormat: @"<!--End%@-->", kind];
+  end = [str rangeOfString: tmp];
+  if (end.length == 0)
+    {
+      end.location = NSMaxRange(start);
+      end.length = [tmp length];
+      [str insertString: tmp atIndex: end.location];
+    }
+  else if (end.location <= start.location)
+    {
+      NSLog(@"End marker comes before start marker in %@ document", kind);
+      return NO;
+    }
+
+  /*
+   * Now locate start and end points for markup for this file.
+   */
+  tmp = [NSString stringWithFormat: @"<!--Start%@%@-->", base, kind];
+  start = [str rangeOfString: tmp];
+  if (start.length == 0)
+    {
+      start.location = end.location;	// Insert before end of section.
+      start.length = [tmp length];
+      [str insertString: tmp atIndex: end.location];
+    }
+  tmp = [NSString stringWithFormat: @"<!--End%@%@-->", base, kind];
+  end = [str rangeOfString: tmp];
+  if (end.length == 0)
+    {
+      end.location = NSMaxRange(start);
+      end.length = [tmp length];
+      [str insertString: tmp atIndex: end.location];
+    }
+
+  range = NSMakeRange(NSMaxRange(start), end.location - NSMaxRange(start));
+  [str replaceCharactersInRange: range withString: markup];
+
+  if ([str writeToFile: file atomically: YES] == NO)
+    {
+      NSLog(@"Unable to write %@ markup to %@", kind, file);
+    }
+  return YES;
+}
+@end
 
