@@ -83,7 +83,7 @@ main (int argc, char *argv[])
 	{
 	  e = [zones[i] objectEnumerator];
 	  while ((name = [e nextObject]) != nil)
-	    printf("%d %@\n", i, name);
+	    NSLog(@"%d %@\n", i, name);
 	}
     }
 

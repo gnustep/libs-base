@@ -48,7 +48,7 @@ main (int argc, char *argv[])
 	    [dict setObject: name forKey: [detail timeZoneAbbreviation]];
 	  e = [dict keyEnumerator];
 	  while ((abbrev = [e nextObject]) != nil)
-	    printf("%@\t%@\n", abbrev, name);
+	    NSLog(@"%@\t%@\n", abbrev, name);
 	}
     }
 

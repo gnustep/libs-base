@@ -1,3 +1,8 @@
+Wed Jul 14 10:32:17 1999  Adam Fedor  <fedor@ultra.doc.com>
+
+	* Testing/Makefile.preamble: Fix include path the headers.
+	Other testing fixes
+
 Tue Jul 13 17:08:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSUser.m: Implemented NSStandardApplicationPaths(),
