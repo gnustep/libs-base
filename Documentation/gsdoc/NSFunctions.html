@@ -11,7 +11,43 @@
 </dl>
 <p>Version: $Revision$</p>
 <p>Date: $Date$</p>
-<h2><a name ="cont-0">NSFunctions</a></h2>
+<h2><a name ="cont-0">Functions</a></h2>
+<h2><a name ="cont-1">Types</a></h2>
+<h3><a name ="NSRange">NSRange</a></h3>
+<p><b>Declared in: </b> Foundation/NSRange.h</p>
+<b>typedef </b> 
+	  struct { unsigned long location; unsigned long length; }
+	 NSRange<br>
+
+
+	  <p>
+
+	    The NSRange type is used to specify ranges of locations,
+	    typically items in an array, characters in a string, and bytes
+	    in a data object.
+	  </p>
+
+	  <p>
+
+	    As 'boundary' or 'fencepost' errors are a particularly common
+	    problem in programming, it is important that you understand
+	    how an NSRange works.
+	  </p>
+
+	  <p>
+
+	    An NSRange consists of a location and a length.  The points
+	    that are considered to lie in a range are the integers from
+	    the location to the location plus the length, so the number
+	    of points in a range is the length of the range plus one.<br>
+	    However, if you consider these points like the marks on a
+	    ruler, you can only store information <strong>between</strong>
+	    points.  So the number of items that can be stored in a range
+	    is the length of the range.
+	  </p>
+
+	
+ <hr>
 </body>
 
  </html>

@@ -142,7 +142,13 @@ static inline int
 decode (const void *ptr)
 {
 #if defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4
+#if NEED_WORD_ALIGNMENT
+  int value;
+  memcpy(&value, ptr, sizeof(int));
+  return value;
+#else
   return *(const int *) ptr;
+#endif
 #else /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
   const unsigned char *p = ptr;
   int result = *p & (1 << (CHAR_BIT - 1)) ? ~0 : 0;

@@ -1,14 +1,25 @@
 News
 ****
 
-The currently released version of the library is `0.9.2'.
+The currently released version of the library is `1.0.0'.
+
+Noteworthy changes in version `1.0.0'
+=====================================
+
+   * Fix parsing of arguments for new linux kernels.
+
+   * File manager and other fixes for mingw
+
+   * Fix alignment issues on CPUs that require it.
+
+   * Update unicode support and fixes
 
 Noteworthy changes in version `0.9.1'
 =====================================
 
    * New MacOSX compatible files for NSCalendarDate, NSTimeZone
 
-   * NSUserDefaults noew uses NSLanguages not Languages
+   * NSUserDefaults now uses NSLanguages not Languages
 
    * Various improvements for Windows platforms
 

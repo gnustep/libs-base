@@ -93,15 +93,10 @@ and the MacOS-X Foundation implementation.
 
 @menu
 * Overview::                    
-* Configuration::               
-* Classes::                     
-* Tools::                       
-* Installation::                
 * Implementation::              
-* Concept Index::               
 @end menu
 
-@node Overview, Configuration, Top, Top
+@node Overview, Implementation, Top, Top
 @chapter Overview
 
 *The GNUstep Base Library (gstep-base) requires the GNUstep Makefile
@@ -114,15 +109,13 @@ site @url{http://www.gnustep.org/information}.
 Documentation for individual classes is included in gsdoc (and html) format
 in the gsdoc directory.
 
-@node Implementation, Concept Index, Installation, Top
+@node Implementation,  , Overview, Top
 @chapter Implementation Details
 
 @menu
 * Memory Management::           
 * Memory Allocation::           
 * Reference Counting::          
-* Garbage Collection::          
-* Time Zone::                   
 @end menu
 
 @node Memory Management, Memory Allocation, Implementation, Implementation
@@ -176,7 +169,7 @@ make memory management easy.  In addition to this, the GNU Objective-C compiler
 and the GNUstep system provide a memory sweeping garbage collection mechanism
 (using the Boehm conservative garbage collection library).
 
-@node Reference Counting, Garbage Collection, Memory Allocation, Implementation
+@node Reference Counting,  , Memory Allocation, Implementation
 @section Reference Counting
 
 The reference counting scheme for object allocation/deallocation is quite

@@ -135,6 +135,15 @@
 # include <utime.h>
 #endif
 
+/*
+ * On systems that have the O_BINARY flag, use it for a binary copy.
+ */
+#if defined(O_BINARY)
+#define	GSBINIO	O_BINARY
+#else
+#define	GSBINIO	0
+#endif
+
 /* include usual headers */
 
 #include <Foundation/NSArray.h>
@@ -658,7 +667,7 @@ static NSFileManager* defaultManager = nil;
   int		len;
   int		written;
 
-  fd = open (cpath, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+  fd = open(cpath, GSBINIO|O_WRONLY|O_TRUNC|O_CREAT, 0644);
   if (fd < 0)
     {
       return NO;
@@ -920,7 +929,7 @@ static NSFileManager* defaultManager = nil;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
 #if defined(__MINGW__)
-  long long totalsize, freesize;
+  unsigned long long totalsize, freesize;
   id  values[5];
   id	keys[5] = {
 	  NSFileSystemSize,
@@ -937,11 +946,15 @@ static NSFileManager* defaultManager = nil;
     &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
     return nil;
 
-  totalsize = TotalNumberClusters * SectorsPerCluster * BytesPerSector;
-  freesize = NumberFreeClusters * SectorsPerCluster * BytesPerSector;
+  totalsize = (unsigned long long)TotalNumberClusters
+    * (unsigned long long)SectorsPerCluster
+    * (unsigned long long)BytesPerSector;
+  freesize = (unsigned long long)NumberFreeClusters
+    * (unsigned long long)SectorsPerCluster
+    * (unsigned long long)BytesPerSector;
   
-  values[0] = [NSNumber numberWithLongLong: totalsize];
-  values[1] = [NSNumber numberWithLongLong: freesize];
+  values[0] = [NSNumber numberWithUnsignedLongLong: totalsize];
+  values[1] = [NSNumber numberWithUnsignedLongLong: freesize];
   values[2] = [NSNumber numberWithLong: LONG_MAX];
   values[3] = [NSNumber numberWithLong: LONG_MAX];
   values[4] = [NSNumber numberWithUnsignedInt: 0];
@@ -956,7 +969,7 @@ static NSFileManager* defaultManager = nil;
 #else
   struct statfs statfsbuf;
 #endif
-  long long totalsize, freesize;
+  unsigned long long totalsize, freesize;
   const char* cpath = [self fileSystemRepresentationWithPath: path];
   
   id  values[5];
@@ -979,11 +992,13 @@ static NSFileManager* defaultManager = nil;
     return nil;
 #endif
 
-  totalsize = statfsbuf.f_bsize * statfsbuf.f_blocks;
-  freesize = statfsbuf.f_bsize * statfsbuf.f_bavail;
+  totalsize = (unsigned long long) statfsbuf.f_bsize
+    * (unsigned long long) statfsbuf.f_blocks;
+  freesize = (unsigned long long) statfsbuf.f_bsize
+    * (unsigned long long) statfsbuf.f_bavail;
   
-  values[0] = [NSNumber numberWithLongLong: totalsize];
-  values[1] = [NSNumber numberWithLongLong: freesize];
+  values[0] = [NSNumber numberWithUnsignedLongLong: totalsize];
+  values[1] = [NSNumber numberWithUnsignedLongLong: freesize];
   values[2] = [NSNumber numberWithLong: statfsbuf.f_files];
   values[3] = [NSNumber numberWithLong: statfsbuf.f_ffree];
   values[4] = [NSNumber numberWithUnsignedLong: statbuf.st_dev];
@@ -1096,7 +1111,15 @@ static NSFileManager* defaultManager = nil;
 #endif
 
       if (stat(cpath, &sb) != 0)
-	ok = NO;
+	{
+	  ok = NO;
+	}
+#if  defined(__WIN32__)
+      else if (sb.st_mode & _S_IFDIR)
+	{
+	  ok = YES;	// Directories don't have modification times.
+	}
+#endif
       else
 	{
 #if  defined(__WIN32__) || defined(_POSIX_VERSION)
@@ -1545,84 +1568,127 @@ static NSFileManager* defaultManager = nil;
 
 - (BOOL) _copyFile: (NSString*)source
 	    toFile: (NSString*)destination
-	   handler: handler
+	   handler: (id)handler
 {
-  NSDictionary* attributes;
-  int i, bufsize = 8096;
-  int sourceFd, destFd, fileSize, fileMode;
-  int rbytes, wbytes;
-  char buffer[bufsize];
+#if defined(__MINGW__)
+  if (CopyFile([self fileSystemRepresentationWithPath: source],
+    [self fileSystemRepresentationWithPath: destination], NO))
+    {
+      return YES;
+    }
+  if (handler != nil)
+    {
+      NSDictionary	*errorInfo
+	= [NSDictionary dictionaryWithObjectsAndKeys:
+                       source, @"Path",
+                       @"cannot copy file", @"Error",
+                       destination, @"ToPath",
+                       nil];
+      return [handler fileManager: self
+	  shouldProceedAfterError: errorInfo];
+    }
+  else
+    {
+      return NO;
+    }
+#else
+  NSDictionary	*attributes;
+  int		i;
+  int		bufsize = 8096;
+  int		sourceFd;
+  int		destFd;
+  int		fileSize;
+  int		fileMode;
+  int		rbytes;
+  int		wbytes;
+  char		buffer[bufsize];
 
   /* Assumes source is a file and exists! */
   NSAssert1 ([self fileExistsAtPath: source],
-	      @"source file '%@' does not exist!", source);
+    @"source file '%@' does not exist!", source);
 
   attributes = [self _attributesAtPath: source traverseLink: NO forCopy: YES];
   NSAssert1 (attributes, @"could not get the attributes for file '%@'",
-	      source);
+    source);
 
   fileSize = [[attributes objectForKey: NSFileSize] intValue];
   fileMode = [[attributes objectForKey: NSFilePosixPermissions] intValue];
 
   /* Open the source file. In case of error call the handler. */
-  sourceFd = open ([self fileSystemRepresentationWithPath: source], O_RDONLY);
-  if (sourceFd < 0) {
-      if (handler) {
-	  NSDictionary* errorInfo
-	      = [NSDictionary dictionaryWithObjectsAndKeys: 
+  sourceFd = open([self fileSystemRepresentationWithPath: source],
+    GSBINIO|O_RDONLY);
+  if (sourceFd < 0)
+    {
+      if (handler != nil)
+	{
+	  NSDictionary	*errorInfo
+	    = [NSDictionary dictionaryWithObjectsAndKeys: 
 		      source, @"Path",
 		      @"cannot open file for reading", @"Error",
 		      nil];
 	  return [handler fileManager: self
-			  shouldProceedAfterError: errorInfo];
-      }
+	      shouldProceedAfterError: errorInfo];
+	}
       else
+	{
 	  return NO;
-  }
+	}
+    }
 
   /* Open the destination file. In case of error call the handler. */
-  destFd = open ([self fileSystemRepresentationWithPath: destination],
-		 O_WRONLY|O_CREAT|O_TRUNC, fileMode);
-  if (destFd < 0) {
-      if (handler) {
-	  NSDictionary* errorInfo
-	      = [NSDictionary dictionaryWithObjectsAndKeys: 
+  destFd = open([self fileSystemRepresentationWithPath: destination],
+    GSBINIO|O_WRONLY|O_CREAT|O_TRUNC, fileMode);
+  if (destFd < 0)
+    {
+      if (handler != nil)
+	{
+	  NSDictionary	*errorInfo
+	    = [NSDictionary dictionaryWithObjectsAndKeys: 
 		      destination, @"ToPath",
 		      @"cannot open file for writing", @"Error",
 		      nil];
 	  close (sourceFd);
 	  return [handler fileManager: self
-			  shouldProceedAfterError: errorInfo];
-      }
+	      shouldProceedAfterError: errorInfo];
+	}
       else
+	{
 	  return NO;
-  }
+	}
+    }
 
   /* Read bufsize bytes from source file and write them into the destination
      file. In case of errors call the handler and abort the operation. */
-  for (i = 0; i < fileSize; i += rbytes) {
+  for (i = 0; i < fileSize; i += rbytes)
+    {
       rbytes = read (sourceFd, buffer, bufsize);
-      if (rbytes < 0) {
-	  if (handler) {
-	      NSDictionary* errorInfo
-		  = [NSDictionary dictionaryWithObjectsAndKeys: 
+      if (rbytes < 0)
+	{
+	  if (handler != nil)
+	    {
+	      NSDictionary	*errorInfo
+		= [NSDictionary dictionaryWithObjectsAndKeys: 
 			  source, @"Path",
 			  @"cannot read from file", @"Error",
 			  nil];
 	      close (sourceFd);
 	      close (destFd);
 	      return [handler fileManager: self
-			      shouldProceedAfterError: errorInfo];
-	  }
+		  shouldProceedAfterError: errorInfo];
+	    }
 	  else
+	    {
 	      return NO;
-      }
+	    }
+	}
 
       wbytes = write (destFd, buffer, rbytes);
-      if (wbytes != rbytes) {
-	  if (handler) {
-	      NSDictionary* errorInfo
-		  = [NSDictionary dictionaryWithObjectsAndKeys: 
+      if (wbytes != rbytes)
+	{
+	  if (handler != nil)
+	    {
+	      NSDictionary	*errorInfo
+		= [NSDictionary dictionaryWithObjectsAndKeys: 
 			  source, @"Path",
 			  destination, @"ToPath",
 			  @"cannot write to file", @"Error",
@@ -1630,16 +1696,19 @@ static NSFileManager* defaultManager = nil;
 	      close (sourceFd);
 	      close (destFd);
 	      return [handler fileManager: self
-			      shouldProceedAfterError: errorInfo];
-	  }
+		  shouldProceedAfterError: errorInfo];
+	    }
 	  else
+	    {
 	      return NO;
-      }
-  }
+	    }
+	}
+    }
   close (sourceFd);
   close (destFd);
 
   return YES;
+#endif
 }
 
 - (BOOL) _copyPath: (NSString*)source
@@ -1762,18 +1831,29 @@ static NSFileManager* defaultManager = nil;
     NSFileGroupOwnerAccountNumber
   };
 
+#if defined(__MINGW__)
+  if (stat(cpath, &statbuf) != 0)
+    {
+      return nil;
+    }
+#else /* !(__MINGW__) */
   if (traverse)
     {
       if (stat(cpath, &statbuf) != 0)
-	return nil;
+	{
+	  return nil;
+	}
     }
 #ifdef S_IFLNK
   else
     {
       if (lstat(cpath, &statbuf) != 0)
-	return nil;
+	{
+	  return nil;
+	}
     }
-#endif
+#endif /* (S_IFLNK) */
+#endif /* (__MINGW__) */
     
   values[0] = [NSNumber numberWithUnsignedLongLong: statbuf.st_size];
   values[1] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];

@@ -70,7 +70,7 @@ NSStringFromRange(NSRange range)
     range.location, range.length];
 }
 
-void _NSRangeExceptionRaise ()
+GS_EXPORT void _NSRangeExceptionRaise ()
 {
   [NSException raise: NSRangeException
 	       format: @"Range location + length too great"];

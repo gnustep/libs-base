@@ -105,30 +105,28 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // Does not block
 - (BOOL) tryLock
 {
+  /* Return NO if we're already locked */
+  if (_mutex->owner == objc_thread_id())
+    {	
+      return NO;
+    }
+
   // Ask the runtime to acquire a lock on the mutex
   if (objc_mutex_trylock(_mutex) == -1)
     {
       return NO;
     }
-  else
-    {
-      /*
-       * The recursive lock check goes here to support openstep's 
-       * implementation.  In openstep you can lock in one thread trylock in the
-       *  same thread and have another thread release the lock.
-       *  
-       *  This is dangerous and broken IMHO.
-       */
-      CHECK_RECURSIVE_LOCK(_mutex);
-      return YES;
-    }
+  return YES;
 }
 
 - (BOOL) lockBeforeDate: (NSDate *)limit
 {
   int x;
 
-  while ((x = objc_mutex_trylock(_mutex)) == -1)
+  /* This is really the behavior of OpenStep, if the current thread has
+     the lock, we just block until the time limit is up. Very odd */
+  while (_mutex->owner == objc_thread_id()
+	 || (x = objc_mutex_trylock(_mutex)) == -1)
     {
       NSDate *current = [NSDate date];
       NSComparisonResult compare;
@@ -144,14 +142,6 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
        */
       sleep(1);
     }
-  /*
-   * The recursive lock check goes here to support openstep's implementation.
-   * In openstep you can lock in one thread trylock in the same thread and have
-   * another thread release the lock.
-   *  
-   *  This is dangerous and broken IMHO.
-   */
-  CHECK_RECURSIVE_LOCK(_mutex);
   return YES;
 }
 

@@ -36,8 +36,13 @@
 
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)t
 {
-  NSMethodSignature *newMs = [[NSMethodSignature alloc] autorelease];
+  NSMethodSignature *newMs;
 
+  if (t == 0 || *t == '\0')
+    {
+      return nil;
+    }
+  newMs = AUTORELEASE([NSMethodSignature alloc]);
   newMs->_methodTypes = mframe_build_signature(t, &newMs->_argFrameLength,
     &newMs->_numArgs, 0); 
 
