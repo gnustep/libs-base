@@ -61,6 +61,22 @@ NSString *NSConnectionRequestsSent = @"NSConnectionRequestsSent";
 NSString *NSConnectionLocalCount = @"NSConnectionLocalCount";
 NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
+@interface	NSDistantObject (NSConnection)
+- (BOOL) isVended;
+- (void) setVended;
+@end
+
+@implementation	NSDistantObject (NSConnection)
+- (BOOL) isVended
+{
+    return _isVended;
+}
+- (void) setVended
+{
+    _isVended = YES;
+}
+@end
+
 /*
  *	ConnectionLocalCounter is a trivial class to keep track of how
  *	many different connections a particular local object is vended
@@ -105,6 +121,57 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 @end
 
 
+
+/*
+ *	CachedLocalObject is a trivial class to keep track of how
+ *	many different connections a particular local object is vended
+ *	over.  This is required so that we know when to remove an object
+ *	from the global list when it is removed from the list of objects
+ *	vended on a particular connection.
+ */
+@interface	CachedLocalObject : NSObject
+{
+    id	obj;
+    int time;
+}
+- (BOOL)countdown;
+- (id) obj;
++ (CachedLocalObject*) itemWithObject: (id)o time: (int)t;
+@end
+
+@implementation	CachedLocalObject
+
+- (void) dealloc
+{
+    [obj release];
+    [super dealloc];
+}
+
+- (BOOL) countdown
+{
+    if (time-- > 0)
+	return YES;
+    return NO;
+}
+
+- (id) obj
+{
+    return obj;
+}
+
++ (CachedLocalObject*) itemWithObject: (id)o time: (int)t
+{
+    CachedLocalObject	*item = [self alloc];
+
+    item = [super init];
+    item->obj = [o retain];
+    item->time = t;
+    return [item autorelease];
+}
+
+@end
+
+
 @interface NSConnection (GettingCoderInterface)
 - (void) _handleRmc: rmc;
 - (void) _handleQueuedRmcRequests;
@@ -116,6 +183,7 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
 @interface NSConnection (Private)
 - _superInit;
++ setDebug: (int)val;
 @end
 
 #define proxiesHashGate refGate
@@ -167,6 +235,7 @@ static id default_encoding_class;
 static id default_decoding_class;
 static int default_reply_timeout;
 static int default_request_timeout;
+static NSTimer *timer;
 
 static int debug_connection = 0;
 
@@ -186,6 +255,7 @@ static Lock *root_object_dictionary_gate;
 static NSMapTable *receive_port_2_ancestor;
 
 static NSMapTable *all_connections_local_targets = NULL;
+static NSMapTable *all_connections_local_cached = NULL;
 
 /* rmc handling */
 static NSMutableArray *received_request_rmc_queue;
@@ -256,6 +326,9 @@ static int messages_received_count;
   all_connections_local_targets =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
+  all_connections_local_cached =
+    NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+		      NSObjectMapValueCallBacks, 0);
   received_request_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
   received_request_rmc_queue_gate = [Lock new];
   received_reply_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
@@ -294,6 +367,21 @@ static int messages_received_count;
     return [self rootProxyAtPort: [p autorelease]];
 }
 
++ (void) timeout: (NSTimer*)t
+{
+    NSArray	*cached_locals;
+    int	i;
+
+    cached_locals = NSAllMapTableValues(all_connections_local_cached);
+    for (i = [cached_locals count]; i > 0; i--) {
+	CachedLocalObject *item = [cached_locals objectAtIndex: i-1];
+
+	if ([item countdown] == NO) {
+	    NSMapRemove(all_connections_local_cached, [item obj]);
+	}
+    }
+}
+
 - (void) addRequestMode: (NSString*)mode
 {
     if (![request_modes containsObject:mode]) {
@@ -306,7 +394,7 @@ static int messages_received_count;
 - (void) dealloc
 {
   if (debug_connection)
-    printf("deallocating 0x%x\n", (unsigned)self);
+    NSLog(@"deallocating 0x%x\n", (unsigned)self);
   [self invalidate];
 
   /* Remove rootObject from root_object_dictionary
@@ -424,10 +512,8 @@ static int messages_received_count;
 #endif
 
       if (debug_connection)
-	fprintf(stderr, "Invalidating connection 0x%x\n\t%s\n\t%s\n",
-		(unsigned)self,
-		[[receive_port description] cStringNoCopy],
-		[[send_port description] cStringNoCopy]);
+	NSLog(@"Invalidating connection 0x%x\n\t%@\n\t%@\n", (unsigned)self,
+		[receive_port description], [send_port description]);
 
       [NotificationDispatcher
 	postNotificationName: NSConnectionDidDieNotification
@@ -456,6 +542,9 @@ static int messages_received_count;
 	[super retain];
 	[connection_array_gate lock];
 	[connection_array removeObject: self];
+	[timer invalidate];
+	timer = nil;
+	NSResetMapTable(all_connections_local_cached);
 	[connection_array_gate unlock];
 	[super release];
     }
@@ -773,10 +862,8 @@ static int messages_received_count;
 
   newConn = [[NSConnection alloc] _superInit];
   if (debug_connection)
-    fprintf(stderr, "Created new connection 0x%x\n\t%s\n\t%s\n",
-	    (unsigned)newConn,
-	    [[ip description] cStringNoCopy],
-	    [[op description] cStringNoCopy]);
+    NSLog(@"Created new connection 0x%x\n\t%@\n\t%@\n",
+	    (unsigned)newConn, [ip description], [op description]);
   newConn->is_valid = 1;
   newConn->receive_port = ip;
   [ip retain];
@@ -973,6 +1060,10 @@ static int messages_received_count;
   return self;
 }
 
++ setDebug: (int)val
+{
+    debug_connection = val;
+}
 
 /* Creating new rmc's for encoding requests and replies */
 
@@ -1070,6 +1161,8 @@ static int messages_received_count;
     out_parameters = mframe_dissect_call (argframe, type, encoder);
     /* Send the rmc */
     [op dismiss];
+    if (debug_connection > 1)
+      NSLog(@"Sent message to 0x%x\n", (unsigned)self);
     req_out_count++;	/* Sent a request.	*/
 
     /* Get the reply rmc, and decode it. */
@@ -1223,6 +1316,8 @@ static int messages_received_count;
 	    at:&forward_type
 	    withName:NULL];
 
+      if (debug_connection > 1)
+        NSLog(@"Handling message from 0x%x\n", (unsigned)self);
       req_in_count++;	/* Handling an incoming request. */
       mframe_do_call (forward_type, decoder, encoder);
       [op dismiss];
@@ -1268,12 +1363,12 @@ static int messages_received_count;
   NSParameterAssert([rmc connection] == self);
   [op encodeObject: rootObject withName: @"root object"];
   [op dismiss];
+  [rmc dismiss];
 }
 
 - (void) _service_release: rmc forConnection: receiving_connection
 {
     unsigned int	count;
-    unsigned int	target;
     unsigned int	pos;
 
     NSParameterAssert (is_valid);
@@ -1288,11 +1383,23 @@ static int messages_received_count;
 		   withName: NULL];
 
     for (pos = 0; pos < count; pos++) {
+	unsigned int	target;
+	char		vended;
+	NSDistantObject	*prox;
+
 	[rmc decodeValueOfCType: @encode(typeof(target))
 			     at: &target
 		       withName: NULL];
 
-	if ([self includesLocalObject:(void*)target]) {
+	[rmc decodeValueOfCType: @encode(typeof(char))
+			     at: &vended
+		       withName: NULL];
+
+	prox = [self includesLocalObject:(void*)target];
+	if (prox != nil) {
+	    if (vended) {
+	        [prox setVended];
+	    }
 	    [self removeLocalObject: (id)target];
 	}
     }
@@ -1315,8 +1422,8 @@ static int messages_received_count;
 			 at: &target
 		   withName: NULL];
 
-    if ([self includesLocalObject:(void*)target] == NO) {
-	if ([[self class] includesLocalObject:(void*)target] == YES) {
+    if ([self includesLocalObject:(void*)target] == nil) {
+	if ([[self class] includesLocalObject:(void*)target] != nil) {
 	    [NSDistantObject proxyWithLocal: (id)target connection: self];
 	}
     }
@@ -1411,6 +1518,7 @@ static int messages_received_count;
       at:&type
       withName:@"Requested Method Type for Target"];
   [op dismiss];
+  [rmc dismiss];
 }
 
 
@@ -1436,13 +1544,11 @@ static int messages_received_count;
       /* It won't take much time to handle this, so go ahead and service
 	 it, even if we are waiting for a reply. */
       [conn _service_rootObject: rmc];
-      [rmc dismiss];
       break;
     case METHODTYPE_REQUEST:
       /* It won't take much time to handle this, so go ahead and service
 	 it, even if we are waiting for a reply. */
       [conn _service_typeForSelector: rmc];
-      [rmc dismiss];
       break;
     case METHOD_REQUEST:
       /* We just got a new request; we need to decide whether to queue
@@ -1538,7 +1644,7 @@ static int messages_received_count;
 	  && [a_rmc sequenceNumber] == sn)
         {
 	  if (debug_connection)
-	    printf("Getting received reply from queue\n");
+	    NSLog(@"Getting received reply from queue\n");
           [received_reply_rmc_queue removeObjectAtIndex: i];
           the_rmc = a_rmc;
           break;
@@ -1625,6 +1731,9 @@ static int messages_received_count;
 	NSMapInsert(all_connections_local_targets, (void*)local, counter);
 	[counter release];
     }
+    if (debug_connection > 2)
+      NSLog(@"add local object (0x%x) to connection (0x%x) (ref %d)\n",
+		(unsigned)local, (unsigned) self, [counter value]);
     [proxiesHashGate unlock];
 }
 
@@ -1658,9 +1767,9 @@ static int messages_received_count;
 - (void) removeLocalObject: anObj
 {
     id	counter;
+    unsigned val = 0;
 
     [proxiesHashGate lock];
-    NSMapRemove (local_targets, (void*)anObj);
 
     /*
      *	If all references to a local proxy have gone - remove the
@@ -1669,15 +1778,40 @@ static int messages_received_count;
     counter = NSMapGet(all_connections_local_targets, (void*)anObj);
     if (counter) {
 	[counter decrement];
-	if ([counter value] == 0) {
+	if ((val = [counter value]) == 0) {
+	    NSDistantObject	*prox = NSMapGet(local_targets, (void*)anObj);
+
 	    NSMapRemove(all_connections_local_targets, (void*)anObj);
+	    /*
+	     *	If this proxy has been vended onwards by another process, we
+	     *	need to keep a reference to the local object around for a
+	     *	while in case that other process needs it.
+	     */
+	    if ([prox isVended]) {
+		id	item;
+		if (timer == nil) {
+		    timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
+					   target: [NSConnection class]
+					 selector: @selector(_timeout:)
+					 userInfo: nil
+					  repeats: YES];
+		}
+		item = [CachedLocalObject itemWithObject: anObj time: 30];
+		NSMapInsert(all_connections_local_cached, anObj, item);
+	    }
 	}
     }
+
+    NSMapRemove (local_targets, (void*)anObj);
+
+    if (debug_connection > 2)
+	NSLog(@"remove local object (0x%x) to connection (0x%x) (ref %d)\n",
+		(unsigned)anObj, (unsigned) self, val);
 
     [proxiesHashGate unlock];
 }
 
-- (void) _release_targets: (unsigned int*)list count:(unsigned int)number
+- (void) _release_targets: (NSDistantObject**)list count:(unsigned int)number
 {
     NS_DURING
     {
@@ -1700,10 +1834,14 @@ static int messages_received_count;
 			  withName: NULL];
 
 	    for (i = 0; i < number; i++) {
-		unsigned int	target = list[i];
+		unsigned	target = (unsigned)[list[i] targetForProxy];
+		char		vended = [list[i] isVended];
 
 		[op encodeValueOfCType: @encode(typeof(target))
 				    at: &target
+			      withName: NULL];
+		[op encodeValueOfCType: @encode(char)
+				    at: &vended
 			      withName: NULL];
 	    }
 
@@ -1713,8 +1851,7 @@ static int messages_received_count;
     NS_HANDLER
     {
       if (debug_connection)
-        fprintf (stderr, "failed to release targets - %s\n",
-	     [[localException name] cStringNoCopy]);
+        NSLog(@"failed to release targets - %@\n", [localException name]);
     }
     NS_ENDHANDLER
 }
@@ -1730,10 +1867,11 @@ static int messages_received_count;
 	if (receive_port && is_valid) {
 	    id		op;
 	    unsigned int 	i;
+	    int seq_num = [self _newMsgNumber];
 
 	    op = [[self encodingClass]
 		    newForWritingWithConnection: self
-				 sequenceNumber: [self _newMsgNumber]
+				 sequenceNumber: seq_num
 				     identifier: PROXY_RETAIN];
 
 	    [op encodeValueOfCType: @encode(typeof(target))
@@ -1746,8 +1884,7 @@ static int messages_received_count;
     NS_HANDLER
     {
       if (debug_connection)
-        fprintf (stderr, "failed to retain target - %s\n",
-	     [[localException name] cStringNoCopy]);
+        NSLog(@"failed to retain target - %@\n", [localException name]);
     }
     NS_ENDHANDLER
 }
@@ -1766,7 +1903,7 @@ static int messages_received_count;
      *	Tell the remote application that we have removed our proxy and
      *	it can release it's local object.
      */
-    [self _release_targets:&target count:1];
+    [self _release_targets:&aProxy count:1];
 }
 
 - (id <Collecting>) localObjects
@@ -1818,24 +1955,24 @@ static int messages_received_count;
   [proxiesHashGate unlock];
 }
 
-- (BOOL) includesProxyForTarget: (unsigned)target
+- (id) includesProxyForTarget: (void*)target
 {
-  BOOL ret;
+  NSDistantObject	*ret;
 
   /* Don't assert (is_valid); */
   [proxiesHashGate lock];
-  ret = NSMapGet (remote_proxies, (void*)target) ? YES : NO;
+  ret = NSMapGet (remote_proxies, (void*)target);
   [proxiesHashGate unlock];
   return ret;
 }
 
-- (BOOL) includesLocalObject: anObj
+- (id) includesLocalObject: anObj
 {
-  BOOL ret;
+  NSDistantObject* ret;
 
   /* Don't assert (is_valid); */
   [proxiesHashGate lock];
-  ret = NSMapGet (local_targets, (void*)anObj) ? YES : NO;
+  ret = NSMapGet(local_targets, (void*)anObj);
   [proxiesHashGate unlock];
   return ret;
 }
@@ -1846,14 +1983,17 @@ static int messages_received_count;
    for the Proxy to check the Proxy's connection only (using
    -includesLocalObject), because the proxy may have come from a
    triangle connection. */
-+ (BOOL) includesLocalObject: anObj
++ (id) includesLocalObject: anObj
 {
-  BOOL ret;
+  id ret;
 
   /* Don't assert (is_valid); */
   NSParameterAssert (all_connections_local_targets);
   [proxiesHashGate lock];
-  ret = NSMapGet (all_connections_local_targets, (void*)anObj) ? YES : NO;
+  ret = NSMapGet (all_connections_local_targets, (void*)anObj);
+  if (ret == nil) {
+    ret = NSMapGet (all_connections_local_cached, (void*)anObj);
+  }
   [proxiesHashGate unlock];
   return ret;
 }
@@ -2000,9 +2140,9 @@ static int messages_received_count;
 	id port = [notification object];
 
 	if (debug_connection)
-	    fprintf (stderr, "Received port invalidation notification for "
-		"connection 0x%x\n\t%s\n", (unsigned)self,
-		[[port description] cStringNoCopy]);
+	    NSLog(@"Received port invalidation notification for "
+		@"connection 0x%x\n\t%@\n", (unsigned)self,
+		[port description]);
 
 	/* We shouldn't be getting any port invalidation notifications,
 	    except from our own ports; this is how we registered ourselves

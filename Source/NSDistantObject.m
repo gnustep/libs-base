@@ -28,6 +28,17 @@
 
 static int debug_proxy;
 
+@interface NSDistantObject (Debug)
++ (void) setDebug: (int)val;
+@end
+
+@implementation NSDistantObject (Debug)
++ (void) setDebug: (int)val
+{
+    debug_proxy = val;
+}
+@end
+
 @implementation NSDistantObject
 
 /* This is the proxy tag; it indicates where the local object is,
@@ -127,8 +138,7 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 	    proxy_tag = PROXY_LOCAL_FOR_SENDER;
 
 	    if (debug_proxy)
-		fprintf(stderr, "Sending a proxy, will be remote 0x%x "
-			"connection 0x%x\n",
+		NSLog(@"Sending a proxy, will be remote 0x%x connection 0x%x\n",
 			(unsigned)_object,
 			(unsigned)_connection);
 
@@ -147,8 +157,7 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 	    proxy_tag = PROXY_LOCAL_FOR_RECEIVER;
 
 	    if (debug_proxy)
-		fprintf(stderr, "Sending a proxy, will be local 0x%x "
-			"connection 0x%x\n",
+		NSLog(@"Sending a proxy, will be local 0x%x connection 0x%x\n",
 			(unsigned)_object,
 			(unsigned)_connection);
 
@@ -174,8 +183,8 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 	proxy_tag = PROXY_REMOTE_FOR_BOTH;
 
 	if (debug_proxy)
-	    fprintf(stderr, "Sending triangle-connection proxy 0x%x "
-		"proxy-conn 0x%x to-conn 0x%x\n",
+	    NSLog(@"Sending triangle-connection proxy 0x%x "
+		@"proxy-conn 0x%x to-conn 0x%x\n",
 		(unsigned)_object,
 		(unsigned)_connection, (unsigned)encoder_connection);
 
@@ -193,6 +202,10 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 
 	[aRmc encodeBycopyObject: proxy_connection_out_port
 			withName: @"Proxy outPort"];
+	/*
+	 *	Make a note that we have passed this on to another process.
+	 */
+	_isVended = YES;
     }
 }
 
@@ -244,7 +257,7 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
     [_connection addLocalObject: self];
 
     if (debug_proxy)
-	printf("Created new local=0x%x object 0x%x connection 0x%x\n",
+	NSLog(@"Created new local=0x%x object 0x%x connection 0x%x\n",
 	   (unsigned)self, (unsigned)_object, (unsigned)_connection);
 
     return self;
@@ -280,7 +293,7 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
     [_connection addProxy: self];
 
     if (debug_proxy)
-	printf("Created new proxy=0x%x object 0x%x connection 0x%x\n",
+	NSLog(@"Created new proxy=0x%x object 0x%x connection 0x%x\n",
 	   (unsigned)self, (unsigned)_object, (unsigned)_connection);
 
     return self;
@@ -370,8 +383,8 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 			withName: NULL];
 
         if (debug_proxy)
-	    fprintf(stderr, "Receiving a proxy for local object 0x%x "
-		"connection 0x%x\n", target, (unsigned)decoder_connection);
+	    NSLog(@"Receiving a proxy for local object 0x%x "
+		@"connection 0x%x\n", target, (unsigned)decoder_connection);
 
         if (![[decoder_connection class] includesLocalObject: (id)target])
 	    [NSException raise: @"ProxyDecodedBadTarget"
@@ -381,6 +394,9 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 	    id	local = [NSDistantObject proxyWithLocal: (id)target
 					     connection: decoder_connection];
 
+            if (debug_proxy)
+	      NSLog(@"Local object is 0x%x (0x%x)\n",
+		(unsigned)local, (unsigned)[local targetForProxy]);
 	    return [[local targetForProxy] retain];
 	}
 
@@ -396,7 +412,7 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 	    at: &target
 	    withName: NULL];
       if (debug_proxy)
-	fprintf(stderr, "Receiving a proxy, was local 0x%x connection 0x%x\n",
+	NSLog(@"Receiving a proxy, was local 0x%x connection 0x%x\n",
 		(unsigned)target, (unsigned)decoder_connection);
       return [[NSDistantObject proxyWithTarget: (id)target
 				    connection: decoder_connection] retain];
@@ -453,8 +469,8 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 			     ancestorConnection: decoder_connection];
 
 	    if (debug_proxy)
-	        fprintf(stderr, "Receiving a triangle-connection proxy 0x%x "
-		  "connection 0x%x\n", target, (unsigned)proxy_connection);
+	        NSLog(@"Receiving a triangle-connection proxy 0x%x "
+		  @"connection 0x%x\n", target, (unsigned)proxy_connection);
 
 	    assert (proxy_connection != decoder_connection);
 	    assert ([proxy_connection isValid]);
@@ -511,7 +527,7 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 - forward: (SEL)aSel :(arglist_t)frame
 {
     if (debug_proxy)
-	printf("NSDistantObject forwarding %s\n", sel_get_name(aSel));
+	NSLog(@"NSDistantObject forwarding %s\n", sel_get_name(aSel));
 
     if (![_connection isValid])
 	[NSException

@@ -210,11 +210,11 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 
 /* Only subclassers and power-users need worry about these */
 - (void) addProxy: (NSDistantObject*)aProxy;
-- (BOOL) includesProxyForTarget: (unsigned)target;
+- (id) includesProxyForTarget: (void*)target;
 - (void) removeProxy: (NSDistantObject*)aProxy;
 - (id <Collecting>) localObjects;
 - (void) addLocalObject: anObj;
-- (BOOL) includesLocalObject: anObj;
+- (id) includesLocalObject: anObj;
 - (void) removeLocalObject: anObj;
 - (retval_t) forwardForProxy: (NSDistantObject*)object 
     selector: (SEL)sel 
