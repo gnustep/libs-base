@@ -21,6 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
+#ifndef __NSConnection_h_GNUSTEP_BASE_INCLUDE
+#define __NSConnection_h_GNUSTEP_BASE_INCLUDE
+
+#include <gnustep/base/preface.h>
+#include <Foundation/NSDistantObject.h>
+#include <Foundation/NSTimer.h>
+
 @interface NSConnection : NSObject
 {
 }
@@ -65,3 +72,5 @@
 @end
 
 #define NSConnectionDeath ConnectionBecameInvalid
+
+#endif /* __NSConnection_h_GNUSTEP_BASE_INCLUDE */
