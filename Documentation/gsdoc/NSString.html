@@ -167,6 +167,22 @@
 	    <p>
 
 	      Returns the encoding used for any method accepting a C string.
+	      This value is determined automatically from the programs
+	      environment and cannot be changed programmatically.
+	    </p>
+
+	    <p>
+
+	      You should <em>NOT</em> override this method in an attempt to
+	      change the encoding being used.
+	    </p>
+
+	    <p>
+
+	      In GNUstep, this encoding is determined by the initial value
+	      of the <code>GNUSTEP_STRING_ENCODING</code> environment
+	      variable.  If this is not defined,
+	      <code>NSISOLatin1StringEncoding</code> is assumed.
 	    </p>
 
           

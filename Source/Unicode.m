@@ -198,6 +198,7 @@ GetDefEncoding()
 	{
 	  ret = str_encoding_table[count].enc;
 	  if ((ret == NSUnicodeStringEncoding)
+	    || (ret == NSUTF8StringEncoding)
 	    || (ret == NSSymbolStringEncoding))
 	    {
 	      fprintf(stderr, "WARNING: %s - encoding not supported as "
