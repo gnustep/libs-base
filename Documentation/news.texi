@@ -29,8 +29,9 @@ thanks to Albin Jones <albin.jones@@dartmouth.edu>.  Albin has also
 implemented underlying GNU functions that provide functions for arrays
 and linked lists of C-type variables.
 
-@item NSThread and NSLock classes have been implemented, thanks to Scott
-Christley <scottc@@net-community.com>.
+@item The NSThread class has been implemented.  Thanks to Scott
+Christley <scottc@@net-community.com>, the NSLock class has been
+implemented.
 
 @item A RunLoop class has been implemented, and is used for listening to
 Port objects.  It is used for Distributed Objects.  There is also an
@@ -80,6 +81,12 @@ NSArchiver is built on top of Coder.  You can actually send all the
 Coder methods to NSArchiver and vice-versa.
 
 GNU classes BinaryCoder and TextCoder are gone.
+
+@item Several new OpenStep functions have been implemented:
+NSHomeDirectory, NSUserName, NSHomeDirectoryForUser, NSPageSize,
+NSLogPageSize, NSroundUpToMultipleOfPageSize,
+NSRoundDownToMultipleOfPageSize, NSRealMemoryAvailable,
+NSAllocateMemoryPages, NSDeallocateMemoryPages, NSCopyMemoryPages.
 
 @item ...and many bug fixes.
 
