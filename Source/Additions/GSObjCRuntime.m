@@ -38,6 +38,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSSet.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSValue.h>
 #else
@@ -69,7 +70,8 @@ GSObjCFindVariable(id obj, const char *name,
   struct objc_ivar_list	*ivars;
   struct objc_ivar	*ivar = 0;
 
-  class = [obj class];
+  if (obj == nil) return NO;
+  class = GSObjCClass(obj);
   while (class != nil && ivar == 0)
     {
       ivars = class->ivars;
@@ -100,6 +102,124 @@ GSObjCFindVariable(id obj, const char *name,
   if (offset)
     *offset = ivar->ivar_offset;
   return YES;
+}
+
+/**
+ * This method returns an array listing the names of all the 
+ * instance methods available to obj, whether they
+ * belong to the class of obj or one of its superclasses.<br />
+ * If obj is a class, this returns the class methods.<br />
+ * Returns nil if obj is nil.
+ */
+NSArray*
+GSObjCMethodNames(id obj)
+{
+  NSMutableSet			*set;
+  NSArray			*array;
+  Class				class;
+  struct objc_method_list	*methods;
+
+  if (obj == nil)
+    {
+      return nil;
+    }
+  /*
+   * Add names to a set so methods declared in superclasses
+   * and then overridden do not appear more than once.
+   */
+  set = [[NSMutableSet alloc] initWithCapacity: 32];
+
+  class = GSObjCClass(obj);
+
+  while (class != nil)
+    {
+#ifdef NeXT_RUNTIME
+      void *iterator = 0;
+
+      while ((methods = class_nextMethodList(class, &iterator)) )
+	{
+	  int i;
+
+	  for (i = 0; i < methods->method_count; i++)
+	    {
+	      struct objc_method *method = &methods->method_list[i];
+
+	      if (method->method_name != 0)
+		{
+		  NSString	*name;
+
+		  name = [[NSString alloc] initWithUTF8String:
+		    method->method_name];
+		  [set addObject: name];
+		  RELEASE(name);
+		}
+	    }
+	}
+#else
+      methods = class->methods;
+      if (methods != 0)
+	{
+	  int	i;
+
+	  for (i = 0; i < methods->method_count; i++)
+	    {
+	      NSString	*name;
+
+	      name = [[NSString alloc] initWithUTF8String:
+		sel_get_name(methods->method_list[i].method_name)];
+	      [set addObject: name];
+	      RELEASE(name);
+	    }
+	  methods = methods->method_next;
+	}
+#endif
+      class = class->super_class;
+    }
+
+  array = [set allObjects];
+  RELEASE(set);
+  return array;
+}
+
+/**
+ * This method returns an array listing the names of all the 
+ * instance variables present in the instance obj, whether they
+ * belong to the class of obj or one of its superclasses.<br />
+ * Returns nil if obj is nil.
+ */
+NSArray*
+GSObjCVariableNames(id obj)
+{
+  NSMutableArray	*array;
+  Class			class;
+  struct objc_ivar_list	*ivars;
+
+  if (obj == nil)
+    {
+      return nil;
+    }
+  array = [NSMutableArray arrayWithCapacity: 16];
+  class = GSObjCClass(obj);
+  while (class != nil)
+    {
+      ivars = class->ivars;
+      if (ivars != 0)
+	{
+	  int		i;
+
+	  for (i = 0; i < ivars->ivar_count; i++)
+	    {
+	      NSString	*name;
+
+	      name = [[NSString alloc] initWithUTF8String:
+		ivars->ivar_list[i].ivar_name];
+	      [array addObject: name];
+	      RELEASE(name);
+	    }
+	}
+      class = class->super_class;
+    }
+  return array;
 }
 
 /**  Deprecated ... use GSObjCGetVariable() */
