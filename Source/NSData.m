@@ -59,7 +59,6 @@
 #include <config.h>
 #include <objc/objc-api.h>
 #include <gnustep/base/preface.h>
-#include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSByteOrder.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSData.h>
@@ -570,8 +569,10 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 		return;
 	    }
 	    else {
-		OBJC_MALLOC (*(char**)data, char, length+1);
-		adr = [MallocAddress autoreleaseMallocAddress:*(void**)data];
+		unsigned len = (length+1)*sizeof(char);
+
+		*(char**)data = (char*)objc_malloc(len);
+		adr = [NSData dataWithBytesNoCopy: *(void**)data length: len];
 	    }
 
 	    [self deserializeBytes:*(char**)data length:length atCursor:cursor];
@@ -618,10 +619,11 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	    break;
         }
         case _C_PTR: {
+	    unsigned len = objc_sizeof_type(++type);
 	    id adr;
 
-	    OBJC_MALLOC (*(char**)data, char, objc_sizeof_type(++type));
-	    adr = [MallocAddress autoreleaseMallocAddress:*(void**)data];
+	    *(char**)data = (char*)objc_malloc(len);
+	    adr = [NSData dataWithBytesNoCopy: *(void**)data length: len];
 
 	    [self deserializeDataAt:*(char**)data
 		    ofObjCType:type
