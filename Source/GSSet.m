@@ -33,6 +33,8 @@
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSObjCRuntime.h"
+// For private method _decodeArrayOfObjectsForKey:
+#include "Foundation/NSKeyedArchiver.h"
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
@@ -187,22 +189,32 @@ static Class	mutableSetClass;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count;
-  id		value;
-  SEL		sel = @selector(decodeValueOfObjCType:at:);
-  IMP		imp = [aCoder methodForSelector: sel];
-  const char	*type = @encode(id);
-
-  (*imp)(aCoder, sel, @encode(unsigned), &count);
-
-  GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
-  while (count-- > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      (*imp)(aCoder, sel, type, &value);
-      GSIMapAddKeyNoRetain(&map, (GSIMapKey)value);
-    }
+      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						@"NS.objects"];
 
-  return self;
+      return [self initWithArray: array];
+    }
+  else
+    {
+      unsigned	count;
+      id		value;
+      SEL		sel = @selector(decodeValueOfObjCType:at:);
+      IMP		imp = [aCoder methodForSelector: sel];
+      const char	*type = @encode(id);
+      
+      (*imp)(aCoder, sel, @encode(unsigned), &count);
+
+      GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
+      while (count-- > 0)
+        {
+	  (*imp)(aCoder, sel, type, &value);
+	  GSIMapAddKeyNoRetain(&map, (GSIMapKey)value);
+	}
+      
+      return self;
+    }
 }
 
 /* Designated initialiser */

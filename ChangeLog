@@ -1,3 +1,14 @@
+2004-01-27  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/GSArray.m:
+	* Source/NSArray.m:
+	* Source/GSSet.m:
+	* Source/NSSet.m:
+	* Source/GSDictionary.m:
+	* Source/NSDictionary.m:
+	* Source/NSString.m:
+	Implemented keyed decoding in [initWithCoder:].
+	
 2004-01-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSKeyedArchiver.h: Expose internals a bit.

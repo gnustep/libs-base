@@ -32,6 +32,8 @@
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSValue.h"
+// For private method _decodeArrayOfObjectsForKey:
+#include "Foundation/NSKeyedArchiver.h"
 
 static SEL	eqSel;
 static SEL	oaiSel;
@@ -178,19 +180,29 @@ static Class	GSInlineArrayClass;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [aCoder decodeValueOfObjCType: @encode(unsigned)
-			     at: &_count];
-  if (_count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      _contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
-      if (_contents_array == 0)
-	{
-	  [NSException raise: NSMallocException
-		      format: @"Unable to make array"];
-	}
-      [aCoder decodeArrayOfObjCType: @encode(id)
-			      count: _count
-				 at: _contents_array];
+      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						@"NS.objects"];
+
+      [self initWithArray: array];
+    }
+  else
+    {
+	[aCoder decodeValueOfObjCType: @encode(unsigned)
+			           at: &_count];
+	if (_count > 0)
+	  {
+	    _contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
+	    if (_contents_array == 0)
+	      {
+		[NSException raise: NSMallocException
+			    format: @"Unable to make array"];
+	      }
+	    [aCoder decodeArrayOfObjCType: @encode(id)
+			            count: _count
+				       at: _contents_array];
+	  }
     }
   return self;
 }
@@ -462,21 +474,31 @@ static Class	GSInlineArrayClass;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned    count;
+  if ([aCoder allowsKeyedCoding])
+    {
+      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						@"NS.objects"];
 
-  [aCoder decodeValueOfObjCType: @encode(unsigned)
-			     at: &count];
-  if ((self = [self initWithCapacity: count]) == nil)
-    {
-      [NSException raise: NSMallocException
-		  format: @"Unable to make array while initializing from coder"];
+      [self initWithArray: array];
     }
-  if (count > 0)
+  else
     {
-      [aCoder decodeArrayOfObjCType: @encode(id)
-			      count: count
-				 at: _contents_array];
-      _count = count;
+	unsigned    count;
+
+	[aCoder decodeValueOfObjCType: @encode(unsigned)
+			           at: &count];
+	if ((self = [self initWithCapacity: count]) == nil)
+	  {
+	    [NSException raise: NSMallocException
+			format: @"Unable to make array while initializing from coder"];
+	  }
+	if (count > 0)
+	  {
+	    [aCoder decodeArrayOfObjCType: @encode(id)
+		                    count: count
+				       at: _contents_array];
+	    _count = count;
+	  }
     }
   return self;
 }
@@ -988,20 +1010,30 @@ static Class	GSInlineArrayClass;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  GSInlineArray	*a;
-  unsigned	c;
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
-  a = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*c, GSObjCZone(self));
-  a->_contents_array = (id*)&a[1];
-  if (c > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      [aCoder decodeArrayOfObjCType: @encode(id)
-			      count: c
-				 at: a->_contents_array];
+      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						@"NS.objects"];
+
+      return array;
     }
-  a->_count = c;
-  return a;
+  else
+    {
+      GSInlineArray	*a;
+      unsigned	c;
+
+      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
+      a = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*c, GSObjCZone(self));
+      a->_contents_array = (id*)&a[1];
+      if (c > 0)
+        {
+	  [aCoder decodeArrayOfObjCType: @encode(id)
+		                  count: c
+				  at: a->_contents_array];
+	}
+      a->_count = c;
+      return a;
+    }
 }
 
 - (id) initWithObjects: (id*)objects count: (unsigned)count

@@ -38,6 +38,8 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSValue.h"
+// For private method _decodeArrayOfObjectsForKey:
+#include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
@@ -203,27 +205,38 @@ static SEL	appSel;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count;
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
-  if (count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      id	*keys = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*count);
-      id	*vals = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*count);
-      unsigned	i;
-      IMP	dec;
+      NSArray *keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+					       @"NS.keys"];
+      NSArray *objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						  @"NS.objects"];
 
-      dec = [aCoder methodForSelector: @selector(decodeObject)];
-      for (i = 0; i < count; i++)
-	{
-	  keys[i] = (*dec)(aCoder, @selector(decodeObject));
-	  vals[i] = (*dec)(aCoder, @selector(decodeObject));
-	}
-      self = [self initWithObjects: vals forKeys: keys count: count];
-      NSZoneFree(NSDefaultMallocZone(), keys);
-      NSZoneFree(NSDefaultMallocZone(), vals);
+      self = [self initWithObjects: objects forKeys: keys];
     }
+  else
+    {
+      unsigned	count;
 
+      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+      if (count > 0)
+        {
+	  id	*keys = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*count);
+	  id	*vals = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*count);
+	  unsigned	i;
+	  IMP	dec;
+	  
+	  dec = [aCoder methodForSelector: @selector(decodeObject)];
+	  for (i = 0; i < count; i++)
+	    {
+	      keys[i] = (*dec)(aCoder, @selector(decodeObject));
+	      vals[i] = (*dec)(aCoder, @selector(decodeObject));
+	    }
+	  self = [self initWithObjects: vals forKeys: keys count: count];
+	  NSZoneFree(NSDefaultMallocZone(), keys);
+	  NSZoneFree(NSDefaultMallocZone(), vals);
+	}
+    }
   return self;
 }
 
