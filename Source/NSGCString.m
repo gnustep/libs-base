@@ -125,17 +125,17 @@ static	IMP msInitImp;	/* designated initialiser for mutable	*/
 {
   _count = length;
   _contents_chars = (unsigned char*)byteString;
-  if (flag == NO)
+  if (flag == YES && byteString != 0)
     {
-      _zone = 0;
+#if	GS_WITH_GC
+      _zone = GSAtomicMallocZone();
+#else
+      _zone = NSZoneFromPointer(byteString);
+#endif
     }
   else
     {
-#if	GS_WITH_GC
-      _zone = byteString ? GSAtomicMallocZone() : 0;
-#else
-      _zone = byteString ? NSZoneFromPointer(byteString) : 0;
-#endif
+      _zone = 0;
     }
   return self;
 }
@@ -992,12 +992,12 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
       _count = length;
       _capacity = length;
       _contents_chars = (unsigned char*)byteString;
-      if (flag == YES)
+      if (flag == YES && byteString != 0)
 	{
 #if	GS_WITH_GC
-	  _zone = (byteString != 0) ? GSAtomicMallocZone() : 0;
+	  _zone = GSAtomicMallocZone();
 #else
-	  _zone = (byteString != 0) ? NSZoneFromPointer(byteString) : 0;
+	  _zone = NSZoneFromPointer(byteString);
 #endif
 	}
       else

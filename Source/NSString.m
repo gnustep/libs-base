@@ -309,7 +309,7 @@ handle_printf_atsign (FILE *stream,
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
 }
 
-+ (id)stringWithUTF8String:(const char *)bytes
++ (id) stringWithUTF8String: (const char *)bytes
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithUTF8String: bytes]);
@@ -441,18 +441,38 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-- (id) initWithUTF8String:(const char *)bytes
+- (id) initWithUTF8String: (const char *)bytes
 {
   unsigned	length = strlen(bytes);
 
   if (length > 0)
     {
-      unichar	*s = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+      unsigned	i;
 
-      length = encode_strtoustr(s, bytes, length+1, NSUTF8StringEncoding);
-      self = [self initWithCharactersNoCopy: s
-				     length: length
-			       freeWhenDone: YES];
+      /*
+       * Check to see if we have in fact got an ascii string
+       */
+      for (i = 0; i < length; i++)
+	{
+	  if (((unsigned char*)bytes)[i] > 127)
+	    {
+	      break;
+	    }
+	}
+      if (i == length)
+	{
+	  self = [self initWithCString: bytes length: length];
+	}
+      else
+	{
+	  unichar	*s;
+
+	  s = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+	  length = encode_strtoustr(s, bytes, length+1, NSUTF8StringEncoding);
+	  self = [self initWithCharactersNoCopy: s
+					 length: length
+				   freeWhenDone: YES];
+	}
     }
   else
     {
@@ -798,6 +818,37 @@ handle_printf_atsign (FILE *stream,
 	  self = [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
 	}
       return self;
+    } 
+  else if (encoding == NSUTF8StringEncoding)
+    {
+      unsigned		length = [data length];
+      const char	*bytes = [data bytes];
+      unsigned		i;
+
+      /*
+       * Check to see if we have in fact got an ascii string
+       */
+      for (i = 0; i < length; i++)
+	{
+	  if (((unsigned char*)bytes)[i] > 127)
+	    {
+	      break;
+	    }
+	}
+      if (i == length)
+	{
+	  self = [self initWithCString: bytes length: length];
+	}
+      else
+	{
+	  unichar	*u;
+
+	  u = NSZoneMalloc(fastZone(self), sizeof(unichar)*length);
+	  length = encode_strtoustr(u, bytes, length+1, NSUTF8StringEncoding);
+	  self = [self initWithCharactersNoCopy: u
+					 length: length
+				   freeWhenDone: YES];
+	}
     }
   else
     {
@@ -1643,7 +1694,7 @@ handle_printf_atsign (FILE *stream,
   return (const char*)[d bytes];
 }
 
-- (const char *)UTF8String
+- (const char *) UTF8String
 {
   NSData	*d;
 
@@ -1777,7 +1828,7 @@ handle_printf_atsign (FILE *stream,
 
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
 {
-  id d = [self  dataUsingEncoding: encoding allowLossyConversion: NO];
+  id d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
   return d ? YES : NO;
 }
 
@@ -2533,10 +2584,10 @@ handle_printf_atsign (FILE *stream,
 		 range: ((NSRange){0, [self length]})];
 }
 
-- (NSComparisonResult)compare:(NSString *)string 
-		      options:(unsigned)mask 
-			range:(NSRange)compareRange 
-		       locale:(NSDictionary *)dict
+- (NSComparisonResult) compare: (NSString *)string 
+		       options: (unsigned)mask 
+			 range: (NSRange)compareRange 
+			locale: (NSDictionary *)dict
 {
   // FIXME: This does only a normal compare
   return [self compare: string
@@ -2544,7 +2595,7 @@ handle_printf_atsign (FILE *stream,
 		 range: compareRange];
 }
 
-- (NSComparisonResult)localizedCompare:(NSString *)string
+- (NSComparisonResult) localizedCompare: (NSString *)string
 {
   // FIXME: This does only a normal compare
   return [self compare: string
@@ -2552,7 +2603,7 @@ handle_printf_atsign (FILE *stream,
 		 range: ((NSRange){0, [self length]})];
 }
 
-- (NSComparisonResult)localizedCaseInsensitiveCompare:(NSString *)string
+- (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string
 {
   // FIXME: This does only a normal compare
   return [self compare: string
@@ -2569,7 +2620,7 @@ handle_printf_atsign (FILE *stream,
   return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
 
-- (BOOL)writeToURL:(NSURL *)anURL atomically:(BOOL)atomically
+- (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)atomically
 {
   id d;
   if (!(d = [self dataUsingEncoding: [NSString defaultCStringEncoding]]))
