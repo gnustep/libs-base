@@ -30,14 +30,14 @@
 
 @class NSString;
 
-@interface NSArray : NSObject
+@interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying>
 - initWithObjects: (id*) objects count: (unsigned) count;
 - (unsigned) count;
 - objectAtIndex: (unsigned)index;
 @end
 
 
-@interface NSArray (NonCore) <NSCopying, NSMutableCopying>
+@interface NSArray (NonCore)
 
 + array;
 + arrayWithArray: (NSArray*)array;
