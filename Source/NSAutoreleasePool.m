@@ -50,10 +50,8 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 
 @interface NSAutoreleasePool (Private)
-- (id) _parentAutoreleasePool;
 + (unsigned) autoreleaseCountForObject: (id)anObject;
 - (void) _reallyDealloc;
-- (void) _setChildPool: (id)pool;
 @end
 
 
@@ -161,40 +159,25 @@ static IMP	initImp;
       _released->size = BEGINNING_POOL_SIZE;
       _released->count = 0;
       _released_head = _released;
+      _released_count = 0;
     }
   else
     /* Already initialized; (it came from autorelease_pool_cache);
        we don't have to allocate new array list memory. */
     {
       _released = _released_head;
-      _released->count = 0;
     }
-
-  /* This NSAutoreleasePool contains no objects yet. */
-  _released_count = 0;
 
   /* Install ourselves as the current pool. */
   {
     struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
     _parent = tv->current_pool;
-    _child = nil;
     if (_parent)
-      [_parent _setChildPool: self];
+      _parent->_child = self;
     tv->current_pool = self;
   }
 
   return self;
-}
-
-- (void) _setChildPool: (id)pool
-{
-  _child = pool;
-}
-
-/* This method not in OpenStep */
-- (id) _parentAutoreleasePool
-{
-  return _parent;
 }
 
 - (unsigned) autoreleaseCount
@@ -228,11 +211,12 @@ static IMP	initImp;
 + (unsigned) autoreleaseCountForObject: (id)anObject
 {
   unsigned count = 0;
-  id pool = ARP_THREAD_VARS->current_pool;
+  NSAutoreleasePool *pool = ARP_THREAD_VARS->current_pool;
+
   while (pool)
     {
       count += [pool autoreleaseCountForObject: anObject];
-      pool = [pool _parentAutoreleasePool];
+      pool = pool->_parent;
     }
   return count;
 }
@@ -280,13 +264,12 @@ static IMP	initImp;
 		 format: @"AutoreleasePool count threshhold exceeded."];
 
   /* Get a new array for the list, if the current one is full. */
-  if (_released->count == _released->size)
+  while (_released->count == _released->size)
     {
       if (_released->next)
 	{
 	  /* There is an already-allocated one in the chain; use it. */
 	  _released = _released->next;
-	  _released->count = 0;
 	}
       else
 	{
@@ -328,80 +311,85 @@ static IMP	initImp;
 - (void) dealloc
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
+  unsigned	i;
+  Class		classes[16];
+  IMP	 	imps[16];
+
+  for (i = 0; i < 16; i++)
+    {
+      classes[i] = 0;
+      imps[i] = 0;
+    }
+
+  /*
+   * Loop throught the deallocation code repeatedly ... since we deallocate
+   * objects in the receiver while the receiver remains set as the current
+   * autorelease pool ... so if any object which is being deallocated adds
+   * any object to the current autorelease pool, we may need to release it
+   * again.
+   */
+  while (_child != nil || _released_count > 0)
+    {
+      volatile struct autorelease_array_list *released = _released_head;
+
+      /* If there are NSAutoreleasePool below us in the stack of
+	 NSAutoreleasePools, then deallocate them also.  The (only) way we
+	 could get in this situation (in correctly written programs, that
+	 don't release NSAutoreleasePools in weird ways), is if an
+	 exception threw us up the stack. */
+      if (_child != nil)
+	{
+	  [_child dealloc];
+	}
+
+      /* Take the object out of the released list just before releasing it,
+       * so if we are doing "double_release_check"ing, then
+       * autoreleaseCountForObject: won't find the object we are currently
+       * releasing. */
+      while (released != 0)
+	{
+	  id	*objects = released->objects;
+
+	  for (i = 0; i < released->count; i++)
+	    {
+	      id	anObject = objects[i];
+	      Class	c = GSObjCClass(anObject);
+	      unsigned	hash = (((unsigned)c) >> 3) & 0x0f;
+
+	      objects[i] = nil;
+	      if (classes[hash] != c)
+		{
+		  classes[hash] = c;
+		  if (GSObjCIsInstance(anObject))
+		    {
+		      imps[hash] = [c instanceMethodForSelector: releaseSel];
+		    }
+		  else
+		    {
+		      imps[hash] = [c methodForSelector: releaseSel];
+		    }
+		}
+	      (imps[hash])(anObject, releaseSel);
+	    }
+	  _released_count -= released->count;
+	  released->count = 0;
+	  released = released->next;
+	}
+    }
 
   /*
    * Remove self from the linked list of pools in use.
-   * Do this *first* so that any object which does an autorelease while
-   * being released does not cause an object to be added to this pool!
+   * We already know that we have deallocated our child (if any),
+   * but we may have a parent which needs to know we have gone.
    */
   if (tv->current_pool == self)
     {
       tv->current_pool = _parent;
-      if (_parent != nil)
-	{
-	  _parent->_child = nil;
-	}
     }
-
-  //  fprintf (stderr, "Deallocating an NSAutoreleasePool\n");
-  /* If there are NSAutoreleasePool below us in the stack of
-     NSAutoreleasePools, then deallocate them also.  The (only) way we
-     could get in this situation (in correctly written programs, that
-     don't release NSAutoreleasePools in weird ways), is if an
-     exception threw us up the stack. */
-  if (_child != nil)
+  if (_parent != nil)
     {
-      NSAutoreleasePool *child = _child;
-
-      _child = nil;
-      [child dealloc];
+      _parent->_child = nil;
     }
-
-  /* Make debugging easier by checking to see if the user already
-     dealloced the object before trying to release it.  Also, take the
-     object out of the released list just before releasing it, so if
-     we are doing "double_release_check"ing, then
-     autoreleaseCountForObject: won't find the object we are currently
-     releasing. */
-  {
-    struct autorelease_array_list *released = _released_head;
-    unsigned	i;
-    Class	classes[16];
-    IMP 	imps[16];
-
-    for (i = 0; i < 16; i++)
-      {
-	classes[i] = 0;
-	imps[i] = 0;
-      }
-
-    while (released != 0)
-      {
-	for (i = 0; i < released->count; i++)
-	  {
-	    id		anObject = released->objects[i];
-	    Class	c = GSObjCClass(anObject);
-	    unsigned	hash = (((unsigned)c) >> 3) & 0x0f;
-
-	    released->objects[i] = nil;
-	    if (classes[hash] != c)
-	      {
-		classes[hash] = c;
-		if (GSObjCIsInstance(anObject))
-		  {
-		    imps[hash] = [c instanceMethodForSelector: releaseSel];
-		  }
-		else
-		  {
-		    imps[hash] = [c methodForSelector: releaseSel];
-		  }
-	      }
-	    (imps[hash])(anObject, releaseSel);
-	  }
-	released->count = 0;
-	released = released->next;
-      }
-  }
 
   /* Don't deallocate ourself, just save us for later use. */
   push_pool_to_cache (tv, self);
