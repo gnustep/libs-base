@@ -20,10 +20,9 @@
 - initWithReturnType: (const char *)encoding;
 - (void) invoke;
 - (void) invokeWithObject: anObj;
-- (void) invokeWithElement: (elt)anElt;
 - (const char *) returnType;
 - (unsigned) returnSize;
-- (void) getReturnValue: (void *)addr;
+- (void) getReturnValue: (void*) addr;
 @end
 
 @interface ArgframeInvocation : Invocation
@@ -43,11 +42,36 @@
 @interface MethodInvocation : ArgframeInvocation
 - initWithArgframe: (arglist_t)frame selector: (SEL)s;
 - initWithSelector: (SEL)s;
+- initWithTarget: target selector: (SEL)s, ...;
 - (void) invokeWithTarget: t;
 - (SEL) selector;
 - (void) setSelector: (SEL)s;
 - target;
 - (void) setTarget: t;
+@end
+
+@interface VoidFunctionInvocation : Invocation
+{
+  void (*function)();
+}
+- initWithFunction: (void(*)())f;
+@end
+
+#if 0
+
+@interface VoidObjectFunctionInvocation : Invocation
+{
+  void (*function)(id);
+  id object;
+}
+- initWithFunction: (void(*)())f;
+@end
+
+@interface ObjectObjectFunctionInvocation : Invocation
+{
+  id (*function)(id);
+}
+- initWithFunction: (void(*)())f;
 @end
 
 @interface FunctionInvocation : ArgframeInvocation
@@ -59,24 +83,6 @@
 - initWithFunction: (void(*)())f;
 @end
 
-#if 0
-// NO, instead do above;
-@interface EltFunctionInvocation
-{
-  void (*func)(elt);
-}
-- initWithEltFunction: (void(*)(elt))func;
-@end
-
-@interface TclInvocation
-- initWithTcl: (Tcl*)t command: (id <String>)c;
-@end
-
-@interface Collection (Invokes)
-- makeObjectsInvoke: (MethodInvocation*)i;
-- withObjectsInvoke: (Invocation*)i;
-- withElementsInvoke: (EltInvocation*)i;
-@end
 #endif
 
 #endif /* __Invocation_h_OBJECTS_INCLUDE */
