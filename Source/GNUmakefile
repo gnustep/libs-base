@@ -69,42 +69,17 @@ FILE_AUTHORS = \
 # The GNU source files
 
 GNU_MFILES = \
-Archiver.m \
-Array.m \
-Bag.m \
 BinaryCStream.m \
-BinaryTree.m \
-BinaryTreeNode.m \
-CircularArray.m \
-Collection.m \
 ConnectedCoder.m \
 Coder.m \
 CStream.m \
 Decoder.m \
-DelegatePool.m \
-Dictionary.m \
 Encoder.m \
-GapArray.m \
 GetDefEncoding.m \
-Heap.m \
-IndexedCollection.m \
-Invocation.m \
-KeyedCollection.m \
-LinkedList.m \
-LinkedListNode.m \
 MachPort.m \
-MappedCollector.m \
 MemoryStream.m \
-NotificationDispatcher.m \
-OrderedCollection.m \
 Port.m \
-Queue.m \
 RawCStream.m \
-RBTree.m \
-RBTreeNode.m \
-Set.m \
-SplayTree.m \
-Stack.m \
 StdioStream.m \
 Stream.m \
 TcpPort.m \
@@ -137,11 +112,6 @@ mframe.m \
 objc-gnu2next.m
 
 GNU_EXTRAS_MFILES = \
-Magnitude.m \
-Random.m \
-RNGAdditiveCongruential.m \
-RNGBerkeley.m \
-Time.m
 
 GNU_CFILES = \
 md5.c \
@@ -163,59 +133,23 @@ fast.x \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
-Archiver.h \
-Array.h \
-ArrayPrivate.h \
-Bag.h \
 BinaryCStream.h \
-BinaryTree.h \
-BinaryTreeNode.h \
-CircularArray.h \
-CircularArrayPrivate.h \
 Coder.h \
 CoderPrivate.h \
 Coding.h \
-Collecting.h \
-Collection.h \
-CollectionPrivate.h \
 ConnectedCoder.h \
 CStream.h \
 CStreaming.h \
-DelegatePool.h \
-Dictionary.h \
 Enumerating.h \
-GapArray.h \
-GapArrayPrivate.h \
 GetDefEncoding.h \
-Heap.h \
-IndexedCollecting.h \
-IndexedCollection.h \
-IndexedCollectionPrivate.h \
-InvalidationListening.h \
-Invocation.h \
-Invoking.h \
-KeyedCollecting.h \
-KeyedCollection.h \
-LinkedList.h \
-LinkedListNode.h \
 Locking.h \
 MachPort.h \
-MappedCollector.h \
 MemoryStream.h \
-NotificationDispatcher.h \
 Ordering.h \
-OrderedCollecting.h \
-OrderedCollection.h \
 Port.h \
-Queue.h \
-RBTree.h \
-RBTreeNode.h \
 RawCStream.h \
 Retaining.h \
 RunLoop.h \
-Set.h \
-SplayTree.h \
-Stack.h \
 StdioStream.h \
 Stream.h \
 Streaming.h \
@@ -245,13 +179,6 @@ objc-gnu2next.h \
 preface.h
 
 GNU_EXTRAS_HFILES = \
-all.h \
-Magnitude.h \
-Random.h \
-RNGAdditiveCongruential.h \
-RNGBerkeley.h \
-RandomGenerating.h \
-Time.h
 
 # GNUStep source files
 

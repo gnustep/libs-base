@@ -1,5 +1,83 @@
 2000-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Removal of non-OpenStep unused classes.
+	* Headers/gnustep/base/Archiver.h: removed
+	* Headers/gnustep/base/Array.h: removed
+	* Headers/gnustep/base/ArrayPrivate.h: removed
+	* Headers/gnustep/base/Bag.h: removed
+	* Headers/gnustep/base/BinaryTree.h: removed
+	* Headers/gnustep/base/BinaryTreeNode.h: removed
+	* Headers/gnustep/base/CircularArray.h: removed
+	* Headers/gnustep/base/CircularArrayPrivate.h: removed
+	* Headers/gnustep/base/Collecting.h: removed
+	* Headers/gnustep/base/Collection.h: removed
+	* Headers/gnustep/base/CollectionPrivate.h: removed
+	* Headers/gnustep/base/DelegatePool.h: removed
+	* Headers/gnustep/base/Dictionary.h: removed
+	* Headers/gnustep/base/GapArray.h: removed
+	* Headers/gnustep/base/GapArrayPrivate.h: removed
+	* Headers/gnustep/base/Heap.h: removed
+	* Headers/gnustep/base/IndexedCollecting.h: removed
+	* Headers/gnustep/base/IndexedCollection.h: removed
+	* Headers/gnustep/base/IndexedCollectionPrivate.h: removed
+	* Headers/gnustep/base/InvalidationListening.h: removed
+	* Headers/gnustep/base/Invocation.h: removed
+	* Headers/gnustep/base/Invoking.h: removed
+	* Headers/gnustep/base/KeyedCollecting.h: removed
+	* Headers/gnustep/base/KeyedCollection.h: removed
+	* Headers/gnustep/base/LinkedList.h: removed
+	* Headers/gnustep/base/LinkedListNode.h: removed
+	* Headers/gnustep/base/Magnitude.h: removed
+	* Headers/gnustep/base/MappedCollector.h: removed
+	* Headers/gnustep/base/NotificationDispatcher.h: removed
+	* Headers/gnustep/base/OrderedCollecting.h: removed
+	* Headers/gnustep/base/OrderedCollection.h: removed
+	* Headers/gnustep/base/Queue.h: removed
+	* Headers/gnustep/base/RBTree.h: removed
+	* Headers/gnustep/base/RBTreeNode.h: removed
+	* Headers/gnustep/base/RNGAdditiveCongruential.h: removed
+	* Headers/gnustep/base/RNGBerkeley.h: removed
+	* Headers/gnustep/base/Random.h: removed
+	* Headers/gnustep/base/RandomGenerating.h: removed
+	* Headers/gnustep/base/RunLoop.h: removed
+	* Headers/gnustep/base/Set.h: removed
+	* Headers/gnustep/base/SplayTree.h: removed
+	* Headers/gnustep/base/Stack.h: removed
+	* Headers/gnustep/base/Time.h: removed
+	* Headers/gnustep/base/all.h: removed
+	* Source/Archiver.m: removed
+	* Source/Array.m: removed
+	* Source/Bag.m: removed
+	* Source/BinaryTree.m: removed
+	* Source/BinaryTreeNode.m: removed
+	* Source/CircularArray.m: removed
+	* Source/Collection.m: removed
+	* Source/DelegatePool.m: removed
+	* Source/Dictionary.m: removed
+	* Source/GapArray.m: removed
+	* Source/Heap.m: removed
+	* Source/IndexedCollection.m: removed
+	* Source/Invocation.m: removed
+	* Source/KeyedCollection.m: removed
+	* Source/LinkedList.m: removed
+	* Source/LinkedListNode.m: removed
+	* Source/Magnitude.m: removed
+	* Source/MappedCollector.m: removed
+	* Source/NotificationDispatcher.m: removed
+	* Source/OrderedCollection.m: removed
+	* Source/Queue.m: removed
+	* Source/RBTree.m: removed
+	* Source/RBTreeNode.m: removed
+	* Source/RNGAdditiveCongruential.m: removed
+	* Source/RNGBerkeley.m: removed
+	* Source/Random.m: removed
+	* Source/Set.m: removed
+	* Source/SplayTree.m: removed
+	* Source/Stack.m: removed
+	* Source/GNUmakefile: remove referenced to reomved classes
+
+2000-06-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/gnustep/base/NSGArchiver.h: removed obsolete file.
 	* Source/NSGArchiver.m: removed obsolete file.
 	* configure.in: Check for existence of NSArray.m to find source
