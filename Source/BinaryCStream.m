@@ -329,9 +329,11 @@ static BOOL debug_binary_coder;
 - (void) decodeName: (id <String> *)n
 {
 #if 1
-  *n = nil;
+  if (n)
+    *n = nil;
 #else
-  *n = [[[NSString alloc] init] autorelease];
+  if (n)
+    *n = [[[NSString alloc] init] autorelease];
 #endif
 }
 
