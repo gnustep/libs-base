@@ -1,7 +1,9 @@
 2001-11-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPHURLHandle.m: handle writing of nil properties and
-	use of empty strings as proxy settings.
+	use of empty strings as proxy settings.  Minimise delays when
+	tunneling SSL
+	* Source/UnixFileHandle.m: Improve error logging with ssl.
 
 2001-11-07  Richard Frith-Macdonald <rfm@gnu.org>
 

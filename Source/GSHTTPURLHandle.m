@@ -384,6 +384,8 @@ static NSLock			*urlLock = nil;
     {
       NSRunLoop	*loop = [NSRunLoop currentRunLoop];
       NSString	*cmd;
+      NSTimeInterval	last = 0.0;
+      NSTimeInterval	limit = 0.01;
 
       if ([url port] == nil)
 	{
@@ -406,7 +408,14 @@ static NSLock			*urlLock = nil;
                object: sock];
       while (tunnel == YES)
 	{
-	  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
+	  NSDate		*when;
+	  NSTimeInterval	tmp = limit;
+
+	  limit += last;
+	  last = tmp;
+          when = [[NSDate alloc] initWithTimeIntervalSinceNow: limit];
+	  [loop runUntilDate: when];
+	  RELEASE(when);
 	}
     }
   if ([[url scheme] isEqualToString: @"https"])
@@ -533,6 +542,7 @@ static NSLock			*urlLock = nil;
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
+      tunnel = NO;
       NSLog(@"Failed to write command to socket - %@", e);
       /*
        * Tell superclass that the load failed - let it do housekeeping.
