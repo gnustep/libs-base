@@ -33,6 +33,7 @@
 #include <Foundation/NSPort.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSSet.h>
+#include <Foundation/NSHost.h>
 #include <Foundation/NSPortNameServer.h>
 #include <gnustep/base/TcpPort.h>
 
@@ -779,6 +780,7 @@ static NSPortNameServer	*defaultServer = nil;
 {
   NSRunLoop	*loop;
   NSString	*hostname = host;
+  BOOL		isLocal = NO;
 
   if (handle)
     {
@@ -787,6 +789,21 @@ static NSPortNameServer	*defaultServer = nil;
   if (hostname == nil)
     {
       hostname = @"localhost";
+      isLocal = YES;
+    }
+  else
+    {
+      NSHost	*current = [NSHost currentHost];
+      NSHost	*host = [NSHost hostWithName: hostname];
+
+      if (host == nil)
+	{
+	  host = [NSHost hostWithAddress: hostname];
+	}
+      if ([current isEqual: host])
+	{
+	  isLocal = YES;
+	}
     }
 
   NS_DURING
@@ -864,7 +881,7 @@ static NSPortNameServer	*defaultServer = nil;
       static BOOL	retrying = NO;
 
       [self _close];
-      if (retrying == NO)
+      if (isLocal == YES && retrying == NO)
 	{
 	  retrying = YES;
 	  NS_DURING
@@ -881,8 +898,16 @@ static NSPortNameServer	*defaultServer = nil;
 	}
       else
 	{
-	  NSLog(@"NSPortNameServer failed to connect to gdomap - %s",
-		make_gdomap_err(GNUSTEP_INSTALL_PREFIX)); 
+	  if (isLocal)
+	    {
+	      NSLog(@"NSPortNameServer failed to connect to gdomap - %s",
+		    make_gdomap_err(GNUSTEP_INSTALL_PREFIX)); 
+	    }
+	  else
+	    {
+	      NSLog(@"NSPortNameServer failed to connect to gdomap on %@",
+		    hostname);
+	    }
 	}
     }
 }
