@@ -1,3 +1,9 @@
+2001-08-30  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/sfparse.m: Add code to convert files to Unicode.
+	* Resources/German/Localizable.strings: Convert to Unicode.
+	* Resources/French/Localizable.strings: Likewise.
+
 Thu Aug 30 20:03:19 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/objc-load.m (objc_load_module): Reset the load callbacks
