@@ -1323,6 +1323,11 @@ GSTimeNow(void)
   return self;
 }
 
+- (unsigned) hash
+{
+  return (unsigned)[self timeIntervalSinceReferenceDate];
+}
+
 - (BOOL) isEqual: (id)other
 {
   if (other == nil)
@@ -1451,6 +1456,11 @@ GSTimeNow(void)
   if (_seconds_since_ref > otherTime(otherDate))
     return otherDate;
   return self;
+}
+
+- (unsigned) hash
+{
+  return (unsigned)_seconds_since_ref;
 }
 
 - (BOOL) isEqual: (id)other

@@ -1,3 +1,8 @@
+2004-05-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDate.m: Implement -hash for abstract class and for the
+	concrete subclasses as suggested by Marcus Muller.
+
 2004-05-21  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/gdomap.c (xgethostnames): New function
