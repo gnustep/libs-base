@@ -1,3 +1,9 @@
+2000-10-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSInvocation.h: Removed non-standard macros
+	* Headers/gnustep/base/behavior.h: Removed unused macro
+	CALL_METHOD_IN_CLASS()
+
 2000-10-29  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Check for langinfo.

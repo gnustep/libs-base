@@ -74,7 +74,7 @@
 /*
  *	Getting the method signature.
  */
-- (NSMethodSignature*)methodSignature;
+- (NSMethodSignature*) methodSignature;
 
 @end
 
@@ -87,31 +87,6 @@
 - (void*) returnFrame: (arglist_t)argFrame;
 @end
 #endif
-
-/* -initWithTarget:selector:, a method used in the macros
-   is come from the MethodInvocation behavior.
-   So your gcc warns that NSInvocation doesn't have
-   -initWithTarget:selector:.
-
-   e.g.
-   NS_INVOCATION([NSObject class] ,
-                 isKindOfClass:,
-                 [NSObject class]);
-
-   NS_MESSAGE([NSObject new] ,
-              isKindOfClass:, [NSObject class]);
-
-   NS_MESSAGE([NSObject new] , hash) */
-
-#define NS_INVOCATION(ACLASS, SELECTOR, ARGS...)\
-([[[NSInvocation alloc]\
-   initWithTarget:nil selector: (@selector(SELECTOR)) , ## ARGS]\
-  autorelease])
-
-#define NS_MESSAGE(ANOBJECT, SELECTOR, ARGS...)\
-([[[NSInvocation alloc]\
-   initWithTarget:(ANOBJECT) selector: (@selector(SELECTOR)) , ## ARGS]\
-     autorelease])
 
 #endif /* __NSInvocation_h_GNUSTEP_BASE_INCLUDE */
 

@@ -53,14 +53,6 @@ void behavior_class_add_methods (Class class,
 /* The old deprecated interface */
 void class_add_behavior (Class class, Class behavior);
 
-/* This macro may go away in future.
-   Use it carefully, you can really screw yourself up by sending to 
-   a CLASS with a different instance variable layout than "self". */
-
-#define CALL_METHOD_IN_CLASS(CLASS, METHOD, ARGS...)	\
-((*(get_imp([CLASS class], @selector(METHOD))))		\
-  (self, @selector(METHOD), ## ARGS))
-
 /* Set to non-zero if you want debugging messages on stderr. */
 void set_behavior_debug(int i);
 
