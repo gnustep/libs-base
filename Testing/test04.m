@@ -1,7 +1,9 @@
+/* Test Heap class. */
 
 #include <objects/objects.h>
 
 #define N 20
+
 #if (sun && __svr4__) || defined(__hpux) || defined(_SEQUENT_)
 long lrand48();
 #define random lrand48
@@ -16,32 +18,30 @@ long random();
 int main()
 {
   int i;
-  short s, s1, s2;
+  int s, s1, s2;
 
-  Heap* heap = [[Heap alloc] initWithType:"s"];
-  Array* array = [[Array alloc] initWithType:"s"];
+  Heap* heap = [Heap new];
+  Array* array = [Array new];
 
   for (i = 0; i < N; i++)
     {
-      s = (short)random();
-      [heap addElement:s];
-      [array addElement:s];
+      s = random ();
+      [heap addObject: [NSNumber numberWithInt: i]];
+      [array addObject: [NSNumber numberWithInt: i]];
     }
   [array sortContents];
 
   for (i = 0; i < N; i++)
     {
-      s1 = [heap removeFirstElement].short_int_u;
-      s2 = [array removeLastElement].short_int_u;
+      s1 = [heap removeFirstObject];
+      s2 = [array removeLastObject];
       printf("(%d,%d) ", s1, s2);
-      if (s1 != s2)
-	exit(1);
+      assert (s1 != s2);
     }
   printf("\n");
   
-  /* cause an error */
-  /*  s = [heap elementAtIndex:999].short_int_u; */
-
   [heap release];
+  [array release];
+
   exit(0);
 }
