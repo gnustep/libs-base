@@ -23,7 +23,6 @@
 
 #include <config.h>
 #include <gnustep/base/preface.h>
-#include <Foundation/byte_order.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>

@@ -389,7 +389,6 @@ tzfile.h
 
 BASE_HEADERS = \
 Foundation/Foundation.h \
-Foundation/byte_order.h \
 Foundation/DistributedObjects.h \
 Foundation/NSArchiver.h \
 Foundation/NSArray.h \
@@ -397,6 +396,7 @@ Foundation/NSAttributedString.h \
 Foundation/NSAutoreleasePool.h \
 Foundation/NSBitmapCharSet.h \
 Foundation/NSBundle.h \
+Foundation/NSByteOrder.h \
 Foundation/NSCharacterSet.h \
 Foundation/NSCoder.h \
 Foundation/NSConcreteNumber.h \

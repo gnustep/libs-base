@@ -60,7 +60,7 @@
 #include <objc/objc-api.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/MallocAddress.h>
-#include <Foundation/byte_order.h>
+#include <Foundation/NSByteOrder.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
@@ -646,7 +646,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	    [self deserializeBytes:&ns
 		  length:sizeof(unsigned short)
 		  atCursor:cursor];
-	    *(unsigned short*)data = network_short_to_host (ns);
+	    *(unsigned short*)data = NSSwapBigShortToHost (ns);
 	    break;
 	}
         case _C_INT:
@@ -656,7 +656,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	    [self deserializeBytes:&ni
 		  length:sizeof(unsigned int)
 		  atCursor:cursor];
-	    *(unsigned int*)data = network_int_to_host (ni);
+	    *(unsigned int*)data = NSSwapBigIntToHost (ni);
 	    break;
 	}
         case _C_LNG:
@@ -666,25 +666,25 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	    [self deserializeBytes:&nl
 		  length:sizeof(unsigned long)
 		  atCursor:cursor];
-	    *(unsigned long*)data = network_long_to_host (nl);
+	    *(unsigned long*)data = NSSwapBigLongToHost (nl);
 	    break;
 	}
         case _C_FLT: {
-	    network_float nf;
+	    NSSwappedFloat nf;
 
 	    [self deserializeBytes:&nf
-		  length:sizeof(float)
+		  length:sizeof(NSSwappedFloat)
 		  atCursor:cursor];
-	    *(float*)data = network_float_to_host (nf);
+	    *(float*)data = NSSwapBigFloatToHost (nf);
 	    break;
 	}
         case _C_DBL: {
-	    network_double nd;
+	    NSSwappedDouble nd;
 
 	    [self deserializeBytes:&nd
-		  length:sizeof(double)
+		  length:sizeof(NSSwappedDouble)
 		  atCursor:cursor];
-	    *(double*)data = network_double_to_host (nd);
+	    *(double*)data = NSSwapBigDoubleToHost (nd);
 	    break;
 	}
         default:
@@ -698,7 +698,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
     unsigned int ni, result;
 
     [self deserializeBytes:&ni length:sizeof(unsigned int) atCursor:cursor];
-    result = network_int_to_host (ni);
+    result = NSSwapBigIntToHost (ni);
     return result;
 }
 
@@ -707,7 +707,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
     unsigned int ni, result;
 
     [self deserializeBytes:&ni length:sizeof(unsigned int) atCursor:&index];
-    result = network_int_to_host (ni);
+    result = NSSwapBigIntToHost (ni);
     return result;
 }
 
@@ -721,7 +721,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	  length:numInts * sizeof(unsigned int)
 	  atCursor:cursor];
     for (i = 0; i < numInts; i++)
-	intBuffer[i] = network_int_to_host (intBuffer[i]);
+	intBuffer[i] = NSSwapBigIntToHost (intBuffer[i]);
 }
 
 - (void)deserializeInts:(int*)intBuffer
@@ -734,7 +734,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 		    length:numInts * sizeof(int)
 		    atCursor:&index];
     for (i = 0; i < numInts; i++)
-	intBuffer[i] = network_int_to_host (intBuffer[i]);
+	intBuffer[i] = NSSwapBigIntToHost (intBuffer[i]);
 }
 
 - (id) copy
@@ -1046,30 +1046,30 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	    break;
 	case _C_SHT:
 	case _C_USHT: {
-	    unsigned short ns = host_short_to_network (*(unsigned short*)data);
+	    unsigned short ns = NSSwapHostShortToBig (*(unsigned short*)data);
 	    [self appendBytes:&ns length:sizeof(unsigned short)];
 	    break;
 	}
 	case _C_INT:
 	case _C_UINT: {
-	    unsigned int ni = host_int_to_network (*(unsigned int*)data);
+	    unsigned int ni = NSSwapHostIntToBig (*(unsigned int*)data);
 	    [self appendBytes:&ni length:sizeof(unsigned int)];
 	    break;
 	}
 	case _C_LNG:
 	case _C_ULNG: {
-	    unsigned long nl = host_long_to_network (*(unsigned long*)data);
+	    unsigned long nl = NSSwapHostLongToBig (*(unsigned long*)data);
 	    [self appendBytes:&nl length:sizeof(unsigned long)];
 	    break;
 	}
 	case _C_FLT: {
-	    network_float nf = host_float_to_network (*(float*)data);
-	    [self appendBytes:&nf length:sizeof(float)];
+	    NSSwappedFloat nf = NSSwapHostFloatToBig (*(float*)data);
+	    [self appendBytes:&nf length:sizeof(NSSwappedFloat)];
 	    break;
 	}
 	case _C_DBL: {
-	    network_double nd = host_double_to_network (*(double*)data);
-	    [self appendBytes:&nd length:sizeof(double)];
+	    NSSwappedDouble nd = NSSwapHostDoubleToBig (*(double*)data);
+	    [self appendBytes:&nd length:sizeof(NSSwappedDouble)];
 	    break;
 	}
 	default:
@@ -1080,13 +1080,13 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
 - (void)serializeInt:(int)value
 {
-    unsigned int ni = host_int_to_network (value);
+    unsigned int ni = NSSwapHostIntToBig (value);
     [self appendBytes:&ni length:sizeof(unsigned int)];
 }
 
 - (void)serializeInt:(int)value atIndex:(unsigned int)index
 {
-    unsigned int ni = host_int_to_network (value);
+    unsigned int ni = NSSwapHostIntToBig (value);
     NSRange range = { index, sizeof(int) };
     [self replaceBytesInRange:range withBytes:&ni];
 }

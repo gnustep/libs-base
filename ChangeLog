@@ -2,6 +2,18 @@ Wed Mar  4 17:11:23 1998  Adam Fedor  <fedor@doc.com>
 
 	* Version: Version 0.5.0;
 
+Thu Mar  5 15:40:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/GNUmakefile: removed byte_order.h and added NSByteOrder.h
+	
+	* src/NSData.m: Changed all byte-ordering code to use new byte order
+	functions described in the Rhapsody documentation.
+
+	* src/NSSerializer.m: Removed unused include file.
+
+	* src/include/NSByteOrder.h: Added this file containing all the
+	byte-order management functions described in the Rhapsody docs.
+
 Wed Mar  4 21:06:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/NSConnection.m: Changed some objects to be OpenStep rather than
