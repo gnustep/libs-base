@@ -1,3 +1,16 @@
+Wed Dec  2 16:11:05 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* src/NSDictionary.m (-fileGroupOwnerAccountName): New method.
+	(-fileModificationDate): Likewise.
+	(fileOwnerAccountName): Likewise.
+	(filePosixPermissions): Likewise.
+	(fileSize): Likewise.
+	(fileSystemFileNumber): Likewise.
+	(fileSystemNumber): Likewise.
+	(fileType): Likewise. 
+	* src/include/NSDictionary.h: New methods. Contributed by Camile
+	TROILLARD <tuscland@wanadoo.fr>. 
+	
 Wed Dec  2 20:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/GNUmakefile: Added NSDateFormatter
