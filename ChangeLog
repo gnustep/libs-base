@@ -2,6 +2,13 @@
 
 	* Headers/Foundation/GSIMap.h: On initialisation set number of nodes
 	to exactly equal capacity, for improved memory efficiency.
+	* Source/Makefile.postamble: correct dependencies for GSIMap.
+	* Source/GSCountedSet.m: Use map enumerator rather than messing with
+	the internals of a GSIMap directly.
+	* Source/GSSet.m: ditto
+	* Source/NSConnection.m: ditto
+	* Source/NSGDictionary.m: ditto
+	* Source/NSNotificationCenter.m: ditto
 
 2000-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 

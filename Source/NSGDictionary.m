@@ -65,8 +65,8 @@
 
 @interface NSGDictionaryKeyEnumerator : NSEnumerator
 {
-  NSGDictionary	*dictionary;
-  GSIMapNode	node;
+  NSGDictionary		*dictionary;
+  GSIMapEnumerator_t	enumerator;
 }
 @end
 
@@ -102,16 +102,17 @@ static SEL	objSel;
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   unsigned	count = map.nodeCount;
-  GSIMapNode	node = map.firstNode;
   SEL		sel = @selector(encodeObject:);
   IMP		imp = [aCoder methodForSelector: sel];
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
 
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
   while (node != 0)
     {
       (*imp)(aCoder, sel, node->key.obj);
       (*imp)(aCoder, sel, node->value.obj);
-      node = node->nextInMap;
+      node = GSIMapEnumeratorNextNode(&enumerator);
     }
 }
 
@@ -337,20 +338,19 @@ static SEL	objSel;
 {
   [super init];
   dictionary = (NSGDictionary*)RETAIN(d);
-  node = dictionary->map.firstNode;
+  enumerator = GSIMapEnumeratorForMap(&dictionary->map);
   return self;
 }
 
 - (id) nextObject
 {
-  GSIMapNode	old = node;
+  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
 
   if (node == 0)
     {
       return nil;
     }
-  node = node->nextInMap;
-  return old->key.obj;
+  return node->key.obj;
 }
 
 - (void) dealloc
@@ -365,14 +365,13 @@ static SEL	objSel;
 
 - (id) nextObject
 {
-  GSIMapNode	old = node;
+  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
 
   if (node == 0)
     {
       return nil;
     }
-  node = node->nextInMap;
-  return old->value.obj;
+  return node->value.obj;
 }
 
 @end

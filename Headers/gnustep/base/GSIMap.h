@@ -566,25 +566,14 @@ GSIMapRightSizeMap(GSIMapTable map, size_t capacity)
  * With that in mind, read the following warnings carefully.  But
  * remember, DON'T MESS WITH A MAP WHILE YOU'RE ENUMERATING IT. */
 
-/* IMPORTANT WARNING: Map enumerators, as I have map them up, have a
- * wonderous property.  Namely, that, while enumerating, one may add
- * new elements (i.e., new nodes) to the map while an enumeration is
- * in progress (i.e., after `o_map_enumerator_for_map()' has been
- * called), and the enumeration remains the same. */
-
-/* WARNING: The above warning should not, in any way, be taken as
- * assurance that this property of map enumerators will be preserved
- * in future editions of the library.  I'm still thinking about
- * this. */
-
-/* IMPORTANT WARNING: Enumerators have yet another wonderous property.
+/* IMPORTANT WARNING: Enumerators have a wonderous property.
  * Once a node has been returned by `GSIMapEnumeratorNextNode()', it may be
  * removed from the map without effecting the rest of the current
  * enumeration. */
 
 /* EXTREMELY IMPORTANT WARNING: The purpose of this warning is point
  * out that, at this time, various (i.e., many) functions depend on
- * the behaviours outlined above.  So be prepared for some serious
+ * the behaviour outlined above.  So be prepared for some serious
  * breakage when you go fudging around with these things. */
 
 static INLINE GSIMapEnumerator_t

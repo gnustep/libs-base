@@ -950,14 +950,16 @@ static BOOL	multi_threaded = NO;
     {
       NSMutableArray	*targets;
       unsigned	 	i = _localTargets->nodeCount;
-      GSIMapNode	node;
+      GSIMapEnumerator_t	enumerator;
+      GSIMapNode 		node;
 
       targets = [[NSMutableArray alloc] initWithCapacity: i];
-      node = _localTargets->firstNode;
+      enumerator = GSIMapEnumeratorForMap(_localTargets);
+      node = GSIMapEnumeratorNextNode(&enumerator);
       while (node != 0)
 	{
 	  [targets addObject: node->value.obj];
-	  node = node->nextInMap;
+	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
       while (i-- > 0)
 	{
@@ -978,12 +980,16 @@ static BOOL	multi_threaded = NO;
     }
   if (_localObjects != 0)
     {
-      GSIMapNode	node = _localObjects->firstNode;
+      GSIMapEnumerator_t	enumerator;
+      GSIMapNode 		node;
+
+      enumerator = GSIMapEnumeratorForMap(_localObjects);
+      node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
 	{
 	  RELEASE(node->key.obj);
-	  node = node->nextInMap;
+	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
       GSIMapEmptyMap(_localObjects);
       NSZoneFree(_localObjects->zone, (void*)_localObjects);
@@ -1007,13 +1013,17 @@ static BOOL	multi_threaded = NO;
   M_LOCK(_proxiesGate);
   if (_localObjects != 0)
     {
-      GSIMapNode	node = _localObjects->firstNode;
+      GSIMapEnumerator_t	enumerator;
+      GSIMapNode 		node;
+
+      enumerator = GSIMapEnumeratorForMap(_localObjects);
+      node = GSIMapEnumeratorNextNode(&enumerator);
 
       c = [NSMutableArray arrayWithCapacity: _localObjects->nodeCount];
       while (node != 0)
 	{
 	  [c addObject: node->key.obj];
-	  node = node->nextInMap;
+	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
     }
   else
@@ -1086,13 +1096,17 @@ static BOOL	multi_threaded = NO;
   M_LOCK(_proxiesGate);
   if (_remoteProxies != 0)
     {
-      GSIMapNode	node = _remoteProxies->firstNode;
+      GSIMapEnumerator_t	enumerator;
+      GSIMapNode 		node;
+
+      enumerator = GSIMapEnumeratorForMap(_remoteProxies);
+      node = GSIMapEnumeratorNextNode(&enumerator);
 
       c = [NSMutableArray arrayWithCapacity: _remoteProxies->nodeCount];
       while (node != 0)
 	{
 	  [c addObject: node->key.obj];
-	  node = node->nextInMap;
+	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
     }
   else
@@ -1363,13 +1377,19 @@ static BOOL	multi_threaded = NO;
   DESTROY(_requestQueue);
   if (_replyMap != 0)
     {
-      GSIMapNode	node = _replyMap->firstNode;
+      GSIMapEnumerator_t	enumerator;
+      GSIMapNode 		node;
+
+      enumerator = GSIMapEnumeratorForMap(_replyMap);
+      node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
 	{
 	  if (node->key.obj != dummyObject)
-	    RELEASE(node->key.obj);
-	  node = node->nextInMap;
+	    {
+	      RELEASE(node->key.obj);
+	    }
+	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
       GSIMapEmptyMap(_replyMap);
       NSZoneFree(_replyMap->zone, (void*)_replyMap);
