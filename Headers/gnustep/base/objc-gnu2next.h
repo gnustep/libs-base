@@ -1,5 +1,7 @@
 /* Definitions to allow compilation of GNU objc code with NeXT runtime
-   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
+   and the reverse.
+
+   Copyright (C) 1993,1994,1996,2003 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -235,6 +237,35 @@ objc_error_handler objc_set_error_handler(objc_error_handler func);
 #define OBJC_ERR_UNIMPLEMENTED 30      /* Method is not implemented */
 
 #define OBJC_ERR_BAD_STATE 40          /* Bad thread state */
+
+#else	/* NeXT_RUNTIME */
+
+/*
+ * And to use the GNU runtime from old NeXT code ...
+ */
+#define class_createInstance(CLASS, X)	class_create_instance(CLASS)
+#define class_getInstanceMethod		class_get_instance_method
+#define class_getClassMethod		class_get_class_method 
+#define class_addMethods		class_add_method_list
+#define class_setVersion		class_set_version
+#define class_getVersion		class_get_version
+#define class_poseAs			class_pose_as
+#define method_getSizeOfArguments	method_get_sizeof_arguments
+#define objc_lookUpClass		objc_lookup_class
+#define objc_getClass			objc_get_class
+
+#define sel_registerName		sel_register_name
+#define sel_isMapped			sel_is_mapped
+#define sel_getName			sel_get_name
+#define sel_getUid			sel_get_any_uid
+
+#define	class_nextMethodList(aClass,anIterator) ({\
+  if (*(anIterator) == 0) \
+    *((struct objc_method_list**)(anIterator)) = (aClass)->methods; \
+  else \
+    *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
+})
+
 #endif /* NeXT_RUNTIME */
 
 #endif /* __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE */
