@@ -22,11 +22,11 @@
    */ 
 
 #include "config.h"
-#import <base/preface.h>
-#import <Foundation/NSProtocolChecker.h>
-#import <Foundation/NSException.h>
-#import <Foundation/NSInvocation.h>
-#import <Foundation/NSMethodSignature.h>
+#include <base/preface.h>
+#include <Foundation/NSProtocolChecker.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSInvocation.h>
+#include <Foundation/NSMethodSignature.h>
 
 @implementation NSProtocolChecker
 

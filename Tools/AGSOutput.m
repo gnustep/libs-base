@@ -51,7 +51,7 @@
   return self;
 }
 
-- (BOOL) output: (NSDictionary*)d file: (NSString*)name
+- (NSString*) output: (NSDictionary*)d
 {
   NSMutableString	*str = [NSMutableString stringWithCapacity: 10240];
   NSDictionary		*classes;
@@ -260,6 +260,12 @@
 
   [str appendString: @"  </body>\n"];
   [str appendString: @"</gsdoc>\n"];
+  return str;
+}
+
+- (BOOL) output: (NSDictionary*)d file: (NSString*)name
+{
+  NSString	*str = [self output: d];
 
   return [str writeToFile: name atomically: YES];
 }
@@ -814,19 +820,59 @@
 		}
 	      else
 		{
+		  /*
+		   * We want param=value sequences to be standardised to
+		   * not have spaces around the equals sign.
+		   */
+		  if (*ptr == '=')
+		    {
+		      elideSpace = YES;
+		      if (optr[-1] == ' ')
+			{
+			  optr--;
+			}
+		    }
+		  else
+		    {
+		      elideSpace = NO;
+		    }
 		  *optr++ = *ptr++;
-		  elideSpace = NO;
 		}
 	    }
 	  if (*ptr == '>')
 	    {
+	      /*
+	       * remove space immediately before closing bracket.
+	       */
+	      if (optr[-1] == ' ')
+		{
+		  optr--;
+		}
 	      *optr++ = *ptr++;
 	    }
 	  if (optr != buf)
 	    {
 	      NSString	*tmp;
 
-	      tmp = [NSString stringWithCharacters: buf length: ptr - buf];
+	      /*
+	       * Ensure that elements with no content ('/>' endings)
+	       * are standardised to have a space before their terminators.
+	       */
+	      if (optr[-2] == '/' && optr[-3] != ' ')
+		{
+		  unsigned	len = ptr - buf;
+		  unichar	c[len + 1];
+
+		  memcpy(c, buf, (len+1)*sizeof(unichar));
+		  c[len-2] = ' ';
+		  c[len-1] = '/';
+		  c[len] = '>';
+		  tmp = [NSString stringWithCharacters: c length: len+1];
+		}
+	      else
+		{
+		  tmp = [NSString stringWithCharacters: buf length: ptr - buf];
+		}
 	      [a addObject: tmp];
 	    }
 	  buf = ptr;

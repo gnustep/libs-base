@@ -1,5 +1,5 @@
-#import <Foundation/Foundation.h>
-#import <objc/Protocol.h>
+#include <Foundation/Foundation.h>
+#include <objc/Protocol.h>
 
 @interface Foo: NSObject
 {

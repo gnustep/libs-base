@@ -12,7 +12,6 @@
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
    of the License, or (at your option) any later version.
-
    You should have received a copy of the GNU General Public
    License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
@@ -31,6 +30,7 @@
   NSCharacterSet	*spacenl;	// Blanks excluding newline
 }
 
+- (NSString*) output: (NSDictionary*)d;
 - (BOOL) output: (NSDictionary*)d file: (NSString*)name;
 - (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str;
 - (void) outputUnit: (NSDictionary*)d to: (NSMutableString*)str;

@@ -113,7 +113,7 @@ ReturnTypeEqualsReturnType (vacallReturnTypeInfo *a, vacallReturnTypeInfo *b)
 #define GSI_MAP_RELEASE_KEY(X) ;
 #define GSI_MAP_RELEASE_VAL(X) ;
 
-#import <base/GSIMap.h>
+#include <base/GSIMap.h>
 
 /* This determines the number of precomputed
    callback data entries.  The list is indexed
