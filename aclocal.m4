@@ -99,6 +99,8 @@ fi
 
 AC_DEFUN(OBJC_SYS_DYNAMIC_LINKER,
 [dnl
+AC_REQUIRE([OBJC_CON_AUTOLOAD])dnl
+AC_REQUIRE([OBJC_SYS_AUTOLOAD])dnl
 #--------------------------------------------------------------------
 # Guess the type of dynamic linker for the system
 #
