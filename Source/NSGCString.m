@@ -558,12 +558,6 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     return NO;
 }
 
-- (id) objectAtIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, _count);
-  return [NSNumber numberWithChar: _contents_chars[index]];
-}
-
 - (int) _baseLength
 {
   return _count;
