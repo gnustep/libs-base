@@ -48,9 +48,10 @@
   int type;
   char *buffer;
   int size;
-  int eofPosition;
+  int eof_position;
   int prefix;
   int position;
+  BOOL free_when_done;
 }
 
 - initWithCapacity: (unsigned)capacity
