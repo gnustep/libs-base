@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <objects/objc-gnu2next.h>
+#include <objects/LibobjectsMain.h>
 
 #if NeXT_runtime
  #include <objc/objc.h>
