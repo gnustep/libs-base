@@ -1,3 +1,8 @@
+2004-02-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: Changes to fix memory leaks.
+	Fix bug handling nil/NSnull reported by Fred.
+
 2004-02-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: If there is no path in the URL, assume '/'
