@@ -95,4 +95,3 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-regenerate:
