@@ -91,7 +91,7 @@ __objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
   dl_symbol_t sym;
   Dl_info     info;
 
-  sym = dlsym(RTLD_NEXT, symbol);
+  sym = dlsym(handle, symbol);
 
   if (!sym)
     return NULL;

@@ -1,3 +1,11 @@
+2001-11-19  Adam Fedor  <fedor@gnu.org>
+
+	* Source/simple-load.h (__objc_dynamic_get_symbol_path): Fix
+	typo.
+
+	* Tools/gdomap.c (nameServer): Print strerror before exiting for
+	more helpful message.
+	
 2001-11-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUser.m:
