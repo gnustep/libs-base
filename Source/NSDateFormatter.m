@@ -90,11 +90,17 @@
 	}
       if (d == nil)
 	{
-	  *error = @"Couldn't convert to date";
+	  if (error)
+	    {
+	      *error = @"Couldn't convert to date";
+	    }
 	  return NO;
 	}
     }
-  *anObject = d;
+  if (anObject)
+    {
+      *anObject = d;
+    }
   return YES;
 }
 
@@ -116,8 +122,14 @@
 	     newEditingString: (NSString**)newString
 	     errorDescription: (NSString**)error
 {
-  *newString = nil;
-  *error = nil;
+  if (newString)
+    {
+      *newString = nil;
+    }
+  if (error)
+    {
+      *error = nil;
+    }
   return YES;
 }
 
