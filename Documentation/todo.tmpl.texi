@@ -10,8 +10,8 @@
 
 @itemize @bullet
 
-@item Fix NSZoneFromPointer (when given a pointer to malloced memory), and
-NSRecycleZone (to tramsfer 'live' objects to the default zone). [4] (980805).
+@item @emph{Fix NSZoneFromPointer (when given a pointer to malloced memory), and
+NSRecycleZone (to tramsfer 'live' objects to the default zone).} [4] (980805).
 
 @item Implement Formatter classes (NSDateFormatter, etc) [5] (980722).
 
@@ -27,8 +27,6 @@ NSRecycleZone (to tramsfer 'live' objects to the default zone). [4] (980805).
 @item   Implement [NSSerialiser - serializeObjectAt:ofObjCType:fromData:] [1] (980712)
 
 @item   Improve initWithFormat releated methods for NSString and find out how to implemente the locale stuff [4 OPENSTEP/Rhapsody]  (980712)
-
-@item   Finish implementing the filesystem related NSString methods [3] (980712)
 
 @item Make gstep-base 64bit clean [5, 64bit machine] (980629)
 
