@@ -1,6 +1,8 @@
 2002-04-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix error in unicode BOM handling
+	Write plist unicode escapes using the conventional \u rather than \U,
+	but read in either form.
 	* Source/GSString.m: Fix error in length of unicode data produced.
 	* Tools/cvtenc.m: Made easy to use and added instructions.
 

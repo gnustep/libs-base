@@ -3353,7 +3353,7 @@ handle_printf_atsign (FILE *stream,
 		    }
 		  else
 		    {
-		      sprintf(ptr, "\\U%04x", *from);
+		      sprintf(ptr, "\\u%04x", *from);
 		      ptr = &ptr[6];
 		    }
 		  break;
@@ -4116,7 +4116,7 @@ static inline id parseQuotedString(pldata* pld)
 	      escaped = 2;
 	      hex = NO;
 	    }
-	  else if (escaped == 1 && c == 'U')
+	  else if (escaped == 1 && (c == 'u' || c == 'U'))
 	    {
 	      escaped = 2;
 	      hex = YES;
@@ -4197,7 +4197,7 @@ static inline id parseQuotedString(pldata* pld)
 		  hex = NO;
 		  escaped++;
 		}
-	      else if (escaped == 1 && c == 'U')
+	      else if (escaped == 1 && (c == 'u' || c == 'U'))
 		{
 		  chars[k] = 0;
 		  hex = YES;
@@ -4549,15 +4549,16 @@ nodeToObject(GSXMLNode* node)
 			  memcpy(&buf[pos], &buf[pos+1],
 			    (len - pos) * sizeof(unichar));
 			}
-		      else if (buf[pos] == 'U')
+		      else if (buf[pos] == 'u' || buf[pos] == 'U')
 			{
 			  unichar	val = 0;
 			  unsigned	i;
 
 			  if (len < pos + 4)
 			    {
-			      [NSException raise: NSInternalInconsistencyException
-					  format: @"Short escape sequence"];
+			      [NSException raise:
+				NSInternalInconsistencyException
+				format: @"Short escape sequence"];
 			    }
 			  for (i = 1; i < 5; i++)
 			    {
