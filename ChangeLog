@@ -1,3 +1,9 @@
+Tue Jan 12  4:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSProcessInfo.m: Fix for GNU/Linux-powerpc (__PPC__) to get
+	class initialised with argument info.
+	* src/include/fake-main.h: ditto
+
 Mon Jan 11 16:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         Fixes for bugs reported by Benhur-de-Oliveira.Stein@imag.fr
