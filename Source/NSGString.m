@@ -250,10 +250,11 @@
 // private method for Unicode level 3 implementation
 - (int) _baseLength
 {
-  int count=0;
-  int blen=0;
-  while(count < [self length])
-    if(!uni_isnonsp([self characterAtIndex: count++]))
+  int count = 0;
+  int blen = 0;
+
+  while (count < _count)
+    if (!uni_isnonsp(_contents_chars[count++]))
       blen++;
   return blen;
 } 
