@@ -733,6 +733,12 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     {
       newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
         initWithContentsOfFile: _defaultsDatabase];
+      if (newDict == nil)
+	{
+	  [_defaultsDatabaseLock unlock];	// release file lock
+	  NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
+	  return NO;
+	}
     }
   else
     {
