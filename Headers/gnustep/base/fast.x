@@ -107,8 +107,12 @@ extern	fastImp	_fastImp;	/* Populated by _fastBuildCache()	*/
  */
 extern void	_fastBuildCache();
 
+
 /*
  *	Fast access to class info - DON'T pass nil to these!
+ *	These should really do different things conditional upon the objc
+ *	runtime in use, but we will probably only ever want to support the
+ *	latest GNU runtime, so I haven't bothered about that.
  */
 
 static INLINE BOOL
@@ -158,6 +162,29 @@ fastInstanceIsKindOfClass(NSObject *obj, Class c)
     return fastClassIsKindOfClass(ic, c);
 }
 
+static INLINE const char*
+fastClassName(Class c)
+{
+    return c->name;
+}
+
+static INLINE int
+fastClassVersion(Class c)
+{
+    return c->version;
+}
+
+static INLINE const char*
+fastSelectorName(SEL s)
+{
+    return sel_get_name(s);
+}
+
+static INLINE const char*
+fastSelectorTypes(SEL s)
+{
+    return sel_get_type(s);
+}
 
 /*
  *	fastZone(NSObject *obj)
