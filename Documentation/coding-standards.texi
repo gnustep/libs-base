@@ -62,6 +62,7 @@ into another language, under the above conditions for modified versions.
 * Error Handling::              
 * Variable Declaration::        
 * Object Persistance::          
+* Documentation::               
 * Before You Commit::           
 * Contributing::                
 @end menu
@@ -349,7 +350,7 @@ commonly used compilers.
 
 
 @c ******************************************************************
-@node Object Persistance, Before You Commit, Variable Declaration, Top
+@node Object Persistance, Documentation, Variable Declaration, Top
 @section Object Persistance
 
 The standard method of saving and restoring object information in GNUstep
@@ -362,7 +363,22 @@ this is to use class version numbers to indicate which archive configuration
 should be read.
 
 @c ******************************************************************
-@node Before You Commit, Contributing, Object Persistance, Top
+@node Documentation, Before You Commit, Object Persistance, Top
+@section Documentation
+
+Document every method you change or add!  This makes it easier to fix our
+lack of documentation and keep up to date with changes. Make sure you
+do not copy either the OpenStep or Cocoa documentation. Some methods
+are so simple you might have to intentionally reword the documentation
+so it is different.
+
+Currently there is a differance of opinion on whether to document in
+the header or in the source file, although we generally lean towards
+the header currently. Make sure you are consistant with the current
+method of documentation in the source file you are changing.
+
+@c ******************************************************************
+@node Before You Commit, Contributing, Documentation, Top
 @section Before You Commit
 
 @itemize @bullet
@@ -371,6 +387,7 @@ should be read.
 @item Make sure you've tested the change as much as is reasonable.
 @item If you have added a class, add the class to @file{Foudation/Foundation.h}
 or @file{Appkit/Appkit.h} if appropriate.
+@item Documentation the methods you have changed or added.
 @item If you have updated and configure checks, be sure to run both
 autoconf and autoheader.
 @end itemize
