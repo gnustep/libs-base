@@ -36,7 +36,6 @@ function may be incorrect
 * Some functions are not implemented
 */
 #include <config.h>
-#include <base/behavior.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSArray.h>

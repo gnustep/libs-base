@@ -27,7 +27,6 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <base/behavior.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSSerialization.h>

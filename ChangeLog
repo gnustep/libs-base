@@ -1,3 +1,10 @@
+2002-11-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: New file with GNUstep extensions
+	from NSObjCRuntime, plus renamed behavior functions, plus a few other
+	runtime manipulation functions. EXPERIMENTAL
+	* Headers/gnustep/base/GSObjCRuntime.h: declarations for above.
+
 2002-11-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GCObject.m: Attempt to make garbage collecting

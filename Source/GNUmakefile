@@ -119,6 +119,7 @@ DistributedObjects.h \
 GCObject.h \
 GSFileHandle.h \
 GSLocale.h \
+GSObjCRuntime.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \

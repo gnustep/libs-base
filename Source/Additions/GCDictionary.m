@@ -26,7 +26,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 
-#include <gnustep/base/behavior.h>
+#include <gnustep/base/GSObjCRuntime.h>
 #include <gnustep/base/GCObject.h>
 
 typedef struct {
@@ -148,7 +148,7 @@ static Class	gcClass = 0;
   if (gcClass == 0)
     {
       gcClass = [GCObject class];
-      behavior_class_add_class(self, gcClass);
+      GSObjCAddClassBehavior(self, gcClass);
     }
 }
 
@@ -350,7 +350,7 @@ static Class	gcClass = 0;
   if (beenHere == NO)
     {
       beenHere = YES;
-      behavior_class_add_class(self, [GCDictionary class]);
+      GSObjCAddClassBehavior(self, [GCDictionary class]);
     }
 }
 

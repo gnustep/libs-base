@@ -24,7 +24,7 @@
 
 #include <config.h>
 #include <Foundation/NSSet.h>
-#include <base/behavior.h>
+#include <base/GSObjCRuntime.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
@@ -458,7 +458,7 @@ static Class	mutableSetClass;
 {
   if (self == [GSMutableSet class])
     {
-      behavior_class_add_class(self, [GSSet class]);
+      GSObjCAddClassBehavior(self, [GSSet class]);
     }
 }
 

@@ -27,7 +27,7 @@
 #include <config.h>
 #include <base/preface.h>
 #include <Foundation/NSArray.h>
-#include <base/behavior.h>
+#include <base/GSObjCRuntime.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSDebug.h>
@@ -327,7 +327,7 @@ static SEL	eqSel;
   if (self == [GSMutableArray class])
     {
       [self setVersion: 1];
-      behavior_class_add_class(self, [GSArray class]);
+      GSObjCAddClassBehavior(self, [GSArray class]);
     }
 }
 

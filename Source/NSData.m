@@ -65,7 +65,7 @@
  */
 
 #include <config.h>
-#include <base/behavior.h>
+#include <base/GSObjCRuntime.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSByteOrder.h>
 #include <Foundation/NSCoder.h>
@@ -2878,7 +2878,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (self == [NSMutableDataMalloc class])
     {
-      behavior_class_add_class(self, [NSDataMalloc class]);
+      GSObjCAddClassBehavior(self, [NSDataMalloc class]);
     }
 }
 

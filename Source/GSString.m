@@ -46,7 +46,7 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <base/GSFormat.h>
-#include <base/behavior.h>
+#include <base/GSObjCRuntime.h>
 #include <limits.h>
 
 #include "GSPrivate.h"
@@ -3608,7 +3608,7 @@ transmute(ivars self, NSString *aString)
 {
   if (self == [NXConstantString class])
     {
-      behavior_class_add_class(self, [GSCString class]);
+      GSObjCAddClassBehavior(self, [GSCString class]);
       NSConstantStringClass = self;
     }
 }
