@@ -582,7 +582,7 @@
  */
 - (void) redo
 {
-  NSString *name = [NSString stringWithString: [self redoActionName]];
+  NSString *name = nil; 
 
   if (_isUndoing || _isRedoing)
     {
@@ -604,6 +604,8 @@
       groupToRedo = RETAIN([_redoStack lastObject]);
       [_redoStack removeLastObject];
 
+      name = [NSString stringWithString: [groupToRedo actionName]];
+ 
       oldGroup = _group;
       _group = nil;
       _isRedoing = YES;
@@ -965,7 +967,7 @@
  */
 - (void) undoNestedGroup
 {
-  NSString *name = [NSString stringWithString: [self undoActionName]];
+  NSString *name = nil; 
   PrivateUndoGroup	*oldGroup;
   PrivateUndoGroup	*groupToUndo;
 
@@ -1010,6 +1012,8 @@
       groupToUndo = RETAIN([_undoStack lastObject]);
       [_undoStack removeLastObject];
     }
+
+  name = [NSString stringWithString: [groupToUndo actionName]];
 
   [self beginUndoGrouping];
   [groupToUndo perform];
