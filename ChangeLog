@@ -1,3 +1,7 @@
+2002-09-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Fix typo.
+
 Thu Sep 26 01:28:33 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/make_strings/GNUmakefile: Do not include ctool.make.
