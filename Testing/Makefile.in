@@ -38,7 +38,7 @@ DYNAMIC_BUNDLER_LINKER=@DYNAMIC_BUNDLER_LINKER@
 DYNAMIC_LDFLAGS=@DYNAMIC_LDFLAGS@
 DYNAMIC_CFLAGS=@DYNAMIC_CFLAGS@
 DEFS = @DEFS@
-LIBS = -L../src -lobjects @LIBOBJC@ @LIBS@ -lm
+LIBS = -L../src -l$(LIBRARY_NAME) @LIBOBJC@ @LIBS@ -lm
 
 EXEEXT = 
 OEXT = .o
@@ -51,7 +51,7 @@ include $(srcdir)/../Version
 
 # Not needed anymore?
 NEXT_NEXT_INCLUDES = -I/usr/include
-OBJECTS_NEXT_INCLUDES = -I$(srcdir)/../src
+GNU_NEXT_INCLUDES = -I$(srcdir)/../src
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
 ALL_CPPFLAGS = -I../src -I$(srcdir)/../src $(NEXT_INCLUDES) $(CPPFLAGS)
@@ -131,7 +131,7 @@ DIST_FILES = $(RCS_FILES)
 all: $(EXCS)
 
 # This works for GNU make, but not others.
-%: %$(OEXT) $(srcdir)/../src/libobjects$(LIBEXT)
+%: %$(OEXT) $(srcdir)/../src/lib$(LIBRARY_NAME)(LIBEXT)
 	$(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
 
 install:
