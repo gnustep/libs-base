@@ -1724,13 +1724,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
  */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
-  extern NSTimer	*GSHousekeeper();
+  extern NSTimer       *GSHousekeeper(void);
   GSRunLoopCtxt		*context = NSMapGet(_contextMap, mode);
   NSDate		*when = nil;
 
   if (context != nil)
     {
-      NSTimer		*min_timer = nil;
       GSRunLoopWatcher	*min_watcher = nil;
       NSString		*savedMode = _currentMode;
       CREATE_AUTORELEASE_POOL(arp);
@@ -1743,13 +1742,16 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 	  while (GSIArrayCount(timers) != 0)
 	    {
-	      min_timer = GSIArrayItemAtIndex(timers, 0).obj;
+             NSTimer *min_timer = GSIArrayItemAtIndex(timers, 0).obj;
 	      if (timerInvalidated(min_timer) == YES)
 		{
 		  GSIArrayRemoveItemAtIndex(timers, 0);
 		  min_timer = nil;
 		  continue;
 		}
+
+             if (!when)
+               when = [timerDate(min_timer) copy];
 
 	      if ([timerDate(min_timer) timeIntervalSinceNow] > 0)
 		{
@@ -1768,7 +1770,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		{
 		  RELEASE(min_timer);
 		}
-	      min_timer = nil;
 	      GSNotifyASAP();		/* Post notifications. */
 	    }
 
@@ -1844,12 +1845,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 	  /*
 	   * If there is nothing being watched, and no valid timers
-	   * other than the housekeeper, we set min_timer to nil so
+           * other than the housekeeper, we set when to nil so
 	   * that the housekeeper timer does not keep the runloop
 	   * active.  It's a special case set up in NSThread.m
 	   */
-	  if (min_watcher == nil && min_timer != nil
-	    && min_timer == GSHousekeeper())
+         if (min_watcher == nil && when)
 	    {
 	      unsigned count = GSIArrayCount(timers);
 
@@ -1863,7 +1863,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		}
 	      if (GSIArrayCount(timers) == 1)
 		{
-		  min_timer = nil;
+                 DESTROY(when);
 		}
 	    }
 
@@ -1879,19 +1879,22 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       RELEASE(arp);
 
       /*
-       * If there are timers - set limit date to the earliest of them.
+       * If there are timers, when is already set to the limit date of the
+       * earliest of them (and retained!).
        * If there are watchers, set the limit date to that of the earliest
        * watcher (or leave it as the date of the earliest timer if that is
        * before the watchers limit).
        */
-      if (min_timer != nil)
+      if (when)
 	{
-	  when = timerDate(min_timer);
 	  if (min_watcher != nil
 	    && [min_watcher->_date compare: when] == NSOrderedAscending)
 	    {
+             RELEASE(when);
 	      when = min_watcher->_date;
 	    }
+         else
+           AUTORELEASE(when);
 	}
       else if (min_watcher != nil)
 	{
