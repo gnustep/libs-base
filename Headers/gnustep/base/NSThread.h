@@ -41,7 +41,7 @@ typedef enum
 @interface NSThread : NSObject
 {
 @public
-   _objc_thread_t _thread_id;
+   objc_thread_t _thread_id;
    NSMutableDictionary *_thread_dictionary;
    struct autorelease_thread_vars _autorelease_vars;
 }
