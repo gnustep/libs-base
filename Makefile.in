@@ -347,7 +347,7 @@ ANNOUNCE announce.texi \
 INSTALL install.texi \
 TODO todo.texi \
 NEWS news.texi \
-AUTHORS CREDITS README.ULTRIX MACHINES \
+AUTHORS CREDITS README.ULTRIX MACHINES volunteers-gnustep \
 COPYING COPYING.LIB DISCUSSION ChangeLog \
 Makefile.in configure configure.in \
 objects/config.h.in objects/stdobjects.h.in \
