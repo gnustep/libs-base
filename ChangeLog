@@ -1,5 +1,9 @@
 2000-07-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSConnection.m: Some thread safety improvements.
+
+2000-07-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSTcpPort.m: Add code to cope with machines requiring word
 	alignment for memory references.
 
