@@ -1025,7 +1025,6 @@ static NSString	*indentStrings[] = {
 
 @end
 
-
 @interface NSArrayEnumerator : NSEnumerator
 {
   id array;
@@ -1059,7 +1058,6 @@ static NSString	*indentStrings[] = {
 
 @end
 
-
 @interface NSArrayEnumeratorReverse : NSArrayEnumerator
 @end
 
@@ -1080,5 +1078,4 @@ static NSString	*indentStrings[] = {
     return nil;
   return [array objectAtIndex:next_index--];
 }
-
-
+@end
