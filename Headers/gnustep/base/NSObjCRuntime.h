@@ -1,5 +1,5 @@
 /* Interface to ObjC runtime for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -25,13 +25,22 @@
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
 #include <objc/objc.h>
-
-@class NSString;
+#include <Foundation/NSString.h>
 
 extern NSString *NSStringFromSelector(SEL aSelector);
 extern SEL NSSelectorFromString(NSString *aSelectorName);
 extern Class NSClassFromString(NSString *aClassName);
 extern NSString *NSStringFromClass(Class aClass);
+
+/* Logging */
+/* OpenStep spec states that log messages go to stderr, but just in case
+   someone wants them to go somewhere else, they can implement a function
+   like this */
+typedef void NSLog_printf_handler (NSString* message);
+extern NSLog_printf_handler *_NSLog_printf_handler;
+
+extern void NSLog (NSString* format, ...);
+extern void NSLogv (NSString* format, va_list args);
 
 #ifndef YES
 #define YES		1
