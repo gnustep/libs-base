@@ -203,15 +203,17 @@ extern NSRecursiveLock *gnustep_global_lock;
  */
 #define	ASSIGN(object,value)	({\
 if (value != object) \
-  if (value) \
-    { \
-      [value retain]; \
-    } \
-  if (object) \
-    { \
-      [object release]; \
-    } \
-  object = value; \
+  { \
+    if (value) \
+      { \
+	[value retain]; \
+      } \
+    if (object) \
+      { \
+	[object release]; \
+      } \
+    object = value; \
+  } \
 })
 
 /*
