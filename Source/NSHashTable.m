@@ -414,7 +414,7 @@ NSHashRemove(NSHashTable *table, const void *element)
 void *
 NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 {
-  GSIMapNode    n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
+  GSIMapNode    n;
  
   if (enumerator == 0)
     {
