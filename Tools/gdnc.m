@@ -38,6 +38,7 @@ static void
 ihandler(int sig)
 {
   int       i;
+  char *e;
 
   /*
    * Reset signals to avoid recursive call of handler.
