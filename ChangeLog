@@ -1,3 +1,18 @@
+Mon Nov 16 14:29:35 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* src/NSBundle.m [+allBundles]: New method (unimplemented).
+	[+allFrameworks]: Likewise.
+	* src/NSCharacterSet.m [+punctuationCharacterSet]: Likewise.
+	* src/NSLock.m [-lockBeforeDate:]: Likewise.
+	[-lockWhenCondition:beforeDate:]: Likewise.
+	* src/NSConnection.m: Likewise.
+	* src/include/NSBundle.h: New methods;
+	* src/include/NSCharacterSet.h: Likewise.
+	* src/include/NSLock.h: Likewise.
+	* src/include/NSConnection.h: Likewise.
+
+	* src/include/fast.x: Fix /* in comment.
+	
 Thu Nov 12 17:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	src/NSFormatter.m: New class

@@ -246,6 +246,16 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     }
 }
 
++ (NSArray *) allBundles
+{
+  return [self notImplemented: _cmd];
+}
+
++ (NSArray *) allFrameworks
+{
+  return [self notImplemented: _cmd];
+}
+
 + (NSBundle *)mainBundle
 {
   [load_lock lock];

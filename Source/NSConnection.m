@@ -362,6 +362,12 @@ static int messages_received_count;
   return newConn;
 }
 
++ (id)currentConversation
+{
+  [self notImplemented: _cmd];
+  return self;
+}
+
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
 						         host: (NSString*)h
 {
@@ -443,6 +449,18 @@ static int messages_received_count;
 {
     return independant_queueing;
 }
+
+- (void) enableMultipleThreads
+{
+  [self notImplemented: _cmd];
+}
+
+- (BOOL) multipleThreadsEnabled
+{
+  [self notImplemented: _cmd];
+  return NO;
+}
+
 
 - (id) init
 {
@@ -560,12 +578,23 @@ static int messages_received_count;
     [super release];
 }
 
+- (NSArray *) remoteObjects
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
+
 - (void) removeRequestMode: (NSString*)mode
 {
     if ([request_modes containsObject:mode]) {
 	[request_modes removeObject:mode];
         [[NSRunLoop currentRunLoop] removePort: receive_port forMode: mode];
     }
+}
+
+- (void) removeRunLoop: (NSRunLoop *)runloop
+{
+  [self notImplemented: _cmd];
 }
 
 - (NSTimeInterval) replyTimeout
@@ -1922,7 +1951,7 @@ static int messages_received_count;
     [self _release_targets:&aProxy count:1];
 }
 
-- (id <Collecting>) localObjects
+- (NSArray *) localObjects
 {
   id c;
 
@@ -1933,7 +1962,7 @@ static int messages_received_count;
   return c;
 }
 
-- (id <Collecting>) proxies
+- (NSArray *) proxies
 {
   id c;
 

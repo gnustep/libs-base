@@ -39,6 +39,7 @@
 + (NSCharacterSet *)letterCharacterSet;
 + (NSCharacterSet *)lowercaseLetterCharacterSet;
 + (NSCharacterSet *)nonBaseCharacterSet;
++ (NSCharacterSet *)punctuationCharacterSet;
 + (NSCharacterSet *)uppercaseLetterCharacterSet;
 + (NSCharacterSet *)whitespaceAndNewlineCharacterSet;
 + (NSCharacterSet *)whitespaceCharacterSet;
