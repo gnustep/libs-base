@@ -1,3 +1,8 @@
+2001-08-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/gsdoc/Base.gsdoc: Documented all the uses of
+	environment variables I could find.
+
 2001-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFCallInvocation.m: attempt to guess type signature
