@@ -167,6 +167,10 @@ GS_EXPORT NSString* const NSLocale;
 /* Returning the Search List */
 - (NSMutableArray*) searchList;
 - (void) setSearchList: (NSArray*)newList;
+#ifndef	STRICT_OPENSTEP
+- (void) addSuiteNamed: (NSString*)aName;
+- (void) removeSuiteNamed: (NSString*)aName;
+#endif
 
 /* Maintaining Persistent Domains */
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName;
