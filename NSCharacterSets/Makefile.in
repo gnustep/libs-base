@@ -1,0 +1,59 @@
+#
+#  NSCharacterSet makefile for Objective-C Class Library
+#  Copyright (C) 1995 Free Software Foundation, Inc.
+#
+#  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+#
+#  This file is part of the GNU Objective-C Class Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+SHELL = /bin/sh
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+#### End of system configuration section. ####
+
+include $(srcdir)/../Makeconf
+
+CHARSET_FILES = \
+alphanumCharSet.dat \
+controlCharSet.dat \
+decimalCharSet.dat \
+decomposableCharSet.dat \
+illegalCharSet.dat \
+lettercharCharSet.dat \
+nonbaseCharSet.dat \
+uppercaseCharSet.dat \
+whitespaceCharSet.dat \
+whitespaceandnlCharSet.dat
+
+all: 
+
+RCS_FILES = Makefile.in
+DIST_FILES = $(RCS_FILES) $(CHARSET_FILES) README.CharSet
+
+mostlyclean:
+	rm -f *~
+clean: mostlyclean
+distclean: clean
+maintainer-clean: distclean
+
+copy-dist: $(DIST_FILES)
+	mkdir $(srcdir)/../snap/NSCharacterSets
+	ln $(DIST_FILES) $(srcdir)/../snap/NSCharacterSets
