@@ -2,7 +2,9 @@
 
 	* Source/NSString.m: (isAbsolutePath) always treat a path beginning
 	with '/' as absolute except when in windows mode or on windows and
-	not in unix mode.
+	not in unix mode.  Treat all UNC paths as absolute ... a change made
+	after a lot of trawling the web and looking at examples of UNC path
+	usage.
 
 2005-03-23  Richard Frith-Macdonald <rfm@gnu.org>
 
