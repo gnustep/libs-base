@@ -184,7 +184,7 @@ $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv include/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
-$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h: ../config.status
+$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h: mframe/config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv include/mframe.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
