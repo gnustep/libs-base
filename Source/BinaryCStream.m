@@ -33,7 +33,16 @@
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \
      __a*((__v+__a-1)/__a); })
 
+#define NUM_BYTES_STRING_LENGTH 4
+
 @implementation BinaryCStream
+
++ (void) initialize
+{
+  if (self == [BinaryCStream class])
+    /* Make sure that we don't overrun memory when reading _C_CHARPTR. */
+    assert (sizeof(unsigned) >= NUM_BYTES_STRING_LENGTH);
+}
 
 
 /* For debugging */
@@ -56,14 +65,6 @@ static BOOL debug_binary_coder;
   return c;
 }
 
-- (void) encodeName: (id <String>) name
-{
-  if (debug_binary_coder)
-    [[[self class] debugStderrCoder]
-     encodeName:name];
-}
-
-
 
 /* Encoding/decoding C values */
 
@@ -71,99 +72,122 @@ static BOOL debug_binary_coder;
    at: (const void*)d 
    withName: (id <String>) name
 {
-  unsigned char size;
-
-  if (debug_binary_coder)
-    {
-      [[[self class] debugStderrCoder] 
-       encodeValueOfCType:type
-       at:d
-       withName:name];
-    }
+  /* Make sure we're not being asked to encode an "ObjC" type. */
   assert(type);
   assert(*type != '@');
   assert(*type != '^');
   assert(*type != ':');
 
-  /* A fairly stupid, inefficient binary encoding.  This could use 
-     some improvement.  For instance, we could compress the sign
-     information and the type information.
-     It could probably also use some portability fixes. */
-  [stream writeByte:*type];
-  size = objc_sizeof_type(type);
-  [stream writeByte:size];
+  if (debug_binary_coder)
+    {
+      [[[self class] debugStderrCoder] 
+       encodeValueOfCType: type
+       at: d
+       withName: name];
+    }
+
+  [stream writeByte: *type];
+
+#define WRITE_SIGNED_TYPE(_TYPE, CONV_FUNC)				 \
+      {									 \
+	char buffer[1+sizeof(_TYPE)];					 \
+	buffer[0] = sizeof (_TYPE);					 \
+	if (*(_TYPE*)d < 0)						 \
+	  {								 \
+	    buffer[0] |= 0x80;						 \
+	    *(_TYPE*)(buffer+1) = CONV_FUNC (- *(_TYPE*)d);		 \
+	  }								 \
+	else								 \
+	  {								 \
+	    *(_TYPE*)(buffer+1) = CONV_FUNC (*(_TYPE*)d);		 \
+	  }								 \
+	[stream writeBytes: buffer length: 1+sizeof(_TYPE)];		 \
+      }
+
+#define READ_SIGNED_TYPE(_TYPE, CONV_FUNC)			\
+      {								\
+	char sign, size;					\
+	[stream readByte: &size];				\
+	sign = size & 0x80;					\
+	size &= ~0x80;						\
+	{							\
+	  char buffer[size];					\
+	  int read_size;					\
+	  read_size = [stream readBytes: buffer length: size];	\
+	  assert (read_size == size);				\
+	  assert (size == sizeof(_TYPE));		  	\
+	  *(unsigned _TYPE*)d =					\
+	    CONV_FUNC (*(unsigned _TYPE*)buffer);		\
+	  if (sign)						\
+	    *(_TYPE*)d = - *(_TYPE*)d;				\
+	}							\
+      }
+
+/* Reading and writing unsigned scalar types. */
+
+#define WRITE_UNSIGNED_TYPE(_TYPE, CONV_FUNC)			\
+      {								\
+	char buffer[1+sizeof(_TYPE)];				\
+	buffer[0] = sizeof (_TYPE);				\
+	*(_TYPE*)(buffer+1) = CONV_FUNC (*(_TYPE*)d);		\
+	[stream writeBytes: buffer length: (1+sizeof(_TYPE))];	\
+      }
+
+#define READ_UNSIGNED_TYPE(_TYPE, CONV_FUNC)			\
+      {								\
+	char size;						\
+	[stream readByte: &size];				\
+	{							\
+	  char buffer[size];					\
+	  int read_size;					\
+	  read_size = [stream readBytes: buffer length: size];	\
+	  assert (read_size == size);				\
+	  assert (size == sizeof(_TYPE));			\
+	  *(_TYPE*)d =						\
+	    CONV_FUNC (*(_TYPE*)buffer);			\
+	}							\
+      }
+
   switch (*type)
     {
     case _C_CHARPTR:
       {
-	int length = strlen(*(char**)d);
-	[self encodeValueOfCType:@encode(int)
-	      at:&length withName:@"BinaryCStream char* length"];
-	[stream writeBytes:*(char**)d length:length];
+	unsigned length = strlen (*(char**)d);
+	length = htonl (length);
+	[stream writeBytes: &length
+		length: NUM_BYTES_STRING_LENGTH];
+	[stream writeBytes: *(char**)d
+		length: length];
 	break;
       }
 
     case _C_CHR:
-#ifndef __CHAR_UNSIGNED__
-      if (*(char*)d < 0)
-	[stream writeByte:1];
-      else
-#endif
-	[stream writeByte:0];
     case _C_UCHR:
-      [stream writeByte:*(unsigned char*)d];
+      [stream writeByte: *(unsigned char*)d];
       break;
 
+/* Reading and writing signed scalar types. */
+
     case _C_SHT:
-      if (*(short*)d < 0)
-	[stream writeByte:1];
-      else
-	[stream writeByte:0];
+      WRITE_SIGNED_TYPE (short, htons);
+      break;
     case _C_USHT:
-      {
-	unsigned char *buf = alloca(size);
-	short s = *(short*)d;
-	int count = size;
-	if (s < 0) s = -s;
-	for (; count--; s >>= 8)
-	  buf[count] = (char) (s % 0x100);
-	[stream writeBytes:buf length:size];
-	break;
-      }
+      WRITE_UNSIGNED_TYPE (unsigned short, htons);
+      break;
 
     case _C_INT:
-      if (*(int*)d < 0)
-	[stream writeByte:1];
-      else
-	[stream writeByte:0];
+      WRITE_SIGNED_TYPE (int, htonl);
+      break;
     case _C_UINT:
-      {
-	unsigned char *buf = alloca(size);
-	int s = *(int*)d;
-	int count = size;
-	if (s < 0) s = -s;
-	for (; count--; s >>= 8)
-	  buf[count] = (char) (s % 0x100);
-	[stream writeBytes:buf length:size];
-	break;
-      }
+      WRITE_UNSIGNED_TYPE (unsigned int, htonl);
+      break;
 
     case _C_LNG:
-      if (*(long*)d < 0)
-	[stream writeByte:1];
-      else
-	[stream writeByte:0];
+      WRITE_SIGNED_TYPE (long, htonl);
+      break;
     case _C_ULNG:
-      {
-	unsigned char *buf = alloca(size);
-	long s = *(long*)d;
-	int count = size;
-	if (s < 0) s = -s;
-	for (; count--; s >>= 8)
-	  buf[count] = (char) (s % 0x100);
-	[stream writeBytes:buf length:size];
-	break;
-      }
+      WRITE_UNSIGNED_TYPE (unsigned long, htonl);
+      break;
 
     /* Two quickie kludges to make archiving of floats and doubles work */
     case _C_FLT:
@@ -171,17 +195,19 @@ static BOOL debug_binary_coder;
 	char buf[64];
 	char *s = buf;
 	sprintf(buf, "%f", *(float*)d);
-	[self encodeValueOfCType:@encode(char*)
-	      at:&s withName:@"BinaryCStream float"];
+	[self encodeValueOfCType: @encode(char*)
+	      at: &s
+	      withName: @"BinaryCStream float"];
 	break;
       }
     case _C_DBL:
       {
 	char buf[64];
 	char *s = buf;
-	sprintf(buf, "%f", *(double*)d);
-	[self encodeValueOfCType:@encode(char*)
-	      at:&s withName:@"BinaryCStream double"];
+	sprintf(buf, "%lf", *(double*)d);
+	[self encodeValueOfCType: @encode(char*)
+	      at: &s
+	      withName: @"BinaryCStream double"];
 	break;
       }
     case _C_ARY_B:
@@ -196,6 +222,7 @@ static BOOL debug_binary_coder;
 	while (len-- > 0)
 	  {
 	    /* Change this so we don't re-write type info every time. */
+	    /* xxx We should be able to encode arrays "ObjC" types also! */
 	    [self encodeValueOfCType:type 
 		  at:d 
 		  withName:@"array component"];
@@ -216,6 +243,7 @@ static BOOL debug_binary_coder;
 	  {
 	    align = objc_alignof_type (type); /* pad to alignment */
 	    acc_size = ROUND (acc_size, align);
+	    /* xxx We should be able to encode structs "ObjC" types also! */
 	    [self encodeValueOfCType:type 
 		  at:((char*)d)+acc_size 
 		  withName:@"structure component"];
@@ -235,97 +263,62 @@ static BOOL debug_binary_coder;
    withName: (id <String> *)namePtr
 {
   char encoded_type;
-  unsigned char encoded_size;
-  unsigned char encoded_sign = 0;
 
   assert(type);
   assert(*type != '@');
   assert(*type != '^');
   assert(*type != ':');
 
-  [stream readByte:&encoded_type];
+  [stream readByte: &encoded_type];
   if (encoded_type != *type 
       && !((encoded_type=='c' || encoded_type=='C') 
 	   && (*type=='c' || *type=='C')))
     [self error:"Expected type \"%c\", got type \"%c\"", *type, encoded_type];
-  [stream readByte:&encoded_size];
+
   switch (encoded_type)
     {
     case _C_CHARPTR:
       {
-	int length;
-	[self decodeValueOfCType:@encode(int)
-	      at:&length withName:NULL];
-	OBJC_MALLOC(*(char**)d, char, length+1);
-	[stream readBytes:*(char**)d length:length];
+	unsigned length;
+	unsigned read_count;
+	read_count = [stream readBytes: &length
+			     length: NUM_BYTES_STRING_LENGTH];
+	assert (read_count == NUM_BYTES_STRING_LENGTH);
+	length = ntohl (length);
+	/* xxx Maybe I should make this alloca() instead of malloc(). */
+	OBJC_MALLOC (*(char**)d, char, length+1);
+	read_count = [stream readBytes: *(char**)d 
+			     length: length];
+	assert (read_count == length);
 	(*(char**)d)[length] = '\0';
 	break;
       }
 
     case _C_CHR:
-      [stream readByte:&encoded_sign];
     case _C_UCHR:
-      [stream readByte:(unsigned char*)d];
-      if (encoded_sign)
-	*(char*)d = *(char*)d * -1;
+      [stream readByte: (unsigned char*)d];
       break;
 
     case _C_SHT:
-      [stream readByte:&encoded_sign];
+      READ_SIGNED_TYPE (short, ntohs);
+      break;
     case _C_USHT:
-      {
-	unsigned char *buf = alloca(encoded_size);
-	int i;
-	short s = 0;
-	[stream readBytes:buf length:encoded_size];
-	for (i = 0; i < sizeof(short); i++)
-	  {
-	    s <<= 8;
-	    s += buf[i];
-	  }
-	if (encoded_sign)
-	  s = -s;
-	*(short*)d = s;
-	break;
-      }
+      READ_UNSIGNED_TYPE (unsigned short, ntohs);
+      break;
 
     case _C_INT:
-      [stream readByte:&encoded_sign];
+      READ_SIGNED_TYPE (int, ntohl);
+      break;
     case _C_UINT:
-      {
-	unsigned char *buf = alloca(encoded_size);
-	int i;
-	int s = 0;
-	[stream readBytes:buf length:encoded_size];
-	for (i = 0; i < sizeof(int); i++)
-	  {
-	    s <<= 8;
-	    s += buf[i];
-	  }
-	if (encoded_sign)
-	  s = -s;
-	*(int*)d = s;
-	break;
-      }
+      READ_UNSIGNED_TYPE (unsigned int, ntohl);
+      break;
 
     case _C_LNG:
-      [stream readByte:&encoded_sign];
+      READ_SIGNED_TYPE (long, ntohl);
+      break;
     case _C_ULNG:
-      {
-	unsigned char *buf = alloca(encoded_size);
-	int i;
-	long s = 0;
-	[stream readBytes:buf length:encoded_size];
-	for (i = 0; i < sizeof(long); i++)
-	  {
-	    s <<= 8;
-	    s += buf[i];
-	  }
-	if (encoded_sign)
-	  s = -s;
-	*(long*)d = s;
-	break;
-      }
+      READ_UNSIGNED_TYPE (unsigned long, ntohl);
+      break;
 
   /* Two quickie kludges to make archiving of floats and doubles work */
     case _C_FLT:
@@ -408,6 +401,16 @@ static BOOL debug_binary_coder;
 + (int) defaultFormatVersion
 {
   return DEFAULT_FORMAT_VERSION;
+}
+
+
+/* Encoding and decoding names. */
+
+- (void) encodeName: (id <String>) name
+{
+  if (debug_binary_coder)
+    [[[self class] debugStderrCoder]
+     encodeName:name];
 }
 
 - (void) decodeName: (id <String> *)n
