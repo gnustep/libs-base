@@ -1,5 +1,5 @@
 /* Implementation of Objective-C NeXT-compatible List object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
    
    This file is part of the GNU Objective C Class Library.
 
@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+#include <objects/stdobjects.h>
 #include <objc/List.h>
 
 /* Change this #define to 0 if you want -makeObjectsPerform: and 
@@ -84,7 +85,7 @@ decrementCount(List *self)
   [super init];
   numElements = 0;
   maxElements = numSlots;
-  NX_MALLOC(dataPtr, id, maxElements);
+  OBJC_MALLOC(dataPtr, id, maxElements);
   return self;
 }
 
@@ -97,7 +98,7 @@ decrementCount(List *self)
 - free
 {
   if (dataPtr)
-    NX_FREE(dataPtr);
+    OBJC_FREE(dataPtr);
   return [super free];
 }
 
@@ -118,7 +119,7 @@ decrementCount(List *self)
 - shallowCopy
 {
   List *c = [super shallowCopy];
-  NX_MALLOC(c->dataPtr, id, maxElements);
+  OBJC_MALLOC(c->dataPtr, id, maxElements);
   memcpy(c->dataPtr, dataPtr, numElements * sizeof(id *));
   return c;
 }
@@ -162,7 +163,7 @@ decrementCount(List *self)
   if (numSlots > numElements) 
     {
       maxElements = numSlots;
-      NX_REALLOC(dataPtr, id, maxElements);
+      OBJC_REALLOC(dataPtr, id, maxElements);
       return self;
     }
   return nil;
@@ -317,7 +318,7 @@ decrementCount(List *self)
 {
   [super read: aStream];
   objc_read_types (aStream, "II", &numElements, &maxElements);
-  NX_MALLOC(dataPtr, id, maxElements);
+  OBJC_MALLOC(dataPtr, id, maxElements);
   objc_read_array (aStream, "@", numElements, dataPtr);
   return self;
 }
