@@ -253,7 +253,7 @@ AC_SUBST(LIBOBJECTS_SO)
 # Write the Makefiles
 #--------------------------------------------------------------------
 AC_OUTPUT(Makefile src/Makefile checks/Makefile examples/Makefile
-doc/Makefile NSCharacterSets/Makefile admin/Makefile src/objects/config.h)
+doc/Makefile NSCharacterSets/Makefile admin/Makefile src/include/config.h)
 
 dnl Local Variables:
 dnl comment-start: "dnl "
