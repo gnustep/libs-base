@@ -106,6 +106,9 @@ id monthNames;
   times(&end_tms);   
  
   /* CLK_TCK is the number of clock ticks each second */ 
+#ifndef CLK_TCK
+#define CLK_TCK sysconf(3) /* sysconf(_SC_CLK_TCK) */
+#endif
   return ((long)((end_tms.tms_utime - start_tms.tms_utime + 
                 end_tms.tms_stime - start_tms.tms_stime) * 1000) / CLK_TCK); 
 #else 
