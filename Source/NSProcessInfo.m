@@ -158,7 +158,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
   /* Getting the process name */
   _gnu_processName = [[NSString stringWithCString: argv[0]] lastPathComponent];
-  RETAIN(_gnu_processName);
+  IF_NO_GC(RETAIN(_gnu_processName));
 
 
   /* Copy the argument list */

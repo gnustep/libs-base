@@ -479,7 +479,7 @@ static int messages_received_count;
 
     [proxiesHashGate lock];
     targets = NSAllMapTableValues(local_targets);
-    RETAIN(targets);
+    IF_NO_GC(RETAIN(targets));
     for (i = 0; i < [targets count]; i++)
       {
 	id	t = [[targets objectAtIndex: i] localForProxy];

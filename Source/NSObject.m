@@ -38,6 +38,7 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSZone.h>
+#include <Foundation/NSDebug.h>
 #include <limits.h>
 
 #include <base/fast.x>
@@ -478,15 +479,19 @@ static BOOL double_release_check_enabled = NO;
     {
       // Create the global lock
       gnustep_global_lock = [[NSRecursiveLock alloc] init];
-#if !defined(REFCNT_LOCAL)
+      autorelease_class = [NSAutoreleasePool class];
+      autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
+      fastMallocClass = [_FastMallocBuffer class];
+#if	GS_WITH_GC == 0
+#if	!defined(REFCNT_LOCAL)
       retain_counts = o_map_with_callbacks (o_callbacks_for_non_owned_void_p,
 					    o_callbacks_for_int);
       retain_counts_gate = objc_mutex_allocate ();
 #endif
-      autorelease_class = [NSAutoreleasePool class];
-      autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
-      fastMallocClass = [_FastMallocBuffer class];
       fastMallocOffset = fastMallocClass->instance_size % ALIGN;
+#else
+      fastMallocOffset = 0;
+#endif
       _fastBuildCache();
     }
   return;

@@ -36,7 +36,7 @@ static void setupHexdigits()
     {
       hexdigits = [NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789abcdef"];
-      RETAIN(hexdigits);
+      IF_NO_GC(RETAIN(hexdigits));
       hexdigitsImp =
 	(BOOL(*)(id,SEL,unichar)) [hexdigits methodForSelector: cMemberSel];
     }
@@ -69,7 +69,7 @@ static void setupWhitespce()
     {
       whitespce = [NSCharacterSet characterSetWithCharactersInString:
 	@" \t\r\n\f\b"];
-      RETAIN(whitespce);
+      IF_NO_GC(RETAIN(whitespce));
       whitespceImp =
 	(BOOL(*)(id,SEL,unichar)) [whitespce methodForSelector: cMemberSel];
     }

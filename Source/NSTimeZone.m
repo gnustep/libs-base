@@ -424,7 +424,7 @@ static NSMapTable	*absolutes = 0;
   z = (NSConcreteAbsoluteTimeZone*)NSMapGet(absolutes, (void*)(gsaddr)anOffset);
   if (z)
     {
-      RETAIN(z);
+      IF_NO_GC(RETAIN(z));
       RELEASE(self);
     }
   else
@@ -611,7 +611,7 @@ static NSMapTable	*absolutes = 0;
           NSLog(@"Using time zone with absolute offset 0.");
           localTimeZone = [NSTimeZone timeZoneForSecondsFromGMT: 0];
         }
-      RETAIN(localTimeZone);
+      IF_NO_GC(RETAIN(localTimeZone));
 
       fake_abbrev_dict = [[NSInternalAbbrevDict alloc] init];
     }

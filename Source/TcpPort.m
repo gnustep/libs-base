@@ -219,7 +219,7 @@ static NSHashTable	*tcpHandleTable = 0;
 	  handle->ports = 
                 NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
 	  NSHashInsert(tcpHandleTable, (void*)handle);
-	  AUTORELEASE(handle);
+	  IF_NO_GC(AUTORELEASE(handle));
 	}
     }
   [tcpHandleLock unlock];
@@ -455,7 +455,7 @@ static GSTcpPort	*dummyPort = nil;
       port->handles = NSCreateHashTable(NSObjectHashCallBacks, 0); 
       NSMapInsert(thePorts, (void*)(gsaddr)sockaddr->sin_addr.s_addr,
 	(void*)port);
-      AUTORELEASE(port);
+      IF_NO_GC(AUTORELEASE(port));
     }
 
   if (port != nil && handle != nil)
@@ -672,7 +672,7 @@ static GSTcpPort	*dummyPort = nil;
 		}
 	    }
 	}
-      AUTORELEASE(port);
+      IF_NO_GC(AUTORELEASE(port));
     }
 
   [tcpPortLock unlock];

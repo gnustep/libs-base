@@ -170,7 +170,7 @@
 
       if (objs[i] == nil)
 	{
-	  AUTORELEASE(self);
+	  IF_NO_GC(AUTORELEASE(self));
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init counted set with nil value"];
 	}

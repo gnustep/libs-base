@@ -45,7 +45,7 @@
 {
   NSDateFormatter	*other = (id)NSCopyObject(self, 0, zone);
 
-  RETAIN(other->_dateFormat);
+  IF_NO_GC(RETAIN(other->_dateFormat));
   return other;
 }
 

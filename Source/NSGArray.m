@@ -432,7 +432,9 @@ static SEL	eqSel = @selector(isEqual:);
 	{
 	  if ((*imp)(anObject, eqSel, _contents_array[index]) == YES)
 	    {
+#if	GS_WITH_GC == 0
 	      id	obj = _contents_array[index];
+#endif
 	      unsigned	pos = index;
 
 	      while (++pos < _count)
@@ -474,7 +476,9 @@ static SEL	eqSel = @selector(isEqual:);
     {
       if (_contents_array[index] == anObject)
 	{
+#if	GS_WITH_GC == 0
 	  id		obj = _contents_array[index];
+#endif
 	  unsigned	pos = index;
 
 	  while (++pos < _count)
@@ -502,7 +506,7 @@ static SEL	eqSel = @selector(isEqual:);
    *	array in case a retain or release causes an exception.
    */
   obj = _contents_array[index];
-  RETAIN(anObject);
+  IF_NO_GC(RETAIN(anObject));
   _contents_array[index] = anObject;
   RELEASE(obj);
 }
@@ -581,7 +585,7 @@ static SEL	eqSel = @selector(isEqual:);
 {
   [super init];
   array = anArray;
-  RETAIN(array);
+  IF_NO_GC(RETAIN(array));
   pos = 0;
   return self;
 }

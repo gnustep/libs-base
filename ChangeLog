@@ -1,3 +1,31 @@
+Tue Sep 28 20:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSArray.m: Tidy for GC stuff
+	* Source/NSAttributedString.m: ditto
+	* Source/NSCallBacks.m: ditto
+	* Source/NSConnection.m: ditto
+	* Source/NSData.m: ditto
+	* Source/NSDateFormatter.m: ditto
+	* Source/NSFileManager.m: ditto
+	* Source/NSGArray.m: ditto
+	* Source/NSGCountedSet.m: ditto
+	* Source/NSGDictionary.m: ditto
+	* Source/NSGSet.m: ditto
+	* Source/NSInvocation.m: ditto
+	* Source/NSNotificationCenter.m: ditto
+	* Source/NSObject.m: ditto
+	* Source/NSPortNameServer.m: ditto
+	* Source/NSProcessInfo.m: ditto
+	* Source/NSRunLoop.m: ditto
+	* Source/NSScanner.m: ditto
+	* Source/NSString.m: ditto
+	* Source/NSTimeZone.m: ditto
+	* Source/NSUnarchiver.m: ditto
+	* Source/NSUndoManager.m: ditto
+	* Source/NSUserDefaults.m: ditto
+	* Source/TcpPort.m: ditto
+	* Source/propList.h: ditto
+
 Tue Sep 28 11:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArray.m: ([+allocWithZone:]) tiny optimisation.
