@@ -8,7 +8,7 @@
 #define KEY	1
 #define VALUE	2
 
-#define yyterminate() {got = 0; line = 1; return YY_NULL;}
+#define yyterminate() {got = 0; line = 1; return 0;}
 #define return_err() {got = 0; line = 1; return -1;}
 #define return_ok() {return 1;}
 
@@ -29,10 +29,18 @@ ESCAPES		[abfnrtv]
       extern FILE *NXscan_out;
       extern char *NXscan_string;
     #endif
-    if (yyin != NXscan_in) {	/* Reset */
+    if (yyin != NXscan_in || line <= 1) {	/* Reset */
 	got = 0;
 	line= 1;
+    /* ifdef's can't start in column 1 in this part of the lex file */
+    #ifdef FLEX_SCANNER
+	yyrestart(NXscan_in);
+    #else
+	/* FIXME: This is a horrible hack to get lex to reset itself at the
+	    beggining of a new file. (And it still doesn't work right) */
+	yysptr = yysbuf;
     	yyin  = NXscan_in;
+    #endif
     }
     yyout = NXscan_out;
     #ifdef HAVE_FLEX
@@ -83,7 +91,9 @@ ESCAPES		[abfnrtv]
 
 <parse>\"		{string_buf_ptr = string_buf; BEGIN(token);}
 
-<parse>[A-Za-z]*	{
+<parse><<EOF>>		yyterminate();	
+
+<parse>.		{
 			    fprintf(stderr, "ERROR (NXStringTable): Extra characters in table (line %d)\n", line);
 			    return_err();
 			}
