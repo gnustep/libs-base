@@ -44,9 +44,9 @@
 - init;
 - initWithContentsOf: (id <Collecting>)aCollection;
 
-// FREEING;
-- free;
-- freeObjects;
+// RELEASING;
+- (oneway void) release;
+- releaseObjects;
 
 // ADDING;
 - addObject: newObject;
@@ -123,10 +123,6 @@
 - copyAs: (id <Collecting>)aCollectionClass;
 - species;
 
-// ARCHIVING;
-- write: (TypedStream*)aStream;
-- read: (TypedStream*)aStream;
-
 
 // NON-OBJECT ELEMENT METHOD NAMES;
 
@@ -185,10 +181,10 @@
     call: (void(*)(elt))destFunc;
 
 
-// BE SURE WE HAVE THESE METHODS NORMALLY PROVIDED BY Object;
+// BE SURE WE HAVE THESE METHODS NORMALLY PROVIDED BY NSObject;
 + alloc;
-- (BOOL) respondsTo: (SEL)aSel;
-- (BOOL) conformsTo: aProtocolObject;
+- (BOOL) respondsToSelector: (SEL)aSel;
+- (BOOL) conformsToProtocol: aProtocolObject;
 
 @end
 
