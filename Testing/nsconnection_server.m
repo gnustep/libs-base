@@ -1,4 +1,3 @@
-#include <base/preface.h>
 #include <stdio.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSConnection.h>
@@ -7,8 +6,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSRunLoop.h>
-#include <base/BinaryCStream.h>
-#include    <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include "server.h"
 
 @implementation Server
@@ -108,12 +106,6 @@
 
 - (id) echoObject: (id)obj
 {
-  static	BOOL	debugging = YES;
-
-  if (debugging)
-    {
-      [BinaryCStream setDebugging:NO];
-    }
   return obj;
 }
 - (void) outputStats:obj
@@ -282,8 +274,6 @@ int main(int argc, char *argv[])
   double d;
   NSConnection *c;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-
-  [BinaryCStream setDebugging:YES];
 
 #if NeXT_runtime
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
