@@ -35,6 +35,7 @@
 - (void) closeCoder;
 - (BOOL) isClosed;
 + (int) defaultFormatVersion;
+- cStream;
 @end
 
 @protocol Encoding <CommonCoding>
@@ -51,13 +52,13 @@
    valuesOfObjCTypes: (const char *)types, ...;
 
 - (void) encodeArrayOfObjCType: (const char *)type
-   at: (const void *)d
    count: (unsigned)c
+   at: (const void *)d
    withName: (id /*<String>*/)name;
 
 - (void) encodeObject: anObj
    withName: (id /*<String>*/)name;
-- (void) encodeObjectBycopy: anObj
+- (void) encodeBycopyObject: anObj
    withName: (id /*<String>*/)name;
 
 - (void) encodeRootObject: anObj
@@ -99,8 +100,8 @@
    valuesOfObjCTypes: (const char *) types, ...;
 
 - (void) decodeArrayOfObjCType: (const char *)type
-   at: (void *)d
    count: (unsigned)c
+   at: (void *)d
    withName: (id /*<String>*/*)name;
 
 - (void) decodeObjectAt: (id*)anObjPtr
