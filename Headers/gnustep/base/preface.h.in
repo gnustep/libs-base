@@ -126,4 +126,11 @@ extern const char o_NeXT_cc_version[];
 #define LONG2PTR(L) (((char*)0)+(L))
 #endif
 
+#if VSPRINTF_RETURNS_LENGTH 
+#define VSPRINTF_LENGTH(VSPF_CALL) (VSPF_CALL)
+#else
+#define VSPRINTF_LENGTH(VSPF_CALL) strlen((VSPF_CALL))
+#endif /* VSPRINTF_RETURNS_LENGTH */
+
+
 #endif /* __preface_h_OBJECTS_INCLUDE */
