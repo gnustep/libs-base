@@ -107,6 +107,12 @@ objc_calloc(size_t nelem, size_t size);
 void
 objc_free(void *mem);
 
+static inline BOOL
+class_is_class(Class class)
+{
+  return CLS_ISCLASS(class);
+}
+
 /*
 ** Hook functions for memory allocation and disposal.
 ** This makes it easy to substitute garbage collection systems

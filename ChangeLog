@@ -1,3 +1,11 @@
+2001-05-28  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h (class_is_class): New.
+	* Source/NSAssertionHandler.m (-handleFailureInMethod...): Use
+	OpenStep functions to get class/sel names.
+	* Source/NSBundle.m (+initialize): NeXT_RUNTIME method to find
+	classes.
+
 2001-05-26  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSDebug.m (_NSPrintForDebugger): new function to support print

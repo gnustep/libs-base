@@ -32,6 +32,7 @@
 #include	<Foundation/NSUserDefaults.h>
 #include	<Foundation/NSDistributedNotificationCenter.h>
 
+#include        <stdio.h>
 #include	<unistd.h>
 
 #include	"gdnc.h"

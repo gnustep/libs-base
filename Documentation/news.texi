@@ -7,6 +7,22 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{1.0.1}
+
+@itemize @bullet
+@item Many fixes to work better with Darwin (still not there).
+@item Fixes to work with BSD Unix
+@item Added some missing methods, better conformance to MacOSX Docs.
+@item Added support for invoking super implementation (mostly for writting
+bridges from other languages).
+@item Works better with gcc 3.x, newer kernels.
+@item More memory debugging support.
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.0.0}
 
 @itemize @bullet
@@ -15,10 +31,6 @@ The currently released version of the library is
 @item Fix alignment issues on CPUs that require it.
 @item Update unicode support and fixes
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{0.9.1}
 

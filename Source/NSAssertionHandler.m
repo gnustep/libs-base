@@ -82,9 +82,9 @@ static NSString *dict_key = @"_NSAssertionHandler";
   va_start(ap, format);
   message =
     [NSString
-      stringWithFormat: @"%@:%d  Assertion failed in %s, method %s.  %@",
-      fileName, line, object_get_class_name(object), sel_get_name(aSelector),
-      format];
+      stringWithFormat: @"%@:%d  Assertion failed in %@, method %@.  %@",
+      fileName, line, NSStringFromClass([object class]), 
+      NSStringFromSelector(aSelector), format];
   NSLogv(message, ap);
 
   [NSException raise: NSInternalInconsistencyException 

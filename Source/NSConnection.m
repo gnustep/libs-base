@@ -1455,7 +1455,6 @@ static BOOL	multi_threaded = NO;
   /* type = [object selectorTypeForProxy: sel]; */
 #else
   type = sel_get_type(sel);
-#endif
   if (type == 0 || *type == '\0')
     {
       type = [[object methodSignatureForSelector: sel] methodType];
@@ -1464,6 +1463,7 @@ static BOOL	multi_threaded = NO;
 	  sel_register_typed_name(sel_get_name(sel), type);
 	}
     }
+#endif
   NSParameterAssert(type);
   NSParameterAssert(*type);
 
