@@ -698,7 +698,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	}
       else
 	{
-	  [NSNotificationCenter
+	  [[NSNotificationCenter defaultCenter]
 	    addObserver: self
 	       selector: @selector(_becomeThreaded:)
 		   name: NSWillBecomeMultiThreadedNotification

@@ -903,7 +903,8 @@ static int messages_received_count;
 		       outPort: (NSPort*)op
 	    ancestorConnection: (NSConnection*)ancestor
 {
-  NSConnection *newConn;
+  NSNotificationCenter	*nCenter;
+  NSConnection		*newConn;
 
   NSParameterAssert (ip);
 
@@ -1034,15 +1035,16 @@ static int messages_received_count;
 
   /* Register ourselves for invalidation notification when the
      ports become invalid. */
-  [NSNotificationCenter addObserver: newConn
-			   selector: @selector(portIsInvalid:)
-			       name: NSPortDidBecomeInvalidNotification
-			     object: ip];
+  nCenter = [NSNotificationCenter defaultCenter];
+  [nCenter addObserver: newConn
+	      selector: @selector(portIsInvalid:)
+		  name: NSPortDidBecomeInvalidNotification
+		object: ip];
   if (op)
-    [NSNotificationCenter addObserver: newConn
-			     selector: @selector(portIsInvalid:)
-				 name: NSPortDidBecomeInvalidNotification
-			       object: op];
+    [nCenter addObserver: newConn
+		selector: @selector(portIsInvalid:)
+		    name: NSPortDidBecomeInvalidNotification
+		  object: op];
   /* if OP is nil, making this notification request would have
      registered us to receive all NSPortDidBecomeInvalidNotification
      requests, independent of which port posted them.  This isn't
