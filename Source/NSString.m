@@ -4083,7 +4083,7 @@ GSPropertyList(NSString *string)
 	    [[[parser doc] root] name]);
 	  return nil;
 	}
-      return RETAIN(nodeToObject([[[parser doc] root] children]));
+      return AUTORELEASE(RETAIN(nodeToObject([[[parser doc] root] children])));
     }
 #endif
   d = [string dataUsingEncoding: NSUnicodeStringEncoding];
@@ -4094,7 +4094,7 @@ GSPropertyList(NSString *string)
   _pld.lin = 1;
   if (plAlloc == 0)
     setupPl();
-  return parsePlItem(pld);
+  return AUTORELEASE(parsePlItem(pld));
 }
 
 static id
@@ -4184,6 +4184,6 @@ GSPropertyListFromStringsFormat(NSString *string)
 	  return nil;
 	}
     }
-  return dict;
+  return AUTORELEASE(dict);
 }
 #endif /* NO_GNUSTEP */
