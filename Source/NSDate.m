@@ -1,5 +1,5 @@
 /* Implementation for NSDate for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Jeremy Bettis <jeremy@hksys.com>
    Date: March 1995
@@ -29,19 +29,33 @@
 
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
-
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
 #ifndef WIN32
 #include <sys/time.h>
 #endif /* WIN32 */
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+/* The number of seconds between 1/1/2001 and 1/1/1970 = -978307200. */
+/* This number comes from: 
+-(((31 years * 365 days) + 8 days for leap years) =total number of days
+  * 24 hours
+  * 60 minutes
+  * 60 seconds)
+  This ignores leap-seconds. */
+#define UNIX_REFERENCE_INTERVAL -978307200.0
+
+/* I hope 100,000 years is distant enough. */
+#define DISTANT_YEARS 100000.0
+#define DISTANT_FUTURE	(DISTANT_YEARS * 365.0 * 24 * 60 * 60)
+#define DISTANT_PAST	(-DISTANT_FUTURE)
+
+
+/* Concrete implementation of NSDate. */
 
 @interface NSConcreteDate : NSDate
 {
-@private
-  NSTimeInterval timeSinceReference;
+  NSTimeInterval seconds_since_ref;
 }
 - (id) copyWithZone: (NSZone*)zone;
 - (NSTimeInterval) timeIntervalSinceReferenceDate;
@@ -49,42 +63,53 @@
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 @end
 
-// I hope 200,000 years is distant enough.
-
-#define UNIX_OFFSET	-978307200.0
-#define DISTANT_FUTURE	6307200000000.0
-#define DISTANT_PAST	-DISTANT_FUTURE
-
 @implementation NSConcreteDate
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  return [[[self class] allocWithZone:zone]
-	  initWithTimeIntervalSinceReferenceDate:timeSinceReference];
+  return [[[self class] allocWithZone: zone]
+	  initWithTimeIntervalSinceReferenceDate: seconds_since_ref];
 }
 
 - (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-  return timeSinceReference;
+  return seconds_since_ref;
+}
+
+- (NSTimeInterval) timeIntervalSinceNow
+{
+  NSTimeInterval now = [[self class] timeIntervalSinceReferenceDate];
+  return seconds_since_ref - now;
 }
 
 - (id) init
 {
   return [self initWithTimeIntervalSinceReferenceDate:
-	  [[self class] timeIntervalSinceReferenceDate] ];
+		 [[self class] timeIntervalSinceReferenceDate]];
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
   self = [super init];
-  timeSinceReference = secs;
+  seconds_since_ref = secs;
   return self;
 }
 
 @end
 
+
+/* The abstract implementation of NSDate. */
 
 @implementation NSDate
+
++ (void) initialize
+{
+  /* xxx Force NSConcreteDate to initialize itself.  There seems to be 
+     a bug with __objc_word_forward and returning doubles? */
+  if (self == [NSDate class])
+    [NSConcreteDate instanceMethodForSelector: 
+		      @selector(timeIntervalSinceReferenceDate)];
+}
 
 - (id) copyWithZone: (NSZone*)zone
 {
@@ -95,15 +120,19 @@
 
 + (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-  NSTimeInterval	theTime = UNIX_OFFSET;
-  struct timeval	tp;
-  struct timezone	tzp;
-	
-  gettimeofday(&tp,&tzp);
-  theTime += tp.tv_sec;
-  theTime += (double)tp.tv_usec / 1000000.0;
-	
-  return theTime;
+  volatile NSTimeInterval interval;
+  struct timeval tp;
+  struct timezone tzp;
+
+  interval = UNIX_REFERENCE_INTERVAL;
+  gettimeofday (&tp, &tzp);
+  interval += tp.tv_sec;
+  interval += (double)tp.tv_usec / 1000000.0;
+
+  /* There seems to be a problem with bad double arithmetic... */
+  assert (interval < 0);
+
+  return interval;
 }
 
 // Allocation and initializing
@@ -117,29 +146,30 @@
 
 + (NSDate*) date
 {
-  return [[[self alloc] init] autorelease];
+  return [[[self alloc] init] 
+	   autorelease];
 }
 
 + (NSDate*) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
 {
-  return [[[self alloc] initWithTimeIntervalSinceNow:seconds]  
+  return [[[self alloc] initWithTimeIntervalSinceNow: seconds]  
 	  autorelease];
 }
 
 + (NSDate*) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
-  return [[[self alloc] initWithTimeIntervalSinceReferenceDate:seconds]
-	  autorelease];
+  return [[[self alloc] initWithTimeIntervalSinceReferenceDate: seconds]
+	   autorelease];
 }
 
 + (NSDate*) distantFuture
 {
-  return [self dateWithTimeIntervalSinceReferenceDate:DISTANT_FUTURE];
+  return [self dateWithTimeIntervalSinceReferenceDate: DISTANT_FUTURE];
 }
 
 + (NSDate*) distantPast
 {
-  return [self dateWithTimeIntervalSinceReferenceDate:DISTANT_PAST];
+  return [self dateWithTimeIntervalSinceReferenceDate: DISTANT_PAST];
 }
 
 - (id) init
@@ -182,7 +212,7 @@
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
@@ -192,7 +222,7 @@
 				   timeZone: (NSTimeZone*)timeZone
 {
   // Not done yet,  NSCalendarDate doesn't exist yet!
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
@@ -208,7 +238,7 @@
   char			buf[64];
 	
   secs = [self timeIntervalSinceReferenceDate];
-  unix_secs = (time_t)secs - (time_t)UNIX_OFFSET;
+  unix_secs = (time_t)secs - (time_t)UNIX_REFERENCE_INTERVAL;
   theTime = localtime(&unix_secs);
 /* 
    Gregor Hoffleit <flight@mathi.uni-heidelberg.DE> reports problems
@@ -231,7 +261,7 @@
 				   timeZone: (NSTimeZone*)aTimeZone
 {
   // Not done yet, no NSCalendarDate or NSTimeZone...
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
@@ -240,6 +270,7 @@
 
 - (NSDate*) addTimeInterval: (NSTimeInterval)seconds
 {
+  /* xxx We need to check for overflow? */
   return [[self class] dateWithTimeIntervalSinceReferenceDate:
 		       [self timeIntervalSinceReferenceDate] + seconds];
 }
@@ -252,14 +283,15 @@
 
 - (NSTimeInterval) timeIntervalSinceNow
 {
-  return [[self class] timeIntervalSinceReferenceDate] -
-    [self timeIntervalSinceReferenceDate];
+  NSTimeInterval now = [[self class] timeIntervalSinceReferenceDate];
+  NSTimeInterval me = [self timeIntervalSinceReferenceDate];
+  return me - now;
 }
 
 - (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-  [self notImplemented:_cmd];
-  abort();
+  [self subclassResponsibility: _cmd];
+  return 0.0;
 }
 
 // Comparing dates
