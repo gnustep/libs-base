@@ -1,3 +1,45 @@
+Thu Feb 26 12:49:10 1998  Adam Fedor  <fedor@doc.com>
+
+	* configure.in: Use AC_CHECK_HEADERS instead of AC_CHECK_HEADER.
+	* src/include/config.h.in: Regenerate.
+
+	* doc/GNUmakefile (HTML_FILES): Add fac_toc.html
+	* doc/Makefile.postamble: (fac_toc.html): New target.
+	
+	* src/include/NSDictionary.h: Add NSMutableCopying protocol
+	(suggested by David Fritzsche <david@dementia.wupper.de>).
+
+Thu Feb 26  8:12:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/defaults.m: Removed autorelease debugging.
+	* Tools/dread.m: Removed autorelease debugging.
+	* Tools/dremove.m: Removed autorelease debugging.
+	* Tools/dwrite.m: Removed autorelease debugging.
+	
+	* Tools/gdomap.m: Substantial rewrite with changes to the protocol
+	for name servers to identify themselves to each other.
+	Now handles subnet addressing within a class-c network.
+	Now handles machines with multiple IP addresses more efficiently.
+	Removes addresses from list of known servers after a period in
+	which it fails to contect them.
+	
+	* Tools/gdomap.h: Changed comments to reflect protocol changes.
+
+	* src/Coder.m: ([-initForReadingWithData:]) removed an inefficient
+	hack for dealing with a problem that should never happen
+	(init methid called on autoreleased object).
+
+	* src/NSConnection.m: ([+newForInPort:outPort:cancestorConnection:),
+	(-_handleRmc:) removed 'delay_dialog_interruptions' which could
+	result in deadlock in three-way DO conversations.
+
+	* src/NSPortCoder.m: ([-_doEncodeObject:]) changed so that a copy
+	over-the-wire is a deep copy rather than a shallow one. I think
+	this gives a more expected behaviour, though I don't know what
+	OPENSTEP does.
+
+	* src/include/NSConnection.h: Removed delay_dialog_interruptions.
+
 Sat Feb 14 16:03:07 1998  Scott Christley  <scottc@stetson.net-community.com>
 
 	* configure.in: Check for sys/statvfs.h header file.

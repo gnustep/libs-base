@@ -145,6 +145,17 @@ gnustep-base_toc.html: $(ORIG_FILES)
 	done
 	$(TEXI2HTML) $(HTML_FLAGS) gnustep-base.texi
 
+faq_toc.html: $(ORIG_FILES)
+	rm -f $(TEXI_FILES)
+	for i in $(ORIG_FILES); do \
+	   sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
+		$(srcdir)/$$i \
+		| sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
+		| sed -e 's,^ *$$,@br{},g' \
+		> `basename $$i .tmpl.texi`.texi ; \
+	done
+	$(TEXI2HTML) $(HTML_FLAGS) faq.texi
+ 
 # Rules for producing the text files
 README: version.tmpl.texi readme.tmpl.texi
 	sed -e 's,@email{\([^}]*\)},<\1>,g' \

@@ -40,8 +40,9 @@
  *		a single nul byte.
  *		a four byte port number in network byte order must be
  *		present for register operations, otherwise this is zero.
- *		a service name of 0 to GDO_NAME_MAX_LEN bytes (or an IP
- *		address in network byte order for probe operations)
+ *		a service name of 0 to GDO_NAME_MAX_LEN bytes (or two IP
+ *		addresses in network byte order and an optional list of
+ *		additional addresseso for probe operations)
  *		0 to GDO_NAME_MAX_LEN nul bytes padding the service name to its
  *		full size.
  *		a terminating nul byte.
@@ -80,6 +81,12 @@
  *	The following are used for communications between name servers -
  *
  *	GDO_PROBE	Requests a response
+ *			Passes two IP addresses in the name field - first the
+ *			address of the sender, next that of the recipient.
+ *			The packet may (optionally) include a variable number
+ *			of addresses (as specified by the name length minus the
+ *			size of the two addresses), each of which is an internet
+ *			address on which the sender is also listening.
  *			For a request from a name server via UDP there is no
  *			response, but a GDO_REPLY request is sent.
  *			For a request from a non-name-server, or a TCP
@@ -87,6 +94,7 @@
  *			server in network byte order.
  *
  *	GDO_PREPLY	Replies to a GDO_PROBE via UDP from a name server.
+ *			The format of the message is as for GDO_PROBE.
  *			No response is sent.
  *
  *

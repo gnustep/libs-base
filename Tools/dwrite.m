@@ -44,8 +44,6 @@ main(int argc, char** argv)
     id			obj = nil;
     int			i;
 
-    [NSObject enableDoubleReleaseCheck: YES];
-
     proc = [NSProcessInfo processInfo];
     if (proc == nil) {
 	NSLog(@"unable to get process information!\n");

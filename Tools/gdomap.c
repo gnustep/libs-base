@@ -87,17 +87,29 @@
 #define	MAX_IFACE	(256)	/* How many network interfaces.		*/
 #define	IASIZE		(sizeof(struct in_addr))
 
+#define	MAX_EXTRA	((GDO_NAME_MAX_LEN - 2 * IASIZE)/IASIZE)
+
 int	debug = 0;		/* Extra debug logging.			*/
 int	nofork = 0;		/* turn off fork() for debugging.	*/
 int	noprobe = 0;		/* turn off probe for unknown servers.	*/
+int	interval = 300;		/* Minimum time (sec) between probes.	*/
 
 int	udp_sent = 0;
 int	tcp_sent = 0;
 int	udp_read = 0;
 int	tcp_read = 0;
 
-struct in_addr	my_addr;	/* Set in init_iface()		*/
+long	last_probe;
+struct in_addr	loopback;
+
 unsigned short	my_port;	/* Set in init_iface()		*/
+
+unsigned long	class_a_net;
+struct in_addr	class_a_mask;
+unsigned long	class_b_net;
+struct in_addr	class_b_mask;
+unsigned long	class_c_net;
+struct in_addr	class_c_mask;
 
 /*
  *	Predeclare some of the functions used.
@@ -115,7 +127,7 @@ static void	init_ports();
 static void	init_probe();
 static void	queue_msg(struct sockaddr_in* a, unsigned char* d, int l);
 static void	queue_pop();
-static void	queue_probe(struct in_addr* to, struct in_addr *from);
+static void	queue_probe(struct in_addr* to, struct in_addr *from, int num_extras, struct in_addr* extra, int is_reply);
 
 /*
  *	I have simple mcopy() and mzero() implementations here for the
@@ -149,8 +161,9 @@ mzero(void* p, int l)
  *	Variables used for determining if a connection is from a process
  *	on the local host.
  */
-int interfaces = 0;			/* Number of interfaces.	*/
-struct in_addr addr[MAX_IFACE];		/* Address of each interface.	*/
+int interfaces = 0;		/* Number of interfaces.	*/
+struct in_addr	*addr;		/* Address of each interface.	*/
+struct in_addr	*mask;		/* Netmask of each interface.	*/
 
 static int
 is_local_host(struct in_addr a)
@@ -158,7 +171,7 @@ is_local_host(struct in_addr a)
     int	i;
 
     for (i = 0; i < interfaces; i++) {
-	if (memcmp((char*)&a, (char*)&addr[i], sizeof(a)) == 0) {
+	if (a.s_addr == addr[i].s_addr) {
 	    return(1);
 	}
     }
@@ -169,10 +182,9 @@ static int
 is_local_net(struct in_addr a)
 {
     int	i;
-    int	net = inet_netof(a);
 
     for (i = 0; i < interfaces; i++) {
-	if (net == inet_netof(addr[i])) {
+	if ((mask[i].s_addr&&addr[i].s_addr) == (mask[i].s_addr&&a.s_addr)) {
 	    return(1);
 	}
     }
@@ -305,7 +317,7 @@ map_add(unsigned char* n, unsigned char l, unsigned int p, unsigned char t)
 	    map_size += 16;
 	}
 	else {
-	    map = (map_ent**)malloc(16*sizeof(map_ent*));
+	    map = (map_ent**)calloc(16,sizeof(map_ent*));
 	    map_size = 16;
 	}
     }
@@ -400,35 +412,55 @@ map_del(map_ent* e)
  */
 unsigned long	prb_used = 0;
 unsigned long	prb_size = 0;
-struct in_addr	**prb = 0;
+typedef struct	{
+    struct in_addr	sin;
+    long		when;
+} prb_type;
+prb_type	**prb = 0;
+
+static prb_type	*prb_get(struct in_addr *old);
 
 /*
  *	Name -		prb_add()
  *	Purpose -	Create a new probe entry in the list in the
  *			appropriate position.
  */
-static struct in_addr*
+static void
 prb_add(struct in_addr *p)
 {
-    struct in_addr*	n = (struct in_addr*)malloc(IASIZE);
+    prb_type	*n;
     int	i;
 
-    mcopy(n, p, IASIZE);
+    if (is_local_host(*p) != 0) {
+	return;
+    }
+    if (is_local_net(*p) == 0) {
+	return;
+    }
+    
+    n = prb_get(p);
+    if (n) {
+	n->when = time(0);
+	return;
+    }
+    n = (prb_type*)malloc(sizeof(prb_type));
+    n->sin = *p;
+    n->when = time(0);
 
     if (prb_used >= prb_size) {
-	int	size = (prb_size + 16) * sizeof(struct in_addr*);
+	int	size = (prb_size + 16) * sizeof(prb_type*);
 
 	if (prb_size) {
-	    prb = (struct in_addr**)realloc(prb, size);
+	    prb = (prb_type**)realloc(prb, size);
 	    prb_size += 16;
 	}
 	else {
-	    prb = (struct in_addr**)malloc(size);
+	    prb = (prb_type**)malloc(size);
 	    prb_size = 16;
 	}
     }
     for (i = 0; i < prb_used; i++) {
-	if (memcmp((char*)prb[i], (char*)n, IASIZE) > 0) {
+	if (memcmp((char*)&prb[i]->sin, (char*)&n->sin, IASIZE) > 0) {
 	    int	j;
 
 	    for (j = prb_used+1; j > i; j--) {
@@ -439,14 +471,13 @@ prb_add(struct in_addr *p)
     }
     prb[i] = n;
     prb_used++;
-    return(prb[i]);
 }
 
 /*
  *	Name -		prb_get()
  *	Purpose -	Search the list for an entry for a particular addr
  */
-static struct in_addr*
+static prb_type*
 prb_get(struct in_addr *p)
 {
     int		lower = 0;
@@ -454,7 +485,7 @@ prb_get(struct in_addr *p)
     int		index;
 
     for (index = upper/2; upper != lower; index = lower + (upper - lower)/2) {
-	int	i = memcmp(prb[index], p, IASIZE);
+	int	i = memcmp(&prb[index]->sin, p, IASIZE);
 
         if (i < 0) {
             lower = index + 1;
@@ -464,7 +495,7 @@ prb_get(struct in_addr *p)
             break;
         }
     }
-    if (index<prb_used && memcmp(prb[index],p,IASIZE)==0) {
+    if (index<prb_used && memcmp(&prb[index]->sin,p,IASIZE)==0) {
 	return(prb[index]);
     }
     return(0);
@@ -480,7 +511,7 @@ prb_del(struct in_addr *p)
     int	i;
 
     for (i = 0; i < prb_used; i++) {
-	if (memcmp(prb[i], p, IASIZE) == 0) {
+	if (memcmp(&prb[i]->sin, p, IASIZE) == 0) {
 	    int	j;
 
 	    free(prb[i]);
@@ -493,6 +524,21 @@ prb_del(struct in_addr *p)
     }
 }
 
+/*
+ *	Remove any server  from which we have had no messages in the last
+ *	thirty minutes.
+ */
+static void
+prb_tim(long when)
+{
+    int	i;
+
+    for (i = prb_used - 1; i >= 0; i--) {
+	if (when - prb[i]->when > 1800) {
+	    prb_del(&prb[i]->sin);
+	}
+    }
+}
 
 /*
  *	Name -		clear_chan()
@@ -561,6 +607,7 @@ init_iface()
     char		buf[MAX_IFACE * sizeof(struct ifreq)];
     int			set_my_addr = 0;
     int			desc;
+    int			num_iface;
 
     /*
      *	First we determine the port for the 'gdomap' service - ideally
@@ -602,37 +649,46 @@ init_iface()
     /*
      *	Find the IP address of each active network interface.
      */
+    num_iface = ifc.ifc_len / sizeof(struct ifreq);
+    addr = (struct in_addr*)malloc(num_iface*IASIZE);
+    mask = (struct in_addr*)malloc(num_iface*IASIZE);
+
     final = (struct ifreq*)&ifc.ifc_buf[ifc.ifc_len];
     for (ifr = ifc.ifc_req; ifr < final; ifr++) {
 	if (ifr->ifr_addr.sa_family == AF_INET) {	/* IP interface */
 	    ifreq = *ifr;
-	    if (ioctl(desc, SIOCGIFFLAGS, (char *) &ifreq) < 0) {
+	    if (ioctl(desc, SIOCGIFFLAGS, (char *)&ifreq) < 0) {
 		perror("SIOCGIFFLAGS");
 	    } else if (ifreq.ifr_flags & IFF_UP) {	/* active interface */
-		if (ioctl(desc, SIOCGIFADDR, (char *) &ifreq) < 0) {
+		if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0) {
 		    perror("SIOCGIFADDR");
 		} else {
-		    addr[interfaces] = ((struct sockaddr_in *)
-					  & ifreq.ifr_addr)->sin_addr;
-		    /*
-		     *	First configured interface (excluding loopback) is
-		     *	considered to be that of this servers primary address.
-		     */
-		    if (set_my_addr==0 && inet_netof(addr[interfaces])!=127) {
-			my_addr = addr[interfaces];
+		    addr[interfaces] =
+			((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
+		    if (ioctl(desc, SIOCGIFNETMASK, (char *)&ifreq) < 0) {
+			perror("SIOCGIFNETMASK");
+			/*
+			 *	If we can't get a netmask - assume a class-c
+			 *	network.
+			 */
+			mask[interfaces] = class_c_mask;
+		    }
+		    else {
+/*
+ *	Some systems don't have ifr_netmask
+ */
+#ifdef	ifr_netmask
+		        mask[interfaces] =
+		        ((struct sockaddr_in *)&ifreq.ifr_netmask)->sin_addr;
+#else
+		        mask[interfaces] =
+		        ((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
+#endif
 		    }
 		    interfaces++;
 		}
 	    }
 	}
-	if (interfaces >= MAX_IFACE) {
-	    break;
-	}
-	/* Support for variable-length addresses. */
-#ifdef HAS_SA_LEN
-	ifr = (struct ifreq *) ((caddr_t) ifr
-		      + ifr->ifr_addr.sa_len - sizeof(struct sockaddr));
-#endif
     }
     close(desc);
 }
@@ -735,6 +791,46 @@ init_ports()
     signal(SIGPIPE, SIG_IGN);
 }
 
+
+static int
+other_addresses_on_net(struct in_addr old, struct in_addr **extra)
+{
+    int	numExtra = 0;
+    int	iface;
+
+    for (iface = 0; iface < interfaces; iface++) {
+	if (addr[iface].s_addr == old.s_addr) {
+	    continue;
+	}
+	if ((addr[iface].s_addr & mask[iface].s_addr) == 
+	    (old.s_addr & mask[iface].s_addr)) {
+	    numExtra++;
+	}
+    }
+    if (numExtra > 0) {
+	struct in_addr	*addrs;
+
+	addrs = (struct in_addr*)malloc(sizeof(struct in_addr)*numExtra);
+	*extra = addrs;
+	numExtra = 0;
+
+	for (iface = 0; iface < interfaces; iface++) {
+	    if (addr[iface].s_addr == old.s_addr) {
+		continue;
+	    }
+	    if ((addr[iface].s_addr & mask[iface].s_addr) == 
+		(old.s_addr & mask[iface].s_addr)) {
+		addrs[numExtra].s_addr = addr[iface].s_addr;
+		numExtra++;
+	    }
+	}
+    }
+    return numExtra;
+}
+
+
+
+
 /*
  *	Name -		init_probe()
  *	Purpose -	Send a request to all hosts on the local network
@@ -743,85 +839,106 @@ init_ports()
 static void
 init_probe()
 {
+    unsigned long nlist[interfaces];
+    int	nlist_size = 0;
     int	iface;
+    int	i;
 
     if (debug > 2) {
 	fprintf(stderr, "Initiating probe requests.\n");
     }
+
+    /*
+     *	Make a list of the different networks to which we must send.
+     */
     for (iface = 0; iface < interfaces; iface++) {
-	int	net = inet_netof(addr[iface]);
-	int	me = inet_lnaof(addr[iface]);
-	int	lo = 1;
-	int	hi;
-	int	i;
+	unsigned long	net = (addr[iface].s_addr & mask[iface].s_addr);
 
-	if (net == 127) {
-	    continue;		/* Don't probe loopback interface.	*/
+	if (addr[iface].s_addr == loopback.s_addr) {
+	    continue;		/* Skip loopback	*/
 	}
-        prb_add(&addr[iface]);	/* Add self to server list.	*/
+	for (i = 0; i < nlist_size; i++) {
+	    if (net == nlist[i]) {
+		break;
+	    }
+	}
+	if (i == nlist_size) {
+	    nlist[i] = net;
+	    nlist_size++;
+	}
+    }
+
+    for (i = 0; i < nlist_size; i++) {
+	struct in_addr	*other;
+	int		elen;
+	struct in_addr	sin;
+	int		high;
+	int		low;
+	unsigned long	net;
+	int		j;
 
 	/*
-	 *	Determine the highest possible host number depending on
-	 *	the class of network address in use.
+	 *	Build up a list of addresses that we serve on this network.
 	 */
-	if ((net & 0xffffff00) == 0) {
-	    hi = 0xffffff;			/* Class A	*/
-	}
-	else if ((net & 0xffff0000) == 0) {
-	    hi = 0xffff;			/* Class B	*/
-	}
-	else {
-	    hi = 0xff;				/* Class C	*/
-	}
+	for (iface = 0; iface < interfaces; iface++) {
+	    if ((addr[iface].s_addr & mask[iface].s_addr) == nlist[i]) {
+		unsigned long ha;		/* full host address.	*/
+		unsigned long hm;		/* full netmask.	*/
 
-	/*
-	 *	First kick off probes for known hosts unless we are
-	 *	probing ALL hosts.
-	 */
-	if (noprobe || hi > 0xff) {
-	    for (i = lo; i < hi; i++) {
-		struct in_addr	a = inet_makeaddr(net, i);
-		struct hostent*	hp;
-
-		if (i == me) {
-		    continue;	/* Don't probe self - that's silly.	*/
-		}
+		ha = ntohl(addr[iface].s_addr);
+		hm = ntohl(mask[iface].s_addr);
 
 		/*
-		 *	See if there is a host known with this address,
-		 *	if not we skip this one.
+		 *	Make sure that our netmasks are restricted
+		 *	to class-c networks and subnets of those
+		 *	networks - we don't want to be probing
+		 *	more than a couple of hundred hosts!
 		 */
-		hp = gethostbyaddr((const char*)&a, sizeof(a), AF_INET);
-		if (hp == 0) {
-		    continue;
+		if ((mask[iface].s_addr | class_c_mask.s_addr)
+		    != mask[iface].s_addr) {
+		    fprintf(stderr, "gdomap - warning - netmask %s will be 
+			treated as 255.255.255.0 for %s\n",
+			inet_ntoa(mask[iface]), inet_ntoa(addr[iface]));
+		    hm |= ~255;
 		}
-		queue_probe(&a, &addr[iface]);	/* Kick off probe.	*/
+		sin = addr[iface];
+		net = ha & hm & ~255;		/* class-c net number.	*/
+		low = ha & hm & 255;		/* low end of subnet.	*/
+		high = low | (255 & ~hm);	/* high end of subnet.	*/
+		elen = other_addresses_on_net(sin, &other);
+		break;
 	    }
 	}
 
 	/*
 	 *	Now start probes for servers on machines which may be on
-	 *	the network, but are not known to this system.
+	 *	any network for which we have an interface.
 	 *
-	 *	We only do this on class 'C' networks since the number of
-	 *	possible hosts on a class 'A' or 'B' network is far too
-	 *	high to probe without causing network congestion.
+	 *	Assume 'low' and 'high' are not valid host addresses as 'low'
+	 *	is the network address and 'high' is the broadcast address.
 	 */
-	if (noprobe == 0 && hi <= 0xff) {
-	    for (i = lo; i < hi; i++) {
-		struct in_addr	a = inet_makeaddr(net, i);
-		struct hostent*	hp;
+	for (j = low + 1; j < high; j++) {
+	    struct in_addr	a;
 
-		if (i == me) {
-		    continue;	/* Don't probe self - that's silly.	*/
-		}
-		queue_probe(&a, &addr[iface]);	/* Kick off probe.	*/
+	    a.s_addr = htonl(net + j);
+	    if (is_local_host(a)) {
+		continue;	/* Don't probe self - that's silly.	*/
 	    }
+	    /* Kick off probe.	*/
+	    while (elen > MAX_EXTRA) {
+		elen -= MAX_EXTRA;
+		queue_probe(&a, &sin, MAX_EXTRA, &other[elen], 0);
+	    }
+	    queue_probe(&a, &sin, elen, other, 0);
+	}
+	if (elen > 0) {
+	    free(other);
 	}
     }
     if (debug > 2) {
 	fprintf(stderr, "Probe requests initiated.\n");
     }
+    last_probe = time(0);
 }
 
 /*
@@ -902,12 +1019,15 @@ handle_io()
 	    FD_SET(udp_desc, &wfds);
 	}
 
+	timeout.tv_sec = 10;
+	timeout.tv_usec = 0;
+	to = &timeout;
 	rval = select(FD_SETSIZE, &rfds, &wfds, 0, to);
 
-	/*
-	 *	Let's handle any error return.
-	 */
 	if (rval < 0) {
+	    /*
+	     *	Let's handle any error return.
+	     */
 	    if (errno == EBADF) {
 		fd_set	efds;
 
@@ -942,28 +1062,49 @@ handle_io()
 		exit(1);
 	    }
 	}
+	else if (rval == 0) {
+	    long	now = time(0);
+	    int		i;
 
-	for (i = 0; i < FD_SETSIZE; i++) {
-	    if (FD_ISSET(i, &rfds)) {
-		if (i == tcp_desc) {
-		    handle_accept();
-		}
-		else if (i == udp_desc) {
-		    handle_recv();
-		}
-		else {
-		    handle_read(i);
-		}
-		if (debug > 2) {
-		    dump_stats();
-		}
+	    /*
+	     *	Let's handle a timeout.
+	     */
+	    prb_tim(now);	/* Remove dead servers	*/
+	    if (udp_pending == 0 && (now - last_probe) >= interval) {
+		/*
+		 *	If there is no output pending on the udp channel and
+		 *	it is at least five minutes since we sent out a probe
+		 *	we can re-probe the network for other name servers.
+		 */
+		init_probe();
 	    }
-	    if (FD_ISSET(i, &wfds)) {
-		if (i == udp_desc) {
-		    handle_send();
+	}
+	else {
+	    /*
+	     *	Got some descriptor activity - deal with it.
+	     */
+	    for (i = 0; i < FD_SETSIZE; i++) {
+		if (FD_ISSET(i, &rfds)) {
+		    if (i == tcp_desc) {
+			handle_accept();
+		    }
+		    else if (i == udp_desc) {
+			handle_recv();
+		    }
+		    else {
+			handle_read(i);
+		    }
+		    if (debug > 2) {
+			dump_stats();
+		    }
 		}
-		else {
-		    handle_write(i);
+		if (FD_ISSET(i, &wfds)) {
+		    if (i == udp_desc) {
+			handle_send();
+		    }
+		    else {
+			handle_write(i);
+		    }
 		}
 	    }
 	}
@@ -979,12 +1120,14 @@ static void
 handle_read(int desc)
 {
     unsigned char*	ptr = r_info[desc].buf.b;
+    int nothingRead = 1;
     int	done = 0;
     int	r;
 
     while (r_info[desc].pos < GDO_REQ_SIZE && done == 0) {
 	r = read(desc, &ptr[r_info[desc].pos], GDO_REQ_SIZE - r_info[desc].pos);
 	if (r > 0) {
+	    nothingRead = 0;
 	    r_info[desc].pos += r;
 	}
 	else {
@@ -995,7 +1138,11 @@ handle_read(int desc)
 	tcp_read++;
 	handle_request(desc);
     }
-    else if (errno != EWOULDBLOCK) {
+    else if (errno != EWOULDBLOCK || nothingRead == 1) {
+	/*
+	 *	If there is an error or end-of-file on the descriptor then
+	 *	we must close it down.
+	 */
 	clear_chan(desc);
     }
 }
@@ -1264,22 +1411,39 @@ handle_request(int desc)
 	int	i;
 
 	free(w_info[desc].buf);
-	w_info[desc].buf = (char*)malloc(4 + prb_used*sizeof(*prb));
-	*(unsigned long*)w_info[desc].buf = htonl(prb_used);
+	w_info[desc].buf = (char*)malloc(sizeof(unsigned long) +
+		(prb_used+1)*IASIZE);
+	*(unsigned long*)w_info[desc].buf = htonl(prb_used+1);
+	mcopy(&w_info[desc].buf[4], &r_info[desc].addr.sin_addr, IASIZE);
 	for (i = 0; i < prb_used; i++) {
-	    mcopy(&w_info[desc].buf[4+i*IASIZE], prb[i], IASIZE);
+	    mcopy(&w_info[desc].buf[4+(i+1)*IASIZE], &prb[i]->sin, IASIZE);
 	}
-	w_info[desc].len = 4 + prb_used*IASIZE;
+	w_info[desc].len = 4 + (prb_used+1)*IASIZE;
     }
     else if (type == GDO_PROBE) {
 	/*
 	 *	If the client is a name server, we add it to the list.
 	 */
 	if (r_info[desc].addr.sin_port == my_port) {
-	    if (is_local_net(r_info[desc].addr.sin_addr)) {
-		if (prb_get((struct in_addr*)&r_info[desc].buf.b[4]) == 0) {
-		    prb_add((struct in_addr*)&r_info[desc].buf.b[4]);
+	    struct in_addr	*ptr;
+	    struct in_addr	sin;
+	    unsigned long	net;
+	    int	c;
+
+	    memcpy(&sin, r_info[desc].buf.r.name, IASIZE);
+	    if (debug > 2) {
+		fprintf(stderr, "Probe from '%s'\n", inet_ntoa(sin));
+	    }
+	    prb_add(&sin);
+	    net = inet_netof(sin);
+	    ptr = (struct in_addr*)&r_info[desc].buf.r.name[2*IASIZE];
+	    c = (r_info[desc].buf.r.nsize - 2*IASIZE)/IASIZE;
+	    while (c-- > 0) {
+		if (debug > 2) {
+		    fprintf(stderr, "Delete server '%s'\n", inet_ntoa(*ptr));
 		}
+		prb_del(ptr);
+		ptr++;
 	    }
 	}
 	/*
@@ -1288,15 +1452,54 @@ handle_request(int desc)
 	 *	but just to be nice, we send back our port number anyway.
 	 */
 	if (desc == udp_desc && r_info[desc].addr.sin_port == my_port) {
+	    struct in_addr	laddr;
+	    struct in_addr	raddr;
+	    struct in_addr	*other;
+	    int			elen;
+	    void		*rbuf = r_info[desc].buf.r.name;
+	    void		*wbuf;
+	    int			i;
+	    gdo_req		*r;
+
 	    free(w_info[desc].buf);
-	    w_info[desc].buf = (char*)malloc(GDO_REQ_SIZE);
-	    mzero(w_info[desc].buf, GDO_REQ_SIZE);
-	    w_info[desc].buf[0] = GDO_PREPLY;
-	    w_info[desc].buf[1] = sizeof(my_addr);
-	    w_info[desc].buf[2] = 0;
-	    w_info[desc].buf[3] = 0;
-	    mcopy(&w_info[desc].buf[4], &my_addr, sizeof(my_addr));
+	    w_info[desc].buf = (char*)calloc(GDO_REQ_SIZE,1);
+	    r = (gdo_req*)w_info[desc].buf;
+	    wbuf = r->name;
+	    r->rtype = GDO_PREPLY;
+	    r->nsize = IASIZE*2;
+
+	    mcopy(&raddr, rbuf, IASIZE);
+	    mcopy(&laddr, rbuf+IASIZE, IASIZE);
+	
+	    mcopy(wbuf+IASIZE, &raddr, IASIZE);
+	    /*
+	     *	If the other end did not tell us which of our addresses it was
+	     *	probing, try to select one on the same network to send back.
+	     *	otherwise, respond with the address it was probing.
+	     */
+	    if (is_local_host(laddr) == 0) {
+		for (i = 0; i < interfaces; i++) {
+		    if ((mask[i].s_addr && addr[i].s_addr) ==
+			(mask[i].s_addr && r_info[desc].addr.sin_addr.s_addr)) {
+			laddr = addr[i];
+			mcopy(wbuf, &laddr, IASIZE);
+			break;
+		    }
+		}
+	    }
+	    else {
+		mcopy(wbuf, &laddr, IASIZE);
+	    }
 	    w_info[desc].len = GDO_REQ_SIZE;
+
+	    elen = other_addresses_on_net(laddr, &other);
+	    if (elen > 0) {
+		while (elen > MAX_EXTRA) {
+		    elen -= MAX_EXTRA;
+		    queue_probe(&raddr, &laddr, MAX_EXTRA, &other[elen], 1);
+		}
+		queue_probe(&raddr, &laddr, elen, other, 1);
+	    }
 	}
 	else {
 	    port = my_port;
@@ -1309,10 +1512,25 @@ handle_request(int desc)
 	 *	out earlier.  We should add the name server to our list.
 	 */
 	if (r_info[desc].addr.sin_port == my_port) {
-	    if (is_local_net(r_info[desc].addr.sin_addr)) {
-		if (prb_get((struct in_addr*)&r_info[desc].buf.b[4]) == 0) {
-		    prb_add((struct in_addr*)&r_info[desc].buf.b[4]);
+	    struct in_addr	sin;
+	    unsigned long	net;
+	    struct in_addr	*ptr;
+	    int			c;
+
+	    memcpy(&sin, &r_info[desc].buf.r.name, IASIZE);
+	    if (debug > 2) {
+		fprintf(stderr, "Probe reply from '%s'\n", inet_ntoa(sin));
+	    }
+	    prb_add(&sin);
+	    net = inet_netof(sin);
+	    ptr = (struct in_addr*)&r_info[desc].buf.r.name[2*IASIZE];
+	    c = (r_info[desc].buf.r.nsize - 2*IASIZE)/IASIZE;
+	    while (c-- > 0) {
+		if (debug > 2) {
+		    fprintf(stderr, "Delete server '%s'\n", inet_ntoa(*ptr));
 		}
+		prb_del(ptr);
+		ptr++;
 	    }
 	}
 	/*
@@ -1445,8 +1663,20 @@ handle_write(int desc)
 int
 main(int argc, char** argv)
 {
-    char*	options = "Hdfp";
+    extern char	*optarg;
+    char	*options = "Hdfi:p";
     int		c;
+
+    /*
+     *	Would use inet_aton(), but older systems don't have it.
+     */
+    loopback.s_addr = inet_addr("127.0.0.1");
+    class_a_net = inet_network("255.0.0.0");
+    class_a_mask = inet_makeaddr(class_a_net, 0);
+    class_b_net = inet_network("255.255.0.0");
+    class_b_mask = inet_makeaddr(class_b_net, 0);
+    class_c_net = inet_network("255.255.255.0");
+    class_c_mask = inet_makeaddr(class_c_net, 0);
 
     while ((c = getopt(argc, argv, options)) != -1) {
 	switch(c) {
@@ -1456,8 +1686,8 @@ main(int argc, char** argv)
 		printf("-H		for help\n");
 		printf("-d		Extra debug logging.\n");
 		printf("-f		avoid fork() to make debugging easy\n");
-		printf("-p		skip probe for unknown servers\n");
-		printf("		NB. This may actually SLOW startup.\n");
+		printf("-i seconds	re-probe at this interval (roughly)\n");
+		printf("-p		obsolete no-op\n");
 		exit(0);
 
 	    case 'd':
@@ -1466,6 +1696,13 @@ main(int argc, char** argv)
 
 	    case 'f':
 		nofork++;
+		break;
+
+	    case 'i':
+		interval = atoi(optarg);
+		if (interval < 60) {
+		    interval = 60;
+		}
 		break;
 
 	    case 'p':
@@ -1539,13 +1776,14 @@ main(int argc, char** argv)
  *			We don't bother to check to see if it worked.
  */
 static void
-queue_probe(struct in_addr* to, struct in_addr* from)
+queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, int f)
 {
     struct sockaddr_in	sin;
     gdo_req	msg;
 
     if (debug > 2) {
-        fprintf(stderr, "Probing for server on '%s'\n", inet_ntoa(*to));
+        fprintf(stderr, "Probing for server on '%s'", inet_ntoa(*to));
+        fprintf(stderr, " from '%s'\n", inet_ntoa(*from));
     }
     mzero(&sin, sizeof(sin));
     sin.sin_family = AF_INET;
@@ -1553,12 +1791,22 @@ queue_probe(struct in_addr* to, struct in_addr* from)
     sin.sin_port = my_port;
 
     mzero((char*)&msg, GDO_REQ_SIZE);
-    msg.rtype = GDO_PROBE;
-    msg.nsize = sizeof(*from);
+    if (f) {
+	msg.rtype = GDO_PREPLY;
+    }
+    else {
+	msg.rtype = GDO_PROBE;
+    }
+    msg.nsize = 2*IASIZE;
     msg.ptype = 0;
     msg.dummy = 0;
     msg.port = 0;
-    mcopy(msg.name, &from, sizeof(*from));
+    mcopy(msg.name, from, IASIZE);
+    mcopy(&msg.name[IASIZE], to, IASIZE);
+    if (l > 0) {
+	memcpy(&msg.name[msg.nsize], e, l*IASIZE);
+	msg.nsize += l*IASIZE;
+    }
   
     queue_msg(&sin, (unsigned char*)&msg, GDO_REQ_SIZE);
 }

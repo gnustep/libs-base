@@ -839,7 +839,6 @@ static int messages_received_count;
       newConn->receive_port_class = default_receive_port_class;
       newConn->send_port_class = default_send_port_class;
     }
-  newConn->delay_dialog_interruptions = YES;
   newConn->independant_queueing = NO;
   newConn->reply_depth = 0;
   newConn->delegate = nil;
@@ -1445,16 +1444,8 @@ static int messages_received_count;
 	 If the REPLY_DEPTH is 0, then we aren't in the middle of waiting
 	 for a reply, we are waiting for requests---so service it now.
 	 If REPLY_DEPTH is non-zero, we may still want to service it now
-	 if it is a request made as a callback from our peer---the request
-	 is part of the remote code necessary to finish calculating our
-	 reply; we know it's a callback from our peer if the [RMC CONNECTION]
-	 is self. If independant_queuing is YES, then we mustn't service anyway.
-	 If REPLY_DEPTH is non-zero, and the [RMC CONNECTION] is not self,
-	 then we may still want to service it now if DELAY_DIALOG_INTERRUPTIONS
-	 is false. */
-      if (reply_depth == 0
-	  || (conn == self && independant_queueing == NO)
-	  || !delay_dialog_interruptions)
+	 unless we have independant_queueing set. */
+      if (reply_depth == 0 || independant_queueing == NO)
 	{
 	  [self retain];
 	  [conn _service_forwardForProxy: rmc];
