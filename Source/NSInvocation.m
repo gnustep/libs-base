@@ -176,6 +176,8 @@ _arg_addr(NSInvocation *inv, int index)
 /**
  * Returns an invocation instance which can be used to send messages to
  * a target object using the described signature.<br />
+ * You must set the target and selector (using -setTarget: and -setSelector:)
+ * before you attempt to use the invocation.<br />
  * Raises an NSInvalidArgumentException if the signature is nil.
  */
 + (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)_signature
@@ -734,6 +736,8 @@ _arg_addr(NSInvocation *inv, int index)
 /** <init /><override-subclass />
  * Initialised an invocation instance which can be used to send messages to
  * a target object using aSignature.<br />
+ * You must set the target and selector (using -setTarget: and -setSelector:)
+ * before you attempt to use the invocation.<br />
  * Raises an NSInvalidArgumentException if aSignature is nil.
  */
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature

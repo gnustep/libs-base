@@ -26,29 +26,26 @@
 
 */
 
-#ifndef	NO_GNUSTEP
 
-#ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSCalendarDate.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSValue.h>
-#else
+/* The following ifndef prevents the categories declared in this file being
+ * seen in GNUstep code.  This is necessary because those category
+ * declarations are also present in the header files for the corresponding
+ * classes in GNUstep.  The separate category declarations in this file
+ * are only needed for software using the GNUstep Additions library
+ * without the main GNUstep base library.
+ */
+#ifndef	GNUSTEP
+
 #include <Foundation/Foundation.h>
-#endif
 
 @interface NSCalendarDate (GSCategories)
-
 - (int) weekOfYear;
-
 @end
 
 @interface NSData (GSCategories)
-
 - (NSString*) hexadecimalRepresentation;
 - (id) initWithHexadecimalRepresentation: (NSString*)string;
 - (NSData*) md5Digest;
-
 @end
 
 @interface NSString (GSCategories)
@@ -75,19 +72,17 @@
 + (NSValue*) valueFromString: (NSString *)string;
 @end
 
-/* This is also defined in NSObject.h, but added here for use with the
-   additions library */
-#ifndef NSOBJECT_GSCATEGORIES_INTERFACE
 @interface NSObject (GSCategories)
 - notImplemented:(SEL)aSel;
 - (id) subclassResponsibility: (SEL)aSel;
 - (id) shouldNotImplement: (SEL)aSel;
-
 - (NSComparisonResult) compare: (id)anObject;
 @end
-#endif
 
 
+#endif	/* GNUSTEP */
+
+
 
 #ifndef	GS_MAX_OBJECTS_FROM_STACK
 /**
@@ -235,5 +230,4 @@
 })
 
 
-#endif	/* NO_GNUSTEP */
 #endif	/* INCLUDED_GS_CATEGORIES_H */

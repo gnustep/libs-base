@@ -107,7 +107,6 @@ GS_EXPORT NSString* const NSLocale;
     the M$ hell. God help the Win95/WinNT users of NSUserDefaults ;-)
   
   To Do: 
-	- ask somebody to test it for M$;
 	- polish & optimize;
 	- when tested, fix NSBundle (the system languages stuff);
 	- write docs : -(
@@ -124,7 +123,6 @@ GS_EXPORT NSString* const NSLocale;
   NSDictionary		*_dictionaryRep; // Cached dictionary representation
   NSString		*_defaultsDatabase;
   NSDate		*_lastSync;
-  NSTimer		*_tickingTimer;   // for synchronization
   NSRecursiveLock	*_lock;
   NSDistributedLock	*_fileLock;
 }
@@ -168,7 +166,7 @@ GS_EXPORT NSString* const NSLocale;
 
 /* Returning the Search List */
 - (NSMutableArray*) searchList;
-- (void)setSearchList: (NSArray*)newList;
+- (void) setSearchList: (NSArray*)newList;
 
 /* Maintaining Persistent Domains */
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName;

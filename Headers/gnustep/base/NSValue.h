@@ -118,6 +118,11 @@
 @end
 
 #ifndef	NO_GNUSTEP
+
+@interface NSNumber(GSCategories)
++ (NSValue*) valueFromString: (NSString *)string;
+@end
+
 /* Note: This method is not in the OpenStep spec, but they makes
    subclassing easier. */
 @interface NSValue (Subclassing)

@@ -604,7 +604,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       info = GSIArrayItemAtIndex(watchers, i).obj;
       if (info->_invalidated == YES)
 	{
-	  GSIArrayRemoveItemAtIndex(watchers, i);
 	  continue;
 	}
 
@@ -1622,7 +1621,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 + (NSRunLoop*) currentRunLoop
 {
-  extern NSRunLoop *GSRunLoopForThread();
+  extern NSRunLoop	*GSRunLoopForThread();
 
   return GSRunLoopForThread(nil);
 }
@@ -1709,6 +1708,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
  */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
+  extern NSTimer	*GSHousekeeper();
   GSRunLoopCtxt		*context = NSMapGet(_contextMap, mode);
   NSDate		*when = nil;
 
@@ -1825,6 +1825,32 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  min_watcher = nil;
 		}
 	    }
+
+	  /*
+	   * If there is nothing being watched, and no valid timers
+	   * other than the housekeeper, we set min_timer to nil so
+	   * that the housekeeper timer does not keep the runloop
+	   * active.  It's a special case set up in NSThread.m
+	   */
+	  if (min_watcher == nil && min_timer != nil
+	    && min_timer == GSHousekeeper())
+	    {
+	      unsigned count = GSIArrayCount(timers);
+
+	      while (count-- > 1)
+		{
+		  NSTimer	*tmp = GSIArrayItemAtIndex(timers, 0).obj;
+		  if (timerInvalidated(tmp) == YES)
+		    {
+		      GSIArrayRemoveItemAtIndex(timers, count);
+		    }
+		}
+	      if (GSIArrayCount(timers) == 1)
+		{
+		  min_timer = nil;
+		}
+	    }
+
 	  _currentMode = savedMode;
 	}
       NS_HANDLER

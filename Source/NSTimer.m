@@ -92,7 +92,7 @@ static Class	NSDate_class;
 }
 
 /**
- * Create a timer wchich will fire after ti seconds and, if f is YES,
+ * Create a timer which will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, invocation will be performed.<br />
  * NB. To make the timer operate, you must add it to a run loop.
  */
@@ -111,7 +111,7 @@ static Class	NSDate_class;
 /**
  * Create a timer wchich will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, the target object will be
- * sent a message specified by selector and with the object info as an
+ * sent a message specified by selector and with the value info as an
  * argument.<br />
  * NB. To make the timer operate, you must add it to a run loop.
  */
