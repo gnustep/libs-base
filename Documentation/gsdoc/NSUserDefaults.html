@@ -21,6 +21,79 @@
 </p>
 <hr>
 
+	  <p>
+
+	  NSUserDefaults provides an interface to the defaults system,
+	  which allows an application access to global and/or application
+	  specific defualts set by the user. A particular instance of
+	  NSUserDefaults, standardUserDefaults, is provided as a
+	  convenience. Most of the information described below
+	  pertains to the standardUserDefaults. It is unlikely
+	  that you would want to instantiate your own userDefaults
+	  object, since it would not be set up in the same way as the
+	  standardUserDefaults. 
+	  </p>
+
+	  <p>
+
+	  Defaults are managed based on <em>domains</em>. Certain
+	  domains, such as <code>NSGlobalDomain</code>, are
+	  persistant. These domains have defaults that are stored
+	  externally. Other domains are volitale. The defaults in
+	  these domains remain in effect only during the existance of
+	  the application and may in fact be different for
+	  applications running at the same time. When asking for a
+	  default value from standardUserDefaults, NSUserDefaults
+	  looks through the various domains in a particular order.
+	  </p>
+
+	  <dl>
+<dt><code>NSArgumentDomain</code>
+<dd>
+	    Contains defaults read from the arguments provided to
+	    the application at startup. Volitile.
+	    
+<dt>Application (name of the current process)
+<dd>
+	    Application specific defaults, such as window positions. Persistant.
+	    
+<dt><code>NSGlobalDomain</code>
+<dd>
+	    Global defaults. Persistant.
+	    
+<dt>Language (name based on users's language)
+<dd>
+	    Constants that help with localization to the users's
+	    language. Volitle
+	    
+<dt><code>NSRegistrationDomain</code>
+<dd>
+	    Temporary defaults set up by the application. Volitile.
+	    
+</dl>
+
+	  <p>
+
+	  The <em>Languages</em> default value is used to set up the
+	  constants for localization. GNUstep will also look for the
+	  <code>LANGUAGES</code> environment variable if it is not set
+	  in the defaults system. If it exists, it consists of an
+	  array of languages that the user prefers. At least one of
+	  the languages should have a corresponding localization file
+	  (typically located in the <file>Languages</file> directory
+	  of the GNUstep resources).
+	  </p>
+
+	  <p>
+
+	  As a special extension, on systems that support locales
+	  (e.g. GNU/Linux and Solaris), GNUstep will use information
+	  from the user specified locale, if the <em>Languages</em>
+	  default value is not found. Typically the locale is
+	  specified in the environment with the <code>LANG</code>
+	  environment variable.
+	  </p>
+
           
 <h2>Instance Variables </h2>
 <ul>

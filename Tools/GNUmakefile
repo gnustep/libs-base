@@ -43,6 +43,8 @@ TOOL_NAME = gdnc gsdoc defaults plmerge \
 		plparse sfparse pldes plser
 CTOOL_NAME = gdomap
 
+TEST_TOOL_NAME = locale_alias
+
 # The source files to be compiled
 gdomap_C_FILES = gdomap.c
 gdnc_OBJC_FILES = gdnc.m
@@ -57,6 +59,8 @@ plmerge_OBJC_FILES = plmerge.m
 plparse_OBJC_FILES = plparse.m
 sfparse_OBJC_FILES = sfparse.m
 
+locale_alias_OBJC_FILES = locale_alias.m
+
 SOURCES = gdomap.c gdnc.m defaults.m dread.m dremove.m dwrite.m
 
 HEADERS = gdomap.h gdnc.h
@@ -70,6 +74,7 @@ include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/ctool.make
 include $(GNUSTEP_MAKEFILES)/tool.make
+include $(GNUSTEP_MAKEFILES)/test-tool.make
 
 include Makefile.postamble
 

@@ -1,9 +1,9 @@
 #
-#  Main Makefile for GNUstep Base Library.
-#  
-#  Copyright (C) 1997 Free Software Foundation, Inc.
+#  Resources makefile for GNUstep Base Library
+#  Copyright (C) 2000 Free Software Foundation, Inc.
 #
-#  Written by:	Scott Christley <scottc@net-community.com>
+#  Written by:	Adam Fedor <fedor@doc.com>
+#  Date: Oct 2000
 #
 #  This file is part of the GNUstep Base Library.
 #
@@ -19,29 +19,27 @@
 #
 #  You should have received a copy of the GNU Library General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA
-#
+#  Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
-# Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
 GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-include ./Version
+resourcedir = $(GNUSTEP_RESOURCES)
+languagedir = $(GNUSTEP_RESOURCES)/Languages
 
-PACKAGE_NAME = gstep-base
+LANGUAGES = \
+Languages/English \
+Languages/German
 
-#
-# The list of subproject directories
-#
-SUBPROJECTS = Source Tools NSCharacterSets NSTimeZones Resources
-
--include Makefile.preamble
+LANGUAGE_INSTALL_FILES = $(LANGUAGES) Languages/Locale.aliases
 
 -include GNUmakefile.local
 
-include $(GNUSTEP_MAKEFILES)/aggregate.make
+# We don't actually build anything in this directory so
+# just include the common makefile rules
+include $(GNUSTEP_MAKEFILES)/rules.make
 
--include Makefile.postamble
+-include GNUmakefile.postamble

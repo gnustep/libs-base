@@ -1,3 +1,20 @@
+2000-10-27  Adam Fedor  <fedor@gnu.org>
+
+	* Added localization support
+	* configure.in: Look for locale.h
+	* Resources: New directory, files for languages.
+	* Headers/gnustep/base/NSUserDefaults.h: Add missing localization
+	keys.
+	* Source/GSLocale.m: New functions for dealing with locales.
+	* Source/NSUserDefaults.m (-_unlocalizedDefaults): New method.
+	(-sharedUserDefaults): Set up Language domain. 
+	(-userLanguages): Create our own defaults, if necessary, to avoid
+	recursion with sharedUserDefaults.
+	(__createStandardSearchList): Put NSGlobalDomain before Language
+	domain to match MacOSX docs (wasn't specified in OpenStep docs).
+
+	* Tools/locale_alias.m: New test-tool mostly for maintainance use.
+
 2000-10-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: When deserialising selectors, register new
