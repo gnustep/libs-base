@@ -38,8 +38,8 @@
 - (void)addObject: anObject;
 
 + (void) enableRelease: (BOOL)enable;
-+ (void) enableDoubleReleaseCheck: (BOOL)enable;
 + (void) setPoolCountThreshhold: (unsigned)c;
++ (unsigned) autoreleaseCountForObject: anObject;
 
 @end
 
