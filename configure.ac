@@ -890,6 +890,7 @@ AC_ARG_WITH(ffcall-include,
 if test ${ffcall_incdir} != "no"; then
     ffcall_check_lib_save_cppflags="$CPPFLAGS"
     CPPFLAGS="-I${ffcall_incdir} $CPPFLAGS"
+    INCLUDE_FLAGS="-I${ffcall_incdir} $INCLUDE_FLAGS"
 fi
 
 AC_ARG_WITH(ffcall-library,
