@@ -1,3 +1,8 @@
+Mon Feb 15  06:14:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSDebug.h: Declare strerror() if not known to system
+	* Source/NSTask.m: Include NSDebug.h and don't declare errno.
+
 Thu Feb 12  00:57:00 1999  Manuel Guesdon <mguesdon@sbuilders.com>
 
 	* Source/include/NSString.h: declaration of categories:
