@@ -116,8 +116,8 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
     {
       /* Allocate the array that will be the new head of the list of arrays. */
       _released = (struct autorelease_array_list*)
-	(*objc_malloc) (sizeof(struct autorelease_array_list) + 
-			(BEGINNING_POOL_SIZE * sizeof(id)));
+	objc_malloc (sizeof(struct autorelease_array_list) + 
+		     (BEGINNING_POOL_SIZE * sizeof(id)));
       /* Currently no NEXT array in the list, so NEXT == NULL. */
       _released->next = NULL;
       _released->size = BEGINNING_POOL_SIZE;
@@ -241,8 +241,8 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 	  unsigned new_size = _released->size * 2;
 	  
 	  new_released = (struct autorelease_array_list*)
-	    (*objc_malloc) (sizeof(struct autorelease_array_list) + 
-			    (new_size * sizeof(id)));
+	    objc_malloc (sizeof(struct autorelease_array_list) + 
+			 (new_size * sizeof(id)));
 	  new_released->next = NULL;
 	  new_released->size = new_size;
 	  new_released->count = 0;
