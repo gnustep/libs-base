@@ -1,8 +1,32 @@
 #include "second-server.h"
 #include "second-client.h"
 #include <objects/Connection.h>
+#include <objects/TcpPort.h>
 #include <objects/String.h>
 #include <objects/Notification.h>
+#include <objects/Invocation.h>
+
+id announce_new_port (id notification)
+{
+  id in_port = [notification object];
+  id out_port = [notification userInfo];
+  printf ("{%@}\n\tconnected to\n\t{%@}\n",
+	  [out_port description], [in_port description]);
+  printf ("Now servicing %d connection(s).\n",
+	  [in_port numberOfConnectedOutPorts]);
+  return nil;
+}
+
+id announce_broken_port (id notification)
+{
+  id in_port = [notification object];
+  id out_port = [notification userInfo];
+  printf ("{%@}\n\tdisconnected from\n\t{%@}\n",
+	  [out_port description], [in_port description]);
+  printf ("Now servicing %d connection(s).\n",
+	  [in_port numberOfConnectedOutPorts]);
+  return nil;
+}
 
 @implementation SecondServer
 
@@ -84,7 +108,22 @@ int main(int argc, char *argv[])
 
   s = [[SecondServer alloc] init];
 
-  c = [Connection newRegisteringAtName:@"secondserver" withRootObject:s];
+  [NotificationDispatcher
+    addInvocation: [[ObjectFunctionInvocation alloc] 
+		     initWithObjectFunction: announce_broken_port]
+    name: InPortClientBecameInvalidNotification
+    object: nil];
+  [NotificationDispatcher
+    addInvocation: [[ObjectFunctionInvocation alloc] 
+		     initWithObjectFunction: announce_new_port]
+    name: InPortAcceptedClientNotification
+    object: nil];
+
+  if (argc > 1)
+    c = [Connection newRegisteringAtName: [String stringWithCString: argv[1]]
+		      withRootObject:s];
+  else
+    c = [Connection newRegisteringAtName: @"secondserver" withRootObject: s];
   printf("Regsitered server object on localhost with name `secondserver'\n");
 
   [c setDelegate:s];
