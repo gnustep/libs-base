@@ -824,7 +824,7 @@ static unsigned long	prb_used = 0;
 static unsigned long	prb_size = 0;
 typedef struct	{
   struct in_addr	sin;
-  long			when;
+  time_t		when;
 } prb_type;
 static prb_type	**prb = 0;
 
@@ -936,7 +936,7 @@ prb_del(struct in_addr *p)
  *	thirty minutes (as long as we have sent as probe in that time).
  */
 static void
-prb_tim(long when)
+prb_tim(time_t when)
 {
   int	i;
 
