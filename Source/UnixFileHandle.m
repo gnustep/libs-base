@@ -182,10 +182,19 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void) dealloc
 {
-  [address release];
-  [service release];
-  [protocol release];
+  RELEASE(address);
+  RELEASE(service);
+  RELEASE(protocol);
 
+  [self gcFinalize];
+
+  RELEASE(readInfo);
+  RELEASE(writeInfo);
+  [super dealloc];
+}
+
+- (void) gcFinalize
+{
   if (self == fh_stdin)
     fh_stdin = nil;
   if (self == fh_stdout)
@@ -205,9 +214,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  descriptor = -1;
 	}
     }
-  [readInfo release];
-  [writeInfo release];
-  [super dealloc];
 }
 
 // Initializing a UnixFileHandle Object
@@ -227,13 +233,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (s == nil)
     {
       NSLog(@"bad argument - service is nil");
-      [self release];
+      RELEASE(self);
       return nil;
     }
   if (getAddr(a, s, p, &sin) == NO)
     {
       NSLog(@"bad address-service-protocol combination");
-      [self release];
+      RELEASE(self);
       return nil;
     }
   [self setAddr: &sin];
@@ -241,7 +247,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
       NSLog(@"unable to create socket - %s", strerror(errno));
-      [self release];
+      RELEASE(self);
       return nil;
     }
 
@@ -253,7 +259,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  NSLog(@"unable to make connection to %s:%d - %s",
 		inet_ntoa(sin.sin_addr),
 		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
-	  [self release];
+	  RELEASE(self);
 	  return nil;
 	}
 	
@@ -277,13 +283,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (s == nil)
     {
       NSLog(@"bad argument - service is nil");
-      [self release];
+      RELEASE(self);
       return nil;
     }
   if (getAddr(a, s, p, &sin) == NO)
     {
       NSLog(@"bad address-service-protocol combination");
-      [self release];
+      RELEASE(self);
       return nil;
     }
   [self setAddr: &sin];
@@ -291,7 +297,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
       NSLog(@"unable to create socket - %s", strerror(errno));
-      [self release];
+      RELEASE(self);
       return nil;
     }
 
@@ -307,18 +313,18 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    NSLog(@"unable to make connection to %s:%d - %s",
 		inet_ntoa(sin.sin_addr),
 		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
-	    [self release];
+	    RELEASE(self);
 	    return nil;
 	  }
 	
-      info = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+      info = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
       [info setObject: address forKey: NSFileHandleNotificationDataItem];
       [info setObject: GSFileHandleConnectCompletionNotification
 	       forKey: NotificationKey];
       if (modes)
         [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
       [writeInfo addObject: info];
-      [info release];
+      RELEASE(info);
       [self watchWriteDescriptor];
       connectOK = YES;
       readOK = NO;
@@ -338,7 +344,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      [self release];
+      RELEASE(self);
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
@@ -346,7 +352,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
       NSLog(@"unable to create socket - %s", strerror(errno));
-      [self release];
+      RELEASE(self);
       return nil;
     }
 
@@ -358,7 +364,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		inet_ntoa(sin.sin_addr),
 		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
       (void) close(net);
-      [self release];
+      RELEASE(self);
       return nil;
     }
 
@@ -366,7 +372,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       NSLog(@"unable to listen on port - %s", strerror(errno));
       (void) close(net);
-      [self release];
+      RELEASE(self);
       return nil;
     }
 
@@ -374,7 +380,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       NSLog(@"unable to get socket name - %s", strerror(errno));
       (void) close(net);
-      [self release];
+      RELEASE(self);
       return nil;
     }
 
@@ -395,7 +401,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self release];
+      RELEASE(self);
       return nil;
     }
   else
@@ -413,7 +419,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self release];
+      RELEASE(self);
       return nil;
     }
   else
@@ -431,7 +437,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self release];
+      RELEASE(self);
       return nil;
     }
   else
@@ -442,10 +448,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id) initWithStandardError
 {
-  if (fh_stderr)
+  if (fh_stderr != nil)
     {
-      [fh_stderr retain];
-      [self release];
+      RETAIN(fh_stderr);
+      RELEASE(self);
     }
   else
     {
@@ -460,10 +466,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id) initWithStandardInput
 {
-  if (fh_stdin)
+  if (fh_stdin != nil)
     {
-      [fh_stdin retain];
-      [self release];
+      RETAIN(fh_stdin);
+      RELEASE(self);
     }
   else
     {
@@ -478,10 +484,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id) initWithStandardOutput
 {
-  if (fh_stdout)
+  if (fh_stdout != nil)
     {
-      [fh_stdout retain];
-      [self release];
+      RETAIN(fh_stdout);
+      RELEASE(self);
     }
   else
     {
@@ -516,7 +522,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       if (fstat(desc, &sbuf) < 0)
 	{
           NSLog(@"unable to get status of descriptor - %s", strerror(errno));
-	  [self release];
+	  RELEASE(self);
 	  return nil;
 	}
       if (S_ISREG(sbuf.st_mode))
@@ -536,7 +542,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       descriptor = desc;
       closeOnDealloc = flag;
       readInfo = nil;
-      writeInfo = [[NSMutableArray array] retain];
+      writeInfo = [NSMutableArray new];
       readPos = 0;
       writePos = 0;
       readOK = YES;
@@ -803,8 +809,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   [self checkAccept];
   readPos = 0;
-  [readInfo release];
-  readInfo = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  RELEASE(readInfo);
+  readInfo = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
   [readInfo setObject: NSFileHandleConnectionAcceptedNotification
 	       forKey: NotificationKey];
   [self watchReadDescriptorForModes: modes];
@@ -819,8 +825,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   [self checkRead];
   readPos = 0;
-  [readInfo release];
-  readInfo = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  RELEASE(readInfo);
+  readInfo = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
   [readInfo setObject: NSFileHandleReadCompletionNotification
 	       forKey: NotificationKey];
   [readInfo setObject: [NSMutableData dataWithCapacity: 0]
@@ -837,8 +843,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   [self checkRead];
   readPos = 0;
-  [readInfo release];
-  readInfo = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  RELEASE(readInfo);
+  readInfo = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
   [readInfo setObject: NSFileHandleReadToEndOfFileCompletionNotification
 	       forKey: NotificationKey];
   [readInfo setObject: [NSMutableData dataWithCapacity: 0]
@@ -855,8 +861,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   [self checkRead];
   readPos = 0;
-  [readInfo release];
-  readInfo = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  RELEASE(readInfo);
+  readInfo = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
   [readInfo setObject: NSFileHandleDataAvailableNotification
 	       forKey: NotificationKey];
   [readInfo setObject: [NSMutableData dataWithCapacity: 0]
@@ -976,7 +982,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self checkWrite];
 
-  info = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  info = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
   [info setObject: item forKey: NSFileHandleNotificationDataItem];
   [info setObject: GSFileHandleWriteCompletionNotification
 		forKey: NotificationKey];
@@ -984,7 +990,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
 
   [writeInfo addObject: info];
-  [info release];
+  RELEASE(info);
   [self watchWriteDescriptor];
 }
 
@@ -1007,7 +1013,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   n = [NSNotification notificationWithName: name object: self userInfo: info];
 
-  [info release];	/* Retained by the notification.	*/
+  RELEASE(info);	/* Retained by the notification.	*/
 
   [[NSNotificationQueue defaultQueue] enqueueNotification: n
 		postingStyle: NSPostASAP
@@ -1230,7 +1236,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      [h setAddr: &sin];
 	      [readInfo setObject: h
 			   forKey: NSFileHandleNotificationFileHandleItem];
-	      [h release];
+	      RELEASE(h);
 	    }
 	  [self postReadNotification];
 	}
@@ -1353,10 +1359,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (void) setAddr: (struct sockaddr_in *)sin
 {
   address = [NSString stringWithCString: (char*)inet_ntoa(sin->sin_addr)];
-  [address retain];
+  RETAIN(address);
   service = [NSString stringWithFormat: @"%d",
 	(int)GSSwapBigI16ToHost(sin->sin_port)];
-  [service retain];
+  REYTAIN(service);
   protocol = @"tcp";
 }
 

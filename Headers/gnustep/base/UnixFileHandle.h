@@ -29,7 +29,7 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSRunLoop.h>
 
-@interface UnixFileHandle : NSFileHandle <RunLoopEvents>
+@interface UnixFileHandle : NSFileHandle <RunLoopEvents, GCFinalization>
 {
     int				descriptor;
     BOOL			closeOnDealloc;
