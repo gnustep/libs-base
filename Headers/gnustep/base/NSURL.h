@@ -57,33 +57,25 @@ GS_EXPORT NSString* NSURLFileScheme;
 - (NSString*) fragment;
 - (NSString*) host;
 - (BOOL) isFileURL;
+- (void) loadResourceDataNotifyingClient: (id)client
+			      usingCache: (BOOL)shouldUseCache;
 - (NSString*) parameterString;
 - (NSString*) password;
 - (NSString*) path;
 - (NSNumber*) port;
+- (id) propertyForKey: (NSString*)propertyKey;
 - (NSString*) query;
 - (NSString*) relativePath;
 - (NSString*) relativeString;
+- (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache;
 - (NSString*) resourceSpecifier;
 - (NSString*) scheme;
-- (NSURL*) standardizedURL;
-- (NSString*) user;
-
-@end
-
-@interface NSURL (NSURLLoading)
-- (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache;
-
-- (void) loadResourceDataNotifyingClient: (id)client
-			      usingCache: (BOOL)shouldUseCache;
-
-- (NSURLHandle*)URLHandleUsingCache: (BOOL)shouldUseCache;
-
-- (BOOL) setResourceData: (NSData*)data;
-
-- (id) propertyForKey: (NSString*)propertyKey;
 - (BOOL) setProperty: (id)property
 	      forKey: (NSString*)propertyKey;
+- (BOOL) setResourceData: (NSData*)data;
+- (NSURL*) standardizedURL;
+- (NSURLHandle*)URLHandleUsingCache: (BOOL)shouldUseCache;
+- (NSString*) user;
 
 @end
 
