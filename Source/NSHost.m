@@ -32,6 +32,7 @@
 #include <Foundation/NSSet.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSDebug.h>
 
 #if defined(__MINGW__)
 #include <winsock.h>
@@ -102,12 +103,29 @@ static NSString			*myHostName = nil;
       h = gethostbyaddr((char*)&hostaddr, sizeof(hostaddr), AF_INET);
       if (h == 0)
 	{
-	  NSLog(@"Host '%@' not found using 'gethostbyaddr()' - perhaps "
-	    @"the address is wrong or networking is not set up on your "
-	    @"machine", address);
+	  NSDebugLog(@"Host '%@' not found using 'gethostbyaddr()' - perhaps "
+	    @"the address is wrong, networking is not set up on your machine,"
+	    @" or the requested address lacks a reverse-dns entry.", address);
 	}
     }
   return h;
+}
+
+- (id) _initWithAddress: (NSString*)name
+{
+  if ((self = [super init]) == nil)
+    {
+      return nil;
+    }
+  name = [name copy];
+  _names = [[NSSet alloc] initWithObjects: &name count: 1];
+  _addresses = RETAIN(_names);
+  if (_hostCacheEnabled == YES)
+    {
+      [_hostCache setObject: self forKey: name];
+    }
+  RELEASE(name);
+  return self;
 }
 
 - (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)name
@@ -337,12 +355,12 @@ static NSString			*myHostName = nil;
 
   if (address == nil)
     {
-      NSLog(@"Nil host address sent to [NSHost +hostWithName:]");
+      NSLog(@"Nil host address sent to [NSHost +hostWithAddress:]");
       return nil;
     }
   if ([address isEqual: @""] == YES)
     {
-      NSLog(@"Empty host address sent to [NSHost +hostWithName:]");
+      NSLog(@"Empty host address sent to [NSHost +hostWithAddress:]");
       return nil;
     }
 
@@ -357,7 +375,31 @@ static NSString			*myHostName = nil;
       struct hostent	*h;
 
       h = [self _entryForAddress: address];
-      if (h != 0)
+      if (h == 0)
+	{
+	  struct in_addr	hostaddr;
+	  BOOL			badAddr = NO;
+
+#ifndef	HAVE_INET_ATON
+	  hostaddr.s_addr = inet_addr([address cString]);
+	  if (hostaddr.s_addr == INADDR_NONE)
+	    {
+	      badAddr = YES;
+	    }
+#else
+	  if (inet_aton([address cString],
+	    (struct in_addr*)&hostaddr.s_addr) == 0)
+	    {
+	      badAddr = YES;
+	    }
+#endif
+	  if (badAddr == NO)
+	    {
+	      host = [[self alloc] _initWithAddress: address];
+	      AUTORELEASE(host);
+	    }
+	}
+      else
 	{
 	  host = [[self alloc] _initWithHostEntry: h key: address];
 	  AUTORELEASE(host);
