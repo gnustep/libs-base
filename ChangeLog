@@ -1,3 +1,8 @@
+Tue May 18  9:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSRunLoop.m:  ([-acceptInputForMode:beforeDate:]) check that
+	run loop watcher objects exist in map before trying to use them.
+
 Fri May 14 20:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/pldes.m: new tool to deserialise serialised property lists.
