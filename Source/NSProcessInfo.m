@@ -145,7 +145,7 @@ static NSProcessInfo	*_gnu_sharedProcessInfoObject = nil;
 // Host name of the CPU executing the process
 static NSString		*_gnu_hostName = nil;   
 
-static const char	*_gnu_arg_zero = nil;
+static char		*_gnu_arg_zero = 0;
 
 // Current process name
 static NSString		*_gnu_processName = nil;
@@ -169,7 +169,8 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   int i;
 
-  _gnu_arg_zero = argv[0];
+  _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
+  strcpy(_gnu_arg_zero, argv[0]);
 
   /* Getting the process name */
   _gnu_processName = [[NSString stringWithCString: argv[0]] lastPathComponent];
