@@ -9,6 +9,13 @@
 		and -valueForKey: to comply to Mac OS X v10.3 and 
 		later documentation.
 
+2004-01-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSMime.h: add content deletion method
+	* Source/Additions/GSMime.m: add content deletion method
+	([-deleteContent:]) as counterpart for addition of content, for
+	consistency.
+
 2003-12-30  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSGeometry.h 
