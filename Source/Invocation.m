@@ -49,7 +49,7 @@
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
 
 /* xxx Perhaps make this an ivar. */
-#define return_retained 1
+#define return_retained 0
 
 @implementation Invocation
 
