@@ -1688,7 +1688,9 @@ static NSFileManager* defaultManager = nil;
  * Under windoze, this attempts to use local conventions to convert to a
  * windows path.  In GNUstep, the conventional unix syntax '~user/...' can
  * be used to indicate a windoze drive specification by using the drive
- * letter in place of the username.
+ * letter in place of the username, and the syntax '~@server/...' can be used
+ * to indicate a file located on the named windoze network server (the
+ * '~@' maps to the leading '//' in a windoze UNC path specification.
  */
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
@@ -1709,7 +1711,12 @@ static NSFileManager* defaultManager = nil;
       return 0;
     }
   l = strlen(c_path);
-  if (l >= 2 && c_path[0] == '~' && isalpha(c_path[1])
+  if (l >= 2 && c_path[0] == '~' && c_path[1] == '@')
+    {
+      // Conver to windows UNC path.
+      newpath = [NSString stringWithFormat: @"//%s", &c_path[2]];
+    }
+  else if (l >= 2 && c_path[0] == '~' && isalpha(c_path[1])
     && (l == 2 || c_path[2] == '/'))
     {
       newpath = [NSString stringWithFormat: @"%c:%s", c_path[1],
@@ -1816,7 +1823,16 @@ static NSFileManager* defaultManager = nil;
     {
       return @"";
     }
-  if (len >= 2 && ptr[1] == ':' && isalpha(ptr[0]))
+  if (len >= 2 && ptr[1] == '/' && ptr[0] == '/')
+    {
+      /*
+       * Convert '//<servername>/' to '~@<servername>/' sequences.
+       */
+      buf[0] = '~';
+      buf[1] = '@';
+      i = 2;
+    }
+  else if (len >= 2 && ptr[1] == ':' && isalpha(ptr[0]))
     {
       /*
        * Convert '<driveletter>:' to '~<driveletter>/' sequences.
@@ -1852,7 +1868,7 @@ static NSFileManager* defaultManager = nil;
       i = 0;
     }
   /*
-   * Convert backslashes to slashes, colaescing adjacent slashses.
+   * Convert backslashes to slashes, colaescing adjacent slashes.
    * Also elide '/./' sequences, because we can do so efficiently.
    */
   j = i;
