@@ -1,5 +1,5 @@
 /* Implementation of coder object for remote messaging
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -56,16 +56,16 @@ static BOOL debug_connected_coder = NO;
 	prefix:2
 	position:0];
 
-  newsp = [[self alloc] initEncodingOnStream:ms];
+  newsp = [[self alloc] initForWritingToStream:ms];
   newsp->connection = c;
   newsp->sequence_number = n;
   newsp->identifier = i;
   [newsp encodeValueOfCType:@encode(typeof(newsp->sequence_number))
 	 at:&(newsp->sequence_number)
-	 withName:"ConnectedCoder sequence number"];
+	 withName:@"ConnectedCoder sequence number"];
   [newsp encodeValueOfCType:@encode(typeof(newsp->identifier))
 	 at:&(newsp->identifier)
-	 withName:"ConnectedCoder identifier"];
+	 withName:@"ConnectedCoder identifier"];
   return newsp;
 }
 
@@ -108,7 +108,7 @@ static BOOL debug_connected_coder = NO;
 	eofPosition:len-2
 	prefix:2
 	position:0];
-  newsp = [[self alloc] initDecodingOnStream:ms];
+  newsp = [[self alloc] initForReadingFromStream:ms];
   newsp->remotePort = rp;
   newsp->connection = [Connection newForInPort:inPort
 				  outPort:newsp->remotePort
@@ -140,8 +140,8 @@ static BOOL debug_connected_coder = NO;
       if (!ip) [self error:"no inPort"];
       op = [connection outPort];
       if (!op) [self error:"no outPort"];
-      buffer_len = [(MemoryStream*)stream streamBufferLength];
-      b = [(MemoryStream*)stream streamBuffer];
+      buffer_len = [(MemoryStream*)cstream streamBufferLength];
+      b = [(MemoryStream*)cstream streamBuffer];
       /* Put the packet length in the first two bytes */
       b[0] = buffer_len % 0x100;
       b[1] = buffer_len / 0x100;
