@@ -12,9 +12,11 @@ snap=${module}-${date}
 cvs -Q rtag -F snapshot-$date $module
 
 rm -rf $snap
-# Checkout the $module into a directory named $snap
-cvs -Q checkout -d $snap -r $snap $module
-tar -f - -co $snap | gzip -9v -c > $snap.tar.gz
+## Checkout the $module into a directory named $snap
+#cvs checkout -d $snap -r snapshot-$date $module
+#tar -f - -co $snap | gzip -9v -c > $snap.tar.gz
+
+make snapshot
 
 #find $snap \( -name CVS -prune \) -o \( -type f -print \) |
 #xargs md5sum | gzip -9v -c > $snap.md5sum.gz
