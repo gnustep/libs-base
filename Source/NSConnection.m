@@ -78,6 +78,10 @@
 #include "Foundation/NSDebug.h"
 #include "GSInvocation.h"
 
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
+
 extern NSRunLoop	*GSRunLoopForThread(NSThread*);
 
 #define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}

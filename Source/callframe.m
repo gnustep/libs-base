@@ -29,6 +29,10 @@
 #include "Foundation/NSData.h"
 #include "GSInvocation.h"
 
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
+
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;
 #else
