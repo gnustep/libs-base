@@ -1,3 +1,7 @@
+2003-06-17  Chris Vetter <chrisv@web4inc.com?
+
+	* Tools/AGSHtml.m: Tidy up formatting of author output.
+
 2003-06-16 13:36  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/GSFormat.m (GSFormat()): Free malloc memory in all cases
