@@ -1135,6 +1135,14 @@ handle_printf_atsign (FILE *stream,
 }
 #endif
 
+/**
+ * Initialises the receiver with the supplied data, using the
+ * specified encoding.<br />
+ * For NSUnicodeStringEncoding and NSUTF8String encoding, a Byte Order
+ * Marker (if present at the start of the data) is removed automatically.<br />
+ * If the data can not be interpreted using the encoding, the receiver
+ * is released and nil is returned.
+ */
 - (id) initWithData: (NSData*)data
 	   encoding: (NSStringEncoding)encoding
 {
@@ -1161,8 +1169,18 @@ handle_printf_atsign (FILE *stream,
     }
   else if (encoding == NSUTF8StringEncoding)
     {
-      const char	*bytes = [data bytes];
-      unsigned		i = 0;
+      const unsigned char	*bytes = [data bytes];
+      unsigned			i = 0;
+
+      /*
+       * If the data begins with the UTF8 Byte Order Marker (as a
+       * signature for UTF8 data) we must remove it.
+       */
+      if (len > 2 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+	{
+	  len -= 3;
+	  bytes += 3;
+	}
 
       if (_ByteEncodingOk)
 	{
@@ -1172,7 +1190,7 @@ handle_printf_atsign (FILE *stream,
 	   */
 	  while (i < len)
 	    {
-	      if (((unsigned char*)bytes)[i] > 127)
+	      if ((bytes)[i] > 127)
 		{
 		  break;
 		}
@@ -1280,12 +1298,22 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Initialises the receiver with the contents of the file at path.<br />
- * Invokes [NSData-initWithContentsOfFile:] to read the file, then
+ * <p>Initialises the receiver with the contents of the file at path.
+ * </p>
+ * <p>Invokes [NSData-initWithContentsOfFile:] to read the file, then
  * examines the data to infer its encoding type, and converts the
- * data to a string using -initWithData:encoding:<br />
- * Releases the receiver and returns nil if the file could not be read
+ * data to a string using -initWithData:encoding:
+ * </p>
+ * <p>The encoding to use is determined as follows ... if the data begins
+ * with the 16-bit unicode Byte Order Marker, then it is assumed to be
+ * unicode data in the appropriate ordering and converted as such.<br />
+ * If it begins with a UTF8 representation of the BOM, the UTF8 encoding
+ * is used.<br />
+ * Otherwise, the default C String encoding is used.
+ * </p>
+ * <p>Releases the receiver and returns nil if the file could not be read
  * and converted to a string.
+ * </p>
  */
 - (id) initWithContentsOfFile: (NSString*)path
 {
@@ -1303,6 +1331,8 @@ handle_printf_atsign (FILE *stream,
   len = [d length];
   if (len == 0)
     {
+      RELEASE(d);
+      RELEASE(self);
       return @"";
     }
   test = [d bytes];
@@ -1312,6 +1342,10 @@ handle_printf_atsign (FILE *stream,
 	{
 	  /* somebody set up us the BOM! */
 	  enc = NSUnicodeStringEncoding;
+	}
+      else if (len > 2 && test[0] == 0xEF && test[1] == 0xBB && test[2] == 0xBF)
+	{
+	  enc = NSUTF8StringEncoding;
 	}
     }
   self = [self initWithData: d encoding: enc];
@@ -1347,6 +1381,10 @@ handle_printf_atsign (FILE *stream,
       if ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped))
 	{
 	  enc = NSUnicodeStringEncoding;
+	}
+      else if (len > 2 && test[0] == 0xEF && test[1] == 0xBB && test[2] == 0xBF)
+	{
+	  enc = NSUTF8StringEncoding;
 	}
     }
   self = [self initWithData: d encoding: enc];
