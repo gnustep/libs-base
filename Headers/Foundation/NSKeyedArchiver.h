@@ -39,7 +39,7 @@
 /**
  *  Implements <em>keyed</em> archiving of object graphs.  This archiver
  *  should be used instead of [NSArchiver] for new implementations.  Classes
- *  implementing [NSCoding] should check the [NSCoder-allowsKeyedCoding]
+ *  implementing [(NSCoding)] should check the [NSCoder-allowsKeyedCoding]
  *  method and if the response is YES, encode/decode their fields using the
  *  <code>...forKey:</code> [NSCoder] methods, which provide for more robust
  *  forwards and backwards compatibility.
@@ -203,7 +203,7 @@
 /**
  *  Implements <em>keyed</em> unarchiving of object graphs.  The keyed archiver
  *  should be used instead of [NSArchiver] for new implementations.  Classes
- *  implementing [NSCoding] should check the [NSCoder-allowsKeyedCoding]
+ *  implementing [(NSCoding)] should check the [NSCoder-allowsKeyedCoding]
  *  method and if the response is YES, encode/decode their fields using the
  *  <code>...forKey:</code> [NSCoder] methods, which provide for more robust
  *  forwards and backwards compatibility.

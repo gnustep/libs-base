@@ -49,6 +49,29 @@ GS_EXPORT NSString *NSHomeDirectory(void);
 GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 
 #ifndef STRICT_OPENSTEP
+/**
+ * Enumeration of possible requested directory type specifiers for
+ * NSSearchPathForDirectoriesInDomains() function.  These correspond to the
+ * subdirectories that may be found under, e.g., $GNUSTEP_SYSTEM_ROOT, such
+ * as "Library" and "Applications".
+ <example>
+{
+  NSApplicationDirectory,
+  NSDemoApplicationDirectory,
+  NSDeveloperApplicationDirectory,
+  NSAdminApplicationDirectory,
+  NSLibraryDirectory,
+  NSDeveloperDirectory,
+  NSUserDirectory,
+  NSDocumentationDirectory,
+  NSAllApplicationsDirectory,
+  NSAllLibrariesDirectory,
+  GSLibrariesDirectory,
+  GSToolsDirectory,
+  GSApplicationSupportDirectory
+}
+ </example>
+ */
 typedef enum
 {
   NSApplicationDirectory,
@@ -66,6 +89,11 @@ typedef enum
   GSApplicationSupportDirectory,
 } NSSearchPathDirectory;
 
+/**
+ * Mask type for NSSearchPathForDirectoriesInDomains() function.  A bitwise OR
+ * of one or more of <code>NSUserDomainMask, NSLocalDomainMask,
+ * NSNetworkDomainMask, NSSystemDomainMask, NSAllDomainsMask</code>.
+ */
 typedef unsigned int NSSearchPathDomainMask;
 #define NSUserDomainMask	0x00000001
 #define NSLocalDomainMask	0x00000002

@@ -160,7 +160,7 @@ NSRealMemoryAvailable ()
 }
 
 /**
- * Allocate memory for this process and return a pointer to it (or a nul
+ * Allocate memory for this process and return a pointer to it (or a null
  * pointer on failure).  
  */
 void *

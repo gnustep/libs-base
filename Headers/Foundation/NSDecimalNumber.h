@@ -109,7 +109,7 @@
 @end
 
 /**
- *  A utility class adopting [NSDecimalNumberBehaviors] protocol.  Can be used
+ *  A utility class adopting [(NSDecimalNumberBehaviors)] protocol.  Can be used
  *  to control [NSDecimalNumber] rounding and exception-handling behavior, by
  *  passing an instance as an argument to any [NSDecimalNumber] method ending
  *  with <code>...Behavior:</code>.
@@ -134,7 +134,7 @@
 
 /**
  * Constructor setting all behavior.  (For more precise control over error
- * handling, create your own class implementing the [NSDecimalNumberBehaviors]
+ * handling, create your own class implementing the [(NSDecimalNumberBehaviors)]
  * protocol.)
  */
 + (id)decimalNumberHandlerWithRoundingMode:(NSRoundingMode)roundingMode 
@@ -146,7 +146,7 @@
 
 /**
  * Initializor setting all behavior.  (For more precise control over error
- * handling, create your own class implementing the [NSDecimalNumberBehaviors]
+ * handling, create your own class implementing the [(NSDecimalNumberBehaviors)]
  * protocol.)
  */
 - (id)initWithRoundingMode:(NSRoundingMode)roundingMode 

@@ -208,7 +208,7 @@ static void updateCache(NSUserDefaults *self)
  * </p>
  * <p>
  *   NB. The GNUstep implementation differs from the Apple one in
- *   that it is thread-safe while Apples (as of MacOS-X 10.1) is not.
+ *   that it is thread-safe while Apple's (as of MacOS-X 10.1) is not.
  * </p>
  */
 @implementation NSUserDefaults: NSObject
@@ -911,7 +911,7 @@ static NSString	*pathForUser(NSString *user)
 /**
  * Adds the domain names aName to the search list of the receiver.<br />
  * The domain is added after the application domain.<br />
- * Suites may be removed using the -removeSuiteName: method.
+ * Suites may be removed using the -removeSuiteNamed: method.
  */
 - (void) addSuiteNamed: (NSString*)aName
 {
@@ -1786,7 +1786,7 @@ static BOOL isPlistObject(id o)
 
 /**
  * Removes the named domain from the serach list of the receiver.<br />
- * Suites may be added using the -addSuiteName: method.
+ * Suites may be added using the -addSuiteNamed: method.
  */
 - (void) removeSuiteNamed: (NSString*)aName
 {

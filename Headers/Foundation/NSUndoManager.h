@@ -36,12 +36,41 @@ enum {
 };
 
 /* Public notification */
+
+/**
+ *  Notification posted whenever [NSUndoManager] opens or closes an undo group.
+ *  The undo manager itself is posted, with no <em>userInfo</em> dictionary.
+ */
 GS_EXPORT NSString *NSUndoManagerCheckpointNotification;
+
+/**
+ * Notification posted after an [NSUndoManager] opens an undo group.
+ */
 GS_EXPORT NSString *NSUndoManagerDidOpenUndoGroupNotification;
+
+/**
+ * Notification posted after an [NSUndoManager] executes a redo operation.
+ */
 GS_EXPORT NSString *NSUndoManagerDidRedoChangeNotification;
+
+/**
+ * Notification posted after an [NSUndoManager] executes an undo operation.
+ */
 GS_EXPORT NSString *NSUndoManagerDidUndoChangeNotification;
+
+/**
+ * Notification posted before an [NSUndoManager] closes an undo group.
+ */
 GS_EXPORT NSString *NSUndoManagerWillCloseUndoGroupNotification;
+
+/**
+ * Notification posted before an [NSUndoManager] will execute a redo operation.
+ */
 GS_EXPORT NSString *NSUndoManagerWillRedoChangeNotification;
+
+/**
+ * Notification posted before an [NSUndoManager] will execute an undo operation.
+ */
 GS_EXPORT NSString *NSUndoManagerWillUndoChangeNotification;
 
 @interface NSUndoManager: NSObject

@@ -30,8 +30,18 @@
 @class NSThread;
 
 
-/* Each thread has its own copy of these variables.
-   A pointer to this structure is an ivar of NSThread. */
+/**
+ * Each thread has its own copy of these variables.
+ <example>
+{
+  NSAutoreleasePool *current_pool; // current pool for thread
+  unsigned total_objects_count;    // total #/autoreleased objects over thread's lifetime
+  id *pool_cache;                  // cache of previously-allocated pools,
+  int pool_cache_size;             //  used internally for recycling
+  int pool_cache_count;
+}
+ </example>
+*/
 typedef struct autorelease_thread_vars
 {
   /* The current, default NSAutoreleasePool for the calling thread;
@@ -58,8 +68,18 @@ typedef struct autorelease_thread_vars
 
 
 
-/* Each pool holds its objects-to-be-released in a linked-list of 
-   these structures. */
+/**
+ *  Each pool holds its objects-to-be-released in a linked-list of 
+    these structures.
+    <example>
+{
+  struct autorelease_array_list *next;
+  unsigned size;
+  unsigned count;
+  id objects[0];
+}
+    </example>
+ */
 typedef struct autorelease_array_list
 {
   struct autorelease_array_list *next;

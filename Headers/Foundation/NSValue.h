@@ -342,7 +342,7 @@
 
 @end
 
-/*
+/**
  * Cache info for internal use by NSNumber concrete subclasses.
  */
 typedef struct {
@@ -350,10 +350,12 @@ typedef struct {
   void		(*getValue)(NSNumber*, SEL, void*);
 } GSNumberInfo;
 
+/** Internal method for caching. */
 GSNumberInfo	*GSNumberInfoFromObject(NSNumber *o);
 #define	GS_SMALL	16
-/*
- * Get cached values for integers in the range -GS_SMALL to +GS_SMALL
+/**
+ * Internal method: get cached values for integers in the range
+ * - GS_SMALL to + GS_SMALL
  */
 unsigned	GSSmallHash(int n);
 #endif

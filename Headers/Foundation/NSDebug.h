@@ -442,11 +442,22 @@ GS_EXPORT BOOL NSDeallocateZombies;
 #define NSWarnMLog(format, args...)
 #endif
 
-/* Getting stack information. Use caution with this. It uses builtin
-   gcc functions and currently only works up to 100 frames 
-*/
+/**
+ *  Retrieve stack information.  Use caution: uses built-in gcc functions
+ *  and currently only works up to 100 frames.
+ */
 GS_EXPORT void *NSFrameAddress(int offset);
+
+/**
+ *  Retrieve stack information.  Use caution: uses built-in gcc functions
+ *  and currently only works up to 100 frames.
+ */
 GS_EXPORT void *NSReturnAddress(int offset);
+
+/**
+ *  Retrieve stack information.  Use caution: uses built-in gcc functions
+ *  and currently only works up to 100 frames.
+ */
 GS_EXPORT unsigned NSCountFrames(void);
 
 #endif

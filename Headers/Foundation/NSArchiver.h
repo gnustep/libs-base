@@ -210,6 +210,12 @@
 
 
 /* Exceptions */
+
+/**
+ *  Specified in OpenStep to be raised by [NSArchiver] or subclasses if there
+ *  are problems initializing or encoding.  <em>Not currently used.
+ *  NSInternalInconsistencyException usually raised instead.</em>
+ */
 GS_EXPORT NSString * const NSInconsistentArchiveException;
 
 #endif	/* __NSArchiver_h_GNUSTEP_BASE_INCLUDE */

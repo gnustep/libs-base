@@ -28,7 +28,11 @@
 
 @class NSTimer, NSDate, NSPort;
 
-/* Mode strings. */
+/**
+ * Run loop mode used to deal with input sources other than NSConnections or
+ * dialog windows.  Most commonly used. Defined in
+ * <code>Foundation/NSRunLoop.h</code>.
+ */
 GS_EXPORT NSString * const NSDefaultRunLoopMode;
 
 @interface NSRunLoop : NSObject <GCFinalization>
@@ -90,6 +94,18 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
  *	GNUstep extensions
  */
 
+/**
+ * GNUstep extension: enumeration of event types that an [NSRunLoop] watcher
+ * can watch for.  See [NSRunLoop-addEvent:type:watcher:forMode:].
+ <example>
+{
+    ET_RDESC,	// Watch for descriptor becoming readable.
+    ET_WDESC,	// Watch for descriptor becoming writeable.
+    ET_RPORT,	// Watch for message arriving on port.
+    ET_EDESC	// Watch for descriptor with out-of-band data.
+}
+ </example>
+ */
 typedef	enum {
     ET_RDESC,	/* Watch for descriptor becoming readable.	*/
     ET_WDESC,	/* Watch for descriptor becoming writeable.	*/
@@ -116,7 +132,7 @@ typedef	enum {
 /**
  * Callback message sent to object when the event it it waiting
  * for occurs.  The 'data' and 'type' valueds are those passed in the
- * original addEvent:type:watcher:forMode: method.
+ * original -addEvent:type:watcher:forMode: method.
  * The 'extra' value may be additional data returned depending
  * on the type of event.
  */

@@ -27,6 +27,9 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSRange.h>
 
+/**
+ * Type for representing unicode characters.  (16-bit)
+ */
 typedef unsigned short unichar;
 
 @class NSArray;
@@ -47,6 +50,30 @@ enum
   NSAnchoredSearch = 8
 };
 
+/**
+ *  <p>Enumeration of available encodings for converting between bytes and
+ *  characters (in [NSString]s).  The ones that are shared with OpenStep and
+ *  Cocoa are: <code>NSASCIIStringEncoding, NSNEXTSTEPStringEncoding,
+ *  NSJapaneseEUCStringEncoding, NSUTF8StringEncoding,
+ *  NSISOLatin1StringEncoding, NSSymbolStringEncoding,
+ *  NSNonLossyASCIIStringEncoding, NSShiftJISStringEncoding,
+ *  NSISOLatin2StringEncoding, NSUnicodeStringEncoding,
+ *  NSWindowsCP1251StringEncoding, NSWindowsCP1252StringEncoding,
+ *  NSWindowsCP1253StringEncoding, NSWindowsCP1254StringEncoding,
+ *  NSWindowsCP1250StringEncoding, NSISO2022JPStringEncoding,
+ *  NSMacOSRomanStringEncoding, NSProprietaryStringEncoding</code>.</p>
+ *  
+ *  <p>Additional encodings available under GNUstep are:
+ *  <code>NSKOI8RStringEncoding, NSISOLatin3StringEncoding,
+ *  NSISOLatin4StringEncoding, NSISOCyrillicStringEncoding,
+ *  NSISOArabicStringEncoding, NSISOGreekStringEncoding,
+ *  NSISOHebrewStringEncoding, NSISOLatin5StringEncoding,
+ *  NSISOLatin6StringEncoding, NSISOThaiStringEncoding,
+ *  NSISOLatin7StringEncoding, NSISOLatin8StringEncoding,
+ *  NSISOLatin9StringEncoding, NSGB2312StringEncoding, NSUTF7StringEncoding,
+ *  NSGSM0338StringEncoding, NSBIG5StringEncoding,
+ *  NSKoreanEUCStringEncoding</code>.</p>
+ */
 typedef enum _NSStringEncoding
 {
 /* NB. Must not have an encoding with value zero - so we can use zero to
@@ -368,8 +395,8 @@ enum {
 @end
 
 #ifdef NeXT_RUNTIME
-/* For internal use with NeXT runtime;
-   needed, until Apple Radar 2870817 is fixed. */
+/** For internal use with NeXT runtime;
+    needed, until Apple Radar 2870817 is fixed. */
 extern struct objc_class _NSConstantStringClassReference;
 #endif
 

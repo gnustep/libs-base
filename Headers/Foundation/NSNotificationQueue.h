@@ -54,12 +54,34 @@
  * Posting styles into notification queue
  */
 
+/**
+ *  Enumeration of possible timings for distribution of notifications handed
+ *  to an [NSNotificationQueue]:
+ <example>
+{
+  NSPostWhenIdle,	// post when runloop is idle
+  NSPostASAP,		// post soon
+  NSPostNow		// post synchronously
+}
+ </example>
+ */
 typedef enum {
   NSPostWhenIdle,	
   NSPostASAP,		
   NSPostNow		
 } NSPostingStyle;
 
+/**
+ * Enumeration of possible ways to combine notifications when dealing with
+ * [NSNotificationQueue]:
+ <example>
+{
+  NSNotificationNoCoalescing,       // don't combine
+  NSNotificationCoalescingOnName,   // combine all registered with same name
+  NSNotificationCoalescingOnSender  // combine all registered with same object
+}
+ </example>
+ */
 typedef enum {
   NSNotificationNoCoalescing = 0,	
   NSNotificationCoalescingOnName = 1,	
@@ -70,6 +92,9 @@ typedef enum {
  * NSNotificationQueue class
  */
 
+/**
+ *  Structure used internally by [NSNotificationQueue].
+ */
 struct _NSNotificationQueueList;
 
 @interface NSNotificationQueue : NSObject
@@ -102,7 +127,7 @@ struct _NSNotificationQueueList;
 
 #ifndef	NO_GNUSTEP
 /*
- *	Functions used by the the NSRunLoop
+ *	Functions used by the NSRunLoop
  */
 extern void GSNotifyASAP(void);
 extern void GSNotifyIdle(void);

@@ -178,41 +178,101 @@
 @end /* NSDirectoryEnumerator */
 
 /* File Attributes */
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileAppendOnly;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileCreationDate;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileDeviceIdentifier;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileExtensionHidden;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileGroupOwnerAccountID;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileGroupOwnerAccountName;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileHFSCreatorCode;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileHFSTypeCode;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileImmutable;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileModificationDate;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileOwnerAccountID;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileOwnerAccountName;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFilePosixPermissions;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileReferenceCount;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileSize;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileSystemFileNumber;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileSystemNumber;
+/** File attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileType;
 
 /* File Types */
 
+/** Possible value for '<code>NSFileType</code>' key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileTypeDirectory;
+/** Possible value for '<code>NSFileType</code>' key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileTypeRegular;
+/** Possible value for '<code>NSFileType</code>' key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileTypeSymbolicLink;
+/** Possible value for '<code>NSFileType</code>' key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileTypeSocket;
+/** Possible value for '<code>NSFileType</code>' key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileTypeFifo;
+/** Possible value for '<code>NSFileType</code>' key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileTypeCharacterSpecial;
+/** Possible value for '<code>NSFileType</code>' key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileTypeBlockSpecial;
+/** Possible value for '<code>NSFileType</code>' key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileTypeUnknown;
 
 /* FileSystem Attributes */
 
+/** File system attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileSystemSize;
+/** File system attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileSystemFreeSize;
+/** File system attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileSystemNodes;
+/** File system attribute key in dictionary returned by
+    [NSFileManager-fileAttributesAtPath:traverseLink:]. */
 GS_EXPORT NSString* const NSFileSystemFreeNodes;
 
 /* Easy access to attributes in a dictionary */

@@ -76,6 +76,10 @@ GS_EXPORT NSString* const NSParseErrorException;
 #endif
 
 /* Exception handler definitions */
+
+/**
+ * The actual structure for an NSHandler.  You shouldn't need to worry about it.
+ */
 typedef struct _NSHandler 
 {
     jmp_buf jumpState;			/* place to longjmp to */
@@ -83,8 +87,19 @@ typedef struct _NSHandler
     NSException *exception;
 } NSHandler;
 
+/**
+ *  This is the exception handler called when an exception is generated and
+ *  not caught by the programmer (by enclosing in <code>NS_DURING</code> and
+ *  <code>NS_HANDLER</code>...<code>NS_ENDHANDLER</code>).  It prints an error
+ *  message and exits the program.  You can change this behavior by calling
+ *  <code>NSSetUncaughtExceptionHandler(fn_ptr)</code>.
+ */
 typedef void NSUncaughtExceptionHandler(NSException *exception);
 
+/**
+ *  Variable used to hold the current uncaught exception handler.  Use the
+ *  function NSSetUncaughtExceptionHandler() to set.
+ */
 GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 #define NSGetUncaughtExceptionHandler() _NSUncaughtExceptionHandler
 #define NSSetUncaughtExceptionHandler(proc) \
@@ -109,8 +124,9 @@ GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
    NS_VALRETURN, NS_VOIDRETURN, or just falling out the bottom.
  */
 
-/* private support routines.  Do not call directly. */
+/** Private support routine.  Do not call directly. */
 GS_EXPORT void _NSAddHandler( NSHandler *handler );
+/** Private support routine.  Do not call directly. */
 GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_DURING { NSHandler NSLocalHandler;			\

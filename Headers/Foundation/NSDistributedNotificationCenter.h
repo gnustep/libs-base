@@ -31,6 +31,19 @@
 #include	<Foundation/NSNotification.h>
 
 
+/**
+ *  Enumeration of possible values for specifying how
+ *  [NSDistributedNotificationCenter] deals with notifications when the
+ *  process to which the notification should be delivered is suspended:
+ <example>
+ {
+  NSNotificationSuspensionBehaviorDrop,       // drop the notification
+  NSNotificationSuspensionBehaviorCoalesce,   // drop all for this process but the latest-sent notification
+  NSNotificationSuspensionBehaviorHold,       // queue all notifications for this process until it is resumed
+  NSNotificationSuspensionBehaviorDeliverImmediately  // resume the process and deliver
+}
+ </example>
+ */
 typedef enum {
   NSNotificationSuspensionBehaviorDrop,
   NSNotificationSuspensionBehaviorCoalesce,
@@ -38,8 +51,17 @@ typedef enum {
   NSNotificationSuspensionBehaviorDeliverImmediately
 } NSNotificationSuspensionBehavior;
 
+/**
+ *  Type for [NSDistributedNotificationCenter+notificationCenterForType:] -
+ *  localhost broadcast only.  This is the only type on OS X.
+ */
 GS_EXPORT NSString	*NSLocalNotificationCenterType;
 #ifndef NO_GNUSTEP
+
+/**
+ *  Type of [NSDistributedNotificationCenter+notificationCenterForType:] -
+ *  localhost and LAN broadcast.  This type is available only on GNUstep.
+ */
 GS_EXPORT NSString	*GSNetworkNotificationCenterType;
 #endif
 

@@ -53,7 +53,8 @@
  *  <p>Both keys and values are retained by the implementation, and released
  *  when either their entry is dropped or the entire dictionary is deallocated.
  *  This differs from the implementation on OS X, where keys are copied instead
- *  of being retained and must therefore implement the [NSCopying] protocol.</p>
+ *  of being retained and must therefore implement the [(NSCopying)] protocol.
+ *  </p>
  *
  *  <p>Objects of this class are immutable.  For a mutable version, use the
  *  [NSMutableDictionary] subclass.</p>
@@ -1118,7 +1119,7 @@ compareIt(id o1, id o2, void* context)
  *  is raised.  If aKey already in dictionary, the value it maps to is
  *  silently replaced.  aKey and anObject are both retained.  (This differs
  *  from OS X, where the key is copied and must therefore implement the
- *  [NSCopying] protocol.)
+ *  [(NSCopying)] protocol.)
  */
 - (void) setObject: anObject forKey: (id)aKey
 {

@@ -33,6 +33,12 @@
 @class NSDictionary;
 @class NSString;
 
+/**
+ * Posted by [NSClassDescription+classDescriptionForClass:] when a class
+ * description cannot be found for a class.  The implementation will check
+ * again after the notification is (synchronously) processed, allowing
+ * descriptions to be registered lazily.
+ */
 GS_EXPORT NSString* const NSClassDescriptionNeededForClassNotification;
 
 @interface NSClassDescription : NSObject

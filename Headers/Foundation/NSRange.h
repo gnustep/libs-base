@@ -63,8 +63,8 @@
  *   how an NSRange works.
  * </p>
  * <p>
- *   An NSRange consists of a location and a length.  The points
- *   that are considered to lie in a range are the integers from
+ *   An NSRange consists of a <em>location</em> and a <em>length</em>.  The
+ *   points that are considered to lie in a range are the integers from
  *   the location to the location plus the length, so the number
  *   of points in a range is the length of the range plus one.<br />
  *   However, if you consider these points like the marks on a
@@ -81,6 +81,7 @@ struct _NSRange
 };
 
 #ifndef STRICT_OPENSTEP
+/** Pointer to an NSRange structure. */
 typedef NSRange *NSRangePointer;
 #endif
 
@@ -104,6 +105,7 @@ typedef NSRange *NSRangePointer;
 GS_RANGE_SCOPE unsigned
 NSMaxRange(NSRange range) GS_RANGE_ATTR;
 
+/** Returns top end of range (location + length). */
 GS_RANGE_SCOPE unsigned
 NSMaxRange(NSRange range) 
 {
@@ -113,15 +115,16 @@ NSMaxRange(NSRange range)
 GS_RANGE_SCOPE BOOL 
 NSLocationInRange(unsigned location, NSRange range) GS_RANGE_ATTR;
 
+/** Returns whether location is greater than or equal to range's location
+ *  and less than its max.
+ */
 GS_RANGE_SCOPE BOOL 
 NSLocationInRange(unsigned location, NSRange range) 
 {
   return (location >= range.location) && (location < NSMaxRange(range));
 }
 
-GS_RANGE_SCOPE NSRange
-NSMakeRange(unsigned int location, unsigned int length) GS_RANGE_ATTR;
-
+/** Convenience method for raising an NSRangeException. */
 GS_EXPORT void _NSRangeExceptionRaise (void);
 /* NB: The implementation of _NSRangeExceptionRaise is: 
    [NSException raise: NSRangeException
@@ -131,6 +134,10 @@ GS_EXPORT void _NSRangeExceptionRaise (void);
    file (NSRange.h) can be included without problems in the
    implementation of the base classes themselves. */
 
+GS_RANGE_SCOPE NSRange
+NSMakeRange(unsigned int location, unsigned int length) GS_RANGE_ATTR;
+
+/** Creates new range starting at location and of given length. */
 GS_RANGE_SCOPE NSRange
 NSMakeRange(unsigned int location, unsigned int length)
 {
@@ -149,6 +156,7 @@ NSMakeRange(unsigned int location, unsigned int length)
 GS_RANGE_SCOPE BOOL
 NSEqualRanges(NSRange range1, NSRange range2) GS_RANGE_ATTR;
 
+/** Returns whether range1 and range2 have same location and length. */
 GS_RANGE_SCOPE BOOL
 NSEqualRanges(NSRange range1, NSRange range2)
 {
@@ -159,6 +167,8 @@ NSEqualRanges(NSRange range1, NSRange range2)
 GS_RANGE_SCOPE NSRange
 NSUnionRange(NSRange range1, NSRange range2) GS_RANGE_ATTR;
 
+/** Returns range going from minimum of aRange's and bRange's locations to
+    maximum of their two max's. */
 GS_RANGE_SCOPE NSRange
 NSUnionRange(NSRange aRange, NSRange bRange)
 {
@@ -173,6 +183,9 @@ NSUnionRange(NSRange aRange, NSRange bRange)
 GS_RANGE_SCOPE NSRange
 NSIntersectionRange(NSRange range1, NSRange range2) GS_RANGE_ATTR;
 
+/** Returns range containing indices existing in both aRange and bRange.  If
+ *  the returned length is 0, the location is undefined and should be ignored.
+ */
 GS_RANGE_SCOPE NSRange
 NSIntersectionRange (NSRange aRange, NSRange bRange)
 {
@@ -191,7 +204,11 @@ NSIntersectionRange (NSRange aRange, NSRange bRange)
 
 @class NSString;
 
+/** Returns string of form {location=a, length=b}. */
 GS_EXPORT NSString *NSStringFromRange(NSRange range);
+
+/** Parses range from string of form {location=a, length=b}, otherwise returns
+    range with 0 location and length if this fails. */
 GS_EXPORT NSRange NSRangeFromString(NSString *aString);
 
 #ifdef	GS_DEFINED_MAX
@@ -205,15 +222,18 @@ GS_EXPORT NSRange NSRangeFromString(NSString *aString);
 #endif
 
 #ifndef	NO_GNUSTEP
-/*
+/**
  * To be used inside a method for making sure that a range does not specify
- * anything outsize the size of an array/string.
+ * anything outside the size of an array/string.  Raises exception if range
+ * extends beyond [0,size).
  */
 #define GS_RANGE_CHECK(RANGE, SIZE) \
   if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
     [NSException raise: NSRangeException \
                  format: @"in %s, range { %u, %u } extends beyond size (%u)", \
 		 GSNameFromSelector(_cmd), RANGE.location, RANGE.length, SIZE]
+
+/** Checks whether INDEX is strictly less than OVER (within C array space). */
 #define CHECK_INDEX_RANGE_ERROR(INDEX, OVER) \
 if (INDEX >= OVER) \
   [NSException raise: NSRangeException \

@@ -35,8 +35,30 @@
 @class NSDictionary;
 @class NSMutableDictionary;
 
+/**
+ *  Notification posted when a bundle is loaded.  The notification object is
+ *  the [NSBundle] itself.  The notification also contains a <em>userInfo</em>
+ *  dictionary, containing the single key '<code>NSLoadedClasses</code>',
+ *  mapped to an [NSArray] containing the names of each class and category
+ *  loaded (as strings).
+ */
 GS_EXPORT NSString* NSBundleDidLoadNotification;
+
+/**
+ * A user default affecting the behavior of
+ * [NSBundle-localizedStringForKey:value:table:].  If set, the value of the
+ * key will be returned as an uppercase string rather than any localized
+ * equivalent found.  This can be useful during development to check where
+ * a given string in the UI is "coming from".
+ */
 GS_EXPORT NSString* NSShowNonLocalizedStrings;
+
+/**
+ *  When an [NSBundle] loads classes and posts a
+ *  <code>NSBundleDidLoadNotification</code>, its <em>userInfo</em> dictionary
+ *  contains this key, mapped to an [NSArray] containing the names of each
+ *  class and category loaded (as strings).
+ */
 GS_EXPORT NSString* NSLoadedClasses;
 
 /**
@@ -203,7 +225,7 @@ GS_EXPORT NSString* NSLoadedClasses;
      root path/bundlePath/"language.lproj"
    </example>
    <p>
-   where lanuage.lproj can be any localized language directory inside
+   where language.lproj can be any localized language directory inside
    the bundle.
    </p>
    <p>
@@ -224,8 +246,12 @@ GS_EXPORT NSString* NSLoadedClasses;
 		       ofType: (NSString*)ext;
 
 /**
-   Returns the value for the key found in the strings file tableName,
-   or Localizable.strings if tableName is nil.
+   Returns the value for the key found in the strings file tableName, or
+   Localizable.strings if tableName is nil.  Behavior depends on whether the
+   user default <code>NSShowNonLocalizedStrings</code> is set.  If set, the
+   value of the key will be returned as an uppercase string rather than any
+   localized equivalent found.  This can be useful during development to
+   check where a given string in the UI is "coming from".
  */
 - (NSString*) localizedStringForKey: (NSString*)key
 			      value: (NSString*)value
@@ -340,9 +366,10 @@ GS_EXPORT NSString* NSLoadedClasses;
 
 @end
 
-/** Warning - the following should never be used.  */
+/** Warning - do not use this.  */
 #define GSLocalizedString(key, comment) \
   [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:nil]
+/** Warning - do not use this.  */
 #define GSLocalizedStringFromTable(key, tbl, comment) \
   [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:(tbl)]
 
