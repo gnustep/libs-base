@@ -1,9 +1,8 @@
 /* Zone memory management.
- 
-   Copyright (C)  1994  Regents of the University of California.
-   All Rights Reserved.
+   Copyright (C) 1994  Free Software Foundation, Inc.
  
    Author: Mark Lakata
+   Date: January 1995
  
    This file is part of the GNU Objective C Class Library.
 
@@ -23,50 +22,52 @@
 
    Description:
  
-     These functions manage memory in a way similar to the c library functions:
-   malloc() and free().  Instead of allocating small chunks of memory with each
-   malloc() call, with this method one must first allocate a larger "zone",
-   and then suballocate this in smaller chunks.  Many zones can be created,
-   and within each zone, objects will be "closer" in virtual memory space
-   thus reducing the need for page-swapping.  By intelligently allocating
-   frequently used objects from the same zone, you can significantly
-   improve performance on systems with paged virtual memory.
+   These functions manage memory in a way similar to the c library
+   functions: malloc() and free().  Instead of allocating small chunks
+   of memory with each malloc() call, with this method one must first
+   allocate a larger "zone", and then suballocate this in smaller
+   chunks.  Many zones can be created, and within each zone, objects
+   will be "closer" in virtual memory space thus reducing the need for
+   page-swapping.  By intelligently allocating frequently used objects
+   from the same zone, you can significantly improve performance on
+   systems with paged virtual memory.
 
    Usage:
 
-     First create a zone with NSCreateZone().  Then allocate memory with
-   NSZoneMalloc().  Finally free memory with NSZoneFree(), and free a zone
-   with NSDestroyZone().
+   First create a zone with NSCreateZone().  Then allocate memory with
+   NSZoneMalloc().  Finally free memory with NSZoneFree(), and free a
+   zone with NSDestroyZone().
 
-     A Zone is initialized with a certain memory size, but will automagically
-   grow if needed.  The incremental size of enlargement is set by the
-   granularity flag.  A good choice for the initial memory size and the
-   granularity is vm_page_size.
-     Once of the options to NSCreateZone is the _canFree_ flag.  If this is
-   YES, then you can use the NSZoneFree() function to reclaim memory.  If this
-   is NO, then you cannot use NSZoneFree.  The only way then to free the
-   memory is to destroy the entire zone.  This option allocates memory
-   much quicker since it requires much less bookkeeping.
+   A Zone is initialized with a certain memory size, but will
+   automagically grow if needed.  The incremental size of enlargement
+   is set by the granularity flag.  A good choice for the initial
+   memory size and the granularity is vm_page_size.
 
-     NSZoneMalloc(), NSZoneCalloc() and NSZoneRealloc() each return a
+   Once of the options to NSCreateZone is the _canFree_ flag.  If this
+   is YES, then you can use the NSZoneFree() function to reclaim
+   memory.  If this is NO, then you cannot use NSZoneFree.  The only
+   way then to free the memory is to destroy the entire zone.  This
+   option allocates memory much quicker since it requires much less
+   bookkeeping.
+
+   NSZoneMalloc(), NSZoneCalloc() and NSZoneRealloc() each return a
    pointer to "size" bytes from zone "zonep".  The different flavors
-   work the same as the malloc(), calloc() and realloc() c-library routines.
+   work the same as the malloc(), calloc() and realloc() c-library
+   routines.
 
-     NSCreateChildZone() and NSMergeZone() are not implemented.
+   NSCreateChildZone() and NSMergeZone() are not implemented.
 
-     NSDefaultMemoryZone returns a NULL zone, which means the standard malloc
-   zone.  NSZoneFree() frees memory within a zone. NSDestroyZone() deallocates
-   the entire zone, including all allocated memory within it.
-   NSZoneFromPtr() finds a zone, given a pointer to memory.  The pointer
-   must be one that was returned from NSZoneMalloc, or it can be zonep->base.
-   BXZonePtrInfo() returns debugging information for the ptr within a zone.
-   NSMallocCheck() returns 0 if the internal memory allocation is not corrupt,
-   a positive integer otherwise. NSNameZone() assigns a name to a zone (less
-   than 20 characters.).
+   NSDefaultMemoryZone returns a NULL zone, which means the standard
+   malloc zone.  NSZoneFree() frees memory within a
+   zone. NSDestroyZone() deallocates the entire zone, including all
+   allocated memory within it.  NSZoneFromPtr() finds a zone, given a
+   pointer to memory.  The pointer must be one that was returned from
+   NSZoneMalloc, or it can be zonep->base.  BXZonePtrInfo() returns
+   debugging information for the ptr within a zone.  NSMallocCheck()
+   returns 0 if the internal memory allocation is not corrupt, a
+   positive integer otherwise. NSNameZone() assigns a name to a zone
+   (less than 20 characters.).
   
-   For further information, consult the NeXTStep Reference under the
-   section for NSZoneMalloc(), et al.
-
    */
 
 #include <stdio.h>
@@ -151,14 +152,14 @@ NSZone *NSCreateZone(size_t startSize, size_t granularity, int canFree)
 #ifdef DEBUG
     printf("entered NSCreateZone\n");
 #endif
-    ptr = (NSZone *)malloc(sizeof(NSZone));
+    ptr = (NSZone *) (*objc_malloc)(sizeof(NSZone));
     if (ptr == NULL) {
 #ifdef DEBUG
         printf("out of memory for zone structure\n");
 #endif
         return NS_NOZONE;
         }
-    ptr->base        = (void *) valloc(startSize);
+    ptr->base        = (void *) (*objc_valloc)(startSize);
     if (ptr->base == NULL) {
 #ifdef DEBUG
         printf("out of memory for zone\n");
@@ -294,7 +295,7 @@ void *NSZoneMalloc(NSZone *zonep, size_t size)
     chunkdesc temp,*chunk;
     NSZone *newzone;
 
-    if (zonep == NS_NOZONE) return malloc(size);
+    if (zonep == NS_NOZONE) return (*objc_malloc) (size);
     if (zonep->canFree) {
         for (i=0;i<zonep->heap.Count;i++) {
             chunk = &(((chunkdesc *)zonep->heap.LList)[i]);
@@ -379,7 +380,7 @@ void *NSZoneRealloc(NSZone *zonep, void *ptr, size_t size)
     void *ptr2;
     chunkdesc temp,*chunk,*nextchunk,*priorchunk;
     
-    if (zonep == NS_NOZONE) return realloc(ptr,size);
+    if (zonep == NS_NOZONE) return (*objc_realloc)(ptr,size);
     
     if (zonep->canFree) {
         i = searchheap(&(zonep->heap),ptr);
@@ -770,12 +771,13 @@ void *addtolist(void *ptr,llist *list, int at)
     if (list->Count>= list->Size) {
         if (list->LList == NULL) {
             list->Size = DEFAULTLISTSIZE;
-            list->LList = (void *)malloc(list->ElementSize * list->Size);
+            list->LList = (void *)
+	      (*objc_malloc)(list->ElementSize * list->Size);
         }
         else {
             list->Size *= 2;
-            list->LList = (void *)realloc(list->LList,
-                                         list->ElementSize * list->Size);
+            list->LList = (void *)
+	      (*objc_realloc)(list->LList, list->ElementSize * list->Size);
         }
         
     }
