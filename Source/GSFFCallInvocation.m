@@ -426,7 +426,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 	  
 	  forwarding_callback
 	    = alloc_callback (&GSInvocationCallback, ret_info);
-	
+
 	  GSIMapAddPairNoRetain (&ff_callback_map, 
 	    (GSIMapKey) (void *) ret_info,
 	    (GSIMapVal) forwarding_callback);
@@ -450,7 +450,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 	&returnTypeInfo [index]);
     }
   
-  GSIMapInitWithZoneAndCapacity (&ff_callback_map, 0, 9);
+  GSIMapInitWithZoneAndCapacity (&ff_callback_map, NSDefaultMallocZone(), 9);
 
   __objc_msg_forward = gs_objc_msg_forward;
 }
