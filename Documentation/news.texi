@@ -6,6 +6,14 @@ The currently released version of the library is
 @samp{@value{OBJECTS_VERSION}}.
 @end ifset
 
+@section Noteworthy changes since version @samp{0.1.12}
+
+@itemize
+
+@item Bug fixes:  Makefile installation.
+
+@end itemize
+
 @section Noteworthy changes since version @samp{0.1.10}
 
 @itemize
