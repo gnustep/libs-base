@@ -34,6 +34,10 @@ For more details, see the @samp{README} file that comes with the
 distribution.
 @end ignore
 
+@set ANNOUNCE-ONLY
+@include news.texi
+@clear ANNOUNCE-ONLY
+
 @section Where can you get it?  How can you compile it?
 
 @ifset GNUSTEP-BASE-FTP-MACHINE

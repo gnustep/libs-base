@@ -2,10 +2,12 @@
 @include version.texi
 @end ifclear
 
+@ifclear ANNOUNCE-ONLY
 @chapter News
 
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
+@end ifclear
 
 @section Noteworthy changes in version @samp{1.1.0}
 

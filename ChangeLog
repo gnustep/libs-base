@@ -1,5 +1,8 @@
 2002-01-07  Adam Fedor  <fedor@gnu.org>
 
+	* Version: 1.1.0
+	* Documentation/news.texi: Update
+
 	* Source/NSObject.m (GSGetValue): Add case for void return
 	(suggestion from ml@sbuilders.com).
 
