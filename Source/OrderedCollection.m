@@ -167,13 +167,13 @@
 
 // REPLACING;
 
-- replaceRange: (IndexRange)aRange 
+- (void) replaceRange: (IndexRange)aRange 
    withCollection: (id <ConstantCollecting>)aCollection
 {
   [self notImplemented: _cmd];
 }
 
-- replaceRange: (IndexRange)aRange 
+- (void) replaceRange: (IndexRange)aRange 
    usingCollection: (id <ConstantCollecting>)aCollection
 {
   [self notImplemented: _cmd];
