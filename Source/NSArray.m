@@ -192,7 +192,7 @@ static Class NSMutableArray_concrete_class;
   va_end( ap );
 
   /*	Put object ids into NSArray.	*/
-  self = [self initWithObjects: objsArray count: i-1];
+  self = [self initWithObjects: objsArray count: i];
   OBJC_FREE( objsArray );
   return( self );
 }
