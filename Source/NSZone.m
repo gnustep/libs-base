@@ -1757,5 +1757,20 @@ NSZoneStats (NSZone *zone)
   return (zone->stats)(zone);
 }
 
+#else
+
+/*
+ * Dummy zone used with garbage collection.
+ * In some places we make a distinction between the nul zone and the dummy
+ * zone - items pointed to by memory in the nul zone can be deallocated by
+ * the gc mechanism, while those pointed to from memory in the dummy zone
+ * can't.
+ */
+static NSZone default_zone =
+{
+  0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
+};
+NSZone* __nszone_private_hidden_default_zone = &default_zone;
+
 #endif	/* GS_WITH_GC */
 

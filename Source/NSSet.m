@@ -42,10 +42,11 @@ static Class NSMutableSet_concrete_class;
 
 + (void) initialize
 {
-    if (self == [NSSet class]) {
-        NSSet_concrete_class = [NSGSet class];
-        NSMutableSet_concrete_class = [NSGMutableSet class];
-        behavior_class_add_class(self, [NSSetNonCore class]);
+  if (self == [NSSet class])
+    {
+      NSSet_concrete_class = [NSGSet class];
+      NSMutableSet_concrete_class = [NSGMutableSet class];
+      behavior_class_add_class(self, [NSSetNonCore class]);
     }
 }
 
@@ -71,29 +72,23 @@ static Class NSMutableSet_concrete_class;
 
 + set
 {
-  return [[[self alloc] init] 
-	  autorelease];
+  return [[[self alloc] init] autorelease];
 }
 
 + setWithObjects: (id*)objects 
 	   count: (unsigned)count
 {
-  return [[[self alloc] initWithObjects: objects
-			count: count]
-	  autorelease];
+  return [[[self alloc] initWithObjects: objects count: count] autorelease];
 }
 
 + setWithArray: (NSArray*)objects
 {
-  return [[[self alloc] initWithArray: objects]
-	  autorelease];
+  return [[[self alloc] initWithArray: objects] autorelease];
 }
 
 + setWithObject: anObject
 {
-  return [[[self alloc] initWithObjects: &anObject
-			count: 1]
-	  autorelease];
+  return [[[self alloc] initWithObjects: &anObject count: 1] autorelease];
 }
 
 + setWithObjects: firstObject, ...
@@ -107,8 +102,7 @@ static Class NSMutableSet_concrete_class;
 
 + setWithSet: (NSSet*)aSet
 {
-  return [[[self alloc] initWithSet: aSet]
-	  autorelease];
+  return [[[self alloc] initWithSet: aSet] autorelease];
 }
 
 + allocWithZone: (NSZone*)z
@@ -152,12 +146,12 @@ static Class NSMutableSet_concrete_class;
   return [self subclassResponsibility: _cmd];
 }
 
-- copyWithZone: (NSZone*)z
+- (id) copyWithZone: (NSZone*)z
 {
   return [self retain];
 }
 
-- mutableCopyWithZone: (NSZone*)z
+- (id) mutableCopyWithZone: (NSZone*)z
 {
   return [[[[self class] _mutableConcreteClass] allocWithZone: z] 
 	  initWithSet: self];
@@ -232,24 +226,26 @@ static Class NSMutableSet_concrete_class;
 
 - initWithArray: (NSArray*)other
 {
-    unsigned	count = [other count];
+  unsigned	count = [other count];
 
-    if (count == 0) {
-	return [self init];
+  if (count == 0)
+    {
+      return [self init];
     }
-    else {
-	id	objs[count];
+  else
+    {
+      id	objs[count];
 
-	[other getObjects: objs];
-	return [self initWithObjects: objs count: count];
+      [other getObjects: objs];
+      return [self initWithObjects: objs count: count];
     }
 }
 
-- initWithSet: (NSSet*)other copyItems: (BOOL)flag
+- (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag
 {
-  int c = [other count];
-  id os[c], o, e = [other objectEnumerator];
-  int i = 0;
+  unsigned	c = [other count];
+  id		os[c], o, e = [other objectEnumerator];
+  unsigned	i = 0;
 
   while ((o = [e nextObject]))
     {
@@ -261,31 +257,30 @@ static Class NSMutableSet_concrete_class;
     }
   self = [self initWithObjects: os count: c];
   if (flag)
-    while (--i)
+    while (i--)
       [os[i] release];
   return self;
 }
 
-- initWithSet: (NSSet*)other 
+- (id) initWithSet: (NSSet*)other 
 {
   return [self initWithSet: other copyItems: NO];
 }
 
 - (NSArray*) allObjects
 {
-  id e = [self objectEnumerator];
-  int i, c = [self count];
-  id k[c];
+  id		e = [self objectEnumerator];
+  unsigned	i, c = [self count];
+  id		k[c];
 
   for (i = 0; i < c; i++)
     {
       k[i] = [e nextObject];
     }
-  return [[[NSArray alloc] initWithObjects: k count: c]
-	  autorelease];
+  return [[[NSArray alloc] initWithObjects: k count: c] autorelease];
 }
 
-- anyObject
+- (id) anyObject
 {
   if ([self count] == 0)
     return nil;
@@ -303,50 +298,55 @@ static Class NSMutableSet_concrete_class;
 
 - (unsigned) hash
 {
-    return [self count];
+  return [self count];
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector
 {
-  id o, e = [self objectEnumerator];
+  id	o, e = [self objectEnumerator];
+
   while ((o = [e nextObject]))
     [o performSelector: aSelector];
 }
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector
 {
-  id o, e = [self objectEnumerator];
+  id	o, e = [self objectEnumerator];
+
   while ((o = [e nextObject]))
     [o performSelector: aSelector];
 }
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
 {
-  id o, e = [self objectEnumerator];
+  id	o, e = [self objectEnumerator];
+
   while ((o = [e nextObject]))
     [o performSelector: aSelector withObject: argument];
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector withObject: argument
 {
-  id o, e = [self objectEnumerator];
+  id	o, e = [self objectEnumerator];
+
   while ((o = [e nextObject]))
     [o performSelector: aSelector withObject: argument];
 }
 
 - (BOOL) intersectsSet: (NSSet*) otherSet
 {
-  id o = nil, e = nil;
+  id	o = nil, e = nil;
 
   // -1. If this set is empty, this method should return NO.
-  if ([self count] == 0) return NO;
+  if ([self count] == 0)
+    return NO;
 
   // 0. Loop for all members in otherSet
   e = [otherSet objectEnumerator];
   while ((o = [e nextObject])) // 1. pick a member from otherSet.
     {
       if ([self member: o])    // 2. check the member is in this set(self).
-       return YES;
+        return YES;
     }
   return NO;
 }
@@ -356,7 +356,8 @@ static Class NSMutableSet_concrete_class;
   id o = nil, e = nil;
 
   // -1. members of this set(self) <= that of otherSet
-  if ([self count] > [otherSet count]) return NO;
+  if ([self count] > [otherSet count])
+    return NO;
 
   // 0. Loop for all members in this set(self).
   e = [self objectEnumerator];
@@ -389,12 +390,14 @@ static Class NSMutableSet_concrete_class;
 {
   if ([self count] != [other count])
     return NO;
-  {
-    id o, e = [self objectEnumerator];
-    while ((o = [e nextObject]))
-      if (![other member: o])
-	return NO;
-  }
+  else
+    {
+      id	o, e = [self objectEnumerator];
+
+      while ((o = [e nextObject]))
+	if (![other member: o])
+	  return NO;
+    }
   /* xxx Recheck this. */
   return YES;
 }
@@ -415,31 +418,30 @@ static Class NSMutableSet_concrete_class;
 
 + (void) initialize
 {
-    if (self == [NSMutableSet class]) {
-        behavior_class_add_class(self, [NSMutableSetNonCore class]);
-        behavior_class_add_class(self, [NSSetNonCore class]);
+  if (self == [NSMutableSet class])
+    {
+      behavior_class_add_class(self, [NSMutableSetNonCore class]);
+      behavior_class_add_class(self, [NSSetNonCore class]);
     }
 }
 
-+ setWithCapacity: (unsigned)numItems
++ (id) setWithCapacity: (unsigned)numItems
 {
-  return [[[self alloc] initWithCapacity: numItems]
-	  autorelease];
+  return [[[self alloc] initWithCapacity: numItems] autorelease];
 }
 
-+ allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   return NSAllocateObject([self _mutableConcreteClass], 0, z);
 }
 
-- copyWithZone: (NSZone*)z
+- (id) copyWithZone: (NSZone*)z
 {
-  return [[[[self class] _concreteClass] allocWithZone: z] 
-	  initWithSet: self];
+  return [[[[self class] _concreteClass] allocWithZone: z] initWithSet: self];
 }
 
 /* This is the designated initializer */
-- initWithCapacity: (unsigned)numItems
+- (id) initWithCapacity: (unsigned)numItems
 {
   return [self subclassResponsibility: _cmd];
 }
@@ -470,7 +472,7 @@ static Class NSMutableSet_concrete_class;
 
 - (void) addObjectsFromArray: (NSArray*)array
 {
-  int i, c = [array count];
+  unsigned	i, c = [array count];
 
   for (i = 0; i < c; i++)
     [self addObject: [array objectAtIndex: i]];

@@ -62,75 +62,50 @@ static Class NSCountedSet_concrete_class;
 
 - (unsigned int) countForObject: anObject
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - copyWithZone: (NSZone*)z
 {
-    NSSet	*newSet;
-    int		count = [self count];
-    id		objects[count];
-    id		enumerator = [self objectEnumerator];
-    id		o;
-    int		i;
-
-    for (i = 0; (o = [enumerator nextObject]); i++)
-        objects[i] = [o copyWithZone:z];
-
-    newSet = [[[self class] allocWithZone: z] initWithObjects: objects
-							count: count];
-
-    for (i = 0; (o = [enumerator nextObject]); i++) {
-        unsigned	extra;
-
-	extra = [self countForObject: o];
-
-	if (extra > 1) {
-	    while (--extra) {
-	        [newSet addObject: o];
-	    }
-	}
-	[o release];
-    }
-
-    return newSet;
+  return [[[self class] allocWithZone: z] initWithSet: self copyItems: YES];
 }
 
 - mutableCopyWithZone: (NSZone*)z
 {
-    return [self copyWithZone: z];
+  return [[[self class] allocWithZone: z] initWithSet: self copyItems: NO];
 }
 
 - initWithCoder: aCoder
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (void) encodeWithCoder: aCoder
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - initWithSet: (NSSet*)other copyItems: (BOOL)flag
 {
-  int c = [other count];
-  id os[c], o, e = [other objectEnumerator];
-  int i = 0;
+  unsigned	c = [other count];
+  id		os[c], o, e = [other objectEnumerator];
+  unsigned	i = 0;
+  NSZone	*z = [self zone];
 
   while ((o = [e nextObject]))
     {
       if (flag)
-	os[i] = [o copy];
+	os[i] = [o copyWithZone: z];
       else
 	os[i] = o;
       i++;
     }
-  self = [self initWithObjects:os count:c];
+  self = [self initWithObjects: os count: c];
   if ([other isKindOfClass: [NSCountedSet class]])
     {
-      int	j;
+      unsigned	j;
 
       for (j = 0; j < i; j++)
 	{
@@ -142,7 +117,7 @@ static Class NSCountedSet_concrete_class;
 	}
     }
   if (flag)
-    while (--i)
+    while (i--)
       [os[i] release];
   return self;
 }

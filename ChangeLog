@@ -1,5 +1,22 @@
-Sun Apr 11 18:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Mon Apr 12 13:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
+	* Source/NSCountedSet.m: Make copying behavior be same as OPENSTEP
+	* Source/NSSet.m: Fix memory scribbling bug in ([-initWithSet:])
+	* Source/NSGSet.m: Tidied types in fast map.
+	* Source/NSGArray.m: Minor optimisationin copy etc.
+	* Source/NSGDictionary.m: Tidied types in fast map.
+	* Source/NSSerializer.m: Tidied types in fast map and array.
+	* Source/NSArchiver.m: Tidied types in fast map and array.
+	* Source/NSUnarchiver.m: Tidied types in fast map and array.
+	* Source/FastArray.x: Tidied, fixed init bug, movied to include
+	* Source/FastMap.x: Tidied, moved to include
+	* Source/NSZone.m: Dummy zone for use with GC.
+	* Source/include/NSZone.h: Dummy zone for use with GC.
+	* Source/include/GSUnion.h: Unions for use with Fast... 
+	* Source/include/FastArray.x: New from Source
+	* Source/include/FastMap.x: New from Source
+	* Source/GNUmakefile: Added FastArray.x, FastMap.x, GSUnion.h
+	* Source/Makefile.postamble: Added FastArray.x FastMap.x GSUnion.h.
 	* NSCharacterSets/GNUmakefile: List all new character set names.
 
 Fri Apr 9 22:04:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>

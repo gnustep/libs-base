@@ -157,17 +157,16 @@
 
 - (unsigned) indexOfObject: anObject
 {
-  unsigned	i;
-
   if (anObject == nil)
     return NSNotFound;
   /*
    *	For large arrays, speed things up a little by caching the method.
    */
-  if (_count > 8)
+  if (_count > 1)
     {
-      SEL	sel = @selector(isEqual:);
-      BOOL	(*imp)(id,SEL,id);
+      static SEL	sel = @selector(isEqual:);
+      BOOL		(*imp)(id,SEL,id);
+      unsigned		i;
 
       imp = (BOOL (*)(id,SEL,id))[anObject methodForSelector: sel];
 
@@ -179,15 +178,9 @@
 	    }
 	}
     }
-  else
+  else if (_count == 1 && [anObject isEqual: _contents_array[0]])
     {
-      for (i = 0; i < _count; i++)
-	{
-	  if ([anObject isEqual: _contents_array[i]])
-	    {
-	      return i;
-	    }
-	}
+      return 0;
     }
   return NSNotFound;
 }
@@ -442,21 +435,22 @@
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
 {
-    id	obj;
+  id	obj;
 
-    if (index >= _count) {
-	[NSException raise: NSRangeException format:
+  if (index >= _count)
+    {
+      [NSException raise: NSRangeException format:
 	    @"in replaceObjectAtIndex:withObject:, index %d is out of range",
 	    index];
-    }
-    /*
-     *	Swap objects in order so that there is always a valid object in the
-     *	array in case a retain or release causes an exception.
-     */
-    obj = _contents_array[index];
-    [anObject retain];
-    _contents_array[index] = anObject;
-    [obj release];
+  }
+  /*
+   *	Swap objects in order so that there is always a valid object in the
+   *	array in case a retain or release causes an exception.
+   */
+  obj = _contents_array[index];
+  [anObject retain];
+  _contents_array[index] = anObject;
+  [obj release];
 }
 
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 

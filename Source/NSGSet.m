@@ -32,8 +32,9 @@
 #include <Foundation/NSPortCoder.h>
 
 #define	FAST_MAP_HAS_VALUE	0
+#define	FAST_MAP_KTYPES		GSUNION_OBJ
 
-#include "FastMap.x"
+#include <base/FastMap.x>
 
 @class	NSSetNonCore;
 @class	NSMutableSetNonCore;
@@ -78,7 +79,7 @@
       return nil;
     }
   node = node->nextInMap;
-  return old->key.o;
+  return old->key.obj;
 }
 
 - (void) dealloc
@@ -121,7 +122,7 @@
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
   while (node != 0)
     {
-      (*imp)(aCoder, sel, node->key.o);
+      (*imp)(aCoder, sel, node->key.obj);
       node = node->nextInMap;
     }
 }
@@ -145,7 +146,7 @@
   while (count-- > 0)
     {
       (*imp)(aCoder, sel, type, &value);
-      FastMapAddKeyNoRetain(&map, (FastMapItem)value);
+      FastMapAddKeyNoRetain(&map, (FastMapKey)value);
     }
 
   return self;
@@ -167,10 +168,10 @@
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}
-      node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
+      node = FastMapNodeForKey(&map, (FastMapKey)objs[i]);
       if (node == 0)
 	{
-	  FastMapAddKey(&map, (FastMapItem)objs[i]);
+	  FastMapAddKey(&map, (FastMapKey)objs[i]);
         }
     }
   return self;
@@ -180,11 +181,11 @@
 {
   if (anObject)
     {
-      FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+      FastMapNode node = FastMapNodeForKey(&map, (FastMapKey)anObject);
 
       if (node)
 	{
-	  return node->key.o;
+	  return node->key.obj;
 	}
     }
   return nil;
@@ -224,10 +225,10 @@
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to add nil to  set"];
     }
-  node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+  node = FastMapNodeForKey(&map, (FastMapKey)anObject);
   if (node == 0)
     {
-      FastMapAddKey(&map, (FastMapItem)anObject);
+      FastMapAddKey(&map, (FastMapKey)anObject);
     }
 }
 
@@ -235,7 +236,7 @@
 {
   if (anObject)
     {
-      FastMapRemoveKey(&map, (FastMapItem)anObject);
+      FastMapRemoveKey(&map, (FastMapKey)anObject);
     }
 }
 

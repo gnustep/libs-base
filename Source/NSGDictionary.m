@@ -100,12 +100,14 @@ myEqual(id self, id other)
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
  *	table - for maximum performance.
  */
-#define	FAST_MAP_HASH(X)	myHash(X.o)
-#define	FAST_MAP_EQUAL(X,Y)	myEqual(X.o,Y.o)
-#define	FAST_MAP_RETAIN_KEY(X)	((id)(X).o) = \
-				[((id)(X).o) copyWithZone: map->zone]
+#define	FAST_MAP_KTYPES		GSUNION_OBJ
+#define	FAST_MAP_VTYPES		GSUNION_OBJ
+#define	FAST_MAP_HASH(X)	myHash(X.obj)
+#define	FAST_MAP_EQUAL(X,Y)	myEqual(X.obj,Y.obj)
+#define	FAST_MAP_RETAIN_KEY(X)	((id)(X).obj) = \
+				[((id)(X).obj) copyWithZone: map->zone]
 
-#include	"FastMap.x"
+#include	<base/FastMap.x>
 
 @class	NSDictionaryNonCore;
 @class	NSMutableDictionaryNonCore;
@@ -165,8 +167,8 @@ myEqual(id self, id other)
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
   while (node != 0)
     {
-      (*imp)(aCoder, sel, node->key.o);
-      (*imp)(aCoder, sel, node->value.o);
+      (*imp)(aCoder, sel, node->key.obj);
+      (*imp)(aCoder, sel, node->value.obj);
       node = node->nextInMap;
     }
 }
@@ -193,7 +195,7 @@ myEqual(id self, id other)
     {
       (*imp)(aCoder, sel, type, &key);
       (*imp)(aCoder, sel, type, &value);
-      FastMapAddPairNoRetain(&map, (FastMapItem)key, (FastMapItem)value);
+      FastMapAddPairNoRetain(&map, (FastMapKey)key, (FastMapVal)value);
     }
   return self;
 }
@@ -221,16 +223,16 @@ myEqual(id self, id other)
 		      format: @"Tried to init dictionary with nil value"];
 	}
 
-      node = FastMapNodeForKey(&map, (FastMapItem)keys[i]);
+      node = FastMapNodeForKey(&map, (FastMapKey)keys[i]);
       if (node)
 	{
 	  [objs[i] retain];
-	  [node->value.o release];
-	  node->value.o = objs[i];
+	  [node->value.obj release];
+	  node->value.obj = objs[i];
 	}
       else
 	{
-	  FastMapAddPair(&map, (FastMapItem)keys[i], (FastMapItem)objs[i]);
+	  FastMapAddPair(&map, (FastMapKey)keys[i], (FastMapVal)objs[i]);
 	}
     }
   return self;
@@ -276,15 +278,15 @@ myEqual(id self, id other)
 		      format: @"Tried to init dictionary with nil value"];
 	}
 
-      node = FastMapNodeForKey(&map, (FastMapItem)k);
+      node = FastMapNodeForKey(&map, (FastMapKey)k);
       if (node)
 	{
-	  [node->value.o release];
-	  node->value.o = o;
+	  [node->value.obj release];
+	  node->value.obj = o;
 	}
       else
 	{
-	  FastMapAddPairNoRetain(&map, (FastMapItem)k, (FastMapItem)o);
+	  FastMapAddPairNoRetain(&map, (FastMapKey)k, (FastMapVal)o);
 	}
     }
   return self;
@@ -306,11 +308,11 @@ myEqual(id self, id other)
 {
   if (aKey != nil)
     {
-      FastMapNode	node  = FastMapNodeForKey(&map, (FastMapItem)aKey);
+      FastMapNode	node  = FastMapNodeForKey(&map, (FastMapKey)aKey);
 
       if (node)
 	{
-	  return node->value.o;
+	  return node->value.obj;
 	}
     }
   return nil;
@@ -350,16 +352,16 @@ myEqual(id self, id other)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to add nil value to dictionary"];
     }
-  node = FastMapNodeForKey(&map, (FastMapItem)aKey);
+  node = FastMapNodeForKey(&map, (FastMapKey)aKey);
   if (node)
     {
       [anObject retain];
-      [node->value.o release];
-      node->value.o = anObject;
+      [node->value.obj release];
+      node->value.obj = anObject;
     }
   else
     {
-      FastMapAddPair(&map, (FastMapItem)aKey, (FastMapItem)anObject);
+      FastMapAddPair(&map, (FastMapKey)aKey, (FastMapVal)anObject);
     }
 }
 
@@ -372,7 +374,7 @@ myEqual(id self, id other)
 {
   if (aKey)
     {
-      FastMapRemoveKey(&map, (FastMapItem)aKey);
+      FastMapRemoveKey(&map, (FastMapKey)aKey);
     }
 }
 
@@ -397,7 +399,7 @@ myEqual(id self, id other)
       return nil;
     }
   node = node->nextInMap;
-  return old->key.o;
+  return old->key.obj;
 }
 
 - (void) dealloc
@@ -419,7 +421,7 @@ myEqual(id self, id other)
       return nil;
     }
   node = node->nextInMap;
-  return old->value.o;
+  return old->value.obj;
 }
 
 @end
