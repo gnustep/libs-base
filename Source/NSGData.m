@@ -49,16 +49,23 @@
     }
 }
 
-/* This is the designated initializer */
-- (id) initWithBytesNoCopy: (void*)bytes
+/* This is the (internal) designated initializer */
+- (id) _initWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
+  /* xxxFIXME: should we call [super _initWithBytesNoCopy:length:]? */
   [self _initOnMallocBuffer:bytes
 	size:length
 	eofPosition:length
 	prefix:0
 	position:0];
   return self;
+}
+
+- (id) initWithBytesNoCopy: (void*)bytes
+   length: (unsigned int)length
+{
+  return [self _initWithBytesNoCopy:bytes length:length];
 }
 
 - (const void*) bytes
