@@ -321,6 +321,8 @@ decode (const void *ptr)
   if ([name isEqual: @"NSLocalTimeZone"])
     {
       zone = RETAIN(localTimeZone);
+      DESTROY(self);
+      return zone;
     }
 
   /*
@@ -467,6 +469,11 @@ decode (const void *ptr)
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
 {
   return [[NSTimeZoneClass defaultTimeZone] timeZoneDetailForDate: date];
+}
+
+- (NSString*) timeZoneName
+{
+  return [[NSTimeZoneClass defaultTimeZone] timeZoneName];
 }
 
 @end
@@ -860,14 +867,25 @@ static NSMapTable	*absolutes = 0;
  */
 + (void) setDefaultTimeZone: (NSTimeZone*)aTimeZone
 {
-  if (zone_mutex != nil)
+  if (aTimeZone != defaultTimeZone)
     {
-      [zone_mutex lock];
-    }
-  ASSIGN(defaultTimeZone, aTimeZone);
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
+      /*
+       * We can't make the localTimeZone the default since that would
+       * cause recursion ...
+       */
+      if (aTimeZone == localTimeZone)
+	{
+	  aTimeZone = [self systemTimeZone];
+	}
+      if (zone_mutex != nil)
+	{
+	  [zone_mutex lock];
+	}
+      ASSIGN(defaultTimeZone, aTimeZone);
+      if (zone_mutex != nil)
+	{
+	  [zone_mutex unlock];
+	}
     }
 }
 
@@ -1011,7 +1029,7 @@ static NSMapTable	*absolutes = 0;
   NSTimeZone	*zone;
 
   zone = [self timeZoneWithName: [[self abbreviationDictionary]
-				   objectForKey: abbreviation]];
+				   objectForKey: abbreviation] data: nil];
   return zone;
 }
 
@@ -1022,7 +1040,7 @@ static NSMapTable	*absolutes = 0;
 {
   NSTimeZone	*zone;
 
-  zone = [defaultPlaceholderTimeZone initWithName: aTimeZoneName];
+  zone = [defaultPlaceholderTimeZone initWithName: aTimeZoneName data: nil];
   return AUTORELEASE(zone);
 }
 
@@ -1031,8 +1049,10 @@ static NSMapTable	*absolutes = 0;
  */
 + (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSTimeZone	*zone;
+
+  zone = [defaultPlaceholderTimeZone initWithName: name data: nil];
+  return AUTORELEASE(zone);
 }
 
 /**
@@ -1081,7 +1101,7 @@ static NSMapTable	*absolutes = 0;
 
 - (id) init
 {
-  return [self initWithName: @"NSLocalTimeZone"];
+  return [self initWithName: @"NSLocalTimeZone" data: nil];
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
@@ -1089,7 +1109,7 @@ static NSMapTable	*absolutes = 0;
   NSString	*name;
 
   name = [aDecoder decodeObject];
-  self = [self initWithName: name];
+  self = [self initWithName: name data: nil];
   return self;
 }
 
