@@ -841,6 +841,7 @@ static NSMutableString   *processName = nil;
   BOOL done;
   id key, val;
 	
+  [enumerator nextObject];	// Skip process name.
   done = ((key = [enumerator nextObject]) == nil);
 	
   while (!done)
