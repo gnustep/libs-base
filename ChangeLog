@@ -1,3 +1,12 @@
+2004-07-20  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
+	* Headers/Foundation/*.h: Completed documentation of functions, types,
+	constants, and variables.
+	* Source/*.m: Same.
+	* Tools/gsdoc-1_0_1.rnc: New file.  Relax-NG version of the GSdoc
+	DTD.  This can be used in conjunction with Emacs nxml-mode to edit
+	GSdoc XML source with realtime validation and schema-guided completion.
+
 2004-07-29  Matt Rice  <ratmice@yahoo.com>
 	    David Ayers  <d.ayers@inode.at>
 
