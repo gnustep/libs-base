@@ -96,6 +96,7 @@ types_get_number_of_arguments (const char *types)
 - (void) dealloc
 {
   OBJC_FREE(types);
+  OBJC_FREE(returnTypes);
   [super dealloc];
 }
 
