@@ -81,20 +81,28 @@ static struct objc_list *dynamic_handles = NULL;
 static int
 objc_check_undefineds(FILE *errorStream)
 {
-    int count = __objc_dynamic_undefined_symbol_count();
+  int count = __objc_dynamic_undefined_symbol_count();
+  
+  if (count != 0) 
+    {
+      int  i;
+      char **undefs;
 
-    if (count != 0) {
-        int  i;
-        char **undefs;
-        undefs = __objc_dynamic_list_undefined_symbols();
-        if (errorStream)
-	    fprintf(errorStream, "Undefined symbols:\n");
-        for (i=0; i < count; i++)
-            if (errorStream)
-		fprintf(errorStream, "  %s\n", undefs[i]);
-	return 1;
+      undefs = __objc_dynamic_list_undefined_symbols();
+      if (errorStream)
+	{
+	  fprintf(errorStream, "Undefined symbols:\n");
+	}
+      for (i = 0; i < count; i++)
+	{
+	  if (errorStream)
+	    {
+	      fprintf(errorStream, "  %s\n", undefs[i]);
+	    }
+	}
+      return 1;
     }
-    return 0;
+  return 0;
 }
 
 /* Invalidate the dtable so it will be rebuild when a message is sent to
@@ -103,15 +111,19 @@ static void
 objc_invalidate_dtable(Class class)
 {
 #ifndef NeXT_RUNTIME
-    Class s;
-
-    if (class->dtable == objc_get_uninstalled_dtable()) 
-	return;
-
-    sarray_free(class->dtable);
-    __objc_install_premature_dtable(class);
-    for (s=class->subclass_list; s; s=s->sibling_class) 
-	objc_invalidate_dtable(s);
+  Class s;
+  
+  if (class->dtable == objc_get_uninstalled_dtable()) 
+    {
+      return;
+    }
+  
+  sarray_free(class->dtable);
+  __objc_install_premature_dtable(class);
+  for (s = class->subclass_list; s; s = s->sibling_class) 
+    {
+      objc_invalidate_dtable(s);
+    }
 #endif
 }
 
@@ -119,20 +131,30 @@ objc_invalidate_dtable(Class class)
 static int 
 objc_initialize_loading(FILE *errorStream)
 {
-    const char *path;
-
-    dynamic_loaded = NO;
-    path   = objc_executable_location();
-    NSDebugFLLog(@"NSBundle",
-      @"Debug (objc-load): initializing dynamic loader for %s", path);
-    if (__objc_dynamic_init(path)) {
-	if (errorStream)
-	    __objc_dynamic_error(errorStream, "Error (objc-load): Cannot initialize dynamic linker");
-	return 1;
-    } else
-	dynamic_loaded = YES;
-
-    return 0;
+  const char *path;
+  
+  dynamic_loaded = NO;
+  path   = objc_executable_location();
+  
+  NSDebugFLLog(@"NSBundle", 
+	       @"Debug (objc-load): initializing dynamic loader for %s", 
+	       path);
+  
+  if (__objc_dynamic_init(path)) 
+    {
+      if (errorStream)
+	{
+	  __objc_dynamic_error(errorStream, 
+			       "Error (objc-load): Cannot initialize dynamic linker");
+	}
+      return 1;
+    } 
+  else
+    {
+      dynamic_loaded = YES;
+    }
+  
+  return 0;
 }
 
 /* A callback received from the Object initializer (_objc_exec_class).
@@ -141,123 +163,147 @@ objc_initialize_loading(FILE *errorStream)
 static void 
 objc_load_callback(Class class, struct objc_category * category)
 {
-    /* Invalidate the dtable, so it will be rebuilt correctly */
-    if (class != 0 && category != 0) {
-	objc_invalidate_dtable(class);
-	objc_invalidate_dtable(class->class_pointer);
+  /* Invalidate the dtable, so it will be rebuilt correctly */
+  if (class != 0 && category != 0) 
+    {
+      objc_invalidate_dtable(class);
+      objc_invalidate_dtable(class->class_pointer);
     }
 
-    if (_objc_load_load_callback)
-	_objc_load_load_callback(class, category);
+  if (_objc_load_load_callback)
+    {
+      _objc_load_load_callback(class, category);
+    }
 }
 
 long
-objc_load_module(
-	const char *filename,
-	FILE *errorStream,
-	void (*loadCallback)(Class, struct objc_category *),
-	void **header,
-	char *debugFilename)
-
+objc_load_module (const char *filename,
+		  FILE *errorStream,
+		  void (*loadCallback)(Class, struct objc_category *),
+		  void **header,
+		  char *debugFilename)
 {
 #ifdef NeXT_RUNTIME
   int errcode;
   dynamic_loaded = YES;
   return objc_loadModule(filename, loadCallback, &errcode);
 #else
-    typedef void (*void_fn)();
-    dl_handle_t handle;
+  typedef void (*void_fn)();
+  dl_handle_t handle;
 #if !defined(__ELF__) && !defined(CON_AUTOLOAD)
-    void_fn *ctor_list;
-    int i;
+  void_fn *ctor_list;
+  int i;
 #endif
-
-    if (!dynamic_loaded)
-        if (objc_initialize_loading(errorStream))
-            return 1;
-
-    _objc_load_load_callback = loadCallback;
-    _objc_load_callback = objc_load_callback;
-
-    /* Link in the object file */
-    NSDebugFLLog(@"NSBundle",
-      @"Debug (objc-load): Linking file %s\n", filename);
-    handle = __objc_dynamic_link(filename, 1, debugFilename);
-    if (handle == 0) {
-	if (errorStream)
-	    __objc_dynamic_error(errorStream, "Error (objc-load)");
-	return 1;
+  
+  if (!dynamic_loaded)
+    {
+      if (objc_initialize_loading(errorStream))
+	{
+	  return 1;
+	}
     }
-    dynamic_handles = list_cons(handle, dynamic_handles);
-
-    /* If there are any undefined symbols, we can't load the bundle */
-    if (objc_check_undefineds(errorStream)) {
-	__objc_dynamic_unlink(handle);
-	return 1;
+  
+  _objc_load_load_callback = loadCallback;
+  _objc_load_callback = objc_load_callback;
+  
+  /* Link in the object file */
+  NSDebugFLLog(@"NSBundle",
+	       @"Debug (objc-load): Linking file %s\n", filename);
+  handle = __objc_dynamic_link(filename, 1, debugFilename);
+  if (handle == 0) 
+    {
+      if (errorStream)
+	{
+	  __objc_dynamic_error(errorStream, "Error (objc-load)");
+	}
+      return 1;
     }
-
+  dynamic_handles = list_cons(handle, dynamic_handles);
+  
+  /* If there are any undefined symbols, we can't load the bundle */
+  if (objc_check_undefineds(errorStream)) 
+    {
+      __objc_dynamic_unlink(handle);
+      return 1;
+    }
+  
 #if !defined(__ELF__) && !defined(CON_AUTOLOAD)
-    /* Get the constructor list and load in the objects */
-    ctor_list = (void_fn *)__objc_dynamic_find_symbol(handle, CTOR_LIST);
-    if (!ctor_list) {
-	if (errorStream)
-	    fprintf(errorStream, "Error (objc-load): Cannot load objects (no CTOR list)\n");
-	return 1;
+  /* Get the constructor list and load in the objects */
+  ctor_list = (void_fn *)__objc_dynamic_find_symbol(handle, CTOR_LIST);
+  if (!ctor_list) 
+    {
+      if (errorStream)
+	{
+	  fprintf(errorStream, 
+		  "Error (objc-load): Cannot load objects (no CTOR list)\n");
+	}
+      return 1;
     }
-
-    NSDebugFLLog(@"NSBundle",
-      @"Debug (objc-load): %d modules\n", (int)ctor_list[0]);
-    for (i=1; ctor_list[i]; i++) {
-	NSDebugFLLog(@"NSBundle",
-	  @"Debug (objc-load): Invoking CTOR %p\n", ctor_list[i]);
-	ctor_list[i]();
+  
+  NSDebugFLLog(@"NSBundle",
+	       @"Debug (objc-load): %d modules\n", (int)ctor_list[0]);
+  for (i = 1; ctor_list[i]; i++) 
+    {
+      NSDebugFLLog(@"NSBundle",
+		   @"Debug (objc-load): Invoking CTOR %p\n", ctor_list[i]);
+      ctor_list[i]();
     }
 #endif /* not __ELF__ */
-
-    _objc_load_callback = 0;
-    _objc_load_load_callback = 0;
-    return 0;
+  
+  _objc_load_callback = 0;
+  _objc_load_load_callback = 0;
+  return 0;
 #endif
 }
 
 long 
-objc_unload_module(
-	FILE *errorStream,
-	void (*unloadCallback)(Class, struct objc_category *))
+objc_unload_module(FILE *errorStream,
+		   void (*unloadCallback)(Class, struct objc_category *))
 {
-    if (!dynamic_loaded)
-        return 1;
-
-    if (errorStream)
-        fprintf(errorStream, "Warning: unloading modules not implemented\n");
-    return 0;
+  if (!dynamic_loaded)
+    {
+      return 1;
+    }
+  
+  if (errorStream)
+    {
+      fprintf(errorStream, "Warning: unloading modules not implemented\n");
+    }
+  return 0;
 }
 
 long objc_load_modules(char *files[],FILE *errorStream,
-	void (*callback)(Class,struct objc_category *),
-	void **header,
-	char *debugFilename)
+		       void (*callback)(Class,struct objc_category *),
+		       void **header,
+		       char *debugFilename)
 {
-    while (*files) {
+    while (*files) 
+      {
 	if (objc_load_module(*files, errorStream, callback, 
-		(void *)header, debugFilename)) 
+			     (void *)header, debugFilename)) 
+	  {
 	    return 1;
+	  }
 	files++;
-    }
+      }
     return 0;
 }
 
 long 
-objc_unload_modules(
-	FILE *errorStream,
-	void (*unloadCallback)(Class, struct objc_category *))
+objc_unload_modules(FILE *errorStream,
+		    void (*unloadCallback)(Class, struct objc_category *))
 {
-    if (!dynamic_loaded)
-        return 1;
-
-    if (errorStream)
-        fprintf(errorStream, "Warning: unloading modules not implemented\n");
-    return 0;
+  if (!dynamic_loaded)
+    {
+      return 1;
+    }
+  
+  if (errorStream)
+    {
+      fprintf(errorStream, "Warning: unloading modules not implemented\n");
+    }
+  
+  return 0;
 }
 
 NSString *
@@ -266,7 +312,7 @@ objc_get_symbol_path(Class theClass, struct objc_category *theCategory)
   const char *ret;
   char        buf[125], *p = buf;
   int         len = strlen(theClass->name);
-
+  
   if (!theCategory)
     {
       if (len+sizeof(char)*19 > sizeof(buf))
@@ -288,9 +334,9 @@ objc_get_symbol_path(Class theClass, struct objc_category *theCategory)
     {
       len += strlen(theCategory->category_name);
 
-      if (len+sizeof(char)*23 > sizeof(buf))
+      if (len + sizeof(char)*23 > sizeof(buf))
 	{
-	  p = malloc(len+sizeof(char)*23);
+	  p = malloc(len + sizeof(char)*23);
 
 	  if (!p)
 	    {
@@ -310,10 +356,14 @@ objc_get_symbol_path(Class theClass, struct objc_category *theCategory)
   ret = __objc_dynamic_get_symbol_path(0, p);
 
   if (p != buf)
-    free(p);
-
+    {
+      free(p);
+    }
+  
   if (ret)
-    return [NSString stringWithCString:ret];
-
+    {
+      return [NSString stringWithCString:ret];
+    }
+  
   return nil;
 }
