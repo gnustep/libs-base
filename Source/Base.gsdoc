@@ -285,6 +285,26 @@
 		value locates the final subdirectory used to locate binaries.
               </p>
             </desc>
+	    <term>NSDeallocateZombies</term>
+	    <desc>
+	      This may be used in conjunction with NSZombieEnabled to specify
+	      whether the objects should really be deallocated.  If you set
+	      this tom YES, the zombie logging will only work until the
+	      deallocated memory is re-used.
+	    </desc>
+	    <term>NSZombieEnabled</term>
+	    <desc>
+	      <p>
+		If this is set to YES, then deallocation of an object causes
+	        the object to be morphes into a Zombie ... a special object
+		which will call the GNUstep specific GSLogZombie() function
+		to log the method call.<br />
+		You can set a breakpoint in this function and examine the
+		process memory if you are running undera debugger.<br />
+		As this overrides actual object deallocation, all memory
+		allocated for objects will be leaked!
+	      </p>
+	    </desc>
 	    <term>TZ</term>
 	    <desc>
 	      <p>
