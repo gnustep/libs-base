@@ -267,7 +267,6 @@ static NSMapTable *port_number_2_in_port = NULL;
 #else
       close (_port_socket);
 #endif	/* __WIN32__ */
-      close (_port_socket);
       [super invalidate];
     }
 }
