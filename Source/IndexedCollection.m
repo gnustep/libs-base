@@ -1,5 +1,5 @@
 /* Implementation for Objective-C IndexedCollection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -750,7 +750,8 @@
 - (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState
 {
   /* *(unsigned*)enumState is the index of the element that will be returned */
-  if ((*(unsigned*)enumState) > [self count]-1)
+  if ([self isEmpty]
+      || (*(unsigned*)enumState) > [self count]-1)
     return NO;
   *anElementPtr = [self elementAtIndex:(*(unsigned*)enumState)];
   (*(unsigned*)enumState)++;
