@@ -1,3 +1,8 @@
+2001-11-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSScanner.m: Fix memory leak when initialised with something
+	other than a constant string.
+
 2001-11-28  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/gsdoc/Base.gsdoc: Add NSLanguages summary.
