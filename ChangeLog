@@ -2,6 +2,9 @@
 
 	* Source/NSURLHandle.m: Implemented setting and gettign of properties
 	for file handles using NSFileManager.
+	* Source/GSHTTPURLHandle.m: Implemented ([-writeData:]).  Rewrote
+	posting mechanism using new implementation.  Modified so that old
+	method of writing bodyn properties still works for the moment.
 
 2000-11-17  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -59,6 +59,7 @@ char emp[64] = {
   NSMutableDictionary	*headers;
   NSMutableDictionary   *pageInfo;
   NSMutableDictionary   *wProperties;
+  NSData		*wData;
   NSMutableDictionary   *request;
   unsigned int          contentLength;
   enum {
@@ -113,6 +114,7 @@ static NSLock			*urlLock = nil;
   RELEASE(document);
   RELEASE(headers);
   RELEASE(pageInfo);
+  RELEASE(wData);
   RELEASE(wProperties);
   RELEASE(request);
   [super dealloc];
@@ -342,14 +344,14 @@ static NSLock			*urlLock = nil;
 
 - (void) bgdConnect: (NSNotification*)notification
 {
-  NSDictionary          *userInfo = [notification userInfo];
-  NSEnumerator          *wpEnumerator = [wProperties keyEnumerator];
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+  NSDictionary          *userInfo = [notification userInfo];
+  NSEnumerator          *wpEnumerator;
   NSMutableString	*s;
   NSString		*e;
   NSString              *key;
-  NSMutableString       *body = nil;
-  int 			i;
+  NSMutableData		*buf;
+  NSString		*method;
 
   /*
    * See if the connection attempt caused an error.
@@ -423,16 +425,23 @@ static NSLock			*urlLock = nil;
   /*
    * Set up request - differs for proxy version unless tunneling via ssl.
    */
-  if ([request objectForKey: GSHTTPPropertyMethodKey] == nil)
+  method = [request objectForKey: GSHTTPPropertyMethodKey];
+  if (method == nil)
     {
-      [request setObject: @"GET" forKey: GSHTTPPropertyMethodKey];
+      if ([wData length] > 0)
+	{
+	  method = @"POST";
+	}
+      else
+	{
+	  method = @"GET";
+	}
     }
   if ([request objectForKey: GSHTTPPropertyProxyHostKey] != nil
     && [[url scheme] isEqualToString: @"https"] == NO)
     {
       s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@", 
-	[request objectForKey: GSHTTPPropertyMethodKey],
-	[url host], [url path]];
+	method, [url host], [url path]];
       if ([[url query] length] > 0)
 	{
 	  [s appendFormat: @"?%@", [url query]];
@@ -442,7 +451,7 @@ static NSLock			*urlLock = nil;
   else    // no proxy
     {
       s = [[NSMutableString alloc] initWithFormat: @"%@ %@", 
-	[request objectForKey: GSHTTPPropertyMethodKey], [url path]];
+	method, [url path]];
       if ([[url query] length] > 0)
 	{
 	  [s appendFormat: @"?%@", [url query]];
@@ -450,37 +459,23 @@ static NSLock			*urlLock = nil;
       [s appendFormat: @" HTTP/%@\nHost: %@\r\n", httpVersion, [url host]];
     }
 
-  while ((key = [wpEnumerator nextObject]))
+  if ([wData length] > 0)
     {
-      if ([key compare: GSHTTPBodyKey] == NSOrderedSame)
-	{ 
-	  NSArray	*array = [wProperties objectForKey: key];
-
-	  if (array != nil)
-	    {
-	      body = [NSMutableString new];
-	      for (i = 0; i < [array count]; i++)
-		{
-		  NSString	*t = [array objectAtIndex:i];
-
-		  [body appendFormat: @"%@\n", t];
-		}
-	    }
-	  [s appendFormat: @"Content-Length: %d\n", [body length]];
-	  if ([wProperties objectForKey: @"content-type"] == nil)
-	    {
-	      [s appendString: 
-		@"Content-Type: application/x-www-form-urlencoded\n"];
-	    }
-	}
-      else
+      [wProperties setObject: [NSString stringWithFormat: @"%d", [wData length]]
+		      forKey: @"content-length"];
+      /*
+       * Assume content type if not specified.
+       */
+      if ([wProperties objectForKey: @"content-type"] == nil)
 	{
-	  [s appendFormat: @"%@: %@\n", key, [wProperties objectForKey: key]];
+	  [wProperties setObject: @"application/x-www-form-urlencoded"
+			  forKey: @"content-type"];
 	}
     }
   if ([url user] != nil)
     {
-      NSString *auth;
+      NSString	*auth;
+
       if ([[url password] length] > 0)
 	{ 
 	  auth = [NSString stringWithFormat: @"%@:%@", 
@@ -490,24 +485,34 @@ static NSLock			*urlLock = nil;
 	{
 	  auth = [NSString stringWithFormat: @"%@", [url user]];
 	}
-      [s appendFormat: @"Authorization: Basic %@\n", 
+      auth = [NSString stringWithFormat: @"Basic %@",
 	[self encodebase64: auth]];
+      [wProperties setObject: auth
+		      forKey: @"Authorization"];
     }
-  [s appendString: @"\n"];
-
-  if (body != nil)
+  wpEnumerator = [wProperties keyEnumerator];
+  while ((key = [wpEnumerator nextObject]))
     {
-      [s appendString: body];
-      RELEASE (body);
+      [s appendFormat: @"%@: %@\r\n", key, [wProperties objectForKey: key]];
     }
-
   [wProperties removeAllObjects];
+  [s appendString: @"\n"];
+  buf = [[s dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
+
+  /*
+   * Append any data to be sent
+   */
+  if (wData != nil)
+    {
+      [buf appendBytes: [wData bytes] length: [wData length]];
+      DESTROY(wData);
+    }
 
   /*
    * Send request to server.
    */
-  [sock writeInBackgroundAndNotify:
-    [s dataUsingEncoding: NSASCIIStringEncoding]];
+  [sock writeInBackgroundAndNotify: buf];
+  RELEASE(buf);
   RELEASE(s);
 
   /*
@@ -605,6 +610,13 @@ static NSLock			*urlLock = nil;
   return result;
 }
 
+- (BOOL) writeData: (NSData*)d
+{
+  ASSIGN(wData, d);
+  [self loadInForeground];
+  return YES;
+}
+
 - (BOOL) writeProperty: (id) property forKey: (NSString*) propertyKey
 {
   if ([propertyKey hasPrefix: @"GSHTTPProperty"])
@@ -613,13 +625,25 @@ static NSLock			*urlLock = nil;
     }
   else if ([propertyKey compare: @"GSHTTPBodyKey"] == NSOrderedSame)
     {
-      NSMutableArray *array = [wProperties objectForKey: propertyKey];
-      if (array == nil)
+      NSData	*p;
+
+      /*
+       * writing using the GSHTTPBodyKey is equivalent to making sure
+       * the next load operation is a post.
+       */
+      p = [property dataUsingEncoding: NSASCIIStringEncoding];
+      if (wData == nil)
 	{
-	  array = [[NSMutableArray alloc] init];
+	  wData = RETAIN(p);
 	}
-      [array addObject: property];
-      [wProperties setObject: array forKey: GSHTTPBodyKey];
+      else
+	{
+	  NSMutableData	*d = [wData mutableCopy];
+
+	  [d appendBytes: [p bytes] length: [p length]];
+	  ASSIGNCOPY(wData, d);
+	  RELEASE(d);
+	}
     }
   else
     {
