@@ -107,28 +107,28 @@ ADVERTISEMENT: advertisement.texi version.texi
 
 # Make substitutions for @email{} and @url{} before passing to makeinfo.
 # These substitution scripts could be cleaned up.
-Gnustep-FAQ: gnustep-faq.texi version.texi
-	rm -f Gnustep-FAQ.texi
+GNUstep-FAQ: gnustep-faq.texi version.texi
+	rm -f GNUstep-FAQ.texi
 	sed -e 's,@email{\([^}]*\)},<\1>,g' \
 	  $(srcdir)/gnustep-faq.texi \
 	  | sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-	    > Gnustep-FAQ.texi
+	    > GNUstep-FAQ.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $@ \
-	  --no-header --no-split Gnustep-FAQ.texi
-	rm -f Gnustep-FAQ.texi
+	  --no-header --no-split GNUstep-FAQ.texi
+	rm -f GNUstep-FAQ.texi
 # Make substitutions for @email{} and @url{}, and add @br{} before @item
 # before passing to texi2html.  Note: I think that this `@br{}' should 
 # actually be a `@br', but the extra `{}' is necessary to work around a
 # bug in texi@html.
 # These substitution scripts could be cleaned up.
-Gnustep-FAQ.html: gnustep-faq.texi version.texi
-	rm -f Gnustep-FAQ.texi
+GNUstep-FAQ.html: gnustep-faq.texi version.texi
+	rm -f GNUstep-FAQ.texi
 	sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
 	  $(srcdir)/gnustep-faq.texi \
 	  | sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
 	  | sed -e 's,^ *$$,@br{},g' \
-	    > Gnustep-FAQ.texi
-	texi2html -expandinfo $(MAKEINFO_FLAGS) Gnustep-FAQ.texi
+	    > GNUstep-FAQ.texi
+	texi2html -expandinfo $(MAKEINFO_FLAGS) GNUstep-FAQ.texi
 
 #	  | awk -- '/@item/ { print "@br{}" } /@end itemize/ { print "@br{}" } ; { print }' \
 

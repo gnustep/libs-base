@@ -4,7 +4,7 @@
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Oct 1994
    
-   This file is part of the Gnustep Base Library.
+   This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public

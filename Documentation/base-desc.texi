@@ -1,4 +1,4 @@
-The Gnustep Base Library is a library of general-purpose, non-graphical
+The GNUstep Base Library is a library of general-purpose, non-graphical
 Objective C objects.  For example, it includes classes for strings,
 collections, byte streams, typed coders, invocations, notifications,
 notification dispatchers, times, network ports, remote object messaging

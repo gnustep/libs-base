@@ -4,7 +4,7 @@
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: May 1993
 
-   This file is part of the Gnustep Base Library.
+   This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public

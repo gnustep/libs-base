@@ -4,7 +4,7 @@
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Jul 1995
 
-   This file is part of the Gnustep Base Library.
+   This file is part of the GNUstep Base Library.
 
 */
 #include "MyCategory.h"

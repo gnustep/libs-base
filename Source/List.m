@@ -1,7 +1,7 @@
 /* Implementation of Objective-C NeXT-compatible List object
    Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
    
-   This file is part of the Gnustep Base Library.
+   This file is part of the GNUstep Base Library.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993

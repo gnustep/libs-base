@@ -6,7 +6,7 @@
    Copyright (C) 1993,1994 Kresten Krab Thorup <krab@iesd.auc.dk>
    Dept. of Mathematics and Computer Science, Aalborg U., Denmark
 
-   This file is part of the Gnustep Base Library.
+   This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
