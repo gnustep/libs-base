@@ -256,17 +256,24 @@ static IMP	initImp;
 {
   NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
 
-  if (pool)
-    (*pool->_addImp)(pool, @selector(addObject:), anObj);
+  if (pool != nil)
+    {
+      (*pool->_addImp)(pool, @selector(addObject:), anObj);
+    }
   else
     {
       NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
-      if (anObj)
-	NSLog(@"autorelease called without pool for object (%x) of class %@\n",
-                anObj, NSStringFromClass([anObj class]));
+      if (anObj != nil)
+	{
+	  NSLog(@"autorelease called without pool for object (%x) "
+	    @"of class %@ in thread %@", anObj,
+	    NSStringFromClass([anObj class]), [NSThread currentThread]);
+	}
       else
-	NSLog(@"autorelease called without pool for nil object.\n");
+	{
+	  NSLog(@"autorelease called without pool for nil object.");
+	}
       [arp release];
     }
 }
