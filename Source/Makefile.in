@@ -427,7 +427,6 @@ all: libobjects.a @LIBOBJECTS_SO@
 
 libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC) 
 	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
-		-Wl,-soname,libobjects.so.$(OBJECTS_VERSION) \
 		$(OBJS_INSTALL_PIC)
 	rm -f libobjects.so.$(OBJECTS_MAJOR_VERSION)
 	ln -s libobjects.so.$(OBJECTS_VERSION) \
