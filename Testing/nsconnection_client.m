@@ -10,6 +10,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSException.h>
 #include <assert.h>
 #include "server.h"
 
@@ -202,6 +203,42 @@ con_messages (id prx)
   [prx shout];
   printf("  ok\n");
 
+  printf("Testing exception in method with return value:\n");
+  NS_DURING
+    {
+      [prx exceptionTest1];
+      printf("  ERROR\n");
+    }
+  NS_HANDLER
+    {
+      printf("  ok ... %s\n", [[localException description] cString]);
+    }
+  NS_ENDHANDLER
+
+  printf("Testing exception in method with void return:\n");
+  NS_DURING
+    {
+      [prx exceptionTest2];
+      printf("  ERROR\n");
+    }
+  NS_HANDLER
+    {
+      printf("  ok ... %s\n", [[localException description] cString]);
+    }
+  NS_ENDHANDLER
+
+  printf("Testing exception in oneway void method:\n");
+  NS_DURING
+    {
+      [prx exceptionTest3];
+      printf("  ok\n");
+    }
+  NS_HANDLER
+    {
+      printf("  ERROR ... %s\n", [[localException description] cString]);
+    }
+  NS_ENDHANDLER
+
   /* this next line doesn't actually test callbacks, it tests
      sending the same object twice in the same message. */
   printf("Send same object twice in message\n");
@@ -223,6 +260,7 @@ con_messages (id prx)
   [prx sendByref:[NSDate date]];
 #endif
   printf("  ok\n");
+
   return 0;
 }
 

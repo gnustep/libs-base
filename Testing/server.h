@@ -67,6 +67,9 @@ struct myarray {
 #endif
 - manyArgs: (int)i1 : (int)i2 : (int)i3 : (int)i4 : (int)i5 : (int)i6
 : (int)i7 : (int)i8 : (int)i9 : (int)i10 : (int)i11 : (int)i12;
+- (int) exceptionTest1;
+- (void) exceptionTest2;
+- (oneway void) exceptionTest3;
 @end
 
 @interface Server : NSObject <ServerProtocol>
