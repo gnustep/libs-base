@@ -2441,13 +2441,13 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       offset_size = postfix[6];
       index_size = postfix[7];
       table_start = 256*256*postfix[29] + 256*postfix[30] + postfix[31];
-      if (offset_size < 1 || offset_size > 3)
+      if (offset_size < 1 || offset_size > 4)
 	{
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", offset_size];
 	  DESTROY(self);	// Bad format
 	}
-      else if (index_size < 1 || index_size > 3)
+      else if (index_size < 1 || index_size > 4)
 	{
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", index_size];
@@ -2469,7 +2469,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   return self;
 }
 
-- (unsigned) offsetForIndex: (unsigned)index
+- (unsigned long) offsetForIndex: (unsigned)index
 {
   if (index > table_len)
     {
@@ -2497,12 +2497,12 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       unsigned char buffer[offset_size];
       int i;
-      unsigned num = 0;
+      unsigned long num = 0;
 	
       [data getBytes: &buffer range: NSMakeRange(table_start + offset_size*index, offset_size)];
       for (i = 0; i < offset_size; i++)
         {
-	  num = num*256 + buffer[i];
+	  num = (num << 8) + buffer[i];
 	}
       return num;
     }
@@ -2538,7 +2538,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       *counter += index_size;
       for (i = 0; i < index_size; i++)
         {
-	  num = num*256 + buffer[i];
+	  num = (num << 8) + buffer[i];
 	}
       return num;
     }
@@ -2573,13 +2573,13 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned len = 1 << (c - 0x10);
       unsigned char buffer[len];
       int i;
-      unsigned num = 0;
+      unsigned long num = 0;
 	
       [data getBytes: &buffer range: NSMakeRange(*counter, len)];
       *counter += len;
       for (i = 0; i < len; i++)
         {
-	  num = num*256 + buffer[i];
+	  num = (num << 8) + buffer[i];
 	}
       return num;
     }
@@ -2601,7 +2601,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 - (id) objectAtIndex: (unsigned)index
 {
   unsigned char	next;
-  unsigned	counter = [self offsetForIndex: index];
+  unsigned counter = [self offsetForIndex: index];
   id		result = nil;
 
   [data getBytes: &next range: NSMakeRange(counter,1)];
@@ -2618,20 +2618,20 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       // YES
       result = [NSNumber numberWithBool: YES];
     }
-  else if ((next >= 0x10) && (next < 0x1F))
+  else if ((next >= 0x10) && (next < 0x17))
     {
       // integer number
       unsigned		len = 1 << (next - 0x10);
-      int		num = 0;
+      unsigned long long num = 0;
       unsigned		i;
       unsigned char	buffer[16];
 
       [data getBytes: buffer range: NSMakeRange(counter, len)];
       for (i = 0; i < len; i++)
         {
-	  num = num*256 + buffer[i];
+	  num = (num << 8) + buffer[i];
 	}
-      result = [NSNumber numberWithInt: num];
+      result = [NSNumber numberWithUnsignedLongLong: num];
     }
   else if (next == 0x22)
     {
