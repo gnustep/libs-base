@@ -645,38 +645,48 @@ my_object_is_class(id object)
 				NSIntMapValueCallBacks, 0);
 	  NSMapInsert (in_progress_table, anObj, (void*)1);
 
-	  /* Find out if this object satisfies any previous forward 
-	     references. */
-	  fref = [self _coderForwardReferenceForObject: anObj];
-	  if (fref)
-	    {
-
-	      /* It does satisfy a forward reference; write the forward 
-		 reference number, so the decoder can know. */
-	      [self encodeTag: CODER_OBJECT_FORWARD_SATISFIER];
-	      [self encodeValueOfCType: @encode(unsigned)
-		    at: &fref 
-		    withName: @"Object forward cross-reference number"];
-	      /* xxx This code used to be below at the place marked `1234' */
-	      /* Remove it from the forward reference table, since we'll never
-		 have another forward reference for this object. */
-	      [self _coderRemoveForwardReferenceForObject: anObj];
-	    }
-	  else
-	    {
-	      /* It does not satisfy a forward reference.  Note: in future
-		 encoding we may have backward references to this object,
-		 but we will never need forward references to this object. */
-	      [self encodeTag: CODER_OBJECT];
-	    }
 	  /* Encode the object. */
+	  [self encodeTag: CODER_OBJECT];
 	  [self encodeIndent];
 	  if (bycopy_flag)
 	    [self _doEncodeBycopyObject:anObj];
 	  else
 	    [self _doEncodeObject:anObj];	    
 	  [self encodeUnindent];
-	  /* The code above marked `1234' used to be here. */
+
+	  /* Find out if this object satisfies any forward references,
+	     and encode either the forward reference number, or a
+	     zero.  NOTE: This test is here, and not before the
+	     _doEncode.., because the encoding of this object may,
+	     itself, generate a "forward reference" to this object,
+	     (ala the in_progress_table).  That is, we cannot know
+	     whether this object satisfies a forward reference until
+	     after it has been encoded. */
+	  fref = [self _coderForwardReferenceForObject: anObj];
+	  if (fref)
+	    {
+	      /* It does satisfy a forward reference; write the forward 
+		 reference number, so the decoder can know. */
+	      [self encodeValueOfCType: @encode(unsigned)
+		    at: &fref 
+		    withName: @"Object forward cross-reference number"];
+	      /* Remove it from the forward reference table, since we'll never
+		 have another forward reference for this object. */
+	      [self _coderRemoveForwardReferenceForObject: anObj];
+	    }
+	  else
+	    {
+	      /* It does not satisfy any forward references.  Let the
+		 decoder know this by encoding NULL.  Note: in future
+		 encoding we may have backward references to this
+		 object, but we will never need forward references to
+		 this object.  */
+	      unsigned null_fref = 0;
+	      [self encodeValueOfCType: @encode(unsigned)
+		    at: &null_fref 
+		    withName: @"Object forward cross-reference number"];
+	    }
+
 	  /* Register that we have encoded it so that future encoding can 
 	     do backward references properly. */
 	  [self _coderInternalCreateReferenceForObject: anObj];
