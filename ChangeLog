@@ -1,3 +1,8 @@
+2000-11-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPort.m: ([-setDelegate:]) corrected assertion to allow
+	delegate to be set to nil.  Bug reported by cornils@mail.desy.de
+
 2000-11-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: ([GSMutableString substringWithRange:]) fix to
