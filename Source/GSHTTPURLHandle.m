@@ -623,9 +623,14 @@ static NSLock			*urlLock = nil;
 
 - (BOOL) writeProperty: (id) property forKey: (NSString*) propertyKey
 {
+  if (propertyKey == nil || [propertyKey isKindOfClass: [NSString class]] == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ with invalid key", NSStringFromSelector(_cmd)];
+    }
   if ([propertyKey hasPrefix: @"GSHTTPProperty"])
     {
-      if (propertyKey == nil)
+      if (property == nil)
 	{
 	  [request removeObjectForKey: propertyKey];
 	}
@@ -636,7 +641,7 @@ static NSLock			*urlLock = nil;
     }
   else
     {
-      if (propertyKey == nil)
+      if (property == nil)
 	{
 	  [wProperties removeObjectForKey: [propertyKey lowercaseString]];
 	}
