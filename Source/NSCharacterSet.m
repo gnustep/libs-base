@@ -27,7 +27,9 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSLock.h>
 
-static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
+static NSString* NSCharacterSet_PATH = 
+OBJC_STRINGIFY(GNUSTEP_INSTALL_PREFIX) @"/share/NSCharacterSets";
+
 static NSString* gnustep_libdir =
 #ifdef GNUSTEP_INSTALL_LIBDIR
   @GNUSTEP_INSTALL_LIBDIR;
