@@ -982,11 +982,48 @@ static inline int getDigits(const char *from, char *to, int limit)
  * The year includes the century (ie you can't just say '02' when you
  * mean '2002').<br />
  * The month is in the range 1 to 12,<br />
- * The day is in th range 1 to 31,<br />
+ * The day is in the range 1 to 31,<br />
  * The hour is in the range 0 to 23,<br />
  * The minute is in the range 0 to 59,<br />
  * The second is in the range 0 to 59.<br />
  * If aTimeZone is nil, the [NSTimeZone+localTimeZone] value is used.
+ * <p>
+ *   GNUstep checks the validity of the method arguments, and unless
+ *   the base library was built with 'warn=no' it generates a warning
+ *   for bad values.  It tries to use those bad values to generate a
+ *   date anyway though, rather than failing (this also appears to be
+ *   the behavior of MacOS-X).
+ * </p>
+ * The algorithm GNUstep uses to create the date is this ...<br />
+ * <list>
+ *   <item>
+ *     Convert the broken out date values into a time interval since
+ *     the reference date, as if those values represent a GMT date/time.
+ *   </item>
+ *   <item>
+ *     Ask the time zone for the offset from GMT at the resulting date,
+ *     and apply that offset to the time interval ... so get the value
+ *     for the specified timezone.
+ *   </item>
+ *   <item>
+ *     Ask the time zone for the offset from GMT at the new date ...
+ *     in case the new date is in a different daylight savings time
+ *     band from the original date.  If this offset differs from the
+ *     previous one, apply the difference so that the result is
+ *     corrected for daylight savings.  This is the final result used.
+ *   </item>
+ *   <item>
+ *     After establishing the time interval we will use and completing
+ *     initialisation, we ask the time zone for the offset from GMT again.
+ *     If it is not the same as the last time, then the time specified by
+ *     the broken out date does not really exist ... since it's in the
+ *     period lost by the transition to daylight savings.  The resulting
+ *     date is therefore not the date that was actually asked for, but is
+ *     the best approximation we can do.  If the base library was not
+ *     built with 'warn=no' then a warning message is logged for this
+ *     condition.
+ *   </item>
+ * </list>
  */
 - (id) initWithYear: (int)year
 	      month: (unsigned int)month
