@@ -35,6 +35,9 @@
 + (id) array;
 + (id) arrayWithArray: (NSArray*)array;
 + (id) arrayWithContentsOfFile: (NSString*)file;
+#ifndef	STRICT_OPENSTEP
++ (id) arrayWithContentsOfURL: (NSURL*)aURL;
+#endif
 + (id) arrayWithObject: (id)anObject;
 + (id) arrayWithObjects: (id)firstObject, ...;
 + (id) arrayWithObjects: (id*)objects count: (unsigned)count;
@@ -54,6 +57,9 @@
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
 #endif
 - (id) initWithContentsOfFile: (NSString*)file;
+#ifndef	STRICT_OPENSTEP
+- (id) initWithContentsOfURL: (NSURL*)aURL;
+#endif
 - (id) initWithObjects: firstObject, ...;
 - (id) initWithObjects: (id*)objects count: (unsigned)count;	// Primitive
 

@@ -31,6 +31,9 @@
 @interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
 + (id) dictionary;
 + (id) dictionaryWithContentsOfFile: (NSString*)path;
+#ifndef	STRICT_OPENSTEP
++ (id) dictionaryWithContentsOfURL: (NSURL*)aURL;
+#endif
 + (id) dictionaryWithDictionary: (NSDictionary*)otherDictionary;
 + (id) dictionaryWithObject: (id)object forKey: (id)key;
 + (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
@@ -50,6 +53,9 @@
 			     indent: (unsigned int)level;
 
 - (id) initWithContentsOfFile: (NSString*)path;
+#ifndef	STRICT_OPENSTEP
+- (id) initWithContentsOfURL: (NSURL*)aURL;
+#endif
 - (id) initWithDictionary: (NSDictionary*)otherDictionary;
 - (id) initWithDictionary: (NSDictionary*)other copyItems: (BOOL)shouldCopy;
 - (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;

@@ -1,3 +1,10 @@
+2003-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSArray.h: Add methods for creating from URL
+	* Headers/gnustep/base/NSDictionary.h: ditto
+	* Source/NSArray.m: ditto
+	* Source/NSDictionary.m: ditto
+
 2003-07-15  David Ayers  <d.ayers@inode.at>
 
 	* Headers/gnustep/base/NSUndoManager.h: Add

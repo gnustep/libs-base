@@ -203,6 +203,21 @@ static SEL	rlSel;
 }
 
 /**
+ * Returns an autoreleased array from the contenta of aURL.  The new array is
+ * created using +allocWithZone: and initialised using the
+ * -initWithContentsOfURL: method. See the documentation for those
+ * methods for more detail.
+ */
++ (id) arrayWithContentsOfURL: (NSURL*)aURL
+{
+  id	o;
+
+  o = [self allocWithZone: NSDefaultMallocZone()];
+  o = [o initWithContentsOfURL: aURL];
+  return AUTORELEASE(o);
+}
+
+/**
  * Returns an autoreleased array containing anObject.
  */
 + (id) arrayWithObject: (id)anObject
@@ -591,6 +606,58 @@ static SEL	rlSel;
       else
 	{
 	  NSWarnMLog(@"Contents of file '%@' does not contain an array", file);
+	  DESTROY(self);
+	}
+    }
+  return self;
+}
+
+/**
+ * <p>Initialises the array with the contents of the specified URL,
+ * which must contain an array in property-list format.
+ * </p>
+ * <p>In GNUstep, the property-list format may be either the OpenStep
+ * format (ASCII data), or the MacOS-X format (URF8 XML data) ... this
+ * method will recognise which it is.
+ * </p>
+ * <p>If there is a failure to load the URL for any reason, the receiver
+ * will be released, the method will return nil, and a warning may be logged.
+ * </p>
+ * <p>Works by invoking [NSString-initWithContentsOfURL:] and
+ * [NSString-propertyList] then checking that the result is an array.  
+ * </p>
+ */
+- (id) initWithContentsOfURL: (NSURL*)aURL
+{
+  NSString 	*myString;
+
+  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfURL: aURL];
+  if (myString == nil)
+    {
+      DESTROY(self);
+    }
+  else
+    {
+      id result;
+
+      NS_DURING
+	{
+	  result = [myString propertyList];
+	}
+      NS_HANDLER
+	{
+          result = nil;
+	}
+      NS_ENDHANDLER
+      RELEASE(myString);
+      if ([result isKindOfClass: NSArrayClass])
+	{
+	  self = [self initWithArray: result];
+	}
+      else
+	{
+	  NSWarnMLog(@"Contents of URL '%@' does not contain an array", aURL);
 	  DESTROY(self);
 	}
     }

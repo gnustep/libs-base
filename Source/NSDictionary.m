@@ -443,6 +443,59 @@ static SEL	appSel;
 }
 
 /**
+ * <p>Initialises the dictionary with the contents of the specified URL,
+ * which must contain a dictionary in property-list format.
+ * </p>
+ * <p>In GNUstep, the property-list format may be either the OpenStep
+ * format (ASCII data), or the MacOS-X format (URF8 XML data) ... this
+ * method will recognise which it is.
+ * </p>
+ * <p>If there is a failure to load the URL for any reason, the receiver
+ * will be released and the method will return nil.
+ * </p>
+ * <p>Works by invoking [NSString-initWithContentsOfURL:] and
+ * [NSString-propertyList] then checking that the result is a dictionary.  
+ * </p>
+ */
+- (id) initWithContentsOfURL: (NSURL*)aURL
+{
+  NSString 	*myString;
+
+  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfURL: aURL];
+  if (myString == nil)
+    {
+      DESTROY(self);
+    }
+  else
+    {
+      id result;
+
+      NS_DURING
+	{
+	  result = [myString propertyList];
+	}
+      NS_HANDLER
+	{
+          result = nil;
+	}
+      NS_ENDHANDLER
+      RELEASE(myString);
+      if ([result isKindOfClass: NSDictionaryClass])
+	{
+	  self = [self initWithDictionary: result];
+	}
+      else
+	{
+	  NSWarnMLog(@"Contents of URL '%@' does not contain a dictionary",
+	    aURL);
+	  DESTROY(self);
+	}
+    }
+  return self;
+}
+
+/**
  * Returns a dictionary using the file located at path.
  * The file must be a property list containing a dictionary as its root object.
  */
@@ -450,6 +503,16 @@ static SEL	appSel;
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithContentsOfFile: path]);
+}
+
+/**
+ * Returns a dictionary using the contents of aURL.
+ * The URL must be a property list containing a dictionary as its root object.
+ */
++ (id) dictionaryWithContentsOfURL: (NSURL*)aURL
+{
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfURL: aURL]);
 }
 
 - (BOOL) isEqual: other
