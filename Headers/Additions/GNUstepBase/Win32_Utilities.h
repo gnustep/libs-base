@@ -55,7 +55,7 @@ NSString     *Win32NSStringFromRegistry(HKEY regkey, const char *regValue);
 
 /* ---- Path Functions ---- */
 NSString     *Win32GetUserProfileDirectory(NSString *userName);
-NSString     *Win32FindDirectory( DWORD DirCLSID );
+NSString     *Win32FindDirectory(DWORD DirCLSID);
 #endif /* defined(__WIN32__) */
 
 #endif /* */
