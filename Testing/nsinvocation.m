@@ -224,7 +224,7 @@ printf("Calling proxy\n");
     printf("ERROR ... expecting 6 and got %d\n", i);
   
   printf("Testing NS_INVOCATION ... ");
-  inv = NS_MESSAGE([Target class], loopInt: 7);
+  inv = NS_INVOCATION([Target class], loopInt: 7);
   [inv setTarget: t];
   [inv invoke];
   [inv getReturnValue: &i];

@@ -475,8 +475,14 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
       sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
     }
 
-  NSCAssert1(sig, @"No signature for selector %@", 
-    NSStringFromSelector(selector));
+  if (sig == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%s(%s) does not recognize %s",
+	 object_get_class_name(obj),
+	 GSObjCIsInstance(obj) ? "instance" : "class",
+	 selector ? sel_get_name(selector) : "(null)"];
+    }
     
   invocation = [[GSFFIInvocation alloc] initWithCallback: cif
 					returnp: retp

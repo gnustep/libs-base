@@ -1124,6 +1124,20 @@ static NSMapTable	*nodeNames = 0;
   return nil;
 }
 
+/**
+ * Convenience method, equivalent to calling -type and comparing it
+ * with the result of passing "XML_ELEMENT_NODE" to
+ * +typeFromDescription: (but faster).
+ */
+- (BOOL) isElement
+{
+  if ((int)((xmlNodePtr)(lib))->type == XML_ELEMENT_NODE)
+    {
+      return YES;
+    }
+  return NO;
+}
+
 - (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: [self class]] == YES
@@ -1135,6 +1149,20 @@ static NSMapTable	*nodeNames = 0;
     {
       return NO;
     }
+}
+
+/**
+ * Convenience method, equivalent to calling -type and comparing it
+ * with the result of passing "XML_TEXT_NODE" to
+ * +typeFromDescription: (but faster).
+ */
+- (BOOL) isText
+{
+  if ((int)((xmlNodePtr)(lib))->type == XML_TEXT_NODE)
+    {
+      return YES;
+    }
+  return NO;
 }
 
 /**

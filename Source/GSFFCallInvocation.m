@@ -860,8 +860,14 @@ GSInvocationCallback (void *callback_data, va_alist args)
       sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
     }
 
-  NSCAssert1(sig, @"No signature for selector %@", 
-    NSStringFromSelector(selector));
+  if (sig == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%s(%s) does not recognize %s",
+	 object_get_class_name(obj),
+	 GSObjCIsInstance(obj) ? "instance" : "class",
+	 selector ? sel_get_name(selector) : "(null)"];
+    }
     
   invocation = [[GSFFCallInvocation alloc] initWithMethodSignature: sig];
   AUTORELEASE(invocation);

@@ -119,6 +119,8 @@
 - (GSXMLAttribute*) firstAttribute;
 - (GSXMLNode*) firstChild;
 - (GSXMLNode*) firstChildElement;
+- (BOOL) isElement;
+- (BOOL) isText;
 - (void*) lib;
 - (GSXMLAttribute*) makeAttributeWithName: (NSString*)name
 				    value: (NSString*)value;
