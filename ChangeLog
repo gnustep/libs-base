@@ -1,3 +1,10 @@
+2001-04-25  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* base.make.in: (GNUSTEP_BASE_VERSION),
+	(GNUSTEP_BASE_MAJOR_VERSION), (GNUSTEP_BASE_MINOR_VERSION),
+	(GNUSTEP_BASE_SUBMINOR_VERSION): New variables providing the
+	gnustep-base version.
+	
 2001-04-24  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/objc-gnu2next.h: Remove TypedStream defs
