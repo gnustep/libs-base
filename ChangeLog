@@ -1,3 +1,9 @@
+2003-07-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m (GROW): Fix shifting of pointers into
+	local buffer for case where we are leaving room for a null terminator.
+	This avoids moving pointer back before start of buffer.
+
 2003-07-21  Roland Schwingel <Roland.Schwingel@onevision.de>
 
 	* Source/libgnustep-base-entry.m: Don't create unnecessary window.

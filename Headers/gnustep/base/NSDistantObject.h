@@ -60,7 +60,6 @@
 
 @interface NSDistantObject(GNUstepExtensions) <GCFinalization>
 
-- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
 - (Class) classForPortCoder;
 - (const char *) selectorTypeForProxy: (SEL)selector;
 - (id) forward: (SEL)aSel :(arglist_t)frame;
