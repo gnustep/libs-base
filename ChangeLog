@@ -1,3 +1,8 @@
+2001-11-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSMime.m: modifications made to support HTTP continuation
+	responses for buggy webservers which send them when they shouldn't.
+
 2001-11-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPHURLHandle.m: handle writing of nil properties and
