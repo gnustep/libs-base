@@ -290,7 +290,8 @@ stdio_unchar_func(void *s, int c)
 
 - (void) dealloc
 {
-  fclose(fp);
+  if (fp != 0)
+    fclose(fp);
   [super dealloc];
 }
 
