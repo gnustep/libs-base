@@ -605,6 +605,10 @@ static BOOL snuggleStart(NSString *t)
   NSString	*declared = [d objectForKey: @"Declared"];
   NSString	*standards = nil;
 
+  if ([[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
+    {
+      NSLog(@"Warning ... %@ %@ is not implemented where expected", kind, name);
+    }
   if (standards == nil)
     {
       standards = [d objectForKey: @"Standards"];
@@ -654,6 +658,11 @@ static BOOL snuggleStart(NSString *t)
   NSString	*declared = [d objectForKey: @"Declared"];
   NSString	*standards = nil;
   unsigned	i = [aa count];
+
+  if ([[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
+    {
+      NSLog(@"Warning ... function %@ is not implemented where expected", name);
+    }
 
   /**
    * Place the names of function arguments in a temporary array 'args'
@@ -822,7 +831,9 @@ static BOOL snuggleStart(NSString *t)
  * Uses -split: and -reformat:withIndent:to:.
  * Also has fun with YES, NO, and nil.
  */
-- (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str
+- (void) outputMethod: (NSDictionary*)d
+		   to: (NSMutableString*)str
+		  for: (NSString*)unit
 {
   NSArray	*sels = [d objectForKey: @"Sels"];
   NSArray	*types = [d objectForKey: @"Types"];
@@ -832,6 +843,12 @@ static BOOL snuggleStart(NSString *t)
   BOOL		isInitialiser = NO;
   NSString	*override = nil;
   NSString	*standards = nil;
+
+  if (unit != nil && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
+    {
+      NSLog(@"Warning ... method %@ %@ is not implemented where expected",
+        unit, name);
+    }
 
   args = [d objectForKey: @"Args"];	// Used when splitting.
 
@@ -994,6 +1011,7 @@ static BOOL snuggleStart(NSString *t)
   NSDictionary	*methods = [d objectForKey: @"Methods"];
   NSDictionary	*ivars = [d objectForKey: @"InstanceVariables"];
   NSString	*comment = [d objectForKey: @"Comment"];
+  NSString	*unitName = nil;
   NSArray	*names;
   NSArray	*protocols;
   NSString	*standards = nil;
@@ -1003,6 +1021,15 @@ static BOOL snuggleStart(NSString *t)
   unsigned	ind;
   unsigned	i;
   unsigned	j;
+
+  if ([[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
+    {
+      NSLog(@"Warning ... unit %@ is not implemented where expected", name);
+    }
+  else
+    {
+      unitName = name;
+    }
 
   r = [comment rangeOfString: @"<standards>"];
   if (comment != nil && r.length > 0)
@@ -1180,7 +1207,9 @@ static BOOL snuggleStart(NSString *t)
     {
       NSString	*mName = [names objectAtIndex: i];
 
-      [self outputMethod: [methods objectForKey: mName] to: str];
+      [self outputMethod: [methods objectForKey: mName]
+     		      to: str
+		     for: unitName];
     }
 
   if (standards != nil)

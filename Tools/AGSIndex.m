@@ -55,6 +55,10 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 	    {
 	      [dst setObject: s forKey: k];
 	    }
+	  else if ([s isKindOfClass: [NSArray class]] == YES)
+	    {
+	      [dst setObject: s forKey: k];
+	    }
 	  else if ([s isKindOfClass: [NSDictionary class]] == YES)
 	    {
 	      d = [[NSMutableDictionary alloc] initWithCapacity: [s count]];
@@ -84,6 +88,25 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 		  else
 		    {
 		      NSLog(@"String missmatch in merge for %@. S:%@, D:%@",
+			stack, s, d);
+		    }
+		}
+	    }
+	  else if ([d isKindOfClass: [NSArray class]] == YES)
+	    {
+	      if ([s isKindOfClass: [NSArray class]] == NO)
+		{
+		  NSLog(@"Class missmatch in merge for %@.", stack);
+		}
+	      else if ([d isEqual: s] == NO)
+		{
+		  if (override == YES)
+		    {
+		      [dst setObject: s forKey: k];
+		    }
+		  else
+		    {
+		      NSLog(@"Array missmatch in merge for %@. S:%@, D:%@",
 			stack, s, d);
 		    }
 		}
@@ -150,6 +173,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
  * unitmethods unit-name method-name<br />
  * classvars class-name variables-name<br />
  * title file-name text<br />
+ * source file-name array-of-source-files<br />
  */
 @implementation	AGSIndex
 
@@ -494,6 +518,23 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 }
 
 /**
+ * Set up an array listing the source files for a particular header.
+ */
+- (void) setSource: (NSArray*)s forHeader: (NSString*)h
+{
+  NSMutableDictionary	*dict;
+
+  dict = [refs objectForKey: @"source"];
+  if (dict == nil)
+    {
+      dict = [NSMutableDictionary new];
+      [refs setObject: dict forKey: @"source"];
+      RELEASE(dict);
+    }
+  [dict setObject: s forKey: h];
+}
+
+/**
  * Set up a reference for something inside a unit (class, category or protocol)
  * We store 'method' and 'ivariable' by ref then unit (class),
  * but we store 'unitmethods' * and 'classvars' by unit then ref.
@@ -541,6 +582,16 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	type, ref, u, old, base);
     }
   [r setObject: base forKey: u];
+}
+
+/**
+ * Return a list of source files for the header (or nil)
+ */
+- (NSArray*) sourcesForHeader: (NSString*)h
+{
+  NSDictionary	*dict = [refs objectForKey: @"source"];
+
+  return [dict objectForKey: h];
 }
 
 /**

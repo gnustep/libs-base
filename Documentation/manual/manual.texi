@@ -59,10 +59,13 @@ into another language, under the above conditions for modified versions.
 
 @contents
 
+@ifnothtml
 @iftex
 @c Foreword
 @include foreword.texi
 @end iftex
+@end ifnothtml
+
 
 @ifinfo
 @c **Top node and master menu

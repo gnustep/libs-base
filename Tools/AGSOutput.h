@@ -45,7 +45,9 @@
 		 to: (NSMutableString*)str;
 - (void) outputFunction: (NSDictionary*)d to: (NSMutableString*)str;
 - (void) outputInstanceVariable: (NSDictionary*)d to: (NSMutableString*)str;
-- (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str;
+- (void) outputMethod: (NSDictionary*)d
+		   to: (NSMutableString*)str
+		  for: (NSString*)unit;
 - (void) outputUnit: (NSDictionary*)d to: (NSMutableString*)str;
 - (unsigned) reformat: (NSString*)str
 	   withIndent: (unsigned)ind

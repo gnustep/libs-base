@@ -484,10 +484,12 @@
   if (isTypedef == YES)
     {
       [d setObject: @"Types" forKey: @"Kind"];
+      [d setObject: @"YES" forKey: @"Implemented"];
     }
   else if (baseConstant == YES)
     {
       [d setObject: @"Constants" forKey: @"Kind"];
+      [d setObject: @"YES" forKey: @"Implemented"];
     }
   else
     {
@@ -634,6 +636,13 @@
 	    }
 	  else if (buffer[pos] == '{')
 	    {
+	      /*
+	       * Inline functions may be implemented in the header.
+	       */
+	      if (isFunction == YES)
+	      	{
+		  [d setObject: @"YES" forKey: @"Implemented"];
+		}
 	      [self skipBlock];
 	    }
 	  else
@@ -820,6 +829,8 @@ fail:
 			    [oDecl setObject: tmp forKey: @"Comment"];
 			  }
 
+			[oDecl setObject: @"YES" forKey: @"Implemented"];
+
 			if ([kind isEqualToString: @"Functions"] == YES)
 			  {
 			    NSArray	*a1 = [oDecl objectForKey: @"Args"];
@@ -918,6 +929,7 @@ fail:
     }
   else
     {
+      [dict setObject: @"YES" forKey: @"Implemented"];
       /*
        * Append any comment we have for this
        */
@@ -1603,6 +1615,7 @@ fail:
 		      }
 		    [exist setObject: token forKey: @"Comment"];
 		  }
+		[exist setObject: @"YES" forKey: @"Implemented"];
 	      }
 	    break;
 
