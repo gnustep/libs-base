@@ -61,6 +61,12 @@ main(int argc, char** argv, char **env)
     }
   else
     {
+      NSCharacterSet		*cs;
+
+
+      cs = [NSCharacterSet characterSetWithRange: NSMakeRange(1, 127)];
+      cs = [cs invertedSet];
+
       for (i = 1; i < [args count]; i++)
 	{
 	  NSString	*file = [args objectAtIndex: i];
@@ -68,11 +74,16 @@ main(int argc, char** argv, char **env)
 	  NS_DURING
 	    {
 	      NSString	*myString;
-	      id		result;
+	      id	result;
+	      NSRange	r;
 
 	      myString = [NSString stringWithContentsOfFile: file];
-	      result = [myString propertyList];
-	      if (result == nil)
+	      if (myString == nil)
+		GSPrintf(stderr, @"Parsing '%@' - not valid string\n", file);
+	      else if ((r = [myString rangeOfCharacterFromSet: cs]).length > 0)
+		GSPrintf(stderr, @"Parsing '%@' - bad char '\\U%04x' at %d\n",
+		  file, [myString characterAtIndex: r.location], r.location);
+	      else if ((result = [myString propertyList]) == nil)
 		GSPrintf(stderr, @"Parsing '%@' - nil property list\n", file);
 	      else if ([result isKindOfClass: [NSDictionary class]] == YES)
 		GSPrintf(stderr, @"Parsing '%@' - a dictionary\n", file);
