@@ -139,7 +139,7 @@ static BOOL debug_memory_stream = NO;
   if (prefix+position+l > size)
     {
       size = MAX(prefix+position+l, size*2);
-      buffer = (*objc_realloc)(buffer, size);
+      buffer = objc_realloc (buffer, size);
     }
   memcpy(buffer+prefix+position, b, l);
   position += l;
@@ -287,7 +287,7 @@ void unchar_func(void *s, int c)
 {
   if (s > prefix + eofPosition)
     {
-      buffer = (*objc_realloc)(buffer, s);
+      buffer = objc_realloc (buffer, s);
       size = s;
     }
 }
