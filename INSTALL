@@ -1,34 +1,36 @@
 Introduction
 ============
 
-   If you are installing this package as part of the GNUstep core
-libraries, read the file GNUstep-HOWTO for more complete instructions on
-how to install the entire GNUstep package (including this library).
-GNUstep-HOWTO comes with the core distribution and also is located at
-the same ftp sites as this library.
-
-   If you are instsalling the GNUstep libraries individually, make sure
-you have installed the GNUstep Makefile package (gstep-make) already.
-Most of the installation instructions for gstep-make also apply to this
-library. When you configure this library, make sure you use the same
-configuration options as with gstep-make. Some additional options to
-configure are described below.
+   Make sure you have installed the GNUstep Makefile package (gnustep-make)
+before trying to install this package (gnustep-base).  Configuring and
+installing the gnustep-core suite of packages as a whole is no longer
+supported - you need to configure and install each package in turn.
 
 Configuration
 =============
 
-   Configuration is performed by running the `configure' program at a
-shell prompt. You may want to use some of the optional arguments to the
-`configure' program. Type `configure --help' for a list of these. It is
-not likely that you will need to use the `--prefix' option, since
-gstep-base will automatically install in the directory specified by the
-`GNUSTEP_SYSTEM_ROOT' environment variable (specified when you
-installed gstep-make).
+   Before doing anything, you need to make sure you have run the GNUstep
+shell initialization script - which should have been installed when you
+installed gnustep-make.  You need to type something like 
 
-   Many configuration options for the base library need to be specified
-when configuring the gstep-make package. In most cases, it is a good
-idea to specify the same configuration options when configuring both
-packages, just to make sure.
+   . /usr/GNUstep/System/Makefiles/GNUstep.sh
+
+where you need to use the full path of your GNUstep initialization script.
+If you have based your GNUstep installation somewhere else than the default
+(the default is /usr/GNUstep) - by using a special --prefix option when
+configuring gnustep-make, then you need to replace `/usr/GNUstep/' with the
+base of your gnustep installation.  For example, if you configured
+gnustep-make using `./configure --prefix=/opt/GNUstep', then the GNUstep
+shell initialization script is in /opt/GNUstep/System/Makefiles/GNUstep.sh.
+
+   After you have run the GNUstep initialization script, you must configure
+this package.  Configuration is performed by running the `configure' program
+at a shell prompt. You may want to use some of the optional arguments to the
+`configure' program. Type `./configure --help' for a list of these.  NB: you
+do *not* need to use the `--prefix' option, since gnustep-base will
+automatically install in the directory specified by the
+`GNUSTEP_SYSTEM_ROOT' environment variable (specified when you installed
+gnustep-make), and this should not be changed.
 
    Also make sure you've read the machine-specific instructions for your
 particular operating system and CPU. These instructions come with the
@@ -88,14 +90,11 @@ are not in the standard library). You can get this library from
 the standard library with the patch at
 <ftp://www.gnustep.org/pub/gnustep/contrib/libobjc-ffi.patch>.
 
-   Make sure you specify this option when configuring gstep-make also.
-
 Compilation
 ===========
 
    To compile this library, type make. After this is complete, type make
-install (make sure you are the root user). Some additional options you
-can use with make are `debug=yes' to make a debugging version of the
-library and `shared=no' to make a static version of the library. See
-the gstep-make package for more information on these options.
-
+install (make sure you are the root user). Some additional options you can
+use with make are `debug=yes' to make a debugging version of the library and
+`shared=no' to make a static version of the library. See the gnustep-make
+package for more information on these options.
