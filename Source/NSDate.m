@@ -634,10 +634,10 @@ GSTimeNow()
 		    break;
 
 		  default:
-		    dtoIndex++;
 		    if (debug)
 		      NSLog(@"odd char (unicode %d) in NSDateTimeOrdering.\n",
-			    [dto characterAtIndex: index]);
+			    [dto characterAtIndex: dtoIndex]);
+		    dtoIndex++;
 		    break;
 		}
 	    }
@@ -763,7 +763,7 @@ GSTimeNow()
 	      default:
 		if (debug)
 		  NSLog(@"unexpected char (unicode%d) in NSDateTimeOrdering.\n",
-		    [dto characterAtIndex: index]);
+		    [dto characterAtIndex: dtoIndex]);
 		break;
 	    }
 	}
