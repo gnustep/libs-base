@@ -92,8 +92,13 @@ __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 }
 
 /* Return the address of a symbol given by the name 'symbol' from the module
-   associated with 'handle'
-*/
+ * associated with 'handle'
+ * This function is not always used, so we mark it as unused to avoid warnings.
+ */ 
+static dl_symbol_t 
+__objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
+    __attribute__((unused));
+
 static dl_symbol_t 
 __objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
 {
