@@ -18,7 +18,7 @@
 	package, and provides additional non-standard classes and
 	additional features for standard classes.  It is also intended
 	to be built standalone for use on systems where the GNUstep
-	base is not installed, but where an alernative Foundation is
+	base is not installed, but where an alternative Foundation is
 	available.
       </p>
       <index scope="project" type="title" />

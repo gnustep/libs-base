@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_..xml">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.xml">
 <gsdoc base="Base">
   <head>
     <title>GNUstep Base</title>
@@ -14,10 +14,10 @@
     <chapter>
       <heading>Base</heading>
       <p>
-	The GNUstep base library is a free software package implementing
+	The GNUstep Base library is a free software package implementing
         the API of the OpenStep Foundation Kit (tm), including later
 	additions.  This documentation package describes the core of the
-	base library, for documentation on additional classes, see the
+	Base library, for documentation on additional classes, see the
 	BaseAdditions documentation package.
       </p>
       <p>
@@ -25,7 +25,6 @@
 	<uref url="../ReleaseNotes/ReleaseNotes.html">Release Notes</uref>
 	for the current release.
       </p>
-      <index scope="project" type="title" />
       <section>
 	<heading>Compatibility</heading>
 	<p>
@@ -73,7 +72,7 @@
 	  <p>
 	    <em>NB</em> These preprocessor constants are used in
 	    <em>developer code</em> (ie the code that users of GNUstep write)
-	    rather than by the GNUstep software itsself.  They permit a
+	    rather than by the GNUstep software itself.  They permit a
 	    developer to ensure that he/she does not write code which depends
 	    upon API not present on other implementations (in practice,
 	    MacOS-X or some old OPENSTEP systems).<br />
@@ -179,7 +178,7 @@
 	  <heading>Environment variables</heading>
 	  <p>
 	    There are some environment variables used by GNUstep base, where
-	    there would be problems onbtaining data from the defaults asystem.
+	    there would be problems obtaining data from the defaults system.
 	  </p>
 	  <deflist>
 	    <term>CRASH_ON_ABORT</term>
@@ -452,8 +451,16 @@
       </section>
     </chapter>
     <back>
+      <chapter>
+        <heading>API Documentation</heading>
+        <list>
+          <item><uref url="Functions.html">Functions</uref></item>
+          <item><uref url="TypesAndConstants.html">Types and Constants</uref></item>
+        </list>
+      </chapter>
       <index scope="project" type="class" />
       <index scope="project" type="protocol" />
+      <!-- <index scope="project" type="title" /> -->
     </back>
   </body>
 </gsdoc>
