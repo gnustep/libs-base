@@ -48,6 +48,7 @@ Additions_OBJC_FILES += GSCompatibility.m
 else
 Additions_OBJC_FILES += Unicode.m
 endif
+Additions_OBJC_FILES += Unicode.m
 
 -include Makefile.preamble
 
