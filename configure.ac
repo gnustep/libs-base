@@ -897,7 +897,7 @@ else
     echo "If you really want to build -base without DO support, add --disable-do"
     echo "to the configure arguments."
     echo "For more information, read the GNUstep build guide, ffcall section:"
-    echo "http://documents.made-it.com/GNUstep/buildguide.html"
+    echo "http://documents.made-it.com/GNUstep/buildguide.html#FOREIGN.FUNCTION.INTERFACES"
     AC_MSG_ERROR([No ffcall interface library found.])
   fi
   AC_MSG_WARN([No ffcall interface library found])

@@ -12273,7 +12273,7 @@ echo "${ECHO_T}none" >&6
     echo "If you really want to build -base without DO support, add --disable-do"
     echo "to the configure arguments."
     echo "For more information, read the GNUstep build guide, ffcall section:"
-    echo "http://documents.made-it.com/GNUstep/buildguide.html"
+    echo "http://documents.made-it.com/GNUstep/buildguide.html#FOREIGN.FUNCTION.INTERFACES"
     { { echo "$as_me:$LINENO: error: No ffcall interface library found." >&5
 echo "$as_me: error: No ffcall interface library found." >&2;}
    { (exit 1); exit 1; }; }
