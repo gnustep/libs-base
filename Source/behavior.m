@@ -138,6 +138,13 @@ behavior_class_add_class (Class class, Class behavior)
   return;
 }
 
+/* The old interface */
+void
+class_add_behavior (Class class, Class behavior)
+{
+  behavior_class_add_class (class, behavior);
+}
+
 #if NeXT_RUNTIME
 void
 behavior_class_add_category (Class class, struct objc_category *category)

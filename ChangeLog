@@ -1,3 +1,8 @@
+2001-12-29  Adam Fedor  <fedor@gnu.org>
+
+	* Source/behavior.m (class_add_behavior): Add depreciated function 
+	back.
+
 2001-12-27  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/objc-gnu2next.h: Disable __builtin functions
