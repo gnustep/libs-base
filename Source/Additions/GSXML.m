@@ -4034,9 +4034,10 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 - (NSString*) stringByEscapingXML
 {
   unsigned	length = [self length];
-  unsigned	output = length;
+  unsigned	output = 0;
   unichar	*from;
   unsigned	i = 0;
+  BOOL		escape = NO;
 
   from = NSZoneMalloc (NSDefaultMallocZone(), sizeof(unichar) * length);
   [self getCharacters: from];
@@ -4052,15 +4053,18 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	      case '"':
 	      case '\'':
 		output += 6;
+		escape = YES;
 	        break;
 
 	      case '&':
 		output += 5;
+		escape = YES;
 	        break;
 
 	      case '<':
 	      case '>':
 		output += 4;
+		escape = YES;
 	        break;
 
 	      default:
@@ -4075,13 +4079,15 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 			output++;
 			c /= 10;
 		      }
+		    escape = YES;
 		  }
+		output++;
 		break;
 	    }
 	}
     }
 
-  if (output > length)
+  if (escape == YES)
     {
       unichar	*to;
       unsigned	j = 0;
