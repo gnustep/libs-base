@@ -1983,23 +1983,26 @@ handle_printf_atsign (FILE *stream,
     {
       length--;
     }
-  aLength = length - 1;
-  while (aLength > 1)
+  if (length > 0)
     {
-      if (pathSepMember(buf[aLength]) == YES)
+      aLength = length - 1;
+      while (aLength > 1)
 	{
-	  if (pathSepMember(buf[aLength-1]) == YES)
+	  if (pathSepMember(buf[aLength]) == YES)
 	    {
-	      unsigned	pos;
-
-	      for (pos = aLength+1; pos < length; pos++)
+	      if (pathSepMember(buf[aLength-1]) == YES)
 		{
-		  buf[pos-1] = buf[pos];
+		  unsigned	pos;
+
+		  for (pos = aLength+1; pos < length; pos++)
+		    {
+		      buf[pos-1] = buf[pos];
+		    }
+		  length--;
 		}
-	      length--;
 	    }
+	  aLength--;
 	}
-      aLength--;
     }
   return [NSString stringWithCharacters: buf length: length];
 }
