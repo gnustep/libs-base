@@ -339,8 +339,10 @@ version.texi: Makefile
 		>> $(srcdir)/version.texi; fi
 
 info: libobjects.info TODO INSTALL NEWS README ANNOUNCE
-dvi: libobjects.texi version.texi
-	$(TEXI2DVI) $(srcdir)/libobjects.texi
+dvi: libobjects.dvi
+libobjects.dvi: libobjects.texi version.texi
+	@echo Sorry, libobjects/texinfo.tex still needs work.
+	:$(TEXI2DVI) $(srcdir)/libobjects.texi
 
 libobjects.info: libobjects.texi todo.texi version.texi
 	$(MAKEINFO) $(srcdir)/libobjects.texi
