@@ -301,39 +301,58 @@ static void debugWrite(NSData *data)
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(d);
 
-  [parser parse: d];
-  if ([parser isComplete] == YES)
+  if ([parser parse: d] == NO)
     {
-      GSMimeHeader	*info;
-      NSString		*val;
+      if ([parser isComplete] == YES)
+	{
+	  GSMimeHeader	*info;
+	  NSString	*val;
 
-      connectionState = idle;
-      [nc removeObserver: self
-	            name: NSFileHandleReadCompletionNotification
-                  object: sock];
-      [sock closeFile];
-      DESTROY(sock);
-      /*
-       * Retrieve essential keys from document
-       */
-      info = [document headerNamed: @"http"];
-      val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
-      if (val != nil)
-	[pageInfo setObject: val forKey: NSHTTPPropertyServerHTTPVersionKey];
-      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-      if (val != nil)
-	[pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
-      val = [info objectForKey: NSHTTPPropertyStatusReasonKey];
-      if (val != nil)
-	[pageInfo setObject: val forKey: NSHTTPPropertyStatusReasonKey];
-      /*
-       * Tell superclass that we have successfully loaded the data.
-       */
-      d = [parser data];
-      r = NSMakeRange(bodyPos, [d length] - bodyPos);
-      bodyPos = 0;
-      [self didLoadBytes: [d subdataWithRange: r]
-	    loadComplete: YES];
+	  connectionState = idle;
+	  [nc removeObserver: self
+			name: NSFileHandleReadCompletionNotification
+		      object: sock];
+	  [sock closeFile];
+	  DESTROY(sock);
+
+	  /*
+	   * Retrieve essential keys from document
+	   */
+	  info = [document headerNamed: @"http"];
+	  val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
+	  if (val != nil)
+	    {
+	      [pageInfo setObject: val
+			   forKey: NSHTTPPropertyServerHTTPVersionKey];
+	    }
+	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  if (val != nil)
+	    {
+	      [pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
+	    }
+	  val = [info objectForKey: NSHTTPPropertyStatusReasonKey];
+	  if (val != nil)
+	    {
+	      [pageInfo setObject: val forKey: NSHTTPPropertyStatusReasonKey];
+	    }
+	  /*
+	   * Tell superclass that we have successfully loaded the data.
+	   */
+	  d = [parser data];
+	  r = NSMakeRange(bodyPos, [d length] - bodyPos);
+	  bodyPos = 0;
+	  [self didLoadBytes: [d subdataWithRange: r]
+		loadComplete: YES];
+	}
+      else
+	{
+	  if (debug == YES)
+	    {
+	      NSLog(@"HTTP parse failure - %@", parser);
+	    }
+	  [self endLoadInBackground];
+	  [self backgroundLoadDidFailWithReason: @"Response parse failed"];
+	}
     }
   else
     {
