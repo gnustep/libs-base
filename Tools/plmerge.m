@@ -18,6 +18,7 @@
 
    */
 
+#include 	"config.h"
 #include        <Foundation/Foundation.h>
 #include	<Foundation/NSArray.h>
 #include	<Foundation/NSAutoreleasePool.h>
@@ -27,6 +28,10 @@
 #include	<Foundation/NSFileManager.h>
 #include	<Foundation/NSProcessInfo.h>
 #include	<Foundation/NSString.h>
+#ifdef NeXT_Foundation_LIBRARY
+#include "GNUstepBase/GSCategories.h"
+#include "GNUstepBase/GSObjCRuntime.h"
+#endif
 
 int
 main(int argc, char** argv, char **env)
