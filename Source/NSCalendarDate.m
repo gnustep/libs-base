@@ -274,6 +274,11 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
 @class	NSGDate;
 
+/**
+ * An [NSDate] subclass which understands about timezones and provides
+ * methods for dealing with date and time information by calendar and
+ * with hours minutes and seconds.
+ */
 @implementation NSCalendarDate
 
 + (void) initialize
@@ -307,7 +312,8 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 }
 
 /**
- * Getting an NSCalendar Date
+ * Return an NSCalendarDate for the current date and time using the
+ * default timezone.
  */
 + (id) calendarDate
 {
@@ -316,6 +322,11 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   return AUTORELEASE(d);
 }
 
+/**
+ * Return an NSCalendarDate generated from the supplied description
+ * using the format specified for parsing that string.<br />
+ * Calls -initWithString:calendarFormat: to create the date.
+ */
 + (id) dateWithString: (NSString *)description
        calendarFormat: (NSString *)format
 {
@@ -324,6 +335,12 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   return AUTORELEASE(d);
 }
 
+/**
+ * Return an NSCalendarDate generated from the supplied description
+ * using the format specified for parsing that string and interpreting
+ * it according to the dictionary specified.<br />
+ * Calls -initWithString:calendarFormat:locale: to create the date.
+ */
 + (id) dateWithString: (NSString *)description
        calendarFormat: (NSString *)format
 	       locale: (NSDictionary *)dictionary
@@ -334,6 +351,10 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   return AUTORELEASE(d);
 }
 
+/**
+ * Creates and returns an NSCalendarDate from the specified values 
+ * by calling -initWithYear:month:day:hour:minute:second:timeZone:
+ */
 + (id) dateWithYear: (int)year
 	      month: (unsigned int)month
 	        day: (unsigned int)day
@@ -352,6 +373,10 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   return AUTORELEASE(d);
 }
 
+/**
+ * Creates and returns a new NSCalendarDate object by taking the
+ * value of the receiver and adding the interval in seconds specified.
+ */
 - (id) addTimeInterval: (NSTimeInterval)seconds
 {
   id newObj = [[self class] dateWithTimeIntervalSinceReferenceDate:
@@ -396,8 +421,10 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   [super dealloc];
 }
 
-/*
- * Initializing an NSCalendar Date
+/**
+ * Initializes an NSCalendarDate using the specified description and the
+ * default calendar format and locale.<br />
+ * Calls -initWithString:calendarFormat:locale:
  */
 - (id) initWithString: (NSString *)description
 {
@@ -407,6 +434,11 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 		       locale: nil];
 }
 
+/**
+ * Initializes an NSCalendarDate using the specified description and format
+ * string interpreted in the default locale.<br />
+ * Calls -initWithString:calendarFormat:locale:
+ */
 - (id) initWithString: (NSString *)description
        calendarFormat: (NSString *)format
 {
@@ -458,6 +490,88 @@ static inline int getDigits(const char *from, char *to, int limit)
 #define	hads	32
 #define	hadw	64
 
+/**
+ * Initializes an NSCalendarDate using the specified description and format
+ * string interpreted in the given locale.<br />
+ * Format specifiers are -
+ * <list>
+ *   <item>
+ *     %%   literal % character
+ *   </item>
+ *   <item>
+ *     %a   abbreviated weekday name according to locale
+ *   </item>
+ *   <item>
+ *     %A   full weekday name according to locale
+ *   </item>
+ *   <item>
+ *     %b   abbreviated month name according to locale
+ *   </item>
+ *   <item>
+ *     %B   full month name according to locale
+ *   </item>
+ *   <item>
+ *     %c   same as '%X %x'
+ *   </item>
+ *   <item>
+ *     %d   day of month as decimal number
+ *   </item>
+ *   <item>
+ *     %e   same as %d without leading zero (you get a leading space instead)
+ *   </item>
+ *   <item>
+ *     %F   milliseconds as a decimal number
+ *   </item>
+ *   <item>
+ *     %H   hour as a decimal number using 24-hour clock
+ *   </item>
+ *   <item>
+ *     %I   hour as a decimal number using 12-hour clock
+ *   </item>
+ *   <item>
+ *     %j   day of year as a decimal number
+ *   </item>
+ *   <item>
+ *     %m   month as decimal number
+ *   </item>
+ *   <item>
+ *     %M   minute as decimal number
+ *   </item>
+ *   <item>
+ *     %p   'am' or 'pm'
+ *   </item>
+ *   <item>
+ *     %S   second as decimal number
+ *   </item>
+ *   <item>
+ *     %U   week of the current year as decimal number (Sunday first day)
+ *   </item>
+ *   <item>
+ *     %W   week of the current year as decimal number (Monday first day)
+ *   </item>
+ *   <item>
+ *     %w   day of the week as decimal number (Sunday = 0)
+ *   </item>
+ *   <item>
+ *     %x   date with date representation for locale
+ *   </item>
+ *   <item>
+ *     %X   time with time representation for locale
+ *   </item>
+ *   <item>
+ *     %y   year as a decimal number without century 
+ *   </item>
+ *   <item>
+ *     %Y   year as a decimal number with century
+ *   </item>
+ *   <item>
+ *     %z   time zone offset in hours and minutes from GMT (HHMM)
+ *   </item>
+ *   <item>
+ *     %Z   time zone abbreviation
+ *   </item>
+ * </list>
+ */
 - (id) initWithString: (NSString *)description 
        calendarFormat: (NSString *)fmt
                locale: (NSDictionary *)locale
@@ -623,33 +737,6 @@ static inline int getDigits(const char *from, char *to, int limit)
       //   -Long day and month names depend on a non-alpha character after the
       //    last digit to work.
       //
-      // The strftime specifiers as used by OpenStep + %U.
-      //
-      // %%   literal % character
-      // %a   abbreviated weekday name according to locale
-      // %A   full weekday name according to locale
-      // %b   abbreviated month name according to locale
-      // %B   full month name according to locale
-      // %c   same as '%X %x'
-      // %d   day of month as decimal number
-      // %e   same as %d without leading zero (you get a leading space instead)
-      // %F   milliseconds as a decimal number
-      // %H   hour as a decimal number using 24-hour clock
-      // %I   hour as a decimal number using 12-hour clock
-      // %j   day of year as a decimal number
-      // %m   month as decimal number
-      // %M   minute as decimal number
-      // %p   'am' or 'pm'
-      // %S   second as decimal number
-      // %U   week of the current year as decimal number (Sunday first day)
-      // %W   week of the current year as decimal number (Monday first day)
-      // %w   day of the week as decimal number (Sunday = 0)
-      // %x   date with date representation for locale
-      // %X   time with time representation for locale
-      // %y   year as a decimal number without century 
-      // %Y   year as a decimal number with century
-      // %z   time zone offset in hours and minutes from GMT (HHMM)
-      // %Z   time zone abbreviation
 
       while (formatIdx < formatLen)
 	{
@@ -1231,6 +1318,10 @@ static inline int getDigits(const char *from, char *to, int limit)
   return self;
 }
 
+/**
+ * Return the day number (ie number of days since the start of) in the
+ * 'common' era of the receiving date.  The era starts at 1 A.D.
+ */
 - (int) dayOfCommonEra
 {
   NSTimeInterval	when;
@@ -1239,6 +1330,9 @@ static inline int getDigits(const char *from, char *to, int limit)
   return dayOfCommonEra(when);
 }
 
+/**
+ * Return the month (1 to 31) of the receiving date.
+ */
 - (int) dayOfMonth
 {
   int m, d, y;
@@ -1250,6 +1344,18 @@ static inline int getDigits(const char *from, char *to, int limit)
   return d;
 }
 
+/**
+ * Return the day of the week (0 to 6) of the receiving date.
+ * <list>
+ *   <item>0 is sunday</item>
+ *   <item>1 is monday</item>
+ *   <item>2 is tuesday</item>
+ *   <item>3 is wednesday</item>
+ *   <item>4 is thursday</item>
+ *   <item>5 is friday</item>
+ *   <item>6 is saturday</item>
+ * </list>
+ */
 - (int) dayOfWeek
 {
   int	d;
@@ -1268,6 +1374,9 @@ static inline int getDigits(const char *from, char *to, int limit)
   return d;
 }
 
+/**
+ * Return the day of the year (1 to 366) of the receiving date.
+ */
 - (int) dayOfYear
 {
   int m, d, y, days, i;
@@ -1282,6 +1391,9 @@ static inline int getDigits(const char *from, char *to, int limit)
   return days;
 }
 
+/**
+ * Return the hour of the day (0 to 23) of the receiving date.
+ */
 - (int) hourOfDay
 {
   int h;
@@ -1304,6 +1416,9 @@ static inline int getDigits(const char *from, char *to, int limit)
   return h;
 }
 
+/**
+ * Return the minute of the hour (0 to 59) of the receiving date.
+ */
 - (int) minuteOfHour
 {
   int h, m;
@@ -1325,6 +1440,9 @@ static inline int getDigits(const char *from, char *to, int limit)
   return m;
 }
 
+/**
+ * Return the month of the year (1 to 12) of the receiving date.
+ */
 - (int) monthOfYear
 {
   int m, d, y;
@@ -1336,6 +1454,9 @@ static inline int getDigits(const char *from, char *to, int limit)
   return m;
 }
 
+/**
+ * Return the second of the minute (0 to 59) of the receiving date.
+ */
 - (int) secondOfMinute
 {
   int h, m, s;
@@ -1360,6 +1481,10 @@ static inline int getDigits(const char *from, char *to, int limit)
   return s;
 }
 
+/**
+ * Return the year of the 'common' era of the receiving date.
+ * The era starts at 1 A.D.
+ */
 - (int) yearOfCommonEra
 {
   int m, d, y;
@@ -1397,12 +1522,90 @@ static inline int getDigits(const char *from, char *to, int limit)
   return [self descriptionWithCalendarFormat: _calendar_format locale: nil];
 }
 
+/**
+ * Returns a string representation of the receiver using the specified
+ * format string.<br />
+ * Calls -descriptionWithCalendarFormat:locale: with a nil locale.
+ */
 - (NSString*) descriptionWithCalendarFormat: (NSString *)format
 {
   return [self descriptionWithCalendarFormat: format locale: nil];
 }
 
 #define UNIX_REFERENCE_INTERVAL -978307200.0
+/**
+ * Returns a string representation of the receiver using the specified
+ * format string and locale dictionary.<br />
+ * Format specifiers are -
+ * <list>
+ *   <item>
+ *     %a   abbreviated weekday name according to locale
+ *   </item>
+ *   <item>
+ *     %A   full weekday name according to locale
+ *   </item>
+ *   <item>
+ *     %b   abbreviated month name according to locale
+ *   </item>
+ *   <item>
+ *     %B   full month name according to locale
+ *   </item>
+ *   <item>
+ *     %d   day of month as decimal number (leading zero)
+ *   </item>
+ *   <item>
+ *     %e   day of month as decimal number (leading space)
+ *   </item>
+ *   <item>
+ *     %F   milliseconds (000 to 999)
+ *   </item>
+ *   <item>
+ *     %H   hour as a decimal number using 24-hour clock
+ *   </item>
+ *   <item>
+ *     %I   hour as a decimal number using 12-hour clock
+ *   </item>
+ *   <item>
+ *     %j   day of year as a decimal number
+ *   </item>
+ *   <item>
+ *     %m   month as decimal number
+ *   </item>
+ *   <item>
+ *     %M   minute as decimal number
+ *   </item>
+ *   <item>
+ *     %p   'am' or 'pm'
+ *   </item>
+ *   <item>
+ *     %S   second as decimal number
+ *   </item>
+ *   <item>
+ *     %U   week of the current year as decimal number (Sunday first day)
+ *   </item>
+ *   <item>
+ *     %W   week of the current year as decimal number (Monday first day)
+ *   </item>
+ *   <item>
+ *     %w   day of the week as decimal number (Sunday = 0)
+ *   </item>
+ *   <item>
+ *     %y   year as a decimal number without century
+ *   </item>
+ *   <item>
+ *     %Y   year as a decimal number with century
+ *   </item>
+ *   <item>
+ *     %z   time zone offset (HHMM)
+ *   </item>
+ *   <item>
+ *     %Z   time zone
+ *   </item>
+ *   <item>
+ *     %%   literal % character
+ *   </item>
+ * </list>
+ */
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				     locale: (NSDictionary*)locale
 {
@@ -1431,30 +1634,6 @@ static inline int getDigits(const char *from, char *to, int limit)
   GSBreakTime(_seconds_since_ref + offset(_time_zone, self),
     &yd, &md, &dom, &hd, &mnd, &sd, &mil);
   nhd = hd;
-
-  // The strftime specifiers
-  // %a   abbreviated weekday name according to locale
-  // %A   full weekday name according to locale
-  // %b   abbreviated month name according to locale
-  // %B   full month name according to locale
-  // %d   day of month as decimal number (leading zero)
-  // %e   day of month as decimal number (leading space)
-  // %F   milliseconds (000 to 999)
-  // %H   hour as a decimal number using 24-hour clock
-  // %I   hour as a decimal number using 12-hour clock
-  // %j   day of year as a decimal number
-  // %m   month as decimal number
-  // %M   minute as decimal number
-  // %p   'am' or 'pm'
-  // %S   second as decimal number
-  // %U   week of the current year as decimal number (Sunday first day)
-  // %W   week of the current year as decimal number (Monday first day)
-  // %w   day of the week as decimal number (Sunday = 0)
-  // %y   year as a decimal number without century
-  // %Y   year as a decimal number with century
-  // %z   time zone offset (HHMM)
-  // %Z   time zone
-  // %%   literal % character
 
   // Find the order of date elements
   // and translate format string into printf ready string
@@ -1697,34 +1876,54 @@ static inline int getDigits(const char *from, char *to, int limit)
   return newDate;
 }
 
+/**
+ * Returns a description of the receiver using its normal format but with
+ * the specified locale dictionary.<br />
+ * Calls -descriptionWithCalendarFormat:locale: to do this.
+ */
 - (NSString*) descriptionWithLocale: (NSDictionary *)locale
 {
   return [self descriptionWithCalendarFormat: _calendar_format locale: locale];
 }
 
-// Getting and Setting Calendar Formats
+/**
+ * Returns the format string associated with the receiver.<br />
+ * See -descriptionWithCalendarFormat:locale: for details.
+ */
 - (NSString*) calendarFormat
 {
   return _calendar_format;
 }
 
+/**
+ * Sets the format string associated with the receiver.<br />
+ * See -descriptionWithCalendarFormat:locale: for details.
+ */
 - (void) setCalendarFormat: (NSString *)format
 {
   RELEASE(_calendar_format);
   _calendar_format = [format copyWithZone: [self zone]];
 }
 
-// Getting and Setting Time Zones
+/**
+ * Sets the time zone associated with the receiver.
+ */
 - (void) setTimeZone: (NSTimeZone *)aTimeZone
 {
   ASSIGN(_time_zone, aTimeZone);
 }
 
+/**
+ * Returns the time zone associated with the receiver.
+ */
 - (NSTimeZone*) timeZone
 {
   return _time_zone;
 }
 
+/**
+ * Returns the time zone detail associated with the receiver.
+ */
 - (NSTimeZoneDetail*) timeZoneDetail
 {
   NSTimeZoneDetail	*detail = [_time_zone timeZoneDetailForDate: self];
@@ -1744,16 +1943,27 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 @implementation NSCalendarDate (GregorianDate)
 
+/**
+ * Returns the number of the last day of the month in the specified year.
+ */
 - (int) lastDayOfGregorianMonth: (int)month year: (int)year
 {
   return lastDayOfGregorianMonth(month, year);
 }
 
+/**
+ * Returns the number of days since the start of the era for the specified
+ * day, month, and year.
+ */
 - (int) absoluteGregorianDay: (int)day month: (int)month year: (int)year
 {
   return absoluteGregorianDay(day, month, year);
 }
 
+/**
+ * Given a day number since the start of the era, returns the dat as a
+ * day, month, and year.
+ */
 - (void) gregorianDateFromAbsolute: (int)d
 			       day: (int *)day
 			     month: (int *)month
@@ -1928,6 +2138,10 @@ static inline int getDigits(const char *from, char *to, int limit)
   return AUTORELEASE(c);
 }
 
+/**
+ * Returns the number of years, months, days, hours, minutes, and seconds
+ * between the receiver and the given date.
+ */
 - (void) years: (int*)years
 	months: (int*)months
           days: (int*)days
