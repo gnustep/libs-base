@@ -137,6 +137,16 @@
     }
 }
 
+- (void) encodeObjectReference: anObject
+{
+  /* Be sure to do the OpenStep-style thing. */
+  [self encodeConditionalObject: anObject];
+}
+
+
+
+/* For handling forward references. */
+
 - (unsigned) _coderCreateReferenceForObject: anObj
 {
   if ([cstream class] == [NSGArchiverNullCStream class])
@@ -198,6 +208,8 @@
 
 #if USE_OPENSTEP_STYLE_FORWARD_REFERENCES
 
+/* This method is called by Decoder to determine whether to add 
+   an object to the xref table before it has been initialized. */
 - (BOOL) _createReferenceBeforeInit
 {
   return YES;
