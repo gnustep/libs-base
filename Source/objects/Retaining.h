@@ -32,6 +32,7 @@
 - (oneway void) release;
 - (void) dealloc;
 - (unsigned) retainCount;
+- autorelease;
 
 @end
 
