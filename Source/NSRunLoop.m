@@ -55,6 +55,7 @@
 #include <limits.h>
 #include <string.h>		/* for memset() */
 
+#undef	HAVE_POLL
 static int	debug_run_loop = 0;
 static NSDate	*theFuture = nil;
 
@@ -1121,7 +1122,7 @@ if (0) {
 		{
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		  [c endEvent: (void*)fd type: ET_EDESC];
+		  [c endEvent: (void*)fdIndex type: ET_EDESC];
 		}
 	    }
 	  GSNotifyASAP();
@@ -1150,7 +1151,7 @@ if (0) {
 		{
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		  [c endEvent: (void*)fd type: ET_WDESC];
+		  [c endEvent: (void*)fdIndex type: ET_WDESC];
 		}
 	    }
 	  GSNotifyASAP();
@@ -1179,7 +1180,7 @@ if (0) {
 		{
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		  [c endEvent: (void*)fd type: ET_RDESC];
+		  [c endEvent: (void*)fdIndex type: ET_RDESC];
 		}
 	    }
 	  GSNotifyASAP();
