@@ -173,7 +173,7 @@
   return _grow_factor;
 }
 
-- (void) setGrowFactor: (unsigned)aNum;
+- (void) setGrowFactor: (int)aNum;
 {
   _grow_factor = aNum;
 }
