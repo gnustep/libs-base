@@ -3,6 +3,10 @@
 	* Source/Unicode.m: GSFromUnicode(), GSToUnicode(), bugfix - ensure
 	that returned memory is allocated from specified zone, rather than
 	returning internal buffer.
+	* Tools/AGSIndex.m: When a string missmatch is found when merging,
+	update the output to the new string as well as warning.
+	* Tools/autogsdoc.m: Don't automatically include refs to installed
+	copies of the project being documented.
 
 2002-05-13  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -89,6 +89,7 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 		    {
 		      NSLog(@"String missmatch in merge for %@. S:%@, D:%@",
 			stack, s, d);
+		      [dst setObject: s forKey: k];
 		    }
 		}
 	    }

@@ -237,7 +237,11 @@
       the cross reference ... if it is an empty string, the path to use
       is assumed to be a file in the same directory where the igsdoc
       file was found, otherwise it is used as a prefix to the name in
-      the index.
+      the index.<br />
+      NB. Local projects with the same name as the project currently
+      being documented will <em>not</em> be included by this mechanism.
+      If you wish to include such projects, you must do so explicitly
+      using <em>-Projects</em>
     </item>
     <item><strong>Project</strong>
       May be used to specify the name of this project ... determines the
@@ -280,7 +284,11 @@
       the cross reference ... if it is an empty string, the path to use
       is assumed to be a file in the same directory where the igsdoc
       file was found, otherwise it is used as a prefix to the name in
-      the index.
+      the index.<br />
+      NB. System projects with the same name as the project currently
+      being documented will <em>not</em> be included by this mechanism.
+      If you wish to include such projects, you must do so explicitly
+      using <em>-Projects</em>
     </item>
     <item><strong>Up</strong>
       A string used to supply the name to be used in the 'up' link from
@@ -357,6 +365,7 @@ main(int argc, char **argv, char **env)
   NSString		*declared;
   NSString		*headerDirectory;
   NSString		*project;
+  NSString		*refsName;
   NSDictionary		*originalIndex;
   AGSIndex		*projectRefs;
   AGSIndex		*globalRefs;
@@ -417,6 +426,7 @@ main(int argc, char **argv, char **env)
 
   declared = [defs stringForKey: @"Declared"];
   project = [defs stringForKey: @"Project"];
+  refsName = [[project stringByAppendingPathExtension: @"igsdoc"] copy];
 
   headerDirectory = [defs stringForKey: @"HeaderDirectory"];
   if (headerDirectory == nil)
@@ -924,7 +934,8 @@ main(int argc, char **argv, char **env)
 		{
 		  NSString	*ext = [file pathExtension];
 
-		  if ([ext isEqualToString: @"igsdoc"] == YES)
+		  if ([ext isEqualToString: @"igsdoc"] == YES
+		    && [[file lastPathComponent] isEqual: refsName] == NO)
 		    {
 		      NSString	*key;
 		      NSString	*val;
@@ -962,8 +973,10 @@ main(int argc, char **argv, char **env)
 	      while ((file = [enumerator nextObject]) != nil)
 		{
 		  NSString	*ext = [file pathExtension];
+		  
 
-		  if ([ext isEqualToString: @"igsdoc"] == YES)
+		  if ([ext isEqualToString: @"igsdoc"] == YES
+		    && [[file lastPathComponent] isEqual: refsName] == NO)
 		    {
 		      NSString	*key;
 		      NSString	*val;
