@@ -51,6 +51,7 @@
 #include <Foundation/NSDistributedLock.h>
 #include <Foundation/NSDistributedNotificationCenter.h>
 #include <Foundation/NSEnumerator.h>
+#include <Foundation/NSError.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSFileManager.h>
