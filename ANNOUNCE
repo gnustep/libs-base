@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.1.0, is now available.
+The GNUstep Base Library, version 1.3.0, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -11,7 +11,7 @@ non-graphical Objective C objects.  For example, it includes classes
 for strings, object collections, byte streams, typed coders,
 invocations, notifications, notification dispatchers, moments in time,
 network ports, remote object messaging support (distributed objects),
-event loops, and random number generators.
+and event loops.
 
    It provides functionality that aims to implement the non-graphical
 portion of the OpenStep standard (the Foundation library).
@@ -19,32 +19,26 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.1.0'
+Noteworthy changes in version `1.3.0'
 =====================================
 
-   * Removed use of distributed lock to sync defaults file.
+   * Moved additional classes into subprojects and/or bundles to make it
+     easier to port these to other Foundation libraries..
 
-   * Compiles on Darwin (but does not work yet).
+   * Traditional Chinese extensions added.
 
-   * New tool autogsdoc for inline Objective-C documentation.
+   * Better support for resources (bundles)
 
-   * Some NSBundle convienience methods for associating resources with
-     libraries and tools (like a lightweight framework).
+   * Ports and DO work on MingW.
 
-   * URL classes improved and more robust.
+   * Better KeyValueCoding support (for EOF).
 
-   * SSL classes compiled as a separate bundle due to license problems.
-
-   * Better operation in MinGW environment.
-
-   * New localization files.
-
-   * XML property lists
+   * New, partially finished Objective-C/Foundation programming manual.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.1.0.tar.gz distribution file has been placed on
+   The gnustep-base-1.3.0.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    The library requires gcc 2.8.0 or higher.  See the `GNUstep-HOWTO'

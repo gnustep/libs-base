@@ -5,8 +5,7 @@ The GNUstep Base Library is a library of general-purpose, non-graphical
 Objective C objects.  For example, it includes classes for strings,
 object collections, byte streams, typed coders, invocations,
 notifications, notification dispatchers, moments in time, network ports,
-remote object messaging support (distributed objects), event loops, and
-random number generators.
+remote object messaging support (distributed objects), and event loops.
 
    It provides functionality that aims to implement the non-graphical
 portion of the OpenStep standard (the Foundation library).
@@ -18,6 +17,10 @@ Initial reading
 
    The files `INSTALL' or `GNUstep-HOWTO' (from the web site) gives
 instructions for installing the library.
+
+   Note that releases numbers that have an odd minor version (e.g.
+1.3.2) are unstable releases. They are not as well tested as stable
+releases (e.g. 1.4.1).
 
 License
 =======
