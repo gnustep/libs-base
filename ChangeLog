@@ -1,3 +1,9 @@
+Wed Jul 28 15:53:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSObject.h: ([+isKindOfClass:]) Fixed to return NO except
+	when both the argument and the receiver are NSObject - as specified
+	in the MacOS-X documentation.  Thanks to Helge for pointing this out.
+
 Mon Jul 26 21:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Fix cStrings to use unsigned char throughout - to avoid problems
