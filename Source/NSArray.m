@@ -437,7 +437,7 @@ static SEL	rlSel;
       RELEASE(myString);
       if ([result isKindOfClass: NSArrayClass])
 	{
-	  [self initWithArray: result];
+	  self = [self initWithArray: result];
 	  return self;
 	}
     }

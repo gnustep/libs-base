@@ -502,10 +502,13 @@ static Class NSMutableSet_concrete_class;
 - (id) initWithObjects: (id*)objects
 		 count: (unsigned)count
 {
-  [self initWithCapacity: count];
-  while (count--)
+  self = [self initWithCapacity: count];
+  if (self != nil)
     {
-      [self addObject: objects[count]];
+      while (count--)
+	{
+	  [self addObject: objects[count]];
+	}
     }
   return self;
 }

@@ -16,8 +16,7 @@
       <class name="NSTimeZone" super="NSObject">
         <declared>Foundation/NSTimeZone.h</declared>
         <conform>NSCoding</conform>
-          <desc>
-          </desc>
+	<desc>
         <p>
 	If the GNUstep time zone datafiles become too out of date, one
 	can download an updated database from <uref
@@ -40,6 +39,7 @@
 	wildly between OSes (this could be a big problem when
 	archiving is used between different systems).
 	</p>
+	</desc>
 
         <method type="NSDictionary*" factory="yes">
           <sel>abbreviationDictionary</sel>

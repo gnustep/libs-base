@@ -347,7 +347,7 @@ static SEL	eqSel;
 
   [aCoder decodeValueOfObjCType: @encode(unsigned)
 			     at: &count];
-  if ([self initWithCapacity: count] == nil)
+  if ((self = [self initWithCapacity: count]) == nil)
     {
       [NSException raise: NSMallocException
 		  format: @"Unable to make array"];

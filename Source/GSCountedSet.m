@@ -201,7 +201,8 @@
 {
   int i;
 
-  if ([self initWithCapacity: c] == nil)
+  self = [self initWithCapacity: c];
+  if (self == nil)
     {
       return nil;
     }

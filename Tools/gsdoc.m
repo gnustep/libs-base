@@ -1951,52 +1951,60 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 
 - (NSString *) parseItem: (xmlNodePtr)node
 {
+  NSMutableString	*text = [NSMutableString string];
+
   NSDebugMLLog(@"debug", @"Start parsing item");
   node = node->children;
 
-  if (strcmp(node->name, "class") == 0
-    || strcmp(node->name, "category") == 0
-    || strcmp(node->name, "protocol") == 0
-    || strcmp(node->name, "function") == 0
-    || strcmp(node->name, "macro") == 0
-    || strcmp(node->name, "type") == 0
-    || strcmp(node->name, "variable") == 0
-    || strcmp(node->name, "ivariable") == 0
-    || strcmp(node->name, "constant") == 0)
+  while (node != 0)
     {
-      return [self parseDef: node];
-    }
+      BOOL	step = YES;
 
-  if (strcmp(node->name, "list") == 0
-    || strcmp(node->name, "enum") == 0
-    || strcmp(node->name, "deflist") == 0
-    || strcmp(node->name, "qalist") == 0)
-    {
-      return [self parseList: node];
-    }
-
-  if (strcmp(node->name, "p") == 0)
-    {
-      NSString	*elem = [self parseText: node->children];
-
-      if (elem == nil)
+      if (strcmp(node->name, "class") == 0
+	|| strcmp(node->name, "category") == 0
+	|| strcmp(node->name, "protocol") == 0
+	|| strcmp(node->name, "function") == 0
+	|| strcmp(node->name, "macro") == 0
+	|| strcmp(node->name, "type") == 0
+	|| strcmp(node->name, "variable") == 0
+	|| strcmp(node->name, "ivariable") == 0
+	|| strcmp(node->name, "constant") == 0)
 	{
-	  return nil;
+	  [text appendString: [self parseDef: node]];
 	}
-      return [NSString stringWithFormat: @"<p>\r\n%@</p>\r\n", elem];
-    }
+      else if (strcmp(node->name, "list") == 0
+	|| strcmp(node->name, "enum") == 0
+	|| strcmp(node->name, "deflist") == 0
+	|| strcmp(node->name, "qalist") == 0)
+	{
+	  [text appendString: [self parseList: node]];
+	}
+      else if (strcmp(node->name, "p") == 0)
+	{
+	  NSString	*elem = [self parseText: node->children];
 
-  if (strcmp(node->name, "example") == 0)
-    {
-      return [self parseExample: node];
+	  if (elem != nil)
+	    {
+	      [text appendFormat: @"<p>\r\n%@</p>\r\n", elem];
+	    }
+	}
+      else if (strcmp(node->name, "example") == 0)
+	{
+	  [text appendString: [self parseExample: node]];
+	}
+      else if (strcmp(node->name, "embed") == 0)
+	{
+	  [text appendString: [self parseEmbed: node]];
+	}
+      else
+	{
+	  [text appendString: [self parseText: node end: &node]];
+	  step = NO;
+	}
+      if (step == YES)
+	node = node->next;
     }
-
-  if (strcmp(node->name, "embed") == 0)
-    {
-      return [self parseEmbed: node];
-    }
-
-  return [self parseText: node];
+  return text;
 }
 
 - (NSString *) parseList: (xmlNodePtr)node
