@@ -3127,17 +3127,22 @@ static NSCharacterSet	*tokenSet = nil;
 	  else if (pos > 6 && strncmp(bytes, "begin ", 6) == 0)
 	    {
 	      unsigned	off = 6;
+	      unsigned	end = pos;
 	      NSData	*d;
 
-	      while (off < pos && bytes[off] >= '0' && bytes[off] <= '7')
+	      if (end > off && bytes[end-1] == '\r')
+		{
+		  end--;
+		} 
+	      while (off < end && bytes[off] >= '0' && bytes[off] <= '7')
 		{
 		  off++;
 		}
-	      while (off < pos && bytes[off] == ' ')
+	      while (off < end && bytes[off] == ' ')
 		{
 		  off++;
 		}
-	      d = [NSData dataWithBytes: &bytes[off] length: pos - off];
+	      d = [NSData dataWithBytes: &bytes[off] length: end - off];
 	      name = [[NSString alloc] initWithData: d
 					   encoding: NSASCIIStringEncoding];
 	      AUTORELEASE(name);
@@ -3329,7 +3334,7 @@ static NSCharacterSet	*tokenSet = nil;
       /*
        * Now we encode the actual data for the line.
        */
-      for (pos = 0; count > 0; count -= 3, pos += 3)
+      for (pos = 0; count > 0; count -= 3)
 	{
 	  unsigned char	tmp[3];
 	  int		c;
