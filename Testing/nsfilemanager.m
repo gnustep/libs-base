@@ -47,6 +47,17 @@ main ()
 	}
     }
 
+  src = [defs stringForKey: @"LinkSrc"];
+  dst = [defs objectForKey: @"LinkDst"];
+  if (src != nil && dst != nil)
+    {
+      if ([mgr linkPath: src toPath: dst handler: handler] ==  NO)
+	{
+	  NSLog(@"Link %@ to %@ failed", src, dst);
+          errors++;
+	}
+    }
+
   src = [defs stringForKey: @"Remove"];
   if (src != nil)
     {
