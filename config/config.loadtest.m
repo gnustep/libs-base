@@ -1,7 +1,9 @@
 /* Dummy NXConstantString impl for so libobjc that doesn't include it */
+#ifndef NeXT_RUNTIME
 #include <objc/NXConstStr.h>
 @implementation NXConstantString
 @end
+#endif
 
 @interface Test 
 static int test_result;

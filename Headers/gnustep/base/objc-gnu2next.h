@@ -26,11 +26,10 @@
 #ifndef __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE
 #define __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE
 
-#include <base/preface.h>
-
 #if NeXT_RUNTIME
 
 #include <objc/objc-class.h>
+#include <stddef.h>
 
 #define arglist_t marg_list
 #define retval_t void*
@@ -59,6 +58,11 @@
 #define class_create_instance(CLASS) class_createInstance(CLASS, 0)
 #define sel_get_name(ASEL) sel_getName(ASEL)
 #define sel_get_uid(METHODNAME) sel_getUid(METHODNAME)
+
+/* FIXME: Any equivalent for this ? */
+#define sel_get_type(SELECTOR) \
+     (NULL)
+     
 #define class_get_instance_method(CLASSPOINTER, SEL) \
      class_getInstanceMethod(CLASSPOINTER, SEL)
 #define class_get_class_method(CLASSPOINTER, SEL) \
@@ -88,186 +92,8 @@
 #define objc_msg_lookup(OBJ,SEL) \
     (class_getInstanceMethod(object_get_class(OBJ), SEL)->method_imp)
 
-#if 1
-void objc_fatal(const char* msg);
-#else
-#define objc_fatal(FMT, args...) \
- do { fprintf (stderr, (FMT), ##args); abort(); } while (0)
-#endif
-
 #define OBJC_READONLY 1
 #define OBJC_WRITEONLY 2
-
-
-/* Methods defined by the GNU runtime, which libobjects will provide
-   if the GNU runtime isn't being used. */
-
-int objc_sizeof_type(const char* type);
-int objc_alignof_type(const char* type);
-int objc_aligned_size (const char* type);
-int objc_promoted_size (const char* type);
-inline const char* objc_skip_type_qualifiers (const char* type);
-const char* objc_skip_typespec (const char* type);
-inline const char* objc_skip_offset (const char* type);
-const char* objc_skip_argspec (const char* type);
-unsigned objc_get_type_qualifiers (const char* type);
-
-/* The following from GNU's objc/objc-api.h */
-
-/* For functions which return Method_t */
-#define METHOD_NULL	(Method_t)0
-
-static inline BOOL
-class_is_class(Class* class)
-{
-  return CLS_ISCLASS(class);
-}
-
-static inline BOOL
-class_is_meta_class(Class* class)
-{
-  return CLS_ISMETA(class);
-}
-
-static inline BOOL
-object_is_class(id object)
-{
-  return CLS_ISCLASS((Class*)object);
-}
-
-static inline BOOL
-object_is_instance(id object)
-{
-  return (object!=nil)&&CLS_ISCLASS(object_get_class(object));
-}
-
-static inline BOOL
-object_is_meta_class(id object)
-{
-  return CLS_ISMETA((Class*)object);
-}
-
-
-/* The following from GNU's objc/list.h */
-
-#include <stdio.h>
-
-struct objc_list {
-  void *head;
-  struct objc_list *tail;
-};
-
-/* Return a cons cell produced from (head . tail) */
-
-static inline struct objc_list* 
-list_cons(void* head, struct objc_list* tail)
-{
-  struct objc_list* cell;
-
-  cell = (struct objc_list*)objc_malloc(sizeof(struct objc_list));
-  cell->head = head;
-  cell->tail = tail;
-  return cell;
-}
-
-/* Return the length of a list, list_length(NULL) returns zero */
-
-static inline int
-list_length(struct objc_list* list)
-{
-  int i = 0;
-  while(list)
-    {
-      i += 1;
-      list = list->tail;
-    }
-  return i;
-}
-
-/* Return the Nth element of LIST, where N count from zero.  If N 
-   larger than the list length, NULL is returned  */
-
-static inline void*
-list_nth(int index, struct objc_list* list)
-{
-  while(index-- != 0)
-    {
-      if(list->tail)
-	list = list->tail;
-      else
-	return 0;
-    }
-  return list->head;
-}
-
-/* Remove the element at the head by replacing it by its successor */
-
-static inline void
-list_remove_head(struct objc_list** list)
-{
-  if ((*list)->tail)
-    {
-      struct objc_list* tail = (*list)->tail; /* fetch next */
-      *(*list) = *tail;/* copy next to list head */
-      objc_free(tail);/* free next */
-    }
-  else/* only one element in list */
-    {
-      objc_free(*list);
-      (*list) = 0;
-    }
-}
-
-
-/* Remove the element with `car' set to ELEMENT */
-
-static inline void
-list_remove_elem(struct objc_list** list, void* elem)
-{
-  while (*list) {
-    if ((*list)->head == elem)
-      list_remove_head(list);
-    list = &((*list)->tail);
-  }
-}
-
-/* Map FUNCTION over all elements in LIST */
-
-static inline void
-list_mapcar(struct objc_list* list, void(*function)(void*))
-{
-  while(list)
-    {
-      (*function)(list->head);
-      list = list->tail;
-    }
-}
-
-/* Return element that has ELEM as car */
-
-static inline struct objc_list**
-list_find(struct objc_list** list, void* elem)
-{
-  while(*list)
-    {
-    if ((*list)->head == elem)
-      return list;
-    list = &((*list)->tail);
-  }
-  return NULL;
-}
-
-/* Free list (backwards recursive) */
-
-static void
-list_free(struct objc_list* list)
-{
-  if(list)
-    {
-      list_free(list->tail);
-      objc_free(list);
-    }
-}
 
 #endif /* NeXT_RUNTIME */
 
