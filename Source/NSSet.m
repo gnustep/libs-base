@@ -34,11 +34,6 @@
 @class	GSSet;
 @class	GSMutableSet;
 
-@interface NSSetNonCore : NSSet
-@end
-@interface NSMutableSetNonCore: NSMutableSet
-@end
-
 @implementation NSSet 
 
 static Class NSSet_abstract_class;
@@ -66,7 +61,6 @@ static Class NSMutableSet_concrete_class;
       NSMutableSet_abstract_class = [NSMutableSet class];
       NSSet_concrete_class = [GSSet class];
       NSMutableSet_concrete_class = [GSMutableSet class];
-      behavior_class_add_class(self, [NSSetNonCore class]);
     }
 }
 
@@ -194,10 +188,6 @@ static Class NSMutableSet_concrete_class;
 {
   return [self subclassResponsibility: _cmd];
 }
-
-@end
-
-@implementation NSSetNonCore
 
 /* Same as NSArray */
 - (id) initWithObjects: firstObject rest: (va_list)ap
@@ -462,8 +452,6 @@ static Class NSMutableSet_concrete_class;
 {
   if (self == [NSMutableSet class])
     {
-      behavior_class_add_class(self, [NSMutableSetNonCore class]);
-      behavior_class_add_class(self, [NSSetNonCore class]);
     }
 }
 
@@ -510,10 +498,6 @@ static Class NSMutableSet_concrete_class;
 {
   [self subclassResponsibility: _cmd];
 }
-
-@end
-
-@implementation NSMutableSetNonCore
 
 - (id) initWithObjects: (id*)objects
 		 count: (unsigned)count

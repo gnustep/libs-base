@@ -3,8 +3,9 @@
 	* Source/NSGSet.m: renamed to GSSet.m for consistency, tidied.
 	* Source/NSGCountedSet.m: renamed to GSCountedSet.m for consistency.
 	* Headers/Foundation/NSGSet.h: removed - obsolete.
+	* Headers/Foundation/NSSet.h: si9mplified back to single class
 	* Source/NSSet.m: Updated and tidied.  Fixed coding class for
-	mutable sets.
+	mutable sets. Removed non-core classes.
 
 2000-12-05  Richard Frith-Macdonald <rfm@gnu.org>
 

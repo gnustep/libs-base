@@ -39,9 +39,6 @@
 
 #include <base/GSIMap.h>
 
-@class	NSSetNonCore;
-@class	NSMutableSetNonCore;
-
 @interface GSSet : NSSet
 {
 @public
@@ -107,7 +104,6 @@ static Class	mutableSetClass;
 {
   if (self == [GSSet class])
     {
-      class_add_behavior(self, [NSSetNonCore class]);
       arrayClass = [NSArray class];
       setClass = [GSSet class];
       mutableSetClass = [GSMutableSet class];
@@ -424,7 +420,6 @@ static Class	mutableSetClass;
 {
   if (self == [GSMutableSet class])
     {
-      class_add_behavior(self, [NSMutableSetNonCore class]);
       class_add_behavior(self, [GSSet class]);
     }
 }

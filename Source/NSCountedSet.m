@@ -33,8 +33,6 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSObjCRuntime.h>
 
-@class	NSSetNonCore;
-@class	NSMutableSetNonCore;
 @class	GSCountedSet;
 
 /*
@@ -62,8 +60,6 @@ static Class NSCountedSet_concrete_class;
     {
       NSCountedSet_abstract_class = self;
       NSCountedSet_concrete_class = [GSCountedSet class];
-      behavior_class_add_class(self, [NSMutableSetNonCore class]);
-      behavior_class_add_class(self, [NSSetNonCore class]);
       if ([NSThread isMultiThreaded])
 	{
 	  [self _becomeThreaded: nil];
