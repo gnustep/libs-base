@@ -8,6 +8,7 @@
 	* Tools/gsdoc.gsdoc: Added from GSDoc
 	* Tools/gnustep.gsdoc: Added from GSDoc
 	* GSDoc: all removed
+	* Examples: removed obsolete code.
 
 2000-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 

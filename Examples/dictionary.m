@@ -1,40 +1,40 @@
-/* A simple demonstration of the GNU Dictionary object.
-   In this example the Dictionary holds int's which are keyed by strings. */
+/* A simple demonstration of the NSDictionary object.
+   In this example the NSDictionary holds int's which are keyed by strings. */
 
-#include <base/Dictionary.h>
+
+#include <Foundation/Foundation.h>
+#include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSDictionary.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>
 
-int main()
+int
+main()
 {
-  id d;
+  NSMutableDictionary	*d;
+  CREATE_AUTORELEASE_POOL(pool);
 
   /* Create a Dictionary object. */
-  d = [[Dictionary alloc] initWithCapacity: 32];
+  d = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
   /* Load the dictionary with some items */
-  [d putObject: [NSNumber numberWithInt: 1] atKey: @"one"];
-  [d putObject: [NSNumber numberWithInt: 2] atKey: @"two"];
-  [d putObject: [NSNumber numberWithInt: 3] atKey: @"three"];
-  [d putObject: [NSNumber numberWithInt: 4] atKey: @"four"];
-  [d putObject: [NSNumber numberWithInt: 5] atKey: @"five"];
-  [d putObject: [NSNumber numberWithInt: 6] atKey: @"six"];
+  [d setObject: [NSNumber numberWithInt: 1] forKey: @"one"];
+  [d setObject: [NSNumber numberWithInt: 2] forKey: @"two"];
+  [d setObject: [NSNumber numberWithInt: 3] forKey: @"three"];
+  [d setObject: [NSNumber numberWithInt: 4] forKey: @"four"];
+  [d setObject: [NSNumber numberWithInt: 5] forKey: @"five"];
+  [d setObject: [NSNumber numberWithInt: 6] forKey: @"six"];
   
-  printf("There are %u elements stored in the dictionary\n",
-	 [d count]);
+  NSLog(@"There are %u elements stored in the dictionary\n", [d count]);
 
-  printf("Element %d is stored at \"%s\"\n", 
-	 [[d objectAtKey: @"three"] intValue],
-	 "three");
+  NSLog(@"Element %d is stored at \"%s\"\n", 
+    [[d objectForKey: @"three"] intValue], "three");
 
-  printf("Removing element stored at \"three\"\n");
-  [d removeObjectAtKey: @"three"];
+  NSLog(@"Removing element stored at \"three\"\n");
+  [d removeObjectForKey: @"three"];
 
-  printf("Removing element 2\n");
-  [d removeObject: [NSNumber numberWithInt: 2]];
+  NSLog(@"Now there are %u elements stored in the dictionary\n", [d count]);
 
-  printf("Now there are %u elements stored in the dictionary\n",
-	 [d count]);
-
+  DESTROY(pool);
   exit(0);
 }
