@@ -1,3 +1,40 @@
+Mon May 27 09:57:34 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/x-cbs.m.in: Prepend missing `o-' in #include.
+	* src/x-bas.m.in: Likewise.
+
+Mon May 20 16:53:57 1996  Adam Fedor  <fedor@wilma.Colorado.EDU>
+
+        *  src/include/NSGeometry.h: Include NSString functions only if
+        compiling in Objective-C mode (using "#ifdef __OBJC__").
+
+Tue May 14 20:03:55 1996  Scott Christley <scottc@net-community.com>
+
+        * INSTALL.WIN32: Correct grammatical errors.
+        * Makefile.sed.nt: Sed script now handles install and all
+        targets for top level Makefile.
+        * checks/Makefile.sed.nt: Corrections to handle changes
+        to checks/Makefile.in.
+        * configure.bat: Corrections to handle the different
+        directory structure for the header files.
+        * src/BinaryCStream: Eliminate header files not needed on WIN32.
+        * src/Makefile.in (ALL_INCLUDE_FLAGS): Eliminate -I./include flag.
+        (FORCE): New Target.
+        * src/Makefile.sed.nt: New file; somehow got lost.
+        * src/RunLoop.m: Eliminate header files not needed on WIN32.
+        * src/TcpPort.m: Likewise.
+        * src/UdpPort.m: Likewise.
+        * src/include/TcpPort.h: Likewise.
+        * src/include/config-nt.h: New file, got lost during restructuring.
+        * src/include/config-nt.sed: New file, got lost during restructuring.
+        * src/libgnustep-base-entry.c: New file.
+        * src/libgnustep-base.top: New file.
+
+Wed May 22 06:56:49 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* doc/install.texi: Say that the objc patch will be part of gcc
+ 	2.8.0.
+
 Mon May 13 09:03:55 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* src/Makefile.in (FILE_AUTHORS): Added "Scott Christley".

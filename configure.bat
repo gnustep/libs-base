@@ -1,13 +1,14 @@
 @echo off
 rem
 rem  configure.bat
-rem  Configuration program for libobjects for Window NT
+rem  Configuration program for GNUstep Base Library
+rem  on WIN32 operating systems using Microsoft tools.
 rem 
 rem  Copyright (C) 1996 Free Software Foundation, Inc.
 rem
 rem  Written by: Scott Christley <scottc@net-community.com>
 rem
-rem  This file is part of the GNU Objective-C Class library.
+rem  This file is part of the GNUstep Base Library.
 rem
 rem  This library is free software; you can redistribute it and/or
 rem  modify it under the terms of the GNU Library General Public
@@ -49,8 +50,8 @@ touch 9
 touch 10
 touch 11
 touch 12
-echo "objects subdirectory"
-cd objects
+echo "include subdirectory"
+cd include
 rm -f config.h
 sed -f config-nt.sed config.h.in >>config.h
 cat config-nt.h >>config.h
