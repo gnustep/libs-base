@@ -34,6 +34,10 @@
 + (void)addObject: anObject;
 - (void)addObject: anObject;
 
++ (void) enableRelease: (BOOL)enable;
++ (void) enableDoubleReleaseCheck: (BOOL)enable;
++ (void) setPoolCountThreshhold: (unsigned)c;
+
 @end
 
 #endif /* __NSAutoreleasePool_h_OBJECTS_INCLUDE */
