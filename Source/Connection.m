@@ -236,7 +236,7 @@ static int messagesReceivedCount;
 	{
 	case _C_ID:
 	  if (flags & _F_BYCOPY)
-	    [op encodeObjectBycopy:*(id*)datum withName:ENCODED_ARGNAME];
+	    [op encodeBycopyObject:*(id*)datum withName:ENCODED_ARGNAME];
 	  else
 	    [op encodeObject:*(id*)datum withName:ENCODED_ARGNAME];
 	  break;
@@ -333,7 +333,7 @@ static int messagesReceivedCount;
 	{
 	case _C_ID:
 	  if (flags & _F_BYCOPY)
-	    [op encodeObjectBycopy:*(id*)datum withName:ENCODED_RETNAME];
+	    [op encodeBycopyObject:*(id*)datum withName:ENCODED_RETNAME];
 	  else
 	    [op encodeObject:*(id*)datum withName:ENCODED_RETNAME];
 	  break;
