@@ -1,5 +1,5 @@
 /* Implementation of NSMethodSignature for GNUStep
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: August 1994
@@ -60,7 +60,7 @@ types_get_number_of_arguments (const char *types)
   bcopy(t, newMs->returnTypes, len);
   newMs->returnTypes[len-1] = '\0';
   newMs->argFrameLength = types_get_size_of_arguments(t);
-  newMs->returnFrameLength = objc_size_of_type(t);
+  newMs->returnFrameLength = objc_sizeof_type(t);
   newMs->numArgs = types_get_number_of_arguments(t);
   return newMs;
 }
