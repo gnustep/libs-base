@@ -109,7 +109,7 @@ static NSMutableDictionary *_hostCache = nil;
   for (i = 0, ptr = entry->h_addr_list[0]; ptr != NULL; i++,  
 	 ptr = entry->h_addr_list[i])
     {
-      memmove((void *)&in.s_addr, (const void *)ptr,  
+      memcpy((void *)&in.s_addr, (const void *)ptr,  
 	      entry->h_length);
       [addresses addObject:[NSString  
 			     stringWithCString:inet_ntoa(in)]];

@@ -1,3 +1,20 @@
+Fri Oct 17 09:16:36 1997  Adam Fedor  <fedor@doc.com>
+
+	* checks/Makefile.postamble: Add English.lproj dir to copy-dist.
+
+	* src/NSCalendarDate.m (-descriptionWithCalendarFormat:locale):
+	Use VSPRINTF_LENGTH macro to return string length.
+	* src/NSData.m ([NSMutableDataMalloc -setCapacity:): Use realloc
+	instead of objc_realloc.
+	* src/NSHost.m (-_initWithHostEntry:): Use memcpy instead of
+	memmove.
+	* src/UnixFileHandle.m (getAddr): Remove uneeded htonl.
+	Changes from Richard Frith-Macdonald  <richard@brainstorm.co.uk>.
+
+	* src/NSTimeZone.m: Reformat with better spacing.
+	([NSTimeZone +initialize]): Find local time zone.
+	Changes from Yoo C. Chung  <wacko@laplace.snu.ac.kr>.
+
 Thu Oct 16 16:14:31 1997  Scott Christley  <scottc@net-community.com>
 
 	* checks/Makefile: Add variables to create bundle example.

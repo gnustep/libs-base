@@ -143,7 +143,7 @@ MyCategory.h \
 SecondClass.h
 
 DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
-	Makefile Makefile.preamble Makefile.postamble NXStringTable.example
+	Makefile Makefile.preamble Makefile.postamble
 
 -include Makefile.preamble
 
