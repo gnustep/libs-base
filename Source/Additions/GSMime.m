@@ -3112,6 +3112,21 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Convenience method to return an autoreleased document using the
+ * specified content, type, and name value.  This calls the
+ * -setContent:type:name: method to set up the document.
+ */
++ (GSMimeDocument*) documentWithContent: (id)newContent
+                                   type: (NSString*)type
+                                   name: (NSString*)name
+{
+  GSMimeDocument	*doc = AUTORELEASE([self new]);
+
+  [doc setContent: newContent type: type name: name];
+  return doc;
+}
+
+/**
  * Encode the source data to base64 encoding and return the result.
  */
 + (NSData*) encodeBase64: (NSData*)source
@@ -3845,23 +3860,16 @@ static NSCharacterSet	*tokenSet = nil;
        */
       if (isMultipart == YES)
 	{
-	  [self setContent: content
-		      type: @"multipart"
-		   subtype: @"mixed"
-		      name: nil];
+	  [self setContent: content type: @"multipart/mixed" name: nil];
 	}
       else if ([content isKindOfClass: [NSString class]] == YES)
 	{
-	  [self setContent: content
-		      type: @"text"
-		   subtype: @"plain"
-		      name: nil];
+	  [self setContent: content type: @"text/plain" name: nil];
 	}
       else if ([content isKindOfClass: [NSData class]] == YES)
 	{
 	  [self setContent: content
-		      type: @"application"
-		   subtype: @"octet-stream"
+		      type: @"application/octet-stream"
 		      name: nil];
 	}
       else
@@ -4066,7 +4074,7 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Convenience method calling -setContent:type:name: to set document
- * content and type without specifying a name ... useful for top-level
+ * content and type with a nil value for name ... useful for top-level
  * documents rather than parts within a document (parts should really
  * be named).
  */
@@ -4074,55 +4082,6 @@ static NSCharacterSet	*tokenSet = nil;
 	       type: (NSString*)type
 {
   [self setContent: newContent type: type name: nil];
-}
-
-/**
- * Convenience method calling -setContent:type:subtype:name: to set
- * content and type.  If the type argument contains a slash '/')
- * then it is split into type and subtype parts, otherwise, the
- * subtype is assumed to be nil.
- */
-- (void) setContent: (id)newContent
-	       type: (NSString*)type
-	       name: (NSString*)name
-{
-  NSString	*subtype = nil;
-
-  if (type != nil)
-    {
-      NSRange	r;
-
-      r = [type rangeOfString: @"/"];
-      if (r.length > 0)
-	{
-	  subtype = [type substringFromIndex: NSMaxRange(r)];
-	  type = [type substringToIndex: r.location];
-	}
-      else if ([type isEqual: @"text"] == YES)
-	{
-	  subtype = @"plain";
-	}
-      else if ([type isEqual: @"multipart"] == YES)
-	{
-	  subtype = @"mixed";
-	}
-      else
-	{
-	  subtype = @"octet-stream";
-	}
-    }
-  [self setContent: newContent
-	      type: type
-	   subtype: subtype
-	      name: name];
-}
-
-- (void) setContent: (id)newContent
-	       type: (NSString*)type
-	    subType: (NSString*)subtype
-	       name: (NSString*)name
-{
-  [self setContent: newContent type: type subtype: subtype name: name];
 }
 
 /**
@@ -4144,11 +4103,63 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
-	    subtype: (NSString*)subtype
 	       name: (NSString*)name
 {
-  GSMimeHeader	*hdr;
-  NSString	*val;
+  CREATE_AUTORELEASE_POOL(arp);
+  NSString	*subtype = nil;
+  GSMimeHeader	*hdr = nil;
+
+  if (type == nil)
+    {
+      type = @"text";
+    }
+
+  if ([type isEqual: @"text"] == YES)
+    {
+      subtype = @"plain";
+    }
+  else if ([type isEqual: @"multipart"] == YES)
+    {
+      subtype = @"mixed";
+    }
+  else if ([type isEqual: @"application"] == YES)
+    {
+      subtype = @"octet-stream";
+    }
+  else
+    {
+      GSMimeParser	*p = AUTORELEASE([GSMimeParser new]);
+      NSScanner		*scanner = [NSScanner scannerWithString: type];
+
+      hdr = AUTORELEASE([GSMimeHeader new]);
+      if ([p scanHeaderBody: scanner into: hdr] == NO)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Unable to parse type information"];
+	}
+    }
+
+  if (hdr == nil)
+    {
+      NSString	*val;
+
+      val = [NSString stringWithFormat: @"%@/%@", type, subtype];
+      hdr = [GSMimeHeader alloc];
+      hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
+      [hdr setObject: type forKey: @"Type"];
+      [hdr setObject: subtype forKey: @"SubType"];
+      AUTORELEASE(hdr);
+    }
+  else
+    {
+      type = [hdr objectForKey: @"Type"];
+      subtype = [hdr objectForKey: @"SubType"];
+    }
+
+  if (name != nil)
+    {
+      [hdr setParameter: name forKey: @"name"];
+    }
 
   if ([type isEqualToString: @"multipart"] == NO
     && [type isEqualToString: @"application"] == NO
@@ -4160,18 +4171,8 @@ static NSCharacterSet	*tokenSet = nil;
     }
 
   [self setContent: newContent];
-
-  val = [NSString stringWithFormat: @"%@/%@", type, subtype];
-  hdr = [GSMimeHeader alloc];
-  hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
-  [hdr setObject: type forKey: @"Type"];
-  [hdr setObject: subtype forKey: @"SubType"];
-  if (name != nil)
-    {
-      [hdr setParameter: name forKey: @"name"];
-    }
   [self setHeader: hdr];
-  RELEASE(hdr);
+  RELEASE(arp);
 }
 
 /**
