@@ -1132,25 +1132,44 @@ static unsigned	urlAlign;
 - (void) loadResourceDataNotifyingClient: (id)client
 			      usingCache: (BOOL)shouldUseCache
 {
-  NSURLHandle	*handle = [self URLHandleUsingCache: shouldUseCache];
+  NSURLHandle	*handle = [self URLHandleUsingCache: YES];
+  NSData	*d;
   
-  if (client != nil)
+  if (shouldUseCache == YES && (d = [handle availableResourceData]) != nil)
     {
-      [clientsLock lock];
-      if (_clients == 0)
+      /*
+       * We already have cached data we should use.
+       */
+      if ([client respondsToSelector:
+	@selector(URL:resourceDataDidBecomeAvailable:)])
 	{
-	  _clients = NSCreateMapTable (NSObjectMapKeyCallBacks,
-	    NSNonRetainedObjectMapValueCallBacks, 0);
+	  [client URL: self resourceDataDidBecomeAvailable: d];
 	}
-      NSMapInsert((NSMapTable*)_clients, (void*)handle, (void*)client);
-      [clientsLock unlock];
-      [handle addClient: self];
+      if ([client respondsToSelector: @selector(URLResourceDidFinishLoading:)])
+	{
+	  [client URLResourceDidFinishLoading: self];
+	}
     }
+  else
+    {
+      if (client != nil)
+	{
+	  [clientsLock lock];
+	  if (_clients == 0)
+	    {
+	      _clients = NSCreateMapTable (NSObjectMapKeyCallBacks,
+		NSNonRetainedObjectMapValueCallBacks, 0);
+	    }
+	  NSMapInsert((NSMapTable*)_clients, (void*)handle, (void*)client);
+	  [clientsLock unlock];
+	  [handle addClient: self];
+	}
 
-  /*
-   * Kick off the load process.
-   */
-  [handle loadInBackground];
+      /*
+       * Kick off the load process.
+       */
+      [handle loadInBackground];
+    }
 }
 
 /**
@@ -1335,7 +1354,7 @@ static unsigned	urlAlign;
 
 /**
  * Loads the resource data for the represented URL and returns the result.
- * The shoulduseCache flag determines whether an existing cached NSURLHandle
+ * The shouldUseCache flag determines whether an existing cached NSURLHandle
  * can be used to provide the data.
  */
 - (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache
