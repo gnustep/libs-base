@@ -24,8 +24,9 @@
 
 #include <config.h>
 #include <Foundation/NSSet.h>
-//#include <Foundation/NSGSet.h>
 #include <gnustep/base/behavior.h>
+#include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPortCoder.h>
@@ -159,8 +160,14 @@
     int i;
     FastMapInitWithZoneAndCapacity(&map, [self zone], c);
     for (i = 0; i < c; i++) {
-        FastMapNode     node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
+        FastMapNode     node;
 
+	if (objs[i] == nil) {
+	    [self autorelease];
+	    [NSException raise: NSInvalidArgumentException
+			format: @"Tried to init set with nil value"];
+	}
+        node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
         if (node == 0) {
             FastMapAddKey(&map, (FastMapItem)objs[i]);
         }
@@ -170,12 +177,14 @@
 
 - (id) member: (id)anObject
 {
-    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+    if (anObject) {
+	FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
 
-    if (node == 0) {
-	return nil;
+	if (node) {
+	    return node->key.o;
+	}
     }
-    return node->key.o;
+    return nil;
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -204,8 +213,13 @@
 
 - (void) addObject: (NSObject*)anObject
 {
-    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+    FastMapNode node;
 
+    if (anObject == nil) {
+	[NSException raise: NSInvalidArgumentException
+		    format: @"Tried to add nil to  set"];
+    }
+    node = FastMapNodeForKey(&map, (FastMapItem)anObject);
     if (node == 0) {
         FastMapAddKey(&map, (FastMapItem)anObject);
     }
@@ -213,7 +227,9 @@
 
 - (void) removeObject: (NSObject *)anObject
 {
-    FastMapRemoveKey(&map, (FastMapItem)anObject);
+    if (anObject) {
+	FastMapRemoveKey(&map, (FastMapItem)anObject);
+    }
 }
 
 - (void) removeAllObjects

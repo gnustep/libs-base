@@ -23,8 +23,9 @@
 
 #include <config.h>
 #include <Foundation/NSSet.h>
-//#include <Foundation/NSGSet.h>
 #include <gnustep/base/behavior.h>
+#include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPortCoder.h>
@@ -57,9 +58,11 @@
 
 - initWithSet: (NSSet*)d
 {
-    [super init];
-    set = [(NSGCountedSet*)d retain];
-    node = set->map.firstNode;
+    self = [super init];
+    if (self) {
+	set = [(NSGCountedSet*)d retain];
+	node = set->map.firstNode;
+    }
     return self;
 }
 
@@ -168,8 +171,14 @@
 	return nil;
     }
     for (i = 0; i < c; i++) {
-        FastMapNode     node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
+        FastMapNode     node;
 
+	if (objs[i] == nil) {
+	    [self autorelease];
+	    [NSException raise: NSInvalidArgumentException
+			format: @"Tried to init counted set with nil value"];
+	}
+        node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
         if (node == 0) {
             FastMapAddPair(&map,(FastMapItem)objs[i],(FastMapItem)(unsigned)1);
         }
@@ -182,8 +191,14 @@
 
 - (void) addObject: (NSObject*)anObject
 {
-    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+    FastMapNode node;
 
+    if (anObject == nil) {
+	[NSException raise: NSInvalidArgumentException
+		    format: @"Tried to nil value to counted set"];
+    }
+
+    node = FastMapNodeForKey(&map, (FastMapItem)anObject);
     if (node == 0) {
         FastMapAddPair(&map,(FastMapItem)anObject,(FastMapItem)(unsigned)1);
     }
@@ -199,22 +214,26 @@
 
 - (unsigned) countForObject: (id)anObject
 {
-    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+    if (anObject) {
+	FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
 
-    if (node == 0) {
-	return 0;
+	if (node) {
+	    return node->value.u;
+	}
     }
-    return node->value.u;
+    return 0;
 }
 
 - (id) member: (id)anObject
 {
-    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+    if (anObject) {
+	FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
 
-    if (node == 0) {
-	return nil;
+	if (node) {
+	    return node->key.o;
+	}
     }
-    return node->key.o;
+    return nil;
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -224,17 +243,19 @@
 
 - (void) removeObject: (NSObject*)anObject
 {
-    FastMapBucket       bucket;
+    if (anObject) {
+	FastMapBucket       bucket;
+	
+	bucket = FastMapBucketForKey(&map, (FastMapItem)anObject);
+	if (bucket) {
+	    FastMapNode     node;
 
-    bucket = FastMapBucketForKey(&map, (FastMapItem)anObject);
-    if (bucket) {
-	FastMapNode     node;
-
-	node = FastMapNodeForKeyInBucket(bucket, (FastMapItem)anObject);
-	if (node) {
-	    if (--node->value.u == 0) {
-		FastMapRemoveNodeFromMap(&map, bucket, node);
-		FastMapFreeNode(&map, node);
+	    node = FastMapNodeForKeyInBucket(bucket, (FastMapItem)anObject);
+	    if (node) {
+		if (--node->value.u == 0) {
+		    FastMapRemoveNodeFromMap(&map, bucket, node);
+		    FastMapFreeNode(&map, node);
+		}
 	    }
 	}
     }

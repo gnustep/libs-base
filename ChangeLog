@@ -1,3 +1,9 @@
+Thu Oct 17 08:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	src/NSGDictionary.m: Added checks for invalid parameters.
+	src/NSGSet.m: Added checks for invalid parameters.
+	src/NSGCountedSet.m: Added checks for invalid parameters.
+
 Thu Oct 15 08:13:12 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* src/NSString.m ([NSString
