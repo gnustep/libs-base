@@ -1,3 +1,9 @@
+2002-08-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: ([-globallyUniqueString]) Ensure that the
+	string contains no dots, so it can be used as a filename under
+	windoze.
+
 2002-08-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([-boolValue]) Accept 'true' as well as 'YES'
