@@ -222,6 +222,19 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   _contents_chars[_count] = '\0';
 }
 
+- (void) appendString: (NSString*)aString
+{
+  unsigned c = [aString cStringLength];
+  if (_count + c >= _capacity)
+    {
+      _capacity = MAX(_capacity*2, _count+c);
+      OBJC_REALLOC(_contents_chars, char, _capacity);
+    }
+  memcpy(_contents_chars + _count, [aString cStringNoCopy], c);
+  _count += c;
+  _contents_chars[_count] = '\0';
+}
+
 /* xxx This method may be removed in future. */
 - (void) setCString: (const char *)byteString length: (unsigned)length
 {

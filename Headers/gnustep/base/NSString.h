@@ -61,6 +61,7 @@ typedef enum _NSStringEncoding
 @protocol NSString  <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating Temporary Strings
++ (NSString*) string;
 + (NSString*) stringWithCharacters: (const unichar*)chars
    length: (unsigned int)length;
 + (NSString*) stringWithCString: (const char*)byteString

@@ -1,5 +1,24 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* src/Makefile.in (GNUSTEP_HEADERS): Added include/NSHost.h.
+	(GNUSTEP_MFILES): Added NSHost.m.
+
+	* src/NSCharacterSet.m ([NSCharacterSet +_bitmapForSet:number:]):
+ 	Use NSBundle's pathForResource:ofType:inDirectory method properly.
+  	(Reported by Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>.)
+
+Tue Jan 21 17:09:09 CST 1997 Jeremy Bettis <Jeremy@hksys.com>
+
+	* src/NSGCString.m: Add -appendString:.
+
+	* src/include/NSString.h: Add +string.
+
+	* src/NSString.m: (handle_printf_atsign) Take the description of
+	the object before the cStringNoCopy.
+	([NSString +allocWithZone:],[NSMutableString +allocWithZone:])
+	Only return the concrete class if [self class] == NSString to
+	allow subclassing.
+
 Tue Mar  4 10:51:22 1997  Andrew McCallum  <mccallum@jprc.com>
 
 	* src/NSConnection.m: New file.
