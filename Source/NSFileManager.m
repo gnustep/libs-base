@@ -1243,7 +1243,7 @@ static NSFileManager* defaultManager = nil;
 	  // Do not follow links
 	  if (!flags.isFollowing)
 	    {
-	      if (!lstat(cpath, &statbuf))
+	      if (lstat(cpath, &statbuf) != 0)
 		break;
 	      // If link then return it as link
 	      if (S_IFLNK == (S_IFMT & statbuf.st_mode)) 
@@ -1251,7 +1251,7 @@ static NSFileManager* defaultManager = nil;
 	    }
 	  else
 	    {
-	      if (!stat(cpath, &statbuf))
+	      if (stat(cpath, &statbuf) != 0)
 		break;
 	    }
 	  if (S_IFDIR == (S_IFMT & statbuf.st_mode))
