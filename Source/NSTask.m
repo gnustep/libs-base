@@ -81,9 +81,122 @@ static void handleSignal(int sig)
 #else
 @interface NSConcreteUnixTask : NSTask
 {
+  char	slave_name[32];
+  BOOL	usePseudoTerminal;
 }
 @end
 #define NSConcreteTask NSConcreteUnixTask
+
+#if	HAVE_SIGNAL_H
+#include <signal.h>
+#endif
+#if	HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
+#if	HAVE_SYS_FCNTL_H
+#include <sys/fcntl.h>
+#endif
+#if	HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
+#if	HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+
+/*
+ *	If we are on a streams based system, we need to include stropts.h
+ *	for definitions needed to set up slave pseudo-terminal stream.
+ */
+#if	HAVE_SYS_STROPTS_H
+#include <sys/stropts.h>
+#endif
+
+#ifndef	MAX_OPEN
+#define	MAX_OPEN	64
+#endif
+
+static int
+pty_master(char* name, int len)
+{
+  int	master;
+
+  /*
+   *	If we have grantpt(), assume we are using sysv-style pseudo-terminals,
+   *	otherwise assume bsd style.
+   */
+#if	HAVE_GRANTPT
+  master = open("/dev/ptmx", O_RDWR);
+  if (master >= 0)
+    {
+      const char	*slave;
+
+      grantpt(master);                   /* Change permission of slave.  */
+      unlockpt(master);                  /* Unlock slave.        */
+      slave = (const char*)ptsname(master);
+      if (slave == 0 || strlen(slave) >= len)
+	{
+	  close(master);
+	  master = -1;
+	}
+      else
+	{
+	  strcpy(name, (char*)slave);
+	}
+    }
+  else
+#endif
+    {
+      const char	*groups = "pqrstuvwxyzPQRSTUVWXYZ";
+
+      master = -1;
+      if (len > 10)
+        {
+	  strcpy(name, "/dev/ptyXX");
+	  while (master < 0 && *groups != '\0')
+	    {
+	      int	i;
+
+	      name[8] = *groups++;
+	      for (i = 0; i < 16; i++)
+	        {
+		  name[9] = "0123456789abcdef"[i];
+		  master = open(name, O_RDWR);
+		  if (master >= 0)
+		    {
+		      name[5] = 't';
+		      break;
+		    }
+		}
+	    }
+	}
+    }
+  return master;
+}
+
+static int
+pty_slave(const char* name)
+{
+  int	slave;
+
+  slave = open(name, O_RDWR);
+#if	HAVE_SYS_STROPTS_H
+#if	HAVE_PTS_STREAM_MODULES
+  if (slave >= 0 && isastream(slave))
+    {
+      if (ioctl(slave, I_PUSH, "ptem") < 0)
+	{
+	  perror("unable to push 'ptem' streams module");
+	}
+      else if (ioctl(slave, I_PUSH, "ldterm") < 0)
+	{
+	  perror("unable to push 'ldterm' streams module");
+	}
+    }
+#endif
+#endif
+  return slave;
+}
+
 #endif
 
 @interface NSTask (Private)
@@ -388,6 +501,11 @@ static void handleSignal(int sig)
 #endif
 }
 
+- (BOOL) usePseudoTerminal
+{
+  return NO;
+}
+
 - (void) waitUntilExit
 {
   while ([self isRunning])
@@ -561,13 +679,13 @@ GSCheckTasks()
 
 - (void) launch
 {
-  STARTUPINFO start_info;
+  STARTUPINFO	start_info;
   NSString      *lpath;
   NSString      *arg;
   NSEnumerator  *arg_enum;
   NSMutableString *args;
-  char *c_args;
-  int result;
+  char		*c_args;
+  int		result;
 
   if (_hasLaunched)
     {
@@ -627,8 +745,8 @@ GSCheckTasks()
 
 - (int) terminationStatus
 {
-  DWORD exit_code;
-  int result;
+  DWORD	exit_code;
+  int	result;
 
   [super terminationStatus];
   result = GetExitCodeProcess(proc_info.hProcess, &exit_code);
@@ -815,24 +933,69 @@ GSCheckTasks()
 #endif
 #endif
 
-      /*
-       * Set up stdin, stdout and stderr by duplicating descriptors as
-       * necessary and closing the originals (to ensure we won't have a
-       * pipe left with two write descriptors etc).
-       */
-      if (idesc != 0)
+      if (usePseudoTerminal == YES)
 	{
-	  dup2(idesc, 0);
+	  int	s;
+
+	  s = pty_slave(slave_name);
+	  if (s < 0)
+	    {
+	      exit(1);			/* Failed to open slave!	*/
+	    }
+
+#if	HAVE_SETSID
+	  i = setsid();
+#endif
+#if	TIOCNOTTY
+	  i = open("/dev/tty", O_RDWR);
+	  if (i >= 0)
+	    {
+	      (void)ioctl(i, TIOCNOTTY, 0);
+	      (void)close(i);
+	    }
+#endif
+	  /*
+	   * Set up stdin, stdout and stderr by duplicating descriptors as
+	   * necessary and closing the originals (to ensure we won't have a
+	   * pipe left with two write descriptors etc).
+	   */
+	  if (s != 0)
+	    {
+	      dup2(s, 0);
+	    }
+	  if (s != 1)
+	    {
+	      dup2(s, 1);
+	    }
+	  if (s != 2)
+	    {
+	      dup2(s, 2);
+	    }
 	}
-      if (odesc != 1)
+      else
 	{
-	  dup2(odesc, 1);
-	}
-      if (edesc != 2)
-	{
-	  dup2(edesc, 2);
+	  /*
+	   * Set up stdin, stdout and stderr by duplicating descriptors as
+	   * necessary and closing the originals (to ensure we won't have a
+	   * pipe left with two write descriptors etc).
+	   */
+	  if (idesc != 0)
+	    {
+	      dup2(idesc, 0);
+	    }
+	  if (odesc != 1)
+	    {
+	      dup2(odesc, 1);
+	    }
+	  if (edesc != 2)
+	    {
+	      dup2(edesc, 2);
+	    }
 	}
 
+      /*
+       * Close any extra descriptors.
+       */
       for (i = 3; i < NOFILE; i++)
 	{
 	  (void) close(i);
@@ -900,6 +1063,38 @@ GSCheckTasks()
                 _taskId, result, strerror(errno));
 #endif
     }
+}
+
+- (BOOL) usePseudoTerminal
+{
+  int		master;
+  NSFileHandle	*fh;
+
+  if (usePseudoTerminal == YES)
+    {
+      return YES;
+    }
+  master = pty_master(slave_name, sizeof(slave_name));
+  if (master < 0)
+    {
+      return NO;
+    }
+  fh = [[NSFileHandle alloc] initWithFileDescriptor: master
+				     closeOnDealloc: YES];
+  [self setStandardInput: fh];
+  RELEASE(fh);
+  master = dup(master);
+  fh = [[NSFileHandle alloc] initWithFileDescriptor: master
+				     closeOnDealloc: YES];
+  [self setStandardOutput: fh];
+  RELEASE(fh);
+  master = dup(master);
+  fh = [[NSFileHandle alloc] initWithFileDescriptor: master
+				     closeOnDealloc: YES];
+  [self setStandardError: fh];
+  RELEASE(fh);
+  usePseudoTerminal = YES;
+  return YES;
 }
 
 @end

@@ -85,6 +85,10 @@
 - (void) launch;
 - (void) terminate;
 - (void) waitUntilExit;
+
+#ifndef	NO_GNUSTEP
+- (BOOL) usePseudoTerminal;
+#endif
 @end
 
 GS_EXPORT NSString*	NSTaskDidTerminateNotification;

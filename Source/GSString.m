@@ -2169,8 +2169,19 @@ transmute(ivars self, NSString *aString)
       NSRange	aRange;
       NSString	*t;
 
-      t = (NSString*)NSAllocateObject(NSStringClass, 0, NSDefaultMallocZone());
+      /*
+       * Get the abstract class to give us the default placeholder string.
+       */
+      t = (NSString*)[NSStringClass allocWithZone: NSDefaultMallocZone()];
+      /*
+       * Now initialise with the format information ... the placeholder
+       * can decide whether to create a concrete C string or unicode string.
+       */
       t = [t initWithFormat: format arguments: ap];
+      /*
+       * Now append the created string to this one ... the appending
+       * method will make this string wide if necessary.
+       */
       aRange.location = _count;
       aRange.length = 0;
       [self replaceCharactersInRange: aRange withString: t];

@@ -1,3 +1,8 @@
+2001-02-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Added gnustep specific feature to run task in
+	pseudo terminal.
+
 2001-02-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Integrated patch for unicode support for ([-initWithFormat:]) by

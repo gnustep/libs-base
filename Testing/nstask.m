@@ -8,6 +8,7 @@ main()
   id pool;
   NSDictionary	*env;
   NSTask	*task;
+  NSData	*d;
 
   pool = [[NSAutoreleasePool alloc] init];
 
@@ -29,7 +30,12 @@ main()
   [task setEnvironment: env];
   [task setLaunchPath: @"/bin/sh"];
   [task setArguments: [NSArray arrayWithObjects: @"-c", @"echo $PATH", nil]];
+  if ([task usePseudoTerminal] == NO)
+    printf("Argh - unable to use pseudo terminal\n");
   [task launch];
+  d = [[task standardOutput] availableData];
+  NSLog(@"Got PATH of '%*s'", [d length], [d bytes]);
+
   [task waitUntilExit];
   [task release];
   [pool release];
