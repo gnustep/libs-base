@@ -1036,6 +1036,32 @@ else \
     bsize = grow; \
   }
 
+
+static inline int chop(unichar c, _ucc_ *table, int hi)
+{
+  int	lo = 0;
+
+  while (hi > lo)
+    {
+      int	i = (hi + lo) / 2;
+      unichar	from = table[i].from;
+
+      if (from < c)
+        {
+	  lo = i + 1;
+	}
+      else if (from > c)
+        {
+	  hi = i;
+	}
+      else
+        {
+	  return i;	// Found
+	}
+    }
+  return -1;		// Not found
+}
+
 /**
  * Function to convert from 16-bit unicode to 8-bit character data.
  * <p>The dst argument is a pointer to a pointer to a buffer in which the
@@ -1266,23 +1292,15 @@ tables:
 		  }
 		else
 		  {
-		    int res;
-		    int i = 0;
+		    int i = chop(u, table, tsize);
 
-		    while ((res = u - table[i].from) > 0)
-		      {
-			if (++i >= tsize)
-			  {
-			    break;
-			  }
-		      }
-		    if (res > 0)
+		    if (i < 0)
 		      {
 			ptr[dpos++] = '*';
 		      }
 		    else
 		      {
-			ptr[dpos++] = table[--i].to;
+			ptr[dpos++] = table[i].to;
 		      }
 		  }
 	      }
@@ -1308,19 +1326,15 @@ tables:
 		  }
 		else
 		  {
-		    int res;
-		    int i = 0;
+		    int i = chop(u, table, tsize);
 
-		    while ((res = u - table[i].from) > 0)
+		    if (i < 0)
 		      {
-			if (++i >= tsize)
-			  {
-			    result = NO;
-			    spos = slen;
-			    break;
-			  }
+			result = NO;
+			spos = slen;
+			break;
 		      }
-		    ptr[dpos++] = table[--i].to;
+		    ptr[dpos++] = table[i].to;
 		  }
 	      }
 	  }
@@ -1330,8 +1344,7 @@ tables:
 	while (spos < slen)
 	  {
 	    unichar	u = src[spos++];
-	    int		res;
-	    int		i = 0;
+	    int		i;
 
 	    if (swapped == YES)
 	      {
@@ -1343,38 +1356,29 @@ tables:
 		GROW();
 	      }
 
-	    while ((res = u - GSM0338_uni_to_char_table[i].from) > 0)
+	    i = chop(u, GSM0338_uni_to_char_table, GSM0338_tsize);
+	    if (i >= 0)
 	      {
-		if (++i >= GSM0338_tsize)
-		  {
-		    break;
-		  }
-	      }
-	    if (res == 0)
-	      {
-		ptr[dpos] = GSM0338_uni_to_char_table[--i].to;
+		ptr[dpos] = GSM0338_uni_to_char_table[i].to;
 	      }
 	    else
 	      {
-		if (strict == YES)
+		i = chop(u, GSM0338_escapes, GSM0338_esize);
+		if (i >= 0)
+		  {
+		    ptr[dpos++] = 0x1b;
+		    if (dpos >= bsize)
+		      {
+			GROW();
+		      }
+		    ptr[dpos] = GSM0338_escapes[i].to;
+		  }
+		else if (strict == YES)
 		  {
 		    result = NO;
 		    break;
 		  }
-		for (i = 0; i < GSM0338_esize; i++)
-		  {
-		    if (GSM0338_escapes[i].from == u)
-		      {
-			ptr[dpos++] = 0x1b;
-			if (dpos >= bsize)
-			  {
-			    GROW();
-			  }
-			ptr[dpos] = GSM0338_escapes[i].to;
-			break;
-		      }
-		  }
-		if (i == GSM0338_esize)
+		else
 		  {
 		    ptr[dpos] = '*';
 		  }
@@ -1418,37 +1422,50 @@ tables:
 		}
 	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
 	      dpos = bsize - outbytesleft;
-	      if (rval == (size_t)-1)
+	      if (rval != 0)
 		{
-		  if (errno == E2BIG)
+		  if (rval == (size_t)-1)
 		    {
-		      unsigned	old = bsize;
+		      if (errno == E2BIG)
+			{
+			  unsigned	old = bsize;
 
-		      GROW();
-		      outbuf = (char*)&ptr[dpos];
-		      outbytesleft += (bsize - old);
-		    }
-		  else if (errno == EILSEQ)
-		    {
-		      if (strict == YES)
+			  GROW();
+			  outbuf = (char*)&ptr[dpos];
+			  outbytesleft += (bsize - old);
+			}
+		      else if (errno == EILSEQ)
+			{
+			  if (strict == YES)
+			    {
+			      result = NO;
+			      break;
+			    }
+			  /*
+			   * If we are allowing lossy conversion, we replace any
+			   * unconvertable character with an asterisk.
+			   */
+			  if (outbytesleft > 0)
+			    {
+			      *outbuf++ = '*';
+			      outbytesleft--;
+			      inbuf += sizeof(unichar);
+			      inbytesleft -= sizeof(unichar);
+			    }
+			}
+		      else
 			{
 			  result = NO;
 			  break;
 			}
-		      /*
-		       * If we are allowing lossy conversion, we replace any
-		       * unconvertable character with an asterisk.
-		       */
-		      if (outbytesleft > 0)
-			{
-			  *outbuf++ = '*';
-			  outbytesleft--;
-			  inbuf += sizeof(unichar);
-			  inbytesleft -= sizeof(unichar);
-			}
 		    }
-		  else
+		  else if (strict == YES)
 		    {
+		      /*
+		       * A positive return from iconv indicates some
+		       * irreversible (ie lossy) conversions took place,
+		       * so if we are doing strict conversions we must fail.
+		       */
 		      result = NO;
 		      break;
 		    }
