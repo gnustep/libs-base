@@ -1410,7 +1410,7 @@ wordData(NSString *word)
 	  NSLog(@"Missing Mime content-type");
 	  return NO;
 	}
-      subtype = [info objectForKey: @"SubType"];
+      subtype = [info objectForKey: @"Subtype"];
 	
       if ([type isEqualToString: @"text"] == YES)
 	{
@@ -1492,7 +1492,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  *   <term>content-type</term>
  *   <desc>
  *     <deflist>
- *       <term>SubType</term>
+ *       <term>Subtype</term>
  *       <desc>The MIME subtype lowercase</desc>
  *       <term>Type</term>
  *       <desc>The MIME type lowercase</desc>
@@ -1632,7 +1632,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      return NO;
 	    }
 	  subtype = [subtype lowercaseString];
-	  [info setObject: subtype forKey: @"SubType"];
+	  [info setObject: subtype forKey: @"Subtype"];
 	  value = [NSString stringWithFormat: @"%@/%@", type, subtype];
 	}
       else
@@ -3396,6 +3396,10 @@ static NSCharacterSet	*tokenSet = nil;
  */ 
 - (id) contentByID: (NSString*)key
 {
+  if ([key hasPrefix: @"<"] == NO)
+    {
+      key = [NSString stringWithFormat: @"<%@>", key];
+    }
   if ([content isKindOfClass: [NSArray class]] == YES)
     {
       NSEnumerator	*e = [content objectEnumerator];
@@ -3488,11 +3492,11 @@ static NSCharacterSet	*tokenSet = nil;
 /**
  * Convenience method to fetch the content sub-type from the header.
  */
-- (NSString*) contentSubType
+- (NSString*) contentSubtype
 {
   GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
 
-  return [hdr objectForKey: @"SubType"];
+  return [hdr objectForKey: @"Subtype"];
 }
 
 /**
@@ -3820,15 +3824,18 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSMutableData*) rawMimeData: (BOOL)isOuter
 {
+  NSMutableArray	*partData = nil;
+  NSMutableData		*md = [NSMutableData dataWithCapacity: 1024];
   NSData	*d = nil;
-  NSMutableData	*md;
   NSEnumerator	*enumerator;
   GSMimeHeader	*type;
   GSMimeHeader	*enc;
   GSMimeHeader	*hdr;
   NSData	*boundary;
   BOOL		is7bit = YES;
-  BOOL		isMultipart = NO;
+  unsigned int	count;
+  unsigned int	i;
+  CREATE_AUTORELEASE_POOL(arp);
 
   if (isOuter == YES)
     {
@@ -3849,7 +3856,14 @@ static NSCharacterSet	*tokenSet = nil;
 
   if ([content isKindOfClass: [NSArray class]] == YES)
     {
-      isMultipart = YES;
+      count = [content count];
+      partData = [NSMutableArray arrayWithCapacity: count];
+      for (i = 0; i < count; i++)
+	{
+	  GSMimeDocument	*part = [content objectAtIndex: i];
+
+	  [partData addObject: [part rawMimeData: NO]]; 
+	}
     }
 
   type = [self headerNamed: @"content-type"];
@@ -3858,7 +3872,7 @@ static NSCharacterSet	*tokenSet = nil;
       /*
        * Attempt to infer the content type from the content.
        */
-      if (isMultipart == YES)
+      if (partData != nil)
 	{
 	  [self setContent: content type: @"multipart/mixed" name: nil];
 	}
@@ -3881,7 +3895,7 @@ static NSCharacterSet	*tokenSet = nil;
       type = [self headerNamed: @"content-type"];
     }
 
-  if (isMultipart == YES)
+  if (partData != nil)
     {
       NSString	*v;
 
@@ -3914,6 +3928,38 @@ static NSCharacterSet	*tokenSet = nil;
 	  [type setParameter: v forKey: @"boundary"];
 	}
       boundary = [v dataUsingEncoding: NSASCIIStringEncoding];
+
+      v = [type objectForKey: @"Subtype"];
+      if ([v isEqual: @"related"] == YES)
+	{
+	  GSMimeDocument	*start;
+
+	  v = [type parameterForKey: @"start"];
+	  if (v == nil)
+	    {
+	      start = [content objectAtIndex: 0];
+	    }
+	  else
+	    {
+	      start = [self contentByID: v];
+	    }
+	  hdr = [start headerNamed: @"content-type"];
+	  v = [hdr value];
+	  /*
+	   * If there is no 'type' parameter, we can fill it in automatically.
+	   */
+	  if ([type parameterForKey: @"type"] == nil)
+	    {
+	      [type setParameter: v forKey: @"type"];
+	    }
+	  if ([v isEqual: [type parameterForKey: @"type"]] == NO)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+		format: @"mutipart/related 'type' (%@) does not match "
+		@"that of the 'start' part (%@)",
+		[type parameterForKey: @"type"], v];
+	    }
+	}
     }
   else
     {
@@ -3951,11 +3997,6 @@ static NSCharacterSet	*tokenSet = nil;
     }
 
   /*
-   * Now build the output.
-   */
-  md = [NSMutableData dataWithCapacity: 1024];
-
-  /*
    * Add all the headers.
    */
   enumerator = [headers objectEnumerator];
@@ -3964,17 +4005,13 @@ static NSCharacterSet	*tokenSet = nil;
       [md appendData: [hdr rawMimeData]];
     }
 
-  if (isMultipart == YES)
+  if (partData != nil)
     {
-      unsigned	count;
-      unsigned	i;
-
       count = [content count];
       for (i = 0; i < count; i++)
 	{
 	  GSMimeDocument	*part = [content objectAtIndex: i];
-	  NSMutableData		*rawPart = [part rawMimeData: NO];
-	  CREATE_AUTORELEASE_POOL(arp);
+	  NSMutableData		*rawPart = [partData objectAtIndex: i];
 
 	  if (is7bit == YES)
 	    {
@@ -3997,7 +4034,6 @@ static NSCharacterSet	*tokenSet = nil;
 	  [md appendData: boundary];
 	  [md appendBytes: "\r\n" length: 2];
 	  [md appendData: rawPart];
-	  RELEASE(arp);
 	}
       [md appendBytes: "\r\n--" length: 4];
       [md appendData: boundary];
@@ -4033,6 +4069,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  [md appendData: d];
 	}
     }
+  RELEASE(arp);
   return md;
 }
 
@@ -4147,13 +4184,13 @@ static NSCharacterSet	*tokenSet = nil;
       hdr = [GSMimeHeader alloc];
       hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
       [hdr setObject: type forKey: @"Type"];
-      [hdr setObject: subtype forKey: @"SubType"];
+      [hdr setObject: subtype forKey: @"Subtype"];
       AUTORELEASE(hdr);
     }
   else
     {
       type = [hdr objectForKey: @"Type"];
-      subtype = [hdr objectForKey: @"SubType"];
+      subtype = [hdr objectForKey: @"Subtype"];
     }
 
   if (name != nil)

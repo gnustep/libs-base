@@ -111,7 +111,7 @@
 - (NSString*) contentFile;
 - (NSString*) contentID;
 - (NSString*) contentName;
-- (NSString*) contentSubType;
+- (NSString*) contentSubtype;
 - (NSString*) contentType;
 - (NSArray*) contentsByName: (NSString*)key;
 - (NSData*) convertToData;
