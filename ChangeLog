@@ -3,6 +3,10 @@
 	* Source/Source/GSFFCallInvocation.m: gs_objc_msg_forward() trust the
 	selector we are given. Rather than trying to find a better one.
 	* Source/GSFFIInvocation.m: ditto
+	* Source/NSScanner.m: Add a couple of internal utility functions.
+	* Source/NSString.m: Fix floatValue and doubelValue to use non
+	localised conversions.
+	* Source/GSString.m: ditto.
 
 2003-07-06  Adam Fedor  <fedor@gnu.org>
 

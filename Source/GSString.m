@@ -1004,21 +1004,25 @@ dataUsingEncoding_u(ivars self, NSStringEncoding encoding, BOOL flag)
     }
 }
 
+extern BOOL GSScanDouble(unichar*, unsigned, double*);
+
 static inline double
 doubleValue_c(ivars self)
 {
   if (self->_count == 0)
     {
-      return 0;
+      return 0.0;
     }
   else
     {
-      unsigned	len = self->_count < 32 ? self->_count : 31;
-      unsigned char	buf[len+1];
+      unsigned	l = self->_count < 32 ? self->_count : 32;
+      unichar	buf[l];
+      unichar	*b = buf;
+      double	d = 0.0;
 
-      memcpy(buf, self->_contents.c, len);
-      buf[len] = '\0';
-      return atof(buf);
+      GSToUnicode(&b, &l, self->_contents.c, l, intEnc, 0, 0);
+      GSScanDouble(b, l, &d);
+      return d;
     }
 }
 
@@ -1027,16 +1031,14 @@ doubleValue_u(ivars self)
 {
   if (self->_count == 0)
     {
-      return 0;
+      return 0.0;
     }
   else
     {
-      unsigned int	l = self->_count < 10 ? self->_count : 9;
-      unsigned char	buf[l+1];
-      unsigned char	*b = buf;
+      double	d = 0.0;
 
-      GSFromUnicode(&b, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
-      return atof(buf);
+      GSScanDouble(self->_contents.u, self->_count, &d);
+      return d;
     }
 }
 

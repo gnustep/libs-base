@@ -1113,3 +1113,181 @@ typedef struct {
 }
 
 @end
+
+/*
+ * Some utilities
+ */
+BOOL
+GSScanInt(unichar *buf, unsigned length, int *result)
+{
+  unsigned int num = 0;
+  const unsigned int limit = UINT_MAX / 10;
+  BOOL negative = NO;
+  BOOL overflow = NO;
+  BOOL got_digits = NO;
+  unsigned int pos = 0;
+
+  /* Check for sign */
+  if (pos < length)
+    {
+      switch (buf[pos])
+	{
+	  case '+': 
+	    pos++;
+	    break;
+	  case '-': 
+	    negative = YES;
+	    pos++;
+	    break;
+	}
+    }
+
+  /* Process digits */
+  while (pos < length)
+    {
+      unichar digit = buf[pos];
+
+      if ((digit < '0') || (digit > '9'))
+	break;
+      if (!overflow)
+	{
+	  if (num >= limit)
+	    overflow = YES;
+	  else
+	    num = num * 10 + (digit - '0');
+	}
+      pos++;
+      got_digits = YES;
+    }
+
+  /* Save result */
+  if (!got_digits)
+    {
+      return NO;
+    }
+  if (result)
+    {
+      if (overflow
+	|| (num > (negative ? (unsigned int)INT_MIN : (unsigned int)INT_MAX)))
+	*result = negative ? INT_MIN: INT_MAX;
+      else if (negative)
+	*result = -num;
+      else
+	*result = num;
+    }
+  return YES;
+}
+
+/**
+ * Scan in a double value in the standard locale ('.' as decimal point).<br />
+ * Return YES on success, NO on failure.<br />
+ * The value pointed to by result is unmodified on failure.<br />
+ * No value is returned in result if it is a null pointer.
+ */
+BOOL
+GSScanDouble(unichar *buf, unsigned length, double *result)
+{
+  unichar	c = 0;
+  double	num = 0.0;
+  long int	exponent = 0;
+  BOOL		negative = NO;
+  BOOL		got_dot = NO;
+  BOOL		got_digit = NO;
+  unsigned	pos = 0;
+
+  /* Skip whitespace */
+  while (pos < length && isspace((int)buf[pos]))
+    {
+      pos++;
+    }
+
+  /* Check for sign */
+  if (pos < length)
+    {
+      switch (buf[pos])
+	{
+	  case '+': 
+	    pos++;
+	    break;
+	  case '-': 
+	    negative = YES;
+	    pos++;
+	    break;
+	}
+    }
+
+    /* Process number */
+  while (pos < length)
+    {
+      c = buf[pos];
+      if ((c >= '0') && (c <= '9'))
+	{
+	  /* Ensure that the number being accumulated will not overflow. */
+	  if (num >= (DBL_MAX / 10.000000001))
+	    {
+	      ++exponent;
+	    }
+	  else
+	    {
+	      num = (num * 10.0) + (c - '0');
+	      got_digit = YES;
+	    }
+            /* Keep track of the number of digits after the decimal point.
+	       If we just divided by 10 here, we would lose precision. */
+	  if (got_dot)
+	    {
+	      --exponent;
+	    }
+        }
+      else if (!got_dot && (c == '.'))
+	{
+	  /* Note that we have found the decimal point. */
+	  got_dot = YES;
+        }
+      else
+	{
+	  /* Any other character terminates the number. */
+	  break;
+        }
+      pos++;
+    }
+  if (!got_digit)
+    {
+      return NO;
+    }
+
+  /* Check for trailing exponent */
+  if ((pos < length) && ((c == 'e') || (c == 'E')))
+    {
+      int expval;
+
+      pos++;
+      if (GSScanInt(&buf[pos], length - pos, &expval) == YES)
+	{
+      /* Check for exponent overflow */
+	if (num)
+	  {
+	    if ((exponent > 0) && (expval > (LONG_MAX - exponent)))
+	      exponent = LONG_MAX;
+	    else if ((exponent < 0) && (expval < (LONG_MIN - exponent)))
+	      exponent = LONG_MIN;
+	    else
+	      exponent += expval;
+	  }
+	}
+      else
+	{
+	  return NO;
+	}
+    }
+  if (result)
+    {
+      if (num && exponent)
+	num *= pow(10.0, (double) exponent);
+      if (negative)
+	*result = -num;
+      else
+	*result = num;
+    }
+  return YES;
+}
