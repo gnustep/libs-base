@@ -2,7 +2,11 @@
 
 	* Source/NSString.m: implement -cStringLength correctly in terms of
 	other methods of the abstract class, rather than making the subclass
-	do it.  Cache caharacterAtIndex implementation for speed.
+	do it.  Cache [-characterAtIndex:] implementation for speed
+	throughout.
+	* Source/Unicode.m: Remove uslen() function - unused and unsafe.
+	Tidied code and optimised a little.
+	* Source/Foundation/Unicode.h: Remove uslen()
 
 2000-07-30  Richard Frith-Macdonald <rfm@gnu.org>
 
