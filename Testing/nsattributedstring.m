@@ -74,7 +74,13 @@ void testAttributedString(void)
   NSAttributedString *attrString;
   NSMutableAttributedString *muAttrString,*muAttrString2;
   NSMutableDictionary *attributes,*colorAttributes,*twoAttributes;
-  
+  NSMutableAttributedString	*text;
+
+  text = [[NSMutableAttributedString alloc] initWithString: @"this is a bug"];
+  [text addAttribute: @"foo" value: @"bar" range: NSMakeRange(0,4)];
+  [text deleteCharactersInRange: NSMakeRange(0,1)];
+  [text attribute: @"foo" atIndex: 0 effectiveRange: 0];
+
   attributes = [[[NSMutableDictionary alloc] init] autorelease];
   [attributes setObject:@"Helvetica 12-point"
     forKey:NSFontAttributeName];

@@ -4,6 +4,10 @@
 	Added destination data cpacity information to context so that
 	correct positioning can be maintained over a sequence of calls
 	using a chunked http context.
+	* Source/GSAttributedString.m: Fixed bug initialising from an
+	empty attributed string, and fixed bug replacing characters in
+	range, when an attribute range location is the same s the location
+	of the replaced characters.
  
 2001-01-12  Richard Frith-Macdonald <rfm@gnu.org>
 
