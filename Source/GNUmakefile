@@ -92,7 +92,6 @@ KeyedCollection.m \
 LinkedList.m \
 LinkedListNode.m \
 MachPort.m \
-MallocAddress.m \
 MappedCollector.m \
 MemoryStream.m \
 NotificationDispatcher.m \
@@ -207,7 +206,6 @@ LinkedListNode.h \
 Locking.h \
 MachPort.h \
 Magnitude.h \
-MallocAddress.h \
 MappedCollector.h \
 MemoryStream.h \
 NotificationDispatcher.h \
