@@ -119,11 +119,18 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 @implementation GSXMLDocument : NSObject
 
+/**
+ * Return document created using raw libxml data.
+ * The resulting document does not 'own' the data, and will not free it.
+ */
 + (GSXMLDocument*) documentFrom: (void*)data
 {
   return AUTORELEASE([[self alloc] initFrom: data]);
 }
 
+/**
+ * Create a new document with the specified version.
+ */
 + (GSXMLDocument*) documentWithVersion: (NSString*)version
 {
   return AUTORELEASE([[self alloc] initWithVersion: version]);
@@ -149,6 +156,26 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   [super dealloc];
 }
 
+/**
+ * Returns a string representation of the document or nil if the
+ * document does not have reasonable contents.
+ */
+- (NSString*) description
+{
+  NSString	*string = nil;
+  xmlChar	*buf = NULL;
+  int		length;
+
+  xmlDocDumpMemory(lib, &buf, &length);
+
+  if (buf != 0 && length > 0)
+    {
+      string = [NSString_class stringWithCString: buf length: length];
+      xmlFree(buf);
+    }
+  return string;
+}
+
 - (id) init
 {
   NSLog(@"GSXMLDocument: calling -init is not legal");
@@ -156,28 +183,35 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return nil;
 }
 
+/**
+ * Initialise a new document object using raw libxml data.
+ * The resulting document does not 'own' the data, and will not free it.
+ */
 - (id) initFrom: (void*)data
 {
   self = [super init];
   if (self != nil)
     {
-     if (data == NULL)
+      if (data == NULL)
         {
-          NSLog(@"GSXMLDocument - no data for initialization");
-	  RELEASE(self);
+          NSLog(@"%@ - no data for initialization",
+	    NSStringFromClass([self class]));
+	  DESTROY(self);
           return nil;
         }
-     lib = data;
-     native = NO;
-    }
-  else
-    {
-      NSLog(@"Can't create GSXMLDocument object");
-      return nil;
+      lib = data;
+      native = NO;
     }
   return self;
 }
 
+/**
+ * Initialise a new document with the specified version.<br />
+ * Generates the raw data and passes it to -initFrom: to
+ * perform basic initialisation, then takes ownership of
+ * of the underlying data so it will be freed when this
+ * object is deallocated.
+ */
 - (id) initWithVersion: (NSString*)version
 {
   void	*data = xmlNewDoc([version lossyCString]);
@@ -194,11 +228,18 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return self;
 }
 
+/**
+ * Returns the root node of the document.
+ */
 - (GSXMLNode*) root
 {
   return [GSXMLNode nodeFrom: xmlDocGetRootElement(lib)];
 }
 
+/**
+ * Sets the root node of the document.  This takes ownership of the
+ * underlying data in the supplied node.
+ */
 - (GSXMLNode*) setRoot: (GSXMLNode*)node
 {
   void  *nodeLib = [node lib];
@@ -208,16 +249,25 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return oldRoot == NULL ? nil : [GSXMLNode nodeFrom: nodeLib];
 }
 
+/**
+ * Returns the version string for this document.
+ */
 - (NSString*) version
 {
   return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->version];
 }
 
+/**
+ * Returns the name of the encoding for this document.
+ */
 - (NSString*) encoding
 {
   return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->encoding];
 }
 
+/**
+ * Returns a pointer to the raw libxml data used by this document.
+ */
 - (void*) lib
 {
   return lib;
@@ -237,7 +287,6 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
     return NO;
 }
 
-
 - (GSXMLNode*) makeNodeWithNamespace: (GSXMLNamespace*)ns
 				name: (NSString*)name
 			     content: (NSString*)content
@@ -247,11 +296,17 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
     [content lossyCString])];
 }
 
-- (void) save: (NSString*) filename
+/**
+ * Saves the document to filename.
+ */
+- (void) save: (NSString*)filename
 {
   xmlSaveFile([filename lossyCString], lib);
 }
 
+/**
+ * Returns a string representation of the document.
+ */
 - (NSString*) stringValue
 {
   NSString	*string = nil;
@@ -267,6 +322,28 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
     }
 
   return string;
+}
+
+- (BOOL) writeToFile: (NSString*)filename atomically: (BOOL)useAuxilliaryFile
+{
+  NSString	*s = [self description];
+
+  if (s == nil)
+    {
+      return NO;
+    }
+  return [s writeToFile: filename atomically: useAuxilliaryFile];
+}
+
+- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxilliaryFile
+{
+  NSString	*s = [self description];
+
+  if (s == nil)
+    {
+      return NO;
+    }
+  return [s writeToURL: url atomically: useAuxilliaryFile];
 }
 
 @end
@@ -327,6 +404,28 @@ static NSMapTable	*nsNames = 0;
   return RETAIN(self);
 }
 
+/**
+ * Initialise a new document object using raw libxml data.
+ * The resulting document does not 'own' the data, and will not free it.
+ */
+- (id) initFrom: (void*)data
+{
+  self = [super init];
+  if (self != nil)
+    {
+      if (data == NULL)
+        {
+          NSLog(@"%@ - no data for initialization",
+	    NSStringFromClass([self class]));
+	  DESTROY(self);
+          return nil;
+        }
+      lib = data;
+      native = NO;
+    }
+  return self;
+}
+
 - (id) initWithNode: (GSXMLNode*)node
 	       href: (NSString*)href
 	     prefix: (NSString*)prefix
@@ -366,25 +465,6 @@ static NSMapTable	*nsNames = 0;
 + (GSXMLNamespace*) namespaceFrom: (void*)data
 {
   return AUTORELEASE([[self alloc] initFrom: data]);
-}
-
-- (id) initFrom: (void*)data
-{
-  self = [super init];
-  if (self != nil)
-    {
-     if (data == NULL)
-        {
-          NSLog(@"GSXMLNamespace - no data for initialization");
-          return nil;
-        }
-      else
-        {
-          lib = data;
-          native = NO;
-        }
-    }
-  return self;
 }
 
 - (id) init
@@ -470,6 +550,7 @@ static NSMapTable	*nsNames = 0;
 @implementation GSXMLNamespace (GSPrivate)
 - (void) _native: (BOOL)value
 {
+  NSAssert(native != value, NSInternalInconsistencyException);
   native = value;
 }
 @end
@@ -602,13 +683,15 @@ static NSMapTable	*nodeNames = 0;
   self = [super init];
   if (self != nil)
     {
-     if (data == NULL)
+      if (data == NULL)
         {
-          NSLog(@"GSXMLNode - no data for initialization");
+          NSLog(@"%@ - no data for initialization",
+	    NSStringFromClass([self class]));
+	  DESTROY(self);
           return nil;
         }
-     lib = data;
-     native = NO;
+      lib = data;
+      native = NO;
     }
   return self;
 }
@@ -839,22 +922,46 @@ static NSMapTable	*nodeNames = 0;
 @implementation GSXMLNode (GSPrivate)
 - (void) _native: (BOOL)value
 {
+  NSAssert(native != value, NSInternalInconsistencyException);
   native = value;
 }
 @end
 
 
 
-/*
- *
- * GSXMLAttribute
- *
- */
-
-
 @implementation GSXMLAttribute : GSXMLNode
 
 static NSMapTable	*attrNames = 0;
+
+/**
+ * Create attribute from underlying libxml data ... you probably don't need
+ * to use this yourself.
+ */
++ (GSXMLAttribute*) attributeFrom: (void*)data
+{
+  return AUTORELEASE([[self alloc] initFrom: data]);
+}
+
+/**
+ * Create a new property carried by a node.
+ */
++ (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
+				 name: (NSString*)name
+				value: (NSString*)value
+{
+  return AUTORELEASE([[self alloc] initWithNode: node name: name value: value]);
+}
+
+/**
+ * Return the string constant value for the attribute
+ * type given.
+ */
++ (NSString*) descriptionFromType: (int)type
+{
+  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
+
+  return desc;
+}
 
 + (void) initialize
 {
@@ -887,6 +994,26 @@ static NSMapTable	*attrNames = 0;
     }
 }
 
+/**
+ * <p>
+ *   Return the numeric constant value for the attribute
+ *   type named.  This method is inefficient, so the returned
+ *   value should be saved for re-use later.  The possible
+ *   values are -
+ * </p>
+ * <list>
+ *   <item>XML_ATTRIBUTE_CDATA</item>
+ *   <item>XML_ATTRIBUTE_ID</item>
+ *   <item>XML_ATTRIBUTE_IDREF	</item>
+ *   <item>XML_ATTRIBUTE_IDREFS</item>
+ *   <item>XML_ATTRIBUTE_ENTITY</item>
+ *   <item>XML_ATTRIBUTE_ENTITIES</item>
+ *   <item>XML_ATTRIBUTE_NMTOKEN</item>
+ *   <item>XML_ATTRIBUTE_NMTOKENS</item>
+ *   <item>XML_ATTRIBUTE_ENUMERATION</item>
+ *   <item>XML_ATTRIBUTE_NOTATION</item>
+ * </list>
+ */
 + (int) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
@@ -904,16 +1031,53 @@ static NSMapTable	*attrNames = 0;
   return -1;
 }
 
-+ (NSString*) descriptionFromType: (int)type
-{
-  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
-
-  return desc;
-}
-
 - (id) copyWithZone: (NSZone*)z
 {
   return RETAIN(self);
+}
+
+- (id) init
+{
+  NSLog(@"GSXMLNode: calling -init is not legal");
+  RELEASE(self);
+  return nil;
+}
+
+/**
+ * Generates the raw data for an attribute node and calls -initFrom:
+ * to initialise this instance.
+ */
+- (id) initWithNode: (GSXMLNode*)node
+	       name: (NSString*)name
+	      value: (NSString*)value
+{
+  void	*data = (void*)xmlNewProp((xmlNodePtr)[node lib], [name lossyCString],
+      [value lossyCString]);
+
+  self = [self initFrom: data];
+  if (self != nil)
+    {
+      native = YES;
+    }
+  return self;
+}
+
+/**
+ * Returns underlying raw data associated with this node.
+ */
+- (void*) lib
+{
+  return lib;
+}
+
+- (NSString*) name
+{
+  return[NSString_class stringWithCString: ((xmlAttrPtr)(lib))->name];
+}
+
+- (GSXMLNamespace*) ns
+{
+  return [GSXMLNamespace namespaceFrom: ((xmlAttrPtr)(lib))->ns];
 }
 
 - (int) type
@@ -932,76 +1096,6 @@ static NSMapTable	*attrNames = 0;
   return desc;
 }
 
-- (void*) lib
-{
-  return lib;
-}
-
-+ (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
-				 name: (NSString*)name
-				value: (NSString*)value
-{
-  return AUTORELEASE([[self alloc] initWithNode: node name: name value: value]);
-}
-
-- (id) initWithNode: (GSXMLNode*)node
-	       name: (NSString*)name
-	      value: (NSString*)value
-{
-  self = [super init];
-  lib = xmlNewProp((xmlNodePtr)[node lib], [name lossyCString],
-    [value lossyCString]);
-  return self;
-}
-
-+ (GSXMLAttribute*) attributeFrom: (void*)data
-{
-  return AUTORELEASE([[self alloc] initFrom: data]);
-}
-
-- (id) initFrom: (void*)data
-{
-  self = [super init];
-  if (self != nil)
-    {
-     if (data == NULL)
-        {
-          NSLog(@"GSXMLAttribute - no data for initalization");
-          return nil;
-        }
-     lib = data;
-    }
-  return self;
-}
-
-- (id) init
-{
-  NSLog(@"GSXMLNode: calling -init is not legal");
-  RELEASE(self);
-  return nil;
-}
-
-- (void) dealloc
-{
-  if ((native) && lib != NULL)
-    {
-      xmlFreeProp(lib);
-    }
-  [super dealloc];
-}
-
-- (NSString*) name
-{
-  return[NSString_class stringWithCString: ((xmlAttrPtr)(lib))->name];
-}
-
-
-- (GSXMLNamespace*) ns
-{
-  return [GSXMLNamespace namespaceFrom: ((xmlAttrPtr)(lib))->ns];
-}
-
-
 - (NSString*) value
 {
   if (((xmlNodePtr)lib)->children != NULL
@@ -1011,7 +1105,6 @@ static NSMapTable	*attrNames = 0;
     }
   return nil;
 }
-
 
 - (GSXMLAttribute*) next
 {
@@ -1453,6 +1546,24 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 @end
 
+/**
+ * <p>XML SAX Handler.</p>
+ * <p>
+ *   GSSAXHandler is a callback-based interface to the XML parser
+ *   that operates in a similar (though not identical) manner to
+ *   SAX.
+ * </p>
+ * <p>
+ *    Each GSSAXHandler object is associated with a GSXMLParser
+ *    object.  As parsing progresses, the mathods of the GSSAXHandler
+ *    are invoked by the parser, so the handler is able to deal
+ *    with the elements and entities being parsed.
+ *  </p>
+ *  <p>
+ *    The callback methods in the GSSAXHandler class do nothing - it
+ *    is intended that you subclass GSSAXHandler and override them.
+ *  </p>
+ */
 @implementation GSSAXHandler : NSObject
 
 + (void) initialize
@@ -1881,6 +1992,9 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 
 #undef	HANDLER
 
+/**
+ * Create a new SAX handler.
+ */
 + (GSSAXHandler*) handler
 {
   return AUTORELEASE([[self alloc] init]);
@@ -1902,11 +2016,18 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   return self;
 }
 
+/**
+ * Return pointer to xmlSAXHandler structure.
+ */
 - (void*) lib
 {
   return lib;
 }
 
+/**
+ * Return the parser object with which this handler is
+ * associated.  This may occasionally be useful.
+ */
 - (GSXMLParser*) parser
 {
   return parser;
@@ -1921,66 +2042,115 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   [super dealloc];
 }
 
+/**
+ * Called when the document starts being processed.
+ */
 - (void) startDocument
 {
-
 }
 
+/**
+ * Called when the document end has been detected.
+ */
 - (void) endDocument
 {
 }
 
+/**
+ * Called to detemrine if the document is standalone.
+ */
+- (int) isStandalone
+{
+  return 1;
+}
+
+/**
+ * Called when an opening tag has been processed.
+ */
 - (void) startElement: (NSString*)elementName
 	   attributes: (NSMutableDictionary*)elementAttributes
 {
 }
 
+/**
+ * Called when a closing tag has been processed.
+ */
 - (void) endElement: (NSString*) elementName
 {
 }
 
+/**
+ * Handle an attribute that has been read by the parser.
+ */
 - (void) attribute: (NSString*) name value: (NSString*)value
 {
 }
 
+/**
+ * Receiving some chars from the parser.
+ */
 - (void) characters: (NSString*) name
 {
 }
 
+/**
+ * Receiving some ignorable whitespaces from the parser.
+ */
 - (void) ignoreWhitespace: (NSString*) ch
 {
 }
 
+/**
+ * A processing instruction has been parsed.
+ */
 - (void) processInstruction: (NSString*)targetName data: (NSString*)PIdata
 {
 }
 
+/**
+ * A comment has been parsed.
+ */
 - (void) comment: (NSString*) value
 {
 }
 
+/**
+ * Called when a pcdata block has been parsed.
+ */
 - (void) cdataBlock: (NSString*)value
 {
 }
 
+/**
+ * Called to return the filenmae from which an entity should be loaded.
+ */
 - (NSString*) loadEntity: (NSString*)publicId
 		      at: (NSString*)location
 {
   return nil;
 }
 
+/**
+ * An old global namespace has been parsed.
+ */
 - (void) namespaceDecl: (NSString*)name
 		  href: (NSString*)href
 		prefix: (NSString*)prefix
 {
 }
 
+/**
+ * What to do when a notation declaration has been parsed.
+ */
 - (void) notationDecl: (NSString*)name
 	       public: (NSString*)publicId
 	       system: (NSString*)systemId
 {
 }
 
+/**
+ * An entity definition has been parsed.
+ */
 - (void) entityDecl: (NSString*)name
 	       type: (int)type
 	     public: (NSString*)publicId
@@ -1989,6 +2159,9 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
 }
 
+/**
+ * An attribute definition has been parsed.
+ */
 - (void) attributeDecl: (NSString*)nameElement
 	 nameAttribute: (NSString*)name
 	    entityType: (int)type
@@ -1997,11 +2170,17 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
 }
 
+/**
+ * An element definition has been parsed.
+ */
 - (void) elementDecl: (NSString*)name
 		type: (int)type
 {
 }
 
+/**
+ * What to do when an unparsed entity declaration is parsed.
+ */
 - (void) unparsedEntityDecl: (NSString*)name
 	       publicEntity: (NSString*)publicId
 	       systemEntity: (NSString*)systemId
@@ -2009,28 +2188,46 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
 }
 
+/**
+ * Called when an entity reference is detected.
+ */
 - (void) reference: (NSString*) name
 {
 }
 
+/**
+ * An old global namespace has been parsed.
+ */
 - (void) globalNamespace: (NSString*)name
 		    href: (NSString*)href
 		  prefix: (NSString*)prefix
 {
 }
 
+/**
+ * Called when a warning message needs to be output.
+ */
 - (void) warning: (NSString*)e
 {
 }
 
+/**
+ * Called when an error message needs to be output.
+ */
 - (void) error: (NSString*)e
 {
 }
 
+/**
+ * Called when a fatal error message needs to be output.
+ */
 - (void) fatalError: (NSString*)e
 {
 }
 
+/**
+ * Called when a warning message needs to be output.
+ */
 - (void) warning: (NSString*)e
        colNumber: (int)colNumber
       lineNumber: (int)lineNumber
@@ -2038,13 +2235,19 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   [self warning:e];
 }
 
+/**
+ * Called when an error message needs to be output.
+ */
 - (void) error: (NSString*)e
-       colNumber: (int)colNumber
-      lineNumber: (int)lineNumber
+     colNumber: (int)colNumber
+    lineNumber: (int)lineNumber
 {
   [self error:e];
 }
 
+/**
+ * Called when a fatal error message needs to be output.
+ */
 - (void) fatalError: (NSString*)e
        colNumber: (int)colNumber
       lineNumber: (int)lineNumber
@@ -2052,11 +2255,17 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   [self fatalError:e];
 }
 
+/**
+ * Called to find out whether there is an internal subset.
+ */
 - (int) hasInternalSubset
 {
   return 0;
 }
 
+/**
+ * Called to find out whether there is an internal subset.
+ */
 - (BOOL) internalSubset: (NSString*)name
 	     externalID: (NSString*)externalID
 	       systemID: (NSString*)systemID
@@ -2064,11 +2273,17 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   return NO;
 }
 
+/**
+ * Called to find out whether there is an external subset.
+ */
 - (int) hasExternalSubset
 {
   return 0;
 }
 
+/**
+ * Called to find out whether there is an external subset.
+ */
 - (BOOL) externalSubset: (NSString*)name
 	     externalID: (NSString*)externalID
 		ystemID: (NSString*)systemID
@@ -2076,7 +2291,18 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   return NO;
 }
 
+/**
+ * get an entity by name
+ */
 - (void*) getEntity: (NSString*)name
+{
+  return 0;
+}
+
+/**
+ * get a aparameter entity by name
+ */
+- (void*) getParameterEntity: (NSString*)name
 {
   return 0;
 }

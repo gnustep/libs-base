@@ -48,27 +48,27 @@
   void	*lib;            // pointer to xmllib pointer of xmlDoc struct
   BOOL	native;
 }
-+ (GSXMLDocument*) documentWithVersion: (NSString*)version;
 + (GSXMLDocument*) documentFrom: (void*)data;
++ (GSXMLDocument*) documentWithVersion: (NSString*)version;
 
-- (id) initWithVersion: (NSString*)version;
+- (NSString*) encoding;
+
 - (id) initFrom: (void*)data;
+- (id) initWithVersion: (NSString*)version;
 
 - (void*) lib;
-
-- (GSXMLNode*) root;
-- (GSXMLNode*) setRoot: (GSXMLNode*)node;
 
 - (GSXMLNode*) makeNodeWithNamespace: (GSXMLNamespace*)ns
 				name: (NSString*)name
 			     content: (NSString*)content;
 
+- (GSXMLNode*) root;
+- (GSXMLNode*) setRoot: (GSXMLNode*)node;
+
 - (NSString*) version;
-- (NSString*) encoding;
 
-- (void) save: (NSString*) filename;
-
-- (NSString *) stringValue;
+- (BOOL) writeToFile: (NSString*)filename atomically: (BOOL)useAuxilliaryFile;
+- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxilliaryFile;
 
 @end
 
@@ -81,18 +81,18 @@
 }
 
 + (NSString*) descriptionFromType: (int)type;
++ (GSXMLNamespace*) namespaceFrom: (void*)data;
 + (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
 				 href: (NSString*)href
 			       prefix: (NSString*)prefix;
-+ (GSXMLNamespace*) namespaceFrom: (void*)data;
 + (int) typeFromDescription: (NSString*)desc;
 
+- (NSString*) href;
+- (id) initFrom: (void*)data;
 - (id) initWithNode: (GSXMLNode*)node
 	       href: (NSString*)href
 	     prefix: (NSString*)prefix;
-- (id) initFrom: (void*)data;
 
-- (NSString*) href;
 - (void*) lib;
 - (GSXMLNamespace*) next;
 - (NSString*) prefix;
@@ -110,17 +110,22 @@
 }
 
 + (NSString*) descriptionFromType: (int)type;
-+ (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 + (GSXMLNode*) nodeFrom: (void*) data;
++ (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 + (int) typeFromDescription: (NSString*)desc;
-
-- (id) initWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
-- (id) initFrom: (void*) data;
 
 - (GSXMLNode*) children;
 - (NSString*) content;
 - (GSXMLDocument*) doc;
+- (id) initFrom: (void*) data;
+- (id) initWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 - (void*) lib;
+- (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
+				 name: (NSString*)name
+			      content: (NSString*)content;
+- (GSXMLNode*) makeComment: (NSString*)content;
+- (GSXMLNode*) makePI: (NSString*)name
+	      content: (NSString*)content;
 - (NSString*) name;
 - (GSXMLNode*) next;
 - (GSXMLNamespace*) ns;
@@ -131,17 +136,10 @@
 - (NSMutableDictionary*) propertiesAsDictionary;
 - (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:
   (SEL)keyTransformSel;
-- (int) type;
-- (NSString*) typeDescription;
-
-- (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
-				 name: (NSString*)name
-			      content: (NSString*)content;
-- (GSXMLNode*) makeComment: (NSString*)content;
-- (GSXMLNode*) makePI: (NSString*)name
-	      content: (NSString*)content;
 - (GSXMLAttribute*) setProp: (NSString*)name
 		      value: (NSString*)value;
+- (int) type;
+- (NSString*) typeDescription;
 
 @end
 
@@ -151,17 +149,16 @@
 {
 }
 
-+ (NSString*) descriptionFromType: (int)type;
++ (GSXMLAttribute*) attributeFrom: (void*)data;
 + (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
 				 name: (NSString*)name
 				value: (NSString*)value;
-+ (GSXMLAttribute*) attributeFrom: (void*)data;
++ (NSString*) descriptionFromType: (int)type;
 + (int) typeFromDescription: (NSString*)desc;
 
 - (id) initWithNode: (GSXMLNode*)node
 	       name: (NSString*)name
 	      value: (NSString*)value;
-- (id) initFrom: (void*)data;
 
 - (NSString*) name;
 - (GSXMLNamespace*) ns;
@@ -170,7 +167,6 @@
 - (int) type;
 - (NSString*) typeDescription;
 - (NSString*) value;
-
 @end
 
 
@@ -194,6 +190,10 @@
 			     withData: (NSData*)data;
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding;
 
+- (GSXMLDocument*) doc;
+- (BOOL) doValidityChecking: (BOOL)yesno;
+- (int) errNo;
+- (BOOL) getWarnings: (BOOL)yesno;
 - (id) initWithSAXHandler: (GSSAXHandler*)handler;
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
        withContentsOfFile: (NSString*)path;
@@ -202,14 +202,9 @@
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 		 withData: (NSData*)data;
 
-- (GSXMLDocument*) doc;
+- (BOOL) keepBlanks: (BOOL)yesno;
 - (BOOL) parse;
 - (BOOL) parse: (NSData*)data;
-
-- (BOOL) doValidityChecking: (BOOL)yesno;
-- (int) errNo;
-- (BOOL) getWarnings: (BOOL)yesno;
-- (BOOL) keepBlanks: (BOOL)yesno;
 - (BOOL) substituteEntities: (BOOL)yesno;
 
 @end
@@ -231,79 +226,70 @@
 
 @interface GSSAXHandler (Callbacks)
 
-- (void) startDocument;
-- (void) endDocument;
-
-- (int) isStandalone;
-
-- (void) startElement: (NSString*)elementName
-           attributes: (NSMutableDictionary*)elementAttributes;
-- (void) endElement: (NSString*)elementName;
 - (void) attribute: (NSString*)name
 	     value: (NSString*)value;
+- (void) attributeDecl: (NSString*)nameElement
+                  name: (NSString*)name
+                  type: (int)type
+          typeDefValue: (int)defType
+          defaultValue: (NSString*)value;
 - (void) characters: (NSString*)name;
-- (void) ignoreWhitespace: (NSString*)ch;
-- (void) processInstruction: (NSString*)targetName
-		       data: (NSString*)PIdata;
-- (void) comment: (NSString*) value;
 - (void) cdataBlock: (NSString*)value;
-
-- (int) hasInternalSubset;
-- (BOOL) internalSubset: (NSString*)name
-             externalID: (NSString*)externalID
-               systemID: (NSString*)systemID;
-
-- (int) hasExternalSubset;
+- (void) comment: (NSString*) value;
+- (void) elementDecl: (NSString*)name
+		type: (int)type;
+- (void) endDocument;
+- (void) endElement: (NSString*)elementName;
+- (void) entityDecl: (NSString*)name
+               type: (int)type
+             public: (NSString*)publicId
+             system: (NSString*)systemId
+            content: (NSString*)content;
+- (void) error: (NSString*)e;
+- (void) error: (NSString*)e
+     colNumber: (int)colNumber
+    lineNumber: (int)lineNumber;
 - (BOOL) externalSubset: (NSString*)name
              externalID: (NSString*)externalID
                systemID: (NSString*)systemID;
-
-- (NSString*) loadEntity: (NSString*)publicId
-		      at: (NSString*)locationURL;
+- (void) fatalError: (NSString*)e;
+- (void) fatalError: (NSString*)e
+          colNumber: (int)colNumber
+         lineNumber: (int)lineNumber;
 - (void*) getEntity: (NSString*)name;
 - (void*) getParameterEntity: (NSString*)name;
-
+- (void) globalNamespace: (NSString*)name
+		    href: (NSString*)href
+		  prefix: (NSString*)prefix;
+- (int) hasExternalSubset;
+- (int) hasInternalSubset;
+- (void) ignoreWhitespace: (NSString*)ch;
+- (BOOL) internalSubset: (NSString*)name
+             externalID: (NSString*)externalID
+               systemID: (NSString*)systemID;
+- (int) isStandalone;
+- (NSString*) loadEntity: (NSString*)publicId
+		      at: (NSString*)locationURL;
 - (void) namespaceDecl: (NSString*)name
 		  href: (NSString*)href
 		prefix: (NSString*)prefix;
 - (void) notationDecl: (NSString*)name
 	       public: (NSString*)publicId
 	       system: (NSString*)systemId;
-- (void) entityDecl: (NSString*)name
-               type: (int)type
-             public: (NSString*)publicId
-             system: (NSString*)systemId
-            content: (NSString*)content;
-- (void) attributeDecl: (NSString*)nameElement
-                  name: (NSString*)name
-                  type: (int)type
-          typeDefValue: (int)defType
-          defaultValue: (NSString*)value;
-- (void) elementDecl: (NSString*)name
-		type: (int)type;
+- (void) processInstruction: (NSString*)targetName
+		       data: (NSString*)PIdata;
+- (void) reference: (NSString*)name;
+- (void) startDocument;
+- (void) startElement: (NSString*)elementName
+           attributes: (NSMutableDictionary*)elementAttributes;
 - (void) unparsedEntityDecl: (NSString*)name
 		     public: (NSString*)publicId
 		     system: (NSString*)systemId
 	       notationName: (NSString*)notation;
-- (void) reference: (NSString*)name;
-
-- (void) globalNamespace: (NSString*)name
-		    href: (NSString*)href
-		  prefix: (NSString*)prefix;
-
-
 - (void) warning: (NSString*)e;
-- (void) error: (NSString*)e;
-- (void) fatalError: (NSString*)e;
 - (void) warning: (NSString*)e
        colNumber: (int)colNumber
       lineNumber: (int)lineNumber;
-- (void) error: (NSString*)e
-     colNumber: (int)colNumber
-    lineNumber: (int)lineNumber;
-- (void) fatalError: (NSString*)e
-          colNumber: (int)colNumber
-         lineNumber: (int)lineNumber;
 
 @end
 

@@ -79,6 +79,10 @@
 - (BOOL) writeToFile: (NSString*)path
 	  atomically: (BOOL)useAuxiliaryFile;
 
+#ifndef	STRICT_OPENSTEP
+- (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)flag;
+#endif
+
 // Deserializing Data
 
 - (unsigned int) deserializeAlignedBytesLengthAtCursor: (unsigned int*)cursor;
