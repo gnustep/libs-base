@@ -1,3 +1,8 @@
+2002-01-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Mostly implemented parsing of C declarations
+	(function, typedef, constant and variable).
+
 2002-01-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSArchiver.h: tidyups

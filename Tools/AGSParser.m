@@ -122,67 +122,157 @@
   va_end (ap);
 }
 
-- (NSString*) parseDeclaratorInto: (NSMutableArray*)a
+- (void) parseArgsInto: (NSMutableDictionary*)d
 {
+  BOOL			wasInArgList = inArgList;
+  NSMutableArray	*a = [d objectForKey: @"Args"];
+
+  NSAssert([d objectForKey: @"Args"] == nil, NSInternalInconsistencyException);
+  a = [[NSMutableArray alloc] initWithCapacity: 4];
+  [d setObject: a forKey: @"Args"];
+  RELEASE(a);
+
+  inArgList = YES;
+  pos++;	// Step past opening '('
+
+  while ([self skipWhiteSpace] < length && buffer[pos] != ')')
+    {
+      if (buffer[pos] == ',')
+	{
+	  pos++;
+	}
+      else if (buffer[pos] == '.')
+	{
+	  pos += 3;	// Skip '...'
+	  [d setObject: @"YES" forKey: @"Varargs"];
+	}
+      else
+	{
+	  NSMutableDictionary	*m;
+
+	  m = [self parseDeclaration];
+	  if (m == nil)
+	    {
+	      break;
+	    }
+	  if ([[m objectForKey: @"BaseType"] isEqual: @"void"] == YES
+	     && [m objectForKey: @"Prefix"] == nil)
+	    {
+	      continue;	// C++ style empty arg list. eg. 'int foo(void);'
+	    }
+	  [a addObject: m];
+	}
+    }
+  if (pos < length)
+    {
+      pos++;	// Step past closing ')'
+    }
+  inArgList = wasInArgList;
+}
+
+- (void) parseDeclaratorInto: (NSMutableDictionary*)d
+{
+  NSMutableString	*p = nil;
+  NSMutableString	*s = nil;
+
   while ([self skipWhiteSpace] < length)
     {
       while (pos < length && buffer[pos] == '*')
 	{
-	  [a addObject: @"*"];
+	  if (p == nil && (p = [d objectForKey: @"Prefix"]) == nil)
+	    {
+	      p = [NSMutableString new];
+	      [d setObject: p forKey: @"Prefix"];
+	      RELEASE(p);
+	    }
+	  else if ([p hasSuffix: @"("] == NO && [p hasSuffix: @"*"] == NO)
+	    {
+	      [p appendString: @" "];
+	    }
+	  [p appendString: @"*"];
 	  pos++;
 	}
       if (buffer[pos] == '(')
 	{
-	  NSString	*result;
-
-	  [a addObject: @"("];
+	  if (p == nil && (p = [d objectForKey: @"Prefix"]) == nil)
+	    {
+	      p = [NSMutableString new];
+	      [d setObject: p forKey: @"Prefix"];
+	      RELEASE(p);
+	    }
+	  else if ([p hasSuffix: @"("] == NO && [p hasSuffix: @"*"] == NO)
+	    {
+	      [p appendString: @" "];
+	    }
+	  [p appendString: @"("];
 	  pos++;
-	  result = [self parseDeclaratorInto: a];
+	  [self parseDeclaratorInto: d];
 	  if ([self skipWhiteSpace] < length && buffer[pos] == '(')
 	    {
-	      [self parseDeclaratorInto: a];	// parse function args.
+	      [self parseArgsInto: d];	// parse function args.
 	    }
 	  if ([self skipWhiteSpace] < length && buffer[pos] == ')')
 	    {
-	      [a addObject: @")"];
+	      if (s == nil && (s = [d objectForKey: @"Suffix"]) == nil)
+		{
+		  s = [NSMutableString new];
+		  [d setObject: s forKey: @"Suffix"];
+		  RELEASE(s);
+		}
+	      [s appendString: @")"];
 	      pos++;
-	      return result;
+	      return;
 	    }
 	  else
 	    {
 	      [self log: @"missing ')' in declarator."];
-	      return nil;
+	      return;
 	    }
 	}
       else
 	{
-	  NSString	*s;
+	  NSString	*t;
 
-	  s = [self parseIdentifier];
-	  if ([s isEqualToString: @"const"] || [s isEqualToString: @"volatile"])
+	  t = [self parseIdentifier];
+	  if (t == nil)
 	    {
-	      [a addObject: s];
+	      return;
+	    }
+	  if ([t isEqualToString: @"const"] || [t isEqualToString: @"volatile"])
+	    {
+	      if (p == nil && (p = [d objectForKey: @"Prefix"]) == nil)
+		{
+		  p = [NSMutableString new];
+		  [d setObject: p forKey: @"Prefix"];
+		  RELEASE(p);
+		}
+	      else if ([p hasSuffix: @"("] == NO)
+		{
+		  [p appendString: @" "];
+		}
+	      [p appendString: t];
 	    }
 	  else
 	    {
-	      return s;	// Parsed all asterisks, consts, and volatiles
+	      [d setObject: t forKey: @"Name"];
+	      return;
 	    }
 	}
     }
-  return nil;
 }
 
-- (NSMutableDictionary*) parseDeclIsSource: (BOOL)isSource
+- (NSMutableDictionary*) parseDeclaration
 {
+  NSMutableDictionary	*d = [NSMutableDictionary dictionary];
   CREATE_AUTORELEASE_POOL(arp);
   static NSSet		*qualifiers = nil;
   static NSSet		*keep = nil;
-  NSString		*baseType = nil;
-  NSString		*declName = nil;
-  NSMutableArray	*a1;
-  NSMutableArray	*a2;
+  NSMutableString	*t = nil;
+  NSMutableArray	*a;
   NSString		*s;
   BOOL			isTypedef = NO;
+  BOOL			isPointer = NO;
+  BOOL			baseConstant = NO;
   BOOL			needScalarType = NO;
 
   if (qualifiers == nil)
@@ -213,8 +303,7 @@
       RETAIN(keep);
     }
 
-  a1 = [NSMutableArray array];
-  a2 = [NSMutableArray array];
+  a = [NSMutableArray array];
   while ((s = [self parseIdentifier]) != nil)
     {
       if ([s isEqualToString: @"static"] == YES)
@@ -241,7 +330,7 @@
 	    }
 	  if ([keep member: s] != nil)
 	    {
-	      [a1 addObject: s];
+	      [a addObject: s];
 	      if ([s isEqual: @"const"] == NO && [s isEqual: @"volatile"] == NO)
 		{
 		  needScalarType = YES;
@@ -260,33 +349,40 @@
     || [s isEqualToString: @"union"] == YES
     || [s isEqualToString: @"enum"] == YES)
     {
-      baseType = s;
+      NSString	*tmp = s;
+
       s = [self parseIdentifier];
       if (s == nil)
 	{
-	  baseType = [NSString stringWithFormat: @"%@ ...", baseType];
+	  s = [NSString stringWithFormat: @"%@ ...", tmp];
 	}
       else
 	{
-	  baseType = [NSString stringWithFormat: @"%@ %@", baseType, s];
+	  s = [NSString stringWithFormat: @"%@ %@", tmp, s];
+	  /*
+	   * It's possible to declare a struct, union, or enum without
+	   * giving it a name beyond after the declaration, in this case
+	   * we can use something like 'struct foo' as the name.
+	   */
+	  [d setObject: s forKey: @"Name"];
 	}
       if ([self skipWhiteSpace] < length && buffer[pos] == '{')
 	{
 	  [self skipBlock];
 	}
+      [a addObject: s];
       s = nil;
     }
   else
     {
-      baseType = s;
-      if (baseType == nil)
+      if (s == nil)
 	{
 	  /*
 	   * If there is no identifier here, the line must have been
 	   * something like 'unsigned *length' so we must set the default
 	   * base type of 'int'
 	   */
-	  baseType = @"int";
+	  [a addObject: @"int"];
 	}
       else if (needScalarType == YES
 	&& [s isEqualToString: @"char"] == NO
@@ -297,30 +393,157 @@
 	   * have a 'char' or an 'int', and if we didn't find one we should
 	   * insert one and use what we found as the variable name.
 	   */
-	  baseType = @"int";
+	  [a addObject: @"int"];
 	}
       else
 	{
+	  [a addObject: s];
 	  s = nil;	// s used as baseType
 	}
     }
 
-  if (s == nil)
+  /*
+   * Now build a string containing the base type in a standardised form.
+   */
+  t = [NSMutableString new];
+
+  if ([a containsObject: @"const"] == YES)
     {
-      declName = [self parseDeclaratorInto: a2];
+      [t appendString: @"const"];
+      [t appendString: @" "];
+      [a removeObject: @"const"];
+      baseConstant = YES;
+    }
+  else if ([a containsObject: @"volatile"] == YES)
+    {
+      [t appendString: @"volatile"];
+      [t appendString: @" "];
+      [a removeObject: @"volatile"];
+    }
+
+  if ([a containsObject: @"signed"] == YES)
+    {
+      [t appendString: @"signed"];
+      [t appendString: @" "];
+      [a removeObject: @"signed"];
+    }
+  else if ([a containsObject: @"unsigned"] == YES)
+    {
+      [t appendString: @"unsigned"];
+      [t appendString: @" "];
+      [a removeObject: @"unsigned"];
+    }
+
+  if ([a containsObject: @"short"] == YES)
+    {
+      [t appendString: @"short"];
+      [t appendString: @" "];
+      [a removeObject: @"short"];
+    }
+  else if ([a containsObject: @"long"] == YES)
+    {
+      unsigned	c = [a count];
+
+      /*
+       * There may be more than one 'long' in a type spec
+       */
+      while (c-- > 0)
+	{
+	  NSString	*tmp = [a objectAtIndex: c];
+
+	  if ([tmp isEqual: @"long"] == YES)
+	    {
+	      [t appendString: tmp];
+	      [t appendString: @" "];
+	      [a removeObjectAtIndex: c];
+	    }
+	}
+    }
+
+  if ([a count] != 1)
+    {
+      [self log: @"odd values in declaration base type - '%@'", a];
+      [t appendString: [a componentsJoinedByString: @" "]];
     }
   else
     {
-      declName = s;
+      [t appendString: [a objectAtIndex: 0]];
     }
+  [a removeAllObjects];		// Parsed base type
 
-  [a1 addObject: baseType];
-  [a1 addObjectsFromArray: a2];
+  [d setObject: t forKey: @"BaseType"];
+  RELEASE(t);
+
+  /*
+   * Set the 'Kind' of declaration ... one of 'typedef', 'function',
+   * 'variable', or 'constant'
+   * We may ovrride this later.
+   */
+  if (isTypedef == YES)
+    {
+      [d setObject: @"typedef" forKey: @"Kind"];
+    }
+  else if (baseConstant == YES)
+    {
+      [d setObject: @"constant" forKey: @"Kind"];
+    }
+  else
+    {
+      [d setObject: @"variable" forKey: @"Kind"];
+    } 
+
+  if (s == nil)
+    {
+      [self parseDeclaratorInto: d];
+      /*
+       * There may have been '*' and 'const' applied to the declarator
+       * which will change whether it is a constant or a variable, and
+       * whether it is a pointer to something.
+       * If the last thing to be applied was a '*' it is a variable
+       * which points to a constant.  If the last thing was 'const'
+       * then it is a constant (and may be a pointer too).
+       */
+      s = [d objectForKey: @"Prefix"];
+      if (s != nil)
+	{
+	  NSRange	r;
+
+	  r = [s rangeOfString: @"*"
+		       options: NSBackwardsSearch|NSLiteralSearch];
+	  if (r.length > 0)
+	    {
+	      unsigned	p = r.location;
+
+	      isPointer = YES;
+	      if (isTypedef == NO)
+		{
+		  r = [s rangeOfString: @"const"
+			       options: NSBackwardsSearch|NSLiteralSearch];
+		  if (r.length > 0 && r.location >= p)
+		    {
+		      [d setObject: @"constant" forKey: @"Kind"];
+		    }
+		}
+	    }
+	}
+    }
+  else
+    {
+      [d setObject: s forKey: @"Name"];
+    }
 
   if ([self skipWhiteSpace] < length)
     {
       if (buffer[pos] == '[')
 	{
+	  NSMutableString	*suffix;
+
+	  if ((suffix = [d objectForKey: @"Suffix"]) == nil)
+	    {
+	      suffix = [NSMutableString new];
+	      [d setObject: suffix forKey: @"Suffix"];
+	      RELEASE(suffix);
+	    }
 	  while (buffer[pos] == '[')
 	    {
 	      unsigned	old = pos;
@@ -329,81 +552,103 @@
 		{
 		  break;
 		}
-	      [a1 addObject: @"[]"];
+	      [suffix appendString: @"[]"];
 	    }
 	}
       else if (buffer[pos] == '(')
 	{
-	  [self log: @"parse function '%@' of type '%@'",
-	    declName, [a1 componentsJoinedByString: @" "]];
-	  [self skipStatement];
-	  RELEASE(arp);
-	  return nil;
+	  [self parseArgsInto: d];
+	}
+    }
+
+  if ([d objectForKey: @"Args"] != nil)
+    {
+      /*
+       * If the declaration looked like this int (*foo)() then
+       * 'isPointer' will be YES and 'Suffix' will contain the
+       * bracket after 'foo'.  In this case, what we have is a
+       * variable or constant pointer to a function.
+       * Otherwise, we have a function declaration and the
+       * 'Kind' should be set to 'function'.
+       */
+      if (isPointer == NO || [d objectForKey: @"Suffix"] == nil)
+	{
+	  [d setObject: @"function" forKey: @"Kind"];
 	}
     }
 
   if ([self skipWhiteSpace] < length)
     {
-      if (buffer[pos] == ';')
+      if (inArgList == YES)
 	{
-	  [self skipStatement];
-	}
-      else if (buffer[pos] == ',')
-	{
-	  [self log: @"ignoring multiple comma separated declarations"];
-	  [self skipStatement];
-	}
-      else if (buffer[pos] == '=')
-	{
-	  [self skipStatement];
-	}
-      else if (buffer[pos] == '{')
-	{
-	  [self skipBlock];
+	  if (buffer[pos] == ')' || buffer[pos] == ',')
+	    {
+	      RELEASE(arp);
+	      return d;
+	    }
+	  else
+	    {
+	      [self log: @"unexpected char (%c) in arg list", buffer[pos]];
+	      [self skipStatement];
+	      goto fail;
+	    }
 	}
       else
 	{
-	  [self log: @"unexpected char (%c) parsing declaration", buffer[pos]];
-	  [self skipStatement];
-	  goto fail;
-	}
+	  if (buffer[pos] == ';')
+	    {
+	      [self skipStatement];
+	    }
+	  else if (buffer[pos] == ',')
+	    {
+	      [self log: @"ignoring multiple comma separated declarations"];
+	      [self skipStatement];
+	    }
+	  else if (buffer[pos] == '=')
+	    {
+	      [self skipStatement];
+	    }
+	  else if (buffer[pos] == '{')
+	    {
+	      [self skipBlock];
+	    }
+	  else
+	    {
+	      [self log: @"unexpected char (%c) in declaration", buffer[pos]];
+	      [self skipStatement];
+	      goto fail;
+	    }
 
-      /*
-       * Read in any comment on the same line in case it
-       * contains documentation for the declaration.
-       */
-      if ([self skipSpaces] < length && buffer[pos] == '/')
-	{
-	  [self skipComment];
-	}
-
-      if (inInstanceVariables == YES)
-	{
-	  NSMutableDictionary	*d;
-	  NSString		*t;
-
-	  t = [a1 componentsJoinedByString: @" "];
-	  d = [[NSMutableDictionary alloc] initWithCapacity: 4];
-	  [d setObject: declName forKey: @"Name"];
-	  [d setObject: t forKey: @"Type"];
+	  /*
+	   * Read in any comment on the same line in case it
+	   * contains documentation for the declaration.
+	   */
+	  if ([self skipSpaces] < length && buffer[pos] == '/')
+	    {
+	      [self skipComment];
+	    }
 	  if (comment != nil)
 	    {
 	      [d setObject: comment forKey: @"Comment"];
-	      DESTROY(comment);
 	    }
-	  RELEASE(arp);
-	  return AUTORELEASE(d);
+	  [self log: @"parse '%@'", d];
+	  DESTROY(comment);
 	}
-      else if (isTypedef == YES)
+
+      RELEASE(arp);
+      if (inArgList == NO)
 	{
-	  [self log: @"parse typedef '%@' of type '%@'",
-	    declName, [a1 componentsJoinedByString: @" "]];
+	  /*
+	   * This is a top-level declaration, so lets tidy up ready for
+	   * linking into the documentation tree.
+	   */
+	  if ([d objectForKey: @"Name"] == nil)
+	    {
+	      [self log: @"parse declaration with no name - %@", d];
+	      return nil;
+	    }
 	}
-      else
-	{
-	  [self log: @"parse variable/constant '%@' of type '%@'",
-	    declName, [a1 componentsJoinedByString: @" "]];
-	}
+      return d;
     }
   else
     {
@@ -500,7 +745,7 @@ fail:
 	     * Must be some sort of declaration ...
 	     */
 	    pos--;
-	    [self parseDeclIsSource: isSource];
+	    [self parseDeclaration];
 	    // [self skipStatementLine];
 	    break;
         }
@@ -851,7 +1096,7 @@ fail:
 	}
       else if (shouldDocument == YES)
 	{
-	  NSMutableDictionary	*iv = [self parseDeclIsSource: NO];
+	  NSMutableDictionary	*iv = [self parseDeclaration];
 
 	  if (iv != nil)
 	    {
@@ -1299,7 +1544,7 @@ fail:
 	    else
 	      {
 		pos--;
-		[self parseDeclIsSource: YES];
+		[self parseDeclaration];
 	      }
 	    break;
 	}
