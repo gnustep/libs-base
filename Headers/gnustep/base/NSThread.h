@@ -1,12 +1,9 @@
-/* 
-   NSThread.h
-
-   Control of executable units within a shared virtual memory space
-
+/* Control of executable units within a shared virtual memory space
    Copyright (C) 1996 Free Software Foundation, Inc.
 
-   Author:  Scott Christley <scottc@net-community.com>
-   Date: 1996
+   Original Author:  Scott Christley <scottc@net-community.com>
+   Rewritten by: Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Created: 1996
    
    This file is part of the GNUstep Objective-C Library.
 
@@ -20,50 +17,49 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   If you are interested in a warranty or support for this source code,
-   contact Scott Christley <scottc@net-community.com> for more information.
-   
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef _GNUstep_H_NSThread
-#define _GNUstep_H_NSThread
+#ifndef __NSThread_h_GNUSTEP_BASE_INCLUDE
+#define __NSThread_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
-#include <objc/thread.h>
+#include <gnustep/base/preface.h>
+#include <objc/thr.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
 
-typedef enum {
-    NSInteractiveThreadPriority,
-    NSBackgroundThreadPriority,
-    NSLowThreadPriority
+typedef enum
+{
+  NSInteractiveThreadPriority,
+  NSBackgroundThreadPriority,
+  NSLowThreadPriority
 } NSThreadPriority;
-
-extern NSString *NSBecomingMultiThreaded;
-extern NSString *NSThreadExiting;
 
 @interface NSThread : NSObject
 {
 @private
-    _objc_thread_t thread_id;
-    NSMutableDictionary *thread_dictionary;
-    id _thread_autorelease_pool;
+   _objc_thread_t _thread_id;
+   NSMutableDictionary *_thread_dictionary;
+   id _thread_autorelease_pool;
 }
 
-+ (NSThread *)currentThread;
-+ (void)detachNewThreadSelector:(SEL)aSelector
-   toTarget:(id)aTarget
-   withObject:(id)anArgument;
++ (NSThread*) currentThread;
++ (void) detachNewThreadSelector: (SEL)aSelector
+   toTarget: (id)aTarget
+   withObject: (id)anArgument;
 
-+ (BOOL)isMultiThreaded;
-- (NSMutableDictionary *)threadDictionary;
++ (BOOL) isMultiThreaded;
+- (NSMutableDictionary*) threadDictionary;
 
-+ (void)sleepUntilDate:(NSDate *)date;
-+ (void)exit;
++ (void) sleepUntilDate: (NSDate*)date;
++ (void) exit;
 
 @end
 
-#endif _GNUstep_H_NSThread
+/* Notification Strings. */
+extern NSString *NSBecomingMultiThreaded;
+extern NSString *NSThreadExiting;
+
+#endif /* __NSThread_h_GNUSTEP_BASE_INCLUDE */
