@@ -37,6 +37,7 @@ gnustep_libdir = $(libdir)/gnustep
 includedir = @includedir@
 
 CC = @CC@ -pipe
+LIBS = @LIBS@
 RANLIB = @RANLIB@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -83,7 +84,9 @@ FILE_AUTHORS = \
 "Peter Burka" \
 "Albin L. Jones" \
 "Scott Christley" \
-"Luke Howard"
+"Luke Howard" \
+"Yoo C. Chung" \
+"Richard Frith-Macdonald"
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
@@ -131,6 +134,7 @@ BinaryTreeNode.m \
 CircularArray.m \
 Collection.m \
 ConnectedCoder.m \
+Connection.m \
 Coder.m \
 Connection.m \
 CStream.m \
@@ -163,7 +167,6 @@ RBTree.m \
 RBTreeNode.m \
 RNGAdditiveCongruential.m \
 RNGBerkeley.m \
-RunLoop.m \
 Set.m \
 SplayTree.m \
 Stack.m \
@@ -174,6 +177,7 @@ TextCStream.m \
 Time.m \
 UdpPort.m \
 Unicode.m \
+UnixFileHandle.m \
 behavior.m \
 lex.pl.m \
 lex.sf.m \
@@ -298,6 +302,7 @@ include/TextCStream.h \
 include/Time.h \
 include/UdpPort.h \
 include/Unicode.h \
+include/UnixFileHandle.h \
 include/ValueHolding.h \
 include/behavior.h \
 include/fake-main.h \
@@ -353,6 +358,7 @@ objc/zone.h
 
 GNUSTEP_MFILES = \
 NSAllocateObject.m \
+NSAttributedString.m \
 NSArchiver.m \
 NSArray.m \
 NSAssertionHandler.m \
@@ -366,24 +372,31 @@ NSCoder.m \
 NSCopyObject.m \
 NSConcreteValue.m \
 NSCountedSet.m \
+NSConnection.m \
 NSData.m \
 NSDate.m \
+NSDebug.m \
 NSDeallocateObject.m \
 NSDictionary.m \
+NSDistantObject.m \
 NSEnumerator.m \
 NSException.m \
+NSFileHandle.m \
 NSFileManager.m \
 NSGeometry.m \
 NSGArchiver.m \
 NSGArray.m \
+NSGAttributedString.m \
 NSGCountedSet.m \
 NSGCString.m \
 NSGData.m \
+NSHData.m \
 NSGDictionary.m \
 NSGSet.m \
 NSGSequence.m \
 NSGString.m \
 NSHashTable.m \
+NSHost.m \
 NSInvocation.m \
 NSLock.m \
 NSLog.m \
@@ -391,14 +404,20 @@ NSMapTable.m \
 NSMethodSignature.m \
 NSNotification.m \
 NSNotificationCenter.m \
+NSNotificationQueue.m \
 NSNumber.m \
 NSObjCRuntime.m \
 NSObject.m \
 NSPage.m \
+NSPipe.m \
+NSPort.m \
+NSPortCoder.m \
 NSProcessInfo.m \
+NSProxy.m \
 NSRange.m \
 NSRunLoop.m \
 NSScanner.m \
+NSSerializer.m \
 NSSet.m \
 NSString.m \
 NSThread.m \
@@ -431,7 +450,8 @@ null-load.h \
 simple-load.h \
 NSCallBacks.h \
 NSHost.m \
-gdomap.c gdomap.h
+gdomap.c gdomap.h \
+tzfile.h
 
 GNUSTEP_OBJS = \
 	$(GNUSTEP_MFILES:.m=${OEXT}) \
@@ -440,8 +460,11 @@ GNUSTEP_OBJS = \
 	$(NSNUMBER_MFILES:.m=${OEXT})
 
 GNUSTEP_HEADERS = \
+include/byte_order.h \
+include/DistributedObjects.h \
 include/NSArchiver.h \
 include/NSArray.h \
+include/NSAttributedString.h \
 include/NSAutoreleasePool.h \
 include/NSBitmapCharSet.h \
 include/NSBundle.h \
@@ -452,15 +475,19 @@ include/NSConcreteValue.h \
 include/NSConnection.h \
 include/NSData.h \
 include/NSDate.h \
+include/NSDebug.h \
 include/NSDictionary.h \
 include/NSDistantObject.h \
 include/NSException.h \
+include/NSFileHandle.h \
 include/NSFileManager.h \
 include/NSGeometry.h \
 include/NSGArchiver.h \
 include/NSGArray.h \
+include/NSGAttributedString.h \
 include/NSGCString.h \
 include/NSGData.h \
+include/NSHData.h \
 include/NSGDictionary.h \
 include/NSGSet.h \
 include/NSGSequence.h \
@@ -472,11 +499,15 @@ include/NSLock.h \
 include/NSMapTable.h \
 include/NSMethodSignature.h \
 include/NSNotification.h \
+include/NSNotificationQueue.h \
 include/NSObjCRuntime.h \
 include/NSObject.h \
 include/NSPage.h \
 include/NSPathUtilities.h \
+include/NSPort.h \
+include/NSPortCoder.h \
 include/NSProcessInfo.h \
+include/NSProxy.h \
 include/NSRange.h \
 include/NSRunLoop.h \
 include/NSScanner.h \
@@ -617,7 +648,7 @@ $(NSNUMBER_MFILES) : NSConcreteNumber.m
 	cat $(srcdir)/NSConcreteNumber.m >> $@
 
 gdomap:	gdomap.c gdomap.h
-	$(CC) $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
+	$(CC) $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $< $(LIBS)
 
 NXStringTable_scan.c: NXStringTable_scan.l
 	$(LEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
@@ -723,6 +754,7 @@ distclean: clean
 	rm -f Makefile 
 	rm -f dynamic-load.h
 	rm -f include/preface.h include/config.h
+	rm -f Foundation gnustep/base
 	rm -f o_*_bas.m o_*_cbs.m include/o_*_bas.h include/o_*_cbs.h
 maintainer-clean: distclean
 	rm -f TAGS

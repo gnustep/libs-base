@@ -21,6 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+/* Name server support and exceptions added october 1996
+   by Richard Frith-Macdonald (richard@brainstorm.co.uk)
+   Socket I/O made non blocking. */
+
 /* A strange attempt to make SOCK_STREAM sockets look like ports.  The
    two concepts don't fit together easily.  Be prepared for a little
    weirdness. */
@@ -34,7 +38,7 @@
 #include <gnustep/base/Array.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/NSException.h>
-#include <gnustep/base/RunLoop.h>
+#include <Foundation/NSRunLoop.h>
 #include <gnustep/base/Invocation.h>
 #include <Foundation/NSDate.h>
 #include <stdio.h>
@@ -46,6 +50,7 @@
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/file.h>
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
@@ -55,10 +60,10 @@
 #define NBLK_OPT     FNDELAY
 #endif
 
-#define	GDOMAP	0	/* 1 = Use name server.	*/
+#define	GDOMAP	1	/* 1 = Use name server.	*/
 #define	stringify_it(X)	#X
-#define	make_gdomap_cmd(X)	stringify_it(X) "/bin/gdomap -p &"
-#define	make_gdomap_err(X)	"check that " stringify_it(X)  "/bin/gdomap is running and owned by root."
+#define	make_gdomap_cmd(X)	stringify_it(X) "/bin/gdomap &"
+#define	make_gdomap_err(X)	"check that " stringify_it(X) "/bin/gdomap is running and owned by root."
 
 #endif /* !__WIN32__ */
 #include <string.h>		/* for memset() and strchr() */
@@ -110,11 +115,12 @@ static int debug_tcp_port = 0;
 
 @interface TcpOutPacket (Private)
 - (void) _writeToSocket: (int)s 
-      withReplySockaddr: (struct sockaddr_in*)addr;
+       withReplySockaddr: (struct sockaddr_in*)addr
+                timeout: (NSTimeInterval)t;
 @end
 
 #if 0
-/* Not currently being used; but see the comment in -sendPacket: */
+/* Not currently being used; but see the comment in -sendPacket:timeout: */
 
 /* TcpInStream - an object that represents an accept()'ed socket
    that's being polled by a TcpInPort's select().  This object cannot
@@ -330,8 +336,8 @@ struct sockaddr_in* addr, unsigned short* p, unsigned char **v)
 {
     int desc = socket(AF_INET, SOCK_STREAM, 0);
     int	e = 0;
-    unsigned short	port = *p;
-    unsigned char	buf[GDO_REQ_SIZE];
+    unsigned long	port = *p;
+    gdo_req		msg;
     struct sockaddr_in sin;
 
     *p = 0;
@@ -380,36 +386,37 @@ struct sockaddr_in* addr, unsigned short* p, unsigned char **v)
 	}
     }
 
-    memset(buf, '\0', GDO_REQ_SIZE);
-    buf[0] = op;
-    buf[1] = len;
+    memset((char*)&msg, '\0', GDO_REQ_SIZE);
+    msg.rtype = op;
+    msg.nsize = len;
+    msg.ptype = GDO_TCP_GDO;
     if (op != GDO_REGISTER) {
 	port = 0;
     }
-    *((unsigned short*)&buf[2]) = htons(port);
-    memcpy(&buf[4], name, len);
+    msg.port = htonl(port);
+    memcpy(msg.name, name, len);
 
-    e = tryWrite(desc, 10, buf, GDO_REQ_SIZE);
+    e = tryWrite(desc, 10, (unsigned char*)&msg, GDO_REQ_SIZE);
     if (e != GDO_REQ_SIZE) {
 	e = errno;
 	close(desc);
 	errno = e;
 	return(4);
     }
-    e = tryRead(desc, 3, (unsigned char*)p, 2);
-    if (e != 2) {
+    e = tryRead(desc, 3, (unsigned char*)&port, 4);
+    if (e != 4) {
 	e = errno;
 	close(desc);
 	errno = e;
 	return(5);	/* Read timed out.	*/
     }
-    *p = ntohs(*p);
+    port = ntohl(port);
 
 /*
  *	Special case for GDO_SERVERS - allocate buffer and read list.
  */
     if (op == GDO_SERVERS) {
-	int	len = *p * sizeof(struct in_addr);
+	int	len = port * sizeof(struct in_addr);
 	unsigned char*	b;
 
 	b = (unsigned char*)objc_malloc(len);
@@ -423,6 +430,7 @@ struct sockaddr_in* addr, unsigned short* p, unsigned char **v)
 	*v = b;
     }
 
+    *p = (unsigned short)port;
     close(desc);
     errno = 0;
     return(0);
@@ -471,7 +479,7 @@ nameFail(int why)
  *			primary network interface for each host!
  */
 static int
-nameServer(const char* name, const char* host, int op, struct sockaddr_in*  addr, int pnum, int max)
+nameServer(const char* name, const char* host, int op, struct sockaddr_in* addr, int pnum, int max)
 {
     struct sockaddr_in	sin;
     struct servent*	sp;
@@ -565,6 +573,7 @@ nameServer(const char* name, const char* host, int op, struct sockaddr_in*  addr
 		sin.sin_family = AF_INET;
 		sin.sin_port = p;
 		memcpy((caddr_t)&sin.sin_addr, &b[i], sizeof(struct in_addr));
+		if (sin.sin_addr.s_addr == 0) continue;
 
 		if (tryHost(GDO_LOOKUP, len, name, &sin, &port, 0) == 0) {
 		    if (port != 0) {
@@ -659,7 +668,7 @@ init_port_socket_2_port ()
 
 
 /* TcpInPort class - An object that represents a listen()'ing socket,
-   and a collection of socket's which the RunLoop will poll using
+   and a collection of socket's which the NSRunLoop will poll using
    select().  Each of the socket's that is polled is actually held by
    a TcpOutPort object.  See the comments by TcpOutPort below. */
 
@@ -789,42 +798,19 @@ static NSMapTable* port_number_2_port;
     memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
   }
 
-#if 1
-  /* Is this right?  -am */
-  assert (n);
-#else
-  /* If the caller didn't specify a port number, it was chosen for us.
-     Here, find out what number was chosen. */
-  if (!n)
-    /* xxx Perhaps I should do this unconditionally? */
-    {
-      int size = sizeof (p->_listening_address);
-      if (getsockname (p->_port_socket,
-		       (struct sockaddr*)&(p->_listening_address),
-		       &size)
-	  < 0)
-	{
-	  perror ("[TcpInPort +newForReceivingFromPortNumber] getsockname()");
-	  abort ();
-	}
-      assert (p->_listening_address.sin_port);
-    }
-#endif
-
   /* Set it up to accept connections, let 10 pending connections queue */
   /* xxx Make this "10" a class variable? */
   if (listen (p->_port_socket, 10) < 0)
     {
       [NSException raise: NSInternalInconsistencyException
-		   format: @"[TcpInPort +newForReceivingFromPortNumber:] "
-		   @"listen(): %s",
-		   strerror(errno)];
+	format: @"[TcpInPort +newForReceivingFromPortNumber:] listen(): %s",
+	strerror(errno)];
     }
 
   /* Initialize the tables for matching socket's to out ports and packets. */
   p->_client_sock_2_out_port = 
     NSCreateMapTable (NSIntMapKeyCallBacks,
-		      NSNonOwnedPointerMapValueCallBacks, 0);
+		      NSObjectMapValueCallBacks, 0);
   p->_client_sock_2_packet = 
     NSCreateMapTable (NSIntMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
@@ -907,9 +893,9 @@ static NSMapTable* port_number_2_port;
 
   /* Make sure we're in the run loop, and run it, waiting for the
      incoming packet. */
-  [[RunLoop currentInstance] addPort: self 
-			     forMode: [RunLoop currentMode]];
-  while ([RunLoop runOnceBeforeDate: date]
+  [[NSRunLoop currentRunLoop] addPort: self
+			      forMode: [NSRunLoop currentMode]];
+  while ([NSRunLoop runOnceBeforeDate: date]
 	 && !packet)
     ;
 
@@ -917,8 +903,8 @@ static NSMapTable* port_number_2_port;
      handler, and decrement the number of times we've been added to
      this run loop. */ 
   _packet_invocation = saved_packet_invocation;
-  [[RunLoop currentInstance] removePort: self 
-			     forMode: [RunLoop currentMode]];
+  [[NSRunLoop currentRunLoop] removePort: self
+			         forMode: [NSRunLoop currentMode]];
   return packet;
 }
 
@@ -968,6 +954,7 @@ static NSMapTable* port_number_2_port;
 		       peeraddr: &clientname
 		       inPort: self];
       [self _addClientOutPort: op];
+      [op release];
       if (debug_tcp_port)
 	fprintf (stderr, 
 		 "%s: Accepted connection from\n %s.\n",
@@ -1005,8 +992,7 @@ static NSMapTable* port_number_2_port;
 	     data on other sockets. */
 	  if (packet_size == EOF)
 	    {
-	      [(id) NSMapGet (_client_sock_2_out_port,
-			      (void*)fd_index)
+	      [(id) NSMapGet (_client_sock_2_out_port, (void*)fd_index)
 		    invalidate];
 	      return nil;
 	    }
@@ -1050,9 +1036,9 @@ static NSMapTable* port_number_2_port;
 }
 
 
-/* Dealing with the relationship to a RunLoop. */
+/* Dealing with the relationship to a NSRunLoop. */
 
-/* The RunLoop will send us this message just before it's about to call
+/* The NSRunLoop will send us this message just before it's about to call
    select().  It is asking us to fill fds[] in with the sockets on which
    it should listen.  *count should be set to the number of sockets we
    put in the array. */
@@ -1076,21 +1062,34 @@ static NSMapTable* port_number_2_port;
     fds[(*count)++] = sock;
 }
 
-/* This is called by the RunLoop when select() says the FD is ready
+/* This is called by the NSRunLoop when select() says the FD is ready
    for reading. */
 
 #include <Foundation/NSAutoreleasePool.h>
-- (void) readyForReadingOnFileDescriptor: (int)fd;
+- (void) receivedEvent: (void*)data
+		  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode
 {
-id arp = [NSAutoreleasePool new];
-  id packet = [self _tryToGetPacketFromReadableFD: fd];
+  id arp = [NSAutoreleasePool new];
+  id packet;
+
+assert(type == ET_RPORT);
+
+  packet = [self _tryToGetPacketFromReadableFD: (int)extra];
   if (packet) {
     [_packet_invocation invokeWithObject: packet];
   }
-[arp release];
-return;
+  [arp release];
+  return;
 }
 
+- (NSDate*)timedOutEvent: (void*)data
+		    type: (RunLoopEventType)type
+		 forMode: (NSString*)mode
+{
+    return nil;
+}
 
 
 /* Adding an removing client sockets (ports). */
@@ -1129,13 +1128,18 @@ return;
       [packet release];
     }
   NSMapRemove (_client_sock_2_out_port, (void*)s);
-
+/*
+ *	This method is all wrong - messes up badly when called from
+ *	an OutPort which is deallocating itsself.
+ */
+#if 0
   /* xxx Should this be earlier, so that the notification recievers
      can still use _client_sock_2_out_port before the out port P is removed? */
   [NotificationDispatcher
     postNotificationName: InPortClientBecameInvalidNotification
     object: self
     userInfo: p];
+#endif
 }
 
 - (int) _port_socket
@@ -1174,11 +1178,11 @@ return;
 	 getting it.  This may help Connection invalidation confusion. 
 	 However, then the process might run out of FD's if the close()
 	 was delayed too long. */
-#ifdef __WIN32__
+#ifdef	__WIN32__
       closesocket (_port_socket);
 #else
       close (_port_socket);
-#endif /* __WIN32__ */
+#endif	/* __WIN32__ */
 
       /* These are here, and not in -dealloc, to prevent 
 	 +newForReceivingFromPortNumber: from returning invalid sockets. */
@@ -1186,7 +1190,7 @@ return;
       NSMapRemove (port_number_2_port,
 		   (void*)(int) ntohs(_listening_address.sin_port));
 
-      /* This also posts a PortBecameInvalidNotification. */
+      /* This also posts a NSPortDidBecomeInvalidNotification. */
       [super invalidate];
     }
 }
@@ -1231,6 +1235,15 @@ return;
   /* Make sure that Connection's always send us bycopy, not a Proxy class.
      Also, encode a "send right" (ala Mach), not the "receive right". */
   return [TcpOutPort class];
+}
+
+- (Class) classForPortCoder: aRmc
+{
+  return [TcpOutPort class];
+}
+- replacementObjectForPortCoder: aRmc
+{
+    return self;
 }
 
 - (void) encodeWithCoder: aCoder
@@ -1377,7 +1390,7 @@ static NSMapTable *out_port_bag = NULL;
 	    }
 	}
       assert (p->is_valid);
-      return p;
+      return [p retain];
     }
 
   /* There isn't already an in port for this sockaddr or sock,
@@ -1423,10 +1436,11 @@ static NSMapTable *out_port_bag = NULL;
 
   /* Connect the socket to its destination, (if it hasn't been done 
      already by a previous accept() call. */
-  if (!sock)
-    {
-      int rval;
+  if (!sock) {
+      int	rval;
+
       assert (p->_remote_in_port_address.sin_family);
+
       if (connect (p->_port_socket,
 		   (struct sockaddr*)&(p->_remote_in_port_address), 
 		   sizeof(p->_remote_in_port_address)) 
@@ -1537,7 +1551,7 @@ static NSMapTable *out_port_bag = NULL;
   return [self newForSendingToPortNumber: 
 		 name_2_port_number ([name cStringNoCopy])
 	       onHost: hostname];;
-#endif /* GDOMAP */
+#endif	/* GDOMAP */
 }
 
 + _newWithAcceptedSocket: (int)s 
@@ -1573,7 +1587,7 @@ static NSMapTable *out_port_bag = NULL;
   return &_remote_in_port_address;
 }
 
-- (BOOL) sendPacket: packet
+- (BOOL) sendPacket: packet timeout: (NSTimeInterval)timeout
 {
   id reply_port = [packet replyInPort];
 
@@ -1604,10 +1618,11 @@ static NSMapTable *out_port_bag = NULL;
   /* Ask the packet to write it's bytes to the socket.
      The TcpPacket will also write a prefix, indicating the packet size
      and the reply port address.  If REPLY_PORT is nil, the second argument
-     to this call with be NULL, and __writeToSocket:withReplySockaddr: will
-     know that there is no reply port. */
+     to this call with be NULL, and __writeToSocket:withReplySockaddr:timeout:
+     will know that there is no reply port. */
   [packet _writeToSocket: _port_socket 
-	  withReplySockaddr: [reply_port _listeningSockaddr]];
+	  withReplySockaddr: [reply_port _listeningSockaddr]
+		    timeout: timeout];
   return YES;
 }
 
@@ -1628,35 +1643,40 @@ static NSMapTable *out_port_bag = NULL;
 
 - (void) invalidate
 {
-  assert (is_valid);
-
-  /* xxx Perhaps should delay this close() to keep another port from
-     getting it.  This may help Connection invalidation confusion. */
-#ifdef __WIN32__
-  if (closesocket (_port_socket) < 0)
-#else
-  if (close (_port_socket) < 0)
-#endif /* __WIN32__ */
+  if (is_valid)
     {
-      [NSException raise: NSInternalInconsistencyException
-	  format: @"[TcpOutPort -invalidate:] close(): %s",
-	  strerror(errno)];
-    }
-  [_polling_in_port _connectedOutPortInvalidated: self];
-  [_polling_in_port release];
-  _polling_in_port = nil;
-      
-  /* This is here, and not in -dealloc, because invalidated
-     but not dealloc'ed ports should not be returned from
-     the out_port_bag in +newForSendingToSockaddr:... */
-  NSMapRemove (out_port_bag, (void*)self);
-  /* This is here, and not in -dealloc, because invalidated
-     but not dealloc'ed ports should not be returned from
-     the socket_2_port in +newForSendingToSockaddr:... */
-  NSMapRemove (socket_2_port, (void*)_port_socket);
+      id	port = _polling_in_port;
 
-  /* This also posts a PortBecameInvalidNotification. */
-  [super invalidate];
+      _polling_in_port = nil;
+
+      /* This also posts a NSPortDidBecomeInvalidNotification. */
+      [super invalidate];
+
+      /* xxx Perhaps should delay this close() to keep another port from
+	 getting it.  This may help Connection invalidation confusion. */
+    #ifdef	__WIN32__
+      if (closesocket (_port_socket) < 0)
+    #else
+      if (close (_port_socket) < 0)
+    #endif /* __WIN32 */
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	      format: @"[TcpOutPort -invalidate:] close(): %s",
+	      strerror(errno)];
+	}
+
+      /* This is here, and not in -dealloc, because invalidated
+	 but not dealloc'ed ports should not be returned from
+	 the out_port_bag in +newForSendingToSockaddr:... */
+      NSMapRemove (out_port_bag, (void*)self);
+      /* This is here, and not in -dealloc, because invalidated
+	 but not dealloc'ed ports should not be returned from
+	 the socket_2_port in +newForSendingToSockaddr:... */
+      NSMapRemove (socket_2_port, (void*)_port_socket);
+
+      [port _connectedOutPortInvalidated: self];
+      [port release];
+    }
 }
 
 - (void) dealloc
@@ -1666,11 +1686,18 @@ static NSMapTable *out_port_bag = NULL;
   [super dealloc];
 }
 
-- classForConnectedCoder: aRmc
+- classForPortCoder: aRmc
 {
   /* Make sure that Connection's always send us bycopy,
      i.e. as our own class, not a Proxy class. */
   return [self class];
+}
+
+- replacementObjectForPortCoder: aRmc
+{
+  /* Make sure that Connection's always send us bycopy,
+     i.e. as our own class, not a Proxy class. */
+  return self;
 }
 
 - (Class) outPacketClass
@@ -1798,9 +1825,10 @@ static NSMapTable *out_port_bag = NULL;
     memcpy (&addr, prefix_buffer + PREFIX_LENGTH_SIZE, sizeof (typeof (addr)));
     if (addr.sin_family)
       {
-      *rp = [TcpOutPort newForSendingToSockaddr: &addr
+        *rp = [TcpOutPort newForSendingToSockaddr: &addr
 			withAcceptedSocket: s
 			pollingInPort: ip];
+	[(*rp) autorelease];
       }
     else
       *rp = nil;
@@ -1841,6 +1869,7 @@ static NSMapTable *out_port_bag = NULL;
 
 - (void) _writeToSocket: (int)s 
       withReplySockaddr: (struct sockaddr_in*)addr
+                timeout: (NSTimeInterval)timeout
 {
   int c;
 
@@ -1859,16 +1888,16 @@ static NSMapTable *out_port_bag = NULL;
 
   /* Write the packet on the socket. */
 #ifdef	GDOMAP
-  c = tryWrite (s, 30, buffer, prefix + eof_position);
+  c = tryWrite (s, (int)timeout, buffer, prefix + eof_position);
 #else
 #ifdef	__WIN32__
-  c = recv (s, buffer, prefix + eof_position, 0);
+  c = send (s, buffer, prefix + eof_position, 0);
 #else
-  c = read (s, buffer, prefix + eof_position);
+  c = write (s, buffer, prefix + eof_position);
 #endif	/* __WIN32__ */
 #endif	/* GDOMAP */
   if (c == -2) {
-    [NSException raise: NSInternalInconsistencyException
+    [NSException raise: NSPortTimeoutException
 	format: @"[TcpOutPort -_writeToSocket:] write() timed out"];
   }
   else if (c < 0) {

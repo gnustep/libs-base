@@ -1,5 +1,6 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>
 
 int
@@ -10,11 +11,25 @@ main()
   id i;
   id s = @"Hello World\n";
   id pool;
+  id o1, o2, o3;
   unsigned int p;
 
-  behavior_set_debug(0);
+  behavior_set_debug(1);
 
+  [NSAutoreleasePool enableDoubleReleaseCheck:YES];
   pool = [[NSAutoreleasePool alloc] init];
+
+  o1 = [NSNumber numberWithInt:1];
+  o2 = [NSNumber numberWithInt:2];
+  o3 = [NSNumber numberWithInt:3];
+  a = [[[NSArray arrayWithObject:o1] arrayByAddingObject:o2] arrayByAddingObject:o3];
+  printf("%u,%u,%u\n", [o1 retainCount], [o2 retainCount], [o3 retainCount]);
+  b = [[a copy] autorelease];
+  printf("%u,%u,%u\n", [o1 retainCount], [o2 retainCount], [o3 retainCount]);
+  c = [[b mutableCopy] autorelease];
+  printf("%u,%u,%u\n", [o1 retainCount], [o2 retainCount], [o3 retainCount]);
+  d = [[c copy] autorelease];
+  printf("%u,%u,%u\n", [o1 retainCount], [o2 retainCount], [o3 retainCount]);
 
   // NSArray tests
   {

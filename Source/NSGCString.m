@@ -36,6 +36,12 @@
 
 @implementation NSGCString
 
+- (void)dealloc
+{
+  [self _collectionDealloc];
+  [super dealloc];
+}
+
 /* This is the designated initializer for this class. */
 - (id) initWithCStringNoCopy: (char*)byteString
    length: (unsigned int)length
@@ -46,6 +52,17 @@
   _contents_chars = byteString;
   _free_contents = flag;
   return self;
+}
+
+- (id) initWithCharactersNoCopy: (unichar*)chars
+   length: (unsigned int)length
+   freeWhenDone: (BOOL)flag
+{
+  id a = [[NSGString alloc] initWithCharactersNoCopy: chars
+   length: length
+   freeWhenDone: flag];
+  [self release];
+  return a;
 }
 
 - (void) _collectionReleaseContents
@@ -137,6 +154,28 @@
 		       length: aRange.length];
 }
 
+- (NSStringEncoding) fastestEncoding
+{
+  if(([NSString defaultCStringEncoding]==NSASCIIStringEncoding)  || ([NSString defaultCStringEncoding]==NSISOLatin1StringEncoding))
+    return [NSString defaultCStringEncoding];
+  else
+    return NSUnicodeStringEncoding;
+}
+
+- (NSStringEncoding) smallestEncoding
+{
+  return [NSString defaultCStringEncoding];
+}
+
+// Override for speed
+- (BOOL) isEqualToString: (NSString*)aString
+{
+  if([self class] == [aString class])
+    return ! strcmp([self cStringNoCopy], [aString cStringNoCopy]);
+  else
+    return [super isEqualToString: aString];
+  return YES;
+}
 
 // FOR IndexedCollection SUPPORT;
 
@@ -255,6 +294,20 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   _contents_chars[_count] = '\0';
 }
 
+- (void) setString: (NSString*)aString
+{
+  const char *s = [aString cStringNoCopy];
+  unsigned length = strlen(s);
+  if (_capacity < length+1)
+    {
+      _capacity = length+1;
+      OBJC_REALLOC(_contents_chars, char, _capacity);
+    }
+  memcpy(_contents_chars, s, length);
+  _contents_chars[length] = '\0';
+  _count = length;
+}
+
 /* xxx This method may be removed in future. */
 - (void) setCString: (const char *)byteString length: (unsigned)length
 {
@@ -307,6 +360,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 	  withName:NULL];
   _count = strlen(_contents_chars);
   _capacity = cap;
+  _free_contents = YES;
   return self;
 }
 

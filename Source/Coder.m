@@ -93,9 +93,13 @@ static BOOL debug_coder = NO;
 
 - init
 {
-  /* Or should we provide some kind of default? */
-  [self shouldNotImplement:_cmd];
-  return self;
+  if ([self class] == [Coder class])
+    {
+      [self shouldNotImplement:_cmd];
+      return nil;
+    }
+  else
+    return [super init];
 }
 
 /* We must separate the idea of "closing" a coder and "deallocating"
@@ -262,7 +266,10 @@ static BOOL debug_coder = NO;
 - (id) initForReadingWithData: (NSData*)data
 {
   id ret = [[self class] newReadingFromStream: data];
-  [self release];
+  if ([self retainCount] == 0)
+    [ret autorelease];
+  else
+    [self release];
   return ret;
 }
 

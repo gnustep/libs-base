@@ -32,30 +32,7 @@
 {
   [super init];
   is_valid = YES;
-  retain_count = 0;
   return self;
-}
-
-- retain
-{
-  retain_count++;
-  return self;
-}
-
-- (oneway void) release
-{
-  if (!retain_count--)
-    [self dealloc];
-}
-
-- (unsigned) retainCount
-{
-  return retain_count;
-}
-
-- (BOOL) isValid
-{
-  return is_valid;
 }
 
 - (void) close
@@ -67,10 +44,10 @@
 {
   assert (is_valid);
 
-  [NotificationDispatcher
-    postNotificationName: PortBecameInvalidNotification 
-    object: self];
   is_valid = NO;
+  [NotificationDispatcher
+    postNotificationName: NSPortDidBecomeInvalidNotification
+    object: self];
 }
 
 + (Class) outPacketClass
@@ -90,6 +67,15 @@
   /* Make sure that Connection's always send us bycopy,
      i.e. as our own class, not a Proxy class. */
   return [self class];
+}
+
+- (Class) classForPortCoder: aRmc
+{
+  return [self class];
+}
+- replacementObjectForPortCoder: aRmc
+{
+  return self;
 }
 
 - (void) encodeWithCoder: (id <Encoding>)anEncoder
@@ -162,7 +148,7 @@
   return nil;
 }
 
-- (BOOL) sendPacket: packet
+- (BOOL) sendPacket: packet timeout: (NSTimeInterval)t
 {
   [self subclassResponsibility:_cmd];
   return NO;
@@ -225,4 +211,3 @@
 
 @end
 
-NSString *PortBecameInvalidNotification = @"PortBecameInvalidNotification";

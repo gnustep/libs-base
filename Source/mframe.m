@@ -28,13 +28,24 @@
 
 */
 
-
 #include <gnustep/base/preface.h>
 #include <gnustep/base/mframe.h>
 #include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSException.h>
 #include <stdlib.h>
 #include <assert.h>
+
+/* Modifications to fix return of floats, doubles, and structures
+   by Richard Frith-Macdonald <richard@brainstorm.co.uk> 1997
+
+   I define STRUCT_ADDR_ON_STACK if functions returns structures, unions
+   and arrays by writing directly to a location passed to them as their
+   first argument.  If this is the case then all the visible arguments
+   are displaced in the arg frame by the size of a pointer.
+
+   I don't know which machines work this way, so you need to alter the
+   define by hand as suits you.  */
+#define	STRUCT_ADDR_ON_STACK	1
 
 /* Deal with strrchr: */
 #if STDC_HEADERS || HAVE_STRING_H
@@ -81,17 +92,6 @@
 #endif
 
 
-/* Float and double return values are stored at retframe + 8 bytes
-   by __builtin_return() 
-
-   The retframe consists of 16 bytes.  The first 4 are used for ints, 
-   longs, chars, etc.  The last 8 are used for floats and doubles.
-
-   xxx This is disgusting.  I should get this info from the gcc config 
-   machine description files. xxx
-   */
-#define FLT_AND_DBL_RETFRAME_OFFSET 8
-
 #define ROUND(V, A) \
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \
      __a*((__v+__a-1)/__a); })
@@ -138,10 +138,11 @@ method_types_get_size_of_register_arguments(const char *types)
 
 /* To fix temporary bug in method_get_next_argument() on NeXT boxes */
 /* xxx Perhaps this isn't working with the NeXT runtime? */
+/* Uses 'offset' to adjust for a pointer used to return a structur */
 
 char*
 method_types_get_next_argument (arglist_t argf,
-				const char **type)
+				const char **type, int offset)
 {
   const char *t = objc_skip_argspec (*type);
    union {
@@ -162,9 +163,9 @@ method_types_get_next_argument (arglist_t argf,
   else
     /* xxx What's going on here?  This -8 needed on my 68k NeXT box. */
 #if NeXT
-    return argframe->arg_ptr + (atoi(t) - 8);
+    return argframe->arg_ptr + offset + (atoi(t) - 8);
 #else
-    return argframe->arg_ptr + atoi(t);
+    return argframe->arg_ptr + offset + atoi(t);
 #endif
 }
 
@@ -191,15 +192,25 @@ mframe_dissect_call (arglist_t argframe, const char *type,
   char *datum;
   int argnum;
   BOOL out_parameters = NO;
+  int off = 0;
+
+#ifdef	STRUCT_ADDR_ON_STACK
+  /* On machines which pass a pointer to a location for returning
+     structures before the first real argument, we need to use an offset
+     into the arg frame. */
+  if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) {
+    off = sizeof(void*);
+  }
+#endif
 
   /* Enumerate all the arguments in ARGFRAME, and call ENCODER for
      each one.  METHOD_TYPES_GET_NEXT_ARGUEMENT() returns 0 when
      there are no more arguments, otherwise it returns a pointer to the
      argument in the ARGFRAME. */
 
-  for (datum = method_types_get_next_argument(argframe, &type), argnum=0;
+  for (datum = method_types_get_next_argument(argframe, &type, off), argnum=0;
        datum;
-       datum = method_types_get_next_argument(argframe, &type), argnum++)
+       datum = method_types_get_next_argument(argframe, &type, off), argnum++)
     {
       /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
       flags = objc_get_type_qualifiers(type);
@@ -255,6 +266,7 @@ mframe_dissect_call (arglist_t argframe, const char *type,
 	  break;
 
 	case _C_STRUCT_B:
+	case _C_UNION_B:
 	case _C_ARY_B:
 	  /* Handle struct and array arguments. */
 	  /* Whether DATUM points to the data, or points to a pointer
@@ -317,6 +329,9 @@ mframe_dissect_call (arglist_t argframe, const char *type,
      mframe_do_call() calls this function once for each of the methods
      arguments.  The DECODER function should place the ARGNUM'th
      argument's value at the memory location DATA.
+     mframe_do_call() calls this function once with ARGNUM -1, DATA 0,
+     and TYPE 0 to denote completion of decoding.
+
 
      If DECODER malloc's new memory in the course of doing its
      business, then DECODER is responsible for making sure that the
@@ -369,6 +384,8 @@ mframe_do_call (const char *encoded_types,
   int stack_argsize;
   /* The number bytes for holding arguments passed in registers. */
   int reg_argsize;
+  /* Offset for arguments on stack. */
+  int off = 0;
   /* The structure for holding the arguments to the method. */
 #if NeXT_runtime
   union {
@@ -409,7 +426,6 @@ mframe_do_call (const char *encoded_types,
     {
       __builtin_return (rframe);
     }
-
 
   /* Decode the object, (which is always the first argument to a method),
      into the local variable OBJECT. */
@@ -456,12 +472,21 @@ mframe_do_call (const char *encoded_types,
   NSCParameterAssert (sel_types_match(encoded_types, type));
 
 
+#ifdef	STRUCT_ADDR_ON_STACK
+  /* On machines which pass a pointer to a location for returning
+     structures before the first real argument, we need to use an offset
+     into the arg frame. */
+  if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) {
+    off = sizeof(void*);
+  }
+#endif
+
   /* Allocate an argframe, using memory on the stack */
 
   /* Calculate the amount of memory needed for storing variables that
      are passed in registers, and the amount of memory for storing
      variables that are passed on the stack. */
-  stack_argsize = method_types_get_size_of_stack_arguments (type);
+  stack_argsize = off + method_types_get_size_of_stack_arguments (type);
   reg_argsize = method_types_get_size_of_register_arguments (type);
   /* Allocate the space for variables passed in registers. */
   argframe = (arglist_t) alloca(sizeof(char*) + reg_argsize);
@@ -471,6 +496,10 @@ mframe_do_call (const char *encoded_types,
   else
     argframe->arg_ptr = 0;
 
+  /* If we are passing a pointer to return a structure in, we must allocate
+     the memory for it and put it at the start of the argframe. */
+  if (off)
+    *(void**)argframe->arg_ptr = alloca (objc_sizeof_type(type));
 
   /* Put OBJECT and SELECTOR into the ARGFRAME. */
 
@@ -479,7 +508,7 @@ mframe_do_call (const char *encoded_types,
   etmptype = objc_skip_argspec (encoded_types);
   /* Get a pointer into ARGFRAME, pointing to the location where the
      first argument is to be stored. */
-  datum = method_types_get_next_argument (argframe, &tmptype);
+  datum = method_types_get_next_argument (argframe, &tmptype, off);
   NSCParameterAssert (datum);
   NSCParameterAssert (*tmptype == _C_ID);
   /* Put the target object there. */
@@ -487,7 +516,7 @@ mframe_do_call (const char *encoded_types,
   /* Get a pionter into ARGFRAME, pointing to the location where the
      second argument is to be stored. */
   etmptype = objc_skip_argspec(etmptype);
-  datum = method_types_get_next_argument(argframe, &tmptype);
+  datum = method_types_get_next_argument(argframe, &tmptype, off);
   NSCParameterAssert (datum);
   NSCParameterAssert (*tmptype == _C_SEL);
   /* Put the selector there. */
@@ -498,10 +527,10 @@ mframe_do_call (const char *encoded_types,
      ARGFRAME.  Step TMPTYPE and ETMPTYPE in lock-step through their
      method type strings. */
 
-  for (datum = method_types_get_next_argument (argframe, &tmptype),
+  for (datum = method_types_get_next_argument (argframe, &tmptype, off),
        etmptype = objc_skip_argspec (etmptype), argnum = 2;
        datum;
-       datum = method_types_get_next_argument (argframe, &tmptype),
+       datum = method_types_get_next_argument (argframe, &tmptype, off),
        etmptype = objc_skip_argspec (etmptype), argnum++)
     {
       /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
@@ -568,6 +597,7 @@ mframe_do_call (const char *encoded_types,
 	  break;
 
 	case _C_STRUCT_B:
+	case _C_UNION_B:
 	case _C_ARY_B:
 	  /* Handle struct and array arguments. */
 	  /* Whether DATUM points to the data, or points to a pointer
@@ -597,6 +627,7 @@ mframe_do_call (const char *encoded_types,
 	}
     }
   /* End of the for() loop that enumerates the method's arguments. */
+  (*decoder) (-1, 0, 0);
 
 
   /* Invoke the method! */
@@ -644,6 +675,7 @@ mframe_do_call (const char *encoded_types,
       break;
 
     case _C_STRUCT_B:
+    case _C_UNION_B:
     case _C_ARY_B:
       /* The argument is a structure or array returned by value.
 	 (In C, are array's allowed to be returned by value?) */
@@ -651,7 +683,12 @@ mframe_do_call (const char *encoded_types,
 	 anything to do with how structures are returned?  What about
 	 struct's that are smaller than sizeof(void*)?  Are they also
 	 returned by reference like this? */
-      (*encoder) (-1, *(void**)retframe, tmptype, flags);
+      /* If 'off' is non-zero, the pointer to the stored structure is at
+         the start of the arg frame rather than in retframe. */
+      if (off)
+        (*encoder) (-1, *(void**)argframe->arg_ptr, tmptype, flags);
+      else
+        (*encoder) (-1, *(void**)retframe, tmptype, flags);
       break;
 
     case _C_FLT:
@@ -710,11 +747,11 @@ mframe_do_call (const char *encoded_types,
     {
       /* Step through all the arguments, finding the ones that were
 	 passed by reference. */
-      for (datum = method_types_get_next_argument (argframe, &tmptype), 
+      for (datum = method_types_get_next_argument (argframe, &tmptype, off), 
 	     argnum = 1,
 	     etmptype = objc_skip_argspec (etmptype);
 	   datum;
-	   datum = method_types_get_next_argument (argframe, &tmptype), 
+	   datum = method_types_get_next_argument (argframe, &tmptype, off), 
 	     argnum++,
 	     etmptype = objc_skip_argspec (etmptype))
 	{
@@ -796,10 +833,73 @@ mframe_build_return (arglist_t argframe,
   const char *tmptype;
   /* A pointer into the ARGFRAME; points at individual arguments. */
   void *datum;
+  int	off = 0;
+  const char *rettype;
+  /* For returning strucutres etc */
+  typedef struct { id many[8];} __big;
+  __big return_block (void* data)
+    {
+      return *(__big*)data;
+    }
+  /* For returning a char (or unsigned char) */
+  char return_char (char data)
+    {
+      return data;
+    }
+  /* For returning a double */
+  double return_double (double data)
+    {
+      return data;
+    }
+  /* For returning a float */
+  float return_float (float data)
+    {
+      return data;
+    }
+  /* For returning a short (or unsigned short) */
+  short return_short (short data)
+    {
+      return data;
+    }
+  retval_t apply_block(void* data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_block, args, sizeof(void*));
+    }
+  retval_t apply_char(char data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_char, args, sizeof(void*));
+    }
+  retval_t apply_float(float data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_float, args, sizeof(float));
+    }
+  retval_t apply_double(double data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_double, args, sizeof(double));
+    }
+  retval_t apply_short(short data)
+    {
+      void* args = __builtin_apply_args();
+      return __builtin_apply((apply_t)return_short, args, sizeof(void*));
+    }
 
   /* Get the return type qualifier flags, and the return type. */
   flags = objc_get_type_qualifiers(type);
   tmptype = objc_skip_type_qualifiers(type);
+  rettype = tmptype;
+
+#ifdef	STRUCT_ADDR_ON_STACK
+  /* On machines which pass a pointer to a location for returning
+     structures before the first real argument, we need to use an offset
+     into the arg frame. */
+  if (*rettype==_C_STRUCT_B || *rettype==_C_UNION_B || *rettype==_C_ARY_B) {
+    off = sizeof(void*);
+  }
+#endif
 
   /* Decode the return value and pass-by-reference values, if there
      are any.  OUT_PARAMETERS should be the value returned by
@@ -844,6 +944,7 @@ mframe_build_return (arglist_t argframe,
 	      break;
 
 	    case _C_STRUCT_B: 
+	    case _C_UNION_B:
 	    case _C_ARY_B:
 	      /* The argument is a structure or array returned by value.
 		 (In C, are array's allowed to be returned by value?) */
@@ -852,16 +953,20 @@ mframe_build_return (arglist_t argframe,
 		 What about struct's that are smaller than
 		 sizeof(void*)?  Are they also returned by reference
 		 like this? */
-	      /* Allocate some memory to hold the struct or array. */
-	      *(void**)retframe = alloca (objc_sizeof_type (tmptype));
+	      if (off)
+		/* If we have been given a pointer to a location to return
+                   the structure in, us it. */
+	        *(void**)retframe = *(void**)argframe->arg_ptr;
+	      else
+	          /* Allocate some memory to hold the struct or array. */
+	          *(void**)retframe = alloca (objc_sizeof_type (tmptype));
 	      /* Decode the return value into the memory we allocated. */
 	      (*decoder) (-1, *(void**)retframe, tmptype, flags);
 	      break;
 
 	    case _C_FLT: 
 	    case _C_DBL:
-	      (*decoder) (-1, ((char*)retframe) + FLT_AND_DBL_RETFRAME_OFFSET,
-			  tmptype, flags);
+	      (*decoder) (-1, ((char*)retframe), tmptype, flags);
 	      break;
 
 	    default:
@@ -898,10 +1003,10 @@ mframe_build_return (arglist_t argframe,
 	{
 	  /* Step through all the arguments, finding the ones that were
 	     passed by reference. */
-	  for (datum = method_types_get_next_argument(argframe, &tmptype), 
+	  for (datum = method_types_get_next_argument(argframe, &tmptype, off), 
 	       argnum=0;
 	       datum;
-	       (datum = method_types_get_next_argument(argframe, &tmptype)), 
+	       (datum = method_types_get_next_argument(argframe, &tmptype, off)), 
 	       argnum++)
 	    {
 	      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
@@ -959,6 +1064,28 @@ mframe_build_return (arglist_t argframe,
       retframe = alloca (sizeof(void*));
     }
 
+  switch (*rettype) {
+    case _C_CHR:
+    case _C_UCHR:
+	return apply_char(*(char*)retframe);
+    case _C_DBL:
+	return apply_double(*(double*)retframe);
+    case _C_FLT:
+	return apply_float(*(float*)retframe);
+    case _C_SHT:
+    case _C_USHT:
+	return apply_short(*(short*)retframe);
+#if 1
+    case _C_ARY_B:
+    case _C_UNION_B:
+    case _C_STRUCT_B:
+	if (off == 0 && objc_sizeof_type(rettype) > 8) {
+	    return apply_block(*(void**)retframe);
+	}
+#endif
+  }
+
   /* Return the retval_t pointer to the return value. */
   return retframe;
 }
+

@@ -24,12 +24,19 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSString.h>
 #include <netdb.h>
 /* #include <libc.h> */
 
 #ifdef WIN32
 #include <Windows32/Sockets.h>
+#else
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #endif /* WIN32 */
 
 static NSLock *_hostCacheLock = nil;
@@ -127,11 +134,10 @@ static NSMutableDictionary *_hostCache = nil;
   return nil;
 }
 
-+ initialize
++ (void)initialize
 {
   _hostCacheLock = [[NSConditionLock alloc] init];
   _hostCache = [[NSMutableDictionary dictionary] retain];
-  return self;
 }
 
 + (NSHost *)currentHost
@@ -204,9 +210,20 @@ static NSMutableDictionary *_hostCache = nil;
 
 - (BOOL)isEqualToHost:(NSHost *)aHost
 {
-  // how should we check for equality?
-  return ([[aHost addresses] isEqual:addresses]) && ([[aHost  
-							names] isEqual:names]);
+  NSArray*	a;
+  int		i;
+
+  a = [aHost addresses];
+  for (i = 0; i < [a count]; i++)
+    if ([addresses containsObject:[a objectAtIndex:i]])
+      return YES;
+
+  a = [aHost names];
+  for (i = 0; i < [a count]; i++)
+    if ([addresses containsObject:[a objectAtIndex:i]])
+      return YES;
+
+  return NO;
 }
 
 - (NSString *)name

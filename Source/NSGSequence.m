@@ -75,6 +75,24 @@
 	  autorelease];
 }
 
++ (NSGSequence*) sequenceWithCharactersNoCopy:  (unichar *) characters
+  length: (int) len freeWhenDone: (BOOL) flag
+{
+  return [[[self alloc]
+	   initWithCharactersNoCopy: characters length: len freeWhenDone:flag]
+	  autorelease];
+}
+
+- (void)dealloc
+{
+  if (_free_contents)
+    {
+      OBJC_FREE(_contents_chars);
+      _free_contents = NO;
+    }
+  [super dealloc];
+}
+
 // Initializing Newly Allocated Sequences
 
 // xxx take care of _normalize in all init* methods
@@ -112,6 +130,11 @@
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
+  if (_free_contents && _contents_chars)
+    {
+      OBJC_FREE(_contents_chars);
+    }
+
   _count = length;
   _contents_chars = chars;
   _free_contents = flag;
@@ -197,42 +220,53 @@
   unichar *tpoint;
   unichar *dpoint;
   BOOL notdone;
-
-  OBJC_MALLOC(source, unichar, _count*MAXDEC+1);
-  OBJC_MALLOC(target, unichar, _count*MAXDEC+1);
-
-  spoint = source;
-  tpoint = target;
+  int len;
 
   if (_count)
-    memcpy(source, _contents_chars,2*_count);
-  source[_count]=(unichar)(0);
-
-  do
-  {
-    notdone=FALSE;
+    {
+    OBJC_MALLOC(source, unichar, _count*MAXDEC+1);
+    OBJC_MALLOC(target, unichar, _count*MAXDEC+1);
+    spoint = source;
+    tpoint = target;
+    memcpy(source, _contents_chars, 2*_count);
+    source[_count]=(unichar)(0);
     do
     {
-      if(!(dpoint=uni_is_decomp(*spoint)))
-        *tpoint++ = *spoint;
-      else
+      notdone=FALSE;
+      do
       {
-        while(*dpoint)
-          *tpoint++=*dpoint++;
-        notdone=TRUE;
-      } /* else */
-    } while(*spoint++);
+        if(!(dpoint=uni_is_decomp(*spoint)))
+          *tpoint++ = *spoint;
+        else
+        {
+          while(*dpoint)
+            *tpoint++=*dpoint++;
+          notdone=TRUE;
+        }
+      } while(*spoint++);
 
-    *tpoint=(unichar)0;  // *** maybe not needed
+      *tpoint=(unichar)0;  // *** maybe not needed
 
-    memcpy(source, target,2*(_count*MAXDEC+1));
+      memcpy(source, target,2*(_count*MAXDEC+1));
 
-    tpoint = target;  // ***
-    spoint = source;  // ***
+      tpoint = target;
+      spoint = source;
 
-  } while(notdone);
-
-  return [self initWithCharacters: source length: uslen(source)];
+    } while(notdone);
+    len = uslen(source);
+    OBJC_REALLOC(_contents_chars, unichar, len+1);
+    memcpy(_contents_chars,source,2*(len+1));
+    _contents_chars[len] = (unichar)0;
+    _count = len;
+    OBJC_FREE(target);
+    OBJC_FREE(source);
+    return self;
+  }
+ else
+ {
+   return self;
+ }
+ return self;
 }
 
 - (NSGSequence*) order
@@ -258,6 +292,14 @@
             *second=tmp;
             notdone=YES;
          }
+         if(uni_cop(*first)==uni_cop(*second))
+           if(*first>*second)
+           {
+              tmp= *first;
+              *first= *second;
+              *second=tmp;
+              notdone=YES;
+           }
       }
       first++;
       second++;
@@ -312,7 +354,7 @@
   for(count=0;count<len;count++)
     s[count]=uni_tolower(_contents_chars[count]);
   s[len] = (unichar)0;
-  return [NSGSequence sequenceWithCharacters:s length:len];
+  return [NSGSequence sequenceWithCharactersNoCopy:s length:len freeWhenDone:YES];
 }
 
 - (NSGSequence*) uppercase
@@ -324,7 +366,7 @@
   for(count=0;count<len;count++)
     s[count]=uni_toupper(_contents_chars[count]);
   s[len] = (unichar)0;
-  return [NSGSequence sequenceWithCharacters:s length:len];
+  return [NSGSequence sequenceWithCharactersNoCopy:s length:len freeWhenDone:YES];
 }
 
 - (NSGSequence*) titlecase
@@ -337,22 +379,27 @@
 - (NSComparisonResult) compare:  (NSGSequence*) aSequence
 {
   int i,end;
+  unsigned int myLength;
+  unsigned int seqLength;
+ 
   if(![self isNormalized])
     [self normalize];
   if(![aSequence isNormalized])
     [aSequence normalize];
-  if([self length] < [aSequence length])
-    end=[self length];
+  myLength = [self length];
+  seqLength = [aSequence length];
+  if(myLength < seqLength)
+    end=myLength;
   else
-    end=[aSequence length];
+    end=seqLength;
   for (i = 0; i < end; i ++)
   {
     if ([self characterAtIndex:i] < [aSequence characterAtIndex:i]) return NSOrderedAscending;
     if ([self characterAtIndex:i] > [aSequence characterAtIndex:i]) return NSOrderedDescending;
   }
-  if([self length]<[aSequence length])
+  if(myLength<seqLength)
     return NSOrderedAscending;
-  if([self length]>[aSequence length])
+  if(myLength>seqLength)
     return NSOrderedDescending;
   return NSOrderedSame;
 }

@@ -7,18 +7,18 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+   modify it under the terms of the GNU Library General Public License
+   as published by the Free Software Foundation; either version 2 of
+   the License, or (at your option) any later version.
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   This library is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
    You should have received a copy of the GNU Library General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 /*  Design goals:
 
@@ -100,7 +100,7 @@
 #define ALIGN 8 /* Alignment.  FIXME: Make this portable. */
 #define MINGRAN 256 /* Minimum granularity. */
 #define DEFBLOCK 16384 /* Default granularity. */
-#define BUFFER 16 /* Buffer size */
+#define BUFFER 4 /* Buffer size.  FIXME: Find reasonable optimum. */
 #define MAX_SEG 16 /* Segregated list size. */
 #define ZPTRSZ sizeof(NSZone*) /* Size of zone pointers. */
 #define SZSZ sizeof(size_t) /* Size of size_t. */
@@ -652,8 +652,8 @@ fstats (NSZone *zone)
   return stats;
 }
 
-/* Calculate the which segregation class a certain size should be
-   in. */
+/* Calculate the which segregation class a certain size should be in.
+   FIXME: Optimize code and find a more optimum distribution. */
 static inline size_t
 segindex (size_t size)
 {

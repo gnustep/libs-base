@@ -538,7 +538,9 @@
   FOR_COLLECTION(self, o)
     {
       //#warning fix this addObject for ConstantCollection
-      [newColl addObject:[o copy]];
+      id n = [o copy];
+      [newColl addObject:n];
+      [n release];
     }
   END_FOR_COLLECTION(self);
   return newColl;
@@ -654,6 +656,8 @@
     [aCoder decodeObjectAt: &(content_array[i])
 	    withName:NULL];
   [self initWithObjects: content_array count: count];
+  for (i = 0; i < count; i++)
+    [content_array[i] release];
 }
 
 @end

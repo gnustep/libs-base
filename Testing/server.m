@@ -1,12 +1,13 @@
 #include <gnustep/base/preface.h>
 #include <stdio.h>
-#include <gnustep/base/TcpPort.h>
-#include <gnustep/base/BinaryCStream.h>
-#include <gnustep/base/Connection.h>
-#include <gnustep/base/Proxy.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSConnection.h>
+#include <Foundation/NSDistantObject.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/Notification.h>
-#include <gnustep/base/RunLoop.h>
+#include <Foundation/NSNotification.h>
+#include <Foundation/NSRunLoop.h>
+#include <gnustep/base/Coder.h>
+#include <gnustep/base/BinaryCStream.h>
 #include "server.h"
 
 @implementation Server
@@ -78,6 +79,23 @@
   return self;
 }
 
+- (void) outputStats:obj
+{
+  id	c = [obj connectionForProxy];
+  id	o = [c statistics];
+  id	a = [o allKeys];
+  int	j;
+
+  printf("Number of connections - %d\n", [[NSConnection allConnections] count]);
+  printf("This connection -\n");
+  for (j = 0; j < [a count]; j++)
+    {
+      id k = [a objectAtIndex:j];
+      id v = [o objectForKey:k];
+      printf("%s - %s\n", [k cString], [[v description] cString]);
+    }
+}
+
 /* This isn't working yet */
 - (foo*) sendStructPtr: (foo*)f
 {
@@ -139,7 +157,6 @@
 - sendBycopy: (bycopy id)o
 {
   printf(">> bycopy class is %s\n", object_get_class_name (o));
-  [o release];
   return self;
 }
 - manyArgs: (int)i1 : (int)i2 : (int)i3 : (int)i4 : (int)i5 : (int)i6
@@ -167,7 +184,7 @@
 - connectionBecameInvalid: notification
 {
   id anObj = [notification object];
-  if ([anObj isKindOf:[Connection class]])
+  if ([anObj isKindOf:[NSConnection class]])
     {
       int i, count = [the_array count];
       for (i = count-1; i >= 0; i--)
@@ -185,13 +202,13 @@
     }
   return self;
 }
-- (Connection*) connection: ancestor didConnect: newConn
+- (NSConnection*) connection: ancestor didConnect: newConn
 {
   printf("%s\n", sel_get_name(_cmd));
   [NotificationDispatcher
     addObserver: self
     selector: @selector(connectionBecameInvalid:)
-    name: ConnectionBecameInvalidNotification
+    name: NSConnectionDidDieNotification
     object: newConn];
   [newConn setDelegate: self];
   return newConn;
@@ -203,23 +220,23 @@ int main(int argc, char *argv[])
   id l = [[Server alloc] init];
   id o = [[NSObject alloc] init];
   double d;
-  Connection *c;
+  NSConnection *c;
 
   [BinaryCStream setDebugging:YES];
 
 #if NeXT_runtime
-  [Proxy setProtocolForProxies:@protocol(AllProxies)];
+  [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
 #endif
   if (argc > 1)
-    c = [Connection newRegisteringAtName: 
+    c = [NSConnection newRegisteringAtName: 
 		      [NSString stringWithCString: argv[1]]
 		    withRootObject:l];
   else
-    c = [Connection newRegisteringAtName:@"test2server" withRootObject:l];
+    c = [NSConnection newRegisteringAtName:@"test2server" withRootObject:l];
   [NotificationDispatcher
     addObserver: l
     selector: @selector(connectionBecameInvalid:)
-    name: ConnectionBecameInvalidNotification
+    name: NSConnectionDidDieNotification
     object: c];
   [c setDelegate:l];
 
@@ -229,7 +246,7 @@ int main(int argc, char *argv[])
   printf("list's hash is 0x%x\n", (unsigned)[l hash]);
   printf("object's hash is 0x%x\n", (unsigned)[o hash]);
 
-  [RunLoop run];
+  [NSRunLoop run];
 
   exit(0);
 }

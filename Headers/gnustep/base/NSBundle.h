@@ -51,21 +51,19 @@ extern NSString* NSLoadedClasses;
 + (NSBundle *) bundleWithPath: (NSString *)path;
 + (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext	
+		inDirectory: (NSString *)bundlePath;
++ (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext	
 		inDirectory: (NSString *)bundlePath
-		withVersion: (int)version;
+                withVersion: (int)version;
 - initWithPath: (NSString *)path;
 - (NSString *) bundlePath;
 - (Class) classNamed: (NSString *)className;
 - (Class) principalClass;
-- (unsigned) bundleVersion;
-- (void) setBundleVersion: (unsigned)version;
 
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
 		inDirectory: (NSString *)bundlePath;
-+ (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inDirectory: (NSString *)bundlePath;
-+ (NSString *) pathForResource: (NSString *)name
+- (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext	
 		inDirectory: (NSString *)bundlePath;
 - (NSString *) pathForResource: (NSString *)name
@@ -75,8 +73,12 @@ extern NSString* NSLoadedClasses;
 		table: (NSString *)tableName;
 - (NSString *) resourcePath;
 
+- (unsigned) bundleVersion;
+- (void) setBundleVersion: (unsigned)version;
+
 #ifndef STRICT_OPENSTEP
 - (NSDictionary *) infoDictionary;
+- (BOOL) load;
 #endif
 
 @end
@@ -89,3 +91,5 @@ extern NSString* NSLoadedClasses;
   [bundle localizedStringForKey:(key) value:@"" table:(tbl)]
 
 #endif	/* __NSBundle_h_GNUSTEP_BASE_INCLUDE */
+
+

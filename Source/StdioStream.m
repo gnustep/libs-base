@@ -21,27 +21,15 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+#define _REENTRANT
+
 #include <gnustep/base/preface.h>
 #include <gnustep/base/StdioStream.h>
 #include <gnustep/base/Coder.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSDebug.h>
 #include <stdarg.h>
-#include <errno.h>
-
-#if !HAVE_STRERROR
-static const char*
-strerror(int eno)
-{
-    extern char*	sys_errlist[];
-    extern int		sys_nerr;
-
-    if (eno < 0 || eno >= sys_nerr) {
-	return("unknown error number");
-    }
-    return(sys_errlist[eno]);
-}
-#endif
-
+#include <unistd.h>   /* SEEK_* on SunOS 4 */
 
 enum {
   STREAM_READONLY = 0,
@@ -121,8 +109,11 @@ o_vscanf (void *stream,
   FILE *afp = fopen([name cStringNoCopy], (char*)m);
   if (!afp)
     {
-      /* xxxFIXME: should be NSLog */
-      perror("Stream");
+      id message;
+
+      message = [NSString stringWithFormat: @"Stream: %s", strerror(errno)];
+      NSLog(message);
+      [message release];
       [super dealloc];
       return nil;
     }
@@ -134,8 +125,11 @@ o_vscanf (void *stream,
   FILE *afp = fdopen(fd, (char*)m);
   if (!afp)
     {
-      /* xxxFIXME: should be NSLog */
-      perror("Stream");
+      id message;
+
+      message = [NSString stringWithFormat: @"Stream: %s", strerror(errno)];
+      NSLog(message);
+      [message release];
       [super dealloc];
       return nil;
     }
@@ -281,6 +275,7 @@ stdio_unchar_func(void *s, int c)
 
 - (void) dealloc
 {
+  fclose(fp);
   [super dealloc];
 }
 

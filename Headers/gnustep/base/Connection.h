@@ -179,6 +179,7 @@ extern NSString *ConnectionBecameInvalidNotification;
 @end
 
 @interface Object (ConnectionDelegate)
+- (BOOL) makeNewConnection: c sender: parent;
 - (Connection*) connection: ancestorConn didConnect: newConn;
 /* If the delegate responds to this method, it will be used to ask the
    delegate's permission to establish a new connection from the old one.

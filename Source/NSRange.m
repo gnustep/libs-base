@@ -3,11 +3,18 @@
 */
 
 #include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
 
 NSRange	
 NSMakeRange(unsigned int location, unsigned int length)
 {
     NSRange range;
+    unsigned int end = location + length;
+
+    if (end < location || end < length) {
+	[NSException raise:NSRangeException
+		    format:@"Range location + length too great"];
+    }
     range.location = location;
     range.length   = length;
     return range;

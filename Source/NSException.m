@@ -106,13 +106,13 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
         _NSUncaughtExceptionHandler = _NSFoundationUncaughtExceptionHandler;
 
     thread = [NSThread currentThread];
-    handler = [thread exceptionHandler];
+    handler = thread->_exception_handler;
     if (handler == NULL) {
     	_NSUncaughtExceptionHandler(self);
 	return;
     }
 
-    [thread setExceptionHandler: handler->next];
+    thread->_exception_handler = handler->next;
     handler->exception = self;
     longjmp(handler->jumpState, 1);
 }
@@ -176,8 +176,8 @@ _NSAddHandler( NSHandler *handler )
     NSThread *thread;
 
     thread = [NSThread currentThread];
-    handler->next = [thread exceptionHandler];
-    [thread setExceptionHandler: handler];
+    handler->next = thread->_exception_handler;
+    thread->_exception_handler = handler;
 }
 
 void 
@@ -186,5 +186,5 @@ _NSRemoveHandler( NSHandler *handler )
     NSThread *thread;
 
     thread = [NSThread currentThread];
-    [thread setExceptionHandler: ([thread exceptionHandler])->next];
+    thread->_exception_handler = thread->_exception_handler->next;
 }

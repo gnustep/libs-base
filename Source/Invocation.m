@@ -23,10 +23,10 @@
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Invocation.h>
+#include <Foundation/DistributedObjects.h>
 #include <Foundation/NSValue.h>
-#include <gnustep/base/NSString.h>
-#include <gnustep/base/Connection.h>
-#include <gnustep/base/ConnectedCoder.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSConnection.h>
 #include <Foundation/NSException.h>
 
 /* xxx We are currently retaining the return value.
@@ -115,6 +115,16 @@
   /* Make sure that Connection's always send us bycopy,
      i.e. as our own class, not a Proxy class. */
   return [self class];
+}
+
+/*	Next two methods for OPENSTEP	*/
+- (Class) classForPortCoder: coder
+{
+  return [self class];
+}
+- replacementObjectForPortCoder: coder
+{
+  return self;
 }
 
 - (void) invoke
@@ -743,7 +753,7 @@ my_method_get_next_argument (arglist_t argframe,
 
 /* Encode ourself as a proxies across Connection's; we can't encode
    a function across the wire. */
-- classForConnectedCoder: coder
+- classForPortCoder: coder
 {
   return [[coder connection] proxyClass];
 }
@@ -776,7 +786,7 @@ my_method_get_next_argument (arglist_t argframe,
 
 /* Encode ourself as a proxies across Connection's; we can't encode
    a function across the wire. */
-- classForConnectedCoder: coder
+- classForPortCoder: coder
 {
   return [[coder connection] proxyClass];
 }

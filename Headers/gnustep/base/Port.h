@@ -27,6 +27,8 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 #include <gnustep/base/MemoryStream.h>
+#include <Foundation/NSPort.h>
+#include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
 #include <gnustep/base/Invocation.h>
 
@@ -34,11 +36,8 @@
 @protocol PacketSending
 @end
 
-@interface Port : NSObject
+@interface Port : NSPort
 {
-  unsigned is_valid:1;
-  unsigned tcp_port_filler:7;
-  unsigned retain_count:24;
 }
 - (void) invalidate;
 - (BOOL) isValid;
@@ -82,12 +81,9 @@
 
 + newForSendingToRegisteredName: (NSString*)name 
                          onHost: (NSString*)hostname;
-- (BOOL) sendPacket: packet;
+- (BOOL) sendPacket: packet timeout: (NSTimeInterval)t;
 
 @end
-
-extern NSString *PortBecameInvalidNotification;
-
 
 
 /* Objects for holding incoming/outgoing data to/from ports. */

@@ -1,17 +1,18 @@
 #include <stdio.h>
-#include <gnustep/base/TcpPort.h>
-#include <gnustep/base/Connection.h>
-#include <gnustep/base/Proxy.h>
+#include <Foundation/NSConnection.h>
+#include <Foundation/NSDistantObject.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSRunLoop.h>
+#include <Foundation/NSDate.h>
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/BinaryCStream.h>
-#include <Foundation/NSString.h>
-#include <gnustep/base/RunLoop.h>
-#include <Foundation/NSDate.h>
 #include <assert.h>
 #include "server.h"
 
 int main(int argc, char *argv[])
 {
+  id a;
   id p;
   id callback_receiver = [NSObject new];
   id o;
@@ -20,10 +21,10 @@ int main(int argc, char *argv[])
   id c;
   int j,k;
   foo f = {99, "cow", 9876543};
-  /* foo f2; */
+  foo f2;
   foo *fp;
   const char *n;
-  //  int a3[3] = {66,77,88};
+  int a3[3] = {66,77,88};
   struct myarray ma = {{55,66,77}};
   double dbl = 3.14159265358979323846264338327;
   double *dbl_ptr;
@@ -36,23 +37,28 @@ int main(int argc, char *argv[])
   [BinaryCStream setDebugging:YES];
 
 #if NeXT_runtime
-  [Proxy setProtocolForProxies:@protocol(AllProxies)];
+  [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
 #endif
 
   if (argc > 1)
     {
       if (argc > 2)
-	p = [Connection rootProxyAtName: [NSString stringWithCString: argv[2]]
+	p = [NSConnection rootProxyAtName: [NSString stringWithCString: argv[2]]
 			onHost: [NSString stringWithCString:argv[1]]];
       else
-	p = [Connection rootProxyAtName:@"test2server" 
+	p = [NSConnection rootProxyAtName:@"test2server"
 			onHost:[NSString stringWithCString:argv[1]]];
     }
   else
-    p = [Connection rootProxyAtName:@"test2server" 
+    p = [NSConnection rootProxyAtName:@"test2server" 
 		    onHost:nil];
   c = [p connectionForProxy];
-
+  [c setRequestTimeout:180.0];
+  [c setReplyTimeout:180.0];
+  localObj = [[NSObject alloc] init];
+  [p outputStats:localObj];
+  [p getLong:&i];
+  [p outputStats:localObj];
   type = [c typeForSelector:sel_get_any_uid("name") 
 	    remoteTarget:[p targetForProxy]];
   printf(">>type = %s\n", type);
@@ -121,7 +127,6 @@ int main(int argc, char *argv[])
   printf(">>returned float %f\n", [p returnFloat]);
   printf(">>returned double %f\n", [p returnDouble]);
 
-  localObj = [[NSObject alloc] init];
   [p addObject:localObj];
   k = [p count];
   for (j = 0; j < k; j++)
@@ -137,7 +142,20 @@ int main(int argc, char *argv[])
 	     j, (unsigned)[remote_peer_obj hash]);
     }
 
-  [RunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
+  [p outputStats:localObj];
+
+  o = [c statistics];
+  a = [o allKeys];
+
+  for (j = 0; j < [a count]; j++)
+    {
+      id k = [a objectAtIndex:j];
+      id v = [o objectForKey:k];
+
+      printf("%s - %s\n", [k cString], [[v description] cString]);
+    }
+
+  [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
   [c invalidate];
 
   exit(0);

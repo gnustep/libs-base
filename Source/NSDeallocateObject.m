@@ -23,9 +23,16 @@
 
 #include <gnustep/base/preface.h>
 
+#include	<Foundation/NSDebug.h>
+
 void NSDeallocateObject(NSObject *anObject)
 {
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
-    NSZoneFree (NSZoneFromPointer(anObject), anObject);
+    {
+      NSZone *z = [anObject zone];
+      GSDebugAllocationRemove(((id)anObject)->class_pointer);
+      ((id)anObject)->class_pointer = (void*) 0xdeadface;
+      NSZoneFree (z, anObject);
+    }
   return;
 }

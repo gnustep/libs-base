@@ -238,7 +238,7 @@ void unchar_func(void *s, int c)
      Using GNU stdio streams would do the trick. 
      */
   if (size - (prefix + position) < 128)
-    [self setStreamBufferCapacity:size*2];
+    [self setStreamBufferCapacity: MAX(128, size*2)];
 
   ret = VSPRINTF_LENGTH (vsprintf(buffer+prefix+position,
 				  [format cStringNoCopy], arg));

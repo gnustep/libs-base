@@ -15,9 +15,6 @@
 #include "SecondClass.h"
 #include "MyCategory.h"
 
-/* Realize externals needed by objc-load */
-char     **NSArgv;
-
 int 
 main(int ac, char *av[]) 
 {
@@ -26,8 +23,6 @@ main(int ac, char *av[])
     NSString *path;
     id object;
     
-    NSArgv = av;
-
     main = [NSBundle mainBundle];
     printf("Looking for main bundle...\n");
     if (!main) {

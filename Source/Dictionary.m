@@ -84,10 +84,18 @@
   return copy;
 }
 
+- (void) _collectionReleaseContents
+{
+  if (_contents_hash) {
+    NSFreeMapTable (_contents_hash);
+    _contents_hash = 0;
+  }
+}
+
 - (void) dealloc
 {
-  NSFreeMapTable (_contents_hash);
-  [super _collectionDealloc];
+  [self _collectionReleaseContents];
+  [super dealloc];
 }
 
 /* This must work without sending any messages to content objects */
@@ -140,6 +148,16 @@
 
 // GETTING ELEMENTS;
 
+- (NSArray*) allKeys
+{
+  return NSAllMapTableKeys(_contents_hash);
+}
+
+- (NSArray*) allValues
+{
+  return NSAllMapTableValues(_contents_hash);
+}
+
 - objectAtKey: aKey
 {
   return NSMapGet (_contents_hash, aKey);
@@ -184,6 +202,32 @@
 - (void) freeEnumState: (void**)enumState
 {
   OBJC_FREE (*enumState);
+}
+
+- (NSString*) description
+{
+  id desc;
+  id keyenum = [self keyEnumerator];
+  id key;
+
+  desc = [NSMutableString stringWithCapacity: 2];
+  [desc appendString: @"{"];
+  while ((key = [keyenum nextObject]))
+    {
+      /* I wish appendString: returned self*/
+      [desc appendString: [key description]];
+      [desc appendString: @" = "];
+      [desc appendString: [[self objectAtKey: key] description]];
+      [desc appendString: @"; "];
+    }
+  [desc appendString: @"}"];
+  return desc;
+}
+
+- (NSString*) descriptionWithIndent: (unsigned)level
+{
+  return [NSString stringWithFormat:@"%*s%s",
+		   level, "", [[self description] cStringNoCopy]];
 }
 
 @end

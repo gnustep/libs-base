@@ -59,12 +59,6 @@ typedef enum
 + (void) sleepUntilDate: (NSDate*)date;
 + (void) exit;
 
-/* Return exception handler for thread.  Not in OpenStep. */
-- (NSHandler*)exceptionHandler;
-
-/* Set exception handler for thread.  Not in OpenStep. */
-- (void)setExceptionHandler: (NSHandler*)handler;
-
 @end
 
 /* Notification Strings. */

@@ -32,7 +32,7 @@ CC = @CC@
      
 CFLAGS = -Wall -Wno-implicit -Wno-format -g
 CPPFLAGS =
-LDFLAGS =
+LDFLAGS = $(DYNAMIC_LDFLAGS)
      
 DYNAMIC_BUNDLER_LINKER=@DYNAMIC_BUNDLER_LINKER@
 DYNAMIC_LDFLAGS=@DYNAMIC_LDFLAGS@
@@ -79,13 +79,20 @@ client.m \
 string.m \
 values.m \
 nsarray.m \
+nsattributedstring.m \
 nsbundle.m \
+nsdata.m \
 nsdictionary.m \
+nsfilehandle.m \
+nshost.m \
 nsset.m \
 nsprocessinfo.m \
 nsarchiver.m \
+oldclient.m \
+oldserver.m \
 invocation.m \
 diningPhilosophers.m \
+nsattributedstring.m \
 nsmaptable.m \
 nshashtable.m \
 tcpport-server.m \
@@ -161,13 +168,14 @@ $(DYNAMIC_OFILES): $(DYNAMIC_MFILES) $(DYNAMIC_HFILES)
 
 $(BUNDLE_NAME).bundle/$(BUNDLE_NAME): $(DYNAMIC_OFILES)
 	-mkdir $(BUNDLE_NAME).bundle
-	-mkdir $(BUNDLE_NAME).bundle/English.lproj
+	-mkdir $(BUNDLE_NAME).bundle/Resources
+	-mkdir $(BUNDLE_NAME).bundle/Resources/English.lproj
 	$(DYNAMIC_BUNDLER_LINKER) -o $(BUNDLE_NAME).bundle/$(BUNDLE_NAME) \
 		$(DYNAMIC_OFILES)
-	cp $(srcdir)/NXStringTable.example $(BUNDLE_NAME).bundle/English.lproj
+	cp $(srcdir)/NXStringTable.example $(BUNDLE_NAME).bundle/Resources/English.lproj
 
 mostlyclean:
-	rm -f core *~ test08.data textcoder.txt
+	rm -f core *~ *.txt *.dat
 
 clean: mostlyclean
 	rm -f *$(OEXT) $(EXECS)

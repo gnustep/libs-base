@@ -79,11 +79,13 @@
    atCursor: (unsigned int*)cursor
    context: (id <NSObjCTypeSerializationCallBack>)callback;
 - (int)deserializeIntAtCursor: (unsigned int*)cursor;
-- (int)deserializeIntAtLocation: (unsigned int)location;
+- (int)deserializeIntAtIndex: (unsigned int)location;
 - (void)deserializeInts: (int*)intBuffer
    count: (unsigned int)numInts
    atCursor: (unsigned int*)cursor;
-- (void)deserializeInts: (int*)intBuffer;
+- (void)deserializeInts: (int*)intBuffer
+   count: (unsigned int)numInts
+   atIndex: (unsigned int)index;
 
 @end
 

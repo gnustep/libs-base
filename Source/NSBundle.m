@@ -274,34 +274,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   return [[[NSBundle alloc] initWithPath: path] autorelease];
 }
 
-#if 0
-+ (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inDirectory: (NSString *)bundlePath
-{
-    return [self pathForResource:name
-			  ofType:ext
-		     inDirectory:bundlePath
-		     withVersion:0];
-}
-#endif
-
-+ (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext	
-		inDirectory: (NSString *)bundlePath
-		withVersion: (int)version
-{
-#if 1
-  [self notImplemented:_cmd];
-  return nil;
-#else
-  NSBundle*	bundle = [NSBundle bundleWithPath:bundlePath];
-
-  [bundle setBundleVersion:version];
-  return [bundle pathForResource:name ofType:ext inDirectory:nil];
-#endif
-}
-
 - initWithPath:(NSString *)path;
 {
   struct stat statbuf;
@@ -337,8 +309,9 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
   if (stat([path cString], &statbuf) != 0) 
     {
-      NSLog(@"Could not access path %s for bundle", [path cString]);
-      return nil;
+      NSDebugLog(@"Could not access path %s for bundle", [path cString]);
+      //[self dealloc];
+      //return nil;
     }
 
   CHECK_LOCK(load_lock);
@@ -422,7 +395,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   Class   theClass = Nil;
   if (!_codeLoaded) 
     {
-      if (self != _mainBundle && ![self principalClass]) 
+      if (self != _mainBundle && ![self load]) 
 	{
 	  NSLog(@"No classes in bundle");
 	  return Nil;
@@ -462,6 +435,18 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       return _principalClass;
     }
 
+  if ([self load] == NO)
+    return Nil;
+
+  if (class_name)
+    _principalClass = NSClassFromString(class_name);
+  else if ([_bundleClasses count])
+    _principalClass = [_bundleClasses objectAtIndex:0];
+  return _principalClass;
+}
+
+- (BOOL) load
+{
   [load_lock lock];
   if (!_codeLoaded) 
     {
@@ -471,8 +456,11 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       _loadingBundle = self;
       _bundleClasses = [[NSMutableArray arrayWithCapacity:2] retain];
       if (objc_load_module([object cString], 
-			   stderr, _bundle_load_callback, NULL, NULL)) 
-	return Nil;
+			   stderr, _bundle_load_callback, NULL, NULL))
+	{
+	  [load_lock unlock];
+	  return NO;
+	}
       _codeLoaded = YES;
       _loadingBundle = nil;
       [[NSNotificationCenter defaultCenter]
@@ -482,12 +470,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	       forKeys: &NSLoadedClasses count: 1]];
     }
   [load_lock unlock];
-  
-  if (class_name)
-    _principalClass = NSClassFromString(class_name);
-  else if ([_bundleClasses count])
-    _principalClass = [_bundleClasses objectAtIndex:0];
-  return _principalClass;
+  return YES;
 }
 
 /* This method is the backbone of the resource searching for NSBundle. It
@@ -498,51 +481,55 @@ _bundle_load_callback(Class theClass, Category *theCategory)
      <main bundle>/Resources/<bundlePath>/<language.lproj>
      <main bundle>/<bundlePath>
      <main bundle>/<bundlePath>/<language.lproj>
-     <gnustep library installation directory>/<bundlePath>
-     <gnustep library installation directory>/<bundlePath>/<language.lproj>
+     <$GNUSTEP_LIBRARY_PATH>/<bundlePath>
+     <$GNUSTEP_LIBRARY_PATH>/<bundlePath>/<language.lproj>
 */
-- (NSArray *) _bundleResourcePathsWithDirectory: (NSString *)bundlePath
++ (NSArray *) _bundleResourcePathsWithRootPath: (NSString *)rootPath
+                                 subPath: (NSString *)bundlePath
 {
   NSString* primary;
   NSString* language;
   NSArray* languages;
   NSMutableArray* array;
   NSEnumerator* enumerate;
+  NSDictionary *envd = [[NSProcessInfo processInfo] environment];
+  NSString *gnustep_env;
 
   array = [NSMutableArray arrayWithCapacity: 8];
   languages = [NSUserDefaults userLanguages];
 
-  primary = [self resourcePath];
+  primary = [rootPath stringByAppendingPathComponent: @"Resources"];
   [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
   enumerate = [languages objectEnumerator];
   while ((language = [enumerate nextObject]))
     [array addObject: _bundle_resource_path(primary, bundlePath, language)];
     
-  primary = [self bundlePath];
+  primary = rootPath;
   [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
   enumerate = [languages objectEnumerator];
   while ((language = [enumerate nextObject]))
     [array addObject: _bundle_resource_path(primary, bundlePath, language)];
 
-  return array;
-}
+  /* Allow the GNUSTEP_LIBRARY_PATH environment variable be used
+     to find resources. */
+  gnustep_env = [envd objectForKey: @"GNUSTEP_LIBRARY_PATH"];
+  if (gnustep_env)
+    {
+      [array addObject: _bundle_resource_path(gnustep_env, bundlePath, nil)];
+      enumerate = [languages objectEnumerator];
+      while ((language = [enumerate nextObject]))
+	[array addObject: _bundle_resource_path(gnustep_env, 
+						bundlePath, language)];
+    }
 
-- (NSString *) pathForResource: (NSString *)name
-		ofType: (NSString *)ext;
-{
-#if 1
-  [self notImplemented: _cmd];
-  return nil;
-#else
-  return [self pathForResource: name
-	   ofType: ext 
-	   inDirectory: nil];
-#endif
+  return array;
 }
 
 + (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext	
+		inRootPath: (NSString *)rootPath
 		inDirectory: (NSString *)bundlePath
+		withVersion: (int)version
 {
   NSString *path;
   NSArray* paths;
@@ -555,7 +542,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       /* NOT REACHED */
     }
 
-  paths = [self _bundleResourcePathsWithDirectory: bundlePath];
+  paths = [NSBundle _bundleResourcePathsWithRootPath: rootPath
+	     subPath: bundlePath];
   enumerate = [paths objectEnumerator];
   while((path = [enumerate nextObject]))
     {
@@ -601,6 +589,48 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   return nil;
 }
 
++ (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext	
+		inDirectory: (NSString *)bundlePath
+		withVersion: (int) version
+{
+    return [self pathForResource: name
+			  ofType: ext
+                      inRootPath: bundlePath
+		     inDirectory: nil
+		     withVersion: version];
+}
+
++ (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext	
+		inDirectory: (NSString *)bundlePath
+{
+    return [self pathForResource: name
+			  ofType: ext
+                      inRootPath: bundlePath
+		     inDirectory: nil
+		     withVersion: 0];
+}
+
+- (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext;
+{
+  return [self pathForResource: name
+	   ofType: ext 
+	   inDirectory: nil];
+}
+
+- (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext
+                inDirectory: (NSString *)bundlePath;
+{
+  return [NSBundle pathForResource: name
+	   ofType: ext
+	   inRootPath: [self bundlePath]
+	   inDirectory: bundlePath
+	   withVersion: _version];
+}
+
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
 		inDirectory: (NSString *)bundlePath
 {
@@ -609,7 +639,8 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   NSMutableArray* resources;
   NSEnumerator* enumerate;
     
-  paths = [self _bundleResourcePathsWithDirectory: bundlePath];
+  paths = [NSBundle _bundleResourcePathsWithRootPath: [self bundlePath]
+	    subPath: bundlePath];
   enumerate = [paths objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
   while((path = [enumerate nextObject]))
@@ -718,3 +749,4 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 }
 
 @end
+

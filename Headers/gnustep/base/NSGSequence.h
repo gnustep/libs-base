@@ -46,6 +46,8 @@
 + (NSGSequence*) sequenceWithSequence:  (NSGSequence*) aSequence ;
 + (NSGSequence*) sequenceWithCharacters: (unichar *) characters
     length: (int) len;
++ (NSGSequence*) sequenceWithCharactersNoCopy: (unichar *) characters
+    length: (int) len freeWhenDone: (BOOL)flag;
 
 // Initializing Newly Allocated Sequences
 - (id) init;

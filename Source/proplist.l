@@ -17,11 +17,7 @@ int plwrap(void) {
   return 1;
 }
 
-#define return_nsdata(str) pllval.obj = str2data(str); return NSDATA
-#define return_nsstr(str) pllval.obj = [NSString stringWithCString:strdup(str)]; return NSSTRING
-
-char * strdup(char * src);
-char * unescstr(char * src);
+NSString * unescstr(char * src);
 NSData * str2data(char * str);
 
 extern char plinput[];
@@ -42,7 +38,7 @@ hexnum  {hexbyte}{1,3}
 qstring [^"]*\"
 noquote [$./0-9A-Z_a-z]
 unqstring       {noquote}+
-hexdata \<{ws}*({hexword}{ws}*)*{hexnum}{0,1}{ws}*\>
+hexdata \<{wsnl}*({hexword}{wsnl}*)*({hexnum}{wsnl}*)*\>
         /* exclusive states */
 %x QUOTE COMMENT LINE_COMMENT
 
@@ -55,13 +51,15 @@ hexdata \<{ws}*({hexword}{ws}*)*{hexnum}{0,1}{ws}*\>
 <QUOTE>{qstring}        {
                                   if(plleng==1) {
                                     BEGIN INITIAL;
-                                    return_nsstr("");
+				    pllval.obj=[NSString stringWithCString:""];
+				    return NSSTRING;
                                   }
                                   if(pltext[plleng-2] == '\\') {
                                     yymore();
                                   } else {
                                     BEGIN INITIAL;
-                                    return_nsstr(unescstr(pltext));
+				    pllval.obj=unescstr(pltext);
+				    return NSSTRING;
                                   }
                                 }
 
@@ -72,9 +70,16 @@ hexdata \<{ws}*({hexword}{ws}*)*{hexnum}{0,1}{ws}*\>
 <LINE_COMMENT>\n	{BEGIN INITIAL;}
 <LINE_COMMENT>.         ;
 
-{unqstring}     {return_nsstr(pltext);}
+{unqstring}		{
+			  pllval.obj = [NSString stringWithCString:pltext];
+			  return NSSTRING;
+			}
 
-{hexdata}               {return_nsdata(pltext);}
+{hexdata}               {
+			  pllval.obj = str2data(pltext);
+			  return NSDATA;
+			}
+
 
 \"      {BEGIN QUOTE;}
 
@@ -87,13 +92,6 @@ literally*/
 %%
 
                 /* C code section */
-char * strdup(char *src)
-{
-  char *dest=(char *)malloc(strlen(src)+5);
-
-  strcpy(dest,src);
-  return dest;
-}
 
 #define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
 #define char2num(ch) \
@@ -109,7 +107,7 @@ str2data (char *str)
   char ch;
   int len;
 
-  buf=(char *)malloc(strlen(str));
+  buf=(char *)objc_malloc(strlen(str));
 
   for (str_ptr=str+1, buf_ptr=buf,len=0;
        (ch = *str_ptr) != '>';
@@ -123,13 +121,13 @@ str2data (char *str)
       len++; buf_ptr++;
   }
 
-  return [NSData dataWithBytes:buf length:len];
+  return [NSData dataWithBytesNoCopy:buf length:len];
 }
 
-char *
+NSString*
 unescstr (char *src)
 {
-  char *dest=(char*) malloc (strlen(src));
+  char *dest=(char*) objc_malloc (strlen(src));
   char *src_ptr, *dest_ptr;
   char ch;
 
@@ -170,5 +168,7 @@ unescstr (char *src)
 
   *dest_ptr = '\0';     /* terminate dest */
 
-  return dest;
+  return [[[NSString alloc] initWithCStringNoCopy: dest
+					   length: dest_ptr - dest
+				     freeWhenDone: YES] autorelease];
 }

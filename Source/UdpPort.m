@@ -27,8 +27,8 @@
 #include <gnustep/base/Lock.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Coder.h>
-#include <gnustep/base/Array.h>
 #include <gnustep/base/ConnectedCoder.h>
+#include <gnustep/base/Array.h>
 #include <assert.h>
 #ifndef __WIN32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
@@ -291,6 +291,15 @@ static NSMapTable *port_number_2_in_port = NULL;
   return [UdpOutPort class];
 }
 
+- (Class) classForPortCoder: aRmc
+{
+  return [UdpOutPort class];
+}
+- replacementObjectForPortCoder: aRmc
+{
+  return self;
+}
+
 - (void) encodeWithCoder: aCoder
 {
   /* We are actually encoding a "send right" (ala Mach), 
@@ -397,7 +406,7 @@ static Array *udp_out_port_array;
 
 /* This currently ignores the timeout parameter */
 
-- (BOOL) sendPacket: packet withTimeout: (int)milliseconds
+- (BOOL) sendPacket: packet timeout: (NSTimeInterval)seconds
 {
   id reply_port = [packet replyPort];
   int len = [packet streamEofPosition];

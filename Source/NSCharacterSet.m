@@ -79,7 +79,7 @@ static NSLock* cache_lock = nil;
   if (cache_set[number] == nil)
     {
       NS_DURING
-#if 1
+#if 0
 	path = nil;
 #else
 	path = [gstep_base_bundle pathForResource:setname

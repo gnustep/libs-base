@@ -52,6 +52,12 @@ NSUserName ()
 #else
   const char *login_name = getlogin ();
   
+  if (!login_name)
+        login_name = cuserid(NULL);
+
+  if (!login_name)
+        login_name= getenv ("LOGNAME");
+
   if (login_name)
     return [NSString stringWithCString: login_name];
   else

@@ -1,8 +1,9 @@
-/* NSDistantObject 
+/* Interface for GNU Objective-C version of NSDistantObject
    Copyright (C) 1997 Free Software Foundation, Inc.
    
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Created: Mar 1997
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Based on code by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
+   Created: August 1997
    
    This file is part of the GNUstep Base Library.
    
@@ -21,20 +22,44 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-@class NSConnection;
+#ifndef __NSDistantObject_h_GNUSTEP_BASE_INCLUDE
+#define __NSDistantObject_h_GNUSTEP_BASE_INCLUDE
 
-@interface NSDistantObject : NSObject
+#include <Foundation/NSProxy.h>
+
+@class	NSConnection;
+
+@interface NSDistantObject : NSProxy <NSCoding>
 {
+@private
+    NSConnection*	_connection;
+    id			_object;
+    BOOL		_isLocal;
+    id			_protocol;
 }
 
-+ (NSDistantObject*) proxyWithLocal: target connection: (NSConnection*)conn;
-+ (NSDistantObject*) proxyWithTarget: target connection: (NSConnection*) conn;
-
-- initWithLocal: target connection: (NSConnection*) connection;
-- initWithTarget: target connection: (NSConnection*) connection;
-
-- (void) setProtocolForProxy: (Protocol*)proto;
++ (NSDistantObject*) proxyWithLocal: anObject
+			 connection: (NSConnection*)aConnection;
++ (NSDistantObject*) proxyWithTarget: anObject
+			  connection: (NSConnection*)aConnection;
 
 - (NSConnection*) connectionForProxy;
+- initWithLocal:anObject connection: (NSConnection*)aConnection;
+- initWithTarget:anObject connection: (NSConnection*)aConnection;
+- (void) setProtocolForProxy: (Protocol*)aProtocol;
 
 @end
+
+@interface NSDistantObject(GNUstepExtensions)
+
++ newForRemoteTarget: (unsigned)target connection: (NSConnection*)conn;
+
+- awakeAfterUsingCoder: aDecoder;
+- classForPortCoder: aRmc;
++ newWithCoder: aRmc;
+- (const char *) selectorTypeForProxy: (SEL)selector;
+- forward: (SEL)aSel :(arglist_t)frame;
+- targetForProxy;
+@end
+
+#endif /* __NSDistantObject_h_GNUSTEP_BASE_INCLUDE */

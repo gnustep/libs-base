@@ -27,6 +27,7 @@
 #include <unistd.h>		/* for gethostname() */
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #endif /* !__WIN32__ */
 #include <errno.h>
@@ -39,6 +40,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/file.h>
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
@@ -82,7 +84,12 @@
 
 int	debug = 0;		/* Extra debug logging.			*/
 int	nofork = 0;		/* turn off fork() for debugging.	*/
-int	noprobe = 0;		/* turn off probing for other servers.	*/
+int	noprobe = 0;		/* turn off probe for unknown servers.	*/
+
+int	udp_sent = 0;
+int	tcp_sent = 0;
+int	udp_read = 0;
+int	tcp_read = 0;
 
 struct in_addr	my_addr;	/* Set in init_iface()		*/
 unsigned short	my_port;	/* Set in init_iface()		*/
@@ -90,16 +97,20 @@ unsigned short	my_port;	/* Set in init_iface()		*/
 /*
  *	Predeclare some of the functions used.
  */
+static void	dump_stats();
 static void	handle_accept();
 static void	handle_io();
 static void	handle_read(int);
 static void	handle_recv();
 static void	handle_request(int);
+static void	handle_send();
 static void	handle_write(int);
 static void	init_iface();
 static void	init_ports();
 static void	init_probe();
-static void	send_probe(struct hostent* hp, struct in_addr a);
+static void	queue_msg(struct sockaddr_in* a, unsigned char* d, int l);
+static void	queue_pop();
+static void	queue_probe(struct in_addr* to, struct in_addr *from);
 
 /*
  *	I have simple mcopy() and mzero() implementations here for the
@@ -174,7 +185,10 @@ fd_set	write_fds;		/* Descriptors which are writable.	*/
 struct	{
     struct sockaddr_in	addr;	/* Address of process making request.	*/
     int			pos;	/* Position reading data.		*/
-    unsigned char	buf[GDO_REQ_SIZE];
+    union {
+	gdo_req		r;
+	unsigned char	b[GDO_REQ_SIZE];
+    } buf;
 } r_info[FD_SETSIZE];		/* State of reading each request.	*/
 
 struct	{
@@ -183,65 +197,55 @@ struct	{
     char*	buf;		/* Buffer for data.			*/
 } w_info[FD_SETSIZE];
 
+struct	u_data	{
+    struct sockaddr_in	addr;	/* Address to send to.			*/
+    int			pos;	/* Number of bytes already sent.	*/
+    int 		len;	/* Length of data to send.		*/
+    unsigned char*	dat;	/* Data to be sent.			*/
+    struct u_data*	next;	/* Next message to send.		*/
+} *u_queue = 0;
+int	udp_pending = 0;
 
 /*
- *	Name -		send_msg()
- *	Purpose -	Send message on UDP socket, permitting handling of
- *			incoming messages at the same time.
- *			Copy data into local buffer so as to be re-entrant.
- *			If we don't succeed pretty quickly, give up.
+ *	Name -		queue_msg()
+ *	Purpose -	Add a message to the queue of those to be sent
+ *			on the UDP socket.
  */
-static void
-send_msg(unsigned char* msg, int len, struct sockaddr_in* addr)
+void
+queue_msg(struct sockaddr_in* a, unsigned char* d, int l)
 {
-    struct timeval	timeout;
-    struct sockaddr_in	sin;
-    fd_set		rfds;
-    fd_set		wfds;
-    void*		to;
-    int			tries = 0;
-    int			r = 0;
-    unsigned char*	tmp = (unsigned char*)malloc(len);
-    time_t		when = 0;
+    struct u_data*	entry = (struct u_data*)malloc(sizeof(struct u_data));
 
-    mcopy(tmp, msg, len);
-    do {
-	mcopy(&sin, addr, sizeof(struct sockaddr_in));
-	FD_ZERO(&rfds);
-	FD_ZERO(&wfds);
-	FD_SET(udp_desc, &rfds);
-	FD_SET(udp_desc, &wfds);
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 100000;
-	to = &timeout;
-	select(FD_SETSIZE, &rfds, &wfds, 0, to);
-	if (FD_ISSET(udp_desc, &rfds)) {
-	    handle_recv();
-	}
-	else {
-	    r=sendto(udp_desc, tmp, GDO_REQ_SIZE, 0, (void*)&sin, sizeof(sin));
-	    tries++;
-	}
-	if (r != len) {
-	    if (when == 0) {
-		when = time(0);
-	    }
-	    else if (time(0) - when > 1) {
-		break;
-	    }
-	}
-    } while (r != len);
-    free(tmp);
-    if (debug && tries > 1) {
-	if (r == len) {
-	    fprintf(stderr, "sendto took %d tries\n", tries);
-	}
-	else {
-	    fprintf(stderr, "sendto given up after %d tries\n", tries);
-	}
+    memcpy(&entry->addr, a, sizeof(*a));
+    entry->pos = 0;
+    entry->len = l;
+    entry->dat = malloc(l);
+    memcpy(entry->dat, d, l);
+    entry->next = 0;
+    if (u_queue) {
+	struct u_data*	tmp = u_queue;
+
+	while (tmp->next) tmp = tmp->next;
+	tmp->next = entry;
     }
+    else {
+	u_queue = entry;
+    }
+    udp_pending++;
 }
 
+void
+queue_pop()
+{
+    struct u_data*	tmp = u_queue;
+
+    if (tmp) {
+	u_queue = tmp->next;
+	free(tmp->dat);
+	free(tmp);
+	udp_pending--;
+    }
+}
 
 /*
  *	Primitive mapping stuff.
@@ -250,9 +254,9 @@ unsigned short	next_port = IPPORT_USERRESERVED;
 
 typedef struct {
     unsigned char*	name;	/* Service name registered.	*/
-    int			size;
-    time_t		when;	/* When it was registered.	*/
-    unsigned short	port;	/* Port it was mapped to.	*/
+    unsigned int	port;	/* Port it was mapped to.	*/
+    unsigned char	size;	/* Number of bytes in name.	*/
+    unsigned char	type;	/* Type of port registered.	*/
 } map_ent;
 
 int	map_used = 0;
@@ -277,15 +281,15 @@ compare(unsigned char* n0, int l0, unsigned char* n1, int l1)
  *			into the map in the appropriate position.
  */
 static map_ent*
-map_add(unsigned char* n, int l, unsigned short p)
+map_add(unsigned char* n, unsigned char l, unsigned int p, unsigned char t)
 {
     map_ent	*m = (map_ent*)malloc(sizeof(map_ent));
     int		i;
 
-    m->port = htons(p);
+    m->port = p;
     m->name = (char*)malloc(l);
     m->size = l;
-    m->when = (time_t)time(0);
+    m->type = t;
     mcopy(m->name, n, l);
 
     if (map_used >= map_size) {
@@ -310,6 +314,10 @@ map_add(unsigned char* n, int l, unsigned short p)
     }
     map[i] = m;
     map_used++;
+    if (debug > 2) {
+	fprintf(stderr, "Added port %d to map for %.*s\n",
+		m->port, m->size, m->name);
+    }
     return(m);
 }
 
@@ -324,6 +332,9 @@ map_by_name(unsigned char* n, int s)
     int		upper = map_used;
     int		index;
 
+    if (debug > 2) {
+	fprintf(stderr, "Searching map for %.*s\n", s, n);
+    }
     for (index = upper/2; upper != lower; index = lower + (upper - lower)/2) {
 	int	i = compare(map[index]->name, map[index]->size, n, s);
 
@@ -336,7 +347,13 @@ map_by_name(unsigned char* n, int s)
         }
     }
     if (index<map_used && compare(map[index]->name,map[index]->size,n,s) == 0) {
+	if (debug > 2) {
+	    fprintf(stderr, "Found port %d for %.*s\n", map[index]->port, s, n);
+	}
 	return(map[index]);
+    }
+    if (debug > 2) {
+	fprintf(stderr, "Failed to find map entry for %.*s\n", s, n);
     }
     return(0);
 }
@@ -351,6 +368,10 @@ map_del(map_ent* e)
 {
     int	i;
 
+    if (debug > 2) {
+	fprintf(stderr, "Removing port %d from map for %.*s\n",
+		e->port, e->size, e->name);
+    }
     for (i = 0; i < map_used; i++) {
 	if (map[i] == e) {
 	    int	j;
@@ -370,8 +391,8 @@ map_del(map_ent* e)
  *	Variables and functions for keeping track of the IP addresses of
  *	hosts which are running the name server.
  */
-unsigned short	prb_used = 0;
-unsigned short	prb_size = 0;
+unsigned long	prb_used = 0;
+unsigned long	prb_size = 0;
 struct in_addr	**prb = 0;
 
 /*
@@ -492,6 +513,25 @@ clear_chan(int desc)
 	w_info[desc].pos = 0;
 	mzero(&r_info[desc], sizeof(r_info[desc]));
     }
+}
+
+static void
+dump_stats()
+{
+    int	tcp_pending = 0;
+    int	i;
+
+    for (i = 0; i < FD_SETSIZE; i++) {
+	if (w_info[i].len > 0) {
+	    tcp_pending++;
+	}
+    }
+    fprintf(stderr, "tcp messages waiting for send - %d\n", tcp_pending);
+    fprintf(stderr, "udp messages waiting for send - %d\n", udp_pending);
+    fprintf(stderr, "size of name-to-port map - %d\n", map_used);
+    fprintf(stderr, "number of known name servers - %d\n", prb_used);
+    fprintf(stderr, "TCP %d read, %d sent\n", tcp_read, tcp_sent);
+    fprintf(stderr, "UDP %d read, %d sent\n", udp_read, udp_sent);
 }
 
 /*
@@ -698,12 +738,14 @@ init_probe()
 {
     int	iface;
 
+    if (debug > 2) {
+	fprintf(stderr, "Initiating probe requests.\n");
+    }
     for (iface = 0; iface < interfaces; iface++) {
-	int	found = 0;
 	int	net = inet_netof(addr[iface]);
 	int	me = inet_lnaof(addr[iface]);
 	int	lo = 1;
-	int	hi = 255;
+	int	hi;
 	int	i;
 
 	if (net == 127) {
@@ -711,26 +753,67 @@ init_probe()
 	}
         prb_add(&addr[iface]);	/* Add self to server list.	*/
 
-	if (noprobe) {
-	    found = 1;
+	/*
+	 *	Determine the highest possible host number depending on
+	 *	the class of network address in use.
+	 */
+	if ((net & 0xffffff00) == 0) {
+	    hi = 0xffffff;			/* Class A	*/
 	}
-	for (i = lo; i < hi && !found; i++) {
-	    struct hostent*	hp;
-	    struct in_addr	a = inet_makeaddr(net, i);
+	else if ((net & 0xffff0000) == 0) {
+	    hi = 0xffff;			/* Class B	*/
+	}
+	else {
+	    hi = 0xff;				/* Class C	*/
+	}
 
-	    if (i == me) {
-		continue;	/* Don't probe self - that's silly.	*/
+	/*
+	 *	First kick off probes for known hosts unless we are
+	 *	probing ALL hosts.
+	 */
+	if (noprobe || hi > 0xff) {
+	    for (i = lo; i < hi; i++) {
+		struct in_addr	a = inet_makeaddr(net, i);
+		struct hostent*	hp;
+
+		if (i == me) {
+		    continue;	/* Don't probe self - that's silly.	*/
+		}
+
+		/*
+		 *	See if there is a host known with this address,
+		 *	if not we skip this one.
+		 */
+		hp = gethostbyaddr((const char*)&a, sizeof(a), AF_INET);
+		if (hp == 0) {
+		    continue;
+		}
+		queue_probe(&a, &addr[iface]);	/* Kick off probe.	*/
 	    }
-	    /*
-	     *	See if there is a host know with this address, if not
-	     *	we skip this one.
-	     */
-	    hp = gethostbyaddr((const char*)&a, sizeof(a), AF_INET);
-	    if (hp == 0) {
-		continue;
-	    }
-	    send_probe(hp, addr[iface]);	/* Kick off probe.	*/
 	}
+
+	/*
+	 *	Now start probes for servers on machines which may be on
+	 *	the network, but are not known to this system.
+	 *
+	 *	We only do this on class 'C' networks since the number of
+	 *	possible hosts on a class 'A' or 'B' network is far too
+	 *	high to probe without causing network congestion.
+	 */
+	if (noprobe == 0 && hi <= 0xff) {
+	    for (i = lo; i < hi; i++) {
+		struct in_addr	a = inet_makeaddr(net, i);
+		struct hostent*	hp;
+
+		if (i == me) {
+		    continue;	/* Don't probe self - that's silly.	*/
+		}
+		queue_probe(&a, &addr[iface]);	/* Kick off probe.	*/
+	    }
+	}
+    }
+    if (debug > 2) {
+	fprintf(stderr, "Probe requests initiated.\n");
     }
 }
 
@@ -755,15 +838,32 @@ handle_accept()
 	r_info[desc].pos = 0;
 	mcopy((char*)&r_info[desc].addr, (char*)&sa, sizeof(sa));
 
+	if (debug) {
+	    fprintf(stderr, "accept from %s to chan %d\n",
+		inet_ntoa(sa.sin_addr), desc);
+	}
 	/*
 	 *	Ensure that the connection is non-blocking.
 	 */
 	if ((r = fcntl(desc, F_GETFL, 0)) >= 0) {
 	    r |= NBLK_OPT;
 	    if (fcntl(desc, F_SETFL, r) < 0) {
+		if (debug) {
+		    fprintf(stderr, "failed to set chan %d non-blocking\n",
+				desc);
+		}
 		clear_chan(desc);
 	    }
 	}
+	else {
+	    if (debug) {
+	        fprintf(stderr, "failed to set chan %d non-blocking\n", desc);
+	    }
+	    clear_chan(desc);
+	}
+    }
+    else if (debug) {
+	fprintf(stderr, "accept failed - errno %d\n", errno);
     }
 }
 
@@ -786,6 +886,14 @@ handle_io()
 	rfds = read_fds;
 	wfds = write_fds;
 	to = 0;
+
+	/*
+	 *	If there is anything waiting to be sent on the UDP socket
+	 *	we must check to see if it is writable.
+	 */
+	if (u_queue != 0) {
+	    FD_SET(udp_desc, &wfds);
+	}
 
 	rval = select(FD_SETSIZE, &rfds, &wfds, 0, to);
 
@@ -839,9 +947,17 @@ handle_io()
 		else {
 		    handle_read(i);
 		}
+		if (debug > 2) {
+		    dump_stats();
+		}
 	    }
 	    if (FD_ISSET(i, &wfds)) {
-		handle_write(i);
+		if (i == udp_desc) {
+		    handle_send();
+		}
+		else {
+		    handle_write(i);
+		}
 	    }
 	}
     }
@@ -855,7 +971,7 @@ handle_io()
 static void
 handle_read(int desc)
 {
-    unsigned char*	ptr = r_info[desc].buf;
+    unsigned char*	ptr = r_info[desc].buf.b;
     int	done = 0;
     int	r;
 
@@ -869,6 +985,7 @@ handle_read(int desc)
 	}
     }
     if (r_info[desc].pos == GDO_REQ_SIZE) {
+	tcp_read++;
 	handle_request(desc);
     }
     else if (errno != EWOULDBLOCK) {
@@ -883,17 +1000,17 @@ handle_read(int desc)
 static void
 handle_recv()
 {
-    unsigned char*	ptr = r_info[udp_desc].buf;
+    unsigned char*	ptr = r_info[udp_desc].buf.b;
     struct sockaddr_in*	addr = &r_info[udp_desc].addr;
     int	len = sizeof(struct sockaddr_in);
     int	r;
 
     r = recvfrom(udp_desc, ptr, GDO_REQ_SIZE, 0, (void*)addr, &len);
     if (r == GDO_REQ_SIZE) {
+	udp_read++;
 	r_info[udp_desc].pos = GDO_REQ_SIZE;
 	if (debug) {
-	    fprintf(stderr, "recvfrom alen=%d, %lx\n", len,
-		(unsigned long)addr->sin_addr.s_addr);
+	    fprintf(stderr, "recvfrom %s\n", inet_ntoa(addr->sin_addr));
 	}
 	handle_request(udp_desc);
     }
@@ -914,23 +1031,48 @@ handle_recv()
 static void
 handle_request(int desc)
 {
-    unsigned char	type = r_info[desc].buf[0];
-    unsigned char	size = r_info[desc].buf[1];
-    unsigned short	port = ntohs(*(unsigned short*)&r_info[desc].buf[2]);
-    unsigned char	*buf = &r_info[desc].buf[4];
+    unsigned char      type = r_info[desc].buf.r.rtype;
+    unsigned char      size = r_info[desc].buf.r.nsize;
+    unsigned char      ptype = r_info[desc].buf.r.ptype;
+    unsigned long      port = ntohl(r_info[desc].buf.r.port);
+    unsigned char      *buf = r_info[desc].buf.r.name;
     map_ent*		m;
 
     FD_CLR(desc, &read_fds);
     FD_SET(desc, &write_fds);
     w_info[desc].pos = 0;
+
+    if (debug > 1) {
+	if (desc == udp_desc) {
+	    fprintf(stderr, "request type '%c' on UDP chan\n", type);
+	}
+	else {
+	    fprintf(stderr, "request type '%c' from chan %d\n", type, desc);
+	}
+    }
+
+    if (ptype != GDO_TCP_GDO && ptype != GDO_TCP_FOREIGN &&
+        ptype != GDO_UDP_GDO && ptype != GDO_UDP_FOREIGN) {
+	if (ptype != 0 || (type != GDO_PROBE && type != GDO_PREPLY &&
+	    type != GDO_SERVERS)) {
+	    if (debug) {
+		fprintf(stderr, "Illegal port type in request\n");
+	    }
+	    clear_chan(desc);
+	    return;
+	}
+    }
+
     /*
-     *	The default return value is a two byte number set to zero.
-     *	We assume that malloc returns data aligned on a 2 byte boundary.
+     *	The default return value is a four byte number set to zero.
+     *	We assume that malloc returns data aligned on a 4 byte boundary.
      */
-    w_info[desc].len = 2;
-    w_info[desc].buf = (char*)malloc(2);
+    w_info[desc].len = 4;
+    w_info[desc].buf = (char*)malloc(4);
     w_info[desc].buf[0] = 0;
     w_info[desc].buf[1] = 0;
+    w_info[desc].buf[2] = 0;
+    w_info[desc].buf[3] = 0;
 
     if (type == GDO_REGISTER) {
 	/*
@@ -943,98 +1085,141 @@ handle_request(int desc)
 	}
 	m = map_by_name(buf, size);
 	if (m) {
-	    time_t	now = time(0);
+	    int	sock = -1;
 
 	    /*
 	     *	What should we do here?
 	     *	Simple algorithm -
-	     *		If the name was registered in the last three seconds
-	     *		we automatically disallow a new registration attempt.
-	     *		Otherwise, we check to see if we can bind to the
-	     *		specified port, and if we can we assume that the
-	     *		original process has gone away and permit a new
-	     *		registration for the same name.
+	     *		We check to see if we can bind to the old port,
+	     *		and if we can we assume that the original process
+	     *		has gone away and permit a new registration for the
+	     *		same name.
 	     *		This is not foolproof - if the machine has more
 	     *		than one IP address, we could bind to the port on
 	     *		one address even though the server is using it on
 	     *		another.
+	     *		Also - the operating system is not guaranteed to
+	     *		let us bind to the port if another process has only
+	     *		recently stopped using it.
+	     *		Also - what if an old server used the port that the
+	     *		new one is using?  In this case the registration
+	     *		attempt will be refused even though it shouldn't be!
+	     *		On the other hand - the occasional registration
+	     *		failure MUST be better than permitting a process to
+	     *		grab a name already in use! If a server fails to
+	     *		register a name/port combination, it can always be
+	     *		coded to retry on a different port.
 	     */
-	    if (now - m->when > 3) {
-		int	sock;
+	    if (ptype == GDO_TCP_GDO || ptype == GDO_TCP_FOREIGN) {
+		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	    }
+	    else if (ptype == GDO_UDP_GDO || ptype == GDO_UDP_FOREIGN) {
+		sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	    }
 
-		if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-		    perror("unable to create new socket");
+	    if (sock < 0) {
+		perror("unable to create new socket");
+	    }
+	    else {
+		int	r = 1;
+		if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+			    (char*)&r, sizeof(r)) < 0) {
+		    perror("unable to set socket options");
 		}
 		else {
-		    int	r = 1;
-		    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-				(char*)&r, sizeof(r)) < 0) {
-			perror("unable to set socket options");
-		    }
-		    else {
-			struct sockaddr_in	sa;
+		    struct sockaddr_in	sa;
+		    int			result;
+		    short		p = m->port;
 
-			mzero(&sa, sizeof(sa));
-			sa.sin_family = AF_INET;
-			sa.sin_addr.s_addr = htonl(INADDR_ANY);
-			sa.sin_port = m->port;
-			if (bind(sock, (void*)&sa, sizeof(sa)) == 0) {
-			    m->when = now;	/* Reset timer.	*/
-			    if (port != 0) {
-				m->port = htons(port);
-			    }
-			    *(unsigned short*)w_info[desc].buf = m->port;
+		    mzero(&sa, sizeof(sa));
+		    sa.sin_family = AF_INET;
+		    sa.sin_addr.s_addr = htonl(INADDR_ANY);
+		    sa.sin_port = htons(p);
+		    result = bind(sock, (void*)&sa, sizeof(sa));
+		    if (result == 0) {
+			if (debug > 1) {
+			    fprintf(stderr, "re-register name from %d to %d\n",
+				m->port, port);
 			}
+			m->port = port;
+			port = htonl(m->port);
+			*(unsigned long*)w_info[desc].buf = port;
 		    }
-		    close(sock);
 		}
+		close(sock);
 	    }
 	}
 	else if (port == 0) {	/* Port not provided in request.	*/
-	    int	port_ok = 0;
-	    int	second_time = 0;
-
-	    /*
-	     *	Ports are allocated sequentially from IPPORT_USERRESERVED
-	     *	If we have a local service defined for the port, we skip to
-	     *	the next port.
-	     */
-	    while (port_ok == 0) {
-	        struct servent *sp;
-
-	        if ((sp = getservbyport(next_port, "tcp")) != 0) {
-		    next_port++;
-	        }
-		else {
-		    port_ok = 1;
-		}
-		if (next_port == 0) {
-		    /*
-		     *	If the unsigned short has overflowed and we are back
-		     *	to zero, we start again unless we have already tried
-		     *	to do that.
-		     */
-		    if (second_time) {
-			fprintf(stderr, "Run out of port numbers!\n");
-			clear_chan(desc);
-			return;
-		    }
-		    second_time = 1;
-		    next_port = IPPORT_USERRESERVED;
-	 	}
-	    }
-	    m = map_add(buf, size, next_port++);
-	    *(unsigned short*)w_info[desc].buf = m->port;
+	    fprintf(stderr, "port not provided in request\n");
 	}
 	else {		/* Use port provided in request.	*/
-	    m = map_add(buf, size, port);
-	    *(unsigned short*)w_info[desc].buf = m->port;
+	    m = map_add(buf, size, port, ptype);
+	    port = htonl(m->port);
+	    *(unsigned long*)w_info[desc].buf = port;
 	}
     }
     else if (type == GDO_LOOKUP) {
 	m = map_by_name(buf, size);
+	if (m != 0 && m->type != ptype) {
+	    if (debug > 1) {
+		fprintf(stderr, "requested service is of wrong type\n");
+	    }
+	    m = 0;	/* Name existas but is of wrong type.	*/
+	}
 	if (m) {
-	    *(unsigned short*)w_info[desc].buf = m->port;
+	    int	sock = -1;
+
+	    /*
+	     *	We check to see if we can bind to the old port, and if we can
+	     *	we assume that the process has gone away and remove it from
+	     *	the map.
+	     *	This is not foolproof - if the machine has more
+	     *	than one IP address, we could bind to the port on
+	     *	one address even though the server is using it on
+	     *	another.
+	     */
+	    if (ptype == GDO_TCP_GDO || ptype == GDO_TCP_FOREIGN) {
+		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	    }
+	    else if (ptype == GDO_UDP_GDO || ptype == GDO_UDP_FOREIGN) {
+		sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	    }
+
+	    if (sock < 0) {
+		perror("unable to create new socket");
+	    }
+	    else {
+		int	r = 1;
+		if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+			    (char*)&r, sizeof(r)) < 0) {
+		    perror("unable to set socket options");
+		}
+		else {
+		    struct sockaddr_in	sa;
+		    int			result;
+		    unsigned short	p = (unsigned short)m->port;
+
+		    mzero(&sa, sizeof(sa));
+		    sa.sin_family = AF_INET;
+		    sa.sin_addr.s_addr = htonl(INADDR_ANY);
+		    sa.sin_port = htons(p);
+		    result = bind(sock, (void*)&sa, sizeof(sa));
+		    if (result == 0) {
+			map_del(m);
+			m = 0;
+		    }
+		}
+		close(sock);
+	    }
+	}
+	if (m) {	/* Lookup found live server.	*/
+	    *(unsigned long*)w_info[desc].buf = htonl(m->port);
+	}
+	else {		/* Not found.			*/
+	    if (debug > 1) {
+		fprintf(stderr, "requested service not found\n");
+	    }
+	    *(unsigned short*)w_info[desc].buf = 0;
 	}
     }
     else if (type == GDO_UNREG) {
@@ -1048,14 +1233,24 @@ handle_request(int desc)
 	}
 	m = map_by_name(buf, size);
 	if (m) {
-	    if (r_info[desc].addr.sin_port == m->port) {
-		*(unsigned short*)w_info[desc].buf = m->port;
+	    if (m->type != ptype) {
+		if (debug) {
+	            fprintf(stderr, "Attempt to unregister with wrong type\n");
+		}
+	    }
+	    else if (r_info[desc].addr.sin_port == m->port) {
+		*(unsigned long*)w_info[desc].buf = htonl(m->port);
 	        map_del(m);
 	    }
 	    else {
-	        fprintf(stderr, "Illegal attempt to un-register!\n");
-	        clear_chan(desc);
-	        return;
+		if (debug) {
+		    fprintf(stderr, "Illegal attempt to un-register!\n");
+		}
+	    }
+	}
+	else {
+	    if (debug > 1) {
+		fprintf(stderr, "requested service not found\n");
 	    }
 	}
     }
@@ -1063,12 +1258,12 @@ handle_request(int desc)
 	int	i;
 
 	free(w_info[desc].buf);
-	w_info[desc].buf = (char*)malloc(2 + prb_used*sizeof(*prb));
-	*(unsigned short*)w_info[desc].buf = htons(prb_used);
+	w_info[desc].buf = (char*)malloc(4 + prb_used*sizeof(*prb));
+	*(unsigned long*)w_info[desc].buf = htonl(prb_used);
 	for (i = 0; i < prb_used; i++) {
-	    mcopy(&w_info[desc].buf[2+i*IASIZE], prb[i], IASIZE);
+	    mcopy(&w_info[desc].buf[4+i*IASIZE], prb[i], IASIZE);
 	}
-	w_info[desc].len = 2 + prb_used*IASIZE;
+	w_info[desc].len = 4 + prb_used*IASIZE;
     }
     else if (type == GDO_PROBE) {
 	/*
@@ -1076,8 +1271,8 @@ handle_request(int desc)
 	 */
 	if (r_info[desc].addr.sin_port == my_port) {
 	    if (is_local_net(r_info[desc].addr.sin_addr)) {
-		if (prb_get((struct in_addr*)&r_info[desc].buf[2]) == 0) {
-		    prb_add((struct in_addr*)&r_info[desc].buf[2]);
+		if (prb_get((struct in_addr*)&r_info[desc].buf.b[4]) == 0) {
+		    prb_add((struct in_addr*)&r_info[desc].buf.b[4]);
 		}
 	    }
 	}
@@ -1092,11 +1287,14 @@ handle_request(int desc)
 	    mzero(w_info[desc].buf, GDO_REQ_SIZE);
 	    w_info[desc].buf[0] = GDO_PREPLY;
 	    w_info[desc].buf[1] = sizeof(my_addr);
-	    mcopy(&w_info[desc].buf[2], &my_addr, sizeof(my_addr));
+	    w_info[desc].buf[2] = 0;
+	    w_info[desc].buf[3] = 0;
+	    mcopy(&w_info[desc].buf[4], &my_addr, sizeof(my_addr));
 	    w_info[desc].len = GDO_REQ_SIZE;
 	}
 	else {
-	    *(unsigned short*)w_info[desc].buf = htons(my_port);
+	    port = my_port;
+	    *(unsigned long*)w_info[desc].buf = htonl(port);
 	}
     }
     else if (type == GDO_PREPLY) {
@@ -1106,8 +1304,8 @@ handle_request(int desc)
 	 */
 	if (r_info[desc].addr.sin_port == my_port) {
 	    if (is_local_net(r_info[desc].addr.sin_addr)) {
-		if (prb_get((struct in_addr*)&r_info[desc].buf[2]) == 0) {
-		    prb_add((struct in_addr*)&r_info[desc].buf[2]);
+		if (prb_get((struct in_addr*)&r_info[desc].buf.b[4]) == 0) {
+		    prb_add((struct in_addr*)&r_info[desc].buf.b[4]);
 		}
 	    }
 	}
@@ -1125,12 +1323,73 @@ handle_request(int desc)
     }
 
     /*
-     *	If the request was via UDP, we send a response back directly
+     *	If the request was via UDP, we send a response back by queuing
      *	rather than letting the normal 'write_handler()' function do it.
      */
     if (desc == udp_desc) {
-	send_msg(w_info[desc].buf, w_info[desc].len, &r_info[desc].addr);
+	queue_msg(&r_info[desc].addr, w_info[desc].buf, w_info[desc].len);
 	clear_chan(desc);
+    }
+}
+
+/*
+ *	Name -		handle_send()
+ *	Purpose -	Send any pending message on UDP socket.
+ *			The code is designed to send the message in parts if
+ *			the 'sendto()' function returns a positive integer
+ *			indicating that only part of the message has been
+ *			written.  This should never happen - but I coded it
+ *			this way in case we have to run on a system which
+ *			implements sendto() badly (I used such a system
+ *			many years ago).
+ */
+static void
+handle_send()
+{
+    struct u_data*	entry = u_queue;
+
+    if (entry) {
+	int	r;
+
+	r = sendto(udp_desc, &entry->dat[entry->pos], entry->len - entry->pos,
+			0, (void*)&entry->addr, sizeof(entry->addr));
+	/*
+	 *	'r' is the number of bytes sent. This should be the number
+	 *	of bytes we asked to send, or -1 to indicate failure.
+	 */
+	if (r > 0) {
+	    entry->pos += r;
+	}
+
+	/*
+	 *	If we haven't written all the data, it should have been
+	 *	because we blocked.  Anything else is a major problem
+	 *	so we remove the message from the queue.
+	 */
+	if (entry->pos != entry->len) {
+	    if (errno != EWOULDBLOCK) {
+		if (debug) {
+		    fprintf(stderr, "failed sendto for %s\n",
+			    inet_ntoa(entry->addr.sin_addr));
+		}
+		u_queue = entry->next;
+		free(entry->dat);
+		free(entry);
+	    }
+	}
+	else {
+	    udp_sent++;
+	    if (debug > 1) {
+		fprintf(stderr, "performed sendto for %s\n",
+				inet_ntoa(entry->addr.sin_addr));
+	    }
+	    /*
+	     *	If we have sent the entire message - remove it from queue.
+	     */
+	    if (entry->pos == entry->len) {
+		queue_pop();
+	    }
+	}
     }
 }
 
@@ -1153,6 +1412,9 @@ handle_write(int desc)
 
     r = write(desc, &ptr[w_info[desc].pos], len - w_info[desc].pos);
     if (r < 0) {
+	if (debug > 1) {
+	    fprintf(stderr, "Failed write on chan %d - closing\n", desc);
+	}
 	/*	
 	 *	Failure - close connection silently.
 	 */
@@ -1161,6 +1423,10 @@ handle_write(int desc)
     else {
 	w_info[desc].pos += r;
 	if (w_info[desc].pos >= len) {
+	    tcp_sent++;
+	    if (debug > 1) {
+		fprintf(stderr, "Completed write on chan %d - closing\n", desc);
+	    }
 	    /*	
 	     *	Success - written all information.
 	     */
@@ -1184,7 +1450,8 @@ main(int argc, char** argv)
 		printf("-H		for help\n");
 		printf("-d		Extra debug logging.\n");
 		printf("-f		avoid fork() to make debugging easy\n");
-		printf("-p		skip probe for other servers\n");
+		printf("-p		skip probe for unknown servers\n");
+		printf("		NB. This may actually SLOW startup.\n");
 		exit(0);
 
 	    case 'd':
@@ -1228,46 +1495,65 @@ main(int argc, char** argv)
 
 	    default:
 		if (debug) {
-		    printf("gdomap - initialisation complete.\n");
+		    fprintf(stderr, "gdomap - initialisation complete.\n");
 		}
 		exit(0);
 	}
     }
 
+    /*
+     *	Ensure we don't have any open file descriptors which may refer
+     *	to sockets bound to ports we may try to use.
+     *
+     *	Use '/dev/tty' to produce logging output and use '/dev/null'
+     *	for stdin and stdout.
+     */
+    for (c = 0; c < FD_SETSIZE; c++) {
+	(void)close(c);
+    }
+    (void)open("/dev/null", O_RDONLY);	/* Stdin.	*/
+    (void)open("/dev/null", O_WRONLY);	/* Stdout.	*/
+    (void)open("/dev/tty", O_WRONLY);	/* Stderr.	*/
+
     init_iface();	/* Build up list of network interfaces.	*/
     init_ports();	/* Create ports to handle requests.	*/
     init_probe();	/* Probe other name servers on net.	*/
 
+    if (debug) {
+	fprintf(stderr, "gdomap - entering main loop.\n");
+    }
     handle_io();
     return(0);
 }
 
 /*
- *	Name -		send_probe()
+ *	Name -		queue_probe()
  *	Purpose -	Send a probe request to a specified host so we
  *			can see if a name server is running on it.
  *			We don't bother to check to see if it worked.
  */
 static void
-send_probe(struct hostent* hp, struct in_addr a)
+queue_probe(struct in_addr* to, struct in_addr* from)
 {
-    unsigned char	msg[GDO_REQ_SIZE];
     struct sockaddr_in	sin;
+    gdo_req	msg;
 
-    printf("Probing for server on '%s'\n", hp->h_name);
-    fflush(stdout);
+    if (debug > 2) {
+        fprintf(stderr, "Probing for server on '%s'\n", inet_ntoa(*to));
+    }
     mzero(&sin, sizeof(sin));
     sin.sin_family = AF_INET;
-    mcopy(&sin.sin_addr, hp->h_addr, hp->h_length);
+    mcopy(&sin.sin_addr, to, sizeof(*to));
     sin.sin_port = my_port;
 
-    mzero(msg, GDO_REQ_SIZE);
-    msg[0] = GDO_PROBE;
-    msg[1] = sizeof(a);
-    msg[2] = 0;
-    msg[3] = 0;
-    mcopy(&msg[4], &a, sizeof(a));
-
-    send_msg(msg, GDO_REQ_SIZE, &sin);
+    mzero((char*)&msg, GDO_REQ_SIZE);
+    msg.rtype = GDO_PROBE;
+    msg.nsize = sizeof(*from);
+    msg.ptype = 0;
+    msg.dummy = 0;
+    msg.port = 0;
+    mcopy(msg.name, &from, sizeof(*from));
+  
+    queue_msg(&sin, (unsigned char*)&msg, GDO_REQ_SIZE);
 }
 

@@ -305,7 +305,7 @@
 
   return [self initWithYear: yd month: md day: dd hour: hd
 	       minute: mnd second: sd 
-	       timeZone: [NSTimeZone defaultTimeZone]];
+	       timeZone: [NSTimeZone localTimeZone]];
 }
 
 - (id)initWithYear:(int)year
@@ -327,20 +327,22 @@
   s += minute * 60;
   s += second;
 
-  // +++ adjust for time zone
-  time_zone = (NSTimeZoneDetail *)aTimeZone;
+  // Assign time zone detail
+  time_zone = [aTimeZone
+		timeZoneDetailForDate:
+		  [NSDate dateWithTimeIntervalSinceReferenceDate: s]];
 
   return [self initWithTimeIntervalSinceReferenceDate: s];
 }
 
-// Defalut initializer
+// Default initializer
 - (id)initWithTimeIntervalSinceReferenceDate:(NSTimeInterval)seconds
 {
   [super initWithTimeIntervalSinceReferenceDate: seconds];
   if (!calendar_format)
     calendar_format = @"%Y-%m-%d %H:%M:%S %Z";
   if (!time_zone)
-    time_zone = [NSTimeZone defaultTimeZone];
+    time_zone = [[NSTimeZone localTimeZone] timeZoneDetailForDate: self];
   return self;
 }
 
@@ -357,7 +359,7 @@
   // Calculate hour, minute, and seconds
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - seconds_since_ref);
+  a = abs(d - (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]));
   b = a / 3600;
   *hour = (int)b;
   h = *hour;
@@ -377,7 +379,7 @@
   int r;
 
   // Get reference date in terms of days
-  a = seconds_since_ref / 86400.0;
+  a = (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]) / 86400.0;
   // Offset by Gregorian reference
   a += GREGORIAN_REFERENCE;
   r = (int)a;
@@ -419,7 +421,7 @@
   double a, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - seconds_since_ref);
+  a = abs(d - (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]));
   a = a / 3600;
   h = (int)a;
 
@@ -437,7 +439,7 @@
   double a, b, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - seconds_since_ref);
+  a = abs(d - (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]));
   b = a / 3600;
   h = (int)b;
   h = h * 3600;
@@ -464,7 +466,7 @@
   double a, b, c, d = [self dayOfCommonEra];
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - seconds_since_ref);
+  a = abs(d - (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]));
   b = a / 3600;
   h = (int)b;
   h = h * 3600;
@@ -484,7 +486,7 @@
   int a;
 
   // Get reference date in terms of days
-  a = seconds_since_ref / 86400;
+  a = (seconds_since_ref+[time_zone timeZoneSecondsFromGMT]) / 86400;
   // Offset by Gregorian reference
   a += GREGORIAN_REFERENCE;
   [self gregorianDateFromAbsolute: a day: &d month: &m year: &y];
@@ -644,6 +646,14 @@
 	      j += k;
 	      break;
 
+	      // is it the zone name
+	    case 'Z':
+	      ++i;
+	      k = sprintf(&(buf[j]), "%s",
+			  [[time_zone timeZoneAbbreviation] cStringNoCopy]);
+	      j += k;
+	      break;
+
 	      // Anything else is unknown so just copy
 	    default:
 	      buf[j] = f[i];
@@ -686,7 +696,7 @@
 // Getting and Setting Time Zones
 - (void)setTimeZone:(NSTimeZone *)aTimeZone
 {
-  time_zone = (NSTimeZoneDetail *)aTimeZone;
+  time_zone = [aTimeZone timeZoneDetailForDate: self];
 }
 
 - (NSTimeZoneDetail *)timeZoneDetail

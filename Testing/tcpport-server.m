@@ -2,7 +2,7 @@
 #include <gnustep/base/TcpPort.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/Invocation.h>
-#include <gnustep/base/RunLoop.h>
+#include <Foundation/NSRunLoop.h>
 
 id announce_new_connection (id notification)
 {
@@ -45,7 +45,7 @@ id handle_incoming_packet (TcpInPacket *packet)
 				 replyInPort: port];
   [packet writeFormat: @"Your's was my message number %d", 
 	  message_count];
-  [reply_port sendPacket: packet];
+  [reply_port sendPacket: packet timeout:10.0];
   [packet release];
   return nil;
 }
@@ -76,9 +76,9 @@ int main (int argc, char *argv[])
 	  [[[ObjectFunctionInvocation alloc]
 	     initWithObjectFunction: handle_incoming_packet]
 	    autorelease]];
-  [[RunLoop currentInstance] addPort: port
-			     forMode: RunLoopDefaultMode];
-  [RunLoop run];
+  [[NSRunLoop currentRunLoop] addPort: port
+			     forMode: NSDefaultRunLoopMode];
+  [NSRunLoop run];
 #else
   {
     id packet;
@@ -99,7 +99,7 @@ int main (int argc, char *argv[])
 				    replyPort: port];
 	[packet writeFormat: @"Your's was my message number %d", 
 		message_count];
-	[reply_port sendPacket: packet withTimeout: 20 * 1000];
+	[reply_port sendPacket: packet timeout: 20.0];
 	[packet release];
       }
   }

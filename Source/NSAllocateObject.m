@@ -22,7 +22,8 @@
    */ 
 
 #include <gnustep/base/preface.h>
-#include <Foundation/NSZone.h>
+#include <Foundation/NSDebug.h>
+
 #include <string.h>		/* For memset(). */
 
 NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
@@ -36,5 +37,7 @@ NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
       memset (new, 0, size);
       new->class_pointer = aClass;
     }
+  GSDebugAllocationAdd(aClass);
   return new;
 }
+
