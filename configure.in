@@ -212,6 +212,11 @@ AC_CHECK_FUNCS(vsprintf)
 AC_CHECK_FUNCS(valloc)
 
 #--------------------------------------------------------------------
+# This function needed by Time.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(times)
+
+#--------------------------------------------------------------------
 # These libraries needed by the check programs for distributed objects
 # on Solaris where the socket/network code isn't the regular place.  Yuck!
 # I'm assuming that if the socket/network code is in the regular place,
