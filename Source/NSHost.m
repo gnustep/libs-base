@@ -250,10 +250,37 @@ static NSMutableDictionary *_hostCache = nil;
 }
 #endif
 
+/*
+ *	The OpenStep spec says that [-hash] must be the same for any two
+ *	objects that [-isEqual:] returns YES for.  We have a problem in
+ *	that [-isEqualToHost:] is specified to return YES if any name or
+ *	address part of two hosts is the same.  That means we can't
+ *	reasonably calculate a hash since two hosts with radically
+ *	different ivar contents may be 'equal'.  The best I can think of
+ *	is for all hosts to hash to the same value - which makes it very
+ *	inefficient to store them in a set, dictionary, map or hash table.
+ */
+- (unsigned) hash
+{
+  return 1;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  if (other == self)
+    return YES;
+  if ([other isKindOfClass: [NSHost class]])
+    return [self isEqualToHost: (NSHost*)other];
+  return NO;
+}
+
 - (BOOL)isEqualToHost:(NSHost *)aHost
 {
   NSArray*	a;
   int		i;
+
+  if (aHost == self)
+    return YES;
 
   a = [aHost addresses];
   for (i = 0; i < [a count]; i++)
