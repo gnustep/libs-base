@@ -39,6 +39,7 @@
 #include <time.h>
 #endif
 
+#include "Foundation/NSException.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSString.h"
@@ -366,23 +367,41 @@ static void
 gnustep_base_thread_callback()
 {
   /*
-   * Post a notification if this is the first new thread to be created.
-   * Won't work properly if threads are not all created by this class,
-   * but it's better than nothing.
+   * Protect this function with locking ... to avoid any possibility
+   * of multiple threads registering with the system simultaneously,
+   * and so that all NSWillBecomeMultiThreadedNotifications are sent
+   * out before any second thread can interfere with anything.
    */
   if (entered_multi_threaded_state == NO)
     {
-      entered_multi_threaded_state = YES;
-
-      [GSPerformHolder class];	// Force initialization
-
-      if (nc == nil)
+      [gnustep_global_lock lock];
+      if (entered_multi_threaded_state == NO)
 	{
-	  nc = [NSNotificationCenter defaultCenter];
+	  NS_DURING
+	    {
+	      [GSPerformHolder class];	// Force initialization
+
+	      /*
+	       * Post a notification if this is the first new thread
+	       * to be created.
+	       * Won't work properly if threads are not all created
+	       * by this class, but it's better than nothing.
+	       */
+	      if (nc == nil)
+		{
+		  nc = [NSNotificationCenter defaultCenter];
+		}
+	      [nc postNotificationName: NSWillBecomeMultiThreadedNotification
+				object: nil
+			      userInfo: nil];
+	    }
+	  NS_HANDLER
+	    {
+	    }
+	  NS_ENDHANDLER
+	  entered_multi_threaded_state = YES;
 	}
-      [nc postNotificationName: NSWillBecomeMultiThreadedNotification
-			object: nil
-		      userInfo: nil];
+      [gnustep_global_lock unlock];
     }
 }
 

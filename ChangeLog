@@ -1,3 +1,13 @@
+2003-09-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Protect the function handling notification
+	of the process becoming multi-threaded with a recursive lock.
+	This protection ensures that there is no race condition where
+	two threads can start using GNUstep simultaneously and both
+	end up sending out notifications etc.  Not a problem in normal
+	ObjC applications, but a possibility where other non-gnustep
+	code starts multiple threads which want to access gnustep.
+
 2003-09-30  Derek Zhou <dzhou@chrontel.com>
 
 	* Source/NSCharacterSet.m: patch to ensure lock is created as
