@@ -1,5 +1,5 @@
-/* Interface for NSBundle for GNUStep
-   Copyright (C) 1995, 1997, 1999 Free Software Foundation, Inc.
+/* Interface for NSBundle for GNUStep   -*-objc-*-
+   Copyright (C) 1995, 1997, 1999, 2001 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: 1995
@@ -91,6 +91,9 @@ GS_EXPORT NSString* NSLoadedClasses;
 #ifndef	 NO_GNUSTEP
 @interface NSBundle (GNUstep)
 
++ (NSBundle *) bundleForLibrary: (NSString *)libraryName;
++ (NSBundle *) bundleForTool: (NSString *)toolName;
+
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
 + (NSString*) _gnustep_target_cpu;
 + (NSString*) _gnustep_target_dir;
@@ -102,6 +105,8 @@ GS_EXPORT NSString* NSLoadedClasses;
 			 inDirectory: (NSString*)bundlePath;
 
 @end
+
+/* Warning - the following should never be used.  */
 #define GSLocalizedString(key, comment) \
   [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:nil]
 #define GSLocalizedStringFromTable(key, tbl, comment) \
