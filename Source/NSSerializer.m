@@ -364,6 +364,10 @@ static BOOL	shouldBeCompact = NO;
     }
 }
 
+/**
+ * Converts the supplied propertyList into a serialized representation
+ * in the returned NSData object.
+ */
 + (NSData*) serializePropertyList: (id)propertyList
 {
   _NSSerializerInfo	info;
@@ -377,6 +381,10 @@ static BOOL	shouldBeCompact = NO;
   return info.data;
 }
 
+/**
+ * Converts the supplied propertyList into a serialized representation
+ * stored in d.
+ */
 + (void) serializePropertyList: (id)propertyList
 		      intoData: (NSMutableData*)d
 {
@@ -822,6 +830,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     }
 }
 
+/**
+ * <p>Deserializes the property list stored in data at the offset specified
+ * by the value pointed to by cursor.  Upon completion the value in cursor
+ * is updated to refer to a position immediately after the end of the
+ * deserialized sequence.
+ * </p>
+ * <p>The flag is used to specify whether container objects in the
+ * deserialized list should be instances of mutable or immutable classes.
+ * </p>
+ */
 + (id) deserializePropertyListFromData: (NSData*)data
                               atCursor: (unsigned int*)cursor
                      mutableContainers: (BOOL)flag
@@ -846,6 +864,14 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     }
 }
 
+/**
+ * <p>Deserializes the property list stored in data to produce a single
+ * property list object (dictionary, array, string, data, number or date).
+ * </p>
+ * <p>The flag is used to specify whether container objects in the
+ * deserialized list should be instances of mutable or immutable classes.
+ * </p>
+ */
 + (id) deserializePropertyListFromData: (NSData*)data
                      mutableContainers: (BOOL)flag
 {
@@ -869,6 +895,21 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     }
 }
 
+/**
+ * <p>Deserializes the property list stored in data at the offset specified
+ * by the value pointed to by cursor.  Upon completion the value in cursor
+ * is updated to refer to a position immediately after the end of the
+ * deserialized sequence.
+ * </p>
+ * <p>The flag is used to specify whether container objects in the
+ * deserialized list should be instances of mutable or immutable classes.
+ * </p>
+ * <p>The length is used to determine  whether lazy deserialization is done,
+ * if the data is longer than this value, a proxy is returned rather than
+ * the actual property list, and the real deserialization can be done
+ * later.
+ * </p>
+ */
 + (id) deserializePropertyListLazilyFromData: (NSData*)data
                                     atCursor: (unsigned*)cursor
                                       length: (unsigned)length
