@@ -8,6 +8,13 @@ Thu Oct 31 11:54:42 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
  	assignment of TIMEOUT.TV_USEC.  (Reported by Richard
  	Frith-Macdonald <richard@brainstorm.co.uk>.)
 
+Tue Oct 15 15:29:07 1996  Adam Fedor  <fedor@wave.Colorado.edu>
+
+	* src/objc-load.c: Use gnu names for objc_load_modules and
+ 	objc_unload_modules functions as defined in header.  
+	* src/include/objc-load.h (objc_load_modules, objc_unload_modules):
+ 	Use Class not Class*.
+
 Wed Oct 16 10:01:23 1996  Scott Christley  <scottc@net-community.com>
 
 	* checks/nsdate.m: New file.
