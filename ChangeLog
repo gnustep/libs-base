@@ -1,3 +1,8 @@
+2003-11-05 18:26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/GSSSLHandle.m: Add support for server end handles.
+	* Source/NSFileHandle.m: New -sslAccept method for servers.
+
 2003-11-05 14:49  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSSerializer.m (serializeToInfo): Only save a string as
