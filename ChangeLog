@@ -1,3 +1,10 @@
+Tue Nov 10 11:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSScanner.m: ([-scanString:intoString:]) bugfix to check length
+	of the string we are looking for and simply return NO if it is longer
+	than the data remaining in the string being scanned.  Previously it
+	would have raised an exception - which it shouldn't.
+
 Mon Nov  9 20:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/externs.m: corrected notification name for user defaults.
