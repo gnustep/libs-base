@@ -636,8 +636,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (int)fileDescriptor
 {
-  if (isNullDevice)
-    return -1;
   return descriptor;
 }
 
