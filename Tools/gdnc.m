@@ -325,7 +325,7 @@ ihandler(int sig)
    * use the loopback network interface.  Otherwise
    * create a public connection.
    */
-  if (isLocal == YES && service != GDNC_NETWORK)
+  if (0 && isLocal == YES && service != GDNC_NETWORK)
     {
       NSPort	*port = [NSSocketPort portWithNumber: 0
 					      onHost: [NSHost localHost]
