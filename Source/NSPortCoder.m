@@ -329,7 +329,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
 + (NSPortCoder*) portCoderWithReceivePort: (NSPort*)recv
 				 sendPort: (NSPort*)send
-			       components: (NSArray*)comp;
+			       components: (NSArray*)comp
 {
   id	coder;
 
@@ -1266,11 +1266,11 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
  * array, and simply record the array index, so the corresponding decode
  * method can tell which component to use.
  */
-- (void) encodePortObject: (NSPort*)anObject
+- (void) encodePortObject: (NSPort*)aPort
 {
   unsigned	pos = [_comp count];
 
-  [_comp addObject: anObject];
+  [_comp addObject: aPort];
   [self encodeValueOfObjCType: @encode(unsigned) at: &pos];
 }
 

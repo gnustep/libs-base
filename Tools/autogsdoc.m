@@ -246,7 +246,7 @@
       items in this project.
     </item>
     <item><strong>Projects</strong>
-      This value may be supplies as a dictionary containing the paths to
+      This value may be supplied as a dictionary containing the paths to
       the igsdoc index/reference files used by external projects, along
       with values to be used to map the filenames found in the indexes.<br />
       For example, if a project index (igsdoc) file says that the class
@@ -288,6 +288,13 @@
       file which contains an index of the contents of a project.<br />
       If this is missing or set to an empty string, then no 'up' link
       will be provided in the documents.
+    </item>
+    <item><strong>WordMap</strong>
+      This value is a dictionary used to map identifiers/keywords found
+      in the source files  to other words.  Generally you will not have
+      to use this, but it is sometimes helpful to avoid the parser being
+      confused by the use of C preprocessor macros.  You can effectively
+      redefine the macro to something less confusing.
     </item>
   </list>
   <section>
@@ -430,9 +437,12 @@ main(int argc, char **argv, char **env)
   gFiles = [NSMutableArray array];
   hFiles = [NSMutableArray array];
   count = [files count];
-NSLog(@"Proc ... %@", proc);
-NSLog(@"Name ... %@", [proc processName]);
-NSLog(@"Files ... %@", files);
+  if (verbose == YES)
+    {
+      NSLog(@"Proc ... %@", proc);
+      NSLog(@"Name ... %@", [proc processName]);
+      NSLog(@"Files ... %@", files);
+    }
   for (i = 1; i < count; i++)
     {
       NSString *arg = [files objectAtIndex: i];
@@ -484,6 +494,8 @@ NSLog(@"Files ... %@", files);
       pool = [NSAutoreleasePool new];
 
       parser = [AGSParser new];
+      [parser setWordMap: [defs dictionaryForKey: @"WordMap"]];
+      [parser setVerbose: verbose];
       output = [AGSOutput new];
       if ([defs boolForKey: @"Standards"] == YES)
 	{

@@ -708,7 +708,7 @@ typedef struct {
  * containing the scanned characters is returned by reference in value.
  */
 - (BOOL) scanCharactersFromSet: (NSCharacterSet *)aSet 
-		    intoString: (NSString **)value;
+		    intoString: (NSString **)value
 {
   unsigned int	saveScanLocation = _scanLocation;
 
@@ -766,8 +766,8 @@ typedef struct {
  * If value is non-NULL, and any characters were scanned, a string
  * containing the scanned characters is returned by reference in value.
  */
-- (BOOL) scanUpToCharactersFromSet: (NSCharacterSet *)set 
-		        intoString: (NSString **)value;
+- (BOOL) scanUpToCharactersFromSet: (NSCharacterSet *)aSet 
+		        intoString: (NSString **)value
 {
   unsigned int	saveScanLocation = _scanLocation;
   unsigned int	start;
@@ -776,18 +776,18 @@ typedef struct {
   if (!skipToNextField())
     return NO;
 
-  if (set == _charactersToBeSkipped)
+  if (aSet == _charactersToBeSkipped)
     memImp = _skipImp;
   else
     memImp = (BOOL (*)(NSCharacterSet*, SEL, unichar))
-      [set methodForSelector: memSel];
+      [aSet methodForSelector: memSel];
 
   start = _scanLocation;
   if (_isUnicode)
     {
       while (_scanLocation < myLength())
 	{
-	  if ((*memImp)(set, memSel, myUnicode(_scanLocation)) == YES)
+	  if ((*memImp)(aSet, memSel, myUnicode(_scanLocation)) == YES)
 	    break;
 	  _scanLocation++;
 	}
@@ -796,7 +796,7 @@ typedef struct {
     {
       while (_scanLocation < myLength())
 	{
-	  if ((*memImp)(set, memSel, myChar(_scanLocation)) == YES)
+	  if ((*memImp)(aSet, memSel, myChar(_scanLocation)) == YES)
 	    break;
 	  _scanLocation++;
 	}
@@ -826,17 +826,17 @@ typedef struct {
  * If value is non-NULL, and the characters at the scan location match aString,
  * a string containing the matching string is returned by reference in value.
  */
-- (BOOL) scanString: (NSString *)aString intoString: (NSString **)value;
+- (BOOL) scanString: (NSString *)string intoString: (NSString **)value
 {
   NSRange	range;
   unsigned int	saveScanLocation = _scanLocation;
     
   skipToNextField();
   range.location = _scanLocation;
-  range.length = [aString length];
+  range.length = [string length];
   if (range.location + range.length > myLength())
     return NO;
-  range = [_string rangeOfString: aString
+  range = [_string rangeOfString: string
 			options: _caseSensitive ? 0 : NSCaseInsensitiveSearch
 			  range: range];
   if (range.length == 0)
@@ -857,8 +857,8 @@ typedef struct {
  * If value is non-NULL, and any characters were scanned, a string
  * containing the scanned characters is returned by reference in value.
  */
-- (BOOL) scanUpToString: (NSString *)aString 
-	     intoString: (NSString **)value;
+- (BOOL) scanUpToString: (NSString *)string 
+	     intoString: (NSString **)value
 {
   NSRange	range;
   NSRange	found;
@@ -867,7 +867,7 @@ typedef struct {
   skipToNextField();
   range.location = _scanLocation;
   range.length = myLength() - _scanLocation;
-  found = [_string rangeOfString: aString
+  found = [_string rangeOfString: string
 			 options: _caseSensitive ? 0 : NSCaseInsensitiveSearch
 			   range: range];
   if (found.length)
