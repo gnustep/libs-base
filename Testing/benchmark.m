@@ -170,9 +170,17 @@ bench_array()
   PRINT_TIMER("NSArray (indexOfObj)");
 
   START_TIMER;
+  for (i = 0; i < MAX_COUNT/100; i++)
+    {
+      [array indexOfObjectIdenticalTo: strings[i]];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSArray (indexIdent)");
+
+  START_TIMER;
   for (i = 0; i < 1; i++)
     {
-      [array makeObjectsPerform: @selector(hash)];
+      [array makeObjectsPerformSelector: @selector(hash)];
     }
   END_TIMER;
   PRINT_TIMER("NSArray (perform)   ");
