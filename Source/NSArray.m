@@ -23,13 +23,12 @@
 
 #include <objects/stdobjects.h>
 #include <foundation/NSArray.h>
+#include <objects/Array.h>
+
+@interface NSArray (libobjects) <IndexedCollecting>
+@end
 
 @implementation NSArray
-
-+ (id) allocWithZone: (NSZone*)zone
-{
-  return [self alloc];		/* for now, until we get zones. */
-}
 
 + (id) array
 {
@@ -55,12 +54,18 @@
   return [n autorelease];
 }
 
+- (id) initWithCapacity: (unsigned)cap
+{
+  [self notImplemented:_cmd];
+  return self;
+}
+
 - (id) initWithArray: (NSArray*)array
 {
   int i, c;
 
   c = [array count];
-  [super initWithCapacity:c];
+  [self initWithCapacity:c];
   for (i = 0; i < c; i++)
     [self addObject:[array objectAtIndex:i]];
   return self;
@@ -109,7 +114,7 @@
 
 #if 0
 - (id) lastObject;		/* inherited */
-- (id) objectAtIndex: (unsigned)index;
+- (id) objectAtIndex: (unsigned)index; /* inherited */
 #endif
 
 - (NSEnumerator*) objectEnumerator
@@ -186,6 +191,12 @@
 }
 
 - (NSString*) componentsJoinedByString: (NSString*)separator
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (NSString*) description
 {
   [self notImplemented:_cmd];
   return nil;
