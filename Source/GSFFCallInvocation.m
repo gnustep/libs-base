@@ -360,6 +360,11 @@ void GSInvocationCallback(void *callback_data, va_alist args)
   
   callback_sel = *(SEL *)callback_data;
   callback_type = sel_get_type(callback_sel);
+  if (callback_type == NULL)
+    [NSException raise: NSInvalidArgumentException
+                format: @"Invalid selector %s (no type information)",
+		sel_get_name(callback_sel)];
+
   callback_type = objc_skip_type_qualifiers(callback_type);
 
 #undef CASE_TYPE

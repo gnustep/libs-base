@@ -1,3 +1,8 @@
+2001-04-13  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSFFCallInvocation.m (GSInvocationCallback): Generate
+	an exception for an invalid selector.
+
 2001-04-12  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/NSObjCRuntime: Revert to using class_pointer.
