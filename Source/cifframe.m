@@ -879,7 +879,7 @@ cifframe_do_call (DOContext *ctxt,
 	     so we can see what it is a pointer to. */
 	  tmptype++;
 	  ctxt->type = tmptype;
-	  ctxt->datum = *(void**)ctxt->datum;
+	  ctxt->datum = *(void**)retval;
 	}
       else
 	{
