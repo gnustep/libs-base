@@ -1,5 +1,5 @@
 /* Interface for coder object for distributed objects
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -25,7 +25,7 @@
 #define __ConnectedCoder_h
 
 #include <objects/stdobjects.h>
-#include <objects/BinaryCoder.h>
+#include <objects/Coder.h>
 
 /* ConnectedCoder identifiers */
 #define METHOD_REQUEST 0
@@ -38,7 +38,7 @@
 
 @class Connection;
 
-@interface ConnectedCoder : BinaryCoder
+@interface ConnectedCoder : Coder
 {
   Connection *connection;
   unsigned sequence_number;
