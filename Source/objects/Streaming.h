@@ -47,6 +47,10 @@
 - (BOOL) isAtEof;
 - (void) flushStream;
 
+/* We must separate the idea of "closing" a stream and "deallocating" a
+   stream because of delays in deallocation due to -autorelease. */
+- (void) closeStream;
+
 - (BOOL) isWritable;
 
 @end
