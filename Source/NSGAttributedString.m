@@ -646,7 +646,7 @@ SANITY();
    * otherwise, add a new slot and use that.
    */
   info = OBJECTAT(arrayIndex);
-  if (info->loc >= beginRangeLoc || info->attrs == attributes)
+  if (info->loc >= beginRangeLoc)
     {
       info->loc = beginRangeLoc;
       if (info->attrs == attributes)
