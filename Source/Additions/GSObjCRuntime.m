@@ -204,7 +204,6 @@ GSObjCMethodNames(id obj)
 
   while (class != nil)
     {
-#ifdef NeXT_RUNTIME
       void *iterator = 0;
 
       while ((methods = class_nextMethodList(class, &iterator)) )
@@ -218,32 +217,15 @@ GSObjCMethodNames(id obj)
 	      if (method->method_name != 0)
 		{
 		  NSString	*name;
+                  const char *cName;
 
-		  name = [[NSString alloc] initWithUTF8String:
-		    (const char *)method->method_name];
+                  cName = GSNameFromSelector(method->method_name);
+                  name = [[NSString alloc] initWithUTF8String: cName];
 		  [set addObject: name];
 		  RELEASE(name);
 		}
 	    }
 	}
-#else
-      methods = class->methods;
-      while (methods != 0)
-	{
-	  int	i;
-
-	  for (i = 0; i < methods->method_count; i++)
-	    {
-	      NSString	*name;
-
-	      name = [[NSString alloc] initWithUTF8String:
-		GSNameFromSelector(methods->method_list[i].method_name)];
-	      [set addObject: name];
-	      RELEASE(name);
-	    }
-	  methods = methods->method_next;
-	}
-#endif
       class = class->super_class;
     }
 
