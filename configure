@@ -858,8 +858,8 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-ffcall-include=PATH include path for ffcall headers
-  --with-ffcall-library=PATH library path for ffcall libraries
+  --with-ffi-include=PATH include path for ffi (ffcall/libffi) headers
+  --with-ffi-library=PATH library path for ffi (ffcall/libffi) libraries
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
@@ -12338,30 +12338,28 @@ if test $LIBRARY_COMBO = apple-apple-apple; then
 fi
 
 
-# Check whether --with-ffcall-include or --without-ffcall-include was given.
-if test "${with_ffcall_include+set}" = set; then
-  withval="$with_ffcall_include"
-  ffcall_incdir="$withval"
+# Check whether --with-ffi-include or --without-ffi-include was given.
+if test "${with_ffi_include+set}" = set; then
+  withval="$with_ffi_include"
+  ffi_incdir="$withval"
 else
-  ffcall_incdir="no"
+  ffi_incdir="no"
 fi;
-if test ${ffcall_incdir} != "no"; then
-    ffcall_check_lib_save_cppflags="$CPPFLAGS"
-    CPPFLAGS="-I${ffcall_incdir} $CPPFLAGS"
-    INCLUDE_FLAGS="-I${ffcall_incdir} $INCLUDE_FLAGS"
+if test ${ffi_incdir} != "no"; then
+    CPPFLAGS="-I${ffi_incdir} $CPPFLAGS"
+    INCLUDE_FLAGS="-I${ffi_incdir} $INCLUDE_FLAGS"
 fi
 
 
-# Check whether --with-ffcall-library or --without-ffcall-library was given.
-if test "${with_ffcall_library+set}" = set; then
-  withval="$with_ffcall_library"
-  ffcall_libdir="$withval"
+# Check whether --with-ffi-library or --without-ffi-library was given.
+if test "${with_ffi_library+set}" = set; then
+  withval="$with_ffi_library"
+  ffi_libdir="$withval"
 else
-  ffcall_libdir="no"
+  ffi_libdir="no"
 fi;
-if test ${ffcall_libdir} != "no"; then
-    ffcall_check_lib_save_libs="$LIBS"
-    LIBS="-L${ffcall_libdir} $LIBS"
+if test ${ffi_libdir} != "no"; then
+    LIBS="-L${ffi_libdir} $LIBS"
 fi
 
 if test "${ac_cv_header_ffi_h+set}" = set; then
