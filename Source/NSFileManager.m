@@ -1280,15 +1280,32 @@ static NSFileManager* defaultManager = nil;
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
 #ifdef __MINGW__
-  /* If path is in Unix format, transmorgrify it so Windows functions
-     can handle it */  
-  NSString *newpath = path;
-  const char *c_path = [path cString];
-  if (c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
+  /*
+   * If path is in Unix format, transmorgrify it so Windows functions
+   * can handle it
+   */  
+  NSString	*newpath = path;
+  const char	*c_path = [path cString];
+  int		len = [path length];
+
+  if (c_path == 0)
     {
-      /* Cygwin "//c/" type absolute path */
-      newpath = [NSString stringWithFormat: @"%c:%s", c_path[2], &c_path[3]];
-      newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
+      return 0;
+    }
+  if (len >= 3 && c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
+    {
+      if (len == 3 || c_path[3] == '/')
+        {
+          /* Cygwin "//c/" type absolute path */
+          newpath = [NSString stringWithFormat: @"%c:%s", c_path[2],
+	    &c_path[3]];
+          newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
+        }
+      else
+        {
+	  /* Windows absolute UNC path "//name/" */
+          newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
+        }
     }
   else if (isalpha(c_path[0]) && c_path[1] == ':')
     {
