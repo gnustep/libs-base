@@ -1,0 +1,261 @@
+/* Basic functions for @XX@ structures.
+ * Copyright (C) 1995, 1996  Free Software Foundation, Inc.
+ * 
+ * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
+ * Created: Tue Dec 12 12:33:01 EST 1995
+ * Updated: Mon Mar 11 00:56:35 EST 1996
+ * Serial: 96.03.11.02
+ * 
+ * This file is part of the GNU Objective C Class Library.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
+
+/**** Included Headers *******************************************************/
+
+#include <Foundation/NSZone.h>
+#include <Foundation/NSString.h>
+#include <objects/numbers.h>
+#include <objects/@XX@.h>
+
+/**** Type, Constant, and Macro Definitions **********************************/
+
+#define __@XX@__ 1
+
+/**** Function Implementations ***********************************************/
+
+/** Magic numbers... **/
+
+/* Returns XX's magic number. */
+inline int
+objects_@XX@_magic_number(objects_@XX@_t *xx)
+{
+  return xx->magic_number;
+}
+
+/** Zones... **/
+
+/* Returns the zone used to create and maintain XX. */
+inline NSZone *
+objects_@XX@_zone(objects_@XX@_t *xx)
+{
+  return xx->zone;
+}
+
+/** Names... **/
+
+/* Returns the name that was given to XX. */
+inline NSString *
+objects_@XX@_name(objects_@XX@_t *xx)
+{
+  return xx->name;
+}
+
+/* Gives XX a name. */
+inline void
+objects_@XX@_set_name(objects_@XX@_t *xx, NSString *name)
+{
+  [name retain];
+  [xx->name release];
+  xx->name = name;
+  return;
+}
+
+/* Takes away XX's name. */
+inline void
+objects_@XX@_unset_name(objects_@XX@_t *xx)
+{
+  [xx->name release];
+  xx->name = nil;
+  return;
+}
+
+/** Number **/
+
+/* Returns the (process-wide) unique serial number given to the
+ * structure XX.  See <objects/numbers.h> for more info. */
+inline size_t
+objects_@XX@_serial_number(objects_@XX@_t *xx)
+{
+  return xx->serial_number;
+}
+
+/* Gives XX a new (process-wide) unique number.  Numbers are not
+ * reused.  See <objects/numbers.h> for more info. */
+inline size_t
+_objects_@XX@_set_serial_number(objects_@XX@_t *xx)
+{
+  size_t old_number;
+
+  old_number = xx->serial_number;
+  xx->serial_number = (___objects_number_serialized)++;
+
+  return old_number;
+}
+
+/** Extras **/
+
+/* Sets the callbacks associated with XX's ``extra''.  NOTE: This must
+ * be done before calling `objects_@XX@_set_extra()', as these callbacks
+ * are used in that routine. */
+inline objects_callbacks_t
+objects_@XX@_set_extra_callbacks(objects_@XX@_t *xx,
+                                 objects_callbacks_t callbacks)
+{
+  objects_callbacks_t old_callbacks;
+
+  /* Remember the old callbacks for later. */
+  old_callbacks = xx->extra_callbacks;
+
+  /* Set the new callbacks. */
+  xx->extra_callbacks = callbacks;
+
+  /* Release the old contents. */
+  objects_release(old_callbacks, (void *)(xx->extra), xx);
+
+  /* Set the contents to something noticible. */
+  xx->extra = (xx->extra_callbacks).not_an_item_marker;
+
+  return old_callbacks;
+}
+
+/* Returns the callbacks associated with XX's ``extra''. */
+inline objects_callbacks_t
+objects_@XX@_extra_callbacks(objects_@XX@_t *xx)
+{
+  return xx->extra_callbacks;
+}
+
+/* Returns XX's ``extra'', a little extra space that each
+ * structure carries around with it.  Its use is
+ * implementation-dependent. */
+inline const void *
+objects_@XX@_extra(objects_@XX@_t *xx)
+{
+  return xx->extra;
+}
+
+/* Sets XX's ``extra'', a little extra space that each structure
+ * carries around with it.  Its use is implementation-dependent. */
+inline const void *
+objects_@XX@_set_extra(objects_@XX@_t *xx, const void *extra)
+{
+  const void *old_extra;
+
+  /* Out with the old, and in with the new. */
+  old_extra = xx->extra;
+  xx->extra = objects_retain(xx->extra_callbacks, extra, xx);
+  objects_release(xx->extra_callbacks, (void *)old_extra, xx);
+
+  return old_extra;
+}
+
+/* Resets XX's ``extra''. */
+inline void
+objects_@XX@_unset_extra (objects_@XX@_t *xx)
+{
+  /* Release XX's extra. */
+  objects_release(xx->extra_callbacks, (void *)(xx->extra), xx);
+
+  /* Reset XX's extra. */
+  xx->extra = (xx->extra_callbacks).not_an_item_marker;
+
+  return;
+}
+
+/** Low-level Creation and Destruction **/
+
+/* Handles the universal, low-level allocation of structures. */
+inline objects_@XX@_t *
+_objects_@XX@_alloc_with_zone(NSZone *zone)
+{
+  objects_@XX@_t *xx;
+
+  /* Try to allocate some space for XX. */
+  xx = (objects_@XX@_t *) NSZoneMalloc(zone, sizeof(objects_@XX@_t));
+
+  /* The `objects_malloc()' was successful. */
+  if (xx != 0)
+    {
+      _objects_@XX@_set_serial_number(xx);
+      xx->magic_number = _OBJECTS_MAGIC_@XX@;
+      xx->name = 0;
+      xx->zone = zone;
+      xx->extra_callbacks = objects_callbacks_for_non_owned_void_p;
+      xx->extra = 0;
+
+      /* Increment the counter of allocated structures. */
+      ++(___objects_number_allocated);
+    }
+
+  return xx;
+}
+
+/* Handles the universal, low-level deallocation of @XX@ structures. */
+inline void
+_objects_@XX@_dealloc(objects_@XX@_t *xx)
+{
+  /* Make sure XX is valid. */
+  if (xx != 0)
+  {
+    /* Free up any space we needed to keep track of XX's name. */
+    if (xx->name != 0)
+      NSZoneFree(objects_@XX@_zone(xx), (char *)(xx->name));
+
+    /* Release XX's extra. */
+    objects_@XX@_unset_extra(xx);
+
+    /* Free up XX itself. */
+    NSZoneFree(objects_@XX@_zone(xx), xx);
+
+    /* Increment the counter of deallocated structures. */
+    ++(___objects_number_deallocated);
+  }
+
+  return;
+}
+
+/* Handles the low-level copying of structures. */
+inline objects_@XX@_t *
+_objects_@XX@_copy_with_zone(objects_@XX@_t *xx, NSZone *zone)
+{
+  objects_@XX@_t *new;
+
+  /* Create a new structure. */
+  new = _objects_@XX@_alloc_with_zone(zone);
+
+  if (new != 0)
+  {
+    /* Copy over XX's name. */
+    objects_@XX@_set_name(new, objects_@XX@_name(xx));
+
+    /* Copy over XX's extras. */
+    objects_@XX@_set_extra_callbacks(new, objects_@XX@_extra_callbacks(xx));
+    objects_@XX@_set_extra(new, objects_@XX@_extra(xx));
+  }
+
+  return new;
+}
+
+inline NSString *
+_objects_@XX@_description(objects_@XX@_t *xx)
+{
+  return [NSString stringWithFormat:@"magic_number = %#x;\nserial_number = %d;\nname = %@;\nextra = %@;\nzone = %@;\n",
+                   objects_@XX@_magic_number(xx),
+                   objects_@XX@_serial_number(xx),
+                   objects_@XX@_name(xx),
+                   objects_describe(objects_@XX@_extra_callbacks(xx),
+                                    objects_@XX@_extra(xx), xx),
+                   NSZoneName(objects_@XX@_zone(xx))];
+}
