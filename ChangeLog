@@ -1,3 +1,8 @@
+2004-06-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexSet.m: Remove some redundant code for clarity.
+	([containsIndexes:]) implemented.
+
 2004-06-22  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
 	* Tools/AGSHtml.m: Change default font for HTML main content to
