@@ -915,7 +915,18 @@ typedef enum {
 	  if (result == 0)
 	    {
 	      [NSException raise: NSGenericException
-			  format: @"unable to register %@", name]; 
+		format: @"Unable to register name '%@' for the port -\n%@\n"
+@"Typically, this might mean that a process is already running with the name\n"
+@"'%@' ...\n"
+@"Try the command -\n"
+@"  gdomap -L '%@'\n"
+@"to find its network details.\n"
+@"Alternatively, it may have been shut down without unregistering, and\n"
+@"another process may be running using the same network port.  If this is\n"
+@"the case, you can use -\n"
+@"gdomap -U '%@'\n"
+@"to remove the registration so that you can attempt this operation again.",
+		name, port, name, name, name]; 
 	    }
 	  else
 	    {

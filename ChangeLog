@@ -10,6 +10,8 @@
 	adding lots of logging information.  Also documented quite a bit.
 	Resolved all conflicts found with Adam's change ... generally in
 	favor of the most informative logging.
+	* Source/NSPortNameServer.m: On failure to register name, make
+	exception message provide lots of detail/advice for newbies.
 
 2002-10-03  Adam Fedor  <fedor@gnu.org>
 
