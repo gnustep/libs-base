@@ -281,11 +281,17 @@ typedef enum _NSGNUstepStringEncoding
 
 @interface NSLock (GSCategories)
 + (id)newLockAt:(id *)location;
+@end
+
+@interface NSLock (GSCompatibility)
 - (void) gcFinalize;
 @end
 
 @interface NSRecursiveLock (GSCategories)
 + (id)newLockAt:(id *)location;
+@end
+
+@interface NSRecursiveLock (GSCompatibility)
 - (void) gcFinalize;
 @end
 
