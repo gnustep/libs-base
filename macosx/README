@@ -7,6 +7,8 @@ Framework, written by Stephane Corthesy <stephane@sente.ch>. If builds
 a library that contains classes and extensions found in the GNUstep base
 library, but that are not found in the MacOSX Foundation framework.
 
+Currently updated for Mac OS X 10.3
+
 Note that the GNUstep developers do NOT maintain this project as we do
 not normally have access to MacOSX machines. Thus it is possible this
 project will be out of date with the actual sources. However, it is
