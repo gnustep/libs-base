@@ -698,12 +698,12 @@ _arg_addr(NSInvocation *inv, int index)
 #endif
 #endif
 	      NSLog(@"Unsafe handling of type of %d argument.", i-1);
-	      memcpy(datum, ap, size);
 	      {
 		struct {
 		  char	x[size];
 		} dummy;
 		dummy = va_arg(ap, typeof(dummy));
+	        memcpy(datum, dummy.x, size);
 	      }
 	      break;
 	    }
