@@ -816,11 +816,13 @@ GSEnvironmentFlag(const char *name, BOOL def)
   return a;
 }
 
+/**
+ * Used by NSException uncaught exception handler - must not call any
+ * methods/functions which might cause a recursive exception.
+ */ 
 const char*
 GSArgZero()
 {
-  if (_gnu_arg_zero == 0)
-    [NSProcessInfo class];
   if (_gnu_arg_zero == 0)
     return "";
   else
