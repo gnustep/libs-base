@@ -49,6 +49,8 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSFileManager.h>
+
 #include <gnustep/base/IndexedCollection.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSBundle.h>
@@ -2141,14 +2143,52 @@ else
 
 // Manipulating File System Paths
 
-
 - (unsigned int) completePathIntoString: (NSString**)outputName
    caseSensitive: (BOOL)flag
    matchesIntoArray: (NSArray**)outputArray
    filterTypes: (NSArray*)filterTypes
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSString * base_path = [self stringByDeletingLastPathComponent];
+  NSString * last_compo = [self lastPathComponent];
+  NSString * tmp_path;
+  NSDirectoryEnumerator * e;
+  int match_count = 0;
+
+  if (outputName != NULL) *outputName = nil;
+
+  if ([base_path length] == 0) base_path = @".";
+
+  e = [[NSFileManager defaultManager] enumeratorAtPath: base_path];
+  while (tmp_path = [e nextObject], tmp_path)
+    {
+      /* Prefix matching */
+      if (YES == flag)
+	{ /* Case sensitive */
+	  if (NO == [tmp_path hasPrefix: last_compo])
+	    continue ;
+	}
+      else
+	{
+	  if (NO == [[tmp_path uppercaseString]
+		      hasPrefix: [last_compo uppercaseString]])
+	    continue;
+	}
+
+      /* Extensions filtering */
+      if (filterTypes &&
+	  (NO == [filterTypes containsObject: [tmp_path pathExtension]]))
+	continue ;
+
+      /* Found a completion */
+      match_count++;
+      if (outputArray != NULL)
+	[*outputArray addObject: tmp_path];
+      
+      if ((outputName != NULL) && 
+	  ((*outputName == nil) || (([*outputName length] < [tmp_path length]))))
+	*outputName = tmp_path;
+    }
+  return match_count;
 }
 
 /* Return a string for passing to OS calls to handle file system objects. */

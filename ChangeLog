@@ -1,3 +1,9 @@
+Thu Oct 15 08:13:12 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
+
+	* src/NSString.m ([NSString
+ 	-completePathIntoString:caseSensitive:matchesIntoArray:filterTypes:]):
+ 	Implement.
+
 Thu Oct 15 06:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/BinaryCStream.m: Update system version number
