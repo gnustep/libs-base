@@ -182,8 +182,15 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 				[object description]];
     }
   c = GSObjCClass(object);
-  if (GSObjCIsKindOf(c, CStringClass)
-    || (c == MStringClass && ((ivars)object)->_flags.wide == 0))
+
+  if ((GSObjCIsKindOf(c, CStringClass)
+       || (c == MStringClass && ((ivars)object)->_flags.wide == 0))
+      /*
+      We can only save it as a c-string if it only contains ASCII characters.
+      Other characters might be decoded incorrectly when deserialized since
+      the c-string encoding might be different then.
+      */
+      && [object canBeConvertedToEncoding: NSASCIIStringEncoding])
     {
       GSIMapNode	node;
 
