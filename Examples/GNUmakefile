@@ -25,7 +25,9 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
+GNUSTEP_MAKEFILE_DIR = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
+
+include $(GNUSTEP_MAKEFILE_DIR)/common.make
 
 include ../Version
 include ../config.mak
@@ -61,6 +63,6 @@ custom-zone.m
 
 -include Makefile.preamble
 
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/test-tool.make
+include $(GNUSTEP_MAKEFILE_DIR)/test-tool.make
 
 -include Makefile.postamble

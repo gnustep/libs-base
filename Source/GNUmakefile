@@ -25,7 +25,9 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
+GNUSTEP_MAKEFILE_DIR = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
+
+include $(GNUSTEP_MAKEFILE_DIR)/common.make
 
 include ../Version
 include ../config.mak
@@ -498,6 +500,6 @@ libgnustep-base_HEADER_FILES = $(NEXTSTEP_HEADERS) $(BASE_HEADERS)
 
 -include Makefile.preamble
 
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/library.make
+include $(GNUSTEP_MAKEFILE_DIR)/library.make
 
 -include Makefile.postamble

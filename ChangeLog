@@ -1,3 +1,9 @@
+Thu Feb  5 10:48:35 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* GNUmakefile (GNUSTEP_MAKEFILE_DIR): New variable. Use it to
+	include makefiles.
+	* Likewise for all sub-directory GNUmakefile files.
+
 Mon Feb  2 10:11:20 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* Version (GCC_VERSION): Change to 2.8.0
