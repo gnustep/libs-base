@@ -51,8 +51,20 @@
 + coderReadingFromStream: (id <Streaming>)stream;
 + coderReadingFromFile: (id <String>) filename;
 
++ coderWritingToStream: (id <Streaming>)stream;
++ coderWritingToFile: (id <String>)filename;
+
 + decodeObjectFromStream: (id <Streaming>)stream;
 + decodeObjectFromFile: (id <String>) filename;
+
+- initForReadingFromStream: (id <Streaming>) stream
+	     formatVersion: (int)version;
+- initForReadingFromStream: (id <Streaming>) stream;
+
+- initForWritingToStream: (id <Streaming>) s
+	   formatVersion: (int) version;
+- initForWritingToStream: (id <Streaming>) s;
+
 
 + (void) setDefaultStreamClass: sc;
 + defaultStreamClass;
