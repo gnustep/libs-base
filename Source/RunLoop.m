@@ -124,7 +124,7 @@ static RunLoop *current_run_loop;
 	}
     }
   if (debug_run_loop)
-    printf ("limit date %f\n", 
+    printf ("\tlimit date %f\n", 
 	    [[min_timer fireDate] timeIntervalSinceReferenceDate]);
   return [min_timer fireDate];
 #endif
@@ -150,13 +150,13 @@ static RunLoop *current_run_loop;
       && ((ti = [limit_date timeIntervalSinceNow]) < LONG_MAX))
     {
       if (debug_run_loop)
-	printf ("accept input before %f (seconds from now %f)\n", 
+	printf ("\taccept input before %f (seconds from now %f)\n", 
 		[limit_date timeIntervalSinceReferenceDate], ti);
       /* If LIMIT_DATE has already past, return immediately. */
       if (ti < 0)
 	{
 	  if (debug_run_loop)
-	    printf ("limit date past, returning\n");
+	    printf ("\tlimit date past, returning\n");
 	  return;
 	}
 
@@ -167,7 +167,7 @@ static RunLoop *current_run_loop;
   else
     {
       if (debug_run_loop)
-	printf ("accept input waiting forever\n");
+	printf ("\taccept input waiting forever\n");
       select_timeout = NULL;
     }
 
@@ -177,7 +177,7 @@ static RunLoop *current_run_loop;
   select_return = select (FD_SETSIZE, &fds_copy, NULL, NULL, select_timeout);
 
   if (debug_run_loop)
-    printf ("select returned %d\n", select_return);
+    printf ("\tselect returned %d\n", select_return);
 
   if (select_return < 0)
     {
@@ -209,7 +209,7 @@ static RunLoop *current_run_loop;
   if ([date timeIntervalSinceNow] < 0)
     {
       if (debug_run_loop)
-	printf ("run mode before date already past\n");
+	printf ("\trun mode before date already past\n");
       return NO;
     }
 
@@ -224,6 +224,12 @@ static RunLoop *current_run_loop;
   return YES;
 }
 
+- (BOOL) runOnceBeforeDate: date
+		   forMode: (id <String>)mode
+{
+  return [self runMode: mode beforeDate: date];
+}
+
 - (void) runUntilDate: date
 {
   volatile double ti;
@@ -235,7 +241,7 @@ static RunLoop *current_run_loop;
     {
       id arp = [NSAutoreleasePool new];
       if (debug_run_loop)
-	printf ("run until date %f seconds from now\n", ti);
+	printf ("\trun until date %f seconds from now\n", ti);
       [self runMode: nil beforeDate: date];
       [arp release];
       ti = [date timeIntervalSinceNow];
