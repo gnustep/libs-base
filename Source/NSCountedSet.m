@@ -1,5 +1,5 @@
 /* NSCountedSet - CountedSet object 
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Created: Sep 1995
@@ -97,6 +97,7 @@ static Class NSCountedSet_concrete_class;
 - (unsigned int) countForObject: anObject
 {
   [self subclassResponsibility:_cmd];
+  return 0;
 }
 
 - copyWithZone: (NSZone*)z
