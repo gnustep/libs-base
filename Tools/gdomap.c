@@ -1155,7 +1155,7 @@ init_iface()
     {
       ifreq = *(struct ifreq*)ifr_ptr;
 #ifdef HAVE_SA_LEN
-      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_name) + ifreq.ifr_addr.sa_len;
+      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_addr) + ifreq.ifr_addr.sa_len;
 #else
       ifr_ptr += sizeof(ifreq);
 #endif
