@@ -1,3 +1,11 @@
+2003-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Source/GSFFCallInvocation.m: Modify to use local type
+	information if it looks like it has come from a protocol ...
+	as too much existing code is broken in that DO server objects
+	which are supposed to conform to protocols in fact do not!
+	* Source/GSFFIInvocation.m: ditto
+
 Fri Jul  4 11:09:37 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* NSTimeZones/Makefile.postamble: Make the code more robust by
