@@ -201,25 +201,9 @@ static NSString		*mainFont = nil;
     }
   else if (u == nil)
     {
-      if (category == nil)
-	{
-	  u = unit;
-	}
-      else
-	{
-	  u = classname;
-	}
       s = [localRefs unitRef: r type: t unit: &u];
       if (s == nil)
 	{
-	  if (category == nil)
-	    {
-	      u = unit;
-	    }
-	  else
-	    {
-	      u = classname;
-	    }
 	  s = [globalRefs unitRef: r type: t unit: &u];
 	}
     }
@@ -363,8 +347,19 @@ static NSString		*mainFont = nil;
             {
               [buf appendFormat: @"target=\"%@\" ", target];
             }
-	  [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
-	    file, type, ref, text];
+          if  (([type isEqual: @"protocol"] == YES)
+               && ([text hasPrefix: @"("] == NO))
+            {
+              // it's an informal protocol, detected earlier as an
+              // unimplemented category of NSObject; make proper link
+              [buf appendFormat: @"href=\"%@.html#%@$NSObject%@\">(%@)</a>",
+                   file, @"category", ref, text];
+            }
+          else
+            {
+              [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
+                   file, type, ref, text];
+            }
           if (!isBareStyle)
             {
               [buf appendString: @"</li>"];
@@ -398,11 +393,7 @@ static NSString		*mainFont = nil;
 		{
 		  sep = @"*";		// List ivars in class
 		}
-	      else if (category != nil)
-		{
-		  u = classname;	// List methods in category
-		}
-	      else if (classname != nil)
+	      else if (classname != nil && category == nil)
 		{
 		  NSArray	*catNames;
 
@@ -475,14 +466,14 @@ static NSString		*mainFont = nil;
 	  /*
 	   * If a reference to a method contains a leading category name,
 	   * we don't want it in the visible method name, however if it's
-	   * actually a protocol name, we need to make it look right by
-	   * changing the round brackets to angle brackets.
+	   * actually a formal protocol name, we need to make it look right
+	   * by changing the round brackets to angle brackets.
 	   */
 	  if ([text hasPrefix: @"("] == YES)
 	    {
 	      NSRange	r = [text rangeOfString: @")"];
 
-	      if (NSMaxRange(r) == [text length])	// A protocol
+	      if (NSMaxRange(r) == [text length])	// A formal protocol
 	        {
 		  text = [text stringByReplacingString: @"("
 					    withString: @"&lt;"];
@@ -512,8 +503,20 @@ static NSString		*mainFont = nil;
 	    }
 	  else
 	    {
-	      [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
-		file, type, ref, text];
+              if  (([type isEqual: @"protocol"] == YES)
+                   && ([text hasPrefix: @"&lt;"] == NO))
+                {
+                  // it's an informal protocol, detected earlier as an
+                  // unimplemented category of NSObject; make proper link
+                  text = [text stringByDeletingPrefix: @"NSObject"];
+                  [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
+                       file, @"category", ref, text];
+                }
+              else
+                {
+                  [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
+                       file, type, ref, text];
+                }
 	    }
           if (!isBareStyle)
             {
