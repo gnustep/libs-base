@@ -629,6 +629,7 @@
 	    /* xxx else what, error? */
 	  }
 	/* xxx Should I sent -awakeUsingCoder: here instead of above? */
+	[self decodeUnindent];
 
 	/* If this was a CODER_OBJECT_FORWARD_SATISFIER, then remember it. */
 	[self decodeValueOfCType: @encode(unsigned)
@@ -645,7 +646,6 @@
 	  if (debug_coder)
 	    fprintf(stderr, "Coder decoding registered class xref %u\n", xref);
 	}
-	[self decodeUnindent];
 	break;
       }
     case CODER_OBJECT_ROOT:
