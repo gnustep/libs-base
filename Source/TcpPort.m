@@ -559,7 +559,6 @@ nameServer(const char* name, const char* host, int op, struct sockaddr_in*  addr
 	if (rval == 0) {
 	    int	i;
 
-	    num = ntohs(num);
 	    for (i = 0; found == 0 && i < num; i++) {
 		memset((char*)&sin, '\0', sizeof(sin));
 		sin.sin_family = AF_INET;
