@@ -612,11 +612,12 @@
 		Hopefully there is a more general way to figure this out */
 		size = (size<sizeof(int))?4:size;
 #endif
-		memcpy(datum, va_arg(ap, typeof(char[size])), size);
+		memcpy(datum, &va_arg(ap, typeof(struct{char x[size];})), size);
 		break;
 	      default:
 		{
-		  memcpy(datum, va_arg(ap, typeof(char[size])), size);
+		  [NSException raise: NSInvalidArgumentException
+			format: @"Could not handle type of %d argument.", i-1];
 		} /* default */
 	    }
 	}

@@ -1,7 +1,12 @@
+Fri Oct 29 10:08:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSInvocation.m: ([-initWithTarget:selector:]) possible fix
+	for structure arguments grabbed from varargs.
+
 Tue Oct 19 11:28:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	* Source/NSScanner.m: skipToNextField() - cope with a nil set of characters
-	to be skipped.
+	* Source/NSScanner.m: skipToNextField() - cope with a nil set of
+	characters to be skipped.
 
 Fri Oct 15 01:28:16 1999  Lyndon Tremblay <humasect@coolmail.com>
 
