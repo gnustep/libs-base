@@ -189,7 +189,7 @@ myEqual(NSObject *self, NSObject *other)
     int	i;
     FastMapInitWithZoneAndCapacity(&map, fastZone(self), c);
     for (i = 0; i < c; i++) {
-	FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)keys[i]);
+	FastMapNode	node;
 
 	if (keys[i] == nil) {
 	    [self autorelease];
