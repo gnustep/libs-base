@@ -1,3 +1,7 @@
+2000-02-20  Matthias Klose  <doko@cs.tu-berlin.de>
+
+	* Tools/gdomap.c (main): Add -I <file> option to write the pid to.
+
 Mon Feb 21 13:44:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSRunLoop.m: Use sel_eq() for selector comparison so that

@@ -98,6 +98,7 @@ int	debug = 0;		/* Extra debug logging.			*/
 int	nofork = 0;		/* turn off fork() for debugging.	*/
 int	noprobe = 0;		/* turn off probe for unknown servers.	*/
 int	interval = 600;		/* Minimum time (sec) between probes.	*/
+char	*pidfile = NULL;	/* file to write PID to			*/
 
 int	udp_sent = 0;
 int	tcp_sent = 0;
@@ -2859,7 +2860,7 @@ int
 main(int argc, char** argv)
 {
   extern char	*optarg;
-  char	*options = "CHL:M:P:R:T:U:a:c:dfi:p";
+  char	*options = "CHL:M:P:R:T:U:a:c:dfi:pI:";
   int		c;
   int		ptype = GDO_TCP_GDO;
   int		port = 0;
@@ -2899,6 +2900,7 @@ main(int argc, char** argv)
 	    printf("-f		avoid fork() to make debugging easy\n");
 	    printf("-i seconds	re-probe at this interval (roughly), min 60\n");
 	    printf("-p		obsolete no-op\n");
+	    printf("-I		pid file to write pid\n");
 	    printf("\n");
 	    exit(0);
 
@@ -2925,7 +2927,7 @@ main(int argc, char** argv)
 	    printf("\n");
 	    printf(
 "A configuration file consists of a list of IP addresses to be probed.\n"
-"The IP addresses shoudl be in standard 'dot' notation, one per line.\n"
+"The IP addresses should be in standard 'dot' notation, one per line.\n"
 "Empty lines are permitted in the configuration file.\n"
 "Anything on a line after a hash ('#') is ignored.\n"
 "You tell gdomap about the config file with the '-c' command line option.\n");
@@ -3102,7 +3104,11 @@ printf(
 	      fclose(fptr);
 	    }
 	    break;
-	      
+
+	  case 'I':
+	    pidfile = optarg;
+	    break;
+
 	  case 'd':
 	    debug++;
 	    break;
@@ -3160,6 +3166,21 @@ printf(
 	    exit(0);
 	}
     }
+
+  if (pidfile) {
+    {
+      FILE	*fptr = fopen(pidfile, "a");
+      int pid;
+
+      if (fptr == 0)
+	{
+	  fprintf(stderr, "Unable to open pid file - '%s'\n", pidfile);
+	  exit(1);
+	}
+      fprintf(fptr, "%d\n", (int) getpid());
+      fclose(fptr);
+    }
+  }
 
   /*
    *	Ensure we don't have any open file descriptors which may refer
