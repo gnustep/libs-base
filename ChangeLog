@@ -1,3 +1,10 @@
+Sat Feb 14 16:03:07 1998  Scott Christley  <scottc@stetson.net-community.com>
+
+	* configure.in: Check for sys/statvfs.h header file.
+	* configure: Regenerate.
+	* std/include/config.h.in: Regenerate.
+	* src/NSFileManager.m: Include header files only if available.
+
 Sat Feb 14 15:50:40 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/NXStringTable_scan.c src/lex.pl.m src/lex.sf.m
