@@ -135,6 +135,15 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
     return e_info;
 }
 
+- (Class) classForPortCoder
+{
+  return [self class];
+}
+
+- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+{
+    return self;
+}
 
 - (void)encodeWithCoder: aCoder
 {
