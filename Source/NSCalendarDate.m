@@ -659,11 +659,19 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      }
 		    tmpStr[tmpIdx - sourceIdx] = '\0';
 		    sourceIdx += tmpIdx - sourceIdx;
-		    if ((tz = [NSTimeZone timeZoneWithAbbreviation: 
-		      [NSString stringWithCString: tmpStr]]) == nil)
-		      {
-			tz = [NSTimeZone localTimeZone];
-		      }
+		    {
+		      NSString	*z = [NSString stringWithCString: tmpStr];
+
+		      tz = [NSTimeZone timeZoneWithName: z];
+		      if (tz == nil)
+			{
+			  tz = [NSTimeZone timeZoneWithAbbreviation: z];
+			}
+		      if (tz == nil)
+			{
+			  tz = [NSTimeZone localTimeZone];
+			}
+		    }
 		    break;
 
 		  default:
