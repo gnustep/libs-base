@@ -28,19 +28,20 @@ GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 include $(GNUSTEP_MAKEFILES)/common.make
 
 # The application to be compiled
-TOOL_NAME = defaults dread dwrite dremove
+TOOL_NAME = gdnc defaults dread dwrite dremove
 OBJC_PROGRAM_NAME = gdomap
 
 # The source files to be compiled
 gdomap_C_FILES = gdomap.c
+gdnc_OBJC_FILES = gdnc.m
 defaults_OBJC_FILES = defaults.m
 dread_OBJC_FILES = dread.m
 dremove_OBJC_FILES = dremove.m
 dwrite_OBJC_FILES = dwrite.m
 
-SOURCES = gdomap.c defaults.m dread.m dremove.m dwrite.m
+SOURCES = gdomap.c gdnc.m defaults.m dread.m dremove.m dwrite.m
 
-HEADERS = gdomap.h
+HEADERS = gdomap.h gdnc.h
 
 DIST_FILES = GNUmakefile Makefile.preamble Makefile.postamble \
 $(SOURCES) $(HEADERS)
