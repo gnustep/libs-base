@@ -207,8 +207,10 @@ GSBuildStrings()
        * Ensure that NSString is initialized ... because we are called
        * from [NSObject +initialize] which might be executing as a
        * result of a call to [NSString +initialize] !
+       * Use performSelector: to avoid compiler warning about clash of
+       * return value types in two different versions of initialize.
        */
-      [SClass initialize];
+      [SClass performSelector: @selector(initialize)];
 
       InPortAcceptedClientNotification
 	= [[SClass alloc] initWithCString:
