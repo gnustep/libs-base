@@ -168,6 +168,8 @@ static BOOL	isCollecting = NO;
     {
       allObjects = (_GCObjectList*)
 	NSAllocateObject([_GCObjectList class], 0, NSDefaultMallocZone());
+      allObjects->gc.next = allObjects;
+      allObjects->gc.previous = allObjects;
     }
 }
 
