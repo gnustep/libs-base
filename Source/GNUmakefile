@@ -205,7 +205,6 @@ LinkedList.h \
 LinkedListNode.h \
 Locking.h \
 MachPort.h \
-Magnitude.h \
 MappedCollector.h \
 MemoryStream.h \
 NotificationDispatcher.h \
@@ -216,9 +215,6 @@ Port.h \
 Queue.h \
 RBTree.h \
 RBTreeNode.h \
-RNGAdditiveCongruential.h \
-RNGBerkeley.h \
-RandomGenerating.h \
 RawCStream.h \
 Retaining.h \
 RunLoop.h \
@@ -230,7 +226,6 @@ Stream.h \
 Streaming.h \
 TcpPort.h \
 TextCStream.h \
-Time.h \
 UdpPort.h \
 Unicode.h \
 UnixFileHandle.h \
@@ -254,11 +249,17 @@ o_map.h \
 o_map_bas.h \
 o_map_cbs.h \
 objc-gnu2next.h \
-all.h \
 README \
 preface.h
 
-#Random.h \
+GNU_EXTRAS_HFILES = \
+all.h \
+Magnitude.h \
+Random.h \
+RNGAdditiveCongruential.h \
+RNGBerkeley.h \
+RandomGenerating.h \
+Time.h
 
 # NEXTSTEP source files
 
@@ -378,6 +379,7 @@ dld-load.h \
 hpux-load.h \
 null-load.h \
 simple-load.h \
+win32-load.h \
 NSCallBacks.h \
 tzfile.h
 

@@ -1,7 +1,7 @@
 /*
     dld-load - Definitions and translations for dynamic loading with GNU dld.
 
-    Copyright (C) 1995, Adam Fedor.
+    Copyright (C) 1995, Free Software Foundation.
 
     BUGS: 
 	- object files loaded by dld must be loaded with 'ld -r' rather
@@ -20,7 +20,7 @@
 #include <dld/defs.h>
 
 /* This is the GNU gcc name for the CTOR list */
-#define DLD_CTOR_LIST	"___CTOR_LIST__"
+#define CTOR_LIST	"___CTOR_LIST__"
 
 /* The compiler generates a constructor function for each class.  The function
    has the prefix given below.

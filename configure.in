@@ -183,7 +183,7 @@ AC_SUBST(NEXT_INCLUDES)
 #--------------------------------------------------------------------
 # Setup dynamic linking 
 #--------------------------------------------------------------------
-OBJC_SYS_DYNAMIC_FLAGS()
+OBJC_SYS_DYNAMIC_LINKER()
 
 #--------------------------------------------------------------------
 # Generic settings needed by NSZone.m

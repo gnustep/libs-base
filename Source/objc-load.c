@@ -46,9 +46,6 @@ extern void sarray_free(struct sarray*);
 /* Declaration from NSBundle.m */
 const char *objc_executable_location( void );
 
-/* This is the GNU name for the CTOR list */
-#define CTOR_LIST       "___CTOR_LIST__"
-
 /* dynamic_loaded is YES if the dynamic loader was sucessfully initialized. */
 static BOOL	dynamic_loaded;
 

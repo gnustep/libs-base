@@ -46,11 +46,6 @@
 #include <gnustep/base/RBTreeNode.h>
 #include <gnustep/base/SplayTree.h>
 
-/* Magnitude objects */
-#include <gnustep/base/Magnitude.h>
-#include <gnustep/base/Random.h>
-#include <gnustep/base/Time.h>
-
 /* Stream objects */
 #include <gnustep/base/Stream.h>
 #include <gnustep/base/StdioStream.h>

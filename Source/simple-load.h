@@ -2,7 +2,7 @@
     simple-load - Definitions and translations for dynamic loading with 
 	the simple dynamic liading library (dl).
 
-    Copyright (C) 1995, Adam Fedor.
+    Copyright (C) 1995, Free Software Foundation
 
     BUGS:
 	- In SunOS 4.1, dlopen will only resolve references into the main
@@ -16,6 +16,9 @@
 #define __sunos_load_h_INCLUDE
 
 #include <dlfcn.h>
+
+/* This is the GNU name for the CTOR list */
+#define CTOR_LIST       "__CTOR_LIST__"
 
 #ifndef RTLD_GLOBAL
 #define RTLD_GLOBAL 0

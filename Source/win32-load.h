@@ -1,23 +1,21 @@
 /*
-    hpux-load - Definitions and translations for dynamic loading with HP-UX
+    win32-load - Definitions and translations for dynamic loading with 
+	the windows.
 
-    Copyright (C) 1995, Free Software Foundation
+    Copyright (C) 1998, Free Software Foundation
 
 */
 
-#ifndef __hpux_load_h_INCLUDE
-#define __hpux_load_h_INCLUDE
+#ifndef __win32_load_h_INCLUDE
+#define __win32_load_h_INCLUDE
 
-#include <dl.h>
+#include <windows.h>
 
 /* This is the GNU name for the CTOR list */
-#define CTOR_LIST       "__CTOR_LIST__"
-
-/* link flags */
-#define LINK_FLAGS	(BIND_IMMEDIATE | BIND_VERBOSE)
+#define CTOR_LIST       ""
 
 /* Types defined appropriately for the dynamic linker */
-typedef shl_t dl_handle_t;
+typedef HINSTANCE dl_handle_t;
 typedef void* dl_symbol_t;
 
 /* Do any initialization necessary.  Return 0 on success (or
@@ -35,7 +33,7 @@ __objc_dynamic_init(const char* exec_path)
 static dl_handle_t
 __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 {
-    return (dl_handle_t)shl_load(module, LINK_FLAGS, 0L);
+    return LoadLibraryEx(module, 0, 0);
 }
 
 /* Return the address of a symbol given by the name 'symbol' from the module
@@ -44,19 +42,14 @@ __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 static dl_symbol_t 
 __objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
 {
-    int ok; 
-    void *value;
-    ok = shl_findsym(&handle, symbol, TYPE_UNDEFINED, value);
-    if (ok != 0)
-	value = 0;
-    return value;
+    return NULL;
 }
 
 /* remove the code from memory associated with the module 'handle' */
 static int 
 __objc_dynamic_unlink(dl_handle_t handle)
 {
-    return shl_unload(handle);
+    return 0;
 }
 
 /* Print an error message (prefaced by 'error_string') relevant to the
@@ -65,7 +58,7 @@ __objc_dynamic_unlink(dl_handle_t handle)
 static void 
 __objc_dynamic_error(FILE *error_stream, const char *error_string)
 {
-    fprintf(error_stream, "%s\n", error_string);
+    fprintf(error_stream, "%s:%d\n", error_string, GetLastError());
 }
 
 /* Debugging:  define these if they are available */
@@ -81,4 +74,4 @@ __objc_dynamic_list_undefined_symbols(void)
     return NULL;
 }
 
-#endif /* __hpux_load_h_INCLUDE */
+#endif /* __sunos_load_h_INCLUDE */

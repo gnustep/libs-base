@@ -105,8 +105,6 @@ AC_DEFUN(OBJC_SYS_DYNAMIC_LINKER,
 # Makes the following substitutions:
 #	DYNAMIC_LINKER	- cooresponds to the interface that is included
 #		in objc-load.c (i.e. #include "${DYNAMIC_LINKER}-load.h")
-#	LIBS		- Updated to include the system library that 
-#		performs dynamic linking. 
 #--------------------------------------------------------------------
 DYNAMIC_LINKER=null
 AC_CHECK_HEADER(dlfcn.h, DYNAMIC_LINKER=simple)
@@ -114,11 +112,11 @@ if test $DYNAMIC_LINKER = null; then
   AC_CHECK_HEADER(dl.h, DYNAMIC_LINKER=hpux)
 fi
 if test $DYNAMIC_LINKER = null; then
+  AC_CHECK_HEADER(windows.h, DYNAMIC_LINKER=win32)
+fi
+if test $DYNAMIC_LINKER = null; then
   AC_CHECK_HEADER(dld/defs.h, DYNAMIC_LINKER=dld)
 fi
-# Should only include one of the following libs.
-AC_CHECK_LIB(dl, dlopen, LIBS="${LIBS} -ldl")
-AC_CHECK_LIB(dld, main, LIBS="${LIBS} -ldld")
 
 AC_SUBST(DYNAMIC_LINKER)dnl
 ])
