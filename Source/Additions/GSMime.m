@@ -53,8 +53,6 @@
 #include	<string.h>
 #include	<ctype.h>
 
-static unsigned		_count = 0;
-
 static NSString *makeUniqueString();
 
 static	NSCharacterSet	*whitespace = nil;
@@ -75,6 +73,42 @@ decodebase64(unsigned char *dst, const char *src)
 
 static char b64[]
   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static int
+encodebase64(char * dst, const unsigned char *src, int length)
+{
+  int	dIndex = 0;
+  int	sIndex;
+
+  for (sIndex = 0; sIndex < length; sIndex += 3)
+    {
+      int	c0 = src[sIndex];
+      int	c1 = src[sIndex+1];
+      int	c2 = src[sIndex+2];
+
+      dst[dIndex++] = b64[(c0 >> 2) & 077];
+      dst[dIndex++] = b64[((c0 << 4) & 060) | ((c1 >> 4) & 017)];
+      dst[dIndex++] = b64[((c1 << 2) & 074) | ((c2 >> 6) & 03)];
+      dst[dIndex++] = b64[c2 & 077];
+    }
+
+   /* If len was not a multiple of 3, then we have encoded too
+    * many characters.  Adjust appropriately.
+    */
+   if (sIndex == length + 1)
+     {
+       /* There were only 2 bytes in that last group */
+       dst[dIndex - 1] = '=';
+     }
+   else if (sIndex == length + 2)
+     {
+       /* There was only 1 byte in that last group */
+       dst[dIndex - 1] = '=';
+       dst[dIndex - 2] = '=';
+     }
+  dst[dIndex] = '\0';
+  return dIndex;
+}
 
 typedef	enum {
   WE_QUOTED,
@@ -2427,7 +2461,14 @@ static NSCharacterSet	*tokenSet = nil;
 	  c = [v characterAtIndex: r.location];
 	  if (c < 128)
 	    {
-	      [m appendFormat: @"\\%c", c];
+	      if (c == '\\' || c == '"')
+		{
+		  [m appendFormat: @"\\%c", c];
+		}
+	      else
+		{
+		  [m appendFormat: @"%c", c];
+		}
 	    }
 	  else
 	    {
@@ -2587,12 +2628,13 @@ static NSCharacterSet	*tokenSet = nil;
   int		i = 0;
   BOOL		conv = YES;
 
+#define	LIM	120
   /*
    * Capitalise the header name.  However, the version header is a special
    * case - it is defined as being literally 'MIME-Version'
    */
   memcpy(buf, [d bytes], l);
-  if (l == 12 && memcmp(buf, "MIME-Version", 12) == 0)
+  if (l == 12 && memcmp(buf, "mime-version", 12) == 0)
     {
       memcpy(buf, "MIME-Version", 12);
     }
@@ -2619,7 +2661,7 @@ static NSCharacterSet	*tokenSet = nil;
     }
   [md appendBytes: buf length: l];
   d = wordData(value);
-  if ([md length] + [d length] + 2 > 72)
+  if ([md length] + [d length] + 2 > LIM)
     {
       [md appendBytes: ":\r\n\t" length: 4];
       [md appendData: d];
@@ -2640,7 +2682,7 @@ static NSCharacterSet	*tokenSet = nil;
       unsigned	kl = [kd length];
       unsigned	vl = [vd length];
 
-      if ((l + kl + vl + 3) > 72)
+      if ((l + kl + vl + 3) > LIM)
 	{
 	  [md appendBytes: ";\r\n\t" length: 4];
 	  [md appendData: kd];
@@ -2946,8 +2988,6 @@ static NSCharacterSet	*tokenSet = nil;
   int		destlen;
   unsigned char *sBuf;
   unsigned char *dBuf;
-  int		sIndex = 0;
-  int		dIndex = 0;
 
   if (source == nil)
     {
@@ -2963,35 +3003,10 @@ static NSCharacterSet	*tokenSet = nil;
   dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
   dBuf[destlen - 1] = '\0';
 
-  for (sIndex = 0; sIndex < length; sIndex += 3)
-    {
-      int	c0 = sBuf[sIndex];
-      int	c1 = sBuf[sIndex+1];
-      int	c2 = sBuf[sIndex+2];
-
-      dBuf[dIndex++] = b64[(c0 >> 2) & 077];
-      dBuf[dIndex++] = b64[((c0 << 4) & 060) | ((c1 >> 4) & 017)];
-      dBuf[dIndex++] = b64[((c1 << 2) & 074) | ((c2 >> 6) & 03)];
-      dBuf[dIndex++] = b64[c2 & 077];
-    }
-
-   /* If len was not a multiple of 3, then we have encoded too
-    * many characters.  Adjust appropriately.
-    */
-   if (sIndex == length + 1)
-     {
-       /* There were only 2 bytes in that last group */
-       dBuf[dIndex - 1] = '=';
-     }
-   else if (sIndex == length + 2)
-     {
-       /* There was only 1 byte in that last group */
-       dBuf[dIndex - 1] = '=';
-       dBuf[dIndex - 2] = '=';
-     }
+  destlen = encodebase64(dBuf, sBuf, length);
 
   return AUTORELEASE([[NSData allocWithZone: NSDefaultMallocZone()]
-    initWithBytesNoCopy: dBuf length: dIndex]);
+    initWithBytesNoCopy: dBuf length: destlen]);
 }
 
 /**
@@ -3733,22 +3748,11 @@ static NSCharacterSet	*tokenSet = nil;
       [md appendData: [hdr rawMimeData]];
     }
 
-  /*
-   * Separate headers from body.
-   */
-  [md appendBytes: "\r\n" length: 2];
-
   if ([[type objectForKey: @"Type"] isEqual: @"multipart"] == YES)
     {
       unsigned	count;
       unsigned	i;
 
-      /*
-       * For a multipart document, insert the boundary between each part.
-       */
-      [md appendBytes: "--" length: 2];
-      [md appendData: boundary];
-      [md appendBytes: "\r\n" length: 2];
       count = [content count];
       for (i = 0; i < count; i++)
 	{
@@ -3770,15 +3774,26 @@ static NSCharacterSet	*tokenSet = nil;
 		    NSStringFromSelector(_cmd)];
 		}
 	    }
-	  [md appendData: rawPart];
+	  /*
+	   * For a multipart document, insert the boundary before each part.
+	   */
 	  [md appendBytes: "\r\n--" length: 4];
 	  [md appendData: boundary];
 	  [md appendBytes: "\r\n" length: 2];
+	  [md appendData: rawPart];
 	  RELEASE(arp);
 	}
+      [md appendBytes: "\r\n--" length: 4];
+      [md appendData: boundary];
+      [md appendBytes: "--\r\n" length: 4];
     }
   else
     {
+      /*
+       * Separate headers from body.
+       */
+      [md appendBytes: "\r\n" length: 2];
+
       if ([[enc value] isEqual: @"base64"] == YES)
         {
 	  const char	*ptr;
@@ -4239,8 +4254,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 }
 
 /*
- * Make a probably unique string of 40 hexadecimal digits
- * consisting of an MD5 digest of soe pseudo random stuff,
+ * Make a probably unique string of base64 encoded data
+ * consisting of an MD5 digest of some pseudo random stuff,
  * plus an incrementing counter.
  */
 static NSString *
@@ -4251,7 +4266,7 @@ makeUniqueString()
   const char		*bytes;
   unsigned int		i;
   unsigned char		digest[20];
-  unsigned char		hex[40];
+  unsigned char		encoded[40];
 
   MD5Init(&ctx);
   bytes = [[[NSProcessInfo processInfo] globallyUniqueString] lossyCString];
@@ -4259,33 +4274,11 @@ makeUniqueString()
   count++;
   MD5Update(&ctx, (unsigned char*)&count, sizeof(count));
   MD5Final(digest, &ctx);
-  digest[16] = (_count >> 24) & 0xff;
-  digest[17] = (_count >> 16) & 0xff;
-  digest[18] = (_count >> 8) & 0xff;
-  digest[19] = _count & 0xff;
-  for (i = 0; i < 20; i++)
-    {
-      int	v;
-
-      v = (digest[i] >> 4) & 0xf;
-      if (v > 9)
-	{
-	  hex[i*2] = 'A' + v - 10;
-	}
-      else
-	{
-	  hex[i*2] = '0' + v;
-	}
-      v = digest[i] & 0xf;
-      if (v > 9)
-	{
-	  hex[i*2 + 1] = 'A' + v - 10;
-	}
-      else
-	{
-	  hex[i*2 + 1] = '0' + v;
-	}
-    }
-  return [NSString stringWithCString: hex length: 40];
+  digest[16] = (count >> 24) & 0xff;
+  digest[17] = (count >> 16) & 0xff;
+  digest[18] = (count >> 8) & 0xff;
+  digest[19] = count & 0xff;
+  i = encodebase64(encoded, digest, 20);
+  return [NSString stringWithCString: encoded length: i];
 }
 
