@@ -33,7 +33,7 @@ cd /usr/local/lib ; ln -s libpthreads.so.1 libpthreads.so
 @end example
 
 (And on my system, I also had to comment out the code between
-@code{#ifndef _TIMESPEC_} and the following @code {#endif} in
+@code{#ifndef _TIMESPEC_} and the following @code{#endif} in
 @file{/usr/local/include/pthreads/typedefs.h}.)
 
 @item
