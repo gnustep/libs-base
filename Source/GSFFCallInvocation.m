@@ -726,6 +726,10 @@ gs_protocol_selector(const char *types)
     }
   while (*types != '\0')
     {
+      if (*types == '-' )
+	{
+	  types++;
+	}
       if (*types == '+' || isdigit(*types))
 	{
 	  types = objc_skip_offset(types);

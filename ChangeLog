@@ -1,3 +1,10 @@
+2004-09-02  David Ayers  <d.ayers@inode.at>
+
+	* Source/GSFFCallInvocation.m
+	* Source/GSFFIInvocation.m (gs_protocol_selector): Skip '-' for
+	negative offsets to avoid issues with pre gcc 3.4 generated
+	signatures.
+	
 2004-08-26  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSProcessInfo.m ([NSProcessInfo +load]): Get environment
