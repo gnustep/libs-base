@@ -59,12 +59,9 @@ NSPageSize (void)
 unsigned
 NSLogPageSize (void)
 {
-  unsigned tmp_page_size;
+  unsigned tmp_page_size = ns_page_size();
   unsigned log = 1;
 
-  if (!ns_page_size)
-    ns_page_size = (unsigned) getpagesize ();
-  tmp_page_size = ns_page_size;
   while (tmp_page_size >> 1)
     log++;
   return log;
@@ -75,9 +72,9 @@ NSLogPageSize (void)
 unsigned
 NSRoundDownToMultipleOfPageSize (unsigned bytes)
 {
-  if (!ns_page_size)
-    ns_page_size = (unsigned) getpagesize ();
-  return (bytes / ns_page_size) * ns_page_size;
+  unsigned a = ns_page_size();
+
+  return (bytes / a) * a;
 }
 
 /* Round BYTES up to the nearest multiple of the memory page size,
@@ -85,11 +82,9 @@ NSRoundDownToMultipleOfPageSize (unsigned bytes)
 unsigned
 NSRoundUpToMultipleOfPageSize (unsigned bytes)
 {
-  if (!ns_page_size)
-    ns_page_size = (unsigned) getpagesize ();
-  return ((bytes % ns_page_size)
-	  ? ((bytes / ns_page_size + 1) * ns_page_size)
-	  : bytes);
+  unsigned a = ns_page_size();
+
+  return ((bytes % a) ? ((bytes / a + 1) * a) : bytes);
 }
 
 unsigned
@@ -102,14 +97,16 @@ NSRealMemoryAvailable ()
 void *
 NSAllocateMemoryPages (unsigned bytes)
 {
-#if __mach__
   void *where;
+#if __mach__
   kern_return_t r;
   r = vm_allocate (mach_task_self(), &where, (vm_size_t) bytes, 1);
   NSParameterAssert (r == KERN_SUCCESS);
   return where;
 #else
-  return calloc (bytes, 1);
+  where = valloc (bytes);
+  memset (where, 0, bytes);
+  return where;
 #endif
 }
 
