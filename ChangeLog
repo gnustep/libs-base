@@ -1,3 +1,7 @@
+2004-06-26 17:12  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSUserDefaults.m (read_only): Remove.
+
 2004-06-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexSet.m: Rewrite range removal to fix bug reported
@@ -296,7 +300,7 @@
 	in either 16bit or 8bit format.  Also tidyups and modifications to
 	use temporary buffers on stack rather than malloc/free as long as
 	the buffers are reasonably sized.
-	* Source/benchmark.m: Trivial string format benchmarks ...
+	* Testing/benchmark.m: Trivial string format benchmarks ...
 	Performance improvement of 10% for initWithFormat and 90% for
 	appendFormat operations.
 
