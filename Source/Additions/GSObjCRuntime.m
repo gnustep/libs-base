@@ -38,12 +38,12 @@
 #include <mframe.h>
 #include <string.h>
 
-/**  Deprecated ... use GSObjCFindInstanceVariable() */
+/**  Deprecated ... use GSObjCFindVariable() */
 BOOL
 GSFindInstanceVariable(id obj, const char *name,
   const char **type, unsigned int *size, int *offset)
 {
-  return GSObjCFindInstanceVariable(obj, name, type, size, offset);
+  return GSObjCFindVariable(obj, name, type, size, offset);
 }
 
 /**
@@ -54,7 +54,7 @@ GSFindInstanceVariable(id obj, const char *name,
  * they are null pointers).
  */
 BOOL
-GSObjCFindInstanceVariable(id obj, const char *name,
+GSObjCFindVariable(id obj, const char *name,
   const char **type, unsigned int *size, int *offset)
 {
   Class			class;
@@ -96,14 +96,14 @@ GSObjCFindInstanceVariable(id obj, const char *name,
 
 /**  Deprecated ... use GSObjCGetVariable() */
 void
-GSGetVariable(id obj, int offset, unsigned int size, void *data)
+GSGetInstanceVariable(id obj, int offset, unsigned int size, void *data)
 {
   GSObjCGetVariable(obj, offset, size, data);
 }
 /**
  * Gets the value from an instance variable in obj<br />
  * This function performs no checking ... you should use it only where
- * you are providing information from a call to GSFindInstanceVariable()
+ * you are providing information from a call to GSFindVariable()
  * and you know that the data area provided is the correct size.
  */
 void
@@ -114,14 +114,14 @@ GSObjCGetVariable(id obj, int offset, unsigned int size, void *data)
 
 /**  Deprecated ... use GSObjCSetVariable() */
 void
-GSSetVariable(id obj, int offset, unsigned int size, const void *data)
+GSSetInstanceVariable(id obj, int offset, unsigned int size, const void *data)
 {
   GSObjCSetVariable(obj, offset, size, data);
 }
 /**
  * Sets the value in an instance variable in obj<br />
  * This function performs no checking ... you should use it only where
- * you are providing information from a call to GSFindInstanceVariable()
+ * you are providing information from a call to GSObjCFindVariable()
  * and you know that the data area provided is the correct size.
  */
 void
