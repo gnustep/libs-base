@@ -1777,7 +1777,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath
 {
-  NSLog(@"Warninig: Depreciated %@ called. Use +pathForLibraryResource:ofType:inDirectory: or +bundleForLibrary: instead",
+  NSLog(@"Warning: Deprecated method %@ called. Use +pathForLibraryResource:ofType:inDirectory: or +bundleForLibrary: instead",
 	NSStringFromSelector(_cmd));
   return [self pathForLibraryResource: name ofType: ext 
 	                  inDirectory: bundlePath];
