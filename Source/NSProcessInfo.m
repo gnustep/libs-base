@@ -138,7 +138,7 @@ static NSString* _gnu_hostName = nil;
 static NSString* _gnu_processName = nil;
 
 // Array of NSStrings (argv[1] .. argv[argc-1])
-static NSMutableArray* _gnu_arguments = nil;
+static NSArray* _gnu_arguments = nil;
 
 // Dictionary of environment vars and their values
 static NSMutableDictionary* _gnu_environment = nil;
@@ -153,28 +153,39 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   int i;
 	
   /* Getting the process name */
-  _gnu_processName = [NSString stringWithCString:argv[0]];
-  [_gnu_processName retain];
+  _gnu_processName = [[NSString alloc] initWithCString:argv[0]];
 	
   /* Copy the argument list */
-  _gnu_arguments = [[NSMutableArray arrayWithCapacity:0] retain];
-  for (i = 1; i < argc; i++) {
-    [_gnu_arguments addObject:[NSString stringWithCString:argv[i]]];
+  {
+    id obj_argv[argc];
+    for (i = 1; i < argc; i++) 
+      obj_argv[i-1] = [NSString stringWithCString:argv[i]];
+    _gnu_arguments = [[NSArray alloc] initWithObjects:obj_argv count:argc-1];
   }
 	
   /* Copy the evironment list */
-  _gnu_environment = [[NSMutableDictionary dictionaryWithCapacity:0] retain];
-  i = 0;
-  while (env[i]) {
-    char* cp;
-    cp = strchr(env[i],'=');
-    /* Temporary set *cp to \000 ... for copying purpose */
-    *cp = '\000';
-    [_gnu_environment setObject:[NSString stringWithCString:(cp+1)]
-		      forKey:[NSString stringWithCString:env[i]]];
-    /* Return the original value of environ[i] */
-    *cp = '=';
-    i++;
+  {
+    char *cp;
+    NSMutableArray *keys = [NSMutableArray new];
+    NSMutableArray *values = [NSMutableArray new];
+    i = 0;
+    while (env[i]) 
+      {
+	cp = strchr(env[i],'=');
+	/* Temporary set *cp to \0 for copying purposes */
+	*cp = '\0';
+	[keys addObject: [NSString stringWithCString:env[i]]];
+	[values addObject: [NSString stringWithCString:cp+1]];
+	/* Return the original value of environ[i] */
+	*cp = '=';
+	i++;
+      }
+    _gnu_environment = [[NSDictionary alloc] initWithObjects:values
+					     forKeys:keys];
+    /* Do this explicitly, because we probably don't have 
+       a NSAutoreleasePool initialized yet. */
+    [keys release];
+    [values release];
   }
 }
 
@@ -297,31 +308,29 @@ int main(int argc, char *argv[], char *env[])
  *************************************************************************/
 - (NSArray *)arguments
 {
-  return [[_gnu_arguments copyWithZone:[self zone]] autorelease];
+  return _gnu_arguments;
 }
 
 - (NSDictionary *)environment
 {
-  return [[_gnu_environment copyWithZone:[self zone]] autorelease];
+  return _gnu_environment;
 }
 
 - (NSString *)hostName
 {
-  if (!_gnu_hostName) {
-    char *hn = NSZoneMalloc([self zone], _GNU_MAX_HOST_NAMELEN);
-		
-    gethostname(hn, _GNU_MAX_HOST_NAMELEN);
-    _gnu_hostName = [NSString stringWithCString:hn];
-    [_gnu_hostName retain];
-    NSZoneFree([self zone], hn);
-  }
-	
-  return [[_gnu_hostName copyWithZone:[self zone]] autorelease];
+  if (!_gnu_hostName) 
+    {
+      char hn[_GNU_MAX_HOST_NAMELEN];
+
+      gethostname(hn, _GNU_MAX_HOST_NAMELEN);
+      _gnu_hostName = [[NSString alloc] initWithCString:hn];
+    }
+  return _gnu_hostName;
 }
 
 - (NSString *)processName
 {
-  return [[_gnu_processName copyWithZone:[self zone]] autorelease];
+  return _gnu_processName;
 }
 
 - (NSString *)globallyUniqueString
