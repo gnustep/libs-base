@@ -1,3 +1,7 @@
+Thu Sep 23 20:09:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Invocation.m: VARARGS fix by ani joshi <ajoshi@wam.umd.edu>
+
 Tue Sep 21 20:26:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Headers/Foundation/NSPortNameServer.h: Tidied and removed a few ivars.
