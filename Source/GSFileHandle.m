@@ -685,6 +685,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   static BOOL		beenHere = NO;
   SOCKET		net;
   struct sockaddr_in	sin;
+  struct sockaddr_in	lsin;
+  NSString		*lhost = nil;
   NSString		*shost = nil;
   NSString		*sport = nil;
 
@@ -718,6 +720,30 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSLog(@"bad argument - service is nil");
       RELEASE(self);
       return nil;
+    }
+
+  if ([p hasPrefix: @"bind-"] == YES)
+    {
+      NSRange	r;
+
+      lhost = [p substringFromIndex: 5];
+      r = [lhost rangeOfString: @":"];
+      if (r.length > 0)
+	{
+	  p = [lhost substringFromIndex: NSMaxRange(r)];
+	  lhost = [lhost substringToIndex: r.location];
+	}
+      else
+	{
+	  p = nil;
+	}
+      if (getAddr(lhost, p, @"tcp", &lsin) == NO)
+	{
+	  NSLog(@"bad bind address specification");
+	  RELEASE(self);
+	  return nil;
+	}
+      p = @"tcp";
     }
 
   /**
@@ -794,6 +820,21 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
       return nil;
+    }
+  if (lhost != nil)
+    {
+      if (bind(net, (struct sockaddr *)&lsin, sizeof(lsin)) == SOCKET_ERROR)
+	{
+	  NSLog(@"unable to bind to port %s:%d - %s", inet_ntoa(lsin.sin_addr),
+	    GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
+#if defined(__MINGW__)
+	  (void) closesocket(net);
+#else
+	  (void) close(net);
+#endif
+	  RELEASE(self);
+	  return nil;
+	}
     }
 
 #if defined(__MINGW__)

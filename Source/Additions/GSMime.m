@@ -3317,6 +3317,11 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (void) addContent: (id)newContent
 {
+  if ([newContent isKindOfClass: [GSMimeDocument class]] == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Content to add is not a GSMimeDocument"];
+    }
   if (content == nil)
     {
       content = [NSMutableArray new];
@@ -4469,6 +4474,18 @@ static NSCharacterSet	*tokenSet = nil;
     {
       if (newContent != content)
 	{
+	  unsigned	c = [newContent count];
+
+	  while (c-- > 0)
+	    {
+	      id	o = [newContent objectAtIndex: c];
+
+	      if ([o isKindOfClass: [GSMimeDocument class]] == NO)
+		{
+		  [NSException raise: NSInvalidArgumentException
+			      format: @"Content contains non-GSMimeDocument"];
+		}
+	    }
 	  newContent = [newContent mutableCopy];
 	  ASSIGN(content, newContent);
 	  RELEASE(newContent);
