@@ -3411,6 +3411,8 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)NSBIG5StringEncoding);
 	  NSMapInsert(charsets, (void*)@"shift_JIS",
 	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-8",
+	    (void*)NSUTF8StringEncoding);
 	}
       if (encodings == 0)
 	{
@@ -3455,9 +3457,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  NSMapInsert(encodings, (void*)NSWindowsCP1254StringEncoding,
 	    (void*)@"windows-1254");
 	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
-	    (void*)@"iso-10646-ucs-2");
-	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
-	    (void*)@"iso-10646");
+	    (void*)@"utf-8");
 	  NSMapInsert(encodings, (void*)NSBIG5StringEncoding,
 	    (void*)@"big5");
 	  NSMapInsert(encodings, (void*)NSShiftJISStringEncoding,
