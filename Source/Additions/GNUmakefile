@@ -31,8 +31,13 @@ include $(GNUSTEP_MAKEFILES)/common.make
 SUBPROJECT_NAME=Additions
 
 Additions_OBJC_FILES =\
+	GCObject.m \
+	GCArray.m \
+	GCDictionary.m \
 	GSMime.m \
-	GSXML.m
+	GSXML.m \
+	Unicode.m \
+	behavior.m
 
 
 -include Makefile.preamble

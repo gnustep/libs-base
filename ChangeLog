@@ -1,3 +1,13 @@
+2002-11-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/behavior.m: Moved to Source/Additions/behavior.m
+	* Source/Unicode.m: Moved to Source/Additions/Unicode.m
+	* Source/Additions/GCObject.m: new experimental GC class.
+	* Source/Additions/GCArray.m: ditto
+	* Source/Additions/GCDictionary.m: ditto
+	* Headers/gnustep/base/GCObject.h: Garbage collection classes intended
+	for use by gdl2 and gsweb.
+
 2002-11-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSCompatibility.m: Fix for case where a non property list	

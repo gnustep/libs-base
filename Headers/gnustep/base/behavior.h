@@ -1,4 +1,4 @@
-/* Interface for behaviors for Obj-C, "for Protocols with implementations".
+/** Interface for behaviors for Obj-C, "for Protocols with implementations".
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -19,6 +19,9 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+  AutogsdocSource: Additions/behavior.m
+
 */ 
 
 #ifndef __behavior_h_GNUSTEP_BASE_INCLUDE
