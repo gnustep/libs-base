@@ -60,7 +60,7 @@
  *	The value GSI_ARRAY_EXTRA may be defined as the type of an extra
  *	field produced in every array.  The name of this field is 'extra'.
  *
- *	The value GSI_ARRAY_TEXTRA may be defined as an additional type
+ *	The value GSI_ARRAY_TYPE may be defined as an additional type
  *	which must be valid as an array element.  Otherwise the types are
  *	controlled by the mechanism in GSUnion.h
  */
@@ -149,11 +149,21 @@
 #ifdef	GSUNION_EXTRA
 #undef	GSUNION_EXTRA
 #endif
+
 /*
  * Override extra type used in array value
  */
-#ifdef	GSI_ARRAY_TEXTRA
-#define	GSUNION_EXTRA	GSI_ARRAY_TEXTRA
+#ifdef	GSI_NEW
+
+#ifdef	GSI_ARRAY_TYPE
+#define	GSUNION_EXTRA	GSI_ARRAY_TYPE
+#endif
+
+#else
+
+#ifdef	GSI_ARRAY_EXTRA
+#define	GSUNION_EXTRA	GSI_ARRAY_EXTRA
+#endif
 #endif
 
 /*
@@ -167,8 +177,10 @@ struct	_GSIArray {
   unsigned	cap;
   unsigned	old;
   NSZone	*zone;
+#ifdef	GSI_NEW
 #ifdef	GSI_ARRAY_EXTRA
   GSI_ARRAY_EXTRA	extra;
+#endif
 #endif
 };
 typedef	struct	_GSIArray	GSIArray_t;

@@ -112,8 +112,8 @@ static void obsFree(Observation *o);
 
 #define	GSI_NEW	1
 
-#define GSI_ARRAY_TYPES       0
-#define GSI_ARRAY_TEXTRA       Observation*
+#define GSI_ARRAY_TYPES	0
+#define GSI_ARRAY_TYPE	Observation*
 
 #define GSI_ARRAY_RELEASE(A, X)   obsFree(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)    obsRetain(X.ext)
