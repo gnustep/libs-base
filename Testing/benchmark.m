@@ -381,12 +381,13 @@ bench_data()
   START_TIMER;
   for (i = 0; i < MAX_COUNT/10; i++)
     { 
-      d = [dataClass dataWithContentsOfFile:@"benchmark.m"];
+      d = [[dataClass alloc] initWithContentsOfFile:@"benchmark.m"];
       [d length];
       o = [d copy];
       [o release];
       o = [d mutableCopy];
       [o release];
+      [d release];
     }
   END_TIMER;
   PRINT_TIMER("NSData (various)    ");
