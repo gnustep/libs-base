@@ -134,13 +134,13 @@ static void obsFree(Observation *o);
 
 #include <base/GSIArray.h>
 
-#define GSI_MAP_RETAIN_KEY(X)  X
+#define GSI_MAP_RETAIN_KEY(X)  
 #define GSI_MAP_RELEASE_KEY(X) ((((gsaddr)X.obj) & 1) == 0 \
   ? RELEASE(X.obj) : X.obj)
 #define GSI_MAP_HASH(X)        doHash(X.obj)
 #define GSI_MAP_EQUAL(X,Y)     doEqual(X.obj, Y.obj)
 
-#define GSI_MAP_RETAIN_VAL(X)  X
+#define GSI_MAP_RETAIN_VAL(X)  
 #define GSI_MAP_RELEASE_VAL(X)
 #define GSI_MAP_KTYPES GSUNION_OBJ|GSUNION_INT
 #define GSI_MAP_VTYPES GSUNION_PTR
