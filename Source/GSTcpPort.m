@@ -198,7 +198,7 @@ typedef enum {
   GSHandleState		state;		/* State of the handle.		*/
   int			addrNum;	/* Address number within host.	*/
 @public
-  NSLock		*myLock;	/* Lock for this handle.	*/
+  NSRecursiveLock	*myLock;	/* Lock for this handle.	*/
   BOOL			caller;		/* Did we connect to other end?	*/
   BOOL			valid;
   GSTcpPort		*recvPort;
@@ -451,16 +451,19 @@ static Class	runLoopClass;
   BOOL			gotAddr = NO;
   NSRunLoop		*l;
 
+  DO_LOCK(myLock);
   NSDebugMLLog(@"GSTcpHandle", @"Connecting on 0x%x in thread 0x%x before %@",
     self, GSCurrentThread(), when);
   if (state != GS_H_UNCON)
     {
       NSLog(@"attempting connect on connected handle");
+      DO_UNLOCK(myLock);
       return YES;	/* Already connected.	*/
     }
   if (recvPort == nil || aPort == nil)
     {
       NSLog(@"attempting connect with port(s) unset");
+      DO_UNLOCK(myLock);
       return NO;	/* impossible.		*/
     }
 
@@ -485,6 +488,7 @@ static Class	runLoopClass;
 	{
 	  NSLog(@"run out of addresses to try (tried %d) for port %@",
 	    addrNum, aPort);
+	  DO_UNLOCK(myLock);
 	  return NO;
 	}
       addr = [[addrs objectAtIndex: addrNum++] cString];
@@ -520,10 +524,15 @@ static Class	runLoopClass;
 	      GSSwapBigI16ToHost(sockAddr.sin_port), strerror(errno));
 	  if (addrNum < [addrs count])
 	    {
-	      return [self connectToPort: aPort beforeDate: when];
+	      BOOL	result;
+
+	      result = [self connectToPort: aPort beforeDate: when];
+	      DO_UNLOCK(myLock);
+	      return result;
 	    }
 	  else
 	    {
+	      DO_UNLOCK(myLock);
 	      return NO;	/* Tried all addresses	*/
 	    }
 	}
@@ -548,20 +557,26 @@ static Class	runLoopClass;
     {
       state = GS_H_UNCON;
       addrNum = 0;
+      DO_UNLOCK(myLock);
       return NO;	/* Timed out 	*/
     }
   else if (state == GS_H_UNCON)
     {
       if (addrNum < [addrs count] && [when timeIntervalSinceNow] > 0)
 	{
+	  BOOL	result;
+
 	  /*
 	   * The connection attempt failed, but there are still IP addresses
 	   * that we haven't tried.
 	   */
-	  return [self connectToPort: aPort beforeDate: when];
+	  result = [self connectToPort: aPort beforeDate: when];
+	  DO_UNLOCK(myLock);
+	  return result;
 	}
       addrNum = 0;
       state = GS_H_UNCON;
+      DO_UNLOCK(myLock);
       return NO;	/* connection failed	*/
     }
   else
@@ -569,6 +584,7 @@ static Class	runLoopClass;
       addrNum = 0;
       caller = YES;
       [aPort addHandle: self forSend: YES];
+      DO_UNLOCK(myLock);
       return YES;
     }
 }
