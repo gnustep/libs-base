@@ -344,7 +344,7 @@ decode (const void *ptr)
 - initWithDecoder: aDecoder
 {
   self = [super initWithCoder: aDecoder];
-  name = [aDecoder decodeObject];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &name];
   return self;
 }
 
@@ -425,7 +425,7 @@ decode (const void *ptr)
 - initWithCoder: aDecoder
 {
   self = [super initWithCoder: aDecoder];
-  name = [aDecoder decodeObject];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &name];
   offset = [name intValue];
   return self;
 }
@@ -479,7 +479,7 @@ decode (const void *ptr)
 - initWithCoder: aDecoder
 {
   self = [super initWithCoder: aDecoder];
-  abbrev = [aDecoder decodeObject];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &abbrev];
   [aDecoder decodeValueOfObjCType: @encode(int) at: &offset];
   [aDecoder decodeValueOfObjCType: @encode(BOOL) at: &is_dst];
   return self;

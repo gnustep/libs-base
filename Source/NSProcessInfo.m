@@ -70,6 +70,7 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 /* This error message should be called only if the private main function
  * was not executed successfully. This may heppen ONLY if onother library
@@ -138,6 +139,7 @@ static NSMutableArray* _debug_array = nil;
 static void 
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   int i;
 
   /* Getting the process name */
@@ -187,6 +189,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     [keys release];
     [values release];
   }
+  [arp release];
 }
 
 /* Place the _gnu_process_args function in the _libc_subinit section so

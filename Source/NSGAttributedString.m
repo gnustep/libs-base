@@ -176,9 +176,9 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 - initWithCoder: aCoder
 {
   self = [super initWithCoder:aCoder];
-  textChars = [[aCoder decodeObject] retain];
-  attributeArray = [[aCoder decodeObject] retain];
-  locateArray = [[aCoder decodeObject] retain];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &textChars];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &attributeArray];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &locateArray];
   return self;
 }
 
@@ -241,9 +241,9 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 - initWithCoder: aCoder
 {
   self = [super initWithCoder:aCoder];
-  textChars = [[aCoder decodeObject] retain];
-  attributeArray = [[aCoder decodeObject] retain];
-  locateArray = [[aCoder decodeObject] retain];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &textChars];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &attributeArray];
+  [aCoder decodeValueOfObjCType: @encode(id) at: &locateArray];
   return self;
 }
 
