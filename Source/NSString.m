@@ -4247,6 +4247,68 @@ handle_printf_atsign (FILE *stream,
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Replaces all occurrences of the replace string with the by string,
+ * for those cases where the entire replace string lies within the
+ * specified searchRange value.<br />
+ * The value of opts determines the direction of the search is and
+ * whether only leading/trailing occurrances (anchored search) of
+ * replace are substituted.<br />
+ * Raises NSInvalidArgumentException if either string argument is nil.<br />
+ * Raises NSRangeException if part of searchRange is beyond the end
+ * of the receiver.
+ */
+- (unsigned int) replaceOccurrencesOfString: (NSString*)replace
+				 withString: (NSString*)by
+				    options: (unsigned int)opts
+				      range: (NSRange)searchRange
+{
+  NSRange	range;
+  unsigned int	count = 0;
+
+  if (replace == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ nil search string", NSStringFromSelector(_cmd)];
+    }
+  if (by == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ nil replace string", NSStringFromSelector(_cmd)];
+    }
+  range = [self rangeOfString: replace options: opts range: searchRange];
+
+  if (range.length > 0)
+    {
+      unsigned	byLen = [by length];
+
+      do
+	{
+	  count++;
+	  [self replaceCharactersInRange: range
+			      withString: by];
+	  if ((opts & NSBackwardsSearch) == NSBackwardsSearch)
+	    {
+	      searchRange.length = range.location - searchRange.location;
+	    }
+	  else
+	    {
+	      unsigned int	newEnd;
+
+	      newEnd = NSMaxRange(searchRange) + byLen - range.length;
+	      searchRange.location = range.location + byLen;
+	      searchRange.length = newEnd - searchRange.location;
+	    }
+
+	  range = [self rangeOfString: replace
+			      options: opts
+				range: searchRange];
+	}
+      while (range.length > 0);
+    }
+  return count;
+}
+
 - (void) setString: (NSString*)aString
 {
   NSRange range = {0, [self length]};
@@ -4419,31 +4481,19 @@ handle_printf_atsign (FILE *stream,
 /**
  * Replaces all occurrances of the string replace with the string by
  * in the receiver.<br />
- * Has no effect if <em>replace</em> does not occur within the
+ * Has no effect if replace does not occur within the
  * receiver.  NB. an empty string is not considered to exist within
- * the receiver.
+ * the receiver.<br />
+ * Calls - replaceOccurrencesOfString:withString:options:range: passing
+ * zero for the options and a range from 0 with the length of the receiver.
  */
 - (void) replaceString: (NSString*)replace
 	    withString: (NSString*)by
 {
-  NSRange	range = [self rangeOfString: replace];
-
-  if (range.length > 0)
-    {
-      unsigned	byLen = [by length];
-
-      do
-	{
-	  [self replaceCharactersInRange: range
-			      withString: by];
-	  range.location += byLen;
-	  range.length = [self length] - range.location;
-	  range = [self rangeOfString: replace
-			      options: 0
-				range: range];
-	}
-      while (range.length > 0);
-    }
+  [self replaceOccurrencesOfString: replace
+			withString: by
+			   options: 0
+			     range: NSMakeRange(0, [self length])];
 }
 
 /**

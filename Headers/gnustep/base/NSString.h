@@ -319,6 +319,10 @@ enum {
 - (void) insertString: (NSString*)aString atIndex: (unsigned int)loc;
 - (void) replaceCharactersInRange: (NSRange)range 
 		       withString: (NSString*)aString;
+- (unsigned int) replaceOccurrencesOfString: (NSString*)replace
+				 withString: (NSString*)by
+				    options: (unsigned int)opts
+				      range: (NSRange)searchRange;
 - (void) setString: (NSString*)aString;
 
 @end

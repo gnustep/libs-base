@@ -1,3 +1,9 @@
+2003-01-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Added new MacOS-X method ...
+	([MSMutableString-replaceOccurrencesOfString:withString:options:range:])
+	* Source/Headers/gnustep/base/NSString.h: ditto
+
 2003-01-26  Adam Fedor  <fedor@gnu.org>
 
 	* Compiling gdl2 on MacOSX.
