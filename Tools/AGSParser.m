@@ -2000,6 +2000,22 @@ try:
 
 	  if (iv != nil)
 	    {
+	      if ([visibility isEqual: @"private"] == NO)
+		{
+		  NSString	*n = [iv objectForKey: @"Name"];
+
+		  if ([n hasPrefix: @"_"] == YES)
+		    {
+		      NSString	*c;
+
+		      c = @"<em>Warning</em> the underscore at the start of "
+			@"the name of this instance variable indicates that, "
+			@"even though it is not technically <em>private</em>, "
+			@"it is intended for internal use within the package, "
+			@"and you should not use the variable in other code.";
+		      [self appendComment: c to: iv];
+		    }
+		}
 	      [iv setObject: visibility forKey: @"Visibility"];
 	      [ivars setObject: iv forKey: [iv objectForKey: @"Name"]];
 	    }
@@ -2364,9 +2380,17 @@ fail:
       [self appendComment: comment to: method];
       DESTROY(comment);
     }
+  if ([itemName length] > 1 && [itemName characterAtIndex: 1] == '_')
+    {
+      NSString	*c;
+
+      c = @"<em>Warning</em> the underscore at the start of the name "
+	@"of this method indicates that it is private, for internal use only, "
+	@" and you should not use the method in your code.";
+      [self appendComment: c to: method];
+    }
 
   itemName = nil;
-  DESTROY(comment);
   RELEASE(arp);
   AUTORELEASE(method);
   return method;
