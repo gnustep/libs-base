@@ -164,12 +164,18 @@
 
 + (NSDate*) distantFuture
 {
-  return [self dateWithTimeIntervalSinceReferenceDate: DISTANT_FUTURE];
+  static id df = nil;
+  if (!df)
+    df = [[self alloc] initWithTimeIntervalSinceReferenceDate: DISTANT_FUTURE];
+  return df;
 }
 
 + (NSDate*) distantPast
 {
-  return [self dateWithTimeIntervalSinceReferenceDate: DISTANT_PAST];
+  static id dp = nil;
+  if (!dp)
+    dp = [[self alloc] initWithTimeIntervalSinceReferenceDate: DISTANT_PAST];
+  return dp;
 }
 
 - (id) init
