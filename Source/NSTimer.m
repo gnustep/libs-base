@@ -50,7 +50,7 @@ static Class	NSDate_class;
 {
   if (seconds <= 0)
     {
-      seconds = 0.001;
+      seconds = 0.0001;
     }
   _interval = seconds;
   _date = [[NSDate_class allocWithZone: [self zone]]

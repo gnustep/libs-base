@@ -45,22 +45,63 @@ extern BOOL sel_types_match(const char* t1, const char* t2);
 callframe_t *
 callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
 {
-  int i;
-  callframe_t *cframe;
+  unsigned      size = sizeof(callframe_t);
+  unsigned      align = __alignof(double);
+  unsigned      offset;
+  void          *buf;
+  int           i;
+  callframe_t   *cframe;
 
-  cframe = malloc(sizeof(callframe_t));
-  cframe->nargs = numargs;
+  if (numargs > 0)
+    {
+      if (size % align != 0)
+        {
+          size += align - (size % align);
+        }
+      offset = size;
+      size += numargs * sizeof(void*);
+      if (size % align != 0)
+        {
+          size += (align - (size % align));
+        }
+      for (i = 0; i < numargs; i++)
+        {
+          size += info[i+1].size;
+
+          if (size % align != 0)
+            {
+              size += (align - size % align);
+            }
+        }
+    }
+
+  cframe = buf = malloc(size);
   if (cframe)
     {
-      cframe->args = malloc(cframe->nargs * sizeof(void *));
+      cframe->nargs = numargs;
+      cframe->args = buf + offset;
+      offset += numargs * sizeof(void*);
+      if (offset % align != 0)
+        {
+          offset += align - (offset % align);
+        }
       for (i = 0; i < cframe->nargs; i++)
-	cframe->args[i] = malloc(info[i+1].size);
+        {
+          cframe->args[i] = buf + offset;
+
+          offset += info[i+1].size;
+
+          if (offset % align != 0)
+            {
+              offset += (align - offset % align);
+            }
+        }
     }
 
   if (retval)
     {
-      *retval = NSZoneMalloc(NSDefaultMallocZone(), 
-			    MAX(info[0].size, sizeof(smallret_t)) );
+      *retval = NSZoneMalloc(NSDefaultMallocZone(),
+                            MAX(info[0].size, sizeof(smallret_t)) );
     }
   return cframe;
 }
@@ -68,15 +109,6 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
 void
 callframe_free(callframe_t *cframe)
 {
-  int i;
-  for (i = 0; i < cframe->nargs; i++)
-    {
-      free(cframe->args[i]);
-      cframe->args[i] = 0;
-    }
-
-  cframe->nargs = 0;
-  free(cframe->args);
   free(cframe);
 }
 

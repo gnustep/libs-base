@@ -2,6 +2,12 @@
 
 	* Source/callframe.m: callframe_do_call_opts(),
 	callframe_build_return_opts() fixed memory leaks.
+	Performance improvements -
+	callframe_from_info() use a single malloc to allocate memory for
+	the entire callframe. callframe_free() use a single free()
+	* Source/NSConnection.m: Wait only 0.1 millisecond for first try
+	checking for events ... CPUs are getting faster.
+	* Source/NSTimer.m: Set minimum timer to 0.1 milliseconds ...
 
 2001-06-26  Adam Fedor  <fedor@gnu.org>
 
