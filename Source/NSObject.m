@@ -356,6 +356,20 @@ extraRefCount (id anObject)
   return (self == anObject);
 }
 
++ (BOOL) isKindOfClass: (Class)aClass
+{
+  Class class;
+
+  for (class = self; 
+       class != Nil;
+       class = class_get_super_class (class))
+    {
+      if (class == aClass)
+	return YES;
+    }
+  return NO;
+}
+
 - (BOOL) isKindOfClass: (Class)aClass
 {
   Class class;
@@ -368,6 +382,11 @@ extraRefCount (id anObject)
 	return YES;
     }
   return NO;
+}
+
++ (BOOL) isMemberOfClass: (Class)aClass
+{
+  return self == aClass;
 }
 
 - (BOOL) isMemberOfClass: (Class)aClass

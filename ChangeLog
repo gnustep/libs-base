@@ -1,3 +1,9 @@
+Fri Jun 19 13:37:37 1998  Adam Fedor  <fedor@doc.com>
+
+	* NSObject (+isKindOfClass:): New method (patch from Bruce Ide
+	<greyfox@greyfox.org>). 
+	(+isMemberOfClass): Likewise.
+
 Tue Jun 16 09:48:18 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/NSProtocolChecker.m, src/include/NSProtocolChecker.h: New files.
