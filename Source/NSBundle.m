@@ -109,6 +109,18 @@ static NSString* platform =
 #else
   nil;
 #endif
+static NSString* gnustep_target_dir = 
+#ifdef GNUSTEP_TARGET_DIR
+  @GNUSTEP_TARGET_DIR;
+#else
+  nil;
+#endif
+static NSString* library_combo = 
+#ifdef LIBRARY_COMBO
+  @LIBRARY_COMBO;
+#else
+  nil;
+#endif
 
 /* Declaration from find_exec.c */
 extern char *objc_find_executable(const char *name);
@@ -125,14 +137,20 @@ objc_executable_location( void )
 static NSString *
 bundle_object_name(NSString *path, NSString* executable)
 {
-    NSString *name;
+    NSString *name, *subpath;
 
     if (executable)
-      name = [path stringByAppendingPathComponent: executable];
+      {
+	subpath = [path stringByAppendingPathComponent: gnustep_target_dir];
+	subpath = [subpath stringByAppendingPathComponent: library_combo];
+	name = [subpath stringByAppendingPathComponent: executable];
+      }
     else
       {
 	name = [[path lastPathComponent] stringByDeletingPathExtension];
-	name = [path stringByAppendingPathComponent:name];
+	subpath = [path stringByAppendingPathComponent: gnustep_target_dir];
+	subpath = [subpath stringByAppendingPathComponent: library_combo];
+	name = [subpath stringByAppendingPathComponent:name];
       }
     return name;
 } 
@@ -482,8 +500,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
      <main bundle>/Resources/<bundlePath>/<language.lproj>
      <main bundle>/<bundlePath>
      <main bundle>/<bundlePath>/<language.lproj>
-     <$GNUSTEP_LIBRARY_PATH>/<bundlePath>
-     <$GNUSTEP_LIBRARY_PATH>/<bundlePath>/<language.lproj>
 */
 + (NSArray *) _bundleResourcePathsWithRootPath: (NSString *)rootPath
                                  subPath: (NSString *)bundlePath
@@ -510,18 +526,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   enumerate = [languages objectEnumerator];
   while ((language = [enumerate nextObject]))
     [array addObject: _bundle_resource_path(primary, bundlePath, language)];
-
-  /* Allow the GNUSTEP_LIBRARY_PATH environment variable be used
-     to find resources. */
-  gnustep_env = [envd objectForKey: @"GNUSTEP_LIBRARY_PATH"];
-  if (gnustep_env)
-    {
-      [array addObject: _bundle_resource_path(gnustep_env, bundlePath, nil)];
-      enumerate = [languages objectEnumerator];
-      while ((language = [enumerate nextObject]))
-	[array addObject: _bundle_resource_path(gnustep_env, 
-						bundlePath, language)];
-    }
 
   return array;
 }

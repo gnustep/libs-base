@@ -109,6 +109,12 @@ behavior_class_add_class (Class class, Class behavior)
     }
 #endif
 
+  if (behavior_debug)
+    {
+      fprintf(stderr, "Adding behavior to class %s\n",
+	      class->name);
+    }
+
   /* Add instance methods */
   if (behavior_debug)
     {

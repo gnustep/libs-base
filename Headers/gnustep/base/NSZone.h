@@ -74,23 +74,28 @@ extern void NSSetDefaultMallocZone (NSZone *zone); // Not in OpenStep
 extern NSZone* NSZoneFromPointer (void *ptr);
 
 extern inline void* NSZoneMalloc (NSZone *zone, size_t size)
-{ return (zone->malloc)(zone, size); }
+{ if (!zone) zone = NSDefaultMallocZone();
+return (zone->malloc)(zone, size); }
 
 extern void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
 
 extern inline void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
-{ return (zone->realloc)(zone, ptr, size); }
+{ if (!zone) zone = NSDefaultMallocZone();
+return (zone->realloc)(zone, ptr, size); }
 
 extern inline void NSRecycleZone (NSZone *zone)
-{ (zone->recycle)(zone); }
+{ if (!zone) zone = NSDefaultMallocZone();
+(zone->recycle)(zone); }
 
 extern inline void NSZoneFree (NSZone *zone, void *ptr)
-{ (zone->free)(zone, ptr); }
+{ if (!zone) zone = NSDefaultMallocZone();
+(zone->free)(zone, ptr); }
 
 extern void NSSetZoneName (NSZone *zone, NSString *name);
 
 extern inline NSString* NSZoneName (NSZone *zone)
-{ return zone->name; }
+{ if (!zone) zone = NSDefaultMallocZone();
+return zone->name; }
 
 /* Not in OpenStep */
 extern void NSZoneRegisterRegion (NSZone *zone, void *low, void *high);
@@ -103,10 +108,12 @@ extern void* NSZoneRegisterChunk (NSZone *zone, void *chunk);
 extern size_t NSZoneChunkOverhead (void); // Not in OpenStep
 
 extern inline BOOL NSZoneCheck (NSZone *zone) // Not in OpenStep
-{ return (zone->check)(zone); }
+{ if (!zone) zone = NSDefaultMallocZone();
+return (zone->check)(zone); }
 
 /* Not in OpenStep */
 extern inline struct NSZoneStats NSZoneStats (NSZone *zone)
-{ return (zone->stats)(zone); }
+{ if (!zone) zone = NSDefaultMallocZone();
+return (zone->stats)(zone); }
 
 #endif /* not __NSZone_h_GNUSTEP_BASE_INCLUDE */

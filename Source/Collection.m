@@ -221,8 +221,7 @@
 {
   if (self == anObject) 
     return YES;
-  if ([anObject class] == [self class]
-      && [self contentsEqual: anObject] )
+  if ( [self contentsEqual: anObject] )
     return YES;
   else
     return NO;

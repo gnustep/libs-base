@@ -26,15 +26,10 @@
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSDictionary.h>
 
-static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
-
-static NSString* gnustep_libdir =
-#ifdef GNUSTEP_INSTALL_LIBDIR
-  @GNUSTEP_INSTALL_LIBDIR;
-#else
-  nil;
-#endif
+static NSString* NSCharacterSet_PATH = @"gnustep/NSCharacterSets";
 
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 12
@@ -67,8 +62,37 @@ static NSLock* cache_lock = nil;
 + (NSCharacterSet *) _bitmapForSet: (NSString *)setname number: (int)number
 {
   NSCharacterSet* set;
-  NSString *path;
-  NSBundle *gstep_base_bundle = [NSBundle bundleWithPath: gnustep_libdir];
+  NSString *user_path, *local_path, *system_path;
+  NSBundle *user_bundle = nil, *local_bundle = nil, *system_bundle = nil;
+  NSProcessInfo *pInfo;
+  NSDictionary *env;
+  NSMutableString *user, *local, *system;
+
+  /*
+    The path of where to search for the resource files
+    is based upon environment variables.
+    GNUSTEP_USER_ROOT
+    GNUSTEP_LOCAL_ROOT
+    GNUSTEP_SYSTEM_ROOT
+    */
+  pInfo = [NSProcessInfo processInfo];
+  env = [pInfo environment];
+  user = [[[env objectForKey: @"GNUSTEP_USER_ROOT"]
+	    mutableCopy] autorelease];
+  [user appendString: @"/Libraries"];
+  local = [[[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]
+	    mutableCopy] autorelease];
+  [local appendString: @"/Libraries"];
+  system = [[[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
+	    mutableCopy] autorelease];
+  [system appendString: @"/Libraries"];
+
+  if (user)
+    user_bundle = [NSBundle bundleWithPath: user];
+  if (local)
+    local_bundle = [NSBundle bundleWithPath: local];
+  if (system)
+    system_bundle = [NSBundle bundleWithPath: system];
 
   if (!cache_lock)
     cache_lock = [NSLock new];
@@ -78,27 +102,76 @@ static NSLock* cache_lock = nil;
   if (cache_set[number] == nil)
     {
       NS_DURING
-	path = [gstep_base_bundle pathForResource:setname
-				  ofType:@"dat"
-				  inDirectory:NSCharacterSet_PATH];
-        /* This is for testing purposes only! Look in uninstalled dir */
-        if (path == nil || [path length] == 0)
+
+	/* Gather up the paths */
+	/* Search user first */
+	user_path = [user_bundle pathForResource:setname
+				 ofType:@"dat"
+				 inDirectory:NSCharacterSet_PATH];
+        /* Search local second */
+        local_path = [local_bundle pathForResource:setname
+				   ofType:@"dat"
+				   inDirectory:NSCharacterSet_PATH];
+	/* Search system last */
+	system_path = [system_bundle pathForResource:setname
+				     ofType:@"dat"
+				     inDirectory:NSCharacterSet_PATH];
+
+	/* Try to load the set from the user path */
+        set = nil;
+        if (user_path != nil && [user_path length] != 0)
 	  {
-	    path = [@"../NSCharacterSets" stringByAppendingPathComponent:
-		       setname];
-	    path = [path stringByAppendingPathExtension: @"dat"];
+	    NS_DURING
+	      /* Load the character set file */
+	      set = [self characterSetWithBitmapRepresentation: 
+			    [NSData dataWithContentsOfFile: user_path]];
+            NS_HANDLER
+              NSLog(@"Unable to read NSCharacterSet file %s",
+		    [user_path cString]);
+	      set = nil;
+            NS_ENDHANDLER
 	  }
 
-        if (path == nil || [path length] == 0)
+	/* If we don't have a set yet then check local path */
+	if (set == nil && local_path != nil && [local_path length] != 0)
+	  {
+	    NS_DURING
+	      /* Load the character set file */
+	      set = [self characterSetWithBitmapRepresentation: 
+			    [NSData dataWithContentsOfFile: local_path]];
+            NS_HANDLER
+              NSLog(@"Unable to read NSCharacterSet file %s",
+		    [local_path cString]);
+	      set = nil;
+            NS_ENDHANDLER
+	  }
+
+	/* Lastly if we don't have a set yet then check system path */
+	if (set == nil && system_path != nil && [system_path length] != 0)
+	  {
+	    NS_DURING
+	      /* Load the character set file */
+	      set = [self characterSetWithBitmapRepresentation: 
+			    [NSData dataWithContentsOfFile: system_path]];
+            NS_HANDLER
+              NSLog(@"Unable to read NSCharacterSet file %s",
+		    [system_path cString]);
+	      set = nil;
+            NS_ENDHANDLER
+	  }
+
+	/* If we didn't load a set then raise an exception */
+	if (!set)
 	  {
 	    [NSException raise:NSGenericException
-	      format:@"Could not find bitmap file %s", [setname cString]];
+			 format:@"Could not find bitmap file %s",
+			 [setname cString]];
 	    /* NOT REACHED */
 	  }
+	else
+	  /* Else cache the set */
+	  cache_set[number] = [set retain];
 
-        set = [self characterSetWithBitmapRepresentation: 
-	        [NSData dataWithContentsOfFile: path]];
-        cache_set[number] = [set retain];
       NS_HANDLER
 	[cache_lock unlock];
         [localException raise];

@@ -73,7 +73,7 @@ thread-except \
 nscharacterset \
 NSData-test
 
-# The Objective-C source files to be compiled
+# The tool Objective-C source files to be compiled
 test01_OBJC_FILES = test01.m
 test02_OBJC_FILES = test02.m
 heap_OBJC_FILES = heap.m
@@ -117,12 +117,21 @@ thread-except_OBJC_FILES = thread-except.m
 nscharacterset_OBJC_FILES = nscharacterset.m
 NSData-test_OBJC_FILES = NSData-test.m
 
+# The bundles to be compiled
+BUNDLE_NAME=LoadMe
+
+# The bundle Objective-C source files to be compiled
+LoadMe_OBJC_FILES = LoadMe.m MyCategory.m SecondClass.m
+
+# The bundle resource files and directories
+LoadMe_RESOURCES = English.lproj/NXStringTable.example
+LoadMe_RESOURCE_DIRS = English.lproj
+
 SRCS = $(TOOL_NAME:=.m)
 
 HDRS = \
 server.h
 
-BUNDLE_NAME=LoadMe
 DYNAMIC_MFILES = \
 LoadMe.m \
 MyCategory.m \
@@ -139,5 +148,6 @@ DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
 -include Makefile.preamble
 
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/tool.make
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/bundle.make
 
 -include Makefile.postamble

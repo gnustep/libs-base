@@ -71,7 +71,7 @@
 #endif
 
 /* Directory that contains the time zone data. */
-#define TIME_ZONE_DIR GNUSTEP_INSTALL_LIBDIR "/NSTimeZones/"
+#define TIME_ZONE_DIR "NSTimeZones/"
 
 /* Location of time zone abbreviation dictionary.  It is a text file
    with each line comprised of the abbreviation, a whitespace, and the

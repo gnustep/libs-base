@@ -14,7 +14,7 @@ main()
   id o1, o2, o3;
   unsigned int p;
 
-  behavior_set_debug(1);
+  behavior_set_debug(0);
 
   [NSAutoreleasePool enableDoubleReleaseCheck:YES];
   pool = [[NSAutoreleasePool alloc] init];

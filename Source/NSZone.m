@@ -1228,6 +1228,8 @@ NSZoneFromPointer (void *ptr)
 inline void*
 NSZoneMalloc (NSZone *zone, size_t size)
 {
+  if (!zone)
+    zone = NSDefaultMallocZone();
   return (zone->malloc)(zone, size);
 }
 
@@ -1240,18 +1242,24 @@ NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
 inline void*
 NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
 {
+  if (!zone)
+    zone = NSDefaultMallocZone();
   return (zone->realloc)(zone, ptr, size);
 }
 
 inline void
 NSRecycleZone (NSZone *zone)
 {
+  if (!zone)
+    zone = NSDefaultMallocZone();
   (zone->recycle)(zone);
 }
 
 inline void
 NSZoneFree (NSZone *zone, void *ptr)
 {
+  if (!zone)
+    zone = NSDefaultMallocZone();
   (zone->free)(zone, ptr);
 }
 
@@ -1259,6 +1267,8 @@ void
 NSSetZoneName (NSZone *zone, NSString *name)
 {
   /* FIXME: Not thread safe.  But will it matter? */
+  if (!zone)
+    zone = NSDefaultMallocZone();
   if (zone->name != nil)
     [zone->name release];
   if (name == nil)
@@ -1270,6 +1280,8 @@ NSSetZoneName (NSZone *zone, NSString *name)
 inline NSString*
 NSZoneName (NSZone *zone)
 {
+  if (!zone)
+    zone = NSDefaultMallocZone();
   return zone->name;
 }
 
@@ -1293,6 +1305,8 @@ NSZoneRegisterChunk (NSZone *zone, void *chunk)
 {
   NSZone **zoneptr = chunk;
 
+  if (!zone)
+    zone = NSDefaultMallocZone();
   *zoneptr = zone;
   return zoneptr+1;
 }
@@ -1308,6 +1322,8 @@ NSZoneChunkOverhead (void)
 inline BOOL
 NSZoneCheck (NSZone *zone)
 {
+  if (!zone)
+    zone = NSDefaultMallocZone();
   return (zone->check)(zone);
 }
 
@@ -1315,5 +1331,7 @@ NSZoneCheck (NSZone *zone)
 inline struct NSZoneStats
 NSZoneStats (NSZone *zone)
 {
+  if (!zone)
+    zone = NSDefaultMallocZone();
   return (zone->stats)(zone);
 }

@@ -7,6 +7,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGeometry.h>
+#include <Foundation/NSArray.h>
 
 
 int main()
@@ -14,11 +15,15 @@ int main()
     NSPoint p;
     NSRect rect;
     NSValue *v1, *v2;
-    NSNumber *n1, *n2;
+    NSNumber *n1, *n2, *n3, *n4, *n5;
+    NSArray *a1, *a2;
 
     // Numbers
     n1 = [NSNumber numberWithUnsignedShort:30];
     n2 = [NSNumber numberWithDouble:2.7];
+    n3 = [NSNumber numberWithDouble:30];
+    n4 = [NSNumber numberWithChar:111];
+    n5 = [NSNumber numberWithChar:111];
     printf("Number(n1) as int %d, as float %f\n", 
 		[n1 intValue], [n1 floatValue]);
     printf("n1 times n2=%f as int to get %d\n", 
@@ -26,7 +31,34 @@ int main()
     printf("n2 as string: %s\n", [[n2 stringValue] cString]);
     printf("n2 compare:n1 is %d\n", [n2 compare:n1]);
     printf("n1 compare:n2 is %d\n", [n1 compare:n2]);
+    printf("n1 isEqual:n3 is %d\n", [n1 isEqual:n3]);
+    printf("n4 isEqual:n5 is %d\n", [n4 isEqual:n5]);    
 
+    a1 = [NSArray arrayWithObjects:
+		      [NSNumber numberWithChar: 111],
+		    [NSNumber numberWithUnsignedChar: 112],
+		    [NSNumber numberWithShort: 121],
+		    [NSNumber numberWithUnsignedShort: 122],
+		    [NSNumber numberWithInt: 131],
+		    [NSNumber numberWithUnsignedInt: 132],
+		    [NSNumber numberWithInt: 141],
+		    [NSNumber numberWithUnsignedInt: 142],
+		    [NSNumber numberWithFloat: 151],
+		    [NSNumber numberWithDouble: 152], nil];
+
+    a2 = [NSArray arrayWithObjects:
+		   [NSNumber numberWithChar: 111],
+		   [NSNumber numberWithUnsignedChar: 112],
+		   [NSNumber numberWithShort: 121],
+		   [NSNumber numberWithUnsignedShort: 122],
+		   [NSNumber numberWithInt: 131],
+		   [NSNumber numberWithUnsignedInt: 132],
+		   [NSNumber numberWithInt: 141],
+		   [NSNumber numberWithUnsignedInt: 142],
+		   [NSNumber numberWithFloat: 151],
+		   [NSNumber numberWithDouble: 152], nil];
+
+    printf("a1 isEqual:a2 is %d\n", [a1 isEqual:a2]);    
 
     // Test values, Geometry
     rect = NSMakeRect(1.0, 103.3, 40.0, 843.);

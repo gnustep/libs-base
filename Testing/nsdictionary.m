@@ -9,6 +9,7 @@ main()
   id enumerator;
   id objects, keys;
   id key;
+  BOOL ok;
 
   behavior_set_debug(0);
 
@@ -38,6 +39,10 @@ main()
 
   b = [a mutableCopy];
   assert([b count]);
+
+  ok = [b isEqual: a];
+  assert(ok);
+
   [b setObject:@"formi" forKey:@"ant"];
   [b removeObjectForKey:@"horse"];
 
