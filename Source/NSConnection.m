@@ -259,7 +259,7 @@ static unsigned local_object_counter = 0;
 
 
 /* class defaults */
-static NSTimer		*timer;
+static NSTimer		*timer = nil;
 
 static BOOL cacheCoders = NO;
 static int debug_connection = 0;
@@ -3149,6 +3149,7 @@ static void callEncoder (DOContext *ctxt)
 	  if (0)
 	    {
 	      id	item;
+
 	      if (timer == nil)
 		{
 		  timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
