@@ -577,6 +577,22 @@ method_types_get_next_argument (arglist_t argf, const char **type)
     }
 }
 
+char*
+method_types_get_first_argument (struct objc_method* m,
+                           arglist_t argframe,
+                           const char** type)
+{
+  *type = m->method_types;
+  return method_get_next_argument (argframe, type);
+}
+
+int
+method_types_get_sizeof_arguments (struct objc_method* mth)
+{
+  const char* type = objc_skip_typespec (mth->method_types);
+  return atoi (type);
+}
+
 
 /* mframe_dissect_call()
 

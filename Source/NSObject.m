@@ -780,7 +780,7 @@ static BOOL deallocNotifications = NO;
     }
   if (types == 0)
     {
-      types = aSelector->sel_types;
+      types = sel_get_type(aSelector);
     }
   if (types == 0)
     {
@@ -2332,9 +2332,11 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 + (int) streamVersion: (TypedStream*)aStream
 {
+#ifndef NeXT_RUNTIME
   if (aStream->mode == OBJC_READONLY)
     return objc_get_stream_class_version (aStream, self);
   else
+#endif
     return class_get_version (self);
 }
 

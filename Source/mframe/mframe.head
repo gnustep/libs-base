@@ -125,3 +125,11 @@ mframe_destroy_argframe(const char *types, arglist_t argframe);
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \
      __a*((__v+__a-1)/__a); })
 
+
+int method_types_get_sizeof_arguments (struct objc_method* mth);
+char* method_types_get_next_argument (arglist_t argf, const char **type);
+char* method_types_get_first_argument (struct objc_method* m,
+                           arglist_t argframe,
+                           const char** type);
+
+

@@ -25,6 +25,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <base/preface.h>
+#include "mframe.h"
 
 #ifndef ROUND
 #define ROUND(V, A) \
@@ -445,7 +446,33 @@ sel_types_match (const char* t1, const char* t2)
   return NO;
 }
 
+id next_objc_msg_sendv(id object, SEL op, void* frame)
+{
+  arglist_t  argFrame = __builtin_apply_args();
+  Method     *m       = class_get_instance_method(object->class_pointer, op);
+  const char *type;
+  void       *result;
 
+  argFrame->arg_ptr = frame;
+  *((id*)method_types_get_first_argument (m, argFrame, &type)) = object;
+  *((SEL*)method_types_get_next_argument (argFrame, &type)) = op;
+  result = __builtin_apply((apply_t)m->method_imp,
+                           argFrame,
+                           method_get_sizeof_arguments (m));
+
+#if !defined(BROKEN_BUILTIN_APPLY) && defined(i386)
+    /* Special hack to avoid pushing the poped float value back to the fp
+       stack on i386 machines. This happens with NeXT runtime and 2.7.2
+       compiler. If the result value is floating point don't call
+       __builtin_return anymore. */
+    if(*m->method_types == _C_FLT || *m->method_types == _C_DBL) {
+        long double value = *(long double*)(((char*)result) + 8);
+        asm("fld %0" : : "f" (value));
+    }
+    else
+#endif
+  __builtin_return(result);
+}
 
 /*
 ** Hook functions for memory allocation and disposal.

@@ -1,3 +1,12 @@
+2001-08-28  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h: More defs.
+	* Source/NSObject.m (-methodSignatureForSelector:): Use sel_get_type.
+
+	* Source/mframe.m (method_types_get_first_argument): New function.
+	(method_types_get_sizeof_arguments): Likewise.
+	* Source/objc-gnu2next.m (next_objc_msg_sendv): Use them.
+	
 2001-08-21  Willem Rein Oudshoorn  <woudshoo@xs4all.nl>
 
 	* Source/GSFFCallInvocation.m: Clearified comments

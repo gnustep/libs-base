@@ -47,7 +47,9 @@ typedef struct objc_super Super;
 #define class_get_instance_method	class_getInstanceMethod
 #define class_get_class_method 		class_getClassMethod
 #define class_add_method_list		class_addMethods
+#define class_set_version		class_setVersion
 #define class_get_version		class_getVersion
+#define class_pose_as			class_poseAs
 #define method_get_sizeof_arguments	method_getSizeOfArguments
 #define objc_lookup_class		objc_lookUpClass
 #define objc_get_class			objc_getClass
@@ -71,13 +73,13 @@ typedef struct objc_super Super;
     (((struct objc_class*)(OBJECT))->isa)
 #define class_get_super_class(CLASSPOINTER) \
     (((struct objc_class*)(CLASSPOINTER))->super_class)
-#define object_get_super_class(OBJ) \
+#define object_get_super_class(OBJECT) \
     (((struct objc_class*)(object_get_class(OBJECT)))->super_class)
 #define object_get_class_name(OBJECT) \
      (((struct objc_class*)(object_get_class(OBJECT)))->name)
 
 #define __objc_responds_to(OBJECT,SEL) \
-    class_getInstanceMethod(object_get_class(OBJECT), SEL)
+    (class_getInstanceMethod(object_get_class(OBJECT), SEL) != METHOD_NULL)
 #define CLS_ISCLASS(CLASSPOINTER) \
     ((((struct objc_class*)(CLASSPOINTER))->info) & CLS_CLASS)
 #define CLS_ISMETA(CLASSPOINTER) \
@@ -87,6 +89,9 @@ typedef struct objc_super Super;
 #define objc_msg_lookup_super(OBJ,SEL) \
     (class_getInstanceMethod(object_get_class(OBJ), SEL)->method_imp)
 
+#define objc_msg_sendv                  next_objc_msg_sendv
+
+extern id next_objc_msg_sendv(id self, SEL op, void* arg_frame);
 
 #define OBJC_READONLY 1
 #define OBJC_WRITEONLY 2
@@ -119,6 +124,18 @@ static inline BOOL
 class_is_class(Class class)
 {
   return CLS_ISCLASS(class);
+}
+
+static inline BOOL
+object_is_class(id object)
+{
+  return CLS_ISCLASS((Class)object);
+}
+
+static inline long
+class_get_instance_size(Class class)
+{
+  return CLS_ISCLASS(class)?class->instance_size:0;
 }
 
 static inline IMP
