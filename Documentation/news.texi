@@ -18,6 +18,10 @@ The currently released version of the library is
 classes NSGSet, NSGMutableSet, NSGCountedSet.  New test program nsset.m.
 New class NSMethodSignature.
 
+@item Running './configure' and building the library in a different
+directory than the source works as it should, according to the GNU
+standard. 
+
 @item Dynamic loading fixes for Solaris, thanks to Adam Fedor.
 
 @item Fixes to Coder correct bugs with encoding/decoding wildly
