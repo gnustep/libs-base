@@ -1,5 +1,7 @@
 2001-05-03  Adam Fedor  <fedor@gnu.org>
 
+	* configure.in: Don't use -lobjc with NeXT_RUNTIME. Check for -lm.
+
 	* Headers/gnustep/base/objc-gnu2next.h: Add sel_register_name
 	* Source/behavior.m: Add define hacks for Darwin.
 
