@@ -1,10 +1,11 @@
 /** NSHashTable implementation for GNUStep.
- * Copyright (C) 1994, 1995, 1996, 1997  Free Software Foundation, Inc.
+ * Copyright (C) 1994, 1995, 1996, 1997, 2002  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:54:09 EST 1994
  * Updated: Mon Mar 11 01:48:31 EST 1996
  * Serial: 96.03.11.06
+ * Rewrite by: Richard Frith-Macdonald <rfm@gnu.org>
  * 
  * This file is part of the GNUstep Base Library.
  * 
@@ -21,9 +22,9 @@
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-
-   <title>NSHashTable class reference</title>
-   $Date$ $Revision$
+ *
+ * <title>NSHashTable class reference</title>
+ * $Date$ $Revision$
  */ 
 
 /**** Included Headers *******************************************************/
@@ -34,335 +35,350 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHashTable.h>
-#include <base/o_hash.h>
 #include "NSCallBacks.h"
 
-/** Macros... **/
 
-#define NSHT_CALLBACKS(T) \
-  (*((NSHashTableCallBacks *)(o_hash_extra((o_hash_t *)(T)))))
+#define GSI_NEW 1
+/*
+ *      The 'Fastmap' stuff provides an inline implementation of a hash
+ *      table - for maximum performance.
+ */
+#define GSI_MAP_HAS_VALUE	0
+#define GSI_MAP_EXTRA           NSHashTableCallBacks
+#define GSI_MAP_KTYPES          GSUNION_PTR
+#define GSI_MAP_HASH(M, X)\
+ (M->extra.hash)((NSHashTable*)M, X.ptr)
+#define GSI_MAP_EQUAL(M, X, Y)\
+ (M->extra.isEqual)((NSHashTable*)M, X.ptr, Y.ptr)
+#define GSI_MAP_RELEASE_KEY(M, X)\
+ (M->extra.release)((NSHashTable*)M, X.ptr)
+#define GSI_MAP_RETAIN_KEY(M, X)\
+ (M->extra.retain)((NSHashTable*)M, X.ptr)
+#define GSI_MAP_ENUMERATOR	NSHashEnumerator
 
-#define NSHT_DESCRIBE(T, P) \
-  (NSHT_CALLBACKS((T))).describe((T), (P))
+#include <base/GSIMap.h>
 
-/** Dummy callbacks... **/
-
-size_t
-_NSHT_hash(const void *element, NSHashTable *table)
-{
-  return (NSHT_CALLBACKS(table)).hash((NSHashTable *)table, element);
-}
-
-int
-_NSHT_compare(const void *element1, const void *element2, NSHashTable *table)
-{
-  return !((NSHT_CALLBACKS(table)).isEqual(table, element1, element2));
-}
-
-int
-_NSHT_is_equal(const void *element1, const void *element2, NSHashTable *table)
-{
-  return (NSHT_CALLBACKS(table)).isEqual(table, element1, element2);
-}
-
-const void *
-_NSHT_retain(const void *element, NSHashTable *table)
-{
-  /* OpenStep (unlike we) does not allow for the possibility of
-   * substitution upon retaining. */
-  (NSHT_CALLBACKS(table)).retain(table, element);
-  return element;
-}
-
-void
-_NSHT_release(void *element, NSHashTable *table)
-{
-  (NSHT_CALLBACKS(table)).release(table, element);
-  return;
-}
-
-NSString *
-_NSHT_describe(const void *element, const void *table)
-{
-  return ((NSHT_CALLBACKS(table)).describe((NSHashTable *)table, element));
-}
-
-/* These are wrappers for getting at the real callbacks. */
-o_callbacks_t _NSHT_callbacks = 
-{
-  (o_hash_func_t) _NSHT_hash,
-  (o_compare_func_t) _NSHT_compare,
-  (o_is_equal_func_t) _NSHT_is_equal,
-  (o_retain_func_t) _NSHT_retain,
-  (o_release_func_t) _NSHT_release,
-  (o_describe_func_t) _NSHT_describe,
-  0 /* Note that OpenStep decrees that '0' is the (only) forbidden value. */
-};
-
-/** Extra, extra **/
-
-/* Make a copy of a hash table's callbacks. */
-const void *
-_NSHT_extra_retain (const NSHashTableCallBacks *callBacks, NSHashTable *table)
-{
-  /* A pointer to some new callbacks. */
-  NSHashTableCallBacks *newCallBacks;
-
-  /* Set aside space for our new callbacks in the right zone. */
-  newCallBacks = (NSHashTableCallBacks *)NSZoneMalloc(o_hash_zone(table),
-                                                 sizeof(NSHashTableCallBacks));
-
-  /* FIXME: Check for an invalid pointer? */
-
-  /* Copy CALLBACKS into NEWCALLBACKS. */
-  *newCallBacks = *callBacks;
-
-  /* Return our new callbacks. */
-  return (const void *) newCallBacks;
-}
-
-void
-_NSHT_extra_release(NSHashTableCallBacks *callBacks, NSHashTable *table)
-{
-  if (callBacks != 0)
-    NSZoneFree(o_hash_zone(table), callBacks);
-
-  return;
-}
-
-NSString *
-_NSHT_extra_describe(NSHashTableCallBacks *callBacks, NSHashTable *table)
-{
-  /* FIXME: Code this. */
-  return nil;
-}
-
-/* The idea here is that these callbacks ensure that the
- * NSHashTableCallbacks which are associated with a given NSHashTable
- * remain so associated throughout the life of the table and its copies. */
-o_callbacks_t _NSHT_extra_callbacks = 
-{
-  (o_hash_func_t) o_non_owned_void_p_hash,
-  (o_compare_func_t) o_non_owned_void_p_compare,
-  (o_is_equal_func_t) o_non_owned_void_p_is_equal,
-  (o_retain_func_t) _NSHT_extra_retain,
-  (o_release_func_t) _NSHT_extra_release,
-  (o_describe_func_t) _NSHT_extra_describe,
-  0
-};
-
-/**** Function Implementations ***********************************************/
-
-/** Creating NSHashTables **/
-
-inline NSHashTable *
-NSCreateHashTableWithZone(NSHashTableCallBacks callBacks,
-                          unsigned int capacity,
-                          NSZone *zone)
-{
-  NSHashTable *table;
-
-  /* Build the core table.  See the above for the definitions of
-   * the funny callbacks. */
-  table = o_hash_with_zone_with_callbacks(zone, _NSHT_callbacks);
-
-  /* Check to make sure our allocation has succeeded. */
-  if (table != 0)
-  {
-    /* Resize TABLE to CAPACITY. */
-    o_hash_resize(table, capacity);
-
-    /* Add CALLBACKS to TABLE.  This takes care of everything for us. */
-    o_hash_set_extra_callbacks(table, _NSHT_extra_callbacks);
-    o_hash_set_extra(table, &callBacks);
-  }
-
-  /* Yah-hoo, kid! */
-  return table;
-}
-
-NSHashTable *
-NSCreateHashTable(NSHashTableCallBacks callBacks,
-		  unsigned int capacity)
-{
-  return NSCreateHashTableWithZone(callBacks, capacity, NSDefaultMallocZone());
-}
-
-/** Copying **/
-
-NSHashTable *
-NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
-{
-  /* Due to the wonders of modern structure technology,
-   * everything we care about is automagically and safely destroyed. */
-  return o_hash_copy_with_zone(table, zone);
-}
-
-/** Destroying **/
-
-void
-NSFreeHashTable(NSHashTable *table)
-{
-  /* Due to the wonders of modern technology,
-   * everything we care about is automagically and safely destroyed. */
-  o_hash_dealloc(table);
-  return;
-}
-
-/** Resetting **/
-
-void
-NSResetHashTable(NSHashTable *table)
-{
-  o_hash_empty(table);
-  return;
-}
-
-/** Comparing **/
-
-BOOL
-NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
-{
-  return (o_hash_is_equal_to_hash(table1, table2) ? YES : NO);
-}
-
-/** Counting **/
-
-unsigned int
-NSCountHashTable(NSHashTable *table)
-{
-  return (unsigned int) o_hash_count(table);
-}
-
-/** Retrieving **/
-
-void *
-NSHashGet(NSHashTable *table, const void *pointer)
-{
-  /* Just make the call.  You know the number. */
-  return (void *) o_hash_element(table, pointer);
-}
-
+/**
+ * Returns an array of all the objects in the table.
+ * NB. The table <em>must</em> contain objects, not pointers or integers.
+ */
 NSArray *
-NSAllHashTableObjects (NSHashTable *table)
+NSAllHashTableObjects(NSHashTable *table)
 {
-  NSMutableArray *array;
-  NSHashEnumerator enumerator;
-  id element;
+  NSMutableArray	*array;
+  NSHashEnumerator	enumerator;
+  id			element;
 
-  /* FIXME: We should really be locking TABLE somehow, to insure
-   * the thread-safeness of this method. */
-
-  /* Get us a mutable array with plenty of space. */
-  array = [NSMutableArray arrayWithCapacity:NSCountHashTable(table)];
+  array = [NSMutableArray arrayWithCapacity: NSCountHashTable(table)];
 
   /* Get an enumerator for TABLE. */
   enumerator = NSEnumerateHashTable(table);
 
   while ((element = NSNextHashEnumeratorItem(&enumerator)) != 0)
-    [array addObject:element];
-
-  /* ARRAY is already autoreleased. */
-  return (NSArray *) array;
+    {
+      [array addObject: element];
+    }
+  return array;
 }
 
-/** Enumerating **/
+/**
+ * Compares the two hash tables for equality.
+ * If the tables are different sizes, returns NO.
+ * Otherwise, compares the values in the two tables
+ * and returns NO if they differ.<br />
+ * The GNUstep implementation enumerates the values in table1
+ * and uses the hash and isEqual functions of table2 for comparison.
+ */
+BOOL
+NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
+{
+  GSIMapTable   t1 = (GSIMapTable)table1;
+  GSIMapTable   t2 = (GSIMapTable)table2;
 
+  if (t1->nodeCount != t2->nodeCount)
+    {
+      return NO;
+    }
+  else
+    {
+      GSIMapNode        n = t1->firstNode;
+
+	while (n != 0)
+	  {
+          if (GSIMapNodeForKey(t2, n->key) == 0)
+            {
+              return NO;
+            }
+          n = n->nextInMap;
+        }
+      return YES;
+    }
+}
+
+/**
+ * Copy the supplied map table creating the new table in the specified zone.
+ */
+NSHashTable *
+NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
+{
+  GSIMapTable   t;
+  GSIMapNode    n;
+
+  t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
+  t->extra = ((GSIMapTable)table)->extra;
+  n = ((GSIMapTable)table)->firstNode;
+  while (n != 0)
+    {
+      GSIMapAddKey(t, n->key);
+      n = n->nextInMap;
+    }
+
+  return (NSHashTable*)t;
+}
+
+/**
+ * Returns the number of objects in the table.
+ */
+unsigned int
+NSCountHashTable(NSHashTable *table)
+{
+  return ((GSIMapTable)table)->nodeCount;
+}
+
+/**
+ * Create a new hash table by calling NSCreateHashTableWithZone() using
+ * NSDefaultMallocZone().
+ */
+NSHashTable *
+NSCreateHashTable(
+  NSHashTableCallBacks callBacks,
+  unsigned int capacity)
+{
+  return NSCreateHashTableWithZone(callBacks, capacity, NSDefaultMallocZone());
+}
+
+/**
+ * Create a new hash table using the supplied callbacks structure.
+ * If any functions in the callback structure is null the default
+ * values are used ... as for non-owned pointers.
+ * The table will be created with the specified capacity ... ie ready
+ * to hold at lest that many items.
+ */
+NSHashTable *
+NSCreateHashTableWithZone(
+  NSHashTableCallBacks callBacks,
+  unsigned int capacity,
+  NSZone *zone)
+{
+  GSIMapTable	table;
+
+  table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(table, zone, capacity);
+  table->extra = callBacks;
+
+  if (table->extra.hash == 0)
+    table->extra.hash = NSNonOwnedPointerHashCallBacks.hash;
+  if (table->extra.isEqual == 0)
+    table->extra.isEqual = NSNonOwnedPointerHashCallBacks.isEqual;
+  if (table->extra.retain == 0)
+    table->extra.retain = NSNonOwnedPointerHashCallBacks.retain;
+  if (table->extra.release == 0)
+    table->extra.release = NSNonOwnedPointerHashCallBacks.release;
+  if (table->extra.describe == 0)
+    table->extra.describe = NSNonOwnedPointerHashCallBacks.describe;
+
+  return (NSHashTable*)table;
+}
+
+/**
+ * Function to be called when finished with the enumerator.
+ * Not required in GNUstep ... just provided for MacOS-X compatibility.
+ */
+void
+NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
+{
+}
+
+/**
+ * Return an enumerator for stepping through a map table using the
+ * NSNextHashEnumeratorPair() function.
+ */
 NSHashEnumerator
 NSEnumerateHashTable(NSHashTable *table)
 {
-  return o_hash_enumerator_for_hash(table);
+  return GSIMapEnumeratorForMap((GSIMapTable)table);
 }
 
+/**
+ * Destroy the hash table and relase its contents.
+ */
+void
+NSFreeHashTable(NSHashTable *table)
+{
+  NSZone        *z = ((GSIMapTable)table)->zone;
+
+  GSIMapEmptyMap((GSIMapTable)table);
+  NSZoneFree(z, table);
+}
+
+/**
+ * Returns the value for the specified element, or a nul pointer if the
+ * element is not found in the table.
+ */
 void *
-NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
+NSHashGet(NSHashTable *table, const void *element)
 {
-  const void *element;
+  GSIMapNode    n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)element);
 
-  /* Grab the next element. */
-  o_hash_enumerator_next_element(enumerator, &element);
-
-  /* Return ELEMENT. */
-  return (void *) element;
-}
-
-/** Adding **/
-
-void
-NSHashInsert(NSHashTable *table, const void *pointer)
-{
-  /* Place POINTER in TABLE. */
-  o_hash_add_element(table, pointer);
-
-  /* OpenStep doesn't care for any return value, so... */
-  return;
-}
-
-void
-NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
-{
-  if (o_hash_contains_element(table, element))
-  {
-    /* FIXME: I should make this give the user/programmer more
-     * information.  Not difficult to do, just something for a later
-     * date. */
-    [NSException raise:NSInvalidArgumentException
-                 format:@"NSHashTable: illegal reinsertion of: %@",
-                 NSHT_DESCRIBE(table, element)];
-  }
+  if (n == 0)
+    {
+      return 0;
+    }
   else
-  {
-    o_hash_add_element_known_absent(table, element);
-  }
-
-  /* OpenStep doesn't care for any return value, so... */
-  return;
+    {
+      return n->key.ptr;
+    }
 }
 
+/**
+ * Adds the element to table.<br />
+ * If an equal element is already in table, replaces it with the new one.<br />
+ * If element is nul raises an NSInvalidArgumentException.
+ */
+void
+NSHashInsert(NSHashTable *table, const void *element)
+{
+  GSIMapTable   t = (GSIMapTable)table;
+
+  if (element == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place nul in hash table"];
+    }
+  GSIMapAddKey(t, (GSIMapKey)element);
+}
+
+/**
+ * Adds the element to table and returns nul.<br />
+ * If an equal element is already in table, returns the old element
+ * instead of adding the new one.<br />
+ * If element is nul, raises an NSInvalidArgumentException.
+ */
 void *
 NSHashInsertIfAbsent(NSHashTable *table, const void *element)
 {
-  const void *old_element;
+  GSIMapTable   t = (GSIMapTable)table;
+  GSIMapNode    n;
 
-  /* Place ELEMENT in TABLE. */
-  old_element = o_hash_add_element_if_absent(table, element);
-
-  /* Return the version of ELEMENT in TABLE now. */
-  return (void *) old_element;
+  if (element == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place nul in hash table"];
+    }
+  n = GSIMapNodeForKey(t, (GSIMapKey)element);
+  if (n == 0)
+    {
+      GSIMapAddKey(t, (GSIMapKey)element);
+      return 0;
+    }
+  else
+    {
+      return n->key.ptr;
+    }
 }
 
-/** Removing **/
+/**
+ * Adds the element to table and returns nul.<br />
+ * If an equal element is already present, raises NSInvalidArgumentException.
+ * <br />If element is nul raises an NSInvalidArgumentException.
+ */
+void
+NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
+{
+  GSIMapTable   t = (GSIMapTable)table;
+  GSIMapNode    n;
 
+  if (element == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place nul in hash table"];
+    }
+  n = GSIMapNodeForKey(t, (GSIMapKey)element);
+  if (n == 0)
+    {
+      GSIMapAddKey(t, (GSIMapKey)element);
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSHashInsertKnownAbsent ... element not absent"];
+    }
+}
+
+/**
+ * Remove the specified element from the table.
+ */
 void
 NSHashRemove(NSHashTable *table, const void *element)
 {
-  /* Remove ELEMENT from TABLE. */
-  o_hash_remove_element(table, element);
-
-  /* OpenStep doesn't care about return values here, so... */
-  return;
+  GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)element);
 }
 
-/** Describing **/
+/**
+ * Step through the hash table ... return the next item or
+ * return nulif we hit the of the table.
+ */
+void *
+NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
+{
+  GSIMapNode    n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
+ 
+  if (n == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      return n->key.ptr;
+    }
+}
 
+/**
+ * Empty the hash table, but preserve its capacity.
+ */
+void
+NSResetHashTable(NSHashTable *table)
+{
+  GSIMapCleanMap((GSIMapTable)table);
+}
+
+/**
+ * Returns a string describing the table contents.<br />
+ * For each item, a string of the form "value;\n"
+ * is appended.  The appropriate describe function is used to generate
+ * the strings for each item.
+ */
 NSString *
 NSStringFromHashTable(NSHashTable *table)
 {
-  NSMutableString *string;
-  NSHashEnumerator enumerator;
-  const void *pointer;
+  GSIMapTable		t = (GSIMapTable)table;
+  NSMutableString	*string;
+  NSHashEnumerator	enumerator;
+  const void		*element;
 
   /* This will be our string. */
-  string = [NSMutableString stringWithCapacity:0];
+  string = [NSMutableString stringWithCapacity: 0];
 
   /* Get an enumerator for TABLE. */
   enumerator = NSEnumerateHashTable(table);
 
   /* Iterate over the elements of TABLE, appending the description of
    * each to the mutable string STRING. */
-  while ((pointer = NSNextHashEnumeratorItem(&enumerator)) != 0)
-    [string appendFormat:@"%@;\n", NSHT_DESCRIBE(table, pointer)];
-
-  /* STRING is already autoreleased. */
-  return (NSString *) string;
+  while ((element = NSNextHashEnumeratorItem(&enumerator)) != 0)
+    {
+      [string appendFormat: @"%@;\n", (t->extra.describe)(table, element)];
+    }
+  return string;
 }
+

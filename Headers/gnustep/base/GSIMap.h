@@ -198,12 +198,10 @@
 typedef struct _GSIMapTable GSIMapTable_t;
 typedef struct _GSIMapBucket GSIMapBucket_t;
 typedef struct _GSIMapNode GSIMapNode_t;
-typedef struct _GSIMapEnumerator GSIMapEnumerator_t;
 
 typedef GSIMapTable_t *GSIMapTable;
 typedef GSIMapBucket_t *GSIMapBucket;
 typedef GSIMapNode_t *GSIMapNode;
-typedef GSIMapEnumerator_t *GSIMapEnumerator;
 
 struct	_GSIMapNode {
   GSIMapNode	nextInBucket;	/* Linked list of bucket.	*/
@@ -233,10 +231,16 @@ struct	_GSIMapTable {
 #endif
 };
 
+#ifdef	GSI_MAP_ENUMERATOR
+typedef GSI_MAP_ENUMERATOR	GSIMapEnumerator_t;
+#else
 struct	_GSIMapEnumerator {
   GSIMapTable	map;		/* the map being enumerated.	*/
   GSIMapNode	node;		/* The next node to use.	*/
 };
+typedef struct _GSIMapEnumerator GSIMapEnumerator_t;
+#endif
+typedef GSIMapEnumerator_t *GSIMapEnumerator;
 
 static INLINE GSIMapBucket
 GSIMapPickBucket(unsigned hash, GSIMapBucket buckets, size_t bucketCount)
@@ -772,7 +776,7 @@ GSIMapCleanMap(GSIMapTable map)
 	{
 	  GSIMapNode	node = bucket->firstNode;
 
-	  GSIMapRemoveNodeFromBucket(bucket, node);
+	  GSIMapRemoveNodeFromMap(map, bucket, node);
 	  GSIMapFreeNode(map, node);
 	}
       bucket++;

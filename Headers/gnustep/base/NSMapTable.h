@@ -1,10 +1,11 @@
 /* NSMapTable interface for GNUStep.
- * Copyright (C) 1994, 1995, 1996  Free Software Foundation, Inc.
+ * Copyright (C) 1994, 1995, 1996, 2002  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Tue Dec 13 00:05:02 EST 1994
  * Updated: Thu Mar 21 15:12:42 EST 1996
  * Serial: 96.03.21.05
+ * Modified by: Richard Frith-Macdonald <rfm@gnu.org>
  * 
  * This file is part of the GNUstep Base Library.
  * 
@@ -30,15 +31,19 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
-#include <base/o_map.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-/* Map table type. */
-typedef o_map_t NSMapTable;
+/**
+ * Map table type ... an opaque pointer to a data structure.
+ */
+typedef void *NSMapTable;
 
-/* Private type for enumerating. */
-typedef o_map_enumerator_t NSMapEnumerator;
+/**
+ * Type for enumerating.
+ * NB. layout *must* correspond to that used by the GSIMap code.
+ */
+typedef struct { void *map; void *node; } NSMapEnumerator;
 
 /* Callback functions for a key. */
 typedef struct _NSMapTableKeyCallBacks NSMapTableKeyCallBacks;
@@ -56,7 +61,7 @@ struct _NSMapTableKeyCallBacks
 
   /* Releasing function called when a data element is
    * removed from the table. */
-  void (*release)(NSMapTable *, void *);
+  void (*release)(NSMapTable *, const void *);
 
   /* Description function. */
   NSString *(*describe)(NSMapTable *, const void *);
@@ -74,15 +79,15 @@ struct _NSMapTableValueCallBacks
 
   /* Releasing function called when a data element is
    * removed from the table. */
-  void (*release)(NSMapTable *, void *);
+  void (*release)(NSMapTable *, const void *);
 
   /* Description function. */
   NSString *(*describe)(NSMapTable *, const void *);
 };
 
 /* Quantities that are never map keys. */
-#define NSNotAnIntMapKey     o_not_an_int_marker
-#define NSNotAPointerMapKey  o_not_a_void_p_marker
+#define NSNotAnIntMapKey     ((const void *)0x80000000)
+#define NSNotAPointerMapKey  ((const void *)0xffffffff)
 
 /* For keys that are pointer-sized or smaller quantities. */
 GS_EXPORT const NSMapTableKeyCallBacks NSIntMapKeyCallBacks;
@@ -116,42 +121,6 @@ GS_EXPORT const NSMapTableValueCallBacks NSObjectMapValueCallBacks;
 
 /* For values that are pointers with transfer of ownership upon insertion. */
 GS_EXPORT const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks;
-
-/* This is for keeping track of information... */     
-typedef struct _NSMT_extra _NSMT_extra_t;
-
-struct _NSMT_extra
-{
-  NSMapTableKeyCallBacks keyCallBacks;
-  NSMapTableValueCallBacks valueCallBacks;
-};
-
-/* These are to increase readabilty locally. */
-typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
-typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *,
-                                          const void *);
-typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
-typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
-typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
-
-/** Macros... **/
-
-#define NSMT_EXTRA(T) \
-  ((_NSMT_extra_t *)(o_map_extra((o_map_t *)(T))))
-
-#define NSMT_KEY_CALLBACKS(T) \
-  ((NSMT_EXTRA((T)))->keyCallBacks)
-
-#define NSMT_VALUE_CALLBACKS(T) \
-  ((NSMT_EXTRA((T)))->valueCallBacks)
-
-#define NSMT_DESCRIBE_KEY(T, P) \
-  NSMT_KEY_CALLBACKS((T)).describe((T), (P))
-
-#define NSMT_DESCRIBE_VALUE(T, P) \
-  NSMT_VALUE_CALLBACKS((T)).describe((T), (P))
-
-/**** Function Prototypes ****************************************************/
 
 /** Creating an NSMapTable... **/
 
@@ -223,6 +192,9 @@ NSMapMember(NSMapTable *table,
  * forbidden value) is returned. */
 GS_EXPORT void *
 NSMapGet(NSMapTable *table, const void *key);
+
+GS_EXPORT void
+NSEndMapTableEnumeration(NSMapEnumerator *enumerator);
 
 /* Returns an NSMapEnumerator structure (a pointer to) which
  * can be passed repeatedly to the function 'NSNextMapEnumeratorPair()'

@@ -1,10 +1,11 @@
 /* NSHashTable interface for GNUStep.
- * Copyright (C) 1994, 1995, 1996, 1997  Free Software Foundation, Inc.
+ * Copyright (C) 1994, 1995, 1996, 1997, 2002  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:56:03 EST 1994
  * Updated: Thu Mar 21 15:13:46 EST 1996
  * Serial: 96.03.21.06
+ * Modified by: Richard Frith-Macdonald <rfm@gnu.org>
  * 
  * This file is part of the GNUstep Base Library.
  * 
@@ -20,7 +21,8 @@
  * 
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA. */ 
+ * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+ */ 
 
 #ifndef __NSHashTable_h_GNUSTEP_BASE_INCLUDE
 #define __NSHashTable_h_GNUSTEP_BASE_INCLUDE 1
@@ -30,15 +32,19 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
-#include <base/o_hash.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-/* Hash table type. */
-typedef o_hash_t NSHashTable;
+/**
+ * Hash table type ... an opaque pointer to a data structure.
+ */
+typedef void* NSHashTable;
 
-/* Private type for enumerating. */
-typedef o_hash_enumerator_t NSHashEnumerator;
+/**
+ * Type for enumerating.
+ * NB. layout *must* correspond to that used by the GSIMap code.
+ */
+typedef struct { void *map; void *node; } NSHashEnumerator;
 
 /* Callback functions. */
 typedef struct _NSHashTableCallBacks NSHashTableCallBacks;
@@ -56,7 +62,7 @@ struct _NSHashTableCallBacks
 
   /* Releasing function called when a data element is
    * removed from the table. */
-  void (*release)(NSHashTable *, void *);
+  void (*release)(NSHashTable *, const void *);
 
   /* Description function. */
   NSString *(*describe)(NSHashTable *, const void *);
@@ -80,15 +86,6 @@ GS_EXPORT const NSHashTableCallBacks NSOwnedPointerHashCallBacks;
 /* For sets of pointers to structs when the first field of the
  * struct is the size of an int. */
 GS_EXPORT const NSHashTableCallBacks NSPointerToStructHashCallBacks;
-
-/* These are to increase readabilty locally. */
-typedef unsigned int (*NSHT_hash_func_t)(NSHashTable *, const void *);
-typedef BOOL (*NSHT_isEqual_func_t)(NSHashTable *, const void *, const void *);
-typedef void (*NSHT_retain_func_t)(NSHashTable *, const void *);
-typedef void (*NSHT_release_func_t)(NSHashTable *, void *);
-typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
-
-/**** Function Prototypes ****************************************************/
 
 /** Creating an NSHashTable... **/
 
@@ -147,13 +144,16 @@ NSCountHashTable(NSHashTable *table);
  * member of TABLE.  If not, then 0 (the only completely
  * forbidden element) is returned. */
 GS_EXPORT void *
-NSHashGet(NSHashTable *table, const void *pointer);
+NSHashGet(NSHashTable *table, const void *element);
 
 /* Returns an NSArray which contains all of the elements of TABLE.
  * WARNING: Call this function only when the elements of TABLE
  * are objects. */
 GS_EXPORT NSArray *
 NSAllHashTableObjects(NSHashTable *table);
+
+GS_EXPORT void
+NSEndHashTableEnumeration(NSHashEnumerator *enumerator);
 
 /* Returns an NSHashEnumerator structure (a pointer to) which
  * can be passed repeatedly to the function 'NSNextHashEnumeratorItem()'
@@ -174,24 +174,24 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator);
  * incarnation is released from TABLE, and POINTER is put in its place.
  * Raises an NSInvalidArgumentException if POINTER is 0. */
 GS_EXPORT void
-NSHashInsert(NSHashTable *table, const void *pointer);
+NSHashInsert(NSHashTable *table, const void *element);
 
 /* Just like 'NSHashInsert()', with one exception: If POINTER is already
  * in TABLE, then an NSInvalidArgumentException is raised. */
 GS_EXPORT void
-NSHashInsertKnownAbsent(NSHashTable *table, const void *pointer);
+NSHashInsertKnownAbsent(NSHashTable *table, const void *element);
 
 /* If POINTER is already in TABLE, the pre-existing item is returned.
  * Otherwise, 0 is returned, and this is just like 'NSHashInsert()'. */
 GS_EXPORT void *
-NSHashInsertIfAbsent(NSHashTable *table, const void *pointer);
+NSHashInsertIfAbsent(NSHashTable *table, const void *element);
 
 /** Removing an item from an NSHashTable... **/
 
 /* Releases POINTER from TABLE.  It is not
  * an error if POINTER is not already in TABLE. */
 GS_EXPORT void
-NSHashRemove(NSHashTable *table, const void *pointer);
+NSHashRemove(NSHashTable *table, const void *element);
 
 /** Getting an NSString representation of an NSHashTable... **/
 

@@ -97,24 +97,6 @@ GSCompatibility.m \
 GSLocale.m \
 Unicode.m \
 behavior.m \
-o_array.m \
-o_array_bas.m \
-o_array_cbs.m \
-o_cbs.m \
-o_cbs_char_p.m \
-o_cbs_id.m \
-o_cbs_int.m \
-o_cbs_int_p.m \
-o_cbs_void_p.m \
-o_hash.m \
-o_hash_bas.m \
-o_hash_cbs.m \
-o_list.m \
-o_list_bas.m \
-o_list_cbs.m \
-o_map.m \
-o_map_bas.m \
-o_map_cbs.m \
 preface.m \
 mframe.m
 
@@ -139,10 +121,6 @@ numbers.c \
 o_vscanf.c 
 
 GNU_OTHER_SRCFILES = \
-o_x_bas.m.in \
-o_x_cbs.m.in \
-Foundation/o_x_bas.h.in \
-Foundation/o_x_cbs.h.in \
 md5.h \
 win32-entry.m \
 win32-def.top \
@@ -158,19 +136,6 @@ Unicode.h \
 UnixFileHandle.h \
 behavior.h \
 numbers.h \
-o_array.h \
-o_array_bas.h \
-o_array_cbs.h \
-o_cbs.h \
-o_hash.h \
-o_hash_bas.h \
-o_hash_cbs.h \
-o_list.h \
-o_list_bas.h \
-o_list_cbs.h \
-o_map.h \
-o_map_bas.h \
-o_map_cbs.h \
 objc-gnu2next.h \
 preface.h
 
@@ -389,10 +354,6 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
 GENERATED_HFILES = \
 dynamic-load.h \
 $(HEADER_DIR)/preface.h \
-$(HEADER_DIR)/o_array.h \
-$(HEADER_DIR)/o_hash.h \
-$(HEADER_DIR)/o_list.h \
-$(HEADER_DIR)/o_map.h \
 $(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GSConfig.h

@@ -1,4 +1,42 @@
 2002-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+	* Headers/gnustep/base/GSIMap.h: Fix bug cleaning table and add
+	option to specify type of enumerator structure externally.
+	* Headers/gnustep/base/NSHashTable.h: Modify to conform to MacOS-X
+	documentation and to work with GSIMAP stuff.
+	* Headers/gnustep/base/NSMapTable.h: ditto
+	* Headers/gnustep/base/o_array.h: deleted
+	* Headers/gnustep/base/o_cbs.h: deleted
+	* Headers/gnustep/base/o_hash.h: deleted
+	* Headers/gnustep/base/o_list.h: deleted
+	* Headers/gnustep/base/o_map.h: deleted
+	* Headers/gnustep/base/o_x_bas.h.in: deleted
+	* Headers/gnustep/base/o_x_cbs.h.in: deleted
+	* Source/GNUmakefile: Remove o_... rules
+	* Source/GSTcpPort.m: Remove unused include file
+	* Source/Makefile.postamble: remove o_... rules
+	* Source/NSCallBacks.h: Remove o_... info
+	* Source/NSCallBacks.m: remove o_... info
+	* Source/NSHashTable.m: Rewrite to use GSIMAP
+	* Source/NSMapTable.m: Rewrite to use GSIMAP
+	* Source/NSObject.m: Use GSIMAP for reference counts.
+	* Source/NSRunLoop.m: Fix function prototypes for map table callbacks.
+	* Source/externs.m: Remove o_... stuff and tidy callbacks.
+	* Source/o_array.m: deleted
+	* Source/o_cbs.m: deleted
+	* Source/o_cbs_char_p.m: deleted
+	* Source/o_cbs_id.m: deleted
+	* Source/o_cbs_int.m: deleted
+	* Source/o_cbs_int_p.m: deleted
+	* Source/o_cbs_void_p.m: deleted
+	* Source/o_hash.m: deleted
+	* Source/o_list.m: deleted
+	* Source/o_map.m: deleted
+	* Source/o_x_bas.m.in: deleted
+	* Source/o_x_cbs.m.in: deleted
+	Masses of changes to simplify codebase and standardise all maptable
+	code.  Hopefully, the new NSMapTable code now conforms to the spec.
+
+2002-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRunLoop.h: revert
 	* Headers/Foundation/NSRunLoop.m: revert

@@ -103,7 +103,7 @@ after-uninstall::
 # Things to do after distcleaning
 after-distclean::
 	rm -f mframe/mframe.h Foundation \
-		NSNumber[0-9]*.m GSValue[0-9]*.m o_*_bas.m
+		NSNumber[0-9]*.m GSValue[0-9]*.m
 	rm -rf $(GNUSTEP_TARGET_DIR)/config.h
 	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
 	rm -rf $(GNUSTEP_TARGET_DIR)/GSConfig.h
@@ -151,27 +151,6 @@ $(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
 	-mv mframe/mframe.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/mframe.h
-
-$(HEADER_DIR)/o_%_bas.h: $(HEADER_DIR)/o_x_bas.h.in
-	sed -e "s/@XX@/$*/g" $< > $@
-
-$(HEADER_DIR)/o_%_cbs.h: $(HEADER_DIR)/o_x_cbs.h.in
-	sed -e "s/@YY@/$*/g" $< > $@
-
-o_%_bas.m: o_x_bas.m.in $(HEADER_DIR)/o_%.h
-	sed -e "s/@XX@/$*/g" $< > $@
-
-o_%_cbs.m: o_x_cbs.m.in $(HEADER_DIR)/o_%.h
-	sed -e "s/@YY@/$*/g" $< > $@
-
-$(GNUSTEP_OBJ_DIR)/o_array.o: o_array.m $(HEADER_DIR)/o_array.h
-$(HEADER_DIR)/o_array.h: $(HEADER_DIR)/o_array_bas.h $(HEADER_DIR)/o_array_cbs.h $(HEADER_DIR)/o_hash.h
-$(GNUSTEP_OBJ_DIR)/o_hash.o: o_hash.m $(HEADER_DIR)/o_hash.h
-$(HEADER_DIR)/o_hash.h: $(HEADER_DIR)/o_hash_bas.h $(HEADER_DIR)/o_hash_cbs.h
-$(GNUSTEP_OBJ_DIR)/o_list.o: o_list.m $(HEADER_DIR)/o_list.h
-$(HEADER_DIR)/o_list.h: $(HEADER_DIR)/o_list_bas.h $(HEADER_DIR)/o_list_cbs.h $(HEADER_DIR)/o_array.h $(HEADER_DIR)/o_hash.h
-$(GNUSTEP_OBJ_DIR)/o_map.o: o_map.m $(HEADER_DIR)/o_map.h
-$(HEADER_DIR)/o_map.h: $(HEADER_DIR)/o_map_bas.h $(HEADER_DIR)/o_map_cbs.h $(HEADER_DIR)/o_hash.h
 
 #
 #	Files that include mframe.h will need a rebuild if it is changed.
