@@ -1,3 +1,8 @@
+2002-04-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdnc.m: If given -NSHost specification for the current host,
+	ignore it and use the standard name.
+
 2002-04-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/COPYING.LIB: New file ... just to make it *REALLY* obvious
