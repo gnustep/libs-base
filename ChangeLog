@@ -1,3 +1,17 @@
+2005-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: Extra types
+	* configure.ac: Added types for GSConfig.h.in
+	* configure: regenerated
+	* Headers/Foundation/NSCharacterSet.h: New MacOS-X methods
+	* Headers/Foundation/NSIndexSet.h: Remove bogus comment.
+	* Source/GNUmakefile: Don't build NSBitmapCharSet.m
+	* Source/NSBitmapCharSet.h: Removed ... merege into NSCharacterSet.m
+	* Source/NSBitmapCharSet.m: ditto
+	* Source/NSCharacterSet.m: Optimise a few methods.
+	Add new MacOS-X methods (naive implementations)
+	Merge in NSBitmapCharSet as private class
+
 2005-03-06  Matt Rice <ratmice@yahoo.com>
 
 	* Headers/Foundation/NSRunLoop.h: Reorder RunLoopEventType for binary
