@@ -31,17 +31,17 @@
 
 @interface NSGArray : NSArray
 {
-    id		*_contents_array;
-    unsigned	_count;
+  id		*_contents_array;
+  unsigned	_count;
 }
 @end
 
 @interface NSGMutableArray : NSMutableArray
 {
-    id		*_contents_array;
-    unsigned	_count;
-    unsigned	_capacity;
-    int		_grow_factor;
+  id		*_contents_array;
+  unsigned	_count;
+  unsigned	_capacity;
+  int		_grow_factor;
 }
 @end
 
@@ -51,152 +51,200 @@
 
 + (void) initialize
 {
-    if (self == [NSGArray class]) {
-	[self setVersion: 1];
-        behavior_class_add_class(self, [NSArrayNonCore class]);
+  if (self == [NSGArray class])
+    {
+      [self setVersion: 1];
+      behavior_class_add_class(self, [NSArrayNonCore class]);
     }
 }
 
 + (id) allocWithZone: (NSZone*)zone
 {
-    NSGArray	*array = NSAllocateObject(self, 0, zone);
+  NSGArray	*array = NSAllocateObject(self, 0, zone);
 
-    return array;
+  return array;
 }
 
 - (void) dealloc
 {
-    if (_contents_array) {
-	unsigned	i;
+  if (_contents_array)
+    {
+      unsigned	i;
 
-	for (i = 0; i < _count; i++) {
-	    [_contents_array[i] release];
+      for (i = 0; i < _count; i++)
+	{
+	  [_contents_array[i] release];
 	}
-	NSZoneFree([self zone], _contents_array);
+      NSZoneFree([self zone], _contents_array);
     }
-    [super dealloc];
+  [super dealloc];
 }
 
 /* This is the designated initializer for NSArray. */
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
-    if (count > 0) {
-	unsigned	i;
+  if (count > 0)
+    {
+      unsigned	i;
 
-	_contents_array = NSZoneMalloc([self zone], sizeof(id)*count);
-	if (_contents_array == 0) {
-	    [self release];
-	    return nil;
-	}
+      _contents_array = NSZoneMalloc([self zone], sizeof(id)*count);
+      if (_contents_array == 0)
+	{
+	  [self release];
+	  return nil;
+       }
 
-	for (i = 0; i < count; i++) {
-	    if ((_contents_array[i] = [objects[i] retain]) == nil) {
-		_count = i;
-		[self release];
-		[NSException raise: NSInvalidArgumentException
-			    format: @"Tried to add nil"];
+      for (i = 0; i < count; i++)
+	{
+	  if ((_contents_array[i] = [objects[i] retain]) == nil)
+	    {
+	      _count = i;
+	      [self release];
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Tried to add nil"];
 	    }
 	}
-	_count = count;
+      _count = count;
     }
-    return self;
+  return self;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-    [aCoder encodeValueOfObjCType: @encode(unsigned)
-			       at: &_count];
-    if (_count > 0) {
-	[aCoder encodeArrayOfObjCType: @encode(id)
-				count: _count
-				   at: _contents_array];
+  [aCoder encodeValueOfObjCType: @encode(unsigned)
+			     at: &_count];
+  if (_count > 0)
+    {
+      [aCoder encodeArrayOfObjCType: @encode(id)
+			      count: _count
+				 at: _contents_array];
     }
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-    [aCoder decodeValueOfObjCType: @encode(unsigned)
-			       at: &_count];
-    if (_count > 0) {
-	_contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
-	if (_contents_array == 0) {
-	    [NSException raise: NSMallocException
-			format: @"Unable to make array"];
+  [aCoder decodeValueOfObjCType: @encode(unsigned)
+			     at: &_count];
+  if (_count > 0)
+    {
+      _contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
+      if (_contents_array == 0)
+	{
+	  [NSException raise: NSMallocException
+		      format: @"Unable to make array"];
 	}
-	[aCoder decodeArrayOfObjCType: @encode(id)
-				count: _count
-				   at: _contents_array];
+      [aCoder decodeArrayOfObjCType: @encode(id)
+			      count: _count
+				 at: _contents_array];
     }
-    return self;
+  return self;
 }
 
 - (id) init
 {
-    return [self initWithObjects: 0 count: 0];
+  return [self initWithObjects: 0 count: 0];
 }
 
 - (unsigned) count
 {
-    return _count;
+  return _count;
 }
 
 - (unsigned) hash
 {
-    return _count;
+  return _count;
 }
 
 - (unsigned) indexOfObject: anObject
 {
-    unsigned	i;
+  unsigned	i;
 
-    for (i = 0; i < _count; i++) {
-	if ([_contents_array[i] isEqual: anObject]) {
-	    return i;
+  /*
+   *	For large arrays, speed things up a little by caching the method.
+   */
+  if (_count > 8)
+    {
+      SEL	sel = @selector(isEqual:);
+      BOOL	(*imp)(id,SEL,id);
+
+      imp = (BOOL (*)(id,SEL,id))[anObject methodForSelector: sel];
+
+      for (i = 0; i < _count; i++)
+	{
+	  if ((*imp)(anObject, sel, _contents_array[i]))
+	    {
+	      return i;
+	    }
 	}
     }
-    return NSNotFound;
+  else
+    {
+      for (i = 0; i < _count; i++)
+	{
+	  if ([anObject isEqual: _contents_array[i]])
+	    {
+	      return i;
+	    }
+	}
+    }
+  return NSNotFound;
 }
 
 - (unsigned) indexOfObjectIdenticalTo: anObject
 {
-    unsigned i;
+  unsigned i;
 
-    for (i = 0; i < _count; i++) {
-	if (anObject == _contents_array[i]) {
-	    return i;
+  for (i = 0; i < _count; i++)
+    {
+      if (anObject == _contents_array[i])
+	{
+	  return i;
 	}
     }
-    return NSNotFound;
+  return NSNotFound;
+}
+
+- (id) lastObject
+{
+  if (_count)
+    {
+      return _contents_array[_count-1];
+    }
+  return nil;
 }
 
 - (id) objectAtIndex: (unsigned)index
 {
-    if (index >= _count) {
-        [NSException raise: NSRangeException
-		    format: @"Index out of bounds"];
+  if (index >= _count)
+    {
+      [NSException raise: NSRangeException
+		  format: @"Index out of bounds"];
     }
-    return _contents_array[index];
+  return _contents_array[index];
 }
 
 
 - (void) getObjects: (id*)aBuffer
 {
-    unsigned i;
+  unsigned i;
 
-    for (i = 0; i < _count; i++) {
-        aBuffer[i] = _contents_array[i];
+  for (i = 0; i < _count; i++)
+    {
+      aBuffer[i] = _contents_array[i];
     }
 }
 
 - (void) getObjects: (id*)aBuffer range: (NSRange)aRange
 {
-    unsigned i, j = 0, e = aRange.location + aRange.length;
+  unsigned i, j = 0, e = aRange.location + aRange.length;
 
-    if (_count < e) {
-        e = _count;
+  if (_count < e)
+    {
+      e = _count;
     }
-    for (i = aRange.location; i < e; i++) {
-        aBuffer[j++] = _contents_array[i];
+  for (i = aRange.location; i < e; i++)
+    {
+      aBuffer[j++] = _contents_array[i];
     }
 }
 
@@ -208,148 +256,167 @@
 
 + (void) initialize
 {
-    if (self == [NSGMutableArray class]) {
-	[self setVersion: 1];
-        behavior_class_add_class(self, [NSMutableArrayNonCore class]);
-        behavior_class_add_class(self, [NSGArray class]);
+  if (self == [NSGMutableArray class])
+    {
+      [self setVersion: 1];
+      behavior_class_add_class(self, [NSMutableArrayNonCore class]);
+      behavior_class_add_class(self, [NSGArray class]);
     }
 }
 
 - (id) initWithCapacity: (unsigned)cap
 {
-    if (cap == 0) {
-	cap = 1;
+  if (cap == 0)
+    {
+      cap = 1;
     }
-    _contents_array = NSZoneMalloc([self zone], sizeof(id)*cap);
-    _capacity = cap;
-    _grow_factor = cap > 1 ? cap/2 : 1;
-    return self;
+  _contents_array = NSZoneMalloc([self zone], sizeof(id)*cap);
+  _capacity = cap;
+  _grow_factor = cap > 1 ? cap/2 : 1;
+  return self;
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-    unsigned    count;
+  unsigned    count;
 
-    [aCoder decodeValueOfObjCType: @encode(unsigned)
-			       at: &count];
-    if ([self initWithCapacity: count] == nil) {
-	[NSException raise: NSMallocException
-		    format: @"Unable to make array"];
+  [aCoder decodeValueOfObjCType: @encode(unsigned)
+			     at: &count];
+  if ([self initWithCapacity: count] == nil)
+    {
+      [NSException raise: NSMallocException
+		  format: @"Unable to make array"];
     }
-    if (count > 0) {
-	[aCoder decodeArrayOfObjCType: @encode(id)
-				count: count
-				   at: _contents_array];
-	_count = count;
+  if (count > 0)
+    {
+      [aCoder decodeArrayOfObjCType: @encode(id)
+			      count: count
+				 at: _contents_array];
+      _count = count;
     }
-    return self;
+  return self;
 }
 
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
-    self = [self initWithCapacity: count];
-    if (self != nil && count > 0) {
-	unsigned	i;
+  self = [self initWithCapacity: count];
+  if (self != nil && count > 0)
+    {
+      unsigned	i;
 
-	for (i = 0; i < count; i++) {
-	    if ((_contents_array[i] = [objects[i] retain]) == nil) {
-		_count = i;
-		[self release];
-		[NSException raise: NSInvalidArgumentException
-			    format: @"Tried to add nil"];
+      for (i = 0; i < count; i++)
+	{
+	  if ((_contents_array[i] = [objects[i] retain]) == nil)
+	    {
+	      _count = i;
+	      [self release];
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Tried to add nil"];
 	    }
 	}
-	_count = count;
+      _count = count;
     }
-    return self;
+  return self;
 }
 
 - (void) insertObject: (id)anObject atIndex: (unsigned)index
 {
-    unsigned	i;
+  unsigned	i;
 
-    if (!anObject) {
-	[NSException raise: NSInvalidArgumentException
-		    format: @"Tried to insert nil"];
+  if (!anObject)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Tried to insert nil"];
     }
-    if (index > _count) {
-	[NSException raise: NSRangeException format:
-		@"in insertObject:atIndex:, index %d is out of range", index];
+  if (index > _count)
+    {
+      [NSException raise: NSRangeException format:
+	      @"in insertObject:atIndex:, index %d is out of range", index];
     }
-    if (_count == _capacity) {
-	id	*ptr;
-	size_t	size = (_capacity + _grow_factor)*sizeof(id);
+  if (_count == _capacity)
+    {
+      id	*ptr;
+      size_t	size = (_capacity + _grow_factor)*sizeof(id);
 
-	ptr = NSZoneRealloc([self zone], _contents_array, size);
-	if (ptr == 0) {
-	    [NSException raise: NSMallocException
-			format: @"Unable to grow"];
+      ptr = NSZoneRealloc([self zone], _contents_array, size);
+      if (ptr == 0)
+	{
+	  [NSException raise: NSMallocException
+		      format: @"Unable to grow"];
 	}
-	_contents_array = ptr;
-	_capacity += _grow_factor;
-	_grow_factor = _capacity/2;
+      _contents_array = ptr;
+      _capacity += _grow_factor;
+      _grow_factor = _capacity/2;
     }
-    for (i = _count; i > index; i--) {
-	_contents_array[i] = _contents_array[i - 1];
+  for (i = _count; i > index; i--)
+    {
+      _contents_array[i] = _contents_array[i - 1];
     }
-    /*
-     *	Make sure the array is 'sane' so that it can be deallocated
-     *	safely by an autorelease pool if the '[anObject retain]' causes
-     *	an exception.
-     */
-    _contents_array[index] = nil;
-    _count++;
-    _contents_array[index] = [anObject retain];
+  /*
+   *	Make sure the array is 'sane' so that it can be deallocated
+   *	safely by an autorelease pool if the '[anObject retain]' causes
+   *	an exception.
+   */
+  _contents_array[index] = nil;
+  _count++;
+  _contents_array[index] = [anObject retain];
 }
 
 - (void) addObject: (id)anObject
 {
-    if (anObject == nil) {
-	[NSException raise: NSInvalidArgumentException
-		    format: @"Tried to add nil"];
+  if (anObject == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Tried to add nil"];
     }
-    if (_count >= _capacity) {
-	id	*ptr;
-	size_t	size = (_capacity + _grow_factor)*sizeof(id);
+  if (_count >= _capacity)
+    {
+      id	*ptr;
+      size_t	size = (_capacity + _grow_factor)*sizeof(id);
 
-	ptr = NSZoneRealloc([self zone], _contents_array, size);
-	if (ptr == 0) {
-	    [NSException raise: NSMallocException
-			format: @"Unable to grow"];
+      ptr = NSZoneRealloc([self zone], _contents_array, size);
+      if (ptr == 0)
+	{
+	  [NSException raise: NSMallocException
+		      format: @"Unable to grow"];
 	}
-	_contents_array = ptr;
-	_capacity += _grow_factor;
-	_grow_factor = _capacity/2;
+      _contents_array = ptr;
+      _capacity += _grow_factor;
+      _grow_factor = _capacity/2;
     }
-    _contents_array[_count] = [anObject retain];
-    _count++;	/* Do this AFTER we have retained the object.	*/
+  _contents_array[_count] = [anObject retain];
+  _count++;	/* Do this AFTER we have retained the object.	*/
 }
 
 - (void) removeLastObject
 {
-    if (_count == 0) {
-	[NSException raise: NSRangeException
-		    format: @"Trying to remove from an empty array."];
+  if (_count == 0)
+    {
+      [NSException raise: NSRangeException
+		  format: @"Trying to remove from an empty array."];
     }
-    _count--;
-    [_contents_array[_count] release];
+  _count--;
+  [_contents_array[_count] release];
 }
 
 - (void) removeObjectAtIndex: (unsigned)index
 {
-    id	obj;
+  id	obj;
 
-    if (index >= _count) {
-	[NSException raise: NSRangeException format:
-		@"in removeObjectAtIndex:, index %d is out of range", index];
+  if (index >= _count)
+    {
+      [NSException raise: NSRangeException
+		  format: @"in removeObjectAtIndex:, index %d is out of range",
+			index];
     }
-    obj = _contents_array[index];
-    _count--;
-    while (index < _count) {
-	_contents_array[index] = _contents_array[index+1];
-	index++;
+  obj = _contents_array[index];
+  _count--;
+  while (index < _count)
+    {
+      _contents_array[index] = _contents_array[index+1];
+      index++;
     }
-    [obj release];	/* Adjust array BEFORE releasing object.	*/
+  [obj release];	/* Adjust array BEFORE releasing object.	*/
 }
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
