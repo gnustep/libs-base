@@ -301,4 +301,5 @@ AC_CHECK_LIB(nsl, main)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(Makefile src/Makefile checks/Makefile examples/Makefile doc/Makefile NSCharacterSets/Makefile src/objects/config.h)
+AC_OUTPUT(Makefile src/Makefile checks/Makefile examples/Makefile
+doc/Makefile NSCharacterSets/Makefile admin/Makefile src/objects/config.h)
