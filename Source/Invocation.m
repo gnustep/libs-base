@@ -30,6 +30,8 @@
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSException.h>
 
+extern BOOL sel_types_match(const char* t1, const char* t2);
+
 /* xxx We are currently retaining the return value.
    We shouldn't always do this.  Make is an option. */
 
