@@ -1164,6 +1164,8 @@ static NSString	*pathForUser(NSString *user)
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSMutableDictionary	*newDict;
   NSDictionary		*attr;
+  unsigned long		desired;
+  unsigned long		attributes;
 
   [_lock lock];
 
@@ -1217,11 +1219,17 @@ static NSString	*pathForUser(NSString *user)
   DESTROY(_dictionaryRep);
 
   // Read the persistent data from the stored database
-  if (attr != nil)
+  if (attr == nil)
     {
-      unsigned long desired;
-      unsigned long attributes;
-
+      newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
+		  initWithCapacity: 1];
+      NSLog(@"Creating defaults database file %@", _defaultsDatabase);
+      [newDict writeToFile: _defaultsDatabase atomically: YES];
+      attr = [mgr fileAttributesAtPath: _defaultsDatabase
+			  traverseLink: YES];
+    }
+  else
+    {
       newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
         initWithContentsOfFile: _defaultsDatabase];
       if (newDict == nil)
@@ -1230,53 +1238,31 @@ static NSString	*pathForUser(NSString *user)
 	  [_lock unlock];
 	  return NO;
 	}
-
-      attributes = [attr filePosixPermissions];
-      // We enforce the permission mode 0600 on the defaults database
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
-      desired = 0600;
-#else
-      desired = (S_IRUSR|S_IWUSR);
-#endif
-      if (attributes != desired)
-	{
-	  NSMutableDictionary	*enforced_attributes;
-	  NSNumber		*permissions;
-
-	  enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
-	    [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
-
-	  permissions = [NSNumber numberWithUnsignedLong: desired];
-	  [enforced_attributes setObject: permissions
-				  forKey: NSFilePosixPermissions];
-
-	  [mgr changeFileAttributes: enforced_attributes
-			     atPath: _defaultsDatabase];
-	}
     }
-  else
-    {
-      unsigned long	desired;
-      NSNumber		*permissions;
 
-      // We enforce the permission mode 0600 on the defaults database
+  /*
+   * We enforce the permission mode 0600 on the defaults database
+   */
+  attributes = [attr filePosixPermissions];
 #if	!(defined(S_IRUSR) && defined(S_IWUSR))
-      desired = 0600;
+  desired = 0600;
 #else
-      desired = (S_IRUSR|S_IWUSR);
+  desired = (S_IRUSR|S_IWUSR);
 #endif
+  if (attributes != desired)
+    {
+      NSMutableDictionary	*enforced_attributes;
+      NSNumber			*permissions;
+
+      enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
+	[mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
+
       permissions = [NSNumber numberWithUnsignedLong: desired];
-      attr = [NSDictionary dictionaryWithObjectsAndKeys:
-	NSUserName(), NSFileOwnerAccountName,
-	permissions, NSFilePosixPermissions,
-	nil];
-      NSLog(@"Creating defaults database file %@", _defaultsDatabase);
-      [mgr createFileAtPath: _defaultsDatabase
-		   contents: nil
-		 attributes: attr];
-      newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
-		  initWithCapacity: 1];
-      [newDict writeToFile: _defaultsDatabase atomically: YES];
+      [enforced_attributes setObject: permissions
+			      forKey: NSFilePosixPermissions];
+
+      [mgr changeFileAttributes: enforced_attributes
+			 atPath: _defaultsDatabase];
     }
 
   if (_changedDomains)

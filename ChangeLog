@@ -8,6 +8,11 @@
 	* Source/NSNotificationCenter.m: Modified posting to behave like the
 	MacOS-X implementation.  Implement concrete subclass of
 	NSNotification.
+	* Source/NSUserDefaults.m: Try to make creation of new defaults
+	database an atomic operation.
+	* Source/NSObject.m: Remove dealloc notifications hack ... the
+	dealloc method can now safely be used to refrain from deallocating
+	objects, so I don't think the hack is needed any more.
 
 2002-07-29  Adam Fedor  <fedor@gnu.org>
 

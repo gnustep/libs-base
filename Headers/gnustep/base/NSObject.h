@@ -292,17 +292,6 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 + (void) enableDoubleReleaseCheck: (BOOL)enable;
 - (id) read: (TypedStream*)aStream;
 - (id) write: (TypedStream*)aStream;
-/**
- * If the 'deallocActivationsActive' flag is set, the _dealloc method will be
- * called during the final release of an object, and the dealloc method will
- * then be called only if _dealloc returns YES.
- * You can override the _dealloc implementation to perform some action before
- * an object is deallocated (or disable deallocation by returning NO).
- * The default implementation simply returns YES.
- */
-- (BOOL) deallocNotificationsActive;
-- (void) setDeallocNotificationsActive: (BOOL)flag;
-- (BOOL) _dealloc;
 @end
 
 #endif
