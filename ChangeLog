@@ -1,3 +1,7 @@
+Tue Sep 28  5:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSTask.m: ([_collectChiled]) bugfix suggested by karl@nfox.com
+
 Mon Sep 27 21:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSScanner.m: Fix error introduced into skipToNextField() macro

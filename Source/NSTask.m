@@ -633,7 +633,7 @@ extern char *objc_find_executable(const char *name);
                 _taskId, result, strerror(errno));
           [self _terminatedChild: -1];
         }
-      else if (result == _taskId || (result == 0 && errno == 0))
+      else if (result == _taskId || (result > 0 && errno == 0))
 	{
 	  if (WIFEXITED(_terminationStatus))
 	    {
