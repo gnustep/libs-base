@@ -200,7 +200,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 
   if (theFile == NULL)		/* We failed to open the file. */
     {
-      NSDebugLog(@"Open (%s) attempt failed - %s", thePath, GSLastErrorStr(errno));
+      NSDebugLog(@"Open (%s) attempt failed - %s", thePath,
+	GSLastErrorStr(errno));
       goto failure;
     }
 
@@ -225,18 +226,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
       goto failure;
     }
 
-#if	GS_WITH_GC == 1
-  tmp = NSZoneMalloc(GSAtomicMallocZone(), fileLength);
-#else
-  tmp = NSZoneMalloc(zone, fileLength);
-#endif
-  if (tmp == 0)
-    {
-      NSLog(@"Malloc failed for file of length %d- %s",
-		fileLength, GSLastErrorStr(errno));
-      goto failure;
-    }
-
   /*
    *	Rewind the file pointer to the beginning, preparing to read in
    *	the file.
@@ -248,11 +237,63 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
       goto failure;
     }
 
-  c = fread(tmp, 1, fileLength, theFile);
-  if (c != fileLength)
+  if (fileLength == 0)
     {
-      NSLog(@"read of file contents failed - %s", GSLastErrorStr(errno));
-      goto failure;
+      unsigned char	buf[BUFSIZ];
+
+      /*
+       * Special case ... a file of length zero may be a named pipe or some
+       * file in the /proc filesystem, which will return us data if we read
+       * from it ... so we try reading as much as we can.
+       */
+      while ((c = fread(buf, 1, BUFSIZ, theFile)) != 0)
+	{
+	  if (tmp == 0)
+	    {
+#if	GS_WITH_GC == 1
+	      tmp = NSZoneMalloc(GSAtomicMallocZone(), c);
+#else
+	      tmp = NSZoneMalloc(zone, c);
+#endif
+	    }
+	  else
+	    {
+#if	GS_WITH_GC == 1
+	      tmp = NSZoneRealloc(GSAtomicMallocZone(), tmp, fileLength + c);
+#else
+	      tmp = NSZoneRealloc(zone, tmp, fileLength + c);
+#endif
+	    }
+	  if (tmp == 0)
+	    {
+	      NSLog(@"Malloc failed for file of length %d - %s",
+		fileLength + c, GSLastErrorStr(errno));
+	      goto failure;
+	    }
+	  memcpy(tmp + fileLength, buf, c);
+	  fileLength += c;
+	}
+    }
+  else
+    {
+#if	GS_WITH_GC == 1
+      tmp = NSZoneMalloc(GSAtomicMallocZone(), fileLength);
+#else
+      tmp = NSZoneMalloc(zone, fileLength);
+#endif
+      if (tmp == 0)
+	{
+	  NSLog(@"Malloc failed for file of length %d - %s",
+	    fileLength, GSLastErrorStr(errno));
+	  goto failure;
+	}
+
+      c = fread(tmp, 1, fileLength, theFile);
+      if (c != fileLength)
+	{
+	  NSLog(@"read of file contents failed - %s", GSLastErrorStr(errno));
+	  goto failure;
+	}
     }
 
   *buf = tmp;

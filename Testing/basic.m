@@ -6,8 +6,14 @@
 int main ()
 {
   id	pool = [NSAutoreleasePool new];
-  id o = [NSObject new];
+  id	o = [NSObject new];
   printf ("Hello from object at 0x%x\n", (unsigned)[o self]);
+
+  o = [NSString stringWithFormat: @"/proc/%d/status", getpid()];
+  NSLog(@"'%@'", o);
+  o = [NSString stringWithContentsOfFile: o];
+  NSLog(@"'%@'", o);
+
   exit (0);
 }
 #else
