@@ -27,7 +27,7 @@
 #include <Foundation/NSZone.h>
 #include <gnustep/base/callbacks.h>
 #include <gnustep/base/numbers.h>
-#include <gnustep/base/hash.h>
+#include <gnustep/base/o-hash.h>
 
 /**** Function Implementations ***********************************************/
 
