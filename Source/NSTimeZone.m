@@ -384,12 +384,12 @@ return;
 @end
 
 @implementation NSTimeZone (Archiving)
-- (void)encodeWithCoder:(NSCoder *)aCoder
+- (void)encodeWithCoder: aCoder
 {
 	return [super encodeWithCoder:aCoder];
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder
+- (id)initWithCoder: aDecoder
 {
 	return [super initWithCoder:aDecoder];
 }
