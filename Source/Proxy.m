@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective-C Proxy for remote object messaging
-   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -103,6 +103,11 @@ static id tmp_kludge_protocol = nil;
 }
 
 - self
+{
+  return self;
+}
+
+- awakeAfterUsingCoder: aDecoder
 {
   return self;
 }
