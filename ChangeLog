@@ -1,3 +1,8 @@
+Wed Jun 30 20:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/PropList.h: Tidied for garbage collection.
+	* Source/include/Unicode.h: Added missing prototyp.
+
 Tue Jun 29 17:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Patches by Hai Henningsen

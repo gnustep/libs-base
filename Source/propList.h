@@ -36,7 +36,7 @@ static void setupHexdigits()
     {
       hexdigits = [NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789abcdef"];
-      [hexdigits retain];
+      RETAIN(hexdigits);
       hexdigitsImp =
 	(BOOL(*)(id,SEL,unichar)) [hexdigits methodForSelector: cMemberSel];
     }
@@ -50,11 +50,12 @@ static void setupQuotables()
     {
       NSMutableCharacterSet	*s;
 
-      s = (NSMutableCharacterSet*)[NSMutableCharacterSet
-	characterSetWithCharactersInString:
-	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$./_"];
+      s = [[NSCharacterSet characterSetWithCharactersInString:
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$./_"]
+	mutableCopy];
       [s invert];
       quotables = [s copy];
+      RELEASE(s);
       quotablesImp =
 	(BOOL(*)(id,SEL,unichar)) [quotables methodForSelector: cMemberSel];
     }
@@ -66,13 +67,9 @@ static void setupWhitespce()
 {
   if (whitespce == nil)
     {
-#if 0
-      whitespce = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-#else
-      whitespce = [NSMutableCharacterSet characterSetWithCharactersInString:
+      whitespce = [NSCharacterSet characterSetWithCharactersInString:
 	@" \t\r\n\f\b"];
-#endif
-      [whitespce retain];
+      RETAIN(whitespce);
       whitespceImp =
 	(BOOL(*)(id,SEL,unichar)) [whitespce methodForSelector: cMemberSel];
     }
@@ -88,7 +85,9 @@ static Class	plDictionary;
 static id	(*plSet)(id, SEL, id, id);
 static id	(*plInit)(id, SEL, void*, unsigned) = 0;
 static id	(*plAlloc)(Class, SEL, NSZone*);
+#ifndef GS_WITH_GC
 static id	(*plAutorelease)(id, SEL);
+#endif
 #if	GSPLUNI
 static SEL	plSel = @selector(initWithCharacters:length:);
 #else
@@ -104,8 +103,10 @@ static void setupPl(Class c)
 	[c methodForSelector: @selector(allocWithZone:)];
       plInit = (id (*)(id, SEL, void*, unsigned))
 	[c instanceMethodForSelector: plSel];
+#ifndef GS_WITH_GC
       plAutorelease = (id (*)(id, SEL))
 	[c instanceMethodForSelector: @selector(autorelease)];
+#endif
       plArray = [NSGMutableArray class];
       plAdd = (id (*)(id, SEL, id))
 	[plArray instanceMethodForSelector: @selector(addObject:)];
@@ -356,7 +357,9 @@ static inline id parseQuotedString(pldata* pld)
 	}
       obj = (*plAlloc)(plCls, @selector(allocWithZone:), NSDefaultMallocZone());
       obj = (*plInit)(obj, plSel, (void*)chars, pld->pos - start - shrink);
+#ifndef GS_WITH_GC
       (*plAutorelease)(obj, @selector(autorelease));
+#endif
     }
   pld->pos++;
   return obj;
@@ -376,7 +379,9 @@ static inline id parseUnquotedString(pldata *pld)
     }
   obj = (*plAlloc)(plCls, @selector(allocWithZone:), NSDefaultMallocZone());
   obj = (*plInit)(obj, plSel, (void*)&pld->ptr[start], pld->pos-start);
+#ifndef GS_WITH_GC
   (*plAutorelease)(obj, @selector(autorelease));
+#endif
   return obj;
 }
 
