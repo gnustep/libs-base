@@ -198,7 +198,7 @@ static struct _strenc_ str_encoding_table[] = {
   {NSGB2312StringEncoding, "NSGB2312StringEncoding","EUC-CN",0,0},
   {NSGSM0338StringEncoding, "NSGSM0338StringEncoding","",0,1},
   {NSBIG5StringEncoding, "NSBIG5StringEncoding","BIG5",0,0},
-  {NSKoreanEUCEncoding, "NSKoreanEUCEncoding", "EUC-KR",0,0},
+  {NSKoreanEUCStringEncoding, "NSKoreanEUCStringEncoding", "EUC-KR",0,0},
 
   {0,"Unknown encoding","",0,0}
 };
@@ -446,11 +446,11 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
     }
   else if ([registry isEqualToString: @"ksc5601.1987"])
     {
-      return NSKoreanEUCEncoding;
+      return NSKoreanEUCStringEncoding;
     }
   else if ([registry isEqualToString: @"ksc5601.1997"])
     {
-      return NSKoreanEUCEncoding;
+      return NSKoreanEUCStringEncoding;
     }
   else if ([registry isEqualToString:@"utf8"]
     || [registry isEqualToString:@"utf-8"] )

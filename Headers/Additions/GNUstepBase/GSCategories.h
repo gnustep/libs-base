@@ -159,7 +159,7 @@ typedef enum _NSGNUstepStringEncoding
   NSUTF7StringEncoding = 64,		// RFC 2152
   NSGSM0338StringEncoding,		// GSM (mobile phone) default alphabet
   NSBIG5StringEncoding,			// Traditional chinese
-  NSKoreanEUCEncoding
+  NSKoreanEUCStringEncoding
 } NSGNUstepStringEncoding;
 
 
