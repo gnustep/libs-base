@@ -1,0 +1,587 @@
+#  Generated from Makefile.in by configure.bat
+#
+#  src makefile for GNU Objective-C Class library
+#  Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+#
+#  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+#
+#  This file is part of the GNU Objective-C Class library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ 
+SHELL = /bin/sh
+
+#### Start of system configuration section. ####
+
+srcdir = .
+VPATH = .
+
+# Installation locations
+prefix = /MB/Headers
+exec_prefix = $(prefix)
+libdir = /MB/Libraries
+includedir = /MB/Headers
+
+CC = gcc -fgnu-runtime
+RANLIB = touch
+INSTALL = cp
+INSTALL_PROGRAM = $(INSTALL)
+INSTALL_DATA = $(INSTALL)
+AR = lib
+AROUT = -out:
+ARFLAGS = 
+LN_S = cp
+MAKEINFO = makeinfo
+TEXI2DVI = texi2dvi
+LEX = flex
+LEXFLAGS = -L
+     
+DEFS = -DSTDC_HEADERS=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_TIMES=1 -DHAVE_VSPRINTF=1 -Dvm_page_size=4096
+
+##################################################################
+#
+# NT specifics
+#
+WIN32_GCC_INCLUDE = 
+INIT_FILE = init_libObjects
+INIT_FILE_OBJ = $(INIT_FILE)$(OEXT)
+
+# File name extensions
+OEXT = .obj
+EXEEXT = .exe
+LIBEXT = .lib
+
+# All these are optional.  You can redefine CFLAGS, CPPFLAGS and
+# INCLUDEFLAGS on the command line however you like.
+CFLAGS = -Wno-implicit -O
+CPPFLAGS = 
+INCLUDEFLAGS =
+
+#### End of system configuration section. ####
+
+include $(srcdir)/../Makeconf
+
+include $(srcdir)/../Version
+
+# Grep for these names to build the legally-required "AUTHORS" file.
+FILE_AUTHORS = \
+"R. Andrew McCallum" \
+"Kresten Krab Thorup" \
+"Adam Fedor" \
+"Mark Lakata" \
+"Jeremy Bettis" \
+"Georg Tuparev" \
+"Peter Burka"
+
+DYNAMIC_LINKER=null
+
+NEXT_NEXT_INCLUDES = -I/usr/include
+OBJECTS_NEXT_INCLUDES = -I$(srcdir)
+NEXT_INCLUDES = 
+
+ALL_INCLUDE_FLAGS = -I. -I$(srcdir) $(NEXT_INCLUDES) $(INCLUDEFLAGS)
+ALL_CPPFLAGS = $(ALL_INCLUDE_FLAGS) $(CPPFLAGS)
+ALL_CFLAGS = $(CFLAGS)
+ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
+
+# definitions to be passed to subdir Makefile's
+MAKEDEFINES = CC='$(CC)' CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' \
+INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
+
+.SUFFIXES: .m
+.m$(OEXT):
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -o $@ $<
+.c$(OEXT):
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -o $@ $<
+%_pic$(OEXT): %.m
+	$(CC) -c $(ALL_CPPFLAGS) -fPIC -DPIC $(DEFS) \
+		$(ALL_OBJCFLAGS) -o $@ $<
+%_pic$(OEXT): %.c
+	$(CC) -c $(ALL_CPPFLAGS) -fPIC -DPIC $(DEFS) \
+		$(ALL_CFLAGS) -o $@ $<
+
+# GNU Class source files
+
+GNU_MFILES = \
+Archiver.m \
+Array.m \
+Bag.m \
+BinaryCStream.m \
+BinaryTree.m \
+BinaryTreeEltNode.m \
+BinaryTreeNode.m \
+CircularArray.m \
+Coder.m \
+Collection.m \
+CString.m \
+ConnectedCoder.m \
+Connection.m \
+ConstantString.m \
+CStream.m \
+DelegatePool.m \
+Dictionary.m \
+EltNodeCollector.m \
+GapArray.m \
+Heap.m \
+IndexedCollection.m \
+Invocation.m \
+KeyedCollection.m \
+LinkedList.m \
+LinkedListEltNode.m \
+LinkedListNode.m \
+Lock.m \
+Magnitude.m \
+MallocAddress.m \
+MappedCollector.m \
+MemoryStream.m \
+MutableCString.m \
+MutableString.m \
+Port.m \
+Proxy.m \
+Queue.m \
+Random.m \
+RBTree.m \
+RBTreeEltNode.m \
+RBTreeNode.m \
+RNGAdditiveCongruential.m \
+RNGBerkeley.m \
+RetainingNotifier.m \
+Set.m \
+SocketPort.m \
+SplayTree.m \
+Stack.m \
+StdioStream.m \
+Stream.m \
+String.m \
+TextCStream.m \
+Time.m \
+stdobjects.m \
+mframe.m \
+objc-gnu2next.m \
+eltfuncs.m
+
+GNU_CFILES = \
+behavior.c \
+collhash.c \
+objc-malloc.c \
+o_vscanf.c 
+
+GNU_OTHER_SRCFILES = 
+
+GNU_OBJS = \
+	$(GNU_MFILES:.m=$(OEXT)) \
+	$(GNU_CFILES:.c=$(OEXT))
+
+GNU_HEADERS = \
+objects/Archiver.h \
+objects/Array.h \
+objects/ArrayPrivate.h \
+objects/Bag.h \
+objects/BinaryCStream.h \
+objects/BinaryTree.h \
+objects/BinaryTreeEltNode.h \
+objects/BinaryTreeNode.h \
+objects/CircularArray.h \
+objects/CircularArrayPrivate.h \
+objects/Coder.h \
+objects/Coding.h \
+objects/Collecting.h \
+objects/Collection.h \
+objects/CollectionPrivate.h \
+objects/ConnectedCoder.h \
+objects/Connection.h \
+objects/CStream.h \
+objects/CStreaming.h \
+objects/DelegatePool.h \
+objects/Dictionary.h \
+objects/EltNodeCollector.h \
+objects/EltNode-h \
+objects/EltNode-m \
+objects/GapArray.h \
+objects/GapArrayPrivate.h \
+objects/Heap.h \
+objects/IndexedCollecting.h \
+objects/IndexedCollection.h \
+objects/IndexedCollectionPrivate.h \
+objects/InvalidationListening.h \
+objects/Invocation.h \
+objects/KeyedCollecting.h \
+objects/KeyedCollection.h \
+objects/LibobjectsMain.h \
+objects/LinkedList.h \
+objects/LinkedListEltNode.h \
+objects/LinkedListNode.h \
+objects/Lock.h \
+objects/Locking.h \
+objects/Magnitude.h \
+objects/MallocAddress.h \
+objects/MappedCollector.h \
+objects/MemoryStream.h \
+objects/NSArray.h \
+objects/NSCoder.h \
+objects/NSDictionary.h \
+objects/NSSet.h \
+objects/NSString.h \
+objects/Ordering.h \
+objects/Port.h \
+objects/Proxy.h \
+objects/Queue.h \
+objects/RBTree.h \
+objects/RBTreeEltNode.h \
+objects/RBTreeNode.h \
+objects/RNGAdditiveCongruential.h \
+objects/RNGBerkeley.h \
+objects/Random.h \
+objects/RandomGenerating.h \
+objects/Retaining.h \
+objects/RetainingNotifier.h \
+objects/Set.h \
+objects/SocketPort.h \
+objects/SplayTree.h \
+objects/Stack.h \
+objects/StdioStream.h \
+objects/Stream.h \
+objects/Streaming.h \
+objects/String.h \
+objects/TextCStream.h \
+objects/Time.h \
+objects/ValueHolding.h \
+objects/behavior.h \
+objects/collhash.h \
+objects/elt.h \
+objects/eltfuncs.h \
+objects/mframe.h \
+objects/objc-gnu2next.h \
+objects/objc-malloc.h \
+objects/objects.h \
+objects/README 
+
+# NEXTSTEP source files
+
+NEXTSTEP_MFILES = \
+HashTable.m \
+List.m \
+NXStringTable.m \
+Storage.m
+
+NEXTSTEP_CFILES = 
+
+NEXTSTEP_DERIVED_CFILES = \
+NXStringTable_scan.c
+
+NEXTSTEP_OTHER_SRCFILES = \
+NXStringTable_scan.l 
+
+NEXTSTEP_OBJS = \
+	$(NEXTSTEP_MFILES:.m=$(OEXT)) \
+	$(NEXTSTEP_CFILES:.c=$(OEXT)) \
+	$(NEXTSTEP_DERIVED_CFILES:.c=$(OEXT))
+
+NEXTSTEP_HEADERS = \
+objc/HashTable.h \
+objc/List.h \
+objc/NXStringTable.h \
+objc/Storage.h \
+objc/zone.h
+
+# GNUStep source files
+
+GNUSTEP_MFILES = \
+NSAllocateObject.m \
+NSArchiver.m \
+NSArray.m \
+NSAssertionHandler.m \
+NSAutoreleasePool.m \
+NSBitmapCharSet.m \
+NSBundle.m \
+NSCharacterSet.m \
+NSCoder.m \
+NSCopyObject.m \
+NSConcreteValue.m \
+NSCountedSet.m \
+NSData.m \
+NSDate.m \
+NSDeallocateObject.m \
+NSDictionary.m \
+NSEnumerator.m \
+NSException.m \
+NSGeometry.m \
+NSGArchiver.m \
+NSGArray.m \
+NSGCountedSet.m \
+NSGCString.m \
+NSGData.m \
+NSGDictionary.m \
+NSGSet.m \
+NSMethodSignature.m \
+NSNumber.m \
+NSObjCRuntime.m \
+NSObject.m \
+NSProcessInfo.m \
+NSRange.m \
+NSSet.m \
+NSString.m \
+NSTimeZone.m \
+NSValue.m
+
+NSVALUE_CLUSTER = 0 1 2 3 4 
+NSVALUE_OFILES  = \
+	NSValue0$(OEXT) NSValue1$(OEXT) NSValue2$(OEXT) NSValue3$(OEXT) \
+	NSValue4$(OEXT) 
+NSVALUE_MFILES = \
+	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
+	NSValue4.m
+NSNUMBER_CLUSTER = 0 1 2 3 4 5 6 7 8 9 10 11 12 
+NSNUMBER_OFILES  = \
+	NSNumber0$(OEXT) NSNumber1$(OEXT) NSNumber2$(OEXT) \
+	NSNumber3$(OEXT) NSNumber4$(OEXT) NSNumber5$(OEXT) \
+	NSNumber6$(OEXT) NSNumber7$(OEXT) NSNumber8$(OEXT) \
+	NSNumber9$(OEXT) NSNumber10$(OEXT) NSNumber11$(OEXT) \
+	NSNumber12$(OEXT) 
+NSNUMBER_MFILES = \
+	NSNumber0.m NSNumber1.m NSNumber2.m NSNumber3.m \
+	NSNumber4.m NSNumber5.m NSNumber6.m NSNumber7.m \
+	NSNumber8.m NSNumber9.m NSNumber10.m NSNumber11.m \
+	NSNumber12.m
+
+GNUSTEP_CFILES = \
+NSZone.c \
+find_exec.c \
+objc-load.c
+
+GNUSTEP_OTHER_SRCFILES = \
+NSConcreteNumber.m \
+NSCTemplateValue.m \
+dld-load.h \
+hpux-load.h \
+null-load.h \
+simple-load.h 
+
+GNUSTEP_OBJS = \
+        $(GNUSTEP_MFILES:.m=$(OEXT)) \
+        $(GNUSTEP_CFILES:.c=$(OEXT)) \
+        $(NSVALUE_OFILES) $(NSNUMBER_OFILES)
+
+GNUSTEP_HEADERS = \
+Foundation/NSArchiver.h \
+Foundation/NSArray.h \
+Foundation/NSAutoreleasePool.h \
+Foundation/NSBitmapCharSet.h \
+Foundation/NSBundle.h \
+Foundation/NSCharacterSet.h \
+Foundation/NSCoder.h \
+Foundation/NSConcreteNumber.h \
+Foundation/NSConcreteValue.h \
+Foundation/NSData.h \
+Foundation/NSDate.h \
+Foundation/NSDictionary.h \
+Foundation/NSException.h \
+Foundation/NSGeometry.h \
+Foundation/NSGArchiver.h \
+Foundation/NSGArray.h \
+Foundation/NSGCString.h \
+Foundation/NSGData.h \
+Foundation/NSGDictionary.h \
+Foundation/NSGSet.h \
+Foundation/NSInvocation.h \
+Foundation/NSMethodSignature.h \
+Foundation/NSObjCRuntime.h \
+Foundation/NSObject.h \
+Foundation/NSProcessInfo.h \
+Foundation/NSRange.h \
+Foundation/NSSerialization.h \
+Foundation/NSSet.h \
+Foundation/NSString.h \
+Foundation/NSUtilities.h \
+Foundation/NSValue.h \
+Foundation/NSZone.h \
+Foundation/objc-load.h
+
+HEADERS_INSTALL = $(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) objects/stdobjects.h
+OBJS_INSTALL = $(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS) 
+OBJS_INSTALL_PIC = $(OBJS_INSTALL:$(OEXT)=_pic$(OEXT))
+
+DIST_FILES = \
+        Makefile.in AUTHORS \
+        objects/config.h.in objects/stdobjects.h.in \
+        $(GNU_MFILES) \
+        $(GNU_CFILES) \
+        $(GNU_HEADERS) \
+        $(GNU_OTHER_SRCFILES) \
+        $(NEXTSTEP_MFILES) \
+        $(NEXTSTEP_CFILES) \
+        $(NEXTSTEP_DERIVED_CFILES) \
+        $(NEXTSTEP_HEADERS) \
+        $(NEXTSTEP_OTHER_SRCFILES) \
+        $(GNUSTEP_MFILES) \
+        $(GNUSTEP_CFILES) \
+        $(GNUSTEP_HEADERS) \
+        $(GNUSTEP_OTHER_SRCFILES)
+
+RCS_FILES = \
+        Makefile.in \
+        objects/config.h.in objects/stdobjects.h.in \
+        $(GNU_MFILES) \
+        $(GNU_CFILES) \
+        $(GNU_HEADERS) \
+        $(GNU_OTHER_SRCFILES) \
+        $(NEXTSTEP_MFILES) \
+        $(NEXTSTEP_CFILES) \
+        $(NEXTSTEP_HEADERS) \
+        $(NEXTSTEP_OTHER_SRCFILES) \
+        $(GNUSTEP_MFILES) \
+        $(GNUSTEP_CFILES) \
+        $(GNUSTEP_HEADERS) \
+        $(GNUSTEP_OTHER_SRCFILES)
+
+all: libobjects$(LIBEXT) 
+
+libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC) 
+	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
+		-Wl,-soname,libobjects.so.$(OBJECTS_MAJOR_VERSION) \
+		$(OBJS_INSTALL_PIC)
+	rm -f libobjects.so.$(OBJECTS_MAJOR_VERSION) 
+	rm -f libobjects.so
+	ln -s libobjects.so.$(OBJECTS_VERSION) \
+		libobjects.so.$(OBJECTS_MAJOR_VERSION)
+	ln -s libobjects.so.$(OBJECTS_MAJOR_VERSION) \
+		libobjects.so
+
+libobjects$(LIBEXT): objects/stdobjects.h $(OBJS_INSTALL) $(INIT_FILE_OBJ) 
+	$(AR) $(ARFLAGS) $(AROUT)libobjects$(LIBEXT) $(OBJS_INSTALL) $(INIT_FILE_OBJ)
+	$(RANLIB) libobjects$(LIBEXT)
+
+$(INIT_FILE_OBJ): $(OBJS_INSTALL)
+	nm $(GNU_OBJS) | grep "  __GLOBAL_" > tmpinit.c
+	nm $(GNUSTEP_OBJS) | grep "  __GLOBAL_" >> tmpinit.c
+	nm $(NEXTSTEP_OBJS) | grep "  __GLOBAL_" >> tmpinit.c
+	collect tmpinit.c $(INIT_FILE)
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $(INIT_FILE).c
+	rm tmpinit.c
+
+install: installdirs all
+	$(INSTALL_DATA) libobjects$(LIBEXT) $(libdir)
+	$(RANLIB) $(libdir)/libobjects$(LIBEXT); 
+	for %i in ( ${GNUSTEP_HEADERS} ) do \
+	  $(INSTALL_DATA) $(srcdir)/%i $(includedir)/%i
+	for %i in ( ${GNU_HEADERS} ) do \
+	  $(INSTALL_DATA) $(srcdir)/%i $(includedir)/%i
+	for %i in ( ${NEXTSTEP_HEADERS} ) do \
+	  $(INSTALL_DATA) $(srcdir)/%i $(includedir)/%i
+	$(INSTALL_DATA) objects/stdobjects.h $(includedir)/objects
+	$(INSTALL_DATA) objects/config.h $(includedir)/objects
+	$(INSTALL_DATA) $(srcdir)/objects/README $(includedir)/Foundation
+	$(INSTALL_DATA) $(srcdir)/objects/README $(includedir)/objc
+
+installdirs:
+	IF NOT EXIST \MB\Libraries mkdir \MB\Libraries
+	IF NOT EXIST \MB\Headers\Foundation mkdir \MB\Headers\Foundation
+	IF NOT EXIST \MB\Headers\objects mkdir \MB\Headers\objects
+	IF NOT EXIST \MB\Headers\objc mkdir \MB\Headers\objc
+
+uninstall:
+	rm -f $(libdir)/libobjects$(LIBEXT)
+	rm -rf $(includedir)/objects \
+		$(includedir)/Foundation 
+	for %i in ( ${NEXTSTEP_HEADERS} ) do \
+	  rm -f $(includedir)/%i
+
+# Creation of NSValue and NSNumber concrete classes from templates
+# Compilation of class clusters 
+$(NSVALUE_OFILES) : NSCTemplateValue.m 
+	for %i in ( ${NSVALUE_CLUSTER} ) do \
+	  ( cp NSCTemplateValue.m NSCTemplateValue%i.m & \
+	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
+	        -DTYPE_ORDER=%i NSCTemplateValue%i.m \
+	        -o NSValue%i$(OEXT) & \
+	    rm -f NSCTemplateValue%i.m ) 
+
+$(NSNUMBER_OFILES) : NSConcreteNumber.m 
+	for %i in ( ${NSNUMBER_CLUSTER} ) do \
+	  ( cp NSConcreteNumber.m NSConcreteNumber%i.m & \
+	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
+	        -DTYPE_ORDER=%i -c NSConcreteNumber%i.m \
+	        -o NSNumber%i$(OEXT) & \
+	    rm -f NSConcreteNumber%i.m )
+
+NXStringTable_scan.c: NXStringTable_scan.l
+	$(LEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
+		> NXStringTable_scan.temp
+	sed "s/yy/NXlex_/g" < NXStringTable_scan.temp \
+		> NXStringTable_scan.c
+	$(RM) -f NXStringTable_scan.temp
+
+objc-load$(OEXT): dynamic-load.h
+
+dynamic-load.h: ../config.status
+	rm -f dynamic-load.h
+	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
+
+objects/stdobjects.h: $(srcdir)/../Version $(srcdir)/objects/stdobjects.h.in
+	rm -f $(srcdir)/objects/stdobjects.h
+	sed -e "s/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/" \
+	< $(srcdir)/objects/stdobjects.h.in | \
+	sed -e "s/@OBJECTS_MAJOR_VERSION@/$(OBJECTS_MAJOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_MINOR_VERSION@/$(OBJECTS_MINOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_SUBMINOR_VERSION@/$(OBJECTS_SUBMINOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_GCC_VERSION@/$(OBJECTS_GCC_VERSION)/" \
+	> $(srcdir)/objects/stdobjects.h
+stdobjects$(OEXT): objects/stdobjects.h
+
+Makefile: $(srcdir)/Makefile.in ../config.status
+	cd ..; $(SHELL) config.status
+../config.status:
+	cd ..; $(SHELL) configure --no-create
+
+TAGS: $(DIST_FILES)
+	etags $(DIST_FILES)
+
+AUTHORS: Makefile.in
+	rm -f AUTHORS
+	@echo Finding file authors...
+	@echo 'For the legal record, here is a list of who wrote what:'>AUTHORS
+	@for a in $(FILE_AUTHORS) \
+	; do \
+		echo >>AUTHORS; \
+		echo >>AUTHORS; \
+		echo "$${a}:" >>AUTHORS; \
+		egrep -l "((Written by)|(Author)).*$${a}" \
+			$(DIST_FILES) >>AUTHORS; \
+	done
+
+mostlyclean:
+	rm -f  core \
+	*~ \
+	objects/*~ \
+	Foundation/*~ \
+	objc/*~
+clean: mostlyclean
+	rm -f libobjects$(LIBEXT) *$(OEXT)
+	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
+distclean: clean
+	rm -f Makefile 
+	rm -f dynamic-load.h
+maintainer-clean: distclean
+	rm -f TAGS objects/stdobjects.h objects/config.h
+
+copy-dist: $(DIST_FILES)
+	mkdir ../snap/src
+	mkdir ../snap/src/objects
+	mkdir ../snap/src/objc
+	mkdir ../snap/src/Foundation
+	for file in $(DIST_FILES); do \
+	  ln $$file ../snap/src/$$file ; \
+	done
+	ln AUTHORS ../snap
