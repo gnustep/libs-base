@@ -1,3 +1,13 @@
+2002-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h: Removed  ([_dealloc]),
+	([-deallocNotificationsActive]), ([setDeallocNotificationsActive:])
+	* Source/NSObject.m: Removed  ([_dealloc]),
+	([-deallocNotificationsActive]), ([setDeallocNotificationsActive:])
+	as these methods are no longer necessary now that the dealloc method
+	itsself is able to refrain from performing deallocation if if wishes
+	(the retain count mechanism can no longer reach a zero retain count).
+
 2002-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Change NSDecrementExtraRefCountWasZero() to
