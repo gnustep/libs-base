@@ -1180,6 +1180,118 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString:
 	    [self makeAnchor: val ofType: @"label" name: text]];
 	}
+      else if ([name isEqual: @"macro"] == YES)
+	{
+	  NSString	*mac;
+	  NSString	*str;
+	  NSString	*s;
+	  GSXMLNode	*tmp = children;
+	  BOOL		hadArg = NO;
+
+	  mac = [prop objectForKey: @"name"];
+	  str = [NSString stringWithFormat: @" %@", mac];
+	  children = nil;
+	  while (tmp != nil)
+	    {
+	      if ([tmp type] == XML_ELEMENT_NODE)
+		{
+		  if ([[tmp name] isEqual: @"arg"] == YES)
+		    {
+		      GSXMLNode		*t = [tmp firstChild];
+
+		      if (hadArg == YES)
+			{
+			  str = [str stringByAppendingString: @", "];
+			}
+		      else
+		      	{
+			  str = [str stringByAppendingString: @"("];
+			}
+
+		      str = [str stringByAppendingString: @"<b>"];
+		      while (t != nil)
+			{
+			  if ([t type] == XML_TEXT_NODE)
+			    {
+			      NSString	*content = [t content];
+
+			      str = [str stringByAppendingString: content];
+			    }
+			  t = [t next];
+			}
+		      str = [str stringByAppendingString: @"</b>"];
+		      hadArg = YES;
+		    }
+		  else if ([[tmp name] isEqual: @"vararg"] == YES)
+		    {
+		      if (hadArg == YES)
+			{
+			  str = [str stringByAppendingString: @"<b>,...</b>"];
+			}
+		      else
+			{
+			  str = [str stringByAppendingString: @"<b>(...</b>"];
+			}
+		      children = [tmp nextElement];
+		      hadArg = YES;
+		      break;
+		    }
+		  else
+		    {
+		      children = tmp;
+		      break;
+		    }
+		}
+	      tmp = [tmp nextElement];
+	    }
+
+	  /*
+	   * Output macro heading.
+	   */
+	  [buf appendString: indent];
+	  [buf appendString: @"<h3>"];
+	  s = [self makeLink: mac ofType: @"macro" isRef: NO];
+	  if (s != nil)
+	    {
+	      [buf appendString: s];
+	      [buf appendString: mac];
+	      [buf appendString: @"</a>"];
+	    }
+	  else
+	    {
+	      [buf appendString: mac];
+	    }
+	  [buf appendString: @"</h3>\n"];
+	  [buf appendString: indent];
+	  [buf appendString: str];
+	  if (hadArg == YES)
+	    {
+	      [buf appendString: @")"];
+	    }
+	  [buf appendString: @"<br />\n"];
+
+	  node = firstElement(children);
+
+	  if ([[node name] isEqual: @"declared"] == YES)
+	    {
+	      [self outputNode: node to: buf];
+	      node = [node nextElement];
+	    }
+
+	  children = node;
+	  if ([[children name] isEqual: @"standards"])
+	    {
+	      [self outputNode: children to: buf];
+	    }
+
+	  if ([[node name] isEqual: @"desc"])
+	    {
+	      [self outputNode: node to: buf];
+	    }
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	}
       else if ([name isEqual: @"method"] == YES)
 	{
 	  NSString	*sel;
@@ -1388,8 +1500,7 @@ static NSMutableSet	*textNodes = nil;
 	  unit = nil;
 	}
       else if ([name isEqual: @"EOEntity"] == YES
-	|| [name isEqual: @"EOModel"] == YES
-	|| [name isEqual: @"macro"] == YES)
+	|| [name isEqual: @"EOModel"] == YES)
 	{
 	  NSString	*tmp = [prop objectForKey: @"name"];
 

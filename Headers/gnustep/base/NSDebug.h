@@ -41,35 +41,12 @@ extern int	errno;
  *
  *	Public functions:
  *	GSDebugAllocationActive()	
- *		Activates or deactivates object allocation debugging.
- *		Returns previous state.
- *
  *	GSDebugAllocationCount()	
- *		Returns the number of instances of the specified class
- *		which are currently allocated.
- *
  *      GSDebugAllocationTotal()
- *		Returns the total number of instances of the specified class
- *		which have been allocated.
- *
  *      GSDebugAllocationPeak()
- *		Returns the peak number of instances of the specified class
- *		which have been concurrently allocated.
- *
  *      GSDebugAllocationClassList()
- *              Returns a NULL terminated array listing all the classes 
- *              for which statistical information has been collected.
- *
  *	GSDebugAllocationList()
- *		Returns a newline separated list of the classes which
- *		have instances allocated, and the instance counts.
- *		If 'changeFlag' is YES then the list gives the number
- *		of instances allocated/deallocated since the function
- *		was last called.
  *	GSDebugAllocationListAll()
- *		Returns a newline separated list of the classes which
- *		have had instances allocated at any point, and the total
- *		count of the number of instances allocated for each class.
  *
  * When the previous functions have allowed you to find a memory leak,
  * and you know that you are leaking objects of class XXX, but you are
@@ -80,33 +57,93 @@ extern int	errno;
  * and only in debugging systems):
  *
  *  GSDebugAllocationActiveRecordingObjects()
- *              Starts recording all allocated objects of a certain class
- *
  *  GSDebugAllocationListRecordedObjects() 
- *              Returns an array containing all the allocated objects
- *              of a certain class which have been recorded.
- *              Presumably, you will immediately call -description on
- *              them to find out the objects you are leaking.
- *              Warning - the objects are put in an array, so until
- *              the array is autoreleased, the objects are not released.  */
-
+ */
 #ifndef	NDEBUG
+
+/**
+ * Used internally by NSAllocateObject() ... you probably don't need this.
+ */
 GS_EXPORT void		GSDebugAllocationAdd(Class c, id o);
+
+/**
+ * Used internally by NSDeallocateObject() ... you probably don't need this.
+ */
 GS_EXPORT void		GSDebugAllocationRemove(Class c, id o);
 
+/**
+ * Activates or deactivates object allocation debugging.
+ * Returns previous state.
+ */
 GS_EXPORT BOOL		GSDebugAllocationActive(BOOL active);
+
+/**
+ * Returns the number of instances of the specified class
+ * which are currently allocated.
+ */
 GS_EXPORT int		GSDebugAllocationCount(Class c);
+
+/**
+ * Returns the peak number of instances of the specified class
+ * which have been concurrently allocated.
+ */
 GS_EXPORT int		GSDebugAllocationPeak(Class c);
+
+/**
+ * Returns the total number of instances of the specified class
+ * which have been allocated.
+ */
 GS_EXPORT int		GSDebugAllocationTotal(Class c);
+
+/**
+ * Returns a NULL terminated array listing all the classes 
+ * for which statistical information has been collected.
+ */
 GS_EXPORT Class*        GSDebugAllocationClassList();
+
+/**
+ * Returns a newline separated list of the classes which
+ * have instances allocated, and the instance counts.
+ * If 'changeFlag' is YES then the list gives the number
+ * of instances allocated/deallocated since the function
+ * was last called.
+ */
 GS_EXPORT const char*	GSDebugAllocationList(BOOL changeFlag);
+
+/**
+ * Returns a newline separated list of the classes which
+ * have had instances allocated at any point, and the total
+ * count of the number of instances allocated for each class.
+ */
 GS_EXPORT const char*	GSDebugAllocationListAll();
 
+/**
+ * Starts recording all allocated objects of a certain class.<br />
+ * Use with extreme carre ... this could slow down your application
+ * enormously.
+ */
 GS_EXPORT void     GSDebugAllocationActiveRecordingObjects(Class c);
+
+/**
+ * Returns an array containing all the allocated objects
+ * of a certain class which have been recorded.
+ * Presumably, you will immediately call -description on
+ * them to find out the objects you are leaking.
+ * Warning - the objects are put in an array, so until
+ * the array is autoreleased, the objects are not released.
+ */
 GS_EXPORT NSArray *GSDebugAllocationListRecordedObjects(Class c);
 
+/**
+ * Used to produce a format string for logging a message with function
+ * location details.
+ */
 GS_EXPORT NSString*	GSDebugFunctionMsg(const char *func, const char *file,
 				int line, NSString *fmt);
+/**
+ * Used to produce a format string for logging a message with method
+ * location details.
+ */
 GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				int line, NSString *fmt);
 #endif
@@ -150,62 +187,104 @@ GS_EXPORT BOOL NSDeallocateZombies;
 
 
 
-/* Debug logging which can be enabled/disabled by defining GSDIAGNOSE
-   when compiling and also setting values in the mutable array
-   that is set up by NSProcessInfo. GSDIAGNOSE is defined autmatically unless
-   diagnose=no is specified in the make arguments.
-
-   NSProcess initialises a set of strings that are the names of active
-   debug levels using the '--GNU-Debug=...' command line argument.
-   Each command-line argument of that form is removed from NSProcessInfos
-   list of arguments and the variable part (...) is added to the set.
-
-   For instance, to debug the NSBundle class, run your program with 
-    '--GNU-Debug=NSBundle'
-   You can of course supply multiple '--GNU-Debug=...' arguments to
-   output debug information on more than one thing.
-
-   To embed debug logging in your code you use the NSDebugLLog() or
-   NSDebugLog() macro.  NSDebugLog() is just NSDebugLLog() with the debug
-   level set to 'dflt'.  So, to activate debug statements that use
-   NSDebugLog(), you supply the '--GNU-Debug=dflt' argument to your program.
-
-   You can also change the active debug levels under your programs control -
-   NSProcessInfo has a [-debugSet] method that returns the mutable set that
-   contains the active debug levels - your program can modify this set.
-
-   As a convenience, there are four more logging macros you can use -
-   NSDebugFLog(), NSDebugFLLog(), NSDebugMLog() and NSDebugMLLog().
-   These are the same as the other macros, but are specifically for use in
-   either functions or methods and prepend information about the file, line
-   and either function or class/method in which the message was generated.
-
- */
 #ifdef GSDIAGNOSE
 #include	<Foundation/NSObjCRuntime.h>
 #include	<Foundation/NSProcessInfo.h>
 
+/**
+   <p>NSDebugLLog() is the basic debug logging macro used to display
+   log messages using NSLog(), if debug logging was enabled at compile
+   time and the appropriate logging level was set at runtime.
+   </p>
+   <p>Debug logging which can be enabled/disabled by defining GSDIAGNOSE
+   when compiling and also setting values in the mutable set which
+   is set up by NSProcessInfo. GSDIAGNOSE is defined automatically
+   unless diagnose=no is specified in the make arguments.
+   </p>
+   <p>NSProcess initialises a set of strings that are the names of active
+   debug levels using the '--GNU-Debug=...' command line argument.
+   Each command-line argument of that form is removed from NSProcessInfos
+   list of arguments and the variable part (...) is added to the set.
+   This means that as far as the program proper is concerned, it is
+   running with the same arguments as if debugging had not been enabled.
+   </p>
+   <p>For instance, to debug the NSBundle class, run your program with 
+    '--GNU-Debug=NSBundle'
+   You can of course supply multiple '--GNU-Debug=...' arguments to
+   output debug information on more than one thing.
+   </p>
+   <p>NSUserDefaults also adds debug levels from the array given by the
+   GNU-Debug key ... but these values will not take effect until the
+   +sharedUserDefaults method is called ... so they are useless for
+   debugging NSUserDefaults itsself or for debugging any code executed
+   before the defaults system is used.
+   </p>
+   <p>To embed debug logging in your code you use the NSDebugLLog() or
+   NSDebugLog() macro.  NSDebugLog() is just NSDebugLLog() with the debug
+   level set to 'dflt'.  So, to activate debug statements that use
+   NSDebugLog(), you supply the '--GNU-Debug=dflt' argument to your program.
+   </p>
+   <p>You can also change the active debug levels under your programs control -
+   NSProcessInfo has a [-debugSet] method that returns the mutable set that
+   contains the active debug levels - your program can modify this set.
+   </p>
+   <p>Two debug levels have a special effect - 'dflt' is the level used for
+   debug logs statements where no debug level is specified, and 'NoWarn'
+   is used to *disable* warning messages.
+   </p>
+   <p>As a convenience, there are four more logging macros you can use -
+   NSDebugFLog(), NSDebugFLLog(), NSDebugMLog() and NSDebugMLLog().
+   These are the same as the other macros, but are specifically for use in
+   either functions or methods and prepend information about the file, line
+   and either function or class/method in which the message was generated.
+   </p>
+ */
 #define NSDebugLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) \
     NSLog(format , ## args); } while (0)
+
+/**
+ * This macro is a shorthand for NSDebugLLog() using then default debug
+ * level ... 'dflt'
+ */
 #define NSDebugLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) \
     NSLog(format , ## args); } while (0)
+
+/**
+ * This macro is like NSDebugLLog() but includes the name and location
+ * of the function in which the macro is used as part of the log output.
+ */
 #define NSDebugFLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) { \
     NSString *fmt = GSDebugFunctionMsg( \
 	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
     NSLog(fmt , ## args); }} while (0)
+
+/**
+ * This macro is a shorthand for NSDebugFLLog() using then default debug
+ * level ... 'dflt'
+ */
 #define NSDebugFLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) { \
     NSString *fmt = GSDebugFunctionMsg( \
 	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
     NSLog(fmt , ## args); }} while (0)
+
+/**
+ * This macro is like NSDebugLLog() but includes the name and location
+ * of the <em>method</em> in which the macro is used as part of the log output.
+ */
 #define NSDebugMLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) { \
     NSString *fmt = GSDebugMethodMsg( \
 	self, _cmd, __FILE__, __LINE__, format); \
     NSLog(fmt , ## args); }} while (0)
+
+/**
+ * This macro is a shorthand for NSDebugMLLog() using then default debug
+ * level ... 'dflt'
+ */
 #define NSDebugMLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) { \
     NSString *fmt = GSDebugMethodMsg( \
@@ -222,45 +301,65 @@ GS_EXPORT BOOL NSDeallocateZombies;
 
 
 
-/* Warning messages which can be enabled/disabled by defining GSWARN
-   when compiling.
+#ifdef GSWARN
+#include	<Foundation/NSObjCRuntime.h>
 
-   These logging macros are intended to be used when the software detects
+/**
+   <p>NSWarnLog() is the basic debug logging macro used to display
+   warning messages using NSLog(), if warn logging was not disabled at compile
+   time and the disabling logging level was not set at runtime.
+   </p>
+   <p>Warning messages which can be enabled/disabled by defining GSWARN
+   when compiling.
+   </p>
+   <p>You can also disable these messages at runtime by supplying a
+   '--GNU-Debug=NoWarn' argument to the program, or by adding 'NoWarn'
+   to the user default array named 'GNU-Debug'.
+   </p>
+   <p>These logging macros are intended to be used when the software detects
    something that it not necessarily fatal or illegal, but looks like it
    might be a programming error.  eg. attempting to remove 'nil' from an
    NSArray, which the Spec/documentation does not prohibit, but which a
    well written progam should not be attempting (since an NSArray object
    cannot contain a 'nil').
-
-   NB. The 'warn=yes' option is understood by the GNUstep make package
+   </p>
+   <p>NB. The 'warn=yes' option is understood by the GNUstep make package
    to mean that GSWARN should be defined, and the 'warn=no' means that
-    GSWARN should be undefined.  Default is to define it.
-
-   To embed debug logging in your code you use the NSWarnLog() macro.
-
-   As a convenience, there are two more logging macros you can use -
+   GSWARN should be undefined.  Default is to define it.
+   </p>
+   <p>To embed debug logging in your code you use the NSWarnLog() macro.
+   </p>
+   <p>As a convenience, there are two more logging macros you can use -
    NSWarnLog(), and NSWarnMLog().
    These are specifically for use in either functions or methods and
    prepend information about the file, line and either function or
    class/method in which the message was generated.
-
+   </p>
  */
-#ifdef GSWARN
-#include	<Foundation/NSObjCRuntime.h>
 
 #define NSWarnLog(format, args...) \
-  do { \
-    NSLog(format , ## args); } while (0)
+  do { if (GSDebugSet(@"NoWarn") == NO) { \
+    NSLog(format , ## args); }} while (0)
+
+/**
+ * This macro is like NSWarnLog() but includes the name and location of the
+ * <em>function</em> in which the macro is used as part of the log output.
+ */
 #define NSWarnFLog(format, args...) \
-  do { \
+  do { if (GSDebugSet(@"NoWarn") == NO) { \
     NSString *fmt = GSDebugFunctionMsg( \
 	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-    NSLog(fmt , ## args); } while (0)
+    NSLog(fmt , ## args); }} while (0)
+
+/**
+ * This macro is like NSWarnLog() but includes the name and location of the
+ * <em>method</em> in which the macro is used as part of the log output.
+ */
 #define NSWarnMLog(format, args...) \
-  do { \
+  do { if (GSDebugSet(@"NoWarn") == NO) { \
     NSString *fmt = GSDebugMethodMsg( \
 	self, _cmd, __FILE__, __LINE__, format); \
-    NSLog(fmt , ## args); } while (0)
+    NSLog(fmt , ## args); }} while (0)
 #else
 #define NSWarnLog(format, args...)
 #define NSWarnFLog(format, args...)

@@ -46,6 +46,7 @@
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSSet.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSUtilities.h>
@@ -84,6 +85,26 @@ static void updateCache(NSUserDefaults *self)
 {
   if (self == sharedDefaults)
     {
+      NSArray	*debug;
+
+      /**
+       * If there is an array NSUserDefault called GNU-Debug,
+       * we add its contents to the set of active debug levels.
+       */
+      debug = [self arrayForKey: @"GNU-Debug"];
+      if (debug != nil)
+        {
+	  unsigned	c = [debug count];
+	  NSMutableSet	*s;
+
+	  s = [[NSProcessInfo processInfo] debugSet];
+	  while (c-- > 0)
+	    {
+	      NSString	*level = [debug objectAtIndex: c];
+
+	      [s addObject: level];
+	    }
+	}
       flags[GSMacOSXCompatible]
 	= [self boolForKey: @"GSMacOSXCompatible"];
       flags[GSOldStyleGeometry]

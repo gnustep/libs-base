@@ -54,6 +54,7 @@
   unichar	*buffer;
   unsigned	length;
   unsigned	pos;
+  BOOL		inHeader;
   BOOL		commentsRead;
   BOOL		haveOutput;
   BOOL		haveSource;
@@ -62,6 +63,7 @@
   BOOL		documentAllInstanceVariables;
   BOOL		verbose;
   BOOL		warn;
+  BOOL		standards;
   NSDictionary		*wordMap;
   NSString		*declared;	/** Where classes were declared. */
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */
@@ -78,17 +80,22 @@
 - (NSMutableDictionary*) info;
 - (id) init;	/** <init> Simple initialiser */
 - (NSMutableArray*) outputs;
+- (unsigned) parseComment;
 - (NSMutableDictionary*) parseDeclaration;
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource;
 - (NSString*) parseIdentifier;
 - (NSMutableDictionary*) parseImplementation;
 - (NSMutableDictionary*) parseInterface;
 - (NSMutableDictionary*) parseInstanceVariables;
+- (NSMutableDictionary*) parseMacro;
 - (NSMutableDictionary*) parseMethodIsDeclaration: (BOOL)flag;
 - (NSMutableDictionary*) parseMethodsAreDeclarations: (BOOL)flag;
 - (NSString*) parseMethodType;
+- (unsigned) parsePreprocessor;
 - (NSMutableDictionary*) parseProtocol;
 - (NSMutableArray*) parseProtocolList;
+- (unsigned) parseSpace: (NSCharacterSet*)spaces;
+- (unsigned) parseSpace;
 - (void) reset;
 - (void) setDeclared: (NSString*)name;
 - (void) setDocumentAllInstanceVariables: (BOOL)flag;
@@ -98,15 +105,18 @@
 - (void) setupBuffer;
 - (unsigned) skipArray;
 - (unsigned) skipBlock;
-- (unsigned) skipComment;
 - (unsigned) skipLiteral;
-- (unsigned) skipPreprocessor;
 - (unsigned) skipRemainderOfLine;
 - (unsigned) skipSpaces;
 - (unsigned) skipStatement;
 - (unsigned) skipStatementLine;
+- (unsigned) skipToEndOfLine;
 - (unsigned) skipUnit;
-- (unsigned) skipWhiteSpace;
 - (NSMutableArray*) sources;
 @end
+
+/** Let's document a macro
+ */
+#define	fibble(a,b,c)	feep /** with three arguments: a, b, c */
+
 #endif

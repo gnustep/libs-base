@@ -24,13 +24,14 @@
    $Date$ $Revision$
  */ 
 
-/**** Included Headers *******************************************************/
-
 /*
  *	Define IN_NSGEOMETRY_M so that the Foundation/NSGeometry.h header can
  *	provide non-inline versions of the function implementations for us.
  */
 #define	IN_NSGEOMETRY_M
+
+
+/**** Included Headers *******************************************************/
 
 #include <config.h>
 #include <math.h>

@@ -52,6 +52,8 @@
 - (void) outputInstanceVariable: (NSDictionary*)d
 			     to: (NSMutableString*)str
 			    for: (NSString*)unit;
+- (void) outputMacro: (NSDictionary*)d
+		  to: (NSMutableString*)str;
 - (void) outputMethod: (NSDictionary*)d
 		   to: (NSMutableString*)str
 		  for: (NSString*)unit;
