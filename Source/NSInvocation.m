@@ -40,6 +40,20 @@
 static Class   NSInvocation_abstract_class;
 static Class   NSInvocation_concrete_class;
 
+@interface GSInvocationProxy
+{
+@public
+  Class		isa;
+  id		target;
+  NSInvocation	*invocation;
+}
++ (id) _newWithTarget: (id)t;
+- (NSInvocation*) _invocation;
+- (void) forwardInvocation: (NSInvocation*)anInvocation;
+@end
+@interface GSMessageProxy : GSInvocationProxy
+@end
+
 @implementation NSInvocation
 
 #ifdef USE_LIBFFI
@@ -132,6 +146,11 @@ _arg_addr(NSInvocation *inv, int index)
     }
 }
 
+/**
+ * Returns an invocation instance which can be used to send messages to
+ * a target object using the described signature.<br />
+ * Raises an NSInvalidArgumentException if the signature is nil.
+ */
 + (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)_signature
 {
   return AUTORELEASE([[NSInvocation_concrete_class alloc]
@@ -197,10 +216,12 @@ _arg_addr(NSInvocation *inv, int index)
   [super dealloc];
 }
 
-/*
- *      Accessing message elements.
+/**
+ * Copies the argument identified by index into the memory location specified
+ * by the buffer argument.<br />
+ * An index of zero is the target object, an index of one is the selector,
+ * so the actual method arguments start at index 2.
  */
-
 - (void) getArgument: (void*)buffer
 	     atIndex: (int)index
 {
@@ -635,8 +656,10 @@ _arg_addr(NSInvocation *inv, int index)
   return nil;
 }
 
-/*
- *	This is the de_signated initialiser.
+/** <init /><override-subclass />
+ * Initialised an invocation instance which can be used to send messages to
+ * a target object using aSignature.<br />
+ * Raises an NSInvalidArgumentException if aSignature is nil.
  */
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature
 {
@@ -644,6 +667,12 @@ _arg_addr(NSInvocation *inv, int index)
   return nil;
 }
 
+/**
+ * Tries to produce a method signature based on aSelector and uses that to
+ * initialise self by calling the -initWithMethodSignature: method.<br />
+ * If the argument type of aSelector cannot be determined, this releases self
+ * and returns nil.
+ */
 - (id) initWithSelector: (SEL)aSelector
 {
   const char *types;
@@ -784,6 +813,21 @@ _arg_addr(NSInvocation *inv, int index)
   _sendToSuper = flag;
 }
 
+/* These next three are for internal use only ... not public API */
++ (id) _newProxyForInvocation: (id)target
+{
+  return [GSInvocationProxy _newWithTarget: target];
+}
++ (id) _newProxyForMessage: (id)target
+{
+  return [GSMessageProxy _newWithTarget: target];
+}
++ (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy
+{
+  NSInvocation	*inv = [proxy _invocation];
+  NSDeallocateObject(proxy);
+  return inv;
+}
 @end
 
 @implementation NSInvocation (BackwardCompatibility)
@@ -844,5 +888,45 @@ _arg_addr(NSInvocation *inv, int index)
 - (void*) returnFrame: (arglist_t)argFrame
 {
   return mframe_handle_return(_info[0].type, _retval, argFrame);
+}
+@end
+
+
+@implementation	GSInvocationProxy
++ (id) _newWithTarget: (id)t
+{
+  GSInvocationProxy	*o;
+  o = (GSInvocationProxy*) NSAllocateObject(self, 0, NSDefaultMallocZone());
+  o->target = t;
+  return o;
+}
+- (NSInvocation*) _invocation
+{
+  return invocation;
+}
+- (retval_t) forward: (SEL)aSel : (arglist_t)argFrame
+{
+  NSInvocation	*inv;
+
+  if (aSel == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+
+  inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
+						  selector: aSel]);
+  [self forwardInvocation: inv];
+  return [inv returnFrame: argFrame];
+}
+- (void) forwardInvocation: (NSInvocation*)anInvocation
+{
+  invocation = anInvocation;
+}
+@end
+
+@implementation	GSMessageProxy
+- (NSInvocation*) _invocation
+{
+  [invocation setTarget: target];
+  return invocation;
 }
 @end

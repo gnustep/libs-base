@@ -96,5 +96,24 @@
 @end
 #endif
 
+/* Do NOT use these methods ... internal use only ... not public API */
+@interface NSInvocation (MacroSetup)
++ (id) _newProxyForInvocation: (id)target;
++ (id) _newProxyForMessage: (id)target;
++ (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy;
+@end
+
+#define NS_INVOCATION(class, message...) ({\
+  id __proxy = [NSInvocation _newProxyForInvocation: class]; \
+  [__proxy message]; \
+  [NSInvocation _returnInvocationAndDestroyProxy: __proxy]; \
+})
+
+#define NS_MESSAGE(target, message...) ({\
+  id __proxy = [NSInvocation _newProxyForMessage: target]; \
+  [__proxy message]; \
+  [NSInvocation _returnInvocationAndDestroyProxy: __proxy]; \
+})
+
 #endif /* __NSInvocation_h_GNUSTEP_BASE_INCLUDE */
 
