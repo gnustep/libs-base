@@ -1955,7 +1955,8 @@ transmute(ivars self, NSString *aString)
 
 - (id) copy
 {
-  if (NSShouldRetainWithZone(self, NSDefaultMallocZone()) == NO)
+  if (_flags.free == NO
+    || NSShouldRetainWithZone(self, NSDefaultMallocZone()) == NO)
     {
       GSCString	*obj;
 
@@ -1978,7 +1979,8 @@ transmute(ivars self, NSString *aString)
 
 - (id) copyWithZone: (NSZone*)z
 {
-  if (NSShouldRetainWithZone(self, z) == NO)
+  if (_flags.free == NO
+    || NSShouldRetainWithZone(self, z) == NO)
     {
       NSString	*obj;
 
@@ -2195,6 +2197,25 @@ transmute(ivars self, NSString *aString)
   _flags.wide = 0;
   return self;
 }
+- (id) copy
+{
+  return RETAIN(self);
+}
+- (id) copyWithZone: (NSZone*)z
+{
+  if (NSShouldRetainWithZone(self, z) == NO)
+    {
+      NSString	*obj;
+
+      obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
+      obj = [obj initWithCString: _contents.c length: _count];
+      return obj;
+    }
+  else 
+    {
+      return RETAIN(self);
+    }
+}
 - (void) dealloc
 {
   NSDeallocateObject(self);
@@ -2258,7 +2279,8 @@ transmute(ivars self, NSString *aString)
 
 - (id) copy
 {
-  if (NSShouldRetainWithZone(self, NSDefaultMallocZone()) == NO)
+  if (_flags.free == NO
+    || NSShouldRetainWithZone(self, NSDefaultMallocZone()) == NO)
     {
       GSUnicodeString	*obj;
 
@@ -2281,7 +2303,8 @@ transmute(ivars self, NSString *aString)
 
 - (id) copyWithZone: (NSZone*)z
 {
-  if (NSShouldRetainWithZone(self, z) == NO)
+  if (_flags.free == NO
+    || NSShouldRetainWithZone(self, z) == NO)
     {
       NSString	*obj;
 
@@ -2503,6 +2526,26 @@ transmute(ivars self, NSString *aString)
     memcpy(_contents.u, chars, length*sizeof(unichar));
   _flags.wide = 1;
   return self;
+}
+- (id) copy
+{
+  return RETAIN(self);
+}
+- (id) copyWithZone: (NSZone*)z
+{
+  if (NSShouldRetainWithZone(self, z) == NO)
+    {
+      NSString	*obj;
+
+      obj = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
+	_count*sizeof(unichar), z);
+      obj = [obj initWithCharacters: _contents.u length: _count];
+      return obj;
+    }
+  else 
+    {
+      return RETAIN(self);
+    }
 }
 - (void) dealloc
 {
