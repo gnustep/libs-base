@@ -163,7 +163,7 @@
 
 @end
 
-@implementation NSMethodSignature(GNU)
+@implementation NSMethodSignature(GNUstep)
 - (NSArgumentInfo*) methodInfo
 {
   if (_info == 0)
