@@ -2066,15 +2066,14 @@ handle_printf_atsign (FILE *stream,
 				   range: r]).length)
     {
       unsigned	length = [s length];
-      unichar	c1 = [s characterAtIndex: r.location + 1];
 
       if (r.location + r.length + 1 <= length
-	&& pathSepMember(c1) == YES)
+	&& pathSepMember([s characterAtIndex: r.location + 1]) == YES)
 	{
 	  [s deleteCharactersInRange: r];
 	}
       else if (r.location + r.length + 2 <= length
-	&& c1 == (unichar)'.'
+	&& [s characterAtIndex: r.location + 1] == (unichar)'.'
 	&& pathSepMember([s characterAtIndex: r.location + 2]) == YES)
 	{
 	  r.length++;
