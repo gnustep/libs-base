@@ -1047,38 +1047,17 @@ fillHole(ivars self, unsigned index, unsigned size)
   NSCAssert(index + size <= self->_count, @"index + size > length");
 
   self->_count -= size;
-#ifndef STABLE_MEMCPY
-  {
-    unsigned int i;
-
-    if (self->_flags.wide == 1)
-      {
-	for (i = index; i < self->_count; i++)
-	  {
-	    self->_contents.u[i] = self->_contents.u[i+size];
-	  }
-      }
-    else
-      {
-	for (i = index; i < self->_count; i++)
-	  {
-	    self->_contents.c[i] = self->_contents.c[i+size];
-	  }
-      }
-  }
-#else
   if (self->_flags.wide == 1)
     {
-      memcpy(self->_contents.u + index,
+      memmove(self->_contents.u + index,
 	self->_contents.u + index + size,
 	sizeof(unichar)*(self->_count - index));
     }
   else
     {
-      memcpy(self->_contents.c + index,
+      memmove(self->_contents.c + index,
 	self->_contents.c + index + size, (self->_count - index));
     }
-#endif // STABLE_MEMCPY
   self->_flags.hash = 0;
 }
 
@@ -1087,8 +1066,15 @@ getCharacters_c(ivars self, unichar *buffer, NSRange aRange)
 {
   unsigned	len = aRange.length;
 
-  GSToUnicode(&buffer, &len, self->_contents.c + aRange.location,
-    aRange.length, intEnc, 0, 0);
+  if (!len)
+    return;
+
+  if (!GSToUnicode(&buffer, &len, self->_contents.c + aRange.location,
+		   aRange.length, intEnc, 0, 0))
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Can't convert to Unicode."];
+    }
 }
 
 static inline void
@@ -1472,41 +1458,18 @@ makeHole(ivars self, unsigned int index, unsigned int size)
 
   if (index < self->_count)
     {
-#ifndef STABLE_MEMCPY
       if (self->_flags.wide == 1)
 	{
-	  unsigned int i;
-
-	  for (i = self->_count; i > index; i--)
-	    {
-	      self->_contents.u[i+size] = self->_contents.u[i];
-	    }
-	  self->_contents.u[index+size] = self->_contents.u[index];
-	}
-      else
-	{
-	  unsigned int i;
-
-	  for (i = self->_count; i > index; i--)
-	    {
-	      self->_contents.c[i+size] = self->_contents.c[i];
-	    }
-	  self->_contents.c[index+size] = self->_contents.c[index];
-	}
-#else
-      if (self->_flags.wide == 1)
-	{
-	  memcpy(self->_contents.u + index,
-	    self->_contents.u + index + size,
+	  memmove(self->_contents.u + index + size,
+	    self->_contents.u + index,
 	    sizeof(unichar)*(self->_count - index));
 	}
       else
 	{
-	  memcpy(self->_contents.c + index,
-	    self->_contents.c + index + size,
+	  memmove(self->_contents.c + index + size,
+	    self->_contents.c + index,
 	    (self->_count - index));
 	}
-#endif /* STABLE_MEMCPY */
     }
 
   self->_count += size;
@@ -1796,8 +1759,22 @@ transmute(ivars self, NSString *aString)
       unichar	*tmp = 0;
       int	len = 0;
 
-      GSToUnicode(&tmp, &len, self->_contents.c, self->_count, intEnc,
-	self->_zone, 0);
+      if (!self->_zone)
+	{
+#if GS_WITH_GC
+	  self->_zone = GSAtomicMallocZone();
+#else
+	  self->_zone = GSObjCZone((NSString*)self);
+#endif
+	}
+
+      if (!GSToUnicode(&tmp, &len, self->_contents.c, self->_count, intEnc,
+		       self->_zone, 0))
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"transmute of string failed"];
+	  return 0;
+	}
       if (self->_flags.free == 1)
 	{
 	  NSZoneFree(self->_zone, self->_contents.c);
@@ -1884,7 +1861,7 @@ transmute(ivars self, NSString *aString)
 		  format: @"re-initialisation of string"];
     }
   _count = length;
-  _contents.c = chars;
+  _contents.c = chars; /* TODO: broken if defEnc!=intEnc */
   _flags.wide = 0;
   if (flag == YES)
     {
@@ -1958,7 +1935,7 @@ transmute(ivars self, NSString *aString)
       NSString	*obj;
 
       obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-      obj = [obj initWithCString: _contents.c length: _count];
+      obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if defEnc!=intEnc */
       return obj;
     }
   else 
@@ -2082,7 +2059,7 @@ transmute(ivars self, NSString *aString)
 
   obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0,
     NSDefaultMallocZone());
-  obj = [obj initWithCString: _contents.c length: _count];
+  obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if defEnc!=intEnc */
   return obj;
 }
 
@@ -2091,7 +2068,7 @@ transmute(ivars self, NSString *aString)
   GSMutableString	*obj;
 
   obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0, z);
-  obj = [obj initWithCString: _contents.c length: _count];
+  obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if defEnc!=intEnc */
   return obj;
 }
 
@@ -2166,7 +2143,7 @@ transmute(ivars self, NSString *aString)
   _count = length;
   _contents.c = (unsigned char*)&self[1];
   if (_count > 0)
-    memcpy(_contents.c, chars, length);
+    memcpy(_contents.c, chars, length); /* TODO: broken if defEnc!=intEnc */
   _flags.wide = 0;
   return self;
 }
@@ -2191,7 +2168,7 @@ transmute(ivars self, NSString *aString)
   NSString	*obj;
 
   obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-  obj = [obj initWithCString: _contents.c length: _count];
+  obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if defEnc!=intEnc */
   return obj;
 }
 - (void) dealloc
@@ -2551,7 +2528,7 @@ transmute(ivars self, NSString *aString)
       f.buf = _contents.u;
       f.len = _count;
       f.size = _capacity;
-      GSFormat(&f, fmt, ap, nil);
+      GSFormat(&f, fmt, ap, nil); /* TODO: _zone might be nil, and _flags.free might be NO */
       _contents.u = f.buf;
       _count = f.len;
       _capacity = f.size;
@@ -2633,7 +2610,7 @@ transmute(ivars self, NSString *aString)
     {
       copy = NSAllocateObject(GSCInlineStringClass,
 	_count, NSDefaultMallocZone());
-      copy = [copy initWithCString: _contents.c length: _count];
+      copy = [copy initWithCString: _contents.c length: _count]; /* TODO: broken if intEnc!=defEnc */
     }
   return copy;
 }
@@ -2651,7 +2628,7 @@ transmute(ivars self, NSString *aString)
   else
     {
       copy = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-      copy = [copy initWithCString: _contents.c length: _count];
+      copy = [copy initWithCString: _contents.c length: _count]; /* TODO: broken if intEnc!=defEnc */
     }
   return copy;
 }
@@ -2868,7 +2845,7 @@ transmute(ivars self, NSString *aString)
 {
   _count = length;
   _capacity = length;
-  _contents.c = byteString;
+  _contents.c = byteString; /* TODO: broken if intEnc!=defEnc */
   _flags.wide = 0;
   if (flag == YES && byteString != 0)
     {
@@ -2952,7 +2929,7 @@ transmute(ivars self, NSString *aString)
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
   else
-    obj = [obj initWithCString: _contents.c length: _count];
+    obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if intEnc!=defEnc */
   return obj;
 }
 
@@ -2965,7 +2942,7 @@ transmute(ivars self, NSString *aString)
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
   else
-    obj = [obj initWithCString: _contents.c length: _count];
+    obj = [obj initWithCString: _contents.c length: _count]; /* TODO: broken if intEnc!=defEnc */
   return obj;
 }
 
@@ -3058,14 +3035,13 @@ transmute(ivars self, NSString *aString)
 	}
       else
 	{
-	  /*
-	   * As we got here, intEnc == defEnc, so we can use standard
-	   * CString methods to get the characters into our buffer,
-	   * or may even be able to copy from another string directly.
-	   */
 	  if (other == 0)
 	    {
 	      /*
+	       * As we got here, intEnc == defEnc, so we can use standard
+	       * CString methods to get the characters into our buffer,
+	       * or may even be able to copy from another string directly.
+	       *
 	       * Since getCString appends a '\0' terminator, we must handle 
 	       * that problem in copying data into our buffer.  Either by
 	       * saving and restoring the character which would be
@@ -3147,6 +3123,10 @@ transmute(ivars self, NSString *aString)
 	  unsigned	l;
 
 	  /*
+	   * transmute() will leave us non-wide and return other == 0,
+	   * only if intEnc == defEnc, so we get use the cstring methods
+	   * to copy directly to our buffer.
+	   *
 	   * Since getCString appends a '\0' terminator, we must ask for
 	   * one character less than we actually want, then get the last
 	   * character separately.
@@ -3193,7 +3173,7 @@ transmute(ivars self, NSString *aString)
     {
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
 	_count, NSDefaultMallocZone());
-      sub = [sub initWithCString: self->_contents.c + aRange.location
+      sub = [sub initWithCString: self->_contents.c + aRange.location /* TODO: broken if intEnc!=defEnc */
 			  length: aRange.length];
     }
   AUTORELEASE(sub);
@@ -3219,7 +3199,7 @@ transmute(ivars self, NSString *aString)
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
 					aRange.length, 
 					NSDefaultMallocZone());
-      sub = [sub initWithCString: self->_contents.c + aRange.location
+      sub = [sub initWithCString: self->_contents.c + aRange.location /* TODO: broken if intEnc!=defEnc */
 			  length: aRange.length];
     }
   AUTORELEASE(sub);
@@ -3646,7 +3626,7 @@ transmute(ivars self, NSString *aString)
 
 - (const char*) cString
 {
-  return _self->_contents.c;
+  return _self->_contents.c; /* TODO: broken if intEnc!=defEnc */
 }
 
 - (id) retain
