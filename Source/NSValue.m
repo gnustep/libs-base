@@ -159,12 +159,12 @@
 
 - (void)encodeWithCoder:(NSCoder *)coder
 {
-//FIXME    [super encodeWithCoder:coder];
+    [super encodeWithCoder:coder];
 }
 
 - (id)initWithCoder:(NSCoder *)coder
 {
-//FIXME    self = [super initWithCoder:coder];
+    self = [super initWithCoder:coder];
     return self;
 }
 

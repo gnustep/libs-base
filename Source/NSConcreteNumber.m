@@ -194,13 +194,13 @@
 // NSCoding
 - (void)encodeWithCoder:(NSCoder *)coder
 {
-//FIXME    [super encodeWithCoder:coder];
+    [super encodeWithCoder:coder];
     [coder encodeValueOfObjCType:[self objCType] at:&data];
 }
 
 - (id)initWithCoder:(NSCoder *)coder
 {
-//FIXME    self = [super initWithCoder:coder];
+    self = [super initWithCoder:coder];
     [coder decodeValueOfObjCType:[self objCType] at:&data];
     return self;
 }

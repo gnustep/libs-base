@@ -141,8 +141,7 @@
 // NSCoding
 - (void)encodeWithCoder:(NSCoder *)coder
 {
-    
-//FIXME    [super encodeWithCoder:coder];
+    [super encodeWithCoder:coder];
     // FIXME: Do we need to check for encoding void, void * or will
     // NSCoder do this for us?
     [coder encodeObject:objctype];
@@ -151,7 +150,7 @@
 
 - (id)initWithCoder:(NSCoder *)coder
 {
-//FIXME    self = [super initWithCoder:coder];
+    self = [super initWithCoder:coder];
     objctype = [[coder decodeObject] retain];
     [coder decodeValueOfObjCType:[objctype cString] at:&data];
     return self;
