@@ -1798,6 +1798,17 @@ transmute(ivars self, NSString *aString)
  * a section of a parent constant string class.
  */
 @implementation	GSCSubString
+/*
+ * Assume that a copy should be a new string, never just a retained substring.
+ */
+- (id) copyWithZone: (NSZone*)z
+{
+  NSString	*obj;
+
+  obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
+  obj = [obj initWithCString: _contents.c length: _count];
+  return obj;
+}
 - (void) dealloc
 {
   RELEASE(_parent);
@@ -2083,6 +2094,18 @@ transmute(ivars self, NSString *aString)
  * into a section of a parent constant string class.
  */
 @implementation	GSUnicodeSubString
+/*
+ * Assume that a copy should be a new string, never just a retained substring.
+ */
+- (id) copyWithZone: (NSZone*)z
+{
+  NSString	*obj;
+
+  obj = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
+    _count*sizeof(unichar), z);
+  obj = [obj initWithCharacters: _contents.u length: _count];
+  return obj;
+}
 - (void) dealloc
 {
   RELEASE(_parent);
