@@ -131,12 +131,12 @@ objc_free(void *mem);
 ** Users should call the normal objc routines above for
 ** memory allocation and disposal within their programs.
 */
-objc_EXPORT void *(*_objc_malloc)(size_t);
-objc_EXPORT void *(*_objc_atomic_malloc)(size_t);
-objc_EXPORT void *(*_objc_valloc)(size_t);
-objc_EXPORT void *(*_objc_realloc)(void *, size_t);
-objc_EXPORT void *(*_objc_calloc)(size_t, size_t);
-objc_EXPORT void (*_objc_free)(void *);
+extern void *(*_objc_malloc)(size_t);
+extern void *(*_objc_atomic_malloc)(size_t);
+extern void *(*_objc_valloc)(size_t);
+extern void *(*_objc_realloc)(void *, size_t);
+extern void *(*_objc_calloc)(size_t, size_t);
+extern void (*_objc_free)(void *);
 
 #endif /* NeXT_RUNTIME */
 
