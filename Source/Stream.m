@@ -1,8 +1,8 @@
 /* Implementation of GNU Objective C byte stream
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: July 1994
+   Created: July 1994
    
    This file is part of the GNU Objective C Class Library.
 
@@ -25,9 +25,11 @@
 #include <objects/Stream.h>
 #include <objects/Coder.h>
 #include <objects/Coder.h>
+#include <objects/NSString.h>
 
 @implementation Stream
 
+/* This is the designated initializer. */
 - init
 {
   return [super init];
@@ -45,39 +47,38 @@
 
 - (int) writeBytes: (const void*)b length: (int)l
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
 - (int) readBytes: (void*)b length: (int)l
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
-- (int) writeFormat: (const char *)format, ...
+- (int) writeFormat: (id <String>)format, ...
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
-- (int) readFormat: (const char *)format, ...
+- (int) readFormat: (id <String>)format, ...
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
-- (void) writeLine: (const char *)l
+- (void) writeLine: (id <String>)l
 {
   [self writeFormat:"%s\n", l];
 }
 
-/* This malloc's the buffer pointed to by the return value */
-- (char *) readLine
+- (id <String>) readLine
 {
   char *l;
   [self readFormat:"%a[^\n]\n", &l];
-  return l;
+  return [NSString stringWithCStringNoCopy:l];
 }
 
 - (void) rewindStream
@@ -87,40 +88,40 @@
 
 - (void) flushStream
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) setStreamPosition: (unsigned)i
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (unsigned) streamPosition
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
 - (BOOL) isAtEof
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return YES;
 }
 
 - (BOOL) isWritable
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return NO;
 }
 
 - (void) encodeWithCoder: anEncoder
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - initWithCoder: aDecoder
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return self;
 }
 
