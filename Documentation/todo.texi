@@ -19,7 +19,9 @@ to coordinate these efforts.)
 @item Write a proper name server for Port's.  Currently we're just
 hashing the name to a socket port number---we could get unwanted hash
 collisions.  This will also allow us to name a SocketPort after it's
-been created.
+been created.  (Contact Richard Frith-Macdonald
+<richard@@brainstorm.co.uk>, who has volunteered to coordinate these
+efforts.)
 
 @ignore
 @item Add some features to the compiler:  
