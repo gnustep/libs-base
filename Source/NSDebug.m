@@ -58,7 +58,7 @@ static table_entry*	the_table = 0;
 
 static BOOL	debug_allocation = NO;
 
-static NSLock	*uniqueLock;
+static NSLock	*uniqueLock = nil;
 
 static const char*	_GSDebugAllocationList(BOOL difference);
 static const char*	_GSDebugAllocationListAll(void);
@@ -88,10 +88,7 @@ void
 GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
   void (*newRemoveObjectFunc)(Class c, id o))
 {
-  if (uniqueLock != nil)
-    {
-      [uniqueLock lock];
-    }
+  [uniqueLock lock];
 
   if (newAddObjectFunc && newRemoveObjectFunc)
     {	   	
@@ -105,10 +102,7 @@ GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
       _GSDebugAllocationRemoveFunc = _GSDebugAllocationRemove;
     }
   
-  if (uniqueLock != nil)
-    {
-      [uniqueLock unlock];
-    }
+  [uniqueLock unlock];
 }
 
 /**
@@ -129,7 +123,7 @@ GSDebugAllocationActive(BOOL active)
   BOOL	old = debug_allocation;
 
   [GSDebugAlloc class];		/* Ensure thread support is working */
-  debug_allocation = active;
+  debug_allocation = active ? YES : NO;
   return old;
 }
 
@@ -160,16 +154,13 @@ GSDebugAllocationActiveRecordingObjects(Class c)
     {
       if (the_table[i].class == c)
 	{
-	  if (uniqueLock != nil)
-	    [uniqueLock lock];
+	  [uniqueLock lock];
 	  the_table[i].is_recording = YES;
-	  if (uniqueLock != nil)
-	    [uniqueLock unlock];
+	  [uniqueLock unlock];
 	  return;
 	}
     }
-  if (uniqueLock != nil)
-    [uniqueLock lock];
+  [uniqueLock lock];
   if (num_classes >= table_size)
     {
       int		more = table_size + 128;
@@ -179,8 +170,7 @@ GSDebugAllocationActiveRecordingObjects(Class c)
       
       if (tmp == 0)
 	{
-	  if (uniqueLock != nil)
-	    [uniqueLock unlock];
+	  [uniqueLock unlock];
 	  return;
 	}
       if (the_table)
@@ -202,20 +192,19 @@ GSDebugAllocationActiveRecordingObjects(Class c)
   the_table[num_classes].num_recorded_objects = 0;
   the_table[num_classes].stack_size = 0;
   num_classes++;
-  if (uniqueLock != nil)
-    [uniqueLock unlock];
+  [uniqueLock unlock];
 }
 
 void
 GSDebugAllocationAdd(Class c, id o)
 {
-	(*_GSDebugAllocationAddFunc)(c,o);
+  (*_GSDebugAllocationAddFunc)(c,o);
 }
 
 void
 _GSDebugAllocationAdd(Class c, id o)
 {
-  if (debug_allocation)
+  if (debug_allocation == YES)
     {
       unsigned int	i;
 
@@ -223,8 +212,7 @@ _GSDebugAllocationAdd(Class c, id o)
 	{
 	  if (the_table[i].class == c)
 	    {
-	      if (uniqueLock != nil)
-		[uniqueLock lock];
+	      [uniqueLock lock];
 	      the_table[i].count++;
 	      the_table[i].total++;
 	      if (the_table[i].count > the_table[i].peak)
@@ -244,8 +232,7 @@ _GSDebugAllocationAdd(Class c, id o)
 					 more * sizeof(id));
 		      if (tmp == 0)
 			{
-			  if (uniqueLock != nil)
-			    [uniqueLock unlock];
+			  [uniqueLock unlock];
 			  return;
 			}
 
@@ -254,8 +241,7 @@ _GSDebugAllocationAdd(Class c, id o)
 		      if (tmp1 == 0)
 			{
 			  NSZoneFree(NSDefaultMallocZone(),  tmp);
-			  if (uniqueLock != nil)
-			    [uniqueLock unlock];
+			  [uniqueLock unlock];
 			  return;
 			}
 
@@ -284,13 +270,11 @@ _GSDebugAllocationAdd(Class c, id o)
 		    [the_table[i].num_recorded_objects] = nil;
 		  the_table[i].num_recorded_objects++;
 		}
-	      if (uniqueLock != nil)
-		[uniqueLock unlock];
+	      [uniqueLock unlock];
 	      return;
 	    }
 	}
-      if (uniqueLock != nil)
-	[uniqueLock lock];
+      [uniqueLock lock];
       if (num_classes >= table_size)
 	{
 	  unsigned int	more = table_size + 128;
@@ -300,8 +284,7 @@ _GSDebugAllocationAdd(Class c, id o)
 	  
 	  if (tmp == 0)
 	    {
-	      if (uniqueLock != nil)
-		[uniqueLock unlock];
+	      [uniqueLock unlock];
 	      return;		/* Argh	*/
 	    }
 	  if (the_table)
@@ -323,8 +306,7 @@ _GSDebugAllocationAdd(Class c, id o)
       the_table[num_classes].num_recorded_objects = 0;
       the_table[num_classes].stack_size = 0;
       num_classes++;
-      if (uniqueLock != nil)
-	[uniqueLock unlock];
+      [uniqueLock unlock];
     }
 }
 
@@ -441,8 +423,7 @@ GSDebugAllocationClassList()
   size_t siz;
   unsigned int	i;
 
-  if (uniqueLock != nil)
-    [uniqueLock lock];
+  [uniqueLock lock];
   
   siz = sizeof(Class) * (num_classes + 1);
   ans = NSZoneMalloc(NSDefaultMallocZone(), siz);
@@ -453,8 +434,7 @@ GSDebugAllocationClassList()
     }
   ans[num_classes] = NULL;
 
-  if (uniqueLock != nil)
-    [uniqueLock unlock];
+  [uniqueLock unlock];
 
   return ans;
 }
@@ -479,16 +459,10 @@ GSDebugAllocationList(BOOL changeFlag)
     {
       return "Debug allocation system is not active!\n";
     }
-  if (uniqueLock != nil)
-    {
-      [uniqueLock lock];
-    }
+  [uniqueLock lock];
   ans = _GSDebugAllocationList(changeFlag);
   d = [NSData dataWithBytes: ans length: strlen(ans) + 1];
-  if (uniqueLock != nil)
-    {
-      [uniqueLock unlock];
-    }
+  [uniqueLock unlock];
   return (const char*)[d bytes];
 }
 
@@ -583,16 +557,10 @@ GSDebugAllocationListAll()
     {
       return "Debug allocation system is not active!\n";
     }
-  if (uniqueLock != nil)
-    {
-      [uniqueLock lock];
-    }
+  [uniqueLock lock];
   ans = _GSDebugAllocationListAll();
   d = [NSData dataWithBytes: ans length: strlen(ans)+1];
-  if (uniqueLock != nil)
-    {
-      [uniqueLock unlock];
-    }
+  [uniqueLock unlock];
   return (const char*)[d bytes];
 }
 
@@ -659,7 +627,7 @@ GSDebugAllocationRemove(Class c, id o)
 void
 _GSDebugAllocationRemove(Class c, id o)
 {
-  if (debug_allocation)
+  if (debug_allocation == YES)
     {
       unsigned int	i;
 
@@ -669,8 +637,7 @@ _GSDebugAllocationRemove(Class c, id o)
 	    {
 	      id	tag = nil;
 
-	      if (uniqueLock != nil)
-		[uniqueLock lock];
+	      [uniqueLock lock];
 	      the_table[i].count--;
 	      if (the_table[i].is_recording)
 		{
@@ -705,8 +672,7 @@ _GSDebugAllocationRemove(Class c, id o)
 		      ;
 		    }
 		}
-	      if (uniqueLock != nil)
-		[uniqueLock unlock];
+	      [uniqueLock unlock];
 	      RELEASE(tag);
 	      return;
 	    }
@@ -733,8 +699,7 @@ GSDebugAllocationTagRecordedObject(id object, id tag)
     {
       return nil;
     }
-  if (uniqueLock != nil)
-    [uniqueLock lock];
+  [uniqueLock lock];
   
   for (i = 0; i < num_classes; i++)
     {
@@ -748,8 +713,7 @@ GSDebugAllocationTagRecordedObject(id object, id tag)
     || the_table[i].is_recording == NO
     || the_table[i].num_recorded_objects == 0)
     {
-      if (uniqueLock != nil)
-	[uniqueLock unlock];
+      [uniqueLock unlock];
       return nil;
     }
 
@@ -763,8 +727,7 @@ GSDebugAllocationTagRecordedObject(id object, id tag)
 	}
     }
 
-  if (uniqueLock != nil)
-    [uniqueLock unlock];
+  [uniqueLock unlock];
   return AUTORELEASE(o);
 }
 
@@ -790,8 +753,7 @@ GSDebugAllocationListRecordedObjects(Class c)
       return nil;
     }
 
-  if (uniqueLock != nil)
-    [uniqueLock lock];
+  [uniqueLock lock];
   
   for (i = 0; i < num_classes; i++)
     {
@@ -803,22 +765,19 @@ GSDebugAllocationListRecordedObjects(Class c)
   
   if (i == num_classes)
     {
-      if (uniqueLock != nil)
-	[uniqueLock unlock];
+      [uniqueLock unlock];
       return nil;
     }
 
   if (the_table[i].is_recording == NO)
     {
-      if (uniqueLock != nil)
-	[uniqueLock unlock];
+      [uniqueLock unlock];
       return nil;
     }
 
   if (the_table[i].num_recorded_objects == 0)
     {
-      if (uniqueLock != nil)
-	[uniqueLock unlock];
+      [uniqueLock unlock];
       return [NSArray array];
     }
 
@@ -826,8 +785,7 @@ GSDebugAllocationListRecordedObjects(Class c)
 		     the_table[i].num_recorded_objects * sizeof(id));
   if (tmp == 0)
     {
-      if (uniqueLock != nil)
-	[uniqueLock unlock];
+      [uniqueLock unlock];
       return nil;
     }
   
@@ -843,8 +801,7 @@ GSDebugAllocationListRecordedObjects(Class c)
     }
 
   /* Then, we bravely unlock the lock */
-  if (uniqueLock != nil)
-    [uniqueLock unlock];
+  [uniqueLock unlock];
   
   /* Only then we create an array with them - this is now safe as we
      have copied the objects out, unlocked, and retained them. */

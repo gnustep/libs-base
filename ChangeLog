@@ -1,3 +1,8 @@
+2004-09-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDebug.m: Remove checks for existence of lock ... it always
+	exists, so the checks are useless.
+
 2004-09-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSArray.m: Make perform methods enumerate forwards.
