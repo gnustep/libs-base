@@ -113,6 +113,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 	{
 	  NSWarnMLog(@"objc_mutex_deallocate() failed");
 	}
+      _mutex = 0;
     }
 }
 
@@ -151,7 +152,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   /* This is really the behavior of OpenStep, if the current thread has
      the lock, we just block until the time limit is up. Very odd */
   while (_mutex->owner == objc_thread_id()
-	 || (x = objc_mutex_trylock(_mutex)) == -1)
+    || (x = objc_mutex_trylock(_mutex)) == -1)
     {
       NSDate *current = [NSDate date];
       NSComparisonResult compare;
@@ -332,7 +333,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
   // and unlock twice
   if ((objc_mutex_unlock(_mutex) == -1)
-      || (objc_mutex_unlock(_mutex) == -1))
+    || (objc_mutex_unlock(_mutex) == -1))
     {
       [NSException raise: NSConditionLockException
         format: @"unlockWithCondition: failed to unlock mutex"];
@@ -524,6 +525,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 	{
 	  NSWarnMLog(@"objc_mutex_deallocate() failed");
 	}
+      _mutex = 0;
     }
 }
 
