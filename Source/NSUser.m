@@ -261,6 +261,20 @@ NSHomeDirectoryForUser(NSString *loginName)
       /* The environment variable USERPROFILE holds the home directory
 	 for the user on more modern versions of windoze. */
       s = GSStringFromWin32EnvironmentVariable("USERPROFILE");
+      if (s != nil)
+	{
+	  const char	*str = [s cString];
+
+	  while (*str != '\0')
+	    {
+	      if (isspace(*str))
+		{
+		  s = nil;	// Whitespace not permitted in USERPROFILE
+		  break;
+		}
+	      str++;
+	    }
+	}
       if (s == nil)
 	{
 	  /* The environment variable HOMEPATH holds the home directory
