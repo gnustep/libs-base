@@ -441,7 +441,8 @@ unicode/decomp.h \
 unicode/nextstep.h
 
 HEADERS_INSTALL = $(GNU_HEADERS) \
-                  $(BASE_HEADERS)
+                  $(BASE_HEADERS) \
+                  $(UNICODE_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \

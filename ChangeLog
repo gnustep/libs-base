@@ -1,3 +1,9 @@
+1999-11-18  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GNUmakefile: Install unicode headers.
+	* Source/Makefile.postamble: Script for doing unicode installation.
+	(patches from Christopher Seawood <cls@seawood.org>).
+
 Thu Nov 18 15:23:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Headers/Foundation/NSPage.h: removed
