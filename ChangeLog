@@ -9,6 +9,8 @@
 	* Source/GSArray.m: simplified version of GSArray.m
 	Added GSPlaceholderArray.
 	* Source/NSSerializer.m: use GSInlineArray where possible.
+	* Source/GSSet.m: Provide decoding of NSGSet for backward compatibility.
+	* Source/NSException.m: Avoid recursion in exception handler.
 
 2001-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
