@@ -94,9 +94,11 @@ main(int argc, char **argv, char **env)
       [parser substituteEntities: NO];
       [parser doValidityChecking: YES];
       [parser keepBlanks: NO];
+      [parser saveMessages: YES];
       if ([parser parse] == NO)
 	{
 	  NSLog(@"WARNING %@ is not a valid document", file);
+	  NSLog(@"Errors: %@", [parser messages]);
 	}
       root = [[parser document] root];
       NSLog(@"Document is %@", [root name]);

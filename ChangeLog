@@ -3,6 +3,12 @@
 	* Source/Additions/GSXML.m: ([GSXPathContext-evaluateExpression:])
 	Test for NULL return from libxml and return nil rather than trying
 	to dereference the null pointer.
+	New features to record error and warning messages added.
+	* Headers/Foundation/GSXML.h: ([GSXMLParser-messages]) returns saved
+	messages. ([GSXMLParser-saveMessages:]) Says whether to save messages
+	or write to stderr.
+	* Source/Additions/GSObjCRuntime.m: Hack to fix type clash in
+	declaration of __objc_exec_class()
 
 2003-05-19  Adam Fedor  <fedor@gnu.org>
 
