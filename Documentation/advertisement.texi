@@ -178,7 +178,7 @@ better allocation/dealocation conventions.
 The libobjects library already contains many of the "Common Classes" in
 NeXTSTEP: List, HashTable, Storage, NXStringTable.  In the future it
 will also contain classes compatible with the OpenStep Foundation Kit.
-Rapid progress is already being made on this front.
+Progress is already being made on this front.
 
 @section Contact:
 @example
