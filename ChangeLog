@@ -1,3 +1,10 @@
+2002-04-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Resources/GNUmakefile: install new language files.
+	* Resources/Languages/Russion: language file added.
+	* Resources/Languages/UkraineRussion: language file added.
+	Added language files provided by Serg Stoyan <stoyan@on.com.ua>
+
 2002-04-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Tidy initialisers for case where the default
