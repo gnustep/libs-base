@@ -1,5 +1,7 @@
 2001-02-13  Adam Fedor  <fedor@gnu.org>
 
+	* Version: 0.9.1
+
 	* configure.in: Fix test for stdint.h
 
 2001-02-11  Manuel Guesdon <mguesdon@orange-concept.com>
