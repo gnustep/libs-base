@@ -24,6 +24,7 @@
 #include <objects/stdobjects.h>
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSGArchiver.h>
+#include <Foundation/NSData.h>
 #include <objects/NSCoder.h>
 
 @implementation NSArchiver
