@@ -1232,28 +1232,4 @@ static int messagesReceivedCount;
 
 @end
 
-@implementation Object (Retaining)
-
-- (id) retain
-{
-  return self;
-}
-
-- (oneway void) release
-{
-  /* Do nothing */
-}
-
-- (void) dealloc
-{
-  /* Do nothing */
-}
-
-- (unsigned) retainCount
-{
-  return 0;
-}
-
-@end
-
 #endif /* 0 temporarily moved to Coder.m */
