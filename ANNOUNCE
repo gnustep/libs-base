@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.7.2, is now available.
+The GNUstep Base Library, version 1.7.3, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -20,24 +20,25 @@ portion of the OpenStep standard (the Foundation library).
 `http://www.gnustep.org'.
 
    Note that versions that have a odd minor release number (the second
-number, y, in x.y.z) are unstable releases (like 1.5.2), which even
+number, y, in x.y.z) are unstable releases (like 1.5.2), while even
 minor release numbers (1.4.1) are stable releases.
 
-Noteworthy changes in version `1.7.2'
+Noteworthy changes in version `1.7.3'
 =====================================
 
-   * NSUndoManager improvements
+   Note in this version there have been large changes to the location of
+header files (both in the package and when installed). It's possible
+(though unlikely) that certain applications that rely on GNUstep
+specific headers may not compile because of this.
 
-   * New NSMessagePort implementation.
+   * A number of Protocol and DO fixes.
 
-   * Private GSTcpPort becomre NSSocketPort.
-
-   * Improvements to handle selectors better over remote connections.
+   * New TraditionalChinese language.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.7.2.tar.gz distribution file has been placed on
+   The gnustep-base-1.7.3.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    Please log bug reports on the GNUstep project page
