@@ -21,8 +21,6 @@
 #   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-AC_DEFUN(OBJC_SYS_AUTOLOAD,
-[dnl
 #--------------------------------------------------------------------
 # Guess if we are using a object file format that supports automatic
 # loading of constructor functions, et. al. (e.g. ELF format).
@@ -36,15 +34,36 @@ AC_DEFUN(OBJC_SYS_AUTOLOAD,
 #	Defines SYS_AUTOLOAD (whether initializer functions are autoloaded)
 #	Defines CON_AUTOLOAD (whether constructor functions are autoloaded)
 #--------------------------------------------------------------------
-AC_CACHE_VAL(objc_cv_sys_autoload,
-[AC_CHECK_HEADER(elf.h, [objc_cv_sys_autoload=yes], [objc_cv_sys_autoload=no])
-])
-if test $objc_cv_sys_autoload = yes; then
+AC_DEFUN(OBJC_CON_AUTOLOAD,
+[dnl
+AC_MSG_CHECKING(loading of constructor functions)
+AC_CACHE_VAL(objc_cv_con_autoload,
+[AC_TRY_RUN([
+static int inited = 0;
+static void construct_test () __attribute__ ((constructor));
+static void construct_test ()
+{
+  inited = 1;
+}
+int main()
+{
+  if (inited)
+    exit (0);
+  exit (1);
+}
+], objc_cv_con_autoload=yes, objc_cv_con_autoload=no, objc_cv_con_autoload=no)])
+if test $objc_cv_con_autoload = yes; then
+  AC_MSG_RESULT(yes)
   AC_DEFINE(CON_AUTOLOAD)
+else
+  AC_MSG_RESULT(no)
 fi
-AC_CACHE_VAL(objc_subinit_worked,
+])
+
+AC_DEFUN(OBJC_SYS_AUTOLOAD,
 [AC_MSG_CHECKING(loading of initializer functions)
-AC_TRY_RUN([
+AC_CACHE_VAL(objc_cv_subinit_worked,
+[AC_TRY_RUN([
 static char *argv0 = 0;
 static char *env0 = 0;
 static void args_test (int argc, char *argv[], char *env[])
@@ -60,8 +79,8 @@ int main(int argc, char *argv[])
     exit (0);
   exit (1);
 }
-], objc_subinit_worked=yes, objc_subinit_worked=no, objc_subinit_worked=no)])
-if test $objc_subinit_worked = yes; then
+], objc_cv_subinit_worked=yes, objc_cv_subinit_worked=no, objc_cv_subinit_worked=no)])
+if test $objc_cv_subinit_worked = yes; then
   AC_DEFINE(SYS_AUTOLOAD)
   AC_MSG_RESULT(yes)
 else
@@ -81,29 +100,25 @@ AC_DEFUN(OBJC_SYS_DYNAMIC_LINKER,
 #		performs dynamic linking. 
 #--------------------------------------------------------------------
 DYNAMIC_LINKER=null
-AC_CHECK_LIB(dl, dlopen, [DYNAMIC_LINKER=simple LIBS="${LIBS} -ldl"])
-
+AC_CHECK_HEADER(dlfcn.h, DYNAMIC_LINKER=simple)
 if test $DYNAMIC_LINKER = null; then
-    AC_CHECK_LIB(dld, main, [DYNAMIC_LINKER=dld LIBS="${LIBS} -ldld"])
-    AC_CHECK_HEADER(dld/defs.h, objc_found_dld_defs=yes, objc_found_dld_defs=no)
-    # Try to distinguish between GNU dld and HPUX dld 
-    AC_CHECK_HEADER(dl.h, [DYNAMIC_LINKER=hpux])
-    if test "$objc_cv_lib_dld" = yes && test "$objc_found_dld_defs" = no && test "$objc_cv_header_dl_h" = no; then
-        AC_MSG_WARN(Could not find dld/defs.h header)
-        echo
-        echo "Currently, the dld/defs.h header is needed to get information"
-        echo "about how to use GNU dld. Some files may not compile without"
-        echo "this header."
-        echo
-    fi
+  AC_CHECK_HEADER(dl.h, DYNAMIC_LINKER=hpux)
 fi
+if test $DYNAMIC_LINKER = null; then
+  AC_CHECK_HEADER(dld/defs.h, DYNAMIC_LINKER=dld)
+fi
+# Should only include one of the following libs.
+AC_CHECK_LIB(dl, dlopen, LIBS="${LIBS} -ldl")
+AC_CHECK_LIB(dld, main, LIBS="${LIBS} -ldld")
+
 AC_SUBST(DYNAMIC_LINKER)dnl
-AC_SUBST(DLD_INCLUDE)dnl
 ])
 
 AC_DEFUN(OBJC_SYS_DYNAMIC_FLAGS,
-[AC_REQUIRE([OBJC_SYS_DYNAMIC_LINKER])dnl
+[dnl
+AC_REQUIRE([OBJC_CON_AUTOLOAD])dnl
 AC_REQUIRE([OBJC_SYS_AUTOLOAD])dnl
+AC_REQUIRE([OBJC_SYS_DYNAMIC_LINKER])dnl
 #--------------------------------------------------------------------
 # Set the flags for compiling dynamically loadable objects
 #
@@ -120,7 +135,14 @@ if test $DYNAMIC_LINKER = dld; then
     DYNAMIC_LDFLAGS="-static"
     DYNAMIC_CFLAGS=""
 elif test $DYNAMIC_LINKER = simple; then
-    if test $objc_cv_sys_autoload = yes; then 
+    save_LDFLAGS=$LDFLAGS
+    LDFLAGS="-shared"
+    AC_TRY_LINK([extern void loadf(int i);], loadf(1);, 
+	        objc_shared_linker=yes, objc_shared_linker=no)
+    LDFLAGS=$save_LDFLAGS
+    if test $objc_shared_linker = yes; then
+      DYNAMIC_BUNDLER_LINKER='$(CC) -shared'
+    elif test $objc_cv_con_autoload = yes; then 
       DYNAMIC_BUNDLER_LINKER='$(CC) -Xlinker -r'
     else
       DYNAMIC_BUNDLER_LINKER='$(CC) -nostdlib'
