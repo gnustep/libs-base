@@ -29,6 +29,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSUserDefaults.h"
 
 
 /**
@@ -62,8 +63,16 @@
  */
 + (id) systemDefaultPortNameServer
 {
-  return [NSSocketPortNameServer sharedInstance];
-  // return [NSMessagePortNameServer sharedInstance];
+  /* Must be kept in sync with [NSPort +initialize]. */
+  if ([[NSUserDefaults standardUserDefaults]
+    boolForKey: @"NSPortIsMessagePort"])
+    {
+      return [NSMessagePortNameServer sharedInstance];
+    }
+  else
+    {
+      return [NSSocketPortNameServer sharedInstance];
+    }
 }
 
 - (void) dealloc
