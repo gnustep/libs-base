@@ -1,3 +1,10 @@
+Thu Nov  4 1999  Michael Hanni <mhanni@sprintmail.com>
+
+	* Source/NSObject.m: added FreeBSD specific code in
+	initialization so that the FPU is intialized with the correct
+	exception flag. This allows NSConnection to work on FreeBSD (gdnc,
+	gdomap, gpbs.)
+
 Thu Nov  4 10:52:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArray.m: use NSLog() to warn about attempts to remove nil.
