@@ -23,7 +23,6 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <base/RunLoop.h>
 #include <base/ConnectedCoder.h>
 #include <base/CStream.h>
 #include <base/Port.h>
@@ -31,6 +30,7 @@
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSProxy.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSRunLoop.h>
 
 #define PTR2LONG(P) (((char*)(P))-(char*)0)
 #define LONG2PTR(L) (((char*)0)+(L))
