@@ -40,7 +40,6 @@ include $(srcdir)/../Makeconf
 include $(srcdir)/../Version
 
 TEXI_FILES = \
-advertisement.texi \
 announce.texi \
 install.texi \
 gnustep-base.texi \
@@ -58,31 +57,31 @@ TODO INSTALL NEWS README ANNOUNCE ADVERTISEMENT
 all: 
 
 info: $(TEXT_FILES)
-dvi: libobjects.dvi objective-c.dvi
+dvi: gnustep-base.dvi objective-c.dvi
 
 version.texi: $(srcdir)/../Version
 	rm -f version.texi
-	echo '@set OBJECTS_VERSION' $(OBJECTS_VERSION) \
+	echo '@set GNUSTEP_BASE_VERSION' $(VERSION) \
 		> version.texi
-	echo '@set OBJECTS_GCC_VERSION' $(OBJECTS_GCC_VERSION) \
+	echo '@set GNUSTEP_BASE_GCC_VERSION' $(GCC_VERSION) \
 		>> version.texi
-	if [ $(OBJECTS_FTP_MACHINE) ]; then \
-		echo '@set OBJECTS_FTP_MACHINE' $(OBJECTS_FTP_MACHINE) \
+	if [ $(FTP_MACHINE) ]; then \
+		echo '@set GNUSTEP_BASE_FTP_MACHINE' $(FTP_MACHINE) \
 		>> version.texi; fi
-	if [ $(OBJECTS_FTP_DIRECTORY) ]; then \
-		echo '@set OBJECTS_FTP_DIRECTORY' $(OBJECTS_FTP_DIRECTORY) \
+	if [ $(FTP_DIRECTORY) ]; then \
+		echo '@set GNUSTEP_BASE_FTP_DIRECTORY' $(FTP_DIRECTORY) \
 		>> version.texi; fi
 
-libobjects.dvi: libobjects.texi version.texi
-	$(TEXI2DVI) $(srcdir)/libobjects.texi
+gnustep-base.dvi: gnustep-base.texi version.texi
+	$(TEXI2DVI) $(srcdir)/gnustep-base.texi
 objective-c.dvi: objective-c.texi 
 	$(TEXI2DVI) $(srcdir)/objective-c.texi
 
 MAKEINFO_FLAGS = -I $(srcdir)
 
-libobjects.info: libobjects.texi todo.texi version.texi
+gnustep-base.info: gnustep-base.texi todo.texi version.texi
 	@echo Sorry, makeinfo does not yet support Objective C documentation.
-	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/libobjects.texi
+	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/gnustep-base.texi
 objective-c.info: objective-c.texi
 	@echo Sorry, makeinfo does not yet support Objective C documentation.
 	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/objective-c.texi
@@ -107,28 +106,28 @@ ADVERTISEMENT: advertisement.texi version.texi
 
 # Make substitutions for @email{} and @url{} before passing to makeinfo.
 # These substitution scripts could be cleaned up.
-GNUstep-FAQ: gnustep-faq.texi version.texi
-	rm -f GNUstep-FAQ.texi
+Gnustep-FAQ: gnustep-faq.texi version.texi
+	rm -f Gnustep-FAQ.texi
 	sed -e 's,@email{\([^}]*\)},<\1>,g' \
 	  $(srcdir)/gnustep-faq.texi \
 	  | sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
-	    > GNUstep-FAQ.texi
+	    > Gnustep-FAQ.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $@ \
-	  --no-header --no-split GNUstep-FAQ.texi
-	rm -f GNUstep-FAQ.texi
+	  --no-header --no-split Gnustep-FAQ.texi
+	rm -f Gnustep-FAQ.texi
 # Make substitutions for @email{} and @url{}, and add @br{} before @item
 # before passing to texi2html.  Note: I think that this `@br{}' should 
 # actually be a `@br', but the extra `{}' is necessary to work around a
 # bug in texi@html.
 # These substitution scripts could be cleaned up.
-GNUstep-FAQ.html: gnustep-faq.texi version.texi
-	rm -f GNUstep-FAQ.texi
+Gnustep-FAQ.html: gnustep-faq.texi version.texi
+	rm -f Gnustep-FAQ.texi
 	sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
 	  $(srcdir)/gnustep-faq.texi \
 	  | sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
 	  | sed -e 's,^ *$$,@br{},g' \
-	    > GNUstep-FAQ.texi
-	texi2html -expandinfo $(MAKEINFO_FLAGS) GNUstep-FAQ.texi
+	    > Gnustep-FAQ.texi
+	texi2html -expandinfo $(MAKEINFO_FLAGS) Gnustep-FAQ.texi
 
 #	  | awk -- '/@item/ { print "@br{}" } /@end itemize/ { print "@br{}" } ; { print }' \
 
@@ -139,7 +138,7 @@ RCS_FILES =  $(TEXI_FILES) Makefile.in
 DIST_FILES = $(RCS_FILES) texinfo.tex \
         $(TOP_DOC_FILES) ANNOUNCE ADVERTISEMENT TODO
 
-# In the future we'll want to install libobjects.info and objective-c.info.
+# In the future we'll want to install gnustep-base.info and objective-c.info.
 install:
 uninstall:
 
@@ -150,17 +149,17 @@ clean: mostlyclean
 	rm -f version.texi
 	rm -f $(TEXT_FILES)
 	rm -f *.info
-	rm -f libobjects.dvi libobjects.aux libobjects.log \
-	libobjects.toc libobjects.cl \
-	libobjects.cp libobjects.cps libobjects.fn libobjects.fns \
-	libobjects.ky libobjects.pg libobjects.pr libobjects.tp \
-	libobjects.vr 
+	rm -f gnustep-base.dvi gnustep-base.aux gnustep-base.log \
+	gnustep-base.toc gnustep-base.cl \
+	gnustep-base.cp gnustep-base.cps gnustep-base.fn gnustep-base.fns \
+	gnustep-base.ky gnustep-base.pg gnustep-base.pr gnustep-base.tp \
+	gnustep-base.vr 
 
 distclean: clean
 	rm -f Makefile 
 
 realclean: distclean
-	rm -f libobjects.info version.texi \
+	rm -f gnustep-base.info version.texi \
 		README TODO INSTALL NEWS ANNOUNCE
 
 copy-dist: $(DIST_FILES)

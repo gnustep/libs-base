@@ -1,9 +1,9 @@
 @chapter Gnustep Base Library
 
-@c set the vars OBJECTS_VERSION and OBJECTS_GCC_VERSION
+@c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
 @include version.texi
 
-The Gnustep Base Library, version @value{OBJECTS_VERSION}, is now
+The Gnustep Base Library, version @value{GNUSTEP_BASE_VERSION}, is now
 available.
 
 @section What is the Gnustep Base Library?
@@ -35,21 +35,21 @@ distribution.
 
 @section Where can you get it?  How can you compile it?
 
-@ifset OBJECTS_FTP_MACHINE
-The libobjects-@value{OBJECTS_VERSION}.tar.gz distribution file has been
-placed on @samp{@value{OBJECTS_FTP_MACHINE}} in
-@samp{@value{OBJECTS_FTP_DIRECTORY}}.
+@ifset GNUSTEP_BASE_FTP_MACHINE
+The libgnustep-base-@value{GNUSTEP_BASE_VERSION}.tar.gz distribution file has been
+placed on @samp{@value{GNUSTEP_BASE_FTP_MACHINE}} in
+@samp{@value{GNUSTEP_BASE_FTP_DIRECTORY}}.
 @end ifset
-@ifclear OBJECTS_FTP_MACHINE
-The libobjects-@value{OBJECTS_VERSION}.tar.gz distribution file has not
+@ifclear GNUSTEP_BASE_FTP_MACHINE
+The libgnustep-base-@value{GNUSTEP_BASE_VERSION}.tar.gz distribution file has not
 been made available by anonymous ftp.
 @end ifclear
 
 More information about the library, including a list of machines on
 which it has been successfully compiled and used, can be found at
-@samp{http://www.cs.rochester.edu/u/mccallum/libobjects}.
+@samp{http://www.cs.rochester.edu/u/mccallum/libgnustep-base}.
 
-The library requires gcc @value{OBJECTS_GCC_VERSION} or higher.  The
+The library requires gcc @value{GNUSTEP_BASE_GCC_VERSION} or higher.  The
 library does not work with the NEXTSTEP 3.2 compiler because that
 version of NeXT's cc cannot handle nested functions.  Until a later
 release from NeXT, NEXTSTEP users will have to install gcc.  See the

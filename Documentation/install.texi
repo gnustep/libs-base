@@ -2,27 +2,27 @@
 @c If this package does not come with, e.g., installable documentation or
 @c data files, please ignore the references to them below.
 
-@c set the vars OBJECTS_VERSION and OBJECTS_GCC_VERSION
+@c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
 @include version.texi
 
 @ifset INSTALL_ONLY
 This file documents the installation of the GNU Objective C 
-Class Library, @samp{libobjects}.  Copyright (C) 1993, 1994, 1996 Free Software
+Class Library, @samp{libgnustep-base}.  Copyright (C) 1993, 1994, 1996 Free Software
 Foundation, Inc.  You may copy, distribute, and modify it freely as long
 as you preserve this copyright notice and permission notice.
-@chapter Installing @samp{libobjects}
+@chapter Installing @samp{libgnustep-base}
 @end ifset
 
-To compile and install @samp{libobjects}:
+To compile and install @samp{libgnustep-base}:
 
 Here is a quick-and-dirty example of installation commands:
 
-First install the GNU Objective C runtime patch, objc.patch; possibly
+First install the GNU Objective C runtime patch, objc.patch, possibly
 like this:
 
 @example
 cd gcc-2.7.2
-patch -p0 <../libobjects/objc.patch
+patch -p0 <../gnustep-base/objc.patch
 @end example
 
 then
@@ -55,7 +55,7 @@ Patch the @samp{gcc} Objective C runtime with objc.patch.
 
 @item
 Install @samp{gcc}.  The library requires gcc version
-@value{OBJECTS_GCC_VERSION} or later.  
+@value{GNUSTEP_BASE_GCC_VERSION} or later.  
 
 @item
 Configure the package for your system.  In the directory that this file

@@ -3,15 +3,26 @@
 @chapter News about Gnustep Base Library
 
 The currently released version of the library is
-@samp{@value{OBJECTS_VERSION}}.
+@samp{@value{GNUSTEP_BASE_VERSION}}.
 @end ifset
 
 @section Noteworthy changes since version @samp{0.1.19}
 
 @itemize @bullet
 
+@item The library has changed its name from @samp{libgnustep-base} to
+@samp{libgnustep-base}.  The Apr 17 ChangeLog entry contains a list of
+the way various other names were changed.
+
 @item The library now requires a patch to gcc-2.7.2.  The patch adds
 thread-safe features to the GNU Objective C runtime.
+
+@item Distributed Objects is much improved.  Exceptions in the server
+are sent back to the client.  Ungracefully closed connections are
+gracefully handled.
+
+@item The mframe and behavior functions have been overhauled and
+better commented.
 
 @item The NSHashTable and NSMapTable functions have been implemented,
 thanks to Albin Jones <albin.jones@@dartmouth.edu>.  Albin has also
@@ -22,8 +33,8 @@ and linked lists of C-type variables.
 Christley <scottc@@net-community.com>.
 
 @item A RunLoop class has been implemented, and is used for listening to
-Port objects.  It is used for Distributed Objects.  The class is not
-finished, and its interfaces may be changed in the near future.
+Port objects.  It is used for Distributed Objects.  There is also an
+NSRunLoop class based on RunLoop.
 
 @item The NSTimer class has been implemented, although its use with
 RunLoops is currently disabled.
@@ -49,10 +60,11 @@ There is a new set of rich enumeration methods based on Invocations.
 
 @item Port class heirarchy has been overhauled.  There are now classes
 for TCP ports, UDP ports, and Mach ports.  Only the TCP ports are
-currently working.
+currently functional.
 
 @item GNU-style archiving has had an overhaul, and the GNUstep
-NSArchiver class is functional, but not strongly tested.
+NSArchiver class is functional, but not strongly tested.  It does not
+yet call -awakeUsingCoder:.
 
 I have separated the high-level archiving of groups of objects from the
 low-level format of how C-types are written.  There are several new
@@ -62,10 +74,14 @@ concrete subclasses: BinaryCStream, and TextCStream.  Plug these
 backends into Coder to get different style low-level formats for
 archiving.
 
+Floats and doubles are now encoded more efficiently.
+
 NSArchiver is built on top of Coder.  You can actually send all the
 Coder methods to NSArchiver and vice-versa.
 
 GNU classes BinaryCoder and TextCoder are gone.
+
+@item ...and many bug fixes.
 
 @end itemize
 
@@ -238,7 +254,7 @@ heirarchy.  Next I'll do NSDictionary in a similar style.
 @item
 From Adam Fedor, there is a new patch to the gcc Objective C runtime
 that aids dynamic linking.  You'll have to apply this patch and
-reinstall the runtime before you can compile this version of libobjects.
+reinstall the runtime before you can compile this version of libgnustep-base.
 
 @item
 Several bug fixes, including two serious ones in Collection deallocation
@@ -335,7 +351,7 @@ README.ULTRIX.  Time.m patched for Solaris 2.4.  test12.m free fix.
 
 @itemize @bullet
 
-@item Renamed the library from @samp{libcoll} to @samp{libobjects}.
+@item Renamed the library from @samp{libcoll} to @samp{libgnustep-base}.
 (See the end of the file @samp{DISCUSSION} for the background on this
 name choice.)  Several file names changed to reflect this.  GNU class
 interfaces are now included with @samp{objects} prefix,
