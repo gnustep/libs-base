@@ -87,7 +87,7 @@ server.h
 EXCS = $(SRCS:.m=)
 
 RCS_FILES = $(SRCS) $(HDRS) Makefile.in NXStringTable.example
-DIST_FILES = NXStringTable.example
+DIST_FILES = $(RCS_FILES) NXStringTable.example
 
 all: $(EXCS)
 
