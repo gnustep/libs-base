@@ -216,7 +216,7 @@ GetDefEncoding()
 		    }
 		  count++;
 		}
-	      if (tmp != 0 && tmp != NSISOLatin1StringEncoding)
+	      if (tmp == 0 && ret != NSISOLatin1StringEncoding)
 		{
 		  fprintf(stderr, "WARNING: %s - encoding not yet "
 		    "implemented.\n", encoding);
