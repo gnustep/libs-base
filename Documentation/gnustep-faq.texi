@@ -704,10 +704,6 @@ proprietary implementation in significant, core, structural ways, it is
 far more difficult for the proprietary entities to claim copyright
 infringement.
 
-With NeXT's reputation for legal intimidation (e.g. the 1991 third-party
-D.O. implementation, WebRex, etc), the GNUstep community certainly needs
-to concern itself with legal safety.
-
 But the far more exciting reason for structural differences is the
 increased efficiency and features that come from the changes.  The item
 above, ``@b{In what ways is the Base Library different from OpenStep's
