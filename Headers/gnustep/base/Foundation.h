@@ -61,7 +61,6 @@
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSPage.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSPortMessage.h>

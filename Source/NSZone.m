@@ -86,7 +86,6 @@
 #include <string.h>
 #include <objc/objc-api.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSPage.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSLock.h>

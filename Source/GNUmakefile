@@ -407,7 +407,6 @@ Foundation/NSNotification.h \
 Foundation/NSNotificationQueue.h \
 Foundation/NSObjCRuntime.h \
 Foundation/NSObject.h \
-Foundation/NSPage.h \
 Foundation/NSPathUtilities.h \
 Foundation/NSPort.h \
 Foundation/NSPortCoder.h \
