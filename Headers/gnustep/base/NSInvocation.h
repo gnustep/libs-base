@@ -1,4 +1,3 @@
-
 /* Interface for NSInvocation for GNUStep
    Copyright (C) 1998 Free Software Foundation, Inc.
 
