@@ -632,11 +632,6 @@ static int debug_coder = 0;
 	    SEL init_sel = sel_get_any_uid("initWithCoder:");
 	    Method *init_method = 
 	      class_get_instance_method(object_class, init_sel);
-	    
-	    NSAssert (!create_ref_before_init,
-		      @"You are trying to decode an object with the non-GNU"
-		      @"OpenStep-style of forward references, but the object's"
-		      @"decoding mechanism wants to use GNU features.");
 	    /* xxx Or should I send +alloc? */
 	    *anObjPtr = (id) NSAllocateObject (object_class, 0, zone);
 	    if (create_ref_before_init)
@@ -654,7 +649,13 @@ static int debug_coder = 0;
 	      at: &fref 
 	      withName: NULL];
 	if (fref)
-	  [self _coderSatisfyForwardReference: fref withObject: *anObjPtr];
+	  {
+	    NSAssert (!create_ref_before_init,
+		      @"You are trying to decode an object with the non-GNU\n"
+		      @"OpenStep-style forward references, but the object's\n"
+		      @"decoding mechanism wants to use GNU features.");
+	    [self _coderSatisfyForwardReference: fref withObject: *anObjPtr];
+	  }
 
 	/* Would get error here with Connection-wide object references
 	   because addProxy gets called in +newRemote:connection: */
