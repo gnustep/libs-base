@@ -33,8 +33,6 @@
 #include <limits.h>
 #include <assert.h>
 
-#define ABS(x) ((x) < 0 ? -x : x) 
-
 typedef union {
   float f;
   unsigned long u;
