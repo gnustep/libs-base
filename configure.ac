@@ -833,15 +833,15 @@ if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
 	have_kvm_env=1,
 	have_kvm_env=0,
 	have_kvm_env=0)
-  AC_DEFINE_UNQUOTED(have_kvm_env, $have_kvm_env,
-		   [Define if you can access the kernel via kvm_open])
   if test $have_kvm_env = 1; then
     AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_KVM_ENV, 1, 
+    			    [Define if you can access the kernel via kvm_open])
   else
     AC_MSG_RESULT(no)
+    # Reset LIBS since we don't need kvm
+    LIBS="$save_LIBS"
   fi
-  # Reset LIBS since we don't need kvm
-  LIBS="$save_LIBS"
 fi
 
 #--------------------------------------------------------------------

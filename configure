@@ -12215,20 +12215,20 @@ have_kvm_env=0
 fi
 rm -f core core.* *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
-
-cat >>confdefs.h <<_ACEOF
-#define have_kvm_env $have_kvm_env
-_ACEOF
-
   if test $have_kvm_env = 1; then
     echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_KVM_ENV 1
+_ACEOF
+
   else
     echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
+    # Reset LIBS since we don't need kvm
+    LIBS="$save_LIBS"
   fi
-  # Reset LIBS since we don't need kvm
-  LIBS="$save_LIBS"
 fi
 
 #--------------------------------------------------------------------
