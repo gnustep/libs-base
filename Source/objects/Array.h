@@ -40,7 +40,7 @@
 {
   @public
   unsigned int _capacity;
-  unsigned int _grow_factor;
+  int _grow_factor;
 }
 
 + (unsigned) defaultCapacity;
