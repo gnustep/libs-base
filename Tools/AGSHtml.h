@@ -57,6 +57,12 @@
 		ofType: (NSString*)t
 		inUnit: (NSString*)u
 		 isRef: (BOOL)f;
+- (void) outputIndex: (NSString*)type
+	       scope: (NSString*)scope
+	       title: (NSString*)title
+	       style: (NSString*)style
+              target: (NSString*)target
+                  to: (NSMutableString*)buf;
 - (NSString*) outputDocument: (GSXMLNode*)node;
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (void) outputNodeList: (GSXMLNode*)node to: (NSMutableString*)buf;
