@@ -41,12 +41,15 @@ typedef enum
 
 @interface NSThread : NSObject
 {
+  id			_target;
+  id			_arg;
+  SEL			_selector;
+  BOOL			_active;
 @public
-   objc_thread_t	_thread_id;
-   NSHandler		*_exception_handler;
-   NSMutableDictionary	*_thread_dictionary;
-   struct autorelease_thread_vars _autorelease_vars;
-   id			_gcontext;
+  NSHandler		*_exception_handler;
+  NSMutableDictionary	*_thread_dictionary;
+  struct autorelease_thread_vars _autorelease_vars;
+  id			_gcontext;
 }
 
 + (NSThread*) currentThread;
