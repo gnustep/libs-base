@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __SocketPort_h_INCLUDE_GNU
-#define __SocketPort_h_INCLUDE_GNU
+#ifndef __UdpPort_h_INCLUDE_GNU
+#define __UdpPort_h_INCLUDE_GNU
 
 #include <objects/stdobjects.h>
 #include <objects/Port.h>
@@ -56,4 +56,4 @@
 @interface UdpPacket : Packet
 @end
 
-#endif /* __SocketPort_h_INCLUDE_GNU */
+#endif /* __UdpPort_h_INCLUDE_GNU */
