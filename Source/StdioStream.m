@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective C stdio stream
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -67,6 +67,13 @@ objects_vscanf (void *stream,
   return stderrStream;
 }
 
++ streamWithFilename: (id <String>)name fmode: (const char *)m
+{
+  return [[[self alloc]
+	    initWithFilename: name fmode: m]
+	   autorelease];
+}
+
 - initWithFilePointer: (FILE*)afp fmode: (const char *)mo
 {
 #if 0
@@ -92,9 +99,9 @@ objects_vscanf (void *stream,
   return self;
 }
 
-- initWithFilename: (const char *)name fmode: (const char *)m
+- initWithFilename: (id <String>)name fmode: (const char *)m
 {
-  FILE *afp = fopen(name, (char*)m);
+  FILE *afp = fopen([name cStringNoCopy], (char*)m);
   return [self initWithFilePointer:afp fmode:m];
 }
 
@@ -104,17 +111,17 @@ objects_vscanf (void *stream,
   return [self initWithFilePointer:afp fmode:m];
 }
 
-- initWithPipeTo: (const char *)systemCommand
+- initWithPipeTo: (id <String>) systemCommand
 {
   return [self initWithFilePointer:
-	       popen(systemCommand, "w")
+	       popen([systemCommand cStringNoCopy], "w")
 	       fmode:"w"];
 }
 
-- initWithPipeFrom: (const char *)systemCommand
+- initWithPipeFrom: (id <String>) systemCommand
 {
   return [self initWithFilePointer:
-	       popen(systemCommand, "r")
+	       popen([systemCommand cStringNoCopy], "r")
 	       fmode:"r"];
 }
 
@@ -133,13 +140,13 @@ objects_vscanf (void *stream,
   return fread(b, 1, len, fp);
 }
 
-- (int) writeFormat: (const char *)format, ...
+- (int) writeFormat: (id <String>)format, ...
 {
   int ret;
   va_list ap;
 
   va_start(ap, format);
-  ret = vfprintf(fp, format, ap);
+  ret = vfprintf(fp, [format cStringNoCopy], ap);
   va_end(ap);
   return ret;
 }
@@ -155,7 +162,7 @@ stdio_unchar_func(void *s, int c)
    ungetc(c, (FILE*)s);
 }
 
-- (int) readFormat: (const char *)format, ...
+- (int) readFormat: (id <String>)format, ...
 {
   int ret;
   va_list ap;
@@ -173,7 +180,8 @@ stdio_unchar_func(void *s, int c)
 #endif
 
   va_start(ap, format);
-  ret = objects_vscanf(fp, stdio_inchar_func, stdio_unchar_func, format, ap);
+  ret = objects_vscanf(fp, stdio_inchar_func, stdio_unchar_func, 
+		       [format cStringNoCopy], ap);
   va_end(ap);
   return ret;
 }
