@@ -514,8 +514,12 @@ extern char *objc_find_executable(const char *name);
 #if     HAVE_SETPGRP
       setpgrp();
 #else
+#if defined(__WIN32__) || defined(_WIN32)
+      pid = (int)GetCurrentProcessId(),
+#else
+      pid = (int)getpid();
+#endif
 #if     HAVE_SETPGID
-      pid = getpid();
       setpgid(pid, pid);
 #endif
 #endif
