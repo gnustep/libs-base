@@ -45,7 +45,7 @@
 #define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)
 #endif
 
-#if NeXT_runtime
+#if NeXT_RUNTIME
  #include <objc/objc.h>
  #include <objc/objc-class.h>
  #include <objc/objc-runtime.h>
