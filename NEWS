@@ -1,17 +1,21 @@
 News
 ****
 
-The currently released version of the library is `0.4.0'.
+The currently released version of the library is `0.5.0'.
 
 Noteworthy changes in version `0.5.0'
 =====================================
 
    * Improvements to the NSInvocation class, from  Masatake Yamato
-     <masata-y
+     <masata-y@aist-nara.ac.jp>.
 
    * Implemented several new OpenStep methods and classes (e.g. NSTask)
      and speed improvements for others (NSArray, NSData, NSString),
-     from  Richard Frith-Macdonald  <richard
+     from  Richard Frith-Macdonald  <richard@brainstorm.co.uk>.
+
+   * gdomap now handles subnet addressing and machines with multiple IP
+     addresses from  Richard Frith-Macdonald
+     <richard@brainstorm.co.uk>.
 
 Noteworthy changes in version `0.4.0'
 =====================================

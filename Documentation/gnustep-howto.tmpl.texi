@@ -79,7 +79,7 @@ FoundationExt.
 @section Getting the files
 
 Most of the files needed by GNUstep are available from the following ftp 
-sites. Except for gcc, gdb, make and libtiff, alpha.gnu.org
+sites. Except for gcc, gdb, make and libtiff, alpha.gnu.org and ftp.gnustep.org
 should contain the latest versions of all the required
 packages.
 
@@ -110,29 +110,32 @@ make-3.75.tar.gz (You need GNU make to compile GNUstep).
 gdb-4.16-objc-971112.diff.gz (A patch for easier debugging of Objective-C).
   ftp://alpha.gnu.org/gnu/gnustep
 
-tiff-v3.4beta036-tar.gz (The TIFF library), or
-tiff-970711.tar.gz
+tiff-970711.tar.gz (The TIFF library), or
+  you can use tiff-v3.4beta036-tar.gz or greater version
   ftp://ftp.sgi.com/graphics/tiff/
   ftp://alpha.gnu.org/gnu/gnustep
+  ftp://ftp.gnustep.org/pub/gnustep
     
 pcthreads-1.1.0.tar.gz (PCThreads for Linux/GNU Inel x86 systems)
   ftp://alpha.gnu.org/gnu/gnustep
+  ftp://ftp.gnustep.org/pub/gnustep
 
-gstep-make-0.4.0.tar.gz (Makefile package)
-dgs-970711.tar.gz (The Display Ghostscript distribution)
-gstep-base-0.4.0.tar.gz (Foundation)
-gstep-gui-0.4.0.tar.gz (AppKit)
-gstep-xdps-0.4.0.tar.gz (X11/PostScript backend)
+gstep-core-0.5.0.tar.gz (Contains gstep-make, -extensions, -base, -gui, -xdps)
+gstep-make-0.5.0.tar.gz (Makefile package)
+gstep-base-0.5.0.tar.gz (Foundation)
+gstep-gui-0.5.0.tar.gz (AppKit)
+gstep-xdps-0.5.0.tar.gz (X11/PostScript backend)
+extensions-0.5.0.tar.gz (Foundation extensions)
+dgs-0.5.0.tar.gz (The Display Ghostscript distribution)
   ftp://ftp.gnu.org/pub/gnu
+  ftp://ftp.gnustep.org/pub/gnustep
   ftp://alpha.gnu.org/gnu/gnustep
 
-libFoundation-0.8.0.tar.gz (Foundation)
+libFoundation-0.8.0.tar.gz (Alternate Foundation)
+  ftp://ftp.gnustep.org/pub/gnustep
   ftp://alpha.gnu.org/gnu/gnustep
   ftp://ftp.gnu.org/pub/gnu
 
-FoundationExt-0.8.1.tar.gz (Foundation extentions (optional))
-  ftp://ftp.gnu.org/pub/gnu
-  ftp://alpha.gnu.org/gnu/gnustep
 @end example
 
 You may get either one of the Foundations libraries (you only need to 
@@ -142,14 +145,14 @@ Note that you should get the latest version available, not necessarily
 the one listed here. For the more adventurous, and since the project is
 still in development, it might be better to get the latest snapshot
 located in the snap or snapshot subdirectories at
-ftp://alpha.gnu.org/gnu/gnustep or the other appropriate ftp locations.
+ftp://alpha.gnu.org/gnu/gnustep/snap or the other appropriate ftp locations.
 
 For the following instructions, some version numbers are replaced by XXX.
 You shoule replace the 'X's with the version of the package you have.
 
 @section Compiling and Installing the packages
 
-@subsection Compiling make
+@subsection Compiling GNU make
 
 GNU make is required to compile all GNUstep packages.
 
@@ -161,49 +164,6 @@ cd make-XXX
 make
 su root
 make install
-@end example
-
-@subsection Installing the Makefile package
-
-First decide where you want the GNUstep files to go, and use this as
-an argument to configure in the makefile package. If you don't choose
-a location, the default is /usr/GNUstep.  The example below shows how
-to configure the packages for installation in /usr/local/GNUstep.
-
-@example
-tar fvxz gstep-make-XXXXXX.tar.gz
-cd gstep-make-XXXXXX
-./configure --prefix=/usr/local/GNUstep
-su root
-make install
-@end example
-
-If you are using, or intend to compile the GCC Objective-C runtime with
-threads, you need to specify the thread package you are using when
-running configure:
-
-@example
-LIBS=-lpthread; ./configure --prefix=/usr/local/GNUstep
-@end example
-
-After this you should add the shell script @file{GNUstep.sh} in the makefile
-package to you initialization file (such as @file{.profile}). For instance:
-
-@example
-. /usr/local/GNUstep/Makefiles/GNUstep.sh
-@end example
-
-in your @file{.profile} file will work. It defines environment variables that
-are needed to find GNUstep files and executables.  Users of csh need
-to change the @file{GNUstep.sh} script so it will work with csh. Read the
-@file{README} for more info.
-
-GNUstep packages will automatically install in this directory structure. You
-can install other packages (such as gcc) in the same structure if you specify
-the GNUstep system root as the prefix when you configure the package.
-
-@example
-./configure --prefix=$GNUSTEP_SYSTEM_ROOT
 @end example
 
 @subsection Compiling PCThreads
@@ -336,6 +296,89 @@ make bootstrap
   whatever you want.
 @end table
 
+@subsection Installing the GNUstep libraries
+
+If you have the gstep-core package, you can make and install all the
+GNUstep core packages at one time. If you already have a TIFF library
+and a Display Postscript system installed, you can do this following the
+example instructions below.  If you don't already have a TIFF library or
+DPS, you have to do things in a slightly different order.
+
+If you have the separate gstep packages, skip to the next section
+(Installing the Makefile package).
+
+First decide where you want the GNUstep files to go, and use this as
+an argument to configure. If you don't choose
+a location, the default is /usr/GNUstep.  The example below shows how
+to configure the packages for installation in /usr/local/GNUstep.
+
+If you don't have libtiff or DPS,
+first make and install the Makefile package, the TIFF library and DGS,
+as shown in the following three sections.
+
+After you have libtiff and DPS/DGS installed, make the core libraries:
+
+@example
+tar fvxz gstep-core-XXXXX.tar.gz
+cd gstep-core-XXXX
+./configure --prefix=/usr/local/GNUstep
+make
+su root
+make install
+@end example
+
+With the various GNUstep libraries you can use the various
+switches, shared, debug. As in ``make shared=no debug=yes'' (Make sure
+you use the same switches for every package you compile, and also when
+you install).
+
+Skip to the Additional Instructions sections to finish up installation
+of the GNUstep system.
+
+@subsection Installing the Makefile package
+
+Decide where you want the GNUstep files to go, and use this as
+an argument to configure in the makefile package. If you don't choose
+a location, the default is /usr/GNUstep.  The example below shows how
+to configure the packages for installation in /usr/local/GNUstep.
+
+@example
+tar fvxz gstep-make-XXXXXX.tar.gz
+cd gstep-make-XXXXXX
+./configure --prefix=/usr/local/GNUstep
+make
+su root
+make install
+@end example
+
+If you are using, or intend to compile the GCC Objective-C runtime with
+threads, you need to specify the thread package you are using when
+running configure:
+
+@example
+LIBS=-lpthread; ./configure --prefix=/usr/local/GNUstep
+@end example
+
+After this you should add the shell script @file{GNUstep.sh} in the makefile
+package to you initialization file (such as @file{.profile}). For instance:
+
+@example
+. /usr/local/GNUstep/Makefiles/GNUstep.sh
+@end example
+
+in your @file{.profile} file will work. It defines environment variables that
+are needed to find GNUstep files and executables.  Users of csh need
+to change the @file{GNUstep.sh} script so it will work with csh. Read the
+@file{README} for more info.
+
+GNUstep packages will automatically install in this directory structure. You
+can install other packages (such as gcc) in the same structure if you specify
+the GNUstep system root as the prefix when you configure the package.
+
+@example
+./configure --prefix=$GNUSTEP_SYSTEM_ROOT
+@end example
+
 @subsection Compiling libtiff
 
 You don't need a customized version of libtiff, or necessarily even the
@@ -368,12 +411,8 @@ above.
   make install
 @end example
 
-@subsection Building a Foundation library
 
-With this and the following packages that use the GNUstep makefile
-package you can use the various switches,
-shared, debug. As in ``make shared=no debug=yes'' (Make sure you use the
-same switches for every package you compile, and also when you install). 
+@subsection Building a Foundation library
 
 If you work with gstep-base:
 
@@ -451,6 +490,19 @@ Compiling:
 @end example
 
 @section Additional Installation
+
+If you haven't already done so when installing the Makefile package,
+you should add the shell script @file{GNUstep.sh} in the Makefile
+package to you initialization file (such as @file{.profile}). For instance:
+
+@example
+. /usr/local/GNUstep/Makefiles/GNUstep.sh
+@end example
+
+in your @file{.profile} file will work. It defines environment variables that
+are needed to find GNUstep files and executables.  Users of csh need
+to change the @file{GNUstep.sh} script so it will work with csh. Read the
+@file{README} for more info.
 
 Set up your home GNUstep directory. This is where user defaults are
 kept, and in the future, other files may be kept there.
