@@ -255,7 +255,7 @@
   const char	*objctype = @encode(TYPE_NAME);
   unsigned	size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
-  [coder encodeArrayOfObjCType: @encode(char) count: size at: objctype];
+  [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
   [coder encodeValueOfObjCType: @encode(TYPE_NAME) at: &data];
 #endif
 }

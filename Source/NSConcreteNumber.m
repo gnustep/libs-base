@@ -447,7 +447,7 @@
 {
   const char	*t = @encode(TYPE_TYPE);
 
-  [coder encodeValueOfObjCType: @encode(char) at: t];
+  [coder encodeValueOfObjCType: @encode(signed char) at: t];
   [coder encodeValueOfObjCType: t at: &data];
 }
 

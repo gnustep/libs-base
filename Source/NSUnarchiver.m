@@ -795,7 +795,14 @@ static Class NSDataMallocClass;
 
       case _GSC_CHR:
       case _GSC_UCHR:
-	typeCheck(*type, info & _GSC_MASK);
+	/* Encoding of chars is not consistant across platforms, so we
+	   loosen the type checking a little */
+	if (*type != type_map[_GSC_CHR] && *type != type_map[_GSC_UCHR])
+	  {
+	    [NSException raise: NSInternalInconsistencyException
+		        format: @"expected %s and got %s",
+		    typeToName1(*type), typeToName2(info)];
+	  }
 	(*desImp)(src, desSel, address, type, &cursor, nil);
 	return;
 

@@ -2274,7 +2274,7 @@ static Class	doubleNumberClass;
 {
   const char	*t = [self objCType];
 
-  [coder encodeValueOfObjCType: @encode(char) at: t];
+  [coder encodeValueOfObjCType: @encode(signed char) at: t];
   [coder encodeValueOfObjCType: t at: [self pointerValue]];
 }
 
@@ -2296,7 +2296,7 @@ static Class	doubleNumberClass;
     double d;
   } data;
 
-  [coder decodeValueOfObjCType: @encode(char) at: t];
+  [coder decodeValueOfObjCType: @encode(signed char) at: t];
   t[1] = '\0';
   [coder decodeValueOfObjCType: t at: &data];
   switch (*t)
