@@ -1,0 +1,36 @@
+/* Ukrainian */
+{
+  NSLanguageName = "Ukrainian";
+  NSLanguageCode = UK;
+  NSFormalName = "Ukrainian";
+  
+  NSCurrencySymbol = "\u0433\u0440\u043d";
+  NSPositiveCurrencyFormatString = "9,999.00 \u0433\u0440\u043d";
+  NSNegativeCurrencyFormatString = "-9,999.00 \u0433\u0440\u043d";
+  NSInternationalCurrencyString = "UAH";
+
+  NSDecimalDigits = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+  NSDecimalSeparator = ".";
+  NSThousandsSeparator = ",";
+
+  NSAMPMDesignation = (AM, PM);
+  NSDateFormatString = "%A, %d %B, %Y";
+  NSDateTimeOrdering = DMYH;
+  NSEarlierTimeDesignations = ("\u043f\u043e\u043f\u0435\u0440\u0435\u0434\u043d\u2555\u0439", "\u043c\u0438\u043d\u0443\u043b\u0438\u0439", "\u043c\u0438\u043d\u0443\u043b\u0438\u0439", "\u0442\u043e\u043c\u0443");
+  NSHourNameDesignations = ((0, "\u043f\u043e\u043b\u0443\u043d\u2555\u0447"), (12, "\u043f\u043e\u043b\u0443\u0434\u0435\u043d\u044c"), (10, "\u0440\u0430\u043d\u043e\u043a"), (14, "\u043e\u0431\u2555\u0434"), (19, "\u0432\u0435\u0447\u2555\u0440"));
+  NSLaterTimeDesignations = ("\u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0438\u0439");
+  NSMonthNameArray = ("\u0421\u2555\u0447\u0435\u043d\u044c", "\u041b\u044e\u0442\u0438\u0439", "\u0411\u0435\u0440\u0435\u0437\u0435\u043d\u044c", "\u041a\u0432\u2555\u0442\u0435\u043d\u044c", "\u0422\u0440\u0430\u0432\u0435\u043d\u044c", "\u0427\u0435\u0440\u0432\u0435\u043d\u044c", "\u041b\u0438\u043f\u0435\u043d\u044c", "\u0421\u0435\u0440\u043f\u0435\u043d\u044c", "\u0412\u0435\u0440\u0435\u0441\u0435\u043d\u044c", "\u0416\u043e\u0432\u0442\u0435\u043d\u044c", "\u041b\u0438\u0441\u0442\u043e\u043f\u0430\u0434", "\u0413\u0440\u0443\u0434\u0435\u043d\u044c");
+  NSNextDayDesignations = ("\u0437\u0430\u0432\u0442\u0440\u0430");
+  NSNextNextDayDesignations = ("\u043f\u2555\u0441\u043b\u044f\u0437\u0430\u0432\u0442\u0440\u0430");
+  NSPriorDayDesignations = ("\u0432\u0447\u043e\u0440\u0430");
+  NSShortDateFormatString = "%d/%m/%Y";
+  NSShortMonthNameArray = ("\u0421\u2555\u0447", "\u041b\u044e\u0442", "\u0411\u0435\u0440", "\u041a\u0432\u2555", "\u0422\u0440\u0430", "\u0427\u0435\u0440", "\u041b\u0438\u043f", "\u0421\u0435\u0440", "\u0412\u0435\u0440", "\u0416\u043e\u0432", "\u041b\u0438\u0441", "\u0413\u0440\u0443");
+  NSShortTimeDateFormatString = "%d %b, %Y %H:%M";
+  NSShortWeekDayNameArray = ("\u041d\u0434\u043b", "\u041f\u043d\u0434", "\u0412\u0442\u0440", "\u0421\u0440\u0434", "\u0427\u0442\u0432", "\u041f\u0442\u043d", "\u0421\u0431\u0442");
+  NSThisDayDesignations = ("\u0441\u044c\u043e\u0433\u043e\u0434\u043d\u2555");
+  NSTimeDateFormatString = "%a %d %b %H:%M:%S %z %Y";
+  NSTimeFormatString = "%H:%M:%S";
+  NSWeekDayNameArray = ("\u041d\u0435\u0434\u2555\u043b\u044f", "\u041f\u043e\u043d\u0435\u0434\u2555\u043b\u043e\u043a", "\u0412\u2555\u0432\u0442\u043e\u0440\u043e\u043a", "\u0421\u0435\u0440\u0435\u0434\u0430", "\u0427\u0435\u0442\u0432\u0435\u0440", "\u041f'\u044f\u0442\u043d\u0438\u0446\u044f", "\u0421\u0443\u0431\u043e\u0442\u0430");
+  NSYearMonthWeekDesignations = ("\u0440\u2555\u043a", "\u043c\u2555\u0441\u044f\u0446\u044c", "\u0442\u0438\u0436\u0434\u0435\u043d\u044c");
+}
+
