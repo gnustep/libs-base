@@ -1,5 +1,5 @@
 /* Memory allocation support for Objective-C: easy garbage collection.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -33,9 +33,12 @@
 #define valloc  malloc
 #endif
 
+#define CHECK_ZERO_SIZE(S) if (size == 0) size = 1
+
 void*
 __objc_malloc(size_t size)
 {
+  CHECK_ZERO_SIZE(size);
   void* res = (void*) malloc(size);
   if(!res)
     objc_fatal("Virtual memory exhausted\n");
@@ -45,6 +48,7 @@ __objc_malloc(size_t size)
 void*
 __objc_valloc(size_t size)
 {
+  CHECK_ZERO_SIZE(size);
   void* res = (void*) valloc(size);
   if(!res)
     objc_fatal("Virtual memory exhausted\n");
@@ -54,6 +58,7 @@ __objc_valloc(size_t size)
 void*
 __objc_realloc(void* mem, size_t size)
 {
+  CHECK_ZERO_SIZE(size);
   void* res = (void*) realloc(mem, size);
   if(!res)
     objc_fatal("Virtual memory exhausted\n");
@@ -63,6 +68,7 @@ __objc_realloc(void* mem, size_t size)
 void*
 __objc_calloc(size_t nelem, size_t size)
 {
+  CHECK_ZERO_SIZE(size);
   void* res = (void*) calloc(nelem, size);
   if(!res)
     objc_fatal("Virtual memory exhausted\n");
