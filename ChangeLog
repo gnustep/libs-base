@@ -1,3 +1,7 @@
+2002-09-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: Updated to latest information.
+
 2002-09-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m: Encapsulate read and write operations in
