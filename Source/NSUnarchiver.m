@@ -34,13 +34,8 @@
 /*
  *	Setup for inline operation of arrays.
  */
-#ifdef	GSI_NEW
 #define	GSI_ARRAY_RETAIN(A, X)	
 #define	GSI_ARRAY_RELEASE(A, X)	
-#else
-#define	GSI_ARRAY_RETAIN(X)	
-#define	GSI_ARRAY_RELEASE(X)	
-#endif
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_STR
 
 #include <base/GSIArray.h>

@@ -39,7 +39,6 @@
 #include "NSCallBacks.h"
 
 
-#define GSI_NEW 1
 /*
  *      The 'Fastmap' stuff provides an inline implementation of a hash
  *      table - for maximum performance.

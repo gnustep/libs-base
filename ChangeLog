@@ -1,5 +1,23 @@
 2002-02-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSAttributedString.m: Move to assuming new GSI api.
+	* Source/NSHashTable.m: ditto
+	* Source/NSMapTable.m: ditto
+	* Source/GSCountedSet.m: ditto
+	* Source/GSDictionary.m: ditto
+	* Source/GSFFCallInvocation.m: ditto
+	* Source/NSArchiver.m: ditto
+	* Source/NSConnection.m: ditto
+	* Source/NSFileManager.m: ditto
+	* Source/NSNotificationCenter.m: ditto
+	* Source/NSObject.m: ditto
+	* Source/NSPortCoder.m: ditto
+	* Source/NSRunLoop.m: ditto
+	* Source/NSSerializer.m: ditto
+	* Source/NSUnarchiver.m: ditto
+
+2002-02-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSHashTable.m: Fixed bug intorduced by last change to add
 	error checking!!
 	* Source/GSAttributedString.m: Make new or old GSI stuff optional.

@@ -111,19 +111,12 @@ static void obsFree(Observation *o);
 
 
 #define GSI_ARRAY_TYPES	0
-#ifdef	GSI_NEW
 #define GSI_ARRAY_TYPE	Observation*
 #define GSI_ARRAY_RELEASE(A, X)   obsFree(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)    obsRetain(X.ext)
-#else
-#define GSI_ARRAY_EXTRA	Observation*
-#define GSI_ARRAY_RELEASE(X)   obsFree(X.ext)
-#define GSI_ARRAY_RETAIN(X)    obsRetain(X.ext)
-#endif
 
 #include <base/GSIArray.h>
 
-#ifdef	GSI_NEW
 #define GSI_MAP_RETAIN_KEY(M, X)  
 #define GSI_MAP_RELEASE_KEY(M, X) ({if ((((gsaddr)X.obj) & 1) == 0) \
   RELEASE(X.obj);})
@@ -131,15 +124,6 @@ static void obsFree(Observation *o);
 #define GSI_MAP_EQUAL(M, X,Y)     doEqual(X.obj, Y.obj)
 #define GSI_MAP_RETAIN_VAL(M, X)  
 #define GSI_MAP_RELEASE_VAL(M, X)
-#else
-#define GSI_MAP_RETAIN_KEY(X)  
-#define GSI_MAP_RELEASE_KEY(X) ({if ((((gsaddr)X.obj) & 1) == 0) \
-  RELEASE(X.obj);})
-#define GSI_MAP_HASH(X)        doHash(X.obj)
-#define GSI_MAP_EQUAL(X,Y)     doEqual(X.obj, Y.obj)
-#define GSI_MAP_RETAIN_VAL(X)  
-#define GSI_MAP_RELEASE_VAL(X)
-#endif
 
 #define GSI_MAP_KTYPES GSUNION_OBJ|GSUNION_INT
 #define GSI_MAP_VTYPES GSUNION_PTR

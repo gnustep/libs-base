@@ -45,8 +45,6 @@ typedef struct {
   NSMapTableValueCallBacks	v;
 } extraData;
 
-#define GSI_NEW	1
-
 /*
  *      The 'Fastmap' stuff provides an inline implementation of a mapping
  *      table - for maximum performance.
