@@ -129,6 +129,10 @@ static int messages_received_count;
 {
   connection_array = [[Array alloc] init];
   connection_array_gate = [Lock new];
+  /* xxx When NSHashTable's are working, change this. */
+  all_connections_local_targets =
+    NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
   received_request_rmc_queue = [[Queue alloc] init];
   received_request_rmc_queue_gate = [Lock new];
   received_reply_rmc_queue = [[Queue alloc] init];
@@ -952,6 +956,17 @@ static int messages_received_count;
 
 /* Managing objects and proxies. */
 
+- (void) addLocalObject: anObj
+{
+  [proxiesHashGate lock];
+  /* xxx Do we need to check to make sure it's not already there? */
+  /* This retains anObj. */
+  NSMapInsert (local_targets, (void*)anObj, anObj);
+  /* This does not retain anObj. */
+  NSMapInsert (all_connections_local_targets, (void*)anObj, anObj);
+  [proxiesHashGate unlock];
+}
+
 /* This should get called whenever an object free's itself */
 + (void) removeLocalObject: anObj
 {
@@ -970,6 +985,7 @@ static int messages_received_count;
   [proxiesHashGate lock];
   /* This also releases anObj */
   NSMapRemove (local_targets, (void*)anObj);
+  NSMapRemove (all_connections_local_targets, (void*)anObj);
   [proxiesHashGate unlock];
 }
 
@@ -1022,15 +1038,6 @@ static int messages_received_count;
   if (NSMapGet (remote_proxies, (void*)target))
     [self error:"Trying to add the same proxy twice"];
   NSMapInsert (remote_proxies, (void*)target, aProxy);
-  [proxiesHashGate unlock];
-}
-
-- (void) addLocalObject: anObj
-{
-  [proxiesHashGate lock];
-  /* xxx Do we need to check to make sure it's not already there? */
-  /* This retains anObj */
-  NSMapInsert (local_targets, (void*)anObj, anObj);
   [proxiesHashGate unlock];
 }
 
