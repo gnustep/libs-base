@@ -307,6 +307,7 @@ static inline int getDigits(const char *from, char *to, int limit)
       NSString		*tForm;
       NSString		*TForm;
       NSMutableData	*fd;
+      BOOL		changedFormat = NO;
       
       if (locale == nil)
 	{
@@ -412,6 +413,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 			}
 		      [sub getCharacters: &format[pos-1]];
 		      formatLen += sLen - 2;
+		      changedFormat = YES;
 		      pos -= 2;	// Re-parse the newly substituted data.
 		    }
 		}
@@ -422,7 +424,7 @@ static inline int getDigits(const char *from, char *to, int limit)
       /*
        * Set up calendar format.
        */
-      if (formatLen > [fmt length])
+      if (changedFormat == YES)
 	{
 	  fmt = [NSString stringWithCharacters: format length: formatLen];
 	}
