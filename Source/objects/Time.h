@@ -31,6 +31,20 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#ifdef _SEQUENT_
+/* Include needed for getclock() in our replacement for gettimeofday() */
+#include <sys/timers.h>
+
+/* Include needed for tzset() in our replacement for gettimeofday() */
+#include <time.h>
+
+/* Sequent does not define struct timezone in any of it's header files */
+struct timezone {
+  int tz_minuteswest;
+  int tz_dsttime;
+};
+#endif /* _SEQUENT_ */
+
 @interface Time : Magnitude
 {
   struct timeval tv;		/* seconds and useconds */
