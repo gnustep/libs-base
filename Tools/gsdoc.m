@@ -148,29 +148,29 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
       strcpy(buf, &eid[16]);
       for (ptr = buf; *ptr != '\0' && *ptr != '/'; ptr++)
-	{
-	  if (*ptr == '.')
-	    {
-	     *ptr = '_';
-	    }
-	  else if (isspace(*ptr))
-	    {
-	      *ptr = '-';
-	    }
-	}
+		{
+		  if (*ptr == '.')
+			{
+			  *ptr = '_';
+			}
+		  else if (isspace(*ptr))
+			{
+			  *ptr = '-';
+			}
+		}
       *ptr = '\0';
       name = [NSString stringWithCString: buf];
       file = [NSBundle pathForGNUstepResource: name
 				       ofType: @"dtd"
-				  inDirectory: @"DTDs"];
+					   inDirectory: @"DTDs"];
       if (file == nil)
-	{
-	  NSLog(@"unable to find GNUstep DTD - '%@' for '%s'", name, eid);
-	}
+		{
+		  NSLog(@"unable to find GNUstep DTD - '%@' for '%s'", name, eid);
+		}
       else
-	{
-	  ret = xmlNewInputFromFile(ctxt, [file cString]);
-	}
+		{
+		  ret = xmlNewInputFromFile(ctxt, [file cString]);
+		}
     }
   else
     {
@@ -248,8 +248,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		}
 
 	  /*
-   * Ensure we have a valid file name.
-   */
+	   * Ensure we have a valid file name.
+	   */
 	  s = [name pathExtension];
 	  m = [NSFileManager defaultManager];
 	  if ([m fileExistsAtPath: name] == NO && [s length] == 0)
@@ -266,7 +266,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  fileName = [name copy];
 	  /*
 	   * Build an XML tree from the file.
-   */
+	   */
 	  doc = xmlParseFile([name cString]);
 	  if (doc == NULL)
 		{
@@ -275,8 +275,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		  return nil;
 		}
 	  /*
-   * Check that the document is of the right kind
-   */
+	   * Check that the document is of the right kind
+	   */
 	  cur = doc->children;
 	  if (cur == NULL)
 		{
@@ -359,10 +359,19 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   NSString*     currentClassName;				// Currently Parsed Class Name if any
   NSString*     currentCategoryName;			// Currently Parsed Category Name if any
   NSString*     currentProtocolName;			// Currently Parsed Protocol Name if any
+  NSString*		currentEOModel;					// Currently Parsed EOModel Name if any
+  NSString*		currentEOEntity;				// Currently Parsed EOEntity Name if any
+  NSString*		currentEORelationship;			// Currently Parsed EORelationship Name if any
+  NSString*		currentEORelationshipDestinationEntity;			// Currently Parsed EORelationship destionation entity Name if any
   NSArray*		typesTypes;						// Types for Types
   NSArray*		classesTypes;					// Types for Classes
   NSArray*		protocolsTypes;					// Types for Protocols
   NSArray*		filesTypes;						// Types for Files
+  NSArray*		adaptorsTypes;					// Types for Adaptors
+  NSArray*      EOModelsTypes;					// Types for Models
+  NSArray*      EOEntitiesTypes;				// Types for Entities
+  NSArray*      EOClassPropertiesTypes; 		// Type for Class Properties
+  NSArray*      EORelationshipsTypes;			// Types for Relationships
   BOOL writeFlag;								// YES if we'll write the result
   BOOL processFileReferencesFlag;				// YES if we'll add references to file references
 }
@@ -391,6 +400,14 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 - (NSString*) parseMethod: (xmlNodePtr)node;
 - (NSArray*) parseStandards: (xmlNodePtr)node;
 - (NSString*) parseText: (xmlNodePtr)node end: (xmlNodePtr*)endNode;
+- (NSString*) parseDictionary: (xmlNodePtr)node;
+- (NSString*) parseEOModel: (xmlNodePtr)node;
+- (NSString*) parseEOEntity: (xmlNodePtr)node;
+- (NSString*) parseEOAttribute: (xmlNodePtr)node;
+- (NSString*) parseEOAttributeRef: (xmlNodePtr)node;
+- (NSString*) parseEORelationship: (xmlNodePtr)node;
+- (NSString*) parseEORelationshipComponent: (xmlNodePtr)node;
+- (NSString*) parseEOJoin: (xmlNodePtr)node;
 - (void) setEntry: (NSString*)entry
 withExternalCompleteRef: (NSString*)externalCompleteRef
   withExternalRef: (NSString*)externalRef
@@ -431,6 +448,16 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 	  RETAIN(protocolsTypes);
 	  filesTypes=[NSArray arrayWithObjects:@"file",nil];
 	  RETAIN(filesTypes);
+	  adaptorsTypes=[NSArray arrayWithObjects:@"db-adaptor",nil];
+	  RETAIN(adaptorsTypes);	  
+	  EOModelsTypes=[NSArray arrayWithObjects:@"EOModel",nil];
+	  RETAIN(EOModelsTypes);	  
+	  EOEntitiesTypes=[NSArray arrayWithObjects:@"EOEntity",nil];
+	  RETAIN(EOEntitiesTypes);	  
+	  EOClassPropertiesTypes=[NSArray arrayWithObjects:@"EOAttribute",@"EORelationship",nil];
+	  RETAIN(EOClassPropertiesTypes);	  
+	  EORelationshipsTypes=[NSArray arrayWithObjects:@"EORelationship",nil];
+	  RETAIN(EORelationshipsTypes);
 	};
   return self;
 };
@@ -446,7 +473,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   else
     {
       return [NSString stringWithFormat: @"<a href=\"%@#%@\">%@</a>",
-	file, ref, text];
+					   file, ref, text];
     }
 }
 
@@ -460,16 +487,16 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
       [text appendString: @"<ul>\r\n"];
       for (i = 0; i < count; i++)
-	{
-	  NSDictionary	*dict = [array objectAtIndex: i];
-	  NSString	*title = [dict objectForKey: @"Title"];
-	  NSString	*ref = [dict objectForKey: @"Ref"];
-	  NSArray	*sub = [dict objectForKey: @"Contents"];
+		{
+		  NSDictionary	*dict = [array objectAtIndex: i];
+		  NSString	*title = [dict objectForKey: @"Title"];
+		  NSString	*ref = [dict objectForKey: @"Ref"];
+		  NSArray	*sub = [dict objectForKey: @"Contents"];
 
-	  [text appendFormat: @"<li>%@\r\n",
-	    [self addLink: ref withText: title]];
-	  [self appendContents: sub toString: text];
-	}
+		  [text appendFormat: @"<li>%@\r\n",
+				[self addLink: ref withText: title]];
+		  [self appendContents: sub toString: text];
+		}
       [text appendString: @"</ul>\r\n"];
     }
 }
@@ -484,15 +511,15 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
       [text appendString: @"<h2>Footnotes</h2>\r\n"];
       for (i = 0; i < count; i++)
-	{
-	  NSString	*note = [footnotes objectAtIndex: i];
-	  NSString	*ref = [NSString stringWithFormat: @"foot-%u", i];
+		{
+		  NSString	*note = [footnotes objectAtIndex: i];
+		  NSString	*ref = [NSString stringWithFormat: @"foot-%u", i];
 
 
-	  [text appendFormat: @"<a name=\"%@\">footnote %u</a> -\r\n", ref, i];
-	  [text appendString: note];
-	  [text appendString: @"<hr>\r\n"];
-	}
+		  [text appendFormat: @"<a name=\"%@\">footnote %u</a> -\r\n", ref, i];
+		  [text appendString: note];
+		  [text appendString: @"<hr>\r\n"];
+		}
     }
 }
 
@@ -511,7 +538,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*name = [dict objectForKey: key];
 
       [text appendFormat: @"<li>%@\r\n",
-	[self addLink: key withText: name]];
+			[self addLink: key withText: name]];
     }
   [text appendString: @"</ul>\r\n"];
 }
@@ -527,10 +554,19 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   DESTROY(currentClassName);
   DESTROY(currentCategoryName);
   DESTROY(currentProtocolName);
+  DESTROY(currentEOModel);
+  DESTROY(currentEOEntity);
+  DESTROY(currentEORelationship);
+  DESTROY(currentEORelationshipDestinationEntity);
   DESTROY(typesTypes);
   DESTROY(classesTypes);
   DESTROY(protocolsTypes);
   DESTROY(filesTypes);
+  DESTROY(adaptorsTypes);
+  DESTROY(EOModelsTypes);
+  DESTROY(EOEntitiesTypes);
+  DESTROY(EOClassPropertiesTypes);
+  DESTROY(EORelationshipsTypes);
   [super dealloc];
 }
 
@@ -544,31 +580,31 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       contents = [NSMutableArray new];
       footnotes = [NSMutableArray new];
       if ([defs boolForKey: @"Monolithic"] == YES)
-	{
-	  ASSIGN(currName, [baseName stringByAppendingPathExtension:PathExtension_HTML]);
-	}
-      else
-	{
-	  BOOL	flag = NO;
-
-	  if ([mgr fileExistsAtPath: baseName isDirectory: &flag] == NO)
-	    {
-	      if ([mgr createDirectoryAtPath: baseName attributes: nil] == NO)
 		{
-		  NSLog(@"Unable to create directory '%@'", baseName);
-		  RELEASE(self);
-		  return nil;
+		  ASSIGN(currName, [baseName stringByAppendingPathExtension:PathExtension_HTML]);
 		}
-	    }
-	  else if (flag == NO)
-	    {
-	      NSLog(@"The file '%@' is not a directory", baseName);
-	      RELEASE(self);
-	      return nil;
-	    }
-	  ASSIGN(currName,
-			 [baseName stringByAppendingPathComponent: @"index.html"]);
-	}    
+      else
+		{
+		  BOOL	flag = NO;
+
+		  if ([mgr fileExistsAtPath: baseName isDirectory: &flag] == NO)
+			{
+			  if ([mgr createDirectoryAtPath: baseName attributes: nil] == NO)
+				{
+				  NSLog(@"Unable to create directory '%@'", baseName);
+				  RELEASE(self);
+				  return nil;
+				}
+			}
+		  else if (flag == NO)
+			{
+			  NSLog(@"The file '%@' is not a directory", baseName);
+			  RELEASE(self);
+			  return nil;
+			}
+		  ASSIGN(currName,
+				 [baseName stringByAppendingPathComponent: @"index.html"]);
+		}    
     }
   return self;
 }
@@ -587,6 +623,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSLog(@"Missing or illegal author name");
       return nil;
     }
+  NSDebugMLLog(@"debug",@"Start parsing Author name: %@",name);
   node = node->children;
   if (node != 0 && strcmp(node->name, "email") == 0)
     {
@@ -617,15 +654,16 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   if (email != nil)
     {
       if ([ename length] == 0)
-	ename = email;
+		ename = email;
       [text appendFormat: @" (<a href=\"mailto:%@\"><code>%@</code></a>)\r\n",
-	email, ename];
+			email, ename];
     }
   [text appendString: @"<dd>\r\n"];
   if (desc != nil)
     {
       [text appendString: desc];
     }
+  NSDebugMLLog(@"debug",@"Stop parsing Author name: %@",name);
   return text;
 }
 
@@ -636,25 +674,28 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSLog(@"nul node when expecting block");
       return nil;
     }
+  NSDebugMLLog(@"debug",@"Start parsing block node->name: %s",node->name);
 
   if (strcmp(node->name, "class") == 0
-    || strcmp(node->name, "jclass") == 0
-    || strcmp(node->name, "category") == 0
-    || strcmp(node->name, "protocol") == 0
-    || strcmp(node->name, "function") == 0
-    || strcmp(node->name, "macro") == 0
-    || strcmp(node->name, "type") == 0
-    || strcmp(node->name, "variable") == 0
-    || strcmp(node->name, "ivariable") == 0
-    || strcmp(node->name, "constant") == 0)
+	  || strcmp(node->name, "jclass") == 0
+	  || strcmp(node->name, "category") == 0
+	  || strcmp(node->name, "protocol") == 0
+	  || strcmp(node->name, "function") == 0
+	  || strcmp(node->name, "macro") == 0
+	  || strcmp(node->name, "type") == 0
+	  || strcmp(node->name, "variable") == 0
+	  || strcmp(node->name, "ivariable") == 0
+	  || strcmp(node->name, "constant") == 0
+	  || strcmp(node->name, "EOModel") == 0
+	  || strcmp(node->name, "EOEntity") == 0)
     {
       return [self parseDef: node];
     }
 
   if (strcmp(node->name, "list") == 0
-    || strcmp(node->name, "enum") == 0
-    || strcmp(node->name, "deflist") == 0
-    || strcmp(node->name, "qalist") == 0)
+	  || strcmp(node->name, "enum") == 0
+	  || strcmp(node->name, "deflist") == 0
+	  || strcmp(node->name, "qalist") == 0)
     {
       return [self parseList: node];
     }
@@ -664,9 +705,9 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*elem = [self parseText: node->children];
 
       if (elem == nil)
-	{
-	  return nil;
-	}
+		{
+		  return nil;
+		}
       return [NSString stringWithFormat: @"<p>\r\n%@</p>\r\n", elem];
     }
 
@@ -678,6 +719,11 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   if (strcmp(node->name, "embed") == 0)
     {
       return [self parseEmbed: node];
+    }
+
+  if (strcmp(node->name, "dictionary") == 0)
+    {
+      return [self parseDictionary: node];
     }
 
   NSLog(@"unknown block type - %s", node->name);
@@ -695,6 +741,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString		*chapter;
   unsigned		count;
   unsigned		i;
+  NSDebugMLLog(@"debug",@"Start parsing body");
 
   node = node->children;
   /*
@@ -706,20 +753,20 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       xmlNodePtr	f = node->children;
 
       if (f != 0 && strcmp(f->name, "contents") == 0)
-	{
-	  needContents = YES;
-	  f = f->next;
-	}
+		{
+		  needContents = YES;
+		  f = f->next;
+		}
       while (f != 0 && strcmp(f->name, "chapter") == 0)
-	{
-	  chapter = [self parseChapter: f contents: contents];
-	  if (chapter == nil)
-	    {
-	      return nil;
-	    }
-	  [front addObject: chapter];
-	  f = f->next;
-	}
+		{
+		  chapter = [self parseChapter: f contents: contents];
+		  if (chapter == nil)
+			{
+			  return nil;
+			}
+		  [front addObject: chapter];
+		  f = f->next;
+		}
       node = node->next;
     }
 
@@ -731,9 +778,9 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
     {
       chapter = [self parseChapter: node contents: contents];
       if (chapter == nil)
-	{
-	  return nil;
-	}
+		{
+		  return nil;
+		}
       [body addObject: chapter];
       node = node->next;
     }
@@ -796,14 +843,15 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*type = [self getProp: "type" fromNode: node];
 
       if (type != nil)
-	{
-	  [text appendFormat: @"<h1>%@ index</h1>\r\n", type];
-	  [self appendIndex: type toString: text];
-	}
+		{
+		  [text appendFormat: @"<h1>%@ index</h1>\r\n", type];
+		  [self appendIndex: type toString: text];
+		}
       node = node->next;
     }
   [self appendFootnotesToString: text];
   [text appendString: @"</body>\r\n"];
+  NSDebugMLLog(@"debug",@"Stop parsing body");
   RELEASE(arp);
   return text;
 }
@@ -820,6 +868,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString* nodeId=nil;
   NSMutableDictionary	*dict;
   NSMutableArray	*subs;
+  NSDebugMLLog(@"debug",@"Start parsing chapter");
 
   nodeId=[self getProp: "id" fromNode: node];
   ref = nodeId;
@@ -873,9 +922,9 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
    */
   subs = [NSMutableArray new];
   dict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-	head, @"Title",
-	ref, @"Ref",
-	subs, @"Contents", nil];
+								head, @"Title",
+							  ref, @"Ref",
+							  subs, @"Contents", nil];
   RELEASE(subs);
   [array addObject: dict];
 
@@ -892,9 +941,9 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*block = [self parseBlock: node];
 
       if (block == nil)
-	{
-	  return nil;
-	}
+		{
+		  return nil;
+		}
       [text appendString: block];
       node = node->next;
     }
@@ -904,13 +953,14 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*chapter = [self parseChapter: node contents: subs];
 
       if (chapter == nil)
-	{
-	  return nil;
-	}
+		{
+		  return nil;
+		}
       [text appendString: chapter];
       node = node->next;
     }
   [dict setObject: text forKey: @"Text"];
+  NSDebugMLLog(@"debug",@"Stop parsing chapter");
   RELEASE(arp);
   return text;
 }
@@ -918,9 +968,10 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 - (NSString*) parseDef: (xmlNodePtr)node
 {
   NSMutableString	*text = [NSMutableString string];
+  NSDebugMLLog(@"debug",@"Start parsing def");
 
   if ((strcmp(node->name, "class") == 0)
-    || (strcmp(node->name, "jclass") == 0))
+	  || (strcmp(node->name, "jclass") == 0))
     {
       NSString	*className = [self getProp: "name" fromNode: node];
       NSString	*superName = [self getProp: "super" fromNode: node];
@@ -934,14 +985,14 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSMutableArray	*standards = [NSMutableArray array]; // Standards
 
       if (className == nil)
-	{
-	  NSLog(@"Missing class name");
-	  return nil;
-	}
+		{
+		  NSLog(@"Missing class name");
+		  return nil;
+		}
       if (ref == nil)
-	{
-	  ref = className;
-	}
+		{
+		  ref = className;
+		}
 	  // We're working on "className"
 	  ASSIGN(currentClassName,className);
 
@@ -952,64 +1003,64 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
       node = node->children;
       if (node != 0 && strcmp(node->name, "declared") == 0)
-	{
-	  declared = [self parseText: node->children];
-	  node = node->next;
-	}
+		{
+		  declared = [self parseText: node->children];
+		  node = node->next;
+		}
 
       while (node != 0 && strcmp(node->name, "conform") == 0)
-	{
-	  NSString	*s = [self parseText: node->children];
+		{
+		  NSString	*s = [self parseText: node->children];
 
-	  if (s != nil)
-	    {
-	      [conform addObject: s];
-	    }
-	  node = node->next;
-	}
+		  if (s != nil)
+			{
+			  [conform addObject: s];
+			}
+		  node = node->next;
+		}
       if (node != 0 && strcmp(node->name, "desc") == 0)
-	{
-	  desc = [self parseDesc: node];
-	  node = node->next;
-	}
+		{
+		  desc = [self parseDesc: node];
+		  node = node->next;
+		}
 
       while (node != 0 && strcmp(node->name, "ivariable") == 0)
-	{
-	  NSString	*s = [self parseIVariable:node];
-	  if (s != nil)
-	    {
-	      [ivariables addObject: s];
-	    }
-	  node = node->next;
-	}
+		{
+		  NSString	*s = [self parseIVariable:node];
+		  if (s != nil)
+			{
+			  [ivariables addObject: s];
+			}
+		  node = node->next;
+		}
 
       while (node != 0 && ((strcmp(node->name, "method") == 0)
-	|| (strcmp(node->name, "jmethod") == 0)))
-	{
-	  // Is It a factory method ?
-	  BOOL factoryMethod=[[self getProp: "factory" fromNode: node] boolValue];
-	  NSString	*s = [self parseMethod: node];
+						   || (strcmp(node->name, "jmethod") == 0)))
+		{
+		  // Is It a factory method ?
+		  BOOL factoryMethod=[[self getProp: "factory" fromNode: node] boolValue];
+		  NSString	*s = [self parseMethod: node];
 
-	  if (s != nil)
-	    {
-		  if (factoryMethod)
-			[factoryMethods addObject: s];
-		  else
-			[instanceMethods addObject: s];
-	    }
-	  node = node->next;
-	}
+		  if (s != nil)
+			{
+			  if (factoryMethod)
+				[factoryMethods addObject: s];
+			  else
+				[instanceMethods addObject: s];
+			}
+		  node = node->next;
+		}
 
       while (node != 0 && strcmp(node->name, "standard") == 0)
-	{
-	  NSString	*s = [self parseText: node->children];
+		{
+		  NSString	*s = [self parseText: node->children];
 
-	  if (s != nil)
-	    {
-	      [standards addObject: s];
-	    }
-	  node = node->next;
-	}
+		  if (s != nil)
+			{
+			  [standards addObject: s];
+			}
+		  node = node->next;
+		}
 
       [self setEntry: className
 			withExternalCompleteRef:className
@@ -1019,48 +1070,48 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n",
 			ref, className];
       if (declared != nil)
-	{
-	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
-	}
+		{
+		  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
+		}
       if (superName != nil)
-	{
-	  [text appendFormat: @"<p><b>Inherits from:</b> %@</p>\r\n",
-			[self linkedItem:superName
-				  ofTypes:classesTypes]];
-	}
+		{
+		  [text appendFormat: @"<p><b>Inherits from:</b> %@</p>\r\n",
+				[self linkedItem:superName
+					  ofTypes:classesTypes]];
+		}
       if ([conform count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendString: @"<p><b>Conforms to:</b>"];
-	  for (i=0;i<[conform count];i++)
-	    {
-		  NSString* conformItem=[conform objectAtIndex: i];
-		  conformItem=[self linkedItem:conformItem
-							ofTypes:protocolsTypes];
-	      [text appendFormat: @"%@ %@\r\n",
-				(i>0 ? @"," : @""),
-				conformItem];
-	    }
-	  [text appendString: @"</p>\r\n"];
-	}
+		  [text appendString: @"<p><b>Conforms to:</b>"];
+		  for (i=0;i<[conform count];i++)
+			{
+			  NSString* conformItem=[conform objectAtIndex: i];
+			  conformItem=[self linkedItem:conformItem
+								ofTypes:protocolsTypes];
+			  [text appendFormat: @"%@ %@\r\n",
+					(i>0 ? @"," : @""),
+					conformItem];
+			}
+		  [text appendString: @"</p>\r\n"];
+		}
       if ([standards count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
-	    [standards objectAtIndex: 0]];
-	  for (i = 1; i < [standards count]; i++)
-	    {
-	      [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
-	    }
-	  [text appendString: @"</p>\r\n"];
-	}
+		  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
+				[standards objectAtIndex: 0]];
+		  for (i = 1; i < [standards count]; i++)
+			{
+			  [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
+			}
+		  [text appendString: @"</p>\r\n"];
+		}
 
       if (desc != nil)
-	{
-	  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
-	}
+		{
+		  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
+		}
 
 	  [text appendString: @"<h2>Instance Variables</h2>\r\n"];
       [self appendIndex: @"ivariable" toString:text];
@@ -1069,35 +1120,35 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       [self appendIndex: @"method" toString: text];
 
       if ([ivariables count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendString: @"<hr><h2>Instance Variables</h2>\r\n"];
-	  for (i = 0; i < [ivariables count]; i++)
-	    {
-	      [text appendString: [ivariables objectAtIndex: i]];
-	    }
-	}
+		  [text appendString: @"<hr><h2>Instance Variables</h2>\r\n"];
+		  for (i = 0; i < [ivariables count]; i++)
+			{
+			  [text appendString: [ivariables objectAtIndex: i]];
+			}
+		}
 
       if ([factoryMethods count] > 0)
-	{
-	  unsigned	i;
-	  [text appendString: @"<hr><h2>Class Methods</h2>\r\n"];
-	  for (i = 0; i < [factoryMethods count]; i++)
 		{
-		  [text appendString: [factoryMethods objectAtIndex: i]];
+		  unsigned	i;
+		  [text appendString: @"<hr><h2>Class Methods</h2>\r\n"];
+		  for (i = 0; i < [factoryMethods count]; i++)
+			{
+			  [text appendString: [factoryMethods objectAtIndex: i]];
+			};
 		};
-	};
 
       if ([instanceMethods count] > 0)
-	{
-	  unsigned	i;
-	  [text appendString: @"<hr><h2>Instances Methods</h2>\r\n"];
-	  for (i = 0; i < [instanceMethods count]; i++)
 		{
-		  [text appendString: [instanceMethods objectAtIndex: i]];
+		  unsigned	i;
+		  [text appendString: @"<hr><h2>Instances Methods</h2>\r\n"];
+		  for (i = 0; i < [instanceMethods count]; i++)
+			{
+			  [text appendString: [instanceMethods objectAtIndex: i]];
+			};
 		};
-	};
 
 	  // We've finished working on "className"
 	  ASSIGN(currentClassName,nil);
@@ -1117,15 +1168,15 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*name;
 
       if (className == nil || catName == nil)
-	{
-	  NSLog(@"Missing category or class name");
-	  return nil;
-	}
+		{
+		  NSLog(@"Missing category or class name");
+		  return nil;
+		}
       name = [NSString stringWithFormat: @"%@ (%@)",className,catName];
       if (ref == nil)
-	{
-	  ref = name;
-	}
+		{
+		  ref = name;
+		}
 
 	  // We works on a class & category
 	  ASSIGN(currentClassName,className);
@@ -1137,51 +1188,51 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
       node = node->children;
       if (node != 0 && strcmp(node->name, "declared") == 0)
-	{
-	  declared = [self parseText: node->children];
-	  node = node->next;
-	}
+		{
+		  declared = [self parseText: node->children];
+		  node = node->next;
+		}
       while (node != 0 && strcmp(node->name, "conform") == 0)
-	{
-	  NSString	*s = [self parseText: node->children];
+		{
+		  NSString	*s = [self parseText: node->children];
 
-	  if (s != nil)
-	    {
-	      [conform addObject: s];
-	    }
-	  node = node->next;
-	}
+		  if (s != nil)
+			{
+			  [conform addObject: s];
+			}
+		  node = node->next;
+		}
       if (node != 0 && strcmp(node->name, "desc") == 0)
-	{
-	  desc = [self parseDesc: node];
-	  node = node->next;
-	}
+		{
+		  desc = [self parseDesc: node];
+		  node = node->next;
+		}
 
       while (node != 0 && strcmp(node->name, "method") == 0)
-	{
-	  BOOL factoryMethod=[[self getProp: "factory" fromNode: node] boolValue];
-	  NSString	*s = [self parseMethod: node];
+		{
+		  BOOL factoryMethod=[[self getProp: "factory" fromNode: node] boolValue];
+		  NSString	*s = [self parseMethod: node];
 
-	  if (s != nil)
-	    {
-		  if (factoryMethod)
-			[factoryMethods addObject: s];
-		  else
-			[instanceMethods addObject: s];
-	    }
-	  node = node->next;
-	}
+		  if (s != nil)
+			{
+			  if (factoryMethod)
+				[factoryMethods addObject: s];
+			  else
+				[instanceMethods addObject: s];
+			}
+		  node = node->next;
+		}
 
       while (node != 0 && strcmp(node->name, "standard") == 0)
-	{
-	  NSString	*s = [self parseText: node->children];
+		{
+		  NSString	*s = [self parseText: node->children];
 
-	  if (s != nil)
-	    {
-	      [standards addObject: s];
-	    }
-	  node = node->next;
-	}
+		  if (s != nil)
+			{
+			  [standards addObject: s];
+			}
+		  node = node->next;
+		}
 
       [self setEntry: name
 			withExternalCompleteRef:[NSString stringWithFormat:@"%@(%@)",className,catName]
@@ -1195,67 +1246,67 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 			ref,
 			catName];
       if (declared != nil)
-	{
-	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
-	}
+		{
+		  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
+		}
       if ([conform count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendString: @"<p><b>Conforms to:</b>\r\n"];
-	  for (i=0;i<[conform count];i++)
-	    {
-		  NSString* conformItem=[conform objectAtIndex: i];
-		  conformItem=[self linkedItem:conformItem
-							ofTypes:protocolsTypes];
-	      [text appendFormat: @"%@ %@\r\n",
-				(i>0 ? @"," : @""),
-				conformItem];
-	    }
-	  [text appendString: @"</p>\r\n"];
-	}
+		  [text appendString: @"<p><b>Conforms to:</b>\r\n"];
+		  for (i=0;i<[conform count];i++)
+			{
+			  NSString* conformItem=[conform objectAtIndex: i];
+			  conformItem=[self linkedItem:conformItem
+								ofTypes:protocolsTypes];
+			  [text appendFormat: @"%@ %@\r\n",
+					(i>0 ? @"," : @""),
+					conformItem];
+			}
+		  [text appendString: @"</p>\r\n"];
+		}
       if ([standards count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
-	    [standards objectAtIndex: 0]];
-	  for (i = 1; i < [standards count]; i++)
-	    {
-	      [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
-	    }
-	  [text appendString: @"</p>\r\n"];
-	}
+		  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
+				[standards objectAtIndex: 0]];
+		  for (i = 1; i < [standards count]; i++)
+			{
+			  [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
+			}
+		  [text appendString: @"</p>\r\n"];
+		}
 
       if (desc != nil)
-	{
-	  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
-	}
+		{
+		  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
+		}
 
 	  [text appendString: @"<h2>Methods</h2>\r\n"];
       [self appendIndex: @"method" toString: text];
 
       if ([factoryMethods count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendString: @"<hr><h2>Class Methods</h2>\r\n"];
-	  for (i = 0; i < [factoryMethods count]; i++)
-	    {
-	      [text appendString: [factoryMethods objectAtIndex: i]];
-	    }
-	}
+		  [text appendString: @"<hr><h2>Class Methods</h2>\r\n"];
+		  for (i = 0; i < [factoryMethods count]; i++)
+			{
+			  [text appendString: [factoryMethods objectAtIndex: i]];
+			}
+		}
 
       if ([instanceMethods count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendString: @"<hr><h2>Instances Methods</h2>\r\n"];
-	  for (i = 0; i < [instanceMethods count]; i++)
-	    {
-	      [text appendString: [instanceMethods objectAtIndex: i]];
-	    }
-	}
+		  [text appendString: @"<hr><h2>Instances Methods</h2>\r\n"];
+		  for (i = 0; i < [instanceMethods count]; i++)
+			{
+			  [text appendString: [instanceMethods objectAtIndex: i]];
+			}
+		}
 	  // We've finished working on this class/category
 	  ASSIGN(currentClassName,nil);
 	  ASSIGN(currentCategoryName,nil);
@@ -1329,39 +1380,39 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       [text appendFormat: @"<h2><a name=\"%@\">%@ Protocol</a></h2>\r\n",
 			ref, protName];
       if (declared != nil)
-	{
-	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
-	}
+		{
+		  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
+		}
       if ([standards count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
-	    [standards objectAtIndex: 0]];
-	  for (i = 1; i < [standards count]; i++)
-	    {
-	      [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
-	    }
-	  [text appendString: @"</p>\r\n"];
-	}
+		  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
+				[standards objectAtIndex: 0]];
+		  for (i = 1; i < [standards count]; i++)
+			{
+			  [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
+			}
+		  [text appendString: @"</p>\r\n"];
+		}
 
       if (desc != nil)
-	{
-	  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
-	}
+		{
+		  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
+		}
 
       [self appendIndex: @"method" toString: text];
 
       if ([methods count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendString: @"<hr>\r\n"];
-	  for (i = 0; i < [methods count]; i++)
-	    {
-	      [text appendString: [methods objectAtIndex: i]];
-	    }
-	}
+		  [text appendString: @"<hr>\r\n"];
+		  for (i = 0; i < [methods count]; i++)
+			{
+			  [text appendString: [methods objectAtIndex: i]];
+			}
+		}
 
 	  // Finished working on "protName"
 	  ASSIGN(currentProtocolName,nil);
@@ -1385,48 +1436,48 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSMutableArray	*standards = [NSMutableArray array];
 
       if (typeName == nil)
-	{
-	  NSLog(@"Missing type name");
-	  return nil;
-	}
+		{
+		  NSLog(@"Missing type name");
+		  return nil;
+		}
       if (ref == nil)
-	{
-	  ref = typeName;
-	}
+		{
+		  ref = typeName;
+		}
       node = node->children;
       if (node != 0 && strcmp(node->name, "typespec") == 0)
-	{
-	  spec = [self parseText: node->children];
-	  node = node->next;
-	}
+		{
+		  spec = [self parseText: node->children];
+		  node = node->next;
+		}
       if (spec == nil)
-	{
-	  NSLog(@"Missing type specification");
-	  return nil;
-	}
+		{
+		  NSLog(@"Missing type specification");
+		  return nil;
+		}
 
       if (node != 0 && strcmp(node->name, "declared") == 0)
-	{
-	  declared = [self parseText: node->children];
-	  node = node->next;
-	}
+		{
+		  declared = [self parseText: node->children];
+		  node = node->next;
+		}
 
       if (node != 0 && strcmp(node->name, "desc") == 0)
-	{
-	  desc = [self parseDesc: node];
-	  node = node->next;
-	}
+		{
+		  desc = [self parseDesc: node];
+		  node = node->next;
+		}
 
       while (node != 0 && strcmp(node->name, "standard") == 0)
-	{
-	  NSString	*s = [self parseText: node->children];
+		{
+		  NSString	*s = [self parseText: node->children];
 
-	  if (s != nil)
-	    {
-	      [standards addObject: s];
-	    }
-	  node = node->next;
-	}
+		  if (s != nil)
+			{
+			  [standards addObject: s];
+			}
+		  node = node->next;
+		}
 
       [self setEntry: typeName 
 			withExternalCompleteRef:typeName
@@ -1435,28 +1486,28 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       [text appendFormat: @"<h3><a name=\"%@\">%@</a></h3>\r\n",
 			ref, typeName];
       if (declared != nil)
-	{
-	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
-	}
+		{
+		  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
+		}
       if ([standards count] > 0)
-	{
-	  unsigned	i;
+		{
+		  unsigned	i;
 
-	  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
-	    [standards objectAtIndex: 0]];
-	  for (i = 1; i < [standards count]; i++)
-	    {
-	      [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
-	    }
-	  [text appendString: @"</p>\r\n"];
-	}
+		  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
+				[standards objectAtIndex: 0]];
+		  for (i = 1; i < [standards count]; i++)
+			{
+			  [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
+			}
+		  [text appendString: @"</p>\r\n"];
+		}
 
       [text appendFormat: @"<b>typedef</b> %@ %@<br>\r\n", spec, typeName];
 
       if (desc != nil)
-	{
-	  [text appendFormat: @"\r\n%@\r\n<hr>\r\n", desc];
-	}
+		{
+		  [text appendFormat: @"\r\n%@\r\n<hr>\r\n", desc];
+		}
 
       return text;
     }
@@ -1468,6 +1519,14 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
     {
 	  return [self parseConstant:node];
     }
+  else if (strcmp(node->name, "EOModel") == 0)
+	{
+	  return [self parseEOModel:node];
+	}
+  else if (strcmp(node->name, "EOEntity") == 0)
+	{
+	  return [self parseEOEntity:node];
+	}
   else
     {
       NSLog(@"Definition of unknown type - %s", node->name);
@@ -1478,6 +1537,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 - (NSString*) parseDesc: (xmlNodePtr)node
 {
   NSMutableString	*text = [NSMutableString string];
+  NSDebugMLLog(@"debug",@"Start parsing desc");
 
   node = node->children;
   if (node == 0)
@@ -1487,42 +1547,42 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   while (node != 0)
     {
       if (strcmp(node->name, "list") == 0
-	|| strcmp(node->name, "enum") == 0
-	|| strcmp(node->name, "deflist") == 0
-	|| strcmp(node->name, "qalist") == 0)
-	{
-	  [text appendString: [self parseList: node]];
-	}
+		  || strcmp(node->name, "enum") == 0
+		  || strcmp(node->name, "deflist") == 0
+		  || strcmp(node->name, "qalist") == 0)
+		{
+		  [text appendString: [self parseList: node]];
+		}
       else if (strcmp(node->name, "p") == 0)
-	{
-	  NSString	*elem = [self parseText: node->children];
+		{
+		  NSString	*elem = [self parseText: node->children];
 
-	  if (elem != nil)
-	    {
-	      [text appendFormat:  @"<p>\r\n%@</p>\r\n", elem];
-	    }
-	}
+		  if (elem != nil)
+			{
+			  [text appendFormat:  @"<p>\r\n%@</p>\r\n", elem];
+			}
+		}
       else if (strcmp(node->name, "example") == 0)
-	{
-	  [text appendString: [self parseExample: node]];
-	}
+		{
+		  [text appendString: [self parseExample: node]];
+		}
       else if (strcmp(node->name, "embed") == 0)
-	{
-	  [text appendString: [self parseEmbed: node]];
-	}
+		{
+		  [text appendString: [self parseEmbed: node]];
+		}
       else
-	{
-	  xmlNodePtr	old = node;
+		{
+		  xmlNodePtr	old = node;
 
-	  [text appendString: [self parseText: node end: &node]];
-	  /*
-	   * If we found text, the node will have been advanced, but if
-	   * it failed we need to advance ourselves.
+		  [text appendString: [self parseText: node end: &node]];
+		  /*
+		   * If we found text, the node will have been advanced, but if
+		   * it failed we need to advance ourselves.
            */
-	  if (node == old)
-	    node = node->next;
-	  continue;
-	}
+		  if (node == old)
+			node = node->next;
+		  continue;
+		}
 
       node = node->next;
     }
@@ -1582,6 +1642,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString		*elem = [self parseText: node->children];
   NSString		*ref = [self getProp: "id" fromNode: node];
   NSString		*cap = [self getProp: "caption" fromNode: node];
+  NSDebugMLLog(@"debug",@"Start parsing example");
 
   if (ref == nil)
     {
@@ -1622,6 +1683,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString	*desc = nil;
   NSString	*declared = nil;
   NSMutableString	*args = [NSMutableString stringWithString: @"("];
+  NSDebugMLLog(@"debug",@"Start parsing function");
 
   if (ref == nil)
     {
@@ -1727,11 +1789,12 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString		*date;
   NSString		*version;
   BOOL			hadAuthor = NO;
+  NSDebugMLLog(@"debug",@"Start parsing head");
 
   node = node->children;
 
   if (node == 0 || strcmp(node->name, "title") != 0
-    || (title = [self parseText: node->children]) == nil)
+	  || (title = [self parseText: node->children]) == nil)
     {
       NSLog(@"head without title");
       return nil;
@@ -1745,7 +1808,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 		inIndexOfType:@"file"];
 
   if ([styleSheetURL length]>0)
-	  [text appendFormat: @"<link rel=stylesheet type=\"text/css\" href=\"%@\">\r\n",styleSheetURL];
+	[text appendFormat: @"<link rel=stylesheet type=\"text/css\" href=\"%@\">\r\n",styleSheetURL];
 
   [text appendString: @"</head>\r\n"];
   [text appendString: @"<body>\r\n"];
@@ -1793,14 +1856,14 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*author = [self parseAuthor: node];
 
       if (author == nil)
-	{
-	  return nil;
-	}
+		{
+		  return nil;
+		}
       if (hadAuthor == NO)
-	{
-	  hadAuthor = YES;
-	  [text appendString: @"<h3>Authors</h3>\r\n<dl>\r\n"];
-	}
+		{
+		  hadAuthor = YES;
+		  [text appendString: @"<h3>Authors</h3>\r\n<dl>\r\n"];
+		}
       [text appendString: author];
       node = node->next;
     }
@@ -1842,25 +1905,26 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
 - (NSString*) parseItem: (xmlNodePtr)node
 {
+  NSDebugMLLog(@"debug",@"Start parsing item");
   node = node->children;
 
   if (strcmp(node->name, "class") == 0
-    || strcmp(node->name, "category") == 0
-    || strcmp(node->name, "protocol") == 0
-    || strcmp(node->name, "function") == 0
-    || strcmp(node->name, "macro") == 0
-    || strcmp(node->name, "type") == 0
-    || strcmp(node->name, "variable") == 0
-    || strcmp(node->name, "ivariable") == 0
-    || strcmp(node->name, "constant") == 0)
+	  || strcmp(node->name, "category") == 0
+	  || strcmp(node->name, "protocol") == 0
+	  || strcmp(node->name, "function") == 0
+	  || strcmp(node->name, "macro") == 0
+	  || strcmp(node->name, "type") == 0
+	  || strcmp(node->name, "variable") == 0
+	  || strcmp(node->name, "ivariable") == 0
+	  || strcmp(node->name, "constant") == 0)
     {
       return [self parseDef: node];
     }
 
   if (strcmp(node->name, "list") == 0
-    || strcmp(node->name, "enum") == 0
-    || strcmp(node->name, "deflist") == 0
-    || strcmp(node->name, "qalist") == 0)
+	  || strcmp(node->name, "enum") == 0
+	  || strcmp(node->name, "deflist") == 0
+	  || strcmp(node->name, "qalist") == 0)
     {
       return [self parseList: node];
     }
@@ -1870,9 +1934,9 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*elem = [self parseText: node->children];
 
       if (elem == nil)
-	{
-	  return nil;
-	}
+		{
+		  return nil;
+		}
       return [NSString stringWithFormat: @"<p>\r\n%@</p>\r\n", elem];
     }
 
@@ -1898,10 +1962,10 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       [text appendString: @"<ul>\r\n"];
       node = node->children;
       while (node != 0 && strcmp(node->name, "item") == 0)
-	{
-	  [text appendFormat: @"<li>%@\r\n", [self parseItem: node]];
-	  node = node->next;
-	}
+		{
+		  [text appendFormat: @"<li>%@\r\n", [self parseItem: node]];
+		  node = node->next;
+		}
       [text appendString: @"</ul>\r\n"];
     }
   else if (strcmp(node->name, "enum") == 0)
@@ -1909,10 +1973,10 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       [text appendString: @"<ol>\r\n"];
       node = node->children;
       while (node != 0 && strcmp(node->name, "item") == 0)
-	{
-	  [text appendFormat: @"<li>%@\r\n", [self parseItem: node]];
-	  node = node->next;
-	}
+		{
+		  [text appendFormat: @"<li>%@\r\n", [self parseItem: node]];
+		  node = node->next;
+		}
       [text appendString: @"</ol>\r\n"];
     }
   else if (strcmp(node->name, "deflist") == 0)
@@ -1920,22 +1984,22 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       [text appendString: @"<dl>\r\n"];
       node = node->children;
       while (node != 0)
-	{
-	  if (strcmp(node->name, "term") == 0)
-	    {
-	      [text appendFormat: @"<dt>%@\r\n",
-		[self parseText: node->children]];
-	      node = node->next;
-	    }
+		{
+		  if (strcmp(node->name, "term") == 0)
+			{
+			  [text appendFormat: @"<dt>%@\r\n",
+					[self parseText: node->children]];
+			  node = node->next;
+			}
 
-	  if (node == 0 || strcmp(node->name, "desc") != 0)
-	    {
-	      NSLog(@"term without desc");
-	      return nil;
-	    }
-	  [text appendFormat: @"<dd>%@\r\n", [self parseDesc: node]];
-	  node = node->next;
-	}
+		  if (node == 0 || strcmp(node->name, "desc") != 0)
+			{
+			  NSLog(@"term without desc");
+			  return nil;
+			}
+		  [text appendFormat: @"<dd>%@\r\n", [self parseDesc: node]];
+		  node = node->next;
+		}
       [text appendString: @"</dl>\r\n"];
     }
   else
@@ -1943,22 +2007,22 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       [text appendString: @"<dl>\r\n"];
       node = node->children;
       while (node != 0)
-	{
-	  if (strcmp(node->name, "question") == 0)
-	    {
-	      [text appendFormat: @"<dt>%@\r\n",
-		[self parseText: node->children]];
-	      node = node->next;
-	    }
+		{
+		  if (strcmp(node->name, "question") == 0)
+			{
+			  [text appendFormat: @"<dt>%@\r\n",
+					[self parseText: node->children]];
+			  node = node->next;
+			}
 
-	  if (node == 0 || strcmp(node->name, "answer") != 0)
-	    {
-	      NSLog(@"term without desc");
-	      return nil;
-	    }
-	  [text appendFormat: @"<dt>%@\r\n", [self parseBlock: node->children]];
-	  node = node->next;
-	}
+		  if (node == 0 || strcmp(node->name, "answer") != 0)
+			{
+			  NSLog(@"term without desc");
+			  return nil;
+			}
+		  [text appendFormat: @"<dt>%@\r\n", [self parseBlock: node->children]];
+		  node = node->next;
+		}
       [text appendString: @"</dl>\r\n"];
     }
   return text;
@@ -1982,6 +2046,9 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSMutableArray	*standards = [NSMutableArray array];
   NSString  *completeRefName=nil;
   NSString* linkedType=nil;
+
+  NSDebugMLLog(@"debug",@"Start parsing variable/constant");
+
   if (name == nil)
 	{
 	  NSLog(@"Missing variable/constant name");
@@ -2100,6 +2167,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 //Parse Variable
 - (NSString*) parseVariable: (xmlNodePtr)node
 {
+  NSDebugMLLog(@"debug",@"Start parsing variable");
   return [self parseVariable:node
 			   orConstant:NULL
 			   ofType:@"variable"];
@@ -2108,6 +2176,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 //Parse Instance Variable
 - (NSString*) parseIVariable: (xmlNodePtr)node
 {
+  NSDebugMLLog(@"debug",@"Start parsing ivar");
   return [self parseVariable:node
 			   orConstant:NULL
 			   ofType:@"ivariable"];
@@ -2116,6 +2185,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 // Parse Constant
 - (NSString*) parseConstant: (xmlNodePtr)node
 {
+  NSDebugMLLog(@"debug",@"Start parsing constant");
   return [self parseVariable:NULL
 			   orConstant:node
 			   ofType:@"constant"];
@@ -2129,6 +2199,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString	*desc = nil;
   NSString	*declared = nil;
   NSMutableString	*args = [NSMutableString stringWithString: @"("];
+  NSDebugMLLog(@"debug",@"Start parsing macro");
 
   if (ref == nil)
     {
@@ -2143,14 +2214,14 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
       if (arg == nil) return nil;
       if ([args length] > 1)
-	{
-	  [args appendString: @", "];
-	}
+		{
+		  [args appendString: @", "];
+		}
       if (typ != nil)
-	{
-	  [args appendString: typ];
-	  [args appendString: @" "];
-	}
+		{
+		  [args appendString: typ];
+		  [args appendString: @" "];
+		}
       [args appendString: arg];
       node = node->next;
     }
@@ -2158,13 +2229,13 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   if (node != 0 && strcmp(node->name, "vararg") == 0)
     {
       if ([args length] > 1)
-	{
-	  [args appendString: @", ..."];
-	}
+		{
+		  [args appendString: @", ..."];
+		}
       else
-	{
-	  [args appendString: @"..."];
-	}
+		{
+		  [args appendString: @"..."];
+		}
       node = node->next;
     }
   if ([args length] == 1)
@@ -2185,14 +2256,14 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   if (node != 0)
     {
       if (strcmp(node->name, "desc") == 0)
-	{
-	  desc = [self parseDesc: node];
-	}
+		{
+		  desc = [self parseDesc: node];
+		}
       else
-	{
-	  NSLog(@"Unexpected node in function definition - %s", node->name);
-	  return nil;
-	}
+		{
+		  NSLog(@"Unexpected node in function definition - %s", node->name);
+		  return nil;
+		}
     }
   [self setEntry: name
 		withExternalCompleteRef:name
@@ -2236,6 +2307,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString	*desc = nil;
   NSArray	*standards = nil;
   NSString  *methodBlockName=nil;
+  NSDebugMLLog(@"debug",@"Start parsing method");
 
   if (currentCategoryName)
 	{
@@ -2268,9 +2340,9 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString		*name = [self getProp: "name" fromNode: node];
 
       if (factory)
-	{
-	  [decl appendString: @"static "];
-	}
+		{
+		  [decl appendString: @"static "];
+		}
       if (type == nil)
 		type = @"Object";
 	  //Avoid ((xxx))
@@ -2284,41 +2356,41 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       node = node->children;
 
       while (node != 0 && strcmp(node->name, "arg") == 0)
-	{
-	  NSString	*arg = [self parseText: node->children];
-	  NSString	*typ = [self getProp: "type" fromNode: node];
+		{
+		  NSString	*arg = [self parseText: node->children];
+		  NSString	*typ = [self getProp: "type" fromNode: node];
 
-	  if (arg == nil) break;
-	  if ([args length] > 1)
-	    {
-	      [args appendString: @", "];
-	    }
-	  if (typ != nil)
-	    {
-		  //Avoid ((xxx))
-		  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
-			typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
-		  typ=[self linkedItem:typ
-					ofTypes:typesTypes];
-	      [args appendString: typ];
-	      [args appendString: @" "];
-	    }
-	  [args appendString: arg];
-	  node = node->next;
-	}
+		  if (arg == nil) break;
+		  if ([args length] > 1)
+			{
+			  [args appendString: @", "];
+			}
+		  if (typ != nil)
+			{
+			  //Avoid ((xxx))
+			  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
+				typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
+			  typ=[self linkedItem:typ
+						ofTypes:typesTypes];
+			  [args appendString: typ];
+			  [args appendString: @" "];
+			}
+		  [args appendString: arg];
+		  node = node->next;
+		}
 
       if (node != 0 && strcmp(node->name, "vararg") == 0)
-	{
-	  if ([args length] > 1)
-	    {
-	      [args appendString: @", ..."];
-	    }
-	  else
-	    {
-	      [args appendString: @"..."];
-	    }
-	  node = node->next;
-	}
+		{
+		  if ([args length] > 1)
+			{
+			  [args appendString: @", ..."];
+			}
+		  else
+			{
+			  [args appendString: @"..."];
+			}
+		  node = node->next;
+		}
       [args appendString: @")"];
 
       [lText appendString: decl];
@@ -2333,13 +2405,13 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   else
     {
       if (factory)
-	{
-	  [lText appendString: @"+ ("];
-	}
+		{
+		  [lText appendString: @"+ ("];
+		}
       else
-	{
-	  [lText appendString: @"- ("];
-	}
+		{
+		  [lText appendString: @"- ("];
+		}
       if (type == nil)
 		type = @"id";
 	  //Avoid ((xxx))
@@ -2353,47 +2425,47 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
       node = node->children;
       while (node != 0 && strcmp(node->name, "sel") == 0)
-	{
-	  NSString	*sel = [self parseText: node->children];
-
-	  if (sel == nil) return nil;
-	  [sText appendString: sel];
-	  [lText appendFormat: @" <b>%@</b>", sel];
-	  node = node->next;
-	  if (node != 0 && strcmp(node->name, "arg") == 0)
-	    {
-	      NSString	*arg = [self parseText: node->children];
-	      NSString	*typ = [self getProp: "type" fromNode: node];
-
-	      if (arg == nil)
-			return nil;
-	      if (typ != nil)
-			{
-			  //Avoid ((xxx))
-			  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
-				typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
-			  typ=[self linkedItem:typ
-						ofTypes:typesTypes];
-			  [lText appendFormat: @" (%@)%@", typ, arg];
-			}
-	      else
-			{
-			  [lText appendString: @" "];
-			  [lText appendString: arg];
-			}
-	      node = node->next;
-	      if (node != 0 && strcmp(node->name, "vararg") == 0)
 		{
-		  [lText appendString: @", ..."];
+		  NSString	*sel = [self parseText: node->children];
+
+		  if (sel == nil) return nil;
+		  [sText appendString: sel];
+		  [lText appendFormat: @" <b>%@</b>", sel];
 		  node = node->next;
-		  break;
+		  if (node != 0 && strcmp(node->name, "arg") == 0)
+			{
+			  NSString	*arg = [self parseText: node->children];
+			  NSString	*typ = [self getProp: "type" fromNode: node];
+
+			  if (arg == nil)
+				return nil;
+			  if (typ != nil)
+				{
+				  //Avoid ((xxx))
+				  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
+					typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
+				  typ=[self linkedItem:typ
+							ofTypes:typesTypes];
+				  [lText appendFormat: @" (%@)%@", typ, arg];
+				}
+			  else
+				{
+				  [lText appendString: @" "];
+				  [lText appendString: arg];
+				}
+			  node = node->next;
+			  if (node != 0 && strcmp(node->name, "vararg") == 0)
+				{
+				  [lText appendString: @", ..."];
+				  node = node->next;
+				  break;
+				}
+			}
+		  else
+			{
+			  break;	/* Just a selector	*/
+			}
 		}
-	    }
-	  else
-	    {
-	      break;	/* Just a selector	*/
-	    }
-	}
     }
 
   if (node != 0 && strcmp(node->name, "desc") == 0)
@@ -2418,23 +2490,23 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   else
     {
       if (factory)
-	{
-	  NSString	*s = [@"+" stringByAppendingString: sText];
-	  [self setEntry: s
-			withExternalCompleteRef:[NSString stringWithFormat:@"+%@::%@",methodBlockName,sText]
-			withExternalRef:[NSString stringWithFormat:@"+%@::%@",methodBlockName,sText]
-			withRef: ref
-			inIndexOfType: @"method"];
-	}
+		{
+		  NSString	*s = [@"+" stringByAppendingString: sText];
+		  [self setEntry: s
+				withExternalCompleteRef:[NSString stringWithFormat:@"+%@::%@",methodBlockName,sText]
+				withExternalRef:[NSString stringWithFormat:@"+%@::%@",methodBlockName,sText]
+				withRef: ref
+				inIndexOfType: @"method"];
+		}
       else
-	{
-	  NSString	*s = [@"-" stringByAppendingString: sText];
-	  [self setEntry: s
-			withExternalCompleteRef:[NSString stringWithFormat:@"-%@::%@",methodBlockName,sText]
-			withExternalRef:[NSString stringWithFormat:@"-%@::%@",methodBlockName,sText]
-			withRef: ref
-			inIndexOfType: @"method"];
-	}
+		{
+		  NSString	*s = [@"-" stringByAppendingString: sText];
+		  [self setEntry: s
+				withExternalCompleteRef:[NSString stringWithFormat:@"-%@::%@",methodBlockName,sText]
+				withExternalRef:[NSString stringWithFormat:@"-%@::%@",methodBlockName,sText]
+				withRef: ref
+				inIndexOfType: @"method"];
+		}
     }
   [text appendFormat: @"<h3><a name=\"%@\">%@</a></h3>\r\n", ref, sText];
   if (desInit)
@@ -2445,12 +2517,12 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   if ([over isEqual: @"subclass"])
     {
       [text appendString: @"Your subclass <em>must</em> override this "
-	@"abstract method.<br>\r\n"];
+			@"abstract method.<br>\r\n"];
     }
   else if ([over isEqual: @"never"])
     {
       [text appendString: @"Your subclass must <em>not</em> override this "
-	@"method.<br>\r\n"];
+			@"method.<br>\r\n"];
     }
   if ([standards count] > 0)
     {
@@ -2458,10 +2530,10 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
       [text appendString: @"Standards:"];
       for (i = 0; i < [standards count]; i++)
-	{
-	  [text appendString: @" "];
-	  [text appendString: [standards objectAtIndex: i]];
-	}
+		{
+		  [text appendString: @" "];
+		  [text appendString: [standards objectAtIndex: i]];
+		}
       [text appendString: @"<br>\r\n"];
     }
 
@@ -2479,8 +2551,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   if (node != 0)
     {
       if (strcmp(node->name, "standards") == 0)
-	{
-	  NSMutableArray	*a = [NSMutableArray array];
+		{
+		  NSMutableArray	*a = [NSMutableArray array];
 
 	  node = node->children;
 	  while (node != 0 && node->name != 0)
@@ -2501,141 +2573,927 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 - (NSString*) parseText: (xmlNodePtr)node end: (xmlNodePtr*)endNode
 {
   NSMutableString	*text = [NSMutableString string];
+  NSDebugMLLog(@"debug",@"Start parsing text");
 
   *endNode = node;
   while (node != 0)
     {
       switch (node->type)
-	{
-	  case XML_TEXT_NODE:
-	    [text appendFormat: @"%s", node->content];
-	    break;
+		{
+		case XML_TEXT_NODE:
+		  [text appendFormat: @"%s", node->content];
+		  break;
+		  
+		case XML_ENTITY_REF_NODE:
+		  [text appendFormat: @"%s", node->content];
+		  break;
 
-	  case XML_ENTITY_REF_NODE:
-	    [text appendFormat: @"%s", node->content];
-	    break;
+		case XML_ELEMENT_NODE:
+		  if (strcmp(node->name, "br") == 0)
+			{
+			  [text appendString: @"<br>"];
+			}
+		  else if (strcmp(node->name, "code") == 0
+				   || strcmp(node->name, "em") == 0
+				   || strcmp(node->name, "file") == 0
+				   || strcmp(node->name, "site") == 0
+				   || strcmp(node->name, "strong") == 0
+				   || strcmp(node->name, "var") == 0)
+			{
+			  NSString	*elem = [self parseText: node->children];
 
-	  case XML_ELEMENT_NODE:
-	    if (strcmp(node->name, "br") == 0)
-	      {
-		[text appendString: @"<br>"];
-	      }
-	    else if (strcmp(node->name, "code") == 0
-	      || strcmp(node->name, "em") == 0
-	      || strcmp(node->name, "file") == 0
-	      || strcmp(node->name, "site") == 0
-	      || strcmp(node->name, "strong") == 0
-	      || strcmp(node->name, "var") == 0)
-	      {
-		NSString	*elem = [self parseText: node->children];
+			  [text appendFormat: @"<%s>%@</%s>",
+					node->name, elem, node->name];
+			}
+		  else if (strcmp(node->name, "entry") == 0
+				   || strcmp(node->name, "label") == 0)
+			{
+			  NSString		*elem;
+			  NSString		*ref;
 
-		[text appendFormat: @"<%s>%@</%s>",
-		  node->name, elem, node->name];
-	      }
-	    else if (strcmp(node->name, "entry") == 0
-	      || strcmp(node->name, "label") == 0)
-	      {
-		NSString		*elem;
-		NSString		*ref;
+			  elem = [self parseText: node->children];
+			  ref = [self getProp: "id" fromNode: node];
+			  if (ref == nil)
+				{
+				  ref = [NSString stringWithFormat: @"label-%u",
+								  labelIndex++];
+				}
 
-		elem = [self parseText: node->children];
-		ref = [self getProp: "id" fromNode: node];
-		if (ref == nil)
-		  {
-		    ref = [NSString stringWithFormat: @"label-%u",
-		      labelIndex++];
-		  }
+			  [self setEntry: elem
+					withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
+					withExternalRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
+					withRef: ref
+					inIndexOfType: @"label"];
 
-		[self setEntry: elem
-			  withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
-			  withExternalRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
-			  withRef: ref
-			  inIndexOfType: @"label"];
+			  if (strcmp(node->name, "label") == 0)
+				{
+				  [text appendFormat: @"<a name=\"%@\">%@</a>", ref, elem];
+				}
+			  else
+				{
+				  [text appendFormat: @"<a name=\"%@\"></a>", ref];
+				}
+			}
+		  else if (strcmp(node->name, "footnote") == 0)
+			{
+			  NSString		*elem;
+			  NSString		*ref;
 
-		if (strcmp(node->name, "label") == 0)
-		  {
-		    [text appendFormat: @"<a name=\"%@\">%@</a>", ref, elem];
-		  }
-		else
-		  {
-		    [text appendFormat: @"<a name=\"%@\"></a>", ref];
-		  }
-	      }
-	    else if (strcmp(node->name, "footnote") == 0)
-	      {
-		NSString		*elem;
-		NSString		*ref;
+			  elem = [self parseText: node->children];
+			  ref = [NSString stringWithFormat: @"foot-%u",
+							  [footnotes count]];
 
-		elem = [self parseText: node->children];
-		ref = [NSString stringWithFormat: @"foot-%u",
-		  [footnotes count]];
+			  [self setEntry: elem
+					withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
+					withExternalRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
+					withRef: ref
+					inIndexOfType: @"footnote"];
 
-		[self setEntry: elem
-			  withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
-			  withExternalRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
-			  withRef: ref
-			  inIndexOfType: @"footnote"];
+			  [footnotes addObject: elem];
+			  [text appendFormat: @" %@ ",
+					[self addLink: ref withText: @"see footnote"]];
+			}
+		  else if (strcmp(node->name, "ref") == 0)
+			{
+			  NSString	*elem = [self parseText: node->children];
+			  //		NSString	*typ = [self getProp: "type" fromNode: node];
+			  //		NSString	*cls = [self getProp: "class" fromNode: node];
+			  NSString	*ref = [self getProp: "id" fromNode: node];
 
-		[footnotes addObject: elem];
-		[text appendFormat: @" %@ ",
-		  [self addLink: ref withText: @"see footnote"]];
-	      }
-	    else if (strcmp(node->name, "ref") == 0)
-	      {
-		NSString	*elem = [self parseText: node->children];
-//		NSString	*typ = [self getProp: "type" fromNode: node];
-//		NSString	*cls = [self getProp: "class" fromNode: node];
-		NSString	*ref = [self getProp: "id" fromNode: node];
+			  if ([elem length] == 0)
+				{
+				  elem = ref;
+				}
+			  [text appendString: [self addLink: ref withText: elem]];
+			}
+		  else if (strcmp(node->name, "uref") == 0)
+			{
+			  NSString	*elem = [self parseText: node->children];
+			  NSString	*ref = [self getProp: "url" fromNode: node];
 
-		if ([elem length] == 0)
-		  {
-		    elem = ref;
-		  }
-		[text appendString: [self addLink: ref withText: elem]];
-	      }
-	    else if (strcmp(node->name, "uref") == 0)
-	      {
-			NSString	*elem = [self parseText: node->children];
-			NSString	*ref = [self getProp: "url" fromNode: node];
-
-			if ([elem length] == 0)
-			  elem = ref;
-			[text appendFormat: @"<a href=\"%@\">%@</a>", ref, elem];
-	      }
-	    else if (strcmp(node->name, "prjref") == 0)
-	      {
-			NSString* elem = [self parseText: node->children];
-			NSString* prjName = [self getProp: "prjname" fromNode: node];
-			NSString* prjFile = [self getProp: "file" fromNode: node];
-			NSString* symbolKey=nil;
-			NSString* link=nil;
-			if ([prjName length]==0)
-			  prjName=projectName;
-			if ([elem length] == 0)
-			  elem = prjName;
+			  if ([elem length] == 0)
+				elem = ref;
+			  [text appendFormat: @"<a href=\"%@\">%@</a>", ref, elem];
+			}
+		  else if (strcmp(node->name, "prjref") == 0)
+			{
+			  NSString* elem = [self parseText: node->children];
+			  NSString* prjName = [self getProp: "prjname" fromNode: node];
+			  NSString* prjFile = [self getProp: "file" fromNode: node];
+			  NSString* symbolKey=nil;
+			  NSString* link=nil;
+			  if ([prjName length]==0)
+				prjName=projectName;
+			  if ([elem length] == 0)
+				elem = prjName;
 			
-			symbolKey=[NSString stringWithFormat:@"%@##%@",
-								prjName,
-								([prjFile length] ? prjFile : @"index")];
-			link=[self linkForSymbolKey:symbolKey
-					   ofTypes:filesTypes
-					   withText:elem];
-			[text appendString:link];
-	      }
-	    else
-	      {
-		return text;
-	      }
-	    break;
+			  symbolKey=[NSString stringWithFormat:@"%@##%@",
+								  prjName,
+								  ([prjFile length] ? prjFile : @"index")];
+			  link=[self linkForSymbolKey:symbolKey
+						 ofTypes:filesTypes
+						 withText:elem];
+			  [text appendString:link];
+			}
+		  else
+			{
+			  return text;
+			}
+		  break;
 
-	  default:
-	    return text; 
-	}
+		default:
+		  return text; 
+		}
       node = node->next;
       *endNode = node;
     }
   return text;
 }
+
+-(NSString*)parseDictionaryItem:(xmlNodePtr)node
+{
+  NSMutableString	*text = [NSMutableString string];
+  NSString* key = [self getProp: "key" fromNode: node];
+  NSString* value = [self getProp: "value" fromNode: node];
+  NSDebugMLLog(@"debug",@"Start parsing dictionaryItem");
+  if (!key)
+	{
+      NSLog(@"dictionaryItem shoud have a key");
+      return nil;
+    };
+  [text appendFormat: @"<LI><b>%@</b> = ",key];
+  
+  if (!value)
+	{
+	  node = node->children;
+	  while (node)
+		{
+		  value= [self parseBlock:node];
+		  node = node->next;
+		};
+	};		  
+  [text appendFormat: @"%@</LI>\n",value];
+  return text;
+};
+
+  
+
+-(NSString*)parseDictionary:(xmlNodePtr)node
+{
+  NSMutableString	*text = [NSMutableString string];
+  NSDebugMLLog(@"debug",@"Start parsing dictionary");
+  node = node->children;
+  [text appendString: @"<UL>\n"];
+  while (node && strcmp(node->name,"dictionaryItem")==0)
+	{
+	  NSString* itemString = [self parseDictionaryItem:node];
+	  [text appendString:itemString];
+	  node = node->next;
+	};
+  [text appendString: @"</UL>\n"];
+  return text;
+};
+
+-(NSString*)parseEOModel: (xmlNodePtr)node
+{
+  NSMutableString	*text = [NSMutableString string];
+  NSString* ref = [self getProp: "id" fromNode: node];
+  NSString* modelName = [self getProp: "name" fromNode: node];
+  NSString* version = [self getProp: "version" fromNode: node];
+  NSString* adaptorName = [self getProp: "adaptorName" fromNode: node];
+  NSString* adaptorClassName = [self getProp: "adaptorClassName" fromNode: node];
+  
+  NSString* desc = nil;
+  NSString* connectionDictionary=nil;
+  NSString* userDictionary=nil;
+  NSMutableArray* entities = [NSMutableArray array];
+  NSString* entitiesRefsList=nil;
+
+  NSDebugMLLog(@"debug",@"Start parsing EOModel");
+  
+  if (!modelName)
+	{
+	  NSLog(@"Missing model name");
+	  return nil;
+	};
+  // We're working on EOModel
+  ASSIGN(currentEOModel,modelName);
+
+  if (!ref)
+	ref = modelName;
+  
+  node = node->children;
+
+  if (node && strcmp(node->name,"EOConnectionDictionary")==0)
+	{
+	  connectionDictionary = [self parseDictionary:node];
+	  node = node->next;
+	};
+
+  if (node && strcmp(node->name,"list")==0)
+	{
+	  entitiesRefsList = [self parseList: node];
+	  node = node->next;
+	}
+  else
+	{
+	  while (node && strcmp(node->name,"EOEntity")==0)
+		{	  
+		  NSString	*s = [self parseEOEntity:node];	  
+		  if (s)
+			[entities addObject: s];
+		  node = node->next;
+		};
+	};
+
+  if (node && strcmp(node->name,"EOUserDictionary")==0)
+	{
+	  userDictionary = [self parseDictionary:node];
+	  node = node->next;
+	};
+
+  if (node && strcmp(node->name, "desc") == 0)
+	{
+	  desc = [self parseDesc: node];
+	  node = node->next;
+	};
+
+  [self setEntry:modelName
+		withExternalCompleteRef:modelName
+			withExternalRef:modelName
+			withRef:ref
+			inIndexOfType: @"EOModel"];
+  [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n",
+		ref,
+		modelName];
+
+  if (version)
+	[text appendFormat: @"<p><b>Version:</b> %@</p>\r\n",
+		  version];
+
+  if (adaptorName)
+	{
+	  [text appendFormat: @"<p><b>Adaptor:</b> %@</p>\r\n",
+			[self linkedItem:adaptorName
+				  ofTypes:adaptorsTypes]];
+	};
+
+  if (adaptorClassName)
+	{
+	  [text appendFormat: @"<p><b>Adaptor Class:</b> %@</p>\r\n",
+			[self linkedItem:adaptorClassName
+				  ofTypes:classesTypes]];
+	};
+
+  if (desc)
+	[text appendFormat: @"<hr>\r\n%@\r\n", desc];
+
+  [text appendString: @"<h2>Entities</h2>\r\n"];
+  [self appendIndex: @"EOEntities"
+		toString:text];
+  [text appendString: @"<h2>User Dictionary</h2>\r\n"];
+  [self appendIndex: @"UserDictionary"
+		toString:text];
+
+  if (desc)
+	[text appendFormat: @"<hr>\r\n%@\r\n", desc];
+
+  if (entitiesRefsList)
+	{
+	  [text appendString: @"<hr><h2>Entities</h2>\r\n"];
+	  [text appendString:entitiesRefsList];
+	}
+  else
+	{
+	  if ([entities count] > 0)
+		{
+		  unsigned i=0;
+		  [text appendString: @"<hr><h2>Entities</h2>\r\n"];
+		  for (i=0;i<[entities count]; i++)
+			[text appendString:[entities objectAtIndex: i]];
+		};
+	};
+  if (userDictionary)
+	{
+	  [text appendFormat:@"<hr><h2>UserDictionary</h2>\r\n%@",userDictionary];
+	};
+  // Stop working on EOModel
+  ASSIGN(currentEOModel,nil);
+  return text;
+};
+
+-(NSString*)parseEOEntity: (xmlNodePtr)node
+{
+  NSMutableString	*text = [NSMutableString string];
+  NSString* ref = [self getProp: "id" fromNode: node];
+  NSString* entityName = [self getProp: "name" fromNode: node];
+  NSString* externalName = [self getProp: "externalName" fromNode: node];
+  NSString* className = [self getProp: "className" fromNode: node];
+  NSString* modelName = [self getProp: "modelName" fromNode: node];
+  NSString* isReadOnly = [self getProp: "isReadOnly" fromNode: node];
+  
+  NSString* desc = nil;
+  NSString* userDictionary=nil;
+  NSMutableArray* attributes = [NSMutableArray array];
+  NSMutableArray* attributesUsedForLocking = [NSMutableArray array];
+  NSMutableArray* classProperties = [NSMutableArray array];
+  NSMutableArray* primaryKeyAttributes = [NSMutableArray array];
+  NSMutableArray* relationships = [NSMutableArray array];
+
+  NSDebugMLLog(@"debug",@"Start parsing EOEntity");
+
+  if (!entityName)
+	{
+	  NSLog(@"Missing entity name");
+	  return nil;
+	};
+
+  // We're working on EOEntity
+  ASSIGN(currentEOEntity,entityName);
+
+  if (!ref)
+	ref = entityName;
+  
+  node = node->children;
+
+  while (node && strcmp(node->name,"EOAttribute")==0)
+	{	  
+	  NSString	*s = [self parseEOAttribute:node];	  
+	  if (s)
+		[attributes addObject: s];
+	  node = node->next;
+	};
+
+  if (node && strcmp(node->name,"EOAttributesUsedForLocking")==0)
+	{
+	  xmlNodePtr attributeNode= node->children;
+	  while (attributeNode && strcmp(attributeNode->name,"EOAttributeRef")==0)
+		{	  
+		  NSString	*s = [self parseEOAttributeRef:attributeNode];	  
+		  if (s)
+			[attributesUsedForLocking addObject: s];
+		  attributeNode = attributeNode->next;
+		};
+	  node = node->next;
+	};
+
+  if (node && strcmp(node->name,"EOClassProperties")==0)
+	{
+	  xmlNodePtr attributeNode= node->children;
+	  while (attributeNode && strcmp(attributeNode->name,"EOAttributeRef")==0)
+		{	  
+		  NSString	*s = [self parseEOAttributeRef:attributeNode];
+		  if (s)
+			[classProperties addObject: s];
+		  attributeNode = attributeNode->next;
+		};
+	  node = node->next;
+	};
+
+  if (node && strcmp(node->name,"EOPrimaryKeyAttributes")==0)
+	{
+	  xmlNodePtr attributeNode= node->children;
+	  while (attributeNode && strcmp(attributeNode->name,"EOAttributeRef")==0)
+		{	  
+		  NSString	*s = [self parseEOAttributeRef:attributeNode];	  
+		  if (s)
+			[primaryKeyAttributes addObject: s];
+		  attributeNode = attributeNode->next;
+		};
+	  node = node->next;
+	};
+
+  while (node && strcmp(node->name,"EORelationship")==0)
+	{	  
+	  NSString	*s = [self parseEORelationship:node];	  
+	  if (s)
+		[relationships addObject: s];
+	  node = node->next;
+	};
+
+  if (node && strcmp(node->name,"EOUserDictionary")==0)
+	{
+	  userDictionary = [self parseDictionary:node];
+	  node = node->next;
+	};
+
+  if (node != 0 && strcmp(node->name, "desc") == 0)
+	{
+	  desc = [self parseDesc: node];
+	  node = node->next;
+	};
+
+  [self setEntry:entityName
+		withExternalCompleteRef:entityName
+		withExternalRef:entityName
+		withRef:ref
+		inIndexOfType: @"EOEntity"];
+
+  [text appendFormat: @"<hr><h2><a name=\"%@\">%@</a></h2>\r\n",
+		ref,
+		entityName];
+
+  if (modelName)
+	[text appendFormat: @"<p><b>Model:</b> %@</p>\r\n",
+		  [self linkedItem:modelName
+				ofTypes:EOModelsTypes]];
+
+  if (externalName)
+	[text appendFormat: @"<p><b>External Name:</b> %@</p>\r\n",
+		  externalName];
+
+  if (className)
+	{
+	  [text appendFormat: @"<p><b>Class:</b> %@</p>\r\n",
+			[self linkedItem:className
+				  ofTypes:classesTypes]];
+	};
+
+  if (isReadOnly)
+	[text appendFormat: @"<p><b>Read Only:</b> %@</p>\r\n",
+		  isReadOnly];
+
+  if (desc)
+	[text appendFormat: @"<hr>\r\n%@\r\n", desc];
+
+  [text appendString: @"<hr>\r\n<UL>\r\n"];
+  if ([attributes count] > 0)
+	[text appendFormat:@"<LI><A HREF=\"#%@__Attributes\">Attributes</A></LI>\r\n",
+		  entityName];
+  if ([attributesUsedForLocking count] > 0)	
+	[text appendFormat:@"<LI><A HREF=\"#%@__AttributesUsedForLocking\">Attributes Used For Locking</A></LI>\r\n",
+		  entityName];
+  if ([classProperties count] > 0)
+	[text appendFormat:@"<LI><A HREF=\"#%@__ClassProperties\">Class Properties</A></LI>\r\n",
+		  entityName];
+  if ([primaryKeyAttributes count] > 0)
+	[text appendFormat:@"<LI><A HREF=\"#%@__PrimaryKeyAttributes\">Primary Key Attributes</A></LI>\r\n",
+		  entityName];
+  if ([relationships count] > 0)
+	[text appendFormat:@"<LI><A HREF=\"#%@__Relationships\">Relationships</A></LI>\r\n",
+		  entityName];
+  if (userDictionary)
+	[text appendFormat:@"<LI><A HREF=\"#%@__UserDictionary\">User Dictionary</A></LI>\r\n",
+		  entityName];
+  [text appendString: @"</UL>\r\n"];
+		
+
+
+  if ([attributes count] > 0)
+	{
+	  unsigned i=0;
+	  [text appendFormat: @"<hr><h3><A NAME=\"%@__Attributes\">Attributes</A></h3>\r\n",
+			entityName];
+	  [text appendString: @"<TABLE BORDER=1>\n<TR><TH>Name</TH><TH>Entity</TH><TH>Class Name</TH><TH>Type</TH><TH>DB Column Name / Definition</TH><TH>DB Type</TH><TH>Properties</TH><TH>UserDictionary</TH><TH>Description</TH></TR>\r\n"];	  
+	  for (i=0;i<[attributes count]; i++)
+		[text appendFormat:@"<TR>%@</TR>\r\n",[attributes objectAtIndex: i]];
+	  [text appendString: @"</TABLE>\r\n"];
+	};
+
+  if ([attributesUsedForLocking count] > 0)
+	{
+	  unsigned i=0;
+	  [text appendFormat: @"<hr><H3><A NAME=\"%@__AttributesUsedForLocking\">Attributes Used For Locking</A></H3>\r\n",
+			entityName];
+	  [text appendString: @"<TABLE BORDER=\"1\">\r\n"];
+	  for (i=0;i<[attributesUsedForLocking count]; i++)
+		{
+		  NSString* elem=[attributesUsedForLocking objectAtIndex:i];
+		  [text appendFormat:@"<TR><TD>%@</TD></TR>\r\n",
+				[self linkForSymbolKey:[NSString stringWithFormat:@"%@##%@",
+												 currentEOEntity,
+												 elem]
+					  ofTypes:EOClassPropertiesTypes
+					  withText:elem]];
+		};
+	  [text appendString: @"</TABLE>\r\n"];
+	};
+
+  if ([classProperties count] > 0)
+	{
+	  unsigned i=0;
+	  [text appendFormat: @"<hr><H3><A NAME=\"%@__ClassProperties\">Class Properties</A></h3>\r\n",
+			entityName];
+	  [text appendString: @"<TABLE BORDER=\"1\">\r\n"];
+	  for (i=0;i<[classProperties count]; i++)
+		{
+		  NSString* elem=[classProperties objectAtIndex:i];
+		  [text appendFormat:@"<TR><TD>%@</TD></TR>\r\n",
+				[self linkForSymbolKey:[NSString stringWithFormat:@"%@##%@",
+												 currentEOEntity,
+												 elem]
+					  ofTypes:EOClassPropertiesTypes
+					  withText:elem]];
+		};
+	  [text appendString: @"</TABLE>\r\n"];
+	};
+
+  if ([primaryKeyAttributes count] > 0)
+	{
+	  unsigned i=0;
+	  [text appendFormat: @"<hr><H3><A NAME=\"%@__PrimaryKeyAttributes\">Primary Key Attributes</A></h3>\r\n",
+			entityName];
+	  [text appendString: @"<TABLE BORDER=\"1\">\r\n"];
+	  for (i=0;i<[primaryKeyAttributes count]; i++)
+		{
+		  NSString* elem=[classProperties objectAtIndex:i];
+		  [text appendFormat:@"<TR><TD>%@</TD></TR>\r\n",
+				[self linkForSymbolKey:[NSString stringWithFormat:@"%@##%@",
+												 currentEOEntity,
+												 elem]
+					  ofTypes:EOClassPropertiesTypes
+					  withText:elem]];
+		};
+	  [text appendString: @"</TABLE>\r\n"];
+	};
+
+  if ([relationships count] > 0)
+	{
+	  unsigned i=0;
+	  [text appendFormat: @"<hr><H3><A NAME=\"%@__Relationships\">Relationships</A></h3>\r\n",
+			entityName];
+	  
+	  [text appendString: @"<TABLE BORDER=\"1\">\r\n<TR><TH>Name</TH><TH>Entity</TH><TH>Destination Entity</TH><TH>Properties</TH><TH>Definition/Join(s)</TH><TH>User Dictionary</TH><TH>Description</TH></TR>\r\n"];
+	  for (i=0;i<[relationships count]; i++)
+		  [text appendFormat:@"<TR>%@</TR>\r\n",
+				[relationships objectAtIndex: i]];
+	  [text appendString: @"</TABLE>\r\n"];
+	};
+
+  if (userDictionary)
+	{
+	  [text appendFormat: @"<hr><H3><A NAME=\"%@__UserDictionary\">User Dictionary</A></h3>\r\n",
+		  entityName];
+	  [text appendString:userDictionary];
+	};
+
+  // Stop working on EOEntity
+  ASSIGN(currentEOEntity,nil);
+  return text;
+};
+
+-(NSString*)parseEOAttribute: (xmlNodePtr)node
+{
+  NSMutableString	*text = [NSMutableString string];
+  NSString* ref = [self getProp: "id" fromNode: node];
+  NSString* columnName = [self getProp: "columnName" fromNode: node];
+  NSString* definition = [self getProp: "definition" fromNode: node];
+  NSString* externalType = [self getProp: "externalType" fromNode: node];
+  NSString* attributeName = [self getProp: "name" fromNode: node];
+  NSString* valueClassName = [self getProp: "valueClassName" fromNode: node];
+  NSString* valueType = [self getProp: "valueType" fromNode: node];
+  NSString* entityName = [self getProp: "entityName" fromNode: node];
+  NSString* isReadOnly = [self getProp: "isReadOnly" fromNode: node];
+  NSString* isDerived = [self getProp: "isDerived" fromNode: node];
+  NSString* isFlattened = [self getProp: "isFlattened" fromNode: node];
+
+  NSString* desc = nil;
+  NSString* userDictionary=nil;
+  NSString* completeRef=nil;
+
+  NSDebugMLLog(@"debug",@"Start parsing EOAttribute");
+  
+  if (!attributeName)
+	{
+	  NSLog(@"Missing attribute name");
+	  return nil;
+	};
+
+  completeRef=[NSString stringWithFormat:@"%@##%@",currentEOEntity,attributeName];
+  if (!ref)
+	ref = completeRef;
+  
+  node = node->children;
+
+  if (node && strcmp(node->name,"EOUserDictionary")==0)
+	{
+	  userDictionary = [self parseDictionary:node];
+	  node = node->next;
+	};
+
+  if (node && strcmp(node->name, "desc") == 0)
+	{
+	  desc = [self parseDesc: node];
+	  node = node->next;
+	};
+
+  [self setEntry:attributeName
+		withExternalCompleteRef:completeRef
+		withExternalRef:completeRef
+		withRef:ref
+		inIndexOfType: @"EOAttribute"];
+
+  [text appendFormat: @"<TD><b><a name=\"%@\">%@</a></b></TD>",
+		ref,
+		attributeName];
+
+  if (entityName)
+	[text appendFormat: @"<TD>%@</TD>",
+		  [self linkedItem:entityName
+				ofTypes:EOEntitiesTypes]];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (valueClassName)
+	  [text appendFormat: @"<TD>%@</TD>",
+			[self linkedItem:valueClassName
+				  ofTypes:classesTypes]];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (valueType)
+	[text appendFormat: @"<TD>%@</TD>",
+		  valueType];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (columnName)
+	[text appendFormat: @"<TD>%@</TD>",
+		  columnName];
+  else if (definition)
+	[text appendFormat: @"<TD>%@</TD>",
+		  definition];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (externalType)
+	[text appendFormat: @"<TD>%@</TD>",
+		  externalType];
+  else
+	[text appendString:@"<TD></TD>"];
+
+
+  [text appendString:@"<TD>"];
+  if (isReadOnly)
+	[text appendFormat: @"Read Only: %@<BR>",
+		  isReadOnly];
+  
+  if (isDerived)
+	[text appendFormat: @"Derived: %@<BR>",
+		  isDerived];
+  
+  if (isFlattened)
+	[text appendFormat: @"Flattened: %@<BR",
+		  isFlattened];
+  
+  [text appendString:@"</TD>"];
+  
+  if (userDictionary)
+	{
+	  [text appendFormat: @"<TD>%@</TD>",
+			userDictionary];
+	}
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (desc)
+	[text appendFormat: @"<TD>%@</TD>", desc];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  return text;
+};
+
+- (NSString*) parseEOAttributeRef: (xmlNodePtr)node
+{
+  NSString* attributeName = [self getProp: "name" fromNode: node];
+  NSDebugMLLog(@"debug",@"Start parsing EOAttributeRef");
+  return attributeName;
+};
+
+-(NSString*)parseEORelationship: (xmlNodePtr)node
+{
+  NSMutableString	*text = [NSMutableString string];
+  NSString* ref = [self getProp: "id" fromNode: node];
+  NSString* entityName = [self getProp: "entityName" fromNode: node];
+  NSString* destinationEntityName = [self getProp: "destinationEntityName" fromNode: node];
+  NSString* relationshipName = [self getProp: "name" fromNode: node];
+  NSString* isToMany = [self getProp: "isToMany" fromNode: node];
+
+  NSString* desc = nil;
+  NSString* userDictionary=nil;
+  NSString* definition=nil;
+  NSMutableArray* joins = [NSMutableArray array];
+  NSString* completeRef=nil;
+
+  NSDebugMLLog(@"debug",@"Start parsing EORelationship");
+
+  if (!relationshipName)
+	{
+	  NSLog(@"Missing relationship name");
+	  return nil;
+	};
+
+  completeRef=[NSString stringWithFormat:@"%@##%@",
+						currentEOEntity,
+						relationshipName];
+
+  // We're working on EORelationship
+  ASSIGN(currentEORelationship,relationshipName);
+  ASSIGN(currentEORelationshipDestinationEntity,destinationEntityName);
+
+  if (!ref)
+	ref = completeRef;
+  
+  node = node->children;
+
+  if (node && strcmp(node->name,"EORelationshipComponent")==0)
+	{
+	  definition = [self parseEORelationshipComponent:node];
+	  node = node->next;	  
+	}
+  else
+	{
+	  while (node && strcmp(node->name,"EOJoin")==0)
+		{	  
+		  NSString	*s = [self parseEOJoin:node];	  
+		  if (s)
+			[joins addObject: s];
+		  node = node->next;
+		};
+	};
+
+  if (node && strcmp(node->name,"EOUserDictionary")==0)
+	{
+	  userDictionary = [self parseDictionary:node->children];
+	  node = node->next;
+	};
+
+  if (node != 0 && strcmp(node->name, "desc") == 0)
+	{
+	  desc = [self parseDesc: node];
+	  node = node->next;
+	};
+  
+  [self setEntry:relationshipName
+		withExternalCompleteRef:completeRef
+		withExternalRef:completeRef
+		withRef:ref
+		inIndexOfType: @"EORelationship"];
+
+  [text appendFormat: @"<TD><a name=\"%@\">%@</a></TD>",
+		completeRef,
+		relationshipName];
+
+  if (entityName)
+	[text appendFormat: @"<TD>%@</TD>",
+		  [self linkedItem:entityName
+				ofTypes:EOEntitiesTypes]];
+  else
+	[text appendString: @"<TD></TD>"];
+
+  if (destinationEntityName)
+	[text appendFormat: @"<TD>%@</TD>",
+		  [self linkedItem:destinationEntityName
+				ofTypes:EOEntitiesTypes]];
+  else
+	[text appendString: @"<TD></TD>"];
+
+  [text appendString: @"<TD>"];
+  if (isToMany)
+	[text appendFormat: @"to many: %@<BR>",
+		  isToMany];
+  [text appendString: @"</TD>"];
+
+  if (definition)
+	{
+	  [text appendFormat: @"<TD>%@</TD>",
+			definition];
+	}
+  else if ([joins count]>0)
+	{
+	  unsigned int i=0;
+	  [text appendString: @"<TD>\r\n<TABLE BORDER=\"1\">\r\n<TR><TH>Source attribute</TH><TH>Destination Attribute</TH><TH>Operator</TH><TH>Semantic</TH><TH>user Dictionary</TH><TH>Description</TH></TR>"];
+	  for (i=0;i<[joins count]; i++)
+		[text appendFormat:@"<TR>%@</TR>",[joins objectAtIndex: i]];
+	  [text appendString: @"</TABLE>\r\n</TD>\r\n"];
+	}
+  else
+	[text appendString: @"<TD></TD>"];
+
+  if (userDictionary)
+	{
+	  [text appendFormat: @"<TD>%@</TD>",
+			userDictionary];
+	}
+  else
+	[text appendString: @"<TD></TD>"];
+
+  if (desc)
+	[text appendFormat: @"<TD>%@</TD>", desc];
+  else
+	[text appendString: @"<TD></TD>"];
+
+
+  // Stop working on EORelationship
+  ASSIGN(currentEORelationshipDestinationEntity,nil);
+  ASSIGN(currentEORelationship,nil);
+  return text;
+};
+
+-(NSString*)parseEORelationshipComponent:(xmlNodePtr)node
+{
+  NSMutableString	*text = [NSMutableString string];
+  NSString* definition = [self getProp: "definition" fromNode: node];
+  NSDebugMLLog(@"debug",@"Start parsing EORelationshipComponent");
+  node = node->children;
+  [text appendString:[self linkForSymbolKey:[NSString stringWithFormat:@"%@##%@",
+													  currentEOEntity,
+													  definition]
+						   ofTypes:EOClassPropertiesTypes
+						   withText:definition]];
+  while (node && strcmp(node->name,"EORelationshipComponent")==0)
+	{	  
+	  NSString	*s = [self parseEORelationshipComponent:node];	  
+	  if (s)
+		[text appendFormat:@".%@",
+			  s];
+	  node = node->next;
+	};
+  return text;
+};
+
+-(NSString*)parseEOJoin: (xmlNodePtr)node
+{
+  NSMutableString	*text = [NSMutableString string];
+  NSString* ref = [self getProp: "id" fromNode: node];
+  NSString* relationshipName = [self getProp: "relationshipName" fromNode: node];
+  NSString* joinOperator = [self getProp: "joinOperator" fromNode: node];
+  NSString* joinSemantic = [self getProp: "joinSemantic" fromNode: node];
+  NSString* sourceAttribute = [self getProp: "sourceAttribute" fromNode: node];
+  NSString* destinationAttribute = [self getProp: "destinationAttribute" fromNode: node];
+  NSString* desc = nil;
+  NSString* userDictionary=nil;
+
+  NSDebugMLLog(@"debug",@"Start parsing EOJoin");
+  /*  
+	  if (!ref)
+	  ref = relationshipName;
+
+	  [self setEntry:relationshipName
+	  withExternalCompleteRef:relationshipName
+	  withExternalRef:relationshipName
+	  withRef:ref
+	  inIndexOfType: @"EOJoin"];
+  */
+  /*  [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n",
+	  ref,
+	  relationshipName];
+  */
+  /*
+  if (relationshipName)
+	[text appendFormat: @"<TD>%@</TD>",
+		  [self linkedItem:relationshipName
+				ofTypes:EORelationshipsTypes]];
+  else
+	[text appendString:@"<TD></TD>"];
+  */
+  if (sourceAttribute)
+	[text appendFormat: @"<TD>%@</TD>",
+		  [self linkForSymbolKey:[NSString stringWithFormat:@"%@##%@",
+										   currentEOEntity,
+										   sourceAttribute]
+				ofTypes:EOClassPropertiesTypes
+				withText:sourceAttribute]];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (destinationAttribute)
+	[text appendFormat: @"<TD>%@</TD>\r\n",
+		  [self linkForSymbolKey:[NSString stringWithFormat:@"%@##%@",
+										   currentEORelationshipDestinationEntity,
+										   destinationAttribute]
+				ofTypes:EOClassPropertiesTypes
+				withText:destinationAttribute]];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (joinOperator)
+	[text appendFormat: @"<TD>%@</TD>\r\n",
+		  joinOperator];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (joinSemantic)
+	[text appendFormat: @"<TD>%@</TD>\r\n",
+		  joinSemantic];
+  else
+	[text appendString:@"<TD></TD>"];
+
+
+  if (userDictionary)
+	[text appendString:userDictionary];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  if (desc)
+	[text appendFormat: @"<TD>%@</TD>", desc];
+  else
+	[text appendString:@"<TD></TD>"];
+
+  return text;
+};
+
 
 - (void) setEntry: (NSString*)entry
 withExternalCompleteRef:(NSString*)externalCompleteRef
@@ -2652,32 +3510,32 @@ withExternalCompleteRef:(NSString*)externalCompleteRef
   [refToFile setObject: currName forKey: ref];
 
   if (processFileReferencesFlag && externalCompleteRef && externalRef)
-  {
-	NSMutableDictionary* typeDict=[fileReferences objectForKey:type];
-	if (!fileReferences)
-	  {
-		fileReferences=[NSMutableDictionary new];
-	  };
-	if (!typeDict)
-	  {
-		typeDict=[NSMutableDictionary dictionary];
-		[fileReferences setObject:typeDict
-						forKey:type];
-	  };
-	if (![typeDict objectForKey:externalCompleteRef])
-	  {
-		NSMutableDictionary* thisEntry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-																entry, @"title",
-															  externalRef, @"ref",
-															  externalCompleteRef,@"completeRef",
-															  ref, @"fragment",
-															  type, @"type",
-															  [currName stringByDeletingPathExtension], @"fileName",
-															  nil];
-		[typeDict setObject:thisEntry 
-				  forKey:externalCompleteRef];
-	  };
-  };
+	{
+	  NSMutableDictionary* typeDict=[fileReferences objectForKey:type];
+	  if (!fileReferences)
+		{
+		  fileReferences=[NSMutableDictionary new];
+		};
+	  if (!typeDict)
+		{
+		  typeDict=[NSMutableDictionary dictionary];
+		  [fileReferences setObject:typeDict
+						  forKey:type];
+		};
+	  if (![typeDict objectForKey:externalCompleteRef])
+		{
+		  NSMutableDictionary* thisEntry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+																  entry, @"title",
+																externalRef, @"ref",
+																externalCompleteRef,@"completeRef",
+																ref, @"fragment",
+																type, @"type",
+																[currName stringByDeletingPathExtension], @"fileName",
+																nil];
+		  [typeDict setObject:thisEntry 
+					forKey:externalCompleteRef];
+		};
+	};
 };
 
 -(NSArray*)contents
@@ -2768,7 +3626,7 @@ withExternalCompleteRef:(NSString*)externalCompleteRef
   int i=0;
   for(i=0;!symbol && i<[types count];i++)	
 	symbol=[[generalReferences objectForKey:[types objectAtIndex:i]]
-							   objectForKey:key_];
+			 objectForKey:key_];
   return symbol;
 };
 
@@ -2809,9 +3667,9 @@ withExternalCompleteRef:(NSString*)externalCompleteRef
 				};
 			  prefix=[NSString string];
 			  for(i=0;i<[locationParts count];i++)
-				  prefix=[@".." stringByAppendingPathComponent:prefix];
+				prefix=[@".." stringByAppendingPathComponent:prefix];
 			  for(i=0;i<[symbolLocationParts count];i++)
-				  prefix=[prefix stringByAppendingPathComponent:[symbolLocationParts objectAtIndex:i]];
+				prefix=[prefix stringByAppendingPathComponent:[symbolLocationParts objectAtIndex:i]];
 			}
 		  else
 			prefix=([symbolLocation length]>0 ? symbolLocation : @"");
@@ -3205,9 +4063,9 @@ int main(int argc, char **argv, char **env)
 	  if (!projectName)
 		projectName=@"unknown";
 	  if ([makeRefsFileName length]==0)
-		  makeRefsFileName=[projectName stringByAppendingPathExtension:PathExtension_GSDocRefs];
+		makeRefsFileName=[projectName stringByAppendingPathExtension:PathExtension_GSDocRefs];
 	  if (makeIndexBaseFileName)
-		  makeIndexFileNameGSDoc=[makeIndexBaseFileName stringByAppendingPathExtension:PathExtension_GSDoc];
+		makeIndexFileNameGSDoc=[makeIndexBaseFileName stringByAppendingPathExtension:PathExtension_GSDoc];
 	};
 
   // Verify option compatibilities
@@ -3220,6 +4078,7 @@ int main(int argc, char **argv, char **env)
 	{
 	  BOOL addedSymbols=NO;
 	  NSDictionary* previousProjectReferences=nil;
+	  NSDebugFLLog(@"debug",@"Construct project references");
 	  projectReferences=[[NSMutableDictionary new] autorelease];
 	  [projectReferences setObject:[[NSMutableDictionary new] autorelease]
 						 forKey:@"symbols"];
@@ -3267,6 +4126,7 @@ int main(int argc, char **argv, char **env)
   // Process references (construct a dictionary of all references)
   if (goOn)
 	{
+	  NSDebugFLLog(@"debug",@"Process references");
 	  generalReferences=[[NSMutableDictionary new] autorelease];
 	  if ([references count]>0)
 		{
@@ -3328,6 +4188,7 @@ int main(int argc, char **argv, char **env)
 	  NSMutableDictionary* variablesMutableDictionary=[NSMutableDictionary dictionary];
 	  NSEnumerator* enumer = [infoDictionary keyEnumerator];
 	  id key=nil;          
+	  NSDebugFLLog(@"debug",@"Variables");
 	  while ((key = [enumer nextObject]))
 		{
 		  id value=[infoDictionary objectForKey:key];
@@ -3364,6 +4225,7 @@ int main(int argc, char **argv, char **env)
   // Find Files to parse
   if (goOn)
 	{
+	  NSDebugFLLog(@"debug",@"Find Files to parse");
 	  if ([files count]<1)
 		{
 		  NSLog(@"No file names given to parse.");
@@ -3402,6 +4264,7 @@ int main(int argc, char **argv, char **env)
   if (goOn)
 	{
 	  int pass=0;
+	  NSDebugFLLog(@"debug",@"Parse Files");
 	  //1st pass: don't write file, just parse them and construct project references
 	  //2nd pass: parse and write files
 	  for (pass=0;goOn && pass<2;pass++)
@@ -3477,14 +4340,17 @@ int main(int argc, char **argv, char **env)
 								};
 							  if (pass==0)
 								{
+								  NSDebugFLLog(@"debug",@"AddSymbolsToReferencesWithProjectInfo -> projectRefernce");
 								  AddSymbolsToReferencesWithProjectInfo([p fileReferences],
 																		[projectReferences objectForKey:@"symbols"],
 																		nil,
 																		NO);
+								  NSDebugFLLog(@"debug",@"AddSymbolsToReferencesWithProjectInfo -> generalReference");
 								  AddSymbolsToReferencesWithProjectInfo([p fileReferences],
 																		generalReferences,
 																		projectInfo,
 																		YES);
+								  NSDebugFLLog(@"debug",@"AddSymbolsToReferencesWithProjectInfo finished");
 								};
 							};
 						  RELEASE(p);
