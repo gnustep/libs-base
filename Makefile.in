@@ -214,6 +214,7 @@ objects/MallocAddress.h \
 objects/MappedCollector.h \
 objects/MemoryStream.h \
 objects/NSArray.h \
+objects/NSCoder.h \
 objects/NSString.h \
 objects/Ordering.h \
 objects/Port.h \
