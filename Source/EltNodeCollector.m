@@ -39,11 +39,10 @@
 
 @implementation EltNodeCollector
 
-+ initialize
++ (void) initialize
 {
   if (self == [EltNodeCollector class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 + defaultEltNodeClass
@@ -186,10 +185,10 @@
 	       nodeClass:[[self class] defaultEltNodeClass]];
 }
 
-- free
+- (void) dealloc
 {
-  [[_contents_collector freeObjects] free];
-  return [super free];
+  [[_contents_collector releaseObjects] release];
+  [super dealloc];
 }
 
 
@@ -290,7 +289,7 @@
   CHECK_INDEX_RANGE_ERROR(index, [_contents_collector count]);
   node = [_contents_collector removeElementAtIndex:index].id_u;
   ret = [node elementData];
-  [node free];
+  [node release];
   return ret;
 }
 
@@ -303,7 +302,7 @@
     return ELEMENT_NOT_FOUND_ERROR(oldElement);
   ret = [aNode elementData];
   [_contents_collector removeElement:aNode];
-  [aNode free];
+  [aNode release];
   return ret;
 }
 
@@ -316,7 +315,7 @@
     return NO_ELEMENT_FOUND_ERROR();
   ret = [aNode elementData];
   [_contents_collector removeElement:aNode];
-  [aNode free];
+  [aNode release];
   return ret;
 }
 
@@ -329,7 +328,7 @@
     return NO_ELEMENT_FOUND_ERROR();
   ret = [aNode elementData];
   [_contents_collector removeElement:aNode];
-  [aNode free];
+  [aNode release];
   return ret;
 }
 
@@ -343,7 +342,7 @@
   ret = [aNode elementData];
   [_contents_collector replaceElement:aNode 
 		       with:[self makeEltNodeWithElement:newElement]];
-  [aNode free];
+  [aNode release];
   return ret;
 }
 
@@ -357,7 +356,7 @@
 	     replaceElementAtIndex:index
 	     with:[self makeEltNodeWithElement:newElement]];
   ret = [oldNode.id_u elementData];
-  [oldNode.id_u free];
+  [oldNode.id_u release];
   return ret;
 }
 

@@ -25,9 +25,9 @@
 
 @implementation DelegatePool
 
-+ initialize
++ (void) initialize
 {
-  return self;
+  return;
 }
 
 + alloc
@@ -85,13 +85,13 @@
 }
 
   
-- free
+- (void) dealloc
 {
-  [_list free];
+  [_list release];
 #if NeXT_runtime
-  return (id) object_dispose((Object*)self);
+  object_dispose((Object*)self);
 #else
-  return (id) object_dispose(self);
+  NSDeallocateObject((NSObject*)self);
 #endif
 }
 

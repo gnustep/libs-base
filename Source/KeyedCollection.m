@@ -28,11 +28,10 @@
 
 @implementation KeyedCollection
 
-+ initialize
++ (void) initialize
 {
   if (self == [KeyedCollection class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 
@@ -65,10 +64,10 @@
 	       keyType:@encode(id)];
 }
 
-- free
+- (void) dealloc
 {
   // ?? ;
-  return [super free];
+  [super dealloc];
 }
 
 
@@ -237,7 +236,7 @@
 			    content, key);
     }
 
-  if ([aCollectionClass conformsTo:@protocol(KeyedCollecting)])
+  if ([aCollectionClass conformsToProtocol:@protocol(KeyedCollecting)])
     {
       newColl = [self emptyCopyAs:aCollectionClass];
       putElementAtKeyImp = (id(*)(id,SEL,elt,elt))
@@ -286,7 +285,7 @@
     }
   [self withKeyElementsAndContentElementsCall:addKey];
   [tmpColl withElementsCall:aFunc];
-  [tmpColl free];
+  [tmpColl release];
   return self;
 }
 
@@ -404,8 +403,8 @@
   [self withKeyElementsAndContentElementsCall:appendKeyAndContent];
   for (i = 0; *flag && i < count; i++)
     (*aFunc)([keyTmpColl elementAtIndex:i], [contentTmpColl elementAtIndex:i]);
-  [keyTmpColl free];
-  [contentTmpColl free];
+  [keyTmpColl release];
+  [contentTmpColl release];
   return self;
 }
 
