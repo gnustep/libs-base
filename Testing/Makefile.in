@@ -73,8 +73,9 @@ server.m \
 client.m \
 string.m \
 values.m \
-nsarray.m \
-nsarchiving.m
+nsarray.m 
+
+# nsarchiving.m
 
 HDRS = \
 server.h
@@ -130,8 +131,9 @@ values: values.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 nsarray: nsarray.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
-nsarchiving: nsarray.o $(srcdir)/../libobjects.a
-	$(LINK_CMD)
+
+#nsarchiving: nsarray.o $(srcdir)/../libobjects.a
+#	$(LINK_CMD)
 
 echo-excs:
 	@echo $(EXCS)
