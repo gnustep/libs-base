@@ -58,6 +58,7 @@ TEST_TOOL_NAME = \
 		nsdate \
 		nsdictionary \
 		nsfilehandle \
+		nsfilemanager \
 		nshashtable \
 		nshost \
 		nsinvocation \
@@ -99,6 +100,7 @@ nsdata_OBJC_FILES = nsdata.m
 nsdate_OBJC_FILES = nsdate.m
 nsdictionary_OBJC_FILES = nsdictionary.m
 nsfilehandle_OBJC_FILES = nsfilehandle.m
+nsfilemanager_OBJC_FILES = nsfilemanager.m
 nshashtable_OBJC_FILES = nshashtable.m
 nshost_OBJC_FILES = nshost.m
 nsinvocation_OBJC_FILES = nsinvocation.m
