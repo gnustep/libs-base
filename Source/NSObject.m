@@ -70,17 +70,15 @@ void NSIncrementExtraRefCount(id anObject)
 
 BOOL NSDecrementExtraRefCountWasZero(id anObject)
 {
+  BOOL wasZero = YES;
   coll_node_ptr n;
 
   n = coll_hash_node_for_key(retain_counts, anObject);
-  if (n)
-    {
-      (n->value.unsigned_int_u)--;
-      if (n->value.unsigned_int_u)
-	return NO;
-      coll_hash_remove(retain_counts, anObject);
-    }
-  return YES;
+  if (!n) return wasZero;
+  if (n->value.unsigned_int_u) wasZero = NO;
+  if (!--n->value.unsigned_int_u)
+    coll_hash_remove(retain_counts, anObject);
+  return wasZero;
 }
 
 @implementation NSObject
