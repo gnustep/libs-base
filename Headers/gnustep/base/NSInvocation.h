@@ -38,6 +38,7 @@
     int			numArgs;
     NSArgumentInfo	*info;
     BOOL		argsRetained;
+    BOOL		validReturn;
 }
 
 /*

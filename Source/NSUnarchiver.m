@@ -283,7 +283,8 @@ static IMP	rDatImp;	/* To autorelease it.		*/
     }
   NS_HANDLER
     {
-      obj = nil;
+      [unarchiver release];
+      [localException raise];
     }
   NS_ENDHANDLER
   [unarchiver release];
@@ -639,10 +640,7 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	  int offset = 0;
 
 	  typeCheck(*type, _C_STRUCT_B);
-	  while (*type != _C_STRUCT_E && *type != '=')
-	    {
-	      type++;
-	    }
+	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
 	  for (;;)
 	    {
 	      (*dValImp)(self, dValSel, type, (char*)address + offset);
@@ -700,16 +698,17 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 		}
 
 	      /*
-	       *	Allocate memory for object to be decoded into.
+	       *	Allocate memory for object to be decoded into and
+	       *	add it to the crossref map.
 	       */
 	      size = objc_sizeof_type(++type);
 	      *(void**)address = NSZoneMalloc(zone, size);
+	      arrayAddItem(ptrMap, *(void**)address);
 
 	      /*
 	       *	Decode value and add memory to map for crossrefs.
 	       */
 	      (*dValImp)(self, dValSel, type, *(void**)address);
-	      arrayAddItem(ptrMap, *(void**)address);
 
 	      /*
 	       *	Allocate, initialise, and autorelease an NSData
