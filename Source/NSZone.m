@@ -78,6 +78,7 @@
 
 /* Define to turn off assertions. */
 #define NDEBUG 1
+//#define DEBUG 1
 
 
 #include <config.h>
@@ -150,12 +151,22 @@ struct _ffree_block_struct
   char	padding[ALIGN - ((FFCPAD % ALIGN) ? (FFCPAD % ALIGN) : ALIGN)];
 };
 
-/* Links for free lists. */
-struct _ffree_free_link
+struct _ffree_free_link_unpadded
 {
-    ff_block	header;
+    size_t	size;
     ff_link	*prev;
     ff_link	*next;
+    size_t	back;	/* Back link at end of 'dead' block.	*/
+};
+#define	FFDPAD	sizeof(struct _ffree_free_link_unpadded)
+
+struct _ffree_free_link
+{
+    size_t	size;
+    ff_link	*prev;
+    ff_link	*next;
+    size_t	back;
+    char	padding[ALIGN - ((FFDPAD % ALIGN) ? (FFDPAD % ALIGN) : ALIGN)];
 };
 
 /* NSZone structure for freeable zones. */
@@ -186,8 +197,7 @@ roundupto (size_t n, size_t base)
  *	free-list, and a reverse pointer (size_t) to go at the end of the
  *	chunk while it is waiting to be consolidated with other chunks.
  */
-static size_t minchunk = sizeof(ff_link)+ALIGN;
-#define MINCHUNK minchunk
+#define MINCHUNK sizeof(ff_link)
 
 #define CLTOSZ(n) ((n)*MINCHUNK) /* Converts classes to sizes. */
 
@@ -846,8 +856,8 @@ fcheck (NSZone *zone)
 
           nextchunk = chunk->next;
           /* Isn't this one ugly if statement? */
-          if (chunkIsInUse(&chunk->header)
-              || (segindex(chunkSize(&chunk->header)) != i)
+          if (chunkIsInUse((ff_block*)chunk)
+              || (segindex(chunkSize((ff_block*)chunk)) != i)
               || ((nextchunk != NULL) && (chunk != nextchunk->prev))
               || ((nextchunk == NULL) && (chunk != zptr->segtaillist[i])))
             goto inconsistent;
@@ -945,7 +955,7 @@ fstats (NSZone *zone)
   return stats;
 }
 
-/* Calculate the which segregation class a certain size should be in.
+/* Calculate which segregation class a certain size should be in.
    FIXME: Optimize code and find a more optimum distribution. */
 static inline size_t
 segindex (size_t size)
@@ -985,7 +995,7 @@ get_chunk (ffree_zone *zone, size_t size)
 
   assert(size%MINCHUNK == 0);
   
-  while ((link != NULL) && (chunkSize(&link->header) < size))
+  while ((link != NULL) && (chunkSize((ff_block*)link) < size))
     link = link->next;
   if (link == NULL)
     /* Get more memory. */
