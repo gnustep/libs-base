@@ -2573,6 +2573,75 @@ static NSCharacterSet	*tokenSet = nil;
   return content;
 }
 
+/**
+ * Search the content of this document to locate a part whose content ID
+ * matches the specified key.  Recursively descend into other documents.<br />
+ * Return nil if no match is found, the matching GSMimeDocument otherwise.
+ */ 
+- (id) contentByID: (NSString*)key
+{
+  if ([content isKindOfClass: [NSArray class]] == YES)
+    {
+      NSEnumerator	*e = [content objectEnumerator];
+      GSMimeDocument	*d;
+
+      while ((d = [e nextObject]) != nil)
+	{
+	  if ([[d contentID] isEqualToString: key] == YES)
+	    {
+	      return d;
+	    }
+	  d = [d contentByID: key];
+	  if (d != nil)
+	    {
+	      return d;
+	    }
+	}
+    }
+  return nil;
+}
+
+/**
+ * Search the content of this document to locate a part whose content name
+ * matches the specified key.  Recursively descend into other documents.<br />
+ * Return nil if no match is found, the matching GSMimeDocument otherwise.
+ */ 
+- (id) contentByName: (NSString*)key
+{
+  if ([content isKindOfClass: [NSArray class]] == YES)
+    {
+      NSEnumerator	*e = [content objectEnumerator];
+      GSMimeDocument	*d;
+
+      while ((d = [e nextObject]) != nil)
+	{
+	  if ([[d contentName] isEqualToString: key] == YES)
+	    {
+	      return d;
+	    }
+	  d = [d contentByName: key];
+	  if (d != nil)
+	    {
+	      return d;
+	    }
+	}
+    }
+  return nil;
+}
+
+/**
+ * Convenience method to fetch the content file name from the header.
+ */
+- (NSString*) contentFile
+{
+  GSMimeHeader	*hdr = [self headerNamed: @"content-disposition"];
+
+  return [hdr parameterForKey: @"filename"];
+}
+
+/**
+ * Convenience method to fetch the content ID from the header.
+ */
 - (NSString*) contentID
 {
   GSMimeHeader	*hdr = [self headerNamed: @"content-id"];
@@ -2580,6 +2649,19 @@ static NSCharacterSet	*tokenSet = nil;
   return [hdr value];
 }
 
+/**
+ * Convenience method to fetch the content name from the header.
+ */
+- (NSString*) contentName
+{
+  GSMimeHeader	*hdr = [self headerNamed: @"content-name"];
+
+  return [hdr parameterForKey: @"name"];
+}
+
+/**
+ * Convenience method to fetch the content sub-type from the header.
+ */
 - (NSString*) contentSubType
 {
   GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
@@ -2587,6 +2669,9 @@ static NSCharacterSet	*tokenSet = nil;
   return [hdr objectForKey: @"SubType"];
 }
 
+/**
+ * Convenience method to fetch the content type from the header.
+ */
 - (NSString*) contentType
 {
   GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
@@ -2671,8 +2756,7 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * This method returns an array of GSMimeHeader objects for all headers
- * whose names equal the supplied argument.  For some special cases, the
- * method will try to generate headers if they are not present.
+ * whose names equal the supplied argument.
  */
 - (NSArray*) headersNamed: (NSString*)name
 {
@@ -2691,61 +2775,6 @@ static NSCharacterSet	*tokenSet = nil;
 	  [array addObject: info];
 	}
     } 
-  if ([array count] == 0)
-    {
-      /*
-       * If we have been asked for a Content-ID and there is none set,
-       * we can generate one unique within this document.
-       */
-      if ([name isEqualToString: @"content-id"] == YES)
-	{
-	  NSString	*val;
-	  GSMimeHeader	*hdr;
-
-	  val = [NSString stringWithFormat: @"GSMime%08x%08x", self, _count++];
-	  hdr = [[GSMimeHeader alloc] initWithName: name
-					     value: val
-					parameters: nil];
-	  [self addHeader: hdr];
-	  [array addObject: hdr];
-	  RELEASE(hdr);
-	}
-      /*
-       * If we have been asked for a Content-Tyoe and there is none set,
-       * we can try to infer one from the actual content we have (if any)
-       * but we don't set it, since it may well be changed.
-       */
-      if ([name isEqualToString: @"content-type"] == YES)
-	{
-	  GSMimeHeader	*hdr;
-
-	  hdr = [[GSMimeHeader alloc] initWithName: name
-					     value: @""
-					parameters: nil];
-
-	  if (content == nil || [content isKindOfClass: [NSString class]])
-	    {
-	      [hdr setValue: @"text/plain"];
-	      [hdr setObject: @"text" forKey: @"Type"];
-	      [hdr setObject: @"plain" forKey: @"SubType"];
-	    }
-	  else if ([content isKindOfClass: [NSData class]])
-	    {
-	      [hdr setValue: @"application/octet-stream"];
-	      [hdr setObject: @"application" forKey: @"Type"];
-	      [hdr setObject: @"octet-stream" forKey: @"SubType"];
-	    }
-	  else
-	    {
-	      [hdr setValue: @"multipart/mixed"];
-	      [hdr setObject: @"multipart" forKey: @"Type"];
-	      [hdr setObject: @"mixed" forKey: @"SubType"];
-	    }
-
-	  [array addObject: hdr];
-	  RELEASE(hdr);
-	}
-    }
   return array;
 }
 
@@ -2756,6 +2785,24 @@ static NSCharacterSet	*tokenSet = nil;
       headers = [NSMutableArray new];
     }
   return self;
+}
+
+/**
+ * Create new content ID header, set it as the content ID of the document
+ * and return it.
+ */
+- (GSMimeHeader*) makeContentID
+{
+  NSString	*val;
+  GSMimeHeader	*hdr;
+
+  val = [NSString stringWithFormat: @"GSMime%08x%08x", self, _count++];
+  hdr = [[GSMimeHeader alloc] initWithName: @"content-id"
+				     value: val
+				parameters: nil];
+  [self setHeader: hdr];
+  RELEASE(hdr);
+  return hdr;
 }
 
 /**
@@ -2784,6 +2831,44 @@ static NSCharacterSet	*tokenSet = nil;
       result = NO;
     }
   return result;
+}
+
+/**
+ * Convenience method to set the content of the document aslong with
+ * creating a content-type header for it.
+ */
+- (BOOL) setContent: (id)newContent
+	       type: (NSString*)type
+	    subType: (NSString*)subType
+	       name: (NSString*)name
+{
+  if ([type isEqualToString: @"multi-part"] == NO
+    && [content isKindOfClass: [NSArray class]] == YES)
+    {
+      NSLog(@"Can't set non-'multi-part' content type for array of content");
+      return NO;
+    }
+
+  if ([self setContent: newContent] == NO)
+    {
+      return NO;
+    }
+  else
+    {
+      GSMimeHeader	*hdr;
+      NSString		*val;
+
+      val = [NSString stringWithFormat: @"%@/%@", type, subType];
+      hdr = [GSMimeHeader alloc];
+      hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
+      if (name != nil)
+	{
+	  [hdr setParameter: name forKey: @"name"];
+	}
+      [self setHeader: hdr];
+      RELEASE(hdr);
+    }
+  return YES;
 }
 
 /**

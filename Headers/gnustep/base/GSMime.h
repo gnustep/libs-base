@@ -92,14 +92,23 @@
 - (BOOL) addHeader: (GSMimeHeader*)info;
 - (NSArray*) allHeaders;
 - (id) content;
+- (id) contentByID: (NSString*)key;
+- (id) contentByName: (NSString*)key;
+- (NSString*) contentFile;
 - (NSString*) contentID;
+- (NSString*) contentName;
 - (NSString*) contentSubType;
 - (NSString*) contentType;
 - (void) deleteHeader: (GSMimeHeader*)aHeader;
 - (void) deleteHeaderNamed: (NSString*)name;
 - (GSMimeHeader*) headerNamed: (NSString*)name;
 - (NSArray*) headersNamed: (NSString*)name;
+- (GSMimeHeader*) makeContentID;
 - (BOOL) setContent: (id)newContent;
+- (BOOL) setContent: (id)newContent
+	       type: (NSString*)type
+	    subType: (NSString*)subType
+	       name: (NSString*)name;
 - (BOOL) setHeader: (GSMimeHeader*)info;
 
 @end

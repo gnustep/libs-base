@@ -1,3 +1,8 @@
+2002-05-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/GSMime.h: Tidy up and add convenience methods.
+	* Source/Additions/GSMime.m: Tidy up and add convenience methods.
+
 2002-05-26  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/Additions/GSXML.m
