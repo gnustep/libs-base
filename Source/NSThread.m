@@ -35,8 +35,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <sys/types.h>
-#include <sys/socket.h>
 
 #include <Foundation/NSThread.h>
 #include <Foundation/NSLock.h>
