@@ -833,8 +833,10 @@ static BOOL double_release_check_enabled = NO;
 - (void) doesNotRecognizeSelector: (SEL)aSelector
 {
   [NSException raise: NSInvalidArgumentException
-	       format: @"%s does not recognize %s",
-	       object_get_class_name(self), sel_get_name(aSelector)];
+	       format: @"%s(%s) does not recognize %s",
+	       object_get_class_name(self), 
+	       GSObjCIsInstance(self) ? "instance" : "class",
+	       sel_get_name(aSelector)];
 }
 
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
@@ -1246,15 +1248,19 @@ static BOOL double_release_check_enabled = NO;
 {
   [NSException
     raise: NSGenericException
-    format: @"method %s not implemented in %s", sel_get_name(aSel), object_get_class_name(self)];
+    format: @"method %s not implemented in %s(%s)", sel_get_name(aSel), 
+    object_get_class_name(self),
+    GSObjCIsInstance(self) ? "instance" : "class"];
   return nil;
 }
 
 - (id) doesNotRecognize: (SEL)aSel
 {
   [NSException raise: NSGenericException
-	       format: @"%s does not recognize %s",
-	       object_get_class_name(self), sel_get_name(aSel)];
+	       format: @"%s(%s) does not recognize %s",
+	       object_get_class_name(self), 
+	       GSObjCIsInstance(self) ? "instance" : "class",
+	       sel_get_name(aSel)];
   return nil;
 }
 
@@ -2364,8 +2370,10 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 - (id) subclassResponsibility: (SEL)aSel
 {
   [NSException raise: NSGenericException
-    format: @"subclass %s should override %s", object_get_class_name(self),
-    sel_get_name(aSel)];
+    format: @"subclass %s(%s) should override %s", 
+	       object_get_class_name(self),
+	       GSObjCIsInstance(self) ? "instance" : "class",
+	       sel_get_name(aSel)];
   return nil;
 }
 
@@ -2373,8 +2381,10 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 {
   [NSException
     raise: NSGenericException
-    format: @"%s should not implement %s", 
-    object_get_class_name(self), sel_get_name(aSel)];
+    format: @"%s(%s) should not implement %s", 
+    object_get_class_name(self), 
+    GSObjCIsInstance(self) ? "instance" : "class",
+    sel_get_name(aSel)];
   return nil;
 }
 
