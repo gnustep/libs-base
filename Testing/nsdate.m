@@ -316,6 +316,18 @@ if ([(NSDate*) [NSCalendarDate date] compare:
       printf("Failed on 2003/01/06 is week 2\n");
     else
       printf("All passed\n");
+
+
+    c = [NSCalendarDate dateWithString: @"2004-05-30 00:30:00 HPT"
+			calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"];
+    c1 = [NSCalendarDate dateWithString: @"2004-05-30 00:30:00 HST"
+			calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"];
+    printf("date with time zone abbr %s\n", [[c description] cString]);
+    if ([c isEqual: c1])
+      printf("Passed date with time zone abbreviation\n");
+    else
+      printf("Failed date with time zone abbreviation\n");
+
   }
 
   [pool release];

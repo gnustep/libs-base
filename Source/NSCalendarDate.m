@@ -1083,10 +1083,13 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    {
 		      NSString	*z = [NSString stringWithCString: tmpStr];
 
-		      tz = [NSTimeZone timeZoneWithName: z];
-		      if (tz == nil)
+		      if ([[NSTimeZone abbreviationDictionary] objectForKey: z])
 			{
 			  tz = [NSTimeZone timeZoneWithAbbreviation: z];
+			}
+		      else
+			{
+		          tz = [NSTimeZone timeZoneWithName: z];
 			}
 		    }
 		    break;
