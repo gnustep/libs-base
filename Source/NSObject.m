@@ -247,7 +247,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
 
 - (void) doesNotRecognizeSelector: (SEL)aSelector
 {
-  [NSException raise: NSGenericException
+  [NSException raise: NSInvalidArgumentException
 	       format: @"%s does not recognize %s",
 	       object_get_class_name(self), sel_get_name(aSelector)];
 }
