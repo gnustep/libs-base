@@ -3,6 +3,9 @@
 	* Source/NSUserDefaults.m: ([setObject:forKey:]) when given a nil
 	value to set, remove any existing object for the key.  Fix for
 	MacOS-X compatibility (bug #10743).
+	* Source/Additions/GSXML.m: Tweaks for 64-bit processors where
+	sizeof int is not sizeof void*
+	Minor optimisaion ... improve hash values.
 
 2004-10-29  Matt Rice  <ratmice@yahoo.com>
 
