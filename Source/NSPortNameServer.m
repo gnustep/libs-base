@@ -39,7 +39,6 @@
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSDebug.h>
-#include <base/TcpPort.h>
 #include <arpa/inet.h>
 
 /*
@@ -60,16 +59,12 @@
  * to suppress warnings about using private methods.
  */
 @class	GSTcpPort;
-@class	TcpOutPort;
 @interface NSPort (Hack)
-+ newForSendingToSockaddr: (struct sockaddr_in*)sockaddr
-       withAcceptedSocket: (int)sock
-            pollingInPort: (id)ip;
-
 + (GSTcpPort*) portWithNumber: (gsu16)number
 		       onHost: (NSHost*)host
 		 forceAddress: (NSString*)addr
 		     listener: (BOOL)shouldListen;
+- (gsu16) portNumber;
 @end
 
 /*
@@ -534,11 +529,7 @@ typedef enum {
 #endif
       launchCmd = [NSString stringWithCString:
 	make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX)]; 
-#if	GS_NEW_DO
       portClass = [GSTcpPort class];
-#else
-      portClass = [TcpOutPort class];
-#endif
     }
 }
 
@@ -783,34 +774,7 @@ typedef enum {
 
   if (portNum)
     {
-      if (portClass == [TcpOutPort class])
-	{
-	  struct sockaddr_in	sin;
-	  NSPort			*p;
-	  unsigned short		n;
-
-	  memset(&sin, '\0', sizeof(sin));
-	  sin.sin_family = AF_INET;
-
-	  /*
-	   *	The returned port is an unsigned int - so we have to
-	   *	convert to a short in network byte order (big endian).
-	   */
-	  n = (unsigned short)portNum;
-	  sin.sin_port = NSSwapHostShortToBig(n);
-
-	  /*
-	   *	The host addresses are given to us in network byte order
-	   *	so we just copy the address into place.
-	   */
-	  sin.sin_addr = singleServer;
-
-	  p = [TcpOutPort newForSendingToSockaddr: &sin
-			       withAcceptedSocket: 0
-				    pollingInPort: nil];
-	  return AUTORELEASE(p);
-	}
-      else if (portClass == [GSTcpPort class])
+      if (portClass == [GSTcpPort class])
 	{
 	  NSString	*addr;
 	  NSHost	*host;
@@ -895,7 +859,7 @@ typedef enum {
       if ([known count] == 0)
 	{
 	  com = [GSPortCom new];
-	  [com startPortUnregistration: [(TcpInPort*)port portNumber]
+	  [com startPortUnregistration: [port portNumber]
 			      withName: nil];
 	  while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
 	    {
@@ -914,7 +878,7 @@ typedef enum {
 	}
 
       com = [GSPortCom new];
-      [com startPortRegistration: [(TcpInPort*)port portNumber]
+      [com startPortRegistration: [port portNumber]
 			withName: name];
       while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
 	{

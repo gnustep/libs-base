@@ -43,7 +43,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <base/preface.h>
-#include <base/Coding.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCharacterSet.h>
