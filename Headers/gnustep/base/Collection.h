@@ -39,6 +39,7 @@
 {
 }
 
+- (void) withObjectsInvoke: anInvocation;
 - printElement: (elt)anElement;
 - printForDebugger;
 
