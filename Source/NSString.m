@@ -4614,7 +4614,7 @@ static inline id parseQuotedString(pldata* pld)
 	    {
 	      if (escaped == 1 && c >= '0' && c <= '7')
 		{
-		  chars[k] = 0;
+		  chars[k] = c - '0';
 		  hex = NO;
 		  escaped++;
 		}
