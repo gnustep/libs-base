@@ -5,6 +5,8 @@
 	(GSGetClassMethodNotInherited): Fix typo.
 	(GSObjCAddClassBehavior): Add call to GSFlushMethodCacheForClass
 	after adding behavior.
+	(BDBGPrintf): Add space before last comma in macro older
+	compilers.
 
 2004-06-05  David Ayers  <d.ayers@inode.at>
 
