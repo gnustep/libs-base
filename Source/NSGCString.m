@@ -1115,23 +1115,71 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (void) deleteCharactersInRange: (NSRange)range
 {
+  GS_RANGE_CHECK(range, _count);
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, 
 				    range.location, range.length);
 }
 
-// xxx This should be primitive method
-- (void) replaceCharactersInRange: (NSRange)range
+- (void) replaceCharactersInRange: (NSRange)aRange
 		       withString: (NSString*)aString
 {
-  [self deleteCharactersInRange: range];
-  [self insertString: aString atIndex: range.location];
+  int		offset;
+  unsigned	stringLength = (aString == nil) ? 0 : [aString length];
+  int		tmp;
+
+  GS_RANGE_CHECK(aRange, _count);
+
+  offset = stringLength - aRange.length;
+
+  /*
+   * Make sure we have enough space for the string plus a terminating nul
+   * because we may need to use the getCString method, and that will write
+   * a nul into our buffer.
+   */
+  if (_count + stringLength >= _capacity + aRange.length)
+    {
+      _capacity += stringLength - aRange.length;
+      if (_capacity < 2)
+	_capacity = 2;
+      _contents_chars =
+	NSZoneRealloc(_zone, _contents_chars, sizeof(char)*(_capacity+1));
+    }
+
+#ifdef  HAVE_MEMMOVE
+  if (offset != 0)
+    {
+      char *src = _contents_chars + aRange.location + aRange.length;
+      memmove(src + offset, src, (_count - aRange.location - aRange.length));
+    }
+#else
+  if (offset > 0)
+    {
+      int first = aRange.location + aRange.length;
+      int i;
+      for (i = _count - 1; i >= first; i--)
+        _contents_chars[i+offset] = _contents_chars[i];
+    }
+  else if (offset < 0)
+    {
+      int i;
+      for (i = aRange.location + aRange.length; i < _count; i++)
+        _contents_chars[i+offset] = _contents_chars[i];
+    }
+#endif
+  tmp = _contents_chars[aRange.location + stringLength];
+  [aString getCString: &_contents_chars[aRange.location]];
+  _contents_chars[aRange.location + stringLength] = tmp;
+  _count += offset;
+  _hash = 0;
 }
 
 - (void) insertString: (NSString*)aString atIndex: (unsigned)index
 {
-  unsigned c = [aString cStringLength];
+  unsigned c;
   unsigned char	save;
 
+  CHECK_INDEX_RANGE_ERROR(index, _count);
+  c = [aString cStringLength];
   if (_count + c >= _capacity)
     stringGrowBy((NSGMutableCStringStruct *)self, c);
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
@@ -1187,12 +1235,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return [self initWithCStringNoCopy: 0 length: 0 fromZone: 0];
 }
 
-- (void) removeRange: (NSRange)range
-{
-  stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, 
-				    range.location, range.length);
-}
-
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned cap;
@@ -1216,25 +1258,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 }
 
 
-- (void) insertObject: newObject atIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, _count+1);
-  // one for the next char, one for the '\0';
-  if (_count >= _capacity)
-    {
-      _capacity *= 2;
-      _contents_chars =
-		NSZoneRealloc(_zone, _contents_chars, _capacity);
-    }
-  stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, 1);
-  _contents_chars[index] = [newObject charValue];
-}
-
-- (void) removeObjectAtIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, _count);
-  stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, index, 1);
-}
 
 - (unsigned char*) _extendBy: (unsigned)len
 {

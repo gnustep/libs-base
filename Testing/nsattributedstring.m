@@ -93,10 +93,15 @@ void testAttributedString(void)
     attributes:colorAttributes];
   [muAttrString autorelease];
   printAttrString(muAttrString);
-  
+
+  [muAttrString addAttribute:NSFontAttributeName value: @"Helvetica 12-point"
+    range:NSMakeRange(2,4)];
+  printAttrString(muAttrString);
+/*
   [muAttrString setAttributes:attributes
     range:NSMakeRange(2,4)];
   printAttrString(muAttrString);
+*/
 
   [muAttrString setAttributes:attributes
     range:NSMakeRange(8,16)];
