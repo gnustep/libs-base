@@ -1458,19 +1458,22 @@ static NSLock		*global_proxies_gate;
       return;
     }
 
-  if (_authenticateIn == YES)
+  if (conn->_authenticateIn == YES
+    && (type == METHOD_REQUEST || type == METHOD_REPLY))
     {
       NSData	*d;
       unsigned	count = [components count];
 
-      d = AUTORELEASE(RETAIN([components objectAtIndex: --count]));
+      d = RETAIN([components objectAtIndex: --count]);
       [components removeObjectAtIndex: count];
-      if ([[self delegate] authenticateComponents: components
+      if ([[conn delegate] authenticateComponents: components
 					 withData: d] == NO)
 	{
+	  RELEASE(d);
 	  [NSException raise: NSFailedAuthenticationException
 		      format: @"message not authenticated by delegate"];
 	}
+      RELEASE(d);
     }
 
   rmc = [conn _makeInRmc: components];
@@ -1995,7 +1998,8 @@ static NSLock		*global_proxies_gate;
   BOOL			needsReply = NO;
   NSMutableArray	*components = [c _components];
 
-  if (_authenticateOut == YES)
+  if (_authenticateOut == YES
+    && (msgid == METHOD_REQUEST || msgid == METHOD_REPLY))
     {
       NSData	*d;
 

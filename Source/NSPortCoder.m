@@ -295,10 +295,16 @@ typeCheck(char t1, char t2)
 
 @implementation NSPortCoder
 
+@class	NSMutableDataMalloc;
+
 static Class	connectionClass;
 static Class	mutableArrayClass;
 static Class	mutableDataClass;
 static Class	mutableDictionaryClass;
+
+static IMP	_eSerImp;	/* Method to serialize with.	*/
+static IMP	_eTagImp;	/* Serialize a type tag.	*/
+static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
 + (void) initialize
 {
@@ -306,7 +312,10 @@ static Class	mutableDictionaryClass;
     {
       connectionClass = [NSConnection class];
       mutableArrayClass = [NSMutableArray class];
-      mutableDataClass = [NSMutableData class];
+      mutableDataClass = [NSMutableDataMalloc class];
+      _eSerImp = [mutableDataClass instanceMethodForSelector: eSerSel];
+      _eTagImp = [mutableDataClass instanceMethodForSelector: eTagSel];
+      _xRefImp = [mutableDataClass instanceMethodForSelector: xRefSel];
       mutableDictionaryClass = [NSMutableDictionary class];
     }
 }
@@ -330,6 +339,7 @@ static Class	mutableDictionaryClass;
 
 - (void) dealloc
 {
+  RELEASE(_dst);	/* Decoders retain their output data object.	*/
   RELEASE(_comp);
   RELEASE(_conn);
   RELEASE(_cInfo);
@@ -1683,14 +1693,10 @@ static Class	mutableDictionaryClass;
 	      _dst = [mutableDataClass allocWithZone: _zone];
 	      _dst = [_dst initWithLength: _cursor];
 	      [_comp addObject: _dst];
-	      RELEASE(_dst);
 
 	      /*
 	       * Cache method implementations for writing into data object etc
 	       */
-	      _eSerImp = [_dst methodForSelector: eSerSel];
-	      _eTagImp = [_dst methodForSelector: eTagSel];
-	      _xRefImp = [_dst methodForSelector: xRefSel];
 	      _eObjImp = [self methodForSelector: eObjSel];
 	      _eValImp = [self methodForSelector: eValSel];
 
@@ -1709,16 +1715,14 @@ static Class	mutableDictionaryClass;
 	    }
 	  else
 	    {
-	      unsigned	count;
-
 	      /*
-	       * If re-initialising, we just need to empty the old stuff.
+	       * If re-initialising, we need to empty the old stuff.
+	       * NB. Our _dst object may have been removed from the _comp
+	       * array elsewhere, so we empty the _comp array and then re-add
+	       * _dst
 	       */
-	      count = [_comp count];
-	      while (count-- > 1)
-		{
-		  [_comp removeObjectAtIndex: count];
-		}
+	      [_comp removeAllObjects];
+	      [_comp addObject: _dst];
 	      [_dst setLength: _cursor];
 	      GSIMapCleanMap(_clsMap);
 	      GSIMapCleanMap(_cIdMap);

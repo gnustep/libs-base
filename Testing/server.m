@@ -5,12 +5,36 @@
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotification.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSRunLoop.h>
 #include <base/BinaryCStream.h>
 #include    <Foundation/NSAutoreleasePool.h>
 #include "server.h"
 
 @implementation Server
+- (NSData*) authenticationDataForComponents: (NSMutableArray*)components
+{
+  unsigned	count = [components count];
+
+  while (count-- > 0)
+    {
+      id	obj = [components objectAtIndex: count];
+
+      if ([obj isKindOfClass: [NSData class]] == YES)
+	{
+	  NSMutableData	*d = [obj mutableCopy];
+	  unsigned	l = [d length];
+	  char		*p = (char*)[d mutableBytes];
+
+	  while (l-- > 0)
+	    p[l] ^= 42;
+	  [components replaceObjectAtIndex: count withObject: d];
+	  RELEASE(d);
+	}
+    }
+  return [NSData data];
+}
+
 - init
 {
   the_array = [[NSMutableArray alloc] init];
