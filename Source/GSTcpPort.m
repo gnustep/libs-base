@@ -384,9 +384,10 @@ static Class	runLoopClass;
 + (GSTcpHandle*) handleWithDescriptor: (int)d
 {
   GSTcpHandle	*handle;
-  int		e;
 #ifdef __MINGW__
   unsigned long dummy;
+#else
+  int		e;
 #endif /* __MINGW__ */
 
   if (d < 0)
@@ -398,7 +399,8 @@ static Class	runLoopClass;
   dummy = 1;
   if (ioctlsocket(d, FIONBIO, &dummy) < 0)
     {
-      NSLog(@"unable to set non-blocking mode - %s", GSLastErrorStr(errno));
+      NSLog(@"unable to set non-blocking mode on %d - %s",
+	d, GSLastErrorStr(errno));
       return nil;
     }
 #else /* !__MINGW__ */
@@ -407,16 +409,18 @@ static Class	runLoopClass;
       e |= NBLK_OPT;
       if (fcntl(d, F_SETFL, e) < 0)
 	{
-	  NSLog(@"unable to set non-blocking mode - %s", GSLastErrorStr(errno));
+	  NSLog(@"unable to set non-blocking mode on %d - %s",
+	    d, GSLastErrorStr(errno));
 	  return nil;
 	}
     }
-#endif
   else
     {
-      NSLog(@"unable to get non-blocking mode - %s", GSLastErrorStr(errno));
+      NSLog(@"unable to get non-blocking mode on %d - %s",
+	d, GSLastErrorStr(errno));
       return nil;
     }
+#endif
   handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
@@ -515,14 +519,14 @@ static Class	runLoopClass;
   if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) < 0)
     {
 #ifdef __MINGW__
-      if (WSAGetLastError() != WSAEINPROGRESS)
+      if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
       if (errno != EINPROGRESS)
 #endif
 	{
 	  NSLog(@"unable to make connection to %s:%d - %s",
-	      inet_ntoa(sockAddr.sin_addr),
-	      GSSwapBigI16ToHost(sockAddr.sin_port), GSLastErrorStr(errno));
+	    inet_ntoa(sockAddr.sin_addr),
+	    GSSwapBigI16ToHost(sockAddr.sin_port), GSLastErrorStr(errno));
 	  if (addrNum < [addrs count])
 	    {
 	      BOOL	result;
@@ -748,7 +752,11 @@ static Class	runLoopClass;
        * Now try to fill the buffer with data.
        */
       bytes = [rData mutableBytes];
+#ifdef __MINGW__
+      res = recv(desc, bytes + rLength, want - rLength, 0);
+#else
       res = read(desc, bytes + rLength, want - rLength);
+#endif
       if (res <= 0)
 	{
 	  if (res == 0)
@@ -1015,7 +1023,7 @@ static Class	runLoopClass;
     {
       if (state == GS_H_TRYCON)	/* Connection attempt.	*/
 	{
-	  int	res;
+	  int	res = 0;
 	  int	len = sizeof(res);
 
 	  if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) == 0
@@ -1028,7 +1036,11 @@ static Class	runLoopClass;
 	    {
 	      NSData	*d = newDataWithEncodedPort([self recvPort]);
 
+#ifdef __MINGW__
+	      len = send(desc, [d bytes], [d length], 0);
+#else
 	      len = write(desc, [d bytes], [d length]);
+#endif
 	      if (len == [d length])
 		{
 		  RELEASE(defaultAddress);
@@ -1071,7 +1083,11 @@ static Class	runLoopClass;
 	    }
 	  b = [wData bytes];
 	  l = [wData length];
+#ifdef __MINGW__
+	  res = send(desc, b + wLength,  l - wLength, 0);
+#else
 	  res = write(desc, b + wLength,  l - wLength);
+#endif
 	  if (res < 0)
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
@@ -1435,7 +1451,8 @@ static Class		tcpPortClass;
 		sizeof(reuse)) < 0)
 	    {
 	      (void) close(desc);
-              NSLog(@"unable to set reuse on socket - %s", GSLastErrorStr(errno));
+              NSLog(@"unable to set reuse on socket - %s",
+		GSLastErrorStr(errno));
               DESTROY(port);
 	    }
 	  else if (bind(desc, (struct sockaddr *)&sockaddr,
@@ -1479,7 +1496,7 @@ static Class		tcpPortClass;
 		   * create the map table to add the new port to.
 		   */ 
 		  thePorts = NSCreateMapTable(NSObjectMapKeyCallBacks,
-				  NSNonOwnedPointerMapValueCallBacks, 0);
+		    NSNonOwnedPointerMapValueCallBacks, 0);
 		  NSMapInsert(tcpPortMap, (void*)(gsaddr)port->portNum,
 		    (void*)thePorts);
 		}
@@ -1728,7 +1745,7 @@ static Class		tcpPortClass;
 	{
 	  if (listener >= 0)
 	    {
-	      (void)close(listener);
+	      (void) close(listener);
 	      listener = -1;
 	    }
 	  NSMapRemove(thePorts, (void*)host);
