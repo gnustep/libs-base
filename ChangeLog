@@ -1,3 +1,9 @@
+2001-04-06  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSString.m (pathSepMember): Made trivial and inlined.
+	([-stringsByAppendingPaths:]): Count the array only once, not for
+	any loop in the cycle.
+	
 2001-04-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUser.m: NSTemporaryDirectory() rewrite for improved
