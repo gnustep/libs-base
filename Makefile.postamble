@@ -76,6 +76,7 @@ after-distclean::
 
 header-links: $(HEADER_LINK_DEPENDS)
 	-rm -f Headers/Foundation
+	-rm -f Source/Foundation
 	$(LN_S) gnustep/base Headers/Foundation
 	$(LN_S) ../Headers/gnustep/base Source/Foundation
 
