@@ -351,7 +351,7 @@ static BOOL	shouldBeCompact = NO;
  *	Class variables for uniquing incoming strings.
  */
 static NSRecursiveLock	*uniqueLock = nil;
-static NSCountedSet	*uniqueSet = nil;
+static NSMutableSet	*uniqueSet = nil;
 
 /*
  *	Variables to cache class information.
@@ -774,28 +774,23 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   uniqueLock = [NSRecursiveLock new];
 }
 
-/*
- * Remove one copy of each object in the uniquing  set, or remove all
- * objects if the flag is YES.
- */
-+ (void) purge
++ (NSMutableSet*) uniqueSet
+{
+  return uniqueSet;
+}
+
++ (NSString*) unique: (NSString*)str
 {
   if (uniqueSet)
     {
-      NSArray	*all;
-      id	obj;
-      unsigned	i;
-
       if (uniqueLock != nil)
 	[uniqueLock lock];
-      all = [uniqueSet allObjects];
-      for (i = [all count]; i > 0; i--)
-	{
-	  [uniqueSet removeObject: [all objectAtIndex: i-1]];
-	}
+      [uniqueSet addObject: str];
+      str = [uniqueSet member: str];
       if (uniqueLock != nil)
 	[uniqueLock unlock];
     }
+  return str;
 }
 
 /*
@@ -809,7 +804,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     {
       if (uniqueSet == nil)
 	{
-	  uniqueSet = [NSCountedSet new];
+	  uniqueSet = [NSMutableSet new];
 	}
     }
   else

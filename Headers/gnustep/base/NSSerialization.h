@@ -91,16 +91,16 @@
  *	The default is NOT to deserialize uniqued strings.
  *
  *	The [+uniquing:] method turns uniquing on/off.  Turning off uniquing
- *	destroys the NSCountedSet used for uniquing.
- *	The [+purge] method lets you remove some of the objects from the
- *	NSCountedSet used for uniquing.  The count of each string in the
- *	set is decreased, so that strings that have only been deserialized
- *	once are removed.
+ *	destroys the NSMutableSet used for uniquing.
+ *	The [+uniqueSet] method gives you direct access to the uniquing set.
+ *	The [+unique:] method lets you find the 'uniqued' version os a string.
  */
+@class	NSMutableSet;
 @interface NSDeserializer (GNUstep)
 + (void) _becomeThreaded: (id)notification; /* private */
-+ (void) purge;
++ (NSString*) unique: (NSString*)original;
 + (void) uniquing: (BOOL)flag;
++ (NSMutableSet*) uniqueSet;
 @end
 
 #endif
