@@ -1,5 +1,6 @@
 2000-12-05  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURLHandle.m: minor mods to background loading.
 	* Source/GNUmakefile:
 	* Source/Makefile.postamble:
 	* Source/Makefile.preamble:
