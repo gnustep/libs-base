@@ -1,5 +1,5 @@
-/* objc_streams - C-function interface to Objective-C streams
-   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
+/* ostream.h - C-function interface to GNUstep Objective-C streams
+   Copyright (C) 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Jun 1996
@@ -27,7 +27,8 @@
 #include <stdarg.h>
 #include <objc/typedstream.h>
 
-typedef struct _ostream {
+typedef struct _ostream
+{
   void* stream_obj;
   int   flags;
 } ostream;
@@ -44,36 +45,36 @@ typedef struct _ostream {
 #define OSTREAM_SEEK_FROM_END        2
 
 /* Private flags */
-#define OSTREAM_READFLAG     1               /* stream is for reading */
-#define OSTREAM_WRITEFLAG    (1 << 1)        /* stream is for writing */
-#define OSTREAM_ISBUFFER     (1 << 2)
-#define OSTREAM_USER_OWNS_BUF (1 << 3)
-#define OSTREAM_CANSEEK      (1 << 4)
+#define OSTREAM_READFLAG       1               /* stream is for reading */
+#define OSTREAM_WRITEFLAG      (1 << 1)        /* stream is for writing */
+#define OSTREAM_ISBUFFER       (1 << 2)
+#define OSTREAM_USER_OWNS_BUF  (1 << 3)
+#define OSTREAM_CANSEEK        (1 << 4)
 
-extern int  ostream_getc(ostream* s);
-extern void ostream_ungetc(ostream* s);
-extern int  ostream_putc(ostream* s, int c);
-extern BOOL ostream_at_eos(ostream* s);
-extern char* ostream_gets(ostream* s, char* buf, int count);
+extern int  ostream_getc (ostream* s);
+extern void ostream_ungetc (ostream* s);
+extern int  ostream_putc (ostream* s, int c);
+extern BOOL ostream_at_eos (ostream* s);
+extern char* ostream_gets (ostream* s, char* buf, int count);
 
-extern int  ostream_flush(ostream *s);		
-extern void ostream_seek(ostream *s, long offset, int mode);		
-extern long ostream_tell(ostream *s);		
-extern int  ostream_read(ostream* s, void* buf, int count);
-extern int  ostream_write(ostream* s, const void* buf, int count);
-extern void ostream_printf(ostream *s, const char *format, ...);
-extern void ostream_vprintf(ostream *s, const char *format, va_list argList);
-extern int ostream_scanf(ostream *s, const char *format, ...);
-extern int ostream_vscanf(ostream *s, const char *format, va_list argList);
+extern int  ostream_flush (ostream *s);		
+extern void ostream_seek (ostream *s, long offset, int mode);		
+extern long ostream_tell (ostream *s);		
+extern int  ostream_read (ostream* s, void* buf, int count);
+extern int  ostream_write (ostream* s, const void* buf, int count);
+extern void ostream_printf (ostream *s, const char *format, ...);
+extern void ostream_vprintf (ostream *s, const char *format, va_list argList);
+extern int ostream_scanf (ostream *s, const char *format, ...);
+extern int ostream_vscanf (ostream *s, const char *format, va_list argList);
 
-extern ostream *ostream_open_descriptor(int fd, int mode);
-extern ostream *ostream_open_memory(const char *addr, int size, int mode);
-extern ostream *ostream_map_file(const char *name, int mode);
-extern int ostream_save_to_file(ostream *s, const char *name);
-extern void ostream_get_memory_buffer(ostream *s, char **addr, 
-				      int *len, int *maxlen);
-extern void ostream_close_memory(ostream *s, int option);
-extern void ostream_close(ostream *s);		
+extern ostream *ostream_open_descriptor (int fd, int mode);
+extern ostream *ostream_open_memory (const char *addr, int size, int mode);
+extern ostream *ostream_map_file (const char *name, int mode);
+extern int ostream_save_to_file (ostream *s, const char *name);
+extern void ostream_get_memory_buffer (ostream *s, char **addr, 
+				       int *len, int *maxlen);
+extern void ostream_close_memory (ostream *s, int option);
+extern void ostream_close (ostream *s);		
 
 #define OSTREAM_FREEBUFFER	0
 #define OSTREAM_TRUNCATEBUFFER	1

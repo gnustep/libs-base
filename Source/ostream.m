@@ -1,5 +1,5 @@
 /* objc_streams - C-function interface to Objective-C streams
-   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Aug 1996
@@ -21,7 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 #include <stdio.h>
-#include "gnustep/base/objc_streams.h"
+#include "gnustep/base/ostream.h"
 #include "gnustep/base/MemoryStream.h"
 #include "gnustep/base/StdioStream.h"
 #include "gnustep/base/String.h"
@@ -31,13 +31,13 @@
 /* Handle a stream error - FIXME: not sure if this should throw an exception
    or what... */
 static void
-_ostream_error(const char* message)
+_ostream_error (const char* message)
 {
-  fprintf(stderr, "ostream error: %s\n", message);
+  fprintf (stderr, "ostream error: %s\n", message);
 }
 
 int  
-ostream_getc(ostream* s)
+ostream_getc (ostream* s)
 {
   char c = 0;
   if (s->flags & OSTREAM_READFLAG)
@@ -48,7 +48,7 @@ ostream_getc(ostream* s)
 }
 
 void 
-ostream_ungetc(ostream* s)
+ostream_ungetc (ostream* s)
 {
   if ((s->flags & OSTREAM_READFLAG) && (s->flags & OSTREAM_CANSEEK))
     {
@@ -60,7 +60,7 @@ ostream_ungetc(ostream* s)
 }
 
 int  
-ostream_putc(ostream* s, int c)
+ostream_putc (ostream* s, int c)
 {
   if (s->flags & OSTREAM_WRITEFLAG)
     return [(id <Streaming>)s->stream_obj writeByte: c];
@@ -69,14 +69,14 @@ ostream_putc(ostream* s, int c)
 }
 
 BOOL 
-ostream_at_eos(ostream* s)
+ostream_at_eos (ostream* s)
 {
   return [(id <Streaming>)s->stream_obj isAtEof];
 }
 
 
 int  
-ostream_flush(ostream *s)
+ostream_flush (ostream *s)
 {
   int pos;
   pos = [(id <Streaming>)s->stream_obj streamPosition];
@@ -85,7 +85,7 @@ ostream_flush(ostream *s)
 }
 
 void 
-ostream_seek(ostream *s, long offset, int mode)	
+ostream_seek (ostream *s, long offset, int mode)	
 {
   if (!(s->flags & OSTREAM_CANSEEK))
     return;
@@ -95,13 +95,13 @@ ostream_seek(ostream *s, long offset, int mode)
 }
 
 long 
-ostream_tell(ostream *s)
+ostream_tell (ostream *s)
 {
   return [(id <Streaming>)s->stream_obj streamPosition];
 }
 
 int  
-ostream_read(ostream* s, void* buf, int count)
+ostream_read (ostream* s, void* buf, int count)
 {
   assert(buf); /* xxxFIXME: should be an exception ? */
   if (s->flags & OSTREAM_READFLAG)
@@ -109,7 +109,7 @@ ostream_read(ostream* s, void* buf, int count)
   return OSTREAM_EOF;
 }
 
-char* ostream_gets(ostream* s, char* buf, int count)
+char* ostream_gets (ostream* s, char* buf, int count)
 {
   char c;
   int i = 0;
@@ -131,7 +131,7 @@ char* ostream_gets(ostream* s, char* buf, int count)
 }
 
 int  
-ostream_write(ostream* s, const void* buf, int count)
+ostream_write (ostream* s, const void* buf, int count)
 {
   assert(buf); /* xxxFIXME: should be an exception ? */
   if (s->flags & OSTREAM_WRITEFLAG)
@@ -140,7 +140,7 @@ ostream_write(ostream* s, const void* buf, int count)
 }
 
 void 
-ostream_printf(ostream *s, const char *format, ...)
+ostream_printf (ostream *s, const char *format, ...)
 {
   va_list args;
   va_start(args, format);
@@ -149,7 +149,7 @@ ostream_printf(ostream *s, const char *format, ...)
 }
 
 void 
-ostream_vprintf(ostream *s, const char *format, va_list argList)
+ostream_vprintf (ostream *s, const char *format, va_list argList)
 {
   id <String> str = [String stringWithCString: format];
   if (s->flags & OSTREAM_WRITEFLAG)
@@ -159,7 +159,7 @@ ostream_vprintf(ostream *s, const char *format, va_list argList)
 }
 
 int 
-ostream_scanf(ostream *s, const char *format, ...)
+ostream_scanf (ostream *s, const char *format, ...)
 {
   int ret;
   va_list args;
@@ -170,7 +170,7 @@ ostream_scanf(ostream *s, const char *format, ...)
 }
 
 int 
-ostream_vscanf(ostream *s, const char *format, va_list argList)
+ostream_vscanf (ostream *s, const char *format, va_list argList)
 {
   id <String> str = [String stringWithCString: format];
   if (s->flags & OSTREAM_READFLAG)
@@ -181,7 +181,7 @@ ostream_vscanf(ostream *s, const char *format, va_list argList)
 }
 
 static ostream *
-_ostream_new_stream_struct(int mode, char** cmode)
+_ostream_new_stream_struct (int mode, char** cmode)
 {
   char* fmode;
   ostream* stream;
@@ -216,7 +216,7 @@ _ostream_new_stream_struct(int mode, char** cmode)
 }
 
 ostream *
-ostream_open_descriptor(int fd, int mode)
+ostream_open_descriptor (int fd, int mode)
 {
   char* fmode;
   ostream* stream = _ostream_new_stream_struct(mode, &fmode);
@@ -228,7 +228,7 @@ ostream_open_descriptor(int fd, int mode)
 }
 
 ostream *
-ostream_open_memory(const char *addr, int size, int mode)
+ostream_open_memory (const char *addr, int size, int mode)
 {
   char* fmode;
   ostream* stream = _ostream_new_stream_struct(mode, &fmode);
@@ -259,7 +259,7 @@ ostream_open_memory(const char *addr, int size, int mode)
 }
 
 ostream *
-ostream_map_file(const char *name, int mode)
+ostream_map_file (const char *name, int mode)
 {
   char* fmode;
   String* str = [String stringWithCString: name];
@@ -279,7 +279,7 @@ ostream_map_file(const char *name, int mode)
 /* Would like to use NSData for this, but it's to hard to pass the buffer
    and tell NSData not to free it */
 int 
-ostream_save_to_file(ostream *s, const char *name)
+ostream_save_to_file (ostream *s, const char *name)
 {
   StdioStream* output;
   if (!(s->flags & OSTREAM_ISBUFFER))
@@ -303,7 +303,7 @@ ostream_save_to_file(ostream *s, const char *name)
 }
 
 void 
-ostream_get_memory_buffer(ostream *s, char **addr, int *len, int *maxlen)
+ostream_get_memory_buffer (ostream *s, char **addr, int *len, int *maxlen)
 {
   if (!(s->flags & OSTREAM_ISBUFFER))
     {
@@ -321,7 +321,7 @@ ostream_get_memory_buffer(ostream *s, char **addr, int *len, int *maxlen)
 }
 
 void 
-ostream_close_memory(ostream *s, int option)
+ostream_close_memory (ostream *s, int option)
 {
   if (s->flags & OSTREAM_ISBUFFER)
     {
@@ -333,7 +333,7 @@ ostream_close_memory(ostream *s, int option)
 }
 
 void 
-ostream_close(ostream *s)
+ostream_close (ostream *s)
 {
   [(id <Streaming>)s->stream_obj close];
   [(id)s->stream_obj release];
