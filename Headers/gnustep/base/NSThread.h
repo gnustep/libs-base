@@ -60,6 +60,18 @@
 
 @end
 
+#ifndef STRICT_OPENSTEP
+@interface	NSObject(NSMainThreadPerformAdditions)
+- (void) performSelectorOnMainThread: (SEL)aSelector
+			  withObject: (id)anObject
+		       waitUntilDone: (BOOL)aFlag
+			       modes: (NSArray*)anArray;
+- (void) performSelectorOnMainThread: (SEL)aSelector
+			  withObject: (id)anObject
+		       waitUntilDone: (BOOL)aFlag;
+@end
+#endif
+
 #ifndef NO_GNUSTEP
 /*
  * Don't use the following functions unless you really know what you are 

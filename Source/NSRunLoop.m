@@ -1628,22 +1628,9 @@ if (0) {
 
 + (NSRunLoop*) currentRunLoop
 {
-  static NSString	*key = @"NSRunLoopThreadKey";
-  NSMutableDictionary	*d;
-  NSRunLoop		*r;
+  extern NSRunLoop *GSRunLoopForThread();
 
-  d = GSCurrentThreadDictionary();
-  r = [d objectForKey: key];
-  if (r == nil)
-    {
-      if (d != nil)
-	{
-	  r = [self new];
-	  [d setObject: r forKey: key];
-	  RELEASE(r);
-	}
-    }
-  return r;
+  return GSRunLoopForThread(nil);
 }
 
 /* This is the designated initializer. */
@@ -2206,6 +2193,13 @@ if (0) {
 /* Nothing to do here */
 }
 
+/**
+ * Sets up repeated sending of aSelector to target with argument.<br />
+ * The selector is sent in each runloop iteration until cancelled.<br />
+ * The target and argument objects are <em>not</em> retained.<br />
+ * The order value is used to determine the order in which messages
+ * are sent if multiple messages have been set up.
+ */
 - (void) performSelector: (SEL)aSelector
 		  target: (id)target
 		argument: (id)argument
