@@ -542,8 +542,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   [NSException
     raise: NSGenericException
     format: @"method %s not implemented in %s(%s)",
-    aSel ? sel_get_name(aSel) : "(null)", 
-    object_get_class_name(self),
+    aSel ? GSNameFromSelector(aSel) : "(null)", 
+    GSClassNameFromObject(self),
     GSObjCIsInstance(self) ? "instance" : "class"];
   return nil;
 }
@@ -553,9 +553,9 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   [NSException
     raise: NSGenericException
     format: @"%s(%s) should not implement %s", 
-    object_get_class_name(self), 
+    GSClassNameFromObject(self), 
     GSObjCIsInstance(self) ? "instance" : "class",
-    aSel ? sel_get_name(aSel) : "(null)"];
+    aSel ? GSNameFromSelector(aSel) : "(null)"];
   return nil;
 }
 
@@ -563,9 +563,9 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 {
   [NSException raise: NSGenericException
     format: @"subclass %s(%s) should override %s", 
-	       object_get_class_name(self),
+	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSel ? sel_get_name(aSel) : "(null)"];
+	       aSel ? GSNameFromSelector(aSel) : "(null)"];
   return nil;
 }
 

@@ -1832,7 +1832,7 @@ static void retEncoder (DOContext *ctxt)
       type = [[object methodSignatureForSelector: sel] methodType];
       if (type)
 	{
-	  sel_register_typed_name(sel_get_name(sel), type);
+	  sel_register_typed_name(GSNameFromSelector(sel), type);
 	}
     }
 #endif
@@ -1885,7 +1885,7 @@ static void retEncoder (DOContext *ctxt)
   [self _sendOutRmc: ctxt.encoder type: METHOD_REQUEST];
   ctxt.encoder = nil;
   NSDebugMLLog(@"NSConnection", @"Sent message (%s) to 0x%x",
-    sel_get_name(sel), (gsaddr)self);
+    GSNameFromSelector(sel), (gsaddr)self);
 
   if (needsResponse == NO)
     {
@@ -1952,7 +1952,7 @@ static void retEncoder (DOContext *ctxt)
       type = [[object methodSignatureForSelector: [inv selector]] methodType];
       if (type)
 	{
-	  sel_register_typed_name(sel_get_name([inv selector]), type);
+	  sel_register_typed_name(GSNameFromSelector([inv selector]), type);
 	}
     }
   NSParameterAssert(type);

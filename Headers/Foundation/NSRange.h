@@ -203,13 +203,13 @@ GS_EXPORT NSRange NSRangeFromString(NSString *aString);
 #define GS_RANGE_CHECK(RANGE, SIZE) \
   if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
     [NSException raise: NSRangeException \
-                format: @"in %s, range { %u, %u } extends beyond size (%u)", \
-		  sel_get_name(_cmd), RANGE.location, RANGE.length, SIZE]
+                 format: @"in %s, range { %u, %u } extends beyond size (%u)", \
+		 GSNameFromSelector(_cmd), RANGE.location, RANGE.length, SIZE]
 #define CHECK_INDEX_RANGE_ERROR(INDEX, OVER) \
 if (INDEX >= OVER) \
   [NSException raise: NSRangeException \
                format: @"in %s, index %d is out of range", \
-               sel_get_name (_cmd), INDEX]
+               GSNameFromSelector(_cmd), INDEX]
 #endif
 
 #endif /* __NSRange_h_GNUSTEP_BASE_INCLUDE */

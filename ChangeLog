@@ -1,3 +1,114 @@
+2003-09-10  Richard Frith-Macdonald  <rfm@gnu.org>
+
+	* Source/NSObject.m: Tidy use of GSObjCRuntime a little.
+
+2003-09-10  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	(GSObjCClass):  Allow nil values.
+	(GSObjCIsInstance): Ditto.
+	(GSObjCIsClass): New function.
+	(GSClassNameFromObject): Ditto.
+	(GSObjCIsKindOf):  Use GSObjCSuper() in favor of
+	class_get_super_class().
+
+	* Headers/Foundation/NSRange.h
+	(GS_RANGE_CHECK), (CHECK_INDEX_RANGE_ERROR):
+	Use GSNameFromSelector() in favor of sel_get_name().
+
+	* Source/GSFFCallInvocation.m
+	(gs_method_for_receiver_and_selector), (gs_find_best_typed_sel),
+	(-[GSFFCallInvocation invokeWithTarget:]), (GSInvocationCallback):
+	Use GSObjCIsInstance() in favor of object_is_instance,
+	GSObjCClass() in favor of object_get_class(),
+	GSObjCIsClass() in favor of object_is_class(),
+	GSNameFromSelector() in favor of sel_get_name(),
+	GSObjCSuper() in favor of class_get_super_class() and
+	GSClassNameFromObject() in  favor of object_get_class_name().  
+
+	* Source/GSFFIInvocation.m
+	(gs_method_for_receiver_and_selector), (gs_find_best_typed_sel),
+	(-[GSFFIInvocation invokeWithTarget:]), (GSFFIInvocationCallback):
+	Use GSObjCIsInstance() in favor of object_is_instance,
+	GSObjCClass() in favor of object_get_class(),
+	GSObjCIsClass() in favor of object_is_class(),
+	GSNameFromSelector() in favor of sel_get_name(),
+	GSObjCSuper() in favor of class_get_super_class() and
+	GSClassNameFromObject() in  favor of object_get_class_name().
+
+	* Source/NSConnection.m
+	(-[NSConnection forwardForProxy:selector:argFrame:]),
+	(-[NSConnection forwardInvocation:forProxy:]):
+	Use GSNameFromSelector() in favor of sel_get_name().
+
+	* Source/NSDistantObject.m
+	(class_is_kind_of): Use GSObjCSuper in favor of
+	class_get_super_class().
+	(-[NSDistantObject forward::]): Use GSNameFromSelector() in favor of
+	sel_get_name().
+
+	* Source/NSInvocation.m
+	(-[NSInvocation invokeWithTarget:])
+	Use GSObjCSuper() in favor of class_get_super_class(),
+	GSObjCIsInstance() in favor of object_is_instance()
+	(-[NSInvocation description]):
+	Use GSClassNameFromObject in favor of object_get_class_name().
+	Avoid buffer overflow by using snprintf() in favor of sprintf().
+	(-[NSInvocation initWithSelector:]):
+	Use GSNameFromSelector() in favor of sel_get_name().
+
+	* Source/NSObject.m
+	(GSDescriptionForInstanceMethod), (GSDescriptionForClassMethod),
+	(+[NSObject superclass], (-[NSObject description]),
+	(-[NSObject doesNotRecognizeSelector:]),
+	(-[NSObject performSelector:]),
+	(-[NSObject performSelector:withObject:]),
+	(+[NSObject setVersion:], -[NSObject error:]),
+	(-[NSObject doesNotRecognize:], -[NSObject isClass]),
+	(-[Object description]):
+	Use GSNameFromSelector() in favor of sel_get_name(),
+	GSObjCSuper() in favor of class_get_super_class(),
+	GSClassNameFromObject() in favor of object_get_class_name() and
+	GSObjCIsClass() in favor of object_is_class().
+
+	* Source/NSProxy.m
+	(+[NSProxy description]), (-[NSProxy description]),
+	(+[NSProxy superclass]), (-[NSProxy forwardInvocation:]),
+	(-[NSProxy init], (-[NSProxy notImplemented:]),
+	(-[NSProxy performSelector:]),
+	(-[NSProxy performSelector:withObject:]),
+	(-[NSProxy performSelector:withObject:withObject:]):
+	Use GSClassNameFromObject() in favor of object_get_class_name(),
+	GSObjCSuper() in favor of class_get_super_class() and
+	GSNameFromSelector() in favor of sel_get_name().
+
+	* Source/Additions/GSCategories.m
+	(-[NSObject notImplemented:]), (-[NSObject shouldNotImplement:]),
+	(-[NSObject subclassResponsibility:]):
+	Use GSNameFromSelector() in favor of sel_get_name() and
+	GSClassNameFromObject() in favor of object_get_class_name().
+
+	* Source/Additions/GSCompatibility.h
+	(GS_RANGE_CHECK): Use GSNameFromSelector() in favor of
+	sel_get_name().
+
+	* Source/Additions/GSCompatibility.m
+	(+[NSObject notImplemented:]):
+	Use GSNameFromSelector() in favor of sel_get_name() and
+	GSClassNameFromObject() in favor of object_get_class_name().
+
+	* Source/Additions/GSObjCRuntime.m
+	(GSObjCMethodNames), (GSObjCAddMethods):
+	Use GSNameFromSelector() in favor of sel_get_name().
+
+	* Testing/nsbundle.m (main): Update to reflect filesystem change.
+	Use GSClassNameFromObject() in favor of object_get_class_name().
+
+	* Testing/nsconnection_server.m
+	Use GSNameFromSelector() in favor of sel_get_name().
+
+	* Testing/Makefile.postamble: Build before checking.
+	
 2003-09-05  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/Additions/GNUstepBase/behavior.h: GS_EXPORT functions.
