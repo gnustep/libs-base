@@ -24,6 +24,7 @@
 #include <objects/stdobjects.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSGData.h>
 
 /* xxx Pretty messy.  Needs work. */
