@@ -26,16 +26,10 @@
 
 @implementation LinkedListNode
 
-+ (void) initialize
-{
-  if (self == [LinkedListNode class])
-    [self setVersion:0];	/* beta release */
-}
-
 - init
 {
   [super init];
-  _next = _prev = nil;
+  _next = _prev = _linked_list = nil;
   return self;
 }
 
