@@ -75,19 +75,9 @@
 }
 
 /* This override in mutable string classes */
-- empty
+- (void) empty
 {
   [self subclassResponsibility:_cmd];
-  return self;
-}
-
-/* Override the designated initializer of superclass */
-- initWithType: (const char *)contentEncoding
-{
-  if (strcmp(contentEncoding, @encode(char)))
-    [self error:"invalid args to String initializer"];
-  [super initWithType:contentEncoding];
-  return self;
 }
 
 - initWithCString: (const char*)aCharPtr length: (unsigned)aLength
@@ -285,21 +275,6 @@
 }
 
 // TESTING;
-
-- (const char *) contentsDescription
-{
-  return @encode(char);
-}
-
-- (const char *) contentType
-{
-  return @encode(char);
-}
-
-- (int(*)(elt,elt)) comparisonFunction
-{
-  return elt_compare_chars;
-}
 
 - (unsigned) hash
 {
