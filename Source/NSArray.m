@@ -43,6 +43,7 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
+#include "gnustep/base/GSCategories.h"
 #include "GSPrivate.h"
 
 extern BOOL	GSMacOSXCompatiblePropertyLists(void);
@@ -67,13 +68,10 @@ static GSPlaceholderArray	*defaultPlaceholderArray;
 static NSMapTable		*placeholderMap;
 static NSLock			*placeholderLock;
 
-@interface	NSArray (GSPrivate)
-- (id) _initWithObjects: firstObject rest: (va_list) ap;
-@end
-
-
 /**
- * A simple, low overhead, ordered container for objects.
+ * A simple, low overhead, ordered container for objects.  All the objects
+ * in the container are retained by it.  The container may not contain nil
+ * (though it may contain [NSNull+null]).
  */
 @implementation NSArray
 
@@ -222,12 +220,11 @@ static SEL	rlSel;
  */
 + (id) arrayWithObjects: firstObject, ...
 {
-  va_list ap;
-  va_start(ap, firstObject);
-  self = [[self allocWithZone: NSDefaultMallocZone()]
-  _initWithObjects: firstObject rest: ap];
-  va_end(ap);
-  return AUTORELEASE(self);
+  id	a = [self allocWithZone: NSDefaultMallocZone()];
+
+  GS_USEIDLIST(firstObject,
+    a = [a initWithObjects: __objects count: __count]); 
+  return AUTORELEASE(a);
 }
 
 /**
@@ -611,63 +608,14 @@ static SEL	rlSel;
   return nil;
 }
 
-- (id) _initWithObjects: firstObject rest: (va_list) ap
-{
-  register	unsigned		i;
-  register	unsigned		curSize;
-  auto		unsigned		prevSize;
-  auto		unsigned		newSize;
-  auto		id			*objsArray;
-  auto		id			tmpId;
-
-  /*	Do initial allocation.	*/
-  prevSize = 3;
-  curSize  = 5;
-  objsArray = (id*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * curSize);
-  tmpId = firstObject;
-
-  /*	Loop through adding objects to array until a nil is
-   *	found.
-   */
-  for (i = 0; tmpId != nil; i++)
-    {
-      /*	Put id into array.	*/
-      objsArray[i] = tmpId;
-
-      /*	If the index equals the current size, increase size.	*/
-      if (i == curSize - 1)
-	{
-	  /*	Fibonacci series.  Supposedly, for this application,
-	   *	the fibonacci series will be more memory efficient.
-	   */
-	  newSize  = prevSize + curSize;
-	  prevSize = curSize;
-	  curSize  = newSize;
-
-	  /*	Reallocate object array.	*/
-	  objsArray = (id*)NSZoneRealloc(NSDefaultMallocZone(), objsArray,
-	    sizeof(id) * curSize);
-	}
-      tmpId = va_arg(ap, id);
-    }
-  va_end( ap );
-
-  /*	Put object ids into NSArray.	*/
-  self = [self initWithObjects: objsArray count: i];
-  NSZoneFree(NSDefaultMallocZone(), objsArray);
-  return( self );
-}
-
 /**
  * Initialize the array the list of objects.
  * <br />May change the value of self before returning it.
  */
 - (id) initWithObjects: firstObject, ...
 {
-  va_list ap;
-  va_start(ap, firstObject);
-  self = [self _initWithObjects: firstObject rest: ap];
-  va_end(ap);
+  GS_USEIDLIST(firstObject,
+    self = [self initWithObjects: __objects count: __count]); 
   return self;
 }
 

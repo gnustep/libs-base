@@ -2,6 +2,11 @@
 
 	* Source/NSThread.m: (GSPerformHolder) execute perform operations
 	in the same order in which they were submitted.
+	* Headers/GNUstep/base/GSCategories.h: Added two new macros to
+	agressively optimise the use of varargs when initialising arrays
+	etc by avoiding multiple allocation/reallocation of memory to hold
+	arrays of objects taken from the varargs list.
+	* Source/NSArray.m: Use the new macros.
 
 2003-04-04  Stephane Corthesy <stephane@sente.ch>
 
