@@ -1,5 +1,5 @@
 /* NSZone memory management.
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by: Mark Lakata <lakata@sseos.lbl.gov>
    Date: January 1995
@@ -32,6 +32,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <objects/config.h>
+
+@class NSString;
 
 /*
  * This the NeXTStep zone typedef.   It is nothing like the implementation
@@ -152,10 +154,13 @@ extern int NSMallocCheck(void);
 
 /*
  * Give a zone a name.
- *
  * The string will be copied.
+ * [This function is deprecated.  Use functions below instead.]
  */
 extern void NSNameZone(NSZone *z, const char *name);
+
+extern void NSSetZoneName (NSZone *z, NSString *name);
+extern NSString *NSZoneName (NSZone *z);
 
 #endif /* __NeXT__ */
 #endif /* h_zone_NS_h */
