@@ -45,6 +45,9 @@ ifeq ($(HAVE_OPENSSL), yes)
 # The bundles to be compiled
 BUNDLE_NAME=SSL
 
+# Additional search directories for linking
+SSL_LIB_DIRS += -L$(GNUSTEP_OBJ_DIR)
+
 # The bundle Objective-C source files to be compiled
 SSL_OBJC_FILES = GSUnixSSLHandle.m
 
