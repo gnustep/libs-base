@@ -28,10 +28,72 @@
 #include <Foundation/NSString.h>
 #include <gnustep/base/Coding.h>
 
+#include <gnustep/base/fast.x>
+
+/*
+ *	Evil hack - this structure MUST correspond to the layout of all
+ *	instances of the string classes we know about!
+ */
+typedef struct {
+    Class	*isa;
+    char	*_contents_chars;
+    int		_count;
+    BOOL	_free_when_done;
+    unsigned	_hash;
+} *dictAccessToStringHack;
+
+static INLINE unsigned
+myHash(NSObject *obj)
+{
+    if (fastIsInstance(obj)) {
+	Class	c = fastClass(obj);
+
+	if (c == _fastCls._NXConstantString ||
+	    c == _fastCls._NSGCString ||
+	    c == _fastCls._NSGMutableCString ||
+	    c == _fastCls._NSGString ||
+	    c == _fastCls._NSGMutableString) {
+
+	    if (((dictAccessToStringHack)obj)->_hash != 0) {
+		return ((dictAccessToStringHack)obj)->_hash;
+	    }
+	    return  _fastImp._NSGString_hash(obj, @selector(hash));
+	}
+    }
+    return [obj hash];
+}
+
+static INLINE BOOL
+myEqual(NSObject *self, NSObject *other)
+{
+    if (self == other) {
+	return YES;
+    }
+    if (fastIsInstance(self)) {
+	Class	c = fastClass(self);
+
+	if (c == _fastCls._NXConstantString ||
+	    c == _fastCls._NSGCString ||
+	    c == _fastCls._NSGMutableCString) {
+	    return _fastImp._NSGCString_isEqual_(self,
+		@selector(isEqual:), other);
+	}
+	if (c == _fastCls._NSGString ||
+	    c == _fastCls._NSGMutableString) {
+	    return _fastImp._NSGString_isEqual_(self,
+		@selector(isEqual:), other);
+	}
+    }
+    return [self isEqual: other];
+}
+
 /*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
  *	table - for maximum performance.
  */
+#define	FAST_MAP_HASH(X)	myHash(X.o)
+#define	FAST_MAP_EQUAL(X,Y)	myEqual(X.o,Y.o)
+
 #include	"FastMap.x"
 
 @class	NSDictionaryNonCore;

@@ -269,14 +269,14 @@ handle_printf_atsign (FILE *stream,
 
 + (NSString*) stringWithCString: (const char*) byteString
 {
-  return [[[self alloc] initWithCString:byteString]
+  return [[[NSString_c_concrete_class alloc] initWithCString:byteString]
 	  autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length
 {
-  return [[[self alloc]
+  return [[[NSString_c_concrete_class alloc]
 	   initWithCString:byteString length:length]
 	  autorelease];
 }
@@ -1552,15 +1552,34 @@ else
   } while(notdone);
 
   p = source;
+
   while (*p && char_count++ < NSHashStringLength)
     {
+#if 1
+      ret = (ret << 5) + ret + *p++;
+#else
+#if 1
+      ret = (ret << 4) + *p++;
+      ctr = ret & 0xf0000000L;
+      if (ctr != 0)
+         ret ^= ctr ^ (ctr >> 24);
+#else
       ret ^= *p++ << ctr;
       ctr = (ctr + 4) % 20;
+#endif
+#endif
     }
+
+  /*
+   *	The hash caching in our concrete strin classes uses zero to denote
+   *	an empty cache value, so we must not return a hash of zero.
+   */
+  if (ret == 0)
+    ret = 0xffffffff;
   return ret;
   }
   else
-  return 0;
+    return 0xfffffffe;	/* Hash for an empty string.	*/
 }
 
 // Getting a Shared Prefix
@@ -2660,15 +2679,17 @@ else
 
 + (NSString*) stringWithCString: (const char*)byteString
 {
-  return [self stringWithCString:byteString length:strlen(byteString)];
+  return [[[NSMutableString_c_concrete_class alloc]
+		initWithCString:byteString]
+		autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length
 {
-  return [[[self alloc]
-	   initWithCString:byteString length:length]
-	  autorelease];
+  return [[[NSMutableString_c_concrete_class alloc]
+		initWithCString:byteString length:length]
+		autorelease];
 }
 
 /* xxx Change this when we have non-CString classes */

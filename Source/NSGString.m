@@ -38,24 +38,11 @@
 #include <gnustep/base/NSGSequence.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
+#include <gnustep/base/fast.x>
 #include <gnustep/base/Unicode.h>
 
 
 @implementation NSGString
-
-static Class	immutableClass;
-static Class	mutableClass;
-
-+ (void) initialize
-{
-  static int done = 0;
-  if (!done)
-    {
-      done = 1;
-      immutableClass = [NSGString class];
-      mutableClass = [NSGMutableString class];
-    }
-}
 
 - (void)dealloc
 {
@@ -70,7 +57,7 @@ static Class	mutableClass;
 - (unsigned) hash
 {
   if (_hash == 0)
-    if ((_hash = [super hash]) == 0)
+    if ((_hash = _fastImp._NSString_hash(self, @selector(hash))) == 0)
       _hash = 0xffffffff;
   return _hash;
 }
@@ -80,13 +67,15 @@ static Class	mutableClass;
   Class	c;
   if (anObject == self)
     return YES;
-  c = [anObject class];
-  if (c == immutableClass || c == mutableClass)
+  c = fastClassOfInstance(anObject);
+  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
     {
       NSGString	*other = (NSGString*)anObject;
 
-      if (_hash == 0) [self hash];
-      if (other->_hash == 0) [other hash];
+      if (_hash == 0)
+        _fastImp._NSGString_hash(self, @selector(hash));
+      if (other->_hash == 0)
+        _fastImp._NSGString_hash(self, @selector(hash));
       if (_hash != other->_hash)
 	return NO;
       return [self isEqualToString: other];
