@@ -30,6 +30,14 @@
 
 #include "GSPrivate.h"
 
+/*
+ PENDING some string constants are scattered about in the class impl
+         files and should be moved here
+         furthermore, the test for this in Testing/exported-strings.m
+         needs to be updated
+*/
+
+
 /* Global lock to be used by classes when operating on any global
    data that invoke other methods which also access global; thus,
    creating the potential for deadlock. */
@@ -43,6 +51,12 @@ NSString *NSConnectionDidDieNotification = @"NSConnectionDidDieNotification";
 
 NSString *NSConnectionDidInitializeNotification = @"NSConnectionDidInitializeNotification";
 
+
+/*
+ * NSDistributedNotificationCenter types.
+ */
+NSString *NSLocalNotificationCenterType = @"NSLocalNotificationCenterType";
+NSString *GSNetworkNotificationCenterType = @"GSNetworkNotificationCenterType";
 
 /*
  * NSThread Notifications
@@ -63,10 +77,29 @@ NSString *InPortClientBecameInvalidNotification = @"InPortClientBecameInvalidNot
 
 NSString *InPortAcceptedClientNotification = @"InPortAcceptedClientNotification";
 
-
 NSString *NSPortDidBecomeInvalidNotification = @"NSPortDidBecomeInvalidNotification";
 
+/* NSTask notifications */
+NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
+/* NSUndoManager notifications */
+NSString *NSUndoManagerCheckpointNotification = @"NSUndoManagerCheckpointNotification";
+
+NSString *NSUndoManagerDidOpenUndoGroupNotification = @"NSUndoManagerDidOpenUndoGroupNotification";
+
+NSString *NSUndoManagerDidRedoChangeNotification = @"NSUndoManagerDidRedoChangeNotification";
+
+NSString *NSUndoManagerDidUndoChangeNotification = @"NSUndoManagerDidUndoChangeNotification";
+
+NSString *NSUndoManagerWillCloseUndoGroupNotification = @"NSUndoManagerWillCloseUndoGroupNotification";
+
+NSString *NSUndoManagerWillRedoChangeNotification = @"NSUndoManagerWillRedoChangeNotification";
+
+NSString *NSUndoManagerWillUndoChangeNotification = @"NSUndoManagerWillUndoChangeNotification";
+
+
+/* NSURL constants */
+NSString *NSURLFileScheme = @"file";
 
 /* RunLoop modes */
 NSString *NSConnectionReplyMode = @"NSConnectionReplyMode";
@@ -221,6 +254,7 @@ GSBuildStrings()
        */
       [NSStringClass performSelector: @selector(initialize)];
 
+      GS_REPLACE_CONSTANT_STRING(GSNetworkNotificationCenterType);
       GS_REPLACE_CONSTANT_STRING(InPortAcceptedClientNotification);
       GS_REPLACE_CONSTANT_STRING(InPortClientBecameInvalidNotification);
       GS_REPLACE_CONSTANT_STRING(NSAMPMDesignation);
@@ -252,6 +286,7 @@ GSBuildStrings()
       GS_REPLACE_CONSTANT_STRING(NSLaterTimeDesignations);
       GS_REPLACE_CONSTANT_STRING(NSLoadedClasses);
       GS_REPLACE_CONSTANT_STRING(NSLocale);
+      GS_REPLACE_CONSTANT_STRING(NSLocalNotificationCenterType);
       GS_REPLACE_CONSTANT_STRING(NSMonthNameArray);
       GS_REPLACE_CONSTANT_STRING(NSNegativeCurrencyFormatString);
       GS_REPLACE_CONSTANT_STRING(NSNextDayDesignations);
@@ -265,12 +300,21 @@ GSBuildStrings()
       GS_REPLACE_CONSTANT_STRING(NSShortTimeDateFormatString);
       GS_REPLACE_CONSTANT_STRING(NSShortWeekDayNameArray);
       GS_REPLACE_CONSTANT_STRING(NSShowNonLocalizedStrings);
+      GS_REPLACE_CONSTANT_STRING(NSTaskDidTerminateNotification);
       GS_REPLACE_CONSTANT_STRING(NSThisDayDesignations);
       GS_REPLACE_CONSTANT_STRING(NSThousandsSeparator);
       GS_REPLACE_CONSTANT_STRING(NSThreadDidStartNotification);
       GS_REPLACE_CONSTANT_STRING(NSThreadWillExitNotification);
       GS_REPLACE_CONSTANT_STRING(NSTimeDateFormatString);
       GS_REPLACE_CONSTANT_STRING(NSTimeFormatString);
+      GS_REPLACE_CONSTANT_STRING(NSUndoManagerCheckpointNotification);
+      GS_REPLACE_CONSTANT_STRING(NSUndoManagerDidOpenUndoGroupNotification);
+      GS_REPLACE_CONSTANT_STRING(NSUndoManagerDidRedoChangeNotification);
+      GS_REPLACE_CONSTANT_STRING(NSUndoManagerDidUndoChangeNotification);
+      GS_REPLACE_CONSTANT_STRING(NSUndoManagerWillCloseUndoGroupNotification);
+      GS_REPLACE_CONSTANT_STRING(NSUndoManagerWillRedoChangeNotification);
+      GS_REPLACE_CONSTANT_STRING(NSUndoManagerWillUndoChangeNotification);
+      GS_REPLACE_CONSTANT_STRING(NSURLFileScheme);
       GS_REPLACE_CONSTANT_STRING(NSUserDefaultsDidChangeNotification);
       GS_REPLACE_CONSTANT_STRING(NSWeekDayNameArray);
       GS_REPLACE_CONSTANT_STRING(NSWillBecomeMultiThreadedNotification);

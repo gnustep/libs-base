@@ -33,7 +33,7 @@
 /**
  *  URL scheme constant for use with [NSURL-initWithScheme:host:path:].
  */
-GS_EXPORT NSString* NSURLFileScheme;
+GS_EXPORT NSString* const NSURLFileScheme;
 
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>
 {

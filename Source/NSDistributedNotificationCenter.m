@@ -42,14 +42,6 @@
 
 #include	"../Tools/gdnc.h"
 
-/*
- *	Global variables for distributed notification center types.
- */
-NSString	*NSLocalNotificationCenterType =
-			@"NSLocalNotificationCenterType";
-NSString	*GSNetworkNotificationCenterType =
-			@"GSNetworkNotificationCenterType";
-
 
 @interface	NSDistributedNotificationCenter (Private)
 - (void) _connect;

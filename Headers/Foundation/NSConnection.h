@@ -46,38 +46,38 @@
  *  Key for dictionary returned by [NSConnection-statistics]: number of
  *  messages replied to so far by the remote connection.
  */
-GS_EXPORT NSString *NSConnectionRepliesReceived;
+GS_EXPORT NSString* const NSConnectionRepliesReceived;
 
 /**
  *  Key for dictionary returned by [NSConnection-statistics]: number of
  *  messages sent so far to the remote connection.
  */
-GS_EXPORT NSString *NSConnectionRepliesSent;
+GS_EXPORT NSString* const NSConnectionRepliesSent;
 
 /**
  *  Key for dictionary returned by [NSConnection-statistics]: number of
  *  messages received so far from the remote connection.
  */
-GS_EXPORT NSString *NSConnectionRequestsReceived;
+GS_EXPORT NSString* const NSConnectionRequestsReceived;
 
 /**
  *  Key for dictionary returned by [NSConnection-statistics]: number of
  *  messages sent so far to the remote connection.
  */
-GS_EXPORT NSString *NSConnectionRequestsSent;
+GS_EXPORT NSString* const NSConnectionRequestsSent;
 /* These Are GNUstep extras */
 
 /**
  *  GNUstep-specific key for dictionary returned by [NSConnection-statistics]:
  *  number of local objects currently in use remotely.
  */
-GS_EXPORT NSString *NSConnectionLocalCount;	/* Objects sent out	*/
+GS_EXPORT NSString* const NSConnectionLocalCount;	/* Objects sent out */
 
 /**
  *  GNUstep-specific key for dictionary returned by [NSConnection-statistics]:
  *  number of remote objects currently in use.
  */
-GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
+GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
 
 
 
@@ -214,9 +214,6 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 
 @end
 
-/* PENDING: This is not referenced elsewhere in Base.  Is it still needed? */
-/** Present for backwards compatibility.  Do not use. */
-GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 
 @interface Object (NSConnectionDelegate)
 /**
