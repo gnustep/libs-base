@@ -4,6 +4,8 @@
 	* Source/NSCalendarDate.m: Tidy up a little.
 	* Source/NSTimeZone.m: Rewrite main timezone code for performance -
 	Roughly doubles speed of most NSCalendarDate stuff.
+	* NSThread.m: Fix for single threaded operation ... suggested by
+	Ludovic Marcotte.
 
 2002-09-29  Richard Frith-Macdonald <rfm@gnu.org>
 
