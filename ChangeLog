@@ -1,10 +1,23 @@
+2002-04-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Tidy initialisers for case where the default
+	C-string encoding is not usable internally.
+	* Source/NSLog.m: Try default cString encoding.
+	* Tools/cvtenc.m: Add -EscapeIn and -EscapeOut flags to handle \u
+	escapes in files.
+	* Resources/Languages/Italian: Correct to use \u escapes
+	* Resources/Languages/French: ditto.
+	* Resources/Languages/German: ditto.
+	* Resources/Languages/README: New file to tell editors that they
+	should use \u escapes ... and suggesting use of the cvtenc tool
+	to make the job easy.
+
 2002-04-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix error in unicode BOM handling
 	Write plist unicode escapes using the conventional \u rather than \U,
 	but read in either form.
 	* Source/GSString.m: Fix error in length of unicode data produced.
-	Tidy initilisers.
 	* Tools/cvtenc.m: Made easy to use and added instructions.
 
 Sat Apr  6 02:42:43 2002  Nicola Pero  <n.pero@mi.flashnet.it>

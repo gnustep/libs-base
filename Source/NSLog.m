@@ -52,9 +52,13 @@ _NSLog_standard_printf_handler (NSString* message)
   NSData	*d;
   const char	*buf;
   unsigned	len;
+  static NSStringEncoding enc = 0;
 
-  d = [message dataUsingEncoding: NSASCIIStringEncoding
-	    allowLossyConversion: NO];
+  if (enc == 0)
+    {
+      enc = [NSString defaultCStringEncoding];
+    }
+  d = [message dataUsingEncoding: enc allowLossyConversion: NO];
   if (d == nil)
     {
       d = [message dataUsingEncoding: NSUTF8StringEncoding
