@@ -61,7 +61,7 @@ my_object_is_class(id object)
 
 + (void) initialize
 {
-  if (self == [Coder class])
+  if (self == [Encoder class])
     {
       /* This code has not yet been ported to machines for which
 	 a pointer is not the same size as an int. */
@@ -208,7 +208,7 @@ my_object_is_class(id object)
 {
   id c = [[self alloc] initForWritingToStream: stream];
   [c encodeRootObject: anObject withName: name];
-  [c closeCoding];
+  [c close];
   [c release];
   return YES;
 }
@@ -447,7 +447,8 @@ my_object_is_class(id object)
 #if 1 /* xxx Yipes,... careful... */
 	  /* xxx Think about something like this. */
 	  if (!sel_types)
-	    sel_types = sel_get_type (sel_get_any_uid (sel_get_name (sel)));
+	    sel_types = 
+	      sel_get_type (sel_get_any_typed_uid (sel_get_name (sel)));
 #endif
 	  if (!sel_name) [self error:"ObjC runtime didn't provide SEL name"];
 	  if (!*sel_name) [self error:"ObjC runtime didn't provide SEL name"];
