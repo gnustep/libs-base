@@ -1,6 +1,6 @@
 
 # Makefile definitions for inclusion in all subdir Makefiles
-# Copyright (C) 1995 Free Software Foundation, Inc.
+# Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 #
 #  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
 #
@@ -20,16 +20,13 @@
 #  License along with this library; if not, write to the Free
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-# subdir makefiles must define variables:
-#  RCS_FILES
-#
 
 # Put this first so it's the default
 all:
 
-# Default to empty, individual Makefile's can override this
+# Default to empty; individual Makefile's can override this
 install:
 uninstall:
 
-rcs-list-locked:
-	@rlog -L -R $(RCS_FILES)
+PACKAGE_NAME = gstep-base
+LIBRARY_NAME = libgnustep-base
