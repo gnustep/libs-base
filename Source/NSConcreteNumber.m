@@ -1,3 +1,4 @@
+# line 1 "NSConcreteNumber.m"	/* So gdb knows which file we are in */
 /* NSConcreteNumber - Object encapsulation of numbers
     
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
