@@ -70,6 +70,7 @@
 #include <GSConfig.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSBundle.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
@@ -535,9 +536,9 @@ int main(int argc, char *argv[], char *env[])
 
 #endif /* HAS_LOAD_METHOD && HAS_PROCFS */ 
 
-/*************************************************************************
- *** Getting an NSProcessInfo Object
- *************************************************************************/
+/**
+ * Returns the shared NSProcessInfo object for the current process.
+ */
 + (NSProcessInfo *) processInfo
 {
   // Check if the main() function was successfully called
@@ -556,45 +557,31 @@ int main(int argc, char *argv[], char *env[])
   return _gnu_sharedProcessInfoObject;
 }
 
-/*************************************************************************
- *** Returning Process Information
- *************************************************************************/
+/**
+ * Returns an array containing the arguments supplied to start this
+ * process.  NB. In GNUstep, any arguments of the form --GNU-Debug=...
+ * are <em>not</em> included in this array ... they are part of the
+ * debug mechanism, and are hidden so that setting debug variables
+ * will not effect the normal operation of the program.
+ */
 - (NSArray *) arguments
 {
   return _gnu_arguments;
 }
 
+/**
+ * Returns a dictionary giving the environment variables which were
+ * provided for the process to use.
+ */
 - (NSDictionary *) environment
 {
   return _gnu_environment;
 }
 
-- (NSString *) hostName
-{
-  if (!_gnu_hostName) 
-    {
-      _gnu_hostName = [[[NSHost currentHost] name] copy];
-    }
-  return _gnu_hostName;
-}
-
-- (int) processIdentifier
-{
-  int	pid;
-
-#if defined(__MINGW__)
-  pid = (int)GetCurrentProcessId();
-#else
-  pid = (int)getpid();
-#endif
-  return pid;
-}
-
-- (NSString *) processName
-{
-  return _gnu_processName;
-}
-
+/**
+ * Returns a string which may be used as a unique identifier for the
+ * current process.
+ */
 - (NSString *) globallyUniqueString
 {
   int	pid;
@@ -610,6 +597,120 @@ int main(int argc, char *argv[], char *env[])
   // NeXTSTEP release 4.0 comes out.
   return [NSString stringWithFormat: @"%@:%d:[%@]",
     [self hostName], pid, [NSDate date]];
+}
+
+/**
+ * Returns the name of the machine on which this process is running.
+ */
+- (NSString *) hostName
+{
+  if (!_gnu_hostName) 
+    {
+      _gnu_hostName = [[[NSHost currentHost] name] copy];
+    }
+  return _gnu_hostName;
+}
+
+/**
+ * Return a number representing the operating system type.<br />
+ * The known types are listed in the header file, but not all of the
+ * listed types are actually implemented ... some are present for
+ * MacOS-X compatibility only.<br />
+ * <list>
+ * <item>NSWindowsNTOperatingSystem - used for windows NT, 2000, XP</item>
+ * <item>NSWindows95OperatingSystem - probably never to be implemented</item>
+ * <item>NSSolarisOperatingSystem - not yet recognised</item>
+ * <item>NSHPUXOperatingSystem - not implemented</item>
+ * <item>NSMACHOperatingSystem - perhaps the HURD in future?</item>
+ * <item>NSSunOSOperatingSystem - probably never to be implemented</item>
+ * <item>NSOSF1OperatingSystem - probably never to be implemented</item>
+ * <item>NSGNULinuxOperatingSystem - the GNUstep 'standard'</item>
+ * <item>NSBSDOperatingSystem - BSD derived operating systems</item>
+ * </list>
+ */
+- (unsigned int) operatingSystem
+{
+  static unsigned int	os = 0;
+
+  if (os == 0)
+    {
+      NSString	*n = [self operatingSystemName];
+
+      if ([n isEqualToString: @"linux-gnu"] == YES)
+        {
+	  os = NSGNULinuxOperatingSystem;
+	}
+      else if ([n isEqualToString: @"mingw"] == YES)
+        {
+	  os = NSWindowsNTOperatingSystem;
+	}
+      else if ([n isEqualToString: @"cygwin"] == YES)
+        {
+	  os = NSWindowsNTOperatingSystem;
+	}
+      else if ([n hasPrefix: @"bsd"] == YES)
+        {
+	  os = NSBSDOperatingSystem;
+	}
+      else if ([n hasPrefix: @"freebsd"] == YES)
+        {
+	  os = NSBSDOperatingSystem;
+	}
+      else if ([n hasPrefix: @"netbsd"] == YES)
+        {
+	  os = NSBSDOperatingSystem;
+	}
+      else if ([n hasPrefix: @"openbsd"] == YES)
+        {
+	  os = NSBSDOperatingSystem;
+	}
+      else
+        {
+	  NSLog(@"Unable to determine O/S ... assuming GNU/Linux");
+	  os = NSGNULinuxOperatingSystem;
+	}
+    }
+  return os;
+}
+
+/**
+ * Returns the name of the operating system in use.
+ */
+- (NSString*) operatingSystemName
+{
+  static NSString	*os = nil;
+
+  if (os == nil)
+    {
+      os = [[NSBundle _gnustep_target_os] copy];
+    }
+  return os;
+}
+
+/**
+ * Returns the process identifier number which identifies this process
+ * on this machine.
+ */
+- (int) processIdentifier
+{
+  int	pid;
+
+#if defined(__MINGW__)
+  pid = (int)GetCurrentProcessId();
+#else
+  pid = (int)getpid();
+#endif
+  return pid;
+}
+
+/**
+ * Returns the process name for this process. This may have been set using
+ * the -setProcessName: method, or may be the default process name (the
+ * file name of the binary being executed).
+ */
+- (NSString *) processName
+{
+  return _gnu_processName;
 }
 
 /**
