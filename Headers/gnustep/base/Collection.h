@@ -82,7 +82,7 @@
       withElementsCall:whileTrue:
       withElementsCall:
       isEmpty
-      freeObjects
+      releaseObjects
 
 */
 
