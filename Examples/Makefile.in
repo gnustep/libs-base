@@ -39,6 +39,8 @@ LIBS = -L$(srcdir)/.. -lobjects @LIBOBJC@ @LIBS@
 
 #### End of system configuration section. ####
 
+include $(srcdir)/../Makeconf
+
 NEXT_NEXT_INCLUDES = -I/usr/include
 OBJECTS_NEXT_INCLUDES = -I$(srcdir)/../objects/next-include
 NEXT_INCLUDES = @NEXT_INCLUDES@
@@ -104,7 +106,11 @@ first: first-server first-client
 second: second-server second-client
 port: port-server port-client
 
-DISTFILES = $(SRCS) $(HDRS) Makefile.in
+install:
+uninstall:
+
+RCS_FILES = $(SRCS) $(HDRS) Makefile.in
+DIST_FILES = $(RCS_FILES)
 
 mostlyclean:
 	rm -f core *~
@@ -118,9 +124,9 @@ distclean: clean
 realclean: distclean
 	rm -f TAGS
 
-copy-dist: $(DISTFILES) 
-	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/examples
-	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/examples
+copy-dist: $(DIST_FILES) 
+	mkdir $(srcdir)/../snap/examples
+	ln $(DIST_FILES) $(srcdir)/../snap/examples
 
 Makefile: Makefile.in
 	cd $(srcdir)/..; $(SHELL) config.status
