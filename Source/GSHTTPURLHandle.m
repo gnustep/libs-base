@@ -277,7 +277,7 @@ static void debugWrite(NSData *data)
       NSString		*val;
 
       [p parse: nil];
-      info = [[p document] headerNamed: @"http"];
+      info = [[p mimeDocument] headerNamed: @"http"];
       val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
       if (val != nil)
 	[pageInfo setObject: val forKey: NSHTTPPropertyServerHTTPVersionKey];
@@ -319,7 +319,7 @@ static void debugWrite(NSData *data)
   RELEASE(document);
   RELEASE(parser);
   parser = [GSMimeParser new];
-  document = RETAIN([parser document]);
+  document = RETAIN([parser mimeDocument]);
   [self beginLoadInBackground];
   if (sock != nil)
     {
