@@ -43,6 +43,7 @@
 #include <objects/mframe.h>
 #include <objects/Notification.h>
 #include <objects/RunLoop.h>
+#include <objects/MallocAddress.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
@@ -575,7 +576,7 @@ static int messages_received_count;
        type may be a method_type from a remote machine with a
        different architecture, and its argframe layout specifiers
        won't be right for this machine! */
-    out_parameters = dissect_method_call (argframe, type, encoder);
+    out_parameters = mframe_dissect_call (argframe, type, encoder);
     /* Send the rmc */
     [op dismiss];
     
@@ -611,7 +612,13 @@ static int messages_received_count;
 		  [exc raise];
 		}
 	    }
-	  [ip decodeValueOfObjCType:type at:datum withName:NULL];
+	  [ip decodeValueOfObjCType: type at: datum withName: NULL];
+	  /* -decodeValueOfCType:at:withName: malloc's new memory
+	     for char*'s.  We need to make sure it gets freed eventually
+	     so we don't have a memory leak.  Request here that it be
+	     autorelease'ed. */
+	  if (*type == _C_CHARPTR)
+	    [MallocAddress autoreleaseMallocAddress: *(char**)datum];
 	  if (argnum == last_argnum)
 	    {
 	      /* this must be here to avoid trashing alloca'ed retframe */
@@ -621,8 +628,8 @@ static int messages_received_count;
 	}
 
       last_argnum = type_get_number_of_arguments(type) - 1;
-      retframe = dissect_method_return(argframe, type, out_parameters,
-				       decoder);
+      retframe = mframe_build_return (argframe, type, out_parameters,
+				      decoder);
       return retframe;
     }
   }
@@ -641,6 +648,12 @@ static int messages_received_count;
       [aRmc decodeValueOfObjCType:type
 	    at:datum
 	    withName:NULL];
+      /* -decodeValueOfCType:at:withName: malloc's new memory
+	 for char*'s.  We need to make sure it gets freed eventually
+	 so we don't have a memory leak.  Request here that it be
+	 autorelease'ed. */
+      if (*type == _C_CHARPTR)
+	[MallocAddress autoreleaseMallocAddress: *(char**)datum];
       /* We need this "dismiss" to happen here and not later so that Coder
 	 "-awake..." methods will get sent before the __builtin_apply! */
       if (argnum == numargs-1)
@@ -692,7 +705,7 @@ static int messages_received_count;
 
       numargs = type_get_number_of_arguments(forward_type);
       
-      make_method_call(forward_type, decoder, encoder);
+      mframe_do_call (forward_type, decoder, encoder);
       [op dismiss];
     }
 
