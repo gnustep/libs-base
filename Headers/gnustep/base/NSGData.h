@@ -26,7 +26,6 @@
 
 #include <objects/stdobjects.h>
 #include <foundation/NSData.h>
-#include <foundation/NSMutableData.h>
 #include <objects/MemoryStream.h>
 
 @interface NSGData : NSData
