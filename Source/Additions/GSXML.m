@@ -133,7 +133,13 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 - (void) _setParser: (GSXMLParser*)value;
 @end
 
-
+/**
+ * A class wrapping attributes of an XML element node.  Generally when
+ * examining a GSXMLDocument, you need not concern yourself with
+ * GSXMLAttribute objects as you will probably use the
+ * [GSXMLNode-objectForKey:] method to return the string value of any
+ * attribute you are interested in.
+ */
 @implementation GSXMLAttribute
 
 static NSMapTable	*attrNames = 0;
@@ -210,7 +216,7 @@ static NSMapTable	*attrNames = 0;
 }
 
 /**
- * Return the next sibling node.
+ * Return the next sibling node ... another GSXMLAttribute instance.
  */
 - (GSXMLNode*) next
 {
@@ -225,6 +231,9 @@ static NSMapTable	*attrNames = 0;
     }
 }
 
+/**
+ * Return the previous sibling node ... another GSXMLAttribute instance.
+ */
 - (GSXMLNode*) previous
 {
   if (((xmlAttrPtr)(lib))->prev != NULL)
@@ -238,6 +247,9 @@ static NSMapTable	*attrNames = 0;
     }
 }
 
+/**
+ * Returns the string value of the attribute.
+ */
 - (NSString*) value
 {
   if (((xmlNodePtr)lib)->children != NULL
@@ -651,7 +663,7 @@ static NSMapTable	*nsNames = 0;
 
 /**
  * A GSXMLNode object wraps part of the document structure of the
- * underlying libxml library.
+ * underlying libxml library.  It may have a parent, siblings, and children.
  */
 @implementation GSXMLNode
 
@@ -712,6 +724,33 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
+/**
+ * <p>Converts a node type string to a numeric constant which can be compared
+ * with the result of the -type method to determine what sort of node an
+ * instance is.  Because this method is quite inefficient, you should cache
+ * the numeric type returned and re-use the cached value.
+ * </p>
+ * The node type names are -
+ * <list>
+ *   <item>XML_ELEMENT_NODE</item>
+ *   <item>XML_ATTRIBUTE_NODE</item>
+ *   <item>XML_TEXT_NODE</item>
+ *   <item>XML_CDATA_SECTION_NODE</item>
+ *   <item>XML_ENTITY_REF_NODE</item>
+ *   <item>XML_ENTITY_NODE</item>
+ *   <item>XML_PI_NODE</item>
+ *   <item>XML_COMMENT_NODE</item>
+ *   <item>XML_DOCUMENT_NODE</item>
+ *   <item>XML_DOCUMENT_TYPE_NODE</item>
+ *   <item>XML_DOCUMENT_FRAG_NODE</item>
+ *   <item>XML_NOTATION_NODE</item>
+ *   <item>XML_HTML_DOCUMENT_NODE</item>
+ *   <item>XML_DTD_NODE</item>
+ *   <item>XML_ELEMENT_DECL</item>
+ *   <item>XML_ATTRIBUTE_DECL</item>
+ *   <item>XML_ENTITY_DECL</item>
+ * </list>
+ */
 + (int) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
@@ -767,8 +806,8 @@ static NSMapTable	*nodeNames = 0;
   return RETAIN(self);
 }
 
-/*
- * Return node content.
+/**
+ * Return node content as a string.
  */
 - (NSString*) content
 {
@@ -1096,7 +1135,9 @@ static NSMapTable	*nodeNames = 0;
 /**
  * Returns the next element node, skipping past any oyther node types
  * (such as text nodes).  If there is no element node to be returned,
- * this method returns nil.
+ * this method returns nil.<br />
+ * NB. This method is not available in java, as the method name conflicts
+ * with that of java's Enumerator class.
  */
 - (GSXMLNode*) nextElement
 {
@@ -1228,7 +1269,9 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * Return the previous element node at this level.
+ * Return the previous element node at this level.<br />
+ * NB. This method is not available in java, as the method name conflicts
+ * with that of java's Enumerator class.
  */
 - (GSXMLNode*) previousElement
 {
@@ -1309,7 +1352,9 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * Return node-type.
+ * Return node-type. The most efficient way of testing node types is to
+ * use this method and compare the return value with a value you previously
+ * obtained using the +typeFromDescription: method.
  */
 - (int) type
 {
@@ -1441,7 +1486,7 @@ static NSString	*endMarker = @"At end of incremental parse";
  *
  * if ([p parse])
  *   {
- *     [[p doc] dump];
+ *     [[p document] dump];
  *   }
  * else
  *   {
@@ -2019,20 +2064,31 @@ static NSString	*endMarker = @"At end of incremental parse";
 /**
  * <p>XML SAX Handler.</p>
  * <p>
- *   GSSAXHandler is a callback-based interface to the XML parser
- *   that operates in a similar (though not identical) manner to
+ *   GSSAXHandler is a callback-based interface to the [GSXMLParser]
+ *   which operates in a similar (though not identical) manner to
  *   SAX.
  * </p>
  * <p>
- *    Each GSSAXHandler object is associated with a GSXMLParser
- *    object.  As parsing progresses, the mathods of the GSSAXHandler
- *    are invoked by the parser, so the handler is able to deal
- *    with the elements and entities being parsed.
- *  </p>
- *  <p>
- *    The callback methods in the GSSAXHandler class do nothing - it
- *    is intended that you subclass GSSAXHandler and override them.
- *  </p>
+ *   Each GSSAXHandler object is associated with a GSXMLParser
+ *   object.  As parsing progresses, the methods of the GSSAXHandler
+ *   are invoked by the parser, so the handler is able to deal
+ *   with the elements and entities being parsed.
+ * </p>
+ * <p>
+ *   The callback methods in the GSSAXHandler class do nothing - it
+ *   is intended that you subclass GSSAXHandler and override them.
+ * </p>
+ * <p>
+ *   If you create a GSXMLParser passing nil as the GSSAXHandler,
+ *   the parser will parse data to create a [GSXMLDocument] instance 
+ *   which you can then examine as a whole ... this is generally the
+ *   preferred mechanism for parsing as it permits the parser to
+ *   validate the parsed document againts a DTD, and your software
+ *   can then examine the document secure in the knowledge that it
+ *   contains the expected structure.  Use of a GSSAXHandler is
+ *   preferred for very large documents with simple structure ...
+ *   in which case incremental parsing is more efficient.
+ * </p>
  */
 @implementation GSSAXHandler
 
@@ -2593,7 +2649,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 }
 
 /**
- * Called to return the filenmae from which an entity should be loaded.
+ * Called to return the filename from which an entity should be loaded.
  */
 - (NSString*) loadEntity: (NSString*)publicId
 		      at: (NSString*)location
@@ -2829,6 +2885,12 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 }
 @end
 
+/**
+ * You may create a subclass of this class to handle incremental parsing
+ * of html documents ... this is provided for handling legacy documents,
+ * as modern html documents should use xhtml, and for those you should
+ * simply subclass [GSSAXHandler]
+ */
 @implementation GSHTMLSAXHandler
 - (BOOL) _initLibXML
 {
@@ -2875,6 +2937,12 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 
 
 
+/**
+ * <p>You don't create GSXPathObject instances, instead the XPATH system
+ * creates them and returns them as the result of the
+ * [GSXPathContext-evaluateExpression:] method.
+ * </p>
+ */
 @implementation GSXPathObject
 - (id) init
 {
@@ -2942,6 +3010,9 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @end
 
 @implementation GSXPathBoolean
+/**
+ * Returns the the value of the receiver ... YES/NO, true/false.
+ */
 - (BOOL) booleanValue
 {
   return ((xmlXPathObject*)_lib)->boolval;
@@ -2953,6 +3024,9 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @end
 
 @implementation GSXPathNumber
+/**
+ * Returns the floating point (double) value of the receiver.
+ */
 - (double) doubleValue
 {
   return ((xmlXPathObject*)_lib)->floatval;
@@ -2964,6 +3038,9 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @end
 
 @implementation GSXPathString
+/**
+ * Returns the string value of the receiver.
+ */
 - (NSString *) stringValue
 {
   xmlChar *string = ((xmlXPathObject*)_lib)->stringval;
@@ -2976,7 +3053,27 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @end
 
 
+/**
+ * An XPATH node set is an ordered set of nodes returned as a result of
+ * an expression. The order of the nodes in the set is the same as the
+ * order in the xml document from which they were extracted.
+ */
 @implementation GSXPathNodeSet
+/**
+ * Returns the number of nodes in the receiver.
+ */
+- (unsigned int) count
+{
+  if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
+    {
+      return 0;
+    }
+  return xmlXPathNodeSetGetLength (((xmlXPathObject*)_lib)->nodesetval);
+}
+
+/**
+ * Deprecated
+ */
 - (unsigned int) length
 {
   if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
@@ -2987,6 +3084,10 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   return xmlXPathNodeSetGetLength (((xmlXPathObject*)_lib)->nodesetval);
 }
 
+/**
+ * Returns the node from the receiver at the specified index, or nil
+ * if no such node exists.
+ */
 - (GSXMLNode *) nodeAtIndex: (unsigned)index
 {
   if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
@@ -3006,12 +3107,37 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 }
 - (NSString *) description
 {
-  return [NSString stringWithFormat: @"NodeSet (length %d)", [self length]];
+  return [NSString stringWithFormat: @"NodeSet (count %d)", [self count]];
 }
 @end
 
 
+/**
+ * <p>Use of the GSXPathContext claass is simple ... you just need to look up
+ * xpath to learn the syntax of xpath expressions, then you can apply those
+ * expressions to a context to retrieve data from a document.
+ * </p>
+ * <example>
+ * GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile: @"xp.xml"];
+ *
+ * if ([p parse])
+ *   {
+ *     GSXMLDocument *d = [p document];
+ *     GSXPathContext *c = [[GSXPathContext alloc] initWithDocument: document];
+ *     GSXPathString *result = [c evaluateExpression: @"string(/body/text())"];
+ *
+ *     GSPrintf(stdout, @"Got %@", [result stringValue]);
+ *   }
+ * else
+ *   {
+ *     GSPrintf(stderr, "error parsing file\n");
+ *   }
+ * </example>
+ */
 @implementation GSXPathContext
+/**
+ * Initialises the receiver as an xpath parser for the supplied document.
+ */
 - (id) initWithDocument: (GSXMLDocument *)d
 {
   ASSIGN (_document, d);
@@ -3021,6 +3147,10 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   return self;
 }
 
+/**
+ * Evaluates the supplied expression and returns the resulting node or
+ * node set.  If the expression is invalid, returns nil.
+ */
 - (GSXPathObject *) evaluateExpression: (NSString *)XPathExpression
 {
   xmlXPathCompExpr *comp;

@@ -273,7 +273,7 @@
 
 @class GSXPathObject;
 
-/**
+/*
  * Using this library class is trivial.  Get your GSXMLDocument.  Create
  * a GSXPathContext for it.
  *
@@ -332,6 +332,7 @@
  * For XPath queries returning a node set.
  */
 @interface GSXPathNodeSet : GSXPathObject
+- (unsigned int) count;
 - (unsigned int) length;
 
 /** Please note that index starts from 0.  */
