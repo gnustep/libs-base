@@ -61,7 +61,6 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 {
 @private
   BOOL is_valid;
-  BOOL delay_dialog_interruptions;
   BOOL independant_queueing;
   unsigned reply_depth;
   NSPort *receive_port;

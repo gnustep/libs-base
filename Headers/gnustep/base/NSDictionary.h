@@ -38,7 +38,7 @@
 - (NSEnumerator*) objectEnumerator;
 @end
 
-@interface NSDictionary (NonCore) <NSCopying>
+@interface NSDictionary (NonCore) <NSCopying, NSMutableCopying>
 
 + allocWithZone: (NSZone*)zone;
 + dictionary;

@@ -90,12 +90,8 @@ GNUstep public releases
 @item ftp://ftp.sgi.com/graphics/tiff		
 TIFF library
 @item ftp://alpha.gnu.org/gnu/gnustep		
-GNUstep developer releases
-@ignore
+GNUstep developer releases and snapshots
 @item ftp://ftp.gnustep.org/pub/gnustep	
-All GNUstep releases
-@end ignore
-@item ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep	
 All GNUstep releases
 @end table
 
@@ -118,7 +114,6 @@ tiff-v3.4beta036-tar.gz (The TIFF library), or
 tiff-970711.tar.gz
   ftp://ftp.sgi.com/graphics/tiff/
   ftp://alpha.gnu.org/gnu/gnustep
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep/related
     
 pcthreads-1.1.0.tar.gz (PCThreads for Linux/GNU Inel x86 systems)
   ftp://alpha.gnu.org/gnu/gnustep
@@ -130,16 +125,14 @@ gstep-gui-0.4.0.tar.gz (AppKit)
 gstep-xdps-0.4.0.tar.gz (X11/PostScript backend)
   ftp://ftp.gnu.org/pub/gnu
   ftp://alpha.gnu.org/gnu/gnustep
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
 
 libFoundation-0.8.0.tar.gz (Foundation)
   ftp://alpha.gnu.org/gnu/gnustep
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
+  ftp://ftp.gnu.org/pub/gnu
 
 FoundationExt-0.8.1.tar.gz (Foundation extentions (optional))
   ftp://ftp.gnu.org/pub/gnu
   ftp://alpha.gnu.org/gnu/gnustep
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
 @end example
 
 You may get either one of the Foundations libraries (you only need to 

@@ -67,7 +67,7 @@ TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE FAQ STATUS GNUstep-HOWTO
 
 INFO_FILES = gnustep-base.info
 PS_FILES = gnustep-base.dvi
-HTML_FILES = gnustep-base_toc.html
+HTML_FILES = gnustep-base_toc.html faq_toc.html
 DVI_FILES = gnustep-base.dvi
 
 TOP_DOC_FILES = TODO README INSTALL NEWS ANNOUNCE STATUS GNUstep-HOWTO
