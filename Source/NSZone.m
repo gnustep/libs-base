@@ -1352,6 +1352,7 @@ nrecycle1 (NSZone *zone)
 	  objc_free(block);
 	  block = nextblock;
 	}
+      zptr->blocks = 0;
     }
   objc_mutex_unlock(zptr->lock);
   if (zptr->blocks == 0)
