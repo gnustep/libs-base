@@ -174,7 +174,7 @@ Time.m \
 UdpPort.m \
 behavior.m \
 lex.pl.m \
-objc_streams.m \
+ostream.m \
 o_array.m \
 o_array_bas.m \
 o_array_cbs.m \
@@ -296,7 +296,7 @@ include/behavior.h \
 include/fake-main.h \
 include/mframe.h \
 include/numbers.h \
-include/objc_streams.h \
+include/ostream.h \
 include/o_array.h \
 include/o_array_bas.h \
 include/o_array_cbs.h \
