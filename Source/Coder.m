@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective-C coder object for use serializing
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -20,9 +20,6 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
-
-/* xxx We could get rid of doing_root_object and just use 
-   interconnected_stack_height instead. */
 
 #include <objects/stdobjects.h>
 #include <objects/Coder.h>
@@ -47,6 +44,8 @@ enum {CODER_OBJECT_NIL = 0, CODER_OBJECT, CODER_ROOT_OBJECT,
 
 static BOOL debug_coder = NO;
 static id defaultStreamClass;
+
+#define DOING_ROOT_OBJECT (interconnected_stack_height != 0)
 
 /* xxx For experimentation.  The function in objc-api.h doesn't always
    work for objects; it sometimes returns YES for an instance. */
@@ -156,7 +155,6 @@ my_object_is_class(id object)
 - doInitOnStream: (Stream*)s isDecoding: (BOOL)f
 {
   is_decoding = f;
-  doing_root_object = NO;
   //  [s retain];
   stream = s;
   object_table = nil;
@@ -336,7 +334,7 @@ exc_return_null(arglist_t f)
 
 - (void) _internalCoderPutObject: anObj atReference: (unsigned)xref
 {
-  if (doing_root_object)
+  if (DOING_ROOT_OBJECT)
     {
       assert(![[self _coderTopRootObjectTable] includesKey:xref]);
       [[self _coderTopRootObjectTable] putElement:anObj atKey:xref];
@@ -789,7 +787,6 @@ exc_return_null(arglist_t f)
 {
   if (interconnected_stack_height++)
     return;
-  doing_root_object = YES;
   [self _coderPushRootObjectTable];
   [self _coderPushForwardObjectTable];
 }
@@ -798,11 +795,11 @@ exc_return_null(arglist_t f)
 {
   /* xxx Perhaps we should look at the forward references and
      encode here any forward-referenced objects that haven't been
-     encoded yet. */
+     encoded yet.  No---the current behavior implements NeXT's
+     -encodeConditionalObject: */
   assert (interconnected_stack_height);
   if (--interconnected_stack_height)
     return;
-  doing_root_object = NO;
   [self _coderPopRootObjectTable];
   [self _coderPopForwardObjectTable];
 }
@@ -811,7 +808,6 @@ exc_return_null(arglist_t f)
 {
   if (interconnected_stack_height++)
     return;
-  doing_root_object = YES;
   [self _coderPushRootObjectTable];
   [self _coderPushForwardObjectTable];
 }
@@ -856,7 +852,6 @@ exc_return_null(arglist_t f)
       [[self _coderTopRootObjectTable] withElementsCall:ask_awake];
     }
   [self _coderPopRootObjectTable];
-  doing_root_object = NO;
 }
 
 /* NOTE: This *can* be called recursively */
@@ -1037,9 +1032,7 @@ exc_return_null(arglist_t f)
       }
     case CODER_ROOT_OBJECT:
       {
-	doing_root_object = YES;
 	[self _decodeRootObjectAt:anObjPtr withName:name];
-	doing_root_object = NO;
 	break;
       }
     case CODER_REPEATED_OBJECT:
@@ -1060,7 +1053,7 @@ exc_return_null(arglist_t f)
 	unsigned xref;
 	struct objc_list* addr_list;
 
-	if (!doing_root_object)
+	if (!DOING_ROOT_OBJECT)
 	  [self error:"can't decode forward reference when not decoding "
 		"a root object"];
 	[self decodeValueOfSimpleType:@encode(unsigned)
