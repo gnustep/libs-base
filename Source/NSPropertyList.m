@@ -1314,13 +1314,13 @@ PString(NSString *obj, NSMutableData *output)
 
 		    *ptr++ = '\\';
 		    *ptr++ = 'U';
-		    ptr[3] = (c & 0xf) > 9 ? (c & 0xf) + 'A' : (c & 0xf) + '0';
+		    ptr[3] = (c & 15) > 9 ? (c & 15) + 55 : (c & 15) + 48;
 		    c >>= 4;
-		    ptr[2] = (c & 0xf) > 9 ? (c & 0xf) + 'A' : (c & 0xf) + '0';
+		    ptr[2] = (c & 15) > 9 ? (c & 15) + 55 : (c & 15) + 48;
 		    c >>= 4;
-		    ptr[1] = (c & 0xf) > 9 ? (c & 0xf) + 'A' : (c & 0xf) + '0';
+		    ptr[1] = (c & 15) > 9 ? (c & 15) + 55 : (c & 15) + 48;
 		    c >>= 4;
-		    ptr[0] = (c & 0xf) > 9 ? (c & 0xf) + 'A' : (c & 0xf) + '0';
+		    ptr[0] = (c & 15) > 9 ? (c & 15) + 55 : (c & 15) + 48;
 		    ptr += 4;
 		  }
 		break;

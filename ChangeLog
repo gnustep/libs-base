@@ -4,6 +4,7 @@
 	dictionary which may not be mutable.
 	* Source/NSString.m: ([propertyList]) make decoded containers mutable
 	for compatibility with current MacOS-X
+	* Source/NSPropertlyList.m: Fix error generating unicode escapes.
 
 2004-07-02 Richard Frith-Macdonald <rfm@gnu.org>
 
