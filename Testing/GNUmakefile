@@ -168,6 +168,8 @@ DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
 
 -include Makefile.preamble
 
+-include GNUmakefile.local
+
 include $(GNUSTEP_MAKEFILES)/test-tool.make
 include $(GNUSTEP_MAKEFILES)/bundle.make
 
