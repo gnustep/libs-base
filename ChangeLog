@@ -1,3 +1,9 @@
+2000-05-06  James Dessart <skwirl@cam.org>
+	
+	* Documentation/gsdoc/NSString.gsdoc : 
+	* Documentation/gsdoc/NSString.html  :
+	Added some basic doc
+
 2000-05-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUser.m: NSHomeDirectoryForUser() protect with locks for
