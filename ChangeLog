@@ -1,3 +1,7 @@
+2003-12-25  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tools/pl2link.m: Adopted to current OpenDesktop specification.
+
 2003-12-23 23:33  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSCharacterSet.m: Rename 'abstract' to 'abstractClass' and
