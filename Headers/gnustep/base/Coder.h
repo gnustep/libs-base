@@ -27,7 +27,6 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
 #include <gnustep/base/Streaming.h>
-#include <gnustep/base/String.h>
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSMapTable.h>
 

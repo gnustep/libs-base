@@ -101,7 +101,6 @@
 #ifndef NO_GNUSTEP
 
 #include <gnustep/base/IndexedCollecting.h>
-#include <gnustep/base/String.h>
 
 /* Eventually we'll make a Constant version of this protocol. */
 @interface NSArray (GNU) <IndexedCollecting>
