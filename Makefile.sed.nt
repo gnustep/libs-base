@@ -7,9 +7,12 @@ s/@srcdir@/./
 		$(MAKE) - $(MAKEFLAGS) $(MAKEDEFINES) $* & \\\
 		cd .. )
 /install uninstall TAGS:/,/done/c\
-install uninstall TAGS: \
+install uninstall TAGS: FORCE\
 	for %i in ( $(SUBDIRS) ) do \\\
 		( cd %i & \\\
 		$(MAKE) - $(MAKEFLAGS) $(MAKEDEFINES) $@ & \\\
 		cd .. )
+/src doc checks examples:/,/$(MAKEDEFINES)/c\
+src doc checks examples: FORCE \
+	cd $@ & $(MAKE) $(MAKEDEFINES)
 

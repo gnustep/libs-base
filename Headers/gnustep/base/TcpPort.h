@@ -27,9 +27,11 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Port.h>
 #include <gnustep/base/RunLoop.h>
+#ifndef WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#endif /* !WIN32 */
 #include <Foundation/NSMapTable.h>
 
 /* A concrete implementation of a Port object implemented on top of

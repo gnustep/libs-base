@@ -40,9 +40,11 @@
 #include <Foundation/NSDate.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef WIN32
 #include <unistd.h>		/* for gethostname() */
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <arpa/inet.h>		/* for inet_ntoa() */
+#endif /* !WIN32 */
 #include <string.h>		/* for memset() */
 #ifndef WIN32
 #include <sys/time.h>

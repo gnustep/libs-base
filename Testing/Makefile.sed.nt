@@ -1,13 +1,16 @@
 s/@srcdir@/./
-s/@CC@/gcc -fgnu-runtime/
+s/@CC@/gcc -fgnu-runtime -D__MS_WIN32__/
 s/@DYNAMIC_BUNDLER_LINKER@//
 s/@DYNAMIC_LDFLAGS@//
 s/@DYNAMIC_CFLAGS@//
-s/LIBS = -L..\/src -lobjects @LIBOBJC@ @LIBS@ -lm/LIBS = ..\/src\/libobjects.lib libobjc.lib libgcc.lib libc.lib oldnames.lib user32.lib wsock32.lib/
+s/LIBS = -L..\/src -l$(LIBRARY_NAME) @LIBOBJC@ @LIBS@ -lm/LIBS = ..\/src\/lib$(LIBRARY_NAME).lib libobjc.lib libgcc.lib libc.lib oldnames.lib user32.lib wsock32.lib/
 s/@NEXT_INCLUDES@//
-s/CFLAGS = -Wall -Wno-implicit -g -O/CFLAGS = -Wall -Wno-implicit -O/
+s/CFLAGS = -Wall -Wno-implicit -Wno-format -g -O/CFLAGS = -Wall -Wno-implicit -Wno-format -O/
 s/EXEEXT =/EXEEXT = .exe/
 s/OEXT = .o/OEXT = .obj/
 s/LIBEXT = .a/LIBEXT = .lib/
 s/@DEFS@/-DSTDC_HEADERS=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_TIMES=1 -DHAVE_VSPRINTF=1 -Dvm_page_size=4096/
-s/LINK_CMD = $(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)/LINK_CMD = nm $@$(OEXT) | grep "  __GLOBAL_" > tmpinit.c \& collect tmpinit.c init_$@ \& $(CC) -c init_$@.c \& rm tmpinit.c \& ld $@$(OEXT) init_$@$(OEXT) -o $@$(EXEEXT) $(ALL_LDFLAGS)/
+/%: %$(OEXT)/,/$(CC) $(ALL_CFLAGS) $@$(OEXT)/c\
+LINK_CMD = nm $@$(OEXT) | grep "  __GLOBAL_" > tmpinit.c \& collect tmpinit.c init_$@ \& $(CC) -c init_$@.c \& rm tmpinit.c \& ld $@$(OEXT) init_$@$(OEXT) -o $@$(EXEEXT) $(ALL_LDFLAGS)\
+%: %$(OEXT) ../src/lib$(LIBRARY_NAME)$(LIBEXT)\
+	$(LINK_CMD)

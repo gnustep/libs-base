@@ -59,7 +59,9 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSTimer.h>
+#ifndef WIN32
 #include <sys/time.h>
+#endif /* !WIN32 */
 #include <limits.h>
 #include <string.h>		/* for memset() */
 

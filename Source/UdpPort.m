@@ -31,7 +31,9 @@
 #include <gnustep/base/ConnectedCoder.h>
 #include <gnustep/base/String.h>
 #include <assert.h>
+#ifndef WIN32
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
+#endif /* !WIN32 */
 #if _AIX
 #include <sys/select.h>
 #endif /* _AIX */
