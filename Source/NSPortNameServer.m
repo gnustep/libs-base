@@ -36,6 +36,7 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSTask.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSTimer.h>
 #include <Foundation/NSPortNameServer.h>
 #include <base/TcpPort.h>
 
