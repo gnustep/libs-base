@@ -1,3 +1,8 @@
+Wed Mar  3  5:32:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSUser.m: Fixed a typo reported by twhite@rogers.wave.ca
+	* Source/TcpPort.m: Fixed typos.
+
 Tue Mar  2 15:07:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/TcpPort.m: If the host has no IP address, try finding the
