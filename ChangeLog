@@ -2,6 +2,7 @@
 
 	* Headers/Additions/GNUstepBase/preface.h: Remove generated
 	file that should have been ignored by entry in .cvsignore.
+	* Source/UnixFileHandle.m: Remove obsolete file.
 	
 2003-08-05  Martin Brecher <martin@mb-itconsulting.com>
 
