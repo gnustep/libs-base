@@ -1,0 +1,114 @@
+\input texinfo  @c -*-texinfo-*-
+@setfilename coding-standards.info
+@set DATE 26 Jun 1996
+
+@ifinfo
+@format
+START-INFO-DIR-ENTRY
+* Coding: (coding).           Coding Standards for GNUstep Libraries
+END-INFO-DIR-ENTRY
+@end format
+@end ifinfo
+
+@ifinfo
+Copyright @copyright{} 1997 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end ifinfo
+
+@setchapternewpage odd
+@settitle Coding Standards for GNUstep Libraries
+@titlepage
+@finalout
+@title Coding Standards for GNUstep Libraries
+@flushright
+@value{DATE}
+@end flushright
+@author Adam Fedor
+@page
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1997 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end titlepage
+
+
+@node Top, Introduction, (dir), (dir)
+@top Coding Standards
+
+@menu
+* Introduction::                
+* Error Handling::              
+@end menu
+
+@c ******************************************************************
+@node Introduction, Error Handling, Top, Top
+@section Introduction
+
+This document explains the official coding standards which developers
+for GNUstep base should follow. Note that these standards are in addition
+to GNU coding standards, not a replacement of them.
+
+@c ******************************************************************
+@node Error Handling,  , Introduction, Top
+@section Error Handling
+
+
+Initialization methods (e.g. -init) should, upon failure to
+initialize the class, deallocate itself and return nil. This may mean
+in certain cases, that it should catch exceptions, since the calling
+method will be expecting a nil object rather than an exception on
+failure. However, init methods should endeavor to provide some
+information, via NSLog, on the failure.
+
+All other methods should cause an exception on failure*, unless
+returning nil is a valid response (e.g. [dictionary
+objectForKey: nil]) or if documented otherwise.
+
+Failure here is a relative term. I'd interpret failure to occur when
+either system resources have been exceeded, an operation was performed
+on invalid data, or a required precondition was not met.
+On the other hand, passing a nil object as a parameter (as in
+[(NSMutableData *)data appendData: nil]), or other "unusual"
+requests should succeed in a reasonable manner (or return nil, if
+appropriate) and/or reasonable default values could be used.
+
+If an error is recoverable or it does not damage the internal state of
+an object, it's ok not to raise an error. At the very least, though, a message
+should be printed through NSLog.
+
+Special care should be taken in methods that create resources like
+allocate memory or open files or obtain general system resources (locks,
+shared memory etc.) from the kernel. If an exception is generated
+between the allocation of the resource and its disposal, the resource
+will be simply lost without any possibility to release. The code should
+check for exceptions and if something bad occurs it should release all
+the allocated resources and reraise the exception.
+
+Unfortunately there is no nice way to do this automatically in OpenStep.
+Java has the "finally" block which is specifically designed for this task. A
+similar mechanism exists in libFoundation with the CLEANUP and FINALLY
+blocks.
+
+@bye

@@ -42,6 +42,7 @@ include $(srcdir)/../Version
 TEXI_FILES = \
 announce.texi \
 base-desc.texi \
+coding-standards.texi \
 install.texi \
 gnustep-base.texi \
 gnustep-zones.texi \
@@ -54,11 +55,11 @@ gnustep-faq.texi \
 faq.texi
 
 TEXT_FILES = \
-TODO INSTALL NEWS README ANNOUNCE ADVERTISEMENT
+TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE ADVERTISEMENT
 
 all: 
 
-info: $(TEXT_FILES)
+info: version.texi $(TEXT_FILES)
 dvi: gnustep-base.dvi objective-c.dvi
 
 version.texi: $(srcdir)/../Version
@@ -93,6 +94,9 @@ TODO: todo.texi version.texi
 INSTALL: install.texi version.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o INSTALL -D INSTALL_ONLY \
 	--no-header --no-split $(srcdir)/install.texi
+CODING-STANDARDS: codign-standards.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o CODING-STANDARDS -D CODING_ONLY \
+	--no-header --no-split $(srcdir)/coding-standards.texi
 README: readme.texi version.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o README -D README_ONLY \
 	--no-header --no-split $(srcdir)/readme.texi
