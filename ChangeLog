@@ -1,3 +1,8 @@
+2001-12-12  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSDebug.h: Include NSDebugLog functions
+	when GSDIAGNOSE is defined.
+
 2001-12-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Remove GSHTPPropertyBodyKey ... make
