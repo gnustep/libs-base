@@ -212,7 +212,7 @@ static NSMutableSet	*textNodes = nil;
 	       */
 	      while (x != nil)
 		{
-		  x = [localRefs globalRef: x type: @"class"];
+		  x = [localRefs globalRef: x type: @"super"];
 		  if (x != nil)
 		    {
 		      s = [localRefs unitRef: r type: t unit: x];
