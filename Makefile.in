@@ -47,7 +47,7 @@ DEFS = @DEFS@
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
      
-# All these are optional.  You can redifine CFLAGS, CPPFLAGS and
+# All these are optional.  You can redefine CFLAGS, CPPFLAGS and
 # INCLUDEFLAGS on the command line however you like.
 CFLAGS = -Wall -Wno-implicit -g
 CPPFLAGS = 
@@ -60,6 +60,8 @@ exec_prefix = @exec_prefix@
 libdir = $(exec_prefix)/lib
 includedir = $(prefix)/include
 infodir = $(prefix)/info
+datadir = $(prefix)/lib
+charsetdir = $(datadir)/NSCharacterSets
 
 #### End of system configuration section. ####
 
@@ -440,9 +442,12 @@ install: installdirs all
 	(cd $(includedir)/Foundation; ln -s ../objects/README .)
 	(cd $(includedir)/objc; ln -s ../objects/README .)
 	$(INSTALL_DATA) libobjects.info $(infodir)
+	for file in $(srcdir)/NSCharacterSets/*; do \
+	  $(INSTALL_DATA)  $$file $(charsetdir)/$$file ; \
+	done
 
 installdirs:
-	$(srcdir)/mkinstalldirs $(libdir) $(infodir) \
+	$(srcdir)/mkinstalldirs $(libdir) $(infodir) $(datadir) $(charsetdir) \
 	 $(includedir)/objects \
 	 $(includedir)/objc \
 	 $(includedir)/Foundation
@@ -585,8 +590,8 @@ dist: $(DIST_FILES)
 	done
 	touch `cat .fname`/Makefile.local
 	touch `cat .fname`/Makefile.depend
-	mkdir `cat .fname`/share
-	ln share/* `cat .fname`/share
+	mkdir `cat .fname`/NSCharacterSets
+	ln NSCharacterSets/* `cat .fname`/NSCharacterSets
 	cd checks; $(MAKE) $(MAKEFLAGS) dist
 	cd examples; $(MAKE) $(MAKEFLAGS) dist
 	cd doc; $(MAKE) $(MAKEFLAGS) dist
