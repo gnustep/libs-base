@@ -290,7 +290,6 @@ NSCopyObject.m \
 NSConcreteArray.m \
 NSConcreteValue.m \
 NSCString.m \
-NSDate.m \
 NSDeallocateObject.m \
 NSDictionary.m \
 NSEnumerator.m \
@@ -325,6 +324,7 @@ simple-load.h \
 foundation/NSArchiver.h \
 foundation/NSData.h \
 NSArchiver.m \
+NSDate.m \
 NSData.m
 
 GNUSTEP_OBJS = \
