@@ -279,7 +279,7 @@
   if ([self isEmpty] || ((*(int*)enumState) == 0)
        || ((*(int*)enumState) == -1))
     {
-      (*(int*)enumState) == -1;
+      (*(int*)enumState) = -1;
       return NO_OBJECT;
     }
 
