@@ -1,3 +1,8 @@
+2001-03-07  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSInvocation.m (-initWithTarget:selector:): Correct copying
+	of unhandled argument types.
+
 2001-03-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: ([methodSignatureForSelector:]) reliability
