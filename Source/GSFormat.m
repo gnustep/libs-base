@@ -80,6 +80,11 @@ typedef gsu32 wint_t;
 typedef unsigned long long uintmax_t;
 #endif
 
+/* Darwin 1.0 CPP can't handle this */
+#ifndef HANDLE_LONG_LONG_MAX
+#undef LONG_LONG_MAX
+#endif
+
 #include <base/behavior.h>
 
 #include <base/Unicode.h>

@@ -147,6 +147,7 @@
 
 #undef HAVE_PTS_STREAM_MODULES
 #undef HAVE_UINTMAX_T
+#undef HANDLE_LONG_LONG_MAX
 
 /* Define if wchar.h header available */
 #undef HAVE_WCHAR_H

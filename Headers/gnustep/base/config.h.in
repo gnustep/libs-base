@@ -56,6 +56,7 @@
 
 #undef HAVE_PTS_STREAM_MODULES
 #undef HAVE_UINTMAX_T
+#undef HANDLE_LONG_LONG_MAX
 
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
@@ -284,6 +285,9 @@
 
 /* Define if you have the iconv library (-liconv).  */
 #undef HAVE_LIBICONV
+
+/* Define if you have the m library (-lm).  */
+#undef HAVE_LIBM
 
 /* Define if system supports the /proc filesystem */
 #undef HAVE_PROCFS

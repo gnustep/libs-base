@@ -330,6 +330,10 @@ handle_printf_atsign (FILE *stream,
       beenHere = YES;
       plSel = @selector(initWithCharacters:length:);
       cMemberSel = @selector(characterIsMember:);
+      caiSel = @selector(characterAtIndex:);
+      gcrSel = @selector(getCharacters:range:);
+      ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
+
       _DefaultStringEncoding = GetDefEncoding();
       NSStringClass = self;
       [self setVersion: 1];

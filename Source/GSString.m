@@ -261,6 +261,10 @@ setup()
       hashImp = (unsigned (*)(id, SEL))
 	[NSStringClass instanceMethodForSelector: hashSel];
 
+      caiSel = @selector(characterAtIndex:);
+      gcrSel = @selector(getCharacters:range:);
+      ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
+
       /*
        * Cache the default string encoding.
        */
