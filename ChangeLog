@@ -1,3 +1,9 @@
+2001-01-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDate.m: pass dates over DO bycopy unless explicitly byref.
+	* Source/NSTimeZone.m: pass time zones over DO bycopy unless
+	explicitly byref.
+
 2001-01-30  Michael Hanni  <mhanni@sprintmail.com>
 
 	* Source/.cvsignore: tweaked to cover a few more items.

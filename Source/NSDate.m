@@ -34,6 +34,7 @@
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSPortCoder.h>
 #include <base/preface.h>
 #include <base/behavior.h>
 #if HAVE_SYS_TIME_H
@@ -880,11 +881,11 @@ GSTimeNow()
   return abstractClass;
 }
 
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
-  /* Make sure that Connection's always send us bycopy,
-     i.e. as our own class, not a Proxy class. */
-  return self;
+  if ([aCoder isByref] == NO)
+    return self;
+  return [super replacementObjectForPortCoder: aCoder];
 }
 
 - (void) encodeWithCoder: (NSCoder*)coder

@@ -63,6 +63,7 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSNotification.h>
+#include <Foundation/NSPortCoder.h>
 
 #define NOID
 #include "tzfile.h"
@@ -1107,6 +1108,13 @@ static NSMapTable	*absolutes = 0;
 - (NSString*) name
 {
   return [self subclassResponsibility: _cmd];
+}
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  if ([aCoder isByref] == NO)
+    return self;
+  return [super replacementObjectForPortCoder: aCoder];
 }
 
 - (int) secondsFromGMT
