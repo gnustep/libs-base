@@ -25,11 +25,10 @@
 
 #include <config.h>
 #include <gnustep/base/UdpPort.h>
-#include <gnustep/base/Lock.h>
-#include <gnustep/base/Connection.h>
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/ConnectedCoder.h>
 #include <gnustep/base/Array.h>
+#include <Foundation/NSLock.h>
 #include <assert.h>
 #ifndef __WIN32__
 #include <unistd.h>
@@ -40,6 +39,7 @@
 #endif /* _AIX */
 #ifndef __WIN32__
 #include <netdb.h>
+#include <time.h>
 #include <sys/time.h>
 #endif /* !__WIN32__ */
 
@@ -62,7 +62,7 @@
 #define MAX_PACKET_SIZE 2048
 
 /* Make this a hashtable? */
-static Lock* udp_port_gate = nil;
+static NSLock* udp_port_gate = nil;
 
 static BOOL udp_port_debug = NO;
 

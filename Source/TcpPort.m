@@ -37,7 +37,7 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/TcpPort.h>
 #include <gnustep/base/Array.h>
-#include <gnustep/base/Notification.h>
+#include <gnustep/base/NotificationDispatcher.h>
 #include <gnustep/base/NSException.h>
 #include <Foundation/NSRunLoop.h>
 #include <gnustep/base/Invocation.h>
@@ -76,6 +76,7 @@
 #endif /* !__WIN32__ */
 #include <string.h>		/* for memset() and strchr() */
 #ifndef __WIN32__
+#include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/errno.h>

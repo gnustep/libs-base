@@ -29,10 +29,10 @@
 
 #include <config.h>
 #include <gnustep/base/NotificationDispatcher.h>
-#include <gnustep/base/Notification.h>
 #include <gnustep/base/LinkedListNode.h>
 #include <gnustep/base/Array.h>
 #include <gnustep/base/Invocation.h>
+#include <Foundation/NSNotification.h>
 #include <Foundation/NSException.h>
 
 
@@ -558,8 +558,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 - (void) postNotification: notification
 {
-  /* This cast avoids complaints about different types for the -name method. */
-  id notification_name = [(Notification*)notification name];
+  id notification_name = [notification name];
   id notification_object = [notification object];
   id nr;
   LinkedList *nr_list;
@@ -647,7 +646,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 - (void) postNotificationName: (NSString*)name 
 		       object: object
 {
-  [self postNotification: [Notification notificationWithName: name
+  [self postNotification: [NSNotification notificationWithName: name
 					object: object]];
 }
 
@@ -655,7 +654,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 		       object: object
 		     userInfo: info
 {
-  [self postNotification: [Notification notificationWithName: name
+  [self postNotification: [NSNotification notificationWithName: name
 					object: object
 					userInfo: info]];
 }

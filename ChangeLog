@@ -1,3 +1,40 @@
+Tue Jul 21 09:15:32 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* src/GNUmakefile: Removed redundant classes.
+	* src/Connection: Removed.
+	* src/Lock: Likewise.
+	* src/Notification: Likewise.
+	* src/Proxy: Likewise.
+	* src/include/Connection.h, src/include/Lock.h, 
+	src/include/Notification.h, src/include/Proxy.h: Likewise.
+	* src/include/RetainingNotifier.h: Removed.
+	* src/libgnustep-base.def: Removed reference to redundant classes.
+	* src/include/ConnectedCoder.h: Likewise
+	* src/include/NSConnection.h: Likewise
+	* src/include/NSNotification.h: Likewise
+	* src/include/NSPort.h: Likewise
+	* src/include/all.h: Likewise
+	* src/ConnectedCoder.m: Likewise
+	* src/Makefile.postamble: Likewise
+	* src/MachPort.m: Likewise
+	* src/NSConnection.m: Likewise
+	* src/NotificationDispatcher.m: Likewise
+	* src/NSNotification.m: Likewise
+	* src/Port.m: Likewise
+	* src/TcpPort.m: Likewise
+	* src/behavior.m: Likewise
+	* src/NSThread.m: Likewise
+	* src/UdpPort.m: Likewise
+	* examples/first-client.m, examples/first-server.h,
+	examples/first-server.m, examples/second-client.h,
+	examples/second-client.m, examples/second-server.h,
+	examples/second-server.m: Removed.
+
+	* src/NSRunLoop.m: Add time.h (For GNU/Linux-2.0)
+	* src/TcpPort.m: Likewise.
+	* src/UdpPort.m: Likewise.
+	* sec/UnixFileHandle.m: Likewise.
+
 Wed Jul 20 21:25:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/Decoder.m: ([-decodeClass]) modified to ensure correct decoding

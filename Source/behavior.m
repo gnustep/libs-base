@@ -95,8 +95,7 @@ behavior_class_add_class (Class class, Class behavior)
 		 @"have subclassed the class.  There are two solutions:\n"
 		 @"(1) Don't subclass it; (2) Add placeholder instance\n"
 		 @"variables to the class, so the behavior-addition code\n"
-		 @"will not have to increase the instance size, (see\n"
-		 @"Foundation/NSNotification.h for a clean way to do this).");
+		 @"will not have to increase the instance size\n");
       class->instance_size = behavior->instance_size;
     }
 

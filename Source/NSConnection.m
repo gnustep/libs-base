@@ -35,7 +35,7 @@
 #include <Foundation/DistributedObjects.h>
 #include <gnustep/base/TcpPort.h>
 #include <gnustep/base/mframe.h>
-#include <gnustep/base/Notification.h>
+#include <gnustep/base/NotificationDispatcher.h>
 #include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSArray.h>
@@ -44,7 +44,9 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSThread.h>
+#include <Foundation/NSNotification.h>
 #include <assert.h>
 
 NSString* NSConnectionReplyMode = @"NSConnectionReplyMode";
@@ -246,10 +248,10 @@ static int debug_connection = 0;
 /* We could write -hash and -isEqual implementations for NSConnection */
 static NSMutableArray *connection_array;
 static NSMutableArray *not_owned;
-static Lock *connection_array_gate;
+static NSLock *connection_array_gate;
 
 static NSMutableDictionary *root_object_dictionary;
-static Lock *root_object_dictionary_gate;
+static NSLock *root_object_dictionary_gate;
 
 static NSMapTable *receive_port_2_ancestor;
 
@@ -258,9 +260,9 @@ static NSMapTable *all_connections_local_cached = NULL;
 
 /* rmc handling */
 static NSMutableArray *received_request_rmc_queue;
-static Lock *received_request_rmc_queue_gate;
+static NSLock *received_request_rmc_queue_gate;
 static NSMutableArray *received_reply_rmc_queue;
-static Lock *received_reply_rmc_queue_gate;
+static NSLock *received_reply_rmc_queue_gate;
 
 static int messages_received_count;
 
@@ -320,7 +322,7 @@ static int messages_received_count;
 {
   not_owned = [[NSMutableArray alloc] initWithCapacity:8];
   connection_array = [[NSMutableArray alloc] initWithCapacity:8];
-  connection_array_gate = [Lock new];
+  connection_array_gate = [NSLock new];
   /* xxx When NSHashTable's are working, change this. */
   all_connections_local_targets =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
@@ -329,11 +331,11 @@ static int messages_received_count;
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
   received_request_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
-  received_request_rmc_queue_gate = [Lock new];
+  received_request_rmc_queue_gate = [NSLock new];
   received_reply_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
-  received_reply_rmc_queue_gate = [Lock new];
+  received_reply_rmc_queue_gate = [NSLock new];
   root_object_dictionary = [[NSMutableDictionary alloc] initWithCapacity:8];
-  root_object_dictionary_gate = [Lock new];
+  root_object_dictionary_gate = [NSLock new];
   receive_port_2_ancestor =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);

@@ -39,16 +39,16 @@ enum {
  METHODTYPE_REPLY
 };
 
-@class Connection;
+@class NSConnection;
 
 @interface ConnectedEncoder : Encoder
 {
-  Connection *connection;
+  NSConnection *connection;
   unsigned sequence_number;
   int identifier;
 }
 
-+ newForWritingWithConnection: (Connection*)c
++ newForWritingWithConnection: (NSConnection*)c
    sequenceNumber: (int)n
    identifier: (int)i;
 - (void) dismiss;
@@ -61,14 +61,14 @@ enum {
 
 @interface ConnectedDecoder : Decoder
 {
-  Connection *connection;
+  NSConnection *connection;
   unsigned sequence_number;
   int identifier;
 }
 
 + newDecodingWithPacket: (InPacket*)packet
-	     connection: (Connection*)c;
-+ newDecodingWithConnection: (Connection*)c
+	     connection: (NSConnection*)c;
++ newDecodingWithConnection: (NSConnection*)c
    timeout: (int) timeout;
 - (void) dismiss;
 

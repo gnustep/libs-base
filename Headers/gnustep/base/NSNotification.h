@@ -24,28 +24,29 @@
 #ifndef __NSNotification_h_GNUSTEP_BASE_INCLUDE
 #define __NSNotification_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-#include <gnustep/base/Notification.h>
+#include <Foundation/NSObject.h>
 
 @class NSString;
 @class NSDictionary;
 
-@interface NSNotification : NSObject
-{
-  /* Make the instance size of this class match exactly the instance
-     size of Notification.  Thus, behavior_class_add_class() will not
-     have to increase the instance size of NSNotification, and
-     NSNotification can safely be subclassed. */
-  char _NSNotification_placeholder[(sizeof(struct Notification)
-				    - sizeof(struct NSObject))];
-}
+@protocol Notifying
+- (NSString*) name;
+- object;
+- userInfo;
 @end
 
-/* Put this in a category to avoid unimportant errors due to behaviors. */
-@interface NSNotification (GNUstep) <NSCopying>
+@protocol NotificationPosting
+- (void) postNotification: (id <Notifying>)notification;
+@end
+
+@interface NSNotification : NSObject <Notifying,NSCopying>
+{
+  id _name;
+  id _object;
+  id _info;
+}
 
 /* Creating a Notification Object */
-
 + (NSNotification*) notificationWithName: (NSString*)name
    object: object;
 

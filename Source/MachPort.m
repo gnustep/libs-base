@@ -27,21 +27,20 @@
 
 #include <config.h>
 #include <gnustep/base/MachPort.h>
-#include <gnustep/base/Connection.h>
-#include <gnustep/base/Lock.h>
+#include <Foundation/NSLock.h>
 #include <gnustep/base/Set.h>
 
 #include <mach/cthreads.h>
 #include <mach/notify.h>
 
 static Dictionary *portDictionary;
-static Lock *portDictionaryGate;
+static NSLock *portDictionaryGate;
 
 @implementation MachPort
 
 + initialize
 {
-  portDictionaryGate = [Lock new];
+  portDictionaryGate = [NSLock new];
   assert(sizeof(int) == sizeof(port_t));
   portDictionary = [[Dictionary alloc] 
 		    initWithType:@encode(id)

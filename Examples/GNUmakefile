@@ -36,27 +36,16 @@ include ../config.mak
 TEST_TOOL_NAME = \
 dictionary \
 stdio-stream \
-textcoding \
-first-server \
-first-client \
-second-server \
-second-client
+textcoding
 
 # The Objective-C source files to be compiled
 dictionary_OBJC_FILES = dictionary.m
 stdio-stream_OBJC_FILES = stdio-stream.m
 textcoding_OBJC_FILES = textcoding.m
-first-server_OBJC_FILES = first-server.m
-first-client_OBJC_FILES = first-client.m
-second-server_OBJC_FILES = second-server.m
-second-client_OBJC_FILES = second-client.m
 
 SRCS = $(TEST_TOOL_NAME:=.m)
 
-HDRS = \
-first-server.h \
-second-server.h \
-second-client.h
+HDRS =
 
 DIST_FILES = $(SRCS) $(HDRS) GNUmakefile Makefile.postamble Makefile.preamble \
 custom-zone.m

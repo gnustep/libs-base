@@ -28,7 +28,6 @@
 #include <gnustep/base/preface.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <gnustep/base/Lock.h>
 #include <gnustep/base/Collecting.h>
 #include <gnustep/base/Dictionary.h>
 #include <Foundation/NSString.h>
