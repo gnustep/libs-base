@@ -92,7 +92,7 @@
 #endif
 
 typedef	union {
-    NSObject	*o;
+    id		o;
     Class	c;
     int		i;
     unsigned	I;
