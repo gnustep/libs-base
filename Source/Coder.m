@@ -130,22 +130,25 @@ my_object_is_class(id object)
   return DEFAULT_FORMAT_VERSION;
 }
 
+#define SIGNATURE_FORMAT_STRING \
+@"GNU Objective C Class Library %s version %d\n"
+
 - (void) writeSignature
 {
   /* Careful: the string should not contain newlines. */
-  [[cstream stream] writeFormat: 
-		      @"GNU Objective C Class Library %s version %d\n", 
+  [[cstream stream] writeFormat: SIGNATURE_FORMAT_STRING,
 		    object_get_class_name(self),
 		    format_version];
 }
 
 + (void) readSignatureFromCStream: (id <CStreaming>) cs
-		     getClassname: (char **) namePtr 
+		     getClassname: (char *) name
 		    formatVersion: (int*) version
 {
   int got;
 
-  got = [[cs stream] readFormat: @"GNU %a version %d\n", namePtr, version];
+  got = [[cs stream] readFormat: SIGNATURE_FORMAT_STRING,
+		     name, version];
   if (got != 2)
     [NSException raise:CoderSignatureMalformedException
 		 format:@"Coder found a malformed signature"];
@@ -181,12 +184,12 @@ my_object_is_class(id object)
 + coderReadingFromStream: (id <Streaming>) stream
 {
   id cs = [CStream cStreamReadingFromStream: stream];
-  char *name;
+  char name[128];		/* Max classname length. */
   int version;
   id new_coder;
 
   [self readSignatureFromCStream: cs
-	getClassname: &name
+	getClassname: name
 	formatVersion: &version];
 
   new_coder = [[objc_lookup_class(name) alloc]
