@@ -37,6 +37,8 @@
 
 @implementation NSSet 
 
+static Class NSSet_abstract_class;
+static Class NSMutableSet_abstract_class;
 static Class NSSet_concrete_class;
 static Class NSMutableSet_concrete_class;
 
@@ -44,6 +46,8 @@ static Class NSMutableSet_concrete_class;
 {
   if (self == [NSSet class])
     {
+      NSSet_abstract_class = [NSSet class];
+      NSMutableSet_abstract_class = [NSMutableSet class];
       NSSet_concrete_class = [NSGSet class];
       NSMutableSet_concrete_class = [NSGMutableSet class];
       behavior_class_add_class(self, [NSSetNonCore class]);
@@ -113,7 +117,9 @@ static Class NSMutableSet_concrete_class;
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _concreteClass], 0, z);
+  if (self == NSSet_abstract_class)
+    return NSAllocateObject(NSSet_concrete_class, 0, z);
+  return [super allocWithZone: z];
 }
 
 /* This is the designated initializer */
@@ -442,7 +448,9 @@ static Class NSMutableSet_concrete_class;
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _mutableConcreteClass], 0, z);
+  if (self == NSMutableSet_abstract_class)
+    return NSAllocateObject(NSMutableSet_concrete_class, 0, z);
+  return [super allocWithZone: z];
 }
 
 - (id) copyWithZone: (NSZone*)z

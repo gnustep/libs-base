@@ -100,7 +100,7 @@ static SEL	rlSel = @selector(removeLastObject);
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if ([self class] == NSArray_abstract_class)
+  if (self == NSArray_abstract_class)
     return NSAllocateObject(NSArray_concrete_class, 0, z);
   return [super allocWithZone: z];
 }

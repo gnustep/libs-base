@@ -88,7 +88,7 @@
 
 @interface NSCountedSet : NSMutableSet
 
-- (unsigned int) countForObject: anObject;
+- (unsigned int) countForObject: (id)anObject;
 
 @end
 
@@ -102,8 +102,8 @@
 /* These methods will be moved to NSMutableSet as soon as GNU's
    collection objects are separated by mutability. */
 + (unsigned) defaultCapacity;
-- initWithType: (const char *)contentEncoding
-    capacity: (unsigned)aCapacity;
+- (id)initWithType: (const char *)contentEncoding
+	  capacity: (unsigned)aCapacity;
 @end
 
 @interface NSMutableSet (GNU)

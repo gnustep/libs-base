@@ -57,7 +57,7 @@
 
 @implementation NSGCountedSetEnumerator
 
-- initWithSet: (NSSet*)d
+- (id) initWithSet: (NSSet*)d
 {
   self = [super init];
   if (self)
@@ -68,7 +68,7 @@
   return self;
 }
 
-- nextObject
+- (id) nextObject
 {
   GSIMapNode old = node;
 

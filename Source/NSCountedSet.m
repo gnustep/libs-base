@@ -34,18 +34,21 @@
 
 @implementation NSCountedSet 
 
+static Class NSCountedSet_abstract_class;
 static Class NSCountedSet_concrete_class;
 
 + (void) initialize
 {
-    if (self == [NSCountedSet class]) {
-	NSCountedSet_concrete_class = [NSGCountedSet class];
-	behavior_class_add_class(self, [NSMutableSetNonCore class]);
-	behavior_class_add_class(self, [NSSetNonCore class]);
+  if (self == [NSCountedSet class])
+    {
+      NSCountedSet_abstract_class = self;
+      NSCountedSet_concrete_class = [NSGCountedSet class];
+      behavior_class_add_class(self, [NSMutableSetNonCore class]);
+      behavior_class_add_class(self, [NSSetNonCore class]);
     }
 }
 
-+ (void) _CountedSetConcreteClass: (Class)c
++ (void) _setCountedSetConcreteClass: (Class)c
 {
   NSCountedSet_concrete_class = c;
 }
@@ -55,9 +58,11 @@ static Class NSCountedSet_concrete_class;
   return NSCountedSet_concrete_class;
 }
 
-+ allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _concreteClass], 0, z);
+  if (self == NSCountedSet_abstract_class)
+    return NSAllocateObject(NSCountedSet_concrete_class, 0, z);
+  return [super allocWithZone: z];
 }
 
 - (unsigned int) countForObject: anObject
@@ -66,35 +71,36 @@ static Class NSCountedSet_concrete_class;
   return 0;
 }
 
-- copyWithZone: (NSZone*)z
+- (id) copyWithZone: (NSZone*)z
 {
   return [[[self class] allocWithZone: z] initWithSet: self copyItems: YES];
 }
 
-- mutableCopyWithZone: (NSZone*)z
+- (id) mutableCopyWithZone: (NSZone*)z
 {
   return [[[self class] allocWithZone: z] initWithSet: self copyItems: NO];
 }
 
-- initWithCoder: aCoder
+- (id) initWithCoder: (NSCoder*)aCoder
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (void) encodeWithCoder: aCoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [self subclassResponsibility: _cmd];
 }
 
-- initWithSet: (NSSet*)other copyItems: (BOOL)flag
+- (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag
 {
   unsigned	c = [other count];
   id		os[c], o, e = [other objectEnumerator];
   unsigned	i = 0;
   NSZone	*z = [self zone];
+  IMP		next = [e methodForSelector: @selector(nextObject)];
 
-  while ((o = [e nextObject]))
+  while ((o = (*next)(e, @selector(nextObject))) != nil)
     {
       if (flag)
 	os[i] = [o copyWithZone: z];
@@ -103,9 +109,10 @@ static Class NSCountedSet_concrete_class;
       i++;
     }
   self = [self initWithObjects: os count: c];
-  if ([other isKindOfClass: [NSCountedSet class]])
+  if ([other isKindOfClass: NSCountedSet_abstract_class])
     {
       unsigned	j;
+      IMP	addImp = [self methodForSelector: @selector(addObject:)];
 
       for (j = 0; j < i; j++)
 	{
@@ -113,7 +120,7 @@ static Class NSCountedSet_concrete_class;
 
 	  if (extra > 1)
 	    while (--extra)
-	      [self addObject: os[j]];
+	      (*addImp)(self, @selector(addObject:), os[j]);
 	}
     }
   if (flag)
