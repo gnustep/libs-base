@@ -2970,8 +2970,9 @@ static BOOL skipSpace(pldata *pld)
 static inline id parseQuotedString(pldata* pld)
 {
   unsigned	start = ++pld->pos;
-  BOOL		escaped = NO;
+  unsigned	escaped = 0;
   unsigned	shrink = 0;
+  BOOL		hex = NO;
   NSString	*obj;
 
   while (pld->pos < pld->end)
@@ -2980,13 +2981,44 @@ static inline id parseQuotedString(pldata* pld)
 
       if (escaped)
 	{
-	  escaped = NO;
+	  if (escaped == 1 && c == '0')
+	    {
+	      escaped = 2;
+	      hex = NO;
+	    }
+	  else if (escaped > 1)
+	    {
+	      if (escaped == 2 && c == 'x')
+		{
+		  hex = YES;
+		  shrink++;
+		  escaped++;
+		}
+	      else if (hex && (*hexdigitsImp)(hexdigits, cMemberSel, c))
+		{
+		  shrink++;
+		  escaped++;
+		}
+	      else if (c >= '0' && c <= '7')
+		{
+		  shrink++;
+		  escaped++;
+		}
+	      else
+		{
+		  escaped = 0;
+		}
+	    }
+	  else
+	    {
+	      escaped = 0;
+	    }
 	}
       else
 	{
 	  if (c == '\\')
 	    {
-	      escaped = YES;
+	      escaped = 1;
 	      shrink++;
 	    }
 	  else if (c == '"')
@@ -3009,29 +3041,68 @@ static inline id parseQuotedString(pldata* pld)
       unsigned	j;
       unsigned	k;
 
+      escaped = 0;
+      hex = NO;
       for (j = start, k = 0; j < pld->pos; j++)
 	{
-	  chars[k] = pld->ptr[j];
+	  unichar	c = pld->ptr[j];
+
 	  if (escaped)
 	    {
-	      escaped = NO;
-	      switch (chars[k])
+	      if (escaped == 1 && c == '0')
 		{
-		  case 'a' : chars[k] = '\a'; break;
-		  case 'b' : chars[k] = '\b'; break;
-		  case 't' : chars[k] = '\t'; break;
-		  case 'r' : chars[k] = '\r'; break;
-		  case 'n' : chars[k] = '\n'; break;
-		  case 'v' : chars[k] = '\v'; break;
-		  case 'f' : chars[k] = '\f'; break;
-		  default:	break;
+		  chars[k] = 0;
+		  hex = NO;
+		  escaped++;
 		}
-	      k++;
+	      else if (escaped > 1)
+		{
+		  if (escaped == 2 && c == 'x')
+		    {
+		      hex = YES;
+		      escaped++;
+		    }
+		  else if (hex && (*hexdigitsImp)(hexdigits, cMemberSel, c))
+		    {
+		      chars[k] <<= 4;
+		      chars[k] |= char2num(c);
+		      escaped++;
+		    }
+		  else if (c >= '0' && c <= '7')
+		    {
+		      chars[k] <<= 3;
+		      chars[k] |= (c - '0');
+		      escaped++;
+		    }
+		  else
+		    {
+		      escaped = 0;
+		      chars[++k] = c;
+		      k++;
+		    }
+		}
+	      else
+		{
+		  escaped = 0;
+		  switch (c)
+		    {
+		      case 'a' : chars[k] = '\a'; break;
+		      case 'b' : chars[k] = '\b'; break;
+		      case 't' : chars[k] = '\t'; break;
+		      case 'r' : chars[k] = '\r'; break;
+		      case 'n' : chars[k] = '\n'; break;
+		      case 'v' : chars[k] = '\v'; break;
+		      case 'f' : chars[k] = '\f'; break;
+		      default  : chars[k] = c; break;
+		    }
+		  k++;
+		}
 	    }
 	  else
 	    {
-	      if (chars[k] == '\\')
-		escaped = YES;
+	      chars[k] = c;
+	      if (c == '\\')
+		escaped = 1;
 	      else
 		k++;
 	    }
