@@ -307,8 +307,15 @@ handle_printf_atsign (FILE *stream,
 
 + (void) initialize
 {
-  if (self == [NSString class])
+  /*
+   * Flag required as we call this method explicitly from GSBuildStrings()
+   * to ensure that NSString is initialised properly.
+   */
+  static BOOL	beenHere = NO;
+
+  if (self == [NSString class] && beenHere == NO)
     {
+      beenHere = YES;
       plSel = @selector(initWithCharacters:length:);
       cMemberSel = @selector(characterIsMember:);
       _DefaultStringEncoding = GetDefEncoding();

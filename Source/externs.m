@@ -308,6 +308,12 @@ GSBuildStrings()
   if (SClass == 0)
     {
       SClass = [NSString class];
+      /*
+       * Ensure that NSString is initialized ... because we are called
+       * from [NSObject +initialize] which might be executing as a
+       * result of a call to [NSString +initialize] !
+       */
+      [SClass initialize];
       InPortAcceptedClientNotification
 	= [[SClass alloc] initWithCString:
 	"InPortAcceptedClientNotification"];
