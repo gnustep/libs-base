@@ -223,6 +223,10 @@ typedef enum _NSStringEncoding
 - (NSString*) stringByResolvingSymlinksInPath;
 - (NSString*) stringByStandardizingPath;
 
+#ifndef NO_GNUSTEP
+- (const char *) cStringNoCopy;
+#endif /* NO_GNUSTEP */
+
 @end
 
 @interface NSString : NSObject <NSString>
@@ -276,12 +280,5 @@ compiler warning.
 #include <Foundation/NSGCString.h>
 @interface NXConstantString : NSGCString
 @end
-
-#ifndef NO_GNUSTEP
-#include <gnustep/base/IndexedCollecting.h>
-#include <gnustep/base/String.h>
-@interface NSString (GNU) <String,IndexedCollecting>
-@end
-#endif /* NO_GNUSTEP */
 
 #endif /* __NSString_h_GNUSTEP_BASE_INCLUDE */
