@@ -19,18 +19,7 @@
    */
 
 #include "config.h"
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSConnection.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSDistantObject.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSNotification.h>
-#include	<Foundation/NSHashTable.h>
-#include	<Foundation/NSMapTable.h>
-#include	<Foundation/NSAutoreleasePool.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSUserDefaults.h>
-#include	<Foundation/NSDistributedNotificationCenter.h>
+#include	<Foundation/Foundation.h>
 
 #include        <stdio.h>
 #include	<unistd.h>
@@ -222,6 +211,8 @@
 
 - (id) init
 {
+  NSString	*hostname;
+
   connections = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSNonOwnedPointerMapValueCallBacks, 0);
   allObservers = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
@@ -229,11 +220,53 @@
   observersForObjects = [NSMutableDictionary new];
   conn = [NSConnection defaultConnection];
   [conn setRootObject: self];
-  if ([conn registerName: GDNC_SERVICE] == NO)
+
+  hostname = [[NSUserDefaults standardUserDefaults] stringForKey: @"NSHost"];
+  if ([hostname length] == 0)
     {
-      NSLog(@"gdnc - unable to register with name server - quiting.\n");
-      DESTROY(self);
-      return self;
+      if ([conn registerName: GDNC_SERVICE] == NO)
+	{
+	  NSLog(@"gdnc - unable to register with name server - quiting.");
+	  DESTROY(self);
+	  return self;
+	}
+    }
+  else
+    {
+      NSHost		*host = [NSHost hostWithName: hostname];
+      NSPort		*port = [conn receivePort];
+      NSPortNameServer	*ns = [NSPortNameServer systemDefaultPortNameServer];
+      NSArray		*a;
+      unsigned		c;
+
+      if (host == nil)
+	{
+	  NSLog(@"gdnc - unknown NSHost argument  ... %@ - quiting.", hostname);
+	  DESTROY(self);
+	  return self;
+	}
+      a = [host names];
+      c = [a count];
+      while (c-- > 0)
+	{
+	  NSString	*name = [a objectAtIndex: c];
+
+	  name = [GDNC_SERVICE stringByAppendingFormat: @"-%@", name];
+	  if ([ns registerPort: port forName: name] == NO)
+	    {
+	    }
+	}
+      a = [host addresses];
+      c = [a count];
+      while (c-- > 0)
+	{
+	  NSString	*name = [a objectAtIndex: c];
+
+	  name = [GDNC_SERVICE stringByAppendingFormat: @"-%@", name];
+	  if ([ns registerPort: port forName: name] == NO)
+	    {
+	    }
+	}
     }
 
   /*
@@ -374,7 +407,7 @@
 
   if (connection == conn)
     {
-      NSLog(@"argh - gdnc server root connection has been destroyed.\n");
+      NSLog(@"argh - gdnc server root connection has been destroyed.");
       exit(1);
     }
   else

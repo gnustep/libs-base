@@ -9,6 +9,8 @@ Sat Mar  9 12:02:45 2002  Adam Fedor  <fedor@yogi.doc.com>
 	* Source/NSFileManager.m: Change copy so that, if the source argument
 	is a symbolic link, we copy the link rather than the thing it points
 	to.
+	* Tools/gdnc.m: Quick hack to register port with other names is NSHost
+	is used.
 
 2002-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 
