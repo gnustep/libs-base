@@ -1,3 +1,8 @@
+Tue Mar  2 15:07:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/TcpPort.m: If the host has no IP address, try finding the
+	address of 'localhost' and, if that fails, use 127.0.0.1
+
 Tue Mar  2 11:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* NSTimeZones/Makefile.postamble: Updated to preserver old localtime
