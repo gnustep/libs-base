@@ -742,20 +742,19 @@ GSInvocationCallback (void *callback_data, va_alist args)
     }
 
   obj      = va_arg_ptr(args, id);
+  selector = va_arg_ptr(args, SEL);
 
   fwdInvMethod = gs_method_for_receiver_and_selector
     (obj, @selector (forwardInvocation:));
   
   if (!fwdInvMethod)
     {
-      NSCAssert1 (0, @"GSFFCallInvocation: Class '%s' does not respond"
-                  @" to forwardInvocation:",
-                  object_get_class_name (obj));
+      NSCAssert2 (0, @"GSFFCallInvocation: Class '%s' does not respond"
+                  @" to forwardInvocation: for '%s'",
+                  object_get_class_name (obj), sel_get_name(selector));
     }
        
-  selector = va_arg_ptr(args, SEL);
   selector = gs_find_by_receiver_best_typed_sel (obj, selector);
-
   sig = nil;
   
   if (sel_get_type (selector))
