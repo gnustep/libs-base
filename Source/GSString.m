@@ -1261,10 +1261,11 @@ lossyCString_c(ivars self)
 static inline const char*
 lossyCString_u(ivars self)
 {
-  unsigned	l = self->_count;
-  unsigned char	*r = (unsigned char*)_fastMallocBuffer(l + 1);
+  unsigned	l = 0;
+  unsigned char	*r = 0;
 
-  GSFromUnicode(&r, &l, self->_contents.u, l, defEnc, 0, GSUniTerminate);
+  GSFromUnicode(&r, &l, self->_contents.u, self->_count, defEnc, 0,
+    GSUniTemporary|GSUniTerminate);
   return (const char*)r;
 }
 

@@ -1,3 +1,8 @@
+2002-03-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: lossyCString_u() handle case where cString
+	contains more bytes than unicode string has characters.
+
 2002-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: lossyCString_c() fix in line with recent
