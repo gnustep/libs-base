@@ -1,3 +1,20 @@
+1999-04-22  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Don't abort if nested functions don't work. Not
+	sure we even have any.
+
+	* Source/NSBundle.m (-localizedStringForKey:value:table:): Log a
+	message if no localized key found (per OpenStep specs).
+	* Source/include/NSBundle.h
+	(NSLocalizedStringFromTableInFramework): New GNUstep specific
+	macro.
+
+	* NSCharacterSets/GNUmakefile: Install in Resources rather than
+	Resources/gnustep. 
+	* NSTimeZones/GNUmakefile: Likewise.
+	* Source/NSCharacterSet.m: Look in new location.
+	* Source/NSTimeZone.m: Likewise.
+	
 Thu Apr 22 21:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSBundle.m: Improved localisation - added stuff for internal

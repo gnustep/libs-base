@@ -833,7 +833,11 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       NSString	*show = [[NSUserDefaults standardUserDefaults]
 			 objectForKey: NSShowNonLocalizedStrings];
       if (!show || [show isEqual: @"YES"])
-	newString = [key uppercaseString];
+        {
+	  /* It would be bad to localize this string! */
+	  NSLog(@"Non-localized string: %@\n", newString);
+	  newString = [key uppercaseString];
+	}
       else
 	{
 	  newString = value;

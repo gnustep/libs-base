@@ -30,7 +30,7 @@
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSDictionary.h>
 
-static NSString* NSCharacterSet_PATH = @"gnustep/NSCharacterSets";
+static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
 
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 15

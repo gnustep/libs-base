@@ -66,17 +66,18 @@ if test $NeXTCC = 0; then
 	       gcc_nested=1, gcc_nested=0, 
                gcc_nested=1)
     if test $gcc_nested = 0; then
-      echo "aborting"
+      AC_MSG_RESULT(no)
       echo
       echo "The GCC 'nested functions' feature does not seem to be working on"
-      echo "this machine. gstep-base makes extensive use of nested functions."
+      echo "this machine. "
       echo "Read the bug-report instructions in the GCC texinfo manual"
       echo "and submit a bug report."
+      echo "I'm not even sure gstep-base uses nested functions anymore"
+      echo "but if it does, gstep-base will not compile. Try it"
       echo "The program this configure script used to test nested functions"
       echo "can be found in the file 'config/config.nested.c' in this"
       echo "distribution.  Under sparc-sun-sunos4.1.3 with gcc-2.6.1 the"
       echo "file compiles, runs and returns exit status 0."
-      exit
     else
       AC_MSG_RESULT(yes)
     fi
