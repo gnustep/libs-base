@@ -498,7 +498,16 @@ AC_CHECK_FUNCS(strerror)
 #--------------------------------------------------------------------
 # This function needed by NSString for handling of %@ printf directive.
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(register_printf_function)
+AC_CHECK_FUNC(register_printf_function, register_printf=1, 
+register_printf=0)
+if test $register_printf = 1; then
+  AC_TRY_RUN([#include "$srcdir/config/config.printf.c"],
+	       working_register_printf=1, working_register_printf=0, 
+               working_register_printf=1)
+  if test $working_register_printf = 1; then
+    AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION)
+  fi
+fi
 
 #--------------------------------------------------------------------
 # Tools for making a DLL.

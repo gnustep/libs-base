@@ -288,7 +288,6 @@ testScanRadixUnsignedInt (void)
     testScanRadixUnsignedIntFinish (@"FOO", NO, 0, 0);
     testScanRadixUnsignedIntFinish (@"  FOO", NO, 0, 0);
     testScanRadixUnsignedIntFinish (@"  0x ", NO, 0, 0);
-#endif
 }
 
 /*
