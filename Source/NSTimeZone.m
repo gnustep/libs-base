@@ -212,18 +212,18 @@ decode (const void *ptr)
 
 @implementation NSInternalAbbrevDictObjectEnumerator
 
-- (void)dealloc
+- (void) dealloc
 {
-  [dict_enum release];
+  RELEASE(dict_enum);
 }
 
-- initWithDict: (NSDictionary*)aDict
+- (id) initWithDict: (NSDictionary*)aDict
 {
-  dict_enum = [[aDict objectEnumerator] retain];
+  dict_enum = RETAIN([aDict objectEnumerator]);
   return self;
 }
 
-- nextObject
+- (id) nextObject
 {
   id object;
 
@@ -244,7 +244,7 @@ decode (const void *ptr)
   return NSAllocateObject(self, 0, zone);
 }
 
-- init
+- (id) init
 {
   return self;
 }
@@ -254,19 +254,18 @@ decode (const void *ptr)
   return [[NSTimeZone abbreviationMap] count];
 }
 
-- (NSEnumerator*)keyEnumerator
+- (NSEnumerator*) keyEnumerator
 {
   return [[NSTimeZone abbreviationMap] keyEnumerator];
 }
 
-- (NSEnumerator*)objectEnumerator
+- (NSEnumerator*) objectEnumerator
 {
-  return [[[NSInternalAbbrevDictObjectEnumerator alloc]
-	    initWithDict: [NSTimeZone abbreviationMap]]
-	   autorelease];
+  return AUTORELEASE([[NSInternalAbbrevDictObjectEnumerator alloc]
+	    initWithDict: [NSTimeZone abbreviationMap]]);
 }
   
-- objectForKey: key
+- (id) objectForKey: (NSString*)key
 {
   return [[[NSTimeZone abbreviationMap] objectForKey: key] objectAtIndex: 0];
 }
@@ -276,7 +275,7 @@ decode (const void *ptr)
 
 @implementation NSInternalTimeTransition
 
-- (NSString*)description
+- (NSString*) description
 {
   return [NSString
           stringWithFormat: @"%@(%d, %d)",
@@ -306,25 +305,26 @@ decode (const void *ptr)
   
 @implementation NSConcreteTimeZone
   
-- initWithName: (NSString*)aName withTransitions: (NSArray*)trans
-   withDetails: (NSArray*)zoneDetails
+- (id) initWithName: (NSString*)aName
+    withTransitions: (NSArray*)trans
+	withDetails: (NSArray*)zoneDetails
 {
   [super init];
-  name = [aName retain];
-  transitions = [trans retain];
-  details = [zoneDetails retain];
+  name = RETAIN(aName);
+  transitions = RETAIN(trans);
+  details = RETAIN(zoneDetails);
   return self;
 }
 
 - (void)dealloc
 {
-  [name release];
-  [transitions release];
-  [details release];
+  RELEASE(name);
+  RELEASE(transitions);
+  RELEASE(details);
   [super dealloc];
 }
 
-- (void)encodeWithCoder: aCoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [super encodeWithCoder: aCoder];
   if (self == localTimeZone)
@@ -333,22 +333,23 @@ decode (const void *ptr)
     [aCoder encodeObject: name];
 }
 
-- (id) awakeAfterUsingCoder: aCoder
+- (id) awakeAfterUsingCoder: (NSCoder*)aCoder
 {
-  if ([name isEqual: @"NSLocalTimeZone"]) {
-    return localTimeZone;
-  }
+  if ([name isEqual: @"NSLocalTimeZone"])
+    {
+      return localTimeZone;
+    }
   return [NSTimeZone timeZoneWithName: name];
 }
 
-- initWithDecoder: aDecoder
+- (id) initWithDecoder: (NSCoder*)aDecoder
 {
   self = [super initWithCoder: aDecoder];
   [aDecoder decodeValueOfObjCType: @encode(id) at: &name];
   return self;
 }
 
-- (NSTimeZoneDetail*)timeZoneDetailForDate: (NSDate*)date
+- (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
 {
   unsigned index;
   int the_time;
@@ -366,7 +367,7 @@ decode (const void *ptr)
       detail_count = [details count];
       index = 0;
       while (index < detail_count
-	     && [[details objectAtIndex: index] isDaylightSavingTimeZone])
+        && [[details objectAtIndex: index] isDaylightSavingTimeZone])
 	index++;
       if (index == detail_count)
 	index = 0;
@@ -383,7 +384,7 @@ decode (const void *ptr)
   return [details objectAtIndex: index];
 }
   
-- (NSArray*)timeZoneDetailArray
+- (NSArray*) timeZoneDetailArray
 {
   return details;
 }
@@ -411,8 +412,8 @@ decode (const void *ptr)
 
 - (void)dealloc
 {
-  [name release];
-  [detail release];
+  RELEASE(name);
+  RELEASE(detail);
   [super dealloc];
 }
 
@@ -454,8 +455,8 @@ decode (const void *ptr)
        withOffset: (int)anOffset withDST: (BOOL)isDST
 {
   [super init];
-  timeZone = [aZone retain];
-  abbrev = [anAbbrev retain];
+  timeZone = RETAIN(aZone);
+  abbrev = RETAIN(anAbbrev);
   offset = anOffset;
   is_dst = isDST;
   return self;
@@ -463,8 +464,8 @@ decode (const void *ptr)
   
 - (void)dealloc
 {
-  [timeZone release];
-  [abbrev release];
+  RELEASE(timeZone);
+  RELEASE(abbrev);
   [super dealloc];
 }
 
@@ -723,12 +724,17 @@ decode (const void *ptr)
     /* Create time zone details. */
     detailsArray = [[NSMutableArray alloc] initWithCapacity: n_types];
     for (i = 0; i < n_types; i++)
-      [detailsArray
-	addObject: [[NSConcreteTimeZoneDetail alloc]
-                     initWithTimeZone: zone
-                     withAbbrev: abbrevsArray[types[i].abbr_idx]
-		     withOffset: types[i].offset
-		     withDST: (types[i].isdst > 0)]];
+      {
+        NSConcreteTimeZoneDetail	*detail;
+
+	detail = [[NSConcreteTimeZoneDetail alloc]
+			initWithTimeZone: zone
+			      withAbbrev: abbrevsArray[types[i].abbr_idx]
+			      withOffset: types[i].offset
+				 withDST: (types[i].isdst > 0)];
+	[detailsArray addObject: detail];
+	RELEASE(detail);
+      }
     NSZoneFree(NSDefaultMallocZone(), abbrevsArray);
     NSZoneFree(NSDefaultMallocZone(), types);
 
@@ -737,7 +743,7 @@ decode (const void *ptr)
     [zoneDictionary setObject: zone forKey: aTimeZoneName];
   NS_HANDLER
     if (zone != nil)
-      [zone release];
+      RELEASE(zone);
     if ([localException name] != fileException)
       [localException raise];
     zone = nil;
@@ -760,8 +766,7 @@ decode (const void *ptr)
   if (aTimeZone == nil)
     [NSException raise: NSInvalidArgumentException
 		 format: @"Nil time zone specified."];
-  [localTimeZone release];
-  localTimeZone = [aTimeZone retain];
+  ASSIGN(aTimeZone, localTimeZone);
 }
 
 + (NSDictionary*)abbreviationDictionary
