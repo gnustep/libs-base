@@ -1,5 +1,5 @@
 /* Implementation of Objective C NeXT-compatible Storage object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
    Written by:  Kresten Krab Thorup <krab@iesd.auc.dk>
    Dept. of Mathematics and Computer Science, Aalborg U., Denmark
@@ -209,6 +209,7 @@ static inline void _shrinkIfDesired(Storage *self)
 	  elementSize*(numElements-index));
 #endif    
   memcpy(STORAGE_NTH(i), anElement, elementSize);
+  numElements++;
   return self;
 }
 
