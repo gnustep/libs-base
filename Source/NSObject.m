@@ -1,4 +1,4 @@
-null Implementation of NSObject for GNUStep
+/** Implementation of NSObject for GNUStep
    Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
