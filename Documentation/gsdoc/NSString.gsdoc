@@ -479,12 +479,18 @@
           <sel>rangeOfString:</sel>
           <arg type="NSString*">aString</arg>
           <desc>
+	    Invokes <em>rangeOfString:options:</em> with the options mask
+	    set to zero.
           </desc>
         </method>
         <method type="NSRange">
           <sel>rangeOfString:</sel>
           <arg type="NSString*">aString</arg>
+          <sel>options:</sel>
+          <arg type="unsigned int">mask</arg>
           <desc>
+	    Invokes <em>rangeOfString:options:range</em> with the range set
+	    set to the range of the whole of the reciever.
           </desc>
         </method>
         <method type="NSRange">
@@ -495,6 +501,25 @@
           <sel>range:</sel>
           <arg type="NSRange">aRange</arg>
           <desc>
+	    Returns the range giving the location and length of the first
+	    occurrence of <em>subString</em> within <em>aRange</em>.
+	    <br/>
+	    If <em>subString</em> does not exist in the receiver (an empty
+	    string is <em>never</em> considered to exist in the receiver),
+	    the length of the returned range is zero.
+	    <br/>
+	    If <em>substring</em> is nil, an exception is raised.
+	    <br/>
+	    If any part of <em>aRange</em> lies outside the range of the
+	    receiver, an exception is raised.
+	    <br/>
+	    The optionsm mask may contain the following options -
+	    <list>
+	      <item>NSCaseInsensitiveSearch</item>
+	      <item>NSLiteralSearch</item>
+	      <item>NSBackwardsSearch</item>
+	      <item>NSAnchoredSearch</item>
+	    </list>
           </desc>
         </method>
         <method type="NSStringEncoding">
@@ -545,6 +570,20 @@
           <sel>stringByExpandingTildeInPath</sel>
           <desc>
           </desc>
+        </method>
+        <method type="NSString*">
+          <sel>stringByReplacingString:</sel>
+          <arg type="NSString*">aString</arg>
+          <sel>withString:</sel>
+          <arg type="NSString*">replacement</arg>
+          <desc>
+	    Returns a string in which any (and all) occurrances of
+	    <em>aString</em> in the receiver have been replaced by
+	    <em>replacement</em>.  Returns the receiver if <em>aString</em>
+	    does not occur within the receiver.  NB. an empty string is
+	    not considered to exist within the receiver.
+          </desc>
+	  <standards><GNUstep/><NotMacOS-X/><NotOpenStep/></standards>
         </method>
         <method type="NSArray*">
           <sel>stringsByAppendingPaths:</sel>
