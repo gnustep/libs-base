@@ -10,6 +10,7 @@
 	* Source/NSString.m: ditto ... was missing varargs
 	* Documentation/gsdoc/NSNumber.gsdoc: document changes.
 	* Documentation/gsdoc/NSString.gsdoc: document changes.
+	* Testing/values.m: Added some number output tests.
 
 2001-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 

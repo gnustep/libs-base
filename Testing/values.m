@@ -27,19 +27,27 @@ int main()
 printf("try %d, %d", [nc charValue], [ns shortValue]);
 printf("nc compare: ns is %d\n", [nc compare: ns]);
     n1 = [NSNumber numberWithUnsignedShort: 30];
-printf("n1 = %s\n", [[n1 description] cString]);
+    if (strcmp([[n1 description] cString], "30") != 0)
+      printf("*** TEST FAILED **** description for unsigned short number\n");
     n2 = [NSNumber numberWithDouble: 2.7];
-printf("n2 = %s\n", [[n2 description] cString]);
+    if (strcmp([[n2 description] cString], "2.7") != 0)
+      printf("*** TEST FAILED **** description for double number\n");
     n3 = [NSNumber numberWithDouble: 30];
-printf("n3 = %s\n", [[n3 description] cString]);
+    if (strcmp([[n3 description] cString], "30") != 0)
+      printf("*** TEST FAILED **** description for double number\n");
     n4 = [NSNumber numberWithChar: 111];
-printf("n4 = %s\n", [[n4 description] cString]);
+    if (strcmp([[n4 description] cString], "111") != 0)
+      printf("*** TEST FAILED **** description for char number\n");
     n5 = [NSNumber numberWithChar: 111];
-printf("n5 = %s\n", [[n5 description] cString]);
+    if (strcmp([[n5 description] cString], "111") != 0)
+      printf("*** TEST FAILED **** description for unsigned char number\n");
     n6 = [NSNumber numberWithFloat: 1.5];
-printf("n6 = %s\n", [[n6 description] cString]);
+    if (strcmp([[n6 description] cString], "1.5") != 0)
+      printf("*** TEST FAILED **** description for float number\n");
     n7 = [NSNumber numberWithShort: 25];
-printf("n7 = %s\n", [[n7 description] cString]);
+    if (strcmp([[n7 description] cString], "25") != 0)
+      printf("*** TEST FAILED **** description for short number\n");
+
     printf("Number(n1) as int %d, as float %f\n", 
 		[n1 intValue], [n1 floatValue]);
     printf("n1 times n2=%f as int to get %d\n", 
