@@ -67,7 +67,10 @@
 
 - (void) dealloc
 {
-  // ?;
+  if (CONTAINS_OBJECTS)
+    [self makeObjectsPerform:@selector(release)];
+  /* xxx This used to be "safeMakeObjectsPerform:" */
+  [self _collectionDealloc];
   [super dealloc];
 }
 
@@ -75,8 +78,9 @@
 - empty
 {
   if (CONTAINS_OBJECTS)
-    [self safeMakeObjectsPerform:@selector(release)];
-  [self empty];
+    [self makeObjectsPerform:@selector(release)];
+  /* xxx This used to be "safeMakeObjectsPerform:" */
+  [self _empty];
   return self;
 }
 
@@ -252,14 +256,6 @@
 	[self removeElement:e];
     }
   [self safeWithElementsCall:doIt];
-  return self;
-}
-
-/* This must work without sending any messages to content objects.
-   Content objects already may be dealloc'd when this is executed. */
-- _empty
-{
-  [self subclassResponsibility:_cmd];
   return self;
 }
 
@@ -570,7 +566,7 @@
 }
 
 // the copy to be filled by -shallowCopyAs: etc... ;
-- emptyCopyAs: (id <Collecting>)aCollectionClass
+- emptyCopyAs: (Class)aCollectionClass
 {
   if (aCollectionClass == [self species])
     return [self emptyCopy];
@@ -584,7 +580,7 @@
   return [self shallowCopyAs:[self species]];
 }
 
-- shallowCopyAs: (id <Collecting>)aCollectionClass
+- shallowCopyAs: (Class)aCollectionClass
 {
   id newColl = [self emptyCopyAs:aCollectionClass];
   [newColl addContentsOf:self];
@@ -1315,3 +1311,19 @@ for info about latest version.",
 
 @end
 
+@implementation Collection (DeallocationHelpers)
+
+/* This must work without sending any messages to content objects.
+   Content objects already may be dealloc'd when this is executed. */
+- _empty
+{
+  [self subclassResponsibility:_cmd];
+  return self;
+}
+
+- (void) _collectionDealloc
+{
+  return;
+}
+
+@end
