@@ -38,6 +38,7 @@
 
 @interface Coder : NSObject
 {
+  @public
   int format_version;
   CStream *cstream;
   NSMapTable *classname_2_classname; /* for changing class names on r/w */
@@ -53,6 +54,7 @@
 
 @interface Encoder : Coder
 {
+  @public
   /* xxx in_progress_table should actually be an NSHashTable,
      but we are working around a bug right now. */
   NSMapTable *in_progress_table;    /* objects begun writing, but !finished */
