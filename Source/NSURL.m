@@ -577,7 +577,7 @@ static void unescape(const char *from, char * to)
 }
 
 /** <init />
- * Iinitialised susing aUrlString and aBaseUrl.  The value of aBaseUrl
+ * Initialised using aUrlString and aBaseUrl.  The value of aBaseUrl
  * may be nil, but aUrlString must be non-nil.<br />
  * If the string cannot be parsed the method returns nil.
  */
@@ -628,7 +628,7 @@ static void unescape(const char *from, char * to)
 	      *ptr = '\0';			// Terminate it.
 	      end = &ptr[1];
 	      /*
-	       * Standardise upprcase to lower.
+	       * Standardise uppercase to lower.
 	       */
 	      while (--ptr > start)
 		{
@@ -1175,7 +1175,9 @@ static void unescape(const char *from, char * to)
  * NB. This does not conform strictly to the RFCs, in that it includes a
  * leading slash ('/') character (wheras the path part of a URL strictly
  * should not) and the interpretation of non-ascii character is (strictly
- * speaking) undefined.
+ * speaking) undefined.<br />
+ * Also, this breaks strict conformance in that a URL of file scheme is
+ * treated as having a path (contrary to RFCs)
  */
 - (NSString*) path
 {
@@ -1228,6 +1230,11 @@ static void unescape(const char *from, char * to)
 
       unescape(buf, buf);
       path = [NSString stringWithUTF8String: buf];
+    }
+  else if (myData->scheme != 0 && myData->path != 0
+    && strcmp(myData->scheme, "file") == 0)
+    {
+      path = [NSString stringWithUTF8String: myData->path];
     }
   return path;
 }
