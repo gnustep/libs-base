@@ -32,7 +32,7 @@
 #include "StringsEntry.h"
 
 
-int verbose,aggressive_import,aggressive_match;
+int verbose,aggressive_import,aggressive_match,aggressive_remove;
 
 
 typedef struct
@@ -475,7 +475,7 @@ int main(int argc, char **argv)
 	c=argv[i];
 	if (!strcmp (c,"--help"))
 	  {
-	    printf ("Syntax: %s [--help] [--verbose] [--aggressive-import] [--aggressive-match] [-L languages] files.[hmc...]\n",
+	    printf ("Syntax: %s [--help] [--verbose] [--aggressive-import] [--aggressive-match] [--aggressive-remove] [-L languages] files.[hmc...]\n",
 		    argv[0]);
 	    printf("\n");
 	    printf("Example: %s -L \"English Swedish German\" *.[hm]\n",
@@ -494,6 +494,11 @@ int main(int argc, char **argv)
 	else if (!strcmp (c,"--aggressive-match"))
 	  {
 	    aggressive_match = 1;
+	  }
+	else if (!strcmp(c,"--aggressive-remove"))
+	  {
+	    aggressive_remove=1;
+	    aggressive_match=1;
 	  }
 	else if (!strcmp (c,"-L"))
 	  {

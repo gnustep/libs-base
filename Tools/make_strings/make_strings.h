@@ -27,7 +27,7 @@
 -(void) addEntry: (SourceEntry *)e  toTable: (NSString *)table;
 @end
 
-extern int verbose,aggressive_import,aggressive_match;
+extern int verbose,aggressive_import,aggressive_match,aggressive_remove;
 
 #endif
 
