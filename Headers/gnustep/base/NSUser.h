@@ -1,5 +1,5 @@
 /* Interface to NSUser functions for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Martin Michlmayer 
    Date: 1995
@@ -26,9 +26,11 @@
 #ifndef __NSUser_h_GNUSTEP_BASE_INCLUDE
 #define __NSUser_h_GNUSTEP_BASE_INCLUDE
 
-extern char * NSUserName (void);
-extern char * NSHomeDirectory (void);
-extern char * NSDirectoryForUser (char * userName);
+#include <Foundation/NSString.h>
+
+NSString* NSUserName (void);
+NSString* NSHomeDirectory (void);
+NSString* NSDirectoryForUser (char * userName);
 
 #endif /* __NSUser_h_GNUSTEP_BASE_INCLUDE */
 
