@@ -306,7 +306,7 @@ setup()
     length*sizeof(unichar), GSObjCZone(self));
   me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
   me->_count = length;
-  me->_flags.wide = 0;
+  me->_flags.wide = 1;
   memcpy(me->_contents.u, chars, length*sizeof(unichar));
   return (id)me;
 }
@@ -323,7 +323,7 @@ setup()
   me = (ivars)NSAllocateObject(GSUnicodeStringClass, 0, GSObjCZone(self));
   me->_contents.u = chars;
   me->_count = length;
-  me->_flags.wide = 0;
+  me->_flags.wide = 1;
   if (flag == YES)
     me->_flags.free = 1;
   return (id)me;
