@@ -48,13 +48,15 @@ NS_DURING
         v2 = [NSValue value:NULL withObjCType:@encode(int)];
     NS_HANDLER
 	printf("Caught our exception, name %s and reason: %s\n",
-		[[exception name] cString], [[exception reason] cString]);
-	[exception raise];
+	       [[localException name] cString], 
+	       [[localException reason] cString]);
+        [localException raise];
     NS_ENDHANDLER
 
 NS_HANDLER
     printf("Caught our reraised exception, name %s and reason: %s\n",
-		[[exception name] cString], [[exception reason] cString]);
+	   [[localException name] cString],
+	   [[localException reason] cString]);
 
 NS_ENDHANDLER
 
