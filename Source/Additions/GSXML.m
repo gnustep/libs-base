@@ -48,18 +48,28 @@
 
 // #undef	HAVE_LIBXML_SAX2_H
 
+#include "GNUstepBase/GSMime.h"
 #include "GNUstepBase/GSXML.h"
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSData.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSHashTable.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSException.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSBundle.h>
+#include <Foundation/NSCalendarDate.h>
 #include <Foundation/NSCharacterSet.h>
+#include <Foundation/NSData.h>
+#include <Foundation/NSDate.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSHashTable.h>
 #include <Foundation/NSInvocation.h>
+#include <Foundation/NSMapTable.h>
+#include <Foundation/NSRunLoop.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSTimeZone.h>
+#include <Foundation/NSTimer.h>
+#include <Foundation/NSURL.h>
+#include <Foundation/NSURLHandle.h>
+#include <Foundation/NSValue.h>
 #else
 #include <Foundation/Foundation.h>
 #endif
@@ -4310,25 +4320,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 
 
 
-
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSCalendarDate.h>
-#include	<Foundation/NSCharacterSet.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSDate.h>
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSRunLoop.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSTimeZone.h>
-#include	<Foundation/NSTimer.h>
-#include	<Foundation/NSURL.h>
-#include	<Foundation/NSURLHandle.h>
-#include	<Foundation/NSValue.h>
-
-#include	<GNUstepBase/GSMime.h>
-#include	<GNUstepBase/GSXML.h>
-
+#ifdef	HAVE_LIBXML
 
 /*
  * Categories on other classes which are required for XMLRPC
@@ -4398,8 +4390,6 @@ static void indentation(unsigned level, NSMutableString *str)
 }
 
 
-
-#ifdef	HAVE_LIBXML
 
 /*
  * Implementation of categories to output objects for XMLRPC
