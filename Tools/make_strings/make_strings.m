@@ -118,7 +118,7 @@ static int ParseFile(const char *filename,NSMutableDictionary *tables)
 
   int depth=0;
 
-  static void add_arg_ch(int ch)
+  void add_arg_ch(int ch)
     {
       if (arg_len[num_args]+1>=arg_size[num_args])
 	{

@@ -256,7 +256,7 @@ static NSMutableDictionary	*clsDict;	/* Class information	*/
 }
 @end
 
-inline Class
+static inline Class
 mapClassObject(NSUnarchiverObjectInfo *info)
 {
   if (info->overrides == nil)
@@ -273,7 +273,7 @@ mapClassObject(NSUnarchiverObjectInfo *info)
     }
 }
 
-inline NSString*
+static inline NSString*
 mapClassName(NSUnarchiverObjectInfo *info)
 {
   if (info->overrides == nil)

@@ -2063,8 +2063,8 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- *  Returns based on string comparison if anObject is an NSString, else
- *  uses <code>==</code>.
+ *  Returns whether the receiver and an anObject are equals as strings.
+ *  If anObject isn't an NSString, returns NO.
  */
 - (BOOL) isEqual: (id)anObject
 {

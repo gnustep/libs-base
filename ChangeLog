@@ -1,3 +1,16 @@
+2004-09-27 23:26  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSDistantObject.m: Make proxyLocation an enum tag, not a
+	variable.
+	* Source/NSFileManager.m (custom_strdup, append_file_to_path): Make
+	static.
+	* Source/NSString.m (-isEqual:): Clarify documentation.
+	* Source/NSUnarchiver.m (mapClassObject, mapClassName): Make static.
+	* Source/Additions/Unicode.m (GetDefEncoding): Add missing void in
+	the prototype.
+	* Tools/make_strings/make_strings.m (ParseFile): Remove spurious
+	static on the nested function add_arg_ch.
+
 2004-09-27 15:51  Alexander Malmberg <alexander@malmberg.org>
 
 	* configure.ac:	Change SO_REUSADDR to SO_REUSEADDR in the checking
