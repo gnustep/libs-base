@@ -1,3 +1,11 @@
+2003-08-20 13:59  Alexander Malmberg <alexander@malmberg.org>
+
+	Clean up code to remove warnings issued by (what will become)
+	gcc 3.4.
+
+	* Source/GSString.m, Source/NSArchiver.m, Source/NSAttributedString.m,
+	Source/NSRunLoop.m: Don't return values from methods returning void.
+
 2003-08-19  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Clarify ffi interface warnings and disable_do on

@@ -2101,10 +2101,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 - (void) addPort: (NSPort*)port
          forMode: (NSString*)mode
 {
-  return [self addEvent: (void*)port
-		   type: ET_RPORT
-		watcher: (id<RunLoopEvents>)port
-		forMode: (NSString*)mode];
+  [self addEvent: (void*)port
+	    type: ET_RPORT
+	 watcher: (id<RunLoopEvents>)port
+	 forMode: (NSString*)mode];
 }
 
 /**
@@ -2256,7 +2256,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 - (void) removePort: (NSPort*)port
             forMode: (NSString*)mode
 {
-  return [self removeEvent: (void*)port type: ET_RPORT forMode: mode all: NO];
+  [self removeEvent: (void*)port type: ET_RPORT forMode: mode all: NO];
 }
 
 @end

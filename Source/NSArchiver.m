@@ -161,7 +161,7 @@ static Class	NSMutableDataMallocClass;
 	}
       NSZoneFree(_clsMap->zone, (void*)_clsMap);
     }
-  return [super dealloc];
+  [super dealloc];
 }
 
 + (NSData*) archivedDataWithRootObject: (id)rootObject
