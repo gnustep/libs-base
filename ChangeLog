@@ -1,9 +1,75 @@
 Mon Mar 18 13:31:38 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	Debug bug the occurs when a client disconnects from the server,
+	and other clients have references to Proxy's of the disconnected
+	client.
+	* examples/second-server.m ([SecondServer
+ 	-connectionBecameInvalid:]): Correctly detect proxies that should
+ 	be removed from the array.
+	* examples/second-client.m (main): Run RunLoop properly according
+ 	to new style.
+	* src/Proxy.m ([Proxy -encodeWithCoder:]): Add a more explanatory
+ 	error message for the use of invalid Connections.
+	([Proxy +encodeObject:withConnectedCoder:]): Likewise.
+	([Proxy -forward::]): Likewise.
+	* src/Connection.m ([Connection -_handleRmc:]): [METHOD_REQUEST]:
+ 	Fix conditional for which we handle a request immediately.  Before
+ 	it inappropriately queued call backs from the server on which we
+ 	were waiting, causing us to wait forever.
+	* src/TcpPort.m ([TcpOutPort -encodeWithCoder:]): Add debugging
+ 	message.
+	([TcpOutPort +newWithCoder:]): Add debugging message.
+	* src/Proxy.m ([Proxy +encodeObject:withConnectedCoder:]): Assert
+ 	that triangle connection proxy out port's are valid.
+
+	Fix tricky autorelease bugs.
+	* examples/second-server.m ([SecondServer
+ 	-connectionBecameInvalid:]): Don't release REMOTES; it was already
+ 	autoreleased.
+	(main): Enable double release check with NSObject.
+	* src/NSMapTable.m (NSAllMapTableKeys): Don't autorelease the
+ 	return value; it was already autoreleased.  Too many autoreleases
+ 	were causing crashes.
+	(NSAllMapTableValues): Likewise.
+	* src/NSObject.m ([NSObject -autorelease]): Print retain and
+ 	release counts in more helpful error message.
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool -dealloc]): Set
+ 	CURRENT_POOL to PARENT, even if PARENT is nil.  This is correct
+ 	behavior.  Old behavior could cause infinite loops in the PARENT
+ 	pointers.
+
+	Remove old vestiges of nil mode used when RunLoop modes were
+	ignored. 
+	* src/RunLoop.m ([RunLoop -limitDateForMode:]): Assert mode.
+	([RunLoop -acceptInputForMode:beforeDate:]): Likewise.
+	* src/NSTimer.m ([NSTimer
+ 	+scheduledTimerWithTimeInterval:invocation:repeats:]): Add to
+ 	RunLoopDefaultMode, not nil.
+	([NSTimer
+	+scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:]):
+ 	Likewise.
+	* src/Connection.m ([Connection
+ 	-_getReceivedReplyRmcWithSequenceNumber:]): Run the RunLoop in
+ 	RunLoopConnectionReplyMode, not nil mode.
+
+	Update Connection for new RunLoop/Port interaction/interface.
+	* src/Connection.m ([Connection
+ 	+newForInPort:outPort:ancestorConnection:]): Add the in port to
+ 	the RunLoop in new RunLoop style.
+	([Connection -addToRunLoop:forMode:]): Method removed.
+	([Connection -removeFromRunLoop:forMode:]): Method removed.
+	([Connection -_getReceivedReplyRmcWithSequenceNumber:]): Use new class
+	method for RunLoop.
+	([Connection -invalidate]): Remove comment about removing from
+	RunLoop.  RunLoop's now automatically remove invalid ports.
+	(RunLoopConnectionReplyMode): New run loop mode string.
+	* src/objects/Connection.h: Remove old methods.  Add declaration
+ 	of new RunLoop mode.
+
 	Fix the relationship between RunLoop's and Port's.  Maintain the
 	fd_set, and information about which Port's are registered with
 	which RunLoop's entirely in the RunLoop.  Also implement multiple
-	MODE's with RunLoop's---previously the MODE was ignored.
+	MODE's with RunLoop's---previously the MODE was ignored:
 
 	* checks/tcpport-server.m (main): Add port to run loop using new
  	scheme.
@@ -70,6 +136,8 @@ Mon Mar 18 13:31:38 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	([NSDate +distantPast]): Likewise.
 
 Sun Mar 17 18:20:17 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Many miscellaneous small bug fixes, found with -Wall:
 
 	* src/objects/objects.h: Don't include <objects/SocketPort.h>
 
