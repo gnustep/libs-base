@@ -38,7 +38,8 @@
 
 @interface NSData (GSCategories)
 
-- (NSData*) MD5Digest;
+- (NSString*) hexadecimalRepresentation;
+- (NSData*) md5Digest;
 
 @end
 

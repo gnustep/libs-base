@@ -79,7 +79,7 @@ ANNOUNCE_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 # file using the make file ../Source/DocMakefile.  If headers are added to the
 # library, you need to modify that file to get the autogsdoc tool to use them.
 #
-REF_DOC_INSTALL_DIR = $(GNUSTEP_INSTALLATION_DIR)/Documentation/Developer/Base/Reference
+REF_DOC_INSTALL_DIR = $(GNUSTEP_INSTALLATION_DIR)/Documentation/Developer
 
 -include Makefile.preamble
 

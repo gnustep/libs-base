@@ -3742,7 +3742,7 @@ static NSCharacterSet	*tokenSet = nil;
 
   source = [[[NSProcessInfo processInfo] globallyUniqueString]
     dataUsingEncoding: NSUTF8StringEncoding];
-  digest = [source MD5Digest];
+  digest = [source md5Digest];
   memcpy(output, [digest bytes], 16);
   output[16] = (sequence >> 24) & 0xff;
   output[17] = (sequence >> 16) & 0xff;
