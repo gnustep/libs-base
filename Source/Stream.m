@@ -102,6 +102,11 @@
   [self subclassResponsibility:_cmd];
 }
 
+- (void) closeStream
+{
+  [self subclassResponsibility:_cmd];
+}
+
 - (void) setStreamPosition: (unsigned)i
 {
   [self subclassResponsibility:_cmd];
