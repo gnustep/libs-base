@@ -1,3 +1,10 @@
+2001-05-29  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 1.0.1
+
+	* Resources/Languages/Dutch: New file (from Dennis Leeuw
+	<dleeuw@made-it.com>).
+
 2001-05-28  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/objc-gnu2next.h (class_is_class): New.
