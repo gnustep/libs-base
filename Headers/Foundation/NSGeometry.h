@@ -276,7 +276,7 @@ NSInsetRect(NSRect aRect, float dX, float dY)
 
 /* Divides ARECT into two rectangles (namely SLICE and REMAINDER) by
  * "cutting" ARECT---parallel to, and a distance AMOUNT from the edge
-v * of ARECT determined by EDGE.  You may pass 0 in as either of SLICE or
+ * of ARECT determined by EDGE.  You may pass 0 in as either of SLICE or
  * REMAINDER to avoid obtaining either of the created rectangles. */
 GS_EXPORT void
 NSDivideRect(NSRect aRect,
@@ -442,10 +442,11 @@ NSContainsRect(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 GS_GEOM_SCOPE BOOL
 NSContainsRect(NSRect aRect, NSRect bRect)
 {
-  return ((NSMinX(aRect) < NSMinX(bRect))
-          && (NSMinY(aRect) < NSMinY(bRect))
-          && (NSMaxX(aRect) > NSMaxX(bRect))
-          && (NSMaxY(aRect) > NSMaxY(bRect))) ? YES : NO;
+  return (!NSIsEmptyRect(bRect)
+	  && (NSMinX(aRect) < NSMinX(bRect))
+	  && (NSMinY(aRect) < NSMinY(bRect))
+	  && (NSMaxX(aRect) > NSMaxX(bRect))
+	  && (NSMaxY(aRect) > NSMaxY(bRect))) ? YES : NO;
 }
 
 #ifndef	STRICT_OPENSTEP

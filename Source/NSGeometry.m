@@ -82,10 +82,10 @@ NSIntegralRect(NSRect aRect)
   if (NSIsEmptyRect(aRect))
     return NSMakeRect(0, 0, 0, 0);
 
-  rect.origin.x = floor(aRect.origin.x);
-  rect.origin.y = floor(aRect.origin.y);
-  rect.size.width = ceil(aRect.size.width);
-  rect.size.height = ceil(aRect.size.height);
+  rect.origin.x = floor(NSMinX(aRect));
+  rect.origin.y = floor(NSMinY(aRect));
+  rect.size.width = ceil(NSMaxX(aRect)) - rect.origin.x;
+  rect.size.height = ceil(NSMaxY(aRect)) - rect.origin.y;
   return rect;
 }
 
