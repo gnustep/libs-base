@@ -524,8 +524,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   NSArray* languages;
   NSMutableArray* array;
   NSEnumerator* enumerate;
-  NSDictionary *envd = [[NSProcessInfo processInfo] environment];
-  NSString *gnustep_env;
 
   array = [NSMutableArray arrayWithCapacity: 8];
   languages = [NSUserDefaults userLanguages];

@@ -22,6 +22,8 @@
    */
 
 #include <config.h>
+#include <math.h>
+#include <objc/objc-api.h>
 #include <gnustep/base/NSDate.h>
 #include <gnustep/base/NSString.h>
 #include <gnustep/base/NSException.h>
@@ -217,7 +219,7 @@ static id long_day[7] = {@"Sunday",
   // Find the order of date elements
   // and translate format string into scanf ready string
   order = 1;
-  newf = malloc(lf+1);
+  newf = objc_malloc(lf+1);
   for (i = 0;i < lf; ++i)
     {
       newf[i] = f[i];

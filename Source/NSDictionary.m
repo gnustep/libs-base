@@ -23,6 +23,7 @@
    */
 
 #include <config.h>
+#include <gnustep/base/behavior.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSGDictionary.h>
 #include <Foundation/NSArray.h>

@@ -1,3 +1,39 @@
+Thu Dec 11 13:58:39 1997  Adam Fedor  <fedor@doc.com>
+
+	* configure.in: Remove unneeded tests.
+	* GNUmakefile (SUBPROJECTS): Remove checks and examples.
+
+Tue Dec  9 17:47:21 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+	* src/include/behavior.h: Include <objc/objc-api.h>.
+	* src/NSProcessInfo.m: Include <unistd.h>.
+	* src/NSPipe.m: Include <unistd.h>.
+	* src/NSPage.m: Include <string.h>.
+	* src/NSLog.m: Include <unistd.h>.
+	* src/NSHost.m: Include <unistd.h>.
+	* src/NSDistributedLock.m: Include <string.h>.
+	* src/NSDictionary.m: Include <gnustep/base/behavior.h>.
+
+	* src/NSBundle.m ([NSBundle
+	+_bundleResourcePathsWithRootPath:subPath:]): Removed unused
+	variables.
+
+	* src/NSArray.m: Include <gnustep/base/behavior.h>
+	([NSArrayNonCore -descriptionWithIndent:]): Changed argument to
+	unsigned.
+
+	* src/UnixFileHandle.m: Include <arpa/inet.h> and <string.h>.
+	* src/UdpPort.m: Include <unistd.h>.
+	* src/StdioStream.m: Include <string.h>.
+	* src/Coder.m: Include <gnustep/base/behavior.h>.
+
+	* src/NSUser.m (NSHomeDirectoryForUser): Use objc_malloc().
+
+	* src/NSData.m ([NSDataMalloc -initWithCoder:]): Check malloc.
+	([NSMutableDataMalloc -initWithCoder:]): Likewise.
+
+	* src/List.m: Removed unused macros.
+
 Sun Dec 7 23:22:07 1997  Stevo Crvenkovski <stevo@btinternet.com>
 	
 	* src/NSGCString.m ([NSGMutableCString

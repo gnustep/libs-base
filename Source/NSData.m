@@ -57,6 +57,7 @@
  */
 
 #include <config.h>
+#include <objc/objc-api.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/MallocAddress.h>
 #include <Foundation/byte_order.h>
@@ -1218,6 +1219,12 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
   [aCoder decodeValueOfObjCType:"I" at: &l];
   b = malloc(l);
+  if (b == 0)
+    {
+      NSLog(@"[NSDataMalloc -initWithCode:] unable to allocate %lu bytes", l);
+      [self dealloc];
+      return nil;
+    }
   [aCoder decodeArrayOfObjCType:"C" count: l at: b];
   return [self initWithBytesNoCopy: b length: l];
 }
@@ -1585,7 +1592,13 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   void*		b;
 
   [aCoder decodeValueOfObjCType:"I" at: &l];
-  b = malloc(l);
+  b = objc_malloc(l);
+  if (b == 0)
+    {
+      NSLog(@"[NSMutableDataMalloc -initWithCode:] unable to allocate %lu bytes", l);
+      [self dealloc];
+      return nil;
+    }
   [aCoder decodeArrayOfObjCType:"C" count: l at: b];
   return [self initWithBytesNoCopy: b length: l];
 }

@@ -27,6 +27,10 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSProcessInfo.h>
 
+#ifndef __WIN32__
+#include <unistd.h>
+#endif
+
 NSLog_printf_handler *_NSLog_printf_handler;
 
 static void
