@@ -2,4 +2,7 @@ Makefile
 
 AUTHORS
 
+NXStringTable_scan.c
+NSValue?.m NSNumber?.m
+
 errs*
