@@ -1,3 +1,11 @@
+Sun Nov  7 14:04:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/o_vscanf.c Reverted to earlier version - the last fix was
+	causing distributed objects to fail!  I don't know why, but DO seems
+	more important than the bugfix - so, pending a rewrite of DO
+	encoding/decoding to remove the dependency on the old stream code,
+	we need to leave this as it is.
+
 1999-11-09  Adam Fedor  <fedor@gnu.org>
 
 	* Source/o_vscanf.c (o_vscanf): Don't count '\n' as whitespace.

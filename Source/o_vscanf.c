@@ -181,12 +181,10 @@ o_vscanf (void *stream,
 	  if (isspace(fc))
 	    {
 	      /* Whitespace characters match any amount of whitespace.  */
-	      while (isspace (c) && c != '\n')
+	      while (isspace (c))
 		inchar ();
 	      continue;
 	    }
-          else if (c == fc && *f == '\0')
-            continue;
 	  else if (c == fc)
 	    (void) inchar();
 	  else
