@@ -33,10 +33,10 @@
    These class should be used as concrete classes, not the Coder class. */
 
 
-@interface Archiver : Coder
+@interface Archiver : Encoder
 @end
 
-@interface Unarchiver : Coder
+@interface Unarchiver : Decoder
 @end
 
 #endif /* __Archiver_h_OBJECTS_INCLUDE */
