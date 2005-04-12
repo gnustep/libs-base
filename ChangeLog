@@ -1,3 +1,23 @@
+2005-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSDistributedNotificationCenter.h:
+	Added GSPublicNotificationCenterType and changed documentation for
+	NSLocalNotificationCenterType to say it's private to the current user.
+	* Source/NSDistributedNotificationCenter.m: Changed so that
+	NSLocalNotificationCenterType is MacOS-X compatible and the new
+	GSPublicNotificationCenterType works like our old implementation.
+	* Source/NSPortNameServer.m: Add detailed message about forthcoming
+	change to make the default port name server deal with message ports
+	rather than socket ports ... for MacOS-X compatibility and security.
+	* Source/externs.m: Added GSPublicNotificationCenterType
+	* Tools/gdnc.m: Changes for new NSDistributedNotificationCenter
+	behavior.
+	Overview ... updated distributed notifications to be private to the
+	owner of the processes by default.  Added one-time warning message
+	for developers that NSConnection will be changing the same way.
+	These changes discussed a year or two ago (mostly with Alexander),
+	but nobody ever actually implemented them.
+
 2005-04-05  Adam Fedor  <fedor@gnu.org>
 
 	* gnustep-base.spec.in: Update make dependancy

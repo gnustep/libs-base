@@ -66,21 +66,51 @@
  */
 + (id) systemDefaultPortNameServer
 {
-#ifndef __MINGW__
   /* Must be kept in sync with [NSPort +initialize]. */
-  if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES
-    || [[NSUserDefaults standardUserDefaults]
-    boolForKey: @"NSPortIsMessagePort"])
+  if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES)
     {
+#ifndef __MINGW__
       return [NSMessagePortNameServer sharedInstance];
+#else
+      return [NSSocketPortNameServer sharedInstance];
+#endif
     }
   else
     {
-      return [NSSocketPortNameServer sharedInstance];
-    }
+      NSString	*def = [[NSUserDefaults standardUserDefaults]
+	stringForKey: @"NSPortIsMessagePort"];
+
+      if (def == nil)
+	{
+	  GSOnceMLog(
+	    @"\nWARNING -\n"
+	    @"while the default nameserver used by NSConnection\n"
+	    @"currently provides ports which can be used for inter-host\n"
+	    @"and inter-user communications, this will be changed so that\n"
+	    @"nsconnections will only work between processes owned by the\n"
+	    @"same account on the same machine.  This change is for\n"
+	    @"MacOSX compatibility and for increased security.\n"
+	    @"If your application actually needs to support inter-host\n"
+	    @"or inter-user communications, you need to alter it to explicity\n"
+	    @"use an instance of the NSSocketPortNameServer class to provide\n"
+	    @"name service facilities.\n"
+	    @"To stop this message appearing, set the NSPortIsMessagePort\n"
+	    @"user default\n\n");
+	  return [NSSocketPortNameServer sharedInstance];
+	}
+      else if ([def boolValue] == NO)
+	{
+	  return [NSSocketPortNameServer sharedInstance];
+	}
+      else
+	{
+#ifndef __MINGW__
+	  return [NSMessagePortNameServer sharedInstance];
 #else
-  return [NSSocketPortNameServer sharedInstance];
+	  return [NSSocketPortNameServer sharedInstance];
 #endif
+	}
+    }
 }
 
 - (void) dealloc

@@ -99,6 +99,7 @@
 @implementation	NSDistributedNotificationCenter
 
 static NSDistributedNotificationCenter	*locCenter = nil;
+static NSDistributedNotificationCenter	*pubCenter = nil;
 static NSDistributedNotificationCenter	*netCenter = nil;
 
 + (id) allocWithZone: (NSZone*)z
@@ -122,7 +123,11 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 /**
  * Returns a notification center of the specified type.<br />
  * The <code>NSLocalNotificationCenterType</code> provides a shared access to
- * a notificatiuon center used by processes on the local host.<br />
+ * a notification center used by processes on the local host which belong to
+ * the current user.<br />
+ * The <code>GSPublicNotificationCenterType</code> provides a shared access to
+ * a notificatiuon center used by processes on the local host belonging to
+ * any user.<br />
  * The <code>GSNetworkNotificationCenterType</code> provides a shared access to
  * a notificatiuon center used by processes on the local network.<br />
  * MacOS-X supports only <code>NSLocalNotificationCenterType</code>.
@@ -156,6 +161,34 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  [gnustep_global_lock unlock];
 	}
       return locCenter;
+    }
+  else if ([type isEqual: GSPublicNotificationCenterType] == YES)
+    {
+      if (pubCenter == nil)
+	{
+	  [gnustep_global_lock lock];
+	    if (pubCenter == nil)
+	      {
+		NS_DURING
+		  {
+		    NSDistributedNotificationCenter	*tmp;
+
+		    tmp = (NSDistributedNotificationCenter*)
+		      NSAllocateObject(self, 0, NSDefaultMallocZone());
+		    tmp->_centerLock = [NSRecursiveLock new];
+		    tmp->_type = RETAIN(GSPublicNotificationCenterType);
+		    pubCenter = tmp;
+		  }
+		NS_HANDLER
+		  {
+		    [gnustep_global_lock unlock];
+		    [localException raise];
+		  }
+		NS_ENDHANDLER
+	      }
+	  [gnustep_global_lock unlock];
+	}
+      return pubCenter;
     }
   else if ([type isEqual: GSNetworkNotificationCenterType] == YES)
     {
@@ -546,11 +579,25 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 {
   if (_remote == nil)
     {
-      NSString	*host = nil;
-      NSString	*service = nil;
-      NSString	*description = nil;
+      NSString		*host = nil;
+      NSString		*service = nil;
+      NSString		*description = nil;
+      NSPortNameServer	*ns = nil;
 
+#ifdef	__MINGW__
       if (_type == NSLocalNotificationCenterType)
+	{
+	  ASSIGN(_type, GSPublicNotificationCenterType);
+	}
+#endif
+      if (_type == NSLocalNotificationCenterType)
+	{
+	  host = @"";
+	  ns = [NSMessagePortNameServer sharedInstance];
+	  service = GDNC_SERVICE;
+	  description = @"local host";
+	}
+      else if (_type == GSPublicNotificationCenterType)
         {
 	  /*
 	   * Connect to the NSDistributedNotificationCenter for this host.
@@ -559,7 +606,6 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	    stringForKey: @"NSHost"];
 	  if (host == nil)
 	    {
-	      //host = @"localhost";
 	      host = @"";
 	    }
 	  else
@@ -591,6 +637,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	    || [host isEqualToString: @"localhost"] == YES
 	    || [host isEqualToString: @"127.0.0.1"] == YES)
 	    {
+	      host = @"";
 	      description = @"local host";
 	    }
 	  else
@@ -598,6 +645,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	      description = host;
 	    }
 	  service = GDNC_SERVICE;
+	  ns = [NSSocketPortNameServer sharedInstance];
 	}
       else if (_type == GSNetworkNotificationCenterType)
         {
@@ -610,6 +658,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	      description = @"network host";
 	    }
 	  service = GDNC_NETWORK;
+	  ns = [NSSocketPortNameServer sharedInstance];
 	}
       else
         {
@@ -617,24 +666,17 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  	      format: @"Unknown center type - %@", _type];
 	}
 
-      if ([host isEqualToString: @"*"] == YES)
-	{
-	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
-	    service host: host
-	    usingNameServer: [NSSocketPortNameServer sharedInstance]];
-	}
-      else
-	{
-	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
-	    service host: host];
-	}
+      _remote = [NSConnection rootProxyForConnectionWithRegisteredName: service
+								  host: host
+						       usingNameServer: ns];
       RETAIN(_remote);
 
-      if (_type == NSLocalNotificationCenterType
+      if (_type == GSPublicNotificationCenterType
 	&& _remote == nil && [host isEqual: @""] == NO)
 	{
 	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
-	    [service stringByAppendingFormat: @"-%@", host] host: @"*"];
+	    [service stringByAppendingFormat: @"-%@", host] host: @"*"
+	    usingNameServer: ns];
 	  RETAIN(_remote);
 	}
 
@@ -690,12 +732,16 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		  args = [[NSArray alloc] initWithObjects:
 		    @"-GSNetwork", @"YES", nil];
 		}
+	      else if (_type == GSPublicNotificationCenterType)
+	      	{
+		  args = [[NSArray alloc] initWithObjects:
+		    @"-GSPublic", @"YES", nil];
+		}
 	      else if ([host length] > 0)
 		{
 		  args = [[NSArray alloc] initWithObjects:
 		    @"-NSHost", host, nil];
 		}
-
 	      [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
 	      [NSTimer scheduledTimerWithTimeInterval: 5.0
 					   invocation: nil
