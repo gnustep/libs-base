@@ -363,9 +363,14 @@ ihandler(int sig)
 
 - (id) init
 {
-  NSString	*hostname;
-  NSString	*service = GDNC_SERVICE;
-  BOOL		isLocal = NO;
+  NSString		*hostname;
+  NSString		*service;
+  BOOL			isNetwork = NO;
+  BOOL			isPublic = NO;
+  BOOL			isLocal = NO;
+  NSPort		*port;
+  NSPortNameServer	*ns;
+  NSUserDefaults	*defs;
 
   connections = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSNonOwnedPointerMapValueCallBacks, 0);
@@ -373,48 +378,68 @@ ihandler(int sig)
   observersForNames = [NSMutableDictionary new];
   observersForObjects = [NSMutableDictionary new];
 
-  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSNetwork"] == YES)
+  defs = [NSUserDefaults standardUserDefaults];
+  hostname = [defs stringForKey: @"NSHost"];
+  if ([hostname length] > 0 || [defs boolForKey: @"GSPublic"] == YES)
     {
-      service = GDNC_NETWORK;
+      if (hostname == nil || [hostname isEqualToString: @"localhost"] == YES
+	|| [hostname isEqualToString: @"127.0.0.1"] == YES)
+	{
+	  hostname = @"";
+	}
+      isPublic = YES;
     }
-  hostname = [[NSUserDefaults standardUserDefaults] stringForKey: @"NSHost"];
-  if ([hostname length] == 0
-    || [hostname isEqualToString: @"localhost"] == YES
-    || [hostname isEqualToString: @"127.0.0.1"] == YES)
+  else if ([defs boolForKey: @"GSNetwork"] == YES)
     {
-      isLocal = YES;
-    }
-
-  /*
-   * If this is the local server for the current host,
-   * use the loopback network interface.  Otherwise
-   * create a public connection.
-   */
-  if (0 && isLocal == YES && service != GDNC_NETWORK)
-    {
-      /* If this code is reactivated, it needs to deal correctly with the
-      case where NSSocketPort shouldn't be used (because it isn't the
-      default port). Something like
-	NSPort *port = [NSMessagePort port];
-      or just
-	NSPort *port = [NSPort port];
-      */
-      NSPort	*port = [NSSocketPort portWithNumber: 0
-					      onHost: [NSHost localHost]
-					forceAddress: @"127.0.0.1"
-					    listener: YES];
-      conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];
+      isNetwork = YES;
     }
   else
     {
-      conn = [NSConnection defaultConnection];
+#ifdef	__MINGW__
+      isPublic = YES;
+#else
+      isLocal = YES;
+#endif
     }
+
+
+  if (isNetwork)
+    {
+      service = GDNC_NETWORK;
+      ns = [NSSocketPortNameServer sharedInstance];
+      port = (NSPort*)[NSSocketPort port];
+    }
+  else if (isPublic)
+    {
+      service = GDNC_SERVICE;
+      ns = [NSSocketPortNameServer sharedInstance];
+      if (isLocal == YES)
+	{
+	  port = (NSPort*)[NSSocketPort portWithNumber: 0
+						onHost: [NSHost localHost]
+					  forceAddress: @"127.0.0.1"
+					      listener: YES];
+	}
+      else
+	{
+	  port = (NSPort*)[NSSocketPort port];
+	}
+    }
+  else
+    {
+      hostname = @"";
+      service = GDNC_SERVICE;
+      ns = [NSMessagePortNameServer sharedInstance];
+      port = (NSPort*)[NSMessagePort port];
+    }
+
+  conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];
   [conn setRootObject: self];
 
-  if (isLocal == YES
+  if ([hostname length] == 0
     || [[NSHost hostWithName: hostname] isEqual: [NSHost currentHost]] == YES)
     {
-      if ([conn registerName: service] == NO)
+      if ([conn registerName: service withNameServer: ns] == NO)
 	{
 	  NSLog(@"gdnc - unable to register with name server as %@ - quiting.",
 	    service);
@@ -426,7 +451,6 @@ ihandler(int sig)
     {
       NSHost		*host = [NSHost hostWithName: hostname];
       NSPort		*port = [conn receivePort];
-      NSPortNameServer	*ns = [NSPortNameServer systemDefaultPortNameServer];
       NSArray		*a;
       unsigned		c;
 

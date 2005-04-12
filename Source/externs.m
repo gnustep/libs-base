@@ -57,6 +57,7 @@ NSString *NSConnectionDidInitializeNotification = @"NSConnectionDidInitializeNot
  */
 NSString *NSLocalNotificationCenterType = @"NSLocalNotificationCenterType";
 NSString *GSNetworkNotificationCenterType = @"GSNetworkNotificationCenterType";
+NSString *GSPublicNotificationCenterType = @"GSPublicNotificationCenterType";
 
 /*
  * NSThread Notifications
