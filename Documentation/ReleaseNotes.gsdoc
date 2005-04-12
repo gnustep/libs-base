@@ -19,6 +19,12 @@
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.10.3</heading>
+	<p>
+	This release includes a few minor bug fixes.
+	</p>
+      </section>
+      <section>
 	<heading>Version 1.10.2</heading>
 	<p>
 	This release is most likely the last release in this series,
