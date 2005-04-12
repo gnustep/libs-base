@@ -1015,7 +1015,20 @@ static NSLock	*cached_proxies_gate = nil;
   /*
    * Make sure we are not registered.
    */
-  [self registerName: nil];
+  if ([_receivePort isKindOfClass: [NSMessagePort class]])
+    {
+      [self registerName: nil
+	  withNameServer: [NSMessagePortNameServer sharedInstance]];
+    }
+  else if ([_receivePort isKindOfClass: [NSSocketPort class]])
+    {
+      [self registerName: nil
+	  withNameServer: [NSSocketPortNameServer sharedInstance]];
+    }
+  else
+    {
+      [self registerName: nil];
+    }
 
   /*
    * Withdraw from run loops.
