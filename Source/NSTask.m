@@ -1082,11 +1082,10 @@ quotedFromString(NSString *aString)
     }
 
   lpath = [self _fullLaunchPath];
-  wexecutable = [[lpath localFromOpenStepPath] unicharString];
+  lpath = [lpath localFromOpenStepPath];
+  wexecutable = [lpath unicharString];
 
-  args = [[NSMutableString alloc] initWithString:
-    quotedFromString([NSString stringWithCharacters: wexecutable
-	length: wcslen(wexecutable)])];
+  args = [[NSMutableString alloc] initWithString: quotedFromString(lpath)];
   arg_enum = [[self arguments] objectEnumerator];
   while ((arg = [arg_enum nextObject]))
     {
@@ -1097,6 +1096,7 @@ quotedFromString(NSString *aString)
   w_args = NSZoneMalloc(NSDefaultMallocZone(),
     sizeof(wchar_t) * ([args length] + 1));
   [args getCharacters: (unichar*)w_args];
+  w_args[[args length]] = 0;
 
   env = [self environment];
   if ([env count] > 0)

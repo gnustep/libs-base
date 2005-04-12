@@ -11,6 +11,23 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.10.3}
+
+This version includes a few minor bug fixes.
+
+@ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{1.10.2}
+
+This version mostly includes minor fixes and updates.
+
+@itemize @bullet
+@item The definition of NSContainsRect has changed to correspond with the
+current Mac OS X/Cocoa def - the sides of the bRect can touch aRect.
+@item Add support for systems that support unichar file paths (e.g. Windows).
+@item Use a proper one-to-one abbreviation dictionary for NSTimeZone.
+@end itemize
+
 @section Noteworthy changes in version @samp{1.10.1}
 
 This version mostly includes minor fixes and updates.
@@ -22,8 +39,6 @@ This version mostly includes minor fixes and updates.
 @item Designated initializers for NSArray, NSDictionary, NSSet, and NSString
 have been changed for MacOS X compatibility.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.10.0}
 

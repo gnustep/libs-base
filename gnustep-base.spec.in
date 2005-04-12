@@ -6,7 +6,7 @@ Summary: 	GNUstep Base library package
 Packager:       GNUstep Development <bug-gnustep@gnu.org>
 Vendor:		The GNUstep Project
 URL:		http://www.gnustep.org/
-Requires:	gnustep-make >= 1.7.0
+Requires:	gnustep-make >= 1.10.0
 
 %description
 The GNUstep Base Library is a powerful fast library of general-purpose,
