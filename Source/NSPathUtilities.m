@@ -1015,7 +1015,7 @@ NSTemporaryDirectory(void)
   /*
    * If the user has supplied a directory name in the TEMP or TMP
    * environment variable, attempt to use that unless we already
-   * have a tem porary directory specified.
+   * have a temporary directory specified.
    */
   if (baseTempDirName == nil)
     {
@@ -1079,13 +1079,22 @@ NSTemporaryDirectory(void)
 #endif
   if ((perm != 0700 && perm != 0600) || owner != uid)
     {
+      NSString	*secure;
+
+      /*
+       * The name of the secure subdirectory reflects the user ID rather
+       * than the user name, since it is possible to have an account with
+       * lots of names on a unix system (ie multiple entries in the password
+       * file but a single userid).  The private directory is secure within
+       * the account, not to a particular user name.
+       */
+      secure = [NSString stringWithFormat: @"GNUstepSecure%d", uid];
+      tempDirName
+	= [baseTempDirName stringByAppendingPathComponent: secure];
       /*
       NSLog(@"Temporary directory (%@) may be insecure ... attempting to "
 	@"add secure subdirectory", tempDirName);
       */
-
-      tempDirName
-	= [baseTempDirName stringByAppendingPathComponent: NSUserName()];
       if ([manager fileExistsAtPath: tempDirName] == NO)
 	{
 	  NSNumber	*p = [NSNumber numberWithInt: 0700];
@@ -1096,7 +1105,8 @@ NSTemporaryDirectory(void)
 				  attributes: attr] == NO)
 	    {
 	      [NSException raise: NSGenericException
-			  format: @"Attempt to create a secure temporary directory (%@) failed.",
+			  format:
+		@"Attempt to create a secure temporary directory (%@) failed.",
 				  tempDirName];
 	      return nil; /* Not reached. */
 	    }
@@ -1112,7 +1122,8 @@ NSTemporaryDirectory(void)
       if ((perm != 0700 && perm != 0600) || owner != uid)
 	{
 	  [NSException raise: NSGenericException
-		      format: @"Attempt to create a secure temporary directory (%@) failed.",
+		      format:
+	    @"Attempt to create a secure temporary directory (%@) failed.",
 			      tempDirName];
 	  return nil; /* Not reached. */
 	}

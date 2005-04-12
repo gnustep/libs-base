@@ -17,6 +17,10 @@
 	for developers that NSConnection will be changing the same way.
 	These changes discussed a year or two ago (mostly with Alexander),
 	but nobody ever actually implemented them.
+	* Source/NSPathUtilities.m: Make temporary directory name based on
+	uid so that it is consistent on a unix system where there are
+	multiple named accounts with the same user id (essentially all
+	aliases for a single account).
 
 2005-04-05  Adam Fedor  <fedor@gnu.org>
 
