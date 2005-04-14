@@ -2364,6 +2364,16 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 			  eol += 2;
 			  lastPart = YES;
 			}
+		      /*
+		       * Ignore space/tab characters after boundry marker
+		       * and before crlf.  Strictly this is wrong ... but
+		       * at least one mailer generates bogus whitespace here.
+		       */
+		      while (eol < dataEnd
+			&& (bytes[eol] == ' ' || bytes[eol] == '\t'))
+			{
+			  eol++;
+			}
 		      if (eol < dataEnd && bytes[eol] == '\r')
 			{
 			  eol++;
