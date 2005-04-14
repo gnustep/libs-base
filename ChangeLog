@@ -1,3 +1,9 @@
+2005-04-13  Adam Fedor  <fedor@gnu.org>
+
+	* ANNOUNCE, NEWS, Documentation/news.texi,
+	Documentation/ReleaseNotes.gsdoc: Merge in release info from
+	1.10.3 release branch.
+
 2005-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSDistributedNotificationCenter.h:

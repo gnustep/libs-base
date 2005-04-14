@@ -1,9 +1,14 @@
 News
 ****
 
-The currently released version of the library is `1.10.2'.
+The currently released version of the library is `1.10.3'.
 
 See the <ReleaseNotes.html> document for more information.
+
+Noteworthy changes in version `1.10.3'
+======================================
+
+This version includes a few minor bug fixes.
 
 Noteworthy changes in version `1.10.2'
 ======================================
