@@ -1,3 +1,8 @@
+2005-04-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Add tweak to cope with buggy mailers
+	which insert space after the boundary in a multipart document.
+
 2005-04-13  Adam Fedor  <fedor@gnu.org>
 
 	* ANNOUNCE, NEWS, Documentation/news.texi,
