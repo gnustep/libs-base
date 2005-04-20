@@ -425,6 +425,7 @@ ihandler(int sig)
 	  port = (NSPort*)[NSSocketPort port];
 	}
     }
+#ifndef	__MINGW__
   else
     {
       hostname = @"";
@@ -432,6 +433,7 @@ ihandler(int sig)
       ns = [NSMessagePortNameServer sharedInstance];
       port = (NSPort*)[NSMessagePort port];
     }
+#endif
 
   conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];
   [conn setRootObject: self];
