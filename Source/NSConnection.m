@@ -1015,12 +1015,15 @@ static NSLock	*cached_proxies_gate = nil;
   /*
    * Make sure we are not registered.
    */
+#ifndef	__MINGW__
   if ([_receivePort isKindOfClass: [NSMessagePort class]])
     {
       [self registerName: nil
 	  withNameServer: [NSMessagePortNameServer sharedInstance]];
     }
-  else if ([_receivePort isKindOfClass: [NSSocketPort class]])
+  else
+#endif
+  if ([_receivePort isKindOfClass: [NSSocketPort class]])
     {
       [self registerName: nil
 	  withNameServer: [NSSocketPortNameServer sharedInstance]];

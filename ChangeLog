@@ -1,3 +1,9 @@
+2005-04-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m:
+	* Source/NSDistributedNotificationCenter.m:
+	mingw tweaks
+
 2005-04-19  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/gdomap.c (init_iface): Round size to make sure we don't violate
