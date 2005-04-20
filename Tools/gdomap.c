@@ -128,6 +128,10 @@
 
 #define	MAX_EXTRA	((GDO_NAME_MAX_LEN - 2 * IASIZE)/IASIZE)
 
+#define ROUND(V, A) \
+  ({ typeof(V) __v=(V); typeof(A) __a=(A); \
+	 __a*((__v+__a-1)/__a); })
+
 typedef	unsigned char	*uptr;
 #ifndef __MINGW__
 static int	is_daemon = 0;		/* Currently running as daemon.	 */
@@ -1265,7 +1269,8 @@ init_iface()
     {
       ifreq = *(struct ifreq*)ifr_ptr;
 #ifdef HAVE_SA_LEN
-      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_addr) + ifreq.ifr_addr.sa_len;
+      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_addr) 
+	+ ROUND(ifreq.ifr_addr.sa_len, sizeof(struct ifreq*));
 #else
       ifr_ptr += sizeof(ifreq);
 #endif
