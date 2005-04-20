@@ -589,7 +589,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	{
 	  ASSIGN(_type, GSPublicNotificationCenterType);
 	}
-#endif
+#else
       if (_type == NSLocalNotificationCenterType)
 	{
 	  host = @"";
@@ -597,7 +597,9 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  service = GDNC_SERVICE;
 	  description = @"local host";
 	}
-      else if (_type == GSPublicNotificationCenterType)
+      else
+#endif
+      if (_type == GSPublicNotificationCenterType)
         {
 	  /*
 	   * Connect to the NSDistributedNotificationCenter for this host.
