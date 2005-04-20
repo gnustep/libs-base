@@ -1,3 +1,8 @@
+2005-04-19  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (init_iface): Round size to make sure we don't violate
+	pointer alignment boundaries.
+
 2005-04-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Add tweak to cope with buggy mailers
