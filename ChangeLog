@@ -2,6 +2,7 @@
 
 	* Source/NSConnection.m:
 	* Source/NSDistributedNotificationCenter.m:
+	* Tools/gdnc.m:
 	mingw tweaks
 
 2005-04-19  Adam Fedor  <fedor@gnu.org>
