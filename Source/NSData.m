@@ -3268,7 +3268,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  unsigned	len;
 	  gss32		ni;
-	  unsigned	minimum;
+	  gsu32		minimum;
 
 	  if (!*(void**)data)
 	    {
@@ -3299,7 +3299,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  unsigned	size;
 	  unsigned	count = atoi(++type);
 	  unsigned	i;
-	  unsigned	minimum;
+	  gsu32		minimum;
 
 	  while (isdigit(*type))
 	    {
@@ -3401,7 +3401,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  const char  *name = *(Class*)data?GSNameFromClass(*(Class*)data):"";
 	  gsu16	ln = (gsu16)strlen(name);
-	  gsu16	minimum = length + ln + sizeof(gsu16);
+	  gsu32	minimum = length + ln + sizeof(gsu16);
 	  gsu16	ni;
 
 	  if (minimum > capacity)
@@ -3424,7 +3424,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
 	  const char  *types = *(SEL*)data?GSTypesFromSelector(*(SEL*)data):"";
 	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
-	  gsu16	minimum = length + ln + lt + 2*sizeof(gsu16);
+	  gsu32	minimum = length + ln + lt + 2*sizeof(gsu16);
 	  gsu16	ni;
 
 	  if (minimum > capacity)

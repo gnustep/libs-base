@@ -1,3 +1,8 @@
+2005-04-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Fix bug in memory management when serializing an
+	object over 65K in length.
+
 2005-04-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m:
