@@ -489,7 +489,7 @@ main(int argc, char** argv, char **env)
 		{
 		  c = [obj characterAtIndex: 0];
 		}
-	      if (c == '(' || c == '{' || c == '<')
+	      if (c == '(' || c == '{' || c == '<' || c == '"')
 		{
 		  id	tmp;
 
@@ -538,7 +538,7 @@ main(int argc, char** argv, char **env)
 	      value = [args objectAtIndex: i];
 	      ptr = [value cString];
 
-	      if (*ptr == '(' || *ptr == '{' || *ptr == '<')
+	      if (*ptr == '(' || *ptr == '{' || *ptr == '<' || *ptr == '"')
 		{
 		  NS_DURING
 		    obj = [value propertyList];
