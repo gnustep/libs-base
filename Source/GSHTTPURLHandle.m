@@ -375,7 +375,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       [s appendFormat: @"%@: %@\r\n", key, [wProperties objectForKey: key]];
     }
-  [wProperties removeAllObjects];
   [s appendString: @"\r\n"];
   buf = [[s dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
 
@@ -505,6 +504,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  r = NSMakeRange(bodyPos, [d length] - bodyPos);
 	  bodyPos = 0;
 	  DESTROY(wData);
+	  [wProperties removeAllObjects];
 	  [self didLoadBytes: [d subdataWithRange: r]
 		loadComplete: YES];
 	}
@@ -578,6 +578,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) endLoadInBackground
 {
   DESTROY(wData);
+  [wProperties removeAllObjects];
   if (connectionState != idle)
     {
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];

@@ -540,7 +540,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   if (added_lang == NO)
     {
       /* Ack! We should never get here */
-      NSLog(@"Improper installation: No language locale found");
+      NSWarnMLog(@"Improper installation: No language locale found");
       [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
     }
   RETAIN(sharedDefaults);
