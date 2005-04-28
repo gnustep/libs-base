@@ -9,7 +9,7 @@
 @end ifinfo
 
 @ifinfo
-Copyright @copyright{} 1997 Free Software Foundation
+Copyright @copyright{} 1997-2005 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -36,7 +36,7 @@ into another language, under the above conditions for modified versions.
 @page
 
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1997 Free Software Foundation
+Copyright @copyright{} 1997-2005 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -61,7 +61,7 @@ into another language, under the above conditions for modified versions.
 * Memory Management::           
 * Error Handling::              
 * Variable Declaration::        
-* Object Persistance::          
+* Object Persistence::          
 * Documentation::               
 * Before You Commit::           
 * Contributing::                
@@ -75,7 +75,7 @@ This document explains the official coding standards which developers
 for GNUstep should follow. Note that these standards are in addition
 to GNU coding standards, not a replacement of them.
 
-To summarize, always add a ChangeLog message whenever your commit a
+To summarise, always add a ChangeLog message whenever your commit a
 change. Make sure your patch, if possible, improves the operation of
 the library, not just fixes things - i.e. there are many places where
 things are just hacked together from long ago and really aren't
@@ -135,7 +135,8 @@ White space should be used for clarity throughout.  In particular,
 variable declarations should be separated from code by a blank line and
 function/method implementations should be separated by a blank line.
 
-Tabstops should be 8 spaces.
+Tabs should ideally not be used (use spaces instead), if used they
+must be for tab-stops at the standard intervals of 8 spaces.
 
 All binary operators should be surrounded by white space with the
 exception of the comma (only a trailing white space), and the
@@ -172,7 +173,7 @@ correct GNU style is
 @end example
 
 For function implementations, the function names must begin on column zero
-(types on the preceeding line).  For function predeclaration, the types and
+(types on the preceding line).  For function predeclaration, the types and
 the name should appear on the same line if possible.
 @example
 static int myFunction(int a, int b);
@@ -250,9 +251,16 @@ The way to do this is indent so the colons line up.
                        also: thirdArg];
 @end example
 That's the style used mostly in the GNUstep code - and therefore the one I
-try to keep to.
+try to keep to, however, the standard two space indentation is also acceptable
+(and sometimes necessary to prevent the text exceeding the 80 character line
+length limit).
+@example
+  [receiver doSomethingWith: firstArg
+    and: secondArg
+    also: thirdArg];
+@end example
 
-Finally, my own preference (not part of the standard in any way) is to
+My own preference (not part of the standard in any way) is to
 generally use curly brackets for control constructs, event where only one line
 of code is involved
 @example
@@ -262,6 +270,17 @@ of code is involved
     @}
 @end example
 
+Where using conditional compilation you should comment the #else and #endif
+with the condition expression used in the #if line, to make it easy to find
+the matching lines.
+@example
+#if condition
+// some code here
+#else /* not condition */
+#endif /* condition */
+
+
+@end example
 @c ******************************************************************
 @node Memory Management, Error Handling, Coding Style, Top
 @section Memory Management
@@ -277,7 +296,7 @@ You should always use the macros RETAIN(), RELEASE() and AUTORELEASE()
 There are also some extra macros that may be of use -
 @itemize @bullet
 @item
-ASSIGN(object,value) to assign an object variable, preforming the appropriate retain/release as necessary.
+ASSIGN(object,value) to assign an object variable, performing the appropriate retain/release as necessary.
 @item
 ASSIGNCOPY(object,value) to copy the value and assign it to the object.
 @item
@@ -299,11 +318,11 @@ in use.
 @node Error Handling, Variable Declaration, Memory Management, Top
 @section Error Handling
 
-Initialization methods (e.g. -init) should, upon failure to
-initialize the class, release itself and return nil. This may mean
+Initialisation methods (e.g. -init) should, upon failure to
+initialise the class, release itself and return nil. This may mean
 in certain cases, that it should catch exceptions, since the calling
 method will be expecting a nil object rather than an exception on
-failure. However, init methods should endeavor to provide some
+failure. However, init methods should endeavour to provide some
 information, via NSLog, on the failure.
 
 All other methods should cause an exception on failure*, unless
@@ -328,7 +347,7 @@ shared memory etc.) from the kernel. If an exception is generated
 between the allocation of the resource and its disposal, the resource
 will be simply lost without any possibility to release. The code should
 check for exceptions and if something bad occurs it should release all
-the allocated resources and reraise the exception.
+the allocated resources and re-raise the exception.
 
 Unfortunately there is no nice way to do this automatically in OpenStep.
 Java has the "finally" block which is specifically designed for this task. A
@@ -336,13 +355,13 @@ similar mechanism exists in libFoundation with the CLEANUP and FINALLY
 blocks.
 
 @c ******************************************************************
-@node Variable Declaration, Object Persistance, Error Handling, Top
+@node Variable Declaration, Naming Conventions, Error Handling, Top
 @section Variable Declaration
 
-All variables should be decalred at the beginning of a block. The new
+All variables should be declared at the beginning of a block. The new
 C99 standard (and gcc 3.X) allow variables to be declared anywhere in 
 a block, including after executable code. However, in order to be compatible
-with older compilers, all GNUstep programs should keep the old behavior.
+with older compilers, all GNUstep programs should keep the old behaviour.
 
 Certainly we would consider it a bug to introduce code into the
 GNUstep libraries which stopped them compiling with one of the
@@ -350,12 +369,65 @@ commonly used compilers.
 
 
 @c ******************************************************************
-@node Object Persistance, Documentation, Variable Declaration, Top
-@section Object Persistance
+@node Naming Conventions, Object Persistence, Variable Declaration, Top
+@section Naming Conventions
+
+The convention for naming items in GNUstep differs from the GNU standard
+as it needs to be compatible with OpenStep/MacOS-X.
+
+Public classes, variables, functions and constants begin with the NS prefix
+if they are part of the OpenStep or MacOS-X APIs, and begin with GS if they
+are GNUstep extensions.  GNUstep extensions must not use the NS prefix.
+
+Class, public function, and global variable names have the first letter of
+each word in the name capitalised (underscores are not used).
+@example
+@@class	NSRunLoop;
+GSSetUserName();
+NSGenericException;
+@end example
+
+Method and instance variable names are similarly capitalised, except that the
+first letter of the first word is usually not capitalised (there are a few
+exceptions to this where the first word is an acronym and all the letters
+in it are capitals).  Underscores are not used in these names except to indicate that the method/variable is private, in which case the name begins with an
+underscore.
+
+@example
+@{
+  int	publicInstanceVariable;
+  int	_privateInstanceVariable;
+@}
+- (void) publicMethod;
+- (void) _privateMethod;
+@end example
+
+The names of accessor methods (methods used to set or get the value of an
+instance variable) must mirror the names of the instance variables.
+The name of a setter method is of the form 'setVar' where 'Var' is the
+instance variable name with any leading underscore removed and with the
+first letter converted to uppercase.
+The name of the getter method is the same as the instance variable name
+(with any leading underscore removed).
+
+@example
+@{
+  int	_amplitude;
+  int	frequency;
+@}
+- (int) amplitude;
+- (int) frequency;
+- (void) setAmplitude: (int)anAmplitude;
+- (void) setFrequencey: (int)aFrequency;
+@end example
+
+@c ******************************************************************
+@node Object Persistence, Documentation, Naming Conventions, Top
+@section Object Persistence
 
 The standard method of saving and restoring object information in GNUstep
 is through the use of the -encodeWithCoder: and -initWithCoder: methods.
-Any object which requires persistance implements these methods. They are
+Any object which requires persistence implements these methods. They are
 used, for instance by Gorm, to save GUI interface elements. It is important
 that all changes to these methods be backward compatible with previously
 stored archives (for instance, those created by Gorm). The easiest way to do
@@ -363,7 +435,7 @@ this is to use class version numbers to indicate which archive configuration
 should be read.
 
 @c ******************************************************************
-@node Documentation, Before You Commit, Object Persistance, Top
+@node Documentation, Before You Commit, Object Persistence, Top
 @section Documentation
 
 Document every method you change or add!  This makes it easier to fix our
@@ -372,9 +444,9 @@ do not copy either the OpenStep or Cocoa documentation. Some methods
 are so simple you might have to intentionally reword the documentation
 so it is different.
 
-Currently there is a differance of opinion on whether to document in
+Currently there is a difference of opinion on whether to document in
 the header or in the source file, although we generally lean towards
-the header currently. Make sure you are consistant with the current
+the header currently. Make sure you are consistent with the current
 method of documentation in the source file you are changing.
 
 @c ******************************************************************
@@ -385,7 +457,7 @@ method of documentation in the source file you are changing.
 @item Make sure you have a ChangeLog entry
 @item Make sure everything still compiles
 @item Make sure you've tested the change as much as is reasonable.
-@item If you have added a class, add the class to @file{Foudation/Foundation.h}
+@item If you have added a class, add the class to @file{Foundation/Foundation.h}
 or @file{Appkit/Appkit.h} if appropriate.
 @item Documentation the methods you have changed or added.
 @item If you have updated and configure checks, be sure to run both
