@@ -3,6 +3,10 @@
 	* Documentation/coding-standards.texi: Added what appear to be the
 	generally accepted parts of Sheldon's suggested coding standards
 	additions.
+	* Source/GSHTTPURLHandle.m: Modified to keep watching idle connections
+	and handle things properly when the remote end drops the connection.
+	Should fix occasional trouble when connectioin keepalive is used but
+	the remote host drops the connection between requests.
 
 2005-04-26  Richard Frith-Macdonald <rfm@gnu.org>
 

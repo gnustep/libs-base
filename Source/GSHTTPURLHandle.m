@@ -315,7 +315,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSMutableData		*buf;
   NSString		*version;
 
-  if (debug == YES) NSLog(@"%@", NSStringFromSelector(_cmd));
+  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
 
   s = [basic mutableCopy];
   if ([[u query] length] > 0)
@@ -411,10 +411,29 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSData		*d;
   NSRange		r;
 
+  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
 
-  if ([parser parse: d] == NO)
+  if (connectionState == idle)
+    {
+      /*
+       * We received an event on a handle which is not in use ...
+       * it should just be the connection being closed by the other
+       * end because of a timeout etc.
+       */
+      if (debug == YES && [d length] != 0)
+	{
+	  NSLog(@"%@ %s Unexpected data from remote!",
+	    NSStringFromSelector(_cmd), keepalive?"K":"");
+	}
+      [nc removeObserver: self
+		    name: NSFileHandleReadCompletionNotification
+		  object: sock];
+      [sock closeFile];
+      DESTROY(sock);
+    }
+  else if ([parser parse: d] == NO)
     {
       if (debug == YES)
 	{
@@ -465,14 +484,14 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  float		ver;
 
 	  connectionState = idle;
-	  [nc removeObserver: self
-			name: NSFileHandleReadCompletionNotification
-		      object: sock];
 
 	  ver = [[[document headerNamed: @"http"] value] floatValue];
 	  val = [[document headerNamed: @"connection"] value];
 	  if (ver < 1.1 || (val != nil && [val isEqual: @"close"] == YES))
 	    {
+	      [nc removeObserver: self
+			    name: NSFileHandleReadCompletionNotification
+			  object: sock];
 	      [sock closeFile];
 	      DESTROY(sock);
 	    }
@@ -521,6 +540,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      [self didLoadBytes: [d subdataWithRange: r]
 		    loadComplete: NO];
 	    }
+	}
+      if (sock != nil)
+	{
 	  [sock readInBackgroundAndNotify];
 	}
     }
@@ -533,6 +555,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSData		*d;
   GSMimeParser		*p = [GSMimeParser new];
 
+  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
 
@@ -609,7 +632,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*method;
   NSString		*path;
 
-  if (debug == YES) NSLog(@"%@", NSStringFromSelector(_cmd));
+  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
 
   path = [[u path] stringByTrimmingSpaces];
   if ([path length] == 0)
@@ -772,7 +795,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary    	*userInfo = [notification userInfo];
   NSString        	*e;
 
-  if (debug == YES) NSLog(@"%@", NSStringFromSelector(_cmd));
+  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
@@ -830,7 +853,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		     name: NSFileHandleReadCompletionNotification
 	           object: sock];
 	}
-      [sock readInBackgroundAndNotify];
+      if ([sock readInProgress] == NO)
+	{
+	  [sock readInBackgroundAndNotify];
+	}
       connectionState = reading;
     }
 }
@@ -1067,6 +1093,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSString	*method;
       NSString	*path;
       NSString	*basic;
+
+      // Stop waiting for connection to be closed down.
+      nc = [NSNotificationCenter defaultCenter];
+      [nc removeObserver: self
+		    name: NSFileHandleReadCompletionNotification
+		  object: sock];
 
       keepalive = YES;	// Reusing a connection.
       method = [request objectForKey: GSHTTPPropertyMethodKey];
