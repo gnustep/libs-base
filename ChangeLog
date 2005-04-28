@@ -1,3 +1,9 @@
+2005-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/coding-standards.texi: Added what appear to be the
+	generally accepted parts of Sheldon's suggested coding standards
+	additions.
+
 2005-04-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: remove wProperties and wData from
