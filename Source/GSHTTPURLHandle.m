@@ -256,18 +256,28 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
   if (sock != nil)
     {
+      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+
+      /*
+       * We might be in an idle state with an outstandng read on the
+       * socket, keeping the connection alive, but waiting for the
+       * remote end to drop it.
+       */
+      [nc removeObserver: self
+		    name: NSFileHandleReadCompletionNotification
+		  object: sock];
       [sock closeFile];
       DESTROY(sock);
     }
-  RELEASE(u);
-  RELEASE(url);
-  RELEASE(dat);
-  RELEASE(parser);
-  RELEASE(document);
-  RELEASE(pageInfo);
-  RELEASE(wData);
-  RELEASE(wProperties);
-  RELEASE(request);
+  DESTROY(u);
+  DESTROY(url);
+  DESTROY(dat);
+  DESTROY(parser);
+  DESTROY(document);
+  DESTROY(pageInfo);
+  DESTROY(wData);
+  DESTROY(wProperties);
+  DESTROY(request);
   [super dealloc];
 }
 
