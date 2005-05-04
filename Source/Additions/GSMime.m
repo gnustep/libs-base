@@ -2300,8 +2300,58 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  else
 		    {
 		      NSString	*charset;
+		      NSString	*sub;
 
 		      charset = [typeInfo parameterForKey: @"charset"];
+
+		      /*
+		       * For 'text/xml' content where charset is not supplied,
+		       * we may be able to get the information from the
+		       * header encoding="..." section.
+		       */
+		      if (charset == nil
+			&& (sub = [typeInfo objectForKey: @"Subtype"]) != nil
+			&& [sub isEqualToString: @"xml"] == YES)
+			{
+			  const unsigned char	*ptr = [data bytes];
+			  unsigned int		length = [data length];
+			  unsigned int		i;
+
+			  for (i = 0; i < length - 10 && i < 500; i++)
+			    {
+			      if (memcmp(ptr + i, "encoding=\"", 10) == 0)
+				{
+				  unsigned	start = i + 10;
+				  unsigned	end = start;
+
+				  for (i = start; i < length; i++)
+				    {
+				      if (ptr[i] == '"')
+					{
+					  end = i;
+					  break;
+					}
+				    }
+				  if (end > start)
+				    {
+				      NSData	*d;
+				      NSString	*c;
+
+				      d = [NSData dataWithBytes: ptr + start
+							 length: end - start];
+				      c = [NSString alloc];
+				      c = [c initWithData: d
+					encoding: NSASCIIStringEncoding];
+				      if (c != nil)
+					{
+					  charset = [c lowercaseString];
+					}
+				    }
+				  break;
+				}
+			    }
+			}
+
 		      stringEncoding
 			= [documentClass encodingFromCharset: charset];
 		    }
@@ -2311,8 +2361,15 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  string = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		  string = [string initWithData: data
 				       encoding: stringEncoding];
-		  [document setContent: string];
-		  RELEASE(string);
+		  if (string == nil)
+		    {
+		      [document setContent: data];	// Can't make string
+		    }
+		  else
+		    {
+		      [document setContent: string];
+		      RELEASE(string);
+		    }
 		}
 	      else
 		{
@@ -4786,8 +4843,9 @@ static NSCharacterSet	*tokenSet = nil;
   else
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ -%@] passed bad content",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+		  format: @"[%@ -%@] passed bad content: %@",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+	newContent];
     }
 }
 
