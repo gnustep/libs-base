@@ -1,3 +1,9 @@
+2005-05-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: If given content of type text/xml without
+	a charset, try to get the charset from the encoding="..." part of the
+	header.
+
 2005-04-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Remove self as an observer of our file
