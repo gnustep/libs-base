@@ -1,3 +1,11 @@
+2005-05-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Improve handling of text/xml without
+	a charset.  Add new method to determine the correct charset in the
+	case where it has to be inferred from the actual data.  Follow the
+	instructions in http://www.w3.org/TR/REC-xml/ but be a bit more
+	tolerant. (ebcdic not supported).
+
 2005-05-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: If given content of type text/xml without
