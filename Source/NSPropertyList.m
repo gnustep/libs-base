@@ -47,6 +47,10 @@
 #include "GSPrivate.h"
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
+#ifndef UINT_MAX
+#  define UINT_MAX     4294967295U
+#endif
+
 @class	GSString;
 @class	GSMutableString;
 @class	GSMutableArray;
@@ -3055,11 +3059,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   else if (index_size == 4)
     {
-#ifdef UINT_MAX
       table_size = UINT_MAX;
-#else
-      table_size = 256 * 256 * 256 * 256;
-#endif
     }
 
   table = malloc(table_size * sizeof(int));
