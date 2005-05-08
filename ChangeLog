@@ -5,6 +5,9 @@
 	case where it has to be inferred from the actual data.  Follow the
 	instructions in http://www.w3.org/TR/REC-xml/ but be a bit more
 	tolerant. (ebcdic not supported).
+	* Headers/Foundation/GSString.m: Add a few new methods from macosx.
+	* Source/NSString.m: ditto.
+	* Source/GSString.m: ditto.
 
 2005-05-04  Richard Frith-Macdonald <rfm@gnu.org>
 

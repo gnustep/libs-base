@@ -921,7 +921,7 @@ compare_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 }
 
 static inline char*
-cString_c(GSStr self)
+cString_c(GSStr self, NSStringEncoding enc)
 {
   unsigned char *r;
 
@@ -929,7 +929,7 @@ cString_c(GSStr self)
     {
       return "";
     }
-  if (defEnc == intEnc)
+  if (enc == intEnc)
     {
       r = (unsigned char*)GSAutoreleasedBuffer(self->_count+1);
 
@@ -956,7 +956,7 @@ cString_c(GSStr self)
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't convert to/from Unicode string."];
 	}
-      if (GSFromUnicode((unsigned char**)&r, &s, u, l, defEnc,
+      if (GSFromUnicode((unsigned char**)&r, &s, u, l, enc,
 	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), u);
@@ -970,7 +970,7 @@ cString_c(GSStr self)
 }
 
 static inline char*
-cString_u(GSStr self)
+cString_u(GSStr self, NSStringEncoding enc)
 {
   unsigned	c = self->_count;
 
@@ -983,7 +983,7 @@ cString_u(GSStr self)
       unsigned int	l = 0;
       unsigned char	*r = 0;
 
-      if (GSFromUnicode(&r, &l, self->_contents.u, c, defEnc,
+      if (GSFromUnicode(&r, &l, self->_contents.u, c, enc,
 	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
@@ -994,9 +994,9 @@ cString_u(GSStr self)
 }
 
 static inline unsigned int
-cStringLength_c(GSStr self)
+cStringLength_c(GSStr self, NSStringEncoding enc)
 {
-  if (defEnc == intEnc)
+  if (enc == intEnc)
     {
       return self->_count;
     }
@@ -1023,7 +1023,7 @@ cStringLength_c(GSStr self)
 	      [NSException raise: NSCharacterConversionException
 			  format: @"Can't convert to/from Unicode string."];
 	    }
-	  if (GSFromUnicode(0, &s, u, l, defEnc, 0, GSUniStrict) == NO)
+	  if (GSFromUnicode(0, &s, u, l, enc, 0, GSUniStrict) == NO)
 	    {
 	      NSZoneFree(NSDefaultMallocZone(), u);
 	      [NSException raise: NSCharacterConversionException
@@ -1036,7 +1036,7 @@ cStringLength_c(GSStr self)
 }
 
 static inline unsigned int
-cStringLength_u(GSStr self)
+cStringLength_u(GSStr self, NSStringEncoding enc)
 {
   unsigned	c = self->_count;
 
@@ -1048,7 +1048,7 @@ cStringLength_u(GSStr self)
     {
       unsigned	l = 0;
 
-      if (GSFromUnicode(0, &l, self->_contents.u, c, defEnc, 0, GSUniStrict)
+      if (GSFromUnicode(0, &l, self->_contents.u, c, enc, 0, GSUniStrict)
 	== NO)
 	{
 	  [NSException raise: NSCharacterConversionException
@@ -2130,12 +2130,17 @@ transmute(GSStr self, NSString *aString)
 
 - (const char *) cString
 {
-  return cString_c((GSStr)self);
+  return cString_c((GSStr)self, defEnc);
+}
+
+- (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
+{
+  return cString_c((GSStr)self, encoding);
 }
 
 - (unsigned int) cStringLength
 {
-  return cStringLength_c((GSStr)self);
+  return cStringLength_c((GSStr)self, defEnc);
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -2230,6 +2235,11 @@ transmute(GSStr self, NSString *aString)
 - (unsigned int) length
 {
   return _count;
+}
+
+- (unsigned int) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+{
+  return cStringLength_c((GSStr)self, encoding);
 }
 
 - (const char*) lossyCString
@@ -2449,12 +2459,17 @@ agree, create a new GSCInlineString otherwise.
 
 - (const char *) cString
 {
-  return cString_u((GSStr)self);
+  return cString_u((GSStr)self, defEnc);
+}
+
+- (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
+{
+  return cString_u((GSStr)self, encoding);
 }
 
 - (unsigned int) cStringLength
 {
-  return cStringLength_u((GSStr)self);
+  return cStringLength_u((GSStr)self, defEnc);
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -2552,6 +2567,11 @@ agree, create a new GSCInlineString otherwise.
 - (unsigned int) length
 {
   return _count;
+}
+
+- (unsigned int) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+{
+  return cStringLength_u((GSStr)self, encoding);
 }
 
 - (const char*) lossyCString
@@ -2864,17 +2884,25 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (const char *) cString
 {
   if (_flags.wide == 1)
-    return cString_u((GSStr)self);
+    return cString_u((GSStr)self, defEnc);
   else
-    return cString_c((GSStr)self);
+    return cString_c((GSStr)self, defEnc);
+}
+
+- (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
+{
+  if (_flags.wide == 1)
+    return cString_u((GSStr)self, encoding);
+  else
+    return cString_c((GSStr)self, encoding);
 }
 
 - (unsigned int) cStringLength
 {
   if (_flags.wide == 1)
-    return cStringLength_u((GSStr)self);
+    return cStringLength_u((GSStr)self, defEnc);
   else
-    return cStringLength_c((GSStr)self);
+    return cStringLength_c((GSStr)self, defEnc);
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -3169,6 +3197,14 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (unsigned int) length
 {
   return _count;
+}
+
+- (unsigned int) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+{
+  if (_flags.wide == 1)
+    return cStringLength_u((GSStr)self, encoding);
+  else
+    return cStringLength_c((GSStr)self, encoding);
 }
 
 - (const char*) lossyCString
@@ -3540,6 +3576,11 @@ agree, create a new GSUnicodeInlineString otherwise.
   return [_parent cString];
 }
 
+- (const char *) cStringUsingEncoding
+{
+  return [_parent cStringUsingEncoding];
+}
+
 - (unsigned int) cStringLength
 {
   return [_parent cStringLength];
@@ -3605,6 +3646,13 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
+	   encoding: (NSStringEncoding)encoding
+{
+  [_parent getCString: buffer maxLength: maxLength encoding: encoding];
+}
+
+- (void) getCString: (char*)buffer
+	  maxLength: (unsigned int)maxLength
 	      range: (NSRange)aRange
      remainingRange: (NSRange*)leftoverRange
 {
@@ -3640,9 +3688,19 @@ agree, create a new GSUnicodeInlineString otherwise.
   return [_parent length];
 }
 
+- (unsigned int) lengthOfBytesUsingEncoding
+{
+  return [_parent lengthOfBytesUsingEncoding];
+}
+
 - (const char*) lossyCString
 {
   return [_parent lossyCString];
+}
+
+- (unsigned int) maximumLengthOfBytesUsingEncoding
+{
+  return [_parent maximumLengthOfBytesUsingEncoding];
 }
 
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
@@ -3708,17 +3766,25 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (const char *) cString
 {
   if (((GSStr)_parent)->_flags.wide == 1)
-    return cString_u((GSStr)_parent);
+    return cString_u((GSStr)_parent, defEnc);
   else
-    return cString_c((GSStr)_parent);
+    return cString_c((GSStr)_parent, defEnc);
+}
+
+- (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
+{
+  if (((GSStr)_parent)->_flags.wide == 1)
+    return cString_u((GSStr)_parent, encoding);
+  else
+    return cString_c((GSStr)_parent, encoding);
 }
 
 - (unsigned int) cStringLength
 {
   if (((GSStr)_parent)->_flags.wide == 1)
-    return cStringLength_u((GSStr)_parent);
+    return cStringLength_u((GSStr)_parent, defEnc);
   else
-    return cStringLength_c((GSStr)_parent);
+    return cStringLength_c((GSStr)_parent, defEnc);
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -3800,12 +3866,25 @@ agree, create a new GSUnicodeInlineString otherwise.
   return ((GSStr)_parent)->_count;
 }
 
+- (unsigned int) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+{
+  if (((GSStr)_parent)->_flags.wide == 1)
+    return cStringLength_u((GSStr)_parent, encoding);
+  else
+    return cStringLength_c((GSStr)_parent, encoding);
+}
+
 - (const char*) lossyCString
 {
   if (((GSStr)_parent)->_flags.wide == 1)
     return lossyCString_u((GSStr)_parent);
   else
     return lossyCString_c((GSStr)_parent);
+}
+
+- (unsigned int) maximumLengthOfBytesUsingEncoding
+{
+  return [_parent maximumLengthOfBytesUsingEncoding];
 }
 
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex

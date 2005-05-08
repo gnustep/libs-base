@@ -584,13 +584,28 @@ handle_printf_atsign (FILE *stream,
  * null-terminated and encoded in the default C string encoding.  (Characters
  * will be converted to unicode representation internally.)
  */
-+ (id) stringWithCString: (const char*) byteString
++ (id) stringWithCString: (const char*)byteString
 {
   NSString	*obj;
   unsigned	length = byteString ? strlen(byteString) : 0;
 
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithCString: byteString length: length];
+  return AUTORELEASE(obj);
+}
+
+/**
+ * Create a string based on the given C (char[]) string, which should be
+ * null-terminated and encoded in the specified C string encoding.
+ * Characters may be converted to unicode representation internally.
+ */
++ (id) stringWithCString: (const char*)byteString
+		encoding: (NSStringEncoding)encoding
+{
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithCString: byteString encoding: encoding];
   return AUTORELEASE(obj);
 }
 
@@ -1143,6 +1158,19 @@ handle_printf_atsign (FILE *stream,
       self = [self initWithCharactersNoCopy: buf length: l freeWhenDone: YES];
     }
   return self;
+}
+
+/**
+ * <p>Initialize with given C string byteString up to first nul byte.
+ * Characters converted to unicode based on the specified C encoding.
+ * Copies the string.</p>
+ */
+- (id) initWithCString: (const char*)byteString
+	      encoding: (NSStringEncoding)encoding
+{
+  return [self initWithBytes: byteString
+		      length: strlen(byteString)
+		    encoding: encoding];
 }
 
 /**
@@ -2802,6 +2830,60 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
+ * Returns a pointer to a null terminated string of 8-bit characters in the
+ * specified encoding.<br />
+ * The memory pointed to is not owned by the caller, so the
+ * caller must copy its contents to keep it.<br />
+ * Raises an * <code>NSCharacterConversionException</code> if loss of
+ * information would occur during conversion.
+ */
+- (const char*) cStringUsingEncoding: (NSStringEncoding)encoding
+{
+  NSData	*d;
+  NSMutableData	*m;
+
+  d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
+  if (d == nil)
+    {
+      [NSException raise: NSCharacterConversionException
+		  format: @"unable to convert to cString"];
+    }
+  m = [d mutableCopy];
+  [m appendBytes: "" length: 1];
+  AUTORELEASE(m);
+  return (const char*)[m bytes];
+}
+
+/**
+ * Returns the number of bytes needed to encode the receiver in the
+ * specified encoding (without adding a nul character terminator).<br />
+ * Returns 0 if the conversion is not possible.
+ */
+- (unsigned) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+{
+  NSData	*d;
+
+  d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
+  return [d length];
+}
+
+/**
+ * Returns a size guaranteed to be large enough to encode the receiver in the
+ * specified encoding (without adding a nul character terminator).  This may
+ * be larger than the actual number of bytes needed.
+ */
+- (unsigned) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+{
+  if (encoding == NSUnicodeStringEncoding)
+    return [self length] * 2;
+  if (encoding == NSUTF8StringEncoding)
+    return [self length] * 6;
+  if (encoding == NSUTF7StringEncoding)
+    return [self length] * 8;
+  return [self length];				// Assume single byte/char
+}
+
+/**
  * Returns a C string converted using the default C string encoding, which may
  * result in information loss.  The memory pointed to is not owned by the
  * caller, so the caller must copy its contents to keep it.
@@ -2879,6 +2961,23 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
+ * Retrieve up to maxLength bytes from the receiver into the buffer.<br />
+ * The buffer must be at least maxLength + 1 bytes long, so that it has
+ * room for the nul terminator that this method adds.
+ */
+- (void) getCString: (char*)buffer
+	  maxLength: (unsigned int)maxLength
+	   encoding: (NSStringEncoding)encoding
+{
+  NSData	*d = [self dataUsingEncoding: encoding];
+  unsigned	len = [d length];
+
+  if (len > maxLength) len = maxLength;
+  memcpy(buffer, [d bytes], len);
+  buffer[len] = '\0';
+}
+
+/**
  * Converts characters from the given range of the string to the c string
  * encoding and stores the resulting bytes in the given buffer. As many
  * characters are converted as will fit in the buffer. A trailing nul
@@ -2939,7 +3038,7 @@ handle_printf_atsign (FILE *stream,
 
 // Getting Numeric Values
 
-// xxx Sould we use NSScanner here ?
+// xxx Should we use NSScanner here ?
 
 /**
  * If the string consists of the words 'true' or 'yes' (case insensitive)
