@@ -2849,7 +2849,16 @@ handle_printf_atsign (FILE *stream,
 		  format: @"unable to convert to cString"];
     }
   m = [d mutableCopy];
-  [m appendBytes: "" length: 1];
+  if (encoding == NSUnicodeStringEncoding)
+    {
+      unichar c = 0;
+
+      [m appendBytes: &c length: 2];
+    }
+  else
+    {
+      [m appendBytes: "" length: 1];
+    }
   AUTORELEASE(m);
   return (const char*)[m bytes];
 }
@@ -2974,6 +2983,10 @@ handle_printf_atsign (FILE *stream,
 
   if (len > maxLength) len = maxLength;
   memcpy(buffer, [d bytes], len);
+  if (encoding == NSUnicodeStringEncoding)
+    {
+      buffer[len++] = '\0';
+    }
   buffer[len] = '\0';
 }
 

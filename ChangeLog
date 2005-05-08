@@ -1,3 +1,9 @@
+2005-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: nul terminate properly when a returned 'C string'
+	is actually unicode.
+	* Source/GSString.m: ditto.
+
 2005-05-08  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m: Added class BinaryPLGenerator to export
