@@ -702,8 +702,9 @@ static NSString		*mainFont = nil;
 	  children = node;
 	  if ([[children name] isEqual: @"standards"])
 	    {
-	      [self outputNode: children to: buf];
+	      node = [node nextElement];
 	    }
+	  [self outputVersion: prop to: buf];
 
 	  if ([[node name] isEqual: @"desc"])
 	    {
@@ -1021,8 +1022,9 @@ static NSString		*mainFont = nil;
 	  children = node;
 	  if ([[children name] isEqual: @"standards"])
 	    {
-	      [self outputNode: children to: buf];
+	      node = [node nextElement];
 	    }
+	  [self outputVersion: prop to: buf];
 
 	  if ([[node name] isEqual: @"desc"])
 	    {
@@ -1320,10 +1322,7 @@ static NSString		*mainFont = nil;
 	  /*
 	   * List standards with which ivar complies
 	   */
-	  if ([[children name] isEqual: @"standards"])
-	    {
-	      [self outputNode: children to: buf];
-	    }
+	  [self outputVersion: prop to: buf];
 	  if ([[tmp name] isEqual: @"desc"])
 	    {
 	      [self outputNode: tmp to: buf];
@@ -1449,8 +1448,9 @@ static NSString		*mainFont = nil;
 	  children = node;
 	  if ([[children name] isEqual: @"standards"])
 	    {
-	      [self outputNode: children to: buf];
+	      node = [node nextElement];
 	    }
+	  [self outputVersion: prop to: buf];
 
 	  if ([[node name] isEqual: @"desc"])
 	    {
@@ -1584,11 +1584,12 @@ static NSString		*mainFont = nil;
 	      /*
 	       * List standards with which method complies
 	       */
-	      children = firstElement(node);
+	      children = node;
 	      if ([[children name] isEqual: @"standards"])
 		{
-		  [self outputNode: children to: buf];
+		  node = [node nextElement];
 		}
+	      [self outputVersion: prop to: buf];
 
 	      if ((str = [prop objectForKey: @"init"]) != nil
 		&& [str boolValue] == YES)
@@ -1724,32 +1725,6 @@ static NSString		*mainFont = nil;
 	}
       else if ([name isEqual: @"standards"])
 	{
-	  GSXMLNode	*tmp = [node firstChild];
-	  BOOL		first = YES;
-
-	  if (tmp != nil)
-	    {
-	      [buf appendString: indent];
-	      [buf appendString: @"<b>Standards:</b>"];
-	      while (tmp != nil)
-		{
-		  if ([tmp type] == XML_ELEMENT_NODE)
-		    {
-		      if (first == YES)
-			{
-			  first = NO;
-			  [buf appendString: @" "];
-			}
-		      else
-			{
-			  [buf appendString: @", "];
-			}
-		      [buf appendString: [tmp name]];
-		    }
-		  tmp = [tmp nextElement];
-		}
-	      [buf appendString: @"<br />\n"];
-	    }
 	}
       else if ([name isEqual: @"strong"] == YES)
 	{
@@ -1815,8 +1790,9 @@ static NSString		*mainFont = nil;
 	  children = node;
 	  if ([[children name] isEqual: @"standards"])
 	    {
-	      [self outputNode: children to: buf];
+	      node = [node nextElement];
 	    }
+	  [self outputVersion: prop to: buf];
 
 	  if (node != nil && [[node name] isEqual: @"desc"] == YES)
 	    {
@@ -1893,8 +1869,9 @@ static NSString		*mainFont = nil;
 	  children = node;
 	  if ([[children name] isEqual: @"standards"])
 	    {
-	      [self outputNode: children to: buf];
+	      node = [node nextElement];
 	    }
+	  [self outputVersion: prop to: buf];
 
 	  if ([[node name] isEqual: @"desc"])
 	    {
@@ -2250,10 +2227,10 @@ static NSString		*mainFont = nil;
 
 - (void) outputUnit: (GSXMLNode*)node to: (NSMutableString*)buf
 {
-  GSXMLNode	*t;
   NSArray	*a;
   NSMutableString *ivarBuf = ivarsAtEnd ?
     [NSMutableString stringWithCapacity: 1024] : nil;
+  NSDictionary	*prop = [node attributes];
 
   node = [node firstChildElement];
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
@@ -2291,40 +2268,11 @@ static NSString		*mainFont = nil;
       [buf appendString: @"</blockquote>\n"];
     }
 
-  t = node;
-  while (t != nil && [[t name] isEqual: @"standards"] == NO)
+  while (node != nil && [[node name] isEqual: @"desc"] == NO)
     {
-      t = [t nextElement];
+      node = [node nextElement];
     }
-  if (t != nil && [t firstChild] != nil)
-    {
-      t = [t firstChild];
-      [buf appendString: indent];
-      [buf appendString: @"<blockquote>\n"];
-      [self incIndent];
-      [buf appendString: indent];
-      [buf appendString: @"<b>Standards:</b>\n"];
-      [buf appendString: indent];
-      [buf appendString: @"<ul>\n"];
-      [self incIndent];
-      while (t != nil)
-	{
-	  if ([t type] == XML_ELEMENT_NODE)
-	    {
-	      [buf appendString: indent];
-	      [buf appendString: @"<li>"];
-	      [buf appendString: [t name]];
-	      [buf appendString: @"</li>\n"];
-	    }
-	  t = [t nextElement];
-	}
-      [self decIndent];
-      [buf appendString: indent];
-      [buf appendString: @"</ul>\n"];
-      [self decIndent];
-      [buf appendString: indent];
-      [buf appendString: @"</blockquote>\n"];
-    }
+  [self outputVersion: prop to: buf];
 
   if (node != nil && [[node name] isEqual: @"desc"] == YES)
     {
@@ -2391,6 +2339,79 @@ static NSString		*mainFont = nil;
   if (ivarsAtEnd)
     {
       [buf appendString: ivarBuf];
+    }
+}
+
+- (void) outputVersion: (NSDictionary*)prop to: (NSMutableString*)buf
+{
+  NSString	*ovadd = [prop objectForKey: @"ovadd"];
+  NSString	*gvadd = [prop objectForKey: @"gvadd"];
+  NSString	*ovrem = [prop objectForKey: @"ovrem"];
+  NSString	*gvrem = [prop objectForKey: @"gvrem"];
+
+  if ([ovadd length] > 0)
+    {
+      int	add = [ovadd intValue];
+      int	rem = [ovrem intValue];
+
+      [buf appendString: indent];
+      [buf appendString: @"<b>Standards:</b>"];
+      if (add < 4)
+	{
+	  [buf appendString: @" OpenStep"];
+	}
+      else if (add < 10)
+	{
+	  [buf appendString: @" OPENSTEP "];
+	  [buf appendString: ovadd];
+	}
+      else
+	{
+	  [buf appendString: @" MacOS-X "];
+	  [buf appendString: ovadd];
+	}
+      if (rem > add)
+	{
+	  [buf appendString: @" removed at "];
+	  if (add < 4)
+	    {
+	      [buf appendString: @" OpenStep"];
+	    }
+	  else if (add < 10)
+	    {
+	      [buf appendString: @" OPENSTEP "];
+	      [buf appendString: ovadd];
+	    }
+	  else
+	    {
+	      [buf appendString: @" MacOS-X "];
+	      [buf appendString: ovadd];
+	    }
+	}
+      if ([gvadd length] > 0)
+	{
+	  [buf appendString: @", GNUstep "];
+	  [buf appendString: gvadd];
+	  if ([gvrem length] > 0)
+	    {
+	      [buf appendString: @" removed at "];
+	      [buf appendString: gvrem];
+	    }
+	}
+      [buf appendString: @"<br />\n"];
+    }
+  else if ([gvadd length] > 0)
+    {
+      [buf appendString: indent];
+      [buf appendString: @"<b>Standards:</b>"];
+      [buf appendString: @"GNUstep "];
+      [buf appendString: gvadd];
+      if ([gvrem length] > 0)
+	{
+	  [buf appendString: @" removed at "];
+	  [buf appendString: gvrem];
+	}
+      [buf appendString: @"<br />\n"];
     }
 }
 

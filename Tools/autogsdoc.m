@@ -207,11 +207,6 @@
 	The method is marked as being one which subclasses should <em>NOT</em>
 	override.
       </item>
-      <item><strong>&lt;standards&gt; ... &lt;/standards&gt;</strong>
-	The markup is removed from the description and placed <em>after</em>
-	it in the GSDoc output - so that the method is described as
-	conforming (or not conforming) to the specified standards.
-      </item>
     </list>
   </section>
   <section>

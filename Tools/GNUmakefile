@@ -37,6 +37,7 @@ DTD_FILES = plist-0_9.dtd \
 	gsdoc-0_6_7.dtd \
 	gsdoc-1_0_0.dtd \
 	gsdoc-1_0_1.dtd \
+	gsdoc-1_0_2.dtd \
 	gsdoc-1_0_1.rnc
 
 # Manual pages to install
@@ -62,7 +63,6 @@ autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
 cvtenc_OBJC_FILES = cvtenc.m
 gdomap_C_FILES = gdomap.c
 gdnc_OBJC_FILES = gdnc.m
-gsdoc_OBJC_FILES = gsdoc.m
 defaults_OBJC_FILES = defaults.m
 dread_OBJC_FILES = dread.m
 dremove_OBJC_FILES = dremove.m
