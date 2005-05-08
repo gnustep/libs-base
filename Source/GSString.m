@@ -927,7 +927,7 @@ cString_c(GSStr self, NSStringEncoding enc)
 
   if (self->_count == 0)
     {
-      return "";
+      return "\0";
     }
   if (enc == intEnc)
     {
@@ -976,7 +976,16 @@ cString_u(GSStr self, NSStringEncoding enc)
 
   if (c == 0)
     {
-      return "";
+      return "\0";
+    }
+  else if (enc == NSUnicodeStringEncoding)
+    {
+      unichar	*tmp = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), (c + 1)*2);
+
+      memcpy(tmp, self->_contents.u, c*2);
+      tmp[c] = 0;
+      [NSData dataWithBytesNoCopy: tmp length: (c + 1)*2 freeWhenDone: YES];
+      return (char*)tmp;
     }
   else
     {
