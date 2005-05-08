@@ -70,6 +70,30 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
 @end
 
+@interface BinaryPLGenerator : NSObject
+{
+  NSMutableData *dest;
+  NSMutableArray *objectList;
+  NSMutableArray *objectsToDoList;
+  id root;
+
+  // Number of bytes per object table index
+  unsigned int index_size;  
+  // Number of bytes per object table entry
+  unsigned int offset_size;
+
+  unsigned int table_start;
+  unsigned int table_size;  
+  unsigned int *table;  
+}
+
++ (void) serializePropertyList: (id)aPropertyList intoData: (NSMutableData *)destination;
+- (id) initWithPropertyList: (id)aPropertyList intoData: (NSMutableData *)destination;
+- (void) generate;
+- (void) storeObject: (id)object;
+- (void) cleanup;
+
+@end
 
 /*
  * Cache classes and method implementations for speed.
@@ -2103,6 +2127,10 @@ static BOOL	classInitialized = NO;
     {
       [NSSerializer serializePropertyList: aPropertyList intoData: dest];
     }
+  else if (aFormat == NSPropertyListBinaryFormat_v1_0)
+    {
+      [BinaryPLGenerator serializePropertyList: aPropertyList intoData: dest];
+    }
   else
     {
       OAppend(aPropertyList, loc, 0, step > 3 ? 3 : step, aFormat, dest);
@@ -2192,6 +2220,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	return YES;
 	
       case NSPropertyListBinaryFormat_v1_0:
+	return YES;
+	
       default:
 	[NSException raise: NSInvalidArgumentException
 		    format: @"[%@ +%@]: unsupported format",
@@ -2465,7 +2495,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       [plData getBytes: postfix range: NSMakeRange(length-32, 32)];
       offset_size = postfix[6];
       index_size = postfix[7];
-      table_start = 256*256*postfix[29] + 256*postfix[30] + postfix[31];
+      table_start = (postfix[28] << 24) + (postfix[29] << 16) + (postfix[30] << 8) + postfix[31];
       if (offset_size < 1 || offset_size > 4)
 	{
 	  [NSException raise: NSGenericException
@@ -2656,7 +2686,23 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
         {
 	  num = (num << 8) + buffer[i];
 	}
-      result = [NSNumber numberWithUnsignedLongLong: num];
+
+      if (next == 0x10)
+        {
+	  result = [NSNumber numberWithUnsignedChar: (unsigned char)num];
+	}
+      else if (next == 0x11)
+        {
+	  result = [NSNumber numberWithUnsignedShort: (unsigned short)num];
+	}
+      else if ((next == 0x12) || (next == 13))
+        {
+	  result = [NSNumber numberWithUnsignedInt: (unsigned int)num];
+	}
+      else 
+        {
+	  result = [NSNumber numberWithUnsignedLongLong: num];
+	}
     }
   else if (next == 0x22)
     {
@@ -2672,7 +2718,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       NSSwappedDouble in;
 
       [data getBytes: &in range: NSMakeRange(counter, sizeof(double))];
-      result = [NSNumber numberWithFloat: NSSwapBigDoubleToHost(in)];
+      result = [NSNumber numberWithDouble: NSSwapBigDoubleToHost(in)];
     }
   else if (next == 0x33)
     {
@@ -2962,3 +3008,670 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 @end
 
 
+@implementation BinaryPLGenerator
+
++ (void) serializePropertyList: (id)aPropertyList intoData: (NSMutableData *)destination
+{
+  BinaryPLGenerator *gen;
+
+  gen = [[BinaryPLGenerator alloc] initWithPropertyList: aPropertyList intoData: destination];
+  [gen generate];
+  RELEASE(gen);
+}
+
+- (id) initWithPropertyList: (id) aPropertyList intoData: (NSMutableData *)destination
+{
+  ASSIGN(root, aPropertyList);
+  ASSIGN(dest, destination);
+
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(root);
+  [self cleanup];
+  [super dealloc];
+}
+
+- (NSData*) data
+{
+  return dest;
+}
+
+- (void) setup
+{
+  if (index_size == 1)
+    {
+      table_size = 256;
+    }
+  else if (index_size == 2)
+    {
+      table_size = 256 * 256;
+    }
+  else if (index_size == 3)
+    {
+      table_size = 256 * 256 * 256;
+    }
+  else if (index_size == 4)
+    {
+      table_size = UINT_MAX;
+    }
+
+  table = malloc(table_size * sizeof(int));
+  
+  // Always restart the destination data
+  [dest setLength: 0];
+  objectsToDoList = [[NSMutableArray alloc] init];
+  objectList = [[NSMutableArray alloc] init];
+
+  [objectsToDoList addObject: root];
+  [objectList addObject: root];
+}
+
+- (void) cleanup
+{
+  DESTROY(dest);
+  DESTROY(objectsToDoList);
+  DESTROY(objectList);
+  if (table != NULL)
+    {
+      free(table);
+      table = NULL;
+    }
+}
+
+- (void) writeObjects
+{
+  id object;
+  const char *prefix = "bplist00";
+
+  [dest appendBytes: prefix length: strlen(prefix)];
+
+  while ([objectsToDoList count] != 0)
+    {
+      object = [objectsToDoList objectAtIndex: 0];
+      [self storeObject: object];
+      [objectsToDoList removeObjectAtIndex: 0];
+    }
+}
+
+- (void) markOffset: (unsigned int) offset for: (id)object
+{
+  unsigned int oid;
+	  
+  oid = [objectList indexOfObject: object];
+  if (oid == NSNotFound)
+    {
+      [NSException raise: NSGenericException
+		   format: @"Unknown object %@.", object];
+    }
+  if (oid >= table_size)
+    {
+      [NSException raise: NSRangeException
+		   format: @"Object table index out of bounds %d.", oid];
+    }
+
+  table[oid] = offset;
+}
+
+- (void) writeObjectTable
+{
+  unsigned int size;
+  unsigned int len;
+  unsigned int i;
+  unsigned char *buffer;
+  unsigned int last_offset;
+  
+  table_start = [dest length];
+  // This is a bit to much, as the length 
+  // of the last object is added. 
+  last_offset = table_start;
+
+  if (last_offset < 256)
+    {
+      offset_size = 1;
+    }
+  else if (last_offset < 256 * 256)
+    {
+      offset_size = 2;
+    }
+  else if (last_offset < 256 * 256 * 256)
+    {
+      offset_size = 3;
+    }
+  else if (last_offset <= UINT_MAX)
+    {
+      offset_size = 4;
+    }
+  else
+    {
+      [NSException raise: NSRangeException
+		   format: @"Object table offset out of bounds %d.", last_offset];
+    }
+
+  len = [objectList count];
+  size = offset_size * len;
+
+  buffer = malloc(size);
+
+  if (offset_size == 1)
+    {
+      for (i = 0; i < len; i++)
+        {
+	  unsigned char ci;
+	  
+	  ci = table[i];
+	  buffer[i] = ci;
+	}
+    }
+  else if (offset_size == 2)
+    {
+      for (i = 0; i < len; i++)
+        {
+	  unsigned short si;
+	  
+	  si = table[i];
+	  buffer[2 * i] = (si >> 8);
+	  buffer[2 * i + 1] = si % 256;
+	}
+    }
+  else if (offset_size == 3)
+    {
+      for (i = 0; i < len; i++)
+        {
+	  unsigned int si;
+	  
+	  si = table[i];
+	  buffer[3 * i] = (si >> 16);
+	  buffer[3 * i + 1] = (si >> 8) % 256;
+	  buffer[3 * i + 2] = si % 256;
+	}
+    }
+  else if (offset_size == 4)
+    {
+      for (i = 0; i < len; i++)
+        {
+	  unsigned int si;
+	  
+	  si = table[i];
+	  buffer[4 * i] = (si >> 24);
+	  buffer[4 * i + 1] = (si >> 16) % 256;
+	  buffer[4 * i + 2] = (si >> 8) % 256;
+	  buffer[4 * i + 3] = si % 256;
+	}
+    }
+
+  [dest appendBytes: buffer length: size];
+  free(buffer);
+}
+
+- (void) writeMetaData
+{
+  unsigned char meta[32];
+  unsigned int i;
+  unsigned int len;
+
+  for (i = 0; i < 32; i++)
+    {
+      meta[i] = 0;
+    }
+
+  meta[6] = offset_size;  
+  meta[7] = index_size;
+  
+  len = [objectList count];
+  meta[12] = (len >> 24);
+  meta[13] = (len >> 16) % 256;
+  meta[14] = (len >> 8) % 256;
+  meta[15] = len % 256;
+  meta[28] = (table_start >> 24);
+  meta[29] = (table_start >> 16) % 256;
+  meta[30] = (table_start >> 8) % 256;
+  meta[31] = table_start % 256;
+  
+  [dest appendBytes: meta length: 32];      
+}
+
+- (unsigned int) indexForObject: (id)object
+{
+  unsigned int index;
+
+  index = [objectList indexOfObject: object];
+  if (index == NSNotFound)
+    {
+      index = [objectList count];
+      [objectList addObject: object];
+      [objectsToDoList addObject: object];
+    }
+
+  return index;
+}
+
+- (void) storeIndex: (unsigned int)index
+{
+  if (index_size == 1)
+    {
+      unsigned char oid;
+
+      oid = index;
+      [dest appendBytes: &oid length: 1];      
+    }
+  else if (index_size == 2)
+    {
+      unsigned short oid;
+
+      oid = NSSwapHostShortToBig(index);
+      [dest appendBytes: &oid length: 2];      
+    }
+  else if (index_size == 4)
+    {
+      unsigned int oid;
+
+      oid = NSSwapHostIntToBig(index);
+      [dest appendBytes: &oid length: 4];
+    }
+  else
+    {
+      [NSException raise: NSGenericException
+		   format: @"Unknown table size %d", index_size];
+    }
+}
+
+- (void) storeCount: (unsigned int)count
+{
+  unsigned char code;
+
+  if (count <= 256)
+    {
+      unsigned char c;
+
+      code = 0x10;
+      [dest appendBytes: &code length: 1];
+      c = count;
+      [dest appendBytes: &c length: 1];      
+    }
+  else
+    {
+      unsigned short c;
+
+      code = 0x11;
+      [dest appendBytes: &code length: 1];
+      c = count;
+      NSSwapHostShortToBig(c);
+      [dest appendBytes: &c length: 2];
+    }
+}
+
+- (void) storeData: (NSData*) data
+{
+  unsigned int len;
+  unsigned char code; 
+
+  len = [data length];
+
+  if (len < 0x0F)
+    {
+      code = 0x40 + len;
+      [dest appendBytes: &code length: 1];
+      [dest appendData: data];
+    }
+  else
+    {
+      code = 0x4F;
+      [dest appendBytes: &code length: 1];
+      [self storeCount: len];
+      [dest appendData: data];
+    }
+}
+
+- (void) storeString: (NSString*) string
+{
+  unsigned int len;
+  BOOL ascii = YES;
+  unsigned char code; 
+  unsigned int i;
+  unichar uchar;
+
+  len = [string length];
+  
+  for (i = 0; i < len; i++)
+    {
+      uchar = [string characterAtIndex: i];
+      if (uchar > 127)
+        {
+	  ascii = NO;
+	  break;
+	}
+    }
+
+  if (ascii)
+    {
+      if (len < 0x0F)
+	{
+	  code = 0x50 + len;
+	  [dest appendBytes: &code length: 1];
+	  [dest appendBytes: [string cString] length: len];
+	}
+      else
+      {
+	  code = 0x5F;
+	  [dest appendBytes: &code length: 1];
+	  [self storeCount: len];
+	  [dest appendBytes: [string cString] length: len];
+      }
+    }
+  else
+    {
+      if (len < 0x0F)
+	{
+	  unichar buffer[len + 1];
+	  int i;
+
+	  code = 0x60 + len;
+	  [dest appendBytes: &code length: 1];
+	  [string getCharacters: buffer];
+	  for (i = 0; i < len; i++)
+	    {
+	      buffer[i] = NSSwapHostShortToBig(buffer[i]);
+	    }
+	  [dest appendBytes: buffer length: len * sizeof(unichar)];
+	}
+      else
+        {
+	  unichar *buffer;
+	  
+	  code = 0x6F;
+	  [dest appendBytes: &code length: 1];
+	  buffer = malloc(sizeof(unichar)*(len + 1));
+	  [self storeCount: len];
+	  [string getCharacters: buffer];
+	  for (i = 0; i < len; i++)
+	    {
+	      buffer[i] = NSSwapHostShortToBig(buffer[i]);
+	    }
+	  [dest appendBytes: buffer length: sizeof(unichar)*len];
+	  free(buffer);
+      }
+    }
+}
+
+- (void) storeNumber: (NSNumber*) number
+{
+  const char *type;
+  unsigned char code; 
+
+  type = [number objCType];
+
+  switch (*type)
+    {
+      case 'c':	
+      case 'C':	
+      case 's':	
+      case 'S':	
+      case 'i':	
+      case 'I':
+      case 'l':
+      case 'L':
+      case 'q':
+      case 'Q':
+        {
+	  unsigned long long val;
+
+	  val = [number unsignedLongLongValue];
+
+	  // FIXME: We need a better way to determine boolean values!
+	  if ((val == 0) && ((*type == 'c') || (*type == 'C')))
+	    {
+	      code = 0x08;
+	      [dest appendBytes: &code length: 1];
+	    }
+	  else if ((val == 1) && ((*type == 'c') || (*type == 'C')))
+	    {
+	      code = 0x09;
+	      [dest appendBytes: &code length: 1];
+	    }
+	  else if (val < 256)
+	    {
+	      unsigned char cval;
+
+	      code = 0x10;
+	      [dest appendBytes: &code length: 1];
+	      cval = (unsigned char) val;
+	      [dest appendBytes: &cval length: 1];	      
+	    }
+	  else if (val < 256 * 256)
+	    {
+	      unsigned short sval;
+
+	      code = 0x11;
+	      [dest appendBytes: &code length: 1];
+	      sval = NSSwapHostShortToBig([number unsignedShortValue]);
+	      [dest appendBytes: &sval length: 2];
+	    }
+	  else if (val <= UINT_MAX)
+	    {
+	      unsigned int ival;
+
+	      code = 0x12;
+	      [dest appendBytes: &code length: 1];
+	      ival = NSSwapHostIntToBig([number unsignedIntValue]);
+	      [dest appendBytes: &ival length: 4];
+	    }
+	  else
+	    {
+	      unsigned long long lval;
+
+	      code = 0x13;
+	      [dest appendBytes: &code length: 1];
+	      lval = NSSwapHostLongLongToBig([number unsignedLongLongValue]);
+	      [dest appendBytes: &lval length: 8];
+	    }
+	  break;
+	}
+      case 'f':
+        {
+	  NSSwappedFloat val = NSSwapHostFloatToBig([number floatValue]);
+
+	  code = 0x22;
+	  [dest appendBytes: &code length: 1];
+	  [dest appendBytes: &val length: sizeof(float)];
+	  break;
+	}
+      case 'd':
+        {
+	  NSSwappedDouble val = NSSwapHostDoubleToBig([number doubleValue]);
+
+	  code = 0x23;
+	  [dest appendBytes: &code length: 1];
+	  [dest appendBytes: &val length: sizeof(double)];
+	  break;
+	}
+      default:
+	[NSException raise: NSGenericException
+		     format: @"Attempt to store number with unknown ObjC type"];
+    }
+}
+
+- (void) storeDate: (NSDate*) date
+{
+  unsigned char code; 
+  double out;
+
+  code = 0x33;
+  [dest appendBytes: &code length: 1];
+  out = NSSwapHostDoubleToBig([date timeIntervalSinceReferenceDate]);
+  [dest appendBytes: &out length: sizeof(double)];
+}
+
+- (void) storeArray: (NSArray*) array
+{
+  unsigned char code; 
+  unsigned int len;
+  unsigned int i;
+
+  len = [array count];
+
+  if (len < 0x0F)
+    {
+      code = 0xA0 + len;
+      [dest appendBytes: &code length: 1];
+    }
+  else
+    {
+      code = 0xAF;
+      [dest appendBytes: &code length: 1];
+      [self storeCount: len];
+    }
+  
+  for (i = 0; i < len; i++)
+    {
+      id obj;
+      unsigned int oid;
+	  
+      obj = [array objectAtIndex: i];
+      oid = [self indexForObject: obj];
+      [self storeIndex: oid];
+    }
+}
+
+- (void) storeDictionary: (NSDictionary*) dict
+{
+  unsigned char code; 
+  NSNumber *num;
+  unsigned int i;
+
+  num = [dict objectForKey: @"CF$UID"];
+  if (num != nil)
+    {
+      // Special dictionary from keyed encoding
+      unsigned int index;
+
+      index = [num intValue];
+      if (index < 256)
+        {
+	  unsigned char ci;
+
+	  code = 0x80;
+	  [dest appendBytes: &code length: 1];
+	  ci = (unsigned char)index;
+	  [dest appendBytes: &ci length: 1];
+	}
+      else
+        {
+	  unsigned short si;
+      
+	  code = 0x81;
+	  [dest appendBytes: &code length: 1];
+	  si = NSSwapHostShortToBig((unsigned short)index);
+	  [dest appendBytes: &si length: 2];
+	}
+    }
+  else
+    {
+      unsigned int len = [dict count];
+      NSArray *keys = [dict allKeys];
+      NSMutableArray *objects = [NSMutableArray arrayWithCapacity: len];
+      id key;
+
+      for (i = 0; i < len; i++)
+        {
+	  key = [keys objectAtIndex: i];
+	  [objects addObject: [dict objectForKey: key]];
+	}
+      
+      if (len < 0x0F)
+        {
+	  code = 0xD0 + len;
+	  [dest appendBytes: &code length: 1];
+	}
+      else
+        {
+	  code = 0xDF;
+	  [dest appendBytes: &code length: 1];
+	  [self storeCount: len];
+	}
+      
+      for (i = 0; i < len; i++)
+        {
+	  id obj;
+	  unsigned int oid;
+	  
+	  obj = [keys objectAtIndex: i];
+	  oid = [self indexForObject: obj];
+	  [self storeIndex: oid];
+	}
+      
+      for (i = 0; i < len; i++)
+        {
+	  id obj;
+	  unsigned int oid;
+	  
+	  obj = [objects objectAtIndex: i];
+	  oid = [self indexForObject: obj];
+	  [self storeIndex: oid];
+	}
+    }
+}
+
+- (void) storeObject: (id)object
+{
+  [self markOffset: [dest length] for: object];
+
+  if ([object isKindOfClass: [NSString class]])
+    {
+      [self storeString: object];
+    }
+  else if ([object isKindOfClass: [NSData class]])
+    {
+      [self storeData: object];
+    }
+  else if ([object isKindOfClass: [NSNumber class]])
+    {
+      [self storeNumber: object];
+    }
+  else if ([object isKindOfClass: [NSDate class]])
+    {
+      [self storeDate: object];
+    }
+  else if ([object isKindOfClass: [NSArray class]])
+    {
+      [self storeArray: object];
+    }
+  else if ([object isKindOfClass: [NSDictionary class]])
+    {
+      [self storeDictionary: object];
+    }
+  else 
+    {
+	NSLog(@"Unknown object class %@", object);
+    }
+}
+
+- (void) generate
+{
+  BOOL done = NO;
+
+  index_size = 1;
+
+  while (!done && (index_size <= 4))
+    {
+      NS_DURING
+	{
+	  [self setup];
+	  [self writeObjects];
+	  done = YES;
+	}
+      NS_HANDLER
+	{ 
+	  [self cleanup];
+	  index_size += 1;
+	}
+      NS_ENDHANDLER
+    }
+
+  [self writeObjectTable];
+  [self writeMetaData];
+}
+
+@end
