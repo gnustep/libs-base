@@ -3055,7 +3055,11 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   else if (index_size == 4)
     {
+#ifdef UINT_MAX
       table_size = UINT_MAX;
+#else
+      table_size = 256 * 256 * 256 * 256;
+#endif
     }
 
   table = malloc(table_size * sizeof(int));
