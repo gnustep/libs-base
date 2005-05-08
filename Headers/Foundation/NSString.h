@@ -192,9 +192,13 @@ enum {
 + (id) string;
 + (id) stringWithCharacters: (const unichar*)chars
 		     length: (unsigned int)length;
+#ifndef	STRICT_OPENSTEP
++ (id) stringWithCString: (const char*)byteString
+		encoding: (NSStringEncoding)encoding;
+#endif
 + (id) stringWithCString: (const char*)byteString
 		  length: (unsigned int)length;
-+ (id) stringWithCString: (const char*) byteString;
++ (id) stringWithCString: (const char*)byteString;
 + (id) stringWithFormat: (NSString*)format,...;
 + (id) stringWithContentsOfFile:(NSString *)path;
 
@@ -296,6 +300,16 @@ enum {
 #endif
 // Getting C Strings
 - (const char*) cString;
+#ifndef	STRICT_OPENSTEP
+- (const char*) cStringUsingEncoding: (NSStringEncoding)encoding;
+- (void) getCString: (char*)buffer
+	  maxLength: (unsigned int)maxLength
+	   encoding: (NSStringEncoding)encoding;
+- (id) initWithCString: (const char*)byteString
+	      encoding: (NSStringEncoding)encoding;
+- (unsigned) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
+- (unsigned) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
+#endif
 - (unsigned int) cStringLength;
 - (void) getCString: (char*)buffer;
 - (void) getCString: (char*)buffer
@@ -565,9 +579,9 @@ enum {
  */
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths;
 
-+ (NSString*) localizedStringWithFormat: (NSString*) format, ...;
++ (NSString*) localizedStringWithFormat: (NSString*)format, ...;
 
-+ (id) stringWithString: (NSString*) aString;
++ (id) stringWithString: (NSString*)aString;
 + (id) stringWithContentsOfURL: (NSURL*)url;
 + (id) stringWithUTF8String: (const char*)bytes;
 - (id) initWithFormat: (NSString*)format
@@ -621,7 +635,7 @@ enum {
 		     length: (unsigned int)length;
 + (id) stringWithCString: (const char*)byteString
 		  length: (unsigned int)length;
-+ (id) stringWithCString: (const char*) byteString;
++ (id) stringWithCString: (const char*)byteString;
 + (id) stringWithFormat: (NSString*)format,...;
 + (id) stringWithContentsOfFile: (NSString*)path;
 + (NSMutableString*) stringWithCapacity: (unsigned int)capacity;
