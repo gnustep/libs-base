@@ -3287,17 +3287,28 @@ fail:
 
       if ([set count] > 0)
 	{
-	  NSMutableString	*s = nil;
-	  NSEnumerator		*e = [set objectEnumerator];
-	  NSString		*name;
+	  NSString	*s = nil;
 
-	  s = [NSMutableString stringWithCString: "<standards>"];
-	  while ((name = [e nextObject]) != nil)
+	  if ([set member: @"NotOpenStep"] && [set member: @"NotMacOS-X"])
 	    {
-	      [s appendFormat: @"<%@ />", name];
+	      s = @" gvadd=\"0.0\"";	// GNUstep
 	    }
-	  [s appendString: @"</standards>"];
-	  [dict setObject: s forKey: @"Standards"];
+	  else if ([set member: @"NotOpenStep"] && ![set member: @"NotMacOS-X"])
+	    {
+	      s = @" ovadd=\"10.0\"";	// MacOS-X
+	    }
+	  else if (![set member: @"NotOpenStep"] && [set member: @"NotMacOS-X"])
+	    {
+	      s = @" ovadd=\"0.0\" ovrem=\"4.0\"";	// OpenStep only
+	    }
+	  else if ([set member: @"OpenStep"] && ![set member: @"NotMacOS-X"])
+	    {
+	      s = @" ovadd=\"0.0\"";	// OpenStep
+	    }
+	  if (s != nil)
+	    {
+	      [dict setObject: s forKey: @"Versions"];
+	    }
 	}
     }
 }

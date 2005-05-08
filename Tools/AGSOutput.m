@@ -85,6 +85,14 @@ static BOOL snuggleStart(NSString *t)
  */
 @implementation	AGSOutput
 
+- (void) appendVersions: (NSString*)versions to: (NSMutableString*)str
+{
+  if ([versions length] > 0)
+    {
+      [str appendString: versions];
+    }
+}
+
 - (NSString*) checkComment: (NSString*)comment
 		      unit: (NSString*)unit
 		      info: (NSDictionary*)d
@@ -288,8 +296,8 @@ static BOOL snuggleStart(NSString *t)
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
-  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.1//EN\" "];
-  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"];
+  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.2//EN\" "];
+  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_2.xml\">\n"];
   [str appendFormat: @"<gsdoc"];
 
   if (base != nil)
@@ -687,15 +695,10 @@ static BOOL snuggleStart(NSString *t)
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*comment = [d objectForKey: @"Comment"];
   NSString	*declared = [d objectForKey: @"Declared"];
-  NSString	*standards = nil;
 
   if (warn == YES && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
     {
       NSLog(@"Warning ... %@ %@ is not implemented where expected", kind, name);
-    }
-  if (standards == nil)
-    {
-      standards = [d objectForKey: @"Standards"];
     }
 
   [str appendFormat: @"      <%@ type=\"", kind];
@@ -706,7 +709,9 @@ static BOOL snuggleStart(NSString *t)
     }
   [str appendString: @"\" name=\""];
   [str appendString: name];
-  [str appendString: @"\">\n"];
+  [str appendString: @"\""];
+  [self appendVersions: [d objectForKey: @"Versions"] to: str];
+  [str appendString: @">\n"];
 
   if (declared != nil)
     {
@@ -719,10 +724,6 @@ static BOOL snuggleStart(NSString *t)
   comment = [self checkComment: comment unit: nil info: d];
   [self reformat: comment withIndent: 10 to: str];
   [str appendString: @"        </desc>\n"];
-  if (standards != nil)
-    {
-      [self reformat: standards withIndent: 8 to: str];
-    }
   [str appendFormat: @"      </%@>\n", kind];
 }
 
@@ -737,7 +738,6 @@ static BOOL snuggleStart(NSString *t)
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*comment = [d objectForKey: @"Comment"];
   NSString	*declared = [d objectForKey: @"Declared"];
-  NSString	*standards = nil;
   unsigned	i = [aa count];
 
   if (warn == YES && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
@@ -769,51 +769,6 @@ static BOOL snuggleStart(NSString *t)
 	}
     }
 
-  /**
-   * Check special markup which should be removed from the text
-   * actually placed in the gsdoc method documentation ... the
-   * special markup is included in the gsdoc markup differently.
-   */
-  if (comment != nil)
-    {
-      NSMutableString	*m = nil;
-      NSRange		r;
-
-      r = [comment rangeOfString: @"<standards>"];
-      if (r.length > 0)
-	{
-	  unsigned  i = r.location;
-
-	  r = NSMakeRange(i, [comment length] - i);
-	  r = [comment rangeOfString: @"</standards>"
-			 options: NSLiteralSearch
-			   range: r];
-	  if (r.length > 0)
-	    {
-	      r = NSMakeRange(i, NSMaxRange(r) - i);
-	      standards = [comment substringWithRange: r];
-	      if (m == nil)
-		{
-		  m = [comment mutableCopy];
-		}
-	      [m deleteCharactersInRange: r];
-	      comment = m;
-	    }
-	  else
-	    {
-	      NSLog(@"unterminated <standards> in comment for %@", name);
-	    }
-	}
-      if (m != nil)
-	{
-	  AUTORELEASE(m);
-	}
-    }
-  if (standards == nil)
-    {
-      standards = [d objectForKey: @"Standards"];
-    }
-
   [str appendString: @"      <function type=\""];
   [str appendString: escapeType(type)];
   if ([pref length] > 0)
@@ -822,7 +777,9 @@ static BOOL snuggleStart(NSString *t)
     }
   [str appendString: @"\" name=\""];
   [str appendString: name];
-  [str appendString: @"\">\n"];
+  [str appendString: @"\""];
+  [self appendVersions: [d objectForKey: @"Versions"] to: str];
+  [str appendString: @">\n"];
 
   for (i = 0; i < [aa count]; i++)
     {
@@ -861,10 +818,6 @@ static BOOL snuggleStart(NSString *t)
   comment = [self checkComment: comment unit: nil info: d];
   [self reformat: comment withIndent: 10 to: str];
   [str appendString: @"        </desc>\n"];
-  if (standards != nil)
-    {
-      [self reformat: standards withIndent: 8 to: str];
-    }
   [str appendString: @"      </function>\n"];
   args = nil;
 }
@@ -881,7 +834,6 @@ static BOOL snuggleStart(NSString *t)
   NSString	*validity = [d objectForKey: @"Validity"];
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*comment = [d objectForKey: @"Comment"];
-  NSString	*standards = [d objectForKey: @"Standards"];
 
   [str appendString: @"        <ivariable type=\""];
   [str appendString: escapeType(type)];
@@ -896,16 +848,14 @@ static BOOL snuggleStart(NSString *t)
       [str appendString: @"\" validity=\""];
       [str appendString: validity];
     }
-  [str appendString: @"\">\n"];
+  [str appendString: @"\""];
+  [self appendVersions: [d objectForKey: @"Versions"] to: str];
+  [str appendString: @">\n"];
 
   [str appendString: @"          <desc>\n"];
   comment = [self checkComment: comment unit: unit info: d];
   [self reformat: comment withIndent: 12 to: str];
   [str appendString: @"          </desc>\n"];
-  if (standards != nil)
-    {
-      [self reformat: standards withIndent: 10 to: str];
-    }
   [str appendString: @"        </ivariable>\n"];
 }
 
@@ -918,17 +868,13 @@ static BOOL snuggleStart(NSString *t)
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*comment = [d objectForKey: @"Comment"];
   NSString	*declared = [d objectForKey: @"Declared"];
-  NSString	*standards = nil;
   unsigned	i;
-
-  if (standards == nil)
-    {
-      standards = [d objectForKey: @"Standards"];
-    }
 
   [str appendString: @"      <macro name=\""];
   [str appendString: name];
-  [str appendString: @"\">\n"];
+  [str appendString: @"\""];
+  [self appendVersions: [d objectForKey: @"Versions"] to: str];
+  [str appendString: @">\n"];
 
   /*
    * Storing the argument names array in the 'args' ivar ensures that
@@ -959,10 +905,6 @@ static BOOL snuggleStart(NSString *t)
   comment = [self checkComment: comment unit: nil info: d];
   [self reformat: comment withIndent: 10 to: str];
   [str appendString: @"        </desc>\n"];
-  if (standards != nil)
-    {
-      [self reformat: standards withIndent: 8 to: str];
-    }
   [str appendString: @"      </macro>\n"];
   args = nil;
 }
@@ -982,7 +924,6 @@ static BOOL snuggleStart(NSString *t)
   unsigned	i;
   BOOL		isInitialiser = NO;
   NSString	*override = nil;
-  NSString	*standards = nil;
 
   if (warn == YES && unit != nil
     && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
@@ -1059,39 +1000,10 @@ static BOOL snuggleStart(NSString *t)
 	      override = @"never";
 	    }
 	} while (r.length > 0);
-      r = [comment rangeOfString: @"<standards>"];
-      if (r.length > 0)
-	{
-	  unsigned  i = r.location;
-
-	  r = NSMakeRange(i, [comment length] - i);
-	  r = [comment rangeOfString: @"</standards>"
-			 options: NSLiteralSearch
-			   range: r];
-	  if (r.length > 0)
-	    {
-	      r = NSMakeRange(i, NSMaxRange(r) - i);
-	      standards = [comment substringWithRange: r];
-	      if (m == nil)
-		{
-		  m = [comment mutableCopy];
-		}
-	      [m deleteCharactersInRange: r];
-	      comment = m;
-	    }
-	  else
-	    {
-	      NSLog(@"unterminated <standards> in comment for %@", name);
-	    }
-	}
       if (m != nil)
 	{
 	  AUTORELEASE(m);
 	}
-    }
-  if (standards == nil)
-    {
-      standards = [d objectForKey: @"Standards"];
     }
 
   [str appendString: @"        <method type=\""];
@@ -1109,7 +1021,9 @@ static BOOL snuggleStart(NSString *t)
       [str appendString: @"\" override=\""];
       [str appendString: override];
     }
-  [str appendString: @"\">\n"];
+  [str appendString: @"\""];
+  [self appendVersions: [d objectForKey: @"Versions"] to: str];
+  [str appendString: @">\n"];
 
   for (i = 0; i < [sels count]; i++)
     {
@@ -1134,10 +1048,6 @@ static BOOL snuggleStart(NSString *t)
   comment = [self checkComment: comment unit: unit info: d];
   [self reformat: comment withIndent: 12 to: str];
   [str appendString: @"          </desc>\n"];
-  if (standards != nil)
-    {
-      [self reformat: standards withIndent: 10 to: str];
-    }
   [str appendString: @"        </method>\n"];
   args = nil;
 }
@@ -1153,7 +1063,6 @@ static BOOL snuggleStart(NSString *t)
   NSString	*unitName = nil;
   NSArray	*names;
   NSArray	*protocols;
-  NSString	*standards = nil;
   NSString	*tmp;
   NSString	*unit = nil;
   NSRange	r;
@@ -1190,39 +1099,6 @@ static BOOL snuggleStart(NSString *t)
   else
     {
       unitName = name;
-    }
-
-  if (comment != nil)
-    {
-      r = [comment rangeOfString: @"<standards>"];
-      if (r.length > 0)
-	{
-	  unsigned  i = r.location;
-
-	  r = NSMakeRange(i, [comment length] - i);
-	  r = [comment rangeOfString: @"</standards>"
-			 options: NSLiteralSearch
-			   range: r];
-	  if (r.length > 0)
-	    {
-	      NSMutableString	*m;
-
-	      r = NSMakeRange(i, NSMaxRange(r) - i);
-	      standards = [comment substringWithRange: r];
-	      m = [comment mutableCopy];
-	      [m deleteCharactersInRange: r];
-	      comment = m;
-	      AUTORELEASE(m);
-	    }
-	  else
-	    {
-	      NSLog(@"unterminated <standards> in comment for %@", name);
-	    }
-	}
-    }
-  if (standards == nil)
-    {
-      standards = [d objectForKey: @"Standards"];
     }
 
   /*
@@ -1332,7 +1208,9 @@ static BOOL snuggleStart(NSString *t)
 	}
       [str appendString: tmp];
     }
-  [str appendString: @"\">\n"];
+  [str appendString: @"\""];
+  [self appendVersions: [d objectForKey: @"Versions"] to: str];
+  [str appendString: @">\n"];
 
   ind += 2;
   for (j = 0; j < ind; j++) [str appendString: @" "];
@@ -1379,10 +1257,6 @@ static BOOL snuggleStart(NSString *t)
 		     for: unitName];
     }
 
-  if (standards != nil)
-    {
-      [self reformat: standards withIndent: ind to: str];
-    }
   ind -= 2;
   for (j = 0; j < ind; j++) [str appendString: @" "];
   [str appendString: @"</"];

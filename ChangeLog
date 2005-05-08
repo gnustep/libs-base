@@ -1,3 +1,20 @@
+2005-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.h: Support versioning info instead of standards
+	* Tools/AGSHtml.m: ditto
+	* Tools/AGSOutput.m: ditto
+	* Tools/AGSParser.m: ditto
+	* Tools/GNUmakefile: Add new dtd and remove old tool.
+	* Tools/autogsdoc.m: ditto
+	* Tools/gsdoc-1_0_2.dtd: ditto
+	* Tools/gsdoc.m: Remove obsolete tool.
+	* Tools/gsdoc.gsdoc: Updated
+	Changes to support OpenStep/OPENSTEP/MacOS-X versioning and
+	GNUstep versioning, using add/rem attributes to specify the
+	version at which a feature was added to or removed from the
+	API.  Drop the old 'standards' mechanism which was too rigid
+	for detailed versioning.
+
 2005-05-08 14:11 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSPropertyList.m: Corrected setup so that compilation 

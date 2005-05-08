@@ -72,6 +72,7 @@
 - (GSXMLNode*) outputList: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (GSXMLNode*) outputText: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (void) outputUnit: (GSXMLNode*)node to: (NSMutableString*)buf;
+- (void) outputVersion: (NSDictionary*)prop to: (NSMutableString*)buf;
 - (NSString*) protocolRef: (NSString*)t;
 - (void) setGlobalRefs: (AGSIndex*)r;
 - (void) setLocalRefs: (AGSIndex*)r;
