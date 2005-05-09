@@ -2924,21 +2924,152 @@ fail:
 	}
       else if ([directive isEqual: @"if"] == YES)
 	{
-	  [ifStack addObject: [ifStack lastObject]];
-	}
-      else if ([directive hasPrefix: @"if"] == YES)
-	{
-	  BOOL	isIfDef = [directive isEqual: @"ifdef"];
+	  NSMutableDictionary	*top;
+	  NSString		*arg;
+	  BOOL			hadOstep = NO;
+	  BOOL			hadGstep = NO;
 
-	  while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
-	    {
-	      pos++;
-	    }
-	  if (pos < length && buffer[pos] != '\n')
-	    {
-	      NSMutableSet	*set = [[ifStack lastObject] mutableCopy];
-	      NSString		*arg = [self parseIdentifier];
+	  top = [[ifStack lastObject] mutableCopy];
 
+	  while ((arg = [self parseIdentifier]) != nil)
+	    {
+	      BOOL	openstep;
+	      NSString	*ver;
+	      int	i;
+
+	      if ([arg isEqual: @"OS_API_VERSION"] == YES)
+		{
+		  openstep = YES;
+		  if (hadOstep == YES)
+		    {
+		      [self log: @"multiple grouped OS_API_VERSION() calls"];
+		      return [self skipRemainderOfLine];
+		    }
+		  hadOstep = YES;
+		}
+	      else if ([arg isEqual: @"GS_API_VERSION"] == YES)
+		{
+		  openstep = NO;
+		  if (hadGstep == YES)
+		    {
+		      [self log: @"multiple grouped GS_API_VERSION() calls"];
+		      return [self skipRemainderOfLine];
+		    }
+		  hadGstep = YES;
+		}
+	      else
+		{
+		  break;
+		}
+
+	      while (pos < length
+		&& [spaces characterIsMember: buffer[pos]] == YES)
+		{
+		  pos++;
+		}
+	      if (pos < length && buffer[pos] == '(')
+		{
+		  pos++;
+		}
+	      ver = [self parseVersion];
+	      if ([ver length] == 0)
+		{
+		  ver = @"0";
+		}
+	      i = [ver intValue];
+	      ver = [NSString stringWithFormat: @"%d.%d", i/100, i%100];
+	      if (openstep)
+		{
+		  [top setObject: ver forKey: @"ovadd"];
+		}
+	      else
+		{
+		  [top setObject: ver forKey: @"gvadd"];
+		}
+
+	      while (pos < length
+		&& [spaces characterIsMember: buffer[pos]] == YES)
+		{
+		  pos++;
+		}
+	      if (pos < length && buffer[pos] == ',')
+		{
+		  pos++;
+		}
+	      ver = [self parseVersion];
+	      if ([ver length] == 0)
+		{
+		  ver = @"9999";
+		}
+	      i = [ver intValue];
+	      if (i == 9999 || [ver isEqualToString: @"NEVER"] == YES)
+		{
+		  if (openstep)
+		    {
+		      [top removeObjectForKey: @"ovrem"];
+		    }
+		  else
+		    {
+		      [top removeObjectForKey: @"gvrem"];
+		    }
+		}
+	      else
+		{
+		  ver = [NSString stringWithFormat: @"%d.%d", i/100, i%100];
+		  if (openstep)
+		    {
+		      [top setObject: ver forKey: @"ovrem"];
+		    }
+		  else
+		    {
+		      [top setObject: ver forKey: @"gvrem"];
+		    }
+		}
+
+	      while (pos < length
+		&& [spaces characterIsMember: buffer[pos]] == YES)
+		{
+		  pos++;
+		}
+	      if (pos < length && buffer[pos] == ')')
+		{
+		  pos++;
+		}
+
+	      while (pos < length
+		&& [spaces characterIsMember: buffer[pos]] == YES)
+		{
+		  pos++;
+		}
+	      if (pos < length-1 && buffer[pos] == '&' && buffer[pos+1] == '&')
+		{
+		  pos += 2;
+		}
+	      else
+		{
+		  break;	// may only join version macros with &&
+		}
+
+	      }
+	    [ifStack addObject: top];
+	    RELEASE(top);
+	  }
+	else if ([directive hasPrefix: @"if"] == YES)
+	  {
+	    BOOL	isIfDef = [directive isEqual: @"ifdef"];
+
+	    while (pos < length
+	      && [spaces characterIsMember: buffer[pos]] == YES)
+	      {
+		pos++;
+	      }
+	    if (pos < length && buffer[pos] != '\n')
+	      {
+		NSMutableDictionary	*top;
+		NSString			*arg;
+
+		top = [[ifStack lastObject] mutableCopy];
+	      arg = [self parseIdentifier];
 	      if ([arg isEqual: @"NO_GNUSTEP"] == YES)
 		{
 		  if (isIfDef == YES)
@@ -2947,40 +3078,40 @@ fail:
 		    }
 		  else
 		    {
-		      [set removeObject: @"MacOS-X"];
-		      [set addObject: @"NotMacOS-X"];
-		      [set removeObject: @"OpenStep"];
-		      [set addObject: @"NotOpenStep"];
+		      [top removeObjectForKey: @"MacOS-X"];
+		      [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
+		      [top removeObjectForKey: @"OpenStep"];
+		      [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
 		    }
 		}
 	      else if ([arg isEqual: @"STRICT_MACOS_X"] == YES)
 		{
 		  if (isIfDef == YES)
 		    {
-		      [set removeObject: @"NotMacOS-X"];
-		      [set addObject: @"MacOS-X"];
+		      [top removeObjectForKey: @"NotMacOS-X"];
+		      [top setObject: @"MacOS-X" forKey: @"MacOS-X"];
 		    }
 		  else
 		    {
-		      [set removeObject: @"MacOS-X"];
-		      [set addObject: @"NotMacOS-X"];
+		      [top removeObjectForKey: @"MacOS-X"];
+		      [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
 		    }
 		}
 	      else if ([arg isEqual: @"STRICT_OPENSTEP"] == YES)
 		{
 		  if (isIfDef == YES)
 		    {
-		      [set removeObject: @"NotOpenStep"];
-		      [set addObject: @"OpenStep"];
+		      [top removeObjectForKey: @"NotOpenStep"];
+		      [top setObject: @"OpenStep" forKey: @"OpenStep"];
 		    }
 		  else
 		    {
-		      [set removeObject: @"OpenStep"];
-		      [set addObject: @"NotOpenStep"];
+		      [top removeObjectForKey: @"OpenStep"];
+		      [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
 		    }
 		}
-	      [ifStack addObject: set];
-	      RELEASE(set);
+	      [ifStack addObject: top];
+	      RELEASE(top);
 	    }
 	}
     }
@@ -3211,6 +3342,34 @@ fail:
   return [self parseSpace: spacenl];
 }
 
+- (NSString*) parseVersion
+{
+  unsigned	start;
+
+  while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
+    {
+      pos++;
+    }
+  if (pos >= length || buffer[pos] == '\n')
+    {
+      return nil;
+    }
+  if (!isdigit(buffer[pos]))
+    {
+      return [self parseIdentifier];
+    }
+  start = pos;
+  while (pos < length)
+    {
+      if (!isdigit(buffer[pos]))
+	{
+	  break;
+	}
+      pos++;
+    }
+  return [NSString stringWithCharacters: &buffer[start] length: pos - start];
+}
+
 - (void) reset
 {
   [source removeAllObjects];
@@ -3268,8 +3427,12 @@ fail:
 {
   if (flag == YES)
     {
-      [ifStack replaceObjectAtIndex: 0 withObject: [NSSet setWithObjects:
-	@"OpenStep", @"MacOS-X", @"GNUstep", nil]];
+      [ifStack replaceObjectAtIndex: 0 withObject:
+	[NSDictionary dictionaryWithObjectsAndKeys:
+	@"OpenStep", @"OpenStep",
+	@"MacOS-X", @"MacOS-X",
+	@"GNUstep", @"GNUstep",
+	nil]];
     }
   standards = flag;
 }
@@ -3283,31 +3446,60 @@ fail:
 {
   if (standards == YES)
     {
-      NSSet	*set = [ifStack lastObject];
+      NSDictionary	*top = [ifStack lastObject];
 
-      if ([set count] > 0)
+      if ([top count] > 0)
 	{
-	  NSString	*s = nil;
+	  NSString	*vInfo = nil;
+	  NSString	*gvadd = [top objectForKey: @"gvadd"];
+	  NSString	*ovadd = [top objectForKey: @"ovadd"];
 
-	  if ([set member: @"NotOpenStep"] && [set member: @"NotMacOS-X"])
+	  if (ovadd != nil || gvadd != nil)
 	    {
-	      s = @" gvadd=\"0.0\"";	// GNUstep
+	      NSMutableString	*m = [NSMutableString stringWithCapacity: 64];
+	      NSString		*s;
+
+	      if (ovadd != nil)
+		{
+		  [m appendFormat: @" ovadd=\"%@\"", ovadd];
+		  if ((s = [top objectForKey: @"ovrem"]) != nil)
+		    {
+		      [m appendFormat: @" ovrem=\"%@\"", s];
+		    }
+		}
+	      if (gvadd != nil)
+		{
+		  [m appendFormat: @" gvadd=\"%@\"", gvadd];
+		  if ((s = [top objectForKey: @"gvrem"]) != nil)
+		    {
+		      [m appendFormat: @" gvrem=\"%@\"", s];
+		    }
+		}
+	      vInfo = m;
 	    }
-	  else if ([set member: @"NotOpenStep"] && ![set member: @"NotMacOS-X"])
+	  else if ([top objectForKey: @"NotOpenStep"]
+	    && [top objectForKey: @"NotMacOS-X"])
 	    {
-	      s = @" ovadd=\"10.0\"";	// MacOS-X
+	      vInfo = @" gvadd=\"0.0\"";	// GNUstep
 	    }
-	  else if (![set member: @"NotOpenStep"] && [set member: @"NotMacOS-X"])
+	  else if ([top objectForKey: @"NotOpenStep"]
+	    && ![top objectForKey: @"NotMacOS-X"])
 	    {
-	      s = @" ovadd=\"0.0\" ovrem=\"4.0\"";	// OpenStep only
+	      vInfo = @" ovadd=\"10.0\"";	// MacOS-X
 	    }
-	  else if ([set member: @"OpenStep"] && ![set member: @"NotMacOS-X"])
+	  else if (![top objectForKey: @"NotOpenStep"]
+	    && [top objectForKey: @"NotMacOS-X"])
 	    {
-	      s = @" ovadd=\"0.0\"";	// OpenStep
+	      vInfo = @" ovadd=\"0.0\" ovrem=\"4.0\"";	// OpenStep only
 	    }
-	  if (s != nil)
+	  else if ([top objectForKey: @"OpenStep"]
+	    && ![top objectForKey: @"NotMacOS-X"])
 	    {
-	      [dict setObject: s forKey: @"Versions"];
+	      vInfo = @" ovadd=\"0.0\"";	// OpenStep
+	    }
+	  if (vInfo != nil)
+	    {
+	      [dict setObject: vInfo forKey: @"Versions"];
 	    }
 	}
     }

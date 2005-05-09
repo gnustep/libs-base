@@ -90,6 +90,7 @@
 - (NSMutableArray*) parseProtocolList;
 - (unsigned) parseSpace: (NSCharacterSet*)spaceSet;
 - (unsigned) parseSpace;
+- (NSString*) parseVersion;
 - (void) reset;
 - (void) setDeclared: (NSString*)name;
 - (void) setDocumentInstanceVariables: (BOOL)flag;

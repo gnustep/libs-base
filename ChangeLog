@@ -1,3 +1,13 @@
+2005-05-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Output 'Releases' rather than 'Standards' as it
+	seems a better term for API version information.
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m: Parse OS_API_VERSION() and GS_API_VERSION() to
+	produce detailed version information.
+	* Headers/Foundation/NSObject.h: defines of the two version macros for
+	proof of concept.
+
 2005-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.h: Support versioning info instead of standards
