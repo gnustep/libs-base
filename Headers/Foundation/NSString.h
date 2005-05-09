@@ -301,6 +301,8 @@ enum {
 // Getting C Strings
 - (const char*) cString;
 #ifndef	STRICT_OPENSTEP
+
+#if OS_API_VERSION(1004,9999) && GS_API_VERSION(0102,9999)
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding;
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
@@ -309,6 +311,8 @@ enum {
 	      encoding: (NSStringEncoding)encoding;
 - (unsigned) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
 - (unsigned) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
+#endif
+
 #endif
 - (unsigned int) cStringLength;
 - (void) getCString: (char*)buffer;

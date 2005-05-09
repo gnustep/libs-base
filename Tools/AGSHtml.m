@@ -2355,7 +2355,7 @@ static NSString		*mainFont = nil;
       int	rem = [ovrem intValue];
 
       [buf appendString: indent];
-      [buf appendString: @"<b>Standards:</b>"];
+      [buf appendString: @"<b>Releases:</b>"];
       if (add < 4)
 	{
 	  [buf appendString: @" OpenStep"];
@@ -2403,7 +2403,7 @@ static NSString		*mainFont = nil;
   else if ([gvadd length] > 0)
     {
       [buf appendString: indent];
-      [buf appendString: @"<b>Standards:</b>"];
+      [buf appendString: @"<b>Releases:</b>"];
       [buf appendString: @"GNUstep "];
       [buf appendString: gvadd];
       if ([gvrem length] > 0)

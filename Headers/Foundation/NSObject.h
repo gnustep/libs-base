@@ -38,6 +38,33 @@
 #undef	NO_GNUSTEP
 #endif
 
+/*
+ * NB. The version values below must be integers ... by convention these are
+ * made up of two digits each for major and minor version numbers
+ * (ie each is in the range 00 to 99) with subminor numbers ignored.
+ * So for a MacOS-X 10.3.9 release the version number would be 1003
+ *
+ * You may define GS_GNUSTEP_V or GS_OPENSTEP_V to ensure that your
+ * program only 'sees' the specified vartsion of the API.
+ */
+
+/*
+ * Macro to check a defined GNUstep version number (GS_GNUSTEP_V) against the
+ * supplied arguments.  Returns true if no GNUstep version is specified,
+ * or if ADD <= VER < REM
+ */
+#define	GS_API_VERSION(ADD,REM) \
+  (!defined(GS_GNUSTEP_V) || (GS_GNUSTEP_V >= ADD && GS_GNUSTEP_V < REM))
+
+/*
+ * Macro to check a defined OpenStep/OPENSTEP/MacOS-X version against the
+ * supplied arguments.  Returns true if no version is specified, or if
+ * ADD <= VER < REM
+ */
+#define	OS_API_VERSION(ADD,REM) \
+  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
+
+
 #include <Foundation/NSObjCRuntime.h>
 #include <GNUstepBase/preface.h>
 #include <GSConfig.h>
