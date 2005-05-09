@@ -1,3 +1,9 @@
+2005-05-09  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSPropertyList.m (OAppend): Revert patch from
+	2005-02-28.  It seems to fix the issue in the wrong place.
+	Further investigation is necessary.
+	
 2005-05-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Output 'Releases' rather than 'Standards' as it

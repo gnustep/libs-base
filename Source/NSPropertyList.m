@@ -2041,24 +2041,8 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	}
       else
 	{
-	  NSString *desc;
-	  volatile id plobj = nil;
-
-	  desc = [obj description];
-	  NS_DURING
-	    {
-	      plobj = [desc propertyList];
-	      NSDebugLog(@"Non-property-list class (%@) "
-		@"encoded as description's property-list", cls);
-	    }
-	  NS_HANDLER
-	    {
-	      plobj = desc;
-	      NSDebugLog(@"Non-property-list class (%@) "
-		@"encoded as string", cls);
-	    }
-	  NS_ENDHANDLER
-	  OAppend(plobj, loc, lev, step, x, dest);
+	  NSDebugLog(@"Non-property-list class (%@) encoded as string", cls);
+	  PString([obj description], dest);
 	}
     }
 }
