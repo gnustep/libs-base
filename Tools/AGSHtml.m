@@ -84,6 +84,7 @@ static NSString		*mainFont = nil;
 
 - (void) dealloc
 {
+  RELEASE(project);
   RELEASE(globalRefs);
   RELEASE(localRefs);
   RELEASE(projectRefs);
@@ -109,6 +110,8 @@ static NSString		*mainFont = nil;
 - (id) init
 {
   indent = [[NSMutableString alloc] initWithCapacity: 64];
+  project = RETAIN([[NSUserDefaults standardUserDefaults]
+    stringForKey: @"Project"]);
   return self;
 }
 
@@ -2346,52 +2349,72 @@ static NSString		*mainFont = nil;
 {
   NSString	*ovadd = [prop objectForKey: @"ovadd"];
   NSString	*gvadd = [prop objectForKey: @"gvadd"];
+  NSString	*ovdep = [prop objectForKey: @"ovdep"];
+  NSString	*gvdep = [prop objectForKey: @"gvdep"];
   NSString	*ovrem = [prop objectForKey: @"ovrem"];
   NSString	*gvrem = [prop objectForKey: @"gvrem"];
 
   if ([ovadd length] > 0)
     {
       int	add = [ovadd intValue];
+      int	dep = [ovdep intValue];
       int	rem = [ovrem intValue];
 
       [buf appendString: indent];
-      [buf appendString: @"<b>Releases:</b>"];
+      [buf appendString: @"<b>Releases:</b> "];
       if (add < 4)
 	{
-	  [buf appendString: @" OpenStep"];
+	  [buf appendString: @"OpenStep"];
 	}
       else if (add < 10)
 	{
-	  [buf appendString: @" OPENSTEP "];
+	  [buf appendString: @"OPENSTEP"];
 	  [buf appendString: ovadd];
 	}
       else
 	{
-	  [buf appendString: @" MacOS-X "];
+	  [buf appendString: @"MacOS-X"];
 	  [buf appendString: ovadd];
+	}
+      if (dep > add)
+	{
+	  [buf appendString: @" deprecated at "];
+	  if (add < 10)
+	    {
+	      [buf appendString: @"OPENSTEP"];
+	      [buf appendString: ovdep];
+	    }
+	  else
+	    {
+	      [buf appendString: @"MacOS-X"];
+	      [buf appendString: ovdep];
+	    }
 	}
       if (rem > add)
 	{
 	  [buf appendString: @" removed at "];
-	  if (add < 4)
+	  if (add < 10)
 	    {
-	      [buf appendString: @" OpenStep"];
-	    }
-	  else if (add < 10)
-	    {
-	      [buf appendString: @" OPENSTEP "];
-	      [buf appendString: ovadd];
+	      [buf appendString: @"OPENSTEP"];
+	      [buf appendString: ovrem];
 	    }
 	  else
 	    {
-	      [buf appendString: @" MacOS-X "];
-	      [buf appendString: ovadd];
+	      [buf appendString: @"MacOS-X"];
+	      [buf appendString: ovrem];
 	    }
 	}
       if ([gvadd length] > 0)
 	{
-	  [buf appendString: @", GNUstep "];
+	  [buf appendString: @", "];
+	  [buf appendString: project];
+	  [buf appendString: @" "];
 	  [buf appendString: gvadd];
+	  if ([gvdep length] > 0)
+	    {
+	      [buf appendString: @" deprecated at "];
+	      [buf appendString: gvdep];
+	    }
 	  if ([gvrem length] > 0)
 	    {
 	      [buf appendString: @" removed at "];
@@ -2403,9 +2426,16 @@ static NSString		*mainFont = nil;
   else if ([gvadd length] > 0)
     {
       [buf appendString: indent];
-      [buf appendString: @"<b>Releases:</b>"];
-      [buf appendString: @"GNUstep "];
+      [buf appendString: @"<b>Releases:</b> "];
+      [buf appendString: project];
+      [buf appendString: @" "];
       [buf appendString: gvadd];
+      if ([gvdep length] > 0)
+	{
+	  [buf appendString: @" deprecated at "];
+	  [buf appendString: gvdep];
+	}
+      [buf appendString: @"<br />\n"];
       if ([gvrem length] > 0)
 	{
 	  [buf appendString: @" removed at "];

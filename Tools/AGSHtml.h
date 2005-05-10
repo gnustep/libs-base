@@ -26,6 +26,7 @@
 
 @interface AGSHtml : NSObject
 {
+  NSString		*project;
   AGSIndex		*localRefs;
   AGSIndex		*globalRefs;
   AGSIndex		*projectRefs;

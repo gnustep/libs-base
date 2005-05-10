@@ -2946,6 +2946,9 @@ fail:
 		      return [self skipRemainderOfLine];
 		    }
 		  hadOstep = YES;
+		  [top removeObjectForKey: @"ovadd"];
+		  [top removeObjectForKey: @"ovdep"];
+		  [top removeObjectForKey: @"ovrem"];
 		}
 	      else if ([arg isEqual: @"GS_API_VERSION"] == YES)
 		{
@@ -2956,17 +2959,16 @@ fail:
 		      return [self skipRemainderOfLine];
 		    }
 		  hadGstep = YES;
+		  [top removeObjectForKey: @"gvadd"];
+		  [top removeObjectForKey: @"gvdep"];
+		  [top removeObjectForKey: @"gvrem"];
 		}
 	      else
 		{
 		  break;
 		}
 
-	      while (pos < length
-		&& [spaces characterIsMember: buffer[pos]] == YES)
-		{
-		  pos++;
-		}
+	      [self parseSpace: spaces];
 	      if (pos < length && buffer[pos] == '(')
 		{
 		  pos++;
@@ -2987,11 +2989,7 @@ fail:
 		  [top setObject: ver forKey: @"gvadd"];
 		}
 
-	      while (pos < length
-		&& [spaces characterIsMember: buffer[pos]] == YES)
-		{
-		  pos++;
-		}
+	      [self parseSpace: spaces];
 	      if (pos < length && buffer[pos] == ',')
 		{
 		  pos++;
@@ -3002,18 +3000,7 @@ fail:
 		  ver = @"9999";
 		}
 	      i = [ver intValue];
-	      if (i == 9999 || [ver isEqualToString: @"NEVER"] == YES)
-		{
-		  if (openstep)
-		    {
-		      [top removeObjectForKey: @"ovrem"];
-		    }
-		  else
-		    {
-		      [top removeObjectForKey: @"gvrem"];
-		    }
-		}
-	      else
+	      if (i != 9999 && [ver isEqualToString: @"NEVER"] == NO)
 		{
 		  ver = [NSString stringWithFormat: @"%d.%d", i/100, i%100];
 		  if (openstep)
@@ -3026,21 +3013,37 @@ fail:
 		    }
 		}
 
-	      while (pos < length
-		&& [spaces characterIsMember: buffer[pos]] == YES)
+	      [self parseSpace: spaces];
+	      if (pos < length && buffer[pos] == ',')
 		{
 		  pos++;
+		  ver = [self parseVersion];
+		  if ([ver length] == 0)
+		    {
+		      ver = @"9999";
+		    }
+		  i = [ver intValue];
+		  if (i != 9999 && [ver isEqualToString: @"NEVER"] == NO)
+		    {
+		      ver = [NSString stringWithFormat: @"%d.%d", i/100, i%100];
+		      if (openstep)
+			{
+			  [top setObject: ver forKey: @"ovdep"];
+			}
+		      else
+			{
+			  [top setObject: ver forKey: @"gvdep"];
+			}
+		    }
+		  [self parseSpace: spaces];
 		}
+
 	      if (pos < length && buffer[pos] == ')')
 		{
 		  pos++;
 		}
 
-	      while (pos < length
-		&& [spaces characterIsMember: buffer[pos]] == YES)
-		{
-		  pos++;
-		}
+	      [self parseSpace: spaces];
 	      if (pos < length-1 && buffer[pos] == '&' && buffer[pos+1] == '&')
 		{
 		  pos += 2;
@@ -3058,11 +3061,7 @@ fail:
 	  {
 	    BOOL	isIfDef = [directive isEqual: @"ifdef"];
 
-	    while (pos < length
-	      && [spaces characterIsMember: buffer[pos]] == YES)
-	      {
-		pos++;
-	      }
+	    [self parseSpace: spaces];
 	    if (pos < length && buffer[pos] != '\n')
 	      {
 		NSMutableDictionary	*top;
@@ -3462,6 +3461,10 @@ fail:
 	      if (ovadd != nil)
 		{
 		  [m appendFormat: @" ovadd=\"%@\"", ovadd];
+		  if ((s = [top objectForKey: @"ovdep"]) != nil)
+		    {
+		      [m appendFormat: @" ovdep=\"%@\"", s];
+		    }
 		  if ((s = [top objectForKey: @"ovrem"]) != nil)
 		    {
 		      [m appendFormat: @" ovrem=\"%@\"", s];
@@ -3470,6 +3473,10 @@ fail:
 	      if (gvadd != nil)
 		{
 		  [m appendFormat: @" gvadd=\"%@\"", gvadd];
+		  if ((s = [top objectForKey: @"gvdep"]) != nil)
+		    {
+		      [m appendFormat: @" gvdep=\"%@\"", s];
+		    }
 		  if ((s = [top objectForKey: @"gvrem"]) != nil)
 		    {
 		      [m appendFormat: @" gvrem=\"%@\"", s];
