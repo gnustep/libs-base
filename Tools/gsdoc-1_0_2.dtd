@@ -240,11 +240,6 @@
      is used to override some information from the same method in the
      superclass.
   If factory not set, instance method
-
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT method (((sel, arg?), (sel, arg)*, vararg?), desc?, standards?)>
 <!ATTLIST method
@@ -253,8 +248,10 @@
   init %boolean; "no"
   override (subclass|never) #IMPLIED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
@@ -264,42 +261,34 @@
 <!ELEMENT declared (#PCDATA)*>
 
 <!-- A macro definition.
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT macro ((arg*, vararg?), declared?, desc?, standards?)>
 <!ATTLIST macro
   name CDATA #REQUIRED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
 <!-- A type definition.
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT type (declared?, desc?, standards?)>
 <!ATTLIST type
   name CDATA #REQUIRED
   type CDATA #REQUIRED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
 <!-- Variable definition.
   VALUE may be set for a constant or a default value
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT variable (declared?, desc?, standards?)>
 <!ATTLIST variable
@@ -307,16 +296,14 @@
   type CDATA #REQUIRED
   value CDATA #IMPLIED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
 <!-- Ivariable definition.
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT ivariable (desc?, standards?)>
 <!ATTLIST ivariable
@@ -324,17 +311,15 @@
   type CDATA #REQUIRED
   validity (public|protected|private) "public"
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
 <!-- Constant definition.
   VALUE may be set for a constant or a default value
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT constant (declared?, desc?, standards?)>
 <!ATTLIST constant
@@ -343,63 +328,55 @@
   value CDATA #IMPLIED
   role (except|defaults|notify|key) #IMPLIED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
 <!-- A function definition.
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT function ((arg*, vararg?), declared?, desc?, standards?)>
 <!ATTLIST function
   name CDATA #REQUIRED
   type CDATA #REQUIRED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
 <!-- Protocol definition.
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT protocol (declared?, conform*, desc?, method*, standards?)>
 <!ATTLIST protocol
   name CDATA #REQUIRED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
 <!-- Category definition.
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT category (declared?, conform*, desc?, method*, standards?)>
 <!ATTLIST category
   name CDATA #REQUIRED
   class CDATA #REQUIRED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 
 <!-- Show a protocol a class conforms to.
-  gvadd is the gnustep version at which this was introduced
-  gvrem is the gnustep version at which this was removed
-  ovadd is the OpenStep/OPENSTEP/MacOS-X version at which this was introduced
-  ovrem is the OpenStep/OPENSTEP/MacOS-X version at which this was removed
 -->
 <!ELEMENT conform (#PCDATA)*>
 
@@ -408,8 +385,10 @@
   name CDATA #REQUIRED
   super CDATA #IMPLIED
   gvadd CDATA #IMPLIED
+  gvdep CDATA #IMPLIED
   gvrem CDATA #IMPLIED
   ovadd CDATA #IMPLIED
+  ovdep CDATA #IMPLIED
   ovrem CDATA #IMPLIED
 >
 

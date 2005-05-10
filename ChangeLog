@@ -1,3 +1,11 @@
+2005-05-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m: 
+	* Tools/AGSParser.m:
+	* Tools/gsdoc-1_0_2.dtd:
+	Support deprecation version as well as addition/removal.
+
 2005-05-09  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSPropertyList.m (OAppend): Revert patch from
