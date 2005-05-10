@@ -69,6 +69,7 @@
     es_CR = CostaRicaSpanish;
     es_DO = DominicanRepublicSpanish;
     es_EC = EcuadorSpanish;
+    es_ES = SpainSpanish;
     es_GT = GuatemalaSpanish;
     es_HN = HondurasSpanish;
     es_MX = MexicoSpanish;
