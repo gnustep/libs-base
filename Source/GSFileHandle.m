@@ -101,6 +101,7 @@
 
 // Maximum data in single I/O operation
 #define	NETBUF_SIZE	4096
+#define	READ_SIZE	NETBUF_SIZE*10
 
 static GSFileHandle*	fh_stdin = nil;
 static GSFileHandle*	fh_stdout = nil;
@@ -1381,7 +1382,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (NSData*) availableData
 {
-  char			buf[NETBUF_SIZE];
+  char			buf[READ_SIZE];
   NSMutableData*	d;
   int			len;
 
@@ -1417,7 +1418,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (NSData*) readDataToEndOfFile
 {
-  char			buf[NETBUF_SIZE];
+  char			buf[READ_SIZE];
   NSMutableData*	d;
   int			len;
 
@@ -1467,7 +1468,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      char	buf[NETBUF_SIZE];
+      char	buf[READ_SIZE];
 
       d = [NSMutableData dataWithCapacity: 0];
       do
@@ -2151,7 +2152,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSMutableData	*item;
       int		length;
       int		received = 0;
-      char		buf[NETBUF_SIZE];
+      char		buf[READ_SIZE];
 
       item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
       /*
