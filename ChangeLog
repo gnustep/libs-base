@@ -1,3 +1,11 @@
+2005-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: Increase size of buffer for incoming data ...
+	on modern systems we have more memory and a bugger buffer can make
+	a significant performance improvement when reading large amounts of
+	streamed data.  New define of READ_SIZE for this buffer ... easily
+	adjusted in one place.
+
 2005-05-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.h:
