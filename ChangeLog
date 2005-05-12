@@ -7,11 +7,11 @@
 	adjusted in one place.
 
 2005-05-10  Sheldon Gill <sheldon@westnet.net.au>
-    * Resources/GNUmakefile
-    * Resources/Languages/Locale.aliases
-    * Resources/Spanish
-    * Resources/Spanish.lproj/Localizable.strings
-    Spanish language localisation from diemyr@yahoo.es
+	* Resources/GNUmakefile
+	* Resources/Languages/Locale.aliases
+	* Resources/Spanish
+	* Resources/Spanish.lproj/Localizable.strings
+	Spanish language localisation from diemyr@yahoo.es
 
 2005-05-10  Richard Frith-Macdonald <rfm@gnu.org>
 
