@@ -217,10 +217,6 @@
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path;
-#ifndef NO_GNUSTEP
-- (NSString*) localFromOpenStepPath:(NSString*)path;
-- (NSString*) openStepPathFromLocal:(NSString*)localPath;
-#endif
 - (BOOL) isExecutableFileAtPath: (NSString*)path;
 - (BOOL) isDeletableFileAtPath: (NSString*)path;
 - (BOOL) isReadableFileAtPath: (NSString*)path;
@@ -302,7 +298,6 @@
   void *_stack; /* GSIArray */
   NSString *_topPath;
   NSString *_currentFilePath;
-  NSString *(*_openStepPathFromLocalImp)(id, SEL, id);
   struct 
   {
     BOOL isRecursive: 1;

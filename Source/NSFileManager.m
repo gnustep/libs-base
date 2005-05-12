@@ -195,7 +195,7 @@
 
 #define	_NUL		L'\0'
 
-#define	OS2LOCAL(M,P) 	[[M localFromOpenStepPath: P] unicharString]
+#define	OS2LOCAL(M,P) 	[P cStringUsingEncoding: NSUnicodeStringEncoding]
 
 #else
 
@@ -884,7 +884,7 @@ static NSFileManager* defaultManager = nil;
 	      path = [NSString stringWithCString: lpath length: len];
 #endif
 
-	      currentDir = [self openStepPathFromLocal: path];
+	      currentDir = path;
 	    }
 	  free(lpath);
 	}
@@ -1858,176 +1858,25 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * Convert from OpenStep internal path format (Unix-style) to a string in
- * the local filesystem format, suitable for passing to system functions.<br />
- * Under Unix, this simply standardizes the path and converts to a
- * C string.<br />
- * Under Windoze, this attempts to use local conventions to convert to a
- * windows path.  In GNUstep, the conventional unix syntax '~user/...' can
- * be used to indicate a windoze drive specification by using the drive
- * letter in place of the username, and the syntax '~@server/...' can be used
- * to indicate a file located on the named windoze network server (the
- * '~@' maps to the leading '//' in a windoze UNC path specification.
+ * Convert a path from the internal NSString format to a format suitable
+ * for passing to system functions.<br />
+ * This generally involves conversion to the character encoding used by
+ * the filesystem.
  */
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
-  NSString	*localPath;
   const char	*local_c_path = 0;
 
-  localPath = [self localFromOpenStepPath: path];
-  if (localPath
-    && [localPath canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
-    {
-      local_c_path = [localPath cString];
-    }
+  // FIXME ... what if the filesystem encoding is not the same as the
+  // default C-string encoding?
+  local_c_path = [path cString];
   return (local_c_path);
 }
 
 /**
- * Convert from OpenStep internal path format (Unix-style) to a NSString in
- * the local filesystem format.
- * Under Windoze, this attempts to use local conventions to convert to a
- * windows path.  In GNUstep, the conventional unix syntax '~user/...' can
- * be used to indicate a windoze drive specification by using the drive
- * letter in place of the username, and the syntax '~@server/...' can be used
- * to indicate a file located on the named windoze network server (the
- * '~@' maps to the leading '//' in a windoze UNC path specification.
- */
-- (NSString*) localFromOpenStepPath: (NSString*)path
-{
-  NSString	*newpath = nil;
-#ifdef __MINGW__
-/*
-* If path is in Unix format, transmogrify it so Windows functions
-* can handle it
-*/
-  int 		wcount;		// count unichars
-  unichar	*wc_path = 0;
-  int		l;
-
-  path = [path stringByStandardizingPath];
-  wcount = [path length];
-  if (wcount != 0)
-    {
-      l = wcount;
-      wc_path = (unichar*)calloc(wcount+10,sizeof(unichar));
-      [path getCharacters: (unichar *)wc_path];
-
-      if (l >= 2 && wc_path[0] == L'~' && wc_path[1] == L'@')
-	{
-	  // Convert to windows UNC path.
-	  wc_path[0] = L'/';
-	  wc_path[1] = L'/';
-	  newpath = [NSString stringWithCharacters: wc_path length: wcount];
-	}
-      else if (l >= 2 && wc_path[0] == L'~' && iswalpha(wc_path[1])
-	&& (l == 2 || wc_path[2] == L'/'))
-	{
-	  wc_path[0] = wc_path[1];
-	  wc_path[1] = L':';
-	  newpath = [NSString stringWithCharacters: wc_path length: wcount];
-	}
-      else if (l >= 3 && wc_path[0] == L'/' && wc_path[1] == L'/'
-	&& iswalpha(wc_path[2]))
-	{
-	  if (l == 3 || wc_path[3] == L'/')
-	    {
-	      /* Cygwin "//c/" type absolute path */
-	      wc_path[1] = wc_path[2];
-	      wc_path[2] = L':';
-	      newpath = [NSString stringWithCharacters: &wc_path[1]
-						length: wcount-1];
-	    }
-	  else
-	    {
-	      /* Windows absolute UNC path "//name/" */
-	      newpath = path;
-	    }
-	}
-      else if (isalpha(wc_path[0]) && wc_path[1] == L':')
-	{
-	  /* Windows absolute path */
-	  newpath = path;
-	}
-      else if (wc_path[0] == L'/')
-	{
-#ifdef	__CYGWIN__
-	  if (l > 11 && wcsncmp(wc_path, L"/cygdrive/", 10) == 0
-	    && wc_path[11] == L'/')
-	    {
-	      wc_path[9] = wc_path[10];
-	      wc_path[10] = L':';
-	      newpath = [NSString stringWithCharacters: &wc_path[9]
-						length: wcount-9];
-	    }
-	  else
-	    {
-	      NSDictionary	*env;
-	      NSString		*cyghome;
-
-	      env = [[NSProcessInfo processInfo] environment];
-	      cyghome = [env objectForKey: @"CYGWIN_HOME"];
-	      if (cyghome != nil)
-		{
-		  /* FIXME: Find cygwin drive? */
-		  newpath = cyghome;
-		  newpath = [newpath stringByAppendingPathComponent: path];
-		}
-	      else
-		{
-		  newpath = path;
-		}
-	    }
-#else
-	  if (l >= 2 && wc_path[0] == L'/' && iswalpha(wc_path[1])
-	    && (l == 2 || wc_path[2] == L'/'))
-	    {
-	      /* Mingw /drive/... format */
-	      wc_path[2] = L':';
-	      newpath = [NSString stringWithCharacters: &wc_path[1]
-						length: wcount-1];
-	    }
-	  else
-	    {
-	      newpath = path;
-	    }
-#endif
-	}
-      else
-	{
-	  newpath = path;
-	}
-      newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
-      if (wc_path)
-	{
-	  free (wc_path);
-	}
-    }
-  else
-    {
-      newpath = path;
-    }
-#else
-  /*
-   * NB ... Don't standardize path, since that would automatically
-   * follow symbolic links ... and mess up any code wishing to
-   * examine the link itsself.
-   * We just need the path in a form where it can be interpreted by
-   * operating system calls (no '~' abbreviations for user directories).
-   */
-  newpath = [path stringByExpandingTildeInPath];
-#endif
-
-  return (newpath);
-}
-
-/**
  * This method converts from a local system specific filename representation
- * to the internal OpenStep representation (unix-style).  This should be used
- * whenever a filename is read in from the local system.<br />
- * In GNUstep, windoze drive specifiers are encoded in the internal path
- * using the conventuional unix syntax of '~user/...' where the drive letter
- * is used instead of a username.
+ * to an NSString object.  This should be used whenever a filename is
+ * read in using native system calls.
  */
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len
@@ -2036,133 +1885,12 @@ static NSFileManager* defaultManager = nil;
 
   if (string != 0)
     {
+      // FIXME ... what if the filesystem encoding is not the same as the
+      // default C-string encoding?
       localPath = [NSString stringWithCString: string length: len];
     }
 
-  return([self openStepPathFromLocal: localPath]);
-}
-
-/**
- * This method converts from a local system specific filename representation
- * to the internal OpenStep representation (unix-style).  This should be used
- * whenever a filename is read in from the local system.<br />
- * In GNUstep, windoze drive specifiers are encoded in the internal path
- * using the conventuional unix syntax of '~user/...' where the drive letter
- * is used instead of a username.
- */
-- (NSString*) openStepPathFromLocal: (NSString*)localPath
-{
-#ifdef __MINGW__
-
-  int 		len;		// count unichars
-  unichar	*wc_path = 0;
-
-  len = [localPath length];
-  if (len != 0)
-    {
-      wc_path = (unichar*)calloc(len+10,sizeof(unichar));
-      [localPath getCharacters: (unichar *)wc_path];
-    }
-  if (wc_path)
-    {
-      const unichar	*ptr = wc_path;
-      unichar		buf[len + 20];
-      unsigned		i;
-      unsigned		j;
-
-      /*
-       * If path is in Windows format, transmogrify it so Unix functions
-       * can handle it
-       */
-      if (len == 0)
-	{
-	  free(wc_path);
-	  return @"";
-	}
-      if (len >= 2 && ((ptr[1] == L'/' && ptr[0] == L'/')
-	|| (ptr[1] == L'\\' && ptr[0] == L'\\')))
-	{
-	  /*
-	   * Convert '//<servername>/' to '~@<servername>/' sequences.
-	   */
-	  buf[0] = L'~';
-	  buf[1] = L'@';
-	  i = 2;
-	}
-      else if (len >= 2 && ptr[1] == L':' && iswalpha(ptr[0]))
-	{
-	  /*
-	   * Convert '<driveletter>:' to '~<driveletter>/' sequences.
-	   */
-	  buf[0] = L'~';
-	  buf[1] = ptr[0];
-	  buf[2] = L'/';
-	  ptr -= 1;
-	  len++;
-	  i = 3;
-	}
-#ifdef	__CYGWIN__
-      else if (len > 9 && wcsncmp(ptr, L"/cygdrive/", 10) == 0)
-	{
-	  buf[0] = L'~';
-	  ptr += 9;
-	  len -= 9;
-	  i = 1;
-	}
-#else
-      else if (len >= 2 && ptr[0] == L'/' && iswalpha(ptr[1])
-	 && (len == 2 || ptr[2] == L'/'))
-	{
-	  /*
-	   * Convert '/<driveletter>' to '~<driveletter>' sequences.
-	   */
-	  buf[0] = L'~';
-	  i = 1;
-	}
-#endif
-      else
-	{
-	  i = 0;
-	}
-      /*
-       * Convert backslashes to slashes, colaescing adjacent slashes.
-       *  Also elide '/./' sequences, because we can do so efficiently.
-       */
-      j = i;
-      while (i < len)
-	{
-	  if (ptr[i] == L'\\')
-	    {
-	      if (j == 0 || buf[j-1] != L'/')
-		{
-		  if (j > 2 && buf[j-2] == L'/' && buf[j-1] == L'.')
-		    {
-		      j--;
-		    }
-		  else
-		    {
-		      buf[j++] = L'/';
-		    }
-		}
-	    }
-	  else
-	    {
-	      buf[j++] = ptr[i];
-	    }
-	  i++;
-	}
-      buf[j] = _NUL;
-      // NSLog(@"Map '%s' to '%s'", string, buf);
-      free(wc_path);
-      return [NSString stringWithCharacters: buf length: j];
-    }
-  else
-    {
-      return(@"");
-    }
-#endif
-
-  return localPath;
+  return(localPath);
 }
 
 @end /* NSFileManager */
@@ -2198,8 +1926,6 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 #include "GNUstepBase/GSIArray.h"
 
 
-static SEL ospfl = 0;
-
 /**
  *  <p>This is a subclass of <code>NSEnumerator</code> which provides a full
  *  listing of all the files beneath a directory and its subdirectories.
@@ -2223,7 +1949,6 @@ static SEL ospfl = 0;
     {
       /* Initialize the default manager which we access directly */
       [NSFileManager defaultManager];
-      ospfl = @selector(openStepPathFromLocal:);
     }
 }
 
@@ -2248,9 +1973,6 @@ static SEL ospfl = 0;
   const _CHAR	*localPath;
 
   self = [super init];
-
-  _openStepPathFromLocalImp = (NSString *(*)(id, SEL,id))
-    [defaultManager methodForSelector: ospfl];
 
   _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
   GSIArrayInitWithZoneAndCapacity(_stack, [self zone], 64);
@@ -2368,9 +2090,8 @@ static SEL ospfl = 0;
 	      continue;
 	    }
 	  /* Name of file to return  */
-	  returnFileName = _openStepPathFromLocalImp(defaultManager, ospfl,
-	    [NSString stringWithCharacters: dirbuf->d_name
-				    length: wcslen(dirbuf->d_name)]);
+	  returnFileName = [NSString stringWithCharacters: dirbuf->d_name
+				    length: wcslen(dirbuf->d_name)];
 #else
 	  /* Skip "." and ".." directory entries */
 	  if (strcmp(dirbuf->d_name, ".") == 0
@@ -2379,8 +2100,7 @@ static SEL ospfl = 0;
 	      continue;
 	    }
 	  /* Name of file to return  */
-	  returnFileName = _openStepPathFromLocalImp(defaultManager, ospfl,
-	    [NSString stringWithCString: dirbuf->d_name]);
+	  returnFileName = [NSString stringWithCString: dirbuf->d_name];
 #endif
 	  returnFileName = [dir.path stringByAppendingPathComponent:
 	    returnFileName];

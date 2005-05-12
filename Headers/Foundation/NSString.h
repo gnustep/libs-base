@@ -351,10 +351,6 @@ enum {
 			  caseSensitive: (BOOL)flag
 		       matchesIntoArray: (NSArray**)outputArray
 			    filterTypes: (NSArray*)filterTypes;
-#ifndef NO_GNUSTEP
-- (NSString*) localFromOpenStepPath;
-- (NSString*) openStepPathFromLocal;
-#endif
 
 /**
  * Converts the receiver to a C string path expressed in the character

@@ -1082,8 +1082,7 @@ quotedFromString(NSString *aString)
     }
 
   lpath = [self _fullLaunchPath];
-  lpath = [lpath localFromOpenStepPath];
-  wexecutable = [lpath unicharString];
+  wexecutable = [lpath cStringUsingEncoding: NSUnicodeStringEncoding];
 
   args = [[NSMutableString alloc] initWithString: quotedFromString(lpath)];
   arg_enum = [[self arguments] objectEnumerator];
@@ -1154,7 +1153,7 @@ quotedFromString(NSString *aString)
     1,         			/* inherit handles */
     CREATE_UNICODE_ENVIRONMENT,	/* creation flags */
     envp,			/* env block */
-    [[[self currentDirectoryPath] localFromOpenStepPath] unicharString],
+    [[self currentDirectoryPath] cStringUsingEncoding: NSUnicodeStringEncoding],
     &start_info,
     &procInfo);
   NSZoneFree(NSDefaultMallocZone(), w_args);

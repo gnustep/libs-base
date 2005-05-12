@@ -132,8 +132,6 @@ static IMP	appendImp;
 static BOOL
 readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 {
-  NSString 	*localPath = [path localFromOpenStepPath];
-	
 #if defined(__MINGW__)
   const unichar	*thePath = NULL;
 #else
@@ -149,13 +147,13 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 #endif
 	
 #if defined(__MINGW__)
-  thePath = [localPath unicharString];
+  thePath = [path cStringUnsingEncoding: NSUnicodeStringEncoding];
 #else
-  thePath = [localPath fileSystemRepresentation];
+  thePath = [path fileSystemRepresentation];
 #endif	
   if (thePath == NULL)
     {
-      NSWarnFLog(@"Open (%@) attempt failed - bad path",localPath);
+      NSWarnFLog(@"Open (%@) attempt failed - bad path",path);
       return NO;
     }
 	
@@ -167,7 +165,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 
   if (theFile == NULL)		/* We failed to open the file. */
     {
-      NSWarnFLog(@"Open (%@) attempt failed - %s",localPath,
+      NSWarnFLog(@"Open (%@) attempt failed - %s",path,
       GSLastErrorStr(errno));
       goto failure;
     }
@@ -178,7 +176,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   c = fseek(theFile, 0L, SEEK_END);
   if (c != 0)
     {
-      NSWarnFLog(@"Seek to end of file (%@) failed - %s",localPath,
+      NSWarnFLog(@"Seek to end of file (%@) failed - %s",path,
       GSLastErrorStr(errno));
       goto failure;
     }
@@ -190,7 +188,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   fileLength = ftell(theFile);
   if (fileLength == -1)
     {
-      NSWarnFLog(@"Ftell on %@ failed - %s",localPath,
+      NSWarnFLog(@"Ftell on %@ failed - %s",path,
       GSLastErrorStr(errno));
       goto failure;
     }
@@ -202,7 +200,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   c = fseek(theFile, 0L, SEEK_SET);
   if (c != 0)
     {
-      NSWarnFLog(@"Fseek to start of file (%@) failed - %s",localPath,
+      NSWarnFLog(@"Fseek to start of file (%@) failed - %s",path,
       GSLastErrorStr(errno));
       goto failure;
     }
@@ -210,7 +208,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   if (fileLength == 0)
     {
       unsigned char	buf[BUFSIZ];
-      
+
       /*
        * Special case ... a file of length zero may be a named pipe or some
        * file in the /proc filesystem, which will return us data if we read
@@ -228,7 +226,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 	    }
 	  if (tmp == 0)
 	    {
-	      NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath,
+	      NSLog(@"Malloc failed for file (%@) of length %d - %s",path,
 		fileLength + c, GSLastErrorStr(errno));
 	      goto failure;
 	    }
@@ -241,15 +239,15 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       tmp = NSZoneMalloc(zone, fileLength);
       if (tmp == 0)
 	{
-	  NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath,
+	  NSLog(@"Malloc failed for file (%@) of length %d - %s",path,
 	  fileLength, GSLastErrorStr(errno));
 	  goto failure;
 	}
-	    
+	
       c = fread(tmp, 1, fileLength, theFile);
       if (c != (int)fileLength)
 	{
-	  NSWarnFLog(@"read of file (%@) contents failed - %s",localPath,
+	  NSWarnFLog(@"read of file (%@) contents failed - %s",path,
 	  GSLastErrorStr(errno));
 	  goto failure;
 	}
@@ -259,7 +257,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   *len = fileLength;
   fclose(theFile);
   return YES;
-  
+
   /*
    *	Just in case the failure action needs to be changed.
    */
@@ -821,39 +819,39 @@ static unsigned	gsu32Align;
  */
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile
 {
-	NSString *localPath = [path localFromOpenStepPath];
 #if defined(__MINGW__)
-	unichar		wthePath[[localPath length]+100];
-	unichar		wtheRealPath[[localPath length]+100];
+  unichar	wthePath[[path length]+100];
+  unichar	wtheRealPath[[path length]+100];
 #else
-	char		thePath[BUFSIZ*2+8];
-	char		theRealPath[BUFSIZ*2];
+  char		thePath[BUFSIZ*2+8];
+  char		theRealPath[BUFSIZ*2];
 #endif
-	int		c;
-	FILE		*theFile;
-	BOOL		error_BadPath = YES;
+  int		c;
+  FILE		*theFile;
+  BOOL		error_BadPath = YES;
 
 #if defined(__MINGW__)
-	[localPath getCharacters:wtheRealPath];
-	wtheRealPath[[localPath length]] = L'\0';
-	error_BadPath = ([localPath length] <= 0);
+  [path getCharacters:wtheRealPath];
+  wtheRealPath[[path length]] = L'\0';
+  error_BadPath = ([path length] <= 0);
 #else
-	if ([localPath canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
+  if ([path canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
+    {	
+      const char *cPath = [path cString];
+
+      if (strlen(cPath) < (BUFSIZ*2))
 	{	
-		const char *local_c_path = [localPath cString];
-		if (local_c_path != NULL && strlen(local_c_path) < (BUFSIZ*2))
-		{	
-			strcpy(theRealPath,local_c_path);
-			error_BadPath = NO;
-		}	
-	}
+	  strcpy(theRealPath, cPath);
+	  error_BadPath = NO;
+	}	
+    }
 #endif
 
-	if (error_BadPath)
-	{
-		NSWarnMLog(@"Open (%@) attempt failed - bad path",path);
-		return NO;
-	}
+  if (error_BadPath)
+    {
+      NSWarnMLog(@"Open (%@) attempt failed - bad path",path);
+      return NO;
+    }
 
 #ifdef	HAVE_MKSTEMP
   if (useAuxiliaryFile)
@@ -865,9 +863,9 @@ static unsigned	gsu32Align;
       strcat(thePath, "XXXXXX");
       if ((desc = mkstemp(thePath)) < 0)
 	{
-          NSWarnMLog(@"mkstemp (%s) failed - %s", thePath,
+	  NSWarnMLog(@"mkstemp (%s) failed - %s", thePath,
 	    GSLastErrorStr(errno));
-          goto failure;
+	  goto failure;
 	}
       mask = umask(0);
       umask(mask);
@@ -903,9 +901,9 @@ static unsigned	gsu32Align;
       strcat(thePath, "XXXXXX");
       if (mktemp(thePath) == 0)
 	{
-          NSWarnMLog(@"mktemp (%s) failed - %s", thePath,
+	  NSWarnMLog(@"mktemp (%s) failed - %s", thePath,
 	    GSLastErrorStr(errno));
-          goto failure;
+	  goto failure;
 	}
 #endif
     }
@@ -918,7 +916,7 @@ static unsigned	gsu32Align;
 #endif
     }
 
-  /* Open the file (whether temp or real) for writing. */
+/* Open the file (whether temp or real) for writing. */
 #if defined(__MINGW__)
   theFile = _wfopen(wthePath, L"wb");
 #else
@@ -926,8 +924,9 @@ static unsigned	gsu32Align;
 #endif
 #endif
 
-  if (theFile == NULL)          /* Something went wrong; we weren't
-                                 * even able to open the file. */
+  /* Something went wrong; we weren't
+   * even able to open the file. */
+  if (theFile == NULL)
     {
 #if defined(__MINGW__)
       NSWarnMLog(@"Open (%@) failed - %s",
@@ -940,12 +939,12 @@ static unsigned	gsu32Align;
     }
 
   /* Now we try and write the NSData's bytes to the file.  Here `c' is
-   * the number of bytes which were successfully written to the file
-   * in the fwrite() call. */
+  * the number of bytes which were successfully written to the file
+  * in the fwrite() call. */
   c = fwrite([self bytes], sizeof(char), [self length], theFile);
 
-  if (c < (int)[self length])        /* We failed to write everything for
-                                 * some reason. */
+  /* We failed to write everything for * some reason. */
+  if (c < (int)[self length])
     {
 #if defined(__MINGW__)
       NSWarnMLog(@"Fwrite (%@) failed - %s",
@@ -961,8 +960,8 @@ static unsigned	gsu32Align;
   c = fclose(theFile);
 
   if (c != 0)                   /* I can't imagine what went wrong
-                                 * closing the file, but we got here,
-                                 * so we need to deal with it. */
+			   * closing the file, but we got here,
+			   * so we need to deal with it. */
     {
 #if defined(__MINGW__)
       NSWarnMLog(@"Fclose (%@) failed - %s",
@@ -1019,18 +1018,18 @@ static unsigned	gsu32Align;
       c = rename(thePath, theRealPath);
 #endif
       if (c != 0)               /* Many things could go wrong, I guess. */
-        {
+	{
 #if defined(__MINGW__)
-          NSWarnMLog(@"Rename ('%@' to '%@') failed - %s",
+	  NSWarnMLog(@"Rename ('%@' to '%@') failed - %s",
 	    [NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
 	    [NSString stringWithCharacters:wtheRealPath length:wcslen(wtheRealPath)],
 	    GSLastErrorStr(errno));
 #else
-         NSWarnMLog(@"Rename ('%s' to '%s') failed - %s",
+	 NSWarnMLog(@"Rename ('%s' to '%s') failed - %s",
 	    thePath, theRealPath, GSLastErrorStr(errno));
 #endif
-          goto failure;
-        }
+	  goto failure;
+	}
 
       if (att != nil)
 	{
@@ -1068,7 +1067,7 @@ static unsigned	gsu32Align;
   return YES;
 
   /* Just in case the failure action needs to be changed. */
-failure:
+  failure:
   /*
    * Attempt to tidy up by removing temporary file on failure.
    */
@@ -2855,65 +2854,62 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
  */
 - (id) initWithContentsOfMappedFile: (NSString*)path
 {
-	int	fd;
-	NSString *localPath = [path localFromOpenStepPath];
-	
+  int	fd;
 #if defined(__MINGW__)
-	const unichar	*thePath = [localPath unicharString];
+  const unichar	*thePath
+    = [path cStringUnsingEncoding: NSUnicodeStringEncoding];
 #else
-	const char *thePath;
-	thePath = [localPath fileSystemRepresentation];
+  const char *thePath;
+  thePath = [path fileSystemRepresentation];
 #endif
 
-	if (thePath == NULL)	
-	{
-		NSWarnMLog(@"Open (%@) attempt failed - bad path",localPath);
-		RELEASE(self);
-		return nil;
-	}
+  if (thePath == NULL)	
+    {
+      NSWarnMLog(@"Open (%@) attempt failed - bad path", path);
+      RELEASE(self);
+      return nil;
+    }
 
-	
+
 #if defined(__MINGW__)
-	fd = _wopen(thePath, _O_RDONLY);
+  fd = _wopen(thePath, _O_RDONLY);
 #else
-	fd = open(thePath, O_RDONLY);
+  fd = open(thePath, O_RDONLY);
 #endif
-	if (fd < 0)
-	{
-		NSWarnMLog(@"unable to open %@ - %s",localPath,GSLastErrorStr(errno));
-		RELEASE(self);
-		return nil;
-	}
-	/* Find size of file to be mapped. */
-	length = lseek(fd, 0, SEEK_END);
-	if (length < 0)
-	{
-		NSWarnMLog(@"unable to seek to eof %@ - %s",localPath,
-			GSLastErrorStr(errno));
-		close(fd);
-		RELEASE(self);
-		return nil;
-	}
-	/* Position at start of file. */
-	if (lseek(fd, 0, SEEK_SET) != 0)
-	{
-		NSWarnMLog(@"unable to seek to sof %@ - %s", localPath,
-			GSLastErrorStr(errno));
-		close(fd);
-		RELEASE(self);
-		return nil;
-	}
-	bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
-	if (bytes == MAP_FAILED)
-	{
-		NSWarnMLog(@"mapping failed for %s - %s",localPath, GSLastErrorStr(errno));
-		close(fd);
-		RELEASE(self);
-		self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
-		self = [self initWithContentsOfFile: path];
-	}
-	close(fd);
-	return self;
+  if (fd < 0)
+    {
+      NSWarnMLog(@"unable to open %@ - %s", path, GSLastErrorStr(errno));
+      RELEASE(self);
+      return nil;
+    }
+  /* Find size of file to be mapped. */
+  length = lseek(fd, 0, SEEK_END);
+  if (length < 0)
+    {
+      NSWarnMLog(@"unable to seek to eof %@ - %s", path, GSLastErrorStr(errno));
+      close(fd);
+      RELEASE(self);
+      return nil;
+    }
+  /* Position at start of file. */
+  if (lseek(fd, 0, SEEK_SET) != 0)
+    {
+      NSWarnMLog(@"unable to seek to sof %@ - %s", path, GSLastErrorStr(errno));
+      close(fd);
+      RELEASE(self);
+      return nil;
+    }
+  bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
+  if (bytes == MAP_FAILED)
+    {
+      NSWarnMLog(@"mapping failed for %s - %s",path, GSLastErrorStr(errno));
+      close(fd);
+      RELEASE(self);
+      self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
+      self = [self initWithContentsOfFile: path];
+    }
+  close(fd);
+  return self;
 }
 
 @end
