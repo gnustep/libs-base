@@ -3637,6 +3637,11 @@ static NSFileManager *fm = nil;
   unsigned 	originalLength = l;
   unsigned	root;
 
+  if (aString == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil value supplied as path extension"];
+    }
   if (l == 0)
     {
       NSLog(@"[%@-%@] cannot append extension '%@' to empty string",

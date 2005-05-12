@@ -185,7 +185,9 @@ enum {
  * The mode selected if you provide any other argument to this
  * method is the default <em>gnustep</em> mode, in which the system tries
  * to <em>do-the-right-thing</em> and support both windows and unix style
- * paths at the same time.
+ * paths at the same time.<br />
+ * This method provided for experimental purposes only.  The separate unix
+ * and windows modes may be dropped in future.
  */
 + (void) setPathHandling: (NSString*)mode;
 #endif
@@ -454,6 +456,7 @@ enum {
  *   @"/" with @"app" produces @"/" (no file name to append to)
  *   @"" with @"app" produces @"" (no file name to append to)
  * </example>
+ * For MacOS-X compatibility, this method raises an exception if aString is nil.
  */
 - (NSString*) stringByAppendingPathExtension: (NSString*)aString;
 
