@@ -662,7 +662,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
        * Tell superclass that the load failed - let it do housekeeping.
        */
       [self endLoadInBackground];
-      [self backgroundLoadDidFailWithReason: e];
+      [self backgroundLoadDidFailWithReason:
+	[NSString stringWithFormat: @"Failed to connect: %@", e]];
       return;
     }
 
@@ -832,7 +833,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
        * Tell superclass that the load failed - let it do housekeeping.
        */
       [self endLoadInBackground];
-      [self backgroundLoadDidFailWithReason: @"Failed to write request"];
+      [self backgroundLoadDidFailWithReason:
+	[NSString stringWithFormat: @"Failed to write request: %@", e]];
       return;
     }
   else
@@ -1085,8 +1087,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  /*
 	   * Tell superclass that the load failed - let it do housekeeping.
 	   */
-	  [self backgroundLoadDidFailWithReason: [NSString stringWithFormat:
-	    @"Unable to connect to %@:%@ ... %s",
+	  [self backgroundLoadDidFailWithReason:
+	    [NSString stringWithFormat: @"Unable to connect to %@:%@ ... %s",
 	    host, port, GSLastErrorStr(errno)]];
 	  return;
 	}

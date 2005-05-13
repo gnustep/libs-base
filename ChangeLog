@@ -1,3 +1,8 @@
+2005-05-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Minor improvement to detail of failure
+	reason.
+
 2005-05-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m: Increase size of buffer for incoming data ...
