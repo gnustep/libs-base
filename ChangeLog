@@ -1,3 +1,8 @@
+2005-05-15 19:57 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSPropertyList.m: Changes to include limits.h rather
+	than explicitly define UINT_MAX.
+
 2005-05-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Minor improvement to detail of failure
