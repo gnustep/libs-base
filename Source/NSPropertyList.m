@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include <string.h>
+#include <limits.h>
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSMime.h"
 
@@ -45,11 +46,8 @@
 #include "GNUstepBase/Unicode.h"
 
 #include "GSPrivate.h"
-extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
-#ifndef UINT_MAX
-#  define UINT_MAX     4294967295U
-#endif
+extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
 @class	GSString;
 @class	GSMutableString;
