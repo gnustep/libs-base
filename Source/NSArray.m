@@ -1631,7 +1631,7 @@ compare(id elem1, id elem2, void* context)
 	      (*rem)(self, remSel, i);
 	    }
 	}
-#ifndef GS_WITH_GC
+#if GS_WITH_GC == 0
       if (rem != 0)
 	{
 	  RELEASE(anObject);
