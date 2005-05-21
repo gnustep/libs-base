@@ -1,3 +1,8 @@
+2005-05-20  Matt Rice  <ratmice@yahoo.com>
+
+	* Source/NSArray.m (NSArray -removeObject:): Fix macro conditional 
+	so we release the object.
+
 2005-05-15 19:57 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSPropertyList.m: Changes to include limits.h rather
