@@ -1,3 +1,7 @@
+2005-05-21  Adam Fedor  <fedor@gnu.org>
+
+	* Update FSF Address.
+
 2005-05-20  Matt Rice  <ratmice@yahoo.com>
 
 	* Source/NSArray.m (NSArray -removeObject:): Fix macro conditional 
