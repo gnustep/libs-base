@@ -36,6 +36,8 @@
    $Date$ $Revision$
 */
 
+#define _FILE_OFFSET_BITS 64
+
 #if defined(__MINGW32__)
 #define UNICODE
 #define _UNICODE

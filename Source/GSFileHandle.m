@@ -21,6 +21,7 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
    */
 
+#define	_FILE_OFFSET_BITS 64
 
 #include "config.h"
 
@@ -1443,8 +1444,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (NSData*) readDataOfLength: (unsigned)len
 {
-  NSMutableData*	d;
-  int			got;
+  NSMutableData	*d;
+  int		got;
 
   [self checkRead];
   if (isNonBlocking == YES)
