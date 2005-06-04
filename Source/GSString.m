@@ -948,8 +948,9 @@ cString_c(GSStr self, NSStringEncoding enc)
        * 8-bit character strings ... we must convert from internal format to
        * unicode and then to the external C string encoding.
        */
-      if (GSToUnicode(&r, &l, self->_contents.c, self->_count, intEnc,
-	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+      if (GSToUnicode((unichar**)&r, &l, self->_contents.c, self->_count,
+	intEnc, NSDefaultMallocZone(),
+	GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't convert to Unicode string."];
