@@ -11,6 +11,7 @@
 	* Source/NSProcessInfo.m: ditto
 	* Source/NSString.m: ditto
 	* Source/NSTask.m: ditto
+	* Source/win32-load.h: ditto
 	Merge in simplifications from the win32 path handling branch
 	and all changes/fixes since.
 
