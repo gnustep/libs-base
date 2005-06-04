@@ -202,8 +202,6 @@
 
 #define	_NUL		L'\0'
 
-#define	OS2LOCAL(M,P)	(const _CHAR*)[M fileSystemRepresentationWithPath: P]
-
 #else
 
 #define	_CHMOD(A,B)	chmod(A,B)
@@ -223,10 +221,9 @@
 
 #define	_NUL		'\0'
 
-#define	OS2LOCAL(M,P)	[M fileSystemRepresentationWithPath: P]
-
 #endif
 
+#define	_CCP		const _CHAR*
 
 
 
@@ -308,6 +305,7 @@
 // Getting the default manager
 
 static NSFileManager* defaultManager = nil;
+static NSStringEncoding	defaultEncoding;
 
 /**
  * Returns a shared default file manager which may be used throughout an
@@ -337,6 +335,11 @@ static NSFileManager* defaultManager = nil;
   return defaultManager;
 }
 
++ (void) initialize
+{
+  defaultEncoding = [NSString defaultCStringEncoding];
+}
+
 - (void) dealloc
 {
   TEST_RELEASE(_lastError);
@@ -352,7 +355,7 @@ static NSFileManager* defaultManager = nil;
  */
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
-  const _CHAR	*lpath = OS2LOCAL(self, path);
+  const _CHAR	*lpath = [self fileSystemRepresentationWithPath: path];
 #if defined(__MINGW__)
   return SetCurrentDirectory(lpath) == TRUE ? YES : NO;
 #else
@@ -378,7 +381,7 @@ static NSFileManager* defaultManager = nil;
     {
       return YES;
     }
-  lpath = OS2LOCAL(defaultManager, path);
+  lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef __MINGW__
   num = [attributes fileOwnerAccountID];
@@ -399,8 +402,9 @@ static NSFileManager* defaultManager = nil;
 	{
 	  BOOL	ok = NO;
 #ifdef HAVE_PWD_H
-	  struct passwd *pw = getpwnam([str cString]);
+	  struct passwd *pw;
 
+	  pw = getpwnam([str cStringUsingEncoding: defaultEncoding]);
 	  if (pw != 0)
 	    {
 	      ok = (chown(lpath, pw->pw_uid, -1) == 0);
@@ -434,8 +438,9 @@ static NSFileManager* defaultManager = nil;
     {
       BOOL	ok = NO;
 #ifdef HAVE_GRP_H
-      struct group *gp = getgrnam([str cString]);
-
+      struct group *gp;
+      
+      gp = getgrnam([str cStringUsingEncoding: defaultEncoding]);
       if (gp)
 	{
 	  if (chown(lpath, -1, gp->gr_gid) == 0)
@@ -660,7 +665,7 @@ static NSFileManager* defaultManager = nil;
 	{
 	  const _CHAR *lpath;
 
-	  lpath = OS2LOCAL(self, completePath);
+	  lpath = [self fileSystemRepresentationWithPath: completePath];
 	  if (CreateDirectory(lpath, 0) == FALSE)
 	    {
 	      return NO;
@@ -782,7 +787,7 @@ static NSFileManager* defaultManager = nil;
 	       attributes: (NSDictionary*)attributes
 {
 #if	defined(__MINGW__)
-  const _CHAR *lpath = OS2LOCAL(self, path);
+  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
   HANDLE fh;
   DWORD	written = 0;
   DWORD	len = [contents length];
@@ -1019,8 +1024,8 @@ static NSFileManager* defaultManager = nil;
   const _CHAR	*sourcePath;
   const _CHAR	*destPath;
 
-  sourcePath = OS2LOCAL(self, source);
-  destPath = OS2LOCAL(self, destination);
+  sourcePath = [self fileSystemRepresentationWithPath: source];
+  destPath = [self fileSystemRepresentationWithPath: destination];
 
   if ([self fileExistsAtPath: destination] == YES)
     {
@@ -1171,8 +1176,8 @@ static NSFileManager* defaultManager = nil;
     }
   else
     {
-      if (link([source fileSystemRepresentation],
-	[destination fileSystemRepresentation]) < 0)
+      if (link([self fileSystemRepresentationWithPath: source],
+	[self fileSystemRepresentationWithPath: destination]) < 0)
 	{
 	  if ([self _proceedAccordingToHandler: handler
 				      forError: @"cannot create hard link"
@@ -1211,7 +1216,7 @@ static NSFileManager* defaultManager = nil;
 
   [self _sendToHandler: handler willProcessPath: path];
 
-  lpath = OS2LOCAL(self, path);
+  lpath = [self fileSystemRepresentationWithPath: path];
   if (lpath == 0 || *lpath == 0)
     {
       return NO;
@@ -1286,7 +1291,7 @@ static NSFileManager* defaultManager = nil;
 	    }
 	}
 
-      if (_RMDIR(OS2LOCAL(self, path)) < 0)
+      if (_RMDIR([self fileSystemRepresentationWithPath: path]) < 0)
 	{
 	  return [self _proceedAccordingToHandler: handler
 	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
@@ -1315,7 +1320,7 @@ static NSFileManager* defaultManager = nil;
  */
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory
 {
-  const _CHAR *lpath = OS2LOCAL(self, path);
+  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
 
   if (isDirectory != 0)
     {
@@ -1374,7 +1379,7 @@ static NSFileManager* defaultManager = nil;
  */
 - (BOOL) isReadableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = OS2LOCAL(self, path);
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1410,7 +1415,7 @@ static NSFileManager* defaultManager = nil;
  */
 - (BOOL) isWritableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = OS2LOCAL(self, path);
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1451,7 +1456,7 @@ static NSFileManager* defaultManager = nil;
  */
 - (BOOL) isExecutableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = OS2LOCAL(self, path);
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1497,7 +1502,7 @@ static NSFileManager* defaultManager = nil;
  */
 - (BOOL) isDeletableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = OS2LOCAL(self, path);
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1525,7 +1530,7 @@ static NSFileManager* defaultManager = nil;
 	{
 	  path = @".";
 	}
-      lpath = OS2LOCAL(self, path);
+      lpath = [self fileSystemRepresentationWithPath: path];
 
       if (access(lpath, X_OK | W_OK) == 0)
 	{
@@ -1613,7 +1618,8 @@ static NSFileManager* defaultManager = nil;
 {
   NSDictionary	*d;
 
-  d = [GSAttrDictionary attributesAt: OS2LOCAL(self, path) traverseLink: flag];
+  d = [GSAttrDictionary attributesAt:
+    [self fileSystemRepresentationWithPath: path] traverseLink: flag];
   return d;
 }
 
@@ -1647,7 +1653,7 @@ static NSFileManager* defaultManager = nil;
   };
   DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
   DWORD TotalNumberClusters;
-  const _CHAR *lpath = OS2LOCAL(self, path);
+  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
 
   if (!GetDiskFreeSpace(lpath, &SectorsPerCluster,
     &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
@@ -1884,7 +1890,8 @@ static NSFileManager* defaultManager = nil;
  * This representation could theoretically vary between filesystems.<br />
  * On windows, the filesystem representation is utf-16 and is expected to
  * be used in conjunction with the variants of system calls which work
- * with unicode strings.
+ * with unicode strings.<br />
+ * Raises an exception if the character conversion is not possible.
  */
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
@@ -1893,13 +1900,9 @@ static NSFileManager* defaultManager = nil;
   if (path != nil)
     {
 #ifdef __MINGW__
-      c_path
-	= (const _CHAR*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
+      c_path = (_CCP)[path cStringUsingEncoding: NSUnicodeStringEncoding];
 #else
-      if ([path canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
-	{
-	  c_path = [path cString];
-	}
+      c_path = (_CCP)[path cStringUsingEncoding: defaultEncoding];
 #endif
     }
 
@@ -1909,132 +1912,8 @@ static NSFileManager* defaultManager = nil;
 /** Deprecated */
 - (NSString*) localFromOpenStepPath: (NSString*)path
 {
-  NSString	*newpath = nil;
-#ifdef __MINGW__
-/*
- * If path is in Unix format, transmogrify it so Windows functions
- * can handle it
- */
-  int 		wcount;		// count unichars
-  unichar	*wc_path = 0;
-  int		l;
-
   GSOnceMLog(@"deprecated");
-  path = [path stringByStandardizingPath];
-  wcount = [path length];
-  if (wcount != 0)
-    {
-      l = wcount;
-      wc_path = (unichar*)calloc(wcount+10,sizeof(unichar));
-      [path getCharacters: (unichar *)wc_path];
-
-      if (l >= 2 && wc_path[0] == L'~' && wc_path[1] == L'@')
-	{
-	  // Convert to windows UNC path.
-	  wc_path[0] = L'/';
-	  wc_path[1] = L'/';
-	  newpath = [NSString stringWithCharacters: wc_path length: wcount];
-	}
-      else if (l >= 2 && wc_path[0] == L'~' && iswalpha(wc_path[1])
-	&& (l == 2 || wc_path[2] == L'/'))
-	{
-	  wc_path[0] = wc_path[1];
-	  wc_path[1] = L':';
-	  newpath = [NSString stringWithCharacters: wc_path length: wcount];
-	}
-      else if (l >= 3 && wc_path[0] == L'/' && wc_path[1] == L'/'
-	&& iswalpha(wc_path[2]))
-	{
-	  if (l == 3 || wc_path[3] == L'/')
-	    {
-	      /* Cygwin "//c/" type absolute path */
-	      wc_path[1] = wc_path[2];
-	      wc_path[2] = L':';
-	      newpath = [NSString stringWithCharacters: &wc_path[1]
-						length: wcount-1];
-	    }
-	  else
-	    {
-	      /* Windows absolute UNC path "//name/" */
-	      newpath = path;
-	    }
-	}
-      else if (isalpha(wc_path[0]) && wc_path[1] == L':')
-	{
-	  /* Windows absolute path */
-	  newpath = path;
-	}
-      else if (wc_path[0] == L'/')
-	{
-#ifdef	__CYGWIN__
-	  if (l > 11 && wcsncmp(wc_path, L"/cygdrive/", 10) == 0
-	    && wc_path[11] == L'/')
-	    {
-	      wc_path[9] = wc_path[10];
-	      wc_path[10] = L':';
-	      newpath = [NSString stringWithCharacters: &wc_path[9]
-						length: wcount-9];
-	    }
-	  else
-	    {
-	      NSDictionary	*env;
-	      NSString		*cyghome;
-
-	      env = [[NSProcessInfo processInfo] environment];
-	      cyghome = [env objectForKey: @"CYGWIN_HOME"];
-	      if (cyghome != nil)
-		{
-		  /* FIXME: Find cygwin drive? */
-		  newpath = cyghome;
-		  newpath = [newpath stringByAppendingPathComponent: path];
-		}
-	      else
-		{
-		  newpath = path;
-		}
-	    }
-#else
-	  if (l >= 2 && wc_path[0] == L'/' && iswalpha(wc_path[1])
-	    && (l == 2 || wc_path[2] == L'/'))
-	    {
-	      /* Mingw /drive/... format */
-	      wc_path[2] = L':';
-	      newpath = [NSString stringWithCharacters: &wc_path[1]
-						length: wcount-1];
-	    }
-	  else
-	    {
-	      newpath = path;
-	    }
-#endif
-	}
-      else
-	{
-	  newpath = path;
-	}
-      newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
-      if (wc_path)
-	{
-	  free (wc_path);
-	}
-    }
-  else
-    {
-      newpath = path;
-    }
-#else
-  GSOnceMLog(@"deprecated");
-  /*
-   * NB ... Don't standardize path, since that would automatically
-   * follow symbolic links ... and mess up any code wishing to
-   * examine the link itsself.
-   * We just need the path in a form where it can be interpreted by
-   * operating system calls (no '~' abbreviations for user directories).
-   */
-  newpath = [path stringByExpandingTildeInPath];
-#endif
-
-  return (newpath);
+  return path;
 }
 
 /**
@@ -2050,125 +1929,15 @@ static NSFileManager* defaultManager = nil;
 #ifdef __MINGW__
   return [NSString stringWithCharacters: (const unichar*)string length: len/2];
 #else
-  return [NSString stringWithCString: string length: len];
+  return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: string length: len encoding: defaultEncoding]);
 #endif
 }
 
 /** Deprecated */
 - (NSString*) openStepPathFromLocal: (NSString*)localPath
 {
-#ifdef __MINGW__
-  int 		len;		// count unichars
-  unichar	*wc_path = 0;
-
   GSOnceMLog(@"deprecated");
-  len = [localPath length];
-  if (len != 0)
-    {
-      wc_path = (unichar*)calloc(len+10,sizeof(unichar));
-      [localPath getCharacters: (unichar *)wc_path];
-    }
-  if (wc_path)
-    {
-      const unichar	*ptr = wc_path;
-      unichar		buf[len + 20];
-      unsigned		i;
-      unsigned		j;
-
-      /*
-       * If path is in Windows format, transmogrify it so Unix functions
-       * can handle it
-       */
-      if (len == 0)
-	{
-	  free(wc_path);
-	  return @"";
-	}
-      if (len >= 2 && ((ptr[1] == L'/' && ptr[0] == L'/')
-	|| (ptr[1] == L'\\' && ptr[0] == L'\\')))
-	{
-	  /*
-	   * Convert '//<servername>/' to '~@<servername>/' sequences.
-	   */
-	  buf[0] = L'~';
-	  buf[1] = L'@';
-	  i = 2;
-	}
-      else if (len >= 2 && ptr[1] == L':' && iswalpha(ptr[0]))
-	{
-	  /*
-	   * Convert '<driveletter>:' to '~<driveletter>/' sequences.
-	   */
-	  buf[0] = L'~';
-	  buf[1] = ptr[0];
-	  buf[2] = L'/';
-	  ptr -= 1;
-	  len++;
-	  i = 3;
-	}
-#ifdef	__CYGWIN__
-      else if (len > 9 && wcsncmp(ptr, L"/cygdrive/", 10) == 0)
-	{
-	  buf[0] = L'~';
-	  ptr += 9;
-	  len -= 9;
-	  i = 1;
-	}
-#else
-      else if (len >= 2 && ptr[0] == L'/' && iswalpha(ptr[1])
-	 && (len == 2 || ptr[2] == L'/'))
-	{
-	  /*
-	   * Convert '/<driveletter>' to '~<driveletter>' sequences.
-	   */
-	  buf[0] = L'~';
-	  i = 1;
-	}
-#endif
-      else
-	{
-	  i = 0;
-	}
-      /*
-       * Convert backslashes to slashes, colaescing adjacent slashes.
-       *  Also elide '/./' sequences, because we can do so efficiently.
-       */
-      j = i;
-      while (i < len)
-	{
-	  if (ptr[i] == L'\\')
-	    {
-	      if (j == 0 || buf[j-1] != L'/')
-		{
-		  if (j > 2 && buf[j-2] == L'/' && buf[j-1] == L'.')
-		    {
-		      j--;
-		    }
-		  else
-		    {
-		      buf[j++] = L'/';
-		    }
-		}
-	    }
-	  else
-	    {
-	      buf[j++] = ptr[i];
-	    }
-	  i++;
-	}
-      buf[j] = _NUL;
-      // NSLog(@"Map '%s' to '%s'", string, buf);
-      free(wc_path);
-      return [NSString stringWithCharacters: buf length: j];
-    }
-  else
-    {
-      return(@"");
-    }
-#else
-  GSOnceMLog(@"deprecated");
-#endif
-
   return localPath;
 }
 
@@ -2262,7 +2031,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 
   _topPath = [[NSString alloc] initWithString: path];
 
-  localPath = OS2LOCAL(_mgr, path);
+  localPath = [_mgr fileSystemRepresentationWithPath: path];
   dir_pointer = _OPENDIR(localPath);
   if (dir_pointer)
     {
@@ -2403,8 +2172,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 #else
 	      if (!_flags.isFollowing)
 		{
-		  if (lstat([_currentFilePath fileSystemRepresentation],
-		    &statbuf) != 0)
+		  if (lstat([_mgr fileSystemRepresentationWithPath:
+		    _currentFilePath], &statbuf) != 0)
 		    {
 		      break;
 		    }
@@ -2418,7 +2187,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 #endif
 #endif
 		{
-		  if (_STAT(OS2LOCAL(_mgr, _currentFilePath), &statbuf) != 0)
+		  if (_STAT([_mgr fileSystemRepresentationWithPath:
+		    _currentFilePath], &statbuf) != 0)
 		    {
 		      break;
 		    }
@@ -2428,7 +2198,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 		  _DIR*  dir_pointer;
 
 		  dir_pointer
-		    = _OPENDIR(OS2LOCAL(_mgr, _currentFilePath));
+		    = _OPENDIR([_mgr fileSystemRepresentationWithPath:
+		    _currentFilePath]);
 		  if (dir_pointer)
 		    {
 		      GSIArrayItem item;
@@ -2644,7 +2415,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 	   handler: (id)handler
 {
 #if defined(__MINGW__)
-  if (CopyFile(OS2LOCAL(self, source), OS2LOCAL(self, destination), NO))
+  if (CopyFile([self fileSystemRepresentationWithPath: source],
+    [self fileSystemRepresentationWithPath: destination], NO))
     {
       return YES;
     }
@@ -2900,8 +2672,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 	}
       else
 	{
-	  if (link([sourceFile fileSystemRepresentation],
-	    [destinationFile fileSystemRepresentation]) < 0)
+	  if (link([self fileSystemRepresentationWithPath: sourceFile],
+	    [self fileSystemRepresentationWithPath: destinationFile]) < 0)
 	    {
               if ([self _proceedAccordingToHandler: handler
 		forError: @"cannot create hard link"
