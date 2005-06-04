@@ -1,10 +1,12 @@
 2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
 
-	GSFileHandle.m:
-	NSFileManager.m:
+	* GSFileHandle.m:
+	* NSFileManager.m:
 	Define _FILE_OFFSET_BITS to be 64 so that, on unix-like systems which
 	support large file handling (>2GB) the large file handling routines
 	are used.
+	* NSTask.m: Try to deal with pipes properly when launching under
+	windows.
 
 2005-05-21  Adam Fedor  <fedor@gnu.org>
 
