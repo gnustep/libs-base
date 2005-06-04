@@ -299,7 +299,7 @@ enum {
 - (const char*) cString;
 #ifndef	STRICT_OPENSTEP
 
-#if OS_API_VERSION(1004,9999) && GS_API_VERSION(0102,9999)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding;
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength

@@ -2368,12 +2368,12 @@ static NSString		*mainFont = nil;
 	}
       else if (add < 10)
 	{
-	  [buf appendString: @"OPENSTEP"];
+	  [buf appendString: @"OPENSTEP "];
 	  [buf appendString: ovadd];
 	}
       else
 	{
-	  [buf appendString: @"MacOS-X"];
+	  [buf appendString: @"MacOS-X "];
 	  [buf appendString: ovadd];
 	}
       if (dep > add)
@@ -2381,12 +2381,12 @@ static NSString		*mainFont = nil;
 	  [buf appendString: @" deprecated at "];
 	  if (add < 10)
 	    {
-	      [buf appendString: @"OPENSTEP"];
+	      [buf appendString: @"OPENSTEP "];
 	      [buf appendString: ovdep];
 	    }
 	  else
 	    {
-	      [buf appendString: @"MacOS-X"];
+	      [buf appendString: @"MacOS-X "];
 	      [buf appendString: ovdep];
 	    }
 	}
@@ -2395,12 +2395,12 @@ static NSString		*mainFont = nil;
 	  [buf appendString: @" removed at "];
 	  if (add < 10)
 	    {
-	      [buf appendString: @"OPENSTEP"];
+	      [buf appendString: @"OPENSTEP "];
 	      [buf appendString: ovrem];
 	    }
 	  else
 	    {
-	      [buf appendString: @"MacOS-X"];
+	      [buf appendString: @"MacOS-X "];
 	      [buf appendString: ovrem];
 	    }
 	}
