@@ -1064,17 +1064,19 @@ quotedFromString(NSString *aString)
 
 - (void) launch
 {
-  DWORD		tid;
-  STARTUPINFOW	start_info;
-  NSString      *lpath;
-  NSString      *arg;
-  NSEnumerator  *arg_enum;
-  NSMutableString *args;
-  wchar_t	*w_args;
-  int		result;
-  const wchar_t	*wexecutable;
-  LPVOID	envp = 0;
-  NSDictionary	*env;
+  DWORD			tid;
+  STARTUPINFOW		start_info;
+  NSString      	*lpath;
+  NSString      	*arg;
+  NSEnumerator  	*arg_enum;
+  NSMutableString	*args;
+  wchar_t		*w_args;
+  int			result;
+  const wchar_t		*wexecutable;
+  LPVOID		envp = 0;
+  NSDictionary		*env;
+  NSMutableArray	*toClose;
+  NSFileHandle		*hdl;
 
   if (_hasLaunched)
     {
@@ -1143,9 +1145,37 @@ quotedFromString(NSString *aString)
   memset (&start_info, 0, sizeof(start_info));
   start_info.cb = sizeof(start_info);
   start_info.dwFlags |= STARTF_USESTDHANDLES;
-  start_info.hStdInput = [[self standardInput] nativeHandle];
-  start_info.hStdOutput = [[self standardOutput] nativeHandle];
-  start_info.hStdError = [[self standardError] nativeHandle];
+
+  toClose = [NSMutableArray arrayWithCapacity: 3];
+  hdl = [self standardInput];
+  if ([hdl isKindOfClass: [NSPipe class]])
+    {
+      hdl = [hdl fileHandleForReading];
+      [toClose addObject: hdl];
+    }
+  start_info.hStdInput = [hdl nativeHandle];
+
+  hdl = [self standardOutput];
+  if ([hdl isKindOfClass: [NSPipe class]])
+    {
+      hdl = [hdl fileHandleForWriting];
+      [toClose addObject: hdl];
+    }
+  start_info.hStdOutput = [hdl nativeHandle];
+
+  hdl = [self standardError];
+  if ([hdl isKindOfClass: [NSPipe class]])
+    {
+      hdl = [hdl fileHandleForWriting];
+      /*
+       * If we have the same pipe twice we don't want to close it twice
+       */
+      if ([toClose indexOfObjectIdenticalTo: hdl] == NSNotFound)
+	{
+	  [toClose addObject: hdl];
+	}
+    }
+  start_info.hStdError = [hdl nativeHandle];
 
   result = CreateProcessW(wexecutable,
     w_args,
@@ -1175,6 +1205,16 @@ quotedFromString(NSString *aString)
    * Create thread to watch for termination of process.
    */
   wThread = CreateThread(NULL, 0, _threadFunction, (LPVOID)self, 0, &tid);
+
+  /*
+   *	Close the ends of any pipes used by the child.
+   */
+  while ([toClose count] > 0)
+    {
+      hdl = [toClose objectAtIndex: 0];
+      [hdl closeFile];
+      [toClose removeObjectAtIndex: 0];
+    }
 }
 
 - (void) _collectChild
@@ -1250,22 +1290,22 @@ GSCheckTasks()
 - (void) launch
 {
   NSMutableArray	*toClose;
-  NSString      *lpath;
-  int		pid;
-  const char	*executable;
-  const char	*path;
-  int		idesc;
-  int		odesc;
-  int		edesc;
-  NSDictionary	*e = [self environment];
-  NSArray	*k = [e allKeys];
-  NSArray	*a = [self arguments];
-  int		ec = [e count];
-  int		ac = [a count];
-  const char	*args[ac+2];
-  const char	*envl[ec+1];
-  id		hdl;
-  int		i;
+  NSString      	*lpath;
+  int			pid;
+  const char		*executable;
+  const char		*path;
+  int			idesc;
+  int			odesc;
+  int			edesc;
+  NSDictionary		*e = [self environment];
+  NSArray		*k = [e allKeys];
+  NSArray		*a = [self arguments];
+  int			ec = [e count];
+  int			ac = [a count];
+  const char		*args[ac+2];
+  const char		*envl[ec+1];
+  id			hdl;
+  int			i;
 
   if (_hasLaunched)
     {
