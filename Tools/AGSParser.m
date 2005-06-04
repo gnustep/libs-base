@@ -2976,10 +2976,8 @@ fail:
 	      ver = [self parseVersion];
 	      if ([ver length] == 0)
 		{
-		  ver = @"0";
+		  ver = @"0.0.0";
 		}
-	      i = [ver intValue];
-	      ver = [NSString stringWithFormat: @"%d.%d", i/100, i%100];
 	      if (openstep)
 		{
 		  [top setObject: ver forKey: @"ovadd"];
@@ -2997,12 +2995,10 @@ fail:
 	      ver = [self parseVersion];
 	      if ([ver length] == 0)
 		{
-		  ver = @"9999";
+		  ver = @"99.99.99";
 		}
-	      i = [ver intValue];
-	      if (i != 9999 && [ver isEqualToString: @"NEVER"] == NO)
+	      if ([ver isEqualToString: @"99.99.99"] == NO)
 		{
-		  ver = [NSString stringWithFormat: @"%d.%d", i/100, i%100];
 		  if (openstep)
 		    {
 		      [top setObject: ver forKey: @"ovrem"];
@@ -3020,12 +3016,10 @@ fail:
 		  ver = [self parseVersion];
 		  if ([ver length] == 0)
 		    {
-		      ver = @"9999";
+		      ver = @"99.99.99";
 		    }
-		  i = [ver intValue];
-		  if (i != 9999 && [ver isEqualToString: @"NEVER"] == NO)
+		  if ([ver isEqualToString: @"99.99.99"] == NO)
 		    {
-		      ver = [NSString stringWithFormat: @"%d.%d", i/100, i%100];
 		      if (openstep)
 			{
 			  [top setObject: ver forKey: @"ovdep"];
@@ -3343,7 +3337,8 @@ fail:
 
 - (NSString*) parseVersion
 {
-  unsigned	start;
+  unsigned	i;
+  NSString	*str;
 
   while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
     {
@@ -3355,18 +3350,40 @@ fail:
     }
   if (!isdigit(buffer[pos]))
     {
-      return [self parseIdentifier];
+      str = [self parseIdentifier];
     }
-  start = pos;
-  while (pos < length)
+  else
     {
-      if (!isdigit(buffer[pos]))
+      i = pos;
+      while (pos < length)
 	{
-	  break;
+	  if (!isdigit(buffer[pos]))
+	    {
+	      break;
+	    }
+	  pos++;
 	}
-      pos++;
+      str = [NSString stringWithCharacters: &buffer[i] length: pos - i];
     }
-  return [NSString stringWithCharacters: &buffer[start] length: pos - start];
+  if ([str isEqualToString: @"GS_API_LATEST"] == YES)
+    {
+      str = @"999999";
+    }
+  else if ([str isEqualToString: @"GS_API_OSSPEC"] == YES)
+    {
+      str = @"000000";
+    }
+  else if ([str isEqualToString: @"GS_API_OPENSTEP"] == YES)
+    {
+      str = @"000400";
+    }
+  else if ([str isEqualToString: @"GS_API_MACOSX"] == YES)
+    {
+      str = @"100000";
+    }
+  i = [str intValue];
+  return [NSString stringWithFormat: @"%d.%d.%d",
+    i/10000, (i/100)%100, i%100];
 }
 
 - (void) reset

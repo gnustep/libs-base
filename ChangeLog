@@ -1,5 +1,13 @@
 2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSObject.h: Add subminor number to versioning
+	macros as apple sometimes add/remove things at subminor versions.
+	Add some constants for versions.
+	* Tools/AGSParser.m: Support subminor version info
+	* Tools/AGSHatm.m: ditto
+
+2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSFileManager.h: hide private method in enumerator,
 	swap one ivar for a new one keeping size the same.
 	* Headers/Foundation/NSString.h: Mark some deprecated methods.
