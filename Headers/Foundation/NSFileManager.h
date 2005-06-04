@@ -299,10 +299,11 @@
 
 @interface NSDirectoryEnumerator : NSEnumerator
 {
+@private
   void *_stack; /* GSIArray */
   NSString *_topPath;
   NSString *_currentFilePath;
-  NSString *(*_openStepPathFromLocalImp)(id, SEL, id);
+  NSFileManager *_mgr;
   struct 
   {
     BOOL isRecursive: 1;
@@ -310,12 +311,6 @@
     BOOL justContents: 1;
   } _flags;
 }
-
-- (id) initWithDirectoryPath: (NSString*)path 
-   recurseIntoSubdirectories: (BOOL)recurse
-              followSymlinks: (BOOL)follow
-                justContents: (BOOL)justContents;
-
 - (NSDictionary*) directoryAttributes;
 - (NSDictionary*) fileAttributes;
 - (void) skipDescendents;

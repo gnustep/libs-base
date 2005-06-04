@@ -171,8 +171,13 @@
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSFileManager.h"
 
-
-
+@interface NSDirectoryEnumerator (Local)
+- (id) initWithDirectoryPath: (NSString*)path 
+   recurseIntoSubdirectories: (BOOL)recurse
+              followSymlinks: (BOOL)follow
+                justContents: (BOOL)justContents
+			 for: (NSFileManager*)mgr;
+@end
 
 /*
  * Macros to handle unichar filesystem support.
@@ -197,7 +202,7 @@
 
 #define	_NUL		L'\0'
 
-#define	OS2LOCAL(M,P) 	[[M localFromOpenStepPath: P] unicharString]
+#define	OS2LOCAL(M,P)	(const _CHAR*)[M fileSystemRepresentationWithPath: P]
 
 #else
 
@@ -880,13 +885,15 @@ static NSFileManager* defaultManager = nil;
 	    {
 	      NSString	*path;
 
+	      // Windows may count the trailing nul ... we don't want to.
+	      if (len > 0 && lpath[len] == 0) len--;
 #ifdef	UNICODE
 	      path = [NSString stringWithCharacters: lpath length: len];
 #else
 	      path = [NSString stringWithCString: lpath length: len];
 #endif
 
-	      currentDir = [self openStepPathFromLocal: path];
+	      currentDir = path;
 	    }
 	  free(lpath);
 	}
@@ -1215,6 +1222,7 @@ static NSFileManager* defaultManager = nil;
       DWORD res;
 
       res = GetFileAttributes(lpath);
+
       if (res == WIN32ERR)
 	{
 	  return NO;
@@ -1324,6 +1332,7 @@ static NSFileManager* defaultManager = nil;
       DWORD res;
 
       res = GetFileAttributes(lpath);
+
       if (res == WIN32ERR)
 	{
 	  return NO;
@@ -1374,7 +1383,9 @@ static NSFileManager* defaultManager = nil;
 
 #if defined(__MINGW__)
     {
-      DWORD res = GetFileAttributes(lpath);
+      DWORD res;
+
+      res = GetFileAttributes(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1408,7 +1419,9 @@ static NSFileManager* defaultManager = nil;
 
 #if defined(__MINGW__)
     {
-      DWORD res= GetFileAttributes(lpath);
+      DWORD res;
+
+      res = GetFileAttributes(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1447,7 +1460,9 @@ static NSFileManager* defaultManager = nil;
 
 #if defined(__MINGW__)
     {
-      DWORD res= GetFileAttributes(lpath);
+      DWORD res;
+
+      res = GetFileAttributes(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1490,9 +1505,11 @@ static NSFileManager* defaultManager = nil;
     }
 
 #if defined(__MINGW__)
-    {
       // TODO - handle directories
-      DWORD res= GetFileAttributes(lpath);
+    {
+      DWORD res;
+
+      res = GetFileAttributes(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1594,10 +1611,9 @@ static NSFileManager* defaultManager = nil;
  */
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path traverseLink: (BOOL)flag
 {
-  const _CHAR	*lpath = OS2LOCAL(self, path);
   NSDictionary	*d;
 
-  d = [GSAttrDictionary attributesAt: lpath traverseLink: flag];
+  d = [GSAttrDictionary attributesAt: OS2LOCAL(self, path) traverseLink: flag];
   return d;
 }
 
@@ -1736,9 +1752,10 @@ static NSFileManager* defaultManager = nil;
      the contents non-recursively once, and exit.  NSDirectoryEnumerator
      can perform some optms using this assumption. */
   direnum = [[NSDirectoryEnumerator alloc] initWithDirectoryPath: path
-					   recurseIntoSubdirectories: NO
-					   followSymlinks: NO
-					   justContents: YES];
+				       recurseIntoSubdirectories: NO
+						  followSymlinks: NO
+						    justContents: YES
+							     for: self];
   content = [NSMutableArray arrayWithCapacity: 128];
 
   nxtImp = [direnum methodForSelector: @selector(nextObject)];
@@ -1778,7 +1795,8 @@ static NSFileManager* defaultManager = nil;
 		       initWithDirectoryPath: path
 		       recurseIntoSubdirectories: YES
 		       followSymlinks: NO
-		       justContents: NO]);
+		       justContents: NO
+		       for: self]);
 }
 
 /**
@@ -1800,9 +1818,10 @@ static NSFileManager* defaultManager = nil;
       return nil;
     }
   direnum = [[NSDirectoryEnumerator alloc] initWithDirectoryPath: path
-					   recurseIntoSubdirectories: YES
-					   followSymlinks: NO
-					   justContents: NO];
+				       recurseIntoSubdirectories: YES
+						  followSymlinks: NO
+						    justContents: NO
+							     for: self];
   content = [NSMutableArray arrayWithCapacity: 128];
 
   nxtImp = [direnum methodForSelector: @selector(nextObject)];
@@ -1860,53 +1879,47 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * Convert from OpenStep internal path format (Unix-style) to a string in
+ * Convert from OpenStep internal string format to a string in
  * the local filesystem format, suitable for passing to system functions.<br />
- * Under Unix, this simply standardizes the path and converts to a
- * C string.<br />
- * Under Windoze, this attempts to use local conventions to convert to a
- * windows path.  In GNUstep, the conventional unix syntax '~user/...' can
- * be used to indicate a windoze drive specification by using the drive
- * letter in place of the username, and the syntax '~@server/...' can be used
- * to indicate a file located on the named windoze network server (the
- * '~@' maps to the leading '//' in a windoze UNC path specification.
+ * This representation could theoretically vary between filesystems.<br />
+ * On windows, the filesystem representation is utf-16 and is expected to
+ * be used in conjunction with the variants of system calls which work
+ * with unicode strings.
  */
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
-  NSString	*localPath;
-  const char	*local_c_path = 0;
+  const _CHAR	*c_path = 0;
 
-  localPath = [self localFromOpenStepPath: path];
-  if (localPath
-    && [localPath canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
+  if (path != nil)
     {
-      local_c_path = [localPath cString];
+#ifdef __MINGW__
+      c_path
+	= (const _CHAR*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
+#else
+      if ([path canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
+	{
+	  c_path = [path cString];
+	}
+#endif
     }
-  return (local_c_path);
+
+  return (const char*)c_path;
 }
 
-/**
- * Convert from OpenStep internal path format (Unix-style) to a NSString in
- * the local filesystem format.
- * Under Windoze, this attempts to use local conventions to convert to a
- * windows path.  In GNUstep, the conventional unix syntax '~user/...' can
- * be used to indicate a windoze drive specification by using the drive
- * letter in place of the username, and the syntax '~@server/...' can be used
- * to indicate a file located on the named windoze network server (the
- * '~@' maps to the leading '//' in a windoze UNC path specification.
- */
+/** Deprecated */
 - (NSString*) localFromOpenStepPath: (NSString*)path
 {
   NSString	*newpath = nil;
 #ifdef __MINGW__
 /*
-* If path is in Unix format, transmogrify it so Windows functions
-* can handle it
-*/
+ * If path is in Unix format, transmogrify it so Windows functions
+ * can handle it
+ */
   int 		wcount;		// count unichars
   unichar	*wc_path = 0;
   int		l;
 
+  GSOnceMLog(@"deprecated");
   path = [path stringByStandardizingPath];
   wcount = [path length];
   if (wcount != 0)
@@ -2010,6 +2023,7 @@ static NSFileManager* defaultManager = nil;
       newpath = path;
     }
 #else
+  GSOnceMLog(@"deprecated");
   /*
    * NB ... Don't standardize path, since that would automatically
    * follow symbolic links ... and mess up any code wishing to
@@ -2024,41 +2038,30 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * This method converts from a local system specific filename representation
- * to the internal OpenStep representation (unix-style).  This should be used
- * whenever a filename is read in from the local system.<br />
- * In GNUstep, windoze drive specifiers are encoded in the internal path
- * using the conventuional unix syntax of '~user/...' where the drive letter
- * is used instead of a username.
+ * This method converts from a local filesystem specific name
+ * to an NSString object.  Use it to convert a filename returned by
+ * a systemcall into a value for internal use.<br />
+ * The value of len is the number of bytes of data pointed to by string.<br />
+ * On windows, the filesystem representation is utf-16.
  */
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len
 {
-  NSString *localPath = nil;
-
-  if (string != 0)
-    {
-      localPath = [NSString stringWithCString: string length: len];
-    }
-
-  return([self openStepPathFromLocal: localPath]);
+#ifdef __MINGW__
+  return [NSString stringWithCharacters: (const unichar*)string length: len/2];
+#else
+  return [NSString stringWithCString: string length: len];
+#endif
 }
 
-/**
- * This method converts from a local system specific filename representation
- * to the internal OpenStep representation (unix-style).  This should be used
- * whenever a filename is read in from the local system.<br />
- * In GNUstep, windoze drive specifiers are encoded in the internal path
- * using the conventuional unix syntax of '~user/...' where the drive letter
- * is used instead of a username.
- */
+/** Deprecated */
 - (NSString*) openStepPathFromLocal: (NSString*)localPath
 {
 #ifdef __MINGW__
-
   int 		len;		// count unichars
   unichar	*wc_path = 0;
 
+  GSOnceMLog(@"deprecated");
   len = [localPath length];
   if (len != 0)
     {
@@ -2162,6 +2165,8 @@ static NSFileManager* defaultManager = nil;
     {
       return(@"");
     }
+#else
+  GSOnceMLog(@"deprecated");
 #endif
 
   return localPath;
@@ -2200,8 +2205,6 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 #include "GNUstepBase/GSIArray.h"
 
 
-static SEL ospfl = 0;
-
 /**
  *  <p>This is a subclass of <code>NSEnumerator</code> which provides a full
  *  listing of all the files beneath a directory and its subdirectories.
@@ -2223,9 +2226,6 @@ static SEL ospfl = 0;
 {
   if (self == [NSDirectoryEnumerator class])
     {
-      /* Initialize the default manager which we access directly */
-      [NSFileManager defaultManager];
-      ospfl = @selector(openStepPathFromLocal:);
     }
 }
 
@@ -2243,6 +2243,7 @@ static SEL ospfl = 0;
    recurseIntoSubdirectories: (BOOL)recurse
 	      followSymlinks: (BOOL)follow
 		justContents: (BOOL)justContents
+			 for: (NSFileManager*)mgr
 {
 //TODO: the justContents flag is currently basically useless and should be
 //      removed
@@ -2251,9 +2252,7 @@ static SEL ospfl = 0;
 
   self = [super init];
 
-  _openStepPathFromLocalImp = (NSString *(*)(id, SEL,id))
-    [defaultManager methodForSelector: ospfl];
-
+  _mgr = RETAIN(mgr);
   _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
   GSIArrayInitWithZoneAndCapacity(_stack, [self zone], 64);
 
@@ -2263,7 +2262,7 @@ static SEL ospfl = 0;
 
   _topPath = [[NSString alloc] initWithString: path];
 
-  localPath = OS2LOCAL(defaultManager, path);
+  localPath = OS2LOCAL(_mgr, path);
   dir_pointer = _OPENDIR(localPath);
   if (dir_pointer)
     {
@@ -2288,6 +2287,7 @@ static SEL ospfl = 0;
   NSZoneFree([self zone], _stack);
   DESTROY(_topPath);
   DESTROY(_currentFilePath);
+  DESTROY(_mgr);
   [super dealloc];
 }
 
@@ -2299,8 +2299,8 @@ static SEL ospfl = 0;
  */
 - (NSDictionary*) directoryAttributes
 {
-  return [defaultManager fileAttributesAtPath: _topPath
-				 traverseLink: _flags.isFollowing];
+  return [_mgr fileAttributesAtPath: _topPath
+		       traverseLink: _flags.isFollowing];
 }
 
 /**
@@ -2311,8 +2311,8 @@ static SEL ospfl = 0;
  */
 - (NSDictionary*) fileAttributes
 {
-  return [defaultManager fileAttributesAtPath: _currentFilePath
-				 traverseLink: _flags.isFollowing];
+  return [_mgr fileAttributesAtPath: _currentFilePath
+		       traverseLink: _flags.isFollowing];
 }
 
 /**
@@ -2370,9 +2370,9 @@ static SEL ospfl = 0;
 	      continue;
 	    }
 	  /* Name of file to return  */
-	  returnFileName = _openStepPathFromLocalImp(defaultManager, ospfl,
-	    [NSString stringWithCharacters: dirbuf->d_name
-				    length: wcslen(dirbuf->d_name)]);
+	  returnFileName = [_mgr
+	    stringWithFileSystemRepresentation: (const char*)dirbuf->d_name
+	    length: 2*wcslen(dirbuf->d_name)];
 #else
 	  /* Skip "." and ".." directory entries */
 	  if (strcmp(dirbuf->d_name, ".") == 0
@@ -2381,8 +2381,9 @@ static SEL ospfl = 0;
 	      continue;
 	    }
 	  /* Name of file to return  */
-	  returnFileName = _openStepPathFromLocalImp(defaultManager, ospfl,
-	    [NSString stringWithCString: dirbuf->d_name]);
+	  returnFileName = [_mgr
+	    stringWithFileSystemRepresentation: dirbuf->d_name
+	    length: strlen(dirbuf->d_name)];
 #endif
 	  returnFileName = [dir.path stringByAppendingPathComponent:
 	    returnFileName];
@@ -2417,8 +2418,7 @@ static SEL ospfl = 0;
 #endif
 #endif
 		{
-		  if (_STAT(OS2LOCAL(defaultManager, _currentFilePath),
-		    &statbuf) != 0)
+		  if (_STAT(OS2LOCAL(_mgr, _currentFilePath), &statbuf) != 0)
 		    {
 		      break;
 		    }
@@ -2428,7 +2428,7 @@ static SEL ospfl = 0;
 		  _DIR*  dir_pointer;
 
 		  dir_pointer
-		    = _OPENDIR(OS2LOCAL(defaultManager, _currentFilePath));
+		    = _OPENDIR(OS2LOCAL(_mgr, _currentFilePath));
 		  if (dir_pointer)
 		    {
 		      GSIArrayItem item;

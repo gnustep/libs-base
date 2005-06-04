@@ -1002,7 +1002,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initForReadingAtPath: (NSString*)path
 {
 #if defined(__MINGW__)
-  int	d = _wopen([[path localFromOpenStepPath] unicharString], O_RDONLY|O_BINARY);
+  int	d = _wopen(
+    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    O_RDONLY|O_BINARY);
 #else
   int	d = open([path fileSystemRepresentation], O_RDONLY|O_BINARY);
 #endif
@@ -1028,7 +1030,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initForWritingAtPath: (NSString*)path
 {
 #if defined(__MINGW__)
-  int	d = _wopen([[path localFromOpenStepPath] unicharString], O_WRONLY|O_BINARY);
+  int	d = _wopen(
+    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    O_WRONLY|O_BINARY);
 #else
   int	d = open([path fileSystemRepresentation], O_WRONLY|O_BINARY);
 #endif
@@ -1054,7 +1058,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initForUpdatingAtPath: (NSString*)path
 {
 #if defined(__MINGW__)
-  int	d = _wopen([[path localFromOpenStepPath] unicharString], O_RDWR|O_BINARY);
+  int	d = _wopen(
+    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    O_RDWR|O_BINARY);
 #else
   int	d = open([path fileSystemRepresentation], O_RDWR|O_BINARY);
 #endif

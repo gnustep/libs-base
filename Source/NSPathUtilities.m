@@ -218,32 +218,14 @@ static void ShutdownPathUtilities(void);
 static inline NSString*
 internalizePathCString(const char *path)
 {
-  unsigned int  len;
-
-  if (path == 0)
-    {
-      return nil;
-    }
-
-  len = strlen(path);
-  return [MGR() stringWithFileSystemRepresentation: path length: len];
+  return [NSString stringWithCString: path];
 }
 
 /* make sure that the path 's' is in internal format (unix-style) */
 static inline NSString*
 internalizePath(NSString *s)
 {
-  const char    *ptr;
-  unsigned int  len;
-
-  if (s == nil)
-    {
-      return nil;
-    }
-
-  ptr = [s cString];
-  len = strlen(ptr);
-  return [MGR() stringWithFileSystemRepresentation: ptr length: len];
+  return s;
 }
 
 /* Convenience MACRO to ease legibility and coding */

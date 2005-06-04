@@ -1084,8 +1084,7 @@ quotedFromString(NSString *aString)
     }
 
   lpath = [self _fullLaunchPath];
-  lpath = [lpath localFromOpenStepPath];
-  wexecutable = [lpath unicharString];
+  wexecutable = (const unichar*)[lpath fileSystemRepresentation];
 
   args = [[NSMutableString alloc] initWithString: quotedFromString(lpath)];
   arg_enum = [[self arguments] objectEnumerator];
@@ -1150,7 +1149,7 @@ quotedFromString(NSString *aString)
   hdl = [self standardInput];
   if ([hdl isKindOfClass: [NSPipe class]])
     {
-      hdl = [hdl fileHandleForReading];
+      hdl = [(NSPipe*)hdl fileHandleForReading];
       [toClose addObject: hdl];
     }
   start_info.hStdInput = [hdl nativeHandle];
@@ -1158,7 +1157,7 @@ quotedFromString(NSString *aString)
   hdl = [self standardOutput];
   if ([hdl isKindOfClass: [NSPipe class]])
     {
-      hdl = [hdl fileHandleForWriting];
+      hdl = [(NSPipe*)hdl fileHandleForWriting];
       [toClose addObject: hdl];
     }
   start_info.hStdOutput = [hdl nativeHandle];
@@ -1166,7 +1165,7 @@ quotedFromString(NSString *aString)
   hdl = [self standardError];
   if ([hdl isKindOfClass: [NSPipe class]])
     {
-      hdl = [hdl fileHandleForWriting];
+      hdl = [(NSPipe*)hdl fileHandleForWriting];
       /*
        * If we have the same pipe twice we don't want to close it twice
        */
@@ -1184,7 +1183,7 @@ quotedFromString(NSString *aString)
     1,         			/* inherit handles */
     CREATE_UNICODE_ENVIRONMENT,	/* creation flags */
     envp,			/* env block */
-    [[[self currentDirectoryPath] localFromOpenStepPath] unicharString],
+    (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,
     &procInfo);
   NSZoneFree(NSDefaultMallocZone(), w_args);
@@ -1346,7 +1345,7 @@ GSCheckTasks()
   hdl = [self standardInput];
   if ([hdl isKindOfClass: [NSPipe class]])
     {
-      hdl = [hdl fileHandleForReading];
+      hdl = [(NSPipe*)hdl fileHandleForReading];
       [toClose addObject: hdl];
     }
   idesc = [hdl fileDescriptor];
@@ -1354,7 +1353,7 @@ GSCheckTasks()
   hdl = [self standardOutput];
   if ([hdl isKindOfClass: [NSPipe class]])
     {
-      hdl = [hdl fileHandleForWriting];
+      hdl = [(NSPipe*)hdl fileHandleForWriting];
       [toClose addObject: hdl];
     }
   odesc = [hdl fileDescriptor];
@@ -1362,7 +1361,7 @@ GSCheckTasks()
   hdl = [self standardError];
   if ([hdl isKindOfClass: [NSPipe class]])
     {
-      hdl = [hdl fileHandleForWriting];
+      hdl = [(NSPipe*)hdl fileHandleForWriting];
       /*
        * If we have the same pipe twice we don't want to close it twice
        */
