@@ -33,7 +33,7 @@ __objc_dynamic_init(const char* exec_path)
 static dl_handle_t
 __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 {
-    return LoadLibraryEx(module, 0, 0);
+    return LoadLibraryExW((const unichar*)module, 0, 0);
 }
 
 /* Return the address of a symbol given by the name 'symbol' from the module
