@@ -1,5 +1,21 @@
 2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSFileManager.h: hide private method in enumerator,
+	swap one ivar for a new one keeping size the same.
+	* Headers/Foundation/NSString.h: Mark some deprecated methods.
+	* Source/GSFileHandle.m: Merge in win32 simplifications
+	* Source/NSBundle.m: ditto
+	* Source/NSData.m: ditto
+	* Source/NSFileManager.m: ditto
+	* Source/NSPathUtilities.m: ditto
+	* Source/NSProcessInfo.m: ditto
+	* Source/NSString.m: ditto
+	* Source/NSTask.m: ditto
+	Merge in simplifications from the win32 path handling branch
+	and all changes/fixes since.
+
+2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFileHandle.m:
 	* Source/NSFileManager.m:
 	Define _FILE_OFFSET_BITS to be 64 so that, on unix-like systems which

@@ -2795,6 +2795,8 @@ handle_printf_atsign (FILE *stream,
   NSMutableData	*data;
   unichar	*uniStr;
 
+  GSOnceMLog(@"deprecated ... use cStringUsingEncoding:");
+
   data = [NSMutableData dataWithLength: ([self length] + 1) * sizeof(unichar)];
   uniStr = (unichar*)[data mutableBytes];
   if (uniStr != 0)
@@ -2830,11 +2832,13 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Returns a pointer to a null terminated string of 8-bit characters in the
+ * Returns a pointer to a null terminated string of characters in the
  * specified encoding.<br />
+ * NB. under GNUstep you can used this to obtain a nul terminated utf-16
+ * string (sixteen bit characters) as well as eight bit strings.<br />
  * The memory pointed to is not owned by the caller, so the
  * caller must copy its contents to keep it.<br />
- * Raises an * <code>NSCharacterConversionException</code> if loss of
+ * Raises an <code>NSCharacterConversionException</code> if loss of
  * information would occur during conversion.
  */
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding
@@ -3463,6 +3467,8 @@ static NSFileManager *fm = nil;
  */
 - (NSString*) localFromOpenStepPath
 {
+  GSOnceMLog(@"deprecated");
+
   if (fm == nil)
     {
       fm = RETAIN([NSFileManager defaultManager]);
@@ -3471,13 +3477,10 @@ static NSFileManager *fm = nil;
   return [fm localFromOpenStepPath: self];
 }	
 
-/**
- * Converts this string, which is assumed to be a path in the convention
- * for the host operating system to a string path expressed
- * in Unix notation ('/' is file separator, '.' is extension separator).
- */
 - (NSString*) openStepPathFromLocal
 {
+  GSOnceMLog(@"deprecated");
+
   if (fm == nil)
     {
       fm = RETAIN([NSFileManager defaultManager]);

@@ -188,6 +188,7 @@ void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
   CREATE_AUTORELEASE_POOL(arp);
+  NSString	*arg0 = nil;
   int i;
 
   if (_gnu_arg_zero != 0)
@@ -199,28 +200,42 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     {
       _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
       strcpy(_gnu_arg_zero, argv[0]);
+      arg0 = [[NSString alloc] initWithCString: _gnu_arg_zero];
     }
   else
     {
 #ifdef __MINGW__
-      char	*buffer;
+      unichar	*buffer;
       int	buffer_size = 0;
       int	needed_size = 0;
+      const char	*tmp;
 
       while (needed_size == buffer_size)
 	{
           buffer_size = buffer_size + 256;
-          buffer = (char*)malloc(buffer_size);
-          needed_size = GetModuleFileNameA(NULL, buffer, buffer_size);
+          buffer = (unichar*)malloc(buffer_size * sizeof(unichar));
+          needed_size = GetModuleFileNameW(NULL, buffer, buffer_size);
           if (needed_size < buffer_size)
 	    {
-              _gnu_arg_zero = buffer;
+	      unsigned	i;
+
+	      for (i = 0; i < needed_size; i++)
+		{
+		  if (buffer[i] == 0)
+		    {
+		      break;
+		    }
+		}
+	      arg0 = [[NSString alloc] initWithCharacters: buffer length: i];
 	    }
           else
 	    {
               free(buffer);
 	    }
 	}
+      tmp = [arg0 UTF8String];
+      _gnu_arg_zero = (char*)malloc(strlen(tmp) + 1);
+      strcpy(_gnu_arg_zero, tmp);
 #else
       fprintf(stderr, "Error: for some reason, argv not properly set up "
 	      "during GNUstep base initialization\n");
@@ -230,8 +245,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
   /* Getting the process name */
   IF_NO_GC(RELEASE(_gnu_processName));
-  _gnu_processName
-    = [[NSString stringWithCString: _gnu_arg_zero] lastPathComponent];
+  _gnu_processName = [arg0 lastPathComponent];
   IF_NO_GC(RETAIN(_gnu_processName));
 
 
@@ -245,8 +259,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     mySet = [NSMutableSet new];
 
     /* Copy the zero'th argument to the argument list */
-    str = [NSString stringWithCString: _gnu_arg_zero];
-    obj_argv[0] = str;
+    obj_argv[0] = arg0;
 
     for (i = 1; i < argc; i++)
       {
@@ -262,6 +275,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
     IF_NO_GC(RELEASE(_debug_set));
     _debug_set = mySet;
+    RELEASE(arg0);
   }
 	
   /* Copy the evironment list */
