@@ -929,7 +929,7 @@ cString_c(GSStr self, NSStringEncoding enc)
     {
       return "\0";
     }
-  if (enc == intEnc)
+  else if (enc == intEnc)
     {
       r = (unsigned char*)GSAutoreleasedBuffer(self->_count+1);
 
@@ -938,6 +938,22 @@ cString_c(GSStr self, NSStringEncoding enc)
 	  memcpy(r, self->_contents.c, self->_count);
 	}
       r[self->_count] = '\0';
+    }
+  else if (enc == NSUnicodeStringEncoding)
+    {
+      unsigned	l = 0;
+
+      /*
+       * The external C string encoding is not compatible with the internal
+       * 8-bit character strings ... we must convert from internal format to
+       * unicode and then to the external C string encoding.
+       */
+      if (GSToUnicode(&r, &l, self->_contents.c, self->_count, intEnc,
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to Unicode string."];
+	}
     }
   else
     {
@@ -954,14 +970,14 @@ cString_c(GSStr self, NSStringEncoding enc)
 	NSDefaultMallocZone(), 0) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
-		      format: @"Can't convert to/from Unicode string."];
+		      format: @"Can't convert to Unicode string."];
 	}
       if (GSFromUnicode((unsigned char**)&r, &s, u, l, enc,
 	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), u);
 	  [NSException raise: NSCharacterConversionException
-		      format: @"Can't convert to/from Unicode string."];
+		      format: @"Can't convert from Unicode string."];
 	}
       NSZoneFree(NSDefaultMallocZone(), u);
     }
