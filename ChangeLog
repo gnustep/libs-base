@@ -1,10 +1,20 @@
+2005-06-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h: Add a versioning constant and
+	document a bit better.
+	* Tools/AGSParser.m: Support new version constant and fix version
+	comparison for minor and subminor numbers.
+	* Tools/AGSHtml.m: ditto
+	* Headers/Foundation/NSArchiver.h: convert o new versioning as test.
+	* Documentation/Base.gsdoc: Document version constants.
+
 2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h: Add subminor number to versioning
 	macros as apple sometimes add/remove things at subminor versions.
 	Add some constants for versions.
 	* Tools/AGSParser.m: Support subminor version info
-	* Tools/AGSHatm.m: ditto
+	* Tools/AGSHtml.m: ditto
 
 2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
 

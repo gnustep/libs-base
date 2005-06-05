@@ -32,6 +32,8 @@
 
 @class NSMutableArray, NSMutableDictionary, NSMutableData, NSData, NSString;
 
+#if	OS_API_VERSION(GS_API_OSSPEC,GS_API_LATEST)
+
 @interface NSArchiver : NSCoder
 {
 @private
@@ -77,14 +79,14 @@
 - (void) encodeClassName: (NSString*)trueName
            intoClassName: (NSString*)inArchiveName;
 
-#ifndef	STRICT_OPENSTEP
+#if	OS_API_VERSION(GS_API_MACOSX,GS_API_LATEST)
 /* Substituting Objects */
 - (void) replaceObject: (id)object
 	    withObject: (id)newObject;
 #endif
 @end
 
-#ifndef	NO_GNUSTEP
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 @interface	NSArchiver (GNUstep)
 
 /*
@@ -186,13 +188,13 @@
 - (void) decodeClassName: (NSString*)nameInArchive 
 	     asClassName: (NSString*)trueName;
 
-#ifndef	STRICT_OPENSTEP
+#if	OS_API_VERSION(GS_API_MACOSX,GS_API_LATEST)
 /* Substituting objects */
 - (void) replaceObject: (id)anObject withObject: (id)replacement;
 #endif
 @end
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE,GS_API_NONE) && GS_API_VERSION(1,GS_API_LATEST)
 @interface	NSUnarchiver (GNUstep)
 
 - (unsigned) cursor;
@@ -217,5 +219,7 @@
  *  NSInternalInconsistencyException usually raised instead.</em>
  */
 GS_EXPORT NSString * const NSInconsistentArchiveException;
+
+#endif	/* OS_API_VERSION */
 
 #endif	/* __NSArchiver_h_GNUSTEP_BASE_INCLUDE */

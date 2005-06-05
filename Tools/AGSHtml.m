@@ -2353,20 +2353,46 @@ static NSString		*mainFont = nil;
   NSString	*gvdep = [prop objectForKey: @"gvdep"];
   NSString	*ovrem = [prop objectForKey: @"ovrem"];
   NSString	*gvrem = [prop objectForKey: @"gvrem"];
+  const char	*str;
+  int		maj;
+  int		min;
+  int		sub;
 
   if ([ovadd length] > 0)
     {
-      int	add = [ovadd intValue];
-      int	dep = [ovdep intValue];
-      int	rem = [ovrem intValue];
+      int	add;
+      int	dep;
+      int	rem;
+
+      str = [ovadd UTF8String];
+      if (str != 0 && sscanf(str, "%d.%d.%d", &maj, &min, &sub) == 3)
+	add = maj * 10000 + min * 100 + sub;
+      else
+	add = 0;
+
+      str = [ovdep UTF8String];
+      if (str != 0 && sscanf(str, "%d.%d.%d", &maj, &min, &sub) == 3)
+	dep = maj * 10000 + min * 100 + sub;
+      else
+	dep = 0;
+
+      str = [ovrem UTF8String];
+      if (str != 0 && sscanf(str, "%d.%d.%d", &maj, &min, &sub) == 3)
+	rem = maj * 10000 + min * 100 + sub;
+      else
+	rem = 0;
 
       [buf appendString: indent];
-      [buf appendString: @"<b>Releases:</b> "];
-      if (add < 4)
+      [buf appendString: @"<b>Availability:</b> "];
+      if (add < GS_API_OSSPEC)
+	{
+	  [buf appendString: @"Not in OpenStep/MacOS-X"];
+	}
+      else if (add < GS_API_OPENSTEP)
 	{
 	  [buf appendString: @"OpenStep"];
 	}
-      else if (add < 10)
+      else if (add < GS_API_MACOSX)
 	{
 	  [buf appendString: @"OPENSTEP "];
 	  [buf appendString: ovadd];
@@ -2379,7 +2405,7 @@ static NSString		*mainFont = nil;
       if (dep > add)
 	{
 	  [buf appendString: @" deprecated at "];
-	  if (add < 10)
+	  if (dep < GS_API_MACOSX)
 	    {
 	      [buf appendString: @"OPENSTEP "];
 	      [buf appendString: ovdep];
@@ -2393,7 +2419,7 @@ static NSString		*mainFont = nil;
       if (rem > add)
 	{
 	  [buf appendString: @" removed at "];
-	  if (add < 10)
+	  if (rem < GS_API_MACOSX)
 	    {
 	      [buf appendString: @"OPENSTEP "];
 	      [buf appendString: ovrem];
@@ -2426,7 +2452,7 @@ static NSString		*mainFont = nil;
   else if ([gvadd length] > 0)
     {
       [buf appendString: indent];
-      [buf appendString: @"<b>Releases:</b> "];
+      [buf appendString: @"<b>Availability:</b> "];
       [buf appendString: project];
       [buf appendString: @" "];
       [buf appendString: gvadd];

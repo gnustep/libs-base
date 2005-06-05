@@ -31,8 +31,10 @@
  *	Check consistency of definitions for system compatibility.
  */
 #if	defined(STRICT_OPENSTEP)
+#define OS_API_VERSION	 10000
 #define	NO_GNUSTEP	1
 #elif	defined(STRICT_MACOS_X)
+#define OS_API_VERSION	100000
 #define	NO_GNUSTEP	1
 #else
 #undef	NO_GNUSTEP
@@ -41,7 +43,8 @@
 /*
  * NB. The version values below must be integers ... by convention these are
  * made up of two digits each for major, minor and subminor version numbers
- * (ie each is in the range 00 to 99).
+ * (ie each is in the range 00 to 99 though a leading zero in the major
+ * number is not permitted).
  * So for a MacOS-X 10.3.9 release the version number would be 100309
  *
  * You may define GS_GNUSTEP_V or GS_OPENSTEP_V to ensure that your
@@ -65,6 +68,15 @@
   (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
 
 /**
+ * A constant to represent a feature which is not present in any version.
+ * Use this to say a feature is not present in an API.<br />
+ * eg.<br />
+ * #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)<br />
+ * denotes  code not present in OpenStep/OPENSTEP/MacOS-X
+ */
+#define	GS_API_NONE	     0
+
+/**
  * A constant to represent a feature which is still present in the latest
  * version.  This is the highest possible version number.
  */
@@ -73,12 +85,12 @@
 /**
  * The version number of the initial OpenStep specification
  */
-#define	GS_API_OSSPEC	000000
+#define	GS_API_OSSPEC	 10000
 
 /**
  * The version number of the first OPENSTEP implemenation
  */
-#define	GS_API_OPENSTEP	040000
+#define	GS_API_OPENSTEP	 40000
 
 /**
  * The version number of the first MacOS-X implementation
