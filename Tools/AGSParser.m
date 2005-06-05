@@ -2935,7 +2935,6 @@ fail:
 	    {
 	      BOOL	openstep;
 	      NSString	*ver;
-	      int	i;
 
 	      if ([arg isEqual: @"OS_API_VERSION"] == YES)
 		{
@@ -2976,7 +2975,7 @@ fail:
 	      ver = [self parseVersion];
 	      if ([ver length] == 0)
 		{
-		  ver = @"0.0.0";
+		  ver = @"1.0.0";
 		}
 	      if (openstep)
 		{
@@ -3365,17 +3364,21 @@ fail:
 	}
       str = [NSString stringWithCharacters: &buffer[i] length: pos - i];
     }
-  if ([str isEqualToString: @"GS_API_LATEST"] == YES)
+  if ([str isEqualToString: @"GS_API_NONE"] == YES)
+    {
+      str = @"000000";
+    }
+  else if ([str isEqualToString: @"GS_API_LATEST"] == YES)
     {
       str = @"999999";
     }
   else if ([str isEqualToString: @"GS_API_OSSPEC"] == YES)
     {
-      str = @"000000";
+      str = @"010000";
     }
   else if ([str isEqualToString: @"GS_API_OPENSTEP"] == YES)
     {
-      str = @"000400";
+      str = @"040000";
     }
   else if ([str isEqualToString: @"GS_API_MACOSX"] == YES)
     {

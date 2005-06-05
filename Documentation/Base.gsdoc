@@ -53,20 +53,62 @@
 	    being compiled -
 	  </p>
 	  <deflist>
+	    <term>GS_GNUSTEP_V</term>
+	    <desc>
+	      Specifies the software version of the header being included.<br />
+	      Features in that header which are declared as having been
+	      introduced at or before the specified version, and not being
+	      removed until or after the specified version are available.<br />
+	      The version consists of five or six digits ...
+	      a major number (0-99) followed by a minor number (00-99) and
+	      a subminor number (00-00).<br />
+	      Features in the header file are marked as belonging to different
+	      version ranges using the GS_API_VERSION macro.<br />
+	      NB. This is the <em>native</em> versioning of the library being
+	      used via the header file.  You can use this mechanism in your
+	      own libraries and frameworks.
+	    </desc>
+	    <term>GS_OPENSTEP_V</term>
+	    <desc>
+	      Used only for the software version in sequence of OpenStep
+	      specification and the NeXT/Apple implementation of that
+	      specification and its extensions.<br />
+	      Features in the header being included which are declared
+	      as having been introduced at or before the specified version,
+	      and not being removed until or after the specified version
+	      are available.<br />
+	      The version consists of five or six digits ...
+	      a major number (1-99) followed by a minor number (00-99) and
+	      a subminor number (00-00).<br />
+	      A major number of 1 indicates the OpenStep specification ...
+	      available as the GS_API_OSSPEC preprocessor constant.<br />
+	      A major number of 4 indicates the OPENSTEP implementation ...
+	      available as the GS_API_OPENSTEP preprocessor constant.<br />
+	      A major number of 10 indicates the MacOS-X implementation ...
+	      available as the GS_API_MACOSX preprocessor constant.<br />
+	      Features in the header file are marked as belonging to different
+	      version ranges using the OS_API_VERSION macro.<br />
+	    </desc>
 	    <term>NO_GNUSTEP</term>
 	    <desc>
 	      GNUstep specific extensions to the OpenStep and MacOS cocoa
-	      APIs are excluded from the headers.
+	      APIs are excluded from the headers.<br />
+	      This is obsolete .. setting GS_OPENSTEP_V should exclude
+	      GNUstep extensions.
 	    </desc>
 	    <term>STRICT_MACOS_X</term>
 	    <desc>
-	      Only methods and classes that are part of the MacOS cocoa
-	      API are made available in the headers.
+	      Only methods and classes that are part of the oriignal MacOS
+	      cocoa API are made available in the headers.<br />
+	      This is obsolete .. setting GS_OPENSTEP_V to GS_API_MACOSX should
+	      do this.
 	    </desc>
 	    <term>STRICT_OPENSTEP</term>
 	    <desc>
 	      Only methods and classes that are part of the OpenStep
-	      specification are made available in the headers.
+	      specification are made available in the headers.<br />
+	      This is obsolete .. setting GS_OPENSTEP_V to GS_API_OPENSTEP
+	      should do this.
 	    </desc>
 	  </deflist>
 	  <p>
