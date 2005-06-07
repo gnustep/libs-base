@@ -1,3 +1,8 @@
+2005-06-06  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.preamble: Add objc lib on all platforms
+	Fixes bug #9920.
+
 2005-06-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h: Add a versioning constant and
