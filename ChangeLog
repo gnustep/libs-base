@@ -1,3 +1,8 @@
+2005-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendardate.m: Fix crash when a nil string is passed to
+	initWithString... methods.
+
 2005-06-06  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Makefile.preamble: Add objc lib on all platforms
