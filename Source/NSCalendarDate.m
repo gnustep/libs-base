@@ -600,8 +600,8 @@ static inline int getDigits(const char *from, char *to, int limit)
   BOOL		ampm = NO;
   BOOL		twelveHrClock = NO;
   int		julianWeeks = -1, weekStartsMonday = 0, dayOfWeek = -1;
-  const char	*source = [description cString];
-  unsigned	sourceLen = strlen(source);
+  const char	*source;
+  unsigned	sourceLen;
   unichar	*format;
   unsigned	formatLen;
   unsigned	formatIdx = 0;
@@ -615,6 +615,12 @@ static inline int getDigits(const char *from, char *to, int limit)
   BOOL		changedFormat = NO;
   BOOL		error = NO;
 
+  if (description == nil)
+    {
+      description = @"";
+    }
+  source = [description cString];
+  sourceLen = strlen(source);
   if (locale == nil)
     {
       locale = GSUserDefaultsDictionaryRepresentation();
@@ -626,10 +632,6 @@ static inline int getDigits(const char *from, char *to, int limit)
 	{
 	  fmt = @"";
 	}
-    }
-  if (description == nil)
-    {
-      description = @"";
     }
 
   /*
