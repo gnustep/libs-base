@@ -1,3 +1,11 @@
+2005-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/NSSocketPort.m:
+	* Source/NSMessagePort.m:
+	Enable KEEPALIVE on stream sockets, so we will notice if the remote
+	end drops the connection.
+
 2005-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendardate.m: Fix crash when a nil string is passed to

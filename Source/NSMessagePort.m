@@ -469,6 +469,10 @@ static Class	runLoopClass;
     }
   else
     {
+      int	status = 1;
+
+      setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
+	sizeof(status));
       addrNum = 0;
       caller = YES;
       [aPort addHandle: self forSend: YES];
@@ -1631,6 +1635,10 @@ static int unique_index = 0;
         }
       else
 	{
+	  int	status = 1;
+
+	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
+	    sizeof(status));
 	  /*
 	   * Create a handle for the socket and set it up so we are its
 	   * receiving port, and it's waiting to get the port name from

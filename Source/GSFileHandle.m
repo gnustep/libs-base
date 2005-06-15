@@ -697,6 +697,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSString		*lhost = nil;
   NSString		*shost = nil;
   NSString		*sport = nil;
+  int			status;
 
   if (beenHere == NO)
     {
@@ -829,6 +830,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       RELEASE(self);
       return nil;
     }
+  /*
+   * Enable tcp-level tracking of whether connection is alive.
+   */
+  status = 1;
+  setsockopt(net, SOL_SOCKET, SO_KEEPALIVE, (char *)&status, sizeof(status));
+
   if (lhost != nil)
     {
       if (bind(net, (struct sockaddr *)&lsin, sizeof(lsin)) == SOCKET_ERROR)
@@ -2133,6 +2140,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  GSFileHandle		*h;
 	  struct sockaddr_in	sin;
 	  int			size = sizeof(sin);
+	  int			status;
+
+	  /*
+	   * Enable tcp-level tracking of whether connection is alive.
+	   */
+	  status = 1;
+	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&status,
+	    sizeof(status));
 
 #if defined(__MINGW__)
 	  h = [[[self class] alloc] initWithNativeHandle: (void*)desc

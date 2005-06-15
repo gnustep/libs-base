@@ -635,6 +635,10 @@ static Class	runLoopClass;
     }
   else
     {
+      int	status = 1;
+
+      setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
+	sizeof(status));
       addrNum = 0;
       caller = YES;
       [aPort addHandle: self forSend: YES];
@@ -2122,6 +2126,10 @@ static unsigned	wordAlign;
         }
       else
 	{
+	  int	status = 1;
+
+	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
+	    sizeof(status));
 #ifdef __MINGW32__
 	  // reset associated event with new socket
 	  WSAEventSelect(desc, eventListener, 0);
