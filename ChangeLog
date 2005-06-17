@@ -1,5 +1,12 @@
 2005-06-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Documentation/manual/WorkingWithObjects.texi: Correct errors in
+	the summary of memory management conventions.
+	* Documentation/manual/WritingNewClasses.texi: Correct examples of
+	memory management in constructor methods.
+
+2005-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFileHandle.m:
 	* Source/NSSocketPort.m:
 	* Source/NSMessagePort.m:

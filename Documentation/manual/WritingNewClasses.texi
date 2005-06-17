@@ -89,12 +89,14 @@ Here is an example of a class interface declaration:
 @}
 
 // class methods
-+ new;
-+ newWithX: (float)x0 Y: (float)y0;
++ (id) new;
++ (id) newWithX: (float)x0 Y: (float)y0;
++ (Point*) point;
++ (Point*) pointWithX: (float)x0 Y: (float)y0;
 
 // instance methods
-- init;
-- initWithX: (float)x0 Y: (float)y0;
+- (id) init;
+- (id) initWithX: (float)x0 Y: (float)y0;
 - (float) x;  // (field accessor)
 - (float) y;
 - (void) setX: (float)newX;
@@ -234,9 +236,9 @@ instance variables, return values and arguments are statically typed:
   Point *lowerLeft;
   float sideLength;
 @}
-+ newWithLowerLeft: (Point *)lowerLeft sideLength: (float)sideLength;
++ (id) newWithLowerLeft: (Point *)lowerLeft sideLength: (float)sideLength;
 
-- initWithLowerLeft: (Point *)lowerLeft sideLength: (float)sideLength;
+- (id) initWithLowerLeft: (Point *)lowerLeft sideLength: (float)sideLength;
 
 - (Point *) lowerLeft;
 - (float) sideLength;
@@ -289,19 +291,19 @@ An implementation file contents are encapsulated between
 #import "Point.h"
 @@implementation Point
 // method implementations
-+ new
++ (id)new
 @{
   // statements ...
 @}
 
-+newWithX: (float)x Y: (float)y
++ (id)newWithX: (float)x Y: (float)y
 @{
   // statements ...
 @}
 
 // ...
 
-- (void) setY: (float)newY
+- (void)setY: (float)newY
 @{
   // statements ...
 @}
@@ -375,20 +377,42 @@ return to this concern below.
 
 Typically, a class will also provide one or more @code{initWith...} methods
 for initialization with arguments, and it may optionally also provide
-convenience class methods that act like constructors.  The general approach
+@code{+new} methods and convenience class methods that act like constructors.
+The general approach
 to implementing these is illustrated here for the @code{Point} class.
 
 @example
 + new
 @{
-  Point *point = [[self alloc] init];
-    // note "self" refers to the "Point" _class_ object!
-  return AUTORELEASE(point);
+  Point *point;
+
+  // note "self" refers to the "Point" _class_ object!
+  point = [[self allocWithZone: NSDefaultMallocZone()] init];
+  return point;
 @}
 
 + newWithX: (float)x0 Y: (float)y0
 @{
-  Point *point = [[self alloc] initWithX: x Y: y];
+  Point *point;
+
+  point = [[self allocWithZone: NSDefaultMallocZone()] initWithX: x Y: y];
+  return point;
+@}
+
++ point
+@{
+  Point *point;
+
+  // note "self" refers to the "Point" _class_ object!
+  point = [self new];
+  return AUTORELEASE(point);
+@}
+
++ pointWithX: (float)x0 Y: (float)y0
+@{
+  Point *point;
+
+  point = [self newWithX: x Y: y];
   return AUTORELEASE(point);
 @}
 
@@ -411,16 +435,22 @@ to implementing these is illustrated here for the @code{Point} class.
 @end example
 
 Notice that, first, the convenience constructors (@code{new} and
-@code{newWithX:Y:}) execute @code{[self alloc]} to begin with.  The
+@code{newWithX:Y:}) execute @code{[self allocWithZone:]} to begin with.  The
 ``@code{self}'' here refers to the @i{class} object, since it is used inside a
 @i{class} method.  Thus the effect is the same as if ``@code{[Point alloc]}''
-had been executed in external code.  Second, notice that they autorelease the
-new instance before returning it.  This is to follow the rules of memory
+had been executed in external code.  Second, notice that the other
+convenience constructors (@code{point} and @code{pointWithX:Y:})
+autorelease the new instance before returning it.
+This is to follow the rules of memory
 management discussed in @ref{Objects, earlier, Memory Management}.  Third,
 note that the @code{new..}  methods each call a corresponding @code{init...}
 method.  It is not necessary to maintain such a one to one correspondence but
 it is a common convention to have the convenience implementations rely on
-instance @code{init} methods as shown.
+instance @code{init} methods as shown.  Fourth, note that the use of
+@code{[self allocWithZone: NSDefaultMallocZone()]} rather than
+@code{[self alloc]} is generally unnecessary, but provides a slight
+efficiency gain since @code{+alloc} is implemented by calling
+@code{+allocWithZone:} on the default zone.
 
 @b{Designated Initializer}
 
@@ -488,7 +518,7 @@ written the @code{new} constructor above like this:
   self = [[self alloc] init];
     // note "self" now refers to the new instance!
   [self setX: 1.0];
-  return AUTORELEASE(self);
+  return self;
 @}
 @end example
 
