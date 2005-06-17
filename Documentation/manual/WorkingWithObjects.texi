@@ -427,15 +427,22 @@ The following summarizes the retain/release-related methods:
 @tab decreases the reference count of an object by 1
 @item @code{-autorelease}
 @tab decreases the reference count of an object by 1 at some stage in the future
-@item @code{-alloc}
+@item @code{+alloc} and @code{+allocWithZone:}
 @tab allocates memory for an object, and returns it with retain count of 1
-@item @code{-copy}
+@item @code{-copy, @code{-mutableCopy}, @code{copyWithZone:} and @code{-mutableCopyWithZone:}
 @tab makes a copy of an object, and returns it with retain count of 1
-@item @code{-new}
-@tab allocates memory for an object, and returns it in an autoreleased state
-(retain=1, but will be released automatically at some stage in the future)
+@item @code{-init} and any method whose name begins with @code{init}
+@tab initialises the receiver, returning the retain count unchanged.
+@code{-init} has had no effect on the reference count.
+@item @code{-new} and any method whose name begins with @code{new}
+@tab allocates memory for an object, initialises it, and returns the result.
 @item @code{-dealloc}
 @tab deallocates object immediately (regardless of value of retain count)
+@item convenience constructors
+@tab allocate memory for an object, and returns it in an autoreleased state
+(retain=1, but will be released automatically at some stage in the future).
+These constructors are class methods whose name generally begins with the
+name of the class (initial letter converted to lowercase).
 @end multitable
 
 The following are the main conventions you need to remember:
@@ -452,6 +459,15 @@ If you receive an autoreleased object, it will normally remain valid for the
 rest of the current method call and can even be returned as the result of the
 method.  If you need to store it away for future use (e.g. as an instance
 variable), you must retain it.
+
+@item
+The retain counts mentioned are guidelines only ... more sophisticated classes
+often perform caching and other tricks, so that @code{+alloc} methods may
+retain an instance from a cache and return it, and @code{-init} methods
+may release their receiver and return a different object (possibly obtained
+by retaining a cached object).  In these cases, the retain counts of the
+returned objects will obviously differ from the simple examples, but the
+ownership rules (how you should use the returned values) remain the same.
 @end itemize
 
 
