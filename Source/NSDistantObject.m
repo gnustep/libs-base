@@ -36,6 +36,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSInvocation.h"
+#include <objc/Protocol.h>
 
 #define DO_FORWARD_INVOCATION(_SELX, _ARG1) ({			\
   sig = [self methodSignatureForSelector: @selector(_SELX)];	\

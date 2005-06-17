@@ -215,7 +215,7 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
 @end
 
 
-@interface Object (NSConnectionDelegate)
+@interface NSObject (NSConnectionDelegate)
 /**
  *	This method may be used to ask a delegate's permission to create
  *	a new connection from the old one.
@@ -265,7 +265,7 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
  * This informal protocol allows an object to control the details of how an
  * object is sent over the wire in distributed objects Port communications.
  */
-@interface Object (NSPortCoder)
+@interface NSObject (NSPortCoder)
 /**
  *	Must return the class that will be created on the remote side
  *	of the connection.  If the class to be created is not the same

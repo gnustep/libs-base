@@ -1334,7 +1334,7 @@ GSTimeNow(void)
 {
   if (other == nil)
     return NO;
-  if ([other isKindOf: abstractClass]
+  if ([other isKindOfClass: abstractClass]
     && 1.0 > ABS(otherTime(self) - otherTime(other)))
     return YES;
   return NO;

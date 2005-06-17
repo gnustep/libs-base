@@ -32,6 +32,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSInvocation.h"
 #include "Foundation/NSMethodSignature.h"
+#include <objc/Protocol.h>
 
 /**
  * The NSProtocolChecker and NSProxy classes provide message filtering and
