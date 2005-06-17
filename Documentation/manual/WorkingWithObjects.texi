@@ -429,7 +429,7 @@ The following summarizes the retain/release-related methods:
 @tab decreases the reference count of an object by 1 at some stage in the future
 @item @code{+alloc} and @code{+allocWithZone:}
 @tab allocates memory for an object, and returns it with retain count of 1
-@item @code{-copy, @code{-mutableCopy}, @code{copyWithZone:} and @code{-mutableCopyWithZone:}
+@item @code{-copy}, @code{-mutableCopy}, @code{copyWithZone:} and @code{-mutableCopyWithZone:}
 @tab makes a copy of an object, and returns it with retain count of 1
 @item @code{-init} and any method whose name begins with @code{init}
 @tab initialises the receiver, returning the retain count unchanged.
