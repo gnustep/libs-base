@@ -101,7 +101,7 @@
 #include <GNUstepBase/preface.h>
 #include <GSConfig.h>
 #include <objc/objc.h>
-#include <objc/Protocol.h>
+#include <objc/typedstream.h>
 #include <Foundation/NSZone.h>
 
 @class NSArchiver;
@@ -369,6 +369,7 @@ enum {NSNotFound = 0x7fffffff};
 GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 @interface NSObject (GNUstep)
+- (BOOL) isInstance;
 - (id) makeImmutableCopyOnFail: (BOOL)force;
 - (Class) transmuteClassTo: (Class)aClassObject;
 + (Class) autoreleaseClass;

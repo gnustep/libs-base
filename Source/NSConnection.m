@@ -3592,7 +3592,7 @@ static void callEncoder (DOContext *ctxt)
  * delegates may conform ...  implementing these methods has the effect
  * documented.
  */
-@implementation Object (NSConnectionDelegate)
+@implementation NSObject (NSConnectionDelegate)
 /**
  * <p>
  *   This is not an NSConnection method, but is a method that may

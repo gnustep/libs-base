@@ -142,6 +142,11 @@ static SEL	lenSel;
 static SEL	serSel;
 static SEL	setSel;
 
+/* Compatibility methods from NEXTSTEP (Implemented in NSObject) */
+@interface NSObject (Serializer)
+- (retval_t) performv: (SEL)aSel :(arglist_t)argFrame;
+@end
+
 static void
 initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 {

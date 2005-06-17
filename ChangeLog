@@ -1,3 +1,17 @@
+2005-06-17  Adam Fedor  <fedor@gnu.org>
+
+	* Remove objc/Protocol.h include from NSObject to avoid warnings
+	with conflicting method signatures.
+	* Headers/Foundation/NSConnection.h: Change Object categories
+	to NSObject.
+	* Source/NSConnection.m: Idem.
+	* Headers/Foundation/NSObject.h: Don't include objc/Protocol.h
+	add a few missing things.
+	* Source/NSDate.m ([NSDate -isEqual:]): Use isKindOfClass.
+	* Source/NSDistantObject.m, Source/NSProtocolChecker.m: 
+	Include objc/Protocol.h
+	* Source/NSSerializer.m: Add method sig for performv::
+
 2005-06-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/manual/WorkingWithObjects.texi: Correct errors in
