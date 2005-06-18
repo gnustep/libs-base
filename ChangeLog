@@ -1,3 +1,16 @@
+2005-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Removed bogus
+	NSConnection(ConnectionDelegate) category .. these methods must not be
+	implemented in NSObject.  I hope that removing the concrete
+	implementation of the category from the Object class will not cause
+	problems (I believe there used to be problems with older versions of
+	the compiler if we tried to use @selector(NN) where NN was not
+	implemented in the same code unit, but I can't remember what the
+	problems were and when they occurred).
+	* Headers/Foundation/NSConnection.h: Added comments/documentation from
+	NSConnection.h
+
 2005-06-17  Adam Fedor  <fedor@gnu.org>
 
 	* Remove objc/Protocol.h include from NSObject to avoid warnings
