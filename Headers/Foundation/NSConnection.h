@@ -214,51 +214,91 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
 
 @end
 
-
-@interface NSObject (NSConnectionDelegate)
 /**
- *	This method may be used to ask a delegate's permission to create
- *	a new connection from the old one.
- *	This method should be implemented in preference to the
- *	[makeNewConnection:sender:] which is obsolete.
+ * This category represents an informal protocol to which NSConnection
+ * delegates may conform ... These methods are not actually implemented
+ * by NSObject, so implementing these methods in your class has the effect
+ * documented.
  */
-- (BOOL) connection: (NSConnection*)parent
-  shouldMakeNewConnection: (NSConnection*)newConnection;
+@interface	NSObject (NSConnectionDelegate)
 
 /**
- *	This is the old way of doing the same thing as
- *	[connection:shouldMakeNewConnection:]
- *	It is obsolete - don't use it.
+ * <p>
+ *   This is not an NSConnection method, but is a method that may
+ *   be implemented by the delegate of an NSConnection object.
+ * </p>
+ * <p>
+ *   If the delegate implements this method, the NSConnection will
+ *   invoke the method for every message request or reply it receives
+ *   from the remote NSConnection.  The delegate should use the
+ *   authentication data to check all the NSData objects
+ *   in the components array (ignoring NSPort objects),
+ *   and return YES if they are valid, NO otherwise.
+ * </p>
+ * <p>
+ *   If the method returns NO then an
+ *   NSFailedAuthentication exception will be raised.
+ * </p>
+ * <p>
+ *   In GNUstep the components array is mutable, allowing
+ *   you to replace the NSData objects with your own version.
+ * </p>
  */
-- (BOOL) makeNewConnection: (NSConnection*)newConnection
-		    sender: (NSConnection*)parent;
-
-/**
- *	If the delegate responds to this method, it will be used to ask the
- *	delegate's permission to establish a new connection from the old one.
- *	Often this is used so that the delegate can register for invalidation 
- *	notification on new child connections.
- *	This is a GNUstep extension
- *	Normally return newConn.
- */
-- (NSConnection*) connection: (NSConnection*)ancestorConn
-		  didConnect: (NSConnection*)newConn;
-
-/**
- * These are like the MacOS-X delegate methods, except that we provide the
- * components in mutable arrays, so that the delegate can alter the data
- * items in the array.  Of course, you must do that WITH CARE.
- */ 
 - (BOOL) authenticateComponents: (NSMutableArray*)components
 		       withData: (NSData*)authenticationData;
 
 /**
- * These are like the MacOS-X delegate methods, except that we provide the
- * components in mutable arrays, so that the delegate can alter the data
- * items in the array.  Of course, you must do that WITH CARE.
- */ 
+ * <p>
+ *   This is not an NSConnection method, but is a method that may
+ *   be implemented by the delegate of an NSConnection object.
+ * </p>
+ * <p>
+ *   If the delegate implements this method, the NSConnection will
+ *   invoke the method for every message request ro reply it sends
+ *   to the remote NSConnection.  The delegate should generate
+ *   authentication data by examining all the NSData objects
+ *   in the components array (ignoring NSPort objects),
+ *   and return the authentication data that can be used by the
+ *   remote NSConnection.
+ * </p>
+ * <p>
+ *   If the method returns nil then an
+ *   NSGenericException exception will be raised.
+ * </p>
+ * <p>
+ *   In GNUstep the components array is mutable, allowing
+ *   you to replace the NSData objects with your own version.
+ * </p>
+ */
 - (NSData*) authenticationDataForComponents: (NSMutableArray*)components;
 
+/**
+ * <p>
+ *   This is not an NSConnection method, but is a method that may
+ *   be implemented by the delegate of an NSConnection object.
+ * </p>
+ * <p>
+ *   If the delegate implements this method, it will be called
+ *   whenever a new NSConnection is created that has this
+ *   NSConnection as its parent.  The delegate may take this
+ *   opportunity to adjust the configuration of the new
+ *   connection and may return a boolean value to tell the
+ *   parent whether the creation of the new connection is to
+ *   be permitted or not.
+ * </p>
+ */
+ - (BOOL) connection: (NSConnection*)parent
+  shouldMakeNewConnection: (NSConnection*)newConnection;
+
+- (NSConnection*) connection: (NSConnection*)ancestorConn
+		  didConnect: (NSConnection*)newConn;
+
+/**
+ * An old fashioned synonym for -connection:shouldMakeNewConnection: -
+ * don't use this.
+ */
+- (BOOL) makeNewConnection: (NSConnection*)newConnection
+                    sender: (NSConnection*)parent;
 @end
 
 /**
