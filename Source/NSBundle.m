@@ -900,6 +900,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       path = [[[NSFileManager defaultManager] currentDirectoryPath]
 	       stringByAppendingPathComponent: path];
     }
+  if ([path hasPrefix: @"~"] == YES)
+    {
+      path = [path stringByExpandingTildeInPath];
+    }
 
   /* Check if we were already initialized for this directory */
   [load_lock lock];
