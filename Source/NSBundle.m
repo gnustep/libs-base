@@ -894,6 +894,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       [self dealloc];
       return nil;
     }
+
+  /*
+   * Make sure we have an absolute and fully expanded path,
+   * so we can manipulate it without having to worry about
+   * details like that throughout the code.
+   */
   if ([path isAbsolutePath] == NO)
     {
       NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names!");
