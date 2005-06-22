@@ -1,3 +1,11 @@
+2005-06-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueCoding.m:
+	* Headers/Foundation/NSKeyValueCoding.h:
+	Change NSUnknownKeyException to NSUndefinedKeyException for
+	MacOSX compatibility.
+	Fixes bug #13842
+
 2005-06-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: ([-initWithPath:]) expand paths with tildes.

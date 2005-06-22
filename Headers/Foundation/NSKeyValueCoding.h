@@ -36,7 +36,7 @@
 #ifndef	STRICT_OPENSTEP
 
 /** An exception for an unknown key in [NSObject(NSKeyValueCoding)]. */
-GS_EXPORT NSString* const NSUnknownKeyException;
+GS_EXPORT NSString* const NSUndefinedKeyException;
 
 /**
  * <p>This describes an informal protocol for <em>key-value coding</em>, a
@@ -142,7 +142,7 @@ GS_EXPORT NSString* const NSUnknownKeyException;
  * Invoked when -setValue:forKey: / -takeStoredValue:forKey: are called with
  * a key which can't be associated with an accessor method or instance
  * variable.  Subclasses may override this method to add custom handling.
- * NSObject raises an NSUnknownKeyException, with a userInfo dictionary
+ * NSObject raises an NSUndefinedKeyException, with a userInfo dictionary
  * containing NSTargetObjectUserInfoKey with the receiver an
  * NSUnknownUserInfoKey with the supplied key entries.<br />
  * Called when the key passed to -setValue:forKey: cannot be used.
@@ -336,7 +336,7 @@ GS_EXPORT NSString* const NSUnknownKeyException;
  * Invoked when -valueForKey: / -storedValueForKey: are called with a key,
  * which can't be associated with an accessor method or instance variable.
  * Subclasses may override this method to add custom handling.  NSObject
- * raises an NSUnknownKeyException, with a userInfo dictionary containing
+ * raises an NSUndefinedKeyException, with a userInfo dictionary containing
  * NSTargetObjectUserInfoKey with the receiver an NSUnknownUserInfoKey with
  * the supplied key entries.<br />
  */
