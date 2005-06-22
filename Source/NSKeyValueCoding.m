@@ -37,7 +37,7 @@
 #include "Foundation/NSKeyValueCoding.h"
 #include "Foundation/NSNull.h"
 
-NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
+NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
 
 @implementation NSObject(KeyValueCoding)
 
@@ -82,7 +82,7 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 				     (aKey ? aKey : @"(nil)"),
 				     @"NSUnknownUserInfoKey",
 				     nil];
-  NSException *exp = [NSException exceptionWithName: NSUnknownKeyException
+  NSException *exp = [NSException exceptionWithName: NSUndefinedKeyException
 				  reason: @"Unable to find value for key"
 				  userInfo: dict];
 
@@ -100,7 +100,7 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 				     (aKey ? aKey : @"(nil)"),
 				     @"NSUnknownUserInfoKey",
 				     nil];
-  NSException *exp = [NSException exceptionWithName: NSUnknownKeyException
+  NSException *exp = [NSException exceptionWithName: NSUndefinedKeyException
 				  reason: @"Unable to set value for key"
 				  userInfo: dict];
   GSOnceMLog(@"This method is deprecated, use -setValue:forUndefinedKey:");
@@ -697,7 +697,7 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 				     (aKey ? aKey : @"(nil)"),
 				     @"NSUnknownUserInfoKey",
 				     nil];
-  exp = [NSException exceptionWithName: NSUnknownKeyException
+  exp = [NSException exceptionWithName: NSUndefinedKeyException
 				reason: @"Unable to find value for key"
 			      userInfo: dict];
 
