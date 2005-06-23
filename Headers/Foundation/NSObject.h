@@ -57,7 +57,7 @@
  * or if ADD &lt;= VER &lt; REM
  */
 #define	GS_API_VERSION(ADD,REM) \
-  (!defined(GS_GNUSTEP_V) || (GS_GNUSTEP_V &gt;= ADD && GS_GNUSTEP_V < REM))
+  (!defined(GS_GNUSTEP_V) || (GS_GNUSTEP_V >= ADD && GS_GNUSTEP_V < REM))
 
 /**
  * Macro to check a defined OpenStep/OPENSTEP/MacOS-X version against the
@@ -65,7 +65,7 @@
  * ADD &lt;= VER &lt; REM
  */
 #define	OS_API_VERSION(ADD,REM) \
-  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V &gt;= ADD && GS_OPENSTEP_V < REM))
+  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
 
 /**
  * A constant to represent a feature which is not present in any version.
