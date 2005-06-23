@@ -61,6 +61,7 @@ into another language, under the above conditions for modified versions.
 * Memory Management::           
 * Error Handling::              
 * Variable Declaration::        
+* Naming Conventions::        
 * Object Persistence::          
 * Documentation::               
 * Before You Commit::           
@@ -135,8 +136,9 @@ White space should be used for clarity throughout.  In particular,
 variable declarations should be separated from code by a blank line and
 function/method implementations should be separated by a blank line.
 
-Tabs should ideally not be used (use spaces instead), if used they
-must be for tab-stops at the standard intervals of 8 spaces.
+Tabs should not be used (use spaces instead). If you do use them
+(please don't) they really, really, must be for tab-stops at the
+standard intervals of 8 spaces.
 
 All binary operators should be surrounded by white space with the
 exception of the comma (only a trailing white space), and the
