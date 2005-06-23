@@ -54,18 +54,18 @@
 /**
  * Macro to check a defined GNUstep version number (GS_GNUSTEP_V) against the
  * supplied arguments.  Returns true if no GNUstep version is specified,
- * or if ADD <= VER < REM
+ * or if ADD &lt;= VER &lt; REM
  */
 #define	GS_API_VERSION(ADD,REM) \
-  (!defined(GS_GNUSTEP_V) || (GS_GNUSTEP_V >= ADD && GS_GNUSTEP_V < REM))
+  (!defined(GS_GNUSTEP_V) || (GS_GNUSTEP_V &gt;= ADD && GS_GNUSTEP_V < REM))
 
 /**
  * Macro to check a defined OpenStep/OPENSTEP/MacOS-X version against the
  * supplied arguments.  Returns true if no version is specified, or if
- * ADD <= VER < REM
+ * ADD &lt;= VER &lt; REM
  */
 #define	OS_API_VERSION(ADD,REM) \
-  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
+  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V &gt;= ADD && GS_OPENSTEP_V < REM))
 
 /**
  * A constant to represent a feature which is not present in any version.
