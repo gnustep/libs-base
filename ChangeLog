@@ -1,3 +1,8 @@
+2005-06-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/mframe.m (mframe_decode_return): Change return struct
+	to fixed size to avoid gcc bug.
+
 2005-06-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h:

@@ -1702,7 +1702,7 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     case _C_UNION_B:
       {
 	typedef struct {
-	  char	val[size];
+	  char	val[4];
 	} block;
 	inline block retframe_block(void *rframe)
 	{
