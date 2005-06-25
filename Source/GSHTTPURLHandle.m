@@ -39,8 +39,11 @@
 #include "Foundation/NSHost.h"
 #include "Foundation/NSProcessInfo.h"
 #include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSMapTable.h"
 #include "GNUstepBase/GSMime.h"
 #include "GNUstepBase/GSLock.h"
+#include "NSCallBacks.h"
+
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -50,6 +53,41 @@
 #ifdef HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>		// For O_WRONLY, etc
 #endif
+
+/*
+ * Implement map keys for strings with case insensitive comparisons,
+ * so we can have case insensitive matching of http headers (correct
+ * behavior), but actually preserve case of headers stored and written
+ * in case the remote server is buggy and requires particular
+ * captialisation of headers (some http software is faulty like that).
+ */
+static unsigned int
+_non_retained_id_hash(void *table, NSString* o)
+{
+  return [[o uppercaseString] hash];
+}
+
+static BOOL
+_non_retained_id_is_equal(void *table, NSString *o, NSString *p)
+{
+  return ([o caseInsensitiveCompare: p] == NSOrderedSame) ? YES : NO;
+}
+
+typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
+typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *, const void *);
+typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
+typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
+typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
+
+const NSMapTableKeyCallBacks writeKeyCallBacks =
+{
+  (NSMT_hash_func_t) _non_retained_id_hash,
+  (NSMT_is_equal_func_t) _non_retained_id_is_equal,
+  (NSMT_retain_func_t) _NS_non_retained_id_retain,
+  (NSMT_release_func_t) _NS_non_retained_id_release,
+  (NSMT_describe_func_t) _NS_non_retained_id_describe,
+  NSNotAPointerMapKey
+};
 
 static NSString	*httpVersion = @"1.1";
 
@@ -65,7 +103,7 @@ static NSString	*httpVersion = @"1.1";
   GSMimeParser		*parser;
   GSMimeDocument	*document;
   NSMutableDictionary   *pageInfo;
-  NSMutableDictionary   *wProperties;
+  NSMapTable            *wProperties;
   NSData		*wData;
   NSMutableDictionary   *request;
   unsigned int          bodyPos;
@@ -276,7 +314,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   DESTROY(document);
   DESTROY(pageInfo);
   DESTROY(wData);
-  DESTROY(wProperties);
+  if (wProperties != 0)
+    {
+      NSFreeMapTable(wProperties);
+    }
   DESTROY(request);
   [super dealloc];
 }
@@ -288,7 +329,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       dat = [NSMutableData new];
       pageInfo = [NSMutableDictionary new];
-      wProperties = [NSMutableDictionary new];
+      wProperties = NSCreateMapTable(writeKeyCallBacks,
+	NSObjectMapValueCallBacks, 8);
       request = [NSMutableDictionary new];
 
       ASSIGN(url, newUrl);
@@ -319,11 +361,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) bgdApply: (NSString*)basic
 {
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
-  NSEnumerator          *wpEnumerator;
   NSMutableString	*s;
   NSString              *key;
+  NSString		*val;
   NSMutableData		*buf;
   NSString		*version;
+  NSMapEnumerator       enumerator;
 
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
 
@@ -340,25 +383,26 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   [s appendFormat: @" HTTP/%@\r\n", version];
 
-  if ([wProperties objectForKey: @"host"] == nil)
+  if ((id)NSMapGet(wProperties, (void*)@"Host") == nil)
     {
-      [wProperties setObject: [u host] forKey: @"host"];
+      NSMapInsert(wProperties, (void*)@"Host", (void*)[u host]);
     }
 
   if ([wData length] > 0)
     {
-      [wProperties setObject: [NSString stringWithFormat: @"%d", [wData length]]
-		      forKey: @"content-length"];
+      NSMapInsert(wProperties, (void*)@"Content-Length",
+	(void*)[NSString stringWithFormat: @"%d", [wData length]]);
+
       /*
        * Assume content type if not specified.
        */
-      if ([wProperties objectForKey: @"content-type"] == nil)
+      if ((id)NSMapGet(wProperties, (void*)@"Content-Type") == nil)
 	{
-	  [wProperties setObject: @"application/x-www-form-urlencoded"
-			  forKey: @"content-type"];
+	  NSMapInsert(wProperties, (void*)@"Content-Type",
+	    (void*)@"application/x-www-form-urlencoded");
 	}
     }
-  if ([wProperties objectForKey: @"authorization"] == nil)
+  if ((id)NSMapGet(wProperties, (void*)@"Authorization") == nil)
     {
       if ([u user] != nil)
 	{
@@ -375,16 +419,17 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    }
 	  auth = [NSString stringWithFormat: @"Basic %@",
 	    [GSMimeDocument encodeBase64String: auth]];
-	  [wProperties setObject: auth
-			  forKey: @"authorization"];
+	  NSMapInsert(wProperties, (void*)@"Authorization", (void*)auth);
 	}
     }
 
-  wpEnumerator = [wProperties keyEnumerator];
-  while ((key = [wpEnumerator nextObject]))
+  enumerator = NSEnumerateMapTable(wProperties);
+  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&key), (void**)&val))
     {
-      [s appendFormat: @"%@: %@\r\n", key, [wProperties objectForKey: key]];
+      [s appendFormat: @"%@: %@\r\n", key, val];
     }
+  NSEndMapTableEnumeration(&enumerator);
+
   [s appendString: @"\r\n"];
   buf = [[s dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
 
@@ -533,7 +578,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  r = NSMakeRange(bodyPos, [d length] - bodyPos);
 	  bodyPos = 0;
 	  DESTROY(wData);
-	  [wProperties removeAllObjects];
+	  NSResetMapTable(wProperties);
 	  [self didLoadBytes: [d subdataWithRange: r]
 		loadComplete: YES];
 	}
@@ -611,7 +656,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) endLoadInBackground
 {
   DESTROY(wData);
-  [wProperties removeAllObjects];
+  NSResetMapTable(wProperties);
   if (connectionState != idle)
     {
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
@@ -1200,12 +1245,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       if (property == nil)
 	{
-	  [wProperties removeObjectForKey: [propertyKey lowercaseString]];
+	  NSMapRemove(wProperties, (void*)propertyKey);
 	}
       else
 	{
-	  [wProperties setObject: property
-			  forKey: [propertyKey lowercaseString]];
+	  NSMapInsert(wProperties, (void*)propertyKey, (void*)property);
 	}
     }
   return YES;

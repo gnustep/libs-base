@@ -1,3 +1,14 @@
+2005-06-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	Preserve case of http headers when writing remote request, so that
+	they can be tailored for remote servers which are buggy in having
+	case sensitivity.
+	When creating default http headers, capitalize the words in the
+	header name, as this is the most common way headers are presented
+	and documented, and thus the least likely to tickle case sensitivity
+	bugs at the remote end of a connection.
+
 2005-06-23  Adam Fedor  <fedor@gnu.org>
 
 	* Source/mframe.m (mframe_decode_return): Change return struct
