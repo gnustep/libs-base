@@ -1,3 +1,8 @@
+2005-06-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedArchiver.m: Fix typo ... superClass should be
+	superclass
+
 2005-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:

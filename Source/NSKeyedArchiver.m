@@ -362,7 +362,7 @@ static NSDictionary *makeReference(unsigned ref)
 	  hierarchy = [NSMutableArray new];
 	  while (c != 0)
 	    {
-	      Class	next = [c superClass];
+	      Class	next = [c superclass];
 
 	      [hierarchy addObject: NSStringFromClass(c)];
 	      if (next == c)
