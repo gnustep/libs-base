@@ -294,9 +294,14 @@ _arg_addr(NSInvocation *inv, int index)
   if (*_info[0].type != _C_VOID)
     {
       int	length = _info[0].size;
+#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
+/* NOTE: This won't work unless -[NSMethodSignature methodReturnLength]
+   is also changed, but since mframe is depreciated, this should all
+   be removed in the near future anyway... */
 #if WORDS_BIGENDIAN
       if (length < sizeof(void*))
 	length = sizeof(void*);
+#endif
 #endif
       memcpy(buffer, _retval, length);
     }
@@ -402,9 +407,14 @@ _arg_addr(NSInvocation *inv, int index)
     {
       int	length = _info[0].size;
 
+#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
+/* NOTE: This won't work unless -[NSMethodSignature methodReturnLength]
+   is also changed, but since mframe is depreciated, this should all
+   be removed in the near future anyway... */
 #if WORDS_BIGENDIAN
       if (length < sizeof(void*))
 	length = sizeof(void*);
+#endif
 #endif
       memcpy(_retval, buffer, length);
     }

@@ -1,3 +1,8 @@
+2005-06-28  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSInvocation.m (-getReturnValue:, -setReturnValue:): Only
+	muck with size of buffer if we're using (deprecated) mframe.
+
 2005-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedArchiver.m: Fix typo ... superClass should be
