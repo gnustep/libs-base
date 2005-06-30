@@ -536,18 +536,24 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   switch (code)
     {
       case ST_XREF:
-	{
-	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
-	  if (size < GSIArrayCount(&info->array))
-	    {
-	      return RETAIN(GSIArrayItemAtIndex(&info->array, size).obj);
-	    }
-	  else
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Bad cross reference in property list"];
-	    }
-	}
+	if (info->didUnique)
+	  {
+	    size = (*info->deiImp)(info->data, deiSel, info->cursor);
+	    if (size < GSIArrayCount(&info->array))
+	      {
+		return RETAIN(GSIArrayItemAtIndex(&info->array, size).obj);
+	      }
+	    else
+	      {
+		[NSException raise: NSInvalidArgumentException
+			    format: @"Bad cross reference in property list"];
+	      }
+	  }
+	else
+	  {
+	    [NSException raise: NSInvalidArgumentException
+			format: @"Unexpected cross reference in property list"];
+	  }
 
       case ST_CSTRING:
 	{
@@ -564,14 +570,18 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	   * If we are supposed to be doing uniquing of strings, handle it.
 	   */
 	  if (uniquing == YES)
-	    s = GSUnique(s);
+	    {
+	      s = GSUnique(s);
+	    }
 
 	  /*
            * If uniquing was done on serialisation, store the string for
 	   * later reference.
 	   */
 	  if (info->didUnique)
-	    GSIArrayAddItem(&info->array, (GSIArrayItem)s);
+	    {
+	      GSIArrayAddItem(&info->array, (GSIArrayItem)s);
+	    }
 	  return s;
 	}
 
@@ -618,14 +628,18 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	   * If we are supposed to be doing uniquing of strings, handle it.
 	   */
 	  if (uniquing == YES)
-	    s = GSUnique(s);
+	    {
+	      s = GSUnique(s);
+	    }
 
 	  /*
            * If uniquing was done on serialisation, store the string for
 	   * later reference.
 	   */
 	  if (info->didUnique)
-	    GSIArrayAddItem(&info->array, (GSIArrayItem)s);
+	    {
+	      GSIArrayAddItem(&info->array, (GSIArrayItem)s);
+	    }
 	  return s;
 	}
 
@@ -751,8 +765,9 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	}
 
       default:
-	return nil;
+	break;
     }
+  return nil;
 }
 
 
