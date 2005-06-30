@@ -520,7 +520,9 @@ static void
 endDeserializerInfo(_NSDeserializerInfo* info)
 {
   if (info->didUnique)
-    GSIArrayEmpty(&info->array);
+    {
+      GSIArrayEmpty(&info->array);
+    }
 }
 
 static id
@@ -536,7 +538,15 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_XREF:
 	{
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
-	  return RETAIN(GSIArrayItemAtIndex(&info->array, size).obj);
+	  if (size < GSIArrayCount(&info->array))
+	    {
+	      return RETAIN(GSIArrayItemAtIndex(&info->array, size).obj);
+	    }
+	  else
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Bad cross reference in property list"];
+	    }
 	}
 
       case ST_CSTRING:

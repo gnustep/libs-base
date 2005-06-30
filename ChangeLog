@@ -1,3 +1,10 @@
+2005-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSerializer.m: deserializeFromInfo() check that cross
+	reference indices are valid and raise an exception if not ... should
+	fix bug reported by Roland Schwingel, where trying to deserialize a
+	corrupt file could cause a crash.
+
 2005-06-28  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSInvocation.m (-getReturnValue:, -setReturnValue:): Only
