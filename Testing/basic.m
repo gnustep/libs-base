@@ -6,6 +6,12 @@
 
 #if 1
 
+static void uncaught(NSException* e)
+{
+  fprintf(stderr, "In uncaught exception handler.\n");
+  [NSException raise: NSGenericException format: @"Recursive exception"];
+}
+
 static void test1(void)
 {
     NSURL *baseURL = [NSURL fileURLWithPath:@"/usr/local/bin"];
@@ -138,7 +144,15 @@ int main ()
 
   printf ("Hello from object at 0x%x\n", (unsigned)[o self]);
 
-  NSLog(@"Value for foo is %@", [a valueForKey: @"foo"]);
+  NS_DURING
+    {
+      NSLog(@"Value for foo is %@", [a valueForKey: @"foo"]);
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Caught expected exception: %@", localException);
+    }
+  NS_ENDHANDLER
 
   [o release];
   o = [NSString stringWithFormat: @"/proc/%d/status", getpid()];
@@ -146,6 +160,10 @@ int main ()
   o = [NSString stringWithContentsOfFile: o];
   NSLog(@"'%@'", o);
 
+  NSLog(@"This test should now cause program termination after a recursive exception");
+
+  NSSetUncaughtExceptionHandler(uncaught);
+  [NSException raise: NSGenericException format: @"an artifical exception"];
   exit (0);
 }
 #else

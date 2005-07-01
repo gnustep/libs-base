@@ -1,3 +1,11 @@
+2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: ([-raise]) Fix behavior to be the same as in
+	MacOS-X (ie call the default uncaught exception handler after
+	whatever handler is set, in case the set handler does not terminate).
+	Ensures that the -raise method cannot return.
+	* Testing/basic.m: Add test for uncaught exception handler.
+
 2005-06-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSerializer.m: deserializeFromInfo() check that cross

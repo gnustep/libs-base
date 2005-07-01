@@ -79,36 +79,17 @@ NSString* const NSParseErrorException
 
 #include "GSPrivate.h"
 
-static void
-_preventRecursion (NSException *exception)
+static void _terminate()
 {
-  fprintf(stderr, "recursion encountered handling uncaught exception\n");
-  fflush(stderr);	/* NEEDED UNDER MINGW */
-}
-
-static void
-_NSFoundationUncaughtExceptionHandler (NSException *exception)
-{
-  BOOL			a;
-  extern const char*	GSArgZero(void);
-
-  _NSUncaughtExceptionHandler = _preventRecursion;
-#if 1
-  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n", GSArgZero(),
-    [[exception name] lossyCString], [[exception reason] lossyCString]);
-  fflush(stderr);	/* NEEDED UNDER MINGW */
-#else
-  NSLog("Uncaught exception %@, reason: %@",
-    [exception name], [exception reason]);
-#endif
+  BOOL			shouldAbort;
 
 #ifdef	DEBUG
-  a = YES;		// abort() by default.
+  shouldAbort = YES;		// abort() by default.
 #else
-  a = NO;		// exit() by default.
+  shouldAbort = NO;		// exit() by default.
 #endif
-  a = GSEnvironmentFlag("CRASH_ON_ABORT", a);
-  if (a == YES)
+  shouldAbort = GSEnvironmentFlag("CRASH_ON_ABORT", shouldAbort);
+  if (shouldAbort == YES)
     {
       abort();
     }
@@ -116,6 +97,18 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     {
       exit(1);
     }
+}
+
+static void
+_NSFoundationUncaughtExceptionHandler (NSException *exception)
+{
+  extern const char*	GSArgZero(void);
+
+  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n", GSArgZero(),
+    [[exception name] lossyCString], [[exception reason] lossyCString]);
+  fflush(stderr);	/* NEEDED UNDER MINGW */
+
+  _terminate();
 }
 
 /**
@@ -223,25 +216,56 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
    Raises the exception. All code following the raise will not be
    executed and program control will be transfered to the closest
    calling method which encapsulates the exception code in an
-   NS_DURING macro, or to the uncaught exception handler if there is no
-   other handling code.
+   NS_DURING macro.<br />
+   If the exception was not caught in a macro, the currently set
+   uncaught exception handler is called to perform final logging
+   and handle program termination.<br />
+   If the uncaught exception handler fails to terminate the program,
+   then the default builtin uncaught exception handler will do so.<br />
+   NB. all other exception raising methods call this one, so if you
+   want to set a breakpoint when debugging, set it in this method.
 */
 - (void) raise
 {
   NSThread	*thread;
   NSHandler	*handler;
 
-  if (_NSUncaughtExceptionHandler == NULL)
-    {
-      _NSUncaughtExceptionHandler = _NSFoundationUncaughtExceptionHandler;
-    }
-
   thread = GSCurrentThread();
   handler = thread->_exception_handler;
   if (handler == NULL)
     {
-      _NSUncaughtExceptionHandler(self);
-      return;
+      static	BOOL	recursion = NO;
+
+      /*
+       * Set a flag to prevent recursive uncaught exceptions.
+       */
+      if (recursion == NO)
+	{
+	  recursion = YES;
+	}
+      else
+	{
+	  fprintf(stderr,
+	    "recursion encountered handling uncaught exception\n");
+	  fflush(stderr);	/* NEEDED UNDER MINGW */
+	  _terminate();
+	}
+
+      /*
+       * Call the uncaught exception handler (if there is one).
+       */
+      if (_NSUncaughtExceptionHandler != NULL)
+	{
+	  (*_NSUncaughtExceptionHandler)(self);
+	}
+
+      /*
+       * The uncaught exception handler which is set has not
+       * exited, so we call the builtin handler, (undocumented
+       * behavior of MacOS-X).
+       * The standard handler is guaranteed to exit/abort.
+       */
+      _NSFoundationUncaughtExceptionHandler(self);
     }
 
   thread->_exception_handler = handler->next;
