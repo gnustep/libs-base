@@ -3075,7 +3075,7 @@ static NSSet	*fileKeys = nil;
   return [GSAttrDictionaryEnumerator enumeratorFor: self];
 }
 
-- (id) objectForKey: (id)key
+- (id) objectForKey: (NSString*)key
 {
   int	count = 0;
 

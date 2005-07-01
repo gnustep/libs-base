@@ -37,8 +37,6 @@
 #include "Foundation/NSObjCRuntime.h"
 
 @class	GSCountedSet;
-@interface GSCountedSet : NSObject	// Help the compiler
-@end
 
 /*
  *	Class variables for uniquing objects;

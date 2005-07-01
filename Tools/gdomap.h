@@ -212,7 +212,7 @@ typedef	struct	{
     unsigned char	ptype;		/* Type of port registered.	*/
     unsigned char	dummy;
     unsigned int	port;
-    unsigned char	name[GDO_NAME_MAX_LEN+1];
+    char		name[GDO_NAME_MAX_LEN+1];
 } gdo_req;
 
 #define	GDO_REQ_SIZE	sizeof(gdo_req)	/* Size of a request packet.	*/

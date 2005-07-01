@@ -1573,7 +1573,7 @@ mframe_destroy_argframe(const char *types, arglist_t argframe)
 BOOL
 mframe_decode_return (const char *type, void* buffer, void* retframe)
 {
-  unsigned int	size = 0;
+  int	size = 0;
 
   type = objc_skip_type_qualifiers(type);
   NSGetSizeAndAlignment(type, &size, 0);

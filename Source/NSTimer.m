@@ -34,8 +34,6 @@
 #include "Foundation/NSInvocation.h"
 
 @class	NSGDate;
-@interface NSGDate : NSObject	// Help the compiler
-@end
 static Class	NSDate_class;
 
 /**
@@ -331,7 +329,7 @@ static Class	NSDate_class;
 /**
  * Compares timers based on the date at which they should next fire.
  */
-- (NSComparisonResult) compare: (id)anotherTimer
+- (NSComparisonResult) compare: (NSTimer*)anotherTimer
 {
   if (anotherTimer == self)
     {
@@ -344,7 +342,7 @@ static Class	NSDate_class;
     }
   else
     {
-      return [_date compare: ((NSTimer*)anotherTimer)->_date];
+      return [_date compare: anotherTimer->_date];
     }
   return 0;
 }

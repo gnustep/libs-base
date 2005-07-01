@@ -49,12 +49,10 @@
 
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
+@class	GSString;
+@class	GSMutableString;
 @class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
-@end
 @class	GSMutableDictionary;
-@interface GSMutableDictionary : NSObject	// Help the compiler
-@end
 
 @interface GSBinaryPLParser : NSObject
 {
@@ -2752,8 +2750,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else if ((next >= 0x50) && (next < 0x5F))
     {
       // Short string
-      unsigned	len = next - 0x50;
-      char 	buffer[len+1];
+      unsigned len = next - 0x50;
+      unsigned char buffer[len+1];
 
       [data getBytes: buffer range: NSMakeRange(counter, len)];
       buffer[len] = '\0';

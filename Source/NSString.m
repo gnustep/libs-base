@@ -89,16 +89,8 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 @class	GSString;
 @class	GSMutableString;
 @class	GSPlaceholderString;
-@interface GSPlaceholderString : NSObject	// Help the compiler
-@end
 @class	GSMutableArray;
 @class	GSMutableDictionary;
-@class	NSImmutableString;
-@interface NSImmutableString : NSObject	// Help the compiler
-@end
-@class	GSImmutableString;
-@interface GSImmutableString : NSObject	// Help the compiler
-@end
 
 
 /*
@@ -1152,8 +1144,8 @@ handle_printf_atsign (FILE *stream,
   unichar	*buf = 0;
   unsigned int	l = 0;
 
-  if (GSToUnicode(&buf, &l, (unsigned char*)byteString, length,
-	_DefaultStringEncoding, [self zone], 0) == NO)
+  if (GSToUnicode(&buf, &l, byteString, length, _DefaultStringEncoding,
+    [self zone], 0) == NO)
     {
       DESTROY(self);
     }
@@ -1287,8 +1279,8 @@ handle_printf_atsign (FILE *stream,
 	  unichar	*u = 0;
 	  unsigned int	l = 0;
 
-	  if (GSToUnicode(&u, &l, (unsigned char*)bytes, length,
-	    NSUTF8StringEncoding, GSObjCZone(self), 0) == NO)
+	  if (GSToUnicode(&u, &l, bytes, length, NSUTF8StringEncoding,
+	    GSObjCZone(self), 0) == NO)
 	    {
 	      DESTROY(self);
 	    }
@@ -1404,7 +1396,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCString: (char*)f._contents.c length: f._count];
+      self = [self initWithCString: f._contents.c length: f._count];
     }
 
   /*
@@ -1483,7 +1475,7 @@ handle_printf_atsign (FILE *stream,
 
       if (i == len)
 	{
-	  self = [self initWithCString: (char*)bytes length: len];
+	  self = [self initWithCString: bytes length: len];
 	}
       else
 	{
@@ -3348,7 +3340,7 @@ handle_printf_atsign (FILE *stream,
   else
     {
       unsigned char	*b = 0;
-      unsigned		l = 0;
+      int		l = 0;
       unichar		*u;
 
       u = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), len*sizeof(unichar));
@@ -4870,7 +4862,7 @@ static NSFileManager *fm = nil;
 	  else if (enc == NSASCIIStringEncoding
 	    || enc == _DefaultStringEncoding)
 	    {
-	      char	*chars;
+	      unsigned char	*chars;
 	
 	      chars = NSZoneMalloc(zone, count+1);
 	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
@@ -4889,7 +4881,7 @@ static NSFileManager *fm = nil;
 		                      count: count
 				         at: chars];
 	      chars[count] = '\0';
-	      self = [self initWithUTF8String: (char*)chars];
+	      self = [self initWithUTF8String: chars];
 	      NSZoneFree(zone, chars);
 	    }
 	  else
@@ -5049,7 +5041,7 @@ static NSFileManager *fm = nil;
 /**
  * Constructs an empty string.
  */
-+ (id) string
++ (NSMutableString*) string
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: 0]);
@@ -5068,8 +5060,8 @@ static NSFileManager *fm = nil;
  * Create a string of unicode characters.
  */
 // Inefficient implementation.
-+ (id) stringWithCharacters: (const unichar*)characters
-		     length: (unsigned int)length
++ (NSString*) stringWithCharacters: (const unichar*)characters
+			    length: (unsigned int)length
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCharacters: characters length: length]);
@@ -5091,7 +5083,7 @@ static NSFileManager *fm = nil;
  * null-terminated and encoded in the default C string encoding.  (Characters
  * will be converted to unicode representation internally.)
  */
-+ (id) stringWithCString: (const char*)byteString
++ (NSString*) stringWithCString: (const char*)byteString
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString]);
@@ -5102,8 +5094,8 @@ static NSFileManager *fm = nil;
  * null bytes and should be encoded in the default C string encoding.
  * (Characters will be converted to unicode representation internally.)
  */
-+ (id) stringWithCString: (const char*)byteString
-		  length: (unsigned int)length
++ (NSString*) stringWithCString: (const char*)byteString
+			 length: (unsigned int)length
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
@@ -5114,7 +5106,7 @@ static NSFileManager *fm = nil;
  * be a constant format string, like '<code>@"float val = %f"</code>', remaining
  * arguments should be the variables to print the values of, comma-separated.
  */
-+ (id) stringWithFormat: (NSString*)format, ...
++ (NSString*) stringWithFormat: (NSString*)format, ...
 {
   va_list ap;
   va_start(ap, format);
@@ -5313,6 +5305,8 @@ static NSFileManager *fm = nil;
  * The methods in this category are not available in MacOS-X
  */
 @implementation NSMutableString (GNUstep)
+@class	NSImmutableString;
+@class	GSImmutableString;
 
 /**
  * Returns a proxy to the receiver which will allow access to the

@@ -347,17 +347,17 @@ static int ParseFile(const char *filename,NSMutableDictionary *tables)
 		    NSString *key,*comment,*table;
 
 		    /* TODO: let user specify source file encoding */
-		    key=[NSString stringWithCString: (char*)args[lf->key_index]];
+		    key=[NSString stringWithCString: args[lf->key_index]];
 
 		    if (lf->comment_index==-1 || !arg_len[lf->comment_index])
 		      comment=nil;
 		    else
-		      comment=[NSString stringWithCString: (char*)args[lf->comment_index]];
+		      comment=[NSString stringWithCString: args[lf->comment_index]];
 
 		    if (lf->table_index==-1)
 		      table=@"Localizable"; /* TODO: customizable? */
 		    else
-		      table=[NSString stringWithCString: (char*)args[lf->table_index]];
+		      table=[NSString stringWithCString: args[lf->table_index]];
 
 		    e=[[SourceEntry alloc] initWithKey: key comment: comment  file: filenamestr line: cur_line];
 		    [tables addEntry: e toTable: table];

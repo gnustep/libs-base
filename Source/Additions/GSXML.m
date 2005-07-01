@@ -107,11 +107,6 @@ static Class treeClass;
 static IMP usImp;
 static SEL usSel;
 
-/*
- * Macro to cast results to correct type for libxml2
- */
-#define	UTF8STRING(X)	((const unsigned char*)[X UTF8String])
-
 inline static NSString*
 UTF8Str(const unsigned char *bytes)
 {
@@ -349,7 +344,7 @@ static NSMapTable	*attrNames = 0;
  */
 + (GSXMLDocument*) documentWithVersion: (NSString*)version
 {
-  void		*data = xmlNewDoc(UTF8STRING(version));
+  void		*data = xmlNewDoc([version UTF8String]);
   GSXMLDocument	*document = nil;
 
   if (data == 0)
@@ -453,7 +448,7 @@ static NSMapTable	*attrNames = 0;
   GSXMLNode	*n = [GSXMLNode alloc];
 
   n = [n _initFrom:
-    xmlNewDocNode(lib, [ns lib], UTF8STRING(name), UTF8STRING(content))
+    xmlNewDocNode(lib, [ns lib], [name UTF8String], [content UTF8String])
     parent: self];
   return AUTORELEASE(n);
 }
@@ -1146,7 +1141,7 @@ static NSMapTable	*nodeNames = 0;
 {
   void	*l;
 
-  l = xmlNewProp((xmlNodePtr)[self lib], UTF8STRING(name), UTF8STRING(value));
+  l = xmlNewProp((xmlNodePtr)[self lib], [name cString], [value cString]);
   return AUTORELEASE([[GSXMLAttribute alloc] _initFrom: l parent: self]);
 }
 
@@ -1187,7 +1182,7 @@ static NSMapTable	*nodeNames = 0;
   GSXMLNode	*n = [GSXMLNode alloc];
 
   n = [n _initFrom:
-    xmlNewTextChild(lib, [ns lib], UTF8STRING(name), UTF8STRING(content))
+    xmlNewTextChild(lib, [ns lib], [name UTF8String], [content UTF8String])
     parent: self];
   return AUTORELEASE(n);
 }
@@ -1209,7 +1204,7 @@ static NSMapTable	*nodeNames = 0;
   GSXMLNode	*n = [GSXMLNode alloc];
 
   n = [n _initFrom:
-    xmlAddChild((xmlNodePtr)lib, xmlNewText(UTF8STRING(content)))
+    xmlAddChild((xmlNodePtr)lib, xmlNewText([content UTF8String]))
     parent: self];
   return AUTORELEASE(n);
 }
@@ -1231,7 +1226,7 @@ static NSMapTable	*nodeNames = 0;
   GSXMLNode	*n = [GSXMLNode alloc];
 
   n = [n _initFrom:
-    xmlAddChild((xmlNodePtr)lib, xmlNewComment(UTF8STRING(content)))
+    xmlAddChild((xmlNodePtr)lib, xmlNewComment([content UTF8String]))
     parent: self];
   return AUTORELEASE(n);
 }
@@ -1244,7 +1239,7 @@ static NSMapTable	*nodeNames = 0;
 {
   void	*data;
 
-  data = xmlNewNs((xmlNodePtr)lib, UTF8STRING(href), UTF8STRING(prefix));
+  data = xmlNewNs((xmlNodePtr)lib, [href UTF8String], [prefix UTF8String]);
   if (data == NULL)
     {
       NSLog(@"Can't create GSXMLNamespace object");
@@ -1271,8 +1266,8 @@ static NSMapTable	*nodeNames = 0;
   GSXMLNode	*n = [GSXMLNode alloc];
 
   n = [n _initFrom:
-    xmlAddChild((xmlNodePtr)lib, xmlNewPI(UTF8STRING(name),
-    UTF8STRING(content))) parent: self];
+    xmlAddChild((xmlNodePtr)lib, xmlNewPI([name UTF8String],
+    [content UTF8String])) parent: self];
   return AUTORELEASE(n);
 }
 
@@ -1528,7 +1523,7 @@ static NSMapTable	*nodeNames = 0;
  */
 - (void) setObject: (NSString*)value forKey: (NSString*)key
 {
-  xmlSetProp(lib, UTF8STRING(key), UTF8STRING(value));
+  xmlSetProp(lib, [key UTF8String], [value UTF8String]);
 }
 
 /**
@@ -1847,7 +1842,7 @@ static NSString	*endMarker = @"At end of incremental parse";
       // Stop incoming data being parsed.
       ctxt->instate = XML_PARSER_EOF;
       // Pretend we are at end of file (nul byte).
-      if (ctxt->input != NULL) ctxt->input->cur = (const unsigned char*)"";
+      if (ctxt->input != NULL) ctxt->input->cur = "";
     }
 }
 
@@ -2275,7 +2270,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (BOOL) _initLibXML
 {
-  const char	*file;
+  const unsigned char	*file;
 
   if ([src isKindOfClass: NSString_class])
     {
@@ -2841,7 +2836,7 @@ processingInstructionFunction(void *ctx, const unsigned char *target,
 {
   NSCAssert(ctx,@"No Context");
   [HANDLER processInstruction: UTF8Str(target)
-			 data: UTF8Str((const unsigned char*)data)];
+			 data: UTF8Str(data)];
 }
 
 static void
@@ -3603,7 +3598,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (NSString *) stringValue
 {
   xmlChar *string = ((xmlXPathObject*)_lib)->stringval;
-  return [NSString_class stringWithUTF8String: (const char*)string];
+  return [NSString_class stringWithUTF8String: string];
 }
 - (NSString *) description
 {
@@ -3717,7 +3712,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   xmlXPathObject   *res;
   GSXPathObject *result;
 
-  comp = xmlXPathCompile (UTF8STRING(XPathExpression));
+  comp = xmlXPathCompile ([XPathExpression UTF8String]);
   if (comp == NULL)
     {
       /* Maybe an exception would be better ? */

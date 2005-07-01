@@ -179,7 +179,7 @@ static void	init_iface();
 static void	load_iface(const char* from);
 static void	init_ports();
 static void	init_probe();
-static void	queue_msg(struct sockaddr_in* a, uptr d, unsigned l);
+static void	queue_msg(struct sockaddr_in* a, uptr d, int l);
 static void	queue_pop();
 static void	queue_probe(struct in_addr* to, struct in_addr *from,
   int num_extras, struct in_addr* extra, int is_reply);
@@ -575,7 +575,7 @@ static int	udp_pending = 0;
  *			on the UDP socket.
  */
 static void
-queue_msg(struct sockaddr_in* a, uptr d, unsigned l)
+queue_msg(struct sockaddr_in* a, uptr d, int l)
 {
   struct u_data*	entry = (struct u_data*)malloc(sizeof(struct u_data));
 
@@ -657,7 +657,7 @@ map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
   int		i;
 
   m->port = p;
-  m->name = (unsigned char*)malloc(l);
+  m->name = (char*)malloc(l);
   m->size = l;
   m->net = (t & GDO_NET_MASK);
   m->svc = (t & GDO_SVC_MASK);
@@ -1258,7 +1258,7 @@ init_iface()
   if (addr != 0) free(addr);
   addr = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
   if (bcok != 0) free(bcok);
-  bcok = (unsigned char*)malloc((MAX_IFACE+1)*sizeof(char));
+  bcok = (char*)malloc((MAX_IFACE+1)*sizeof(char));
   if (bcst != 0) free(bcst);
   bcst = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
   if (mask != 0) free(mask);
@@ -1469,7 +1469,7 @@ load_iface(const char* from)
   num_iface++;
   addr = (struct in_addr*)malloc((num_iface+1)*IASIZE);
   mask = (struct in_addr*)malloc((num_iface+1)*IASIZE);
-  bcok = (unsigned char*)malloc((num_iface+1)*sizeof(char));
+  bcok = (char*)malloc((num_iface+1)*sizeof(char));
   bcst = (struct in_addr*)malloc((num_iface+1)*IASIZE);
 
   addr[interfaces].s_addr = inet_addr("127.0.0.1");
@@ -2151,7 +2151,7 @@ static void
 handle_accept()
 {
   struct sockaddr_in	sa;
-  unsigned		len = sizeof(sa);
+  int			len = sizeof(sa);
   int			desc;
 
   desc = accept(tcp_desc, (void*)&sa, &len);
@@ -2478,7 +2478,7 @@ handle_recv()
   RInfo	*ri;
   uptr	ptr;
   struct sockaddr_in* addr;
-  unsigned len = sizeof(struct sockaddr_in);
+  int	len = sizeof(struct sockaddr_in);
   int	r;
 
   ri = getRInfo(udp_desc, 0);
@@ -2543,7 +2543,7 @@ handle_request(int desc)
   size = ri->buf.r.nsize;
   ptype = ri->buf.r.ptype;
   port = ntohl(ri->buf.r.port);
-  buf = (unsigned char*)ri->buf.r.name;
+  buf = ri->buf.r.name;
 
   FD_CLR(desc, &read_fds);
   FD_SET(desc, &write_fds);
@@ -3147,7 +3147,7 @@ handle_request(int desc)
    */
   if (desc == udp_desc)
     {
-      queue_msg(&ri->addr, (unsigned char*)wi->buf, wi->len);
+      queue_msg(&ri->addr, wi->buf, wi->len);
       clear_chan(desc);
     }
 }
@@ -3892,8 +3892,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 		  continue;
 		}
 
-	      if (tryHost(GDO_LOOKUP, len, (unsigned char*)name,
-		ptype, &sin, &port, 0)==0)
+	      if (tryHost(GDO_LOOKUP, len, name, ptype, &sin, &port, 0)==0)
 		{
 		  if (port != 0)
 		    {
@@ -3924,7 +3923,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 	{
 	  port = (unsigned short)pnum;
 	}
-      rval = tryHost(op, len, (unsigned char*)name, ptype, &sin, &port, 0);
+      rval = tryHost(op, len, name, ptype, &sin, &port, 0);
       if (rval != 0 && host == local_hostname)
 	{
 	  sprintf(ebuf, "failed to contact gdomap on %s(%s) - %s",

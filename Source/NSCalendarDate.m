@@ -60,15 +60,7 @@
 #define GREGORIAN_REFERENCE 730486
 
 @class	GSTimeZone;
-@interface	GSTimeZone : NSObject	// Help the compiler
-@end
 @class	GSAbsTimeZone;
-@interface	GSAbsTimeZone : NSObject	// Help the compiler
-@end
-@class	NSGDate;
-@interface	NSGDate : NSObject	// Help the compiler
-@end
-
 
 static NSString	*cformat = @"%Y-%m-%d %H:%M:%S %z";
 
@@ -283,6 +275,8 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   *second = (int)c;
   *mil = (a - h - m - c) * 1000;
 }
+
+@class	NSGDate;
 
 /**
  * An [NSDate] subclass which understands about timezones and provides
@@ -1769,8 +1763,8 @@ static void Grow(DescriptionInfo *info, unsigned size)
 			unsigned char	tmp[16];
 			int		idx = 0;
 
-			sprintf((char*)tmp, "%d", v);
-			Grow(info, strlen((char*)tmp));
+			sprintf(tmp, "%d", v);
+			Grow(info, strlen(tmp));
 			while (tmp[idx] != '\0')
 			  {
 			    info->t[info->offset++] = tmp[idx++];

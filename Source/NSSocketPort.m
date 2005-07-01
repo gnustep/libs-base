@@ -1076,7 +1076,7 @@ static Class	runLoopClass;
   if (state == GS_H_TRYCON)	/* Connection attempt.	*/
     {
       int	res = 0;
-      unsigned	len = sizeof(res);
+      int	len = sizeof(res);
 
       if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) == 0
             && res != 0)
@@ -2117,7 +2117,7 @@ static unsigned	wordAlign;
 #endif
     {
       struct sockaddr_in	sockAddr;
-      unsigned			size = sizeof(sockAddr);
+      int			size = sizeof(sockAddr);
 
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
       if (desc == INVALID_SOCKET)

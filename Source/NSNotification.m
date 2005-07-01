@@ -29,10 +29,6 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSString.h"
 
-@class	GSNotification;
-@interface GSNotification : NSObject	// Help the compiler
-@end
-
 /**
  *  <p>Represents a notification for posting to an [NSNotificationCenter].
  *  Consists of a name, an object, and an optional dictionary.  The
@@ -47,7 +43,9 @@
 static Class	abstractClass = 0;
 static Class	concreteClass = 0;
 
-+ (id) allocWithZone: (NSZone*)z
+@class	GSNotification;
+
++ (NSNotification*) allocWithZone: (NSZone*)z
 {
   if (self == abstractClass)
     {
