@@ -31,7 +31,6 @@
 #include <objc/Protocol.h>
 #include "Foundation/NSMethodSignature.h"
 #include "Foundation/NSInvocation.h"
-#include "Foundation/NSLock.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
@@ -75,16 +74,6 @@ static Class	NSConstantStringClass;
 
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
-
-@interface	NSZombie
-{
-  Class	isa;
-}
-- (Class) class;
-- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame;
-- (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
-@end
 
 /*
  * allocationLock is needed when running multi-threaded for retain/release
@@ -1524,7 +1513,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 /**
  * This method is called automatically to handle a message sent to
  * the receiver for which the receivers class has no method.<br />
- * The default implementation calls -doesNotRecognizeSelector:
+ * The default implemnentation calls -doesNotRecognizeSelector:
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
@@ -2432,11 +2421,13 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
 
 
+@interface	NSZombie
+- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame;
+- (void) forwardInvocation: (NSInvocation*)anInvocation;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
+@end
+
 @implementation	NSZombie
-- (Class) class
-{
-  return object_get_class(self);
-}
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
 {
   if (aSel == 0)

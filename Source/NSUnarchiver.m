@@ -51,10 +51,6 @@
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
 
-@class NSDataMalloc;
-@interface NSDataMalloc : NSObject	// Help the compiler
-@end
-
 static const char*
 typeToName1(char type)
 {
@@ -345,6 +341,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
  */
 @implementation NSUnarchiver
 
+@class NSDataMalloc;
 static Class NSDataMallocClass;
 
 + (void) initialize
@@ -806,8 +803,8 @@ static Class NSDataMallocClass;
 	  objc_layout_structure (type, &layout);
 	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      unsigned		offset;
-	      unsigned		align;
+	      int		offset;
+	      int		align;
 	      const char	*ftype;
 
 	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);

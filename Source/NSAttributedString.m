@@ -57,14 +57,8 @@
 #include "Foundation/NSRange.h"
 
 @class	GSAttributedString;
-@interface GSAttributedString : NSObject	// Help the compiler
-@end
 @class	GSMutableAttributedString;
-@interface GSMutableAttributedString : NSObject	// Help the compiler
-@end
 @class	GSMutableDictionary;
-@interface GSMutableDictionary : NSObject	// Help the compiler
-@end
 static Class	dictionaryClass = 0;
 
 static SEL	eqSel;

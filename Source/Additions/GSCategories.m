@@ -609,7 +609,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 		  lineLength -= 3;
 		}
 	    }
-	  else if (pos > 6 && strncmp((const char*)bytes, "begin ", 6) == 0)
+	  else if (pos > 6 && strncmp(bytes, "begin ", 6) == 0)
 	    {
 	      unsigned	off = 6;
 	      unsigned	end = pos;
@@ -678,8 +678,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   /*
    * The header is a line of the form 'begin mode filename'
    */
-  sprintf((char*)buf, "begin %03o ", mode);
-  [encoded appendBytes: buf length: strlen((const char*)buf)];
+  sprintf(buf, "begin %03o ", mode);
+  [encoded appendBytes: buf length: strlen(buf)];
   [encoded appendData: [name dataUsingEncoding: NSASCIIStringEncoding]];
   [encoded appendBytes: "\n" length: 1];
 

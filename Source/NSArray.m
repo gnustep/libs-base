@@ -53,32 +53,13 @@
 extern BOOL	GSMacOSXCompatiblePropertyLists(void);
 extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
-@interface NSArrayEnumerator : NSEnumerator
-{
-  NSArray	*array;
-  unsigned	pos;
-  IMP		get;
-  unsigned	(*cnt)(NSArray*, SEL);
-}
-- (id) initWithArray: (NSArray*)anArray;
-@end
-@interface NSArrayEnumeratorReverse : NSArrayEnumerator
-@end
-
-
+@class NSArrayEnumerator;
+@class NSArrayEnumeratorReverse;
 
 @class	GSArray;
-@interface GSArray : NSObject	// Help the compiler
-@end
 @class	GSInlineArray;
-@interface GSInlineArray : NSObject	// Help the compiler
-@end
 @class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
-@end
 @class	GSPlaceholderArray;
-@interface GSPlaceholderArray : NSObject	// Help the compiler
-@end
 
 static Class NSArrayClass;
 static Class GSArrayClass;
@@ -1917,6 +1898,16 @@ compare(id elem1, id elem2, void* context)
 }
 @end
 
+@interface NSArrayEnumerator : NSEnumerator
+{
+  NSArray	*array;
+  unsigned	pos;
+  IMP		get;
+  unsigned	(*cnt)(NSArray*, SEL);
+}
+- (id) initWithArray: (NSArray*)anArray;
+@end
+
 @implementation NSArrayEnumerator
 
 - (id) initWithArray: (NSArray*)anArray
@@ -1952,6 +1943,9 @@ compare(id elem1, id elem2, void* context)
   [super dealloc];
 }
 
+@end
+
+@interface NSArrayEnumeratorReverse : NSArrayEnumerator
 @end
 
 @implementation NSArrayEnumeratorReverse

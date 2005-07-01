@@ -103,7 +103,7 @@
 /**
  * Returns the file handle for reading from the pipe.
  */
-- (NSFileHandle*) fileHandleForReading
+- (id) fileHandleForReading
 {
   return readHandle;
 }
@@ -111,7 +111,7 @@
 /**
  * Returns the file handle for writing to the pipe.
  */
-- (NSFileHandle*) fileHandleForWriting
+- (id) fileHandleForWriting
 {
   return writeHandle;
 }

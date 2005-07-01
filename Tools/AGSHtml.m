@@ -399,15 +399,13 @@ static NSString		*mainFont = nil;
 	      else if (classname != nil && category == nil)
 		{
 		  NSArray	*catNames;
-		  NSDictionary	*d;
 
 		  /*
 		   * For a class, we want to list methods in any associated
 		   * categories as well as those of the class itself.
 		   */
-		  d = [refs objectForKey: @"categories"];
-		  d = [d objectForKey: classname];
-		  catNames = [d allKeys];
+		  catNames = [[[refs objectForKey: @"categories"]
+		    objectForKey: classname] allKeys];
 		  if ((c = [catNames count]) > 0)
 		    {
 		      NSMutableDictionary	*m = [dict mutableCopy];

@@ -53,8 +53,6 @@
 #endif
 
 @class	NSDataStatic;
-@interface	NSDataStatic : NSObject	// Help the compiler
-@end
 
 @interface NSBitmapCharSet : NSCharacterSet
 {

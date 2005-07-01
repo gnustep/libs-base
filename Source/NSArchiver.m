@@ -56,17 +56,6 @@ NSString * const NSInconsistentArchiveException =
 
 #define	PREFIX		"GNUstep archive"
 
-static SEL serSel;
-static SEL tagSel;
-static SEL xRefSel;
-static SEL eObjSel;
-static SEL eValSel;
-
-@class NSMutableDataMalloc;
-@interface NSMutableDataMalloc : NSObject	// Help the compiler
-@end
-static Class	NSMutableDataMallocClass;
-
 /**
  *  <p>Implementation of [NSCoder] capable of creating sequential archives which
  *  must be read in the same order they were written.  This class implements
@@ -78,6 +67,15 @@ static Class	NSMutableDataMallocClass;
  *  that is more robust to class changes, and is recommended over this one.</p>
  */
 @implementation NSArchiver
+
+static SEL serSel;
+static SEL tagSel;
+static SEL xRefSel;
+static SEL eObjSel;
+static SEL eValSel;
+
+@class NSMutableDataMalloc;
+static Class	NSMutableDataMallocClass;
 
 + (void) initialize
 {
@@ -329,8 +327,8 @@ static Class	NSMutableDataMallocClass;
 	  objc_layout_structure (type, &layout);
 	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      unsigned		offset;
-	      unsigned		align;
+	      int		offset;
+	      int		align;
 	      const char	*ftype;
 
 	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);

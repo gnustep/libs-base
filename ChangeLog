@@ -1,5 +1,11 @@
 2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* The last change passed regression tests etc, but one program
+	I have has stopped working, so there is a bug somewhere.
+	Reverted change until I can isolate the problem and fix it.
+
+2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSUserDefaults.h: Fix bad return type
 	* Source/GSArray.m:
 	* Source/GSCountedSet.m:

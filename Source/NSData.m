@@ -1206,8 +1206,8 @@ failure:
 	  objc_layout_structure (type, &layout);
 	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      unsigned		offset;
-	      unsigned		align;
+	      int		offset;
+	      int		align;
 	      const char	*ftype;
 
 	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
@@ -2063,8 +2063,8 @@ failure:
 	  objc_layout_structure (type, &layout);
 	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      unsigned		offset;
-	      unsigned		align;
+	      int		offset;
+	      int		align;
 	      const char	*ftype;
 
 	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
@@ -2524,8 +2524,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  objc_layout_structure (type, &layout);
 	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      unsigned		offset;
-	      unsigned		align;
+	      int		offset;
+	      int		align;
 	      const char	*ftype;
 
 	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
@@ -3328,8 +3328,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  objc_layout_structure (type, &layout);
 	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      unsigned		offset;
-	      unsigned		align;
+	      int		offset;
+	      int		align;
 	      const char	*ftype;
 
 	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);

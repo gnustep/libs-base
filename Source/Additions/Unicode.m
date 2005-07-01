@@ -1031,8 +1031,7 @@ int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
   BOOL		result;
   unsigned int	old = dl;
 
-  result = GSToUnicode(&dst, (unsigned int*)&dl, (unsigned char*)src,
-    sl, enc, 0, 0);
+  result = GSToUnicode(&dst, &dl, src, sl, enc, 0, 0);
   if (result == NO)
     {
       return 0;

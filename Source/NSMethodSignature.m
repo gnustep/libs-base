@@ -46,8 +46,8 @@
       return nil;
     }
   newMs = AUTORELEASE([NSMethodSignature alloc]);
-  newMs->_methodTypes = mframe_build_signature(t, (int*)&newMs->_argFrameLength,
-    (int*)&newMs->_numArgs, 0);
+  newMs->_methodTypes = mframe_build_signature(t, &newMs->_argFrameLength,
+    &newMs->_numArgs, 0);
 
   return newMs;
 }

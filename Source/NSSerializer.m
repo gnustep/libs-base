@@ -43,25 +43,13 @@
 
 @class	GSDictionary;
 @class	GSMutableDictionary;
-@interface GSMutableDictionary : NSObject	// Help the compiler
-@end
 @class	NSDataMalloc;
-@interface NSDataMalloc : NSObject	// Help the compiler
-@end
 @class	GSInlineArray;
 @class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
-@end
 @class	GSCString;
-@interface GSCString : NSObject	// Help the compiler
-@end
 @class	GSCBufferString;
-@interface GSCBufferString : NSObject	// Help the compiler
-@end
 @class	GSUnicodeString;
 @class	GSUnicodeBufferString;
-@interface GSUnicodeBufferString : NSObject	// Help the compiler
-@end
 @class	GSMutableString;
 
 /*

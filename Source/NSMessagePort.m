@@ -170,8 +170,8 @@ typedef struct {
 } GSPortMsgHeader;
 
 typedef	struct {
-  unsigned char	version;
-  unsigned char	addr[0];	/* name of the socket in the port directory */
+  char	version;
+  char	addr[0];	/* name of the socket in the port directory */
 } GSPortInfo;
 
 /*
@@ -271,14 +271,14 @@ newDataWithEncodedPort(NSMessagePort *port)
   unsigned		plen;
   const unsigned char	*name = [port _name];
 
-  plen = 2 + strlen((char*)name);
+  plen = 2 + strlen(name);
 
   data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
   pih = (GSPortItemHeader*)[data mutableBytes];
   pih->type = GSSwapHostI32ToBig(GSP_PORT);
   pih->length = GSSwapHostI32ToBig(plen);
   pi = (GSPortInfo*)&pih[1];
-  strcpy((char*)pi->addr, (char*)name);
+  strcpy(pi->addr, name);
 
   NSDebugFLLog(@"NSMessagePort", @"Encoded port as '%s'", pi->addr);
 
@@ -409,7 +409,7 @@ static Class	runLoopClass;
   name = [aPort _name];
   memset(&sockAddr, '\0', sizeof(sockAddr));
   sockAddr.sun_family = AF_LOCAL;
-  strncpy(sockAddr.sun_path, (char*)name, sizeof(sockAddr.sun_path));
+  strncpy(sockAddr.sun_path, name, sizeof(sockAddr.sun_path));
 
   if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
     {
@@ -927,8 +927,8 @@ static Class	runLoopClass;
     {
       if (state == GS_H_TRYCON)	/* Connection attempt.	*/
 	{
-	  int	   res = 0;
-	  unsigned len = sizeof(res);
+	  int	res = 0;
+	  int	len = sizeof(res);
 
 	  if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) == 0
 	    && res != 0)
@@ -1216,8 +1216,8 @@ static int unique_index = 0;
 	[[NSProcessInfo processInfo] processIdentifier], unique_index++]];
   M_UNLOCK(messagePortLock);
 
-  return RETAIN([self _portWithName:
-    (unsigned char*)[path fileSystemRepresentation] listener: YES]);
+  return RETAIN([self _portWithName: [path fileSystemRepresentation]
+			   listener: YES]);
 }
 
 /*
@@ -1233,7 +1233,7 @@ static int unique_index = 0;
   NSData		*theName;
 
   theName = [[NSData alloc] initWithBytes: socketName
-				   length: strlen((char*)socketName)+1];
+				   length: strlen(socketName)+1];
 
   M_LOCK(messagePortLock);
 
@@ -1263,8 +1263,7 @@ static int unique_index = 0;
 	   */
 	  memset(&sockaddr, '\0', sizeof(sockaddr));
 	  sockaddr.sun_family = AF_LOCAL;
-	  strncpy(sockaddr.sun_path, (char*)socketName,
-	    sizeof(sockaddr.sun_path));
+	  strncpy(sockaddr.sun_path, socketName, sizeof(sockaddr.sun_path));
 
 	  /*
            * Need size of buffer for getsockbyname() later.
@@ -1626,7 +1625,7 @@ static int unique_index = 0;
   if (desc == listener)
     {
       struct sockaddr_un	sockAddr;
-      unsigned			size = sizeof(sockAddr);
+      int			size = sizeof(sockAddr);
 
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
       if (desc < 0)

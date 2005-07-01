@@ -73,11 +73,11 @@ NSRangeFromString(NSString *aString)
   if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"location", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
-    && (*scanIntImp)(scanner, scanIntSel, (int*)&range.location)
+    && (*scanIntImp)(scanner, scanIntSel, &range.location)
     && (*scanStringImp)(scanner, scanStringSel, @",", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"length", NULL)
     && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
-    && (*scanIntImp)(scanner, scanIntSel, (int*)&range.length)
+    && (*scanIntImp)(scanner, scanIntSel, &range.length)
     && (*scanStringImp)(scanner, scanStringSel, @"}", NULL))
     return range;
   else

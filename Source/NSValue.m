@@ -42,30 +42,12 @@
 @end
 
 @class	GSValue;
-@interface GSValue : NSObject	// Help the compiler
-@end
 @class	GSNonretainedObjectValue;
-@interface GSNonretainedObjectValue : NSObject	// Help the compiler
-@end
 @class	GSPointValue;
-@interface GSPointValue : NSObject	// Help the compiler
-@end
 @class	GSPointerValue;
-@interface GSPointerValue : NSObject	// Help the compiler
-@end
 @class	GSRangeValue;
-@interface GSRangeValue : NSObject	// Help the compiler
-@end
 @class	GSRectValue;
-@interface GSRectValue : NSObject	// Help the compiler
-@end
 @class	GSSizeValue;
-@interface GSSizeValue : NSObject	// Help the compiler
-@end
-@class	NSDataStatic;		// Needed for decoding.
-@interface NSDataStatic : NSObject	// Help the compiler
-@end
-
 
 static Class	abstractClass;
 static Class	concreteClass;
@@ -403,6 +385,8 @@ static NSLock			*placeholderLock;
   [coder encodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
   RELEASE(d);
 }
+
+@class	NSDataStatic;		// Neede for decoding.
 
 - (id) initWithCoder: (NSCoder *)coder
 {

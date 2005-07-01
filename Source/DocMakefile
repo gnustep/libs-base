@@ -67,6 +67,7 @@ NSIndexSet.h \
 NSInvocation.h \
 NSKeyedArchiver.h \
 NSKeyValueCoding.h \
+NSKeyValueObserving.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \

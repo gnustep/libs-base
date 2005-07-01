@@ -926,7 +926,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 #endif
   SOCKET	net;
   struct sockaddr_in	sin;
-  unsigned int		size = sizeof(sin);
+  int		size = sizeof(sin);
 
   if (getAddr(a, s, p, &sin) == NO)
     {
@@ -2120,7 +2120,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 #else
       int			desc;
 #endif
-      unsigned int		blen = sizeof(buf);
+      int			blen = sizeof(buf);
 
 #if defined(__MINGW__)
       desc = accept((SOCKET)_get_osfhandle(descriptor), (struct sockaddr*)&buf, &blen);
@@ -2139,7 +2139,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{ // Accept attempt completed.
 	  GSFileHandle		*h;
 	  struct sockaddr_in	sin;
-	  unsigned int		size = sizeof(sin);
+	  int			size = sizeof(sin);
 	  int			status;
 
 	  /*
@@ -2238,7 +2238,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     || operation == GSSOCKSConnect)
     { // Connection attempt completed.
       int	result;
-      unsigned	len = sizeof(result);
+      int	len = sizeof(result);
 
 #if defined(__MINGW__)
       if (getsockopt((SOCKET)_get_osfhandle(descriptor), SOL_SOCKET, SO_ERROR,
@@ -2496,7 +2496,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSString	*str = nil;
   struct sockaddr_in sin;
-  unsigned	size = sizeof(sin);
+  int		size = sizeof(sin);
 
   if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
     {
@@ -2513,7 +2513,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSString	*str = nil;
   struct sockaddr_in sin;
-  unsigned	size = sizeof(sin);
+  int		size = sizeof(sin);
 
   if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
     {

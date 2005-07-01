@@ -252,7 +252,7 @@ GS_EXPORT NSString* const NSLocale;
 - (NSString*) stringForKey: (NSString*)defaultName;
 
 /* Returning the Search List */
-- (NSArray*) searchList;
+- (NSMutableArray*) searchList;
 - (void) setSearchList: (NSArray*)newList;
 #ifndef	STRICT_OPENSTEP
 - (void) addSuiteNamed: (NSString*)aName;
