@@ -39,7 +39,11 @@
 #include "GSPrivate.h"
 
 @class	GSSet;
+@interface GSSet : NSObject	// Help the compiler
+@end
 @class	GSMutableSet;
+@interface GSMutableSet : NSObject	// Help the compiler
+@end
 
 /**
  *  <code>NSSet</code> maintains an unordered collection of unique objects

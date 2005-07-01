@@ -38,9 +38,20 @@
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSFileManager.h"
 
-@class	GSFileURLHandle;
+
 @class	GSFTPURLHandle;
+@interface GSFTPURLHandle : NSObject	// Help the compiler
+@end
 @class	GSHTTPURLHandle;
+@interface GSHTTPURLHandle : NSObject	// Help the compiler
+@end
+
+@interface	GSFileURLHandle : NSURLHandle
+{
+  NSString		*_path;
+  NSMutableDictionary	*_attributes;
+}
+@end
 
 /*
  * Keys for NSURLHandle
@@ -591,13 +602,6 @@ static Class		NSURLHandleClass = 0;
   return NO;
 }
 
-@end
-
-@interface	GSFileURLHandle : NSURLHandle
-{
-  NSString		*_path;
-  NSMutableDictionary	*_attributes;
-}
 @end
 
 /**

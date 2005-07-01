@@ -394,7 +394,7 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 #if	GSEQ_S == GSEQ_US
       unichar	*sBuf;
 #else
-      char	*sBuf;
+      unsigned char	*sBuf;
 #endif
 #endif
 #if	GSEQ_O == GSEQ_NS
@@ -404,7 +404,7 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 #if	GSEQ_O == GSEQ_US
       unichar	*oBuf;
 #else
-      char	*oBuf;
+      unsigned char	*oBuf;
 #endif
 #endif
 

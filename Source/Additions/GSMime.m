@@ -72,7 +72,7 @@ static	Class		documentClass = 0;
  *	Purpose -	Convert 4 bytes in base64 encoding to 3 bytes raw data.
  */
 static void
-decodebase64(unsigned char *dst, const char *src)
+decodebase64(unsigned char *dst, const unsigned char *src)
 {
   dst[0] =  (src[0]         << 2) | ((src[1] & 0x30) >> 4);
   dst[1] = ((src[1] & 0x0F) << 4) | ((src[2] & 0x3C) >> 2);
@@ -83,7 +83,7 @@ static char b64[]
   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 static int
-encodebase64(char *dst, const unsigned char *src, int length)
+encodebase64(unsigned char *dst, const unsigned char *src, int length)
 {
   int	dIndex = 0;
   int	sIndex;
@@ -808,7 +808,7 @@ wordData(NSString *word)
 		  if (buflen == 8)
 		    {
 		      buffer[8] = '\0';
-		      if (strcasecmp(buffer, "encoding") == 0)
+		      if (strcasecmp((char*)buffer, "encoding") == 0)
 			{
 			  found = YES;
 			}
@@ -1615,7 +1615,7 @@ wordData(NSString *word)
 
 	  b[0] = '-';
 	  b[1] = '-';
-	  [tmp getCString: &b[2]];
+	  [tmp getCString: (char*)&b[2]];
 	  boundary = [[NSData alloc] initWithBytesNoCopy: b length: l];
 	}
 
@@ -2235,7 +2235,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  *src = '\0';
 
 	  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-	  s = [s initWithCString: tmp];
+	  s = [s initWithCString: (const char *)tmp];
 	  enc = [documentClass encodingFromCharset: s];
 	  RELEASE(s);
 
@@ -3318,8 +3318,8 @@ static NSCharacterSet	*tokenSet = nil;
 {
   int		length;
   int		declen ;
-  const signed char	*src;
-  const signed char	*end;
+  const unsigned char	*src;
+  const unsigned char	*end;
   unsigned char *result;
   unsigned char	*dst;
   unsigned char	buf[4];
@@ -3335,7 +3335,7 @@ static NSCharacterSet	*tokenSet = nil;
       return [NSData data];
     }
   declen = ((length + 3) * 3)/4;
-  src = (const char*)[source bytes];
+  src = (const unsigned char*)[source bytes];
   end = &src[length];
 
   result = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), declen);

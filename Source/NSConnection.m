@@ -1814,7 +1814,7 @@ static void retEncoder (DOContext *ctxt)
   NSParameterAssert(type);
   NSParameterAssert(*type);
 
-  ctxt.encoder = [self _makeOutRmc: 0 generate: &ctxt.seq reply: YES];
+  ctxt.encoder = [self _makeOutRmc: 0 generate: (int*)&ctxt.seq reply: YES];
 
   if (debug_connection > 4)
     NSLog(@"building packet seq %d", ctxt.seq);
@@ -1951,7 +1951,7 @@ static void retEncoder (DOContext *ctxt)
   memset(&ctxt, 0, sizeof(ctxt));
   ctxt.connection = self;
 
-  op = [self _makeOutRmc: 0 generate: &ctxt.seq reply: YES];
+  op = [self _makeOutRmc: 0 generate: (int*)&ctxt.seq reply: YES];
 
   if (debug_connection > 4)
     NSLog(@"building packet seq %d", ctxt.seq);
@@ -2635,7 +2635,7 @@ static void callEncoder (DOContext *ctxt)
  * while we run the NSRunLoop.  Raise exception if we don't get anything
  * before timing out.
  */
-- _getReplyRmc: (int)sn
+- (NSPortCoder*) _getReplyRmc: (int)sn
 {
   NSPortCoder		*rmc;
   GSIMapNode		node = 0;
