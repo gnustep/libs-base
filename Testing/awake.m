@@ -1,6 +1,12 @@
 /* Test use of -awakeAfterUsingCoder:
+
+   Copyright (C) 2005 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Base Library.
+
    This is a rather complicated, strenuous test, borrowing elements
-   from the fref.m test. */
+   from the fref.m test.
+ */
 
 
 /* Beginning of some parameters to vary. */

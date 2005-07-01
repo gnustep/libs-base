@@ -1,3 +1,9 @@
+/* Test/example program for the base library
+
+   Copyright (C) 2005 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Base Library.
+*/
 #include <Foundation/Foundation.h>
 
 // Fri Oct 23 02:58:47 MET DST 1998 	dave@turbocat.de

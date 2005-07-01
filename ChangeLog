@@ -1,3 +1,35 @@
+2005-07-01  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/Base.gsdoc, Documentation/BaseAdditions.gsdoc, 
+	Documentation/Functions.gsdoc, Documentation/ReleaseNotes.gsdoc, 
+	Documentation/TypesAndConstants.gsdoc, 
+	Documentation/General/Debugging.gsdoc, 
+	Documentation/manual/GNUmakefile, 
+	Source/NSMessagePortNameServer.m, 
+	Testing/NSData-test.m, Testing/awake.m, Testing/basic.m, 
+	Testing/coder.m, Testing/containers.m, Testing/fref.m, 
+	Testing/gstcpport-client.m, Testing/gstcpport-server.m, 
+	Testing/heap.m, Testing/nsarchiver.m, Testing/nsarray.m, 
+	Testing/nscharacterset.m, Testing/nsconnection.m, 
+	Testing/nsconnection_client.m, Testing/nsconnection_server.m, 
+	Testing/nsdata.m, Testing/nsdate.m, Testing/nsdictionary.m, 
+	Testing/nsfilehandle.m, Testing/nsfilemanager.m, 
+	Testing/nshashtable.m, Testing/nshost.m, Testing/nsindexset.m, 
+	Testing/nsinvocation.m, Testing/nsmaptable.m, 
+	Testing/nsnotification.m, Testing/nspathutilities.m, 
+	Testing/nsprocessinfo.m, Testing/nsscanner.m, Testing/nsset.m, 
+	Testing/nstask.m, Testing/nstimer.m, Testing/nstimezone.m, 
+	Testing/nsundomanager.m, Testing/nsxmlparser.m, Testing/nxst.m, 
+	Testing/oldserver.h, Testing/prepend.m, Testing/randoms.m, 
+	Testing/release.m, Testing/server.h, Testing/string.m, 
+	Testing/tcpport-client.m, Testing/tcpport-server.m, 
+	Testing/thread-except.m, Testing/thread.m, Testing/values.m, 
+	Testing/wgetopt.h, Tools/BaseTools.gsdoc, Tools/autogsdoc.1, 
+	Tools/cvtenc.1, Tools/defaults.1, Tools/gdnc.1, 
+	Tools/gdomap.8, Tools/gsdoc.7, Tools/locale_alias.m, 
+	Tools/pldes.1, Tools/plist-0_9.dtd, Tools/sfparse.1, 
+	Tools/xmlparse.1: Add/fix copyright/licenses.
+
 2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* The last change passed regression tests etc, but one program

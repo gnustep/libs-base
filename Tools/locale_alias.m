@@ -1,6 +1,8 @@
 /* locale_alias - Test program to create a file of locale to language name
                   aliases
 
+  Copyright (C) 2005 Free Software Foundation, Inc.
+
   Written: Adam Fedor <fedor@gnu.org>
   Date: Oct 2000
 

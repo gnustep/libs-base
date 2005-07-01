@@ -1,3 +1,9 @@
+/* Test/example program for the base library
+
+   Copyright (C) 2005 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Base Library.
+*/
 #define	STRICT_OPENSTEP	1
 #include	<Foundation/Foundation.h>
 

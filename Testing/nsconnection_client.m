@@ -1,3 +1,9 @@
+/* Test/example program for the base library
+
+   Copyright (C) 2005 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Base Library.
+*/
 #include <stdio.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSConnection.h>

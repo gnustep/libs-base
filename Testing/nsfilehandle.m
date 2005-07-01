@@ -1,3 +1,9 @@
+/* Test/example program for the base library
+
+   Copyright (C) 2005 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Base Library.
+*/
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSManager.h>

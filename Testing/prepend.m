@@ -1,3 +1,9 @@
+/* Test/example program for the base library
+
+   Copyright (C) 2005 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Base Library.
+*/
 /*
 From: Matthias Klose <doko@cs.tu-berlin.de>
 Date: Mon, 1 Aug 1994 21:17:20 +0200
