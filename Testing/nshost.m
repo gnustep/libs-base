@@ -1,3 +1,9 @@
+/* Test/example program for the base library
+
+   Copyright (C) 2005 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Base Library.
+*/
 // Fri Oct 23 03:02:52 MET DST 1998 	dave@turbocat.de
 
 #include <Foundation/NSArray.h>

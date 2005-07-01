@@ -7,6 +7,7 @@
       <email address="fedor@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
+    <copy>2005 Free Software Foundation, Inc.</copy>
     <version>$Revision$</version>
     <date>$Date$</date>
   </head>

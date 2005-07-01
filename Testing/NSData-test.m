@@ -1,3 +1,9 @@
+/* Test/example program for the base library
+
+   Copyright (C) 2005 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Base Library.
+*/
 /******************************************************************************
 * Module    :   NSMutableData(NSData) --- Black Box test module for the
 *               *Data classes to make sure that methods that raise exceptions

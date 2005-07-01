@@ -4,6 +4,7 @@
   <head>
     <title>Debugging with GDB</title>
     <author name="Adam Fedor"></author>
+    <copy>Copyright (C) 2005 Free Software Foundation, Inc.</copy>
   </head>
   <body>
     <chapter>
