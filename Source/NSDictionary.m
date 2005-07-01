@@ -43,6 +43,30 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
+@class	GSDictionary;
+@interface GSDictionary : NSObject	// Help the compiler
+@end
+@class	GSMutableDictionary;
+@interface GSMutableDictionary : NSObject	// Help the compiler
+@end
+
+extern BOOL	GSMacOSXCompatiblePropertyLists(void);
+extern void	GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
+
+
+static Class NSArray_class;
+static Class NSDictionaryClass;
+static Class NSMutableDictionaryClass;
+static Class GSDictionaryClass;
+static Class GSMutableDictionaryClass;
+
+static SEL	eqSel;
+static SEL	nxtSel;
+static SEL	objSel;
+static SEL	remSel;
+static SEL	setSel;
+static SEL	appSel;
+
 /**
  *  <p>This class and its subclasses store key-value pairs, where the key and
  *  the value are objects.  A great many utility methods for working with
@@ -66,26 +90,6 @@
  *  within locks (see [NSLock]).</p>
  */
 @implementation NSDictionary
-
-@class	GSDictionary;
-@class	GSMutableDictionary;
-
-extern BOOL	GSMacOSXCompatiblePropertyLists(void);
-extern void	GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
-
-
-static Class NSArray_class;
-static Class NSDictionaryClass;
-static Class NSMutableDictionaryClass;
-static Class GSDictionaryClass;
-static Class GSMutableDictionaryClass;
-
-static SEL	eqSel;
-static SEL	nxtSel;
-static SEL	objSel;
-static SEL	remSel;
-static SEL	setSel;
-static SEL	appSel;
 
 + (void) initialize
 {

@@ -51,26 +51,17 @@
 #define ULONG_LONG_MAX ULLONG_MAX
 #endif
 
-/**
- * <p>
- *   The <code>NSScanner</code> class cluster (currently a single class in
- *   GNUstep) provides a mechanism to parse the contents of a string into
- *   number and string values by making a sequence of scan operations to
- *   step through the string retrieving successive items.
- * </p>
- * <p>
- *   You can tell the scanner whether its scanning is supposed to be
- *   case sensitive or not, and you can specify a set of characters
- *   to be skipped before each scanning operation (by default,
- *   whitespace and newlines).
- * </p>
- */
-@implementation NSScanner
 
 @class	GSCString;
+@interface GSCString : NSObject	// Help the compiler
+@end
 @class	GSUnicodeString;
+@interface GSUnicodeString : NSObject	// Help the compiler
+@end
 @class	GSMutableString;
 @class	GSPlaceholderString;
+@interface GSPlaceholderString : NSObject	// Help the compiler
+@end
 
 static Class		NSStringClass;
 static Class		GSCStringClass;
@@ -105,6 +96,22 @@ typedef struct {
     _scanLocation++;\
   (_scanLocation >= myLength()) ? NO : YES;\
 })
+
+/**
+ * <p>
+ *   The <code>NSScanner</code> class cluster (currently a single class in
+ *   GNUstep) provides a mechanism to parse the contents of a string into
+ *   number and string values by making a sequence of scan operations to
+ *   step through the string retrieving successive items.
+ * </p>
+ * <p>
+ *   You can tell the scanner whether its scanning is supposed to be
+ *   case sensitive or not, and you can specify a set of characters
+ *   to be skipped before each scanning operation (by default,
+ *   whitespace and newlines).
+ * </p>
+ */
+@implementation NSScanner
 
 + (void) initialize
 {
@@ -195,8 +202,9 @@ typedef struct {
       else
 	{
 	  _isUnicode = NO;
-	  _string = [_holder initWithCString: ((ivars)aString)->_contents.c
-				      length: ((ivars)aString)->_count];
+	  _string = [_holder initWithCString:
+	    (char*)((ivars)aString)->_contents.c
+	    length: ((ivars)aString)->_count];
 	}
     }
   else if (c == NSConstantStringClass)

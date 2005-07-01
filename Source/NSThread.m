@@ -53,12 +53,54 @@
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSInvocation.h"
 
-@class	GSPerformHolder;
 
 typedef struct { @defs(NSThread) } NSThread_ivars;
 
 static Class threadClass = Nil;
 static NSNotificationCenter *nc = nil;
+
+/**
+ * This class performs a dual function ...
+ * <p>
+ *   As a class, it is responsible for handling incoming events from
+ *   the main runloop on a special inputFd.  This consumes any bytes
+ *   written to wake the main runloop.<br />
+ *   During initialisation, the default runloop is set up to watch
+ *   for data arriving on inputFd.
+ * </p>
+ * <p>
+ *   As instances, each  instance retains perform receiver and argument
+ *   values as long as they are needed, and handles locking to support
+ *   mthods which want to block until an action has been performed.
+ * </p>
+ * <p>
+ *   The initialize method of this class is called before any new threads
+ *   run.
+ * </p>
+ */
+@interface GSPerformHolder : NSObject
+{
+  id			receiver;
+  id			argument;
+  SEL			selector;
+  NSArray		*modes;
+  NSConditionLock	*lock;		// Not retained.
+}
++ (BOOL) isValid;
++ (GSPerformHolder*) newForReceiver: (id)r
+			   argument: (id)a
+			   selector: (SEL)s
+			      modes: (NSArray*)m
+			       lock: (NSConditionLock*)l;
++ (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+                 extra: (void*)extra
+               forMode: (NSString*)mode;
++ (NSDate*) timedOutEvent: (void*)data
+                     type: (RunLoopEventType)type
+                  forMode: (NSString*)mode;
+- (void) fire;
+@end
 
 /**
  * Sleep until the current date/time is the specified time interval
@@ -747,49 +789,6 @@ gnustep_base_thread_callback(void)
 @end
 
 
-
-/**
- * This class performs a dual function ...
- * <p>
- *   As a class, it is responsible for handling incoming events from
- *   the main runloop on a special inputFd.  This consumes any bytes
- *   written to wake the main runloop.<br />
- *   During initialisation, the default runloop is set up to watch
- *   for data arriving on inputFd.
- * </p>
- * <p>
- *   As instances, each  instance retains perform receiver and argument
- *   values as long as they are needed, and handles locking to support
- *   mthods which want to block until an action has been performed.
- * </p>
- * <p>
- *   The initialize method of this class is called before any new threads
- *   run.
- * </p>
- */
-@interface GSPerformHolder : NSObject
-{
-  id			receiver;
-  id			argument;
-  SEL			selector;
-  NSArray		*modes;
-  NSConditionLock	*lock;		// Not retained.
-}
-+ (BOOL) isValid;
-+ (GSPerformHolder*) newForReceiver: (id)r
-			   argument: (id)a
-			   selector: (SEL)s
-			      modes: (NSArray*)m
-			       lock: (NSConditionLock*)l;
-+ (void) receivedEvent: (void*)data
-                  type: (RunLoopEventType)type
-                 extra: (void*)extra
-               forMode: (NSString*)mode;
-+ (NSDate*) timedOutEvent: (void*)data
-                     type: (RunLoopEventType)type
-                  forMode: (NSString*)mode;
-- (void) fire;
-@end
 
 @implementation GSPerformHolder
 

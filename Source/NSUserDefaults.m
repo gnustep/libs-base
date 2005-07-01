@@ -36,6 +36,7 @@
 #include "Foundation/NSArchiver.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSBundle.h"
+#include "Foundation/NSData.h"
 #include "Foundation/NSDate.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSDistributedLock.h"

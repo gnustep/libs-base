@@ -1,5 +1,63 @@
 2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSUserDefaults.h: Fix bad return type
+	* Source/GSArray.m:
+	* Source/GSCountedSet.m:
+	* Source/GSFileHandle.m:
+	* Source/GSSet.m:
+	* Source/GSString.m:
+	* Source/GSeq.h:
+	* Source/NSArchiver.m:
+	* Source/NSArray.m:
+	* Source/NSAttributedString.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSConnection.m:
+	* Source/NSCountedSet.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSFileManager.m:
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSNotification.m:
+	* Source/NSObject.m:
+	* Source/NSPipe.m:
+	* Source/NSPortCoder.m:
+	* Source/NSPropertyList.m:
+	* Source/NSRange.m:
+	* Source/NSScanner.m:
+	* Source/NSSerializer.m:
+	* Source/NSSet.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSString.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/NSTimer.m:
+	* Source/NSURLHandle.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSValue.m:
+	* Source/mframe.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/Unicode.m:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.m:
+	* Tools/gdomap.c:
+	* Tools/gdomap.h:
+	* Tools/make_strings/make_strings.m:
+	Tweaks to avoid compiler warnings with gcc-4. Mostly signed pointer
+	casts and bogus interface declarations to allow +class to be called
+	on a class for which we don't have the real interface visible.
+
+2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSException.m: ([-raise]) Fix behavior to be the same as in
 	MacOS-X (ie call the default uncaught exception handler after
 	whatever handler is set, in case the set handler does not terminate).

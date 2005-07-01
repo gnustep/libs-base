@@ -756,8 +756,11 @@ static BOOL snuggleStart(NSString *t)
 
       while (i-- > 0)
 	{
-	  NSString	*n = [[aa objectAtIndex: i] objectForKey: @"Name"];
+	  NSString	*n;
+	  NSDictionary	*d;
 
+	  d = [aa objectAtIndex: i];
+	  n = [d objectForKey: @"Name"];
 	  if (n != nil)
 	    {
 	      [tmp addObject: n];

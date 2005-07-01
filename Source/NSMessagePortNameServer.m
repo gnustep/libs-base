@@ -251,7 +251,7 @@ static void clean_up_names(void)
 
   NSDebugLLog(@"NSMessagePort", @"got %s", socket_path);
 
-  return [NSMessagePort _portWithName: socket_path
+  return [NSMessagePort _portWithName: (unsigned char*)socket_path
 			     listener: NO];
 }
 
@@ -290,10 +290,10 @@ static void clean_up_names(void)
 
   socket_name = [(NSMessagePort *)port _name];
 
-  write(fd, socket_name, strlen(socket_name));
+  write(fd, (char*)socket_name, strlen((char*)socket_name));
   write(fd, "\n", 1);
-  sprintf(buf, "%i\n", getpid());
-  write(fd, buf, strlen(buf));
+  sprintf((char*)buf, "%i\n", getpid());
+  write(fd, (char*)buf, strlen((char*)buf));
 
   close(fd);
 
@@ -376,7 +376,7 @@ static void clean_up_names(void)
 
   port_path = [(NSMessagePort *)port _name];
 
-  if (!strcmp(socket_path, port_path))
+  if (!strcmp((char*)socket_path, (char*)port_path))
     {
       unlink([path fileSystemRepresentation]);
     }
