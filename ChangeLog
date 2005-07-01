@@ -32,6 +32,12 @@
 
 2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Bad day ... accidentally updated makefiles to build KVO stuff
+	in last change ... so I might as well commit the partial
+	implementation of NSKeyValueObserving.[hm]
+
+2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* The last change passed regression tests etc, but one program
 	I have has stopped working, so there is a bug somewhere.
 	Reverted change until I can isolate the problem and fix it.
