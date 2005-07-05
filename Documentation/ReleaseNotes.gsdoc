@@ -20,6 +20,84 @@
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.11.0</heading>
+	<p>
+	    The interface version of the base library has changed in
+	    this release.  Applications, libraries and tools that
+	    wish to use this new version must be recompiled
+	    (otherwise, they'll use the older version of the library).
+	</p>
+	  <deflist>
+	    <term>Window's changes</term>
+	    <desc>
+	    A lot of the behavior of path handling in the base
+	    library has changed with respect to Window's machines.
+	    Windows native paths are used throughout.
+	    The fileSystemRepresentation methods now use utf-16
+	    as the external c-string representation on windows.
+	    The local to openstep and openstep to local methods
+	    are now deprecated and do nothing. Other changes to
+	    classes and class variables have also occurred (detailed
+	    below).
+	    </desc>
+	    <term>Path/Startup configuration</term
+	    <desc>
+	    At the startup of any application or tool, GNUstep used to
+	    look at various environment variables in order to find
+	    the location of various data directories and other
+	    things. GNUstep still does this, but the environment
+	    variables are no longer required to find these
+	    files. In addition the configuration files used to
+	    override certain path behavior has been changed and
+	    expanded. See the base library documentation on GNUstep
+	    Configuration Files for more information.
+	    </desc>
+	    <term>NSCharacterSets</term>
+	    <desc>
+	    Character sets are included in the library itself instead
+	    of being loaded from a data file. Also, the
+	    NSBitmapCharSet API has been removed.
+	    </desc>
+	    <term>NSPathUtilities</term>
+	    <desc>
+	    Depreciated functions GSSystemRootDirectory and
+	    GSStandardPathPrefixes. In addition, beware of using the
+	    function NSOpenStepRoot, which may not necessarily return
+	    the information you need (see the documentation for this
+	    function for more info). Enumeration values for
+	    NSSearchPathDirectory have changed.
+	    </desc>
+	    <term>NSRunLoop</term>
+	    <desc>
+	    NSRunLoop and related classes now use native win32 event
+	    handling on Window's machines. See also GSFileHandle,
+	    NSSocketPort and NSMessagePort.
+	    </desc>
+	    <term>GSFileHandle</term>
+	    <desc>
+	    This GNUstep specific class has a new ivar on Windows.
+	    </desc>
+	    <term>NSSocketPort, NSMessagePort</term>
+	    <desc>
+	    This class has a new ivar on Windows.
+	    </desc>
+	    <term>NSPortNameServer</term>
+	    <desc>
+	    A one-time warning is printed concerning a future change in
+	    which nsconnections will only work between processes owned
+	    by the same account on
+	    the same machine, for MacOSX compatibility and
+	    security. If inter-host/user communication is desired,
+	    the developer will need to set this explicitly.
+	    </desc>
+	    <term>Keyed Encoding</term>
+	    <desc>
+	    Work was done in many classes to support keyed
+	    encoding. It may not be fully implemented in every class, however.
+	    </desc>
+	  </deflist>
+      </section>
+      <section>
 	<heading>Version 1.10.3</heading>
 	<p>
 	This release includes a few minor bug fixes.
@@ -81,7 +159,7 @@
 	<p>
 	</p>
 	  <deflist>
-	    <term>Runtime version disconvery of library</term>
+	    <term>Runtime version discovery of library</term>
 	    <desc>
 	    A developer can discover the version of the base library that 
 	    is loaded using the NSBundle methods
