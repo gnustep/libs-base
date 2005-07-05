@@ -11,11 +11,27 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.11.0}
+
+This release is binary incompatible with previous releases.
+The interface version of the library has changed so that apps, tools
+and libraries that use the base library need to be recompiled to use
+this new version.
+
+@itemize @bullet
+@item Window's path handling has changed to use native paths throughout.
+@item Startup/configuration of the libraries no longer requires environement
+variables.
+@item Character sets are included in the library rather than being read from 
+data files.
+@item NSRunLoop and related classes use natvie win32 event handling on
+Windows machines.
+@end itemize
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.10.3}
 
 This version includes a few minor bug fixes.
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.10.2}
 

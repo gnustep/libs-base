@@ -1,3 +1,7 @@
+2005-07-04  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/ReleaseNotes.gsdoc: Update.
+
 2005-07-01  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/Base.gsdoc, Documentation/BaseAdditions.gsdoc, 
