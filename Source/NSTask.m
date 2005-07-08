@@ -382,7 +382,7 @@ pty_slave(const char* name)
  * Launches the task.<br />
  * Raises an NSInvalidArgumentException if the launch path is not
  * set or if the subtask cannot be started for some reason
- * (eg. the executable does not exist).
+ * (eg. the executable does not exist or the task has already been launched).
  */
 - (void) launch
 {
@@ -1080,7 +1080,8 @@ quotedFromString(NSString *aString)
 
   if (_hasLaunched)
     {
-      return;
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has already been launched"];
     }
 
   lpath = [self _fullLaunchPath];
@@ -1308,7 +1309,8 @@ GSCheckTasks()
 
   if (_hasLaunched)
     {
-      return;
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has already been launched"];
     }
 
   lpath = [self _fullLaunchPath];
