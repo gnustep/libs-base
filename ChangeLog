@@ -1,3 +1,8 @@
+2005-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Fix bug #13685 ... raise exception on an attempt
+	to re-launch a task.
+
 2005-07-04  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/ReleaseNotes.gsdoc: Update.
