@@ -487,10 +487,14 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   //PENDING, should we worry about not overriding entries?
   while ((name = [pnames nextObject]) != nil)
     {
-      file = [[refs objectForKey: @"category"] objectForKey: name];
+      NSMutableDictionary	*d;
+
+      d = [refs objectForKey: @"category"];
+      file = [d objectForKey: name];
       if (file != nil)
         {
-	  [[refs objectForKey: @"protocol"] setObject: file forKey: name];
+	  d = [refs objectForKey: @"protocol"];
+	  [d setObject: file forKey: name];
         }
       else
         {
@@ -661,7 +665,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 /**
  * Return a list of source files for the header.
  */
-- (NSArray*) sourcesForHeader: (NSString*)h
+- (NSMutableArray*) sourcesForHeader: (NSString*)h
 {
   NSDictionary	*dict = [refs objectForKey: @"source"];
   NSArray	*array = [dict objectForKey: h];

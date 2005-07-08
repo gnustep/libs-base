@@ -39,6 +39,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMethodSignature.h>
+#include <Foundation/NSNull.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSString.h>
@@ -53,8 +54,6 @@
 #include <objc/Protocol.h>
 
 #include <string.h>
-
-@class	NSNull;
 
 #ifdef NeXT_Foundation_LIBRARY
 @interface NSObject (MissingFromMacOSX)

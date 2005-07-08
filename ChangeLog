@@ -1,5 +1,11 @@
 2005-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Recommit all gcc-4 changes ... I was unable to find a problem
+	in them and have been running lots of stuff ok with them for several
+	days now ... perhaps I made a mistake in thinking there was an issue.
+
+2005-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSTask.m: Fix bug #13685 ... raise exception on an attempt
 	to re-launch a task.
 

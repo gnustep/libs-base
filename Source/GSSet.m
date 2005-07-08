@@ -517,7 +517,7 @@ static Class	mutableSetClass;
     }
 }
 
-- (void) addObject: (NSObject*)anObject
+- (void) addObject: (id)anObject
 {
   GSIMapNode node;
 
@@ -665,7 +665,7 @@ static Class	mutableSetClass;
   GSIMapCleanMap(&map);
 }
 
-- (void) removeObject: (NSObject *)anObject
+- (void) removeObject: (id)anObject
 {
   if (anObject == nil)
     {

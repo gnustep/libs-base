@@ -212,6 +212,22 @@ static inline NSComparisonResult GSeq_compare(GSeq s0, GSeq s1)
   unichar	*c0 = s0->chars;
   unichar	*c1 = s1->chars;
 
+  len0 = s0->count;
+  len1 = s1->count;
+  if (len0 == len1)
+    {
+      for (i = 0; i < len1; i++)
+	{
+	  if (c0[i] != c1[i])
+	    {
+	      break;
+	    }
+	}
+      if (i == len0)
+	{
+	  return NSOrderedSame;
+	}
+    }
   if (s0->normalized == NO)
     GSeq_normalize(s0);
   if (s1->normalized == NO)
@@ -394,7 +410,7 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 #if	GSEQ_S == GSEQ_US
       unichar	*sBuf;
 #else
-      char	*sBuf;
+      unsigned char	*sBuf;
 #endif
 #endif
 #if	GSEQ_O == GSEQ_NS
@@ -404,7 +420,7 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 #if	GSEQ_O == GSEQ_US
       unichar	*oBuf;
 #else
-      char	*oBuf;
+      unsigned char	*oBuf;
 #endif
 #endif
 
