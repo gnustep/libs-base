@@ -1,3 +1,7 @@
+2005-07-08  Adam Fedor  <fedor@gnu.org>
+
+	* Testing/GNUmakefile, Testing/nsfilehandle.m: Minor fixes.
+
 2005-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/objc-load.m: Under mingw print filenames for debug using
