@@ -54,7 +54,6 @@ CHECKABLE_TOOLS = \
 		nshost \
 		nsindexset \
 		nsinvocation \
-		nskvo \
 		nsmaptable \
 		nsmethodsignature \
 		nsnotification \

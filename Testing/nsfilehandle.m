@@ -6,7 +6,7 @@
 */
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileHandle.h>
-#include <Foundation/NSManager.h>
+#include <Foundation/NSFileManager.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSURL.h>
