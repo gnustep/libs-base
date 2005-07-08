@@ -483,7 +483,7 @@ typedef enum {
   msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
   msg.port = 0;
   msg.nsize = [name cStringLength];
-  [name getCString: msg.name];
+  [name getCString: (char*)msg.name];
   TEST_RELEASE(data);
   data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
   IF_NO_GC(RETAIN(data));
@@ -495,7 +495,7 @@ typedef enum {
   msg.rtype = GDO_REGISTER;	/* Register a port.		*/
   msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
   msg.nsize = [name cStringLength];
-  [name getCString: msg.name];
+  [name getCString: (char*)msg.name];
   msg.port = GSSwapHostI32ToBig(portNumber);
   TEST_RELEASE(data);
   data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
@@ -514,7 +514,7 @@ typedef enum {
   else
     {
       msg.nsize = [name cStringLength];
-      [name getCString: msg.name];
+      [name getCString: (char*)msg.name];
     }
   msg.port = GSSwapHostI32ToBig(portNumber);
   TEST_RELEASE(data);

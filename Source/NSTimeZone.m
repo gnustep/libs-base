@@ -2250,7 +2250,7 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 	  types[i].offset = decode(ptr->offset);
 	  pos += sizeof(struct ttinfo);
 	}
-      abbr = (char*)(bytes + pos);
+      abbr = (unsigned char*)(bytes + pos);
       {
 	id	abbrevs[charcnt];
 
@@ -2261,7 +2261,8 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 
 	    if (abbrevs[loc] == nil)
 	      {
-		abbrevs[loc] = [[NSString alloc] initWithCString: abbr + loc];
+		abbrevs[loc]
+		  = [[NSString alloc] initWithCString: (char*)abbr + loc];
 	      }
 	    else
 	      {

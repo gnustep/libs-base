@@ -101,7 +101,7 @@
  * method) then the count for that object is incremented rather
  * than the new object being added.
  */
-- (void) addObject: (NSObject*)anObject
+- (void) addObject: (id)anObject
 {
   GSIMapNode node;
 
@@ -301,7 +301,7 @@
  * [-isEqual:] method) has been added to the set.  If the count
  * becomes zero, the object is removed from the set.
  */
-- (void) removeObject: (NSObject*)anObject
+- (void) removeObject: (id)anObject
 {
   GSIMapBucket       bucket;
 

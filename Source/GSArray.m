@@ -40,8 +40,19 @@ static SEL	oaiSel;
 
 static Class	GSInlineArrayClass;
 
-@class	GSArrayEnumerator;
-@class	GSArrayEnumeratorReverse;
+@class	GSArray;
+
+@interface GSArrayEnumerator : NSEnumerator
+{
+  GSArray	*array;
+  unsigned	pos;
+}
+- (id) initWithArray: (GSArray*)anArray;
+@end
+
+@interface GSArrayEnumeratorReverse : GSArrayEnumerator
+@end
+
 
 @interface GSArray : NSArray
 {
@@ -813,27 +824,23 @@ static Class	GSInlineArrayClass;
 
 - (NSEnumerator*) objectEnumerator
 {
-  return AUTORELEASE([[GSArrayEnumerator allocWithZone: NSDefaultMallocZone()]
-    initWithArray: self]);
+  GSArrayEnumerator	*enumerator;
+
+  enumerator = [GSArrayEnumerator allocWithZone: NSDefaultMallocZone()];
+  return AUTORELEASE([enumerator initWithArray: (GSArray*)self]);
 }
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  return AUTORELEASE([[GSArrayEnumeratorReverse allocWithZone:
-    NSDefaultMallocZone()] initWithArray: self]);
+  GSArrayEnumeratorReverse	*enumerator;
+
+  enumerator = [GSArrayEnumeratorReverse allocWithZone: NSDefaultMallocZone()];
+  return AUTORELEASE([enumerator initWithArray: (GSArray*)self]);
 }
 
 @end
 
 
-
-@interface GSArrayEnumerator : NSEnumerator
-{
-  GSArray	*array;
-  unsigned	pos;
-}
-- (id) initWithArray: (GSArray*)anArray;
-@end
 
 @implementation GSArrayEnumerator
 
@@ -859,9 +866,6 @@ static Class	GSInlineArrayClass;
   NSDeallocateObject(self);
 }
 
-@end
-
-@interface GSArrayEnumeratorReverse : GSArrayEnumerator
 @end
 
 @implementation GSArrayEnumeratorReverse

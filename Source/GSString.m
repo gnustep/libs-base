@@ -410,7 +410,8 @@ setup(void)
       unichar	*u = 0;
       unsigned	l = 0;
 
-      if (GSToUnicode(&u, &l, chars, length, defEnc, GSObjCZone(self), 0) == NO)
+      if (GSToUnicode(&u, &l, (const unsigned char*)chars, length, defEnc,
+	GSObjCZone(self), 0) == NO)
 	{
 	  return nil;
 	}
@@ -444,7 +445,8 @@ setup(void)
       unichar	*u = 0;
       unsigned	l = 0;
 
-      if (GSToUnicode(&u, &l, chars, length, defEnc, GSObjCZone(self), 0) == NO)
+      if (GSToUnicode(&u, &l, (const unsigned char*)chars, length, defEnc,
+	GSObjCZone(self), 0) == NO)
 	{
 	  self = nil;
 	}
@@ -692,7 +694,7 @@ UTF8String_c(GSStr self)
       NSZoneFree(NSDefaultMallocZone(), u);
     }
 
-  return r;
+  return (char*)r;
 }
 
 static inline char*
@@ -715,7 +717,7 @@ UTF8String_u(GSStr self)
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get UTF8 from Unicode string."];
 	}
-      return r;
+      return (char*)r;
     }
 }
 
@@ -751,7 +753,7 @@ boolValue_c(GSStr self)
 
 	  memcpy(buf, self->_contents.c, len);
 	  buf[len] = '\0';
-	  return atoi(buf);
+	  return atoi((const char*)buf);
 	}
     }
 }
@@ -787,7 +789,7 @@ boolValue_u(GSStr self)
 	}
       else
 	{
-	  return atoi(buf);
+	  return atoi((const char*)buf);
 	}
     }
 }
@@ -983,7 +985,7 @@ cString_c(GSStr self, NSStringEncoding enc)
       NSZoneFree(NSDefaultMallocZone(), u);
     }
 
-  return r;
+  return (char*)r;
 }
 
 static inline char*
@@ -1015,7 +1017,7 @@ cString_u(GSStr self, NSStringEncoding enc)
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cString from Unicode string."];
 	}
-      return r;
+      return (char*)r;
     }
 }
 
@@ -1395,7 +1397,7 @@ intValue_c(GSStr self)
 
       memcpy(buf, self->_contents.c, len);
       buf[len] = '\0';
-      return atol(buf);
+      return atol((const char*)buf);
     }
 }
 
@@ -1413,7 +1415,7 @@ intValue_u(GSStr self)
       unsigned char	*b = buf;
 
       GSFromUnicode(&b, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
-      return atol(buf);
+      return atol((const char*)buf);
     }
 }
 
@@ -1686,7 +1688,7 @@ static void GSStrMakeSpace(GSStr s, unsigned size)
 static void GSStrWiden(GSStr s)
 {
   unichar	*tmp = 0;
-  int		len = 0;
+  unsigned	len = 0;
 
   NSCAssert(s->_flags.wide == 0, @"string is not wide");
 
@@ -1947,7 +1949,7 @@ substring_c(GSStr self, NSRange aRange)
   if (self->_flags.free == 1)
     {
       sub = NSAllocateObject(GSCSubStringClass, 0, NSDefaultMallocZone());
-      sub = [sub initWithCString: self->_contents.c + aRange.location
+      sub = [sub initWithCString: (char*)self->_contents.c + aRange.location
 			  length: aRange.length
 		      fromParent: (GSCString *)self];
     }
@@ -1955,7 +1957,7 @@ substring_c(GSStr self, NSRange aRange)
     {
       sub = NSAllocateObject(GSCInlineStringClass,
 	aRange.length, NSDefaultMallocZone());
-      sub = [sub initWithCString: self->_contents.c + aRange.location
+      sub = [sub initWithCString: (char*)self->_contents.c + aRange.location
 			  length: aRange.length];
     }
   AUTORELEASE(sub);
@@ -2279,7 +2281,7 @@ transmute(GSStr self, NSString *aString)
 
   obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0,
     NSDefaultMallocZone());
-  obj = [obj initWithCString: _contents.c length: _count];
+  obj = [obj initWithCString: (char*)_contents.c length: _count];
   return obj;
 }
 
@@ -2288,7 +2290,7 @@ transmute(GSStr self, NSString *aString)
   GSMutableString	*obj;
 
   obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0, z);
-  obj = [obj initWithCString: _contents.c length: _count];
+  obj = [obj initWithCString: (char*)_contents.c length: _count];
   return obj;
 }
 
@@ -2346,7 +2348,7 @@ agree, create a new GSCInlineString otherwise.
       NSString	*obj;
 
       obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-      obj = [obj initWithCString: _contents.c length: _count];
+      obj = [obj initWithCString: (char*)_contents.c length: _count];
       return obj;
     }
   else
@@ -2370,7 +2372,7 @@ agree, create a new GSCInlineString otherwise.
 		  format: @"re-initialisation of string"];
     }
   _count = length;
-  _contents.c = chars;
+  _contents.c = (unsigned char*)chars;
   _flags.wide = 0;
   if (flag == YES)
     {
@@ -2442,7 +2444,7 @@ agree, create a new GSCInlineString otherwise.
   NSString	*obj;
 
   obj = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-  obj = [obj initWithCString: _contents.c length: _count];
+  obj = [obj initWithCString: (char*)_contents.c length: _count];
   return obj;
 }
 
@@ -2902,7 +2904,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   else
     {
       copy = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-      copy = [copy initWithCString: _contents.c length: _count];
+      copy = [copy initWithCString: (char*)_contents.c length: _count];
     }
   return copy;
 }
@@ -3130,7 +3132,8 @@ agree, create a new GSUnicodeInlineString otherwise.
       unichar	*u = 0;
       unsigned	l = 0;
 
-      if (GSToUnicode(&u, &l, chars, length, defEnc, GSObjCZone(self), 0) == NO)
+      if (GSToUnicode(&u, &l, (unsigned char*)chars, length, defEnc,
+	GSObjCZone(self), 0) == NO)
 	{
 	  DESTROY(self);
 	}
@@ -3160,7 +3163,7 @@ agree, create a new GSUnicodeInlineString otherwise.
     }
   _count = length;
   _capacity = length;
-  _contents.c = chars;
+  _contents.c = (unsigned char*)chars;
   _flags.wide = 0;
 
   return self;
@@ -3270,7 +3273,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
   else
-    obj = [obj initWithCString: _contents.c length: _count];
+    obj = [obj initWithCString: (char*)_contents.c length: _count];
   return obj;
 }
 
@@ -3283,7 +3286,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
   else
-    obj = [obj initWithCString: _contents.c length: _count];
+    obj = [obj initWithCString: (char*)_contents.c length: _count];
   return obj;
 }
 
@@ -3393,7 +3396,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 		{
 		  unsigned char	tmp = _contents.c[aRange.location + length];
 
-		  [aString getCString: &_contents.c[aRange.location]
+		  [aString getCString: (char*)&_contents.c[aRange.location]
 			    maxLength: length];
 		  _contents.c[aRange.location + length] = tmp;
 		}
@@ -3406,7 +3409,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 		  if (l > 0)
 		    {
-		      [aString getCString: &_contents.c[aRange.location]
+		      [aString getCString: (char*)&_contents.c[aRange.location]
 				maxLength: l];
 		    }
 		  u = [aString characterAtIndex: l];
@@ -3475,7 +3478,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 	  l = len - 1;
 	  if (l > 0)
 	    {
-	      [aString getCString: _contents.c maxLength: l];
+	      [aString getCString: (char*)_contents.c maxLength: l];
 	    }
 	  _contents.c[l]
 	    = encode_unitochar([aString characterAtIndex: l], intEnc);
@@ -3514,7 +3517,7 @@ agree, create a new GSUnicodeInlineString otherwise.
     {
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
 	_count, NSDefaultMallocZone());
-      sub = [sub initWithCString: self->_contents.c + aRange.location
+      sub = [sub initWithCString: (char*)self->_contents.c + aRange.location
 			  length: aRange.length];
     }
   AUTORELEASE(sub);
@@ -3540,7 +3543,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
 					aRange.length,
 					NSDefaultMallocZone());
-      sub = [sub initWithCString: self->_contents.c + aRange.location
+      sub = [sub initWithCString: (char*)self->_contents.c + aRange.location
 			  length: aRange.length];
     }
   AUTORELEASE(sub);
@@ -4005,7 +4008,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 - (const char*) cString
 {
-  return _self->_contents.c;
+  return (char*)_self->_contents.c;
 }
 
 - (id) retain
@@ -4212,13 +4215,13 @@ agree, create a new GSUnicodeInlineString otherwise.
       [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 			      count: count
 				 at: chars];
-      self = [self initWithCStringNoCopy: chars
+      self = [self initWithCStringNoCopy: (char*)chars
 				  length: count
 			    freeWhenDone: YES];
     }
   else
     {
-      self = [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
+      self = [self initWithCStringNoCopy: (char*)0 length: 0 freeWhenDone: NO];
     }
   return self;
 }
@@ -4243,13 +4246,13 @@ agree, create a new GSUnicodeInlineString otherwise.
       [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 			      count: count
 				 at: chars];
-      self = [self initWithCStringNoCopy: chars
+      self = [self initWithCStringNoCopy: (char*)chars
 				  length: count
 			    freeWhenDone: YES];
     }
   else
     {
-      self = [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
+      self = [self initWithCStringNoCopy: (char*)0 length: 0 freeWhenDone: NO];
     }
   return self;
 }

@@ -46,6 +46,10 @@
 #include "Foundation/NSPort.h"
 #include "Foundation/NSString.h"
 
+@class	NSMutableDataMalloc;
+@interface NSMutableDataMalloc : NSObject	// Help the compiler
+@end
+
 /*
  *	Setup for inline operation of pointer map tables.
  */
@@ -294,8 +298,6 @@ typeCheck(char t1, char t2)
 
 
 @implementation NSPortCoder
-
-@class	NSMutableDataMalloc;
 
 static Class	connectionClass;
 static Class	mutableArrayClass;
@@ -742,8 +744,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  objc_layout_structure (type, &layout);
 	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      int		offset;
-	      int		align;
+	      unsigned		offset;
+	      unsigned		align;
 	      const char	*ftype;
 
 	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
@@ -1347,8 +1349,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  objc_layout_structure (type, &layout);
 	  while (objc_layout_structure_next_member (&layout))
 	    {
-	      int		offset;
-	      int		align;
+	      unsigned		offset;
+	      unsigned		align;
 	      const char	*ftype;
 
 	      objc_layout_structure_get_info (&layout, &offset, &align, &ftype);
