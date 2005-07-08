@@ -105,9 +105,15 @@ objc_initialize_loading(FILE *errorStream)
   dynamic_loaded = NO;
   path   = objc_executable_location();
 
+#ifdef    __MINGW__
+  NSDebugFLLog(@"NSBundle",
+	       @"Debug (objc-load): initializing dynamic loader for %S",
+	       path);
+#else
   NSDebugFLLog(@"NSBundle",
 	       @"Debug (objc-load): initializing dynamic loader for %s",
 	       path);
+#endif
 
   if (__objc_dynamic_init(path))
     {
@@ -170,8 +176,13 @@ objc_load_module (const char *filename,
   _objc_load_callback = objc_load_callback;
 
   /* Link in the object file */
+#ifdef    __MINGW__
+  NSDebugFLLog(@"NSBundle",
+	       @"Debug (objc-load): Linking file %S\n", filename);
+#else
   NSDebugFLLog(@"NSBundle",
 	       @"Debug (objc-load): Linking file %s\n", filename);
+#endif
   handle = __objc_dynamic_link(filename, 1, debugFilename);
   if (handle == 0)
     {
