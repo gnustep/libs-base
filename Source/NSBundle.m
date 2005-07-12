@@ -303,10 +303,18 @@ _find_framework(NSString *name)
   len = strlen (frameworkClass->name);
 
   if (len > 12 * sizeof(char)
-    && !strncmp("NSFramework_", frameworkClass->name, 12))
+      && !strncmp ("NSFramework_", frameworkClass->name, 12))
     {
       /* The name of the framework.  */
       NSString *name = [NSString stringWithCString: &frameworkClass->name[12]];
+
+      /* Important - gnustep-make mangles framework names to encode
+       * them as ObjC class names.  Here we need to demangle them.  We
+       * apply the reverse transformations in the reverse order.
+       */
+      name = [name stringByReplacingString: @"_1"  withString: @"+"];
+      name = [name stringByReplacingString: @"_0"  withString: @"-"];
+      name = [name stringByReplacingString: @"__"  withString: @"_"];
 
       /* Try getting the path to the framework using the dynamic
        * linker.  When it works it's really cool :-) This is the only
@@ -1561,11 +1569,22 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
+      /* Mangle the name before building the _currentFrameworkName,
+       * which really is a class name.
+       */
+      NSString *mangledName = object;
+      mangledName = [mangledName stringByReplacingString: @"_"  
+				 withString: @"__"];
+      mangledName = [mangledName stringByReplacingString: @"-" 
+				 withString: @"_0"];
+      mangledName = [mangledName stringByReplacingString: @"+" 
+				 withString: @"_1"];
+
       path = [_path stringByAppendingPathComponent:@"Versions/Current"];
 
       _currentFrameworkName = RETAIN(([NSString stringWithFormat:
 						  @"NSFramework_%@",
-						object]));
+						mangledName]));
     }
   else
     {

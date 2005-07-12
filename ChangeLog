@@ -1,7 +1,15 @@
+2005-07-12  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSBundle.m ([+_addFrameworkFromClass:]),
+	([-executablePath]): Mangle/demangle framework names so that we
+	can support '-' (and '+') in framework names.  Requires latest
+	gnustep-make if you have a framework with '_', '-' or '+' in the
+	name.
+
 2005-07-08  Adam Fedor  <fedor@gnu.org>
 
 	* Testing/GNUmakefile, Testing/nsfilehandle.m: Minor fixes.
-
+	
 2005-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/objc-load.m: Under mingw print filenames for debug using
