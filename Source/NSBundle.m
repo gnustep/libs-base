@@ -373,6 +373,8 @@ _find_framework(NSString *name)
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
+	  /* There are no Versions on MinGW.  Skip the Versions check here.  */
+#if !defined(__MINGW__)
 	  /* version name */
 	  bundlePath = [bundlePath stringByDeletingLastPathComponent];
 
@@ -380,6 +382,7 @@ _find_framework(NSString *name)
           if ([pathComponent isEqual: @"Versions"])
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
+#endif
 	      pathComponent = [bundlePath lastPathComponent];
 	
 	      if ([pathComponent isEqualToString:
@@ -389,7 +392,9 @@ _find_framework(NSString *name)
 		  /* Try creating the bundle.  */
 		  bundle = [[self alloc] initWithPath: bundlePath];
 		}
+#if !defined(__MINGW__)
 	    }
+#endif
 
 	  /* Failed - buu - try the fallback trick.  */
 	  if (bundle == nil)
@@ -1580,7 +1585,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       mangledName = [mangledName stringByReplacingString: @"+" 
 				 withString: @"_1"];
 
+#if !defined(__MINGW__)
       path = [_path stringByAppendingPathComponent:@"Versions/Current"];
+#else
+      path = _path;
+#endif
 
       _currentFrameworkName = RETAIN(([NSString stringWithFormat:
 						  @"NSFramework_%@",
@@ -1604,9 +1613,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
+#if !defined(__MINGW__)
       return [_path stringByAppendingPathComponent:
 		      [NSString stringWithFormat:@"Versions/%@/Resources",
 				version]];
+#else
+      /* No Versions (that require symlinks) on MINGW */
+      return [_path stringByAppendingPathComponent: @"Resources"];
+#endif
     }
   else
     {
@@ -1650,9 +1664,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
+#if !defined(__MINGW__)
       return [_path stringByAppendingPathComponent:
                       [NSString stringWithFormat:@"Versions/%@/PlugIns",
                       version]];
+#else
+      return [_path stringByAppendingPathComponent: @"PlugIns"];
+#endif
     }
   else
     {
