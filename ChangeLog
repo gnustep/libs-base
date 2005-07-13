@@ -1,3 +1,10 @@
+2005-07-13  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSBundle.m: When building paths inside framework
+	directories on Mingw (win32), don't add /Versions/%@; the new
+	pseudo-framework support for Mingw does not support framework
+	versioning.
+
 2005-07-12  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSBundle.m ([+_addFrameworkFromClass:]),
