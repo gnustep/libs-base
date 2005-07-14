@@ -206,12 +206,17 @@ sslError(int err, int e)
     {
       ssl = SSL_new(ctx);
     }
-
+  RETAIN(self);		// Don't get destroyed during runloop
   loop = [NSRunLoop currentRunLoop];
   ret = SSL_set_fd(ssl, descriptor);
   if (ret == 1)
     {
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
+      if (ssl == 0)
+	{
+	  RELEASE(self);
+	  return NO;
+	}
       ret = SSL_accept(ssl);
     }
   if (ret != 1)
@@ -222,7 +227,7 @@ sslError(int err, int e)
       NSTimeInterval	last = 0.0;
       NSTimeInterval	limit = 0.1;
 
-      final = [[NSDate alloc] initWithTimeIntervalSinceNow: 20.0];
+      final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
       when = [NSDate alloc];
 
       err = SSL_get_error(ssl, ret);
@@ -235,6 +240,13 @@ sslError(int err, int e)
 	  last = tmp;
 	  when = [when initWithTimeIntervalSinceNow: limit];
 	  [loop runUntilDate: when];
+	  if (ssl == 0)
+	    {
+	      RELEASE(when);
+	      RELEASE(final);
+	      RELEASE(self);
+	      return NO;
+	    }
 	  ret = SSL_accept(ssl);
 	  if (ret != 1)
 	    {
@@ -255,10 +267,12 @@ sslError(int err, int e)
 	  NSLog(@"unable to accept SSL connection from %@:%@ - %@",
 	    address, service, str);
 ERR_print_errors_fp(stderr);
+	  RELEASE(self);
 	  return NO;
 	}
     }
   connected = YES;
+  RELEASE(self);
   return YES;
 }
 
@@ -289,12 +303,17 @@ ERR_print_errors_fp(stderr);
     {
       ssl = SSL_new(ctx);
     }
-
+  RETAIN(self);		// Don't get destroyed during runloop
   loop = [NSRunLoop currentRunLoop];
   ret = SSL_set_fd(ssl, descriptor);
   if (ret == 1)
     {
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
+      if (ssl == 0)
+	{
+	  RELEASE(self);
+	  return NO;
+	}
       ret = SSL_connect(ssl);
     }
   if (ret != 1)
@@ -305,7 +324,7 @@ ERR_print_errors_fp(stderr);
       NSTimeInterval	last = 0.0;
       NSTimeInterval	limit = 0.1;
 
-      final = [[NSDate alloc] initWithTimeIntervalSinceNow: 20.0];
+      final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
       when = [NSDate alloc];
 
       err = SSL_get_error(ssl, ret);
@@ -318,6 +337,13 @@ ERR_print_errors_fp(stderr);
 	  last = tmp;
 	  when = [when initWithTimeIntervalSinceNow: limit];
 	  [loop runUntilDate: when];
+	  if (ssl == 0)
+	    {
+	      RELEASE(when);
+	      RELEASE(final);
+	      RELEASE(self);
+	      return NO;
+	    }
 	  ret = SSL_connect(ssl);
 	  if (ret != 1)
 	    {
@@ -338,10 +364,12 @@ ERR_print_errors_fp(stderr);
 	  NSLog(@"unable to make SSL connection to %@:%@ - %@",
 	    address, service, str);
 ERR_print_errors_fp(stderr);
+	  RELEASE(self);
 	  return NO;
 	}
     }
   connected = YES;
+  RELEASE(self);
   return YES;
 }
 
