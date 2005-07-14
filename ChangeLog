@@ -6,6 +6,8 @@
 	causing resources to be freed and the ssl operation to crash.
 	Retaining self (and noticing when a disconnect has taken place)
 	prevents that.
+	* Source/Additions/GSXML.m: Fix bug escaping emtities in fault
+	message.
 
 2005-07-13  Nicola Pero  <n.pero@mi.flashnet.it>
 

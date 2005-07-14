@@ -4802,7 +4802,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
   fault = [NSDictionary dictionaryWithObjectsAndKeys:
     [NSNumber numberWithInt: code], @"faultCode",
-    [s stringByEscapingXML], @"faultString",
+    s, @"faultString",
     nil];
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
