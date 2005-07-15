@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.xml">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
 <gsdoc base="BaseAdditions">
   <head>
     <title>GNUstep Base Additions</title>
@@ -7,9 +12,9 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <copy>2005 Free Software Foundation, Inc.</copy>
     <version>$Revision$</version>
     <date>$Date$</date>
+    <copy>2005 Free Software Foundation, Inc.</copy>
   </head>
   <body>
     <chapter>

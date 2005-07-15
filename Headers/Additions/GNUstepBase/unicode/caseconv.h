@@ -1,6 +1,13 @@
 #ifndef __caseconv_h_GNUSTEP_BASE_INCLUDE
 #define __caseconv_h_GNUSTEP_BASE_INCLUDE
 
+/*
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+*/
 unichar gs_casemap_empty_table[] = {
 	0x0,
 	0x0,

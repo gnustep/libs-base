@@ -1,4 +1,9 @@
 AC_DEFUN(OBJC_CON_AUTOLOAD,
+# Copyright (C) 2005 Free Software Foundation
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.
 #--------------------------------------------------------------------
 # Guess if we are using a object file format that supports automatic
 # loading of constructor functions.

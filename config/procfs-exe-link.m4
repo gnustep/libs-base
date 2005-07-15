@@ -2,6 +2,10 @@ dnl AC_SYS_PROCFS_EXE_LINK
 dnl This macro checks for the existence of a symlink in /proc to the executable
 dnl file associated with the current process, and defines PROCFS_EXE_LINK to
 dnl the path it finds.  Currently supports Linux and FreeBSD variants.
+dnl  Copyright (C) 2005 Free Software Foundation
+dnl  Copying and distribution of this file, with or without modification,
+dnl  are permitted in any medium without royalty provided the copyright
+dnl  notice and this notice are preserved.
 AC_DEFUN(AC_SYS_PROCFS_EXE_LINK,
 [ AC_REQUIRE([AC_SYS_PROCFS])
 

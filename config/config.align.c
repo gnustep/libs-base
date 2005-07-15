@@ -1,5 +1,11 @@
 /* This program will most likely crash on systems that need shorts and ints
    to be word aligned
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
 */
 
 int main ()

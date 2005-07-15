@@ -1,6 +1,10 @@
 /* nsbundle - Program to test out dynamic linking via NSBundle.
    Copyright (C) 1993,1994,1995, 1996 Free Software Foundation, Inc.
 
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Jul 1995
 	

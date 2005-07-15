@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.xml">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
 <gsdoc base="ReleaseNotes">
   <head>
     <title>GNUstep Base Release Notes</title>
@@ -7,9 +12,9 @@
       <email address="fedor@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <copy>2005 Free Software Foundation, Inc.</copy>
     <version>$Revision$</version>
     <date>$Date$</date>
+    <copy>2005 Free Software Foundation, Inc.</copy>
   </head>
   <body>
     <chapter>
@@ -40,7 +45,7 @@
 	    classes and class variables have also occurred (detailed
 	    below).
 	    </desc>
-	    <term>Path/Startup configuration</term
+	    <term>Path/Startup configuration</term>
 	    <desc>
 	    At the startup of any application or tool, GNUstep used to
 	    look at various environment variables in order to find

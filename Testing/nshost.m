@@ -2,6 +2,10 @@
 
    Copyright (C) 2005 Free Software Foundation, Inc.
    
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
    This file is part of the GNUstep Base Library.
 */
 // Fri Oct 23 03:02:52 MET DST 1998 	dave@turbocat.de

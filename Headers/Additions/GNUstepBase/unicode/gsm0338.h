@@ -1,4 +1,12 @@
 /* Created by Richard Frith-Macdonald <rfm@gnu.org> on 2002 Jan 24 */
+/*
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+*/
+
 
 // GSM0338 to Unicode maping
 

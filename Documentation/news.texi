@@ -947,3 +947,12 @@ Also see the @samp{ChangeLog} file for more detail.
 
 @end ifclear
 @c end ifclear ANNOUNCE_ONLY
+
+@ifinfo
+Copyright @copyright{} 2005 Free Software Foundation
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+@end ifinfo
+

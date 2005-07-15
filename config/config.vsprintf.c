@@ -1,5 +1,12 @@
 /* Exit with status 0 if vsprintf returns the length of the string printed.
    Some systems return a pointer to the string instead. */ 
+/*
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+*/
 #include <stdio.h>
 #include <stdarg.h>
 

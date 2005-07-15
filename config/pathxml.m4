@@ -1,4 +1,8 @@
 dnl Code shamelessly stolen from glib-config by Sebastian Rittau
+dnl  Copyright (C) 2005 Free Software Foundation
+dnl  Copying and distribution of this file, with or without modification,
+dnl  are permitted in any medium without royalty provided the copyright
+dnl  notice and this notice are preserved.
 dnl AM_PATH_XML([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 AC_DEFUN(AM_PATH_XML,[
 AC_ARG_WITH(xml-prefix,
