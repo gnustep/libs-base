@@ -1,3 +1,9 @@
+2005-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: ([+initialize]) always check to see if
+	things have already been initialised before doing the initialisation
+	here.  Based on suggestion by Lloyd Dupont.
+
 2005-07-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/GSSSLHandle.m: Retains self when running runloop to allow

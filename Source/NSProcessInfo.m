@@ -654,7 +654,8 @@ _gnu_noobjc_free_vars(void)
 
 + (void) initialize
 {
-  if (!_gnu_processName && !_gnu_arguments && !_gnu_environment)
+  if (self == [NSProcessInfo class]
+    && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {
       NSAssert(_gnu_noobjc_argv && _gnu_noobjc_env,
 	_GNU_MISSING_MAIN_FUNCTION_CALL);
@@ -668,8 +669,11 @@ _gnu_noobjc_free_vars(void)
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
 + (void) initialize
 {
-  if (self == [NSProcessInfo class])
-    _gnu_process_args(__argc, __argv, _environ);
+  if (self == [NSProcessInfo class]
+    && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
+    {
+      _gnu_process_args(__argc, __argv, _environ);
+    }
 }
 #elif defined(__BEOS__)
 
@@ -677,8 +681,11 @@ extern int __libc_argc;
 extern char **__libc_argv;
 + (void) initialize
 {
-  if (self == [NSProcessInfo class])
-    _gnu_process_args(__libc_argc, __libc_argv, environ);
+  if (self == [NSProcessInfo class]
+    && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
+    {
+      _gnu_process_args(__libc_argc, __libc_argv, environ);
+    }
 }
 
 
@@ -959,7 +966,9 @@ static BOOL	debugTemporarilyDisabled = NO;
 /**
  * Fallback method. The developer must call this method to initialize
  * the NSProcessInfo system if none of the system-specific hacks to
- * auto-initialize it are working.
+ * auto-initialize it are working.<br />
+ * It should also be safe to call this method to override the effects
+ * of the automatic initialisation.
  */
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
