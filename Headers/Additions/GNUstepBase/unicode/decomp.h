@@ -1,4 +1,12 @@
 /* decomposition table */
+/*
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+*/
+
 
 struct _dec_ {unichar code; unichar decomp[5];};
 const unsigned int uni_dec_table_size = 1052;

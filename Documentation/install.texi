@@ -188,4 +188,12 @@ library. See the gstep-make package for more information on these options.
 If you can't install gstep-base as root, be sure to edit the
 @file{Tools/gdomap.h} file and uncomment the last line.
 
+@ifinfo
+Copyright @copyright{} 2005 Free Software Foundation
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+@end ifinfo
+
 @bye

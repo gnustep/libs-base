@@ -1,6 +1,10 @@
 AC_DEFUN(OBJC_SYS_DYNAMIC_LINKER,
 [dnl
 AC_REQUIRE([OBJC_CON_AUTOLOAD])dnl
+# Copyright (C) 2005 Free Software Foundation
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.
 #--------------------------------------------------------------------
 # Guess the type of dynamic linker for the system
 #

@@ -1,5 +1,11 @@
 /* Example implementation of a custom zone.
 
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
    by Yoo C. Chung <wacko@power1.snu.ac.kr>
 
    WARNING: Very little testing has been done, so there is no

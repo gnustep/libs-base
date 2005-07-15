@@ -1,4 +1,11 @@
 /* A simple demonstration of the NSDictionary object.
+
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
    In this example the NSDictionary holds int's which are keyed by strings. */
 
 

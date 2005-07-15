@@ -1,4 +1,11 @@
 /* See if we have a broken register_printf function (e.g. an old version of glibc) */
+/*
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+*/
 #include <stdio.h>
 #include <printf.h>
 #include <stdarg.h>

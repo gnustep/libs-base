@@ -1,4 +1,12 @@
 // Next to Unicode maping
+/*
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+*/
+
 const unsigned int Next_conv_base = 0x80;
 unichar Next_char_to_uni_table[] =
 {

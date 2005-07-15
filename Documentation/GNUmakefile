@@ -7,16 +7,16 @@
 #  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU Library General Public
+#  modify it under the terms of the GNU General Public
 #  License as published by the Free Software Foundation; either
 #  version 2 of the License, or (at your option) any later version.
 #
 #  This library is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
-#  Library General Public License for more details.
+#  General Public License for more details.
 #
-#  You should have received a copy of the GNU Library General Public
+#  You should have received a copy of the GNU General Public
 #  License along with this library; if not, write to the Free
 #  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 
@@ -39,9 +39,9 @@ SUBPROJECTS = manual General
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
-INSTALL NEWS CODING-STANDARDS README ANNOUNCE BUGS
+INSTALL NEWS CODING-STANDARDS README ANNOUNCE
 
-TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE BUGS
+TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE
 
 gnustep-base_TEXI_FILES = \
 version.texi \
@@ -52,10 +52,6 @@ gnustep-base_DOC_INSTALL_DIR = Developer/Base/Manual
 coding-standards_TEXI_FILES = \
 coding-standards.texi
 coding-standards_DOC_INSTALL_DIR = Developer/CodingStandards
-
-BUGS_TEXI_FILES = version.texi
-BUGS_TEXT_MAIN = todo.texi
-BUGS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 INSTALL_TEXI_FILES = version.texi
 INSTALL_TEXT_MAIN = install.texi

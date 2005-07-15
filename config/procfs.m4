@@ -1,6 +1,10 @@
 dnl AC_SYS_PROCFS
 dnl This macro defines HAVE_PROCFS if either it finds a mounted /proc
 dnl or the user explicitly enables it for cross-compiles.
+dnl  Copyright (C) 2005 Free Software Foundation
+dnl  Copying and distribution of this file, with or without modification,
+dnl  are permitted in any medium without royalty provided the copyright
+dnl  notice and this notice are preserved.
 AC_DEFUN(AC_SYS_PROCFS,
 [ AC_ARG_ENABLE(procfs,
     [  --enable-procfs               Use /proc filesystem (default)],

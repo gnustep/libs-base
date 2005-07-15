@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.xml">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
 <gsdoc base="gsdoc">
   <head>
     <title>GNUstep Documentation XML markup language (GSDoc)</title>

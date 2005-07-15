@@ -1,6 +1,10 @@
 Translator's guide to make_strings
 ==================================
-copyright 2002 Alexander Malmberg <alexander@malmberg.org>
+Copyright (C) 2002 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
 
 This file is meant to be a fairly complete description of what a
 translator needs to do to work with make_strings. Please send comments,

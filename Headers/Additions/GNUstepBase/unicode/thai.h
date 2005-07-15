@@ -1,4 +1,12 @@
 /* ISO_8859-11 to Unicode maping */
+/*
+  Copyright (C) 2005 Free Software Foundation
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+*/
+
 
 const unsigned int Thai_conv_base = 0xA0;
 

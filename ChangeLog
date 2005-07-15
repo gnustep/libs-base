@@ -1,3 +1,35 @@
+2005-07-15  Adam Fedor  <fedor@gnu.org>
+
+	* ChangeLog, ChangeLog.1, ChangeLog.2, GNUmakefile, Makefile,
+	Makefile.postamble, config.mak.in, configure.ac,
+	Documentation/Base.gsdoc, Documentation/BaseAdditions.gsdoc,
+	Documentation/Functions.gsdoc, Documentation/GNUmakefile,
+	Documentation/Makefile.postamble, Documentation/ReleaseNotes.gsdoc,
+	Documentation/TypesAndConstants.gsdoc, Documentation/announce.texi,
+	Documentation/gnustep-base.texi, Documentation/install.texi,
+	Documentation/news.texi, Documentation/readme.texi,
+	Documentation/General/Debugging.gsdoc,
+	Documentation/General/GNUmakefile,
+	Documentation/General/OpenStepCompliance.gsdoc,
+	Documentation/HtmlNav/docs-web.html, Documentation/HtmlNav/index.html,
+	Documentation/manual/GNUmakefile, Documentation/manual/index.html,
+	Examples/GNUmakefile, Examples/Makefile.postamble,
+	Examples/Makefile.preamble, Examples/custom-zone.m,
+	Examples/dictionary.m,
+	Headers/Additions/GNUstepBase/unicode/*,
+	Source/dld-load.h, Source/hpux-load.h, Source/null-load.h,
+	Source/simple-load.h, Source/win32-load.h,
+	Testing/*,
+	Tools/BaseTools.gsdoc, Tools/DocMakefile, Tools/GNUmakefile,
+	Tools/Makefile.postamble, Tools/Makefile.preamble, Tools/autogsdoc.1,
+	Tools/cvtenc.1, Tools/defaults.1, Tools/gdnc.1, Tools/gdnc.h,
+	Tools/gdomap.c, Tools/gdomap.gsdoc, Tools/gsdoc.gsdoc, Tools/pl.m,
+	Tools/pldes.1, Tools/sfparse.1, Tools/xmlparse.1,
+	Tools/make_strings/GNUmakefile, 
+	Tools/make_strings/GNUmakefile.preamble,
+	Tools/make_strings/README, Tools/make_strings/Using.txt,
+	config/*: Further copyright/license updates.
+
 2005-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: ([+initialize]) always check to see if
@@ -1042,4 +1074,10 @@
 
 	* Source/NSTimeZone.m (+abbreviationDictionary): Retain	dictionary
 	(Fixes bug #11516).
+
+Copyright @copyright{} 2005 Free Software Foundation
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
 
