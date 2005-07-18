@@ -1,3 +1,11 @@
+2005-07-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUnarchiver.m:
+	* Source/NSPortCoder.m: Relax checking of decoded types information
+	to allow int/long/longlong types to be decoded using 'i/l/q'
+	interchangably and 'I/L'Q' interchangably because the compiler may
+	use different encodings on different machines.
+
 2005-07-15  Adam Fedor  <fedor@gnu.org>
 
 	* ChangeLog, ChangeLog.1, ChangeLog.2, GNUmakefile, Makefile,

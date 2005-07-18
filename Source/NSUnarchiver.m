@@ -194,6 +194,32 @@ typeCheck(char t1, char t2)
 {
   if (type_map[(t2 & _GSC_MASK)] != t1)
     {
+/*
+ * HACK ... allow int/long/longlong types to be used interchangably
+ * as the ObjC compiler currently uses quadword (q/Q) encoding for
+ * integer types on some 64bit systems, so the i/l/q/I/L/Q encodings
+ * can vary.
+ */
+      char	c = type_map[(t2 & _GSC_MASK)];
+      if ((c == _C_INT || c == _C_LNG
+#ifdef	_C_LNG_LNG
+	|| c == _C_LNG_LNG
+#endif
+	) && (t1 == _C_INT || t1 == _C_LNG
+#ifdef	_C_LNG_LNG
+	|| t1 == _C_LNG_LNG
+#endif
+	)) return;
+      if ((c == _C_UINT || c == _C_ULNG
+#ifdef	_C_LNG_LNG
+	|| c == _C_ULNG_LNG
+#endif
+	) && (t1 == _C_UINT || t1 == _C_ULNG
+#ifdef	_C_LNG_LNG
+	|| t1 == _C_ULNG_LNG
+#endif
+	)) return;
+
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
 		    typeToName1(t1), typeToName2(t2)];
