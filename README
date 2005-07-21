@@ -21,16 +21,21 @@ instructions for installing the library.
 License
 =======
 
-The GNUstep libraries are covered under the GNU Lesser Public License.
-This means you can use these libraries in any program (even non-free
-programs). If you distribute the libraries along with your program, you
-must make the improvements you have made to the libraries freely
-available. You should read the COPYING.LIB file for more information.
+The GNUstep libraries and library resources are covered under the GNU
+Lesser Public License.  This means you can use these libraries in any
+program (even non-free programs). If you distribute the libraries along
+with your program, you must make the improvements you have made to the
+libraries freely available. You should read the COPYING.LIB file for
+more information. All files in the `Source', `Headers'
+`NSCharacterSets', `NSTimeZones', `Resources', and `SSL' directories
+and subdirectories under this are covered under the GLPL.
 
    GNUstep tools, test programs, and other files are covered under the
 GNU Public License. This means if you make changes to these programs,
 you cannot charge a fee, other than distribution fees, for others to
 use the program. You should read the COPYING file for more information.
+All files in the `Documentation', `Examples', `Testing', `Tools',
+`config', and `macosx' directories are covered under the GPL.
 
    With GNUstep-Base, we strongly recommend the use of the ffcall
 libraries, which provides stack frame handling for NSInvocation and
@@ -50,4 +55,10 @@ How can you help?
 
 
      Happy hacking!
+
+   Copyright (C) 2005 Free Software Foundation
+
+   Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
 
