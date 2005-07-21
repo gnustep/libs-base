@@ -1,9 +1,28 @@
 News
 ****
 
-The currently released version of the library is `1.10.3'.
+The currently released version of the library is `1.11.0'.
 
 See the <ReleaseNotes.html> document for more information.
+
+Noteworthy changes in version `1.11.0'
+======================================
+
+This release is binary incompatible with previous releases.  The
+interface version of the library has changed so that apps, tools and
+libraries that use the base library need to be recompiled to use this
+new version.
+
+   * Window's path handling has changed to use native paths throughout.
+
+   * Startup/configuration of the libraries no longer requires
+     environement variables.
+
+   * Character sets are included in the library rather than being read
+     from data files.
+
+   * NSRunLoop and related classes use natvie win32 event handling on
+     Windows machines.
 
 Noteworthy changes in version `1.10.3'
 ======================================
@@ -47,7 +66,7 @@ tools and libraries the use the base library need to be recompiled to
 use it.
 
    * A large majority of the library classes have been documented
-     thanks to the efforts of Andrew Ruder
+     thanks to the efforts of Adrian Robert
 
    * URL classes support persistant connections
 
@@ -933,4 +952,10 @@ Noteworthy changes in version `931026'
 
 
    Also see the `ChangeLog' file for more detail.
+
+   Copyright (C) 2005 Free Software Foundation
+
+   Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
 

@@ -7,6 +7,18 @@ install the entire GNUstep package (including this library).
 GNUstep-HOWTO is located in the gnustep-make package or at
 <http://www.gnustep.org>
 
+   Other external libraries that you may need to install include:
+
+   * ffcall or ffi (HIGHLY RECOMMENDED)
+
+   * libxml2 (RECOMMENDED)
+
+   * libxslt (OPTIONAL)
+
+   * openssl (OPTIONAL)
+
+   * iconv (OPTIONAL, not needed if you have glibc)
+
    If you are installing the GNUstep libraries individually, make sure
 you have installed the GNUstep Makefile package (gnustep-make) already,
 and you have sourced the makefile script:
@@ -143,4 +155,10 @@ the gstep-make package for more information on these options.
 
    If you can't install gstep-base as root, be sure to edit the
 `Tools/gdomap.h' file and uncomment the last line.
+
+   Copyright (C) 2005 Free Software Foundation
+
+   Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
 
