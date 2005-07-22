@@ -1,3 +1,10 @@
+2005-07-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDate.m: ([isEqual:]),([isEqualToDate:]) change behavior to
+	match current MacOS-X rather than OpenStep spec, as the old version
+	was confusing and prevented dates being used as dictionary keys or
+	stored in sets properly.
+
 2005-07-21  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.11.0

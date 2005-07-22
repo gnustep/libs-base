@@ -1335,19 +1335,27 @@ GSTimeNow(void)
   if (other == nil)
     return NO;
   if ([other isKindOfClass: abstractClass]
-    && 1.0 > ABS(otherTime(self) - otherTime(other)))
+    && otherTime(self) == otherTime(other))
     return YES;
   return NO;
 }
 
 /**
- *  Returns whether equal to other within one <code>NSTimeInterval</code> unit.
+ *  Returns whether the receiver is exactly equal to other, to the limit
+ *  of the NSTimeInterval precision.<br />
+ *  This is the behavior of the current MacOS-X system, not that of the
+ *  OpenStep specification (which counted two dates within a secfond of
+ *  each other as being equal).<br />
+ *  The old behavior meant that two dates equal to a third date were not
+ *  necessarily equal to each other (confusing), and meant that there was
+ *  no reasonable way to use a date as a dictionary key or store dates
+ *  in a set.
  */
 - (BOOL) isEqualToDate: (NSDate*)other
 {
   if (other == nil)
     return NO;
-  if (1.0 > ABS(otherTime(self) - otherTime(other)))
+  if (otherTime(self) == otherTime(other))
     return YES;
   return NO;
 }
@@ -1473,7 +1481,7 @@ GSTimeNow(void)
   if (other == nil)
     return NO;
   if ([other isKindOfClass: abstractClass]
-    && 1.0 > ABS(_seconds_since_ref - otherTime(other)))
+    && _seconds_since_ref == otherTime(other))
     return YES;
   return NO;
 }
@@ -1482,7 +1490,7 @@ GSTimeNow(void)
 {
   if (other == nil)
     return NO;
-  if (1.0 > ABS(_seconds_since_ref - otherTime(other)))
+  if (_seconds_since_ref == otherTime(other))
     return YES;
   return NO;
 }
