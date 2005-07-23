@@ -2,6 +2,8 @@
 
 	* Source/Additions/GSXML.m: fix typo in contributed code for when
 	the additions library is built standalone on MacOS-X
+	* Source/GNUmakefile: Don't build base subprojects when only building
+	additions library!
 
 2005-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
