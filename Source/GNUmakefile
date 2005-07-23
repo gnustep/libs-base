@@ -52,10 +52,8 @@ libgnustep-baseadd_SUBPROJECTS=Additions
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 libgnustep-base_SUBPROJECTS+=win32
-libgnustep-baseadd_SUBPROJECTS+=win32
 else
 libgnustep-base_SUBPROJECTS+=unix
-libgnustep-baseadd_SUBPROJECTS+=unix
 endif
 
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
