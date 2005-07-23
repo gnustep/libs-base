@@ -16,7 +16,9 @@ gdnc \- GNUstep Distributed Notification Center
 .P
 .SH DESCRIPTION
 The gdnc daemon is used by GNUstep programs to send notifications and 
-messages to one another.
+messages to one another.  By default it uses private inter-process
+communications accessible only to the curtrent user on the machine on
+which it is running (where the operating system supports them).
 .P
 Every user needs to have his own instance of
 .B gdnc
@@ -26,7 +28,8 @@ will be started automatically as soon as it is needed,
 it is recommended to start
 .B gdnc
 in a personal login script like ~/.bashrc or ~/.cshrc.
-Alternatively you can launch gpbs when your windowing system or the
+Alternatively (if you have no command-line tools which use distributed
+notifications) you can launch gdnc when your windowing system or the
 window manager is started. For example, on systems with X11 you can launch
 .B gdnc
 from your .xinitrc script or alternatively
@@ -39,12 +42,21 @@ for a sample startup script.
 To attach
 .B gdnc
 to a remote session use the
-.IP "\fB-NXHost \fIhostname" 
+.IP "\fB-NSHost \fIhostname" 
 argument.
+.P
+To run a copy of the server to handle public notifications (available to all
+users on the local machine)
+.IP "\fB-GSPublic YES"
+.P
+To run a copy of the server to handle network-public notifications (available
+to all users able to connect to the local machine on the network)
+.IP "\fB-GSNetwork YES"
 .P
 .SH DIAGNOSTICS
 .B gdomap -L GDNCServer
-will lookup instances of gdnc.
+will lookup instances of gdnc which were launched with the NSHost, GSPublic,
+or GSNetwork command line arguments.
 .P
 Alternatively, 
 .B gdomap -N

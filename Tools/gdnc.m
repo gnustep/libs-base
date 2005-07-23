@@ -1004,21 +1004,23 @@ ihandler(int sig)
 @end
 
 
-/** <p>The  gdnc  daemon is used by GNUstep programs to send notifications and
-       messages to one another, in conjunction with the Base library
-       Notification-related classes.</p>
+/**
+  <p>The  gdnc  daemon is used by GNUstep programs to send notifications and
+     messages to one another, in conjunction with the Base library
+     Notification-related classes.</p>
 
-    <p>Every user needs to have his own instance of gdnc running.  While  gdnc
-       will be started automatically as soon as it is needed, it is recommended
-       to start gdnc in a personal login script like  ~/.bashrc  or  ~/.cshrc.
-       Alternatively  you  can  launch  gpbs when your windowing system or the
-       window manager is started. For example, on systems  with  X11  you  can
-       launch  gdnc  from  your  .xinitrc script or alternatively - if you are
-       running Window Maker - put it in Window Maker's autostart script.   See
-       the GNUstep Build Guide for a sample startup script.</p>
+  <p>Every user needs to have his own instance of gdnc running.  While  gdnc
+     will be started automatically as soon as it is needed, it is recommended
+     to start gdnc in a personal login script like  ~/.bashrc  or  ~/.cshrc.
+     Alternatively (if you have no command-line tools which use distributed
+     notifications) you  can  launch gdnc when your windowing system or the
+     window manager is started. For example, on systems  with  X11  you  can
+     launch  gdnc  from  your  .xinitrc script or alternatively - if you are
+     running Window Maker - put it in Window Maker's autostart script.   See
+     the GNUstep Build Guide for a sample startup script.</p>
 
-     <p>Please see the man page for more information.
-</p> */
+  <p>Please see the man page for more information.</p>
+ */
 int
 main(int argc, char** argv, char** env)
 {
