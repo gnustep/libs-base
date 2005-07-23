@@ -110,13 +110,11 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 typedef	enum {
 #ifdef __MINGW__
     ET_HANDLE,
+    ET_RPORT	/* Watch for message arriving on port.		*/
 #else
     ET_RDESC,	/* Watch for descriptor becoming readable.	*/
     ET_WDESC,	/* Watch for descriptor becoming writeable.	*/
-#endif
     ET_RPORT,	/* Watch for message arriving on port.		*/
-/* For binary compatibility we have an extra ifdef... */
-#ifndef __MINGW__
     ET_EDESC	/* Watch for descriptor with out-of-band data.	*/
 #endif
 } RunLoopEventType;
