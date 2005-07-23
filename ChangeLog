@@ -4,6 +4,8 @@
 	the additions library is built standalone on MacOS-X
 	* Source/GNUmakefile: Don't build base subprojects when only building
 	additions library!
+	* Headers/Foundation/NSRunLoop.h: Tidy up enumerated type, simplifying
+	mingw ifdefs
 
 2005-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
