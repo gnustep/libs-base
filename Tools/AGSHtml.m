@@ -25,6 +25,19 @@
 #include "GNUstepBase/GNUstep.h"
 #include "GNUstepBase/GSCategories.h"
 
+/*
+ * Define constants for use if we are built with apple Foundation
+ */
+#ifndef	GS_API_OSSPEC
+#define	GS_API_OSSPEC	10000
+#endif
+#ifndef	GS_API_OPENSTEP
+#define	GS_API_OPENSTEP	40000
+#endif
+#ifndef	GS_API_MACOSX
+#define	GS_API_MACOSX	100000
+#endif
+
 static int      XML_ELEMENT_NODE;
 static int      XML_ENTITY_REF_NODE;
 static int      XML_TEXT_NODE;
