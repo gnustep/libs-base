@@ -6,6 +6,8 @@
 	additions library!
 	* Headers/Foundation/NSRunLoop.h: Tidy up enumerated type, simplifying
 	mingw ifdefs
+	* Tools/AGSHtml.h: Added defines for building without the gnustep
+	base library.
 
 2005-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
