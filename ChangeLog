@@ -8,6 +8,9 @@
 	mingw ifdefs
 	* Tools/AGSHtml.h: Added defines for building without the gnustep
 	base library.
+	* Tools/gdnc.m: Fix minor documentation error.
+	* Tools/gdnc.1: Fix minor documentation error and add documentation
+	of flags to set public/network servers running.
 
 2005-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
