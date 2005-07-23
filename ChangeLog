@@ -1,3 +1,8 @@
+2005-07-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: fix typo in contributed code for when
+	the additions library is built standalone on MacOS-X
+
 2005-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDate.m: ([isEqual:]),([isEqualToDate:]) change behavior to

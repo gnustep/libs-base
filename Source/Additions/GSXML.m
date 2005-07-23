@@ -5139,7 +5139,7 @@ static void indentation(unsigned level, NSMutableString *str)
     NSMutableURLRequest *request;
 
     request = [NSMutableURLRequest alloc];
-    request = [tequest initWithURL: [NSURL URLWithString: connectionURL]];
+    request = [request initWithURL: [NSURL URLWithString: connectionURL]];
     [request setCachePolicy: NSURLRequestReloadIgnoringCacheData];
     [request setHTTPMethod: @"POST"];  
     [request setValue: @"GSXMLRPC/1.0.0" forHTTPHeaderField: @"User-Agent"];
