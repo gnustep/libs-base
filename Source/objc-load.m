@@ -49,6 +49,7 @@
 #include "objc-load.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSException.h"
 
 /* include the interface to the dynamic linker */
 #include "dynamic-load.h"
@@ -287,6 +288,22 @@ objc_unload_modules(FILE *errorStream,
   return 0;
 }
 
+#ifdef __MINGW__
+NSString *
+objc_get_symbol_path(Class theClass, Category *theCategory)
+{
+  char buf[MAX_PATH];
+  MEMORY_BASIC_INFORMATION memInfo;
+  NSCAssert(!theCategory, @"objc_get_symbol_path doesn't support categories");
+
+  VirtualQueryEx(GetCurrentProcess(), theClass, &memInfo, sizeof(memInfo));
+  if (GetModuleFileName(memInfo.AllocationBase, buf, sizeof(buf)))
+    {
+      return [NSString stringWithCString:buf];
+    }
+  return 0;
+}
+#else
 NSString *
 objc_get_symbol_path(Class theClass, Category *theCategory)
 {
@@ -348,3 +365,4 @@ objc_get_symbol_path(Class theClass, Category *theCategory)
 
   return nil;
 }
+#endif
