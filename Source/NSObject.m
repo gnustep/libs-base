@@ -1299,6 +1299,10 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   struct objc_protocol_list* proto_list;
 
+  if (aProtocol == 0)
+    {
+      return NO;
+    }
   for (proto_list = ((struct objc_class*)self)->protocols;
        proto_list; proto_list = proto_list->next)
     {

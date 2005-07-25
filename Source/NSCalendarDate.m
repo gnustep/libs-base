@@ -2558,7 +2558,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 	  eday += 31;
 	}
     }
-  if (emonth < smonth)
+  if (emonth < smonth || (emonth == smonth && eday < sday))
     {
       eyear -= 1;
       emonth += 12;
@@ -2585,7 +2585,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
     }
   else
     {
-      while (diff--)
+      while (diff-- > 0)
 	{
 	  int tmpmonth = emonth - diff - 1;
 	  int tmpyear = eyear;

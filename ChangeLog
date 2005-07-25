@@ -1,3 +1,10 @@
+2005-07-24  Jeremy Bettis
+
+	* Source/NSCalendarDate.m: Fix bug adding interval to date.
+	* Source/NSDebug.m: Implemented _NSNewStringFromCString() for gdb.
+	* Source/GSFormat.m: Fix %S format.
+	* Source/NSObject.m: ([conformsToProtocol:]) return NO if passed nul.
+
 2005-07-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Fix to avoid duplicate paths.

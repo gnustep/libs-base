@@ -1787,31 +1787,14 @@ NSDictionary *locale)
 	  }
 	else
 	  {
-	    /* This is complicated.  We have to transform the wide
-	       string into a unicode string.  */
+	    /* This is simple.  Wide string == unicode string.  */
 	    int prc;
-	    unichar *sp;
-	    wchar_t *wsp;
+	    unichar *wsp;
 
 	    len = 0;
 	    prc = prec;
-	    wsp = (wchar_t *)string;
+	    wsp = (unichar *)string;
 	    while (prc-- && *wsp++) len++;
-
-	    wsp = (wchar_t *)string;
-
-	    /* Allocate dynamically an array which definitely is long
-	       enough for the wide character version.  */
-	    if (len < 8192
-	      || ((string = (unichar *) NSZoneMalloc(s->_zone, len * sizeof (unichar)))
-		    == NULL))
-	      string = (unichar *) alloca (len * sizeof (unichar));
-	    else
-	      string_malloced = 1;
-
-            prc = len;
-	    sp = string;
-	    while (prc--) *sp = *wsp;
 	  }
 
 	if ((width -= len) <= 0)
