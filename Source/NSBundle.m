@@ -390,7 +390,8 @@ _find_framework(NSString *name)
 					     name, @".framework"]])
 		{
 		  /* Try creating the bundle.  */
-		  bundle = [[self alloc] initWithPath: bundlePath];
+		  if (bundlePath)
+		    bundle = [[self alloc] initWithPath: bundlePath];
 		}
 #if !defined(__MINGW__)
 	    }
@@ -431,7 +432,7 @@ _find_framework(NSString *name)
 
       if (bundle == nil)
 	{
-	  NSLog (@"Could not find framework %@ in any standard location", name);
+	  NSWarnMLog (@"Could not find framework %@ in any standard location", name);
 	  return;
 	}
 
