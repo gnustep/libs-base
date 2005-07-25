@@ -5,6 +5,7 @@
 	* Source/GSFormat.m: Fix %S format.
 	* Source/NSObject.m: ([conformsToProtocol:]) return NO if passed nul.
 	* Source/NSBundle.m: be more tolerant.
+	* Source/objc-load.m: Implemented objc_get_symbol_path() for windows.
 
 2005-07-24  Richard Frith-Macdonald <rfm@gnu.org>
 
