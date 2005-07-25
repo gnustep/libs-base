@@ -41,7 +41,8 @@ DTD_FILES = plist-0_9.dtd \
 	gsdoc-1_0_1.rnc
 
 # Manual pages to install
-MAN1_PAGES = gdnc.1 autogsdoc.1 cvtenc.1 defaults.1 pldes.1 sfparse.1 xmlparse.1
+MAN1_PAGES = gdnc.1 autogsdoc.1 cvtenc.1 defaults.1 gspath.1 \
+  pldes.1 sfparse.1 xmlparse.1
 MAN7_PAGES = gsdoc.7
 MAN8_PAGES = gdomap.8
 
@@ -49,7 +50,7 @@ MAN8_PAGES = gdomap.8
 ifeq ($(add),yes)
 TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
-TOOL_NAME = autogsdoc cvtenc gdnc defaults pl plmerge \
+TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge \
 		plparse sfparse pldes plser pl2link xmlparse
 CTOOL_NAME = gdomap
 
@@ -63,6 +64,7 @@ autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
 cvtenc_OBJC_FILES = cvtenc.m
 gdomap_C_FILES = gdomap.c
 gdnc_OBJC_FILES = gdnc.m
+gspath_OBJC_FILES = gspath.m
 defaults_OBJC_FILES = defaults.m
 dread_OBJC_FILES = dread.m
 dremove_OBJC_FILES = dremove.m

@@ -44,6 +44,7 @@ cvtenc.m \
 defaults.m \
 gdnc.m \
 gdomap.c \
+gspath.m \
 pldes.m \
 plser.m \
 plmerge.m \
