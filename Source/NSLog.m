@@ -140,6 +140,38 @@ _NSLog_standard_printf_handler (NSString* message)
     }
 #else
   write(_NSLogDescriptor, buf, len);
+#ifdef WIN32
+{
+  char *null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
+
+  strncpy (null_terminated_buf, buf, len);
+  null_terminated_buf[len] = '\0';
+  OutputDebugString(null_terminated_buf);
+  if (!IsDebuggerPresent())
+    {
+      static HANDLE eventloghandle = 0;
+
+      if (!eventloghandle)
+	{
+	  eventloghandle = RegisterEventSource(NULL,
+	    [[[NSProcessInfo processInfo] processName] cString]);
+	}
+      if (eventloghandle)
+	{
+	  ReportEvent(eventloghandle,	// event log handle
+	    EVENTLOG_WARNING_TYPE,	// event type
+	    0,				// category zero
+	    0,				// event identifier
+	    NULL,			// no user security identifier
+	    1,				// one substitution string
+	    0,				// no data
+	    &null_terminated_buf,	// pointer to string array
+	    NULL);			// pointer to data
+	}
+      }
+  objc_free (null_terminated_buf);
+}
+#endif // WIN32
 #endif
 }
 
