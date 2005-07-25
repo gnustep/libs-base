@@ -1,3 +1,8 @@
+2005-07-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Fix to avoid duplicate paths.
+	Fix bug in order of application paths.
+
 2005-07-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: fix typo in contributed code for when
