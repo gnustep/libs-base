@@ -2,6 +2,9 @@
 
 	* Source/NSPathUtilities.m: Fix to avoid duplicate paths.
 	Fix bug in order of application paths.
+	* Tools/gspath.m: new utility to display paths/directories
+	* Tools/gspath.1: man page for gspath
+	* Tools/GNUmakefile: build and install gspath
 
 2005-07-23  Richard Frith-Macdonald <rfm@gnu.org>
 
