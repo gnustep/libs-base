@@ -6,6 +6,7 @@
 	* Source/NSObject.m: ([conformsToProtocol:]) return NO if passed nul.
 	* Source/NSBundle.m: be more tolerant.
 	* Source/objc-load.m: Implemented objc_get_symbol_path() for windows.
+	* Source/NSLog.m: On mingw write to debugger and event viewer.
 
 2005-07-24  Richard Frith-Macdonald <rfm@gnu.org>
 
