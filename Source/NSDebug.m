@@ -954,3 +954,9 @@ const char *_NSPrintForDebugger(id object)
 
   return NULL;
 }
+
+NSString *_NSNewStringFromCString(const char *cstring)
+{
+  return [NSString stringWithCString: cstring];
+}
+
