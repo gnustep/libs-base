@@ -1,3 +1,8 @@
+2005-07-27  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.postamble (Info-gnustep.plist): Depend on 
+	../Version.
+
 2005-07-24  Jeremy Bettis
 
 	* Source/NSCalendarDate.m: Fix bug adding interval to date.
