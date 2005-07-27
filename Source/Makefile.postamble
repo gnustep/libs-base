@@ -174,7 +174,7 @@ libgnustep-base.def: $(OBJ_FILES_TO_LINK)
 #
 # Make an Info.plist since libraries don't have these normally
 #
-Info-gnustep.plist:
+Info-gnustep.plist: ../Version
 	$(ECHO_CREATING)(echo "{"; \
 	echo "  NSExecutable = \"gnustep-base\";"; \
 	echo "  NSPrincipalClass = \"NSObject\";"; \
