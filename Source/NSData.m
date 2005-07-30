@@ -1009,6 +1009,35 @@ static unsigned	gsu32Align;
 	{
 	  c = 0;
 	}
+	/* Windows 9x does not support MoveFileEx */
+      else if (GetLastError() == ERROR_CALL_NOT_IMPLEMENTED)
+	{
+	  unichar	secondaryFile[length + 100];
+
+	  wcscpy(secondaryFile, wthePath);
+	  wcscat(secondaryFile, L"-delete");
+	  // Delete the intermediate name just in case
+	  DeleteFileW(secondaryFile);
+	  // Move the existing file to the temp name
+	  if (MoveFileW(wtheRealPath, secondaryFile) != 0)
+	    {
+	      if (MoveFileW(wthePath, wtheRealPath) != 0)
+		{
+		  c = 0;
+		  // Delete the old file if possible
+		  DeleteFileW(secondaryFile);	
+		}
+	      else
+		{
+		  c = -1; // failure, restore the old file if possible
+		  MoveFileW(secondaryFile, wtheRealPath);
+		}
+	    }
+	  else
+	    {
+	      c = -1; // failure
+	    }
+	}
       else
 	{
 	  c = -1;
@@ -1021,11 +1050,12 @@ static unsigned	gsu32Align;
         {
 #if defined(__MINGW__)
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %s",
-	    [NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
-	    [NSString stringWithCharacters:wtheRealPath length:wcslen(wtheRealPath)],
+	    [NSString stringWithCharacters: wthePath length:wcslen(wthePath)],
+	    [NSString stringWithCharacters:
+	    wtheRealPath length:wcslen(wtheRealPath)],
 	    GSLastErrorStr(errno));
 #else
-         NSWarnMLog(@"Rename ('%s' to '%s') failed - %s",
+	  NSWarnMLog(@"Rename ('%s' to '%s') failed - %s",
 	    thePath, theRealPath, GSLastErrorStr(errno));
 #endif
           goto failure;

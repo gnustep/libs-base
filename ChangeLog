@@ -1,3 +1,7 @@
+2005-07-30  Jeremy Bettis
+
+	* Source/NSData.m: Support write to file for windows9x  users.
+
 2005-07-27  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Makefile.postamble (Info-gnustep.plist): Depend on 
