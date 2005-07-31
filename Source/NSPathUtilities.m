@@ -112,6 +112,31 @@
 #define   DEFAULT_USER_ROOT           @"GNUstep"
 
 
+static NSString	*gnustep_target_cpu =
+#ifdef GNUSTEP_TARGET_CPU
+  @GNUSTEP_TARGET_CPU;
+#else
+  nil;
+#endif
+static NSString	*gnustep_target_os =
+#ifdef GNUSTEP_TARGET_OS
+  @GNUSTEP_TARGET_OS;
+#else
+  nil;
+#endif
+static NSString	*library_combo =
+#ifdef LIBRARY_COMBO
+  @LIBRARY_COMBO;
+#else
+  nil;
+#endif
+static NSString	*gnustep_flattened =
+#ifdef GNUSTEP_FLATTENED
+  @GNUSTEP_FLATTENED;
+#else
+  nil;
+#endif
+
 #define	MGR()	[NSFileManager defaultManager]
 
 /*
@@ -1390,12 +1415,35 @@ if (domainMask & mask) \
       case GSLibrariesDirectory:
 	{
 	  NSString *gslibsDir;
+	  NSString *full = nil;
+	  NSString *part = nil;
 
 	  gslibsDir = [libraryDir stringByAppendingPathComponent: libsDir];
+	  if ([gnustep_flattened boolValue] == NO
+	    && gnustep_target_cpu != nil && gnustep_target_os != nil)
+	    {
+	      part = [gnustep_target_cpu stringByAppendingPathComponent:
+		gnustep_target_os];
+	      if (library_combo != nil)
+		{
+		  full = [part stringByAppendingPathComponent: library_combo];
+		  full = [gslibsDir stringByAppendingPathComponent: full];
+		}
+	      part = [gslibsDir stringByAppendingPathComponent: part];
+	    }
+
 	  ADD_PATH(NSUserDomainMask, gnustepUserRoot, gslibsDir);
+	  if (full) ADD_PATH(NSUserDomainMask, gnustepUserRoot, full);
+	  if (part) ADD_PATH(NSUserDomainMask, gnustepUserRoot, part);
 	  ADD_PATH(NSLocalDomainMask, gnustepLocalRoot, gslibsDir);
+	  if (full) ADD_PATH(NSLocalDomainMask, gnustepLocalRoot, full);
+	  if (part) ADD_PATH(NSLocalDomainMask, gnustepLocalRoot, part);
 	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkRoot, gslibsDir);
+	  if (full) ADD_PATH(NSNetworkDomainMask, gnustepNetworkRoot, full);
+	  if (part) ADD_PATH(NSNetworkDomainMask, gnustepNetworkRoot, part);
 	  ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, gslibsDir);
+	  if (full) ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, full);
+	  if (part) ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, part);
 
 	  ADD_PLATFORM_PATH(NSLocalDomainMask, localLibs);
 	  ADD_PLATFORM_PATH(NSSystemDomainMask, platformLibs);
@@ -1405,10 +1453,34 @@ if (domainMask & mask) \
 
       case GSToolsDirectory:
 	{
+	  NSString	*full = nil;
+	  NSString	*part = nil;
+
+	  if ([gnustep_flattened boolValue] == NO
+	    && gnustep_target_cpu != nil && gnustep_target_os != nil)
+	    {
+	      part = [gnustep_target_cpu stringByAppendingPathComponent:
+		gnustep_target_os];
+	      if (library_combo != nil)
+		{
+		  full = [part stringByAppendingPathComponent: library_combo];
+		  full = [toolsDir stringByAppendingPathComponent: full];
+		}
+	      part = [toolsDir stringByAppendingPathComponent: part];
+	    }
+
 	  ADD_PATH(NSUserDomainMask, gnustepUserRoot, toolsDir);
+	  if (full) ADD_PATH(NSUserDomainMask, gnustepUserRoot, full);
+	  if (part) ADD_PATH(NSUserDomainMask, gnustepUserRoot, part);
 	  ADD_PATH(NSLocalDomainMask, gnustepLocalRoot, toolsDir);
+	  if (full) ADD_PATH(NSLocalDomainMask, gnustepLocalRoot, full);
+	  if (part) ADD_PATH(NSLocalDomainMask, gnustepLocalRoot, part);
 	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkRoot, toolsDir);
+	  if (full) ADD_PATH(NSNetworkDomainMask, gnustepNetworkRoot, full);
+	  if (part) ADD_PATH(NSNetworkDomainMask, gnustepNetworkRoot, part);
 	  ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, toolsDir);
+	  if (full) ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, full);
+	  if (part) ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, part);
 
 	  ADD_PLATFORM_PATH(NSLocalDomainMask, localApps);
 	  ADD_PLATFORM_PATH(NSSystemDomainMask, platformApps);

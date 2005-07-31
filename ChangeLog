@@ -1,3 +1,13 @@
+2005-07-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUmakefile: Pass GNUSTEP_FLATTENED as preprocessor
+	definitions when building.
+	* Source/NSPathUtilities.m: Use GNUSTEP_FLATTENED and other
+	definitions to fix bug in returning paths for non-flattened
+	systems (code was previously returneing flattened paths
+	irrespective of whether the system was configured flattened
+	or not).
+
 2005-07-30  Jeremy Bettis
 
 	* Source/NSData.m: Support write to file for windows9x  users.
