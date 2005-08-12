@@ -78,6 +78,12 @@
 #include <sys/sysctl.h>
 #endif /* HAVE_KVM_ENV */
 
+#if HAVE_PROCFS_H
+#define id _procfs_avoid_id_collision
+#include <procfs.h>
+#undef id
+#endif
+
 #include "GSConfig.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
@@ -337,7 +343,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   IF_NO_GC(RELEASE(arp));
 }
 
-#if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV)) && (defined(HAVE_LOAD_METHOD)))
+#if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV) || defined(HAVE_PROCFS_PSINFO)) && (defined(HAVE_LOAD_METHOD)))
 /*
  * We have to save program arguments and environment before main () is
  * executed, because main () could modify their values before we get a
@@ -424,6 +430,74 @@ static char	**_gnu_noobjc_env = NULL;
       abort();
     }
 
+  /* copy the argument strings */
+  for (_gnu_noobjc_argc = 0; vectors[_gnu_noobjc_argc]; _gnu_noobjc_argc++)
+    ;
+  _gnu_noobjc_argv = (char**)malloc(sizeof(char*) * (_gnu_noobjc_argc + 1));
+  if (!_gnu_noobjc_argv)
+    goto malloc_error;
+  for (i = 0; i < _gnu_noobjc_argc; i++)
+    {
+      _gnu_noobjc_argv[i] = (char *)strdup(vectors[i]);
+      if (!_gnu_noobjc_argv[i])
+	goto malloc_error;
+    }
+  _gnu_noobjc_argv[i] = NULL;
+
+  return;
+#elif defined(HAVE_PROCFS_PSINFO)
+  char *proc_file_name = NULL;
+  FILE *ifp;
+  psinfo_t pinfo;
+  char **vectors;
+  int i, count;
+  
+  // Read commandline
+  proc_file_name = (char*)malloc(sizeof(char) * 2048);
+  sprintf(proc_file_name, "/proc/%d/psinfo", (int) getpid());
+  
+  ifp = fopen(proc_file_name, "r");
+  if (ifp == NULL)
+  {
+    fprintf(stderr, "Error: Failed to open the process info file:%s\n", 
+	    proc_file_name);
+    abort();
+  }
+  
+  fread(&pinfo, sizeof(pinfo), 1, ifp);
+  fclose(ifp);
+  
+  vectors = (char **)pinfo.pr_envp;
+  if (!vectors)
+  {
+    fprintf(stderr, "Error: for some reason, environ == NULL "
+      "during GNUstep base initialization\n"
+      "Please check the linking process\n");
+    abort();
+  }
+  
+  /* copy the environment strings */
+  for (count = 0; vectors[count]; count++)
+    ;
+  _gnu_noobjc_env = (char**)malloc(sizeof(char*) * (count + 1));
+  if (!_gnu_noobjc_env)
+    goto malloc_error;
+  for (i = 0; i < count; i++)
+  {
+  	_gnu_noobjc_env[i] = (char *)strdup(vectors[i]);
+    if (!_gnu_noobjc_env[i])
+      goto malloc_error;
+  }
+  _gnu_noobjc_env[i] = NULL;
+
+  /* get the argument vectors */
+  vectors = (char **)pinfo.pr_argv;
+  if (!vectors)
+  {
+    fprintf(stderr, "Error: psinfo does not return arguments for the current
+ process\n");
+    abort();
+  }
   /* copy the argument strings */
   for (_gnu_noobjc_argc = 0; vectors[_gnu_noobjc_argc]; _gnu_noobjc_argc++)
     ;
