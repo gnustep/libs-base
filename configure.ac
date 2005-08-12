@@ -439,6 +439,7 @@ fi
 # to be used for constant strings by using the -fconstant-string-class
 # option.  If that is the case, we change it to NSConstantString.
 #---------------------------------------------------------------------
+strclass_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS -fconstant-string-class=FooConstantString"
 AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
 AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
@@ -456,6 +457,7 @@ else
   NX_CONST_STRING_CLASS=NXConstantString
   AC_MSG_RESULT(no)
 fi
+CPPFLAGS="$strclass_CPPFLAGS"
 
 AC_SUBST(NX_CONST_STRING_OBJCFLAGS)
 AC_SUBST(NX_CONST_STRING_CLASS)
@@ -843,7 +845,9 @@ fi
 # Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
 # Needed by NSProcessInfo.m 
 #--------------------------------------------------------------------
+AC_CHECK_HEADERS(procfs.h)
 AC_SYS_PROCFS
+AC_SYS_PROCFS_PSINFO
 AC_SYS_PROCFS_EXE_LINK
 
 #--------------------------------------------------------------------
@@ -927,7 +931,7 @@ GS_FAKE_MAIN=0
 if test "$enable_fake_main" = "yes"; then
   GS_FAKE_MAIN=1
 elif test "$enable_pass_arguments" = "no"; then
-  if test "$objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 \); then
+  if test "$objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 -o "$ac_cv_sys_procfs_psinfo" = yes \); then
     GS_FAKE_MAIN=0
   else
     GS_FAKE_MAIN=1

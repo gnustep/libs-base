@@ -1,3 +1,12 @@
+2005-08-12  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Check if we can read the psinfo struct from 
+	/proc (Solaris).
+	* config/procfs.m4: Add psinfo check
+	* config/config.psinfo.c: New file.
+	* Source/NSProcessInfo.m (+load): Read from psinfo if we can.
+	(Based on patch #4234 from Jeremy Bettis, with some modifications).
+
 2005-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile: Pass GNUSTEP_FLATTENED as preprocessor

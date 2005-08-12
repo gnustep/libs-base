@@ -169,6 +169,12 @@
 /* Define if system supports the /proc filesystem */
 #undef HAVE_PROCFS
 
+/* Define to 1 if you have the <procfs.h> header file. */
+#undef HAVE_PROCFS_H
+
+/* Define if system supports reading psinfo from /proc */
+#undef HAVE_PROCFS_PSINFO
+
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
 
@@ -415,9 +421,11 @@
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
-/* Define as `__inline' if that's what the C compiler calls it, or to nothing
-   if it is not supported. */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 #undef inline
+#endif
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
