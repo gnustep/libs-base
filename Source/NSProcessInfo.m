@@ -494,8 +494,7 @@ static char	**_gnu_noobjc_env = NULL;
   vectors = (char **)pinfo.pr_argv;
   if (!vectors)
   {
-    fprintf(stderr, "Error: psinfo does not return arguments for the current
- process\n");
+    fprintf(stderr, "Error: psinfo does not return arguments for the current process\n");
     abort();
   }
   /* copy the argument strings */
