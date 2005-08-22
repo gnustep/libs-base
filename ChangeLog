@@ -1,3 +1,9 @@
+2005-08-22  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSGeometry.m (NSStringFromPoint, NSStringFromRect,
+	NSStringFromSize): Add spaces around '='. (Based on suggestion
+	from Matthias Hengartner).
+
 2005-08-12  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Check if we can read the psinfo struct from 
