@@ -204,6 +204,8 @@ NSDivideRect(NSRect aRect,
 }
 
 /** Get a String Representation... **/
+/* NOTE: Spaces around '=' so that old OpenStep implementations can
+   read our strings (Both GNUstep and Mac OS X can read these as well).  */
 
 NSString*
 NSStringFromPoint(NSPoint aPoint)
@@ -214,7 +216,7 @@ NSStringFromPoint(NSPoint aPoint)
       @"{%g, %g}", aPoint.x, aPoint.y];
   else
     return [NSStringClass stringWithFormat:
-      @"{x=%g; y=%g}", aPoint.x, aPoint.y];
+      @"{x = %g; y = %g}", aPoint.x, aPoint.y];
 }
 
 NSString*
@@ -227,7 +229,7 @@ NSStringFromRect(NSRect aRect)
       aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height];
   else
     return [NSStringClass stringWithFormat:
-      @"{x=%g; y=%g; width=%g; height=%g}",
+      @"{x = %g; y = %g; width = %g; height = %g}",
       aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height];
 }
 
@@ -240,7 +242,7 @@ NSStringFromSize(NSSize aSize)
       @"{%g, %g}", aSize.width, aSize.height];
   else
     return [NSStringClass stringWithFormat:
-      @"{width=%g; height=%g}", aSize.width, aSize.height];
+      @"{width = %g; height = %g}", aSize.width, aSize.height];
 }
 
 NSPoint
