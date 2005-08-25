@@ -1,6 +1,10 @@
 2005-08-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Fix bug subtracting minute interval.
+	* SSL/GSSSLHandle.m: Put handle in non-blocking mode before call
+	to SSL_accept() or SSL_connect() so that we can be interrupted
+	if the remote end doesn't respond (older code can hang waiting
+	for the remote end).
 
 2005-08-22  Adam Fedor  <fedor@gnu.org>
 
