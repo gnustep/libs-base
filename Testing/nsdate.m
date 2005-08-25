@@ -34,7 +34,6 @@ main()
   id pool;
 
   //behavior_set_debug(0);
-
   pool = [[NSAutoreleasePool alloc] init];
 
   NSLog(@"%@", [NSCalendarDate distantFuture]);

@@ -2414,7 +2414,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
       minute %= 60;
       if (minute < 0)
 	{
-	  hours++;
+	  hours--;
 	  minute += 60;
 	}
 
