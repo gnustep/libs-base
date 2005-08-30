@@ -1,3 +1,10 @@
+2005-08-30  Saso Kiselkov <diablos@manga.sk>
+
+	* Headers/Foundation/NSSortDescriptor.h, Source/NSSortDescriptor.m:
+	New files
+	* Headesr/Foundation/Foundation.h, Source/GNUmakefile: Add them to
+	list.
+
 2005-08-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Fix bug subtracting minute interval.
