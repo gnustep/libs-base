@@ -82,6 +82,7 @@
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSSerialization.h>
 #include <Foundation/NSSet.h>
+#include <Foundation/NSSortDescriptor.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSTask.h>
 #include <Foundation/NSThread.h>

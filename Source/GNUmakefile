@@ -223,6 +223,7 @@ NSSerializer.m \
 NSSet.m \
 NSSocketPort.m \
 NSSocketPortNameServer.m \
+NSSortDescriptor.m \
 NSString.m \
 NSTask.m \
 NSThread.m \
