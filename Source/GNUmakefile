@@ -336,6 +336,7 @@ NSRunLoop.h \
 NSScanner.h \
 NSSerialization.h \
 NSSet.h \
+NSSortDescriptor.h \
 NSString.h \
 NSTask.h \
 NSThread.h \

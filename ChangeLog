@@ -1,3 +1,7 @@
+2005-08-31  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GNUmakefile: Install NSSortDescriptor.h 
+
 2005-08-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNumber.m: Improve poor hash function.
