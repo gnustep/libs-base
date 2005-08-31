@@ -367,6 +367,62 @@ bench_dict()
 }
 
 void
+bench_number()
+{
+  int i;
+  int j;
+  NSMutableDictionary *dict;
+  NSNumber	*n[MAX_COUNT*10];
+
+  AUTO_START;
+
+  printf("NSNumber\n");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      n[i] = [NSNumber numberWithInt: i];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSNumber (creation) \t\t");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT; i++)
+    {
+      [n[i] hash];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSNumber (hash) \t\t");
+
+  dict = [NSMutableDictionary dictionaryWithCapacity: MAX_COUNT];
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      [dict setObject: n[i] forKey: n[i]];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSNumber (dictionary setObject:) \t\t");
+
+  START_TIMER;
+  for (i = 1; i < MAX_COUNT; i++)
+    {
+      [n[i] isEqual: n[i-1]];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSNumber (isEqual:)\t\t");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT; i++)
+    {
+      [n[i] copyWithZone: NSDefaultMallocZone()];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSNumber (copy)\t\t");
+
+  AUTO_END;
+}
+
+void
 bench_str()
 {
   int i;
@@ -632,6 +688,7 @@ int main(int argc, char *argv[], char **env)
   pool = [NSAutoreleasePool new];
   printf(" Test         	\t\t\t\t time (sec) \t index\n");
   bench_object();
+  bench_number();
   bench_str();
   bench_array();
   bench_dict();

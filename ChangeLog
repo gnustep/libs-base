@@ -1,8 +1,14 @@
+2005-08-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumber.m: Improve poor hash function.
+	* Source/NSConcreteNumber.m: Improve poor hash function.
+	* Testing/benchmark.m: Add some NSNumber tests.
+
 2005-08-30  Saso Kiselkov <diablos@manga.sk>
 
 	* Headers/Foundation/NSSortDescriptor.h, Source/NSSortDescriptor.m:
 	New files
-	* Headesr/Foundation/Foundation.h, Source/GNUmakefile: Add them to
+	* Headers/Foundation/Foundation.h, Source/GNUmakefile: Add them to
 	list.
 
 2005-08-25  Richard Frith-Macdonald <rfm@gnu.org>

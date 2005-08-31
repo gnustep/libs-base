@@ -2382,7 +2382,7 @@ static Class	doubleNumberClass;
   val.d = [self doubleValue];
   for (i = 0; i < sizeof(double); i++)
     {
-      hash += val.c[i];
+      hash = (hash << 5) + hash + val.c[i];
     }
   return hash;
 }
