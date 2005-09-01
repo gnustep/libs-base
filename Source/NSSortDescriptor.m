@@ -266,7 +266,7 @@ FindEqualityRanges(id * objects,
 
   [sortedArray sortUsingDescriptors: sortDescriptors];
 
-  return [[sortedArray copy] autorelease];
+  return [sortedArray makeImmutableCopyOnFail:NO];
 }
 
 @end
