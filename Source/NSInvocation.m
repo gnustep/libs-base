@@ -189,9 +189,13 @@ _arg_addr(NSInvocation *inv, int index)
 
 - (void) dealloc
 {
+  if (_targetRetained)
+    {
+      _targetRetained = NO;
+      RELEASE(_target);
+    }
   if (_argsRetained)
     {
-      RELEASE(_target);
       _argsRetained = NO;
       if (_cframe && _sig)
 	{
@@ -437,11 +441,14 @@ _arg_addr(NSInvocation *inv, int index)
  */
 - (void) setTarget: (id)anObject
 {
-  if (_argsRetained)
+  if (_targetRetained)
     {
       ASSIGN(_target, anObject);
     }
-  _target = anObject;
+  else
+    {
+      _target = anObject;
+    }
 }
 
 /**
@@ -463,55 +470,73 @@ _arg_addr(NSInvocation *inv, int index)
 
 /**
  * Instructs the invocation to retain its object arguments (including the
- * target).  The default is not to retain them.
+ * target). The default is not to retain them.
  */
 - (void) retainArguments
 {
-  if (_argsRetained)
-    {
-      return;
-    }
-  else
+  [self retainArgumentsIncludingTarget: YES];
+}
+
+/**
+ * Returns YES if target has been retained yet, NO otherwise.
+ */
+- (BOOL) targetRetained
+{
+  return _targetRetained;
+}
+
+/**
+ * Similar to -[NSInvocation retainArguments], but allows the sender to
+ * explicitly control whether the target is retained as well. Retaining
+ * the target is sometimes not desirable (such as in NSUndoManager), as
+ * retain loops could result.
+ */
+- (void) retainArgumentsIncludingTarget: (BOOL)retainTargetFlag
+{
+  if (_argsRetained == NO)
     {
       unsigned int	i;
 
       _argsRetained = YES;
-      IF_NO_GC(RETAIN(_target));
       if (_cframe == 0)
 	{
 	  return;
 	}
       for (i = 3; i <= _numArgs; i++)
 	{
-	  if (*_info[i].type == _C_ID || *_info[i].type == _C_CHARPTR)
+	  if (*_info[i].type == _C_ID)
 	    {
-	      if (*_info[i].type == _C_ID)
-		{
-		  id	old;
+              id        old;
 
-		  _get_arg(self, i-1, &old);
-		  if (old != nil)
-		    {
-		      IF_NO_GC(RETAIN(old));
-		    }
+	      _get_arg(self, i-1, &old);
+	      if (old != nil)
+		{
+		  IF_NO_GC(RETAIN(old));
 		}
-	      else
-		{
-		  char	*str;
+            }
+	  else if (*_info[i].type == _C_CHARPTR)
+	    {
+	      char      *str;
 
-		  _get_arg(self, i-1, &str);
-		  if (str != 0)
-		    {
-		      char	*tmp;
+	      _get_arg(self, i-1, &str);
+	      if (str != 0)
+	        {
+		  char  *tmp;
 
-		      tmp = NSZoneMalloc(NSDefaultMallocZone(), strlen(str)+1);
-		      strcpy(tmp, str);
-		      _set_arg(self, i-1, &tmp);
-		    }
+		  tmp = NSZoneMalloc(NSDefaultMallocZone(), strlen(str)+1);
+		  strcpy(tmp, str);
+		  _set_arg(self, i-1, &tmp);
 		}
 	    }
 	}
-    }		
+    }
+
+  if (retainTargetFlag && _targetRetained == NO)
+    {
+      _targetRetained = YES;
+
+      IF_NO_GC(RETAIN(_target));
+    }
 }
 
 /**

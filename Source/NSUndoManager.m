@@ -425,6 +425,7 @@
 		format: @"forwardInvocation without beginUndoGrouping"];
 	    }
 	}
+      [anInvocation retainArgumentsIncludingTarget: NO];
       [anInvocation setTarget: _nextTarget];
       _nextTarget = nil;
       [_group addInvocation: anInvocation];
@@ -726,7 +727,7 @@
       g = _group;
       sig = [target methodSignatureForSelector: aSelector];
       inv = [NSInvocation invocationWithMethodSignature: sig];
-      [inv retainArguments];
+      [inv retainArgumentsIncludingTarget: NO];
       [inv setTarget: target];
       [inv setSelector: aSelector];
       [inv setArgument: &anObject atIndex: 2];

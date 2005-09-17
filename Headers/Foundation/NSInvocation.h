@@ -42,6 +42,7 @@
   void			*_dummy;
 #endif
   BOOL			_argsRetained;
+  BOOL                  _targetRetained;
   BOOL			_validReturn;
   BOOL			_sendToSuper;
 }
@@ -70,6 +71,11 @@
  */
 - (BOOL) argumentsRetained;
 - (void) retainArguments;
+
+#if OS_API_VERSION(GS_API_NONE,GS_API_NONE) && GS_API_VERSION(011201,GS_API_LATEST)
+- (BOOL) targetRetained;
+- (void) retainArgumentsIncludingTarget: (BOOL)retainTargetFlag;
+#endif
 
 /*
  *	Dispatching an Invocation.
