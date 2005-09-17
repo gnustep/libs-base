@@ -1,3 +1,18 @@
+2005-09-17  Saso Kiselkov <diablos@manga.sk>
+        
+        * Headers/Foundation/NSInvocation.h:
+	* Source/NSInvocation.m:
+        (-targetRetained, -retainArgumentsIncludingTarget:):
+        Added new methods which allow target to be not retained when arguments 
+        are and to check whether it is retained or not (-retainsArguments code
+        moved in -retainArgumentsIncludingTarged and simplified by removing a 
+        redundant nested branch statement).
+        * Source/NSUndoManager.m (-forwardInvocation:, 
+        -registerUndoWithTarget:selector:object:): Fixed bug #14488 by relying 
+        on previous new methods to retain undo invocation (taking in account 
+        the fact arguments may have been released before it is called).
+        Patch committed by Quentin Mathe.
+
 2005-09-01  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSSortDescriptor.m ([NSArray
