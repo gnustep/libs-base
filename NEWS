@@ -1,9 +1,21 @@
 News
 ****
 
-The currently released version of the library is `1.11.0'.
+The currently released version of the library is `1.11.1'.
 
 See the <ReleaseNotes.html> document for more information.
+
+Noteworthy changes in version `1.11.1'
+======================================
+
+   * New Cocoa class NSSortDescriptor
+
+   * NSStringFrom... functions now output strings that can be read by
+     old OpenStep implementations (but can also still be read by
+     GNUstep and MacOSX).
+
+   * More support for debugging on mingw, including writing logs to
+     debugger and event viewer.
 
 Noteworthy changes in version `1.11.0'
 ======================================

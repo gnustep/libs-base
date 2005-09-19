@@ -25,6 +25,25 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.11.1</heading>
+	  <deflist>
+	    <term>NSSortDescriptor</term>
+	    <desc>
+	    New class.
+	    <term>NSStringFromPoint, NSStringFromRect, NSStringFromSize</term>
+	    <desc>
+	    Functions now output strings that can be read by old
+	    OpenStep implementations (but can also still be read by GNUstep and
+            MacOSX).
+	    </desc>
+	    <term>Debugging support</term>
+	    <desc>
+	    More support for debugging on mingw, including writing logs to 
+	    debugger and event viewer.
+	    </desc>
+	  </deflist>
+      </section>
+      <section>
 	<heading>Version 1.11.0</heading>
 	<p>
 	    The interface version of the base library has changed in

@@ -11,6 +11,19 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.11.1}
+
+@itemize @bullet
+@item New Cocoa class NSSortDescriptor
+@item NSStringFrom... functions now output strings that can
+be read by old OpenStep implementations (but can also still be read
+by GNUstep and MacOSX).
+@item More support for debugging on mingw, including writing logs to 
+debugger and event viewer.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.11.0}
 
 This release is binary incompatible with previous releases.
@@ -27,7 +40,6 @@ data files.
 @item NSRunLoop and related classes use natvie win32 event handling on
 Windows machines.
 @end itemize
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.10.3}
 
