@@ -30,6 +30,7 @@ notice and this notice are preserved.
 	    <term>NSSortDescriptor</term>
 	    <desc>
 	    New class.
+	    </desc>
 	    <term>NSStringFromPoint, NSStringFromRect, NSStringFromSize</term>
 	    <desc>
 	    Functions now output strings that can be read by old
