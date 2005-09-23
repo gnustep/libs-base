@@ -1,3 +1,8 @@
+2005-09-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: (-rawMimeData) tolerate nil content of
+	document ... should produce output with empty body.
+
 2005-09-18  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.11.1
