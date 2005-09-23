@@ -1067,7 +1067,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
  * Calls - replaceOccurrencesOfString:withString:options:range: passing
  * zero for the options and a range from 0 with the length of the receiver.
  *
- * Note that is has to work for [tmp replaceString:@"&" withString:@"&amp;"];
+ * Note that is has to work for
+ * [tmp replaceString: @"&amp;" withString: @"&amp;amp;"];
  */
 - (void) replaceString: (NSString*)replace
 	    withString: (NSString*)by
