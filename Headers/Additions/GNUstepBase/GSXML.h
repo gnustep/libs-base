@@ -446,6 +446,24 @@
  * method call (with timeout), or an asynchronous call in which the
  * call completion is handled by a delegate.
  * </p>
+ * <p>You may also use the class to implement an XMLRPC server, by calling
+ * the -parseMethod:params: method to parse the data POSTed to your server,
+ * and -buildResponseWithParams: (or -buildResponseWithFaultCode:andString:)
+ * to produce the data to be sent back to the client.
+ * </p>
+ * <p>In order to simply make a synchronous XMLRPC call to a server, all
+ * you need to do is write code like:
+ * </p>
+ * <example>
+ *   GSXMLRPC	*server = [[GSXMLRPC alloc] initWithURL: @"http://server/path"];
+ *   id		result = [server makeMethodCall: name params: p timeout: 30];
+ * </example>
+ * <p>Saying that you want to call the specified method ('name') on  the server,
+ * passing the parameters ('p') and with a 30 second timeout.<br />
+ * If there is a network or http-level error or a timeout, the result will be
+ * an error string, otherwise it will be an array (on success) or a dictionary
+ * containing the fault details.
+ * </p>
  */
 @interface	GSXMLRPC : NSObject <NSURLHandleClient>
 {
