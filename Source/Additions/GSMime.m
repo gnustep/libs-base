@@ -4583,6 +4583,10 @@ static NSCharacterSet	*tokenSet = nil;
 		      type: @"application/octet-stream"
 		      name: nil];
 	}
+      else if (content == nil)
+	{
+	  [self setContent: @"" type: @"text/plain" name: nil];
+	}
       else
 	{
 	  [NSException raise: NSInternalInconsistencyException
