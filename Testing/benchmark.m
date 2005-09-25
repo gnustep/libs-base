@@ -384,7 +384,7 @@ bench_number()
       n[i] = [NSNumber numberWithInt: i];
     }
   END_TIMER;
-  PRINT_TIMER("NSNumber (creation) \t\t");
+  PRINT_TIMER("NSNumber (creation) \t\t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
@@ -392,7 +392,7 @@ bench_number()
       [n[i] hash];
     }
   END_TIMER;
-  PRINT_TIMER("NSNumber (hash) \t\t");
+  PRINT_TIMER("NSNumber (hash) \t\t\t");
 
   dict = [NSMutableDictionary dictionaryWithCapacity: MAX_COUNT];
   START_TIMER;
@@ -401,7 +401,7 @@ bench_number()
       [dict setObject: n[i] forKey: n[i]];
     }
   END_TIMER;
-  PRINT_TIMER("NSNumber (dictionary setObject:) \t\t");
+  PRINT_TIMER("NSNumber (dictionary setObject:)\t");
 
   START_TIMER;
   for (i = 1; i < MAX_COUNT; i++)
@@ -409,7 +409,7 @@ bench_number()
       [n[i] isEqual: n[i-1]];
     }
   END_TIMER;
-  PRINT_TIMER("NSNumber (isEqual:)\t\t");
+  PRINT_TIMER("NSNumber (isEqual:)\t\t\t");
 
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
@@ -417,7 +417,7 @@ bench_number()
       [n[i] copyWithZone: NSDefaultMallocZone()];
     }
   END_TIMER;
-  PRINT_TIMER("NSNumber (copy)\t\t");
+  PRINT_TIMER("NSNumber (copy)\t\t\t");
 
   AUTO_END;
 }
@@ -473,7 +473,7 @@ bench_str()
       RELEASE(str);
     }
   END_TIMER;
-  PRINT_TIMER("NSString (1 initWithFormat:) \t");
+  PRINT_TIMER("NSString (1 initWithFormat:) \t\t");
 
   ms = [NSMutableString stringWithCapacity: 0];
   START_TIMER;
@@ -670,6 +670,72 @@ bench_data()
   AUTO_END;
 }
 
+void
+bench_maptable()
+{
+  int i;
+  NSMapTable *table;
+  NSMapTable *table2;
+  NSString	*keys[MAX_COUNT/10];
+  NSString	*vals[MAX_COUNT/10];
+
+  AUTO_START;
+  for (i = 0; i < MAX_COUNT/10; i++)
+    {
+      char buf1[100], buf2[100];
+      sprintf(buf1, "key%0d", i);
+      sprintf(buf2, "val%0d", i);
+      keys[i] = [stringClass stringWithCString: buf1];
+      vals[i] = [stringClass stringWithCString: buf2];
+    }
+  printf("NSMapTable\n");
+  table = NSCreateMapTable(NSObjectMapKeyCallBacks,
+			   NSObjectMapValueCallBacks, 16);
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT/10; i++)
+    {
+      int j;
+
+      for (j = 0; j < 10; j++)
+	{
+	  NSMapInsert(table, keys[i], vals[i]);
+	}
+    }
+  END_TIMER;
+  PRINT_TIMER("NSMapTable (1 NSMapInsert) \t\t");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT; i++)
+    {
+      int j;
+
+      for (j = 0; j < 10; j++)
+        {
+	  NSMapGet(table, keys[i/10]);
+        }
+    }
+  END_TIMER;
+  PRINT_TIMER("NSMapTable (10 NSMapGet) \t\t");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      NSCountMapTable(table);
+    }
+  END_TIMER;
+  PRINT_TIMER("NSMapTable (10 NSCountMapTable)\t");
+
+  table2 = NSCopyMapTableWithZone(table, NSDefaultMallocZone());
+  START_TIMER;
+  for (i = 0; i < 10; i++)
+    {
+      NSCompareMapTables(table, table2);
+    }
+  END_TIMER;
+  PRINT_TIMER("NSMapTable (ten times NSCompareMapTables)");
+  AUTO_END;
+}
+
 int main(int argc, char *argv[], char **env)
 {
   id pool;
@@ -692,6 +758,7 @@ int main(int argc, char *argv[], char **env)
   bench_str();
   bench_array();
   bench_dict();
+  bench_maptable();
   bench_date();
   bench_data();
   AUTO_END;
