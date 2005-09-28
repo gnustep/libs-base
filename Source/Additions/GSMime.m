@@ -4135,6 +4135,66 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Converts any binary parts of the receiver's content to be base64
+ * encoded rather than 8bit or binary encoded ... a convenience method to
+ * make the results of the -rawMimeData method safe for sending via
+ * routes which only support 7bit data.
+ */
+- (void) convertToBase64
+{
+  if ([content isKindOfClass: NSArrayClass] == YES)
+    {
+      NSEnumerator	*e = [content objectEnumerator];
+      GSMimeDocument	*d;
+
+      while ((d = [e nextObject]) != nil)
+	{
+	  [d convertToBase64];
+	}
+    }
+  else
+    {
+      GSMimeHeader	*h = [self headerNamed: @"content-transfer-encoding"];
+      NSString		*v = [h value];
+
+      if ([v isEqual: @"binary"] == YES || [v isEqual: @"8bit"] == YES)
+	{
+	  [h setValue: @"base64"];
+	}
+    }
+}
+
+/**
+ * Converts any base64 encoded parts of the receiver's content to be 
+ * binary encoded instead ... a convenience method to
+ * shrink down the size of the message when converted to data using
+ * the -rawMimeData method.
+ */
+- (void) convertToBinary
+{
+  if ([content isKindOfClass: NSArrayClass] == YES)
+    {
+      NSEnumerator	*e = [content objectEnumerator];
+      GSMimeDocument	*d;
+
+      while ((d = [e nextObject]) != nil)
+	{
+	  [d convertToBinary];
+	}
+    }
+  else
+    {
+      GSMimeHeader	*h = [self headerNamed: @"content-transfer-encoding"];
+      NSString		*v = [h value];
+
+      if ([v isEqual: @"base64"] == YES)
+	{
+	  [h setValue: @"binary"];
+	}
+    }
+}
+
+/**
  * Return the content as an NSData object (unless it is multipart)<br />
  * Perform conversion from text to data using the charset specified in
  * the content-type header, or infer the charset, and update the header
