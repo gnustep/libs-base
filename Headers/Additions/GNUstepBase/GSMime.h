@@ -123,6 +123,8 @@
 - (NSString*) contentSubtype;
 - (NSString*) contentType;
 - (NSArray*) contentsByName: (NSString*)key;
+- (void) convertToBase64;
+- (void) convertToBinary;
 - (NSData*) convertToData;
 - (NSString*) convertToText;
 - (void) deleteContent: (GSMimeDocument*)aPart;

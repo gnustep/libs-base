@@ -1,3 +1,8 @@
+2005-09-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: (-convertToBinary, -convertToBase64)
+	new convenience methods for making documents comapct or 7bit safe.
+
 2005-09-25  David Ayers  <d.ayers@inode.at>
 
 	* Testing/benchmark.m: Add some NSMapTable tests.
