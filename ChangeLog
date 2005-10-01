@@ -1,3 +1,8 @@
+2005-10-01  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSString: (dataUsingEncoding:allowLossyConversion:):
+	Use buffer returned by NSZoneRealloc to create the data object.
+	
 2005-09-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/unicode/gsm0338.h: Map unicode

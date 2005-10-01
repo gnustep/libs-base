@@ -3329,7 +3329,7 @@ handle_printf_atsign (FILE *stream,
             }
         }
 
-      NSZoneRealloc(NSDefaultMallocZone(), buff, j);
+      buff = NSZoneRealloc(NSDefaultMallocZone(), buff, j);
 
       return [NSDataClass dataWithBytesNoCopy: buff
                                        length: j];
