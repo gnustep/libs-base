@@ -80,8 +80,8 @@ static NSMapTable portToNamesMap;
 static void clean_up_names(void)
 {
   NSMapEnumerator mEnum;
-  NSMessagePort *port;
-  NSString *name;
+  NSMessagePort	*port;
+  NSString	*name;
   BOOL	unknownThread = GSRegisterCurrentThread();
   CREATE_AUTORELEASE_POOL(arp);
 

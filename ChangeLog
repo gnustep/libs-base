@@ -1,3 +1,13 @@
+2005-10-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m:
+	* Source/NSCallBacks.m:
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSSocketPort.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	Attempt to deal with systems where sizeof(int) < sizeof(void*)
+
 2005-10-01  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSString: (dataUsingEncoding:allowLossyConversion:):

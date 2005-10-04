@@ -135,7 +135,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   HANDLE		*handleArray;
   int			num_handles;
   unsigned		i;
-  HANDLE		handle;
+  void			*handle;
   int			wait_timeout;
   DWORD			wait_return;
   BOOL			do_wait;
@@ -215,9 +215,9 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   hEnum = NSEnumerateMapTable(handleMap);
     
   i = 0;
-  while (NSNextMapEnumeratorPair(&hEnum, (void**)&handle, (void**)&watcher))
+  while (NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
     {
-      handleArray[i++] = handle;
+      handleArray[i++] = (HANDLE)handle;
     }
 
   do_wait = YES;

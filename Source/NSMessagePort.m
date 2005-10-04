@@ -1150,7 +1150,7 @@ static Class		messagePortClass;
 static void clean_up_sockets(void)
 {
   NSMessagePort *port;
-  NSData *name;
+  NSData	*name;
   NSMapEnumerator mEnum;
   BOOL	unknownThread = GSRegisterCurrentThread();
   CREATE_AUTORELEASE_POOL(arp);
@@ -1385,8 +1385,8 @@ static int unique_index = 0;
 - (void) getFds: (int*)fds count: (int*)count
 {
   NSMapEnumerator	me;
-  int			sock;
-  GSMessageHandle		*handle;
+  void			*sock;
+  GSMessageHandle	*handle;
   id			recvSelf;
 
   M_LOCK(myLock);
@@ -1412,11 +1412,11 @@ static int unique_index = 0;
    */
   recvSelf = GS_GC_HIDE(self);
   me = NSEnumerateMapTable(handles);
-  while (NSNextMapEnumeratorPair(&me, (void*)&sock, (void*)&handle))
+  while (NSNextMapEnumeratorPair(&me, &sock, (void**)&handle))
     {
       if (handle->recvPort == recvSelf)
 	{
-	  fds[(*count)++] = sock;
+	  fds[(*count)++] = (int)sock;
 	}
     }
   NSEndMapTableEnumeration(&me);
@@ -1426,7 +1426,7 @@ static int unique_index = 0;
 - (id) conversation: (NSPort*)recvPort
 {
   NSMapEnumerator	me;
-  int			sock;
+  void			*dummy;
   GSMessageHandle	*handle = nil;
 
   M_LOCK(myLock);
@@ -1434,7 +1434,7 @@ static int unique_index = 0;
    * Enumerate all our socket handles, and look for one with port.
    */
   me = NSEnumerateMapTable(handles);
-  while (NSNextMapEnumeratorPair(&me, (void*)&sock, (void*)&handle))
+  while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
     {
       if ([handle recvPort] == recvPort)
 	{
@@ -1454,6 +1454,7 @@ static int unique_index = 0;
 {
   NSMapEnumerator	me;
   int			sock;
+  void			*dummy;
 #ifndef	BROKEN_SO_REUSEADDR
   int			opt = 1;
 #endif
@@ -1464,7 +1465,7 @@ static int unique_index = 0;
    * Enumerate all our socket handles, and look for one with port.
    */
   me = NSEnumerateMapTable(handles);
-  while (NSNextMapEnumeratorPair(&me, (void*)&sock, (void*)&handle))
+  while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
     {
       if ([handle recvPort] == recvPort)
 	{
@@ -1479,7 +1480,8 @@ static int unique_index = 0;
    * Not found ... create a new handle.
    */
   handle = nil;
-  if ((sock = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
+  sock = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC);
+  if (sock < 0)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
     }

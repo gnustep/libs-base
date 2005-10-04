@@ -1596,7 +1596,7 @@ static unsigned	wordAlign;
 - (void) getFds: (SOCKET*)fds count: (int*)count
 {
   NSMapEnumerator	me;
-  SOCKET		sock;
+  void			*sock;
   GSTcpHandle		*handle;
   id			recvSelf;
 
@@ -1623,11 +1623,11 @@ static unsigned	wordAlign;
    */
   recvSelf = GS_GC_HIDE(self);
   me = NSEnumerateMapTable(handles);
-  while (NSNextMapEnumeratorPair(&me, (void*)&sock, (void*)&handle))
+  while (NSNextMapEnumeratorPair(&me, &sock, (void**)&handle))
     {
       if (handle->recvPort == recvSelf)
 	{
-	  fds[(*count)++] = sock;
+	  fds[(*count)++] = (SOCKET)sock;
 	}
     }
   NSEndMapTableEnumeration(&me);
@@ -1638,6 +1638,7 @@ static unsigned	wordAlign;
 {
   NSMapEnumerator	me;
   SOCKET		sock;
+  void			*dummy;
 #ifndef	BROKEN_SO_REUSEADDR
   int			opt = 1;
 #endif
@@ -1648,7 +1649,7 @@ static unsigned	wordAlign;
    * Enumerate all our socket handles, and look for one with port.
    */
   me = NSEnumerateMapTable(handles);
-  while (NSNextMapEnumeratorPair(&me, (void*)&sock, (void*)&handle))
+  while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
     {
       if ([handle recvPort] == recvPort)
 	{
@@ -1663,7 +1664,8 @@ static unsigned	wordAlign;
    * Not found ... create a new handle.
    */
   handle = nil;
-  if ((sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
+  sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC);
+  if (sock == INVALID_SOCKET)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
     }
