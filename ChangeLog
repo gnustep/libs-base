@@ -1,3 +1,8 @@
+2005-10-06  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSPage.m: Add include for Cygwin (patch from
+	Tom MacSween).
+
 2005-10-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m:

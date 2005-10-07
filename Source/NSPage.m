@@ -45,6 +45,10 @@
 #include <linux/sys.h>
 #endif
 
+#ifdef __CYGWIN__
+#include <malloc.h>
+#endif
+
 #ifdef __MINGW__
 #include <malloc.h>
 static size_t
