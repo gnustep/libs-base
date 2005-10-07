@@ -3077,8 +3077,8 @@ static void callEncoder (DOContext *ctxt)
   NSAssert(node == 0, NSInternalInconsistencyException);
 
   RETAIN(anObj);
-  GSIMapAddPair(_localObjects, (GSIMapKey)object, (GSIMapVal)anObj);
-  GSIMapAddPair(_localTargets, (GSIMapKey)target, (GSIMapVal)anObj);
+  GSIMapAddPair(_localObjects, (GSIMapKey)object, (GSIMapVal)((id)anObj));
+  GSIMapAddPair(_localTargets, (GSIMapKey)target, (GSIMapVal)((id)anObj));
 
   if (debug_connection > 2)
     NSLog(@"add local object (0x%x) target (0x%x) "
@@ -3307,7 +3307,7 @@ static void callEncoder (DOContext *ctxt)
 		  GSIMapRemoveKey(_localTargets, (GSIMapKey)nTarget);
 		  ((ProxyStruct*)proxy)->_handle = target;
 		  GSIMapAddPair(_localTargets, (GSIMapKey)target,
-		    (GSIMapVal)proxy);
+		    (GSIMapVal)((id)proxy));
 		}
 	      M_UNLOCK(c->_proxiesGate);
 	    }
@@ -3464,7 +3464,7 @@ static void callEncoder (DOContext *ctxt)
   if (p == nil && aProxy != nil)
     {
       p = aProxy;
-      GSIMapAddPair(_remoteProxies, (GSIMapKey)aTarget, (GSIMapVal)p);
+      GSIMapAddPair(_remoteProxies, (GSIMapKey)aTarget, (GSIMapVal)((id)p));
     }
   /*
    * Whether this is a new proxy or an existing proxy, this method is

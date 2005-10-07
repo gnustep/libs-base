@@ -757,7 +757,7 @@ static Class NSDataMallocClass;
 		}
 	      RELEASE(className);
 	      classInfo->version = cver;
-	      GSIArrayAddItem(clsMap, (GSIArrayItem)classInfo);
+	      GSIArrayAddItem(clsMap, (GSIArrayItem)((id)classInfo));
 	      *(Class*)address = mapClassObject(classInfo);
 	      /*
 	       *	Point the address to a dummy location and read the

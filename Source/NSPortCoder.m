@@ -695,7 +695,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
 		}
 	      classInfo = [GSClassInfo newWithClass: c andVersion: cver];
-	      GSIArrayAddItem(_clsAry, (GSIArrayItem)classInfo);
+	      GSIArrayAddItem(_clsAry, (GSIArrayItem)((id)classInfo));
 	      *(Class*)address = classInfo->class;
 	      /*
 	       *	Point the address to a dummy location and read the
