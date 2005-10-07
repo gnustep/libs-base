@@ -1,3 +1,7 @@
+2005-10-07  Chris Vetter <cbv@gmx.net>
+
+	* Source/NSPropertyList.m: Remove bogus newline generated for BOOL.
+
 2005-10-06  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSPage.m: Add include for Cygwin (patch from
