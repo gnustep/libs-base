@@ -412,7 +412,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
     {
       item->_date = RETAIN(theFuture);
     }
-  GSIArrayInsertSorted(watchers, (GSIArrayItem)item, aSort);
+  GSIArrayInsertSorted(watchers, (GSIArrayItem)((id)item), aSort);
 }
 
 - (void) _checkPerformers: (GSRunLoopCtxt*)context
@@ -763,7 +763,7 @@ extern IMP	wRetImp;
       RELEASE(context);
     }
   timers = context->timers;
-  GSIArrayInsertSorted(timers, (GSIArrayItem)timer, aSort);
+  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), aSort);
 }
 
 
@@ -816,7 +816,7 @@ extern IMP	wRetImp;
 	      if (timerInvalidated(min_timer) == NO)
 		{
 		  GSIArrayInsertSortedNoRetain(timers,
-		    (GSIArrayItem)min_timer, aSort);
+		    (GSIArrayItem)((id)min_timer), aSort);
 		}
 	      else
 		{
@@ -880,7 +880,7 @@ extern IMP	wRetImp;
 		       */
 		      ASSIGN(min_watcher->_date, nxt);
 		      GSIArrayInsertSortedNoRetain(watchers,
-			(GSIArrayItem)min_watcher, aSort);
+			(GSIArrayItem)((id)min_watcher), aSort);
 		    }
 		  else
 		    {
@@ -1326,13 +1326,13 @@ extern IMP	wRetImp;
 	      p = GSIArrayItemAtIndex(performers, i).obj;
 	      if (p->order > order)
 		{
-		  GSIArrayInsertItem(performers, (GSIArrayItem)item, i);
+		  GSIArrayInsertItem(performers, (GSIArrayItem)((id)item), i);
 		  break;
 		}
 	    }
 	  if (i == end)
 	    {
-	      GSIArrayInsertItem(performers, (GSIArrayItem)item, i);
+	      GSIArrayInsertItem(performers, (GSIArrayItem)((id)item), i);
 	    }
 	}
       RELEASE(item);

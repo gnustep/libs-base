@@ -592,7 +592,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	   */
 	  if (info->didUnique)
 	    {
-	      GSIArrayAddItem(&info->array, (GSIArrayItem)s);
+	      GSIArrayAddItem(&info->array, (GSIArrayItem)((id)s));
 	    }
 	  return s;
 	}
@@ -650,7 +650,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	   */
 	  if (info->didUnique)
 	    {
-	      GSIArrayAddItem(&info->array, (GSIArrayItem)s);
+	      GSIArrayAddItem(&info->array, (GSIArrayItem)((id)s));
 	    }
 	  return s;
 	}

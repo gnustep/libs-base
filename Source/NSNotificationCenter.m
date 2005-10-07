@@ -697,7 +697,7 @@ static NSNotificationCenter *default_center = nil;
       /*
        * Locate the map table for this name - create it if not present.
        */
-      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
+      n = GSIMapNodeForKey(NAMED, (GSIMapKey)(id)name);
       if (n == 0)
 	{
 	  m = mapNew(TABLE);
@@ -706,7 +706,7 @@ static NSNotificationCenter *default_center = nil;
 	   * copy of the name so it cannot be mutated while in the map.
 	   */
 	  name = [name copyWithZone: NSDefaultMallocZone()];
-	  GSIMapAddPair(NAMED, (GSIMapKey)name, (GSIMapVal)(void*)m);
+	  GSIMapAddPair(NAMED, (GSIMapKey)(id)name, (GSIMapVal)(void*)m);
 	}
       else
 	{
@@ -842,7 +842,7 @@ static NSNotificationCenter *default_center = nil;
 	  if (m->nodeCount == 0)
 	    {
 	      mapFree(TABLE, m);
-	      GSIMapRemoveKey(NAMED, (GSIMapKey)thisName);
+	      GSIMapRemoveKey(NAMED, (GSIMapKey)(id)thisName);
 	    }
 	}
 
@@ -879,7 +879,7 @@ static NSNotificationCenter *default_center = nil;
       /*
        * Locate the map table for this name.
        */
-      n0 = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
+      n0 = GSIMapNodeForKey(NAMED, (GSIMapKey)((id)name));
       if (n0 == 0)
 	{
 	  unlockNCTable(TABLE);
@@ -911,7 +911,7 @@ static NSNotificationCenter *default_center = nil;
       if (m->nodeCount == 0)
 	{
 	  mapFree(TABLE, m);
-	  GSIMapRemoveKey(NAMED, (GSIMapKey)name);
+	  GSIMapRemoveKey(NAMED, (GSIMapKey)((id)name));
 	}
     }
   unlockNCTable(TABLE);
@@ -1000,7 +1000,7 @@ static NSNotificationCenter *default_center = nil;
    */
   if (name)
     {
-      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
+      n = GSIMapNodeForKey(NAMED, (GSIMapKey)((id)name));
       if (n)
 	{
 	  m = (GSIMapTable)n->value.ptr;
