@@ -1590,7 +1590,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		}
 	      else if (x == NSPropertyListGNUstepFormat)
 		{
-		  [dest appendBytes: "<*BY>\n" length: 6];
+		  [dest appendBytes: "<*BY>" length: 5];
 		}
 	      else
 		{
@@ -1605,7 +1605,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		}
 	      else if (x == NSPropertyListGNUstepFormat)
 		{
-		  [dest appendBytes: "<*BN>\n" length: 6];
+		  [dest appendBytes: "<*BN>" length: 5];
 		}
 	      else
 		{
