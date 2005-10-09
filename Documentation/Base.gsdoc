@@ -149,7 +149,10 @@ notice and this notice are preserved.
 		the syslog facility (on systems which support it), rather
 		than to the standard error stream.  This is useful in
 		environments where stderr has been re-used strangely for
-		some reason.
+		some reason.<br />
+		On mswindows, where syslog does not exist, this flag instead
+		controls whether log/debug output is sent to the windows
+		event log.
 	      </p>
 	    </desc>
 	    <term>GSLogThread</term>

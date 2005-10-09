@@ -41,6 +41,25 @@
 #include <syslog.h>
 #endif
 
+#if	defined(HAVE_SYSLOG)
+# if	defined(LOG_ERR)
+#   if	defined(LOG_USER)
+#     define	SYSLOGMASK	(LOG_ERR|LOG_USER)
+#   else
+#     define	SYSLOGMASK	(LOG_ERR)
+#   endif	// LOG_USER
+# elif	defined(LOG_ERROR)
+#   if	defined(LOG_USER)
+#     define	SYSLOGMASK	(LOG_ERROR|LOG_USER)
+#   else
+#     define	SYSLOGMASK	(LOG_ERROR)
+#   endif	// LOG_USER
+# else
+#   error "Help, I can't find a logging level for syslog"
+# endif
+#endif	// HAVE_SYSLOG
+
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -110,68 +129,47 @@ _NSLog_standard_printf_handler (NSString* message)
       len = [d length];
     }
 
-#ifdef	HAVE_SYSLOG
-
+#if	defined(HAVE_SYSLOG) || defined(WIN32)
   if (GSUserDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
     {
-      int	mask;
-      /* We NULL-terminate the string in order to feed it to
-       * syslog.  */
       char *null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
+
       strncpy (null_terminated_buf, buf, len);
       null_terminated_buf[len] = '\0';
 
-#ifdef	LOG_ERR
-      mask = LOG_ERR;
-#else
-# ifdef	LOG_ERROR
-      mask = LOG_ERROR;
-# else
-#   error "Help, I can't find a logging level for syslog"
-# endif
-#endif
+#if	defined(WIN32)
+      OutputDebugString(null_terminated_buf);
+      if (!IsDebuggerPresent())
+	{
+	  static HANDLE eventloghandle = 0;
 
-#ifdef	LOG_USER
-      mask |= LOG_USER;
-#endif
-      syslog(mask, "%s",  null_terminated_buf);
+	  if (!eventloghandle)
+	    {
+	      eventloghandle = RegisterEventSource(NULL,
+		[[[NSProcessInfo processInfo] processName] cString]);
+	    }
+	  if (eventloghandle)
+	    {
+	      ReportEvent(eventloghandle,	// event log handle
+		EVENTLOG_WARNING_TYPE,	// event type
+		0,			// category zero
+		0,			// event identifier
+		NULL,			// no user security identifier
+		1,			// one substitution string
+		0,			// no data
+		&null_terminated_buf,	// pointer to string array
+		NULL);			// pointer to data
+	    }
+	  }
+#else
+      syslog(SYSLOGMASK, "%s",  null_terminated_buf);
+#endif // WIN32
+
       objc_free (null_terminated_buf);
     }
 #else
   write(_NSLogDescriptor, buf, len);
-#ifdef WIN32
-{
-  char *null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
-
-  strncpy (null_terminated_buf, buf, len);
-  null_terminated_buf[len] = '\0';
-  OutputDebugString(null_terminated_buf);
-  if (!IsDebuggerPresent())
-    {
-      static HANDLE eventloghandle = 0;
-
-      if (!eventloghandle)
-	{
-	  eventloghandle = RegisterEventSource(NULL,
-	    [[[NSProcessInfo processInfo] processName] cString]);
-	}
-      if (eventloghandle)
-	{
-	  ReportEvent(eventloghandle,	// event log handle
-	    EVENTLOG_WARNING_TYPE,	// event type
-	    0,				// category zero
-	    0,				// event identifier
-	    NULL,			// no user security identifier
-	    1,				// one substitution string
-	    0,				// no data
-	    &null_terminated_buf,	// pointer to string array
-	    NULL);			// pointer to data
-	}
-      }
-  objc_free (null_terminated_buf);
-}
-#endif // WIN32
 #endif
 }
 
@@ -199,7 +197,10 @@ _NSLog_standard_printf_handler (NSString* message)
  *   <item>
  *     If the system supports writing to syslog and the user default to
  *     say that logging should be done to syslog (GSLogSyslog) is set,
- *     writes the data to the syslog.
+ *     writes the data to the syslog.<br />
+ *     On an mswindows system, where syslog is not available, the
+ *     GSLogSyslog user default controls whether or not data is written
+ *     to the system event log,
  *   </item>
  *   <item>
  *     Otherwise, writes the data to the file descriptor stored in the
@@ -248,7 +249,7 @@ NSLog (NSString* format, ...)
  * <p>
  *   In GNUstep, the GSLogThread user default may be set to YES in
  *   order to instruct this function to include the internal ID of
- *   the mcurrent thread after the process ID.  This can help you
+ *   the current thread after the process ID.  This can help you
  *   to track the behavior of a multi-threaded program.
  * </p>
  * <p>
