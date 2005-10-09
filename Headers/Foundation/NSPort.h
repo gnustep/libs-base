@@ -31,7 +31,7 @@
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSMapTable.h>
 
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 #include	<winsock2.h>
 #include	<wininet.h>
 #else
@@ -193,7 +193,7 @@ typedef SOCKET NSSocketNativeHandle;
   gsu16			portNum;	/* TCP port in host byte order.	*/
   SOCKET		listener;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
   WSAEVENT              eventListener;
   NSMapTable            *events;
 #endif
@@ -317,7 +317,7 @@ typedef SOCKET NSSocketNativeHandle;
   NSRecursiveLock	*myLock;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
   int			listener;	/* Descriptor to listen on.	*/
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
   WSAEVENT              eventListener;
   NSMapTable            *events;
 #endif

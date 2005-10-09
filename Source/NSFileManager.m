@@ -38,7 +38,7 @@
 
 #define _FILE_OFFSET_BITS 64
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 #define UNICODE
 #define _UNICODE
 #endif
@@ -89,7 +89,7 @@
 
 #if defined(_POSIX_VERSION) || defined(__WIN32__)
 # include <limits.h>			/* for PATH_MAX */
-# if defined(__MINGW32__)
+# if defined(__MINGW__)
 #   include <sys/utime.h>
 # else
 #   include <utime.h>

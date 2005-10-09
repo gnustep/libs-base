@@ -129,7 +129,7 @@ _NSLog_standard_printf_handler (NSString* message)
       len = [d length];
     }
 
-#if	defined(HAVE_SYSLOG) || defined(WIN32)
+#if	defined(HAVE_SYSLOG) || defined(__WIN32__)
   if (GSUserDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
     {
@@ -138,7 +138,7 @@ _NSLog_standard_printf_handler (NSString* message)
       strncpy (null_terminated_buf, buf, len);
       null_terminated_buf[len] = '\0';
 
-#if	defined(WIN32)
+#if	defined(__WIN32__)
       OutputDebugString(null_terminated_buf);
       if (!IsDebuggerPresent())
 	{
@@ -164,7 +164,7 @@ _NSLog_standard_printf_handler (NSString* message)
 	  }
 #else
       syslog(SYSLOGMASK, "%s",  null_terminated_buf);
-#endif // WIN32
+#endif // __WIN32__
 
       objc_free (null_terminated_buf);
     }

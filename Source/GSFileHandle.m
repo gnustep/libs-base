@@ -1243,7 +1243,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       writeOK = YES;
       acceptOK = YES;
       connectOK = YES;
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
       if (isSocket)
         {
           event = CreateEvent(NULL, NO, NO, NULL);
@@ -1530,7 +1530,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       rval = [self write: (char*)ptr+pos length: toWrite];
       if (rval < 0)
 	{
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
           if (WSAGetLastError()== WSAEINTR ||
                 WSAGetLastError()== WSAEWOULDBLOCK)
 #else
@@ -1926,7 +1926,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
 	  [l removeEvent: (void*)(gsaddr)event
 		    type: ET_HANDLE
 		 forMode: [modes objectAtIndex: i]
@@ -1941,7 +1941,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
       [l removeEvent: (void*)(gsaddr)event
 	        type: ET_HANDLE
 	     forMode: NSDefaultRunLoopMode
@@ -1980,7 +1980,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
           [l removeEvent: (void*)(gsaddr)event
 	            type: ET_HANDLE
 	         forMode: [modes objectAtIndex: i]
@@ -1995,7 +1995,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
       [l removeEvent: (void*)(gsaddr)event
                 type: ET_HANDLE
 	     forMode: NSDefaultRunLoopMode
@@ -2026,7 +2026,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
 	  [l addEvent: (void*)(gsaddr)event
 		 type: ET_HANDLE
 	      watcher: self
@@ -2042,7 +2042,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
       [l addEvent: (void*)(gsaddr)event
 	     type: ET_HANDLE
 	  watcher: self
@@ -2077,7 +2077,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
 	      [l addEvent: (void*)(gsaddr)event
 		     type: ET_HANDLE
 		  watcher: self
@@ -2092,7 +2092,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 	{
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
 	  [l addEvent: (void*)(gsaddr)event
 		 type: ET_HANDLE
 	      watcher: self
@@ -2200,7 +2200,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
         }
       else if (received < 0)
         {
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
           if (WSAGetLastError() != WSAEINTR
 	    && WSAGetLastError() != WSAEWOULDBLOCK)
 #else
@@ -2279,7 +2279,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     		     length: length-writePos];
           if (written <= 0)
             {
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
               if (written < 0 && WSAGetLastError()!= WSAEINTR
 		&& WSAGetLastError()!= WSAEWOULDBLOCK)
 #else
@@ -2311,7 +2311,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
   WSANETWORKEVENTS ocurredEvents;
 #endif
 
@@ -2321,7 +2321,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [self setNonBlocking: YES];
     }
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
   if (WSAEnumNetworkEvents((SOCKET)_get_osfhandle(descriptor), 
     event, &ocurredEvents) == SOCKET_ERROR)
     {

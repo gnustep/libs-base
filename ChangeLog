@@ -1,5 +1,20 @@
 2005-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Additions/GNUstepBase/GSFileHandle.h:
+	* Headers/Additions/GNUstepBase/GSRunLoopCtxt.h:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Source/GSFileHandle.m:
+	* Source/NSData.m:
+	* Source/NSFileManager.m:
+	* Source/NSLog.m:
+	* Source/NSRunLoop.m:
+	* Source/NSSocketPort.m:
+	* Source/NSTimeZone.m:
+	Be consistent in usage of __WIN32__ and __MINGW__
+
+2005-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSLog.m: We had complaints about the new code to log output
 	to the windows event log on microsoft ... so this has been changed to
 	be activated by the GSLogSyslog user default (as the windows event
