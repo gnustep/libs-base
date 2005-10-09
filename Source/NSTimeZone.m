@@ -910,13 +910,13 @@ static NSMapTable	*absolutes = 0;
   /* Read dictionary from file. */
   abbreviationMap = [[NSMutableDictionary alloc] init];
   path = _time_zone_path (ABBREV_MAP, nil);
-#if	defined(__WIN32__)
+#if	defined(__MINGW__)
   {
     unichar	mode[3];
     mode[0] = 'r';
     mode[1] = 'b';
     mode[2] = '\0';
-    file = wfopen([path fileSystemRepresentation], mode);
+    file = _wfopen((const unichar*)[path fileSystemRepresentation], mode);
   }
 #else
   file = fopen([path fileSystemRepresentation], "r");
@@ -1336,13 +1336,13 @@ static NSMapTable	*absolutes = 0;
     temp_array[i] = [NSMutableArray array];
 
   fileName = _time_zone_path (REGIONS_FILE, nil);
-#if	defined(__WIN32__)
+#if	defined(__MINGW__)
   {
     unichar	mode[3];
     mode[0] = 'r';
     mode[1] = 'b';
     mode[2] = '\0';
-    file = wfopen([fileName fileSystemRepresentation], mode);
+    file = _wfopen((const unichar*)[fileName fileSystemRepresentation], mode);
   }
 #else
   file = fopen([fileName fileSystemRepresentation], "r");
