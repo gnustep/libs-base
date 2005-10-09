@@ -350,11 +350,19 @@ static NSString *setUserGNUstepPath(NSString *userName,
       dict = GSReadStepConfFile(steprcFile);
       if (dict != nil)
 	{
+#if defined(__WIN32__)
+	  PrintOnce("Warning: Configuration: The file %S has been "
+	    "deprecated.  Please use the configuration file %s to "
+	    "set standard paths.\n",
+	    (const unichar*)[steprcFile fileSystemRepresentation],
+	    stringify(GNUSTEP_CONFIGURATION_FILE));
+#else
 	  PrintOnce("Warning: Configuration: The file %s has been "
 	    "deprecated.  Please use the configuration file %s to "
 	    "set standard paths.\n",
 	    [steprcFile fileSystemRepresentation],
 	    stringify(GNUSTEP_CONFIGURATION_FILE));
+#endif
 	  forceD = [[dict objectForKey: @"FORCE_DEFAULTS_ROOT"] boolValue];
 	  forceU = [[dict objectForKey: @"FORCE_USER_ROOT"] boolValue];
 	  ASSIGN(oldDRoot, [dict objectForKey: @"GNUSTEP_DEFAULTS_ROOT"]);
@@ -629,8 +637,14 @@ GSReadStepConfFile(NSString *fileName)
   attributes = [MGR() fileAttributesAtPath: fileName traverseLink: YES];
   if (([attributes filePosixPermissions] & 022) != 0)
     {
+#if defined(__WIN32__)
+      fprintf(stderr, "The file '%S' is writable by someone other than"
+	" its owner.\nIgnoring it.\n",
+	(const unichar*)[fileName fileSystemRepresentation]);
+#else
       fprintf(stderr, "The file '%s' is writable by someone other than"
 	" its owner.\nIgnoring it.\n", [fileName fileSystemRepresentation]);
+#endif
       return nil;
     }
 

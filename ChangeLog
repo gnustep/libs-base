@@ -5,6 +5,10 @@
 	be activated by the GSLogSyslog user default (as the windows event
 	log is roughly analogous to syslog on unix) rather than being done
 	by default.
+	* Source/NSTimeZone.m:
+	* Source/NSPathUtilities.m:
+	Fix a few cases where 16bit chartacter strings were being used as 8bit
+	under windows.
 
 2005-10-07  Chris Vetter <cbv@gmx.net>
 
