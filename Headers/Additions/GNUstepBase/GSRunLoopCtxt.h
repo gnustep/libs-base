@@ -39,12 +39,12 @@ typedef struct{
   GSIArray	performers;	/** The actions to perform regularly.	*/
   GSIArray	timers;		/** The timers set for the runloop mode */
   GSIArray	watchers;	/** The inputs set for the runloop mode */
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
   id            msgTarget;      /** Target to raise a win32 message */
   SEL           msgSelector;    /** method of target */
 #endif
 @private
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
   NSMapTable    *handleMap;     
 #else
   NSMapTable	*_efdMap;

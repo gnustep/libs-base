@@ -199,7 +199,7 @@ typedef	enum {
 - (void) getFds: (int*)fds count: (int*)count;
 @end
 
-#ifdef __MINGW32__
+#if	defined(__MINGW__)
 /**
  * Interface that add method to set target for win32 messages.<br />
  */

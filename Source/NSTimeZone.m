@@ -196,7 +196,7 @@ typedef struct {
 }
 @end
 
-#ifdef WIN32
+#if	defined(__WIN32__)
 @interface	GSWindowsTimeZone : NSTimeZone
 {
 @public
@@ -418,8 +418,9 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 		}
 
 	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
-	      if (fileName == nil || ![[NSFileManager defaultManager] fileExistsAtPath:fileName])
-#ifdef WIN32
+	      if (fileName == nil
+		|| ![[NSFileManager defaultManager] fileExistsAtPath:fileName])
+#if	defined(__WIN32__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName:name data:0];
                   RELEASE(self);
@@ -433,7 +434,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 #endif
 	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
-#ifdef WIN32
+#if	defined(__WIN32__)
         if (!data)
           zone = [[GSWindowsTimeZone alloc] initWithName: name data: data];
         else
@@ -1251,7 +1252,7 @@ static NSMapTable	*absolutes = 0;
 	}
 #endif
 
-#ifdef WIN32
+#if	defined(__WIN32__)
       /*
        * Try to get timezone from windows registry.
        */
@@ -1687,7 +1688,7 @@ static NSMapTable	*absolutes = 0;
 @end
 
 
-#ifdef WIN32
+#if	defined(__WIN32__)
 /* Timezone information data as stored in the registry */
 typedef struct TZI_format {
 	LONG       Bias;
@@ -2060,7 +2061,7 @@ int dayOfCommonEra(NSTimeInterval when);
   return timeZoneName;
 }
 @end
-#endif // WIN32
+#endif // __WIN32__
 
 
 @implementation	GSTimeZone

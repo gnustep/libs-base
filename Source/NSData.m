@@ -64,7 +64,7 @@
  *		
  */
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 #define UNICODE
 #define _UNICODE
 #endif
