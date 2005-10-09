@@ -910,7 +910,13 @@ static NSMapTable	*absolutes = 0;
   abbreviationMap = [[NSMutableDictionary alloc] init];
   path = _time_zone_path (ABBREV_MAP, nil);
 #if	defined(__WIN32__)
-  file = fopen([path fileSystemRepresentation], "rb");
+  {
+    unichar	mode[3];
+    mode[0] = 'r';
+    mode[1] = 'b';
+    mode[2] = '\0';
+    file = wfopen([path fileSystemRepresentation], mode);
+  }
 #else
   file = fopen([path fileSystemRepresentation], "r");
 #endif
@@ -1330,7 +1336,13 @@ static NSMapTable	*absolutes = 0;
 
   fileName = _time_zone_path (REGIONS_FILE, nil);
 #if	defined(__WIN32__)
-  file = fopen([fileName fileSystemRepresentation], "rb");
+  {
+    unichar	mode[3];
+    mode[0] = 'r';
+    mode[1] = 'b';
+    mode[2] = '\0';
+    file = wfopen([fileName fileSystemRepresentation], mode);
+  }
 #else
   file = fopen([fileName fileSystemRepresentation], "r");
 #endif
