@@ -1,3 +1,8 @@
+2005-10-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLHandle.m: alter file handle to nitice if a file has
+	changed.
+
 2005-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSFileHandle.h:
