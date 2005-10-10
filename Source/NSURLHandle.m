@@ -663,9 +663,42 @@ static NSLock			*fileLock = nil;
   fileLock = [NSLock new];
 }
 
+- (NSData*) availableResourceData
+{
+  if (_data != nil)
+    {
+      NSDictionary	*dict;
+
+      dict = [[NSFileManager defaultManager] fileAttributesAtPath: _path
+						     traverseLink: YES];
+      if (dict == nil)
+	{
+	  // File no longer exists.
+	  DESTROY(_data);
+	  DESTROY(_attributes);
+	}
+      else
+	{
+	  NSDate	*original;
+	  NSDate	*latest;
+
+	  original = [_attributes fileModificationDate];
+	  latest = [dict fileModificationDate];
+	  if ([latest earlierDate: original] != latest)
+	    {
+	      // File has been modified
+	      DESTROY(_data);
+	      DESTROY(_attributes);
+	    }
+	}
+    }
+  return [super availableResourceData];
+}
+
 - (void) dealloc
 {
   RELEASE(_path);
+  RELEASE(_attributes);
   [super dealloc];
 }
 
@@ -736,7 +769,12 @@ static NSLock			*fileLock = nil;
 - (NSData*) loadInForeground
 {
   NSData	*d = [NSData dataWithContentsOfFile: _path];
+  NSDictionary	*dict;
 
+  dict = [[NSFileManager defaultManager] fileAttributesAtPath: _path
+						 traverseLink: YES];
+  RELEASE(_attributes);
+  _attributes = [dict mutableCopy];
   [self didLoadBytes: d loadComplete: YES];
   return d;
 }
