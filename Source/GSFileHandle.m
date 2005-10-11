@@ -44,7 +44,7 @@
 
 #include "../Tools/gdomap.h"
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 #include <winsock2.h>
 #include <fcntl.h>
 #include <sys/file.h>
@@ -71,7 +71,7 @@
 #define	SOCKET	int
 #define	SOCKET_ERROR	-1
 #define	INVALID_SOCKET	-1
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -133,7 +133,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 #endif
   if (isSocket)
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       len = recv((SOCKET)_get_osfhandle(descriptor), buf, len, 0);
 #else
       len = recv(descriptor, buf, len, 0);
@@ -161,7 +161,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 #endif
   if (isSocket)
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       len = send((SOCKET)_get_osfhandle(descriptor), buf, len, 0);
 #else
       len = send(descriptor, buf, len, 0);
@@ -302,7 +302,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       [self setNonBlocking: wasNonBlocking];
       if (closeOnDealloc == YES)
 	{
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 	  if (isSocket)
             {
               closesocket((SOCKET)_get_osfhandle(descriptor));
@@ -842,7 +842,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  NSLog(@"unable to bind to port %s:%d - %s", inet_ntoa(lsin.sin_addr),
 	    GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 	  (void) closesocket(net);
 #else
 	  (void) close(net);
@@ -852,7 +852,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
     }
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   self = [self initWithNativeHandle: (void*)net closeOnDealloc: YES];
 #else
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
@@ -865,7 +865,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       [self setNonBlocking: YES];
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) == SOCKET_ERROR)
 	{
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 	  if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
 	  if (errno != EINPROGRESS)
@@ -956,7 +956,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSLog(@"unable to bind to port %s:%d - %s", inet_ntoa(sin.sin_addr),
 	GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       (void) closesocket(net);
 #else
       (void) close(net);
@@ -968,7 +968,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (listen(net, 5) == SOCKET_ERROR)
     {
       NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       (void) closesocket(net);
 #else
       (void) close(net);
@@ -980,7 +980,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (getsockname(net, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
     {
       NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       (void) closesocket(net);
 #else
       (void) close(net);
@@ -989,7 +989,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return nil;
     }
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   self = [self initWithNativeHandle: (void*)net closeOnDealloc: YES];
 #else
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
@@ -1008,7 +1008,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initForReadingAtPath: (NSString*)path
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   int	d = _wopen(
     (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
     O_RDONLY|O_BINARY);
@@ -1036,7 +1036,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initForWritingAtPath: (NSString*)path
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   int	d = _wopen(
     (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
     O_WRONLY|O_BINARY);
@@ -1064,7 +1064,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initForUpdatingAtPath: (NSString*)path
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   int	d = _wopen(
     (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
     O_RDWR|O_BINARY);
@@ -1151,7 +1151,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithNullDevice
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   isNullDevice = YES;
   isStandardFile = YES;
   descriptor = -1;
@@ -1171,14 +1171,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   self = [super init];
   if (self != nil)
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       struct _stat sbuf;
 #else
       struct stat sbuf;
       int	  e;
 #endif
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       if (_fstat(desc, &sbuf) != 0)
 #else
       if (fstat(desc, &sbuf) < 0)
@@ -1199,7 +1199,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	}
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       if (isStandardFile == NO)
 	{
 	  unsigned long nbio = 0;
@@ -1243,7 +1243,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       writeOK = YES;
       acceptOK = YES;
       connectOK = YES;
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       if (isSocket)
         {
           event = CreateEvent(NULL, NO, NO, NULL);
@@ -1265,7 +1265,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithNativeHandle: (void*)hdl
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   return [self initWithFileDescriptor: _open_osfhandle((SOCKET)hdl, 0)
 		       closeOnDealloc: NO];
 #else
@@ -1275,7 +1275,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   return [self initWithFileDescriptor: _open_osfhandle((SOCKET)hdl, 0)
 		       closeOnDealloc: flag];
 #else
@@ -1385,7 +1385,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void*) nativeHandle
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   return (void*)(SOCKET)_get_osfhandle(descriptor);
 #else
   return (void*)descriptor;
@@ -1530,7 +1530,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       rval = [self write: (char*)ptr+pos length: toWrite];
       if (rval < 0)
 	{
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
           if (WSAGetLastError()== WSAEINTR ||
                 WSAGetLastError()== WSAEWOULDBLOCK)
 #else
@@ -1650,7 +1650,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 #endif
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       result = _lseek(descriptor, 0, SEEK_CUR);
 #else
       result = lseek(descriptor, 0, SEEK_CUR);
@@ -1678,7 +1678,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 #endif
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       result = _lseek(descriptor, 0, SEEK_END);
 #else
       result = lseek(descriptor, 0, SEEK_END);
@@ -1706,7 +1706,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 #endif
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       result = _lseek(descriptor, (off_t)pos, SEEK_SET);
 #else
       result = lseek(descriptor, (off_t)pos, SEEK_SET);
@@ -1741,7 +1741,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       gzDescriptor = 0;
     }
 #endif
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   if (isSocket)
     {
       (void)closesocket((SOCKET)_get_osfhandle(descriptor));
@@ -1782,7 +1782,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (isStandardFile)
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       (void)_commit(descriptor);
 #else
       (void)sync();
@@ -1792,7 +1792,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void) truncateFileAtOffset: (unsigned long long)pos
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   _chsize(descriptor, pos);
 #else
   if (isStandardFile && descriptor >= 0)
@@ -1926,7 +1926,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  [l removeEvent: (void*)(gsaddr)event
 		    type: ET_HANDLE
 		 forMode: [modes objectAtIndex: i]
@@ -1941,7 +1941,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       [l removeEvent: (void*)(gsaddr)event
 	        type: ET_HANDLE
 	     forMode: NSDefaultRunLoopMode
@@ -1980,7 +1980,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
           [l removeEvent: (void*)(gsaddr)event
 	            type: ET_HANDLE
 	         forMode: [modes objectAtIndex: i]
@@ -1995,7 +1995,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       [l removeEvent: (void*)(gsaddr)event
                 type: ET_HANDLE
 	     forMode: NSDefaultRunLoopMode
@@ -2026,7 +2026,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  [l addEvent: (void*)(gsaddr)event
 		 type: ET_HANDLE
 	      watcher: self
@@ -2042,7 +2042,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       [l addEvent: (void*)(gsaddr)event
 	     type: ET_HANDLE
 	  watcher: self
@@ -2077,7 +2077,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	      [l addEvent: (void*)(gsaddr)event
 		     type: ET_HANDLE
 		  watcher: self
@@ -2092,7 +2092,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 	{
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  [l addEvent: (void*)(gsaddr)event
 		 type: ET_HANDLE
 	      watcher: self
@@ -2115,14 +2115,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (operation == NSFileHandleConnectionAcceptedNotification)
     {
       struct sockaddr_in	buf;
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       SOCKET		        desc;
 #else
       int			desc;
 #endif
       unsigned int		blen = sizeof(buf);
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       desc = accept((SOCKET)_get_osfhandle(descriptor), (struct sockaddr*)&buf, &blen);
 #else
       desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
@@ -2149,7 +2149,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&status,
 	    sizeof(status));
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 	  h = [[[self class] alloc] initWithNativeHandle: (void*)desc
 						closeOnDealloc: YES];
 #else
@@ -2200,7 +2200,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
         }
       else if (received < 0)
         {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
           if (WSAGetLastError() != WSAEINTR
 	    && WSAGetLastError() != WSAEWOULDBLOCK)
 #else
@@ -2240,7 +2240,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       int	result;
       unsigned	len = sizeof(result);
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       if (getsockopt((SOCKET)_get_osfhandle(descriptor), SOL_SOCKET, SO_ERROR,
         (char*)&result, &len) == 0 && result != 0)
 #else
@@ -2279,7 +2279,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     		     length: length-writePos];
           if (written <= 0)
             {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
               if (written < 0 && WSAGetLastError()!= WSAEINTR
 		&& WSAGetLastError()!= WSAEWOULDBLOCK)
 #else
@@ -2311,7 +2311,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   WSANETWORKEVENTS ocurredEvents;
 #endif
 
@@ -2321,7 +2321,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [self setNonBlocking: YES];
     }
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   if (WSAEnumNetworkEvents((SOCKET)_get_osfhandle(descriptor), 
     event, &ocurredEvents) == SOCKET_ERROR)
     {
@@ -2425,7 +2425,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       unsigned long	dummy;
 
       if (isSocket != YES)

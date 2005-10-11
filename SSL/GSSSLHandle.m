@@ -57,7 +57,7 @@
 
 #include <GNUstepBase/GSFileHandle.h>
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 #include <winsock2.h>
 #else
 #include <time.h>
@@ -67,7 +67,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
 #include <sys/file.h>
 #include <sys/stat.h>

@@ -108,7 +108,7 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
  </example>
  */
 typedef	enum {
-#ifdef __MINGW__
+#ifdef __MINGW32__
     ET_HANDLE,
     ET_RPORT	/* Watch for message arriving on port.		*/
 #else
@@ -199,7 +199,7 @@ typedef	enum {
 - (void) getFds: (int*)fds count: (int*)count;
 @end
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 /**
  * Interface that add method to set target for win32 messages.<br />
  */

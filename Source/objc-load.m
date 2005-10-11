@@ -106,7 +106,7 @@ objc_initialize_loading(FILE *errorStream)
   dynamic_loaded = NO;
   path   = objc_executable_location();
 
-#ifdef    __MINGW__
+#ifdef    __MINGW32__
   NSDebugFLLog(@"NSBundle",
 	       @"Debug (objc-load): initializing dynamic loader for %S",
 	       path);
@@ -177,7 +177,7 @@ objc_load_module (const char *filename,
   _objc_load_callback = objc_load_callback;
 
   /* Link in the object file */
-#ifdef    __MINGW__
+#ifdef    __MINGW32__
   NSDebugFLLog(@"NSBundle",
 	       @"Debug (objc-load): Linking file %S\n", filename);
 #else
@@ -288,7 +288,7 @@ objc_unload_modules(FILE *errorStream,
   return 0;
 }
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 NSString *
 objc_get_symbol_path(Class theClass, Category *theCategory)
 {

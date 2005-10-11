@@ -162,7 +162,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
   while (delay > 30.0*60.0)
     {
       // sleep 30 minutes
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       Sleep (30*60*1000);
 #else
       sleep (30*60);
@@ -179,7 +179,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 #ifdef	HAVE_USLEEP
       usleep ((int)(delay*1000000));
 #else
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       Sleep (delay*1000);
 #else
       sleep ((int)delay);
@@ -793,7 +793,7 @@ gnustep_base_thread_callback(void)
 @implementation GSPerformHolder
 
 static NSLock *subthreadsLock = nil;
-#ifdef __MINGW__
+#ifdef __MINGW32__
 static HANDLE	event;
 #else
 static int inputFd = -1;
@@ -813,7 +813,7 @@ static NSDate *theFuture;
   subthreadsLock = [[NSLock alloc] init];
   perfArray = [[NSMutableArray alloc] initWithCapacity: 10];
 
-#ifndef __MINGW__
+#ifndef __MINGW32__
   {
     int	fd[2];
 
@@ -877,7 +877,7 @@ static NSDate *theFuture;
 
   [perfArray addObject: h];
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   if (SetEvent(event) == 0)
     {
       NSLog(@"Set event failed - %@", GSLastErrorStr(errno));
@@ -906,7 +906,7 @@ static NSDate *theFuture;
 
   [subthreadsLock lock];
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   if (ResetEvent(event) == 0)
     {
       NSLog(@"Reset event failed - %@", GSLastErrorStr(errno));

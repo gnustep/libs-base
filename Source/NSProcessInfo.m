@@ -210,7 +210,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
   else
     {
-#ifdef __MINGW__
+#ifdef __MINGW32__
       unichar	*buffer;
       int	buffer_size = 0;
       int	needed_size = 0;
@@ -292,7 +292,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     i = 0;
     while (env[i])
       {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 	char	buf[1024];
 	char	*cp;
 	DWORD	len;
@@ -738,7 +738,7 @@ _gnu_noobjc_free_vars(void)
 }
 #else /*! HAVE_PROCFS !HAVE_LOAD_METHOD !HAVE_KVM_ENV */
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
 + (void) initialize
 {
@@ -775,7 +775,7 @@ int main(int argc, char *argv[], char *env[])
          sizeof(_NSConstantStringClassReference));
 #endif
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   WSADATA lpWSAData;
 
   // Initialize Windows Sockets
@@ -784,7 +784,7 @@ int main(int argc, char *argv[], char *env[])
       printf("Could not startup Windows Sockets\n");
       exit(1);
     }
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
 #ifdef __MS_WIN__
   _MB_init_runtime();
@@ -796,7 +796,7 @@ int main(int argc, char *argv[], char *env[])
   return gnustep_base_user_main(argc, argv, env);
 }
 #endif /* !GS_PASS_ARGUMENTS */
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
 #endif /* HAS_LOAD_METHOD && HAS_PROCFS */
 
@@ -996,7 +996,7 @@ int main(int argc, char *argv[], char *env[])
 {
   int	pid;
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   pid = (int)GetCurrentProcessId();
 #else
   pid = (int)getpid();

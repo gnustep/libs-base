@@ -4121,7 +4121,7 @@ static NSFileManager *fm = nil;
 
 - (NSString*) stringByResolvingSymlinksInPath
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   return IMMUTABLE(self);
 #else
   #ifndef MAX_PATH
@@ -4284,7 +4284,7 @@ static NSFileManager *fm = nil;
     }
   return [[NSFileManager defaultManager]
    stringWithFileSystemRepresentation: newBuf length: strlen(newBuf)];
-#endif  /* (__MINGW__) */
+#endif  /* (__MINGW32__) */
 }
 
 - (NSString*) stringByStandardizingPath
@@ -4377,7 +4377,7 @@ static NSFileManager *fm = nil;
    *	For absolute paths, we must resolve symbolic links or (on MINGW)
    *	remove '/../' sequences and their matching parent directories.
    */
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   /* Condense `/../' */
   r = (NSRange){root, l-root};
   while ((r = [s rangeOfString: @"/.." options: 0 range: r]).length == 3)
@@ -4543,7 +4543,7 @@ static NSFileManager *fm = nil;
    */
   if (c == '/')
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       if (GSPathHandlingUnix() == YES)
 	{
 	  return YES;

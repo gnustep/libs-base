@@ -910,7 +910,7 @@ static NSMapTable	*absolutes = 0;
   /* Read dictionary from file. */
   abbreviationMap = [[NSMutableDictionary alloc] init];
   path = _time_zone_path (ABBREV_MAP, nil);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   {
     unichar	mode[3];
     mode[0] = 'r';
@@ -1336,7 +1336,7 @@ static NSMapTable	*absolutes = 0;
     temp_array[i] = [NSMutableArray array];
 
   fileName = _time_zone_path (REGIONS_FILE, nil);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   {
     unichar	mode[3];
     mode[0] = 'r';

@@ -955,7 +955,7 @@ extern IMP	wRetImp;
 	{
 	  when = min_watcher->_date;
 	}
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       // if there are handler for win32 messages
       else if (context->msgTarget != nil)
         {
@@ -1007,7 +1007,7 @@ extern IMP	wRetImp;
 
       if ((context == nil || (watchers = context->watchers) == 0
 	|| (i = GSIArrayCount(watchers)) == 0)
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
         // there are inputs for win32 messages
 	&& context->msgTarget == 0)
 #else

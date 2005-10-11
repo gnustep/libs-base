@@ -24,7 +24,7 @@
 #include        <stdio.h>
 #include	<unistd.h>
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #include	"process.h"
 #endif
 
@@ -395,7 +395,7 @@ ihandler(int sig)
     }
   else
     {
-#ifdef	__MINGW__
+#ifdef	__MINGW32__
       isPublic = YES;
 #else
       isLocal = YES;
@@ -425,7 +425,7 @@ ihandler(int sig)
 	  port = (NSPort*)[NSSocketPort port];
 	}
     }
-#ifndef	__MINGW__
+#ifndef	__MINGW32__
   else
     {
       hostname = @"";
@@ -1108,7 +1108,7 @@ main(int argc, char** argv, char** env)
       {
 	signal(sym, ihandler);
       }
-#ifndef __MINGW__
+#ifndef __MINGW32__
     signal(SIGPIPE, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
@@ -1130,7 +1130,7 @@ main(int argc, char** argv, char** env)
      */
     [[NSFileHandle fileHandleWithStandardInput] closeFile];
     [[NSFileHandle fileHandleWithStandardOutput] closeFile];
-#ifndef __MINGW__
+#ifndef __MINGW32__
     if (debugging == NO)
       {
 	[[NSFileHandle fileHandleWithStandardError] closeFile];

@@ -881,7 +881,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     {
       extern void		GSBuildStrings(void);	// See externs.m
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
       // See libgnustep-base-entry.m
       extern void gnustep_base_socket_init(void);	
       gnustep_base_socket_init();	

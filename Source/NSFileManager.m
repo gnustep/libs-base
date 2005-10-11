@@ -38,7 +38,7 @@
 
 #define _FILE_OFFSET_BITS 64
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 #define UNICODE
 #define _UNICODE
 #endif
@@ -77,7 +77,7 @@
 #  include <windows.h>
 #endif
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 #include <stdio.h>
 #ifdef	UNICODE
 #include <wchar.h>
@@ -89,7 +89,7 @@
 
 #if defined(_POSIX_VERSION) || defined(__WIN32__)
 # include <limits.h>			/* for PATH_MAX */
-# if defined(__MINGW__)
+# if defined(__MINGW32__)
 #   include <sys/utime.h>
 # else
 #   include <utime.h>
@@ -183,7 +183,7 @@
  * Macros to handle unichar filesystem support.
  */
 
-#if	defined(__MINGW__) && defined(UNICODE)
+#if	defined(__MINGW32__) && defined(UNICODE)
 
 #define	_CHMOD(A,B)	_wchmod(A,B)
 #define	_CLOSEDIR(A)	_wclosedir(A)
@@ -356,7 +356,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
   const _CHAR	*lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   return SetCurrentDirectory(lpath) == TRUE ? YES : NO;
 #else
   return (chdir(lpath) == 0) ? YES : NO;
@@ -383,7 +383,7 @@ static NSStringEncoding	defaultEncoding;
     }
   lpath = (_CCP)[defaultManager fileSystemRepresentationWithPath: path];
 
-#ifndef __MINGW__
+#ifndef __MINGW32__
   num = [attributes fileOwnerAccountID];
   if (num != NSNotFound)
     {
@@ -456,7 +456,7 @@ static NSStringEncoding	defaultEncoding;
 	  ASSIGN(_lastError, str);
 	}
     }
-#endif	/* __MINGW__ */
+#endif	/* __MINGW32__ */
 
   num = [attributes filePosixPermissions];
   if (num != NSNotFound)
@@ -628,7 +628,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   NSEnumerator	*paths = [[path pathComponents] objectEnumerator];
   NSString	*subPath;
   NSString	*completePath = nil;
@@ -644,7 +644,7 @@ static NSStringEncoding	defaultEncoding;
   if ([path length] == 0)
     return NO;
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   while ((subPath = [paths nextObject]))
     {
       BOOL isDir = NO;
@@ -786,7 +786,7 @@ static NSStringEncoding	defaultEncoding;
 		 contents: (NSData*)contents
 	       attributes: (NSDictionary*)attributes
 {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   const _CHAR *lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
   HANDLE fh;
   DWORD	written = 0;
@@ -802,7 +802,7 @@ static NSStringEncoding	defaultEncoding;
   if ([path length] == 0)
     return NO;
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   fh = CreateFile(lpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
     FILE_ATTRIBUTE_NORMAL, 0);
   if (fh == INVALID_HANDLE_VALUE)
@@ -878,7 +878,7 @@ static NSStringEncoding	defaultEncoding;
 {
   NSString *currentDir = nil;
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   int len = GetCurrentDirectory(0, 0);
   if (len > 0)
     {
@@ -1223,7 +1223,7 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       DWORD res;
 
       res = GetFileAttributes(lpath);
@@ -1253,7 +1253,7 @@ static NSStringEncoding	defaultEncoding;
 
   if (!is_dir)
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       if (DeleteFile(lpath) == FALSE)
 #else
       if (unlink(lpath) < 0)
@@ -1332,7 +1332,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
     {
       DWORD res;
 
@@ -1386,7 +1386,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
     {
       DWORD res;
 
@@ -1422,7 +1422,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
     {
       DWORD res;
 
@@ -1463,7 +1463,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
     {
       DWORD res;
 
@@ -1509,7 +1509,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       // TODO - handle directories
     {
       DWORD res;
@@ -1641,7 +1641,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   unsigned long long totalsize, freesize;
   id  values[5];
   id	keys[5] = {
@@ -1899,7 +1899,7 @@ static NSStringEncoding	defaultEncoding;
 
   if (path != nil)
     {
-#ifdef __MINGW__
+#ifdef __MINGW32__
       c_path = (_CCP)[path cStringUsingEncoding: NSUnicodeStringEncoding];
 #else
       c_path = (_CCP)[path cStringUsingEncoding: defaultEncoding];
@@ -1926,7 +1926,7 @@ static NSStringEncoding	defaultEncoding;
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len
 {
-#ifdef __MINGW__
+#ifdef __MINGW32__
   return [NSString stringWithCharacters: (const unichar*)string length: len/2];
 #else
   return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
@@ -2131,7 +2131,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 
       if (dirbuf)
 	{
-#if defined(__MINGW__) && defined(UNICODE)
+#if defined(__MINGW32__) && defined(UNICODE)
 	  /* Skip "." and ".." directory entries */
 	  if (wcscmp(dirbuf->d_name, L".") == 0
 	    || wcscmp(dirbuf->d_name, L"..") == 0)
@@ -2167,7 +2167,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 	    {
 	      // Do not follow links
 #ifdef S_IFLNK
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #warning "lstat does not support unichars"
 #else
 	      if (!_flags.isFollowing)
@@ -2414,7 +2414,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 	    toFile: (NSString*)destination
 	   handler: (id)handler
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   if (CopyFile((_CCP)[self fileSystemRepresentationWithPath: source],
     (_CCP)[self fileSystemRepresentationWithPath: destination], NO))
     {
@@ -2758,7 +2758,7 @@ static NSSet	*fileKeys = nil;
     }
   d = (GSAttrDictionary*)NSAllocateObject(self, 0, NSDefaultMallocZone());
 
-#if defined(S_IFLNK) && !defined(__MINGW__)
+#if defined(S_IFLNK) && !defined(__MINGW32__)
   if (traverse == NO)
     {
       if (lstat(lpath, &d->statbuf) != 0)

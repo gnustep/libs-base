@@ -69,7 +69,7 @@
   /* Must be kept in sync with [NSPort +initialize]. */
   if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES)
     {
-#ifndef __MINGW__
+#ifndef __MINGW32__
       return [NSMessagePortNameServer sharedInstance];
 #else
       return [NSSocketPortNameServer sharedInstance];
@@ -104,7 +104,7 @@
 	}
       else
 	{
-#ifndef __MINGW__
+#ifndef __MINGW32__
 	  return [NSMessagePortNameServer sharedInstance];
 #else
 	  return [NSSocketPortNameServer sharedInstance];

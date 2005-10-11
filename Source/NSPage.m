@@ -49,7 +49,7 @@
 #include <malloc.h>
 #endif
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #include <malloc.h>
 static size_t
 getpagesize(void)
@@ -146,7 +146,7 @@ NSRealMemoryAvailable ()
   if ((sysinfo(&info)) != 0)
     return 0;
   return (unsigned) info.freeram;
-#elif defined(__MINGW__)
+#elif defined(__MINGW32__)
   MEMORYSTATUS memory;
 
   GlobalMemoryStatus(&memory);

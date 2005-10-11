@@ -42,7 +42,7 @@
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSDebug.h"
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #include <winsock2.h>
 #include <wininet.h>
 #else
