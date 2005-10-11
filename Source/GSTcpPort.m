@@ -46,20 +46,20 @@
 #include <unistd.h>		/* for gethostname() */
 #endif
 
-#ifdef __MINGW__
+#if	defined(__MINGW32__)
 #define close closesocket
 #else
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 #include <errno.h>
 #include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#ifdef __MINGW__
+#if	defined(__MINGW32__)
 #include <winsock2.h>
 #include <wininet.h>
 #include <process.h>
@@ -96,7 +96,7 @@
 #define	SOCKET_ERROR	-1
 #define	INVALID_SOCKET	-1
 
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 
 /*
  * Largest chunk of data possible in DO
@@ -390,18 +390,18 @@ static Class	runLoopClass;
 + (GSTcpHandle*) handleWithDescriptor: (SOCKET)d
 {
   GSTcpHandle	*handle;
-#ifdef __MINGW__
+#if	defined(__MINGW32__)
   unsigned long dummy;
 #else
   int		e;
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
   if (d == INVALID_SOCKET)
     {
       NSLog(@"illegal descriptor (%d) for Tcp Handle", d);
       return nil;
     }
-#ifdef __MINGW__
+#if	defined(__MINGW32__)
   dummy = 1;
   if (ioctlsocket(d, FIONBIO, &dummy) == SOCKET_ERROR)
     {
@@ -409,7 +409,7 @@ static Class	runLoopClass;
 	d, GSLastErrorStr(errno));
       return nil;
     }
-#else /* !__MINGW__ */
+#else /* !__MINGW32__ */
   if ((e = fcntl(d, F_GETFL, 0)) >= 0)
     {
       e |= NBLK_OPT;
@@ -439,7 +439,7 @@ static Class	runLoopClass;
 {
   if (self == [GSTcpHandle class])
     {
-#ifdef __MINGW__
+#if	defined(__MINGW32__)
       WORD wVersionRequested;
       WSADATA wsaData;
 
@@ -540,7 +540,7 @@ static Class	runLoopClass;
   if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr))
     == SOCKET_ERROR)
     {
-#ifdef __MINGW__
+#if	defined(__MINGW32__)
       if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
       if (errno != EINPROGRESS)

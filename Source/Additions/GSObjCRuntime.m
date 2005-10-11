@@ -2214,7 +2214,7 @@ GSAutoreleasedBuffer(unsigned size)
 
 
 /* Getting a system error message on a variety of systems */
-#ifdef __MINGW__
+#ifdef __MINGW32__
 LPTSTR GetErrorMsg(DWORD msgId)
 {
   LPVOID lpMsgBuf;
@@ -2244,12 +2244,12 @@ strerror(int eno)
   return(sys_errlist[eno]);
 }
 #endif
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
 const char *
 GSLastErrorStr(long error_id)
 {
-#ifdef __MINGW__
+#ifdef __MINGW32__
   return GetErrorMsg(GetLastError());
 #else
   return strerror(error_id);

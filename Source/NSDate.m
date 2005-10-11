@@ -125,7 +125,7 @@ otherTime(NSDate* other)
 NSTimeInterval
 GSTimeNow(void)
 {
-#if !defined(__MINGW__)
+#if !defined(__MINGW32__)
   NSTimeInterval interval;
   struct timeval tp;
 
@@ -163,7 +163,7 @@ GSTimeNow(void)
     sys_time.wMinute, sys_time.wSecond, sys_time.wMilliseconds);
 #endif
   return t;
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 }
 
 /**

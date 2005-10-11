@@ -1015,7 +1015,7 @@ static NSLock	*cached_proxies_gate = nil;
   /*
    * Make sure we are not registered.
    */
-#ifndef	__MINGW__
+#if	!defined(__MINGW32__)
   if ([_receivePort isKindOfClass: [NSMessagePort class]])
     {
       [self registerName: nil

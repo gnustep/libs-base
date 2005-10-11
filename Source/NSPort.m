@@ -67,7 +67,7 @@ Class	NSPort_concrete_class;
   if (self == [NSPort class])
     {
       NSPort_abstract_class = self;
-#ifndef __MINGW__
+#ifndef __MINGW32__
       /* Must be kept in sync with [NSPortNameServer
       +systemDefaultPortNameServer]. */
       if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES

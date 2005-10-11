@@ -8,7 +8,7 @@
 
    This file is part of the GNUstep Base Library.
 */
-#if (defined __MINGW__)
+#if (defined __MINGW32__)
 /* A simple implementation of getopt() */
 static int
 indexof(char c, char *string)

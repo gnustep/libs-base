@@ -48,18 +48,18 @@
 #include <unistd.h>		/* for gethostname() */
 #endif
 
-#ifndef __MINGW__
+#ifndef __MINGW32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <sys/un.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 #include <errno.h>
 #include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #include <winsock2.h>
 #include <wininet.h>
 #include <process.h>
@@ -92,9 +92,9 @@
 #if	defined(__svr4__)
 #include <sys/stropts.h>
 #endif
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #define close closesocket
 #endif
 
@@ -305,18 +305,18 @@ static Class	runLoopClass;
 + (GSMessageHandle*) handleWithDescriptor: (int)d
 {
   GSMessageHandle	*handle;
-#ifdef __MINGW__
+#ifdef __MINGW32__
   unsigned long dummy;
 #else
   int		e;
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
   if (d < 0)
     {
       NSLog(@"illegal descriptor (%d) for message handle", d);
       return nil;
     }
-#ifdef __MINGW__
+#ifdef __MINGW32__
   dummy = 1;
   if (ioctlsocket(d, FIONBIO, &dummy) < 0)
     {
@@ -324,7 +324,7 @@ static Class	runLoopClass;
 	d, GSLastErrorStr(errno));
       return nil;
     }
-#else /* !__MINGW__ */
+#else /* !__MINGW32__ */
   if ((e = fcntl(d, F_GETFL, 0)) >= 0)
     {
       e |= NBLK_OPT;
@@ -354,7 +354,7 @@ static Class	runLoopClass;
 {
   if (self == [GSMessageHandle class])
     {
-#ifdef __MINGW__
+#ifdef __MINGW32__
       WORD wVersionRequested;
       WSADATA wsaData;
 
@@ -413,7 +413,7 @@ static Class	runLoopClass;
 
   if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
     {
-#ifdef __MINGW__
+#ifdef __MINGW32__
       if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
       if (errno != EINPROGRESS)
@@ -618,7 +618,7 @@ static Class	runLoopClass;
        * Now try to fill the buffer with data.
        */
       bytes = [rData mutableBytes];
-#ifdef __MINGW__
+#ifdef __MINGW32__
       res = recv(desc, bytes + rLength, want - rLength, 0);
 #else
       res = read(desc, bytes + rLength, want - rLength);
@@ -940,7 +940,7 @@ static Class	runLoopClass;
 	    {
 	      NSData	*d = newDataWithEncodedPort([self recvPort]);
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 	      len = send(desc, [d bytes], [d length], 0);
 #else
 	      len = write(desc, [d bytes], [d length]);
@@ -984,7 +984,7 @@ static Class	runLoopClass;
 	    }
 	  b = [wData bytes];
 	  l = [wData length];
-#ifdef __MINGW__
+#ifdef __MINGW32__
 	  res = send(desc, b + wLength,  l - wLength, 0);
 #else
 	  res = write(desc, b + wLength,  l - wLength);

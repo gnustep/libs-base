@@ -609,7 +609,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 	{
 	  currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
 	}
-#ifdef __MINGW__
+#ifdef __MINGW32__
       if (currLang == nil && locale != nil)
 	{
 	  /* Check for language as the first part of the locale string */

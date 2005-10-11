@@ -47,20 +47,20 @@
 #include <unistd.h>		/* for gethostname() */
 #endif
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #define close closesocket
 #else
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 #include <errno.h>
 #include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #include <winsock2.h>
 #include <wininet.h>
 #include <process.h>
@@ -97,7 +97,7 @@
 #define	SOCKET_ERROR	-1
 #define	INVALID_SOCKET	-1
 
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 
 /*
  * Largest chunk of data possible in DO
@@ -198,7 +198,7 @@ typedef enum {
   unsigned		nItems;		/* Number of items to be read.	*/
   GSHandleState		state;		/* State of the handle.		*/
   unsigned int		addrNum;	/* Address number within host.	*/
-#ifdef __MINGW__
+#ifdef __MINGW32__
   WSAEVENT              event;          /* Win32 event associated to socket */
   WSAEVENT              eventTemp;      /* Win32 event for asynchronous */
 @public
@@ -219,7 +219,7 @@ typedef enum {
 + (GSTcpHandle*) handleWithDescriptor: (SOCKET)d;
 - (BOOL) connectToPort: (NSSocketPort*)aPort beforeDate: (NSDate*)when;
 - (int) descriptor;
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 - (int) eventHandle;
 #endif
 - (void) invalidate;
@@ -368,13 +368,13 @@ static Class	runLoopClass;
 + (GSTcpHandle*) handleWithDescriptor: (SOCKET)d
 {
   GSTcpHandle	*handle;
-#ifdef __MINGW__
+#ifdef __MINGW32__
   unsigned long dummy;
 #else
   int		e;
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
   WSAEVENT ev;
   int rc;
 #endif
@@ -384,7 +384,7 @@ static Class	runLoopClass;
       NSLog(@"illegal descriptor (%d) for Tcp Handle", d);
       return nil;
     }
-#ifdef __MINGW__
+#ifdef __MINGW32__
   dummy = 1;
   if (ioctlsocket(d, FIONBIO, &dummy) == SOCKET_ERROR)
     {
@@ -392,7 +392,7 @@ static Class	runLoopClass;
 	d, GSLastErrorStr(errno));
       return nil;
     }
-#else /* !__MINGW__ */
+#else /* !__MINGW32__ */
   if ((e = fcntl(d, F_GETFL, 0)) >= 0)
     {
       e |= NBLK_OPT;
@@ -415,7 +415,7 @@ static Class	runLoopClass;
   handle->wMsgs = [NSMutableArray new];
   handle->myLock = [GSLazyRecursiveLock new];
   handle->valid = YES;
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   ev = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
   if (ev == WSA_INVALID_EVENT)
     {
@@ -436,7 +436,7 @@ static Class	runLoopClass;
 {
   if (self == [GSTcpHandle class])
     {
-#ifdef __MINGW__
+#ifdef __MINGW32__
       WORD wVersionRequested;
       WSADATA wsaData;
 
@@ -537,7 +537,7 @@ static Class	runLoopClass;
   if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr))
     == SOCKET_ERROR)
     {
-#ifdef __MINGW__
+#ifdef __MINGW32__
       if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
       if (errno != EINPROGRESS)
@@ -564,7 +564,7 @@ static Class	runLoopClass;
 
   state = GS_H_TRYCON;
   l = [NSRunLoop currentRunLoop];
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
   [l addEvent: (void*)(gsaddr)event
 	 type: ET_HANDLE
@@ -590,7 +590,7 @@ static Class	runLoopClass;
       M_LOCK(myLock);
     }
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   [l removeEvent: (void*)(gsaddr)event
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
@@ -669,7 +669,7 @@ static Class	runLoopClass;
   return desc;
 }
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 - (int) eventHandle
 {
   return (int)event;
@@ -694,7 +694,7 @@ static Class	runLoopClass;
 
 	  valid = NO;
 	  l = [runLoopClass currentRunLoop];
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  [l removeEvent: (void*)(gsaddr)event
 		    type: ET_HANDLE
 		 forMode: nil
@@ -716,7 +716,7 @@ static Class	runLoopClass;
 	  NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x", self);
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
           WSACloseEvent(event);
           event = WSA_INVALID_EVENT;
 #endif
@@ -783,12 +783,12 @@ static Class	runLoopClass;
           [self invalidate];
           return;
         }
-#ifdef __MINGW__
+#ifdef __MINGW32__
       else if (WSAGetLastError()!= WSAEINTR
 	&& WSAGetLastError()!= WSAEWOULDBLOCK)
 #else
       else if (errno != EINTR && errno != EAGAIN)
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 	{
 	  NSDebugMLLog(@"GSTcpHandle",
 	      @"read failed - %s on 0x%x", GSLastErrorStr(errno), self);
@@ -1133,23 +1133,23 @@ static Class	runLoopClass;
       res = send(desc, b + wLength,  l - wLength, 0);
       if (res < 0)
         {
-#ifdef __MINGW__
+#ifdef __MINGW32__
           if (WSAGetLastError()!= WSAEINTR
 	    && WSAGetLastError()!= WSAEWOULDBLOCK)
 #else
 	  if (errno != EINTR && errno != EAGAIN)
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 	    {
 	      NSLog(@"write attempt failed - %s", GSLastErrorStr(errno));
 	      [self invalidate];
 	      return;
 	    }
-#ifdef __MINGW__
+#ifdef __MINGW32__
 	  if (WSAGetLastError()== WSAEWOULDBLOCK)
 	    {
 	      readyToSend = NO;
 	    }
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 	}
       else
         {
@@ -1194,7 +1194,7 @@ static Class	runLoopClass;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   WSANETWORKEVENTS ocurredEvents;
 #endif
   NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x",
@@ -1207,7 +1207,7 @@ static Class	runLoopClass;
     {
       NSRunLoop	*l = [runLoopClass currentRunLoop];
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       [l removeEvent: data
 		type: ET_HANDLE
 	     forMode: mode
@@ -1227,7 +1227,7 @@ static Class	runLoopClass;
 
   M_LOCK(myLock);
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   if (WSAEnumNetworkEvents(desc, event, &ocurredEvents)==SOCKET_ERROR)
     {
       NSLog(@"Error getting event type %d", WSAGetLastError());
@@ -1324,7 +1324,7 @@ static Class	runLoopClass;
 
   RETAIN(self);
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
   [l addEvent: (void*)(gsaddr)event
 	 type: ET_HANDLE
@@ -1347,7 +1347,7 @@ static Class	runLoopClass;
     && [when timeIntervalSinceNow] > 0)
     {
       M_UNLOCK(myLock);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       if (readyToSend)
         {
           [self receivedEventWrite];
@@ -1362,7 +1362,7 @@ static Class	runLoopClass;
       M_LOCK(myLock);
     }
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   [l removeEvent: (void*)(gsaddr)event
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
@@ -1548,7 +1548,7 @@ static unsigned	wordAlign;
       port->address = [addr copy];
       port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       port->eventListener = WSA_INVALID_EVENT;
       port->events = NSCreateMapTable(NSIntMapKeyCallBacks,
         NSIntMapValueCallBacks, 0);
@@ -1644,7 +1644,7 @@ static unsigned	wordAlign;
 	    }
 	  else
 	    {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
               int rc;
 #endif
 	      /*
@@ -1654,7 +1654,7 @@ static unsigned	wordAlign;
 	       */
 	      port->listener = desc;
 	      port->portNum = GSSwapBigI16ToHost(sockaddr.sin_port); 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
               port->eventListener = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
               if (port->eventListener == WSA_INVALID_EVENT)
                 {
@@ -1737,7 +1737,7 @@ static unsigned	wordAlign;
       handle->recvPort = GS_GC_HIDE(self);
     }
   NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSMapInsert(events, (void*)(gsaddr)[handle eventHandle],
           (void*)(gsaddr)[handle descriptor]);
 #endif
@@ -1790,7 +1790,7 @@ static unsigned	wordAlign;
  * This is a callback method used by the NSRunLoop class to determine which
  * descriptors to watch for the port.
  */
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 - (void) getFds: (int*)fds count: (int*)count
 {
   NSMapEnumerator	me;
@@ -2029,7 +2029,7 @@ static unsigned	wordAlign;
 		{
 		  (void) close(listener);
 		  listener = -1;
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
                   WSACloseEvent(eventListener);
                   eventListener = WSA_INVALID_EVENT;                   
 #endif
@@ -2058,7 +2058,7 @@ static unsigned	wordAlign;
 		  handles = 0;
 		}
 	    }
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  if (events != 0)
 	    {
 	      NSFreeMapTable(events);
@@ -2100,7 +2100,7 @@ static unsigned	wordAlign;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   WSAEVENT      event = (WSAEVENT)extra;
   SOCKET	desc;
 #else
@@ -2111,7 +2111,7 @@ static unsigned	wordAlign;
   NSDebugMLLog(@"NSPort", @"received %s event on 0x%x",
     type == ET_RPORT ? "read" : "write", self);
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   if (event == eventListener)
 #else
   if (desc == listener)
@@ -2131,7 +2131,7 @@ static unsigned	wordAlign;
 
 	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
 	    sizeof(status));
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  // reset associated event with new socket
 	  WSAEventSelect(desc, eventListener, 0);
 #endif
@@ -2152,7 +2152,7 @@ static unsigned	wordAlign;
   else
     {
       M_LOCK(myLock);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       desc = (SOCKET)NSMapGet(events, (void*)(gsaddr)event);
 #endif
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
@@ -2162,7 +2162,7 @@ static unsigned	wordAlign;
 	{
 	  const char	*t;
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  if (type == ET_HANDLE) t = "winhandle";
 #else
 	  if (type == ET_RDESC) t = "rdesc";
@@ -2212,7 +2212,7 @@ static unsigned	wordAlign;
       handle->recvPort = nil;
     }
   NSMapRemove(handles, (void*)(gsaddr)[handle descriptor]);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSMapRemove(events, (void*)(gsaddr)[handle eventHandle]);
 #endif
   if (((int) listener) < 0 && NSCountMapTable(handles) == 0)

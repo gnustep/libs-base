@@ -276,7 +276,7 @@ NSLogv (NSString* format, va_list args)
   if (_NSLog_printf_handler == NULL)
     _NSLog_printf_handler = *_NSLog_standard_printf_handler;
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   pid = (int)GetCurrentProcessId();
 #else
   pid = (int)getpid();

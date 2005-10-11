@@ -38,7 +38,7 @@ main()
 	   name: NSTaskDidTerminateNotification
 	 object: nil];
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
   task = [NSTask launchedTaskWithLaunchPath: @"C:\\windows\\system32\\mem.exe"
 				  arguments: nil];
 #else

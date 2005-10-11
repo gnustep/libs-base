@@ -374,7 +374,7 @@ _find_framework(NSString *name)
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
 	  /* There are no Versions on MinGW.  Skip the Versions check here.  */
-#if !defined(__MINGW__)
+#if !defined(__MINGW32__)
 	  /* version name */
 	  bundlePath = [bundlePath stringByDeletingLastPathComponent];
 
@@ -393,7 +393,7 @@ _find_framework(NSString *name)
 		  if (bundlePath)
 		    bundle = [[self alloc] initWithPath: bundlePath];
 		}
-#if !defined(__MINGW__)
+#if !defined(__MINGW32__)
 	    }
 #endif
 
@@ -1586,7 +1586,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       mangledName = [mangledName stringByReplacingString: @"+" 
 				 withString: @"_1"];
 
-#if !defined(__MINGW__)
+#if !defined(__MINGW32__)
       path = [_path stringByAppendingPathComponent:@"Versions/Current"];
 #else
       path = _path;
@@ -1614,7 +1614,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
-#if !defined(__MINGW__)
+#if !defined(__MINGW32__)
       return [_path stringByAppendingPathComponent:
 		      [NSString stringWithFormat:@"Versions/%@/Resources",
 				version]];
@@ -1665,7 +1665,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
-#if !defined(__MINGW__)
+#if !defined(__MINGW32__)
       return [_path stringByAppendingPathComponent:
                       [NSString stringWithFormat:@"Versions/%@/PlugIns",
                       version]];
@@ -1757,7 +1757,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       pathlist = [env objectForKey:@"Path"];
     }
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   patharr = [pathlist componentsSeparatedByString:@";"];
 #else
   patharr = [pathlist componentsSeparatedByString:@":"];

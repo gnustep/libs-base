@@ -58,7 +58,7 @@
 #if	USE_ZLIB
   gzFile		gzDescriptor;
 #endif
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   WSAEVENT  		event;
 #endif
 }

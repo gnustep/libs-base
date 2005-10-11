@@ -584,7 +584,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
       NSString		*description = nil;
       NSPortNameServer	*ns = nil;
 
-#ifdef	__MINGW__
+#ifdef	__MINGW32__
       if (_type == NSLocalNotificationCenterType)
 	{
 	  ASSIGN(_type, GSPublicNotificationCenterType);

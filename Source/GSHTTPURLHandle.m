@@ -284,7 +284,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			     [[NSProcessInfo processInfo] processIdentifier]];
       RETAIN(debugFile);
 
-#ifndef __MINGW__
+#if	!defined(__MINGW32__)
       sslClass = [NSFileHandle sslClass];
 #endif
     }

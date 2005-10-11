@@ -64,7 +64,7 @@
  *		
  */
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 #define UNICODE
 #define _UNICODE
 #endif
@@ -132,7 +132,7 @@ static IMP	appendImp;
 static BOOL
 readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   const unichar	*thePath = 0;
 #else
   const char	*thePath = 0;
@@ -146,7 +146,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   zone = GSAtomicMallocZone();	// Use non-GC memory inside NSData
 #endif
 	
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   thePath = (const unichar*)[path fileSystemRepresentation];
 #else
   thePath = [path fileSystemRepresentation];
@@ -157,7 +157,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       return NO;
     }
 	
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   theFile = _wfopen(thePath, L"rb");
 #else
   theFile = fopen(thePath, "rb");
@@ -819,7 +819,7 @@ static unsigned	gsu32Align;
  */
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile
 {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   unsigned int	length = [path length];
   unichar	wthePath[length + 100];
   unichar	wtheRealPath[length + 100];
@@ -831,7 +831,7 @@ static unsigned	gsu32Align;
   FILE		*theFile;
   BOOL		error_BadPath = YES;
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   [path getCharacters: wtheRealPath];
   wtheRealPath[length] = L'\0';
   error_BadPath = (length <= 0);
@@ -886,7 +886,7 @@ static unsigned	gsu32Align;
       /* Use the path name of the destination file as a prefix for the
        * mktemp() call so that we can be sure that both files are on
        * the same filesystem and the subsequent rename() will work. */
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       wcscpy(wthePath, wtheRealPath);
       wcscat(wthePath, L"XXXXXX");
       if (_wmktemp(wthePath) == 0)
@@ -909,7 +909,7 @@ static unsigned	gsu32Align;
     }
   else
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       wcscpy(wthePath,wtheRealPath);
 #else
       strcpy(thePath, theRealPath);
@@ -917,7 +917,7 @@ static unsigned	gsu32Align;
     }
 
   /* Open the file (whether temp or real) for writing. */
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   theFile = _wfopen(wthePath, L"wb");
 #else
   theFile = fopen(thePath, "wb");
@@ -928,7 +928,7 @@ static unsigned	gsu32Align;
     {
       /* Something went wrong; we weren't
        * even able to open the file. */
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       NSWarnMLog(@"Open (%@) failed - %s",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
 	GSLastErrorStr(errno));
@@ -946,7 +946,7 @@ static unsigned	gsu32Align;
   if (c < (int)[self length])        /* We failed to write everything for
                                  * some reason. */
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       NSWarnMLog(@"Fwrite (%@) failed - %s",
 	[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
 	GSLastErrorStr(errno));
@@ -963,7 +963,7 @@ static unsigned	gsu32Align;
                                  * closing the file, but we got here,
                                  * so we need to deal with it. */
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       NSWarnMLog(@"Fclose (%@) failed - %s",
 	[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
 	GSLastErrorStr(errno));
@@ -988,7 +988,7 @@ static unsigned	gsu32Align;
 	  IF_NO_GC(TEST_AUTORELEASE(att));
 	}
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       /*
        * The windoze implementation of the POSIX rename() function is buggy
        * and doesn't work if the destination file already exists ... so we
@@ -1048,7 +1048,7 @@ static unsigned	gsu32Align;
 #endif
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %s",
 	    [NSString stringWithCharacters: wthePath length:wcslen(wthePath)],
 	    [NSString stringWithCharacters:
@@ -1080,7 +1080,7 @@ static unsigned	gsu32Align;
 		path);
 	    }
 	}
-#ifndef __MINGW__
+#ifndef __MINGW32__
       else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
 	{
 	  att = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -1103,7 +1103,7 @@ failure:
    */
   if (useAuxiliaryFile)
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       _wunlink(wthePath);
 #else
       unlink(thePath);
@@ -2886,7 +2886,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   int		fd;
 	
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   const unichar	*thePath = (const unichar*)[path filesystemRepresentation];
 #else
   const char	*thePath = [path fileSystemRepresentation];
@@ -2899,7 +2899,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       return nil;
     }
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   fd = _wopen(thePath, _O_RDONLY);
 #else
   fd = open(thePath, O_RDONLY);

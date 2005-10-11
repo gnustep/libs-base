@@ -476,7 +476,7 @@ int main(int argc, char *argv[], char **env)
   id o = [[NSObject alloc] init];
   NSConnection *c;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-#ifndef __MINGW__
+#ifndef __MINGW32__
   extern int optind;
   extern char *optarg;
 #endif

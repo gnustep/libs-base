@@ -37,7 +37,7 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSDebug.h"
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
 #include <winsock2.h>
 #else
 #include <netdb.h>
@@ -48,7 +48,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#endif /* !__MINGW__*/
+#endif /* !__MINGW32__*/
 
 #ifndef	INADDR_NONE
 #define	INADDR_NONE	-1

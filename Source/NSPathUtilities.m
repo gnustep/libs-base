@@ -803,7 +803,7 @@ NSString *
 NSHomeDirectoryForUser(NSString *loginName)
 {
   NSString	*s = nil;
-#if !defined(__MINGW__)
+#if !defined(__MINGW32__)
   struct passwd *pw;
 
   [gnustep_global_lock lock];
@@ -1048,7 +1048,7 @@ NSTemporaryDirectory(void)
 	  baseTempDirName = [env objectForKey: @"TMP"];
 	  if (baseTempDirName == nil)
 	    {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 #ifdef  __CYGWIN__
 	      baseTempDirName = @"/cygdrive/c/";
 #else
@@ -1087,9 +1087,9 @@ NSTemporaryDirectory(void)
   perm = perm & 0777;
 
 // Mateu Batle: secure temporary directories don't work in MinGW
-#ifndef __MINGW__
+#ifndef __MINGW32__
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   uid = owner;
 #else
 #ifdef HAVE_GETEUID
@@ -1176,7 +1176,7 @@ NSOpenStepRootDirectory(void)
     objectForKey: @"GNUSTEP_ROOT"];
   if (root == nil)
     {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 #ifdef  __CYGWIN__
       root = @"/cygdrive/c/";
 #else

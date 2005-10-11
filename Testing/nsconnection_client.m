@@ -501,7 +501,7 @@ int main (int argc, char *argv[], char **env)
   unsigned	connect_attempts;
   NSAutoreleasePool	*arp;
   Auth *auth;
-#ifndef __MINGW__
+#ifndef __MINGW32__
   extern int optind;
   extern char *optarg;
 #endif
