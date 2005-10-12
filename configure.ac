@@ -1290,17 +1290,13 @@ AC_CONFIG_SUBDIRS(Source/mframe SSL)
 #--------------------------------------------------------------------
 # Configuration and Misc Options
 #--------------------------------------------------------------------
-AC_ARG_WITH(config-file,
-  [  --with-config-file=PATH  path to GNUstep configuration file],
-  config_file="$withval", config_file="no")
-
-if test $config_file = no; then
-  case "$target_os" in
-    freebsd* | openbsd* ) config_file=/usr/etc/GNUstep.conf ;;
-    netbsd* )  		config_file=/usr/pkg/etc ;;
-    *)	    		config_file=/etc/GNUstep/GNUstep.conf;;
-  esac
-fi
+AC_MSG_CHECKING(for location of GNUstep configuration file)
+#
+# Get them from gnustep-make which contains the real code to get them
+#
+config_file=$(grep GNUSTEP_CONFIG_FILE $GNUSTEP_MAKEFILES/$obj_dir/config.make | sed -e 's/GNUSTEP_CONFIG_FILE = //')
+#
+AC_MSG_RESULT($config_file)
 AC_DEFINE_UNQUOTED(GNUSTEP_CONFIGURATION_FILE, $config_file,
 	[Set to location of the GNUstep configuration file])
 
