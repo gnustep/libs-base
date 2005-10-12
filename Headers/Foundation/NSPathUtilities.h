@@ -42,8 +42,6 @@ GS_EXPORT void  GSSetUserName(NSString *aName);
 
 GS_EXPORT NSString *GSDefaultsRootForUser(NSString *userName);
 
-GS_EXPORT NSString *GSSystemRootDirectory(void)  GS_ATTRIB_DEPRECATED;
-GS_EXPORT NSArray  *GSStandardPathPrefixes(void) GS_ATTRIB_DEPRECATED;
 #endif
 GS_EXPORT NSString *NSUserName(void);
 GS_EXPORT NSString *NSHomeDirectory(void);

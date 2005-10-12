@@ -93,16 +93,13 @@
    be made compile time or even user configurable.
 */
 #define OPTION_PLATFORM_SUPPORT  // To find platform specific things
-//#define OPTION_COMPILED_PATHS    // Only use compile time path information
-//#define OPTION_NO_ENVIRONMENT    // Don't use environment vars for path info
 
 #define lowlevelstringify(X) #X
 #define stringify(X) lowlevelstringify(X)
 
 /* The global configuration file. The real value is read from config.h */
 #ifndef GNUSTEP_CONFIGURATION_FILE
-//#define   GNUSTEP_CONFIGURATION_FILE  /usr/GNUstep/System/.GNUsteprc
-#define   GNUSTEP_CONFIGURATION_FILE  /etc/GNUstep/GNUstep.conf
+# define   GNUSTEP_CONFIGURATION_FILE  /etc/GNUstep/GNUstep.conf
 #endif
 /* The name of the user-specific configuration file */
 #define   DEFAULT_STEPRC_FILE         @".GNUsteprc"
@@ -154,33 +151,15 @@ static NSString	*gnustep_flattened =
 
 static NSString	*configFile;
 
-/* names for the environment or conf-file variables */
-//static NSString *USER_ROOT    = @"GNUSTEP_USER_ROOT";
-static NSString *LOCAL_ROOT   = @"GNUSTEP_LOCAL_ROOT";
-static NSString *NETWORK_ROOT = @"GNUSTEP_NETWORK_ROOT";
-static NSString *SYSTEM_ROOT  = @"GNUSTEP_SYSTEM_ROOT";
-
-#ifdef OPTION_COMPILED_PATHS
-static NSString *gnustepUserRoot    = nil;
-static NSString *gnustepLocalRoot   = GNUSTEP_LOCAL_ROOT;
-static NSString *gnustepNetworkRoot = GNUSTEP_NETWORK_ROOT;
-static NSString *gnustepSystemRoot  = GNUSTEP_INSTALL_PREFIX;
-
-static NSString *gnustepRcFileName  = nil;
-static NSString *gnustepDefaultsPath = DEFAULT_STEPRC_FILE;
-static NSString *gnustepUserPath     = DEFAULT_USER_ROOT;
-#else
 /* We read these four paths only once */
 static NSString *gnustepUserRoot = nil;        /*    GNUSTEP_USER_ROOT path */
 static NSString *gnustepLocalRoot = nil;       /*   GNUSTEP_LOCAL_ROOT path */
 static NSString *gnustepNetworkRoot = nil;     /* GNUSTEP_NETWORK_ROOT path */
 static NSString *gnustepSystemRoot = nil;      /*  GNUSTEP_SYSTEM_ROOT path */
 
-static NSString *gnustepRcFileName = nil;           /* .GNUsteprc file name */
-static NSString *gnustepDefaultsPath = nil;          /* Defaults dir in home */
-static NSString *gnustepUserPath = nil;              /* dir in home for user */
-
-#endif /* OPTION_COMPILED_PATHS else */
+static NSString *gnustepRcFileName = nil;
+static NSString *gnustepDefaultsPath = nil;
+static NSString *gnustepUserPath = nil;
 
 static NSString *theUserName = nil;             /*      The user's login name */
 static NSString *tempDir = nil;                 /* user's temporary directory */
@@ -359,8 +338,6 @@ GSOnceFLog(@"Use of '~' in GNUSTEP_USER_ROOT is deprecated");
 /* Initialise all things required by this module */
 static void InitialisePathUtilities(void)
 {
-  NSDictionary  *env;
-
   if (gnustepSystemRoot != nil)
     {
       return;	// Protect from multiple calls
@@ -369,6 +346,7 @@ static void InitialisePathUtilities(void)
   /* Set up our root paths */
   NS_DURING
     {
+      NSDictionary  *env = [[NSProcessInfo processInfo] environment];
 #if defined(__WIN32__)
       HKEY regkey;
 #endif
@@ -380,23 +358,25 @@ static void InitialisePathUtilities(void)
 
 #ifndef OPTION_NO_ENVIRONMENT
       /* First we look at the environment */
-      env = [[NSProcessInfo processInfo] environment];
-
-      TEST_ASSIGN(gnustepSystemRoot , [env objectForKey: SYSTEM_ROOT]);
-      TEST_ASSIGN(gnustepNetworkRoot, [env objectForKey: NETWORK_ROOT]);
-      TEST_ASSIGN(gnustepLocalRoot  , [env objectForKey: LOCAL_ROOT]);
+      TEST_ASSIGN(gnustepSystemRoot,
+	[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]);
+      TEST_ASSIGN(gnustepNetworkRoot,
+	[env objectForKey: @"GNUSTEP_NETWORK_ROOT"]);
+      TEST_ASSIGN(gnustepLocalRoot,
+	[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]);
 #endif /* !OPTION_NO_ENVIRONMENT */
+
 #if defined(__WIN32__)
       regkey = Win32OpenRegistry(HKEY_LOCAL_MACHINE,
 				 "\\Software\\GNU\\GNUstep");
       if (regkey != (HKEY)NULL)
 	{
 	  TEST_ASSIGN(gnustepSystemRoot,
-		      Win32NSStringFromRegistry(regkey, SYSTEM_ROOT));
+	    Win32NSStringFromRegistry(regkey, @"GNUSTEP_SYSTEM_ROOT"));
 	  TEST_ASSIGN(gnustepNetworkRoot,
-		      Win32NSStringFromRegistry(regkey, NETWORK_ROOT));
+	    Win32NSStringFromRegistry(regkey, @"GNUSTEP_NETWORK_ROOT"));
 	  TEST_ASSIGN(gnustepLocalRoot,
-		      Win32NSStringFromRegistry(regkey, LOCAL_ROOT));
+	    Win32NSStringFromRegistry(regkey, @"GNUSTEP_LOCAL_ROOT"));
 	  RegCloseKey(regkey);
 	}
 
@@ -407,8 +387,13 @@ static void InitialisePathUtilities(void)
 #endif
 #else
       /* Now we source the configuration file if it exists */
-      configFile
-	= [NSString stringWithCString: stringify(GNUSTEP_CONFIGURATION_FILE)];
+      configFile = [env objectForKey: @"GNUSTEP_CONFIGURATION_FILE"];
+      if (configFile == nil)
+	{
+	  configFile
+	    = [NSString stringWithCString:
+	    stringify(GNUSTEP_CONFIGURATION_FILE)];
+	}
       configFile = RETAIN([configFile stringByStandardizingPath]);
       if ([MGR() fileExistsAtPath: configFile])
 	{
@@ -416,9 +401,12 @@ static void InitialisePathUtilities(void)
 
 	  if (d != nil)
 	    {
-	      TEST_ASSIGN(gnustepSystemRoot , [d objectForKey: SYSTEM_ROOT]);
-	      TEST_ASSIGN(gnustepNetworkRoot, [d objectForKey: NETWORK_ROOT]);
-	      TEST_ASSIGN(gnustepLocalRoot  , [d objectForKey: LOCAL_ROOT]);
+	      TEST_ASSIGN(gnustepSystemRoot,
+		[d objectForKey: @"GNUSTEP_SYSTEM_ROOT"]);
+	      TEST_ASSIGN(gnustepNetworkRoot,
+		[d objectForKey: @"GNUSTEP_NETWORK_ROOT"]);
+	      TEST_ASSIGN(gnustepLocalRoot,
+		[d objectForKey: @"GNUSTEP_LOCAL_ROOT"]);
 
 	      gnustepRcFileName = [d objectForKey: @"USER_GNUSTEP_RC"];
 	      gnustepDefaultsPath = [d objectForKey: @"USER_GNUSTEP_DEFAULTS"];
@@ -776,18 +764,6 @@ NSFullUserName(void)
 #endif /* defined(__Win32__) else */
 }
 
-/** Returns a string containing the path to the GNUstep system
-    installation directory. This function is guarenteed to return a non-nil
-    answer (unless something is seriously wrong, in which case the application
-    will probably crash anyway) */
-NSString *
-GSSystemRootDirectory(void)
-{
-  GSOnceFLog(@"Deprecated function");
-  InitialisePathUtilities();
-  return gnustepSystemRoot;
-}
-
 /**
  * Return the path of the defaults directory for userName.<br />
  * This examines the .GNUsteprc file in the home directory of the
@@ -826,84 +802,6 @@ GSDefaultsRootForUser(NSString *userName)
     }
 
   return internalizePath(home);
-}
-
-/** Returns an array of strings which contain paths that should be in
-    the standard search order for resources, etc. If the environment
-    variable GNUSTEP_PATHPREFIX_LIST is set. It returns the list of
-    paths set in that variable. Otherwise, it returns the user, local,
-    network, and system paths, in that order.  This function is
-    guarenteed to return a non-nil answer (unless something is
-    seriously wrong, in which case the application will probably crash
-    anyway) */
-NSArray *
-GSStandardPathPrefixes(void)
-{
-  NSDictionary	*env;
-  NSString	*prefixes;
-  NSArray	*prefixArray;
-
-  GSOnceFLog(@"Deprecated function");
-  env = [[NSProcessInfo processInfo] environment];
-  prefixes = [env objectForKey: @"GNUSTEP_PATHPREFIX_LIST"];
-  if (prefixes != nil)
-    {
-      unsigned	c;
-
-#if	defined(__WIN32__)
-      prefixArray = [prefixes componentsSeparatedByString: @";"];
-#else
-      prefixArray = [prefixes componentsSeparatedByString: @":"];
-#endif
-      if ((c = [prefixArray count]) <= 1)
-	{
-	  /* This probably means there was some parsing error, but who
-	     knows. Play it safe though... */
-	  prefixArray = nil;
-	}
-      else
-	{
-	  NSString	*a[c];
-	  unsigned	i;
-
-	  [prefixArray getObjects: a];
-	  for (i = 0; i < c; i++)
-	    {
-	      a[c] = internalizePath(a[c]);
-	    }
-	  prefixArray = [NSArray arrayWithObjects: a count: c];
-	}
-    }
-  if (prefixes == nil)
-    {
-      NSString	*strings[4];
-      NSString	*str;
-      unsigned	count = 0;
-
-      InitialisePathUtilities();
-
-      str = gnustepUserRoot;
-      if (str != nil)
-	strings[count++] = str;
-
-      str = gnustepLocalRoot;
-      if (str != nil)
-	strings[count++] = str;
-
-      str = gnustepNetworkRoot;
-      if (str != nil)
-        strings[count++] = str;
-
-      str = gnustepSystemRoot;
-      if (str != nil)
-	strings[count++] = str;
-
-      if (count)
-	prefixArray = [NSArray arrayWithObjects: strings count: count];
-      else
-	prefixArray = [NSArray array];
-    }
-  return prefixArray;
 }
 
 /**
