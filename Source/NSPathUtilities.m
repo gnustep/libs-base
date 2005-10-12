@@ -359,144 +359,147 @@ GSOnceFLog(@"Use of '~' in GNUSTEP_USER_ROOT is deprecated");
 /* Initialise all things required by this module */
 static void InitialisePathUtilities(void)
 {
-  NSDictionary  *env;
-
-  /* Set up our root paths */
-  NS_DURING
+  if (gnustepSystemRoot == nil)
     {
+      NSDictionary  *env;
+
+      /* Set up our root paths */
+      NS_DURING
+	{
 #if defined(__WIN32__)
-      HKEY regkey;
+	  HKEY regkey;
 #endif
 
-      /* Initialise Win32 things if on that platform */
-      Win32Initialise();   // should be called by DLL_PROCESS_ATTACH
+	  /* Initialise Win32 things if on that platform */
+	  Win32Initialise();   // should be called by DLL_PROCESS_ATTACH
 
-      [gnustep_global_lock lock];
+	  [gnustep_global_lock lock];
 
 #ifndef OPTION_NO_ENVIRONMENT
-      /* First we look at the environment */
-      env = [[NSProcessInfo processInfo] environment];
+	  /* First we look at the environment */
+	  env = [[NSProcessInfo processInfo] environment];
 
-      TEST_ASSIGN(gnustepSystemRoot , [env objectForKey: SYSTEM_ROOT]);
-      TEST_ASSIGN(gnustepNetworkRoot, [env objectForKey: NETWORK_ROOT]);
-      TEST_ASSIGN(gnustepLocalRoot  , [env objectForKey: LOCAL_ROOT]);
+	  TEST_ASSIGN(gnustepSystemRoot , [env objectForKey: SYSTEM_ROOT]);
+	  TEST_ASSIGN(gnustepNetworkRoot, [env objectForKey: NETWORK_ROOT]);
+	  TEST_ASSIGN(gnustepLocalRoot  , [env objectForKey: LOCAL_ROOT]);
 #endif /* !OPTION_NO_ENVIRONMENT */
 #if defined(__WIN32__)
-      regkey = Win32OpenRegistry(HKEY_LOCAL_MACHINE,
-				 "\\Software\\GNU\\GNUstep");
-      if (regkey != (HKEY)NULL)
-        {
-          TEST_ASSIGN(gnustepSystemRoot,
-		      Win32NSStringFromRegistry(regkey, SYSTEM_ROOT));
-          TEST_ASSIGN(gnustepNetworkRoot,
-		      Win32NSStringFromRegistry(regkey, NETWORK_ROOT));
-          TEST_ASSIGN(gnustepLocalRoot,
-		      Win32NSStringFromRegistry(regkey, LOCAL_ROOT));
-          RegCloseKey(regkey);
-        }
+	  regkey = Win32OpenRegistry(HKEY_LOCAL_MACHINE,
+				     "\\Software\\GNU\\GNUstep");
+	  if (regkey != (HKEY)NULL)
+	    {
+	      TEST_ASSIGN(gnustepSystemRoot,
+			  Win32NSStringFromRegistry(regkey, SYSTEM_ROOT));
+	      TEST_ASSIGN(gnustepNetworkRoot,
+			  Win32NSStringFromRegistry(regkey, NETWORK_ROOT));
+	      TEST_ASSIGN(gnustepLocalRoot,
+			  Win32NSStringFromRegistry(regkey, LOCAL_ROOT));
+	      RegCloseKey(regkey);
+	    }
 
 #if 0
-      // Not implemented yet
-      platformApps   = Win32FindDirectory(CLSID_APPS);
-      platformLibs   = Win32FindDirectory(CLSID_LIBS);
+	  // Not implemented yet
+	  platformApps   = Win32FindDirectory(CLSID_APPS);
+	  platformLibs   = Win32FindDirectory(CLSID_LIBS);
 #endif
 #else
-      /* Now we source the configuration file if it exists */
-      configFile
-	= [NSString stringWithCString: stringify(GNUSTEP_CONFIGURATION_FILE)];
-      configFile = RETAIN([configFile stringByStandardizingPath]);
-      if ([MGR() fileExistsAtPath: configFile])
-        {
-	  NSDictionary  *d = GSReadStepConfFile(configFile);
-
-	  if (d != nil)
+	  /* Now we source the configuration file if it exists */
+	  configFile
+	    = [NSString stringWithCString: stringify(GNUSTEP_CONFIGURATION_FILE)];
+	  configFile = RETAIN([configFile stringByStandardizingPath]);
+	  if ([MGR() fileExistsAtPath: configFile])
 	    {
-	      TEST_ASSIGN(gnustepSystemRoot , [d objectForKey: SYSTEM_ROOT]);
-	      TEST_ASSIGN(gnustepNetworkRoot, [d objectForKey: NETWORK_ROOT]);
-	      TEST_ASSIGN(gnustepLocalRoot  , [d objectForKey: LOCAL_ROOT]);
+	      NSDictionary  *d = GSReadStepConfFile(configFile);
 
-	      gnustepRcFileName = [d objectForKey: @"USER_GNUSTEP_RC"];
-	      gnustepDefaultsPath = [d objectForKey: @"USER_GNUSTEP_DEFAULTS"];
-	      gnustepUserPath = [d objectForKey: @"USER_GNUSTEP_DIR"];
+	      if (d != nil)
+		{
+		  TEST_ASSIGN(gnustepSystemRoot , [d objectForKey: SYSTEM_ROOT]);
+		  TEST_ASSIGN(gnustepNetworkRoot, [d objectForKey: NETWORK_ROOT]);
+		  TEST_ASSIGN(gnustepLocalRoot  , [d objectForKey: LOCAL_ROOT]);
+
+		  gnustepRcFileName = [d objectForKey: @"USER_GNUSTEP_RC"];
+		  gnustepDefaultsPath = [d objectForKey: @"USER_GNUSTEP_DEFAULTS"];
+		  gnustepUserPath = [d objectForKey: @"USER_GNUSTEP_DIR"];
 
 #ifdef OPTION_PLATFORM_SUPPORT
-	      osSysPrefs = getPathConfig(d, SYS_PREFS);
-	      osSysApps  = getPathConfig(d, SYS_APPS);
-	      osSysLibs  = getPathConfig(d, SYS_LIBS);
-	      osSysAdmin = getPathConfig(d, SYS_ADMIN);
+		  osSysPrefs = getPathConfig(d, SYS_PREFS);
+		  osSysApps  = getPathConfig(d, SYS_APPS);
+		  osSysLibs  = getPathConfig(d, SYS_LIBS);
+		  osSysAdmin = getPathConfig(d, SYS_ADMIN);
 
-	      platformResources = getPathConfig(d, PLATFORM_RESOURCES);
-	      platformApps      = getPathConfig(d, PLATFORM_APPS);
-	      platformLibs      = getPathConfig(d, PLATFORM_LIBS);
-	      platformAdmin     = getPathConfig(d, PLATFORM_ADMIN);
+		  platformResources = getPathConfig(d, PLATFORM_RESOURCES);
+		  platformApps      = getPathConfig(d, PLATFORM_APPS);
+		  platformLibs      = getPathConfig(d, PLATFORM_LIBS);
+		  platformAdmin     = getPathConfig(d, PLATFORM_ADMIN);
 
-	      localResources = getPathConfig(d, PLATFORM_LOCAL_RESOURCES);
-	      localApps      = getPathConfig(d, PLATFORM_LOCAL_APPS);
-	      localLibs      = getPathConfig(d, PLATFORM_LOCAL_LIBS);
+		  localResources = getPathConfig(d, PLATFORM_LOCAL_RESOURCES);
+		  localApps      = getPathConfig(d, PLATFORM_LOCAL_APPS);
+		  localLibs      = getPathConfig(d, PLATFORM_LOCAL_LIBS);
 #endif /* OPTION_PLATFORM SUPPORT */
+		}
 	    }
-	}
 #endif
 
-      /* System admins may force the user and defaults paths by
-       * setting USER_GNUSTEP_RC to be an empty string.
-       * If they simply don't define it at all, we assign a default
-       * value here.
-       */
-      TEST_ASSIGN(gnustepRcFileName,  DEFAULT_STEPRC_FILE);
+	  /* System admins may force the user and defaults paths by
+	   * setting USER_GNUSTEP_RC to be an empty string.
+	   * If they simply don't define it at all, we assign a default
+	   * value here.
+	   */
+	  TEST_ASSIGN(gnustepRcFileName,  DEFAULT_STEPRC_FILE);
 
-      /* If the user has an rc file we need to source it */
-      gnustepUserRoot = setUserGNUstepPath(NSUserName(),
-	&gnustepDefaultsPath, &gnustepUserPath);
+	  /* If the user has an rc file we need to source it */
+	  gnustepUserRoot = setUserGNUstepPath(NSUserName(),
+	    &gnustepDefaultsPath, &gnustepUserPath);
 
-      /* Make sure that they're in path internal format */
-      internalizePath(gnustepSystemRoot);
-      internalizePath(gnustepNetworkRoot);
-      internalizePath(gnustepLocalRoot);
-      internalizePath(gnustepUserRoot);
+	  /* Make sure that they're in path internal format */
+	  internalizePath(gnustepSystemRoot);
+	  internalizePath(gnustepNetworkRoot);
+	  internalizePath(gnustepLocalRoot);
+	  internalizePath(gnustepUserRoot);
 
-      /* Finally we check and report problems... */
-      if (gnustepSystemRoot == nil)
-        {
-          gnustepSystemRoot = internalizePathCString(\
-	    STRINGIFY(GNUSTEP_INSTALL_PREFIX));
-          fprintf (stderr, "Warning - GNUSTEP_SYSTEM_ROOT is not set " \
-	    "- using %s\n", [gnustepSystemRoot lossyCString]);
-        }
-      if (gnustepNetworkRoot == nil)
-        {
-          gnustepNetworkRoot = internalizePathCString(\
-	    STRINGIFY(GNUSTEP_NETWORK_ROOT));
-          fprintf (stderr, "Warning - GNUSTEP_NETWORK_ROOT is not set " \
-	    "- using %s\n", [gnustepNetworkRoot lossyCString]);
-        }
-      if (gnustepLocalRoot == nil)
-        {
-          gnustepLocalRoot = internalizePathCString(\
-	    STRINGIFY(GNUSTEP_LOCAL_ROOT));
-          fprintf (stderr, "Warning - GNUSTEP_LOCAL_ROOT is not set " \
-	    "- using %s\n", [gnustepLocalRoot lossyCString]);
-        }
+	  /* Finally we check and report problems... */
+	  if (gnustepSystemRoot == nil)
+	    {
+	      gnustepSystemRoot = internalizePathCString(\
+		STRINGIFY(GNUSTEP_INSTALL_PREFIX));
+	      fprintf (stderr, "Warning - GNUSTEP_SYSTEM_ROOT is not set " \
+		"- using %s\n", [gnustepSystemRoot lossyCString]);
+	    }
+	  if (gnustepNetworkRoot == nil)
+	    {
+	      gnustepNetworkRoot = internalizePathCString(\
+		STRINGIFY(GNUSTEP_NETWORK_ROOT));
+	      fprintf (stderr, "Warning - GNUSTEP_NETWORK_ROOT is not set " \
+		"- using %s\n", [gnustepNetworkRoot lossyCString]);
+	    }
+	  if (gnustepLocalRoot == nil)
+	    {
+	      gnustepLocalRoot = internalizePathCString(\
+		STRINGIFY(GNUSTEP_LOCAL_ROOT));
+	      fprintf (stderr, "Warning - GNUSTEP_LOCAL_ROOT is not set " \
+		"- using %s\n", [gnustepLocalRoot lossyCString]);
+	    }
 
-      /* We're keeping these strings... */
-      TEST_RETAIN(gnustepSystemRoot);
-      TEST_RETAIN(gnustepNetworkRoot);
-      TEST_RETAIN(gnustepLocalRoot);
-      TEST_RETAIN(gnustepUserRoot);
+	  /* We're keeping these strings... */
+	  TEST_RETAIN(gnustepSystemRoot);
+	  TEST_RETAIN(gnustepNetworkRoot);
+	  TEST_RETAIN(gnustepLocalRoot);
+	  TEST_RETAIN(gnustepUserRoot);
 
-      TEST_RETAIN(gnustepRcFileName);
-      TEST_RETAIN(gnustepDefaultsPath);
-      TEST_RETAIN(gnustepUserPath);
+	  TEST_RETAIN(gnustepRcFileName);
+	  TEST_RETAIN(gnustepDefaultsPath);
+	  TEST_RETAIN(gnustepUserPath);
 
-      [gnustep_global_lock unlock];
+	  [gnustep_global_lock unlock];
+	}
+      NS_HANDLER
+	{
+	  /* unlock then re-raise the exception */
+	  [gnustep_global_lock unlock];
+	  [localException raise];
+	}
+      NS_ENDHANDLER
     }
-  NS_HANDLER
-    {
-      /* unlock then re-raise the exception */
-      [gnustep_global_lock unlock];
-      [localException raise];
-    }
-  NS_ENDHANDLER
 }
 
 /*
@@ -504,32 +507,32 @@ static void InitialisePathUtilities(void)
  */
 static void ShutdownPathUtilities(void)
 {
-  TEST_RELEASE(gnustepSystemRoot);
-  TEST_RELEASE(gnustepNetworkRoot);
-  TEST_RELEASE(gnustepLocalRoot);
-  TEST_RELEASE(gnustepUserRoot);
+  DESTROY(gnustepSystemRoot);
+  DESTROY(gnustepNetworkRoot);
+  DESTROY(gnustepLocalRoot);
+  DESTROY(gnustepUserRoot);
 
-  TEST_RELEASE(gnustepRcFileName);
-  TEST_RELEASE(gnustepDefaultsPath);
-  TEST_RELEASE(gnustepUserPath);
+  DESTROY(gnustepRcFileName);
+  DESTROY(gnustepDefaultsPath);
+  DESTROY(gnustepUserPath);
 
 #ifdef OPTION_PLATFORM_SUPPORT
-  TEST_RELEASE(osSysPrefs);
-  TEST_RELEASE(osSysApps);
-  TEST_RELEASE(osSysLibs);
-  TEST_RELEASE(osSysAdmin);
+  DESTROY(osSysPrefs);
+  DESTROY(osSysApps);
+  DESTROY(osSysLibs);
+  DESTROY(osSysAdmin);
 
-  TEST_RELEASE(platformResources);
-  TEST_RELEASE(platformApps);
-  TEST_RELEASE(platformLibs);
-  TEST_RELEASE(platformAdmin);
+  DESTROY(platformResources);
+  DESTROY(platformApps);
+  DESTROY(platformLibs);
+  DESTROY(platformAdmin);
 
-  TEST_RELEASE(localResources);
-  TEST_RELEASE(localApps);
-  TEST_RELEASE(localLibs);
+  DESTROY(localResources);
+  DESTROY(localApps);
+  DESTROY(localLibs);
 #endif /* OPTION_PLATFORM SUPPORT */
 
-  TEST_RELEASE(tempDir);
+  DESTROY(tempDir);
 
   /* Shutdown Win32 support */
   Win32Finalise();
@@ -777,10 +780,7 @@ NSString *
 GSSystemRootDirectory(void)
 {
   GSOnceFLog(@"Deprecated function");
-  if (gnustepSystemRoot == nil)
-    {
-      InitialisePathUtilities();
-    }
+  InitialisePathUtilities();
   return gnustepSystemRoot;
 }
 
@@ -801,10 +801,7 @@ GSDefaultsRootForUser(NSString *userName)
     {
       userName = NSUserName();
     }
-  if (gnustepSystemRoot == nil)
-    {
-      InitialisePathUtilities();
-    }
+  InitialisePathUtilities();
   if ([userName isEqual: NSUserName()])
     {
       home = gnustepUserRoot;
@@ -879,10 +876,8 @@ GSStandardPathPrefixes(void)
       NSString	*str;
       unsigned	count = 0;
 
-      if (gnustepSystemRoot == nil)
-	{
-	  InitialisePathUtilities();
-	}
+      InitialisePathUtilities();
+
       str = gnustepUserRoot;
       if (str != nil)
 	strings[count++] = str;
@@ -1143,10 +1138,8 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   unsigned        i;
   unsigned        count;
 
-  if (gnustepSystemRoot == nil)
-    {
-      InitialisePathUtilities();
-    }
+  InitialisePathUtilities();
+
   NSCAssert(gnustepSystemRoot!=nil,@"Path utilities without initialisation!");
 
   /*
