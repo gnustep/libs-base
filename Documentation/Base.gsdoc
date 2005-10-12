@@ -325,7 +325,7 @@ notice and this notice are preserved.
 	      <p>
 		This environment variable, commonly set by the make system,
 		is <strong>not</strong> used by GNUstep programs.  Instead
-		values from <code>.GNUsteprc</code> are used (see later).
+		values from the GNUstep configuration file are used (see later).
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_TARGET_CPU</term>
@@ -462,7 +462,7 @@ notice and this notice are preserved.
 	    can be used to set the base location of all the standard
 	    paths that GNUstep programs use or know about. The
 	    location of this file depends on how the Base library was
-	    configured and what operating system it was configured
+	    configured and/or what operating system it was configured
 	    on. On a GNU/Linux system, the default would be
 	    /etc/GNUstep/GNUstep.conf, for instance. This file is not
 	    required. If it does not appear, then default values will
@@ -482,56 +482,65 @@ notice and this notice are preserved.
 	  </p>
 	    <deflist>
 	      <term>USER_GNUSTEP_DIR</term>
-	      <desc>Path under user's home directory for user specific GNUstep resources (eg. 'GNUstep')</desc>
+	      <desc>Path for user specific GNUstep resources (eg. 'GNUstep').
+	      May be either an absolute path or a path relative to the
+	      user's home directory.</desc>
 	      <term>USER_GNUSTEP_RC</term>
-	      <desc>Name of user configuration file (eg. '.GNUsteprc')</desc>
+	      <desc>Name of user configuration file (eg. '.GNUsteprc')
+	      relative to the user's home directory.</desc>
 	      <term>USER_GNUSTEP_DEFAULTS</term>
-	      <desc>Name of directory in USER_GNUSTEP_DIR for user defaults files.</desc>
+	      <desc>Name of directory for user defaults files. Either an
+	      absolute path or relative to USER_GNUSTEP_DIR.</desc>
 	    </deflist>
 	  <p>
 	    Support is provided to locate OS/PLATFORM directories. A conf file
 	    may provide the definitions below:
 	  </p>
-	      <deflist>
-		<term>SYS_PREFS</term>
-		<desc>Place for system/os preferences (eg. '/etc')</desc>
-		<term>SYS_APPS</term>
-		<desc>Place for system/os applications (eg. '/bin')</desc>
-		<term>SYS_LIBS</term>
-		<desc>Place for system/os shared libraries (eg. '/lib')</desc>
-		<term>SYS_ADMIN</term>
-		<desc>Place for system administration tools (eg. '/sbin')</desc>
-		<term>PLATFORM_APPS</term>
-		<desc>Place for non-gnustep applications (eg. '/usr/bin')</desc>
-		<term>PLATFORM_LIBS</term>
-		<desc>Place for application shared libraries (eg. '/usr/lib')</desc>
-		<term>PLATFORM_RESOURCES</term>
-		<desc>Place for shared application resources (eg. '/usr/share')</desc>
-		<term>PLATFORM_ADMIN</term>
-		<desc>Place for non-critical administrative tools (eg. '/usr/sbin')</desc>
-		<term>PLATFORM_LOCAL_APPS</term>
-		<desc>Place for machine local applications (eg. '/usr/local/bin')</desc>
-		<term>PLATFORM_LOCAL_LIBS</term>
-		<desc>Place for machine local shared libraries (eg. '/usr/local/lib/')</desc>
-		<term>PLATFORM_LOCAL_RESOURCES</term>
-		<desc>Place for machine local resources. (eg. '/usr/local/share')</desc>
-	      </deflist>
-	    <p>
-	      These add to the path for NSSystemDomainMask, or
-	      NSLocalDomainMask as appropriate.
-	    </p>
-	  </subsect>
+	    <deflist>
+	      <term>SYS_PREFS</term>
+	      <desc>Place for system/os preferences (eg. '/etc')</desc>
+	      <term>SYS_APPS</term>
+	      <desc>Place for system/os applications (eg. '/bin')</desc>
+	      <term>SYS_LIBS</term>
+	      <desc>Place for system/os shared libraries (eg. '/lib')</desc>
+	      <term>SYS_ADMIN</term>
+	      <desc>Place for system administration tools (eg. '/sbin')</desc>
+	      <term>PLATFORM_APPS</term>
+	      <desc>Place for non-gnustep applications (eg. '/usr/bin')</desc>
+	      <term>PLATFORM_LIBS</term>
+	      <desc>Place for application shared libraries (eg. '/usr/lib')</desc>
+	      <term>PLATFORM_RESOURCES</term>
+	      <desc>Place for shared application resources (eg. '/usr/share')</desc>
+	      <term>PLATFORM_ADMIN</term>
+	      <desc>Place for non-critical administrative tools (eg. '/usr/sbin')</desc>
+	      <term>PLATFORM_LOCAL_APPS</term>
+	      <desc>Place for machine local applications (eg. '/usr/local/bin')</desc>
+	      <term>PLATFORM_LOCAL_LIBS</term>
+	      <desc>Place for machine local shared libraries (eg. '/usr/local/lib/')</desc>
+	      <term>PLATFORM_LOCAL_RESOURCES</term>
+	      <desc>Place for machine local resources. (eg. '/usr/local/share')</desc>
+	    </deflist>
+	  <p>
+	    These add to the path for NSSystemDomainMask, or
+	    NSLocalDomainMask as appropriate.
+	  </p>
+	</subsect>
 
 	<subsect>
 	  <heading>.GNUsteprc files</heading>
 	  <p>
 	    The locations of the directories in which user specific files and
-	    the user defaults database are stored are defined in the
-	    <code>.GNUsteprc</code> files.<br />
+	    the user defaults database are stored may be defined in the
+	    file given by USER_GNUSTEP_RC (by default,
+	    <code>.GNUsteprc</code>).<br />
 	    If no location is given for user specific files, they are stored
-	    in the GNUstep subdirectory of the users home directory.<br />
+	    in the locaton given by USER_GNUSTEP_DIR (by default, the
+	    <code>GNUstep</code> subdirectory of the users home
+	    directory).<br />
 	    If a separate location is not given for the defaults database, it
-	    is stored in the same directory as other user specific files.<br />
+	    is stored in the subdirectory of USER_GNUSTEP_DIR given by
+	    USER_GNUSTEP_DEFAULTS (by default, the <code>Defaults</code>
+	    subdirectory).<br />
 	  </p>
 	  <p>
 	    The presence of a <code>.GNUsteprc</code> file in a users home
@@ -542,39 +551,13 @@ notice and this notice are preserved.
 	    <term>GNUSTEP_DEFAULTS_ROOT=...</term>
 	    <desc>
 	      The text after the '=' is taken to be the path to the users
-	      defaults files.  If it begins with a '~' character, the users home
-	      directory is prepended to it.
+	      defaults files (either absolute or relative to USER_GNUSTEP_DIR).
 	    </desc>
 	    <term>GNUSTEP_USER_ROOT=...</term>
 	    <desc>
 	      The text after the '=' is taken to be the path to the users
-	      files.  If it begins with a '~' character, the users home
-	      directory is prepended to it.
-	    </desc>
-	  </deflist>
-	  <p>
-	    The presence of a <code>.GNUsteprc</code> file in the
-	    GNUstep system directory may provide default paths for all
-	    users and may even override user specific files.  This
-	    file has been deprecated in favor of the GNUstep
-	    Configuration File described above. The content of this
-	    file is as for the user specific file, but permits two
-	    additional commands:
-	  </p>
-	  <deflist>
-	    <term>FORCE_DEFAULTS_ROOT</term>
-	    <desc>
-	      If this line is present, and the file specifies a
-	      GNUSTEP_DEFAULTS_ROOT, then the value given in the system-wide
-	      file is used irrespective of the user specific file.
-	      Otherwise, the value in the user specific file takes precedence.
-	    </desc>
-	    <term>FORCE_USER_ROOT</term>
-	    <desc>
-	      If this line is present, and the file specifies a
-	      GNUSTEP_USER_ROOT, then the value given in the system-wide
-	      file is used irrespective of the user specific file.
-	      Otherwise, the value in the user specific file takes precedence.
+	      files.  This may be an absolute path, or a path relative to
+	      the user's home directory.
 	    </desc>
 	  </deflist>
 	</subsect>

@@ -1,3 +1,18 @@
+2005-10-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Remove backward compatibility hacks for
+	old GNUsteprc support.
+	Simplify code a little.
+	Fix a retain/release bug.
+	Fix per-user .GNUsteprc parsing to work as documented (ie override
+	the system-window config, not just fill in undefined values).
+	Deprecate use of '~' in per-user .GNUsteprc ... it adds complexity
+	for little utility that I can see ... we can undeprecate it if I'm
+	wrong.
+	* Documentation/Base.gsdoc: Update to remove references to old config
+	scheme.  Remove documentation for deprecated '~' in per-user file
+	Clarify how relative/absolute paths in config are treated.
+
 2005-10-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLHandle.m: alter file handle to nitice if a file has
