@@ -871,7 +871,6 @@ Optional Packages:
   --with-gmp-library=PATH  library path for gmp libraries
   --with-openssl-include=PATH  include path for openssl headers
   --with-openssl-library=PATH  library path for openssl libraries
-  --with-config-file=PATH  path to GNUstep configuration file
 
 Some influential environment variables:
   CC          C compiler command
@@ -15777,22 +15776,15 @@ subdirs="$subdirs Source/mframe SSL"
 #--------------------------------------------------------------------
 # Configuration and Misc Options
 #--------------------------------------------------------------------
-
-# Check whether --with-config-file or --without-config-file was given.
-if test "${with_config_file+set}" = set; then
-  withval="$with_config_file"
-  config_file="$withval"
-else
-  config_file="no"
-fi;
-
-if test $config_file = no; then
-  case "$target_os" in
-    freebsd* | openbsd* ) config_file=/usr/etc/GNUstep.conf ;;
-    netbsd* )  		config_file=/usr/pkg/etc ;;
-    *)	    		config_file=/etc/GNUstep/GNUstep.conf;;
-  esac
-fi
+echo "$as_me:$LINENO: checking for location of GNUstep configuration file" >&5
+echo $ECHO_N "checking for location of GNUstep configuration file... $ECHO_C" >&6
+#
+# Get them from gnustep-make which contains the real code to get them
+#
+config_file=$(grep GNUSTEP_CONFIG_FILE $GNUSTEP_MAKEFILES/$obj_dir/config.make | sed -e 's/GNUSTEP_CONFIG_FILE = //')
+#
+echo "$as_me:$LINENO: result: $config_file" >&5
+echo "${ECHO_T}$config_file" >&6
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_CONFIGURATION_FILE $config_file

@@ -1,3 +1,11 @@
+2005-10-12  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* configure.ac (config_file): Get the location of the
+	configuration file from gnustep-make rather than from a
+	--with-config-file option.  Everything works exactly as before,
+	but the --with-config-file option was moved to gnustep-make.
+	* configure: Regenerated.
+
 2005-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Remove backward compatibility hacks for
