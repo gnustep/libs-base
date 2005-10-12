@@ -152,12 +152,6 @@ static NSString	*gnustep_flattened =
 /* Internal variables */
 /* ------------------ */
 
-// For backwards compatibility
-static BOOL	forceD;
-static BOOL	forceU;
-static NSString	*oldDRoot;
-static NSString	*oldURoot;
-
 static NSString	*configFile;
 
 /* names for the environment or conf-file variables */
@@ -279,21 +273,6 @@ getPathConfig(NSDictionary *dict, NSString *key)
   return path;
 }
 
-
-static NSString *
-removeTilde (NSString *home, NSString *val)
-{
-  if ([val isEqual: @"~"])
-    {
-      val = @"";
-    }
-  else if ([val length] > 1 && [val characterAtIndex: 0] == '~')
-    {
-      val = [val substringFromIndex: 2];
-    }
-  return val;
-}
-
 /*
  * Read .GNUsteprc file for user and set paths accordingly
  */
@@ -301,18 +280,20 @@ static NSString *setUserGNUstepPath(NSString *userName,
 				       NSString **defaultsPath,
 				       NSString **userPath)
 {
-  NSDictionary *dict;
-  NSString     *home, *path;
-  NSString     *steprcFile;
-  NSString     *userRoot;
+  NSDictionary	*dict;
+  NSString	*home;
+  NSString	*path;
+  NSString	*steprcFile;
+  NSString	*userRoot;
 
   /* Look for rc file (".GNUsteprc") file in user's home directory */
   home = NSHomeDirectoryForUser(userName);
   if (home == nil)
     {
       /* It's OK if path is nil. We're might be running as user nobody in
-         which case we don't want to access user stuff. Possibly it's a
-         misconfigured Windows environment, though... */
+       * which case we don't want to access user stuff. Possibly it's a
+       * misconfigured Windows environment, though...
+       */
       return nil;
     }
 
@@ -326,65 +307,41 @@ static NSString *setUserGNUstepPath(NSString *userName,
 	  path = [dict objectForKey: @"GNUSTEP_DEFAULTS_ROOT"];
 	  if (path != nil)
 	    {
-	      path = removeTilde(home, path);
-	      TEST_ASSIGN(*defaultsPath, path);
+	      /*
+	       * Special case for defaults root ... expand leading '~'
+	       */
+	      if ([path hasPrefix: @"~"])
+		{
+GSOnceFLog(@"Use of '~' in GNUSTEP_DEFAULTS_ROOT is deprecated");
+		  path = [path substringFromIndex: 1];
+		  while ([path hasPrefix: @"/"] || [path hasPrefix: @"\\"])
+		    {
+		      path = [path substringFromIndex: 1];
+		    }
+		  path = [home stringByAppendingPathComponent: path];
+		}
+	      ASSIGN(*defaultsPath, path);
 	    }
 	  path = [dict objectForKey: @"GNUSTEP_USER_ROOT"];
 	  if (path != nil)
 	    {
-	      path = removeTilde(home, path);
-	      TEST_ASSIGN(*userPath, path);
+	      /*
+	       * For backward compatibility, remove leading '~' component
+	       * we will prepend the home directory later.
+	       */
+	      if ([path hasPrefix: @"~"])
+		{
+GSOnceFLog(@"Use of '~' in GNUSTEP_USER_ROOT is deprecated");
+		  path = [path substringFromIndex: 1];
+		  while ([path hasPrefix: @"/"] || [path hasPrefix: @"\\"])
+		    {
+		      path = [path substringFromIndex: 1];
+		    }
+		}
+	      ASSIGN(*userPath, path);
 	    }
+	  RELEASE(dict);
 	}
-    }
-
-  /* Look at the .GNUsteprc file in GNUSTEP_SYSTEM_ROOT.  This is obsolete
-     now that we are using the GNUstep conf file, but is kept in for
-     transition purposes.
-  */
-  steprcFile
-    = [gnustepSystemRoot stringByAppendingPathComponent: @".GNUsteprc"];
-  steprcFile = [steprcFile stringByStandardizingPath];
-  if ([steprcFile isEqual: configFile] == NO)
-    {
-      dict = GSReadStepConfFile(steprcFile);
-      if (dict != nil)
-	{
-#if defined(__WIN32__)
-	  PrintOnce("Warning: Configuration: The file %S has been "
-	    "deprecated.  Please use the configuration file %s to "
-	    "set standard paths.\n",
-	    (const unichar*)[steprcFile fileSystemRepresentation],
-	    stringify(GNUSTEP_CONFIGURATION_FILE));
-#else
-	  PrintOnce("Warning: Configuration: The file %s has been "
-	    "deprecated.  Please use the configuration file %s to "
-	    "set standard paths.\n",
-	    [steprcFile fileSystemRepresentation],
-	    stringify(GNUSTEP_CONFIGURATION_FILE));
-#endif
-	  forceD = [[dict objectForKey: @"FORCE_DEFAULTS_ROOT"] boolValue];
-	  forceU = [[dict objectForKey: @"FORCE_USER_ROOT"] boolValue];
-	  ASSIGN(oldDRoot, [dict objectForKey: @"GNUSTEP_DEFAULTS_ROOT"]);
-	  ASSIGN(oldURoot, [dict objectForKey: @"GNUSTEP_USER_ROOT"]);
-	}
-    }
-
-  if ((path = oldDRoot) != nil)
-    {
-      path = removeTilde(home, path);
-      if (forceD)
-	*defaultsPath = path;
-      else
-	TEST_ASSIGN(*defaultsPath, path);
-    }
-  if ((path = oldURoot) != nil)
-    {
-      path = removeTilde(home, path);
-      if (forceU)
-	*userPath = path;
-      else
-	TEST_ASSIGN(*userPath, path);
     }
 
   /* set the user path and defaults directory to default values if needed */
@@ -461,37 +418,6 @@ static void InitialisePathUtilities(void)
 	      gnustepRcFileName = [d objectForKey: @"USER_GNUSTEP_RC"];
 	      gnustepDefaultsPath = [d objectForKey: @"USER_GNUSTEP_DEFAULTS"];
 	      gnustepUserPath = [d objectForKey: @"USER_GNUSTEP_DIR"];
-
-	      {
-		id	o;
-		// Next four are for backwards compatibility;
-		o = [d objectForKey: @"FORCE_DEFAULTS_ROOT"];
-		if (o != nil)
-		  {
-		    PrintOnce("Warning: Configuration: "
-		      "FORCE_DEFAULTS_ROOT is deprecated.\n");
-		    forceD = [o boolValue];
-		  }
-		o = [d objectForKey: @"FORCE_USER_ROOT"];
-		if (o != nil)
-		  {
-		    PrintOnce("Warning: Configuration: "
-		      "FORCE_USER_ROOT is deprecated.\n");
-		    forceU = [o boolValue];
-		  }
-		ASSIGN(oldDRoot, [d objectForKey: @"GNUSTEP_DEFAULTS_ROOT"]);
-		if (oldDRoot != nil)
-		  {
-		    PrintOnce("Warning: Configuration: "
-		      "GNUSTEP_DEFAULTS_ROOT is deprecated.\n");
-		  }
-		ASSIGN(oldURoot, [d objectForKey: @"GNUSTEP_USER_ROOT"]);
-		if (oldURoot != nil)
-		  {
-		    PrintOnce("Warning: Configuration: "
-		      "GNUSTEP_USER_ROOT is deprecated.\n");
-		  }
-	      }
 
 #ifdef OPTION_PLATFORM_SUPPORT
 	      osSysPrefs = getPathConfig(d, SYS_PREFS);
@@ -648,7 +574,7 @@ GSReadStepConfFile(NSString *fileName)
       return nil;
     }
 
-  dict = [NSMutableDictionary dictionaryWithCapacity: 16];
+  dict = [[NSMutableDictionary alloc] initWithCapacity: 16];
   if (dict == nil)
     {
       return nil; // should throw an exception??
