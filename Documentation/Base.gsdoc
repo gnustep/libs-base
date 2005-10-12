@@ -464,7 +464,10 @@ notice and this notice are preserved.
 	    location of this file depends on how the Base library was
 	    configured and/or what operating system it was configured
 	    on. On a GNU/Linux system, the default would be
-	    /etc/GNUstep/GNUstep.conf, for instance. This file is not
+	    /etc/GNUstep/GNUstep.conf, for instance.<br />
+	    The location of this file can be overridden using the
+	    GNUSTEP_CONFIGURATION_FILE environment variable.<br />
+	    This file is not
 	    required. If it does not appear, then default values will
 	    be used for the standard path locations.  System paths are
 	    defined by the following:

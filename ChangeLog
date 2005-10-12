@@ -8,8 +8,11 @@
 
 2005-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSPathUtilities.h: Remove deprecated functions.
 	* Source/NSPathUtilities.m: Remove backward compatibility hacks for
 	old GNUsteprc support.
+	Remove deprecated functions.
+	Permit specification of config file
 	Simplify code a little.
 	Fix a retain/release bug.
 	Fix per-user .GNUsteprc parsing to work as documented (ie override
