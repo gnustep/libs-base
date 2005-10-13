@@ -5,6 +5,8 @@
    Created: May 1996
    Rewrite by:  Sheldon Gill
    Date:    Jan 2004
+   Rewrites by:  Richard Frith-Macdonald
+   Date:    2004-2005
 
    This file is part of the GNUstep Base Library.
 
@@ -46,8 +48,8 @@
    information required by the library to establish all locations required.
    </p>
    <p>
-   On windows, the paths are initialised by reading information from the
-   windows registry.
+   On windows, the paths may also (as a fallback) be initialised by
+   reading information from the windows registry.
    HKEY_LOCAL_MACHINE\Software\GNU\GNUstep contains the machine wide
    definititions for system paths.
    </p>
@@ -200,8 +202,6 @@ static NSString *localLibs  = nil;
 /* ============================= */
 /* Internal function prototypes. */
 /* ============================= */
-static NSString	*internalizePath(NSString *s);
-static NSString	*internalizePathCString(const char *c);
 
 static NSString *setUserGNUstepPath(NSString *userName,
 				       NSString **defaultsPath,
@@ -212,19 +212,12 @@ static NSDictionary *GSReadStepConfFile(NSString *name);
 static void InitialisePathUtilities(void);
 static void ShutdownPathUtilities(void);
 
-/* make sure that the path 'path' is in internal format (unix-style) */
-static inline NSString*
-internalizePathCString(const char *path)
-{
-  return [NSString stringWithCString: path];
-}
-
-/* make sure that the path 's' is in internal format (unix-style) */
-static inline NSString*
-internalizePath(NSString *s)
-{
-  return s;
-}
+/* Convenience MACRO to ease legibility and coding */
+/* Conditionally assign lval to var */
+#define ASSIGN_IF_SET(var, dictionary, key) ({\
+    id val = [dictionary objectForKey: key];\
+    if (val != nil) { RELEASE(var); var = RETAIN(val); }\
+    })
 
 /* Convenience MACRO to ease legibility and coding */
 /* Conditionally assign lval to var */
@@ -243,10 +236,6 @@ getPathConfig(NSDictionary *dict, NSString *key)
   NSCParameterAssert(dict!=nil);
 
   path = [dict objectForKey: key];
-  if (path != nil)
-    {
-      path = internalizePath(path);
-    }
   TEST_RETAIN(path);
 
   return path;
@@ -319,7 +308,6 @@ GSOnceFLog(@"Use of '~' in GNUSTEP_USER_ROOT is deprecated");
 		}
 	      ASSIGN(*userPath, path);
 	    }
-	  RELEASE(dict);
 	}
     }
 
@@ -401,31 +389,28 @@ static void InitialisePathUtilities(void)
 
 	  if (d != nil)
 	    {
-	      TEST_ASSIGN(gnustepSystemRoot,
-		[d objectForKey: @"GNUSTEP_SYSTEM_ROOT"]);
-	      TEST_ASSIGN(gnustepNetworkRoot,
-		[d objectForKey: @"GNUSTEP_NETWORK_ROOT"]);
-	      TEST_ASSIGN(gnustepLocalRoot,
-		[d objectForKey: @"GNUSTEP_LOCAL_ROOT"]);
+	      ASSIGN_IF_SET(gnustepSystemRoot, d, @"GNUSTEP_SYSTEM_ROOT");
+	      ASSIGN_IF_SET(gnustepNetworkRoot, d, @"GNUSTEP_NETWORK_ROOT");
+	      ASSIGN_IF_SET(gnustepLocalRoot, d, @"GNUSTEP_LOCAL_ROOT");
 
-	      gnustepRcFileName = [d objectForKey: @"USER_GNUSTEP_RC"];
-	      gnustepDefaultsPath = [d objectForKey: @"USER_GNUSTEP_DEFAULTS"];
-	      gnustepUserPath = [d objectForKey: @"USER_GNUSTEP_DIR"];
+	      ASSIGN_IF_SET(gnustepRcFileName, d, @"USER_GNUSTEP_RC");
+	      ASSIGN_IF_SET(gnustepDefaultsPath, d, @"USER_GNUSTEP_DEFAULTS");
+	      ASSIGN_IF_SET(gnustepUserPath, d, @"USER_GNUSTEP_DIR");
 
 #ifdef OPTION_PLATFORM_SUPPORT
-	      osSysPrefs = getPathConfig(d, SYS_PREFS);
-	      osSysApps  = getPathConfig(d, SYS_APPS);
-	      osSysLibs  = getPathConfig(d, SYS_LIBS);
-	      osSysAdmin = getPathConfig(d, SYS_ADMIN);
+	      ASSIGN_IF_SET(osSysPrefs, d, SYS_PREFS);
+	      ASSIGN_IF_SET(osSysApps, d, SYS_APPS);
+	      ASSIGN_IF_SET(osSysLibs, d, SYS_LIBS);
+	      ASSIGN_IF_SET(osSysAdmin, d, SYS_ADMIN);
 
-	      platformResources = getPathConfig(d, PLATFORM_RESOURCES);
-	      platformApps      = getPathConfig(d, PLATFORM_APPS);
-	      platformLibs      = getPathConfig(d, PLATFORM_LIBS);
-	      platformAdmin     = getPathConfig(d, PLATFORM_ADMIN);
+	      ASSIGN_IF_SET(platformResources, d, PLATFORM_RESOURCES);
+	      ASSIGN_IF_SET(platformApps, d, PLATFORM_APPS);
+	      ASSIGN_IF_SET(platformLibs, d, PLATFORM_LIBS);
+	      ASSIGN_IF_SET(platformAdmin, d, PLATFORM_ADMIN);
 
-	      localResources = getPathConfig(d, PLATFORM_LOCAL_RESOURCES);
-	      localApps      = getPathConfig(d, PLATFORM_LOCAL_APPS);
-	      localLibs      = getPathConfig(d, PLATFORM_LOCAL_LIBS);
+	      ASSIGN_IF_SET(localResources, d, PLATFORM_LOCAL_RESOURCES);
+	      ASSIGN_IF_SET(localApps, d, PLATFORM_LOCAL_APPS);
+	      ASSIGN_IF_SET(localLibs, d, PLATFORM_LOCAL_LIBS);
 #endif /* OPTION_PLATFORM SUPPORT */
 	    }
 	}
@@ -442,44 +427,28 @@ static void InitialisePathUtilities(void)
       gnustepUserRoot = setUserGNUstepPath(NSUserName(),
 	&gnustepDefaultsPath, &gnustepUserPath);
 
-      /* Make sure that they're in path internal format */
-      internalizePath(gnustepSystemRoot);
-      internalizePath(gnustepNetworkRoot);
-      internalizePath(gnustepLocalRoot);
-      internalizePath(gnustepUserRoot);
-
       /* Finally we check and report problems... */
       if (gnustepSystemRoot == nil)
 	{
-	  gnustepSystemRoot = internalizePathCString(\
-	    STRINGIFY(GNUSTEP_INSTALL_PREFIX));
+	  gnustepSystemRoot = [NSString stringWithCString:\
+	    STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
 	  fprintf (stderr, "Warning - GNUSTEP_SYSTEM_ROOT is not set " \
 	    "- using %s\n", [gnustepSystemRoot lossyCString]);
 	}
       if (gnustepNetworkRoot == nil)
 	{
-	  gnustepNetworkRoot = internalizePathCString(\
-	    STRINGIFY(GNUSTEP_NETWORK_ROOT));
+	  gnustepNetworkRoot = [NSString stringWithCString:\
+	    STRINGIFY(GNUSTEP_NETWORK_ROOT)];
 	  fprintf (stderr, "Warning - GNUSTEP_NETWORK_ROOT is not set " \
 	    "- using %s\n", [gnustepNetworkRoot lossyCString]);
 	}
       if (gnustepLocalRoot == nil)
 	{
-	  gnustepLocalRoot = internalizePathCString(\
-	    STRINGIFY(GNUSTEP_LOCAL_ROOT));
+	  gnustepLocalRoot = [NSString stringWithCString:\
+	    STRINGIFY(GNUSTEP_LOCAL_ROOT)];
 	  fprintf (stderr, "Warning - GNUSTEP_LOCAL_ROOT is not set " \
 	    "- using %s\n", [gnustepLocalRoot lossyCString]);
 	}
-
-      /* We're keeping these strings... */
-      TEST_RETAIN(gnustepSystemRoot);
-      TEST_RETAIN(gnustepNetworkRoot);
-      TEST_RETAIN(gnustepLocalRoot);
-      TEST_RETAIN(gnustepUserRoot);
-
-      TEST_RETAIN(gnustepRcFileName);
-      TEST_RETAIN(gnustepDefaultsPath);
-      TEST_RETAIN(gnustepUserPath);
 
       [gnustep_global_lock unlock];
     }
@@ -531,13 +500,25 @@ static void ShutdownPathUtilities(void)
 
 /**
  * Reads a file and expects it to be in basic unix "conf" style format with
- * one key = value per line. Sometimes referred to as "strings" format.<br/ >
- * Creates a dictionary of the (key,value) pairs.<br/ >
+ * one key = value per line (the format a unix shell can 'source' in order
+ * to define shell variables).<br />
+ * The key must be an unquoted string containing only alphanumerics and
+ * the underscore character.  It may not begin with a digit, though it may
+ * be preceeded by whitespace (which is ignored).<br />
+ * The '=' must appear <em>immediately after the key.<br />
+ * The value may be any quoted string ... any leading or trailing whitespace
+ * (except inside a quoted string) is removed.<br />
  * Lines beginning with a hash '#' are deemed comment lines and ignored.<br/ >
- * The value is all characters from the first non-whitespace after the '='
- * until the end of line '\n' which will include any internal spaces.<br/ >
- * NB. This is <em>VERY</em> non-standard in that it returns an object which is
- * <em>NOT</em> autoreleased.
+ * The backslash character may be used as an escape character anywhere
+ * in the file  except within a singly quoted string
+ * (where it is taken literally) ... in particular it may be used at
+ * the end of a line to join two lines together.
+ * However, in contrast to normal shell usage,
+ * we do not allow newline characters within a quoted string.<br />
+ * NB. Since windows uses backslash characters in paths, it is a good
+ * idea to specify path values in the config file as singly quoted
+ * strings to avoid having to double all occurrances of the backslash.<br />
+ * Creates a dictionary of the (key,value) pairs.<br/ >
  */
 static NSDictionary *
 GSReadStepConfFile(NSString *fileName)
@@ -546,6 +527,7 @@ GSReadStepConfFile(NSString *fileName)
   NSDictionary	*attributes;
   NSString      *file;
   NSArray       *lines;
+  NSRange	r;
   unsigned      count;
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
@@ -567,36 +549,116 @@ GSReadStepConfFile(NSString *fileName)
       return nil;
     }
 
-  dict = [[NSMutableDictionary alloc] initWithCapacity: 16];
+  dict = [NSMutableDictionary dictionaryWithCapacity: 16];
   if (dict == nil)
     {
       return nil; // should throw an exception??
     }
 
   file = [NSString stringWithContentsOfFile: fileName];
+
+  /*
+   * Allow DOS (CRLF) and Mac (CR) line termination as well as the normal LF
+   */
+  r = [file rangeOfString: @"\r\n"];
+  if (r.length > 0)
+    {
+      file = [file stringByReplacingString: @"\r\n" withString: @"\n"];
+    }
+  r = [file rangeOfString: @"\r"];
+  if (r.length > 0)
+    {
+      file = [file stringByReplacingString: @"\r" withString: @"\n"];
+    }
+
+  /*
+   * Remove any escaped newline characters.
+   */
+  r = [file rangeOfString: @"\\\n"];
+  if (r.length > 0)
+    {
+      file = [file stringByReplacingString: @"\\\n" withString: @""];
+    }
+
+  /*
+   * Split files into lines
+   */
   lines = [file componentsSeparatedByString: @"\n"];
   count = [lines count];
 
   while (count-- > 0)
     {
-      NSRange	r;
       NSString	*line;
       NSString	*key;
       NSString	*val;
 
       line = [[lines objectAtIndex: count] stringByTrimmingSpaces];
 
-      if (([line length]) && ([line characterAtIndex: 0] != '#'))
+      if (([line length] > 0) && ([line characterAtIndex: 0] != '#'))
 	{
 	  r = [line rangeOfString: @"="];
 	  if (r.length == 1)
 	    {
+	      unsigned	length;
+
 	      key = [line substringToIndex: r.location];
 	      val = [line substringFromIndex: NSMaxRange(r)];
 
 	      key = [key stringByTrimmingSpaces];
 	      val = [val stringByTrimmingSpaces];
 
+	      if ((length = [val length]) > 0)
+		{
+		  unichar	c = [val characterAtIndex: 0];
+
+		  /*
+		   * Strip quotes from the value if necessary.
+		   */
+		  if (c == '\'' || c == '"')
+		    {
+		      if (length > 1 && [val characterAtIndex: length-1] == c)
+			{
+			  r = NSMakeRange(1, length-2);
+			  val = [val substringWithRange: r];
+			  length -= 2;
+			}
+		      else
+			{
+			  val = [val substringFromIndex: 1];
+			  length -= 1;
+			}
+		    }
+
+		  /*
+		   * Handle backslash quotes (except in a singly quoted string).
+		   */
+		  if (c != '\'')
+		    {
+		      r = [val rangeOfString: @"\\"];
+		      if (r.length > 0)
+			{
+			  unichar	buf[length];
+			  unsigned	pos;
+
+			  [val getCharacters: buf];
+			  for (pos = 0; pos < length; pos++)
+			    {
+			      if (buf[pos] == '\\')
+				{
+				  unsigned	i;
+
+				  for (i = pos + 1; i < length; i++)
+				    {
+				      buf[i-1] = buf[i];
+				    }
+				  length--;
+				}
+			    }
+			  val = [NSString stringWithCharacters: buf
+							length: length];
+			}
+		    }
+		}
 	      if ([key length] > 0)
 		{
 		  [dict setObject: val forKey: key];
@@ -737,7 +799,6 @@ NSHomeDirectoryForUser(NSString *loginName)
 #else
   s = Win32GetUserProfileDirectory(loginName);
 #endif
-  s = internalizePath(s);
   return s;
 }
 
@@ -801,7 +862,7 @@ GSDefaultsRootForUser(NSString *userName)
       home = [home stringByAppendingPathComponent: defaultsPath];
     }
 
-  return internalizePath(home);
+  return home;
 }
 
 /**
@@ -852,7 +913,7 @@ NSTemporaryDirectory(void)
 
   if (GetTempPath(1024, buffer))
     {
-      baseTempDirName = internalizePathCString(buffer);
+      baseTempDirName = [NSString stringWithCString: buffer];
     }
 #endif
 
@@ -1008,10 +1069,6 @@ NSOpenStepRootDirectory(void)
 #else
       root = @"/";
 #endif
-    }
-  else
-    {
-      root = internalizePath(root);
     }
   return root;
 }

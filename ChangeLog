@@ -1,3 +1,9 @@
+2005-10-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Remove some useless functions to clarify
+	code.  Add some explanatory comments, make config file parsing a lot
+	more robust.
+
 2005-10-12  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* configure.ac (config_file): Get the location of the
