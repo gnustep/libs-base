@@ -539,8 +539,9 @@ ParseConfigurationFile(NSString *fileName)
   unichar	*spos;
   unichar	*dpos;
   BOOL		newLine = YES;
+  BOOL		wantKey = YES;
+  BOOL		wantVal = NO;
   NSString	*key = nil;
-  NSString	*lastToken = nil;
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
     {
@@ -607,14 +608,15 @@ ParseConfigurationFile(NSString *fileName)
        */
       if (newLine == YES)
 	{
-	  if (key != nil)
+	  if (wantVal == YES)
 	    {
 	      /*
 	       * On a newline ...so the last key had no value set.
-	       * Put an empty cvalue in the dictionary.
+	       * Put an empty value in the dictionary.
 	       */
 	      [dict setObject: @"" forKey: key];
 	      DESTROY(key);
+	      wantVal = NO;
 	    }
 	  if (spos < end && *spos == '#')
 	    {
@@ -626,17 +628,15 @@ ParseConfigurationFile(NSString *fileName)
 	      continue;	// restart loop ... skip space at start of line
 	    }
 	  newLine = NO;
+	  wantKey = YES;
 	}
 
       if (*spos == '=')
 	{
-	  if (key != nil)
+	  if (wantKey == NO)
 	    {
-	      [dict setObject: @"" forKey: key];
-	      DESTROY(key);
+	      wantVal = YES;
 	    }
-	  key = lastToken;
-	  lastToken = nil;
 	  spos++;
 	}
       else if (*spos == '\'')
@@ -651,14 +651,15 @@ ParseConfigurationFile(NSString *fileName)
 		}
 	      *dpos++ = *spos++;
 	    }
-	  DESTROY(lastToken);
-	  lastToken = [NSString alloc];
-	  lastToken = [lastToken initWithCharacters: dst length: dpos - dst];
-	  if (key != nil)
+	  if (wantVal == YES)
 	    {
-	      [dict setObject: lastToken forKey: key];
+	      NSString	*val = [NSString alloc];
+
+	      val = [val initWithCharacters: dst length: dpos - dst];
+	      [dict setObject: val forKey: key];
 	      DESTROY(key);
-	      DESTROY(lastToken);
+	      DESTROY(val);
+	      wantVal = NO;
 	    }
 	  dpos = dst;	// reset output buffer
 	}
@@ -699,14 +700,15 @@ ParseConfigurationFile(NSString *fileName)
 		}
 	      *dpos++ = *spos++;
 	    }
-	  DESTROY(lastToken);
-	  lastToken = [NSString alloc];
-	  lastToken = [lastToken initWithCharacters: dst length: dpos - dst];
-	  if (key != nil)
+	  if (wantVal == YES)
 	    {
-	      [dict setObject: lastToken forKey: key];
+	      NSString	*val = [NSString alloc];
+
+	      val = [val initWithCharacters: dst length: dpos - dst];
+	      [dict setObject: val forKey: key];
 	      DESTROY(key);
-	      DESTROY(lastToken);
+	      DESTROY(val);
+	      wantVal = NO;
 	    }
 	  dpos = dst;	// reset output buffer
 	}
@@ -743,24 +745,30 @@ ParseConfigurationFile(NSString *fileName)
 	      *dpos++ = *spos++;
 	    }
 
-	  DESTROY(lastToken);
-	  lastToken = [NSString alloc];
-	  lastToken = [lastToken initWithCharacters: dst length: dpos - dst];
-	  if (key != nil)
+	  if (wantKey == YES)
 	    {
-	      [dict setObject: lastToken forKey: key];
+	      key = [NSString alloc];
+	      key = [key initWithCharacters: dst length: dpos - dst];
+	      wantKey = NO;
+	    }
+	  else if (wantVal == YES)
+	    {
+	      NSString	*val = [NSString alloc];
+
+	      val = [val initWithCharacters: dst length: dpos - dst];
+	      [dict setObject: val forKey: key];
 	      DESTROY(key);
-	      DESTROY(lastToken);
+	      DESTROY(val);
+	      wantVal = NO;
 	    }
 	  dpos = dst;	// reset output buffer
 	}
     }
-  if (key != nil)
+  if (wantVal == YES)
     {
       [dict setObject: @"" forKey: key];
       DESTROY(key);
     }
-  DESTROY(lastToken);
   NSZoneFree(NSDefaultMallocZone(), src);
   NSZoneFree(NSDefaultMallocZone(), dst);
 
