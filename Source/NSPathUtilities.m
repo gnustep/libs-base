@@ -207,25 +207,32 @@ static NSString *setUserGNUstepPath(NSString *userName,
 				       NSString **defaultsPath,
 				       NSString **userPath);
 
-static NSDictionary *GSReadStepConfFile(NSString *name);
+static NSDictionary *ParseConfigurationFile(NSString *name);
 
 static void InitialisePathUtilities(void);
 static void ShutdownPathUtilities(void);
 
-/* Convenience MACRO to ease legibility and coding */
-/* Conditionally assign lval to var */
+/* Conditionally assign an object from a dictionary to var
+ * We don't need to retain val before releasing var, because we
+ * can be sure that if var is val it is retained by the dictionary
+ * as well as being retained when it was first placed in var.
+ */
 #define ASSIGN_IF_SET(var, dictionary, key) ({\
-    id val = [dictionary objectForKey: key];\
-    if (val != nil) { RELEASE(var); var = RETAIN(val); }\
-    })
+  id val = [dictionary objectForKey: key];\
+  if (val != nil)\
+    {\
+      RELEASE(var);\
+      var = RETAIN(val);\
+    }\
+  })
 
-/* Convenience MACRO to ease legibility and coding */
-/* Conditionally assign lval to var */
-#define TEST_ASSIGN(var, lval)     \
-  if ((var == nil)&&(lval != nil))  \
-    {                               \
-      var = lval;                   \
-    }
+/* Conditionally assign lval to var only if var is nil */
+#define TEST_ASSIGN(var, lval) ({\
+  if ((var == nil)&&(lval != nil))\
+    {\
+      var = RETAIN(lval);\
+    }\
+  })
 
 /* Get a path string from a dictionary */
 static inline NSString *
@@ -269,7 +276,7 @@ static NSString *setUserGNUstepPath(NSString *userName,
     {
       steprcFile = [home stringByAppendingPathComponent: gnustepRcFileName];
 
-      dict = GSReadStepConfFile(steprcFile);
+      dict = ParseConfigurationFile(steprcFile);
       if (dict != nil)
 	{
 	  path = [dict objectForKey: @"GNUSTEP_DEFAULTS_ROOT"];
@@ -385,7 +392,7 @@ static void InitialisePathUtilities(void)
       configFile = RETAIN([configFile stringByStandardizingPath]);
       if ([MGR() fileExistsAtPath: configFile])
 	{
-	  NSDictionary  *d = GSReadStepConfFile(configFile);
+	  NSDictionary  *d = ParseConfigurationFile(configFile);
 
 	  if (d != nil)
 	    {
@@ -502,33 +509,38 @@ static void ShutdownPathUtilities(void)
  * Reads a file and expects it to be in basic unix "conf" style format with
  * one key = value per line (the format a unix shell can 'source' in order
  * to define shell variables).<br />
- * The key must be an unquoted string containing only alphanumerics and
- * the underscore character.  It may not begin with a digit, though it may
- * be preceeded by whitespace (which is ignored).<br />
- * The '=' must appear <em>immediately after the key.<br />
- * The value may be any quoted string ... any leading or trailing whitespace
- * (except inside a quoted string) is removed.<br />
+ * Attempts to mimic the escape sequence and quoting conventions of standard
+ * shells, so that a config file sourced by the make package will produce
+ * the same results as one parsed by this function.<br />
+ * The value may be any quoted string (or an unquoted string containing no
+ * white space).<br />
  * Lines beginning with a hash '#' are deemed comment lines and ignored.<br/ >
  * The backslash character may be used as an escape character anywhere
  * in the file  except within a singly quoted string
- * (where it is taken literally) ... in particular it may be used at
- * the end of a line to join two lines together.
- * However, in contrast to normal shell usage,
- * we do not allow newline characters within a quoted string.<br />
+ * (where it is taken literally).<<br />
+ * A backslash followed immediately by a newline (except in a singly
+ * quoted string) is removed completely along with the newline ... it
+ * thus serves to join lines so that they are treated as a single line.<br />
  * NB. Since windows uses backslash characters in paths, it is a good
  * idea to specify path values in the config file as singly quoted
  * strings to avoid having to double all occurrances of the backslash.<br />
- * Creates a dictionary of the (key,value) pairs.<br/ >
+ * Returns a dictionary of the (key,value) pairs.<br/ >
  */
 static NSDictionary *
-GSReadStepConfFile(NSString *fileName)
+ParseConfigurationFile(NSString *fileName)
 {
   NSMutableDictionary *dict;
   NSDictionary	*attributes;
   NSString      *file;
-  NSArray       *lines;
-  NSRange	r;
-  unsigned      count;
+  unsigned	l;
+  unichar	*src;
+  unichar	*dst;
+  unichar	*end;
+  unichar	*spos;
+  unichar	*dpos;
+  BOOL		newLine = YES;
+  NSString	*key = nil;
+  NSString	*lastToken = nil;
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
     {
@@ -556,121 +568,202 @@ GSReadStepConfFile(NSString *fileName)
     }
 
   file = [NSString stringWithContentsOfFile: fileName];
+  l = [file length];
+  src = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * l);
+  spos = src;
+  end = src + l;
+  dst = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * l);
+  dpos = dst;
+  [file getCharacters: src];
 
-  /*
-   * Allow DOS (CRLF) and Mac (CR) line termination as well as the normal LF
-   */
-  r = [file rangeOfString: @"\r\n"];
-  if (r.length > 0)
+  while (spos < end)
     {
-      file = [file stringByReplacingString: @"\r\n" withString: @"\n"];
-    }
-  r = [file rangeOfString: @"\r"];
-  if (r.length > 0)
-    {
-      file = [file stringByReplacingString: @"\r" withString: @"\n"];
-    }
-
-  /*
-   * Remove any escaped newline characters.
-   */
-  r = [file rangeOfString: @"\\\n"];
-  if (r.length > 0)
-    {
-      file = [file stringByReplacingString: @"\\\n" withString: @""];
-    }
-
-  /*
-   * Split files into lines
-   */
-  lines = [file componentsSeparatedByString: @"\n"];
-  count = [lines count];
-
-  while (count-- > 0)
-    {
-      NSString	*line;
-      NSString	*key;
-      NSString	*val;
-
-      line = [[lines objectAtIndex: count] stringByTrimmingSpaces];
-
-      if (([line length] > 0) && ([line characterAtIndex: 0] != '#'))
+      /*
+       * Step past any whitespace ... including blank lines
+       */
+      while (spos < end)
 	{
-	  r = [line rangeOfString: @"="];
-	  if (r.length == 1)
+	  if (*spos == '\\')
 	    {
-	      unsigned	length;
-
-	      key = [line substringToIndex: r.location];
-	      val = [line substringFromIndex: NSMaxRange(r)];
-
-	      key = [key stringByTrimmingSpaces];
-	      val = [val stringByTrimmingSpaces];
-
-	      if ((length = [val length]) > 0)
+	      spos++;
+	      if (spos >= end)
 		{
-		  unichar	c = [val characterAtIndex: 0];
-
-		  /*
-		   * Strip quotes from the value if necessary.
-		   */
-		  if (c == '\'' || c == '"')
-		    {
-		      if (length > 1 && [val characterAtIndex: length-1] == c)
-			{
-			  r = NSMakeRange(1, length-2);
-			  val = [val substringWithRange: r];
-			  length -= 2;
-			}
-		      else
-			{
-			  val = [val substringFromIndex: 1];
-			  length -= 1;
-			}
-		    }
-
-		  /*
-		   * Handle backslash quotes (except in a singly quoted string).
-		   */
-		  if (c != '\'')
-		    {
-		      r = [val rangeOfString: @"\\"];
-		      if (r.length > 0)
-			{
-			  unichar	buf[length];
-			  unsigned	pos;
-
-			  [val getCharacters: buf];
-			  for (pos = 0; pos < length; pos++)
-			    {
-			      if (buf[pos] == '\\')
-				{
-				  unsigned	i;
-
-				  for (i = pos + 1; i < length; i++)
-				    {
-				      buf[i-1] = buf[i];
-				    }
-				  length--;
-				}
-			    }
-			  val = [NSString stringWithCharacters: buf
-							length: length];
-			}
-		    }
-		}
-	      if ([key length] > 0)
-		{
-		  [dict setObject: val forKey: key];
+		  break;	// At end of file ... odd but not fatal
 		}
 	    }
-	  else
+	  if (*spos > ' ')
 	    {
-	      key = [line stringByTrimmingSpaces];
-	      val = nil;
+	      break;		// OK ... found a non space character.
 	    }
+	  if (*spos == '\r' || *spos == '\n')
+	    {
+	      newLine = YES;
+	    }
+	  spos++;
+	}
+
+      /*
+       * Handle any comments .. hash on a new line.
+       */
+      if (newLine == YES)
+	{
+	  if (key != nil)
+	    {
+	      /*
+	       * On a newline ...so the last key had no value set.
+	       * Put an empty cvalue in the dictionary.
+	       */
+	      [dict setObject: @"" forKey: key];
+	      DESTROY(key);
+	    }
+	  if (spos < end && *spos == '#')
+	    {
+	      // Got a comment ... ignore remainder of line.
+	      while (spos < end && *spos != '\n' && *spos != '\r')
+		{
+		  spos++;
+		}
+	      continue;	// restart loop ... skip space at start of line
+	    }
+	  newLine = NO;
+	}
+
+      if (*spos == '=')
+	{
+	  if (key != nil)
+	    {
+	      [dict setObject: @"" forKey: key];
+	      DESTROY(key);
+	    }
+	  key = lastToken;
+	  lastToken = nil;
+	  spos++;
+	}
+      else if (*spos == '\'')
+	{
+	  spos++;
+	  while (spos < end)
+	    {
+	      if (*spos == '\'')
+		{
+		  spos++;
+		  break;
+		}
+	      *dpos++ = *spos++;
+	    }
+	  DESTROY(lastToken);
+	  lastToken = [NSString alloc];
+	  lastToken = [lastToken initWithCharacters: dst length: dpos - dst];
+	  if (key != nil)
+	    {
+	      [dict setObject: lastToken forKey: key];
+	      DESTROY(key);
+	      DESTROY(lastToken);
+	    }
+	  dpos = dst;	// reset output buffer
+	}
+      else if (*spos == '"')
+	{
+	  spos++;
+	  while (spos < end)
+	    {
+	      BOOL	escaped = NO;
+
+	      if (*spos == '\\')
+		{
+		  spos++;
+		  if (spos >= end)
+		    {
+		      break;	// Unexpected end of file
+		    }
+		  if (*spos == '\n')
+		    {
+		      spos++;
+		      continue;	// escaped newline is removed.
+		    }
+		  if (*spos == '\r')
+		    {
+		      spos++;
+		      if (spos < end && *spos == '\n')
+			{
+			  spos++;
+			}
+		      continue;	// escaped newline is removed.
+		    }
+		  escaped = YES;
+		}
+	      if (*spos == '"' && escaped == NO)
+		{
+		  spos++;
+		  break;
+		}
+	      *dpos++ = *spos++;
+	    }
+	  DESTROY(lastToken);
+	  lastToken = [NSString alloc];
+	  lastToken = [lastToken initWithCharacters: dst length: dpos - dst];
+	  if (key != nil)
+	    {
+	      [dict setObject: lastToken forKey: key];
+	      DESTROY(key);
+	      DESTROY(lastToken);
+	    }
+	  dpos = dst;	// reset output buffer
+	}
+      else
+	{
+	  while (spos < end)
+	    {
+	      if (*spos == '\\')
+		{
+		  spos++;
+		  if (spos >= end)
+		    {
+		      break;	// Unexpected end of file
+		    }
+		  if (*spos == '\n')
+		    {
+		      spos++;
+		      continue;	// escaped newline is removed.
+		    }
+		  if (*spos == '\r')
+		    {
+		      spos++;
+		      if (spos < end && *spos == '\n')
+			{
+			  spos++;
+			}
+		      continue;	// escaped newline is removed.
+		    }
+		}
+	      if (*spos <= ' ' || *spos == '=')
+		{
+		  break;
+		}
+	      *dpos++ = *spos++;
+	    }
+
+	  DESTROY(lastToken);
+	  lastToken = [NSString alloc];
+	  lastToken = [lastToken initWithCharacters: dst length: dpos - dst];
+	  if (key != nil)
+	    {
+	      [dict setObject: lastToken forKey: key];
+	      DESTROY(key);
+	      DESTROY(lastToken);
+	    }
+	  dpos = dst;	// reset output buffer
 	}
     }
+  if (key != nil)
+    {
+      [dict setObject: @"" forKey: key];
+      DESTROY(key);
+    }
+  DESTROY(lastToken);
+  NSZoneFree(NSDefaultMallocZone(), src);
+  NSZoneFree(NSDefaultMallocZone(), dst);
+
   return dict;
 }
 

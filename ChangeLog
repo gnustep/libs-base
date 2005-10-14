@@ -1,3 +1,9 @@
+2005-10-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Complete rewrite of config file parsing
+	to try to make it consistent with the escaping and quoting conventions
+	of shells, so the same file can be source'ed by /bin/sh
+
 2005-10-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Remove some useless functions to clarify
