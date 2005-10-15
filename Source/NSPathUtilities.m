@@ -408,11 +408,28 @@ static void InitialisePathUtilities(void)
   /* Set up our root paths */
   NS_DURING
     {
+      BOOL	shouldLoadUserConfig = YES;
+
       userConfig = [GNUstepConfig() mutableCopy];
       ASSIGNCOPY(gnustepUserHome, NSHomeDirectoryForUser(NSUserName()));
-      ParseConfigurationFile(
-	[gnustepUserHome stringByAppendingPathComponent: gnustepUserConfigFile],
-	userConfig);
+#ifdef HAVE_GETEUID
+      /*
+       * A program which is running setuid cannot be trusted
+       * to pick up user specific config.
+       */
+      if (getuid() != geteuid())
+	{
+	  shouldLoadUserConfig = NO;
+	}
+#endif
+      if (shouldLoadUserConfig == YES)
+	{
+	  NSString	*file;
+
+	  file = [gnustepUserHome stringByAppendingPathComponent:
+	    gnustepUserConfigFile];
+	  ParseConfigurationFile(file, userConfig);
+	}
       ExtractValuesFromConfig(userConfig);
       DESTROY(userConfig);
 
@@ -434,7 +451,6 @@ static void InitialisePathUtilities(void)
 	      Win32NSStringFromRegistry(regkey, @"GNUSTEP_LOCAL_ROOT"));
 	    RegCloseKey(regkey);
 	  }
-
 #if 0
 	// Not implemented yet
 	platformApps   = Win32FindDirectory(CLSID_APPS);
