@@ -1,3 +1,8 @@
+2005-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Fix retain/release error exposed by recent
+	changes.
+
 2005-10-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Complete rewrite of config file parsing

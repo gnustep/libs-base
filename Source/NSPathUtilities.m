@@ -431,8 +431,8 @@ static void InitialisePathUtilities(void)
       TEST_ASSIGN(gnustepRcFileName,  DEFAULT_STEPRC_FILE);
 
       /* If the user has an rc file we need to source it */
-      gnustepUserRoot = setUserGNUstepPath(NSUserName(),
-	&gnustepDefaultsPath, &gnustepUserPath);
+      gnustepUserRoot = RETAIN(setUserGNUstepPath(NSUserName(),
+	&gnustepDefaultsPath, &gnustepUserPath));
 
       /* Finally we check and report problems... */
       if (gnustepSystemRoot == nil)
