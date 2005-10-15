@@ -551,6 +551,15 @@ notice and this notice are preserved.
 	<subsect>
 	  <heading>.GNUstep.conf files</heading>
 	  <p>
+	    The user specific configuration file is read after the system
+	    configuration file and may generally override values from the
+	    main file.  To prevent the use specific file from being read,
+	    the system manager may define GNUSTEP_USER_CONFIG_FILE in the
+	    main file to be an empty string.<br />
+	    In any case, the user specific file is <em>not</em> read if a
+	    program is running setuid.
+	  </p>
+	  <p>
 	    The locations of the directories in which user specific files and
 	    the user defaults database are stored may be defined in the
 	    file given by GNUSTEP_USER_CONFIG_FILE (by default,
