@@ -100,11 +100,9 @@
 #define stringify(X) lowlevelstringify(X)
 
 /* The global configuration file. The real value is read from config.h */
-#ifndef GNUSTEP_CONFIGURATION_FILE
-# define   GNUSTEP_CONFIGURATION_FILE  /etc/GNUstep/GNUstep.conf
+#ifndef GNUSTEP_CONFIG_FILE
+# define   GNUSTEP_CONFIG_FILE  /etc/GNUstep/GNUstep.conf
 #endif
-/* The name of the user-specific configuration file */
-#define   DEFAULT_STEPRC_FILE         @".GNUsteprc"
 /* The standard path for user Defaults files */
 #define   DEFAULT_DEFAULTS_PATH       @"Defaults"
 /* The standard path to user GNUstep resources */
@@ -151,7 +149,7 @@ static NSString	*gnustep_flattened =
 /* Internal variables */
 /* ------------------ */
 
-static NSString	*configFile;
+static NSString	*gnustepConfigFile = nil;
 
 /* We read these four paths only once */
 static NSString *gnustepUserRoot = nil;        /*    GNUSTEP_USER_ROOT path */
@@ -159,9 +157,10 @@ static NSString *gnustepLocalRoot = nil;       /*   GNUSTEP_LOCAL_ROOT path */
 static NSString *gnustepNetworkRoot = nil;     /* GNUSTEP_NETWORK_ROOT path */
 static NSString *gnustepSystemRoot = nil;      /*  GNUSTEP_SYSTEM_ROOT path */
 
-static NSString *gnustepRcFileName = nil;
-static NSString *gnustepDefaultsPath = nil;
-static NSString *gnustepUserPath = nil;
+static NSString *gnustepUserDir = nil;
+static NSString *gnustepUserHome = nil;
+static NSString *gnustepUserConfigFile = nil;
+static NSString *gnustepUserDefaultsDir = nil;
 
 static NSString *theUserName = nil;             /*      The user's login name */
 static NSString *tempDir = nil;                 /* user's temporary directory */
@@ -203,11 +202,9 @@ static NSString *localLibs  = nil;
 /* Internal function prototypes. */
 /* ============================= */
 
-static NSString *setUserGNUstepPath(NSString *userName,
-				       NSString **defaultsPath,
-				       NSString **userPath);
+static NSDictionary* GNUstepConfig(void);
 
-static NSDictionary *ParseConfigurationFile(NSString *name);
+static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict);
 
 static void InitialisePathUtilities(void);
 static void ShutdownPathUtilities(void);
@@ -248,214 +245,203 @@ getPathConfig(NSDictionary *dict, NSString *key)
   return path;
 }
 
-/*
- * Read .GNUsteprc file for user and set paths accordingly
- */
-static NSString *setUserGNUstepPath(NSString *userName,
-				       NSString **defaultsPath,
-				       NSString **userPath)
+static void ExtractValuesFromConfig(NSDictionary *config)
 {
-  NSDictionary	*dict;
-  NSString	*home;
-  NSString	*path;
-  NSString	*steprcFile;
-  NSString	*userRoot;
+  ASSIGN_IF_SET(gnustepSystemRoot, config, @"GNUSTEP_SYSTEM_ROOT");
+  ASSIGN_IF_SET(gnustepNetworkRoot, config, @"GNUSTEP_NETWORK_ROOT");
+  ASSIGN_IF_SET(gnustepLocalRoot, config, @"GNUSTEP_LOCAL_ROOT");
 
-  /* Look for rc file (".GNUsteprc") file in user's home directory */
-  home = NSHomeDirectoryForUser(userName);
-  if (home == nil)
+  ASSIGN_IF_SET(gnustepUserDir, config, @"GNUSTEP_USER_DIR");
+  ASSIGN_IF_SET(gnustepUserHome, config, @"GNUSTEP_USER_HOME");
+  ASSIGN_IF_SET(gnustepUserDefaultsDir, config, @"GNUSTEP_USER_DEFAULTS_DIR");
+
+#ifdef OPTION_PLATFORM_SUPPORT
+  ASSIGN_IF_SET(osSysPrefs, config, SYS_PREFS);
+  ASSIGN_IF_SET(osSysApps, config, SYS_APPS);
+  ASSIGN_IF_SET(osSysLibs, config, SYS_LIBS);
+  ASSIGN_IF_SET(osSysAdmin, config, SYS_ADMIN);
+
+  ASSIGN_IF_SET(platformResources, config, PLATFORM_RESOURCES);
+  ASSIGN_IF_SET(platformApps, config, PLATFORM_APPS);
+  ASSIGN_IF_SET(platformLibs, config, PLATFORM_LIBS);
+  ASSIGN_IF_SET(platformAdmin, config, PLATFORM_ADMIN);
+
+  ASSIGN_IF_SET(localResources, config, PLATFORM_LOCAL_RESOURCES);
+  ASSIGN_IF_SET(localApps, config, PLATFORM_LOCAL_APPS);
+  ASSIGN_IF_SET(localLibs, config, PLATFORM_LOCAL_LIBS);
+#endif /* OPTION_PLATFORM SUPPORT */
+
+  /*
+   * Set the user root from the user home and the user dir
+   */
+  if (gnustepUserDir == nil)
     {
-      /* It's OK if path is nil. We're might be running as user nobody in
-       * which case we don't want to access user stuff. Possibly it's a
-       * misconfigured Windows environment, though...
-       */
-      return nil;
+      ASSIGN(gnustepUserDir, @"GNUstep");
     }
+  ASSIGN(gnustepUserRoot,
+    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDir]);
 
-  if ([gnustepRcFileName length] > 0)
+/* Finally we check and report problems... */
+  if (gnustepSystemRoot == nil)
     {
-      steprcFile = [home stringByAppendingPathComponent: gnustepRcFileName];
+      gnustepSystemRoot = [NSString stringWithCString:\
+	STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
+      fprintf (stderr, "Warning - GNUSTEP_SYSTEM_ROOT is not set " \
+	"- using %s\n", [gnustepSystemRoot lossyCString]);
+    }
+  if (gnustepNetworkRoot == nil)
+    {
+      gnustepNetworkRoot = [NSString stringWithCString:\
+	STRINGIFY(GNUSTEP_NETWORK_ROOT)];
+      fprintf (stderr, "Warning - GNUSTEP_NETWORK_ROOT is not set " \
+	"- using %s\n", [gnustepNetworkRoot lossyCString]);
+    }
+  if (gnustepLocalRoot == nil)
+    {
+      gnustepLocalRoot = [NSString stringWithCString:\
+	STRINGIFY(GNUSTEP_LOCAL_ROOT)];
+      fprintf (stderr, "Warning - GNUSTEP_LOCAL_ROOT is not set " \
+	"- using %s\n", [gnustepLocalRoot lossyCString]);
+    }
+}
 
-      dict = ParseConfigurationFile(steprcFile);
-      if (dict != nil)
+/*
+ * Function to return the system-wide configuration
+ */
+static NSDictionary*
+GNUstepConfig(void)
+{
+  static NSDictionary	*config = nil;
+
+  if (config == nil)
+    {
+      [gnustep_global_lock lock];
+      if (config == nil)
 	{
-	  path = [dict objectForKey: @"GNUSTEP_DEFAULTS_ROOT"];
-	  if (path != nil)
+	  NSMutableDictionary	*conf = nil;
+
+	  NS_DURING
 	    {
-	      /*
-	       * Special case for defaults root ... expand leading '~'
-	       */
-	      if ([path hasPrefix: @"~"])
+	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
+
+	      /* Now we source the configuration file if it exists */
+#ifndef OPTION_NO_ENVIRONMENT
+	      gnustepConfigFile = [[[NSProcessInfo processInfo] environment]
+		objectForKey: @"GNUSTEP_CONFIG_FILE"];
+#endif
+	      if (gnustepConfigFile == nil)
 		{
-GSOnceFLog(@"Use of '~' in GNUSTEP_DEFAULTS_ROOT is deprecated");
-		  path = [path substringFromIndex: 1];
-		  while ([path hasPrefix: @"/"] || [path hasPrefix: @"\\"])
-		    {
-		      path = [path substringFromIndex: 1];
-		    }
-		  path = [home stringByAppendingPathComponent: path];
+		  gnustepConfigFile = [NSString stringWithCString:
+		    stringify(GNUSTEP_CONFIG_FILE)];
 		}
-	      ASSIGN(*defaultsPath, path);
+	      gnustepConfigFile
+		= RETAIN([gnustepConfigFile stringByStandardizingPath]);
+	      ParseConfigurationFile(gnustepConfigFile, conf);
+
+	      /* System admins may force the user and defaults paths by
+	       * setting GNUSTEP_USER_CONFIG_FILE to be an empty string.
+	       * If they simply don't define it at all, we assign a default.
+	       */
+	      if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"] == nil)
+		{
+		  [conf setObject: @".GNUstep.conf"
+			   forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+		}
+	      config = [conf copy];
+	      DESTROY(conf);
+	      gnustepUserConfigFile
+		= [config objectForKey: @"GNUSTEP_USER_CONFIG_FILE"];
 	    }
-	  path = [dict objectForKey: @"GNUSTEP_USER_ROOT"];
-	  if (path != nil)
+	  NS_HANDLER
 	    {
-	      /*
-	       * For backward compatibility, remove leading '~' component
-	       * we will prepend the home directory later.
-	       */
-	      if ([path hasPrefix: @"~"])
-		{
-GSOnceFLog(@"Use of '~' in GNUSTEP_USER_ROOT is deprecated");
-		  path = [path substringFromIndex: 1];
-		  while ([path hasPrefix: @"/"] || [path hasPrefix: @"\\"])
-		    {
-		      path = [path substringFromIndex: 1];
-		    }
-		}
-	      ASSIGN(*userPath, path);
+	      [gnustep_global_lock unlock];
+	      config = nil;
+	      DESTROY(conf);
+	      [localException raise];
 	    }
+	  NS_ENDHANDLER
 	}
+      [gnustep_global_lock unlock];
     }
+  return config;
+}
 
-  /* set the user path and defaults directory to default values if needed */
-  TEST_ASSIGN(*defaultsPath, DEFAULT_DEFAULTS_PATH);
-  TEST_ASSIGN(*userPath, DEFAULT_USER_ROOT);
+/*
+ * Function to return the configuration for the named user
+ */
+static NSDictionary*
+GNUstepUserConfig(NSString *name)
+{
+  NSMutableDictionary	*conf;
+  NSString		*file;
+  NSString		*home;
 
-  /* Now we set the user's root path for the gnustep files. */
-  if ([*userPath isAbsolutePath])
-    userRoot = *userPath;
-  else
-    userRoot = [home stringByAppendingPathComponent: *userPath];
-  return userRoot;
+  conf = [GNUstepConfig() mutableCopy];
+  file = gnustepUserConfigFile;
+  home = NSHomeDirectoryForUser(name);
+  ParseConfigurationFile([home stringByAppendingPathComponent: file], conf);
+  /*
+   * We don't let the user config file override the home directory for
+   * the user ... that would be inconsistent as we have already used
+   * that directory.  Similarly, we don't permit overriding of the
+   * users config file name ... we make sure it's the one we just used.
+   */
+  [conf setObject: home
+	   forKey: [@"GNUSTEP_USER_HOME_" stringByAppendingString: name]];
+  [conf setObject: home forKey: @"GNUSTEP_USER_HOME"];
+  [conf setObject: gnustepUserConfigFile forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+  return AUTORELEASE(conf);
 }
 
 /* Initialise all things required by this module */
 static void InitialisePathUtilities(void)
 {
+  NSMutableDictionary *userConfig = nil;
+
   if (gnustepSystemRoot != nil)
     {
       return;	// Protect from multiple calls
     }
 
+  [gnustep_global_lock lock];
+
   /* Set up our root paths */
   NS_DURING
     {
-      NSDictionary  *env = [[NSProcessInfo processInfo] environment];
-#if defined(__WIN32__)
-      HKEY regkey;
-#endif
-
-      /* Initialise Win32 things if on that platform */
-      Win32Initialise();   // should be called by DLL_PROCESS_ATTACH
-
-      [gnustep_global_lock lock];
-
-#ifndef OPTION_NO_ENVIRONMENT
-      /* First we look at the environment */
-      TEST_ASSIGN(gnustepSystemRoot,
-	[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]);
-      TEST_ASSIGN(gnustepNetworkRoot,
-	[env objectForKey: @"GNUSTEP_NETWORK_ROOT"]);
-      TEST_ASSIGN(gnustepLocalRoot,
-	[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]);
-#endif /* !OPTION_NO_ENVIRONMENT */
+      userConfig = [GNUstepConfig() mutableCopy];
+      ASSIGNCOPY(gnustepUserHome, NSHomeDirectoryForUser(NSUserName()));
+      ParseConfigurationFile(
+	[gnustepUserHome stringByAppendingPathComponent: gnustepUserConfigFile],
+	userConfig);
+      ExtractValuesFromConfig(userConfig);
+      DESTROY(userConfig);
 
 #if defined(__WIN32__)
-      regkey = Win32OpenRegistry(HKEY_LOCAL_MACHINE,
+      {
+	HKEY regkey;
+	/* Initialise Win32 things if on that platform */
+	Win32Initialise();   // should be called by DLL_PROCESS_ATTACH
+
+	regkey = Win32OpenRegistry(HKEY_LOCAL_MACHINE,
 				 "\\Software\\GNU\\GNUstep");
-      if (regkey != (HKEY)NULL)
-	{
-	  TEST_ASSIGN(gnustepSystemRoot,
-	    Win32NSStringFromRegistry(regkey, @"GNUSTEP_SYSTEM_ROOT"));
-	  TEST_ASSIGN(gnustepNetworkRoot,
-	    Win32NSStringFromRegistry(regkey, @"GNUSTEP_NETWORK_ROOT"));
-	  TEST_ASSIGN(gnustepLocalRoot,
-	    Win32NSStringFromRegistry(regkey, @"GNUSTEP_LOCAL_ROOT"));
-	  RegCloseKey(regkey);
-	}
+	if (regkey != (HKEY)NULL)
+	  {
+	    TEST_ASSIGN(gnustepSystemRoot,
+	      Win32NSStringFromRegistry(regkey, @"GNUSTEP_SYSTEM_ROOT"));
+	    TEST_ASSIGN(gnustepNetworkRoot,
+	      Win32NSStringFromRegistry(regkey, @"GNUSTEP_NETWORK_ROOT"));
+	    TEST_ASSIGN(gnustepLocalRoot,
+	      Win32NSStringFromRegistry(regkey, @"GNUSTEP_LOCAL_ROOT"));
+	    RegCloseKey(regkey);
+	  }
 
 #if 0
-      // Not implemented yet
-      platformApps   = Win32FindDirectory(CLSID_APPS);
-      platformLibs   = Win32FindDirectory(CLSID_LIBS);
+	// Not implemented yet
+	platformApps   = Win32FindDirectory(CLSID_APPS);
+	platformLibs   = Win32FindDirectory(CLSID_LIBS);
 #endif
-#else
-      /* Now we source the configuration file if it exists */
-      configFile = [env objectForKey: @"GNUSTEP_CONFIGURATION_FILE"];
-      if (configFile == nil)
-	{
-	  configFile
-	    = [NSString stringWithCString:
-	    stringify(GNUSTEP_CONFIGURATION_FILE)];
-	}
-      configFile = RETAIN([configFile stringByStandardizingPath]);
-      if ([MGR() fileExistsAtPath: configFile])
-	{
-	  NSDictionary  *d = ParseConfigurationFile(configFile);
-
-	  if (d != nil)
-	    {
-	      ASSIGN_IF_SET(gnustepSystemRoot, d, @"GNUSTEP_SYSTEM_ROOT");
-	      ASSIGN_IF_SET(gnustepNetworkRoot, d, @"GNUSTEP_NETWORK_ROOT");
-	      ASSIGN_IF_SET(gnustepLocalRoot, d, @"GNUSTEP_LOCAL_ROOT");
-
-	      ASSIGN_IF_SET(gnustepRcFileName, d, @"USER_GNUSTEP_RC");
-	      ASSIGN_IF_SET(gnustepDefaultsPath, d, @"USER_GNUSTEP_DEFAULTS");
-	      ASSIGN_IF_SET(gnustepUserPath, d, @"USER_GNUSTEP_DIR");
-
-#ifdef OPTION_PLATFORM_SUPPORT
-	      ASSIGN_IF_SET(osSysPrefs, d, SYS_PREFS);
-	      ASSIGN_IF_SET(osSysApps, d, SYS_APPS);
-	      ASSIGN_IF_SET(osSysLibs, d, SYS_LIBS);
-	      ASSIGN_IF_SET(osSysAdmin, d, SYS_ADMIN);
-
-	      ASSIGN_IF_SET(platformResources, d, PLATFORM_RESOURCES);
-	      ASSIGN_IF_SET(platformApps, d, PLATFORM_APPS);
-	      ASSIGN_IF_SET(platformLibs, d, PLATFORM_LIBS);
-	      ASSIGN_IF_SET(platformAdmin, d, PLATFORM_ADMIN);
-
-	      ASSIGN_IF_SET(localResources, d, PLATFORM_LOCAL_RESOURCES);
-	      ASSIGN_IF_SET(localApps, d, PLATFORM_LOCAL_APPS);
-	      ASSIGN_IF_SET(localLibs, d, PLATFORM_LOCAL_LIBS);
-#endif /* OPTION_PLATFORM SUPPORT */
-	    }
-	}
+      }
 #endif
-
-      /* System admins may force the user and defaults paths by
-       * setting USER_GNUSTEP_RC to be an empty string.
-       * If they simply don't define it at all, we assign a default
-       * value here.
-       */
-      TEST_ASSIGN(gnustepRcFileName,  DEFAULT_STEPRC_FILE);
-
-      /* If the user has an rc file we need to source it */
-      gnustepUserRoot = RETAIN(setUserGNUstepPath(NSUserName(),
-	&gnustepDefaultsPath, &gnustepUserPath));
-
-      /* Finally we check and report problems... */
-      if (gnustepSystemRoot == nil)
-	{
-	  gnustepSystemRoot = [NSString stringWithCString:\
-	    STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
-	  fprintf (stderr, "Warning - GNUSTEP_SYSTEM_ROOT is not set " \
-	    "- using %s\n", [gnustepSystemRoot lossyCString]);
-	}
-      if (gnustepNetworkRoot == nil)
-	{
-	  gnustepNetworkRoot = [NSString stringWithCString:\
-	    STRINGIFY(GNUSTEP_NETWORK_ROOT)];
-	  fprintf (stderr, "Warning - GNUSTEP_NETWORK_ROOT is not set " \
-	    "- using %s\n", [gnustepNetworkRoot lossyCString]);
-	}
-      if (gnustepLocalRoot == nil)
-	{
-	  gnustepLocalRoot = [NSString stringWithCString:\
-	    STRINGIFY(GNUSTEP_LOCAL_ROOT)];
-	  fprintf (stderr, "Warning - GNUSTEP_LOCAL_ROOT is not set " \
-	    "- using %s\n", [gnustepLocalRoot lossyCString]);
-	}
 
       [gnustep_global_lock unlock];
     }
@@ -463,6 +449,7 @@ static void InitialisePathUtilities(void)
     {
       /* unlock then re-raise the exception */
       [gnustep_global_lock unlock];
+      DESTROY(userConfig);
       [localException raise];
     }
   NS_ENDHANDLER
@@ -478,9 +465,9 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepLocalRoot);
   DESTROY(gnustepUserRoot);
 
-  DESTROY(gnustepRcFileName);
-  DESTROY(gnustepDefaultsPath);
-  DESTROY(gnustepUserPath);
+  DESTROY(gnustepUserHome);
+  DESTROY(gnustepUserConfigFile);
+  DESTROY(gnustepUserDefaultsDir);
 
 #ifdef OPTION_PLATFORM_SUPPORT
   DESTROY(osSysPrefs);
@@ -526,10 +513,9 @@ static void ShutdownPathUtilities(void)
  * strings to avoid having to double all occurrances of the backslash.<br />
  * Returns a dictionary of the (key,value) pairs.<br/ >
  */
-static NSDictionary *
-ParseConfigurationFile(NSString *fileName)
+static BOOL
+ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
 {
-  NSMutableDictionary *dict;
   NSDictionary	*attributes;
   NSString      *file;
   unsigned	l;
@@ -545,7 +531,7 @@ ParseConfigurationFile(NSString *fileName)
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
     {
-      return nil;
+      return NO;
     }
 
   attributes = [MGR() fileAttributesAtPath: fileName traverseLink: YES];
@@ -559,13 +545,13 @@ ParseConfigurationFile(NSString *fileName)
       fprintf(stderr, "The file '%s' is writable by someone other than"
 	" its owner.\nIgnoring it.\n", [fileName fileSystemRepresentation]);
 #endif
-      return nil;
+      return NO;
     }
 
-  dict = [NSMutableDictionary dictionaryWithCapacity: 16];
   if (dict == nil)
     {
-      return nil; // should throw an exception??
+      [NSException raise: NSInvalidArgumentException
+		  format: @"No destination dictionary supplied"];
     }
 
   file = [NSString stringWithContentsOfFile: fileName];
@@ -772,7 +758,7 @@ ParseConfigurationFile(NSString *fileName)
   NSZoneFree(NSDefaultMallocZone(), src);
   NSZoneFree(NSDefaultMallocZone(), dst);
 
-  return dict;
+  return YES;
 }
 
 /* See NSPathUtilities.h for description */
@@ -886,20 +872,31 @@ NSHomeDirectory(void)
 NSString *
 NSHomeDirectoryForUser(NSString *loginName)
 {
+  NSDictionary	*config = GNUstepConfig();
   NSString	*s = nil;
-#if !defined(__MINGW32__)
-  struct passwd *pw;
 
-  [gnustep_global_lock lock];
-  pw = getpwnam ([loginName cString]);
-  if (pw != 0  && pw->pw_dir != NULL)
+  s = [@"GNUSTEP_USER_ROOT_" stringByAppendingString: loginName];
+  s = [config objectForKey: s];
+  if (s == nil)
     {
-      s = [NSString stringWithCString: pw->pw_dir];
+      s = [config objectForKey: @"GNUSTEP_USER_ROOT"];
     }
-  [gnustep_global_lock unlock];
+  if ([s length] == 0)
+    {
+#if !defined(__MINGW32__)
+      struct passwd *pw;
+
+      [gnustep_global_lock lock];
+      pw = getpwnam ([loginName cString]);
+      if (pw != 0  && pw->pw_dir != NULL)
+	{
+	  s = [NSString stringWithCString: pw->pw_dir];
+	}
+      [gnustep_global_lock unlock];
 #else
-  s = Win32GetUserProfileDirectory(loginName);
+      s = Win32GetUserProfileDirectory(loginName);
 #endif
+    }
   return s;
 }
 
@@ -936,8 +933,7 @@ NSString *
 GSDefaultsRootForUser(NSString *userName)
 {
   NSString *home;
-  NSString *defaultsPath = nil;
-  NSString *userPath = nil;
+  NSString *defaultsDir = nil;
 
   if ([userName length] == 0)
     {
@@ -946,22 +942,18 @@ GSDefaultsRootForUser(NSString *userName)
   InitialisePathUtilities();
   if ([userName isEqual: NSUserName()])
     {
-      home = gnustepUserRoot;
-      defaultsPath = gnustepDefaultsPath;
+      home = gnustepUserHome;
+      defaultsDir = gnustepUserDefaultsDir;
     }
   else
     {
-      home = setUserGNUstepPath(userName, &defaultsPath, &userPath);
-    }
+      NSDictionary	*config;
 
-  if ([defaultsPath isAbsolutePath])
-    {
-      home = defaultsPath;
+      config = GNUstepUserConfig(userName);
+      home = [config objectForKey:  @"GNUSTEP_USER_HOME"];
+      defaultsDir = [config objectForKey: @"GNUSTEP_USER_DEFAULTS_DIR"];
     }
-  else if (home != nil)
-    {
-      home = [home stringByAppendingPathComponent: defaultsPath];
-    }
+  home = [home stringByAppendingPathComponent: defaultsDir];
 
   return home;
 }

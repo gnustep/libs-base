@@ -13,7 +13,7 @@
 #undef CON_AUTOLOAD
 
 /* Set to location of the GNUstep configuration file */
-#undef GNUSTEP_CONFIGURATION_FILE
+#undef GNUSTEP_CONFIG_FILE
 
 /* Define if this constant is defined */
 #undef HANDLE_LLONG_MAX

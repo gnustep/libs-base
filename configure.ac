@@ -1297,7 +1297,7 @@ AC_MSG_CHECKING(for location of GNUstep configuration file)
 config_file=$(grep GNUSTEP_CONFIG_FILE $GNUSTEP_MAKEFILES/$obj_dir/config.make | sed -e 's/GNUSTEP_CONFIG_FILE = //')
 #
 AC_MSG_RESULT($config_file)
-AC_DEFINE_UNQUOTED(GNUSTEP_CONFIGURATION_FILE, $config_file,
+AC_DEFINE_UNQUOTED(GNUSTEP_CONFIG_FILE, $config_file,
 	[Set to location of the GNUstep configuration file])
 
 #--------------------------------------------------------------------
