@@ -1,7 +1,13 @@
 2005-10-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Fix retain/release error exposed by recent
-	changes.
+	changes.  Rewrite config handling (work in progress ... keeping in
+	sync with make package changes).
+	* Documentation/base.gsdoc: update somewhat.
+	* configure.ac: use GNUSTEP_CONFIG_FILE rather than
+	GNUSTEP_CONFIGURATION_FILE ... for consistency with make.
+	* Headers/Additions/GNUstepBase/config.h.in: ditto
+	* configure: regenerate
 
 2005-10-14  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -466,7 +466,7 @@ notice and this notice are preserved.
 	    on. On a GNU/Linux system, the default would be
 	    /etc/GNUstep/GNUstep.conf, for instance.<br />
 	    The location of this file can be overridden using the
-	    GNUSTEP_CONFIGURATION_FILE environment variable.<br />
+	    GNUSTEP_CONFIG_FILE environment variable.<br />
 	    This file is not
 	    required. If it does not appear, then default values will
 	    be used for the standard path locations.  System paths are
@@ -478,23 +478,36 @@ notice and this notice are preserved.
 	      <term>GNUSTEP_NETWORK_ROOT</term>
 	      <desc>path to network mounted resources.</desc>
 	      <term>GNUSTEP_LOCAL_ROOT</term>
-	      <desc>path for non-system resources for the specific machine.</desc>
+	      <desc>path for non-system resources for the specific
+	      machine.</desc>
 	    </deflist>
 	  <p>
 	    Paths for each user are defined by the following:
 	  </p>
-	    <deflist>
-	      <term>USER_GNUSTEP_DIR</term>
-	      <desc>Path for user specific GNUstep resources (eg. 'GNUstep').
-	      May be either an absolute path or a path relative to the
-	      user's home directory.</desc>
-	      <term>USER_GNUSTEP_RC</term>
-	      <desc>Name of user configuration file (eg. '.GNUsteprc')
-	      relative to the user's home directory.</desc>
-	      <term>USER_GNUSTEP_DEFAULTS</term>
-	      <desc>Name of directory for user defaults files. Either an
-	      absolute path or relative to USER_GNUSTEP_DIR.</desc>
-	    </deflist>
+	  <deflist>
+	    <term>GNUSTEP_USER_DIR</term>
+	    <desc>Path for user specific GNUstep resources (eg. 'GNUstep').
+	    Relative to the user's home directory.</desc>
+	    <term>GNUSTEP_USER_CONFIG_FILE</term>
+	    <desc>Name of user configuration file (eg. '.GNUsteprc')
+	    relative to the user's home directory.</desc>
+	    <term>GNUSTEP_USER_DEFAULTS_DIR</term>
+	    <desc>Name of directory for user defaults files.
+	    Relative to the user's home directory.</desc>
+	  </deflist>
+	  <p>
+	    The user's home directory is normally taken to be the standard
+	    home directory for that user on the system, but may be overridden
+	    using GNUSTEP_USER_HOME_<em>username</em> to specify an alternative
+	    hoem directory for a specific user, or GNUSTEP_USER_HOME to
+	    specify a directory for all users not otherwise matched.<br />
+	    Specifying an empty string as a directory will cause the standard
+	    system idea of the user's home directory to be used as normal.<br />
+	    This facility allows you to set up directories to hold GNUstep
+	    configuration and defaults information (perhaps readonly files)
+	    for a user account which is not normally given a home directory
+	    (unix daemons etc).
+	  </p>
 	  <p>
 	    Support is provided to locate OS/PLATFORM directories. A conf file
 	    may provide the definitions below:
@@ -511,17 +524,23 @@ notice and this notice are preserved.
 	      <term>PLATFORM_APPS</term>
 	      <desc>Place for non-gnustep applications (eg. '/usr/bin')</desc>
 	      <term>PLATFORM_LIBS</term>
-	      <desc>Place for application shared libraries (eg. '/usr/lib')</desc>
+	      <desc>Place for application shared libraries
+	      (eg. '/usr/lib')</desc>
 	      <term>PLATFORM_RESOURCES</term>
-	      <desc>Place for shared application resources (eg. '/usr/share')</desc>
+	      <desc>Place for shared application resources
+	      (eg. '/usr/share')</desc>
 	      <term>PLATFORM_ADMIN</term>
-	      <desc>Place for non-critical administrative tools (eg. '/usr/sbin')</desc>
+	      <desc>Place for non-critical administrative tools
+	      (eg. '/usr/sbin')</desc>
 	      <term>PLATFORM_LOCAL_APPS</term>
-	      <desc>Place for machine local applications (eg. '/usr/local/bin')</desc>
+	      <desc>Place for machine local applications
+	      (eg. '/usr/local/bin')</desc>
 	      <term>PLATFORM_LOCAL_LIBS</term>
-	      <desc>Place for machine local shared libraries (eg. '/usr/local/lib/')</desc>
+	      <desc>Place for machine local shared libraries
+	      (eg. '/usr/local/lib/')</desc>
 	      <term>PLATFORM_LOCAL_RESOURCES</term>
-	      <desc>Place for machine local resources. (eg. '/usr/local/share')</desc>
+	      <desc>Place for machine local resources.
+	      (eg. '/usr/local/share')</desc>
 	    </deflist>
 	  <p>
 	    These add to the path for NSSystemDomainMask, or
@@ -530,39 +549,29 @@ notice and this notice are preserved.
 	</subsect>
 
 	<subsect>
-	  <heading>.GNUsteprc files</heading>
+	  <heading>.GNUstep.conf files</heading>
 	  <p>
 	    The locations of the directories in which user specific files and
 	    the user defaults database are stored may be defined in the
-	    file given by USER_GNUSTEP_RC (by default,
-	    <code>.GNUsteprc</code>).<br />
+	    file given by GNUSTEP_USER_CONFIG_FILE (by default,
+	    <code>.GNUstep.conf</code>).<br />
 	    If no location is given for user specific files, they are stored
-	    in the locaton given by USER_GNUSTEP_DIR (by default, the
+	    in the locaton given by GNUSTEP_USER_DIR (by default, the
 	    <code>GNUstep</code> subdirectory of the users home
 	    directory).<br />
 	    If a separate location is not given for the defaults database, it
-	    is stored in the subdirectory of USER_GNUSTEP_DIR given by
-	    USER_GNUSTEP_DEFAULTS (by default, the <code>Defaults</code>
-	    subdirectory).<br />
+	    is stored in the subdirectory of the users home directory given by
+	    GNUSTEP_USER_DEFAULTS_DIR (by default, the
+	    <code>GNUstep/Defaults</code> subdirectory).<br />
 	  </p>
 	  <p>
-	    The presence of a <code>.GNUsteprc</code> file in a users home
-	    directory premits the user to customize file locations using
-	    two commands -
+	    The presence of a <code>.GNUstep.conf</code> file in a users home
+	    directory permits the user to customize file locations using all
+	    the same commands as the system directory, though any attempt
+	    to redefine GNUSTEP_USER_CONFIG_FILE is of course ignored.<br />
+	    Attempts to redefine the users home directory at this level
+	    are also ignored.
 	  </p>
-	  <deflist>
-	    <term>GNUSTEP_DEFAULTS_ROOT=...</term>
-	    <desc>
-	      The text after the '=' is taken to be the path to the users
-	      defaults files (either absolute or relative to USER_GNUSTEP_DIR).
-	    </desc>
-	    <term>GNUSTEP_USER_ROOT=...</term>
-	    <desc>
-	      The text after the '=' is taken to be the path to the users
-	      files.  This may be an absolute path, or a path relative to
-	      the user's home directory.
-	    </desc>
-	  </deflist>
 	</subsect>
       </section>
     </chapter>
