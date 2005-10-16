@@ -92,11 +92,6 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-/* Defines used to highlight design decisions. It's possible these could
-   be made compile time or even user configurable.
-*/
-#define OPTION_PLATFORM_SUPPORT  // To find platform specific things
-
 #define lowlevelstringify(X) #X
 #define stringify(X) lowlevelstringify(X)
 
@@ -161,7 +156,6 @@ static NSString *gnustepUserDefaultsDir = nil;
 static NSString *theUserName = nil;             /*      The user's login name */
 static NSString *tempDir = nil;                 /* user's temporary directory */
 
-#ifdef OPTION_PLATFORM_SUPPORT
 static NSString *osSysPrefs = nil;
 static NSString *osSysApps  = nil;
 static NSString *osSysLibs  = nil;
@@ -192,7 +186,6 @@ static NSString *localLibs  = nil;
 #define PLATFORM_LOCAL_LIBS    @"PLATFORM_LOCAL_LIBS"
 #define PLATFORM_LOCAL_ADMIN   @"PLATFORM_LOCAL_ADMIN"
 #define PLATFORM_LOCAL_RESOURCES @"PLATFORM_LOCAL_RESOURCES"
-#endif /* OPTION_PLATFORM_SUPPORT */
 
 /* ============================= */
 /* Internal function prototypes. */
@@ -216,8 +209,9 @@ static void ShutdownPathUtilities(void);
     {\
       RELEASE(var);\
       var = RETAIN(val);\
+      [dictionary removeObjectForKey: key];\
     }\
-  })
+})
 
 #define ASSIGN_PATH(var, dictionary, key) ({\
   id val = getPathConfig(dictionary, key);\
@@ -225,8 +219,9 @@ static void ShutdownPathUtilities(void);
     {\
       RELEASE(var);\
       var = RETAIN(val);\
+      [dictionary removeObjectForKey: key];\
     }\
-  })
+})
 
 /* Conditionally assign lval to var only if var is nil */
 #define TEST_ASSIGN(var, lval) ({\
@@ -261,29 +256,47 @@ getPathConfig(NSDictionary *dict, NSString *key)
 
 static void ExtractValuesFromConfig(NSDictionary *config)
 {
-  ASSIGN_PATH(gnustepSystemRoot, config, @"GNUSTEP_SYSTEM_ROOT");
-  ASSIGN_PATH(gnustepNetworkRoot, config, @"GNUSTEP_NETWORK_ROOT");
-  ASSIGN_PATH(gnustepLocalRoot, config, @"GNUSTEP_LOCAL_ROOT");
+  NSMutableDictionary	*c = [config mutableCopy];
 
-  ASSIGN_PATH(gnustepUserHome, config, @"GNUSTEP_USER_HOME");
-  ASSIGN_IF_SET(gnustepUserDir, config, @"GNUSTEP_USER_DIR");
-  ASSIGN_IF_SET(gnustepUserDefaultsDir, config, @"GNUSTEP_USER_DEFAULTS_DIR");
+  /*
+   * Move values out of the dictionary and into variables for rapid reference.
+   */
+  ASSIGN_PATH(gnustepSystemRoot, c, @"GNUSTEP_SYSTEM_ROOT");
+  ASSIGN_PATH(gnustepNetworkRoot, c, @"GNUSTEP_NETWORK_ROOT");
+  ASSIGN_PATH(gnustepLocalRoot, c, @"GNUSTEP_LOCAL_ROOT");
 
-#ifdef OPTION_PLATFORM_SUPPORT
-  ASSIGN_PATH(osSysPrefs, config, SYS_PREFS);
-  ASSIGN_PATH(osSysApps, config, SYS_APPS);
-  ASSIGN_PATH(osSysLibs, config, SYS_LIBS);
-  ASSIGN_PATH(osSysAdmin, config, SYS_ADMIN);
+  ASSIGN_PATH(gnustepUserHome, c, @"GNUSTEP_USER_HOME");
+  ASSIGN_IF_SET(gnustepUserDir, c, @"GNUSTEP_USER_DIR");
+  ASSIGN_IF_SET(gnustepUserDefaultsDir, c, @"GNUSTEP_USER_DEFAULTS_DIR");
 
-  ASSIGN_PATH(platformResources, config, PLATFORM_RESOURCES);
-  ASSIGN_PATH(platformApps, config, PLATFORM_APPS);
-  ASSIGN_PATH(platformLibs, config, PLATFORM_LIBS);
-  ASSIGN_PATH(platformAdmin, config, PLATFORM_ADMIN);
+  ASSIGN_PATH(osSysPrefs, c, SYS_PREFS);
+  ASSIGN_PATH(osSysApps, c, SYS_APPS);
+  ASSIGN_PATH(osSysLibs, c, SYS_LIBS);
+  ASSIGN_PATH(osSysAdmin, c, SYS_ADMIN);
 
-  ASSIGN_PATH(localResources, config, PLATFORM_LOCAL_RESOURCES);
-  ASSIGN_PATH(localApps, config, PLATFORM_LOCAL_APPS);
-  ASSIGN_PATH(localLibs, config, PLATFORM_LOCAL_LIBS);
-#endif /* OPTION_PLATFORM SUPPORT */
+  ASSIGN_PATH(platformResources, c, PLATFORM_RESOURCES);
+  ASSIGN_PATH(platformApps, c, PLATFORM_APPS);
+  ASSIGN_PATH(platformLibs, c, PLATFORM_LIBS);
+  ASSIGN_PATH(platformAdmin, c, PLATFORM_ADMIN);
+
+  ASSIGN_PATH(localResources, c, PLATFORM_LOCAL_RESOURCES);
+  ASSIGN_PATH(localApps, c, PLATFORM_LOCAL_APPS);
+  ASSIGN_PATH(localLibs, c, PLATFORM_LOCAL_LIBS);
+
+  /*
+   * Remove any other dictionary entries we have used.
+   */
+  [c removeObjectForKey: @"GNUSTEP_USER_CONFIG_FILE"];
+
+  if ([c count] > 0)
+    {
+      /*
+       * The dictionary should be empty ... report problems
+       */
+      fprintf(stderr, "Configuration contains unknown keys - %s\n",
+	[[[c allKeys] description] UTF8String]);
+    }
+  DESTROY(c);
 
   /*
    * Set default locations for user files if necessary.
@@ -365,9 +378,16 @@ GNUstepConfig(void)
 	      if ([file hasPrefix: @"./"] == YES)
 		{
 		  Class	c = [NSProcessInfo class];
-		  file = objc_get_symbol_path (c, 0);
+		  NSString	*path = objc_get_symbol_path (c, 0);
+
+		  gnustepConfigPath = [path stringByDeletingLastPathComponent];
+		  file = [gnustepConfigPath stringByAppendingPathComponent:
+		    [file substringFromIndex: 2]];
 		}
-	      gnustepConfigPath = [file stringByDeletingLastPathComponent];
+	      else
+		{
+		  gnustepConfigPath = [file stringByDeletingLastPathComponent];
+		}
 	      RETAIN(gnustepConfigPath);
 	      ParseConfigurationFile(file, conf);
 
@@ -691,10 +711,13 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
 	      NSString	*val = [NSString alloc];
 
 	      val = [val initWithCharacters: dst length: dpos - dst];
-	      [dict setObject: val forKey: key];
-	      DESTROY(key);
-	      DESTROY(val);
-	      wantVal = NO;
+	      if (val != nil)
+		{
+		  [dict setObject: val forKey: key];
+		  DESTROY(key);
+		  DESTROY(val);
+		  wantVal = NO;
+		}
 	    }
 	  dpos = dst;	// reset output buffer
 	}
@@ -740,10 +763,13 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
 	      NSString	*val = [NSString alloc];
 
 	      val = [val initWithCharacters: dst length: dpos - dst];
-	      [dict setObject: val forKey: key];
-	      DESTROY(key);
-	      DESTROY(val);
-	      wantVal = NO;
+	      if (val != nil)
+		{
+		  [dict setObject: val forKey: key];
+		  DESTROY(key);
+		  DESTROY(val);
+		  wantVal = NO;
+		}
 	    }
 	  dpos = dst;	// reset output buffer
 	}
@@ -784,17 +810,23 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
 	    {
 	      key = [NSString alloc];
 	      key = [key initWithCharacters: dst length: dpos - dst];
-	      wantKey = NO;
+	      if (key != nil)
+		{
+		  wantKey = NO;
+		}
 	    }
 	  else if (wantVal == YES)
 	    {
 	      NSString	*val = [NSString alloc];
 
 	      val = [val initWithCharacters: dst length: dpos - dst];
-	      [dict setObject: val forKey: key];
-	      DESTROY(key);
-	      DESTROY(val);
-	      wantVal = NO;
+	      if (val != nil)
+		{
+		  [dict setObject: val forKey: key];
+		  DESTROY(key);
+		  DESTROY(val);
+		  wantVal = NO;
+		}
 	    }
 	  dpos = dst;	// reset output buffer
 	}
