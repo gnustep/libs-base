@@ -103,11 +103,6 @@
 #ifndef GNUSTEP_CONFIG_FILE
 # define   GNUSTEP_CONFIG_FILE  /etc/GNUstep/GNUstep.conf
 #endif
-/* The standard path for user Defaults files */
-#define   DEFAULT_DEFAULTS_PATH       @"Defaults"
-/* The standard path to user GNUstep resources */
-#define   DEFAULT_USER_ROOT           @"GNUstep"
-
 
 static NSString	*gnustep_target_cpu =
 #ifdef GNUSTEP_TARGET_CPU
@@ -272,36 +267,39 @@ static void ExtractValuesFromConfig(NSDictionary *config)
 #endif /* OPTION_PLATFORM SUPPORT */
 
   /*
-   * Set the user root from the user home and the user dir
+   * Set default locatiuons for user files if necessary.
    */
   if (gnustepUserDir == nil)
     {
       ASSIGN(gnustepUserDir, @"GNUstep");
     }
+  if (gnustepUserDefaultsDir == nil)
+    {
+      ASSIGN(gnustepUserDefaultsDir, @"GNUstep/Defaults");
+    }
+  /*
+   * Set the user root from the user home and the user dir
+   */
   ASSIGN(gnustepUserRoot,
     [gnustepUserHome stringByAppendingPathComponent: gnustepUserDir]);
 
-/* Finally we check and report problems... */
+  /*
+   * Finally set default locations for the essential paths.
+   */
   if (gnustepSystemRoot == nil)
     {
       gnustepSystemRoot = [NSString stringWithCString:\
 	STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
-      fprintf (stderr, "Warning - GNUSTEP_SYSTEM_ROOT is not set " \
-	"- using %s\n", [gnustepSystemRoot lossyCString]);
     }
   if (gnustepNetworkRoot == nil)
     {
       gnustepNetworkRoot = [NSString stringWithCString:\
 	STRINGIFY(GNUSTEP_NETWORK_ROOT)];
-      fprintf (stderr, "Warning - GNUSTEP_NETWORK_ROOT is not set " \
-	"- using %s\n", [gnustepNetworkRoot lossyCString]);
     }
   if (gnustepLocalRoot == nil)
     {
       gnustepLocalRoot = [NSString stringWithCString:\
 	STRINGIFY(GNUSTEP_LOCAL_ROOT)];
-      fprintf (stderr, "Warning - GNUSTEP_LOCAL_ROOT is not set " \
-	"- using %s\n", [gnustepLocalRoot lossyCString]);
     }
 }
 

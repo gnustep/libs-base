@@ -1,3 +1,8 @@
+2005-10-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Set default value for defaults directory
+	(lost in last set of changes).
+
 2005-10-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Fix retain/release error exposed by recent
