@@ -1,3 +1,8 @@
+2005-10-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Changes to support relocation of the
+	entire system simply by copying the directory containing it around.
+
 2005-10-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Set default value for defaults directory

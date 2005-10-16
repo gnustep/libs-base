@@ -467,10 +467,10 @@ notice and this notice are preserved.
 	    /etc/GNUstep/GNUstep.conf, for instance.<br />
 	    The location of this file can be overridden using the
 	    GNUSTEP_CONFIG_FILE environment variable.<br />
-	    This file is not
-	    required. If it does not appear, then default values will
-	    be used for the standard path locations.  System paths are
-	    defined by the following:
+	    The configuration file is not actually required to exist.
+	    If it does not exist, then default values will be used
+	    for the standard path locations.<br />
+	    System paths are defined by the following:
 	  </p>
 	    <deflist>
 	      <term>GNUSTEP_SYSTEM_ROOT</term>
@@ -547,7 +547,34 @@ notice and this notice are preserved.
 	    NSLocalDomainMask as appropriate.
 	  </p>
 	</subsect>
-
+	<subsect>
+	  <heading>Relocatable packages</heading>
+	  <p>
+	    The configuration files system has two features which make
+	    it possible to build standalone packages containing the
+	    entire GNUstep system in a form which can be moved anywhere
+	    and just run.
+	  </p>
+	  <p>
+	    Firstly, wariables in the configuration file which define
+	    paths, are expected to by full path specifications, except
+	    for the special case in which they begin with dot-slash (./).
+	    In this case the dot-slash is replaced by the path to the
+	    directory containing the configuration file (or specified to
+	    contain the configuration file if no configuration file exists).
+	  </p>
+	  <p>
+	    Secondly, If the value specified by GNUSTEP_CONFIG_FILE (or
+	    built into the base library) itself begins with a dot and
+	    slash (./) then the base directory used for relative paths
+	    is the directory containing the gnustep-base library.
+	  </p>
+	  <p>
+	    So you can bundle the whole lot together in one directory,
+	    and configure various relative paths in that directory, then
+	    move the directory around wherever you like.
+	  </p>
+	</subsect>
 	<subsect>
 	  <heading>.GNUstep.conf files</heading>
 	  <p>
