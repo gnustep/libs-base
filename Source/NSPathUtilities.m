@@ -61,6 +61,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
+#include "objc-load.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSPathUtilities.h"
@@ -356,6 +357,16 @@ GNUstepConfig(void)
 		    stringify(GNUSTEP_CONFIG_FILE)];
 		}
 	      file = [file stringByStandardizingPath];
+	      /*
+	       * Special case ... if the config file location begins './'
+	       * then we use the directory containing the base library as 
+	       * the base path.
+	       */
+	      if ([file hasPrefix: @"./"] == YES)
+		{
+		  Class	c = [NSProcessInfo class];
+		  file = objc_get_symbol_path (c, 0);
+		}
 	      gnustepConfigPath = [file stringByDeletingLastPathComponent];
 	      RETAIN(gnustepConfigPath);
 	      ParseConfigurationFile(file, conf);
