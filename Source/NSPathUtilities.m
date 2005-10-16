@@ -372,22 +372,22 @@ GNUstepConfig(void)
 	      file = [file stringByStandardizingPath];
 	      /*
 	       * Special case ... if the config file location begins './'
-	       * then we use the directory containing the base library as 
-	       * the base path.
+	       * then we determine it's actual path by working relative
+	       * to the gnustep-base library.
 	       */
 	      if ([file hasPrefix: @"./"] == YES)
 		{
-		  Class	c = [NSProcessInfo class];
+		  Class		c = [NSProcessInfo class];
 		  NSString	*path = objc_get_symbol_path (c, 0);
 
-		  gnustepConfigPath = [path stringByDeletingLastPathComponent];
-		  file = [gnustepConfigPath stringByAppendingPathComponent:
-		    [file substringFromIndex: 2]];
+		  // Remove library name from path
+		  path = [path stringByDeletingLastPathComponent];
+		  // Remove ./ prefix from filename
+		  file = [file substringFromIndex: 2];
+		  // Join the two together
+		  file = [path stringByAppendingPathComponent: file];
 		}
-	      else
-		{
-		  gnustepConfigPath = [file stringByDeletingLastPathComponent];
-		}
+	      gnustepConfigPath = [file stringByDeletingLastPathComponent];
 	      RETAIN(gnustepConfigPath);
 	      ParseConfigurationFile(file, conf);
 
