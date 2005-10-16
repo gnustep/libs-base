@@ -144,7 +144,7 @@ static NSString	*gnustep_flattened =
 /* Internal variables */
 /* ------------------ */
 
-static NSString	*gnustepConfigFile = nil;
+static NSString	*gnustepConfigPath = nil;
 
 /* We read these four paths only once */
 static NSString *gnustepUserRoot = nil;        /*    GNUSTEP_USER_ROOT path */
@@ -218,6 +218,15 @@ static void ShutdownPathUtilities(void);
     }\
   })
 
+#define ASSIGN_PATH(var, dictionary, key) ({\
+  id val = getPathConfig(dictionary, key);\
+  if (val != nil)\
+    {\
+      RELEASE(var);\
+      var = RETAIN(val);\
+    }\
+  })
+
 /* Conditionally assign lval to var only if var is nil */
 #define TEST_ASSIGN(var, lval) ({\
   if ((var == nil)&&(lval != nil))\
@@ -226,48 +235,57 @@ static void ShutdownPathUtilities(void);
     }\
   })
 
-/* Get a path string from a dictionary */
+/* Get a full path string */
+static inline NSString *
+getPath(NSString *path)
+{
+  if ([path hasPrefix: @"./"] == YES)
+    {
+      path = [gnustepConfigPath stringByAppendingPathComponent:
+	[path substringFromIndex: 2]];
+    }
+  return path;
+}
+
+/* Get a full path string from a dictionary */
 static inline NSString *
 getPathConfig(NSDictionary *dict, NSString *key)
 {
-  NSString *path;
-
-  NSCParameterAssert(dict!=nil);
+  NSString	*path;
 
   path = [dict objectForKey: key];
-  TEST_RETAIN(path);
-
+  path = getPath(path);
   return path;
 }
 
 static void ExtractValuesFromConfig(NSDictionary *config)
 {
-  ASSIGN_IF_SET(gnustepSystemRoot, config, @"GNUSTEP_SYSTEM_ROOT");
-  ASSIGN_IF_SET(gnustepNetworkRoot, config, @"GNUSTEP_NETWORK_ROOT");
-  ASSIGN_IF_SET(gnustepLocalRoot, config, @"GNUSTEP_LOCAL_ROOT");
+  ASSIGN_PATH(gnustepSystemRoot, config, @"GNUSTEP_SYSTEM_ROOT");
+  ASSIGN_PATH(gnustepNetworkRoot, config, @"GNUSTEP_NETWORK_ROOT");
+  ASSIGN_PATH(gnustepLocalRoot, config, @"GNUSTEP_LOCAL_ROOT");
 
+  ASSIGN_PATH(gnustepUserHome, config, @"GNUSTEP_USER_HOME");
   ASSIGN_IF_SET(gnustepUserDir, config, @"GNUSTEP_USER_DIR");
-  ASSIGN_IF_SET(gnustepUserHome, config, @"GNUSTEP_USER_HOME");
   ASSIGN_IF_SET(gnustepUserDefaultsDir, config, @"GNUSTEP_USER_DEFAULTS_DIR");
 
 #ifdef OPTION_PLATFORM_SUPPORT
-  ASSIGN_IF_SET(osSysPrefs, config, SYS_PREFS);
-  ASSIGN_IF_SET(osSysApps, config, SYS_APPS);
-  ASSIGN_IF_SET(osSysLibs, config, SYS_LIBS);
-  ASSIGN_IF_SET(osSysAdmin, config, SYS_ADMIN);
+  ASSIGN_PATH(osSysPrefs, config, SYS_PREFS);
+  ASSIGN_PATH(osSysApps, config, SYS_APPS);
+  ASSIGN_PATH(osSysLibs, config, SYS_LIBS);
+  ASSIGN_PATH(osSysAdmin, config, SYS_ADMIN);
 
-  ASSIGN_IF_SET(platformResources, config, PLATFORM_RESOURCES);
-  ASSIGN_IF_SET(platformApps, config, PLATFORM_APPS);
-  ASSIGN_IF_SET(platformLibs, config, PLATFORM_LIBS);
-  ASSIGN_IF_SET(platformAdmin, config, PLATFORM_ADMIN);
+  ASSIGN_PATH(platformResources, config, PLATFORM_RESOURCES);
+  ASSIGN_PATH(platformApps, config, PLATFORM_APPS);
+  ASSIGN_PATH(platformLibs, config, PLATFORM_LIBS);
+  ASSIGN_PATH(platformAdmin, config, PLATFORM_ADMIN);
 
-  ASSIGN_IF_SET(localResources, config, PLATFORM_LOCAL_RESOURCES);
-  ASSIGN_IF_SET(localApps, config, PLATFORM_LOCAL_APPS);
-  ASSIGN_IF_SET(localLibs, config, PLATFORM_LOCAL_LIBS);
+  ASSIGN_PATH(localResources, config, PLATFORM_LOCAL_RESOURCES);
+  ASSIGN_PATH(localApps, config, PLATFORM_LOCAL_APPS);
+  ASSIGN_PATH(localLibs, config, PLATFORM_LOCAL_LIBS);
 #endif /* OPTION_PLATFORM SUPPORT */
 
   /*
-   * Set default locatiuons for user files if necessary.
+   * Set default locations for user files if necessary.
    */
   if (gnustepUserDir == nil)
     {
@@ -284,22 +302,25 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     [gnustepUserHome stringByAppendingPathComponent: gnustepUserDir]);
 
   /*
-   * Finally set default locations for the essential paths.
+   * Finally set default locations for the essential paths if required.
    */
   if (gnustepSystemRoot == nil)
     {
       gnustepSystemRoot = [NSString stringWithCString:\
 	STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
+      gnustepSystemRoot = RETAIN(getPath(gnustepSystemRoot));
     }
   if (gnustepNetworkRoot == nil)
     {
       gnustepNetworkRoot = [NSString stringWithCString:\
-	STRINGIFY(GNUSTEP_NETWORK_ROOT)];
+	STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
+      gnustepNetworkRoot = RETAIN(getPath(gnustepNetworkRoot));
     }
   if (gnustepLocalRoot == nil)
     {
       gnustepLocalRoot = [NSString stringWithCString:\
-	STRINGIFY(GNUSTEP_LOCAL_ROOT)];
+	STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
+      gnustepLocalRoot = RETAIN(getPath(gnustepLocalRoot));
     }
 }
 
@@ -320,21 +341,24 @@ GNUstepConfig(void)
 
 	  NS_DURING
 	    {
+	      NSString	*file;
+
 	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
 	      /* Now we source the configuration file if it exists */
 #ifndef OPTION_NO_ENVIRONMENT
-	      gnustepConfigFile = [[[NSProcessInfo processInfo] environment]
+	      file = [[[NSProcessInfo processInfo] environment]
 		objectForKey: @"GNUSTEP_CONFIG_FILE"];
 #endif
-	      if (gnustepConfigFile == nil)
+	      if (file == nil)
 		{
-		  gnustepConfigFile = [NSString stringWithCString:
+		  file = [NSString stringWithCString:
 		    stringify(GNUSTEP_CONFIG_FILE)];
 		}
-	      gnustepConfigFile
-		= RETAIN([gnustepConfigFile stringByStandardizingPath]);
-	      ParseConfigurationFile(gnustepConfigFile, conf);
+	      file = [file stringByStandardizingPath];
+	      gnustepConfigPath = [file stringByDeletingLastPathComponent];
+	      RETAIN(gnustepConfigPath);
+	      ParseConfigurationFile(file, conf);
 
 	      /* System admins may force the user and defaults paths by
 	       * setting GNUSTEP_USER_CONFIG_FILE to be an empty string.
