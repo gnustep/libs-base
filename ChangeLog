@@ -2,7 +2,8 @@
 
 	* Source/NSPathUtilities.m: Simplify by removing options for
 	redefining user home directories.  Add code to use gnumake format
-	rather than shell format for config files.
+	rather than shell format for config files.  Fix error in default
+	setup of local root.
 
 2005-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -326,13 +326,13 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   if (gnustepNetworkRoot == nil)
     {
       gnustepNetworkRoot = [NSString stringWithCString:\
-	STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
+	STRINGIFY(GNUSTEP_NETWORK_ROOT)];
       gnustepNetworkRoot = RETAIN(getPath(gnustepNetworkRoot));
     }
   if (gnustepLocalRoot == nil)
     {
       gnustepLocalRoot = [NSString stringWithCString:\
-	STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
+	STRINGIFY(GNUSTEP_LOCAL_ROOT)];
       gnustepLocalRoot = RETAIN(getPath(gnustepLocalRoot));
     }
 }
