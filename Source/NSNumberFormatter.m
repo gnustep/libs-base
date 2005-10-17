@@ -26,12 +26,13 @@
    $Date$ $Revision$
    */
 
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
 #include "Foundation/NSAttributedString.h"
 #include "Foundation/NSDecimalNumber.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSException.h"
 #include "Foundation/NSNumberFormatter.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSUserDefaults.h"
 
 
 @implementation NSNumberFormatter
@@ -44,9 +45,33 @@
 - (NSAttributedString*) attributedStringForObjectValue: (id)anObject
 				 withDefaultAttributes: (NSDictionary*)attr
 {
-  // FIXME
+  float val;
+
+  if (anObject == nil)
+    {
+      return [self attributedStringForNil];
+    }
+  else if (![anObject isKindOfClass: [NSNumber class]])
+    {
+      return [self attributedStringForNotANumber];
+    }
+  else if ([anObject intValue] == 0)
+    {
+      return [self attributedStringForZero];
+    }
+
+  val = [anObject intValue];
+  if ((val > 0) && (_attributesForPositiveValues))
+    {
+      attr = _attributesForPositiveValues;
+    }
+  else if ((val < 0) && (_attributesForNegativeValues))
+    {
+      attr = _attributesForNegativeValues;
+    }
+
   return AUTORELEASE([[NSAttributedString alloc] initWithString:
-    [self editingStringForObjectValue: anObject] attributes: attr]);
+    [self stringForObjectValue: anObject] attributes: attr]);
 }
 
 - (NSAttributedString*) attributedStringForNil
@@ -151,16 +176,38 @@
        errorDescription: (NSString**)error
 {
   /* FIXME: This is just a quick hack implementation.  */
-  NSLog(@"NSNumberFormatter-getObjectValue:forString:... not implemented");
-  if (_positiveFormat == nil &&  _negativeFormat == nil)
+  NSLog(@"NSNumberFormatter-getObjectValue:forString:... not fully implemented");
+
+  /* Just assume nothing else has been setup and do a simple conversion. */
+  if ([self hasThousandSeparators])
     {
-      /* Just assume nothing else has been setup and do a simple conversion. */
-      if (anObject)
-	{
-	  *anObject = [NSDecimalNumber decimalNumberWithString: string];
+      NSRange range;
+      
+      range = [string rangeOfString: [self thousandSeparator]];
+      if (range.length != 0)
+        {
+	  string = AUTORELEASE([string mutableCopy]);
+	  [(NSMutableString*)string replaceOccurrencesOfString: [self thousandSeparator]
+			     withString: @""
+			     options: 0
+			     range: NSMakeRange(0, [string length])];
 	}
-      return YES;
     }
+
+  if (anObject)
+    {
+      NSDictionary *locale;
+      
+      locale = [NSDictionary dictionaryWithObject: [self decimalSeparator] 
+			     forKey: NSDecimalSeparator];
+      *anObject = [NSDecimalNumber decimalNumberWithString: string
+				   locale: locale];
+      if (*anObject)
+        {
+	  return YES;
+	}
+    }
+
   return NO;
 }
 
@@ -280,6 +327,7 @@
 	     newEditingString: (NSString**)newString
 	     errorDescription: (NSString**)error
 {
+  // FIXME
   if (newString != NULL)
     {
       *newString = partialString;
@@ -402,11 +450,13 @@
 
 - (void) setNegativeFormat: (NSString*)aFormat
 {
+  // FIXME: Should extract separators and attributes
   ASSIGN(_negativeFormat, aFormat);
 }
 
 - (void) setPositiveFormat: (NSString*)aFormat
 {
+  // FIXME: Should extract separators and attributes
   ASSIGN(_positiveFormat, aFormat);
 }
 
@@ -433,13 +483,29 @@
     _thousandSeparator = 0;
 }
 
-//FIXME - not implemented !?
 - (NSString*) stringForObjectValue: (id)anObject
 {
+  NSMutableDictionary *locale;
+
   if (nil == anObject)
     return [[self attributedStringForNil] string];
 
-  return [anObject description];
+  /* FIXME: This is just a quick hack implementation.  */
+  NSLog(@"NSNumberFormatter-stringForObjectValue:... not fully implemented");
+
+  locale = [NSMutableDictionary dictionaryWithCapacity: 3];
+  if ([self hasThousandSeparators])
+    {
+      [locale setObject: [self thousandSeparator] forKey: NSThousandsSeparator];
+    }
+
+  if ([self allowsFloats])
+    {
+      [locale setObject: [self decimalSeparator] forKey: NSDecimalSeparator];
+      // Should also set: NSDecimalDigits
+    }
+
+  return [anObject descriptionWithLocale: locale];
 }
 
 - (NSDictionary*) textAttributesForNegativeValues
@@ -454,7 +520,7 @@
 
 - (NSString*) thousandSeparator
 {
-  if (_thousandSeparator == 0)
+  if (!_thousandSeparator)
     return @"";
   else
     return [NSString stringWithCharacters: &_thousandSeparator length: 1];
