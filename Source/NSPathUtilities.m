@@ -973,9 +973,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
       key = [NSString stringWithCharacters: dst length: dpos - dst];
       for (tmp = dst; tmp < dpos; tmp++)
 	{
-	  if (*tmp != '_'
-	    && (*tmp < 'A' || *tmp > 'Z')
-	    && (*tmp < '0' || *tmp > '9'))
+	  if (*tmp != '_' && (*tmp < 'A' || *tmp > 'Z'))
 	    {
 	      fprintf(stderr, "Bad variable name '%s' in config file '%s'\n",
 		[key UTF8String], [fileName UTF8String]);
