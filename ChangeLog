@@ -1,3 +1,10 @@
+2005-10-17  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSNumberFormatter.m
+	(-getObjectValue:forString:errorDescription:,
+	stringForObjectValue:): Respect the settings for decimal and
+	thousands separators. Still a very basic implementation.
+
 2005-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Simplify by removing options for
