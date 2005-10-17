@@ -265,7 +265,6 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepNetworkRoot, c, @"GNUSTEP_NETWORK_ROOT");
   ASSIGN_PATH(gnustepLocalRoot, c, @"GNUSTEP_LOCAL_ROOT");
 
-  ASSIGN_PATH(gnustepUserHome, c, @"GNUSTEP_USER_HOME");
   ASSIGN_IF_SET(gnustepUserDir, c, @"GNUSTEP_USER_DIR");
   ASSIGN_IF_SET(gnustepUserDefaultsDir, c, @"GNUSTEP_USER_DEFAULTS_DIR");
 
@@ -434,14 +433,9 @@ GNUstepUserConfig(NSString *name)
   home = NSHomeDirectoryForUser(name);
   ParseConfigurationFile([home stringByAppendingPathComponent: file], conf);
   /*
-   * We don't let the user config file override the home directory for
-   * the user ... that would be inconsistent as we have already used
-   * that directory.  Similarly, we don't permit overriding of the
-   * users config file name ... we make sure it's the one we just used.
+   * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
+   * variable ... that would be silly/pointless.
    */
-  [conf setObject: home
-	   forKey: [@"GNUSTEP_USER_HOME_" stringByAppendingString: name]];
-  [conf setObject: home forKey: @"GNUSTEP_USER_HOME"];
   [conf setObject: gnustepUserConfigFile forKey: @"GNUSTEP_USER_CONFIG_FILE"];
   return AUTORELEASE(conf);
 }
@@ -560,6 +554,7 @@ static void ShutdownPathUtilities(void)
   Win32Finalise();
 }
 
+#if 0
 
 /**
  * Reads a file and expects it to be in basic unix "conf" style format with
@@ -842,6 +837,235 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
   return YES;
 }
 
+#else
+
+/*
+ * Parse config file in gnumake format ... different quoting conventions<br />
+ *
+ * <p>Empty lines (or lines containing only spaces) are ignored.
+ * </p>
+ * <p>A '#' introduces a comment that extends up to the end of the line.  
+ * Anything from the '#' up to the end of the line is ignored (unless the '#' 
+ * if found in a variable value, and escaped by a preceding '\' as explained 
+ * below).
+ * </p>
+ * <p>A variable (which must be one in the allowed set listed in the 
+ * documentation) is defined using a line of the form:<br />
+ * name = value
+ * </p>
+ * <p>name must be from the predefined list (where names in the list only
+ * contains uppercase letters and '_').
+ * </p>
+ * <p>The '=' might (or might not) be preceded / followed by spaces that are
+ * ignored.
+ * </p>
+ * <p>value is read literally until the end of the line with the following 
+ * exceptions:<br />
+ * to insert a '$' character you must insert '$$'.
+ * A single '$' can never appear in the value.<br />
+ * a '#' would start a comment that ends at the end of the line.
+ * To insert a literal '#' character you must insert '\#'.<br />
+ * to insert a '\' character at the end of the line or before the '#'
+ * initiating a comment, you need to insert '\\#'.<br />
+ * value might be empty to mean ''.<br />
+ * Spaces at the end or at the beginning of value are stripped.
+ * </p>
+ */
+static BOOL
+ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
+{
+  NSDictionary	*attributes;
+  NSString      *file;
+  unsigned	l;
+  unichar	*src;
+  unichar	*dst;
+  unichar	*end;
+  unichar	*spos;
+  unichar	*dpos;
+  unichar	*tmp;
+
+  if ([MGR() isReadableFileAtPath: fileName] == NO)
+    {
+      return NO;
+    }
+
+  attributes = [MGR() fileAttributesAtPath: fileName traverseLink: YES];
+  if (([attributes filePosixPermissions] & 022) != 0)
+    {
+#if defined(__WIN32__)
+      fprintf(stderr, "The file '%S' is writable by someone other than"
+	" its owner.\nIgnoring it.\n",
+	(const unichar*)[fileName fileSystemRepresentation]);
+#else
+      fprintf(stderr, "The file '%s' is writable by someone other than"
+	" its owner.\nIgnoring it.\n", [fileName fileSystemRepresentation]);
+#endif
+      return NO;
+    }
+
+  if (dict == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"No destination dictionary supplied"];
+    }
+
+  file = [NSString stringWithContentsOfFile: fileName];
+  l = [file length];
+  src = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * l);
+  spos = src;
+  end = src + l;
+  dst = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * l);
+  dpos = dst;
+  [file getCharacters: src];
+
+  while (spos < end)
+    {
+      NSString	*key = nil;
+      NSString	*val = nil;
+
+      /*
+       * Step past any whitespace ... including blank lines
+       */
+      while (spos < end)
+	{
+	  if (*spos == '#')
+	    {
+	      // Got comment ... skip to end of line
+	      while (++spos < end)
+		{
+		  if (*spos == '\r' || *spos == '\n')
+		    {
+		      break;
+		    }
+		}
+	    }
+	  if (*spos == '\\')
+	    {
+	      spos++;
+	      if (spos >= end)
+		{
+		  break;	// At end of file ... odd but not fatal
+		}
+	    }
+	  if (*spos > ' ')
+	    {
+	      break;		// OK ... found a non space character.
+	    }
+	  spos++;
+	}
+      if (spos == end)
+	{
+	  return YES;		// Completed parsing.
+	}
+
+      dpos = dst;
+      while (spos < end && *spos > ' ' && *spos != '=')
+	{
+	  if (*spos == '#')
+	    {
+	      key = [NSString stringWithCharacters: dst length: dpos - dst];
+	      fprintf(stderr, "Unexpected '#' after '%s' in config file '%s'\n",
+		[key UTF8String], [fileName UTF8String]);
+	      goto end_of_line;
+	    }
+	  *dpos++ = *spos++;
+	}
+      key = [NSString stringWithCharacters: dst length: dpos - dst];
+      for (tmp = dst; tmp < dpos; tmp++)
+	{
+	  if (*tmp != '_'
+	    && (*tmp < 'A' || *tmp > 'Z')
+	    && (*tmp < '0' || *tmp > '9'))
+	    {
+	      fprintf(stderr, "Bad variable name '%s' in config file '%s'\n",
+		[key UTF8String], [fileName UTF8String]);
+	      goto end_of_line;
+	    }
+	}
+
+      while (spos < end && *spos <= ' ')
+	{
+	  spos++;
+	}
+      if (spos >= end || *spos != '=')
+	{
+	  fprintf(stderr, "Expected '=' after '%s' in config file '%s'\n",
+	    [key UTF8String], [fileName UTF8String]);
+	  goto end_of_line;
+	}
+      spos++;	// Step past '='
+
+      /*
+       * Skip any space, but *not* beyond the end of line.
+       */
+      while (spos < end && *spos <= ' ')
+	{
+	  if (*spos == '\r' || *spos == '\n')
+	    {
+	      break;
+	    }
+	  spos++;
+	}
+
+      /*
+       * Capture value.
+       */
+      dpos = dst;
+      while (spos < end && *spos != '\r' && *spos != '\n')
+	{
+	  if (*spos == '\\' && spos < end - 1)
+	    {
+	      if (spos[1] == '#' || spos[1] == '\\')
+		{
+		  spos++;	// Escape hash or backslash
+		}
+	      else if (spos[1] == '\r' || spos[1] == '\n')
+		{
+		  spos += 2;
+		  continue;	// Join lines.
+		}
+	    }
+	  else if (*spos == '#')
+	    {
+	      // Comment ... skip to end of line
+	      while (spos < end && *spos != '\r' && *spos != '\n')
+		{
+		  spos++;
+		}
+	      break;
+	    }
+	  else if (*spos == '$')
+	    {
+	      spos++;
+	      if (spos >= end || *spos != '$')
+		{
+		  fprintf(stderr, "Unexpected '$' in value after '%s'"
+		    " in config file '%s'\n",
+		    [key UTF8String], [fileName UTF8String]);
+		  goto end_of_line;
+		}
+	    }
+	  *dpos++ = *spos++;
+	}
+      val = [NSString stringWithCharacters: dst length: dpos - dst];
+
+      [dict setObject: val forKey: key];
+
+end_of_line:
+      while (spos < end && *spos != '\r' && *spos != '\n')
+	{
+	  spos++;
+	}
+    }
+  NSZoneFree(NSDefaultMallocZone(), src);
+  NSZoneFree(NSDefaultMallocZone(), dst);
+
+  return YES;
+}
+
+#endif
+
+
 /* See NSPathUtilities.h for description */
 void
 GSSetUserName(NSString *aName)
@@ -953,31 +1177,21 @@ NSHomeDirectory(void)
 NSString *
 NSHomeDirectoryForUser(NSString *loginName)
 {
-  NSDictionary	*config = GNUstepConfig();
   NSString	*s = nil;
 
-  s = [@"GNUSTEP_USER_ROOT_" stringByAppendingString: loginName];
-  s = [config objectForKey: s];
-  if (s == nil)
-    {
-      s = [config objectForKey: @"GNUSTEP_USER_ROOT"];
-    }
-  if ([s length] == 0)
-    {
 #if !defined(__MINGW32__)
-      struct passwd *pw;
+  struct passwd *pw;
 
-      [gnustep_global_lock lock];
-      pw = getpwnam ([loginName cString]);
-      if (pw != 0  && pw->pw_dir != NULL)
-	{
-	  s = [NSString stringWithCString: pw->pw_dir];
-	}
-      [gnustep_global_lock unlock];
-#else
-      s = Win32GetUserProfileDirectory(loginName);
-#endif
+  [gnustep_global_lock lock];
+  pw = getpwnam ([loginName cString]);
+  if (pw != 0  && pw->pw_dir != NULL)
+    {
+      s = [NSString stringWithCString: pw->pw_dir];
     }
+  [gnustep_global_lock unlock];
+#else
+  s = Win32GetUserProfileDirectory(loginName);
+#endif
   return s;
 }
 
@@ -1016,14 +1230,14 @@ GSDefaultsRootForUser(NSString *userName)
   NSString *home;
   NSString *defaultsDir = nil;
 
+  InitialisePathUtilities();
   if ([userName length] == 0)
     {
       userName = NSUserName();
     }
-  InitialisePathUtilities();
+  home = NSHomeDirectoryForUser(userName);
   if ([userName isEqual: NSUserName()])
     {
-      home = gnustepUserHome;
       defaultsDir = gnustepUserDefaultsDir;
     }
   else
@@ -1031,7 +1245,6 @@ GSDefaultsRootForUser(NSString *userName)
       NSDictionary	*config;
 
       config = GNUstepUserConfig(userName);
-      home = [config objectForKey:  @"GNUSTEP_USER_HOME"];
       defaultsDir = [config objectForKey: @"GNUSTEP_USER_DEFAULTS_DIR"];
     }
   home = [home stringByAppendingPathComponent: defaultsDir];

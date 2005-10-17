@@ -1,3 +1,9 @@
+2005-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Simplify by removing options for
+	redefining user home directories.  Add code to use gnumake format
+	rather than shell format for config files.
+
 2005-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Changes to support relocation of the

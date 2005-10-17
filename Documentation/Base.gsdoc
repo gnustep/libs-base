@@ -496,17 +496,11 @@ notice and this notice are preserved.
 	    Relative to the user's home directory.</desc>
 	  </deflist>
 	  <p>
-	    The user's home directory is normally taken to be the standard
-	    home directory for that user on the system, but may be overridden
-	    using GNUSTEP_USER_HOME_<em>username</em> to specify an alternative
-	    hoem directory for a specific user, or GNUSTEP_USER_HOME to
-	    specify a directory for all users not otherwise matched.<br />
-	    Specifying an empty string as a directory will cause the standard
-	    system idea of the user's home directory to be used as normal.<br />
-	    This facility allows you to set up directories to hold GNUstep
-	    configuration and defaults information (perhaps readonly files)
-	    for a user account which is not normally given a home directory
-	    (unix daemons etc).
+	    The user's home directory is taken to be the standard
+	    home directory for that user on the system<br />
+	    On unix, that is the user's home directory from the password file,
+	    while on windows  it's the value given by the
+	    Win32GetUserProfileDirectory() function.
 	  </p>
 	  <p>
 	    Support is provided to locate OS/PLATFORM directories. A conf file
@@ -566,8 +560,10 @@ notice and this notice are preserved.
 	  <p>
 	    Secondly, If the value specified by GNUSTEP_CONFIG_FILE (or
 	    built into the base library) itself begins with a dot and
-	    slash (./) then the base directory used for relative paths
-	    is the directory containing the gnustep-base library.
+	    slash (./) then the path used for that file is made relative
+	    to the base library.<br />
+	    ie the dot-slash is replaced by the path to the directory
+	    containing the gnustep-base library.
 	  </p>
 	  <p>
 	    So you can bundle the whole lot together in one directory,
