@@ -266,11 +266,16 @@ sslError(int err, int e)
       RELEASE(final);
       if (err != SSL_ERROR_NONE)
 	{
-	  NSString	*str = sslError(err, e);
+	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
+	    {
+	      /*
+	       * Some other error ... not just a timeout or disconnect
+	       */
+	      NSLog(@"unable to accept SSL connection from %@:%@ - %@",
+		address, service, sslError(err, e));
 
-	  NSLog(@"unable to accept SSL connection from %@:%@ - %@",
-	    address, service, str);
-ERR_print_errors_fp(stderr);
+	      ERR_print_errors_fp(stderr);
+	    }
 	  RELEASE(self);
 	  return NO;
 	}
@@ -367,11 +372,15 @@ ERR_print_errors_fp(stderr);
       RELEASE(final);
       if (err != SSL_ERROR_NONE)
 	{
-	  NSString	*str = sslError(err, e);
-
-	  NSLog(@"unable to make SSL connection to %@:%@ - %@",
-	    address, service, str);
-ERR_print_errors_fp(stderr);
+	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
+	    {
+	      /*
+	       * Some other error ... not just a timeout or disconnect
+	       */
+	      NSLog(@"unable to make SSL connection to %@:%@ - %@",
+		address, service, sslError(err, e));
+	      ERR_print_errors_fp(stderr);
+	    }
 	  RELEASE(self);
 	  return NO;
 	}
