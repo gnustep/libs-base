@@ -1,3 +1,9 @@
+2005-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Begin applying registry patch.
+	* Source/win32/NSUserDefaultsWin32.m: Registry patch with
+	some work done towards conforming to gnustep coding standards.
+
 2005-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/GSSSLHandle.m: Don't output log/warning on accept/connect
