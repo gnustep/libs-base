@@ -34,7 +34,7 @@ win32_OBJC_FILES =\
 	GSRunLoopWatcher.m \
 	NSRunLoopWin32.m \
 	Win32Support.m \
-	Win32_Utilities.m
+	Win32_Utilities.m NSUserDefaultsWin32.m
 
 -include Makefile.preamble
 

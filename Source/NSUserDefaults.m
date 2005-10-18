@@ -56,6 +56,10 @@
 #include "GNUstepBase/GSLocale.h"
 #include "GNUstepBase/GSLock.h"
 
+#if	defined(__MINGW32__)
+@class	NSUserDefaultsWin32;
+#endif
+
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -455,7 +459,25 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   setSharedDefaults = YES;
 
   // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
+#if	defined(__MINGW32__)
+  {
+#if 0
+    NSString	*path = GSDefaultsRootForUser(NSUserName());
+    NSRange	r = [path rangeOfString: @":REGISTRY:"];
+
+    if (r.length > 0)
+      {
+	sharedDefaults = [[NSUserDefaultsWin32 alloc] init];
+      }
+    else
+#endif
+      {
+	sharedDefaults = [[self alloc] init];
+      }
+  }
+#else
   sharedDefaults = [[self alloc] init];
+#endif
   if (sharedDefaults == nil)
     {
       NSLog(@"WARNING - unable to create shared user defaults!\n");
@@ -558,9 +580,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
  */
 + (NSArray*) userLanguages
 {
-  NSArray	*currLang = nil;
   NSArray	*result;
-  NSString	*locale = nil;
 
   /*
    * Calling +standardUserDefaults and +userLanguages is horribly interrelated.
@@ -587,11 +607,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
    * +userLanguages uses this to rebuild language information and return it.
    */
 
-#ifdef HAVE_LOCALE_H
-#ifdef LC_MESSAGES
-  locale = GSSetLocale(LC_MESSAGES, nil);
-#endif
-#endif
   [classLock lock];
   if (invalidatedLanguages == YES)
     {
@@ -600,6 +615,14 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     }
   if (userLanguages == nil)
     {
+      NSArray	*currLang = nil;
+      NSString	*locale = nil;
+
+#ifdef HAVE_LOCALE_H
+#ifdef LC_MESSAGES
+      locale = GSSetLocale(LC_MESSAGES, nil);
+#endif
+#endif
       currLang = [[NSUserDefaults standardUserDefaults]
 	stringArrayForKey: @"NSLanguages"];
 
@@ -688,7 +711,8 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 }
 
 /* Returns the path to the user's ".GNUstepDefaults file" */
-static NSString	*pathForUser(NSString *user)
+static NSString	*
+pathForUser(NSString *user)
 {
   NSString	*database = @".GNUstepDefaults";
   NSFileManager	*mgr = [NSFileManager defaultManager];
@@ -814,14 +838,14 @@ static NSString	*pathForUser(NSString *user)
     }
 
   // Check and if not existent add the Application and the Global domains
-  if (![_persDomains objectForKey: processName])
+  if ([_persDomains objectForKey: processName] == nil)
     {
       [_persDomains
 	setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
 	forKey: processName];
       [self __changePersistentDomain: processName];
     }
-  if (![_persDomains objectForKey: NSGlobalDomain])
+  if ([_persDomains objectForKey: NSGlobalDomain] == nil)
     {
       [_persDomains
 	setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
@@ -1346,69 +1370,46 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
-/**
- * Ensures that the in-memory and on-disk representations of the defaults
- * are in sync.  You may call this yourself, but probably don't need to
- * since it is invoked at intervals whenever a runloop is running.<br />
- * If any persistent domain is changed by reading new values from disk,
- * an NSUserDefaultsDidChangeNotification is posted.
- */
-- (BOOL) synchronize
+- (BOOL) wantToReadDefaultsSince:(NSDate*)lastSyncDate
 {
-  NSFileManager		*mgr = [NSFileManager defaultManager];
-  NSMutableDictionary	*newDict;
-  NSDictionary		*attr;
-  NSDate		*started = [NSDateClass date];
-  unsigned long		desired;
-  unsigned long		attributes;
-  static BOOL		isLocked = NO;
-  BOOL			wasLocked;
+  NSFileManager *mgr = [NSFileManager defaultManager];
+  NSDictionary	*attr;
 
-  [_lock lock];
-
-  /*
-   *	If we haven't changed anything, we only need to synchronise if
-   *	the on-disk database has been changed by someone else.
-   */
-  attr = [mgr fileAttributesAtPath: _defaultsDatabase
-		      traverseLink: YES];
-  if (_changedDomains == nil)
+  attr = [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES];
+  if (lastSyncDate == nil)
     {
-      BOOL	wantRead = NO;
-
-      if (_lastSync == nil)
+      return YES;
+    }
+  else
+    {
+      if (attr == nil)
 	{
-	  wantRead = YES;
+	  return YES;
 	}
       else
 	{
-	  if (attr == nil)
-	    {
-	      wantRead = YES;
-	    }
-	  else
-	    {
-	      NSDate	*mod;
+	  NSDate	*mod;
 
-	      /*
-	       * If the database was modified since the last synchronisation
-	       * we need to read it.
-	       */
-	      mod = [attr objectForKey: NSFileModificationDate];
-	      if (mod != nil && [_lastSync laterDate: mod] != _lastSync)
-		{
-		  wantRead = YES;
-		}
+	  /*
+	   * If the database was modified since the last synchronisation
+	   * we need to read it.
+	   */
+	  mod = [attr objectForKey: NSFileModificationDate];
+	  if (mod != nil && [lastSyncDate laterDate: mod] != lastSyncDate)
+	    {
+	      return YES;
 	    }
-	}
-      if (wantRead == NO)
-	{
-	  [_lock unlock];
-	  return YES;
 	}
     }
+  return NO;
+}
 
-  wasLocked = isLocked;
+static BOOL isLocked = NO;
+- (BOOL) lockDefaultsFile:(BOOL*)wasLocked
+{
+  NSDate		*started = [NSDateClass date];
+  *wasLocked = isLocked;
+  
   if (isLocked == NO && _fileLock != nil)
     {
       while ([_fileLock tryLock] == NO)
@@ -1430,7 +1431,6 @@ static BOOL isPlistObject(id o)
 	    {
 	      NSLog(@"Failed to lock user defaults database even after "
 		@"breaking old locks!");
-	      [_lock unlock];
 	      return NO;
 	    }
 
@@ -1451,21 +1451,31 @@ static BOOL isPlistObject(id o)
 	}
       isLocked = YES;
     }
+   return YES;
+}
+
+- (void) unlockDefaultsFile
+{
+  [_fileLock unlock];
+  isLocked = NO;
+}
+
+- (NSMutableDictionary*) readDefaults
+{
+  NSMutableDictionary	*newDict;
+  NSFileManager		*mgr = [NSFileManager defaultManager];
+  NSDictionary		*attr;
 
   /*
    * Re-fetch database attributes in cased they changed while obtaining lock.
    */
   attr = [mgr fileAttributesAtPath: _defaultsDatabase
 		      traverseLink: YES];
-
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults) invalidatedLanguages = YES;
-
   // Read the persistent data from the stored database
   if (attr == nil)
     {
-      newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
-	initWithCapacity: 1];
+      newDict = [[[NSMutableDictionaryClass allocWithZone: [self zone]]
+	initWithCapacity: 1] autorelease];
       if (_fileLock != nil)
 	{
 	  NSLog(@"Creating defaults database file %@", _defaultsDatabase);
@@ -1482,8 +1492,8 @@ static BOOL isPlistObject(id o)
 	}
       else
 	{
-	  newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
-	    initWithContentsOfFile: _defaultsDatabase];
+	  newDict = [[[NSMutableDictionaryClass allocWithZone: [self zone]]
+	    initWithContentsOfFile: _defaultsDatabase] autorelease];
 	}
       if (newDict == nil)
 	{
@@ -1494,8 +1504,8 @@ static BOOL isPlistObject(id o)
 	       * initialised that way (possibly on a read-only filesystem)
 	       * so we just continue as best we can.
 	       */
-	      newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
-		initWithCapacity: 4];
+	      newDict = [[[NSMutableDictionaryClass allocWithZone: [self zone]]
+		initWithCapacity: 4] autorelease];
 	    }
 	  else
 	    {
@@ -1504,40 +1514,105 @@ static BOOL isPlistObject(id o)
 	       * probably a severe error of some sort
 	       */
 	      NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
-	      if (wasLocked == NO)
-		{
-		  [_fileLock unlock];
-		  isLocked = NO;
-		}
-	      [_lock unlock];
-	      return NO;
 	    }
 	}
     }
+    
+  if (attr != nil)
+    {
+      unsigned long		desired;
+      unsigned long		attributes;
+
+      /*
+       * We enforce the permission mode 0600 on the defaults database
+       */
+      attributes = [attr filePosixPermissions];
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+      desired = 0600;
+#else
+      desired = (S_IRUSR|S_IWUSR);
+#endif
+      if (attributes != desired)
+	{
+	  NSMutableDictionary	*enforced_attributes;
+	  NSNumber		*permissions;
+
+	  enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
+	    [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
+
+	  permissions = [NSNumberClass numberWithUnsignedLong: desired];
+	  [enforced_attributes setObject: permissions
+				  forKey: NSFilePosixPermissions];
+
+	  [mgr changeFileAttributes: enforced_attributes
+			     atPath: _defaultsDatabase];
+	}
+    }
+  return newDict;
+}
+
+- (BOOL) writeDefaults: (NSDictionary*)defaults oldData: (NSDictionary*)oldData
+{
+  // Save the changes unless we are in read-only mode.
+  if (_fileLock != nil)
+    {
+      if ([defaults writeToFile: _defaultsDatabase atomically: YES] == NO)
+	{
+	  return NO;
+	}
+    }
+  return YES;
+}
+
+/**
+ * Ensures that the in-memory and on-disk representations of the defaults
+ * are in sync.  You may call this yourself, but probably don't need to
+ * since it is invoked at intervals whenever a runloop is running.<br />
+ * If any persistent domain is changed by reading new values from disk,
+ * an NSUserDefaultsDidChangeNotification is posted.
+ */
+- (BOOL) synchronize
+{
+  NSMutableDictionary	*newDict;
+  BOOL			wasLocked;
+
+  [_lock lock];
 
   /*
-   * We enforce the permission mode 0600 on the defaults database
+   *	If we haven't changed anything, we only need to synchronise if
+   *	the on-disk database has been changed by someone else.
    */
-  attributes = [attr filePosixPermissions];
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
-  desired = 0600;
-#else
-  desired = (S_IRUSR|S_IWUSR);
-#endif
-  if (attributes != desired)
+   
+  if (_changedDomains == nil)
     {
-      NSMutableDictionary	*enforced_attributes;
-      NSNumber			*permissions;
+      if ([self wantToReadDefaultsSince:_lastSync] == NO)
+	{
+	  [_lock unlock];
+	  return YES;
+	}
+    }
 
-      enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
-	[mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
-
-      permissions = [NSNumberClass numberWithUnsignedLong: desired];
-      [enforced_attributes setObject: permissions
-			      forKey: NSFilePosixPermissions];
-
-      [mgr changeFileAttributes: enforced_attributes
-			 atPath: _defaultsDatabase];
+  DESTROY(_dictionaryRep);
+  if (self == sharedDefaults)
+    {
+      invalidatedLanguages = YES;
+    }
+  
+  if ([self lockDefaultsFile: &wasLocked] == NO)
+    {
+      return NO;
+    }
+  
+  newDict = [self readDefaults];
+  
+  if (newDict == nil)
+    {
+      if (wasLocked == NO)
+	{
+	  [self unlockDefaultsFile];
+	}
+      [_lock unlock];
+      return NO;
     }
 
   if (_changedDomains != nil)
@@ -1545,6 +1620,7 @@ static BOOL isPlistObject(id o)
       NSEnumerator	*enumerator = [_changedDomains objectEnumerator];
       NSString		*domainName;
       NSDictionary	*domain;
+      NSDictionary	*oldData = AUTORELEASE([newDict copy]);
 
       DESTROY(_changedDomains);	// Retained by enumerator.
       while ((domainName = [enumerator nextObject]) != nil)
@@ -1559,21 +1635,15 @@ static BOOL isPlistObject(id o)
 	      [newDict removeObjectForKey: domainName];
 	    }
 	}
-      RELEASE(_persDomains);
-      _persDomains = newDict;
-      // Save the changes unless we are in read-only mode.
-      if (_fileLock != nil)
+      ASSIGN(_persDomains, newDict);
+      if ([self writeDefaults: _persDomains oldData: oldData] == NO)
 	{
-	  if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
+	  if (wasLocked == NO)
 	    {
-	      if (wasLocked == NO)
-		{
-		  [_fileLock unlock];
-		  isLocked = NO;
-		}
-	      [_lock unlock];
-	      return NO;
+	      [self unlockDefaultsFile];
 	    }
+	  [_lock unlock];
+	  return NO;
 	}
       ASSIGN(_lastSync, [NSDateClass date]);
     }
@@ -1582,23 +1652,17 @@ static BOOL isPlistObject(id o)
       ASSIGN(_lastSync, [NSDateClass date]);
       if ([_persDomains isEqual: newDict] == NO)
 	{
-	  RELEASE(_persDomains);
-	  _persDomains = newDict;
+	  ASSIGN(_persDomains, newDict);
 	  updateCache(self);
 	  [[NSNotificationCenter defaultCenter]
 	    postNotificationName: NSUserDefaultsDidChangeNotification
 			  object: self];
 	}
-      else
-	{
-	  RELEASE(newDict);
-	}
     }
 
   if (wasLocked == NO)
     {
-      [_fileLock unlock];
-      isLocked = NO;
+      [self unlockDefaultsFile];
     }
   [_lock unlock];
   return YES;
@@ -1784,9 +1848,9 @@ static BOOL isPlistObject(id o)
   enumerator = [args objectEnumerator];
   argDict = [NSMutableDictionaryClass dictionaryWithCapacity: 2];
   [enumerator nextObject];	// Skip process name.
-  done = ((key = [enumerator nextObject]) == nil);
+  done = ((key = [enumerator nextObject]) == nil) ? YES : NO;
 
-  while (!done)
+  while (done == NO)
     {
       if ([key hasPrefix: @"-"] == YES && [key isEqual: @"-"] == NO)
 	{
