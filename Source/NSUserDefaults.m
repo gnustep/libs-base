@@ -1370,7 +1370,7 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
-- (BOOL) wantToReadDefaultsSince:(NSDate*)lastSyncDate
+- (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate
 {
   NSFileManager *mgr = [NSFileManager defaultManager];
   NSDictionary	*attr;
@@ -1405,9 +1405,10 @@ static BOOL isPlistObject(id o)
 }
 
 static BOOL isLocked = NO;
-- (BOOL) lockDefaultsFile:(BOOL*)wasLocked
+- (BOOL) lockDefaultsFile: (BOOL*)wasLocked
 {
   NSDate		*started = [NSDateClass date];
+
   *wasLocked = isLocked;
   
   if (isLocked == NO && _fileLock != nil)
