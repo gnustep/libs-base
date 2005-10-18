@@ -13,17 +13,16 @@ extern void GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 @interface NSUserDefaultsWin32 : NSUserDefaults
 {
-  BOOL noLegacyFile;
-  NSString *registryPrefix;
-  NSMapTable *registryInfo;
+  NSString	*registryPrefix;
+  NSMapTable	*registryInfo;
 }
 @end
 
 @interface NSUserDefaults (Secrets)
-- (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate;
 - (BOOL) lockDefaultsFile: (BOOL*)wasLocked;
 - (void) unlockDefaultsFile;
 - (NSMutableDictionary*) readDefaults;
+- (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate;
 - (BOOL) writeDefaults: (NSDictionary*)defaults oldData: (NSDictionary*)oldData;
 @end
 
@@ -33,60 +32,31 @@ struct NSUserDefaultsWin32_DomainInfo
   HKEY systemKey;
 };
 
-@implementation NSUserDefaults (Win32)
-+ (Class) standardUserDefaultsClass
-{
-  return [NSUserDefaultsWin32 class];
-}
-@end
-
 @implementation NSUserDefaultsWin32
-- (id) initWithUser: (NSString*)userName
+#ifdef NOTYET
+- (void) dealloc
 {
-  NSFileManager	*mgr;
-  NSString *path;
-  NSString *file;
-
-  NSAssert([userName isEqual: NSUserName()],
-    @"NSUserDefaultsWin32 doesn't support reading/writing to users other than the current user.");
-	
-  mgr = [NSFileManager defaultManager];
-  path = GSDefaultsRootForUser(userName);
-  file = [path stringByAppendingPathComponent: @".GNUstepDefaults"];
-  registryPrefix = [[NSString alloc] initWithString: @"Software\\GNUstep\\"];
-	
-  if ([mgr isReadableFileAtPath: file] == NO)
-    {
-      noLegacyFile = YES;
-      self = [super initWithContentsOfFile: @"C: /No/Such/File/Exists"];
-    }
-  else
-    {
-      noLegacyFile = NO;
-      self = [super initWithUser: userName];
-    }
-	
-  return self;
-}
-
-- (void) closeRegistry
-{
+  DESTROY(registryPrefix);
   if (registryInfo != 0)
     {
-      NSMapEnumerator iter = NSEnumerateMapTable(registryInfo);
-      NSString *domain;
+      NSMapEnumerator	iter = NSEnumerateMapTable(registryInfo);
+      NSString		*domain;
       struct NSUserDefaultsWin32_DomainInfo *dinfo;
   
-		
       while (NSNextMapEnumeratorPair(&iter, (void**)&domain, (void**)&dinfo))
 	{
 	  LONG rc;
+
 	  if (dinfo->userKey)
 	    {
 	      rc = RegCloseKey(dinfo->userKey);
 	      if (rc != ERROR_SUCCESS)
 		{
-		  NSLog(@"Failed to close registry HKEY_CURRENT_USER\\%@%@ (%x)", registryPrefix, domain, rc);
+		  NSString	dPath;
+
+		  dPath = [registryPrefix stringByAppendingString: domain];
+		  NSLog(@"Failed to close registry HKEY_CURRENT_USER\\%@ (%x)",
+		    dPath, rc);
 		}
 	    }
 	  if (dinfo->systemKey)
@@ -94,214 +64,132 @@ struct NSUserDefaultsWin32_DomainInfo
 	      rc = RegCloseKey(dinfo->systemKey);
 	      if (rc != ERROR_SUCCESS)
 		{
-		  NSLog(@"Failed to close registry HKEY_LOCAL_MACHINE\\%@%@ (%x)", registryPrefix, domain, rc);
+		  NSString	dPath;
+
+		  dPath = [registryPrefix stringByAppendingString: domain];
+		  NSLog(@"Failed to close registry HKEY_LOCAL_MACHINE\\%@ (%x)",
+		    dPath, rc);
 		}
 	    }
 	}
+      NSEndMapTableEnumeration(&iter);
       NSResetMapTable(registryInfo);
-    }
-}
-
-- (void) dealloc
-{
-  DESTROY(registryPrefix);
-  [self closeRegistry];
-  if (registryInfo != 0)
-    {
       NSFreeMapTable(registryInfo);
       registryInfo = 0;
     }
   [super dealloc];
 }
 
-- (void) setRegistryPrefix: (NSString*) p
+- (id) initWithUser: (NSString*)userName
 {
-  ASSIGN(registryPrefix, p);
-  [self closeRegistry];
-  if (registryInfo != 0)
-    {
-      NSFreeMapTable(registryInfo);
-      registryInfo = 0;
-    }
-  [self synchronize];
-}
+  NSString	*path;
+  NSRange	r;
 
-- (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate
-{
-  if (lastSyncDate == nil && registryInfo == 0)
+  NSAssert([userName isEqual: NSUserName()],
+    @"NSUserDefaultsWin32 doesn't support reading/writing to users other than the current user.");
+	
+  path = GSDefaultsRootForUser(userName);
+  r = [path rangeOfString: @":REGISTRY:"];
+  NSAssert(r.length > 0,
+    @"NSUserDefaultsWin32 should only be used if defaults directory is :REGISTRY:");
+
+  path = [path substringFromIndex: NSMaxRange(r)];
+  path = [@"Software\\GNUstep\\" stringByAppendingString: path];
+  if ([path hasSuffix: @"\\"] == NO)
     {
-      // Detect changes in the registry
-      NSMapEnumerator iter = NSEnumerateMapTable(registryInfo);
-      NSString *domain;
-      struct NSUserDefaultsWin32_DomainInfo *dinfo;
-      
-      while (NSNextMapEnumeratorPair(&iter, (void**)&domain, (void**)&dinfo))
-	{
-	  ULARGE_INTEGER lasttime;
-	  LONG rc;
-	  NSTimeInterval ti;
-	  
-	  if (dinfo->userKey)
-	    {
-	      rc = RegQueryInfoKey(dinfo->userKey, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,NULL, NULL, (PFILETIME)&lasttime);
-	      if (rc != ERROR_SUCCESS)
-		{
-		  NSLog(@"Failed to query modify time on registry HKEY_CURRENT_USER\\%@%@ (%x)", registryPrefix, domain, rc);
-		  return YES;
-		}
-	      ti = -12622780800.0 + lasttime.QuadPart / 10000000.0;
-	      if ([lastSyncDate timeIntervalSinceReferenceDate] < ti)
-		{
-		  return YES;
-		}
-	    }
-	  else
-	    {
-	      // If the key didn't exist, but now it does, we want to read it.
-	      const char *domainPath = [[registryPrefix stringByAppendingString: domain] cString];
-	      rc = RegOpenKeyEx(HKEY_CURRENT_USER, domainPath, 0, STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE|KEY_QUERY_VALUE, &(dinfo->userKey));
-	      if (rc == ERROR_FILE_NOT_FOUND)
-		{
-		  dinfo->userKey = 0;
-		}
-	      else if (rc != ERROR_SUCCESS)
-		{
-		  NSLog(@"Failed to open registry HKEY_CURRENT_USER\\%@%@ (%x)", registryPrefix, domain, rc);
-		}
-	      else
-		{
-		  return YES;
-		}
-	    }
-	  if (dinfo->systemKey)
-	    {
-	      rc = RegQueryInfoKey(dinfo->systemKey, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,NULL, NULL, (PFILETIME)&lasttime);
-	      if (rc != ERROR_SUCCESS)
-		{
-		  NSLog(@"Failed to query modify time on registry HKEY_LOCAL_MACHINE\\%@%@ (%x)", registryPrefix, domain, rc);
-		  return YES;
-		}
-	      ti = -12622780800.0 + lasttime.QuadPart / 10000000.0;
-	      if ([lastSyncDate timeIntervalSinceReferenceDate] < ti)
-		{
-		  return YES;
-		}
-	    }
-	  else
-	    {
-	      // If the key didn't exist, but now it does, we want to read it.
-	      const char *domainPath = [[registryPrefix stringByAppendingString: domain] cString];
-	      rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE, domainPath, 0, STANDARD_RIGHTS_READ|KEY_QUERY_VALUE, &(dinfo->systemKey));
-	      if (rc == ERROR_FILE_NOT_FOUND)
-		{
-		  dinfo->systemKey = 0;
-		}
-	      else if (rc != ERROR_SUCCESS)
-		{
-		  NSLog(@"Failed to open registry HKEY_LOCAL_MACHINE\\%@%@ (%x)", registryPrefix, domain, rc);
-		}
-	      else
-		{
-		  return YES;
-		}
-	    }
-	}
-      
-      if (noLegacyFile)
-	{
-	  return NO;
-	}
-      return [super wantToReadDefaultsSince: lastSyncDate];
+      path = [path stringByAppendingString: @"\\"];
     }
-  return YES;
+  registryPrefix = RETAIN(path);
+  noLegacyFile = YES;
+  self = [super initWithContentsOfFile: @"C: /No/Such/File/Exists"];
+  return self;
 }
 
 - (BOOL) lockDefaultsFile: (BOOL*)wasLocked
 {
-  if (noLegacyFile)
-    {
-      *wasLocked = NO;
-      return YES;
-    }
-  return [super lockDefaultsFile: wasLocked];
-}
-
-- (void) unlockDefaultsFile
-{
-  if (noLegacyFile)
-    {
-      return;
-    }
-  [super unlockDefaultsFile];
+  *wasLocked = NO;
+  return YES;
 }
 
 - (NSMutableDictionary*) readDefaults
 {
-  NSArray *allDomains = [self persistentDomainNames];
-  NSEnumerator *iter;
-  NSString *persistantDomain;
-  NSMutableDictionary *newDict = 0;
+  NSArray		*allDomains;
+  NSEnumerator		*iter;
+  NSString		*persistantDomain;
+  NSMutableDictionary	*newDict = nil;
   
-  if ([allDomains count] > 0)
+  allDomains = [self persistentDomainNames];
+  if ([allDomains count] == 0)
     {
-      allDomains = [NSArray arrayWithObjects: [[NSProcessInfo processInfo] processName], NSGlobalDomain, 0];
+      allDomains = [NSArray arrayWithObjects:
+	[[NSProcessInfo processInfo] processName],
+	NSGlobalDomain,
+	nil];
     }
   
-  if (registryInfo != 0)
+  if (registryInfo == 0)
     {
-      registryInfo = NSCreateMapTable(NSObjectMapKeyCallBacks, NSOwnedPointerMapValueCallBacks, [allDomains count]);
+      registryInfo = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	NSOwnedPointerMapValueCallBacks, [allDomains count]);
     }
 
-  if (noLegacyFile == NO)
-    {
-      newDict = [super readDefaults];
-    }
-  if (newDict != nil)
-    {
-      newDict = [NSMutableDictionary dictionary];
-    }
+  newDict = [NSMutableDictionary dictionary];
 
   iter = [allDomains objectEnumerator];
-  while ((persistantDomain = [iter nextObject]))
+  while ((persistantDomain = [iter nextObject]) != nil)
     {
+      NSMutableDictionary *domainDict;
       struct NSUserDefaultsWin32_DomainInfo *dinfo;
+      NSString *dPath;
+      LONG rc;
+
       dinfo = NSMapGet(registryInfo, persistantDomain);
-      if (dinfo != 0)
+      if (dinfo == 0)
 	{
 	  dinfo = calloc(sizeof(struct NSUserDefaultsWin32_DomainInfo), 1);
 	  NSMapInsertKnownAbsent(registryInfo, persistantDomain, dinfo);
 	}
-      const char *domainPath = [[registryPrefix stringByAppendingString: persistantDomain] cString];
-      LONG rc;
+      dPath = [registryPrefix stringByAppendingString: persistantDomain];
       
       if (dinfo->userKey != 0)
 	{
-	  rc = RegOpenKeyEx(HKEY_CURRENT_USER, domainPath, 0, STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE|KEY_QUERY_VALUE, &(dinfo->userKey));
+	  rc = RegOpenKeyEx(HKEY_CURRENT_USER,
+	    [dPath cString],
+	    0,
+	    STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ
+	    |KEY_SET_VALUE|KEY_QUERY_VALUE,
+	    &(dinfo->userKey));
 	  if (rc == ERROR_FILE_NOT_FOUND)
 	    {
 	      dinfo->userKey = 0;
 	    }
 	  else if (rc != ERROR_SUCCESS)
 	    {
-	      NSLog(@"Failed to open registry HKEY_CURRENT_USER\\%@%@ (%x)", registryPrefix, persistantDomain, rc);
-	      return 0;
+	      NSLog(@"Failed to open registry HKEY_CURRENT_USER\\%@ (%x)",
+		dPath, rc);
+	      return nil;
 	    }
 	}
       if (dinfo->systemKey != 0)
 	{
-	  rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE, domainPath, 0, STANDARD_RIGHTS_READ|KEY_QUERY_VALUE, &(dinfo->systemKey));
+	  rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
+	    [dPath cString],
+	    0,
+	    STANDARD_RIGHTS_READ|KEY_QUERY_VALUE,
+	    &(dinfo->systemKey));
 	  if (rc == ERROR_FILE_NOT_FOUND)
 	    {
 	      dinfo->systemKey = 0;
 	    }
 	  else if (rc != ERROR_SUCCESS)
 	    {
-	      NSLog(@"Failed to open registry HKEY_LOCAL_MACHINE\\%@%@ (%x)", registryPrefix, persistantDomain, rc);
-	      return 0;
+	      NSLog(@"Failed to open registry HKEY_LOCAL_MACHINE\\%@ (%x)",
+		dPath, rc);
+	      return nil;
 	    }
 	}
       
-      NSMutableDictionary *domainDict = [newDict objectForKey: persistantDomain];
+      domainDict = [newDict objectForKey: persistantDomain];
       if (domainDict == nil)
 	{
 	  domainDict = [NSMutableDictionary dictionary];
@@ -310,21 +198,37 @@ struct NSUserDefaultsWin32_DomainInfo
 
       if (dinfo->systemKey)
 	{
-	  DWORD i;
+	  DWORD i = 0;
 	  char *name = malloc(100), *data = malloc(1000);
 	  DWORD namelenbuf = 100, datalenbuf = 1000;
 	  DWORD type;
-	  i=0;
+
 	  do
 	    {
 	      DWORD namelen = namelenbuf, datalen = datalenbuf;
-	      rc = RegEnumValue(dinfo->systemKey, i, name, &namelen, NULL, &type, data, &datalen);
+
+	      rc = RegEnumValue(dinfo->systemKey,
+		i,
+		name,
+		&namelen,
+		NULL,
+		&type,
+		data,
+		&datalen);
 	      if (rc == ERROR_SUCCESS)
 		{
 		  NS_DURING
-		    [domainDict setObject: [[NSString stringWithCString: data] propertyList] forKey: [NSString stringWithCString: name]];
+		    {
+		      id	v;
+		      NSString	*k;
+
+		      v = [NSString stringWithCString: data];
+		      v = [v propertyList];
+		      k = [NSString stringWithCString: name];
+		      [domainDict setObject: v forKey: k];
+		    }
 		  NS_HANDLER
-		    NSLog(@"Bad registry value for %s", name);
+		    NSLog(@"Bad registry value for '%s'", name);
 		  NS_ENDHANDLER
 		}
 	      else if (rc == ERROR_MORE_DATA)
@@ -358,54 +262,185 @@ struct NSUserDefaultsWin32_DomainInfo
       
       if (dinfo->userKey)
 	{
-	  DWORD i;
+	  DWORD i = 0;
 	  char *name = malloc(100), *data = malloc(1000);
 	  DWORD namelenbuf = 100, datalenbuf = 1000;
 	  DWORD type;
-	  i=0;
+
 	  do
 	    {
 	      DWORD namelen = namelenbuf, datalen = datalenbuf;
-	      rc = RegEnumValue(dinfo->userKey, i, name, &namelen, NULL, &type, data, &datalen);
+
+	      rc = RegEnumValue(dinfo->userKey,
+		i,
+		name,
+		&namelen,
+		NULL,
+		&type,
+		data,
+		&datalen);
 	      if (rc == ERROR_SUCCESS)
-	      {
-		NS_DURING
-		  [domainDict setObject: [[NSString stringWithCString: data] propertyList] forKey: [NSString stringWithCString: name]];
-		NS_HANDLER
-		  NSLog(@"Bad registry value for %s", name);
-		NS_ENDHANDLER
-	      }
-	    else if (rc == ERROR_MORE_DATA)
-	      {
-		if (namelen >= namelenbuf)
-		  {
-		    namelenbuf = namelen + 1;
-		    name = realloc(name, namelenbuf);
-		  }
-		if (datalen >= datalenbuf)
-		  {
-		    datalenbuf = datalen+1;
-		    data = realloc(data, datalenbuf);
-		  }
-		continue;
-	      }
-	    else if (rc == ERROR_NO_MORE_ITEMS)
-	      {
-		break;
-	      }
-	    else
-	      {
-		NSLog(@"RegEnumValue error %d", rc);
-		break;
-	      }
+		{
+		  NS_DURING
+		    {
+		      id	v;
+		      NSString	*k;
+
+		      v = [NSString stringWithCString: data];
+		      v = [v propertyList];
+		      k = [NSString stringWithCString: name];
+		      [domainDict setObject: v forKey: k];
+		    }
+		  NS_HANDLER
+		    NSLog(@"Bad registry value for '%s'", name);
+		  NS_ENDHANDLER
+		}
+	      else if (rc == ERROR_MORE_DATA)
+		{
+		  if (namelen >= namelenbuf)
+		    {
+		      namelenbuf = namelen + 1;
+		      name = realloc(name, namelenbuf);
+		    }
+		  if (datalen >= datalenbuf)
+		    {
+		      datalenbuf = datalen+1;
+		      data = realloc(data, datalenbuf);
+		    }
+		  continue;
+		}
+	      else if (rc == ERROR_NO_MORE_ITEMS)
+		{
+		  break;
+		}
+	      else
+		{
+		  NSLog(@"RegEnumValue error %d", rc);
+		  break;
+		}
 	      i++;
 	    } while (rc == ERROR_SUCCESS || rc == ERROR_MORE_DATA);
 	  free(name);
 	  free(data);
 	}
     }
-  
   return newDict;
+}
+
+- (void) unlockDefaultsFile
+{
+  return;
+}
+
+- (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate
+{
+  if (lastSyncDate == nil && registryInfo != 0)
+    {
+      // Detect changes in the registry
+      NSMapEnumerator	iter;
+      NSString		*domain;
+      struct NSUserDefaultsWin32_DomainInfo *dinfo;
+      
+      iter = NSEnumerateMapTable(registryInfo);
+      while (NSNextMapEnumeratorPair(&iter, (void**)&domain, (void**)&dinfo))
+	{
+	  ULARGE_INTEGER lasttime;
+	  LONG rc;
+	  NSTimeInterval ti;
+	  NSString	*dPath;
+	  NSString	*dName;
+
+	  dPath = [registryPrefix stringByAppendingString: domain];
+
+	  if (dinfo->userKey)
+	    {
+	      rc = RegQueryInfoKey(dinfo->userKey,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL,NULL, NULL, (PFILETIME)&lasttime);
+	      if (rc != ERROR_SUCCESS)
+		{
+		  NSString	*dName = [@"HKEY_CURRENT_USER\\"
+		    stringByAppendingString: dPath];
+
+		  NSLog(@"Failed to query modify time on registry %@ (%x)",
+		    dName, rc);
+		  return YES;
+		}
+	      ti = -12622780800.0 + lasttime.QuadPart / 10000000.0;
+	      if ([lastSyncDate timeIntervalSinceReferenceDate] < ti)
+		{
+		  return YES;
+		}
+	    }
+	  else
+	    {
+	      // If the key didn't exist, but now it does, we want to read it.
+	      rc = RegOpenKeyEx(HKEY_CURRENT_USER,
+		[dPath cString],
+		0,
+		STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ
+		|KEY_SET_VALUE|KEY_QUERY_VALUE,
+		&(dinfo->userKey));
+	      if (rc == ERROR_FILE_NOT_FOUND)
+		{
+		  dinfo->userKey = 0;
+		}
+	      else if (rc != ERROR_SUCCESS)
+		{
+		  NSString	*dName = [@"HKEY_CURRENT_USER\\"
+		    stringByAppendingString: dPath];
+
+		  NSLog(@"Failed to open registry %@ (%x)", dName, rc);
+		}
+	      else
+		{
+		  return YES;
+		}
+	    }
+	  if (dinfo->systemKey)
+	    {
+	      rc = RegQueryInfoKey(dinfo->systemKey,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, (PFILETIME)&lasttime);
+	      if (rc != ERROR_SUCCESS)
+		{
+		  NSLog(@"Failed to query time on HKEY_LOCAL_MACHINE\\%@ (%x)",
+		    dPath, rc);
+		  return YES;
+		}
+	      ti = -12622780800.0 + lasttime.QuadPart / 10000000.0;
+	      if ([lastSyncDate timeIntervalSinceReferenceDate] < ti)
+		{
+		  return YES;
+		}
+	    }
+	  else
+	    {
+	      // If the key didn't exist, but now it does, we want to read it.
+	      rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
+		[dPath cString],
+		0,
+		STANDARD_RIGHTS_READ|KEY_QUERY_VALUE,
+		&(dinfo->systemKey));
+	      if (rc == ERROR_FILE_NOT_FOUND)
+		{
+		  dinfo->systemKey = 0;
+		}
+	      else if (rc != ERROR_SUCCESS)
+		{
+		  NSLog(@"Failed to open registry HKEY_LOCAL_MACHINE\\%@ (%x)",
+		    dPath, rc);
+		}
+	      else
+		{
+		  return YES;
+		}
+	    }
+	}
+      NSEndMapTableEnumeration(&iter);
+      return NO;
+    }
+  return YES;
 }
 
 - (BOOL) writeDefaults: (NSDictionary*)defaults oldData: (NSDictionary*)oldData
@@ -420,16 +455,15 @@ struct NSUserDefaultsWin32_DomainInfo
     }
 
   iter = [defaults keyEnumerator];
-  while ((persistantDomain = [iter nextObject]))
+  while ((persistantDomain = [iter nextObject]) != nil)
     {
       struct NSUserDefaultsWin32_DomainInfo *dinfo;
       NSDictionary *domainDict;
       NSDictionary *oldDomainDict;
-      const char *domainPath;
+      NSString *dPath;
       LONG rc;
       NSEnumerator *valIter;
       NSString *valName;
-
 
       dinfo = NSMapGet(registryInfo, persistantDomain);
       if (dinfo == 0)
@@ -440,14 +474,24 @@ struct NSUserDefaultsWin32_DomainInfo
 
       domainDict = [defaults objectForKey: persistantDomain];
       oldDomainDict = [oldData objectForKey: persistantDomain];
-      domainPath = [[registryPrefix stringByAppendingString: persistantDomain] cString];
+      dPath = [registryPrefix stringByAppendingString: persistantDomain];
       
       if ([domainDict count] && !dinfo->userKey)
 	{
-	  rc = RegCreateKeyEx(HKEY_CURRENT_USER, domainPath, 0, "", REG_OPTION_NON_VOLATILE, STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE|KEY_QUERY_VALUE, NULL, &(dinfo->userKey), NULL);
+	  rc = RegCreateKeyEx(HKEY_CURRENT_USER,
+	    [dPath cString],
+	    0,
+	    "",
+	    REG_OPTION_NON_VOLATILE,
+	    STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE
+	    |KEY_QUERY_VALUE,
+	    NULL,
+	    &(dinfo->userKey),
+	    NULL);
 	  if (rc != ERROR_SUCCESS)
 	    {
-	      NSLog(@"Failed to create registry HKEY_CURRENT_USER\\%@%@ (%x)", registryPrefix, persistantDomain, rc);
+	      NSLog(@"Failed to create registry HKEY_CURRENT_USER\\%@ (%x)",
+		dPath, rc);
 	      return NO;
 	    }
 	}
@@ -471,14 +515,15 @@ struct NSUserDefaultsWin32_DomainInfo
 		REG_SZ, [result cString], [result cStringLength]+1);
 	      if (rc != ERROR_SUCCESS)
 		{
-		  NSLog(@"Failed to insert value HKEY_CURRENT_USER\\%@%@\\%@ (%x)", registryPrefix, persistantDomain, valName, rc);
+		  NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x)",
+		    dPath, valName, rc);
 		  return NO;
 		}
 	    }
 	}
       // Enumerate over the oldvalues and delete the deleted keys.
       valIter = [oldDomainDict keyEnumerator];
-      while ((valName = [valIter nextObject]))
+      while ((valName = [valIter nextObject]) != nil)
 	{
 	  if ([domainDict objectForKey: valName] == nil)
 	    {
@@ -486,17 +531,14 @@ struct NSUserDefaultsWin32_DomainInfo
 	      rc = RegDeleteValue(dinfo->userKey, [valName cString]);
 	      if (rc != ERROR_SUCCESS)
 		{
-		  NSLog(@"Failed to delete value HKEY_CURRENT_USER\\%@%@\\%@ (%x)", registryPrefix, persistantDomain, valName, rc);
+		  NSLog(@"Failed to delete HKEY_CURRENT_USER\\%@\\%@ (%x)",
+		    dPath, valName, rc);
 		  return NO;
 		}
 	    }
 	}
     }
-  
-  if (noLegacyFile)
-    {
-      return YES;
-    }
-  return [super writeDefaults: defaults oldData: oldData];
+  return YES;
 }
+#endif
 @end
