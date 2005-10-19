@@ -170,6 +170,9 @@ static NSString *localResources = nil;
 static NSString *localApps  = nil;
 static NSString *localLibs  = nil;
 
+static NSString	*defaultUserDir = @"GNUstep";
+static NSString	*defaultUserDefaultsDir = @"GNUstep/Defaults";
+
 /* Keys for Platform support in conf-file. */
 #define SYS_APPS    @"SYS_APPS"
 #define SYS_LIBS    @"SYS_LIBS"
@@ -302,11 +305,11 @@ static void ExtractValuesFromConfig(NSDictionary *config)
    */
   if (gnustepUserDir == nil)
     {
-      ASSIGN(gnustepUserDir, @"GNUstep");
+      ASSIGN(gnustepUserDir, defaultUserDir);
     }
   if (gnustepUserDefaultsDir == nil)
     {
-      ASSIGN(gnustepUserDefaultsDir, @"GNUstep/Defaults");
+      ASSIGN(gnustepUserDefaultsDir, defaultUserDefaultsDir);
     }
   /*
    * Set the user root from the user home and the user dir
@@ -1226,7 +1229,7 @@ NSString *
 GSDefaultsRootForUser(NSString *userName)
 {
   NSString *home;
-  NSString *defaultsDir = nil;
+  NSString *defaultsDir;
 
   InitialisePathUtilities();
   if ([userName length] == 0)
@@ -1244,6 +1247,10 @@ GSDefaultsRootForUser(NSString *userName)
 
       config = GNUstepUserConfig(userName);
       defaultsDir = [config objectForKey: @"GNUSTEP_USER_DEFAULTS_DIR"];
+      if (defaultsDir == nil)
+	{
+	  defaultsDir = defaultUserDefaultsDir;
+	}
     }
   home = [home stringByAppendingPathComponent: defaultsDir];
 
