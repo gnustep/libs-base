@@ -1184,7 +1184,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
      <rootPath>/<bundlePath>/<language.lproj>
 */
 + (NSArray *) _bundleResourcePathsWithRootPath: (NSString *)rootPath
-				       subPath: (NSString *)bundlePath
+				       subPath: (NSString *)subPath
 {
   NSString* primary;
   NSString* language;
@@ -1196,16 +1196,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   languages = [NSUserDefaults userLanguages];
 
   primary = [rootPath stringByAppendingPathComponent: @"Resources"];
-  [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
+  [array addObject: _bundle_resource_path(primary, subPath, nil)];
+  /* This matches OS X behavior, which only searches languages that
+     are in the user's preference. Don't use -preferredLocalizations - 
+     that would cause a recursive loop.  */
   enumerate = [languages objectEnumerator];
   while ((language = [enumerate nextObject]))
-    [array addObject: _bundle_resource_path(primary, bundlePath, language)];
+    [array addObject: _bundle_resource_path(primary, subPath, language)];
 
   primary = rootPath;
-  [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
+  [array addObject: _bundle_resource_path(primary, subPath, nil)];
   enumerate = [languages objectEnumerator];
   while ((language = [enumerate nextObject]))
-    [array addObject: _bundle_resource_path(primary, bundlePath, language)];
+    [array addObject: _bundle_resource_path(primary, subPath, language)];
 
   return array;
 }
@@ -1213,7 +1216,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 + (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)ext	
 		    inRootPath: (NSString *)rootPath
-		   inDirectory: (NSString *)bundlePath
+		   inDirectory: (NSString *)subPath
 		   withVersion: (int)version
 {
   NSString *path, *fullpath;
@@ -1227,7 +1230,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
-		    subPath: bundlePath] objectEnumerator];
+		    subPath: subPath] objectEnumerator];
   fullpath = nil;
   while ((path = [pathlist nextObject]))
     {
@@ -1307,7 +1310,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 - (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)ext
-		   inDirectory: (NSString *)bundlePath
+		   inDirectory: (NSString *)subPath
 {
   NSString *rootPath;
 
@@ -1320,19 +1323,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return [NSBundle pathForResource: name
 		   ofType: ext
 		   inRootPath: rootPath
-		   inDirectory: bundlePath
+		   inDirectory: subPath
 		   withVersion: _version];
 }
 
-+ (NSArray*) pathsForResourcesOfType: (NSString*)extension
-			 inDirectory: (NSString*)bundlePath
-{
-  [self notImplemented: _cmd];
-  return nil;
-}
-
-- (NSArray *) pathsForResourcesOfType: (NSString *)extension
-			  inDirectory: (NSString *)bundlePath
++ (NSArray*) _pathsForResourcesOfType: (NSString*)extension
+			 inRootDirectory: (NSString*)bundlePath
+		       inSubDirectory: (NSString *)subPath
 {
   BOOL allfiles;
   NSString *path;
@@ -1340,10 +1337,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSEnumerator *pathlist;
   NSFileManager	*mgr = [NSFileManager defaultManager];
 
-  /* Not sure if this is correct since it will only search in
-     lprojs that are user preferences. FIXME. */
-  pathlist = [[NSBundle _bundleResourcePathsWithRootPath: [self bundlePath]
-			subPath: bundlePath] objectEnumerator];
+  pathlist = [[NSBundle _bundleResourcePathsWithRootPath: bundlePath
+			subPath: subPath] objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
   allfiles = (extension == nil || [extension length] == 0);
 
@@ -1363,17 +1358,56 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return resources;
 }
 
-- (NSArray*) pathsForResourcesOfType: (NSString*)extension
++ (NSArray*) pathsForResourcesOfType: (NSString*)extension
 			 inDirectory: (NSString*)bundlePath
+{
+  return [self _pathsForResourcesOfType: extension
+			inRootDirectory: bundlePath
+			 inSubDirectory: nil];
+}
+
+- (NSArray *) pathsForResourcesOfType: (NSString *)extension
+			  inDirectory: (NSString *)subPath
+{
+  return [[self class] _pathsForResourcesOfType: extension
+			inRootDirectory: [self bundlePath]
+			 inSubDirectory: subPath];
+}
+
+- (NSArray*) pathsForResourcesOfType: (NSString*)extension
+			 inDirectory: (NSString*)subPath
 		     forLocalization: (NSString*)localizationName
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSArray         *paths = nil;
+  NSMutableArray  *result = nil;
+  NSEnumerator    *enumerator = nil;
+  NSString        *path = nil;
+
+  result = [NSMutableArray array];
+  paths = [self pathsForResourcesOfType: extension
+                            inDirectory: subPath];
+
+  enumerator = [paths objectEnumerator];
+  while( (path = [enumerator nextObject]) )
+    {
+      /* Add all non-localized paths, plus ones in the particular localization
+	 (if there is one). */
+      NSString *theDir = [path stringByDeletingLastPathComponent];
+      if ([[theDir pathExtension] isEqual: @"lproj"] == NO
+	  || (localizationName != nil 
+	      && [localizationName length] != 0
+	      && [[theDir lastPathComponent] hasPrefix: localizationName]) )
+	{ 
+	  [result addObject: path];
+	}
+    }
+  
+  return result;
 }
 
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
-		  inDirectory: (NSString*)bundlePath
+		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName
 {
   [self notImplemented: _cmd];
