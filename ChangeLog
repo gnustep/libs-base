@@ -1,3 +1,9 @@
+2005-10-20  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (+pathsForResourcesOfType:inDirectory:,
+	-pathsForResourcesOfType:inDirectory:forLocalization:):
+	Implement.
+
 2005-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Begin applying registry patch.

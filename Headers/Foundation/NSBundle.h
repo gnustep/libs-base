@@ -206,8 +206,15 @@ GS_EXPORT NSString* const NSLoadedClasses;
 - (Class) principalClass;
 
 /**
- *  Not implemented.  Create an instance and call the corresponding instance
- *  method instead.
+  <p> Returns an array of paths for all resources with the specified
+   extension and residing in the bundlePath directory. bundlePath can
+   be any type of directory structure, but typically it is used to
+   search for resources in a application or framework. For example,
+   one could search for tiff files in the MyApp.app application using [NSBundle
+   pathsForResourcesOfType: @"tiff" inDirectory: @"MyApp.app"].  It
+   will search in any Resources subdirectory inside bundlePath as well
+   as the main directory for resource files. If extension is nil or
+   empty, all resources are returned.  </p>
  */
 + (NSArray*) pathsForResourcesOfType: (NSString*)extension
 			 inDirectory: (NSString*)bundlePath;
@@ -220,7 +227,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
    </p>
  */
 - (NSArray*) pathsForResourcesOfType: (NSString*)extension
-			 inDirectory: (NSString*)bundlePath;
+			 inDirectory: (NSString*)subPath;
 
 /**
   <p>
@@ -229,10 +236,10 @@ GS_EXPORT NSString* const NSLoadedClasses;
    in the following order:
    </p>
    <example>
-     root path/Resources/bundlePath
-     root path/Resources/bundlePath/"language.lproj"
-     root path/bundlePath
-     root path/bundlePath/"language.lproj"
+     root path/Resources/subPath
+     root path/Resources/subPath/"language.lproj"
+     root path/subPath
+     root path/subPath/"language.lproj"
    </example>
    <p>
    where language.lproj can be any localized language directory inside
@@ -245,7 +252,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 */
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
-		  inDirectory: (NSString*)bundlePath;
+		  inDirectory: (NSString*)subPath;
 
 /**
    Returns an absolute path for a resource name with the extension ext
@@ -299,18 +306,22 @@ GS_EXPORT NSString* const NSLoadedClasses;
 			       forPreferences: (NSArray *)preferencesArray;
 
 - (BOOL) isLoaded;
+
 /**
- *  Not implemented.
+   This method returns the same information as
+   -pathsForResourcesOfType:inDirectory: except that only non-localized
+   resources and resources that match the localization localizationName
+   are returned.
  */
 - (NSArray*) pathsForResourcesOfType: (NSString*)extension
-			 inDirectory: (NSString*)bundlePath
+			 inDirectory: (NSString*)subPath
 		     forLocalization: (NSString*)localizationName;
 /**
  *  Not implemented.
  */
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
-		  inDirectory: (NSString*)bundlePath
+		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName;
 
 /** Returns the info property list associated with the bundle. */
