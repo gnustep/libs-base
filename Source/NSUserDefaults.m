@@ -100,7 +100,6 @@ static void updateCache(NSUserDefaults *self)
   if (self == sharedDefaults)
     {
       NSArray	*debug;
-      NSString	*string;
 
       /**
        * If there is an array NSUserDefault called GNU-Debug,
@@ -131,20 +130,6 @@ static void updateCache(NSUserDefaults *self)
 	= [self boolForKey: @"GSLogThread"];
       flags[NSWriteOldStylePropertyLists]
 	= [self boolForKey: @"NSWriteOldStylePropertyLists"];
-
-      string = [self stringForKey: @"GSPathHandling"];
-      if (string != nil)
-	{
-	  /*
-	   * NB. path handling defaults to the 'gnustep' tolerant mode
-	   * so that files can be handled to read in the defaults database.
-	   * only once the database has been read in will the defaults
-	   * system update the mode.  This avoids a horrible recursion
-	   * if we were to try to initialise the path handling mode from
-	   * the defaults system.
-	   */
-	  [NSString setPathHandling: string];
-	}
     }
 }
 

@@ -29,10 +29,10 @@
   <section>
     <heading>Path handling</heading>
     <p>The rules for path handling depend on the value in the
-    <code>GSPathHandling</code> user default and, to some extent,
-    on the platform on which the program mis running.<br />
-    The understood values of GSPathHandling are <em>unix</em>
-    and <em>windows</em>.  If GSPathHandling is any other value
+    <code>GNUSTEP_PATH_HANDLING</code> environment variable and,
+    to some extent, on the platform on which the program is running.<br />
+    The understood values of GNUSTEP_PATH_HANDLING are <em>unix</em>
+    and <em>windows</em>.  If GNUSTEP_PATH_HANDLING is any other value
     (or has not been set), GNUstep interprets this as meaning
     it should try to <em>do-the-right-thing</em><br />
     In the default mode of operation the system is very tolerant

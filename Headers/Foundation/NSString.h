@@ -173,22 +173,6 @@ enum {
  */
 @interface NSString :NSObject <NSCoding, NSCopying, NSMutableCopying>
 
-#ifndef	NO_GNUSTEP
-/**
- * Sets the path handling mode for the NSString path manipulation methods.<br />
- * <em>unix</em> mode treats paths as Unix/POSIX  paths in which a slash (/)
- * is the only path separator, and a single leading slash indicates an
- * absolute path.<br />
- * <em>windows</em> mode treats paths as windows drive-relative or UNC paths
- * in which either slash (/) or backslash (\) may be used as path separators
- * and the 'root' of a path may be of the form 'C:/' or '//host/share/'.<br />
- * The mode selected if you provide any other argument to this
- * method is the default <em>gnustep</em> mode, in which the system tries
- * to <em>do-the-right-thing</em> and support both windows and unix style
- * paths at the same time.
- */
-+ (void) setPathHandling: (NSString*)mode;
-#endif
 + (id) string;
 + (id) stringWithCharacters: (const unichar*)chars
 		     length: (unsigned int)length;

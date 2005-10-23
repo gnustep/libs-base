@@ -1,6 +1,10 @@
 2005-10-23  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSString.m: remove test method for path handling setup,
+	add environment variable (at least for a while until we are even
+	more sure that there are no problems with do-the-right-thing mode).
 	* Source/NSUserDefaults.m: More tweaks to use windows registry.
+	also remove test user default for path handling setup.
 	* Source/win32/NSUserDefaultsWin32.m: Rewrite
 	* Source/NSPathUtilities.m: Tweaks for windows.
 	Updates to (optionally) use windows registry to store defaults
@@ -9,6 +13,7 @@
 	of the code configurable in the GNUstep configuration file, to fix
 	some bugs, and to conform to coding standards,  Probably still has
 	bugs to fix, but seems usable now. 
+
 
 2005-10-20  Adam Fedor  <fedor@gnu.org>
 

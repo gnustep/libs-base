@@ -435,6 +435,17 @@ handle_printf_atsign (FILE *stream,
 
       _DefaultStringEncoding = GetDefEncoding();
       _ByteEncodingOk = GSIsByteEncoding(_DefaultStringEncoding);
+      if (getenv("GNUSTEP_PATH_HANDLING") != 0)
+	{
+	  if (strcmp("unix", getenv("GNUSTEP_PATH_HANDLING")) == 0)
+	    {
+	      pathHandling = PH_UNIX;
+	    }
+	  else if (strcmp("windows", getenv("GNUSTEP_PATH_HANDLING")) == 0)
+	    {
+	      pathHandling = PH_WINDOWS;
+	    }
+	}
 
       NSStringClass = self;
       [self setVersion: 1];
