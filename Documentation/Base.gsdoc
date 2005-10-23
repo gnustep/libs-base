@@ -493,7 +493,10 @@ notice and this notice are preserved.
 	    relative to the user's home directory.</desc>
 	    <term>GNUSTEP_USER_DEFAULTS_DIR</term>
 	    <desc>Name of directory for user defaults files.
-	    Relative to the user's home directory.</desc>
+	    Relative to the user's home directory.<br />
+	    On mswindows this may be set to be ':REGISTRY:' to have defaults
+	    stored in the windows registry rather than in the standard file
+	    format.</desc>
 	  </deflist>
 	  <p>
 	    The user's home directory is taken to be the standard
