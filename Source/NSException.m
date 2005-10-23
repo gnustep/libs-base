@@ -365,6 +365,13 @@ _NSAddHandler (NSHandler* handler)
   NSThread *thread;
 
   thread = GSCurrentThread();
+#if defined(__WIN32__) && defined(DEBUG)
+  if (thread->_exception_handler
+    && IsBadReadPtr(thread->_exception_handler, sizeof(NSHandler)))
+    {
+      NSLog(@"ERROR: Current exception handler is bogus.");
+    }
+#endif  
   handler->next = thread->_exception_handler;
   thread->_exception_handler = handler;
 }
@@ -375,5 +382,28 @@ _NSRemoveHandler (NSHandler* handler)
   NSThread *thread;
 
   thread = GSCurrentThread();
-  thread->_exception_handler = thread->_exception_handler->next;
+#if defined(DEBUG)  
+  if (thread->_exception_handler != handler)
+    {
+      NSLog(@"ERROR: Removing exception handler that is not on the top "
+	@"of the stack. (You probably called return in an NS_DURING block.)");
+    }
+#if defined(__WIN32__)
+  if (IsBadReadPtr(handler, sizeof(NSHandler)))
+    {
+      NSLog(@"ERROR: Could not remove exception handler, "
+	@"handler is bad pointer.");
+      thread->_exception_handler = 0;
+      return;
+    }
+  if (handler->next && IsBadReadPtr(handler->next, sizeof(NSHandler)))
+    {
+      NSLog(@"ERROR: Could not restore exception handler, "
+	@"handler->next is bad pointer.");
+      thread->_exception_handler = 0;
+      return;
+    }
+#endif
+#endif
+  thread->_exception_handler = handler->next;
 }
