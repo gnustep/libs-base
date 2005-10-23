@@ -1884,15 +1884,6 @@ static NSStringEncoding	defaultEncoding;
 #endif
 }
 
-/**
- * Convert from OpenStep internal string format to a string in
- * the local filesystem format, suitable for passing to system functions.<br />
- * This representation could theoretically vary between filesystems.<br />
- * On windows, the filesystem representation is utf-16 and is expected to
- * be used in conjunction with the variants of system calls which work
- * with unicode strings.<br />
- * Raises an exception if the character conversion is not possible.
- */
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
   const _CHAR	*c_path = 0;
@@ -1907,13 +1898,6 @@ static NSStringEncoding	defaultEncoding;
     }
 
   return (const char*)c_path;
-}
-
-/** Deprecated */
-- (NSString*) localFromOpenStepPath: (NSString*)path
-{
-  GSOnceMLog(@"deprecated");
-  return path;
 }
 
 /**
@@ -1932,13 +1916,6 @@ static NSStringEncoding	defaultEncoding;
   return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
     initWithBytes: string length: len encoding: defaultEncoding]);
 #endif
-}
-
-/** Deprecated */
-- (NSString*) openStepPathFromLocal: (NSString*)localPath
-{
-  GSOnceMLog(@"deprecated");
-  return localPath;
 }
 
 @end /* NSFileManager */

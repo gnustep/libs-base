@@ -3479,35 +3479,6 @@ static NSFileManager *fm = nil;
   return [fm fileSystemRepresentationWithPath: self];
 }
 
-/**
- * Converts this string, which is assumed to be a path in Unix notation ('/'
- * is file separator, '.' is extension separator) to a string path expressed
- * in the convention for the host operating system.
- */
-- (NSString*) localFromOpenStepPath
-{
-  GSOnceMLog(@"deprecated");
-
-  if (fm == nil)
-    {
-      fm = RETAIN([NSFileManager defaultManager]);
-    }
-
-  return [fm localFromOpenStepPath: self];
-}	
-
-- (NSString*) openStepPathFromLocal
-{
-  GSOnceMLog(@"deprecated");
-
-  if (fm == nil)
-    {
-      fm = RETAIN([NSFileManager defaultManager]);
-    }
-
-  return [fm openStepPathFromLocal: self];
-}	
-
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size
 {
