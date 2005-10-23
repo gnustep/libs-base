@@ -33,7 +33,7 @@ struct NSUserDefaultsWin32_DomainInfo
 };
 
 @implementation NSUserDefaultsWin32
-#ifdef NOTYET
+
 - (void) dealloc
 {
   DESTROY(registryPrefix);
@@ -52,7 +52,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	      rc = RegCloseKey(dinfo->userKey);
 	      if (rc != ERROR_SUCCESS)
 		{
-		  NSString	dPath;
+		  NSString	*dPath;
 
 		  dPath = [registryPrefix stringByAppendingString: domain];
 		  NSLog(@"Failed to close registry HKEY_CURRENT_USER\\%@ (%x)",
@@ -64,7 +64,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	      rc = RegCloseKey(dinfo->systemKey);
 	      if (rc != ERROR_SUCCESS)
 		{
-		  NSString	dPath;
+		  NSString	*dPath;
 
 		  dPath = [registryPrefix stringByAppendingString: domain];
 		  NSLog(@"Failed to close registry HKEY_LOCAL_MACHINE\\%@ (%x)",
@@ -100,8 +100,7 @@ struct NSUserDefaultsWin32_DomainInfo
       path = [path stringByAppendingString: @"\\"];
     }
   registryPrefix = RETAIN(path);
-  noLegacyFile = YES;
-  self = [super initWithContentsOfFile: @"C: /No/Such/File/Exists"];
+  self = [super initWithContentsOfFile: @":REGISTRY:"];
   return self;
 }
 
@@ -151,7 +150,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	}
       dPath = [registryPrefix stringByAppendingString: persistantDomain];
       
-      if (dinfo->userKey != 0)
+      if (dinfo->userKey == 0)
 	{
 	  rc = RegOpenKeyEx(HKEY_CURRENT_USER,
 	    [dPath cString],
@@ -170,7 +169,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	      return nil;
 	    }
 	}
-      if (dinfo->systemKey != 0)
+      if (dinfo->systemKey == 0)
 	{
 	  rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
 	    [dPath cString],
@@ -348,7 +347,6 @@ struct NSUserDefaultsWin32_DomainInfo
 	  LONG rc;
 	  NSTimeInterval ti;
 	  NSString	*dPath;
-	  NSString	*dName;
 
 	  dPath = [registryPrefix stringByAppendingString: domain];
 
@@ -540,5 +538,5 @@ struct NSUserDefaultsWin32_DomainInfo
     }
   return YES;
 }
-#endif
+
 @end

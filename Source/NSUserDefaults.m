@@ -461,7 +461,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
 #if	defined(__MINGW32__)
   {
-#if 0
     NSString	*path = GSDefaultsRootForUser(NSUserName());
     NSRange	r = [path rangeOfString: @":REGISTRY:"];
 
@@ -470,7 +469,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 	sharedDefaults = [[NSUserDefaultsWin32 alloc] init];
       }
     else
-#endif
       {
 	sharedDefaults = [[self alloc] init];
       }
@@ -794,6 +792,15 @@ pathForUser(NSString *user)
     {
       path = pathForUser(NSUserName());
     }
+
+#if	defined(__MINGW32__)
+  {
+    NSRange	r = [path rangeOfString: @":REGISTRY:"];
+    if (r.length > 0)
+       goto skipPathChecks;
+  }
+#endif
+
   path = [path stringByStandardizingPath];
   _defaultsDatabase = [path copy];
   path = [path stringByDeletingLastPathComponent];
@@ -824,6 +831,11 @@ pathForUser(NSString *user)
       _fileLock = [[NSDistributedLock alloc] initWithPath:
 	[_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
     }
+
+#if	defined(__MINGW32__)
+skipPathChecks:
+#endif
+
   _lock = [GSLazyRecursiveLock new];
 
   // Create an empty search list

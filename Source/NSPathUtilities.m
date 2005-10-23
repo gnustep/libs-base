@@ -48,12 +48,6 @@
    information required by the library to establish all locations required.
    </p>
    <p>
-   On windows, the paths may also (as a fallback) be initialised by
-   reading information from the windows registry.
-   HKEY_LOCAL_MACHINE\Software\GNU\GNUstep contains the machine wide
-   definititions for system paths.
-   </p>
-   <p>
    See <REF "filesystem.pdf">GNUstep File System Heirarchy</REF> document
    for more information and detailed descriptions.</p>
    </unit>
@@ -123,6 +117,12 @@ static NSString	*gnustep_flattened =
   @GNUSTEP_FLATTENED;
 #else
   nil;
+#endif
+
+#if	defined(__WIN32__)
+#define	ATTRMASK	0700
+#else
+#define	ATTRMASK	0777
 #endif
 
 #define	MGR()	[NSFileManager defaultManager]
@@ -501,11 +501,6 @@ static void InitialisePathUtilities(void)
 	      Win32NSStringFromRegistry(regkey, @"GNUSTEP_LOCAL_ROOT"));
 	    RegCloseKey(regkey);
 	  }
-#if 0
-	// Not implemented yet
-	platformApps   = Win32FindDirectory(CLSID_APPS);
-	platformLibs   = Win32FindDirectory(CLSID_LIBS);
-#endif
       }
 #endif
 
@@ -602,15 +597,18 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
     }
 
   attributes = [MGR() fileAttributesAtPath: fileName traverseLink: YES];
-  if (([attributes filePosixPermissions] & 022) != 0)
+  if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
     {
 #if defined(__WIN32__)
       fprintf(stderr, "The file '%S' is writable by someone other than"
-	" its owner.\nIgnoring it.\n",
-	(const unichar*)[fileName fileSystemRepresentation]);
+	" its owner (permissions 0%lo).\nIgnoring it.\n",
+	(const unichar*)[fileName fileSystemRepresentation],
+        [attributes filePosixPermissions]);
 #else
       fprintf(stderr, "The file '%s' is writable by someone other than"
-	" its owner.\nIgnoring it.\n", [fileName fileSystemRepresentation]);
+	" its owner (permissions 0%lo).\nIgnoring it.\n",
+	[fileName fileSystemRepresentation],
+        [attributes filePosixPermissions]);
 #endif
       return NO;
     }
@@ -893,15 +891,18 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
     }
 
   attributes = [MGR() fileAttributesAtPath: fileName traverseLink: YES];
-  if (([attributes filePosixPermissions] & 022) != 0)
+  if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
     {
 #if defined(__WIN32__)
       fprintf(stderr, "The file '%S' is writable by someone other than"
-	" its owner.\nIgnoring it.\n",
-	(const unichar*)[fileName fileSystemRepresentation]);
+	" its owner (permissions 0%lo).\nIgnoring it.\n",
+	(const unichar*)[fileName fileSystemRepresentation],
+        [attributes filePosixPermissions]);
 #else
       fprintf(stderr, "The file '%s' is writable by someone other than"
-	" its owner.\nIgnoring it.\n", [fileName fileSystemRepresentation]);
+	" its owner (permissions 0%lo).\nIgnoring it.\n",
+	[fileName fileSystemRepresentation],
+        [attributes filePosixPermissions]);
 #endif
       return NO;
     }
