@@ -3,6 +3,10 @@
 	* Source/NSString.m: remove test method for path handling setup,
 	add environment variable (at least for a while until we are even
 	more sure that there are no problems with do-the-right-thing mode).
+	Remove previously deprecated path methods.
+	* Source/NSFileManager.m: remove previously deprecated path method.
+	* Headers/Foundation/NSString.h: Add missing information about
+	windows peculiarities to comments.
 	* Source/NSUserDefaults.m: More tweaks to use windows registry.
 	also remove test user default for path handling setup.
 	* Source/win32/NSUserDefaultsWin32.m: Rewrite

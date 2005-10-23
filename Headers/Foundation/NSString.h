@@ -337,14 +337,20 @@ enum {
  * Converts the receiver to a C string path expressed in the character
  * encoding appropriate for the local host file system.  This string will be
  * automatically freed soon after it is returned, so copy it if you need it
- * for long.
+ * for long.<br />
+ * NB. On ms-windows the filesystem representation of a path is a 16-bit
+ * unicode character string, so you should only path the value returned by
+ * this method to functions expecting wide characters.
  */
 - (const char*) fileSystemRepresentation;
 
 /**
  * Converts the receiver to a C string path using the character encoding
- * appropriate to the local file system.  This string will be
- * stored into buffer if it is shorter than size, otherwise NO is returned.
+ * appropriate to the local file system.  This string will be stored
+ * into buffer if it is shorter than size, otherwise NO is returned.<br />
+ * NB. On ms-windows the filesystem representation of a path is a 16-bit
+ * unicode character string, so the buffer you pass to this method must be
+ * twice as long as the number of characters you expect to receive.
  */
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size;
