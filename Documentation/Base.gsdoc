@@ -276,6 +276,21 @@ notice and this notice are preserved.
 		GNUstep defaults to NSISOLatin1StringEncoding.
 	      </p>
 	    </desc>
+	    <term>GNUSTEP_PATH_HANDLING</term>
+	    <desc>
+	      <p>
+	        May be set to <code>unix</code> to enforce unix style path
+		handling, or <code>windows</code> to enforce mswindows style
+		path handling, or anu other value (including unset) for the
+		default behavior where both styles of paths should be
+		managed in the best way possible.
+	      </p>
+	      <p>
+	        The option to enforce either upre unix or pure windows style
+		path handling (and hence this environment variable) may be
+		removed in a later release.
+	      </p>
+	    </desc>
 	    <term>GNUSTEP_HOST_CPU</term>
 	    <desc>
 	      <p>
