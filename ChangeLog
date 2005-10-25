@@ -1,3 +1,10 @@
+2005-10-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Try to ensure that user root and
+	user library directories exist, so that tools/apps have somewhere
+	to store any resources they don't want to put in the defaults
+	database.
+
 2005-10-23  Jeremy Bettis
 
 	* Source/NSException.m: Added a few debugging checks in the
