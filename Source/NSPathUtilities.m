@@ -318,6 +318,38 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     [gnustepUserHome stringByAppendingPathComponent: gnustepUserDir]);
 
   /*
+   * Try to ensure that essential user directories exist.
+   * FIXME  ... Check/creation should perhaps be configurable.
+   */
+  if (1)
+    {
+      NSFileManager	*manager;
+      NSString		*path;
+      NSDictionary	*attr;
+      BOOL		flag;
+
+      manager = [NSFileManager defaultManager];
+      attr = [NSDictionary dictionaryWithObject: [NSNumber numberWithInt: 0750]
+					 forKey: NSFilePosixPermissions];
+
+      // make sure user root exists.
+      path = gnustepUserRoot;
+      if ([manager fileExistsAtPath: path isDirectory: &flag] == NO
+	|| flag == NO)
+	{
+	  [manager createDirectoryAtPath: path attributes: attr];
+	}
+
+      // make sure library directory exists (to store resources).
+      path = [path stringByAppendingPathComponent: @"Library"];
+      if ([manager fileExistsAtPath: path isDirectory: &flag] == NO
+	|| flag == NO)
+	{
+	  [manager createDirectoryAtPath: path attributes: attr];
+	}
+    }
+
+  /*
    * Finally set default locations for the essential paths if required.
    */
   if (gnustepSystemRoot == nil)
@@ -1797,10 +1829,6 @@ if (domainMask & mask) \
           i--;
           count--;
         }
-      /*
-       * this may look like a performance hit at first glance, but if these
-       * string methods don't alter the string, they return the receiver
-       */
       else if (expandTilde == YES)
         {
           [paths replaceObjectAtIndex: i
