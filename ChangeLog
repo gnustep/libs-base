@@ -2,6 +2,7 @@
 
 	* Source/NSPathUtilities.m: Drop 'make' style config file parsing
 	and setting on 'sh' style (so we can source the config file).
+	* Source/NSCalendarDate.m: Fix millisecond printing (bug #14863)
 
 2005-10-25  Richard Frith-Macdonald <rfm@gnu.org>
 
