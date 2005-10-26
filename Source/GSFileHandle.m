@@ -716,7 +716,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    {
 	      esocks = [env objectForKey: @"SOCKS_SERVER"];
 	    }
-	  [esocks = esocks copy];
+	  esocks = [esocks copy];
 	}
     }
 
