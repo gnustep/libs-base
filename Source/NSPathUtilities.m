@@ -584,21 +584,21 @@ static void ShutdownPathUtilities(void)
   Win32Finalise();
 }
 
-#if 0
-
 /**
  * Reads a file and expects it to be in basic unix "conf" style format with
  * one key = value per line (the format a unix shell can 'source' in order
  * to define shell variables).<br />
- * Attempts to mimic the escape sequence and quoting conventions of standard
- * shells, so that a config file sourced by the make package will produce
- * the same results as one parsed by this function.<br />
- * The value may be any quoted string (or an unquoted string containing no
+ * This attempts to mimic the escape sequence and quoting conventions of
+ * the standard bourne shell, so that a config file sourced by the make
+ * package will produce the same results as one parsed by this function.<br />
+ * Keys, by convention, consiste of uppercase letters, digits,
+ * and underscores, and must not begin with a digit.<br />
+ * A value may be any quoted string (or an unquoted string containing no
  * white space).<br />
  * Lines beginning with a hash '#' are deemed comment lines and ignored.<br/ >
  * The backslash character may be used as an escape character anywhere
  * in the file  except within a singly quoted string
- * (where it is taken literally).<<br />
+ * (where it is taken literally).<br />
  * A backslash followed immediately by a newline (except in a singly
  * quoted string) is removed completely along with the newline ... it
  * thus serves to join lines so that they are treated as a single line.<br />
@@ -827,7 +827,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
 		      continue;	// escaped newline is removed.
 		    }
 		}
-	      if (*spos <= ' ' || *spos == '=')
+	      if (isspace(*spos) || *spos == '=')
 		{
 		  break;
 		}
@@ -869,235 +869,6 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
 
   return YES;
 }
-
-#else
-
-/*
- * Parse config file in gnumake format ... different quoting conventions<br />
- *
- * <p>Empty lines (or lines containing only spaces) are ignored.
- * </p>
- * <p>A '#' introduces a comment that extends up to the end of the line.  
- * Anything from the '#' up to the end of the line is ignored (unless the '#' 
- * if found in a variable value, and escaped by a preceding '\' as explained 
- * below).
- * </p>
- * <p>A variable (which must be one in the allowed set listed in the 
- * documentation) is defined using a line of the form:<br />
- * name = value
- * </p>
- * <p>name must be from the predefined list (where names in the list only
- * contains uppercase letters and '_').
- * </p>
- * <p>The '=' might (or might not) be preceded / followed by spaces that are
- * ignored.
- * </p>
- * <p>value is read literally until the end of the line with the following 
- * exceptions:<br />
- * to insert a '$' character you must insert '$$'.
- * A single '$' can never appear in the value.<br />
- * a '#' would start a comment that ends at the end of the line.
- * To insert a literal '#' character you must insert '\#'.<br />
- * to insert a '\' character at the end of the line or before the '#'
- * initiating a comment, you need to insert '\\#'.<br />
- * value might be empty to mean ''.<br />
- * Spaces at the end or at the beginning of value are stripped.
- * </p>
- */
-static BOOL
-ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
-{
-  NSDictionary	*attributes;
-  NSString      *file;
-  unsigned	l;
-  unichar	*src;
-  unichar	*dst;
-  unichar	*end;
-  unichar	*spos;
-  unichar	*dpos;
-  unichar	*tmp;
-
-  if ([MGR() isReadableFileAtPath: fileName] == NO)
-    {
-      return NO;
-    }
-
-  attributes = [MGR() fileAttributesAtPath: fileName traverseLink: YES];
-  if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
-    {
-#if defined(__WIN32__)
-      fprintf(stderr, "The file '%S' is writable by someone other than"
-	" its owner (permissions 0%lo).\nIgnoring it.\n",
-	(const unichar*)[fileName fileSystemRepresentation],
-        [attributes filePosixPermissions]);
-#else
-      fprintf(stderr, "The file '%s' is writable by someone other than"
-	" its owner (permissions 0%lo).\nIgnoring it.\n",
-	[fileName fileSystemRepresentation],
-        [attributes filePosixPermissions]);
-#endif
-      return NO;
-    }
-
-  if (dict == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"No destination dictionary supplied"];
-    }
-
-  file = [NSString stringWithContentsOfFile: fileName];
-  l = [file length];
-  src = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * l);
-  spos = src;
-  end = src + l;
-  dst = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * l);
-  dpos = dst;
-  [file getCharacters: src];
-
-  while (spos < end)
-    {
-      NSString	*key = nil;
-      NSString	*val = nil;
-
-      /*
-       * Step past any whitespace ... including blank lines
-       */
-      while (spos < end)
-	{
-	  if (*spos == '#')
-	    {
-	      // Got comment ... skip to end of line
-	      while (++spos < end)
-		{
-		  if (*spos == '\r' || *spos == '\n')
-		    {
-		      break;
-		    }
-		}
-	    }
-	  if (*spos == '\\')
-	    {
-	      spos++;
-	      if (spos >= end)
-		{
-		  break;	// At end of file ... odd but not fatal
-		}
-	    }
-	  if (*spos > ' ')
-	    {
-	      break;		// OK ... found a non space character.
-	    }
-	  spos++;
-	}
-      if (spos == end)
-	{
-	  return YES;		// Completed parsing.
-	}
-
-      dpos = dst;
-      while (spos < end && *spos > ' ' && *spos != '=')
-	{
-	  if (*spos == '#')
-	    {
-	      key = [NSString stringWithCharacters: dst length: dpos - dst];
-	      fprintf(stderr, "Unexpected '#' after '%s' in config file '%s'\n",
-		[key UTF8String], [fileName UTF8String]);
-	      goto end_of_line;
-	    }
-	  *dpos++ = *spos++;
-	}
-      key = [NSString stringWithCharacters: dst length: dpos - dst];
-      for (tmp = dst; tmp < dpos; tmp++)
-	{
-	  if (*tmp != '_' && (*tmp < 'A' || *tmp > 'Z'))
-	    {
-	      fprintf(stderr, "Bad variable name '%s' in config file '%s'\n",
-		[key UTF8String], [fileName UTF8String]);
-	      goto end_of_line;
-	    }
-	}
-
-      while (spos < end && *spos <= ' ')
-	{
-	  spos++;
-	}
-      if (spos >= end || *spos != '=')
-	{
-	  fprintf(stderr, "Expected '=' after '%s' in config file '%s'\n",
-	    [key UTF8String], [fileName UTF8String]);
-	  goto end_of_line;
-	}
-      spos++;	// Step past '='
-
-      /*
-       * Skip any space, but *not* beyond the end of line.
-       */
-      while (spos < end && *spos <= ' ')
-	{
-	  if (*spos == '\r' || *spos == '\n')
-	    {
-	      break;
-	    }
-	  spos++;
-	}
-
-      /*
-       * Capture value.
-       */
-      dpos = dst;
-      while (spos < end && *spos != '\r' && *spos != '\n')
-	{
-	  if (*spos == '\\' && spos < end - 1)
-	    {
-	      if (spos[1] == '#' || spos[1] == '\\')
-		{
-		  spos++;	// Escape hash or backslash
-		}
-	      else if (spos[1] == '\r' || spos[1] == '\n')
-		{
-		  spos += 2;
-		  continue;	// Join lines.
-		}
-	    }
-	  else if (*spos == '#')
-	    {
-	      // Comment ... skip to end of line
-	      while (spos < end && *spos != '\r' && *spos != '\n')
-		{
-		  spos++;
-		}
-	      break;
-	    }
-	  else if (*spos == '$')
-	    {
-	      spos++;
-	      if (spos >= end || *spos != '$')
-		{
-		  fprintf(stderr, "Unexpected '$' in value after '%s'"
-		    " in config file '%s'\n",
-		    [key UTF8String], [fileName UTF8String]);
-		  goto end_of_line;
-		}
-	    }
-	  *dpos++ = *spos++;
-	}
-      val = [NSString stringWithCharacters: dst length: dpos - dst];
-
-      [dict setObject: val forKey: key];
-
-end_of_line:
-      while (spos < end && *spos != '\r' && *spos != '\n')
-	{
-	  spos++;
-	}
-    }
-  NSZoneFree(NSDefaultMallocZone(), src);
-  NSZoneFree(NSDefaultMallocZone(), dst);
-
-  return YES;
-}
-
-#endif
 
 
 /* See NSPathUtilities.h for description */
