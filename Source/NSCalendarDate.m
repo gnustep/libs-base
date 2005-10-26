@@ -1865,7 +1865,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		  s -= (_seconds_since_ref + offset(_time_zone, self));
 		  s = fabs(s);
 		  s -= floor(s);
-		  v = (int)s;
+		  v = (int)(s * 1000);
 		}
 		Grow(info, 3);
 		info->t[info->offset+2] = (v%10) + '0';
