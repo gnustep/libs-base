@@ -310,7 +310,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all Source/mframe SSL"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_ADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_PTHREAD_H HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T USE_ZLIB GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS GNUSTEP_CONFIG_FILE build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_ADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_PTHREAD_H HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T USE_ZLIB GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -846,6 +846,7 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+--disable-importing-config-file		Disable importing the existing GNUstep configuration file
   --enable-procfs               Use /proc filesystem (default)
   --enable-procfs-psinfo               Use /proc/%pid% to get info
   --enable-pass-arguments	Force user main call to NSProcessInfo initialize
@@ -861,6 +862,8 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+--with-config-file=PATH  path to GNUstep configuration file
+--with-default-config=PATH  path to file with default GNUstep config
   --with-include-flags=FLAGS specify all include flags at once
   --with-library-flags=FLAGS specify all library flags at once
   --with-ffi-include=PATH include path for ffi (ffcall/libffi) headers
@@ -1321,11 +1324,137 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-if test -z "$GNUSTEP_SYSTEM_ROOT"; then
-  { { echo "$as_me:$LINENO: error: You must run the GNUstep initialization script first!" >&5
-echo "$as_me: error: You must run the GNUstep initialization script first!" >&2;}
+if test -z "$GNUSTEP_MAKEFILES"; then
+  { { echo "$as_me:$LINENO: error: You must have GNUstep-make installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory!" >&5
+echo "$as_me: error: You must have GNUstep-make installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory!" >&2;}
    { (exit 1); exit 1; }; }
 fi
+
+#---------------------------------------------------------------------
+# Location of the GNUstep.conf config file (--with-config-file)
+#---------------------------------------------------------------------
+echo "$as_me:$LINENO: checking for GNUstep configuration file to use" >&5
+echo $ECHO_N "checking for GNUstep configuration file to use... $ECHO_C" >&6
+
+# Check whether --with-config-file or --without-config-file was given.
+if test "${with_config_file+set}" = set; then
+  withval="$with_config_file"
+  GNUSTEP_CONFIG_FILE="$withval"
+else
+  if test "$GNUSTEP_CONFIG_FILE" = ""; then
+    GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' < $GNUSTEP_MAKEFILES/config.make | sed -e 's/^GNUSTEP_CONFIG_FILE *= *\(.*\)/\1'/`
+  fi
+fi;
+echo "$as_me:$LINENO: result: $GNUSTEP_CONFIG_FILE" >&5
+echo "${ECHO_T}$GNUSTEP_CONFIG_FILE" >&6
+
+
+#
+# Set 'standard' defaults for values from configuration file.
+#
+GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
+GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
+GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
+GNUSTEP_USER_DIR=GNUstep
+GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
+GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+
+#---------------------------------------------------------------------
+# Now read/import the existing configuration file, if any
+#---------------------------------------------------------------------
+
+# Reading/importing an existing configuration file is good as it means
+# the built-in default paths in the code will match those of your
+# installation (or of the config file you specify).
+# It can be annoying in certain cases though; this option lets you
+# turn it off
+echo "$as_me:$LINENO: checking if we should import an existing configuration file" >&5
+echo $ECHO_N "checking if we should import an existing configuration file... $ECHO_C" >&6
+# Check whether --enable-importing-config-file or --disable-importing-config-file was given.
+if test "${enable_importing_config_file+set}" = set; then
+  enableval="$enable_importing_config_file"
+  ac_cv_importing_config_file=$enableval
+else
+  ac_cv_importing_config_file="yes"
+fi;
+if test "$ac_cv_importing_config_file" = "no"; then
+  echo "$as_me:$LINENO: result: no: disabled from the command-line" >&5
+echo "${ECHO_T}no: disabled from the command-line" >&6
+else
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+fi
+
+
+if test "$ac_cv_importing_config_file" = "yes" ;
+then
+  echo "$as_me:$LINENO: checking for default GNUstep configuration file to use" >&5
+echo $ECHO_N "checking for default GNUstep configuration file to use... $ECHO_C" >&6
+
+# Check whether --with-default-config or --without-default-config was given.
+if test "${with_default_config+set}" = set; then
+  withval="$with_default_config"
+  GNUSTEP_DEFAULT_CONFIG="$withval"
+else
+  if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
+      GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
+    fi
+fi;
+  echo "$as_me:$LINENO: result: $GNUSTEP_DEFAULT_CONFIG" >&5
+echo "${ECHO_T}$GNUSTEP_DEFAULT_CONFIG" >&6
+
+  #
+  # Use the default config file to override standard values.
+  #
+  if test ! -f "$GNUSTEP_DEFAULT_CONFIG"; then
+    echo "$as_me:$LINENO: result: fail: file \"$GNUSTEP_DEFAULT_CONFIG\" does not exist" >&5
+echo "${ECHO_T}fail: file \"$GNUSTEP_DEFAULT_CONFIG\" does not exist" >&6
+    { echo "$as_me:$LINENO: Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option" >&5
+echo "$as_me: Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option" >&6;}
+  else
+    echo "$as_me:$LINENO: result: trying to import \"$GNUSTEP_DEFAULT_CONFIG\"" >&5
+echo "${ECHO_T}trying to import \"$GNUSTEP_DEFAULT_CONFIG\"" >&6
+    { echo "$as_me:$LINENO: If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option" >&5
+echo "$as_me: If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option" >&6;}
+    . "$GNUSTEP_DEFAULT_CONFIG"
+  fi
+fi
+
+#
+# Set the default configuration file values in config.h to be hard-coded
+# into NSPathUtilities.m
+#
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_ROOT "$GNUSTEP_SYSTEM_ROOT"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_ROOT "$GNUSTEP_NETWORK_ROOT"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_ROOT "$GNUSTEP_LOCAL_ROOT"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR "$GNUSTEP_USER_DIR"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DEFAULTS_DIR "$GNUSTEP_USER_DEFAULTS_DIR"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_CONFIG_FILE "$GNUSTEP_USER_CONFIG_FILE"
+_ACEOF
+
+
 
 #--------------------------------------------------------------------
 # Use config.guess, config.sub and install-sh provided by gnustep-make
@@ -16290,6 +16419,7 @@ s,@ECHO_C@,$ECHO_C,;t t
 s,@ECHO_N@,$ECHO_N,;t t
 s,@ECHO_T@,$ECHO_T,;t t
 s,@LIBS@,$LIBS,;t t
+s,@GNUSTEP_CONFIG_FILE@,$GNUSTEP_CONFIG_FILE,;t t
 s,@build@,$build,;t t
 s,@build_cpu@,$build_cpu,;t t
 s,@build_vendor@,$build_vendor,;t t

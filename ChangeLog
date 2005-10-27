@@ -3,9 +3,29 @@
 	* Tools/AGSParser.m: Fix error setting version numbers for the
 	various standards.  Was causing generation of html erroneously
 	saying that things were in neither openstep nor macos-x
+	* configure.ac: Add code to initialise default path/config file
+	information by loading GNUstep.conf config file from the location
+	specified by config.make in the makefiles directory.
+	Add --with-config-file= option to specify the name of the config
+	file to be hard-coded into the library.  Overrides the value from
+	the make system if desired.
+	Add --with-default-config= option to specify the config file from
+	which default path values are loaded (at configuration time). This
+	overrides the default behavior of loading  values from the file
+	specified by --with-config-file= or in $GNUSTEP_MAKEFILES/config.make
+	Add --disable-importing-config-file for consistency with makefiles
+	package ... not sure we need to keep this option.
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate to include
+	new path definitions produced by configure script.
+	* Source/GNUmakefile: Ignore variables specifying default paths,
+	these are now set at configure time and can't be changed at make
+	time.
+	* SSL/GNUmakefile: ditto.
 	* Source/NSPathUtilities.m: Remove windows-specific hack which
 	got a few values from the registry ... we want to make use of
 	the GNUstep.conf file simple/consistent across all platforms.
+	Get default values from those defined in config.h
 
 2005-10-26  Richard Frith-Macdonald <rfm@gnu.org>
 
