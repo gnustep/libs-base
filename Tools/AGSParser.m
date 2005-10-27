@@ -3507,22 +3507,22 @@ fail:
 	  else if ([top objectForKey: @"NotOpenStep"]
 	    && [top objectForKey: @"NotMacOS-X"])
 	    {
-	      vInfo = @" gvadd=\"0.0\"";	// GNUstep
+	      vInfo = @" gvadd=\"0.0.0\"";	// GNUstep
 	    }
 	  else if ([top objectForKey: @"NotOpenStep"]
 	    && ![top objectForKey: @"NotMacOS-X"])
 	    {
-	      vInfo = @" ovadd=\"10.0\"";	// MacOS-X
+	      vInfo = @" ovadd=\"10.0.0\"";	// MacOS-X
 	    }
 	  else if (![top objectForKey: @"NotOpenStep"]
 	    && [top objectForKey: @"NotMacOS-X"])
 	    {
-	      vInfo = @" ovadd=\"0.0\" ovrem=\"4.0\"";	// OpenStep only
+	      vInfo = @" ovadd=\"1.0.0\" ovrem=\"4.0.0\"";	// OpenStep only
 	    }
 	  else if ([top objectForKey: @"OpenStep"]
 	    && ![top objectForKey: @"NotMacOS-X"])
 	    {
-	      vInfo = @" ovadd=\"0.0\"";	// OpenStep
+	      vInfo = @" ovadd=\"1.0.0\"";	// OpenStep
 	    }
 	  if (vInfo != nil)
 	    {

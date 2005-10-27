@@ -1,3 +1,9 @@
+2005-10-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Fix error setting version numbers for the
+	various standards.  Was causing generation of html erroneously
+	saying that things were in neither openstep nor macos-x
+
 2005-10-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Drop 'make' style config file parsing
