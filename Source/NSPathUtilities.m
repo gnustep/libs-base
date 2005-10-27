@@ -86,9 +86,6 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-#define lowlevelstringify(X) #X
-#define stringify(X) lowlevelstringify(X)
-
 /* The global configuration file. The real value is read from config.h */
 #ifndef GNUSTEP_CONFIG_FILE
 # define   GNUSTEP_CONFIG_FILE  /etc/GNUstep/GNUstep.conf
@@ -169,9 +166,6 @@ static NSString *platformAdmin = nil;
 static NSString *localResources = nil;
 static NSString *localApps  = nil;
 static NSString *localLibs  = nil;
-
-static NSString	*defaultUserDir = @"GNUstep";
-static NSString	*defaultUserDefaultsDir = @"GNUstep/Defaults";
 
 /* Keys for Platform support in conf-file. */
 #define SYS_APPS    @"SYS_APPS"
@@ -305,11 +299,11 @@ static void ExtractValuesFromConfig(NSDictionary *config)
    */
   if (gnustepUserDir == nil)
     {
-      ASSIGN(gnustepUserDir, defaultUserDir);
+      ASSIGN(gnustepUserDir, @GNUSTEP_TARGET_USER_DIR);
     }
   if (gnustepUserDefaultsDir == nil)
     {
-      ASSIGN(gnustepUserDefaultsDir, defaultUserDefaultsDir);
+      ASSIGN(gnustepUserDefaultsDir, @GNUSTEP_TARGET_USER_DEFAULTS_DIR);
     }
   /*
    * Set the user root from the user home and the user dir
@@ -354,20 +348,17 @@ static void ExtractValuesFromConfig(NSDictionary *config)
    */
   if (gnustepSystemRoot == nil)
     {
-      gnustepSystemRoot = [NSString stringWithCString:\
-	STRINGIFY(GNUSTEP_INSTALL_PREFIX)];
+      gnustepSystemRoot = @GNUSTEP_TARGET_SYSTEM_ROOT;
       gnustepSystemRoot = RETAIN(getPath(gnustepSystemRoot));
     }
   if (gnustepNetworkRoot == nil)
     {
-      gnustepNetworkRoot = [NSString stringWithCString:\
-	STRINGIFY(GNUSTEP_NETWORK_ROOT)];
+      gnustepNetworkRoot = @GNUSTEP_TARGET_NETWORK_ROOT;
       gnustepNetworkRoot = RETAIN(getPath(gnustepNetworkRoot));
     }
   if (gnustepLocalRoot == nil)
     {
-      gnustepLocalRoot = [NSString stringWithCString:\
-	STRINGIFY(GNUSTEP_LOCAL_ROOT)];
+      gnustepLocalRoot = @GNUSTEP_TARGET_LOCAL_ROOT;
       gnustepLocalRoot = RETAIN(getPath(gnustepLocalRoot));
     }
 }
@@ -401,7 +392,7 @@ GNUstepConfig(void)
 	      if (file == nil)
 		{
 		  file = [NSString stringWithCString:
-		    stringify(GNUSTEP_CONFIG_FILE)];
+		    STRINGIFY(GNUSTEP_CONFIG_FILE)];
 		}
 	      file = [file stringByStandardizingPath];
 	      /*
@@ -431,8 +422,11 @@ GNUstepConfig(void)
 	       */
 	      if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"] == nil)
 		{
-		  [conf setObject: @".GNUstep.conf"
-			   forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+		  NSString	*tmp;
+
+		  tmp = [NSString stringWithCString:\
+		    STRINGIFY(GNUSTEP_USER_CONFIG_FILE)];
+		  [conf setObject: tmp forKey: @"GNUSTEP_USER_CONFIG_FILE"];
 		}
 	      config = [conf copy];
 	      DESTROY(conf);
@@ -1032,7 +1026,7 @@ GSDefaultsRootForUser(NSString *userName)
       defaultsDir = [config objectForKey: @"GNUSTEP_USER_DEFAULTS_DIR"];
       if (defaultsDir == nil)
 	{
-	  defaultsDir = defaultUserDefaultsDir;
+	  defaultsDir = @GNUSTEP_TARGET_USER_DEFAULTS_DIR;
 	}
     }
   home = [home stringByAppendingPathComponent: defaultsDir];

@@ -31,9 +31,101 @@ builtin(include, config/codeset.m4)dnl
 AC_INIT
 AC_CONFIG_SRCDIR([Source/NSArray.m])
 
-if test -z "$GNUSTEP_SYSTEM_ROOT"; then
-  AC_MSG_ERROR([You must run the GNUstep initialization script first!])
+if test -z "$GNUSTEP_MAKEFILES"; then
+  AC_MSG_ERROR([You must have GNUstep-make installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory!])
 fi
+
+#---------------------------------------------------------------------
+# Location of the GNUstep.conf config file (--with-config-file)
+#---------------------------------------------------------------------
+AC_MSG_CHECKING([for GNUstep configuration file to use])
+AC_ARG_WITH(config-file,
+  [--with-config-file=PATH  path to GNUstep configuration file],
+  GNUSTEP_CONFIG_FILE="$withval",
+  [if test "$GNUSTEP_CONFIG_FILE" = ""; then
+    GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' < $GNUSTEP_MAKEFILES/config.make | sed -e 's/^GNUSTEP_CONFIG_FILE *= *\(.*\)/\1'/`
+  fi])
+AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
+AC_SUBST(GNUSTEP_CONFIG_FILE)
+
+#
+# Set 'standard' defaults for values from configuration file.
+#
+GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
+GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
+GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
+GNUSTEP_USER_DIR=GNUstep
+GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
+GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+
+#---------------------------------------------------------------------
+# Now read/import the existing configuration file, if any
+#---------------------------------------------------------------------
+
+# Reading/importing an existing configuration file is good as it means
+# the built-in default paths in the code will match those of your
+# installation (or of the config file you specify).
+# It can be annoying in certain cases though; this option lets you
+# turn it off
+AC_MSG_CHECKING([if we should import an existing configuration file])
+AC_ARG_ENABLE(importing-config-file, 
+[--disable-importing-config-file		Disable importing the existing GNUstep configuration file], 
+  ac_cv_importing_config_file=$enableval,
+  ac_cv_importing_config_file="yes")
+if test "$ac_cv_importing_config_file" = "no"; then
+  AC_MSG_RESULT([no: disabled from the command-line])
+else
+  AC_MSG_RESULT([yes])
+fi
+
+
+if test "$ac_cv_importing_config_file" = "yes" ;
+then
+  AC_MSG_CHECKING([for default GNUstep configuration file to use])
+  AC_ARG_WITH(default-config,
+    [--with-default-config=PATH  path to file with default GNUstep config],
+    GNUSTEP_DEFAULT_CONFIG="$withval", 
+    [if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
+      GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
+    fi])
+  AC_MSG_RESULT($GNUSTEP_DEFAULT_CONFIG)
+
+  #
+  # Use the default config file to override standard values.
+  #
+  if test ! -f "$GNUSTEP_DEFAULT_CONFIG"; then
+    AC_MSG_RESULT([fail: file "$GNUSTEP_DEFAULT_CONFIG" does not exist])
+    AC_MSG_NOTICE([Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
+  else
+    AC_MSG_RESULT([trying to import "$GNUSTEP_DEFAULT_CONFIG"])
+    AC_MSG_NOTICE([If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
+    . "$GNUSTEP_DEFAULT_CONFIG"
+  fi
+fi
+
+#
+# Set the default configuration file values in config.h to be hard-coded
+# into NSPathUtilities.m
+#
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_ROOT,
+  "$GNUSTEP_SYSTEM_ROOT",
+  [Built in default value for GNUstep system root])
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_ROOT,
+  "$GNUSTEP_NETWORK_ROOT",
+  [Built in default value for GNUstep network root])
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_ROOT,
+  "$GNUSTEP_LOCAL_ROOT",
+  [Built in default value for GNUstep local root])
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR,
+  "$GNUSTEP_USER_DIR",
+  [Built in default value for GNUstep user directory])
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DEFAULTS_DIR,
+  "$GNUSTEP_USER_DEFAULTS_DIR",
+  [Built in default value for GNUstep user defaults directory])
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_CONFIG_FILE,
+  "$GNUSTEP_USER_CONFIG_FILE",
+  [Built in default value for GNUstep user config file])
+
 
 #--------------------------------------------------------------------
 # Use config.guess, config.sub and install-sh provided by gnustep-make
