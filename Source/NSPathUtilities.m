@@ -389,12 +389,12 @@ GNUstepConfig(void)
 
 	  NS_DURING
 	    {
-	      NSString	*file;
+	      NSString	*file = nil;
 
 	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
 	      /* Now we source the configuration file if it exists */
-#ifndef OPTION_NO_ENVIRONMENT
+#if	!defined(OPTION_NO_ENVIRONMENT)
 	      file = [[[NSProcessInfo processInfo] environment]
 		objectForKey: @"GNUSTEP_CONFIG_FILE"];
 #endif
@@ -515,27 +515,6 @@ static void InitialisePathUtilities(void)
       ExtractValuesFromConfig(userConfig);
       DESTROY(userConfig);
 
-#if defined(__WIN32__)
-      {
-	HKEY regkey;
-	/* Initialise Win32 things if on that platform */
-	Win32Initialise();   // should be called by DLL_PROCESS_ATTACH
-
-	regkey = Win32OpenRegistry(HKEY_LOCAL_MACHINE,
-				 "\\Software\\GNU\\GNUstep");
-	if (regkey != (HKEY)NULL)
-	  {
-	    TEST_ASSIGN(gnustepSystemRoot,
-	      Win32NSStringFromRegistry(regkey, @"GNUSTEP_SYSTEM_ROOT"));
-	    TEST_ASSIGN(gnustepNetworkRoot,
-	      Win32NSStringFromRegistry(regkey, @"GNUSTEP_NETWORK_ROOT"));
-	    TEST_ASSIGN(gnustepLocalRoot,
-	      Win32NSStringFromRegistry(regkey, @"GNUSTEP_LOCAL_ROOT"));
-	    RegCloseKey(regkey);
-	  }
-      }
-#endif
-
       [gnustep_global_lock unlock];
     }
   NS_HANDLER
@@ -602,7 +581,7 @@ static void ShutdownPathUtilities(void)
  * A backslash followed immediately by a newline (except in a singly
  * quoted string) is removed completely along with the newline ... it
  * thus serves to join lines so that they are treated as a single line.<br />
- * NB. Since windows uses backslash characters in paths, it is a good
+ * NB. Since ms-windows uses backslash characters in paths, it is a good
  * idea to specify path values in the config file as singly quoted
  * strings to avoid having to double all occurrances of the backslash.<br />
  * Returns a dictionary of the (key,value) pairs.<br/ >
@@ -905,7 +884,7 @@ GSSetUserName(NSString *aName)
  * Return the caller's login name as an NSString object.<br/ >
  * Under unix-like systems, the name associated with the current
  * effective user ID is used.<br/ >
- * Under ms-windows, the 'LOGNAME' environemnt is used, or if that fails, the
+ * Under ms-windows, the 'LOGNAME' environment is used, or if that fails, the
  * GetUserName() call is used to find the user name.
  */
 /* NOTE FOR DEVELOPERS.
