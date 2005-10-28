@@ -31,9 +31,6 @@
 #endif
 
 #ifdef __MINGW32__
-#ifndef __MINGW__
-#define __MINGW__
-#endif
 #ifndef __WIN32__
 #define __WIN32__
 #endif

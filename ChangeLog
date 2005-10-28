@@ -1,3 +1,12 @@
+2005-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: standardise on __MINGW32__
+	* Source/win32/NSUserDefaultsWin32.m: patch #4567 fix a few typos
+	* Source/DocMakefile: get right path for autogsdoc on mingw
+	* Tools/DocMakefile: ditto (patch #4568)
+	* Tools/AGSHtml.m: work round isssues with windows help (patch #4569)
+	Mostly fixes by Jeremy Bettis
+
 2005-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Fix error setting version numbers for the
