@@ -1325,8 +1325,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 if test -z "$GNUSTEP_MAKEFILES"; then
-  { { echo "$as_me:$LINENO: error: You must have GNUstep-make installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory!" >&5
-echo "$as_me: error: You must have GNUstep-make installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory!" >&2;}
+  { { echo "$as_me:$LINENO: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&5
+echo "$as_me: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
