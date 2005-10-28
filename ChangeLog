@@ -24,6 +24,8 @@
 	specified by --with-config-file= or in $GNUSTEP_MAKEFILES/config.make
 	Add --disable-importing-config-file for consistency with makefiles
 	package ... not sure we need to keep this option.
+	Add --disable-environment-config-file to prevent use of the
+	GNUSTEP_CONFIG_FILE enviropnment variable.
 	* configure: regenerate
 	* Headers/Additions/GNUstepBase/config.h.in: regenerate to include
 	new path definitions produced by configure script.

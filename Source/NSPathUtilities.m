@@ -385,7 +385,7 @@ GNUstepConfig(void)
 	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
 	      /* Now we source the configuration file if it exists */
-#if	!defined(OPTION_NO_ENVIRONMENT)
+#if	!OPTION_NO_ENVIRONMENT
 	      file = [[[NSProcessInfo processInfo] environment]
 		objectForKey: @"GNUSTEP_CONFIG_FILE"];
 #endif

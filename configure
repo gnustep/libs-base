@@ -846,6 +846,7 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+--disable-environment-config-file		Disable use of the GNUSTEP_CONFIG_FILE environment variable
 --disable-importing-config-file		Disable importing the existing GNUstep configuration file
   --enable-procfs               Use /proc filesystem (default)
   --enable-procfs-psinfo               Use /proc/%pid% to get info
@@ -1348,6 +1349,36 @@ fi;
 echo "$as_me:$LINENO: result: $GNUSTEP_CONFIG_FILE" >&5
 echo "${ECHO_T}$GNUSTEP_CONFIG_FILE" >&6
 
+
+#---------------------------------------------------------------------
+# Whether the GNUstep.conf file path can be set in the environment
+#---------------------------------------------------------------------
+echo "$as_me:$LINENO: checking whether the GNUstep.conf file path can be set in the environment" >&5
+echo $ECHO_N "checking whether the GNUstep.conf file path can be set in the environment... $ECHO_C" >&6
+# Check whether --enable-environment-config-file or --disable-environment-config-file was given.
+if test "${enable_environment_config_file+set}" = set; then
+  enableval="$enable_environment_config_file"
+  ac_cv_environment_config_file=$enableval
+else
+  ac_cv_environment_config_file="yes"
+fi;
+if test "$ac_cv_environment_config_file" = "no"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define OPTION_NO_ENVIRONMENT 0
+_ACEOF
+
+  echo "$as_me:$LINENO: result: no: disabled from the command-line" >&5
+echo "${ECHO_T}no: disabled from the command-line" >&6
+else
+
+cat >>confdefs.h <<\_ACEOF
+#define OPTION_NO_ENVIRONMENT 1
+_ACEOF
+
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+fi
 
 #
 # Set 'standard' defaults for values from configuration file.
