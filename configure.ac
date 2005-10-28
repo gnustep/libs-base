@@ -48,6 +48,24 @@ AC_ARG_WITH(config-file,
 AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
 AC_SUBST(GNUSTEP_CONFIG_FILE)
 
+#---------------------------------------------------------------------
+# Whether the GNUstep.conf file path can be set in the environment
+#---------------------------------------------------------------------
+AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
+AC_ARG_ENABLE(environment-config-file, 
+[--disable-environment-config-file		Disable use of the GNUSTEP_CONFIG_FILE environment variable], 
+  ac_cv_environment_config_file=$enableval,
+  ac_cv_environment_config_file="yes")
+if test "$ac_cv_environment_config_file" = "no"; then
+  AC_DEFINE(OPTION_NO_ENVIRONMENT, 0,
+    [Enable GNUSTEP_CONFIG_FILE environment variable])
+  AC_MSG_RESULT([no: disabled from the command-line])
+else
+  AC_DEFINE(OPTION_NO_ENVIRONMENT, 1,
+    [Disable GNUSTEP_CONFIG_FILE environment variable])
+  AC_MSG_RESULT([yes])
+fi
+
 #
 # Set 'standard' defaults for values from configuration file.
 #

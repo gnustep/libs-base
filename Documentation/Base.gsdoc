@@ -481,7 +481,10 @@ notice and this notice are preserved.
 	    on. On a GNU/Linux system, the default would be
 	    /etc/GNUstep/GNUstep.conf, for instance.<br />
 	    The location of this file can be overridden using the
-	    GNUSTEP_CONFIG_FILE environment variable.<br />
+	    GNUSTEP_CONFIG_FILE environment variable (unless the base libarary
+	    had this feature specifically turned off using the
+	    <code>--disable-environment-config-file</code> option when the
+	    <code>configure</code> script was run prior to building it.<br />
 	    The configuration file is not actually required to exist.
 	    If it does not exist, then default values will be used
 	    for the standard path locations.<br />
