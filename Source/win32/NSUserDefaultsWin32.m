@@ -94,8 +94,11 @@ struct NSUserDefaultsWin32_DomainInfo
     @"NSUserDefaultsWin32 should only be used if defaults directory is :REGISTRY:");
 
   path = [path substringFromIndex: NSMaxRange(r)];
-  path = [@"Software\\GNUstep\\" stringByAppendingString: path];
-  if ([path hasSuffix: @"\\"] == NO)
+  if ([path length] == 0)
+    {
+      path = @"Software\\GNUstep\\";
+    }
+  else if ([path hasSuffix: @"\\"] == NO)
     {
       path = [path stringByAppendingString: @"\\"];
     }
@@ -474,7 +477,11 @@ struct NSUserDefaultsWin32_DomainInfo
       oldDomainDict = [oldData objectForKey: persistantDomain];
       dPath = [registryPrefix stringByAppendingString: persistantDomain];
       
-      if ([domainDict count] && !dinfo->userKey)
+      if ([domainDict count] == 0)
+	{
+	  continue;
+	}
+      if (dinfo->userKey == 0)
 	{
 	  rc = RegCreateKeyEx(HKEY_CURRENT_USER,
 	    [dPath cString],
@@ -493,10 +500,6 @@ struct NSUserDefaultsWin32_DomainInfo
 	      return NO;
 	    }
 	}
-      else if ([domainDict count] > 0)
-	{
-	  continue;
-	}
       
       valIter = [domainDict keyEnumerator];
       while ((valName = [valIter nextObject]))
@@ -504,7 +507,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	  id value = [domainDict objectForKey: valName];
 	  id oldvalue = [oldDomainDict objectForKey: valName];
 
-	  if (oldvalue != nil || [value isEqual: oldvalue] == NO)
+	  if (oldvalue == nil || [value isEqual: oldvalue] == NO)
 	    {
 	      NSString *result = 0;
 

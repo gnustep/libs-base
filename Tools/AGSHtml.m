@@ -175,6 +175,7 @@ static NSString		*mainFont = nil;
   NSString	*s;
   NSString	*kind = (f == YES) ? @"rel=\"gsdoc\" href" : @"name";
   NSString	*hash = (f == YES) ? @"#" : @"";
+  r = [r stringByReplacingString:@":" withString:@"$"];
 
   if (f == NO || (s = [localRefs globalRef: r type: t]) != nil)
     {
@@ -206,6 +207,7 @@ static NSString		*mainFont = nil;
   NSString	*s = nil;
   NSString	*kind = (f == YES) ? @"rel=\"gsdoc\" href" : @"name";
   NSString	*hash = (f == YES) ? @"#" : @"";
+  r = [r stringByReplacingString:@":" withString:@"$"];
 
   if (f == NO)
     {
@@ -347,6 +349,7 @@ static NSString		*mainFont = nil;
 	  NSString	*ref = [a objectAtIndex: i];
 	  NSString	*text = [dict objectForKey: ref];
 	  NSString	*file = ref;
+	  ref = [ref stringByReplacingString:@":" withString:@"$"];
 
 	  if ([file isEqual: base] == YES)
 	    {
@@ -480,6 +483,7 @@ static NSString		*mainFont = nil;
 	  NSString	*ref = [a objectAtIndex: i];
 	  NSString	*file = [dict objectForKey: ref];
 	  NSString	*text = ref;
+	  ref = [ref stringByReplacingString:@":" withString:@"$"];
 
 	  /*
 	   * If a reference to a method contains a leading category name,
