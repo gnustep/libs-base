@@ -1,3 +1,8 @@
+2005-10-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Revert last change ... it looked OK but it broke
+	internal checking of references.
+
 2005-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: standardise on __MINGW32__
