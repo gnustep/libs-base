@@ -105,6 +105,9 @@ _NSLog_standard_printf_handler (NSString* message)
   NSData	*d;
   const char	*buf;
   unsigned	len;
+#if	defined(__WIN32__) || defined(HAVE_SYSLOG)
+  char		*null_terminated_buf;
+#endif
   static NSStringEncoding enc = 0;
 
   if (enc == 0)
@@ -129,48 +132,55 @@ _NSLog_standard_printf_handler (NSString* message)
       len = [d length];
     }
 
-#if	defined(HAVE_SYSLOG) || defined(__WIN32__)
+#if	defined(__WIN32__)
+  null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
+  strncpy (null_terminated_buf, buf, len);
+  null_terminated_buf[len] = '\0';
+
+  OutputDebugString(null_terminated_buf);
+
+  if ((GSUserDefaultsFlag(GSLogSyslog) == YES
+    || write(_NSLogDescriptor, buf, len) != (int)len) && !IsDebuggerPresent())
+    {
+      static HANDLE eventloghandle = 0;
+
+      if (!eventloghandle)
+	{
+	  eventloghandle = RegisterEventSource(NULL,
+	    [[[NSProcessInfo processInfo] processName] cString]);
+	}
+      if (eventloghandle)
+	{
+	  ReportEvent(eventloghandle,	// event log handle
+	    EVENTLOG_WARNING_TYPE,	// event type
+	    0,				// category zero
+	    0,				// event identifier
+	    NULL,			// no user security identifier
+	    1,				// one substitution string
+	    0,				// no data
+	    (LPCSTR*)&null_terminated_buf,	// pointer to string array
+	    NULL);			// pointer to data
+	}
+    }
+  objc_free (null_terminated_buf);
+#else      
+      
+#if	defined(HAVE_SYSLOG)
   if (GSUserDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
     {
-      char *null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
-
+      null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
       strncpy (null_terminated_buf, buf, len);
       null_terminated_buf[len] = '\0';
 
-#if	defined(__WIN32__)
-      OutputDebugString(null_terminated_buf);
-      if (!IsDebuggerPresent())
-	{
-	  static HANDLE eventloghandle = 0;
-
-	  if (!eventloghandle)
-	    {
-	      eventloghandle = RegisterEventSource(NULL,
-		[[[NSProcessInfo processInfo] processName] cString]);
-	    }
-	  if (eventloghandle)
-	    {
-	      ReportEvent(eventloghandle,	// event log handle
-		EVENTLOG_WARNING_TYPE,	// event type
-		0,			// category zero
-		0,			// event identifier
-		NULL,			// no user security identifier
-		1,			// one substitution string
-		0,			// no data
-		&null_terminated_buf,	// pointer to string array
-		NULL);			// pointer to data
-	    }
-	  }
-#else
       syslog(SYSLOGMASK, "%s",  null_terminated_buf);
-#endif // __WIN32__
 
       objc_free (null_terminated_buf);
     }
 #else
   write(_NSLogDescriptor, buf, len);
 #endif
+#endif // __WIN32__
 }
 
 /**
@@ -270,17 +280,22 @@ NSLogv (NSString* format, va_list args)
 {
   NSString	*prefix;
   NSString	*message;
-  int		pid;
+  static int	pid = 0;
   CREATE_AUTORELEASE_POOL(arp);
 
   if (_NSLog_printf_handler == NULL)
-    _NSLog_printf_handler = *_NSLog_standard_printf_handler;
+    {
+      _NSLog_printf_handler = *_NSLog_standard_printf_handler;
+    }
 
+  if (pid == 0)
+    {
 #if defined(__MINGW32__)
-  pid = (int)GetCurrentProcessId();
+      pid = (int)GetCurrentProcessId();
 #else
-  pid = (int)getpid();
+      pid = (int)getpid();
 #endif
+    }
 
 #ifdef	HAVE_SYSLOG
   if (GSUserDefaultsFlag(GSLogSyslog) == YES)
@@ -319,8 +334,10 @@ NSLogv (NSString* format, va_list args)
     }
 
   /* Check if there is already a newline at the end of the format */
-  if (![format hasSuffix: @"\n"])
-    format = [format stringByAppendingString: @"\n"];
+  if ([format hasSuffix: @"\n"] == NO)
+    {
+      format = [format stringByAppendingString: @"\n"];
+    }
   message = [NSString stringWithFormat: format arguments: args];
 
   prefix = [prefix stringByAppendingString: message];
