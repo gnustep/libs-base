@@ -109,8 +109,9 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
  */
 typedef	enum {
 #ifdef __MINGW32__
-    ET_HANDLE,
-    ET_RPORT	/* Watch for message arriving on port.		*/
+    ET_HANDLE,	/* Watch for an I/O event on a handle.		*/
+    ET_RPORT,	/* Watch for message arriving on port.		*/
+    ET_WINMSG,	/* Watch for a message on a window handle.	*/
 #else
     ET_RDESC,	/* Watch for descriptor becoming readable.	*/
     ET_WDESC,	/* Watch for descriptor becoming writeable.	*/

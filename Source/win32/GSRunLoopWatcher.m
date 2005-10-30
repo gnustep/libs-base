@@ -1,7 +1,7 @@
 #include "config.h"
 
 #include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSRunLoopWatcher.h"
+#include "../GSRunLoopWatcher.h"
 #include <Foundation/NSException.h>
 #include <Foundation/NSPort.h>
 

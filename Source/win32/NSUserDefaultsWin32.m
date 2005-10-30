@@ -365,11 +365,13 @@ struct NSUserDefaultsWin32_DomainInfo
 
 		  NSLog(@"Failed to query modify time on registry %@ (%x)",
 		    dName, rc);
+		  NSEndMapTableEnumeration(&iter);
 		  return YES;
 		}
 	      ti = -12622780800.0 + lasttime.QuadPart / 10000000.0;
 	      if ([lastSyncDate timeIntervalSinceReferenceDate] < ti)
 		{
+		  NSEndMapTableEnumeration(&iter);
 		  return YES;
 		}
 	    }
@@ -395,6 +397,7 @@ struct NSUserDefaultsWin32_DomainInfo
 		}
 	      else
 		{
+		  NSEndMapTableEnumeration(&iter);
 		  return YES;
 		}
 	    }
@@ -407,11 +410,13 @@ struct NSUserDefaultsWin32_DomainInfo
 		{
 		  NSLog(@"Failed to query time on HKEY_LOCAL_MACHINE\\%@ (%x)",
 		    dPath, rc);
+		  NSEndMapTableEnumeration(&iter);
 		  return YES;
 		}
 	      ti = -12622780800.0 + lasttime.QuadPart / 10000000.0;
 	      if ([lastSyncDate timeIntervalSinceReferenceDate] < ti)
 		{
+		  NSEndMapTableEnumeration(&iter);
 		  return YES;
 		}
 	    }
@@ -434,6 +439,7 @@ struct NSUserDefaultsWin32_DomainInfo
 		}
 	      else
 		{
+		  NSEndMapTableEnumeration(&iter);
 		  return YES;
 		}
 	    }

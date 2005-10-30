@@ -9,8 +9,8 @@
 #include "config.h"
 
 #include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSRunLoopCtxt.h"
-#include "GNUstepBase/GSRunLoopWatcher.h"
+#include "../GSRunLoopCtxt.h"
+#include "../GSRunLoopWatcher.h"
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
@@ -58,6 +58,10 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   if (handleMap != 0)
     {
       NSFreeMapTable(handleMap);
+    }
+  if (winMsgMap != 0)
+    {
+      NSFreeMapTable(winMsgMap);
     }
   [super dealloc];
 }
@@ -122,6 +126,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
       handleMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
+      winMsgMap = NSCreateMapTable(NSIntMapKeyCallBacks,
+              WatcherMapValueCallBacks, 0);
 
       msgTarget = nil;
     }
@@ -134,6 +140,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   GSRunLoopWatcher	*watcher;
   HANDLE		*handleArray;
   int			num_handles;
+  int			num_winMsgs;
   unsigned		i;
   void			*handle;
   int			wait_timeout;
@@ -151,9 +158,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
 
   NSResetMapTable(handleMap);
+  NSResetMapTable(winMsgMap);
 
   i = GSIArrayCount(watchers);
   num_handles = 0;
+  num_winMsgs = 0;
   while (i-- > 0)
     {
       GSRunLoopWatcher	*info;
@@ -196,6 +205,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 		}
             }
 	    break;
+	  case ET_WINMSG:
+    	    winMsgMap = (HANDLE)(int)info->data;
+            NSMapInsert(winMsgMap, (void*)handle, info);
+	    num_winMsgs++;
+	    break;
 	}
     }
     
@@ -212,25 +226,66 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
   handleArray = (HANDLE*)NSZoneMalloc(NSDefaultMallocZone(),
     sizeof(HANDLE) * num_handles);
-  hEnum = NSEnumerateMapTable(handleMap);
     
   i = 0;
+  hEnum = NSEnumerateMapTable(handleMap);
   while (NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
     {
       handleArray[i++] = (HANDLE)handle;
     }
+  NSEndMapTableEnumeration(&hEnum);
 
   do_wait = YES;
   do
     {
       num_handles = i;
       wait_return = MsgWaitForMultipleObjects(num_handles, handleArray, 
-	NO, wait_timeout, QS_ALLEVENTS);
+	NO, wait_timeout, QS_ALLINPUT);
       NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);
 
       // if there are windows message
       if (wait_return == WAIT_OBJECT_0 + num_handles)
         {
+	  MSG	msg;
+	  INT	bRet;
+
+	  if (num_winMsgs > 0)
+	    {
+	      hEnum = NSEnumerateMapTable(winMsgMap);
+	      while (NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
+		{
+		  if (watcher->_invalidated == NO)
+		    {
+		      bRet = PeekMessage(&msg, handle, 0, 0, PM_NOREMOVE);
+		      if (bRet != 0)
+			{
+			  i = [contexts count];
+			  while (i-- > 0)
+			    {
+			      GSRunLoopCtxt *c = [contexts objectAtIndex: i];
+
+			      if (c != self)
+				{ 
+				  [c endEvent: (void*)handle type: ET_WINMSG];
+				}
+			    }
+			  /*
+			   * The watcher is still valid - so call its receivers
+			   * event handling method.
+			   */
+			  (*watcher->handleEvent)(watcher->receiver,
+			      eventSel, watcher->data, watcher->type,
+			      (void*)(gsaddr)handle, mode);
+			  NSEndMapTableEnumeration(&hEnum);
+			  NSZoneFree(NSDefaultMallocZone(), handleArray);
+			  completed = YES;
+			  return NO;
+			}
+		    }
+		}
+	      NSEndMapTableEnumeration(&hEnum);
+	    }
+
           if (msgTarget != nil)
             {
               [msgTarget performSelector: msgSelector withObject: nil];
@@ -238,23 +293,18 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
               completed = YES;
               return NO;
             }
-          else
-            {
-              MSG	msg;
-              INT	bRet;
 
-              while ((bRet = PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) != 0)
-                {
-                  if (bRet == -1)
-	            {
-	              // handle the error and possibly exit
-	            }
-                  else
-	            {
-	              DispatchMessage(&msg);
-	            }
-                }
-            }
+	  while ((bRet = PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) != 0)
+	    {
+	      if (bRet == -1)
+		{
+		  // handle the error and possibly exit
+		}
+	      else
+		{
+		  DispatchMessage(&msg);
+		}
+	    }
           --wait_timeout;
         }
       else

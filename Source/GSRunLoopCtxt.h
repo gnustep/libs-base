@@ -46,6 +46,7 @@ typedef struct{
 @private
 #if	defined(__MINGW32__)
   NSMapTable    *handleMap;     
+  NSMapTable	*winMsgMap;
 #else
   NSMapTable	*_efdMap;
   NSMapTable	*_rfdMap;
