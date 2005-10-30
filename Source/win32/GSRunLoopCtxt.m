@@ -83,6 +83,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	{
 	  case ET_HANDLE:
 	    break;
+	  case ET_WINMSG:
+	    break;
 	  default:
 	    NSLog(@"Ending an event of unkown type (%d)", type);
 	    break;
@@ -206,7 +208,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
             }
 	    break;
 	  case ET_WINMSG:
-    	    winMsgMap = (HANDLE)(int)info->data;
+    	    handle = (HANDLE)(int)info->data;
             NSMapInsert(winMsgMap, (void*)handle, info);
 	    num_winMsgs++;
 	    break;
@@ -234,11 +236,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       handleArray[i++] = (HANDLE)handle;
     }
   NSEndMapTableEnumeration(&hEnum);
+  num_handles = i;
 
   do_wait = YES;
   do
     {
-      num_handles = i;
       wait_return = MsgWaitForMultipleObjects(num_handles, handleArray, 
 	NO, wait_timeout, QS_ALLINPUT);
       NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);
@@ -251,12 +253,21 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
 	  if (num_winMsgs > 0)
 	    {
+	      GSRunLoopWatcher	*generic = nil;
+	      unsigned		num = num_winMsgs;
+
 	      hEnum = NSEnumerateMapTable(winMsgMap);
 	      while (NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
 		{
 		  if (watcher->_invalidated == NO)
 		    {
-		      bRet = PeekMessage(&msg, handle, 0, 0, PM_NOREMOVE);
+		      if (handle == 0 && num > 1)
+			{
+			  // Let window specific watchers have first attempt.
+			  generic = watcher;
+			  continue;
+			}
+		      bRet = PeekMessage(&msg, handle, 0, 0, PM_REMOVE);
 		      if (bRet != 0)
 			{
 			  i = [contexts count];
@@ -269,28 +280,53 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				  [c endEvent: (void*)handle type: ET_WINMSG];
 				}
 			    }
-			  /*
-			   * The watcher is still valid - so call its receivers
-			   * event handling method.
-			   */
-			  (*watcher->handleEvent)(watcher->receiver,
-			      eventSel, watcher->data, watcher->type,
-			      (void*)(gsaddr)handle, mode);
 			  NSEndMapTableEnumeration(&hEnum);
 			  NSZoneFree(NSDefaultMallocZone(), handleArray);
 			  completed = YES;
+			  /*
+			   * The watcher is still valid - so call the
+			   * receiver's event handling method.
+			   */
+			  (*watcher->handleEvent)(watcher->receiver,
+			      eventSel, watcher->data, watcher->type,
+			      (void*)(gsaddr)&msg, mode);
 			  return NO;
 			}
 		    }
+		  num--;
 		}
 	      NSEndMapTableEnumeration(&hEnum);
+	      if (generic != nil && generic->_invalidated == NO)
+		{
+		  bRet = PeekMessage(&msg, 0, 0, 0, PM_REMOVE);
+		  if (bRet != 0)
+		    {
+		      i = [contexts count];
+		      while (i-- > 0)
+			{
+			  GSRunLoopCtxt *c = [contexts objectAtIndex: i];
+
+			  if (c != self)
+			    { 
+			      [c endEvent: (void*)0 type: ET_WINMSG];
+			    }
+			}
+		      NSEndMapTableEnumeration(&hEnum);
+		      NSZoneFree(NSDefaultMallocZone(), handleArray);
+		      completed = YES;
+		      (*generic->handleEvent)(watcher->receiver,
+			  eventSel, watcher->data, watcher->type,
+			  (void*)(gsaddr)&msg, mode);
+		      return NO;
+		    }
+		}
 	    }
 
           if (msgTarget != nil)
             {
-              [msgTarget performSelector: msgSelector withObject: nil];
               NSZoneFree(NSDefaultMallocZone(), handleArray);
               completed = YES;
+              [msgTarget performSelector: msgSelector withObject: nil];
               return NO;
             }
 
