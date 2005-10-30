@@ -40,8 +40,8 @@
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSRunLoopCtxt.h"
-#include "GNUstepBase/GSRunLoopWatcher.h"
+#include "GSRunLoopCtxt.h"
+#include "GSRunLoopWatcher.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>

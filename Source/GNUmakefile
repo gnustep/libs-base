@@ -119,8 +119,6 @@ GNUstep.h \
 behavior.h \
 preface.h \
 objc-gnu2next.h \
-GSRunLoopCtxt.h \
-GSRunLoopWatcher.h
 
 GNU_HEADERS = $(ADD_HEADERS)
 

@@ -1,7 +1,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSRunLoop.h"
-#include "GNUstepBase/GSRunLoopCtxt.h"
+#include "../GSRunLoopCtxt.h"
 
 @implementation NSRunLoop (mingw32)
 /**

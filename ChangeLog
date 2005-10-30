@@ -4,6 +4,16 @@
 	Tidy indentation. Fix variable declaration not at start of block
 	(broke compile for older gcc versions).  Avoid repeated system
 	calls to get process ID.
+	* Headers/Additions/GNUstepBase/GSRunLoopCtxt.h: Move private header to
+	Source directory.
+	* Headers/Additions/GNUstepBase/GSRunLoopWatcher.h: ditto
+	* Headers/Foundation/NSRunLoop.h: Add event type for handling windows
+	messages.
+	* Source/GNUmakefile: Don't install private headers in public area.
+	* Source/win32/GSRunLoopCtxt.m: Add code to handle windows messages.
+	* Source/win32/GSRunLoopWatcher.m: update header path.
+	* Source/win32/NSRunLoopWin32.m: update header path.
+	* Source/win32/NSUserDefaultsWin32.m: update header path.
 
 2005-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
