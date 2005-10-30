@@ -9,8 +9,8 @@
 #include "config.h"
 
 #include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSRunLoopCtxt.h"
-#include "GNUstepBase/GSRunLoopWatcher.h"
+#include "../GSRunLoopCtxt.h"
+#include "../GSRunLoopWatcher.h"
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
