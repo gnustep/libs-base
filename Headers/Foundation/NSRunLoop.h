@@ -139,9 +139,10 @@ typedef	enum {
 /**
  * Callback message sent to object when the event it it waiting
  * for occurs.  The 'data' and 'type' valueds are those passed in the
- * original -addEvent:type:watcher:forMode: method.
+ * original -addEvent:type:watcher:forMode: method.<br />
  * The 'extra' value may be additional data returned depending
- * on the type of event.
+ * on the type of event.  In the case of ET_WINMSG 'extra' is a pointer
+ * to a windows <code>MSG</code> structure containing the received event.
  */
 - (void) receivedEvent: (void*)data
 		  type: (RunLoopEventType)type
@@ -202,21 +203,15 @@ typedef	enum {
 
 #if	defined(__MINGW32__)
 /**
- * Interface that add method to set target for win32 messages.<br />
+ * Obsolete interface that add method to set target for win32 messages.<br />
  */
 @interface NSRunLoop(mingw32)
-/**
- * Adds a target to the loop in the specified mode for the 
- * win32 messages.<br />
- * Only a target+selector is added in one mode. Successive 
- * calls overwrite the previous.<br />
+/** Deprecated ... will be removed
  */
 - (void) addMsgTarget: (id)target
            withMethod: (SEL)selector
               forMode: (NSString*)mode;
-/**
- * Delete the target of the loop in the specified mode for the 
- * win32 messages.<br />
+/** Deprecated ... will be removed
  */
 - (void) removeMsgForMode: (NSString*)mode;
 @end
