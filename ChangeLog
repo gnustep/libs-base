@@ -15,6 +15,11 @@
 	allocation/release.
 	* Source/win32/GSRunLoopWatcher.m: update header path.
 	* Source/win32/NSRunLoopWin32.m: update header path.
+	Deprecate addMsgTarget:withMethod:forMode: as our code for the original
+	addEvent:type:watcher:forMode: can be much more efficient if we don't
+	support that extension.  We need to use addEvent:type:watcher:forMode:
+	if we want to implement NSMessagePort using windows messages.
+	if we don't support that as well as the o
 	* Source/win32/NSUserDefaultsWin32.m: update header path.
 
 2005-10-29  Richard Frith-Macdonald <rfm@gnu.org>
