@@ -11,6 +11,8 @@
 	messages.
 	* Source/GNUmakefile: Don't install private headers in public area.
 	* Source/win32/GSRunLoopCtxt.m: Add code to handle windows messages.
+	Check number of handles waited for.  Avoid unnecessary heap memory
+	allocation/release.
 	* Source/win32/GSRunLoopWatcher.m: update header path.
 	* Source/win32/NSRunLoopWin32.m: update header path.
 	* Source/win32/NSUserDefaultsWin32.m: update header path.

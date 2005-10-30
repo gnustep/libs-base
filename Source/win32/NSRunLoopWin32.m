@@ -11,7 +11,7 @@
 {
   GSRunLoopCtxt	*context;
 
-  // GSOnceMLog(@"This method is deprecated, use -addEvent:type:watcher:forMode");
+  GSOnceMLog(@"This method is deprecated, use -addEvent:type:watcher:forMode");
   context = NSMapGet(_contextMap, mode);
   if (context == nil)
     {
