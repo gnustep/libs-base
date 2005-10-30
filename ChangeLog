@@ -1,3 +1,10 @@
+2005-10-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: Apply patch #5399 from Jeremy Bettis.
+	Tidy indentation. Fix variable declaration not at start of block
+	(broke compile for older gcc versions).  Avoid repeated system
+	calls to get process ID.
+
 2005-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Revert last change ... it looked OK but it broke
