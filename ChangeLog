@@ -1,3 +1,9 @@
+2005-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: retain self for the duration of I/O
+	handler methods where we may make callbacks to clients.  In case
+	the client owns the handle, and decides to release it.
+
 2005-10-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLog.m: Apply patch #5399 from Jeremy Bettis.

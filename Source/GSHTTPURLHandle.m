@@ -368,6 +368,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*version;
   NSMapEnumerator       enumerator;
 
+  RETAIN(self);
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
 
   s = [basic mutableCopy];
@@ -457,6 +458,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   [sock writeInBackgroundAndNotify: buf];
   RELEASE(buf);
   RELEASE(s);
+  RELEASE(self);
 }
 
 - (void) bgdRead: (NSNotification*) not
@@ -465,6 +467,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary		*dict = [not userInfo];
   NSData		*d;
   NSRange		r;
+
+  RETAIN(self);
 
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
@@ -596,11 +600,13 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    loadComplete: NO];
 	    }
 	}
-      if (sock != nil)
+      if (sock != nil
+	&& (connectionState == reading || connectionState == idle))
 	{
 	  [sock readInBackgroundAndNotify];
 	}
     }
+  RELEASE(self);
 }
 
 - (void) bgdTunnelRead: (NSNotification*) not
@@ -610,6 +616,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSData		*d;
   GSMimeParser		*p = [GSMimeParser new];
 
+  RETAIN(self);
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
@@ -646,6 +653,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [sock readInBackgroundAndNotify];
     }
   RELEASE(p);
+  RELEASE(self);
 }
 
 - (void) loadInBackground
@@ -680,13 +688,13 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) bgdConnect: (NSNotification*)notification
 {
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
-
   NSDictionary          *userInfo = [notification userInfo];
   NSMutableString	*s;
   NSString		*e;
   NSString		*method;
   NSString		*path;
 
+  RETAIN(self);
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
 
   path = [[u path] stringByTrimmingSpaces];
@@ -709,6 +717,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason:
 	[NSString stringWithFormat: @"Failed to connect: %@", e]];
+      RELEASE(self);
       return;
     }
 
@@ -789,6 +798,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason: @"Failed proxy tunneling"];
+	  RELEASE(self);
 	  return;
 	}
     }
@@ -802,6 +812,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason:
 	    @"Failed to make ssl connect"];
+	  RELEASE(self);
 	  return;
 	}
     }
@@ -843,6 +854,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   [self bgdApply: s];
   RELEASE(s);
+  RELEASE(self);
 }
 
 - (void) bgdWrite: (NSNotification*)notification
@@ -851,6 +863,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary    	*userInfo = [notification userInfo];
   NSString        	*e;
 
+  RETAIN(self);
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
@@ -880,6 +893,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason:
 	[NSString stringWithFormat: @"Failed to write request: %@", e]];
+      RELEASE(self);
       return;
     }
   else
@@ -916,6 +930,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       connectionState = reading;
     }
+  RELEASE(self);
 }
 
 /**
