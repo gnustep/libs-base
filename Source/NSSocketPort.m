@@ -1629,7 +1629,7 @@ static unsigned	wordAlign;
 	      (void) close(desc);
               DESTROY(port);
 	    }
-	  else if (listen(desc, 5) == SOCKET_ERROR)
+	  else if (listen(desc, 128) == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
 	      (void) close(desc);

@@ -3,6 +3,13 @@
 	* Source/GSHTTPURLHandle.m: retain self for the duration of I/O
 	handler methods where we may make callbacks to clients.  In case
 	the client owns the handle, and decides to release it.
+	* Source/GSFileHandle.m: Increase backlog size in listen() to improve
+	perfromance of server objects accepting lots of connections.
+	* Source/NSSocketPort.m: ditto ... though unlikely to be needed.
+	* Source/NSMessagePort.m: ditto
+	* Source/GSTcpPort.m: remove obsolete file
+	* Tools/gstcpport_client.m: ditto
+	* Tools/gstcpport_server.m: ditto
 
 2005-10-30  Richard Frith-Macdonald <rfm@gnu.org>
 

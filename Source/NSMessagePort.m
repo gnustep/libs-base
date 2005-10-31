@@ -1284,7 +1284,7 @@ static int unique_index = 0;
 	      (void) close(desc);
               DESTROY(port);
 	    }
-	  else if (listen(desc, 5) < 0)
+	  else if (listen(desc, 128) < 0)
 	    {
 	      NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
 	      (void) close(desc);
