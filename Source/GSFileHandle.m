@@ -965,7 +965,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return nil;
     }
 
-  if (listen(net, 5) == SOCKET_ERROR)
+  if (listen(net, 256) == SOCKET_ERROR)
     {
       NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
 #if defined(__MINGW32__)

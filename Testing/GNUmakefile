@@ -81,7 +81,6 @@ ADDITIONAL_TOOLS = \
 		nsconnection_server \
 
 TEST_TOOL_NAME += $(ADDITIONAL_TOOLS)
-# TEST_TOOL_NAME += gstcpport-client gstcpport-server 
 
 # The tool Objective-C source files to be compiled
 awake_OBJC_FILES = awake.m
@@ -94,8 +93,6 @@ exported-strings_OBJC_FILES = exported-strings.m
 fref_OBJC_FILES = fref.m
 gsbehavior_OBJC_FILES = gsbehavior.m
 gslock_OBJC_FILES = gslock.m
-gstcpport-client_OBJC_FILES = gstcpport-client.m
-gstcpport-server_OBJC_FILES = gstcpport-server.m
 nsarchiver_OBJC_FILES = nsarchiver.m
 nsarray_OBJC_FILES = nsarray.m
 nsattributedstring_OBJC_FILES = nsattributedstring.m
