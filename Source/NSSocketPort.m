@@ -41,6 +41,9 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSDebug.h"
+
+#include "GSPortPrivate.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -570,6 +573,10 @@ static Class	runLoopClass;
 	 type: ET_HANDLE
       watcher: self
       forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(gsaddr)event
+	 type: ET_HANDLE
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
   inReplyMode = YES;
 #else
   [l addEvent: (void*)(gsaddr)desc
@@ -580,6 +587,14 @@ static Class	runLoopClass;
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_WDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
 #endif
 
   while (valid == YES && state == GS_H_TRYCON
@@ -595,6 +610,10 @@ static Class	runLoopClass;
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
 	     all: NO];
+  [l removeEvent: (void*)(gsaddr)event
+	    type: ET_HANDLE
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
   inReplyMode = NO;
 #else
   [l removeEvent: (void*)(gsaddr)desc
@@ -604,6 +623,14 @@ static Class	runLoopClass;
   [l removeEvent: (void*)(gsaddr)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_EDESC
+	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 #endif
 
@@ -1330,6 +1357,10 @@ static Class	runLoopClass;
 	 type: ET_HANDLE
       watcher: self
       forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(gsaddr)event
+	 type: ET_HANDLE
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
   inReplyMode = YES;
 #else
   [l addEvent: (void*)(gsaddr)desc
@@ -1340,6 +1371,14 @@ static Class	runLoopClass;
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_WDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
 #endif
 
   while (valid == YES
@@ -1367,6 +1406,10 @@ static Class	runLoopClass;
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
 	     all: NO];
+  [l removeEvent: (void*)(gsaddr)event
+	    type: ET_HANDLE
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
   inReplyMode = NO;
 #else
   [l removeEvent: (void*)(gsaddr)desc
@@ -1376,6 +1419,14 @@ static Class	runLoopClass;
   [l removeEvent: (void*)(gsaddr)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_EDESC
+	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 #endif
 
