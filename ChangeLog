@@ -5,6 +5,8 @@
 	using it, and unlin/retry if there isn't.  This is an attempt to
 	handle situations where an old process was not killed cleanly and
 	the new process tries to use the same name.
+	* Source/Additions/GSCategories.m: ([uuencodeInto:name:mode:]) fix
+	error encoding the termination marker of the uuencoded data.
 
 2005-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
