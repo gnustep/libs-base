@@ -7,6 +7,15 @@
 	the new process tries to use the same name.
 	* Source/Additions/GSCategories.m: ([uuencodeInto:name:mode:]) fix
 	error encoding the termination marker of the uuencoded data.
+	* Headers/Foundation/NSPort.h: Declare missing category of NSObject
+	Remove some of the subclass stuff that should be private.
+	* Source/GSPortPrivate.h: Put private port stuff here ... needs
+	more to be moved out of NSPort.h
+	* Source/NSMessagePort.m: Hide instance variables.  Use GSPortPrivate.h
+	Add bugfix for possible deadlock situation reported by Wim.
+	* Source/NSSocketPort.m: ditto
+	* Source/NSMessagePortNameServer.m: Use GSPortPrivate.h
+	* Source/NSPort.m: Implement missing informal protocol method.
 
 2005-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 

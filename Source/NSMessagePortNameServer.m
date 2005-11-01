@@ -35,6 +35,8 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSThread.h"
 
+#include "GSPortPrivate.h"
+
 #include <sys/stat.h>
 #include <unistd.h>
 #include <signal.h>

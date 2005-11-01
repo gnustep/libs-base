@@ -39,6 +39,12 @@
 
 @class NSMessagePort;
 
+@implementation NSObject(NSPortDelegateMethods)
+- (void) handlePortMessage: (NSPortMessage*)aMessage
+{
+}
+@end
+
 @implementation NSPort
 
 /**

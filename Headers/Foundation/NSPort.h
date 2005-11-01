@@ -47,6 +47,14 @@
 @class	NSPortMessage;
 @class	NSHost;
 
+@interface NSObject(NSPortDelegateMethods)
+/**
+ * Subclasses of NSPort send this message to their delegate on receipt
+ * of a port message.
+ */
+- (void) handlePortMessage: (NSPortMessage*)aMessage;
+@end
+
 /**
  *  Exception raised by [NSPort], [NSConnection], and friends if sufficient
  *  time elapses while waiting for a response, or if the receiving port is
@@ -175,8 +183,6 @@ GS_EXPORT NSString* const NSPortDidBecomeInvalidNotification;
  */
 typedef SOCKET NSSocketNativeHandle;
 
-@class GSTcpHandle;
-
 /**
  *  <p>An [NSPort] implementation for network object communications based on
  *  BSD sockets.  Can be used for interthread/interprocess
@@ -224,11 +230,6 @@ typedef SOCKET NSSocketNativeHandle;
 			listener: (BOOL)shouldListen;
 
 /**
- *  Setup method: add new send or receive connection handle.
- */
-- (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send;
-
-/**
  *  Returns IP address of underlying socket.
  */
 - (NSString*) address;
@@ -238,12 +239,6 @@ typedef SOCKET NSSocketNativeHandle;
  * descriptors to watch for the port.
  */
 - (void) getFds: (int*)fds count: (int*)count;
-
-/**
- *
- */
-- (GSTcpHandle*) handleForPort: (NSSocketPort*)recvPort
-		    beforeDate: (NSDate*)when;
 
 /**
  *  Delegates processing of a message.
@@ -259,14 +254,6 @@ typedef SOCKET NSSocketNativeHandle;
  *  Returns port number of underlying socket.
  */
 - (gsu16) portNumber;
-
-/**
- * This is called when a TCP/IP socket connection is broken.  We remove the
- * connection handle from this port and, if this was the last handle to a
- * remote port, we invalidate the port.
- */
-- (void) removeHandle: (GSTcpHandle*)handle;
-
 
 // This is the OS X interface
 /*
@@ -304,54 +291,15 @@ typedef SOCKET NSSocketNativeHandle;
 @end
 
 
-@class GSMessageHandle;
-
 /**
- *  An [NSPort] implementation for network object communications based on
- *  Unix domain sockets.  Can be used for interthread/interprocess
- *  communications on the same host, but not between different hosts.
+ *  An [NSPort] implementation for network object communications
+ *  which can be used for interthread/interprocess communications
+ *  on the same host, but not between different hosts.
  */
 @interface NSMessagePort : NSPort <GCFinalization>
 {
-  NSData		*name;
-  NSRecursiveLock	*myLock;
-  NSMapTable		*handles;	/* Handles indexed by socket.	*/
-  int			listener;	/* Descriptor to listen on.	*/
-#if	defined(__MINGW32__)
-  WSAEVENT              eventListener;
-  NSMapTable            *events;
-#endif
+  void		*_internal;
 }
-
-- (int) _listener;
-- (const unsigned char *) _name;
-
-/**
- *  <init/>
- * This is the preferred initialisation method for <code>NSMessagePort</code>.
- *
- * socketName is the name of the socket in the port directory
- */
-+ (NSMessagePort*) _portWithName: (const unsigned char *)socketName
-			listener: (BOOL)shouldListen;
-
-/**
- *  Setup method: add new send or receive connection handle.
- */
-- (void) addHandle: (GSMessageHandle*)handle forSend: (BOOL)send;
-
-/**
- * This is called when a socket connection is broken.  We remove the
- * connection handle from this port and, if this was the last handle to a
- * remote port, we invalidate the port.
- */
-- (void) removeHandle: (GSMessageHandle*)handle;
-
-/**
- *  Delegates processing of a message.
- */
-- (void) handlePortMessage: (NSPortMessage*)m;
-
 @end
 
 

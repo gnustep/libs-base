@@ -42,6 +42,9 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSProcessInfo.h"
+
+#include "GSPortPrivate.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -123,6 +126,7 @@ static gsu32	maxDataLength = 10 * 1024 * 1024;
 
 
 /* Private interfaces */
+
 
 /*
  * The GSPortItemType constant is used to identify the type of data in
@@ -399,6 +403,14 @@ static Class	runLoopClass;
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_WDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
 
   while (valid == YES && state == GS_H_TRYCON
     && [when timeIntervalSinceNow] > 0)
@@ -413,6 +425,14 @@ static Class	runLoopClass;
   [l removeEvent: (void*)(gsaddr)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_EDESC
+	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 
   if (state == GS_H_TRYCON)
@@ -1014,6 +1034,14 @@ static Class	runLoopClass;
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_WDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
 
   while (valid == YES
     && [wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
@@ -1031,6 +1059,14 @@ static Class	runLoopClass;
   [l removeEvent: (void*)(gsaddr)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_EDESC
+	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 
   if ([wMsgs indexOfObjectIdenticalTo: components] == NSNotFound)
@@ -1088,6 +1124,17 @@ static Class	runLoopClass;
 
 @implementation	NSMessagePort
 
+typedef	struct {
+  NSData                *_name;
+  NSRecursiveLock       *_myLock;
+  NSMapTable            *_handles;       /* Handles indexed by socket.   */
+  int                   _listener;       /* Descriptor to listen on.     */
+} internal;
+#define	name	((internal*)_internal)->_name
+#define	myLock	((internal*)_internal)->_myLock
+#define	handles	((internal*)_internal)->_handles
+#define	lDesc	((internal*)_internal)->_listener
+
 static NSRecursiveLock	*messagePortLock = nil;
 
 /*
@@ -1100,16 +1147,16 @@ static Class		messagePortClass;
 static void clean_up_sockets(void)
 {
   NSMessagePort *port;
-  NSData	*name;
+  NSData	*data;
   NSMapEnumerator mEnum;
   BOOL	unknownThread = GSRegisterCurrentThread();
   CREATE_AUTORELEASE_POOL(arp);
 
   mEnum = NSEnumerateMapTable(messagePortMap);
-  while (NSNextMapEnumeratorPair(&mEnum, (void *)&name, (void *)&port))
+  while (NSNextMapEnumeratorPair(&mEnum, (void *)&data, (void *)&port))
     {
       if ([port _listener] != -1)
-	unlink([name bytes]);
+	unlink([data bytes]);
     }
   NSEndMapTableEnumeration(&mEnum);
   DESTROY(arp);
@@ -1142,7 +1189,7 @@ static unsigned	wordAlign;
 
 + (id) new
 {
-static int unique_index = 0;
+  static int unique_index = 0;
   NSString	*path;
   NSNumber	*p = [NSNumber numberWithInt: 0700];
   NSDictionary	*attr;
@@ -1195,11 +1242,14 @@ static int unique_index = 0;
   if (port == nil)
     {
       port = (NSMessagePort*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-      port->name = theName;
-      port->listener = -1;
-      port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
+      port->_internal = (internal*)NSZoneMalloc(NSDefaultMallocZone(),
+	  sizeof(internal));
+      ((internal*)(port->_internal))->_name = theName;
+      ((internal*)(port->_internal))->_listener = -1;
+      ((internal*)(port->_internal))->_handles
+	= NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
-      port->myLock = [GSLazyRecursiveLock new];
+      ((internal*)(port->_internal))->_myLock = [GSLazyRecursiveLock new];
       port->_is_valid = YES;
 
       if (shouldListen == YES)
@@ -1281,7 +1331,7 @@ static int unique_index = 0;
 	       * number (which will have been set to a real port number when
 	       * we did the 'bind' call.
 	       */
-	      port->listener = desc;
+	      ((internal*)port->_internal)->_listener = desc;
 	      /*
 	       * Make sure we have the map table for this port.
 	       */
@@ -1337,7 +1387,11 @@ static int unique_index = 0;
 - (void) dealloc
 {
   [self gcFinalize];
-  DESTROY(name);
+  if (_internal != 0)
+    {
+      DESTROY(name);
+      NSZoneFree(NSDefaultMallocZone(), _internal);
+    }
   [super dealloc];
 }
 
@@ -1379,9 +1433,9 @@ static int unique_index = 0;
    * Put in our listening socket.
    */
   *count = 0;
-  if (listener >= 0)
+  if (lDesc >= 0)
     {
-      fds[(*count)++] = listener;
+      fds[(*count)++] = lDesc;
     }
 
   /*
@@ -1543,11 +1597,11 @@ static int unique_index = 0;
 	  unsigned	i;
 
 	  M_LOCK(messagePortLock);
-	  if (listener >= 0)
+	  if (lDesc >= 0)
 	    {
-	      (void) close(listener);
+	      (void) close(lDesc);
 	      unlink([name bytes]);
-	      listener = -1;
+	      lDesc = -1;
 	    }
 	  NSMapRemove(messagePortMap, (void*)name);
 	  M_UNLOCK(messagePortLock);
@@ -1590,7 +1644,7 @@ static int unique_index = 0;
     {
       NSMessagePort	*o = (NSMessagePort*)anObject;
 
-      return [o->name isEqual: name];
+      return [((internal*)o->_internal)->_name isEqual: name];
     }
   return NO;
 }
@@ -1603,12 +1657,12 @@ static int unique_index = 0;
   int		desc = (int)(gsaddr)extra;
   GSMessageHandle	*handle;
 
-  if (desc == listener)
+  if (desc == lDesc)
     {
       struct sockaddr_un	sockAddr;
       unsigned			size = sizeof(sockAddr);
 
-      desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
+      desc = accept(lDesc, (struct sockaddr*)&sockAddr, &size);
       if (desc < 0)
         {
 	  NSDebugMLLog(@"NSMessagePort",
@@ -1683,7 +1737,7 @@ static int unique_index = 0;
       handle->recvPort = nil;
     }
   NSMapRemove(handles, (void*)(gsaddr)[handle descriptor]);
-  if (listener < 0 && NSCountMapTable(handles) == 0)
+  if (lDesc < 0 && NSCountMapTable(handles) == 0)
     {
       [self invalidate];
     }
@@ -1894,14 +1948,14 @@ static int unique_index = 0;
 }
 
 
--(const unsigned char *) _name
+- (const unsigned char *) _name
 {
   return [name bytes];
 }
 
--(int) _listener
+- (int) _listener
 {
-  return listener;
+  return lDesc;
 }
 
 @end
