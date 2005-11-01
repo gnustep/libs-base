@@ -48,23 +48,15 @@
 #include <unistd.h>		/* for gethostname() */
 #endif
 
-#ifndef __MINGW32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <sys/un.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#endif /* !__MINGW32__ */
 #include <errno.h>
 #include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#ifdef __MINGW32__
-#include <winsock2.h>
-#include <wininet.h>
-#include <process.h>
-#include <sys/time.h>
-#else
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <netdb.h>
@@ -91,11 +83,6 @@
 
 #if	defined(__svr4__)
 #include <sys/stropts.h>
-#endif
-#endif /* !__MINGW32__ */
-
-#ifdef __MINGW32__
-#define close closesocket
 #endif
 
 /* Older systems (Solaris) compatibility */
@@ -305,26 +292,13 @@ static Class	runLoopClass;
 + (GSMessageHandle*) handleWithDescriptor: (int)d
 {
   GSMessageHandle	*handle;
-#ifdef __MINGW32__
-  unsigned long dummy;
-#else
   int		e;
-#endif /* __MINGW32__ */
 
   if (d < 0)
     {
       NSLog(@"illegal descriptor (%d) for message handle", d);
       return nil;
     }
-#ifdef __MINGW32__
-  dummy = 1;
-  if (ioctlsocket(d, FIONBIO, &dummy) < 0)
-    {
-      NSLog(@"unable to set non-blocking mode on %d - %s",
-	d, GSLastErrorStr(errno));
-      return nil;
-    }
-#else /* !__MINGW32__ */
   if ((e = fcntl(d, F_GETFL, 0)) >= 0)
     {
       e |= NBLK_OPT;
@@ -341,7 +315,6 @@ static Class	runLoopClass;
 	d, GSLastErrorStr(errno));
       return nil;
     }
-#endif
   handle = (GSMessageHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
@@ -354,13 +327,6 @@ static Class	runLoopClass;
 {
   if (self == [GSMessageHandle class])
     {
-#ifdef __MINGW32__
-      WORD wVersionRequested;
-      WSADATA wsaData;
-
-      wVersionRequested = MAKEWORD(2, 0);
-      WSAStartup(wVersionRequested, &wsaData);
-#endif
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableData class];
       portMessageClass = [NSPortMessage class];
@@ -413,11 +379,7 @@ static Class	runLoopClass;
 
   if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
     {
-#ifdef __MINGW32__
-      if (WSAGetLastError() != WSAEWOULDBLOCK)
-#else
       if (errno != EINPROGRESS)
-#endif
 	{
 	  NSLog(@"unable to make connection to %s - %s",
 	    sockAddr.sun_path,
@@ -618,11 +580,7 @@ static Class	runLoopClass;
        * Now try to fill the buffer with data.
        */
       bytes = [rData mutableBytes];
-#ifdef __MINGW32__
-      res = recv(desc, bytes + rLength, want - rLength, 0);
-#else
       res = read(desc, bytes + rLength, want - rLength);
-#endif
       if (res <= 0)
 	{
 	  if (res == 0)
@@ -940,11 +898,7 @@ static Class	runLoopClass;
 	    {
 	      NSData	*d = newDataWithEncodedPort([self recvPort]);
 
-#ifdef __MINGW32__
-	      len = send(desc, [d bytes], [d length], 0);
-#else
 	      len = write(desc, [d bytes], [d length]);
-#endif
 	      if (len == (int)[d length])
 		{
 		  NSDebugMLLog(@"NSMessagePort_details",
@@ -984,11 +938,7 @@ static Class	runLoopClass;
 	    }
 	  b = [wData bytes];
 	  l = [wData length];
-#ifdef __MINGW32__
-	  res = send(desc, b + wLength,  l - wLength, 0);
-#else
 	  res = write(desc, b + wLength,  l - wLength);
-#endif
 	  if (res < 0)
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
@@ -1226,7 +1176,7 @@ static int unique_index = 0;
  * 'socketName' is the name of the socket in the port directory
  */
 + (NSMessagePort*) _portWithName: (const unsigned char *)socketName
-		     listener: (BOOL)shouldListen
+			listener: (BOOL)shouldListen
 {
   unsigned		i;
   NSMessagePort		*port = nil;
@@ -1255,33 +1205,61 @@ static int unique_index = 0;
       if (shouldListen == YES)
 	{
 	  int	desc;
-	  struct sockaddr_un	sockaddr;
+	  struct sockaddr_un	sockAddr;
+
+	  /*
+           * Need size of buffer for getsockbyname() later.
+	   */
+	  i = sizeof(sockAddr);
 
 	  /*
 	   * Creating a new port on the local host - so we must create a
 	   * listener socket to accept incoming connections.
 	   */
-	  memset(&sockaddr, '\0', sizeof(sockaddr));
-	  sockaddr.sun_family = AF_LOCAL;
-	  strncpy(sockaddr.sun_path, (char*)socketName,
-	    sizeof(sockaddr.sun_path));
-
-	  /*
-           * Need size of buffer for getsockbyname() later.
-	   */
-	  i = sizeof(sockaddr);
-
+	  memset(&sockAddr, '\0', sizeof(sockAddr));
+	  sockAddr.sun_family = AF_LOCAL;
+	  strncpy(sockAddr.sun_path, (char*)socketName,
+	    sizeof(sockAddr.sun_path));
 	  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
 	    {
 	      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
-	      DESTROY(port);
+	      desc = -1;
 	    }
-	  else if (bind(desc, (struct sockaddr *)&sockaddr,
-	    sizeof(sockaddr)) < 0)
+	  else if (bind(desc, (struct sockaddr *)&sockAddr,
+	    SUN_LEN(&sockAddr)) < 0)
 	    {
-	      NSLog(@"unable to bind to %s - %s",
-		sockaddr.sun_path, GSLastErrorStr(errno));
-	      (void) close(desc);
+	      if (connect(desc, (struct sockaddr*)&sockAddr,
+		SUN_LEN(&sockAddr)) < 0)
+		{
+		  NSDebugLLog(@"NSMessagePort", @"not live, reseting");
+		  unlink((const char*)socketName);
+		  close(desc);
+		  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
+		    {
+		      NSLog(@"unable to create socket - %s",
+			GSLastErrorStr(errno));
+		      desc = -1;
+		    }
+		  else if (bind(desc, (struct sockaddr *)&sockAddr,
+		    SUN_LEN(&sockAddr)) < 0)
+		    {
+		      NSLog(@"unable to bind to %s - %s",
+			sockAddr.sun_path, GSLastErrorStr(errno));
+		      (void) close(desc);
+		      desc = -1;
+		    }
+		}
+	      else
+		{
+		  NSLog(@"unable to bind to %s - %s",
+		    sockAddr.sun_path, GSLastErrorStr(errno));
+		  (void) close(desc);
+		  desc = -1;
+		}
+	    }
+
+	  if (desc == -1)
+	    {
               DESTROY(port);
 	    }
 	  else if (listen(desc, 128) < 0)
@@ -1290,7 +1268,7 @@ static int unique_index = 0;
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
-	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i) < 0)
+	  else if (getsockname(desc, (struct sockaddr*)&sockAddr, &i) < 0)
 	    {
 	      NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
 	      (void) close(desc);

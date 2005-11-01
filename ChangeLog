@@ -1,3 +1,11 @@
+2005-11-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m: If a socket file already exists when trying
+	to bind to it, try connecting to it to see if there is a program
+	using it, and unlin/retry if there isn't.  This is an attempt to
+	handle situations where an old process was not killed cleanly and
+	the new process tries to use the same name.
+
 2005-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: retain self for the duration of I/O
