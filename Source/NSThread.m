@@ -525,10 +525,7 @@ gnustep_base_thread_callback(void)
  * anArgument.  This should have no return value, and must set up an
  * autorelease pool if retain/release memory management is used.  It should
  * free this pool before it finishes execution.</p>
- *
- * <p><strong>Note</strong>, unlike in Cocoa (and perhaps OpenStep), the
- * thread will <em>not</em> exit when the method finishes execution.  You must
- * call [Thread +exit] yourself (from the thread) to terminate it.</p> */
+ */
 + (void) detachNewThreadSelector: (SEL)aSelector
 		        toTarget: (id)aTarget
                       withObject: (id)anArgument
@@ -560,8 +557,10 @@ gnustep_base_thread_callback(void)
 
 
 /**
- * Terminating a thread
- * What happens if the thread doesn't call +exit - it doesn't terminate!
+ * Terminates the current thread.<br />
+ * Normally you don't need to call this method explicitly,
+ * since exiting the method with which the thread was detached
+ * causes this method to be called automatically.
  */
 + (void) exit
 {
