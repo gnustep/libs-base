@@ -752,8 +752,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   /*
    * Encode a line of length zero followed by 'end' as the terminator.
    */
-  [encoded appendBytes: "`\n" length: 4];
-  [encoded appendBytes: "end\n" length: 4];
+  [encoded appendBytes: "`\nend\n" length: 6];
   return YES;
 }
 @end
