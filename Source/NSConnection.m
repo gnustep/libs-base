@@ -638,7 +638,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    {
 	      NSRunLoop	*loop = [_runLoops objectAtIndex: c];
 
-	      [loop addPort: _receivePort forMode: mode];
+	      [_receivePort addConnection: self toRunLoop: loop forMode: mode];
 	    }
 	  [_requestModes addObject: mode];
 	}
@@ -663,7 +663,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    {
 	      NSString	*mode = [_requestModes objectAtIndex: c];
 
-	      [loop addPort: _receivePort forMode: mode];
+	      [_receivePort addConnection: self toRunLoop: loop forMode: mode];
 	    }
 	  [_runLoops addObject: loop];
 	}
@@ -1301,7 +1301,9 @@ static NSLock	*cached_proxies_gate = nil;
 	{
 	  NSRunLoop	*loop = [_runLoops objectAtIndex: c];
 
-	  [loop removePort: _receivePort forMode: mode];
+	  [_receivePort removeConnection: self
+			     fromRunLoop: loop
+				 forMode: mode];
 	}
       [_requestModes removeObject: mode];
     }
@@ -1326,7 +1328,9 @@ static NSLock	*cached_proxies_gate = nil;
 	    {
 	      NSString	*mode = [_requestModes objectAtIndex: c];
 
-	      [loop removePort: _receivePort forMode: mode];
+	      [_receivePort removeConnection: self
+				 fromRunLoop: [_runLoops objectAtIndex: pos]
+				     forMode: mode];
 	    }
 	  [_runLoops removeObjectAtIndex: pos];
 	}

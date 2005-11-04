@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
    */
 
 #include "config.h"
@@ -47,6 +48,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#if	!defined(__MINGW32__)
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>		/* for gethostname() */
 #endif
@@ -87,16 +90,7 @@
 #if	defined(__svr4__)
 #include <sys/stropts.h>
 #endif
-
-/* Older systems (Solaris) compatibility */
-#ifndef AF_LOCAL
-#define AF_LOCAL AF_UNIX
-#define PF_LOCAL PF_UNIX
-#endif
-#ifndef SUN_LEN
-#define SUN_LEN(su) \
-	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif
+#endif	/* !__MINGW32__ */
 
 /*
  * Largest chunk of data possible in DO
@@ -110,22 +104,6 @@ static gsu32	maxDataLength = 10 * 1024 * 1024;
 #define	M_LOCK(X) {[X lock];}
 #define	M_UNLOCK(X) {[X unlock];}
 #endif
-
-#define	GS_CONNECTION_MSG	0
-#define	NETBLOCK	8192
-
-#ifndef INADDR_NONE
-#define	INADDR_NONE	-1
-#endif
-
-/*
- * Theory of operation
- *
- *
- */
-
-
-/* Private interfaces */
 
 
 /*
@@ -162,8 +140,82 @@ typedef struct {
 
 typedef	struct {
   unsigned char	version;
-  unsigned char	addr[0];	/* name of the socket in the port directory */
+  unsigned char	addr[0];	/* name of the port on the local host	*/
 } GSPortInfo;
+
+/*
+ * Utility functions for encoding and decoding ports.
+ */
+static NSMessagePort*
+decodePort(NSData *data)
+{
+  GSPortItemHeader	*pih;
+  GSPortInfo		*pi;
+
+  pih = (GSPortItemHeader*)[data bytes];
+  NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
+    NSInternalInconsistencyException);
+  pi = (GSPortInfo*)&pih[1];
+  if (pi->version != 0)
+    {
+      NSLog(@"Remote version of GNUstep is more recent than this one (%i)",
+	pi->version);
+      return nil;
+    }
+
+  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%s'", pi->addr);
+
+  return [NSMessagePort _portWithName: pi->addr
+			     listener: NO];
+}
+
+static NSData*
+newDataWithEncodedPort(NSMessagePort *port)
+{
+  GSPortItemHeader	*pih;
+  GSPortInfo		*pi;
+  NSMutableData		*data;
+  unsigned		plen;
+  const unsigned char	*name = [port _name];
+
+  plen = 2 + strlen((char*)name);
+
+  data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
+  pih = (GSPortItemHeader*)[data mutableBytes];
+  pih->type = GSSwapHostI32ToBig(GSP_PORT);
+  pih->length = GSSwapHostI32ToBig(plen);
+  pi = (GSPortInfo*)&pih[1];
+  strcpy((char*)pi->addr, (char*)name);
+
+  NSDebugFLLog(@"NSMessagePort", @"Encoded port as '%s'", pi->addr);
+
+  return data;
+}
+
+
+#if	!defined(__MINGW32__)
+
+/* Older systems (Solaris) compatibility */
+#ifndef AF_LOCAL
+#define AF_LOCAL AF_UNIX
+#define PF_LOCAL PF_UNIX
+#endif
+#ifndef SUN_LEN
+#define SUN_LEN(su) \
+	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif
+
+#define	GS_CONNECTION_MSG	0
+#define	NETBLOCK	8192
+
+/*
+ * Theory of operation
+ *
+ *
+ */
+
+
+/* Private interfaces */
 
 /*
  * Here is how data is transmitted over a socket -
@@ -225,56 +277,6 @@ typedef enum {
 		     type: (RunLoopEventType)type
 		  forMode: (NSString*)mode;
 @end
-
-
-/*
- * Utility functions for encoding and decoding ports.
- */
-static NSMessagePort*
-decodePort(NSData *data)
-{
-  GSPortItemHeader	*pih;
-  GSPortInfo		*pi;
-
-  pih = (GSPortItemHeader*)[data bytes];
-  NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
-    NSInternalInconsistencyException);
-  pi = (GSPortInfo*)&pih[1];
-  if (pi->version != 0)
-    {
-      NSLog(@"Remote version of GNUstep is more recent than this one (%i)",
-	pi->version);
-      return nil;
-    }
-
-  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%s'", pi->addr);
-
-  return [NSMessagePort _portWithName: pi->addr
-			     listener: NO];
-}
-
-static NSData*
-newDataWithEncodedPort(NSMessagePort *port)
-{
-  GSPortItemHeader	*pih;
-  GSPortInfo		*pi;
-  NSMutableData		*data;
-  unsigned		plen;
-  const unsigned char	*name = [port _name];
-
-  plen = 2 + strlen((char*)name);
-
-  data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
-  pih = (GSPortItemHeader*)[data mutableBytes];
-  pih->type = GSSwapHostI32ToBig(GSP_PORT);
-  pih->length = GSSwapHostI32ToBig(plen);
-  pi = (GSPortInfo*)&pih[1];
-  strcpy((char*)pi->addr, (char*)name);
-
-  NSDebugFLLog(@"NSMessagePort", @"Encoded port as '%s'", pi->addr);
-
-  return data;
-}
 
 
 
@@ -1124,6 +1126,37 @@ static Class	runLoopClass;
 
 @implementation	NSMessagePort
 
+static NSRecursiveLock	*messagePortLock = nil;
+
+/*
+ * Maps port name to NSMessagePort objects.
+ */
+static NSMapTable	*messagePortMap = 0;
+static Class		messagePortClass;
+
+
+static void clean_up_sockets(void)
+{
+  NSMessagePort *port;
+  NSData	*name;
+  NSMapEnumerator mEnum;
+  BOOL	unknownThread = GSRegisterCurrentThread();
+  CREATE_AUTORELEASE_POOL(arp);
+
+  mEnum = NSEnumerateMapTable(messagePortMap);
+  while (NSNextMapEnumeratorPair(&mEnum, (void *)&name, (void *)&port))
+    {
+      if ([port _listener] != -1)
+	unlink([name bytes]);
+    }
+  NSEndMapTableEnumeration(&mEnum);
+  DESTROY(arp);
+  if (unknownThread == YES)
+    {
+      GSUnregisterCurrentThread();
+    }
+}
+
 typedef	struct {
   NSData                *_name;
   NSRecursiveLock       *_myLock;
@@ -1134,37 +1167,6 @@ typedef	struct {
 #define	myLock	((internal*)_internal)->_myLock
 #define	handles	((internal*)_internal)->_handles
 #define	lDesc	((internal*)_internal)->_listener
-
-static NSRecursiveLock	*messagePortLock = nil;
-
-/*
-Maps NSData objects with the socket name to NSMessagePort objects.
-*/
-static NSMapTable	*messagePortMap = 0;
-static Class		messagePortClass;
-
-
-static void clean_up_sockets(void)
-{
-  NSMessagePort *port;
-  NSData	*data;
-  NSMapEnumerator mEnum;
-  BOOL	unknownThread = GSRegisterCurrentThread();
-  CREATE_AUTORELEASE_POOL(arp);
-
-  mEnum = NSEnumerateMapTable(messagePortMap);
-  while (NSNextMapEnumeratorPair(&mEnum, (void *)&data, (void *)&port))
-    {
-      if ([port _listener] != -1)
-	unlink([data bytes]);
-    }
-  NSEndMapTableEnumeration(&mEnum);
-  DESTROY(arp);
-  if (unknownThread == YES)
-    {
-      GSUnregisterCurrentThread();
-    }
-}
 
 
 #if NEED_WORD_ALIGNMENT
@@ -1959,4 +1961,291 @@ static unsigned	wordAlign;
 }
 
 @end
+
+#else
+
+@implementation	NSMessagePort
+
+static NSRecursiveLock	*messagePortLock = nil;
+
+/*
+ * Maps port name to NSMessagePort objects.
+ */
+static NSMapTable	*messagePortMap = 0;
+static Class		messagePortClass;
+
+typedef	struct {
+  NSString              *_name;
+  NSRecursiveLock       *_lock;
+  HANDLE                *_handle;
+} internal;
+#define	myName(P)	((internal*)(P)->_internal)->_name
+#define	myLock(P)	((internal*)(P)->_internal)->_lock
+#define	myHandle(P)	((internal*)(P)->_internal)->_handle
+
+#if NEED_WORD_ALIGNMENT
+static unsigned	wordAlign;
+#endif
+
++ (void) initialize
+{
+  if (self == [NSMessagePort class])
+    {
+#if NEED_WORD_ALIGNMENT
+      wordAlign = objc_alignof_type(@encode(gsu32));
+#endif
+      messagePortClass = self;
+      messagePortMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+
+      messagePortLock = [GSLazyRecursiveLock new];
+    }
+}
+
++ (id) new
+{
+  static int	unique_index = 0;
+  unsigned char	path[BUFSIZ];
+
+  M_LOCK(messagePortLock);
+  sprintf(path, "\\\\.\\mailslot\\NSMessagePort\\%i.%i",
+    [[NSProcessInfo processInfo] processIdentifier], unique_index++);
+  M_UNLOCK(messagePortLock);
+
+  return RETAIN([self _portWithName: path listener: YES]);
+}
+
+/*
+ * This is the preferred initialisation method for NSMessagePort
+ *
+ * 'mailslotName' is the name of the mailslot to use.
+ */
++ (NSMessagePort*) _portWithName: (const unsigned char*)mailslotName
+			listener: (BOOL)shouldListen
+{
+  NSMessagePort		*port = nil;
+
+  M_LOCK(messagePortLock);
+
+  /*
+   * First try to find a pre-existing port.
+   */
+  port = (NSMessagePort*)NSMapGet(messagePortMap, mailslotName);
+
+  if (port == nil)
+    {
+      port = (NSMessagePort*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      myName(port) = [[NSString alloc] initWithUTF8String: mailslotName];
+      myHandle(port) = INVALID_HANDLE_VALUE;
+      myLock(port) = [GSLazyRecursiveLock new];
+      port->_is_valid = YES;
+
+      if (shouldListen == YES)
+	{
+	  myHandle(port) = CreateMailslot([myName(port) UTF8String], 0, 0, 0);
+	  if (myHandle(port) == INVALID_HANDLE_VALUE)
+	    {
+	      NSLog(@"unable to create mailslot - %s", GSLastErrorStr(errno));
+	      DESTROY(port);
+	    }
+	  else
+	    {
+	      /*
+	       * Make sure we have the map table for this port.
+	       */
+	      NSMapInsert(messagePortMap, (void*)myName(port), (void*)port);
+	      NSDebugMLLog(@"NSMessagePort", @"Created listening port: %@",
+		port);
+	    }
+	}
+      else
+	{
+	  /*
+	   * Make sure we have the map table for this port.
+	   */
+	  NSMapInsert(messagePortMap, (void*)myName(port), (void*)port);
+	  NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", port);
+	}
+    }
+  else
+    {
+      RETAIN(port);
+      NSDebugMLLog(@"NSMessagePort", @"Using pre-existing port: %@", port);
+    }
+  IF_NO_GC(AUTORELEASE(port));
+
+  M_UNLOCK(messagePortLock);
+  return port;
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  return RETAIN(self);
+}
+
+- (void) dealloc
+{
+  [self gcFinalize];
+  DESTROY(myName(self));
+  [super dealloc];
+}
+
+- (NSString*) description
+{
+  NSString	*desc;
+
+  desc = [NSString stringWithFormat: @"<NSMessagePort %p with name %@>",
+    self, myName(self)];
+  return desc;
+}
+
+- (void) gcFinalize
+{
+  NSDebugMLLog(@"NSMessagePort", @"NSMessagePort 0x%x finalized", self);
+  [self invalidate];
+}
+
+- (id) conversation: (NSPort*)recvPort
+{
+  return nil;
+}
+
+- (void) handlePortMessage: (NSPortMessage*)m
+{
+  id	d = [self delegate];
+
+  if (d == nil)
+    {
+      NSDebugMLLog(@"NSMessagePort",
+	@"No delegate to handle incoming message", 0);
+      return;
+    }
+  if ([d respondsToSelector: @selector(handlePortMessage:)] == NO)
+    {
+      NSDebugMLLog(@"NSMessagePort", @"delegate doesn't handle messages", 0);
+      return;
+    }
+  [d handlePortMessage: m];
+}
+
+- (unsigned) hash
+{
+  return [myName(self) hash];
+}
+
+- (id) init
+{
+  RELEASE(self);
+  self = [messagePortClass new];
+  return self;
+}
+
+- (void) invalidate
+{
+  if ([self isValid] == YES)
+    {
+      M_LOCK(myLock(self));
+      if ([self isValid] == YES)
+	{
+	  M_LOCK(messagePortLock);
+	  if (myHandle(self) != INVALID_HANDLE_VALUE)
+	    {
+	      (void) CloseHandle(myHandle(self));
+	      myHandle(self) = INVALID_HANDLE_VALUE;
+	    }
+	  NSMapRemove(messagePortMap, (void*)myName(self));
+	  M_UNLOCK(messagePortLock);
+
+	  [[NSMessagePortNameServer sharedInstance] removePort: self];
+	  [super invalidate];
+	}
+      M_UNLOCK(myLock(self));
+    }
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+  if (anObject == self)
+    {
+      return YES;
+    }
+  if ([anObject class] == [self class])
+    {
+      NSMessagePort	*o = (NSMessagePort*)anObject;
+
+      return [myName(o) isEqual: myName(self)];
+    }
+  return NO;
+}
+
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode
+{
+  HANDLE		h = (HANDLE)(gsaddr)extra;
+
+}
+
+/*
+ * This returns the amount of space that a port coder should reserve at the
+ * start of its encoded data so that the NSMessagePort can insert header info
+ * into the data.
+ * The idea is that a message consisting of a single data item with space at
+ * the start can be written directly without having to copy data to another
+ * buffer etc.
+ */
+- (unsigned int) reservedSpaceLength
+{
+  return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
+}
+
+- (BOOL) sendBeforeDate: (NSDate*)when
+		  msgid: (int)msgId
+             components: (NSMutableArray*)components
+                   from: (NSPort*)receivingPort
+               reserved: (unsigned)length
+{
+  BOOL		sent = NO;
+  unsigned	rl;
+
+  if ([self isValid] == NO)
+    {
+      return NO;
+    }
+  if ([components count] == 0)
+    {
+      NSLog(@"empty components sent");
+      return NO;
+    }
+  /*
+   * If the reserved length in the first data object is wrong - we have to
+   * fail, unless it's zero, in which case we can insert a data object for
+   * the header.
+   */
+  rl = [self reservedSpaceLength];
+  if (length != 0 && length != rl)
+    {
+      NSLog(@"bad reserved length - %u", length);
+      return NO;
+    }
+  if ([receivingPort isKindOfClass: messagePortClass] == NO)
+    {
+      NSLog(@"woah there - receiving port is not the correct type");
+      return NO;
+    }
+
+  return sent;
+}
+
+- (NSDate*) timedOutEvent: (void*)data
+		     type: (RunLoopEventType)type
+		  forMode: (NSString*)mode
+{
+  return nil;
+}
+
+@end
+
+#endif	/* __MINGW32__ */
 
