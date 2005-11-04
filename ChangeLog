@@ -1,3 +1,9 @@
+2005-11-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Cope with backslashes in values from GNUstep.conf
+	* configure: Regenerated.
+	Improvements for mingw32 systems
+
 2005-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePort.m: If a socket file already exists when trying

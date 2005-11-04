@@ -1343,7 +1343,7 @@ if test "${with_config_file+set}" = set; then
   GNUSTEP_CONFIG_FILE="$withval"
 else
   if test "$GNUSTEP_CONFIG_FILE" = ""; then
-    GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' < $GNUSTEP_MAKEFILES/config.make | sed -e 's/^GNUSTEP_CONFIG_FILE *= *\(.*\)/\1'/`
+    GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
   fi
 fi;
 echo "$as_me:$LINENO: result: $GNUSTEP_CONFIG_FILE" >&5
@@ -1455,31 +1455,37 @@ fi
 # Set the default configuration file values in config.h to be hard-coded
 # into NSPathUtilities.m
 #
+GNUSTEP_SYSTEM_ROOT=`echo $GNUSTEP_SYSTEM_ROOT|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_SYSTEM_ROOT "$GNUSTEP_SYSTEM_ROOT"
 _ACEOF
 
+GNUSTEP_NETWORK_ROOT=`echo $GNUSTEP_NETWORK_ROOT|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_NETWORK_ROOT "$GNUSTEP_NETWORK_ROOT"
 _ACEOF
 
+GNUSTEP_LOCAL_ROOT=`echo $GNUSTEP_LOCAL_ROOT|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_LOCAL_ROOT "$GNUSTEP_LOCAL_ROOT"
 _ACEOF
 
+GNUSTEP_USER_DIR=`echo $GNUSTEP_USER_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_USER_DIR "$GNUSTEP_USER_DIR"
 _ACEOF
 
+GNUSTEP_USER_DEFAULTS_DIR=`echo $GNUSTEP_USER_DEFAULTS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_USER_DEFAULTS_DIR "$GNUSTEP_USER_DEFAULTS_DIR"
 _ACEOF
 
+GNUSTEP_USER_CONFIG_FILE=`echo $GNUSTEP_USER_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_USER_CONFIG_FILE "$GNUSTEP_USER_CONFIG_FILE"
