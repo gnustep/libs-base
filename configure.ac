@@ -43,7 +43,7 @@ AC_ARG_WITH(config-file,
   [--with-config-file=PATH  path to GNUstep configuration file],
   GNUSTEP_CONFIG_FILE="$withval",
   [if test "$GNUSTEP_CONFIG_FILE" = ""; then
-    GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' < $GNUSTEP_MAKEFILES/config.make | sed -e 's/^GNUSTEP_CONFIG_FILE *= *\(.*\)/\1'/`
+    GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
   fi])
 AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
 AC_SUBST(GNUSTEP_CONFIG_FILE)
@@ -125,21 +125,27 @@ fi
 # Set the default configuration file values in config.h to be hard-coded
 # into NSPathUtilities.m
 #
+GNUSTEP_SYSTEM_ROOT=`echo $GNUSTEP_SYSTEM_ROOT|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_ROOT,
   "$GNUSTEP_SYSTEM_ROOT",
   [Built in default value for GNUstep system root])
+GNUSTEP_NETWORK_ROOT=`echo $GNUSTEP_NETWORK_ROOT|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_ROOT,
   "$GNUSTEP_NETWORK_ROOT",
   [Built in default value for GNUstep network root])
+GNUSTEP_LOCAL_ROOT=`echo $GNUSTEP_LOCAL_ROOT|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_ROOT,
   "$GNUSTEP_LOCAL_ROOT",
   [Built in default value for GNUstep local root])
+GNUSTEP_USER_DIR=`echo $GNUSTEP_USER_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR,
   "$GNUSTEP_USER_DIR",
   [Built in default value for GNUstep user directory])
+GNUSTEP_USER_DEFAULTS_DIR=`echo $GNUSTEP_USER_DEFAULTS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DEFAULTS_DIR,
   "$GNUSTEP_USER_DEFAULTS_DIR",
   [Built in default value for GNUstep user defaults directory])
+GNUSTEP_USER_CONFIG_FILE=`echo $GNUSTEP_USER_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_CONFIG_FILE,
   "$GNUSTEP_USER_CONFIG_FILE",
   [Built in default value for GNUstep user config file])
