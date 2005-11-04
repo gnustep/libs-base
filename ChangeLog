@@ -3,6 +3,8 @@
 	* configure.ac: Cope with backslashes in values from GNUstep.conf
 	* configure: Regenerated.
 	Improvements for mingw32 systems
+	* Source/NSConnection.m: update obsolete methods.
+	* Source/NSMessagePort.m: start mingw32 implementation
 
 2005-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
