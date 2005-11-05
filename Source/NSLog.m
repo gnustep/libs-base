@@ -41,6 +41,9 @@
 #include <syslog.h>
 #endif
 
+#define	UNISTR(X) \
+((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
+
 #if	defined(HAVE_SYSLOG)
 # if	defined(LOG_ERR)
 #   if	defined(LOG_USER)
@@ -105,8 +108,12 @@ _NSLog_standard_printf_handler (NSString* message)
   NSData	*d;
   const char	*buf;
   unsigned	len;
-#if	defined(__WIN32__) || defined(HAVE_SYSLOG)
-  char		*null_terminated_buf;
+#if	defined(__WIN32__)
+  LPCWSTR	null_terminated_buf;
+#else
+#if	defined(HAVE_SYSLOG)
+  char	*null_terminated_buf;
+#endif
 #endif
   static NSStringEncoding enc = 0;
 
@@ -133,11 +140,9 @@ _NSLog_standard_printf_handler (NSString* message)
     }
 
 #if	defined(__WIN32__)
-  null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
-  strncpy (null_terminated_buf, buf, len);
-  null_terminated_buf[len] = '\0';
+  null_terminated_buf = UNISTR(message);
 
-  OutputDebugString(null_terminated_buf);
+  OutputDebugStringW(null_terminated_buf);
 
   if ((GSUserDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len) && !IsDebuggerPresent())
@@ -147,22 +152,21 @@ _NSLog_standard_printf_handler (NSString* message)
       if (!eventloghandle)
 	{
 	  eventloghandle = RegisterEventSource(NULL,
-	    [[[NSProcessInfo processInfo] processName] cString]);
+	    UNISTR([[NSProcessInfo processInfo] processName]));
 	}
       if (eventloghandle)
 	{
-	  ReportEvent(eventloghandle,	// event log handle
+	  ReportEventW(eventloghandle,	// event log handle
 	    EVENTLOG_WARNING_TYPE,	// event type
 	    0,				// category zero
 	    0,				// event identifier
 	    NULL,			// no user security identifier
 	    1,				// one substitution string
 	    0,				// no data
-	    (LPCSTR*)&null_terminated_buf,	// pointer to string array
+	    &null_terminated_buf,	// pointer to string array
 	    NULL);			// pointer to data
 	}
     }
-  objc_free (null_terminated_buf);
 #else      
       
 #if	defined(HAVE_SYSLOG)

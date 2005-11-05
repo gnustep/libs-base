@@ -289,50 +289,69 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*keys = [NSMutableArray new];
     NSMutableArray	*values = [NSMutableArray new];
 
-    i = 0;
-    while (env[i])
-      {
 #if defined(__MINGW32__)
-	char	buf[1024];
-	char	*cp;
-	DWORD	len;
-	
-	len = ExpandEnvironmentStrings(env[i], buf, 1022);
-	if (len > 1022)
-	  {
-	    char	longbuf[len+2];
+    unichar	*base;
 
-	    len = ExpandEnvironmentStrings(env[i], longbuf, len);
-	    cp = strchr(longbuf, '=');
-	    *cp++ = '\0';
-	    [keys addObject: [NSString stringWithCString: longbuf]];
-	    [values addObject: [NSString stringWithCString: cp]];
-	  }
-	else
-	  {
-	    if (len == 0)
-	      strcpy(buf, env[i]);
-	    cp = strchr(buf, '=');
-	    *cp++ = '\0';
-	    [keys addObject: [NSString stringWithCString: buf]];
-	    [values addObject: [NSString stringWithCString: cp]];
-	  }
-#else
-        int	len = strlen(env[i]);
-	char	*cp = strchr(env[i], '=');
+    base = (unichar*)GetEnvironmentStringsW();
+    if (base != 0)
+      {
+	const unichar	*start = base;
+	const unichar	*wenvp = start;
 
-	if (len && cp)
+	while (*wenvp != 0)
 	  {
-	    char	buf[len+2];
+	    NSString	*key;
+	    NSString	*val;
 
-	    strcpy(buf, env[i]);
-	    cp = &buf[cp - env[i]];
-	    *cp++ = '\0';
-	    [keys addObject: [NSString stringWithCString: buf]];
-	    [values addObject: [NSString stringWithCString: cp]];
+	    while (*wenvp != '=' && *wenvp != 0)
+	      {
+		wenvp++;
+	      }
+	    if (*wenvp == '=')
+	      {
+		key = [NSString stringWithCharacters: start
+					      length: wenvp - start];
+		wenvp++;
+		start = wenvp;
+	      }
+	    else
+	      {
+		break;	// Bad format ... expected '='
+	      }
+	    while (*wenvp != 0)
+	      {
+	        wenvp++;
+	      }
+	    val = [NSString stringWithCharacters: start
+					  length: wenvp - start];
+	    wenvp++;	// Skip past variable terminator
+	    [keys addObject: key];
+	    [values addObject: val];
 	  }
+	FreeEnvironmentStringsW(base);
+	env = 0;	// Suppress standard code.
+      }
 #endif
-	i++;
+    if (env != 0)
+      {
+	i = 0;
+	while (env[i])
+	  {
+	    int		len = strlen(env[i]);
+	    char	*cp = strchr(env[i], '=');
+
+	    if (len && cp)
+	      {
+		char	buf[len+2];
+
+		strcpy(buf, env[i]);
+		cp = &buf[cp - env[i]];
+		*cp++ = '\0';
+		[keys addObject: [NSString stringWithCString: buf]];
+		[values addObject: [NSString stringWithCString: cp]];
+	      }
+	    i++;
+	  }
       }
     IF_NO_GC(RELEASE(_gnu_environment));
     _gnu_environment = [[NSDictionary alloc] initWithObjects: values

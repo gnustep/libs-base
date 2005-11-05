@@ -122,7 +122,7 @@ static NSString	*library_combo =
 const char *
 objc_executable_location (void)
 {
-  return [[_executable_path stringByDeletingLastPathComponent]
+  return (const char*)[[_executable_path stringByDeletingLastPathComponent]
 	     fileSystemRepresentation];
 }
 

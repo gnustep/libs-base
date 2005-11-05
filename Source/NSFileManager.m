@@ -38,13 +38,7 @@
 
 #define _FILE_OFFSET_BITS 64
 
-#if defined(__MINGW32__)
-#define UNICODE
-#define _UNICODE
-#endif
-
 #include "config.h"
-#include <string.h>
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSException.h"
@@ -56,6 +50,7 @@
 #include "Foundation/NSSet.h"
 #include "GSPrivate.h"
 
+#include <string.h>
 #include <stdio.h>
 
 /* determine directory reading files */
@@ -79,9 +74,7 @@
 
 #if	defined(__MINGW32__)
 #include <stdio.h>
-#ifdef	UNICODE
 #include <wchar.h>
-#endif
 #define	WIN32ERR	((DWORD)0xFFFFFFFF)
 #endif
 
@@ -183,7 +176,7 @@
  * Macros to handle unichar filesystem support.
  */
 
-#if	defined(__MINGW32__) && defined(UNICODE)
+#if	defined(__MINGW32__)
 
 #define	_CHMOD(A,B)	_wchmod(A,B)
 #define	_CLOSEDIR(A)	_wclosedir(A)
@@ -357,7 +350,7 @@ static NSStringEncoding	defaultEncoding;
 {
   const _CHAR	*lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
 #if defined(__MINGW32__)
-  return SetCurrentDirectory(lpath) == TRUE ? YES : NO;
+  return SetCurrentDirectoryW(lpath) == TRUE ? YES : NO;
 #else
   return (chdir(lpath) == 0) ? YES : NO;
 #endif
@@ -666,7 +659,7 @@ static NSStringEncoding	defaultEncoding;
 	  const _CHAR *lpath;
 
 	  lpath = (_CCP)[self fileSystemRepresentationWithPath: completePath];
-	  if (CreateDirectory(lpath, 0) == FALSE)
+	  if (CreateDirectoryW(lpath, 0) == FALSE)
 	    {
 	      return NO;
 	    }
@@ -803,7 +796,7 @@ static NSStringEncoding	defaultEncoding;
     return NO;
 
 #if	defined(__MINGW32__)
-  fh = CreateFile(lpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
+  fh = CreateFileW(lpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
     FILE_ATTRIBUTE_NORMAL, 0);
   if (fh == INVALID_HANDLE_VALUE)
     {
@@ -879,25 +872,20 @@ static NSStringEncoding	defaultEncoding;
   NSString *currentDir = nil;
 
 #if defined(__MINGW32__)
-  int len = GetCurrentDirectory(0, 0);
+  int len = GetCurrentDirectoryW(0, 0);
   if (len > 0)
     {
       _CHAR *lpath = (_CHAR*)calloc(len+10,sizeof(_CHAR));
 
       if (lpath != 0)
 	{
-	  if (GetCurrentDirectory(len, lpath)>0)
+	  if (GetCurrentDirectoryW(len, lpath)>0)
 	    {
 	      NSString	*path;
 
 	      // Windows may count the trailing nul ... we don't want to.
 	      if (len > 0 && lpath[len] == 0) len--;
-#ifdef	UNICODE
 	      path = [NSString stringWithCharacters: lpath length: len];
-#else
-	      path = [NSString stringWithCString: lpath length: len];
-#endif
-
 	      currentDir = path;
 	    }
 	  free(lpath);
@@ -1226,7 +1214,7 @@ static NSStringEncoding	defaultEncoding;
 #if defined(__MINGW32__)
       DWORD res;
 
-      res = GetFileAttributes(lpath);
+      res = GetFileAttributesW(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1254,7 +1242,7 @@ static NSStringEncoding	defaultEncoding;
   if (!is_dir)
     {
 #if defined(__MINGW32__)
-      if (DeleteFile(lpath) == FALSE)
+      if (DeleteFileW(lpath) == FALSE)
 #else
       if (unlink(lpath) < 0)
 #endif
@@ -1336,7 +1324,7 @@ static NSStringEncoding	defaultEncoding;
     {
       DWORD res;
 
-      res = GetFileAttributes(lpath);
+      res = GetFileAttributesW(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1390,7 +1378,7 @@ static NSStringEncoding	defaultEncoding;
     {
       DWORD res;
 
-      res = GetFileAttributes(lpath);
+      res = GetFileAttributesW(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1426,7 +1414,7 @@ static NSStringEncoding	defaultEncoding;
     {
       DWORD res;
 
-      res = GetFileAttributes(lpath);
+      res = GetFileAttributesW(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1467,7 +1455,7 @@ static NSStringEncoding	defaultEncoding;
     {
       DWORD res;
 
-      res = GetFileAttributes(lpath);
+      res = GetFileAttributesW(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1514,7 +1502,7 @@ static NSStringEncoding	defaultEncoding;
     {
       DWORD res;
 
-      res = GetFileAttributes(lpath);
+      res = GetFileAttributesW(lpath);
 
       if (res == WIN32ERR)
 	{
@@ -1655,7 +1643,7 @@ static NSStringEncoding	defaultEncoding;
   DWORD TotalNumberClusters;
   const _CHAR *lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
 
-  if (!GetDiskFreeSpace(lpath, &SectorsPerCluster,
+  if (!GetDiskFreeSpaceW(lpath, &SectorsPerCluster,
     &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
     {
       return nil;
@@ -1887,12 +1875,19 @@ static NSStringEncoding	defaultEncoding;
 #if	defined(__MINGW__)
 - (const unichar*) fileSystemRepresentationWithPath: (NSString*)path
 {
+  NSRange	r;
+
+  r = [path rangeOfString: @"/"];
+  if (r.length > 0)
+    {
+      path = [path stringByReplacingString: @"/" withString: @"\\"];
+    }
   return (const unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
 }
 - (NSString*) stringWithFileSystemRepresentation: (const unichar*)string
 					  length: (unsigned int)len
 {
-  return [NSString stringWithCharacters: (const unichar*)string length: len/2];
+  return [NSString stringWithCharacters: string length: len];
 }
 #else
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
@@ -2097,7 +2092,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 
       if (dirbuf)
 	{
-#if defined(__MINGW32__) && defined(UNICODE)
+#if defined(__MINGW32__)
 	  /* Skip "." and ".." directory entries */
 	  if (wcscmp(dirbuf->d_name, L".") == 0
 	    || wcscmp(dirbuf->d_name, L"..") == 0)
@@ -2106,8 +2101,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 	    }
 	  /* Name of file to return  */
 	  returnFileName = [_mgr
-	    stringWithFileSystemRepresentation: (const char*)dirbuf->d_name
-	    length: 2*wcslen(dirbuf->d_name)];
+	    stringWithFileSystemRepresentation: dirbuf->d_name
+	    length: wcslen(dirbuf->d_name)];
 #else
 	  /* Skip "." and ".." directory entries */
 	  if (strcmp(dirbuf->d_name, ".") == 0
@@ -2381,7 +2376,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 	   handler: (id)handler
 {
 #if defined(__MINGW32__)
-  if (CopyFile((_CCP)[self fileSystemRepresentationWithPath: source],
+  if (CopyFileW((_CCP)[self fileSystemRepresentationWithPath: source],
     (_CCP)[self fileSystemRepresentationWithPath: destination], NO))
     {
       return YES;
@@ -2863,7 +2858,7 @@ static NSSet	*fileKeys = nil;
   PSECURITY_DESCRIPTOR pSD;
 
   // Get the handle of the file object.
-  hFile = CreateFile(
+  hFile = CreateFileW(
     "myfile.txt",
     GENERIC_READ,
     FILE_SHARE_READ,
@@ -2893,7 +2888,7 @@ static NSSet	*fileKeys = nil;
     sizeof(PSECURITY_DESCRIPTOR));
 
   // Get the owner SID of the file.
-  dwRtnCode = GetSecurityInfo(
+  dwRtnCode = GetSecurityInfoW(
     hFile,
     SE_FILE_OBJECT,
     OWNER_SECURITY_INFORMATION,

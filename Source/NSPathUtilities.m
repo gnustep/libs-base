@@ -891,17 +891,18 @@ NSUserName(void)
 #if defined(__WIN32__)
   if (theUserName == nil)
     {
-      const char *loginName = 0;
+      const unichar *loginName = 0;
       /* The GetUserName function returns the current user name */
-      char buf[1024];
+      unichar buf[1024];
       DWORD n = 1024;
 
-      if (GetEnvironmentVariable("LOGNAME", buf, 1024) != 0 && buf[0] != '\0')
+      if (GetEnvironmentVariableW(L"LOGNAME", buf, 1024) != 0 && buf[0] != '\0')
 	loginName = buf;
-      else if (GetUserName(buf, &n) != 0 && buf[0] != '\0')
+      else if (GetUserNameW(buf, &n) != 0 && buf[0] != '\0')
 	loginName = buf;
       if (loginName)
-	theUserName = [[NSString alloc] initWithCString: loginName];
+	theUserName = [[NSString alloc] initWithCharacters: loginName
+						    length: wcslen(loginName)];
       else
 	[NSException raise: NSInternalInconsistencyException
 		    format: @"Unable to determine current user name"];
@@ -1078,11 +1079,12 @@ NSTemporaryDirectory(void)
 #if	!defined(__WIN32__)
   int		uid;
 #else
-  char buffer[1024];
+  unichar buffer[1024];
 
-  if (GetTempPath(1024, buffer))
+  if (GetTempPathW(1024, buffer))
     {
-      baseTempDirName = [NSString stringWithCString: buffer];
+      baseTempDirName = [NSString stringWithCharacters: buffer
+						length: wcslen(buffer)];
     }
 #endif
 

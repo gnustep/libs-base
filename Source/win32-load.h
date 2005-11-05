@@ -36,7 +36,7 @@ typedef void* dl_symbol_t;
 static int 
 __objc_dynamic_init(const char* exec_path)
 {
-    return 0;
+  return 0;
 }
 
 /* Link in the module given by the name 'module'.  Return a handle which can
@@ -45,7 +45,7 @@ __objc_dynamic_init(const char* exec_path)
 static dl_handle_t
 __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 {
-    return LoadLibraryExW((const unichar*)module, 0, 0);
+  return LoadLibraryExW((const unichar*)module, 0, 0);
 }
 
 /* Return the address of a symbol given by the name 'symbol' from the module

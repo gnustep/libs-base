@@ -2213,21 +2213,27 @@ GSAutoreleasedBuffer(unsigned size)
 
 
 
-/* Getting a system error message on a variety of systems */
+/*
+ * Getting a system error message on a variety of systems.
+ * Currently 8bit string ... perhaps we should move to unicode.
+ */
 #ifdef __MINGW32__
-LPTSTR GetErrorMsg(DWORD msgId)
+
+const char *GetErrorMsg(DWORD msgId)
 {
-  LPVOID lpMsgBuf;
+  void	*lpMsgBuf = 0;
 
-  FormatMessage(
-    FORMAT_MESSAGE_ALLOCATE_BUFFER |
-    FORMAT_MESSAGE_FROM_SYSTEM |
-    FORMAT_MESSAGE_IGNORE_INSERTS,
-    NULL, msgId,
+  FormatMessageA(
+    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
+    | FORMAT_MESSAGE_IGNORE_INSERTS,
+    NULL,
+    msgId,
     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-    (LPTSTR)&lpMsgBuf, 0, NULL);
+    (LPSTR)&lpMsgBuf,
+    (DWORD)0,
+    NULL);
 
-  return (LPTSTR)lpMsgBuf;
+  return (const char*)lpMsgBuf;
 }
 #else
 #ifndef HAVE_STRERROR

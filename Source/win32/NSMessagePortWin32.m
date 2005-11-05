@@ -49,6 +49,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+#define	UNISTR(X) \
+((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
+
 /*
  * Largest chunk of data possible in DO
  */
@@ -248,7 +252,8 @@ static unsigned	wordAlign;
 
       if (shouldListen == YES)
 	{
-	  myHandle(port) = CreateMailslot([myName(port) UTF8String],
+	  myHandle(port) = CreateMailslotW(
+	    UNISTR(myName(port)),
 	    0,				/* No max message size.		*/
 	    MAILSLOT_WAIT_FOREVER,	/* No read/write timeout.	*/
 	    (LPSECURITY_ATTRIBUTES)0);
@@ -280,7 +285,8 @@ static unsigned	wordAlign;
 	}
       else
 	{
-	  myHandle(port) = CreateFile([myName(port) UTF8String],
+	  myHandle(port) = CreateFileW(
+	    UNISTR(myName(port)),
 	    GENERIC_WRITE,
 	    FILE_SHARE_READ,
 	    (LPSECURITY_ATTRIBUTES)0,
