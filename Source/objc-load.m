@@ -145,12 +145,21 @@ objc_load_callback(Class class, struct objc_category * category)
     }
 }
 
+#if	defined(__MINGW32__)
+long
+objc_load_module (const unichar *filename,
+		  FILE *errorStream,
+		  void (*loadCallback)(Class, struct objc_category *),
+		  void **header,
+		  const unichar *debugFilename)
+#else
 long
 objc_load_module (const char *filename,
 		  FILE *errorStream,
 		  void (*loadCallback)(Class, struct objc_category *),
 		  void **header,
-		  char *debugFilename)
+		  const char *debugFilename)
+#endif
 {
 #ifdef NeXT_RUNTIME
   int errcode;
@@ -254,10 +263,17 @@ objc_unload_module(FILE *errorStream,
   return 0;
 }
 
-long objc_load_modules(char *files[],FILE *errorStream,
+#if	defined(__MINGW32__)
+long objc_load_modules(const unichar *files[],FILE *errorStream,
 		       void (*callback)(Class,struct objc_category *),
 		       void **header,
-		       char *debugFilename)
+		       const unichar *debugFilename)
+#else
+long objc_load_modules(const char *files[],FILE *errorStream,
+		       void (*callback)(Class,struct objc_category *),
+		       void **header,
+		       const char *debugFilename)
+#endif
 {
     while (*files)
       {

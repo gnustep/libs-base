@@ -151,7 +151,7 @@ _NSLog_standard_printf_handler (NSString* message)
 
       if (!eventloghandle)
 	{
-	  eventloghandle = RegisterEventSource(NULL,
+	  eventloghandle = RegisterEventSourceW(NULL,
 	    UNISTR([[NSProcessInfo processInfo] processName]));
 	}
       if (eventloghandle)

@@ -43,9 +43,9 @@ __objc_dynamic_init(const char* exec_path)
    be used to get information about the loded code.
 */
 static dl_handle_t
-__objc_dynamic_link(const char* module, int mode, const char* debug_file)
+__objc_dynamic_link(const unichar* module, int mode, const unichar* debug_file)
 {
-  return LoadLibraryExW((const unichar*)module, 0, 0);
+  return LoadLibraryExW(module, 0, 0);
 }
 
 /* Return the address of a symbol given by the name 'symbol' from the module
@@ -80,7 +80,7 @@ __objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
 static void 
 __objc_dynamic_error(FILE *error_stream, const char *error_string)
 {
-    fprintf(error_stream, "%s:%d\n", error_string, GetLastError());
+  fprintf(error_stream, "%s:%ld\n", error_string, (long)GetLastError());
 }
 
 /* Debugging:  define these if they are available */

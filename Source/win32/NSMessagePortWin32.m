@@ -53,11 +53,6 @@
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
-/*
- * Largest chunk of data possible in DO
- */
-static gsu32	maxDataLength = 10 * 1024 * 1024;
-
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"NSMessagePort",@"lock %@",X); [X lock];}
 #define	M_UNLOCK(X) {NSDebugMLLog(@"NSMessagePort",@"unlock %@",X); [X unlock];}
@@ -103,6 +98,13 @@ typedef	struct {
   unsigned char	version;
   unsigned char	addr[0];	/* name of the port on the local host	*/
 } GSPortInfo;
+
+#if 0
+
+/*
+ * Largest chunk of data possible in DO
+ */
+static gsu32	maxDataLength = 10 * 1024 * 1024;
 
 /*
  * Utility functions for encoding and decoding ports.
@@ -153,6 +155,7 @@ newDataWithEncodedPort(NSMessagePort *port)
   return data;
 }
 
+#endif
 
 @implementation	NSMessagePort
 
@@ -428,7 +431,6 @@ static unsigned	wordAlign;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  HANDLE		h = (HANDLE)(gsaddr)extra;
 
 }
 
