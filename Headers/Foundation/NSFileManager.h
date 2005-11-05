@@ -226,7 +226,11 @@
  * with unicode strings.<br />
  * Raises an exception if the character conversion is not possible.
  */
+#if	defined(__MINGW32__)
+- (const unichar*) fileSystemRepresentationWithPath: (NSString*)path;
+#else
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path;
+#endif
 
 - (BOOL) isExecutableFileAtPath: (NSString*)path;
 - (BOOL) isDeletableFileAtPath: (NSString*)path;
@@ -241,8 +245,23 @@
 - (NSString*) pathContentOfSymbolicLinkAtPath: (NSString*)path;
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: (id)handler;
+
+/**
+ * Convert to OpenStep internal string format from a string in
+ * the local filesystem format, as returned by system functions.<br />
+ * This representation may vary between filesystems.<br />
+ * On windows, the filesystem representation is 16-bit unicode and is expected
+ * to have come from the variant of a system call which works
+ * with unicode strings.
+ */
+#if	defined(__MINGW32__)
+- (NSString*) stringWithFileSystemRepresentation: (const unichar*)string
+					  length: (unsigned int)len;
+#else
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len;
+#endif
+
 - (NSArray*) subpathsAtPath: (NSString*)path;
 
 @end /* NSFileManager */

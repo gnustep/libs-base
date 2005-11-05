@@ -1,3 +1,15 @@
+2005-11-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSCompatibility.m: don't generate macos-x (xml) property
+	lists if we can't parse them.
+	* Source/GSHTTPURLHandle.m: debug fix for mingw32
+	* Headers/Foundation/NSFileManager.h: add mingw32 conditionals.
+	* Headers/Foundation/NSString.h: add mingw32 conditionals.
+	* Source/NSMessagePort.m: remove mingw32 stuff
+	* Source/win32/NSMessagePort.m: added partial implementation
+	* Source/win32/NSMessagePortNewServer.m: added skeleton
+	* Source/win32/GNUmakefile: build message port classes
+
 2005-11-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Cope with backslashes in values from GNUstep.conf

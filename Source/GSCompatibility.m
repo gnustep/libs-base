@@ -50,8 +50,12 @@ BOOL GSMacOSXCompatibleGeometry(void)
 
 BOOL GSMacOSXCompatiblePropertyLists(void)
 {
+#if	defined(HAVE_LIBXML)
   if (GSUserDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
     return NO;
   return GSUserDefaultsFlag(GSMacOSXCompatible);
+#else
+  return NO;
+#endif
 }
 
