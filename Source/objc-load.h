@@ -39,23 +39,39 @@
 #define LINKER_GETSYMBOL 0
 #endif
 
+#if	defined(__MINGW32__)
+extern long objc_load_module(
+	const unichar *filename,
+	FILE *errorStream,
+	void (*loadCallback)(Class, struct objc_category *),
+        void **header,
+        const unichar *debugFilename);
+
+extern long objc_load_modules(
+	const unichar *files[],
+	FILE *errorStream,
+        void (*callback)(Class,struct objc_category *),
+        void **header,
+        const unichar *debugFilename);
+#else
 extern long objc_load_module(
 	const char *filename,
 	FILE *errorStream,
 	void (*loadCallback)(Class, struct objc_category *),
         void **header,
-        char *debugFilename);
+        const char *debugFilename);
+
+extern long objc_load_modules(
+	const char *files[],
+	FILE *errorStream,
+        void (*callback)(Class,struct objc_category *),
+        void **header,
+        const char *debugFilename);
+#endif
 
 extern long objc_unload_module(
 	FILE *errorStream,
 	void (*unloadCallback)(Class, struct objc_category *));
-
-extern long objc_load_modules(
-	char *files[],
-	FILE *errorStream,
-        void (*callback)(Class,struct objc_category *),
-        void **header,
-        char *debugFilename);
 
 extern long objc_unload_modules(
 	FILE *errorStream,
