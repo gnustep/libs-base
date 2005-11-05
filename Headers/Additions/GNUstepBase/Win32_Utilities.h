@@ -45,10 +45,10 @@ void Win32_Utilities_init(void);
 void Win32_Utilities_fini(void);
 
 /* ---- Environment Functions ---- */
-NSString     *Win32NSStringFromEnvironmentVariable(const char * envVar);
+NSString     *Win32NSStringFromEnvironmentVariable(NSString *envVar);
 
 /* ---- Registry Functions ---- */
-HKEY          Win32OpenRegistry(HKEY hive, const char *key);
+HKEY          Win32OpenRegistry(HKEY hive, NSString *key);
 NSString     *Win32NSStringFromRegistry(HKEY regkey, NSString *regValue);
 // NSNumber     *Win32NSNumberFromRegistry(HKEY regkey, NSString *regValue);
 // NSData       *Win32NSDataFromRegistry(HKEY regkey, NSString *regValue);

@@ -1259,13 +1259,13 @@ static NSMapTable	*absolutes = 0;
       {
         HKEY regkey;
 
-        if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, \
+        if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE, \
         "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0, KEY_READ, &regkey))
           {
             char buf[255];
             DWORD bufsize=255;
             DWORD type;
-            if (ERROR_SUCCESS==RegQueryValueEx(regkey, "StandardName", 0, &type, buf, &bufsize))
+            if (ERROR_SUCCESS==RegQueryValueExA(regkey, "StandardName", 0, &type, buf, &bufsize))
               {
                 bufsize=strlen(buf);
                 while (bufsize && isspace(buf[bufsize-1]))
@@ -1723,6 +1723,13 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int *hour, int *minute, int *second, int *mil);
 int dayOfCommonEra(NSTimeInterval when);
 
+
+/* FIXME
+ * This is a horrible mess ... indentation etc all over the place.
+ * It's also not unicode ... which is OK as the timezone registry
+ * names are ascii ... but we ought to be consistent.
+ */
+
 @implementation GSWindowsTimeZone
 
 - (NSString*) abbreviationForDate: (NSDate*)aDate
@@ -1752,14 +1759,14 @@ int dayOfCommonEra(NSTimeInterval when);
   BOOL     isNT = NO,regFound=NO;
 
   /* Open the key in the local machine hive where the time zone data is stored. */
-  if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones", 0, KEY_READ, &regDirKey))
+  if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones", 0, KEY_READ, &regDirKey))
   {
     isNT=YES;
     regFound=YES;
   }
   else
   {
-    if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones", 0, KEY_READ, &regDirKey))
+    if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones", 0, KEY_READ, &regDirKey))
     {
     	regFound=YES;
     }
@@ -1787,7 +1794,7 @@ int dayOfCommonEra(NSTimeInterval when);
 		BOOL	tzFound = NO;
 		
 		/* Get the class name and the value count. */
-	    retCode = RegQueryInfoKey(
+	    retCode = RegQueryInfoKeyA(
 	        regDirKey,               // key handle
 	        achClass,                // buffer for class name
 	        &cchClassName,           // size of class string
@@ -1809,7 +1816,7 @@ int dayOfCommonEra(NSTimeInterval when);
 			{
 			   cbName = 255;
 			
-			   retCode = RegEnumKeyEx(regDirKey, i, achKey, &cbName, NULL, NULL, NULL, &ftLastWriteTime);
+			   retCode = RegEnumKeyExA(regDirKey, i, achKey, &cbName, NULL, NULL, NULL, &ftLastWriteTime);
 			   if (retCode == ERROR_SUCCESS)
 			   {
 			   	 char keyBuffer[16384];
@@ -1820,7 +1827,7 @@ int dayOfCommonEra(NSTimeInterval when);
 					 else
 			       	sprintf(keyBuffer,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones\\%s",achKey);
 			
- 		          if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyBuffer, 0, KEY_READ, &regKey))
+ 		          if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE, keyBuffer, 0, KEY_READ, &regKey))
 			       {
 				      char buf[256];
 				      char standardName[256];
@@ -1831,7 +1838,7 @@ int dayOfCommonEra(NSTimeInterval when);
 						/* check standardname */
 						standardName[0]='\0';
 				      bufsize=sizeof(buf);
-				      if (ERROR_SUCCESS==RegQueryValueEx(regKey, "Std", 0, &type, buf, &bufsize))
+				      if (ERROR_SUCCESS==RegQueryValueExA(regKey, "Std", 0, &type, buf, &bufsize))
 				      {
 				      	strcpy(standardName,buf);
 				      	if (strcmp(standardName,cName) == 0)
@@ -1841,7 +1848,7 @@ int dayOfCommonEra(NSTimeInterval when);
 						/* check daylightname */
 						daylightName[0]='\0';
 				      bufsize=sizeof(buf);
-				      if (ERROR_SUCCESS==RegQueryValueEx(regKey, "Dlt", 0, &type, buf, &bufsize))
+				      if (ERROR_SUCCESS==RegQueryValueExA(regKey, "Dlt", 0, &type, buf, &bufsize))
 				      {
 				      	strcpy(daylightName,buf);
 				      	if (strcmp(daylightName,cName) == 0)
@@ -1852,7 +1859,7 @@ int dayOfCommonEra(NSTimeInterval when);
 						{
 					      /* Read in the time zone data */
 					      bufsize=sizeof(buf);
-					      if (ERROR_SUCCESS==RegQueryValueEx(regKey, "TZI", 0, &type, buf, &bufsize))
+					      if (ERROR_SUCCESS==RegQueryValueExA(regKey, "TZI", 0, &type, buf, &bufsize))
 					      {
 					          TZI *tzi = (void*)buf;
 					          Bias = tzi->Bias;

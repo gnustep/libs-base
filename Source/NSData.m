@@ -64,11 +64,8 @@
  *		
  */
 
-#if defined(__MINGW32__)
-#define UNICODE
-#define _UNICODE
-#endif
 #include "config.h"
+#include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSByteOrder.h"
@@ -1005,7 +1002,7 @@ static unsigned	gsu32Align;
 	  c = -1;
 	}
 #else
-      if (MoveFileEx(wthePath, wtheRealPath, MOVEFILE_REPLACE_EXISTING) != 0)
+      if (MoveFileExW(wthePath, wtheRealPath, MOVEFILE_REPLACE_EXISTING) != 0)
 	{
 	  c = 0;
 	}

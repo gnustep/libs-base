@@ -292,14 +292,14 @@ objc_unload_modules(FILE *errorStream,
 NSString *
 objc_get_symbol_path(Class theClass, Category *theCategory)
 {
-  char buf[MAX_PATH];
+  unichar buf[MAX_PATH];
   MEMORY_BASIC_INFORMATION memInfo;
   NSCAssert(!theCategory, @"objc_get_symbol_path doesn't support categories");
 
   VirtualQueryEx(GetCurrentProcess(), theClass, &memInfo, sizeof(memInfo));
-  if (GetModuleFileName(memInfo.AllocationBase, buf, sizeof(buf)))
+  if (GetModuleFileNameW(memInfo.AllocationBase, buf, sizeof(buf)))
     {
-      return [NSString stringWithCString:buf];
+      return [NSString stringWithCharacters: buf length: wcslen(buf)];
     }
   return 0;
 }

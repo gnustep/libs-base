@@ -1,5 +1,28 @@
 2005-11-05  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Additions/GNUstepBase/Win32_Utilities.h:
+	* Headers/Foundation/NSFileManager.h:
+	* Headers/Foundation/NSString.h:
+	* Source/NSBundle.m:
+	* Source/NSData.m:
+	* Source/NSFileManager.m:
+	* Source/NSLog.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/objc-load.m:
+	* Source/win32-load.h:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/win32/NSMessagePortWin32.m:
+	* Source/win32/NSUserDefaultsWin32.m:
+	* Source/win32/Win32_Utilities.m:
+	Attempt to rationalise mingw32 unicode support, use explicit unicode
+	methods throughput, fix several bugs where APIs were not using
+	unicode when they should have been doing.
+
+2005-11-05  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSCompatibility.m: don't generate macos-x (xml) property
 	lists if we can't parse them.
 	* Source/GSHTTPURLHandle.m: debug fix for mingw32

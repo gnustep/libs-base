@@ -341,7 +341,9 @@ enum {
  * for long.<br />
  * NB. On mingw32 systems the filesystem representation of a path is a 16-bit
  * unicode character string, so you should only pass the value returned by
- * this method to functions expecting wide characters.
+ * this method to functions expecting wide characters.<br />
+ * This method uses [NSFileManager-fileSystemRepresentationWithPath:] to
+ * perform the conversion.
  */
 - (const unichar*) fileSystemRepresentation;
 #else
@@ -352,7 +354,9 @@ enum {
  * for long.<br />
  * NB. On mingw32 systems the filesystem representation of a path is a 16-bit
  * unicode character string, so you should only pass the value returned by
- * this method to functions expecting wide characters.
+ * this method to functions expecting wide characters.<br />
+ * This method uses [NSFileManager-fileSystemRepresentationWithPath:] to
+ * perform the conversion.
  */
 - (const char*) fileSystemRepresentation;
 #endif
@@ -361,10 +365,14 @@ enum {
 /**
  * Converts the receiver to a C string path using the character encoding
  * appropriate to the local file system.  This string will be stored
- * into buffer if it is shorter than size, otherwise NO is returned.<br />
+ * into buffer if it is shorter (number of characters) than size,
+ * otherwise NO is returned.<br />
  * NB. On mingw32 systems the filesystem representation of a path is a 16-bit
  * unicode character string, so the buffer you pass to this method must be
- * twice as many bytes as the size (number of characters) you expect to receive.
+ * twice as many bytes as the size (number of characters) you expect to
+ * receive.<br />
+ * This method uses [NSFileManager-fileSystemRepresentationWithPath:] to
+ * perform the conversion.
  */
 - (BOOL) getFileSystemRepresentation: (unichar*)buffer
 			   maxLength: (unsigned int)size;
@@ -372,10 +380,14 @@ enum {
 /**
  * Converts the receiver to a C string path using the character encoding
  * appropriate to the local file system.  This string will be stored
- * into buffer if it is shorter than size, otherwise NO is returned.<br />
+ * into buffer if it is shorter (number of characters) than size,
+ * otherwise NO is returned.<br />
  * NB. On mingw32 systems the filesystem representation of a path is a 16-bit
  * unicode character string, so the buffer you pass to this method must be
- * twice as many bytes as the size (number of characters) you expect to receive.
+ * twice as many bytes as the size (number of characters) you expect to
+ * receive.<br />
+ * This method uses [NSFileManager-fileSystemRepresentationWithPath:] to
+ * perform the conversion.
  */
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size;

@@ -9,6 +9,9 @@
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSProcessInfo.h>
 
+#define	UNISTR(X) \
+((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
+
 extern void GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 @interface NSUserDefaultsWin32 : NSUserDefaults
@@ -155,8 +158,8 @@ struct NSUserDefaultsWin32_DomainInfo
       
       if (dinfo->userKey == 0)
 	{
-	  rc = RegOpenKeyEx(HKEY_CURRENT_USER,
-	    [dPath cString],
+	  rc = RegOpenKeyExW(HKEY_CURRENT_USER,
+	    UNISTR(dPath),
 	    0,
 	    STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ
 	    |KEY_SET_VALUE|KEY_QUERY_VALUE,
@@ -174,8 +177,8 @@ struct NSUserDefaultsWin32_DomainInfo
 	}
       if (dinfo->systemKey == 0)
 	{
-	  rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-	    [dPath cString],
+	  rc = RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+	    UNISTR(dPath),
 	    0,
 	    STANDARD_RIGHTS_READ|KEY_QUERY_VALUE,
 	    &(dinfo->systemKey));
@@ -201,7 +204,8 @@ struct NSUserDefaultsWin32_DomainInfo
       if (dinfo->systemKey)
 	{
 	  DWORD i = 0;
-	  char *name = malloc(100), *data = malloc(1000);
+	  unichar *name = malloc(200);
+	  unsigned char	*data = malloc(1000);
 	  DWORD namelenbuf = 100, datalenbuf = 1000;
 	  DWORD type;
 
@@ -209,7 +213,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	    {
 	      DWORD namelen = namelenbuf, datalen = datalenbuf;
 
-	      rc = RegEnumValue(dinfo->systemKey,
+	      rc = RegEnumValueW(dinfo->systemKey,
 		i,
 		name,
 		&namelen,
@@ -224,9 +228,12 @@ struct NSUserDefaultsWin32_DomainInfo
 		      id	v;
 		      NSString	*k;
 
-		      v = [NSString stringWithCString: data];
+		      v = [NSString stringWithCString: data
+			encoding: NSASCIIStringEncoding];
 		      v = [v propertyList];
-		      k = [NSString stringWithCString: name];
+		      k = AUTORELEASE([[NSString alloc] initWithBytes: name
+			length: namelen * sizeof(unichar)
+			encoding: NSUnicodeStringEncoding]);
 		      [domainDict setObject: v forKey: k];
 		    }
 		  NS_HANDLER
@@ -238,11 +245,11 @@ struct NSUserDefaultsWin32_DomainInfo
 		  if (namelen >= namelenbuf)
 		    {
 		      namelenbuf = namelen + 1;
-		      name = realloc(name, namelenbuf);
+		      name = realloc(name, namelenbuf * sizeof(unichar));
 		    }
 		  if (datalen >= datalenbuf)
 		    {
-		      datalenbuf = datalen+1;
+		      datalenbuf = datalen + 1;
 		      data = realloc(data, datalenbuf);
 		    }
 		  continue;
@@ -253,7 +260,7 @@ struct NSUserDefaultsWin32_DomainInfo
 		}
 	      else
 		{
-		  NSLog(@"RegEnumValue error %d", rc);
+		  NSLog(@"RegEnumValueW error %d", rc);
 		  break;
 		}
 	      i++;
@@ -265,7 +272,8 @@ struct NSUserDefaultsWin32_DomainInfo
       if (dinfo->userKey)
 	{
 	  DWORD i = 0;
-	  char *name = malloc(100), *data = malloc(1000);
+	  unichar *name = malloc(200);
+	  unsigned char *data = malloc(1000);
 	  DWORD namelenbuf = 100, datalenbuf = 1000;
 	  DWORD type;
 
@@ -273,7 +281,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	    {
 	      DWORD namelen = namelenbuf, datalen = datalenbuf;
 
-	      rc = RegEnumValue(dinfo->userKey,
+	      rc = RegEnumValueW(dinfo->userKey,
 		i,
 		name,
 		&namelen,
@@ -288,9 +296,12 @@ struct NSUserDefaultsWin32_DomainInfo
 		      id	v;
 		      NSString	*k;
 
-		      v = [NSString stringWithCString: data];
+		      v = [NSString stringWithCString: data
+			encoding: NSASCIIStringEncoding];
 		      v = [v propertyList];
-		      k = [NSString stringWithCString: name];
+		      k = AUTORELEASE([[NSString alloc] initWithBytes: name
+			length: namelen * sizeof(unichar)
+			encoding: NSUnicodeStringEncoding]);
 		      [domainDict setObject: v forKey: k];
 		    }
 		  NS_HANDLER
@@ -302,11 +313,11 @@ struct NSUserDefaultsWin32_DomainInfo
 		  if (namelen >= namelenbuf)
 		    {
 		      namelenbuf = namelen + 1;
-		      name = realloc(name, namelenbuf);
+		      name = realloc(name, namelenbuf * sizeof(unichar));
 		    }
 		  if (datalen >= datalenbuf)
 		    {
-		      datalenbuf = datalen+1;
+		      datalenbuf = datalen + 1;
 		      data = realloc(data, datalenbuf);
 		    }
 		  continue;
@@ -317,7 +328,7 @@ struct NSUserDefaultsWin32_DomainInfo
 		}
 	      else
 		{
-		  NSLog(@"RegEnumValue error %d", rc);
+		  NSLog(@"RegEnumValueW error %d", rc);
 		  break;
 		}
 	      i++;
@@ -378,8 +389,8 @@ struct NSUserDefaultsWin32_DomainInfo
 	  else
 	    {
 	      // If the key didn't exist, but now it does, we want to read it.
-	      rc = RegOpenKeyEx(HKEY_CURRENT_USER,
-		[dPath cString],
+	      rc = RegOpenKeyExW(HKEY_CURRENT_USER,
+		UNISTR(dPath),
 		0,
 		STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ
 		|KEY_SET_VALUE|KEY_QUERY_VALUE,
@@ -423,8 +434,8 @@ struct NSUserDefaultsWin32_DomainInfo
 	  else
 	    {
 	      // If the key didn't exist, but now it does, we want to read it.
-	      rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-		[dPath cString],
+	      rc = RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+		UNISTR(dPath),
 		0,
 		STANDARD_RIGHTS_READ|KEY_QUERY_VALUE,
 		&(dinfo->systemKey));
@@ -489,10 +500,10 @@ struct NSUserDefaultsWin32_DomainInfo
 	}
       if (dinfo->userKey == 0)
 	{
-	  rc = RegCreateKeyEx(HKEY_CURRENT_USER,
-	    [dPath cString],
+	  rc = RegCreateKeyExW(HKEY_CURRENT_USER,
+	    UNISTR(dPath),
 	    0,
-	    "",
+	    L"",
 	    REG_OPTION_NON_VOLATILE,
 	    STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE
 	    |KEY_QUERY_VALUE,
@@ -515,11 +526,17 @@ struct NSUserDefaultsWin32_DomainInfo
 
 	  if (oldvalue == nil || [value isEqual: oldvalue] == NO)
 	    {
-	      NSString *result = 0;
+	      NSString			*result = nil;
+	      const unsigned char	*ptr;
 
 	      GSPropertyListMake(value, nil, NO, NO, 0, &result);
-	      rc = RegSetValueEx(dinfo->userKey, [valName cString], 0,
-		REG_SZ, [result cString], [result cStringLength]+1);
+	      ptr = [result cStringUsingEncoding: NSASCIIStringEncoding];
+	      rc = RegSetValueExW(dinfo->userKey,
+		UNISTR(valName),
+		0,
+		REG_SZ,
+		ptr,
+		strlen(ptr) + 1);
 	      if (rc != ERROR_SUCCESS)
 		{
 		  NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x)",
@@ -535,7 +552,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	  if ([domainDict objectForKey: valName] == nil)
 	    {
 	      // Delete value from registry
-	      rc = RegDeleteValue(dinfo->userKey, [valName cString]);
+	      rc = RegDeleteValueW(dinfo->userKey, UNISTR(valName));
 	      if (rc != ERROR_SUCCESS)
 		{
 		  NSLog(@"Failed to delete HKEY_CURRENT_USER\\%@\\%@ (%x)",

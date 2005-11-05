@@ -3482,9 +3482,20 @@ static NSFileManager *fm = nil;
 - (BOOL) getFileSystemRepresentation: (unichar*)buffer
 			   maxLength: (unsigned int)size
 {
-  const unichar	*ptr = [self fileSystemRepresentation];
+  const unichar	*ptr;
   unsigned	i;
 
+  if (size == 0)
+    {
+      return NO;
+    }
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ given null pointer",
+	NSStringFromSelector(_cmd)];
+    }
+  ptr = [self fileSystemRepresentation];
   for (i = 0; i < size; i++)
     {
       buffer[i] = ptr[i];
@@ -3495,7 +3506,7 @@ static NSFileManager *fm = nil;
     }
   if (i == size && ptr[i] != 0)
     {
-      return NO;
+      return NO;	// Not at end.
     }
   return YES;
 }
@@ -3512,9 +3523,23 @@ static NSFileManager *fm = nil;
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size
 {
-  const char* ptr = [self fileSystemRepresentation];
+  const char* ptr;
+
+  if (size == 0)
+    {
+      return NO;
+    }
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ given null pointer",
+	NSStringFromSelector(_cmd)];
+    }
+  ptr = [self fileSystemRepresentation];
   if (strlen(ptr) > size)
-    return NO;
+    {
+      return NO;
+    }
   strcpy(buffer, ptr);
   return YES;
 }

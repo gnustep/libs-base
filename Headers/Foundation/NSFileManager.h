@@ -222,6 +222,8 @@
  * Convert from OpenStep internal string format to a string in
  * the local filesystem format, suitable for passing to system functions.<br />
  * This representation may vary between filesystems.<br />
+ * Converts the standard path separator ('/') and path extension ('.')
+ * characters to the local representation if necessary.<br />
  * On mingw32 systems, the filesystem representation is 16-bit unicode and is
  * expected to be used in conjunction with the variants of system calls which
  * work with unicode strings.<br />
@@ -232,6 +234,8 @@
 /**
  * Convert from OpenStep internal string format to a string in
  * the local filesystem format, suitable for passing to system functions.<br />
+ * Converts the standard path separator ('/') and path extension ('.')
+ * characters to the local representation if necessary.<br />
  * This representation may vary between filesystems.<br />
  * On mingw32 systems, the filesystem representation is 16-bit unicode and is
  * expected to be used in conjunction with the variants of system calls which
@@ -260,6 +264,10 @@
  * Convert to OpenStep internal string format from a string in
  * the local filesystem format, as returned by system functions.<br />
  * This representation may vary between filesystems.<br />
+ * The GNUstep version of this method currently does not bother to change
+ * any path separator and extension characters to the standard values
+ * ('/' and '.' respectively) as the path handling methods of [NSString]
+ * should be able to handle native format strings.<br />
  * On mingw32 systems, the filesystem representation is 16-bit unicode and
  * is expected to have come from the variant of a system call which works
  * with unicode strings.
@@ -271,6 +279,10 @@
  * Convert to OpenStep internal string format from a string in
  * the local filesystem format, as returned by system functions.<br />
  * This representation may vary between filesystems.<br />
+ * The GNUstep version of this method currently does not bother to change
+ * any path separator and extension characters to the standard values
+ * ('/' and '.' respectively) as the path handling methods of [NSString]
+ * should be able to handle native format strings.<br />
  * On mingw32 systems, the filesystem representation is 16-bit unicode and
  * is expected to have come from the variant of a system call which works
  * with unicode strings.

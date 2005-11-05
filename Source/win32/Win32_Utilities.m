@@ -28,6 +28,9 @@
 
 #include "GNUstepBase/Win32_Utilities.h"
 
+#define	UNISTR(X) \
+((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
+
 /* ------------------ */
 /* Internal Variables */
 /* ------------------ */
@@ -41,11 +44,11 @@
  * Returns a hive key or 0 if unable.
  */
 HKEY
-Win32OpenRegistry(HKEY hive, const char *key)
+Win32OpenRegistryW(HKEY hive, NSString *key)
 {
   HKEY regkey;
   
-  if (ERROR_SUCCESS == RegOpenKeyEx(hive, key, 0, KEY_READ, &regkey))
+  if (RegOpenKeyExW(hive, UNISTR(key), 0, KEY_READ, &regkey) == ERROR_SUCCESS)
     {
       return regkey;
     }
@@ -59,20 +62,16 @@ Win32OpenRegistry(HKEY hive, const char *key)
 NSString *
 Win32NSStringFromRegistry(HKEY regkey, NSString *regValue)
 {
-  char buf[MAX_PATH];
-  DWORD bufsize=MAX_PATH;
+  unichar buf[MAX_PATH];
+  DWORD bufsize = MAX_PATH;
   DWORD type;
 
-  if (ERROR_SUCCESS==RegQueryValueEx(regkey, [regValue cString], 0, &type, buf, &bufsize))
+  if (RegQueryValueExW(regkey, UNISTR(regValue), 0, &type, (unsigned char*)buf,
+    &bufsize) == ERROR_SUCCESS)
     {
-      // FIXME: Check type is correct!
-      
-      bufsize=strlen(buf);
-      while (bufsize && isspace(buf[bufsize-1]))
-        {
-          bufsize--;
-        }
-      return [NSString stringWithCString:buf length:bufsize];
+      // FIXME check type is correct
+      return [NSString stringWithCharacters: buf
+				     length: bufsize / sizeof(unichar)];
     }
   return nil;
 }
@@ -89,31 +88,29 @@ Win32NSStringFromRegistry(HKEY regkey, NSString *regValue)
  * Obtains an NSString for the environment variable named envVar.
  */
 NSString *
-Win32NSStringFromEnvironmentVariable(const char * envVar)
+Win32NSStringFromEnvironmentVariable(NSString *envVar)
 {
-  char buf[1024], *nb;
+  unichar buf[1024], *nb;
   DWORD n;
   NSString *s = nil;
 
   [gnustep_global_lock lock];
-  n = GetEnvironmentVariable(envVar, buf, 1024);
+  n = GetEnvironmentVariableW(UNISTR(envVar), buf, 1024);
   if (n > 1024)
     {
       /* Buffer not big enough, so dynamically allocate it */
-      nb = (char *)NSZoneMalloc(NSDefaultMallocZone(), sizeof(char)*(n+1));
+      nb = (unichar *)NSZoneMalloc(NSDefaultMallocZone(),
+	sizeof(unichar)*(n + 1));
       if (nb != NULL)
         {
-          n = GetEnvironmentVariable(envVar, nb, n+1);
-          nb[n] = '\0';
-          s = [NSString stringWithCString: nb];
+          n = GetEnvironmentVariableW(UNISTR(envVar), nb, n + 1);
+          s = [NSString stringWithCharacters: nb length: n];
           NSZoneFree(NSDefaultMallocZone(), nb);
         }
     }
   else if (n > 0)
     {
-      /* null terminate it and return the string */
-      buf[n] = '\0';
-      s = [NSString stringWithCString: buf];
+      s = [NSString stringWithCharacters: buf length: n];
     }
   [gnustep_global_lock unlock];
   return s;
@@ -141,15 +138,15 @@ Win32GetUserProfileDirectory(NSString *loginName)
        * unusable because it contains spaces), we use HOMEPATH in
        * preference to USERPROFILE.
        */
-      s = Win32NSStringFromEnvironmentVariable("HOMEPATH");
+      s = Win32NSStringFromEnvironmentVariable(@"HOMEPATH");
       if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
         {
-          s = [Win32NSStringFromEnvironmentVariable("HOMEDRIVE")
+          s = [Win32NSStringFromEnvironmentVariable(@"HOMEDRIVE")
             stringByAppendingString: s];
         }
       if (s == nil)
         {
-          s = Win32NSStringFromEnvironmentVariable("USERPROFILE");
+          s = Win32NSStringFromEnvironmentVariable(@"USERPROFILE");
         }
 
       if (s == nil)
@@ -162,7 +159,8 @@ Win32GetUserProfileDirectory(NSString *loginName)
   else
     {
       s = nil;
-      NSLog(@"Trying to get home for '%@' when user is '%@'", loginName, NSUserName());    
+      NSLog(@"Trying to get home for '%@' when user is '%@'",
+	loginName, NSUserName());    
       NSLog(@"Can't determine other user home directories in Win32.");    
     }
   
@@ -179,7 +177,7 @@ Win32GetUserProfileDirectory(NSString *loginName)
  * Locates specified directory on Win32 systems
  */
 NSString *
-Win32FindDirectory( DWORD DirCSIDL)
+Win32FindDirectory(DWORD DirCSIDL)
 {
   [NSException raise: NSInternalInconsistencyException
               format: @"Not implemented! Can't find directories in Win32."];    
