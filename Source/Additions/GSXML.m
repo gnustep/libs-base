@@ -2576,7 +2576,20 @@ loadEntityFunction(const unsigned char *url, const unsigned char *eid,
 
   if ([file length] > 0)
     {
-      ret = xmlNewInputFromFile(ctx, [file fileSystemRepresentation]);
+      const char	*path;
+
+#if	defined(__MINGW32__)
+      /*
+       * The xmlNewInputFromFile() function requires an eight bit string
+       * but on a modern windows filesystem the file name could be unicode
+       * which can't be represented as a cString ... and may cause an
+       * exception ... nothing we can do about it really.
+       */
+      path = [file cString];
+#else
+      path = [file fileSystemRepresentation];
+#endif
+      ret = xmlNewInputFromFile(ctx, path);
     }
   else
     {
