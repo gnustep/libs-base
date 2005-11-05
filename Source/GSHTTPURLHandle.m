@@ -221,8 +221,13 @@ static void debugRead(GSHTTPURLHandle *handle, NSData *data)
   int		d;
 
   [debugLock lock];
+#if	defined(__MINGW__)
+  d = _wopen((const unichar*)[debugFile  fileSystemRepresentation],
+    O_WRONLY|O_CREAT|O_APPEND, 0644);
+#else
   d = open([debugFile  fileSystemRepresentation],
-	   O_WRONLY|O_CREAT|O_APPEND, 0644);
+    O_WRONLY|O_CREAT|O_APPEND, 0644);
+#endif
   if (d >= 0)
     {
       s = [NSString stringWithFormat: @"\nRead for %x at %@ %u bytes - '",
@@ -240,8 +245,13 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   int		d;
 
   [debugLock lock];
+#if	defined(__MINGW__)
+  d = _wopen((const unichar*)[debugFile  fileSystemRepresentation],
+    O_WRONLY|O_CREAT|O_APPEND, 0644);
+#else
   d = open([debugFile  fileSystemRepresentation],
-	   O_WRONLY|O_CREAT|O_APPEND, 0644);
+    O_WRONLY|O_CREAT|O_APPEND, 0644);
+#endif
   if (d >= 0)
     {
       s = [NSString stringWithFormat: @"\nWrite for %x at %@ %u bytes - '",

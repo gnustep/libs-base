@@ -339,10 +339,14 @@ enum {
  * automatically freed soon after it is returned, so copy it if you need it
  * for long.<br />
  * NB. On ms-windows the filesystem representation of a path is a 16-bit
- * unicode character string, so you should only path the value returned by
+ * unicode character string, so you should only pass the value returned by
  * this method to functions expecting wide characters.
  */
+#if	defined(__MINGW32__)
+- (const unichar*) fileSystemRepresentation;
+#else
 - (const char*) fileSystemRepresentation;
+#endif
 
 /**
  * Converts the receiver to a C string path using the character encoding
@@ -350,10 +354,15 @@ enum {
  * into buffer if it is shorter than size, otherwise NO is returned.<br />
  * NB. On ms-windows the filesystem representation of a path is a 16-bit
  * unicode character string, so the buffer you pass to this method must be
- * twice as long as the number of characters you expect to receive.
+ * twice as many bytes as the size (number of characters) you expect to receive.
  */
+#if	defined(__MINGW32__)
+- (BOOL) getFileSystemRepresentation: (unichar*)buffer
+			   maxLength: (unsigned int)size;
+#else
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size;
+#endif
 
 /**
  * Returns a string containing the last path component of the receiver.<br />
