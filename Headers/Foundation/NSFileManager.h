@@ -217,18 +217,27 @@
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
 
+#if	defined(__MINGW32__)
 /**
  * Convert from OpenStep internal string format to a string in
  * the local filesystem format, suitable for passing to system functions.<br />
  * This representation may vary between filesystems.<br />
- * On windows, the filesystem representation is 16-bit unicode and is expected
- * to be used in conjunction with the variants of system calls which work
- * with unicode strings.<br />
+ * On mingw32 systems, the filesystem representation is 16-bit unicode and is
+ * expected to be used in conjunction with the variants of system calls which
+ * work with unicode strings.<br />
  * Raises an exception if the character conversion is not possible.
  */
-#if	defined(__MINGW32__)
 - (const unichar*) fileSystemRepresentationWithPath: (NSString*)path;
 #else
+/**
+ * Convert from OpenStep internal string format to a string in
+ * the local filesystem format, suitable for passing to system functions.<br />
+ * This representation may vary between filesystems.<br />
+ * On mingw32 systems, the filesystem representation is 16-bit unicode and is
+ * expected to be used in conjunction with the variants of system calls which
+ * work with unicode strings.<br />
+ * Raises an exception if the character conversion is not possible.
+ */
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path;
 #endif
 
@@ -246,18 +255,26 @@
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: (id)handler;
 
+#if	defined(__MINGW32__)
 /**
  * Convert to OpenStep internal string format from a string in
  * the local filesystem format, as returned by system functions.<br />
  * This representation may vary between filesystems.<br />
- * On windows, the filesystem representation is 16-bit unicode and is expected
- * to have come from the variant of a system call which works
+ * On mingw32 systems, the filesystem representation is 16-bit unicode and
+ * is expected to have come from the variant of a system call which works
  * with unicode strings.
  */
-#if	defined(__MINGW32__)
 - (NSString*) stringWithFileSystemRepresentation: (const unichar*)string
 					  length: (unsigned int)len;
 #else
+/**
+ * Convert to OpenStep internal string format from a string in
+ * the local filesystem format, as returned by system functions.<br />
+ * This representation may vary between filesystems.<br />
+ * On mingw32 systems, the filesystem representation is 16-bit unicode and
+ * is expected to have come from the variant of a system call which works
+ * with unicode strings.
+ */
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len;
 #endif

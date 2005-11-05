@@ -333,33 +333,50 @@ enum {
 		       matchesIntoArray: (NSArray**)outputArray
 			    filterTypes: (NSArray*)filterTypes;
 
+#if	defined(__MINGW32__)
 /**
  * Converts the receiver to a C string path expressed in the character
  * encoding appropriate for the local host file system.  This string will be
  * automatically freed soon after it is returned, so copy it if you need it
  * for long.<br />
- * NB. On ms-windows the filesystem representation of a path is a 16-bit
+ * NB. On mingw32 systems the filesystem representation of a path is a 16-bit
  * unicode character string, so you should only pass the value returned by
  * this method to functions expecting wide characters.
  */
-#if	defined(__MINGW32__)
 - (const unichar*) fileSystemRepresentation;
 #else
+/**
+ * Converts the receiver to a C string path expressed in the character
+ * encoding appropriate for the local host file system.  This string will be
+ * automatically freed soon after it is returned, so copy it if you need it
+ * for long.<br />
+ * NB. On mingw32 systems the filesystem representation of a path is a 16-bit
+ * unicode character string, so you should only pass the value returned by
+ * this method to functions expecting wide characters.
+ */
 - (const char*) fileSystemRepresentation;
 #endif
 
+#if	defined(__MINGW32__)
 /**
  * Converts the receiver to a C string path using the character encoding
  * appropriate to the local file system.  This string will be stored
  * into buffer if it is shorter than size, otherwise NO is returned.<br />
- * NB. On ms-windows the filesystem representation of a path is a 16-bit
+ * NB. On mingw32 systems the filesystem representation of a path is a 16-bit
  * unicode character string, so the buffer you pass to this method must be
  * twice as many bytes as the size (number of characters) you expect to receive.
  */
-#if	defined(__MINGW32__)
 - (BOOL) getFileSystemRepresentation: (unichar*)buffer
 			   maxLength: (unsigned int)size;
 #else
+/**
+ * Converts the receiver to a C string path using the character encoding
+ * appropriate to the local file system.  This string will be stored
+ * into buffer if it is shorter than size, otherwise NO is returned.<br />
+ * NB. On mingw32 systems the filesystem representation of a path is a 16-bit
+ * unicode character string, so the buffer you pass to this method must be
+ * twice as many bytes as the size (number of characters) you expect to receive.
+ */
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size;
 #endif
