@@ -1884,39 +1884,28 @@ static NSStringEncoding	defaultEncoding;
 #endif
 }
 
+#if	defined(__MINGW__)
+- (const unichar*) fileSystemRepresentationWithPath: (NSString*)path
+{
+  return (const unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
+}
+- (NSString*) stringWithFileSystemRepresentation: (const unichar*)string
+					  length: (unsigned int)len
+{
+  return [NSString stringWithCharacters: (const unichar*)string length: len/2];
+}
+#else
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
-  const _CHAR	*c_path = 0;
-
-  if (path != nil)
-    {
-#ifdef __MINGW32__
-      c_path = (_CCP)[path cStringUsingEncoding: NSUnicodeStringEncoding];
-#else
-      c_path = (_CCP)[path cStringUsingEncoding: defaultEncoding];
-#endif
-    }
-
-  return (const char*)c_path;
+  return [path cStringUsingEncoding: defaultEncoding];
 }
-
-/**
- * This method converts from a local filesystem specific name
- * to an NSString object.  Use it to convert a filename returned by
- * a systemcall into a value for internal use.<br />
- * The value of len is the number of bytes of data pointed to by string.<br />
- * On windows, the filesystem representation is utf-16.
- */
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len
 {
-#ifdef __MINGW32__
-  return [NSString stringWithCharacters: (const unichar*)string length: len/2];
-#else
   return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
     initWithBytes: string length: len encoding: defaultEncoding]);
-#endif
 }
+#endif
 
 @end /* NSFileManager */
 
