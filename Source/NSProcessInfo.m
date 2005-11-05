@@ -210,7 +210,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
   else
     {
-#ifdef __MINGW32__
+#if	defined(__MINGW32__)
       unichar	*buffer;
       int	buffer_size = 0;
       int	needed_size = 0;
@@ -289,20 +289,21 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*keys = [NSMutableArray new];
     NSMutableArray	*values = [NSMutableArray new];
 
-#if 0 && defined(__MINGW32__)
+#if defined(__MINGW32__)
     unichar	*base;
 
-    base = (unichar*)GetEnvironmentStringsW();
+    base = GetEnvironmentStringsW();
     if (base != 0)
       {
-	const unichar	*start = base;
-	const unichar	*wenvp = start;
+	const unichar	*wenvp = base;
 
 	while (*wenvp != 0)
 	  {
-	    NSString	*key;
-	    NSString	*val;
+	    const unichar	*start = wenvp;
+	    NSString		*key;
+	    NSString		*val;
 
+	    start = wenvp;
 	    while (*wenvp != '=' && *wenvp != 0)
 	      {
 		wenvp++;
