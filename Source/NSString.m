@@ -3469,13 +3469,43 @@ handle_printf_atsign (FILE *stream,
 
 static NSFileManager *fm = nil;
 
+#if	defined(__MINGW32__)
+- (const unichar*) fileSystemRepresentation
+{
+  if (fm == nil)
+    {
+      fm = RETAIN([NSFileManager defaultManager]);
+    }
+  return [fm fileSystemRepresentationWithPath: self];
+}
+
+- (BOOL) getFileSystemRepresentation: (unichar*)buffer
+			   maxLength: (unsigned int)size
+{
+  const unichar	*ptr = [self fileSystemRepresentation];
+  unsigned	i;
+
+  for (i = 0; i < size; i++)
+    {
+      buffer[i] = ptr[i];
+      if (ptr[i] == 0)
+	{
+	  break;
+	}
+    }
+  if (i == size && ptr[i] != 0)
+    {
+      return NO;
+    }
+  return YES;
+}
+#else
 - (const char*) fileSystemRepresentation
 {
   if (fm == nil)
     {
       fm = RETAIN([NSFileManager defaultManager]);
     }
-
   return [fm fileSystemRepresentationWithPath: self];
 }
 
@@ -3488,6 +3518,7 @@ static NSFileManager *fm = nil;
   strcpy(buffer, ptr);
   return YES;
 }
+#endif
 
 - (NSString*) lastPathComponent
 {
