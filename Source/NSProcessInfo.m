@@ -1108,7 +1108,11 @@ static BOOL	debugTemporarilyDisabled = NO;
   extern int	_NSLogDescriptor;
   int		desc;
 
+#if	defined(__MINGW32__)
+  desc = _wopen([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
+#else
   desc = open([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
+#endif
   if (desc >= 0)
     {
       if (_NSLogDescriptor >= 0 && _NSLogDescriptor != 2)
