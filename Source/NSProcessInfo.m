@@ -289,7 +289,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*keys = [NSMutableArray new];
     NSMutableArray	*values = [NSMutableArray new];
 
-#if defined(__MINGW32__)
+#if 0 && defined(__MINGW32__)
     unichar	*base;
 
     base = (unichar*)GetEnvironmentStringsW();
