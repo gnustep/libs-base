@@ -12,7 +12,7 @@
    Date: Apr 2001
    Rewritten NSDirectoryEnumerator
 
-   Author: Richard frith-Macdonald <rfm@gnu.org>
+   Author: Richard Frith-Macdonald <rfm@gnu.org>
    Date: Sep 2002
    Rewritten attribute handling code
 
@@ -278,7 +278,7 @@
 - (BOOL) _proceedAccordingToHandler: (id) handler
                            forError: (NSString*) error
                              inPath: (NSString*) path
-                           fromPath: (NSString*) frompath
+                           fromPath: (NSString*) fromPath
                              toPath: (NSString*) toPath;
 
 
@@ -360,7 +360,7 @@ static NSStringEncoding	defaultEncoding;
  * Change the attributes of the file at path to those specified.<br />
  * Returns YES if all requested changes were made (or if the dictionary
  * was nil or empty, so no changes were requested), NO otherwise.<br />
- * On failure, some fo the requested changes may have taken place.<br />
+ * On failure, some of the requested changes may have taken place.<br />
  */
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
@@ -515,7 +515,7 @@ static NSStringEncoding	defaultEncoding;
  * Returns an array of path components suitably modified for display
  * to the end user.  This modification may render the returned strings
  * unusable for path manipulation, so you should work with two arrays ...
- * one returned by this method (for display tio the user), and a
+ * one returned by this method (for display to the user), and a
  * parallel one returned by [NSString-pathComponents] (for path
  * manipulation).
  */
@@ -791,7 +791,7 @@ static NSStringEncoding	defaultEncoding;
   int	written;
 #endif
 
-  /* This is consitent with MacOSX - just return NO for an invalid path. */
+  /* This is consistent with MacOSX - just return NO for an invalid path. */
   if ([path length] == 0)
     return NO;
 
@@ -1465,7 +1465,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  return YES;
 	}
-      /* FIXME: On unix, directory accessable == executable, so we simulate that
+      /* FIXME: On unix, directory accessible == executable, so we simulate that
       here for Windows. Is there a better check for directory access? */
       if (res & FILE_ATTRIBUTE_DIRECTORY)
 	{
@@ -1744,7 +1744,7 @@ static NSStringEncoding	defaultEncoding;
   /* We initialize the directory enumerator with justContents == YES,
      which tells the NSDirectoryEnumerator code that we only enumerate
      the contents non-recursively once, and exit.  NSDirectoryEnumerator
-     can perform some optms using this assumption. */
+     can perform some optimisations using this assumption. */
   direnum = [[NSDirectoryEnumerator alloc] initWithDirectoryPath: path
 				       recurseIntoSubdirectories: NO
 						  followSymlinks: NO
