@@ -682,7 +682,7 @@ static unsigned	gsu32Align;
  * Copies length bytes of data from the memory encapsulated by the receiver
  * into the specified buffer.  The buffer must be large enough to contain
  * length bytes of data ... if it isn't then a crash is likely to occur.<br />
- * Invokes -getBytes:range: with the range set to iNSMakeRange(0, length)
+ * Invokes -getBytes:range: with the range set to NSMakeRange(0, length)
  */
 - (void) getBytes: (void*)buffer length: (unsigned int)length
 {
@@ -711,7 +711,7 @@ static unsigned	gsu32Align;
 }
 
 /**
- * Returns an NSData instance encapsulating the memory from the reciever
+ * Returns an NSData instance encapsulating the memory from the receiver
  * specified by the range aRange.<br />
  * If aRange specifies a range which does not entirely lie within the
  * receiver, an exception is raised.
@@ -1917,7 +1917,7 @@ failure:
  * then a range exception is raised.<br />
  * Otherwise, if the range specified extends beyond the end
  * of the data, then the size of the data is increased to
- * accomodate the new bytes.<br />
+ * accommodate the new bytes.<br />
  */
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes

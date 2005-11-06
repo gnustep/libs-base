@@ -177,7 +177,7 @@
 
 /**
  * Sets the name with which instances of aClass are encoded.<br />
- * The value of aString must be the anme of an existing clas.
+ * The value of aString must be the name of an existing class.
  */
 - (void) setClassName: (NSString*)aString forClass: (Class)aClass;
 
@@ -442,8 +442,8 @@ willReplaceObject: (id)anObject
  * Sent if the named class is not available during decoding.<br />
  * The value of aName is the class name being decoded (after any name mapping
  * has been applied).<br />
- * The classNames arraay contains the original name of the class encoded
- * in the archive, and is followed by eqach of its superclasses in turn.<br />
+ * The classNames array contains the original name of the class encoded
+ * in the archive, and is followed by each of its superclasses in turn.<br />
  * The delegate may either return a class object for the unarchiver to use
  * to continue decoding, or may return nil to abort the decoding process.
  */

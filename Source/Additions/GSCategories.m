@@ -41,7 +41,7 @@
  * is on or after the first of january.<br />
  * This has the effect that, if january first is a friday, saturday or
  * sunday, the days of that week (up to and including the sunday) are
- * considered to be in week 53 of the preceeding year. Similarly if the
+ * considered to be in week 53 of the preceding year. Similarly if the
  * last day of the year is a monday tuesday or wednesday, these days are
  * part of week 1 of the next year.
  */
@@ -147,7 +147,7 @@
  * a hexadecimal coding of the bytes.  The parsing of the string is
  * fairly tolerant, ignoring whitespace and permitting both upper and
  * lower case hexadecimal digits (the -hexadecimalRepresentation method
- * produces a string using only uppercase digits with no white spaqce).<br />
+ * produces a string using only uppercase digits with no white space).<br />
  * If the string does not contain one or more pairs of hexadecimal digits
  * then an exception is raised.
  */
@@ -823,7 +823,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
  * WARNING: The -compare: method for NSObject is deprecated
  *          due to subclasses declaring the same selector with
  *          conflicting signatures.
- *          Comparision of arbitrary objects is not just meaningless
+ *          Comparison of arbitrary objects is not just meaningless
  *          but also dangerous as most concrete implementations
  *          expect comparable objects as arguments often accessing
  *          instance variables directly.
@@ -1002,7 +1002,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 }
 
 /**
- * Returns a string in which any (and all) occurrances of
+ * Returns a string in which any (and all) occurrences of
  * replace in the receiver have been replaced with by.
  * Returns the receiver if replace
  * does not occur within the receiver.  NB. an empty string is
@@ -1058,7 +1058,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 }
 
 /**
- * Replaces all occurrances of the string replace with the string by
+ * Replaces all occurrences of the string replace with the string by
  * in the receiver.<br />
  * Has no effect if replace does not occur within the
  * receiver.  NB. an empty string is not considered to exist within

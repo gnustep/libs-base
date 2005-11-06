@@ -858,9 +858,9 @@ GSAppendMethodToList (GSMethodList list,
   /*
      Deal with typed selectors: No matter what kind of selector we get
      convert it into a c-string.  Cache that c-string incase the
-     selector isn't found, then search for cooresponding typed selector.
+     selector isn't found, then search for corresponding typed selector.
      If none is found use the cached name to register an new selector
-     with the cooresponding types.
+     with the corresponding types.
    */
   sel = (SEL)GSNameFromSelector (sel);
 

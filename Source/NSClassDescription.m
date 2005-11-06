@@ -91,7 +91,7 @@ static NSMapTable	*classMap;
 
 /**
  * Invalidates the cache of class descriptions so the new descriptions
- * will be fetched as required and begin to refil the cache. You need
+ * will be fetched as required and begin to refill the cache. You need
  * this only if you suspect that a class description should have
  * changed.
  */

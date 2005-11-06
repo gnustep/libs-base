@@ -48,7 +48,7 @@
    information required by the library to establish all locations required.
    </p>
    <p>
-   See <REF "filesystem.pdf">GNUstep File System Heirarchy</REF> document
+   See <REF "filesystem.pdf">GNUstep File System Hierarchy</REF> document
    for more information and detailed descriptions.</p>
    </unit>
 */
@@ -577,7 +577,7 @@ static void ShutdownPathUtilities(void)
  * thus serves to join lines so that they are treated as a single line.<br />
  * NB. Since ms-windows uses backslash characters in paths, it is a good
  * idea to specify path values in the config file as singly quoted
- * strings to avoid having to double all occurrances of the backslash.<br />
+ * strings to avoid having to double all occurrences of the backslash.<br />
  * Returns a dictionary of the (key,value) pairs.<br/ >
  */
 static BOOL
@@ -1044,7 +1044,7 @@ GSDefaultsRootForUser(NSString *userName)
 /**
  * Returns the standard paths in which applications are stored and
  * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
- * Refer to the GNUstep File System Heirarchy documentation for more info.
+ * Refer to the GNUstep File System Hierarchy documentation for more info.
  */
 NSArray *
 NSStandardApplicationPaths(void)
@@ -1056,7 +1056,7 @@ NSStandardApplicationPaths(void)
 /**
  * Returns the standard paths in which resources are stored and
  * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
- * Refer to the GNUstep File System Heirarchy documentation for more info.
+ * Refer to the GNUstep File System Hierarchy documentation for more info.
  */
 NSArray *
 NSStandardLibraryPaths(void)
@@ -1224,9 +1224,9 @@ NSTemporaryDirectory(void)
 
 /**
  * Deprecated function. Returns the location of the <em>root</em>
- * directory of the GNUstep file heirarchy.  Don't assume that /System,
+ * directory of the GNUstep file hierarchy.  Don't assume that /System,
  * /Network etc exist in this path! Use other path utility functions for that.
- * Refer to the GNUstep File System Heirarchy documentation for more info.
+ * Refer to the GNUstep File System Hierarchy documentation for more info.
  */
 NSString *
 NSOpenStepRootDirectory(void)

@@ -255,7 +255,7 @@ GSTimeNow(void)
  *   <desc>An array of arrays of strings identifying the time of day.
  *   Each array has an hour as its first value, and one or more words
  *   as subsequent values.<br />
- *   Defaults are: (0, midnight), (10, mornint), (12, noon, lunch),
+ *   Defaults are: (0, midnight), (10, morning), (12, noon, lunch),
  *   (14, afternoon), (19, dinner).
  *   </desc>
  *   <term>NSLaterTimeDesignations</term>
@@ -1344,7 +1344,7 @@ GSTimeNow(void)
  *  Returns whether the receiver is exactly equal to other, to the limit
  *  of the NSTimeInterval precision.<br />
  *  This is the behavior of the current MacOS-X system, not that of the
- *  OpenStep specification (which counted two dates within a secfond of
+ *  OpenStep specification (which counted two dates within a second of
  *  each other as being equal).<br />
  *  The old behavior meant that two dates equal to a third date were not
  *  necessarily equal to each other (confusing), and meant that there was

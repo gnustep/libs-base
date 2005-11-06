@@ -944,7 +944,7 @@ typedef struct {
  * then this method returns NO since it finds no characters to store
  * in value before it finds string.
  * </p>
- * <p>To count the occurrances of string, this should be used in
+ * <p>To count the occurrences of string, this should be used in
  * conjunction with the -scanString:intoString: method.
  * </p>
  * <example>
@@ -1061,7 +1061,7 @@ typedef struct {
 /**
  * Sets the set of characters that the scanner will skip over at the
  * start of each scanning operation to be <em>skipSet</em>.
- * Skipping is performed by literal character matchins - the case
+ * Skipping is performed by literal character matching - the case
  * sensitivity of the scanner does not effect it.
  * If this is set to nil, no skipping is done.
  * <br/>

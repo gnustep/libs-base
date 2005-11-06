@@ -158,7 +158,7 @@ typedef enum
 - (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender;
 
 /**
- * Sent by the NSURLHandle object when resource loading is canceled
+ * Sent by the NSURLHandle object when resource loading is cancelled
  * by programmatic request (rather than by failure).
  */
 - (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender;

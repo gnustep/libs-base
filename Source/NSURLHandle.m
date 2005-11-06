@@ -575,7 +575,7 @@ static Class		NSURLHandleClass = 0;
  * </p>
  * <p>
  *   The GNUstep implementation for <em>ftp:</em> sets the specified data
- *   as information to be weitten to the URL next time it is loaded - so
+ *   as information to be written to the URL next time it is loaded - so
  *   the method always returns YES.
  * </p>
  */

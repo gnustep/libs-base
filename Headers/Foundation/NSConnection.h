@@ -183,7 +183,7 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
 
 /**
  *  Alternative convenience constructor, not specified in OpenStep, where you
- *  registe root anObject under given name in one step.
+ *  register root anObject under given name in one step.
  */
 + (NSConnection*) newRegisteringAtName: (NSString*)name
 			withRootObject: (id)anObject;
@@ -254,7 +254,7 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
  * </p>
  * <p>
  *   If the delegate implements this method, the NSConnection will
- *   invoke the method for every message request ro reply it sends
+ *   invoke the method for every message request to reply it sends
  *   to the remote NSConnection.  The delegate should generate
  *   authentication data by examining all the NSData objects
  *   in the components array (ignoring NSPort objects),

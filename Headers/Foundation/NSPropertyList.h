@@ -116,7 +116,7 @@ typedef enum {
  *     an extension to the traditional <em>property list</em> format to
  *     support date objects, but older code will not read
  *     <em>property lists</em> containing this extension.<br />
- *     This format consists of an asterisk follwed by the letter 'D' then a
+ *     This format consists of an asterisk followed by the letter 'D' then a
  *     date/time in YYYY-MM-DD HH:MM:SS +/-ZZZZ format, all enclosed within
  *     angle brackets.
  *     <example>
@@ -154,7 +154,7 @@ typedef enum {
  *   <term>[NSNumber]</term>
  *   <desc>
  *     Number objects were not traditionally allowed in <em>property lists</em>
- *     but were added when the XML format was intoroduced.  GNUstep provides
+ *     but were added when the XML format was introduced.  GNUstep provides
  *     an extension to the traditional <em>property list</em> format to
  *     support number objects, but older code will not read
  *     <em>property lists</em> containing this extension.<br />

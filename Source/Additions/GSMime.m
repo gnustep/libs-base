@@ -2,7 +2,7 @@
 
    Copyright (C) 2000,2001 Free Software Foundation, Inc.
 
-   Written by: Richard frith-Macdonald <rfm@gnu.org>
+   Written by: Richard Frith-Macdonald <rfm@gnu.org>
    Date: October 2000
 
    This file is part of the GNUstep Base Library.
@@ -364,7 +364,7 @@ wordData(NSString *word)
 
 /**
  * Decode length bytes of data from sData and append the results to dData.<br />
- * Return YES on succes, NO if there is an error.
+ * Return YES on success, NO if there is an error.
  */
 - (BOOL) decodeData: (const void*)sData
 	     length: (unsigned)length
@@ -1800,7 +1800,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       forKey: NSHTTPPropertyStatusReasonKey];
       value = [[scanner string] substringFromIndex: loc];
       /*
-       * Get rid of preceeding headers in case this is a continuation.
+       * Get rid of preceding headers in case this is a continuation.
        */
       hdrs = [document allHeaders];
       for (count = 0; count < [hdrs count]; count++)
@@ -3762,7 +3762,7 @@ static NSCharacterSet	*tokenSet = nil;
  *   at least the fields that are standard for all headers.
  * </p>
  * <p>
- *   Certain well-known headers are restricted to one occurrance in
+ *   Certain well-known headers are restricted to one occurrence in
  *   an email, and when extra copies are added they replace originals.
  * </p>
  * <p>
@@ -4326,7 +4326,7 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * This method removes all occurrances of header objects identical to
+ * This method removes all occurrences of header objects identical to
  * the one supplied as an argument.
  */
 - (void) deleteHeader: (GSMimeHeader*)aHeader
@@ -4343,7 +4343,7 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * This method removes all occurrances of headers whose name
+ * This method removes all occurrences of headers whose name
  * matches the supplied string.
  */
 - (void) deleteHeaderNamed: (NSString*)name

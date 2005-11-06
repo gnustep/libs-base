@@ -2826,7 +2826,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   /*
    * Make sure we have the format string in a nul terminated array of
    * unichars for passing to GSFormat.  Use on-stack memory for performance
-   * unless the size of the format string is really big (a rare occurrance).
+   * unless the size of the format string is really big (a rare occurrence).
    */
   len = [format length];
   if (len >= 1024)

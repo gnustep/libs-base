@@ -120,7 +120,7 @@ struct NSUserDefaultsWin32_DomainInfo
 {
   NSArray		*allDomains;
   NSEnumerator		*iter;
-  NSString		*persistantDomain;
+  NSString		*persistentDomain;
   NSMutableDictionary	*newDict = nil;
   
   allDomains = [self persistentDomainNames];
@@ -141,20 +141,20 @@ struct NSUserDefaultsWin32_DomainInfo
   newDict = [NSMutableDictionary dictionary];
 
   iter = [allDomains objectEnumerator];
-  while ((persistantDomain = [iter nextObject]) != nil)
+  while ((persistentDomain = [iter nextObject]) != nil)
     {
       NSMutableDictionary *domainDict;
       struct NSUserDefaultsWin32_DomainInfo *dinfo;
       NSString *dPath;
       LONG rc;
 
-      dinfo = NSMapGet(registryInfo, persistantDomain);
+      dinfo = NSMapGet(registryInfo, persistentDomain);
       if (dinfo == 0)
 	{
 	  dinfo = calloc(sizeof(struct NSUserDefaultsWin32_DomainInfo), 1);
-	  NSMapInsertKnownAbsent(registryInfo, persistantDomain, dinfo);
+	  NSMapInsertKnownAbsent(registryInfo, persistentDomain, dinfo);
 	}
-      dPath = [registryPrefix stringByAppendingString: persistantDomain];
+      dPath = [registryPrefix stringByAppendingString: persistentDomain];
       
       if (dinfo->userKey == 0)
 	{
@@ -194,11 +194,11 @@ struct NSUserDefaultsWin32_DomainInfo
 	    }
 	}
       
-      domainDict = [newDict objectForKey: persistantDomain];
+      domainDict = [newDict objectForKey: persistentDomain];
       if (domainDict == nil)
 	{
 	  domainDict = [NSMutableDictionary dictionary];
-	  [newDict setObject: domainDict forKey: persistantDomain];
+	  [newDict setObject: domainDict forKey: persistentDomain];
 	}
 
       if (dinfo->systemKey)
@@ -464,7 +464,7 @@ struct NSUserDefaultsWin32_DomainInfo
 - (BOOL) writeDefaults: (NSDictionary*)defaults oldData: (NSDictionary*)oldData
 {
   NSEnumerator *iter;
-  NSString *persistantDomain;
+  NSString *persistentDomain;
   
   if (registryInfo == 0)
     {
@@ -473,7 +473,7 @@ struct NSUserDefaultsWin32_DomainInfo
     }
 
   iter = [defaults keyEnumerator];
-  while ((persistantDomain = [iter nextObject]) != nil)
+  while ((persistentDomain = [iter nextObject]) != nil)
     {
       struct NSUserDefaultsWin32_DomainInfo *dinfo;
       NSDictionary *domainDict;
@@ -483,16 +483,16 @@ struct NSUserDefaultsWin32_DomainInfo
       NSEnumerator *valIter;
       NSString *valName;
 
-      dinfo = NSMapGet(registryInfo, persistantDomain);
+      dinfo = NSMapGet(registryInfo, persistentDomain);
       if (dinfo == 0)
 	{
 	  dinfo = calloc(sizeof(struct NSUserDefaultsWin32_DomainInfo), 1);
-	  NSMapInsertKnownAbsent(registryInfo, persistantDomain, dinfo);
+	  NSMapInsertKnownAbsent(registryInfo, persistentDomain, dinfo);
 	}
 
-      domainDict = [defaults objectForKey: persistantDomain];
-      oldDomainDict = [oldData objectForKey: persistantDomain];
-      dPath = [registryPrefix stringByAppendingString: persistantDomain];
+      domainDict = [defaults objectForKey: persistentDomain];
+      oldDomainDict = [oldData objectForKey: persistentDomain];
+      dPath = [registryPrefix stringByAppendingString: persistentDomain];
       
       if ([domainDict count] == 0)
 	{

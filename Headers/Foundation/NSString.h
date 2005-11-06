@@ -467,7 +467,7 @@ enum {
  * If the receiver has trailing path separator characters, they are
  * stripped before the extension separator is added.<br />
  * If the receiver contains no components after the root, the extension
- * cannot be apppended (an extension can only be appended to a file name),
+ * cannot be appended (an extension can only be appended to a file name),
  * so a copy of the unmodified receiver is returned.<br />
  * An empty string may be used as an extension ... in which case the extension
  * separator is appended.<br />
@@ -536,7 +536,7 @@ enum {
 /**
  * Replaces path string by one in which path components representing symbolic
  * links have been replaced by their referents.<br />
- * If links cannot be resolved, returns an unmodified coopy of the receiver.
+ * If links cannot be resolved, returns an unmodified copy of the receiver.
  */
 - (NSString*) stringByResolvingSymlinksInPath;
 
@@ -698,7 +698,7 @@ enum {
  * added for GNUstep, to permit the isa variable to be set to another
  * class, and GNUstep uses this to avoid conflicts with the default
  * implementation of NXConstantString in the ObjC runtime library (the
- * preprocessor is used to change all occurences of NXConstantString
+ * preprocessor is used to change all occurrences of NXConstantString
  * in the source code to NSConstantString).</p>
  * <p>Since GNUstep will generally use the GNUstep extension to the
  * compiler, you should never refer to the constant string class by
@@ -797,7 +797,7 @@ extern struct objc_class _NSConstantStringClassReference;
 - (void) deletePrefix: (NSString*)prefix;
 
 /**
- * Replaces all occurrances of the string replace with the string by
+ * Replaces all occurrences of the string replace with the string by
  * in the receiver.<br />
  * Has no effect if replace does not occur within the
  * receiver.  NB. an empty string is not considered to exist within

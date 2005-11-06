@@ -97,7 +97,7 @@ static NSFileManager	*mgr = nil;
 }
 
 /**
- * Initialises the reciever with the specified filesystem path.<br />
+ * Initialises the receiver with the specified filesystem path.<br />
  * The location in the filesystem must be accessible for this
  * to be usable.  That is, the processes using the lock must be able
  * to access, create, and destroy files at the path.<br />
@@ -143,7 +143,7 @@ static NSFileManager	*mgr = nil;
 }
 
 /**
- * Returns the date at which the lock was aquired by <em>any</em>
+ * Returns the date at which the lock was acquired by <em>any</em>
  * NSDistributedLock using the same path.  If nothing has
  * the lock, this returns nil.
  */
@@ -156,7 +156,7 @@ static NSFileManager	*mgr = nil;
 }
 
 /**
- * Attempt to aquire the lock and return YES on success, NO on failure.<br />
+ * Attempt to acquire the lock and return YES on success, NO on failure.<br />
  * May raise an NSGenericException if a problem occurs.
  */
 - (BOOL) tryLock

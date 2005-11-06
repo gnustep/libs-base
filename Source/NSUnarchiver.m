@@ -1,7 +1,7 @@
 /** Implementation of NSUnarchiver for GNUstep
    Copyright (C) 1998 Free Software Foundation, Inc.
 
-   Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
 
    This file is part of the GNUstep Base Library.
@@ -1306,7 +1306,7 @@ static Class NSDataMallocClass;
 
 
 /**
- *  Catagory for compatibility with old GNUstep encoding.
+ *  Category for compatibility with old GNUstep encoding.
  */
 @implementation	NSUnarchiver (GNUstep)
 

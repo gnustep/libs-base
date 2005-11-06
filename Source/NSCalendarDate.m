@@ -1614,7 +1614,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 }
 
 /**
- * Calls -descriptionWithCalendarFormat:locale: passing the receviers
+ * Calls -descriptionWithCalendarFormat:locale: passing the receiver's
  * calendar format and a nil locale.
  */
 - (NSString*) description

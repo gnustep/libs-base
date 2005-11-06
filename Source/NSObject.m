@@ -234,7 +234,7 @@ static GSIMapTable_t	retain_counts = {0};
  * Examines the extra reference count for the object and, if non-zero
  * decrements it, otherwise leaves it unchanged.<br />
  * Returns a flag to say whether the count was zero
- * (and hence whether the extra refrence count was decremented).<br />
+ * (and hence whether the extra reference count was decremented).<br />
  * This function is used by the [NSObject-release] method.
  */
 inline BOOL
@@ -1129,7 +1129,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Creates and returns a copy of the reciever by calling -copyWithZone:
+ * Creates and returns a copy of the receiver by calling -copyWithZone:
  * passing NSDefaultMallocZone()
  */
 - (id) copy
@@ -1244,7 +1244,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Creates and rturns a mutable copy of the receiver by calling
+ * Creates and returns a mutable copy of the receiver by calling
  * -mutableCopyWithZone: passing NSDefaultMallocZone().
  */
 - (id) mutableCopy
@@ -1375,7 +1375,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
 /**
  * Returns a pointer to the C function implementing the method used
- * to respond to messages with aSelector whihc are sent to instances
+ * to respond to messages with aSelector which are sent to instances
  * of the receiving class.
  * <br />Raises NSInvalidArgumentException if given a null selector.
  */
@@ -1499,7 +1499,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Raises an invalid argument exception providing infomration about
+ * Raises an invalid argument exception providing information about
  * the receivers inability to handle aSelector.
  */
 - (void) doesNotRecognizeSelector: (SEL)aSelector
@@ -1854,7 +1854,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Decrements the retain count for the receiver if greater than zeron,
+ * Decrements the retain count for the receiver if greater than zero,
  * otherwise calls the dealloc method instead.<br />
  * The default implementation calls the NSDecrementExtraRefCountWasZero()
  * function to test the extra reference count for the receiver (and
@@ -1944,7 +1944,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
 /**
  * Returns the reference count for the receiver.  Each instance has an
- * implicit reference count of 1, and has an 'extra refrence count'
+ * implicit reference count of 1, and has an 'extra reference count'
  * returned by the NSExtraRefCount() function, so the value returned by
  * this method is always greater than zero.<br />
  * By convention, objects which should (or can) never be deallocated
@@ -1970,7 +1970,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Returns the reciever.
+ * Returns the receiver.
  */
 - (id) self
 {

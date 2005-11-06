@@ -492,7 +492,7 @@ GSEncodingFromLocale(const char *clocale)
   if (strchr (clocale, '.') != NULL)
     {
       /* Locale contains the 'codeset' section. Parse it and see
-	 if we know what encoding this cooresponds to */
+	 if we know what encoding this corresponds to */
       NSString	*registry;
       NSArray	*array;
       char	*s;

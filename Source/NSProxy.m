@@ -269,7 +269,7 @@ extern BOOL __objc_responds_to(id, SEL);
 }
 
 /**
- * Returns a text descrioption of the receiver.
+ * Returns a text description of the receiver.
  */
 - (NSString*) description
 {

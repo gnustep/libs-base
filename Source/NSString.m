@@ -1777,7 +1777,7 @@ handle_printf_atsign (FILE *stream,
 
 /**
  * Constructs a new ASCII string which is a representation of the receiver
- * in which characters are esacped where necessary in order to produce a
+ * in which characters are escaped where necessary in order to produce a
  * legal URL.<br />
  * Returns nil if the receiver cannot be represented using the specified
  * encoding.
@@ -2090,7 +2090,7 @@ handle_printf_atsign (FILE *stream,
 
 /**
  * Invokes -rangeOfString:options:range: with the range set
- * set to the range of the whole of the reciever.
+ * set to the range of the whole of the receiver.
  */
 - (NSRange) rangeOfString: (NSString*)string
 		  options: (unsigned int)mask
@@ -2968,7 +2968,7 @@ handle_printf_atsign (FILE *stream,
 
 /**
  * Retrieve the contents of the receiver into the buffer.<br />
- * The buffer must be large enought to contain the CString representation
+ * The buffer must be large enough to contain the CString representation
  * of the characters in the receiver, plus a nul terminator which this
  * method adds.
  */
@@ -3818,7 +3818,7 @@ static NSFileManager *fm = nil;
     }
 
   /*
-   * Locate path separator preceeding last path component.
+   * Locate path separator preceding last path component.
    */
   range = [self rangeOfCharacterFromSet: pathSeps()
 				options: NSBackwardsSearch
@@ -4063,9 +4063,9 @@ static NSFileManager *fm = nil;
 
 /**
  * Returns a string created by replacing percent escape sequences in the
- * receiver assuning that the resulting data represents characters in
+ * receiver assuming that the resulting data represents characters in
  * the specified encoding.<br />
- * Returns nil if the ressult is not a string in the specified encoding.
+ * Returns nil if the result is not a string in the specified encoding.
  */
 - (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e
 {
@@ -4461,7 +4461,7 @@ static NSFileManager *fm = nil;
  * receiver.  Characters are removed only if they are in aSet.<br />
  * If the string consists entirely of characters in aSet, an empty
  * string is returned.<br />
- * The aSet argument nust not be nil.<br />
+ * The aSet argument must not be nil.<br />
  */
 - (NSString*) stringByTrimmingCharactersInSet: (NSCharacterSet*)aSet
 {
@@ -5277,7 +5277,7 @@ static NSFileManager *fm = nil;
  * for those cases where the entire replace string lies within the
  * specified searchRange value.<br />
  * The value of opts determines the direction of the search is and
- * whether only leading/trailing occurrances (anchored search) of
+ * whether only leading/trailing occurrences (anchored search) of
  * replace are substituted.<br />
  * Raises NSInvalidArgumentException if either string argument is nil.<br />
  * Raises NSRangeException if part of searchRange is beyond the end

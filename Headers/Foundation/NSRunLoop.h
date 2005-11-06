@@ -138,7 +138,7 @@ typedef	enum {
 		  forMode: (NSString*)mode;
 /**
  * Callback message sent to object when the event it it waiting
- * for occurs.  The 'data' and 'type' valueds are those passed in the
+ * for occurs.  The 'data' and 'type' values are those passed in the
  * original -addEvent:type:watcher:forMode: method.<br />
  * The 'extra' value may be additional data returned depending
  * on the type of event.  In the case of ET_WINMSG 'extra' is a pointer

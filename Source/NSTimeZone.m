@@ -1394,7 +1394,7 @@ static NSMapTable	*absolutes = 0;
 }
 
 /**
- * Returns a timezone for the specified abbrevition. The same abbreviations
+ * Returns a timezone for the specified abbreviation. The same abbreviations
  * are used in different regions so this isn't particularly useful.<br />
  * Calls NSTimeZone-abbreviation dictionary an so uses a lot of memory.
  */
@@ -1601,7 +1601,7 @@ static NSMapTable	*absolutes = 0;
 /**
  * Returns the number of seconds by which the receiver differs
  * from Greenwich Mean Time at the date aDate.<br />
- * If the time zone uses dayl;ight savings time, the returned value
+ * If the time zone uses daylight savings time, the returned value
  * will vary at different times of year.
  */
 - (int) secondsFromGMTForDate: (NSDate*)aDate

@@ -152,7 +152,7 @@
 
 
 /*
- *	Private catagory for the method used to handle default grouping
+ *	Private category for the method used to handle default grouping
  */
 @interface NSUndoManager (Private)
 - (void) _loop: (id)arg;
@@ -190,7 +190,7 @@
 
 /**
  * Starts a new grouping of undo actions which can be
- * atomically undone by an [-undo] invovation.
+ * atomically undone by an [-undo] invocation.
  * This method posts an NSUndoManagerCheckpointNotification
  * unless an undo is currently in progress.  It posts an
  * NSUndoManagerDidOpenUndoGroupNotification upon creating the grouping.
@@ -393,15 +393,15 @@
  * The invocation will added to the current grouping.<br />
  * If the registrations have been disabled through [-disableUndoRegistration],
  * this method does nothing.<br />
- * Unless the reciever implicitly
- * groups operations by event, the this method must have been preceeded
+ * Unless the receiver implicitly
+ * groups operations by event, the this method must have been preceded
  * with a [-beginUndoGrouping] message.  Otherwise it will raise an
  * NSInternalInconsistencyException. <br />
  * Unless this method is invoked as part of a [-undo] or [-undoNestedGroup]
  * processing, the redo stack is cleared.<br />
- * If the reciever [-groupsByEvent] and this is the first call to this
+ * If the receiver [-groupsByEvent] and this is the first call to this
  * method since the last run loop processing, this method sets up
- * the reciever to process the [-endUndoGrouping] at the
+ * the receiver to process the [-endUndoGrouping] at the
  * end of the event loop.
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
@@ -446,8 +446,8 @@
 }
 
 /**
- * If the reciever was sent a [-prepareWithInvocationTarget:] and
- * the target's method hasn't been invoked on the reciever yet, this
+ * If the receiver was sent a [-prepareWithInvocationTarget:] and
+ * the target's method hasn't been invoked on the receiver yet, this
  * method forwards the request to the target.
  * Otherwise or if the target didn't return a signature, the message
  * is sent to super.
@@ -544,7 +544,7 @@
 }
 
 /**
- * Returns the maximium number of undo groupings the reciever will maintain.
+ * Returns the maximum number of undo groupings the receiver will maintain.
  * The default value is 0 meaning the number is only limited by
  * memory availability.
  */
@@ -575,10 +575,10 @@
  * Performs a redo of previous undo request by taking the top grouping
  * from the redo stack and invoking them.  This method posts an
  * NSUndoManagerCheckpointNotification notification to allow the client
- * to process any pending changes before proceding.  If there are groupings
+ * to process any pending changes before proceeding.  If there are groupings
  * on the redo stack, the top object is popped off the stack and invoked
  * within a nested [-beginUndoGrouping]/[-endUndoGrouping].  During this
- * pocessing, the operations registered for undo are recorded on the undo
+ * processing, the operations registered for undo are recorded on the undo
  * stack again.<br />
  */
 - (void) redo
@@ -628,11 +628,11 @@
 }
 
 /**
- * If the receiver can preform a redo, this method returns
+ * If the receiver can perform a redo, this method returns
  * the action name previously associated with the top grouping with
  * [-setActionName:].  This name should identify the action to be redone.
  * If there are no items on the redo stack this method returns nil.
- * If no action name hs been set, this method returns an empty string.
+ * If no action name has been set, this method returns an empty string.
  */
 - (NSString*) redoActionName
 {
@@ -691,15 +691,15 @@
  * will be retained. The invocation will added to the current grouping.<br />
  * If the registrations have been disabled through [-disableUndoRegistration],
  * this method does nothing.<br />
- * Unless the reciever implicitly
- * groups operations by event, the this method must have been preceeded
+ * Unless the receiver implicitly
+ * groups operations by event, the this method must have been preceded
  * with a [-beginUndoGrouping] message.  Otherwise it will raise an
  * NSInternalInconsistencyException. <br />
  * Unless this method is invoked as part of a [-undo] or [-undoNestedGroup]
  * processing, the redo stack is cleared.<br />
- * If the reciever [-groupsByEvent] and this is the first call to this
+ * If the receiver [-groupsByEvent] and this is the first call to this
  * method since the last run loop processing, this method sets up
- * the reciever to process the [-endUndoGrouping] at the
+ * the receiver to process the [-endUndoGrouping] at the
  * end of the event loop.
  */
 - (void) registerUndoWithTarget: (id)target
@@ -754,7 +754,7 @@
  * of the undo manager will be unable to service any undo or redo events.
  * The client can call this method in its -dealloc method, unless the
  * undo manager has several clients, in which case
- * [-removeAllActionsWithTarget:] is more apropriate.
+ * [-removeAllActionsWithTarget:] is more appropriate.
  */
 - (void) removeAllActions
 {
@@ -769,8 +769,8 @@
  * Removes all actions recorded for the given target.  This method is
  * is useful when a client of the undo manager will be unable to
  * service any undo or redo events.  Clients should call this method
- * in thier dealloc method, unless they are the sole client of the
- * undo manager in which case [-removeAllActions] is more apropriate.
+ * in their dealloc method, unless they are the sole client of the
+ * undo manager in which case [-removeAllActions] is more appropriate.
  */
 - (void) removeAllActionsWithTarget: (id)target
 {
@@ -828,7 +828,7 @@
 /**
  * Sets whether the receiver should implicitly call [-beginUndoGrouping] when
  * necessary and register a call to invoke [-endUndoGrouping] at the end
- * of the current event loop.  The grouping is tunred on by default.
+ * of the current event loop.  The grouping is turned on by default.
  */
 - (void) setGroupsByEvent: (BOOL)flag
 {
@@ -862,11 +862,11 @@
 }
 
 /**
- * Sets the modes in which the reciever registers the calls
+ * Sets the modes in which the receiver registers the calls
  * with the current run loop to invoke
  * [-endUndoGrouping] when it [-groupsByEvent].  This method
  * first cancels any pending registrations in the old modes and
- * registers the invokation in the new modes.
+ * registers the invocation in the new modes.
  */
 - (void) setRunLoopModes: (NSArray*)newModes
 {
@@ -887,7 +887,7 @@
 
 /**
  * This method performs an undo by invoking [-undoNestedGroup].
- * If current group of the reciever is the top group this method first
+ * If current group of the receiver is the top group this method first
  * calls [-endUndoGrouping].  This method may only be called on the top
  * level group, otherwise it will raise an NSInternalInconsistencyException.
  */
@@ -906,11 +906,11 @@
 }
 
 /**
- * If the receiver can preform an undo, this method returns
+ * If the receiver can perform an undo, this method returns
  * the action name previously associated with the top grouping with
  * [-setActionName:].  This name should identify the action to be undone.
  * If there are no items on the undo stack this method returns nil.
- * If no action name hs been set, this method returns an empty string.
+ * If no action name has been set, this method returns an empty string.
  */
 - (NSString*) undoActionName
 {
@@ -961,10 +961,10 @@
  * Performs an undo by taking the top grouping
  * from the undo stack and invoking them.  This method posts an
  * NSUndoManagerCheckpointNotification notification to allow the client
- * to process any pending changes before procedding.  If there are groupings
+ * to process any pending changes before proceeding.  If there are groupings
  * on the undo stack, the top object is popped off the stack and invoked
  * within a nested beginUndoGrouping/endUndoGrouping.  During this
- * pocessing, the undo operations registered for undo are recorded on the redo
+ * processing, the undo operations registered for undo are recorded on the redo
  * stack.<br />
  */
 - (void) undoNestedGroup

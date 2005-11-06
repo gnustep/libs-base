@@ -88,7 +88,7 @@
 #define	GS_API_OSSPEC	 10000
 
 /**
- * The version number of the first OPENSTEP implemenation
+ * The version number of the first OPENSTEP implementation
  */
 #define	GS_API_OPENSTEP	 40000
 
@@ -183,7 +183,7 @@
 /**
  * Called by [NSObject-mutableCopy] passing NSDefaultMallocZone() as zone.<br />
  * This method returns a copy of the receiver and, where the receiver is an
- * immmutable variant of a class which has a mutable partner class, the
+ * immutable variant of a class which has a mutable partner class, the
  * object returned is an instance of that mutable class.
  * The new object is <em>not</em> autoreleased, and is considered to be
  * 'owned' by the calling code ... which is therefore responsible for
@@ -301,14 +301,14 @@
  * class of the object to be aClass etc.  The allocated memory will
  * be extraBytes larger than the space actually needed to hold the
  * instance variables of the object.<br />
- * This function is used by the [NSObject+allocWithZone:] mnethod.
+ * This function is used by the [NSObject+allocWithZone:] method.
  */
 GS_EXPORT NSObject *
 NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
 
 /**
  * Used to release the memory used by an object.<br />
- * This function is used by the [NSObject-dealloc] mnethod.
+ * This function is used by the [NSObject-dealloc] method.
  */
 GS_EXPORT void
 NSDeallocateObject(NSObject *anObject);
@@ -414,7 +414,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
   WARNING: The -compare: method for NSObject is deprecated
            due to subclasses declaring the same selector with
            conflicting signatures.
-           Comparision of arbitrary objects is not just meaningless
+           Comparison of arbitrary objects is not just meaningless
            but also dangerous as most concrete implementations
            expect comparable objects as arguments often accessing
            instance variables directly.
@@ -624,7 +624,7 @@ if (__value != __object) \
 #ifndef	DESTROY
 /**
  *	DESTROY() is a release operation which also sets the variable to be
- *	a nil pointer for tidyness - we can't accidentally use a DESTROYED
+ *	a nil pointer for tidiness - we can't accidentally use a DESTROYED
  *	object later.  It also makes sure to set the variable to nil before
  *	releasing the object - to avoid side-effects of the release trying
  *	to reference the object being released through the variable.

@@ -195,10 +195,10 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 /**
  * Where OpenSSL is available, you can use the subclass returned by +sslClass
  * to handle SSL connections.
- *   The -sslAccept method is used to do SSL handlshake and start an
+ *   The -sslAccept method is used to do SSL handshake and start an
  *   encrypted session on a channel where the connection was initiated
  *   from the far end.
- *   The -sslConnect method is used to do SSL handlshake and start an
+ *   The -sslConnect method is used to do SSL handshake and start an
  *   encrypted session on a channel where the connection was initiated
  *   from the near end..
  *   The -sslDisconnect method is used to end the encrypted session.

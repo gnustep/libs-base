@@ -81,8 +81,8 @@ void (*_GSDebugAllocationRemoveFunc)(Class c, id o) = _GSDebugAllocationRemove;
 @end
 
 /**
- * This functions allows to set own function backcalls for debugging allocation
- * of objects. Useful if you intend to write your own objectalloc.
+ * This functions allows to set own function callbacks for debugging allocation
+ * of objects. Useful if you intend to write your own object allocation code.
  */
 void
 GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),

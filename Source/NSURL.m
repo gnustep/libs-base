@@ -467,7 +467,7 @@ static void unescape(const char *from, char * to)
  * how a URL is formatted, and what is legal in a URL are -
  * 1808, 1738, and 2396.<br />
  * Handling of the underlying resources is carried out by NSURLHandle
- * objects, but NSURL provides a simoplified API wrapping these objects.
+ * objects, but NSURL provides a simplified API wrapping these objects.
  */
 @implementation NSURL
 
@@ -1016,7 +1016,7 @@ static unsigned	urlAlign;
 }
 
 /**
- * Returns the full string describing the receiver resiolved against its base.
+ * Returns the full string describing the receiver resolved against its base.
  */
 - (NSString*) absoluteString
 {
@@ -1098,7 +1098,7 @@ static unsigned	urlAlign;
 }
 
 /**
- * Returns YES if the recevier is a file URL, NO otherwise.
+ * Returns YES if the receiver is a file URL, NO otherwise.
  */
 - (BOOL) isFileURL
 {
@@ -1215,7 +1215,7 @@ static unsigned	urlAlign;
  * Replaces percent escapes with unescaped values, interpreting non-ascii
  * character sequences as UTF8.<br />
  * NB. This does not conform strictly to the RFCs, in that it includes a
- * leading slash ('/') character (wheras the path part of a URL strictly
+ * leading slash ('/') character (whereas the path part of a URL strictly
  * should not) and the interpretation of non-ascii character is (strictly
  * speaking) undefined.<br />
  * Also, this breaks strict conformance in that a URL of file scheme is
