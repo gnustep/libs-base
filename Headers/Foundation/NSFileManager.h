@@ -86,7 +86,7 @@
       Drive-relative names consist of an optional drive specifier
       (consisting of a single letter followed by a single colon)
       followed by an absolute or relative path.<br />
-      In both forms, the names . and .. are refer to the curtrent
+      In both forms, the names . and .. are refer to the current
       directory and the parent directory as in unix paths.
       </p>
       Here are various examples:
@@ -152,10 +152,10 @@
     </subsect>
     <subsect>
       <heading>Tilde substitution</heading>
-      <p>GNUstep handles substitution of tilde (~) as foillows:<br />
+      <p>GNUstep handles substitution of tilde (~) as follows:<br />
       If a path is just ~ or begins ~/ then the value returned by
       NSHomeDirectory() is substituted for the tilde.<br />
-      If a path is of the form ~name or begins wityh a string like ~name/
+      If a path is of the form ~name or begins with a string like ~name/
       then name is used as the argument to NSHomeDirectoryForUser() and
       the return value from that method (if non-nil) is used to replace
       the tilde.
@@ -318,7 +318,7 @@
  *   </item>
  *   <item><strong>"Path"</strong>
  *     contains the path that is being processed when
- *     an error occured.   If an error occurs during an
+ *     an error occurred.   If an error occurs during an
  *     operation involving two files, like copying, and
  *     it is not clear which file triggers the error it
  *     will default to the source file.
