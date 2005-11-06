@@ -85,7 +85,7 @@
  *	GDO_NAMES	Return a list of registered names known to the server.
  *			Response is an unsigned long (in network byte order)
  *			saying how many bytes of data are to follow,
- *			followed by a list of the names each preceeded by the
+ *			followed by a list of the names each preceded by the
  *			name length (a single byte) and port type (a byte).
  *			NB. This response may not be possible over UDP as the
  *			response length may exceed the maximum UDP packet size.

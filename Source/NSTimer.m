@@ -119,7 +119,7 @@ static Class	NSDate_class;
 }
 
 /**
- * Create a timer wchich will fire after ti seconds and, if f is YES,
+ * Create a timer which will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, the target object will be
  * sent a message specified by selector and with the value info as an
  * argument.<br />
@@ -190,7 +190,7 @@ static Class	NSDate_class;
 }
 
 /**
- * Fires the timer ... either performs an invocation or ssends a message
+ * Fires the timer ... either performs an invocation or sends a message
  * to a target object, depending on how the timer was set up.<br />
  * If the timer is not set to repeat, it is automatically invalidated.
  */
@@ -312,7 +312,7 @@ static Class	NSDate_class;
 }
 
 /**
- * Returns the interval beteen firings.
+ * Returns the interval between firings.
  */
 - (NSTimeInterval) timeInterval
 {

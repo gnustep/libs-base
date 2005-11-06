@@ -107,9 +107,9 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
 /**
  * Sets the value if the attribute associated with the key in the receiver.
  * The object is converted to a scalar attribute where applicable (and
- * -setNilValueForKey: is caalled if a nil value is supplied).
+ * -setNilValueForKey: is called if a nil value is supplied).
  * Tries to use a standard accessor of the form setKey: where 'Key' is the
- * supplied argument with the first letter convertyed to uppercase.<br />
+ * supplied argument with the first letter converted to uppercase.<br />
  * If the receiver's class allows +accessInstanceVariablesDirectly
  * it continues with instance variables:
  * <list>
@@ -119,7 +119,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  *  <item>isKey</item>
  * </list>
  * Invokes -setValue:forUndefinedKey: if no accessor mechanism can be found
- * and raises NSInvalidArgumentException if the accesor method doesn't take
+ * and raises NSInvalidArgumentException if the accessor method doesn't take
  * exactly one argument or the type is unsupported (e.g. structs).
  * If the receiver expects a scalar value and the value supplied
  * is the NSNull instance or nil, this method invokes 
@@ -132,7 +132,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  * on the receiver with the first key component supplied by the key path.
  * Then invokes -setValue:forKeyPath: recursively on the
  * returned object with rest of the key path.
- * The key components are delimated by '.'.
+ * The key components are delimited by '.'.
  * If the key path doesn't contain any '.', this method simply
  * invokes -setValue:forKey:.
  */
@@ -179,7 +179,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  *  <item>key</item>
  * </list>
  * Invokes -handleTakeValue:forUnboundKey: if no accessor mechanism can be
- * found and raises NSInvalidArgumentException if the accesor method takes
+ * found and raises NSInvalidArgumentException if the accessor method takes
  * takes any arguments or the type is unsupported (e.g. structs).
  */
 - (id) storedValueForKey: (NSString*)aKey;
@@ -207,7 +207,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  * </list>
  * Invokes -handleTakeValue:forUnboundKey:
  * if no accessor mechanism can be found
- * and raises NSInvalidArgumentException if the accesor method doesn't take
+ * and raises NSInvalidArgumentException if the accessor method doesn't take
  * exactly one argument or the type is unsupported (e.g. structs).
  * If the receiver expects a scalar value and the value supplied
  * is the NSNull instance or nil, this method invokes 
@@ -239,7 +239,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  * </list>
  * Invokes -handleTakeValue:forUnboundKey:
  * if no accessor mechanism can be found
- * and raises NSInvalidArgumentException if the accesor method doesn't take
+ * and raises NSInvalidArgumentException if the accessor method doesn't take
  * exactly one argument or the type is unsupported (e.g. structs).
  * If the receiver expects a scalar value and the value supplied
  * is the NSNull instance or nil, this method invokes 
@@ -253,7 +253,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  * on the receiver with the first key component supplied by the key path.
  * Then invokes -takeValue:forKeyPath: recursively on the
  * returned object with rest of the key path.
- * The key components are delimated by '.'.
+ * The key components are delimited by '.'.
  * If the key path doesn't contain any '.', this method simply
  * invokes -takeValue:forKey:.<br />
  * Deprecated ... use -setValue:forKeyPath: instead.
@@ -275,7 +275,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
 
 /**
  * Returns a boolean indicating whether the object pointed to by aValue
- * is valid for settting as an attribute of the receiver using the name
+ * is valid for setting as an attribute of the receiver using the name
  * aKey.  On success (YES response) it may return a new value to be used
  * in aValue.  On failure (NO response) it may return an error in anError.<br />
  * The method works by calling a method of the receiver whose name is of
@@ -317,16 +317,16 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  * </list>
  * Invokes -setValue:forUndefinedKey:
  * if no accessor mechanism can be found
- * and raises NSInvalidArgumentException if the accesor method takes
+ * and raises NSInvalidArgumentException if the accessor method takes
  * any arguments or the type is unsupported (e.g. structs).
  */
 - (id) valueForKey: (NSString*)aKey;
 
 /**
- * Retuns the object returned by invoking -valueForKeyPath:
+ * Returns the object returned by invoking -valueForKeyPath:
  * recursively on the object returned by invoking -valueForKey:
  * on the receiver with the first key component supplied by the key path.
- * The key components are delimated by '.'.
+ * The key components are delimited by '.'.
  * If the key path doesn't contain any '.', this method simply
  * invokes -valueForKey: .
  */

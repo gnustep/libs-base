@@ -143,7 +143,7 @@
  * a hexadecimal coding of the bytes.  The parsing of the string is
  * fairly tolerant, ignoring whitespace and permitting both upper and
  * lower case hexadecimal digits (the -hexadecimalRepresentation method
- * produces a string using only uppercase digits with no white spaqce).<br />
+ * produces a string using only uppercase digits with no white space).<br />
  * If the string does not contain one or more pairs of hexadecimal digits
  * then an exception is raised. 
  */

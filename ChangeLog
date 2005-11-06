@@ -1,3 +1,85 @@
+2005-11-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.ispell: words from base reference documentation
+	* Documentation/Base.gsdoc:
+	* Headers/Additions/GNUstepBase/GSMime.h:
+	* Headers/Additions/GNUstepBase/GSXML.h:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSCalendarDate.h:
+	* Headers/Foundation/NSCharacterSet.h:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSDebug.h:
+	* Headers/Foundation/NSDecimalNumber.h:
+	* Headers/Foundation/NSError.h:
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/Foundation/NSFormatter.h:
+	* Headers/Foundation/NSIndexSet.h:
+	* Headers/Foundation/NSKeyValueCoding.h:
+	* Headers/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSMethodSignature.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSPathUtilities.h:
+	* Headers/Foundation/NSPortMessage.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSURLHandle.h:
+	* Headers/Foundation/NSXMLParser.h:
+	* Headers/Foundation/NSZone.h:
+	* Source/GSCompatibility.m:
+	* Source/GSCountedSet.m:
+	* Source/GSString.m:
+	* Source/GSTemplateValue.m:
+	* Source/NSArchiver.m:
+	* Source/NSArray.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSClassDescription.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSDate.m:
+	* Source/NSDebug.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistantObject.m:
+	* Source/NSDistributedLock.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSFileHandle.m:
+	* Source/NSFileManager.m:
+	* Source/NSHashTable.m:
+	* Source/NSInvocation.m:
+	* Source/NSLock.m:
+	* Source/NSMapTable.m:
+	* Source/NSObject.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSPortMessage.m:
+	* Source/NSProxy.m:
+	* Source/NSScanner.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSString.m:
+	* Source/NSTask.m:
+	* Source/NSTimeZone.m:
+	* Source/NSTimer.m:
+	* Source/NSURL.m:
+	* Source/NSURLHandle.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSUndoManager.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSValue.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/Unicode.m:
+	* Source/win32/NSUserDefaultsWin32.m:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m:
+	* Tools/gdomap.h:
+	Fix typo/spelling mistakes manifesting in reference documentation.
+	I spent half a day going through the tedious process of running
+	all gsdoc output through ispell.
+
 2005-11-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/Win32_Utilities.h:

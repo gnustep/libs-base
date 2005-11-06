@@ -157,11 +157,12 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				int line, NSString *fmt);
 
 /**
- * This functions allows to set own function backcalls for debugging allocation
- * of objects. Useful if you intend to write your own objectalloc.
+ * This functions allows to set own function callbacks for debugging allocation
+ * of objects. Useful if you intend to write your own object allocation code.
  */
-GS_EXPORT void  GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
-                                              void (*newRemoveObjectFunc)(Class c, id o));
+GS_EXPORT void  GSSetDebugAllocationFunctions(
+  void (*newAddObjectFunc)(Class c, id o),
+  void (*newRemoveObjectFunc)(Class c, id o));
 
 #endif
 
@@ -175,7 +176,7 @@ GS_EXPORT void  GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, 
  * </p>
  * <p>Turning on zombies changes this behavior so that the isa pointer
  * is modified to be that of the NSZombie class.  When messages are
- * sent to the object, intead of crashing, NSZombie will use NSLog() to
+ * sent to the object, instead of crashing, NSZombie will use NSLog() to
  * produce an error message.  By default the memory used by the object
  * will not really be freed, so error messages will continue to
  * be generated whenever a message is sent to the object, and the object

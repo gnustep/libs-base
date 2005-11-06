@@ -145,7 +145,7 @@
 		       raiseOnDivideByZero:(BOOL)raiseOnDivideByZero;
 
 /**
- * Initializor setting all behavior.  (For more precise control over error
+ * Initializer setting all behavior.  (For more precise control over error
  * handling, create your own class implementing the [(NSDecimalNumberBehaviors)]
  * protocol.)
  */
@@ -291,7 +291,7 @@
 - (NSDecimal)decimalValue;
 
 /**
- *  Returns string version of number formatted accordng to locale.
+ *  Returns string version of number formatted according to locale.
  */
 - (NSString *)descriptionWithLocale:(NSDictionary *)locale;
 

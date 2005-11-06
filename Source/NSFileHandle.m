@@ -318,7 +318,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /**
- * Set up an asynchonous read operation which will cause a notification to
+ * Set up an asynchronous read operation which will cause a notification to
  * be sent when any amount of data (or end of file) is read. Note that
  * the file handle will not continuously send notifications when data
  * is available. If you want to continue to receive notifications, you
@@ -338,7 +338,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /**
- * Set up an asynchonous read operation which will cause a notification to
+ * Set up an asynchronous read operation which will cause a notification to
  * be sent when end of file is read.
  */
 - (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
@@ -519,7 +519,7 @@ NSString * const NSFileHandleOperationException
  *     Otherwise, the text '...' must be the name of the host on which the
  *     socks5 server is running, with an optional port number separated
  *     from the host name by a colon.<br />
- *     Alternatively a prefix of the form 'bind-' forllowed by an IP address
+ *     Alternatively a prefix of the form 'bind-' followed by an IP address
  *     may be used (for non-socks connections) to ensure that the connection
  *     is made from the specified address.
  *   </item>
@@ -530,7 +530,7 @@ NSString * const NSFileHandleOperationException
  * <p>
  *   This method supports connection through a firewall via socks5.  The
  *   socks5 connection may be controlled via the protocol argument, but if
- *   no socks infromation is supplied here, the <em>GSSOCKS</em> user default
+ *   no socks information is supplied here, the <em>GSSOCKS</em> user default
  *   will be used, and failing that, the <em>SOCKS5_SERVER</em> or
  *   <em>SOCKS_SERVER</em> environment variables will be used to set the
  *   socks server.  If none of these mechanisms specify a socks server, the
@@ -583,7 +583,7 @@ NSString * const NSFileHandleOperationException
 }
 
 /**
- * Set up an asynchonous read operation which will cause a notification to
+ * Set up an asynchronous read operation which will cause a notification to
  * be sent when the specified amount of data (or end of file) is read.
  */
 - (void) readDataInBackgroundAndNotifyLength: (unsigned)len

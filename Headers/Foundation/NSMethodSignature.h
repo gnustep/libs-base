@@ -107,7 +107,7 @@ typedef struct	{
 
 /**
  * Number of bytes that the full set of arguments occupies on the stack, which
- * is platformt(hardware)-dependent.
+ * is platform(hardware)-dependent.
  */
 - (unsigned) frameLength;
 
@@ -127,7 +127,7 @@ typedef struct	{
 
 /**
  * Number of bytes that the return value occupies on the stack, which is
- * platformt(hardware)-dependent.
+ * platform(hardware)-dependent.
  */
 - (unsigned) methodReturnLength;
 

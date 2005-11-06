@@ -3,7 +3,7 @@
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
-   Updated by:  Richard frith-Macdonald <rfm@gnu.org>
+   Updated by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: Jan 2001
 
    This file is part of the GNUstep Base Library.

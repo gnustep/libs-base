@@ -32,7 +32,7 @@
 /**
  * This extension permits a change of username from that specified in the
  * LOGNAME environment variable.  Using it will almost certainly cause
- * trouble if the process does not posess the file access priviliges of the
+ * trouble if the process does not posses the file access privileges of the
  * new name.  This is provided primarily for use by processes that run as
  * system-manager and need to act as particular users.  It uses the
  * [NSUserDefaults +resetUserDefaults] extension to reset the defaults system

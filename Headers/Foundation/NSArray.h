@@ -164,7 +164,7 @@
  *      if it is greater, and NSOrderedSame if it is equal.
  *
  *	The selector version works the same - returning NSOrderedAscending if
- *	the reciever is 'less than' the item in the array.
+ *	the receiver is 'less than' the item in the array.
  */
 - (unsigned) insertionPosition: (id)item
 		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter

@@ -2047,7 +2047,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 
 /**
  * Informs the receiver that any descendents of the current directory
- * should be skipped rather than enumerated.  Use this to avaoid enumerating
+ * should be skipped rather than enumerated.  Use this to avoid enumerating
  * the contents of directories you are not interested in.
  */
 - (void) skipDescendents

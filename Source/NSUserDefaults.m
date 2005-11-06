@@ -145,7 +145,7 @@ static void updateCache(NSUserDefaults *self)
  * <p>
  *   NSUserDefaults provides an interface to the defaults system,
  *   which allows an application access to global and/or application
- *   specific defualts set by the user. A particular instance of
+ *   specific defaults set by the user. A particular instance of
  *   NSUserDefaults, standardUserDefaults, is provided as a
  *   convenience. Most of the information described below
  *   pertains to the standardUserDefaults. It is unlikely
@@ -156,9 +156,9 @@ static void updateCache(NSUserDefaults *self)
  * <p>
  *   Defaults are managed based on <em>domains</em>. Certain
  *   domains, such as <code>NSGlobalDomain</code>, are
- *   persistant. These domains have defaults that are stored
- *   externally. Other domains are volitale. The defaults in
- *   these domains remain in effect only during the existance of
+ *   persistent. These domains have defaults that are stored
+ *   externally. Other domains are volatile. The defaults in
+ *   these domains remain in effect only during the existence of
  *   the application and may in fact be different for
  *   applications running at the same time. When asking for a
  *   default value from standardUserDefaults, NSUserDefaults
@@ -171,7 +171,7 @@ static void updateCache(NSUserDefaults *self)
  *     to the application at startup.<br />
  *     Pairs of arguments are used for this, with the first argument in
  *     each pair being the name of a default (with a hyphen prepended)
- *     and the second argument of the pair being the value of the defalt.<br />
+ *     and the second argument of the pair being the value of the default.<br />
  *     NB. In GNUstep special arguments of the form <code>--GNU-Debug=...</code>
  *     are used to enable debugging.  Despite beginning with a hyphen, these
  *     are not treated as default keys.
@@ -1812,7 +1812,7 @@ static BOOL isLocked = NO;
 }
 
 /**
- * Removes the named domain from the serach list of the receiver.<br />
+ * Removes the named domain from the search list of the receiver.<br />
  * Suites may be added using the -addSuiteNamed: method.
  */
 - (void) removeSuiteNamed: (NSString*)aName

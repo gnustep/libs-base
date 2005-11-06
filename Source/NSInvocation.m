@@ -763,7 +763,7 @@ _arg_addr(NSInvocation *inv, int index)
  * Internal use.<br />
  * Initialises the receiver with a known selector and argument list
  * as supplied to the forward:: method by the ObjectiveC runtime
- * when it is unable to locate an implementation for mthe selector
+ * when it is unable to locate an implementation for the selector
  * in a class.
  */
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
@@ -813,7 +813,7 @@ _arg_addr(NSInvocation *inv, int index)
 }
 
 /**
- * Initialises the reciever with the specified target, selector, and
+ * Initialises the receiver with the specified target, selector, and
  * a variable number of arguments.
  */
 - (id) initWithTarget: anObject selector: (SEL)aSelector, ...

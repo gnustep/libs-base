@@ -61,7 +61,7 @@
 + (NSCharacterSet*) decimalDigitCharacterSet;
 
 /**
- * Returns a character set containing individual charactars that
+ * Returns a character set containing individual characters that
  * can be represented also by a composed character sequence.
  */
 + (NSCharacterSet*) decomposableCharacterSet;
@@ -165,7 +165,7 @@
 
 #ifndef	STRICT_OPENSTEP
 /**
- * Returns YES if the receiver contains at lerast one character in the
+ * Returns YES if the receiver contains at least one character in the
  * specified unicode plane.
  */
 - (BOOL) hasMemberInPlane: (uint8_t)aPlane;

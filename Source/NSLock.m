@@ -137,7 +137,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
  * code, another thread cannot execute that code until the first thread has
  * given up its hold on the lock. The limitation of <code>NSLock</code> is
  * that you can only lock an <code>NSLock</code> once and it must be unlocked
- * before it can be aquired again.<br /> Other lock classes, notably
+ * before it can be acquired again.<br /> Other lock classes, notably
  * [NSRecursiveLock], have different restrictions.
  */
 @implementation NSLock
@@ -181,9 +181,9 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 }
 
 /**
- * Attempts to aquire a lock, but returns immediately if the lock
- * cannot be aquired. It returns YES if the lock is aquired. It returns
- * NO if the lock cannot be aquired or if the current thread already has
+ * Attempts to acquire a lock, but returns immediately if the lock
+ * cannot be acquired. It returns YES if the lock is acquired. It returns
+ * NO if the lock cannot be acquired or if the current thread already has
  * the lock.
  */
 - (BOOL) tryLock
@@ -203,7 +203,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 }
 
 /**
- * Attempts to aquire a lock before the date limit passes. It returns YES
+ * Attempts to acquire a lock before the date limit passes. It returns YES
  * if it can. It returns NO if it cannot, or if the current thread already
  * has the lock (but it waits until the time limit is up before returning
  * NO).
@@ -229,7 +229,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 }
 
 /**
- * Attempts to aquire a lock, and waits until it can do so.
+ * Attempts to acquire a lock, and waits until it can do so.
  */
 - (void) lock
 {
@@ -568,8 +568,8 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 /**
  * See [NSLock] for more information about what a lock is. A recursive
  * lock extends [NSLock] in that you can lock a recursive lock multiple
- * times. Each lock must be balanced by a cooresponding unlock, and the
- * lock is not released for another thread to aquire until the last
+ * times. Each lock must be balanced by a corresponding unlock, and the
+ * lock is not released for another thread to acquire until the last
  * unlock call is made (corresponding to the first lock message).
  */
 @implementation NSRecursiveLock
@@ -614,8 +614,8 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 }
 
 /**
- * Attempts to aquire a lock, but returns NO immediately if the lock
- * cannot be aquired. It returns YES if the lock is aquired. Can be
+ * Attempts to acquire a lock, but returns NO immediately if the lock
+ * cannot be acquired. It returns YES if the lock is acquired. Can be
  * called multiple times to make nested locks.
  */
 - (BOOL) tryLock
@@ -628,7 +628,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 }
 
 /**
- * Attempts to aquire a lock before the date limit passes. It returns
+ * Attempts to acquire a lock before the date limit passes. It returns
  * YES if it can. It returns NO if it cannot
  * (but it waits until the time limit is up before returning NO).
  */

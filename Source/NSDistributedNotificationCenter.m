@@ -126,10 +126,10 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  * a notification center used by processes on the local host which belong to
  * the current user.<br />
  * The <code>GSPublicNotificationCenterType</code> provides a shared access to
- * a notificatiuon center used by processes on the local host belonging to
+ * a notification center used by processes on the local host belonging to
  * any user.<br />
  * The <code>GSNetworkNotificationCenterType</code> provides a shared access to
- * a notificatiuon center used by processes on the local network.<br />
+ * a notification center used by processes on the local network.<br />
  * MacOS-X supports only <code>NSLocalNotificationCenterType</code>.
  */
 + (NSNotificationCenter*) notificationCenterForType: (NSString*)type

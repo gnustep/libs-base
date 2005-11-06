@@ -1313,7 +1313,7 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * Returns the next element node, skipping past any oyther node types
+ * Returns the next element node, skipping past any other node types
  * (such as text nodes).  If there is no element node to be returned,
  * this method returns nil.<br />
  * NB. This method is not available in java, as the method name conflicts

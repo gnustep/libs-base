@@ -212,8 +212,8 @@ static SEL	rlSel;
 
 /**
  * Returns an autoreleased array based upon the file.  The new array is
- * created using +allocWithZone: and initialised using the
- * -initWithContentsOfFile: method. See the documentation for those
+ * created using [NSObject+allocWithZone:] and initialised using the
+ * [NSArray-initWithContentsOfFile:] method. See the documentation for those
  * methods for more detail.
  */
 + (id) arrayWithContentsOfFile: (NSString*)file
@@ -226,7 +226,7 @@ static SEL	rlSel;
 }
 
 /**
- * Returns an autoreleased array from the contenta of aURL.  The new array is
+ * Returns an autoreleased array from the contents of aURL.  The new array is
  * created using +allocWithZone: and initialised using the
  * -initWithContentsOfURL: method. See the documentation for those
  * methods for more detail.
@@ -741,7 +741,7 @@ static SEL	rlSel;
  * which must contain an array in property-list format.
  * </p>
  * <p>In GNUstep, the property-list format may be either the OpenStep
- * format (ASCII data), or the MacOS-X format (URF8 XML data) ... this
+ * format (ASCII data), or the MacOS-X format (UTF8 XML data) ... this
  * method will recognise which it is.
  * </p>
  * <p>If there is a failure to load the URL for any reason, the receiver
@@ -1435,7 +1435,7 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Creates an autoreleased mutable array anble to store at least numItems.
+ * Creates an autoreleased mutable array able to store at least numItems.
  * See the -initWithCapacity: method.
  */
 + (id) arrayWithCapacity: (unsigned)numItems
@@ -1568,7 +1568,7 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes all occurrances of anObject (found by pointer equality)
+ * Removes all occurrences of anObject (found by pointer equality)
  * from aRange in the receiver.
  */
 - (void) removeObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange
@@ -1611,7 +1611,7 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes all occurrences of anObject (found by anObjects -isEqual: method)
+ * Removes all occurrences of anObject (found by anObject's -isEqual: method)
  * from the receiver.
  */
 - (void) removeObject: (id)anObject
@@ -1697,7 +1697,7 @@ compare(id elem1, id elem2, void* context)
 
 /**
  * Sets the contents of the receiver to be identical to the contents
- * of othrArray.
+ * of otherArray.
  */
 - (void) setArray: (NSArray *)otherArray
 {

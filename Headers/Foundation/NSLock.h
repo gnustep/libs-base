@@ -201,11 +201,11 @@
 /**
  * Returns IDENT which will be initialized
  * to an instance of a CLASSNAME in a thread safe manner.  
- * If IDENT has been previoulsy initilized 
+ * If IDENT has been previously initialized 
  * this macro merely returns IDENT.
- * IDENT is considered uninitialzed, if it contains nil.
+ * IDENT is considered uninitialized, if it contains nil.
  * CLASSNAME must be either NSLock, NSRecursiveLock or one
- * of thier subclasses.
+ * of their subclasses.
  * See [NSLock+newLockAt:] for details.
  * This macro is intended for code that cannot insure
  * that a lock can be initialized in thread safe manner otherwise.

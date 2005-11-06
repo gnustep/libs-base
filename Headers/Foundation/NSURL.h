@@ -99,7 +99,8 @@ GS_EXPORT NSString* const NSURLFileScheme;
 - (void) URLResourceDidFinishLoading: (NSURL*)sender;
 
 /**
- * Loading of resource data was canceled by programmatic request (not an error).
+ * Loading of resource data was cancelled by programmatic request
+ * (not an error).
  */
 - (void) URLResourceDidCancelLoading: (NSURL*)sender;
 

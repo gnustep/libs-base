@@ -2273,7 +2273,7 @@ fail:
    * It's common to have macros which don't need commenting ...
    * like the ones used to protect a header against multiple
    * inclusion for instance.  For this reason, we ignore any
-   * macro which is not preceeded by a documentation comment.
+   * macro which is not preceded by a documentation comment.
    */
   if ([comment length] > 0)
     {

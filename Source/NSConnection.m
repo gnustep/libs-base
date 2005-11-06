@@ -755,7 +755,7 @@ static NSLock	*cached_proxies_gate = nil;
  *   existing connection is deemed to be the parent of the
  *   new connection.  The new connection inherits configuration
  *   information from the parent, and the delegate of the
- *   parent has a chance to adjust ythe configuration of the
+ *   parent has a chance to adjust the configuration of the
  *   new connection or veto its creation.
  *   <br/>
  *   NSConnectionDidInitializeNotification is posted once a new
@@ -1191,7 +1191,7 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /**
- * Returns the NSPort object on which incoming messages are recieved.
+ * Returns the NSPort object on which incoming messages are received.
  */
 - (NSPort*) receivePort
 {
@@ -1210,7 +1210,7 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /**
- * Registers the recieve port of the NSConnection as name and
+ * Registers the receive port of the NSConnection as name and
  * unregisters the previous value (if any).<br />
  * Returns YES on success, NO on failure.<br />
  * On failure, the connection remains registered under the
@@ -1311,7 +1311,7 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /**
- * Removes loop from the run loops used to recieve incoming messages.
+ * Removes loop from the run loops used to receive incoming messages.
  */
 - (void) removeRunLoop: (NSRunLoop*)loop
 {
@@ -1536,7 +1536,7 @@ static NSLock	*cached_proxies_gate = nil;
  *   </desc>
  *   <term>NSConnectionRequestsReceived</term>
  *   <desc>
- *     The number of messages recieved from the remote NSConnection.
+ *     The number of messages received from the remote NSConnection.
  *   </desc>
  *   <term>NSConnectionRequestsSent</term>
  *   <desc>
@@ -3337,7 +3337,7 @@ static void callEncoder (DOContext *ctxt)
   M_UNLOCK(_proxiesGate);
 }
 
-- (void) aquireProxyForTarget: (unsigned)target
+- (void) acquireProxyForTarget: (unsigned)target
 {
   NSDistantObject	*found;
   GSIMapNode		node;

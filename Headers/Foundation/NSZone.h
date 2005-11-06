@@ -338,7 +338,7 @@ GS_ZONE_SCOPE void NSRecycleZone (NSZone *zone) GS_ZONE_ATTR;
 /**
  * Return memory for an entire zone to system.  In fact, this will not be done
  * unless all memory in the zone has been explicitly freed (by calls to
- * ZNSZoneFree()).  For "non-freeable" zones, the number of NSZoneFree() calls
+ * NSZoneFree()).  For "non-freeable" zones, the number of NSZoneFree() calls
  * must simply equal the number of allocation calls.  The default zone, on the
  * other hand, cannot be recycled.
  */

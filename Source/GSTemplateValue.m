@@ -32,7 +32,7 @@
 
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
-   defined to a number from 0 to 4 cooresponding to each value type */
+   defined to a number from 0 to 4 corresponding to each value type */
 #if TYPE_ORDER == 0
 @interface GSNonretainedObjectValue : NSValue
 {

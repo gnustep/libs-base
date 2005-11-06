@@ -328,7 +328,7 @@ NSEnumerateMapTable(NSMapTable *table)
 }
 
 /**
- * Destroy the map table and relase its contents.<br />
+ * Destroy the map table and release its contents.<br />
  * Releases all the keys and values of table (using the key and
  * value callbacks specified at the time of table's creation),
  * and then proceeds to deallocate the space allocated for table itself.

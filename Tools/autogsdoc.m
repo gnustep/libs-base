@@ -1268,7 +1268,7 @@ main(int argc, char **argv, char **env)
 	      /*
 	       * Ask existing project info (.gsdoc file) for dependency
 	       * information.  Then check the dates on the output files.
-	       * If none are set, assume the defualt.
+	       * If none are set, assume the default.
 	       */
 	      a = [projectRefs outputsForHeader: hfile];
 	      if ([a count] == 0)

@@ -39,10 +39,10 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 
 /**
  * This class is a PRE-ALPHA implementation.  You should be prepared to
- * track down and fix bugs and prefereably contribute fixes back.<br />
+ * track down and fix bugs and preferably contribute fixes back.<br />
  * If you don't want to do that, use the [GSXMLParser] class instead ...
  * This NSXMLParser class is implemented as a wrapper round some of the
- * functionality of the more powerful GSXML APis, and is intended as a
+ * functionality of the more powerful GSXML APIs, and is intended as a
  * MacOSX compatibility feature.
  * <p>
  *   This class implements an event driven parser handling the parsing
@@ -91,7 +91,7 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 - (id) initWithData: (NSData*)data;
 
 /**
- * Parses the supplied data and returns YES on succdess, NO otherwise.
+ * Parses the supplied data and returns YES on success, NO otherwise.
  */
 - (BOOL) parse;
 

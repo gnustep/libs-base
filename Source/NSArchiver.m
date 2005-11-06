@@ -833,7 +833,7 @@ static Class	NSMutableDataMallocClass;
 }
 
 /**
- *  Returns whatever data has been encoded thusfar.
+ *  Returns whatever data has been encoded thus far.
  */
 - (NSMutableData*) archiverData
 {
@@ -934,7 +934,7 @@ static Class	NSMutableDataMallocClass;
 
 
 /**
- *  Catagory for compatibility with old GNUstep encoding.
+ *  Category for compatibility with old GNUstep encoding.
  */
 @implementation	NSArchiver (GNUstep)
 

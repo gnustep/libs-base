@@ -492,7 +492,7 @@ notice and this notice are preserved.
 	  </p>
 	    <deflist>
 	      <term>GNUSTEP_SYSTEM_ROOT</term>
-	      <desc>path in the file heirarchy for system/os things.</desc>
+	      <desc>path in the file hierarchy for system/os things.</desc>
 	      <term>GNUSTEP_NETWORK_ROOT</term>
 	      <desc>path to network mounted resources.</desc>
 	      <term>GNUSTEP_LOCAL_ROOT</term>

@@ -33,7 +33,7 @@
 
 /**
  *  This abstract class defines the interface for classes that support
- *  interconversion between strings and objects of various types.  GNUstep
+ *  conversion between strings and objects of various types.  GNUstep
  *  provides two concrete implementations of this class: [NSDateFormatter]
  *  and [NSNumberFormatter].  Others may be implemented for specialized
  *  applications.

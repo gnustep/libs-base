@@ -95,7 +95,7 @@ typedef struct {
 @end
 
 @interface NSConnection (DistantObjectHacks)
-- (void) aquireProxyForTarget: (unsigned)target;
+- (void) acquireProxyForTarget: (unsigned)target;
 - (NSDistantObject*) retainOrAddLocal: (NSDistantObject*)aProxy
 			    forObject: (id)anObject;
 - (NSDistantObject*) retainOrAddProxy: (NSDistantObject*)aProxy
@@ -308,7 +308,7 @@ enum proxyLocation
 	   * remote system, we must tell the connection to make sure
 	   * the other end knows we are creating one.
 	   */
-	  [proxy_connection aquireProxyForTarget: target];
+	  [proxy_connection acquireProxyForTarget: target];
 
 	  /*
 	   *	Finally - we get a proxy via a direct connection to the
@@ -637,10 +637,10 @@ enum proxyLocation
 /**
  * <p>Returns the method signature describing the arguments and return
  * types of the method in the object referred to by the receiver
- * which implements the aSelecto message.
+ * which implements the aSelector message.
  * </p>
  * <p>This method may need to refer to another process (causing relatively
- * slow network communication) and apprximately double the time taken for
+ * slow network communication) and approximately double the time taken for
  * sending a distributed objects message, so you are advised to use the
  * -setProtocolForProxy: method to avoid this occurring.
  * </p>
@@ -769,7 +769,7 @@ enum proxyLocation
  * a protocol that the distant object referred to by the proxy should
  * conform to.  When messages in that protocol are sent to the proxy,
  * the proxy knows that it does not need to ask the remote object for
- * the method siagnature in order to send the message to it, but can
+ * the method signature in order to send the message to it, but can
  * send the message straight away based on the local method signature
  * information obtained from the protocol.
  * </p>

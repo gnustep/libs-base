@@ -566,7 +566,7 @@
 
 /**
  * Parses XML data containing an XMLRPC method response.<br />
- * Returns nil for succes, the fault dictionary on failure.<br />
+ * Returns nil for success, the fault dictionary on failure.<br />
  * Places the response parameters (if any) in the params argument.<br />
  * NB. Any containers (arrays or dictionaries) in the parsed parameters
  * will be mutable, so you can modify this data structure as you like.<br />

@@ -91,7 +91,7 @@
  * Copies index values into aBuffer until there are no index values left or
  * aBuffer is full (assuming that the size of aBuffer is given by aCount).<br />
  * Only copies index values present in aRange and copies them in order.<br />
- * Returns the number of index values placed in aVuffer.<br />
+ * Returns the number of index values placed in aBuffer.<br />
  * Modifies aRange to start after the last index value copied.<br />
  * If aRange is a null pointer, this method attempts to get <em>all</em>
  * index values from the set (and of course no range can be returned in it).

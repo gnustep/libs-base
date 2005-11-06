@@ -1035,7 +1035,7 @@ typedef enum {
  * Concrete implementation of [NSPortNameServer-removePortForName:]<br />
  * Unregisters the specified name from any associated port on the
  * local host.<br />
- * Returns YES on succes, NO on failure.
+ * Returns YES on success, NO on failure.
  */
 - (BOOL) removePortForName: (NSString*)name
 {

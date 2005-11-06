@@ -436,7 +436,7 @@ static SEL	appSel;
 
 /**
  * Initialises a dictionary created using the list given as argument.
- * The list is alernately composed of objects and keys.
+ * The list is alternately composed of objects and keys.
  * Thus, the list's length must be pair.
  */
 - (id) initWithObjectsAndKeys: (id)firstObject, ...
@@ -448,7 +448,7 @@ static SEL	appSel;
 
 /**
  * Returns a dictionary created using the list given as argument.
- * The list is alernately composed of objects and keys.
+ * The list is alternately composed of objects and keys.
  * Thus, the list's length must be pair.
  */
 + (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...
@@ -1246,7 +1246,7 @@ compareIt(id o1, id o2, void* context)
 /**
  * Merges information from otherDictionary into the receiver.
  * If a key exists in both dictionaries, the value from otherDictionary
- * replaces that which was originally in the reciever.
+ * replaces that which was originally in the receiver.
  */
 - (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary
 {

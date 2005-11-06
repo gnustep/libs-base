@@ -697,7 +697,7 @@ pty_slave(const char* name)
  * the actual binary to be used.<br />
  * Checks that the binary file exists and is executable.<br />
  * Even tries searching the directories in the PATH environment variable
- * to locate a binary if the original alunch path set was not absolute.
+ * to locate a binary if the original launch path set was not absolute.
  */
 - (NSString*) validatedLaunchPath
 {

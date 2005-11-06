@@ -432,7 +432,7 @@ NSHashRemove(NSHashTable *table, const void *element)
 
 /**
  * Step through the hash table ... return the next item or
- * return nulif we hit the of the table.
+ * return nul if we hit the of the table.
  */
 void *
 NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)

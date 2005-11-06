@@ -2,7 +2,7 @@
 
    Copyright (C) 2000 Free Software Foundation, Inc.
 
-   Written by:  Richard frith-Macdonald  <rfm@gnu.org>
+   Written by:  Richard Frith-Macdonald  <rfm@gnu.org>
 
    Date: October 2000
    

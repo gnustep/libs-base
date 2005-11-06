@@ -40,7 +40,7 @@ GS_EXPORT NSString* const NSLocalizedDescriptionKey;
 
 /**
  * Where one error has caused another, the underlying error can be stored
- * in the user info dictionary uisng this key.
+ * in the user info dictionary using this key.
  */
 GS_EXPORT NSString* const NSUnderlyingErrorKey;
 
