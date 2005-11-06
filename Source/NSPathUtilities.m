@@ -1030,6 +1030,12 @@ GSDefaultsRootForUser(NSString *userName)
 	  defaultsDir = @GNUSTEP_TARGET_USER_DEFAULTS_DIR;
 	}
     }
+#if	defined(__MINGW32__)
+  if ([defaultsDir rangeOfString: @":REGISTRY:"].length > 0)
+    {
+      return defaultsDir;	// Just use windows registry.
+    }
+#endif
   home = [home stringByAppendingPathComponent: defaultsDir];
 
   return home;
