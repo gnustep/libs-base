@@ -231,13 +231,11 @@ struct NSUserDefaultsWin32_DomainInfo
 		      v = [NSString stringWithCString: data
 			encoding: NSASCIIStringEncoding];
 		      v = [v propertyList];
-		      k = AUTORELEASE([[NSString alloc] initWithBytes: name
-			length: namelen * sizeof(unichar)
-			encoding: NSUnicodeStringEncoding]);
+		      k = [NSString stringWithCharacters: name length: namelen];
 		      [domainDict setObject: v forKey: k];
 		    }
 		  NS_HANDLER
-		    NSLog(@"Bad registry value for '%s'", name);
+		    NSLog(@"Bad registry value for '%S'", name);
 		  NS_ENDHANDLER
 		}
 	      else if (rc == ERROR_MORE_DATA)
@@ -299,13 +297,11 @@ struct NSUserDefaultsWin32_DomainInfo
 		      v = [NSString stringWithCString: data
 			encoding: NSASCIIStringEncoding];
 		      v = [v propertyList];
-		      k = AUTORELEASE([[NSString alloc] initWithBytes: name
-			length: namelen * sizeof(unichar)
-			encoding: NSUnicodeStringEncoding]);
+		      k = [NSString stringWithCharacters: name length: namelen];
 		      [domainDict setObject: v forKey: k];
 		    }
 		  NS_HANDLER
-		    NSLog(@"Bad registry value for '%s'", name);
+		    NSLog(@"Bad registry value for '%S'", name);
 		  NS_ENDHANDLER
 		}
 	      else if (rc == ERROR_MORE_DATA)
