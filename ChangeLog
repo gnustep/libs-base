@@ -1,3 +1,14 @@
+2005-11-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/Win32Support.h: removed
+	* Headers/Additions/GNUstepBase/Win32_Utilities.h: removed
+	* Source/NSPathUtilities.m: Don't include unused files.
+	* Source/win32/GNUmakefile: Don't build removed files.
+	* Source/win32/NSUserDefaultsWin32.m: fix '%s' to '%S'
+	* Source/win32/Win32Support.m: removed
+	* Source/win32/Win32_Utilities.m: removed
+	Cleanup ... remove some unused win32 cruft.
+
 2005-11-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.ispell: words from base reference documentation

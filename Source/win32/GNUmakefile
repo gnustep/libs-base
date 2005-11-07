@@ -35,8 +35,7 @@ win32_OBJC_FILES =\
 	NSMessagePortWin32.m \
 	NSRunLoopWin32.m \
 	NSUserDefaultsWin32.m \
-	Win32Support.m \
-	Win32_Utilities.m
+
 
 -include Makefile.preamble
 

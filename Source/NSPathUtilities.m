@@ -70,12 +70,8 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSUserDefaults.h"
 #include "GNUstepBase/GSCategories.h"
-#if defined(__WIN32__)
-#include "GNUstepBase/Win32_Utilities.h"
-#endif
 
 #include "GSPrivate.h"
-#include "GNUstepBase/Win32Support.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>		// for getuid()
@@ -552,9 +548,6 @@ static void ShutdownPathUtilities(void)
 #endif /* OPTION_PLATFORM SUPPORT */
 
   DESTROY(tempDir);
-
-  /* Shutdown Win32 support */
-  Win32Finalise();
 }
 
 /**
@@ -969,7 +962,44 @@ NSHomeDirectoryForUser(NSString *loginName)
     }
   [gnustep_global_lock unlock];
 #else
-  s = Win32GetUserProfileDirectory(loginName);
+  if ([loginName isEqual: NSUserName()] == YES)
+    {
+      NSDictionary	*e = [[NSProcessInfo processInfo] environment];
+
+      /*
+       * The environment variable HOMEPATH holds the home directory
+       * for the user on Windows NT;
+       * For OPENSTEP compatibility (and because USERPROFILE is usually
+       * unusable because it contains spaces), we use HOMEPATH in
+       * preference to USERPROFILE.
+       */
+      s = [e objectForKey: @"HOMEPATH"];
+      if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
+        {
+          s = [[e objectForKey: @"HOMEDRIVE"] stringByAppendingString: s];
+        }
+      if (s == nil)
+        {
+          s = [e objectForKey: @"USERPROFILE"];
+        }
+      if (s == nil)
+        {
+          ; // FIXME: Talk to the NET API and get the profile path
+        }
+    }
+  else
+    {
+      s = nil;
+      NSLog(@"Trying to get home for '%@' when user is '%@'",
+	loginName, NSUserName());    
+      NSLog(@"Can't determine other user home directories in Win32.");    
+    }
+  
+  if ([s length] == 0 && [loginName length] != 1)
+    {
+      s = nil;
+      NSLog(@"NSHomeDirectoryForUser(%@) failed", loginName);
+    }
 #endif
   return s;
 }
