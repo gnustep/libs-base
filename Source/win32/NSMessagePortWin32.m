@@ -50,15 +50,6 @@
 
 extern int	errno;
 
-@interface	NSMessagePort (Internal)
-+ (NSMessagePort*) recvPort: (NSString*)name;
-+ (NSMessagePort*) sendPort: (NSString*)name;
-- (id) initWithName: (NSString*)name;
-- (NSString*) name;
-- (void) receivedEventRead;
-- (void) receivedEventWrite;
-@end
-
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
@@ -425,7 +416,7 @@ static unsigned	wordAlign;
 	    }
 	  M_UNLOCK(messagePortLock);
 
-// FIXME	  [[NSMessagePortNameServer sharedInstance] removePort: self];
+	  [[NSMessagePortNameServer sharedInstance] removePort: self];
 	  [super invalidate];
 	}
       M_UNLOCK(this->lock);

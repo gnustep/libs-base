@@ -1,7 +1,11 @@
 2005-11-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/NSMessagePortWin32.m: Lots of work towards implementing
-	this, bot nothing usable yet (compiles but won't run).
+	this, but nothing usable yet (compiles but won't run).
+	* Source/win32/NSMessagePortNameServerWin32.m: ditto
+	* Source/win32/NSUserDefaultsWin32.m: fix value type problem.
+	* Source/win32/GNUmakefile: build NSMessagePortNameServer.
+	* Source/NSMessagePortNameServer.m: fix minor memory leak.
 
 2005-11-07  Richard Frith-Macdonald <rfm@gnu.org>
 
