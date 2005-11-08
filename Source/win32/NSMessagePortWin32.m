@@ -1,8 +1,7 @@
-/** Implementation of network port object based on unix domain sockets
-   Copyright (C) 2000 Free Software Foundation, Inc.
+/** Implementation of network port object based on windows mailboxes
+   Copyright (C) 2005 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Based on code by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
 
    This file is part of the GNUstep Base Library.
 
@@ -49,6 +48,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+extern int	errno;
+
+@interface	NSMessagePort (Internal)
++ (NSMessagePort*) recvPort: (NSString*)name;
++ (NSMessagePort*) sendPort: (NSString*)name;
+- (id) initWithName: (NSString*)name;
+- (NSString*) name;
+- (void) receivedEventRead;
+- (void) receivedEventWrite;
+@end
 
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
@@ -68,7 +77,7 @@
  * has an initial packet type and packet length.
  */
 typedef	enum {
-  GSP_NONE,
+  GSP_ITEM,		/* Expecting a port item header.	*/
   GSP_PORT,		/* Simple port item.			*/
   GSP_DATA,		/* Simple data item.			*/
   GSP_HEAD		/* Port message header + initial data.	*/
@@ -92,70 +101,37 @@ typedef struct {
 typedef struct {
   gsu32	mId;		/* The ID for the message starting with this.	*/
   gsu32	nItems;		/* Number of items (including this one).	*/
+  unsigned char version;
+  unsigned char	port[24];
 } GSPortMsgHeader;
 
 typedef	struct {
-  unsigned char	version;
-  unsigned char	addr[0];	/* name of the port on the local host	*/
-} GSPortInfo;
+  NSString              *name;
+  NSRecursiveLock       *lock;
+  HANDLE                handle;
+  HANDLE                event;
+  OVERLAPPED		ov;
+  DWORD			size;
+  BOOL			listener;
 
-#if 0
+  NSMutableData		*wData;		/* Data object being written.	*/
+  unsigned		wLength;	/* Amount written so far.	*/
+  NSMutableArray	*wMsgs;		/* Message in progress.		*/
+  NSMutableData		*rData;		/* Buffer for incoming data	*/
+  gsu32			rLength;	/* Amount read so far.		*/
+  gsu32			rWant;		/* Amount desired.		*/
+  NSMessagePort		*rPort;		/* Port of message being read.	*/
+  NSMutableArray	*rItems;	/* Message in progress.		*/
+  GSPortItemType	rType;		/* Type of data being read.	*/
+  gsu32			rId;		/* Id of incoming message.	*/
+  unsigned		nItems;		/* Number of items to be read.	*/
+} internal;
+#define	PORT(X)		((internal*)((NSMessagePort*)X)->_internal)
 
 /*
  * Largest chunk of data possible in DO
  */
 static gsu32	maxDataLength = 10 * 1024 * 1024;
-
-/*
- * Utility functions for encoding and decoding ports.
- */
-static NSMessagePort*
-decodePort(NSData *data)
-{
-  GSPortItemHeader	*pih;
-  GSPortInfo		*pi;
-
-  pih = (GSPortItemHeader*)[data bytes];
-  NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
-    NSInternalInconsistencyException);
-  pi = (GSPortInfo*)&pih[1];
-  if (pi->version != 0)
-    {
-      NSLog(@"Remote version of GNUstep is more recent than this one (%i)",
-	pi->version);
-      return nil;
-    }
-
-  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%s'", pi->addr);
-
-  return [NSMessagePort _portWithName: pi->addr
-			     listener: NO];
-}
-
-static NSData*
-newDataWithEncodedPort(NSMessagePort *port)
-{
-  GSPortItemHeader	*pih;
-  GSPortInfo		*pi;
-  NSMutableData		*data;
-  unsigned		plen;
-  const unsigned char	*name = [port _name];
-
-  plen = 2 + strlen((char*)name);
-
-  data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
-  pih = (GSPortItemHeader*)[data mutableBytes];
-  pih->type = GSSwapHostI32ToBig(GSP_PORT);
-  pih->length = GSSwapHostI32ToBig(plen);
-  pi = (GSPortInfo*)&pih[1];
-  strcpy((char*)pi->addr, (char*)name);
-
-  NSDebugFLLog(@"NSMessagePort", @"Encoded port as '%s'", pi->addr);
-
-  return data;
-}
-
-#endif
 
 @implementation	NSMessagePort
 
@@ -164,33 +140,11 @@ static NSRecursiveLock	*messagePortLock = nil;
 /*
  * Maps port name to NSMessagePort objects.
  */
-static NSMapTable	*messagePortMap = 0;
+static NSMapTable	*recvPorts = 0;
+static NSMapTable	*sendPorts = 0;
 static Class		messagePortClass;
 
 #define	HDR	(sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader))
-
-typedef	struct {
-  NSString              *_name;
-  NSRecursiveLock       *_lock;
-  HANDLE                _handle;
-  HANDLE                _event;
-  OVERLAPPED		_ov;
-  DWORD			_size;
-  BOOL			_listen;
-  NSMutableData		*_data;
-  unsigned		_offset;
-  unsigned		_target;
-} internal;
-#define	myName(P)	((internal*)(P)->_internal)->_name
-#define	myLock(P)	((internal*)(P)->_internal)->_lock
-#define	myHandle(P)	((internal*)(P)->_internal)->_handle
-#define	myEvent(P)	((internal*)(P)->_internal)->_event
-#define	myOv(P)		((internal*)(P)->_internal)->_ov
-#define	myListen(P)	((internal*)(P)->_internal)->_listen
-#define	mySize(P)	((internal*)(P)->_internal)->_size
-#define	myData(P)	((internal*)(P)->_internal)->_data
-#define	myOffset(P)	((internal*)(P)->_internal)->_offset
-#define	myTarget(P)	((internal*)(P)->_internal)->_target
 
 #if NEED_WORD_ALIGNMENT
 static unsigned	wordAlign;
@@ -204,121 +158,55 @@ static unsigned	wordAlign;
       wordAlign = objc_alignof_type(@encode(gsu32));
 #endif
       messagePortClass = self;
-      messagePortMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
+      recvPorts = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+      sendPorts = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       messagePortLock = [GSLazyRecursiveLock new];
     }
 }
 
-+ (id) new
++ (NSMessagePort*) recvPort: (NSString*)name
 {
-  static int	unique_index = 0;
-  unsigned char	path[BUFSIZ];
+  NSMessagePort	*p;
 
-  M_LOCK(messagePortLock);
-  sprintf(path, "\\\\.\\mailslot\\NSMessagePort\\%i.%i",
-    [[NSProcessInfo processInfo] processIdentifier], unique_index++);
-  M_UNLOCK(messagePortLock);
-
-  return RETAIN([self _portWithName: path listener: YES]);
-}
-
-/*
- * This is the preferred initialisation method for NSMessagePort
- *
- * 'mailslotName' is the name of the mailslot to use.
- */
-+ (NSMessagePort*) _portWithName: (const unsigned char*)mailslotName
-			listener: (BOOL)shouldListen
-{
-  NSMessagePort		*port = nil;
-
-  M_LOCK(messagePortLock);
-
-  /*
-   * First try to find a pre-existing port.
-   */
-  port = (NSMessagePort*)NSMapGet(messagePortMap, mailslotName);
-
-  if (port == nil)
+  if (name == nil)
     {
-      port = (NSMessagePort*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-      myName(port) = [[NSString alloc] initWithUTF8String: mailslotName];
-      myEvent(port) = CreateEvent(NULL, FALSE, FALSE, NULL);
-      myOv(port).Offset = 0;
-      myOv(port).OffsetHigh = 0;
-      myOv(port).hEvent = myEvent(port);
-      myHandle(port) = INVALID_HANDLE_VALUE;
-      myLock(port) = [GSLazyRecursiveLock new];
-      port->_is_valid = YES;
-
-      if (shouldListen == YES)
-	{
-	  myHandle(port) = CreateMailslotW(
-	    UNISTR(myName(port)),
-	    0,				/* No max message size.		*/
-	    MAILSLOT_WAIT_FOREVER,	/* No read/write timeout.	*/
-	    (LPSECURITY_ATTRIBUTES)0);
-
-	  if (myHandle(port) == INVALID_HANDLE_VALUE)
-	    {
-	      NSLog(@"unable to create mailslot - %s", GSLastErrorStr(errno));
-	      DESTROY(port);
-	    }
-	  else
-	    {
-	      myListen(port) = YES;
-	      NSMapInsert(messagePortMap, (void*)myName(port), (void*)port);
-	      NSDebugMLLog(@"NSMessagePort", @"Created listening port: %@",
-		port);
-
-	      /* Set off an asynchronous read operation to get the header
-	       * of an incoming message.
-	       */
-	      myOffset(port) = 0;
-	      myTarget(port) = HDR;
-	      [myData(port) setLength: HDR];
-	      ReadFile(myHandle(port),
-		[myData(port) mutableBytes],	// Store results here
-		myTarget(port),			// Read a header size.
-		&mySize(port),			// Store number of bytes read
-		&myOv(port));
-	    }
-	}
-      else
-	{
-	  myHandle(port) = CreateFileW(
-	    UNISTR(myName(port)),
-	    GENERIC_WRITE,
-	    FILE_SHARE_READ,
-	    (LPSECURITY_ATTRIBUTES)0,
-	    OPEN_EXISTING,
-	    FILE_ATTRIBUTE_NORMAL,
-	    (HANDLE)0);
-	  if (myHandle(port) == INVALID_HANDLE_VALUE)
-	    {
-	      NSLog(@"unable to access mailslot - %s", GSLastErrorStr(errno));
-	      DESTROY(port);
-	    }
-	  else
-	    {
-	      myListen(port) = NO;
-	      NSMapInsert(messagePortMap, (void*)myName(port), (void*)port);
-	      NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@",
-		port);
-	    }
-	}
+      p = AUTORELEASE([[self alloc] init]);
     }
   else
     {
-      RETAIN(port);
-      NSDebugMLLog(@"NSMessagePort", @"Using pre-existing port: %@", port);
+      M_LOCK(messagePortLock);
+      p = AUTORELEASE(RETAIN((NSMessagePort*)NSMapGet(recvPorts, (void*)name)));
+      M_UNLOCK(messagePortLock);
     }
-  IF_NO_GC(AUTORELEASE(port));
+  return p;
+}
 
++ (NSMessagePort*) sendPort: (NSString*)name
+{
+  NSMessagePort	*p;
+
+  NSAssert(p != nil, @"sendPort: called with nil name");
+  M_LOCK(messagePortLock);
+  p = AUTORELEASE(RETAIN((NSMessagePort*)NSMapGet(sendPorts, (void*)name)));
+  if (p == nil)
+    {
+      p = AUTORELEASE([[self alloc] initWithName: name]);
+    }
   M_UNLOCK(messagePortLock);
-  return port;
+  return p;
+}
+
+- (void) addConnection: (NSConnection*)aConnection
+             toRunLoop: (NSRunLoop*)aLoop
+               forMode: (NSString*)aMode
+{
+  [aLoop addEvent: (void*)(gsaddr)PORT(self)->handle
+	     type: ET_HANDLE
+	  watcher: (id<RunLoopEvents>)self
+	  forMode: aMode];
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -329,7 +217,6 @@ static unsigned	wordAlign;
 - (void) dealloc
 {
   [self gcFinalize];
-  DESTROY(myName(self));
   [super dealloc];
 }
 
@@ -338,14 +225,27 @@ static unsigned	wordAlign;
   NSString	*desc;
 
   desc = [NSString stringWithFormat: @"<NSMessagePort %p with name %@>",
-    self, myName(self)];
+    self, PORT(self)->name];
   return desc;
 }
 
 - (void) gcFinalize
 {
+  internal	*this;
+
   NSDebugMLLog(@"NSMessagePort", @"NSMessagePort 0x%x finalized", self);
   [self invalidate];
+  this = PORT(self);
+  if (this != 0)
+    {
+      DESTROY(this->name);
+      DESTROY(this->rData);
+      DESTROY(this->rItems);
+      DESTROY(this->wMsgs);
+      DESTROY(this->lock);
+      NSZoneFree(NSDefaultMallocZone(), _internal);
+      _internal = 0;
+    }
 }
 
 - (id) conversation: (NSPort*)recvPort
@@ -373,42 +273,164 @@ static unsigned	wordAlign;
 
 - (unsigned) hash
 {
-  return [myName(self) hash];
+  return [PORT(self)->name hash];
 }
 
 - (id) init
 {
-  RELEASE(self);
-  self = [messagePortClass new];
+  static unsigned	sequence = 0;
+  static int		ident;
+  internal		*this;
+
+  if (sequence == 0)
+    {
+      ident = [[NSProcessInfo processInfo] processIdentifier];
+    }
+  M_LOCK(messagePortLock);
+  _internal = NSZoneMalloc(NSDefaultMallocZone(), sizeof(internal));
+  memset(_internal, '\0', sizeof(internal));
+  this = PORT(self);
+  self->_is_valid = YES;
+#if	(GS_SIZEOF_INT > 4)
+  this->name = [[NSString alloc] initWithFormat: @"%08x%08x%08x",
+    (((unsigned)ident) >> 32), (((unsigned)ident) & 0xffffffff), sequence++];
+#else
+  this->name = [[NSString alloc] initWithFormat: @"00000000%08x%08x",
+    ((unsigned)ident), sequence++];
+#endif
+
+  this->listener = YES;
+  this->event = CreateEvent(NULL, FALSE, FALSE, NULL);
+  this->ov.hEvent = this->event;
+  this->lock = [GSLazyRecursiveLock new];
+  this->rData = [NSMutableData new];
+
+  this->handle = CreateMailslotW(
+    UNISTR(this->name),
+    0,				/* No max message size.		*/
+    MAILSLOT_WAIT_FOREVER,	/* No read/write timeout.	*/
+    (LPSECURITY_ATTRIBUTES)0);
+
+  if (this->handle == INVALID_HANDLE_VALUE)
+    {
+      NSLog(@"unable to create mailslot '%@' - %s",
+	this->name, GSLastErrorStr(errno));
+      DESTROY(self);
+    }
+  else
+    {
+      NSMapInsert(recvPorts, (void*)this->name, (void*)self);
+      NSDebugMLLog(@"NSMessagePort", @"Created listening port: %@", self);
+
+      /*
+       * Simulate a read event to kick off the I/O for this handle.
+       * If we can't start reading, we will be invalidated, and must
+       * then destroy self.
+       */
+      [self receivedEventRead];
+      if ([self isValid] == NO)
+	{
+	  DESTROY(self);
+	}
+    }
+
+  M_UNLOCK(messagePortLock);
+  return self;
+}
+
+- (id) initWithName: (NSString*)name
+{
+  NSMessagePort	*p;
+
+  M_LOCK(messagePortLock);
+  p = RETAIN((NSMessagePort*)NSMapGet(recvPorts, (void*)name));
+  if (p == nil)
+    {
+      internal	*this;
+
+      _internal = NSZoneMalloc(NSDefaultMallocZone(), sizeof(internal));
+      memset(_internal, '\0', sizeof(internal));
+      this = PORT(self);
+      self->_is_valid = YES;
+      this->name = [name copy];
+
+      this->listener = NO;
+      this->event = CreateEvent(NULL, FALSE, FALSE, NULL);
+      this->ov.hEvent = this->event;
+      this->lock = [GSLazyRecursiveLock new];
+      this->wMsgs = [NSMutableArray new];
+
+      this->handle = CreateFileW(
+	UNISTR(this->name),
+	GENERIC_WRITE,
+	FILE_SHARE_READ,
+	(LPSECURITY_ATTRIBUTES)0,
+	OPEN_EXISTING,
+	FILE_ATTRIBUTE_NORMAL,
+	(HANDLE)0);
+      if (this->handle == INVALID_HANDLE_VALUE)
+	{
+	  NSLog(@"unable to access mailslot '%@' - %s",
+	    this->name, GSLastErrorStr(errno));
+	  DESTROY(self);
+	}
+      else
+	{
+	  NSMapInsert(sendPorts, (void*)this->name, (void*)self);
+	  NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", self);
+	}
+    }
+  else
+    {
+      RELEASE(self);
+      self = p;
+    }
+  M_UNLOCK(messagePortLock);
   return self;
 }
 
 - (void) invalidate
 {
+  RETAIN(self);
   if ([self isValid] == YES)
     {
-      M_LOCK(myLock(self));
+      internal	*this;
+
+      this = PORT(self);
+      M_LOCK(this->lock);
       if ([self isValid] == YES)
 	{
 	  M_LOCK(messagePortLock);
-	  if (myEvent(self) != INVALID_HANDLE_VALUE)
+	  if (this->handle != INVALID_HANDLE_VALUE)
 	    {
-	      (void) CloseHandle(myEvent(self));
-	      myEvent(self) = INVALID_HANDLE_VALUE;
+	      (void) CancelIo(this->handle);
 	    }
-	  if (myHandle(self) != INVALID_HANDLE_VALUE)
+	  if (this->event != INVALID_HANDLE_VALUE)
 	    {
-	      (void) CloseHandle(myHandle(self));
-	      myHandle(self) = INVALID_HANDLE_VALUE;
+	      (void) CloseHandle(this->event);
+	      this->event = INVALID_HANDLE_VALUE;
 	    }
-	  NSMapRemove(messagePortMap, (void*)myName(self));
+	  if (this->handle != INVALID_HANDLE_VALUE)
+	    {
+	      (void) CloseHandle(this->handle);
+	      this->handle = INVALID_HANDLE_VALUE;
+	    }
+	  if (this->listener == YES)
+	    {
+	      NSMapRemove(recvPorts, (void*)this->name);
+	    }
+	  else
+	    {
+	      NSMapRemove(sendPorts, (void*)this->name);
+	    }
 	  M_UNLOCK(messagePortLock);
 
 // FIXME	  [[NSMessagePortNameServer sharedInstance] removePort: self];
 	  [super invalidate];
 	}
-      M_UNLOCK(myLock(self));
+      M_UNLOCK(this->lock);
     }
+  RELEASE(self);
 }
 
 - (BOOL) isEqual: (id)anObject
@@ -421,9 +443,333 @@ static unsigned	wordAlign;
     {
       NSMessagePort	*o = (NSMessagePort*)anObject;
 
-      return [myName(o) isEqual: myName(self)];
+      return [PORT(o)->name isEqual: PORT(self)->name];
     }
   return NO;
+}
+
+- (NSString*) name
+{
+  return PORT(self)->name;
+}
+
+
+/*
+ * Called when an event occurs on a listener port
+ * ALSO called when the port is created, to start reading.
+ */
+- (void) receivedEventRead
+{
+  internal	*this = PORT(self);
+  BOOL		shouldDispatch = NO;
+
+  M_LOCK(this->lock);
+
+  /*
+   * Got something ... is it all we want?
+   */
+  this->rLength += this->size;
+  this->size = 0;
+
+  /*
+   * Do next part only if we have completed a read.
+   */
+  if (this->rWant > 0 && this->rLength == this->rWant)
+    {
+      switch (this->rType)
+	{
+	  case GSP_ITEM:
+	    {
+	      GSPortItemHeader	*h;
+	      unsigned		l;
+
+	      /*
+	       * We have read an item header - set up to read the
+	       * remainder of the item.
+	       */
+	      h = (GSPortItemHeader*)[this->rData bytes];
+	      this->rType = GSSwapBigI32ToHost(h->type);
+	      l = GSSwapBigI32ToHost(h->length);
+	      if (this->rType == GSP_HEAD)
+		{
+		  if (l + sizeof(GSPortItemHeader) > this->rWant)
+		    {
+		      // There is more to read ... do it.
+		      this->rWant = l + sizeof(GSPortItemHeader);
+		      this->rType = GSP_HEAD;
+		    }
+		  else
+		    {
+		      goto gsp_head;
+		    }
+		}
+	      else if (this->rType == GSP_PORT)
+		{
+		  if (l != 24)
+		    {
+		      NSLog(@"%@ - unreasonable length (%u) for port", self, l);
+		      [self invalidate];
+		      break;
+		    }
+		  this->rWant = l;
+		  [this->rData setLength: this->rWant];
+		}
+	      else if (this->rType == GSP_DATA)
+		{
+		  if (l == 0)
+		    {
+		      NSData	*d;
+
+		      /*
+		       * For a zero-length data chunk, we create an empty
+		       * data object and add it to the current message.
+		       */
+		      d = [NSMutableData new];
+		      [this->rItems addObject: d];
+		      RELEASE(d);
+		      if (this->nItems == [this->rItems count])
+			{
+			  shouldDispatch = YES;
+			}
+		    }
+		  else
+		    {
+		      if (l > maxDataLength)
+			{
+			  NSLog(@"%@ - unreasonable length (%u) for data",
+				self, l);
+			  [self invalidate];
+			  break;
+			}
+		      this->rWant = l;
+		      [this->rData setLength: this->rWant];
+		    }
+		}
+	      else
+		{
+		  NSLog(@"%@ - bad data received on port handle", self);
+		  [self invalidate];
+		  return;
+		}
+	    }
+	  break;
+
+	  case GSP_HEAD:
+	    gsp_head:
+	    {
+	      unsigned char	*b = [this->rData mutableBytes];
+	      GSPortItemHeader	*pih;
+	      GSPortMsgHeader	*pmh;
+	      NSString		*n;
+	      NSMessagePort	*p;
+	      unsigned		l;
+	      NSMutableData	*d;
+
+	      pih = (GSPortItemHeader*)b;
+	      l = GSSwapBigI32ToHost(pih->length);
+	      pmh = (GSPortMsgHeader*)(b + sizeof(GSPortItemHeader));
+	      this->rId = GSSwapBigI32ToHost(pmh->mId);
+	      this->nItems = GSSwapBigI32ToHost(pmh->nItems);
+	      if (this->nItems == 0)
+		{
+		  NSLog(@"%@ - unable to decode remote port", self);
+		  [self invalidate];
+		  break;
+		}
+	      n = [[NSString alloc] initWithBytes: pmh->port
+					   length: 24
+					 encoding: NSASCIIStringEncoding];
+	      NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
+	      p = [NSMessagePort sendPort: n];
+	      RELEASE(n);
+	      if (p == nil)
+		{
+		  NSLog(@"%@ - unable to decode remote port", self);
+		  [self invalidate];
+		  break;
+		}
+	      ASSIGN(this->rPort, p);
+	      this->rItems
+		= [NSMutableArray allocWithZone: NSDefaultMallocZone()];
+	      this->rItems = [this->rItems initWithCapacity: this->nItems];
+	      b = (unsigned char*)&pmh[1];
+	      l -= sizeof(GSPortMsgHeader);
+	      d = [[NSMutableData alloc] initWithBytes: b length: l];
+	      [this->rItems addObject: d];
+	      RELEASE(d);
+	      if (this->nItems == [this->rItems count])
+		{
+		  shouldDispatch = YES;
+		}
+	    }
+	  break;
+
+	  case GSP_DATA:
+	    {
+	      NSMutableData	*d;
+
+	      d = [this->rData mutableCopy];
+	      [this->rItems addObject: d];
+	      RELEASE(d);
+	      if (this->nItems == [this->rItems count])
+		{
+		  shouldDispatch = YES;
+		}
+	    }
+	  break;
+
+	  case GSP_PORT:
+	    {
+	      NSMessagePort	*p;
+	      NSString		*n;
+
+	      n = [[NSString alloc] initWithBytes: [this->rData bytes]
+					   length: 24
+					 encoding: NSASCIIStringEncoding];
+	      NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
+	      p = [NSMessagePort sendPort: n];
+	      RELEASE(n);
+	      if (p == nil)
+		{
+		  NSLog(@"%@ - unable to decode remote port", self);
+		  [self invalidate];
+		  break;
+		}
+	      [this->rItems addObject: p];
+	      if (this->nItems == [this->rItems count])
+		{
+		  shouldDispatch = YES;
+		}
+	    }
+	  break;
+	}
+    }
+
+  if (shouldDispatch == YES)
+    {
+      NSPortMessage	*pm;
+
+      pm = [NSPortMessage allocWithZone: NSDefaultMallocZone()];
+      pm = [pm initWithSendPort: this->rPort
+		    receivePort: self
+		     components: this->rItems];
+      [pm setMsgid: this->rId];
+      this->rId = 0;
+      DESTROY(this->rPort);
+      DESTROY(this->rItems);
+      NSDebugMLLog(@"GSTcpHandle", @"got message %@ on 0x%x", pm, self);
+      M_UNLOCK(this->lock);
+      NS_DURING
+	{
+	  [self handlePortMessage: pm];
+	}
+      NS_HANDLER
+	{
+	  M_LOCK(this->lock);
+	  RELEASE(pm);
+	  [localException raise];
+	}
+      NS_ENDHANDLER
+      M_LOCK(this->lock);
+      RELEASE(pm);
+    }
+
+  if ([self isValid] == YES && this->rWant == 0)
+    {
+      this->rType = GSP_ITEM;
+      if (this->nItems > 0)
+	{
+	  this->rWant = sizeof(GSPortItemHeader);	// Want an item
+	}
+      else
+	{
+	  this->rWant = HDR;	// Want an item with a port message header
+	}
+      [this->rData setLength: this->rWant];
+    }
+
+  /*
+   * Got something ... is it all we want? If not, ask to read more.
+   */
+  if ([self isValid] == YES && this->rLength < this->rWant)
+    {
+      this->ov.Offset = 0;
+      this->ov.OffsetHigh = 0;
+      this->ov.hEvent = this->event;
+      if (ReadFile(this->handle,
+	[this->rData mutableBytes],	// Store results here
+	this->rWant - this->rLength,
+	&this->size,
+	&this->ov) == 0 && (errno = GetLastError()) != ERROR_HANDLE_EOF)
+	{
+	  NSLog(@"unable to read from mailslot '%@' - %s",
+	    this->name, GSLastErrorStr(errno));
+	  [self invalidate];
+	}
+    }
+  M_UNLOCK(this->lock);
+}
+
+/*
+ * Called when an event occurs on a speaker port
+ * ALSO called when we start trying to write a new message and there
+ * wasn't one in progress.
+ */
+- (void) receivedEventWrite
+{
+  internal	*this = PORT(self);
+
+  M_LOCK(this->lock);
+
+  this->wLength += this->size;
+  this->size = 0;
+  /*
+   * Handle start of next data item if we havce completed one,
+   * or if we are called without a write in progress.
+   */
+  if (this->wData == nil || this->wLength == [this->wData length])
+    {
+      unsigned	idx;
+
+      if (this->wData == nil)
+	{
+	  idx = NSNotFound;
+	}
+      else
+	{
+	  NSDebugMLLog(@"GSTcpHandle",
+	    @"completed 0x%x on 0x%x", this->wData, self);
+	  idx = [this->wMsgs indexOfObjectIdenticalTo: this->wData];
+	}
+      [this->wMsgs removeObjectAtIndex: idx];
+      if ([this->wMsgs count] > 0)
+	{
+	  this->wData = [this->wMsgs objectAtIndex: 0];
+	}
+      else
+	{
+	  this->wData = nil;	// Nothing to write.
+	}
+      this->wLength = 0;	// Nothing written yet.
+    }
+
+  if (this->wData != nil)
+    {
+      this->ov.Offset = 0;
+      this->ov.OffsetHigh = 0;
+      this->ov.hEvent = this->event;
+      if (WriteFile(this->handle,
+	[this->wData bytes],			// Output from here
+	[this->wData length] - this->wLength,
+	&this->size,				// Store number of bytes written
+	&this->ov) == 0 && (errno = GetLastError()) != ERROR_HANDLE_EOF)
+	{
+	  NSLog(@"unable to write to mailslot '%@' - %s",
+	    this->name, GSLastErrorStr(errno));
+	  [self invalidate];
+	}
+    }
+  M_UNLOCK(this->lock);
 }
 
 - (void) receivedEvent: (void*)data
@@ -431,7 +777,40 @@ static unsigned	wordAlign;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
+  RETAIN(self);
+  if ([self isValid] == YES)
+    {
+      internal	*this = PORT(self);
 
+      if (this->listener == YES)
+	{
+	  [self receivedEventRead];
+	}
+      else
+	{
+	  [self receivedEventWrite];
+	}
+    }
+  else
+    {
+      // Event on invalid port ... remove port from run loop
+      [[NSRunLoop currentRunLoop] removeEvent: data
+					 type: type
+				      forMode: mode
+					  all: YES];
+    }
+  RELEASE(self);
+}
+
+
+- (void) removeConnection: (NSConnection*)aConnection
+              fromRunLoop: (NSRunLoop*)aLoop
+                  forMode: (NSString*)aMode
+{
+  [aLoop removeEvent: (void*)(gsaddr)PORT(self)->handle
+		type: ET_HANDLE
+	     forMode: aMode
+		 all: NO];
 }
 
 /*
@@ -444,7 +823,7 @@ static unsigned	wordAlign;
  */
 - (unsigned int) reservedSpaceLength
 {
-  return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
+  return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader) + 24;
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
@@ -453,14 +832,24 @@ static unsigned	wordAlign;
                    from: (NSPort*)receivingPort
                reserved: (unsigned)length
 {
+  NSMutableData	*h;
+  NSRunLoop	*loop;
   BOOL		sent = NO;
   unsigned	rl;
+  unsigned	l = 0;
+  unsigned	c;
+  unsigned	i;
+  internal	*this;
 
   if ([self isValid] == NO)
     {
       return NO;
     }
-  if ([components count] == 0)
+  this = PORT(self);
+
+  NSAssert(PORT(self)->listener == NO, @"Attempt to send through recv port");
+  c = [components count];
+  if (c == 0)
     {
       NSLog(@"empty components sent");
       return NO;
@@ -476,11 +865,136 @@ static unsigned	wordAlign;
       NSLog(@"bad reserved length - %u", length);
       return NO;
     }
-  if ([receivingPort isKindOfClass: messagePortClass] == NO)
+  NSAssert([receivingPort isKindOfClass: messagePortClass] == YES,
+    @"Receiving port is not the correct type");
+  NSAssert([receivingPort isValid] == YES,
+    @"Receiving port is not valid");
+  NSAssert(PORT(receivingPort)->listener == YES,
+    @"Attempt to send to send port");
+
+  if (c == 1 && length == rl)
     {
-      NSLog(@"woah there - receiving port is not the correct type");
-      return NO;
+      GSPortItemHeader	*pih;
+      GSPortMsgHeader	*pmh;
+
+      h = [components objectAtIndex: 0];
+      pih = (GSPortItemHeader*)[h mutableBytes];
+      pih->type = GSSwapHostI32ToBig(GSP_HEAD);
+      l = [h length] - sizeof(GSPortMsgHeader);
+      pih->length = GSSwapHostI32ToBig(l);
+      pmh = (GSPortMsgHeader*)&pih[1];
+      pmh->mId = GSSwapHostI32ToBig(msgId);
+      pmh->nItems = GSSwapHostI32ToBig(c);
+      pmh->version = 0;
+      memcpy(pmh->port, [[(NSMessagePort*)receivingPort name] UTF8String], 24);
     }
+  else
+    {
+      for (i = 0; i < c; i++)
+	{
+	  id	o = [components objectAtIndex: i];
+
+	  if ([o isKindOfClass: [NSData class]] == YES)
+	    {
+	      l += [[components objectAtIndex: i] length];
+	      l += sizeof(GSPortItemHeader);
+	    }
+	  else
+	    {
+	      l += sizeof(GSPortItemHeader) + 24;	// A port
+	    }
+	}
+      h = [[NSMutableData alloc] initWithCapacity: sizeof(GSPortMsgHeader) + l];
+      
+      for (i = 0; i < c; i++)
+	{
+	  id			o = [components objectAtIndex: i];
+	  GSPortItemHeader	pih;
+
+	  if (i == 0)
+	    {
+	      GSPortMsgHeader	pmh;
+
+	      // First item must be an NSData
+	      pih.type = GSSwapHostI32ToBig(GSP_HEAD);
+	      l = sizeof(GSPortMsgHeader) + [o length];
+	      pih.length = GSSwapHostI32ToBig(l);
+	      [h appendBytes: &pih length: sizeof(pih)];
+	      pmh.mId = GSSwapHostI32ToBig(msgId);
+	      pmh.nItems = GSSwapHostI32ToBig(c);
+	      pmh.version = 0;
+	      memcpy(pmh.port,
+		[[(NSMessagePort*)receivingPort name] UTF8String], 24);
+	      [h appendBytes: &pmh length: sizeof(pmh)];
+	      [h appendData: o];
+	    }
+	  else if ([o isKindOfClass: [NSData class]] == YES)
+	    {
+	      pih.type = GSSwapHostI32ToBig(GSP_DATA);
+	      l = [o length];
+	      pih.length = GSSwapHostI32ToBig(l);
+	      [h appendBytes: &pih length: sizeof(pih)];
+	      [h appendData: o];
+	    }
+	  else
+	    {
+	      pih.type = GSSwapHostI32ToBig(GSP_PORT);
+	      l = 24;
+	      pih.length = GSSwapHostI32ToBig(l);
+	      [h appendBytes: &pih length: sizeof(pih)];
+	      [h appendBytes: [o UTF8String] length: 24];
+	    }
+	}
+    }
+ 
+  /*
+   * Now send the message.
+   */
+  M_LOCK(this->lock);
+  [this->wMsgs addObject: h];
+  if (this->wData == nil)
+    {
+      [self receivedEventWrite];	// Start async write.
+    }
+
+  loop = [NSRunLoop currentRunLoop];
+
+  RETAIN(self);
+
+  [loop addEvent: (void*)(gsaddr)this->handle
+	    type: ET_HANDLE
+	 watcher: (id<RunLoopEvents>)self
+	 forMode: NSConnectionReplyMode];
+  [loop addEvent: (void*)(gsaddr)this->handle
+	    type: ET_HANDLE
+	 watcher: (id<RunLoopEvents>)self
+	 forMode: NSDefaultRunLoopMode];
+
+  while ([self isValid] == YES
+    && [this->wMsgs indexOfObjectIdenticalTo: h] != NSNotFound
+    && [when timeIntervalSinceNow] > 0)
+    {
+      M_UNLOCK(this->lock);
+      [loop runMode: NSConnectionReplyMode beforeDate: when];
+      M_LOCK(this->lock);
+    }
+
+  [loop removeEvent: (void*)(gsaddr)this->handle
+	       type: ET_HANDLE
+	    forMode: NSConnectionReplyMode
+		all: NO];
+  [loop removeEvent: (void*)(gsaddr)this->handle
+	       type: ET_HANDLE
+	    forMode: NSDefaultRunLoopMode
+		all: NO];
+
+  if ([this->wMsgs indexOfObjectIdenticalTo: h] == NSNotFound)
+    {
+      sent = YES;
+    }
+  RELEASE(h);
+  M_UNLOCK(this->lock);
+  RELEASE(self);
 
   return sent;
 }
