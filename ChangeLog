@@ -1,3 +1,8 @@
+2005-11-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortWin32.m: Lots of work towards implementing
+	this, bot nothing usable yet (compiles but won't run).
+
 2005-11-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/Win32Support.h: removed
