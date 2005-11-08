@@ -33,6 +33,7 @@ win32_OBJC_FILES =\
 	GSRunLoopCtxt.m \
 	GSRunLoopWatcher.m \
 	NSMessagePortWin32.m \
+	NSMessagePortNameServerWin32.m \
 	NSRunLoopWin32.m \
 	NSUserDefaultsWin32.m \
 

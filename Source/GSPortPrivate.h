@@ -23,10 +23,19 @@
 #ifndef __GSPortPrivate_h_
 #define __GSPortPrivate_h_
 
+#if	defined(__MINGW32__)
+@interface NSMessagePort(Private)
++ (NSMessagePort*) recvPort: (NSString*)name;
++ (NSMessagePort*) sendPort: (NSString*)name;
+- (id) initWithName: (NSString*)name;
+- (NSString*) name;
+- (void) receivedEventRead;
+- (void) receivedEventWrite;
+@end
+#else
 @class	GSMessageHandle;
 
 @interface NSMessagePort(Private)
-
 - (int) _listener;
 - (const unsigned char *) _name;
 + (NSMessagePort*) _portWithName: (const unsigned char *)socketName
@@ -34,6 +43,7 @@
 - (void) addHandle: (GSMessageHandle*)handle forSend: (BOOL)send;
 - (void) removeHandle: (GSMessageHandle*)handle;
 @end
+#endif	/* __MINGW32__ */
 
 @class	GSTcpHandle;
 
