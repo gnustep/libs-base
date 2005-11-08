@@ -530,7 +530,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	      rc = RegSetValueExW(dinfo->userKey,
 		UNISTR(valName),
 		0,
-		REG_SZ,
+		REG_BINARY,
 		ptr,
 		strlen(ptr) + 1);
 	      if (rc != ERROR_SUCCESS)
