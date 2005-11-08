@@ -356,7 +356,7 @@ static void clean_up_names(void)
   a = NSMapGet(portToNamesMap, port);
   a = [a copy];
   [serverLock unlock];
-  return a;
+  return AUTORELEASE(a);
 }
 
 - (BOOL) removePort: (NSPort *)port
