@@ -179,7 +179,7 @@ static void clean_up_names(void)
   h = CreateFileW(
     UNISTR(p),
     GENERIC_WRITE,
-    FILE_SHARE_READ,
+    FILE_SHARE_READ|FILE_SHARE_WRITE,
     (LPSECURITY_ATTRIBUTES)0,
     OPEN_EXISTING,
     FILE_ATTRIBUTE_NORMAL,
