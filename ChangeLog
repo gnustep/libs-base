@@ -1,3 +1,10 @@
+2005-11-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortWin32.m: more changes
+	* Source/win32/NSMessagePortNameServerWin32.m: ditto
+	* Source/Tools/AGSOutput.m: search for C/ObjC types in text, and
+	render them as <strong> automatically as suggested by Fabien Vallon.
+
 2005-11-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/NSMessagePortWin32.m: Lots of work towards implementing

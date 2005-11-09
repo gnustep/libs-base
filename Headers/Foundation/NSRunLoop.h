@@ -140,8 +140,8 @@ typedef	enum {
  * Callback message sent to object when the event it it waiting
  * for occurs.  The 'data' and 'type' values are those passed in the
  * original -addEvent:type:watcher:forMode: method.<br />
- * The 'extra' value may be additional data returned depending
- * on the type of event.  In the case of ET_WINMSG 'extra' is a pointer
+ * The 'extra' value may be additional data returned depending on the type
+ * of event.  In the case of <code>ET_WINMSG</code> 'extra' is a pointer
  * to a windows <code>MSG</code> structure containing the received event.
  */
 - (void) receivedEvent: (void*)data
