@@ -673,8 +673,8 @@ static unsigned	wordAlign;
       NSPortMessage	*pm;
 
       pm = [NSPortMessage allocWithZone: NSDefaultMallocZone()];
-      pm = [pm initWithSendPort: self
-		    receivePort: this->rPort
+      pm = [pm initWithSendPort: this->rPort
+		    receivePort: self
 		     components: this->rItems];
       [pm setMsgid: this->rId];
       this->rId = 0;
