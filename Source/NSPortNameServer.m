@@ -66,6 +66,13 @@
  */
 + (id) systemDefaultPortNameServer
 {
+#if	defined(__MINGW__)
+  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSMailslot"] == YES)
+    {
+      return [NSMessagePortNameServer sharedInstance];
+    }
+#endif
+
   /* Must be kept in sync with [NSPort +initialize]. */
   if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES)
     {
