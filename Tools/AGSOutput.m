@@ -1566,6 +1566,7 @@ static BOOL snuggleStart(NSString *t)
   for (l = 0; l < [a count]; l++)
     {
       static NSArray	*constants = nil;
+      static NSArray	*types = nil;
       unsigned		count;
       NSString		*tmp = [a objectAtIndex: l];
       unsigned		pos;
@@ -1575,6 +1576,25 @@ static BOOL snuggleStart(NSString *t)
 	{
 	  constants = [[NSArray alloc] initWithObjects:
 	    @"YES", @"NO", @"nil", nil];
+	}
+
+      if (types == nil)
+	{
+	  types = [[NSArray alloc] initWithObjects:
+	    @"Class",
+	    @"SEL",
+	    @"char",
+	    @"double",
+	    @"float",
+	    @"id",
+	    @"int",
+	    @"long",
+	    @"short",
+	    @"signed",
+	    @"unichar",
+	    @"unsigned",
+	    @"void",
+	    nil];
 	}
 
       if (l == 0 || [[a objectAtIndex: l-1] isEqual: @"<code>"] == NO)
@@ -1634,6 +1654,72 @@ static BOOL snuggleStart(NSString *t)
 			}
 		      l++;
 		      [a insertObject: @"</code>" atIndex: l];
+		      if (end != nil)
+			{
+			  [a insertObject: end atIndex: ++l];
+			}
+		    }
+		}
+	    }
+	}
+
+      if (l == 0 || [[a objectAtIndex: l-1] isEqual: @"<strong>"] == NO)
+	{
+	  /*
+	   * Ensure that well known types are rendered as 'strong'
+	   */
+	  count = [types count];
+	  for (pos = 0; pos < count; pos++)
+	    {
+	      NSString	*t = [types objectAtIndex: pos];
+
+	      r = [tmp rangeOfString: t];
+
+	      if (r.length > 0)
+		{
+		  NSString	*start;
+		  NSString	*end;
+
+		  if (r.location > 0)
+		    {
+		      start = [tmp substringToIndex: r.location];
+		    }
+		  else
+		    {
+		      start = nil;
+		    }
+		  if (NSMaxRange(r) < [tmp length])
+		    {
+		      end = [tmp substringFromIndex: NSMaxRange(r)];
+		    }
+		  else
+		    {
+		      end = nil;
+		    }
+		  if ((start == nil || snuggleStart(start) == YES)
+		    && (end == nil || snuggleEnd(end) == YES))
+		    {
+		      NSString	*sub;
+
+		      if (start != nil || end != nil)
+			{
+			  sub = [tmp substringWithRange: r];
+			}
+		      else
+			{
+			  sub = nil;
+			}
+		      if (start != nil)
+			{
+			  [a insertObject: start atIndex: l++];
+			}
+		      [a insertObject: @"<strong>" atIndex: l++];
+		      if (sub != nil)
+			{
+			  [a replaceObjectAtIndex: l withObject: sub];
+			}
+		      l++;
+		      [a insertObject: @"</strong>" atIndex: l];
 		      if (end != nil)
 			{
 			  [a insertObject: end atIndex: ++l];
