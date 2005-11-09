@@ -106,23 +106,17 @@ typedef	struct {
   BOOL			listener;
 
   NSMutableData		*wData;		/* Data object being written.	*/
-  unsigned		wLength;	/* Amount written so far.	*/
+  DWORD			wLength;	/* Amount written so far.	*/
   NSMutableArray	*wMsgs;		/* Message in progress.		*/
   NSMutableData		*rData;		/* Buffer for incoming data	*/
-  gsu32			rLength;	/* Amount read so far.		*/
-  gsu32			rWant;		/* Amount desired.		*/
+  DWORD			rLength;	/* Amount read so far.		*/
+  DWORD			rWant;		/* Amount desired.		*/
   NSMessagePort		*rPort;		/* Port of message being read.	*/
   NSMutableArray	*rItems;	/* Message in progress.		*/
-  GSPortItemType	rType;		/* Type of data being read.	*/
   gsu32			rId;		/* Id of incoming message.	*/
   unsigned		nItems;		/* Number of items to be read.	*/
 } internal;
 #define	PORT(X)		((internal*)((NSMessagePort*)X)->_internal)
-
-/*
- * Largest chunk of data possible in DO
- */
-static gsu32	maxDataLength = 10 * 1024 * 1024;
 
 @implementation	NSMessagePort
 
@@ -194,7 +188,9 @@ static unsigned	wordAlign;
              toRunLoop: (NSRunLoop*)aLoop
                forMode: (NSString*)aMode
 {
-  [aLoop addEvent: (void*)(gsaddr)PORT(self)->handle
+  NSDebugMLLog(@"NSMessagePort", @"%@ add to 0x%x in mode %@",
+    self, aLoop, aMode);
+  [aLoop addEvent: (void*)(gsaddr)PORT(self)->event
 	     type: ET_HANDLE
 	  watcher: (id<RunLoopEvents>)self
 	  forMode: aMode];
@@ -338,7 +334,7 @@ static unsigned	wordAlign;
   NSMessagePort	*p;
 
   M_LOCK(messagePortLock);
-  p = RETAIN((NSMessagePort*)NSMapGet(recvPorts, (void*)name));
+  p = RETAIN((NSMessagePort*)NSMapGet(sendPorts, (void*)name));
   if (p == nil)
     {
       internal	*this;
@@ -361,10 +357,10 @@ static unsigned	wordAlign;
       this->handle = CreateFileW(
 	UNISTR(path),
 	GENERIC_WRITE,
-	FILE_SHARE_READ,
+	FILE_SHARE_READ|FILE_SHARE_WRITE,
 	(LPSECURITY_ATTRIBUTES)0,
 	OPEN_EXISTING,
-	FILE_ATTRIBUTE_NORMAL,
+	FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
 	(HANDLE)0);
       if (this->handle == INVALID_HANDLE_VALUE)
 	{
@@ -465,7 +461,6 @@ static unsigned	wordAlign;
 
   if (this->rWant > 0)
     {
-
       /*
        * Have we read something?
        */
@@ -475,7 +470,61 @@ static unsigned	wordAlign;
 	&this->size,
 	TRUE) == 0)
 	{
-	  NSLog(@"GetOverlappedResult failed ...%s", GSLastErrorStr(errno));
+	  errno = GetLastError();
+	  /*
+	   * Our overlapped read attempt should fail ... because mailslots
+	   * insist we read an entire message in one go, and we asked it
+	   * to read zero bytes.  The error we are expecting is 
+	   * ERROR_INSUFFICIENT_BUFFER ... indicating that there is a
+	   * message to be read ... so we can ask for its size and read it
+	   * synchronously.
+	   */
+	  if (errno == ERROR_INSUFFICIENT_BUFFER)
+	    {
+	      if (GetMailslotInfo(
+		this->handle,
+		0,
+		&this->rWant,
+		0,
+		0) == 0)
+		{
+		  NSLog(@"unable to get info from mailslot '%@' - %s",
+		    this->name, GSLastErrorStr(errno));
+		  [self invalidate];
+		  return;
+		}
+	      else
+		{
+		  [this->rData setLength: this->rWant];
+		  if (ReadFile(this->handle,
+		    [this->rData mutableBytes],	// Store results here
+		    this->rWant,
+		    &this->size,
+		    NULL) == 0)
+		    {
+		      NSLog(@"unable to read from mailslot '%@' - %s",
+			this->name, GSLastErrorStr(errno));
+		      [self invalidate];
+		      return;
+		    }
+		  if (this->size != this->rWant)
+		    {
+		      NSLog(@"only read %d of %d bytes from mailslot '%@' - %s",
+			this->size, this->rWant, this->name,
+			GSLastErrorStr(errno));
+		      [self invalidate];
+		      return;
+		    }
+		  this->rLength += this->size;
+		  this->size = 0;
+		}
+	    }
+	  else
+	    {
+	      NSLog(@"GetOverlappedResult failed ...%s", GSLastErrorStr(errno));
+	      this->rLength = 0;
+	      this->rWant = 1;
+	    }
 	}
       else
 	{
@@ -488,105 +537,49 @@ static unsigned	wordAlign;
        */
       if (this->rLength == this->rWant)
 	{
-	  switch (this->rType)
+	  unsigned char		*buf = [this->rData mutableBytes];
+	  GSPortItemType	rType;
+	  GSPortItemHeader	*pih;
+	  unsigned		off = 0;
+	  unsigned		l;
+
+	  while (off + sizeof(GSPortItemHeader) < this->rLength)
 	    {
-	      case GSP_ITEM:
+	      pih = (GSPortItemHeader*)(buf + off);
+	      off += sizeof(GSPortItemHeader);
+	      rType = GSSwapBigI32ToHost(pih->type);
+	      l = GSSwapBigI32ToHost(pih->length);
+	      if (l + off > this->rLength)
 		{
-		  GSPortItemHeader	*h;
-		  unsigned		l;
-
-		  /*
-		   * We have read an item header - set up to read the
-		   * remainder of the item.
-		   */
-		  h = (GSPortItemHeader*)[this->rData bytes];
-		  this->rType = GSSwapBigI32ToHost(h->type);
-		  l = GSSwapBigI32ToHost(h->length);
-		  if (this->rType == GSP_HEAD)
-		    {
-		      if (l + sizeof(GSPortItemHeader) > this->rWant)
-			{
-			  // There is more to read ... do it.
-			  this->rWant = l + sizeof(GSPortItemHeader);
-			  this->rType = GSP_HEAD;
-			}
-		      else
-			{
-			  goto gsp_head;
-			}
-		    }
-		  else if (this->rType == GSP_PORT)
-		    {
-		      if (l != 24)
-			{
-			  NSLog(@"%@ - unreasonable length (%u) for port",
-			    self, l);
-			  [self invalidate];
-			  break;
-			}
-		      this->rWant = l;
-		      [this->rData setLength: this->rWant];
-		    }
-		  else if (this->rType == GSP_DATA)
-		    {
-		      if (l == 0)
-			{
-			  NSData	*d;
-
-			  /*
-			   * For a zero-length data chunk, we create an empty
-			   * data object and add it to the current message.
-			   */
-			  d = [NSMutableData new];
-			  [this->rItems addObject: d];
-			  RELEASE(d);
-			  if (this->nItems == [this->rItems count])
-			    {
-			      shouldDispatch = YES;
-			    }
-			}
-		      else
-			{
-			  if (l > maxDataLength)
-			    {
-			      NSLog(@"%@ - unreasonable length (%u) for data",
-				    self, l);
-			      [self invalidate];
-			      break;
-			    }
-			  this->rWant = l;
-			  [this->rData setLength: this->rWant];
-			}
-		    }
-		  else
-		    {
-		      NSLog(@"%@ - bad data received on port handle", self);
-		      [self invalidate];
-		      return;
-		    }
+		  NSLog(@"%@ - unreasonable length (%u) for data", self, l);
+		  break;
 		}
-	      break;
-
-	      case GSP_HEAD:
-		gsp_head:
+	      if (rType != GSP_HEAD && [this->rItems count] == 0)
 		{
-		  unsigned char	*b = [this->rData mutableBytes];
-		  GSPortItemHeader	*pih;
+		  NSLog(@"%@ - initial part of message had bad type");
+		  break;
+		}
+
+	      if (rType == GSP_HEAD)
+		{
 		  GSPortMsgHeader	*pmh;
 		  NSString		*n;
-		  NSMessagePort	*p;
-		  unsigned		l;
-		  NSMutableData	*d;
+		  NSMessagePort		*p;
+		  NSMutableData		*d;
 
-		  pih = (GSPortItemHeader*)b;
-		  l = GSSwapBigI32ToHost(pih->length);
-		  pmh = (GSPortMsgHeader*)(b + sizeof(GSPortItemHeader));
+		  if (l < sizeof(GSPortMsgHeader))
+		    {
+		      NSLog(@"%@ - bad length for header", self);
+		      break;
+		    }
+		  pmh = (GSPortMsgHeader*)(buf + off);
+		  off += sizeof(GSPortMsgHeader);
+		  l -= sizeof(GSPortMsgHeader);
 		  this->rId = GSSwapBigI32ToHost(pmh->mId);
 		  this->nItems = GSSwapBigI32ToHost(pmh->nItems);
 		  if (this->nItems == 0)
 		    {
-		      NSLog(@"%@ - unable to decode remote port", self);
-		      [self invalidate];
+		      NSLog(@"%@ - unable to decode item count", self);
 		      break;
 		    }
 		  n = [[NSString alloc] initWithBytes: pmh->port
@@ -598,45 +591,49 @@ static unsigned	wordAlign;
 		  if (p == nil)
 		    {
 		      NSLog(@"%@ - unable to decode remote port", self);
-		      [self invalidate];
 		      break;
 		    }
 		  ASSIGN(this->rPort, p);
 		  this->rItems
 		    = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
 		  this->rItems = [this->rItems initWithCapacity: this->nItems];
-		  b = (unsigned char*)&pmh[1];
-		  l -= sizeof(GSPortMsgHeader);
-		  d = [[NSMutableData alloc] initWithBytes: b length: l];
+		  d = [[NSMutableData alloc] initWithBytes: buf + off
+						    length: l];
 		  [this->rItems addObject: d];
 		  RELEASE(d);
 		  if (this->nItems == [this->rItems count])
 		    {
 		      shouldDispatch = YES;
+		      break;
 		    }
+		  off += l;
 		}
-	      break;
-
-	      case GSP_DATA:
+	      else if (rType == GSP_DATA)
 		{
 		  NSMutableData	*d;
 
-		  d = [this->rData mutableCopy];
+		  d = [[NSMutableData alloc] initWithBytes: buf + off
+						    length: l];
 		  [this->rItems addObject: d];
 		  RELEASE(d);
 		  if (this->nItems == [this->rItems count])
 		    {
 		      shouldDispatch = YES;
+		      break;
 		    }
+		  off += l;
 		}
-	      break;
-
-	      case GSP_PORT:
+	      else if (rType == GSP_PORT)
 		{
 		  NSMessagePort	*p;
-		  NSString		*n;
+		  NSString	*n;
 
-		  n = [[NSString alloc] initWithBytes: [this->rData bytes]
+		  if (l != 24)
+		    {
+		      NSLog(@"%@ - bad length for port item", self);
+		      break;
+		    }
+		  n = [[NSString alloc] initWithBytes: buf + off
 					       length: 24
 					     encoding: NSASCIIStringEncoding];
 		  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
@@ -645,33 +642,45 @@ static unsigned	wordAlign;
 		  if (p == nil)
 		    {
 		      NSLog(@"%@ - unable to decode remote port", self);
-		      [self invalidate];
 		      break;
 		    }
 		  [this->rItems addObject: p];
 		  if (this->nItems == [this->rItems count])
 		    {
 		      shouldDispatch = YES;
+		      break;
 		    }
 		}
-	      break;
+	      off += l;
 	    }
+	  this->rWant = 1;		// Queue a read
+	  this->rLength = 0;
+	}
+      else
+	{
+	  NSLog(@"Unexpected STATE");
 	}
     }
+  else
+    {
+      this->rWant = 1;		// Queue a read
+      this->rLength = 0;
+    }
+
 
   if (shouldDispatch == YES)
     {
       NSPortMessage	*pm;
 
       pm = [NSPortMessage allocWithZone: NSDefaultMallocZone()];
-      pm = [pm initWithSendPort: this->rPort
-		    receivePort: self
+      pm = [pm initWithSendPort: self
+		    receivePort: this->rPort
 		     components: this->rItems];
       [pm setMsgid: this->rId];
       this->rId = 0;
       DESTROY(this->rPort);
       DESTROY(this->rItems);
-      NSDebugMLLog(@"GSTcpHandle", @"got message %@ on 0x%x", pm, self);
+      NSDebugMLLog(@"NSMessagePort", @"got message %@ on 0x%x", pm, self);
       M_UNLOCK(this->lock);
       NS_DURING
 	{
@@ -688,20 +697,6 @@ static unsigned	wordAlign;
       RELEASE(pm);
     }
 
-  if ([self isValid] == YES && this->rWant == 0)
-    {
-      this->rType = GSP_ITEM;
-      if (this->nItems > 0)
-	{
-	  this->rWant = sizeof(GSPortItemHeader);	// Want an item
-	}
-      else
-	{
-	  this->rWant = HDR;	// Want an item with a port message header
-	}
-      [this->rData setLength: this->rWant];
-    }
-
   /*
    * Got something ... is it all we want? If not, ask to read more.
    */
@@ -712,6 +707,10 @@ static unsigned	wordAlign;
       this->ov.Offset = 0;
       this->ov.OffsetHigh = 0;
       this->ov.hEvent = this->event;
+      if ([this->rData length] < (this->rWant - this->rLength))
+	{
+	  [this->rData setLength: this->rWant - this->rLength];
+	}
       rc = ReadFile(this->handle,
 	[this->rData mutableBytes],	// Store results here
 	this->rWant - this->rLength,
@@ -722,7 +721,15 @@ static unsigned	wordAlign;
 	{
 	  [self receivedEventRead];	// Read completed synchronously
 	}
-      else if ((errno = GetLastError()) != ERROR_IO_PENDING)
+      else if ((errno = GetLastError()) == ERROR_IO_PENDING)
+	{
+	  ;	// OK ... 
+	}
+      else if (errno == ERROR_INSUFFICIENT_BUFFER)
+	{
+	  [self receivedEventRead];	// Need to determine message size
+	}
+      else
 	{
 	  NSLog(@"unable to read from mailslot '%@' - %s",
 	    this->name, GSLastErrorStr(errno));
@@ -743,27 +750,44 @@ static unsigned	wordAlign;
 
   M_LOCK(this->lock);
 
-  this->wLength += this->size;
-  this->size = 0;
+  if (this->wData != nil)
+    {
+      /*
+       * Have we read something?
+       */
+      if (GetOverlappedResult(
+	this->handle,
+	&this->ov,
+	&this->size,
+	TRUE) == 0)
+	{
+	  NSLog(@"GetOverlappedResult failed ...%s", GSLastErrorStr(errno));
+	}
+      else
+	{
+	  this->wLength += this->size;
+	  this->size = 0;
+	}
+    }
+
   /*
-   * Handle start of next data item if we havce completed one,
+   * Handle start of next data item if we have completed one,
    * or if we are called without a write in progress.
    */
   if (this->wData == nil || this->wLength == [this->wData length])
     {
-      unsigned	idx;
+      if (this->wData != nil)
+	{
+	  unsigned	idx;
 
-      if (this->wData == nil)
-	{
-	  idx = NSNotFound;
-	}
-      else
-	{
-	  NSDebugMLLog(@"GSTcpHandle",
+	  NSDebugMLLog(@"NSMessagePort",
 	    @"completed 0x%x on 0x%x", this->wData, self);
 	  idx = [this->wMsgs indexOfObjectIdenticalTo: this->wData];
+	  if (idx != NSNotFound)
+	    {
+	      [this->wMsgs removeObjectAtIndex: idx];
+	    }
 	}
-      [this->wMsgs removeObjectAtIndex: idx];
       if ([this->wMsgs count] > 0)
 	{
 	  this->wData = [this->wMsgs objectAtIndex: 0];
@@ -777,18 +801,32 @@ static unsigned	wordAlign;
 
   if (this->wData != nil)
     {
+      int	rc;
+
       this->ov.Offset = 0;
       this->ov.OffsetHigh = 0;
       this->ov.hEvent = this->event;
-      if (WriteFile(this->handle,
+      rc = WriteFile(this->handle,
 	[this->wData bytes],			// Output from here
 	[this->wData length] - this->wLength,
 	&this->size,				// Store number of bytes written
-	&this->ov) == 0 && (errno = GetLastError()) != ERROR_HANDLE_EOF)
+	&this->ov);
+      if (rc > 0)
+	{
+	  NSDebugMLLog(@"NSMessagePort", @"Write of %d performs %d",
+	    [this->wData length] - this->wLength, this->size);
+	  [self receivedEventWrite];		// Completed synchronously
+	}
+      else if ((errno = GetLastError()) != ERROR_IO_PENDING)
 	{
 	  NSLog(@"unable to write to mailslot '%@' - %s",
 	    this->name, GSLastErrorStr(errno));
 	  [self invalidate];
+	}
+      else
+	{
+	  NSDebugMLLog(@"NSMessagePort", @"Write of %d queued",
+	    [this->wData length] - this->wLength);
 	}
     }
   M_UNLOCK(this->lock);
@@ -829,7 +867,9 @@ static unsigned	wordAlign;
               fromRunLoop: (NSRunLoop*)aLoop
                   forMode: (NSString*)aMode
 {
-  [aLoop removeEvent: (void*)(gsaddr)PORT(self)->handle
+  NSDebugMLLog(@"NSMessagePort", @"%@ remove from 0x%x in mode %@",
+    self, aLoop, aMode);
+  [aLoop removeEvent: (void*)(gsaddr)PORT(self)->event
 		type: ET_HANDLE
 	     forMode: aMode
 		 all: NO];
@@ -845,7 +885,7 @@ static unsigned	wordAlign;
  */
 - (unsigned int) reservedSpaceLength
 {
-  return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader) + 24;
+  return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
@@ -902,7 +942,7 @@ static unsigned	wordAlign;
       h = [components objectAtIndex: 0];
       pih = (GSPortItemHeader*)[h mutableBytes];
       pih->type = GSSwapHostI32ToBig(GSP_HEAD);
-      l = [h length] - sizeof(GSPortMsgHeader);
+      l = [h length] - sizeof(GSPortItemHeader);
       pih->length = GSSwapHostI32ToBig(l);
       pmh = (GSPortMsgHeader*)&pih[1];
       pmh->mId = GSSwapHostI32ToBig(msgId);
@@ -918,8 +958,7 @@ static unsigned	wordAlign;
 
 	  if ([o isKindOfClass: [NSData class]] == YES)
 	    {
-	      l += [[components objectAtIndex: i] length];
-	      l += sizeof(GSPortItemHeader);
+	      l += sizeof(GSPortItemHeader) + [o length];
 	    }
 	  else
 	    {
@@ -982,12 +1021,13 @@ static unsigned	wordAlign;
   loop = [NSRunLoop currentRunLoop];
 
   RETAIN(self);
+  AUTORELEASE(RETAIN(components));
 
-  [loop addEvent: (void*)(gsaddr)this->handle
+  [loop addEvent: (void*)(gsaddr)this->event
 	    type: ET_HANDLE
 	 watcher: (id<RunLoopEvents>)self
 	 forMode: NSConnectionReplyMode];
-  [loop addEvent: (void*)(gsaddr)this->handle
+  [loop addEvent: (void*)(gsaddr)this->event
 	    type: ET_HANDLE
 	 watcher: (id<RunLoopEvents>)self
 	 forMode: NSDefaultRunLoopMode];
@@ -1001,11 +1041,11 @@ static unsigned	wordAlign;
       M_LOCK(this->lock);
     }
 
-  [loop removeEvent: (void*)(gsaddr)this->handle
+  [loop removeEvent: (void*)(gsaddr)this->event
 	       type: ET_HANDLE
 	    forMode: NSConnectionReplyMode
 		all: NO];
-  [loop removeEvent: (void*)(gsaddr)this->handle
+  [loop removeEvent: (void*)(gsaddr)this->event
 	       type: ET_HANDLE
 	    forMode: NSDefaultRunLoopMode
 		all: NO];

@@ -674,7 +674,7 @@ static NSLock	*cached_proxies_gate = nil;
 - (void) dealloc
 {
   if (debug_connection)
-    NSLog(@"deallocating 0x%x", (gsaddr)self);
+    NSLog(@"deallocating %@", self);
   [super dealloc];
 }
 
@@ -684,6 +684,12 @@ static NSLock	*cached_proxies_gate = nil;
 - (id) delegate
 {
   return GS_GC_UNHIDE(_delegate);
+}
+
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"%@ recv: 0x%x send 0x%x",
+    [super description], (gsaddr)[self receivePort], (gsaddr)[self sendPort]];
 }
 
 /**
@@ -806,8 +812,8 @@ static NSLock	*cached_proxies_gate = nil;
       self = RETAIN(conn);
       if (debug_connection > 2)
 	{
-	  NSLog(@"Found existing connection (0x%x) for \n\t%@\n\t%@",
-	    (gsaddr)conn, r, s);
+	  NSLog(@"Found existing connection (%@) for \n\t%@\n\t%@",
+	    conn, r, s);
 	}
       return self;
     }
@@ -820,8 +826,8 @@ static NSLock	*cached_proxies_gate = nil;
 
   if (debug_connection)
     {
-      NSLog(@"Initialising new connection with parent 0x%x, 0x%x\n\t%@\n\t%@",
-	(gsaddr)parent, (gsaddr)self, r, s);
+      NSLog(@"Initialising new connection with parent %@, %@\n\t%@\n\t%@",
+	parent, self, r, s);
     }
 
   M_LOCK(connection_table_gate);
@@ -1042,8 +1048,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   if (debug_connection)
     {
-      NSLog(@"Invalidating connection 0x%x\n\t%@\n\t%@",
-	(gsaddr)self, _receivePort, _sendPort);
+      NSLog(@"Invalidating connection %@", self);
     }
   /*
    * We need to notify any watchers of our death - but if we are already
@@ -1619,7 +1624,7 @@ static NSLock	*cached_proxies_gate = nil;
   CREATE_AUTORELEASE_POOL(arp);
 
   if (debug_connection)
-    NSLog(@"finalising 0x%x", (gsaddr)self);
+    NSLog(@"finalising %@", self);
 
   [self invalidate];
 
@@ -2125,7 +2130,7 @@ static void retEncoder (DOContext *ctxt)
     }
   if (debug_connection > 4)
     {
-      NSLog(@"  connection is %x:%x", conn, [NSThread currentThread]);
+      NSLog(@"  connection is %@", conn);
     }
 
   if (conn->_authenticateIn == YES
@@ -2221,19 +2226,19 @@ static void retEncoder (DOContext *ctxt)
 	  node = GSIMapNodeForKey(conn->_replyMap, (GSIMapKey)sequence);
 	  if (node == 0)
 	    {
-	      NSDebugMLLog(@"NSConnection", @"Ignoring reply RMC %d on %x",
+	      NSDebugMLLog(@"NSConnection", @"Ignoring reply RMC %d on %@",
 		sequence, conn);
 	      [self _doneInRmc: rmc];
 	    }
 	  else if (node->value.obj == dummyObject)
 	    {
-	      NSDebugMLLog(@"NSConnection", @"Saving reply RMC %d on %x",
+	      NSDebugMLLog(@"NSConnection", @"Saving reply RMC %d on %@",
 		sequence, conn);
 	      node->value.obj = rmc;
 	    }
 	  else
 	    {
-	      NSDebugMLLog(@"NSConnection", @"Replace reply RMC %d on %x",
+	      NSDebugMLLog(@"NSConnection", @"Replace reply RMC %d on %@",
 		sequence, conn);
 	      [self _doneInRmc: node->value.obj];
 	      node->value.obj = rmc;
@@ -2415,7 +2420,7 @@ static void callEncoder (DOContext *ctxt)
 
       if (debug_connection > 1)
 	{
-	  NSLog(@"Handling message from 0x%x", (gsaddr)self);
+	  NSLog(@"Handling message from %@", (gsaddr)self);
 	}
       _reqInCount++;	/* Handling an incoming request. */
 
@@ -2434,8 +2439,7 @@ static void callEncoder (DOContext *ctxt)
   NS_HANDLER
     {
       if (debug_connection > 3)
-	NSLog(@"forwarding exception for (0x%x) - %@",
-	  (gsaddr)self, localException);
+	NSLog(@"forwarding exception for (%@) - %@", self, localException);
 
       /* Send the exception back to the client. */
       if (_isValid == YES)
@@ -2520,8 +2524,8 @@ static void callEncoder (DOContext *ctxt)
       if (prox != nil)
 	{
 	  if (debug_connection > 3)
-	    NSLog(@"releasing object with target (0x%x) on (0x%x) counter %d",
-		target, (gsaddr)self, ((ProxyStruct*)prox)->_counter);
+	    NSLog(@"releasing object with target (0x%x) on (%@) counter %d",
+		target, self, ((ProxyStruct*)prox)->_counter);
 #if 1
 	  // FIXME thread safety
 	  if (--(((ProxyStruct*)prox)->_counter) == 0)
@@ -2533,8 +2537,8 @@ static void callEncoder (DOContext *ctxt)
 #endif
 	}
       else if (debug_connection > 3)
-	NSLog(@"releasing object with target (0x%x) on (0x%x) - nothing to do",
-		target, (gsaddr)self);
+	NSLog(@"releasing object with target (0x%x) on (%@) - nothing to do",
+		target, self);
     }
   [self _doneInRmc: rmc];
 }
@@ -2556,8 +2560,8 @@ static void callEncoder (DOContext *ctxt)
   [self _doneInRmc: rmc];
 
   if (debug_connection > 3)
-    NSLog(@"looking to retain local object with target (0x%x) on (0x%x)",
-		target, (gsaddr)self);
+    NSLog(@"looking to retain local object with target (0x%x) on (%@)",
+      target, self);
 
   M_LOCK(_proxiesGate);
   local = [self locateLocalTarget: target];
@@ -2673,8 +2677,8 @@ static void callEncoder (DOContext *ctxt)
   NS_DURING
     {
       if (debug_connection > 5)
-	NSLog(@"Waiting for reply sequence %d on %x:%x",
-	  sn, self, [NSThread currentThread]);
+	NSLog(@"Waiting for reply sequence %d on %@",
+	  sn, self);
       M_LOCK(_queueGate); isLocked = YES;
       while (_isValid == YES
 	&& (node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
@@ -2992,7 +2996,7 @@ static void callEncoder (DOContext *ctxt)
     }
 
   if (debug_connection > 5)
-    NSLog(@"Sending %@ on %x", stringFromMsgType(msgid), self);
+    NSLog(@"Sending %@ on %@", stringFromMsgType(msgid), self);
 
   limit = [dateClass dateWithTimeIntervalSinceNow: _requestTimeout];
   sent = [_sendPort sendBeforeDate: limit
@@ -3086,7 +3090,7 @@ static void callEncoder (DOContext *ctxt)
 
   if (debug_connection > 2)
     NSLog(@"add local object (0x%x) target (0x%x) "
-	  @"to connection (0x%x)", (gsaddr)object, target, (gsaddr) self);
+	  @"to connection (%@)", (gsaddr)object, target, self);
 
   M_UNLOCK(_proxiesGate);
 }
@@ -3181,8 +3185,7 @@ static void callEncoder (DOContext *ctxt)
 
       if (debug_connection > 2)
 	NSLog(@"removed local object (0x%x) target (0x%x) "
-	    @"from connection (0x%x) (ref %d)",
-		    (gsaddr)anObj, target, (gsaddr)self, val);
+	  @"from connection (%@) (ref %d)", (gsaddr)anObj, target, self, val);
     }
   M_UNLOCK(_proxiesGate);
 }
@@ -3210,8 +3213,8 @@ static void callEncoder (DOContext *ctxt)
 	    {
 	      [op encodeValueOfObjCType: @encode(unsigned) at: &target];
 	      if (debug_connection > 3)
-		NSLog(@"sending release for target (0x%x) on (0x%x)",
-		      target, (gsaddr)self);
+		NSLog(@"sending release for target (0x%x) on (%@)",
+		  target, self);
 	    }
 
 	  [self _sendOutRmc: op type: PROXY_RELEASE];
@@ -3550,7 +3553,7 @@ static void callEncoder (DOContext *ctxt)
       if (debug_connection)
 	{
 	  NSLog(@"Received port invalidation notification for "
-	      @"connection 0x%x\n\t%@", (gsaddr)self, port);
+	      @"connection %@\n\t%@", self, port);
 	}
 
       /* We shouldn't be getting any port invalidation notifications,
