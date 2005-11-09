@@ -74,8 +74,7 @@ Class	NSPort_concrete_class;
     {
       NSPort_abstract_class = self;
 #ifndef __MINGW32__
-      /* Must be kept in sync with [NSPortNameServer
-      +systemDefaultPortNameServer]. */
+/* Must be kept in sync with [NSPortNameServer +systemDefaultPortNameServer]. */
       if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES
 	|| [[NSUserDefaults standardUserDefaults]
 	boolForKey: @"NSPortIsMessagePort"])
@@ -87,6 +86,11 @@ Class	NSPort_concrete_class;
 	  NSPort_concrete_class = [NSSocketPort class];
 	}
 #else
+      if ([[NSUserDefaults standardUserDefaults]
+	boolForKey: @"GSMailslot"] == YES)
+	NSPort_concrete_class = [NSMessagePort class];
+      else
+
       NSPort_concrete_class = [NSSocketPort class];
 #endif
     }

@@ -41,6 +41,8 @@
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
+extern int	errno;
+
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;
 static NSMapTable portToNamesMap;
@@ -68,6 +70,7 @@ static void clean_up_names(void)
     }
   NSEndMapTableEnumeration(&mEnum);
   DESTROY(arp);
+  RegCloseKey(key);
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
@@ -93,18 +96,28 @@ static void clean_up_names(void)
 	NSObjectMapValueCallBacks, 0);
       atexit(clean_up_names);
 
-      registry = @"Software\\GNUstepNSMessagePort\\";
-      rc = RegCreateKeyExW(HKEY_CURRENT_USER,
+      registry = @"Software\\GNUstepNSMessagePort";
+      rc = RegCreateKeyExW(
+	HKEY_CURRENT_USER,
 	UNISTR(registry),
 	0,
 	L"",
-	REG_OPTION_VOLATILE,
+	REG_OPTION_NON_VOLATILE,
 	STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE
 	|KEY_QUERY_VALUE,
 	NULL,
 	&key,
 	NULL);
-      if (rc != ERROR_SUCCESS)
+      if (rc == ERROR_SUCCESS)
+	{
+	  rc = RegFlushKey(key);
+	  if (rc != ERROR_SUCCESS)
+	    {
+	      NSLog(@"Failed to flush registry HKEY_CURRENT_USER\\%@ (%x)",
+		registry, rc);
+	    }
+	}
+      else
 	{
 	  NSLog(@"Failed to create registry HKEY_CURRENT_USER\\%@ (%x)",
 	    registry, rc);
@@ -134,30 +147,53 @@ static void clean_up_names(void)
 + (NSString *) _query: (NSString *)name
 {
   NSString	*n;
-  unsigned char	buf[24];
-  DWORD		len = 24;
+  NSString	*p;
+  unsigned char	buf[25];
+  DWORD		len = 25;
+  DWORD		type;
+  HANDLE	h;
   int		rc;
 
   n = [[self class] _translate: name];
 
-  rc = RegQueryValueExW(key,
+  rc = RegQueryValueExW(
+    key,
     UNISTR(n),
     (LPDWORD)0,
-    (LPDWORD)REG_BINARY,
+    &type,
     (LPBYTE)buf,
     &len);
   if (rc != ERROR_SUCCESS)
     {
-      NSLog(@"Failed to read HKEY_CURRENT_USER\\%@\\%@ (%x)",
-	registry, n, rc);
       return nil;
     }
 
-  n = AUTORELEASE([[NSString alloc] initWithBytes: buf
-					   length: 24
-					 encoding: NSASCIIStringEncoding]);
-  // Fixme ... check this is valid
-  return n;
+  n = [NSString stringWithUTF8String: buf];
+
+  /*
+   * See if we can open the mailslot ... if not, the query returned
+   * an old name, and we can remove it.
+   */
+  p = [NSString stringWithFormat:
+    @"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", n];
+  h = CreateFileW(
+    UNISTR(p),
+    GENERIC_WRITE,
+    FILE_SHARE_READ,
+    (LPSECURITY_ATTRIBUTES)0,
+    OPEN_EXISTING,
+    FILE_ATTRIBUTE_NORMAL,
+    (HANDLE)0);
+  if (h == INVALID_HANDLE_VALUE)
+    {
+      RegDeleteValueW(key, UNISTR(n));
+      return nil;
+    }
+  else
+    {
+      CloseHandle(h);	// OK
+      return n;
+    }
 }
 
 + (NSString *) _translate: (NSString *)name
@@ -190,7 +226,6 @@ static void clean_up_names(void)
   NSMutableArray	*a;
   NSString		*n;
   int			rc;
-  HKEY			key;
 
   NSDebugLLog(@"NSMessagePort", @"register %@ as %@\n", port, name);
   if ([port isKindOfClass: [NSMessagePort class]] == NO)
@@ -209,16 +244,26 @@ static void clean_up_names(void)
 
   n = [[self class] _translate: name];
 
-  rc = RegSetValueExW(key,
+  rc = RegSetValueExW(
+    key,
     UNISTR(n),
     0,
-    REG_SZ,
+    REG_BINARY,
     [[(NSMessagePort*)port name] UTF8String],
     25);
-  if (rc != ERROR_SUCCESS)
+  if (rc == ERROR_SUCCESS)
     {
-      NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x)",
-	registry, n, rc);
+      rc = RegFlushKey(key);
+      if (rc != ERROR_SUCCESS)
+	{
+	  NSLog(@"Failed to flush registry HKEY_CURRENT_USER\\%@\\%@ (%x)",
+	    registry, n, rc);
+	}
+    }
+  else
+    {
+      NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x) %s",
+	registry, n, rc, GSLastErrorStr(rc));
       return NO;
     }
 
