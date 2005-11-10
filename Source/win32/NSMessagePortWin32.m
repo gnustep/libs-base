@@ -910,8 +910,11 @@ retry:
     }
   this = PORT(self);
 
-  NSAssert(PORT(self)->wHandle != INVALID_HANDLE_VALUE,
-    @"Attempt to send through recv port");
+  if (PORT(self)->wHandle == INVALID_HANDLE_VALUE
+    && [self _setupSendPort] == NO)
+    {
+      NSLog(@"Attempt to send through recv port");
+    }
 
   c = [components count];
   if (c == 0)
