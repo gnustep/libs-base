@@ -25,8 +25,6 @@
 
 #if	defined(__MINGW32__)
 @interface NSMessagePort(Private)
-+ (NSMessagePort*) recvPort: (NSString*)name;
-+ (NSMessagePort*) sendPort: (NSString*)name;
 - (id) initWithName: (NSString*)name;
 - (NSString*) name;
 - (void) receivedEventRead;

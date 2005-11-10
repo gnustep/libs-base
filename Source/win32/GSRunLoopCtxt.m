@@ -388,8 +388,9 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   // check wait errors
   if (wait_return == WAIT_FAILED)
     {
-      NSLog(@"WaitForMultipleObjects() error in -acceptInputForMode:beforeDate: '%d'",
-          GetLastError());
+      NSLog(@"WaitForMultipleObjects() error in "
+	@"-acceptInputForMode:beforeDate: '%s'",
+	GSLastErrorStr(GetLastError()));
       abort ();        
     }
 
