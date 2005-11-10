@@ -125,7 +125,7 @@ static NSRecursiveLock	*messagePortLock = nil;
  * Maps port name to NSMessagePort objects.
  */
 static NSMapTable	*ports = 0;
-static Class		messagePortClass;
+static Class		messagePortClass = 0;
 
 #if NEED_WORD_ALIGNMENT
 static unsigned	wordAlign;
@@ -184,6 +184,24 @@ static unsigned	wordAlign;
 
       messagePortLock = [GSLazyRecursiveLock new];
     }
+}
+
++ (id) newWithName: (NSString*)name
+{
+  NSMessagePort	*p;
+
+  M_LOCK(messagePortLock);
+  p = RETAIN((NSMessagePort*)NSMapGet(ports, (void*)name));
+  if (p == nil)
+    {
+      p = [[self alloc] initWithName: name];
+    }
+  else
+    {
+      [p _setupSendPort];
+    }
+  M_UNLOCK(messagePortLock);
+  return p;
 }
 
 - (void) addConnection: (NSConnection*)aConnection
@@ -594,7 +612,7 @@ static unsigned	wordAlign;
 					       length: 16
 					     encoding: NSASCIIStringEncoding];
 		  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
-		  rPort = [[NSMessagePort alloc] initWithName: n];
+		  rPort = [messagePortClass newWithName: n];
 		  RELEASE(n);
 		  if (rPort == nil)
 		    {
@@ -631,7 +649,7 @@ static unsigned	wordAlign;
 					       length: 16
 					     encoding: NSASCIIStringEncoding];
 		  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
-		  p = [[NSMessagePort alloc] initWithName: n];
+		  p = [messagePortClass newWithName: n];
 		  RELEASE(n);
 		  if (p == nil)
 		    {
