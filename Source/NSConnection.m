@@ -826,8 +826,8 @@ static NSLock	*cached_proxies_gate = nil;
 
   if (debug_connection)
     {
-      NSLog(@"Initialising new connection with parent %@, %@\n\t%@\n\t%@",
-	parent, self, r, s);
+      NSLog(@"Initialising new connection with parent %@, %@\n  "
+	@"Send: %@\n  Recv: %@", parent, self, s, r);
     }
 
   M_LOCK(connection_table_gate);
