@@ -99,12 +99,14 @@ typedef struct {
 typedef	struct {
   NSString              *name;
   NSRecursiveLock       *lock;
-  HANDLE                handle;
-  HANDLE                event;
-  OVERLAPPED		ov;
-  DWORD			size;
-  BOOL			listener;
-
+  HANDLE                rHandle;
+  HANDLE                wHandle;
+  HANDLE                rEvent;
+  HANDLE                wEvent;
+  OVERLAPPED		rOv;
+  OVERLAPPED		wOv;
+  DWORD			rSize;
+  DWORD			wSize;
   NSMutableData		*wData;		/* Data object being written.	*/
   DWORD			wLength;	/* Amount written so far.	*/
   NSMutableArray	*wMsgs;		/* Message in progress.		*/
@@ -122,13 +124,52 @@ static NSRecursiveLock	*messagePortLock = nil;
 /*
  * Maps port name to NSMessagePort objects.
  */
-static NSMapTable	*recvPorts = 0;
-static NSMapTable	*sendPorts = 0;
+static NSMapTable	*ports = 0;
 static Class		messagePortClass;
 
 #if NEED_WORD_ALIGNMENT
 static unsigned	wordAlign;
 #endif
+
+- (BOOL) _setupSendPort
+{
+  internal	*this = (internal*)self->_internal;
+  BOOL		result;
+
+  M_LOCK(this->lock);
+  if (this->wHandle == INVALID_HANDLE_VALUE)
+    {
+      NSString	*path;
+
+      path = [NSString stringWithFormat:
+	@"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", this->name];
+
+      this->wHandle = CreateFileW(
+	UNISTR(path),
+	GENERIC_WRITE,
+	FILE_SHARE_READ|FILE_SHARE_WRITE,
+	(LPSECURITY_ATTRIBUTES)0,
+	OPEN_EXISTING,
+	FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+	(HANDLE)0);
+      if (this->wHandle == INVALID_HANDLE_VALUE)
+	{
+	  result = NO;
+	}
+      else
+	{
+	  this->wEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	  this->wMsgs = [NSMutableArray new];
+	  result = YES;
+	}
+    }
+  else
+    {
+      result = YES;
+    }
+  M_UNLOCK(this->lock);
+  return result;
+}
 
 + (void) initialize
 {
@@ -138,45 +179,11 @@ static unsigned	wordAlign;
       wordAlign = objc_alignof_type(@encode(gsu32));
 #endif
       messagePortClass = self;
-      recvPorts = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-      sendPorts = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
+      ports = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       messagePortLock = [GSLazyRecursiveLock new];
     }
-}
-
-+ (NSMessagePort*) recvPort: (NSString*)name
-{
-  NSMessagePort	*p;
-
-  if (name == nil)
-    {
-      p = AUTORELEASE([[self alloc] init]);
-    }
-  else
-    {
-      M_LOCK(messagePortLock);
-      p = AUTORELEASE(RETAIN((NSMessagePort*)NSMapGet(recvPorts, (void*)name)));
-      M_UNLOCK(messagePortLock);
-    }
-  return p;
-}
-
-+ (NSMessagePort*) sendPort: (NSString*)name
-{
-  NSMessagePort	*p;
-
-  NSAssert(p != nil, @"sendPort: called with nil name");
-  M_LOCK(messagePortLock);
-  p = AUTORELEASE(RETAIN((NSMessagePort*)NSMapGet(sendPorts, (void*)name)));
-  if (p == nil)
-    {
-      p = AUTORELEASE([[self alloc] initWithName: name]);
-    }
-  M_UNLOCK(messagePortLock);
-  return p;
 }
 
 - (void) addConnection: (NSConnection*)aConnection
@@ -185,7 +192,9 @@ static unsigned	wordAlign;
 {
   NSDebugMLLog(@"NSMessagePort", @"%@ add to 0x%x in mode %@",
     self, aLoop, aMode);
-  [aLoop addEvent: (void*)(gsaddr)PORT(self)->event
+  NSAssert(PORT(self)->rHandle != INVALID_HANDLE_VALUE,
+    @"Attempt to listen on send port");
+  [aLoop addEvent: (void*)(gsaddr)PORT(self)->rEvent
 	     type: ET_HANDLE
 	  watcher: (id<RunLoopEvents>)self
 	  forMode: aMode];
@@ -250,6 +259,7 @@ static unsigned	wordAlign;
       NSDebugMLLog(@"NSMessagePort", @"delegate doesn't handle messages", 0);
       return;
     }
+  NSDebugMLLog(@"NSMessagePort", @"%@ asking %@ to handle msg", self, d);
   [d handlePortMessage: m];
 }
 
@@ -277,23 +287,24 @@ static unsigned	wordAlign;
   this->name = [[NSString alloc] initWithFormat: @"%08x%08x",
     ((unsigned)ident), sequence++];
 
-  this->listener = YES;
-  this->event = CreateEvent(NULL, FALSE, FALSE, NULL);
-  this->ov.hEvent = this->event;
   this->lock = [GSLazyRecursiveLock new];
+  this->wHandle = INVALID_HANDLE_VALUE;
+  this->wEvent = INVALID_HANDLE_VALUE;
+
+  this->rEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
   this->rData = [NSMutableData new];
   this->rMsgs = [NSMutableArray new];
 
   path = [NSString stringWithFormat:
     @"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", this->name];
 
-  this->handle = CreateMailslotW(
+  this->rHandle = CreateMailslotW(
     UNISTR(path),
     0,				/* No max message size.		*/
     MAILSLOT_WAIT_FOREVER,	/* No read/write timeout.	*/
     (LPSECURITY_ATTRIBUTES)0);
 
-  if (this->handle == INVALID_HANDLE_VALUE)
+  if (this->rHandle == INVALID_HANDLE_VALUE)
     {
       NSLog(@"unable to create mailslot '%@' - %s",
 	this->name, GSLastErrorStr(errno));
@@ -301,7 +312,7 @@ static unsigned	wordAlign;
     }
   else
     {
-      NSMapInsert(recvPorts, (void*)this->name, (void*)self);
+      NSMapInsert(ports, (void*)this->name, (void*)self);
       NSDebugMLLog(@"NSMessagePort", @"Created listening port: %@", self);
 
       /*
@@ -325,11 +336,10 @@ static unsigned	wordAlign;
   NSMessagePort	*p;
 
   M_LOCK(messagePortLock);
-  p = RETAIN((NSMessagePort*)NSMapGet(sendPorts, (void*)name));
+  p = RETAIN((NSMessagePort*)NSMapGet(ports, (void*)name));
   if (p == nil)
     {
       internal	*this;
-      NSString	*path;
 
       _internal = NSZoneMalloc(NSDefaultMallocZone(), sizeof(internal));
       memset(_internal, '\0', sizeof(internal));
@@ -337,23 +347,14 @@ static unsigned	wordAlign;
       self->_is_valid = YES;
       this->name = [name copy];
 
-      this->listener = NO;
-      this->event = CreateEvent(NULL, FALSE, FALSE, NULL);
-      this->ov.hEvent = this->event;
       this->lock = [GSLazyRecursiveLock new];
-      this->wMsgs = [NSMutableArray new];
-      path = [NSString stringWithFormat:
-	@"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", this->name];
 
-      this->handle = CreateFileW(
-	UNISTR(path),
-	GENERIC_WRITE,
-	FILE_SHARE_READ|FILE_SHARE_WRITE,
-	(LPSECURITY_ATTRIBUTES)0,
-	OPEN_EXISTING,
-	FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
-	(HANDLE)0);
-      if (this->handle == INVALID_HANDLE_VALUE)
+      this->rHandle = INVALID_HANDLE_VALUE;
+      this->rEvent = INVALID_HANDLE_VALUE;
+      this->wHandle = INVALID_HANDLE_VALUE;
+      this->wEvent = INVALID_HANDLE_VALUE;
+
+      if ([self _setupSendPort] == NO)
 	{
 	  NSLog(@"unable to access mailslot '%@' - %s",
 	    this->name, GSLastErrorStr(errno));
@@ -361,13 +362,14 @@ static unsigned	wordAlign;
 	}
       else
 	{
-	  NSMapInsert(sendPorts, (void*)this->name, (void*)self);
+	  NSMapInsert(ports, (void*)this->name, (void*)self);
 	  NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", self);
 	}
     }
   else
     {
       RELEASE(self);
+      [p _setupSendPort];
       self = p;
     }
   M_UNLOCK(messagePortLock);
@@ -386,28 +388,35 @@ static unsigned	wordAlign;
       if ([self isValid] == YES)
 	{
 	  M_LOCK(messagePortLock);
-	  if (this->handle != INVALID_HANDLE_VALUE)
+	  if (this->rHandle != INVALID_HANDLE_VALUE)
 	    {
-	      (void) CancelIo(this->handle);
+	      (void) CancelIo(this->rHandle);
 	    }
-	  if (this->event != INVALID_HANDLE_VALUE)
+	  if (this->wHandle != INVALID_HANDLE_VALUE)
 	    {
-	      (void) CloseHandle(this->event);
-	      this->event = INVALID_HANDLE_VALUE;
+	      (void) CancelIo(this->wHandle);
 	    }
-	  if (this->handle != INVALID_HANDLE_VALUE)
+	  if (this->rEvent != INVALID_HANDLE_VALUE)
 	    {
-	      (void) CloseHandle(this->handle);
-	      this->handle = INVALID_HANDLE_VALUE;
+	      (void) CloseHandle(this->rEvent);
+	      this->rEvent = INVALID_HANDLE_VALUE;
 	    }
-	  if (this->listener == YES)
+	  if (this->wEvent != INVALID_HANDLE_VALUE)
 	    {
-	      NSMapRemove(recvPorts, (void*)this->name);
+	      (void) CloseHandle(this->wEvent);
+	      this->wEvent = INVALID_HANDLE_VALUE;
 	    }
-	  else
+	  if (this->rHandle != INVALID_HANDLE_VALUE)
 	    {
-	      NSMapRemove(sendPorts, (void*)this->name);
+	      (void) CloseHandle(this->rHandle);
+	      this->rHandle = INVALID_HANDLE_VALUE;
 	    }
+	  if (this->wHandle != INVALID_HANDLE_VALUE)
+	    {
+	      (void) CloseHandle(this->wHandle);
+	      this->wHandle = INVALID_HANDLE_VALUE;
+	    }
+	  NSMapRemove(ports, (void*)this->name);
 	  M_UNLOCK(messagePortLock);
 
 	  [[NSMessagePortNameServer sharedInstance] removePort: self];
@@ -449,17 +458,15 @@ static unsigned	wordAlign;
 
   M_LOCK(this->lock);
 
-retry:
-
   if (this->rWant > 0)
     {
       /*
        * Have we read something?
        */
       if (GetOverlappedResult(
-	this->handle,
-	&this->ov,
-	&this->size,
+	this->rHandle,
+	&this->rOv,
+	&this->rSize,
 	TRUE) == 0)
 	{
 	  errno = GetLastError();
@@ -474,7 +481,7 @@ retry:
 	  if (errno == ERROR_INSUFFICIENT_BUFFER)
 	    {
 	      if (GetMailslotInfo(
-		this->handle,
+		this->rHandle,
 		0,
 		&this->rWant,
 		0,
@@ -488,10 +495,10 @@ retry:
 	      else
 		{
 		  [this->rData setLength: this->rWant];
-		  if (ReadFile(this->handle,
+		  if (ReadFile(this->rHandle,
 		    [this->rData mutableBytes],	// Store results here
 		    this->rWant,
-		    &this->size,
+		    &this->rSize,
 		    NULL) == 0)
 		    {
 		      NSLog(@"unable to read from mailslot '%@' - %s",
@@ -499,10 +506,10 @@ retry:
 		      [self invalidate];
 		      return;
 		    }
-		  if (this->size != this->rWant)
+		  if (this->rSize != this->rWant)
 		    {
 		      NSLog(@"only read %d of %d bytes from mailslot '%@' - %s",
-			this->size, this->rWant, this->name,
+			this->rSize, this->rWant, this->name,
 			GSLastErrorStr(errno));
 		      [self invalidate];
 		      return;
@@ -512,8 +519,8 @@ retry:
 		      NSDebugMLLog(@"NSMessagePort", @"Read complete on %@",
 			self);
 		    }
-		  this->rLength = this->size;
-		  this->size = 0;
+		  this->rLength = this->rSize;
+		  this->rSize = 0;
 		}
 	    }
 	  else
@@ -525,9 +532,9 @@ retry:
 	}
       else
 	{
-	  NSLog(@"GetOverlappedResult succes ...%u", this->size);
-	  this->rLength += this->size;
-	  this->size = 0;
+	  NSLog(@"GetOverlappedResult succes ...%u", this->rSize);
+	  this->rLength += this->rSize;
+	  this->rSize = 0;
 	}
 
       /*
@@ -587,7 +594,7 @@ retry:
 					       length: 16
 					     encoding: NSASCIIStringEncoding];
 		  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
-		  rPort = [NSMessagePort sendPort: n];
+		  rPort = [[NSMessagePort alloc] initWithName: n];
 		  RELEASE(n);
 		  if (rPort == nil)
 		    {
@@ -624,7 +631,7 @@ retry:
 					       length: 16
 					     encoding: NSASCIIStringEncoding];
 		  NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
-		  p = [NSMessagePort sendPort: n];
+		  p = [[NSMessagePort alloc] initWithName: n];
 		  RELEASE(n);
 		  if (p == nil)
 		    {
@@ -632,6 +639,7 @@ retry:
 		      break;
 		    }
 		  [rItems addObject: p];
+		  RELEASE(p);
 		}
 	      off += len;
 	      if (nItems == [rItems count])
@@ -642,6 +650,7 @@ retry:
 		  pm = [pm initWithSendPort: rPort
 				receivePort: self
 				 components: rItems];
+		  DESTROY(rPort);
 		  DESTROY(rItems);
 		  [pm setMsgid: rId];
 		  [this->rMsgs addObject: pm];
@@ -649,6 +658,7 @@ retry:
 		  break;
 		}
 	    }
+	  DESTROY(rPort);
 	  DESTROY(rItems);
 	  this->rWant = 1;		// Queue a read
 	  this->rLength = 0;
@@ -671,23 +681,23 @@ retry:
     {
       int	rc;
 
-      this->ov.Offset = 0;
-      this->ov.OffsetHigh = 0;
-      this->ov.hEvent = this->event;
+      this->rOv.Offset = 0;
+      this->rOv.OffsetHigh = 0;
+      this->rOv.hEvent = this->rEvent;
       if ([this->rData length] < (this->rWant - this->rLength))
 	{
 	  [this->rData setLength: this->rWant - this->rLength];
 	}
-      rc = ReadFile(this->handle,
+      rc = ReadFile(this->rHandle,
 	[this->rData mutableBytes],	// Store results here
 	this->rWant - this->rLength,
-	&this->size,
-	&this->ov);
+	&this->rSize,
+	&this->rOv);
 
       if (rc > 0)
 	{
 	  NSDebugMLLog(@"NSMessagePort", @"Read immediate on %@", self);
-	  goto retry;
+	  SetEvent(this->rEvent);
 	}
       else if ((errno = GetLastError()) == ERROR_IO_PENDING)
 	{
@@ -696,7 +706,7 @@ retry:
       else if (errno == ERROR_INSUFFICIENT_BUFFER)
 	{
 	  NSDebugMLLog(@"NSMessagePort", @"Read retry on %@", self);
-	  goto retry;
+	  SetEvent(this->rEvent);
 	}
       else
 	{
@@ -749,20 +759,20 @@ retry:
   if (this->wData != nil)
     {
       /*
-       * Have we read something?
+       * Have we written something?
        */
       if (GetOverlappedResult(
-	this->handle,
-	&this->ov,
-	&this->size,
+	this->wHandle,
+	&this->wOv,
+	&this->wSize,
 	TRUE) == 0)
 	{
 	  NSLog(@"GetOverlappedResult failed ...%s", GSLastErrorStr(errno));
 	}
       else
 	{
-	  this->wLength += this->size;
-	  this->size = 0;
+	  this->wLength += this->wSize;
+	  this->wSize = 0;
 	}
     }
 
@@ -790,18 +800,18 @@ retry:
     {
       int	rc;
 
-      this->ov.Offset = 0;
-      this->ov.OffsetHigh = 0;
-      this->ov.hEvent = this->event;
-      rc = WriteFile(this->handle,
+      this->wOv.Offset = 0;
+      this->wOv.OffsetHigh = 0;
+      this->wOv.hEvent = this->wEvent;
+      rc = WriteFile(this->wHandle,
 	[this->wData bytes],			// Output from here
 	[this->wData length] - this->wLength,
-	&this->size,				// Store number of bytes written
-	&this->ov);
+	&this->wSize,				// Store number of bytes written
+	&this->wOv);
       if (rc > 0)
 	{
 	  NSDebugMLLog(@"NSMessagePort", @"Write of %d performs %d",
-	    [this->wData length] - this->wLength, this->size);
+	    [this->wData length] - this->wLength, this->wSize);
 	  goto retry;
 	}
       else if ((errno = GetLastError()) != ERROR_IO_PENDING)
@@ -829,7 +839,7 @@ retry:
     {
       internal	*this = PORT(self);
 
-      if (this->listener == YES)
+      if (this->rEvent == (HANDLE)data)
 	{
 	  [self receivedEventRead];
 	}
@@ -856,7 +866,7 @@ retry:
 {
   NSDebugMLLog(@"NSMessagePort", @"%@ remove from 0x%x in mode %@",
     self, aLoop, aMode);
-  [aLoop removeEvent: (void*)(gsaddr)PORT(self)->event
+  [aLoop removeEvent: (void*)(gsaddr)PORT(self)->rEvent
 		type: ET_HANDLE
 	     forMode: aMode
 		 all: NO];
@@ -900,7 +910,9 @@ retry:
     }
   this = PORT(self);
 
-  NSAssert(PORT(self)->listener == NO, @"Attempt to send through recv port");
+  NSAssert(PORT(self)->wHandle != INVALID_HANDLE_VALUE,
+    @"Attempt to send through recv port");
+
   c = [components count];
   if (c == 0)
     {
@@ -920,13 +932,14 @@ retry:
     @"Receiving port is not the correct type");
   NSAssert([receivingPort isValid] == YES,
     @"Receiving port is not valid");
-  NSAssert(PORT(receivingPort)->listener == YES,
+  NSAssert(PORT(receivingPort)->rHandle != INVALID_HANDLE_VALUE,
     @"Attempt to send to send port");
 
   first = [components objectAtIndex: 0];
   if (c == 1)
     {
-      h = RETAIN(first);
+      //h = RETAIN(first);
+      h = [first mutableCopy];
     }
   if (c > 1)
     {
@@ -999,11 +1012,11 @@ retry:
     {
       NSRunLoop		*loop = [NSRunLoop currentRunLoop];
 
-      [loop addEvent: (void*)(gsaddr)this->event
+      [loop addEvent: (void*)(gsaddr)this->wEvent
 		type: ET_HANDLE
 	     watcher: (id<RunLoopEvents>)self
 	     forMode: NSConnectionReplyMode];
-      [loop addEvent: (void*)(gsaddr)this->event
+      [loop addEvent: (void*)(gsaddr)this->wEvent
 		type: ET_HANDLE
 	     watcher: (id<RunLoopEvents>)self
 	     forMode: NSDefaultRunLoopMode];
@@ -1017,11 +1030,11 @@ retry:
 	  M_LOCK(this->lock);
 	}
 
-      [loop removeEvent: (void*)(gsaddr)this->event
+      [loop removeEvent: (void*)(gsaddr)this->wEvent
 		   type: ET_HANDLE
 		forMode: NSConnectionReplyMode
 		    all: NO];
-      [loop removeEvent: (void*)(gsaddr)this->event
+      [loop removeEvent: (void*)(gsaddr)this->wEvent
 		   type: ET_HANDLE
 		forMode: NSDefaultRunLoopMode
 		    all: NO];

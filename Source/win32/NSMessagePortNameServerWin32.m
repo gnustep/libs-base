@@ -217,7 +217,7 @@ static void clean_up_names(void)
   n = [[self class] _query: name];
 
   NSDebugLLog(@"NSMessagePort", @"got %@", n);
-  return [NSMessagePort sendPort: n];
+  return AUTORELEASE([[NSMessagePort alloc] initWithName: n]);
 }
 
 - (BOOL) registerPort: (NSPort *)port
