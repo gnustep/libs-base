@@ -211,6 +211,7 @@ int con_data (id prx)
   printf(" got %x\n", small.z);
   [pool release];
 
+#if !defined(__MINGW32__)
   pool = [NSAutoreleasePool new];
   printf("Struct:\n");
   printf("  sending c='%c',d=%g,i=%d,s=%s,l=%ld",
@@ -224,6 +225,7 @@ int con_data (id prx)
   printf(" got c='%c',d=%g,i=%d,s=%s,l=%ld\n",
     ffoo.c, ffoo.d, ffoo.i, ffoo.s, ffoo.l);
   [pool release];
+#endif
 
   pool = [NSAutoreleasePool new];
   printf("Object:\n");
@@ -511,6 +513,7 @@ int main (int argc, char *argv[], char **env)
   auth = [Auth new];
   GSDebugAllocationActive(YES);
 
+  setvbuf(stdout, 0, _IONBF, 0);
   debug = 0;
   type_test = 0;
   stats = 0;

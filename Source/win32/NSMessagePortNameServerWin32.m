@@ -206,18 +206,26 @@ static void clean_up_names(void)
 {
   NSString	*n;
 
-  NSDebugLLog(@"NSMessagePort", @"portForName: %@ host: %@", name, host);
+  NSDebugLLog(@"NSMessagePortNameServer",
+    @"portForName: %@ host: %@", name, host);
 
   if ([host length] && ![host isEqual: @"*"])
     {
-      NSDebugLLog(@"NSMessagePort", @"non-local host");
+      NSDebugLLog(@"NSMessagePortNameServer", @"non-local host");
       return nil;
     }
 
   n = [[self class] _query: name];
-
-  NSDebugLLog(@"NSMessagePort", @"got %@", n);
-  return AUTORELEASE([NSMessagePort newWithName: n]);
+  if (n == nil)
+    {
+      NSDebugLLog(@"NSMessagePortNameServer", @"got no port for %@", name);
+      return nil;
+    }
+  else
+    {
+      NSDebugLLog(@"NSMessagePortNameServer", @"got %@ for %@", n, name);
+      return AUTORELEASE([NSMessagePort newWithName: n]);
+    }
 }
 
 - (BOOL) registerPort: (NSPort *)port
@@ -227,7 +235,7 @@ static void clean_up_names(void)
   NSString		*n;
   int			rc;
 
-  NSDebugLLog(@"NSMessagePort", @"register %@ as %@\n", port, name);
+  NSDebugLLog(@"NSMessagePortNameServer", @"register %@ as %@\n", port, name);
   if ([port isKindOfClass: [NSMessagePort class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
@@ -238,7 +246,7 @@ static void clean_up_names(void)
 
   if ([[self class] _query: name] != nil)
     {
-      NSDebugLLog(@"NSMessagePort", @"fail, is a live port");
+      NSDebugLLog(@"NSMessagePortNameServer", @"fail, is a live port");
       return NO;
     }
 
@@ -286,7 +294,7 @@ static void clean_up_names(void)
   NSString	*n;
   int		rc;
 
-  NSDebugLLog(@"NSMessagePort", @"removePortForName: %@", name);
+  NSDebugLLog(@"NSMessagePortNameServer", @"removePortForName: %@", name);
   n = [[self class] _translate: name];
   rc = RegDeleteValueW(key, UNISTR(n));
 
@@ -309,7 +317,7 @@ static void clean_up_names(void)
   NSMutableArray *a;
   int		i;
 
-  NSDebugLLog(@"NSMessagePort", @"removePort: %@", port);
+  NSDebugLLog(@"NSMessagePortNameServer", @"removePort: %@", port);
 
   [serverLock lock];
   a = NSMapGet(portToNamesMap, port);
@@ -327,7 +335,8 @@ static void clean_up_names(void)
 
 - (BOOL) removePort: (NSPort*)port forName: (NSString*)name
 {
-  NSDebugLLog(@"NSMessagePort", @"removePort: %@  forName: %@", port, name);
+  NSDebugLLog(@"NSMessagePortNameServer",
+    @"removePort: %@  forName: %@", port, name);
 
   if ([self portForName: name onHost: @""] == port)
     {

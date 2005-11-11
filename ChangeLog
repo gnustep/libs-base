@@ -1,3 +1,21 @@
+2005-11-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortNameServerWin32.m: fix port lookup in case
+	where named port does not exist.  Correct debug logging by class name.
+	* Testing/nsconnection_client.m: don't run large structure test on
+	mingw32 at present ... it crashes (something wrong with the invocation
+	stuff for ffcall and some large structures on mingw32)
+
+2005-11-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortWin32.m: more changes
+	* Source/win32/NSMessagePortNameServerWin32.m: ditto
+	Working at least in part (pre-alpha I guess) ... enable with the
+	GSMailslot user default.  Known problems -
+	1. no way of telling if the other end of a connection has gone until
+	we try to write to it.
+	2. hangup in my testing comms between three threads.
+
 2005-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/NSMessagePortWin32.m: more changes
