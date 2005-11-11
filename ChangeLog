@@ -7,6 +7,9 @@
 	stuff for ffcall and some large structures on mingw32)
 	* Tools/gdnc.m: Obey GSMailslot default on mingw32.
 	* Source/NSDistributedNotificationCenter.m: ditto.
+	* Source/win32/NSMessagePortWin32.m: Fixes for cases where requests
+	we wanted to be async actually complete synchronously.  Moves the
+	state of this code from pre-alpha to alpha/beta quality I guess.
 
 2005-11-10  Richard Frith-Macdonald <rfm@gnu.org>
 
