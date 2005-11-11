@@ -2791,14 +2791,27 @@ handle_request(int desc)
 
 		  memset(&sa, '\0', sizeof(sa));
 		  sa.sin_family = AF_INET;
-		  /* FIXME: This must not be INADDR_ANY on Win,
-		     otherwise the system will try to bind on any of
-		     the local addresses (including 127.0.0.1), which
-		     works. - bjoern */
-#ifdef __MINGW32__
-		  sa.sin_addr.s_addr = addr[0].s_addr;
-#else
+
+#if	defined(__MINGW32__)
+		  /* COMMENT:  (3 Nov 2004 by Wim Oudshoorn):
+		     The comment below might be true.  But
+		     using addr[0].s_addr has on windows 2003 server
+		     (and some other versions of windows.)
+		     exactly the same sympton as it tries to avoid.
+		     The funny thing is that the original line, just
+		     using INADDR_ANY seems to work on windows.
+		     However, I assume the FIXME below was put there
+		     for a reason.  But for now I just revert it because
+		     the platform independent code seems to work.
+		  */
+ 		  /* FIXME: This must not be INADDR_ANY on Win,
+ 		     otherwise the system will try to bind on any of
+ 		     the local addresses (including 127.0.0.1), which
+ 		     works. - bjoern */
+/*		  sa.sin_addr.s_addr = addr[0].s_addr; */
 		  sa.sin_addr.s_addr = htonl(INADDR_ANY);
+#else
+ 		  sa.sin_addr.s_addr = htonl(INADDR_ANY);
 #endif /* __MINGW32__ */
 		  sa.sin_port = htons(p);
 		  result = bind(sock, (void*)&sa, sizeof(sa));

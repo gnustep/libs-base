@@ -1,5 +1,11 @@
 2005-11-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Applied Willem Rein Oudshoorn's fix for bug #11055, having tested it
+	and found it OK on windows-xp as well as the windows-2003 system he
+	was using.
+
+2005-11-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/win32/NSMessagePortNameServerWin32.m: fix port lookup in case
 	where named port does not exist.  Correct debug logging by class name.
 	* Testing/nsconnection_client.m: don't run large structure test on
