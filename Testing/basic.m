@@ -95,6 +95,7 @@ static try(GSMimeParser *p, NSData *d)
 
 int main ()
 {
+extern char *gnustep_base_version;
   id	pool = [NSAutoreleasePool new];
   id	o = [NSObject new];
   id	x;
@@ -104,7 +105,7 @@ int main ()
   struct objc_struct_layout layout;
   unsigned i;
 
-  NSLog(@"%@", [@"//home//nicola" pathComponents]);
+  NSLog(@"GNUstep Base version: %s", gnustep_base_version);
 
   NSLog(@"Orig: %@", [NSUserDefaults userLanguages]);
   [NSUserDefaults setUserLanguages: [NSArray arrayWithObject: @"Bletch"]];
