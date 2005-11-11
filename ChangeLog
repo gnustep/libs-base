@@ -5,6 +5,8 @@
 	* Testing/nsconnection_client.m: don't run large structure test on
 	mingw32 at present ... it crashes (something wrong with the invocation
 	stuff for ffcall and some large structures on mingw32)
+	* Tools/gdnc.m: Obey GSMailslot default on mingw32.
+	* Source/NSDistributedNotificationCenter.m: ditto.
 
 2005-11-10  Richard Frith-Macdonald <rfm@gnu.org>
 

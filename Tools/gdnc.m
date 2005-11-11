@@ -24,7 +24,7 @@
 #include        <stdio.h>
 #include	<unistd.h>
 
-#ifdef __MINGW32__
+#if	defined(__MINGW32__)
 #include	"process.h"
 #endif
 
@@ -395,8 +395,16 @@ ihandler(int sig)
     }
   else
     {
-#ifdef	__MINGW32__
-      isPublic = YES;
+#if	defined(__MINGW32__)
+      if ([[NSUserDefaults standardUserDefaults]
+	boolForKey: @"GSMailslot"] == YES)
+	{
+	  isLocal = YES;
+	}
+      else
+	{
+	  isPublic = YES;
+	}
 #else
       isLocal = YES;
 #endif
@@ -425,7 +433,6 @@ ihandler(int sig)
 	  port = (NSPort*)[NSSocketPort port];
 	}
     }
-#ifndef	__MINGW32__
   else
     {
       hostname = @"";
@@ -433,7 +440,6 @@ ihandler(int sig)
       ns = [NSMessagePortNameServer sharedInstance];
       port = (NSPort*)[NSMessagePort port];
     }
-#endif
 
   conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];
   [conn setRootObject: self];
