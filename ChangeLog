@@ -10,6 +10,8 @@
 	* Source/win32/NSMessagePortWin32.m: Fixes for cases where requests
 	we wanted to be async actually complete synchronously.  Moves the
 	state of this code from pre-alpha to alpha/beta quality I guess.
+	* Source/preface.m: Change declaration of variables to be pointer to
+	char rather than array of char ... more usual/safe.
 
 2005-11-10  Richard Frith-Macdonald <rfm@gnu.org>
 

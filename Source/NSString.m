@@ -246,7 +246,7 @@ pathSepMember(unichar c)
  * 2. On windows, a root consisting of a single path separator indicates
  * a drive-relative path with no drive ... so the path is relative.
  */
-unsigned rootOf(NSString *s, unsigned l)
+static unsigned rootOf(NSString *s, unsigned l)
 {
   unsigned	root = 0;
 
