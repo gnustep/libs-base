@@ -772,8 +772,6 @@ static unsigned	wordAlign;
 
   M_LOCK(this->lock);
 
-retry:
-
   if (this->wData != nil)
     {
       /*
@@ -830,7 +828,7 @@ retry:
 	{
 	  NSDebugMLLog(@"NSMessagePort", @"Write of %d performs %d",
 	    [this->wData length] - this->wLength, this->wSize);
-	  goto retry;
+	  SetEvent(this->wEvent);
 	}
       else if ((errno = GetLastError()) != ERROR_IO_PENDING)
 	{
