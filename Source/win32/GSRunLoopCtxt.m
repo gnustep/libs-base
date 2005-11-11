@@ -429,6 +429,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
        * The watcher is still valid - so call its receivers
        * event handling method.
        */
+      NSDebugMLLog(@"NSRunLoop", @"Event callback found");
       (*watcher->handleEvent)(watcher->receiver,
           eventSel, watcher->data, watcher->type,
           (void*)(gsaddr)handle, mode);
