@@ -587,7 +587,18 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 #ifdef	__MINGW32__
       if (_type == NSLocalNotificationCenterType)
 	{
-	  ASSIGN(_type, GSPublicNotificationCenterType);
+	  if ([[NSUserDefaults standardUserDefaults]
+	    boolForKey: @"GSMailslot"] == YES)
+	    {
+	      host = @"";
+	      ns = [NSMessagePortNameServer sharedInstance];
+	      service = GDNC_SERVICE;
+	      description = @"local host";
+	    }
+	  else
+	    {
+	      ASSIGN(_type, GSPublicNotificationCenterType);
+	    }
 	}
 #else
       if (_type == NSLocalNotificationCenterType)
@@ -597,9 +608,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  service = GDNC_SERVICE;
 	  description = @"local host";
 	}
-      else
 #endif
-      if (_type == GSPublicNotificationCenterType)
+      else if (_type == GSPublicNotificationCenterType)
         {
 	  /*
 	   * Connect to the NSDistributedNotificationCenter for this host.
