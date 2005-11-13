@@ -1,7 +1,7 @@
 2005-11-12  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSPathUtilities.m: NSOpenStepRootDirectory() mark as
-	deprecated using macro (was already documented as deprecated).
+	* Source/NSPathUtilities.m: NSOpenStepRootDirectory() remove
+	deprecated status in documentation. Try to clarify doc.
 	Get rid of environment variable.  Use native path for mingw32
 
 2005-11-11  Richard Frith-Macdonald <rfm@gnu.org>

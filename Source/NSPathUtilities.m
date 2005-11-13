@@ -1244,9 +1244,14 @@ NSTemporaryDirectory(void)
 }
 
 /**
- * Deprecated function. Returns the location of the <em>root</em>
- * directory of the GNUstep file hierarchy.  Don't assume that /System,
- * /Network etc exist in this path! Use other path utility functions for that.
+ * Returns the location of the <em>root</em> directory of the file
+ * hierarchy. This lets you build paths in a system independent manner
+ * (for instance the root on unix is '/' but on windows it is 'C:\')
+ * by appending path components to the root.<br />
+ * Don't assume that /System, /Network etc exist in this path (generally
+ * they don't)! Use other path utility functions such as
+ * NSSearchPathForDirectoriesInDomains() to find standard locations
+ * for libraries, applications etc.<br />
  * Refer to the GNUstep File System Hierarchy documentation for more info.
  */
 NSString *
@@ -1254,13 +1259,10 @@ NSOpenStepRootDirectory(void)
 {
   NSString	*root;
 
-  GSOnceMLog(@"deprecated ... use NSSearchPathForDirectoriesInDomains()");
-#if	defined(__MINGW32__)
-#ifdef  __CYGWIN__
+#if	defined(__CYGWIN__)
   root = @"/cygdrive/c/";
-#else
+#elif	defined(__MINGW32__)
   root = @"C:\\";
-#endif
 #else
   root = @"/";
 #endif
