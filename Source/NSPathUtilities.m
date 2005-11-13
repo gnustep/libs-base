@@ -120,15 +120,6 @@ static NSString	*gnustep_flattened =
 
 #define	MGR()	[NSFileManager defaultManager]
 
-/*
- * NB. use fprintf() rather than NSLog() to avoid possibility of recursion
- * when features of NSLog() cause patrh utilities to be used.
- */
-#define PrintOnce(format, args...) \
-  do { static BOOL beenHere = NO; if (beenHere == NO) {\
-    beenHere = YES; \
-    fprintf(stderr, format, ## args); }} while (0)
-
 /* ------------------ */
 /* Internal variables */
 /* ------------------ */
@@ -1263,20 +1254,16 @@ NSOpenStepRootDirectory(void)
 {
   NSString	*root;
 
-  root = [[[NSProcessInfo processInfo] environment]
-    objectForKey: @"GNUSTEP_ROOT"];
-  if (root == nil)
-    {
+  GSOnceMLog(@"deprecated ... use NSSearchPathForDirectoriesInDomains()");
 #if	defined(__MINGW32__)
 #ifdef  __CYGWIN__
-      root = @"/cygdrive/c/";
+  root = @"/cygdrive/c/";
 #else
-      root = @"~c/";
+  root = @"C:\\";
 #endif
 #else
-      root = @"/";
+  root = @"/";
 #endif
-    }
   return root;
 }
 
