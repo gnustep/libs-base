@@ -211,7 +211,7 @@ int con_data (id prx)
   printf(" got %x\n", small.z);
   [pool release];
 
-#if !defined(__MINGW32__)
+#if 1 || !defined(__MINGW32__)
   pool = [NSAutoreleasePool new];
   printf("Struct:\n");
   printf("  sending c='%c',d=%g,i=%d,s=%s,l=%ld",
