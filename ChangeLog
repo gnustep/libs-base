@@ -3,6 +3,8 @@
 	* Source/win32/GSFileHandleWin32.m: Move mingw32 implementation of
 	file handle code here.
 	* Source/GSFileHandle.m: Remove mingw32 code.
+	* Source/NSPathUtilitires.m: Fix handling of user config file for
+	when the user name is changed.
 
 2005-11-12  Richard Frith-Macdonald <rfm@gnu.org>
 
