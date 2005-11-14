@@ -388,10 +388,36 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   // check wait errors
   if (wait_return == WAIT_FAILED)
     {
-      NSLog(@"WaitForMultipleObjects() error in "
-	@"-acceptInputForMode:beforeDate: '%s'",
+      int	i;
+      BOOL	found = NO;
+
+      NSDebugMLLog(@"NSRunLoop", @"WaitForMultipleObjects() error in "
+	@"-acceptInputForMode:beforeDate: %s",
 	GSLastErrorStr(GetLastError()));
-      abort ();        
+      /*
+       * Check each handle in turn until either we find one which has an
+       * event signalled, or we find the one which caused the original
+       * wait to fail ... so the callback routine for that handle can
+       * deal with the problem.
+       */
+      for (i = 0; i < num_handles; i++)
+	{
+	  handleArray[0] = handleArray[i];
+	  wait_return = WaitForMultipleObjects(1, handleArray, NO, 0);
+	  if (wait_return != WAIT_TIMEOUT)
+	    {
+	      wait_return = WAIT_OBJECT_0;
+	      found = YES;
+	      break;
+	    }
+	}
+      if (found == NO)
+	{
+	  NSLog(@"WaitForMultipleObjects() error in "
+	    @"-acceptInputForMode:beforeDate: %s",
+	    GSLastErrorStr(GetLastError()));
+	  abort ();        
+	}
     }
 
   // if there arent events

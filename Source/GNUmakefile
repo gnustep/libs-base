@@ -129,7 +129,6 @@ GSArray.m \
 GSAttributedString.m \
 GSCountedSet.m \
 GSDictionary.m \
-GSFileHandle.m \
 GSFormat.m \
 GSFTPURLHandle.m \
 GSHTTPURLHandle.m \
@@ -226,6 +225,7 @@ objc-load.m
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
 BASE_MFILES += \
+GSFileHandle.m \
 NSMessagePort.m \
 NSMessagePortNameServer.m
 endif

@@ -44,35 +44,19 @@
 
 #include "../Tools/gdomap.h"
 
-#include <time.h>
-#include <sys/time.h>
-#include <sys/param.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <winsock2.h>
+#include <fcntl.h>
 #include <sys/file.h>
+#include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/fcntl.h>
-#include <sys/ioctl.h>
-#ifdef	__svr4__
-#include <sys/filio.h>
-#endif
-#include <netdb.h>
+#include <io.h>
+#include <stdio.h>
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <errno.h>
-
-/*
- *	Stuff for setting the sockets into non-blocking mode.
- */
-#ifdef	__POSIX_SOURCE
-#define NBLK_OPT     O_NONBLOCK
-#else
-#define NBLK_OPT     FNDELAY
-#endif
 
 #ifndef	O_BINARY
 #ifdef	_O_BINARY
@@ -119,7 +103,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 #endif
   if (isSocket)
     {
-      len = recv(descriptor, buf, len, 0);
+      len = recv((SOCKET)_get_osfhandle(descriptor), buf, len, 0);
     }
   else
     {
@@ -143,7 +127,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 #endif
   if (isSocket)
     {
-      len = send(descriptor, buf, len, 0);
+      len = send((SOCKET)_get_osfhandle(descriptor), buf, len, 0);
     }
   else
     {
@@ -280,6 +264,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       [self setNonBlocking: wasNonBlocking];
       if (closeOnDealloc == YES)
 	{
+	  if (isSocket)
+            {
+              closesocket((SOCKET)_get_osfhandle(descriptor));
+	      WSACloseEvent(event);
+	      event = WSA_INVALID_EVENT;
+            }
 	  close(descriptor);
 	  descriptor = -1;
 	}
@@ -812,13 +802,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  NSLog(@"unable to bind to port %s:%d - %s", inet_ntoa(lsin.sin_addr),
 	    GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
-	  (void) close(net);
+	  (void) closesocket(net);
 	  RELEASE(self);
 	  return nil;
 	}
     }
 
-  self = [self initWithFileDescriptor: net closeOnDealloc: YES];
+  self = [self initWithNativeHandle: (void*)net closeOnDealloc: YES];
   if (self)
     {
       NSMutableDictionary*	info;
@@ -827,7 +817,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       [self setNonBlocking: YES];
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) == SOCKET_ERROR)
 	{
-	  if (errno != EINPROGRESS)
+	  if (WSAGetLastError() != WSAEWOULDBLOCK)
 	    {
 	      NSLog(@"unable to make connection to %s:%d - %s",
 		inet_ntoa(sin.sin_addr),
@@ -914,7 +904,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSLog(@"unable to bind to port %s:%d - %s", inet_ntoa(sin.sin_addr),
 	GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
-      (void) close(net);
+      (void) closesocket(net);
       RELEASE(self);
       return nil;
     }
@@ -922,7 +912,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (listen(net, 256) == SOCKET_ERROR)
     {
       NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
-      (void) close(net);
+      (void) closesocket(net);
       RELEASE(self);
       return nil;
     }
@@ -930,12 +920,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (getsockname(net, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
     {
       NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
-      (void) close(net);
+      (void) closesocket(net);
       RELEASE(self);
       return nil;
     }
 
-  self = [self initWithFileDescriptor: net closeOnDealloc: YES];
+  self = [self initWithNativeHandle: (void*)net closeOnDealloc: YES];
   if (self)
     {
       isSocket = YES;
@@ -950,7 +940,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initForReadingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_RDONLY|O_BINARY);
+  int	d = _wopen(
+    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    O_RDONLY|O_BINARY);
 
   if (d < 0)
     {
@@ -972,7 +964,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initForWritingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_WRONLY|O_BINARY);
+  int	d = _wopen(
+    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    O_WRONLY|O_BINARY);
 
   if (d < 0)
     {
@@ -994,7 +988,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initForUpdatingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_RDWR|O_BINARY);
+  int	d = _wopen(
+    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    O_RDWR|O_BINARY);
 
   if (d < 0)
     {
@@ -1075,12 +1071,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithNullDevice
 {
-  self = [self initWithFileDescriptor: open("/dev/null", O_RDWR|O_BINARY)
-		       closeOnDealloc: YES];
-  if (self)
-    {
-      isNullDevice = YES;
-    }
+  isNullDevice = YES;
+  isStandardFile = YES;
+  descriptor = -1;
   return self;
 }
 
@@ -1089,10 +1082,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   self = [super init];
   if (self != nil)
     {
-      struct stat	sbuf;
-      int		e;
+      struct _stat sbuf;
 
-      if (fstat(desc, &sbuf) < 0)
+      if (_fstat(desc, &sbuf) != 0)
 	{
           NSLog(@"unable to get status of descriptor %d - %s",
 	    desc, GSLastErrorStr(errno));
@@ -1109,15 +1101,22 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	}
 
-      if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
+      if (isStandardFile == NO)
 	{
-	  if (e & NBLK_OPT)
+	  unsigned long nbio = 0;
+
+	  isSocket = YES;
+	  /*
+	   * This is probably a socket ... try
+	   * using a socket specific call and see if that fails.
+	   */
+	  if (ioctlsocket((SOCKET)_get_osfhandle(desc), FIONBIO, &nbio) == 0)
 	    {
-	      wasNonBlocking = YES;
+	      wasNonBlocking = (nbio == 0) ? NO : YES;
 	    }
 	  else
 	    {
-	      wasNonBlocking = NO;
+	      isSocket = NO; // maybe special file desc. like std in/out/err?
 	    }
 	}
 
@@ -1132,18 +1131,34 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       writeOK = YES;
       acceptOK = YES;
       connectOK = YES;
+      if (isSocket)
+        {
+          event = CreateEvent(NULL, NO, NO, NULL);
+          if (event == WSA_INVALID_EVENT)
+            {
+              NSLog(@"Invalid Event - '%d'", WSAGetLastError());
+              return nil;
+            }
+          WSAEventSelect(_get_osfhandle(descriptor), event, FD_ALL_EVENTS);
+        }
+      else
+	{
+	  event = WSA_INVALID_EVENT;
+	}
     }
   return self;
 }
 
 - (id) initWithNativeHandle: (void*)hdl
 {
-  return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: NO];
+  return [self initWithFileDescriptor: _open_osfhandle((SOCKET)hdl, 0)
+		       closeOnDealloc: NO];
 }
 
 - (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
-  return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: flag];
+  return [self initWithFileDescriptor: _open_osfhandle((SOCKET)hdl, 0)
+		       closeOnDealloc: flag];
 }
 
 - (void) checkAccept
@@ -1248,7 +1263,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void*) nativeHandle
 {
-  return (void*)descriptor;
+  return (void*)(SOCKET)_get_osfhandle(descriptor);
 }
 
 // Synchronous I/O operations
@@ -1389,7 +1404,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       rval = [self write: (char*)ptr+pos length: toWrite];
       if (rval < 0)
 	{
-	  if (errno == EAGAIN || errno == EINTR)
+          if (WSAGetLastError()== WSAEINTR
+	    || WSAGetLastError()== WSAEWOULDBLOCK)
 	    {
 	      rval = 0;
 	    }
@@ -1504,7 +1520,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 #endif
-      result = lseek(descriptor, 0, SEEK_CUR);
+      result = _lseek(descriptor, 0, SEEK_CUR);
     }
   if (result < 0)
     {
@@ -1528,7 +1544,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 #endif
-      result = lseek(descriptor, 0, SEEK_END);
+      result = _lseek(descriptor, 0, SEEK_END);
     }
   if (result < 0)
     {
@@ -1552,7 +1568,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 #endif
-      result = lseek(descriptor, (off_t)pos, SEEK_SET);
+      result = _lseek(descriptor, (off_t)pos, SEEK_SET);
     }
   if (result < 0)
     {
@@ -1583,6 +1599,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       gzDescriptor = 0;
     }
 #endif
+  if (isSocket)
+    {
+      (void)closesocket((SOCKET)_get_osfhandle(descriptor));
+      WSACloseEvent(event);
+      event = WSA_INVALID_EVENT;
+    }
   (void)close(descriptor);
   descriptor = -1;
   acceptOK = NO;
@@ -1616,16 +1638,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (isStandardFile)
     {
-      (void)sync();
+      (void)_commit(descriptor);
     }
 }
 
 - (void) truncateFileAtOffset: (unsigned long long)pos
 {
-  if (isStandardFile && descriptor >= 0)
-    {
-      (void)ftruncate(descriptor, pos);
-    }
+  _chsize(descriptor, pos);
   [self seekToFileOffset: pos];
 }
 
@@ -1752,18 +1771,18 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l removeEvent: (void*)(gsaddr)descriptor
-		    type: ET_RDESC
+	  [l removeEvent: (void*)(gsaddr)event
+		    type: ET_HANDLE
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
         }
     }
   else
     {
-      [l removeEvent: (void*)(gsaddr)descriptor
-		type: ET_RDESC
+      [l removeEvent: (void*)(gsaddr)event
+	        type: ET_HANDLE
 	     forMode: NSDefaultRunLoopMode
-		 all: YES];
+                 all: YES];
     }
 }
 
@@ -1792,18 +1811,18 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l removeEvent: (void*)(gsaddr)descriptor
-		    type: ET_WDESC
-		 forMode: [modes objectAtIndex: i]
-		     all: YES];
+          [l removeEvent: (void*)(gsaddr)event
+	            type: ET_HANDLE
+	         forMode: [modes objectAtIndex: i]
+                     all: YES];
         }
     }
   else
     {
-      [l removeEvent: (void*)(gsaddr)descriptor
-		type: ET_WDESC
+      [l removeEvent: (void*)(gsaddr)event
+                type: ET_HANDLE
 	     forMode: NSDefaultRunLoopMode
-		 all: YES];
+                 all: YES];
     }
 }
 
@@ -1824,8 +1843,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l addEvent: (void*)(gsaddr)descriptor
-		 type: ET_RDESC
+	  [l addEvent: (void*)(gsaddr)event
+		 type: ET_HANDLE
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
         }
@@ -1833,8 +1852,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      [l addEvent: (void*)(gsaddr)descriptor
-	     type: ET_RDESC
+      [l addEvent: (void*)(gsaddr)event
+	     type: ET_HANDLE
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
     }
@@ -1861,16 +1880,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
-	      [l addEvent: (void*)(gsaddr)descriptor
-		     type: ET_WDESC
+	      [l addEvent: (void*)(gsaddr)event
+		     type: ET_HANDLE
 		  watcher: self
 		  forMode: [modes objectAtIndex: i]];
 	    }
 	}
       else
 	{
-	  [l addEvent: (void*)(gsaddr)descriptor
-		 type: ET_WDESC
+	  [l addEvent: (void*)(gsaddr)event
+		 type: ET_HANDLE
 	      watcher: self
 	      forMode: NSDefaultRunLoopMode];
 	}
@@ -1885,10 +1904,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (operation == NSFileHandleConnectionAcceptedNotification)
     {
       struct sockaddr_in	buf;
-      int			desc;
+      SOCKET		        desc;
       unsigned int		blen = sizeof(buf);
 
-      desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
+      desc = accept((SOCKET)_get_osfhandle(descriptor),
+	(struct sockaddr*)&buf, &blen);
+
       if (desc == INVALID_SOCKET)
 	{
 	  NSString	*s;
@@ -1911,7 +1932,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&status,
 	    sizeof(status));
 
-	  h = [[[self class] alloc] initWithFileDescriptor: desc
+	  h = [[[self class] alloc] initWithNativeHandle: (void*)desc
 						closeOnDealloc: YES];
 	  h->isSocket = YES;
 	  getpeername(desc, (struct sockaddr*)&sin, &size);
@@ -1957,7 +1978,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
         }
       else if (received < 0)
         {
-          if (errno != EAGAIN && errno != EINTR)
+          if (WSAGetLastError() != WSAEINTR
+	    && WSAGetLastError() != WSAEWOULDBLOCK)
             {
 	      NSString	*s;
 
@@ -1992,7 +2014,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       int	result;
       unsigned	len = sizeof(result);
 
-      if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
+      if (getsockopt((SOCKET)_get_osfhandle(descriptor), SOL_SOCKET, SO_ERROR,
         (char*)&result, &len) == 0 && result != 0)
         {
           NSString	*s;
@@ -2026,7 +2048,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     		     length: length-writePos];
           if (written <= 0)
             {
-	      if (written < 0 && errno != EAGAIN && errno != EINTR)
+              if (written < 0 && WSAGetLastError()!= WSAEINTR
+		&& WSAGetLastError()!= WSAEWOULDBLOCK)
 	        {
 	          NSString	*s;
 
@@ -2053,19 +2076,73 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
+  WSANETWORKEVENTS ocurredEvents;
+
   NSDebugMLLog(@"NSFileHandle", @"%@ event: %d", self, type);
 
   if (isNonBlocking == NO)
     {
       [self setNonBlocking: YES];
     }
-  if (type == ET_RDESC)
+  if (WSAEnumNetworkEvents((SOCKET)_get_osfhandle(descriptor), 
+    event, &ocurredEvents) == SOCKET_ERROR)
     {
-      [self receivedEventRead];
+      NSLog(@"Error getting event type %d", WSAGetLastError());
+      abort();
     }
-  else
+  if (ocurredEvents.lNetworkEvents & FD_CONNECT)
     {
+      NSDebugMLLog(@"NSFileHandle", @"Connect on %x", extra);
+      ocurredEvents.lNetworkEvents ^= FD_CONNECT;
       [self receivedEventWrite];
+      GSNotifyASAP();
+    }
+  if (ocurredEvents.lNetworkEvents & FD_ACCEPT)
+    {
+      NSDebugMLLog(@"NSFileHandle", @"Accept on %x", extra);
+      ocurredEvents.lNetworkEvents ^= FD_ACCEPT;
+      [self receivedEventRead];
+      GSNotifyASAP();
+    }
+  if (ocurredEvents.lNetworkEvents & FD_WRITE)
+    {
+      NSDebugMLLog(@"NSFileHandle", @"Write on %x", extra);
+      ocurredEvents.lNetworkEvents ^= FD_WRITE;
+      [self receivedEventWrite];
+      GSNotifyASAP();
+    }
+  if (ocurredEvents.lNetworkEvents & FD_READ)
+    {
+      NSDebugMLLog(@"NSFileHandle", @"Read on %x", extra);
+      ocurredEvents.lNetworkEvents ^= FD_READ;
+      [self receivedEventRead];
+      GSNotifyASAP();
+    }
+  if (ocurredEvents.lNetworkEvents & FD_OOB)
+    {
+      NSDebugMLLog(@"NSFileHandle", @"OOB on %x", extra);
+      ocurredEvents.lNetworkEvents ^= FD_OOB;
+      [self receivedEventRead];
+      GSNotifyASAP();
+    }
+  if (ocurredEvents.lNetworkEvents & FD_CLOSE)
+    {
+      NSDebugMLLog(@"NSFileHandle", @"Close on %x", extra);
+      ocurredEvents.lNetworkEvents ^= FD_CLOSE;
+      if ([writeInfo count] > 0)
+	{
+	  [self receivedEventWrite];
+	}
+      else
+	{
+	  [self receivedEventRead];
+	}
+      GSNotifyASAP();
+    }
+  if (ocurredEvents.lNetworkEvents)
+    {
+      NSLog(@"Event not get %d", ocurredEvents.lNetworkEvents);
+      abort();      
     }
 }
 
@@ -2100,32 +2177,34 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      int	e;
+      unsigned long	dummy;
 
-      if ((e = fcntl(descriptor, F_GETFL, 0)) >= 0)
+      if (isSocket != YES)
+        return;
+
+      if (flag)
 	{
-	  if (flag == YES)
+	  dummy = 1;
+	  if (ioctlsocket((SOCKET)_get_osfhandle(descriptor), FIONBIO, &dummy)
+	    == SOCKET_ERROR)
 	    {
-	      e |= NBLK_OPT;
+	      NSLog(@"unable to set non-blocking mode - %s",
+		GSLastErrorStr(errno));
 	    }
 	  else
-	    {
-	      e &= ~NBLK_OPT;
-	    }
-	  if (fcntl(descriptor, F_SETFL, e) < 0)
-	    {
-	      NSLog(@"unable to set non-blocking mode for %d - %s",
-		descriptor, GSLastErrorStr(errno));
-	    }
-	  else
-	    {
-	      isNonBlocking = flag;
-	    }
+	    isNonBlocking = flag;
 	}
       else
 	{
-	  NSLog(@"unable to get non-blocking mode for %d - %s",
-	    descriptor, GSLastErrorStr(errno));
+	  dummy = 0;
+	  if (ioctlsocket((SOCKET)_get_osfhandle(descriptor), FIONBIO, &dummy)
+	    == SOCKET_ERROR)
+	    {
+	      NSLog(@"unable to set blocking mode - %s",
+		GSLastErrorStr(errno));
+	    }
+	  else
+	    isNonBlocking = flag;
 	}
     }
 }
