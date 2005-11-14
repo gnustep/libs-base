@@ -661,7 +661,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   static NSString	*esocks = nil;
   static NSString	*dsocks = nil;
   static BOOL		beenHere = NO;
-  SOCKET		net;
+  int			net;
   struct sockaddr_in	sin;
   struct sockaddr_in	lsin;
   NSString		*lhost = nil;
@@ -794,7 +794,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
     }
 
-  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
+  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == -1)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
@@ -808,7 +808,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (lhost != nil)
     {
-      if (bind(net, (struct sockaddr *)&lsin, sizeof(lsin)) == SOCKET_ERROR)
+      if (bind(net, (struct sockaddr *)&lsin, sizeof(lsin)) == -1)
 	{
 	  NSLog(@"unable to bind to port %s:%d - %s", inet_ntoa(lsin.sin_addr),
 	    GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
@@ -825,7 +825,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       isSocket = YES;
       [self setNonBlocking: YES];
-      if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) == SOCKET_ERROR)
+      if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) == -1)
 	{
 	  if (errno != EINPROGRESS)
 	    {
@@ -880,9 +880,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		    protocol: (NSString*)p
 {
 #ifndef	BROKEN_SO_REUSEADDR
-  int		status = 1;
+  int			status = 1;
 #endif
-  SOCKET	net;
+  int			net;
   struct sockaddr_in	sin;
   unsigned int		size = sizeof(sin);
 
@@ -893,7 +893,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return  nil;
     }
 
-  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
+  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == -1)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
@@ -910,7 +910,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
 #endif
 
-  if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) == SOCKET_ERROR)
+  if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) == -1)
     {
       NSLog(@"unable to bind to port %s:%d - %s", inet_ntoa(sin.sin_addr),
 	GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
@@ -919,7 +919,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return nil;
     }
 
-  if (listen(net, 256) == SOCKET_ERROR)
+  if (listen(net, 256) == -1)
     {
       NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
       (void) close(net);
@@ -927,7 +927,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return nil;
     }
 
-  if (getsockname(net, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
+  if (getsockname(net, (struct sockaddr*)&sin, &size) == -1)
     {
       NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
       (void) close(net);
@@ -1889,7 +1889,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       unsigned int		blen = sizeof(buf);
 
       desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
-      if (desc == INVALID_SOCKET)
+      if (desc == -1)
 	{
 	  NSString	*s;
 
@@ -2141,7 +2141,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   struct sockaddr_in sin;
   unsigned	size = sizeof(sin);
 
-  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
+  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == -1)
     {
       NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
     }
@@ -2158,7 +2158,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   struct sockaddr_in sin;
   unsigned	size = sizeof(sin);
 
-  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
+  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == -1)
     {
       NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
     }
