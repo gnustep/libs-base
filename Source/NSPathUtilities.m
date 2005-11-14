@@ -134,7 +134,6 @@ static NSString *gnustepSystemRoot = nil;      /*  GNUSTEP_SYSTEM_ROOT path */
 
 static NSString *gnustepUserDir = nil;
 static NSString *gnustepUserHome = nil;
-static NSString *gnustepUserConfigFile = nil;
 static NSString *gnustepUserDefaultsDir = nil;
 
 static NSString *theUserName = nil;             /*      The user's login name */
@@ -175,7 +174,7 @@ static NSString *localLibs  = nil;
 /* Internal function prototypes. */
 /* ============================= */
 
-static NSDictionary* GNUstepConfig(void);
+NSDictionary* GNUstepConfig(void);
 
 static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict);
 
@@ -353,7 +352,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
 /*
  * Function to return the system-wide configuration
  */
-static NSDictionary*
+NSDictionary*
 GNUstepConfig(void)
 {
   static NSDictionary	*config = nil;
@@ -417,8 +416,6 @@ GNUstepConfig(void)
 		}
 	      config = [conf copy];
 	      DESTROY(conf);
-	      gnustepUserConfigFile
-		= [config objectForKey: @"GNUSTEP_USER_CONFIG_FILE"];
 	    }
 	  NS_HANDLER
 	    {
@@ -445,14 +442,15 @@ GNUstepUserConfig(NSString *name)
   NSString		*home;
 
   conf = [GNUstepConfig() mutableCopy];
-  file = gnustepUserConfigFile;
+  file = RETAIN([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]);
   home = NSHomeDirectoryForUser(name);
   ParseConfigurationFile([home stringByAppendingPathComponent: file], conf);
   /*
    * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
    * variable ... that would be silly/pointless.
    */
-  [conf setObject: gnustepUserConfigFile forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+  [conf setObject: file forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+  RELEASE(file);
   return AUTORELEASE(conf);
 }
 
@@ -490,7 +488,7 @@ static void InitialisePathUtilities(void)
 	  NSString	*file;
 
 	  file = [gnustepUserHome stringByAppendingPathComponent:
-	    gnustepUserConfigFile];
+	    [userConfig objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]];
 	  ParseConfigurationFile(file, userConfig);
 	}
       ExtractValuesFromConfig(userConfig);
@@ -519,7 +517,6 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepUserRoot);
 
   DESTROY(gnustepUserHome);
-  DESTROY(gnustepUserConfigFile);
   DESTROY(gnustepUserDefaultsDir);
 
 #ifdef OPTION_PLATFORM_SUPPORT
