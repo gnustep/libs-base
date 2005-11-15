@@ -57,7 +57,6 @@
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSProcessInfo.h"
 #include "Foundation/NSRange.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSData.h"
@@ -428,8 +427,6 @@ handle_printf_atsign (FILE *stream,
 
   if (self == [NSString class] && beenHere == NO)
     {
-      NSString	*setting;
-
       beenHere = YES;
       cMemberSel = @selector(characterIsMember:);
       caiSel = @selector(characterAtIndex:);
@@ -438,6 +435,17 @@ handle_printf_atsign (FILE *stream,
 
       _DefaultStringEncoding = GetDefEncoding();
       _ByteEncodingOk = GSIsByteEncoding(_DefaultStringEncoding);
+      if (getenv("GNUSTEP_PATH_HANDLING") != 0)
+	{
+	  if (strcmp("unix", getenv("GNUSTEP_PATH_HANDLING")) == 0)
+	    {
+	      pathHandling = PH_UNIX;
+	    }
+	  else if (strcmp("windows", getenv("GNUSTEP_PATH_HANDLING")) == 0)
+	    {
+	      pathHandling = PH_WINDOWS;
+	    }
+	}
 
       NSStringClass = self;
       [self setVersion: 1];
@@ -467,20 +475,6 @@ handle_printf_atsign (FILE *stream,
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
-
-      setting = [[[NSProcessInfo processInfo] environment]
-	objectForKey: @"GNUSTEP_PATH_HANDLING"];
-      if (setting != nil)
-	{
-	  if ([setting isEqualToString: @"unix"] == YES)
-	    {
-	      pathHandling = PH_UNIX;
-	    }
-	  else if ([setting isEqualToString: @"windows"] == YES)
-	    {
-	      pathHandling = PH_WINDOWS;
-	    }
-	}
     }
 }
 
