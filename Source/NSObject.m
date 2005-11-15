@@ -954,8 +954,6 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       zombieClass = [NSZombie class];
-      NSZombieEnabled = GSEnvironmentFlag("NSZombieEnabled", NO);
-      NSDeallocateZombies = GSEnvironmentFlag("NSDeallocateZombies", NO);
 
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
@@ -973,6 +971,11 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 	   selector: @selector(_becomeMultiThreaded:)
 	       name: NSWillBecomeMultiThreadedNotification
 	     object: nil];
+
+      NSZombieEnabled = [[[[NSProcessInfo processInfo] environment]
+	objectForKey: @"NSZombieEnabled"] boolValue];
+      NSDeallocateZombies = [[[[NSProcessInfo processInfo] environment]
+	objectForKey: @"NSDeallocateZombies"] boolValue];
     }
   return;
 }

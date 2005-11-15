@@ -1,3 +1,17 @@
+2005-11-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdnc.m:
+	* Source/GSPrivate.h:
+	* Source/NSException.m:
+	* Source/NSObject.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSString.m:
+	* Source/NSUserDefaults.m:
+	Be consistent and access environment variables only via the
+	NSProcessInfo class ...so a program which uses a category to
+	override it can effectively change the environment safely.
+
 2005-11-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFileHandleWin32.m: Move mingw32 implementation of

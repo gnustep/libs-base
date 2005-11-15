@@ -182,11 +182,6 @@ NSDictionary	*GSUserDefaultsDictionaryRepresentation(void);
  */
 BOOL	GSUserDefaultsFlag(GSUserDefaultFlagType type);
 
-/**
- * Get a flag from an environment variable - return def if not defined.
- */
-BOOL	GSEnvironmentFlag(const char *name, BOOL def);
-
 
 
 /**

@@ -31,6 +31,7 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSDictionary.h"
+#include "Foundation/NSProcessInfo.h"
 #include <stdio.h>
 
 /**
@@ -88,7 +89,8 @@ static void _terminate()
 #else
   shouldAbort = NO;		// exit() by default.
 #endif
-  shouldAbort = GSEnvironmentFlag("CRASH_ON_ABORT", shouldAbort);
+  shouldAbort = [[[[NSProcessInfo processInfo] environment]
+    objectForKey: @"CRASH_ON_ABORT"] boolValue];
   if (shouldAbort == YES)
     {
       abort();

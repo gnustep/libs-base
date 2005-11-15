@@ -104,7 +104,7 @@ ihandler(int sig)
 {
   static BOOL	beenHere = NO;
   BOOL		action;
-  const char	*e;
+  NSString	*e;
 
   /*
    * Deal with recursive call of handler.
@@ -128,17 +128,11 @@ ihandler(int sig)
 #else
   action = NO;		// exit() by default.
 #endif
-  e = getenv("CRASH_ON_ABORT");
-  if (e != 0)
+  e = [[[NSProcessInfo processInfo] environment] objectForKey:
+    @"CRASH_ON_ABORT"];
+  if (e != nil)
     {
-      if (strcasecmp(e, "yes") == 0 || strcasecmp(e, "true") == 0)
-	action = YES;
-      else if (strcasecmp(e, "no") == 0 || strcasecmp(e, "false") == 0)
-	action = NO;
-      else if (isdigit(*e) && *e != '0')
-	action = YES;
-      else
-	action = NO;
+      action = [e boolValue];
     }
 
   if (action == YES)
