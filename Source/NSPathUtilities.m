@@ -872,21 +872,31 @@ NSUserName(void)
 #if defined(__WIN32__)
   if (theUserName == nil)
     {
-      const unichar *loginName = 0;
-      /* The GetUserName function returns the current user name */
-      unichar buf[1024];
-      DWORD n = 1024;
-
-      if (GetEnvironmentVariableW(L"LOGNAME", buf, 1024) != 0 && buf[0] != '\0')
-	loginName = buf;
-      else if (GetUserNameW(buf, &n) != 0 && buf[0] != '\0')
-	loginName = buf;
-      if (loginName)
-	theUserName = [[NSString alloc] initWithCharacters: loginName
-						    length: wcslen(loginName)];
+      /* Use the LOGNAME environment variable if set. */
+      theUserName = [[[NSProcessInfo processInfo] environment]
+	objectForKey: @"LOGNAME"];
+      if ([theUserName length] > 0)
+	{
+	  RETAIN(theUserName);
+	}
       else
-	[NSException raise: NSInternalInconsistencyException
-		    format: @"Unable to determine current user name"];
+	{
+	  /* The GetUserName function returns the current user name */
+	  unichar buf[1024];
+	  DWORD n = 1024;
+
+	  if (GetUserNameW(buf, &n) != 0 && buf[0] != '\0')
+	    {
+	      theUserName = [[NSString alloc] initWithCharacters: buf
+							  length: wcslen(buf)];
+	    }
+	  else
+	    {
+	      theUserName = nil;
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Unable to determine current user name"];
+	    }
+	}
     }
 #else
   /* Set olduid to some invalid uid that we could never start off running
