@@ -174,7 +174,7 @@ static NSString *localLibs  = nil;
 /* Internal function prototypes. */
 /* ============================= */
 
-NSDictionary* GNUstepConfig(void);
+NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig, NSString *userName);
 
 static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict);
 
@@ -350,21 +350,25 @@ static void ExtractValuesFromConfig(NSDictionary *config)
 }
 
 /*
- * Function to return the system-wide configuration
+ * Function to return a mutable copy of the configuration,
+ * either the system wide config, or (if a userName was provided)
+ * the config for a specific user.
+ * If newConfig is not nil, it is used to set a new system wide
+ * configuration.
  */
-NSDictionary*
-GNUstepConfig(void)
+NSMutableDictionary*
+GNUstepConfig(NSDictionary *newConfig, NSString *userName)
 {
   static NSDictionary	*config = nil;
+  NSMutableDictionary	*conf = nil;
+  BOOL			changedSystemConfig = NO;
 
-  if (config == nil)
+  [gnustep_global_lock lock];
+  if (config == nil || (newConfig != nil && [config isEqual: newConfig] == NO))
     {
-      [gnustep_global_lock lock];
-      if (config == nil)
+      NS_DURING
 	{
-	  NSMutableDictionary	*conf = nil;
-
-	  NS_DURING
+	  if (newConfig == nil)
 	    {
 	      NSString	*file = nil;
 
@@ -401,98 +405,110 @@ GNUstepConfig(void)
 	      gnustepConfigPath = [file stringByDeletingLastPathComponent];
 	      RETAIN(gnustepConfigPath);
 	      ParseConfigurationFile(file, conf);
-
-	      /* System admins may force the user and defaults paths by
-	       * setting GNUSTEP_USER_CONFIG_FILE to be an empty string.
-	       * If they simply don't define it at all, we assign a default.
-	       */
-	      if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"] == nil)
-		{
-		  NSString	*tmp;
-
-		  tmp = [NSString stringWithCString:\
-		    STRINGIFY(GNUSTEP_USER_CONFIG_FILE)];
-		  [conf setObject: tmp forKey: @"GNUSTEP_USER_CONFIG_FILE"];
-		}
-	      config = [conf copy];
-	      DESTROY(conf);
 	    }
-	  NS_HANDLER
+	  else
 	    {
-	      [gnustep_global_lock unlock];
-	      config = nil;
-	      DESTROY(conf);
-	      [localException raise];
+	      conf = [newConfig mutableCopy];
 	    }
-	  NS_ENDHANDLER
+	  /* System admins may force the user and defaults paths by
+	   * setting GNUSTEP_USER_CONFIG_FILE to be an empty string.
+	   * If they simply don't define it at all, we assign a default.
+	   */
+	  if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"] == nil)
+	    {
+	      NSString	*tmp;
+
+	      tmp = [NSString stringWithCString:\
+		STRINGIFY(GNUSTEP_USER_CONFIG_FILE)];
+	      [conf setObject: tmp forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+	    }
+	  if (config != nil)
+	    {
+	      changedSystemConfig = YES;
+	    }
+	  config = [conf copy];
+	  DESTROY(conf);
 	}
-      [gnustep_global_lock unlock];
+      NS_HANDLER
+	{
+	  [gnustep_global_lock unlock];
+	  config = nil;
+	  DESTROY(conf);
+	  [localException raise];
+	}
+      NS_ENDHANDLER
     }
-  return config;
-}
+  [gnustep_global_lock unlock];
 
-/*
- * Function to return the configuration for the named user
- */
-static NSDictionary*
-GNUstepUserConfig(NSString *name)
-{
-  NSMutableDictionary	*conf;
-  NSString		*file;
-  NSString		*home;
+  if (changedSystemConfig == YES)
+    {
+      /*
+       * The main configuration was changed by passing in a dictionary to
+       * this function, so we need to reset the path utilities system to use
+       * any new values from the config.
+       */
+      ShutdownPathUtilities();
+      InitialisePathUtilities();
+    }
 
-  conf = [GNUstepConfig() mutableCopy];
-  file = RETAIN([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]);
-  home = NSHomeDirectoryForUser(name);
-  ParseConfigurationFile([home stringByAppendingPathComponent: file], conf);
-  /*
-   * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
-   * variable ... that would be silly/pointless.
-   */
-  [conf setObject: file forKey: @"GNUSTEP_USER_CONFIG_FILE"];
-  RELEASE(file);
-  return AUTORELEASE(conf);
+#ifdef HAVE_GETEUID
+  if (userName != nil)
+    {
+      /*
+       * A program which is running setuid cannot be trusted
+       * to pick up user specific config, so we clear the userName
+       * to force the system configuration to be returned rather
+       * than a per-user config.
+       */
+      if (getuid() != geteuid())
+	{
+	  userName = nil;
+	}
+    }
+#endif
+
+  if (config != nil && userName != nil)
+    {
+      NSString		*file;
+      NSString		*home;
+
+      conf = AUTORELEASE([config mutableCopy]);
+      file = RETAIN([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]);
+      home = NSHomeDirectoryForUser(userName);
+      ParseConfigurationFile([home stringByAppendingPathComponent: file], conf);
+      /*
+       * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
+       * variable ... that would be silly/pointless.
+       */
+      [conf setObject: file forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+      RELEASE(file);
+      return conf;
+    }
+  else
+    {
+      return AUTORELEASE([config mutableCopy]);
+    }
 }
 
 /* Initialise all things required by this module */
 static void InitialisePathUtilities(void)
 {
-  NSMutableDictionary *userConfig = nil;
-
   if (gnustepSystemRoot != nil)
     {
       return;	// Protect from multiple calls
     }
 
-  [gnustep_global_lock lock];
-
   /* Set up our root paths */
   NS_DURING
     {
-      BOOL	shouldLoadUserConfig = YES;
+      NSString			*userName;
+      NSMutableDictionary	*config;
 
-      userConfig = [GNUstepConfig() mutableCopy];
-      ASSIGNCOPY(gnustepUserHome, NSHomeDirectoryForUser(NSUserName()));
-#ifdef HAVE_GETEUID
-      /*
-       * A program which is running setuid cannot be trusted
-       * to pick up user specific config.
-       */
-      if (getuid() != geteuid())
-	{
-	  shouldLoadUserConfig = NO;
-	}
-#endif
-      if (shouldLoadUserConfig == YES)
-	{
-	  NSString	*file;
-
-	  file = [gnustepUserHome stringByAppendingPathComponent:
-	    [userConfig objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]];
-	  ParseConfigurationFile(file, userConfig);
-	}
-      ExtractValuesFromConfig(userConfig);
-      DESTROY(userConfig);
+      [gnustep_global_lock lock];
+      userName = NSUserName();
+      config = GNUstepConfig(nil, userName);
+      ASSIGNCOPY(gnustepUserHome, NSHomeDirectoryForUser(userName));
+      ExtractValuesFromConfig(config);
 
       [gnustep_global_lock unlock];
     }
@@ -500,7 +516,6 @@ static void InitialisePathUtilities(void)
     {
       /* unlock then re-raise the exception */
       [gnustep_global_lock unlock];
-      DESTROY(userConfig);
       [localException raise];
     }
   NS_ENDHANDLER
@@ -1051,7 +1066,7 @@ GSDefaultsRootForUser(NSString *userName)
     {
       NSDictionary	*config;
 
-      config = GNUstepUserConfig(userName);
+      config = GNUstepConfig(nil, userName);
       defaultsDir = [config objectForKey: @"GNUSTEP_USER_DEFAULTS_DIR"];
       if (defaultsDir == nil)
 	{

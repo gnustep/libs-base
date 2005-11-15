@@ -4,13 +4,16 @@
 	* Source/GSPrivate.h:
 	* Source/NSException.m:
 	* Source/NSObject.m:
-	* Source/NSPathUtilities.m:
 	* Source/NSProcessInfo.m:
 	* Source/NSString.m:
 	* Source/NSUserDefaults.m:
 	Be consistent and access environment variables only via the
 	NSProcessInfo class ...so a program which uses a category to
 	override it can effectively change the environment safely.
+	* Source/NSPathUtilities.m:
+	Restructure code for gatting config, so that a single function
+	can be used to get/set config information for the system or a
+	user. Decrease code duplication.
 
 2005-11-14  Richard Frith-Macdonald <rfm@gnu.org>
 
