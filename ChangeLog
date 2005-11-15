@@ -1,5 +1,10 @@
 2005-11-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Revert last changes ... discovered some apps where ordering of
+	class initialisation caused failures.
+
+2005-11-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/gdnc.m:
 	* Source/GSPrivate.h:
 	* Source/NSException.m:
