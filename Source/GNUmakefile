@@ -214,7 +214,6 @@ NSUnarchiver.m \
 NSUndoManager.m \
 NSURL.m \
 NSURLHandle.m \
-NSUser.m \
 NSUserDefaults.m \
 NSValue.m \
 NSXMLParser.m \

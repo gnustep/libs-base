@@ -627,27 +627,36 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 #endif
       if (currLang == nil)
 	{
-	  const char	*env_list;
 	  NSString	*env;
 
-	  env_list = getenv("LANGUAGES");
-	  if (env_list != 0)
+	  env = [[[NSProcessInfo processInfo] environment]
+	    objectForKey: @"LANGUAGES"];
+	  if (env != nil)
 	    {
-	      env = [NSStringClass stringWithCString: env_list];
 	      currLang = [env componentsSeparatedByString: @";"];
 	    }
 	}
 
       if (currLang != nil)
 	{
-	  if ([currLang containsObject: @""] == YES)
-	    {
-	      NSMutableArray	*a = [currLang mutableCopy];
+	  NSMutableArray	*a = [currLang mutableCopy];
+	  unsigned		c = [a count];
 
-	      [a removeObject: @""];
-	      currLang = (NSArray*)AUTORELEASE(a);
+	  while (c-- > 0)
+	    {
+	      NSString	*s = [[a objectAtIndex: c] stringByTrimmingSpaces];
+
+	      if ([s length] == 0)
+		{
+		  [a removeObjectAtIndex: c];
+		}
+	      else
+		{
+		  [a replaceObjectAtIndex: c withObject: s];
+		}
 	    }
-	  [userLanguages addObjectsFromArray: currLang];
+	  [userLanguages addObjectsFromArray: a];
+	  RELEASE(a);
 	}
 
       /* Check if "English" is included. We do this to make sure all the
