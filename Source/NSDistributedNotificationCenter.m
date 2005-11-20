@@ -40,6 +40,7 @@
 #include	"Foundation/NSUserDefaults.h"
 #include	"Foundation/NSHost.h"
 #include	"Foundation/NSPortNameServer.h"
+#include	"Foundation/NSDebug.h"
 
 #include	"../Tools/gdnc.h"
 
@@ -582,33 +583,27 @@ static NSDistributedNotificationCenter	*netCenter = nil;
       NSString		*host = nil;
       NSString		*service = nil;
       NSString		*description = nil;
+      NSString		*alternate = nil;
       NSPortNameServer	*ns = nil;
+      Protocol		*p = @protocol(GDNCProtocol);
+      NSConnection	*c;
 
 #ifdef	__MINGW32__
-      if (_type == NSLocalNotificationCenterType)
+      if (_type == NSLocalNotificationCenterType
+	&& [[NSUserDefaults standardUserDefaults]
+	    boolForKey: @"GSMailslot"] == NO)
 	{
-	  if ([[NSUserDefaults standardUserDefaults]
-	    boolForKey: @"GSMailslot"] == YES)
-	    {
-	      host = @"";
-	      ns = [NSMessagePortNameServer sharedInstance];
-	      service = GDNC_SERVICE;
-	      description = @"local host";
-	    }
-	  else
-	    {
-	      ASSIGN(_type, GSPublicNotificationCenterType);
-	    }
+	  ASSIGN(_type, GSPublicNotificationCenterType);
 	}
-#else
+#endif
+
       if (_type == NSLocalNotificationCenterType)
 	{
-	  host = @"";
 	  ns = [NSMessagePortNameServer sharedInstance];
+	  host = @"";
 	  service = GDNC_SERVICE;
 	  description = @"local host";
 	}
-#endif
       else if (_type == GSPublicNotificationCenterType)
         {
 	  /*
@@ -643,6 +638,10 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	      else
 		{
 		  host = [h name];
+		}
+	      if ([host isEqual: @""] == NO)
+		{
+		  alternate = [service stringByAppendingFormat: @"-%@", host] ;
 		}
 	    }
 	  if ([host length] == 0
@@ -681,97 +680,88 @@ static NSDistributedNotificationCenter	*netCenter = nil;
       _remote = [NSConnection rootProxyForConnectionWithRegisteredName: service
 								  host: host
 						       usingNameServer: ns];
-      RETAIN(_remote);
-
-      if (_type == GSPublicNotificationCenterType
-	&& _remote == nil && [host isEqual: @""] == NO)
+      if (_remote == nil && alternate != nil)
 	{
 	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
-	    [service stringByAppendingFormat: @"-%@", host] host: @"*"
-	    usingNameServer: ns];
-	  RETAIN(_remote);
+	    alternate host: @"*" usingNameServer: ns];
 	}
 
-      if (_remote != nil)
+      if (_remote == nil)
 	{
-	  NSConnection	*c = [_remote connectionForProxy];
-	  Protocol	*p = @protocol(GDNCProtocol);
+	  NSString	*cmd = nil;
+	  NSArray	*args = nil;
+	  NSDate	*limit;
 
-	  [_remote setProtocolForProxy: p];
-	
-	  /*
-           * Ensure that this center can be used safely from different
-	   * threads.
-	   */
-	  [c enableMultipleThreads];
+	  cmd = [[NSSearchPathForDirectoriesInDomains(
+	    GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
+	    stringByAppendingPathComponent: @"gdnc"];
 
-	  /*
-	   *	Ask to be told if the connection goes away.
-	   */
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	       selector: @selector(_invalidated:)
-		   name: NSConnectionDidDieNotification
-		 object: c];
-	  [_remote registerClient: (id<GDNCClient>)self];
-	}
-      else
-	{
-	  static BOOL		recursion = NO;
-	  static NSString	*cmd = nil;
-	  static NSArray	*args = nil;
-
-	  if (recursion == NO)
-	    {
-	      if (cmd == nil)
-		{
-                  cmd = RETAIN([[NSSearchPathForDirectoriesInDomains(
-                    GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
-                    stringByAppendingPathComponent: @"gdnc"]);
-		}
-	    }
-	  if (recursion == NO && cmd != nil)
-	    {
-	      NSLog(@"\nI couldn't contact the notification server for %@ -\n"
+	  NSDebugMLLog(@"NSDistributedNotificationCenter",
+@"\nI couldn't contact the notification server for %@ -\n"
 @"so I'm attempting to to start one - which will take a few seconds.\n"
 @"Trying to launch gdnc from %@ or a machine/operating-system subdirectory.\n"
 @"It is recommended that you start the notification server (gdnc) either at\n"
 @"login or (better) when your computer is started up.\n", description,
 [cmd stringByDeletingLastPathComponent]);
 
-	      if (_type == GSNetworkNotificationCenterType)
-	      	{
-		  args = [[NSArray alloc] initWithObjects:
-		    @"-GSNetwork", @"YES", nil];
-		}
-	      else if (_type == GSPublicNotificationCenterType)
-	      	{
-		  args = [[NSArray alloc] initWithObjects:
-		    @"-GSPublic", @"YES", nil];
-		}
-	      else if ([host length] > 0)
-		{
-		  args = [[NSArray alloc] initWithObjects:
-		    @"-NSHost", host, nil];
-		}
-	      [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
-	      [NSTimer scheduledTimerWithTimeInterval: 5.0
-					   invocation: nil
-					      repeats: NO];
-	      [[NSRunLoop currentRunLoop] runUntilDate:
-		[NSDate dateWithTimeIntervalSinceNow: 5.0]];
-	      recursion = YES;
-	      [self _connect];
-	      recursion = NO;
-	    }
-	  else
+	  if (_type == GSNetworkNotificationCenterType)
 	    {
-	      recursion = NO;
+	      args = [NSArray arrayWithObjects:
+		@"-GSNetwork", @"YES", nil];
+	    }
+	  else if (_type == GSPublicNotificationCenterType)
+	    {
+	      args = [NSArray arrayWithObjects:
+		@"-GSPublic", @"YES", nil];
+	    }
+	  else if ([host length] > 0)
+	    {
+	      args = [NSArray arrayWithObjects:
+		@"-NSHost", host, nil];
+	    }
+	  [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
+
+	  limit = [NSDate dateWithTimeIntervalSinceNow: 5.0];
+	  while (_remote == nil && [limit timeIntervalSinceNow] > 0)
+	    {
+	      _remote = [NSConnection
+		rootProxyForConnectionWithRegisteredName: service
+		host: host usingNameServer: ns];
+	      if (_remote == nil && alternate != nil)
+		{
+		  _remote = [NSConnection
+		    rootProxyForConnectionWithRegisteredName:
+		    alternate host: @"*" usingNameServer: ns];
+		}
+	    }
+	  if (_remote == nil)
+	    {
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"unable to contact GDNC server -\n"
-		@"please check that the gdnc process is running."];
+		@"please check that the gdnc process is running.\n"
+		@"I attempted to start it at '%@'\n", cmd];
 	    }
 	}
+
+      RETAIN(_remote);
+      c = [_remote connectionForProxy];
+      [_remote setProtocolForProxy: p];
+    
+      /*
+       * Ensure that this center can be used safely from different
+       * threads.
+       */
+      [c enableMultipleThreads];
+
+      /*
+       *	Ask to be told if the connection goes away.
+       */
+      [[NSNotificationCenter defaultCenter]
+	addObserver: self
+	   selector: @selector(_invalidated:)
+	       name: NSConnectionDidDieNotification
+	     object: c];
+      [_remote registerClient: (id<GDNCClient>)self];
     }
 }
 
