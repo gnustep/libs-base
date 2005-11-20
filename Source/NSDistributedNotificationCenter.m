@@ -727,12 +727,6 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	      _remote = [NSConnection
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
-	      if (_remote == nil && alternate != nil)
-		{
-		  _remote = [NSConnection
-		    rootProxyForConnectionWithRegisteredName:
-		    alternate host: @"*" usingNameServer: ns];
-		}
 	    }
 	  if (_remote == nil)
 	    {

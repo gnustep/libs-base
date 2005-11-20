@@ -916,7 +916,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
    */
   if ([path isAbsolutePath] == NO)
     {
-      NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names!");
+      NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names, "
+	@"given '%@'", path);
       path = [[[NSFileManager defaultManager] currentDirectoryPath]
 	       stringByAppendingPathComponent: path];
     }
