@@ -122,6 +122,14 @@ then
 fi
 
 #
+# Add standard library and header directories for configure to use to locate
+# plain C developer headers/libraries which haver been installed in the
+# GNUstep hierarchy.
+#
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Library/Headers"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_ROOT/Library/Libraries"
+
+#
 # Set the default configuration file values in config.h to be hard-coded
 # into NSPathUtilities.m
 #
@@ -237,8 +245,8 @@ fi
 # The following one is so that headers of custom libraries into
 # $GNUSTEP_HDIR are used before the standard ones
 #
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_HDIR"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
+INCLUDE_FLAGS="$INCLUDE_FLAGS -I$GNUSTEP_HDIR"
+LDIR_FLAGS="$LDIR_FLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
 
 #--------------------------------------------------------------------
 # Check if Objective-C is installed

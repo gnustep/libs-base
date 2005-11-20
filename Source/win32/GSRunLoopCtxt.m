@@ -261,6 +261,25 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	      bRet = PeekMessage(&msg, 0, 0, 0, PM_REMOVE);
 	      if (bRet != 0)
 		{
+		  if (msg.message == WM_QUIT)
+		    {
+		      Class	c = NSClassFromString(@"NSApplication");
+
+		      if (c == 0)
+			{
+			  [NSException raise: NSGenericException
+				      format: @"Received WM_QUIT"];
+			}
+		      else
+			{
+			  SEL	s = NSSelectorFromString(@"sharedApplication");
+			  id	o = [c performSelector: s];
+
+			  s = NSSelectorFromString(@"terminate:");
+			  [o performSelector: s withObject: nil];
+			}
+		    }
+
 		  if (num_winMsgs > 0)
 		    {
 		      HANDLE	handle;
