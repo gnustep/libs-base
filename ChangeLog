@@ -1,3 +1,13 @@
+2005-11-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add flags to allow detection of headers/libraries
+	installed in the System domain of the GNUstep hierarchy.
+	* configure: regenerate
+	* Source/win32/GSRunLoopCtxt.m: Intercept windows WM_QUIT messages
+	and tell the application to terminate cleanly (or raise an exception
+	if the NSApplication class is not linked).  Should allow ms-windows
+	to get a mingw32-based GNUstep app to shut down cleanly.
+
 2005-11-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m:
