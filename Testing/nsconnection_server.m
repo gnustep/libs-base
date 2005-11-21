@@ -412,7 +412,7 @@
 - connectionBecameInvalid: notification
 {
   id anObj = [notification object];
-  if ([anObj isKindOf:[NSConnection class]])
+  if ([anObj isKindOfClass: [NSConnection class]])
     {
       int i, count = [the_array count];
       for (i = count-1; i >= 0; i--)
