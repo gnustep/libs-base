@@ -72,26 +72,22 @@ Class	NSPort_concrete_class;
 {
   if (self == [NSPort class])
     {
+      NSUserDefaults	*defs;
+
       NSPort_abstract_class = self;
-#ifndef __MINGW32__
-/* Must be kept in sync with [NSPortNameServer +systemDefaultPortNameServer]. */
-      if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES
-	|| [[NSUserDefaults standardUserDefaults]
-	boolForKey: @"NSPortIsMessagePort"])
-	{
-	  NSPort_concrete_class = [NSMessagePort class];
-	}
-      else
+      NSPort_concrete_class = [NSSocketPort class];
+
+      defs = [NSUserDefaults standardUserDefaults];
+      if ([defs objectForKey: @"NSPortIsMessagePort"] != nil
+	&& [defs boolForKey: @"NSPortIsMessagePort"] == NO)
 	{
 	  NSPort_concrete_class = [NSSocketPort class];
 	}
-#else
-      if ([[NSUserDefaults standardUserDefaults]
-	boolForKey: @"GSMailslot"] == YES)
-	NSPort_concrete_class = [NSMessagePort class];
-      else
-
-      NSPort_concrete_class = [NSSocketPort class];
+#if	defined(__MINGW32__)
+      if ([defs boolForKey: @"GSMailslot"] == NO)
+	{
+	  NSPort_concrete_class = [NSMessagePort class];
+	}
 #endif
     }
 }
