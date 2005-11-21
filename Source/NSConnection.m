@@ -217,6 +217,7 @@ stringFromMsgType(int type)
 - (void) _service_rootObject: (NSPortCoder*)rmc;
 - (void) _service_shutdown: (NSPortCoder*)rmc;
 - (void) _service_typeForSelector: (NSPortCoder*)rmc;
+- (void) _shutdown;
 + (void) _threadWillExit: (NSNotification*)notification;
 @end
 
@@ -1013,6 +1014,15 @@ static NSLock	*cached_proxies_gate = nil;
     {
       M_UNLOCK(_refGate);
       return;
+    }
+  if (_shuttingDown == NO)
+    {
+      _shuttingDown = YES;
+      /*
+       * Not invalidated as a result of a shutdown from the other end,
+       * so tell the other end it must shut down.
+       */
+      //[self _shutdown];
     }
   _isValid = NO;
   M_LOCK(connection_table_gate);
@@ -2587,24 +2597,28 @@ static void callEncoder (DOContext *ctxt)
   [self _sendOutRmc: op type: RETAIN_REPLY];
 }
 
-- (void) shutdown
+- (void) _shutdown
 {
-  NSPortCoder	*op;
-  int		sno;
-
   NSParameterAssert(_receivePort);
   NSParameterAssert (_isValid);
-  op = [self _makeOutRmc: 0 generate: &sno reply: NO];
-  [self _sendOutRmc: op type: CONNECTION_SHUTDOWN];
+  NS_DURING
+    {
+      NSPortCoder	*op;
+      int		sno;
+
+      op = [self _makeOutRmc: 0 generate: &sno reply: NO];
+      [self _sendOutRmc: op type: CONNECTION_SHUTDOWN];
+    }
+  NS_HANDLER
+  NS_ENDHANDLER
 }
 
 - (void) _service_shutdown: (NSPortCoder*)rmc
 {
   NSParameterAssert (_isValid);
+  _shuttingDown = YES;		// Prevent shutdown being sent back to other end
   [self _doneInRmc: rmc];
   [self invalidate];
-  [NSException raise: NSGenericException
-	      format: @"connection waiting for request was shut down"];
 }
 
 - (void) _service_typeForSelector: (NSPortCoder*)rmc

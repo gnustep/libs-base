@@ -32,7 +32,7 @@
  * in the server ... we expect the info from the server to be used.
  */
 @interface	Dummy : NSObject
-- (id) quietBycopy: (id byref)a;
+- (id) quietBycopy: (byref id)a;
 @end
 
 @interface	CallbackClient : NSObject <ClientProtocol>
@@ -638,6 +638,8 @@ int main (int argc, char *argv[], char **env)
 
   if (stats)
     con_statistics (prx);
+
+  [cobj invalidate];
 
   [arp release];
   return 0;
