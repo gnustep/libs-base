@@ -81,7 +81,12 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 }
 
 /**
- * Basic constructor returns object capable of send and receive.
+ * Basic constructor returns object capable of send and receive.<br />
+ * By default, the port returned is an instance of [NSMessagePort]
+ * capable only of host-local communication.  However, the
+ * <code>NSPortIsMessagePort</code> user default may be set to NO to
+ * change the behavior so that the returned value is an instance of
+ * the [NSSocketPort] class.
  */
 + (NSPort*) port;
 
@@ -102,6 +107,7 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 
 /**
  * Basic initializer sets up object capable of send and receive.
+ * See +port for more details.
  */
 - (id) init;
 
@@ -298,7 +304,7 @@ typedef SOCKET NSSocketNativeHandle;
  */
 @interface NSMessagePort : NSPort <GCFinalization>
 {
-  void		*_internal;
+  void	*_internal;
 }
 @end
 

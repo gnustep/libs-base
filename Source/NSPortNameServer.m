@@ -29,6 +29,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSLock.h"
 #include "Foundation/NSUserDefaults.h"
 #include "GSPrivate.h"
 
@@ -55,69 +56,53 @@
 }
 
 /**
- * Returns the default port name server for the process.<br />
- * The MacOS-X documentation says that this is a nameserver
- * dealing with NSMessagePort objects, but that is incompatible
- * with OpenStep/OPENSTEP/NeXTstep behavior, so GNUstep returns
- * a name server which deals with NSSocketPort objects capable
- * of being used for inter-host communications... unless it
- * is running in compatibility mode.<br />
- * This may change in future releases.
+ * <p>Returns the default port name server for the process.<br />
+ * This is a nameserver for host-local connections private to the current
+ * user.  If you with to create public connections  or connections to other
+ * hosts, you must use [NSSocketPortNameServer+sharedInstance] instead.
+ * </p>
+ * This default behavior may be altered by setting the
+ * <code>NSPortIsMessagePort</code> user default to NO, in which case
+ * an [NSSocketPortNaemServer] will be used as the default system name server
+ * and you will have to use [NSMessagePortNameServer+sharedInstance]
+ * for host-local, private connections.
  */
 + (id) systemDefaultPortNameServer
 {
+  static id	nameServer = nil;
+
+  if (nameServer == nil)
+    {
+      [gnustep_global_lock lock];
+      if (nameServer == nil)
+	{
+	  NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+	  id			o;
+
+	  if ([defs objectForKey: @"NSPortIsMessagePort"] != nil
+	    && [defs boolForKey: @"NSPortIsMessagePort"] == NO)
+	    {
+	      o = [NSSocketPortNameServer sharedInstance];
+	    }
+	  else
+	    {
+	      o = [NSMessagePortNameServer sharedInstance];
+	    }
 #if	defined(__MINGW__)
-  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSMailslot"] == YES)
-    {
-      return [NSMessagePortNameServer sharedInstance];
-    }
+	  if ([defs boolForKey: @"GSMailslot"] == YES)
+	    {
+	      o = [NSMessagePortNameServer sharedInstance];
+	    }
+	  else
+	    {
+	      o = [NSSocketPortNameServer sharedInstance];
+	    }
 #endif
-
-  /* Must be kept in sync with [NSPort +initialize]. */
-  if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES)
-    {
-#ifndef __MINGW32__
-      return [NSMessagePortNameServer sharedInstance];
-#else
-      return [NSSocketPortNameServer sharedInstance];
-#endif
+	  nameServer = RETAIN(o);
+	}
+      [gnustep_global_lock unlock];
     }
-  else
-    {
-      NSString	*def = [[NSUserDefaults standardUserDefaults]
-	stringForKey: @"NSPortIsMessagePort"];
-
-      if (def == nil)
-	{
-	  GSOnceMLog(
-	    @"\nWARNING -\n"
-	    @"while the default nameserver used by NSConnection\n"
-	    @"currently provides ports which can be used for inter-host\n"
-	    @"and inter-user communications, this will be changed so that\n"
-	    @"nsconnections will only work between processes owned by the\n"
-	    @"same account on the same machine.  This change is for\n"
-	    @"MacOSX compatibility and for increased security.\n"
-	    @"If your application actually needs to support inter-host\n"
-	    @"or inter-user communications, you need to alter it to explicity\n"
-	    @"use an instance of the NSSocketPortNameServer class to provide\n"
-	    @"name service facilities.\n"
-	    @"To stop this message appearing, set the NSPortIsMessagePort\n"
-	    @"user default\n\n");
-	  return [NSSocketPortNameServer sharedInstance];
-	}
-      else if ([def boolValue] == NO)
-	{
-	  return [NSSocketPortNameServer sharedInstance];
-	}
-      else
-	{
-#ifndef __MINGW32__
-	  return [NSMessagePortNameServer sharedInstance];
-#else
-	  return [NSSocketPortNameServer sharedInstance];
-#endif
-	}
-    }
+  return nameServer;
 }
 
 - (void) dealloc

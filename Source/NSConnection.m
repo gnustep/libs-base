@@ -330,7 +330,8 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /**
- * Returns a connection initialised using -initWithReceivePort:sendPort:
+ * Returns a connection initialised using -initWithReceivePort:sendPort:<br />
+ * Both ports must be of the same type.
  */
 + (NSConnection*) connectionWithReceivePort: (NSPort*)r
 				   sendPort: (NSPort*)s
@@ -353,6 +354,8 @@ static NSLock	*cached_proxies_gate = nil;
  * <p>This method calls +connectionWithRegisteredName:host:usingNameServer:
  * using the default system name server.
  * </p>
+ * <p>Use [NSSocketPortNameServer] for connections to remote hosts.
+ * </p>
  */
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
 					  host: (NSString*)h
@@ -372,7 +375,10 @@ static NSLock	*cached_proxies_gate = nil;
  * </p>
  * <p>
  *   The nameserver <em>server</em> is used to look up the send
- *   port to be used for the connection.
+ *   port to be used for the connection.<br />
+ *   Use [NSSocketPortNameServer+sharedInstance]
+ *   for connections to remote hosts.
+ * </p>
  * </p>
  * <p>
  *   If <em>host</em> is <code>nil</code> or an empty string,
@@ -577,7 +583,9 @@ static NSLock	*cached_proxies_gate = nil;
  * to get a connection, then sends it a -rootProxy message to get
  * a proxy for the root object being vended by the remote connection.
  * Returns the proxy or nil if it couldn't find a connection or if
- * the root object for the connection has not been set.
+ * the root object for the connection has not been set.<br />
+ * Use [NSSocketPortNameServer+sharedInstance]
+ * for connections to remote hosts.
  */
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
   host: (NSString*)h usingNameServer: (NSPortNameServer*)s
