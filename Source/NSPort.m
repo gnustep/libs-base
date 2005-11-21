@@ -75,7 +75,7 @@ Class	NSPort_concrete_class;
       NSUserDefaults	*defs;
 
       NSPort_abstract_class = self;
-      NSPort_concrete_class = [NSSocketPort class];
+      NSPort_concrete_class = [NSMessagePort class];
 
       defs = [NSUserDefaults standardUserDefaults];
       if ([defs objectForKey: @"NSPortIsMessagePort"] != nil
