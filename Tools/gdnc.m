@@ -389,19 +389,7 @@ ihandler(int sig)
     }
   else
     {
-#if	defined(__MINGW32__)
-      if ([[NSUserDefaults standardUserDefaults]
-	boolForKey: @"GSMailslot"] == YES)
-	{
-	  isLocal = YES;
-	}
-      else
-	{
-	  isPublic = YES;
-	}
-#else
       isLocal = YES;
-#endif
     }
 
 
@@ -429,10 +417,21 @@ ihandler(int sig)
     }
   else
     {
+      NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+
+      if ([defs objectForKey: @"NSPortIsMessagePort"] != nil
+	&& [defs boolForKey: @"NSPortIsMessagePort"] == NO)
+	{
+	  ns = [NSSocketPortNameServer sharedInstance];
+	  port = (NSPort*)[NSSocketPort port];
+	}
+      else
+	{
+	  ns = [NSMessagePortNameServer sharedInstance];
+	  port = (NSPort*)[NSMessagePort port];
+	}
       hostname = @"";
       service = GDNC_SERVICE;
-      ns = [NSMessagePortNameServer sharedInstance];
-      port = (NSPort*)[NSMessagePort port];
     }
 
   conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];

@@ -1,3 +1,13 @@
+2005-11-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPort.m:
+	* Source/NSMessagePort.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Tools/gdnc.m:
+	Use the NSPortIsMessagePort user default consistently to control
+	whether socket or message ports are used by default.  Remove mingw32
+	sp[ecific GSMailslot user default.
+
 2005-11-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Add flags to allow detection of headers/libraries
