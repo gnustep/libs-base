@@ -1,5 +1,11 @@
 2005-11-22  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPathUtilities.m: Restructure so that GNUstepConfig() can
+	be used to set/get the global configuration as suggested by
+	Jeremy Bettis
+
+2005-11-22  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPort.m:
 	* Source/NSMessagePort.m:
 	* Source/NSDistributedNotificationCenter.m:
