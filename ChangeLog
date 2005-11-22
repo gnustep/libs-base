@@ -6,7 +6,10 @@
 	* Tools/gdnc.m:
 	Use the NSPortIsMessagePort user default consistently to control
 	whether socket or message ports are used by default.  Remove mingw32
-	sp[ecific GSMailslot user default.
+	specific GSMailslot user default.
+	Source/NSPathUtilities.m: Check for illegal paths (ones which don't
+	appear to be absolute paths) specified in config file ... warn about
+	the bad config, but try to guess what they shjould be for mingw32
 
 2005-11-20  Richard Frith-Macdonald <rfm@gnu.org>
 

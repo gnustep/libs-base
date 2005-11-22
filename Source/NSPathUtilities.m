@@ -233,7 +233,31 @@ getPathConfig(NSDictionary *dict, NSString *key)
   NSString	*path;
 
   path = [dict objectForKey: key];
-  path = getPath(path);
+  if (path != nil)
+    {
+      path = getPath(path);
+      if ([path isAbsolutePath] == NO)
+	{
+	  NSLog(@"GNUstep configuration file entry '%@' ('%@') is not "
+	    @"an absolute path.  Please fix your configuration file",
+	    key, [dict objectForKey: key]);
+#if	defined(__MINGW32_)
+	  if ([path length] > 2)
+	    {
+	      unichar	buf[3];
+
+	      [path getCharacters: buf range: NSMakeRange(0, 3)];
+	      if ((buf[0] == '/' || bug[0] == '\\') && isalpha(buf[1])
+		&& (buf[2] == '/' || bug[2] == '\\'))
+		{
+		  path = [NSString stringWithFormat: @"%c:%@", (char)buf[1],
+		    [path substringFromindex: 2]];
+		  NSLog(@"I am guessing that you meant '%@'", path);
+		}
+	    }
+#endif
+	}
+    }
   return path;
 }
 
