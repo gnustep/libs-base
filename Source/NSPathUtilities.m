@@ -174,7 +174,9 @@ static NSString *localLibs  = nil;
 /* Internal function prototypes. */
 /* ============================= */
 
-NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig, NSString *userName);
+NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
+
+static void UserConfig(NSMutableDictionary *config, NSString *userName);
 
 static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict);
 
@@ -381,7 +383,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
  * configuration.
  */
 NSMutableDictionary*
-GNUstepConfig(NSDictionary *newConfig, NSString *userName)
+GNUstepConfig(NSDictionary *newConfig)
 {
   static NSDictionary	*config = nil;
   NSMutableDictionary	*conf = nil;
@@ -475,6 +477,12 @@ GNUstepConfig(NSDictionary *newConfig, NSString *userName)
       InitialisePathUtilities();
     }
 
+  return AUTORELEASE([config mutableCopy]);
+}
+
+static void
+UserConfig(NSMutableDictionary *config, NSString *userName)
+{
 #ifdef HAVE_GETEUID
   if (userName != nil)
     {
@@ -491,26 +499,22 @@ GNUstepConfig(NSDictionary *newConfig, NSString *userName)
     }
 #endif
 
-  if (config != nil && userName != nil)
+  if (userName != nil)
     {
       NSString		*file;
       NSString		*home;
+      NSString		*path;
 
-      conf = AUTORELEASE([config mutableCopy]);
-      file = RETAIN([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]);
+      file = RETAIN([config objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]);
       home = NSHomeDirectoryForUser(userName);
-      ParseConfigurationFile([home stringByAppendingPathComponent: file], conf);
+      path = [home stringByAppendingPathComponent: file];
+      ParseConfigurationFile(path, config);
       /*
        * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
        * variable ... that would be silly/pointless.
        */
-      [conf setObject: file forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+      [config setObject: file forKey: @"GNUSTEP_USER_CONFIG_FILE"];
       RELEASE(file);
-      return conf;
-    }
-  else
-    {
-      return AUTORELEASE([config mutableCopy]);
     }
 }
 
@@ -530,7 +534,8 @@ static void InitialisePathUtilities(void)
 
       [gnustep_global_lock lock];
       userName = NSUserName();
-      config = GNUstepConfig(nil, userName);
+      config = GNUstepConfig(nil);
+      UserConfig(config, userName);
       ASSIGNCOPY(gnustepUserHome, NSHomeDirectoryForUser(userName));
       ExtractValuesFromConfig(config);
 
@@ -1088,9 +1093,10 @@ GSDefaultsRootForUser(NSString *userName)
     }
   else
     {
-      NSDictionary	*config;
+      NSMutableDictionary	*config;
 
-      config = GNUstepConfig(nil, userName);
+      config = GNUstepConfig(nil);
+      UserConfig(config, userName);
       defaultsDir = [config objectForKey: @"GNUSTEP_USER_DEFAULTS_DIR"];
       if (defaultsDir == nil)
 	{
