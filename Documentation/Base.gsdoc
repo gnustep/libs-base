@@ -521,7 +521,8 @@ notice and this notice are preserved.
 	    home directory for that user on the system<br />
 	    On unix, that is the user's home directory from the password file,
 	    while on windows  it's the value given by the
-	    Win32GetUserProfileDirectory() function.
+	    HOMEDRIVE and HOMEPATH environment variables (or the USERPROFILE
+	    environment variable if the others can't be used).
 	  </p>
 	  <p>
 	    Support is provided to locate OS/PLATFORM directories. A conf file
