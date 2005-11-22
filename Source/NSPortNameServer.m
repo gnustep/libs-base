@@ -88,16 +88,6 @@
 	    {
 	      o = [NSMessagePortNameServer sharedInstance];
 	    }
-#if	defined(__MINGW__)
-	  if ([defs boolForKey: @"GSMailslot"] == YES)
-	    {
-	      o = [NSMessagePortNameServer sharedInstance];
-	    }
-	  else
-	    {
-	      o = [NSSocketPortNameServer sharedInstance];
-	    }
-#endif
 	  nameServer = RETAIN(o);
 	}
       [gnustep_global_lock unlock];

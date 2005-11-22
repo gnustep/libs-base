@@ -83,12 +83,6 @@ Class	NSPort_concrete_class;
 	{
 	  NSPort_concrete_class = [NSSocketPort class];
 	}
-#if	defined(__MINGW32__)
-      if ([defs boolForKey: @"GSMailslot"] == NO)
-	{
-	  NSPort_concrete_class = [NSSocketPort class];
-	}
-#endif
     }
 }
 

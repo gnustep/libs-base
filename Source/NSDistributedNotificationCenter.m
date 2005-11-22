@@ -588,18 +588,19 @@ static NSDistributedNotificationCenter	*netCenter = nil;
       Protocol		*p = @protocol(GDNCProtocol);
       NSConnection	*c;
 
-#ifdef	__MINGW32__
-      if (_type == NSLocalNotificationCenterType
-	&& [[NSUserDefaults standardUserDefaults]
-	    boolForKey: @"GSMailslot"] == NO)
-	{
-	  ASSIGN(_type, GSPublicNotificationCenterType);
-	}
-#endif
-
       if (_type == NSLocalNotificationCenterType)
 	{
-	  ns = [NSMessagePortNameServer sharedInstance];
+	  NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+
+	  if ([defs objectForKey: @"NSPortIsMessagePort"] != nil
+	    && [defs boolForKey: @"NSPortIsMessagePort"] == NO)
+	    {
+	      ns = [NSSocketPortNameServer sharedInstance];
+	    }
+	  else
+	    {
+	      ns = [NSMessagePortNameServer sharedInstance];
+	    }
 	  host = @"";
 	  service = GDNC_SERVICE;
 	  description = @"local host";
