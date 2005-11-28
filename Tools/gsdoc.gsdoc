@@ -792,9 +792,13 @@ notice and this notice are preserved.
             <code>init</code> attribute (also taking
             "<code>yes</code>" / "<code>no</code>") specifies whether this is
             the designated constructor.  An optional <code>override</code>
-            attribute specifies whether this method should be overridden
-            (if "yes" enter "<code>subclass</code>", if "no" enter
-            "<code>never</code>").
+            attribute specifies whether this method should be overridden.
+            If it <em>must</em> be overridden enter "<code>subclass</code>",
+	    if it must <em>not</em> be overridden enter <code>never</code>",
+	    if it is an empty/dummy implementation which is intended to be
+	    overridden enter <code>dummy</ecode>, otherwise (for most methods
+	    which may be but are not particularly designed to be overridden)
+	    leave this attribute unset.
             <p>
               The elements in a <code>&lt;method&gt;</code> are -
               the method's name (in a <ref id="sel">sel</ref> element), the

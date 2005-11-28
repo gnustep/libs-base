@@ -3,8 +3,14 @@
 	* Tools/AGSOutput.m:
 	* Tools/AGSParser.h:
 	* Tools/AGSParser.m:
+	* Tools/AGSHtml.m:
+	* Tools/autogsdoc.m:
+	* Tools/gsdoc-1_0_3.dtd:
+	* Toold/gsdoc.gsdoc:
+	Added override=dummy attribute for methods which have dummy
+	implementations intendeed to be ocerridden in subclasses.
 	Update to log warning about unimplemented methods which are not
-	tagged as "<override-subclass />". ie intentionally empty.
+	tagged as intended to be overridden.
 
 2005-11-22  Richard Frith-Macdonald <rfm@gnu.org>
 

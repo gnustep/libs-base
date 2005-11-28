@@ -1621,6 +1621,11 @@ static NSString		*mainFont = nil;
 		  [buf appendString: @"Subclasses <strong>should</strong> "
 		    @"override this method.<br />\n"];
 		}
+	      else if ([str isEqual: @"dummy"] == YES)
+		{
+		  [buf appendString: @"An empty method provided for subclasses "
+		    @"to override.<br />\n"];
+		}
 	      else if ([str isEqual: @"never"] == YES)
 		{
 		  [buf appendString: @"Subclasses should <strong>NOT</strong> "
