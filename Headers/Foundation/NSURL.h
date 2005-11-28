@@ -86,25 +86,25 @@ GS_EXPORT NSString* const NSURLFileScheme;
 
 @interface NSObject (NSURLClient)
 
-/**
+/** <override-dummy />
  * Some data has become available.  Note that this does not mean that all data
  * has become available, only that a chunk of data has arrived.
  */
 - (void) URL: (NSURL*)sender
   resourceDataDidBecomeAvailable: (NSData*)newBytes;
 
-/**
+/** <override-dummy />
  * Loading of resource data is complete.
  */
 - (void) URLResourceDidFinishLoading: (NSURL*)sender;
 
-/**
+/** <override-dummy />
  * Loading of resource data was cancelled by programmatic request
  * (not an error).
  */
 - (void) URLResourceDidCancelLoading: (NSURL*)sender;
 
-/**
+/** <override-dummy />
  * Loading of resource data has failed, for given human-readable reason.
  */
 - (void) URL: (NSURL*)sender

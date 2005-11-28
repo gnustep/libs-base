@@ -3470,7 +3470,7 @@ handle_printf_atsign (FILE *stream,
 static NSFileManager *fm = nil;
 
 #if	defined(__MINGW32__)
-- (const unichar*) fileSystemRepresentation
+- (const GSNativeChar*) fileSystemRepresentation
 {
   if (fm == nil)
     {
@@ -3479,7 +3479,7 @@ static NSFileManager *fm = nil;
   return [fm fileSystemRepresentationWithPath: self];
 }
 
-- (BOOL) getFileSystemRepresentation: (unichar*)buffer
+- (BOOL) getFileSystemRepresentation: (GSNativeChar*)buffer
 			   maxLength: (unsigned int)size
 {
   const unichar	*ptr;
@@ -3511,7 +3511,7 @@ static NSFileManager *fm = nil;
   return YES;
 }
 #else
-- (const char*) fileSystemRepresentation
+- (const GSNativeChar*) fileSystemRepresentation
 {
   if (fm == nil)
     {
@@ -3520,7 +3520,7 @@ static NSFileManager *fm = nil;
   return [fm fileSystemRepresentationWithPath: self];
 }
 
-- (BOOL) getFileSystemRepresentation: (char*)buffer
+- (BOOL) getFileSystemRepresentation: (GSNativeChar*)buffer
 			   maxLength: (unsigned int)size
 {
   const char* ptr;

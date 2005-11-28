@@ -41,7 +41,11 @@
 + (NSString*) description;
 + (BOOL) isKindOfClass: (Class)aClass;
 + (BOOL) isMemberOfClass: (Class)aClass;
+/** <override-dummy />
+ */
 + (void) load;
+/** <override-dummy />
+ */
 + (void) release;
 + (BOOL) respondsToSelector: (SEL)aSelector;
 + (id) retain;

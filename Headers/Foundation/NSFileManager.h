@@ -217,7 +217,6 @@
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
 
-#if	defined(__MINGW32__)
 /**
  * Convert from OpenStep internal string format to a string in
  * the local filesystem format, suitable for passing to system functions.<br />
@@ -229,21 +228,7 @@
  * work with unicode strings.<br />
  * Raises an exception if the character conversion is not possible.
  */
-- (const unichar*) fileSystemRepresentationWithPath: (NSString*)path;
-#else
-/**
- * Convert from OpenStep internal string format to a string in
- * the local filesystem format, suitable for passing to system functions.<br />
- * Converts the standard path separator ('/') and path extension ('.')
- * characters to the local representation if necessary.<br />
- * This representation may vary between filesystems.<br />
- * On mingw32 systems, the filesystem representation is 16-bit unicode and is
- * expected to be used in conjunction with the variants of system calls which
- * work with unicode strings.<br />
- * Raises an exception if the character conversion is not possible.
- */
-- (const char*) fileSystemRepresentationWithPath: (NSString*)path;
-#endif
+- (const GSNativeChar*) fileSystemRepresentationWithPath: (NSString*)path;
 
 - (BOOL) isExecutableFileAtPath: (NSString*)path;
 - (BOOL) isDeletableFileAtPath: (NSString*)path;
@@ -259,7 +244,6 @@
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: (id)handler;
 
-#if	defined(__MINGW32__)
 /**
  * Convert to OpenStep internal string format from a string in
  * the local filesystem format, as returned by system functions.<br />
@@ -272,24 +256,8 @@
  * is expected to have come from the variant of a system call which works
  * with unicode strings.
  */
-- (NSString*) stringWithFileSystemRepresentation: (const unichar*)string
+- (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
 					  length: (unsigned int)len;
-#else
-/**
- * Convert to OpenStep internal string format from a string in
- * the local filesystem format, as returned by system functions.<br />
- * This representation may vary between filesystems.<br />
- * The GNUstep version of this method currently does not bother to change
- * any path separator and extension characters to the standard values
- * ('/' and '.' respectively) as the path handling methods of [NSString]
- * should be able to handle native format strings.<br />
- * On mingw32 systems, the filesystem representation is 16-bit unicode and
- * is expected to have come from the variant of a system call which works
- * with unicode strings.
- */
-- (NSString*) stringWithFileSystemRepresentation: (const char*)string
-					  length: (unsigned int)len;
-#endif
 
 - (NSArray*) subpathsAtPath: (NSString*)path;
 

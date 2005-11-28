@@ -425,6 +425,8 @@
   [self decodeArrayOfObjCType: type count: count at: buf];
 }
 
+/** <override-dummy />
+ */
 - (void) decodeIndent
 {
 }
@@ -466,6 +468,8 @@
   [self encodeArrayOfObjCType: type count: count at: buf];
 }
 
+/** <override-dummy />
+ */
 - (void) encodeIndent
 {
 }

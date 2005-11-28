@@ -144,24 +144,36 @@ GS_EXPORT NSString *const NSKeyValueChangeOldKey;
  */
 @interface NSObject (NSKeyValueObserverNotification)
 
+/** <override-dummy />
+ */
 - (void) didChangeValueForKey: (NSString*)aKey;
 
+/** <override-dummy />
+ */
 - (void) didChange: (NSKeyValueChange)changeKind
    valuesAtIndexes: (NSIndexSet*)indexes
 	    forKey: (NSString*)aKey;
 
+/** <override-dummy />
+ */
 - (void) willChangeValueForKey: (NSString*)aKey;
 
+/** <override-dummy />
+ */
 - (void) willChange: (NSKeyValueChange)changeKind
     valuesAtIndexes: (NSIndexSet*)indexes
 	     forKey: (NSString*)aKey;
 
 #if OS_API_VERSION(100400,GS_API_LATEST)
 
+/** <override-dummy />
+ */
 - (void) didChangeValueForKey: (NSString*)aKey
 	      withSetMutation: (NSKeyValueSetMutationKind)mutationKind
 		 usingObjects: (NSSet*)objects;
 
+/** <override-dummy />
+ */
 - (void) willChangeValueForKey: (NSString*)aKey
 	       withSetMutation: (NSKeyValueSetMutationKind)mutationKind
 		  usingObjects: (NSSet*)objects;

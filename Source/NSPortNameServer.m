@@ -63,7 +63,7 @@
  * </p>
  * This default behavior may be altered by setting the
  * <code>NSPortIsMessagePort</code> user default to NO, in which case
- * an [NSSocketPortNaemServer] will be used as the default system name server
+ * an [NSSocketPortNameServer] will be used as the default system name server
  * and you will have to use [NSMessagePortNameServer+sharedInstance]
  * for host-local, private connections.
  */

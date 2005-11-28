@@ -348,7 +348,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
-  const _CHAR	*lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  const _CHAR	*lpath = [self fileSystemRepresentationWithPath: path];
 #if defined(__MINGW32__)
   return SetCurrentDirectoryW(lpath) == TRUE ? YES : NO;
 #else
@@ -374,7 +374,7 @@ static NSStringEncoding	defaultEncoding;
     {
       return YES;
     }
-  lpath = (_CCP)[defaultManager fileSystemRepresentationWithPath: path];
+  lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef __MINGW32__
   num = [attributes fileOwnerAccountID];
@@ -658,7 +658,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  const _CHAR *lpath;
 
-	  lpath = (_CCP)[self fileSystemRepresentationWithPath: completePath];
+	  lpath = [self fileSystemRepresentationWithPath: completePath];
 	  if (CreateDirectoryW(lpath, 0) == FALSE)
 	    {
 	      return NO;
@@ -780,7 +780,7 @@ static NSStringEncoding	defaultEncoding;
 	       attributes: (NSDictionary*)attributes
 {
 #if	defined(__MINGW32__)
-  const _CHAR *lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
   HANDLE fh;
   DWORD	written = 0;
   DWORD	len = [contents length];
@@ -1012,8 +1012,8 @@ static NSStringEncoding	defaultEncoding;
   const _CHAR	*sourcePath;
   const _CHAR	*destPath;
 
-  sourcePath = (_CCP)[self fileSystemRepresentationWithPath: source];
-  destPath = (_CCP)[self fileSystemRepresentationWithPath: destination];
+  sourcePath = [self fileSystemRepresentationWithPath: source];
+  destPath = [self fileSystemRepresentationWithPath: destination];
 
   if ([self fileExistsAtPath: destination] == YES)
     {
@@ -1204,7 +1204,7 @@ static NSStringEncoding	defaultEncoding;
 
   [self _sendToHandler: handler willProcessPath: path];
 
-  lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  lpath = [self fileSystemRepresentationWithPath: path];
   if (lpath == 0 || *lpath == 0)
     {
       return NO;
@@ -1279,7 +1279,7 @@ static NSStringEncoding	defaultEncoding;
 	    }
 	}
 
-      if (_RMDIR((_CCP)[self fileSystemRepresentationWithPath: path]) < 0)
+      if (_RMDIR([self fileSystemRepresentationWithPath: path]) < 0)
 	{
 	  return [self _proceedAccordingToHandler: handler
 	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
@@ -1308,7 +1308,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory
 {
-  const _CHAR *lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
 
   if (isDirectory != 0)
     {
@@ -1367,7 +1367,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isReadableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1403,7 +1403,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isWritableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1444,7 +1444,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isExecutableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1490,7 +1490,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isDeletableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1607,7 +1607,7 @@ static NSStringEncoding	defaultEncoding;
   NSDictionary	*d;
 
   d = [GSAttrDictionary attributesAt:
-    (_CCP)[self fileSystemRepresentationWithPath: path] traverseLink: flag];
+    [self fileSystemRepresentationWithPath: path] traverseLink: flag];
   return d;
 }
 
@@ -1641,7 +1641,7 @@ static NSStringEncoding	defaultEncoding;
   };
   DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
   DWORD TotalNumberClusters;
-  const _CHAR *lpath = (_CCP)[self fileSystemRepresentationWithPath: path];
+  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
 
   if (!GetDiskFreeSpaceW(lpath, &SectorsPerCluster,
     &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
@@ -1872,8 +1872,8 @@ static NSStringEncoding	defaultEncoding;
 #endif
 }
 
-#if	defined(__MINGW__)
-- (const unichar*) fileSystemRepresentationWithPath: (NSString*)path
+#if	defined(__MINGW32__)
+- (const GSNativeChar*) fileSystemRepresentationWithPath: (NSString*)path
 {
   NSRange	r;
 
@@ -1882,19 +1882,21 @@ static NSStringEncoding	defaultEncoding;
     {
       path = [path stringByReplacingString: @"/" withString: @"\\"];
     }
-  return (const unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
+  return
+    (const GSNativeChar*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
 }
-- (NSString*) stringWithFileSystemRepresentation: (const unichar*)string
+- (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
 					  length: (unsigned int)len
 {
   return [NSString stringWithCharacters: string length: len];
 }
 #else
-- (const char*) fileSystemRepresentationWithPath: (NSString*)path
+- (const GSNativeChar*) fileSystemRepresentationWithPath: (NSString*)path
 {
-  return [path cStringUsingEncoding: defaultEncoding];
+  return
+    (const GSNativeChar*)[path cStringUsingEncoding: defaultEncoding];
 }
-- (NSString*) stringWithFileSystemRepresentation: (const char*)string
+- (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
 					  length: (unsigned int)len
 {
   return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
@@ -1992,7 +1994,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 
   _topPath = [[NSString alloc] initWithString: path];
 
-  localPath = (_CCP)[_mgr fileSystemRepresentationWithPath: path];
+  localPath = [_mgr fileSystemRepresentationWithPath: path];
   dir_pointer = _OPENDIR(localPath);
   if (dir_pointer)
     {
@@ -2148,7 +2150,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 #endif
 #endif
 		{
-		  if (_STAT((_CCP)[_mgr fileSystemRepresentationWithPath:
+		  if (_STAT([_mgr fileSystemRepresentationWithPath:
 		    _currentFilePath], &statbuf) != 0)
 		    {
 		      break;
@@ -2159,7 +2161,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 		  _DIR*  dir_pointer;
 
 		  dir_pointer
-		    = _OPENDIR((_CCP)[_mgr fileSystemRepresentationWithPath:
+		    = _OPENDIR([_mgr fileSystemRepresentationWithPath:
 		    _currentFilePath]);
 		  if (dir_pointer)
 		    {
@@ -2376,8 +2378,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 	   handler: (id)handler
 {
 #if defined(__MINGW32__)
-  if (CopyFileW((_CCP)[self fileSystemRepresentationWithPath: source],
-    (_CCP)[self fileSystemRepresentationWithPath: destination], NO))
+  if (CopyFileW([self fileSystemRepresentationWithPath: source],
+    [self fileSystemRepresentationWithPath: destination], NO))
     {
       return YES;
     }

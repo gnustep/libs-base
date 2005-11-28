@@ -767,11 +767,15 @@ static Class classForInstance(id o)
 
 @implementation NSObject (NSKeyValueObserving)
 
+/**
+ * NOT IMPLEMENTED
+ */
 - (void) observeValueForKeyPath: (NSString*)aPath
 		       ofObject: (id)anObject
 			 change: (NSDictionary*)aChange
 		        context: (void*)aContext
 {
+  return;
 }
 
 @end

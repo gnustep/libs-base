@@ -359,6 +359,7 @@
 		         count: (unsigned)count
 			    at: (void*)buf
 		      withName: (id*)name;
+/** <override-dummy /> decodes indentation */
 - (void) decodeIndent;
 - (void) decodeObjectAt: (id*)anObject
 	       withName: (id*)name;
@@ -372,6 +373,7 @@
 		         count: (unsigned)count
 			    at: (const void*)buf
 		      withName: (id)name;
+/** <override-dummy /> encodes indentation */
 - (void) encodeIndent;
 - (void) encodeObjectAt: (id*)anObject
 	       withName: (id)name;

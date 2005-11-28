@@ -168,6 +168,7 @@ ihandler(int sig)
                             selector: (NSString*)aSelector
                                   to: (unsigned long)observer
 {
+  return;
 }
 @end
 

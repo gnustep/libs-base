@@ -227,7 +227,7 @@ static SEL	rlSel;
 
 /**
  * Returns an autoreleased array from the contents of aURL.  The new array is
- * created using +allocWithZone: and initialised using the
+ * created using [NSObject+allocWithZone:] and initialised using the
  * -initWithContentsOfURL: method. See the documentation for those
  * methods for more detail.
  */
@@ -341,7 +341,7 @@ static SEL	rlSel;
 
 /**
  * Returns YES if anObject belongs to self. No otherwise.<br />
- * The -isEqual: method of anObject is used to test for equality.
+ * The [NSObject-isEqual:] method of anObject is used to test for equality.
  */
 - (BOOL) containsObject: (id)anObject
 {
@@ -495,7 +495,7 @@ static SEL	rlSel;
 
 /**
  * Returns the index of the first object found in the receiver
- * which is equal to anObject (using anObject's -isEqual: method).
+ * which is equal to anObject (using anObject's [NSObject-isEqual:] method).
  * Returns NSNotFound on failure.
  */
 - (unsigned) indexOfObject: (id)anObject
@@ -518,7 +518,7 @@ static SEL	rlSel;
 
 /**
  * Returns the index of the first object found in aRange of receiver
- * which is equal to anObject (using anObject's -isEqual: method).
+ * which is equal to anObject (using anObject's [NSObject-isEqual:] method).
  * Returns NSNotFound on failure.
  */
 - (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange
@@ -1511,7 +1511,7 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes all occurrences of anObject (found by the -isEqual: method
+ * Removes all occurrences of anObject (found by the [NSObject-isEqual:] method
  * of anObject) aRange in the receiver.
  */
 - (void) removeObject: (id)anObject inRange: (NSRange)aRange
@@ -1611,8 +1611,8 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes all occurrences of anObject (found by anObject's -isEqual: method)
- * from the receiver.
+ * Removes all occurrences of anObject (found by anObject's
+ * [NSObject-isEqual:] method) from the receiver.
  */
 - (void) removeObject: (id)anObject
 {
@@ -1766,7 +1766,7 @@ compare(id elem1, id elem2, void* context)
 
 /**
  * Removes from the receiver, all the objects present in otherArray,
- * as determined by using the -isEqual: method.
+ * as determined by using the [NSObject-isEqual:] method.
  */
 - (void) removeObjectsInArray: (NSArray*)otherArray
 {
