@@ -2513,7 +2513,17 @@ fail:
     }
   else if (term == '{')
     {
-      [self skipBlock];
+      BOOL	isEmpty;
+
+      [self skipBlock: &isEmpty];
+      if (isEmpty == YES)
+	{
+	  [method setObject: @"YES" forKey: @"Empty"];
+	}
+      else
+	{
+	  [method setObject: @"NO" forKey: @"Empty"];
+	}
     }
 
   /*
@@ -2621,6 +2631,7 @@ fail:
 		NSArray		*a1;
 		NSString	*c0;
 		NSString	*c1;
+		NSString	*e;
 
 		/*
 		 * Merge info from implementation into existing version.
@@ -2668,6 +2679,15 @@ fail:
 		    [self appendComment: c1 to: exist];
 		  }
 		[exist setObject: @"YES" forKey: @"Implemented"];
+
+		/*
+		 * Record if the implementation is not empty.
+		 */
+		e = [method objectForKey: @"Empty"];
+		if (e != nil)
+		  {
+		    [exist setObject: e forKey: @"Empty"];
+		  }
 	      }
 	    DESTROY(comment);	// Don't want this.
 	    break;
@@ -3700,7 +3720,13 @@ fail:
  */
 - (unsigned) skipBlock
 {
+  return [self skipBlock: 0];
+}
+
+- (unsigned) skipBlock: (BOOL*)isEmpty
+{
   unichar	term = '}';
+  BOOL		empty = YES;
 
   if (buffer[pos] == '(')
     {
@@ -3723,21 +3749,25 @@ fail:
 
 	  case '\'':
 	  case '"':
+	    empty = NO;
 	    pos--;
 	    [self skipLiteral];
 	    break;
 
 	  case '{':
+	    empty = NO;
 	    pos--;
 	    [self skipBlock];
 	    break;
 
 	  case '(':
+	    empty = NO;
 	    pos--;
 	    [self skipBlock];
 	    break;
 
 	  case '[':
+	    empty = NO;
 	    pos--;
 	    [self skipBlock];
 	    break;
@@ -3745,9 +3775,18 @@ fail:
 	  default:
 	    if (c == term)
 	      {
+		if (isEmpty != 0)
+		  {
+		    *isEmpty = empty;
+		  }
 		return pos;
 	      }
+	    empty = NO;
         }
+    }
+  if (isEmpty != 0)
+    {
+      *isEmpty = empty;
     }
   return pos;
 }

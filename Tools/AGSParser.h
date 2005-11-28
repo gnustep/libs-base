@@ -101,6 +101,7 @@
 - (void) setupBuffer;
 - (unsigned) skipArray;
 - (unsigned) skipBlock;
+- (unsigned) skipBlock: (BOOL*)isEmpty;
 - (unsigned) skipLiteral;
 - (unsigned) skipRemainderOfLine;
 - (unsigned) skipSpaces;

@@ -1,3 +1,11 @@
+2005-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	Update to log warning about unimplemented methods which are not
+	tagged as "<override-subclass />". ie intentionally empty.
+
 2005-11-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Restructure so that GNUstepConfig() can
