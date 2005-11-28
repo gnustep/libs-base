@@ -97,7 +97,10 @@ static BOOL snuggleStart(NSString *t)
 		      unit: (NSString*)unit
 		      info: (NSDictionary*)d
 {
-  if ([comment length] == 0)
+  NSString	*empty = [d objectForKey: @"Empty"];
+  BOOL		hadComment = ([comment length] == 0 ? NO : YES);
+
+  if (hadComment == NO)
     {
       comment = @"<em>Description forthcoming.</em>";
       if (warn == YES)
@@ -130,6 +133,38 @@ static BOOL snuggleStart(NSString *t)
 	    }
 	}
     }
+
+  if (empty != nil && [empty boolValue] == YES)
+    {
+#if 0
+      static NSString	*today = nil;
+
+      if (today == nil)
+	{
+	  NSCalendarDate	*d = [NSCalendarDate date];
+
+	  today
+	    = RETAIN([d descriptionWithCalendarFormat: @"%d-%m-%Y"]);
+	}
+      if (hadComment == NO)
+	{
+	  comment = @"";
+	}
+      comment = [NSString stringWithFormat:
+	@"<em>Not implemented (as of %@).</em><br />"
+	@"Please help us by producing an implementation of this "
+	@"and donating it to the GNUstep project.<br />"
+	@"You can check the task manager at "
+	@"https://savannah.gnu.org/projects/gnustep "
+	@"to see if anyone is already working on it.<br />",
+	today, comment];
+#else
+      NSString	*name = [d objectForKey: @"Name"];
+
+      NSLog(@"Warning - No implementation for [%@ %@]", unit, name);
+#endif
+    }
+
   return comment;
 }
 
@@ -251,7 +286,7 @@ static BOOL snuggleStart(NSString *t)
  * Return an array containing the names of any files modified as
  * a result of outputing the specified data structure.
  */
-- (NSArray*) output: (NSDictionary*)d
+- (NSArray*) output: (NSMutableDictionary*)d
 {
   NSMutableString	*str = [NSMutableString stringWithCapacity: 10240];
   NSDictionary		*classes;
@@ -435,8 +470,8 @@ static BOOL snuggleStart(NSString *t)
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
 	{
-	  NSString	*name = [names objectAtIndex: i];
-	  NSDictionary	*d = [classes objectForKey: name];
+	  NSString		*name = [names objectAtIndex: i];
+	  NSMutableDictionary	*d = [classes objectForKey: name];
 
 	  [self outputUnit: d to: str];
 	}
@@ -453,8 +488,8 @@ static BOOL snuggleStart(NSString *t)
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
 	{
-	  NSString	*name = [names objectAtIndex: i];
-	  NSDictionary	*d = [categories objectForKey: name];
+	  NSString		*name = [names objectAtIndex: i];
+	  NSMutableDictionary	*d = [categories objectForKey: name];
 
 	  [self outputUnit: d to: str];
 	}
@@ -471,8 +506,8 @@ static BOOL snuggleStart(NSString *t)
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
 	{
-	  NSString	*name = [names objectAtIndex: i];
-	  NSDictionary	*d = [protocols objectForKey: name];
+	  NSString		*name = [names objectAtIndex: i];
+	  NSMutableDictionary	*d = [protocols objectForKey: name];
 
 	  [self outputUnit: d to: str];
 	}
@@ -493,8 +528,8 @@ static BOOL snuggleStart(NSString *t)
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
 	{
-	  NSString	*name = [names objectAtIndex: i];
-	  NSDictionary	*d = [types objectForKey: name];
+	  NSString		*name = [names objectAtIndex: i];
+	  NSMutableDictionary	*d = [types objectForKey: name];
 
 	  [self outputDecl: d kind: @"type" to: m];
 	}
@@ -529,8 +564,8 @@ static BOOL snuggleStart(NSString *t)
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
 	{
-	  NSString	*name = [names objectAtIndex: i];
-	  NSDictionary	*d = [constants objectForKey: name];
+	  NSString		*name = [names objectAtIndex: i];
+	  NSMutableDictionary	*d = [constants objectForKey: name];
 
 	  [self outputDecl: d kind: @"constant" to: m];
 	}
@@ -565,8 +600,8 @@ static BOOL snuggleStart(NSString *t)
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
 	{
-	  NSString	*name = [names objectAtIndex: i];
-	  NSDictionary	*d = [macros objectForKey: name];
+	  NSString		*name = [names objectAtIndex: i];
+	  NSMutableDictionary	*d = [macros objectForKey: name];
 
 	  [self outputMacro: d to: m];
 	}
@@ -601,8 +636,8 @@ static BOOL snuggleStart(NSString *t)
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
 	{
-	  NSString	*name = [names objectAtIndex: i];
-	  NSDictionary	*d = [variables objectForKey: name];
+	  NSString		*name = [names objectAtIndex: i];
+	  NSMutableDictionary	*d = [variables objectForKey: name];
 
 	  [self outputDecl: d kind: @"variable" to: m];
 	}
@@ -637,8 +672,8 @@ static BOOL snuggleStart(NSString *t)
       names = [names sortedArrayUsingSelector: @selector(compare:)];
       for (i = 0; i < c; i++)
 	{
-	  NSString	*name = [names objectAtIndex: i];
-	  NSDictionary	*d = [functions objectForKey: name];
+	  NSString		*name = [names objectAtIndex: i];
+	  NSMutableDictionary	*d = [functions objectForKey: name];
 
 	  [self outputFunction: d to: m];
 	}
@@ -686,7 +721,7 @@ static BOOL snuggleStart(NSString *t)
 /**
  * Uses -split: and -reformat:withIndent:to:.
  */
-- (void) outputDecl: (NSDictionary*)d
+- (void) outputDecl: (NSMutableDictionary*)d
 	       kind: (NSString*)kind
 		 to: (NSMutableString*)str
 {
@@ -730,7 +765,7 @@ static BOOL snuggleStart(NSString *t)
 /**
  * Uses -split: and -reformat:withIndent:to:.
  */
-- (void) outputFunction: (NSDictionary*)d to: (NSMutableString*)str
+- (void) outputFunction: (NSMutableDictionary*)d to: (NSMutableString*)str
 {
   NSArray	*aa = [d objectForKey: @"Args"];
   NSString	*pref = [d objectForKey: @"Prefix"];
@@ -828,7 +863,7 @@ static BOOL snuggleStart(NSString *t)
 /**
  * Output the gsdoc code for an instance variable.
  */
-- (void) outputInstanceVariable: (NSDictionary*)d
+- (void) outputInstanceVariable: (NSMutableDictionary*)d
 			     to: (NSMutableString*)str
 			    for: (NSString*)unit
 {
@@ -865,7 +900,7 @@ static BOOL snuggleStart(NSString *t)
 /**
  * Uses -split: and -reformat:withIndent:to:.
  */
-- (void) outputMacro: (NSDictionary*)d
+- (void) outputMacro: (NSMutableDictionary*)d
 		  to: (NSMutableString*)str
 {
   NSString	*name = [d objectForKey: @"Name"];
@@ -916,7 +951,7 @@ static BOOL snuggleStart(NSString *t)
  * Uses -split: and -reformat:withIndent:to:.
  * Also has fun with YES, NO, and nil.
  */
-- (void) outputMethod: (NSDictionary*)d
+- (void) outputMethod: (NSMutableDictionary*)d
 		   to: (NSMutableString*)str
 		  for: (NSString*)unit
 {
@@ -983,6 +1018,11 @@ static BOOL snuggleStart(NSString *t)
 	      [m deleteCharactersInRange: r];
 	      comment = m;
 	      override = @"subclass";
+	      /*
+	       * If a method should be overridden by subclasses,
+	       * we don't treat it as unimplemented.
+	       */
+	      [d setObject: @"NO" forKey: @"Empty"];
 	    }
 	} while (r.length > 0);
       do
@@ -1055,7 +1095,7 @@ static BOOL snuggleStart(NSString *t)
   args = nil;
 }
 
-- (void) outputUnit: (NSDictionary*)d to: (NSMutableString*)str
+- (void) outputUnit: (NSMutableDictionary*)d to: (NSMutableString*)str
 {
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*type = [d objectForKey: @"Type"];

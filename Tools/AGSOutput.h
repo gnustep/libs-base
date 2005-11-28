@@ -39,26 +39,26 @@
 
 - (NSString*) checkComment: (NSString*)comment
 		      unit: (NSString*)unit
-		      info: (NSDictionary*)d;
+		      info: (NSMutableDictionary*)d;
 - (unsigned) fitWords: (NSArray*)a
 		 from: (unsigned)start
 		   to: (unsigned)end
 	      maxSize: (unsigned)limit
 	       output: (NSMutableString*)buf;
-- (NSArray*) output: (NSDictionary*)d;
-- (void) outputDecl: (NSDictionary*)d
+- (NSArray*) output: (NSMutableDictionary*)d;
+- (void) outputDecl: (NSMutableDictionary*)d
 	       kind: (NSString*)kind
 		 to: (NSMutableString*)str;
-- (void) outputFunction: (NSDictionary*)d to: (NSMutableString*)str;
-- (void) outputInstanceVariable: (NSDictionary*)d
+- (void) outputFunction: (NSMutableDictionary*)d to: (NSMutableString*)str;
+- (void) outputInstanceVariable: (NSMutableDictionary*)d
 			     to: (NSMutableString*)str
 			    for: (NSString*)unit;
-- (void) outputMacro: (NSDictionary*)d
+- (void) outputMacro: (NSMutableDictionary*)d
 		  to: (NSMutableString*)str;
-- (void) outputMethod: (NSDictionary*)d
+- (void) outputMethod: (NSMutableDictionary*)d
 		   to: (NSMutableString*)str
 		  for: (NSString*)unit;
-- (void) outputUnit: (NSDictionary*)d to: (NSMutableString*)str;
+- (void) outputUnit: (NSMutableDictionary*)d to: (NSMutableString*)str;
 - (unsigned) reformat: (NSString*)str
 	   withIndent: (unsigned)ind
 		   to: (NSMutableString*)buf;
