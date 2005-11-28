@@ -174,19 +174,25 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
  */
 @interface NSObject (NSXMLParserDelegateEventAdditions)
 
+/** <override-dummy />
+ */
 - (NSData*) parser: (NSXMLParser*)aParser
   resolveExternalEntityName: (NSString*)aName
   systemID: (NSString*)aSystemID;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   didEndElement: (NSString*)anElementName
   namespaceURI: (NSString*)aNamespaceURI
   qualifiedName: (NSString*)aQualifierName;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   didEndMappingPrefix: (NSString*)aPrefix;
 
-/**
+/** <override-dummy />
  * Called when the start of an element is encountered in the document,
  * this provides the name of the element, a dictionary containing the
  * attributes (if any) and (where namespaces are used) the namespace
@@ -198,68 +204,96 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
   qualifiedName: (NSString*)aQualifierName
   attributes: (NSDictionary*)anAttributeDict;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   didStartMappingPrefix: (NSString*)aPrefix
   toURI: (NSString*)aNamespaceURI;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundAttributeDeclarationWithName: (NSString*)anAttributeName
   forElement: (NSString*)anElementName
   type: (NSString*)aType
   defaultValue: (NSString*)aDefaultValue;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundCDATA: (NSData*)aBlock;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundCharacters: (NSString*)aString;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundComment: (NSString*)aComment;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundElementDeclarationWithName: (NSString*)anElementName
   model: (NSString*)aModel;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundExternalEntityDeclarationWithName: (NSString*)aName
   publicID: (NSString*)aPublicID
   systemID: (NSString*)aSystemID;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundIgnorableWhitespace: (NSString*)aWhitespaceString;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundInternalEntityDeclarationWithName: (NSString*)aName
   value: (NSString*)aValue;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundNotationDeclarationWithName: (NSString*)aName
   publicID: (NSString*)aPublicID
   systemID: (NSString*)aSystemID;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundProcessingInstructionWithTarget: (NSString*)aTarget
   data: (NSString*)aData;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   foundUnparsedEntityDeclarationWithName: (NSString*)aName
   publicID: (NSString*)aPublicID
   systemID: (NSString*)aSystemID
   notationName: (NSString*)aNotationName;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   parseErrorOccurred: (NSError*)anError;
 
+/** <override-dummy />
+ */
 - (void) parser: (NSXMLParser*)aParser
   validationErrorOccurred: (NSError*)anError;
 
-/**
+/** <override-dummy />
  * Called when parsing ends.
  */
 - (void) parserDidEndDocument: (NSXMLParser*)aParser;
 
-/**
+/** <override-dummy />
  * Called when parsing begins.
  */
 - (void) parserDidStartDocument: (NSXMLParser*)aParser;

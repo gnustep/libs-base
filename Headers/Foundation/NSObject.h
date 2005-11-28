@@ -262,7 +262,6 @@
 - (Class) class;
 - (Class) classForArchiver;
 - (Class) classForCoder;
-- (Class) classForPortCoder;
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol;
 - (id) copy;
 - (void) dealloc;
@@ -287,7 +286,6 @@
 - (void) release;
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder;
 - (BOOL) respondsToSelector: (SEL)aSelector;
 - (id) retain;
 - (unsigned) retainCount;

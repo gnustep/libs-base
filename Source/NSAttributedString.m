@@ -923,7 +923,7 @@ static Class GSMutableAttributedStringClass;
   [self endEditing];
 }
 
-/**
+/** <override-subclass />
  *  Replaces substring; replacement is granted attributes equal to those of
  *  the first character of the portion replaced.
  */
@@ -942,21 +942,18 @@ static Class GSMutableAttributedStringClass;
 	    withAttributedString: attributedString];
 }
 
-//Grouping changes
-/**
+/** <override-dummy />
  *  Call before executing a collection of changes, for optimization.
  */
 - (void) beginEditing
 {
-  //Overridden by subclasses
 }
 
-/**
+/** <override-dummy />
  *  Call after executing a collection of changes, for optimization.
  */
 - (void) endEditing
 {
-  //Overridden by subclasses
 }
 
 @end //NSMutableAttributedString

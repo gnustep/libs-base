@@ -48,7 +48,7 @@
 @class	NSHost;
 
 @interface NSObject(NSPortDelegateMethods)
-/**
+/** <override-dummy />
  * Subclasses of NSPort send this message to their delegate on receipt
  * of a port message.
  */

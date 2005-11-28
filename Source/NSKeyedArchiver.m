@@ -821,19 +821,29 @@ static NSDictionary *makeReference(unsigned ref)
 @end
 
 @implementation NSObject (NSKeyedArchiverDelegate)
+/** <override-dummy />
+ */
 - (void) archiver: (NSKeyedArchiver*)anArchiver didEncodeObject: (id)anObject
 {
 }
+/** <override-dummy />
+ */
 - (id) archiver: (NSKeyedArchiver*)anArchiver willEncodeObject: (id)anObject
 {
   return anObject;
 }
+/** <override-dummy />
+ */
 - (void) archiverDidFinish: (NSKeyedArchiver*)anArchiver
 {
 }
+/** <override-dummy />
+ */
 - (void) archiverWillFinish: (NSKeyedArchiver*)anArchiver
 {
 }
+/** <override-dummy />
+ */
 - (void) archiver: (NSKeyedArchiver*)anArchiver
 willReplaceObject: (id)anObject
        withObject: (id)newObject

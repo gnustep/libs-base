@@ -1960,3 +1960,50 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
 @end
 
+@implementation	NSObject (NSPortCoder)
+/**
+ * Override to substitute class when an instance is being serialized by an
+ * [NSPortCoder].  Default implementation returns -classForCoder .
+ */
+- (Class) classForPortCoder
+{
+  return [self classForCoder];
+}
+
+/**
+ * Returns the actual object to be encoded for sending over the
+ * network on a Distributed Objects connection.<br />
+ * The default implementation returns self if the receiver is being
+ * sent <em>bycopy</em> and returns a proxy otherwise.<br />
+ * Subclasses may override this method to change this behavior,
+ * eg. to ensure that they are always copied.
+ */
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  static Class	proxyClass = 0;
+  static IMP	proxyImp = 0;
+
+  if (proxyImp == 0)
+    {
+      proxyClass = [NSDistantObject class];
+      /*
+       * use get_imp() because NSDistantObject doesn't implement
+       * methodForSelector:
+       */
+      proxyImp = get_imp(GSObjCClass((id)proxyClass),
+	@selector(proxyWithLocal:connection:));
+    }
+
+  if ([aCoder isBycopy])
+    {
+      return self;
+    }
+  else
+    {
+      return (*proxyImp)(proxyClass, @selector(proxyWithLocal:connection:),
+	self, [aCoder connection]);
+    }
+}
+
+@end
+

@@ -233,24 +233,33 @@
 - (void*) lib;
 - (GSXMLParser*) parser;
 
-/* callbacks ... */
+/** <override-dummy /> */
 - (void) attribute: (NSString*)name
 	     value: (NSString*)value;
+/** <override-dummy /> */
 - (void) attributeDecl: (NSString*)nameElement
                   name: (NSString*)name
                   type: (int)type
           typeDefValue: (int)defType
           defaultValue: (NSString*)value;
+/** <override-dummy /> */
 - (void) characters: (NSString*)name;
+/** <override-dummy /> */
 - (void) cdataBlock: (NSData*)value;
+/** <override-dummy /> */
 - (void) comment: (NSString*) value;
+/** <override-dummy /> */
 - (void) elementDecl: (NSString*)name
 		type: (int)type;
+/** <override-dummy /> */
 - (void) endDocument;
+/** <override-dummy /> */
 - (void) endElement: (NSString*)elementName;
+/** <override-dummy /> */
 - (void) endElement: (NSString*)elementName
              prefix: (NSString*)prefix
 	       href: (NSString*)href;
+/** <override-dummy /> */
 - (void) entityDecl: (NSString*)name
                type: (int)type
              public: (NSString*)publicId
@@ -269,11 +278,13 @@
          lineNumber: (int)lineNumber;
 - (void*) getEntity: (NSString*)name;
 - (void*) getParameterEntity: (NSString*)name;
+/** <override-dummy /> */
 - (void) globalNamespace: (NSString*)name
 		    href: (NSString*)href
 		  prefix: (NSString*)prefix;
 - (int) hasExternalSubset;
 - (int) hasInternalSubset;
+/** <override-dummy /> */
 - (void) ignoreWhitespace: (NSString*)ch;
 - (BOOL) internalSubset: (NSString*)name
              externalID: (NSString*)externalID
@@ -281,22 +292,30 @@
 - (int) isStandalone;
 - (NSString*) loadEntity: (NSString*)publicId
 		      at: (NSString*)location;
+/** <override-dummy /> */
 - (void) namespaceDecl: (NSString*)name
 		  href: (NSString*)href
 		prefix: (NSString*)prefix;
+/** <override-dummy /> */
 - (void) notationDecl: (NSString*)name
 	       public: (NSString*)publicId
 	       system: (NSString*)systemId;
+/** <override-dummy /> */
 - (void) processInstruction: (NSString*)targetName
 		       data: (NSString*)PIdata;
+/** <override-dummy /> */
 - (void) reference: (NSString*)name;
+/** <override-dummy /> */
 - (void) startDocument;
+/** <override-dummy /> */
 - (void) startElement: (NSString*)elementName
            attributes: (NSMutableDictionary*)elementAttributes;
+/** <override-dummy /> */
 - (void) startElement: (NSString*)elementName
 	       prefix: (NSString*)prefix
 		 href: (NSString*)href
            attributes: (NSMutableDictionary*)elementAttributes;
+/** <override-dummy /> */
 - (void) unparsedEntityDecl: (NSString*)name
 		     public: (NSString*)publicId
 		     system: (NSString*)systemId
@@ -630,17 +649,22 @@
 - (void) timeout: (NSTimer*)t;
 
 #ifdef GNUSTEP
-/** Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
+/** <override-dummy />
+ * Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDataDidBecomeAvailable: (NSData*)newData;
-/** Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
+/** <override-dummy />
+ * Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDidFailLoadingWithReason: (NSString*)reason;
-/** Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
+/** <override-dummy />
+ * Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
 - (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender;
-/** Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
+/** <override-dummy />
+ * Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
 - (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender;
-/** Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
+/** <override-dummy />
+ * Allows GSXMLRPC to act as a client of NSURLHandle. Internal use only. */
 - (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender;
 #endif
 
@@ -652,7 +676,8 @@
  * by the -sendMethodCall:params:timeout: method.<br />
  */
 @interface	GSXMLRPC (Delegate)
-/**
+
+/** <override-dummy />
  * Called by the sender when an XMLRPC method call completes (either success
  * or failure). 
  * The delegate may then call the -result method to retrieve the result of

@@ -1269,7 +1269,7 @@ extern IMP	wRetImp;
  */
 - (void) configureAsServer
 {
-/* Nothing to do here */
+  return;	/* Nothing to do here */
 }
 
 /**

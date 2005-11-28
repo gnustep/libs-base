@@ -796,23 +796,33 @@ static NSMapTable	globalClassMap = 0;
 @end
 
 @implementation NSObject (NSKeyedUnarchiverDelegate)
+/** <override-dummy />
+ */
 - (Class) unarchiver: (NSKeyedUnarchiver*)anUnarchiver
   cannotDecodeObjectOfClassName: (NSString*)aName
   originalClasses: (NSArray*)classNames
 {
   return nil;
 }
+/** <override-dummy />
+ */
 - (id) unarchiver: (NSKeyedUnarchiver*)anUnarchiver
   didDecodeObject: (id)anObject
 {
   return anObject;
 }
+/** <override-dummy />
+ */
 - (void) unarchiverDidFinish: (NSKeyedUnarchiver*)anUnarchiver
 {
 }
+/** <override-dummy />
+ */
 - (void) unarchiverWillFinish: (NSKeyedUnarchiver*)anUnarchiver
 {
 }
+/** <override-dummy />
+ */
 - (void) unarchiver: (NSKeyedUnarchiver*)anUnarchiver
   willReplaceObject: (id)anObject
 	 withObject: (id)newObject

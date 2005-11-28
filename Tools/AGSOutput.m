@@ -95,7 +95,7 @@ static BOOL snuggleStart(NSString *t)
 
 - (NSString*) checkComment: (NSString*)comment
 		      unit: (NSString*)unit
-		      info: (NSDictionary*)d
+		      info: (NSMutableDictionary*)d
 {
   NSString	*empty = [d objectForKey: @"Empty"];
   BOOL		hadComment = ([comment length] == 0 ? NO : YES);

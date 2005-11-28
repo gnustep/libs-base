@@ -380,7 +380,6 @@ static NSLock	*cached_proxies_gate = nil;
  *   Use [NSSocketPortNameServer+sharedInstance]
  *   for connections to remote hosts.
  * </p>
- * </p>
  * <p>
  *   If <em>host</em> is <code>nil</code> or an empty string,
  *   the host is taken to be the local machine.

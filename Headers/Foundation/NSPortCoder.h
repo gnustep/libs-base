@@ -143,6 +143,35 @@
 
 @end
 
+/**
+ * This informal protocol allows an object to control the details of how an
+ * object is sent over the wire in distributed objects Port communications.
+ */
+@interface NSObject (NSPortCoder)
+/**
+ *	Must return the class that will be created on the remote side
+ *	of the connection.  If the class to be created is not the same
+ *	as that of the object returned by replacementObjectForPortCoder:
+ *	then the class must be capable of recognising the object it
+ *	actually gets in its initWithCoder: method.
+ *	The default operation is to return NSDistantObject unless the
+ *	object is being sent bycopy, in which case the objects actual
+ *	class is returned.  To force bycopy operation the object should
+ *	return its own class.
+ */
+- (Class) classForPortCoder;
+
+/**
+ *	This message is sent to an object about to be encoded for sending
+ *	over the wire.  The default action is to return an NSDistantObject
+ *	which is a local proxy for the object unless the object is being
+ *	sent bycopy, in which case the actual object is returned.
+ *	To force bycopy, an object should return itself.
+ */
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder;
+
+@end
+
 @interface	NSPortCoder (Private)
 - (NSMutableArray*) _components;
 @end
