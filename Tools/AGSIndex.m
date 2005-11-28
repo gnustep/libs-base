@@ -709,14 +709,32 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
     }
   if (*u == nil)
     {
+      NSEnumerator	*e;
+      NSString		*unit;
+      unsigned		count = 0;
+
       /**
        * If the method was given no unit to look in, then it will succeed
        * and return a value if (and only if) the required reference is
-       * defined only in one unit.
+       * defined only in one unit (excluding protocols).
+       * In the case where it is in two units (one of them a protocol)
+       * the class is taken in preference to the protocol.
        */
-      if ([t count] == 1)
+      e = [t keyEnumerator];
+      while ((unit = [e nextObject]) != nil)
 	{
-	  *u = [[t allKeys] lastObject];
+	  *u = unit;
+	  if ([unit hasPrefix: @"("] == NO)
+	    {
+	      if (count++ > 0)
+		{
+		  *u = nil;	// More than one match
+		  break;
+		}
+	    }
+	}
+      if (*u != nil)
+	{
 	  return [t objectForKey: *u];
 	}
       return nil;
