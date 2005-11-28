@@ -331,8 +331,8 @@ static BOOL snuggleStart(NSString *t)
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
-  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.2//EN\" "];
-  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_2.xml\">\n"];
+  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.3//EN\" "];
+  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"];
   [str appendFormat: @"<gsdoc"];
 
   if (base != nil)
@@ -1018,6 +1018,29 @@ static BOOL snuggleStart(NSString *t)
 	      [m deleteCharactersInRange: r];
 	      comment = m;
 	      override = @"subclass";
+	      /*
+	       * If a method should be overridden by subclasses,
+	       * we don't treat it as unimplemented.
+	       */
+	      [d setObject: @"NO" forKey: @"Empty"];
+	    }
+	} while (r.length > 0);
+      do
+	{
+	  r = [comment rangeOfString: @"<override-dummy />"];
+	  if (r.length == 0)
+	    r = [comment rangeOfString: @"<override-dummy/>"];
+	  if (r.length == 0)
+	    r = [comment rangeOfString: @"<override-dummy>"];
+	  if (r.length > 0)
+	    {
+	      if (m == nil)
+		{
+		  m = [comment mutableCopy];
+		}
+	      [m deleteCharactersInRange: r];
+	      comment = m;
+	      override = @"dummy";
 	      /*
 	       * If a method should be overridden by subclasses,
 	       * we don't treat it as unimplemented.

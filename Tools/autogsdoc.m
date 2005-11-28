@@ -203,6 +203,11 @@
 	The method is marked as being one which subclasses must override
 	(e.g. an abstract method).
       </item>
+      <item><strong>&lt;override-dummy /&gt;</strong>
+	The method is marked as being one which is a dummy implementation
+	intended for subclasses to override, though not one they are forced
+	to implement.
+      </item>
       <item><strong>&lt;override-never /&gt;</strong>
 	The method is marked as being one which subclasses should <em>NOT</em>
 	override.
