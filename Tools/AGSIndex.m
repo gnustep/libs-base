@@ -710,7 +710,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   if (*u == nil)
     {
       NSEnumerator	*e;
-      NSString		*unit;
+      NSString		*n;
       unsigned		count = 0;
 
       /**
@@ -721,10 +721,10 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
        * the class is taken in preference to the protocol.
        */
       e = [t keyEnumerator];
-      while ((unit = [e nextObject]) != nil)
+      while ((n = [e nextObject]) != nil)
 	{
-	  *u = unit;
-	  if ([unit hasPrefix: @"("] == NO)
+	  *u = n;
+	  if ([n hasPrefix: @"("] == NO)
 	    {
 	      if (count++ > 0)
 		{
@@ -750,15 +750,24 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       return s;
     }
 
+  /**
+   * If the unit that the method has been asked to look in is a
+   * protocol which is not found, the lookup must fail.
+   */
+  if ([*u hasPrefix: @"("] == YES)
+    {
+      *u = nil;
+      return nil;
+    }
+
   /*
-   * (If unit is a category, method was probably indexed under the class,
-   *  so check it.)
+   * If unit is a category, method was probably indexed under the class,
+   * so wirk with the class instead of the category.
    */
   if ([*u length] > 0 && [*u characterAtIndex: [*u length] - 1] == ')')
     {
-      NSString *className =
-        [*u substringToIndex: [*u rangeOfString: @"("].location];
-      s = [t objectForKey: className];
+      *u = [*u substringToIndex: [*u rangeOfString: @"("].location];
+      s = [t objectForKey: *u];
       if (s != nil)
         {
           return s;
@@ -766,26 +775,13 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
     }
 
   /**
-   * If the unit that the method has been asked to look in is a
-   * category or protocol which is not found, the lookup must fail.
-   */
-  if ([t objectForKey: *u] == nil
-    && ([*u length] == 0 || [*u characterAtIndex: [*u length] - 1] == ')'))
-    {
-      *u = nil;
-      return nil;
-    }
-
-  /**
-   * If the unit is a class, and ref was not found in it, then this
-   * method will succeed if ref can be found in any superclass of the class.
+   * Try all superclasses in turn.
    */
   while (*u != nil)
     {
       *u = [self globalRef: *u type: @"super"];
       if (*u != nil)
 	{
-	  *u = [*u lastPathComponent];
 	  s = [t objectForKey: *u];
 	  if (s != nil)
 	    {

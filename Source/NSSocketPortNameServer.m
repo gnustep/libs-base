@@ -530,8 +530,8 @@ typedef enum {
 /**
  * This is the nameserver handling ports used for distributed objects
  * communications (see [NSConnection]) between hosts.<br />
- * Use the +sharedInstance method to get a nameserver, rather than
- * allocating and initialising one.
+ * Use the [NSSocketPortNameServer+sharedInstance] method to get a
+ * nameserver, rather than allocating and initialising one.
  */
 @implementation NSSocketPortNameServer
 

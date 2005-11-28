@@ -217,11 +217,25 @@ static NSString		*mainFont = nil;
     }
   else if (u == nil)
     {
-      s = [localRefs unitRef: r type: t unit: &u];
+      NSString	*tmp = unit;
+
+      s = [localRefs unitRef: r type: t unit: &tmp];
       if (s == nil)
 	{
-	  s = [globalRefs unitRef: r type: t unit: &u];
+	  tmp = u;
+	  s = [localRefs unitRef: r type: t unit: &tmp];
+	  if (s == nil)
+	    {
+	      tmp = unit;
+	      s = [globalRefs unitRef: r type: t unit: &tmp];
+	      if (s == nil)
+		{
+		  tmp = nil;
+		  s = [globalRefs unitRef: r type: t unit: &tmp];
+		}
+	    }
 	}
+      u = tmp;
     }
   if (s == nil)
     {
@@ -1581,7 +1595,10 @@ static NSString		*mainFont = nil;
               [linkRef setString:sel];
               [linkRef replaceString: @"&nbsp;" withString: @""];
 
-	      s = [self makeLink: linkRef ofType: @"method" inUnit: nil isRef: NO];
+	      s = [self makeLink: linkRef
+			  ofType: @"method"
+			  inUnit: nil
+			   isRef: NO];
 	      if (s != nil)
 		{
 		  [buf appendString: s];
@@ -1658,8 +1675,9 @@ static NSString		*mainFont = nil;
 
           // fill in default value
           if ((type == nil) || [type isEqual: @""])
+	    {
               type = @"label";
-
+	    }
 	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
 	    {
 	      s = [self makeLink: r ofType: type inUnit: c isRef: YES];
