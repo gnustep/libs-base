@@ -254,6 +254,8 @@ getPathConfig(NSDictionary *dict, NSString *key)
 		{
 		  path = [NSString stringWithFormat: @"%c:%@", (char)buf[1],
 		    [path substringFromindex: 2]];
+		  path = [path stringByReplacingString: @"/"
+					    withString: @"\\"];
 		  NSLog(@"I am guessing that you meant '%@'", path);
 		}
 	    }
@@ -397,6 +399,7 @@ GNUstepConfig(NSDictionary *newConfig)
 	  if (newConfig == nil)
 	    {
 	      NSString	*file = nil;
+	      BOOL	fromEnvironment = YES;
 
 	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
@@ -407,6 +410,7 @@ GNUstepConfig(NSDictionary *newConfig)
 #endif
 	      if (file == nil)
 		{
+		  fromEnvironment = NO;
 		  file = [NSString stringWithCString:
 		    STRINGIFY(GNUSTEP_CONFIG_FILE)];
 		}
@@ -428,8 +432,41 @@ GNUstepConfig(NSDictionary *newConfig)
 		  // Join the two together
 		  file = [path stringByAppendingPathComponent: file];
 		}
-	      gnustepConfigPath = [file stringByDeletingLastPathComponent];
-	      RETAIN(gnustepConfigPath);
+
+	      if ([file isAbsolutePath] == NO)
+		{
+		  if (fromEnvironment ==  YES)
+		    {
+		      NSLog(@"GNUSTEP_CONFIG_FILE value ('%@') is not "
+			@"an absolute path.  Please fix the environment "
+			@"variable.", file);
+		    }
+		  else
+		    {
+		      NSLog(@"GNUSTEP_CONFIG_FILE value ('%@') is not "
+			@"an absolute path.  Please rebuild GNUstep-base "
+			@"specifying a valid path to the config file.", file);
+		    }
+#if	defined(__MINGW32_)
+		  if ([file length] > 2)
+		    {
+		      unichar	buf[3];
+
+		      [file getCharacters: buf range: NSMakeRange(0, 3)];
+		      if ((buf[0] == '/' || bug[0] == '\\') && isalpha(buf[1])
+			&& (buf[2] == '/' || bug[2] == '\\'))
+			{
+			  file = [NSString stringWithFormat: @"%c:%@",
+			    (char)buf[1], [file substringFromindex: 2]];
+			  file = [file stringByReplacingString: @"/"
+						    withString: @"\\"];
+			  NSLog(@"I am guessing that you meant '%@'", file);
+			}
+		    }
+#endif
+		}
+	      gnustepConfigPath
+		= RETAIN([file stringByDeletingLastPathComponent]);
 	      ParseConfigurationFile(file, conf);
 	    }
 	  else
