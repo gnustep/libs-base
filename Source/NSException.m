@@ -33,47 +33,24 @@
 #include "Foundation/NSDictionary.h"
 #include <stdio.h>
 
-/**
- * A generic exception for general purpose usage.
- */
 NSString* const NSGenericException
   = @"NSGenericException";
 
-/**
- * An exception for cases where unexpected state is detected within an object.
- */
 NSString* const NSInternalInconsistencyException
   = @"NSInternalInconsistencyException";
 
-/**
- * An exception used when an invalid argument is passed to a method
- * or function.
- */
 NSString* const NSInvalidArgumentException
   = @"NSInvalidArgumentException";
 
-/**
- * An exception used when the system fails to allocate required memory.
- */
 NSString* const NSMallocException
   = @"NSMallocException";
 
-/**
- * An exception used when an illegal range is encountered ... usually this
- * is used to provide more information than an invalid argument exception.
- */
 NSString* const NSRangeException
  = @"NSRangeException";
 
-/**
- * An exception when character set conversion fails.
- */
 NSString* const NSCharacterConversionException
   = @"NSCharacterConversionException";
 
-/**
- * An exception used when some form of parsing fails.
- */
 NSString* const NSParseErrorException
   = @"NSParseErrorException";
 
@@ -111,44 +88,8 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   _terminate();
 }
 
-/**
-   <p>
-   The <code>NSException</code> class helps manage errors in a program. It
-   provides a mechanism for lower-level methods to provide information about
-   problems to higher-level methods, which more often than not, have a
-   better ability to decide what to do about the problems.
-   </p>
-   <p>
-   Exceptions are typically handled by enclosing a sensitive section
-   of code inside the macros <code>NS_DURING</code> and <code>NS_HANDLER</code>,
-   and then handling any problems after this, up to the
-   <code>NS_ENDHANDLER</code> macro:
-   </p>
-   <example>
-   NS_DURING
-    code that might cause an exception
-   NS_HANDLER
-    code that deals with the exception. If this code cannot deal with
-    it, you can re-raise the exception like this
-    [localException raise]
-    so the next higher level of code can handle it
-   NS_ENDHANDLER
-   </example>
-   <p>
-   The local variable <code>localException</code> is the name of the exception
-   object you can use in the <code>NS_HANDLER</code> section.
-   The easiest way to cause an exception is using the +raise:format:,...
-   method.
-   </p>
-*/
 @implementation NSException
 
-/**
-   Create an an exception object with a name, reason and a dictionary
-   userInfo which can be used to provide additional information or
-   access to objects needed to handle the exception. After the
-   exception is created you must -raise it.
-*/
 + (NSException*) exceptionWithName: (NSString*)name
 			    reason: (NSString*)reason
 			  userInfo: (NSDictionary*)userInfo
@@ -157,11 +98,6 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 				   userInfo: userInfo]);
 }
 
-/**
-   Creates an exception with a name and a reason using the
-   format string and any additional arguments. The exception is then
-   raised.
- */
 + (void) raise: (NSString*)name
 	format: (NSString*)format,...
 {
@@ -173,11 +109,6 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   va_end(args);
 }
 
-/**
-   Creates an exception with a name and a reason string using the
-   format string and additional arguments specified as a variable
-   argument list argList. The exception is then raised.
- */
 + (void) raise: (NSString*)name
 	format: (NSString*)format
      arguments: (va_list)argList
@@ -190,10 +121,6 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   [except raise];
 }
 
-/**
-   <init/>Initializes a newly allocated NSException object with a
-   name, reason and a dictionary userInfo.
-*/
 - (id) initWithName: (NSString*)name
 	     reason: (NSString*)reason
 	   userInfo: (NSDictionary*)userInfo
@@ -212,19 +139,6 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   [super dealloc];
 }
 
-/**
-   Raises the exception. All code following the raise will not be
-   executed and program control will be transfered to the closest
-   calling method which encapsulates the exception code in an
-   NS_DURING macro.<br />
-   If the exception was not caught in a macro, the currently set
-   uncaught exception handler is called to perform final logging
-   and handle program termination.<br />
-   If the uncaught exception handler fails to terminate the program,
-   then the default builtin uncaught exception handler will do so.<br />
-   NB. all other exception raising methods call this one, so if you
-   want to set a breakpoint when debugging, set it in this method.
-*/
 - (void) raise
 {
   NSThread	*thread;
@@ -273,7 +187,6 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   longjmp(handler->jumpState, 1);
 }
 
-/** Returns the name of the exception. */
 - (NSString*) name
 {
   if (_e_name != nil)
@@ -286,7 +199,6 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     }
 }
 
-/** Returns the exception reason. */
 - (NSString*) reason
 {
   if (_e_reason != nil)
@@ -299,7 +211,6 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     }
 }
 
-/** Returns the exception userInfo dictionary. */
 - (NSDictionary*) userInfo
 {
   return _e_info;

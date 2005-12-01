@@ -1,7 +1,9 @@
 2005-12-01  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSpathUtilities.m: Add more checks/warnings about improper
+	* Source/NSPathUtilities.m: Add more checks/warnings about improper
 	configuration.
+	* Headers/Foundation/NSException.h: clarify/extend documentation.
+	* Source/NSException.m: move some documentation to header.
 
 2005-11-28  Richard Frith-Macdonald <rfm@gnu.org>
 
