@@ -36,6 +36,45 @@
 
 @class NSDictionary;
 
+/**
+   <p>
+   The <code>NSException</code> class helps manage errors in a program. It
+   provides a mechanism for lower-level methods to provide information about
+   problems to higher-level methods, which more often than not, have a
+   better ability to decide what to do about the problems.
+   </p>
+   <p>
+   Exceptions are typically handled by enclosing a sensitive section
+   of code inside the macros <code>NS_DURING</code> and <code>NS_HANDLER</code>,
+   and then handling any problems after this, up to the
+   <code>NS_ENDHANDLER</code> macro:
+   </p>
+   <example>
+   NS_DURING
+    code that might cause an exception
+   NS_HANDLER
+    code that deals with the exception. If this code cannot deal with
+    it, you can re-raise the exception like this
+    [localException raise]
+    so the next higher level of code can handle it
+   NS_ENDHANDLER
+   </example>
+   <p>
+   The local variable <code>localException</code> is the name of the exception
+   object you can use in the <code>NS_HANDLER</code> section.
+   The easiest way to cause an exception is using the +raise:format:,...
+   method.
+   </p>
+   <p>
+   If there is no NS_HANDLER ... NS_ENDHANDLER block enclosing (directly or
+   indirectly) code where an exception is raised, then control passes to
+   the <em>uncaught exception handler</em> function and the program is
+   then terminated.<br />
+   The uncaught exception handler is set using NSSetUncaughtExceptionHandler()
+   and if not set, defaults to a function which will simply print an error
+   message before the program terminates.
+   </p>
+*/
 @interface NSException : NSObject <NSCoding, NSCopying>
 {    
   NSString *_e_name;
@@ -43,39 +82,107 @@
   NSDictionary *_e_info;
 }
 
+/**
+   Create an an exception object with a name, reason and a dictionary
+   userInfo which can be used to provide additional information or
+   access to objects needed to handle the exception. After the
+   exception is created you must -raise it.
+*/
 + (NSException*) exceptionWithName: (NSString*)name
 			    reason: (NSString*)reason
 			  userInfo: (NSDictionary*)userInfo;
+
+/**
+   Creates an exception with a name and a reason using the
+   format string and any additional arguments. The exception is then
+   <em>raised</em> using the -raise method.
+ */
 + (void) raise: (NSString*)name
 	format: (NSString*)format,...;
+
+/**
+   Creates an exception with a name and a reason string using the
+   format string and additional arguments specified as a variable
+   argument list argList. The exception is then <em>raised</em>
+   using the -raise method.
+ */
 + (void) raise: (NSString*)name
 	format: (NSString*)format
      arguments: (va_list)argList;
 
+/**
+   <init/>Initializes a newly allocated NSException object with a
+   name, reason and a dictionary userInfo.
+*/
 - (id) initWithName: (NSString*)name 
 	     reason: (NSString*)reason 
 	   userInfo: (NSDictionary*)userInfo;
+
+/** Returns the name of the exception. */
+- (NSString*) name;
+
+/**
+   Raises the exception. All code following the raise will not be
+   executed and program control will be transfered to the closest
+   calling method which encapsulates the exception code in an
+   NS_DURING macro.<br />
+   If the exception was not caught in a macro, the currently set
+   uncaught exception handler is called to perform final logging
+   and the program is then terminated.<br />
+   If the uncaught exception handler fails to terminate the program,
+   then the default behavior is to terminate the program as soon as
+   the uncaught exception handler function returns.<br />
+   NB. all other exception raising methods call this one, so if you
+   want to set a breakpoint when debugging, set it in this method.
+*/
 - (void) raise;
 
-// Querying Exceptions
-- (NSString*) name;
+/** Returns the exception reason. */
 - (NSString*) reason;
+
+/** Returns the exception userInfo dictionary. */
 - (NSDictionary*) userInfo;
 
 @end
 
-/* Common exceptions */
+/**
+ * A generic exception for general purpose usage.
+ */
 GS_EXPORT NSString* const NSGenericException;
+
+/**
+ * An exception for cases where unexpected state is detected within an object.
+ */
 GS_EXPORT NSString* const NSInternalInconsistencyException;
+
+/**
+ * An exception used when an invalid argument is passed to a method
+ * or function.
+ */
 GS_EXPORT NSString* const NSInvalidArgumentException;
+
+/**
+ * An exception used when the system fails to allocate required memory.
+ */
 GS_EXPORT NSString* const NSMallocException;
+
+/**
+ * An exception used when an illegal range is encountered ... usually this
+ * is used to provide more information than an invalid argument exception.
+ */
 GS_EXPORT NSString* const NSRangeException;
+
+/**
+ * An exception when character set conversion fails.
+ */
 GS_EXPORT NSString* const NSCharacterConversionException;
+
 #ifndef	STRICT_OPENSTEP
+/**
+ * An exception used when some form of parsing fails.
+ */
 GS_EXPORT NSString* const NSParseErrorException;
 #endif
-
-/* Exception handler definitions */
 
 /**
  * The actual structure for an NSHandler.  You shouldn't need to worry about it.
@@ -96,7 +203,7 @@ typedef void NSUncaughtExceptionHandler(NSException *exception);
 
 /**
  *  Variable used to hold the current uncaught exception handler.  Use the
- *  function NSSetUncaughtExceptionHandler() to set.
+ *  function NSSetUncaughtExceptionHandler() to set this.
  */
 GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
@@ -110,11 +217,25 @@ GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 #define NSGetUncaughtExceptionHandler() _NSUncaughtExceptionHandler
 
 /**
- *  Sets the exception handler called when an exception is generated and
+ *  <p>Sets the exception handler called when an exception is generated and
  *  not caught by the programmer (by enclosing in <code>NS_DURING</code> and
  *  <code>NS_HANDLER</code>...<code>NS_ENDHANDLER</code>).  The default prints
  *  an error message and exits the program.  proc should take a single argument
  *  of type <code>NSException *</code>.
+ *  </p>
+ *  <p>NB. If the exception handler set by this function does not terminate
+ *  the process, the process will be terminateed anyway.  This is a safety
+ *  precaution to ensure that, in the event of an exception ebing raised
+ *  and not handled, the program does not try to continue running in a
+ *  confused state (possibly doing horrible things like billing customers
+ *  who shouldn't be billed etc), but shuts down as cleanly as possible.
+ *  </p>
+ *  <p>Process termination is normally accomplished by calling the standard
+ *  exit function of theC runtime library, but if the environment variable
+ *  CRASH_ON_ABORT is set to YES or TRUE or 1 the termination will be
+ *  accomplished by calling the abort function instead, which should cause
+ *  a core dump to be made for debugging.
+ *  </p>
  */
 #define NSSetUncaughtExceptionHandler(proc) \
 			(_NSUncaughtExceptionHandler = (proc))
