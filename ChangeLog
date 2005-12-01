@@ -1,3 +1,8 @@
+2005-12-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSpathUtilities.m: Add more checks/warnings about improper
+	configuration.
+
 2005-11-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSConfig.h.in:
