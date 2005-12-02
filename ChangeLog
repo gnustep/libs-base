@@ -1,3 +1,9 @@
+2005-12-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Fix bug configuring whether GNUstep.conf can be
+	set in the environment
+	* configure: regenerate
+
 2005-12-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Add more checks/warnings about improper

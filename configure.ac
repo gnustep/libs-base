@@ -56,14 +56,14 @@ AC_ARG_ENABLE(environment-config-file,
 [--disable-environment-config-file		Disable use of the GNUSTEP_CONFIG_FILE environment variable], 
   ac_cv_environment_config_file=$enableval,
   ac_cv_environment_config_file="yes")
-if test "$ac_cv_environment_config_file" = "no"; then
+if test "$ac_cv_environment_config_file" = "yes"; then
   AC_DEFINE(OPTION_NO_ENVIRONMENT, 0,
     [Enable GNUSTEP_CONFIG_FILE environment variable])
-  AC_MSG_RESULT([no: disabled from the command-line])
+  AC_MSG_RESULT([yes])
 else
   AC_DEFINE(OPTION_NO_ENVIRONMENT, 1,
     [Disable GNUSTEP_CONFIG_FILE environment variable])
-  AC_MSG_RESULT([yes])
+  AC_MSG_RESULT([no: disabled from the command-line])
 fi
 
 #
