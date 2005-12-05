@@ -281,12 +281,12 @@ notice and this notice are preserved.
 	      <p>
 	        May be set to <code>unix</code> to enforce unix style path
 		handling, or <code>windows</code> to enforce mswindows style
-		path handling, or anu other value (including unset) for the
+		path handling, or any other value (including unset) for the
 		default behavior where both styles of paths should be
 		managed in the best way possible.
 	      </p>
 	      <p>
-	        The option to enforce either upre unix or pure windows style
+	        The option to enforce either pure unix or pure windows style
 		path handling (and hence this environment variable) may be
 		removed in a later release.
 	      </p>
@@ -307,40 +307,6 @@ notice and this notice are preserved.
 	    <desc>
 	      <p>
 		Used in place of GNUSTEP_TARGET_OS if the other is missing.
-	      </p>
-	    </desc>
-	    <term>GNUSTEP_LOCAL_ROOT</term>
-	    <desc>
-	      <p>
-		Used to specify the GNUstep root directory for local
-		(non-system) resources.  Typically all locally produced
-		or contributed software is installed relative to this.
-	      </p>
-	    </desc>
-	    <term>GNUSTEP_NETWORK_ROOT</term>
-	    <desc>
-	      <p>
-		Used to specify the GNUstep root directory for local
-		(non-system) resources that are intended to be shared
-		across a local network.  Typically this is an NFS exported
-		directory shared by many machines.  It provides an
-		alternative to GNUSTEP_LOCAL_ROOT.
-	      </p>
-	    </desc>
-	    <term>GNUSTEP_SYSTEM_ROOT</term>
-	    <desc>
-	      <p>
-		Used to specify the GNUstep system root directory ... all
-		system libraries, tools, applications, headers, resources
-		in general are located relative to this.
-	      </p>
-	    </desc>
-	    <term>GNUSTEP_USER_ROOT</term>
-	    <desc>
-	      <p>
-		This environment variable, commonly set by the make system,
-		is <strong>not</strong> used by GNUstep programs.  Instead
-		values from the GNUstep configuration file are used (see later).
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_TARGET_CPU</term>
@@ -375,6 +341,18 @@ notice and this notice are preserved.
 		mechanism is to use the 'Local Time Zone' value from the
 		user defaults system.
 	      </p>
+	    </desc>
+	    <term>GNUSTEP_CONFIG_FILE</term>
+	    <desc>
+	      This has no effect unless the base library has been
+	      configured/built with the
+	      <code>--enable-environment-config-file</code> option.<br />
+	      If it is operational, the environment variable overrides the
+	      normal path to the gnustep config file used to determine the
+	      locations of paths for the gnustep system (see later).<br />
+	      This is provided to support the odd situation where you may
+	      want to simultaneously run applications using different sets
+	      of resources but linked to a lingle copy of the base library.
 	    </desc>
 	    <term>HOMEDRIVE</term>
 	    <desc>
@@ -480,29 +458,44 @@ notice and this notice are preserved.
 	    configured and/or what operating system it was configured
 	    on. On a GNU/Linux system, the default would be
 	    /etc/GNUstep/GNUstep.conf, for instance.<br />
-	    The location of this file can be overridden using the
-	    GNUSTEP_CONFIG_FILE environment variable (unless the base libarary
-	    had this feature specifically turned off using the
-	    <code>--disable-environment-config-file</code> option when the
-	    <code>configure</code> script was run prior to building it.<br />
-	    The configuration file is not actually required to exist.
-	    If it does not exist, then default values will be used
-	    for the standard path locations.<br />
-	    For specialist applications, program source code is able to
-	    override/replace the config file using the
-	    <ref type="function" id="GNUstepConfig">GNUstepConfig</ref>()
-	    function, but most applications should avoid this and honor
-	    the standard configuration mechanism.<br />
+	    The location of this file can be specified when the base library
+	    is configured ... using the <code>--with-config-file=</code>
+	    option of the <code>configure</code> script.<br />
+	    The configuration file is not actually required to exist, and
+	    if it does not exist, then default values will be used.
+	    for the standard path locations (these default values may
+	    be specified using the <code>--with-default-config=</code>
+	    option of the <code>configure</code> script.<br />
+	    If you want to <em>force</em> the internal defaults to be used,
+	    you can use <code>--with-config-file=</code> to specify a path
+	    whose last component is the filename
+	    <code>.GNUstep.conf-ignore</code> as the base library
+	    will refrain from trying to load configuration from a file
+	    of that name.<br />
 	    System paths are defined by the following:
 	  </p>
 	    <deflist>
 	      <term>GNUSTEP_SYSTEM_ROOT</term>
-	      <desc>path in the file hierarchy for system/os things.</desc>
+	      <desc>
+		Used to specify the GNUstep system root directory ... all
+		system libraries, tools, applications, headers, resources
+		in general are located relative to this.
+	      </desc>
 	      <term>GNUSTEP_NETWORK_ROOT</term>
-	      <desc>path to network mounted resources.</desc>
+	      <desc>
+		Used to specify the GNUstep root directory for local
+		(non-system) resources that are intended to be shared
+		across a local network.  Typically this is an NFS exported
+		directory shared by many machines.  It provides an
+		alternative to GNUSTEP_LOCAL_ROOT but is usually defined
+		to the same value.
+	      </desc>
 	      <term>GNUSTEP_LOCAL_ROOT</term>
-	      <desc>path for non-system resources for the specific
-	      machine.</desc>
+	      <desc>
+		Used to specify the GNUstep root directory for local
+		(non-system) resources.  Typically all locally produced
+		or contributed software is installed relative to this.
+	      </desc>
 	    </deflist>
 	  <p>
 	    Paths for each user are defined by the following:
@@ -510,16 +503,21 @@ notice and this notice are preserved.
 	  <deflist>
 	    <term>GNUSTEP_USER_DIR</term>
 	    <desc>Path for user specific GNUstep resources (eg. 'GNUstep').
-	    Relative to the user's home directory.</desc>
+	    Relative to the user's home directory.
+	    </desc>
 	    <term>GNUSTEP_USER_CONFIG_FILE</term>
-	    <desc>Name of user configuration file (eg. '.GNUsteprc')
-	    relative to the user's home directory.</desc>
+	    <desc>Name of user configuration file (eg. '.GNUstep.conf')
+	    relative to the user's home directory.<br />
+	    Can be specified as <code>.GNUstep.conf-ignore</code> to ensure
+	    that no user specific config file is loaded.
+	    </desc>
 	    <term>GNUSTEP_USER_DEFAULTS_DIR</term>
 	    <desc>Name of directory for user defaults files.
 	    Relative to the user's home directory.<br />
 	    On mswindows this may be set to be ':REGISTRY:' to have defaults
 	    stored in the windows registry rather than in the standard file
-	    format.</desc>
+	    format.
+	    </desc>
 	  </deflist>
 	  <p>
 	    The user's home directory is taken to be the standard
@@ -623,6 +621,22 @@ notice and this notice are preserved.
 	    and configure various relative paths in that directory, then
 	    move the directory around wherever you like.
 	  </p>
+	  <p>
+	    If you wish to <em>lock down</em> a production system for
+	    distribution as a relocatable package, so it can be installed
+	    anywhere, but users can't accidentally change the config file
+	    and mess up paths, you can specify the config file name as
+	    <code>.GNUstep.conf-ignore</code> so that the base library will
+	    <em>not</em> read it, and will use the builtin default values.<br />
+	    To do this, you would configure using the options
+	    <code>--with-config-file=./.GNUstep.conf-ignore</code> and
+	    <code>--with-default-file=myConfig</code> where <em>myConfig</em>
+	    is a file containing the paths you want to use relative to the
+	    location the base library gets installed in.<br />
+	    The paths from that file will be built in to the base library
+	    as defaults, and library will use them rather than attempting
+	    to read a config file at runtime.
+	  </p>
 	</subsect>
 	<subsect>
 	  <heading>.GNUstep.conf files</heading>
@@ -631,31 +645,32 @@ notice and this notice are preserved.
 	    configuration file and may generally override values from the
 	    main file.  To prevent the use specific file from being read,
 	    the system manager may define GNUSTEP_USER_CONFIG_FILE in the
-	    main file to be an empty string.<br />
+	    main file to be <code>.GNUstep.conf-ignore</code> or to be
+	    an empty string.<br />
 	    In any case, the user specific file is <em>not</em> read if a
 	    program is running setuid.
 	  </p>
 	  <p>
-	    The locations of the directories in which user specific files and
-	    the user defaults database are stored may be defined in the
-	    file given by GNUSTEP_USER_CONFIG_FILE (by default,
-	    <code>.GNUstep.conf</code>).<br />
-	    If no location is given for user specific files, they are stored
-	    in the locaton given by GNUSTEP_USER_DIR (by default, the
-	    <code>GNUstep</code> subdirectory of the users home
-	    directory).<br />
-	    If a separate location is not given for the defaults database, it
-	    is stored in the subdirectory of the users home directory given by
-	    GNUSTEP_USER_DEFAULTS_DIR (by default, the
-	    <code>GNUstep/Defaults</code> subdirectory).<br />
-	  </p>
-	  <p>
-	    The presence of a <code>.GNUstep.conf</code> file in a users home
+	    Unless disabled (as specified above) the presence of a
+	    <code>.GNUstep.conf</code> file in a users home
 	    directory permits the user to customize file locations using all
 	    the same commands as the system directory, though any attempt
 	    to redefine GNUSTEP_USER_CONFIG_FILE is of course ignored.<br />
 	    Attempts to redefine the users home directory at this level
 	    are also ignored.
+	  </p>
+	  <p>
+	    User specific files are stored in the locaton given by
+	    GNUSTEP_USER_DIR (by default, the
+	    <code>GNUstep</code> subdirectory of the users home
+	    directory).<br />
+	    The defaults database for a user is stored in the
+	    subdirectory of the users home directory given by
+	    GNUSTEP_USER_DEFAULTS_DIR (by default, the
+	    <code>GNUstep/Defaults</code> subdirectory).
+	    On mswindows this may be set to be ':REGISTRY:' to have defaults
+	    stored in the windows registry rather than in the standard file
+	    format.
 	  </p>
 	</subsect>
       </section>

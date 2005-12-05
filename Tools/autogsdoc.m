@@ -635,6 +635,7 @@ main(int argc, char **argv, char **env)
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
+  NSMutableSet		*deps = nil;
 #if GS_WITH_GC == 0
   NSAutoreleasePool	*outer = nil;
   NSAutoreleasePool	*pool = nil;
@@ -953,6 +954,12 @@ main(int argc, char **argv, char **env)
 	  NSLog(@"Unknown argument '%@' ... ignored", arg);
 	}
     }
+
+  /*
+   * Note explicitly supplied gsdoc files for dependencies later.
+   */
+  deps = [NSMutableSet setWithCapacity: 1024];
+  [deps addObjectsFromArray: gFiles];
 
   /*
    * 3) Load old project indexing information from the .igsdoc file if
@@ -2230,13 +2237,12 @@ main(int argc, char **argv, char **env)
     }
 
   /*
-   * 12) If MakeDependencies was requested, list all header and source files
+   * 12) If MakeDependencies was requested, add all header and source files
    *     as colon-dependencies of the project name.
    */
   if ([defs stringForKey: @"MakeDependencies"] != nil)
     {
       NSString		*stamp = [defs stringForKey: @"MakeDependencies"];
-      NSMutableSet	*mset = [NSMutableSet setWithCapacity: 128];
       NSDictionary	*files = [[projectRefs  refs] objectForKey: @"source"];
       NSEnumerator	*enumerator = [files keyEnumerator];
       NSString		*file;
@@ -2247,11 +2253,11 @@ main(int argc, char **argv, char **env)
        */
       while ((file = [enumerator nextObject]) != nil)
 	{
-	  [mset addObject: file];
-	  [mset addObjectsFromArray: [files objectForKey: file]];
+	  [deps addObject: file];
+	  [deps addObjectsFromArray: [files objectForKey: file]];
 	}
 
-      enumerator = [mset objectEnumerator];
+      enumerator = [deps objectEnumerator];
       depend = [NSMutableString stringWithFormat: @"%@:", stamp];
       while ((file = [enumerator nextObject]) != nil)
 	{
