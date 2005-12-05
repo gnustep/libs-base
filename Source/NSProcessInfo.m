@@ -290,47 +290,50 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*values = [NSMutableArray new];
 
 #if defined(__MINGW32__)
-    unichar	*base;
-
-    base = GetEnvironmentStringsW();
-    if (base != 0)
+    if (fallbackInitialisation == NO)
       {
-	const unichar	*wenvp = base;
+	unichar	*base;
 
-	while (*wenvp != 0)
+	base = GetEnvironmentStringsW();
+	if (base != 0)
 	  {
-	    const unichar	*start = wenvp;
-	    NSString		*key;
-	    NSString		*val;
+	    const unichar	*wenvp = base;
 
-	    start = wenvp;
-	    while (*wenvp != '=' && *wenvp != 0)
-	      {
-		wenvp++;
-	      }
-	    if (*wenvp == '=')
-	      {
-		key = [NSString stringWithCharacters: start
-					      length: wenvp - start];
-		wenvp++;
-		start = wenvp;
-	      }
-	    else
-	      {
-		break;	// Bad format ... expected '='
-	      }
 	    while (*wenvp != 0)
 	      {
-	        wenvp++;
+		const unichar	*start = wenvp;
+		NSString		*key;
+		NSString		*val;
+
+		start = wenvp;
+		while (*wenvp != '=' && *wenvp != 0)
+		  {
+		    wenvp++;
+		  }
+		if (*wenvp == '=')
+		  {
+		    key = [NSString stringWithCharacters: start
+						  length: wenvp - start];
+		    wenvp++;
+		    start = wenvp;
+		  }
+		else
+		  {
+		    break;	// Bad format ... expected '='
+		  }
+		while (*wenvp != 0)
+		  {
+		    wenvp++;
+		  }
+		val = [NSString stringWithCharacters: start
+					      length: wenvp - start];
+		wenvp++;	// Skip past variable terminator
+		[keys addObject: key];
+		[values addObject: val];
 	      }
-	    val = [NSString stringWithCharacters: start
-					  length: wenvp - start];
-	    wenvp++;	// Skip past variable terminator
-	    [keys addObject: key];
-	    [values addObject: val];
+	    FreeEnvironmentStringsW(base);
+	    env = 0;	// Suppress standard code.
 	  }
-	FreeEnvironmentStringsW(base);
-	env = 0;	// Suppress standard code.
       }
 #endif
     if (env != 0)
@@ -1055,6 +1058,7 @@ int main(int argc, char *argv[], char *env[])
 @implementation	NSProcessInfo (GNUstep)
 
 static BOOL	debugTemporarilyDisabled = NO;
+static BOOL	fallbackInitialisation = NO;
 
 /**
  * Fallback method. The developer must call this method to initialize
@@ -1068,6 +1072,7 @@ static BOOL	debugTemporarilyDisabled = NO;
                      environment: (char**)env
 {
   [gnustep_global_lock lock];
+  fallbackInitialisation = YES;
   _gnu_process_args(argc, argv, env);
   [gnustep_global_lock unlock];
 }
