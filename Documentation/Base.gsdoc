@@ -488,6 +488,11 @@ notice and this notice are preserved.
 	    The configuration file is not actually required to exist.
 	    If it does not exist, then default values will be used
 	    for the standard path locations.<br />
+	    For specialist applications, program source code is able to
+	    override/replace the config file using the
+	    <ref type="function" id="GNUstepConfig">GNUstepConfig</ref>()
+	    function, but most applications should avoid this and honor
+	    the standard configuration mechanism.<br />
 	    System paths are defined by the following:
 	  </p>
 	    <deflist>
