@@ -1,3 +1,9 @@
+2005-12-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: Allow
+	([+initializeWithArguments:count:environment:]) to override the real
+	environment on mingw32.
+
 2005-12-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Fix bug configuring whether GNUstep.conf can be
