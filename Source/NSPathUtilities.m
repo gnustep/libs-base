@@ -394,6 +394,7 @@ GNUstepConfig(NSDictionary *newConfig)
 	    {
 	      NSString	*file = nil;
 	      BOOL	fromEnvironment = YES;
+	      BOOL	bareDirectory = NO;
 
 	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
@@ -408,6 +409,16 @@ GNUstepConfig(NSDictionary *newConfig)
 		  file = [NSString stringWithCString:
 		    STRINGIFY(GNUSTEP_CONFIG_FILE)];
 		}
+
+	      /*
+	       * Is the file missing from the path ... if so we won't
+	       * be reading it.
+	       */
+	      if ([file hasSuffix: @"/"] || [file hasSuffix: @"\\"])
+		{
+		  bareDirectory = YES;
+		}
+
 	      /*
 	       * Special case ... if the config file location begins './'
 	       * then we determine it's actual path by working relative
@@ -459,9 +470,16 @@ GNUstepConfig(NSDictionary *newConfig)
 		    }
 #endif
 		}
-	      gnustepConfigPath
-		= RETAIN([file stringByDeletingLastPathComponent]);
-	      ParseConfigurationFile(file, conf);
+	      if (bareDirectory == YES)
+		{
+		  gnustepConfigPath = RETAIN(file);
+		}
+	      else
+		{
+		  gnustepConfigPath
+		    = RETAIN([file stringByDeletingLastPathComponent]);
+		  ParseConfigurationFile(file, conf);
+		}
 	    }
 	  else
 	    {
@@ -537,9 +555,12 @@ UserConfig(NSMutableDictionary *config, NSString *userName)
       NSString		*path;
 
       file = RETAIN([config objectForKey: @"GNUSTEP_USER_CONFIG_FILE"]);
-      home = NSHomeDirectoryForUser(userName);
-      path = [home stringByAppendingPathComponent: file];
-      ParseConfigurationFile(path, config);
+      if ([file length] > 0)
+	{
+	  home = NSHomeDirectoryForUser(userName);
+	  path = [home stringByAppendingPathComponent: file];
+	  ParseConfigurationFile(path, config);
+	}
       /*
        * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
        * variable ... that would be silly/pointless.
@@ -635,9 +656,8 @@ static void ShutdownPathUtilities(void)
  * idea to specify path values in the config file as singly quoted
  * strings to avoid having to double all occurrences of the backslash.<br />
  * Returns a dictionary of the (key,value) pairs.<br/ >
- * If the file does not exist, or its name is
- * <code>.GNUstep.conf-ignore</code> then nothing is read and the
- * function makes no changes to dict and returns NO.
+ * If the file does not exist,
+ * the function makes no changes to dict and returns NO.
  */
 static BOOL
 ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
@@ -654,11 +674,6 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
   BOOL		wantKey = YES;
   BOOL		wantVal = NO;
   NSString	*key = nil;
-
-  if ([[fileName lastPathComponent] isEqual: @".GNUstep.conf-ignore"] == YES)
-    {
-      return NO;	// Special case filename ... must ignore this.
-    }
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
     {
