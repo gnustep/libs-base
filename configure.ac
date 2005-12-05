@@ -91,7 +91,7 @@ fi
 #
 case "$target_os" in
     mingw*)
-      GNUSTEP_SYSTEM_ROOT=RC:\\GNUstep\\System
+      GNUSTEP_SYSTEM_ROOT=C:\\GNUstep\\System
       GNUSTEP_LOCAL_ROOT=C:\\GNUstep\\Local
       GNUSTEP_NETWORK_ROOT=C:\\GNUstep\\Local
       GNUSTEP_USER_DIR=GNUstep
