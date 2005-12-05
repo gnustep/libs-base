@@ -378,13 +378,6 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     }
 }
 
-/*
- * Function to return a mutable copy of the configuration,
- * either the system wide config, or (if a userName was provided)
- * the config for a specific user.
- * If newConfig is not nil, it is used to set a new system wide
- * configuration.
- */
 NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig)
 {

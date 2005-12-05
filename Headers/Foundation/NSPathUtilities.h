@@ -30,6 +30,19 @@
 
 #ifndef	NO_GNUSTEP
 /**
+ * Function to return a mutable copy of the GNUstep configuration
+ * file contents.<br />
+ * If newConfig is not nil, it is used to set a new system wide
+ * configuration.<br />
+ * This function is provided to allow a program to override the
+ * configuration information which tells GNUstep applications where
+ * all paths to resources/libraries etc in the system are located.<br />
+ * Keys and values in the newConfig dictionary must match those normally
+ * expected in the configuration file (GNUstep.conf).
+ */
+NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
+
+/**
  * This extension permits a change of username from that specified in the
  * LOGNAME environment variable.  Using it will almost certainly cause
  * trouble if the process does not posses the file access privileges of the
