@@ -224,6 +224,7 @@ getPath(NSString *path)
     {
       path = [gnustepConfigPath stringByAppendingPathComponent:
 	[path substringFromIndex: 2]];
+      path = [path stringByStandardizingPath];
     }
   return path;
 }
@@ -431,6 +432,8 @@ GNUstepConfig(NSDictionary *newConfig)
 		  file = [file substringFromIndex: 2];
 		  // Join the two together
 		  file = [path stringByAppendingPathComponent: file];
+		  // Standardize
+		  file = [file stringByStandardizingPath];
 		}
 
 	      if ([file isAbsolutePath] == NO)
