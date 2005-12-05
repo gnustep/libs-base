@@ -7,7 +7,7 @@
 	.GNUstep.conf-ignore (so we can safely disable config file reading
 	and ensure inbuilt defaults are used)
 	* configure.ac: By default, disallow use of GNUSTEP_CONFIG_FILE
-	environment variable.  Remove some redundant code.
+	environment variable.  Remove some redundant code. Document better.
 	* configure: regenerate
 	* Documentation/Base.gsdoc: Update for config changes
 	* Tools/autogsdoc.m: add any gsdoc files explicitly specified on

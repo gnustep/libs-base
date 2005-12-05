@@ -40,7 +40,17 @@ fi
 #---------------------------------------------------------------------
 AC_MSG_CHECKING([for GNUstep configuration file to use])
 AC_ARG_WITH(config-file,
-  [--with-config-file=PATH  path to GNUstep configuration file],
+[  --with-config-file=PATH       Specify path to the GNUstep config file.
+				If unspecified, uses the same value as the
+				GNUstep make package.
+				If a leading './' is specified, the path
+				is taken to be relative to the base library
+				linked runtime, not all operating systems
+				can support this, so on some platforms you
+				may need --enable-environment-config-file.
+				If a trailing '/' is specified, the path is
+				used for locating domains but no GNUstep
+				config file is read at runtime.], 
   GNUSTEP_CONFIG_FILE="$withval",
   [if test "$GNUSTEP_CONFIG_FILE" = ""; then
     GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
@@ -53,7 +63,17 @@ AC_SUBST(GNUSTEP_CONFIG_FILE)
 #-----------------------------------------------------------------
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
 AC_ARG_ENABLE(environment-config-file, 
-[--enable-environment-config-file		Enable use of the GNUSTEP_CONFIG_FILE environment variable], 
+[  --enable-environment-config-file
+                                Enable use of the GNUSTEP_CONFIG_FILE
+				environment variable to specify/override
+				the location of the GNUstep config file
+				at runtime.  This option is occasionally
+				useful for development/debugging or for
+				providing a relocatable distribution package
+				for platforms where the path to the base
+				library can't be determined at runtime
+				and the leading './' in the config file name
+				is therefore not supported.], 
   ac_cv_environment_config_file=$enableval,
   ac_cv_environment_config_file="no")
 if test "$ac_cv_environment_config_file" = "yes"; then
@@ -69,12 +89,24 @@ fi
 #
 # Set 'standard' defaults for values from configuration file.
 #
-GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
-GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
-GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
-GNUSTEP_USER_DIR=GNUstep
-GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
-GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+case "$target_os" in
+    mingw*)
+      GNUSTEP_SYSTEM_ROOT=RC:\\GNUstep\\System
+      GNUSTEP_LOCAL_ROOT=C:\\GNUstep\\Local
+      GNUSTEP_NETWORK_ROOT=C:\\GNUstep\\Local
+      GNUSTEP_USER_DIR=GNUstep
+      GNUSTEP_USER_DEFAULTS_DIR=GNUstep\\Defaults
+      GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+      ;;
+    *)
+      GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
+      GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
+      GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
+      GNUSTEP_USER_DIR=GNUstep
+      GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
+      GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+      ;;
+esac
 
 #---------------------------------------------------------------------
 # Now read/import the existing configuration file, if any
@@ -87,7 +119,9 @@ GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
 # turn it off
 AC_MSG_CHECKING([if we should import an existing configuration file])
 AC_ARG_ENABLE(importing-config-file, 
-[--disable-importing-config-file		Disable importing the existing GNUstep configuration file], 
+[  --disable-importing-config-file
+                                Disable importing of an existing GNUstep config
+				file and use inbuilt defaults instead.],
   ac_cv_importing_config_file=$enableval,
   ac_cv_importing_config_file="yes")
 if test "$ac_cv_importing_config_file" = "no"; then
@@ -101,7 +135,12 @@ if test "$ac_cv_importing_config_file" = "yes" ;
 then
   AC_MSG_CHECKING([for default GNUstep configuration file to use])
   AC_ARG_WITH(default-config,
-    [--with-default-config=PATH  path to file with default GNUstep config],
+[  --with-defaults-config=PATH   Specify path to a GNUstep config file to be
+				imported at configure time (now) and used to
+				provide default values for the base library
+				to use at runtime if no GNUstep config file
+				is found at runtime.  If this is not specified
+				then the path from --with-config-file is used.],
     GNUSTEP_DEFAULT_CONFIG="$withval", 
     [if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
       GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
@@ -1072,7 +1111,7 @@ AC_MSG_RESULT($enable_fake_main)
 # Simple way to add a bunch of paths to the flags
 #--------------------------------------------------------------------
 AC_ARG_WITH(include-flags,
-    [  --with-include-flags=FLAGS specify all include flags at once],
+    [  --with-include-flags=FLAGS    Specify all include flags at once],
     include_flags="$withval", include_flags="no")
 if test ${include_flags} != "no"; then
     CPPFLAGS="$CPPFLAGS ${include_flags}"
@@ -1080,7 +1119,7 @@ if test ${include_flags} != "no"; then
 fi
 
 AC_ARG_WITH(library-flags,
-    [  --with-library-flags=FLAGS specify all library flags at once],
+    [  --with-library-flags=FLAGS    Specify all library flags at once],
     library_flags="$withval", library_flags="no")
 if test ${library_flags} != "no"; then
     LDFLAGS="$LDFLAGS ${library_flags}"
@@ -1115,7 +1154,7 @@ if test $LIBRARY_COMBO = apple-apple-apple; then
 fi
 
 AC_ARG_WITH(ffi-include,
-    [  --with-ffi-include=PATH include path for ffi (ffcall/libffi) headers],
+[  --with-ffi-include=PATH       Include path for ffi (ffcall/libffi) headers],
     ffi_incdir="$withval", ffi_incdir="no")
 if test ${ffi_incdir} != "no"; then
     CPPFLAGS="$CPPFLAGS -I${ffi_incdir}"
@@ -1123,7 +1162,7 @@ if test ${ffi_incdir} != "no"; then
 fi
 
 AC_ARG_WITH(ffi-library,
-    [  --with-ffi-library=PATH library path for ffi (ffcall/libffi) libraries],
+[  --with-ffi-library=PATH       Library path for ffi (ffcall/libffi) libs],
     ffi_libdir="$withval", ffi_libdir="no")
 if test ${ffi_libdir} != "no"; then
     LDFLAGS="$LDFLAGS -L${ffi_libdir}"
@@ -1238,7 +1277,7 @@ if test $found_iconv = no ; then
   # libc doesn't have a working iconv. Try adding -liconv and any user
   # supplied directory.
   AC_ARG_WITH(libiconv-library,
-    [  --with-libiconv-library=PATH  library path for libiconv libraries],
+    [  --with-libiconv-library=PATH  Library path for libiconv libraries],
     libiconv_libdir="$withval", libiconv_libdir="no")
 
   if test "$libiconv_libdir" != "no"; then

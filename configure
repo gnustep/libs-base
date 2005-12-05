@@ -846,10 +846,22 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
---enable-environment-config-file		Enable use of the GNUSTEP_CONFIG_FILE environment variable
---disable-importing-config-file		Disable importing the existing GNUstep configuration file
+  --enable-environment-config-file
+                                Enable use of the GNUSTEP_CONFIG_FILE
+				environment variable to specify/override
+				the location of the GNUstep config file
+				at runtime.  This option is occasionally
+				useful for development/debugging or for
+				providing a relocatable distribution package
+				for platforms where the path to the base
+				library can't be determined at runtime
+				and the leading './' in the config file name
+				is therefore not supported.
+  --disable-importing-config-file
+                                Disable importing of an existing GNUstep config
+				file and use inbuilt defaults instead.
   --enable-procfs               Use /proc filesystem (default)
-  --enable-procfs-psinfo               Use /proc/%pid% to get info
+  --enable-procfs-psinfo         Use /proc/%pid% to get info
   --enable-pass-arguments	Force user main call to NSProcessInfo initialize
   --enable-fake-main  		Force redefine of user main function
   --enable-libffi  		Enable use of libffi library
@@ -863,13 +875,28 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
---with-config-file=PATH  path to GNUstep configuration file
---with-default-config=PATH  path to file with default GNUstep config
-  --with-include-flags=FLAGS specify all include flags at once
-  --with-library-flags=FLAGS specify all library flags at once
-  --with-ffi-include=PATH include path for ffi (ffcall/libffi) headers
-  --with-ffi-library=PATH library path for ffi (ffcall/libffi) libraries
-  --with-libiconv-library=PATH  library path for libiconv libraries
+  --with-config-file=PATH       Specify path to the GNUstep config file.
+				If unspecified, uses the same value as the
+				GNUstep make package.
+				If a leading './' is specified, the path
+				is taken to be relative to the base library
+				linked runtime, not all operating systems
+				can support this, so on some platforms you
+				may need --enable-environment-config-file.
+				If a trailing '/' is specified, the path is
+				used for locating domains but no GNUstep
+				config file is read at runtime.
+  --with-defaults-config=PATH   Specify path to a GNUstep config file to be
+				imported at configure time (now) and used to
+				provide default values for the base library
+				to use at runtime if no GNUstep config file
+				is found at runtime.  If this is not specified
+				then the path from --with-config-file is used.
+  --with-include-flags=FLAGS    Specify all include flags at once
+  --with-library-flags=FLAGS    Specify all library flags at once
+  --with-ffi-include=PATH       Include path for ffi (ffcall/libffi) headers
+  --with-ffi-library=PATH       Library path for ffi (ffcall/libffi) libs
+  --with-libiconv-library=PATH  Library path for libiconv libraries
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
@@ -1383,12 +1410,24 @@ fi
 #
 # Set 'standard' defaults for values from configuration file.
 #
-GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
-GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
-GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
-GNUSTEP_USER_DIR=GNUstep
-GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
-GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+case "$target_os" in
+    mingw*)
+      GNUSTEP_SYSTEM_ROOT=RC:\\GNUstep\\System
+      GNUSTEP_LOCAL_ROOT=C:\\GNUstep\\Local
+      GNUSTEP_NETWORK_ROOT=C:\\GNUstep\\Local
+      GNUSTEP_USER_DIR=GNUstep
+      GNUSTEP_USER_DEFAULTS_DIR=GNUstep\\Defaults
+      GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+      ;;
+    *)
+      GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
+      GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
+      GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
+      GNUSTEP_USER_DIR=GNUstep
+      GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
+      GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+      ;;
+esac
 
 #---------------------------------------------------------------------
 # Now read/import the existing configuration file, if any

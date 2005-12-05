@@ -47,7 +47,7 @@ dnl This macro defines HAVE_PROCFS_PSINFO if it can read the psinfo
 dnl structure from the /proc/%pid% directory
 AC_DEFUN(AC_SYS_PROCFS_PSINFO,
 [ AC_ARG_ENABLE(procfs-psinfo,
-    [  --enable-procfs-psinfo               Use /proc/%pid% to get info],
+    [  --enable-procfs-psinfo         Use /proc/%pid% to get info],
     enable_procfs_psinfo="$enableval", if test "$cross_compiling" = yes; then enable_procfs_psinfo=cross; else enable_procfs_psinfo=yes; fi;)
 
   AC_CACHE_CHECK([support for /proc psinfo struct], ac_cv_sys_procfs_psinfo,
