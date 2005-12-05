@@ -562,6 +562,32 @@ notice and this notice are preserved.
 	    These add to the path for NSSystemDomainMask, or
 	    NSLocalDomainMask as appropriate.
 	  </p>
+	  <p>
+	    The exact format of the configuration file is expected to 
+	    be that of a basic unix "conf" style file, with one
+	    <em>key = value</em> per line (the format a unix shell
+	    can 'source' in order to define shell variables).<br />
+	    This configuration file uses the escape sequence and
+	    quoting conventions of the standard bourne shell.<br />
+	    The only Keys permitted are those listed in the
+	    documentation, and all consist of uppercase letters, digits,
+	    and underscores, and must not begin with a digit.<br />
+	    A value may be any quoted string (or an unquoted string
+	    containing no white space).<br />
+	    Lines beginning with a hash '#' are deemed comment lines
+	    and ignored.<br />
+	    The backslash character may be used as an escape character
+	    anywhere in the file  except within a singly quoted string
+	    (where it is taken literally).<br />
+	    A backslash followed immediately by a newline (except in a
+	    singly quoted string) is removed completely along with the
+	    newline ... it thus serves to join lines so that they are
+	    treated as a single line.<br />
+	    NB. Since ms-windows uses backslash characters in paths,
+	    it is a good idea to specify path values in the config file
+	    as singly quoted strings to avoid having to double all
+	    occurrences of the backslash.
+	  </p>
 	</subsect>
 	<subsect>
 	  <heading>Relocatable packages</heading>
