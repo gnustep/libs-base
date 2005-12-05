@@ -174,7 +174,7 @@ static NSString *localLibs  = nil;
 /* Internal function prototypes. */
 /* ============================= */
 
-NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
+static NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
 
 static void UserConfig(NSMutableDictionary *config, NSString *userName);
 
@@ -378,7 +378,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     }
 }
 
-NSMutableDictionary*
+static NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig)
 {
   static NSDictionary	*config = nil;
@@ -408,7 +408,6 @@ GNUstepConfig(NSDictionary *newConfig)
 		  file = [NSString stringWithCString:
 		    STRINGIFY(GNUSTEP_CONFIG_FILE)];
 		}
-	      file = [file stringByStandardizingPath];
 	      /*
 	       * Special case ... if the config file location begins './'
 	       * then we determine it's actual path by working relative
@@ -425,9 +424,8 @@ GNUstepConfig(NSDictionary *newConfig)
 		  file = [file substringFromIndex: 2];
 		  // Join the two together
 		  file = [path stringByAppendingPathComponent: file];
-		  // Standardize
-		  file = [file stringByStandardizingPath];
 		}
+	      file = [file stringByStandardizingPath];
 
 	      if ([file isAbsolutePath] == NO)
 		{
@@ -637,6 +635,9 @@ static void ShutdownPathUtilities(void)
  * idea to specify path values in the config file as singly quoted
  * strings to avoid having to double all occurrences of the backslash.<br />
  * Returns a dictionary of the (key,value) pairs.<br/ >
+ * If the file does not exist, or its name is
+ * <code>.GNUstep.conf-ignore</code> then nothing is read and the
+ * function makes no changes to dict and returns NO.
  */
 static BOOL
 ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
@@ -653,6 +654,11 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
   BOOL		wantKey = YES;
   BOOL		wantVal = NO;
   NSString	*key = nil;
+
+  if ([[fileName lastPathComponent] isEqual: @".GNUstep.conf-ignore"] == YES)
+    {
+      return NO;	// Special case filename ... must ignore this.
+    }
 
   if ([MGR() isReadableFileAtPath: fileName] == NO)
     {

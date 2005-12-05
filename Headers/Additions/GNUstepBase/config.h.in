@@ -12,9 +12,6 @@
 /* Define if constructors are automatically loaded */
 #undef CON_AUTOLOAD
 
-/* Set to location of the GNUstep configuration file */
-#undef GNUSTEP_CONFIG_FILE
-
 /* Built in default value for GNUstep local root */
 #undef GNUSTEP_TARGET_LOCAL_ROOT
 

@@ -48,14 +48,14 @@ AC_ARG_WITH(config-file,
 AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
 AC_SUBST(GNUSTEP_CONFIG_FILE)
 
-#---------------------------------------------------------------------
+#-----------------------------------------------------------------
 # Whether the GNUstep.conf file path can be set in the environment
-#---------------------------------------------------------------------
+#-----------------------------------------------------------------
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
 AC_ARG_ENABLE(environment-config-file, 
-[--disable-environment-config-file		Disable use of the GNUSTEP_CONFIG_FILE environment variable], 
+[--enable-environment-config-file		Enable use of the GNUSTEP_CONFIG_FILE environment variable], 
   ac_cv_environment_config_file=$enableval,
-  ac_cv_environment_config_file="yes")
+  ac_cv_environment_config_file="no")
 if test "$ac_cv_environment_config_file" = "yes"; then
   AC_DEFINE(OPTION_NO_ENVIRONMENT, 0,
     [Enable GNUSTEP_CONFIG_FILE environment variable])
@@ -1410,19 +1410,6 @@ AC_ARG_WITH(openssl-library,
   openssl_libdir="$withval", openssl_libdir="no")
 
 AC_CONFIG_SUBDIRS(Source/mframe SSL)
-
-#--------------------------------------------------------------------
-# Configuration and Misc Options
-#--------------------------------------------------------------------
-AC_MSG_CHECKING(for location of GNUstep configuration file)
-#
-# Get them from gnustep-make which contains the real code to get them
-#
-config_file=$(grep GNUSTEP_CONFIG_FILE $GNUSTEP_MAKEFILES/$obj_dir/config.make | sed -e 's/GNUSTEP_CONFIG_FILE = //')
-#
-AC_MSG_RESULT($config_file)
-AC_DEFINE_UNQUOTED(GNUSTEP_CONFIG_FILE, $config_file,
-	[Set to location of the GNUstep configuration file])
 
 #--------------------------------------------------------------------
 # Record the version
