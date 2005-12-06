@@ -1,3 +1,11 @@
+2005-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: On mingw, don't get the location of the config file
+	from the make package.  Assume ./GNUstep.conf instead, so that the
+	base library is built for distribution (relocatable relative to the
+	library).
+	* configure: regenerate
+
 2005-12-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: Allow
