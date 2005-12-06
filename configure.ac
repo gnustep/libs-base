@@ -53,7 +53,12 @@ AC_ARG_WITH(config-file,
 				config file is read at runtime.], 
   GNUSTEP_CONFIG_FILE="$withval",
   [if test "$GNUSTEP_CONFIG_FILE" = ""; then
-    GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+    case "$target_os" in
+      mingw*)
+	GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
+      *)
+	GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'` ;;
+    esac
   fi])
 AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
 AC_SUBST(GNUSTEP_CONFIG_FILE)
@@ -88,24 +93,26 @@ fi
 
 #
 # Set 'standard' defaults for values from configuration file.
+# On mingw, we assume paths for an isolated, standalone, relocatable package.
+# On unix we assume a standard layout for both development and distribution.
 #
 case "$target_os" in
-    mingw*)
-      GNUSTEP_SYSTEM_ROOT=C:\\GNUstep\\System
-      GNUSTEP_LOCAL_ROOT=C:\\GNUstep\\Local
-      GNUSTEP_NETWORK_ROOT=C:\\GNUstep\\Local
-      GNUSTEP_USER_DIR=GNUstep
-      GNUSTEP_USER_DEFAULTS_DIR=GNUstep\\Defaults
-      GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
-      ;;
-    *)
-      GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
-      GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
-      GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
-      GNUSTEP_USER_DIR=GNUstep
-      GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
-      GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
-      ;;
+  mingw*)
+    GNUSTEP_SYSTEM_ROOT=./System
+    GNUSTEP_LOCAL_ROOT=./Local
+    GNUSTEP_NETWORK_ROOT=./Local
+    GNUSTEP_USER_DIR=GNUstep
+    GNUSTEP_USER_DEFAULTS_DIR=GNUstep\\Defaults
+    GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+    ;;
+  *)
+    GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
+    GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
+    GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
+    GNUSTEP_USER_DIR=GNUstep
+    GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
+    GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+    ;;
 esac
 
 #---------------------------------------------------------------------
