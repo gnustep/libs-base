@@ -528,35 +528,35 @@ notice and this notice are preserved.
 	  </p>
 	  <p>
 	    Support is provided to locate OS/PLATFORM directories. A conf file
-	    may provide the definitions below:
+	    may provide the definitions below (with examples typical for
+	    when GNUstep is installed according to the Linux
+	    Filesystem Hierarchy standard):
 	  </p>
 	    <deflist>
-	      <term>SYS_PREFS</term>
-	      <desc>Place for system/os preferences (eg. '/etc')</desc>
-	      <term>SYS_APPS</term>
+	      <term>GNUSTEP_SYS_APPS</term>
 	      <desc>Place for system/os applications (eg. '/bin')</desc>
-	      <term>SYS_LIBS</term>
+	      <term>GNUSTEP_SYS_LIBS</term>
 	      <desc>Place for system/os shared libraries (eg. '/lib')</desc>
-	      <term>SYS_ADMIN</term>
+	      <term>GNUSTEP_SYS_ADMIN</term>
 	      <desc>Place for system administration tools (eg. '/sbin')</desc>
-	      <term>PLATFORM_APPS</term>
+	      <term>GNUSTEP_PLATFORM_APPS</term>
 	      <desc>Place for non-gnustep applications (eg. '/usr/bin')</desc>
-	      <term>PLATFORM_LIBS</term>
+	      <term>GNUSTEP_PLATFORM_LIBS</term>
 	      <desc>Place for application shared libraries
 	      (eg. '/usr/lib')</desc>
-	      <term>PLATFORM_RESOURCES</term>
+	      <term>GNUSTEP_PLATFORM_RESOURCES</term>
 	      <desc>Place for shared application resources
 	      (eg. '/usr/share')</desc>
-	      <term>PLATFORM_ADMIN</term>
+	      <term>GNUSTEP_PLATFORM_ADMIN</term>
 	      <desc>Place for non-critical administrative tools
 	      (eg. '/usr/sbin')</desc>
-	      <term>PLATFORM_LOCAL_APPS</term>
+	      <term>GNUSTEP_PLATFORM_LOCAL_APPS</term>
 	      <desc>Place for machine local applications
 	      (eg. '/usr/local/bin')</desc>
-	      <term>PLATFORM_LOCAL_LIBS</term>
+	      <term>GNUSTEP_PLATFORM_LOCAL_LIBS</term>
 	      <desc>Place for machine local shared libraries
 	      (eg. '/usr/local/lib/')</desc>
-	      <term>PLATFORM_LOCAL_RESOURCES</term>
+	      <term>GNUSTEP_PLATFORM_LOCAL_RESOURCES</term>
 	      <desc>Place for machine local resources.
 	      (eg. '/usr/local/share')</desc>
 	    </deflist>

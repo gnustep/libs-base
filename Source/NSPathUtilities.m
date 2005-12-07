@@ -113,6 +113,9 @@ static NSString	*gnustep_flattened =
 #endif
 
 #if	defined(__WIN32__)
+/*
+ * FIXME ... should check access properly if the file is on an NTFS volume.
+ */
 #define	ATTRMASK	0700
 #else
 #define	ATTRMASK	0777
@@ -139,7 +142,6 @@ static NSString *gnustepUserDefaultsDir = nil;
 static NSString *theUserName = nil;             /*      The user's login name */
 static NSString *tempDir = nil;                 /* user's temporary directory */
 
-static NSString *osSysPrefs = nil;
 static NSString *osSysApps  = nil;
 static NSString *osSysLibs  = nil;
 static NSString *osSysAdmin = nil;
@@ -152,23 +154,6 @@ static NSString *platformAdmin = nil;
 static NSString *localResources = nil;
 static NSString *localApps  = nil;
 static NSString *localLibs  = nil;
-
-/* Keys for Platform support in conf-file. */
-#define SYS_APPS    @"SYS_APPS"
-#define SYS_LIBS    @"SYS_LIBS"
-#define SYS_PREFS   @"SYS_PREFS"
-#define SYS_ADMIN   @"SYS_ADMIN"
-#define SYS_RESOURCES @"SYS_RESOURCES"
-
-#define PLATFORM_APPS    @"PLATFORM_APPS"
-#define PLATFORM_LIBS    @"PLATFORM_LIBS"
-#define PLATFORM_ADMIN   @"PLATFORM_ADMIN"
-#define PLATFORM_RESOURCES @"PLATFORM_RESOURCES"
-
-#define PLATFORM_LOCAL_APPS    @"PLATFORM_LOCAL_APPS"
-#define PLATFORM_LOCAL_LIBS    @"PLATFORM_LOCAL_LIBS"
-#define PLATFORM_LOCAL_ADMIN   @"PLATFORM_LOCAL_ADMIN"
-#define PLATFORM_LOCAL_RESOURCES @"PLATFORM_LOCAL_RESOURCES"
 
 /* ============================= */
 /* Internal function prototypes. */
@@ -280,19 +265,18 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_IF_SET(gnustepUserDir, c, @"GNUSTEP_USER_DIR");
   ASSIGN_IF_SET(gnustepUserDefaultsDir, c, @"GNUSTEP_USER_DEFAULTS_DIR");
 
-  ASSIGN_PATH(osSysPrefs, c, SYS_PREFS);
-  ASSIGN_PATH(osSysApps, c, SYS_APPS);
-  ASSIGN_PATH(osSysLibs, c, SYS_LIBS);
-  ASSIGN_PATH(osSysAdmin, c, SYS_ADMIN);
+  ASSIGN_PATH(osSysApps, c, @"GNUSTEP_SYS_APPS");
+  ASSIGN_PATH(osSysLibs, c, @"GNUSTEP_SYS_LIBS");
+  ASSIGN_PATH(osSysAdmin, c, @"GNUSTEP_SYS_ADMIN");
 
-  ASSIGN_PATH(platformResources, c, PLATFORM_RESOURCES);
-  ASSIGN_PATH(platformApps, c, PLATFORM_APPS);
-  ASSIGN_PATH(platformLibs, c, PLATFORM_LIBS);
-  ASSIGN_PATH(platformAdmin, c, PLATFORM_ADMIN);
+  ASSIGN_PATH(platformResources, c, @"GNUSTEP_PLATFORM_RESOURCES");
+  ASSIGN_PATH(platformApps, c, @"GNUSTEP_PLATFORM_APPS");
+  ASSIGN_PATH(platformLibs, c, @"GNUSTEP_PLATFORM_LIBS");
+  ASSIGN_PATH(platformAdmin, c, @"GNUSTEP_PLATFORM_ADMIN");
 
-  ASSIGN_PATH(localResources, c, PLATFORM_LOCAL_RESOURCES);
-  ASSIGN_PATH(localApps, c, PLATFORM_LOCAL_APPS);
-  ASSIGN_PATH(localLibs, c, PLATFORM_LOCAL_LIBS);
+  ASSIGN_PATH(localResources, c, @"GNUSTEP_PLATFORM_LOCAL_RESOURCES");
+  ASSIGN_PATH(localApps, c, @"GNUSTEP_PLATFORM_LOCAL_APPS");
+  ASSIGN_PATH(localLibs, c, @"GNUSTEP_PLATFORM_LOCAL_LIBS");
 
   /*
    * Remove any other dictionary entries we have used.
@@ -615,8 +599,6 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepUserHome);
   DESTROY(gnustepUserDefaultsDir);
 
-#ifdef OPTION_PLATFORM_SUPPORT
-  DESTROY(osSysPrefs);
   DESTROY(osSysApps);
   DESTROY(osSysLibs);
   DESTROY(osSysAdmin);
@@ -629,7 +611,6 @@ static void ShutdownPathUtilities(void)
   DESTROY(localResources);
   DESTROY(localApps);
   DESTROY(localLibs);
-#endif /* OPTION_PLATFORM SUPPORT */
 
   DESTROY(tempDir);
 }
@@ -1383,17 +1364,17 @@ NSArray *
 NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSSearchPathDomainMask domainMask, BOOL expandTilde)
 {
-  static NSString *adminDir   = @"Administrator";
-  static NSString *appsDir    = @"Applications";
-  static NSString *devDir     = @"Developer";
-  static NSString *demosDir     =   @"Demos";
-  static NSString *libraryDir = @"Library";
-  static NSString *supportDir   =   @"ApplicationSupport";
-  static NSString *docDir       =   @"Documentation";
-  static NSString *fontsDir     =   @"Fonts";
-  static NSString *frameworkDir =   @"Frameworks";
-  static NSString *libsDir      =   @"Libraries";
-  static NSString *toolsDir = @"Tools";
+  static NSString *adminDir     = @"Administrator";
+  static NSString *appsDir      = @"Applications";
+  static NSString *devDir       = @"Developer";
+  static NSString *demosDir     = @"Demos";
+  static NSString *libraryDir   = @"Library";
+  static NSString *supportDir   = @"ApplicationSupport";
+  static NSString *docDir       = @"Documentation";
+  static NSString *fontsDir     = @"Fonts";
+  static NSString *frameworkDir = @"Frameworks";
+  static NSString *libsDir      = @"Libraries";
+  static NSString *toolsDir     = @"Tools";
   NSMutableArray  *paths = [NSMutableArray new];
   NSString        *path;
   unsigned        i;
@@ -1418,16 +1399,12 @@ if (domainMask & mask) \
   if (path != nil && [paths containsObject: path] == NO) \
     [paths addObject: path]; \
 }
-#ifdef OPTION_PLATFORM_SUPPORT
 #define ADD_PLATFORM_PATH(mask, add_dir) \
 if (domainMask & mask) \
 { \
   if (add_dir != nil && [paths containsObject: add_dir] == NO) \
     [paths addObject: add_dir]; \
 }
-#else
-#define ADD_PLATFORM_PATH(mask, add_dir)
-#endif /* OPTION_PLATFORM_SUPPORT */
 
   switch (directoryKey)
     {
