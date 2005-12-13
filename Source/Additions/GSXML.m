@@ -4114,7 +4114,9 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
     {
       unichar	c = from[i];
 
-      if (c >= 0x20 || c == 0x9 || c == 0xa || c == 0xd)
+      if ((c >= 0x20 && c <= 0xd7ff)
+	|| c == 0x9 || c == 0xd || c == 0xd
+	|| (c >= 0xe000 && c <= 0xfffd))
 	{
 	  switch (c)
 	    {
@@ -4153,6 +4155,10 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 		break;
 	    }
 	}
+      else
+	{
+	  escape = YES;	// Need to remove bad characters
+	}
     }
 
   if (escape == YES)
@@ -4166,7 +4172,9 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	{
 	  unichar	c = from[i];
 
-	  if (c >= 0x20 || c == 0x9 || c == 0xa || c == 0xd)
+	  if ((c >= 0x20 && c <= 0xd7ff)
+	    || c == 0x9 || c == 0xd || c == 0xd
+	    || (c >= 0xe000 && c <= 0xfffd))
 	    {
 	      switch (c)
 		{
