@@ -1,3 +1,7 @@
+2005-12-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Fix error parsing date/time in xmlrpc
+
 2005-12-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Get paths of system directories

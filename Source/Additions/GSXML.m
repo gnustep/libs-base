@@ -4661,7 +4661,7 @@ static void indentation(unsigned level, NSMutableString *str)
       return [GSMimeDocument decodeBase64: d];
     }
 
-  if ([name isEqualToString: @"date"])
+  if ([name isEqualToString: @"dateTime.iso8601"])
     {
       str = [node content];
       if (str == nil)
