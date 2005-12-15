@@ -1,3 +1,12 @@
+2005-12-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Increase maximum supported message size from 10MB to 32MB in
+	recognition of the fact that everything is faster/bigger nowadays
+	and people might actually want to send single messages with
+	that much data in them.
+
 2005-12-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Fix error parsing date/time in xmlrpc
