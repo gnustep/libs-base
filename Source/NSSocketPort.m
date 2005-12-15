@@ -105,7 +105,7 @@
 /*
  * Largest chunk of data possible in DO
  */
-static gsu32	maxDataLength = 10 * 1024 * 1024;
+static gsu32	maxDataLength = 32 * 1024 * 1024;
 
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"GSTcpHandleLock",@"lock %@ in %@",X,[NSThread currentThread]); [X lock];}
