@@ -1089,6 +1089,24 @@
 	}
       else
 	{
+	  if ([s isEqualToString: @"extern"] == YES
+	    && [self skipSpaces] < length - 3 && buffer[pos] == '\"'
+	    && buffer[pos+1] == 'C' && buffer[pos+2] == '\"')
+	    {
+	      /*
+	       * Found 'extern "C" ...'
+	       * Which is for C++ and should be ignored
+	       */
+	      pos += 3;
+	      if ([self skipSpaces] < length && buffer[pos] == '{')
+		{
+		  pos++;
+		  [self skipSpaces];
+		}
+	      DESTROY(arp);
+	      return nil;
+	    }
+
 	  if ([s isEqualToString: @"typedef"] == YES)
 	    {
 	      isTypedef = YES;
@@ -1482,6 +1500,11 @@
 		  [d setObject: @"YES" forKey: @"Implemented"];
 		}
 	      [self skipBlock];
+	    }
+	  else if (buffer[pos] == '}')
+	    {
+	      pos++;			// Ignore extraneous '}'
+	      [self skipSpaces];
 	    }
 	  else
 	    {

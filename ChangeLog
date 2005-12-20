@@ -1,3 +1,12 @@
+2005-12-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Deal with C++ declaration of external C/ObjC libs.
+	* Tools/AGSHtml.m: Add changes to avoid colons in references to allow
+	dumb windows help system to use our output.  Same idea as patch #4569
+	but (hopefully) doesn't break anything.
+	* Source/DocMakefile: A couple of fixes for building documentation of
+	the additions library.
+
 2005-12-20  Adam Fedor  <fedor@gnu.org>
 
 	* SSL/configure.ac: Check for GNUSTEP_MAKEFILES not
