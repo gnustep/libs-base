@@ -1304,9 +1304,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-if test -z "$GNUSTEP_SYSTEM_ROOT"; then
-  { { echo "$as_me:$LINENO: error: You must run the GNUstep initialization script first!" >&5
-echo "$as_me: error: You must run the GNUstep initialization script first!" >&2;}
+if test -z "$GNUSTEP_MAKEFILES"; then
+  { { echo "$as_me:$LINENO: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&5
+echo "$as_me: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&2;}
    { (exit 1); exit 1; }; }
 fi
 

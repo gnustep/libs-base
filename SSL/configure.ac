@@ -23,8 +23,8 @@
 AC_INIT
 AC_CONFIG_SRCDIR([GSSSLHandle.m])
 
-if test -z "$GNUSTEP_SYSTEM_ROOT"; then
-  AC_MSG_ERROR([You must run the GNUstep initialization script first!])
+if test -z "$GNUSTEP_MAKEFILES"; then
+  AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
 fi
 
 #--------------------------------------------------------------------

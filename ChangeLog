@@ -1,3 +1,8 @@
+2005-12-20  Adam Fedor  <fedor@gnu.org>
+
+	* SSL/configure.ac: Check for GNUSTEP_MAKEFILES not
+	GNUSTEP_SYSTEM_ROOT.
+
 2005-12-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePort.m:
