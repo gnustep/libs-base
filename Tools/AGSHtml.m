@@ -187,7 +187,7 @@ static NSString		*mainFont = nil;
       s = [NSString stringWithFormat: @"<a %@=\"%@%@%@$%@\">",
 	kind, s, hash, t, r];
     }
-  return s;
+  return [s stringByReplacingString: @":" withString: @"$"];
 }
 
 /**
@@ -272,7 +272,7 @@ static NSString		*mainFont = nil;
 	    kind, s, hash, t, u, sep, r];
 	}
     }
-  return s;
+  return [s stringByReplacingString: @":" withString: @"$"];
 }
 
 - (NSString*) outputDocument: (GSXMLNode*)node
@@ -362,6 +362,7 @@ static NSString		*mainFont = nil;
 	  NSString	*text = [dict objectForKey: ref];
 	  NSString	*file = ref;
 
+	  ref = [ref stringByReplacingString: @":" withString: @"$"];
 	  if ([file isEqual: base] == YES)
 	    {
 	      continue;	// Don't list current file.
@@ -463,6 +464,8 @@ static NSString		*mainFont = nil;
 			      NSString	*ref = [NSString stringWithFormat:
 				@"(%@)%@", catName, mname];
 
+			      ref = [ref stringByReplacingString: @":"
+						      withString: @"$"];
 			      [m setObject: file forKey: ref];
 			    }
 			}
@@ -494,6 +497,8 @@ static NSString		*mainFont = nil;
 	  NSString	*ref = [a objectAtIndex: i];
 	  NSString	*file = [dict objectForKey: ref];
 	  NSString	*text = ref;
+
+	  ref = [ref stringByReplacingString: @":" withString: @"$"];
 
 	  /*
 	   * If a reference to a method contains a leading category name,
@@ -536,7 +541,7 @@ static NSString		*mainFont = nil;
 	  else
 	    {
               if  (([type isEqual: @"protocol"] == YES)
-                   && ([text hasPrefix: @"&lt;"] == NO))
+		&& ([text hasPrefix: @"&lt;"] == NO))
                 {
                   // it's an informal protocol, detected earlier as an
                   // unimplemented category of NSObject; make proper link

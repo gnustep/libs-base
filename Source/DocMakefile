@@ -159,6 +159,8 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
 	FOUNDATION_EXPORT=extern;FOUNDATION_STATIC_INLINE="";\
+	GS_ATTRIB_DEPRECATED="";\
+	GS_STATIC_INLINE="";\
 	GS_GEOM_SCOPE=extern;GS_GEOM_ATTR="";\
 	GS_EXPORT=extern;GS_DECLARE="";\
 	GS_RANGE_SCOPE=extern;GS_RANGE_ATTR="";\
