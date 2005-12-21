@@ -286,7 +286,14 @@ static NSString		*mainFont = nil;
     }
   buf = [NSMutableString stringWithCapacity: 4096];
 
-  [buf appendString: @"<html>\n"];
+  /* Declaration */
+  [buf appendString: @"<!DOCTYPE html PUBLIC "];
+  [buf appendString: @"\"-//W3C//DTD XHTML 1.0 Strict//EN\"\n"];
+  [buf appendString: @"\"http://www.w3.org/TR/xhtml1/DTD/"];
+  [buf appendString: @"xhtml1-strict.dtd\">\n"];
+  [buf appendString: @"<html xmlns=\"http://www.w3.org/1999/xhtml\" "];
+  [buf appendString: @"xml:lang=\"en\" lang=\"en\">\n"];
+ 
   [self incIndent];
   [self outputNodeList: node to: buf];
   [self decIndent];
@@ -846,7 +853,7 @@ static NSString		*mainFont = nil;
       else if ([name isEqual: @"declared"] == YES)
 	{
 	  [buf appendString: indent];
-	  [buf appendString: @"<blockquote>\n"];
+          [buf appendString: @"<blockquote class=\"declared\">\n"];
 	  [self incIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"<dl>\n"];
@@ -867,7 +874,7 @@ static NSString		*mainFont = nil;
       else if ([name isEqual: @"desc"] == YES)
 	{
 	  [buf appendString: indent];
-	  [buf appendString: @"<p>\n"];
+          [buf appendString: @"<div class=\"desc\">\n"];
 	  [self incIndent];
 	  while (children != nil)
 	    {
@@ -875,7 +882,7 @@ static NSString		*mainFont = nil;
 	    }
 	  [self decIndent];
 	  [buf appendString: indent];
-	  [buf appendString: @"</p>\n"];
+	  [buf appendString: @"</div>\n"];
 	}
       else if ([name isEqual: @"em"] == YES)
 	{
@@ -1110,6 +1117,13 @@ static NSString		*mainFont = nil;
 	  [self outputText: [children firstChild] to: buf];
 	  [self decIndent];
 	  [buf appendString: @"</title>\n"];
+#if 0
+          /** Css : TODO print.css **/
+          [buf appendString:@"<meta http-equiv=\"Content-Style-Type\" content=\"text/css\"/>\n"];
+          [buf appendString:@"<link rel=\"stylesheet\" type=\"text/css\" href=\"screen.css\" media=\"screen\" title=\"Normal\" />\n"];
+          /** Robots **/
+          [buf appendString:@"<meta name=\"robots\" content=\"all\" />\n"];
+#endif
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</head>\n"];
@@ -1504,6 +1518,8 @@ static NSString		*mainFont = nil;
 	  GSXMLNode	*tmp = children;
 	  BOOL		hadArg = NO;
 
+          [buf appendString:@"<div class=\"method\">\n"];
+
 	  sel = [prop objectForKey: @"factory"];
 	  str = [prop objectForKey: @"type"];
 	  if (sel != nil && [sel boolValue] == YES)
@@ -1661,6 +1677,7 @@ static NSString		*mainFont = nil;
 	      [buf appendString: indent];
 	      [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
 	    }
+          [buf appendString:@"</div>\n"];
 	}
       else if ([name isEqual: @"p"] == YES)
 	{
@@ -2426,6 +2443,7 @@ static NSString		*mainFont = nil;
 	rem = 0;
 
       [buf appendString: indent];
+      [buf appendString: @"<div class=\"availability\">\n"];
       [buf appendString: @"<b>Availability:</b> "];
       if (add < GS_API_OSSPEC)
 	{
@@ -2490,11 +2508,13 @@ static NSString		*mainFont = nil;
 	      [buf appendString: gvrem];
 	    }
 	}
+      [buf appendString:@"</div>\n"];
       [buf appendString: @"<br />\n"];
     }
   else if ([gvadd length] > 0)
     {
       [buf appendString: indent];
+      [buf appendString: @"<div class=\"availability\">\n"];
       [buf appendString: @"<b>Availability:</b> "];
       [buf appendString: project];
       [buf appendString: @" "];
@@ -2510,6 +2530,7 @@ static NSString		*mainFont = nil;
 	  [buf appendString: @" removed at "];
 	  [buf appendString: gvrem];
 	}
+      [buf appendString:@"</div>\n"];
       [buf appendString: @"<br />\n"];
     }
 }

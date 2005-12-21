@@ -1,3 +1,10 @@
+2005-12-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Partial update for use of CSS ... as provided by
+	Fabien Vallon.  Need to decide where the stylesheet file should come
+	from and where it should be installed.  Probably need a new autogsdoc
+	flag for this and some internal api changes.
+
 2005-12-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Deal with C++ declaration of external C/ObjC libs.
