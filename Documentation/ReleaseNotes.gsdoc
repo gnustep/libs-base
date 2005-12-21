@@ -25,6 +25,36 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.11.2</heading>
+	  <deflist>
+	    <term>GNUstep.conf and relocation</term>
+	    <desc>
+	    Support for GNUstep.conf and relocation of the filesystem is
+	    much improved in this release.
+	    </desc>
+	    <term>Windows platform</term>
+	    <desc>
+	    The WM_QUIT message is now intercepted to allow an application to
+	    terminate cleanly.
+	    </desc>
+	    <term>NSMessagePort - Windows platform</term>
+	    <desc>
+	    NSMessagePort was implemented on Windows platforms.
+	    </desc>
+	    <term>NSOpenStepRootDirectory</term>
+	    <desc>
+	    This function has been un-deprecated, and the documentation
+	    clarified so it is easier to understand what it does and does 
+	    not do.
+	    </desc>
+	    <term>GNUsteprc</term>
+	    <desc>
+	    Deprecated support for system-wide GNUsteprc files has
+	    been removed.
+	    </desc>
+	  </deflist>
+      </section>
+      <section>
 	<heading>Version 1.11.1</heading>
 	  <deflist>
 	    <term>NSSortDescriptor</term>

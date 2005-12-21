@@ -11,6 +11,21 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.11.2}
+
+@itemize @bullet
+@item Support for GNUstep.conf and relocation of the filesystem is 
+much improved in this release.
+@item The WM_QUIT message is now intercepted to allow an application to
+terminate cleanly.
+@item NSMessagePort was implemented on Windows platforms.
+@item Deprecated support for system-wide GNUsteprc files has been removed.
+@item Some support for keeping user defaults in the Windows registry 
+implemented.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.11.1}
 
 @itemize @bullet
@@ -21,8 +36,6 @@ by GNUstep and MacOSX).
 @item More support for debugging on mingw, including writing logs to 
 debugger and event viewer.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.11.0}
 

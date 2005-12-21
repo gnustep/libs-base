@@ -1,9 +1,26 @@
 News
 ****
 
-The currently released version of the library is `1.11.1'.
+The currently released version of the library is `1.11.2'.
 
 See the <ReleaseNotes.html> document for more information.
+
+Noteworthy changes in version `1.11.2'
+======================================
+
+   * Support for GNUstep.conf and relocation of the filesystem is much
+     improved in this release.
+
+   * The WM_QUIT message is now intercepted to allow an application to
+     terminate cleanly.
+
+   * NSMessagePort was implemented on Windows platforms.
+
+   * Deprecated support for system-wide GNUsteprc files has been
+     removed.
+
+   * Some support for keeping user defaults in the Windows registry
+     implemented.
 
 Noteworthy changes in version `1.11.1'
 ======================================

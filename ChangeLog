@@ -1,3 +1,7 @@
+2005-12-21  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.11.2
+
 2005-12-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Partial update for use of CSS ... as provided by
@@ -153,7 +157,7 @@
 	if the NSApplication class is not linked).  Should allow ms-windows
 	to get a mingw32-based GNUstep app to shut down cleanly.
 	* Source/NSDistributedNotificationCenter.m: Rewrite code for connecting
-	to and starting up daemon to ahndle the process more quickly and
+	to and starting up daemon to handle the process more quickly and
 	smoothly.  Only complain if we can't to connect to it even after
 	launching it and retrying the connection for five seconds.
 
@@ -161,7 +165,7 @@
 
 	* Source/NSProcessInfo.m:
 	* Source/NSUserDefaults.m:
-	Restore revertyed changes for code where class initialisation order
+	Restore reverted changes for code where class initialisation order
 	is not a factor.
 	* Source/NSUser.m: Delete unused file
 	* GNUmakefile: Don't try to build NSUser.m
@@ -689,7 +693,7 @@
 2005-09-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: (-convertToBinary, -convertToBase64)
-	new convenience methods for making documents comapct or 7bit safe.
+	new convenience methods for making documents compact or 7bit safe.
 
 2005-09-25  David Ayers  <d.ayers@inode.at>
 
