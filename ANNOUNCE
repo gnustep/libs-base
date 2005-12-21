@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.11.1, is now available.
+The GNUstep Base Library, version 1.11.2, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -18,22 +18,27 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.11.1'
+Noteworthy changes in version `1.11.2'
 ======================================
 
-   * New Cocoa class NSSortDescriptor
+   * Support for GNUstep.conf and relocation of the filesystem is much
+     improved in this release.
 
-   * NSStringFrom... functions now output strings that can be read by
-     old OpenStep implementations (but can also still be read by
-     GNUstep and MacOSX).
+   * The WM_QUIT message is now intercepted to allow an application to
+     terminate cleanly.
 
-   * More support for debugging on mingw, including writing logs to
-     debugger and event viewer.
+   * NSMessagePort was implemented on Windows platforms.
+
+   * Deprecated support for system-wide GNUsteprc files has been
+     removed.
+
+   * Some support for keeping user defaults in the Windows registry
+     implemented.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-The gnustep-base-1.11.1.tar.gz distribution file has been placed at
+The gnustep-base-1.11.2.tar.gz distribution file has been placed at
 <ftp://ftp.gnustep.org/pub/gnustep/core>.
 
 Please log bug reports on the GNUstep project page
