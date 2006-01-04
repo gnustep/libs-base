@@ -1,3 +1,10 @@
+2006-01-04  David Ayers  <d.ayers@inode.at>
+
+	Bug #15353
+	* Source/NSProcessInfo.m (fallbackInitialisation): Move 
+	initialization to avoid compiler error.  Reported by
+	Stefan van den Oord (stefan.vandenoord@gmail.com).
+	
 2005-12-21  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.11.2
