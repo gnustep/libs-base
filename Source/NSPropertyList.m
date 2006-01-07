@@ -3270,7 +3270,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 {
   unsigned char code;
 
-  if (count <= 256)
+  if (count < 256)
     {
       unsigned char c;
 
@@ -3279,7 +3279,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       c = count;
       [dest appendBytes: &c length: 1];      
     }
-  else
+  else if (count < 256 * 256)
     {
       unsigned short c;
 
@@ -3288,6 +3288,13 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       c = count;
       NSSwapHostShortToBig(c);
       [dest appendBytes: &c length: 2];
+    }
+  else
+    {
+      code = 0x13;
+      [dest appendBytes: &code length: 1];
+      count = NSSwapHostIntToBig(count);
+      [dest appendBytes: &count length: 4];
     }
 }
 
