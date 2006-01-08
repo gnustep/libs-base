@@ -457,7 +457,8 @@ notice and this notice are preserved.
 	    location of this file depends on how the Base library was
 	    configured and/or what operating system it was configured
 	    on. On a GNU/Linux system, the default would be
-	    /etc/GNUstep/GNUstep.conf, for instance.<br />
+	    /etc/GNUstep/GNUstep.conf for instance, while on mswindows
+	    it would be ./GNUstep.conf.<br />
 	    The location of this file can be specified when the base library
 	    is configured ... using the <code>--with-config-file=</code>
 	    option of the <code>configure</code> script.<br />
@@ -603,17 +604,20 @@ notice and this notice are preserved.
 	    Firstly, wariables in the configuration file which define
 	    paths, are expected to by full path specifications, except
 	    for the special case in which they begin with dot-slash (./).
-	    In this case the dot-slash is replaced by the path to the
-	    directory containing the configuration file (or specified to
-	    contain the configuration file if no configuration file exists).
+	    In this case the text after the dot-slash is appended to
+	    the path to the directory containing the configuration file
+	    (or specified to contain the configuration file if no
+	    configuration file exists) to form the value used.
 	  </p>
 	  <p>
-	    Secondly, If the value specified by GNUSTEP_CONFIG_FILE (or
-	    built into the base library) itself begins with a dot and
-	    slash (./) then the path used for that file is made relative
-	    to the base library.<br />
-	    ie the dot-slash is replaced by the path to the directory
-	    containing the gnustep-base library.
+	    Secondly, If the value of the path built in to the base library
+	    as the location of the config file (or specified by
+	    the GNUSTEP_CONFIG_FILE environment variable if that option
+	    was enabled when the base library was configured)
+	    begins with a dot and slash (./) then the path used for that
+	    file is made relative to the base library.<br />
+	    ie the text after the dot-slash is appended to the path of the
+	    directory containing the gnustep-base library.
 	  </p>
 	  <p>
 	    So you can bundle the whole lot together in one directory,

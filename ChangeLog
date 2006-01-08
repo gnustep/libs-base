@@ -11,6 +11,7 @@
 	really simple with new config files.
 	* configure: regenerate
 	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Documentation/Base.gsdoc: Attempt to clarify config file operation.
 
 2006-01-07  Fred Kiefer <FredKiefer@gmx.de>
 
