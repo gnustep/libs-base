@@ -1,3 +1,17 @@
+2006-01-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: be more consistent in use of defined values
+	from config file.
+	* configure.in: Improve comments/help.  Fix error in config where we
+	were attempting OS based decisions before we had determined the OS.
+	Improve default paths on mingw to be relative to the DLL.
+	Load information from make package config fo use during build of
+	base library.
+	Generally try to improve user experience on mingw to make build/install
+	really simple with new config files.
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+
 2006-01-07  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m (BinaryPLGenerator - storeCount:) Handle
