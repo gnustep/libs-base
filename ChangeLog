@@ -1,5 +1,11 @@
 2006-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/win32/GSRunLoopCtxt.m: Apply patch by Jeremy Bettis with
+	fixups for intentation/formatting and minor correction to avoid waiting
+	for an event when we have handled one in the current run of the loop.
+
+2006-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPropertyList.m: When generating binary plist, fix bug
 	in case where we have to increase table size.
 	* Source/NSKeyedArchiver.m: Update to use binary plist format
