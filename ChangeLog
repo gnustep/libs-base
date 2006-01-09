@@ -1,3 +1,13 @@
+2006-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: When generating binary plist, fix bug
+	in case where we have to increase table size.
+	* Source/NSKeyedArchiver.m: Update to use binary plist format
+	by default rather than xml format ... MacOS-X compatible and
+	works when libxml2 is not available.
+	* Source/NSKeyedUnarchiver.m: Print NSLog error if attempting to
+	decode an xml archive when no libxml2 is available.
+
 2006-01-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: be more consistent in use of defined values

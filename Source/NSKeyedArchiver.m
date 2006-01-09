@@ -786,7 +786,7 @@ static NSDictionary *makeReference(unsigned ref)
       _obj = [NSMutableArray new];		// Array of objects.
       [_obj addObject: @"$null"];		// Placeholder.
 
-      _format = NSPropertyListXMLFormat_v1_0;	// FIXME ... should be binary.
+      _format = NSPropertyListBinaryFormat_v1_0;
     }
   return self;
 }

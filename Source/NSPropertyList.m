@@ -2483,7 +2483,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       [plData getBytes: postfix range: NSMakeRange(length-32, 32)];
       offset_size = postfix[6];
       index_size = postfix[7];
-      table_start = (postfix[28] << 24) + (postfix[29] << 16) + (postfix[30] << 8) + postfix[31];
+      table_start = (postfix[28] << 24) + (postfix[29] << 16)
+	+ (postfix[30] << 8) + postfix[31];
       if (offset_size < 1 || offset_size > 4)
 	{
 	  [NSException raise: NSGenericException
@@ -2492,9 +2493,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	}
       else if (index_size < 1 || index_size > 4)
 	{
+	  DESTROY(self);	// Bad format
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", index_size];
-	  DESTROY(self);	// Bad format
 	}
       else if (table_start > length - 32)
 	{
@@ -2541,8 +2542,10 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned char buffer[offset_size];
       int i;
       unsigned long num = 0;
+      NSRange	r;
 	
-      [data getBytes: &buffer range: NSMakeRange(table_start + offset_size*index, offset_size)];
+      r = NSMakeRange(table_start + offset_size*index, offset_size);
+      [data getBytes: &buffer range: r];
       for (i = 0; i < offset_size; i++)
         {
 	  num = (num << 8) + buffer[i];
@@ -2998,27 +3001,32 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 @implementation BinaryPLGenerator
 
-+ (void) serializePropertyList: (id)aPropertyList intoData: (NSMutableData *)destination
++ (void) serializePropertyList: (id)aPropertyList
+		      intoData: (NSMutableData *)destination
 {
   BinaryPLGenerator *gen;
 
-  gen = [[BinaryPLGenerator alloc] initWithPropertyList: aPropertyList intoData: destination];
+  gen = [[BinaryPLGenerator alloc]
+    initWithPropertyList: aPropertyList intoData: destination];
   [gen generate];
   RELEASE(gen);
 }
 
-- (id) initWithPropertyList: (id) aPropertyList intoData: (NSMutableData *)destination
+- (id) initWithPropertyList: (id) aPropertyList
+		   intoData: (NSMutableData *)destination
 {
   ASSIGN(root, aPropertyList);
   ASSIGN(dest, destination);
+  [dest setLength: 0];
 
   return self;
 }
 
 - (void) dealloc
 {
-  RELEASE(root);
+  DESTROY(root);
   [self cleanup];
+  DESTROY(dest);
   [super dealloc];
 }
 
@@ -3029,6 +3037,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (void) setup
 {
+  [dest setLength: 0];
   if (index_size == 1)
     {
       table_size = 256;
@@ -3048,8 +3057,6 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
   table = malloc(table_size * sizeof(int));
   
-  // Always restart the destination data
-  [dest setLength: 0];
   objectsToDoList = [[NSMutableArray alloc] init];
   objectList = [[NSMutableArray alloc] init];
 
@@ -3059,7 +3066,6 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (void) cleanup
 {
-  DESTROY(dest);
   DESTROY(objectsToDoList);
   DESTROY(objectList);
   if (table != NULL)
@@ -3112,7 +3118,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   unsigned int last_offset;
   
   table_start = [dest length];
-  // This is a bit to much, as the length 
+  // This is a bit too much, as the length 
   // of the last object is added. 
   last_offset = table_start;
 
@@ -3135,7 +3141,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else
     {
       [NSException raise: NSRangeException
-		   format: @"Object table offset out of bounds %d.", last_offset];
+	format: @"Object table offset out of bounds %d.", last_offset];
     }
 
   len = [objectList count];
@@ -3349,12 +3355,12 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	  [dest appendBytes: [string cString] length: len];
 	}
       else
-      {
+	{
 	  code = 0x5F;
 	  [dest appendBytes: &code length: 1];
 	  [self storeCount: len];
 	  [dest appendBytes: [string cString] length: len];
-      }
+	}
     }
   else
     {
@@ -3387,7 +3393,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	    }
 	  [dest appendBytes: buffer length: sizeof(unichar)*len];
 	  free(buffer);
-      }
+	}
     }
 }
 
@@ -3484,7 +3490,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	}
       default:
 	[NSException raise: NSGenericException
-		     format: @"Attempt to store number with unknown ObjC type"];
+		    format: @"Attempt to store number with unknown ObjC type"];
     }
 }
 
@@ -3639,7 +3645,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   else 
     {
-	NSLog(@"Unknown object class %@", object);
+      NSLog(@"Unknown object class %@", object);
     }
 }
 
