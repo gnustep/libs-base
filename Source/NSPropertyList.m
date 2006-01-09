@@ -2493,9 +2493,11 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	}
       else if (index_size < 1 || index_size > 4)
 	{
+	  unsigned	saved = offset_size;
+
 	  DESTROY(self);	// Bad format
 	  [NSException raise: NSGenericException
-		      format: @"Unknown table size %d", index_size];
+		      format: @"Unknown table size %d", saved];
 	}
       else if (table_start > length - 32)
 	{
