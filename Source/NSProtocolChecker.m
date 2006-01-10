@@ -88,7 +88,7 @@
        */
       if (GSObjCIsInstance(_myTarget))
 	{
-	  if ((int)GSObjCClass(_myProtocol) == 0x2)
+	  if ((uintptr_t)GSObjCClass(_myProtocol) == 0x2)
 	    {
 	      mth = GSDescriptionForInstanceMethod(_myProtocol, aSelector);
 	    }
@@ -99,7 +99,7 @@
 	}
       else
 	{
-	  if ((int)GSObjCClass(_myProtocol) == 0x2)
+	  if ((uintptr_t)GSObjCClass(_myProtocol) == 0x2)
 	    {
 	      mth = GSDescriptionForClassMethod(_myProtocol, aSelector);
 	    }

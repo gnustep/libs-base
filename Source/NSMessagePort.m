@@ -1445,7 +1445,7 @@ static unsigned	wordAlign;
     {
       if (handle->recvPort == recvSelf)
 	{
-	  fds[(*count)++] = (int)sock;
+	  fds[(*count)++] = (int)(intptr_t)sock;
 	}
     }
   NSEndMapTableEnumeration(&me);

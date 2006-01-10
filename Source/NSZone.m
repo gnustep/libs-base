@@ -103,7 +103,8 @@
 void *
 GSOutOfMemory(size_t size, BOOL retry)
 {
-  fprintf(stderr, "GSOutOfMemory ... wanting %u bytes.\n", size);
+  fprintf(stderr, "GSOutOfMemory ... wanting %lu bytes.\n",
+    (unsigned long)size);
   return 0;
 }
 

@@ -250,7 +250,7 @@ static NSMapTable	*attrNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)key;
+	  return (int)(intptr_t)key;
 	}
     }
   return -1;
@@ -258,7 +258,7 @@ static NSMapTable	*attrNames = 0;
 
 + (NSString*) descriptionFromType: (int)type
 {
-  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)type);
+  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)(intptr_t)type);
 
   return desc;
 }
@@ -270,8 +270,9 @@ static NSMapTable	*attrNames = 0;
 
 - (NSString*) typeDescription
 {
-  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
+  NSString	*desc;
 
+  desc = (NSString*)NSMapGet(attrNames, (void*)(intptr_t)[self type]);
   if (desc == nil)
     {
       desc = @"Unknown attribute type";
@@ -415,7 +416,7 @@ static NSMapTable	*attrNames = 0;
 
 - (unsigned) hash
 {
-  return (((unsigned)lib) >> 3);
+  return (((unsigned)(uintptr_t)lib) >> 3);
 }
 
 - (id) init
@@ -561,7 +562,7 @@ static NSMapTable	*nsNames = 0;
  */
 + (NSString*) descriptionFromType: (int)type
 {
-  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)type);
+  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)(intptr_t)type);
 
   return desc;
 }
@@ -599,7 +600,7 @@ static NSMapTable	*nsNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)key;
+	  return (int)(intptr_t)key;
 	}
     }
   return -1;
@@ -618,7 +619,7 @@ static NSMapTable	*nsNames = 0;
 
 - (unsigned) hash
 {
-  return (((unsigned)lib) >> 3);
+  return (((unsigned)(uintptr_t)lib) >> 3);
 }
 
 /**
@@ -692,8 +693,9 @@ static NSMapTable	*nsNames = 0;
  */
 - (NSString*) typeDescription
 {
-  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)[self type]);
+  NSString	*desc;
 
+  desc = (NSString*)NSMapGet(nsNames, (void*)(intptr_t)[self type]);
   if (desc == nil)
     {
       desc = @"Unknown namespace type";
@@ -738,7 +740,7 @@ static NSMapTable	*nodeNames = 0;
  */
 + (NSString*) descriptionFromType: (int)type
 {
-  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)type);
+  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)(intptr_t)type);
 
   return desc;
 }
@@ -826,7 +828,7 @@ static NSMapTable	*nodeNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)key;
+	  return (int)(intptr_t)key;
 	}
     }
   return -1;
@@ -1077,7 +1079,7 @@ static NSMapTable	*nodeNames = 0;
 
 - (unsigned) hash
 {
-  return (((unsigned)lib) >> 3);
+  return (((unsigned)(uintptr_t)lib) >> 3);
 }
 
 - (id) init
@@ -1546,8 +1548,9 @@ static NSMapTable	*nodeNames = 0;
  */
 - (NSString*) typeDescription
 {
-  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)[self type]);
+  NSString	*desc;
 
+  desc = (NSString*)NSMapGet(nodeNames, (void*)(intptr_t)[self type]);
   if (desc == nil)
     {
       desc = @"Unknown node type";

@@ -43,7 +43,7 @@
 unsigned int
 _NS_int_hash(void *table, void* i)
 {
-  return (unsigned int) i;
+  return (unsigned)(uintptr_t)i;
 }
 
 BOOL
@@ -67,7 +67,7 @@ _NS_int_release(void *table, void* i)
 NSString *
 _NS_int_describe(void *table, void* i)
 {
-  return [NSString stringWithFormat: @"%d", (int)i];
+  return [NSString stringWithFormat: @"%d", (int)(intptr_t)i];
 }
 
 /** For owned `void *' **/
@@ -76,7 +76,7 @@ unsigned int
 _NS_owned_void_p_hash(void *table, void *p)
 {
   /* P may be aligned, so we need to compensate. */
-  return ((unsigned int)p)/4;
+  return ((unsigned)(uintptr_t)p)/4;
 }
 
 BOOL
@@ -177,7 +177,7 @@ _NS_id_describe(void *table, id <NSObject> o)
 unsigned int
 _NS_non_owned_void_p_hash(void *table, void *p)
 {
-  return ((unsigned int)p)/4;
+  return ((unsigned)(uintptr_t)p)/4;
 }
 
 BOOL
@@ -209,7 +209,7 @@ _NS_non_owned_void_p_describe(void *table, void *p)
 unsigned int
 _NS_int_p_hash(void *table, int *p)
 {
-  return ((unsigned int)p)/4;
+  return ((unsigned)(uintptr_t)p)/4;
 }
 
 BOOL

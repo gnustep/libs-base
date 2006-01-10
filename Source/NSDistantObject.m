@@ -699,7 +699,7 @@ enum proxyLocation
 	   * (implemented in NSObject.m) to examine the protocol contents
 	   * without sending any ObjectiveC message to it.
 	   */
-	  if ((int)GSObjCClass(_protocol) == 0x2)
+	  if ((uintptr_t)GSObjCClass(_protocol) == 0x2)
 	    {
 	      extern struct objc_method_description*
 		GSDescriptionForInstanceMethod();
@@ -711,7 +711,7 @@ enum proxyLocation
 	    }
 	  if (mth == 0)
 	    {
-	      if ((int)GSObjCClass(_protocol) == 0x2)
+	      if ((uintptr_t)GSObjCClass(_protocol) == 0x2)
 		{
 		  extern struct objc_method_description*
 		    GSDescriptionForClassMethod();

@@ -312,7 +312,7 @@ extern BOOL __objc_responds_to(id, SEL);
    * In the absence of detailed information, pick a reasonable value
    * assuming the object will be aligned to an eight byte boundary.
    */
-  return ((unsigned)self)>>3;
+  return ((unsigned)(uintptr_t)self)>>3;
 }
 
 /** <init /> <override-subclass />

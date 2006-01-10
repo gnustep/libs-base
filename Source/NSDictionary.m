@@ -837,7 +837,7 @@ compareIt(id o1, id o2, void* context)
   struct foo	*f = (struct foo*)context;
   o1 = (*f->i)(f->d, @selector(objectForKey:), o1);
   o2 = (*f->i)(f->d, @selector(objectForKey:), o2);
-  return (int)[o1 performSelector: f->s withObject: o2];
+  return (int)(intptr_t)[o1 performSelector: f->s withObject: o2];
 }
 
 /**

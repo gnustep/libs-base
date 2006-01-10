@@ -279,7 +279,7 @@ pty_slave(const char* name)
 - (void) gcFinalize
 {
   [tasksLock lock];
-  NSMapRemove(activeTasks, (void*)_taskId);
+  NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
   [tasksLock unlock];
 }
 
@@ -890,7 +890,7 @@ pty_slave(const char* name)
 - (void) _terminatedChild: (int)status
 {
   [tasksLock lock];
-  NSMapRemove(activeTasks, (void*)_taskId);
+  NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
   [tasksLock unlock];
   _terminationStatus = status;
   _hasCollected = YES;
@@ -1260,7 +1260,7 @@ GSCheckTasks()
 	      NSTask    *t;
 
 	      [tasksLock lock];
-	      t = (NSTask*)NSMapGet(activeTasks, (void*)result);
+	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
 	      [tasksLock unlock];
 	      if (t != nil)
 		{
@@ -1491,7 +1491,7 @@ GSCheckTasks()
       ASSIGN(_launchPath, lpath);	// Actual path used.
 
       [tasksLock lock];
-      NSMapInsert(activeTasks, (void*)_taskId, (void*)self);
+      NSMapInsert(activeTasks, (void*)(intptr_t)_taskId, (void*)self);
       [tasksLock unlock];
 
       /*
