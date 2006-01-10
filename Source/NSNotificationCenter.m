@@ -641,6 +641,11 @@ static NSNotificationCenter *default_center = nil;
  * <p>The notification center does not retain observer or object. Therefore,
  * you should always send removeObserver: or removeObserver:name:object: to
  * the notification center before releasing these objects.</p>
+ *
+ * <p>NB. For MacOS-X compatibility, adding an observer multiple times will
+ * register it to receive multiple copies of any matching notification, however
+ * removing an observer will remove <em>all</em> of the multiple registrations.
+ * </p>
  */
 - (void) addObserver: (id)observer
 	    selector: (SEL)selector
@@ -687,7 +692,7 @@ static NSNotificationCenter *default_center = nil;
   /*
    * Record the Observation in one of the linked lists.
    *
-   * NB. It is possible to register an observr for a notification more than
+   * NB. It is possible to register an observer for a notification more than
    * once - in which case, the observer will receive multiple messages when
    * the notification is posted... odd, but the MacOS-X docs specify this.
    */
