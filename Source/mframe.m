@@ -384,7 +384,8 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	      acc_align = MAX(local.align, def_align);
 	    }
 	  /*
-	   *	Continue accumulating structure size.
+	   *	Continue accumulating structure size
+	   *	and adjust alignment if necessary
 	   */
 	  while (*typePtr != _C_STRUCT_E)
 	    {
@@ -395,6 +396,14 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 		}
 	      acc_size = ROUND(acc_size, local.align);
 	      acc_size += local.size;
+	      acc_align = MAX(local.align, acc_align);
+	    }
+	  /*
+	   * Size must be a multiple of alignment
+	   */
+	  if (acc_size % acc_align != 0)
+	    {
+	      acc_size += acc_align - acc_size % acc_align;
 	    }
 	  info->size = acc_size;
 	  info->align = acc_align;
