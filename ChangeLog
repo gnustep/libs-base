@@ -1,3 +1,8 @@
+2006-01-10 00:11 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSKeyedUnarchiver.m: Added private method replaceObject:
+	withObject:.
+
 2005-12-21  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.11.2
