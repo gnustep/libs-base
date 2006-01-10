@@ -1770,7 +1770,7 @@ failure:
   unsigned	length = [self length];
   void		*bytes = [self mutableBytes];
 
-  [aCoder encodeValueOfObjCType: @encode(unsigned long)
+  [aCoder encodeValueOfObjCType: @encode(unsigned int)
 			     at: &length];
   if (length)
     {
@@ -1802,7 +1802,7 @@ failure:
   zone = [self zone];
 #endif
 
-  [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
+  [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &l];
   if (l)
     {
       void	*b = NSZoneMalloc(zone, l);

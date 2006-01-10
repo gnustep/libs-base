@@ -4,6 +4,8 @@
 	When calculating info about a structure, make sure its alignment is
 	that of its most strictly aligned field and make sure its size is a
 	multiple of its alignment.
+	* Source/NSData.m: ([initWithCoder:]) Fix bug decoding unsigned long
+	into unsigned int variable ... breaks on amd64
 
 2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
