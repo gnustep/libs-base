@@ -1,5 +1,12 @@
 2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/mframe.m:
+	When calculating info about a structure, make sure its alignment is
+	that of its most strictly aligned field and make sure its size is a
+	multiple of its alignment.
+
+2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFileHandle.m:
 	* Source/NSAutoreleasePool.m:
 	* Source/NSCallBacks.m:
