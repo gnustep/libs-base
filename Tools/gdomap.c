@@ -1553,12 +1553,12 @@ load_iface(const char* from)
 	  bcok[interfaces] = 0;
 	  bcst[interfaces].s_addr = inet_addr("0.0.0.0");
 	}
-      if (addr[interfaces].s_addr == (unsigned long)-1)
+      if (addr[interfaces].s_addr == (uint32_t)-1)
 	{
 	  sprintf(ebuf, "'%s' is not as valid address", buf);
 	  gdomap_log(LOG_ERR);
 	}
-      else if (mask[interfaces].s_addr == (unsigned long)-1)
+      else if (mask[interfaces].s_addr == (uint32_t)-1)
 	{
 	  sprintf(ebuf, "'%s' is not as valid netmask", ptr);
 	  gdomap_log(LOG_ERR);
@@ -4499,7 +4499,7 @@ printf(
 		  prb = (plentry*)malloc(sizeof(plentry));
 		  memset((char*)prb, '\0', sizeof(plentry));
 		  prb->addr.s_addr = inet_addr(buf);
-		  if (prb->addr.s_addr == (unsigned long)-1)
+		  if (prb->addr.s_addr == (uint32_t)-1)
 		    {
 		      fprintf(stderr, "'%s' is not as valid address\n", buf);
 		      free(prb);

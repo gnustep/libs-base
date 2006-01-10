@@ -354,7 +354,7 @@ static IMP	initImp;
 	    {
 	      id	anObject = objects[i];
 	      Class	c = GSObjCClass(anObject);
-	      unsigned	hash = (((unsigned)c) >> 3) & 0x0f;
+	      unsigned	hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
 
 	      objects[i] = nil;
 	      if (classes[hash] != c)

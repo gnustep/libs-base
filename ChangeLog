@@ -1,3 +1,28 @@
+2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSCallBacks.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistantObject.m:
+	* Source/NSMessagePort.m:
+	* Source/NSObject.m:
+	* Source/NSProtocolChecker.m:
+	* Source/NSProxy.m:
+	* Source/NSSocketPort.m:
+	* Source/NSTask.m:
+	* Source/NSThread.m:
+	* Source/NSZone.m:
+	* Source/Additions/GSXML.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	Add explicit casts to avoid compiler warnings where we are on a
+	processor where the size of an integer is not the same as the size
+	of a pointer.
+	* Tools/gdomap.c:
+	Add type casts to fix comparisons on 64bit processor
+
 2006-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSRunLoopCtxt.m: Apply patch by Jeremy Bettis with

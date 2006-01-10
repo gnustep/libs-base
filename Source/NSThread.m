@@ -828,7 +828,7 @@ static NSDate *theFuture;
       }
     for (i = 0; i < count; i++)
       {
-	[loop addEvent: (void*)inputFd
+	[loop addEvent: (void*)(intptr_t)inputFd
 		  type: ET_RDESC
 	       watcher: (id<RunLoopEvents>)self
 	       forMode: [m objectAtIndex: i]];

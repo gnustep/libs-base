@@ -3758,7 +3758,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    size, GSLastErrorStr(errno)];
 	}
       tmp = shmat(newid, 0, 0);
-      if ((int)tmp == -1)			/* Attached memory? */
+      if ((intptr_t)tmp == -1)			/* Attached memory? */
 	{
 	  [NSException raise: NSMallocException
 		      format: @"Unable to attach to shared memory segment."];

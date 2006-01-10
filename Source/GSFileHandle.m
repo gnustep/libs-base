@@ -1248,7 +1248,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void*) nativeHandle
 {
-  return (void*)descriptor;
+  return (void*)(intptr_t)descriptor;
 }
 
 // Synchronous I/O operations

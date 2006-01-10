@@ -618,7 +618,9 @@ static NSLock	*cached_proxies_gate = nil;
       if ([item countdown] == NO)
 	{
 	  NSDistantObject	*obj = [item obj];
-	  NSMapRemove(targetToCached, (void*)((ProxyStruct*)obj)->_handle);
+
+	  NSMapRemove(targetToCached,
+	    (void*)(uintptr_t)((ProxyStruct*)obj)->_handle);
 	}
     }
   if ([cached_locals count] == 0)
@@ -3185,7 +3187,7 @@ static void callEncoder (DOContext *ctxt)
 		repeats: YES];
 	    }
 	  item = [CachedLocalObject newWithObject: prox time: 5];
-	  NSMapInsert(targetToCached, (void*)target, item);
+	  NSMapInsert(targetToCached, (void*)(uintptr_t)target, item);
 	  M_UNLOCK(cached_proxies_gate);
 	  RELEASE(item);
 	  if (debug_connection > 3)
@@ -3276,7 +3278,7 @@ static void callEncoder (DOContext *ctxt)
       CachedLocalObject	*cached;
 
       M_LOCK(cached_proxies_gate);
-      cached = NSMapGet (targetToCached, (void*)target);
+      cached = NSMapGet (targetToCached, (void*)(uintptr_t)target);
       if (cached != nil)
 	{
 	  proxy = [cached obj];
@@ -3286,7 +3288,7 @@ static void callEncoder (DOContext *ctxt)
 	   */
 	  ASSIGN(((ProxyStruct*)proxy)->_connection, self);
 	  [self addLocalObject: proxy];
-	  NSMapRemove(targetToCached, (void*)target);
+	  NSMapRemove(targetToCached, (void*)(uintptr_t)target);
 	  if (debug_connection > 3)
 	    NSLog(@"target (0x%x) moved from cache", target);
 	}
