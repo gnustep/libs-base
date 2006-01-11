@@ -1,5 +1,11 @@
 2006-01-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Documentation/GNUmakefile:
+	* Documentation/General/GNUmakefile:
+	Fix path to autogsdoc for mingw where the 'obj' symlink doesn't work.
+
+2006-01-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Additions/GNUstepBase/GSUnion.h:
 	* Headers/Foundation/NSByteOrder.h:
 	* Headers/Foundation/NSPort.h:
