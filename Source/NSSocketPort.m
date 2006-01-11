@@ -569,29 +569,29 @@ static Class	runLoopClass;
   l = [NSRunLoop currentRunLoop];
 #if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
-  [l addEvent: (void*)(gsaddr)event
+  [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)event
+  [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
       watcher: self
       forMode: NSDefaultRunLoopMode];
   inReplyMode = YES;
 #else
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
@@ -606,29 +606,29 @@ static Class	runLoopClass;
     }
 
 #if	defined(__MINGW32__)
-  [l removeEvent: (void*)(gsaddr)event
+  [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)event
+  [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
   inReplyMode = NO;
 #else
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
@@ -722,20 +722,20 @@ static Class	runLoopClass;
 	  valid = NO;
 	  l = [runLoopClass currentRunLoop];
 #if	defined(__MINGW32__)
-	  [l removeEvent: (void*)(gsaddr)event
+	  [l removeEvent: (void*)(uintptr_t)event
 		    type: ET_HANDLE
 		 forMode: nil
 		     all: YES];
 #else
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_RDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_WDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_EDESC
 		 forMode: nil
 		     all: YES];
@@ -1353,29 +1353,29 @@ static Class	runLoopClass;
 
 #if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
-  [l addEvent: (void*)(gsaddr)event
+  [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)event
+  [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
       watcher: self
       forMode: NSDefaultRunLoopMode];
   inReplyMode = YES;
 #else
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
@@ -1402,29 +1402,29 @@ static Class	runLoopClass;
     }
 
 #if	defined(__MINGW32__)
-  [l removeEvent: (void*)(gsaddr)event
+  [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)event
+  [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
   inReplyMode = NO;
 #else
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
@@ -1522,7 +1522,7 @@ static Class		tcpPortClass;
   /*
    *	Get the map table of ports with the specified number.
    */
-  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
+  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(uintptr_t)number);
   if (thePorts != 0)
     {
       port = (NSSocketPort*)NSMapGet(thePorts, (void*)aHost);
@@ -1578,7 +1578,7 @@ static Class		tcpPortClass;
   /*
    * First try to find a pre-existing port.
    */
-  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
+  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(uintptr_t)number);
   if (thePorts != 0)
     {
       port = (NSSocketPort*)NSMapGet(thePorts, (void*)aHost);
@@ -1712,7 +1712,7 @@ static Class		tcpPortClass;
 	       * Make sure we have the map table for this port.
 	       */
 	      thePorts = (NSMapTable*)NSMapGet(tcpPortMap,
-		(void*)(gsaddr)port->portNum);
+		(void*)(uintptr_t)port->portNum);
 	      if (thePorts == 0)
 		{
 		  /*
@@ -1721,7 +1721,7 @@ static Class		tcpPortClass;
 		   */
 		  thePorts = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		    NSNonOwnedPointerMapValueCallBacks, 0);
-		  NSMapInsert(tcpPortMap, (void*)(gsaddr)port->portNum,
+		  NSMapInsert(tcpPortMap, (void*)(uintptr_t)port->portNum,
 		    (void*)thePorts);
 		}
 	      /*
@@ -1737,7 +1737,7 @@ static Class		tcpPortClass;
 	   * Make sure we have the map table for this port.
 	   */
 	  port->portNum = number;
-	  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
+	  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(uintptr_t)number);
 	  if (thePorts == 0)
 	    {
 	      /*
@@ -1746,7 +1746,7 @@ static Class		tcpPortClass;
 	       */
 	      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
 			      NSNonOwnedPointerMapValueCallBacks, 0);
-	      NSMapInsert(tcpPortMap, (void*)(gsaddr)number, (void*)thePorts);
+	      NSMapInsert(tcpPortMap, (void*)(uintptr_t)number, (void*)thePorts);
 	    }
 	  /*
 	   * Record the port by host.
@@ -1780,10 +1780,10 @@ static Class		tcpPortClass;
     {
       handle->recvPort = GS_GC_HIDE(self);
     }
-  NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
+  NSMapInsert(handles, (void*)(uintptr_t)[handle descriptor], (void*)handle);
 #if	defined(__MINGW32__)
-  NSMapInsert(events, (void*)(gsaddr)[handle eventHandle],
-          (void*)(gsaddr)[handle descriptor]);
+  NSMapInsert(events, (void*)(uintptr_t)[handle eventHandle],
+          (void*)(uintptr_t)[handle descriptor]);
 #endif
   M_UNLOCK(myLock);
 }
@@ -1857,7 +1857,7 @@ static Class		tcpPortClass;
   *count = 0;
   if (eventListener != WSA_INVALID_EVENT)
     {
-      fds[(*count)++] = (gsaddr)eventListener;
+      fds[(*count)++] = (uintptr_t)eventListener;
     }
 
   /*
@@ -1868,10 +1868,10 @@ static Class		tcpPortClass;
   me = NSEnumerateMapTable(events);
   while (NSNextMapEnumeratorPair(&me, &event, (void**)&fd))
     { 
-      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)fd);
+      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)fd);
       if (handle->recvPort == recvSelf && handle->inReplyMode == NO)
 	{
-	  fds[(*count)++] = (gsaddr)event;
+	  fds[(*count)++] = (uintptr_t)event;
 	}
     }
   NSEndMapTableEnumeration(&me);
@@ -2066,7 +2066,7 @@ static Class		tcpPortClass;
 	  unsigned	i;
 
 	  M_LOCK(tcpPortLock);
-	  thePorts = NSMapGet(tcpPortMap, (void*)(gsaddr)portNum);
+	  thePorts = NSMapGet(tcpPortMap, (void*)(uintptr_t)portNum);
 	  if (thePorts != 0)
 	    {
 	      if (listener >= 0)
@@ -2148,7 +2148,7 @@ static Class		tcpPortClass;
   WSAEVENT      event = (WSAEVENT)extra;
   SOCKET	desc;
 #else
-  SOCKET	desc = (SOCKET)(gsaddr)extra;
+  SOCKET	desc = (SOCKET)(uintptr_t)extra;
 #endif
   GSTcpHandle	*handle;
 
@@ -2197,9 +2197,9 @@ static Class		tcpPortClass;
     {
       M_LOCK(myLock);
 #if	defined(__MINGW32__)
-      desc = (SOCKET)NSMapGet(events, (void*)(gsaddr)event);
+      desc = (SOCKET)NSMapGet(events, (void*)(uintptr_t)event);
 #endif
-      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
+      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
       IF_NO_GC(AUTORELEASE(RETAIN(handle)));
       M_UNLOCK(myLock);
       if (handle == nil)
@@ -2255,9 +2255,9 @@ static Class		tcpPortClass;
     {
       handle->recvPort = nil;
     }
-  NSMapRemove(handles, (void*)(gsaddr)[handle descriptor]);
+  NSMapRemove(handles, (void*)(uintptr_t)[handle descriptor]);
 #if	defined(__MINGW32__)
-  NSMapRemove(events, (void*)(gsaddr)[handle eventHandle]);
+  NSMapRemove(events, (void*)(uintptr_t)[handle eventHandle]);
 #endif
   if (((int) listener) < 0 && NSCountMapTable(handles) == 0)
     {

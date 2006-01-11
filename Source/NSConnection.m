@@ -273,7 +273,7 @@ rootObjectForInPort(NSPort *aPort)
   id	rootObject;
 
   F_LOCK(root_object_map_gate);
-  rootObject = (id)NSMapGet(root_object_map, (void*)(gsaddr)aPort);
+  rootObject = (id)NSMapGet(root_object_map, (void*)(uintptr_t)aPort);
   F_UNLOCK(root_object_map_gate);
   return rootObject;
 }
@@ -285,17 +285,17 @@ setRootObjectForInPort(id anObj, NSPort *aPort)
   id	oldRootObject;
 
   F_LOCK(root_object_map_gate);
-  oldRootObject = (id)NSMapGet(root_object_map, (void*)(gsaddr)aPort);
+  oldRootObject = (id)NSMapGet(root_object_map, (void*)(uintptr_t)aPort);
   if (oldRootObject != anObj)
     {
       if (anObj != nil)
 	{
-	  NSMapInsert(root_object_map, (void*)(gsaddr)aPort,
-	    (void*)(gsaddr)anObj);
+	  NSMapInsert(root_object_map, (void*)(uintptr_t)aPort,
+	    (void*)(uintptr_t)anObj);
 	}
       else /* anObj == nil && oldRootObject != nil */
 	{
-	  NSMapRemove(root_object_map, (void*)(gsaddr)aPort);
+	  NSMapRemove(root_object_map, (void*)(uintptr_t)aPort);
 	}
     }
   F_UNLOCK(root_object_map_gate);
@@ -699,7 +699,7 @@ static NSLock	*cached_proxies_gate = nil;
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"%@ recv: 0x%x send 0x%x",
-    [super description], (gsaddr)[self receivePort], (gsaddr)[self sendPort]];
+    [super description], (uintptr_t)[self receivePort], (uintptr_t)[self sendPort]];
 }
 
 /**
@@ -1888,7 +1888,7 @@ static void retEncoder (DOContext *ctxt)
   [self _sendOutRmc: ctxt.encoder type: METHOD_REQUEST];
   ctxt.encoder = nil;
   NSDebugMLLog(@"NSConnection", @"Sent message (%s) to 0x%x",
-    GSNameFromSelector(sel), (gsaddr)self);
+    GSNameFromSelector(sel), (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2013,7 +2013,7 @@ static void retEncoder (DOContext *ctxt)
     }
 
   [self _sendOutRmc: op type: METHOD_REQUEST];
-  NSDebugMLLog(@"NSConnection", @"Sent message to 0x%x", (gsaddr)self);
+  NSDebugMLLog(@"NSConnection", @"Sent message to 0x%x", (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2439,7 +2439,7 @@ static void callEncoder (DOContext *ctxt)
 
       if (debug_connection > 1)
 	{
-	  NSLog(@"Handling message from %@", (gsaddr)self);
+	  NSLog(@"Handling message from %@", (uintptr_t)self);
 	}
       _reqInCount++;	/* Handling an incoming request. */
 
@@ -3113,7 +3113,7 @@ static void callEncoder (DOContext *ctxt)
 
   if (debug_connection > 2)
     NSLog(@"add local object (0x%x) target (0x%x) "
-	  @"to connection (%@)", (gsaddr)object, target, self);
+	  @"to connection (%@)", (uintptr_t)object, target, self);
 
   M_UNLOCK(_proxiesGate);
 }
@@ -3192,7 +3192,7 @@ static void callEncoder (DOContext *ctxt)
 	  RELEASE(item);
 	  if (debug_connection > 3)
 	    NSLog(@"placed local object (0x%x) target (0x%x) in cache",
-			(gsaddr)anObj, target);
+			(uintptr_t)anObj, target);
 	}
 
       /*
@@ -3208,7 +3208,7 @@ static void callEncoder (DOContext *ctxt)
 
       if (debug_connection > 2)
 	NSLog(@"removed local object (0x%x) target (0x%x) "
-	  @"from connection (%@) (ref %d)", (gsaddr)anObj, target, self, val);
+	  @"from connection (%@) (ref %d)", (uintptr_t)anObj, target, self, val);
     }
   M_UNLOCK(_proxiesGate);
 }

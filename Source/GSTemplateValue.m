@@ -192,7 +192,7 @@
     hash += val.c[i];
   return hash;
 #elif TYPE_ORDER == 2
-  return (unsigned)(gsaddr)data;
+  return (unsigned)(uintptr_t)data;
 #elif TYPE_ORDER == 3
   return (data.length ^ data.location);
 #elif TYPE_ORDER == 4

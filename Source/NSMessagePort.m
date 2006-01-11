@@ -392,19 +392,19 @@ static Class	runLoopClass;
 
   state = GS_H_TRYCON;
   l = [NSRunLoop currentRunLoop];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
@@ -415,19 +415,19 @@ static Class	runLoopClass;
       [l runMode: NSConnectionReplyMode beforeDate: when];
     }
 
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
@@ -499,15 +499,15 @@ static Class	runLoopClass;
 
 	  valid = NO;
 	  l = [runLoopClass currentRunLoop];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_RDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_WDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_EDESC
 		 forMode: nil
 		     all: YES];
@@ -1023,19 +1023,19 @@ static Class	runLoopClass;
 
   RETAIN(self);
 
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
@@ -1049,19 +1049,19 @@ static Class	runLoopClass;
       M_LOCK(myLock);
     }
 
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
@@ -1365,7 +1365,7 @@ typedef	struct {
     {
       handle->recvPort = GS_GC_HIDE(self);
     }
-  NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
+  NSMapInsert(handles, (void*)(uintptr_t)[handle descriptor], (void*)handle);
   M_UNLOCK(myLock);
 }
 
@@ -1644,7 +1644,7 @@ typedef	struct {
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  int		desc = (int)(gsaddr)extra;
+  int		desc = (int)(uintptr_t)extra;
   GSMessageHandle	*handle;
 
   if (desc == lDesc)
@@ -1679,7 +1679,7 @@ typedef	struct {
   else
     {
       M_LOCK(myLock);
-      handle = (GSMessageHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
+      handle = (GSMessageHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
       IF_NO_GC(AUTORELEASE(RETAIN(handle)));
       M_UNLOCK(myLock);
       if (handle == nil)
@@ -1726,7 +1726,7 @@ typedef	struct {
     {
       handle->recvPort = nil;
     }
-  NSMapRemove(handles, (void*)(gsaddr)[handle descriptor]);
+  NSMapRemove(handles, (void*)(uintptr_t)[handle descriptor]);
   if (lDesc < 0 && NSCountMapTable(handles) == 0)
     {
       [self invalidate];
