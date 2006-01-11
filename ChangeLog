@@ -1,3 +1,27 @@
+2006-01-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSUnion.h:
+	* Headers/Foundation/NSByteOrder.h:
+	* Headers/Foundation/NSPort.h:
+	* Source/GSFileHandle.m:
+	* Source/GSFormat.m:
+	* Source/NSData.m:
+	* Source/NSDistantObject.m:
+	* Source/NSMessagePort.m:
+	* Source/NSPortCoder.m:
+	* Source/NSSerializer.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/NSUnarchiver.m:
+	* Source/win32/GSFileHandleWin32.m:
+	* Source/win32/NSMessagePortWin32.m:
+	Update to use sized datatypes from stdint.h now that almost all
+	operating systems support it.  Changes not complete yet though.
+	* Source/NSCalendarDate.m:
+	Support '%T' and '%t' as supplied by unix date/time locale info.
+
 2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/mframe.m:

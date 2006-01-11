@@ -192,14 +192,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	}
       if (*ptr == '\0' && val <= 0xffff)
 	{
-	  gsu16       v = val;
+	  uint16_t       v = val;
 
 	  sin->sin_port = GSSwapHostI16ToBig(v);
 	  return YES;
         }
       else if (strcmp(ptr, "gdomap") == 0)
 	{
-	  gsu16       v;
+	  uint16_t       v;
 #ifdef	GDOMAP_PORT_OVERRIDE
 	  v = GDOMAP_PORT_OVERRIDE;
 #else

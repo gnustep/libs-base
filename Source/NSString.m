@@ -336,7 +336,7 @@ static unsigned rootOf(NSString *s, unsigned l)
 
 
 /* Convert a high-low surrogate pair into Unicode scalar code-point */
-static inline gsu32
+static inline uint32_t
 surrogatePairValue(unichar high, unichar low)
 {
   return ((high - (unichar)0xD800) * (unichar)400)
@@ -3285,7 +3285,7 @@ handle_printf_atsign (FILE *stream,
       unsigned char	*buff;
       unsigned		i, j;
       unichar		ch, ch2;
-      gsu32		cp;
+      uint32_t		cp;
 
       buff = (unsigned char *)NSZoneMalloc(NSDefaultMallocZone(), len*3);
 
@@ -3311,10 +3311,10 @@ handle_printf_atsign (FILE *stream,
                   i++;
                 }
               else
-                cp = (gsu32)ch;
+                cp = (uint32_t)ch;
             }
           else
-            cp = (gsu32)ch;
+            cp = (uint32_t)ch;
 
           if (cp < 0x80)
             {

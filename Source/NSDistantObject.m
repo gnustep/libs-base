@@ -163,7 +163,7 @@ enum proxyLocation
 
 + (id) initWithCoder: (NSCoder*)aCoder
 {
-  gsu8			proxy_tag;
+  uint8_t		proxy_tag;
   unsigned		target;
   id			decoder_connection;
   NSDistantObject	*o;
@@ -444,7 +444,7 @@ enum proxyLocation
 - (void) encodeWithCoder: (NSCoder*)aRmc
 {
   unsigned	proxy_target;
-  gsu8		proxy_tag;
+  uint8_t	proxy_tag;
   NSConnection	*encoder_connection;
 
 /*

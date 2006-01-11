@@ -105,7 +105,7 @@
 /*
  * Largest chunk of data possible in DO
  */
-static gsu32	maxDataLength = 32 * 1024 * 1024;
+static uint32_t	maxDataLength = 32 * 1024 * 1024;
 
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"GSTcpHandleLock",@"lock %@ in %@",X,[NSThread currentThread]); [X lock];}
@@ -148,8 +148,8 @@ typedef	enum {
  * Its contents are transmitted in network byte order.
  */
 typedef struct {
-  gsu32	type;		/* A GSPortItemType as a 4-byte number.		*/
-  gsu32	length;		/* The length of the item (excluding header).	*/
+  uint32_t	type;	/* A GSPortItemType as a 4-byte number.		*/
+  uint32_t	length;	/* The length of the item (excluding header).	*/
 } GSPortItemHeader;
 
 /*
@@ -159,12 +159,12 @@ typedef struct {
  * NB. additional data counts as part of the same item.
  */
 typedef struct {
-  gsu32	mId;		/* The ID for the message starting with this.	*/
-  gsu32	nItems;		/* Number of items (including this one).	*/
+  uint32_t	mId;	/* The ID for the message starting with this.	*/
+  uint32_t	nItems;	/* Number of items (including this one).	*/
 } GSPortMsgHeader;
 
 typedef	struct {
-  gsu16 num;		/* TCP port num	*/
+  uint16_t num;		/* TCP port num	*/
   char	addr[0];	/* host address	*/
 } GSPortInfo;
 
@@ -193,11 +193,11 @@ typedef enum {
   unsigned		wLength;	/* Ammount written so far.	*/
   NSMutableArray	*wMsgs;		/* Message in progress.		*/
   NSMutableData		*rData;		/* Buffer for incoming data	*/
-  gsu32			rLength;	/* Amount read so far.		*/
-  gsu32			rWant;		/* Amount desired.		*/
+  uint32_t		rLength;	/* Amount read so far.		*/
+  uint32_t		rWant;		/* Amount desired.		*/
   NSMutableArray	*rItems;	/* Message in progress.		*/
   GSPortItemType	rType;		/* Type of data being read.	*/
-  gsu32			rId;		/* Id of incoming message.	*/
+  uint32_t		rId;		/* Id of incoming message.	*/
   unsigned		nItems;		/* Number of items to be read.	*/
   GSHandleState		state;		/* State of the handle.		*/
   unsigned int		addrNum;	/* Address number within host.	*/
@@ -253,8 +253,8 @@ decodePort(NSData *data, NSString *defaultAddress)
   GSPortItemHeader	*pih;
   GSPortInfo		*pi;
   NSString		*addr;
-  gsu16			pnum;
-  gsu32			length;
+  uint16_t		pnum;
+  uint32_t		length;
   NSHost		*host;
   unichar		c;
 
@@ -306,7 +306,7 @@ newDataWithEncodedPort(NSSocketPort *port)
   NSMutableData		*data;
   unsigned		plen;
   NSString		*addr;
-  gsu16			pnum;
+  uint16_t		pnum;
 
   pnum = [port portNumber];
   addr = [port address];
@@ -1488,17 +1488,10 @@ static NSRecursiveLock	*tcpPortLock = nil;
 static NSMapTable	*tcpPortMap = 0;
 static Class		tcpPortClass;
 
-#if NEED_WORD_ALIGNMENT
-static unsigned	wordAlign;
-#endif
-
 + (void) initialize
 {
   if (self == [NSSocketPort class])
     {
-#if NEED_WORD_ALIGNMENT
-      wordAlign = objc_alignof_type(@encode(gsu32));
-#endif
       tcpPortClass = self;
       tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
@@ -1518,7 +1511,7 @@ static unsigned	wordAlign;
 /*
  * Look up an existing NSSocketPort given a host and number
  */
-+ (NSSocketPort*) existingPortWithNumber: (gsu16)number
++ (NSSocketPort*) existingPortWithNumber: (uint16_t)number
 			       onHost: (NSHost*)aHost
 {
   NSSocketPort	*port = nil;
@@ -1550,7 +1543,7 @@ static unsigned	wordAlign;
  * then, for the local host, the port uses ALL IP addresses, and for a
  * remote host, the port will use the first address that works.
  */
-+ (NSSocketPort*) portWithNumber: (gsu16)number
++ (NSSocketPort*) portWithNumber: (uint16_t)number
 			  onHost: (NSHost*)aHost
 		    forceAddress: (NSString*)addr
 			listener: (BOOL)shouldListen
@@ -2141,7 +2134,7 @@ static unsigned	wordAlign;
   return NO;
 }
 
-- (gsu16) portNumber
+- (uint16_t) portNumber
 {
   return portNum;
 }
@@ -2394,7 +2387,7 @@ static unsigned	wordAlign;
 		   * word boundary, so we work with an aligned buffer
 		   * and use memcmpy()
 		   */
-		  if ((hLength % wordAlign) != 0)
+		  if ((hLength % __alignof__(uint32_t)) != 0)
 		    {
 		      GSPortItemHeader	itemHeader;
 

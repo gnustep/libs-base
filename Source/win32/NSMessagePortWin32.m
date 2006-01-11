@@ -79,8 +79,8 @@ typedef	enum {
  * Its contents are transmitted in network byte order.
  */
 typedef struct {
-  gsu32	type;		/* A GSPortItemType as a 4-byte number.		*/
-  gsu32	length;		/* The length of the item (excluding header).	*/
+  uint32_t	type;	/* A GSPortItemType as a 4-byte number.		*/
+  uint32_t	length;	/* The length of the item (excluding header).	*/
 } GSPortItemHeader;
 
 /*
@@ -90,8 +90,8 @@ typedef struct {
  * NB. additional data counts as part of the same item.
  */
 typedef struct {
-  gsu32	mId;		/* The ID for the message starting with this.	*/
-  gsu32	nItems;		/* Number of items (including this one).	*/
+  uint32_t	mId;	/* The ID for the message starting with this.	*/
+  uint32_t	nItems;	/* Number of items (including this one).	*/
   unsigned char version;
   unsigned char	port[16];
 } GSPortMsgHeader;
@@ -134,10 +134,6 @@ static NSRecursiveLock	*messagePortLock = nil;
  */
 static NSMapTable	*ports = 0;
 static Class		messagePortClass = 0;
-
-#if NEED_WORD_ALIGNMENT
-static unsigned	wordAlign;
-#endif
 
 - (BOOL) _setupSendPort
 {
@@ -183,9 +179,6 @@ static unsigned	wordAlign;
 {
   if (self == [NSMessagePort class])
     {
-#if NEED_WORD_ALIGNMENT
-      wordAlign = objc_alignof_type(@encode(gsu32));
-#endif
       messagePortClass = self;
       ports = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);

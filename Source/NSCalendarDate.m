@@ -690,6 +690,14 @@ static inline int getDigits(const char *from, char *to, int limit)
 		{
 		  sub = @"%I:%M:%S %p";
 		}
+	      else if (c == 'T')
+		{
+		  sub = @"%H:%M:%S";
+		}
+	      else if (c == 't')
+	        {
+		  sub = @"\t";
+	        }
 	      else if (c == 'X')
 		{
 		  sub = [locale objectForKey: NSTimeFormatString];
