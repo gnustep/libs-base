@@ -1771,7 +1771,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l removeEvent: (void*)(gsaddr)event
+	  [l removeEvent: (void*)(uintptr_t)event
 		    type: ET_HANDLE
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
@@ -1779,7 +1779,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      [l removeEvent: (void*)(gsaddr)event
+      [l removeEvent: (void*)(uintptr_t)event
 	        type: ET_HANDLE
 	     forMode: NSDefaultRunLoopMode
                  all: YES];
@@ -1811,7 +1811,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-          [l removeEvent: (void*)(gsaddr)event
+          [l removeEvent: (void*)(uintptr_t)event
 	            type: ET_HANDLE
 	         forMode: [modes objectAtIndex: i]
                      all: YES];
@@ -1819,7 +1819,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      [l removeEvent: (void*)(gsaddr)event
+      [l removeEvent: (void*)(uintptr_t)event
                 type: ET_HANDLE
 	     forMode: NSDefaultRunLoopMode
                  all: YES];
@@ -1843,7 +1843,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l addEvent: (void*)(gsaddr)event
+	  [l addEvent: (void*)(uintptr_t)event
 		 type: ET_HANDLE
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
@@ -1852,7 +1852,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      [l addEvent: (void*)(gsaddr)event
+      [l addEvent: (void*)(uintptr_t)event
 	     type: ET_HANDLE
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
@@ -1880,7 +1880,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
-	      [l addEvent: (void*)(gsaddr)event
+	      [l addEvent: (void*)(uintptr_t)event
 		     type: ET_HANDLE
 		  watcher: self
 		  forMode: [modes objectAtIndex: i]];
@@ -1888,7 +1888,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 	{
-	  [l addEvent: (void*)(gsaddr)event
+	  [l addEvent: (void*)(uintptr_t)event
 		 type: ET_HANDLE
 	      watcher: self
 	      forMode: NSDefaultRunLoopMode];

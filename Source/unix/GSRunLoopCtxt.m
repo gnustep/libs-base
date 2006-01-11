@@ -441,7 +441,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		   */
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
+		    (void*)(uintptr_t)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -472,7 +472,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		   */
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
+		    (void*)(uintptr_t)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -503,7 +503,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		   */
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
+		    (void*)(uintptr_t)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -755,7 +755,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
+		(void*)(uintptr_t)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -784,7 +784,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
+		(void*)(uintptr_t)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -813,7 +813,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
+		(void*)(uintptr_t)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)

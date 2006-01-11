@@ -128,7 +128,9 @@ typedef @GS_FLT64@ gsf64;
 /*
  * Integer type with same size as a pointer
  */
-typedef	@GS_ADDR@ gsaddr;
+typedef	@GS_UADDR@ gsuaddr;
+typedef	@GS_SADDR@ gssaddr;
+typedef	gsuaddr gsaddr;
 
 /*
  *	Do we have real 64-bit and 128-bit integers or are we just pretending.
@@ -157,8 +159,8 @@ typedef	@GS_ADDR@ gsaddr;
 #define	GS_WITH_GC	0
 #endif
 #if	GS_WITH_GC
-#define	GS_GC_HIDE(obj)		((id)(((gsaddr)obj) | 1))
-#define	GS_GC_UNHIDE(obj)	((id)(((gsaddr)obj) & ~1))
+#define	GS_GC_HIDE(obj)		((id)(((uintptr_t)obj) | 1))
+#define	GS_GC_UNHIDE(obj)	((id)(((uintptr_t)obj) & ~1))
 #else
 #define	GS_GC_HIDE(obj)		((id)obj)
 #define	GS_GC_UNHIDE(obj)	((id)obj)
@@ -181,6 +183,8 @@ typedef	@GS_ADDR@ gsaddr;
 @DEFINE_UINT32_T@
 @DEFINE_INT64_T@
 @DEFINE_UINT64_T@
+@DEFINE_INTPTR_T@
+@DEFINE_UINTPTR_T@
 
 /*
  * Wide unicode character type.

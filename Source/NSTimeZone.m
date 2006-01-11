@@ -568,7 +568,7 @@ static NSMapTable	*absolutes = 0;
     {
       if (zone_mutex != nil)
 	[zone_mutex lock];
-      NSMapRemove(absolutes, (void*)(gsaddr)offset);
+      NSMapRemove(absolutes, (void*)(uintptr_t)offset);
       if (zone_mutex != nil)
 	[zone_mutex unlock];
     }
@@ -619,7 +619,7 @@ static NSMapTable	*absolutes = 0;
     {
       [zone_mutex lock];
     }
-  z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(gsaddr)anOffset);
+  z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)anOffset);
   if (z != nil)
     {
       IF_NO_GC(RETAIN(z));
@@ -650,7 +650,7 @@ static NSMapTable	*absolutes = 0;
       detail = [[GSAbsTimeZoneDetail alloc] initWithTimeZone: self];
       offset = anOffset;
       z = self;
-      NSMapInsert(absolutes, (void*)(gsaddr)anOffset, (void*)z);
+      NSMapInsert(absolutes, (void*)(uintptr_t)anOffset, (void*)z);
       [zoneDictionary setObject: self forKey: (NSString*)name];
     }
   if (zone_mutex != nil)

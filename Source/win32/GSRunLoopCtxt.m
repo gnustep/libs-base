@@ -195,7 +195,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 		   */
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)&msg, mode);
+		    (void*)(uintptr_t)&msg, mode);
 		  continue;
 		}
 	    }
@@ -233,7 +233,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 		      handled = YES;
 		      (*watcher->handleEvent)(watcher->receiver,
 			eventSel, watcher->data, watcher->type,
-			(void*)(gsaddr)&msg, mode);
+			(void*)(uintptr_t)&msg, mode);
 		    }
 		}
 	      num--;
@@ -444,7 +444,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       NSDebugMLLog(@"NSRunLoop", @"Event callback found");
       (*watcher->handleEvent)(watcher->receiver,
           eventSel, watcher->data, watcher->type,
-          (void*)(gsaddr)handle, mode);
+          (void*)(uintptr_t)handle, mode);
     }
 
   GSNotifyASAP();

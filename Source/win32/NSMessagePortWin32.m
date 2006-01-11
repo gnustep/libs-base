@@ -213,7 +213,7 @@ static Class		messagePortClass = 0;
     self, aLoop, aMode);
   NSAssert(PORT(self)->rHandle != INVALID_HANDLE_VALUE,
     @"Attempt to listen on send port");
-  [aLoop addEvent: (void*)(gsaddr)PORT(self)->rEvent
+  [aLoop addEvent: (void*)(uintptr_t)PORT(self)->rEvent
 	     type: ET_HANDLE
 	  watcher: (id<RunLoopEvents>)self
 	  forMode: aMode];
@@ -910,7 +910,7 @@ again:
 {
   NSDebugMLLog(@"NSMessagePort", @"%@ remove from 0x%x in mode %@",
     self, aLoop, aMode);
-  [aLoop removeEvent: (void*)(gsaddr)PORT(self)->rEvent
+  [aLoop removeEvent: (void*)(uintptr_t)PORT(self)->rEvent
 		type: ET_HANDLE
 	     forMode: aMode
 		 all: NO];
@@ -1059,11 +1059,11 @@ again:
     {
       NSRunLoop		*loop = [NSRunLoop currentRunLoop];
 
-      [loop addEvent: (void*)(gsaddr)this->wEvent
+      [loop addEvent: (void*)(uintptr_t)this->wEvent
 		type: ET_HANDLE
 	     watcher: (id<RunLoopEvents>)self
 	     forMode: NSConnectionReplyMode];
-      [loop addEvent: (void*)(gsaddr)this->wEvent
+      [loop addEvent: (void*)(uintptr_t)this->wEvent
 		type: ET_HANDLE
 	     watcher: (id<RunLoopEvents>)self
 	     forMode: NSDefaultRunLoopMode];
@@ -1077,11 +1077,11 @@ again:
 	  M_LOCK(this->lock);
 	}
 
-      [loop removeEvent: (void*)(gsaddr)this->wEvent
+      [loop removeEvent: (void*)(uintptr_t)this->wEvent
 		   type: ET_HANDLE
 		forMode: NSConnectionReplyMode
 		    all: NO];
-      [loop removeEvent: (void*)(gsaddr)this->wEvent
+      [loop removeEvent: (void*)(uintptr_t)this->wEvent
 		   type: ET_HANDLE
 		forMode: NSDefaultRunLoopMode
 		    all: NO];

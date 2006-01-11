@@ -18,9 +18,11 @@
 	* Source/win32/GSFileHandleWin32.m:
 	* Source/win32/NSMessagePortWin32.m:
 	Update to use sized datatypes from stdint.h now that almost all
-	operating systems support it.  Changes not complete yet though.
+	operating systems support it.
 	* Source/NSCalendarDate.m:
 	Support '%T' and '%t' as supplied by unix date/time locale info.
+	* configure.ac: Ensure uintptr_t and intptr_t exist
+	* configure: regenerate
 
 2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 

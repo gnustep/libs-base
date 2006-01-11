@@ -434,19 +434,23 @@ AC_SUBST(ac_cv_sizeof_double)
 
 AC_SUBST(ac_cv_sizeof_voidp)
 if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_int; then
-  GS_ADDR="unsigned int"
+  GS_SADDR="int"
+  GS_UADDR="unsigned int"
 else
   if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_long; then
-    GS_ADDR="unsigned long"
+    GS_SADDR="long"
+    GS_UADDR="unsigned long"
   else
     if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_long_long; then
-      GS_ADDR="unsigned long long"
+      GS_SADDR="long long"
+      GS_UADDR="unsigned long long"
     else
       AC_MSG_ERROR([Unable to find integer of same size as void*])
     fi
   fi
 fi
-AC_SUBST(GS_ADDR)
+AC_SUBST(GS_SADDR)
+AC_SUBST(GS_UADDR)
 
 if test $ac_cv_sizeof_short = 2; then
   GS_SINT16="signed short"
@@ -884,6 +888,8 @@ DEFINE_INT32_T="#define int32_t gss32"
 DEFINE_UINT32_T="#define uint32_t gsu32"
 DEFINE_INT64_T="#define int64_t gss64"
 DEFINE_UINT64_T="#define uint64_t gsu64"
+DEFINE_INTPTR_T="#define intptr_t gssaddr"
+DEFINE_UINTPTR_T="#define uintptr_t gsuaddr"
 else
 DEFINE_INT8_T=""
 DEFINE_UINT8_T=""
@@ -893,6 +899,8 @@ DEFINE_INT32_T=""
 DEFINE_UINT32_T=""
 DEFINE_INT64_T=""
 DEFINE_UINT64_T=""
+DEFINE_INTPTR_T=""
+DEFINE_UINTPTR_T=""
 fi
 
 AC_SUBST(INCLUDE_STDINT)
@@ -904,6 +912,8 @@ AC_SUBST(DEFINE_INT32_T)
 AC_SUBST(DEFINE_UINT32_T)
 AC_SUBST(DEFINE_INT64_T)
 AC_SUBST(DEFINE_UINT64_T)
+AC_SUBST(DEFINE_INTPTR_T)
+AC_SUBST(DEFINE_UINTPTR_T)
 
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
