@@ -85,7 +85,7 @@
 #ifdef HAVE_WCHAR_H
 #include <wchar.h>
 #else
-typedef gsu32 wint_t;
+typedef uint32_t wint_t;
 #endif
 #ifdef HAVE_SYS_INTTYPES_H
 #include <sys/inttypes.h>

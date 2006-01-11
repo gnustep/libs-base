@@ -202,7 +202,7 @@ typedef SOCKET NSSocketNativeHandle;
   NSRecursiveLock	*myLock;
   NSHost		*host;		/* OpenStep host for this port.	*/
   NSString		*address;	/* Forced internet address.	*/
-  gsu16			portNum;	/* TCP port in host byte order.	*/
+  uint16_t		portNum;	/* TCP port in host byte order.	*/
   SOCKET		listener;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
 #if	defined(__MINGW32__)
@@ -215,7 +215,7 @@ typedef SOCKET NSSocketNativeHandle;
  * Look up and return an existing <code>NSSocketPort</code> given a host and
  * number, or return nil if one has not been created.
  */
-+ (NSSocketPort*) existingPortWithNumber: (gsu16)number
++ (NSSocketPort*) existingPortWithNumber: (uint16_t)number
 				  onHost: (NSHost*)aHost;
 
 /**
@@ -230,7 +230,7 @@ typedef SOCKET NSSocketNativeHandle;
  * remote host, the port will use the first address that works.<br/>
  * shouldListen specifies whether to listen on the port initially.
  */
-+ (NSSocketPort*) portWithNumber: (gsu16)number
++ (NSSocketPort*) portWithNumber: (uint16_t)number
 			  onHost: (NSHost*)aHost
 		    forceAddress: (NSString*)addr
 			listener: (BOOL)shouldListen;
@@ -259,7 +259,7 @@ typedef SOCKET NSSocketNativeHandle;
 /**
  *  Returns port number of underlying socket.
  */
-- (gsu16) portNumber;
+- (uint16_t) portNumber;
 
 // This is the OS X interface
 /*

@@ -29,8 +29,8 @@
 /*
  *	OPENSTEP type definitions for Byte ordering.
  */
-typedef gsu32	NSSwappedFloat;
-typedef gsu64	NSSwappedDouble;
+typedef uint32_t	NSSwappedFloat;
+typedef uint64_t	NSSwappedDouble;
 
 typedef enum {
   NS_UnknownByteOrder,
@@ -49,48 +49,48 @@ typedef enum {
 /*
  *	First the GNUstep functions for byte swapping
  */
-static inline gsu16
-GSSwapI16(gsu16 in) __attribute__((unused));
-static inline gsu32
-GSSwapI32(gsu32 in) __attribute__((unused));
-static inline gsu64
-GSSwapI64(gsu64 in) __attribute__((unused));
+static inline uint16_t
+GSSwapI16(uint16_t in) __attribute__((unused));
+static inline uint32_t
+GSSwapI32(uint32_t in) __attribute__((unused));
+static inline uint64_t
+GSSwapI64(uint64_t in) __attribute__((unused));
 static inline gsu128
 GSSwapI128(gsu128 in) __attribute__((unused));
 
-static inline gsu16
-GSSwapBigI16ToHost(gsu16 in) __attribute__((unused));
-static inline gsu32
-GSSwapBigI32ToHost(gsu32 in) __attribute__((unused));
-static inline gsu64
-GSSwapBigI64ToHost(gsu64 in) __attribute__((unused));
+static inline uint16_t
+GSSwapBigI16ToHost(uint16_t in) __attribute__((unused));
+static inline uint32_t
+GSSwapBigI32ToHost(uint32_t in) __attribute__((unused));
+static inline uint64_t
+GSSwapBigI64ToHost(uint64_t in) __attribute__((unused));
 static inline gsu128
 GSSwapBigI128ToHost(gsu128 in) __attribute__((unused));
 
-static inline gsu16
-GSSwapHostI16ToBig(gsu16 in) __attribute__((unused));
-static inline gsu32
-GSSwapHostI32ToBig(gsu32 in) __attribute__((unused));
-static inline gsu64
-GSSwapHostI64ToBig(gsu64 in) __attribute__((unused));
+static inline uint16_t
+GSSwapHostI16ToBig(uint16_t in) __attribute__((unused));
+static inline uint32_t
+GSSwapHostI32ToBig(uint32_t in) __attribute__((unused));
+static inline uint64_t
+GSSwapHostI64ToBig(uint64_t in) __attribute__((unused));
 static inline gsu128
 GSSwapHostI128ToBig(gsu128 in) __attribute__((unused));
 
-static inline gsu16
-GSSwapLittleI16ToHost(gsu16 in) __attribute__((unused));
-static inline gsu32
-GSSwapLittleI32ToHost(gsu32 in) __attribute__((unused));
-static inline gsu64
-GSSwapLittleI64ToHost(gsu64 in) __attribute__((unused));
+static inline uint16_t
+GSSwapLittleI16ToHost(uint16_t in) __attribute__((unused));
+static inline uint32_t
+GSSwapLittleI32ToHost(uint32_t in) __attribute__((unused));
+static inline uint64_t
+GSSwapLittleI64ToHost(uint64_t in) __attribute__((unused));
 static inline gsu128
 GSSwapLittleI128ToHost(gsu128 in) __attribute__((unused));
 
-static inline gsu16
-GSSwapHostI16ToLittle(gsu16 in) __attribute__((unused));
-static inline gsu32
-GSSwapHostI32ToLittle(gsu32 in) __attribute__((unused));
-static inline gsu64
-GSSwapHostI64ToLittle(gsu64 in) __attribute__((unused));
+static inline uint16_t
+GSSwapHostI16ToLittle(uint16_t in) __attribute__((unused));
+static inline uint32_t
+GSSwapHostI32ToLittle(uint32_t in) __attribute__((unused));
+static inline uint64_t
+GSSwapHostI64ToLittle(uint64_t in) __attribute__((unused));
 static inline gsu128
 GSSwapHostI128ToLittle(gsu128 in) __attribute__((unused));
 
@@ -101,12 +101,12 @@ GSSwapHostI128ToLittle(gsu128 in) __attribute__((unused));
 extern void _gcc3_1_hack(void);
 #endif
 
-static inline gsu16
-GSSwapI16(gsu16 in)
+static inline uint16_t
+GSSwapI16(uint16_t in)
 {
   union swap {
-    gsu16	num;
-    gsu8	byt[2];
+    uint16_t	num;
+    uint8_t	byt[2];
   } dst;
   union swap	*src = (union swap*)&in;
 #if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
@@ -117,12 +117,12 @@ GSSwapI16(gsu16 in)
   return dst.num;
 }
 
-static inline gsu32
-GSSwapI32(gsu32 in)
+static inline uint32_t
+GSSwapI32(uint32_t in)
 {
   union swap {
-    gsu32	num;
-    gsu8	byt[4];
+    uint32_t	num;
+    uint8_t	byt[4];
   } dst;
   union swap	*src = (union swap*)&in;
 #if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
@@ -135,12 +135,12 @@ GSSwapI32(gsu32 in)
   return dst.num;
 }
 
-static inline gsu64
-GSSwapI64(gsu64 in)
+static inline uint64_t
+GSSwapI64(uint64_t in)
 {
   union swap {
-    gsu64	num;
-    gsu8	byt[8];
+    uint64_t	num;
+    uint8_t	byt[8];
   } dst;
   union swap	*src = (union swap*)&in;
 #if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
@@ -162,7 +162,7 @@ GSSwapI128(gsu128 in)
 {
   union swap {
     gsu128	num;
-    gsu8	byt[16];
+    uint8_t	byt[16];
   } dst;
   union swap	*src = (union swap*)&in;
 #if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
@@ -399,18 +399,18 @@ NSHostByteOrder(void)
 /*
  *	Swap Big endian to host
  */
-static inline gsu16
-GSSwapBigI16ToHost(gsu16 in)
+static inline uint16_t
+GSSwapBigI16ToHost(uint16_t in)
 {
   return in;
 }
-static inline gsu32
-GSSwapBigI32ToHost(gsu32 in)
+static inline uint32_t
+GSSwapBigI32ToHost(uint32_t in)
 {
   return in;
 }
-static inline gsu64
-GSSwapBigI64ToHost(gsu64 in)
+static inline uint64_t
+GSSwapBigI64ToHost(uint64_t in)
 {
   return in;
 }
@@ -459,18 +459,18 @@ NSSwapBigShortToHost(unsigned short num)
 /*
  *	Swap Host to Big endian
  */
-static inline gsu16
-GSSwapHostI16ToBig(gsu16 in)
+static inline uint16_t
+GSSwapHostI16ToBig(uint16_t in)
 {
   return in;
 }
-static inline gsu32
-GSSwapHostI32ToBig(gsu32 in)
+static inline uint32_t
+GSSwapHostI32ToBig(uint32_t in)
 {
   return in;
 }
-static inline gsu64
-GSSwapHostI64ToBig(gsu64 in)
+static inline uint64_t
+GSSwapHostI64ToBig(uint64_t in)
 {
   return in;
 }
@@ -519,18 +519,18 @@ NSSwapHostShortToBig(unsigned short num)
 /*
  *	Swap Little endian to Host
  */
-static inline gsu16
-GSSwapLittleI16ToHost(gsu16 in)
+static inline uint16_t
+GSSwapLittleI16ToHost(uint16_t in)
 {
   return GSSwapI16(in);
 }
-static inline gsu32
-GSSwapLittleI32ToHost(gsu32 in)
+static inline uint32_t
+GSSwapLittleI32ToHost(uint32_t in)
 {
   return GSSwapI32(in);
 }
-static inline gsu64
-GSSwapLittleI64ToHost(gsu64 in)
+static inline uint64_t
+GSSwapLittleI64ToHost(uint64_t in)
 {
   return GSSwapI64(in);
 }
@@ -579,18 +579,18 @@ NSSwapLittleShortToHost(unsigned short num)
 /*
  *	Swap Host to Little endian
  */
-static inline gsu16
-GSSwapHostI16ToLittle(gsu16 in)
+static inline uint16_t
+GSSwapHostI16ToLittle(uint16_t in)
 {
   return GSSwapI16(in);
 }
-static inline gsu32
-GSSwapHostI32ToLittle(gsu32 in)
+static inline uint32_t
+GSSwapHostI32ToLittle(uint32_t in)
 {
   return GSSwapI32(in);
 }
-static inline gsu64
-GSSwapHostI64ToLittle(gsu64 in)
+static inline uint64_t
+GSSwapHostI64ToLittle(uint64_t in)
 {
   return GSSwapI64(in);
 }
@@ -649,18 +649,18 @@ NSHostByteOrder(void)
 /*
  *	Swap Big endian to host
  */
-static inline gsu16
-GSSwapBigI16ToHost(gsu16 in)
+static inline uint16_t
+GSSwapBigI16ToHost(uint16_t in)
 {
   return GSSwapI16(in);
 }
-static inline gsu32
-GSSwapBigI32ToHost(gsu32 in)
+static inline uint32_t
+GSSwapBigI32ToHost(uint32_t in)
 {
   return GSSwapI32(in);
 }
-static inline gsu64
-GSSwapBigI64ToHost(gsu64 in)
+static inline uint64_t
+GSSwapBigI64ToHost(uint64_t in)
 {
   return GSSwapI64(in);
 }
@@ -708,18 +708,18 @@ NSSwapBigShortToHost(unsigned short num)
 /*
  *	Swap Host to Big endian
  */
-static inline gsu16
-GSSwapHostI16ToBig(gsu16 in)
+static inline uint16_t
+GSSwapHostI16ToBig(uint16_t in)
 {
   return GSSwapI16(in);
 }
-static inline gsu32
-GSSwapHostI32ToBig(gsu32 in)
+static inline uint32_t
+GSSwapHostI32ToBig(uint32_t in)
 {
   return GSSwapI32(in);
 }
-static inline gsu64
-GSSwapHostI64ToBig(gsu64 in)
+static inline uint64_t
+GSSwapHostI64ToBig(uint64_t in)
 {
   return GSSwapI64(in);
 }
@@ -767,18 +767,18 @@ NSSwapHostShortToBig(unsigned short num)
 /*
  *	Swap Little endian to Host
  */
-static inline gsu16
-GSSwapLittleI16ToHost(gsu16 in)
+static inline uint16_t
+GSSwapLittleI16ToHost(uint16_t in)
 {
   return in;
 }
-static inline gsu32
-GSSwapLittleI32ToHost(gsu32 in)
+static inline uint32_t
+GSSwapLittleI32ToHost(uint32_t in)
 {
   return in;
 }
-static inline gsu64
-GSSwapLittleI64ToHost(gsu64 in)
+static inline uint64_t
+GSSwapLittleI64ToHost(uint64_t in)
 {
   return in;
 }
@@ -827,18 +827,18 @@ NSSwapLittleShortToHost(unsigned short num)
 /*
  *	Swap Host to Little endian
  */
-static inline gsu16
-GSSwapHostI16ToLittle(gsu16 in)
+static inline uint16_t
+GSSwapHostI16ToLittle(uint16_t in)
 {
   return in;
 }
-static inline gsu32
-GSSwapHostI32ToLittle(gsu32 in)
+static inline uint32_t
+GSSwapHostI32ToLittle(uint32_t in)
 {
   return in;
 }
-static inline gsu64
-GSSwapHostI64ToLittle(gsu64 in)
+static inline uint64_t
+GSSwapHostI64ToLittle(uint64_t in)
 {
   return in;
 }

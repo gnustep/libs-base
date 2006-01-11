@@ -521,9 +521,9 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
     gsu128	bigval;
 #else
 #if	GS_HAVE_I64
-    gsu64	bigval;
+    uint64_t	bigval;
 #else
-    gsu32	bigval;
+    uint32_t	bigval;
 #endif
 #endif
 
@@ -949,27 +949,27 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
     {
       case _GSC_I16:	/* Encoded as 16-bit	*/
 	{
-	  gsu16	val;
+	  uint16_t	val;
 
-	  (*_dDesImp)(_src, dDesSel, &val, @encode(gsu16), &_cursor, nil);
+	  (*_dDesImp)(_src, dDesSel, &val, @encode(uint16_t), &_cursor, nil);
 	  bigval = val;
 	  break;
 	}
 
       case _GSC_I32:	/* Encoded as 32-bit	*/
 	{
-	  gsu32	val;
+	  uint32_t	val;
 
-	  (*_dDesImp)(_src, dDesSel, &val, @encode(gsu32), &_cursor, nil);
+	  (*_dDesImp)(_src, dDesSel, &val, @encode(uint32_t), &_cursor, nil);
 	  bigval = val;
 	  break;
 	}
 
       case _GSC_I64:	/* Encoded as 64-bit	*/
 	{
-	  gsu64	val;
+	  uint64_t	val;
 
-	  (*_dDesImp)(_src, dDesSel, &val, @encode(gsu64), &_cursor, nil);
+	  (*_dDesImp)(_src, dDesSel, &val, @encode(uint64_t), &_cursor, nil);
 #if	GS_HAVE_I64
 	  bigval = val;
 #else
@@ -988,9 +988,9 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 #else
 	  val = GSSwapBigI128ToHost(val);
 #if	GS_HAVE_I64
-	  bigval = *(gsu64*)&val;
+	  bigval = *(uint64_t*)&val;
 #else
-	  bigval = *(gsu32*)&val;
+	  bigval = *(uint32_t*)&val;
 #endif
 #endif
 	  break;

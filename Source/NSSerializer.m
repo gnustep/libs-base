@@ -128,10 +128,6 @@ static Class	MStringClass = 0;
 static Class	StringClass = 0;
 static Class	NumberClass = 0;
 
-#if NEED_WORD_ALIGNMENT
-static unsigned	gsu32Align;
-#endif
-
 typedef struct {
   @defs(GSString)
 } *ivars;
@@ -260,7 +256,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	   * word boundary, so we work with an aligned buffer
 	   * and use memcmpy()
 	   */
- 	  if ((dlen % gsu32Align) != 0)
+ 	  if ((dlen % __alignof__(uint32_t)) != 0)
 	    {
 	      unichar buffer[slen];
 	      [object getCharacters: buffer];
@@ -370,9 +366,6 @@ static BOOL	shouldBeCompact = NO;
 {
   if (self == [NSSerializer class])
     {
-#if NEED_WORD_ALIGNMENT
-      gsu32Align = objc_alignof_type(@encode(gsu32));
-#endif
       appSel = @selector(appendBytes:length:);
       datSel = @selector(mutableBytes);
       lenSel = @selector(length);

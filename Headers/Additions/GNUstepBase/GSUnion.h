@@ -90,20 +90,20 @@ typedef	union {
   const char	*cstr;
 #endif
 #if	((GSUNION_TYPES) & GSUNION_8B)
-  gss8		s8;
-  gsu8		u8;
+  int8_t	s8;
+  uint8_t	u8;
 #endif
 #if	((GSUNION_TYPES) & GSUNION_16B)
-  gss16		s16;
-  gsu16		u16;
+  int16_t	s16;
+  uint16_t	u16;
 #endif
 #if	((GSUNION_TYPES) & GSUNION_32B)
-  gss32		s32;
-  gsu32		u32;
+  int32_t	s32;
+  uint32_t	u32;
 #endif
 #if	((GSUNION_TYPES) & GSUNION_64B)
-  gss64		s64;
-  gsu64		u64;
+  int64_t	s64;
+  uint64_t	u64;
 #endif
 #if	defined(GSUNION_EXTRA)
   GSUNION_EXTRA	ext;
