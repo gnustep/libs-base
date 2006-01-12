@@ -743,6 +743,11 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
 	  wantKey = YES;
 	}
 
+      if (spos >= end)
+	{
+	  break;	// At end of file ... odd but not fatal
+	}
+
       if (*spos == '=')
 	{
 	  if (wantKey == NO)
