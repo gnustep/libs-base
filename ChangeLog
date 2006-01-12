@@ -1,3 +1,8 @@
+2006-01-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Fix possible read off end of buffer
+	when parsing config file.
+
 2006-01-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/GNUmakefile:
