@@ -50,6 +50,8 @@ static NSMapTable portToNamesMap;
 static NSString	*registry;
 static HKEY	key;
 
+static SECURITY_ATTRIBUTES	security;
+
 @interface NSMessagePortNameServer (private)
 + (NSString *) _query: (NSString *)name;
 + (NSString *) _translate: (NSString *)name;
@@ -97,6 +99,10 @@ static void clean_up_names(void)
 	NSObjectMapValueCallBacks, 0);
       atexit(clean_up_names);
 
+      security.nLength = sizeof(SECURITY_ATTRIBUTES);
+      security.lpSecurityDescriptor = 0;	// Default
+      security.bInheritHandle = TRUE;
+
       registry = @"Software\\GNUstepNSMessagePort";
       rc = RegCreateKeyExW(
 	HKEY_CURRENT_USER,
@@ -106,7 +112,7 @@ static void clean_up_names(void)
 	REG_OPTION_VOLATILE,
 	STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE
 	|KEY_QUERY_VALUE|KEY_NOTIFY,
-	NULL,
+	&security,
 	&key,
 	NULL);
       if (rc == ERROR_SUCCESS)
@@ -203,7 +209,7 @@ OutputDebugStringW(L"");
     UNISTR(p),
     GENERIC_WRITE,
     FILE_SHARE_READ|FILE_SHARE_WRITE,
-    (LPSECURITY_ATTRIBUTES)0,
+    &security,
     OPEN_EXISTING,
     FILE_ATTRIBUTE_NORMAL,
     (HANDLE)0);

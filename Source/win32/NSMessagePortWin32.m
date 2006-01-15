@@ -127,6 +127,8 @@ typedef	struct {
 
 @implementation	NSMessagePort
 
+static SECURITY_ATTRIBUTES	security;
+
 static NSRecursiveLock	*messagePortLock = nil;
 
 /*
@@ -152,7 +154,7 @@ static Class		messagePortClass = 0;
 	UNISTR(path),
 	GENERIC_WRITE,
 	FILE_SHARE_READ|FILE_SHARE_WRITE,
-	(LPSECURITY_ATTRIBUTES)0,
+	&security,
 	OPEN_EXISTING,
 	FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
 	(HANDLE)0);
@@ -184,6 +186,10 @@ static Class		messagePortClass = 0;
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       messagePortLock = [GSLazyRecursiveLock new];
+
+      security.nLength = sizeof(SECURITY_ATTRIBUTES);
+      security.lpSecurityDescriptor = 0;	// Default
+      security.bInheritHandle = TRUE;
     }
 }
 
@@ -322,7 +328,7 @@ static Class		messagePortClass = 0;
     UNISTR(path),
     0,				/* No max message size.		*/
     MAILSLOT_WAIT_FOREVER,	/* No read/write timeout.	*/
-    (LPSECURITY_ATTRIBUTES)0);
+    &security);
 
   if (this->rHandle == INVALID_HANDLE_VALUE)
     {

@@ -1,3 +1,12 @@
+2006-01-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortNameServerWin32.m:
+	* Source/win32/NSMessagePortWin32.m:
+	Add hack to cope with bug reading registry ... better solution welcome
+	if anyone knows one.
+	Add security attributes to message port stuff ... should only let
+	current user on current machine access message ports I hope.
+
 2006-01-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Fix possible read off end of buffer
