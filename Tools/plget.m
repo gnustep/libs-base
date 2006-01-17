@@ -33,9 +33,13 @@
 
 /** <p> This tool extracts a string value from a dictionary in a property
     list representation.<br />
-    It takes a single argument (the key to be extracted).<br />
+    It takes one or more argument (the key to be extracted).<br />
     It expects to read the property list from STDIN.<br />
     It writes the string value (if any) on STDOUT<br />
+    Where multiple keys are specified, they are used to extract nested
+    values from dictionaries within the outermost dictionary.<br />
+    Where the resulting object exists and is not a string,
+    its description is written to STDOUT.
  </p> */
 int
 main(int argc, char** argv, char **env)
@@ -44,6 +48,7 @@ main(int argc, char** argv, char **env)
   NSProcessInfo		*proc;
   NSArray		*args;
   int			status = EXIT_SUCCESS;
+  int			count;
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
@@ -59,7 +64,7 @@ main(int argc, char** argv, char **env)
 
   args = [proc arguments];
 
-  if ([args count] <= 1)
+  if ((count = [args count]) <= 1)
     {
       NSLog(@"plget: no key given to get.");
       RELEASE(pool);
@@ -71,11 +76,13 @@ main(int argc, char** argv, char **env)
       NSData		*inputData;
       NSString		*inputString;
       NSDictionary	*dictionary;
-      NSString		*value;
       NSData		*outputData;
 
       NS_DURING
 	{
+	  int	i = 1;
+	  id	value;
+
 	  fileHandle = [NSFileHandle fileHandleWithStandardInput];
 	  inputData = [fileHandle readDataToEndOfFile];
 	  inputString = [[NSString alloc] initWithData: inputData
@@ -85,9 +92,18 @@ main(int argc, char** argv, char **env)
 	      inputString = [[NSString alloc] initWithData: inputData
 		encoding: [NSString defaultCStringEncoding]];
 	    }
-	  dictionary = [inputString propertyList];
+	  value = [inputString propertyList];
 	  RELEASE(inputString);
-	  value = [dictionary objectForKey: [args objectAtIndex: 1]];
+	  while (i < count-1)
+	    {
+	      value = [(NSDictionary*)value objectForKey:
+		[args objectAtIndex: i++]];
+	    }
+	  value = [(NSDictionary*)value objectForKey: [args objectAtIndex: i]];
+	  if ([value isKindOfClass: [NSString class]] == NO)
+	    {
+	      value = [value description];
+	    }
 	  outputData = [value dataUsingEncoding:
 	    [NSString defaultCStringEncoding]];
 	  if ([outputData length] > 0)
