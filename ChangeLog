@@ -1,3 +1,9 @@
+2006-01-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/plget.m: New file to extract a string from a plist.
+	* Tools/pldes.1: Include plget
+	* Tools/GNUmakefile: build/install plget.
+
 2006-01-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/NSMessagePortNameServerWin32.m:
