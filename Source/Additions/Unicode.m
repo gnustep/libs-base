@@ -1050,15 +1050,14 @@ if (dst == 0) \
      * adjust the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
+    ptr = buf - dpos; \
     if (extra == 0) \
       { \
-	ptr -= BUFSIZ; \
-	bsize += BUFSIZ; \
+	bsize = dpos + BUFSIZ; \
       } \
     else \
       { \
-	ptr -= BUFSIZ-1; \
-	bsize += BUFSIZ-1; \
+	bsize = dpos + BUFSIZ - 1; \
       } \
   } \
 else if (zone == 0) \
@@ -1567,15 +1566,14 @@ if (dst == 0) \
      * adjust the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
+    ptr = buf - dpos; \
     if (extra == 0) \
       { \
-	ptr -= BUFSIZ; \
-	bsize += BUFSIZ; \
+	bsize = dpos + BUFSIZ; \
       } \
     else \
       { \
-	ptr -= BUFSIZ-1; \
-	bsize += BUFSIZ-1; \
+	bsize = dpos + BUFSIZ - 1; \
       } \
   } \
 else if (zone == 0) \
@@ -1702,7 +1700,9 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
   unsigned int slen, NSStringEncoding enc, NSZone *zone,
   unsigned int options)
 {
+	int g1 = 0;
   unsigned char	buf[BUFSIZ];
+	int g2 = 0;
   unsigned char	*ptr;
   unsigned	bsize;
   unsigned	dpos = 0;	// Offset into destination buffer.
@@ -2242,6 +2242,7 @@ tables:
 
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
+NSCAssert(g1 == 0 && g2 == 0, @"internal buffer");
 
   return result;
 }
