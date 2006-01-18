@@ -27,6 +27,7 @@ builtin(include, config/procfs-exe-link.m4)dnl
 builtin(include, config/procfs.m4)dnl
 builtin(include, config/pathxml.m4)dnl
 builtin(include, config/codeset.m4)dnl
+builtin(include, config/addlibrarypath.m4)dnl
 
 AC_INIT
 AC_CONFIG_SRCDIR([Source/NSArray.m])
@@ -1213,8 +1214,7 @@ AC_ARG_WITH(ffi-library,
 [  --with-ffi-library=PATH       Library path for ffi (ffcall/libffi) libs],
     ffi_libdir="$withval", ffi_libdir="no")
 if test ${ffi_libdir} != "no"; then
-    LDFLAGS="$LDFLAGS -L${ffi_libdir}"
-    LDIR_FLAGS="$LDIR_FLAGS -L${ffi_libdir}"
+GS_ADD_LIBRARY_PATH([${ffi_libdir}])
 fi
 
 AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
@@ -1329,8 +1329,7 @@ if test $found_iconv = no ; then
     libiconv_libdir="$withval", libiconv_libdir="no")
 
   if test "$libiconv_libdir" != "no"; then
-    LDFLAGS="$LDFLAGS -L$libiconv_libdir"
-    LDIR_FLAGS="$LDIR_FLAGS -L$libiconv_libdir"
+	GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
   fi
 
   old_LIBS="$LIBS"
@@ -1454,8 +1453,7 @@ if test "$gmp_incdir" != "no"; then
   INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
 fi
 if test "$gmp_libdir" != "no"; then
-  LDFLAGS="$LDFLAGS -L$gmp_libdir"
-  LDIR_FLAGS="$LDIR_FLAGS -L$gmp_libdir"
+  GS_ADD_LIBRARY_PATH([${gmp_libdir}])
 fi
 
 USE_GMP=0

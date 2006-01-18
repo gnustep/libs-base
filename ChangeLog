@@ -1,3 +1,8 @@
+2006-01-18  Andrew Ruder <aeruder@ksu.edu>
+
+	* config/addlibrarypath.m4: new file
+	* configure.ac: Use new function to set library paths for netbsd
+
 2006-01-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/plget.m: New file to extract a string from a plist.
