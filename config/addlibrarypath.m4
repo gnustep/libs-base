@@ -11,7 +11,7 @@ AC_DEFUN([GS_ADD_LIBRARY_PATH], [
 case "$target_os" in
 	netbsd*)	
 		LDFLAGS="$LDFLAGS -L$1 -Wl,-R$1"
-		LDIR_FLAGS="$LDIR_FLAGS -Wl-R$1 -L$1";;
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R$1 -L$1";;
 	*)	
 		LDFLAGS="$LDFLAGS -L$1"
 		LDIR_FLAGS="$LDIR_FLAGS -L$1";;
