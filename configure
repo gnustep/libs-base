@@ -13954,8 +13954,16 @@ else
   ffi_libdir="no"
 fi;
 if test ${ffi_libdir} != "no"; then
-    LDFLAGS="$LDFLAGS -L${ffi_libdir}"
-    LDIR_FLAGS="$LDIR_FLAGS -L${ffi_libdir}"
+
+case "$target_os" in
+	netbsd*)
+		LDFLAGS="$LDFLAGS -L${ffi_libdir} -Wl,-R${ffi_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl-R${ffi_libdir} -L${ffi_libdir}";;
+	*)
+		LDFLAGS="$LDFLAGS -L${ffi_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -L${ffi_libdir}";;
+esac
+
 fi
 
 if test "${ac_cv_header_ffi_h+set}" = set; then
@@ -14536,8 +14544,16 @@ else
 fi;
 
   if test "$libiconv_libdir" != "no"; then
-    LDFLAGS="$LDFLAGS -L$libiconv_libdir"
-    LDIR_FLAGS="$LDIR_FLAGS -L$libiconv_libdir"
+
+case "$target_os" in
+	netbsd*)
+		LDFLAGS="$LDFLAGS -L${libiconv_libdir} -Wl,-R${libiconv_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl-R${libiconv_libdir} -L${libiconv_libdir}";;
+	*)
+		LDFLAGS="$LDFLAGS -L${libiconv_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -L${libiconv_libdir}";;
+esac
+
   fi
 
   old_LIBS="$LIBS"
@@ -15494,8 +15510,16 @@ if test "$gmp_incdir" != "no"; then
   INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
 fi
 if test "$gmp_libdir" != "no"; then
-  LDFLAGS="$LDFLAGS -L$gmp_libdir"
-  LDIR_FLAGS="$LDIR_FLAGS -L$gmp_libdir"
+
+case "$target_os" in
+	netbsd*)
+		LDFLAGS="$LDFLAGS -L${gmp_libdir} -Wl,-R${gmp_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl-R${gmp_libdir} -L${gmp_libdir}";;
+	*)
+		LDFLAGS="$LDFLAGS -L${gmp_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -L${gmp_libdir}";;
+esac
+
 fi
 
 USE_GMP=0
