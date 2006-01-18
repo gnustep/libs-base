@@ -1837,14 +1837,12 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		  sl = 6;
 		}
 
-              /* make sure we have enough space for it */
-	      while (dpos + sl >= bsize)
-		{
-		  GROW();
-		}
-
 	      if (sl == 1)
                 {
+		  if (dpos >= bsize)
+		    {
+		      GROW();
+		    }
 	          ptr[dpos++] = u & 0x7f;
                 }
               else
@@ -1859,10 +1857,18 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
                       u = u >> 6;
                     }
 
+		  if (dpos >= bsize)
+		    {
+		      GROW();
+		    }
 	          ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
                   /* add bytes into the output sequence */
                   for (i = sl - 2; i >= 0; i--)
 		    {
+		      if (dpos >= bsize)
+			{
+			  GROW();
+			}
 		      ptr[dpos++] = reversed[i] | 0x80;
 		    }
                 }
