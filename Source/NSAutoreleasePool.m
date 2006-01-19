@@ -228,8 +228,14 @@ static IMP	initImp;
 
 + (void) addObject: (id)anObj
 {
-  NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
+  NSThread		*t = GSCurrentThread();
+  NSAutoreleasePool	*pool;
 
+  if (t->_active == NO)
+    {
+      [self new];	// Don't leak while exiting thread.
+    }
+  pool = t->_autorelease_vars.current_pool;
   if (pool != nil)
     {
       (*pool->_addImp)(pool, @selector(addObject:), anObj);

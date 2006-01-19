@@ -1,3 +1,12 @@
+2006-01-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSThread.h:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSThread.m:
+	Mimic MacOS-X behavior and create an autorelease pool if necessary
+	to catch any autorelease objects during thread exit.
+	As suggested by Wim Oudshoorn..
+
 2006-01-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: fix for rare case where we could corrupt
