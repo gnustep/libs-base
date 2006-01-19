@@ -1,5 +1,13 @@
 2006-01-19  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/plget.m: remove unused variable
+	* Source/GGSString.m: optimise ([canBeConvertedToEncoding:])
+	* Source/NSURL.m: correct misleading/wrong exception text.
+	* Source/NSString.m: mingw path handling tweaks ... build new
+	paths using native separator by default.
+
+2006-01-19  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSThread.h:
 	* Source/NSAutoreleasePool.m:
 	* Source/NSThread.m:

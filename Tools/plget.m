@@ -75,7 +75,6 @@ main(int argc, char** argv, char **env)
       NSFileHandle	*fileHandle;
       NSData		*inputData;
       NSString		*inputString;
-      NSDictionary	*dictionary;
       NSData		*outputData;
 
       NS_DURING

@@ -219,6 +219,42 @@ pathSepMember(unichar c)
   return NO;
 }
 
+inline static unichar
+pathSepChar()
+{
+#if	defined(__MINGW32__)
+  if (GSPathHandlingUnix() == YES)
+    {
+      return '/';
+    }
+  return '\\';
+#else
+  if (GSPathHandlingWindows() == YES)
+    {
+      return '\\';
+    }
+  return '/';
+#endif
+}
+
+inline static NSString*
+pathSepString()
+{
+#if	defined(__MINGW32__)
+  if (GSPathHandlingUnix() == YES)
+    {
+      return @"/";
+    }
+  return @"\\";
+#else
+  if (GSPathHandlingWindows() == YES)
+    {
+      return @"\\";
+    }
+  return @"/";
+#endif
+}
+
 /*
  * Find end of 'root' sequence in a string.  Characters before this
  * point in the string cannot be split into path components/extensions.
@@ -3674,7 +3710,7 @@ static NSFileManager *fm = nil;
 	    {
 	      length--;
 	    }
-	  buf[length++] = '/';
+	  buf[length++] = pathSepChar();
 	}
 
       if ((aLength - root) > 0)
@@ -3704,12 +3740,12 @@ static NSFileManager *fm = nil;
 	{
 	  if (pathSepMember(buf[aLength]) == YES)
 	    {
-	      buf[aLength] = '/';	// Standardise
+	      buf[aLength] = pathSepChar();
 	      if (pathSepMember(buf[aLength-1]) == YES)
 		{
 		  unsigned	pos;
 
-		  buf[aLength-1] = '/';	// Standardise
+		  buf[aLength-1] = pathSepChar();
 		  for (pos = aLength+1; pos < length; pos++)
 		    {
 		      buf[pos-1] = buf[pos];
@@ -4347,7 +4383,26 @@ static NSFileManager *fm = nil;
     {
       s = AUTORELEASE([self mutableCopy]);
     }
-  [s replaceString: @"\\" withString: @"/"];
+#if	defined(__MINGW32__)
+  if (GSPathHandlingUnix() == YES)
+    {
+      [s replaceString: @"\\" withString: @"/"];
+    }
+  else
+    {
+      [s replaceString: @"/" withString: @"\\"];
+    }
+#else
+  if (GSPathHandlingWindows() == YES)
+    {
+      [s replaceString: @"/" withString: @"\\"];
+    }
+  else
+    {
+      [s replaceString: @"\\" withString: @"/"];
+    }
+#endif
+
   l = [s length];
   root = rootOf(s, l);
 
@@ -4375,11 +4430,14 @@ static NSFileManager *fm = nil;
     }
   // Condense ('/./') sequences.
   r = (NSRange){root, l-root};
-  while ((r = [s rangeOfString: @"/." options: 0 range: r]).length == 2)
+  while ((r = [s rangeOfString: @"." options: 0 range: r]).length == 1)
     {
-      if (NSMaxRange(r) == l || 
-	pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES)
+      if (r.location > 0
+	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES
+        && (NSMaxRange(r) == l
+	  || pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES))
 	{
+	  r.length++;
 	  [s deleteCharactersInRange: r];
 	  l -= r.length;
 	}
@@ -4391,7 +4449,7 @@ static NSFileManager *fm = nil;
     }
 
   // Strip trailing '/' if present.
-  if (l > root && [s hasSuffix: @"/"])
+  if (l > root && pathSepMember([s characterAtIndex: l - 1]) == YES)
     {
       r.length = 1;
       r.location = l - r.length;
@@ -4418,11 +4476,15 @@ static NSFileManager *fm = nil;
 #if defined(__MINGW32__)
   /* Condense `/../' */
   r = (NSRange){root, l-root};
-  while ((r = [s rangeOfString: @"/.." options: 0 range: r]).length == 3)
+  while ((r = [s rangeOfString: @".." options: 0 range: r]).length == 2)
     {
-      if (NSMaxRange(r) == l || 
-	pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES)
+      if (r.location > 0
+	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES
+        && (NSMaxRange(r) == l
+	  || pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES))
 	{
+	  r.location--;
+	  r.lenght++;
 	  if (r.location > root)
 	    {
 	      NSRange r2 = {root, r.location-root};
@@ -4550,7 +4612,7 @@ static NSFileManager *fm = nil;
   s = [components objectAtIndex: 0];
   if ([s length] == 0)
     {
-      s = @"/";
+      s = pathSepString();
     }
   for (i = 1; i < c; i++)
     {
@@ -4579,7 +4641,7 @@ static NSFileManager *fm = nil;
    * Any string beginning with '/' is absolute ... except in windows mode
    * or on windows and not in unix mode.
    */
-  if (c == '/')
+  if (c == pathSepChar())
     {
 #if defined(__MINGW32__)
       if (GSPathHandlingUnix() == YES)
@@ -4662,7 +4724,7 @@ static NSFileManager *fm = nil;
    */
   if (l > root && pathSepMember([s characterAtIndex: l-1]))
     {
-      [a addObject: @"/"];
+      [a addObject: pathSepString()];
     }
 
   r = [a copy];
