@@ -825,7 +825,7 @@ static unsigned	urlAlign;
 	      if (legal(buf->host, "-") == NO)
 		{
 		  [NSException raise: NSGenericException format:
-		    @"illegal character in user/password part"];
+		    @"illegal character in host part"];
 		}
 
 	      /*
