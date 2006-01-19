@@ -35,8 +35,8 @@
   id			_target;
   id			_arg;
   SEL			_selector;
-  BOOL			_active;
 @public
+  BOOL			_active;
   NSHandler		*_exception_handler;
   NSMutableDictionary	*_thread_dictionary;
   struct autorelease_thread_vars _autorelease_vars;
