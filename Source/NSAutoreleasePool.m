@@ -231,11 +231,12 @@ static IMP	initImp;
   NSThread		*t = GSCurrentThread();
   NSAutoreleasePool	*pool;
 
-  if (t->_active == NO)
+  pool = t->_autorelease_vars.current_pool;
+  if (pool == nil && t->_active == NO)
     {
       [self new];	// Don't leak while exiting thread.
+      pool = t->_autorelease_vars.current_pool;
     }
-  pool = t->_autorelease_vars.current_pool;
   if (pool != nil)
     {
       (*pool->_addImp)(pool, @selector(addObject:), anObj);
