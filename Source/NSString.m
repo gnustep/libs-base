@@ -4484,7 +4484,7 @@ static NSFileManager *fm = nil;
 	  || pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES))
 	{
 	  r.location--;
-	  r.lenght++;
+	  r.length++;
 	  if (r.location > root)
 	    {
 	      NSRange r2 = {root, r.location-root};
