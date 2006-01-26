@@ -583,9 +583,9 @@ static Class NSDataMallocClass;
     gsu128	bigval;
 #else
 #if	GS_HAVE_I64
-    gsu64	bigval;
+    uint64_t	bigval;
 #else
-    gsu32	bigval;
+    uint32_t	bigval;
 #endif
 #endif
 
@@ -707,7 +707,7 @@ static Class NSDataMallocClass;
 	    {
 	      unsigned	cver;
 	      NSString	*className;
-	      gsu16	nameLength;
+	      uint16_t	nameLength;
 
 	      if (xref != GSIArrayCount(clsMap))
 		{
@@ -719,7 +719,8 @@ static Class NSDataMallocClass;
 	       * A class is encoded as a 16-bit length, a sequence of
 	       * characters providing its name, then a version number.
 	       */
-	      (*desImp)(src, desSel, &nameLength, @encode(gsu16), &cursor, nil);
+	      (*desImp)(src, desSel, &nameLength, @encode(uint16_t),
+		&cursor, nil);
 	      if (nameLength == 0)
 		{
 		  className = nil;
@@ -1006,27 +1007,27 @@ static Class NSDataMallocClass;
     {
       case _GSC_I16:	/* Encoded as 16-bit	*/
 	{
-	  gsu16	val;
+	  uint16_t	val;
 
-	  (*desImp)(src, desSel, &val, @encode(gsu16), &cursor, nil);
+	  (*desImp)(src, desSel, &val, @encode(uint16_t), &cursor, nil);
 	  bigval = val;
 	  break;
 	}
 
       case _GSC_I32:	/* Encoded as 32-bit	*/
 	{
-	  gsu32	val;
+	  uint32_t	val;
 
-	  (*desImp)(src, desSel, &val, @encode(gsu32), &cursor, nil);
+	  (*desImp)(src, desSel, &val, @encode(uint32_t), &cursor, nil);
 	  bigval = val;
 	  break;
 	}
 
       case _GSC_I64:	/* Encoded as 64-bit	*/
 	{
-	  gsu64	val;
+	  uint64_t	val;
 
-	  (*desImp)(src, desSel, &val, @encode(gsu64), &cursor, nil);
+	  (*desImp)(src, desSel, &val, @encode(uint64_t), &cursor, nil);
 #if	GS_HAVE_I64
 	  bigval = val;
 #else
@@ -1045,9 +1046,9 @@ static Class NSDataMallocClass;
 #else
 	  val = GSSwapBigI128ToHost(val);
 #if	GS_HAVE_I64
-	  bigval = *(gsu64*)&val;
+	  bigval = *(uint64_t*)&val;
 #else
-	  bigval = *(gsu32*)&val;
+	  bigval = *(uint32_t*)&val;
 #endif
 #endif
 	  break;

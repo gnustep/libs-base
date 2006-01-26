@@ -176,7 +176,7 @@ struct ttinfo
  * And this is the structure used in the time zone instances.
  */
 typedef struct {
-  gss32		offset;
+  int32_t	offset;
   BOOL		isdst;
   unsigned char	abbr_idx;
   char		pad[2];
@@ -190,7 +190,7 @@ typedef struct {
   NSData	*timeZoneData;
   unsigned int	n_trans;
   unsigned int	n_types;
-  gss32		*trans;
+  int32_t	*trans;
   TypeInfo	*types;
   unsigned char	*idxs;
 }
@@ -568,7 +568,7 @@ static NSMapTable	*absolutes = 0;
     {
       if (zone_mutex != nil)
 	[zone_mutex lock];
-      NSMapRemove(absolutes, (void*)(gsaddr)offset);
+      NSMapRemove(absolutes, (void*)(uintptr_t)offset);
       if (zone_mutex != nil)
 	[zone_mutex unlock];
     }
@@ -619,7 +619,7 @@ static NSMapTable	*absolutes = 0;
     {
       [zone_mutex lock];
     }
-  z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(gsaddr)anOffset);
+  z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)anOffset);
   if (z != nil)
     {
       IF_NO_GC(RETAIN(z));
@@ -650,7 +650,7 @@ static NSMapTable	*absolutes = 0;
       detail = [[GSAbsTimeZoneDetail alloc] initWithTimeZone: self];
       offset = anOffset;
       z = self;
-      NSMapInsert(absolutes, (void*)(gsaddr)anOffset, (void*)z);
+      NSMapInsert(absolutes, (void*)(uintptr_t)anOffset, (void*)z);
       [zoneDictionary setObject: self forKey: (NSString*)name];
     }
   if (zone_mutex != nil)
@@ -2145,8 +2145,8 @@ int dayOfCommonEra(NSTimeInterval when);
 static TypeInfo*
 chop(NSTimeInterval since, GSTimeZone *zone)
 {
-  gss32			when = (gss32)since;
-  gss32			*trans = zone->trans;
+  int32_t		when = (int32_t)since;
+  int32_t		*trans = zone->trans;
   unsigned		hi = zone->n_trans;
   unsigned		lo = 0;
   unsigned int		i;
@@ -2271,12 +2271,12 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 		      format: @"TZ_MAGIC is incorrect"];
 	}
 #endif
-      n_trans = GSSwapBigI32ToHost(*(gss32*)header->tzh_timecnt);
-      n_types = GSSwapBigI32ToHost(*(gss32*)header->tzh_typecnt);
-      charcnt = GSSwapBigI32ToHost(*(gss32*)header->tzh_charcnt);
+      n_trans = GSSwapBigI32ToHost(*(int32_t*)header->tzh_timecnt);
+      n_types = GSSwapBigI32ToHost(*(int32_t*)header->tzh_typecnt);
+      charcnt = GSSwapBigI32ToHost(*(int32_t*)header->tzh_charcnt);
 
       i = pos;
-      i += sizeof(gss32)*n_trans;
+      i += sizeof(int32_t)*n_trans;
       if (i > length)
 	{
 	  [NSException raise: fileException
@@ -2305,19 +2305,19 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
        * for efficient access ... not the same saze as the data
        * we received.
        */
-      i = n_trans * (sizeof(gss32)+1) + n_types * sizeof(TypeInfo);
+      i = n_trans * (sizeof(int32_t)+1) + n_types * sizeof(TypeInfo);
       buf = NSZoneMalloc(NSDefaultMallocZone(), i);
       types = (TypeInfo*)buf;
       buf += (n_types * sizeof(TypeInfo));
-      trans = (gss32*)buf;
-      buf += (n_trans * sizeof(gss32));
+      trans = (int32_t*)buf;
+      buf += (n_trans * sizeof(int32_t));
       idxs = (unsigned char*)buf;
 
       /* Read in transitions. */
       for (i = 0; i < n_trans; i++)
 	{
-	  trans[i] = GSSwapBigI32ToHost(*(gss32*)(bytes + pos));
-	  pos += sizeof(gss32);
+	  trans[i] = GSSwapBigI32ToHost(*(int32_t*)(bytes + pos));
+	  pos += sizeof(int32_t);
 	}
       for (i = 0; i < n_trans; i++)
 	{

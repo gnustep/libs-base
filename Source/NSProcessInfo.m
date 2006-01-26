@@ -186,6 +186,8 @@ static NSMutableDictionary	*_gnu_environment = nil;
 // Array of debug levels set.
 static NSMutableSet	*_debug_set = nil;
 
+// Flag to indicate that fallbackInitialisation was executed.
+static BOOL	fallbackInitialisation = NO;
 /*************************************************************************
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
@@ -1058,7 +1060,6 @@ int main(int argc, char *argv[], char *env[])
 @implementation	NSProcessInfo (GNUstep)
 
 static BOOL	debugTemporarilyDisabled = NO;
-static BOOL	fallbackInitialisation = NO;
 
 /**
  * Fallback method. The developer must call this method to initialize

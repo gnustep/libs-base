@@ -35,6 +35,7 @@
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSThread.h"
+#include "Foundation/NSUserDefaults.h"
 
 #include "GSPortPrivate.h"
 
@@ -48,6 +49,8 @@ static NSMessagePortNameServer *defaultServer = nil;
 static NSMapTable portToNamesMap;
 static NSString	*registry;
 static HKEY	key;
+
+static SECURITY_ATTRIBUTES	security;
 
 @interface NSMessagePortNameServer (private)
 + (NSString *) _query: (NSString *)name;
@@ -96,6 +99,10 @@ static void clean_up_names(void)
 	NSObjectMapValueCallBacks, 0);
       atexit(clean_up_names);
 
+      security.nLength = sizeof(SECURITY_ATTRIBUTES);
+      security.lpSecurityDescriptor = 0;	// Default
+      security.bInheritHandle = TRUE;
+
       registry = @"Software\\GNUstepNSMessagePort";
       rc = RegCreateKeyExW(
 	HKEY_CURRENT_USER,
@@ -104,8 +111,8 @@ static void clean_up_names(void)
 	L"",
 	REG_OPTION_VOLATILE,
 	STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE
-	|KEY_QUERY_VALUE,
-	NULL,
+	|KEY_QUERY_VALUE|KEY_NOTIFY,
+	&security,
 	&key,
 	NULL);
       if (rc == ERROR_SUCCESS)
@@ -156,6 +163,28 @@ static void clean_up_names(void)
 
   n = [[self class] _translate: name];
 
+/* FIXME ... wierd hack.
+ * It appears that RegQueryValueExW does not always read from the registry,
+ * but will in fact return cached results (even if you close and re-open the
+ * registry key between the calls to RegQueryValueExW).  This is a problem
+ * if we look up a server which is not running, and then try to look it up
+ * again when it is running, or if we have one address recorded but the server
+ * has been restarted and is using a new address.
+ * I couldn't find any mention of this behavior ... but accidentally discovered
+ * that a call to OutputDebugStringW stops it ... presumably something in the
+ * debug system invalidates whatever registry caching is being done.
+ * Anyway, on my XP SP2 system, this next line is needed to fix things.
+ *
+ * You can test this by running a GNUstep application without starting
+ * gdnc beforehand.  If the bug is occurring, the app will try to start gdnc
+ * then poll to connect to it, and after 5 seconds will abort because it
+ * hasn't seen the gdnc port registered even though gdnc did start.
+ * If the hack has fixed the bug, the app will just pause briefly during
+ * startup (as it starts gdnc) and then continue when it finds the server
+ * port.
+ */
+OutputDebugStringW(L"");
+
   rc = RegQueryValueExW(
     key,
     UNISTR(n),
@@ -180,7 +209,7 @@ static void clean_up_names(void)
     UNISTR(p),
     GENERIC_WRITE,
     FILE_SHARE_READ|FILE_SHARE_WRITE,
-    (LPSECURITY_ATTRIBUTES)0,
+    &security,
     OPEN_EXISTING,
     FILE_ATTRIBUTE_NORMAL,
     (HANDLE)0);

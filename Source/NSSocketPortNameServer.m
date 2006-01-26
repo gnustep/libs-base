@@ -63,11 +63,11 @@
  */
 @class	NSSocketPort;
 @interface NSSocketPort (Hack)
-+ (NSSocketPort*) portWithNumber: (gsu16)number
++ (NSSocketPort*) portWithNumber: (uint16_t)number
 		       onHost: (NSHost*)host
 		 forceAddress: (NSString*)addr
 		     listener: (BOOL)shouldListen;
-- (gsu16) portNumber;
+- (uint16_t) portNumber;
 @end
 
 /*
@@ -119,8 +119,9 @@ typedef enum {
 - (GSPortComState) state;
 - (void) startListNameServers;
 - (void) startPortLookup: (NSString*)name onHost: (NSString*)addr;
-- (void) startPortRegistration: (gsu32)portNumber withName: (NSString*)name;
-- (void) startPortUnregistration: (gsu32)portNumber withName: (NSString*)name;
+- (void) startPortRegistration: (uint32_t)portNumber withName: (NSString*)name;
+- (void) startPortUnregistration: (uint32_t)portNumber
+			withName: (NSString*)name;
 @end
 
 @implementation GSPortCom
@@ -259,7 +260,7 @@ typedef enum {
 	}
       else if (state == GSPC_READ1 && msg.rtype == GDO_SERVERS)
 	{
-	  gsu32	numSvrs = GSSwapBigI32ToHost(*(gsu32*)[data bytes]);
+	  uint32_t	numSvrs = GSSwapBigI32ToHost(*(uint32_t*)[data bytes]);
 
 	  if (numSvrs == 0)
 	    {
@@ -490,7 +491,7 @@ typedef enum {
   [self open: host];
 }
 
-- (void) startPortRegistration: (gsu32)portNumber withName: (NSString*)name
+- (void) startPortRegistration: (uint32_t)portNumber withName: (NSString*)name
 {
   msg.rtype = GDO_REGISTER;	/* Register a port.		*/
   msg.ptype = GDO_TCP_GDO;	/* Port is TCP port for GNU DO	*/
@@ -503,7 +504,7 @@ typedef enum {
   [self open: nil];
 }
 
-- (void) startPortUnregistration: (gsu32)portNumber withName: (NSString*)name
+- (void) startPortUnregistration: (uint32_t)portNumber withName: (NSString*)name
 {
   msg.rtype = GDO_UNREG;
   msg.ptype = GDO_TCP_GDO;
@@ -666,7 +667,7 @@ typedef enum {
 	   */
           dat = AUTORELEASE(RETAIN([com data]));
 	  svrs = (struct in_addr*)([dat bytes] + 4);
-	  numSvrs = GSSwapBigI32ToHost(*(gsu32*)[dat bytes]);
+	  numSvrs = GSSwapBigI32ToHost(*(uint32_t*)[dat bytes]);
 	  if (numSvrs == 0)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
@@ -759,7 +760,8 @@ typedef enum {
 		  [com close];
 		  if ([com state] == GSPC_DONE)
 		    {
-		      *port = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
+		      *port
+		        = GSSwapBigI32ToHost(*(uint32_t*)[[com data] bytes]);
 		      if (*port != 0)
 			{
 			  singleServer = [com addr];
@@ -953,7 +955,7 @@ typedef enum {
 	{
 	  unsigned	result;
 
-	  result = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
+	  result = GSSwapBigI32ToHost(*(uint32_t*)[[com data] bytes]);
 	  if (result == 0)
 	    {
 	      unsigned int	portNum;
@@ -1091,7 +1093,7 @@ typedef enum {
 	  NSPort	*port;
 	  unsigned	result;
 
-	  result = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
+	  result = GSSwapBigI32ToHost(*(uint32_t*)[[com data] bytes]);
 	  if (result == 0)
 	    {
 	      NSLog(@"NSSocketPortNameServer unable to unregister '%@'", name);

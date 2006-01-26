@@ -93,7 +93,7 @@
 /*
  * Largest chunk of data possible in DO
  */
-static gsu32	maxDataLength = 32 * 1024 * 1024;
+static uint32_t	maxDataLength = 32 * 1024 * 1024;
 
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"NSMessagePort",@"lock %@",X); [X lock];}
@@ -121,8 +121,8 @@ typedef	enum {
  * Its contents are transmitted in network byte order.
  */
 typedef struct {
-  gsu32	type;		/* A GSPortItemType as a 4-byte number.		*/
-  gsu32	length;		/* The length of the item (excluding header).	*/
+  uint32_t	type;	/* A GSPortItemType as a 4-byte number.		*/
+  uint32_t	length;	/* The length of the item (excluding header).	*/
 } GSPortItemHeader;
 
 /*
@@ -132,8 +132,8 @@ typedef struct {
  * NB. additional data counts as part of the same item.
  */
 typedef struct {
-  gsu32	mId;		/* The ID for the message starting with this.	*/
-  gsu32	nItems;		/* Number of items (including this one).	*/
+  uint32_t	mId;	/* The ID for the message starting with this.	*/
+  uint32_t	nItems;	/* Number of items (including this one).	*/
 } GSPortMsgHeader;
 
 typedef	struct {
@@ -237,11 +237,11 @@ typedef enum {
   unsigned		wLength;	/* Ammount written so far.	*/
   NSMutableArray	*wMsgs;		/* Message in progress.		*/
   NSMutableData		*rData;		/* Buffer for incoming data	*/
-  gsu32			rLength;	/* Amount read so far.		*/
-  gsu32			rWant;		/* Amount desired.		*/
+  uint32_t		rLength;	/* Amount read so far.		*/
+  uint32_t		rWant;		/* Amount desired.		*/
   NSMutableArray	*rItems;	/* Message in progress.		*/
   GSPortItemType	rType;		/* Type of data being read.	*/
-  gsu32			rId;		/* Id of incoming message.	*/
+  uint32_t		rId;		/* Id of incoming message.	*/
   unsigned		nItems;		/* Number of items to be read.	*/
   GSHandleState		state;		/* State of the handle.		*/
   unsigned int		addrNum;	/* Address number within host.	*/
@@ -392,19 +392,19 @@ static Class	runLoopClass;
 
   state = GS_H_TRYCON;
   l = [NSRunLoop currentRunLoop];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
@@ -415,19 +415,19 @@ static Class	runLoopClass;
       [l runMode: NSConnectionReplyMode beforeDate: when];
     }
 
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
@@ -499,15 +499,15 @@ static Class	runLoopClass;
 
 	  valid = NO;
 	  l = [runLoopClass currentRunLoop];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_RDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_WDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_EDESC
 		 forMode: nil
 		     all: YES];
@@ -1023,19 +1023,19 @@ static Class	runLoopClass;
 
   RETAIN(self);
 
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
@@ -1049,19 +1049,19 @@ static Class	runLoopClass;
       M_LOCK(myLock);
     }
 
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
@@ -1164,17 +1164,10 @@ typedef	struct {
 #define	lDesc	((internal*)_internal)->_listener
 
 
-#if NEED_WORD_ALIGNMENT
-static unsigned	wordAlign;
-#endif
-
 + (void) initialize
 {
   if (self == [NSMessagePort class])
     {
-#if NEED_WORD_ALIGNMENT
-      wordAlign = objc_alignof_type(@encode(gsu32));
-#endif
       messagePortClass = self;
       messagePortMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
@@ -1372,7 +1365,7 @@ static unsigned	wordAlign;
     {
       handle->recvPort = GS_GC_HIDE(self);
     }
-  NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
+  NSMapInsert(handles, (void*)(uintptr_t)[handle descriptor], (void*)handle);
   M_UNLOCK(myLock);
 }
 
@@ -1445,7 +1438,7 @@ static unsigned	wordAlign;
     {
       if (handle->recvPort == recvSelf)
 	{
-	  fds[(*count)++] = (int)sock;
+	  fds[(*count)++] = (int)(intptr_t)sock;
 	}
     }
   NSEndMapTableEnumeration(&me);
@@ -1651,7 +1644,7 @@ static unsigned	wordAlign;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  int		desc = (int)(gsaddr)extra;
+  int		desc = (int)(uintptr_t)extra;
   GSMessageHandle	*handle;
 
   if (desc == lDesc)
@@ -1686,7 +1679,7 @@ static unsigned	wordAlign;
   else
     {
       M_LOCK(myLock);
-      handle = (GSMessageHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
+      handle = (GSMessageHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
       IF_NO_GC(AUTORELEASE(RETAIN(handle)));
       M_UNLOCK(myLock);
       if (handle == nil)
@@ -1733,7 +1726,7 @@ static unsigned	wordAlign;
     {
       handle->recvPort = nil;
     }
-  NSMapRemove(handles, (void*)(gsaddr)[handle descriptor]);
+  NSMapRemove(handles, (void*)(uintptr_t)[handle descriptor]);
   if (lDesc < 0 && NSCountMapTable(handles) == 0)
     {
       [self invalidate];
@@ -1862,7 +1855,7 @@ static unsigned	wordAlign;
 		   * word boundary, so we work with an aligned buffer
 		   * and use memcmpy()
 		   */
-		  if ((hLength % wordAlign) != 0)
+		  if ((hLength % __alignof__(uint32_t)) != 0)
 		    {
 		      GSPortItemHeader	itemHeader;
 

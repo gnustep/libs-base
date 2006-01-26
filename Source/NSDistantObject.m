@@ -163,7 +163,7 @@ enum proxyLocation
 
 + (id) initWithCoder: (NSCoder*)aCoder
 {
-  gsu8			proxy_tag;
+  uint8_t		proxy_tag;
   unsigned		target;
   id			decoder_connection;
   NSDistantObject	*o;
@@ -198,7 +198,7 @@ enum proxyLocation
 
         if (debug_proxy)
 	  NSLog(@"Receiving a proxy for local object 0x%x "
-		@"connection 0x%x\n", target, (gsaddr)decoder_connection);
+		@"connection 0x%x\n", target, (uintptr_t)decoder_connection);
 
 	o = [decoder_connection locateLocalTarget: target];
         if (o == nil)
@@ -212,7 +212,7 @@ enum proxyLocation
 	    if (debug_proxy)
 	      {
 		NSLog(@"Local object is 0x%x (0x%x)\n",
-		  (gsaddr)o, (gsaddr)o ? ((NSDO*)o)->_object : 0);
+		  (uintptr_t)o, (uintptr_t)o ? ((NSDO*)o)->_object : 0);
 	      }
 	    return RETAIN(((NSDO*)o)->_object);
 	  }
@@ -229,7 +229,7 @@ enum proxyLocation
 				   at: &target];
 	if (debug_proxy)
 	  NSLog(@"Receiving a proxy, was local 0x%x connection 0x%x\n",
-		  target, (gsaddr)decoder_connection);
+		  target, (uintptr_t)decoder_connection);
 	o = [self initWithTarget: target
 		      connection: decoder_connection];
 	return o;
@@ -296,7 +296,7 @@ enum proxyLocation
 
 	  if (debug_proxy)
 	    NSLog(@"Receiving a triangle-connection proxy 0x%x "
-		  @"connection 0x%x\n", target, (gsaddr)proxy_connection);
+		  @"connection 0x%x\n", target, (uintptr_t)proxy_connection);
 
 	  NSAssert(proxy_connection != decoder_connection,
 	    NSInternalInconsistencyException);
@@ -444,7 +444,7 @@ enum proxyLocation
 - (void) encodeWithCoder: (NSCoder*)aRmc
 {
   unsigned	proxy_target;
-  gsu8		proxy_tag;
+  uint8_t	proxy_tag;
   NSConnection	*encoder_connection;
 
 /*
@@ -478,7 +478,7 @@ enum proxyLocation
 
 	  if (debug_proxy)
 	    NSLog(@"Sending a proxy, will be remote 0x%x connection 0x%x\n",
-			proxy_target, (gsaddr)_connection);
+			proxy_target, (uintptr_t)_connection);
 
 	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
 				   at: &proxy_tag];
@@ -499,7 +499,7 @@ enum proxyLocation
 
 	  if (debug_proxy)
 	    NSLog(@"Sending a proxy, will be local 0x%x connection 0x%x\n",
-			proxy_target, (gsaddr)_connection);
+			proxy_target, (uintptr_t)_connection);
 
 	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
 				   at: &proxy_tag];
@@ -537,8 +537,8 @@ enum proxyLocation
       if (debug_proxy)
 	NSLog(@"Sending triangle-connection proxy 0x%x "
 	      @"proxy-conn 0x%x to-proxy 0x%x to-conn 0x%x\n",
-		localProxy->_handle, (gsaddr)localProxy->_connection,
-		proxy_target, (gsaddr)_connection);
+		localProxy->_handle, (uintptr_t)localProxy->_connection,
+		proxy_target, (uintptr_t)_connection);
 
       /*
        * It's remote here, so we need to tell other side where to form
@@ -603,7 +603,7 @@ enum proxyLocation
 
   if (debug_proxy)
     NSLog(@"Created new local=0x%x object 0x%x target 0x%x connection 0x%x\n",
-	   (gsaddr)self, (gsaddr)_object, _handle, (gsaddr)_connection);
+	   (uintptr_t)self, (uintptr_t)_object, _handle, (uintptr_t)_connection);
 
   return self;
 }
@@ -629,7 +629,7 @@ enum proxyLocation
 
   if (debug_proxy)
       NSLog(@"Created new proxy=0x%x target 0x%x connection 0x%x\n",
-	 (gsaddr)self, _handle, (gsaddr)_connection);
+	 (uintptr_t)self, _handle, (uintptr_t)_connection);
 
   return self;
 }
@@ -699,7 +699,7 @@ enum proxyLocation
 	   * (implemented in NSObject.m) to examine the protocol contents
 	   * without sending any ObjectiveC message to it.
 	   */
-	  if ((int)GSObjCClass(_protocol) == 0x2)
+	  if ((uintptr_t)GSObjCClass(_protocol) == 0x2)
 	    {
 	      extern struct objc_method_description*
 		GSDescriptionForInstanceMethod();
@@ -711,7 +711,7 @@ enum proxyLocation
 	    }
 	  if (mth == 0)
 	    {
-	      if ((int)GSObjCClass(_protocol) == 0x2)
+	      if ((uintptr_t)GSObjCClass(_protocol) == 0x2)
 		{
 		  extern struct objc_method_description*
 		    GSDescriptionForClassMethod();
@@ -824,7 +824,7 @@ enum proxyLocation
     {
       if (debug_proxy > 3)
 	NSLog(@"retain count for connection (0x%x) is now %u\n",
-		(gsaddr)_connection, [_connection retainCount]);
+		(uintptr_t)_connection, [_connection retainCount]);
       /*
        * A proxy for local object retains its target - so we release it.
        * For a local object the connection also retains this proxy, so we

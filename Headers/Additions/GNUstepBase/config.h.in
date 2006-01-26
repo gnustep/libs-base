@@ -12,6 +12,9 @@
 /* Define if constructors are automatically loaded */
 #undef CON_AUTOLOAD
 
+/* Built in default value for GNUstep config file */
+#undef GNUSTEP_TARGET_CONFIG_FILE
+
 /* Built in default value for GNUstep local root */
 #undef GNUSTEP_TARGET_LOCAL_ROOT
 
@@ -439,11 +442,9 @@
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
 #undef inline
-#endif
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t

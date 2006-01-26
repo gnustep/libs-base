@@ -152,9 +152,9 @@ static inline unsigned doHash(NSString* key)
     {
       return 0;
     }
-  else if (((gsaddr)key) & 1)
+  else if (((uintptr_t)key) & 1)
     {
-      return (unsigned)(gsaddr)key;
+      return (unsigned)(uintptr_t)key;
     }
   else
     {
@@ -168,7 +168,7 @@ static inline BOOL doEqual(NSString* key1, NSString* key2)
     {
       return YES;
     }
-  else if ((((gsaddr)key1) & 1) || key1 == nil)
+  else if ((((uintptr_t)key1) & 1) || key1 == nil)
     {
       return NO;
     }
@@ -194,7 +194,7 @@ static void obsFree(Observation *o);
 #include "GNUstepBase/GSIArray.h"
 
 #define GSI_MAP_RETAIN_KEY(M, X)
-#define GSI_MAP_RELEASE_KEY(M, X) ({if ((((gsaddr)X.obj) & 1) == 0) \
+#define GSI_MAP_RELEASE_KEY(M, X) ({if ((((uintptr_t)X.obj) & 1) == 0) \
   RELEASE(X.obj);})
 #define GSI_MAP_HASH(M, X)        doHash(X.obj)
 #define GSI_MAP_EQUAL(M, X,Y)     doEqual(X.obj, Y.obj)
@@ -535,7 +535,7 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
  * should be treated as objects (notification names) and thise that
  * should be treated as pointers (notification objects)
  */
-#define	CHEATGC(X)	(id)(((gsaddr)X) | 1)
+#define	CHEATGC(X)	(id)(((uintptr_t)X) | 1)
 
 
 
@@ -641,6 +641,11 @@ static NSNotificationCenter *default_center = nil;
  * <p>The notification center does not retain observer or object. Therefore,
  * you should always send removeObserver: or removeObserver:name:object: to
  * the notification center before releasing these objects.</p>
+ *
+ * <p>NB. For MacOS-X compatibility, adding an observer multiple times will
+ * register it to receive multiple copies of any matching notification, however
+ * removing an observer will remove <em>all</em> of the multiple registrations.
+ * </p>
  */
 - (void) addObserver: (id)observer
 	    selector: (SEL)selector
@@ -687,7 +692,7 @@ static NSNotificationCenter *default_center = nil;
   /*
    * Record the Observation in one of the linked lists.
    *
-   * NB. It is possible to register an observr for a notification more than
+   * NB. It is possible to register an observer for a notification more than
    * once - in which case, the observer will receive multiple messages when
    * the notification is posted... odd, but the MacOS-X docs specify this.
    */

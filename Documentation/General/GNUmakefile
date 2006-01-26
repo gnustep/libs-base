@@ -45,7 +45,7 @@ OpenStepCompliance.gsdoc \
 #General_AGSDOC_FLAGS = -DocumentationDirectory .
 
 # Use local version of autogsdoc in case it is not installed
-AUTOGSDOC=../../Tools/obj/autogsdoc
+AUTOGSDOC=../../Tools/$(GNUSTEP_OBJ_PREFIX)/autogsdoc
 BASE_MAKE_LOADED=yes
 
 include $(GNUSTEP_MAKEFILES)/documentation.make

@@ -797,60 +797,135 @@ boolValue_u(GSStr self)
 static inline BOOL
 canBeConvertedToEncoding_c(GSStr self, NSStringEncoding enc)
 {
-  if (enc == intEnc)
-    {
-      return YES;
-    }
-  else
-    {
-      BOOL	result = (*convertImp)((id)self, convertSel, enc);
+  unsigned	c = self->_count;
+  BOOL		result = YES;
 
-      return result;
+  /*
+   * If the length is zero, or we are already using the required encoding,
+   * or the required encoding is unicode (can hold any character) then we
+   * can assume that a conversion would succeed.
+   * We also know a conversion must succeed if the internal encoding is
+   * ascii and the required encoding has ascii as a subset.
+   */
+  if (c > 0
+    && enc != intEnc
+    && enc != NSUTF8StringEncoding
+    && enc != NSUnicodeStringEncoding
+    && ((intEnc != NSASCIIStringEncoding)
+      || ((enc != NSISOLatin1StringEncoding)
+        && (enc != NSISOLatin2StringEncoding)
+        && (enc != NSNEXTSTEPStringEncoding)
+        && (enc != NSNonLossyASCIIStringEncoding))))
+    {
+      unsigned	l = 0;
+      unichar	*r = 0;
+
+      /*
+       * To check whether conversion is possible, we first convert to
+       * unicode and then check to see whether it is possible to convert
+       * to the desired encoding.
+       */
+      result = GSToUnicode(&r, &l, self->_contents.c, self->_count, intEnc,
+	NSDefaultMallocZone(), GSUniStrict);
+      if (result == YES)
+        {
+	  if (enc == NSISOLatin1StringEncoding)
+	    {
+	      unsigned	i;
+
+	      /*
+	       * If all the unicode characters are in the 0 to 255 range
+	       * they are all latin1.
+	       */
+	      for (i = 0; i < l; i++)
+		{
+		  if (r[i] > 255)
+		    {
+		      result = NO;
+		      break;
+		    }
+		}
+	    }
+	  else if (enc == NSASCIIStringEncoding)
+	    {
+	      unsigned	i;
+
+	      /*
+	       * If all the unicode characters are in the 0 to 127 range
+	       * they are all ascii.
+	       */
+	      for (i = 0; i < l; i++)
+		{
+		  if (r[i] > 127)
+		    {
+		      result = NO;
+		      break;
+		    }
+		}
+	    }
+	  else
+	    {
+	      unsigned	dummy = 0;	// Hold returned length.
+
+	      result = GSFromUnicode(0, &dummy, r, l, enc, 0, GSUniStrict);
+	    }
+
+	  // Temporary unicode string no longer needed.
+          NSZoneFree(NSDefaultMallocZone(), r);
+        }
     }
+  return result;
 }
 
 static inline BOOL
 canBeConvertedToEncoding_u(GSStr self, NSStringEncoding enc)
 {
-  BOOL	result = YES;
+  unsigned	c = self->_count;
+  BOOL		result = YES;
 
-  if (enc == NSISOLatin1StringEncoding)
+  if (c > 0 && enc != NSUTF8StringEncoding && enc != NSUnicodeStringEncoding)
     {
-      unsigned	i;
-
-      /*
-       * If all the unicode characters are in the 0 to 255 range
-       * they are all latin1.
-       */
-      for (i = 0; i < self->_count; i++)
+      if (enc == NSISOLatin1StringEncoding)
 	{
-	  if (self->_contents.u[i] > 255)
+	  unsigned	i;
+
+	  /*
+	   * If all the unicode characters are in the 0 to 255 range
+	   * they are all latin1.
+	   */
+	  for (i = 0; i < self->_count; i++)
 	    {
-	      result = NO;
-	      break;
+	      if (self->_contents.u[i] > 255)
+		{
+		  result = NO;
+		  break;
+		}
 	    }
 	}
-    }
-  else if (enc == NSASCIIStringEncoding)
-    {
-      unsigned	i;
-
-      /*
-       * If all the unicode characters are in the 0 to 127 range
-       * they are all ascii.
-       */
-      for (i = 0; i < self->_count; i++)
+      else if (enc == NSASCIIStringEncoding)
 	{
-	  if (self->_contents.u[i] > 127)
+	  unsigned	i;
+
+	  /*
+	   * If all the unicode characters are in the 0 to 127 range
+	   * they are all ascii.
+	   */
+	  for (i = 0; i < self->_count; i++)
 	    {
-	      result = NO;
-	      break;
+	      if (self->_contents.u[i] > 127)
+		{
+		  result = NO;
+		  break;
+		}
 	    }
 	}
-    }
-  else
-    {
-      result = (*convertImp)((id)self, convertSel, enc);
+      else
+	{
+	  unsigned	dummy = 0;	// Hold returned length.
+
+	  result = GSFromUnicode(0, &dummy, self->_contents.u, c, enc,
+	    0, GSUniStrict);
+	}
     }
   return result;
 }

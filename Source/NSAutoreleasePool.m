@@ -228,8 +228,15 @@ static IMP	initImp;
 
 + (void) addObject: (id)anObj
 {
-  NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
+  NSThread		*t = GSCurrentThread();
+  NSAutoreleasePool	*pool;
 
+  pool = t->_autorelease_vars.current_pool;
+  if (pool == nil && t->_active == NO)
+    {
+      [self new];	// Don't leak while exiting thread.
+      pool = t->_autorelease_vars.current_pool;
+    }
   if (pool != nil)
     {
       (*pool->_addImp)(pool, @selector(addObject:), anObj);
@@ -354,7 +361,7 @@ static IMP	initImp;
 	    {
 	      id	anObject = objects[i];
 	      Class	c = GSObjCClass(anObject);
-	      unsigned	hash = (((unsigned)c) >> 3) & 0x0f;
+	      unsigned	hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
 
 	      objects[i] = nil;
 	      if (classes[hash] != c)

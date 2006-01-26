@@ -3,6 +3,168 @@
 	* Source/NSKeyedUnarchiver.m: Added private method replaceObject:
 	withObject:.
 
+2006-01-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: ([addObject:]) fix error in check for
+	missing pool during thread exit.
+
+2006-01-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/plget.m: remove unused variable
+	* Source/GGSString.m: optimise ([canBeConvertedToEncoding:])
+	* Source/NSURL.m: correct misleading/wrong exception text.
+	* Source/NSString.m: mingw path handling tweaks ... build new
+	paths using native separator by default.
+
+2006-01-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSThread.h:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSThread.m:
+	Mimic MacOS-X behavior and create an autorelease pool if necessary
+	to catch any autorelease objects during thread exit.
+	As suggested by Wim Oudshoorn..
+
+2006-01-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: fix for rare case where we could corrupt
+	the stack ... spotted by Wim Oudshoorn.
+
+2006-01-18  Andrew Ruder <aeruder@ksu.edu>
+
+	* config/addlibrarypath.m4: new file
+	* configure.ac: Use new function to set library paths for netbsd
+	* configure: regenerate
+
+2006-01-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/plget.m: New file to extract a string from a plist.
+	* Tools/pldes.1: Include plget
+	* Tools/GNUmakefile: build/install plget.
+
+2006-01-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortNameServerWin32.m:
+	* Source/win32/NSMessagePortWin32.m:
+	Add hack to cope with bug reading registry ... better solution welcome
+	if anyone knows one.
+	Add security attributes to message port stuff ... should only let
+	current user on current machine access message ports I hope.
+
+2006-01-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Fix possible read off end of buffer
+	when parsing config file.
+
+2006-01-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/GNUmakefile:
+	* Documentation/General/GNUmakefile:
+	Fix path to autogsdoc for mingw where the 'obj' symlink doesn't work.
+
+2006-01-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSUnion.h:
+	* Headers/Foundation/NSByteOrder.h:
+	* Headers/Foundation/NSPort.h:
+	* Source/GSFileHandle.m:
+	* Source/GSFormat.m:
+	* Source/NSData.m:
+	* Source/NSDistantObject.m:
+	* Source/NSMessagePort.m:
+	* Source/NSPortCoder.m:
+	* Source/NSSerializer.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/NSUnarchiver.m:
+	* Source/win32/GSFileHandleWin32.m:
+	* Source/win32/NSMessagePortWin32.m:
+	Update to use sized datatypes from stdint.h now that almost all
+	operating systems support it.
+	* Source/NSCalendarDate.m:
+	Support '%T' and '%t' as supplied by unix date/time locale info.
+	* configure.ac: Ensure uintptr_t and intptr_t exist
+	* configure: regenerate
+
+2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/mframe.m:
+	When calculating info about a structure, make sure its alignment is
+	that of its most strictly aligned field and make sure its size is a
+	multiple of its alignment.
+	* Source/NSData.m: ([initWithCoder:]) Fix bug decoding unsigned long
+	into unsigned int variable ... breaks on amd64
+
+2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSCallBacks.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistantObject.m:
+	* Source/NSMessagePort.m:
+	* Source/NSObject.m:
+	* Source/NSProtocolChecker.m:
+	* Source/NSProxy.m:
+	* Source/NSSocketPort.m:
+	* Source/NSTask.m:
+	* Source/NSThread.m:
+	* Source/NSZone.m:
+	* Source/Additions/GSXML.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	Add explicit casts to avoid compiler warnings where we are on a
+	processor where the size of an integer is not the same as the size
+	of a pointer.
+	* Tools/gdomap.c:
+	Add type casts to fix comparisons on 64bit processor
+
+2006-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSRunLoopCtxt.m: Apply patch by Jeremy Bettis with
+	fixups for intentation/formatting and minor correction to avoid waiting
+	for an event when we have handled one in the current run of the loop.
+
+2006-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: When generating binary plist, fix bug
+	in case where we have to increase table size.
+	* Source/NSKeyedArchiver.m: Update to use binary plist format
+	by default rather than xml format ... MacOS-X compatible and
+	works when libxml2 is not available.
+	* Source/NSKeyedUnarchiver.m: Print NSLog error if attempting to
+	decode an xml archive when no libxml2 is available.
+
+2006-01-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: be more consistent in use of defined values
+	from config file.
+	* configure.in: Improve comments/help.  Fix error in config where we
+	were attempting OS based decisions before we had determined the OS.
+	Improve default paths on mingw to be relative to the DLL.
+	Load information from make package config fo use during build of
+	base library.
+	Generally try to improve user experience on mingw to make build/install
+	really simple with new config files.
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Documentation/Base.gsdoc: Attempt to clarify config file operation.
+
+2006-01-07  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m (BinaryPLGenerator - storeCount:) Handle
+	count > 256*256. Patch by Derek Zhou <dzhou@nvidia.com>.
+
+2006-01-04  David Ayers  <d.ayers@inode.at>
+
+	Bug #15353
+	* Source/NSProcessInfo.m (fallbackInitialisation): Move 
+	initialization to avoid compiler error.  Reported by
+	Stefan van den Oord (stefan.vandenoord@gmail.com).
+	
 2005-12-21  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.11.2

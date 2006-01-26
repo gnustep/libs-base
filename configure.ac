@@ -27,6 +27,7 @@ builtin(include, config/procfs-exe-link.m4)dnl
 builtin(include, config/procfs.m4)dnl
 builtin(include, config/pathxml.m4)dnl
 builtin(include, config/codeset.m4)dnl
+builtin(include, config/addlibrarypath.m4)dnl
 
 AC_INIT
 AC_CONFIG_SRCDIR([Source/NSArray.m])
@@ -35,14 +36,36 @@ if test -z "$GNUSTEP_MAKEFILES"; then
   AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
 fi
 
+#--------------------------------------------------------------------
+# Use config.guess, config.sub and install-sh provided by gnustep-make
+#--------------------------------------------------------------------
+AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
+
+#--------------------------------------------------------------------
+# Use a .h file with #define's, instead of -D command-line switches
+#--------------------------------------------------------------------
+AC_CONFIG_HEADER(Headers/Additions/GNUstepBase/config.h)
+
+#--------------------------------------------------------------------
+# Determine the host, build, and target systems
+#--------------------------------------------------------------------
+AC_CANONICAL_TARGET([])
+
 #---------------------------------------------------------------------
 # Location of the GNUstep.conf config file (--with-config-file)
 #---------------------------------------------------------------------
 AC_MSG_CHECKING([for GNUstep configuration file to use])
+GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
 AC_ARG_WITH(config-file,
 [  --with-config-file=PATH       Specify path to the GNUstep config file.
-				If unspecified, uses the same value as the
-				GNUstep make package.
+				This is the location to be used by the base
+				library to locate oath information at
+				application or tool runtime.
+				If unspecified, this uses the same value as
+				the GNUstep make package on unix-like systems,
+				but uses ./GNUstep.conf on mingw so that
+				it is relative to the location of the
+				base library DLL.
 				If a leading './' is specified, the path
 				is taken to be relative to the base library
 				linked runtime, not all operating systems
@@ -57,7 +80,7 @@ AC_ARG_WITH(config-file,
       mingw*)
 	GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
       *)
-	GNUSTEP_CONFIG_FILE=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'` ;;
+	GNUSTEP_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
     esac
   fi])
 AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
@@ -78,7 +101,8 @@ AC_ARG_ENABLE(environment-config-file,
 				for platforms where the path to the base
 				library can't be determined at runtime
 				and the leading './' in the config file name
-				is therefore not supported.], 
+				is therefore not supported.
+				Normally this should be left disabled.], 
   ac_cv_environment_config_file=$enableval,
   ac_cv_environment_config_file="no")
 if test "$ac_cv_environment_config_file" = "yes"; then
@@ -93,14 +117,20 @@ fi
 
 #
 # Set 'standard' defaults for values from configuration file.
-# On mingw, we assume paths for an isolated, standalone, relocatable package.
+#
+# On mingw, we assume paths relative to the location of the base library -
+# Normally that DLL is stored in the Tools directory of the System domain,
+# so we assume a standard layout relative to that.  For standalone deployment
+# you may want everything in the same directory, in which case the paths for
+# the domains relative to the DLL need to be modified.
+#
 # On unix we assume a standard layout for both development and distribution.
 #
 case "$target_os" in
   mingw*)
-    GNUSTEP_SYSTEM_ROOT=./System
-    GNUSTEP_LOCAL_ROOT=./Local
-    GNUSTEP_NETWORK_ROOT=./Local
+    GNUSTEP_SYSTEM_ROOT=./..\\..\\System
+    GNUSTEP_LOCAL_ROOT=./..\\..\\Local
+    GNUSTEP_NETWORK_ROOT=./..\\..\\Local
     GNUSTEP_USER_DIR=GNUstep
     GNUSTEP_USER_DEFAULTS_DIR=GNUstep\\Defaults
     GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
@@ -147,33 +177,33 @@ then
 				provide default values for the base library
 				to use at runtime if no GNUstep config file
 				is found at runtime.  If this is not specified
-				then the path from --with-config-file is used.],
+				then the path from --with-config-file or from
+				the gnustep-make pacakage is used.],
     GNUSTEP_DEFAULT_CONFIG="$withval", 
     [if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
-      GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
+      if test -f "$GNUSTEP_CONFIG_FILE"; then
+        GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
+      fi
     fi])
   AC_MSG_RESULT($GNUSTEP_DEFAULT_CONFIG)
 
   #
-  # Use the default config file to override standard values.
+  # Only try importing if the default config file has been specified.
   #
-  if test ! -f "$GNUSTEP_DEFAULT_CONFIG"; then
-    AC_MSG_RESULT([fail: file "$GNUSTEP_DEFAULT_CONFIG" does not exist])
-    AC_MSG_NOTICE([Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
-  else
-    AC_MSG_RESULT([trying to import "$GNUSTEP_DEFAULT_CONFIG"])
-    AC_MSG_NOTICE([If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
-    . "$GNUSTEP_DEFAULT_CONFIG"
+  if test "$GNUSTEP_DEFAULT_CONFIG" != ""; then
+    #
+    # Use the default config file to override standard values.
+    #
+    if test ! -f "$GNUSTEP_DEFAULT_CONFIG"; then
+      AC_MSG_RESULT([fail: file "$GNUSTEP_DEFAULT_CONFIG" does not exist])
+      AC_MSG_NOTICE([Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
+    else
+      AC_MSG_RESULT([trying to import "$GNUSTEP_DEFAULT_CONFIG"])
+      AC_MSG_NOTICE([If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
+      . "$GNUSTEP_DEFAULT_CONFIG"
+    fi
   fi
 fi
-
-#
-# Add standard library and header directories for configure to use to locate
-# plain C developer headers/libraries which haver been installed in the
-# GNUstep hierarchy.
-#
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Library/Headers"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_ROOT/Library/Libraries"
 
 #
 # Set the default configuration file values in config.h to be hard-coded
@@ -203,22 +233,24 @@ GNUSTEP_USER_CONFIG_FILE=`echo $GNUSTEP_USER_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_CONFIG_FILE,
   "$GNUSTEP_USER_CONFIG_FILE",
   [Built in default value for GNUstep user config file])
+GNUSTEP_CONFIG_FILE=`echo $GNUSTEP_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_CONFIG_FILE,
+  "$GNUSTEP_CONFIG_FILE",
+  [Built in default value for GNUstep config file])
 
+#
+# Now load the values to be used in locating libraries etc used when
+# building the base library ... as supplied by the gnustep-make package
+#
+. "$GNUSTEP_MAKE_CONFIG"
 
-#--------------------------------------------------------------------
-# Use config.guess, config.sub and install-sh provided by gnustep-make
-#--------------------------------------------------------------------
-AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
-
-#--------------------------------------------------------------------
-# Use a .h file with #define's, instead of -D command-line switches
-#--------------------------------------------------------------------
-AC_CONFIG_HEADER(Headers/Additions/GNUstepBase/config.h)
-
-#--------------------------------------------------------------------
-# Determine the host, build, and target systems
-#--------------------------------------------------------------------
-AC_CANONICAL_TARGET([])
+#
+# Add standard library and header directories for configure to use to locate
+# plain C developer headers/libraries which haver been installed in the
+# GNUstep hierarchy.
+#
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Library/Headers"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_ROOT/Library/Libraries"
 
 #--------------------------------------------------------------------
 # Find the compiler
@@ -403,19 +435,23 @@ AC_SUBST(ac_cv_sizeof_double)
 
 AC_SUBST(ac_cv_sizeof_voidp)
 if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_int; then
-  GS_ADDR="unsigned int"
+  GS_SADDR="int"
+  GS_UADDR="unsigned int"
 else
   if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_long; then
-    GS_ADDR="unsigned long"
+    GS_SADDR="long"
+    GS_UADDR="unsigned long"
   else
     if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_long_long; then
-      GS_ADDR="unsigned long long"
+      GS_SADDR="long long"
+      GS_UADDR="unsigned long long"
     else
       AC_MSG_ERROR([Unable to find integer of same size as void*])
     fi
   fi
 fi
-AC_SUBST(GS_ADDR)
+AC_SUBST(GS_SADDR)
+AC_SUBST(GS_UADDR)
 
 if test $ac_cv_sizeof_short = 2; then
   GS_SINT16="signed short"
@@ -853,6 +889,8 @@ DEFINE_INT32_T="#define int32_t gss32"
 DEFINE_UINT32_T="#define uint32_t gsu32"
 DEFINE_INT64_T="#define int64_t gss64"
 DEFINE_UINT64_T="#define uint64_t gsu64"
+DEFINE_INTPTR_T="#define intptr_t gssaddr"
+DEFINE_UINTPTR_T="#define uintptr_t gsuaddr"
 else
 DEFINE_INT8_T=""
 DEFINE_UINT8_T=""
@@ -862,6 +900,8 @@ DEFINE_INT32_T=""
 DEFINE_UINT32_T=""
 DEFINE_INT64_T=""
 DEFINE_UINT64_T=""
+DEFINE_INTPTR_T=""
+DEFINE_UINTPTR_T=""
 fi
 
 AC_SUBST(INCLUDE_STDINT)
@@ -873,6 +913,8 @@ AC_SUBST(DEFINE_INT32_T)
 AC_SUBST(DEFINE_UINT32_T)
 AC_SUBST(DEFINE_INT64_T)
 AC_SUBST(DEFINE_UINT64_T)
+AC_SUBST(DEFINE_INTPTR_T)
+AC_SUBST(DEFINE_UINTPTR_T)
 
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
@@ -1172,8 +1214,7 @@ AC_ARG_WITH(ffi-library,
 [  --with-ffi-library=PATH       Library path for ffi (ffcall/libffi) libs],
     ffi_libdir="$withval", ffi_libdir="no")
 if test ${ffi_libdir} != "no"; then
-    LDFLAGS="$LDFLAGS -L${ffi_libdir}"
-    LDIR_FLAGS="$LDIR_FLAGS -L${ffi_libdir}"
+GS_ADD_LIBRARY_PATH([${ffi_libdir}])
 fi
 
 AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
@@ -1288,8 +1329,7 @@ if test $found_iconv = no ; then
     libiconv_libdir="$withval", libiconv_libdir="no")
 
   if test "$libiconv_libdir" != "no"; then
-    LDFLAGS="$LDFLAGS -L$libiconv_libdir"
-    LDIR_FLAGS="$LDIR_FLAGS -L$libiconv_libdir"
+	GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
   fi
 
   old_LIBS="$LIBS"
@@ -1413,8 +1453,7 @@ if test "$gmp_incdir" != "no"; then
   INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
 fi
 if test "$gmp_libdir" != "no"; then
-  LDFLAGS="$LDFLAGS -L$gmp_libdir"
-  LDIR_FLAGS="$LDIR_FLAGS -L$gmp_libdir"
+  GS_ADD_LIBRARY_PATH([${gmp_libdir}])
 fi
 
 USE_GMP=0

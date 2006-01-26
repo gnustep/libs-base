@@ -267,21 +267,21 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       switch (info->type)
 	{
 	  case ET_EDESC: 
-	    fd = (int)info->data;
+	    fd = (int)(intptr_t)info->data;
 	    setPollfd(fd, POLLPRI, self);
-	    NSMapInsert(_efdMap, (void*)fd, info);
+	    NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
 	    break;
 
 	  case ET_RDESC: 
-	    fd = (int)info->data;
+	    fd = (int)(intptr_t)info->data;
 	    setPollfd(fd, POLLIN, self);
-	    NSMapInsert(_rfdMap, (void*)fd, info);
+	    NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
 	    break;
 
 	  case ET_WDESC: 
-	    fd = (int)info->data;
+	    fd = (int)(intptr_t)info->data;
 	    setPollfd(fd, POLLOUT, self);
-	    NSMapInsert(_wfdMap, (void*)fd, info);
+	    NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
 	    break;
 
 	  case ET_RPORT: 
@@ -312,7 +312,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		    fd = port_fd_array[port_fd_count];
 		    setPollfd(fd, POLLIN, self);
 		    NSMapInsert(_rfdMap, 
-		      (void*)port_fd_array[port_fd_count], info);
+		      (void*)(intptr_t)port_fd_array[port_fd_count], info);
 		  }
 	      }
 	    break;
@@ -421,7 +421,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	   */
 	  if (pollfds[fdIndex].revents & (POLLPRI|POLLERR|POLLHUP|POLLNVAL))
 	    {
-	      watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fd);
+	      watcher
+		= (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)(intptr_t)fd);
 	      if (watcher != nil && watcher->_invalidated == NO)
 		{
 		  i = [contexts count];
@@ -429,7 +430,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		    {
 		      GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		      if (c != self) [c endEvent: (void*)fd type: ET_EDESC];
+		      if (c != self)
+			{
+			  [c endEvent: (void*)(intptr_t)fd type: ET_EDESC];
+			}
 		    }
 		  /*
 		   * The watcher is still valid - so call its
@@ -437,7 +441,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		   */
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
+		    (void*)(uintptr_t)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -448,7 +452,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    }
 	  if (pollfds[fdIndex].revents & (POLLOUT|POLLERR|POLLHUP|POLLNVAL))
 	    {
-	      watcher = (GSRunLoopWatcher*)NSMapGet(_wfdMap, (void*)fd);
+	      watcher
+		= (GSRunLoopWatcher*)NSMapGet(_wfdMap, (void*)(intptr_t)fd);
 	      if (watcher != nil && watcher->_invalidated == NO)
 		{
 		  i = [contexts count];
@@ -456,7 +461,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		    {
 		      GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		      if (c != self) [c endEvent: (void*)fd type: ET_WDESC];
+		      if (c != self)
+			{
+			  [c endEvent: (void*)(intptr_t)fd type: ET_WDESC];
+			}
 		    }
 		  /*
 		   * The watcher is still valid - so call its
@@ -464,7 +472,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		   */
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
+		    (void*)(uintptr_t)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -475,7 +483,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    }
 	  if (pollfds[fdIndex].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))
 	    {
-	      watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fd);
+	      watcher
+		= (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)(intptr_t)fd);
 	      if (watcher != nil && watcher->_invalidated == NO)
 		{
 		  i = [contexts count];
@@ -483,7 +492,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		    {
 		      GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		      if (c != self) [c endEvent: (void*)fd type: ET_RDESC];
+		      if (c != self)
+			{
+			  [c endEvent: (void*)(intptr_t)fd type: ET_RDESC];
+			}
 		    }
 		  /*
 		   * The watcher is still valid - so call its
@@ -491,7 +503,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		   */
 		  (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
+		    (void*)(uintptr_t)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -586,29 +598,29 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       switch (info->type)
 	{
 	  case ET_EDESC: 
-	    fd = (int)info->data;
+	    fd = (int)(intptr_t)info->data;
 	    if (fd > fdEnd)
 	      fdEnd = fd;
 	    FD_SET (fd, &exception_fds);
-	    NSMapInsert(_efdMap, (void*)fd, info);
+	    NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
 	    num_inputs++;
 	    break;
 
 	  case ET_RDESC: 
-	    fd = (int)info->data;
+	    fd = (int)(intptr_t)info->data;
 	    if (fd > fdEnd)
 	      fdEnd = fd;
 	    FD_SET (fd, &read_fds);
-	    NSMapInsert(_rfdMap, (void*)fd, info);
+	    NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
 	    num_inputs++;
 	    break;
 
 	  case ET_WDESC: 
-	    fd = (int)info->data;
+	    fd = (int)(intptr_t)info->data;
 	    if (fd > fdEnd)
 	      fdEnd = fd;
 	    FD_SET (fd, &write_fds);
-	    NSMapInsert(_wfdMap, (void*)fd, info);
+	    NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
 	    num_inputs++;
 	    break;
 
@@ -642,7 +654,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	            if (fd > fdEnd)
 		      fdEnd = fd;
 		    NSMapInsert(_rfdMap, 
-		      (void*)port_fd_array[port_fd_count], info);
+		      (void*)(intptr_t)port_fd_array[port_fd_count], info);
 		    num_inputs++;
 		  }
 	      }
@@ -743,7 +755,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
+		(void*)(uintptr_t)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -772,7 +784,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
+		(void*)(uintptr_t)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -801,7 +813,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
+		(void*)(uintptr_t)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)

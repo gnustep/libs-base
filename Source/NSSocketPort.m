@@ -105,7 +105,7 @@
 /*
  * Largest chunk of data possible in DO
  */
-static gsu32	maxDataLength = 32 * 1024 * 1024;
+static uint32_t	maxDataLength = 32 * 1024 * 1024;
 
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"GSTcpHandleLock",@"lock %@ in %@",X,[NSThread currentThread]); [X lock];}
@@ -148,8 +148,8 @@ typedef	enum {
  * Its contents are transmitted in network byte order.
  */
 typedef struct {
-  gsu32	type;		/* A GSPortItemType as a 4-byte number.		*/
-  gsu32	length;		/* The length of the item (excluding header).	*/
+  uint32_t	type;	/* A GSPortItemType as a 4-byte number.		*/
+  uint32_t	length;	/* The length of the item (excluding header).	*/
 } GSPortItemHeader;
 
 /*
@@ -159,12 +159,12 @@ typedef struct {
  * NB. additional data counts as part of the same item.
  */
 typedef struct {
-  gsu32	mId;		/* The ID for the message starting with this.	*/
-  gsu32	nItems;		/* Number of items (including this one).	*/
+  uint32_t	mId;	/* The ID for the message starting with this.	*/
+  uint32_t	nItems;	/* Number of items (including this one).	*/
 } GSPortMsgHeader;
 
 typedef	struct {
-  gsu16 num;		/* TCP port num	*/
+  uint16_t num;		/* TCP port num	*/
   char	addr[0];	/* host address	*/
 } GSPortInfo;
 
@@ -193,11 +193,11 @@ typedef enum {
   unsigned		wLength;	/* Ammount written so far.	*/
   NSMutableArray	*wMsgs;		/* Message in progress.		*/
   NSMutableData		*rData;		/* Buffer for incoming data	*/
-  gsu32			rLength;	/* Amount read so far.		*/
-  gsu32			rWant;		/* Amount desired.		*/
+  uint32_t		rLength;	/* Amount read so far.		*/
+  uint32_t		rWant;		/* Amount desired.		*/
   NSMutableArray	*rItems;	/* Message in progress.		*/
   GSPortItemType	rType;		/* Type of data being read.	*/
-  gsu32			rId;		/* Id of incoming message.	*/
+  uint32_t		rId;		/* Id of incoming message.	*/
   unsigned		nItems;		/* Number of items to be read.	*/
   GSHandleState		state;		/* State of the handle.		*/
   unsigned int		addrNum;	/* Address number within host.	*/
@@ -253,8 +253,8 @@ decodePort(NSData *data, NSString *defaultAddress)
   GSPortItemHeader	*pih;
   GSPortInfo		*pi;
   NSString		*addr;
-  gsu16			pnum;
-  gsu32			length;
+  uint16_t		pnum;
+  uint32_t		length;
   NSHost		*host;
   unichar		c;
 
@@ -306,7 +306,7 @@ newDataWithEncodedPort(NSSocketPort *port)
   NSMutableData		*data;
   unsigned		plen;
   NSString		*addr;
-  gsu16			pnum;
+  uint16_t		pnum;
 
   pnum = [port portNumber];
   addr = [port address];
@@ -569,29 +569,29 @@ static Class	runLoopClass;
   l = [NSRunLoop currentRunLoop];
 #if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
-  [l addEvent: (void*)(gsaddr)event
+  [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)event
+  [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
       watcher: self
       forMode: NSDefaultRunLoopMode];
   inReplyMode = YES;
 #else
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
@@ -606,29 +606,29 @@ static Class	runLoopClass;
     }
 
 #if	defined(__MINGW32__)
-  [l removeEvent: (void*)(gsaddr)event
+  [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)event
+  [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
   inReplyMode = NO;
 #else
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
@@ -722,20 +722,20 @@ static Class	runLoopClass;
 	  valid = NO;
 	  l = [runLoopClass currentRunLoop];
 #if	defined(__MINGW32__)
-	  [l removeEvent: (void*)(gsaddr)event
+	  [l removeEvent: (void*)(uintptr_t)event
 		    type: ET_HANDLE
 		 forMode: nil
 		     all: YES];
 #else
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_RDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_WDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(gsaddr)desc
+	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_EDESC
 		 forMode: nil
 		     all: YES];
@@ -1353,29 +1353,29 @@ static Class	runLoopClass;
 
 #if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
-  [l addEvent: (void*)(gsaddr)event
+  [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)event
+  [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
       watcher: self
       forMode: NSDefaultRunLoopMode];
   inReplyMode = YES;
 #else
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(gsaddr)desc
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
@@ -1402,29 +1402,29 @@ static Class	runLoopClass;
     }
 
 #if	defined(__MINGW32__)
-  [l removeEvent: (void*)(gsaddr)event
+  [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)event
+  [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
   inReplyMode = NO;
 #else
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSConnectionReplyMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
-  [l removeEvent: (void*)(gsaddr)desc
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
@@ -1488,17 +1488,10 @@ static NSRecursiveLock	*tcpPortLock = nil;
 static NSMapTable	*tcpPortMap = 0;
 static Class		tcpPortClass;
 
-#if NEED_WORD_ALIGNMENT
-static unsigned	wordAlign;
-#endif
-
 + (void) initialize
 {
   if (self == [NSSocketPort class])
     {
-#if NEED_WORD_ALIGNMENT
-      wordAlign = objc_alignof_type(@encode(gsu32));
-#endif
       tcpPortClass = self;
       tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
@@ -1518,7 +1511,7 @@ static unsigned	wordAlign;
 /*
  * Look up an existing NSSocketPort given a host and number
  */
-+ (NSSocketPort*) existingPortWithNumber: (gsu16)number
++ (NSSocketPort*) existingPortWithNumber: (uint16_t)number
 			       onHost: (NSHost*)aHost
 {
   NSSocketPort	*port = nil;
@@ -1529,7 +1522,7 @@ static unsigned	wordAlign;
   /*
    *	Get the map table of ports with the specified number.
    */
-  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
+  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(uintptr_t)number);
   if (thePorts != 0)
     {
       port = (NSSocketPort*)NSMapGet(thePorts, (void*)aHost);
@@ -1550,7 +1543,7 @@ static unsigned	wordAlign;
  * then, for the local host, the port uses ALL IP addresses, and for a
  * remote host, the port will use the first address that works.
  */
-+ (NSSocketPort*) portWithNumber: (gsu16)number
++ (NSSocketPort*) portWithNumber: (uint16_t)number
 			  onHost: (NSHost*)aHost
 		    forceAddress: (NSString*)addr
 			listener: (BOOL)shouldListen
@@ -1585,7 +1578,7 @@ static unsigned	wordAlign;
   /*
    * First try to find a pre-existing port.
    */
-  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
+  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(uintptr_t)number);
   if (thePorts != 0)
     {
       port = (NSSocketPort*)NSMapGet(thePorts, (void*)aHost);
@@ -1719,7 +1712,7 @@ static unsigned	wordAlign;
 	       * Make sure we have the map table for this port.
 	       */
 	      thePorts = (NSMapTable*)NSMapGet(tcpPortMap,
-		(void*)(gsaddr)port->portNum);
+		(void*)(uintptr_t)port->portNum);
 	      if (thePorts == 0)
 		{
 		  /*
@@ -1728,7 +1721,7 @@ static unsigned	wordAlign;
 		   */
 		  thePorts = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		    NSNonOwnedPointerMapValueCallBacks, 0);
-		  NSMapInsert(tcpPortMap, (void*)(gsaddr)port->portNum,
+		  NSMapInsert(tcpPortMap, (void*)(uintptr_t)port->portNum,
 		    (void*)thePorts);
 		}
 	      /*
@@ -1744,7 +1737,7 @@ static unsigned	wordAlign;
 	   * Make sure we have the map table for this port.
 	   */
 	  port->portNum = number;
-	  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(gsaddr)number);
+	  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(uintptr_t)number);
 	  if (thePorts == 0)
 	    {
 	      /*
@@ -1753,7 +1746,7 @@ static unsigned	wordAlign;
 	       */
 	      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
 			      NSNonOwnedPointerMapValueCallBacks, 0);
-	      NSMapInsert(tcpPortMap, (void*)(gsaddr)number, (void*)thePorts);
+	      NSMapInsert(tcpPortMap, (void*)(uintptr_t)number, (void*)thePorts);
 	    }
 	  /*
 	   * Record the port by host.
@@ -1787,10 +1780,10 @@ static unsigned	wordAlign;
     {
       handle->recvPort = GS_GC_HIDE(self);
     }
-  NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
+  NSMapInsert(handles, (void*)(uintptr_t)[handle descriptor], (void*)handle);
 #if	defined(__MINGW32__)
-  NSMapInsert(events, (void*)(gsaddr)[handle eventHandle],
-          (void*)(gsaddr)[handle descriptor]);
+  NSMapInsert(events, (void*)(uintptr_t)[handle eventHandle],
+          (void*)(uintptr_t)[handle descriptor]);
 #endif
   M_UNLOCK(myLock);
 }
@@ -1864,7 +1857,7 @@ static unsigned	wordAlign;
   *count = 0;
   if (eventListener != WSA_INVALID_EVENT)
     {
-      fds[(*count)++] = (gsaddr)eventListener;
+      fds[(*count)++] = (uintptr_t)eventListener;
     }
 
   /*
@@ -1875,10 +1868,10 @@ static unsigned	wordAlign;
   me = NSEnumerateMapTable(events);
   while (NSNextMapEnumeratorPair(&me, &event, (void**)&fd))
     { 
-      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)fd);
+      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)fd);
       if (handle->recvPort == recvSelf && handle->inReplyMode == NO)
 	{
-	  fds[(*count)++] = (gsaddr)event;
+	  fds[(*count)++] = (uintptr_t)event;
 	}
     }
   NSEndMapTableEnumeration(&me);
@@ -1919,7 +1912,7 @@ static unsigned	wordAlign;
     {
       if (handle->recvPort == recvSelf)
 	{
-	  fds[(*count)++] = (SOCKET)sock;
+	  fds[(*count)++] = (int)(intptr_t)sock;
 	}
     }
   NSEndMapTableEnumeration(&me);
@@ -2073,7 +2066,7 @@ static unsigned	wordAlign;
 	  unsigned	i;
 
 	  M_LOCK(tcpPortLock);
-	  thePorts = NSMapGet(tcpPortMap, (void*)(gsaddr)portNum);
+	  thePorts = NSMapGet(tcpPortMap, (void*)(uintptr_t)portNum);
 	  if (thePorts != 0)
 	    {
 	      if (listener >= 0)
@@ -2141,7 +2134,7 @@ static unsigned	wordAlign;
   return NO;
 }
 
-- (gsu16) portNumber
+- (uint16_t) portNumber
 {
   return portNum;
 }
@@ -2155,7 +2148,7 @@ static unsigned	wordAlign;
   WSAEVENT      event = (WSAEVENT)extra;
   SOCKET	desc;
 #else
-  SOCKET	desc = (SOCKET)(gsaddr)extra;
+  SOCKET	desc = (SOCKET)(uintptr_t)extra;
 #endif
   GSTcpHandle	*handle;
 
@@ -2204,9 +2197,9 @@ static unsigned	wordAlign;
     {
       M_LOCK(myLock);
 #if	defined(__MINGW32__)
-      desc = (SOCKET)NSMapGet(events, (void*)(gsaddr)event);
+      desc = (SOCKET)NSMapGet(events, (void*)(uintptr_t)event);
 #endif
-      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
+      handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
       IF_NO_GC(AUTORELEASE(RETAIN(handle)));
       M_UNLOCK(myLock);
       if (handle == nil)
@@ -2262,9 +2255,9 @@ static unsigned	wordAlign;
     {
       handle->recvPort = nil;
     }
-  NSMapRemove(handles, (void*)(gsaddr)[handle descriptor]);
+  NSMapRemove(handles, (void*)(uintptr_t)[handle descriptor]);
 #if	defined(__MINGW32__)
-  NSMapRemove(events, (void*)(gsaddr)[handle eventHandle]);
+  NSMapRemove(events, (void*)(uintptr_t)[handle eventHandle]);
 #endif
   if (((int) listener) < 0 && NSCountMapTable(handles) == 0)
     {
@@ -2394,7 +2387,7 @@ static unsigned	wordAlign;
 		   * word boundary, so we work with an aligned buffer
 		   * and use memcmpy()
 		   */
-		  if ((hLength % wordAlign) != 0)
+		  if ((hLength % __alignof__(uint32_t)) != 0)
 		    {
 		      GSPortItemHeader	itemHeader;
 

@@ -335,19 +335,10 @@ failure:
  */
 @implementation NSData
 
-#if NEED_WORD_ALIGNMENT
-static unsigned	gsu16Align;
-static unsigned	gsu32Align;
-#endif
-
 + (void) initialize
 {
   if (self == [NSData class])
     {
-#if NEED_WORD_ALIGNMENT
-      gsu16Align = objc_alignof_type(@encode(gsu16));
-      gsu32Align = objc_alignof_type(@encode(gsu32));
-#endif
       NSDataAbstract = self;
       NSMutableDataAbstract = [NSMutableData class];
       dataMalloc = [NSDataMalloc class];
@@ -1170,7 +1161,7 @@ failure:
 	}
       case _C_CHARPTR:
 	{
-	  gss32 length;
+	  int32_t length;
 
 	  [self deserializeBytes: &length
 			  length: sizeof(length)
@@ -1340,7 +1331,7 @@ failure:
 	}
       case _C_CLASS:
 	{
-	  gsu16 ni;
+	  uint16_t ni;
 
 	  [self deserializeBytes: &ni
 			  length: sizeof(ni)
@@ -1372,8 +1363,8 @@ failure:
 	}
       case _C_SEL:
 	{
-	  gsu16	ln;
-	  gsu16	lt;
+	  uint16_t	ln;
+	  uint16_t	lt;
 
 	  [self deserializeBytes: &ln
 			  length: sizeof(ln)
@@ -1588,7 +1579,7 @@ failure:
 		   atCursor: (unsigned int*)cursor
 {
   [self deserializeDataAt: (void*)tag
-	       ofObjCType: @encode(gsu8)
+	       ofObjCType: @encode(uint8_t)
 		 atCursor: cursor
 		  context: nil];
   if (*tag & _GSC_MAYX)
@@ -1601,10 +1592,10 @@ failure:
 	    }
 	  case _GSC_X_1:
 	    {
-	      gsu8	x;
+	      uint8_t	x;
 
 	      [self deserializeDataAt: (void*)&x
-			   ofObjCType: @encode(gsu8)
+			   ofObjCType: @encode(uint8_t)
 			     atCursor: cursor
 			      context: nil];
 	      *ref = (unsigned int)x;
@@ -1612,10 +1603,10 @@ failure:
 	    }
 	  case _GSC_X_2:
 	    {
-	      gsu16	x;
+	      uint16_t	x;
 
 	      [self deserializeDataAt: (void*)&x
-			   ofObjCType: @encode(gsu16)
+			   ofObjCType: @encode(uint16_t)
 			     atCursor: cursor
 			      context: nil];
 	      *ref = (unsigned int)x;
@@ -1623,10 +1614,10 @@ failure:
 	    }
 	  default:
 	    {
-	      gsu32	x;
+	      uint32_t	x;
 
 	      [self deserializeDataAt: (void*)&x
-			   ofObjCType: @encode(gsu32)
+			   ofObjCType: @encode(uint32_t)
 			     atCursor: cursor
 			      context: nil];
 	      *ref = (unsigned int)x;
@@ -1770,7 +1761,7 @@ failure:
   unsigned	length = [self length];
   void		*bytes = [self mutableBytes];
 
-  [aCoder encodeValueOfObjCType: @encode(unsigned long)
+  [aCoder encodeValueOfObjCType: @encode(unsigned int)
 			     at: &length];
   if (length)
     {
@@ -1802,7 +1793,7 @@ failure:
   zone = [self zone];
 #endif
 
-  [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
+  [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &l];
   if (l)
     {
       void	*b = NSZoneMalloc(zone, l);
@@ -2045,17 +2036,17 @@ failure:
 
       case _C_CHARPTR:
 	{
-	  gsu32	len;
-	  gsu32	ni;
+	  uint32_t	len;
+	  uint32_t	ni;
 
 	  if (!*(void**)data)
 	    {
-	      ni = (gsu32)-1;
+	      ni = (uint32_t)-1;
 	      ni = GSSwapHostI32ToBig(ni);
 	      [self appendBytes: (void*)&ni length: sizeof(ni)];
 	      return;
 	    }
-	  len = (gsu32)strlen(*(void**)data);
+	  len = (uint32_t)strlen(*(void**)data);
 	  ni = GSSwapHostI32ToBig(len);
 	  [self appendBytes: (void*)&ni length: sizeof(ni)];
 	  [self appendBytes: *(void**)data length: len];
@@ -2158,8 +2149,8 @@ failure:
       case _C_CLASS:
 	{
 	  const char  *name = *(Class*)data?GSNameFromClass(*(Class*)data):"";
-	  gsu16	ln = (gsu16)strlen(name);
-	  gsu16	ni;
+	  uint16_t	ln = (uint16_t)strlen(name);
+	  uint16_t	ni;
 
 	  ni = GSSwapHostI16ToBig(ln);
 	  [self appendBytes: &ni length: sizeof(ni)];
@@ -2172,10 +2163,10 @@ failure:
       case _C_SEL:
 	{
 	  const char  *name = *(SEL*)data?GSNameFromSelector(*(SEL*)data):"";
-	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
+	  uint16_t	ln = (name == 0) ? 0 : (uint16_t)strlen(name);
 	  const char  *types = *(SEL*)data?GSTypesFromSelector(*(SEL*)data):"";
-	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
-	  gsu16	ni;
+	  uint16_t	lt = (types == 0) ? 0 : (uint16_t)strlen(types);
+	  uint16_t	ni;
 
 	  ni = GSSwapHostI16ToBig(ln);
 	  [self appendBytes: &ni length: sizeof(ni)];
@@ -2337,38 +2328,38 @@ failure:
 {
   if (xref <= 0xff)
     {
-      gsu8	x = (gsu8)xref;
+      uint8_t	x = (uint8_t)xref;
 
       tag = (tag & ~_GSC_SIZE) | _GSC_X_1;
       [self serializeDataAt: (void*)&tag
 		 ofObjCType: @encode(unsigned char)
 		    context: nil];
       [self serializeDataAt: (void*)&x
-		 ofObjCType: @encode(gsu8)
+		 ofObjCType: @encode(uint8_t)
 		    context: nil];
     }
   else if (xref <= 0xffff)
     {
-      gsu16	x = (gsu16)xref;
+      uint16_t	x = (uint16_t)xref;
 
       tag = (tag & ~_GSC_SIZE) | _GSC_X_2;
       [self serializeDataAt: (void*)&tag
 		 ofObjCType: @encode(unsigned char)
 		    context: nil];
       [self serializeDataAt: (void*)&x
-		 ofObjCType: @encode(gsu16)
+		 ofObjCType: @encode(uint16_t)
 		    context: nil];
     }
   else
     {
-      gsu32	x = (gsu32)xref;
+      uint32_t	x = (uint32_t)xref;
 
       tag = (tag & ~_GSC_SIZE) | _GSC_X_4;
       [self serializeDataAt: (void*)&tag
 		 ofObjCType: @encode(unsigned char)
 		    context: nil];
       [self serializeDataAt: (void*)&x
-		 ofObjCType: @encode(gsu32)
+		 ofObjCType: @encode(uint32_t)
 		    context: nil];
     }
 }
@@ -2493,7 +2484,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_CHARPTR:
 	{
-	  gss32 len;
+	  int32_t len;
 
 	  [self deserializeBytes: &len
 			  length: sizeof(len)
@@ -2644,7 +2635,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_CLASS:
 	{
-	  gsu16	ni;
+	  uint16_t	ni;
 
 	  getBytes((void*)&ni, bytes, sizeof(ni), length, cursor);
 	  ni = GSSwapBigI16ToHost(ni);
@@ -2672,8 +2663,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_SEL:
 	{
-	  gsu16	ln;
-	  gsu16	lt;
+	  uint16_t	ln;
+	  uint16_t	lt;
 
 	  getBytes((void*)&ln, bytes, sizeof(ln), length, cursor);
 	  ln = GSSwapBigI16ToHost(ln);
@@ -2760,7 +2751,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    }
 	  case _GSC_X_2:
 	    {
-	      gsu16	x;
+	      uint16_t	x;
 
 	      if (*cursor >= length-1)
 		{
@@ -2769,18 +2760,18 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 			  *cursor, length];
 		}
 #if NEED_WORD_ALIGNMENT
-	      if ((*cursor % gsu16Align) != 0)
+	      if ((*cursor % __alignof__(uint16_t)) != 0)
 		memcpy(&x, (bytes + *cursor), 2);
 	      else
 #endif
-	      x = *(gsu16*)(bytes + *cursor);
+	      x = *(uint16_t*)(bytes + *cursor);
 	      *cursor += 2;
 	      *ref = (unsigned int)GSSwapBigI16ToHost(x);
 	      return;
 	    }
 	  default:
 	    {
-	      gsu32	x;
+	      uint32_t	x;
 
 	      if (*cursor >= length-3)
 		{
@@ -2789,11 +2780,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 			  *cursor, length];
 		}
 #if NEED_WORD_ALIGNMENT
-	      if ((*cursor % gsu32Align) != 0)
+	      if ((*cursor % __alignof__(uint32_t)) != 0)
 		memcpy(&x, (bytes + *cursor), 4);
 	      else
 #endif
-	      x = *(gsu32*)(bytes + *cursor);
+	      x = *(uint32_t*)(bytes + *cursor);
 	      *cursor += 4;
 	      *ref = (unsigned int)GSSwapBigI32ToHost(x);
 	      return;
@@ -3288,8 +3279,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       case _C_CHARPTR:
 	{
 	  unsigned	len;
-	  gss32		ni;
-	  gsu32		minimum;
+	  int32_t	ni;
+	  uint32_t	minimum;
 
 	  if (!*(void**)data)
 	    {
@@ -3320,7 +3311,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  unsigned	size;
 	  unsigned	count = atoi(++type);
 	  unsigned	i;
-	  gsu32		minimum;
+	  uint32_t	minimum;
 
 	  while (isdigit(*type))
 	    {
@@ -3421,9 +3412,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       case _C_CLASS:
 	{
 	  const char  *name = *(Class*)data?GSNameFromClass(*(Class*)data):"";
-	  gsu16	ln = (gsu16)strlen(name);
-	  gsu32	minimum = length + ln + sizeof(gsu16);
-	  gsu16	ni;
+	  uint16_t	ln = (uint16_t)strlen(name);
+	  uint32_t	minimum = length + ln + sizeof(uint16_t);
+	  uint16_t	ni;
 
 	  if (minimum > capacity)
 	    {
@@ -3442,11 +3433,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       case _C_SEL:
 	{
 	  const char  *name = *(SEL*)data?GSNameFromSelector(*(SEL*)data):"";
-	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
+	  uint16_t	ln = (name == 0) ? 0 : (uint16_t)strlen(name);
 	  const char  *types = *(SEL*)data?GSTypesFromSelector(*(SEL*)data):"";
-	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
-	  gsu32	minimum = length + ln + lt + 2*sizeof(gsu16);
-	  gsu16	ni;
+	  uint16_t	lt = (types == 0) ? 0 : (uint16_t)strlen(types);
+	  uint32_t	minimum = length + ln + lt + 2*sizeof(uint16_t);
+	  uint16_t	ni;
 
 	  if (minimum > capacity)
 	    {
@@ -3495,49 +3486,49 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  [self _grow: length + 2];
 	}
-      *(gsu8*)(bytes + length++) = tag;
-      *(gsu8*)(bytes + length++) = xref;
+      *(uint8_t*)(bytes + length++) = tag;
+      *(uint8_t*)(bytes + length++) = xref;
     }
   else if (xref <= 0xffff)
     {
-      gsu16	x = (gsu16)xref;
+      uint16_t	x = (uint16_t)xref;
 
       tag = (tag & ~_GSC_SIZE) | _GSC_X_2;
       if (length + 3 >= capacity)
 	{
 	  [self _grow: length + 3];
 	}
-      *(gsu8*)(bytes + length++) = tag;
+      *(uint8_t*)(bytes + length++) = tag;
 #if NEED_WORD_ALIGNMENT
-      if ((length % gsu16Align) != 0)
+      if ((length % __alignof__(uint16_t)) != 0)
 	{
 	  x = GSSwapHostI16ToBig(x);
 	  memcpy((bytes + length), &x, 2);
 	}
       else
 #endif
-      *(gsu16*)(bytes + length) = GSSwapHostI16ToBig(x);
+      *(uint16_t*)(bytes + length) = GSSwapHostI16ToBig(x);
       length += 2;
     }
   else
     {
-      gsu32	x = (gsu32)xref;
+      uint32_t	x = (uint32_t)xref;
 
       tag = (tag & ~_GSC_SIZE) | _GSC_X_4;
       if (length + 5 >= capacity)
 	{
 	  [self _grow: length + 5];
 	}
-      *(gsu8*)(bytes + length++) = tag;
+      *(uint8_t*)(bytes + length++) = tag;
 #if NEED_WORD_ALIGNMENT
-      if ((length % gsu32Align) != 0)
+      if ((length % __alignof__(uint32_t)) != 0)
 	{
 	  x = GSSwapHostI32ToBig(x);
 	  memcpy((bytes + length), &x, 4);
 	}
       else
 #endif
-      *(gsu32*)(bytes + length) = GSSwapHostI32ToBig(x);
+      *(uint32_t*)(bytes + length) = GSSwapHostI32ToBig(x);
       length += 4;
     }
 }
@@ -3758,7 +3749,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    size, GSLastErrorStr(errno)];
 	}
       tmp = shmat(newid, 0, 0);
-      if ((int)tmp == -1)			/* Attached memory? */
+      if ((intptr_t)tmp == -1)			/* Attached memory? */
 	{
 	  [NSException raise: NSMallocException
 		      format: @"Unable to attach to shared memory segment."];

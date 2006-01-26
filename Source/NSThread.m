@@ -703,7 +703,10 @@ gnustep_base_thread_callback(void)
   DESTROY(_thread_dictionary);
   DESTROY(_target);
   DESTROY(_arg);
-  [NSAutoreleasePool _endThread: self];
+  if (_autorelease_vars.pool_cache != 0)
+    {
+      [NSAutoreleasePool _endThread: self];
+    }
 
   if (_thread_dictionary != nil)
     {
@@ -711,11 +714,17 @@ gnustep_base_thread_callback(void)
        * Try again to get rid of thread dictionary.
        */
       DESTROY(_thread_dictionary);
-      [NSAutoreleasePool _endThread: self];
+      if (_autorelease_vars.pool_cache != 0)
+	{
+	  [NSAutoreleasePool _endThread: self];
+	}
       if (_thread_dictionary != nil)
 	{
 	  NSLog(@"Oops - leak - thread dictionary is %@", _thread_dictionary);
-	  [NSAutoreleasePool _endThread: self];
+	  if (_autorelease_vars.pool_cache != 0)
+	    {
+	      [NSAutoreleasePool _endThread: self];
+	    }
 	}
     }
   if (self == defaultThread)
@@ -828,7 +837,7 @@ static NSDate *theFuture;
       }
     for (i = 0; i < count; i++)
       {
-	[loop addEvent: (void*)inputFd
+	[loop addEvent: (void*)(intptr_t)inputFd
 		  type: ET_RDESC
 	       watcher: (id<RunLoopEvents>)self
 	       forMode: [m objectAtIndex: i]];

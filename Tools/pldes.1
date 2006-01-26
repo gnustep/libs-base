@@ -15,6 +15,8 @@ pl, pldes, plser, plmerge, plparse, pl2link	\- property list tools
 .nf
 .BI "pldes " "filename(s)"
 .nl
+.BI "plget " "key" [ more keys ]
+.nl
 .BI "plser " "filename(s)"
 .nl
 .BI "plmerge [ " "destination-file" " ] [ " "input-file(s)" " ]"
@@ -42,6 +44,11 @@ manipulating the various persistent property list representations as files.
 .IP "\fBpldes\fR \fIfilename(s)\fR" 4
 Converts a binary serialised property list (class instance) to a text
 representation.
+.IP "\fBplget\fR \fIkey\fR" 4
+Reads a text representation of a dictionary in property list format as
+standard input, extracts the string value held in that dictionary with
+the specified key, and writes the result to standard output.
+Multiple keys may be used to extract values from nested dictionaries.
 .IP "\fBplser\fR \fIfilename(s)\fR" 4
 Converts a text representation of a property list to a binary serialized
 representation.
@@ -67,7 +74,7 @@ Written 1999-2000.
 This manual page first appeared in gnustep-base 1.9.2 (March 2004).
 .P
 .SH AUTHORS
-.B pldes, plparse, plser
+.B pldes, plget, plparse, plser
 were written by Richard Frith-McDonald <rfm@gnu.org>.
 .PP
 .B plmerge

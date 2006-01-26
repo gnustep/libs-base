@@ -79,8 +79,8 @@ typedef	enum {
  * Its contents are transmitted in network byte order.
  */
 typedef struct {
-  gsu32	type;		/* A GSPortItemType as a 4-byte number.		*/
-  gsu32	length;		/* The length of the item (excluding header).	*/
+  uint32_t	type;	/* A GSPortItemType as a 4-byte number.		*/
+  uint32_t	length;	/* The length of the item (excluding header).	*/
 } GSPortItemHeader;
 
 /*
@@ -90,8 +90,8 @@ typedef struct {
  * NB. additional data counts as part of the same item.
  */
 typedef struct {
-  gsu32	mId;		/* The ID for the message starting with this.	*/
-  gsu32	nItems;		/* Number of items (including this one).	*/
+  uint32_t	mId;	/* The ID for the message starting with this.	*/
+  uint32_t	nItems;	/* Number of items (including this one).	*/
   unsigned char version;
   unsigned char	port[16];
 } GSPortMsgHeader;
@@ -127,6 +127,8 @@ typedef	struct {
 
 @implementation	NSMessagePort
 
+static SECURITY_ATTRIBUTES	security;
+
 static NSRecursiveLock	*messagePortLock = nil;
 
 /*
@@ -134,10 +136,6 @@ static NSRecursiveLock	*messagePortLock = nil;
  */
 static NSMapTable	*ports = 0;
 static Class		messagePortClass = 0;
-
-#if NEED_WORD_ALIGNMENT
-static unsigned	wordAlign;
-#endif
 
 - (BOOL) _setupSendPort
 {
@@ -156,7 +154,7 @@ static unsigned	wordAlign;
 	UNISTR(path),
 	GENERIC_WRITE,
 	FILE_SHARE_READ|FILE_SHARE_WRITE,
-	(LPSECURITY_ATTRIBUTES)0,
+	&security,
 	OPEN_EXISTING,
 	FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
 	(HANDLE)0);
@@ -183,14 +181,15 @@ static unsigned	wordAlign;
 {
   if (self == [NSMessagePort class])
     {
-#if NEED_WORD_ALIGNMENT
-      wordAlign = objc_alignof_type(@encode(gsu32));
-#endif
       messagePortClass = self;
       ports = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       messagePortLock = [GSLazyRecursiveLock new];
+
+      security.nLength = sizeof(SECURITY_ATTRIBUTES);
+      security.lpSecurityDescriptor = 0;	// Default
+      security.bInheritHandle = TRUE;
     }
 }
 
@@ -220,7 +219,7 @@ static unsigned	wordAlign;
     self, aLoop, aMode);
   NSAssert(PORT(self)->rHandle != INVALID_HANDLE_VALUE,
     @"Attempt to listen on send port");
-  [aLoop addEvent: (void*)(gsaddr)PORT(self)->rEvent
+  [aLoop addEvent: (void*)(uintptr_t)PORT(self)->rEvent
 	     type: ET_HANDLE
 	  watcher: (id<RunLoopEvents>)self
 	  forMode: aMode];
@@ -329,7 +328,7 @@ static unsigned	wordAlign;
     UNISTR(path),
     0,				/* No max message size.		*/
     MAILSLOT_WAIT_FOREVER,	/* No read/write timeout.	*/
-    (LPSECURITY_ATTRIBUTES)0);
+    &security);
 
   if (this->rHandle == INVALID_HANDLE_VALUE)
     {
@@ -917,7 +916,7 @@ again:
 {
   NSDebugMLLog(@"NSMessagePort", @"%@ remove from 0x%x in mode %@",
     self, aLoop, aMode);
-  [aLoop removeEvent: (void*)(gsaddr)PORT(self)->rEvent
+  [aLoop removeEvent: (void*)(uintptr_t)PORT(self)->rEvent
 		type: ET_HANDLE
 	     forMode: aMode
 		 all: NO];
@@ -1066,11 +1065,11 @@ again:
     {
       NSRunLoop		*loop = [NSRunLoop currentRunLoop];
 
-      [loop addEvent: (void*)(gsaddr)this->wEvent
+      [loop addEvent: (void*)(uintptr_t)this->wEvent
 		type: ET_HANDLE
 	     watcher: (id<RunLoopEvents>)self
 	     forMode: NSConnectionReplyMode];
-      [loop addEvent: (void*)(gsaddr)this->wEvent
+      [loop addEvent: (void*)(uintptr_t)this->wEvent
 		type: ET_HANDLE
 	     watcher: (id<RunLoopEvents>)self
 	     forMode: NSDefaultRunLoopMode];
@@ -1084,11 +1083,11 @@ again:
 	  M_LOCK(this->lock);
 	}
 
-      [loop removeEvent: (void*)(gsaddr)this->wEvent
+      [loop removeEvent: (void*)(uintptr_t)this->wEvent
 		   type: ET_HANDLE
 		forMode: NSConnectionReplyMode
 		    all: NO];
-      [loop removeEvent: (void*)(gsaddr)this->wEvent
+      [loop removeEvent: (void*)(uintptr_t)this->wEvent
 		   type: ET_HANDLE
 		forMode: NSDefaultRunLoopMode
 		    all: NO];

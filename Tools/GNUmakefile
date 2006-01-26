@@ -52,7 +52,7 @@ ifeq ($(add),yes)
 TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
 TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge \
-		plparse sfparse pldes plser pl2link xmlparse
+		plparse sfparse pldes plget plser pl2link xmlparse
 CTOOL_NAME = gdomap
 
 SUBPROJECTS = make_strings
@@ -72,6 +72,7 @@ dremove_OBJC_FILES = dremove.m
 dwrite_OBJC_FILES = dwrite.m
 pl_OBJC_FILES = pl.m
 pldes_OBJC_FILES = pldes.m
+plget_OBJC_FILES = plget.m
 plser_OBJC_FILES = plser.m
 plmerge_OBJC_FILES = plmerge.m
 plparse_OBJC_FILES = plparse.m

@@ -1050,15 +1050,14 @@ if (dst == 0) \
      * adjust the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
+    ptr = buf - dpos; \
     if (extra == 0) \
       { \
-	ptr -= BUFSIZ; \
-	bsize += BUFSIZ; \
+	bsize = dpos + BUFSIZ; \
       } \
     else \
       { \
-	ptr -= BUFSIZ-1; \
-	bsize += BUFSIZ-1; \
+	bsize = dpos + BUFSIZ - 1; \
       } \
   } \
 else if (zone == 0) \
@@ -1550,9 +1549,6 @@ tables:
       NSZoneFree(zone, ptr);
     }
 
-  if (dst)
-    NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
-
   return result;
 }
 
@@ -1567,15 +1563,14 @@ if (dst == 0) \
      * adjust the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
+    ptr = buf - dpos; \
     if (extra == 0) \
       { \
-	ptr -= BUFSIZ; \
-	bsize += BUFSIZ; \
+	bsize = dpos + BUFSIZ; \
       } \
     else \
       { \
-	ptr -= BUFSIZ-1; \
-	bsize += BUFSIZ-1; \
+	bsize = dpos + BUFSIZ - 1; \
       } \
   } \
 else if (zone == 0) \
@@ -1837,14 +1832,12 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		  sl = 6;
 		}
 
-              /* make sure we have enough space for it */
-	      while (dpos + sl >= bsize)
-		{
-		  GROW();
-		}
-
 	      if (sl == 1)
                 {
+		  if (dpos >= bsize)
+		    {
+		      GROW();
+		    }
 	          ptr[dpos++] = u & 0x7f;
                 }
               else
@@ -1859,10 +1852,18 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
                       u = u >> 6;
                     }
 
+		  if (dpos >= bsize)
+		    {
+		      GROW();
+		    }
 	          ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
                   /* add bytes into the output sequence */
                   for (i = sl - 2; i >= 0; i--)
 		    {
+		      if (dpos >= bsize)
+			{
+			  GROW();
+			}
 		      ptr[dpos++] = reversed[i] | 0x80;
 		    }
                 }
@@ -2233,9 +2234,6 @@ tables:
     {
       NSZoneFree(zone, ptr);
     }
-
-  if (dst)
-    NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
 
   return result;
 }

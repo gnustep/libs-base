@@ -83,8 +83,8 @@
 #include <stdio.h>
 
 /* The global configuration file. The real value is read from config.h */
-#ifndef GNUSTEP_CONFIG_FILE
-# define   GNUSTEP_CONFIG_FILE  /etc/GNUstep/GNUstep.conf
+#ifndef GNUSTEP_TARGET_CONFIG_FILE
+# define   GNUSTEP_TARGET_CONFIG_FILE  "/etc/GNUstep/GNUstep.conf"
 #endif
 
 static NSString	*gnustep_target_cpu =
@@ -390,8 +390,7 @@ GNUstepConfig(NSDictionary *newConfig)
 	      if (file == nil)
 		{
 		  fromEnvironment = NO;
-		  file = [NSString stringWithCString:
-		    STRINGIFY(GNUSTEP_CONFIG_FILE)];
+		  file = @GNUSTEP_TARGET_CONFIG_FILE;
 		}
 
 	      /*
@@ -475,11 +474,8 @@ GNUstepConfig(NSDictionary *newConfig)
 	   */
 	  if ([conf objectForKey: @"GNUSTEP_USER_CONFIG_FILE"] == nil)
 	    {
-	      NSString	*tmp;
-
-	      tmp = [NSString stringWithCString:\
-		STRINGIFY(GNUSTEP_USER_CONFIG_FILE)];
-	      [conf setObject: tmp forKey: @"GNUSTEP_USER_CONFIG_FILE"];
+	      [conf setObject: @GNUSTEP_TARGET_USER_CONFIG_FILE
+		       forKey: @"GNUSTEP_USER_CONFIG_FILE"];
 	    }
 	  if (config != nil)
 	    {
@@ -745,6 +741,11 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
 	    }
 	  newLine = NO;
 	  wantKey = YES;
+	}
+
+      if (spos >= end)
+	{
+	  break;	// At end of file ... odd but not fatal
 	}
 
       if (*spos == '=')

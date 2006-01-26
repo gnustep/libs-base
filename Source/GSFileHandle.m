@@ -208,14 +208,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	}
       if (*ptr == '\0' && val <= 0xffff)
 	{
-	  gsu16       v = val;
+	  uint16_t	v = val;
 
 	  sin->sin_port = GSSwapHostI16ToBig(v);
 	  return YES;
         }
       else if (strcmp(ptr, "gdomap") == 0)
 	{
-	  gsu16       v;
+	  uint16_t	v;
 #ifdef	GDOMAP_PORT_OVERRIDE
 	  v = GDOMAP_PORT_OVERRIDE;
 #else
@@ -1138,12 +1138,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithNativeHandle: (void*)hdl
 {
-  return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: NO];
+  return [self initWithFileDescriptor: (uintptr_t)hdl closeOnDealloc: NO];
 }
 
 - (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
-  return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: flag];
+  return [self initWithFileDescriptor: (uintptr_t)hdl closeOnDealloc: flag];
 }
 
 - (void) checkAccept
@@ -1248,7 +1248,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void*) nativeHandle
 {
-  return (void*)descriptor;
+  return (void*)(intptr_t)descriptor;
 }
 
 // Synchronous I/O operations
@@ -1752,7 +1752,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l removeEvent: (void*)(gsaddr)descriptor
+	  [l removeEvent: (void*)(uintptr_t)descriptor
 		    type: ET_RDESC
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
@@ -1760,7 +1760,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      [l removeEvent: (void*)(gsaddr)descriptor
+      [l removeEvent: (void*)(uintptr_t)descriptor
 		type: ET_RDESC
 	     forMode: NSDefaultRunLoopMode
 		 all: YES];
@@ -1792,7 +1792,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l removeEvent: (void*)(gsaddr)descriptor
+	  [l removeEvent: (void*)(uintptr_t)descriptor
 		    type: ET_WDESC
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
@@ -1800,7 +1800,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      [l removeEvent: (void*)(gsaddr)descriptor
+      [l removeEvent: (void*)(uintptr_t)descriptor
 		type: ET_WDESC
 	     forMode: NSDefaultRunLoopMode
 		 all: YES];
@@ -1824,7 +1824,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l addEvent: (void*)(gsaddr)descriptor
+	  [l addEvent: (void*)(uintptr_t)descriptor
 		 type: ET_RDESC
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
@@ -1833,7 +1833,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      [l addEvent: (void*)(gsaddr)descriptor
+      [l addEvent: (void*)(uintptr_t)descriptor
 	     type: ET_RDESC
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
@@ -1861,7 +1861,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
-	      [l addEvent: (void*)(gsaddr)descriptor
+	      [l addEvent: (void*)(uintptr_t)descriptor
 		     type: ET_WDESC
 		  watcher: self
 		  forMode: [modes objectAtIndex: i]];
@@ -1869,7 +1869,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       else
 	{
-	  [l addEvent: (void*)(gsaddr)descriptor
+	  [l addEvent: (void*)(uintptr_t)descriptor
 		 type: ET_WDESC
 	      watcher: self
 	      forMode: NSDefaultRunLoopMode];
