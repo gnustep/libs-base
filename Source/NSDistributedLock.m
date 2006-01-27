@@ -96,6 +96,20 @@ static NSFileManager	*mgr = nil;
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  if (_lockTime == nil)
+    {
+      return [[super description] stringByAppendingFormat:
+        @" path '%@' not locked", _lockPath];
+    }
+  else
+    {
+      return [[super description] stringByAppendingFormat:
+        @" path '%@' locked at %@", _lockPath, _lockTime];
+    }
+}
+
 /**
  * Initialises the receiver with the specified filesystem path.<br />
  * The location in the filesystem must be accessible for this
