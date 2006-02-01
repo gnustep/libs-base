@@ -1,3 +1,10 @@
+2006-02-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Try to use iconv transliteration for
+	lossy conversion.  When handling unconvertable characters in lossy
+	conversion, substitute a question mark rather than an asterisk for
+	consistency with iconv and other implementations.
+
 2006-01-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedLock.m: ([description]) implemented
