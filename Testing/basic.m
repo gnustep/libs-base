@@ -106,6 +106,7 @@ extern char *gnustep_base_version;
   unsigned i;
 
   NSLog(@"GNUstep Base version: %s", gnustep_base_version);
+  fwprintf(stderr, L"This is a test %@\n", @"Hello");
 
   NSLog(@"Orig: %@", [NSUserDefaults userLanguages]);
   [NSUserDefaults setUserLanguages: [NSArray arrayWithObject: @"Bletch"]];
