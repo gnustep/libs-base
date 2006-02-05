@@ -447,18 +447,35 @@ handle_printf_atsign (FILE *stream,
 #else
   string_object = *((id*) ptr);
 #endif
+  string_object = [string_object description];
   if (info->wide)
     {
-      len = fwprintf(stream, L"%*ls",
-	(info->left ? - info->width : info->width),
-	[[string_object description]
-	  cStringUsingEncoding: NSUnicodeStringEncoding]);
+      if (sizeof(wchar_t) == 4)
+        {
+	  unsigned	length = [string_object length];
+	  wchar_t	buf[length + 1];
+	  unsigned	i;
+
+	  for (i = 0; i < length; i++)
+	    {
+	      buf[i] = [string_object characterAtIndex: i];
+	    }
+	  buf[i] = 0;
+          len = fwprintf(stream, L"%*ls",
+	    (info->left ? - info->width : info->width), buf);
+        }
+      else
+        {
+          len = fwprintf(stream, L"%*ls",
+	    (info->left ? - info->width : info->width),
+	    [string_object cStringUsingEncoding: NSUnicodeStringEncoding]);
+	}
     }
   else
     {
       len = fprintf(stream, "%*s",
 	(info->left ? - info->width : info->width),
-	[[string_object description] lossyCString]);
+	[string_object lossyCString]);
     }
   return len;
 }
