@@ -1,3 +1,7 @@
+2006-02-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: (handle_printf_atsign()) extend to support wprintf.
+
 2006-02-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Try to use iconv transliteration for
