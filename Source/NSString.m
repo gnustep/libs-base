@@ -79,6 +79,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <wchar.h>
 
 #include "GNUstepBase/Unicode.h"
 
@@ -446,9 +447,19 @@ handle_printf_atsign (FILE *stream,
 #else
   string_object = *((id*) ptr);
 #endif
-  len = fprintf(stream, "%*s",
-		(info->left ? - info->width : info->width),
-		[[string_object description] lossyCString]);
+  if (info->wide)
+    {
+      len = fwprintf(stream, L"%*ls",
+	(info->left ? - info->width : info->width),
+	[[string_object description]
+	  cStringUsingEncoding: NSUnicodeStringEncoding]);
+    }
+  else
+    {
+      len = fprintf(stream, "%*s",
+	(info->left ? - info->width : info->width),
+	[[string_object description] lossyCString]);
+    }
   return len;
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
