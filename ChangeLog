@@ -1,3 +1,8 @@
+2006-02-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: ([-availabledata])a fix logic of non-blocking
+	I/O setting.
+
 2006-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: (handle_printf_atsign()) extend to support wprintf.

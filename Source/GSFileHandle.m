@@ -1260,9 +1260,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   int			len;
 
   [self checkRead];
-  if (isNonBlocking == YES)
+  if (isNonBlocking == NO)
     {
-      [self setNonBlocking: NO];
+      [self setNonBlocking: YES];
     }
   d = [NSMutableData dataWithCapacity: 0];
   if (isStandardFile)
