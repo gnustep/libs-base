@@ -1315,10 +1315,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSString *rootPath;
 
+#if !defined(__MINGW32__)
   if (_frameworkVersion)
     rootPath = [NSString stringWithFormat:@"%@/Versions/%@", [self bundlePath],
 			 _frameworkVersion];
   else
+#endif
     rootPath = [self bundlePath];
 
   return [NSBundle pathForResource: name
