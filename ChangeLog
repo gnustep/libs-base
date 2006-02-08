@@ -2,6 +2,8 @@
 
 	* Source/GSFileHandle.m: ([-availabledata])a fix logic of non-blocking
 	I/O setting.
+	* Source/NSBundle.m: ([-pathForResource:ofType:inDirectory:])
+	ignore versioning on windows.
 
 2006-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
