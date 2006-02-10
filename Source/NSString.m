@@ -223,6 +223,7 @@ pathSepMember(unichar c)
 inline static unichar
 pathSepChar()
 {
+#if	defined(NATIVEPATHSEP)
 #if	defined(__MINGW32__)
   if (GSPathHandlingUnix() == YES)
     {
@@ -236,11 +237,15 @@ pathSepChar()
     }
   return '/';
 #endif
+#else
+  return '/';
+#endif
 }
 
 inline static NSString*
 pathSepString()
 {
+#if	defined(NATIVEPATHSEP)
 #if	defined(__MINGW32__)
   if (GSPathHandlingUnix() == YES)
     {
@@ -252,6 +257,9 @@ pathSepString()
     {
       return @"\\";
     }
+  return @"/";
+#endif
+#else
   return @"/";
 #endif
 }
@@ -4411,6 +4419,7 @@ static NSFileManager *fm = nil;
     {
       s = AUTORELEASE([self mutableCopy]);
     }
+#if	defined(NATIVEPATHSEP)
 #if	defined(__MINGW32__)
   if (GSPathHandlingUnix() == YES)
     {
@@ -4429,6 +4438,7 @@ static NSFileManager *fm = nil;
     {
       [s replaceString: @"\\" withString: @"/"];
     }
+#endif
 #endif
 
   l = [s length];
