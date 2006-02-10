@@ -936,6 +936,7 @@ int main(int argc, char *argv[], char *env[])
  * <item>NSOSF1OperatingSystem - probably never to be implemented</item>
  * <item>NSGNULinuxOperatingSystem - the GNUstep 'standard'</item>
  * <item>NSBSDOperatingSystem - BSD derived operating systems</item>
+ * <item>NSCygwinOperatingSystem - cygwin unix-like environment</item>
  * </list>
  */
 - (unsigned int) operatingSystem
@@ -950,13 +951,13 @@ int main(int argc, char *argv[], char *env[])
         {
 	  os = NSGNULinuxOperatingSystem;
 	}
-      else if ([n isEqualToString: @"mingw"] == YES)
+      else if ([n hasPrefix: @"mingw"] == YES)
         {
 	  os = NSWindowsNTOperatingSystem;
 	}
       else if ([n isEqualToString: @"cygwin"] == YES)
         {
-	  os = NSWindowsNTOperatingSystem;
+	  os = NSCygwinOperatingSystem;
 	}
       else if ([n hasPrefix: @"bsd"] == YES)
         {

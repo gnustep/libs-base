@@ -2,6 +2,7 @@
 
 	* Source/win32/GSFileHandleWin32.m: Ignore extraneous write events.
 	* Source/NSString.m: Don't insert native path separators by default.
+	* Source/NSProcessInfo.m: Report correct operating system on windows.
 
 2006-02-07  Richard Frith-Macdonald <rfm@gnu.org>
 
