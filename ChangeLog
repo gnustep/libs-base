@@ -1,3 +1,8 @@
+2006-02-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandleWin32.m: Ignore extraneous write events.
+	* Source/NSString.m: Don't insert native path separators by default.
+
 2006-02-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m: ([-availabledata])a fix logic of non-blocking
