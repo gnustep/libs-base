@@ -1,3 +1,11 @@
+2006-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexPath.m: new
+	* Headers/Foundation/NSIndexPath.h: new
+	* Headers/Foundation/Foundation.h: include NSIndexPath.h
+	* Source/GNUmakefile: build NSIndexPath
+	* Source/DocMakefile: document NSIndexPath
+
 2006-02-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFileHandleWin32.m: Ignore extraneous write events.
