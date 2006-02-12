@@ -168,6 +168,7 @@ NSFormatter.m \
 NSGeometry.m \
 NSHashTable.m \
 NSHost.m \
+NSIndexPath.m \
 NSIndexSet.m \
 NSInvocation.m \
 NSKeyedArchiver.m \
@@ -290,6 +291,7 @@ NSFormatter.h \
 NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
+NSIndexPath.h \
 NSIndexSet.h \
 NSInvocation.h \
 NSKeyedArchiver.h \
