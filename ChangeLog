@@ -1,3 +1,7 @@
+2006-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSCategories.m: Fix MD5 digest for 64bit CPU
+
 2006-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexPath.m: new
