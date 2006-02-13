@@ -2006,6 +2006,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSString	*operation;
   NSMutableDictionary	*info;
 
+  if ([writeInfo count] == 0)
+    {
+      return;	// Write already completed.
+    }
   info = [writeInfo objectAtIndex: 0];
   operation = [info objectForKey: NotificationKey];
   if (operation == GSFileHandleConnectCompletionNotification

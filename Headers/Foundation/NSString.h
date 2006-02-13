@@ -561,8 +561,8 @@ enum {
  * character (or a drive specification in windows) then that is used as the
  * first element in the array.<br />
  * Empty components are removed.<br />
- * A trailing path separator (which was not part of the root) is added as the
- * last element in the array.
+ * If a trailing path separator (which was not part of the root) was present,
+ * it is added as the last element in the array.
  */
 - (NSArray*) pathComponents;
 

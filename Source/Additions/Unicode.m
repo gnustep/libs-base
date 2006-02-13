@@ -158,6 +158,7 @@ struct _strenc_ {
 					 * A negative means unsupported.
 					 * A zero means not yet checked.
 					 */
+  const char		*lossy;		/* Iconv name for lossy encoding */
 };
 
 /*
@@ -165,46 +166,82 @@ struct _strenc_ {
  * encoding information we might need.  It gets modified at runtime.
  */
 static struct _strenc_ str_encoding_table[] = {
-  {NSASCIIStringEncoding,"NSASCIIStringEncoding","ASCII",1,1},
-  {NSNEXTSTEPStringEncoding,"NSNEXTSTEPStringEncoding","NEXTSTEP",1,1},
-  {NSJapaneseEUCStringEncoding, "NSJapaneseEUCStringEncoding","EUC-JP",0,0},
-  {NSUTF8StringEncoding,"NSUTF8StringEncoding","UTF-8",0,1},
-  {NSISOLatin1StringEncoding,"NSISOLatin1StringEncoding","ISO-8859-1",1,1},
-  {NSSymbolStringEncoding,"NSSymbolStringEncoding","",0,0},
-  {NSNonLossyASCIIStringEncoding,"NSNonLossyASCIIStringEncoding","",1,1},
-  {NSShiftJISStringEncoding,"NSShiftJISStringEncoding","SHIFT-JIS",0,0},
-  {NSISOLatin2StringEncoding,"NSISOLatin2StringEncoding","ISO-8859-2",1,1},
-  {NSUnicodeStringEncoding, "NSUnicodeStringEncoding","",0,1},
-  {NSWindowsCP1251StringEncoding,"NSWindowsCP1251StringEncoding","CP1251",0,0},
-  {NSWindowsCP1252StringEncoding,"NSWindowsCP1252StringEncoding","CP1252",0,0},
-  {NSWindowsCP1253StringEncoding,"NSWindowsCP1253StringEncoding","CP1253",0,0},
-  {NSWindowsCP1254StringEncoding,"NSWindowsCP1254StringEncoding","CP1254",0,0},
-  {NSWindowsCP1250StringEncoding,"NSWindowsCP1250StringEncoding","CP1250",0,0},
-  {NSISO2022JPStringEncoding,"NSISO2022JPStringEncoding","ISO-2022-JP",0,0},
-  {NSMacOSRomanStringEncoding, "NSMacOSRomanStringEncoding","MACINTOSH",0,0},
-  {NSProprietaryStringEncoding, "NSProprietaryStringEncoding","",0,0},
+  {NSASCIIStringEncoding,
+    "NSASCIIStringEncoding","ASCII",1,1,0},
+  {NSNEXTSTEPStringEncoding,
+    "NSNEXTSTEPStringEncoding","NEXTSTEP",1,1,0},
+  {NSJapaneseEUCStringEncoding,
+    "NSJapaneseEUCStringEncoding","EUC-JP",0,0,0},
+  {NSUTF8StringEncoding,
+    "NSUTF8StringEncoding","UTF-8",0,1,0},
+  {NSISOLatin1StringEncoding,
+    "NSISOLatin1StringEncoding","ISO-8859-1",1,1,0},
+  {NSSymbolStringEncoding,
+    "NSSymbolStringEncoding","",0,0,0},
+  {NSNonLossyASCIIStringEncoding,
+    "NSNonLossyASCIIStringEncoding","",1,1,0},
+  {NSShiftJISStringEncoding,
+    "NSShiftJISStringEncoding","SHIFT-JIS",0,0,0},
+  {NSISOLatin2StringEncoding,
+    "NSISOLatin2StringEncoding","ISO-8859-2",1,1,0},
+  {NSUnicodeStringEncoding,
+    "NSUnicodeStringEncoding","",0,1,0},
+  {NSWindowsCP1251StringEncoding,
+    "NSWindowsCP1251StringEncoding","CP1251",0,0,0},
+  {NSWindowsCP1252StringEncoding,
+    "NSWindowsCP1252StringEncoding","CP1252",0,0,0},
+  {NSWindowsCP1253StringEncoding,
+    "NSWindowsCP1253StringEncoding","CP1253",0,0,0},
+  {NSWindowsCP1254StringEncoding,
+    "NSWindowsCP1254StringEncoding","CP1254",0,0,0},
+  {NSWindowsCP1250StringEncoding,
+    "NSWindowsCP1250StringEncoding","CP1250",0,0,0},
+  {NSISO2022JPStringEncoding,
+    "NSISO2022JPStringEncoding","ISO-2022-JP",0,0,0},
+  {NSMacOSRomanStringEncoding,
+    "NSMacOSRomanStringEncoding","MACINTOSH",0,0,0},
+  {NSProprietaryStringEncoding,
+    "NSProprietaryStringEncoding","",0,0,0},
 
 // GNUstep additions
-  {NSISOCyrillicStringEncoding,"NSISOCyrillicStringEncoding","ISO-8859-5",0,1},
-  {NSKOI8RStringEncoding, "NSKOI8RStringEncoding","KOI8-R",0,0},
-  {NSISOLatin3StringEncoding, "NSISOLatin3StringEncoding","ISO-8859-3",0,0},
-  {NSISOLatin4StringEncoding, "NSISOLatin4StringEncoding","ISO-8859-4",0,0},
-  {NSISOArabicStringEncoding, "NSISOArabicStringEncoding","ISO-8859-6",0,0},
-  {NSISOGreekStringEncoding, "NSISOGreekStringEncoding","ISO-8859-7",0,0},
-  {NSISOHebrewStringEncoding, "NSISOHebrewStringEncoding","ISO-8859-8",0,0},
-  {NSISOLatin5StringEncoding, "NSISOLatin5StringEncoding","ISO-8859-9",0,0},
-  {NSISOLatin6StringEncoding, "NSISOLatin6StringEncoding","ISO-8859-10",0,0},
-  {NSISOThaiStringEncoding, "NSISOThaiStringEncoding","ISO-8859-11",1,1},
-  {NSISOLatin7StringEncoding, "NSISOLatin7StringEncoding","ISO-8859-13",0,0},
-  {NSISOLatin8StringEncoding, "NSISOLatin8StringEncoding","ISO-8859-14",0,0},
-  {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding","ISO-8859-15",1,1},
-  {NSUTF7StringEncoding, "NSUTF7StringEncoding","UTF-7",0,0},
-  {NSGB2312StringEncoding, "NSGB2312StringEncoding","EUC-CN",0,0},
-  {NSGSM0338StringEncoding, "NSGSM0338StringEncoding","",0,1},
-  {NSBIG5StringEncoding, "NSBIG5StringEncoding","BIG5",0,0},
-  {NSKoreanEUCStringEncoding, "NSKoreanEUCStringEncoding", "EUC-KR",0,0},
+  {NSISOCyrillicStringEncoding,
+    "NSISOCyrillicStringEncoding","ISO-8859-5",0,1,0},
+  {NSKOI8RStringEncoding,
+    "NSKOI8RStringEncoding","KOI8-R",0,0,0},
+  {NSISOLatin3StringEncoding,
+    "NSISOLatin3StringEncoding","ISO-8859-3",0,0,0},
+  {NSISOLatin4StringEncoding,
+    "NSISOLatin4StringEncoding","ISO-8859-4",0,0,0},
+  {NSISOArabicStringEncoding,
+    "NSISOArabicStringEncoding","ISO-8859-6",0,0,0},
+  {NSISOGreekStringEncoding,
+    "NSISOGreekStringEncoding","ISO-8859-7",0,0,0},
+  {NSISOHebrewStringEncoding,
+    "NSISOHebrewStringEncoding","ISO-8859-8",0,0,0},
+  {NSISOLatin5StringEncoding,
+    "NSISOLatin5StringEncoding","ISO-8859-9",0,0,0},
+  {NSISOLatin6StringEncoding,
+    "NSISOLatin6StringEncoding","ISO-8859-10",0,0,0},
+  {NSISOThaiStringEncoding,
+    "NSISOThaiStringEncoding","ISO-8859-11",1,1,0},
+  {NSISOLatin7StringEncoding,
+    "NSISOLatin7StringEncoding","ISO-8859-13",0,0,0},
+  {NSISOLatin8StringEncoding,
+    "NSISOLatin8StringEncoding","ISO-8859-14",0,0,0},
+  {NSISOLatin9StringEncoding,
+    "NSISOLatin9StringEncoding","ISO-8859-15",1,1,0},
+  {NSUTF7StringEncoding,
+    "NSUTF7StringEncoding","UTF-7",0,0,0},
+  {NSGB2312StringEncoding,
+    "NSGB2312StringEncoding","EUC-CN",0,0,0},
+  {NSGSM0338StringEncoding,
+    "NSGSM0338StringEncoding","",0,1,0},
+  {NSBIG5StringEncoding,
+    "NSBIG5StringEncoding","BIG5",0,0,0},
+  {NSKoreanEUCStringEncoding,
+    "NSKoreanEUCStringEncoding","EUC-KR",0,0,0},
 
-  {0,"Unknown encoding","",0,0}
+  {0,"Unknown encoding","",0,0,0}
 };
 
 static struct _strenc_	**encodingTable = 0;
@@ -260,6 +297,30 @@ static void GSSetupEncodingTable(void)
 	      if (tmp < MAX_ENCODING)
 		{
 		  encTable[tmp] = &str_encoding_table[i];
+#ifdef HAVE_ICONV
+		  if (encTable[tmp]->iconv != 0)
+		    {
+		      iconv_t	c;
+		      char	*lossy;
+
+		      /*
+		       * See if we can do a lossy conversion.
+		       */
+		      lossy = malloc(strlen(encTable[tmp]->iconv) + 12);
+		      strcpy(lossy, encTable[tmp]->iconv);
+		      strcat(lossy, "//TRANSLIT");
+		      c = iconv_open(UNICODE_ENC, encTable[tmp]->iconv);
+		      if (c == (iconv_t)-1)
+			{
+			  free(lossy);
+			}
+		      else
+			{
+			  encTable[tmp]->lossy = lossy;
+			  iconv_close(c);
+			}
+		    }
+#endif
 		}
 	    }
 	  encodingTable = encTable;
@@ -492,7 +553,7 @@ GSEncodingFromLocale(const char *clocale)
   if (strchr (clocale, '.') != NULL)
     {
       /* Locale contains the 'codeset' section. Parse it and see
-	 if we know what encoding this corresponds to */
+	 if we know what encoding this cooresponds to */
       NSString	*registry;
       NSArray	*array;
       char	*s;
@@ -761,18 +822,6 @@ NSString*
 GetEncodingName(NSStringEncoding encoding)
 {
   return GSEncodingName(encoding);
-}
-#endif
-
-#ifdef HAVE_ICONV
-static const char *
-iconv_stringforencoding(NSStringEncoding encoding)
-{
-  if (GSEncodingSupported(encoding) == NO)
-    {
-      return 0;
-    }
-  return encodingTable[encoding]->iconv;
 }
 #endif
 
@@ -1050,14 +1099,15 @@ if (dst == 0) \
      * adjust the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
-    ptr = buf - dpos; \
     if (extra == 0) \
       { \
-	bsize = dpos + BUFSIZ; \
+	ptr -= BUFSIZ; \
+	bsize += BUFSIZ; \
       } \
     else \
       { \
-	bsize = dpos + BUFSIZ - 1; \
+	ptr -= BUFSIZ-1; \
+	bsize += BUFSIZ-1; \
       } \
   } \
 else if (zone == 0) \
@@ -1415,9 +1465,13 @@ tables:
 	  size_t	outbytesleft;
 	  size_t	rval;
 	  iconv_t	cd;
-	  const char	*estr = iconv_stringforencoding(enc);
+	  const char	*estr = 0;
 	  BOOL		done = NO;
 
+	  if (GSEncodingSupported(enc) == YES)
+	    {
+	      estr = encodingTable[enc]->iconv;
+	    }
 	  /* explicitly check for empty encoding name since some systems
 	   * have buggy iconv_open() code which succeeds on an empty name.
 	   */
@@ -1549,6 +1603,9 @@ tables:
       NSZoneFree(zone, ptr);
     }
 
+  if (dst)
+    NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
+
   return result;
 }
 
@@ -1563,14 +1620,15 @@ if (dst == 0) \
      * adjust the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
-    ptr = buf - dpos; \
     if (extra == 0) \
       { \
-	bsize = dpos + BUFSIZ; \
+	ptr -= BUFSIZ; \
+	bsize += BUFSIZ; \
       } \
     else \
       { \
-	bsize = dpos + BUFSIZ - 1; \
+	ptr -= BUFSIZ-1; \
+	bsize += BUFSIZ-1; \
       } \
   } \
 else if (zone == 0) \
@@ -1757,6 +1815,15 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
       bsize = *size;
     }
 
+#ifdef HAVE_ICONV
+  if (strict == NO
+    && enc != NSUTF8StringEncoding
+    && enc != NSGSM0338StringEncoding)
+    {
+      goto iconv_start;	// For lossy conversion
+    }
+#endif
+
   switch (enc)
     {
       case NSUTF8StringEncoding:
@@ -1832,12 +1899,14 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		  sl = 6;
 		}
 
+              /* make sure we have enough space for it */
+	      while (dpos + sl >= bsize)
+		{
+		  GROW();
+		}
+
 	      if (sl == 1)
                 {
-		  if (dpos >= bsize)
-		    {
-		      GROW();
-		    }
 	          ptr[dpos++] = u & 0x7f;
                 }
               else
@@ -1852,18 +1921,10 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
                       u = u >> 6;
                     }
 
-		  if (dpos >= bsize)
-		    {
-		      GROW();
-		    }
 	          ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
                   /* add bytes into the output sequence */
                   for (i = sl - 2; i >= 0; i--)
 		    {
-		      if (dpos >= bsize)
-			{
-			  GROW();
-			}
 		      ptr[dpos++] = reversed[i] | 0x80;
 		    }
                 }
@@ -1903,7 +1964,7 @@ bases:
 		  }
 		else
 		  {
-		    ptr[dpos++] =  '*';
+		    ptr[dpos++] =  '?';
 		  }
 	      }
 	  }
@@ -2043,9 +2104,9 @@ tables:
 	    else if (strict == NO)
 	      {
 		/*
-		 * The default lossy mapping generates an asterisk.
+		 * The default lossy mapping generates a question mark.
 		 */
-		ptr[dpos++] = '*';
+		ptr[dpos++] = '?';
 	      }
 	    else
 	      {
@@ -2061,6 +2122,7 @@ tables:
 
       default:
 #ifdef HAVE_ICONV
+iconv_start:
 	{
 	  iconv_t	cd;
 	  unsigned char	*inbuf;
@@ -2068,9 +2130,25 @@ tables:
 	  size_t	inbytesleft;
 	  size_t	outbytesleft;
 	  size_t	rval;
-	  const char	*estr = iconv_stringforencoding(enc);
+	  const char	*estr = 0;
 	  BOOL		done = NO;
 
+	  if (GSEncodingSupported(enc) == YES)
+	    {
+	      if (strict == NO)
+		{
+		  /*
+		   * Try to transliterate where no direct conversion
+		   * is available.
+		   */
+		  estr = encodingTable[enc]->lossy;
+		}
+	      if (estr == 0)
+		{
+		  estr = encodingTable[enc]->iconv;
+		}
+	    }
+	  
 	  /* explicitly check for empty encoding name since some systems
 	   * have buggy iconv_open() code which succeeds on an empty name.
 	   */
@@ -2131,11 +2209,11 @@ tables:
 			    }
 			  /*
 			   * If we are allowing lossy conversion, we replace any
-			   * unconvertable character with an asterisk.
+			   * unconvertable character with a question mark.
 			   */
 			  if (outbytesleft > 0)
 			    {
-			      *outbuf++ = '*';
+			      *outbuf++ = '?';
 			      outbytesleft--;
 			      inbuf += sizeof(unichar);
 			      inbytesleft -= sizeof(unichar);
@@ -2234,6 +2312,9 @@ tables:
     {
       NSZoneFree(zone, ptr);
     }
+
+  if (dst)
+    NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
 
   return result;
 }

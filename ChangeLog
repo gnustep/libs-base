@@ -3,6 +3,43 @@
 	* Source/NSKeyedUnarchiver.m: Added private method replaceObject:
 	withObject:.
 
+2006-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexPath.m: new
+	* Headers/Foundation/NSIndexPath.h: new
+	* Headers/Foundation/Foundation.h: include NSIndexPath.h
+	* Source/GNUmakefile: build NSIndexPath
+	* Source/DocMakefile: document NSIndexPath
+
+2006-02-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandleWin32.m: Ignore extraneous write events.
+	* Source/NSString.m: Don't insert native path separators by default.
+	* Source/NSProcessInfo.m: Report correct operating system on windows.
+
+2006-02-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: ([-availabledata])a fix logic of non-blocking
+	I/O setting.
+	* Source/NSBundle.m: ([-pathForResource:ofType:inDirectory:])
+	ignore versioning on windows.
+
+2006-02-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: (handle_printf_atsign()) extend to support wprintf.
+
+2006-02-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Try to use iconv transliteration for
+	lossy conversion.  When handling unconvertable characters in lossy
+	conversion, substitute a question mark rather than an asterisk for
+	consistency with iconv and other implementations.
+
+2006-01-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedLock.m: ([description]) implemented
+
+>>>>>>> .merge-right.r22474
 2006-01-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: ([addObject:]) fix error in check for

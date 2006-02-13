@@ -63,6 +63,7 @@ NSFormatter.h \
 NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
+NSIndexPath.h \
 NSIndexSet.h \
 NSInvocation.h \
 NSKeyedArchiver.h \

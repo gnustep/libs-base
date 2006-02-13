@@ -79,6 +79,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <wchar.h>
 
 #include "GNUstepBase/Unicode.h"
 
@@ -222,6 +223,7 @@ pathSepMember(unichar c)
 inline static unichar
 pathSepChar()
 {
+#if	defined(NATIVEPATHSEP)
 #if	defined(__MINGW32__)
   if (GSPathHandlingUnix() == YES)
     {
@@ -235,11 +237,15 @@ pathSepChar()
     }
   return '/';
 #endif
+#else
+  return '/';
+#endif
 }
 
 inline static NSString*
 pathSepString()
 {
+#if	defined(NATIVEPATHSEP)
 #if	defined(__MINGW32__)
   if (GSPathHandlingUnix() == YES)
     {
@@ -251,6 +257,9 @@ pathSepString()
     {
       return @"\\";
     }
+  return @"/";
+#endif
+#else
   return @"/";
 #endif
 }
@@ -446,9 +455,36 @@ handle_printf_atsign (FILE *stream,
 #else
   string_object = *((id*) ptr);
 #endif
-  len = fprintf(stream, "%*s",
-		(info->left ? - info->width : info->width),
-		[[string_object description] lossyCString]);
+  string_object = [string_object description];
+  if (info->wide)
+    {
+      if (sizeof(wchar_t) == 4)
+        {
+	  unsigned	length = [string_object length];
+	  wchar_t	buf[length + 1];
+	  unsigned	i;
+
+	  for (i = 0; i < length; i++)
+	    {
+	      buf[i] = [string_object characterAtIndex: i];
+	    }
+	  buf[i] = 0;
+          len = fwprintf(stream, L"%*ls",
+	    (info->left ? - info->width : info->width), buf);
+        }
+      else
+        {
+          len = fwprintf(stream, L"%*ls",
+	    (info->left ? - info->width : info->width),
+	    [string_object cStringUsingEncoding: NSUnicodeStringEncoding]);
+	}
+    }
+  else
+    {
+      len = fprintf(stream, "%*s",
+	(info->left ? - info->width : info->width),
+	[string_object lossyCString]);
+    }
   return len;
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
@@ -4383,6 +4419,7 @@ static NSFileManager *fm = nil;
     {
       s = AUTORELEASE([self mutableCopy]);
     }
+#if	defined(NATIVEPATHSEP)
 #if	defined(__MINGW32__)
   if (GSPathHandlingUnix() == YES)
     {
@@ -4401,6 +4438,7 @@ static NSFileManager *fm = nil;
     {
       [s replaceString: @"\\" withString: @"/"];
     }
+#endif
 #endif
 
   l = [s length];
