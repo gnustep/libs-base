@@ -1260,13 +1260,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   int			len;
 
   [self checkRead];
-  if (isNonBlocking == NO)
-    {
-      [self setNonBlocking: YES];
-    }
   d = [NSMutableData dataWithCapacity: 0];
   if (isStandardFile)
     {
+      if (isNonBlocking == YES)
+	{
+	  [self setNonBlocking: NO];
+	}
       while ((len = [self read: buf length: sizeof(buf)]) > 0)
         {
 	  [d appendBytes: buf length: len];
@@ -1274,7 +1274,40 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
+      if (isNonBlocking == NO)
+	{
+	  [self setNonBlocking: YES];
+	}
       len = [self read: buf length: sizeof(buf)];
+
+      if (len <= 0)
+	{
+	  if (errno == EAGAIN || errno == EINTR)
+	    {
+	      /*
+	       * Read would have blocked ... so try to get a single character
+	       * in non-blocking mode (to ensure we wait until data arrives)
+	       * and then try again.
+	       * This ensures that we block for *some* data as we should.
+	       */
+	      [self setNonBlocking: NO];
+	      len = [self read: buf length: 1];
+	      [self setNonBlocking: YES];
+	      if (len == 1)
+		{
+		  len = [self read: &buf[1] length: sizeof(buf) - 1];
+		  if (len <= 0)
+		    {
+		      len = 1;
+		    }
+		  else
+		    {
+		      len = len + 1;
+		    }
+		}
+	    }
+	}
+
       if (len > 0)
 	{
 	  [d appendBytes: buf length: len];
