@@ -39,7 +39,7 @@
               inputStream: (NSInputStream **)inputStream 
              outputStream: (NSOutputStream **)outputStream
 {
-  [self notImplemented:_cmd]
+  [self notImplemented:_cmd];
 }
 
 - (void) close
@@ -103,13 +103,13 @@
 
 + (id) inputStreamWithData: (NSData *)data
 {
-  [self notImplemented:_cmd]
+  [self notImplemented:_cmd];
   return nil;
 }
 
 + (id) inputStreamWithFileAtPath: (NSString *)path
 {
-  [self notImplemented:_cmd]
+  [self notImplemented:_cmd];
   return nil;
 }
 
