@@ -3,6 +3,7 @@
 	* Headers/Foundation/NSStream.h: New NSStream, NSInputStream and
 	NSOutputStream classes and constants.
 	* Headers/Foundation/Foundation.h: include NSStream.h
+	* Source/GSStream.h: Internal headers for GSStream and subclasses
 	* Source/GSStream.m: System independent parts of NSStream
 	* Source/unix/NSStream.m: Unix specific class implementations
 	* Source/unix/GNUmakefile: Build NSStream.m
