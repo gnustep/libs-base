@@ -133,6 +133,7 @@ GSFormat.m \
 GSFTPURLHandle.m \
 GSHTTPURLHandle.m \
 GSSet.m \
+GSStream.m \
 GSString.m \
 GSValue.m \
 NSAttributedString.m \
@@ -321,6 +322,7 @@ NSScanner.h \
 NSSerialization.h \
 NSSet.h \
 NSSortDescriptor.h \
+NSStream.h \
 NSString.h \
 NSTask.h \
 NSThread.h \

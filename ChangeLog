@@ -1,3 +1,18 @@
+2006-02-15  Derek Zhou <dzhou@nvidea.com> Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSStream.h: New NSStream, NSInputStream and
+	NSOutputStream classes and constants.
+	* Headers/Foundation/Foundation.h: include NSStream.h
+	* Source/GSStream.m: System independent parts of NSStream
+	* Source/unix/NSStream.m: Unix specific class implementations
+	* Source/unix/GNUmakefile: Build NSStream.m
+	* Source/win32/NSStreamWin32.m: Win32 placeholders
+	* Source/win32/GNUmakefile: Build NSStreamWin32.m
+	* Source/GNUmakefile: Build GSStream.m
+	* Source/DocMakefile: Build NSStream documentation
+	Partial implementation of NSStream ... missing SSL, SOCKS, and
+	Win32 (apart from memory streams).
+
 2006-02-15  Andrew Ruder <aeruder@ksu.edu>
 	* Headers/Foundation/NSString.h: Fixing the oldest bug in GNUstep?
 	The header has says NSObject since Andrew McCallum added the file

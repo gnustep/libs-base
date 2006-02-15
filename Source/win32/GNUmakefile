@@ -36,6 +36,7 @@ win32_OBJC_FILES =\
 	NSMessagePortWin32.m \
 	NSMessagePortNameServerWin32.m \
 	NSRunLoopWin32.m \
+	NSStreamWin32.m \
 	NSUserDefaultsWin32.m \
 
 
