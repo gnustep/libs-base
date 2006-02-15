@@ -1,4 +1,4 @@
-/* Interface for NSObject for GNUStep
+/* Interface for NSString for GNUstep
    Copyright (C) 1995, 1996, 1999 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
