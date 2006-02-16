@@ -128,6 +128,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
       _lastError = nil;
       _modes = [NSMutableArray new];
       _currentStatus = NSStreamStatusNotOpen;
+      _fd = (void*)-1;          // any operation will fail
     }
   return self;
 }
@@ -179,7 +180,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
   NSError *theError = [NSError errorWithDomain: NSPOSIXErrorDomain
 					  code: errno
 				      userInfo: nil];
-  perror("");
+  NSLog(@"stream error: - %s", GSLastErrorStr(errno));
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
 }
@@ -202,6 +203,11 @@ NSString * const NSStreamSOCKSProxyVersionKey
     }
 }
 
+- (void) _setFd: (void *)fd
+{
+  _fd = fd;
+}
+
 @end
 
 @implementation	GSInputStream
@@ -218,6 +224,15 @@ NSString * const NSStreamSOCKSProxyVersionKey
 + (void) initialize
 {
   if (self == [GSOutputStream class])
+    {
+      GSObjCAddClassBehavior(self, [GSStream class]);
+    }
+}
+@end
+@implementation	GSAbstractServerStream
++ (void) initialize
+{
+  if (self == [GSAbstractServerStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
     }
@@ -299,8 +314,11 @@ NSString * const NSStreamSOCKSProxyVersionKey
   if (![_modes containsObject: mode])
     [_modes addObject: mode];
   if ([self _isOpened])
-    [_runloop performSelector:@selector(dispatch:) target: self
-              argument: nil order: 0 modes: _modes];
+    [_runloop performSelector: @selector(_dispatch:)
+		       target: self
+		     argument: nil
+			order: 0
+			modes: _modes];
 }
 
 - (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
@@ -311,8 +329,9 @@ NSString * const NSStreamSOCKSProxyVersionKey
     {
       [_modes removeObject: mode];
       if ([self _isOpened])
-        [_runloop cancelPerformSelector:@selector(dispatch:) 
-                  target: self argument: nil];
+        [_runloop cancelPerformSelector: @selector(_dispatch:) 
+				 target: self
+			       argument: nil];
       if ([_modes count] == 0)
         DESTROY(_runloop);
     }
@@ -329,7 +348,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
 {
   [super open];
   if (_runloop)
-    [_runloop performSelector: @selector(dispatch:)
+    [_runloop performSelector: @selector(_dispatch:)
 		       target: self
 		     argument: nil
 			order: 0
@@ -343,7 +362,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
   [super close];
 }
 
-- (void) dispatch
+- (void) _dispatch
 {
   BOOL av = [self hasBytesAvailable];
   NSStreamEvent myEvent = av ? NSStreamEventHasBytesAvailable : 
@@ -356,7 +375,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
  // dispatch again iff still opened, and last event is not eos
   if (av && [self _isOpened])
     {
-      [_runloop performSelector: @selector(dispatch:)
+      [_runloop performSelector: @selector(_dispatch:)
 			 target: self
 		       argument: nil
 			  order: 0
@@ -428,7 +447,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
   if (![_modes containsObject: mode])
     [_modes addObject: mode];
   if ([self _isOpened])
-    [_runloop performSelector: @selector(dispatch:)
+    [_runloop performSelector: @selector(_dispatch:)
 		       target: self
 		     argument: nil
 			order: 0
@@ -443,7 +462,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
     {
       [_modes removeObject: mode];
       if ([self _isOpened])
-        [_runloop cancelPerformSelector: @selector(dispatch:) 
+        [_runloop cancelPerformSelector: @selector(_dispatch:) 
 				 target: self
 			       argument: nil];
       if ([_modes count] == 0)
@@ -470,7 +489,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
   [super open];
   if (_runloop)
     {
-      [_runloop performSelector: @selector(dispatch:)
+      [_runloop performSelector: @selector(_dispatch:)
 			 target: self
 		       argument: nil
 			  order: 0
@@ -485,7 +504,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
   [super close];
 }
 
-- (void) dispatch
+- (void) _dispatch
 {
   BOOL av = [self hasSpaceAvailable];
   NSStreamEvent myEvent = av ? NSStreamEventHasSpaceAvailable : 
@@ -494,7 +513,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
   [self _sendEvent: myEvent];
   // dispatch again iff still opened, and last event is not eos
   if (av && [self _isOpened])
-    [_runloop performSelector: @selector(dispatch:)
+    [_runloop performSelector: @selector(_dispatch:)
 		       target: self
 		     argument: nil
 			order: 0

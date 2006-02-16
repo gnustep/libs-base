@@ -39,7 +39,7 @@
               inputStream: (NSInputStream **)inputStream 
              outputStream: (NSOutputStream **)outputStream
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
 }
 
 - (void) close
@@ -103,25 +103,25 @@
 
 + (id) inputStreamWithData: (NSData *)data
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
 + (id) inputStreamWithFileAtPath: (NSString *)path
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
 - (id) initWithData: (NSData *)data
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
 - (id) initWithFileAtPath: (NSString *)path
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
@@ -149,37 +149,37 @@
 
 + (id) outputStreamToMemory
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
 + (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
 + (id) outputStreamToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
 - (id) initToMemory
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
 - (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
 - (id) initToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
 {
-  [self notImplemented:_cmd];
+  [self notImplemented: _cmd];
   return nil;
 }
 
@@ -193,6 +193,38 @@
 {
   [self subclassResponsibility: _cmd];
   return NO;
+}
+
+@end
+
+@implementation GSServerStream
+
++ (id) serverStreamToAddr: (NSString*)addr port: (int)port
+{
+  [self notImplemented: _cmd];
+}
+
++ (id) serverStreamToAddr: (NSString*)addr
+{
+  [self notImplemented: _cmd];
+}
+
+- (id) initToAddr: (NSString*)addr port: (int)port
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
+
+- (id) initToAddr: (NSString*)addr
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
+
+- (void) acceptWithInputStream: (NSInputStream **)inputStream 
+                  outputStream: (NSOutputStream **)outputStream
+{
+  [self subclassResponsibility: _cmd];
 }
 
 @end

@@ -233,6 +233,63 @@ typedef enum {
 
 @end
 
+/**
+ * the additional interface defined for gnustep
+ */
+@interface NSStream (GNUstepExtensions)
+
+/**
+ * Creates and returns by reference an NSInputStream object and
+ * NSOutputStream object for a local socket connection with the
+ * specified path. To use them you need to open them and wait
+ * on the NSStreamEventOpenCompleted event on one of them
+ */
++ (void) getLocalStreamsToPath: (NSString *)path 
+		   inputStream: (NSInputStream **)inputStream 
+		  outputStream: (NSOutputStream **)outputStream;
+/**
+ * Creates and returns by reference an NSInputStream object and NSOutputStream 
+ * object for a anonymous local socket. Although you still need to open them, 
+ * the open will be instantanious, and no NSStreamEventOpenCompleted event 
+ * will be delivered.
+ */
++ (void) pipeWithInputStream: (NSInputStream **)inputStream 
+                outputStream: (NSOutputStream **)outputStream;
+@end
+
+/**
+ * GSServerStream is a subclass of NSStream that encapsulate a "server" stream;
+ * that is a stream that binds to a socket and accepts incoming connections
+ */
+@interface GSServerStream : NSStream
+/**
+ * Createe a ip (ipv6) server stream
+ */
++ (id) serverStreamToAddr: (NSString*)addr port: (int)port;
+/**
+ * Create a local (unix domain) server stream
+ */
++ (id) serverStreamToAddr: (NSString*)addr;
+/**
+ * This is the method that accepts a connection and generates two streams
+ * as the server side inputStream and OutputStream.
+ * Although you still need to open them, the open will be
+ * instantanious, and no NSStreamEventOpenCompleted event will be delivered.
+ */
+- (void) acceptWithInputStream: (NSInputStream **)inputStream 
+                  outputStream: (NSOutputStream **)outputStream;
+
+/**
+ * the designated initializer for a ip (ipv6) server stream
+ */
+- (id) initToAddr: (NSString*)addr port: (int)port;
+/**
+ * the designated initializer for a local (unix domain) server stream
+ */
+- (id) initToAddr: (NSString*)addr;
+
+@end
+
 @protocol GSStreamListener
 /**
  * The delegate receives this message when streamEvent
