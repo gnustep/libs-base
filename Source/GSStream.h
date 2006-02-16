@@ -34,15 +34,21 @@
    |          |-- GSInetInputStream
    |          |-- GSLocalInputStream
    |          `-- GSInet6InputStream
-   `-- NSOutputStream
-       `--GSOutputStream
-          |-- GSMemoryOutputStream
-          |-- GSFileOutputStream
-          `-- GSSocketOutputStream
-              |-- GSInetOutputStream
-              |-- GSLocalOutputStream
-              `-- GSInet6InputStream
-   */
+   |-- NSOutputStream
+   |   `--GSOutputStream
+   |      |-- GSMemoryOutputStream
+   |      |-- GSFileOutputStream
+   |      `-- GSSocketOutputStream
+   |          |-- GSInetOutputStream
+   |          |-- GSLocalOutputStream
+   |          `-- GSInet6InputStream
+   `-- GSServerStream
+      `-- GSAbstractServerStream
+          `-- GSSocketServerStream
+              |-- GSInetServerStream
+              |-- GSInet6ServerStream
+              `-- GSLocalServerStream 
+*/
 
 #include <Foundation/NSStream.h>
 
@@ -55,6 +61,7 @@
   NSStreamStatus         _currentStatus;/* current status               */\
   NSMutableArray 	*_modes;	/* currently scheduled modes.	*/\
   NSRunLoop 		*_runloop;	/* currently scheduled loop.	*/\
+  void                  *_fd;           /* the file descriptor (if any) */\
 }
 
 /**
@@ -83,6 +90,11 @@ IVARS
 - (void) _setStatus: (NSStreamStatus)newStatus;
 
 /**
+ * setter for fd
+ */
+- (void) _setFd: (void *)fd;
+
+/**
  * record an error based on errno
  */
 - (void) _recordError; 
@@ -95,6 +107,7 @@ IVARS
 - (BOOL) _isOpened;
 - (void) _sendEvent: (NSStreamEvent)event;
 - (void) _setStatus: (NSStreamStatus)newStatus;
+- (void) _setFd: (void*)fd;
 - (void) _recordError; 
 @end
 
@@ -105,9 +118,20 @@ IVARS
 - (BOOL) _isOpened;
 - (void) _sendEvent: (NSStreamEvent)event;
 - (void) _setStatus: (NSStreamStatus)newStatus;
+- (void) _setFd: (void*)fd;
 - (void) _recordError; 
 @end
 
+@interface GSAbstractServerStream : GSServerStream
+IVARS
+@end
+@interface GSAbstractServerStream (private)
+- (BOOL) _isOpened;
+- (void) _sendEvent: (NSStreamEvent)event;
+- (void) _setStatus: (NSStreamStatus)newStatus;
+- (void) _setFd: (void*)fd;
+- (void) _recordError; 
+@end
 
 /**
  * The concrete subclass of NSInputStream that reads from the memory 
@@ -122,7 +146,7 @@ IVARS
 /**
  * this is the bridge method for asynchronized operation. Do not call.
  */
-- (void) dispatch;
+- (void) _dispatch;
 @end
 
 /**
@@ -139,7 +163,7 @@ IVARS
 /**
  * this is the bridge method for asynchronized operation. Do not call.
  */
-- (void) dispatch;
+- (void) _dispatch;
 @end
 
 #endif

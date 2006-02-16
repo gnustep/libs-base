@@ -51,7 +51,6 @@
 {
 @private
   NSString *_path;
-  int _fd;
 }
 @end
 
@@ -61,9 +60,8 @@
 @interface GSSocketInputStream : GSInputStream <RunLoopEvents>
 {
 @protected
-  int _fd;
   GSOutputStream *_sibling;
-  BOOL _passive;              /* YES means it is the server side */
+  BOOL _passive;              /* YES means already connected */
 }
 
 /** 
@@ -82,9 +80,9 @@
 - (void) setSibling: (GSOutputStream*)sibling;
 
 /**
- * setter for fd
+ * setter for passive
  */
-- (void) setFd: (int)fd;
+- (void)setPassive: (BOOL)passive;
 
 @end
 
@@ -97,7 +95,7 @@
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr port: (int)port passive: (BOOL)passive;
+- (id) initToAddr: (NSString*)addr port: (int)port;
 
 @end
 
@@ -110,7 +108,7 @@
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr port: (int)port passive: (BOOL)passive;
+- (id) initToAddr: (NSString*)addr port: (int)port;
 
 @end
 
@@ -123,10 +121,9 @@
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr passive: (BOOL)passive;
+- (id) initToAddr: (NSString*)addr;
 
 @end
-
 
 /**
  * The concrete subclass of NSOutputStream that writes to a file
@@ -135,7 +132,6 @@
 {
 @private
   NSString *_path;
-  int _fd;
   BOOL _shouldAppend;
 }
 @end
@@ -146,9 +142,8 @@
 @interface GSSocketOutputStream : GSOutputStream <RunLoopEvents>
 {
 @protected
-  int _fd;
   GSInputStream *_sibling;
-  BOOL _passive;              /* YES means it is the server side */
+  BOOL _passive;              /* YES means already connected */
 }
 
 /** 
@@ -167,9 +162,9 @@
 - (void) setSibling: (GSInputStream*)sibling;
 
 /**
- * setter for fd
+ * setter for passive
  */
-- (void) setFd: (int)fd;
+- (void)setPassive: (BOOL)passive;
 
 @end
 
@@ -182,7 +177,7 @@
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr port: (int)port passive: (BOOL)passive;
+- (id) initToAddr: (NSString*)addr port: (int)port;
 
 @end
 
@@ -195,7 +190,7 @@
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr port: (int)port passive: (BOOL)passive;
+- (id) initToAddr: (NSString*)addr port: (int)port;
 
 @end
 
@@ -208,10 +203,62 @@
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr passive: (BOOL)passive;
+- (id) initToAddr: (NSString*)addr;
 
 @end
 
+/**
+ * The concrete subclass of NSServerStream that accept connection from a socket
+ */
+@interface GSSocketServerStream : GSAbstractServerStream <RunLoopEvents>
+/**
+ * return the class of the inputStream associated with this type of serverStream.
+ */
+- (Class)_inputStreamClass;
+/**
+ * return the class of the outputStream associated with this type of serverStream.
+ */
+- (Class)_outputStreamClass;
+/** 
+ * get the length of the socket addr
+ */
+- (socklen_t) sockLen;
+/**
+ * get the sockaddr
+ */
+- (struct sockaddr*) serverAddr;
+
+@end
+
+@interface GSInetServerStream : GSSocketServerStream
+{
+  @private
+  struct sockaddr_in _serverAddr;
+}
+@end
+
+@interface GSInet6ServerStream : GSSocketServerStream
+{
+  @private
+  struct sockaddr_in6 _serverAddr;
+}
+@end
+
+@interface GSLocalServerStream : GSSocketServerStream
+{
+  @private
+  struct sockaddr_un _serverAddr;
+}
+@end
+
+/**
+ * set the file descriptor to non-blocking
+ */
+static void setNonblocking(int fd)
+{
+  int flags = fcntl(fd, F_GETFL, 0);
+  fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
 
 @implementation GSFileInputStream
 
@@ -220,8 +267,6 @@
   if ((self = [super init]) != nil)
     {
       ASSIGN(_path, path);
-      // so that unopened access will fail
-      _fd = -1;
     }
   return self;
 }
@@ -238,8 +283,8 @@
 {
   int readLen;
 
-  readLen = read(_fd, buffer, len);
-  if (readLen < 0)
+  readLen = read((int)_fd, buffer, len);
+  if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
   else if (readLen == 0)
     [self _setStatus: NSStreamStatusAtEnd];
@@ -265,7 +310,7 @@
       off_t offset = 0;
 
       if ([self _isOpened])
-        offset = lseek(_fd, 0, SEEK_CUR);
+        offset = lseek((int)_fd, 0, SEEK_CUR);
       return [NSNumber numberWithLong: offset];
     }
   return [super propertyForKey: key];
@@ -282,7 +327,7 @@
       return;
     }
   [super open];
-  _fd = fd;
+  _fd = (void*)fd;
   // put it self to the runloop if we havn't do so.
   if (_runloop)
     {
@@ -299,7 +344,7 @@
 
 - (void) close
 {
-  int closeReturn = close(_fd);
+  int closeReturn = close((int)_fd);
 
   if (closeReturn < 0)
     [self _recordError];
@@ -315,7 +360,7 @@
           [self removeFromRunLoop: _runloop forMode: thisMode];
         }
     }
-  _fd = -1;
+  _fd = (void*)-1;
   [super close];
 }
 
@@ -328,11 +373,11 @@
     [_modes addObject: mode];
   if ([self _isOpened])
     {
-      [_runloop addEvent: (void*)(uintptr_t)_fd
+      [_runloop addEvent: _fd
 		    type: ET_RDESC
 		 watcher: self
 		 forMode: mode];
-      [_runloop addEvent: (void*)(uintptr_t)_fd
+      [_runloop addEvent: _fd
 		    type: ET_EDESC
 		 watcher: self
 		 forMode: mode];
@@ -347,11 +392,11 @@
     {
       if ([self _isOpened])
         {
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
+          [_runloop removeEvent: _fd
 			   type: ET_RDESC
 			forMode: mode
 			    all: YES];
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
+          [_runloop removeEvent: _fd
 			   type: ET_EDESC
 			forMode: mode
 			    all: YES];
@@ -379,7 +424,7 @@
   int		desc = (int)(uintptr_t)extra;
   NSStreamEvent myEvent;
 
-  NSAssert(desc == _fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
   if (type == ET_RDESC)
     {
       [self _setStatus: NSStreamStatusReading];
@@ -415,9 +460,9 @@
   ASSIGN(_sibling, sibling);
 }
 
-- (void) setFd: (int)fd
+-(void)setPassive: (BOOL)passive
 {
-  _fd = fd;
+  _passive = passive;
 }
 
 - (id) init
@@ -425,7 +470,6 @@
   if ((self = [super init]) != nil)
     {
       // so that unopened access will fail
-      _fd = -1;
       _sibling = nil;
       _passive = NO;
     }
@@ -455,7 +499,7 @@
     }
   else
     {
-      int connectReturn = connect(_fd, [self peerAddr], [self sockLen]);
+      int connectReturn = connect((int)_fd, [self peerAddr], [self sockLen]);
       
       if (connectReturn < 0 && errno != EINPROGRESS)
         {// make an error
@@ -471,7 +515,7 @@
             {
               NSString	*thisMode = [_modes objectAtIndex: i];
 
-              [_runloop addEvent: (void*)(uintptr_t)_fd
+              [_runloop addEvent: _fd
 			    type: ET_WDESC 
 			 watcher: self
 			 forMode: thisMode];
@@ -484,6 +528,7 @@
  open_ok:
   // put itself to the runloop
   [super open];
+  setNonblocking((int)_fd);
   if (_runloop)
     {
       int i;
@@ -500,7 +545,10 @@
 - (void)close
 {
   // read shutdown is ignored, because the other side may shutdown first.
-  shutdown(_fd, SHUT_RD);
+  if (!_sibling || [_sibling streamStatus]==NSStreamStatusClosed)
+    close((int)_fd);
+  else
+    shutdown((int)_fd, SHUT_RD);
   // remove itself from the runloop, if any
   if (_runloop)
     {
@@ -511,7 +559,7 @@
           NSString	*thisMode = [_modes objectAtIndex: i];
 
           if ([self streamStatus] == NSStreamStatusOpening)
-            [_runloop removeEvent: (void*)(uintptr_t)_fd
+            [_runloop removeEvent: _fd
 			     type: ET_WDESC
 			  forMode: thisMode
 			      all: YES];
@@ -519,12 +567,8 @@
             [self removeFromRunLoop: _runloop forMode: thisMode];
         }
     }
-  // clean up 
-  if ([_sibling streamStatus] == NSStreamStatusClosed)
-    {
-      close(_fd);
-      _fd = -1;
-    }
+  // safety against double close
+  _fd = (void*)-1;
   [super close];
 }
 
@@ -532,8 +576,8 @@
 {
   int readLen;
 
-  readLen = read(_fd, buffer, len);
-  if (readLen < 0)
+  readLen = read((int)_fd, buffer, len);
+  if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
   else if (readLen == 0)
     [self _setStatus: NSStreamStatusAtEnd];
@@ -561,11 +605,11 @@
     [_modes addObject: mode];
   if ([self _isOpened])
     {
-      [_runloop addEvent: (void*)(uintptr_t)_fd
+      [_runloop addEvent: _fd
 		    type: ET_RDESC
 		 watcher: self
 		 forMode: mode];
-      [_runloop addEvent: (void*)(uintptr_t)_fd
+      [_runloop addEvent: _fd
 		    type: ET_EDESC
 		 watcher: self
 		 forMode: mode];
@@ -581,11 +625,11 @@
       [_modes removeObject: mode];
       if ([self _isOpened])
         {
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
+          [_runloop removeEvent: _fd
 			   type: ET_RDESC
 			forMode: mode
 			    all: YES];
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
+          [_runloop removeEvent: _fd
 			   type: ET_EDESC
 			forMode: mode
 			    all: YES];
@@ -609,14 +653,24 @@
 {
   int		desc = (int)(uintptr_t)extra;
   NSStreamEvent myEvent;
+  int error, getReturn;
+  socklen_t len = sizeof(error);
 
-  NSAssert(desc == _fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
   if ([self streamStatus] == NSStreamStatusOpening)
     {
-      int i, error;
-      socklen_t len = sizeof(error);;
-      int getReturn = getsockopt(_fd, SOL_SOCKET, SO_ERROR, &error, &len);
+      int i;
+      getReturn = getsockopt((int)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
 
+      // clean up the event listener
+      for (i = 0; i < [_modes count]; i++)
+        {
+          NSString* thisMode = [_modes objectAtIndex: i];
+          [_runloop removeEvent: _fd
+			   type: ET_WDESC
+			forMode: thisMode
+			    all: YES];
+        }
       if (getReturn >= 0 && !error && type == ET_WDESC)
         { // finish up the opening
           myEvent = NSStreamEventOpenCompleted;
@@ -633,16 +687,6 @@
           [self _recordError];
           myEvent = NSStreamEventErrorOccurred;
         }
-      // clean up the event listener
-      for (i = 0; i < [_modes count]; i++)
-        {
-          NSString	*thisMode = [_modes objectAtIndex: i];
-
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
-			   type: ET_WDESC
-			forMode: thisMode
-			    all: YES];
-        }
     }
   else 
     {
@@ -652,9 +696,10 @@
           myEvent = NSStreamEventHasBytesAvailable;
         }
       else   
-        {    // must be an error then
-          [self _recordError];
-          myEvent = NSStreamEventErrorOccurred;
+        {
+          // the only possible thing that can happened is writer hang up
+          // which is just fine.
+          return;      
         }
     }
   [self _sendEvent: myEvent];
@@ -674,7 +719,7 @@
   return (struct sockaddr*)&_peerAddr;
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port passive: (BOOL)passive
+- (id) initToAddr: (NSString*)addr port: (int)port
 {
 
   int ptonReturn;
@@ -684,7 +729,6 @@
     {
       _peerAddr.sin_family = AF_INET;
       _peerAddr.sin_port = htons(port);
-      _passive = passive;
       ptonReturn = inet_pton(AF_INET, addr_c, &(_peerAddr.sin_addr));
       if (ptonReturn == 0)   // error
 	{
@@ -708,7 +752,7 @@
   return (struct sockaddr*)&_peerAddr;
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port passive: (BOOL)passive
+- (id) initToAddr: (NSString*)addr port: (int)port
 {
   int ptonReturn;
   const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
@@ -717,7 +761,6 @@
     {
       _peerAddr.sin6_family = AF_INET6;
       _peerAddr.sin6_port = htons(port);
-      _passive = passive;
       ptonReturn = inet_pton(AF_INET6, addr_c, &(_peerAddr.sin6_addr));
       if (ptonReturn == 0)   // error
 	{
@@ -741,14 +784,13 @@
   return (struct sockaddr*)&_peerAddr;
 }
 
-- (id) initToAddr: (NSString*)addr passive: (BOOL)passive
+- (id) initToAddr: (NSString*)addr
 {
   const char* real_addr = [addr fileSystemRepresentation];
 
   if ((self = [super init]) != nil)
     {
       _peerAddr.sun_family = AF_LOCAL;
-      _passive = passive;
       if (strlen(real_addr)>sizeof(_peerAddr.sun_path)-1) // too long
 	{
 	  DESTROY(self);
@@ -771,7 +813,6 @@
     {
       ASSIGN(_path, path);
       // so that unopened access will fail
-      _fd = -1;
       _shouldAppend = shouldAppend;
     }
   return self;
@@ -788,8 +829,8 @@
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   int writeLen;
-  writeLen = write(_fd, buffer, len);
-  if (writeLen < 0)
+  writeLen = write((int)_fd, buffer, len);
+  if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
   return writeLen;
 }
@@ -818,11 +859,12 @@
       return;
     }
   [super open];
-  _fd = fd;
+  _fd = (void*)fd;
   // put it self to the runloop if we haven't do so.
   if (_runloop)
     {
       int i;
+
       for (i = 0; i < [_modes count]; i++)
         {
           NSString* thisMode = [_modes objectAtIndex: i];
@@ -833,7 +875,7 @@
 
 - (void) close
 {
-  int closeReturn = close(_fd);
+  int closeReturn = close((int)_fd);
   if (closeReturn < 0)
     [self _recordError];
   // remove itself from the runloop, if any
@@ -848,7 +890,7 @@
           [self removeFromRunLoop: _runloop forMode: thisMode];
         }
     }
-  _fd = -1;
+  _fd = (void*)-1;
   [super close];
 }
 
@@ -861,11 +903,11 @@
     [_modes addObject: mode];
   if ([self _isOpened])
     {
-      [_runloop addEvent: (void*)(uintptr_t)_fd
+      [_runloop addEvent: _fd
 		    type: ET_WDESC
 		 watcher: self
 		 forMode: mode];
-      [_runloop addEvent: (void*)(uintptr_t)_fd
+      [_runloop addEvent: _fd
 		    type: ET_EDESC
 		 watcher: self
 		 forMode: mode];
@@ -881,11 +923,11 @@
       [_modes removeObject: mode];
       if ([self _isOpened])
         {
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
+          [_runloop removeEvent: _fd
 			   type: ET_WDESC
 			forMode: mode
 			    all: YES];
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
+          [_runloop removeEvent: _fd
 			   type: ET_EDESC
 			forMode: mode
 			    all: YES];
@@ -902,7 +944,7 @@
       off_t offset = 0;
 
       if ([self _isOpened])
-        offset = lseek(_fd, 0, SEEK_CUR);
+        offset = lseek((int)_fd, 0, SEEK_CUR);
       return [NSNumber numberWithLong: offset];
     }
   return [super propertyForKey: key];
@@ -923,7 +965,7 @@
   int		desc = (int)(uintptr_t)extra;
   NSStreamEvent myEvent;
 
-  NSAssert(desc == _fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
   if (type == ET_WDESC)
     {
       [self _setStatus: NSStreamStatusWriting];
@@ -959,17 +1001,15 @@
   ASSIGN(_sibling, sibling);
 }
 
-- (void) setFd: (int)fd
+-(void)setPassive: (BOOL)passive
 {
-  _fd = fd;
+  _passive = passive;
 }
 
 - (id) init
 {
   if ((self = [super init]) != nil)
     {
-      // so that unopened access will fail
-      _fd = -1;
       _sibling = nil;
       _passive = NO;
     }
@@ -987,8 +1027,8 @@
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   int writeLen;
-  writeLen = write(_fd, buffer, len);
-  if (writeLen < 0)
+  writeLen = write((int)_fd, buffer, len);
+  if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
   return writeLen;
 }
@@ -1015,7 +1055,7 @@
     }
   else
     {
-      int connectReturn = connect(_fd, [self peerAddr], [self sockLen]);
+      int connectReturn = connect((int)_fd, [self peerAddr], [self sockLen]);
       
       if (connectReturn < 0 && errno != EINPROGRESS)
         {// make an error
@@ -1026,10 +1066,12 @@
       if (_runloop)
         {
           int i;
+
           for (i = 0; i < [_modes count]; i++)
             {
-              NSString* thisMode = [_modes objectAtIndex: i];
-              [_runloop addEvent: (void*)(uintptr_t)_fd type: ET_WDESC 
+              NSString	*thisMode = [_modes objectAtIndex: i];
+
+              [_runloop addEvent: _fd type: ET_WDESC 
                         watcher: self forMode: thisMode];
             }
         }
@@ -1040,12 +1082,14 @@
  open_ok:
   // put itself to the runloop
   [super open];
+  setNonblocking((int)_fd);
   if (_runloop)
     {
       int i;
+
       for (i = 0; i < [_modes count]; i++)
         {
-          NSString* thisMode = [_modes objectAtIndex: i];
+          NSString	* thisMode = [_modes objectAtIndex: i];
           [self scheduleInRunLoop: _runloop forMode: thisMode];
         }
     }
@@ -1054,7 +1098,11 @@
 - (void) close
 {
   // shutdown may fail (broken pipe). Record it.
-  int closeReturn = shutdown(_fd, SHUT_WR);
+  int closeReturn;
+  if (!_sibling || [_sibling streamStatus]==NSStreamStatusClosed)
+    closeReturn = close((int)_fd);
+  else
+    closeReturn = shutdown((int)_fd, SHUT_WR);
   if (closeReturn < 0)
     [self _recordError];
   // remove itself from the runloop, if any
@@ -1066,7 +1114,7 @@
         {
           NSString	*thisMode = [_modes objectAtIndex: i];
           if ([self streamStatus] == NSStreamStatusOpening)
-            [_runloop removeEvent: (void*)(uintptr_t)_fd
+            [_runloop removeEvent: _fd
 			     type: ET_WDESC
 			  forMode: thisMode
 			      all: YES];
@@ -1074,12 +1122,8 @@
             [self removeFromRunLoop: _runloop forMode: thisMode];
         }
     }
-  // clean up 
-  if ([_sibling streamStatus] == NSStreamStatusClosed)
-    {
-      close(_fd);
-      _fd = -1;
-    }
+  // safety against double close 
+  _fd = (void*)-1;
   [super close];
 }
 
@@ -1092,11 +1136,11 @@
     [_modes addObject: mode];
   if ([self _isOpened])
     {
-      [_runloop addEvent: (void*)(uintptr_t)_fd
+      [_runloop addEvent: _fd
 		    type: ET_WDESC
 		 watcher: self
 		 forMode: mode];
-      [_runloop addEvent: (void*)(uintptr_t)_fd
+      [_runloop addEvent: _fd
 		    type: ET_EDESC
 		 watcher: self
 		 forMode: mode];
@@ -1112,11 +1156,11 @@
       [_modes removeObject: mode];
       if ([self _isOpened])
         {
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
+          [_runloop removeEvent: _fd
 			   type: ET_WDESC
 			forMode: mode
 			    all: YES];
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
+          [_runloop removeEvent: _fd
 			   type: ET_EDESC
 			forMode: mode
 			    all: YES];
@@ -1140,14 +1184,26 @@
 {
   int		desc = (int)(uintptr_t)extra;
   NSStreamEvent myEvent;
+  int error, getReturn;
+  socklen_t len = sizeof(error);
 
-  NSAssert(desc == _fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
   if ([self streamStatus] == NSStreamStatusOpening)
     {
-      int i, error;
-      socklen_t len = sizeof(error);;
-      int getReturn = getsockopt(_fd, SOL_SOCKET, SO_ERROR, &error, &len);
+      int i;
+      
+      getReturn = getsockopt((int)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
+      // clean up the event listener
 
+      for (i = 0; i < [_modes count]; i++)
+        {
+          NSString	*thisMode = [_modes objectAtIndex: i];
+
+          [_runloop removeEvent: _fd
+			   type: ET_WDESC
+			forMode: thisMode
+			    all: YES];
+        }
       if (getReturn >= 0 && !error && type == ET_WDESC)
         { // finish up the opening
           myEvent = NSStreamEventOpenCompleted;
@@ -1164,16 +1220,6 @@
           [self _recordError];
           myEvent = NSStreamEventErrorOccurred;
         }
-      // clean up the event listener
-      for (i = 0; i < [_modes count]; i++)
-        {
-          NSString	*thisMode = [_modes objectAtIndex: i];
-
-          [_runloop removeEvent: (void*)(uintptr_t)_fd
-			   type: ET_WDESC
-			forMode: thisMode
-			    all: YES];
-        }
     }
   else 
     {
@@ -1183,9 +1229,18 @@
           myEvent = NSStreamEventHasSpaceAvailable;
         }
       else   
-        {    // must be an error then
-          [self _recordError];
-          myEvent = NSStreamEventErrorOccurred;
+        {
+          // check if there is an real error
+          getReturn = getsockopt((int)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
+          if (getReturn >= 0 && !error)
+            return;      
+          else
+            {
+              if (error)
+                errno = error;
+              [self _recordError];
+              myEvent = NSStreamEventErrorOccurred;
+            }
         }
     }
 
@@ -1206,7 +1261,7 @@
   return (struct sockaddr*)&_peerAddr;
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port passive: (BOOL)passive
+- (id) initToAddr: (NSString*)addr port: (int)port
 {
   int ptonReturn;
   const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
@@ -1215,7 +1270,6 @@
     {
       _peerAddr.sin_family = AF_INET;
       _peerAddr.sin_port = htons(port);
-      _passive = passive;
       ptonReturn = inet_pton(AF_INET, addr_c, &(_peerAddr.sin_addr));
       if (ptonReturn == 0)   // error
 	{
@@ -1239,7 +1293,7 @@
   return (struct sockaddr*)&_peerAddr;
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port passive: (BOOL)passive
+- (id) initToAddr: (NSString*)addr port: (int)port
 {
   int ptonReturn;
   const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
@@ -1248,7 +1302,6 @@
     {
       _peerAddr.sin6_family = AF_INET6;
       _peerAddr.sin6_port = htons(port);
-      _passive = passive;
       ptonReturn = inet_pton(AF_INET6, addr_c, &(_peerAddr.sin6_addr));
       if (ptonReturn == 0)   // error
 	{
@@ -1272,14 +1325,13 @@
   return (struct sockaddr*)&_peerAddr;
 }
 
-- (id) initToAddr: (NSString*)addr passive: (BOOL)passive
+- (id) initToAddr: (NSString*)addr
 {
   const char* real_addr = [addr fileSystemRepresentation];
 
   if ((self = [super init]) != nil)
     {
       _peerAddr.sun_family = AF_LOCAL;
-      _passive = passive;
       if (strlen(real_addr) > sizeof(_peerAddr.sun_path)-1) // too long
 	{
 	  DESTROY(self);
@@ -1294,8 +1346,6 @@
 
 @end
 
-
-
 @implementation NSStream
 
 + (void) getStreamsToHost: (NSHost *)host 
@@ -1307,21 +1357,18 @@
   GSSocketInputStream *ins = nil;
   GSSocketOutputStream *outs = nil;
   int sock;
-  int flags;
 
   // try ipv4 first
   ins = AUTORELEASE([[GSInetInputStream alloc]
-    initToAddr: address port: port passive: NO]);
+    initToAddr: address port: port]);
   outs = AUTORELEASE([[GSInetOutputStream alloc]
-    initToAddr: address port: port passive: NO]);
+    initToAddr: address port: port]);
   if (!ins)
     {
       ins = [[GSInet6InputStream alloc] initToAddr: address
-					      port: port
-					   passive: NO];
+                                        port: port];
       outs = [[GSInet6OutputStream alloc] initToAddr: address
-						port: port
-					     passive: NO];
+                                          port: port];
       sock = socket(PF_INET6, SOCK_STREAM, 0);
     }  
   else
@@ -1329,12 +1376,9 @@
       sock = socket(PF_INET, SOCK_STREAM, 0);
     }
 
-  // set nonblocking
-  flags = fcntl(sock, F_GETFL, 0);
-  fcntl(sock, F_SETFL, flags | O_NONBLOCK);
-
-  [ins setFd: sock];
-  [outs setFd: sock];
+  NSAssert(sock >= 0, @"Cannot open socket");
+  [ins _setFd: (void*)(intptr_t)sock];
+  [outs _setFd: (void*)(intptr_t)sock];
   if (inputStream)
     {
       [ins setSibling: outs];
@@ -1348,6 +1392,59 @@
   return;
 }
 
++ (void) getLocalStreamsToPath: (NSString *)path 
+                   inputStream: (NSInputStream **)inputStream 
+                  outputStream: (NSOutputStream **)outputStream
+{
+  GSSocketInputStream *ins = nil;
+  GSSocketOutputStream *outs = nil;
+  int sock;
+
+  ins = AUTORELEASE([[GSLocalInputStream alloc] initToAddr: path]);
+  outs = AUTORELEASE([[GSLocalOutputStream alloc] initToAddr: path]);
+  sock = socket(PF_LOCAL, SOCK_STREAM, 0);
+
+  NSAssert(sock >= 0, @"Cannot open socket");
+  [ins _setFd: (void*)(intptr_t)sock];
+  [outs _setFd: (void*)(intptr_t)sock];
+  if (inputStream)
+    {
+      [ins setSibling: outs];
+      *inputStream = ins;
+    }
+  if (outputStream)
+    {
+      [outs setSibling: ins];
+      *outputStream = outs;
+    }
+  return;
+}
+
++ (void) pipeWithInputStream: (NSInputStream **)inputStream 
+                outputStream: (NSOutputStream **)outputStream
+{
+  GSSocketInputStream *ins = nil;
+  GSSocketOutputStream *outs = nil;
+  int fds[2];
+  int pipeReturn;
+
+  // the type of the stream does not matter, since we are only using the fd
+  ins = AUTORELEASE([GSLocalInputStream new]);
+  outs = AUTORELEASE([GSLocalOutputStream new]);
+  pipeReturn = pipe(fds);
+
+  NSAssert(pipeReturn >= 0, @"Cannot open pipe");
+  [ins _setFd: (void*)(intptr_t)fds[0]];
+  [outs _setFd: (void*)(intptr_t)fds[1]];
+  // no need to connect
+  [ins setPassive: YES];
+  [outs setPassive: YES];
+  if (inputStream)
+    *inputStream = ins;
+  if (outputStream)
+    *outputStream = outs;
+  return;
+}
 
 - (void) close
 {
@@ -1499,6 +1596,366 @@
 {
   [self subclassResponsibility: _cmd];
   return NO;
+}
+
+@end
+
+@implementation GSServerStream
+
++ (id) serverStreamToAddr: (NSString*)addr port: (int)port
+{
+  GSServerStream *s;
+
+  // try inet first, then inet6
+  s = [[GSInetServerStream alloc] initToAddr: addr port: port];
+  if (!s)
+    s = [[GSInet6ServerStream alloc] initToAddr: addr port: port];
+  return AUTORELEASE(s);
+}
+
++ (id) serverStreamToAddr: (NSString*)addr
+{
+  return AUTORELEASE([[GSLocalServerStream alloc] initToAddr: addr]);
+}
+
+- (id) initToAddr: (NSString*)addr port: (int)port
+{
+  RELEASE(self);
+  // try inet first, then inet6
+  self = [[GSInetServerStream alloc] initToAddr: addr port: port];
+  if (!self)
+    self = [[GSInet6ServerStream alloc] initToAddr: addr port: port];
+  return self;
+}
+
+- (id) initToAddr: (NSString*)addr
+{
+  RELEASE(self);
+  return [[GSLocalServerStream alloc] initToAddr: addr];
+}
+
+- (void) acceptWithInputStream: (NSInputStream **)inputStream 
+                  outputStream: (NSOutputStream **)outputStream
+{
+  [self subclassResponsibility: _cmd];
+}
+
+@end
+
+@implementation GSSocketServerStream
+
+- (Class) _inputStreamClass
+{
+  [self subclassResponsibility: _cmd];
+  return Nil;
+}
+
+- (Class) _outputStreamClass
+{
+  [self subclassResponsibility: _cmd];
+  return Nil;
+}
+
+- (void) dealloc
+{
+  if ([self _isOpened])
+    [self close];
+  [super dealloc];
+}
+
+- (socklen_t) sockLen
+{
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+- (struct sockaddr*) serverAddr
+{
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+#define SOCKET_BACKLOG 5
+
+- (void) open
+{
+  int bindReturn = bind((int)_fd, [self serverAddr], [self sockLen]);
+  int listenReturn = listen((int)_fd, SOCKET_BACKLOG);
+
+  if (bindReturn < 0 || listenReturn)
+    {
+      [self _recordError];
+      return;
+    }
+  setNonblocking((int)_fd);
+  // put itself to the runloop
+  [super open];
+  if (_runloop)
+    {
+      int i;
+
+      for (i = 0; i < [_modes count]; i++)
+        {
+          NSString* thisMode = [_modes objectAtIndex: i];
+          [self scheduleInRunLoop: _runloop forMode: thisMode];
+        }
+    }
+}
+
+- (void) close
+{
+  // close a server socket is safe
+  close((int)_fd);
+  // remove itself from the runloop, if any
+  if (_runloop)
+    {
+      int i;
+
+      for (i = 0; i < [_modes count]; i++)
+        {
+          NSString* thisMode = [_modes objectAtIndex: i];
+          [self removeFromRunLoop: _runloop forMode: thisMode];
+        }
+    }
+  _fd = (void*)-1;
+  [super close];
+}
+
+- (void) acceptWithInputStream: (NSInputStream **)inputStream 
+                  outputStream: (NSOutputStream **)outputStream
+{
+  GSSocketInputStream *ins = AUTORELEASE([[self _inputStreamClass] new]);
+  GSSocketOutputStream *outs = AUTORELEASE([[self _outputStreamClass] new]);
+  socklen_t len = [ins sockLen];
+  int acceptReturn = accept((int)_fd, [ins peerAddr], &len);
+
+  if (acceptReturn < 0)
+    { // test for real error
+      if (errno != EWOULDBLOCK && errno != ECONNABORTED
+	&& errno != EPROTO && errno != EINTR)
+	{
+          [self _recordError];
+	}
+      ins = nil;
+      outs = nil;
+    }
+  else
+    {
+      // no need to connect again
+      [ins setPassive: YES];
+      [outs setPassive: YES];
+      // copy the addr to outs
+      memcpy([outs peerAddr], [ins peerAddr], len);
+      [ins _setFd: (void*)(intptr_t)acceptReturn];
+      [outs _setFd: (void*)(intptr_t)acceptReturn];
+    }
+  if (inputStream)
+    {
+      [ins setSibling: outs];
+      *inputStream = ins;
+    }
+  if (outputStream)
+    {
+      [outs setSibling: ins];
+      *outputStream = outs;
+    }
+}
+
+- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+{
+  NSAssert(!_runloop || _runloop == aRunLoop, 
+    @"Attempt to schedule in more than one runloop.");
+  ASSIGN(_runloop, aRunLoop);
+  if (![_modes containsObject: mode])
+    [_modes addObject: mode];
+  if ([self _isOpened])
+    {
+      [_runloop addEvent: _fd
+		    type: ET_RDESC
+		 watcher: self
+		 forMode: mode];
+      [_runloop addEvent: _fd
+		    type: ET_EDESC
+		 watcher: self
+		 forMode: mode];
+    }
+}
+
+- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+{
+  NSAssert(_runloop == aRunLoop, 
+    @"Attempt to remove unscheduled runloop");
+  if ([_modes containsObject: mode])
+    {
+      [_modes removeObject: mode];
+      if ([self _isOpened])
+        {
+          [_runloop removeEvent: _fd
+			   type: ET_RDESC
+			forMode: mode
+			    all: YES];
+          [_runloop removeEvent: _fd
+			   type: ET_EDESC
+			forMode: mode
+			    all: YES];
+        }
+      if ([_modes count] == 0)
+        DESTROY(_runloop);
+    }
+}
+
+- (NSDate*) timedOutEvent: (void*)data
+		     type: (RunLoopEventType)type
+		  forMode: (NSString*)mode
+{
+  return nil;
+}
+
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode
+{
+  int		desc = (int)(uintptr_t)extra;
+  NSStreamEvent myEvent;
+
+  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
+  if (type == ET_RDESC)
+    {
+      [self _setStatus: NSStreamStatusReading];
+      myEvent = NSStreamEventHasBytesAvailable;
+    }
+  else   
+    {    // must be an error then
+      [self _recordError];
+      myEvent = NSStreamEventErrorOccurred;
+    }
+  [self _sendEvent: myEvent];
+}
+
+@end
+
+@implementation GSInetServerStream
+
+- (Class) _inputStreamClass
+{
+  return [GSInetInputStream class];
+}
+
+- (Class) _outputStreamClass
+{
+  return [GSInetOutputStream class];
+}
+
+- (socklen_t) sockLen
+{
+  return sizeof(struct sockaddr_in);
+}
+
+- (struct sockaddr*) serverAddr
+{
+  return (struct sockaddr*)&_serverAddr;
+}
+
+- (id) initToAddr: (NSString*)addr port: (int)port
+{
+  int ptonReturn;
+  const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
+
+  [super init];
+  _serverAddr.sin_family = AF_INET;
+  _serverAddr.sin_port = htons(port);
+  ptonReturn = inet_pton(AF_INET, addr_c, &(_serverAddr.sin_addr));
+  _fd = (void*)socket(AF_INET, SOCK_STREAM, 0);
+  if (ptonReturn == 0 || _fd < 0)   // error
+    {
+      RELEASE(self);
+      return nil;
+    }
+  NSAssert(_fd >= 0, @"cannot open socket");
+  return self;
+}
+
+@end
+
+@implementation GSInet6ServerStream
+
+- (Class) _inputStreamClass
+{
+  return [GSInet6InputStream class];
+}
+
+- (Class) _outputStreamClass
+{
+  return [GSInet6OutputStream class];
+}
+
+- (socklen_t) sockLen
+{
+  return sizeof(struct sockaddr_in6);
+}
+
+- (struct sockaddr*) serverAddr
+{
+  return (struct sockaddr*)&_serverAddr;
+}
+
+- (id) initToAddr: (NSString*)addr port: (int)port
+{
+  int ptonReturn;
+  const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
+
+  [super init];
+  _serverAddr.sin6_family = AF_INET6;
+  _serverAddr.sin6_port = htons(port);
+  ptonReturn = inet_pton(AF_INET6, addr_c, &(_serverAddr.sin6_addr));
+  _fd = (void*)socket(AF_INET6, SOCK_STREAM, 0);
+  if (ptonReturn == 0 || _fd < 0)   // error
+    {
+      RELEASE(self);
+      return nil;
+    }
+  NSAssert(_fd >= 0, @"cannot open socket");
+  return self;
+}
+
+@end
+
+@implementation GSLocalServerStream 
+
+- (Class) _inputStreamClass
+{
+  return [GSLocalInputStream class];
+}
+
+- (Class) _outputStreamClass
+{
+  return [GSLocalOutputStream class];
+}
+
+- (socklen_t) sockLen
+{
+  return sizeof(struct sockaddr_un);
+}
+
+- (struct sockaddr*) serverAddr
+{
+  return (struct sockaddr*)&_serverAddr;
+}
+
+- (id) initToAddr: (NSString*)addr
+{
+  const char* real_addr = [addr fileSystemRepresentation];
+  [super init];
+  _serverAddr.sun_family = AF_LOCAL;
+  _fd = (void *)socket(AF_LOCAL, SOCK_STREAM, 0);
+  if (strlen(real_addr)>sizeof(_serverAddr.sun_path)-1 || _fd < 0) // too long
+    {
+      RELEASE(self);
+      return nil;
+    }
+  strncpy(_serverAddr.sun_path, real_addr, sizeof(_serverAddr.sun_path)-1);
+  return self;
 }
 
 @end
