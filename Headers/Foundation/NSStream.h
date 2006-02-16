@@ -53,6 +53,7 @@ typedef enum {
 @class NSInputStream;
 @class NSOutputStream;
 @class NSString;
+@class NSRunLoop;
 
 /**
  * NSStream is an abstract class for objects representing streams. 

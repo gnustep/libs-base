@@ -1,3 +1,8 @@
+2006-02-15  Andrew Ruder <aeruder@ksu.edu>
+
+	* Headers/Foundation/NSStream.h: NSRunLoop was not defined in
+	the NSStream header file. (Added @class NSRunLoop;)
+
 2006-02-15  Derek Zhou <dzhou@nvidea.com> Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSStream.h: New NSStream, NSInputStream and
