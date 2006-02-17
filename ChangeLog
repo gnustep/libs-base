@@ -1,3 +1,10 @@
+2006-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Implement method to get name of files
+	owner on mingw32.
+	* Source/NSPathUtilities.m: Check that user specific config file
+	is owned by user, as suggested by Sheldon.
+
 2006-02-16  Derek Zhou <dzhou@nvidea.com>
 
 	* Source/GSStream.h:

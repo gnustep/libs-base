@@ -74,7 +74,10 @@
 
 #if	defined(__MINGW32__)
 #include <stdio.h>
+#include <tchar.h>
 #include <wchar.h>
+#include <accctrl.h>
+#include <aclapi.h>
 #define	WIN32ERR	((DWORD)0xFFFFFFFF)
 #endif
 
@@ -228,6 +231,7 @@
  */
 @interface	GSAttrDictionary : NSDictionary
 {
+  _CHAR		*_path;
   struct _STATB	statbuf;
 }
 + (NSDictionary*) attributesAt: (const _CHAR*)lpath
@@ -2714,12 +2718,19 @@ static NSSet	*fileKeys = nil;
 		  traverseLink: (BOOL)traverse
 {
   GSAttrDictionary	*d;
+  unsigned		l = 0;
+  unsigned		i;
 
   if (lpath == 0 || *lpath == 0)
     {
       return nil;
     }
-  d = (GSAttrDictionary*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+  while (lpath[l] != 0)
+    {
+      l++;
+    }
+  d = (GSAttrDictionary*)NSAllocateObject(self, (l+1)*sizeof(_CHAR),
+    NSDefaultMallocZone());
 
 #if defined(S_IFLNK) && !defined(__MINGW32__)
   if (traverse == NO)
@@ -2734,6 +2745,11 @@ static NSSet	*fileKeys = nil;
   if (_STAT(lpath, &d->statbuf) != 0)
     {
       DESTROY(d);
+    }
+  d->_path = (_CHAR*)&d[1];
+  for (i = 0; i <= l; i++)
+    {
+      d->_path[i] = lpath[i];
     }
   return AUTORELEASE(d);
 }
@@ -2845,23 +2861,23 @@ static NSSet	*fileKeys = nil;
 
 - (NSString*) fileOwnerAccountName
 {
-  NSString	*result = @"UnknownUser";
-#ifdef __MINGW_NOT_AVAILABLE_YET
-{
-  DWORD		dwRtnCode = 0;
-  PSID		pSidOwner;
-  BOOL		bRtnBool = TRUE;
-  LPTSTR	AcctName;
-  LPTSTR	DomainName;
-  DWORD		dwAcctName = 1;
-  DWORD		dwDomainName = 1;
+  NSString	*owner = @"UnknownUser";
+
+#if	defined(__MINGW32__)
+  DWORD		returnCode = 0;
+  PSID		sidOwner;
+  BOOL		result = TRUE;
+  _CHAR		account[BUFSIZ];
+  _CHAR		domain[BUFSIZ];
+  DWORD		accountSize = 1024;
+  DWORD		domainSize = 1024;
   SID_NAME_USE	eUse = SidTypeUnknown;
   HANDLE	hFile;
   PSECURITY_DESCRIPTOR pSD;
 
   // Get the handle of the file object.
   hFile = CreateFileW(
-    "myfile.txt",
+    _path,
     GENERIC_READ,
     FILE_SHARE_READ,
     0,
@@ -2875,112 +2891,66 @@ static NSSet	*fileKeys = nil;
       DWORD dwErrorCode = 0;
 
       dwErrorCode = GetLastError();
-      _tprintf(TEXT("CreateFile error = %d\n"), dwErrorCode);
-      return -1;
+      NSDebugMLog(@"Error %d getting file handle for '%S'",
+        dwErrorCode, _path);
+      return owner;
     }
 
-  // Allocate memory for the SID structure.
-  pSidOwner = (PSID)GlobalAlloc(
-    GMEM_FIXED,
-    sizeof(PSID));
-
-  // Allocate memory for the security descriptor structure.
-  pSD = (PSECURITY_DESCRIPTOR)GlobalAlloc(
-    GMEM_FIXED,
-    sizeof(PSECURITY_DESCRIPTOR));
-
   // Get the owner SID of the file.
-  dwRtnCode = GetSecurityInfoW(
+  returnCode = GetSecurityInfo(
     hFile,
     SE_FILE_OBJECT,
     OWNER_SECURITY_INFORMATION,
-    &pSidOwner,
+    &sidOwner,
     0,
     0,
     0,
     &pSD);
 
+  CloseHandle(hFile);
+
   // Check GetLastError for GetSecurityInfo error condition.
-  if (dwRtnCode != ERROR_SUCCESS)
+  if (returnCode != ERROR_SUCCESS)
     {
       DWORD dwErrorCode = 0;
 
       dwErrorCode = GetLastError();
-      _tprintf(TEXT("GetSecurityInfo error = %d\n"), dwErrorCode);
-      return -1;
+      NSDebugMLog(@"Error %d getting security info for '%S'",
+        dwErrorCode, _path);
+      return owner;
     }
 
   // First call to LookupAccountSid to get the buffer sizes.
-  bRtnBool = LookupAccountSid(
+  result = LookupAccountSidW(
     0,           // local computer
-    pSidOwner,
-    AcctName,
-    (LPDWORD)&dwAcctName,
-    DomainName,
-    (LPDWORD)&dwDomainName,
+    sidOwner,
+    account,
+    (LPDWORD)&accountSize,
+    domain,
+    (LPDWORD)&domainSize,
     &eUse);
 
-  // Reallocate memory for the buffers.
-  AcctName = (char *)GlobalAlloc(
-    GMEM_FIXED,
-    dwAcctName);
-
-  // Check GetLastError for GlobalAlloc error condition.
-  if (AcctName == 0)
-    {
-      DWORD dwErrorCode = 0;
-
-      dwErrorCode = GetLastError();
-      _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
-      return -1;
-    }
-
-  DomainName = (char *)GlobalAlloc(
-    GMEM_FIXED,
-    dwDomainName);
-
-  // Check GetLastError for GlobalAlloc error condition.
-  if (DomainName == 0)
-    {
-      DWORD dwErrorCode = 0;
-
-      dwErrorCode = GetLastError();
-      _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
-      return -1;
-    }
-
-  // Second call to LookupAccountSid to get the account name.
-  bRtnBool = LookupAccountSid(
-    0,                          // name of local or remote computer
-    pSidOwner,                     // security identifier
-    AcctName,                      // account name buffer
-    (LPDWORD)&dwAcctName,          // size of account name buffer
-    DomainName,                    // domain name
-    (LPDWORD)&dwDomainName,        // size of domain name buffer
-    &eUse);                        // SID type
-
   // Check GetLastError for LookupAccountSid error condition.
-  if (bRtnBool == FALSE)
+  if (result == FALSE)
     {
       DWORD dwErrorCode = 0;
 
       dwErrorCode = GetLastError();
-
       if (dwErrorCode == ERROR_NONE_MAPPED)
-	_tprintf(TEXT("Account owner not found for specified SID.\n"));
+	NSDebugMLog(@"Error %d in LookupAccountSid for '%S'", _path);
       else
-	_tprintf(TEXT("Error in LookupAccountSid.\n"));
-      return -1;
+        NSDebugMLog(@"Error %d getting security info for '%S'",
+          dwErrorCode, _path);
+      return owner;
     }
-  else if (bRtnBool == TRUE)
-    {
-      // Print the account name.
-      _tprintf(TEXT("Account owner = %s\n"), AcctName);
-    }
-  return 0;
-}
 
-#endif
+  if (accountSize >= 1024)
+    {
+      NSDebugMLog(@"Account name for '%S' is unreasonably long", _path);
+      return owner;
+    }
+  return [NSString stringWithCharacters: account length: accountSize];
+#else
 #ifdef HAVE_PWD_H
   struct passwd *pw;
 
@@ -2988,10 +2958,11 @@ static NSSet	*fileKeys = nil;
 
   if (pw != 0)
     {
-      result = [NSString stringWithCString: pw->pw_name];
+      owner = [NSString stringWithCString: pw->pw_name];
     }
 #endif /* HAVE_PWD_H */
-  return result;
+#endif
+  return owner;
 }
 
 - (unsigned long long) fileSize
