@@ -202,11 +202,13 @@
 + (id) serverStreamToAddr: (NSString*)addr port: (int)port
 {
   [self notImplemented: _cmd];
+  return nil;
 }
 
 + (id) serverStreamToAddr: (NSString*)addr
 {
   [self notImplemented: _cmd];
+  return nil;
 }
 
 - (id) initToAddr: (NSString*)addr port: (int)port

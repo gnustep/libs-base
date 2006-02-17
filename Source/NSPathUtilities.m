@@ -163,7 +163,8 @@ static NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
 
 static void UserConfig(NSMutableDictionary *config, NSString *userName);
 
-static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict);
+static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict,
+  NSString *userName);
 
 static void InitialisePathUtilities(void);
 static void ShutdownPathUtilities(void);
@@ -461,7 +462,7 @@ GNUstepConfig(NSDictionary *newConfig)
 		{
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
-		  ParseConfigurationFile(file, conf);
+		  ParseConfigurationFile(file, conf, nil);
 		}
 	    }
 	  else
@@ -539,7 +540,7 @@ UserConfig(NSMutableDictionary *config, NSString *userName)
 	{
 	  home = NSHomeDirectoryForUser(userName);
 	  path = [home stringByAppendingPathComponent: file];
-	  ParseConfigurationFile(path, config);
+	  ParseConfigurationFile(path, config, userName);
 	}
       /*
        * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
@@ -637,7 +638,8 @@ static void ShutdownPathUtilities(void)
  * the function makes no changes to dict and returns NO.
  */
 static BOOL
-ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
+ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
+  NSString *userName)
 {
   NSDictionary	*attributes;
   NSString      *file;
@@ -658,12 +660,32 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
     }
 
   attributes = [MGR() fileAttributesAtPath: fileName traverseLink: YES];
+  if (userName != nil)
+    {
+      NSString	*fileOwner = [attributes fileOwnerAccountName];
+  
+      if ([userName isEqual: fileOwner] == NO)
+	{
+#if defined(__WIN32__)
+	  fprintf(stderr, "The file '%S' is owned by '%s' but we expect it"
+	    " to be the personal config file of '%s'.\nIgnoring it.\n",
+	    [fileName fileSystemRepresentation],
+	    [fileOwner UTF8String], [userName UTF8String]);
+#else
+	  fprintf(stderr, "The file '%s' is owned by '%s' but we expect it"
+	    " to be the personal config file of '%s'.\nIgnoring it.\n",
+	    [fileName fileSystemRepresentation],
+	    [fileOwner UTF8String], [userName UTF8String]);
+#endif
+          return NO;
+	}
+    }
   if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
     {
 #if defined(__WIN32__)
       fprintf(stderr, "The file '%S' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
-	(const unichar*)[fileName fileSystemRepresentation],
+	[fileName fileSystemRepresentation],
         [attributes filePosixPermissions]);
 #else
       fprintf(stderr, "The file '%s' is writable by someone other than"
