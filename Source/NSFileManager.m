@@ -2811,17 +2811,107 @@ static NSSet	*fileKeys = nil;
 
 - (NSString*) fileGroupOwnerAccountName
 {
-  NSString	*result = @"UnknownGroup";
+  NSString	*group = @"UnknownGroup";
+
+#if	defined(__MINGW32__)
+  DWORD		returnCode = 0;
+  PSID		sidOwner;
+  BOOL		result = TRUE;
+  _CHAR		account[BUFSIZ];
+  _CHAR		domain[BUFSIZ];
+  DWORD		accountSize = 1024;
+  DWORD		domainSize = 1024;
+  SID_NAME_USE	eUse = SidTypeUnknown;
+  HANDLE	hFile;
+  PSECURITY_DESCRIPTOR pSD;
+
+  // Get the handle of the file object.
+  hFile = CreateFileW(
+    _path,
+    GENERIC_READ,
+    FILE_SHARE_READ,
+    0,
+    OPEN_EXISTING,
+    FILE_ATTRIBUTE_NORMAL,
+    0);
+
+  // Check GetLastError for CreateFile error code.
+  if (hFile == INVALID_HANDLE_VALUE)
+    {
+      DWORD dwErrorCode = 0;
+
+      dwErrorCode = GetLastError();
+      NSDebugMLog(@"Error %d getting file handle for '%S'",
+        dwErrorCode, _path);
+      return group;
+    }
+
+  // Get the group SID of the file.
+  returnCode = GetSecurityInfo(
+    hFile,
+    SE_FILE_OBJECT,
+    GROUP_SECURITY_INFORMATION,
+    0,
+    &sidOwner,
+    0,
+    0,
+    &pSD);
+
+  CloseHandle(hFile);
+
+  // Check GetLastError for GetSecurityInfo error condition.
+  if (returnCode != ERROR_SUCCESS)
+    {
+      DWORD dwErrorCode = 0;
+
+      dwErrorCode = GetLastError();
+      NSDebugMLog(@"Error %d getting security info for '%S'",
+        dwErrorCode, _path);
+      return group;
+    }
+
+  // First call to LookupAccountSid to get the buffer sizes.
+  result = LookupAccountSidW(
+    0,           // local computer
+    sidOwner,
+    account,
+    (LPDWORD)&accountSize,
+    domain,
+    (LPDWORD)&domainSize,
+    &eUse);
+
+  // Check GetLastError for LookupAccountSid error condition.
+  if (result == FALSE)
+    {
+      DWORD dwErrorCode = 0;
+
+      dwErrorCode = GetLastError();
+      if (dwErrorCode == ERROR_NONE_MAPPED)
+	NSDebugMLog(@"Error %d in LookupAccountSid for '%S'", _path);
+      else
+        NSDebugMLog(@"Error %d getting security info for '%S'",
+          dwErrorCode, _path);
+      return group;
+    }
+
+  if (accountSize >= 1024)
+    {
+      NSDebugMLog(@"Account name for '%S' is unreasonably long", _path);
+      return group;
+    }
+  return [NSString stringWithCharacters: account length: accountSize];
+#else
 #if defined(HAVE_GRP_H)
   struct group	*gp;
 
   gp = getgrgid(statbuf.st_gid);
   if (gp != 0)
     {
-      result = [NSString stringWithCString: gp->gr_name];
+      group = [NSString stringWithCString: gp->gr_name];
     }
 #endif
-  return result;
+#endif
+  return group;
 }
 
 - (int) fileHFSCreatorCode
