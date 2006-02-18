@@ -231,8 +231,8 @@
  */
 @interface	GSAttrDictionary : NSDictionary
 {
-  _CHAR		*_path;
   struct _STATB	statbuf;
+  _CHAR		_path[0];
 }
 + (NSDictionary*) attributesAt: (const _CHAR*)lpath
 		  traverseLink: (BOOL)traverse;
@@ -2746,10 +2746,12 @@ static NSSet	*fileKeys = nil;
     {
       DESTROY(d);
     }
-  d->_path = (_CHAR*)&d[1];
-  for (i = 0; i <= l; i++)
+  if (d != nil)
     {
-      d->_path[i] = lpath[i];
+      for (i = 0; i <= l; i++)
+	{
+	  d->_path[i] = lpath[i];
+	}
     }
   return AUTORELEASE(d);
 }
