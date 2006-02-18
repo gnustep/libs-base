@@ -283,7 +283,7 @@ static void setNonblocking(int fd)
 {
   int readLen;
 
-  readLen = read((int)_fd, buffer, len);
+  readLen = read((intptr_t)_fd, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
   else if (readLen == 0)
@@ -310,7 +310,7 @@ static void setNonblocking(int fd)
       off_t offset = 0;
 
       if ([self _isOpened])
-        offset = lseek((int)_fd, 0, SEEK_CUR);
+        offset = lseek((intptr_t)_fd, 0, SEEK_CUR);
       return [NSNumber numberWithLong: offset];
     }
   return [super propertyForKey: key];
@@ -327,7 +327,7 @@ static void setNonblocking(int fd)
       return;
     }
   [super open];
-  _fd = (void*)fd;
+  _fd = (void*)(intptr_t)fd;
   // put it self to the runloop if we havn't do so.
   if (_runloop)
     {
@@ -344,7 +344,7 @@ static void setNonblocking(int fd)
 
 - (void) close
 {
-  int closeReturn = close((int)_fd);
+  int closeReturn = close((intptr_t)_fd);
 
   if (closeReturn < 0)
     [self _recordError];
@@ -424,7 +424,7 @@ static void setNonblocking(int fd)
   int		desc = (int)(uintptr_t)extra;
   NSStreamEvent myEvent;
 
-  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (intptr_t)_fd, @"Wrong file descriptor received.");
   if (type == ET_RDESC)
     {
       [self _setStatus: NSStreamStatusReading];
@@ -499,8 +499,9 @@ static void setNonblocking(int fd)
     }
   else
     {
-      int connectReturn = connect((int)_fd, [self peerAddr], [self sockLen]);
+      int connectReturn;
       
+      connectReturn = connect((intptr_t)_fd, [self peerAddr], [self sockLen]);
       if (connectReturn < 0 && errno != EINPROGRESS)
         {// make an error
           [self _recordError];
@@ -528,7 +529,7 @@ static void setNonblocking(int fd)
  open_ok:
   // put itself to the runloop
   [super open];
-  setNonblocking((int)_fd);
+  setNonblocking((intptr_t)_fd);
   if (_runloop)
     {
       int i;
@@ -546,9 +547,9 @@ static void setNonblocking(int fd)
 {
   // read shutdown is ignored, because the other side may shutdown first.
   if (!_sibling || [_sibling streamStatus]==NSStreamStatusClosed)
-    close((int)_fd);
+    close((intptr_t)_fd);
   else
-    shutdown((int)_fd, SHUT_RD);
+    shutdown((intptr_t)_fd, SHUT_RD);
   // remove itself from the runloop, if any
   if (_runloop)
     {
@@ -576,7 +577,7 @@ static void setNonblocking(int fd)
 {
   int readLen;
 
-  readLen = read((int)_fd, buffer, len);
+  readLen = read((intptr_t)_fd, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
   else if (readLen == 0)
@@ -656,11 +657,11 @@ static void setNonblocking(int fd)
   int error, getReturn;
   socklen_t len = sizeof(error);
 
-  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (intptr_t)_fd, @"Wrong file descriptor received.");
   if ([self streamStatus] == NSStreamStatusOpening)
     {
       int i;
-      getReturn = getsockopt((int)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
+      getReturn = getsockopt((intptr_t)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
 
       // clean up the event listener
       for (i = 0; i < [_modes count]; i++)
@@ -829,7 +830,7 @@ static void setNonblocking(int fd)
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   int writeLen;
-  writeLen = write((int)_fd, buffer, len);
+  writeLen = write((intptr_t)_fd, buffer, len);
   if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
   return writeLen;
@@ -859,7 +860,7 @@ static void setNonblocking(int fd)
       return;
     }
   [super open];
-  _fd = (void*)fd;
+  _fd = (void*)(intptr_t)fd;
   // put it self to the runloop if we haven't do so.
   if (_runloop)
     {
@@ -875,7 +876,7 @@ static void setNonblocking(int fd)
 
 - (void) close
 {
-  int closeReturn = close((int)_fd);
+  int closeReturn = close((intptr_t)_fd);
   if (closeReturn < 0)
     [self _recordError];
   // remove itself from the runloop, if any
@@ -944,7 +945,7 @@ static void setNonblocking(int fd)
       off_t offset = 0;
 
       if ([self _isOpened])
-        offset = lseek((int)_fd, 0, SEEK_CUR);
+        offset = lseek((intptr_t)_fd, 0, SEEK_CUR);
       return [NSNumber numberWithLong: offset];
     }
   return [super propertyForKey: key];
@@ -965,7 +966,7 @@ static void setNonblocking(int fd)
   int		desc = (int)(uintptr_t)extra;
   NSStreamEvent myEvent;
 
-  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (intptr_t)_fd, @"Wrong file descriptor received.");
   if (type == ET_WDESC)
     {
       [self _setStatus: NSStreamStatusWriting];
@@ -1027,7 +1028,7 @@ static void setNonblocking(int fd)
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   int writeLen;
-  writeLen = write((int)_fd, buffer, len);
+  writeLen = write((intptr_t)_fd, buffer, len);
   if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
   return writeLen;
@@ -1055,8 +1056,9 @@ static void setNonblocking(int fd)
     }
   else
     {
-      int connectReturn = connect((int)_fd, [self peerAddr], [self sockLen]);
+      int connectReturn;
       
+      connectReturn = connect((intptr_t)_fd, [self peerAddr], [self sockLen]);
       if (connectReturn < 0 && errno != EINPROGRESS)
         {// make an error
           [self _recordError];
@@ -1082,7 +1084,7 @@ static void setNonblocking(int fd)
  open_ok:
   // put itself to the runloop
   [super open];
-  setNonblocking((int)_fd);
+  setNonblocking((intptr_t)_fd);
   if (_runloop)
     {
       int i;
@@ -1100,9 +1102,9 @@ static void setNonblocking(int fd)
   // shutdown may fail (broken pipe). Record it.
   int closeReturn;
   if (!_sibling || [_sibling streamStatus]==NSStreamStatusClosed)
-    closeReturn = close((int)_fd);
+    closeReturn = close((intptr_t)_fd);
   else
-    closeReturn = shutdown((int)_fd, SHUT_WR);
+    closeReturn = shutdown((intptr_t)_fd, SHUT_WR);
   if (closeReturn < 0)
     [self _recordError];
   // remove itself from the runloop, if any
@@ -1187,12 +1189,12 @@ static void setNonblocking(int fd)
   int error, getReturn;
   socklen_t len = sizeof(error);
 
-  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (intptr_t)_fd, @"Wrong file descriptor received.");
   if ([self streamStatus] == NSStreamStatusOpening)
     {
       int i;
       
-      getReturn = getsockopt((int)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
+      getReturn = getsockopt((intptr_t)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
       // clean up the event listener
 
       for (i = 0; i < [_modes count]; i++)
@@ -1231,7 +1233,8 @@ static void setNonblocking(int fd)
       else   
         {
           // check if there is an real error
-          getReturn = getsockopt((int)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
+          getReturn
+	    = getsockopt((intptr_t)_fd, SOL_SOCKET, SO_ERROR, &error, &len);
           if (getReturn >= 0 && !error)
             return;      
           else
@@ -1679,15 +1682,15 @@ static void setNonblocking(int fd)
 
 - (void) open
 {
-  int bindReturn = bind((int)_fd, [self serverAddr], [self sockLen]);
-  int listenReturn = listen((int)_fd, SOCKET_BACKLOG);
+  int bindReturn = bind((int)(intptr_t)_fd, [self serverAddr], [self sockLen]);
+  int listenReturn = listen((intptr_t)_fd, SOCKET_BACKLOG);
 
   if (bindReturn < 0 || listenReturn)
     {
       [self _recordError];
       return;
     }
-  setNonblocking((int)_fd);
+  setNonblocking((intptr_t)_fd);
   // put itself to the runloop
   [super open];
   if (_runloop)
@@ -1705,7 +1708,7 @@ static void setNonblocking(int fd)
 - (void) close
 {
   // close a server socket is safe
-  close((int)_fd);
+  close((intptr_t)_fd);
   // remove itself from the runloop, if any
   if (_runloop)
     {
@@ -1727,7 +1730,7 @@ static void setNonblocking(int fd)
   GSSocketInputStream *ins = AUTORELEASE([[self _inputStreamClass] new]);
   GSSocketOutputStream *outs = AUTORELEASE([[self _outputStreamClass] new]);
   socklen_t len = [ins sockLen];
-  int acceptReturn = accept((int)_fd, [ins peerAddr], &len);
+  int acceptReturn = accept((intptr_t)_fd, [ins peerAddr], &len);
 
   if (acceptReturn < 0)
     { // test for real error
@@ -1819,7 +1822,7 @@ static void setNonblocking(int fd)
   int		desc = (int)(uintptr_t)extra;
   NSStreamEvent myEvent;
 
-  NSAssert(desc == (int)_fd, @"Wrong file descriptor received.");
+  NSAssert(desc == (intptr_t)_fd, @"Wrong file descriptor received.");
   if (type == ET_RDESC)
     {
       [self _setStatus: NSStreamStatusReading];
@@ -1866,7 +1869,7 @@ static void setNonblocking(int fd)
   _serverAddr.sin_family = AF_INET;
   _serverAddr.sin_port = htons(port);
   ptonReturn = inet_pton(AF_INET, addr_c, &(_serverAddr.sin_addr));
-  _fd = (void*)socket(AF_INET, SOCK_STREAM, 0);
+  _fd = (void*)(intptr_t)socket(AF_INET, SOCK_STREAM, 0);
   if (ptonReturn == 0 || _fd < 0)   // error
     {
       RELEASE(self);
@@ -1909,7 +1912,7 @@ static void setNonblocking(int fd)
   _serverAddr.sin6_family = AF_INET6;
   _serverAddr.sin6_port = htons(port);
   ptonReturn = inet_pton(AF_INET6, addr_c, &(_serverAddr.sin6_addr));
-  _fd = (void*)socket(AF_INET6, SOCK_STREAM, 0);
+  _fd = (void*)(intptr_t)socket(AF_INET6, SOCK_STREAM, 0);
   if (ptonReturn == 0 || _fd < 0)   // error
     {
       RELEASE(self);
@@ -1948,7 +1951,7 @@ static void setNonblocking(int fd)
   const char* real_addr = [addr fileSystemRepresentation];
   [super init];
   _serverAddr.sun_family = AF_LOCAL;
-  _fd = (void *)socket(AF_LOCAL, SOCK_STREAM, 0);
+  _fd = (void *)(intptr_t)socket(AF_LOCAL, SOCK_STREAM, 0);
   if (strlen(real_addr)>sizeof(_serverAddr.sun_path)-1 || _fd < 0) // too long
     {
       RELEASE(self);
