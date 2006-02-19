@@ -82,6 +82,11 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
+
+void GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
+
+
 /* The global configuration file. The real value is read from config.h */
 #ifndef GNUSTEP_TARGET_CONFIG_FILE
 # define   GNUSTEP_TARGET_CONFIG_FILE  "/etc/GNUstep/GNUstep.conf"
@@ -154,14 +159,6 @@ static NSString *platformAdmin = nil;
 static NSString *localResources = nil;
 static NSString *localApps  = nil;
 static NSString *localLibs  = nil;
-
-/* ============================= */
-/* Internal function prototypes. */
-/* ============================= */
-
-static NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
-
-static void UserConfig(NSMutableDictionary *config, NSString *userName);
 
 static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict,
   NSString *userName);
@@ -363,7 +360,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     }
 }
 
-static NSMutableDictionary*
+NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig)
 {
   static NSDictionary	*config = nil;
@@ -510,8 +507,8 @@ GNUstepConfig(NSDictionary *newConfig)
   return AUTORELEASE([config mutableCopy]);
 }
 
-static void
-UserConfig(NSMutableDictionary *config, NSString *userName)
+void
+GNUstepUserConfig(NSMutableDictionary *config, NSString *userName)
 {
 #ifdef HAVE_GETEUID
   if (userName != nil)
@@ -568,7 +565,7 @@ static void InitialisePathUtilities(void)
       [gnustep_global_lock lock];
       userName = NSUserName();
       config = GNUstepConfig(nil);
-      UserConfig(config, userName);
+      GNUstepUserConfig(config, userName);
       ASSIGNCOPY(gnustepUserHome, NSHomeDirectoryForUser(userName));
       ExtractValuesFromConfig(config);
 
@@ -1154,7 +1151,7 @@ GSDefaultsRootForUser(NSString *userName)
       NSMutableDictionary	*config;
 
       config = GNUstepConfig(nil);
-      UserConfig(config, userName);
+      GNUstepUserConfig(config, userName);
       defaultsDir = [config objectForKey: @"GNUSTEP_USER_DEFAULTS_DIR"];
       if (defaultsDir == nil)
 	{

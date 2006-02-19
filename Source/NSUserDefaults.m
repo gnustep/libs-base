@@ -189,6 +189,13 @@ static void updateCache(NSUserDefaults *self)
  *     Constants that help with localization to the users's
  *     language.
  *   </desc>
+ *   <term><code>GSConfigDomain</code> ... volatile</term>
+ *   <desc>
+ *     Information retrieved from the GNUstep configuration system.
+ *     Usually the system wide and user specific GNUstep.conf files,
+ *     or from information cimplied in when the base library was
+ *     built.
+ *   </desc>
  *   <term><code>NSRegistrationDomain</code> ... volatile</term>
  *   <desc>
  *     Temporary defaults set up by the application.
@@ -474,6 +481,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   [sharedDefaults->_searchList addObject: NSArgumentDomain];
   [sharedDefaults->_searchList addObject: processName];
   [sharedDefaults->_searchList addObject: NSGlobalDomain];
+  [sharedDefaults->_searchList addObject: GSConfigDomain];
   [sharedDefaults->_searchList addObject: NSRegistrationDomain];
 
   /*
@@ -707,14 +715,19 @@ static NSString	*
 pathForUser(NSString *user)
 {
   NSString	*database = @".GNUstepDefaults";
-  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSFileManager	*mgr;
   NSString	*path;
   unsigned	desired;
   NSDictionary	*attr;
   BOOL		isDir;
 
   path = GSDefaultsRootForUser(user);
+  if (path == nil || [path rangeOfString: @":INTERNAL:"].length > 0)
+    {
+      return path;
+    }
 
+  mgr = [NSFileManager defaultManager];
 #if	!(defined(S_IRUSR) && defined(S_IWUSR) && defined(S_IXUSR) \
   && defined(S_IRGRP) && defined(S_IXGRP) \
   && defined(S_IROTH) && defined(S_IXOTH))
@@ -770,6 +783,7 @@ pathForUser(NSString *user)
 - (id) initWithContentsOfFile: (NSString*)path
 {
   NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSRange	r;
   BOOL		flag;
 
   self = [super init];
@@ -787,12 +801,17 @@ pathForUser(NSString *user)
       path = pathForUser(NSUserName());
     }
 
+  r = [path rangeOfString: @":INTERNAL:"];
+  if (r.length > 0)
+    {
+      goto skipPathChecks;
+    }
 #if	defined(__MINGW32__)
-  {
-    NSRange	r = [path rangeOfString: @":REGISTRY:"];
-    if (r.length > 0)
-       goto skipPathChecks;
-  }
+  r = [path rangeOfString: @":REGISTRY:"];
+  if (r.length > 0)
+    {
+      goto skipPathChecks;
+    }
 #endif
 
   path = [path stringByStandardizingPath];
@@ -826,9 +845,7 @@ pathForUser(NSString *user)
 	[_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
     }
 
-#if	defined(__MINGW32__)
 skipPathChecks:
-#endif
 
   _lock = [GSLazyRecursiveLock new];
 
@@ -866,6 +883,7 @@ skipPathChecks:
   [_tempDomains
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
+  [_tempDomains setObject: GNUstepConfig(nil) forKey: GSConfigDomain];
 
   [[NSNotificationCenter defaultCenter] addObserver: self
            selector: @selector(synchronize)

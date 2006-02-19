@@ -55,6 +55,13 @@ GS_EXPORT NSString* const NSGlobalDomain;
  */
 GS_EXPORT NSString* const NSRegistrationDomain;
 
+#ifndef NO_GNUSTEP
+/**
+ *  User defaults domain for GNUstep config file.
+ */
+GS_EXPORT NSString* const GSConfigDomain;
+#endif
+
 
 /* Public notification */
 

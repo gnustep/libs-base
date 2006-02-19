@@ -18,7 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
  
    AutogsdocSource:	NSPathUtilities.m
    */ 
@@ -29,6 +30,8 @@
 #include <Foundation/NSString.h>
 
 #ifndef	NO_GNUSTEP
+@class	NSDictionary;
+@class	NSMutableDictionary;
 /**
  * This extension permits a change of username from that specified in the
  * LOGNAME environment variable.  Using it will almost certainly cause
@@ -38,9 +41,34 @@
  * [NSUserDefaults +resetUserDefaults] extension to reset the defaults system
  * to use the defaults belonging to the new user.
  */
-GS_EXPORT void  GSSetUserName(NSString *aName);
+GS_EXPORT void
+GSSetUserName(NSString *aName);
 
-GS_EXPORT NSString *GSDefaultsRootForUser(NSString *userName);
+/**
+ * Returns a mutable copy of the system-wide configuration used to
+ * determine paths to locate files etc.<br />
+ * If the newConfig argument is non-nil it is used to set the config
+ * overriding any other version.  You should not change the config
+ * after the user defaults system has been initialised as the new
+ * config will not be picked up by the defaults system.
+ */
+GS_EXPORT NSMutableDictionary*
+GNUstepConfig(NSDictionary *newConfig);
+
+/**
+ * Returns the location of the defaults database for the specified user.
+ */
+GS_EXPORT NSString*
+GSDefaultRootForUser(NSString *username);
+
+/**
+ * The config dictiuonary passed to this function should be a
+ * system-wiude config as provided by GNUstepConfig() ... and
+ * this function merges in user specific configuration file
+ * information if such a file exists and is owned by the user.
+ */
+GS_EXPORT void
+GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
 
 #endif
 GS_EXPORT NSString *NSUserName(void);

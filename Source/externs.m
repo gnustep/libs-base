@@ -133,6 +133,8 @@ NSString *NSGlobalDomain = @"NSGlobalDomain";
 
 NSString *NSRegistrationDomain = @"NSRegistrationDomain";
 
+NSString *GSConfigDomain = @"GSConfigDomain";
+
 
 /* Public notification */
 NSString *NSUserDefaultsDidChangeNotification = @"NSUserDefaultsDidChangeNotification";
