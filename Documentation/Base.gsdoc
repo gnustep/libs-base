@@ -516,7 +516,10 @@ notice and this notice are preserved.
 	    Relative to the user's home directory.<br />
 	    On mswindows this may be set to be ':REGISTRY:' to have defaults
 	    stored in the windows registry rather than in the standard file
-	    format.
+	    format.<br />
+	    On any system this may be set to ':INTERNAL:' to use only
+	    internal defaults domains (NSArgumentDomain, NSRegistrationDomain,
+	    and GSConfigDomain).
 	    </desc>
 	  </deflist>
 	  <p>
@@ -672,7 +675,10 @@ notice and this notice are preserved.
 	    <code>GNUstep/Defaults</code> subdirectory).
 	    On mswindows this may be set to be ':REGISTRY:' to have defaults
 	    stored in the windows registry rather than in the standard file
-	    format.
+	    format.<br />
+	    On any system this may be set to ':INTERNAL:' to use only
+	    internal defaults domains (NSArgumentDomain, NSRegistrationDomain,
+	    and GSConfigDomain).
 	  </p>
 	</subsect>
       </section>

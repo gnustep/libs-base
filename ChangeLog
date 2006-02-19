@@ -1,3 +1,10 @@
+2006-02-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Make config functions public.
+	* Headers/Foundation/NSPathUtilities.h: Declare config functions.
+	* Source/NSUserDefaults.m: Use config functions and add support
+	for new option to turn off external config file.
+
 2006-02-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Fix bug dereferencing nul pointer under
