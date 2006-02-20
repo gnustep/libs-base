@@ -1,3 +1,7 @@
+2006-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: regenerated.
+
 2006-02-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Make config functions public.
