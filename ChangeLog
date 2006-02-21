@@ -4,6 +4,10 @@
 	changing the current directory.
 	* Source/NSBundle.m: Restructure for lazy evaluation of path to
 	executable ... lots of apps never need it.
+	* Source/NSTimeZone.m: Protect some class methods using locking, and
+	provide (slow) fallback mechanisms if some of the files are missing,
+	including fallback to posix stuff in zoneinfo directory if we really
+	have to.
 
 2006-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
