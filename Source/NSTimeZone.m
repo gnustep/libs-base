@@ -922,7 +922,8 @@ static NSMapTable	*absolutes = 0;
 		  details = [[zone timeZoneDetailArray] objectEnumerator];
 		  while ((detail = [details nextObject]) != nil)
 		    {
-		      [md setObject: name forKey: [detail abbreviation]];
+		      [md setObject: name
+			     forKey: [detail timeZoneAbbreviation]];
 		    }
 		}
 	    }
@@ -1009,48 +1010,48 @@ static NSMapTable	*absolutes = 0;
 		  RELEASE(ma);
 		}
 	      RELEASE(the_abbrev);
-	      [ma addObject: the_name];
+	      if ([ma containsObject: the_name] == NO)
+		{
+		  [ma addObject: the_name];
+		}
 	      RELEASE(the_name);
 	    }
 	  fclose(file);
 	}
       else
 	{
-	  NSArray		*names;
 	  NSString		*name;
-	  NSEnumerator		*e;
-	  int			i;
+	  NSEnumerator		*names;
 
 	  /*
 	   * Slow fallback mechanism ... go through all time names
 	   * so we load all the time zone data and generate the info
 	   * we need from it.
 	   */
-	  names = [NSTimeZone knownTimeZoneNames];
-	  for (i = 0; i < 24; i++)
+	  names = [[NSTimeZone knownTimeZoneNames] objectEnumerator];
+	  while ((name = [names nextObject]) != nil)
 	    {
-	      e = [[names objectAtIndex: i] objectEnumerator];
-	      while ((name = [e nextObject]) != nil)
-		{
-		  NSTimeZone *zone;
+	      NSTimeZone *zone;
 
-		  if ((zone = [NSTimeZone timeZoneWithName: name]))
+	      if ((zone = [NSTimeZone timeZoneWithName: name]) != nil)
+		{
+		  NSEnumerator		*details;
+		  NSTimeZoneDetail	*detail;
+	
+		  details = [[zone timeZoneDetailArray] objectEnumerator];
+		  while ((detail = [details nextObject]) != nil)
 		    {
-		      NSEnumerator	*details;
-		      NSTimeZoneDetail	*detail;
-	    
-		      details = [[zone timeZoneDetailArray] objectEnumerator];
-		      while ((detail = [details nextObject]) != nil)
+		      the_abbrev = [detail timeZoneAbbreviation];
+		      ma = [md objectForKey: the_abbrev];
+		      if (ma == nil)
 			{
-			  the_abbrev = [detail abbreviation];
-			  ma = [md objectForKey: the_abbrev];
-			  if (ma == nil)
-			    {
-			      ma = [[NSMutableArray alloc] initWithCapacity: 1];
-			      [md setObject: ma forKey: the_abbrev];
-			      RELEASE(ma);
-			    }
-			  [ma addObject: name];
+			  ma = [[NSMutableArray alloc] initWithCapacity: 1];
+			  [md setObject: ma forKey: the_abbrev];
+			  RELEASE(ma);
+			}
+		      if ([ma containsObject: name] == NO)
+		        {
+		          [ma addObject: name];
 			}
 		    }
 		}
@@ -1476,18 +1477,6 @@ static NSMapTable	*absolutes = 0;
 }
 
 /**
- * Common locations for timezone info on unix systems.
- */
-static NSString *zoneDirs[] = {
-  @"/usr/share/zoneinfo/", 
-  @"/usr/lib/zoneinfo/",
-  @"/usr/local/share/zoneinfo/",
-  @"/usr/local/lib/zoneinfo/", 
-  @"/etc/zoneinfo/",
-  @"/usr/local/etc/zoneinfo/"
-};
-
-/**
  * Returns an array of all the known regions.<br />
  * There are 24 elements, of course, one for each time zone.
  * Each element contains an array of NSStrings which are
@@ -1553,31 +1542,15 @@ static NSString *zoneDirs[] = {
 	}
       else
 	{
-	  NSFileManager	*mgr = [NSFileManager defaultManager];
-	  NSString	*zonedir = nil;
-	  unsigned	i;
+	  NSString	*zonedir = [NSTimeZone getTimeZoneFile: @"WET"]; 
 
-	  for (i = 0; i < sizeof(zoneDirs)/sizeof(zoneDirs[0]); i++)
+	  if (tzdir != nil)
 	    {
-	      BOOL	isDir;
-
-	      path = [zoneDirs[i] stringByAppendingString: POSIX_TZONES];
-	      if ([mgr fileExistsAtPath: path isDirectory: &isDir] && isDir)
-		{
-		  zonedir = path;
-		  break;  // use first one
-		}
-	    }
-
-	  if (zonedir == nil)
-	    {
-	      NSLog(@"no zone directory found!");
-	    }
-	  else
-	    {
+	      NSFileManager		*mgr = [NSFileManager defaultManager];
 	      NSDirectoryEnumerator	*enumerator;
 	      NSString			*name;
 
+	      zonedir = [zonedir stringByDeletingLastPathComponent];
 	      enumerator = [mgr enumeratorAtPath: zonedir];
 	      while ((name = [enumerator nextObject]) != nil)
 		{
@@ -1586,7 +1559,7 @@ static NSString *zoneDirs[] = {
 
 		  // FIXME: check file validity.
 		
-		  path = [zonedir stringByAppendingString: name];
+		  path = [zonedir stringByAppendingPathComponent: name];
 		  if ([mgr fileExistsAtPath: path isDirectory: &isDir]
 		    && isDir == NO)
 		    {
@@ -1676,9 +1649,17 @@ static NSString *zoneDirs[] = {
 + (NSTimeZone*) timeZoneWithAbbreviation: (NSString*)abbreviation
 {
   NSTimeZone	*zone;
+  NSString	*name;
 
-  zone = [self timeZoneWithName: [[self abbreviationDictionary]
-    objectForKey: abbreviation] data: nil];
+  name = [[self abbreviationDictionary] objectForKey: abbreviation];
+  if (name == nil)
+    {
+      zone = nil;
+    }
+  else
+    {
+      zone = [self timeZoneWithName: name data: nil];
+    }
   return zone;
 }
 
@@ -1963,19 +1944,67 @@ static NSString *zoneDirs[] = {
 @implementation NSTimeZone (Private)
 
 /**
+ * Common locations for timezone info on unix systems.
+ */
+static NSString *zoneDirs[] = {
+  @"/usr/share/zoneinfo", 
+  @"/usr/lib/zoneinfo",
+  @"/usr/local/share/zoneinfo",
+  @"/usr/local/lib/zoneinfo", 
+  @"/etc/zoneinfo",
+  @"/usr/local/etc/zoneinfo"
+};
+
+/**
  * Returns the path to the named zone info file.
  */
 + (NSString*) getTimeZoneFile: (NSString *)name
 {
+  static BOOL	beenHere = NO;
   NSString	*dir = nil;
 
+  if (beenHere == NO && tzdir == nil)
+    {
+      if (zone_mutex != nil)
+	{
+	  [zone_mutex lock];
+	}
+      if (beenHere == NO && tzdir == nil)
+	{
+	  NSFileManager	*mgr = [NSFileManager defaultManager];
+	  NSString	*zonedir = nil;
+	  unsigned	i;
+
+	  for (i = 0; i < sizeof(zoneDirs)/sizeof(zoneDirs[0]); i++)
+	    {
+	      BOOL	isDir;
+
+	      zonedir
+		= [zoneDirs[i] stringByAppendingPathComponent: POSIX_TZONES];
+	      if ([mgr fileExistsAtPath: zonedir isDirectory: &isDir] && isDir)
+		{
+		  tzdir = RETAIN(zonedir);
+		  break;  // use first one
+		}
+	    }
+	  beenHere = YES;
+	}
+      if (zone_mutex != nil)
+	{
+	  [zone_mutex unlock];
+	}
+    }
   /* Use the system zone info if possible, otherwise, use our installed
      info.  */
   if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
-  	[tzdir stringByAppendingPathComponent: name]] == NO)
-    dir = nil;
+    [tzdir stringByAppendingPathComponent: name]] == YES)
+    {
+      dir = tzdir;
+    }
   if (dir == nil)
-    dir= _time_zone_path (ZONES_DIR, nil);
+    {
+      dir = _time_zone_path (ZONES_DIR, nil);
+    }
   return [dir stringByAppendingPathComponent: name];
 }
 
