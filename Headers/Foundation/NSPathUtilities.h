@@ -59,7 +59,7 @@ GNUstepConfig(NSDictionary *newConfig);
  * Returns the location of the defaults database for the specified user.
  */
 GS_EXPORT NSString*
-GSDefaultRootForUser(NSString *username);
+GSDefaultsRootForUser(NSString *username);
 
 /**
  * The config dictiuonary passed to this function should be a

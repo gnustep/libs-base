@@ -48,6 +48,7 @@
 #include "Foundation/NSProcessInfo.h"
 #include "Foundation/NSEnumerator.h"
 #include "Foundation/NSSet.h"
+#include "Foundation/NSBundle.h"
 #include "GSPrivate.h"
 
 #include <string.h>
@@ -352,7 +353,19 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
+  static Class	bundleClass = 0;
   const _CHAR	*lpath = [self fileSystemRepresentationWithPath: path];
+
+  /*
+   * On some systems the only way NSBundle can determine the path to the
+   * executable is by searching for it ... so it needs to know what was
+   * the current directory at launch time ... so we must make sure it is
+   * initialised before we change the current directory.
+   */
+  if (bundleClass == 0)
+    {
+      bundleClass = [NSBundle class];
+    }
 #if defined(__MINGW32__)
   return SetCurrentDirectoryW(lpath) == TRUE ? YES : NO;
 #else
