@@ -2,6 +2,8 @@
 
 	* Source/NSFileManager.m: Ensure that NSBundle is initialised before
 	changing the current directory.
+	* Source/NSBundle.m: Restructure for lazy evaluation of path to
+	executable ... lots of apps never need it.
 
 2006-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
