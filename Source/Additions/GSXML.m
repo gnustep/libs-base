@@ -4658,7 +4658,7 @@ static void indentation(unsigned level, NSMutableString *str)
       return [NSNumber numberWithDouble: [str doubleValue]];
     }
 
-  if ([name isEqualToString: @"data"])
+  if ([name isEqualToString: @"base64"])
     {
       NSData	*d;
 
