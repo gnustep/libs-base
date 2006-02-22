@@ -2,6 +2,7 @@
 
 	* Source/Additions/GSXML.m: Fix parsing error .. was not recognising
 	base64 elements.
+	* Headers/Foundation/NSPathUtilitites.h: Expand config documentation
 
 2006-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 

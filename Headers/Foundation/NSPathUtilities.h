@@ -50,22 +50,45 @@ GSSetUserName(NSString *aName);
  * If the newConfig argument is non-nil it is used to set the config
  * overriding any other version.  You should not change the config
  * after the user defaults system has been initialised as the new
- * config will not be picked up by the defaults system.
+ * config will not be picked up by the defaults system.<br />
+ * <br />
+ * A typical sequence of operation might be to<br />
+ * Call the function with a nil argument to obtain the configuration
+ * information currently in use (usually obtained from the main GNUstep
+ * configuration file).<br />
+ * Modify the dictionary contents.<br />
+ * Call the function again passing back in the modified config.<br />
+ * <br />
+ * If you call this function with a non-nil argument before the system
+ * configuration file has been read, you will prevent the file from
+ * being read.  However, you must take care doing this that creation
+ * of the config dictionary you are going to pass in to the function
+ * does not have any side-effects which would cause the config file
+ * to be read earlier.<br />
+ * If you want to prevent the user specific config file from being
+ * read, you must set the GNUSTEP_USER_CONFIG_FILE value in the
+ * dictionary to be an empty string.
  */
 GS_EXPORT NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig);
 
 /**
  * Returns the location of the defaults database for the specified user.
+ * This uses the same information you get from GNUstepConfig() and
+ * GNUstepUserConfig() and builds the path to the defaults database
+ * fromm it.
  */
 GS_EXPORT NSString*
 GSDefaultsRootForUser(NSString *username);
 
 /**
- * The config dictiuonary passed to this function should be a
- * system-wiude config as provided by GNUstepConfig() ... and
+ * The config dictionary passed to this function should be a
+ * system-wide config as provided by GNUstepConfig() ... and
  * this function merges in user specific configuration file
- * information if such a file exists and is owned by the user.
+ * information if such a file exists and is owned by the user.<br />
+ * NB. If the GNUSTEP_USER_CONFIG_FILE value in the system-wide
+ * config is an empty string, no user-specifc config will be
+ * read.
  */
 GS_EXPORT void
 GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
