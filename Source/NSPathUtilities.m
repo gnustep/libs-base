@@ -117,7 +117,7 @@ static NSString	*gnustep_flattened =
   nil;
 #endif
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
 /*
  * FIXME ... should check access properly if the file is on an NTFS volume.
  */
@@ -663,7 +663,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
   
       if ([userName isEqual: fileOwner] == NO)
 	{
-#if defined(__WIN32__)
+#if defined(__MINGW32__)
 	  fprintf(stderr, "The file '%S' is owned by '%s' but we expect it"
 	    " to be the personal config file of '%s'.\nIgnoring it.\n",
 	    [fileName fileSystemRepresentation],
@@ -679,7 +679,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
     }
   if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
     {
-#if defined(__WIN32__)
+#if defined(__MINGW32__)
       fprintf(stderr, "The file '%S' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
 	[fileName fileSystemRepresentation],
@@ -968,7 +968,7 @@ GSSetUserName(NSString *aName)
 NSString *
 NSUserName(void)
 {
-#if defined(__WIN32__)
+#if defined(__MINGW32__)
   if (theUserName == nil)
     {
       /* Use the LOGNAME environment variable if set. */
@@ -1108,7 +1108,7 @@ NSHomeDirectoryForUser(NSString *loginName)
 NSString *
 NSFullUserName(void)
 {
-#if defined(__WIN32__)
+#if defined(__MINGW32__)
   /* FIXME: Win32 way to get full user name via Net API */
   return NSUserName();
 #else
@@ -1210,7 +1210,7 @@ NSTemporaryDirectory(void)
   int		perm;
   int		owner;
   BOOL		flag;
-#if	!defined(__WIN32__)
+#if	!defined(__MINGW32__)
   int		uid;
 #else
   unichar buffer[1024];
@@ -1237,12 +1237,10 @@ NSTemporaryDirectory(void)
 	  baseTempDirName = [env objectForKey: @"TMP"];
 	  if (baseTempDirName == nil)
 	    {
-#if	defined(__MINGW32__)
-#ifdef  __CYGWIN__
+#if	defined(__CYGWIN__)
 	      baseTempDirName = @"/cygdrive/c/";
-#else
-	      baseTempDirName = @"/c/";
-#endif
+#elif	defined(__MINGW32__)
+	      baseTempDirName = @"C:\\";
 #else
 	      baseTempDirName = @"/tmp";
 #endif

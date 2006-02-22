@@ -199,7 +199,7 @@ typedef struct {
 }
 @end
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
 @interface	GSWindowsTimeZone : NSTimeZone
 {
 @public
@@ -423,7 +423,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
 	      if (fileName == nil
 		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName])
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
                   RELEASE(self);
@@ -437,7 +437,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 #endif
 	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
 	  if (!data)
 	    zone = [[GSWindowsTimeZone alloc] initWithName: name data: data];
 	  else
@@ -1405,7 +1405,7 @@ static NSMapTable	*absolutes = 0;
 	}
 #endif
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
       /*
        * Try to get timezone from windows registry.
        */
@@ -1898,9 +1898,10 @@ static NSMapTable	*absolutes = 0;
 @end
 
 /**
- * This class serves no useful purpose in GNUstep, and is provided
- * solely for backward compatibility with the OpenStep spec.  It is
- * missing entirely from MacOS-X.
+ * This class serves no useful purpose in GNUstep other than to provide
+ * a backup mechanism for handling abbreviations where the precomputed
+ * data files cannot be found. It is provided primarily for backward
+ * compatibility with the OpenStep spec.  It is missing entirely from MacOS-X.
  */
 @implementation NSTimeZoneDetail
 
@@ -2011,7 +2012,7 @@ static NSString *zoneDirs[] = {
 @end
 
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
 /* Timezone information data as stored in the registry */
 typedef struct TZI_format {
 	LONG       Bias;
@@ -2435,7 +2436,7 @@ int dayOfCommonEra(NSTimeInterval when);
   return timeZoneName;
 }
 @end
-#endif // __WIN32__
+#endif // __MINGW32__
 
 
 @implementation	GSTimeZone

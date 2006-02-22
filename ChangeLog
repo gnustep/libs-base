@@ -3,6 +3,12 @@
 	* Source/Additions/GSXML.m: Fix parsing error .. was not recognising
 	base64 elements.
 	* Headers/Foundation/NSPathUtilitites.h: Expand config documentation
+	* NSTimeZone.m:
+	* NSPathUtilities.m:
+	* NSPage.m:
+	* NSException.m:
+	* NSLog.m:
+	Fix some MINGW32 conditional compilation to use __MINGW32__
 
 2006-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
