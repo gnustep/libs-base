@@ -11,6 +11,7 @@
 #include "GNUstepBase/preface.h"
 #include "../GSRunLoopCtxt.h"
 #include "../GSRunLoopWatcher.h"
+#include "../GSPrivate.h"
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>

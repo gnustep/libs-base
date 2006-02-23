@@ -43,6 +43,7 @@
 #include "Foundation/NSDebug.h"
 
 #include "GSPortPrivate.h"
+#include "GSPrivate.h"
 
 #include <stdio.h>
 #include <stdlib.h>
