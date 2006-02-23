@@ -1,3 +1,8 @@
+2006-02-23  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source/Additions/GSXML.m: URL munging for local DTD cache fixed for
+    Win32 filesystems
+
 2006-02-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Fix parsing error .. was not recognising
