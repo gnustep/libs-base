@@ -84,6 +84,8 @@ static Class	NSNumberClass;
 static Class	NSMutableDictionaryClass;
 static Class	NSStringClass;
 
+static NSString		*defaultsFile = @".GNUstepDefaults";
+
 static NSUserDefaults	*sharedDefaults = nil;
 static NSMutableString	*processName = nil;
 static NSMutableArray	*userLanguages = nil;
@@ -139,6 +141,8 @@ static void updateCache(NSUserDefaults *self)
 @interface NSUserDefaults (__local_NSUserDefaults)
 - (NSDictionary*) __createArgumentDictionary;
 - (void) __changePersistentDomain: (NSString*)domainName;
+- (NSMutableDictionary*) readDefaults;
+- (BOOL) writeDefaults: (NSDictionary*)defaults oldData: (NSDictionary*)oldData;
 @end
 
 /**
@@ -710,60 +714,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return [self initWithUser: NSUserName()];
 }
 
-/* Returns the path to the user's ".GNUstepDefaults file" */
-static NSString	*
-pathForUser(NSString *user)
-{
-  NSString	*database = @".GNUstepDefaults";
-  NSFileManager	*mgr;
-  NSString	*path;
-  unsigned	desired;
-  NSDictionary	*attr;
-  BOOL		isDir;
-
-  path = GSDefaultsRootForUser(user);
-  if (path == nil || [path rangeOfString: @":INTERNAL:"].length > 0)
-    {
-      return path;
-    }
-
-  mgr = [NSFileManager defaultManager];
-#if	!(defined(S_IRUSR) && defined(S_IWUSR) && defined(S_IXUSR) \
-  && defined(S_IRGRP) && defined(S_IXGRP) \
-  && defined(S_IROTH) && defined(S_IXOTH))
-  desired = 0755;
-#else
-  desired = (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
-#endif
-  attr = [NSDictionary dictionaryWithObjectsAndKeys:
-    NSUserName(), NSFileOwnerAccountName,
-    [NSNumberClass numberWithUnsignedLong: desired], NSFilePosixPermissions,
-    nil];
-
-  if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
-    {
-      if ([mgr createDirectoryAtPath: path attributes: attr] == NO)
-	{
-	  NSLog(@"Defaults path '%@' does not exist - failed to create it.",
-	    path);
-	  return nil;
-	}
-      else
-	{
-	  NSLog(@"Defaults path '%@' did not exist - created it", path);
-	  isDir = YES;
-	}
-    }
-  if (isDir == NO)
-    {
-      NSLog(@"ERROR - Defaults path '%@' is not a directory!", path);
-      return nil;
-    }
-
-  path = [path stringByAppendingPathComponent: database];
-  return path;
-}
-
 /**
  * Initializes defaults for the specified user calling -initWithContentsOfFile:
  */
@@ -771,7 +721,8 @@ pathForUser(NSString *user)
 {
   NSString	*path;
 
-  path = pathForUser(userName);
+  path = [GSDefaultsRootForUser(userName)
+    stringByAppendingPathComponent: defaultsFile];
   return [self initWithContentsOfFile: path];
 }
 
@@ -784,6 +735,7 @@ pathForUser(NSString *user)
 {
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSRange	r;
+  BOOL		loadReadonly = NO;
   BOOL		flag;
 
   self = [super init];
@@ -798,66 +750,60 @@ pathForUser(NSString *user)
 
   if (path == nil || [path isEqual: @""] == YES)
     {
-      path = pathForUser(NSUserName());
+      path = [GSDefaultsRootForUser(NSUserName())
+	stringByAppendingPathComponent: defaultsFile];
     }
 
   r = [path rangeOfString: @":INTERNAL:"];
-  if (r.length > 0)
-    {
-      goto skipPathChecks;
-    }
 #if	defined(__MINGW32__)
-  r = [path rangeOfString: @":REGISTRY:"];
-  if (r.length > 0)
+  if (r == 0)
     {
-      goto skipPathChecks;
+      r = [path rangeOfString: @":REGISTRY:"];
     }
 #endif
-
-  path = [path stringByStandardizingPath];
-  _defaultsDatabase = [path copy];
-  path = [path stringByDeletingLastPathComponent];
-  if ([mgr isWritableFileAtPath: path] == NO)
+  if (r.length == 0)
     {
-      NSWarnMLog(@"Path '%@' is not writable - making user defaults for '%@' "
-	@" read-only\n", path, _defaultsDatabase);
-
+      _defaultsDatabase = [[path stringByStandardizingPath] copy];
+      path = [_defaultsDatabase stringByDeletingLastPathComponent];
+      if ([mgr isWritableFileAtPath: path] == YES
+	&& [mgr fileExistsAtPath: path isDirectory: &flag] == YES
+	&& flag == YES
+	&& [mgr fileExistsAtPath: _defaultsDatabase] == YES
+	&& [mgr isReadableFileAtPath: _defaultsDatabase] == YES)
+	{
+	  _fileLock = [[NSDistributedLock alloc] initWithPath:
+	    [_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
+	}
+      else if ([mgr isReadableFileAtPath: _defaultsDatabase] == YES)
+        {
+	  loadReadonly = YES;
+	}
     }
-  else if ([mgr fileExistsAtPath: path isDirectory: &flag] == NO && flag == NO)
-    {
-      NSWarnMLog(@"Path '%@' is not an accessible directory - making user "
-	@"defaults for '%@' read-only\n", path, _defaultsDatabase);
-    }
-  else if ([mgr fileExistsAtPath: _defaultsDatabase] == YES
-    && [mgr isReadableFileAtPath: _defaultsDatabase] == NO)
-    {
-      NSWarnMLog(@"Path '%@' is not readable - making user defaults blank\n",
-	_defaultsDatabase);
-    }
-  else
-    {
-      /*
-       * Only create the file lock if we can update the file ...
-       * if we can't the absence of the lock tells us we must be
-       * in read-only mode.
-       */
-      _fileLock = [[NSDistributedLock alloc] initWithPath:
-	[_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
-    }
-
-skipPathChecks:
 
   _lock = [GSLazyRecursiveLock new];
 
   // Create an empty search list
   _searchList = [[NSMutableArray alloc] initWithCapacity: 10];
 
-  // Initialize _persDomains from the archived user defaults (persistent)
-  _persDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
-  if ([self synchronize] == NO)
+  if (loadReadonly == YES)
     {
-      DESTROY(self);
-      return self;
+      // Load read-only defaults.
+      ASSIGN(_lastSync, [NSDateClass date]);
+      ASSIGN(_persDomains, [self readDefaults]);
+      updateCache(self);
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
+    }
+  else
+    {
+      // Initialize _persDomains from the archived user defaults (persistent)
+      _persDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
+      if ([self synchronize] == NO)
+	{
+	  DESTROY(self);
+	  return self;
+	}
     }
 
   // Check and if not existent add the Application and the Global domains
@@ -1396,9 +1342,14 @@ static BOOL isPlistObject(id o)
 
 - (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate
 {
-  NSFileManager *mgr = [NSFileManager defaultManager];
+  NSFileManager *mgr;
   NSDictionary	*attr;
 
+  if (_fileLock == nil)
+    {
+      return NO;	// Database did not exist on startup.
+    }
+  mgr = [NSFileManager defaultManager];
   attr = [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES];
   if (lastSyncDate == nil)
     {
@@ -1431,12 +1382,60 @@ static BOOL isPlistObject(id o)
 static BOOL isLocked = NO;
 - (BOOL) lockDefaultsFile: (BOOL*)wasLocked
 {
-  NSDate		*started = [NSDateClass date];
+  BOOL	firstTime = NO;
+
+  if (_fileLock == nil)
+    {
+      NSFileManager	*mgr;
+      NSString		*path;
+      unsigned		desired;
+      NSDictionary	*attr;
+      BOOL		isDir;
+
+      path = [_defaultsDatabase stringByDeletingLastPathComponent];
+
+      mgr = [NSFileManager defaultManager];
+#if	!(defined(S_IRUSR) && defined(S_IWUSR) && defined(S_IXUSR) \
+      && defined(S_IRGRP) && defined(S_IXGRP) \
+      && defined(S_IROTH) && defined(S_IXOTH))
+      desired = 0755;
+#else
+      desired = (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+#endif
+      attr = [NSDictionary dictionaryWithObjectsAndKeys:
+	NSUserName(), NSFileOwnerAccountName,
+	[NSNumberClass numberWithUnsignedLong: desired], NSFilePosixPermissions,
+	nil];
+
+      if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
+	{
+	  if ([mgr createDirectoryAtPath: path attributes: attr] == NO)
+	    {
+	      NSLog(@"Defaults path '%@' does not exist - failed to create it.",
+		path);
+	      return NO;
+	    }
+	  else
+	    {
+	      NSLog(@"Defaults path '%@' did not exist - created it", path);
+	      isDir = YES;
+	    }
+	}
+      if (isDir == NO)
+	{
+	  NSLog(@"ERROR - Defaults path '%@' is not a directory!", path);
+	  return NO;
+	}
+      _fileLock = [[NSDistributedLock alloc] initWithPath:
+	[_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
+      firstTime = YES;
+    }
 
   *wasLocked = isLocked;
-  
   if (isLocked == NO && _fileLock != nil)
     {
+      NSDate	*started = [NSDateClass date];
+
       while ([_fileLock tryLock] == NO)
 	{
 	  CREATE_AUTORELEASE_POOL(arp);
@@ -1475,6 +1474,58 @@ static BOOL isLocked = NO;
 	  RELEASE(arp);
 	}
       isLocked = YES;
+
+      if (firstTime == YES)
+        {
+	  NSFileManager	*mgr = [NSFileManager defaultManager];
+	  NSDictionary	*attr;
+	  uint32_t	desired;
+	  uint32_t	attributes;
+
+	  /*
+	   * If the lock did not exist ... make sure the databsase exists.
+	   */
+	  if ([mgr isReadableFileAtPath: _defaultsDatabase] == NO)
+	    {
+	      NSDictionary	*empty = [NSDictionary new];
+
+	      /*
+	       * Create empty database.
+	       */
+	      if ([empty writeToFile: _defaultsDatabase atomically: NO] == NO)
+		{
+		  NSLog(@"Failed to create defaults database file %@",
+		    _defaultsDatabase);
+		}
+	      RELEASE(empty);
+	    }
+
+	  attr = [mgr fileAttributesAtPath: _defaultsDatabase
+			      traverseLink: YES];
+	  attributes = [attr filePosixPermissions];
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+	  desired = 0600;
+#else
+	  desired = (S_IRUSR|S_IWUSR);
+#endif
+	  if (attributes != desired)
+	    {
+	      NSMutableDictionary	*enforced_attributes;
+	      NSNumber			*permissions;
+
+	      enforced_attributes
+		= [NSMutableDictionary dictionaryWithDictionary:
+		[mgr fileAttributesAtPath: _defaultsDatabase
+			     traverseLink: YES]];
+
+	      permissions = [NSNumberClass numberWithUnsignedLong: desired];
+	      [enforced_attributes setObject: permissions
+				      forKey: NSFilePosixPermissions];
+
+	      [mgr changeFileAttributes: enforced_attributes
+				 atPath: _defaultsDatabase];
+	    }
+        }
     }
    return YES;
 }
@@ -1487,90 +1538,22 @@ static BOOL isLocked = NO;
 
 - (NSMutableDictionary*) readDefaults
 {
-  NSMutableDictionary	*newDict;
-  NSFileManager		*mgr = [NSFileManager defaultManager];
-  NSDictionary		*attr;
+  NSMutableDictionary	*newDict = nil;
 
-  /*
-   * Re-fetch database attributes in cased they changed while obtaining lock.
-   */
-  attr = [mgr fileAttributesAtPath: _defaultsDatabase
-		      traverseLink: YES];
-  // Read the persistent data from the stored database
-  if (attr == nil)
+  // Read the changes if we have an external database file
+  if (_defaultsDatabase != nil)
     {
-      newDict = [[[NSMutableDictionaryClass allocWithZone: [self zone]]
-	initWithCapacity: 1] autorelease];
-      if (_fileLock != nil)
+      NSFileManager	*mgr = [NSFileManager defaultManager];
+
+      if ([mgr isReadableFileAtPath: _defaultsDatabase] == YES)
 	{
-	  NSLog(@"Creating defaults database file %@", _defaultsDatabase);
-	  [newDict writeToFile: _defaultsDatabase atomically: YES];
-	  attr = [mgr fileAttributesAtPath: _defaultsDatabase
-			      traverseLink: YES];
-	}
-    }
-  else
-    {
-      if ([mgr isReadableFileAtPath: _defaultsDatabase] == NO)
-	{
-	  newDict = nil;
-	}
-      else
-	{
-	  newDict = [[[NSMutableDictionaryClass allocWithZone: [self zone]]
-	    initWithContentsOfFile: _defaultsDatabase] autorelease];
+	  newDict = AUTORELEASE([[NSMutableDictionaryClass allocWithZone:
+	    [self zone]] initWithContentsOfFile: _defaultsDatabase]);
 	}
       if (newDict == nil)
 	{
-	  if (_fileLock == nil)
-	    {
-	      /*
-	       * Running with no readable user defaults ... but we were
-	       * initialised that way (possibly on a read-only filesystem)
-	       * so we just continue as best we can.
-	       */
-	      newDict = [[[NSMutableDictionaryClass allocWithZone: [self zone]]
-		initWithCapacity: 4] autorelease];
-	    }
-	  else
-	    {
-	      /*
-	       * The defaults system has become unreadable singe we started...
-	       * probably a severe error of some sort
-	       */
-	      NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
-	    }
-	}
-    }
-    
-  if (attr != nil)
-    {
-      unsigned long		desired;
-      unsigned long		attributes;
-
-      /*
-       * We enforce the permission mode 0600 on the defaults database
-       */
-      attributes = [attr filePosixPermissions];
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
-      desired = 0600;
-#else
-      desired = (S_IRUSR|S_IWUSR);
-#endif
-      if (attributes != desired)
-	{
-	  NSMutableDictionary	*enforced_attributes;
-	  NSNumber		*permissions;
-
-	  enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
-	    [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
-
-	  permissions = [NSNumberClass numberWithUnsignedLong: desired];
-	  [enforced_attributes setObject: permissions
-				  forKey: NSFilePosixPermissions];
-
-	  [mgr changeFileAttributes: enforced_attributes
-			     atPath: _defaultsDatabase];
+	  newDict = AUTORELEASE([[NSMutableDictionaryClass allocWithZone:
+	    [self zone]] initWithCapacity: 10]);
 	}
     }
   return newDict;
@@ -1578,7 +1561,7 @@ static BOOL isLocked = NO;
 
 - (BOOL) writeDefaults: (NSDictionary*)defaults oldData: (NSDictionary*)oldData
 {
-  // Save the changes unless we are in read-only mode.
+  // Save the changes if we have an external database file
   if (_fileLock != nil)
     {
       if ([defaults writeToFile: _defaultsDatabase atomically: YES] == NO)
@@ -1610,7 +1593,7 @@ static BOOL isLocked = NO;
    
   if (_changedDomains == nil)
     {
-      if ([self wantToReadDefaultsSince:_lastSync] == NO)
+      if ([self wantToReadDefaultsSince: _lastSync] == NO)
 	{
 	  [_lock unlock];
 	  return YES;
