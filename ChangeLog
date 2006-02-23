@@ -2,6 +2,15 @@
 
 	* Source/NSUserDefaults.m: Restructure for lazy creation of defaults
 	database ... only create when we attempt to write.
+	* Source\NSSocketPort.m: Include GSPrivate.h
+	* Source\NSRunLoop.m: ditto
+	* Source\unix\GSRunLoopCtxt.m: ditto
+	* Source\GSPrivate.h: ditto
+	* Source\win32\GSFileHandleWin32.m: ditto
+	* Source\win32\GSRunLoopCtxt.m: ditto
+	* Headers\Foundation\NSNotificationQueue.h: Move library internal
+	function declarations to GSPrivate.h, thanks to Lloyd Dupont for
+	spotting problem.
 
 2006-02-23  Sheldon Gill  <sheldon@westnet.net.au>
 

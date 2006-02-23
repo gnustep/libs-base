@@ -42,6 +42,7 @@
 #include "Foundation/NSDebug.h"
 #include "GSRunLoopCtxt.h"
 #include "GSRunLoopWatcher.h"
+#include "GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>

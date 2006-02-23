@@ -210,5 +210,13 @@ BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 - (const char*) type;
 @end
 
+/*
+ *	Functions used by the NSRunLoop and friends for processing
+ *	queued notifications.
+ */
+extern void GSNotifyASAP(void);
+extern void GSNotifyIdle(void);
+extern BOOL GSNotifyMore(void);
+
 #endif /* __GSPrivate_h_ */
 
