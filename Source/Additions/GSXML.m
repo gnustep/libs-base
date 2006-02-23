@@ -2473,6 +2473,10 @@ loadEntityFunction(const unsigned char *url, const unsigned char *eid,
 	}
       [local appendString: [components objectAtIndex: index]];
     }
+  /* Also replace ':' which isn't legal on some file systems */
+  [local replaceOccurrencesOfString: @":" withString: @"+"
+                            options: NSLiteralSearch
+                            range: NSMakeRange(0, [local length])];
 
   /*
    * Now ask the SAXHandler callback for the name of a local file
