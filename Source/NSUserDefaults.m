@@ -756,7 +756,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 
   r = [path rangeOfString: @":INTERNAL:"];
 #if	defined(__MINGW32__)
-  if (r == 0)
+  if (r.length == 0)
     {
       r = [path rangeOfString: @":REGISTRY:"];
     }
