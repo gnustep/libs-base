@@ -18,7 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSString_h_GNUSTEP_BASE_INCLUDE
@@ -176,7 +177,7 @@ enum {
 + (id) string;
 + (id) stringWithCharacters: (const unichar*)chars
 		     length: (unsigned int)length;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 + (id) stringWithCString: (const char*)byteString
 		encoding: (NSStringEncoding)encoding;
 #endif
@@ -188,7 +189,7 @@ enum {
 
 // Initializing Newly Allocated Strings
 - (id) init;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 - (id) initWithBytes: (const void*)bytes
 	      length: (unsigned int)length
 	    encoding: (NSStringEncoding)encoding;
@@ -285,7 +286,7 @@ enum {
 
 #if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding;
-- (void) getCString: (char*)buffer
+- (BOOL) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
 	   encoding: (NSStringEncoding)encoding;
 - (id) initWithCString: (const char*)byteString

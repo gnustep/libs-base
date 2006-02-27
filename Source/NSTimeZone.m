@@ -283,7 +283,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   int		offset; // Offset from UTC in seconds.
 }
 
-- (id) initWithOffset: (int)anOffset;
+- (id) initWithOffset: (int)anOffset name: (NSString*)aName;
 @end
 
 @interface NSLocalTimeZone : NSTimeZone
@@ -371,9 +371,51 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
       unichar	c;
       unsigned	i;
 
-      if (length == 8 && [name hasPrefix: @"GMT"] == YES
+      if ((length == 3
+	&& ([name isEqualToString: @"GMT"] == YES
+          || [name isEqualToString: @"UTC"] == YES
+          || [name isEqualToString: @"UCT"] == YES))
+	|| (length == 4
+	  && ([name isEqualToString: @"GMT0"] == YES
+	    || [name isEqualToString: @"Zulu"] == YES))
+	|| (length == 9 && [name isEqualToString: @"Universal"] == YES))
+	{
+	  // Synonyms for GMT
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: 0 name: name];
+	}
+      else if (length == 5 && [name hasPrefix: @"GMT"] == YES
+	&& ((c = [name characterAtIndex: 3]) == '+' || c == '-')
+	&& ((c = [name characterAtIndex: 4]) >= '0' && c <= '9'))
+	{
+	  // GMT-9 to GMT+9
+	  i = (c - '0') * 60 * 60;
+	  if ([name characterAtIndex: 3] == '-')
+	    {
+	      i = -i;
+	    }
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: i name: name];
+	}
+      else if (length == 6 && [name hasPrefix: @"GMT"] == YES
+	&& ((c = [name characterAtIndex: 3]) == '+' || c == '-')
+	&& ((c = [name characterAtIndex: 4]) == '0' || c == '1')
+	&& ((c = [name characterAtIndex: 5]) >= '0' && c <= '4'))
+	{
+	  // GMT-14 to GMT-10 and GMT+10 to GMT+14
+	  i = (c - '0') * 60 * 60;
+	  if ([name characterAtIndex: 4] == '1')
+	    {
+	      i += 60 * 60 * 10;
+	    }
+	  if ([name characterAtIndex: 3] == '-')
+	    {
+	      i = -i;
+	    }
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: i name: name];
+	}
+      else if (length == 8 && [name hasPrefix: @"GMT"] == YES
 	&& ((c = [name characterAtIndex: 3]) == '+' || c == '-'))
 	{
+	  // GMT+NNNN and GMT-NNNN
 	  c = [name characterAtIndex: 4];
 	  if (c >= '0' && c <= '9')
 	    {
@@ -390,7 +432,13 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 		      if (c >= '0' && c <= '9')
 			{
 			  i = i * 10 + (c - '0');
-			  zone = [[GSAbsTimeZone alloc] initWithOffset: i*60];
+			  i = i * 60;
+			  if ([name characterAtIndex: 3] == '-')
+			    {
+			      i = -i;
+			    }
+			  zone = [[GSAbsTimeZone alloc] initWithOffset: i
+								  name: nil];
 			}
 		    }
 		}
@@ -402,7 +450,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	{
 	  i = [[name substringFromIndex: 19] intValue];
 
-	  zone = [[GSAbsTimeZone alloc] initWithOffset: i];
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: i name: nil];
 	}
 
       if (zone == nil)
@@ -585,7 +633,7 @@ static NSMapTable	*absolutes = 0;
   [aCoder encodeObject: name];
 }
 
-- (id) initWithOffset: (int)anOffset
+- (id) initWithOffset: (int)anOffset name: (NSString*)aName
 {
   GSAbsTimeZone	*z;
   int		extra;
@@ -630,25 +678,32 @@ static NSMapTable	*absolutes = 0;
     }
   else
     {
-      if (anOffset % 60 == 0)
+      if (aName == nil)
 	{
-	  char	s = (anOffset >= 0) ? '+' : '-';
-	  int	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
-	  int	h = i / 60;
-	  int	m = i % 60;
-	  char	buf[9];
+	  if (anOffset % 60 == 0)
+	    {
+	      char	s = (anOffset >= 0) ? '+' : '-';
+	      int	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
+	      int	h = i / 60;
+	      int	m = i % 60;
+	      char	buf[9];
 
-	  sprintf(buf, "GMT%c%02d%02d", s, h, m);
-	  name = [[NSString alloc] initWithUTF8String: buf];
+	      sprintf(buf, "GMT%c%02d%02d", s, h, m);
+	      name = [[NSString alloc] initWithUTF8String: buf];
+	    }
+	  else
+	    {
+	      /*
+	       * Should never happen now we round to the minute
+	       * for MacOS-X compatibnility.
+	       */
+	      name = [[NSString alloc] initWithFormat: @"NSAbsoluteTimeZone:%d",
+		anOffset];
+	    }
 	}
       else
 	{
-	  /*
-	   * Should never happen now we round to the minute
-	   * for MacOS-X compatibnility.
-	   */
-	  name = [[NSString alloc] initWithFormat: @"NSAbsoluteTimeZone:%d",
-	    anOffset];
+	  name = [aName copy];
 	}
       detail = [[GSAbsTimeZoneDetail alloc] initWithTimeZone: self];
       offset = anOffset;
@@ -1637,7 +1692,7 @@ static NSMapTable	*absolutes = 0;
 {
   NSTimeZone	*zone;
 
-  zone = [[GSAbsTimeZone alloc] initWithOffset: seconds];
+  zone = [[GSAbsTimeZone alloc] initWithOffset: seconds name: nil];
   return AUTORELEASE(zone);
 }
 

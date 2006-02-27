@@ -1,3 +1,33 @@
+2006-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSString.h: Correct return type for
+	([getCString:maxLength:encoding])
+	* Source/NSString.m: ([getCString:maxLength:encoding]) make
+	implementation match MacOS-X implementation rather than their docs.
+	Change API for setting path handling mode to be a function we can
+	call before any string/path operations.  Maybe final API to be made
+	public?
+	Path handling tweaks based on discussion at FOSDEM
+	* Source/GSString.m: ([getCString:maxLength:encoding]) implemented.
+	* Source/unix/NSStream.m: Portabiulity fixups ... use EPROTO only
+	if defined and use dummy implementations of inet6 cclasses if AF_INET6
+	is not defined.
+	* Source/NSKeyValueCoding.m: Some optimisation suggested by Helge ...
+	rewrite key path methods to loop rather than recurse.
+	* Source/GSFFIInvocation.m: Avoid compiler warning
+	* Source/NSURL.m: use new getCString... method
+	* Source/NSSerializer.m: ditto
+	* Documentation/Base.gsdoc: Remove env variable to set path handling.
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Slight change to
+	functions for KVC to allow faster implementation.
+	* Source/Additions/GSObjCRuntime.m: ditto
+
+2006-02-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZone.m: Fix bug in GMT+/-NNNN timezone initialisation so that
+	negative offsets work.  Implement GMT and synonyms as internal
+	absolute timezones.  Implement GMT-14 to GMT+14 as absolute timezones.
+
 2006-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Restructure for lazy creation of defaults

@@ -53,10 +53,12 @@ NSSelectorFromString(NSString *aSelectorName)
 {
   if (aSelectorName != nil)
     {
-      int	len = [aSelectorName cStringLength];
+      int	len = [aSelectorName length];
       char	buf[len+1];
 
-      [aSelectorName getCString: buf];
+      [aSelectorName getCString: buf
+		      maxLength: len + 1
+		       encoding: NSASCIIStringEncoding];
       return GSSelectorFromName (buf);
     }
   return (SEL)0;
@@ -71,10 +73,12 @@ NSClassFromString(NSString *aClassName)
 {
   if (aClassName != nil)
     {
-      int	len = [aClassName cStringLength];
+      int	len = [aClassName length];
       char	buf[len+1];
 
-      [aClassName getCString: buf];
+      [aClassName getCString: buf
+		   maxLength: len + 1
+		    encoding: NSASCIIStringEncoding];
       return GSClassFromName (buf);
     }
   return (Class)0;

@@ -24,7 +24,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSString class reference</title>
    $Date$ $Revision$
@@ -165,8 +166,51 @@ static enum {
   PH_WINDOWS
 } pathHandling = PH_DO_THE_RIGHT_THING;
 
-#define	GSPathHandlingUnix()	((pathHandling == PH_UNIX) ? YES : NO)
-#define	GSPathHandlingWindows()	((pathHandling == PH_WINDOWS) ? YES : NO)
+/**
+ * This function is intended to be called at startup (before anything else
+ * which needs to use paths, such as reading config files and user defaults)
+ * to allow a program to control the style of path handling required.<br />
+ * Almost all programs should avoid using this.<br />
+ * Changing the path handling mode is not thread-safe.<br />
+ * If mode is "windows" this sets path handling to be windows specific,<br />
+ * If mode is "unix" it sets path handling to be unix specific,<br />
+ * Any other none-null string sets do-the-right-thing mode.<br />
+ * The function returns a C String describing the old mode.
+ */
+const char*
+GSPathHandling(const char *mode)
+{
+  int	old = pathHandling;
+
+  if (mode != 0)
+    {
+      if (strcasecmp(mode, "windows") == 0)
+	{
+	  pathHandling = PH_WINDOWS;
+	}
+      else if (strcasecmp(mode, "unix") == 0)
+	{
+	  pathHandling = PH_UNIX;
+	}
+      else
+	{
+	  pathHandling = PH_DO_THE_RIGHT_THING;
+	}
+    }
+  switch (old)
+    {
+      case PH_WINDOWS:		return "windows";
+      case PH_UNIX:		return "unix";
+      default:			return "right";
+    }
+}
+
+#define	GSPathHandlingRight()	\
+  ((pathHandling == PH_DO_THE_RIGHT_THING) ? YES : NO)
+#define	GSPathHandlingUnix()	\
+  ((pathHandling == PH_UNIX) ? YES : NO)
+#define	GSPathHandlingWindows()	\
+  ((pathHandling == PH_WINDOWS) ? YES : NO)
 
 /*
  * The pathSeps character set is used for parsing paths ... it *must*
@@ -181,26 +225,54 @@ pathSeps(void)
 {
   static NSCharacterSet	*wPathSeps = nil;
   static NSCharacterSet	*uPathSeps = nil;
+  static NSCharacterSet	*rPathSeps = nil;
+  if (GSPathHandlingRight())
+    {
+      if (rPathSeps == nil)
+	{
+	  [placeholderLock lock];
+	  if (rPathSeps == nil)
+	    {
+	      rPathSeps
+		= [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
+	      IF_NO_GC(RETAIN(rPathSeps));
+	    }
+	  [placeholderLock unlock];
+	}
+      return rPathSeps;
+    }
   if (GSPathHandlingUnix())
     {
       if (uPathSeps == nil)
 	{
-	  uPathSeps
-	    = [NSCharacterSet characterSetWithCharactersInString: @"/"];
-	  IF_NO_GC(RETAIN(uPathSeps));
+	  [placeholderLock lock];
+	  if (uPathSeps == nil)
+	    {
+	      uPathSeps
+		= [NSCharacterSet characterSetWithCharactersInString: @"/"];
+	      IF_NO_GC(RETAIN(uPathSeps));
+	    }
+	  [placeholderLock unlock];
 	}
       return uPathSeps;
     }
-  else
+  if (GSPathHandlingWindows())
     {
       if (wPathSeps == nil)
 	{
-	  wPathSeps
-	    = [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
-	  IF_NO_GC(RETAIN(wPathSeps));
+	  [placeholderLock lock];
+	  if (wPathSeps == nil)
+	    {
+	      wPathSeps
+		= [NSCharacterSet characterSetWithCharactersInString: @"\\"];
+	      IF_NO_GC(RETAIN(wPathSeps));
+	    }
+	  [placeholderLock unlock];
 	}
       return wPathSeps;
     }
+  pathHandling = PH_DO_THE_RIGHT_THING;
+  return pathSeps();
 }
 
 inline static BOOL
@@ -208,11 +280,14 @@ pathSepMember(unichar c)
 {
   if (c == (unichar)'/')
     {
-      return YES;
+      if (GSPathHandlingWindows() == NO)
+	{
+	  return YES;
+	}
     }
-  if (GSPathHandlingUnix() == NO)
+  else if (c == (unichar)'\\')
     {
-      if (c == (unichar)'\\')
+      if (GSPathHandlingUnix() == NO)
 	{
 	  return YES;
 	}
@@ -220,48 +295,34 @@ pathSepMember(unichar c)
   return NO;
 }
 
+/*
+ * For cross-platform portability we always use slash as the separator
+ * when building paths ... unless specific windows path handling is
+ * required.
+ */
 inline static unichar
 pathSepChar()
 {
-#if	defined(NATIVEPATHSEP)
-#if	defined(__MINGW32__)
-  if (GSPathHandlingUnix() == YES)
+  if (GSPathHandlingWindows() == NO)
     {
       return '/';
     }
   return '\\';
-#else
-  if (GSPathHandlingWindows() == YES)
-    {
-      return '\\';
-    }
-  return '/';
-#endif
-#else
-  return '/';
-#endif
 }
 
+/*
+ * For cross-platform portability we always use slash as the separator
+ * when building paths ... unless specific windows path handling is
+ * required.
+ */
 inline static NSString*
 pathSepString()
 {
-#if	defined(NATIVEPATHSEP)
-#if	defined(__MINGW32__)
-  if (GSPathHandlingUnix() == YES)
+  if (GSPathHandlingWindows() == NO)
     {
       return @"/";
     }
   return @"\\";
-#else
-  if (GSPathHandlingWindows() == YES)
-    {
-      return @"\\";
-    }
-  return @"/";
-#endif
-#else
-  return @"/";
-#endif
 }
 
 /*
@@ -507,17 +568,6 @@ handle_printf_atsign (FILE *stream,
 
       _DefaultStringEncoding = GetDefEncoding();
       _ByteEncodingOk = GSIsByteEncoding(_DefaultStringEncoding);
-      if (getenv("GNUSTEP_PATH_HANDLING") != 0)
-	{
-	  if (strcmp("unix", getenv("GNUSTEP_PATH_HANDLING")) == 0)
-	    {
-	      pathHandling = PH_UNIX;
-	    }
-	  else if (strcmp("windows", getenv("GNUSTEP_PATH_HANDLING")) == 0)
-	    {
-	      pathHandling = PH_WINDOWS;
-	    }
-	}
 
       NSStringClass = self;
       [self setVersion: 1];
@@ -619,22 +669,6 @@ handle_printf_atsign (FILE *stream,
 + (Class) constantStringClass
 {
   return [NXConstantString class];
-}
-
-+ (void) setPathHandling: (NSString*)mode
-{
-  pathHandling = PH_DO_THE_RIGHT_THING;
-  if (mode != nil)
-    {
-      if ([mode caseInsensitiveCompare: @"windows"] == NSOrderedSame)
-	{
-	  pathHandling = PH_WINDOWS;
-	}
-      else if ([mode caseInsensitiveCompare: @"unix"] == NSOrderedSame)
-	{
-	  pathHandling = PH_UNIX;
-	}
-    }
 }
 
 /**
@@ -3039,10 +3073,8 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Retrieve the contents of the receiver into the buffer.<br />
- * The buffer must be large enough to contain the CString representation
- * of the characters in the receiver, plus a nul terminator which this
- * method adds.
+ * Deprecated ... do not use.<br />.
+ * Use -getCString:maxLength:encoding: instead.
  */
 - (void) getCString: (char*)buffer
 {
@@ -3052,9 +3084,8 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Retrieve up to maxLength bytes from the receiver into the buffer.<br />
- * The buffer must be at least maxLength + 1 bytes long, so that it has
- * room for the nul terminator that this method adds.
+ * Deprecated ... do not use.<br />.
+ * Use -getCString:maxLength:encoding: instead.
  */
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
@@ -3066,34 +3097,58 @@ handle_printf_atsign (FILE *stream,
 
 /**
  * Retrieve up to maxLength bytes from the receiver into the buffer.<br />
- * The buffer must be at least maxLength + 1 bytes long, so that it has
- * room for the nul terminator that this method adds.
+ * In GNUstep, this method implements the actual behavior of the MacOS-X
+ * method rather than it's documented behavior ...<br />
+ * The maxLength argument must be the size (in bytes) of the area of
+ * memory pointed to by the buffer argument.<br />
+ * Returns YES on success.<br />
+ * Returns NO if maxLength is too small to hold the entire string
+ * including a terminating nul character.<br />
+ * If it returns NO, the terminating nul will <em>not</em> have been
+ * written to the buffer.<br />
+ * Raises an exception if the string can not be converted to the
+ * specified encoding without loss of information.<br />
+ * eg. If the receiver is @"hello" then the provided buffer must be
+ * at least six bytes long and the value of maxLength must be at least
+ * six if NSASCIIStringEncoding is requested, but they must be at least
+ * twelve if NSUnicodeStringEncoding is requested. 
  */
-- (void) getCString: (char*)buffer
+- (BOOL) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
 	   encoding: (NSStringEncoding)encoding
 {
-  NSData	*d = [self dataUsingEncoding: encoding];
-  unsigned	len = [d length];
-
-  if (len > maxLength) len = maxLength;
-  memcpy(buffer, [d bytes], len);
   if (encoding == NSUnicodeStringEncoding)
     {
-      buffer[len++] = '\0';
+      unsigned	length = [self length];
+
+      if (maxLength > length * sizeof(unichar))
+	{
+	  unichar	*ptr = (unichar*)buffer;
+
+	  maxLength = (maxLength - 1) / sizeof(unichar);
+	  [self getCharacters: ptr
+			range: NSMakeRange(0, maxLength)];
+	  ptr[maxLength] = 0;
+	  return YES;
+	}
+      return NO;
     }
-  buffer[len] = '\0';
+  else
+    {
+      NSData	*d = [self dataUsingEncoding: encoding];
+      unsigned	length = [d length];
+      BOOL	result = (length <= maxLength) ? YES : NO;
+
+      if (length > maxLength) length = maxLength;
+      memcpy(buffer, [d bytes], length);
+      buffer[length] = '\0';
+      return result;
+    }
 }
 
 /**
- * Converts characters from the given range of the string to the c string
- * encoding and stores the resulting bytes in the given buffer. As many
- * characters are converted as will fit in the buffer. A trailing nul
- * byte is always added, so the buffer needs to be big enough to hold
- * maxLength+1 bytes.
- * <br />
- * If leftoverRange is non-NULL, the range of trailing characters that didn't
- * will be stored in it.
+ * Deprecated ... do not use.<br />.
+ * Use -getCString:maxLength:encoding: instead.
  */
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
@@ -4419,27 +4474,15 @@ static NSFileManager *fm = nil;
     {
       s = AUTORELEASE([self mutableCopy]);
     }
-#if	defined(NATIVEPATHSEP)
-#if	defined(__MINGW32__)
+
   if (GSPathHandlingUnix() == YES)
     {
       [s replaceString: @"\\" withString: @"/"];
     }
-  else
+  else if (GSPathHandlingWindows() == YES)
     {
       [s replaceString: @"/" withString: @"\\"];
     }
-#else
-  if (GSPathHandlingWindows() == YES)
-    {
-      [s replaceString: @"/" withString: @"\\"];
-    }
-  else
-    {
-      [s replaceString: @"\\" withString: @"/"];
-    }
-#endif
-#endif
 
   l = [s length];
   root = rootOf(s, l);
