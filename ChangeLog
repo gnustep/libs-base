@@ -1,5 +1,15 @@
 2006-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSXML.m: Helge spotted thread safety issues with
+	the code controlling warnings and the external entity loader.
+	Changed code to modify internals of the parser context and SAX
+	context to set the values in there directly rather than using the
+	global setter mechanism (strangely recommended in the libxml2 docs),
+	so that all setup is made to the individual parser and should not
+	effect other parsers in other threads.
+	
+2006-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSString.h: Correct return type for
 	([getCString:maxLength:encoding])
 	* Source/NSString.m: ([getCString:maxLength:encoding]) make

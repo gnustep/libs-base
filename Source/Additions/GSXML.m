@@ -166,8 +166,8 @@ setupCache()
 }
 
 static xmlParserInputPtr
-loadEntityFunction(const unsigned char *url, const unsigned char *eid,
-  xmlParserCtxtPtr ctxt);
+loadEntityFunction(void *ctx,
+  const unsigned char *eid, const unsigned char *url);
 
 @interface GSXPathObject(Private)
 + (id) _newWithNativePointer: (xmlXPathObject *)lib
@@ -1609,8 +1609,6 @@ static NSMapTable	*nodeNames = 0;
  */
 @implementation GSXMLParser
 
-static NSHashTable	*warnings = 0;
-
 static NSString	*endMarker = @"At end of incremental parse";
 
 + (void) initialize
@@ -1622,7 +1620,6 @@ static NSString	*endMarker = @"At end of incremental parse";
       beenHere = YES;
       if (cacheDone == NO)
 	setupCache();
-      warnings = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
     }
 }
 
@@ -1864,7 +1861,6 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (void) dealloc
 {
-  NSHashRemove(warnings, self);
   RELEASE(messages);
   RELEASE(src);
   RELEASE(saxHandler);
@@ -1912,20 +1908,17 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (BOOL) getWarnings: (BOOL)yesno
 {
-  BOOL	old = YES;
+  BOOL	old = (((xmlParserCtxtPtr)lib)->vctxt.warning) ? YES : NO;
 
-  if (NSHashGet(warnings, self) == nil)
+  if (yesno == YES)
     {
-      old = NO;
+      ((xmlParserCtxtPtr)lib)->vctxt.warning = xmlParserValidityWarning;
     }
-  if (yesno == YES && old == NO)
+  else
     {
-      NSHashInsert(warnings, self);
+      ((xmlParserCtxtPtr)lib)->vctxt.warning = 0;
     }
-  else if (yesno == NO && old == YES)
-    {
-      NSHashRemove(warnings, self);
-    }
+
   return old;
 }
 
@@ -2305,6 +2298,11 @@ static NSString	*endMarker = @"At end of incremental parse";
        * the GSSAXHandler to use in our SAX C Functions.
        */
       ((xmlParserCtxtPtr)lib)->_private = saxHandler;
+
+      /*
+       * Set the entity loading function for this parser to be our one.
+       */
+      ((xmlParserCtxtPtr)lib)->sax->resolveEntity = loadEntityFunction;
     }
   return YES;
 }
@@ -2317,38 +2315,11 @@ static NSString	*endMarker = @"At end of incremental parse";
 // nil data allowed
 - (void) _parseChunk: (NSData*)data
 {
-  xmlExternalEntityLoader	oldLoader;
-  int				oldWarnings;
-
   if (lib == NULL || ((xmlParserCtxtPtr)lib)->disableSAX != 0)
     {
       return;	// Parsing impossible or disabled.
     }
-
-  oldLoader = xmlGetExternalEntityLoader();
-  oldWarnings = xmlGetWarningsDefaultValue;
-  NS_DURING
-    {
-      if (NSHashGet(warnings, self) == nil)
-	{
-	  xmlGetWarningsDefaultValue = 0;
-	}
-      else
-	{
-	  xmlGetWarningsDefaultValue = 1;
-	}
-      xmlSetExternalEntityLoader((xmlExternalEntityLoader)loadEntityFunction);
-      xmlParseChunk(lib, [data bytes], [data length], data == nil);
-      xmlSetExternalEntityLoader(oldLoader);
-      xmlGetWarningsDefaultValue = oldWarnings;
-    }
-  NS_HANDLER
-    {
-      xmlSetExternalEntityLoader(oldLoader);
-      xmlGetWarningsDefaultValue = oldWarnings;
-      [localException raise];
-    }
-  NS_ENDHANDLER
+  xmlParseChunk(lib, [data bytes], [data length], data == nil);
 }
 
 @end
@@ -2436,8 +2407,8 @@ static NSString	*endMarker = @"At end of incremental parse";
 #define	HANDLER	((GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private))
 
 static xmlParserInputPtr
-loadEntityFunction(const unsigned char *url, const unsigned char *eid,
-  xmlParserCtxtPtr ctx)
+loadEntityFunction(void *ctx,
+  const unsigned char *eid, const unsigned char *url)
 {
   extern xmlParserInputPtr	xmlNewInputFromFile();
   NSString			*file;
@@ -2596,7 +2567,7 @@ loadEntityFunction(const unsigned char *url, const unsigned char *eid,
 #else
       path = [file fileSystemRepresentation];
 #endif
-      ret = xmlNewInputFromFile(ctx, path);
+      ret = xmlNewInputFromFile((xmlParserCtxtPtr)ctx, path);
     }
   else
     {
@@ -2604,6 +2575,7 @@ loadEntityFunction(const unsigned char *url, const unsigned char *eid,
     }
   return ret;
 }
+
 
 #define	TREEFUN(NAME,ARGS) ((HANDLER->isHtmlHandler == YES) ? (*(htmlDefaultSAXHandler.NAME))ARGS : (*(xmlDefaultSAXHandler.NAME))ARGS)
 #define	START(SELNAME, RET, ARGS) \
