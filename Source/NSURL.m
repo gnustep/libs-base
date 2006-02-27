@@ -630,7 +630,7 @@ static unsigned	urlAlign;
     {
       parsedURL	*buf;
       parsedURL	*base = baseData;
-      unsigned	size = [_urlString cStringLength];
+      unsigned	size = [_urlString length];
       char	*end;
       char	*start;
       char	*ptr;
@@ -643,7 +643,9 @@ static unsigned	urlAlign;
       buf = _data = (parsedURL*)NSZoneMalloc(GSAtomicMallocZone(), size);
       memset(buf, '\0', size);
       start = end = ptr = (char*)&buf[1];
-      [_urlString getCString: start];
+      [_urlString getCString: start
+		   maxLength: size
+		    encoding: NSASCIIStringEncoding];
 
       /*
        * Parse the scheme if possible.

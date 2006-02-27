@@ -235,7 +235,6 @@ static IMP gs_objc_msg_forward (SEL sel)
 		  frame: (cifframe_t *)frame
 	      signature: (NSMethodSignature*)aSignature
 {
-  int i;
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
@@ -243,6 +242,8 @@ static IMP gs_objc_msg_forward (SEL sel)
   ((cifframe_t *)_cframe)->cif = *cif;
 
 #if MFRAME_STRUCT_BYREF
+{
+  int i;
   /* Fix up some of the values. Do this on all processors that pass
      structs by reference. Is there an automatic way to determine this? */
   for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
@@ -260,6 +261,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
     }
+}
 #else
   ((cifframe_t *)_cframe)->values = vals;
 #endif

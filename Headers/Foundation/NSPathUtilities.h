@@ -79,7 +79,7 @@ GNUstepConfig(NSDictionary *newConfig);
  * fromm it.
  */
 GS_EXPORT NSString*
-GSDefaultsRootForUser(NSString *username);
+GSDefaultsRootForUser(NSString *userName);
 
 /**
  * The config dictionary passed to this function should be a

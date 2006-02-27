@@ -17,7 +17,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSKeyValueCoding informal protocol reference</title>
    $Date$ $Revision$
@@ -38,6 +39,145 @@
 #include "Foundation/NSNull.h"
 
 NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
+
+
+static void
+SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
+{
+  SEL		sel = 0;
+  const char	*type = 0;
+  int		off;
+
+  if (size > 0)
+    {
+      const char	*name;
+      char		buf[size+6];
+      char		lo;
+      char		hi;
+
+      strcpy(buf, "_set");
+      strcpy(&buf[4], key);
+      lo = buf[4];
+      hi = islower(lo) ? toupper(lo) : lo;
+      buf[4] = hi;
+      buf[size+4] = ':';
+      buf[size+5] = '\0';
+
+      name = &buf[1];	// setKey:
+      type = NULL;
+      sel = GSSelectorFromName(name);
+      if (sel == 0 || [self respondsToSelector: sel] == NO)
+	{
+	  name = buf;	// _setKey:
+	  sel = GSSelectorFromName(name);
+	  if (sel == 0 || [self respondsToSelector: sel] == NO)
+	    {
+	      sel = 0;
+	      if ([[self class] accessInstanceVariablesDirectly] == YES)
+		{
+		  buf[size+4] = '\0';
+		  buf[3] = '_';
+		  buf[4] = lo;
+		  name = &buf[3];	// _key
+		  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+		    {
+		      buf[4] = hi;
+		      buf[3] = 's';
+		      buf[2] = 'i';
+		      buf[1] = '_';
+		      name = &buf[1];	// _isKey
+		      if (GSObjCFindVariable(self,
+			name, &type, &size, &off) == NO)
+			{
+			  buf[4] = lo;
+			  name = &buf[4];	// key
+			  if (GSObjCFindVariable(self,
+			    name, &type, &size, &off) == NO)
+			    {
+			      buf[4] = hi;
+			      buf[3] = 's';
+			      buf[2] = 'i';
+			      name = &buf[2];	// isKey
+			      GSObjCFindVariable(self,
+				name, &type, &size, &off);
+			    }
+			}
+		    }
+		}
+	    }
+	  else
+	    {
+	      GSOnceFLog(@"Key-value access using _setKey: isdeprecated:");
+	    }
+	}
+    }
+  GSObjCSetVal(self, key, anObject, sel, type, size, off);
+}
+
+static id ValueForKey(NSObject *self, const char *key, unsigned size)
+{
+  SEL		sel = 0;
+  int		off;
+  const char	*type = NULL;
+
+  if (size > 0)
+    {
+      const char	*name;
+      char		buf[size+5];
+      char		lo;
+      char		hi;
+
+      strcpy(buf, "_get");
+      strcpy(&buf[4], key);
+      lo = buf[4];
+      hi = islower(lo) ? toupper(lo) : lo;
+      buf[4] = hi;
+
+      name = &buf[1];	// getKey
+      sel = GSSelectorFromName(name);
+      if (sel == 0 || [self respondsToSelector: sel] == NO)
+	{
+	  buf[4] = lo;
+	  name = &buf[4];	// key
+	  sel = GSSelectorFromName(name);
+	  if (sel == 0 || [self respondsToSelector: sel] == NO)
+	    {
+	      sel = 0;
+	    }
+	}
+
+      if (sel == 0 && [[self class] accessInstanceVariablesDirectly] == YES)
+	{
+	  buf[4] = hi;
+	  name = buf;	// _getKey
+	  sel = GSSelectorFromName(name);
+	  if (sel == 0 || [self respondsToSelector: sel] == NO)
+	    {
+	      buf[4] = lo;
+	      buf[3] = '_';
+	      name = &buf[3];	// _key
+	      sel = GSSelectorFromName(name);
+	      if (sel == 0 || [self respondsToSelector: sel] == NO)
+		{
+		  sel = 0;
+		}
+	    }
+	  if (sel == 0)
+	    {
+	      buf[4] = lo;
+	      buf[3] = '_';
+	      name = &buf[4];	// key
+	      if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+		{
+		  name = &buf[3];	// _key
+		  GSObjCFindVariable(self, name, &type, &size, &off);
+		}
+	    }
+	}
+    }
+  return GSObjCGetVal(self, key, sel, type, size, off);
+}
+
 
 @implementation NSObject(KeyValueCoding)
 
@@ -143,93 +283,42 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
 
 - (void) setValue: (id)anObject forKey: (NSString*)aKey
 {
-  SEL		sel = 0;
-  const char	*type = 0;
-  int		off;
   unsigned	size = [aKey length];
+  char		key[size+1];
 
-  if (size > 0)
-    {
-      const char	*name;
-      char		buf[size+6];
-      char		lo;
-      char		hi;
-
-      strcpy(buf, "_set");
-      [aKey getCString: &buf[4]];
-      lo = buf[4];
-      hi = islower(lo) ? toupper(lo) : lo;
-      buf[4] = hi;
-      buf[size+4] = ':';
-      buf[size+5] = '\0';
-
-      name = &buf[1];	// setKey:
-      type = NULL;
-      sel = GSSelectorFromName(name);
-      if (sel == 0 || [self respondsToSelector: sel] == NO)
-	{
-	  name = buf;	// _setKey:
-	  sel = GSSelectorFromName(name);
-	  if (sel == 0 || [self respondsToSelector: sel] == NO)
-	    {
-	      sel = 0;
-	      if ([[self class] accessInstanceVariablesDirectly] == YES)
-		{
-		  buf[size+4] = '\0';
-		  buf[3] = '_';
-		  buf[4] = lo;
-		  name = &buf[3];	// _key
-		  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
-		    {
-		      buf[4] = hi;
-		      buf[3] = 's';
-		      buf[2] = 'i';
-		      buf[1] = '_';
-		      name = &buf[1];	// _isKey
-		      if (GSObjCFindVariable(self,
-			name, &type, &size, &off) == NO)
-			{
-			  buf[4] = lo;
-			  name = &buf[4];	// key
-			  if (GSObjCFindVariable(self,
-			    name, &type, &size, &off) == NO)
-			    {
-			      buf[4] = hi;
-			      buf[3] = 's';
-			      buf[2] = 'i';
-			      name = &buf[2];	// isKey
-			      GSObjCFindVariable(self,
-				name, &type, &size, &off);
-			    }
-			}
-		    }
-		}
-	    }
-	  else
-	    {
-	      GSOnceMLog(@"Key-value access using _setKey: isdeprecated:");
-	    }
-	}
-    }
-  GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
+  [aKey getCString: key
+	 maxLength: size+1
+	  encoding: NSASCIIStringEncoding];
+  SetValueForKey(self, anObject, key, size);
 }
 
 
 - (void) setValue: (id)anObject forKeyPath: (NSString*)aKey
 {
-  NSRange	r = [aKey rangeOfString: @"."];
+  unsigned	size = [aKey length];
+  char		buf[size+1];
+  unsigned	start = 0;
+  unsigned	end = 0;
+  id		o = self;
 
-  if (r.length == 0)
+  [aKey getCString: buf
+	 maxLength: size+1
+	  encoding: NSASCIIStringEncoding];
+  while (o != nil)
     {
-      [self setValue: anObject forKey: aKey];
+      end = start;
+      while (end < size && buf[end] != '.')
+	{
+	  end++;
+	}
+      if (end >= size)
+	{
+	  break;
+	}
+      o = ValueForKey(o, buf + start, end - start);
+      start = ++end;
     }
-  else
-    {
-      NSString	*key = [aKey substringToIndex: r.location];
-      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
-
-      [[self valueForKey: key] setValue: anObject forKeyPath: path];
-    }
+  SetValueForKey(o, anObject, buf + start, end - start);
 }
 
 
@@ -284,19 +373,23 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
       return [self valueForKey: aKey];
     }
 
-  size = [aKey cStringLength];
+  size = [aKey length];
   if (size > 0)
     {
       SEL		sel = 0;
       const char	*type = NULL;
       int		off;
       const char	*name;
+      char		key[size+1];
       char		buf[size+5];
       char		lo;
       char		hi;
 
       strcpy(buf, "_get");
-      [aKey getCString: &buf[4]];
+      [aKey getCString: key
+	     maxLength: size+1
+	      encoding: NSASCIIStringEncoding];
+      strcpy(&buf[4], key);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
@@ -345,7 +438,7 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
 	}
       if (sel != 0 || type != NULL)
 	{
-	  return GSObjCGetValue(self, aKey, sel, type, size, off);
+	  return GSObjCGetVal(self, key, sel, type, size, off);
 	}
     }
   [self handleTakeValue: nil forUnboundKey: aKey];
@@ -370,12 +463,16 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
       const char	*type;
       int		off;
       const char	*name;
+      char		key[size+1];
       char		buf[size+6];
       char		lo;
       char		hi;
 
       strcpy(buf, "_set");
-      [aKey getCString: &buf[4]];
+      [aKey getCString: key
+	     maxLength: size+1
+	      encoding: NSASCIIStringEncoding];
+      strcpy(&buf[4], key);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
@@ -415,7 +512,7 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
 	}
       if (sel != 0 || type != NULL)
 	{
-	  GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
+	  GSObjCSetVal(self, key, anObject, sel, type, size, off);
 	  return;
 	}
     }
@@ -448,8 +545,12 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
   const char	*type = 0;
   int		off;
   unsigned	size = [aKey length];
+  char		key[size+1];
 
   GSOnceMLog(@"This method is deprecated, use -setValue:forKey:");
+  [aKey getCString: key
+	 maxLength: size+1
+	  encoding: NSASCIIStringEncoding];
   if (size > 0)
     {
       const char	*name;
@@ -458,7 +559,7 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
       char		hi;
 
       strcpy(buf, "_set");
-      [aKey getCString: &buf[4]];
+      strcpy(&buf[4], key);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
@@ -490,7 +591,7 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
 	    }
 	}
     }
-  GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
+  GSObjCSetVal(self, key, anObject, sel, type, size, off);
 }
 
 
@@ -546,22 +647,33 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
                 forKey: (NSString*)aKey
                  error: (NSError**)anError
 {
-  NSString	*name;
-  const char	*str = [aKey cString];
-  SEL		sel;
-  BOOL		(*imp)(id,SEL,id*,id*);
+  unsigned	size;
 
-  if (aValue == 0 || str == 0 || *str == '\0')
+  if (aValue == 0 || (size = [aKey length]) == 0)
     {
       [NSException raise: NSInvalidArgumentException format: @"nil argument"];
     }
-  name = [NSString stringWithFormat: @"validate%c%s:error:",
-    islower(*str) ? toupper(*str) : *str, str + 1];
-  sel = NSSelectorFromString(name);
-  if (sel != 0
-    && (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
+  else
     {
-      return (*imp)(self, sel, aValue, anError);
+      char		name[size+16];
+      SEL		sel;
+      BOOL		(*imp)(id,SEL,id*,id*);
+
+      strcpy(name, "validate");
+      [aKey getCString: &name[8]
+	     maxLength: size+1
+	      encoding: NSASCIIStringEncoding];
+      strcpy(&name[size+8], ":error:");
+      if (islower(name[8]))
+	{
+	  name[8] = toupper(name[8]);
+	}
+      sel = GSSelectorFromName(name);
+      if (sel != 0
+	&& (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
+	{
+	  return (*imp)(self, sel, aValue, anError);
+	}
     }
   return YES;
 }
@@ -570,106 +682,91 @@ NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
             forKeyPath: (NSString*)aKey
                  error: (NSError**)anError
 {
-  NSRange	r = [aKey rangeOfString: @"."];
-  BOOL		result;
+  unsigned	size = [aKey length];
+  char		buf[size+1];
+  unsigned	start = 0;
+  unsigned	end = 0;
+  id		o = self;
 
-  if (r.length == 0)
+  [aKey getCString: buf
+	 maxLength: size+1
+	  encoding: NSASCIIStringEncoding];
+  while (o != nil)
     {
-      result = [self validateValue: aValue forKey: aKey error: anError];
+      end = start;
+      while (end < size && buf[end] != '.')
+	{
+	  end++;
+	}
+      if (end >= size)
+	{
+	  break;
+	}
+      o = ValueForKey(o, buf + start, end - start);
+      start = ++end;
+    }
+  if (o == nil)
+    {
+      return NO;
     }
   else
     {
-      NSString	*key = [aKey substringToIndex: r.location];
-      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+      char		name[end-start+16];
+      SEL		sel;
+      BOOL		(*imp)(id,SEL,id*,id*);
 
-      result = [[self valueForKey: key]
-	validateValue: aValue forKeyPath: path error: anError];
+      size = end - start;
+      strcpy(name, "validate");
+      strcpy(&name[8], buf+start);
+      strcpy(&name[size+8], ":error:");
+      if (islower(name[8]))
+	{
+	  name[8] = toupper(name[8]);
+	}
+      sel = GSSelectorFromName(name);
+      if (sel != 0
+	&& (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
+	{
+	  return (*imp)(self, sel, aValue, anError);
+	}
+      return YES;
     }
-  return result;
 }
+
 
 - (id) valueForKey: (NSString*)aKey
 {
-  unsigned	size;
-  SEL		sel = 0;
-  int		off;
-  const char	*type = NULL;
+  unsigned	size = [aKey length];
+  char		key[size+1];
 
-  size = [aKey length];
-  if (size > 0)
-    {
-      const char	*name;
-      char		buf[size+5];
-      char		lo;
-      char		hi;
-
-      strcpy(buf, "_get");
-      [aKey getCString: &buf[4]];
-      lo = buf[4];
-      hi = islower(lo) ? toupper(lo) : lo;
-      buf[4] = hi;
-
-      name = &buf[1];	// getKey
-      sel = GSSelectorFromName(name);
-      if (sel == 0 || [self respondsToSelector: sel] == NO)
-	{
-	  buf[4] = lo;
-	  name = &buf[4];	// key
-	  sel = GSSelectorFromName(name);
-	  if (sel == 0 || [self respondsToSelector: sel] == NO)
-	    {
-	      sel = 0;
-	    }
-	}
-
-      if (sel == 0 && [[self class] accessInstanceVariablesDirectly] == YES)
-	{
-	  buf[4] = hi;
-	  name = buf;	// _getKey
-	  sel = GSSelectorFromName(name);
-	  if (sel == 0 || [self respondsToSelector: sel] == NO)
-	    {
-	      buf[4] = lo;
-	      buf[3] = '_';
-	      name = &buf[3];	// _key
-	      sel = GSSelectorFromName(name);
-	      if (sel == 0 || [self respondsToSelector: sel] == NO)
-		{
-		  sel = 0;
-		}
-	    }
-	  if (sel == 0)
-	    {
-	      buf[4] = lo;
-	      buf[3] = '_';
-	      name = &buf[4];	// key
-	      if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
-		{
-		  name = &buf[3];	// _key
-		  GSObjCFindVariable(self, name, &type, &size, &off);
-		}
-	    }
-	}
-    }
-  return GSObjCGetValue(self, aKey, sel, type, size, off);
+  [aKey getCString: key
+	 maxLength: size+1
+	  encoding: NSASCIIStringEncoding];
+  return ValueForKey(self, key, size);
 }
 
 
 - (id) valueForKeyPath: (NSString*)aKey
 {
-  NSRange	r = [aKey rangeOfString: @"."];
-  id		o;
+  unsigned	size = [aKey length];
+  char		buf[size+1];
+  unsigned	start = 0;
+  unsigned	end = 0;
+  id		o = nil;
 
-  if (r.length == 0)
+  [aKey getCString: buf
+	 maxLength: size+1
+	  encoding: NSASCIIStringEncoding];
+  while (start < size && self != nil)
     {
-      o = [self valueForKey: aKey];
-    }
-  else
-    {
-      NSString	*key = [aKey substringToIndex: r.location];
-      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
-
-      o = [[self valueForKey: key] valueForKeyPath: path];
+      end = start;
+      while (end < size && buf[end] != '.')
+	{
+	  end++;
+	}
+      o = ValueForKey(self, buf + start, end - start);
+      start = ++end;
+      self = o;
     }
   return o;
 }

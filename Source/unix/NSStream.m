@@ -102,7 +102,9 @@
 @interface GSInet6InputStream : GSSocketInputStream
 {
   @private
+#if	defined(AF_INET6)
   struct sockaddr_in6 _peerAddr;
+#endif
 }
 
 /**
@@ -184,7 +186,9 @@
 @interface GSInet6OutputStream : GSSocketOutputStream
 {
   @private
+#if	defined(AF_INET6)
   struct sockaddr_in6 _peerAddr;
+#endif
 }
 
 /**
@@ -742,7 +746,7 @@ static void setNonblocking(int fd)
 @end
 
 @implementation GSInet6InputStream
-
+#if	defined(AF_INET6)
 - (socklen_t) sockLen
 {
   return sizeof(struct sockaddr_in6);
@@ -770,7 +774,13 @@ static void setNonblocking(int fd)
     }
   return self;
 }
-
+#else
+- (id) initToAddr: (NSString*)addr port: (int)port
+{
+  RELEASE(self);
+  return nil;
+}
+#endif
 @end
 
 @implementation GSLocalInputStream 
@@ -1285,7 +1295,7 @@ static void setNonblocking(int fd)
 @end
 
 @implementation GSInet6OutputStream
-
+#if	defined(AF_INET6)
 - (socklen_t) sockLen
 {
   return sizeof(struct sockaddr_in6);
@@ -1313,7 +1323,13 @@ static void setNonblocking(int fd)
     }
   return self;
 }
-
+#else
+- (id) initToAddr: (NSString*)addr port: (int)port
+{
+  RELEASE(self);
+  return nil;
+}
+#endif
 @end
 
 @implementation GSLocalOutputStream 
@@ -1734,8 +1750,17 @@ static void setNonblocking(int fd)
 
   if (acceptReturn < 0)
     { // test for real error
-      if (errno != EWOULDBLOCK && errno != ECONNABORTED
-	&& errno != EPROTO && errno != EINTR)
+      if (errno != EWOULDBLOCK
+#if	defined(EAGAIN)
+	&& errno != EAGAIN
+#endif
+#if	defined(ECONNABORTED)
+	&& errno != ECONNABORTED
+#endif
+#if	defined(EPROTO)
+	&& errno != EPROTO
+#endif
+	&& errno != EINTR)
 	{
           [self _recordError];
 	}
@@ -1882,7 +1907,7 @@ static void setNonblocking(int fd)
 @end
 
 @implementation GSInet6ServerStream
-
+#if	defined(AF_INET6)
 - (Class) _inputStreamClass
 {
   return [GSInet6InputStream class];
@@ -1921,7 +1946,13 @@ static void setNonblocking(int fd)
   NSAssert(_fd >= 0, @"cannot open socket");
   return self;
 }
-
+#else
+- (id) initToAddr: (NSString*)addr port: (int)port
+{
+  RELEASE(self);
+  return nil;
+}
+#endif
 @end
 
 @implementation GSLocalServerStream 

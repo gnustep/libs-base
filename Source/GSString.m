@@ -1021,9 +1021,7 @@ cString_c(GSStr self, NSStringEncoding enc)
       unsigned	l = 0;
 
       /*
-       * The external C string encoding is not compatible with the internal
-       * 8-bit character strings ... we must convert from internal format to
-       * unicode and then to the external C string encoding.
+       * The external C string encoding  is unicode ... convert to it.
        */
       if (GSToUnicode((unichar**)&r, &l, self->_contents.c, self->_count,
 	intEnc, NSDefaultMallocZone(),
@@ -1456,6 +1454,222 @@ getCString_u(GSStr self, char *buffer, unsigned int maxLength,
 	leftoverRange->length = NSMaxRange(aRange) - leftoverRange->location;
       }
   }
+}
+
+static inline BOOL
+getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
+  NSStringEncoding enc)
+{
+  if (enc == NSUnicodeStringEncoding)
+    {
+      if (maxLength >= sizeof(unichar))
+	{
+	  unsigned	bytes = maxLength - sizeof(unichar);
+	  unichar	*u = (unichar*)buffer;
+
+	  if (GSToUnicode(&u, &bytes, self->_contents.c, self->_count, intEnc,
+	    NSDefaultMallocZone(), GSUniTerminate) == NO)
+	    {
+	      [NSException raise: NSCharacterConversionException
+			  format: @"Can't convert to Unicode string."];
+	    }
+	  if (u == (unichar*)buffer)
+	    {
+	      return YES;
+	    }
+	  NSZoneFree(NSDefaultMallocZone(), u);
+	}
+      return NO;
+    }
+  else
+    {
+      if (maxLength > sizeof(char))
+	{
+	  unsigned	bytes = maxLength - sizeof(char);
+
+	  if (enc == intEnc)
+	    {
+	      if (bytes > self->_count)
+		{
+		  bytes = self->_count;
+		}
+	      memcpy(buffer, self->_contents.c, bytes);
+	      buffer[bytes] = '\0';
+	      if (bytes < self->_count)
+		{
+		  return NO;
+		}
+	      return YES;
+	    }
+	  else if (enc == NSASCIIStringEncoding && GSIsByteEncoding(intEnc))
+	    {
+	      unsigned	i;
+
+	      if (bytes > self->_count)
+		{
+		  bytes = self->_count;
+		}
+	      for (i = 0; i < bytes; i++)
+		{
+		  unsigned char	c = self->_contents.c[i];
+
+		  if (c > 127)
+		    {
+		      [NSException raise: NSCharacterConversionException
+				  format: @"unable to convert to encoding"];
+		    }
+		  buffer[i] = c;
+		}
+	      buffer[bytes] = '\0';
+	      if (bytes < self->_count)
+		{
+		  return NO;
+		}
+	      return YES;
+	    }
+	  else
+	    {
+	      unichar		*u = 0;
+	      unsigned char	*c = (unsigned char*)buffer;
+	      unsigned		l = 0;
+
+	      /*
+	       * The specified C string encoding is not compatible with
+	       * the internal 8-bit character strings ... we must convert
+	       * from internal format to unicode and then to the specified
+	       * C string encoding.
+	       */
+	      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+		NSDefaultMallocZone(), 0) == NO)
+		{
+		  [NSException raise: NSCharacterConversionException
+			      format: @"Can't convert to Unicode string."];
+		}
+	      if (GSFromUnicode((unsigned char**)&c, &bytes, u, l, enc,
+		NSDefaultMallocZone(), GSUniTerminate|GSUniStrict) == NO)
+		{
+		  NSZoneFree(NSDefaultMallocZone(), u);
+		  [NSException raise: NSCharacterConversionException
+			      format: @"Can't convert from Unicode string."];
+		}
+	      NSZoneFree(NSDefaultMallocZone(), u);
+	      if (c == (unsigned char*)buffer)
+		{
+		  return YES;	// Fitted in original buffer
+		}
+	      else
+		{
+		  NSZoneFree(NSDefaultMallocZone(), c);
+		}
+	    }
+	}
+      return NO;
+    }
+}
+
+static inline BOOL
+getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
+  NSStringEncoding enc)
+{
+  if (enc == NSUnicodeStringEncoding)
+    {
+      if (maxLength >= sizeof(unichar))
+	{
+	  unsigned	bytes = maxLength - sizeof(unichar);
+
+	  if (bytes/sizeof(unichar) > self->_count)
+	    {
+	      bytes = self->_count * sizeof(unichar);
+	    }
+	  memcpy(buffer, self->_contents.u, bytes);
+	  buffer[bytes] = '\0';
+	  buffer[bytes + 1] = '\0';
+	  if (bytes/sizeof(unichar) == self->_count)
+	    {
+	      return YES;
+	    }
+	}
+      return NO;
+    }
+  else
+    {
+      if (maxLength >= 1)
+	{
+	  if (enc == NSISOLatin1StringEncoding)
+	    {
+	      unsigned	bytes = maxLength - sizeof(char);
+	      unsigned	i;
+
+	      if (bytes > self->_count)
+		{
+		  bytes = self->_count;
+		}
+	      for (i = 0; i < bytes; i++)
+		{
+		  unichar	u = self->_contents.u[i];
+
+		  if (u & 0xff00)
+		    {
+		      [NSException raise: NSCharacterConversionException
+				  format: @"unable to convert to encoding"];
+		    }
+		  buffer[i] = (char)u;
+		}
+	      buffer[i++] = '\0';
+	      if (bytes == self->_count)
+		{
+		  return YES;
+		}
+	    }
+	  else if (enc == NSASCIIStringEncoding)
+	    {
+	      unsigned	bytes = maxLength - sizeof(char);
+	      unsigned	i;
+
+	      if (bytes > self->_count)
+		{
+		  bytes = self->_count;
+		}
+	      for (i = 0; i < bytes; i++)
+		{
+		  unichar	u = self->_contents.u[i];
+
+		  if (u & 0xff80)
+		    {
+		      [NSException raise: NSCharacterConversionException
+				  format: @"unable to convert to encoding"];
+		    }
+		  buffer[i] = (char)u;
+		}
+	      buffer[i++] = '\0';
+	      if (bytes == self->_count)
+		{
+		  return YES;
+		}
+	    }
+	  else
+	    {
+	      unsigned char	*c = (unsigned char*)buffer;
+
+	      if (GSFromUnicode((unsigned char**)&c, &maxLength,
+		self->_contents.u, self->_count, enc,
+		NSDefaultMallocZone(), GSUniTerminate|GSUniStrict) == NO)
+		{
+		  [NSException raise: NSCharacterConversionException
+			      format: @"Can't convert to/from Unicode string."];
+		}
+	      if (c == (unsigned char*)buffer)
+		{
+		  return YES;
+		}
+	      else
+		{
+		  NSZoneFree(NSDefaultMallocZone(), c);
+		}
+	    }
+	}
+      return NO;
+    }
 }
 
 static inline int
@@ -2302,6 +2516,13 @@ transmute(GSStr self, NSString *aString)
   getCString_c((GSStr)self, buffer, maxLength, (NSRange){0, _count}, 0);
 }
 
+- (BOOL) getCString: (char*)buffer
+	  maxLength: (unsigned int)maxLength
+	   encoding: (NSStringEncoding)encoding
+{
+  return getCStringE_c((GSStr)self, buffer, maxLength, encoding);
+}
+
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
 	      range: (NSRange)aRange
@@ -2633,6 +2854,12 @@ agree, create a new GSCInlineString otherwise.
   getCString_u((GSStr)self, buffer, maxLength, (NSRange){0, _count}, 0);
 }
 
+- (BOOL) getCString: (char*)buffer
+	  maxLength: (unsigned int)maxLength
+	   encoding: (NSStringEncoding)encoding
+{
+  return getCStringE_u((GSStr)self, buffer, maxLength, encoding);
+}
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
 	      range: (NSRange)aRange
@@ -3123,6 +3350,16 @@ agree, create a new GSUnicodeInlineString otherwise.
     getCString_u((GSStr)self, buffer, maxLength, (NSRange){0, _count}, 0);
   else
     getCString_c((GSStr)self, buffer, maxLength, (NSRange){0, _count}, 0);
+}
+
+- (BOOL) getCString: (char*)buffer
+	  maxLength: (unsigned int)maxLength
+	   encoding: (NSStringEncoding)encoding
+{
+  if (_flags.wide == 1)
+    return getCStringE_u((GSStr)self, buffer, maxLength, encoding);
+  else
+    return getCStringE_c((GSStr)self, buffer, maxLength, encoding);
 }
 
 - (void) getCString: (char*)buffer
@@ -3748,11 +3985,11 @@ agree, create a new GSUnicodeInlineString otherwise.
   [_parent getCString: buffer maxLength: maxLength];
 }
 
-- (void) getCString: (char*)buffer
+- (BOOL) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
 	   encoding: (NSStringEncoding)encoding
 {
-  [_parent getCString: buffer maxLength: maxLength encoding: encoding];
+  return [_parent getCString: buffer maxLength: maxLength encoding: encoding];
 }
 
 - (void) getCString: (char*)buffer

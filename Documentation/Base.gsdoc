@@ -276,21 +276,6 @@ notice and this notice are preserved.
 		GNUstep defaults to NSISOLatin1StringEncoding.
 	      </p>
 	    </desc>
-	    <term>GNUSTEP_PATH_HANDLING</term>
-	    <desc>
-	      <p>
-	        May be set to <code>unix</code> to enforce unix style path
-		handling, or <code>windows</code> to enforce mswindows style
-		path handling, or any other value (including unset) for the
-		default behavior where both styles of paths should be
-		managed in the best way possible.
-	      </p>
-	      <p>
-	        The option to enforce either pure unix or pure windows style
-		path handling (and hence this environment variable) may be
-		removed in a later release.
-	      </p>
-	    </desc>
 	    <term>GNUSTEP_HOST_CPU</term>
 	    <desc>
 	      <p>
@@ -344,26 +329,28 @@ notice and this notice are preserved.
 	    </desc>
 	    <term>GNUSTEP_CONFIG_FILE</term>
 	    <desc>
-	      This has no effect unless the base library has been
-	      configured/built with the
-	      <code>--enable-environment-config-file</code> option.<br />
-	      If it is operational, the environment variable overrides the
-	      normal path to the gnustep config file used to determine the
-	      locations of paths for the gnustep system (see later).<br />
-	      This is provided to support the odd situation where you may
-	      want to simultaneously run applications using different sets
-	      of resources but linked to a lingle copy of the base library.
+	      <p>
+		This has no effect unless the base library has been
+		configured/built with the
+		<code>--enable-environment-config-file</code> option.<br />
+		If it is operational, the environment variable overrides the
+		normal path to the gnustep config file used to determine the
+		locations of paths for the gnustep system (see later).<br />
+		This is provided to support the odd situation where you may
+		want to simultaneously run applications using different sets
+		of resources but linked to a lingle copy of the base library.
+	      </p>
 	    </desc>
 	    <term>HOMEDRIVE</term>
 	    <desc>
 	      <p>
-		Used on windoze to locate the home directory.
+		Used on ms-windows to locate the home directory.
 	      </p>
 	    </desc>
 	    <term>HOMEPATH</term>
 	    <desc>
 	      <p>
-		Used on windoze to locate the home directory.
+		Used on ms-windows to locate the home directory.
 	      </p>
 	    </desc>
             <term>LANGUAGES</term>
