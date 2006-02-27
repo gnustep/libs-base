@@ -7,6 +7,8 @@
 	global setter mechanism (strangely recommended in the libxml2 docs),
 	so that all setup is made to the individual parser and should not
 	effect other parsers in other threads.
+	* Source/NSUndoManager.m: ([-removeAllActions]) fixed to remove any
+	grouping in progress.
 	
 2006-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
