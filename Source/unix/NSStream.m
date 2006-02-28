@@ -43,6 +43,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#ifndef	AF_LOCAL
+#define	AF_LOCAL	AF_UNIX
+#endif
+#ifndef	PF_LOCAL
+#define	PF_LOCAL	PF_UNIX
+#endif
 
 /** 
  * The concrete subclass of NSInputStream that reads from a file
@@ -1384,11 +1390,15 @@ static void setNonblocking(int fd)
     initToAddr: address port: port]);
   if (!ins)
     {
+#if	defined(PF_INET6)
       ins = [[GSInet6InputStream alloc] initToAddr: address
                                         port: port];
       outs = [[GSInet6OutputStream alloc] initToAddr: address
                                           port: port];
       sock = socket(PF_INET6, SOCK_STREAM, 0);
+#else
+      sock = -1;
+#endif
     }  
   else
     {
