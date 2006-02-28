@@ -1,3 +1,8 @@
+2006-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+	* Source/unix/NSStream.m: More portability fixups ... use
+	AF_UNIX and PF_UNIX if AF_LOCAL and PF_LOCAL are not avaulable.
+	Check for PF_INET6
+
 2006-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Helge spotted thread safety issues with
