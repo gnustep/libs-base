@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <unistd.h>		/* for gethostname() */
 #ifndef __MINGW32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
