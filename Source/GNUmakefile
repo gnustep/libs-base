@@ -356,9 +356,14 @@ $(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GSConfig.h
 
+ifeq ($(HAVE_INET_PTON), no)
+GNU_CFILES += inet_pton.c
+endif
+
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
+libgnustep-base_C_FILES = $(GNU_CFILES)
 
 # Extra DLL exports file
 libgnustep-base_DLL_DEF = libgnustep-base.def

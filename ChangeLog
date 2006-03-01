@@ -1,3 +1,11 @@
+2006-03-01  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add check for inet_pton. Also check for make-
+	specified GNUstep.conf file
+	* config.make.in: Add variable for inet_pton
+	* Source/inet_pton.c: New file
+	* GNUmakefile: Use it if needed.
+
 2006-03-01  Derek Zhou <dzhou@nvidea.com>
 
 	* Source/GSStream.m: Typo fixes

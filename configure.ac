@@ -242,7 +242,11 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_CONFIG_FILE,
 # Now load the values to be used in locating libraries etc used when
 # building the base library ... as supplied by the gnustep-make package
 #
-. "$GNUSTEP_MAKE_CONFIG"
+if test ! -f "$GNUSTEP_MAKE_CONFIG"; then
+  AC_MSG_NOTICE([Could not find make-specified config file. Either make was installed incorrectly or you are using an old version of gnustep-make. Ignoring this for now...])
+else
+  . "$GNUSTEP_MAKE_CONFIG"
+fi
 
 #
 # Add standard library and header directories for configure to use to locate
@@ -919,7 +923,7 @@ AC_SUBST(DEFINE_UINTPTR_T)
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(inet_aton sigaction)
+AC_CHECK_FUNCS(inet_aton inet_pton sigaction)
 USE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)
 if test $ac_cv_header_zlib_h = yes; then
@@ -930,6 +934,12 @@ if test $ac_cv_header_zlib_h = yes; then
   fi
 fi
 AC_SUBST(USE_ZLIB)
+
+HAVE_INET_PTON=no
+if test $ac_cv_func_inet_pton = yes ; then
+  HAVE_INET_PTON=yes
+fi
+AC_SUBST(HAVE_INET_PTON)
 
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m
