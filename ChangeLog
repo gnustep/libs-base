@@ -1,3 +1,8 @@
+2006-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/NSStream.m: Final (hopefully) ifdef to disable ipv6
+	so systems which don't have it can compile.
+
 2006-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/unix/NSStream.m: More portability fixups ... use

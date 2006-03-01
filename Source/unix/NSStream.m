@@ -250,7 +250,9 @@
 @interface GSInet6ServerStream : GSSocketServerStream
 {
   @private
+#if	defined(AF_INET6)
   struct sockaddr_in6 _serverAddr;
+#endif
 }
 @end
 
