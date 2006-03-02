@@ -17,7 +17,13 @@
  * SOFTWARE.
  */
 
-#include "tnftpd.h"
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
 
 #if HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>
