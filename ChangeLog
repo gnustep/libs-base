@@ -1,3 +1,7 @@
+2006-03-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Check for HAVE_STDINT_H for safety of include
+
 2006-03-01  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add check for inet_pton. Also check for make-
