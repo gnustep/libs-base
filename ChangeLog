@@ -11,6 +11,8 @@
 	Basically, remove deprecated mingw32 specific api, and change
 	housekeeper to try to make it as invisible as possible in terms of
 	side effects.
+	* Source/NSFileManager.m: Fix mingw determination of the ownership
+	of a directory.
 
 2006-03-03  Richard Frith-Macdonald <rfm@gnu.org>
 

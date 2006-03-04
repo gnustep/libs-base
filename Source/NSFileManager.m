@@ -2847,7 +2847,7 @@ static NSSet	*fileKeys = nil;
     FILE_SHARE_READ,
     0,
     OPEN_EXISTING,
-    FILE_ATTRIBUTE_NORMAL,
+    FILE_FLAG_BACKUP_SEMANTICS,
     0);
 
   // Check GetLastError for CreateFile error code.
@@ -2987,7 +2987,7 @@ static NSSet	*fileKeys = nil;
     FILE_SHARE_READ,
     0,
     OPEN_EXISTING,
-    FILE_ATTRIBUTE_NORMAL,
+    FILE_FLAG_BACKUP_SEMANTICS,
     0);
 
   // Check GetLastError for CreateFile error code.
