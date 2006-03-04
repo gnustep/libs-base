@@ -1,3 +1,17 @@
+2006-03-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Rewrite housekeeping timer.
+	* Source/GSRunLoopCtxt.h: Remove obsolete message/selector.
+	* Source/win32/GSRunLoopCtxt.m: Add housekeeping timer.
+	* Source/win32/NSRunLoopWin32.m: remove unused code.
+	* Source/win32/GNUmakefile: remove /NSRunLoopWin32.m
+	* Source/win32/NSStreamWin32.m: minor tidyups
+	* Source/NSThread.m: Use new internal API for housekeeping timer.
+	* Headers/Foundation/NSRunLoop.h: Remove deprecated mingw api
+	Basically, remove deprecated mingw32 specific api, and change
+	housekeeper to try to make it as invisible as possible in terms of
+	side effects.
+
 2006-03-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Check for HAVE_STDINT_H for safety of include

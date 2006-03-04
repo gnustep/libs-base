@@ -770,15 +770,15 @@ extern IMP	wRetImp;
 
 /**
  * Fires timers whose fire date has passed, and checks timers and limit dates
- * for input sources, determining the earliest time that anything watched for
- * becomes useless.  Returns that date/time.
+ * for input sources, determining the earliest time that any future timeout
+ * becomes due.  Returns that date/time.
  */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
-  extern NSTimer	*GSHousekeeper(void);
-  GSRunLoopCtxt		*context = NSMapGet(_contextMap, mode);
+  GSRunLoopCtxt		*context;
   NSDate		*when = nil;
 
+  context = NSMapGet(_contextMap, mode);
   if (context != nil)
     {
       GSRunLoopWatcher	*min_watcher = nil;
@@ -791,6 +791,19 @@ extern IMP	wRetImp;
 	  GSIArray	timers = context->timers;
 	  GSIArray	watchers = context->watchers;
 
+	  /*
+	   * Fire housekeeping timer as necessary
+	   */
+	  while (context->housekeeper != nil
+	    && ([timerDate(context->housekeeper) timeIntervalSinceNow] <= 0.0))
+	    {
+	      [context->housekeeper fire];
+	    }
+
+	  /*
+	   * Handle normal timers ... remove invalidated timers and fire any
+	   * whose date has passed.
+	   */
 	  while (GSIArrayCount(timers) != 0)
 	    {
 	      NSTimer	*min_timer = GSIArrayItemAtIndex(timers, 0).obj;
@@ -806,7 +819,7 @@ extern IMP	wRetImp;
 		{
 		  when = [timerDate(min_timer) copy];
 		}
-	      if ([timerDate(min_timer) timeIntervalSinceNow] > 0)
+	      if ([timerDate(min_timer) timeIntervalSinceNow] > 0.0)
 		{
 		  break;
 		}
@@ -826,8 +839,6 @@ extern IMP	wRetImp;
 	      GSNotifyASAP();		/* Post notifications. */
 	    }
 
-	  /* Is this right? At the moment we invalidate and discard watchers
-	     whose limit-dates have passed. */
 	  while (GSIArrayCount(watchers) != 0)
 	    {
 	      min_watcher = GSIArrayItemAtIndex(watchers, 0).obj;
@@ -849,9 +860,9 @@ extern IMP	wRetImp;
 		  NSDate	*nxt = nil;
 
 		  /*
-		   *	If the receiver or its delegate wants to know about
-		   *	timeouts - inform it and give it a chance to set a
-		   *	revised limit date.
+		   * If the receiver or its delegate wants to know about
+		   * timeouts - inform it and give it a chance to set a
+		   * revised limit date.
 		   */
 		  GSIArrayRemoveItemAtIndexNoRelease(watchers, 0);
 		  obj = min_watcher->receiver;
@@ -895,32 +906,6 @@ extern IMP	wRetImp;
 		  min_watcher = nil;
 		}
 	    }
-
-	  /*
-	   * If there is nothing being watched, and no valid timers
-           * other than the housekeeper, we set when to nil so
-	   * that the housekeeper timer does not keep the runloop
-	   * active.  It's a special case set up in NSThread.m
-	   */
-	  if (min_watcher == nil && when != nil)
-	    {
-	      unsigned count = GSIArrayCount(timers);
-
-	      while (count-- > 1)
-		{
-		  NSTimer	*tmp = GSIArrayItemAtIndex(timers, 0).obj;
-
-		  if (timerInvalidated(tmp) == YES)
-		    {
-		      GSIArrayRemoveItemAtIndex(timers, count);
-		    }
-		}
-	      if (GSIArrayCount(timers) == 1)
-		{
-                  DESTROY(when);
-		}
-	    }
-
 	  _currentMode = savedMode;
 	}
       NS_HANDLER
@@ -944,25 +929,18 @@ extern IMP	wRetImp;
 	  if (min_watcher != nil
 	    && [min_watcher->_date compare: when] == NSOrderedAscending)
 	    {
-             RELEASE(when);
+              RELEASE(when);
 	      when = min_watcher->_date;
 	    }
-         else
-	   {
-	     AUTORELEASE(when);
-	   }
+          else
+	    {
+	      AUTORELEASE(when);
+	    }
 	}
       else if (min_watcher != nil)
 	{
 	  when = min_watcher->_date;
 	}
-#if	defined(__MINGW32__)
-      // if there are handler for win32 messages
-      else if (context->msgTarget != nil)
-        {
-          when = theFuture;
-        }
-#endif
       else
 	{
 	  return nil;	/* Nothing waiting to be done.	*/
@@ -1006,14 +984,20 @@ extern IMP	wRetImp;
       GSIArray		watchers;
       unsigned		i;
 
+      /*
+       * If we have a housekeeping timer, and it is earlier than the
+       * limit date we have been given, we use the date of the housekeeper
+       * to determine when to stop.
+       */
+      if (limit_date != nil && context != nil && context->housekeeper != nil
+	&& [timerDate(context->housekeeper) timeIntervalSinceReferenceDate]
+	  < [limit_date timeIntervalSinceReferenceDate])
+	{
+	  limit_date = timerDate(context->housekeeper);
+	}
+
       if ((context == nil || (watchers = context->watchers) == 0
-	|| (i = GSIArrayCount(watchers)) == 0)
-#if	defined(__MINGW32__)
-        // there are inputs for win32 messages
-	&& context->msgTarget == 0)
-#else
-       )
-#endif
+	|| (i = GSIArrayCount(watchers)) == 0))
 	{
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
 	  GSNotifyASAP();
@@ -1276,11 +1260,12 @@ extern IMP	wRetImp;
 /**
  * Sets up sending of aSelector to target with argument.<br />
  * The selector is sent before the next runloop iteration (unless
- * cancelled before then).<br />
+ * cancelled before then) in any of the specified modes.<br />
  * The target and argument objects are <em>not</em> retained.<br />
  * The order value is used to determine the order in which messages
  * are sent if multiple messages have been set up. Messages with a lower
- * order value are sent first.
+ * order value are sent first.<br />
+ * If the modes array is empty, this method has no effect.
  */
 - (void) performSelector: (SEL)aSelector
 		  target: (id)target
@@ -1351,3 +1336,29 @@ extern IMP	wRetImp;
 }
 
 @end
+
+@implementation	NSRunLoop (Housekeeper)
+- (void) _setHousekeeper: (NSTimer*)timer
+{
+  GSRunLoopCtxt	*context;
+
+  context = NSMapGet(_contextMap, NSDefaultRunLoopMode);
+  if (context == nil)
+    {
+      context = [[GSRunLoopCtxt alloc] initWithMode: NSDefaultRunLoopMode
+					      extra: _extra];
+      NSMapInsert(_contextMap, context->mode, context);
+      RELEASE(context);
+    }
+  if (context->housekeeper != timer)
+    {
+      [context->housekeeper invalidate];
+      DESTROY(context->housekeeper);
+    }
+  if (timer != nil)
+    {
+      context->housekeeper = RETAIN(timer);
+    }
+}
+@end
+

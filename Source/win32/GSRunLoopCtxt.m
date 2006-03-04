@@ -131,19 +131,14 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
               WatcherMapValueCallBacks, 0);
       winMsgMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
-
-      msgTarget = nil;
     }
   return self;
 }
 
 /*
- * If there is no msgTarget || there is a generic watcher (watching hwnd == 0),
+ * If there is a generic watcher (watching hwnd == 0),
  * loop through all events, and send them to the correct
  * watcher (if there are any) and then process the rest right here.
- * else if there is a msgTarget,
- * then loop through watchers and process for their
- * hwnd's only.  Then call msgTarget to clean up the rest of them.
  * Return a flag to say whether any messages were handled.
  */
 - (BOOL) processAllWindowsMessages:(int)num_winMsgs within: (NSArray*)contexts
@@ -158,7 +153,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       generic = NSMapGet(winMsgMap,0);
     }
   
-  if (msgTarget == nil || (generic != nil && generic->_invalidated == NO))
+  if (generic != nil && generic->_invalidated == NO)
     {
       while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 	{
@@ -242,7 +237,6 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	  NSEndMapTableEnumeration(&hEnum);
 	} 
       completed = YES;
-      [msgTarget performSelector: msgSelector withObject: nil];
     }
   return handled;
 }

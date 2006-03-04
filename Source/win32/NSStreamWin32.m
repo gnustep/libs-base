@@ -838,7 +838,7 @@ static void setNonblocking(SOCKET fd)
   return [super propertyForKey: key];
 }
 
-- (void)_dispatch
+- (void) _dispatch
 {
   BOOL av = [self hasSpaceAvailable];
   NSStreamEvent myEvent = av ? NSStreamEventHasSpaceAvailable : 
@@ -856,7 +856,7 @@ static void setNonblocking(SOCKET fd)
     }
 }
 
-- (void)scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
 {
   NSAssert(!_runloop || _runloop == aRunLoop, 
     @"Attempt to schedule in more than one runloop.");
@@ -873,7 +873,7 @@ static void setNonblocking(SOCKET fd)
     }
 }
 
-- (void)removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
 {
   NSAssert(_runloop == aRunLoop, 
     @"Attempt to remove unscheduled runloop");
@@ -884,7 +884,7 @@ static void setNonblocking(SOCKET fd)
         {
           [_runloop cancelPerformSelector: @selector(_dispatch) 
                                    target: self 
-                                   argument: nil];
+				 argument: nil];
         }
       if ([_modes count] == 0)
         {

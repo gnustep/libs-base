@@ -201,19 +201,4 @@ typedef	enum {
 - (void) getFds: (int*)fds count: (int*)count;
 @end
 
-#if	defined(__MINGW32__)
-/**
- * Obsolete interface that add method to set target for win32 messages.<br />
- */
-@interface NSRunLoop(mingw32)
-/** Deprecated ... will be removed
- */
-- (void) addMsgTarget: (id)target
-           withMethod: (SEL)selector
-              forMode: (NSString*)mode;
-/** Deprecated ... will be removed
- */
-- (void) removeMsgForMode: (NSString*)mode;
-@end
-#endif
 #endif /*__NSRunLoop_h_GNUSTEP_BASE_INCLUDE */
