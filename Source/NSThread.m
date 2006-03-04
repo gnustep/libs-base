@@ -53,6 +53,7 @@
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSInvocation.h"
 
+#include "GSRunLoopCtxt.h"
 
 typedef struct { @defs(NSThread) } NSThread_ivars;
 
@@ -353,10 +354,6 @@ GSCurrentThreadDictionary(void)
  * on-disk database.
  */
 static NSTimer	*housekeeper = nil;
-NSTimer	*GSHousekeeper(void)
-{
-  return housekeeper;
-}
 
 /**
  * Returns the runloop for the specified thread (or, if t is nil,
@@ -406,7 +403,8 @@ GSRunLoopForThread(NSThread *t)
 						     selector: NULL
 						     userInfo: nil
 						      repeats: YES];
-	      [r addTimer: housekeeper forMode: NSDefaultRunLoopMode];
+	      [r _setHousekeeper: housekeeper];
+	      RELEASE(housekeeper);
 	      RELEASE(arp);
 	    }
         }
