@@ -22,7 +22,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSRunLoop class reference</title>
    $Date$ $Revision$
@@ -788,16 +789,28 @@ extern IMP	wRetImp;
       _currentMode = mode;
       NS_DURING
 	{
-	  GSIArray	timers = context->timers;
-	  GSIArray	watchers = context->watchers;
+	  extern NSTimeInterval GSTimeNow(void);
+	  GSIArray		timers = context->timers;
+	  GSIArray		watchers = context->watchers;
+	  NSTimeInterval	now;
+	  NSTimer		*t;
+
+	  /*
+	   * Save current time so we don't keep redoing system call to
+	   * get it.  We must refetch the time after every operation
+	   * (such as a timer firing) which might cause a significant
+	   * delay making the saved value outdated.
+	   */
+	  now = GSTimeNow();
 
 	  /*
 	   * Fire housekeeping timer as necessary
 	   */
-	  while (context->housekeeper != nil
-	    && ([timerDate(context->housekeeper) timeIntervalSinceNow] <= 0.0))
+	  while ((t = context->housekeeper) != nil
+	    && ([timerDate(t) timeIntervalSinceReferenceDate] <= now))
 	    {
-	      [context->housekeeper fire];
+	      [t fire];
+	      now = GSTimeNow();
 	    }
 
 	  /*
@@ -815,18 +828,16 @@ extern IMP	wRetImp;
 		  continue;
 		}
 
-              if (when == nil)
+	      if ([timerDate(min_timer) timeIntervalSinceReferenceDate] > now)
 		{
 		  when = [timerDate(min_timer) copy];
-		}
-	      if ([timerDate(min_timer) timeIntervalSinceNow] > 0.0)
-		{
 		  break;
 		}
 
 	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
 	      /* Firing will also increment its fireDate, if it is repeating. */
 	      [min_timer fire];
+	      now = GSTimeNow();
 	      if (timerInvalidated(min_timer) == NO)
 		{
 		  GSIArrayInsertSortedNoRetain(timers,
@@ -850,7 +861,7 @@ extern IMP	wRetImp;
 		  continue;
 		}
 
-	      if ([min_watcher->_date timeIntervalSinceNow] > 0)
+	      if ([min_watcher->_date timeIntervalSinceReferenceDate] > now)
 		{
 		  break;
 		}
@@ -872,6 +883,7 @@ extern IMP	wRetImp;
 		      nxt = [obj timedOutEvent: min_watcher->data
 					  type: min_watcher->type
 				       forMode: mode];
+		      now = GSTimeNow();
 		    }
 		  else if ([obj respondsToSelector: @selector(delegate)])
 		    {
@@ -882,9 +894,10 @@ extern IMP	wRetImp;
 			  nxt = [obj timedOutEvent: min_watcher->data
 					      type: min_watcher->type
 					   forMode: mode];
+			  now = GSTimeNow();
 			}
 		    }
-		  if (nxt && [nxt timeIntervalSinceNow] > 0.0)
+		  if (nxt && [nxt timeIntervalSinceReferenceDate] > now)
 		    {
 		      /*
 		       * If the watcher has been given a revised limit date -
