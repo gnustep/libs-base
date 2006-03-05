@@ -23,12 +23,8 @@
    */
 
 /* Ported to mingw 07/12/00 by Björn Giesler <Bjoern.Giesler@gmx.de> */
-#ifdef __MINGW32__
-#ifndef __MINGW32__
-#define __MINGW32__
-#endif
-#endif
 
+#include "../Source/config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
