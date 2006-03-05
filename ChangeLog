@@ -4,6 +4,9 @@
 	minor bug which would cause runloop to run an extra time on some
 	occasions.
 	* Tools/gdomap.c: Include config.h
+	* configure.ac: Support config file environment variable by default
+	* configure: Regenerate
+	* Documentation/Base.gsdoc: Document default setting for env variable
 
 2006-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
