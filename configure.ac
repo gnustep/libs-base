@@ -91,20 +91,18 @@ AC_SUBST(GNUSTEP_CONFIG_FILE)
 #-----------------------------------------------------------------
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
 AC_ARG_ENABLE(environment-config-file, 
-[  --enable-environment-config-file
-                                Enable use of the GNUSTEP_CONFIG_FILE
+[  --disable-environment-config-file
+                                Disable use of the GNUSTEP_CONFIG_FILE
 				environment variable to specify/override
 				the location of the GNUstep config file
 				at runtime.  This option is occasionally
-				useful for development/debugging or for
-				providing a relocatable distribution package
-				for platforms where the path to the base
-				library can't be determined at runtime
-				and the leading './' in the config file name
-				is therefore not supported.
-				Normally this should be left disabled.], 
+				useful to disable the environment variable
+				for sites which wish to 'lock down' users
+				to always work with a specific system-wide
+				configuration.
+				Normally this should be left enabled.], 
   ac_cv_environment_config_file=$enableval,
-  ac_cv_environment_config_file="no")
+  ac_cv_environment_config_file="yes")
 if test "$ac_cv_environment_config_file" = "yes"; then
   AC_DEFINE(OPTION_NO_ENVIRONMENT, 0,
     [Enable GNUSTEP_CONFIG_FILE environment variable])
