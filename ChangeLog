@@ -3,6 +3,7 @@
 	* Source/NSRunLoop.m: Optimise timer handling a little and fix very
 	minor bug which would cause runloop to run an extra time on some
 	occasions.
+	* Tools/gdomap.c: Include config.h
 
 2006-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
