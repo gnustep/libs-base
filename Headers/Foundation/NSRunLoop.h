@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #ifndef __NSRunLoop_h_GNUSTEP_BASE_INCLUDE
@@ -91,114 +92,61 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 @end
 
 /*
- *	GNUstep extensions
- */
-
-/**
- * Enumeration of event types that an [NSRunLoop] watcher
- * can watch for.  See [NSRunLoop-addEvent:type:watcher:forMode:].
- * This is a GNUstep extension.
- <example>
-{
-    ET_RDESC,	// Watch for descriptor becoming readable.
-    ET_WDESC,	// Watch for descriptor becoming writeable.
-    ET_RPORT,	// Watch for message arriving on port.
-    ET_EDESC	// Watch for descriptor with out-of-band data.
-}
- </example>
+ * The following interface is not yet deprecated,
+ * but may be deprecated in the next release and
+ * removed thereafter.
+ *
+ * The run loop watcher API was originally intended to perform two
+ * tasks ...
+ * 1. provide the most efficient API reasonably possible to integrate
+ * unix networking code into the runloop.
+ * 2. provide a standard mechanism to allow people to contribute
+ * code to add new I/O mechanisms to GNUstep (OpenStep didn't allow this).
+ * It succeeded in 1, and partially succeeded in 2 (adding support
+ * for the win32 API).
+ *
+ * However, several years on, CPU's are even faster with respect to I/O
+ * and the performance issue is less significant, and Apple have provided
+ * the NSStream API which allows yoiu to write stream subclasses and add
+ * them to the run loop.
+ *
+ * We are likely to follow Apple for compatibility, and restructure code
+ * using NSStream, at which point this API will be redundant.
  */
 typedef	enum {
 #ifdef __MINGW32__
     ET_HANDLE,	/* Watch for an I/O event on a handle.		*/
     ET_RPORT,	/* Watch for message arriving on port.		*/
     ET_WINMSG,	/* Watch for a message on a window handle.	*/
+    ET_INSTREAM,	/* Watch for event on input stream.	*/
+    ET_OUTSTREAM	/* Watch for event on output stream.	*/
 #else
     ET_RDESC,	/* Watch for descriptor becoming readable.	*/
     ET_WDESC,	/* Watch for descriptor becoming writeable.	*/
     ET_RPORT,	/* Watch for message arriving on port.		*/
-    ET_EDESC	/* Watch for descriptor with out-of-band data.	*/
+    ET_EDESC,	/* Watch for descriptor with out-of-band data.	*/
+    ET_INSTREAM,	/* Watch for event on input stream.	*/
+    ET_OUTSTREAM	/* Watch for event on output stream.	*/
 #endif
 } RunLoopEventType;
-
-/**
- * This protocol documents the callback messages that an object
- * receives if it has registered to receive run loop events using
- * [NSRunLoop-addEvent:type:watcher:forMode:]
- */
 @protocol RunLoopEvents
-/**
- * Callback message sent to object waiting for an event in the
- * runloop when the limit-date for the operation is reached.
- * If an NSDate object is returned, the operation is restarted
- * with the new limit-date, otherwise it is removed from the
- * run loop.
- */
 - (NSDate*) timedOutEvent: (void*)data
 		     type: (RunLoopEventType)type
 		  forMode: (NSString*)mode;
-/**
- * Callback message sent to object when the event it it waiting
- * for occurs.  The 'data' and 'type' values are those passed in the
- * original -addEvent:type:watcher:forMode: method.<br />
- * The 'extra' value may be additional data returned depending on the type
- * of event.  In the case of <code>ET_WINMSG</code> 'extra' is a pointer
- * to a windows <code>MSG</code> structure containing the received event.
- */
 - (void) receivedEvent: (void*)data
 		  type: (RunLoopEventType)type
 		 extra: (void*)extra
 	       forMode: (NSString*)mode;
 @end
-
-/**
- * These are general purpose methods for letting objects ask
- * the runloop to watch for events for them.  Only one object
- * at a time may be watching for a particular event in a mode, but
- * that object may add itself as a watcher many times as long as
- * each addition is matched by a removal (the run loop keeps count).
- * Alternatively, the 'removeAll' parameter may be set to 'YES' for
- * [-removeEvent:type:forMode:all:] in order to remove the watcher
- * irrespective of the number of times it has been added.
- */
 @interface NSRunLoop(GNUstepExtensions)
-
-/**
- * Adds a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the -currentMode is used (if the
- * loop is running) or NSDefaultRunLoopMode is used.<br />
- * NB. The watcher is <em>not</em> retained by the run loop and must
- * be removed from the loop before deallocation ... otherwise the loop
- * might try to send a message to the deallocated watcher object
- * resulting in a crash. You use -removeEvent:type:forMode:all: to do this.
- */
 - (void) addEvent: (void*)data
 	     type: (RunLoopEventType)type
 	  watcher: (id<RunLoopEvents>)watcher
 	  forMode: (NSString*)mode;
-
-/**
- * Removes a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the -currentMode is used (if the
- * loop is running) or NSDefaultRunLoopMode is used.<br />
- * The additional removeAll flag may be used to remove all instances of
- * the watcher rather than just a single one.
- */
 - (void) removeEvent: (void*)data
 	        type: (RunLoopEventType)type
 	     forMode: (NSString*)mode
 		 all: (BOOL)removeAll;
-@end
-
-/**
- * Defines implementation-helper method -getFds:count:.
- * <strong>This interface will probably change.  Do not rely on it.</strong>
- */
-// xxx This interface will probably change.
-@interface NSObject (OptionalPortRunLoop)
-/** If a InPort object responds to this, it is sent just before we are
-   about to wait listening for input.
-   This interface will probably change. */
-- (void) getFds: (int*)fds count: (int*)count;
 @end
 
 #endif /*__NSRunLoop_h_GNUSTEP_BASE_INCLUDE */
