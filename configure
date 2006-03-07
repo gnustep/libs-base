@@ -1492,6 +1492,7 @@ test -n "$target_alias" &&
 #---------------------------------------------------------------------
 echo "$as_me:$LINENO: checking for GNUstep configuration file to use" >&5
 echo $ECHO_N "checking for GNUstep configuration file to use... $ECHO_C" >&6
+GNUSTEP_CONFIG_FILE=""
 GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
 
 # Check whether --with-config-file or --without-config-file was given.

@@ -55,6 +55,7 @@ AC_CANONICAL_TARGET([])
 # Location of the GNUstep.conf config file (--with-config-file)
 #---------------------------------------------------------------------
 AC_MSG_CHECKING([for GNUstep configuration file to use])
+GNUSTEP_CONFIG_FILE=""
 GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
 AC_ARG_WITH(config-file,
 [  --with-config-file=PATH       Specify path to the GNUstep config file.

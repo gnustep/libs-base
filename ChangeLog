@@ -11,6 +11,7 @@
 	add comments to say that it may be deprecated in a later
 	release if/when we move to using NSStream throughout.
 	* configure.ac: minor documentation corrections.
+	Don't allow environment variable to confuse setup of file location.
 	* configure: regenerated
 
 2006-03-05  Richard Frith-Macdonald <rfm@gnu.org>
