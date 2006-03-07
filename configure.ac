@@ -59,7 +59,7 @@ GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.ma
 AC_ARG_WITH(config-file,
 [  --with-config-file=PATH       Specify path to the GNUstep config file.
 				This is the location to be used by the base
-				library to locate oath information at
+				library to locate path information at
 				application or tool runtime.
 				If unspecified, this uses the same value as
 				the GNUstep make package on unix-like systems,
@@ -70,7 +70,9 @@ AC_ARG_WITH(config-file,
 				is taken to be relative to the base library
 				linked runtime, not all operating systems
 				can support this, so on some platforms you
-				may need --enable-environment-config-file.
+				may need to specify the location of the
+				config file using the GNUSTEP_CONFIG_FILE
+				environment variable at runtime.
 				If a trailing '/' is specified, the path is
 				used for locating domains but no GNUstep
 				config file is read at runtime.], 
@@ -92,7 +94,7 @@ AC_SUBST(GNUSTEP_CONFIG_FILE)
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
 AC_ARG_ENABLE(environment-config-file, 
 [  --disable-environment-config-file
-                                Disable use of the GNUSTEP_CONFIG_FILE
+                                Disables the use of the GNUSTEP_CONFIG_FILE
 				environment variable to specify/override
 				the location of the GNUstep config file
 				at runtime.  This option is occasionally
