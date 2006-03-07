@@ -68,6 +68,10 @@ static NSDate	*theFuture = nil;
 
 extern BOOL	GSCheckTasks();
 
+@interface NSObject (OptionalPortRunLoop)
+- (void) getFds: (int*)fds count: (int*)count;
+@end
+
 
 
 /*

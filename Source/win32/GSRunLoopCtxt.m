@@ -15,8 +15,13 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
+#include <Foundation/NSStream.h>
 
 extern BOOL	GSCheckTasks();
+
+@interface	NSStream (RunLoop)
+- (HANDLE) _handle;
+@end
 
 #if	GS_WITH_GC == 0
 SEL	wRelSel;
@@ -85,6 +90,10 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	  case ET_HANDLE:
 	    break;
 	  case ET_WINMSG:
+	    break;
+	  case ET_INSTREAM:
+	    break;
+	  case ET_OUTSTREAM:
 	    break;
 	  default:
 	    NSLog(@"Ending an event of unkown type (%d)", type);
@@ -315,6 +324,22 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     	    handle = (HANDLE)(int)info->data;
             NSMapInsert(winMsgMap, (void*)handle, info);
 	    num_winMsgs++;
+	    break;
+	  case ET_INSTREAM:
+    	    handle = [(NSStream*)info->data _handle];
+	    if (handle != 0)
+	      {
+		NSMapInsert(handleMap, (void*)handle, info);
+		num_handles++;
+	      }
+	    break;
+	  case ET_OUTSTREAM:
+    	    handle = [(NSStream*)info->data _handle];
+	    if (handle != 0)
+	      {
+		NSMapInsert(handleMap, (void*)handle, info);
+		num_handles++;
+	      }
 	    break;
 	}
     }

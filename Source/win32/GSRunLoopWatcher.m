@@ -26,6 +26,8 @@ SEL	eventSel;	/* Initialized in [NSRunLoop +initialize] */
       case ET_RPORT: 	type = aType;	break;
       case ET_HANDLE:   type = aType;   break;
       case ET_WINMSG:   type = aType;   break;
+      case ET_INSTREAM:   type = aType;   break;
+      case ET_OUTSTREAM:   type = aType;   break;
       default: 
 	[NSException raise: NSInvalidArgumentException
 		    format: @"NSRunLoop - unknown event type"];

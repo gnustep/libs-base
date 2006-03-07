@@ -15,6 +15,7 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
+#include <Foundation/NSStream.h>
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -28,6 +29,10 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+@interface	NSStream (RunLoop)
+- (int) _fileDescriptor;
+@end
 
 extern BOOL	GSCheckTasks();
 
@@ -113,6 +118,12 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	    break;
 	  case ET_EDESC: 
 	    NSMapRemove(_efdMap, data);
+	    break;
+	  case ET_INSTREAM:
+	    NSMapRemove(_rfdMap, data);
+	    break;
+	  case ET_OUTSTREAM:
+	    NSMapRemove(_wfdMap, data);
 	    break;
 	  default:
 	    NSLog(@"Ending an event of unkown type (%d)", type);
@@ -283,6 +294,24 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    fd = (int)(intptr_t)info->data;
 	    setPollfd(fd, POLLOUT, self);
 	    NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
+	    break;
+
+	  case ET_INSTREAM:
+	    fd = [(NSStream*)info->data _fileDescriptor];
+	    if (fd >= 0)
+	      {
+		setPollfd(fd, POLLOUT, self);
+		NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+	      }
+	    break;
+
+	  case ET_OUTSTREAM:
+	    fd = [(NSStream*)info->data _fileDescriptor];
+	    if (fd >= 0)
+	      {
+		setPollfd(fd, POLLOUT, self);
+		NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
+	      }
 	    break;
 
 	  case ET_RPORT: 
@@ -660,6 +689,31 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  }
 	      }
 	    break;
+
+	  case ET_INSTREAM: 
+	    fd = [(NSStream*)info->data _fileDescriptor];
+	    if (fd >= 0)
+	      {
+		if (fd > fdEnd)
+		  fdEnd = fd;
+		FD_SET (fd, &read_fds);
+		NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+	      }
+	    num_inputs++;
+	    break;
+
+	  case ET_OUTSTREAM: 
+	    fd = [(NSStream*)info->data _fileDescriptor];
+	    if (fd >= 0)
+	      {
+		if (fd > fdEnd)
+		  fdEnd = fd;
+		FD_SET (fd, &read_fds);
+		NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
+	      }
+	    num_inputs++;
+	    break;
+
 	}
     }
   fdEnd++;
