@@ -10,6 +10,8 @@
 	Remove documentation for GNUstep specific loop watcher API and
 	add comments to say that it may be deprecated in a later
 	release if/when we move to using NSStream throughout.
+	* configure.ac: minor documentation corrections.
+	* configure: regenerated
 
 2006-03-05  Richard Frith-Macdonald <rfm@gnu.org>
 

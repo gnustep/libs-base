@@ -847,7 +847,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-environment-config-file
-                                Disable use of the GNUSTEP_CONFIG_FILE
+                                Disables the use of the GNUSTEP_CONFIG_FILE
 				environment variable to specify/override
 				the location of the GNUstep config file
 				at runtime.  This option is occasionally
@@ -876,7 +876,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-config-file=PATH       Specify path to the GNUstep config file.
 				This is the location to be used by the base
-				library to locate oath information at
+				library to locate path information at
 				application or tool runtime.
 				If unspecified, this uses the same value as
 				the GNUstep make package on unix-like systems,
@@ -887,7 +887,9 @@ Optional Packages:
 				is taken to be relative to the base library
 				linked runtime, not all operating systems
 				can support this, so on some platforms you
-				may need --enable-environment-config-file.
+				may need to specify the location of the
+				config file using the GNUSTEP_CONFIG_FILE
+				environment variable at runtime.
 				If a trailing '/' is specified, the path is
 				used for locating domains but no GNUstep
 				config file is read at runtime.
