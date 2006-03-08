@@ -712,8 +712,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       env = [[NSProcessInfo processInfo] environment];
       if (env)
 	{
-          NSArray		*paths;
-	  NSMutableString	*system = nil;
 	  NSString		*str;
 
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
@@ -734,15 +732,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	    library_combo = RETAIN(str);
 
-          paths = NSSearchPathForDirectoriesInDomains(GSLibrariesDirectory,
-                                                      NSSystemDomainMask, YES);
-          if ((paths != nil) && ([paths count] > 0))
-	    system = RETAIN([paths objectAtIndex: 0]);
-
 	  _launchDirectory = RETAIN([[NSFileManager defaultManager]
 	      currentDirectoryPath]);
 
-	  _gnustep_bundle = RETAIN([self bundleWithPath: system]);
+	  _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"]);
 
 #if 0
 	  _loadingBundle = [self mainBundle];
