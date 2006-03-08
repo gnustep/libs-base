@@ -174,17 +174,15 @@ lastDayOfGregorianMonth(int month, int year)
 static inline int
 absoluteGregorianDay(int day, int month, int year)
 {
-  int m, N;
-
-  N = day;   // day of month
-  for (m = month - 1;  m > 0; m--) // days in prior months this year
-    N = N + lastDayOfGregorianMonth(m, year);
+  while (--month > 0)
+    day = day + lastDayOfGregorianMonth(month, year);
+  year--;
   return
-    (N                    // days this year
-     + 365 * (year - 1)   // days in previous years ignoring leap days
-     + (year - 1)/4       // Julian leap days before this year...
-     - (year - 1)/100     // ...minus prior century years...
-     + (year - 1)/400);   // ...plus prior years divisible by 400
+    (day            // days this year
+     + 365 * year   // days in previous years ignoring leap days
+     + year/4       // Julian leap days before this year...
+     - year/100     // ...minus prior century years...
+     + year/400);   // ...plus prior years divisible by 400
 }
 
 /* Should be static, but temporarily changed to non-static until
@@ -1728,6 +1726,15 @@ static void Grow(DescriptionInfo *info, unsigned size)
 
 	      case 'r':
 		[self _format: @"%I:%M:%S %p" locale: locale info: info];
+		break;
+
+	      case 'T':
+		[self _format: @"%H:%M:S" locale: locale info: info];
+		break;
+
+	      case 't':
+		Grow(info, 1);
+		info->t[info->offset++] = '\t';
 		break;
 
 	      case 'c':
