@@ -950,6 +950,8 @@ static NSStringEncoding	defaultEncoding;
   fileType = [attrs fileType];
   if ([fileType isEqualToString: NSFileTypeDirectory] == YES)
     {
+      NSMutableDictionary	*mattrs;
+
       /* If destination directory is a descendant of source directory copying
 	  isn't possible. */
       if ([[destination stringByAppendingString: @"/"]
@@ -959,6 +961,17 @@ static NSStringEncoding	defaultEncoding;
 	}
 
       [self _sendToHandler: handler willProcessPath: destination];
+
+      /*
+       * Don't attempt to retain ownership of copy ... we want the copy
+       * to be owned by the current user.
+       */
+      mattrs = [attrs mutableCopy];
+      [mattrs removeObjectForKey: NSFileOwnerAccountID];
+      [mattrs removeObjectForKey: NSFileGroupOwnerAccountID];
+      [mattrs removeObjectForKey: NSFileGroupOwnerAccountName];
+      [mattrs setObject: NSUserName() forKey: NSFileOwnerAccountName];
+      attrs = AUTORELEASE(mattrs);
 
       if ([self createDirectoryAtPath: destination attributes: attrs] == NO)
 	{
