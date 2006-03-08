@@ -2519,8 +2519,11 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 
       if ([fileType isEqual: NSFileTypeDirectory])
 	{
-	  if (![self createDirectoryAtPath: destinationFile
-				attributes: attributes])
+	  BOOL	dirOK;
+
+	  dirOK = [self createDirectoryAtPath: destinationFile
+				   attributes: attributes];
+	  if (dirOK == NO)
 	    {
               if (![self _proceedAccordingToHandler: handler
 					   forError: _lastError
@@ -2530,8 +2533,16 @@ inline void gsedRelease(GSEnumeratedDirectory X)
                 {
                   return NO;
                 }
+	      /*
+	       * We may have managed to create the directory but not set
+	       * its attributes ... if so we can continue copying.
+	       */
+	      if (![self fileExistsAtPath: destinationFile isDirectory: &dirOK])
+	        {
+		  dirOK = NO;
+	        }
 	    }
-	  else
+	  if (dirOK == YES)
 	    {
 	      [enumerator skipDescendents];
 	      if (![self _copyPath: sourceFile
