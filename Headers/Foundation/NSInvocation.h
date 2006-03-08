@@ -19,7 +19,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
    */ 
 
 #ifndef __NSInvocation_h_GNUSTEP_BASE_INCLUDE
@@ -92,12 +93,17 @@
 
 #ifndef	NO_GNUSTEP
 @interface NSInvocation (GNUstep)
-- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
-- (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
-- (id) initWithSelector: (SEL)aSelector;
-- (id) initWithTarget: (id)anObject selector: (SEL)aSelector, ...;
-- (void*) returnFrame: (arglist_t)argFrame;
+/**
+ * Returns the status of the flag set by -setSendsToSuper:
+ */
 - (BOOL) sendsToSuper;
+/**
+ * Sets the flag to tell the invocation that it should actually invoke a
+ * method in the superclass of the target rather than the method of the
+ * target itself.<br />
+ * This extension permits an invocation to act like a regular method
+ * call sent to <em>super</em> in the method of a class.
+ */
 - (void) setSendsToSuper: (BOOL)flag;
 @end
 #endif
@@ -107,6 +113,11 @@
 + (id) _newProxyForInvocation: (id)target;
 + (id) _newProxyForMessage: (id)target;
 + (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy;
+- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
+- (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
+- (id) initWithSelector: (SEL)aSelector;
+- (id) initWithTarget: (id)anObject selector: (SEL)aSelector, ...;
+- (void*) returnFrame: (arglist_t)argFrame;
 @end
 
 /**

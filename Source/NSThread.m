@@ -55,6 +55,10 @@
 
 #include "GSRunLoopCtxt.h"
 
+@interface NSAutoreleasePool (NSThread)
++ (void) _endThread: (NSThread*)thread;
+@end
+
 typedef struct { @defs(NSThread) } NSThread_ivars;
 
 static Class threadClass = Nil;

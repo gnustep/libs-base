@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: Additions/GSCategories.m
 
@@ -246,6 +247,15 @@ typedef enum _NSGNUstepStringEncoding
 
 @interface NSArray (GSCompatibility)
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
+- (unsigned) insertionPosition: (id)item
+		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		       context: (void *)context;
+- (unsigned) insertionPosition: (id)item
+		 usingSelector: (SEL)comp;
+@end
+
+@interface      NSAttributedString (GSCategories)
+- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange;
 @end
 
 @interface NSBundle(GSCompatibility)
@@ -286,7 +296,7 @@ typedef enum _NSGNUstepStringEncoding
 @end
 
 @interface NSLock (GSCategories)
-+ (id)newLockAt:(id *)location;
++ (id) newLockAt: (id *)location;
 @end
 
 @interface NSLock (GSCompatibility)

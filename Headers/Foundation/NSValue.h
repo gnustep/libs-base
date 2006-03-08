@@ -18,7 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
    */ 
 
 #ifndef __NSValue_h_GNUSTEP_BASE_INCLUDE
@@ -344,18 +345,20 @@
 
 /**
  * Cache info for internal use by NSNumber concrete subclasses.
+ * DO NOT USE.
  */
 typedef struct {
   int		typeLevel;
   void		(*getValue)(NSNumber*, SEL, void*);
 } GSNumberInfo;
 
-/** Internal method for caching. */
+/** Internal method for caching. DO NOT USE. */
 GSNumberInfo	*GSNumberInfoFromObject(NSNumber *o);
 #define	GS_SMALL	16
 /**
  * Internal method: get cached values for integers in the range
  * - GS_SMALL to + GS_SMALL
+ *   <br />DO NOT USE
  */
 unsigned	GSSmallHash(int n);
 #endif

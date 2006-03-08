@@ -150,7 +150,7 @@
 
 @end
 
-@interface	NSArray (GNUstep)
+@interface	NSArray (GSCategories)
 /*
  *	Extension methods for working with sorted arrays - use a binary chop
  *	to determine the insertion location for an nobject.  If equal objects

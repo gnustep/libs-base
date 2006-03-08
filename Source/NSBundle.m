@@ -371,11 +371,21 @@ _find_framework(NSString *name)
 }        
 
 @interface NSBundle (Private)
++ (NSString *) _absolutePathOfExecutable: (NSString *)path;
 + (void) _addFrameworkFromClass: (Class)frameworkClass;
 - (NSArray *) _bundleClasses;
++ (NSString*) _gnustep_target_cpu;
++ (NSString*) _gnustep_target_dir;
++ (NSString*) _gnustep_target_os;
++ (NSString*) _library_combo;
 @end
 
 @implementation NSBundle (Private)
+
++ (NSString *) _absolutePathOfExecutable: (NSString *)path
+{
+  return AbsolutePathOfExecutable(path, NO);
+}
 
 /* Nicola & Mirko:
 
@@ -613,6 +623,26 @@ _find_framework(NSString *name)
 - (NSArray *) _bundleClasses
 {
   return _bundleClasses;
+}
+
++ (NSString*) _gnustep_target_cpu
+{
+  return gnustep_target_cpu;
+}
+
++ (NSString*) _gnustep_target_dir
+{
+  return gnustep_target_dir;
+}
+
++ (NSString*) _gnustep_target_os
+{
+  return gnustep_target_os;
+}
+
++ (NSString*) _library_combo
+{
+  return library_combo;
 }
 
 @end
@@ -1883,19 +1913,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return nil;
 }
 
-+ (NSString *) _absolutePathOfExecutable: (NSString *)path
-{
-  return AbsolutePathOfExecutable(path, NO);
-}
-
-+ (NSBundle *) gnustepBundle
-{
-  /* Deprecated since 1.7.0 */
-  GSOnceMLog(@"Warning: Deprecated method %@ called. Use +bundleForLibrary: instead", 
-    NSStringFromSelector(_cmd));
-  return _gnustep_bundle;
-}
-
 + (NSString *) pathForLibraryResource: (NSString *)name
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath
@@ -1920,37 +1937,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   return path;
-}
-
-+ (NSString *) pathForGNUstepResource: (NSString *)name
-			       ofType: (NSString *)ext	
-			  inDirectory: (NSString *)bundlePath
-{
-  /* Deprecated since 1.7.0 */
-  GSOnceMLog(@"Warning: Deprecated method %@ called. Use +pathForLibraryResource:ofType:inDirectory: or +bundleForLibrary: instead",
-	NSStringFromSelector(_cmd));
-  return [self pathForLibraryResource: name ofType: ext
-	                  inDirectory: bundlePath];
-}
-
-+ (NSString*) _gnustep_target_cpu
-{
-  return gnustep_target_cpu;
-}
-
-+ (NSString*) _gnustep_target_dir
-{
-  return gnustep_target_dir;
-}
-
-+ (NSString*) _gnustep_target_os
-{
-  return gnustep_target_os;
-}
-
-+ (NSString*) _library_combo
-{
-  return library_combo;
 }
 
 @end

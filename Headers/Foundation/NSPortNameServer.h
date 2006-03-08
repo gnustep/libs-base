@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
 
    <title>NSPortNameServer class reference</title>
 
@@ -47,17 +48,6 @@
 	      forName: (NSString*)name;
 - (BOOL) removePortForName: (NSString*)name;
 @end
-
-#ifndef	NO_GNUSTEP
-@interface	NSPortNameServer (GNUstep)
-- (NSArray*) namesForPort: (NSPort*)port;	/* return all names for port */
-- (BOOL) removePort: (NSPort*)port;		/* remove all names for port */
-
-/* Remove the name if and only if it is registered by the given port. */
-- (BOOL) removePort: (NSPort*)port forName: (NSString*)name;
-@end
-#endif
-
 
 @interface NSSocketPortNameServer : NSPortNameServer
 {

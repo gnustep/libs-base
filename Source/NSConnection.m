@@ -77,10 +77,28 @@
 #include "Foundation/NSNotification.h"
 #include "Foundation/NSDebug.h"
 #include "GSInvocation.h"
+#include "GSPortPrivate.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
+
+@interface	NSPortCoder (Private)
+- (NSMutableArray*) _components;
+@end
+@interface	NSPortMessage (Private)
+- (NSMutableArray*) _components;
+@end
+
+@interface NSConnection (GNUstepExtensions) <GCFinalization>
+- (void) gcFinalize;
+- (retval_t) forwardForProxy: (NSDistantObject*)object 
+		    selector: (SEL)sel 
+		    argFrame: (arglist_t)argframe;
+- (void) forwardInvocation: (NSInvocation *)inv 
+		  forProxy: (NSDistantObject*)object;
+- (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
+@end
 
 extern NSRunLoop	*GSRunLoopForThread(NSThread*);
 
@@ -1627,6 +1645,8 @@ static NSLock	*cached_proxies_gate = nil;
 			withRootObject: (id)anObject
 {
   NSConnection	*conn;
+
+  GSOnceMLog(@"This method is deprecated, use standard initialisation");
 
   conn = [[self alloc] initWithReceivePort: [NSPort port]
 				  sendPort: nil];
