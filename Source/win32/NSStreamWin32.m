@@ -295,8 +295,7 @@ static void setNonblocking(SOCKET fd)
 {
   int fd;
 
-  fd = _wopen((unichar*)[_path cStringUsingEncoding: NSUnicodeStringEncoding], 
-    O_RDONLY|O_BINARY);   
+  fd = _wopen([_path fileSystemRepresentation], O_RDONLY|O_BINARY);   
   if (fd < 0)
     {  
       [self _recordError];
@@ -790,8 +789,7 @@ static void setNonblocking(SOCKET fd)
     flag = flag | O_APPEND;
   else
     flag = flag | O_TRUNC;
-  fd = _wopen((unichar*)[_path cStringUsingEncoding: NSUnicodeStringEncoding], 
-        flag, mode);
+  fd = _wopen([_path fileSystemRepresentation], flag, mode);
   if (fd < 0)
     {  // make an error
       [self _recordError];

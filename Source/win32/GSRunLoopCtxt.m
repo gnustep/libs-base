@@ -380,8 +380,23 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       wait_timeout = 0;	// Processed something ... no need to wait.
     }
 
-  wait_return = MsgWaitForMultipleObjects(num_handles, handleArray, 
-    NO, wait_timeout, QS_ALLINPUT);
+  if (num_winMsgs > 0)
+    {
+      /*
+       * Wait for signalled events or window messages.
+       */
+      wait_return = MsgWaitForMultipleObjects(num_handles, handleArray, 
+        NO, wait_timeout, QS_ALLINPUT);
+    }
+  else
+    {
+      /*
+       * We are not interested in windows messages ... just wait for
+       * signalled events.
+       */
+      wait_return = WaitForMultipleObjects(num_handles, handleArray, 
+        NO, wait_timeout);
+    }
   NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);
 
       // if there are windows message
