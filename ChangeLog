@@ -5,6 +5,8 @@
 	* Source/win32/NSStreamWin32.m: Use fileSystemRepresentation rather
 	than cStringUsingEncoding:
 	* Source/NSCalendarDate.m: Support '%T' and '%t' in description.
+	* Source/NSFileManager.m: don't abort directory copy just because
+	we can't set attributes of destination directory.
 	* Source/NSSocketPortNameServer.m:
 	* Source/NSBundle.m:
 	* Source/NSProcessInfo.m:
