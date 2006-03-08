@@ -8,6 +8,7 @@
 	* Source/NSFileManager.m: don't abort directory copy just because
 	we can't set attributes of destination directory.  Don't try to
 	copy directories with their old owners.
+	* Source/Additions/GSXML.m: Support #x and #X unescaping.
 	* Source/NSSocketPortNameServer.m:
 	* Source/NSBundle.m:
 	* Source/NSProcessInfo.m:

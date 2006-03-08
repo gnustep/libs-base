@@ -4259,7 +4259,15 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 		{
 		  unichar	u;
 
-		  if ([s hasPrefix: @"&#0x"] || [s hasPrefix: @"&#0X"])
+		  if ([s hasPrefix: @"&#x"] || [s hasPrefix: @"&#X"])
+		    {
+		      unsigned	val = 0;
+
+		      s = [s substringFromIndex: 3];
+		      sscanf([s UTF8String], "%x", &val);
+		      u = val;
+		    }
+		  else if ([s hasPrefix: @"&#0x"] || [s hasPrefix: @"&#0X"])
 		    {
 		      unsigned	val = 0;
 
