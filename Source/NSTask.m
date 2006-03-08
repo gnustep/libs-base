@@ -101,6 +101,13 @@
 #define	NOFILE	256
 #endif
 
+@interface	NSBundle(Private)
++ (NSString *) _absolutePathOfExecutable: (NSString *)path;
++ (NSString*) _gnustep_target_cpu;
++ (NSString*) _gnustep_target_dir;
++ (NSString*) _gnustep_target_os;
++ (NSString*) _library_combo;
+@end
 
 static NSRecursiveLock  *tasksLock = nil;
 static NSMapTable       *activeTasks = 0;

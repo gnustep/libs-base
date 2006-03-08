@@ -369,23 +369,8 @@ GS_EXPORT NSString* const NSLoadedClasses;
  */
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName;
 
-+ (NSString *) _absolutePathOfExecutable: (NSString *)path;
-+ (NSString*) _gnustep_target_cpu;
-+ (NSString*) _gnustep_target_dir;
-+ (NSString*) _gnustep_target_os;
-+ (NSString*) _library_combo;
-
 /** Find a resource in the "Library" directory. */
 + (NSString*) pathForLibraryResource: (NSString*)name
-			      ofType: (NSString*)ext
-			 inDirectory: (NSString*)bundlePath;
-
-/** Deprecated. Use +bundleForLibrary: instead. */
-+ (NSBundle*) gnustepBundle;
-
-/** Deprecated. Use +pathForLibraryResource:ofType:inDirectory: 
-    or +bundleForLibrary: instead. */
-+ (NSString*) pathForGNUstepResource: (NSString*)name
 			      ofType: (NSString*)ext
 			 inDirectory: (NSString*)bundlePath;
 

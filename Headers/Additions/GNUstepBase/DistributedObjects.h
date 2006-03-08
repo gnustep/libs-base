@@ -74,6 +74,13 @@ enum {
 - (NSDistantObject*) locateLocalTarget: (unsigned)target;
 - (NSDistantObject*) proxyForTarget: (unsigned)target;
 - (void) retainTarget: (unsigned)target;
+
+- (retval_t) forwardForProxy: (NSDistantObject*)object 
+		    selector: (SEL)sel 
+		    argFrame: (arglist_t)argframe;
+- (void) forwardInvocation: (NSInvocation *)inv 
+		  forProxy: (NSDistantObject*)object;
+- (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
 @end
 
 @interface NSPort (Internal)

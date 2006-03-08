@@ -20,7 +20,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
    */ 
 
 #ifndef __NSSerialization_h_GNUSTEP_BASE_INCLUDE
@@ -68,16 +69,19 @@
 
 /**
  *  <p>Serialize given property list (NSArray or NSDictionary plus limited
- *  contents) into byte array.</p>  <p><em>Deprecated in favor of
- *  [NSPropertyListSerialization+dataFromPropertyList:format:errorDescription:].</em></p>
+ *  contents) into byte array.</p>
+ *  <p><em>Deprecated in favor of
+ *  [NSPropertyListSerialization+dataFromPropertyList:format:errorDescription:].
+ *  </em></p>
  */
 + (NSData*) serializePropertyList: (id)propertyList;
 
 /**
  *  <p>Serialize given property list (NSArray or NSDictionary plus limited
- *  contents) into given mutable byte array.</p>  <p><em>Deprecated in favor of
- *  [NSPropertyListSerialization+dataFromPropertyList:format:errorDescription:].</em></p>
-
+ *  contents) into given mutable byte array.</p>
+ *  <p><em>Deprecated in favor of
+ *  [NSPropertyListSerialization+dataFromPropertyList:format:errorDescription:].
+ *  </em></p>
  */
 + (void) serializePropertyList: (id)propertyList
 		      intoData: (NSMutableData*)d;
@@ -124,8 +128,10 @@
 
 /**
  *  Recover a property list (NSArray or NSDictionary plus limited
- *  contents) from a byte array.  <em>Deprecated in favor of
- *  [NSPropertyListSerialization+propertyListFromData:mutabilityOption:format:errorDescription:].</em>
+ *  contents) from a byte array.
+ *  <em>Deprecated in favor of
+ *  [NSPropertyListSerialization
+ *  +propertyListFromData:mutabilityOption:format:errorDescription:].</em>
  */
 + (id) deserializePropertyListFromData: (NSData*)data
 			      atCursor: (unsigned int*)cursor
@@ -133,8 +139,10 @@
 
 /**
  *  Recover a property list (NSArray or NSDictionary plus limited
- *  contents) from a byte array.  <em>Deprecated in favor of
- *  [NSPropertyListSerialization+propertyListFromData:mutabilityOption:format:errorDescription:].</em>
+ *  contents) from a byte array.
+ *  <em>Deprecated in favor of
+ *  [NSPropertyListSerialization
+ *  +propertyListFromData:mutabilityOption:format:errorDescription:].</em>
  */
 + (id) deserializePropertyListFromData: (NSData*)data
 		     mutableContainers: (BOOL)flag;
@@ -145,7 +153,8 @@
  *  length, a proxy is substituted for the actual property list as long as the
  *  constituent objects of that property list are not accessed.
  *  <em>Deprecated in favor of
- *  [NSPropertyListSerialization+propertyListFromData:mutabilityOption:format:errorDescription:].</em>
+ *  [NSPropertyListSerialization
+ *  +propertyListFromData:mutabilityOption:format:errorDescription:].</em>
  */
 + (id) deserializePropertyListLazilyFromData: (NSData*)data
 				    atCursor: (unsigned*)cursor

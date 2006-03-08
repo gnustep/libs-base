@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
 
    <title>NSPortNameServer class reference</title>
    $Date$ $Revision$
@@ -27,11 +28,12 @@
 #include "config.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSException.h"
+#include "Foundation/NSPort.h"
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSUserDefaults.h"
-#include "GSPrivate.h"
+#include "GSPortPrivate.h"
 
 
 /**

@@ -759,6 +759,23 @@ _arg_addr(NSInvocation *inv, int index)
  */
 @implementation NSInvocation (GNUstep)
 
+- (BOOL) sendsToSuper
+{
+  return _sendToSuper;
+}
+
+- (void) setSendsToSuper: (BOOL)flag
+{
+  _sendToSuper = flag;
+}
+@end
+
+/**
+ * These methods are for internal use only ... not public API<br />
+ * They are used by the NS_INVOCATION() and NS_MESSAGE() macros to help
+ * create invocations.
+ */
+@implementation NSInvocation (MacroSetup)
 /**
  * Internal use.<br />
  * Initialises the receiver with a known selector and argument list
@@ -930,33 +947,6 @@ _arg_addr(NSInvocation *inv, int index)
   return NULL;
 }
 
-/**
- * Returns the status of the flag set by -setSendsToSuper:
- */
-- (BOOL) sendsToSuper
-{
-  return _sendToSuper;
-}
-
-/**
- * Sets the flag to tell the invocation that it should actually invoke a
- * method in the superclass of the target rather than the method of the
- * target itself.<br />
- * This extension permits an invocation to act like a regular method
- * call sent to <em>super</em> in the method of a class.
- */
-- (void) setSendsToSuper: (BOOL)flag
-{
-  _sendToSuper = flag;
-}
-@end
-
-/**
- * These methods are for internal use only ... not public API<br />
- * They are used by the NS_INVOCATION() and NS_MESSAGE() macros to help
- * create invocations.
- */
-@implementation NSInvocation (MacroSetup)
 + (id) _newProxyForInvocation: (id)target
 {
   return [GSInvocationProxy _newWithTarget: target];

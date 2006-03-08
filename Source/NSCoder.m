@@ -28,6 +28,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSSerialization.h"
 
@@ -414,6 +415,7 @@
 			    at: (void*)buf
 		      withName: (id*)name
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
   if (name)
     {
       *name = [self decodeObject];
@@ -429,11 +431,13 @@
  */
 - (void) decodeIndent
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
 }
 
 - (void) decodeObjectAt: (id*)anObject
 	       withName: (id*)name
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
   [self decodeValueOfObjCType: @encode(id) at: anObject withName: name];
 }
 
@@ -441,6 +445,7 @@
 			 at: (void*)buf
 		   withName: (id*)name
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
   [self decodeValueOfObjCType: type at: buf withName: name];
 }
 
@@ -448,6 +453,7 @@
 			    at: (void*)buf
 		      withName: (id*)name
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
   if (name != 0)
     {
       *name = [self decodeObject];
@@ -464,6 +470,7 @@
 			    at: (const void*)buf
 		      withName: (id)name
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
   [self encodeObject: name];
   [self encodeArrayOfObjCType: type count: count at: buf];
 }
@@ -472,12 +479,14 @@
  */
 - (void) encodeIndent
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
 }
 
 - (void) encodeValueOfCType: (const char*)type
 			 at: (const void*)buf
 		   withName: (id)name
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
   [self encodeValueOfObjCType: type at: buf withName: name];
 }
 
@@ -485,6 +494,7 @@
 			    at: (const void*)buf
 		      withName: (id)name
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
   [self encodeObject: name];
   [self encodeValueOfObjCType: type at: buf];
 }
@@ -492,6 +502,7 @@
 - (void) encodeObjectAt: (id*)anObject
 	       withName: (id)name
 {
+  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
   [self encodeValueOfObjCType: @encode(id) at: anObject withName: name];
 }
 

@@ -19,7 +19,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
    */
 
 #ifndef __NSDistantObject_h_GNUSTEP_BASE_INCLUDE
@@ -57,14 +58,6 @@
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 - (void) setProtocolForProxy: (Protocol*)aProtocol;
 
-@end
-
-@interface NSDistantObject(GNUstepExtensions) <GCFinalization>
-
-- (Class) classForPortCoder;
-- (const char *) selectorTypeForProxy: (SEL)selector;
-- (id) forward: (SEL)aSel :(arglist_t)frame;
-- (void) gcFinalize;
 @end
 
 #endif /* __NSDistantObject_h_GNUSTEP_BASE_INCLUDE */
