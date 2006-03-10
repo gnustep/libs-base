@@ -2100,7 +2100,7 @@ lastDayOfGregorianMonth(int month, int year)
 void
 GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int *hour, int *minute, int *second, int *mil);
-int dayOfCommonEra(NSTimeInterval when);
+
 
 
 /* FIXME
@@ -2359,9 +2359,7 @@ int dayOfCommonEra(NSTimeInterval when);
   // After April and before October is DST
   if (month > DaylightDate.wMonth && month < StandardDate.wMonth)
     return YES;
-  dow = dayOfCommonEra(when);
-
-  dow = dow % 7;
+  dow = ((int)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
   if (dow < 0)
     dow += 7;
 

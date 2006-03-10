@@ -42,12 +42,7 @@
 #include "Foundation/NSUserDefaults.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+
 #include "GSPrivate.h"
 
 /* These constants seem to be what MacOS-X uses */
@@ -57,6 +52,8 @@
 const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
 
 
+
+extern NSTimeInterval	GSTimeNow();	// In NSCalendarDate.m
 
 static BOOL	debug = NO;
 static Class	abstractClass = nil;
@@ -117,53 +114,6 @@ otherTime(NSDate* other)
     return ((NSGDate*)other)->_seconds_since_ref;
   else
     return [other timeIntervalSinceReferenceDate];
-}
-
-/**
- * Returns the current time (seconds since reference date) as an NSTimeInterval.
- */
-NSTimeInterval
-GSTimeNow(void)
-{
-#if !defined(__MINGW32__)
-  NSTimeInterval interval;
-  struct timeval tp;
-
-  gettimeofday (&tp, NULL);
-  interval = -NSTimeIntervalSince1970;
-  interval += tp.tv_sec;
-  interval += (double)tp.tv_usec / 1000000.0;
-  return interval;
-#else
-  SYSTEMTIME sys_time;
-  NSTimeInterval t;
-#if 0
-  NSCalendarDate *d;
-
-  // Get the system time
-  GetLocalTime(&sys_time);
-
-  // Use an NSCalendar object to make it easier
-  d = [NSCalendarDate alloc];
-  [d initWithYear: sys_time.wYear
-     month: sys_time.wMonth
-     day: sys_time.wDay
-     hour: sys_time.wHour
-     minute: sys_time.wMinute
-     second: sys_time.wSecond
-     timeZone: [NSTimeZone localTimeZone]];
-  t = otherTime(d);
-  RELEASE(d);
-#else
-  /*
-   * Get current GMT time, convert to NSTimeInterval since reference date,
-   */
-  GetSystemTime(&sys_time);
-  t = GSTime(sys_time.wDay, sys_time.wMonth, sys_time.wYear, sys_time.wHour,
-    sys_time.wMinute, sys_time.wSecond, sys_time.wMilliseconds);
-#endif
-  return t;
-#endif /* __MINGW32__ */
 }
 
 /**
