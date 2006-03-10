@@ -24,6 +24,19 @@
 #ifndef __GSPrivate_h_
 #define __GSPrivate_h_
 
+/* Absolute Gregorian date for NSDate reference date Jan 01 2001
+ *
+ *  N = 1;                 // day of month
+ *  N = N + 0;             // days in prior months for year
+ *  N = N +                // days this year
+ *    + 365 * (year - 1)   // days in previous years ignoring leap days
+ *    + (year - 1)/4       // Julian leap days before this year...
+ *    - (year - 1)/100     // ...minus prior century years...
+ *    + (year - 1)/400     // ...plus prior years divisible by 400
+ */
+#define GREGORIAN_REFERENCE 730486
+
+
 #include "GNUstepBase/GSObjCRuntime.h"
 
 /**
