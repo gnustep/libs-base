@@ -987,7 +987,7 @@ static NSMapTable	*nodeNames = 0;
 
 /**
  * This performs the same function as the -content method, but retains
- * escaped character information (like the standard five entities &amp;lt;,
+ * escaped character information (the standard five entities &amp;lt;,
  * &amp;gt;, &amp;apos;, &amp;quot;, and &amp;amp;) which are normally
  * replaced with their standard equivalents
  * (&lt;, &gt;, &apos;, &quot;, and &amp;).
