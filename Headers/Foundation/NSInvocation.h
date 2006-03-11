@@ -127,8 +127,8 @@
  *  call.<br />
  *  Before using the returned invocation, you need to set its target.
  */
-#define NS_INVOCATION(class, message...) ({\
-  id __proxy = [NSInvocation _newProxyForInvocation: class]; \
+#define NS_INVOCATION(aClass, message...) ({\
+  id __proxy = [NSInvocation _newProxyForInvocation: aClass]; \
   [__proxy message]; \
   [NSInvocation _returnInvocationAndDestroyProxy: __proxy]; \
 })

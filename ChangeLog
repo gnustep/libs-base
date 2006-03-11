@@ -2,6 +2,8 @@
 
 	* Headers/Additions/GNUstepBase/GSXML.h: clarify documentation of
 	xml entity escaping methods.
+	* Headers/Foundation/NSInvocation.h: don't use 'class' as macro
+	argument ... should be hermless but is confusing to C++ programmers.
 
 2006-03-10  Richard Frith-Macdonald <rfm@gnu.org>
 
