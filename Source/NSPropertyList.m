@@ -711,6 +711,16 @@ static id parsePlItem(pldata* pld)
 		unsigned char	type = *ptr++;
 
 		len--;
+		// Allow for quoted values.
+		if (ptr[0] == '\'' && len > 1)
+		  {
+		    len--;
+		    ptr++;
+		    if (ptr[len - 1] == '\'')
+		      {
+			len--;
+		      }
+		  }
 		if (type == 'I')
 		  {
 		    char	buf[len+1];
