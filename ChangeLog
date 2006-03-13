@@ -1,8 +1,10 @@
 2006-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSKeyValueCoding.m: Attemptm to fix problems introduced into
+	* Source/NSKeyValueCoding.m: Attempt to fix problems introduced into
 	keypath code and reported by Helge ... ensure kvc mnethods are called
 	for each element in the path.
+	* Source/inet_pton.c: fixup for mingw32
+	* Source/NSTimeZone.m: add missing include
 
 2006-03-12  Richard Frith-Macdonald <rfm@gnu.org>
 
