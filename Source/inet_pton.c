@@ -17,13 +17,29 @@
  * SOFTWARE.
  */
 
+#include "config.h"
+
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/param.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#include <errno.h>
+
+#if	defined(__MINGW32__)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <wininet.h>
+#if	!defined(EAFNOSUPPORT)
+#define	EAFNOSUPPORT WSAEAFNOSUPPORT
+#endif
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <errno.h>
+#endif
+
 
 #if HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>
@@ -38,9 +54,9 @@
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
 
-static int	inet_pton4(const char *src, u_char *dst, int pton);
+static int	inet_pton4(const char *src, uint8_t *dst, int pton);
 #ifdef INET6
-static int	inet_pton6(const char *src, u_char *dst);
+static int	inet_pton6(const char *src, uint8_t *dst);
 #endif
 
 /* int
@@ -84,7 +100,7 @@ inet_pton(int af, const char *src, void *dst)
  *	Paul Vixie, 1996.
  */
 static int
-inet_pton4(const char *src, u_char *dst, int pton)
+inet_pton4(const char *src, uint8_t *dst, int pton)
 {
 	u_int val;
 	u_int digit;
@@ -205,11 +221,11 @@ inet_pton4(const char *src, u_char *dst, int pton)
  *	Paul Vixie, 1996.
  */
 static int
-inet_pton6(const char *src, u_char *dst)
+inet_pton6(const char *src, uint8_t *dst)
 {
 	static const char xdigits_l[] = "0123456789abcdef",
 			  xdigits_u[] = "0123456789ABCDEF";
-	u_char tmp[IN6ADDRSZ], *tp, *endp, *colonp;
+	uint8_t tmp[IN6ADDRSZ], *tp, *endp, *colonp;
 	const char *xdigits, *curtok;
 	int ch, saw_xdigit;
 	u_int val;
@@ -248,8 +264,8 @@ inet_pton6(const char *src, u_char *dst)
 				return (0);
 			if (tp + INT16SZ > endp)
 				return (0);
-			*tp++ = (u_char) (val >> 8) & 0xff;
-			*tp++ = (u_char) val & 0xff;
+			*tp++ = (uint8_t) (val >> 8) & 0xff;
+			*tp++ = (uint8_t) val & 0xff;
 			saw_xdigit = 0;
 			val = 0;
 			continue;
@@ -265,8 +281,8 @@ inet_pton6(const char *src, u_char *dst)
 	if (saw_xdigit) {
 		if (tp + INT16SZ > endp)
 			return (0);
-		*tp++ = (u_char) (val >> 8) & 0xff;
-		*tp++ = (u_char) val & 0xff;
+		*tp++ = (uint8_t) (val >> 8) & 0xff;
+		*tp++ = (uint8_t) val & 0xff;
 	}
 	if (colonp != NULL) {
 		/*
