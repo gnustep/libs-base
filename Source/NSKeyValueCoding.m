@@ -311,14 +311,18 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	{
 	  end++;
 	}
+      aKey = [[NSString alloc] initWithBytes:  buf + start
+				      length:  end - start
+				    encoding: NSASCIIStringEncoding];
+      AUTORELEASE(aKey);
       if (end >= size)
 	{
-	  break;
+	  [o setValue: anObject forKey: aKey];
+	  return;
 	}
-      o = ValueForKey(o, buf + start, end - start);
+      o = [o valueForKey: aKey];
       start = ++end;
     }
-  SetValueForKey(o, anObject, buf + start, end - start);
 }
 
 
@@ -702,7 +706,11 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	{
 	  break;
 	}
-      o = ValueForKey(o, buf + start, end - start);
+      aKey = [[NSString alloc] initWithBytes:  buf + start
+				      length:  end - start
+				    encoding: NSASCIIStringEncoding];
+      AUTORELEASE(aKey);
+      o = [o valueForKey: aKey];
       start = ++end;
     }
   if (o == nil)
@@ -752,21 +760,24 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   char		buf[size+1];
   unsigned	start = 0;
   unsigned	end = 0;
-  id		o = nil;
+  id		o = self;
 
   [aKey getCString: buf
 	 maxLength: size+1
 	  encoding: NSASCIIStringEncoding];
-  while (start < size && self != nil)
+  while (start < size && o != nil)
     {
       end = start;
       while (end < size && buf[end] != '.')
 	{
 	  end++;
 	}
-      o = ValueForKey(self, buf + start, end - start);
+      aKey = [[NSString alloc] initWithBytes:  buf + start
+				      length:  end - start
+				    encoding: NSASCIIStringEncoding];
+      AUTORELEASE(aKey);
+      o = [o valueForKey: aKey];
       start = ++end;
-      self = o;
     }
   return o;
 }
