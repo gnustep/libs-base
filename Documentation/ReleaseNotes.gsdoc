@@ -25,6 +25,94 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.12.0</heading>
+	<p> There have been a number of API changes and several
+	methods have been depreciated in this release. Although
+	current GNUstep programs that use these methods will still
+	work in this version, there are enough changes that a new
+	library version was considered useful.
+	</p>
+	  <deflist>
+	    <term>NSCoder deprecated methods</term>
+	    <desc>
+	    Several methods using the old libObjects style scheme 
+	    <code>withName:</code> are now deprecated. You can use the new
+	    NSKeyedArchiver and NSKeyedUnarchiver functionality to perform
+	    the same function in a much more portable way.
+	    </desc>
+	    <term>NSPortCoder, NSPortMessage private methods</term>
+	    <desc>
+	    The private method <code>_components</code> was removed
+            from the public interface.
+	    </desc>
+	    <term>NSString -getCString:maxLength:encoding:</term>
+	    <desc>
+	    The return type of this function was changed to BOOL.
+	    </desc>
+	    <term>NSBundle deprecated and private methods</term>
+	    <desc>
+	    Several deprecated and private methods were removed from
+	    the public interface including
+	    <code>+gnustepBundle</code>, and
+	    <code>+pathForGNUstepResource:ofTpye:inDirectory:</code>.
+	    </desc>
+	    <term>NSNotificationCenter deprecated method</term>
+	    <desc>
+	    The GNUstep method <code>setLockingDisabled:</code> method
+	    was deprecated.
+	    </desc>
+	    <term>NSNotificationQueue private functions</term>
+	    <desc>
+	    Private functions <code>GSNotifyASAP</code>,
+	    <code>GSNotifyIdle</code>, and <code>GSNotifyMore</core>
+	    were removed from public interface.
+	    </desc>
+	    <term>NSRunLoop watcher API updates and other changes</term>
+	    <desc>
+	    We are starting to integrate the Cocoa NSStream classes
+	    into GNUstep, which allow you to do much the same things
+	    as the GNUstep-specific run loop watcher API was
+	    intended. At some point the watcher API will be deprecated
+	    as it will be redundant with NSStream functionality. Also
+	    the deprecated win32 specific methods for NSRunLoop were
+	    removed.
+	    </desc>
+	    <term>NSAttribtedString deprecated method</term>
+	    <desc>
+	    The non-standard
+	    <code>attributedSubstringWithRange:</code> method (just a
+	    synonym for the real method) was deprecated.
+	    </desc>
+	    <term>NSConnection, NSDistantObject method removal</term>
+	    <desc>
+	    Several legacy methods from the original GNU Connection
+	    class were removed or moved to the additions category of
+	    the library.
+	    </desc>
+	    <term>NSAutoreleasePool private methods</term>
+	    <desc>
+	    The private method <code>_endThread:</code> was removed
+	    from the public interface.
+	    </desc>
+	    <term>NSPortNameServer private methods</term>
+	    <desc>
+	    Several private methods were removed from the public interface.
+	    </desc>
+	    <term>NSStream, NSIndexPath</term>
+	    <desc>
+	    New classes added to the library.
+	    </desc>
+	    <term>NSUserDefaults improvements</term>
+	    <desc>
+	    User defaults were restructured to create the defaults
+	    lazily and can be set to not write to an external file at
+	    all, for developers who wish to use the library as a
+	    stand-alone library or in other situations where using
+	    external resources is not desired.
+	    </desc>
+	  </deflist>
+      </section>
+      <section>
 	<heading>Version 1.11.2</heading>
 	  <deflist>
 	    <term>GNUstep.conf and relocation</term>

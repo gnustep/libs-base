@@ -1,3 +1,7 @@
+2006-03-13  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.12.0
+
 2006-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueCoding.m: Attempt to fix problems introduced into
