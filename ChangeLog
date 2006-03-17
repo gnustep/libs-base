@@ -2,6 +2,8 @@
 
 	* Source/cifframe.h: Add code to try to get ffi muld to work on
 	mingw32
+	* GNUmakefile: Don't build SSL subproject for mingw32 as it
+	doesn't work.
 
 2006-03-17  Andrew Sveikauskas <asveikau@mail.rochester.edu>
 
