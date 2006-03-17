@@ -238,9 +238,9 @@ objc_thread_get_priority(void)
 void
 objc_thread_yield(void)
 {
-#if 0
+#if !defined(__APPLE__)
   /* Not defined in darwin? */
-  pthread_yield(NULL);
+  pthread_yield();
 #else
   sched_yield();
 #endif
