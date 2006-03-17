@@ -1,3 +1,8 @@
+2006-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/cifframe.h: Add code to try to get ffi muld to work on
+	mingw32
+
 2006-03-17  Andrew Sveikauskas <asveikau@mail.rochester.edu>
 
 	* Source/thr-mach.h: include objc/objc-api.h
