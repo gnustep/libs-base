@@ -1,3 +1,8 @@
+2006-03-17  Andrew Sveikauskas <asveikau@mail.rochester.edu>
+
+	* Source/thr-mach.h: include objc/objc-api.h
+	* Source/thr-pthread.m: use pthread_yield() except for apple
+
 2006-03-13  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.12.0

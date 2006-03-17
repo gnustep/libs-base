@@ -39,6 +39,7 @@ Boston, MA 02110-1301, USA.  */
 #define __thread_INCLUDE_GNU
 
 #include <objc/objc.h>
+#include <objc/objc-api.h>
 
 /*************************************************************************
  *  Universal static variables:
