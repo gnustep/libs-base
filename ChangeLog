@@ -2,6 +2,8 @@
 
 	* Source/thr-mach.h: include objc/objc-api.h
 	* Source/thr-pthread.m: use pthread_yield() except for apple
+	* Source/GNUmakefile: link pthread library on openbsd where it isn't
+	linked to the objc runtime.
 
 2006-03-13  Adam Fedor  <fedor@gnu.org>
 
