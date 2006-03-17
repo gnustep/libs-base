@@ -83,6 +83,11 @@ GSLocale.m \
 preface.m \
 mframe.m
 
+ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
+GNU_MFILES += thr-pthread.m
+OBJC_LIBS += -lpthread
+endif
+
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
 GNU_MFILES += objc-gnu2next.m
 ifeq ($(HAVE_PTHREAD_H), yes)
