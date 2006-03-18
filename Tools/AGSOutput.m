@@ -2078,7 +2078,7 @@ static BOOL snuggleStart(NSString *t)
 		      ref = [NSString stringWithFormat:
 			@"<ref type=\"method\" id=\"%@\" class=\"%@\">",
 			mName, cName];
-		      sub = [NSString stringWithFormat: @"[%@&nbsp;%@]",
+		      sub = [NSString stringWithFormat: @"[%@ %@]",
 			cName, mName];
 		    }
 		  [a insertObject: ref atIndex: l++];
