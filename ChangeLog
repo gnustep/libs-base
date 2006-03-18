@@ -1,3 +1,8 @@
+2006-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m: Get rid of bogus '&nbsp;'
+	* Tools/AGSHtml.m: Fix error in display of category method index.
+
 2006-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/cifframe.h: Add code to try to get ffi muld to work on
