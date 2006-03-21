@@ -118,26 +118,22 @@ typedef	enum {
     ET_HANDLE,	/* Watch for an I/O event on a handle.		*/
     ET_RPORT,	/* Watch for message arriving on port.		*/
     ET_WINMSG,	/* Watch for a message on a window handle.	*/
-    ET_INSTREAM,	/* Watch for event on input stream.	*/
-    ET_OUTSTREAM	/* Watch for event on output stream.	*/
+    ET_TRIGGER	/* Trigger immediately when the loop runs.	*/
 #else
     ET_RDESC,	/* Watch for descriptor becoming readable.	*/
     ET_WDESC,	/* Watch for descriptor becoming writeable.	*/
     ET_RPORT,	/* Watch for message arriving on port.		*/
     ET_EDESC,	/* Watch for descriptor with out-of-band data.	*/
-    ET_INSTREAM,	/* Watch for event on input stream.	*/
-    ET_OUTSTREAM	/* Watch for event on output stream.	*/
+    ET_TRIGGER	/* Trigger immediately when the loop runs.	*/
 #endif
 } RunLoopEventType;
 @protocol RunLoopEvents
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode;
 - (void) receivedEvent: (void*)data
 		  type: (RunLoopEventType)type
 		 extra: (void*)extra
 	       forMode: (NSString*)mode;
 @end
+@class	NSStream;
 @interface NSRunLoop(GNUstepExtensions)
 - (void) addEvent: (void*)data
 	     type: (RunLoopEventType)type

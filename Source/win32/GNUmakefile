@@ -32,7 +32,6 @@ SUBPROJECT_NAME = win32
 win32_OBJC_FILES =\
 	GSFileHandleWin32.m \
 	GSRunLoopCtxt.m \
-	GSRunLoopWatcher.m \
 	NSMessagePortWin32.m \
 	NSMessagePortNameServerWin32.m \
 	NSStreamWin32.m \

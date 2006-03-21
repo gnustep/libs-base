@@ -101,9 +101,6 @@ static NSNotificationCenter *nc = nil;
                   type: (RunLoopEventType)type
                  extra: (void*)extra
                forMode: (NSString*)mode;
-+ (NSDate*) timedOutEvent: (void*)data
-                     type: (RunLoopEventType)type
-                  forMode: (NSString*)mode;
 - (void) fire;
 @end
 
@@ -944,13 +941,6 @@ static NSDate *theFuture;
 		      modes: h->modes];
     }
   RELEASE(toDo);
-}
-
-+ (NSDate*) timedOutEvent: (void*)data
-                     type: (RunLoopEventType)type
-                  forMode: (NSString*)mode
-{
-  return theFuture;
 }
 
 - (void) dealloc

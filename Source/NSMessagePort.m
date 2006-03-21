@@ -268,9 +268,6 @@ typedef enum {
 - (NSMessagePort*) sendPort;
 - (void) setState: (GSHandleState)s;
 - (GSHandleState) state;
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode;
 @end
 
 
@@ -1097,13 +1094,6 @@ static Class	runLoopClass;
   return state;
 }
 
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode
-{
-  return nil;
-}
-
 @end
 
 
@@ -1113,9 +1103,6 @@ static Class	runLoopClass;
                   type: (RunLoopEventType)type
 		 extra: (void*)extra
 	       forMode: (NSString*)mode;
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode;
 @end
 
 
@@ -1929,14 +1916,6 @@ typedef	struct {
     }
   return sent;
 }
-
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode
-{
-  return nil;
-}
-
 
 - (const unsigned char *) _name
 {

@@ -51,6 +51,17 @@
 */
 
 #include <Foundation/NSStream.h>
+#include <Foundation/NSRunLoop.h>
+
+/**
+ * Convenience methods used to add streams to the run loop.
+ */
+@interface	NSRunLoop (NSStream)
+- (void) addStream: (NSStream*)aStream mode: (NSString*)mode;
+- (void) removeStream: (NSStream*)aStream mode: (NSString*)mode;
+@end
+
+@class	NSMutableData;
 
 #define	IVARS \
 { \
@@ -61,7 +72,7 @@
   NSStreamStatus         _currentStatus;/* current status               */\
   NSMutableArray 	*_modes;	/* currently scheduled modes.	*/\
   NSRunLoop 		*_runloop;	/* currently scheduled loop.	*/\
-  void                  *_fd;           /* the file descriptor (if any) */\
+  void                  *_loopID;	/* file descriptor etc		*/\
 }
 
 /**
@@ -72,11 +83,23 @@
 @interface GSStream : NSStream
 IVARS
 @end
-@interface GSStream(Private)
+
+@interface NSStream(Private)
+
+/**
+ * Async notification
+ */
+- (void) _dispatch;
+
 /**
  * Return YES if the stream is opened, NO otherwise.
  */
 - (BOOL) _isOpened;
+
+/**
+ * Return previously set reference for IO in run loop.
+ */
+- (void*) _loopID;
 
 /**
  * send an event to delegate
@@ -84,15 +107,15 @@ IVARS
 - (void) _sendEvent: (NSStreamEvent)event;
 
 /**
+ * setter for IO event reference (file descriptor, file handle etc )
+ */
+- (void) _setLoopID: (void *)ref;
+
+/**
  * set the status to newStatus. an exception is error cannot
  * be overwriten by closed
  */
 - (void) _setStatus: (NSStreamStatus)newStatus;
-
-/**
- * setter for fd
- */
-- (void) _setFd: (void *)fd;
 
 /**
  * record an error based on errno
@@ -103,34 +126,13 @@ IVARS
 @interface GSInputStream : NSInputStream
 IVARS
 @end
-@interface GSInputStream (Private)
-- (BOOL) _isOpened;
-- (void) _sendEvent: (NSStreamEvent)event;
-- (void) _setStatus: (NSStreamStatus)newStatus;
-- (void) _setFd: (void*)fd;
-- (void) _recordError; 
-@end
 
 @interface GSOutputStream : NSOutputStream
 IVARS
 @end
-@interface GSOutputStream (Private)
-- (BOOL) _isOpened;
-- (void) _sendEvent: (NSStreamEvent)event;
-- (void) _setStatus: (NSStreamStatus)newStatus;
-- (void) _setFd: (void*)fd;
-- (void) _recordError; 
-@end
 
 @interface GSAbstractServerStream : GSServerStream
 IVARS
-@end
-@interface GSAbstractServerStream (private)
-- (BOOL) _isOpened;
-- (void) _sendEvent: (NSStreamEvent)event;
-- (void) _setStatus: (NSStreamStatus)newStatus;
-- (void) _setFd: (void*)fd;
-- (void) _recordError; 
 @end
 
 /**
