@@ -82,7 +82,7 @@ typedef int socklen_t;
 @protected
   GSSocketOutputStream *_sibling;
   BOOL _passive;              /* YES means already connected */
-  WSAEVENT  _event;
+  SOCKET  _sock;
 }
 
 /** 
@@ -105,10 +105,8 @@ typedef int socklen_t;
  */
 - (void) setPassive: (BOOL)passive;
 
-/**
- * setter for event
- */
 - (void) setEvent: (WSAEVENT)event;
+- (void) setSock: (SOCKET)sock;
 
 @end
 
@@ -160,7 +158,7 @@ typedef int socklen_t;
 @protected
   GSSocketInputStream *_sibling;
   BOOL _passive;               /* YES means already connected */
-  WSAEVENT  _event;
+  SOCKET  _sock;
 }
 
 /** 
@@ -187,6 +185,7 @@ typedef int socklen_t;
  * setter for event
  */
 - (void) setEvent: (WSAEVENT)event;
+- (void) setSock: (SOCKET)sock;
 
 @end
 
@@ -208,7 +207,7 @@ typedef int socklen_t;
  */
 @interface GSSocketServerStream : GSAbstractServerStream
 {
-  WSAEVENT  _event;
+  SOCKET	_sock;
 }
 /**
  * Return the class of the inputStream associated with this
@@ -592,7 +591,12 @@ static void setNonblocking(SOCKET fd)
 
 - (void) setEvent: (WSAEVENT)event
 {
-  _event = event;
+  _loopID = event;
+}
+
+- (void) setSock: (SOCKET)sock
+{
+  _sock = sock;
 }
 
 - (id) init
@@ -601,7 +605,7 @@ static void setNonblocking(SOCKET fd)
     {
       _sibling = nil;
       _passive = NO;
-      _event = WSA_INVALID_EVENT;
+      _loopID = WSA_INVALID_EVENT;
     }
   return self;
 }
@@ -629,7 +633,7 @@ static void setNonblocking(SOCKET fd)
     }
   else
     {
-      int connectReturn = connect((SOCKET)_loopID, [self peerAddr], [self sockLen]);
+      int connectReturn = connect(_sock, [self peerAddr], [self sockLen]);
       
       if (connectReturn == SOCKET_ERROR
 	&& WSAGetLastError() != WSAEWOULDBLOCK)
@@ -642,10 +646,10 @@ static void setNonblocking(SOCKET fd)
         {
           unsigned i = [_modes count];
           
-          WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
+          WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
           while (i-- > 0)
             {
-              [_runloop addStream: self mode: [_modes objectAtIndex: 1]];
+              [_runloop addStream: self mode: [_modes objectAtIndex: i]];
             }
         }
       [self _setStatus: NSStreamStatusOpening];
@@ -654,22 +658,22 @@ static void setNonblocking(SOCKET fd)
 
  open_ok: 
   [super open];
-  setNonblocking((SOCKET)_loopID);
-  WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
+  setNonblocking(_sock);
+  WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 }
 
 - (void) close
 {
   // read shutdown is ignored, because the other side may shutdown first.
   if (_sibling && [_sibling streamStatus]!=NSStreamStatusClosed)
-    shutdown((SOCKET)_loopID, SD_RECEIVE);
+    shutdown(_sock, SD_RECEIVE);
   else
     {
-      WSACloseEvent(_event);
-      closesocket((SOCKET)_loopID);
+      WSACloseEvent(_loopID);
+      closesocket(_sock);
     }
   // safety against double close
-  _event = WSA_INVALID_EVENT;
+  _loopID = WSA_INVALID_EVENT;
   [super close];
 }
 
@@ -677,7 +681,7 @@ static void setNonblocking(SOCKET fd)
 {
   int readLen;
 
-  readLen = recv((SOCKET)_loopID, buffer, len, 0);
+  readLen = recv(_sock, buffer, len, 0);
   if (readLen == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
@@ -724,7 +728,7 @@ static void setNonblocking(SOCKET fd)
       return;
     }
     
-  if (WSAEnumNetworkEvents((SOCKET)_loopID, _event, &ocurredEvents) == SOCKET_ERROR)
+  if (WSAEnumNetworkEvents(_sock, _loopID, &ocurredEvents) == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
       [self _recordError];
@@ -737,7 +741,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
 	}
-      getReturn = getsockopt((SOCKET)_loopID, SOL_SOCKET, SO_ERROR,
+      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
 	(char*)&error, &len);
 
       if (getReturn >= 0 && !error
@@ -792,16 +796,6 @@ static void setNonblocking(SOCKET fd)
       default: 
 	break;
     }
-  // status may change now
-  myStatus = [self streamStatus];
-  if (myStatus == NSStreamStatusOpen)    
-    {
-      [_runloop performSelector: @selector(_dispatch) 
-                         target: self
-                       argument: nil 
-                          order: 0 
-                          modes: _modes];
-    }    
   if (_sibling && [_sibling _isOpened])
     [_sibling _dispatch];
 }
@@ -1133,7 +1127,12 @@ static void setNonblocking(SOCKET fd)
 
 - (void) setEvent: (WSAEVENT)event
 {
-  _event = event;
+  _loopID = event;
+}
+
+- (void) setSock: (SOCKET)sock
+{
+  _sock = sock;
 }
 
 - (id) init
@@ -1142,7 +1141,7 @@ static void setNonblocking(SOCKET fd)
     {
       _sibling = nil;
       _passive = NO;
-      _event = WSA_INVALID_EVENT;
+      _loopID = WSA_INVALID_EVENT;
     }
   return self;
 }
@@ -1159,7 +1158,7 @@ static void setNonblocking(SOCKET fd)
 {
   int writeLen;
 
-  writeLen = send((SOCKET)_loopID, buffer, len, 0);
+  writeLen = send(_sock, buffer, len, 0);
   if (writeLen == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
@@ -1195,7 +1194,7 @@ static void setNonblocking(SOCKET fd)
     }
   else
     {
-      int connectReturn = connect((SOCKET)_loopID, [self peerAddr], [self sockLen]);
+      int connectReturn = connect(_sock, [self peerAddr], [self sockLen]);
       
       if (connectReturn == SOCKET_ERROR
 	&& WSAGetLastError() != WSAEWOULDBLOCK)
@@ -1208,11 +1207,11 @@ static void setNonblocking(SOCKET fd)
         {
           unsigned i = [_modes count];
 
-          WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
+          WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 
           while (i-- > 0)
             {
-              [_runloop addStream: self mode: [_modes objectAtIndex: 1]];
+              [_runloop addStream: self mode: [_modes objectAtIndex: i]];
             }
         }
       [self _setStatus: NSStreamStatusOpening];
@@ -1220,8 +1219,8 @@ static void setNonblocking(SOCKET fd)
     }
 
  open_ok: 
-  setNonblocking((SOCKET)_loopID);
-  WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
+  setNonblocking(_sock);
+  WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
   [super open];
 }
 
@@ -1230,16 +1229,16 @@ static void setNonblocking(SOCKET fd)
   // shutdown may fail (broken pipe). Record it.
   int closeReturn;
   if (_sibling && [_sibling streamStatus]!=NSStreamStatusClosed)
-    closeReturn = shutdown((SOCKET)_loopID, SD_SEND);
+    closeReturn = shutdown(_sock, SD_SEND);
   else
     {
-      WSACloseEvent(_event);
-      closeReturn = closesocket((SOCKET)_loopID);
+      WSACloseEvent(_loopID);
+      closeReturn = closesocket(_sock);
     }
   if (closeReturn < 0)
     [self _recordError];
   // safety against double close 
-  _event = WSA_INVALID_EVENT;
+  _loopID = WSA_INVALID_EVENT;
   [super close];
 }
 
@@ -1262,7 +1261,7 @@ static void setNonblocking(SOCKET fd)
       return;
     }
     
-  if (WSAEnumNetworkEvents((SOCKET)_loopID, _event, &ocurredEvents) == SOCKET_ERROR)
+  if (WSAEnumNetworkEvents(_sock, _loopID, &ocurredEvents) == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
       [self _recordError];
@@ -1275,7 +1274,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
 	}
-      getReturn = getsockopt((SOCKET)_loopID, SOL_SOCKET, SO_ERROR,
+      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
 	(char*)&error, &len);
 
       if (getReturn >= 0 && !error
@@ -1328,16 +1327,6 @@ static void setNonblocking(SOCKET fd)
       default: 
 	break;
     }
-  // status may change now
-  myStatus = [self streamStatus];
-  if (myStatus == NSStreamStatusOpen)    
-    {
-      [_runloop performSelector: @selector(_dispatch) 
-                         target: self
-                       argument: nil 
-                          order: 0 
-                          modes: _modes];
-    }    
   if (_sibling && [_sibling _isOpened])
     [_sibling _dispatch];
 }
@@ -1396,8 +1385,8 @@ static void setNonblocking(SOCKET fd)
   event = CreateEvent(NULL, NO, NO, NULL);
   
   NSAssert(sock >= 0, @"Cannot open socket");
-  [ins _setLoopID: (void*)(intptr_t)sock];
-  [outs _setLoopID: (void*)(intptr_t)sock];
+  [ins setSock: sock];
+  [outs setSock: sock];
   [ins setEvent: event];
   [outs setEvent: event];
   
@@ -1712,7 +1701,7 @@ static void setNonblocking(SOCKET fd)
 - (id) init
 {
   if ((self = [super init]) != nil)
-    _event = WSA_INVALID_EVENT;
+    _loopID = WSA_INVALID_EVENT;
   return self;
 }
 - (void) dealloc
@@ -1738,25 +1727,25 @@ static void setNonblocking(SOCKET fd)
 
 - (void) open
 {
-  int bindReturn = bind((SOCKET)_loopID, [self serverAddr], [self sockLen]);
-  int listenReturn = listen((SOCKET)_loopID, SOCKET_BACKLOG);
+  int bindReturn = bind(_sock, [self serverAddr], [self sockLen]);
+  int listenReturn = listen(_sock, SOCKET_BACKLOG);
 
   if (bindReturn < 0 || listenReturn)
     {
       [self _recordError];
       return;
     }
-  setNonblocking((SOCKET)_loopID);
-  _event = CreateEvent(NULL, NO, NO, NULL);
-  WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
+  setNonblocking(_sock);
+  _loopID = CreateEvent(NULL, NO, NO, NULL);
+  WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
   [super open];
 }
 
 - (void) close
 {
-  WSACloseEvent(_event);
+  WSACloseEvent(_loopID);
   // close a server socket is safe
-  closesocket((SOCKET)_loopID);
+  closesocket(_sock);
   [super close];
 }
 
@@ -1766,7 +1755,7 @@ static void setNonblocking(SOCKET fd)
   GSSocketInputStream *ins = AUTORELEASE([[self _inputStreamClass] new]);
   GSSocketOutputStream *outs = AUTORELEASE([[self _outputStreamClass] new]);
   socklen_t len = [ins sockLen];
-  int acceptReturn = accept((SOCKET)_loopID, [ins peerAddr], &len);
+  int acceptReturn = accept(_sock, [ins peerAddr], &len);
 
   if (acceptReturn == INVALID_SOCKET)
     { 
@@ -1787,8 +1776,8 @@ static void setNonblocking(SOCKET fd)
       [outs setPassive: YES];
       // copy the addr to outs
       memcpy([outs peerAddr], [ins peerAddr], len);
-      [ins _setLoopID: (void*)(intptr_t)acceptReturn];
-      [outs _setLoopID: (void*)(intptr_t)acceptReturn];
+      [ins setSock: acceptReturn];
+      [outs setSock: acceptReturn];
       [ins setEvent: event];
       [outs setEvent: event];
     }
@@ -1808,7 +1797,7 @@ static void setNonblocking(SOCKET fd)
 {
   WSANETWORKEVENTS ocurredEvents;
   
-  if (WSAEnumNetworkEvents((SOCKET)_loopID, _event, &ocurredEvents) == SOCKET_ERROR)
+  if (WSAEnumNetworkEvents(_sock, _loopID, &ocurredEvents) == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
       [self _recordError];
@@ -1854,7 +1843,7 @@ static void setNonblocking(SOCKET fd)
   _serverAddr.sin_family = AF_INET;
   _serverAddr.sin_port = htons(port);
   _serverAddr.sin_addr.s_addr = inet_addr(addr_c);
-  _loopID = (void*)socket(AF_INET, SOCK_STREAM, 0);
+  _sock = socket(AF_INET, SOCK_STREAM, 0);
   if (_serverAddr.sin_addr.s_addr == INADDR_NONE || _loopID < 0)   // error
     {
       RELEASE(self);
