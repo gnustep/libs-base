@@ -1,3 +1,41 @@
+2006-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/GSRunLoopWatcher.m: deleted
+	* Source/win32/GSRunLoopWatcher.m: deleted
+	* Source/GSRunLoopWatcher.m: combine drom subdirectories.
+	* Source/GNUmakefile:
+	* Source/NSSocketPort.m:
+	* Source/NSRunLoop.m:
+	* Source/GSRunLoopWatcher.h:
+	* Source/GSStream.h:
+	* Source/GSStream.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/unix/GNUmakefile:
+	* Source/unix/NSStream.m:
+	* Source/GSRunLoopCtxt.h:
+	* Source/NSMessagePort.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/win32/GNUmakefile:
+	* Source/win32/NSStreamWin32.m:
+	* Source/NSThread.m:
+	* Source/GSFileHandle.m:
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Additions/GNUstepBase/GSFileHandle.h:
+	Remove timeout facility for runloop watchers ... can use standard
+	timers instead.  This simplifies api/code somewhat.
+	Added new watcher type ET_TRIGGER to count as an input source for
+	the runloop but work by polling rather than waiting for I/O events.
+	This allows NSStream objects to be added to the runloop even if
+	they don't do real I/O (eg memory streams).
+	Added private internal API to allow watchers to adjust how the loop
+	deals with them for each iteration... needed to simulate unix like
+	level-triggered events on windows where events are edge triggered.
+	Rewrote NSStream code to put handling of runloop scheduling in the
+	abstract classes rather than repeat in every subclass.
+	Rewrote NSStream stuff to use new runloop mechanisms to support
+	memory and file streams in runloops.
+	Implemented pipe base NSStream for windows.
+
 2006-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSOutput.m: Get rid of bogus '&nbsp;'

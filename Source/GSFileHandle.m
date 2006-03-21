@@ -2102,13 +2102,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
 }
 
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode
-{
-  return nil;		/* Don't restart timed out events	*/
-}
-
 - (void) setAddr: (struct sockaddr_in *)sin
 {
   address = [[NSString alloc] initWithCString: (char*)inet_ntoa(sin->sin_addr)];

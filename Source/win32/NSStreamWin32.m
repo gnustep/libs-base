@@ -40,16 +40,10 @@
 #include <Foundation/NSError.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSProcessInfo.h>
 
 #include "../GSStream.h"
 
-#ifndef	O_BINARY
-#ifdef	_O_BINARY
-#define	O_BINARY	_O_BINARY
-#else
-#define	O_BINARY	0
-#endif
-#endif
 typedef int socklen_t;
 
 /** 
@@ -60,17 +54,30 @@ typedef int socklen_t;
 @private
   NSString *_path;
 }
-/**
- * this is the bridge method for asynchronized operation. Do not call.
+@end
+
+/** 
+ * The concrete subclass of NSInputStream that reads from a pipe
  */
-- (void) _dispatch;
+@interface GSPipeInputStream : GSInputStream
+{
+  HANDLE	handle;
+  OVERLAPPED	ov;
+  uint8_t	data[BUFSIZ*64];
+  unsigned	offset;	// Read pointer within buffer
+  unsigned	length;	// Amount of data in buffer
+  unsigned	want;	// Amount of data we want to read.
+  DWORD		size;	// Number of bytes returned by read.
+}
+- (void) _queue;
+- (void) _setHandle: (HANDLE)h;
 @end
 
 @class GSSocketOutputStream;
 /** 
  * The abstract subclass of NSInputStream that reads from a socket
  */
-@interface GSSocketInputStream : GSInputStream <RunLoopEvents>
+@interface GSSocketInputStream : GSInputStream
 {
 @protected
   GSSocketOutputStream *_sibling;
@@ -103,10 +110,6 @@ typedef int socklen_t;
  */
 - (void) setEvent: (WSAEVENT)event;
 
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 @interface GSInetInputStream : GSSocketInputStream
@@ -131,16 +134,28 @@ typedef int socklen_t;
   NSString *_path;
   BOOL _shouldAppend;
 }
-/**
- * this is the bridge method for asynchronized operation. Do not call.
+@end
+
+/** 
+ * The concrete subclass of NSOutputStream that reads from a pipe
  */
-- (void) _dispatch;
+@interface GSPipeOutputStream : GSOutputStream
+{
+  HANDLE	handle;
+  OVERLAPPED	ov;
+  NSMutableData	*data;
+  unsigned	offset;
+  unsigned	want;
+  DWORD		size;
+}
+- (void) _queue;
+- (void) _setHandle: (HANDLE)h;
 @end
 
 /**
  * The concrete subclass of NSOutputStream that writes to a socket
  */
-@interface GSSocketOutputStream : GSOutputStream <RunLoopEvents>
+@interface GSSocketOutputStream : GSOutputStream
 {
 @protected
   GSSocketInputStream *_sibling;
@@ -173,10 +188,6 @@ typedef int socklen_t;
  */
 - (void) setEvent: (WSAEVENT)event;
 
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 @interface GSInetOutputStream : GSSocketOutputStream
@@ -195,7 +206,7 @@ typedef int socklen_t;
 /**
  * The concrete subclass of NSServerStream that accept connection from a socket
  */
-@interface GSSocketServerStream : GSAbstractServerStream <RunLoopEvents>
+@interface GSSocketServerStream : GSAbstractServerStream
 {
   WSAEVENT  _event;
 }
@@ -237,13 +248,11 @@ static void setNonblocking(SOCKET fd)
 
 @implementation GSFileInputStream
 
-- (id) initWithFileAtPath: (NSString *)path
+- (void) close
 {
-  if ((self = [super init]) != nil)
-    {
-      ASSIGN(_path, path);
-    }
-  return self;
+  if (CloseHandle((HANDLE)_loopID) == 0)
+    [self _recordError];
+  [super close];
 }
 
 - (void) dealloc
@@ -252,18 +261,6 @@ static void setNonblocking(SOCKET fd)
     [self close];
   RELEASE(_path);
   [super dealloc];
-}
-
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
-{
-  int readLen;
-
-  readLen = read((int)_fd, buffer, len);
-  if (readLen < 0 && errno != EAGAIN && errno != EINTR)
-    [self _recordError];
-  else if (readLen == 0)
-    [self _setStatus: NSStreamStatusAtEnd];
-  return readLen;
 }
 
 - (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
@@ -278,57 +275,64 @@ static void setNonblocking(SOCKET fd)
   return NO;
 }
 
-- (id) propertyForKey: (NSString *)key
+- (id) initWithFileAtPath: (NSString *)path
 {
-  if ([key isEqualToString: NSStreamFileCurrentOffsetKey])
+  if ((self = [super init]) != nil)
     {
-      off_t offset = 0;
-
-      if ([self _isOpened])
-        offset = lseek((int)_fd, 0, SEEK_CUR);
-      return [NSNumber numberWithLong: offset];
+      ASSIGN(_path, path);
     }
-  return [super propertyForKey: key];
+  return self;
 }
 
 - (void) open
 {
-  int fd;
+  HANDLE	h;
 
-  fd = _wopen([_path fileSystemRepresentation], O_RDONLY|O_BINARY);   
-  if (fd < 0)
-    {  
+  h = (void*)CreateFileW([_path fileSystemRepresentation],
+    GENERIC_READ,
+    FILE_SHARE_READ,
+    0,
+    OPEN_EXISTING,
+    0,
+    0);
+  if (h == INVALID_HANDLE_VALUE)
+    {
       [self _recordError];
       return;
     }
+  [self _setLoopID: (void*)h];
   [super open];
-  _fd = (void*)fd;
-  // put it self to the runloop if we havn't do so.
-  if (_runloop)
-    {
-      [_runloop performSelector: @selector(_dispatch)
-    		         target: self
-		       argument: nil
-			  order: 0
-			  modes: _modes];
-    }
 }
 
-
-- (void) close
+- (id) propertyForKey: (NSString *)key
 {
-  int closeReturn = close((int)_fd);
-
-  if (closeReturn < 0)
-    [self _recordError];
- // remove itself from the runloop, if any
-  if (_runloop)
+  if ([key isEqualToString: NSStreamFileCurrentOffsetKey])
     {
-      [_runloop cancelPerformSelectorsWithTarget: self];
+      DWORD offset = 0;
+
+      if ([self _isOpened])
+        offset = SetFilePointer((HANDLE)_loopID, 0, 0, FILE_CURRENT);
+      return [NSNumber numberWithLong: (long)offset];
     }
-  _fd = (void*)-1;
-  [super close];
+  return [super propertyForKey: key];
 }
+
+- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+{
+  DWORD readLen;
+
+  if (ReadFile((HANDLE)_loopID, buffer, len, &readLen, NULL) == 0)
+    {
+      [self _recordError];
+      return -1;
+    }
+  else if (readLen == 0)
+    {
+      [self _setStatus: NSStreamStatusAtEnd];
+    }
+  return (int)readLen;
+}
+
 
 - (void) _dispatch
 {
@@ -340,52 +344,226 @@ static void setNonblocking(SOCKET fd)
   
   [self _setStatus: myStatus];
   [self _sendEvent: myEvent];
- // dispatch again iff still opened, and last event is not eos
-  if (av && [self _isOpened])
-    {
-      [_runloop performSelector: @selector(_dispatch) 
-                         target: self
-                       argument: nil 
-                          order: 0 
-                          modes: _modes];
-    }
 }
 
-- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+@end
+
+@implementation GSPipeInputStream
+
+- (void) close
 {
-  NSAssert(!_runloop || _runloop == aRunLoop, 
-    @"Attempt to schedule in more than one runloop.");
-  ASSIGN(_runloop, aRunLoop);
-  if (![_modes containsObject: mode])
-    [_modes addObject: mode];
+  if (want > 0 && handle != INVALID_HANDLE_VALUE)
+    {
+      want = 0;
+      CancelIo(handle);
+    }
+  if (_loopID != INVALID_HANDLE_VALUE)
+    {
+      CloseHandle((HANDLE)_loopID);
+    }
+  if (handle != INVALID_HANDLE_VALUE)
+    {
+      if (CloseHandle(handle) == 0)
+	{
+	  [self _recordError];
+	}
+    }
+  length = offset = 0;
+  [super close];
+  handle = INVALID_HANDLE_VALUE;
+  _loopID = (void*)INVALID_HANDLE_VALUE;
+}
+
+- (void) dealloc
+{
   if ([self _isOpened])
-    {  
-      [_runloop performSelector: @selector(_dispatch) 
-                         target: self
-                       argument: nil 
-                          order: 0 
-                          modes: _modes];
-    }
-}
-
-- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(_runloop == aRunLoop, 
-    @"Attempt to remove unscheduled runloop");
-  if ([_modes containsObject: mode])
     {
-      [_modes removeObject: mode];
-      if ([self _isOpened])
-        {
-          [_runloop cancelPerformSelector: @selector(_dispatch) 
-                                   target: self 
-                                 argument: nil];
-        }
-      if ([_modes count] == 0)
-        DESTROY(_runloop);
+      [self close];
+    }
+  [super dealloc];
+}
+
+- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
+{
+  if (offset < length)
+    {
+      *buffer  = data + offset;
+      *len = length - offset;
+    }
+  return NO;
+}
+
+- (BOOL) hasBytesAvailable
+{
+  if ([self _isOpened] && [self streamStatus] != NSStreamStatusAtEnd)
+    return YES;
+  return NO;
+}
+
+- (id) init
+{
+  if ((self = [super init]) != nil)
+    {
+      handle = INVALID_HANDLE_VALUE;
+      _loopID = (void*)INVALID_HANDLE_VALUE;
+    }
+  return self;
+}
+
+- (void) open
+{
+  if (_loopID == (void*)INVALID_HANDLE_VALUE)
+    {
+      _loopID = (void*)CreateEvent(NULL, FALSE, FALSE, NULL);
+    }
+  [super open];
+  [self _queue];
+}
+
+- (void) _queue
+{
+  if ([self streamStatus] == NSStreamStatusOpen)
+    {
+      int	rc;
+
+      want = sizeof(data);
+      ov.Offset = 0;
+      ov.OffsetHigh = 0;
+      ov.hEvent = (HANDLE)_loopID;
+      rc = ReadFile(handle, data, want, &size, &ov);
+      if (rc != 0)
+	{
+	  // Read succeeded
+	  want = 0;
+	  length = size;
+	  if (length == 0)
+	    {
+	      [self _setStatus: NSStreamStatusAtEnd];
+	    }
+	}
+      else if ((errno = GetLastError()) == ERROR_HANDLE_EOF
+        || errno == ERROR_BROKEN_PIPE)
+	{
+	  offset = length = 0;
+	  [self _setStatus: NSStreamStatusOpen];	// Read of zero length
+	}
+      else if (errno != ERROR_IO_PENDING)
+	{
+          [self _recordError];
+	}
+      else
+	{
+	  [self _setStatus: NSStreamStatusReading];
+	}
     }
 }
 
+- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+{
+  NSStreamStatus myStatus = [self streamStatus];
+
+  if (myStatus == NSStreamStatusAtEnd)
+    {
+      return 0;		// At EOF
+    }
+  if (len <= 0
+    || (myStatus != NSStreamStatusReading && myStatus != NSStreamStatusOpen))
+    {
+      return -1;	// Bad length or status
+    }
+  if (offset == length)
+    {
+      if (myStatus == NSStreamStatusOpen)
+	{
+	  /*
+	   * There is no buffered data and no read in progress,
+	   * so we must be at EOF.
+	   */
+	  [self _setStatus: NSStreamStatusAtEnd];
+	  return 0;
+	}
+      return -1;	// Waiting for read.
+    }
+  /*
+   * We already have data buffered ... return some or all of it.
+   */
+  if (len > (length - offset))
+    {
+      len = length - offset;
+    }
+  memcpy(buffer, data, len);
+  offset += len;
+  if (offset == length && myStatus == NSStreamStatusOpen)
+    {
+      length = 0;
+      offset = 0;
+      [self _queue];	// Queue another read
+    }
+  return len;
+}
+
+- (void) _setHandle: (HANDLE)h
+{
+  handle = h;
+}
+
+- (void) _dispatch
+{
+  NSStreamEvent myEvent;
+  NSStreamStatus myStatus = [self streamStatus];
+
+  if (myStatus == NSStreamStatusReading)
+    {
+      want = 0;
+      if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
+	{
+	  errno = GetLastError();
+	  if (errno == ERROR_HANDLE_EOF
+	    || errno == ERROR_BROKEN_PIPE)
+	    {
+	      myStatus = NSStreamStatusOpen;
+	      offset = length = 0;
+	    }
+	  else
+	    {
+	      myStatus = NSStreamStatusOpen;
+	      [self _recordError];
+	    }
+	}
+      else
+	{
+	  myStatus = NSStreamStatusOpen;
+	  length = size;
+	}
+      [self _setStatus: myStatus];
+    }
+
+  if (myStatus == NSStreamStatusAtEnd)
+    {
+      myEvent = NSStreamEventEndEncountered;
+    }
+  else
+    {
+      myEvent = NSStreamEventHasBytesAvailable;
+    }
+
+  [self _sendEvent: myEvent];
+}
+
+- (BOOL) runLoopShouldBlock: (BOOL*)trigger
+{
+  NSStreamStatus myStatus = [self streamStatus];
+
+  if (myStatus == NSStreamStatusReading)
+    {
+      // Need to wait for I/O
+      *trigger = YES;
+      return YES;
+    }
+  // Need to signal for an event
+  *trigger = YES;
+  return NO;
+}
 @end
 
 @implementation GSSocketInputStream
@@ -451,7 +629,7 @@ static void setNonblocking(SOCKET fd)
     }
   else
     {
-      int connectReturn = connect((SOCKET)_fd, [self peerAddr], [self sockLen]);
+      int connectReturn = connect((SOCKET)_loopID, [self peerAddr], [self sockLen]);
       
       if (connectReturn == SOCKET_ERROR
 	&& WSAGetLastError() != WSAEWOULDBLOCK)
@@ -462,17 +640,12 @@ static void setNonblocking(SOCKET fd)
       // waiting on writable, as an indication of opened
       if (_runloop)
         {
-          int i;
+          unsigned i = [_modes count];
           
-          WSAEventSelect((SOCKET)_fd, _event, FD_ALL_EVENTS);
-          for (i = 0; i < [_modes count]; i++)
+          WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
+          while (i-- > 0)
             {
-              NSString	*thisMode = [_modes objectAtIndex: i];
-
-              [_runloop addEvent: (void*)_event
-			    type: ET_HANDLE 
-			 watcher: self
-			 forMode: thisMode];
+              [_runloop addStream: self mode: [_modes objectAtIndex: 1]];
             }
         }
       [self _setStatus: NSStreamStatusOpening];
@@ -481,47 +654,22 @@ static void setNonblocking(SOCKET fd)
 
  open_ok: 
   [super open];
-  setNonblocking((SOCKET)_fd);
-  WSAEventSelect((SOCKET)_fd, _event, FD_ALL_EVENTS);
-  // put itself to the runloop
-  if (_runloop)
-    {
-      int i;
-      
-      for (i = 0; i < [_modes count]; i++)
-        {
-          NSString	*thisMode = [_modes objectAtIndex: i];
-          
-          [self scheduleInRunLoop: _runloop forMode: thisMode];
-        }
-    }
+  setNonblocking((SOCKET)_loopID);
+  WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
 }
 
 - (void) close
 {
   // read shutdown is ignored, because the other side may shutdown first.
   if (_sibling && [_sibling streamStatus]!=NSStreamStatusClosed)
-    shutdown((SOCKET)_fd, SD_RECEIVE);
+    shutdown((SOCKET)_loopID, SD_RECEIVE);
   else
     {
-      // remove itself from the runloop, if any
-      if (_runloop)
-        {
-          int i;
-        
-          for (i = 0; i < [_modes count]; i++)
-            {
-              NSString	*thisMode = [_modes objectAtIndex: i];
-
-              [self removeFromRunLoop: _runloop forMode: thisMode];
-            }
-        }
       WSACloseEvent(_event);
-      closesocket((SOCKET)_fd);
+      closesocket((SOCKET)_loopID);
     }
   // safety against double close
   _event = WSA_INVALID_EVENT;
-  _fd = (void*)-1;
   [super close];
 }
 
@@ -529,7 +677,7 @@ static void setNonblocking(SOCKET fd)
 {
   int readLen;
 
-  readLen = recv((SOCKET)_fd, buffer, len, 0);
+  readLen = recv((SOCKET)_loopID, buffer, len, 0);
   if (readLen == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
@@ -557,58 +705,9 @@ static void setNonblocking(SOCKET fd)
   return NO;
 }
 
-- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+- (void) _dispatch
 {
-  NSAssert(!_runloop || _runloop == aRunLoop, 
-    @"Attempt to schedule in more than one runloop.");
-  ASSIGN(_runloop, aRunLoop);
-  if (![_modes containsObject: mode])
-    [_modes addObject: mode];
-  if ([self _isOpened])
-    {
-      [_runloop addEvent: (void*)_event
-		    type: ET_HANDLE
-		 watcher: self
-		 forMode: mode];
-    }
-}
-
-- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(_runloop == aRunLoop, 
-    @"Attempt to remove unscheduled runloop");
-  if ([_modes containsObject: mode])
-    {
-      [_modes removeObject: mode];
-      if ([self _isOpened])
-        {
-          [_runloop removeEvent: (void*)_event
-			   type: ET_HANDLE
-			forMode: mode
-			    all: YES];
-        }
-      if ([_modes count] == 0)
-        {
-          [_runloop cancelPerformSelector: @selector(_dispatch) 
-                                   target: self 
-                                 argument: nil];
-          DESTROY(_runloop);
-        }
-    }
-}
-
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode
-{
-  return nil;
-}
-
-- (void) receivedEvent: (void*)data
-                  type: (RunLoopEventType)type
-		 extra: (void*)extra
-	       forMode: (NSString*)mode
-{
+  NSStreamStatus myStatus;
   WSANETWORKEVENTS ocurredEvents;
   int error, getReturn; 
   unsigned len = sizeof(error);
@@ -621,21 +720,24 @@ static void setNonblocking(SOCKET fd)
     {
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed, 
                @"Received event for closed stream");
-      [_sibling receivedEvent: data 
-                         type: type
-                        extra: extra
-                      forMode: mode];
+      [_sibling _dispatch];
       return;
     }
     
-  if (WSAEnumNetworkEvents((SOCKET)_fd, _event, &ocurredEvents) == SOCKET_ERROR)
+  if (WSAEnumNetworkEvents((SOCKET)_loopID, _event, &ocurredEvents) == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
       [self _recordError];
     }
   else if ([self streamStatus] == NSStreamStatusOpening)
     {
-      getReturn = getsockopt((SOCKET)_fd, SOL_SOCKET, SO_ERROR,
+      unsigned	i = [_modes count];
+
+      while (i-- > 0)
+	{
+	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
+	}
+      getReturn = getsockopt((SOCKET)_loopID, SOL_SOCKET, SO_ERROR,
 	(char*)&error, &len);
 
       if (getReturn >= 0 && !error
@@ -673,15 +775,8 @@ static void setNonblocking(SOCKET fd)
           [_sibling _setStatus: NSStreamStatusOpen];
         }
     }
-  [self _dispatch];
-  if (_sibling && [_sibling _isOpened])
-    [_sibling _dispatch];
-}
 
-- (void) _dispatch
-{
-  NSStreamStatus myStatus = [self streamStatus];
-
+  myStatus = [self streamStatus];
   switch (myStatus)
     {
       case NSStreamStatusError: 
@@ -707,6 +802,8 @@ static void setNonblocking(SOCKET fd)
                           order: 0 
                           modes: _modes];
     }    
+  if (_sibling && [_sibling _isOpened])
+    [_sibling _dispatch];
 }
 
 @end
@@ -744,14 +841,11 @@ static void setNonblocking(SOCKET fd)
 
 @implementation GSFileOutputStream
 
-- (id) initToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
+- (void) close
 {
-  if ((self = [super init]) != nil)
-    {
-      ASSIGN(_path, path);
-      _shouldAppend = shouldAppend;
-    }
-  return self;
+  if (CloseHandle((HANDLE)_loopID) == 0)
+    [self _recordError];
+  [super close];
 }
 
 - (void) dealloc
@@ -762,78 +856,77 @@ static void setNonblocking(SOCKET fd)
   [super dealloc];
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
-{
-  int writeLen;
-
-  writeLen = write((int)_fd, buffer, len);
-  if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
-    [self _recordError];
-  return writeLen;
-}
-
 - (BOOL) hasSpaceAvailable
 {
   if ([self _isOpened])
     return YES;
   return NO;
 }
-                                                                                 
+
+- (id) initToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
+{
+  if ((self = [super init]) != nil)
+    {
+      ASSIGN(_path, path);
+      _shouldAppend = shouldAppend;
+    }
+  return self;
+}
+
 - (void) open
 {
-  int fd;
-  int flag = O_WRONLY | O_CREAT | O_BINARY;
-  int mode = _S_IREAD | _S_IWRITE; 
+  HANDLE	h;
 
-  if (_shouldAppend)
-    flag = flag | O_APPEND;
-  else
-    flag = flag | O_TRUNC;
-  fd = _wopen([_path fileSystemRepresentation], flag, mode);
-  if (fd < 0)
-    {  // make an error
+  h = (void*)CreateFileW([_path fileSystemRepresentation],
+    GENERIC_WRITE,
+    FILE_SHARE_WRITE,
+    0,
+    OPEN_ALWAYS,
+    0,
+    0);
+  if (h == INVALID_HANDLE_VALUE)
+    {
       [self _recordError];
       return;
     }
+  else if (_shouldAppend == NO)
+    {
+      if (SetEndOfFile(h) == 0)	// Truncate to current file pointer (0)
+	{
+          [self _recordError];
+	}
+    }
+  [self _setLoopID: (void*)h];
   [super open];
-  _fd = (void*)fd;
-  // put it self to the runloop if we haven't do so.
-  if (_runloop)
-    {
-      [_runloop performSelector: @selector(_dispatch)
-    		         target: self
-		       argument: nil
-			  order: 0
-			  modes: _modes];
-    }
-}
-
-- (void) close
-{
-  int closeReturn = close((int)_fd);
-
-  if (closeReturn < 0)
-    [self _recordError];
-  // remove itself from the runloop, if any
-  if (_runloop)
-    {
-      [_runloop cancelPerformSelectorsWithTarget: self];
-    }
-  _fd = (void*)-1;
-  [super close];
 }
 
 - (id) propertyForKey: (NSString *)key
 {
   if ([key isEqualToString: NSStreamFileCurrentOffsetKey])
     {
-      off_t offset = 0;
+      DWORD offset = 0;
 
       if ([self _isOpened])
-        offset = lseek((int)_fd, 0, SEEK_CUR);
-      return [NSNumber numberWithLong: offset];
+        offset = SetFilePointer((HANDLE)_loopID, 0, 0, FILE_CURRENT);
+      return [NSNumber numberWithLong: (long)offset];
     }
   return [super propertyForKey: key];
+}
+
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+{
+  DWORD writeLen;
+
+  if (_shouldAppend == YES)
+    {
+      SetFilePointer((HANDLE)_loopID, 0, 0, FILE_END);
+    }
+  if (WriteFile((HANDLE)_loopID, buffer, len, &writeLen, NULL) == 0)
+    {
+      [self _recordError];
+      return -1;
+    }
+  return (int)writeLen;
 }
 
 - (void) _dispatch
@@ -843,57 +936,175 @@ static void setNonblocking(SOCKET fd)
     NSStreamEventEndEncountered;
 
   [self _sendEvent: myEvent];
-  // dispatch again iff still opened, and last event is not eos
-  if (av && [self _isOpened])
-    {
-      [_runloop performSelector: @selector(_dispatch) 
-                         target: self
-                       argument: nil 
-                          order: 0 
-                          modes: _modes];
-    }
 }
 
-- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+@end
+
+@implementation GSPipeOutputStream
+
+- (void) close
 {
-  NSAssert(!_runloop || _runloop == aRunLoop, 
-    @"Attempt to schedule in more than one runloop.");
-  ASSIGN(_runloop, aRunLoop);
-  if (![_modes containsObject: mode])
-    [_modes addObject: mode];
+  if (_loopID != INVALID_HANDLE_VALUE)
+    {
+      CloseHandle((HANDLE)_loopID);
+    }
+  if (handle != INVALID_HANDLE_VALUE)
+    {
+      if (CloseHandle(handle) == 0)
+	{
+	  [self _recordError];
+	}
+    }
+  offset = want = 0;
+  [super close];
+  _loopID = (void*)INVALID_HANDLE_VALUE;
+  handle = INVALID_HANDLE_VALUE;
+}
+
+- (void) dealloc
+{
+  if (data != nil)
+    {
+      DESTROY(data);
+    }
   if ([self _isOpened])
-    {
-      [_runloop performSelector: @selector(_dispatch) 
-                         target: self
-                       argument: nil 
-                          order: 0 
-                          modes: _modes];
-    }
+    [self close];
+  [super dealloc];
 }
 
-- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+- (BOOL) hasSpaceAvailable
 {
-  NSAssert(_runloop == aRunLoop, 
-    @"Attempt to remove unscheduled runloop");
-  if ([_modes containsObject: mode])
+  if ([self _isOpened] && [self streamStatus] != NSStreamStatusWriting)
+    return YES;
+  return NO;
+}
+
+- (id) init
+{
+  if ((self = [super init]) != nil)
     {
-      [_modes removeObject: mode];
-      if ([self _isOpened])
-        {
-          [_runloop cancelPerformSelector: @selector(_dispatch) 
-                                   target: self 
-				 argument: nil];
-        }
-      if ([_modes count] == 0)
-        {
-          [_runloop cancelPerformSelector: @selector(_dispatch) 
-                                   target: self 
-                                 argument: nil];
-          DESTROY(_runloop);
-        }
+      handle = INVALID_HANDLE_VALUE;
+      _loopID = (void*)INVALID_HANDLE_VALUE;
+    }
+  return self;
+}
+
+- (void) open
+{
+  if (_loopID == (void*)INVALID_HANDLE_VALUE)
+    {
+      _loopID = (void*)CreateEvent(NULL, FALSE, FALSE, NULL);
+    }
+  [super open];
+}
+
+- (void) _queue
+{
+  NSStreamStatus myStatus = [self streamStatus];
+
+  if (myStatus == NSStreamStatusOpen)
+    {
+      while (offset < want)
+	{
+	  int	rc;
+
+	  ov.Offset = 0;
+	  ov.OffsetHigh = 0;
+	  ov.hEvent = (HANDLE)_loopID;
+	  size = 0;
+	  rc = WriteFile(handle, [data bytes]+offset, want-offset, &size, &ov);
+	  if (rc != 0)
+	    {
+	      offset += size;
+	    }
+	  else if ((errno = GetLastError()) == ERROR_IO_PENDING)
+	    {
+	      [self _setStatus: NSStreamStatusWriting];
+	      break;
+	    }
+	  else
+	    {
+	      [self _recordError];
+	      break;
+	    }
+	}
     }
 }
 
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+{
+  if (len <= 0 || [self streamStatus] != NSStreamStatusOpen)
+    {
+      return -1;
+    }
+  if (data == nil)
+    {
+      data = [[NSMutableData alloc] initWithBytes: buffer length: len];
+    }
+  else
+    {
+      [data setLength: 0];
+      [data appendBytes: buffer length: len];
+    }
+  want = len;
+  offset = 0;
+  [self _queue];
+  return len;
+}
+
+- (void) _setHandle: (HANDLE)h
+{
+  handle = h;
+}
+
+- (void) _dispatch
+{
+  BOOL av;
+  NSStreamEvent myEvent;
+
+  if ([self streamStatus] == NSStreamStatusWriting)
+    {
+      if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
+	{
+	  [self _recordError];
+	  offset = 0;
+	  want = 0;
+	  [self _setStatus: NSStreamStatusAtEnd];
+	}
+      else
+	{
+	  [self _setStatus: NSStreamStatusOpen];
+	  offset += size;
+	  if (offset <= want)
+	    {
+	      [self _queue];
+	    }
+	  if ([self streamStatus] == NSStreamStatusWriting)
+	    {
+	      return;	// Write not complete
+	    }
+	}
+    }
+
+  av = [self hasSpaceAvailable];
+  myEvent = av ? NSStreamEventHasSpaceAvailable : 
+    NSStreamEventEndEncountered;
+
+  [self _sendEvent: myEvent];
+}
+
+- (BOOL) runLoopShouldBlock: (BOOL*)trigger
+{
+  NSStreamStatus myStatus = [self streamStatus];
+
+  if (myStatus == NSStreamStatusWriting)
+    {
+      *trigger = YES;
+      return YES;
+    }
+  *trigger = YES;
+  return NO;
+}
 @end
 
 @implementation GSSocketOutputStream
@@ -948,7 +1159,7 @@ static void setNonblocking(SOCKET fd)
 {
   int writeLen;
 
-  writeLen = send((SOCKET)_fd, buffer, len, 0);
+  writeLen = send((SOCKET)_loopID, buffer, len, 0);
   if (writeLen == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
@@ -984,7 +1195,7 @@ static void setNonblocking(SOCKET fd)
     }
   else
     {
-      int connectReturn = connect((SOCKET)_fd, [self peerAddr], [self sockLen]);
+      int connectReturn = connect((SOCKET)_loopID, [self peerAddr], [self sockLen]);
       
       if (connectReturn == SOCKET_ERROR
 	&& WSAGetLastError() != WSAEWOULDBLOCK)
@@ -995,18 +1206,13 @@ static void setNonblocking(SOCKET fd)
       // waiting on writable, as an indication of opened
       if (_runloop)
         {
-          int i;
+          unsigned i = [_modes count];
 
-          WSAEventSelect((SOCKET)_fd, _event, FD_ALL_EVENTS);
+          WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
 
-          for (i = 0; i < [_modes count]; i++)
+          while (i-- > 0)
             {
-              NSString	*thisMode = [_modes objectAtIndex: i];
-
-              [_runloop addEvent: (void*)_event
-			    type: ET_HANDLE 
-			 watcher: self
-			 forMode: thisMode];
+              [_runloop addStream: self mode: [_modes objectAtIndex: 1]];
             }
         }
       [self _setStatus: NSStreamStatusOpening];
@@ -1014,21 +1220,9 @@ static void setNonblocking(SOCKET fd)
     }
 
  open_ok: 
+  setNonblocking((SOCKET)_loopID);
+  WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
   [super open];
-  setNonblocking((SOCKET)_fd);
-  WSAEventSelect((SOCKET)_fd, _event, FD_ALL_EVENTS);
-  // put itself to the runloop
-  if (_runloop)
-    {
-      int i;
-      
-      for (i = 0; i < [_modes count]; i++)
-        {
-          NSString	*thisMode = [_modes objectAtIndex: i];
-          
-          [self scheduleInRunLoop: _runloop forMode: thisMode];
-        }
-    }
 }
 
 - (void) close
@@ -1036,79 +1230,22 @@ static void setNonblocking(SOCKET fd)
   // shutdown may fail (broken pipe). Record it.
   int closeReturn;
   if (_sibling && [_sibling streamStatus]!=NSStreamStatusClosed)
-    closeReturn = shutdown((SOCKET)_fd, SD_SEND);
+    closeReturn = shutdown((SOCKET)_loopID, SD_SEND);
   else
     {
-      // remove itself from the runloop, if any
-      if (_runloop)
-        {
-          int i;
-
-          for (i = 0; i < [_modes count]; i++)
-            {
-              NSString	*thisMode = [_modes objectAtIndex: i];
-   
-              [self removeFromRunLoop: _runloop forMode: thisMode];
-            }
-        }
       WSACloseEvent(_event);
-      closeReturn = closesocket((SOCKET)_fd);
+      closeReturn = closesocket((SOCKET)_loopID);
     }
   if (closeReturn < 0)
     [self _recordError];
   // safety against double close 
   _event = WSA_INVALID_EVENT;
-  _fd = (void*)-1;
   [super close];
 }
 
-- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+- (void) _dispatch
 {
-  NSAssert(!_runloop || _runloop == aRunLoop, 
-    @"Attempt to schedule in more than one runloop.");
-  ASSIGN(_runloop, aRunLoop);
-  if (![_modes containsObject: mode])
-    [_modes addObject: mode];
-  if ([self _isOpened])
-    {
-      [_runloop addEvent: (void*)_event
-		    type: ET_HANDLE
-		 watcher: self
-		 forMode: mode];
-    }
-}
-
-- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(_runloop == aRunLoop, 
-    @"Attempt to remove unscheduled runloop");
-  if ([_modes containsObject: mode])
-    {
-      [_modes removeObject: mode];
-      if ([self _isOpened])
-        {
-          [_runloop removeEvent: (void*)_event
-			   type: ET_HANDLE
-			forMode: mode
-			    all: YES];
-        }
-      if ([_modes count] == 0)
-        DESTROY(_runloop);
-    }
-}
-
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode
-{
-  return nil;
-}
-
-- (void) receivedEvent: (void*)data
-                  type: (RunLoopEventType)type
-		 extra: (void*)extra
-	       forMode: (NSString*)mode
-{
+  NSStreamStatus myStatus;
   WSANETWORKEVENTS ocurredEvents;
   int error, getReturn;
   unsigned len = sizeof(error);
@@ -1121,21 +1258,24 @@ static void setNonblocking(SOCKET fd)
     {
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed, 
 	@"Received event for closed stream");
-      [_sibling receivedEvent: data 
-                         type: type
-                        extra: extra
-                      forMode: mode];
+      [_sibling _dispatch];
       return;
     }
     
-  if (WSAEnumNetworkEvents((SOCKET)_fd, _event, &ocurredEvents) == SOCKET_ERROR)
+  if (WSAEnumNetworkEvents((SOCKET)_loopID, _event, &ocurredEvents) == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
       [self _recordError];
     }
   else if ([self streamStatus] == NSStreamStatusOpening)
     {
-      getReturn = getsockopt((SOCKET)_fd, SOL_SOCKET, SO_ERROR,
+      unsigned	i = [_modes count];
+
+      while (i-- > 0)
+	{
+	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
+	}
+      getReturn = getsockopt((SOCKET)_loopID, SOL_SOCKET, SO_ERROR,
 	(char*)&error, &len);
 
       if (getReturn >= 0 && !error
@@ -1172,14 +1312,7 @@ static void setNonblocking(SOCKET fd)
           [self _setStatus: NSStreamStatusOpen];
         }
     }
-  [self _dispatch];
-  if (_sibling && [_sibling _isOpened])
-    [_sibling _dispatch];
-}
-
-- (void)_dispatch
-{
-  NSStreamStatus myStatus = [self streamStatus];
+  myStatus = [self streamStatus];
   switch (myStatus)
     {
       case NSStreamStatusError: 
@@ -1205,6 +1338,8 @@ static void setNonblocking(SOCKET fd)
                           order: 0 
                           modes: _modes];
     }    
+  if (_sibling && [_sibling _isOpened])
+    [_sibling _dispatch];
 }
 
 @end
@@ -1261,8 +1396,8 @@ static void setNonblocking(SOCKET fd)
   event = CreateEvent(NULL, NO, NO, NULL);
   
   NSAssert(sock >= 0, @"Cannot open socket");
-  [ins _setFd: (void*)(intptr_t)sock];
-  [outs _setFd: (void*)(intptr_t)sock];
+  [ins _setLoopID: (void*)(intptr_t)sock];
+  [outs _setLoopID: (void*)(intptr_t)sock];
   [ins setEvent: event];
   [outs setEvent: event];
   
@@ -1289,7 +1424,82 @@ static void setNonblocking(SOCKET fd)
 + (void) pipeWithInputStream: (NSInputStream **)inputStream 
                 outputStream: (NSOutputStream **)outputStream
 {
-  [self notImplemented: _cmd];
+  const unichar *name;
+  GSPipeInputStream *ins = nil;
+  GSPipeOutputStream *outs = nil;
+  SECURITY_ATTRIBUTES saAttr;
+  HANDLE readh;
+  HANDLE writeh;
+  HANDLE event;
+  OVERLAPPED ov;
+  int rc;
+
+  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+  saAttr.bInheritHandle = TRUE;
+  saAttr.lpSecurityDescriptor = NULL;
+
+  /*
+   * We have to use a named pipe since windows anonymous pipes do not
+   * support asynchronous I/O!
+   * We allocate a name known to be unique.
+   */
+  name = [[@"\\\\.\\pipe\\" stringByAppendingString:
+    [[NSProcessInfo processInfo] globallyUniqueString]]
+    fileSystemRepresentation];
+  readh = CreateNamedPipeW(name,
+    PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
+    PIPE_TYPE_BYTE,
+    1,
+    BUFSIZ*64,
+    BUFSIZ*64,
+    100000,
+    &saAttr);
+
+  NSAssert(readh != INVALID_HANDLE_VALUE, @"Cannot create pipe");
+
+  // Start async connect
+  event = CreateEvent(NULL, NO, NO, NULL);
+  ov.Offset = 0;
+  ov.OffsetHigh = 0;
+  ov.hEvent = event;
+  ConnectNamedPipe(readh, &ov);
+
+  writeh = CreateFileW(name,
+    GENERIC_WRITE,
+    0,
+    &saAttr,
+    OPEN_EXISTING,
+    FILE_FLAG_OVERLAPPED,
+    NULL);
+  if (writeh == INVALID_HANDLE_VALUE)
+    {
+      CloseHandle(event);
+      CloseHandle(readh);
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Unable to create/open write pipe"];
+    }
+
+  rc = WaitForSingleObject(event, 10);
+  CloseHandle(event);
+
+  if (rc != WAIT_OBJECT_0)
+    {
+      CloseHandle(readh);
+      CloseHandle(writeh);
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Unable to create/open read pipe"];
+    }
+
+  // the type of the stream does not matter, since we are only using the fd
+  ins = AUTORELEASE([GSPipeInputStream new]);
+  outs = AUTORELEASE([GSPipeOutputStream new]);
+
+  [ins _setHandle: readh];
+  [outs _setHandle: writeh];
+  if (inputStream)
+    *inputStream = ins;
+  if (outputStream)
+    *outputStream = outs;
 }
 
 - (void) close
@@ -1528,49 +1738,25 @@ static void setNonblocking(SOCKET fd)
 
 - (void) open
 {
-  int bindReturn = bind((SOCKET)_fd, [self serverAddr], [self sockLen]);
-  int listenReturn = listen((SOCKET)_fd, SOCKET_BACKLOG);
+  int bindReturn = bind((SOCKET)_loopID, [self serverAddr], [self sockLen]);
+  int listenReturn = listen((SOCKET)_loopID, SOCKET_BACKLOG);
 
   if (bindReturn < 0 || listenReturn)
     {
       [self _recordError];
       return;
     }
-  setNonblocking((SOCKET)_fd);
-  // put itself to the runloop
-  [super open];
+  setNonblocking((SOCKET)_loopID);
   _event = CreateEvent(NULL, NO, NO, NULL);
-  WSAEventSelect((SOCKET)_fd, _event, FD_ALL_EVENTS);
-  if (_runloop)
-    {
-      int i;
-
-      for (i = 0; i < [_modes count]; i++)
-        {
-          NSString* thisMode = [_modes objectAtIndex: i];
-          [self scheduleInRunLoop: _runloop forMode: thisMode];
-        }
-    }
+  WSAEventSelect((SOCKET)_loopID, _event, FD_ALL_EVENTS);
+  [super open];
 }
 
 - (void) close
 {
-  // remove itself from the runloop, if any
-  if (_runloop)
-    {
-      int i;
-
-      for (i = 0; i < [_modes count]; i++)
-        {
-          NSString* thisMode = [_modes objectAtIndex: i];
-          [self removeFromRunLoop: _runloop forMode: thisMode];
-        }
-    }
   WSACloseEvent(_event);
   // close a server socket is safe
-  closesocket((SOCKET)_fd);
-  _event = WSA_INVALID_EVENT;
-  _fd = (void*)-1;
+  closesocket((SOCKET)_loopID);
   [super close];
 }
 
@@ -1580,7 +1766,7 @@ static void setNonblocking(SOCKET fd)
   GSSocketInputStream *ins = AUTORELEASE([[self _inputStreamClass] new]);
   GSSocketOutputStream *outs = AUTORELEASE([[self _outputStreamClass] new]);
   socklen_t len = [ins sockLen];
-  int acceptReturn = accept((SOCKET)_fd, [ins peerAddr], &len);
+  int acceptReturn = accept((SOCKET)_loopID, [ins peerAddr], &len);
 
   if (acceptReturn == INVALID_SOCKET)
     { 
@@ -1601,8 +1787,8 @@ static void setNonblocking(SOCKET fd)
       [outs setPassive: YES];
       // copy the addr to outs
       memcpy([outs peerAddr], [ins peerAddr], len);
-      [ins _setFd: (void*)(intptr_t)acceptReturn];
-      [outs _setFd: (void*)(intptr_t)acceptReturn];
+      [ins _setLoopID: (void*)(intptr_t)acceptReturn];
+      [outs _setLoopID: (void*)(intptr_t)acceptReturn];
       [ins setEvent: event];
       [outs setEvent: event];
     }
@@ -1618,56 +1804,11 @@ static void setNonblocking(SOCKET fd)
     }
 }
 
-- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(!_runloop || _runloop == aRunLoop, 
-    @"Attempt to schedule in more than one runloop.");
-  ASSIGN(_runloop, aRunLoop);
-  if (![_modes containsObject: mode])
-    [_modes addObject: mode];
-  if ([self _isOpened])
-    {
-      [_runloop addEvent: (void*)_event
-		    type: ET_HANDLE
-		 watcher: self
-		 forMode: mode];
-    }
-}
-
-- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(_runloop == aRunLoop, 
-    @"Attempt to remove unscheduled runloop");
-  if ([_modes containsObject: mode])
-    {
-      [_modes removeObject: mode];
-      if ([self _isOpened])
-        {
-          [_runloop removeEvent: (void*)_event
-			   type: ET_HANDLE
-			forMode: mode
-			    all: YES];
-        }
-      if ([_modes count] == 0)
-        DESTROY(_runloop);
-    }
-}
-
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode
-{
-  return nil;
-}
-
-- (void) receivedEvent: (void*)data
-                  type: (RunLoopEventType)type
-		 extra: (void*)extra
-	       forMode: (NSString*)mode
+- (void) _dispatch
 {
   WSANETWORKEVENTS ocurredEvents;
   
-  if (WSAEnumNetworkEvents((SOCKET)_fd, _event, &ocurredEvents) == SOCKET_ERROR)
+  if (WSAEnumNetworkEvents((SOCKET)_loopID, _event, &ocurredEvents) == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
       [self _recordError];
@@ -1713,8 +1854,8 @@ static void setNonblocking(SOCKET fd)
   _serverAddr.sin_family = AF_INET;
   _serverAddr.sin_port = htons(port);
   _serverAddr.sin_addr.s_addr = inet_addr(addr_c);
-  _fd = (void*)socket(AF_INET, SOCK_STREAM, 0);
-  if (_serverAddr.sin_addr.s_addr == INADDR_NONE || _fd < 0)   // error
+  _loopID = (void*)socket(AF_INET, SOCK_STREAM, 0);
+  if (_serverAddr.sin_addr.s_addr == INADDR_NONE || _loopID < 0)   // error
     {
       RELEASE(self);
       return nil;

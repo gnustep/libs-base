@@ -73,6 +73,61 @@ NSString * const NSStreamSOCKSProxyVersionKey
   = @"NSStreamSOCKSProxyVersionKey";
 
 
+/*
+ * Determine the type of event to use when adding a stream to the run loop.
+ * By default add as an 'ET_TRIGGER' so that the stream will be notified
+ * every time the loop runs (the event id/reference must be the address of
+ * the stream itsself to ensure that event/type is unique).
+ *
+ * Streams which actually expect to wait for I/O events must be added with
+ * the appropriate information for the loop to signal them.
+ */
+static RunLoopEventType typeForStream(NSStream *aStream)
+{
+#if	defined(__MINGW32__)
+  if ([aStream _loopID] == (void*)aStream)
+    {
+      return ET_TRIGGER;
+    }
+  else
+    {
+      return ET_HANDLE;
+    }
+#else
+  if ([aStream _loopID] == (void*)aStream)
+    {
+      return ET_TRIGGER;
+    }
+  else if ([aStream isKindOfClass: [NSOutputStream class]] == NO
+    && [aStream  streamStatus] != NSStreamStatusOpening)
+    {
+      return ET_RDESC;
+    }
+  else
+    {
+      return ET_WDESC;	
+    }
+#endif
+}
+
+@implementation	NSRunLoop (NSStream)
+- (void) addStream: (NSStream*)aStream mode: (NSString*)mode
+{
+  [self addEvent: [aStream _loopID]
+	    type: typeForStream(aStream)
+	 watcher: (id<RunLoopEvents>)aStream
+	 forMode: mode];
+}
+
+- (void) removeStream: (NSStream*)aStream mode: (NSString*)mode
+{
+  [self removeEvent: [aStream _loopID]
+	       type: typeForStream(aStream)
+	    forMode: mode
+		all: NO];
+}
+@end
+
 @implementation GSStream
 
 - (void) close
@@ -80,11 +135,25 @@ NSString * const NSStreamSOCKSProxyVersionKey
   NSAssert(_currentStatus != NSStreamStatusNotOpen
     && _currentStatus != NSStreamStatusClosed, 
     @"Attempt to close a stream not yet opened.");
+  if (_runloop)
+    {
+      unsigned	i = [_modes count];
+
+      while (i-- > 0)
+	{
+	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
+	}
+    }
   [self _setStatus: NSStreamStatusClosed];
 }
 
 - (void) dealloc
 {
+  if (_currentStatus != NSStreamStatusNotOpen
+    && _currentStatus != NSStreamStatusClosed)
+    {
+      [self close];
+    }
   DESTROY(_runloop);
   DESTROY(_modes);
   DESTROY(_properties);
@@ -97,12 +166,83 @@ NSString * const NSStreamSOCKSProxyVersionKey
   return _delegate;
 }
 
+- (id) init
+{
+  if ((self = [super init]) != nil)
+    {
+      _delegate = self;
+      _properties = nil;
+      _lastError = nil;
+      _modes = [NSMutableArray new];
+      _currentStatus = NSStreamStatusNotOpen;
+      _loopID = (void*)self;
+    }
+  return self;
+}
+
 - (void) open
 {
   NSAssert(_currentStatus == NSStreamStatusNotOpen
     || _currentStatus == NSStreamStatusOpening, 
     @"Attempt to open a stream already opened.");  
   [self _setStatus: NSStreamStatusOpen];
+  if (_runloop)
+    {
+      unsigned	i = [_modes count];
+
+      while (i-- > 0)
+	{
+	  [_runloop addStream: self mode: [_modes objectAtIndex: i]];
+	}
+    }
+}
+
+- (id) propertyForKey: (NSString *)key
+{
+  return [_properties objectForKey: key];
+}
+
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode
+{
+  [self _dispatch];
+}
+
+- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+{
+  NSAssert(_runloop == aRunLoop, 
+    @"Attempt to remove unscheduled runloop");
+  if ([_modes containsObject: mode])
+    {
+      if ([self _isOpened])
+	{
+	  [_runloop removeStream: self mode: mode];
+	}
+      [_modes removeObject: mode];
+      if ([_modes count] == 0)
+	{
+	  DESTROY(_runloop);
+	}
+    }
+}
+
+- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+{
+  NSAssert(!_runloop || _runloop == aRunLoop, 
+    @"Attempt to schedule in more than one runloop.");
+  ASSIGN(_runloop, aRunLoop);
+  if ([_modes containsObject: mode] == NO)
+    {
+      mode = [mode copy];
+      [_modes addObject: mode];
+      RELEASE(mode);
+      if ([self _isOpened])
+	{
+	  [_runloop addStream: self mode: mode];
+	}
+    }
 }
 
 - (void) setDelegate: (id)delegate
@@ -119,20 +259,6 @@ NSString * const NSStreamSOCKSProxyVersionKey
     = [_delegate respondsToSelector: @selector(stream:handleEvent:)];
 }
 
-- (id) init
-{
-  if ((self = [super init]) != nil)
-    {
-      _delegate = self;
-      _properties = nil;
-      _lastError = nil;
-      _modes = [NSMutableArray new];
-      _currentStatus = NSStreamStatusNotOpen;
-      _fd = (void*)-1;          // any operation will fail
-    }
-  return self;
-}
-
 - (BOOL) setProperty: (id)property forKey: (NSString *)key
 {
   if (_properties == nil)
@@ -141,11 +267,6 @@ NSString * const NSStreamSOCKSProxyVersionKey
     }
   [_properties setObject: property forKey: key];
   return YES;
-}
-
-- (id) propertyForKey: (NSString *)key
-{
-  return [_properties objectForKey: key];
 }
 
 - (NSError *) streamError
@@ -165,6 +286,40 @@ NSString * const NSStreamSOCKSProxyVersionKey
 @end
 
 
+@implementation	NSStream (Private)
+
+- (void) _dispatch
+{
+}
+
+- (BOOL) _isOpened
+{
+  return NO;
+}
+
+- (void*) _loopID
+{
+  return (void*)self;	// By default a stream is a TRIGGER event.
+}
+
+- (void) _recordError
+{
+}
+
+- (void) _sendEvent: (NSStreamEvent)event
+{
+}
+
+- (void) _setLoopID: (void *)ref
+{
+}
+
+- (void) _setStatus: (NSStreamStatus)newStatus
+{
+}
+
+@end
+
 @implementation	GSStream (Private)
 
 - (BOOL) _isOpened
@@ -174,13 +329,22 @@ NSString * const NSStreamSOCKSProxyVersionKey
     || _currentStatus == NSStreamStatusClosed);
 }
 
+- (void*) _loopID
+{
+  return _loopID;
+}
+
 - (void) _recordError
 {
-  // make an error
-  NSError *theError = [NSError errorWithDomain: NSPOSIXErrorDomain
+  NSError *theError;
+
+#if	defined(__MINGW32__)
+  errno = GetLastError();
+#endif
+  theError = [NSError errorWithDomain: NSPOSIXErrorDomain
 					  code: errno
 				      userInfo: nil];
-  NSLog(@"stream error: - %s", GSLastErrorStr(errno));
+  NSLog(@"%@ error(%d): - %s", self, errno, GSLastErrorStr(errno));
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
 }
@@ -193,6 +357,11 @@ NSString * const NSStreamSOCKSProxyVersionKey
     }
 }
 
+- (void) _setLoopID: (void *)ref
+{
+  _loopID = ref;
+}
+
 - (void) _setStatus: (NSStreamStatus)newStatus
 {
   // last error before closing is preserved
@@ -201,11 +370,6 @@ NSString * const NSStreamSOCKSProxyVersionKey
     {
       _currentStatus = newStatus;
     }
-}
-
-- (void) _setFd: (void *)fd
-{
-  _fd = fd;
 }
 
 @end
@@ -306,60 +470,11 @@ NSString * const NSStreamSOCKSProxyVersionKey
   return (dataSize > _pointer);
 }
 
-- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(!_runloop || _runloop == aRunLoop, 
-           @"Attempt to schedule in more than one runloop.");
-  ASSIGN(_runloop, aRunLoop);
-  if (![_modes containsObject: mode])
-    [_modes addObject: mode];
-  if ([self _isOpened])
-    [_runloop performSelector: @selector(_dispatch)
-		       target: self
-		     argument: nil
-			order: 0
-			modes: _modes];
-}
-
-- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(_runloop == aRunLoop, 
-           @"Attempt to remove unscheduled runloop");
-  if ([_modes containsObject: mode])
-    {
-      [_modes removeObject: mode];
-      if ([self _isOpened])
-        [_runloop cancelPerformSelector: @selector(_dispatch) 
-				 target: self
-			       argument: nil];
-      if ([_modes count] == 0)
-        DESTROY(_runloop);
-    }
-}
-
 - (id) propertyForKey: (NSString *)key
 {
   if ([key isEqualToString: NSStreamFileCurrentOffsetKey])
     return [NSNumber numberWithLong: _pointer];
   return [super propertyForKey: key];
-}
-
-- (void) open
-{
-  [super open];
-  if (_runloop)
-    [_runloop performSelector: @selector(_dispatch)
-		       target: self
-		     argument: nil
-			order: 0
-			modes: _modes];
-}
-
-- (void) close
-{
-  if (_runloop)
-    [_runloop cancelPerformSelectorsWithTarget: self];
-  [super close];
 }
 
 - (void) _dispatch
@@ -372,15 +487,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
   
   [self _setStatus: myStatus];
   [self _sendEvent: myEvent];
- // dispatch again iff still opened, and last event is not eos
-  if (av && [self _isOpened])
-    {
-      [_runloop performSelector: @selector(_dispatch)
-			 target: self
-		       argument: nil
-			  order: 0
-			  modes: _modes];
-    }
+ // FIXME should we remain in run loop if NSStreamStatusAtEnd?
 }
 
 @end
@@ -439,37 +546,6 @@ NSString * const NSStreamSOCKSProxyVersionKey
     return YES;
 }
 
-- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(!_runloop || _runloop == aRunLoop, 
-    @"Attempt to schedule in more than one runloop.");
-  ASSIGN(_runloop, aRunLoop);
-  if (![_modes containsObject: mode])
-    [_modes addObject: mode];
-  if ([self _isOpened])
-    [_runloop performSelector: @selector(_dispatch)
-		       target: self
-		     argument: nil
-			order: 0
-			modes: _modes];
-}
-
-- (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  NSAssert(_runloop == aRunLoop, 
-    @"Attempt to remove unscheduled runloop");
-  if ([_modes containsObject: mode])
-    {
-      [_modes removeObject: mode];
-      if ([self _isOpened])
-        [_runloop cancelPerformSelector: @selector(_dispatch) 
-				 target: self
-			       argument: nil];
-      if ([_modes count] == 0)
-        DESTROY(_runloop);
-    }
-}
-
 - (id) propertyForKey: (NSString *)key
 {
   if ([key isEqualToString: NSStreamFileCurrentOffsetKey])
@@ -484,26 +560,6 @@ NSString * const NSStreamSOCKSProxyVersionKey
   return [super propertyForKey: key];
 }
 
-- (void) open
-{
-  [super open];
-  if (_runloop)
-    {
-      [_runloop performSelector: @selector(_dispatch)
-			 target: self
-		       argument: nil
-			  order: 0
-			  modes: _modes];
-    }
-}
-
-- (void) close
-{
-  if (_runloop)
-    [_runloop cancelPerformSelectorsWithTarget: self];
-  [super close];
-}
-
 - (void) _dispatch
 {
   BOOL av = [self hasSpaceAvailable];
@@ -511,20 +567,8 @@ NSString * const NSStreamSOCKSProxyVersionKey
     NSStreamEventEndEncountered;
 
   [self _sendEvent: myEvent];
-  // dispatch again iff still opened, and last event is not eos
-  if (av && [self _isOpened])
-    [_runloop performSelector: @selector(_dispatch)
-		       target: self
-		     argument: nil
-			order: 0
-			modes: _modes];
+  // FIXME should we remain in run loop if NSStreamEventEndEncountered?
 }
 
 @end
-
-
-
-
-
-
 

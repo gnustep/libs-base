@@ -48,8 +48,9 @@ typedef struct{
   NSMapTable	*_efdMap;
   NSMapTable	*_rfdMap;
   NSMapTable	*_wfdMap;
-  int		fairStart;	// For trying to ensure fair handling.
 #endif
+  GSIArray	_trigger;	// Watchers to trigger unconditionally.
+  int		fairStart;	// For trying to ensure fair handling.
   BOOL		completed;	// To mark operation as completed.
 #ifdef	HAVE_POLL
   unsigned int	pollfds_capacity;

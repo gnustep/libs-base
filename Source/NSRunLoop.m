@@ -39,10 +39,12 @@
 #include "Foundation/NSTimer.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSRunLoop.h"
+#include "Foundation/NSStream.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSDebug.h"
 #include "GSRunLoopCtxt.h"
 #include "GSRunLoopWatcher.h"
+#include "GSStream.h"
 #include "GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
@@ -231,10 +233,22 @@ extern BOOL	GSCheckTasks();
 #include "GNUstepBase/GSIArray.h"
 #endif
 
-static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
+typedef struct {
+  @defs(NSTimer)
+} *tvars;
+
+static inline NSDate *timerDate(NSTimer *t)
 {
-  return [((GSRunLoopWatcher *)(i0.obj))->_date
-    compare: ((GSRunLoopWatcher *)(i1.obj))->_date];
+  return ((tvars)t)->_date;
+}
+static inline BOOL timerInvalidated(NSTimer *t)
+{
+  return ((tvars)t)->_invalidated;
+}
+
+static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
+{
+  return [timerDate(i0.obj) compare: timerDate(i1.obj)];
 }
 
 
@@ -377,7 +391,6 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 {
   GSRunLoopCtxt	*context;
   GSIArray	watchers;
-  id		obj;
 
   context = NSMapGet(_contextMap, mode);
   if (context == nil)
@@ -387,38 +400,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
       RELEASE(context);
     }
   watchers = context->watchers;
-
-  /*
-   *	If the receiver or its delegate (if any) respond to
-   *	'limitDateForMode: ' then we ask them for the limit date for
-   *	this watcher.
-   */
-  obj = item->receiver;
-  if ([obj respondsToSelector: @selector(limitDateForMode:)])
-    {
-      NSDate	*d = [obj limitDateForMode: mode];
-
-      item->_date = RETAIN(d);
-    }
-  else if ([obj respondsToSelector: @selector(delegate)])
-    {
-      obj = [obj delegate];
-      if (obj != nil && [obj respondsToSelector: @selector(limitDateForMode:)])
-	{
-	  NSDate	*d = [obj limitDateForMode: mode];
-
-	  item->_date = RETAIN(d);
-	}
-      else
-	{
-	  item->_date = RETAIN(theFuture);
-	}
-    }
-  else
-    {
-      item->_date = RETAIN(theFuture);
-    }
-  GSIArrayInsertSorted(watchers, (GSIArrayItem)((id)item), aSort);
+  GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
 }
 
 - (void) _checkPerformers: (GSRunLoopCtxt*)context
@@ -677,7 +659,6 @@ extern IMP	wRetImp;
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
-      eventSel = @selector(receivedEvent:type:extra:forMode:);
 #if	GS_WITH_GC == 0
       wRelSel = @selector(release);
       wRetSel = @selector(retain);
@@ -769,7 +750,7 @@ extern IMP	wRetImp;
       RELEASE(context);
     }
   timers = context->timers;
-  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), aSort);
+  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), tSort);
 }
 
 
@@ -786,7 +767,6 @@ extern IMP	wRetImp;
   context = NSMapGet(_contextMap, mode);
   if (context != nil)
     {
-      GSRunLoopWatcher	*min_watcher = nil;
       NSString		*savedMode = _currentMode;
       CREATE_AUTORELEASE_POOL(arp);
 
@@ -795,7 +775,6 @@ extern IMP	wRetImp;
 	{
 	  extern NSTimeInterval GSTimeNow(void);
 	  GSIArray		timers = context->timers;
-	  GSIArray		watchers = context->watchers;
 	  NSTimeInterval	now;
 	  NSTimer		*t;
 
@@ -845,83 +824,13 @@ extern IMP	wRetImp;
 	      if (timerInvalidated(min_timer) == NO)
 		{
 		  GSIArrayInsertSortedNoRetain(timers,
-		    (GSIArrayItem)((id)min_timer), aSort);
+		    (GSIArrayItem)((id)min_timer), tSort);
 		}
 	      else
 		{
 		  RELEASE(min_timer);
 		}
 	      GSNotifyASAP();		/* Post notifications. */
-	    }
-
-	  while (GSIArrayCount(watchers) != 0)
-	    {
-	      min_watcher = GSIArrayItemAtIndex(watchers, 0).obj;
-
-	      if (min_watcher->_invalidated == YES)
-		{
-		  GSIArrayRemoveItemAtIndex(watchers, 0);
-		  min_watcher = nil;
-		  continue;
-		}
-
-	      if ([min_watcher->_date timeIntervalSinceReferenceDate] > now)
-		{
-		  break;
-		}
-	      else
-		{
-		  id		obj;
-		  NSDate	*nxt = nil;
-
-		  /*
-		   * If the receiver or its delegate wants to know about
-		   * timeouts - inform it and give it a chance to set a
-		   * revised limit date.
-		   */
-		  GSIArrayRemoveItemAtIndexNoRelease(watchers, 0);
-		  obj = min_watcher->receiver;
-		  if ([obj respondsToSelector:
-		    @selector(timedOutEvent:type:forMode:)])
-		    {
-		      nxt = [obj timedOutEvent: min_watcher->data
-					  type: min_watcher->type
-				       forMode: mode];
-		      now = GSTimeNow();
-		    }
-		  else if ([obj respondsToSelector: @selector(delegate)])
-		    {
-		      obj = [obj delegate];
-		      if (obj != nil && [obj respondsToSelector:
-			@selector(timedOutEvent:type:forMode:)])
-			{
-			  nxt = [obj timedOutEvent: min_watcher->data
-					      type: min_watcher->type
-					   forMode: mode];
-			  now = GSTimeNow();
-			}
-		    }
-		  if (nxt && [nxt timeIntervalSinceReferenceDate] > now)
-		    {
-		      /*
-		       * If the watcher has been given a revised limit date -
-		       * re-insert it into the queue in the correct place.
-		       */
-		      ASSIGN(min_watcher->_date, nxt);
-		      GSIArrayInsertSortedNoRetain(watchers,
-			(GSIArrayItem)((id)min_watcher), aSort);
-		    }
-		  else
-		    {
-		      /*
-		       * If the watcher is now useless - invalidate and
-		       * release it.
-		       */
-		      min_watcher->_invalidated = YES;
-		      RELEASE(min_watcher);
-		    }
-		  min_watcher = nil;
-		}
 	    }
 	  _currentMode = savedMode;
 	}
@@ -934,33 +843,28 @@ extern IMP	wRetImp;
 
       RELEASE(arp);
 
-      /*
-       * If there are timers, when is already set to the limit date of the
-       * earliest of them (and retained!).
-       * If there are watchers, set the limit date to that of the earliest
-       * watcher (or leave it as the date of the earliest timer if that is
-       * before the watchers limit).
-       */
       if (when != nil)
 	{
-	  if (min_watcher != nil
-	    && [min_watcher->_date compare: when] == NSOrderedAscending)
-	    {
-              RELEASE(when);
-	      when = min_watcher->_date;
-	    }
-          else
-	    {
-	      AUTORELEASE(when);
-	    }
-	}
-      else if (min_watcher != nil)
-	{
-	  when = min_watcher->_date;
+	  AUTORELEASE(when);
 	}
       else
-	{
-	  return nil;	/* Nothing waiting to be done.	*/
+        {
+	  GSIArray		watchers = context->watchers;
+	  unsigned		i = GSIArrayCount(watchers);
+
+	  while (i-- > 0)
+	    {
+	      GSRunLoopWatcher	*w = GSIArrayItemAtIndex(watchers, i).obj;
+
+	      if (w->_invalidated == YES)
+	        {
+		  GSIArrayRemoveItemAtIndex(watchers, i);
+		}
+	    }
+	  if (GSIArrayCount(context->watchers) > 0)
+	    {
+	      when = theFuture;
+	    }
 	}
 
       NSDebugMLLog(@"NSRunLoop", @"limit date %f",

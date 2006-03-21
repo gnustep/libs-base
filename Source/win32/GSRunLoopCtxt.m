@@ -19,10 +19,6 @@
 
 extern BOOL	GSCheckTasks();
 
-@interface	NSStream (RunLoop)
-- (HANDLE) _handle;
-@end
-
 #if	GS_WITH_GC == 0
 SEL	wRelSel;
 SEL	wRetSel;
@@ -69,6 +65,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     {
       NSFreeMapTable(winMsgMap);
     }
+  GSIArrayEmpty(_trigger);
+  NSZoneFree(_trigger->zone, (void*)_trigger);
   [super dealloc];
 }
 
@@ -88,15 +86,28 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       switch (type)
 	{
 	  case ET_HANDLE:
+	    NSMapRemove(handleMap, data);
 	    break;
 	  case ET_WINMSG:
+	    NSMapRemove(winMsgMap, data);
 	    break;
-	  case ET_INSTREAM:
-	    break;
-	  case ET_OUTSTREAM:
+	  case ET_TRIGGER:
+	    {
+	      unsigned i = GSIArrayCount(_trigger);
+
+	      while (i-- > 0)
+	        {
+		  GSIArrayItem	item = GSIArrayItemAtIndex(_trigger, i);
+
+		  if (item.obj == (id)data)
+		    {
+		      GSIArrayRemoveItemAtIndex(_trigger, i);
+		    }
+	        }
+	    }
 	    break;
 	  default:
-	    NSLog(@"Ending an event of unkown type (%d)", type);
+	    NSLog(@"Ending an event of unexpected type (%d)", type);
 	    break;
 	}
     }
@@ -140,6 +151,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
               WatcherMapValueCallBacks, 0);
       winMsgMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
+      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
+      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
   return self;
 }
@@ -192,15 +205,15 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 			  [c endEvent: (void*)handle type: ET_WINMSG];
 			}
 		    }
-		  completed = YES;
 		  handled = YES;
 		  /*
 		   * The watcher is still valid - so call the
 		   * receiver's event handling method.
 		   */
-		  (*watcher->handleEvent)(watcher->receiver,
-		    eventSel, watcher->data, watcher->type,
-		    (void*)(uintptr_t)&msg, mode);
+		  [watcher->receiver receivedEvent: watcher->data
+					      type: watcher->type
+					     extra: (void*)&msg
+					   forMode: mode];
 		  continue;
 		}
 	    }
@@ -234,18 +247,17 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 			      [c endEvent: (void*)handle type: ET_WINMSG];
 			    }
 			}
-		      completed = YES;
 		      handled = YES;
-		      (*watcher->handleEvent)(watcher->receiver,
-			eventSel, watcher->data, watcher->type,
-			(void*)(uintptr_t)&msg, mode);
+		      [watcher->receiver receivedEvent: watcher->data
+						  type: watcher->type
+						 extra: (void*)&msg
+					       forMode: mode];
 		    }
 		}
 	      num--;
 	    }
 	  NSEndMapTableEnumeration(&hEnum);
 	} 
-      completed = YES;
     }
   return handled;
 }
@@ -257,10 +269,12 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   HANDLE		handleArray[MAXIMUM_WAIT_OBJECTS-1];
   int			num_handles;
   int			num_winMsgs;
+  unsigned		count;
   unsigned		i;
   void			*handle;
   int			wait_timeout;
   DWORD			wait_return;
+  BOOL			immediate = NO;
 
   // Set timeout how much time should wait
   if (milliseconds >= 0)
@@ -274,6 +288,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
   NSResetMapTable(handleMap);
   NSResetMapTable(winMsgMap);
+  GSIArrayRemoveAllItems(_trigger);
 
   i = GSIArrayCount(watchers);
   num_handles = 0;
@@ -281,66 +296,65 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   while (i-- > 0)
     {
       GSRunLoopWatcher	*info;
-      HANDLE		handle;
+      BOOL		trigger;
       
       info = GSIArrayItemAtIndex(watchers, i).obj;
       if (info->_invalidated == YES)
 	{
 	  GSIArrayRemoveItemAtIndex(watchers, i);
-	  continue;
 	}
-      switch (info->type)
+      else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
-	  case ET_HANDLE:
-    	    handle = (HANDLE)(int)info->data;
-            NSMapInsert(handleMap, (void*)handle, info);
-	    num_handles++;
-	    break;
-	  case ET_RPORT:
+	  if (trigger == YES)
 	    {
-              id port = info->receiver;
-              int port_handle_count = 128; // #define this constant
-              int port_handle_array[port_handle_count];
-              if ([port respondsToSelector: @selector(getFds:count:)])
-                {
-		  [port getFds: port_handle_array count: &port_handle_count];
-		}
-	      else
-	        {
-	          NSLog(@"pollUntil - Impossible get win32 Handles");
-		  abort();
-                }
-              NSDebugMLLog(@"NSRunLoop", @"listening to %d port handles",
-	        port_handle_count);
-              while (port_handle_count--)
+	      immediate = YES;
+	      GSIArrayAddItem(_trigger, (GSIArrayItem)(id)info);
+	    }
+	}
+      else
+	{
+	  HANDLE	handle;
+
+	  switch (info->type)
+	    {
+	      case ET_HANDLE:
+		handle = (HANDLE)(int)info->data;
+		NSMapInsert(handleMap, (void*)handle, info);
+		num_handles++;
+		break;
+	      case ET_RPORT:
 		{
-                  NSMapInsert(handleMap, 
-		    (void*)port_handle_array[port_handle_count], info);
-                  num_handles++;
+		  id port = info->receiver;
+		  int port_handle_count = 128; // #define this constant
+		  int port_handle_array[port_handle_count];
+		  if ([port respondsToSelector: @selector(getFds:count:)])
+		    {
+		      [port getFds: port_handle_array
+			     count: &port_handle_count];
+		    }
+		  else
+		    {
+		      NSLog(@"pollUntil - Impossible get win32 Handles");
+		      abort();
+		    }
+		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port handles",
+		    port_handle_count);
+		  while (port_handle_count--)
+		    {
+		      NSMapInsert(handleMap, 
+			(void*)port_handle_array[port_handle_count], info);
+		      num_handles++;
+		    }
 		}
-            }
-	    break;
-	  case ET_WINMSG:
-    	    handle = (HANDLE)(int)info->data;
-            NSMapInsert(winMsgMap, (void*)handle, info);
-	    num_winMsgs++;
-	    break;
-	  case ET_INSTREAM:
-    	    handle = [(NSStream*)info->data _handle];
-	    if (handle != 0)
-	      {
-		NSMapInsert(handleMap, (void*)handle, info);
-		num_handles++;
-	      }
-	    break;
-	  case ET_OUTSTREAM:
-    	    handle = [(NSStream*)info->data _handle];
-	    if (handle != 0)
-	      {
-		NSMapInsert(handleMap, (void*)handle, info);
-		num_handles++;
-	      }
-	    break;
+		break;
+	      case ET_WINMSG:
+		handle = (HANDLE)(int)info->data;
+		NSMapInsert(winMsgMap, (void*)handle, info);
+		num_winMsgs++;
+		break;
+	      case ET_TRIGGER:
+		break;
+	    }
 	}
     }
     
@@ -350,7 +364,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore())
+  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
     {
       wait_timeout = 0;
     }
@@ -388,7 +402,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       wait_return = MsgWaitForMultipleObjects(num_handles, handleArray, 
         NO, wait_timeout, QS_ALLINPUT);
     }
-  else
+  else if (num_handles > 0)
     {
       /*
        * We are not interested in windows messages ... just wait for
@@ -397,14 +411,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       wait_return = WaitForMultipleObjects(num_handles, handleArray, 
         NO, wait_timeout);
     }
-  NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);
-
-      // if there are windows message
-  if (wait_return == WAIT_OBJECT_0 + num_handles)
+  else
     {
-      [self processAllWindowsMessages: num_winMsgs within: contexts];
-      return NO;
+      wait_return = WAIT_OBJECT_0;
     }
+  NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);
 
   // check wait errors
   if (wait_return == WAIT_FAILED)
@@ -439,6 +450,47 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	    GSLastErrorStr(GetLastError()));
 	  abort ();        
 	}
+    }
+
+  /*
+   * Trigger any watchers which are set up to for every runloop wait.
+   */
+  count = GSIArrayCount(_trigger);
+  completed = NO;
+  while (completed == NO && count-- > 0)
+    {
+      GSRunLoopWatcher	*watcher;
+
+      watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
+	if (watcher->_invalidated == NO)
+	  {
+	    i = [contexts count];
+	    while (i-- > 0)
+	      {
+		GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		if (c != self)
+		  {
+		    [c endEvent: (void*)watcher type: ET_TRIGGER];
+		  }
+	      }
+	    /*
+	     * The watcher is still valid - so call its
+	     * receivers event handling method.
+	     */
+	    [watcher->receiver receivedEvent: watcher->data
+					type: watcher->type
+				       extra: watcher->data
+				     forMode: mode];
+	  }
+	GSNotifyASAP();
+    }
+
+  // if there are windows message
+  if (wait_return == WAIT_OBJECT_0 + num_handles)
+    {
+      [self processAllWindowsMessages: num_winMsgs within: contexts];
+      return NO;
     }
 
   // if there arent events
@@ -477,9 +529,10 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
        * event handling method.
        */
       NSDebugMLLog(@"NSRunLoop", @"Event callback found");
-      (*watcher->handleEvent)(watcher->receiver,
-          eventSel, watcher->data, watcher->type,
-          (void*)(uintptr_t)handle, mode);
+      [watcher->receiver receivedEvent: watcher->data
+				  type: watcher->type
+				 extra: watcher->data
+			       forMode: mode];
     }
 
   GSNotifyASAP();
