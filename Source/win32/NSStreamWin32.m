@@ -513,24 +513,40 @@ static void setNonblocking(SOCKET fd)
 
   if (myStatus == NSStreamStatusReading)
     {
-      want = 0;
       if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
 	{
 	  errno = GetLastError();
 	  if (errno == ERROR_HANDLE_EOF
 	    || errno == ERROR_BROKEN_PIPE)
 	    {
-	      myStatus = NSStreamStatusOpen;
+	      /*
+	       * Got EOF, but we don't want to register it until a
+	       * -read:maxLength: is called.
+	       */
 	      offset = length = 0;
+	    }
+          else if (errno == ERROR_IO_PENDING)
+	    {
+	      /*
+	       * Read operation has not completed.
+	       */
+	      return;
 	    }
 	  else
 	    {
-	      myStatus = NSStreamStatusOpen;
+	      /*
+	       * Got an error ... record it.
+	       */
 	      [self _recordError];
 	    }
+	  myStatus = NSStreamStatusOpen;
+	  want = 0;
 	}
       else
 	{
+	  /*
+	   * Read completed and some data was read.
+	   */
 	  myStatus = NSStreamStatusOpen;
 	  length = size;
 	}
@@ -1060,6 +1076,14 @@ static void setNonblocking(SOCKET fd)
     {
       if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
 	{
+	  errno = GetLastError();
+          if (errno == ERROR_IO_PENDING)
+	    {
+	      /*
+	       * Write operation has not completed.
+	       */
+	      return;
+	    }
 	  [self _recordError];
 	  offset = 0;
 	  want = 0;
