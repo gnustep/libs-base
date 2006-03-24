@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSDictionary class reference</title>
    $Date$ $Revision$
@@ -1039,30 +1040,21 @@ compareIt(id o1, id o2, void* context)
 
 /**
  * Default implementation for this class is to return the value stored in
- * the dictionary under the specified key, or nil if there is no value.
+ * the dictionary under the specified key, or nil if there is no value.<br />
+ * However, if the key begins with '@' that character is stripped from
+ * it and the superclass implementation of the method is used.
  */
 - (id) valueForKey: (NSString*)key
 {
-  id	o = [self objectForKey: key];
+  id	o; 
 
-  if (o == nil)
+  if ([key hasPrefix: @"@"] == YES)
     {
-      if ([key isEqualToString: @"count"] == YES)
-	{
-	  o = [NSNumber numberWithUnsignedInt: [self count]];
-	}
-      else if ([key isEqualToString: @"allKeys"] == YES)
-	{
-	  o = [self allKeys];
-	}
-      else if ([key isEqualToString: @"allValues"] == YES)
-	{
-	  o = [self allValues];
-	}
-      if (o != nil)
-	{
-	  NSWarnMLog(@"Key '%@' would return nil in MacOS-X Foundation", key);
-	}
+      o = [super valueForKey: [key substringFromIndex: 1]];
+    }
+  else
+    {
+      o = [self objectForKey: key];
     }
   return o;
 }
