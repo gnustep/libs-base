@@ -79,12 +79,24 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
  * loop and once by the outer one.
  */
 - (void) endEvent: (void*)data
-             type: (RunLoopEventType)type
+              for: (GSRunLoopWatcher)*watcher
 {
   if (completed == NO)
     {
-      switch (type)
+      unsigned i = GSIArrayCount(_trigger);
+
+      while (i-- > 0)
 	{
+	  GSIArrayItem	item = GSIArrayItemAtIndex(_trigger, i);
+
+	  if (item.obj == (id)watcher)
+	    {
+	      GSIArrayRemoveItemAtIndex(_trigger, i);
+	    }
+	}
+      switch (watcher->type)
+	{
+	  case ET_RPORT:
 	  case ET_HANDLE:
 	    NSMapRemove(handleMap, data);
 	    break;
@@ -92,22 +104,10 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	    NSMapRemove(winMsgMap, data);
 	    break;
 	  case ET_TRIGGER:
-	    {
-	      unsigned i = GSIArrayCount(_trigger);
-
-	      while (i-- > 0)
-	        {
-		  GSIArrayItem	item = GSIArrayItemAtIndex(_trigger, i);
-
-		  if (item.obj == (id)data)
-		    {
-		      GSIArrayRemoveItemAtIndex(_trigger, i);
-		    }
-	        }
-	    }
+	    // Already handled
 	    break;
 	  default:
-	    NSLog(@"Ending an event of unexpected type (%d)", type);
+	    NSLog(@"Ending an event of unexpected type (%d)", watcher->type);
 	    break;
 	}
     }
@@ -202,7 +202,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
 		      if (c != self)
 			{ 
-			  [c endEvent: (void*)handle type: ET_WINMSG];
+			  [c endEvent: (void*)handle for: watcher];
 			}
 		    }
 		  handled = YES;
@@ -244,7 +244,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 			      
 			  if (c != self)
 			    {
-			      [c endEvent: (void*)handle type: ET_WINMSG];
+			      [c endEvent: (void*)handle for: watcher];
 			    }
 			}
 		      handled = YES;
@@ -471,7 +471,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
 		if (c != self)
 		  {
-		    [c endEvent: (void*)watcher type: ET_TRIGGER];
+		    [c endEvent: (void*)watcher for: watcher];
 		  }
 	      }
 	    /*
@@ -521,7 +521,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
           if (c != self)
             { 
-              [c endEvent: (void*)handle type: ET_HANDLE];
+              [c endEvent: (void*)handle for: watcher];
             }
 	}
       /*
