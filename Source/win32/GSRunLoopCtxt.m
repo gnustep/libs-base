@@ -79,7 +79,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
  * loop and once by the outer one.
  */
 - (void) endEvent: (void*)data
-              for: (GSRunLoopWatcher)*watcher
+              for: (GSRunLoopWatcher*)watcher
 {
   if (completed == NO)
     {
