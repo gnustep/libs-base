@@ -30,6 +30,7 @@ typedef struct{
 #endif
 
 @class NSString;
+@class GSRunLoopWatcher;
 
 @interface	GSRunLoopCtxt : NSObject
 {
@@ -59,7 +60,7 @@ typedef struct{
 #endif
 }
 - (void) endEvent: (void*)data
-             type: (RunLoopEventType)type;
+              for: (GSRunLoopWatcher*)watcher;
 - (void) endPoll;
 - (id) initWithMode: (NSString*)theMode extra: (void*)e;
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;

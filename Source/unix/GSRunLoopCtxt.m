@@ -102,12 +102,26 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
  * loop and once by the outer one.
  */
 - (void) endEvent: (void*)data
-             type: (RunLoopEventType)type
+              for: (GSRunLoopWatcher*)watcher
 {
   if (completed == NO)
     {
-      switch (type)
+      unsigned i = GSIArrayCount(_trigger);
+
+      while (i-- > 0)
 	{
+	  GSIArrayItem	item = GSIArrayItemAtIndex(_trigger, i);
+
+	  if (item.obj == (id)watcher)
+	    {
+	      GSIArrayRemoveItemAtIndex(_trigger, i);
+	      return;
+	    }
+	}
+
+      switch (watcher->type)
+	{
+	  case ET_RPORT: 
 	  case ET_RDESC: 
 	    NSMapRemove(_rfdMap, data);
 	    break;
@@ -118,22 +132,10 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	    NSMapRemove(_efdMap, data);
 	    break;
 	  case ET_TRIGGER:
-	    {
-	      unsigned i = GSIArrayCount(_trigger);
-
-	      while (i-- > 0)
-	        {
-		  GSIArrayItem	item = GSIArrayItemAtIndex(_trigger, i);
-
-		  if (item.obj == (id)data)
-		    {
-		      GSIArrayRemoveItemAtIndex(_trigger, i);
-		    }
-	        }
-	    }
+	    // Already handled
 	    break;
 	  default:
-	    NSLog(@"Ending an event of unexpected type (%d)", type);
+	    NSLog(@"Ending an event of unexpected type (%d)", watcher->type);
 	    break;
 	}
     }
@@ -430,7 +432,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 		if (c != self)
 		  {
-		    [c endEvent: (void*)watcher type: ET_TRIGGER];
+		    [c endEvent: (void*)watcher for: watcher];
 		  }
 	      }
 	    /*
@@ -505,7 +507,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 		      if (c != self)
 			{
-			  [c endEvent: (void*)(intptr_t)fd type: ET_EDESC];
+			  [c endEvent: (void*)(intptr_t)fd for: watcher];
 			}
 		    }
 		  /*
@@ -537,7 +539,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 		      if (c != self)
 			{
-			  [c endEvent: (void*)(intptr_t)fd type: ET_WDESC];
+			  [c endEvent: (void*)(intptr_t)fd for: watcher];
 			}
 		    }
 		  /*
@@ -569,7 +571,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 		      if (c != self)
 			{
-			  [c endEvent: (void*)(intptr_t)fd type: ET_RDESC];
+			  [c endEvent: (void*)(intptr_t)fd for: watcher];
 			}
 		    }
 		  /*
@@ -811,7 +813,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 		if (c != self)
 		  {
-		    [c endEvent: (void*)watcher type: ET_TRIGGER];
+		    [c endEvent: (void*)watcher for: watcher];
 		  }
 	      }
 	    /*
@@ -873,7 +875,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
 		  if (c != self)
-		    [c endEvent: (void*)(intptr_t)fdIndex type: ET_EDESC];
+		    [c endEvent: (void*)(intptr_t)fdIndex for: watcher];
 		}
 	      /*
 	       * The watcher is still valid - so call its receivers
@@ -905,7 +907,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
 		  if (c != self)
-		    [c endEvent: (void*)(intptr_t)fdIndex type: ET_WDESC];
+		    [c endEvent: (void*)(intptr_t)fdIndex for: watcher];
 		}
 	      /*
 	       * The watcher is still valid - so call its receivers
@@ -937,7 +939,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
 		  if (c != self)
-		    [c endEvent: (void*)(intptr_t)fdIndex type: ET_RDESC];
+		    [c endEvent: (void*)(intptr_t)fdIndex for: watcher];
 		}
 	      /*
 	       * The watcher is still valid - so call its receivers

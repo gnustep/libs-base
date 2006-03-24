@@ -1,3 +1,10 @@
+2006-03-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSRunLoopCtxt.h:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	Tidy/improve removal of triggered watchers from outer contexts.
+
 2006-03-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/unix/GSRunLoopWatcher.m: deleted
