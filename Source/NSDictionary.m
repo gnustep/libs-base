@@ -39,6 +39,7 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSValue.h"
+#include "Foundation/NSKeyValueCoding.h"
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"

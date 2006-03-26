@@ -355,14 +355,37 @@ setup(void)
 		   length: (unsigned)length
 {
   GSStr	me;
+  BOOL	isASCII;
+  BOOL	isLatin1;
 
-  me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
-    length*sizeof(unichar), GSObjCZone(self));
-  me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
-  me->_count = length;
-  me->_flags.wide = 1;
-  me->_flags.free = 1;
-  memcpy(me->_contents.u, chars, length*sizeof(unichar));
+  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+    {
+      return nil;	// Invalid data
+    }
+  if (isASCII == YES
+    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    {
+      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
+	GSObjCZone(self));
+      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 0;
+      me->_flags.free = 1;
+      while (length-- > 0)
+        {
+          me->_contents.c[length] = (unsigned char)chars[length];
+	}
+    }
+  else
+    {
+      me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
+	length*sizeof(unichar), GSObjCZone(self));
+      me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 1;
+      me->_flags.free = 1;
+      memcpy(me->_contents.u, chars, length*sizeof(unichar));
+    }
   return (id)me;
 }
 
@@ -374,14 +397,41 @@ setup(void)
 		   freeWhenDone: (BOOL)flag
 {
   GSStr	me;
+  BOOL	isASCII;
+  BOOL	isLatin1;
 
-  me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass, 0, GSObjCZone(self));
-  me->_contents.u = chars;
-  me->_count = length;
-  me->_flags.wide = 1;
-  if (flag == YES)
+  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
     {
+      return nil;	// Invalid data
+    }
+  if (isASCII == YES
+    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    {
+      /*
+       * OK ... we can do a more compact version
+       */
+      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
+	GSObjCZone(self));
+      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 0;
       me->_flags.free = 1;
+      while (length-- > 0)
+        {
+          me->_contents.c[length] = (unsigned char)chars[length];
+	}
+    }
+  else
+    {
+      me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass,
+	0, GSObjCZone(self));
+      me->_contents.u = chars;
+      me->_count = length;
+      me->_flags.wide = 1;
+      if (flag == YES)
+	{
+	  me->_flags.free = 1;
+	}
     }
   return (id)me;
 }
@@ -3007,6 +3057,35 @@ agree, create a new GSUnicodeInlineString otherwise.
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
+  BOOL	isASCII;
+  BOOL	isLatin1;
+
+  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+    {
+      RELEASE(self);
+      return nil;	// Invalid data
+    }
+  if (isASCII == YES
+    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    {
+      GSStr	me;
+
+      /*
+       * OK ... we can do a more compact version
+       */
+      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
+	GSObjCZone(self));
+      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 0;
+      me->_flags.free = 1;
+      while (length-- > 0)
+        {
+          me->_contents.c[length] = (unsigned char)chars[length];
+	}
+      RELEASE(self);
+      return (id)me;
+    }
   if (_contents.u != 0)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -3038,6 +3117,35 @@ agree, create a new GSUnicodeInlineString otherwise.
 @implementation	GSUnicodeInlineString
 - (id) initWithCharacters: (const unichar*)chars length: (unsigned)length
 {
+  BOOL	isASCII;
+  BOOL	isLatin1;
+
+  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+    {
+      RELEASE(self);
+      return nil;	// Invalid data
+    }
+  if (isASCII == YES
+    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    {
+      GSStr	me;
+
+      /*
+       * OK ... we can do a more compact version
+       */
+      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
+	GSObjCZone(self));
+      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 0;
+      me->_flags.free = 1;
+      while (length-- > 0)
+        {
+          me->_contents.c[length] = (unsigned char)chars[length];
+	}
+      RELEASE(self);
+      return (id)me;
+    }
   if (_contents.u != 0)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -3415,6 +3523,35 @@ agree, create a new GSUnicodeInlineString otherwise.
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
+  BOOL	isASCII;
+  BOOL	isLatin1;
+
+  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+    {
+      RELEASE(self);
+      return nil;	// Invalid data
+    }
+  if (isASCII == YES
+    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    {
+      GSStr	me;
+
+      /*
+       * OK ... we can do a more compact version
+       */
+      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
+	GSObjCZone(self));
+      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 0;
+      me->_flags.free = 1;
+      while (length-- > 0)
+        {
+          me->_contents.c[length] = (unsigned char)chars[length];
+	}
+      RELEASE(self);
+      return (id)me;
+    }
   _count = length;
   _capacity = length;
   _contents.u = chars;
