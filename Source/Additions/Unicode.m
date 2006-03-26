@@ -1094,28 +1094,29 @@ int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
  * Function to check a block of data for validity as a unicode string and
  * say whether it contains solely ASCII or solely Latin1 data.<br />
  * Any leading BOM must already have been removed and the data must already
- * be in native byte order.
+ * be in native byte order.<br />
+ * Returns the number of characters which were found valid.
  */
-BOOL
-GSIsUnicode(const unichar *chars, unsigned length,
+unsigned
+GSUnicode(const unichar *chars, unsigned length,
   BOOL *isASCII, BOOL *isLatin1)
 {
   unsigned	i = 0;
   unichar	c;
 
-  *isASCII = YES;
-  *isLatin1 = YES;
+  if (isASCII) *isASCII = YES;
+  if (isLatin1) *isLatin1 = YES;
   while (i < length)
     {
       if ((c = chars[i++]) > 127)
         {
-	  *isASCII = NO;
+	  if (isASCII) *isASCII = NO;
 	  i--;
 	  while (i < length)
 	    {
 	      if ((c = chars[i++]) > 255)
 		{
-		  *isLatin1 = NO;
+		  if (isLatin1) *isLatin1 = NO;
 		  i--;
 		  while (i < length)
 		    {
@@ -1123,23 +1124,23 @@ GSIsUnicode(const unichar *chars, unsigned length,
 		      if (c == 0xfffe || c == 0xffff
 			|| (c >= 0xfdd0 && c <= 0xfdef))
 			{
-			  return NO;	// Non-characters.
+			  return i - 1;	// Non-characters.
 			}
 		      if (c >= 0xdc00 && c <= 0xdfff)
 		        {
-			  return NO;	// Second half of a surrogate pair.
+			  return i - 1;	// Second half of a surrogate pair.
 		        }
 		      if (c >= 0xd800 && c <= 0xdbff)
 		        {
 			  // First half of a surrogate pair.
 			  if (i >= length)
 			    {
-			      return NO;	// Second half missing
+			      return i - 1;	// Second half missing
 			    }
 			  c = chars[i];
 			  if (c < 0xdc00 || c > 0xdfff)
 			    {
-			      return NO;	// Second half missing
+			      return i - 1;	// Second half missing
 			    }
 			  i++;		// Step past second half
 		        }
@@ -1148,7 +1149,7 @@ GSIsUnicode(const unichar *chars, unsigned length,
 	    }
         }
     }
-  return YES;
+  return i;
 }
 
 #define	GROW() \

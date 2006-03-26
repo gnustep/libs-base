@@ -64,7 +64,7 @@ GS_EXPORT unichar *uni_is_decomp(unichar u);
 #define	GSUniBOM	0x08
 #define	GSUniShortOk	0x10
 
-GS_EXPORT BOOL GSIsUnicode(const unichar *chars, unsigned length,
+GS_EXPORT unsigned GSUnicode(const unichar *chars, unsigned length,
   BOOL *isASCII, BOOL *isLatin1);
 GS_EXPORT BOOL GSFromUnicode(unsigned char **dst, unsigned int *size,
   const unichar *src, unsigned int slen, NSStringEncoding enc, NSZone *zone,
