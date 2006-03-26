@@ -358,7 +358,7 @@ setup(void)
   BOOL	isASCII;
   BOOL	isLatin1;
 
-  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+  if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
     {
       return nil;	// Invalid data
     }
@@ -400,7 +400,7 @@ setup(void)
   BOOL	isASCII;
   BOOL	isLatin1;
 
-  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+  if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
     {
       return nil;	// Invalid data
     }
@@ -1286,14 +1286,44 @@ dataUsingEncoding_u(GSStr self, NSStringEncoding encoding, BOOL flag)
 
   if (encoding == NSUnicodeStringEncoding)
     {
-      unichar *buff;
+      unichar	*buff;
+      unsigned	l;
+      unsigned	from = 0;
+      unsigned	to = 1;
 
+      if ((l = GSUnicode(self->_contents.u, len, 0, 0)) != len)
+        {
+	  if (flag == NO)
+	    {
+	      return nil;
+	    }
+	}
       buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
 	sizeof(unichar)*(len+1));
       buff[0] = 0xFEFF;
-      memcpy(buff+1, self->_contents.u, sizeof(unichar)*len);
+
+      while (len > 0)
+        {
+	  if (l > 0)
+	    {
+	      memcpy(buff + to, self->_contents.u + from, sizeof(unichar)*l);
+	      from += l;
+	      to += l;
+	      len -= l;
+	    }
+	  if (len > 0)
+	    {
+	      // A bad character in the string ... skip it.
+	      if (--len > 0)
+		{
+		  // Not at end ... try another batch.
+		  from++;
+		  l = GSUnicode(self->_contents.u + from, len, 0, 0);
+		}
+	    }
+	}
       return [NSData dataWithBytesNoCopy: buff
-				  length: sizeof(unichar)*(len+1)];
+				  length: sizeof(unichar)*to];
     }
   else
     {
@@ -3060,7 +3090,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   BOOL	isASCII;
   BOOL	isLatin1;
 
-  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+  if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
     {
       RELEASE(self);
       return nil;	// Invalid data
@@ -3120,7 +3150,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   BOOL	isASCII;
   BOOL	isLatin1;
 
-  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+  if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
     {
       RELEASE(self);
       return nil;	// Invalid data
@@ -3526,7 +3556,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   BOOL	isASCII;
   BOOL	isLatin1;
 
-  if (GSIsUnicode(chars, length, &isASCII, &isLatin1) == NO)
+  if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
     {
       RELEASE(self);
       return nil;	// Invalid data
