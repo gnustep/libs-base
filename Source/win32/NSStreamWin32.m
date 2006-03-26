@@ -44,6 +44,8 @@
 
 #include "../GSStream.h"
 
+#define	BUFFERSIZE	(BUFSIZ*64)
+
 typedef int socklen_t;
 
 /** 
@@ -63,12 +65,13 @@ typedef int socklen_t;
 {
   HANDLE	handle;
   OVERLAPPED	ov;
-  uint8_t	data[BUFSIZ*64];
+  uint8_t	data[BUFFERSIZE];
   unsigned	offset;	// Read pointer within buffer
   unsigned	length;	// Amount of data in buffer
   unsigned	want;	// Amount of data we want to read.
   DWORD		size;	// Number of bytes returned by read.
 }
+- (NSStreamStatus) _check;
 - (void) _queue;
 - (void) _setHandle: (HANDLE)h;
 @end
@@ -141,11 +144,12 @@ typedef int socklen_t;
 {
   HANDLE	handle;
   OVERLAPPED	ov;
-  NSMutableData	*data;
+  uint8_t	data[BUFFERSIZE];
   unsigned	offset;
   unsigned	want;
   DWORD		size;
 }
+- (NSStreamStatus) _check;
 - (void) _queue;
 - (void) _setHandle: (HANDLE)h;
 @end
@@ -419,6 +423,43 @@ static void setNonblocking(SOCKET fd)
   [self _queue];
 }
 
+- (NSStreamStatus) _check
+{
+  // Must only be called when current status is NSStreamStatusReading.
+
+  if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
+    {
+      errno = GetLastError();
+      if (errno == ERROR_HANDLE_EOF
+	|| errno == ERROR_BROKEN_PIPE)
+	{
+	  /*
+	   * Got EOF, but we don't want to register it until a
+	   * -read:maxLength: is called.
+	   */
+	  offset = length = want = 0;
+	  [self _setStatus: NSStreamStatusOpen];
+	}
+      else if (errno != ERROR_IO_PENDING)
+	{
+	  /*
+	   * Got an error ... record it.
+	   */
+	  want = 0;
+	  [self _recordError];
+	}
+    }
+  else
+    {
+      /*
+       * Read completed and some data was read.
+       */
+      length = size;
+      [self _setStatus: NSStreamStatusOpen];
+    }
+  return [self streamStatus];
+}
+
 - (void) _queue
 {
   if ([self streamStatus] == NSStreamStatusOpen)
@@ -461,6 +502,10 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
+  if (myStatus == NSStreamStatusReading)
+    {
+      myStatus = [self _check];
+    }
   if (myStatus == NSStreamStatusAtEnd)
     {
       return 0;		// At EOF
@@ -509,53 +554,26 @@ static void setNonblocking(SOCKET fd)
 - (void) _dispatch
 {
   NSStreamEvent myEvent;
-  NSStreamStatus myStatus = [self streamStatus];
+  NSStreamStatus oldStatus = [self streamStatus];
+  NSStreamStatus myStatus = oldStatus;
 
-  if (myStatus == NSStreamStatusReading)
+  if (myStatus == NSStreamStatusReading
+    || myStatus == NSStreamStatusOpening)
     {
-      if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
-	{
-	  errno = GetLastError();
-	  if (errno == ERROR_HANDLE_EOF
-	    || errno == ERROR_BROKEN_PIPE)
-	    {
-	      /*
-	       * Got EOF, but we don't want to register it until a
-	       * -read:maxLength: is called.
-	       */
-	      offset = length = 0;
-	    }
-          else if (errno == ERROR_IO_PENDING)
-	    {
-	      /*
-	       * Read operation has not completed.
-	       */
-	      return;
-	    }
-	  else
-	    {
-	      /*
-	       * Got an error ... record it.
-	       */
-	      [self _recordError];
-	    }
-	  myStatus = NSStreamStatusOpen;
-	  want = 0;
-	}
-      else
-	{
-	  /*
-	   * Read completed and some data was read.
-	   */
-	  myStatus = NSStreamStatusOpen;
-	  length = size;
-	}
-      [self _setStatus: myStatus];
+      myStatus = [self _check];
     }
 
   if (myStatus == NSStreamStatusAtEnd)
     {
       myEvent = NSStreamEventEndEncountered;
+    }
+  else if (myStatus == NSStreamStatusError)
+    {
+      myEvent = NSStreamEventErrorOccurred;
+    }
+  else if (oldStatus == NSStreamStatusOpening)
+    {
+      myEvent = NSStreamEventOpenCompleted;
     }
   else
     {
@@ -569,15 +587,12 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
+  *trigger = YES;
   if (myStatus == NSStreamStatusReading)
     {
-      // Need to wait for I/O
-      *trigger = YES;
-      return YES;
+      return YES;	// Need to wait for I/O
     }
-  // Need to signal for an event
-  *trigger = YES;
-  return NO;
+  return NO;		// Need to signal for an event
 }
 @end
 
@@ -973,10 +988,6 @@ static void setNonblocking(SOCKET fd)
 
 - (void) dealloc
 {
-  if (data != nil)
-    {
-      DESTROY(data);
-    }
   if ([self _isOpened])
     [self close];
   [super dealloc];
@@ -1022,7 +1033,7 @@ static void setNonblocking(SOCKET fd)
 	  ov.OffsetHigh = 0;
 	  ov.hEvent = (HANDLE)_loopID;
 	  size = 0;
-	  rc = WriteFile(handle, [data bytes]+offset, want-offset, &size, &ov);
+	  rc = WriteFile(handle, data + offset, want - offset, &size, &ov);
 	  if (rc != 0)
 	    {
 	      offset += size;
@@ -1043,23 +1054,56 @@ static void setNonblocking(SOCKET fd)
 
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
-  if (len <= 0 || [self streamStatus] != NSStreamStatusOpen)
+  NSStreamStatus myStatus = [self streamStatus];
+
+  if (len < 0)
     {
       return -1;
     }
-  if (data == nil)
+  if (myStatus == NSStreamStatusWriting)
     {
-      data = [[NSMutableData alloc] initWithBytes: buffer length: len];
+      myStatus = [self _check];
+    }
+  if ((myStatus != NSStreamStatusOpen && myStatus != NSStreamStatusWriting))
+    {
+      return -1;
+    }
+  if (len > (sizeof(data) - offset))
+    {
+      len = sizeof(data) - offset;
+    }
+  if (len > 0)
+    {
+      memcpy(data + offset, buffer, len);
+      want = offset + len;
+      [self _queue];
+    }
+  return len;
+}
+
+- (NSStreamStatus) _check
+{
+  // Must only be called when current status is NSStreamStatusWriting.
+  if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
+    {
+      errno = GetLastError();
+      if (errno != ERROR_IO_PENDING)
+	{
+          offset = 0;
+          want = 0;
+          [self _recordError];
+	}
     }
   else
     {
-      [data setLength: 0];
-      [data appendBytes: buffer length: len];
+      [self _setStatus: NSStreamStatusOpen];
+      offset += size;
+      if (offset <= want)
+	{
+	  [self _queue];
+	}
     }
-  want = len;
-  offset = 0;
-  [self _queue];
-  return len;
+  return [self streamStatus];
 }
 
 - (void) _setHandle: (HANDLE)h
@@ -1069,44 +1113,32 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _dispatch
 {
-  BOOL av;
   NSStreamEvent myEvent;
+  NSStreamStatus oldStatus = [self streamStatus];
+  NSStreamStatus myStatus = oldStatus;
 
-  if ([self streamStatus] == NSStreamStatusWriting)
+  if (myStatus == NSStreamStatusWriting
+    || myStatus == NSStreamStatusOpening)
     {
-      if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
-	{
-	  errno = GetLastError();
-          if (errno == ERROR_IO_PENDING)
-	    {
-	      /*
-	       * Write operation has not completed.
-	       */
-	      return;
-	    }
-	  [self _recordError];
-	  offset = 0;
-	  want = 0;
-	  [self _setStatus: NSStreamStatusAtEnd];
-	}
-      else
-	{
-	  [self _setStatus: NSStreamStatusOpen];
-	  offset += size;
-	  if (offset <= want)
-	    {
-	      [self _queue];
-	    }
-	  if ([self streamStatus] == NSStreamStatusWriting)
-	    {
-	      return;	// Write not complete
-	    }
-	}
+      myStatus = [self _check];
     }
 
-  av = [self hasSpaceAvailable];
-  myEvent = av ? NSStreamEventHasSpaceAvailable : 
-    NSStreamEventEndEncountered;
+  if (myStatus == NSStreamStatusAtEnd)
+    {
+      myEvent = NSStreamEventEndEncountered;
+    }
+  else if (myStatus == NSStreamStatusError)
+    {
+      myEvent = NSStreamEventErrorOccurred;
+    }
+  else if (oldStatus == NSStreamStatusOpening)
+    {
+      myEvent = NSStreamEventOpenCompleted;
+    }
+  else
+    {
+      myEvent = NSStreamEventHasSpaceAvailable;
+    }
 
   [self _sendEvent: myEvent];
 }
@@ -1115,12 +1147,11 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
+  *trigger = YES;
   if (myStatus == NSStreamStatusWriting)
     {
-      *trigger = YES;
       return YES;
     }
-  *trigger = YES;
   return NO;
 }
 @end
