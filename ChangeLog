@@ -2,8 +2,9 @@
 
 	* Source/win32/NSStreamWin32.m: Various tidyups for pipe streams.
 	* Source/NSDictionary.m: Avoid compiler warning.
-	* Source/Additions/Unicode.m: Add unicode validation function.
-	* Headers/Additions/GNUstepBase/Unicode.h: ditto
+	* Headers/Additions/GNUstepBase/Unicode.h: Add validation function.
+	* Source/Additions/Unicode.m: Add unicode validation function and
+	alter UTF8 handling to be stricter.
 	* Source/GSString.m: validate unicode when initialisiung a string.
 	Also create 8bit data strings rather than 16bit where possible.
 

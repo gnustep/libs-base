@@ -1361,15 +1361,22 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	       * We also discard invalid codepoints here.
 	       */
 
+	      if (u == 0xfffe || u == 0xffff
+		|| (u >= 0xfdd0 && u <= 0xfdef))
+                {
+	          result = NO;	// Invalid character.
+		  break;
+	        }
+
 	      if ((u >= 0xd800) && (u <= 0xdfff))
                 {
-	          result = NO;
+	          result = NO;	// Unmatched half of surrogate pair.
 		  break;
 	        }
 
 	      if (u > 0x10ffff)
                 {
-	          result = NO;
+	          result = NO;	// Too large
 		  break;
 	        }
 
@@ -1901,14 +1908,29 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		{
 		  u1 = ((u1 & 0xff00 >> 8) + ((u1 & 0x00ff) << 8));
 		}
+	      if (u1 == 0xfffe || u1 == 0xffff		// unexpcted BOM
+		|| (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
+		|| (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
+	        {
+		  if (strict)
+		    {
+		      result = NO;
+		      break;
+                    }
+		  continue;	// Skip invalid character.
+	        }
 
 	      /* possibly get second character and calculate 'u' */
 	      if ((u1 >= 0xd800) && (u1 < 0xdc00))
                 {
 	  	  if (spos >= slen)
                     {
-		      result = NO;
-		      break;
+		      if (strict)
+			{
+			  result = NO;
+			  break;
+			}
+		      continue;	// At end.
                     }
 
 	          /* get second unichar */
@@ -1921,8 +1943,12 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	          if ((u2 < 0xdc00) && (u2 > 0xdfff))
                     {
 		      spos--;
-		      result = NO;
-		      break;
+		      if (strict)
+			{
+			  result = NO;
+			  break;
+			}
+		      continue;		// Skip bad half of surrogate pair.
                     }
 
                   /* make the full value */
