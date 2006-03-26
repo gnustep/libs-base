@@ -1,3 +1,7 @@
+2006-03-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSStreamWin32.m: Variout tidyups for pipe streams.
+
 2006-03-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSRunLoopCtxt.h:
