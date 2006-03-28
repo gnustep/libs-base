@@ -402,6 +402,10 @@ setup(void)
 
   if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
     {
+      if (flag == YES && chars != 0)
+        {
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+        }
       return nil;	// Invalid data
     }
   if (isASCII == YES
@@ -420,6 +424,10 @@ setup(void)
         {
           me->_contents.c[length] = (unsigned char)chars[length];
 	}
+      if (flag == YES && chars != 0)
+        {
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+        }
     }
   else
     {
@@ -3093,6 +3101,10 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
     {
       RELEASE(self);
+      if (flag == YES && chars != 0)
+        {
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+        }
       return nil;	// Invalid data
     }
   if (isASCII == YES
@@ -3114,6 +3126,10 @@ agree, create a new GSUnicodeInlineString otherwise.
           me->_contents.c[length] = (unsigned char)chars[length];
 	}
       RELEASE(self);
+      if (flag == YES && chars != 0)
+        {
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+        }
       return (id)me;
     }
   if (_contents.u != 0)
@@ -3559,45 +3575,56 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
     {
       RELEASE(self);
+      if (flag == YES && chars != 0)
+        {
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+        }
       return nil;	// Invalid data
     }
   if (isASCII == YES
     || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
-      GSStr	me;
+      unsigned char	*buf;
 
-      /*
-       * OK ... we can do a more compact version
-       */
-      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
-	GSObjCZone(self));
-      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
-      me->_count = length;
-      me->_flags.wide = 0;
-      me->_flags.free = 1;
-      while (length-- > 0)
-        {
-          me->_contents.c[length] = (unsigned char)chars[length];
-	}
-      RELEASE(self);
-      return (id)me;
-    }
-  _count = length;
-  _capacity = length;
-  _contents.u = chars;
-  _flags.wide = 1;
-  if (flag == YES && chars != 0)
-    {
 #if	GS_WITH_GC
       _zone = GSAtomicMallocZone();
 #else
-      _zone = NSZoneFromPointer(chars);
+      _zone = NSDefaultMallocZone();
 #endif
+      buf = NSZoneMalloc(_zone, length);
+      _count = length;
+      _capacity = length;
+      _contents.c = buf;
+      _flags.wide = 0;
       _flags.free = 1;
+      while (length-- > 0)
+        {
+	  buf[length] = (unsigned char)chars[length];
+        }
+      if (flag == YES && chars != 0)
+        {
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+        }
     }
   else
     {
-      _zone = 0;
+      _count = length;
+      _capacity = length;
+      _contents.u = chars;
+      _flags.wide = 1;
+      if (flag == YES && chars != 0)
+	{
+#if	GS_WITH_GC
+	  _zone = GSAtomicMallocZone();
+#else
+	  _zone = NSZoneFromPointer(chars);
+#endif
+	  _flags.free = 1;
+	}
+      else
+	{
+	  _zone = 0;
+	}
     }
   return self;
 }

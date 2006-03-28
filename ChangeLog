@@ -1,3 +1,9 @@
+2006-03-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix error initialising mutable string from
+	unicode char array conmtaining ascii characters.
+	Fix a few memory mleaks.
+
 2006-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/NSStreamWin32.m: Various tidyups for pipe streams.
@@ -5,7 +11,7 @@
 	* Headers/Additions/GNUstepBase/Unicode.h: Add validation function.
 	* Source/Additions/Unicode.m: Add unicode validation function and
 	alter UTF8 handling to be stricter.
-	* Source/GSString.m: validate unicode when initialisiung a string.
+	* Source/GSString.m: validate unicode when initialising a string.
 	Also create 8bit data strings rather than 16bit where possible.
 
 2006-03-24  Richard Frith-Macdonald <rfm@gnu.org>
