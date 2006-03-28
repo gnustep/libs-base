@@ -1349,6 +1349,22 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    }
 	          u = u & ~(0xffffffff << ((5 * sle) + 1));
 		  spos += sle;
+
+		  /*
+		   * We discard invalid codepoints here.
+		   */
+		  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
+		    || (u >= 0xfdd0 && u <= 0xfdef))
+		    {
+		      result = NO;	// Invalid character.
+		      break;
+		    }
+
+		  if ((u >= 0xd800) && (u <= 0xdfff))
+		    {
+		      result = NO;	// Unmatched half of surrogate pair.
+		      break;
+		    }
                 }
               else
 		{
@@ -1358,33 +1374,12 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	      /*
 	       * Add codepoint as either a single unichar for BMP
 	       * or as a pair of surrogates for codepoints over 16 bits.
-	       * We also discard invalid codepoints here.
 	       */
-
-	      if (u == 0xfffe || u == 0xffff
-		|| (u >= 0xfdd0 && u <= 0xfdef))
-                {
-	          result = NO;	// Invalid character.
-		  break;
-	        }
-
-	      if ((u >= 0xd800) && (u <= 0xdfff))
-                {
-	          result = NO;	// Unmatched half of surrogate pair.
-		  break;
-	        }
-
-	      if (u > 0x10ffff)
-                {
-	          result = NO;	// Too large
-		  break;
-	        }
 
 	      if (dpos >= bsize)
 		{
 		  GROW();
 		}
-
 	      if (u < 0x10000)
 	        {
 	          ptr[dpos++] = u;
