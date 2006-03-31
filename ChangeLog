@@ -1,3 +1,8 @@
+2006-03-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: Add a class for autoreleased
+	memory so it is clearer when using object allocation debugging.
+
 2006-03-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Fix error initialising mutable string from
