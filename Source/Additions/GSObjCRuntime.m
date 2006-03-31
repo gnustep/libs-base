@@ -2197,6 +2197,11 @@ NSArray *GSObjCDirectSubclassesOfClass(Class cls)
     }
 }
 
+@interface 	GSAutoreleasedMemory : NSObject
+@end
+@implementation	GSAutoreleasedMemory
+@end
+
 void *
 GSAutoreleasedBuffer(unsigned size)
 {
@@ -2208,22 +2213,22 @@ GSAutoreleasedBuffer(unsigned size)
 #endif
 #define ALIGN __alignof__(double)
 
-  static Class	nsobject_class = 0;
+  static Class	buffer_class = 0;
   static Class	autorelease_class;
   static SEL	autorelease_sel;
   static IMP	autorelease_imp;
   static int	offset;
   NSObject	*o;
 
-  if (nsobject_class == 0)
+  if (buffer_class == 0)
     {
-      nsobject_class = [NSObject class];
-      offset = nsobject_class->instance_size % ALIGN;
+      buffer_class = [GSAutoreleasedMemory class];
+      offset = buffer_class->instance_size % ALIGN;
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
     }
-  o = (NSObject*)NSAllocateObject(nsobject_class,
+  o = (NSObject*)NSAllocateObject(buffer_class,
     size + offset, NSDefaultMallocZone());
   (*autorelease_imp)(autorelease_class, autorelease_sel, o);
   return ((void*)&o[1]) + offset;
