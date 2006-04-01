@@ -1,3 +1,7 @@
+2006-04-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSetData.h: Updated to version with comments.
+
 2006-03-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m: Add a class for autoreleased
