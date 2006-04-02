@@ -48,6 +48,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSData.h"
 #include "Foundation/NSValue.h"
 #include "GNUstepBase/GSFunctions.h"
 #ifdef HAVE_UNISTD_H
@@ -577,7 +578,8 @@ _find_framework(NSString *name)
 
       if (bundle == nil)
 	{
-	  NSWarnMLog (@"Could not find framework %@ in any standard location", name);
+	  NSWarnMLog (@"Could not find framework %@ in any standard location",
+	    name);
 	  return;
 	}
 
@@ -1656,32 +1658,85 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (table == nil)
     {
-      NSString			*tablePath;
+      NSString	*tablePath;
 
       /*
        * Make sure we have an empty table in place in case anything
-       * we do somehow causes recursion.  The recusive call will look
+       * we do somehow causes recursion.  The recursive call will look
        * up the string in the empty table.
        */
       [_localizations setObject: _emptyTable forKey: tableName];
 
       tablePath = [self pathForResource: tableName ofType: @"strings"];
-      if (tablePath)
+      if (tablePath != nil)
 	{
-	  NSString	*tableContent;
+	  NSStringEncoding	encoding;
+	  NSString		*tableContent;
+	  NSData		*tableData;
+	  const unsigned char	*bytes;
+	  unsigned		length;
 
-	  tableContent = [NSString stringWithContentsOfFile: tablePath];
-	  NS_DURING
+	  tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
+	  bytes = [tableData bytes];
+	  length = [tableData length];
+	  /*
+	   * A localisation file can be ...
+	   * UTF16 with a leading BOM,
+	   * UTF8 with a leading BOM,
+	   * or ASCII (the original standard) with \U escapes.
+	   */
+	  if (length > 2
+	    && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
+	      || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
 	    {
-	      table = [tableContent propertyListFromStringsFileFormat];
+	      encoding = NSUnicodeStringEncoding;
 	    }
-	  NS_HANDLER
+	  else if (length > 2
+	    && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
 	    {
-	      NSLog(@"Failed to parse strings file %@ - %@",
-			tablePath, localException);
-	      table = nil;
+	      encoding = NSUTF8StringEncoding;
 	    }
-	  NS_ENDHANDLER
+	  else
+	    {
+	      encoding = NSASCIIStringEncoding;
+	    }
+	  tableContent = [[NSString alloc] initWithData: tableData
+					       encoding: encoding];
+	  if (tableContent == nil && encoding == NSASCIIStringEncoding)
+	    {
+	      encoding = [NSString defaultCStringEncoding];
+	      tableContent = [[NSString alloc] initWithData: tableData
+						   encoding: encoding];
+	      if (tableContent != nil)
+		{
+		  NSWarnMLog (@"Localisation file %@ not in portable encoding"
+		    @" so I'm using the default encoding for the current"
+		    @" system, which may not display messages correctly.\n"
+		    @"The file should be ASCII (using \\U escapes for unicode"
+		    @" characters) or Unicode (UTF16 or UTF8) with a leading "
+		    @"byte-order-marker.\n", tablePath);
+		}
+	    }
+	  if (tableContent == nil)
+	    {
+	      NSWarnMLog(@"Failed to load strings file %@ - bad character"
+		@" encoding", tablePath);
+	    }
+	  else
+	    {
+	      NS_DURING
+		{
+		  table = [tableContent propertyListFromStringsFileFormat];
+		}
+	      NS_HANDLER
+		{
+		  NSWarnMLog(@"Failed to parse strings file %@ - %@",
+		    tablePath, localException);
+		}
+	      NS_ENDHANDLER
+	    }
+	  RELEASE(tableData);
+	  RELEASE(tableContent);
 	}
       else
 	{
