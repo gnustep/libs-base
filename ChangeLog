@@ -1,3 +1,7 @@
+2006-04-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: ([GSSAXHandler-dealloc]) fix memory leak.
+
 2006-04-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: When loading localisation striong files, check
