@@ -2954,7 +2954,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 
 - (void) dealloc
 {
-  if (parser == nil && lib != NULL)
+  if (lib != NULL)
     {
       free(lib);
     }
