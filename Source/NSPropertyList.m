@@ -3304,7 +3304,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       code = 0x11;
       [dest appendBytes: &code length: 1];
       c = count;
-      NSSwapHostShortToBig(c);
+      c = NSSwapHostShortToBig(c);
       [dest appendBytes: &c length: 2];
     }
   else
