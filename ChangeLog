@@ -1,3 +1,8 @@
+2006-04-10  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m (BinaryPLGenerator - storeCount:):
+	Corrected line forgotten when applying last patch.
+
 2006-04-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: ([GSSAXHandler-dealloc]) fix memory leak.
