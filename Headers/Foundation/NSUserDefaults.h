@@ -19,7 +19,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
 */ 
 
 #ifndef __NSUserDefaults_h_OBJECTS_INCLUDE
@@ -54,6 +55,13 @@ GS_EXPORT NSString* const NSGlobalDomain;
  *  User defaults domain for application-registered "default defaults".
  */
 GS_EXPORT NSString* const NSRegistrationDomain;
+
+#ifndef NO_GNUSTEP
+/**
+ *  User defaults domain for GNUstep config file.
+ */
+GS_EXPORT NSString* const GSConfigDomain;
+#endif
 
 
 /* Public notification */

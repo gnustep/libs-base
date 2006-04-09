@@ -43,6 +43,7 @@
 #include "Foundation/NSDebug.h"
 
 #include "../Tools/gdomap.h"
+#include "../GSPrivate.h"
 
 #include <winsock2.h>
 #include <fcntl.h>

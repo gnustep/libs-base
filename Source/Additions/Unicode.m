@@ -1090,6 +1090,67 @@ int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
 }
 
 
+/**
+ * Function to check a block of data for validity as a unicode string and
+ * say whether it contains solely ASCII or solely Latin1 data.<br />
+ * Any leading BOM must already have been removed and the data must already
+ * be in native byte order.<br />
+ * Returns the number of characters which were found valid.
+ */
+unsigned
+GSUnicode(const unichar *chars, unsigned length,
+  BOOL *isASCII, BOOL *isLatin1)
+{
+  unsigned	i = 0;
+  unichar	c;
+
+  if (isASCII) *isASCII = YES;
+  if (isLatin1) *isLatin1 = YES;
+  while (i < length)
+    {
+      if ((c = chars[i++]) > 127)
+        {
+	  if (isASCII) *isASCII = NO;
+	  i--;
+	  while (i < length)
+	    {
+	      if ((c = chars[i++]) > 255)
+		{
+		  if (isLatin1) *isLatin1 = NO;
+		  i--;
+		  while (i < length)
+		    {
+		      c = chars[i++];
+		      if (c == 0xfffe || c == 0xffff
+			|| (c >= 0xfdd0 && c <= 0xfdef))
+			{
+			  return i - 1;	// Non-characters.
+			}
+		      if (c >= 0xdc00 && c <= 0xdfff)
+		        {
+			  return i - 1;	// Second half of a surrogate pair.
+		        }
+		      if (c >= 0xd800 && c <= 0xdbff)
+		        {
+			  // First half of a surrogate pair.
+			  if (i >= length)
+			    {
+			      return i - 1;	// Second half missing
+			    }
+			  c = chars[i];
+			  if (c < 0xdc00 || c > 0xdfff)
+			    {
+			      return i - 1;	// Second half missing
+			    }
+			  i++;		// Step past second half
+		        }
+		    }
+		}
+	    }
+        }
+    }
+  return i;
+}
 
 #define	GROW() \
 if (dst == 0) \
@@ -1288,6 +1349,22 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    }
 	          u = u & ~(0xffffffff << ((5 * sle) + 1));
 		  spos += sle;
+
+		  /*
+		   * We discard invalid codepoints here.
+		   */
+		  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
+		    || (u >= 0xfdd0 && u <= 0xfdef))
+		    {
+		      result = NO;	// Invalid character.
+		      break;
+		    }
+
+		  if ((u >= 0xd800) && (u <= 0xdfff))
+		    {
+		      result = NO;	// Unmatched half of surrogate pair.
+		      break;
+		    }
                 }
               else
 		{
@@ -1297,26 +1374,12 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	      /*
 	       * Add codepoint as either a single unichar for BMP
 	       * or as a pair of surrogates for codepoints over 16 bits.
-	       * We also discard invalid codepoints here.
 	       */
-
-	      if ((u >= 0xd800) && (u <= 0xdfff))
-                {
-	          result = NO;
-		  break;
-	        }
-
-	      if (u > 0x10ffff)
-                {
-	          result = NO;
-		  break;
-	        }
 
 	      if (dpos >= bsize)
 		{
 		  GROW();
 		}
-
 	      if (u < 0x10000)
 	        {
 	          ptr[dpos++] = u;
@@ -1840,14 +1903,29 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		{
 		  u1 = ((u1 & 0xff00 >> 8) + ((u1 & 0x00ff) << 8));
 		}
+	      if (u1 == 0xfffe || u1 == 0xffff		// unexpcted BOM
+		|| (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
+		|| (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
+	        {
+		  if (strict)
+		    {
+		      result = NO;
+		      break;
+                    }
+		  continue;	// Skip invalid character.
+	        }
 
 	      /* possibly get second character and calculate 'u' */
 	      if ((u1 >= 0xd800) && (u1 < 0xdc00))
                 {
 	  	  if (spos >= slen)
                     {
-		      result = NO;
-		      break;
+		      if (strict)
+			{
+			  result = NO;
+			  break;
+			}
+		      continue;	// At end.
                     }
 
 	          /* get second unichar */
@@ -1860,8 +1938,12 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	          if ((u2 < 0xdc00) && (u2 > 0xdfff))
                     {
 		      spos--;
-		      result = NO;
-		      break;
+		      if (strict)
+			{
+			  result = NO;
+			  break;
+			}
+		      continue;		// Skip bad half of surrogate pair.
                     }
 
                   /* make the full value */

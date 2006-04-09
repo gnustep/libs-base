@@ -1476,12 +1476,12 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 #endif
 
 
-/**  Deprecated ... use GSObjCGetValue() */
+/**  Deprecated ... use GSObjCGetVal() */
 id
 GSGetValue(NSObject *self, NSString *key, SEL sel,
 	   const char *type, unsigned size, int offset)
 {
-  return GSObjCGetValue(self, key, sel, type, size, offset);
+  return GSObjCGetVal(self, [key UTF8String], sel, type, size, offset);
 }
 /**
  * This is used internally by the key-value coding methods, to get a
@@ -1494,7 +1494,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
  * to get a value.
  */
 id
-GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
+GSObjCGetVal(NSObject *self, const char *key, SEL sel,
 	       const char *type, unsigned size, int offset)
 {
   if (sel != 0)
@@ -1510,7 +1510,7 @@ GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
     }
   if (type == NULL)
     {
-      return [self valueForUndefinedKey: key];
+      return [self valueForUndefinedKey: [NSString stringWithUTF8String: key]];
     }
   else
     {
@@ -1792,13 +1792,22 @@ GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
       return val;
     }
 }
+/**
+ * Calls GSObjCGetVal()
+ */
+id
+GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
+	       const char *type, unsigned size, int offset)
+{
+  return GSObjCGetVal(self, [key UTF8String], sel, type, size, offset);
+}
 
-/**  Deprecated ... use GSObjCSetValue() */
+/**  Deprecated ... use GSObjCSetVal() */
 void
 GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	   const char *type, unsigned size, int offset)
 {
-  GSObjCSetValue(self, key, val, sel, type, size, offset);
+  GSObjCSetVal(self, [key UTF8String], val, sel, type, size, offset);
 }
 /**
  * This is used internally by the key-value coding methods, to set a
@@ -1811,8 +1820,8 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
  * to set a value.
  */
 void
-GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
-	       const char *type, unsigned size, int offset)
+GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
+  const char *type, unsigned size, int offset)
 {
   static NSNull	*null = nil;
 
@@ -1833,11 +1842,12 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
     }
   if (type == NULL)
     {
-      [self setValue: val forUndefinedKey: key];
+      [self setValue: val
+     forUndefinedKey: [NSString stringWithUTF8String: key]];
     }
   else if ((val == nil || val == null) && *type != _C_ID && *type != _C_CLASS)
     {
-      [self setNilValueForKey: key];
+      [self setNilValueForKey: [NSString stringWithUTF8String: key]];
     }
   else
     {
@@ -2121,6 +2131,15 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	}
     }
 }
+/**
+ * Calls GSObjCSetVal()
+ */
+void
+GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
+	       const char *type, unsigned size, int offset)
+{
+  GSObjCSetVal(self, [key UTF8String], val, sel, type, size, offset);
+}
 
 
 /** Returns an autoreleased array of subclasses of Class cls, including
@@ -2178,6 +2197,11 @@ NSArray *GSObjCDirectSubclassesOfClass(Class cls)
     }
 }
 
+@interface 	GSAutoreleasedMemory : NSObject
+@end
+@implementation	GSAutoreleasedMemory
+@end
+
 void *
 GSAutoreleasedBuffer(unsigned size)
 {
@@ -2189,22 +2213,22 @@ GSAutoreleasedBuffer(unsigned size)
 #endif
 #define ALIGN __alignof__(double)
 
-  static Class	nsobject_class = 0;
+  static Class	buffer_class = 0;
   static Class	autorelease_class;
   static SEL	autorelease_sel;
   static IMP	autorelease_imp;
   static int	offset;
   NSObject	*o;
 
-  if (nsobject_class == 0)
+  if (buffer_class == 0)
     {
-      nsobject_class = [NSObject class];
-      offset = nsobject_class->instance_size % ALIGN;
+      buffer_class = [GSAutoreleasedMemory class];
+      offset = buffer_class->instance_size % ALIGN;
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
     }
-  o = (NSObject*)NSAllocateObject(nsobject_class,
+  o = (NSObject*)NSAllocateObject(buffer_class,
     size + offset, NSDefaultMallocZone());
   (*autorelease_imp)(autorelease_class, autorelease_sel, o);
   return ((void*)&o[1]) + offset;

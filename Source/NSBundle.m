@@ -48,6 +48,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSData.h"
 #include "Foundation/NSValue.h"
 #include "GNUstepBase/GSFunctions.h"
 #ifdef HAVE_UNISTD_H
@@ -70,8 +71,8 @@ typedef enum {
 static NSBundle		*_mainBundle = nil;
 static NSMapTable	*_bundles = NULL;
 
-/* Keep the path to the executable file for finding the main bundle. */
-static NSString	*_executable_path;
+/* Store the working directory at startup */
+static NSString		*_launchDirectory = nil;
 
 /*
  * An empty strings file table for use when localization files can't be found.
@@ -117,12 +118,147 @@ static NSString	*library_combo =
   nil;
 #endif
 
+
+/*
+ * Try to find the absolute path of an executable.
+ * Search all the directoried in the PATH.
+ * The atLaunch flag determines whether '.' is considered to be
+ * the  current working directory or the working directory at the
+ * time when the program was launched (technically the directory
+ * at the point when NSBundle was first used ... so programs must
+ * use NSBundle *before* changing their working directories).
+ */
+static NSString*
+AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
+{
+  NSFileManager	*mgr;
+  NSDictionary	*env;
+  NSString	*pathlist;
+  NSString	*prefix;
+  id		patharr;
+
+  path = [path stringByStandardizingPath];
+  if ([path isAbsolutePath])
+    {
+      return path;
+    }
+
+  mgr = [NSFileManager defaultManager];
+  env = [[NSProcessInfo processInfo] environment];
+  pathlist = [env objectForKey:@"PATH"];
+
+/* Windows 2000 and perhaps others have "Path" not "PATH" */
+  if (pathlist == nil)
+    {
+      pathlist = [env objectForKey:@"Path"];
+    }
+#if defined(__MINGW32__)
+  patharr = [pathlist componentsSeparatedByString:@";"];
+#else
+  patharr = [pathlist componentsSeparatedByString:@":"];
+#endif
+  /* Add . if not already in path */
+  if ([patharr indexOfObject: @"."] == NSNotFound)
+    {
+      patharr = AUTORELEASE([patharr mutableCopy]);
+      [patharr addObject: @"."];
+    }
+  patharr = [patharr objectEnumerator];
+  while ((prefix = [patharr nextObject]))
+    {
+      if ([prefix isEqual:@"."])
+	{
+	  if (atLaunch == YES)
+	    {
+	      prefix = _launchDirectory;
+	    }
+	  else
+	    {
+	      prefix = [mgr currentDirectoryPath];
+	    }
+	}
+      prefix = [prefix stringByAppendingPathComponent: path];
+      if ([mgr isExecutableFileAtPath: prefix])
+	{
+	  return [prefix stringByStandardizingPath];
+	}
+#if defined(__WIN32__)
+      {
+	NSString	*ext = [path pathExtension];
+
+	/* Also add common executable extensions on windows */
+	if (ext == nil || [ext length] == 0)
+	  {
+	    NSString *wpath;
+	    wpath = [prefix stringByAppendingPathExtension: @"exe"];
+	    if ([mgr isExecutableFileAtPath: wpath])
+	      return [wpath stringByStandardizingPath];
+	    wpath = [prefix stringByAppendingPathExtension: @"com"];
+	    if ([mgr isExecutableFileAtPath: wpath])
+	      return [wpath stringByStandardizingPath];
+	    wpath = [prefix stringByAppendingPathExtension: @"cmd"];
+	    if ([mgr isExecutableFileAtPath: wpath])
+	      return [wpath stringByStandardizingPath];
+	  }
+	}
+#endif
+    }
+  return nil;
+}
+
+/*
+ * Return the path to this executable.
+ */
+static NSString	*ExecutablePath()
+{
+  static NSString	*executablePath = nil;
+  static BOOL		beenHere = NO;
+
+  if (beenHere == NO)
+    {
+      [load_lock lock];
+      if (beenHere == NO)
+	{
+#ifdef PROCFS_EXE_LINK
+	  executablePath = [[NSFileManager defaultManager]
+	    pathContentOfSymbolicLinkAtPath:
+              [NSString stringWithCString: PROCFS_EXE_LINK]];
+
+	  /*
+	  On some systems, the link is of the form "[device]:inode", which
+	  can be used to open the executable, but is useless if you want
+	  the path to it. Thus we check that the path is an actual absolute
+	  path. (Using '/' here is safe; it isn't the path separator
+	  everywhere, but it is on all systems that have PROCFS_EXE_LINK.)
+	  */
+	  if ([executablePath length] > 0
+	    && [executablePath characterAtIndex: 0] != '/')
+	    {
+	      executablePath = nil;
+	    }
+#endif
+	  if (executablePath == nil || [executablePath length] == 0)
+	    {
+	      executablePath
+		= [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
+	      executablePath = AbsolutePathOfExecutable(executablePath, YES);
+	    }
+
+	  RETAIN(executablePath);
+	  beenHere = YES;
+	}
+      [load_lock unlock];
+      NSCAssert(executablePath != nil, NSInternalInconsistencyException);
+    }
+  return executablePath;
+}
+
 /* This function is provided for objc-load.c, although I'm not sure it
    really needs it (So far only needed if using GNU dld library) */
 const char *
 objc_executable_location (void)
 {
-  return (const char*)[[_executable_path stringByDeletingLastPathComponent]
+  return (const char*)[[ExecutablePath() stringByDeletingLastPathComponent]
 	     fileSystemRepresentation];
 }
 
@@ -236,11 +372,21 @@ _find_framework(NSString *name)
 }        
 
 @interface NSBundle (Private)
++ (NSString *) _absolutePathOfExecutable: (NSString *)path;
 + (void) _addFrameworkFromClass: (Class)frameworkClass;
 - (NSArray *) _bundleClasses;
++ (NSString*) _gnustep_target_cpu;
++ (NSString*) _gnustep_target_dir;
++ (NSString*) _gnustep_target_os;
++ (NSString*) _library_combo;
 @end
 
 @implementation NSBundle (Private)
+
++ (NSString *) _absolutePathOfExecutable: (NSString *)path
+{
+  return AbsolutePathOfExecutable(path, NO);
+}
 
 /* Nicola & Mirko:
 
@@ -323,7 +469,7 @@ _find_framework(NSString *name)
        */
       bundlePath = objc_get_symbol_path (frameworkClass, NULL);
 
-      if ([bundlePath isEqualToString: _executable_path])
+      if ([bundlePath isEqualToString: ExecutablePath()])
 	{
 	  /* Ops ... the NSFramework_xxx class is linked in the main
 	   * executable.  Maybe the framework was statically linked
@@ -432,7 +578,8 @@ _find_framework(NSString *name)
 
       if (bundle == nil)
 	{
-	  NSWarnMLog (@"Could not find framework %@ in any standard location", name);
+	  NSWarnMLog (@"Could not find framework %@ in any standard location",
+	    name);
 	  return;
 	}
 
@@ -478,6 +625,26 @@ _find_framework(NSString *name)
 - (NSArray *) _bundleClasses
 {
   return _bundleClasses;
+}
+
++ (NSString*) _gnustep_target_cpu
+{
+  return gnustep_target_cpu;
+}
+
++ (NSString*) _gnustep_target_dir
+{
+  return gnustep_target_dir;
+}
+
++ (NSString*) _gnustep_target_os
+{
+  return gnustep_target_os;
+}
+
++ (NSString*) _library_combo
+{
+  return library_combo;
 }
 
 @end
@@ -547,8 +714,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       env = [[NSProcessInfo processInfo] environment];
       if (env)
 	{
-          NSArray		*paths;
-	  NSMutableString	*system = nil;
 	  NSString		*str;
 
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
@@ -569,41 +734,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	    library_combo = RETAIN(str);
 
-          paths = NSSearchPathForDirectoriesInDomains(GSLibrariesDirectory,
-                                                      NSSystemDomainMask, YES);
-          if ((paths != nil) && ([paths count] > 0))
-	    system = RETAIN([paths objectAtIndex: 0]);
+	  _launchDirectory = RETAIN([[NSFileManager defaultManager]
+	      currentDirectoryPath]);
 
-	  _executable_path = nil;
-#ifdef PROCFS_EXE_LINK
-	  _executable_path = [[NSFileManager defaultManager]
-	    pathContentOfSymbolicLinkAtPath:
-              [NSString stringWithCString: PROCFS_EXE_LINK]];
-
-	  /*
-	  On some systems, the link is of the form "[device]:inode", which
-	  can be used to open the executable, but is useless if you want
-	  the path to it. Thus we check that the path is an actual absolute
-	  path. (Using '/' here is safe; it isn't the path separator
-	  everywhere, but it is on all systems that have PROCFS_EXE_LINK.)
-	  */
-	  if ([_executable_path length] > 0
-	    && [_executable_path characterAtIndex: 0] != '/')
-	    {
-	      _executable_path = nil;
-	    }
-#endif
-	  if (_executable_path == nil || [_executable_path length] == 0)
-	    {
-	      _executable_path =
-		[[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
-	      _executable_path =
-		[self _absolutePathOfExecutable: _executable_path];
-	      NSAssert(_executable_path, NSInternalInconsistencyException);
-	    }
-
-	  RETAIN(_executable_path);
-	  _gnustep_bundle = RETAIN([self bundleWithPath: system]);
+	  _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"]);
 
 #if 0
 	  _loadingBundle = [self mainBundle];
@@ -773,13 +907,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
          know yet if it's a tool or an application, we always store
          the executable name here - just in case it turns out it's a
          tool.  */
-      NSString *toolName = [_executable_path lastPathComponent];
+      NSString *toolName = [ExecutablePath() lastPathComponent];
 #if defined(__WIN32__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
 
       /* Strip off the name of the program */
-      path = [_executable_path stringByDeletingLastPathComponent];
+      path = [ExecutablePath() stringByDeletingLastPathComponent];
 
       /* We now need to chop off the extra subdirectories, the library
 	 combo and the target cpu/os if they exist.  The executable
@@ -1524,32 +1658,85 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (table == nil)
     {
-      NSString			*tablePath;
+      NSString	*tablePath;
 
       /*
        * Make sure we have an empty table in place in case anything
-       * we do somehow causes recursion.  The recusive call will look
+       * we do somehow causes recursion.  The recursive call will look
        * up the string in the empty table.
        */
       [_localizations setObject: _emptyTable forKey: tableName];
 
       tablePath = [self pathForResource: tableName ofType: @"strings"];
-      if (tablePath)
+      if (tablePath != nil)
 	{
-	  NSString	*tableContent;
+	  NSStringEncoding	encoding;
+	  NSString		*tableContent;
+	  NSData		*tableData;
+	  const unsigned char	*bytes;
+	  unsigned		length;
 
-	  tableContent = [NSString stringWithContentsOfFile: tablePath];
-	  NS_DURING
+	  tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
+	  bytes = [tableData bytes];
+	  length = [tableData length];
+	  /*
+	   * A localisation file can be ...
+	   * UTF16 with a leading BOM,
+	   * UTF8 with a leading BOM,
+	   * or ASCII (the original standard) with \U escapes.
+	   */
+	  if (length > 2
+	    && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
+	      || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
 	    {
-	      table = [tableContent propertyListFromStringsFileFormat];
+	      encoding = NSUnicodeStringEncoding;
 	    }
-	  NS_HANDLER
+	  else if (length > 2
+	    && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
 	    {
-	      NSLog(@"Failed to parse strings file %@ - %@",
-			tablePath, localException);
-	      table = nil;
+	      encoding = NSUTF8StringEncoding;
 	    }
-	  NS_ENDHANDLER
+	  else
+	    {
+	      encoding = NSASCIIStringEncoding;
+	    }
+	  tableContent = [[NSString alloc] initWithData: tableData
+					       encoding: encoding];
+	  if (tableContent == nil && encoding == NSASCIIStringEncoding)
+	    {
+	      encoding = [NSString defaultCStringEncoding];
+	      tableContent = [[NSString alloc] initWithData: tableData
+						   encoding: encoding];
+	      if (tableContent != nil)
+		{
+		  NSWarnMLog (@"Localisation file %@ not in portable encoding"
+		    @" so I'm using the default encoding for the current"
+		    @" system, which may not display messages correctly.\n"
+		    @"The file should be ASCII (using \\U escapes for unicode"
+		    @" characters) or Unicode (UTF16 or UTF8) with a leading "
+		    @"byte-order-marker.\n", tablePath);
+		}
+	    }
+	  if (tableContent == nil)
+	    {
+	      NSWarnMLog(@"Failed to load strings file %@ - bad character"
+		@" encoding", tablePath);
+	    }
+	  else
+	    {
+	      NS_DURING
+		{
+		  table = [tableContent propertyListFromStringsFileFormat];
+		}
+	      NS_HANDLER
+		{
+		  NSWarnMLog(@"Failed to parse strings file %@ - %@",
+		    tablePath, localException);
+		}
+	      NS_ENDHANDLER
+	    }
+	  RELEASE(tableData);
+	  RELEASE(tableContent);
 	}
       else
 	{
@@ -1603,7 +1790,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
   if (self == _mainBundle)
     {
-      return _executable_path;
+      return ExecutablePath();
     }
   object = [[self infoDictionary] objectForKey: @"NSExecutable"];
   if (object == nil || [object length] == 0)
@@ -1774,77 +1961,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return nil;
 }
 
-+ (NSString *) _absolutePathOfExecutable: (NSString *)path
-{
-  NSFileManager *mgr;
-  NSDictionary   *env;
-  NSString *pathlist, *prefix;
-  id patharr;
-
-  path = [path stringByStandardizingPath];
-  if ([path isAbsolutePath])
-    return path;
-
-  mgr = [NSFileManager defaultManager];
-  env = [[NSProcessInfo processInfo] environment];
-  pathlist = [env objectForKey:@"PATH"];
-
-/* Windows 2000 and perhaps others have "Path" not "PATH" */
-  if (pathlist == nil)
-    {
-      pathlist = [env objectForKey:@"Path"];
-    }
-#if defined(__MINGW32__)
-  patharr = [pathlist componentsSeparatedByString:@";"];
-#else
-  patharr = [pathlist componentsSeparatedByString:@":"];
-#endif
-  /* Add . if not already in path */
-  if ([patharr indexOfObject: @"."] == NSNotFound)
-    {
-      patharr = AUTORELEASE([patharr mutableCopy]);
-      [patharr addObject: @"."];
-    }
-  patharr = [patharr objectEnumerator];
-  while ((prefix = [patharr nextObject]))
-    {
-      if ([prefix isEqual:@"."])
-	prefix = [mgr currentDirectoryPath];
-      prefix = [prefix stringByAppendingPathComponent: path];
-      if ([mgr isExecutableFileAtPath: prefix])
-	return [prefix stringByStandardizingPath];
-#if defined(__WIN32__)
-      {
-	NSString	*ext = [path pathExtension];
-
-	/* Also add common executable extensions on windows */
-	if (ext == nil || [ext length] == 0)
-	  {
-	    NSString *wpath;
-	    wpath = [prefix stringByAppendingPathExtension: @"exe"];
-	    if ([mgr isExecutableFileAtPath: wpath])
-	      return [wpath stringByStandardizingPath];
-	    wpath = [prefix stringByAppendingPathExtension: @"com"];
-	    if ([mgr isExecutableFileAtPath: wpath])
-	      return [wpath stringByStandardizingPath];
-	    wpath = [prefix stringByAppendingPathExtension: @"cmd"];
-	    if ([mgr isExecutableFileAtPath: wpath])
-	      return [wpath stringByStandardizingPath];
-	  }
-	}
-#endif
-    }
-  return nil;
-}
-
-+ (NSBundle *) gnustepBundle
-{
-  /* Deprecated since 1.7.0 */
-  GSOnceMLog(@"Warning: Deprecated method %@ called. Use +bundleForLibrary: instead", 
-    NSStringFromSelector(_cmd));
-  return _gnustep_bundle;
-}
-
 + (NSString *) pathForLibraryResource: (NSString *)name
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath
@@ -1869,37 +1985,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   return path;
-}
-
-+ (NSString *) pathForGNUstepResource: (NSString *)name
-			       ofType: (NSString *)ext	
-			  inDirectory: (NSString *)bundlePath
-{
-  /* Deprecated since 1.7.0 */
-  GSOnceMLog(@"Warning: Deprecated method %@ called. Use +pathForLibraryResource:ofType:inDirectory: or +bundleForLibrary: instead",
-	NSStringFromSelector(_cmd));
-  return [self pathForLibraryResource: name ofType: ext
-	                  inDirectory: bundlePath];
-}
-
-+ (NSString*) _gnustep_target_cpu
-{
-  return gnustep_target_cpu;
-}
-
-+ (NSString*) _gnustep_target_dir
-{
-  return gnustep_target_dir;
-}
-
-+ (NSString*) _gnustep_target_os
-{
-  return gnustep_target_os;
-}
-
-+ (NSString*) _library_combo
-{
-  return library_combo;
 }
 
 @end

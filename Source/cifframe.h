@@ -19,15 +19,29 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
    */ 
 
 #ifndef cifframe_h_INCLUDE
 #define cifframe_h_INCLUDE
 
+#include <ffi.h>
+
+#if	defined(__MINGW32__)
+/*
+ * Avoid conflicts when other headers try to define UINT32 and UINT64
+ */
+#if	defined(UINT32)
+#undef UINT32
+#endif
+#if	defined(UINT64)
+#undef UINT64
+#endif
+#endif
+
 #include "Foundation/NSMethodSignature.h"
 #include "GNUstepBase/DistributedObjects.h"
-#include <ffi.h>
 
 typedef struct _cifframe_t {
   ffi_cif cif;

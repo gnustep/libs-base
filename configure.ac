@@ -55,11 +55,12 @@ AC_CANONICAL_TARGET([])
 # Location of the GNUstep.conf config file (--with-config-file)
 #---------------------------------------------------------------------
 AC_MSG_CHECKING([for GNUstep configuration file to use])
+GNUSTEP_CONFIG_FILE=""
 GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
 AC_ARG_WITH(config-file,
 [  --with-config-file=PATH       Specify path to the GNUstep config file.
 				This is the location to be used by the base
-				library to locate oath information at
+				library to locate path information at
 				application or tool runtime.
 				If unspecified, this uses the same value as
 				the GNUstep make package on unix-like systems,
@@ -70,7 +71,9 @@ AC_ARG_WITH(config-file,
 				is taken to be relative to the base library
 				linked runtime, not all operating systems
 				can support this, so on some platforms you
-				may need --enable-environment-config-file.
+				may need to specify the location of the
+				config file using the GNUSTEP_CONFIG_FILE
+				environment variable at runtime.
 				If a trailing '/' is specified, the path is
 				used for locating domains but no GNUstep
 				config file is read at runtime.], 
@@ -91,20 +94,18 @@ AC_SUBST(GNUSTEP_CONFIG_FILE)
 #-----------------------------------------------------------------
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
 AC_ARG_ENABLE(environment-config-file, 
-[  --enable-environment-config-file
-                                Enable use of the GNUSTEP_CONFIG_FILE
+[  --disable-environment-config-file
+                                Disables the use of the GNUSTEP_CONFIG_FILE
 				environment variable to specify/override
 				the location of the GNUstep config file
 				at runtime.  This option is occasionally
-				useful for development/debugging or for
-				providing a relocatable distribution package
-				for platforms where the path to the base
-				library can't be determined at runtime
-				and the leading './' in the config file name
-				is therefore not supported.
-				Normally this should be left disabled.], 
+				useful to disable the environment variable
+				for sites which wish to 'lock down' users
+				to always work with a specific system-wide
+				configuration.
+				Normally this should be left enabled.], 
   ac_cv_environment_config_file=$enableval,
-  ac_cv_environment_config_file="no")
+  ac_cv_environment_config_file="yes")
 if test "$ac_cv_environment_config_file" = "yes"; then
   AC_DEFINE(OPTION_NO_ENVIRONMENT, 0,
     [Enable GNUSTEP_CONFIG_FILE environment variable])
@@ -242,7 +243,11 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_CONFIG_FILE,
 # Now load the values to be used in locating libraries etc used when
 # building the base library ... as supplied by the gnustep-make package
 #
-. "$GNUSTEP_MAKE_CONFIG"
+if test ! -f "$GNUSTEP_MAKE_CONFIG"; then
+  AC_MSG_NOTICE([Could not find make-specified config file. Either make was installed incorrectly or you are using an old version of gnustep-make. Ignoring this for now...])
+else
+  . "$GNUSTEP_MAKE_CONFIG"
+fi
 
 #
 # Add standard library and header directories for configure to use to locate
@@ -919,7 +924,7 @@ AC_SUBST(DEFINE_UINTPTR_T)
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(inet_aton sigaction)
+AC_CHECK_FUNCS(inet_aton inet_pton sigaction)
 USE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)
 if test $ac_cv_header_zlib_h = yes; then
@@ -930,6 +935,12 @@ if test $ac_cv_header_zlib_h = yes; then
   fi
 fi
 AC_SUBST(USE_ZLIB)
+
+HAVE_INET_PTON=no
+if test $ac_cv_func_inet_pton = yes ; then
+  HAVE_INET_PTON=yes
+fi
+AC_SUBST(HAVE_INET_PTON)
 
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m

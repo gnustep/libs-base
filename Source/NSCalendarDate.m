@@ -42,22 +42,15 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSObjCRuntime.h"
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include "GSPrivate.h"
-
-// Absolute Gregorian date for NSDate reference date Jan 01 2001
-//
-//  N = 1;                 // day of month
-//  N = N + 0;             // days in prior months for year
-//  N = N +                // days this year
-//    + 365 * (year - 1)   // days in previous years ignoring leap days
-//    + (year - 1)/4       // Julian leap days before this year...
-//    - (year - 1)/100     // ...minus prior century years...
-//    + (year - 1)/400     // ...plus prior years divisible by 400
-
-#define GREGORIAN_REFERENCE 730486
 
 @class	GSTimeZone;
 @interface	GSTimeZone : NSObject	// Help the compiler
@@ -174,32 +167,27 @@ lastDayOfGregorianMonth(int month, int year)
 static inline int
 absoluteGregorianDay(int day, int month, int year)
 {
-  int m, N;
-
-  N = day;   // day of month
-  for (m = month - 1;  m > 0; m--) // days in prior months this year
-    N = N + lastDayOfGregorianMonth(m, year);
+  while (--month > 0)
+    day = day + lastDayOfGregorianMonth(month, year);
+  year--;
   return
-    (N                    // days this year
-     + 365 * (year - 1)   // days in previous years ignoring leap days
-     + (year - 1)/4       // Julian leap days before this year...
-     - (year - 1)/100     // ...minus prior century years...
-     + (year - 1)/400);   // ...plus prior years divisible by 400
+    (day            // days this year
+     + 365 * year   // days in previous years ignoring leap days
+     + year/4       // Julian leap days before this year...
+     - year/100     // ...minus prior century years...
+     + year/400);   // ...plus prior years divisible by 400
 }
 
-/* Should be static, but temporarily changed to non-static until
-   WIndows fixes are done.  */
-int
+static inline int
 dayOfCommonEra(NSTimeInterval when)
 {
-  double a;
   int r;
 
   // Get reference date in terms of days
-  a = when / 86400.0;
+  when /= 86400.0;
   // Offset by Gregorian reference
-  a += GREGORIAN_REFERENCE;
-  r = (int)a;
+  when += GREGORIAN_REFERENCE;
+  r = (int)when;
   return r;
 }
 
@@ -224,10 +212,9 @@ gregorianDateFromAbsolute(int abs, int *day, int *month, int *year)
 
 /**
  * Convert a broken out time specification into a time interval
- * since the reference date.<br />
- * External - so NSDate and others can use it.
+ * since the reference date.
  */
-NSTimeInterval
+static NSTimeInterval
 GSTime(int day, int month, int year, int hour, int minute, int second, int mil)
 {
   NSTimeInterval	a;
@@ -247,7 +234,7 @@ GSTime(int day, int month, int year, int hour, int minute, int second, int mil)
 /**
  * Convert a time interval since the reference date into broken out
  * elements.<br />
- * External - so NSDate and others can use it.
+ * External - so NSTimeZone  can use it ... but should really be static.
  */
 void
 GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
@@ -282,6 +269,34 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   c = a - h - m;
   *second = (int)c;
   *mil = (a - h - m - c) * 1000;
+}
+
+/**
+ * Returns the current time (seconds since reference date) as an NSTimeInterval.
+ */
+NSTimeInterval
+GSTimeNow(void)
+{
+#if !defined(__MINGW32__)
+  NSTimeInterval interval;
+  struct timeval tp;
+
+  gettimeofday (&tp, NULL);
+  interval = -NSTimeIntervalSince1970;
+  interval += tp.tv_sec;
+  interval += (double)tp.tv_usec / 1000000.0;
+  return interval;
+#else
+  SYSTEMTIME sys_time;
+  NSTimeInterval t;
+  /*
+   * Get current GMT time, convert to NSTimeInterval since reference date,
+   */
+  GetSystemTime(&sys_time);
+  t = GSTime(sys_time.wDay, sys_time.wMonth, sys_time.wYear, sys_time.wHour,
+    sys_time.wMinute, sys_time.wSecond, sys_time.wMilliseconds);
+  return t;
+#endif /* __MINGW32__ */
 }
 
 /**
@@ -1728,6 +1743,15 @@ static void Grow(DescriptionInfo *info, unsigned size)
 
 	      case 'r':
 		[self _format: @"%I:%M:%S %p" locale: locale info: info];
+		break;
+
+	      case 'T':
+		[self _format: @"%H:%M:S" locale: locale info: info];
+		break;
+
+	      case 't':
+		Grow(info, 1);
+		info->t[info->offset++] = '\t';
 		break;
 
 	      case 'c':

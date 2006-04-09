@@ -310,7 +310,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all Source/mframe SSL"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os GNUSTEP_CONFIG_FILE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_PTHREAD_H HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os GNUSTEP_CONFIG_FILE CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_PTHREAD_H HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -846,18 +846,16 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-environment-config-file
-                                Enable use of the GNUSTEP_CONFIG_FILE
+  --disable-environment-config-file
+                                Disables the use of the GNUSTEP_CONFIG_FILE
 				environment variable to specify/override
 				the location of the GNUstep config file
 				at runtime.  This option is occasionally
-				useful for development/debugging or for
-				providing a relocatable distribution package
-				for platforms where the path to the base
-				library can't be determined at runtime
-				and the leading './' in the config file name
-				is therefore not supported.
-				Normally this should be left disabled.
+				useful to disable the environment variable
+				for sites which wish to 'lock down' users
+				to always work with a specific system-wide
+				configuration.
+				Normally this should be left enabled.
   --disable-importing-config-file
                                 Disable importing of an existing GNUstep config
 				file and use inbuilt defaults instead.
@@ -878,7 +876,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-config-file=PATH       Specify path to the GNUstep config file.
 				This is the location to be used by the base
-				library to locate oath information at
+				library to locate path information at
 				application or tool runtime.
 				If unspecified, this uses the same value as
 				the GNUstep make package on unix-like systems,
@@ -889,7 +887,9 @@ Optional Packages:
 				is taken to be relative to the base library
 				linked runtime, not all operating systems
 				can support this, so on some platforms you
-				may need --enable-environment-config-file.
+				may need to specify the location of the
+				config file using the GNUSTEP_CONFIG_FILE
+				environment variable at runtime.
 				If a trailing '/' is specified, the path is
 				used for locating domains but no GNUstep
 				config file is read at runtime.
@@ -1492,6 +1492,7 @@ test -n "$target_alias" &&
 #---------------------------------------------------------------------
 echo "$as_me:$LINENO: checking for GNUstep configuration file to use" >&5
 echo $ECHO_N "checking for GNUstep configuration file to use... $ECHO_C" >&6
+GNUSTEP_CONFIG_FILE=""
 GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
 
 # Check whether --with-config-file or --without-config-file was given.
@@ -1522,7 +1523,7 @@ if test "${enable_environment_config_file+set}" = set; then
   enableval="$enable_environment_config_file"
   ac_cv_environment_config_file=$enableval
 else
-  ac_cv_environment_config_file="no"
+  ac_cv_environment_config_file="yes"
 fi;
 if test "$ac_cv_environment_config_file" = "yes"; then
 
@@ -1691,7 +1692,12 @@ _ACEOF
 # Now load the values to be used in locating libraries etc used when
 # building the base library ... as supplied by the gnustep-make package
 #
-. "$GNUSTEP_MAKE_CONFIG"
+if test ! -f "$GNUSTEP_MAKE_CONFIG"; then
+  { echo "$as_me:$LINENO: Could not find make-specified config file. Either make was installed incorrectly or you are using an old version of gnustep-make. Ignoring this for now..." >&5
+echo "$as_me: Could not find make-specified config file. Either make was installed incorrectly or you are using an old version of gnustep-make. Ignoring this for now..." >&6;}
+else
+  . "$GNUSTEP_MAKE_CONFIG"
+fi
 
 #
 # Add standard library and header directories for configure to use to locate
@@ -12073,7 +12079,8 @@ fi
 #--------------------------------------------------------------------
 
 
-for ac_func in inet_aton sigaction
+
+for ac_func in inet_aton inet_pton sigaction
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -12397,6 +12404,12 @@ fi
     LIBS="$LIBS -lz"
     USE_ZLIB=1
   fi
+fi
+
+
+HAVE_INET_PTON=no
+if test $ac_cv_func_inet_pton = yes ; then
+  HAVE_INET_PTON=yes
 fi
 
 
@@ -16627,6 +16640,7 @@ s,@DEFINE_UINT64_T@,$DEFINE_UINT64_T,;t t
 s,@DEFINE_INTPTR_T@,$DEFINE_INTPTR_T,;t t
 s,@DEFINE_UINTPTR_T@,$DEFINE_UINTPTR_T,;t t
 s,@USE_ZLIB@,$USE_ZLIB,;t t
+s,@HAVE_INET_PTON@,$HAVE_INET_PTON,;t t
 s,@GS_PASS_ARGUMENTS@,$GS_PASS_ARGUMENTS,;t t
 s,@GS_FAKE_MAIN@,$GS_FAKE_MAIN,;t t
 s,@WITH_FFI@,$WITH_FFI,;t t

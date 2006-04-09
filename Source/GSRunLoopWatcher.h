@@ -10,14 +10,14 @@
  *
  *	The internal variables if the GSRunLoopWatcher are used as follows -
  *
- *	The '_date' variable contains a date after which the event is useless
- *	and the watcher can be removed from the runloop.
- *
  *	If '_invalidated' is set, the watcher should be disabled and should
  *	be removed from the runloop when next encountered.
  *
+ *	If 'checkBlocking' is set, the run loop should ask the watcher
+ *	whether it should block and/or trigger each loop iteration.
+ *
  *	The 'data' variable is used to identify the  resource/event that the
- *	watcher is interested in.
+ *	watcher is interested in.  Its meaning is system dependent.
  *
  *	The 'receiver' is the object which should be told when the event
  *	occurs.  This object is retained so that we know it will continue
@@ -26,10 +26,6 @@
  *	The 'type' variable indentifies the type of event watched for.
  *	NSRunLoops [-acceptInputForMode: beforeDate: ] method MUST contain
  *	code to watch for events of each type.
- *
- *	To set this variable, the method adding the GSRunLoopWatcher to the
- *	runloop must ask the 'receiver' (or its delegate) to supply a date
- *	using the '[-limitDateForMode: ]' message.
  *
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
@@ -40,14 +36,11 @@
 
 @class NSDate;
 
-extern SEL	eventSel;	/* Initialized in [NSRunLoop +initialize] */
-
 @interface GSRunLoopWatcher: NSObject
 {
 @public
-  NSDate		*_date;		/* First to match layout of NSTimer */
-  BOOL			_invalidated;	/* 2nd to match layout of NSTimer */
-  IMP			handleEvent;	/* New-style event handling */
+  BOOL			_invalidated;
+  BOOL			checkBlocking;
   void			*data;
   id			receiver;
   RunLoopEventType	type;
@@ -56,21 +49,13 @@ extern SEL	eventSel;	/* Initialized in [NSRunLoop +initialize] */
 - (id) initWithType: (RunLoopEventType)type
 	   receiver: (id)anObj
 	       data: (void*)data;
-@end
-
-/*
- *	Two optimisation functions that depend on a hack that the layout of
- *	the NSTimer class is known to be the same as GSRunLoopWatcher for the
- *	first two elements.
+/**
+ * Returns a boolean indicating whether the receiver needs the loop to
+ * block to wait for input, or whether the loop can run through at once.
+ * It also sets *trigger to say whether the receiver should be triggered
+ * once the input test has been done or not.
  */
-static inline NSDate* timerDate(NSTimer* timer)
-{
-  return ((GSRunLoopWatcher*)timer)->_date;
-}
-
-static inline BOOL timerInvalidated(NSTimer* timer)
-{
-  return ((GSRunLoopWatcher*)timer)->_invalidated;
-}
+- (BOOL) runLoopShouldBlock: (BOOL*)trigger;
+@end
 
 #endif /* __GSRunLoopWatcher_h_GNUSTEP_BASE_INCLUDE */

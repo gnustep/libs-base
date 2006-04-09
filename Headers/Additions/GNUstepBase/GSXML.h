@@ -56,13 +56,25 @@
  */
 @interface	NSString (GSXML)
 /**
- * Convert XML special characters in the receiver (like '&amp;' and '&quot;')
- * to their escaped equivalents, and return the escaped string.
+ * Deals with standard XML internal entities.<br />
+ * Converts the five XML special characters in the receiver ('&gt;', '&lt;',
+ * '&amp;', '&apos;' and '&quot;') to their escaped equivalents, and return
+ * the escaped string.<br />
+ * Also converts non-ascii characters to the corresponding numeric
+ * entity escape sequences.<br />
+ * You should perform any non-standard entity substitution you require
+ * <em>after</em> you have called this method.
  */
 - (NSString*) stringByEscapingXML;
 /**
- * Convert XML escape sequences (like '&amp;'amp; and '&amp;quot;')
- * to their unescaped equivalents, and return the unescaped string.
+ * Deals with standard XML internal entities.<br />
+ * Converts the five XML escape sequences ('&amp;gt;', '&amp;lt;', '&amp;amp;',
+ * '&amp;apos;' and '&amp;quot;') to the unicode characters they represent,
+ * and returns the unescaped string.<br />
+ * Also converts numeric entity escape sequences to the corresponding unicode
+ * characters.<br />
+ * You should perform any non-standard entity substitution you require
+ * <em>before</em> you have called this method.
  */
 - (NSString*) stringByUnescapingXML;
 @end

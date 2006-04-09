@@ -216,12 +216,14 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  unsigned	slen;
 	  unsigned	dlen;
 
-	  slen = [object cStringLength] + 1;
+	  slen = [object length] + 1;
 	  (*info->appImp)(info->data, appSel, &st_cstring, 1);
 	  (*info->serImp)(info->data, serSel, slen);
 	  dlen = (*info->lenImp)(info->data, lenSel);
 	  (*info->setImp)(info->data, setSel, dlen + slen);
-	  [object getCString: (*info->datImp)(info->data, datSel) + dlen];
+	  [object getCString: (*info->datImp)(info->data, datSel) + dlen
+		   maxLength: slen
+		    encoding: NSASCIIStringEncoding];
 	  if (info->shouldUnique)
 	    GSIMapAddPair(&info->map,
 		(GSIMapKey)object, (GSIMapVal)info->count++);

@@ -43,6 +43,7 @@
 #include "Foundation/NSDebug.h"
 
 #include "GSPortPrivate.h"
+#include "GSPrivate.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -238,9 +239,6 @@ typedef enum {
 - (NSSocketPort*) sendPort;
 - (void) setState: (GSHandleState)s;
 - (GSHandleState) state;
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode;
 @end
 
 
@@ -1461,13 +1459,6 @@ static Class	runLoopClass;
   return state;
 }
 
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode
-{
-  return nil;
-}
-
 @end
 
 
@@ -1477,9 +1468,6 @@ static Class	runLoopClass;
                   type: (RunLoopEventType)type
 		 extra: (void*)extra
 	       forMode: (NSString*)mode;
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode;
 @end
 
 @implementation	NSSocketPort
@@ -2460,13 +2448,6 @@ static Class		tcpPortClass;
       sent = [h sendMessage: components beforeDate: when];
     }
   return sent;
-}
-
-- (NSDate*) timedOutEvent: (void*)data
-		     type: (RunLoopEventType)type
-		  forMode: (NSString*)mode
-{
-  return nil;
 }
 
 @end

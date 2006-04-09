@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
 
    <title>NSDistantObject class reference</title>
    $Date$ $Revision$
@@ -37,6 +38,14 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSInvocation.h"
 #include <objc/Protocol.h>
+
+
+@interface NSDistantObject(GNUstepExtensions) <GCFinalization>
+- (Class) classForPortCoder;
+- (const char *) selectorTypeForProxy: (SEL)selector;
+- (id) forward: (SEL)aSel :(arglist_t)frame;
+- (void) gcFinalize;
+@end
 
 #define DO_FORWARD_INVOCATION(_SELX, _ARG1) ({			\
   sig = [self methodSignatureForSelector: @selector(_SELX)];	\

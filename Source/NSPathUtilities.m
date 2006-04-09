@@ -82,6 +82,11 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
+
+void GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
+
+
 /* The global configuration file. The real value is read from config.h */
 #ifndef GNUSTEP_TARGET_CONFIG_FILE
 # define   GNUSTEP_TARGET_CONFIG_FILE  "/etc/GNUstep/GNUstep.conf"
@@ -112,7 +117,7 @@ static NSString	*gnustep_flattened =
   nil;
 #endif
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
 /*
  * FIXME ... should check access properly if the file is on an NTFS volume.
  */
@@ -155,15 +160,8 @@ static NSString *localResources = nil;
 static NSString *localApps  = nil;
 static NSString *localLibs  = nil;
 
-/* ============================= */
-/* Internal function prototypes. */
-/* ============================= */
-
-static NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
-
-static void UserConfig(NSMutableDictionary *config, NSString *userName);
-
-static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict);
+static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict,
+  NSString *userName);
 
 static void InitialisePathUtilities(void);
 static void ShutdownPathUtilities(void);
@@ -362,7 +360,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     }
 }
 
-static NSMutableDictionary*
+NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig)
 {
   static NSDictionary	*config = nil;
@@ -461,7 +459,7 @@ GNUstepConfig(NSDictionary *newConfig)
 		{
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
-		  ParseConfigurationFile(file, conf);
+		  ParseConfigurationFile(file, conf, nil);
 		}
 	    }
 	  else
@@ -509,8 +507,8 @@ GNUstepConfig(NSDictionary *newConfig)
   return AUTORELEASE([config mutableCopy]);
 }
 
-static void
-UserConfig(NSMutableDictionary *config, NSString *userName)
+void
+GNUstepUserConfig(NSMutableDictionary *config, NSString *userName)
 {
 #ifdef HAVE_GETEUID
   if (userName != nil)
@@ -539,7 +537,7 @@ UserConfig(NSMutableDictionary *config, NSString *userName)
 	{
 	  home = NSHomeDirectoryForUser(userName);
 	  path = [home stringByAppendingPathComponent: file];
-	  ParseConfigurationFile(path, config);
+	  ParseConfigurationFile(path, config, userName);
 	}
       /*
        * We don't let the user config file override the GNUSTEP_USER_CONFIG_FILE
@@ -567,7 +565,7 @@ static void InitialisePathUtilities(void)
       [gnustep_global_lock lock];
       userName = NSUserName();
       config = GNUstepConfig(nil);
-      UserConfig(config, userName);
+      GNUstepUserConfig(config, userName);
       ASSIGNCOPY(gnustepUserHome, NSHomeDirectoryForUser(userName));
       ExtractValuesFromConfig(config);
 
@@ -637,7 +635,8 @@ static void ShutdownPathUtilities(void)
  * the function makes no changes to dict and returns NO.
  */
 static BOOL
-ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
+ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
+  NSString *userName)
 {
   NSDictionary	*attributes;
   NSString      *file;
@@ -658,12 +657,32 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict)
     }
 
   attributes = [MGR() fileAttributesAtPath: fileName traverseLink: YES];
+  if (userName != nil)
+    {
+      NSString	*fileOwner = [attributes fileOwnerAccountName];
+  
+      if ([userName isEqual: fileOwner] == NO)
+	{
+#if defined(__MINGW32__)
+	  fprintf(stderr, "The file '%S' is owned by '%s' but we expect it"
+	    " to be the personal config file of '%s'.\nIgnoring it.\n",
+	    [fileName fileSystemRepresentation],
+	    [fileOwner UTF8String], [userName UTF8String]);
+#else
+	  fprintf(stderr, "The file '%s' is owned by '%s' but we expect it"
+	    " to be the personal config file of '%s'.\nIgnoring it.\n",
+	    [fileName fileSystemRepresentation],
+	    [fileOwner UTF8String], [userName UTF8String]);
+#endif
+          return NO;
+	}
+    }
   if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
     {
-#if defined(__WIN32__)
+#if defined(__MINGW32__)
       fprintf(stderr, "The file '%S' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
-	(const unichar*)[fileName fileSystemRepresentation],
+	[fileName fileSystemRepresentation],
         [attributes filePosixPermissions]);
 #else
       fprintf(stderr, "The file '%s' is writable by someone other than"
@@ -949,7 +968,7 @@ GSSetUserName(NSString *aName)
 NSString *
 NSUserName(void)
 {
-#if defined(__WIN32__)
+#if defined(__MINGW32__)
   if (theUserName == nil)
     {
       /* Use the LOGNAME environment variable if set. */
@@ -1089,7 +1108,7 @@ NSHomeDirectoryForUser(NSString *loginName)
 NSString *
 NSFullUserName(void)
 {
-#if defined(__WIN32__)
+#if defined(__MINGW32__)
   /* FIXME: Win32 way to get full user name via Net API */
   return NSUserName();
 #else
@@ -1132,7 +1151,7 @@ GSDefaultsRootForUser(NSString *userName)
       NSMutableDictionary	*config;
 
       config = GNUstepConfig(nil);
-      UserConfig(config, userName);
+      GNUstepUserConfig(config, userName);
       defaultsDir = [config objectForKey: @"GNUSTEP_USER_DEFAULTS_DIR"];
       if (defaultsDir == nil)
 	{
@@ -1191,7 +1210,7 @@ NSTemporaryDirectory(void)
   int		perm;
   int		owner;
   BOOL		flag;
-#if	!defined(__WIN32__)
+#if	!defined(__MINGW32__)
   int		uid;
 #else
   unichar buffer[1024];
@@ -1218,12 +1237,10 @@ NSTemporaryDirectory(void)
 	  baseTempDirName = [env objectForKey: @"TMP"];
 	  if (baseTempDirName == nil)
 	    {
-#if	defined(__MINGW32__)
-#ifdef  __CYGWIN__
+#if	defined(__CYGWIN__)
 	      baseTempDirName = @"/cygdrive/c/";
-#else
-	      baseTempDirName = @"/c/";
-#endif
+#elif	defined(__MINGW32__)
+	      baseTempDirName = @"C:\\";
 #else
 	      baseTempDirName = @"/tmp";
 #endif

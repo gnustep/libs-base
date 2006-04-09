@@ -84,13 +84,6 @@
 //Extracting a substring
 - (NSAttributedString*) attributedSubstringFromRange: (NSRange)aRange;
 
-#ifndef	NO_GNUSTEP
-/*
- * Synonym for attributedSubstringFromRange: - for consistency with NSString
- */
-- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange;
-#endif
-
 @end //NSAttributedString
 
 
@@ -126,6 +119,16 @@
 - (void) endEditing;
 
 @end //NSMutableAttributedString
+
+#ifndef	NO_GNUSTEP
+@interface      NSAttributedString (GSCategories)
+/**
+ * Dep[recated synonym for attributedSubstringFromRange:
+ * for consistency with NSString
+ */
+- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange;
+@end
+#endif
 
 #endif //STRICT_OPENSTEP
 

@@ -19,7 +19,8 @@
 #
 #  You should have received a copy of the GNU Library General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA.
 #
 
 # Install into the system root by default
@@ -83,6 +84,11 @@ GSLocale.m \
 preface.m \
 mframe.m
 
+ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
+GNU_MFILES += thr-pthread.m
+OBJC_LIBS += -lpthread
+endif
+
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
 GNU_MFILES += objc-gnu2next.m
 ifeq ($(HAVE_PTHREAD_H), yes)
@@ -132,7 +138,9 @@ GSDictionary.m \
 GSFormat.m \
 GSFTPURLHandle.m \
 GSHTTPURLHandle.m \
+GSRunLoopWatcher.m \
 GSSet.m \
+GSStream.m \
 GSString.m \
 GSValue.m \
 NSAttributedString.m \
@@ -321,6 +329,7 @@ NSScanner.h \
 NSSerialization.h \
 NSSet.h \
 NSSortDescriptor.h \
+NSStream.h \
 NSString.h \
 NSTask.h \
 NSThread.h \
@@ -354,9 +363,14 @@ $(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GSConfig.h
 
+ifeq ($(HAVE_INET_PTON), no)
+GNU_CFILES += inet_pton.c
+endif
+
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
+libgnustep-base_C_FILES = $(GNU_CFILES)
 
 # Extra DLL exports file
 libgnustep-base_DLL_DEF = libgnustep-base.def

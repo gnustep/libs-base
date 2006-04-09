@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
 
     AutogsdocSource:	NSZone.m
     AutogsdocSource:	NSPage.m
@@ -64,7 +65,8 @@ typedef struct _NSZone NSZone;
  *  type <code>size_t</code>-
  *  <deflist>
  *    <term><code>bytes_total</code></term>
- *    <desc>This is the total size of memory managed by the zone, in bytes.</desc>
+ *    <desc>
+ *    This is the total size of memory managed by the zone, in bytes.</desc>
  *    <term><code>chunks_used</code></term>
  *    <desc>This is the number of memory chunks in use in the zone.</desc>
  *    <term><code>bytes_used</code></term>
@@ -72,7 +74,9 @@ typedef struct _NSZone NSZone;
  *    <term><code>chunks_free</code></term>
  *    <desc>This is the number of memory chunks that are not in use.</desc>
  *    <term><code>bytes_free</code></term>
- *    <desc>This is the number of bytes managed by the zone that are not in use.</desc>
+ *    <desc>
+ *    This is the number of bytes managed by the zone that are not in use.
+ *    </desc>
  *  </deflist>
  */
 struct NSZoneStats

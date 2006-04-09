@@ -108,7 +108,7 @@ _NSLog_standard_printf_handler (NSString* message)
   NSData	*d;
   const char	*buf;
   unsigned	len;
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
   LPCWSTR	null_terminated_buf;
 #else
 #if	defined(HAVE_SYSLOG)
@@ -139,7 +139,7 @@ _NSLog_standard_printf_handler (NSString* message)
       len = [d length];
     }
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
   null_terminated_buf = UNISTR(message);
 
   OutputDebugStringW(null_terminated_buf);
@@ -184,7 +184,7 @@ _NSLog_standard_printf_handler (NSString* message)
 #else
   write(_NSLogDescriptor, buf, len);
 #endif
-#endif // __WIN32__
+#endif // __MINGW32__
 }
 
 /**

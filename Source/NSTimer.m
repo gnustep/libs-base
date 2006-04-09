@@ -192,7 +192,8 @@ static Class	NSDate_class;
 /**
  * Fires the timer ... either performs an invocation or sends a message
  * to a target object, depending on how the timer was set up.<br />
- * If the timer is not set to repeat, it is automatically invalidated.
+ * If the timer is not set to repeat, it is automatically invalidated.<br />
+ * Exceptions raised during firing of the timer are caught and logged.
  */
 - (void) fire
 {

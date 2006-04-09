@@ -11,9 +11,11 @@
 #include "GNUstepBase/preface.h"
 #include "../GSRunLoopCtxt.h"
 #include "../GSRunLoopWatcher.h"
+#include "../GSPrivate.h"
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
+#include <Foundation/NSStream.h>
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -80,6 +82,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     {
       NSFreeMapTable(_wfdMap);
     }
+  GSIArrayEmpty(_trigger);
+  NSZoneFree(_trigger->zone, (void*)_trigger);
 #ifdef	HAVE_POLL_F
   if (pollfds != 0)
     {
@@ -98,12 +102,26 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
  * loop and once by the outer one.
  */
 - (void) endEvent: (void*)data
-             type: (RunLoopEventType)type
+              for: (GSRunLoopWatcher*)watcher
 {
   if (completed == NO)
     {
-      switch (type)
+      unsigned i = GSIArrayCount(_trigger);
+
+      while (i-- > 0)
 	{
+	  GSIArrayItem	item = GSIArrayItemAtIndex(_trigger, i);
+
+	  if (item.obj == (id)watcher)
+	    {
+	      GSIArrayRemoveItemAtIndex(_trigger, i);
+	      return;
+	    }
+	}
+
+      switch (watcher->type)
+	{
+	  case ET_RPORT: 
 	  case ET_RDESC: 
 	    NSMapRemove(_rfdMap, data);
 	    break;
@@ -113,8 +131,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	  case ET_EDESC: 
 	    NSMapRemove(_efdMap, data);
 	    break;
+	  case ET_TRIGGER:
+	    // Already handled
+	    break;
 	  default:
-	    NSLog(@"Ending an event of unkown type (%d)", type);
+	    NSLog(@"Ending an event of unexpected type (%d)", watcher->type);
 	    break;
 	}
     }
@@ -160,6 +181,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				      WatcherMapValueCallBacks, 0);
       _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				      WatcherMapValueCallBacks, 0);
+      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
+      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
   return self;
 }
@@ -223,7 +246,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   int		fdEnd;	/* Number of descriptors being monitored. */
   int		fdIndex;
   int		fdFinish;
+  unsigned	count;
   unsigned int	i;
+  BOOL		immediate = NO;
 
   i = GSIArrayCount(watchers);
 
@@ -234,6 +259,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   NSResetMapTable(_efdMap);
   NSResetMapTable(_rfdMap);
   NSResetMapTable(_wfdMap);
+  GSIArrayRemoveAllItems(_trigger);
 
   /*
    * Do the pre-listening set-up for the file descriptors of this mode.
@@ -256,66 +282,72 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   while (i-- > 0)
     {
       GSRunLoopWatcher	*info;
-      int		fd;
+      BOOL		trigger;
 
       info = GSIArrayItemAtIndex(watchers, i).obj;
       if (info->_invalidated == YES)
 	{
-	  continue;
+	  GSIArrayRemoveItemAtIndex(watchers, i);
 	}
-
-      switch (info->type)
+      else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
-	  case ET_EDESC: 
-	    fd = (int)(intptr_t)info->data;
-	    setPollfd(fd, POLLPRI, self);
-	    NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
-	    break;
+	  if (trigger == YES)
+	    {
+	      immediate = YES;
+	      GSIArrayAddItem(_trigger, (GSIArrayItem)(id)info);
+	    }
+	}
+      else
+	{
+	  int	fd;
 
-	  case ET_RDESC: 
-	    fd = (int)(intptr_t)info->data;
-	    setPollfd(fd, POLLIN, self);
-	    NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
-	    break;
+	  switch (info->type)
+	    {
+	      case ET_EDESC: 
+		fd = (int)(intptr_t)info->data;
+		setPollfd(fd, POLLPRI, self);
+		NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
+		break;
 
-	  case ET_WDESC: 
-	    fd = (int)(intptr_t)info->data;
-	    setPollfd(fd, POLLOUT, self);
-	    NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
-	    break;
+	      case ET_RDESC: 
+		fd = (int)(intptr_t)info->data;
+		setPollfd(fd, POLLIN, self);
+		NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+		break;
 
-	  case ET_RPORT: 
-	    if ([info->receiver isValid] == NO)
-	      {
-		/*
-		 * We must remove an invalidated port.
-		 */
-		info->_invalidated = YES;
-		GSIArrayRemoveItemAtIndex(watchers, i);
-	      }
-	    else
-	      {
-		id port = info->receiver;
-		int port_fd_count = 128; // FIXME 
-		int port_fd_array[port_fd_count];
+	      case ET_WDESC: 
+		fd = (int)(intptr_t)info->data;
+		setPollfd(fd, POLLOUT, self);
+		NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
+		break;
 
-		if ([port respondsToSelector:
-		  @selector(getFds:count:)])
-		  {
-		    [port getFds: port_fd_array
-			   count: &port_fd_count];
-		  }
-		NSDebugMLLog(@"NSRunLoop",
-		  @"listening to %d port handles\n", port_fd_count);
-		while (port_fd_count--)
-		  {
-		    fd = port_fd_array[port_fd_count];
-		    setPollfd(fd, POLLIN, self);
-		    NSMapInsert(_rfdMap, 
-		      (void*)(intptr_t)port_fd_array[port_fd_count], info);
-		  }
-	      }
-	    break;
+	      case ET_TRIGGER:
+		break;
+
+	      case ET_RPORT: 
+		{
+		  id port = info->receiver;
+		  int port_fd_count = 128; // FIXME 
+		  int port_fd_array[port_fd_count];
+
+		  if ([port respondsToSelector:
+		    @selector(getFds:count:)])
+		    {
+		      [port getFds: port_fd_array
+			     count: &port_fd_count];
+		    }
+		  NSDebugMLLog(@"NSRunLoop",
+		    @"listening to %d port handles\n", port_fd_count);
+		  while (port_fd_count--)
+		    {
+		      fd = port_fd_array[port_fd_count];
+		      setPollfd(fd, POLLIN, self);
+		      NSMapInsert(_rfdMap, 
+			(void*)(intptr_t)port_fd_array[port_fd_count], info);
+		    }
+		}
+		break;
+	    }
 	}
     }
 
@@ -325,7 +357,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore())
+  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
     {
       milliseconds = 0;
     }
@@ -339,7 +371,14 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   fprintf(stderr, "\n");
 }
 #endif
-  poll_return = poll (pollfds, pollfds_count, milliseconds);
+  if (pollfds_count > 0)
+    {
+      poll_return = poll (pollfds, pollfds_count, milliseconds);
+    }
+  else
+    {
+      poll_return = 0;
+    }
 #if 0
 {
   unsigned int i;
@@ -375,6 +414,42 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	}
     }
 
+  /*
+   * Trigger any watchers which are set up to for every runloop wait.
+   */
+  count =  GSIArrayCount(_trigger);
+  while (completed == NO && count-- > 0)
+    {
+      GSRunLoopWatcher	*watcher;
+
+      watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
+	if (watcher->_invalidated == NO)
+	  {
+	    i = [contexts count];
+	    while (i-- > 0)
+	      {
+		GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		if (c != self)
+		  {
+		    [c endEvent: (void*)watcher for: watcher];
+		  }
+	      }
+	    /*
+	     * The watcher is still valid - so call its
+	     * receivers event handling method.
+	     */
+	    [watcher->receiver receivedEvent: watcher->data
+					type: watcher->type
+				       extra: watcher->data
+				     forMode: mode];
+	  }
+	GSNotifyASAP();
+    }
+
+  /*
+   * If the poll returned no descriptors with events, we have no more to do.
+   */
   if (poll_return == 0)
     {
       completed = YES;
@@ -432,16 +507,17 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 		      if (c != self)
 			{
-			  [c endEvent: (void*)(intptr_t)fd type: ET_EDESC];
+			  [c endEvent: (void*)(intptr_t)fd for: watcher];
 			}
 		    }
 		  /*
 		   * The watcher is still valid - so call its
 		   * receivers event handling method.
 		   */
-		  (*watcher->handleEvent)(watcher->receiver,
-		    eventSel, watcher->data, watcher->type,
-		    (void*)(uintptr_t)fd, mode);
+		  [watcher->receiver receivedEvent: watcher->data
+					      type: watcher->type
+					     extra: (void*)(uintptr_t)fd
+					   forMode: mode];
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -463,16 +539,17 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 		      if (c != self)
 			{
-			  [c endEvent: (void*)(intptr_t)fd type: ET_WDESC];
+			  [c endEvent: (void*)(intptr_t)fd for: watcher];
 			}
 		    }
 		  /*
 		   * The watcher is still valid - so call its
 		   * receivers event handling method.
 		   */
-		  (*watcher->handleEvent)(watcher->receiver,
-		    eventSel, watcher->data, watcher->type,
-		    (void*)(uintptr_t)fd, mode);
+		  [watcher->receiver receivedEvent: watcher->data
+					      type: watcher->type
+					     extra: (void*)(uintptr_t)fd
+					   forMode: mode];
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -494,16 +571,17 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 		      if (c != self)
 			{
-			  [c endEvent: (void*)(intptr_t)fd type: ET_RDESC];
+			  [c endEvent: (void*)(intptr_t)fd for: watcher];
 			}
 		    }
 		  /*
 		   * The watcher is still valid - so call its
 		   * receivers event handling method.
 		   */
-		  (*watcher->handleEvent)(watcher->receiver,
-		    eventSel, watcher->data, watcher->type,
-		    (void*)(uintptr_t)fd, mode);
+		  [watcher->receiver receivedEvent: watcher->data
+					      type: watcher->type
+					     extra: (void*)(uintptr_t)fd
+					   forMode: mode];
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -542,9 +620,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   fd_set 		read_fds;	// Mask for read-ready fds.
   fd_set 		exception_fds;	// Mask for exception fds.
   fd_set 		write_fds;	// Mask for write-ready fds.
-  int			num_inputs = 0;
   int			fdEnd = -1;
+  unsigned		count;
   unsigned		i;
+  BOOL			immediate = NO;
 
   i = GSIArrayCount(watchers);
 
@@ -583,82 +662,85 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   NSResetMapTable(_efdMap);
   NSResetMapTable(_rfdMap);
   NSResetMapTable(_wfdMap);
+  GSIArrayRemoveAllItems(_trigger);
 
   while (i-- > 0)
     {
       GSRunLoopWatcher	*info;
       int		fd;
+      BOOL		trigger;
 
       info = GSIArrayItemAtIndex(watchers, i).obj;
       if (info->_invalidated == YES)
 	{
 	  GSIArrayRemoveItemAtIndex(watchers, i);
-	  continue;
 	}
-      switch (info->type)
+      else if ([info runLoopShouldBlock: &trigger] == NO)
 	{
-	  case ET_EDESC: 
-	    fd = (int)(intptr_t)info->data;
-	    if (fd > fdEnd)
-	      fdEnd = fd;
-	    FD_SET (fd, &exception_fds);
-	    NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
-	    num_inputs++;
-	    break;
+	  if (trigger == YES)
+	    {
+	      immediate = YES;
+	      GSIArrayAddItem(_trigger, (GSIArrayItem)(id)info);
+	    }
+	}
+      else
+	{
+	  switch (info->type)
+	    {
+	      case ET_EDESC: 
+		fd = (int)(intptr_t)info->data;
+		if (fd > fdEnd)
+		  fdEnd = fd;
+		FD_SET (fd, &exception_fds);
+		NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
+		break;
 
-	  case ET_RDESC: 
-	    fd = (int)(intptr_t)info->data;
-	    if (fd > fdEnd)
-	      fdEnd = fd;
-	    FD_SET (fd, &read_fds);
-	    NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
-	    num_inputs++;
-	    break;
+	      case ET_RDESC: 
+		fd = (int)(intptr_t)info->data;
+		if (fd > fdEnd)
+		  fdEnd = fd;
+		FD_SET (fd, &read_fds);
+		NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+		break;
 
-	  case ET_WDESC: 
-	    fd = (int)(intptr_t)info->data;
-	    if (fd > fdEnd)
-	      fdEnd = fd;
-	    FD_SET (fd, &write_fds);
-	    NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
-	    num_inputs++;
-	    break;
+	      case ET_WDESC: 
+		fd = (int)(intptr_t)info->data;
+		if (fd > fdEnd)
+		  fdEnd = fd;
+		FD_SET (fd, &write_fds);
+		NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
+		break;
 
-	  case ET_RPORT: 
-	    if ([info->receiver isValid] == NO)
-	      {
-		/*
-		 * We must remove an invalidated port.
-		 */
-		info->_invalidated = YES;
-		GSIArrayRemoveItemAtIndex(watchers, i);
-	      }
-	    else
-	      {
-		id port = info->receiver;
-		int port_fd_count = 128; // xxx #define this constant
-		int port_fd_array[port_fd_count];
+	      case ET_RPORT: 
+		{
+		  id port = info->receiver;
+		  int port_fd_count = 128; // xxx #define this constant
+		  int port_fd_array[port_fd_count];
 
-		if ([port respondsToSelector:
-		  @selector(getFds:count:)])
-		  {
-		    [port getFds: port_fd_array
-			   count: &port_fd_count];
-		  }
-		NSDebugMLLog(@"NSRunLoop", @"listening to %d port sockets",
-		  port_fd_count);
-		while (port_fd_count--)
-		  {
-		    fd = port_fd_array[port_fd_count];
-		    FD_SET (port_fd_array[port_fd_count], &read_fds);
-	            if (fd > fdEnd)
-		      fdEnd = fd;
-		    NSMapInsert(_rfdMap, 
-		      (void*)(intptr_t)port_fd_array[port_fd_count], info);
-		    num_inputs++;
-		  }
-	      }
-	    break;
+		  if ([port respondsToSelector:
+		    @selector(getFds:count:)])
+		    {
+		      [port getFds: port_fd_array
+			     count: &port_fd_count];
+		    }
+		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port sockets",
+		    port_fd_count);
+		  while (port_fd_count--)
+		    {
+		      fd = port_fd_array[port_fd_count];
+		      FD_SET (port_fd_array[port_fd_count], &read_fds);
+		      if (fd > fdEnd)
+			fdEnd = fd;
+		      NSMapInsert(_rfdMap, 
+			(void*)(intptr_t)port_fd_array[port_fd_count], info);
+		    }
+		}
+		break;
+
+	      case ET_TRIGGER:
+		break;
+
+	    }
 	}
     }
   fdEnd++;
@@ -669,7 +751,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore())
+  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
@@ -678,8 +760,15 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
   // NSDebugMLLog(@"NSRunLoop", @"select timeout %d,%d", timeout.tv_sec, timeout.tv_usec);
 
-  select_return = select (fdEnd, &read_fds, &write_fds,
-    &exception_fds, select_timeout);
+  if (fdEnd >= 0)
+    {
+      select_return = select (fdEnd, &read_fds, &write_fds,
+	&exception_fds, select_timeout);
+    }
+  else
+    {
+      select_return = 0;
+    }
 
   NSDebugMLLog(@"NSRunLoop", @"select returned %d", select_return);
 
@@ -705,6 +794,43 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  abort ();
 	}
     }
+
+  /*
+   * Trigger any watchers which are set up to for every runloop wait.
+   */
+  count = GSIArrayCount(_trigger);
+  while (completed == NO && count-- > 0)
+    {
+      GSRunLoopWatcher	*watcher;
+
+      watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
+	if (watcher->_invalidated == NO)
+	  {
+	    i = [contexts count];
+	    while (i-- > 0)
+	      {
+		GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+
+		if (c != self)
+		  {
+		    [c endEvent: (void*)watcher for: watcher];
+		  }
+	      }
+	    /*
+	     * The watcher is still valid - so call its
+	     * receivers event handling method.
+	     */
+	    [watcher->receiver receivedEvent: watcher->data
+					type: watcher->type
+				       extra: watcher->data
+				     forMode: mode];
+	  }
+	GSNotifyASAP();
+    }
+
+  /*
+   * If the select returned no descriptors with events, we have no more to do.
+   */
   if (select_return == 0)
     {
       completed = YES;
@@ -739,7 +865,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	{
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fdIndex);
+	  watcher
+	    = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)(intptr_t)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      i = [contexts count];
@@ -747,15 +874,17 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		{
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		  if (c != self) [c endEvent: (void*)fdIndex type: ET_EDESC];
+		  if (c != self)
+		    [c endEvent: (void*)(intptr_t)fdIndex for: watcher];
 		}
 	      /*
 	       * The watcher is still valid - so call its receivers
 	       * event handling method.
 	       */
-	      (*watcher->handleEvent)(watcher->receiver,
-		eventSel, watcher->data, watcher->type,
-		(void*)(uintptr_t)fdIndex, mode);
+	      [watcher->receiver receivedEvent: watcher->data
+					  type: watcher->type
+					 extra: watcher->data
+				       forMode: mode];
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -768,7 +897,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	{
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher = (GSRunLoopWatcher*)NSMapGet(_wfdMap, (void*)fdIndex);
+	  watcher
+	    = (GSRunLoopWatcher*)NSMapGet(_wfdMap, (void*)(intptr_t)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      i = [contexts count];
@@ -776,15 +906,17 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		{
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		  if (c != self) [c endEvent: (void*)fdIndex type: ET_WDESC];
+		  if (c != self)
+		    [c endEvent: (void*)(intptr_t)fdIndex for: watcher];
 		}
 	      /*
 	       * The watcher is still valid - so call its receivers
 	       * event handling method.
 	       */
-	      (*watcher->handleEvent)(watcher->receiver,
-		eventSel, watcher->data, watcher->type,
-		(void*)(uintptr_t)fdIndex, mode);
+	      [watcher->receiver receivedEvent: watcher->data
+					  type: watcher->type
+					 extra: watcher->data
+				       forMode: mode];
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -797,7 +929,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	{
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fdIndex);
+	  watcher
+	    = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)(intptr_t)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      i = [contexts count];
@@ -805,15 +938,17 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		{
 		  GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		  if (c != self) [c endEvent: (void*)fdIndex type: ET_RDESC];
+		  if (c != self)
+		    [c endEvent: (void*)(intptr_t)fdIndex for: watcher];
 		}
 	      /*
 	       * The watcher is still valid - so call its receivers
 	       * event handling method.
 	       */
-	      (*watcher->handleEvent)(watcher->receiver,
-		eventSel, watcher->data, watcher->type,
-		(void*)(uintptr_t)fdIndex, mode);
+	      [watcher->receiver receivedEvent: watcher->data
+					  type: watcher->type
+					 extra: watcher->data
+				       forMode: mode];
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)

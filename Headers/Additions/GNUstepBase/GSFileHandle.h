@@ -97,9 +97,6 @@
 	         extra: (void*)extra
 	       forMode: (NSString*)mode;
 - (void) setAddr: (struct sockaddr_in *)sin;
-- (NSDate*) timedOutEvent: (void*)data
-		    type: (RunLoopEventType)type
-		 forMode: (NSString*)mode;
 - (BOOL) useCompression;
 - (void) watchReadDescriptorForModes: (NSArray*)modes;
 - (void) watchWriteDescriptor;

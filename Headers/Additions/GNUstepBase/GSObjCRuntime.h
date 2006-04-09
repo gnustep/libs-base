@@ -135,12 +135,12 @@ GSObjCAddClasses(NSArray *classes);
  * scalar types of data.
  */
 GS_EXPORT id
-GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
-	       const char *type, unsigned size, int offset);
+GSObjCGetVal(NSObject *self, const char *key, SEL sel,
+  const char *type, unsigned size, int offset);
 
 GS_EXPORT void
-GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
-	       const char *type, unsigned size, int offset);
+GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
+  const char *type, unsigned size, int offset);
 
 #include <GNUstepBase/objc-gnu2next.h>
 

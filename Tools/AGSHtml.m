@@ -471,8 +471,6 @@ static NSString		*mainFont = nil;
 			      NSString	*ref = [NSString stringWithFormat:
 				@"(%@)%@", catName, mname];
 
-			      ref = [ref stringByReplacingString: @":"
-						      withString: @"$"];
 			      [m setObject: file forKey: ref];
 			    }
 			}

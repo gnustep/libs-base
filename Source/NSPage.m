@@ -29,9 +29,6 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSZone.h"
 #include <string.h>
-#ifdef __WIN32__
-#include <malloc.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

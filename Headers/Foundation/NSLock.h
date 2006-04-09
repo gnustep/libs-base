@@ -251,7 +251,7 @@
  * 
  * </example>
  */
-+ (id)newLockAt:(id *)location;
++ (id) newLockAt: (id *)location;
 @end
 
 /**
@@ -281,7 +281,7 @@
  * 
  * </example>
  */
-+ (id)newLockAt:(id *)location;
++ (id) newLockAt: (id *)location;
 @end
 
 #endif /* NO_GNUSTEP */

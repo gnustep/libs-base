@@ -35,6 +35,8 @@ RPM_DISABLE_RELOCATABLE=YES
 PACKAGE_NEEDS_CONFIGURE = YES
 
 CVS_MODULE_NAME = base
+SVN_MODULE_NAME = base
+SVN_BASE_URL = svn+ssh://svn.gna.org/svn/gnustep/libs
 
 #
 # Include local (new) configuration - this will prevent the old one 
@@ -50,7 +52,11 @@ PACKAGE_NAME = gnustep-base
 #
 # The list of subproject directories
 #
-SUBPROJECTS = Source SSL Tools NSTimeZones Resources
+SUBPROJECTS = Source
+ifneq ($(GNUSTEP_TARGET_OS), mingw32)
+SUBPROJECTS += SSL
+endif
+SUBPROJECTS += Tools NSTimeZones Resources
 
 -include Makefile.preamble
 

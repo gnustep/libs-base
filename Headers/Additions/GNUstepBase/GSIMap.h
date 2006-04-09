@@ -804,7 +804,11 @@ GSIMapAddKey(GSIMapTable map, GSIMapKey key)
 }
 #endif
 
-static INLINE void
+/**
+ * Removes the item for the specified key from the map.
+ * If the key was present, returns YES, otherwise returns NO.
+ */
+static INLINE BOOL
 GSIMapRemoveKey(GSIMapTable map, GSIMapKey key)
 {
   GSIMapBucket	bucket = GSIMapBucketForKey(map, key);
@@ -815,7 +819,9 @@ GSIMapRemoveKey(GSIMapTable map, GSIMapKey key)
     {
       GSIMapRemoveNodeFromMap(map, bucket, node);
       GSIMapFreeNode(map, node);
+      return YES;
     }
+  return NO;
 }
 
 static INLINE void

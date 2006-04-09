@@ -19,7 +19,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
    */ 
 
 #ifndef __NSConnection_h_GNUSTEP_BASE_INCLUDE
@@ -178,45 +179,6 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
 @end
 
 
-/**
- *	This category contains legacy methods from the original GNU 'Connection'
- *	class, and useful extensions to [NSConnection].
- */
-@interface NSConnection (GNUstepExtensions) <GCFinalization>
-
-/**
- *  Alternative convenience constructor, not specified in OpenStep, where you
- *  register root anObject under given name in one step.
- */
-+ (NSConnection*) newRegisteringAtName: (NSString*)name
-			withRootObject: (id)anObject;
-
-/**
- * Performs local and remote cleanup.
- */
-- (void) gcFinalize;
-
-/**
- * [NSDistantObject -forward::] calls this to send the message over the wire.
- */
-- (retval_t) forwardForProxy: (NSDistantObject*)object 
-		    selector: (SEL)sel 
-		    argFrame: (arglist_t)argframe;
-
-/**
- * [NSDistantObject -forwardInvocation:] calls this to send the message over
- * the wire.
- */
-- (void) forwardInvocation: (NSInvocation *)inv 
-		  forProxy: (NSDistantObject*)object;
-
-/**
- *  Returns type code (@encode()-compatible) for given remote method.
- */
-- (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
-
-@end
-
 /**
  * This category represents an informal protocol to which NSConnection
  * delegates may conform ... These methods are not actually implemented

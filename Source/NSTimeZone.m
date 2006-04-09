@@ -107,6 +107,7 @@
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GSConfig.h"
+#include "GSPrivate.h"
 
 #ifdef HAVE_TZHEAD
 #include <tzfile.h>
@@ -145,6 +146,8 @@
 
 /* Many systems have this file */
 #define SYSTEM_TIME_FILE @"/etc/localtime"
+
+#define POSIX_TZONES     @"posix/"
 
 /* Possible location of system time zone files */
 static NSString *tzdir = nil;
@@ -187,6 +190,7 @@ typedef struct {
 {
 @public
   NSString	*timeZoneName;
+  NSArray	*abbreviations;
   NSData	*timeZoneData;
   unsigned int	n_trans;
   unsigned int	n_types;
@@ -196,7 +200,7 @@ typedef struct {
 }
 @end
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
 @interface	GSWindowsTimeZone : NSTimeZone
 {
 @public
@@ -280,7 +284,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   int		offset; // Offset from UTC in seconds.
 }
 
-- (id) initWithOffset: (int)anOffset;
+- (id) initWithOffset: (int)anOffset name: (NSString*)aName;
 @end
 
 @interface NSLocalTimeZone : NSTimeZone
@@ -368,9 +372,51 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
       unichar	c;
       unsigned	i;
 
-      if (length == 8 && [name hasPrefix: @"GMT"] == YES
+      if ((length == 3
+	&& ([name isEqualToString: @"GMT"] == YES
+          || [name isEqualToString: @"UTC"] == YES
+          || [name isEqualToString: @"UCT"] == YES))
+	|| (length == 4
+	  && ([name isEqualToString: @"GMT0"] == YES
+	    || [name isEqualToString: @"Zulu"] == YES))
+	|| (length == 9 && [name isEqualToString: @"Universal"] == YES))
+	{
+	  // Synonyms for GMT
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: 0 name: name];
+	}
+      else if (length == 5 && [name hasPrefix: @"GMT"] == YES
+	&& ((c = [name characterAtIndex: 3]) == '+' || c == '-')
+	&& ((c = [name characterAtIndex: 4]) >= '0' && c <= '9'))
+	{
+	  // GMT-9 to GMT+9
+	  i = (c - '0') * 60 * 60;
+	  if ([name characterAtIndex: 3] == '-')
+	    {
+	      i = -i;
+	    }
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: i name: name];
+	}
+      else if (length == 6 && [name hasPrefix: @"GMT"] == YES
+	&& ((c = [name characterAtIndex: 3]) == '+' || c == '-')
+	&& ((c = [name characterAtIndex: 4]) == '0' || c == '1')
+	&& ((c = [name characterAtIndex: 5]) >= '0' && c <= '4'))
+	{
+	  // GMT-14 to GMT-10 and GMT+10 to GMT+14
+	  i = (c - '0') * 60 * 60;
+	  if ([name characterAtIndex: 4] == '1')
+	    {
+	      i += 60 * 60 * 10;
+	    }
+	  if ([name characterAtIndex: 3] == '-')
+	    {
+	      i = -i;
+	    }
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: i name: name];
+	}
+      else if (length == 8 && [name hasPrefix: @"GMT"] == YES
 	&& ((c = [name characterAtIndex: 3]) == '+' || c == '-'))
 	{
+	  // GMT+NNNN and GMT-NNNN
 	  c = [name characterAtIndex: 4];
 	  if (c >= '0' && c <= '9')
 	    {
@@ -387,7 +433,13 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 		      if (c >= '0' && c <= '9')
 			{
 			  i = i * 10 + (c - '0');
-			  zone = [[GSAbsTimeZone alloc] initWithOffset: i*60];
+			  i = i * 60;
+			  if ([name characterAtIndex: 3] == '-')
+			    {
+			      i = -i;
+			    }
+			  zone = [[GSAbsTimeZone alloc] initWithOffset: i
+								  name: nil];
 			}
 		    }
 		}
@@ -399,7 +451,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	{
 	  i = [[name substringFromIndex: 19] intValue];
 
-	  zone = [[GSAbsTimeZone alloc] initWithOffset: i];
+	  zone = [[GSAbsTimeZone alloc] initWithOffset: i name: nil];
 	}
 
       if (zone == nil)
@@ -420,7 +472,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
 	      if (fileName == nil
 		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName])
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
                   RELEASE(self);
@@ -434,7 +486,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 #endif
 	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
 	  if (!data)
 	    zone = [[GSWindowsTimeZone alloc] initWithName: name data: data];
 	  else
@@ -582,7 +634,7 @@ static NSMapTable	*absolutes = 0;
   [aCoder encodeObject: name];
 }
 
-- (id) initWithOffset: (int)anOffset
+- (id) initWithOffset: (int)anOffset name: (NSString*)aName
 {
   GSAbsTimeZone	*z;
   int		extra;
@@ -627,25 +679,32 @@ static NSMapTable	*absolutes = 0;
     }
   else
     {
-      if (anOffset % 60 == 0)
+      if (aName == nil)
 	{
-	  char	s = (anOffset >= 0) ? '+' : '-';
-	  int	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
-	  int	h = i / 60;
-	  int	m = i % 60;
-	  char	buf[9];
+	  if (anOffset % 60 == 0)
+	    {
+	      char	s = (anOffset >= 0) ? '+' : '-';
+	      int	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
+	      int	h = i / 60;
+	      int	m = i % 60;
+	      char	buf[9];
 
-	  sprintf(buf, "GMT%c%02d%02d", s, h, m);
-	  name = [[NSString alloc] initWithCString: buf];
+	      sprintf(buf, "GMT%c%02d%02d", s, h, m);
+	      name = [[NSString alloc] initWithUTF8String: buf];
+	    }
+	  else
+	    {
+	      /*
+	       * Should never happen now we round to the minute
+	       * for MacOS-X compatibnility.
+	       */
+	      name = [[NSString alloc] initWithFormat: @"NSAbsoluteTimeZone:%d",
+		anOffset];
+	    }
 	}
       else
 	{
-	  /*
-	   * Should never happen now we round to the minute
-	   * for MacOS-X compatibnility.
-	   */
-	  name = [[NSString alloc] initWithFormat: @"NSAbsoluteTimeZone:%d",
-	    anOffset];
+	  name = [aName copy];
 	}
       detail = [[GSAbsTimeZoneDetail alloc] initWithTimeZone: self];
       offset = anOffset;
@@ -872,22 +931,68 @@ static NSMapTable	*absolutes = 0;
  */
 + (NSDictionary*) abbreviationDictionary
 {
-  NSString *path;
   if (abbreviationDictionary != nil)
-    return abbreviationDictionary;
-
-  path = _time_zone_path (ABBREV_DICT, @"plist");
-  if (path == NULL)
     {
-      [NSException
-	raise: NSInternalInconsistencyException
-	format: @"Failed to open time zone abbreviation dictionary."];
+      return abbreviationDictionary;
     }
-  abbreviationDictionary =
-    [[NSString stringWithContentsOfFile: path] propertyList];
-  abbreviationDictionary =
-    [abbreviationDictionary makeImmutableCopyOnFail: NO];
-  return RETAIN(abbreviationDictionary);
+  if (zone_mutex != nil)
+    {
+      [zone_mutex lock];
+    }
+  if (abbreviationDictionary == nil)
+    {
+      CREATE_AUTORELEASE_POOL(pool);
+      NSString		*path;
+
+      path = _time_zone_path (ABBREV_DICT, @"plist");
+      if (path != nil)
+	{
+	  /*
+	   * Fast mechanism ... load prebuilt data from file so we don't
+	   * need to load in all time zones.
+	   */
+	  abbreviationDictionary
+	    = RETAIN([[NSString stringWithContentsOfFile: path] propertyList]);
+	}
+      if (abbreviationDictionary == nil)
+	{
+	  NSMutableDictionary	*md;
+	  NSString		*name;
+	  NSEnumerator		*names;
+
+	  /*
+	   * Slow fallback ... load all time zones and generate
+	   * abbreviation dictionary from them.
+	   */
+	  md = [[NSMutableDictionary alloc] init];
+	  names = [[NSTimeZone knownTimeZoneNames] objectEnumerator];
+	  while ((name = [names nextObject]) != nil)
+	    {
+	      NSTimeZone *zone;
+
+	      if ((zone = [NSTimeZone timeZoneWithName: name]))
+		{
+		  NSEnumerator		*details;
+		  NSTimeZoneDetail	*detail;
+	
+		  details = [[zone timeZoneDetailArray] objectEnumerator];
+		  while ((detail = [details nextObject]) != nil)
+		    {
+		      [md setObject: name
+			     forKey: [detail timeZoneAbbreviation]];
+		    }
+		}
+	    }
+	  [md makeImmutableCopyOnFail: NO];
+	  abbreviationDictionary = md;
+	}
+      RELEASE(pool);
+    }
+  if (zone_mutex != nil)
+    {
+      [zone_mutex unlock];
+    }
+  return abbreviationDictionary;
 }
 
 /**
@@ -896,64 +1001,143 @@ static NSMapTable	*absolutes = 0;
  */
 + (NSDictionary*) abbreviationMap
 {
-  FILE *file; // For the file containing the abbreviation dictionary
-  char abbrev[80], name[80];
-  NSString *path;
-
   /* Instead of creating the abbreviation dictionary when the class is
      initialized, we create it when we first need it, since the
      dictionary can be potentially very large, considering that it's
      almost never used. */
   if (abbreviationMap != nil)
-    return abbreviationMap;
-
-  /* Read dictionary from file. */
-  abbreviationMap = [[NSMutableDictionary alloc] init];
-  path = _time_zone_path (ABBREV_MAP, nil);
-#if	defined(__MINGW32__)
-  {
-    unichar	mode[3];
-    mode[0] = 'r';
-    mode[1] = 'b';
-    mode[2] = '\0';
-    file = _wfopen((const unichar*)[path fileSystemRepresentation], mode);
-  }
-#else
-  file = fopen([path fileSystemRepresentation], "r");
-#endif
-  if (file == NULL)
-    [NSException
-      raise: NSInternalInconsistencyException
-      format: @"Failed to open time zone abbreviation map."];
-  while (fscanf(file, "%79s %79s", abbrev, name) == 2)
     {
-      id a, the_name, the_abbrev;
-
-      the_name = [NSString stringWithCString: name];
-      the_abbrev = [NSString stringWithCString: abbrev];
-      a = [abbreviationMap objectForKey: the_abbrev];
-      if (a == nil)
-	{
-	  a = AUTORELEASE([NSMutableArray new]);
-	  [abbreviationMap setObject: a forKey: the_abbrev];
-	}
-      [a addObject: the_name];
+      return abbreviationMap;
     }
-  fclose(file);
+  if (zone_mutex != nil)
+    {
+      [zone_mutex lock];
+    }
+  if (abbreviationMap == nil)
+    {
+      CREATE_AUTORELEASE_POOL(pool);
+      NSMutableDictionary	*md;
+      NSMutableArray		*ma;
+      NSString			*the_name;
+      NSString			*the_abbrev;
+      FILE			*file;
+      char			abbrev[80];
+      char			name[80];
+      NSString			*path;
 
-  /* Special case: Add the system time zone if it doesn't exist in the map */
-  {
-    id array;
-    id the_abbrev = [systemTimeZone abbreviation];
-    array = [abbreviationMap objectForKey: the_abbrev];
-    if (array == nil)
-      {
-	array = AUTORELEASE([NSMutableArray new]);
-	[abbreviationMap setObject: array forKey: the_abbrev];
-      }
-    if ([array containsObject: [systemTimeZone timeZoneName]] == NO)
-      [array addObject: [systemTimeZone timeZoneName]];
-  }
+      /*
+       * Read dictionary from file... fast mechanism because we don't have
+       * to create all timezoneas and parse all their data files.
+       */
+      md = [NSMutableDictionary dictionaryWithCapacity: 100];
+      path = _time_zone_path (ABBREV_MAP, nil);
+      if (path != nil)
+	{
+#if	defined(__MINGW32__)
+	  unichar	mode[3];
+
+	  mode[0] = 'r';
+	  mode[1] = 'b';
+	  mode[2] = '\0';
+
+	  file = _wfopen((const unichar*)[path fileSystemRepresentation], mode);
+#else
+	  file = fopen([path fileSystemRepresentation], "r");
+#endif
+	  if (file == NULL)
+	    {
+	      if (zone_mutex != nil)
+		{
+		  [zone_mutex unlock];
+		}
+	      [NSException
+		raise: NSInternalInconsistencyException
+		format: @"Failed to open time zone abbreviation map."];
+	    }
+	  while (fscanf(file, "%79s %79s", abbrev, name) == 2)
+	    {
+	      the_name = [[NSString alloc] initWithUTF8String: name];
+	      the_abbrev = [[NSString alloc] initWithUTF8String: abbrev];
+	      ma = [md objectForKey: the_abbrev];
+	      if (ma == nil)
+		{
+		  ma = [[NSMutableArray alloc] initWithCapacity: 1];
+		  [md setObject: ma forKey: the_abbrev];
+		  RELEASE(ma);
+		}
+	      RELEASE(the_abbrev);
+	      if ([ma containsObject: the_name] == NO)
+		{
+		  [ma addObject: the_name];
+		}
+	      RELEASE(the_name);
+	    }
+	  fclose(file);
+	}
+      else
+	{
+	  NSString		*name;
+	  NSEnumerator		*names;
+
+	  /*
+	   * Slow fallback mechanism ... go through all time names
+	   * so we load all the time zone data and generate the info
+	   * we need from it.
+	   */
+	  names = [[NSTimeZone knownTimeZoneNames] objectEnumerator];
+	  while ((name = [names nextObject]) != nil)
+	    {
+	      NSTimeZone *zone;
+
+	      if ((zone = [NSTimeZone timeZoneWithName: name]) != nil)
+		{
+		  NSEnumerator		*details;
+		  NSTimeZoneDetail	*detail;
+	
+		  details = [[zone timeZoneDetailArray] objectEnumerator];
+		  while ((detail = [details nextObject]) != nil)
+		    {
+		      the_abbrev = [detail timeZoneAbbreviation];
+		      ma = [md objectForKey: the_abbrev];
+		      if (ma == nil)
+			{
+			  ma = [[NSMutableArray alloc] initWithCapacity: 1];
+			  [md setObject: ma forKey: the_abbrev];
+			  RELEASE(ma);
+			}
+		      if ([ma containsObject: name] == NO)
+		        {
+		          [ma addObject: name];
+			}
+		    }
+		}
+	    }
+	}
+
+      /* Special case: Add the system time zone if
+       * it doesn't exist in the map */
+      the_abbrev = [systemTimeZone abbreviation];
+      ma = [md objectForKey: the_abbrev];
+      if (ma == nil)
+	{
+	  ma = [NSMutableArray new];
+	  [md setObject: ma forKey: the_abbrev];
+	  RELEASE(ma);
+	}
+      the_name = [systemTimeZone timeZoneName];
+      if ([ma containsObject: the_name] == NO)
+	{
+	  [ma addObject: the_name];
+	}
+
+      [md makeImmutableCopyOnFail: NO];
+      abbreviationMap = RETAIN(md); 
+      RELEASE(pool);
+    }
+  if (zone_mutex != nil)
+    {
+      [zone_mutex unlock];
+    }
 
   return abbreviationMap;
 }
@@ -964,24 +1148,40 @@ static NSMapTable	*absolutes = 0;
 + (NSArray*) knownTimeZoneNames
 {
   static NSArray *namesArray = nil;
-  int i;
-  id temp_array;
-  NSArray *regionsArray, *array;
 
   /* We create the array only when we need it to reduce overhead. */
   if (namesArray != nil)
-    return namesArray;
-
-  temp_array = [NSMutableArray array];
-  regionsArray = [self timeZoneArray];
-
-  for (i = 0; i < [regionsArray count]; i++)
     {
-      array = [regionsArray objectAtIndex: i];
-      [temp_array addObjectsFromArray: array];
+      return namesArray;
     }
 
-  namesArray = [[NSArray alloc] initWithArray: temp_array];
+  if (zone_mutex != nil)
+    {
+      [zone_mutex lock];
+    }
+  if (namesArray == nil)
+    {
+      unsigned		i;
+      NSMutableArray	*ma;
+      NSArray		*regionsArray;
+
+      ma = [NSMutableArray new];
+      regionsArray = [self timeZoneArray];
+
+      for (i = 0; i < [regionsArray count]; i++)
+	{
+	  NSArray *names = [regionsArray objectAtIndex: i];
+
+	  [ma addObjectsFromArray: names];
+	}
+
+      [ma makeImmutableCopyOnFail: NO];
+      namesArray = ma;
+    }
+  if (zone_mutex != nil)
+    {
+      [zone_mutex unlock];
+    }
   return namesArray;
 }
 
@@ -1205,8 +1405,8 @@ static NSMapTable	*absolutes = 0;
 	     is a symlink to the time zone. Getting the actual data (which
 	     is easier) doesn't help, since we won't know the name itself.  */
 #if defined(HAVE_TZHEAD) && defined(TZDEFAULT)
-	  tzdir = RETAIN([NSString stringWithCString: TZDIR]);
-	  localZoneString = [NSString stringWithCString: TZDEFAULT];
+	  tzdir = RETAIN([NSString stringWithUTF8String: TZDIR]);
+	  localZoneString = [NSString stringWithUTF8String: TZDEFAULT];
 	  localZoneString = [localZoneString stringByResolvingSymlinksInPath];
 #else
 	  NSFileManager *dflt = [NSFileManager defaultManager];
@@ -1257,11 +1457,11 @@ static NSMapTable	*absolutes = 0;
 	{
 	  tzset();
 	  if (tzname[0] != NULL && *tzname[0] != '\0')
-	    localZoneString = [NSString stringWithCString: tzname[0]];
+	    localZoneString = [NSString stringWithUTF8String: tzname[0]];
 	}
 #endif
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
       /*
        * Try to get timezone from windows registry.
        */
@@ -1341,39 +1541,143 @@ static NSMapTable	*absolutes = 0;
 + (NSArray*) timeZoneArray
 {
   static NSArray *regionsArray = nil;
-  int index, i;
-  char name[80];
-  FILE *file;
-  id temp_array[24];
-  NSString *fileName;
 
   /* We create the array only when we need it to reduce overhead. */
   if (regionsArray != nil)
-    return regionsArray;
+    {
+      return regionsArray;
+    }
+  if (zone_mutex != nil)
+    {
+      [zone_mutex lock];
+    }
+  if (regionsArray == nil)
+    {
+      CREATE_AUTORELEASE_POOL(pool);
+      int index, i;
+      char name[80];
+      FILE		*fp;
+      NSMutableArray	*temp_array[24];
+      NSString		*path;
 
-  for (i = 0; i < 24; i++)
-    temp_array[i] = [NSMutableArray array];
+      for (i = 0; i < 24; i++)
+	{
+	  temp_array[i] = [NSMutableArray array];
+	}
 
-  fileName = _time_zone_path (REGIONS_FILE, nil);
+      path = _time_zone_path (REGIONS_FILE, nil);
+      if (path != nil)
+	{
 #if	defined(__MINGW32__)
-  {
-    unichar	mode[3];
-    mode[0] = 'r';
-    mode[1] = 'b';
-    mode[2] = '\0';
-    file = _wfopen((const unichar*)[fileName fileSystemRepresentation], mode);
-  }
+	  unichar	mode[3];
+
+	  mode[0] = 'r';
+	  mode[1] = 'b';
+	  mode[2] = '\0';
+
+	  fp = _wfopen((const unichar*)[path fileSystemRepresentation], mode);
 #else
-  file = fopen([fileName fileSystemRepresentation], "r");
+	  fp = fopen([path fileSystemRepresentation], "r");
 #endif
-  if (file == NULL)
-    [NSException
-      raise: NSInternalInconsistencyException
-      format: @"Failed to open time zone regions array file."];
-  while (fscanf(file, "%d %s", &index, name) == 2)
-    [temp_array[index] addObject: [NSString stringWithCString: name]];
-  fclose(file);
-  regionsArray = [[NSArray alloc] initWithObjects: temp_array count: 24];
+	  if (fp == NULL)
+	    {
+	      if (zone_mutex != nil)
+		{
+		  [zone_mutex unlock];
+		}
+	      [NSException
+		raise: NSInternalInconsistencyException
+		format: @"Failed to open time zone regions array file."];
+	    }
+	  while (fscanf(fp, "%d %s", &index, name) == 2)
+	    {
+	      [temp_array[index]
+		addObject: [NSString stringWithUTF8String: name]];
+	    }
+	  fclose(fp);
+	}
+      else
+	{
+	  NSString	*zonedir = [NSTimeZone getTimeZoneFile: @"WET"]; 
+
+	  if (tzdir != nil)
+	    {
+	      NSFileManager		*mgr = [NSFileManager defaultManager];
+	      NSDirectoryEnumerator	*enumerator;
+	      NSString			*name;
+
+	      zonedir = [zonedir stringByDeletingLastPathComponent];
+	      enumerator = [mgr enumeratorAtPath: zonedir];
+	      while ((name = [enumerator nextObject]) != nil)
+		{
+		  NSTimeZone	*zone = nil;
+		  BOOL		isDir;
+
+		  // FIXME: check file validity.
+		
+		  path = [zonedir stringByAppendingPathComponent: name];
+		  if ([mgr fileExistsAtPath: path isDirectory: &isDir]
+		    && isDir == NO)
+		    {
+		      zone = [zoneDictionary objectForKey: name];
+		      if (zone == nil)
+			{
+			  NSData	*data;
+
+			  data = [NSData dataWithContentsOfFile: path];
+			  zone = [[self alloc] initWithName: name data: data];
+			  AUTORELEASE(zone);
+			}
+		      if (zone != nil)
+			{
+			  int			offset;
+			  NSArray		*details;
+			  NSTimeZoneDetail	*detail;
+			  NSEnumerator		*e;
+
+			  details = [zone timeZoneDetailArray];
+			  e = [details objectEnumerator];
+		
+			  while ((detail = [e nextObject]) != nil)
+			    {
+			      if ([detail isDaylightSavingTime] == NO)
+				{
+				  break;	// Found a standard time
+				}
+			    }
+			  if (detail == nil && [details count] > 0)
+			    {
+			      // If no standard time
+			      detail = [details objectAtIndex: 0];
+			    }
+
+			  offset = [detail secondsFromGMT];
+			  if (offset < 0)
+			    {
+			      offset = -offset;
+			      offset %= (60 * 60 * 24);
+			      offset = -offset;
+			      offset += (60 * 60 * 24);
+			    }
+			  else
+			    {
+			      offset %= (60 * 60 * 24);
+			    }
+			  offset /= (60 * 60);
+
+			  [temp_array[offset] addObject: name];
+			}
+		    }
+		}
+	    }
+	}
+      regionsArray = [[NSArray alloc] initWithObjects: temp_array count: 24];
+      RELEASE(pool);
+    }
+  if (zone_mutex != nil)
+    {
+      [zone_mutex unlock];
+    }
   return regionsArray;
 }
 
@@ -1389,7 +1693,7 @@ static NSMapTable	*absolutes = 0;
 {
   NSTimeZone	*zone;
 
-  zone = [[GSAbsTimeZone alloc] initWithOffset: seconds];
+  zone = [[GSAbsTimeZone alloc] initWithOffset: seconds name: nil];
   return AUTORELEASE(zone);
 }
 
@@ -1401,9 +1705,17 @@ static NSMapTable	*absolutes = 0;
 + (NSTimeZone*) timeZoneWithAbbreviation: (NSString*)abbreviation
 {
   NSTimeZone	*zone;
+  NSString	*name;
 
-  zone = [self timeZoneWithName: [[self abbreviationDictionary]
-				   objectForKey: abbreviation] data: nil];
+  name = [[self abbreviationDictionary] objectForKey: abbreviation];
+  if (name == nil)
+    {
+      zone = nil;
+    }
+  else
+    {
+      zone = [self timeZoneWithName: name data: nil];
+    }
   return zone;
 }
 
@@ -1642,9 +1954,10 @@ static NSMapTable	*absolutes = 0;
 @end
 
 /**
- * This class serves no useful purpose in GNUstep, and is provided
- * solely for backward compatibility with the OpenStep spec.  It is
- * missing entirely from MacOS-X.
+ * This class serves no useful purpose in GNUstep other than to provide
+ * a backup mechanism for handling abbreviations where the precomputed
+ * data files cannot be found. It is provided primarily for backward
+ * compatibility with the OpenStep spec.  It is missing entirely from MacOS-X.
  */
 @implementation NSTimeZoneDetail
 
@@ -1688,26 +2001,74 @@ static NSMapTable	*absolutes = 0;
 @implementation NSTimeZone (Private)
 
 /**
+ * Common locations for timezone info on unix systems.
+ */
+static NSString *zoneDirs[] = {
+  @"/usr/share/zoneinfo", 
+  @"/usr/lib/zoneinfo",
+  @"/usr/local/share/zoneinfo",
+  @"/usr/local/lib/zoneinfo", 
+  @"/etc/zoneinfo",
+  @"/usr/local/etc/zoneinfo"
+};
+
+/**
  * Returns the path to the named zone info file.
  */
 + (NSString*) getTimeZoneFile: (NSString *)name
 {
+  static BOOL	beenHere = NO;
   NSString	*dir = nil;
 
+  if (beenHere == NO && tzdir == nil)
+    {
+      if (zone_mutex != nil)
+	{
+	  [zone_mutex lock];
+	}
+      if (beenHere == NO && tzdir == nil)
+	{
+	  NSFileManager	*mgr = [NSFileManager defaultManager];
+	  NSString	*zonedir = nil;
+	  unsigned	i;
+
+	  for (i = 0; i < sizeof(zoneDirs)/sizeof(zoneDirs[0]); i++)
+	    {
+	      BOOL	isDir;
+
+	      zonedir
+		= [zoneDirs[i] stringByAppendingPathComponent: POSIX_TZONES];
+	      if ([mgr fileExistsAtPath: zonedir isDirectory: &isDir] && isDir)
+		{
+		  tzdir = RETAIN(zonedir);
+		  break;  // use first one
+		}
+	    }
+	  beenHere = YES;
+	}
+      if (zone_mutex != nil)
+	{
+	  [zone_mutex unlock];
+	}
+    }
   /* Use the system zone info if possible, otherwise, use our installed
      info.  */
   if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
-  	[tzdir stringByAppendingPathComponent: name]] == NO)
-    dir = nil;
+    [tzdir stringByAppendingPathComponent: name]] == YES)
+    {
+      dir = tzdir;
+    }
   if (dir == nil)
-    dir= _time_zone_path (ZONES_DIR, nil);
+    {
+      dir = _time_zone_path (ZONES_DIR, nil);
+    }
   return [dir stringByAppendingPathComponent: name];
 }
 
 @end
 
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW32__)
 /* Timezone information data as stored in the registry */
 typedef struct TZI_format {
 	LONG       Bias;
@@ -1740,7 +2101,7 @@ lastDayOfGregorianMonth(int month, int year)
 void
 GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int *hour, int *minute, int *second, int *mil);
-int dayOfCommonEra(NSTimeInterval when);
+
 
 
 /* FIXME
@@ -1935,7 +2296,7 @@ int dayOfCommonEra(NSTimeInterval when);
 			      int a, b;
 
 			      ASSIGN(timeZoneName,
-				[NSString stringWithCString: standardName]);
+				[NSString stringWithUTF8String: standardName]);
 
 			      /* Abbr generated here is IMHO a
 			       * bit suspicous but I kept it */
@@ -1946,7 +2307,7 @@ int dayOfCommonEra(NSTimeInterval when);
 				}
 			      standardName[b] = 0;
 			      ASSIGN(timeZoneNameAbbr,
-				[NSString stringWithCString: standardName]);
+				[NSString stringWithUTF8String: standardName]);
 			    }
 
 			  /* Set the daylight savings name for the time zone. */
@@ -1955,7 +2316,7 @@ int dayOfCommonEra(NSTimeInterval when);
 			      int a, b;
 
 			      ASSIGN(daylightZoneName,
-				[NSString stringWithCString: daylightName]);
+				[NSString stringWithUTF8String: daylightName]);
 
 			      /* Abbr generated here is IMHO
 			       * a bit suspicous but I kept it */
@@ -1966,7 +2327,7 @@ int dayOfCommonEra(NSTimeInterval when);
 				}
 			      daylightName[b] = 0;
 			      ASSIGN(daylightZoneNameAbbr,
-				[NSString stringWithCString: daylightName]);
+				[NSString stringWithUTF8String: daylightName]);
 			    }
 			}
 		      RegCloseKey(regKey);
@@ -1999,9 +2360,7 @@ int dayOfCommonEra(NSTimeInterval when);
   // After April and before October is DST
   if (month > DaylightDate.wMonth && month < StandardDate.wMonth)
     return YES;
-  dow = dayOfCommonEra(when);
-
-  dow = dow % 7;
+  dow = ((int)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
   if (dow < 0)
     dow += 7;
 
@@ -2131,7 +2490,7 @@ int dayOfCommonEra(NSTimeInterval when);
   return timeZoneName;
 }
 @end
-#endif // __WIN32__
+#endif // __MINGW32__
 
 
 @implementation	GSTimeZone
@@ -2228,14 +2587,9 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 {
   RELEASE(timeZoneName);
   RELEASE(timeZoneData);
+  RELEASE(abbreviations);
   if (types != 0)
     {
-      unsigned	i;
-
-      for (i = 0; i < n_types; i++)
-	{
-	  RELEASE(types[i].abbreviation);
-	}
       NSZoneFree(NSDefaultMallocZone(), types);
     }
   [super dealloc];
@@ -2335,7 +2689,9 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 	}
       abbr = (unsigned char*)(bytes + pos);
       {
-	id	abbrevs[charcnt];
+	id		abbrevs[charcnt];
+	unsigned	count = 0;
+	unsigned	used = 0;
 
 	memset(abbrevs, '\0', sizeof(id)*charcnt);
 	for (i = 0; i < n_types; i++)
@@ -2345,13 +2701,37 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 	    if (abbrevs[loc] == nil)
 	      {
 		abbrevs[loc]
-		  = [[NSString alloc] initWithCString: (char*)abbr + loc];
-	      }
-	    else
-	      {
-		RETAIN(abbrevs[loc]);
+		  = [[NSString alloc] initWithUTF8String: (char*)abbr + loc];
+		count++;
 	      }
 	    types[i].abbreviation = abbrevs[loc];
+	  }
+	/*
+	 * Now we have created all the abbreviations, we put them in an
+	 * array for easy access later and easy deallocation if/when
+	 * the receiver is deallocated.
+	 */
+	i = charcnt;
+	while (i-- > count)
+	  {
+	    if (abbrevs[i] != nil)
+	      {
+		while (abbrevs[used] != nil)
+		  {
+		    used++;
+		  }
+		abbrevs[used] = abbrevs[i];
+		abbrevs[i] = nil;
+		if (++used >= count)
+		  {
+		    break;
+		  }
+	      }
+	  }
+	abbreviations = [[NSArray alloc] initWithObjects: abbrevs count: count];
+	while (count-- > 0)
+	  {
+	    RELEASE(abbrevs[count]);
 	  }
       }
 

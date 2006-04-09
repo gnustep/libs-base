@@ -30,6 +30,7 @@ typedef struct{
 #endif
 
 @class NSString;
+@class GSRunLoopWatcher;
 
 @interface	GSRunLoopCtxt : NSObject
 {
@@ -39,10 +40,7 @@ typedef struct{
   GSIArray	performers;	/** The actions to perform regularly.	*/
   GSIArray	timers;		/** The timers set for the runloop mode */
   GSIArray	watchers;	/** The inputs set for the runloop mode */
-#if	defined(__MINGW32__)
-  id            msgTarget;      /** Target to raise a win32 message */
-  SEL           msgSelector;    /** method of target */
-#endif
+  NSTimer	*housekeeper;	/** Housekeeping timer for loop.	*/
 @private
 #if	defined(__MINGW32__)
   NSMapTable    *handleMap;     
@@ -51,8 +49,9 @@ typedef struct{
   NSMapTable	*_efdMap;
   NSMapTable	*_rfdMap;
   NSMapTable	*_wfdMap;
-  int		fairStart;	// For trying to ensure fair handling.
 #endif
+  GSIArray	_trigger;	// Watchers to trigger unconditionally.
+  int		fairStart;	// For trying to ensure fair handling.
   BOOL		completed;	// To mark operation as completed.
 #ifdef	HAVE_POLL
   unsigned int	pollfds_capacity;
@@ -61,10 +60,14 @@ typedef struct{
 #endif
 }
 - (void) endEvent: (void*)data
-             type: (RunLoopEventType)type;
+              for: (GSRunLoopWatcher*)watcher;
 - (void) endPoll;
 - (id) initWithMode: (NSString*)theMode extra: (void*)e;
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;
+@end
+
+@interface	NSRunLoop (Housekeeper)
+- (void) _setHousekeeper: (NSTimer*)timer;
 @end
 
 #endif /* __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE */

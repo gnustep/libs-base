@@ -31,7 +31,7 @@ SUBPROJECT_NAME = unix
 
 unix_OBJC_FILES = \
 	GSRunLoopCtxt.m \
-	GSRunLoopWatcher.m
+	NSStream.m
 
 -include Makefile.preamble
 

@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
 */
 #include "config.h"
@@ -29,6 +30,137 @@
 
 /* Test for ASCII whitespace which is safe for unicode characters */
 #define	space(C)	((C) > 127 ? NO : isspace(C))
+
+@implementation NSArray (GSCategories)
+
+- (unsigned) insertionPosition: (id)item
+		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		       context: (void *)context
+{
+  unsigned	count = [self count];
+  unsigned	upper = count;
+  unsigned	lower = 0;
+  unsigned	index;
+  SEL		oaiSel;
+  IMP		oai;
+
+  if (item == nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position for nil object in array"];
+    }
+  if (sorter == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with null comparator"];
+    }
+
+  oaiSel = @selector(objectAtIndex:);
+  oai = [self methodForSelector: oaiSel];
+  /*
+   *	Binary search for an item equal to the one to be inserted.
+   */
+  for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
+    {
+      NSComparisonResult comparison;
+
+      comparison = (*sorter)(item, (*oai)(self, oaiSel, index), context);
+      if (comparison == NSOrderedAscending)
+        {
+          upper = index;
+        }
+      else if (comparison == NSOrderedDescending)
+        {
+          lower = index + 1;
+        }
+      else
+        {
+          break;
+        }
+    }
+  /*
+   *	Now skip past any equal items so the insertion point is AFTER any
+   *	items that are equal to the new one.
+   */
+  while (index < count && (*sorter)(item, (*oai)(self, oaiSel, index), context)
+    != NSOrderedAscending)
+    {
+      index++;
+    }
+  return index;
+}
+
+- (unsigned) insertionPosition: (id)item
+		 usingSelector: (SEL)comp
+{
+  unsigned	count = [self count];
+  unsigned	upper = count;
+  unsigned	lower = 0;
+  unsigned	index;
+  NSComparisonResult	(*imp)(id, SEL, id);
+  SEL		oaiSel;
+  IMP		oai;
+
+  if (item == nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position for nil object in array"];
+    }
+  if (comp == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with null comparator"];
+    }
+  imp = (NSComparisonResult (*)(id, SEL, id))[item methodForSelector: comp];
+  if (imp == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with unknown method"];
+    }
+
+  oaiSel = @selector(objectAtIndex:);
+  oai = [self methodForSelector: oaiSel];
+  /*
+   *	Binary search for an item equal to the one to be inserted.
+   */
+  for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
+    {
+      NSComparisonResult comparison;
+
+      comparison = (*imp)(item, comp, (*oai)(self, oaiSel, index));
+      if (comparison == NSOrderedAscending)
+        {
+          upper = index;
+        }
+      else if (comparison == NSOrderedDescending)
+        {
+          lower = index + 1;
+        }
+      else
+        {
+          break;
+        }
+    }
+  /*
+   *	Now skip past any equal items so the insertion point is AFTER any
+   *	items that are equal to the new one.
+   */
+  while (index < count
+    && (*imp)(item, comp, (*oai)(self, oaiSel, index)) != NSOrderedAscending)
+    {
+      index++;
+    }
+  return index;
+}
+@end
+
+@implementation	NSAttributedString (GSCategories)
+- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange
+{
+  GSOnceMLog(@"This method is deprecated, use -attributedSubstringFromRange:");
+  return [self attributedSubstringFromRange: aRange];
+}
+@end
 
 /**
  * Extension methods for the NSCalendarDate class
@@ -227,15 +359,15 @@
 
 struct MD5Context
 {
-  unsigned long buf[4];
-  unsigned long bits[2];
-  unsigned char in[64];
+  uint32_t	buf[4];
+  uint32_t	bits[2];
+  uint8_t	in[64];
 };
 static void MD5Init (struct MD5Context *context);
 static void MD5Update (struct MD5Context *context, unsigned char const *buf,
 unsigned len);
 static void MD5Final (unsigned char digest[16], struct MD5Context *context);
-static void MD5Transform (unsigned long buf[4], unsigned long const in[16]);
+static void MD5Transform (uint32_t buf[4], uint32_t const in[16]);
 
 /*
  * This code implements the MD5 message-digest algorithm.
@@ -257,15 +389,25 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16]);
 /*
  * Ensure data is little-endian
  */
-static void littleEndian (void *buf, unsigned longs)
+static void littleEndian (void *buf, unsigned words)
 {
-  unsigned long	*ptr = (unsigned long*)buf;
+  uint32_t	*ptr = (uint32_t*)buf;
+
+#if	(INT_MAX == 2147483647)
+  do
+    {
+      *ptr = NSSwapHostIntToLittle(*ptr);
+      ptr++;
+    }
+  while (--words);
+#else
   do
     {
       *ptr = NSSwapHostLongToLittle(*ptr);
       ptr++;
     }
-  while (--longs);
+  while (--words);
+#endif
 }
 
 /*
@@ -290,12 +432,12 @@ static void MD5Init (struct MD5Context *ctx)
 static void MD5Update (struct MD5Context *ctx, unsigned char const *buf,
   unsigned len)
 {
-  unsigned long t;
+  uint32_t t;
 
   /* Update bitcount */
 
   t = ctx->bits[0];
-  if ((ctx->bits[0] = t + ((unsigned long) len << 3)) < t)
+  if ((ctx->bits[0] = t + ((uint32_t) len << 3)) < t)
     ctx->bits[1]++;		/* Carry from low to high */
   ctx->bits[1] += len >> 29;
 
@@ -315,7 +457,7 @@ static void MD5Update (struct MD5Context *ctx, unsigned char const *buf,
 	}
       memcpy (p, buf, t);
       littleEndian (ctx->in, 16);
-      MD5Transform (ctx->buf, (unsigned long *) ctx->in);
+      MD5Transform (ctx->buf, (uint32_t *) ctx->in);
       buf += t;
       len -= t;
     }
@@ -325,7 +467,7 @@ static void MD5Update (struct MD5Context *ctx, unsigned char const *buf,
     {
       memcpy (ctx->in, buf, 64);
       littleEndian (ctx->in, 16);
-      MD5Transform (ctx->buf, (unsigned long *) ctx->in);
+      MD5Transform (ctx->buf, (uint32_t *) ctx->in);
       buf += 64;
       len -= 64;
     }
@@ -361,7 +503,7 @@ static void MD5Final (unsigned char digest[16], struct MD5Context *ctx)
       /* Two lots of padding:  Pad the first block to 64 bytes */
       memset (p, 0, count);
       littleEndian (ctx->in, 16);
-      MD5Transform (ctx->buf, (unsigned long *) ctx->in);
+      MD5Transform (ctx->buf, (uint32_t *) ctx->in);
 
       /* Now fill the next block with 56 bytes */
       memset (ctx->in, 0, 56);
@@ -374,10 +516,10 @@ static void MD5Final (unsigned char digest[16], struct MD5Context *ctx)
   littleEndian (ctx->in, 14);
 
   /* Append length in bits and transform */
-  ((unsigned long *) ctx->in)[14] = ctx->bits[0];
-  ((unsigned long *) ctx->in)[15] = ctx->bits[1];
+  ((uint32_t *) ctx->in)[14] = ctx->bits[0];
+  ((uint32_t *) ctx->in)[15] = ctx->bits[1];
 
-  MD5Transform (ctx->buf, (unsigned long *) ctx->in);
+  MD5Transform (ctx->buf, (uint32_t *) ctx->in);
   littleEndian ((unsigned char *) ctx->buf, 4);
   memcpy (digest, ctx->buf, 16);
   memset (ctx, 0, sizeof (ctx));	/* In case it's sensitive */
@@ -397,12 +539,12 @@ static void MD5Final (unsigned char digest[16], struct MD5Context *ctx)
 
 /*
  * The core of the MD5 algorithm, this alters an existing MD5 hash to
- * reflect the addition of 16 longwords of new data.  MD5Update blocks
- * the data and converts bytes into longwords for this routine.
+ * reflect the addition of 16 43bit words of new data.  MD5Update blocks
+ * the data and converts bytes into 43bit words for this routine.
  */
-static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
+static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
 {
-  register unsigned long a, b, c, d;
+  register uint32_t a, b, c, d;
 
   a = buf[0];
   b = buf[1];

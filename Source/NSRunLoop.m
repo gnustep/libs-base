@@ -22,7 +22,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSRunLoop class reference</title>
    $Date$ $Revision$
@@ -38,10 +39,13 @@
 #include "Foundation/NSTimer.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSRunLoop.h"
+#include "Foundation/NSStream.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSDebug.h"
 #include "GSRunLoopCtxt.h"
 #include "GSRunLoopWatcher.h"
+#include "GSStream.h"
+#include "GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -65,6 +69,10 @@ NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 static NSDate	*theFuture = nil;
 
 extern BOOL	GSCheckTasks();
+
+@interface NSObject (OptionalPortRunLoop)
+- (void) getFds: (int*)fds count: (int*)count;
+@end
 
 
 
@@ -225,10 +233,22 @@ extern BOOL	GSCheckTasks();
 #include "GNUstepBase/GSIArray.h"
 #endif
 
-static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
+typedef struct {
+  @defs(NSTimer)
+} *tvars;
+
+static inline NSDate *timerDate(NSTimer *t)
 {
-  return [((GSRunLoopWatcher *)(i0.obj))->_date
-    compare: ((GSRunLoopWatcher *)(i1.obj))->_date];
+  return ((tvars)t)->_date;
+}
+static inline BOOL timerInvalidated(NSTimer *t)
+{
+  return ((tvars)t)->_invalidated;
+}
+
+static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
+{
+  return [timerDate(i0.obj) compare: timerDate(i1.obj)];
 }
 
 
@@ -371,7 +391,6 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 {
   GSRunLoopCtxt	*context;
   GSIArray	watchers;
-  id		obj;
 
   context = NSMapGet(_contextMap, mode);
   if (context == nil)
@@ -381,38 +400,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
       RELEASE(context);
     }
   watchers = context->watchers;
-
-  /*
-   *	If the receiver or its delegate (if any) respond to
-   *	'limitDateForMode: ' then we ask them for the limit date for
-   *	this watcher.
-   */
-  obj = item->receiver;
-  if ([obj respondsToSelector: @selector(limitDateForMode:)])
-    {
-      NSDate	*d = [obj limitDateForMode: mode];
-
-      item->_date = RETAIN(d);
-    }
-  else if ([obj respondsToSelector: @selector(delegate)])
-    {
-      obj = [obj delegate];
-      if (obj != nil && [obj respondsToSelector: @selector(limitDateForMode:)])
-	{
-	  NSDate	*d = [obj limitDateForMode: mode];
-
-	  item->_date = RETAIN(d);
-	}
-      else
-	{
-	  item->_date = RETAIN(theFuture);
-	}
-    }
-  else
-    {
-      item->_date = RETAIN(theFuture);
-    }
-  GSIArrayInsertSorted(watchers, (GSIArrayItem)((id)item), aSort);
+  GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
 }
 
 - (void) _checkPerformers: (GSRunLoopCtxt*)context
@@ -671,7 +659,6 @@ extern IMP	wRetImp;
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
-      eventSel = @selector(receivedEvent:type:extra:forMode:);
 #if	GS_WITH_GC == 0
       wRelSel = @selector(release);
       wRetSel = @selector(retain);
@@ -763,33 +750,56 @@ extern IMP	wRetImp;
       RELEASE(context);
     }
   timers = context->timers;
-  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), aSort);
+  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), tSort);
 }
 
 
 /**
  * Fires timers whose fire date has passed, and checks timers and limit dates
- * for input sources, determining the earliest time that anything watched for
- * becomes useless.  Returns that date/time.
+ * for input sources, determining the earliest time that any future timeout
+ * becomes due.  Returns that date/time.
  */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
-  extern NSTimer	*GSHousekeeper(void);
-  GSRunLoopCtxt		*context = NSMapGet(_contextMap, mode);
+  GSRunLoopCtxt		*context;
   NSDate		*when = nil;
 
+  context = NSMapGet(_contextMap, mode);
   if (context != nil)
     {
-      GSRunLoopWatcher	*min_watcher = nil;
       NSString		*savedMode = _currentMode;
       CREATE_AUTORELEASE_POOL(arp);
 
       _currentMode = mode;
       NS_DURING
 	{
-	  GSIArray	timers = context->timers;
-	  GSIArray	watchers = context->watchers;
+	  extern NSTimeInterval GSTimeNow(void);
+	  GSIArray		timers = context->timers;
+	  NSTimeInterval	now;
+	  NSTimer		*t;
 
+	  /*
+	   * Save current time so we don't keep redoing system call to
+	   * get it.  We must refetch the time after every operation
+	   * (such as a timer firing) which might cause a significant
+	   * delay making the saved value outdated.
+	   */
+	  now = GSTimeNow();
+
+	  /*
+	   * Fire housekeeping timer as necessary
+	   */
+	  while ((t = context->housekeeper) != nil
+	    && ([timerDate(t) timeIntervalSinceReferenceDate] <= now))
+	    {
+	      [t fire];
+	      now = GSTimeNow();
+	    }
+
+	  /*
+	   * Handle normal timers ... remove invalidated timers and fire any
+	   * whose date has passed.
+	   */
 	  while (GSIArrayCount(timers) != 0)
 	    {
 	      NSTimer	*min_timer = GSIArrayItemAtIndex(timers, 0).obj;
@@ -801,22 +811,20 @@ extern IMP	wRetImp;
 		  continue;
 		}
 
-              if (when == nil)
+	      if ([timerDate(min_timer) timeIntervalSinceReferenceDate] > now)
 		{
 		  when = [timerDate(min_timer) copy];
-		}
-	      if ([timerDate(min_timer) timeIntervalSinceNow] > 0)
-		{
 		  break;
 		}
 
 	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
 	      /* Firing will also increment its fireDate, if it is repeating. */
 	      [min_timer fire];
+	      now = GSTimeNow();
 	      if (timerInvalidated(min_timer) == NO)
 		{
 		  GSIArrayInsertSortedNoRetain(timers,
-		    (GSIArrayItem)((id)min_timer), aSort);
+		    (GSIArrayItem)((id)min_timer), tSort);
 		}
 	      else
 		{
@@ -824,102 +832,6 @@ extern IMP	wRetImp;
 		}
 	      GSNotifyASAP();		/* Post notifications. */
 	    }
-
-	  /* Is this right? At the moment we invalidate and discard watchers
-	     whose limit-dates have passed. */
-	  while (GSIArrayCount(watchers) != 0)
-	    {
-	      min_watcher = GSIArrayItemAtIndex(watchers, 0).obj;
-
-	      if (min_watcher->_invalidated == YES)
-		{
-		  GSIArrayRemoveItemAtIndex(watchers, 0);
-		  min_watcher = nil;
-		  continue;
-		}
-
-	      if ([min_watcher->_date timeIntervalSinceNow] > 0)
-		{
-		  break;
-		}
-	      else
-		{
-		  id		obj;
-		  NSDate	*nxt = nil;
-
-		  /*
-		   *	If the receiver or its delegate wants to know about
-		   *	timeouts - inform it and give it a chance to set a
-		   *	revised limit date.
-		   */
-		  GSIArrayRemoveItemAtIndexNoRelease(watchers, 0);
-		  obj = min_watcher->receiver;
-		  if ([obj respondsToSelector:
-		    @selector(timedOutEvent:type:forMode:)])
-		    {
-		      nxt = [obj timedOutEvent: min_watcher->data
-					  type: min_watcher->type
-				       forMode: mode];
-		    }
-		  else if ([obj respondsToSelector: @selector(delegate)])
-		    {
-		      obj = [obj delegate];
-		      if (obj != nil && [obj respondsToSelector:
-			@selector(timedOutEvent:type:forMode:)])
-			{
-			  nxt = [obj timedOutEvent: min_watcher->data
-					      type: min_watcher->type
-					   forMode: mode];
-			}
-		    }
-		  if (nxt && [nxt timeIntervalSinceNow] > 0.0)
-		    {
-		      /*
-		       * If the watcher has been given a revised limit date -
-		       * re-insert it into the queue in the correct place.
-		       */
-		      ASSIGN(min_watcher->_date, nxt);
-		      GSIArrayInsertSortedNoRetain(watchers,
-			(GSIArrayItem)((id)min_watcher), aSort);
-		    }
-		  else
-		    {
-		      /*
-		       * If the watcher is now useless - invalidate and
-		       * release it.
-		       */
-		      min_watcher->_invalidated = YES;
-		      RELEASE(min_watcher);
-		    }
-		  min_watcher = nil;
-		}
-	    }
-
-	  /*
-	   * If there is nothing being watched, and no valid timers
-           * other than the housekeeper, we set when to nil so
-	   * that the housekeeper timer does not keep the runloop
-	   * active.  It's a special case set up in NSThread.m
-	   */
-	  if (min_watcher == nil && when != nil)
-	    {
-	      unsigned count = GSIArrayCount(timers);
-
-	      while (count-- > 1)
-		{
-		  NSTimer	*tmp = GSIArrayItemAtIndex(timers, 0).obj;
-
-		  if (timerInvalidated(tmp) == YES)
-		    {
-		      GSIArrayRemoveItemAtIndex(timers, count);
-		    }
-		}
-	      if (GSIArrayCount(timers) == 1)
-		{
-                  DESTROY(when);
-		}
-	    }
-
 	  _currentMode = savedMode;
 	}
       NS_HANDLER
@@ -931,40 +843,28 @@ extern IMP	wRetImp;
 
       RELEASE(arp);
 
-      /*
-       * If there are timers, when is already set to the limit date of the
-       * earliest of them (and retained!).
-       * If there are watchers, set the limit date to that of the earliest
-       * watcher (or leave it as the date of the earliest timer if that is
-       * before the watchers limit).
-       */
       if (when != nil)
 	{
-	  if (min_watcher != nil
-	    && [min_watcher->_date compare: when] == NSOrderedAscending)
-	    {
-             RELEASE(when);
-	      when = min_watcher->_date;
-	    }
-         else
-	   {
-	     AUTORELEASE(when);
-	   }
+	  AUTORELEASE(when);
 	}
-      else if (min_watcher != nil)
-	{
-	  when = min_watcher->_date;
-	}
-#if	defined(__MINGW32__)
-      // if there are handler for win32 messages
-      else if (context->msgTarget != nil)
-        {
-          when = theFuture;
-        }
-#endif
       else
-	{
-	  return nil;	/* Nothing waiting to be done.	*/
+        {
+	  GSIArray		watchers = context->watchers;
+	  unsigned		i = GSIArrayCount(watchers);
+
+	  while (i-- > 0)
+	    {
+	      GSRunLoopWatcher	*w = GSIArrayItemAtIndex(watchers, i).obj;
+
+	      if (w->_invalidated == YES)
+	        {
+		  GSIArrayRemoveItemAtIndex(watchers, i);
+		}
+	    }
+	  if (GSIArrayCount(context->watchers) > 0)
+	    {
+	      when = theFuture;
+	    }
 	}
 
       NSDebugMLLog(@"NSRunLoop", @"limit date %f",
@@ -1005,14 +905,20 @@ extern IMP	wRetImp;
       GSIArray		watchers;
       unsigned		i;
 
+      /*
+       * If we have a housekeeping timer, and it is earlier than the
+       * limit date we have been given, we use the date of the housekeeper
+       * to determine when to stop.
+       */
+      if (limit_date != nil && context != nil && context->housekeeper != nil
+	&& [timerDate(context->housekeeper) timeIntervalSinceReferenceDate]
+	  < [limit_date timeIntervalSinceReferenceDate])
+	{
+	  limit_date = timerDate(context->housekeeper);
+	}
+
       if ((context == nil || (watchers = context->watchers) == 0
-	|| (i = GSIArrayCount(watchers)) == 0)
-#if	defined(__MINGW32__)
-        // there are inputs for win32 messages
-	&& context->msgTarget == 0)
-#else
-       )
-#endif
+	|| (i = GSIArrayCount(watchers)) == 0))
 	{
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
 	  GSNotifyASAP();
@@ -1275,11 +1181,12 @@ extern IMP	wRetImp;
 /**
  * Sets up sending of aSelector to target with argument.<br />
  * The selector is sent before the next runloop iteration (unless
- * cancelled before then).<br />
+ * cancelled before then) in any of the specified modes.<br />
  * The target and argument objects are <em>not</em> retained.<br />
  * The order value is used to determine the order in which messages
  * are sent if multiple messages have been set up. Messages with a lower
- * order value are sent first.
+ * order value are sent first.<br />
+ * If the modes array is empty, this method has no effect.
  */
 - (void) performSelector: (SEL)aSelector
 		  target: (id)target
@@ -1350,3 +1257,29 @@ extern IMP	wRetImp;
 }
 
 @end
+
+@implementation	NSRunLoop (Housekeeper)
+- (void) _setHousekeeper: (NSTimer*)timer
+{
+  GSRunLoopCtxt	*context;
+
+  context = NSMapGet(_contextMap, NSDefaultRunLoopMode);
+  if (context == nil)
+    {
+      context = [[GSRunLoopCtxt alloc] initWithMode: NSDefaultRunLoopMode
+					      extra: _extra];
+      NSMapInsert(_contextMap, context->mode, context);
+      RELEASE(context);
+    }
+  if (context->housekeeper != timer)
+    {
+      [context->housekeeper invalidate];
+      DESTROY(context->housekeeper);
+    }
+  if (timer != nil)
+    {
+      context->housekeeper = RETAIN(timer);
+    }
+}
+@end
+

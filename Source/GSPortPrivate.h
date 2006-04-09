@@ -17,11 +17,21 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
 */ 
 
 #ifndef __GSPortPrivate_h_
 #define __GSPortPrivate_h_
+
+/*
+ * Nameserver deregistration methods
+ */
+@interface      NSPortNameServer (GNUstep)
+- (NSArray*) namesForPort: (NSPort*)port;       /* return all names for port */
+- (BOOL) removePort: (NSPort*)port;             /* remove all names for port */
+- (BOOL) removePort: (NSPort*)port forName: (NSString*)name;
+@end
 
 #if	defined(__MINGW32__)
 @interface NSMessagePort(Private)

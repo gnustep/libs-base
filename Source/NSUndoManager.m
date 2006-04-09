@@ -340,7 +340,9 @@
     {
       if (_isUndoing)
 	{
-	  if (_levelsOfUndo > 0 && [_redoStack count] == _levelsOfUndo && [[g actions] count] > 0)
+	  if (_levelsOfUndo > 0
+	    && [_redoStack count] == _levelsOfUndo
+	    && [[g actions] count] > 0)
 	    {
 	      [_redoStack removeObjectAtIndex: 0];
 	    }
@@ -353,7 +355,9 @@
 	}
       else
 	{
-	  if (_levelsOfUndo > 0 && [_undoStack count] == _levelsOfUndo && [[g actions] count] > 0)
+	  if (_levelsOfUndo > 0
+	    && [_undoStack count] == _levelsOfUndo
+	    && [[g actions] count] > 0)
 	    {
 	      [_undoStack removeObjectAtIndex: 0];
 	    }
@@ -758,6 +762,10 @@
  */
 - (void) removeAllActions
 {
+  while (_group != nil)
+    {
+      [self endUndoGrouping];
+    }
   [_redoStack removeAllObjects];
   [_undoStack removeAllObjects];
   _isRedoing = NO;
@@ -877,10 +885,10 @@
 						 target: self
 					       argument: nil];
       [[NSRunLoop currentRunLoop] performSelector: @selector(_loop:)
-					   target: self
-					 argument: nil
-					    order: NSUndoCloseGroupingRunLoopOrdering
-					    modes: _modes];
+	target: self
+	argument: nil
+	order: NSUndoCloseGroupingRunLoopOrdering
+	modes: _modes];
       _runLoopGroupingPending = YES;
     }
 }

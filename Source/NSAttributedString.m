@@ -604,14 +604,6 @@ static Class GSMutableAttributedStringClass;
   return newAttrString;
 }
 
-/**
- *  Synonym for [-attributedSubstringFromRange:].
- */
-- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange
-{
-  return [self attributedSubstringFromRange: aRange];
-}
-
 @end //NSAttributedString
 
 /**

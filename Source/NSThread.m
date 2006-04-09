@@ -53,6 +53,11 @@
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSInvocation.h"
 
+#include "GSRunLoopCtxt.h"
+
+@interface NSAutoreleasePool (NSThread)
++ (void) _endThread: (NSThread*)thread;
+@end
 
 typedef struct { @defs(NSThread) } NSThread_ivars;
 
@@ -96,9 +101,6 @@ static NSNotificationCenter *nc = nil;
                   type: (RunLoopEventType)type
                  extra: (void*)extra
                forMode: (NSString*)mode;
-+ (NSDate*) timedOutEvent: (void*)data
-                     type: (RunLoopEventType)type
-                  forMode: (NSString*)mode;
 - (void) fire;
 @end
 
@@ -353,10 +355,6 @@ GSCurrentThreadDictionary(void)
  * on-disk database.
  */
 static NSTimer	*housekeeper = nil;
-NSTimer	*GSHousekeeper(void)
-{
-  return housekeeper;
-}
 
 /**
  * Returns the runloop for the specified thread (or, if t is nil,
@@ -406,7 +404,8 @@ GSRunLoopForThread(NSThread *t)
 						     selector: NULL
 						     userInfo: nil
 						      repeats: YES];
-	      [r addTimer: housekeeper forMode: NSDefaultRunLoopMode];
+	      [r _setHousekeeper: housekeeper];
+	      RELEASE(housekeeper);
 	      RELEASE(arp);
 	    }
         }
@@ -942,13 +941,6 @@ static NSDate *theFuture;
 		      modes: h->modes];
     }
   RELEASE(toDo);
-}
-
-+ (NSDate*) timedOutEvent: (void*)data
-                     type: (RunLoopEventType)type
-                  forMode: (NSString*)mode
-{
-  return theFuture;
 }
 
 - (void) dealloc

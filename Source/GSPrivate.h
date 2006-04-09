@@ -17,11 +17,25 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
 */ 
 
 #ifndef __GSPrivate_h_
 #define __GSPrivate_h_
+
+/* Absolute Gregorian date for NSDate reference date Jan 01 2001
+ *
+ *  N = 1;                 // day of month
+ *  N = N + 0;             // days in prior months for year
+ *  N = N +                // days this year
+ *    + 365 * (year - 1)   // days in previous years ignoring leap days
+ *    + (year - 1)/4       // Julian leap days before this year...
+ *    - (year - 1)/100     // ...minus prior century years...
+ *    + (year - 1)/400     // ...plus prior years divisible by 400
+ */
+#define GREGORIAN_REFERENCE 730486
+
 
 #include "GNUstepBase/GSObjCRuntime.h"
 
@@ -209,6 +223,14 @@ BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 - (unsigned) size;
 - (const char*) type;
 @end
+
+/*
+ *	Functions used by the NSRunLoop and friends for processing
+ *	queued notifications.
+ */
+extern void GSNotifyASAP(void);
+extern void GSNotifyIdle(void);
+extern BOOL GSNotifyMore(void);
 
 #endif /* __GSPrivate_h_ */
 

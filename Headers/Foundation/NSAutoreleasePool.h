@@ -162,7 +162,9 @@ typedef struct autorelease_array_list
  *     Methods whose names begin with copy create a copy of the receiver
  *     which is owned by the caller.
  *   </desc>
- *   <term>[NSObject-mutableCopy], [(NSMutableCopying)-mutableCopyWithZone:]</term>
+ *   <term>
+ *     [NSObject-mutableCopy], [(NSMutableCopying)-mutableCopyWithZone:]
+ *   </term>
  *   <desc>
  *     Methods whose names begin with mutableCopy create a copy of the receiver
  *     which is owned by the caller.
@@ -277,13 +279,6 @@ typedef struct autorelease_array_list
  * </p>
  */
 + (void) setPoolCountThreshhold: (unsigned)c;
-
-/**
- * Destroys all the autorelease pools in the thread.<br />
- * You should not call this directly, it's called automatically
- * when a thread exits.
- */
-+ (void) _endThread: (NSThread*)thread;
 
 /**
  * Return the number of objects in this pool.

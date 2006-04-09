@@ -22,7 +22,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111 USA.
 
    <title>NSNotificationCenter class reference</title>
    $Date$ $Revision$
@@ -33,6 +34,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSThread.h"
+#include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSLock.h"
 
 
@@ -1146,6 +1148,7 @@ static NSNotificationCenter *default_center = nil;
 {
   BOOL	old;
 
+  GSOnceMLog(@"This method is deprecated");
   lockNCTable(TABLE);
   if (self == default_center)
     {
