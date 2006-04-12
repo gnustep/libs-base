@@ -255,10 +255,14 @@ static NSString	*ExecutablePath()
 
 /* This function is provided for objc-load.c, although I'm not sure it
    really needs it (So far only needed if using GNU dld library) */
+#ifdef    __MINGW32__
+const unichar *
+#else  
 const char *
+#endif
 objc_executable_location (void)
 {
-  return (const char*)[[ExecutablePath() stringByDeletingLastPathComponent]
+  return [[ExecutablePath() stringByDeletingLastPathComponent]
 	     fileSystemRepresentation];
 }
 

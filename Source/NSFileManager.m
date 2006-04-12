@@ -1491,6 +1491,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  return NO;
 	}
+	// TODO: Actually should check all extensions in env var PATHEXT
       if ([[[path pathExtension] lowercaseString] isEqualToString: @"exe"])
 	{
 	  return YES;
