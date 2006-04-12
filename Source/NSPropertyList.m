@@ -2255,7 +2255,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       bytes = [data bytes];
       length = [data length];
-      if (length > 0 && memcmp(bytes, "bplist00", 8) == 0)
+      if (length >= 8 && memcmp(bytes, "bplist00", 8) == 0)
 	{
 	  format = NSPropertyListBinaryFormat_v1_0;
 	}
