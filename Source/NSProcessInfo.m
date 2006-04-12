@@ -263,6 +263,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
 
   /* Copy the argument list */
+  if (argv)
   {
     NSString            *str;
     NSMutableSet	*mySet;
@@ -290,6 +291,40 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     _debug_set = mySet;
     RELEASE(arg0);
   }
+	
+#if	defined(__MINGW32__)
+// It appears that in some versions of mingw32 __argv is no longer supported
+// However GetCommandLine always works.  Perhaps this should be the default case
+// as it is unicode.
+  else
+  {
+  	unichar **argvw = CommandLineToArgvW(GetCommandLineW(), &argc);
+  	NSString *str;
+  	NSMutableSet *mySet;
+  	id obj_argv[argc];
+  	int added = 1;
+  	
+  	mySet = [NSMutableSet new];
+  	
+  	/* Copy the zero'th argument to the argument list */
+  	obj_argv[0] = arg0;
+  	
+  	for (i = 1; i < argc; i++)
+  	  {
+  	str = [NSString stringWithCharacters: argvw[i] length: wcslen(argvw[i])];
+  	if ([str hasPrefix: @"--GNU-Debug="])
+  	  [mySet addObject: [str substringFromIndex: 12]];
+  	else
+  		obj_argv[added++] = str;
+  	  }
+  	  
+  	IF_NO_GC(RELEASE(_gnu_arguments));
+  	_gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
+  	IF_NO_GC(RELEASE(_debug_set));
+  	_debug_set = mySet;
+  	RELEASE(arg0);
+  }
+#endif	
 	
   /* Copy the evironment list */
   {
