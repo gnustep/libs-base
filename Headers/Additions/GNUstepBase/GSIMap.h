@@ -427,9 +427,9 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
       size_t		chunkCount;
       size_t		chunkSize;
 
-      memcpy(newArray, map->nodeChunks, (map->chunkCount)*sizeof(GSIMapNode));
       if (map->nodeChunks != 0)
 	{
+	  memcpy(newArray, map->nodeChunks, (map->chunkCount)*sizeof(GSIMapNode));
 	  NSZoneFree(map->zone, map->nodeChunks);
 	}
       map->nodeChunks = newArray;

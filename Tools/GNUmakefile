@@ -90,7 +90,7 @@ autogsdoc_AGSDOC_FILES = autogsdoc.m \
 autogsdoc_DOC_INSTALL_DIR = Developer/Tools
 
 # Use local version of autogsdoc in case it is not installed
-AUTOGSDOC=./obj/autogsdoc
+AUTOGSDOC=./$(GNUSTEP_OBJ_PREFIX)/autogsdoc
 
 include Makefile.preamble
 
