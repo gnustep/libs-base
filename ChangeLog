@@ -1,3 +1,20 @@
+2006-04-12  Jeremy Bettis <jeremy@deadbeef.com>
+	* Source/NSTimeZone.m: Use native time zone files under Solaris.
+	* Source/GSFFCallInvocation.m: If the returning context is expecting
+		a void* but we have a different return type just cast it. This
+		normally is because the method was not declared and has defaulted
+		to returning id.
+	* Source/win32/NSUserDefaultsWin32.m: Write defaults to registry as
+		unicode strings, read in either unicode(REG_SZ) or ascii(REG_BINARY).
+	* Source/win32-load.h: In mingw, fileSystemRepresentation is unicode
+	* Source/objc-load.m: In mingw, fileSystemRepresentation is unicode
+	* Source/NSPropertyList.m (propertyListFromData:mutabilityOption:format:errorDescription:):
+		Don't call memcmp if the data is smaller than 8 bytes.
+	* Source/NSFileManager.m (isExecutableFileAtPath:):
+		Added a comment
+	* Source/NSBundle.m (objc_executable_location):
+		A cast was obsuring a misuse of fileSystemRepresentation
+		
 2006-04-10  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m (BinaryPLGenerator - storeCount:):
