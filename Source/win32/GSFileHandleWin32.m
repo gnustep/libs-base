@@ -35,7 +35,6 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSHost.h"
 #include "Foundation/NSByteOrder.h"
 #include "Foundation/NSProcessInfo.h"
@@ -108,7 +107,16 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
     }
   else
     {
-      len = read(descriptor, buf, len);
+      DWORD readBytes=-1;
+      if (ReadFile((HANDLE)_get_osfhandle(descriptor), buf, len, &readBytes, NULL)) {
+      	return readBytes;
+      } else {
+      	DWORD err = GetLastError();
+      	if (err == ERROR_BROKEN_PIPE || err == ERROR_HANDLE_EOF) {
+      		return readBytes;
+      	}
+      	return -1;
+      }
     }
   return len;
 }
@@ -634,13 +642,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
    */
   if (n != nil)
     {
-      NSNotificationQueue	*q;
+      NSNotificationCenter	*q;
 
-      q = [NSNotificationQueue defaultQueue];
-      [q enqueueNotification: n
-		postingStyle: NSPostASAP
-		coalesceMask: NSNotificationNoCoalescing
-		    forModes: modes];
+  q = [NSNotificationCenter defaultCenter];
+  [q postNotification: n];
     }
 }
 
@@ -1220,18 +1225,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (readInfo)
     {
-      id	operation = [readInfo objectForKey: NotificationKey];
-
-      if (operation == NSFileHandleConnectionAcceptedNotification)
-        {
-          [NSException raise: NSFileHandleOperationException
-                      format: @"accept already in progress"];
-	}
-      else
-	{
-          [NSException raise: NSFileHandleOperationException
-                      format: @"read already in progress"];
-	}
+    [self receivedEventRead];
     }
 }
 
@@ -1677,7 +1671,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSMutableDictionary	*info = readInfo;
   NSNotification	*n;
-  NSNotificationQueue	*q;
+  NSNotificationCenter	*q;
   NSArray		*modes;
   NSString		*name;
 
@@ -1695,17 +1689,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   RELEASE(info);	/* Retained by the notification.	*/
 
-  q = [NSNotificationQueue defaultQueue];
-  [q enqueueNotification: n
-	    postingStyle: NSPostASAP
-	    coalesceMask: NSNotificationNoCoalescing
-		forModes: modes];
+  q = [NSNotificationCenter defaultCenter];
+  [q postNotification: n];
 }
 
 - (void) postWriteNotification
 {
   NSMutableDictionary	*info = [writeInfo objectAtIndex: 0];
-  NSNotificationQueue	*q;
+  NSNotificationCenter	*q;
   NSNotification	*n;
   NSArray		*modes;
   NSString		*name;
@@ -1719,11 +1710,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   writePos = 0;
   [writeInfo removeObjectAtIndex: 0];	/* Retained by notification.	*/
 
-  q = [NSNotificationQueue defaultQueue];
-  [q enqueueNotification: n
-	    postingStyle: NSPostASAP
-	    coalesceMask: NSNotificationNoCoalescing
-		forModes: modes];
+  q = [NSNotificationCenter defaultCenter];
+  [q postNotification: n];
   if ((writeOK || connectOK) && [writeInfo count] > 0)
     {
       [self watchWriteDescriptor];	/* In case of queued writes.	*/
@@ -1772,16 +1760,28 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
+	if (event)
 	  [l removeEvent: (void*)(uintptr_t)event
 		    type: ET_HANDLE
+		 forMode: [modes objectAtIndex: i]
+		     all: YES];
+	else
+	  [l removeEvent:0
+		    type: ET_TRIGGER
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
         }
     }
   else
     {
+    if (event)
       [l removeEvent: (void*)(uintptr_t)event
 	        type: ET_HANDLE
+	     forMode: NSDefaultRunLoopMode
+                 all: YES];
+	else             
+      [l removeEvent:0
+	        type: ET_TRIGGER
 	     forMode: NSDefaultRunLoopMode
                  all: YES];
     }
@@ -1813,7 +1813,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       for (i = 0; i < [modes count]; i++)
 	{
           [l removeEvent: (void*)(uintptr_t)event
-	            type: ET_HANDLE
+	            type: event ? ET_HANDLE : ET_TRIGGER
 	         forMode: [modes objectAtIndex: i]
                      all: YES];
         }
@@ -1821,7 +1821,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       [l removeEvent: (void*)(uintptr_t)event
-                type: ET_HANDLE
+                type: event ? ET_HANDLE : ET_TRIGGER
 	     forMode: NSDefaultRunLoopMode
                  all: YES];
     }
@@ -1844,8 +1844,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
+	  if (event)
 	  [l addEvent: (void*)(uintptr_t)event
 		 type: ET_HANDLE
+	      watcher: self
+	      forMode: [modes objectAtIndex: i]];
+	  else
+	    [l addEvent:0
+		 type: ET_TRIGGER
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
         }
@@ -1853,8 +1859,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
+	  if (event)
       [l addEvent: (void*)(uintptr_t)event
 	     type: ET_HANDLE
+	  watcher: self
+	  forMode: NSDefaultRunLoopMode];
+	  else
+      [l addEvent:0
+	     type: ET_TRIGGER
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
     }
@@ -1882,7 +1894,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  for (i = 0; i < [modes count]; i++)
 	    {
 	      [l addEvent: (void*)(uintptr_t)event
-		     type: ET_HANDLE
+		     type: event ? ET_HANDLE : ET_TRIGGER
 		  watcher: self
 		  forMode: [modes objectAtIndex: i]];
 	    }
@@ -1890,7 +1902,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       else
 	{
 	  [l addEvent: (void*)(uintptr_t)event
-		 type: ET_HANDLE
+		 type: event ? ET_HANDLE : ET_TRIGGER
 	      watcher: self
 	      forMode: NSDefaultRunLoopMode];
 	}
@@ -1979,8 +1991,17 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
         }
       else if (received < 0)
         {
-          if (WSAGetLastError() != WSAEINTR
-	    && WSAGetLastError() != WSAEWOULDBLOCK)
+          if (isSocket && (WSAGetLastError() != WSAEINTR
+	    && WSAGetLastError() != WSAEWOULDBLOCK))
+            {
+	      NSString	*s;
+
+	      s = [NSString stringWithFormat: @"Read attempt failed - %s",
+		    GSLastErrorStr(errno)];
+	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
+	      [self postReadNotification];
+	    }
+          else if (!isSocket && (GetLastError() != ERROR_NO_DATA))
             {
 	      NSString	*s;
 
@@ -2089,6 +2110,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [self setNonBlocking: YES];
     }
+  if (isSocket) {
   if (WSAEnumNetworkEvents((SOCKET)_get_osfhandle(descriptor), 
     event, &ocurredEvents) == SOCKET_ERROR)
     {
@@ -2149,6 +2171,17 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSLog(@"Event not get %d", ocurredEvents.lNetworkEvents);
       abort();      
     }
+    } else {
+      if ([writeInfo count] > 0)
+	{
+	  [self receivedEventWrite];
+	}
+      else
+	{
+	  [self receivedEventRead];
+	}
+      GSNotifyASAP();
+    }
 }
 
 - (NSDate*) timedOutEvent: (void*)data
@@ -2184,8 +2217,21 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       unsigned long	dummy;
 
-      if (isSocket != YES)
+      if (isSocket != YES) {
+        // Not a file and not a socket, must be a pipe
+		DWORD mode;
+		if (flag)
+			mode = PIPE_NOWAIT;
+		else
+			mode = PIPE_WAIT;
+		if (SetNamedPipeHandleState((HANDLE)_get_osfhandle(descriptor), &mode, NULL, NULL)) {
+			isNonBlocking = flag;
+		} else {
+	      NSLog(@"unable to set pipe non-blocking mode - %d",
+		GetLastError());
+		}
         return;
+      }
 
       if (flag)
 	{

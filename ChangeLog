@@ -1,3 +1,11 @@
+2006-04-14  Jeremy Bettis <jeremy@deadbeef.com>
+	* Source/win32/GSFileHandleWin32.m: Fix background reading of pipes.
+		Several changes for Openstep compatiblity: Don't queue notification,
+		don't raise exception when asked to read while a background operation
+		is in progress.
+	* Source/win32/GSRunLoopCtxt.m: If there are no handles to block on
+		but there is a timer, sleep until the timer needs to wake up.
+
 2006-04-12  Jeremy Bettis <jeremy@deadbeef.com>
 	* Source/NSTimeZone.m: Use native time zone files under Solaris.
 	* Source/GSFFCallInvocation.m: If the returning context is expecting
