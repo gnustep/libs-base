@@ -24,7 +24,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 
    <title>NSTimeZone class reference</title>
-   $Date$ $Revision$
+   $Date$ $Revision: 22780 $
  */
 
 /* Use the system time zones if available. In other cases, use an
@@ -2010,7 +2010,7 @@ static NSMapTable	*absolutes = 0;
  */
 static NSString *zoneDirs[] = {
 #ifdef TZDIR
-  @ TZDIR,
+  @TZDIR,
 #endif
   @"/usr/share/zoneinfo", 
   @"/usr/lib/zoneinfo",
