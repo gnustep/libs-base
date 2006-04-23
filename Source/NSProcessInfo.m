@@ -126,7 +126,13 @@ establish the argv and environment variables.\n"
 #define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
 The private GNUstep function to establish the argv and environment\n\
 variables was not called.\n\
-Please report the error to bug-gnustep@gnu.org.\n\n"
+\n\
+Mismatched library versions between GNUstep Foundation (base) and AppKit\n\
+(gui) is most often the cause of this message. Please be sure you\n\
+are using known compatible versions and not a mismatched set. Generally,\n\
+we recommend you use versions of base and gui which were released together.\n\
+\n\
+For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\n"
 #endif
 #endif
 
