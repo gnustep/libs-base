@@ -1,3 +1,8 @@
+2006-04-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Avoid a couple of minor rounding errors
+	by using floating point constants for millisecond multipliers.
+
 2006-04-24  Alex Perez  <aperez@alexperez.com>
 
 	* Source/NSProcessInfo.m: Elaborated upon the 
@@ -12,28 +17,28 @@
 
 2006-04-14  Jeremy Bettis <jeremy@deadbeef.com>
 	* Source/win32/GSFileHandleWin32.m: Fix background reading of pipes.
-		Several changes for Openstep compatiblity: Don't queue notification,
-		don't raise exception when asked to read while a background operation
-		is in progress.
+	Several changes for Openstep compatiblity: Don't queue notification,
+	don't raise exception when asked to read while a background operation
+	is in progress.
 	* Source/win32/GSRunLoopCtxt.m: If there are no handles to block on
-		but there is a timer, sleep until the timer needs to wake up.
+	but there is a timer, sleep until the timer needs to wake up.
 
 2006-04-12  Jeremy Bettis <jeremy@deadbeef.com>
 	* Source/NSTimeZone.m: Use native time zone files under Solaris.
 	* Source/GSFFCallInvocation.m: If the returning context is expecting
-		a void* but we have a different return type just cast it. This
-		normally is because the method was not declared and has defaulted
-		to returning id.
+	a void* but we have a different return type just cast it. This
+	normally is because the method was not declared and has defaulted
+	to returning id.
 	* Source/win32/NSUserDefaultsWin32.m: Write defaults to registry as
-		unicode strings, read in either unicode(REG_SZ) or ascii(REG_BINARY).
+	unicode strings, read in either unicode(REG_SZ) or ascii(REG_BINARY).
 	* Source/win32-load.h: In mingw, fileSystemRepresentation is unicode
 	* Source/objc-load.m: In mingw, fileSystemRepresentation is unicode
 	* Source/NSPropertyList.m (propertyListFromData:mutabilityOption:format:errorDescription:):
-		Don't call memcmp if the data is smaller than 8 bytes.
+	Don't call memcmp if the data is smaller than 8 bytes.
 	* Source/NSFileManager.m (isExecutableFileAtPath:):
-		Added a comment
+	Added a comment
 	* Source/NSBundle.m (objc_executable_location):
-		A cast was obsuring a misuse of fileSystemRepresentation
+	A cast was obsuring a misuse of fileSystemRepresentation
 		
 2006-04-10  Fred Kiefer <FredKiefer@gmx.de>
 
