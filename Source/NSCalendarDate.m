@@ -268,7 +268,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   m = m * 60;
   c = a - h - m;
   *second = (int)c;
-  *mil = (a - h - m - c) * 1000;
+  *mil = (int)((a - h - m - c) * 1000.0);
 }
 
 /**
@@ -1897,7 +1897,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		  s -= (_seconds_since_ref + offset(_time_zone, self));
 		  s = fabs(s);
 		  s -= floor(s);
-		  v = (int)(s * 1000);
+		  v = (int)(s * 1000.0);
 		}
 		Grow(info, 3);
 		info->t[info->offset+2] = (v%10) + '0';
