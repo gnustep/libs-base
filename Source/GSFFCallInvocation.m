@@ -979,6 +979,9 @@ GSInvocationCallback (void *callback_data, va_alist args)
 #undef CASE_TYPE
 #define CASE_TYPE(_T, _V, _F)				\
       case _T:					\
+	if (typeinfo->type == __VAvoidp) \
+	    va_return_ptr(args, void *, *(void **)retval); \
+	else \
 	_F(args, *(_V *)retval);       		\
 	break;
 

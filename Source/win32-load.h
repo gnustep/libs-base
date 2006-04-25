@@ -34,7 +34,7 @@ typedef void* dl_symbol_t;
    if no initialization needed. 
 */
 static int 
-__objc_dynamic_init(const char* exec_path)
+__objc_dynamic_init(const unichar* exec_path)
 {
   return 0;
 }

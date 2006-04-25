@@ -147,7 +147,12 @@
 /* Many systems have this file */
 #define SYSTEM_TIME_FILE @"/etc/localtime"
 
+/* If TZDIR told us where the zoneinfo files are, don't append anything else */
+#ifdef TZDIR
+#define POSIX_TZONES     @""
+#else
 #define POSIX_TZONES     @"posix/"
+#endif
 
 /* Possible location of system time zone files */
 static NSString *tzdir = nil;
@@ -2004,6 +2009,9 @@ static NSMapTable	*absolutes = 0;
  * Common locations for timezone info on unix systems.
  */
 static NSString *zoneDirs[] = {
+#ifdef TZDIR
+  @TZDIR,
+#endif
   @"/usr/share/zoneinfo", 
   @"/usr/lib/zoneinfo",
   @"/usr/local/share/zoneinfo",

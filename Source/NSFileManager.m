@@ -1491,6 +1491,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  return NO;
 	}
+	// TODO: Actually should check all extensions in env var PATHEXT
       if ([[[path pathExtension] lowercaseString] isEqualToString: @"exe"])
 	{
 	  return YES;
@@ -1905,13 +1906,6 @@ static NSStringEncoding	defaultEncoding;
 #if	defined(__MINGW32__)
 - (const GSNativeChar*) fileSystemRepresentationWithPath: (NSString*)path
 {
-  NSRange	r;
-
-  r = [path rangeOfString: @"/"];
-  if (r.length > 0)
-    {
-      path = [path stringByReplacingString: @"/" withString: @"\\"];
-    }
   return
     (const GSNativeChar*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
 }

@@ -205,7 +205,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	{
 	  DWORD i = 0;
 	  unichar *name = malloc(200);
-	  unsigned char	*data = malloc(1000);
+	  unichar *data = malloc(1000);
 	  DWORD namelenbuf = 100, datalenbuf = 1000;
 	  DWORD type;
 
@@ -219,7 +219,7 @@ struct NSUserDefaultsWin32_DomainInfo
 		&namelen,
 		NULL,
 		&type,
-		data,
+		(void*)data,
 		&datalen);
 	      if (rc == ERROR_SUCCESS)
 		{
@@ -228,11 +228,30 @@ struct NSUserDefaultsWin32_DomainInfo
 		      id	v;
 		      NSString	*k;
 
-		      v = [NSString stringWithCString: data
+		      switch (type) {
+		      	case REG_SZ: {
+				  int datacharlen = datalen / 2;
+				  if (datacharlen > 0 && data[datacharlen-1] == 0)
+				  		datacharlen--;
+				  
+			      v = [NSString stringWithCharacters:data length:datacharlen];
+		      	}
+		      	break;
+		      	case REG_BINARY: {
+		      	  v = [NSString stringWithCString: (char*)data
 			encoding: NSASCIIStringEncoding];
+		      	}
+		      	break;
+		      	default:
+		    		NSLog(@"Bad registry type %d for '%S'", type, name);
+		    		v = 0;
+		      }
 		      v = [v propertyList];
+		      if (v)
+		      {
 		      k = [NSString stringWithCharacters: name length: namelen];
 		      [domainDict setObject: v forKey: k];
+		    }
 		    }
 		  NS_HANDLER
 		    NSLog(@"Bad registry value for '%S'", name);
@@ -271,7 +290,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	{
 	  DWORD i = 0;
 	  unichar *name = malloc(200);
-	  unsigned char *data = malloc(1000);
+	  unichar *data = malloc(1000);
 	  DWORD namelenbuf = 100, datalenbuf = 1000;
 	  DWORD type;
 
@@ -279,13 +298,19 @@ struct NSUserDefaultsWin32_DomainInfo
 	    {
 	      DWORD namelen = namelenbuf, datalen = datalenbuf;
 
+		  // RegEnumValueW returns the data as a wide string
+		  // but returns the length in bytes.
+		  // To add insult to injury, datalen includes the terminating
+		  // NULL character, unless there isn't enough room, in which
+		  // case it doesn't.
+		  
 	      rc = RegEnumValueW(dinfo->userKey,
 		i,
 		name,
 		&namelen,
 		NULL,
 		&type,
-		data,
+		(void*)data,
 		&datalen);
 	      if (rc == ERROR_SUCCESS)
 		{
@@ -294,11 +319,30 @@ struct NSUserDefaultsWin32_DomainInfo
 		      id	v;
 		      NSString	*k;
 
-		      v = [NSString stringWithCString: data
+		      switch (type) {
+		      	case REG_SZ: {
+				  int datacharlen = datalen / 2;
+				  if (datacharlen > 0 && data[datacharlen-1] == 0)
+				  		datacharlen--;
+				  
+			      v = [NSString stringWithCharacters:data length:datacharlen];
+		      	}
+		      	break;
+		      	case REG_BINARY: {
+		      	  v = [NSString stringWithCString: (char*)data
 			encoding: NSASCIIStringEncoding];
+		      	}
+		      	break;
+		      	default:
+		    		NSLog(@"Bad registry type %d for '%S'", type, name);
+		    		v = 0;
+		      }
 		      v = [v propertyList];
+		      if (v)
+		      {
 		      k = [NSString stringWithCharacters: name length: namelen];
 		      [domainDict setObject: v forKey: k];
+		    }
 		    }
 		  NS_HANDLER
 		    NSLog(@"Bad registry value for '%S'", name);
@@ -523,16 +567,16 @@ struct NSUserDefaultsWin32_DomainInfo
 	  if (oldvalue == nil || [value isEqual: oldvalue] == NO)
 	    {
 	      NSString			*result = nil;
-	      const unsigned char	*ptr;
+	      const unichar		*ptr;
 
 	      GSPropertyListMake(value, nil, NO, NO, 0, &result);
-	      ptr = [result cStringUsingEncoding: NSASCIIStringEncoding];
+	      ptr = UNISTR(result);
 	      rc = RegSetValueExW(dinfo->userKey,
 		UNISTR(valName),
 		0,
-		REG_BINARY,
-		ptr,
-		strlen(ptr) + 1);
+		REG_SZ,
+		(void*)ptr,
+		2*(wcslen(ptr) + 1));
 	      if (rc != ERROR_SUCCESS)
 		{
 		  NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x)",

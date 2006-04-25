@@ -413,6 +413,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
   else
     {
+  	  SleepEx(wait_timeout, TRUE);
       wait_return = WAIT_OBJECT_0;
     }
   NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);

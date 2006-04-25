@@ -55,7 +55,11 @@
 #include "dynamic-load.h"
 
 /* Declaration from NSBundle.m */
+#ifdef    __MINGW32__
+const unichar *objc_executable_location (void);
+#else  
 const char *objc_executable_location (void);
+#endif
 
 /* dynamic_loaded is YES if the dynamic loader was sucessfully initialized. */
 static BOOL	dynamic_loaded;
@@ -101,7 +105,11 @@ objc_check_undefineds(FILE *errorStream)
 static int
 objc_initialize_loading(FILE *errorStream)
 {
+#ifdef    __MINGW32__
+  const unichar *path;
+#else  
   const char *path;
+#endif  
 
   dynamic_loaded = NO;
   path   = objc_executable_location();
