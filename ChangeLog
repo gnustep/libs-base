@@ -1,3 +1,11 @@
+2006-04-27  Sergii Stoian <stoyan255@ukr.net>
+
+	* Resources/Languages/Russian: Updates and fixes
+	
+	* Resources/Languages/Ukrainian: New file
+	
+	* Resources/Languages/UkrainianRussian: Removed wrong file
+	
 2006-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Avoid a couple of minor rounding errors
