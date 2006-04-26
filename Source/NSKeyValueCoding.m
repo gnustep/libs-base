@@ -341,6 +341,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   if ([self methodForSelector: @selector(handleTakeValue:forUnboundKey:)] != o)
     {
       [self handleTakeValue: anObject forUnboundKey: aKey];
+      return;
     }
 
   dict = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -624,7 +625,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   NSNull	*null = [NSNull null];
   NSString	*key;
 
-  GSOnceMLog(@"This method is deprecated, use -setValue:forKeyPath:");
+  GSOnceMLog(@"This method is deprecated, use -setValuesForKeysWithDictionary:");
   while ((key = [enumerator nextObject]) != nil)
     {
       id obj = [aDictionary objectForKey: key];

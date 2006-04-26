@@ -1,4 +1,8 @@
-2006-04-27  Sergii Stoian <stoyan255@ukr.net>
+2006-04-26  Marcus Muller
+
+	* Source/NSKeyValueCoding.m: Fix bug #16386
+
+2006-04-26  Sergii Stoian <stoyan255@ukr.net>
 
 	* Resources/Languages/Russian: Updates and fixes
 	
