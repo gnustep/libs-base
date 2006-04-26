@@ -15,5 +15,7 @@ int main ()
   int   ival = 3;
   *(short *)(buf+1) = sval;
   *(int *)(buf+1) = ival;
+  buf[0] = 0;
+  puts (buf);	/* force compiler not to optimise out the above assignments */
   exit (0);
 }
