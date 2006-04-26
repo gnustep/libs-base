@@ -227,7 +227,7 @@ GSTime(int day, int month, int year, int hour, int minute, int second, int mil)
   a += hour * 3600;
   a += minute * 60;
   a += second;
-  a += mil/1000.0;
+  a += ((NSTimeInterval)mil)/1000.0;
   return a;
 }
 
@@ -268,7 +268,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   m = m * 60;
   c = a - h - m;
   *second = (int)c;
-  *mil = (int)((a - h - m - c) * 1000.0);
+  *mil = (int)((a - h - m - c) * 1000.0 + 0.5);
 }
 
 /**
@@ -1277,7 +1277,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		       timeZone: tz];
       if (self != nil)
 	{
-	  _seconds_since_ref += ((float)milliseconds) / 1000.0;
+	  _seconds_since_ref += ((NSTimeInterval)milliseconds) / 1000.0;
 	}
     }
 
@@ -1897,7 +1897,8 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		  s -= (_seconds_since_ref + offset(_time_zone, self));
 		  s = fabs(s);
 		  s -= floor(s);
-		  v = (int)(s * 1000.0);
+		  s *= 1000.0;
+		  v = (int)(s + 0.5);
 		}
 		Grow(info, 3);
 		info->t[info->offset+2] = (v%10) + '0';
