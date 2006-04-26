@@ -7,6 +7,7 @@
 	* Source/NSCalendarDate.m: Correction to millisecond fix ... for
 	bug #16426
 	* Resources/GNUmakefile: Fix installation of Ukrainian language.
+	* Source/NSProcessInfo.m: Always use UTF16 args on mingw32.
 
 2006-04-26  Hubert Chan
 
