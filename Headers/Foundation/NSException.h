@@ -254,11 +254,22 @@ GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
    resources allocated in the routine, possibly case on the error code
    and perform special processing, and default to RERAISE the error to
    the next handler.  Within the scope of the handler, a local variable
-   called exception holds information about the exception raised.
+   called "localException" holds information about the exception raised.
 
    It is illegal to exit the first block of code by any other means than
    NS_VALRETURN, NS_VOIDRETURN, or just falling out the bottom.
  */
+#ifdef _NATIVE_OBJC_EXCEPTIONS
+
+# define NS_DURING       @try {
+# define NS_HANDLER      } @catch (NSException * localException) {
+# define NS_ENDHANDLER   }
+
+# define NS_VALRETURN(val)              return (val)
+# define NS_VALUERETURN(object, id)     return (object)
+# define NS_VOIDRETURN                  return
+
+#else // _NATIVE_OBJC_EXCEPTIONS
 
 /** Private support routine.  Do not call directly. */
 GS_EXPORT void _NSAddHandler( NSHandler *handler );
@@ -286,6 +297,8 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_VOIDRETURN	do { _NSRemoveHandler(&NSLocalHandler);	\
 			return; } while (0)
+
+#endif // _NATIVE_OBJC_EXCEPTIONS
 
 /* ------------------------------------------------------------------------ */
 /*   Assertion Handling */

@@ -141,6 +141,9 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 - (void) raise
 {
+#ifdef _NATIVE_OBJC_EXCEPTIONS
+  @throw self;
+#else
   NSThread	*thread;
   NSHandler	*handler;
 
@@ -185,6 +188,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   thread->_exception_handler = handler->next;
   handler->exception = self;
   longjmp(handler->jumpState, 1);
+#endif
 }
 
 - (NSString*) name

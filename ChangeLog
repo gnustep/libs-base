@@ -1,3 +1,7 @@
+2006-04-26  Saso Kiselkov
+
+        * Headers/Foundation/NSException.h: Support native exceptions.
+	
 2006-04-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Correction to millisecond fix ... for
