@@ -1,3 +1,9 @@
+2006-04-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Correction to millisecond fix ... for
+	bug #16426
+	* Resources/GNUmakefile: Fix installation of Ukrainian language.
+
 2006-04-26  Hubert Chan
 
 	* config/config.align.c: force compiler not to optimise away the
@@ -10,9 +16,7 @@
 2006-04-26  Sergii Stoian <stoyan255@ukr.net>
 
 	* Resources/Languages/Russian: Updates and fixes
-	
 	* Resources/Languages/Ukrainian: New file
-	
 	* Resources/Languages/UkrainianRussian: Removed wrong file
 	
 2006-04-24  Richard Frith-Macdonald <rfm@gnu.org>

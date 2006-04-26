@@ -44,7 +44,7 @@ Languages/Russian \
 Languages/Spanish \
 Languages/TraditionalChinese \
 Languages/Slovak \
-Languages/UkraineRussian
+Languages/Ukrainian
 
 LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases \
 	Languages/Locale.encodings
