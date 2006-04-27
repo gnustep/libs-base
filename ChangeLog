@@ -1,3 +1,7 @@
+2006-04-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Fix error unescaping uppercase hex digits.
+
 2006-04-26  Saso Kiselkov
 
         * Headers/Foundation/NSException.h: Support native exceptions.
