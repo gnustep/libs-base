@@ -4957,16 +4957,18 @@ static void indentation(unsigned level, NSMutableString *str)
 {
   GSXPathContext	*ctx = nil;
   GSXPathNodeSet	*ns = nil;
+  GSXMLParser		*parser = nil;
   NSString		*method;
   
   [params removeAllObjects];
 
   NS_DURING
     {
-      GSXMLParser	*parser = [GSXMLParser parserWithData: request];
       GSXMLDocument	*doc = nil;
 
+      parser = [GSXMLParser parserWithData: request];
       [parser substituteEntities: YES];
+      [parser saveMessages: YES];
       if ([parser parse] == YES)
         {
 	  doc = [parser document];
@@ -4981,7 +4983,7 @@ static void indentation(unsigned level, NSMutableString *str)
   if (ctx == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Bad Request: parse failed"];
+		  format: @"Bad Request: parse failed (%@)", [parser messages]];
     }
   
   ns = (GSXPathNodeSet*)[ctx evaluateExpression: @"//methodCall/methodName"];
@@ -5030,16 +5032,18 @@ static void indentation(unsigned level, NSMutableString *str)
 {
   GSXPathContext	*ctx = nil;
   GSXPathNodeSet	*ns = nil;
+  GSXMLParser		*parser = nil;
   id			fault = nil;
 
   [params removeAllObjects];
 
   NS_DURING
     {
-      GSXMLParser	*parser = [GSXMLParser parserWithData: response];
       GSXMLDocument	*doc = nil;
 
+      parser = [GSXMLParser parserWithData: response];
       [parser substituteEntities: YES];
+      [parser saveMessages: YES];
       if ([parser parse] == YES)
 	{
 	  doc = [parser document];
@@ -5054,7 +5058,7 @@ static void indentation(unsigned level, NSMutableString *str)
   if (ctx == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Bad Response: parse failed"];
+		  format: @"Bad Request: parse failed (%@)", [parser messages]];
     }
 
   ns = (GSXPathNodeSet*)[ctx evaluateExpression: 
