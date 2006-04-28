@@ -2,7 +2,7 @@
 
 	* Source/NSKeyedUnarchiver.m: Fix decoding of NSNull objects.
 	* Source/Additions/GSXML.m: Ensure that calls to parse documents
-	handle the success/failure value returned.
+	handle the success/failure value returned. Improve exception info.
 
 2006-04-27  Richard Frith-Macdonald <rfm@gnu.org>
 
