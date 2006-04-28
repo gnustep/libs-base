@@ -45,6 +45,11 @@
 #include <Foundation/NSKeyedArchiver.h>
 #undef	_IN_NSKEYEDUNARCHIVER_M
 
+@interface NilMarker: NSObject
+@end
+@implementation NilMarker
+@end
+
 /**
  * An unarchiving error has occurred.
  */
@@ -247,7 +252,7 @@ static NSMapTable	globalClassMap = 0;
 
   if (obj == nil)
     {
-      // Record NSNull marker for decoded object.
+      // Record NilMarker for decoded object.
       o = GSIArrayItemAtIndex(_objMap, 0).obj;
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
     }
@@ -772,7 +777,7 @@ static NSMapTable	globalClassMap = 0;
 	  count = [_objects count];
 	  GSIArrayInitWithZoneAndCapacity(_objMap, _zone, count);
 	  // Add marker for nil object
-	  GSIArrayAddItem(_objMap, (GSIArrayItem)((id)[NSNull null]));
+	  GSIArrayAddItem(_objMap, (GSIArrayItem)((id)[NilMarker class]));
 	  // Add markers for unencoded objects.
 	  for (i = 1; i < count; i++)
 	    {

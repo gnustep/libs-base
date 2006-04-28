@@ -1,3 +1,7 @@
+2006-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: Fix decoding of NSNull objects.
+
 2006-04-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Fix error unescaping uppercase hex digits.
