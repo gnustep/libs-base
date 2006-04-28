@@ -23,7 +23,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>The XML and HTML parsing system</title>
    <chapter>
@@ -3861,13 +3862,18 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
       GSXMLParser	*ssParser;
       GSXMLDocument	*ss;
 
+      newdoc = nil;
       xmlParser = [GSXMLParser parserWithData: xmlData];
-      [xmlParser parse];
-      xml = [xmlParser document];
-      ssParser = [GSXMLParser parserWithData: xsltStylesheet];
-      [ssParser parse];
-      ss = [ssParser document];
-      newdoc = [xml xsltTransform: ss params: params];
+      if ([xmlParser parse] == YES)
+	{
+	  xml = [xmlParser document];
+	  ssParser = [GSXMLParser parserWithData: xsltStylesheet];
+	  if ([ssParser parse] == YES)
+	    {
+	      ss = [ssParser document];
+	      newdoc = [xml xsltTransform: ss params: params];
+	    }
+	}
     }
   NS_HANDLER
     {
@@ -4961,9 +4967,11 @@ static void indentation(unsigned level, NSMutableString *str)
       GSXMLDocument	*doc = nil;
 
       [parser substituteEntities: YES];
-      [parser parse];
-      doc = [parser document];
-      ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+      if ([parser parse] == YES)
+        {
+	  doc = [parser document];
+	  ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+	}
     }
   NS_HANDLER
     {
@@ -5032,9 +5040,11 @@ static void indentation(unsigned level, NSMutableString *str)
       GSXMLDocument	*doc = nil;
 
       [parser substituteEntities: YES];
-      [parser parse];
-      doc = [parser document];
-      ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+      if ([parser parse] == YES)
+	{
+	  doc = [parser document];
+	  ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+	}
     }
   NS_HANDLER
     {
