@@ -1,3 +1,14 @@
+2006-05-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSBundle.h: fix type of _bundleClasses
+	* Source/NSBundle.m: Try to make bundles for libraries behave as
+	well as possible with respect to the code in the libraries.
+	Rather depends on the Info.plist in the resource directory
+	specifying an NSPrincipalClass so that we can look up that
+	class at runtime and determine the file it came from.
+	Added documentation to mmake it clear that this is not
+	reliable (eg impossible for static or non-existent libraries).
+
 2006-04-30  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSString: Define _GNU_SOURCE to make protoype of fwprintf

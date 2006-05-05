@@ -33,6 +33,7 @@
 @class NSString;
 @class NSArray;
 @class NSDictionary;
+@class NSMutableArray;
 @class NSMutableDictionary;
 
 /**
@@ -91,15 +92,15 @@ GS_EXPORT NSString* const NSLoadedClasses;
 */
 @interface NSBundle : NSObject
 {
-  NSString	*_path;
-  NSArray	*_bundleClasses;
-  Class		_principalClass;
-  NSDictionary	*_infoDict;
+  NSString		*_path;
+  NSMutableArray	*_bundleClasses;
+  Class			_principalClass;
+  NSDictionary		*_infoDict;
   NSMutableDictionary	*_localizations;
-  unsigned	_bundleType;
-  BOOL		_codeLoaded;
-  unsigned	_version;
-  NSString      *_frameworkVersion;
+  unsigned		_bundleType;
+  BOOL			_codeLoaded;
+  unsigned		_version;
+  NSString      	*_frameworkVersion;
 }
 
 /** Return an array enumerating all the bundles in the application.  This
