@@ -28,7 +28,8 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 RESOURCE_SET_NAME = base-resources
 base-resources_RESOURCE_FILES_INSTALL_DIR = Library/Libraries/Resources/gnustep-base
-base-resources_LANGUAGES = English German French Italian TraditionalChinese Spanish
+base-resources_LANGUAGES = English German French Italian TraditionalChinese \
+Spanish Esperanto Korean
 base-resources_LOCALIZED_RESOURCE_FILES = Localizable.strings
 base-resources_RESOURCE_DIRS = Languages
 base-resources_RESOURCE_FILES = $(LANGUAGE_INSTALL_FILES)
@@ -44,8 +45,9 @@ Languages/Russian \
 Languages/Spanish \
 Languages/TraditionalChinese \
 Languages/Slovak \
-Languages/Ukrainian
-
+Languages/Ukrainian \
+Languages/Esperanto \
+Languages/Korean 
 LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases \
 	Languages/Locale.encodings
 
