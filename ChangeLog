@@ -1,3 +1,13 @@
+2006-05-06  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Resources/Languages/Esperanto: New language file.
+	* Resources/Esperanto.lproj/Localizable.string: New string
+	translations. Patch by Ingolf Jandt <i.jandt@web.de>.
+	* Resources/Languages/Korean: New language file.
+	* Resources/Korean.lproj/Localizable.string: New string
+	translations. Patch by Hwang YunSong <hys545@dreamwiz.com>.
+	* Resources/GNUmakefile: Added new languages.
+	
 2006-05-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSBundle.h: fix type of _bundleClasses
