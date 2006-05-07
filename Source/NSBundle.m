@@ -1039,16 +1039,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    {
 	      lib = nil;	// In program, not library.
 	    }
-	  lib = [lib lastPathComponent];
-	  do
-	    {
-	      lib = [lib stringByDeletingPathExtension];
-	    }
-	  while ([[lib pathExtension] length] > 0);
-	  if ([lib hasPrefix: @"lib"] == YES)
-	    {
-	      lib = [lib substringFromIndex: 3];
-	    }
 
 	  /*
 	   * Get the library bundle ... if there wasn't one
@@ -2020,12 +2010,30 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSString *tail;
   NSFileManager *fm = [NSFileManager defaultManager];
 
+  /*
+   * Eliminate any base path or extensions.
+   */
   libraryName = [libraryName lastPathComponent];
   do
     {
       libraryName = [libraryName stringByDeletingPathExtension];
     }
   while ([[libraryName pathExtension] length] > 0);
+  /*
+   * Discard leading 'lib'
+   */
+  if ([libraryName hasPrefix: @"lib"] == YES)
+    {
+      libraryName = [libraryName substringFromIndex: 3];
+    }
+  /*
+   * Discard debug/profile library suffix
+   */
+  if ([libraryName hasSuffix: @"_d"] == YES
+    || [libraryName hasSuffix: @"_p"] == YES)
+    {
+      libraryName = [libraryName substringToIndex: [libraryName length] - 3];
+    }
 
   if ([libraryName length] == 0)
     {
