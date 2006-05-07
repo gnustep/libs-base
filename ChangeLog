@@ -1,3 +1,8 @@
+2006-05-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ignore profile/debug extensions in library name
+	when looking for library bundles.
+
 2006-05-06  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Resources/Languages/Esperanto: New language file.
