@@ -993,9 +993,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
  */
 + (NSBundle *) bundleForClass: (Class)aClass
 {
-  void*     key;
-  NSBundle* bundle;
+  void		*key;
+  NSBundle	*bundle;
   NSMapEnumerator enumerate;
+
   if (!aClass)
     return nil;
 

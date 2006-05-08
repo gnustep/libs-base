@@ -39,6 +39,9 @@
 /* Define if this constant is defined */
 #undef HANDLE_LONG_LONG_MAX
 
+/* Define to 1 if you have the <bfd.h> header file. */
+#undef HAVE_BFD_H
+
 /* Define to 1 if you have the <callback.h> header file. */
 #undef HAVE_CALLBACK_H
 
@@ -94,6 +97,9 @@
 /* Define to 1 if you have the `inet_aton' function. */
 #undef HAVE_INET_ATON
 
+/* Define to 1 if you have the `inet_pton' function. */
+#undef HAVE_INET_PTON
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -109,11 +115,17 @@
 /* Define to 1 if you have the <langinfo.h> header file. */
 #undef HAVE_LANGINFO_H
 
+/* Define to 1 if you have the `bfd' library (-lbfd). */
+#undef HAVE_LIBBFD
+
 /* Define to 1 if you have the <libc.h> header file. */
 #undef HAVE_LIBC_H
 
 /* Define to 1 if you have the `dl' library (-ldl). */
 #undef HAVE_LIBDL
+
+/* Define to 1 if you have the `iberty' library (-liberty). */
+#undef HAVE_LIBIBERTY
 
 /* Define to 1 if you have the `kvm' library (-lkvm). */
 #undef HAVE_LIBKVM
@@ -442,9 +454,11 @@
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
-/* Define as `__inline' if that's what the C compiler calls it, or to nothing
-   if it is not supported. */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 #undef inline
+#endif
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t

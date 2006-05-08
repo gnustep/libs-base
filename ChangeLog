@@ -1,3 +1,12 @@
+2006-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for bfd stuff for stacktrace support.
+	* Source/NSException.m: incorporate code by Lloyd Dupont and Wim
+	Oudshoorn to add a stack trace to a raised exception. Cleaned up
+	and made to conform to coding standards.  Rewrote code to build
+	list of binary files from NSBundle.
+	EXPERIMENTAL!  Turn this on by building with STACKTRACE defined
+
 2006-05-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: ignore profile/debug extensions in library name
