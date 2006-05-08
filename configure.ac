@@ -771,6 +771,13 @@ AC_CHECK_HEADERS(sys/socket.h netinet/in.h)
 dnl AC_REPLACE_FUNCS(recvfrom)
 
 #--------------------------------------------------------------------
+# These headers/functions needed for stacktrace in NSException.m
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(bfd.h)
+AC_CHECK_LIB(iberty, dyn_string_append)
+AC_CHECK_LIB(bfd, bfd_openr)
+
+#--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(syslog.h)
