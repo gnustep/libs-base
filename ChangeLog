@@ -1,3 +1,14 @@
+2006-05-09 Dr. H. Nikolaus Schaller
+
+	* Source/GNUmakefile:
+	* Source/NSPredicate.m:
+	* Headers/Foundation/NSCompoundPredicate.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSPredicate.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/Foundation.h:
+	Basic implementation of NSPredicate and related classes.
+
 2006-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for bfd stuff for stacktrace support.

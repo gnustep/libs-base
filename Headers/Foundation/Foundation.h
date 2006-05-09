@@ -41,6 +41,8 @@
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSClassDescription.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSComparisonPredicate.h>
+#include <Foundation/NSCompoundPredicate.h>
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSDateFormatter.h>
@@ -53,6 +55,7 @@
 #include <Foundation/NSEnumerator.h>
 #include <Foundation/NSError.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSExpression.h>
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSFormatter.h>
@@ -75,6 +78,7 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSPortMessage.h>
 #include <Foundation/NSPortNameServer.h>
+#include <Foundation/NSPredicate.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSProtocolChecker.h>
 #include <Foundation/NSProxy.h>

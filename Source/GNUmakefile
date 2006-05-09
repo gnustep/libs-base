@@ -202,6 +202,7 @@ NSPort.m \
 NSPortCoder.m \
 NSPortMessage.m \
 NSPortNameServer.m \
+NSPredicate.m \
 NSProcessInfo.m \
 NSPropertyList.m \
 NSProtocolChecker.m \
@@ -279,6 +280,8 @@ NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \
 NSCoder.h \
+NSComparisonPredicate.h \
+NSCompoundPredicate.h \
 NSConnection.h \
 NSData.h \
 NSDate.h \
@@ -293,6 +296,7 @@ NSDistributedNotificationCenter.h \
 NSEnumerator.h \
 NSError.h \
 NSException.h \
+NSExpression.h \
 NSFileHandle.h \
 NSFileManager.h \
 NSFormatter.h \
@@ -319,6 +323,7 @@ NSPort.h \
 NSPortCoder.h \
 NSPortMessage.h \
 NSPortNameServer.h \
+NSPredicate.h \
 NSProcessInfo.h \
 NSPropertyList.h \
 NSProtocolChecker.h \
