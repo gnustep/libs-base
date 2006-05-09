@@ -23,10 +23,11 @@
 
 #include "Foundation/NSSortDescriptor.h"
 
-#include "Foundation/NSString.h"
+#include "Foundation/NSBundle.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSException.h"
-#include "Foundation/NSBundle.h"
+#include "Foundation/NSKeyValueCoding.h"
+#include "Foundation/NSString.h"
 
 @implementation NSSortDescriptor
 
@@ -89,8 +90,8 @@
 - (NSComparisonResult) compareObject: (id) object1 toObject: (id) object2
 {
   NSComparisonResult result;
-  id comparedKey1 = [object1 valueForKey: _key],
-     comparedKey2 = [object2 valueForKey: _key];
+  id comparedKey1 = [object1 valueForKeyPath: _key],
+     comparedKey2 = [object2 valueForKeyPath: _key];
 
   result = (NSComparisonResult) [comparedKey1 performSelector: _selector
                                                    withObject: comparedKey2];

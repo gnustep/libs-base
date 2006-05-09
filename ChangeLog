@@ -1,3 +1,8 @@
+2006-05-09 Nicolas Roard <nicolas@roard.com>
+
+	* Source/NSSortDescriptor.m: use -valueForKeyPath: instead 
+        of -valueForKey:. Patch from Saso Kiselkov <diablos@manga.sk>.
+
 2006-05-09 Dr. H. Nikolaus Schaller
 
 	* Source/GNUmakefile:
