@@ -1,0 +1,37 @@
+/* English */
+{
+  NSLanguageName = "한국어";
+  NSLanguageCode = KOR;
+  NSFormalName = "한국어";
+  
+  NSCurrencySymbol = "￦";
+  NSPositiveCurrencyFormatString = "￦9,999.00";
+  NSNegativeCurrencyFormatString = "￦-9,999.00";
+  NSInternationalCurrencyString = "원";
+
+  NSDecimalDigits = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+  NSDecimalSeparator = ".";
+  NSThousandsSeparator = ",";
+
+  NSAMPMDesignation = (오전, 오후);
+  NSDateFormatString = " %Y, %B %d, %A";
+  NSDateTimeOrdering = DMYH;
+  NSEarlierTimeDesignations = (이전, 마지막, 지나간, 이전);
+  NSHourNameDesignations = ((0, 한 밤중), (12, 한 낮, 점심), (10, 아침), (14, 오후, (19, 저녁));
+  NSLaterTimeDesignations = (다음);
+  NSMonthNameArray = (1월, 2월, 3월, 4월, 5월, 6월, 7월, 8월, 9월, 10월, 11월, 12월);
+  NSNextDayDesignations = (내일);
+  NSNextNextDayDesignations = (다음 날);
+  NSPriorDayDesignations = (어제);
+  NSShortDateFormatString = "%Y/%m/%d/";
+  NSShortMonthNameArray = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+  NSShortTimeDateFormatString = "%d %b, %Y %H:%M";
+  NSShortWeekDayNameArray = (일, 월, 화, 수, 목, 금, 토); 
+  NSThisDayDesignations = (오늘);
+  NSTimeDateFormatString = "%a %b %d %H:%M:%S %z %Y";
+  NSTimeFormatString = "%H:%M:%S";
+  NSWeekDayNameArray = (일요일, 월요일, 화요일, 수요일, 목요일, 금요일, 토요일);
+  NSYearMonthWeekDesignations = (년, 월, 일);
+}
+
+

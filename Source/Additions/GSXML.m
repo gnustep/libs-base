@@ -23,7 +23,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>The XML and HTML parsing system</title>
    <chapter>
@@ -3861,13 +3862,18 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
       GSXMLParser	*ssParser;
       GSXMLDocument	*ss;
 
+      newdoc = nil;
       xmlParser = [GSXMLParser parserWithData: xmlData];
-      [xmlParser parse];
-      xml = [xmlParser document];
-      ssParser = [GSXMLParser parserWithData: xsltStylesheet];
-      [ssParser parse];
-      ss = [ssParser document];
-      newdoc = [xml xsltTransform: ss params: params];
+      if ([xmlParser parse] == YES)
+	{
+	  xml = [xmlParser document];
+	  ssParser = [GSXMLParser parserWithData: xsltStylesheet];
+	  if ([ssParser parse] == YES)
+	    {
+	      ss = [ssParser document];
+	      newdoc = [xml xsltTransform: ss params: params];
+	    }
+	}
     }
   NS_HANDLER
     {
@@ -4951,19 +4957,23 @@ static void indentation(unsigned level, NSMutableString *str)
 {
   GSXPathContext	*ctx = nil;
   GSXPathNodeSet	*ns = nil;
+  GSXMLParser		*parser = nil;
   NSString		*method;
   
   [params removeAllObjects];
 
   NS_DURING
     {
-      GSXMLParser	*parser = [GSXMLParser parserWithData: request];
       GSXMLDocument	*doc = nil;
 
+      parser = [GSXMLParser parserWithData: request];
       [parser substituteEntities: YES];
-      [parser parse];
-      doc = [parser document];
-      ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+      [parser saveMessages: YES];
+      if ([parser parse] == YES)
+        {
+	  doc = [parser document];
+	  ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+	}
     }
   NS_HANDLER
     {
@@ -4973,7 +4983,7 @@ static void indentation(unsigned level, NSMutableString *str)
   if (ctx == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Bad Request: parse failed"];
+		  format: @"Bad Request: parse failed (%@)", [parser messages]];
     }
   
   ns = (GSXPathNodeSet*)[ctx evaluateExpression: @"//methodCall/methodName"];
@@ -5022,19 +5032,23 @@ static void indentation(unsigned level, NSMutableString *str)
 {
   GSXPathContext	*ctx = nil;
   GSXPathNodeSet	*ns = nil;
+  GSXMLParser		*parser = nil;
   id			fault = nil;
 
   [params removeAllObjects];
 
   NS_DURING
     {
-      GSXMLParser	*parser = [GSXMLParser parserWithData: response];
       GSXMLDocument	*doc = nil;
 
+      parser = [GSXMLParser parserWithData: response];
       [parser substituteEntities: YES];
-      [parser parse];
-      doc = [parser document];
-      ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+      [parser saveMessages: YES];
+      if ([parser parse] == YES)
+	{
+	  doc = [parser document];
+	  ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+	}
     }
   NS_HANDLER
     {
@@ -5044,7 +5058,7 @@ static void indentation(unsigned level, NSMutableString *str)
   if (ctx == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Bad Response: parse failed"];
+		  format: @"Bad Request: parse failed (%@)", [parser messages]];
     }
 
   ns = (GSXPathNodeSet*)[ctx evaluateExpression: 

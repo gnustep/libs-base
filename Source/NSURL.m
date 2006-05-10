@@ -410,7 +410,7 @@ static void unescape(const char *from, char * to)
 		{
 		  c = *from - '0';
 		}
-	      else if (*from <= 'A')
+	      else if (*from <= 'F')
 		{
 		  c = *from - 'A' + 10;
 		}
@@ -433,7 +433,7 @@ static void unescape(const char *from, char * to)
 		{
 		  c |= *from - '0';
 		}
-	      else if (*from <= 'A')
+	      else if (*from <= 'F')
 		{
 		  c |= *from - 'A' + 10;
 		}

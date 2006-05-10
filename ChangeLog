@@ -3,6 +3,99 @@
 	* Source/NSKeyedUnarchiver.m: Added private method replaceObject:
 	withObject:.
 
+2006-05-09 Nicolas Roard <nicolas@roard.com>
+
+	* Source/NSSortDescriptor.m: use -valueForKeyPath: instead 
+        of -valueForKey:. Patch from Saso Kiselkov <diablos@manga.sk>.
+
+2006-05-09 Dr. H. Nikolaus Schaller
+
+	* Source/GNUmakefile:
+	* Source/NSPredicate.m:
+	* Headers/Foundation/NSCompoundPredicate.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSPredicate.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/Foundation.h:
+	Basic implementation of NSPredicate and related classes.
+
+2006-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for bfd stuff for stacktrace support.
+	* Source/NSException.m: incorporate code by Lloyd Dupont and Wim
+	Oudshoorn to add a stack trace to a raised exception. Cleaned up
+	and made to conform to coding standards.  Rewrote code to build
+	list of binary files from NSBundle.
+	EXPERIMENTAL!  Turn this on by building with STACKTRACE defined
+
+2006-05-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ignore profile/debug extensions in library name
+	when looking for library bundles.
+
+2006-05-06  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Resources/Languages/Esperanto: New language file.
+	* Resources/Esperanto.lproj/Localizable.string: New string
+	translations. Patch by Ingolf Jandt <i.jandt@web.de>.
+	* Resources/Languages/Korean: New language file.
+	* Resources/Korean.lproj/Localizable.string: New string
+	translations. Patch by Hwang YunSong <hys545@dreamwiz.com>.
+	* Resources/GNUmakefile: Added new languages.
+	
+2006-05-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSBundle.h: fix type of _bundleClasses
+	* Source/NSBundle.m: Try to make bundles for libraries behave as
+	well as possible with respect to the code in the libraries.
+	Rather depends on the Info.plist in the resource directory
+	specifying an NSPrincipalClass so that we can look up that
+	class at runtime and determine the file it came from.
+	Added documentation to mmake it clear that this is not
+	reliable (eg impossible for static or non-existent libraries).
+
+2006-04-30  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSString: Define _GNU_SOURCE to make protoype of fwprintf
+	visible.
+
+2006-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: Fix decoding of NSNull objects.
+	* Source/Additions/GSXML.m: Ensure that calls to parse documents
+	handle the success/failure value returned. Improve exception info.
+
+2006-04-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Fix error unescaping uppercase hex digits.
+
+2006-04-26  Saso Kiselkov
+
+        * Headers/Foundation/NSException.h: Support native exceptions.
+	
+2006-04-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Correction to millisecond fix ... for
+	bug #16426
+	* Resources/GNUmakefile: Fix installation of Ukrainian language.
+	* Source/NSProcessInfo.m: Always use UTF16 args on mingw32.
+
+2006-04-26  Hubert Chan
+
+	* config/config.align.c: force compiler not to optimise away the
+	code being tested ... fixes bug #16342
+
+2006-04-26  Marcus Muller
+
+	* Source/NSKeyValueCoding.m: Fix bug #16386
+
+2006-04-26  Sergii Stoian <stoyan255@ukr.net>
+
+	* Resources/Languages/Russian: Updates and fixes
+	* Resources/Languages/Ukrainian: New file
+	* Resources/Languages/UkrainianRussian: Removed wrong file
+	
+>>>>>>> .merge-right.r22881
 2006-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Avoid a couple of minor rounding errors

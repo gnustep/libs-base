@@ -64,7 +64,10 @@
 @end
 
 typedef enum {
-  NSBUNDLE_BUNDLE = 1, NSBUNDLE_APPLICATION, NSBUNDLE_FRAMEWORK
+  NSBUNDLE_BUNDLE = 1,
+  NSBUNDLE_APPLICATION,
+  NSBUNDLE_FRAMEWORK,
+  NSBUNDLE_LIBRARY
 } bundle_t;
 
 /* Class variables - We keep track of all the bundles */
@@ -378,7 +381,6 @@ _find_framework(NSString *name)
 @interface NSBundle (Private)
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
 + (void) _addFrameworkFromClass: (Class)frameworkClass;
-- (NSArray *) _bundleClasses;
 + (NSString*) _gnustep_target_cpu;
 + (NSString*) _gnustep_target_dir;
 + (NSString*) _gnustep_target_os;
@@ -604,7 +606,7 @@ _find_framework(NSString *name)
 
 	  value = [NSValue valueWithNonretainedObject: class];
 	
-	  [(NSMutableArray *)[bundle _bundleClasses] addObject: value];
+	  [bundle->_bundleClasses addObject: value];
 	
 	  fmClasses++;
 	}
@@ -620,15 +622,10 @@ _find_framework(NSString *name)
        */
       if (_loadingBundle != nil && _loadingBundle != bundle)
 	{
-	  [(NSMutableArray *)[_loadingBundle _bundleClasses]
-			     removeObjectsInArray: [bundle _bundleClasses]];
+	  [_loadingBundle->_bundleClasses
+	    removeObjectsInArray: bundle->_bundleClasses];
 	}
     }
-}
-
-- (NSArray *) _bundleClasses
-{
-  return _bundleClasses;
 }
 
 + (NSString*) _gnustep_target_cpu
@@ -661,6 +658,10 @@ _find_framework(NSString *name)
   ready for this method.
 
  */
+
+typedef struct {
+    @defs(NSBundle)
+} *bptr;
 
 void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
@@ -695,14 +696,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   /* Store classes (but don't store categories) */
-  [(NSMutableArray *)[_loadingBundle _bundleClasses] addObject:
-		       [NSValue valueWithNonretainedObject: (id)theClass]];
+  [((bptr)_loadingBundle)->_bundleClasses addObject:
+    [NSValue valueWithNonretainedObject: (id)theClass]];
 }
 
 
 @implementation NSBundle
 
-+ (void)initialize
++ (void) initialize
 {
   if (self == [NSBundle class])
     {
@@ -992,9 +993,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
  */
 + (NSBundle *) bundleForClass: (Class)aClass
 {
-  void*     key;
-  NSBundle* bundle;
+  void		*key;
+  NSBundle	*bundle;
   NSMapEnumerator enumerate;
+
   if (!aClass)
     return nil;
 
@@ -1004,7 +1006,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
     {
       int i, j;
-      NSArray *bundleClasses = [bundle _bundleClasses];
+      NSArray *bundleClasses = bundle->_bundleClasses;
       BOOL found = NO;
 
       j = [bundleClasses count];
@@ -1020,13 +1022,51 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       bundle = nil;
     }
-  [load_lock unlock];
-  if (!bundle)
+
+  if (bundle == nil)
     {
-      /* Is it in the main bundle? */
+      /* Is it in the main bundle or a library? */
       if (class_is_class(aClass))
-	bundle = [self mainBundle];
+        {
+	  NSString	*lib;
+
+	  /*
+	   * Take the path to the binary containing the class and
+	   * convert it to the format for a library name as used
+	   * for obtaining a library resource bundle.
+	   */
+	  lib = objc_get_symbol_path (aClass, NULL);
+	  if ([lib isEqual: ExecutablePath()] == YES)
+	    {
+	      lib = nil;	// In program, not library.
+	    }
+
+	  /*
+	   * Get the library bundle ... if there wasn't one
+	   * then we will assume the class was in the program
+	   * executable and return the mainBundle instead.
+	   */
+	  bundle = [NSBundle bundleForLibrary: lib];
+	  if (bundle == nil)
+	    {
+	      bundle = [self mainBundle];
+	    }
+
+	  /*
+	   * Add the class to the list of classes known to be in
+	   * the library or executable.  We didn't find it there
+	   * to start with, so we know it's safe to add now.
+	   */
+	  if (bundle->_bundleClasses == nil)
+	    {
+	      bundle->_bundleClasses
+		= [[NSMutableArray alloc] initWithCapacity: 2];
+	    }
+	  [bundle->_bundleClasses addObject:
+	    [NSValue valueWithNonretainedObject: aClass]];
+	}
     }
+  [load_lock unlock];
 
   return bundle;
 }
@@ -1132,7 +1172,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   [super dealloc];
 }
 
-- (NSString *) bundlePath
+- (NSString*) description
+{
+  return  [[super description] stringByAppendingFormat:
+    @" <%@>%@", [self bundlePath], [self isLoaded] ? @" (loaded)" : @""];
+}
+
+- (NSString*) bundlePath
 {
   return _path;
 }
@@ -1162,6 +1208,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       BOOL found = NO;
 
       theClass = NSClassFromString(className);
+      [load_lock lock];
       j = [_bundleClasses count];
 
       for (i = 0; i < j  &&  found == NO; i++)
@@ -1173,6 +1220,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	      found = YES;
 	    }
 	}
+      [load_lock unlock];
 
       if (found == NO)
 	{
@@ -1185,22 +1233,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 - (Class) principalClass
 {
-  NSString* class_name;
+  NSString	*class_name;
 
   if (_principalClass)
     {
-      return _principalClass;
-    }
-
-  class_name = [[self infoDictionary] objectForKey: @"NSPrincipalClass"];
-
-  if (self == _mainBundle || self == _gnustep_bundle)
-    {
-      _codeLoaded = YES;
-      if (class_name)
-	{
-	  _principalClass = NSClassFromString(class_name);
-	}
       return _principalClass;
     }
 
@@ -1209,15 +1245,26 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       return Nil;
     }
 
+  class_name = [[self infoDictionary] objectForKey: @"NSPrincipalClass"];
+
   if (class_name)
     {
       _principalClass = NSClassFromString(class_name);
     }
-
-  if (!_principalClass && [_bundleClasses count])
+  else if (self == _gnustep_bundle)
     {
-      _principalClass = [[_bundleClasses objectAtIndex: 0]
-			  nonretainedObjectValue];
+      _principalClass = [NSObject class];
+    }
+
+  if (_principalClass == nil)
+    {
+      [load_lock lock];
+      if (_principalClass == nil && [_bundleClasses count] > 0)
+	{
+	  _principalClass = [[_bundleClasses objectAtIndex: 0]
+	    nonretainedObjectValue];
+	}
+      [load_lock unlock];
     }
   return _principalClass;
 }
@@ -1232,11 +1279,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 - (BOOL) load
 {
-  if (self == _mainBundle || self == _gnustep_bundle)
+  if (self == _mainBundle || self ->_bundleType == NSBUNDLE_LIBRARY)
     {
       _codeLoaded = YES;
       return YES;
     }
+
   [load_lock lock];
 
   if (!_codeLoaded)
@@ -1253,7 +1301,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  return NO;
 	}
       _loadingBundle = self;
-      _bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
+      _bundleClasses = [[NSMutableArray alloc] initWithCapacity: 2];
       _loadingFrameworks = RETAIN([NSMutableArray arrayWithCapacity: 2]);
 
       /* This code is executed twice if a class linked in the bundle call a
@@ -1295,8 +1343,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       classEnumerator = [_bundleClasses objectEnumerator];
       while ((class = [classEnumerator nextObject]) != nil)
 	{
-	  [classNames addObject: NSStringFromClass([class
-						     nonretainedObjectValue])];
+	  [classNames addObject:
+	    NSStringFromClass([class nonretainedObjectValue])];
 	}
 
       [load_lock unlock];
@@ -1615,7 +1663,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return dict;
 }
 
-- (NSArray *)localizations
+- (NSArray *) localizations
 {
   NSString *locale;
   NSArray *localizations;
@@ -1633,7 +1681,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return [array makeImmutableCopyOnFail: NO];
 }
 
-- (NSArray *)preferredLocalizations
+- (NSArray *) preferredLocalizations
 {
   return [NSBundle preferredLocalizationsFromArray: [self localizations]];
 }
@@ -1796,6 +1844,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       return ExecutablePath();
     }
+  if (self->_bundleType == NSBUNDLE_LIBRARY)
+    {
+      return objc_get_symbol_path ([self principalClass], NULL);
+    }
   object = [[self infoDictionary] objectForKey: @"NSExecutable"];
   if (object == nil || [object length] == 0)
     {
@@ -1884,7 +1936,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return _infoDict;
 }
 
-- (NSString *)builtInPlugInsPath
+- (NSString *) builtInPlugInsPath
 {
   NSString  *version = _frameworkVersion;
 
@@ -1907,17 +1959,17 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 }
 
-- (NSString *)bundleIdentifier
+- (NSString*) bundleIdentifier
 {
     return [[self infoDictionary] objectForKey:@"CFBundleIdentifier"];
 }
 
-- (unsigned)bundleVersion
+- (unsigned) bundleVersion
 {
   return _version;
 }
 
-- (void)setBundleVersion:(unsigned)version
+- (void) setBundleVersion: (unsigned)version
 {
   _version = version;
 }
@@ -1926,11 +1978,30 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 @implementation NSBundle (GNUstep)
 
-/** Return a bundle which accesses the first existing directory from the list
-   GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
-   GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
-   GNUSTEP_LOCAL_ROOT/Libraries/Resources/libraryName/
-   GNUSTEP_SYSTEM_ROOT/Libraries/Resources/libraryName/
+/**
+ * <p>Return a bundle which accesses the first existing directory from the list
+ * GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
+ * GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
+ * GNUSTEP_LOCAL_ROOT/Libraries/Resources/libraryName/
+ * GNUSTEP_SYSTEM_ROOT/Libraries/Resources/libraryName/<br />
+ * Where libraryName is the name of a library without the <em>lib</em>
+ * prefix or any extensions.
+ * </p>
+ * <p>This method exists to provide resource bundles for libraries and hos no
+ * particular relationship to the library code itsself.  The named library
+ * could be a dynamic library linked in to the running program, a static
+ * library (whose code may not even exist on the host machine except where
+ * it is linked in to the program), or even a library which is not linked
+ * into the program at all (eg. where you want to share resources provided
+ * for a library you do not actually use).
+ * </p>
+ * <p>The bundle for the library <em>gnustep-base</em> is a special case ...
+ * for this bundle the -principalClass method returns [NSObject] and the
+ * -executablePath method returns the path to the gnustep-base dynamic
+ *  library (if it can be found).  As a general rule, library bundles are
+ *  not guaranteed to return values for these methods as the library may
+ *  not exist on disk.
+ * </p>
  */
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName
 {
@@ -1940,7 +2011,32 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSString *tail;
   NSFileManager *fm = [NSFileManager defaultManager];
 
-  if (libraryName == nil)
+  /*
+   * Eliminate any base path or extensions.
+   */
+  libraryName = [libraryName lastPathComponent];
+  do
+    {
+      libraryName = [libraryName stringByDeletingPathExtension];
+    }
+  while ([[libraryName pathExtension] length] > 0);
+  /*
+   * Discard leading 'lib'
+   */
+  if ([libraryName hasPrefix: @"lib"] == YES)
+    {
+      libraryName = [libraryName substringFromIndex: 3];
+    }
+  /*
+   * Discard debug/profile library suffix
+   */
+  if ([libraryName hasSuffix: @"_d"] == YES
+    || [libraryName hasSuffix: @"_p"] == YES)
+    {
+      libraryName = [libraryName substringToIndex: [libraryName length] - 3];
+    }
+
+  if ([libraryName length] == 0)
     {
       return nil;
     }
@@ -1958,7 +2054,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
-	  return [self bundleWithPath: path];
+	  NSBundle	*b = [self bundleWithPath: path];
+
+	  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+	    {
+	      b->_bundleType = NSBUNDLE_LIBRARY;
+	    }
+	  return b;
 	}
     }
 
