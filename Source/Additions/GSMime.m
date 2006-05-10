@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>The MIME parsing system</title>
    <chapter>
@@ -1413,6 +1414,7 @@ wordData(NSString *word)
 	  if (flags.inBody == 1)
 	    {
 	      NSDictionary	*info;
+	      GSMimeHeader	*hdr;
 
 	      info = [[document headersNamed: @"http"] lastObject];
 	      if (info != nil)
@@ -1435,6 +1437,17 @@ wordData(NSString *word)
 			  flags.inBody = 0;
 			}
 		    }
+		}
+	      /*
+	       * If there is a zero content length, parsing is complete.
+	       */
+	      hdr = [document headerNamed: @"content-length"];
+	      if (hdr != nil && [[hdr value] intValue] == 0)
+		{
+		  [document setContent: @""];
+		  flags.inBody = 0;
+		  flags.complete = 1;
+		  return NO;		// No more data needed
 		}
 	    }
 	}
