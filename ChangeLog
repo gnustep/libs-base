@@ -1,3 +1,8 @@
+2006-05-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Check for content-length specified as
+	zero, and mark parsing as complete without attempting to read body.
+
 2006-05-09 Nicolas Roard <nicolas@roard.com>
 
 	* Source/NSSortDescriptor.m: use -valueForKeyPath: instead 
