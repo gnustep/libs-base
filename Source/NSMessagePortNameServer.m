@@ -35,6 +35,7 @@
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSThread.h"
+#include "GNUstepBase/GSMime.h"
 
 #include "GSPortPrivate.h"
 
@@ -143,7 +144,16 @@ static void clean_up_names(void)
 {
   static NSString	*base_path = nil;
   NSString		*path;
+  NSData		*data;
 
+  /*
+   * Make sure name is representable as a filename ... assume base64 encoded
+   * strings are valid on all filesystems.
+   */
+  data = [name dataUsingEncoding: NSUTF8StringEncoding];
+  data = [GSMimeDocument encodeBase64: data];
+  name = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
+  AUTORELEASE(name);
   [serverLock lock];
   if (!base_path)
     {
@@ -304,14 +314,15 @@ static void clean_up_names(void)
 
   if ([[self class] _livePort: path])
     {
-      NSDebugLLog(@"NSMessagePort", @"fail, is a live port");
+      NSDebugLLog(@"NSMessagePort", @"fail, is a live port (%@)", name);
       return NO;
     }
 
   fd = open([path fileSystemRepresentation], O_CREAT|O_EXCL|O_WRONLY, 0600);
   if (fd < 0)
     {
-      NSDebugLLog(@"NSMessagePort", @"fail, can't open file (%m)");
+      NSDebugLLog(@"NSMessagePort", @"fail, can't open file (%@) for %@",
+	path, name);
       return NO;
     }
 
