@@ -37,6 +37,8 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSUserDefaults.h"
 
+#include "GNUstepBase/GSMime.h"
+
 #include "GSPortPrivate.h"
 
 #define	UNISTR(X) \
