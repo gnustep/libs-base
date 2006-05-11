@@ -73,6 +73,7 @@ typedef enum {
 /* Class variables - We keep track of all the bundles */
 static NSBundle		*_mainBundle = nil;
 static NSMapTable	*_bundles = NULL;
+static NSMapTable	*_byIdentifier = NULL;
 
 /* Store the working directory at startup */
 static NSString		*_launchDirectory = nil;
@@ -1076,8 +1077,27 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return AUTORELEASE([[self alloc] initWithPath: path]);
 }
 
++ (NSBundle*) bundleWithIdentifier: (NSString*)identifier
+{
+  NSBundle	*bundle = nil;
+
+  [load_lock lock];
+  if (_byIdentifier)
+    {
+      bundle = (NSBundle *)NSMapGet(_byIdentifier, identifier);
+      if (bundle != nil)
+	{
+	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	}
+    }
+  [load_lock unlock];
+  return AUTORELEASE(bundle);
+}
+
 - (id) initWithPath: (NSString*)path
 {
+  NSString	*identifier;
+
   self = [super init];
 
   if (!path || [path length] == 0)
@@ -1099,17 +1119,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       path = [[[NSFileManager defaultManager] currentDirectoryPath]
 	       stringByAppendingPathComponent: path];
     }
-  if ([path hasPrefix: @"~"] == YES)
-    {
-      path = [path stringByExpandingTildeInPath];
-    }
+
+  /*
+   * Standardize the path so we can be sure that cache lookup is consistent.
+   */
+  path = [path stringByStandardizingPath];
 
   /* Check if we were already initialized for this directory */
   [load_lock lock];
   if (_bundles)
     {
-      NSBundle* bundle = (NSBundle *)NSMapGet(_bundles, path);
-      if (bundle)
+      NSBundle	*bundle = (NSBundle *)NSMapGet(_bundles, path);
+
+      if (bundle != nil)
 	{
 	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
 	  [load_lock unlock];
@@ -1144,11 +1166,31 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	_bundleType = (unsigned int)NSBUNDLE_BUNDLE;
     }
 
+  identifier = [self bundleIdentifier];
+
   [load_lock lock];
   if (!_bundles)
     {
       _bundles = NSCreateMapTable(NSObjectMapKeyCallBacks,
-				  NSNonOwnedPointerMapValueCallBacks, 0);
+	NSNonOwnedPointerMapValueCallBacks, 0);
+    }
+  if (!_byIdentifier)
+    {
+      _byIdentifier = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+    }
+  if (identifier != nil)
+    {
+      NSBundle	*bundle = (NSBundle *)NSMapGet(_byIdentifier, identifier);
+
+      if (bundle != nil)
+	{
+	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  [load_lock unlock];
+	  [self dealloc];
+	  return bundle;
+	}
+      NSMapInsert(_byIdentifier, identifier, self);
     }
   NSMapInsert(_bundles, _path, self);
   [load_lock unlock];
@@ -1158,10 +1200,28 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 - (void) dealloc
 {
+  if ([self isLoaded] == YES && self != _mainBundle
+    && self ->_bundleType != NSBUNDLE_LIBRARY)
+    {
+      /*
+       * Prevent unloading of bundles where code has been loaded ...
+       * the objc runtime does not currently support unloading of
+       * dynamically loaded code, so we want to prevent a bundle
+       * being loaded twice.
+       */
+      RETAIN(self);
+      return;
+    }
   if (_path != nil)
     {
+      NSString	*identifier = [self bundleIdentifier];
+
       [load_lock lock];
       NSMapRemove(_bundles, _path);
+      if (identifier != nil)
+        {
+	  NSMapRemove(_byIdentifier, identifier);
+        }
       [load_lock unlock];
       RELEASE(_path);
     }
@@ -1287,7 +1347,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   [load_lock lock];
 
-  if (!_codeLoaded)
+  if (_codeLoaded == NO)
     {
       NSString       *object;
       NSEnumerator   *classEnumerator;
@@ -1961,7 +2021,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 - (NSString*) bundleIdentifier
 {
-    return [[self infoDictionary] objectForKey:@"CFBundleIdentifier"];
+  return [[self infoDictionary] objectForKey: @"CFBundleIdentifier"];
 }
 
 - (unsigned) bundleVersion

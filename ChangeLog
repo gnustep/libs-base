@@ -1,3 +1,11 @@
+2006-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSBundle.h: add ([bundleWithIdentifier:])
+	* Source/NSBundle.m: implement ([bundleWithIdentifier:]) and prevent
+	loading of multiple bundles with the same non-nil identifier.
+	Use standardised path as cache key to prevent same bundle being
+	loaded multiple times via symlinks etc.
+
 2006-05-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Check for content-length specified as

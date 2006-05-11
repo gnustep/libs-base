@@ -135,17 +135,23 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * <p>Return the bundle to which aClass belongs.  If aClass was loaded
  * from a bundle, return the bundle; if it belongs to a framework
  * (either a framework linked into the application, or loaded
- * dynamically), return the framework; in all other cases, return the
+ * dynamically), return the framework; if it belongs to a library,
+ * return the bundle for that library; in all other cases, return the
  * main bundle.
  * </p>
  * <p>Please note that GNUstep supports plain shared libraries, while the
  * openstep standard, and other openstep-like systems, do not; the
- * behaviour when aClass belongs to a plain shared library is at the
- * moment still under investigation -- you should consider it
- * undefined since it might be changed. :-)
+ * behaviour when aClass belongs to a plain shared library is to return
+ * a bundle for that library, but might be changed. :-)
  * </p>
  */
 + (NSBundle*) bundleForClass: (Class)aClass;
+
+/** Returns the bundle for the specified identifier (see -bundleIdentifier)
+ * as long as the bundle has already been loaded.  This never causes a
+ * bundle to be loaded.
+ */
++ (NSBundle*) bundleWithIdentifier: (NSString*)identifier;
 
 /** Return a bundle for the path at path.  If path doesn't exist or is
  * not readable, return nil.  If you want the main bundle of an
@@ -183,9 +189,12 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * On MacOS-X using a bundle initialised with a relative path will cause
  * a crash if the current working directory is changed between the point
  * at which the bundle was initialised and that at which it is used.<br />
- * If path is nil or can't be accessed, initWithPath: reallocates the
+ * If path is nil or can't be accessed, initWithPath: deallocates the
  * receiver and returns nil.<br />
  * If a bundle for that path already existed, it is returned in place
+ * of the receiver (and the receiver is deallocated).<br />
+ * If the -bundleIdentifier is not nil, and a bundle with the same
+ * identifier already exists, the existing bundle is returned in place
  * of the receiver (and the receiver is deallocated).
  */
 - (id) initWithPath: (NSString*)path;
@@ -280,11 +289,11 @@ GS_EXPORT NSString* const NSLoadedClasses;
 - (NSString*) resourcePath;
 
 /** Returns the full path to the plug-in subdirectory of the bundle.  */
-- (NSString *)builtInPlugInsPath;
+- (NSString *) builtInPlugInsPath;
 
 /** Returns the bundle identifier, as defined by the CFBundleIdentifier
     key in the infoDictionary */
-- (NSString *)bundleIdentifier;
+- (NSString *) bundleIdentifier;
 
 /** Returns the bundle version. */
 - (unsigned) bundleVersion;
@@ -298,6 +307,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
  *  used to locate resources given environment and user preferences.
  */
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray;
+
 /**
  *  Returns subarray of given array containing those localizations that are
  *  used to locate resources given environment given user preferences (which
@@ -306,6 +316,9 @@ GS_EXPORT NSString* const NSLoadedClasses;
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray 
 			       forPreferences: (NSArray *)preferencesArray;
 
+/**
+ * Returns a boolean indicating whether code for the bundle has been loaded.
+ */
 - (BOOL) isLoaded;
 
 /**
