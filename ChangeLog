@@ -1,3 +1,7 @@
+2006-05-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: validate UTF-16 data when producing a Cstring
+
 2006-05-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSBundle.h: add ([bundleWithIdentifier:])

@@ -941,48 +941,58 @@ canBeConvertedToEncoding_u(GSStr self, NSStringEncoding enc)
   unsigned	c = self->_count;
   BOOL		result = YES;
 
-  if (c > 0 && enc != NSUTF8StringEncoding && enc != NSUnicodeStringEncoding)
+  if (c > 0)
     {
-      if (enc == NSISOLatin1StringEncoding)
+      if (enc == NSUTF8StringEncoding || enc == NSUnicodeStringEncoding)
 	{
-	  unsigned	i;
-
-	  /*
-	   * If all the unicode characters are in the 0 to 255 range
-	   * they are all latin1.
-	   */
-	  for (i = 0; i < self->_count; i++)
+	  if (GSUnicode(self->_contents.u, c, 0, 0) != c)
 	    {
-	      if (self->_contents.u[i] > 255)
-		{
-		  result = NO;
-		  break;
-		}
-	    }
-	}
-      else if (enc == NSASCIIStringEncoding)
-	{
-	  unsigned	i;
-
-	  /*
-	   * If all the unicode characters are in the 0 to 127 range
-	   * they are all ascii.
-	   */
-	  for (i = 0; i < self->_count; i++)
-	    {
-	      if (self->_contents.u[i] > 127)
-		{
-		  result = NO;
-		  break;
-		}
+	      return NO;
 	    }
 	}
       else
 	{
-	  unsigned	dummy = 0;	// Hold returned length.
+	  if (enc == NSISOLatin1StringEncoding)
+	    {
+	      unsigned	i;
 
-	  result = GSFromUnicode(0, &dummy, self->_contents.u, c, enc,
-	    0, GSUniStrict);
+	      /*
+	       * If all the unicode characters are in the 0 to 255 range
+	       * they are all latin1.
+	       */
+	      for (i = 0; i < self->_count; i++)
+		{
+		  if (self->_contents.u[i] > 255)
+		    {
+		      result = NO;
+		      break;
+		    }
+		}
+	    }
+	  else if (enc == NSASCIIStringEncoding)
+	    {
+	      unsigned	i;
+
+	      /*
+	       * If all the unicode characters are in the 0 to 127 range
+	       * they are all ascii.
+	       */
+	      for (i = 0; i < self->_count; i++)
+		{
+		  if (self->_contents.u[i] > 127)
+		    {
+		      result = NO;
+		      break;
+		    }
+		}
+	    }
+	  else
+	    {
+	      unsigned	dummy = 0;	// Hold returned length.
+
+	      result = GSFromUnicode(0, &dummy, self->_contents.u, c, enc,
+		0, GSUniStrict);
+	    }
 	}
     }
   return result;
@@ -1130,8 +1140,15 @@ cString_u(GSStr self, NSStringEncoding enc)
     }
   else if (enc == NSUnicodeStringEncoding)
     {
-      unichar	*tmp = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), (c + 1)*2);
+      unichar	*tmp;
+      unsigned	l;
 
+      if ((l = GSUnicode(self->_contents.u, c, 0, 0)) != c)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"NSString is not legal UTF-16 at %u", l];
+	}
+      tmp = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), (c + 1)*2);
       memcpy(tmp, self->_contents.u, c*2);
       tmp[c] = 0;
       [NSData dataWithBytesNoCopy: tmp length: (c + 1)*2 freeWhenDone: YES];
@@ -1207,8 +1224,7 @@ cStringLength_u(GSStr self, NSStringEncoding enc)
     {
       unsigned	l = 0;
 
-      if (GSFromUnicode(0, &l, self->_contents.u, c, enc, 0, GSUniStrict)
-	== NO)
+      if (GSFromUnicode(0, &l, self->_contents.u, c, enc, 0, GSUniStrict) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cStringLength from Unicode string."];
