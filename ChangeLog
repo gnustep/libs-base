@@ -1,6 +1,8 @@
 2006-05-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: validate UTF-16 data when producing a Cstring
+	* Source/NSCharacterSetData.h: Add code plane 16 (private use)
+	* Source/NSCharacterSet.m: Fix to support code plane 16
 
 2006-05-11  Richard Frith-Macdonald <rfm@gnu.org>
 

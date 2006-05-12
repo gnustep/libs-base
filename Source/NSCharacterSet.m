@@ -42,10 +42,10 @@
 #include "NSCharacterSetData.h"
 
 //PENDING: may want to make these less likely to conflict
-#define UNICODE_SIZE	65536
-#define UNICODE_MAX	1048576
+#define UNICODE_SIZE	63336
+#define UNICODE_MAX	1114112
 #define BITMAP_SIZE	8192
-#define BITMAP_MAX	131072
+#define BITMAP_MAX	139264
 
 #ifndef SETBIT
 #define SETBIT(a,i)     ((a) |= 1<<(i))
@@ -83,7 +83,7 @@
 
 - (NSData*) bitmapRepresentation
 {
-  unsigned	i = 16;
+  unsigned	i = 17;
 
   while (i > 0 && [self hasMemberInPlane: i-1] == NO)
     {
@@ -128,7 +128,7 @@
 {
   unsigned	bit;
 
-  if (aPlane >= 16)
+  if (aPlane > 16)
     {
       return NO;
     }
@@ -203,6 +203,13 @@
 {
   unsigned	byte = aCharacter/8;
 
+  if (aCharacter >= UNICODE_MAX)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-%@] argument (0x%08x) is too large",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+	aCharacter];
+    }
   if (byte < _length && ISSET(_data[byte], aCharacter % 8))
     {
       return YES;
@@ -298,7 +305,7 @@
 
 - (NSData*) bitmapRepresentation
 {
-  unsigned	i = 16;
+  unsigned	i = 17;
 
   while (i > 0 && [self hasMemberInPlane: i-1] == NO)
     {
@@ -824,7 +831,7 @@ static Class abstractMutableClass = nil;
       oImp = (BOOL (*)(id,SEL,unichar))
 	[anObject methodForSelector: @selector(characterIsMember:)];
 
-      for (p = 0; p < 16; p++)
+      for (p = 0; p <= 16; p++)
 	{
 	  if ([self hasMemberInPlane: p] == YES)
 	    {
@@ -872,6 +879,13 @@ static Class abstractMutableClass = nil;
 {
   int	plane = (aCharacter >> 16);
 
+  if (aCharacter >= UNICODE_MAX)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-%@] argument (0x%08x) is too large",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+	aCharacter];
+    }
   if (plane == 0)
     {
       unichar	u = (unichar)(aCharacter & 0xffff);
