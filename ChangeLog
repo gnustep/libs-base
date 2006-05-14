@@ -1,3 +1,15 @@
+2006-05-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m:
+	* Source/GSString.m:
+	Change to use ([initWithBytesNoCopy:length:encoding:freeWhenDone:])
+	as the primary/designated initialiser for strings and update code
+	to fix character encoding errors when copying mutable strings in
+	a UTF8 locale (ie where the internal encoding for 8bit strings is
+	not the same as the external encoding).
+	WARNING ... this is a restructuring of functionality which is core
+	to the library.  Please use with care and report any bugs found.
+
 2006-05-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: validate UTF-16 data when producing a Cstring
