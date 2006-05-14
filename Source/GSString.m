@@ -241,8 +241,8 @@ static BOOL	(*equalImp)(id, SEL, id);
 static SEL	hashSel;
 static unsigned (*hashImp)(id, SEL);
 
-static NSStringEncoding defEnc = 0;
-static NSStringEncoding intEnc = NSISOLatin1StringEncoding;
+static NSStringEncoding externalEncoding = 0;
+static NSStringEncoding internalEncoding = NSISOLatin1StringEncoding;
 
 /*
  * The setup() function is called when any concrete string class is
@@ -301,10 +301,10 @@ setup(void)
        * Cache the default string encoding, and set the internal encoding
        * used by 8-bit character strings to match if possible.
        */
-      defEnc = GetDefEncoding();
-      if (GSIsByteEncoding(defEnc) == YES)
+      externalEncoding = GetDefEncoding();
+      if (GSIsByteEncoding(externalEncoding) == YES)
 	{
-	  intEnc = defEnc;
+	  internalEncoding = externalEncoding;
 	}
     }
 }
@@ -345,62 +345,229 @@ setup(void)
  */
 - (id) init
 {
-  return [self initWithCharacters: 0 length: 0];
+  return [self initWithBytes: 0 length: 0 encoding: internalEncoding];
 }
 
 /*
- * Replace self with an inline unicode string.
+ * Remove any BOM and perform byte swapping if required.
  */
-- (id) initWithCharacters: (const unichar*)chars
-		   length: (unsigned)length
+static void
+fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
+  NSStringEncoding encoding)
 {
-  GSStr	me;
-  BOOL	isASCII;
-  BOOL	isLatin1;
+  unsigned char	*b = *bytes;
+  unsigned	len = *length;
 
-  if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
+  if (encoding == NSUnicodeStringEncoding && *length >= 2
+    && ((b[0] == 0xFE && b[1] == 0xFF) || (b[0] == 0xFF && b[1] == 0xFE)))
     {
-      return nil;	// Invalid data
+      // Got a byte order marker ... remove it.
+      if (len == sizeof(unichar))
+	{
+	  if (*shouldFree)
+	    {
+	      NSZoneFree(NSZoneFromPointer(b), b);
+	    }
+	  *length = 0;
+	  *shouldFree = NO;
+	  *bytes = 0;
+	}
+      else
+	{
+	  NSZone	*z = NSZoneFromPointer(b);
+	  unsigned char	*from = b;
+	  unsigned char	*to;
+	  unichar	u;
+
+	  // Got a byte order marker ... remove it.
+	  len -= sizeof(unichar);
+	  memcpy(&u, from, sizeof(unichar));
+	  from += sizeof(unichar);
+	  to = NSZoneMalloc(z, len);
+	  if (u == 0xFEFF)
+	    {
+	      // Native byte order
+	      memcpy(to, from, len);
+	    }
+	  else
+	    {
+	      unsigned	i;
+
+	      for (i = 0; i < len; i += 2)
+		{
+		  to[i] = from[i+1];
+		  to[i+1] = from[i];
+		}
+	    }
+	  if (*shouldFree == YES)
+	    {
+	      NSZoneFree(z, b);
+	    }
+	  *length = len;
+	  *bytes = to;
+	  *shouldFree = YES;
+        }
     }
-  if (isASCII == YES
-    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+  else if (encoding == NSUTF8StringEncoding && len >= 3
+    && b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF)
     {
-      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
-	GSObjCZone(self));
-      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
-      me->_count = length;
-      me->_flags.wide = 0;
-      me->_flags.free = 1;
-      while (length-- > 0)
-        {
-          me->_contents.c[length] = (unsigned char)chars[length];
+      if (len == 3)
+	{
+	  if (*shouldFree)
+	    {
+	      NSZoneFree(NSZoneFromPointer(b), b);
+	    }
+	  *length = 0;
+	  *shouldFree = NO;
+	  *bytes = 0;
+	}
+      else
+	{
+	  NSZone	*z = NSZoneFromPointer(b);
+	  unsigned char	*from = b;
+	  unsigned char	*to;
+
+	  // Got a byte order marker ... remove it.
+	  len -= 3;
+	  from += 3;
+	  to = NSZoneMalloc(z, len);
+	  memcpy(to, from, len);
+	  if (*shouldFree == YES)
+	    {
+	      NSZoneFree(z, b);
+	    }
+	  *length = len;
+	  *bytes = to;
+	  *shouldFree = YES;
 	}
     }
-  else
-    {
-      me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
-	length*sizeof(unichar), GSObjCZone(self));
-      me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
-      me->_count = length;
-      me->_flags.wide = 1;
-      me->_flags.free = 1;
-      memcpy(me->_contents.u, chars, length*sizeof(unichar));
-    }
-  return (id)me;
 }
 
-/*
- * Replace self with a simple unicode string.
- */
-- (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned)length
-		   freeWhenDone: (BOOL)flag
+- (id) initWithBytes: (const void*)bytes
+	      length: (unsigned int)length
+	    encoding: (NSStringEncoding)encoding
 {
-  GSStr	me;
-  BOOL	isASCII;
-  BOOL	isLatin1;
+  void		*chars = 0;
+  BOOL		flag = NO;
+  
+  if (length > 0)
+    {
+      const void	*original = bytes;
 
-  if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
+      fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
+      /*
+       * We need to copy the data if there is any, unless fixBOM()
+       * has already done it for us.
+       */
+      if (original == bytes)
+	{
+	  chars = NSZoneMalloc(GSObjCZone(self), length);
+	  memcpy(chars, bytes, length);
+	}
+      else
+	{
+	  chars = (void*)bytes;
+	}
+    }
+  return [self initWithBytesNoCopy: chars
+			    length: length
+			  encoding: encoding
+		      freeWhenDone: YES];
+}
+
+- (id) initWithBytesNoCopy: (const void*)bytes
+		    length: (unsigned int)length
+		  encoding: (NSStringEncoding)encoding
+	      freeWhenDone: (BOOL)flag
+{
+  extern BOOL GSEncodingSupported(NSStringEncoding enc);
+  unsigned char	*chars = 0;
+  BOOL		isASCII = NO;
+  BOOL		isLatin1 = NO;
+  GSStr		me;
+
+  if (GSEncodingSupported(encoding) == NO)
+    {
+      if (flag == YES && bytes != 0)
+	{
+	  NSZoneFree(NSZoneFromPointer((void*)bytes), (void*)bytes);
+	}
+      return nil;	// Invalid encoding
+    }
+
+  if (length > 0)
+    {
+      fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
+      chars = (unsigned char*)bytes;
+    }
+
+  if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
+    {
+      unsigned i;
+
+      for (i = 0; i < length; i++)
+        {
+	  if (((unsigned char*)chars)[i] > 127)
+	    {
+	      if (encoding == NSASCIIStringEncoding)
+		{
+		  if (flag == YES && chars != 0)
+		    {
+		      NSZoneFree(NSZoneFromPointer(chars), chars);
+		    }
+		  return nil;	// Invalid data
+		}
+	      break;
+	    }
+        }
+      if (i == length)
+	{
+	  /*
+	   * This is actually ASCII data ... so we can just stor it as if
+	   * in the internal 8bit encoding scheme.
+	   */
+	  encoding = internalEncoding;
+	}
+    }
+
+  if (encoding == internalEncoding)
+    {
+      me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, GSObjCZone(self));
+      me->_contents.c = (unsigned char*)chars;
+      me->_count = length;
+      me->_flags.wide = 0;
+      me->_flags.free = flag;
+      return (id)me;
+    }
+
+  /*
+   * Any remaining encoding needs to be converted to UTF-16.
+   */
+  if (encoding != NSUnicodeStringEncoding)
+    {
+      unichar	*u = 0;
+      unsigned	l = 0;
+
+      if (GSToUnicode(&u, &l, (unsigned char*)chars, length, encoding,
+	GSObjCZone(self), 0) == NO)
+	{
+	  if (flag == YES && chars != 0)
+	    {
+	      NSZoneFree(NSZoneFromPointer(chars), chars);
+	    }
+	  return nil;	// Invalid data
+	}
+      if (flag == YES && chars != 0)
+	{
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
+	}
+      chars = (unsigned char*)u;
+      length = l * sizeof(unichar);
+      flag = YES;
+    }
+
+  length /= sizeof(unichar);
+  if (GSUnicode((unichar*)chars, length, &isASCII, &isLatin1) != length)
     {
       if (flag == YES && chars != 0)
         {
@@ -408,22 +575,20 @@ setup(void)
         }
       return nil;	// Invalid data
     }
+
   if (isASCII == YES
-    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    || (internalEncoding == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
-      /*
-       * OK ... we can do a more compact version
-       */
       me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
 	GSObjCZone(self));
       me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 0;
-      me->_flags.free = 1;
+      me->_flags.free = 0;
       while (length-- > 0)
         {
-          me->_contents.c[length] = (unsigned char)chars[length];
-	}
+	  me->_contents.c[length] = ((unichar*)chars)[length];
+        }
       if (flag == YES && chars != 0)
         {
 	  NSZoneFree(NSZoneFromPointer(chars), chars);
@@ -433,91 +598,48 @@ setup(void)
     {
       me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass,
 	0, GSObjCZone(self));
-      me->_contents.u = chars;
+      me->_contents.u = (unichar*)chars;
       me->_count = length;
       me->_flags.wide = 1;
-      if (flag == YES)
-	{
-	  me->_flags.free = 1;
-	}
+      me->_flags.free = flag;
     }
   return (id)me;
 }
 
-/*
- * Replace self with an inline 'C' string.
- */
+- (id) initWithCharacters: (const unichar*)chars
+		   length: (unsigned)length
+{
+  return [self initWithBytes: (const void*)chars
+		      length: length * sizeof(unichar)
+		    encoding: NSUnicodeStringEncoding];
+}
+
+- (id) initWithCharactersNoCopy: (unichar*)chars
+			 length: (unsigned)length
+		   freeWhenDone: (BOOL)flag
+{
+  return [self initWithBytesNoCopy: (const void*)chars
+			    length: length * sizeof(unichar)
+			  encoding: NSUnicodeStringEncoding
+		      freeWhenDone: flag];
+}
+
 - (id) initWithCString: (const char*)chars
 		length: (unsigned)length
 {
-  if (defEnc == intEnc)
-    {
-      GSStr	me;
-
-      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
-	GSObjCZone(self));
-      me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
-      me->_count = length;
-      me->_flags.wide = 0;
-      me->_flags.free = 1;
-      memcpy(me->_contents.c, chars, length);
-      return (id)me;
-    }
-  else
-    {
-      unichar	*u = 0;
-      unsigned	l = 0;
-
-      if (GSToUnicode(&u, &l, (const unsigned char*)chars, length, defEnc,
-	GSObjCZone(self), 0) == NO)
-	{
-	  return nil;
-	}
-      return [self initWithCharactersNoCopy: u length: l freeWhenDone: YES];
-    }
+  return [self initWithBytes: (const void*)chars
+		      length: length
+		    encoding: externalEncoding];
 }
 
-/*
- * Replace self with a simple 'C' string
- */
 - (id) initWithCStringNoCopy: (char*)chars
 		      length: (unsigned)length
 		freeWhenDone: (BOOL)flag
 {
-  if (defEnc == intEnc)
-    {
-      GSStr	me;
-
-      me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, GSObjCZone(self));
-      me->_contents.c = (unsigned char*)chars;
-      me->_count = length;
-      me->_flags.wide = 0;
-      if (flag == YES)
-	{
-	  me->_flags.free = 1;
-	}
-      return (id)me;
-    }
-  else
-    {
-      unichar	*u = 0;
-      unsigned	l = 0;
-
-      if (GSToUnicode(&u, &l, (const unsigned char*)chars, length, defEnc,
-	GSObjCZone(self), 0) == NO)
-	{
-	  self = nil;
-	}
-      else
-	{
-	  self = [self initWithCharactersNoCopy: u length: l freeWhenDone: YES];
-	}
-      if (flag == YES && chars != 0)
-	{
-	  NSZoneFree(NSZoneFromPointer(chars), chars);
-	}
-      return self;
-    }
+  return [self initWithBytesNoCopy: (const void*)chars
+			    length: length
+			  encoding: externalEncoding
+		      freeWhenDone: flag];
 }
 
 - (id) initWithFormat: (NSString*)format
@@ -530,7 +652,6 @@ setup(void)
   unichar	*fmt = fbuf;
   size_t	len;
   GSStr		me;
-
 
   /*
    * First we provide an array of unichar characters containing the
@@ -715,7 +836,7 @@ UTF8String_c(GSStr self)
     {
       return "";
     }
-  if (intEnc == NSASCIIStringEncoding)
+  if (internalEncoding == NSASCIIStringEncoding)
     {
       unsigned	i = self->_count;
 
@@ -736,7 +857,7 @@ UTF8String_c(GSStr self)
        * We must convert from internal format to unicode and then to
        * UTF8 string encoding.
        */
-      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, internalEncoding,
 	NSDefaultMallocZone(), 0) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
@@ -829,7 +950,8 @@ boolValue_u(GSStr self)
       unsigned char	buf[l+1];
       unsigned char	*b = buf;
 
-      GSFromUnicode(&b, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
+      GSFromUnicode(&b, &l, self->_contents.u, l, internalEncoding,
+	0, GSUniTerminate);
       if (l == 3
 	&& (buf[0] == 'Y' || buf[0] == 'y')
 	&& (buf[1] == 'E' || buf[1] == 'e')
@@ -866,10 +988,10 @@ canBeConvertedToEncoding_c(GSStr self, NSStringEncoding enc)
    * ascii and the required encoding has ascii as a subset.
    */
   if (c > 0
-    && enc != intEnc
+    && enc != internalEncoding
     && enc != NSUTF8StringEncoding
     && enc != NSUnicodeStringEncoding
-    && ((intEnc != NSASCIIStringEncoding)
+    && ((internalEncoding != NSASCIIStringEncoding)
       || ((enc != NSISOLatin1StringEncoding)
         && (enc != NSISOLatin2StringEncoding)
         && (enc != NSNEXTSTEPStringEncoding)
@@ -883,8 +1005,8 @@ canBeConvertedToEncoding_c(GSStr self, NSStringEncoding enc)
        * unicode and then check to see whether it is possible to convert
        * to the desired encoding.
        */
-      result = GSToUnicode(&r, &l, self->_contents.c, self->_count, intEnc,
-	NSDefaultMallocZone(), GSUniStrict);
+      result = GSToUnicode(&r, &l, self->_contents.c, self->_count,
+	internalEncoding, NSDefaultMallocZone(), GSUniStrict);
       if (result == YES)
         {
 	  if (enc == NSISOLatin1StringEncoding)
@@ -1008,7 +1130,7 @@ characterAtIndex_c(GSStr self, unsigned index)
   c = self->_contents.c[index];
   if (c > 127)
     {
-      c = encode_chartouni(c, intEnc);
+      c = encode_chartouni(c, internalEncoding);
     }
   return c;
 }
@@ -1074,7 +1196,7 @@ cString_c(GSStr self, NSStringEncoding enc)
     {
       return "\0";
     }
-  else if (enc == intEnc)
+  else if (enc == internalEncoding)
     {
       r = (unsigned char*)GSAutoreleasedBuffer(self->_count+1);
 
@@ -1092,7 +1214,7 @@ cString_c(GSStr self, NSStringEncoding enc)
        * The external C string encoding  is unicode ... convert to it.
        */
       if (GSToUnicode((unichar**)&r, &l, self->_contents.c, self->_count,
-	intEnc, NSDefaultMallocZone(),
+	internalEncoding, NSDefaultMallocZone(),
 	GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
@@ -1110,7 +1232,7 @@ cString_c(GSStr self, NSStringEncoding enc)
        * 8-bit character strings ... we must convert from internal format to
        * unicode and then to the external C string encoding.
        */
-      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, internalEncoding,
 	NSDefaultMallocZone(), 0) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
@@ -1172,7 +1294,7 @@ cString_u(GSStr self, NSStringEncoding enc)
 static inline unsigned int
 cStringLength_c(GSStr self, NSStringEncoding enc)
 {
-  if (enc == intEnc)
+  if (enc == internalEncoding)
     {
       return self->_count;
     }
@@ -1193,8 +1315,8 @@ cStringLength_c(GSStr self, NSStringEncoding enc)
 	  unsigned	l = 0;
 	  unsigned	s = 0;
 
-	  if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
-	    NSDefaultMallocZone(), 0) == NO)
+	  if (GSToUnicode(&u, &l, self->_contents.c, self->_count,
+	    internalEncoding, NSDefaultMallocZone(), 0) == NO)
 	    {
 	      [NSException raise: NSCharacterConversionException
 			  format: @"Can't convert to/from Unicode string."];
@@ -1243,8 +1365,8 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
       return [NSDataClass data];
     }
 
-  if ((encoding == intEnc)
-    || ((intEnc == NSASCIIStringEncoding)
+  if ((encoding == internalEncoding)
+    || ((internalEncoding == NSASCIIStringEncoding)
     && ((encoding == NSISOLatin1StringEncoding)
     || (encoding == NSISOLatin2StringEncoding)
     || (encoding == NSNEXTSTEPStringEncoding)
@@ -1267,7 +1389,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
 	  options |= GSUniStrict;
 	}
 
-      if (GSToUnicode(&r, &l, self->_contents.c, self->_count, intEnc,
+      if (GSToUnicode(&r, &l, self->_contents.c, self->_count, internalEncoding,
 	NSDefaultMallocZone(), options) == NO)
 	{
 	  return nil;
@@ -1281,7 +1403,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
       unsigned char	*r = 0;
       unsigned		s = 0;
 
-      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, internalEncoding,
 	NSDefaultMallocZone(), 0) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
@@ -1379,7 +1501,7 @@ doubleValue_c(GSStr self)
       unichar	*b = buf;
       double	d = 0.0;
 
-      GSToUnicode(&b, &l, self->_contents.c, l, intEnc, 0, 0);
+      GSToUnicode(&b, &l, self->_contents.c, l, internalEncoding, 0, 0);
       GSScanDouble(b, l, &d);
       return d;
     }
@@ -1431,7 +1553,7 @@ getCharacters_c(GSStr self, unichar *buffer, NSRange aRange)
     return;
 
   if (!GSToUnicode(&buffer, &len, self->_contents.c + aRange.location,
-		   aRange.length, intEnc, 0, 0))
+    aRange.length, internalEncoding, 0, 0))
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Can't convert to Unicode."];
@@ -1495,8 +1617,8 @@ getCString_u(GSStr self, char *buffer, unsigned int maxLength,
   /* First, try converting the whole thing. */
   len = maxLength;
   if (GSFromUnicode((unsigned char **)&buffer, &len,
-		    self->_contents.u + aRange.location, aRange.length,
-		    defEnc, 0, GSUniTerminate | GSUniStrict) == YES)
+    self->_contents.u + aRange.location, aRange.length,
+    externalEncoding, 0, GSUniTerminate | GSUniStrict) == YES)
     {
       if (leftoverRange)
 	leftoverRange->location = leftoverRange->length = 0;
@@ -1508,8 +1630,8 @@ getCString_u(GSStr self, char *buffer, unsigned int maxLength,
   unconvertable characters first. */
   len = 0;
   if (GSFromUnicode(NULL, &len,
-		    self->_contents.u + aRange.location, aRange.length,
-		    defEnc, 0, GSUniTerminate | GSUniStrict) == NO)
+    self->_contents.u + aRange.location, aRange.length,
+    externalEncoding, 0, GSUniTerminate | GSUniStrict) == NO)
     {
       [NSException raise: NSCharacterConversionException
 		  format: @"Can't get cString from Unicode string."];
@@ -1528,8 +1650,8 @@ getCString_u(GSStr self, char *buffer, unsigned int maxLength,
 	mid = (lo + hi + 1) / 2; /* round up to get edge case right */
 	len = maxLength;
 	if (GSFromUnicode((unsigned char **)&buffer, &len,
-			  self->_contents.u + aRange.location, mid,
-			  defEnc, 0, GSUniTerminate | GSUniStrict) == YES)
+	  self->_contents.u + aRange.location, mid,
+	  externalEncoding, 0, GSUniTerminate | GSUniStrict) == YES)
 	  {
 	    lo = mid;
 	  }
@@ -1546,8 +1668,8 @@ getCString_u(GSStr self, char *buffer, unsigned int maxLength,
         buffer[0] = 0;
       }
     else if (GSFromUnicode((unsigned char **)&buffer, &len,
-			   self->_contents.u + aRange.location, lo,
-			   defEnc, 0, GSUniTerminate | GSUniStrict) == NO)
+      self->_contents.u + aRange.location, lo,
+      externalEncoding, 0, GSUniTerminate | GSUniStrict) == NO)
       {
         NSCAssert(NO, @"binary search gave inconsistent results");
       }
@@ -1571,8 +1693,8 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	  unsigned	bytes = maxLength - sizeof(unichar);
 	  unichar	*u = (unichar*)buffer;
 
-	  if (GSToUnicode(&u, &bytes, self->_contents.c, self->_count, intEnc,
-	    NSDefaultMallocZone(), GSUniTerminate) == NO)
+	  if (GSToUnicode(&u, &bytes, self->_contents.c, self->_count,
+	    internalEncoding, NSDefaultMallocZone(), GSUniTerminate) == NO)
 	    {
 	      [NSException raise: NSCharacterConversionException
 			  format: @"Can't convert to Unicode string."];
@@ -1591,7 +1713,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	{
 	  unsigned	bytes = maxLength - sizeof(char);
 
-	  if (enc == intEnc)
+	  if (enc == internalEncoding)
 	    {
 	      if (bytes > self->_count)
 		{
@@ -1605,7 +1727,8 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 		}
 	      return YES;
 	    }
-	  else if (enc == NSASCIIStringEncoding && GSIsByteEncoding(intEnc))
+	  else if (enc == NSASCIIStringEncoding
+	    && GSIsByteEncoding(internalEncoding))
 	    {
 	      unsigned	i;
 
@@ -1643,8 +1766,8 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	       * from internal format to unicode and then to the specified
 	       * C string encoding.
 	       */
-	      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
-		NSDefaultMallocZone(), 0) == NO)
+	      if (GSToUnicode(&u, &l, self->_contents.c, self->_count,
+		internalEncoding, NSDefaultMallocZone(), 0) == NO)
 		{
 		  [NSException raise: NSCharacterConversionException
 			      format: @"Can't convert to Unicode string."];
@@ -1807,7 +1930,8 @@ intValue_u(GSStr self)
       unsigned char	buf[l+1];
       unsigned char	*b = buf;
 
-      GSFromUnicode(&b, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
+      GSFromUnicode(&b, &l, self->_contents.u, l, internalEncoding,
+	0, GSUniTerminate);
       return atol((const char*)buf);
     }
 }
@@ -1955,7 +2079,7 @@ lossyCString_c(GSStr self)
     {
       return "";
     }
-  if (defEnc == intEnc)
+  if (externalEncoding == internalEncoding)
     {
       r = (char*)GSAutoreleasedBuffer(self->_count+1);
 
@@ -1976,13 +2100,13 @@ lossyCString_c(GSStr self)
        * 8-bit character strings ... we must convert from internal format to
        * unicode and then to the external C string encoding.
        */
-      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
-	NSDefaultMallocZone(), 0) == NO)
+      if (GSToUnicode(&u, &l, self->_contents.c, self->_count,
+	internalEncoding, NSDefaultMallocZone(), 0) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't convert to/from Unicode string."];
 	}
-      if (GSFromUnicode((unsigned char**)&r, &s, u, l, defEnc,
+      if (GSFromUnicode((unsigned char**)&r, &s, u, l, externalEncoding,
 	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary) == NO)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), u);
@@ -2001,7 +2125,7 @@ lossyCString_u(GSStr self)
   unsigned	l = 0;
   unsigned char	*r = 0;
 
-  GSFromUnicode(&r, &l, self->_contents.u, self->_count, defEnc,
+  GSFromUnicode(&r, &l, self->_contents.u, self->_count, externalEncoding,
     NSDefaultMallocZone(), GSUniTemporary|GSUniTerminate);
   return (const char*)r;
 }
@@ -2092,8 +2216,8 @@ static void GSStrWiden(GSStr s)
    */
   if (s->_count <= s->_capacity / 2)
     {
-      if (intEnc == NSISOLatin1StringEncoding
-	|| intEnc == NSASCIIStringEncoding)
+      if (internalEncoding == NSISOLatin1StringEncoding
+	|| internalEncoding == NSASCIIStringEncoding)
 	{
 	  len = s->_count;
 	  while (len-- > 0)
@@ -2122,7 +2246,8 @@ static void GSStrWiden(GSStr s)
 #endif
     }
 
-  if (!GSToUnicode(&tmp, &len, s->_contents.c, s->_count, intEnc, s->_zone, 0))
+  if (!GSToUnicode(&tmp, &len, s->_contents.c, s->_count,
+    internalEncoding, s->_zone, 0))
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"widen of string failed"];
@@ -2235,7 +2360,7 @@ rangeOfCharacter_c(GSStr self, NSCharacterSet *aSet, unsigned mask,
 
       if (letter > 127)
 	{
-	  letter = encode_chartouni(letter, intEnc);
+	  letter = encode_chartouni(letter, internalEncoding);
 	}
       if ((*mImp)(aSet, cMemberSel, letter))
 	{
@@ -2423,15 +2548,15 @@ transmute(GSStr self, NSString *aString)
 	   */
 	  transmute = NO;
 	}
-      else if (intEnc == defEnc
-	&& [aString canBeConvertedToEncoding: intEnc] == YES)
+      else if (internalEncoding == externalEncoding
+	&& [aString canBeConvertedToEncoding: internalEncoding] == YES)
 	{
 	  /*
 	   * The other string can be converted to the internal 8-bit encoding,
 	   * via the cString method, so we don't need to transmute, but we
 	   * can *not* use its GSStr.
-	   * NB. If 'intEnc != defEnc' the cString method of the other string
-	   * will not return data in the internal encoding.
+	   * NB. If 'internalEncoding != externalEncoding' the cString method
+	   * of the other string will not return data in the internal encoding.
 	   */
 	  transmute = NO;
 	  other = 0;
@@ -2488,27 +2613,86 @@ transmute(GSStr self, NSString *aString)
   [self subclassResponsibility: _cmd];
 }
 
-/*
- * Try to initialise a unicode string.
- */
+- (id) initWithBytes: (const void*)chars
+	      length: (unsigned int)length
+	    encoding: (NSStringEncoding)encoding
+{
+  if (length > 0)
+    {
+      void	*tmp = NSZoneMalloc(GSObjCZone(self), length);
+
+      memcpy(tmp, chars, length);
+      chars = tmp;
+    }
+  return [self initWithBytesNoCopy: chars
+			    length: length
+			  encoding: encoding
+		      freeWhenDone: YES];
+}
+
+- (id) initWithBytesNoCopy: (const void*)chars
+		    length: (unsigned int)length
+		  encoding: (NSStringEncoding)encoding
+	      freeWhenDone: (BOOL)flag
+{
+  NSString	*c = NSStringFromClass([self class]);
+  NSString	*s = NSStringFromSelector(_cmd);
+
+  RELEASE(self);
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"[%@-%@] called on string already initialised", c, s];
+  return nil;
+}
+
+- (id) initWithCharacters: (unichar*)chars
+		   length: (unsigned int)length
+{
+  return [self initWithBytes: chars
+		      length: length * sizeof(unichar)
+		    encoding: NSUnicodeStringEncoding];
+}
+
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return [self initWithBytesNoCopy: chars
+			    length: length * sizeof(unichar)
+			  encoding: NSUnicodeStringEncoding
+		      freeWhenDone: flag];
 }
 
-/*
- * Try to initialise a 'C' string.
- * Only ever called if defEnc==intEnc
- */
+- (id) initWithCString: (char*)chars
+{
+  return [self initWithBytes: chars
+		      length: strlen(chars)
+		    encoding: externalEncoding];
+}
+
+- (id) initWithCString: (char*)chars
+	      encoding: (NSStringEncoding)encoding
+{
+  return [self initWithBytes: chars
+		      length: strlen(chars)
+		    encoding: encoding];
+}
+
+- (id) initWithCString: (char*)chars
+		length: (unsigned int)length
+{
+  return [self initWithBytes: chars
+		      length: length
+		    encoding: externalEncoding];
+}
+
 - (id) initWithCStringNoCopy: (char*)chars
 		      length: (unsigned int)length
 	        freeWhenDone: (BOOL)flag
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return [self initWithBytesNoCopy: chars
+			    length: length
+			  encoding: externalEncoding
+		      freeWhenDone: flag];
 }
 
 - (id) copyWithZone: (NSZone*)z
@@ -2551,7 +2735,7 @@ transmute(GSStr self, NSString *aString)
 
 - (const char *) cString
 {
-  return cString_c((GSStr)self, defEnc);
+  return cString_c((GSStr)self, externalEncoding);
 }
 
 - (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
@@ -2561,7 +2745,7 @@ transmute(GSStr self, NSString *aString)
 
 - (unsigned int) cStringLength
 {
-  return cStringLength_c((GSStr)self, defEnc);
+  return cStringLength_c((GSStr)self, externalEncoding);
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -2580,7 +2764,8 @@ transmute(GSStr self, NSString *aString)
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count > 0)
     {
-      [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &intEnc];
+      [aCoder encodeValueOfObjCType: @encode(NSStringEncoding)
+				 at: &internalEncoding];
       [aCoder encodeArrayOfObjCType: @encode(unsigned char)
 			      count: _count
 				 at: _contents.c];
@@ -2589,7 +2774,7 @@ transmute(GSStr self, NSString *aString)
 
 - (NSStringEncoding) fastestEncoding
 {
-  return intEnc;
+  return internalEncoding;
 }
 
 - (float) floatValue
@@ -2683,7 +2868,7 @@ transmute(GSStr self, NSString *aString)
     NSDefaultMallocZone());
   obj = [obj initWithBytes: (char*)_contents.c
 		    length: _count
-		  encoding: intEnc];
+		  encoding: internalEncoding];
   return obj;
 }
 
@@ -2692,7 +2877,9 @@ transmute(GSStr self, NSString *aString)
   GSMutableString	*obj;
 
   obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0, z);
-  obj = [obj initWithCString: (char*)_contents.c length: _count];
+  obj = [obj initWithBytes: (char*)_contents.c
+		    length: _count
+		  encoding: internalEncoding];
   return obj;
 }
 
@@ -2718,7 +2905,7 @@ transmute(GSStr self, NSString *aString)
 
 - (NSStringEncoding) smallestEncoding
 {
-  return intEnc;
+  return internalEncoding;
 }
 
 - (NSString*) substringFromRange: (NSRange)aRange
@@ -2889,7 +3076,7 @@ agree, create a new GSCInlineString otherwise.
 
 - (const char *) cString
 {
-  return cString_u((GSStr)self, defEnc);
+  return cString_u((GSStr)self, externalEncoding);
 }
 
 - (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
@@ -2899,7 +3086,7 @@ agree, create a new GSCInlineString otherwise.
 
 - (unsigned int) cStringLength
 {
-  return cStringLength_u((GSStr)self, defEnc);
+  return cStringLength_u((GSStr)self, externalEncoding);
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -3126,7 +3313,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       return nil;	// Invalid data
     }
   if (isASCII == YES
-    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    || (internalEncoding == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
       GSStr	me;
 
@@ -3190,7 +3377,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       return nil;	// Invalid data
     }
   if (isASCII == YES
-    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    || (internalEncoding == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
       GSStr	me;
 
@@ -3278,8 +3465,6 @@ agree, create a new GSUnicodeInlineString otherwise.
  * is capable of changing that flag (and its underlying storage) to
  * move from an 8-bit to a 16-bit representation is that should be
  * necessary because wide characters have been placed in the string.
- * If defEnc!=intEnc, GSMutableString objects will always have
- * _flags.wide set, since ite cannot have been initialised as a C String.
  */
 @implementation GSMutableString
 
@@ -3367,18 +3552,27 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 - (id) copyWithZone: (NSZone*)z
 {
-  id	copy;
+  GSMutableString	*copy;
 
   if (_flags.wide == 1)
     {
-      copy = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
+      copy = (GSMutableString*)NSAllocateObject(GSUnicodeInlineStringClass,
 	_count*sizeof(unichar), z);
-      copy = [copy initWithCharacters: _contents.u length: _count];
+      copy->_contents.u = (unichar*)&((GSUnicodeInlineString*)copy)[1];
+      copy->_count = _count;
+      copy->_flags.wide = 1;
+      copy->_flags.free = 0;
+      memcpy(copy->_contents.u, _contents.u, _count * sizeof(unichar));
     }
   else
     {
-      copy = (NSString*)NSAllocateObject(GSCInlineStringClass, _count, z);
-      copy = [copy initWithCString: (char*)_contents.c length: _count];
+      copy = (GSMutableString*)NSAllocateObject(GSCInlineStringClass,
+	_count, z);
+      copy->_contents.c = (unsigned char*)&((GSCInlineString*)copy)[1];
+      copy->_count = _count;
+      copy->_flags.wide = 0;
+      copy->_flags.free = 0;
+      memcpy(copy->_contents.c, _contents.c, _count);
     }
   return copy;
 }
@@ -3386,9 +3580,9 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (const char *) cString
 {
   if (_flags.wide == 1)
-    return cString_u((GSStr)self, defEnc);
+    return cString_u((GSStr)self, externalEncoding);
   else
-    return cString_c((GSStr)self, defEnc);
+    return cString_c((GSStr)self, externalEncoding);
 }
 
 - (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
@@ -3402,9 +3596,9 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (unsigned int) cStringLength
 {
   if (_flags.wide == 1)
-    return cStringLength_u((GSStr)self, defEnc);
+    return cStringLength_u((GSStr)self, externalEncoding);
   else
-    return cStringLength_c((GSStr)self, defEnc);
+    return cStringLength_c((GSStr)self, externalEncoding);
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -3460,7 +3654,8 @@ agree, create a new GSUnicodeInlineString otherwise.
 	}
       else
 	{
-	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &intEnc];
+	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding)
+				     at: &internalEncoding];
 	  [aCoder encodeArrayOfObjCType: @encode(unsigned char)
 				  count: _count
 				     at: _contents.c];
@@ -3473,7 +3668,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (_flags.wide == 1)
     return NSUnicodeStringEncoding;
   else
-    return intEnc;
+    return internalEncoding;
 }
 
 - (float) floatValue
@@ -3568,38 +3763,28 @@ agree, create a new GSUnicodeInlineString otherwise.
 	      length: (unsigned int)length
 	    encoding: (NSStringEncoding)encoding
 {
-  void	*chars = NSZoneMalloc(NSDefaultMallocZone(), length);
+  unsigned char	*chars = 0;
+  BOOL		isASCII = NO;
+  BOOL		isLatin1 = NO;
+  BOOL		shouldFree = NO;
 
-  memcpy(chars, bytes, length);
-  return [self initWithBytesNoCopy: chars
-			    length: length
-			  encoding: encoding
-		      freeWhenDone: YES];
-}
+  if (length > 0)
+    {
+      fixBOM((unsigned char**)&bytes, &length, &shouldFree, encoding);
+      chars = (unsigned char*)bytes;
+    }
 
-- (id) initWithBytesNoCopy: (const void*)bytes
-		    length: (unsigned int)length
-		  encoding: (NSStringEncoding)encoding
-	      freeWhenDone: (BOOL)flag
-{
-  BOOL	isASCII = NO;
-  BOOL	isLatin1 = NO;
-
-  if (encoding != intEnc && GSIsByteEncoding(encoding) == YES)
+  if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
     {
       unsigned i;
 
       for (i = 0; i < length; i++)
         {
-	  if (((unsigned char*)bytes)[i] > 127)
+	  if (((unsigned char*)chars)[i] > 127)
 	    {
 	      if (encoding == NSASCIIStringEncoding)
 		{
 		  RELEASE(self);
-		  if (flag == YES && bytes != 0)
-		    {
-		      NSZoneFree(NSZoneFromPointer(bytes), bytes);
-		    }
 		  return nil;	// Invalid data
 		}
 	      break;
@@ -3608,25 +3793,27 @@ agree, create a new GSUnicodeInlineString otherwise.
       if (i == length)
 	{
 	  /*
-	   * This is actually ASCII data ... so we can just stor it as if
+	   * This is actually ASCII data ... so we can just store it as if
 	   * in the internal 8bit encoding scheme.
 	   */
-	  encoding = intEnc;
+	  encoding = internalEncoding;
 	}
     }
 
-  if (encoding == intEnc)
+  if (encoding == internalEncoding)
     {
+      if (shouldFree == YES)
+        {
+	  _contents.c = chars;
+        }
+      else
+	{
+	  _contents.c = NSZoneMalloc(GSObjCZone(self), length);
+	  memcpy(_contents.c, chars, length);
+	}
       _count = length;
-      _capacity = length;
-      _contents.c = bytes;
       _flags.wide = 0;
-      _flags.free = flag;
-#if	GS_WITH_GC
-      _zone = GSAtomicMallocZone();
-#else
-      _zone = NSZoneFromPointer(bytes);
-#endif
+      _flags.free = YES;
       return self;
     }
 
@@ -3638,80 +3825,82 @@ agree, create a new GSUnicodeInlineString otherwise.
       unichar	*u = 0;
       unsigned	l = 0;
 
-      if (GSToUnicode(&u, &l, (unsigned char*)bytes, length, encoding,
+      if (GSToUnicode(&u, &l, (unsigned char*)chars, length, encoding,
 	GSObjCZone(self), 0) == NO)
 	{
 	  RELEASE(self);
-	  if (flag == YES && bytes != 0)
+	  if (shouldFree == YES)
 	    {
-	      NSZoneFree(NSZoneFromPointer(bytes), bytes);
+	      NSZoneFree(NSZoneFromPointer(chars), chars);
 	    }
 	  return nil;	// Invalid data
 	}
-      if (flag == YES && bytes != 0)
-	{
-	  NSZoneFree(NSZoneFromPointer(bytes), bytes);
-	}
-      bytes = u;
+      chars = (unsigned char*)u;
       length = l * sizeof(unichar);
-      flag = YES;
+      shouldFree = YES;
     }
 
   length /= sizeof(unichar);
-  if (GSUnicode(bytes, length, &isASCII, &isLatin1) != length)
+  if (GSUnicode((unichar*)chars, length, &isASCII, &isLatin1) != length)
     {
-      RELEASE(self);
-      if (flag == YES && bytes != 0)
+      if (shouldFree == YES && chars != 0)
         {
-	  NSZoneFree(NSZoneFromPointer(bytes), bytes);
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
         }
       return nil;	// Invalid data
     }
 
   if (isASCII == YES
-    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    || (internalEncoding == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
-      unsigned char	*buf;
-
-#if	GS_WITH_GC
-      _zone = GSAtomicMallocZone();
-#else
-      _zone = NSDefaultMallocZone();
-#endif
-      buf = NSZoneMalloc(_zone, length);
+      _contents.c = NSZoneMalloc(GSObjCZone(self), length);
       _count = length;
-      _capacity = length;
-      _contents.c = buf;
       _flags.wide = 0;
       _flags.free = 1;
       while (length-- > 0)
         {
-	  buf[length] = ((unichar*)bytes)[length];
+	  _contents.c[length] = ((unichar*)chars)[length];
         }
-      if (flag == YES && bytes != 0)
+      if (shouldFree == YES && chars != 0)
         {
-	  NSZoneFree(NSZoneFromPointer(bytes), bytes);
+	  NSZoneFree(NSZoneFromPointer(chars), chars);
         }
+      return self;
     }
   else
     {
-      _count = length;
-      _capacity = length;
-      _contents.u = bytes;
-      _flags.wide = 1;
-      if (flag == YES && bytes != 0)
-	{
-#if	GS_WITH_GC
-	  _zone = GSAtomicMallocZone();
-#else
-	  _zone = NSZoneFromPointer(bytes);
-#endif
-	  _flags.free = 1;
-	}
+      if (shouldFree == YES)
+        {
+	  _contents.u = (unichar*)chars;
+        }
       else
 	{
-	  _zone = 0;
+	  _contents.u = NSZoneMalloc(GSObjCZone(self),
+	    length * sizeof(unichar));
+	  memcpy(_contents.u, chars, length * sizeof(unichar));
 	}
+      _count = length;
+      _flags.wide = 1;
+      _flags.free = YES;
+      return self;
+    }
+}
+
+- (id) initWithBytesNoCopy: (const void*)bytes
+		    length: (unsigned int)length
+		  encoding: (NSStringEncoding)encoding
+	      freeWhenDone: (BOOL)flag
+{
+  /*
+   * We can't use a 'const void*' as our buffer because we are going to
+   * modify it ... so we do a copy anyway and free the original if needed.
+   */
+  self = [self initWithBytes: bytes
+		      length: length
+		    encoding: encoding];
+  if (flag == YES && bytes != 0)
+    {
+      NSZoneFree(NSZoneFromPointer((void*)bytes), (void*)bytes);
     }
   return self;
 }
@@ -3751,7 +3940,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 {
   return [self initWithBytesNoCopy: (void*)chars
    			    length: length
-			  encoding: defEnc
+			  encoding: externalEncoding
 		      freeWhenDone: flag];
 }
 
@@ -3861,7 +4050,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   else
     obj = [obj initWithBytes: (char*)_contents.c
 		      length: _count
-		    encoding: intEnc];
+		    encoding: internalEncoding];
   return obj;
 }
 
@@ -3876,7 +4065,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   else
     obj = [obj initWithBytes: (char*)_contents.c
 		      length: _count
-		    encoding: intEnc];
+		    encoding: internalEncoding];
   return obj;
 }
 
@@ -3972,10 +4161,6 @@ agree, create a new GSUnicodeInlineString otherwise.
 	  if (other == 0)
 	    {
 	      /*
-	       * As we got here, intEnc == defEnc, so we can use standard
-	       * CString methods to get the characters into our buffer,
-	       * or may even be able to copy from another string directly.
-	       *
 	       * Since getCString appends a '\0' terminator, we must handle
 	       * that problem in copying data into our buffer.  Either by
 	       * saving and restoring the character which would be
@@ -3987,7 +4172,8 @@ agree, create a new GSUnicodeInlineString otherwise.
 		  unsigned char	tmp = _contents.c[aRange.location + length];
 
 		  [aString getCString: (char*)&_contents.c[aRange.location]
-			    maxLength: length];
+			    maxLength: length
+			     encoding: internalEncoding];
 		  _contents.c[aRange.location + length] = tmp;
 		}
 	      else
@@ -4000,10 +4186,11 @@ agree, create a new GSUnicodeInlineString otherwise.
 		  if (l > 0)
 		    {
 		      [aString getCString: (char*)&_contents.c[aRange.location]
-				maxLength: l];
+				maxLength: l
+				 encoding: internalEncoding];
 		    }
 		  u = [aString characterAtIndex: l];
-		  GSFromUnicode(&dst, &size, &u, 1, intEnc, 0, 0);
+		  GSFromUnicode(&dst, &size, &u, 1, internalEncoding, 0, 0);
 		}
 	    }
 	  else
@@ -4057,10 +4244,6 @@ agree, create a new GSUnicodeInlineString otherwise.
 	  unsigned	l;
 
 	  /*
-	   * transmute() will leave us non-wide and return other == 0,
-	   * only if intEnc == defEnc, so we get use the cstring methods
-	   * to copy directly to our buffer.
-	   *
 	   * Since getCString appends a '\0' terminator, we must ask for
 	   * one character less than we actually want, then get the last
 	   * character separately.
@@ -4068,10 +4251,12 @@ agree, create a new GSUnicodeInlineString otherwise.
 	  l = len - 1;
 	  if (l > 0)
 	    {
-	      [aString getCString: (char*)_contents.c maxLength: l];
+	      [aString getCString: (char*)_contents.c
+			maxLength: l
+			 encoding: internalEncoding];
 	    }
 	  _contents.c[l]
-	    = encode_unitochar([aString characterAtIndex: l], intEnc);
+	    = encode_unitochar([aString characterAtIndex: l], internalEncoding);
 	}
       else
 	{
@@ -4087,7 +4272,9 @@ agree, create a new GSUnicodeInlineString otherwise.
       return NSUnicodeStringEncoding;
     }
   else
-    return intEnc;
+    {
+      return internalEncoding;
+    }
 }
 
 - (NSString*) substringFromRange: (NSRange)aRange
@@ -4385,9 +4572,9 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (const char *) cString
 {
   if (((GSStr)_parent)->_flags.wide == 1)
-    return cString_u((GSStr)_parent, defEnc);
+    return cString_u((GSStr)_parent, externalEncoding);
   else
-    return cString_c((GSStr)_parent, defEnc);
+    return cString_c((GSStr)_parent, externalEncoding);
 }
 
 - (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
@@ -4401,9 +4588,9 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (unsigned int) cStringLength
 {
   if (((GSStr)_parent)->_flags.wide == 1)
-    return cStringLength_u((GSStr)_parent, defEnc);
+    return cStringLength_u((GSStr)_parent, externalEncoding);
   else
-    return cStringLength_c((GSStr)_parent, defEnc);
+    return cStringLength_c((GSStr)_parent, externalEncoding);
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -4425,7 +4612,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (((GSStr)_parent)->_flags.wide == 1)
     return NSUnicodeStringEncoding;
   else
-    return intEnc;
+    return internalEncoding;
 }
 
 - (void) getCharacters: (unichar*)buffer
@@ -4542,7 +4729,9 @@ agree, create a new GSUnicodeInlineString otherwise.
       return NSUnicodeStringEncoding;
     }
   else
-    return intEnc;
+    {
+      return internalEncoding;
+    }
 }
 
 @end
@@ -4574,18 +4763,19 @@ agree, create a new GSUnicodeInlineString otherwise.
  */
 #define _self	((GSStr)self)
 
-- (id) initWithCharacters: (unichar*)byteString
-		   length: (unsigned int)length
-	     freeWhenDone: (BOOL)flag
+- (id) initWithBytes: (void*)bytes
+	      length: (unsigned int)length
+	    encoding: (NSStringEncoding)encoding
 {
   [NSException raise: NSGenericException
 	      format: @"Attempt to init a constant string"];
   return nil;
 }
 
-- (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
-		freeWhenDone: (BOOL)flag
+- (id) initWithBytesNoCopy: (void*)bytes
+		    length: (unsigned int)length
+		  encoding: (NSStringEncoding)encoding
+	      freeWhenDone: (BOOL)flag
 {
   [NSException raise: NSGenericException
 	      format: @"Attempt to init a constant string"];
@@ -4658,7 +4848,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 	  if (c > 127)
 	    {
-	      c = encode_chartouni(c, intEnc);
+	      c = encode_chartouni(c, internalEncoding);
 	    }
 	  ret = (ret << 5) + ret + c;
 	}
@@ -4923,7 +5113,7 @@ void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
     {
       BOOL	widen = NO;
 
-      if (intEnc == NSISOLatin1StringEncoding)
+      if (internalEncoding == NSISOLatin1StringEncoding)
 	{
 	  unsigned	i;
 
@@ -4993,7 +5183,7 @@ void GSStrAppendUnichar(GSStr s, unichar u)
    */
   if (s->_flags.wide == 0)
     {
-      if (u > 255 || (u > 127 && intEnc != NSISOLatin1StringEncoding))
+      if (u > 255 || (u > 127 && internalEncoding != NSISOLatin1StringEncoding))
 	{
 	  GSStrWiden(s);
 	}
@@ -5026,7 +5216,7 @@ void GSStrAppendUnichar(GSStr s, unichar u)
  */
 void GSStrExternalize(GSStr s)
 {
-  if (s->_flags.wide == 0 && intEnc != defEnc)
+  if (s->_flags.wide == 0 && internalEncoding != externalEncoding)
     {
       GSStrWiden(s);
     }

@@ -329,7 +329,7 @@ static void GSSetupEncodingTable(void)
     }
 }
 
-static BOOL GSEncodingSupported(NSStringEncoding enc)
+BOOL GSEncodingSupported(NSStringEncoding enc)
 {
   GSSetupEncodingTable();
 
