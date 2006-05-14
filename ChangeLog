@@ -1,3 +1,10 @@
+2006-05-15  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPredicate.m:
+	Extracted all the parsing into a speparate class
+	GSPredicateScanner. This change is based on code by Nikolaus
+	Schaller <hns@computer.org>, but extends this.
+
 2006-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m:
