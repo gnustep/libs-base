@@ -217,11 +217,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 - (id) handleQueryWithUnboundKey: (NSString*)aKey
 {
   NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
-				     self,
-				     @"NSTargetObjectUserInfoKey",
-				     (aKey ? aKey : @"(nil)"),
-				     @"NSUnknownUserInfoKey",
-				     nil];
+    self, @"NSTargetObjectUserInfoKey",
+    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
+    nil];
   NSException *exp = [NSException exceptionWithName: NSUndefinedKeyException
 				  reason: @"Unable to find value for key"
 				  userInfo: dict];
@@ -235,11 +233,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 - (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey
 {
   NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
-				     (anObject ? anObject : @"(nil)"),
-				     @"NSTargetObjectUserInfoKey",
-				     (aKey ? aKey : @"(nil)"),
-				     @"NSUnknownUserInfoKey",
-				     nil];
+    (anObject ? (id)anObject : (id)@"(nil)"), @"NSTargetObjectUserInfoKey",
+    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
+    nil];
   NSException *exp = [NSException exceptionWithName: NSUndefinedKeyException
 				  reason: @"Unable to set value for key"
 				  userInfo: dict];
@@ -345,11 +341,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     }
 
   dict = [NSDictionary dictionaryWithObjectsAndKeys:
-				     (anObject ? anObject : @"(nil)"),
-				     @"NSTargetObjectUserInfoKey",
-				     (aKey ? aKey : @"(nil)"),
-				     @"NSUnknownUserInfoKey",
-				     nil];
+    (anObject ? (id)anObject : (id)@"(nil)"), @"NSTargetObjectUserInfoKey",
+    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
+    nil];
   exp = [NSException exceptionWithName: NSInvalidArgumentException
 				reason: @"Unable to set nil value for key"
 			      userInfo: dict];
@@ -801,11 +795,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       return [self handleQueryWithUnboundKey: aKey];
     }
   dict = [NSDictionary dictionaryWithObjectsAndKeys:
-				     self,
-				     @"NSTargetObjectUserInfoKey",
-				     (aKey ? aKey : @"(nil)"),
-				     @"NSUnknownUserInfoKey",
-				     nil];
+    self, @"NSTargetObjectUserInfoKey",
+    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
+    nil];
   exp = [NSException exceptionWithName: NSUndefinedKeyException
 				reason: @"Unable to find value for key"
 			      userInfo: dict];

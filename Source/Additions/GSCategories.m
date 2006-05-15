@@ -992,7 +992,7 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
    * Ordering objects by their address is pretty useless,
    * so subclasses should override this is some useful way.
    */
-  if (self > anObject)
+  if ((id)self > anObject)
     {
       return NSOrderedDescending;
     }

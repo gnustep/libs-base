@@ -4,6 +4,17 @@
 	content.
 	* Source/NSPredicate.m: Revert to previous version as last change
 	contained broken code and wouldn't compile.
+	* Source/NSKeyValueCoding.m:
+	* Source/GSArray.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSInvocation.m:
+	* Source/NSCoder.m:
+	* Source/NSObject.m:
+	* Source/Additions/GSCategories.m:
+	* Headers/Foundation/NSLock.h:
+	* Tools/AGSHtml.m:
+	* Tools/autogsdoc.m:
+	Use casts to avoid spurious warnings from gcc-4.1
 
 2006-05-15  Fred Kiefer <FredKiefer@gmx.de>
 
