@@ -123,8 +123,9 @@
 
 - (void) encodePropertyList: (id)plist
 {
-  id    anObject = plist ? [NSSerializer serializePropertyList: plist] : nil;
+  id    anObject;
 
+  anObject = plist ? (id)[NSSerializer serializePropertyList: plist] : nil;
   [self encodeValueOfObjCType: @encode(id) at: &anObject];
 }
 

@@ -2203,7 +2203,7 @@ main(int argc, char **argv, char **env)
 		    {
 		      NSLog(@"Replace %@ with %@",
 			[s substringWithRange: replace],
-			repstr ? repstr : @"self");
+			repstr ? (id)repstr : (id)@"self");
 		    }
 		  if (repstr != nil)
 		    {

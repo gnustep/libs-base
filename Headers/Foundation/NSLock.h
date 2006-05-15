@@ -222,7 +222,7 @@
  * </example>
  */
 #define GS_INITIALIZED_LOCK(IDENT,CLASSNAME) \
-           (IDENT != nil ? IDENT : [CLASSNAME newLockAt: &IDENT])
+           (IDENT != nil ? (id)IDENT : (id)[CLASSNAME newLockAt: &IDENT])
 
 /**
  *  Defines the <code>newLockAt:</code> method.
