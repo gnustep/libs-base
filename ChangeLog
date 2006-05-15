@@ -1,3 +1,10 @@
+2006-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Fix error when parsing response with no
+	content.
+	* Source/NSPredicate.m: Revert to previous version as last change
+	contained broken code and wouldn't compile.
+
 2006-05-15  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPredicate.m:
