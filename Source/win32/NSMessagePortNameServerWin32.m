@@ -37,6 +37,8 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSUserDefaults.h"
 
+#include "GNUstepBase/GSMime.h"
+
 #include "GSPortPrivate.h"
 
 #define	UNISTR(X) \
@@ -227,6 +229,16 @@ OutputDebugStringW(L"");
 
 + (NSString *) _translate: (NSString *)name
 {
+  NSData		*data;
+
+  /*
+   * Make sure name is representable in the registry ...
+   * assume base64 encoded strings are valid.
+   */
+  data = [name dataUsingEncoding: NSUTF8StringEncoding];
+  data = [GSMimeDocument encodeBase64: data];
+  name = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
+  AUTORELEASE(name);
   return name;
 }
 

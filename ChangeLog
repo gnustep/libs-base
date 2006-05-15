@@ -1,7 +1,28 @@
-2006-01-10 00:11 Gregory John Casamento <greg_casamento@yahoo.com>
+2006-05-12  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSKeyedUnarchiver.m: Added private method replaceObject:
-	withObject:.
+	* Source/GSString.m: validate UTF-16 data when producing a Cstring
+	* Source/NSCharacterSetData.h: Add code plane 16 (private use)
+	* Source/NSCharacterSet.m: Fix to support code plane 16
+	* Source/GSString.m: Attempt to fix error making a mutable copy of
+	an 8bit string when the external Cstring encoding is not the same as
+	the internal one. Use new initWithBytes... method specifying the
+	encoding used in those cases.
+
+2006-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSBundle.h: add ([bundleWithIdentifier:])
+	* Source/NSBundle.m: implement ([bundleWithIdentifier:]) and prevent
+	loading of multiple bundles with the same non-nil identifier.
+	Use standardised path as cache key to prevent same bundle being
+	loaded multiple times via symlinks etc.
+	* Source/NSMessagePortNameServer.m: Fixup for names which contain bad
+	characters for in a filename.
+	* Source/win32/NSMessagePortNameServerWin32.m: ditto
+
+2006-05-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Check for content-length specified as
+	zero, and mark parsing as complete without attempting to read body.
 
 2006-05-09 Nicolas Roard <nicolas@roard.com>
 
@@ -95,7 +116,6 @@
 	* Resources/Languages/Ukrainian: New file
 	* Resources/Languages/UkrainianRussian: Removed wrong file
 	
->>>>>>> .merge-right.r22881
 2006-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Avoid a couple of minor rounding errors
@@ -143,7 +163,6 @@
 	* Source/NSPropertyList.m (BinaryPLGenerator - storeCount:):
 	Corrected line forgotten when applying last patch.
 
->>>>>>> .merge-right.r22807
 2006-04-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: ([GSSAXHandler-dealloc]) fix memory leak.
@@ -603,7 +622,6 @@
 
 	* Source/Additions/GSCategories.m: Fix MD5 digest for 64bit CPU
 
->>>>>>> .merge-right.r22748
 2006-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexPath.m: new
@@ -640,7 +658,6 @@
 
 	* Source/NSDistributedLock.m: ([description]) implemented
 
->>>>>>> .merge-right.r22474
 2006-01-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: ([addObject:]) fix error in check for
@@ -725,6 +742,11 @@
 	Support '%T' and '%t' as supplied by unix date/time locale info.
 	* configure.ac: Ensure uintptr_t and intptr_t exist
 	* configure: regenerate
+
+2006-01-10 00:11 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSKeyedUnarchiver.m: Added private method replaceObject:
+	withObject:.
 
 2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -941,48 +941,58 @@ canBeConvertedToEncoding_u(GSStr self, NSStringEncoding enc)
   unsigned	c = self->_count;
   BOOL		result = YES;
 
-  if (c > 0 && enc != NSUTF8StringEncoding && enc != NSUnicodeStringEncoding)
+  if (c > 0)
     {
-      if (enc == NSISOLatin1StringEncoding)
+      if (enc == NSUTF8StringEncoding || enc == NSUnicodeStringEncoding)
 	{
-	  unsigned	i;
-
-	  /*
-	   * If all the unicode characters are in the 0 to 255 range
-	   * they are all latin1.
-	   */
-	  for (i = 0; i < self->_count; i++)
+	  if (GSUnicode(self->_contents.u, c, 0, 0) != c)
 	    {
-	      if (self->_contents.u[i] > 255)
-		{
-		  result = NO;
-		  break;
-		}
-	    }
-	}
-      else if (enc == NSASCIIStringEncoding)
-	{
-	  unsigned	i;
-
-	  /*
-	   * If all the unicode characters are in the 0 to 127 range
-	   * they are all ascii.
-	   */
-	  for (i = 0; i < self->_count; i++)
-	    {
-	      if (self->_contents.u[i] > 127)
-		{
-		  result = NO;
-		  break;
-		}
+	      return NO;
 	    }
 	}
       else
 	{
-	  unsigned	dummy = 0;	// Hold returned length.
+	  if (enc == NSISOLatin1StringEncoding)
+	    {
+	      unsigned	i;
 
-	  result = GSFromUnicode(0, &dummy, self->_contents.u, c, enc,
-	    0, GSUniStrict);
+	      /*
+	       * If all the unicode characters are in the 0 to 255 range
+	       * they are all latin1.
+	       */
+	      for (i = 0; i < self->_count; i++)
+		{
+		  if (self->_contents.u[i] > 255)
+		    {
+		      result = NO;
+		      break;
+		    }
+		}
+	    }
+	  else if (enc == NSASCIIStringEncoding)
+	    {
+	      unsigned	i;
+
+	      /*
+	       * If all the unicode characters are in the 0 to 127 range
+	       * they are all ascii.
+	       */
+	      for (i = 0; i < self->_count; i++)
+		{
+		  if (self->_contents.u[i] > 127)
+		    {
+		      result = NO;
+		      break;
+		    }
+		}
+	    }
+	  else
+	    {
+	      unsigned	dummy = 0;	// Hold returned length.
+
+	      result = GSFromUnicode(0, &dummy, self->_contents.u, c, enc,
+		0, GSUniStrict);
+	    }
 	}
     }
   return result;
@@ -1130,8 +1140,15 @@ cString_u(GSStr self, NSStringEncoding enc)
     }
   else if (enc == NSUnicodeStringEncoding)
     {
-      unichar	*tmp = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), (c + 1)*2);
+      unichar	*tmp;
+      unsigned	l;
 
+      if ((l = GSUnicode(self->_contents.u, c, 0, 0)) != c)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"NSString is not legal UTF-16 at %u", l];
+	}
+      tmp = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), (c + 1)*2);
       memcpy(tmp, self->_contents.u, c*2);
       tmp[c] = 0;
       [NSData dataWithBytesNoCopy: tmp length: (c + 1)*2 freeWhenDone: YES];
@@ -1207,8 +1224,7 @@ cStringLength_u(GSStr self, NSStringEncoding enc)
     {
       unsigned	l = 0;
 
-      if (GSFromUnicode(0, &l, self->_contents.u, c, enc, 0, GSUniStrict)
-	== NO)
+      if (GSFromUnicode(0, &l, self->_contents.u, c, enc, 0, GSUniStrict) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cStringLength from Unicode string."];
@@ -2665,7 +2681,9 @@ transmute(GSStr self, NSString *aString)
 
   obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0,
     NSDefaultMallocZone());
-  obj = [obj initWithCString: (char*)_contents.c length: _count];
+  obj = [obj initWithBytes: (char*)_contents.c
+		    length: _count
+		  encoding: intEnc];
   return obj;
 }
 
@@ -3546,6 +3564,158 @@ agree, create a new GSUnicodeInlineString otherwise.
   return [self initWithCapacity: 0];
 }
 
+- (id) initWithBytes: (const void*)bytes
+	      length: (unsigned int)length
+	    encoding: (NSStringEncoding)encoding
+{
+  void	*chars = NSZoneMalloc(NSDefaultMallocZone(), length);
+
+  memcpy(chars, bytes, length);
+  return [self initWithBytesNoCopy: chars
+			    length: length
+			  encoding: encoding
+		      freeWhenDone: YES];
+}
+
+- (id) initWithBytesNoCopy: (const void*)bytes
+		    length: (unsigned int)length
+		  encoding: (NSStringEncoding)encoding
+	      freeWhenDone: (BOOL)flag
+{
+  BOOL	isASCII = NO;
+  BOOL	isLatin1 = NO;
+
+  if (encoding != intEnc && GSIsByteEncoding(encoding) == YES)
+    {
+      unsigned i;
+
+      for (i = 0; i < length; i++)
+        {
+	  if (((unsigned char*)bytes)[i] > 127)
+	    {
+	      if (encoding == NSASCIIStringEncoding)
+		{
+		  RELEASE(self);
+		  if (flag == YES && bytes != 0)
+		    {
+		      NSZoneFree(NSZoneFromPointer(bytes), bytes);
+		    }
+		  return nil;	// Invalid data
+		}
+	      break;
+	    }
+        }
+      if (i == length)
+	{
+	  /*
+	   * This is actually ASCII data ... so we can just stor it as if
+	   * in the internal 8bit encoding scheme.
+	   */
+	  encoding = intEnc;
+	}
+    }
+
+  if (encoding == intEnc)
+    {
+      _count = length;
+      _capacity = length;
+      _contents.c = bytes;
+      _flags.wide = 0;
+      _flags.free = flag;
+#if	GS_WITH_GC
+      _zone = GSAtomicMallocZone();
+#else
+      _zone = NSZoneFromPointer(bytes);
+#endif
+      return self;
+    }
+
+  /*
+   * Any remaining encoding needs to be converted to UTF-16.
+   */
+  if (encoding != NSUnicodeStringEncoding)
+    {
+      unichar	*u = 0;
+      unsigned	l = 0;
+
+      if (GSToUnicode(&u, &l, (unsigned char*)bytes, length, encoding,
+	GSObjCZone(self), 0) == NO)
+	{
+	  RELEASE(self);
+	  if (flag == YES && bytes != 0)
+	    {
+	      NSZoneFree(NSZoneFromPointer(bytes), bytes);
+	    }
+	  return nil;	// Invalid data
+	}
+      if (flag == YES && bytes != 0)
+	{
+	  NSZoneFree(NSZoneFromPointer(bytes), bytes);
+	}
+      bytes = u;
+      length = l * sizeof(unichar);
+      flag = YES;
+    }
+
+  length /= sizeof(unichar);
+  if (GSUnicode(bytes, length, &isASCII, &isLatin1) != length)
+    {
+      RELEASE(self);
+      if (flag == YES && bytes != 0)
+        {
+	  NSZoneFree(NSZoneFromPointer(bytes), bytes);
+        }
+      return nil;	// Invalid data
+    }
+
+  if (isASCII == YES
+    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
+    {
+      unsigned char	*buf;
+
+#if	GS_WITH_GC
+      _zone = GSAtomicMallocZone();
+#else
+      _zone = NSDefaultMallocZone();
+#endif
+      buf = NSZoneMalloc(_zone, length);
+      _count = length;
+      _capacity = length;
+      _contents.c = buf;
+      _flags.wide = 0;
+      _flags.free = 1;
+      while (length-- > 0)
+        {
+	  buf[length] = ((unichar*)bytes)[length];
+        }
+      if (flag == YES && bytes != 0)
+        {
+	  NSZoneFree(NSZoneFromPointer(bytes), bytes);
+        }
+    }
+  else
+    {
+      _count = length;
+      _capacity = length;
+      _contents.u = bytes;
+      _flags.wide = 1;
+      if (flag == YES && bytes != 0)
+	{
+#if	GS_WITH_GC
+	  _zone = GSAtomicMallocZone();
+#else
+	  _zone = NSZoneFromPointer(bytes);
+#endif
+	  _flags.free = 1;
+	}
+      else
+	{
+	  _zone = 0;
+	}
+    }
+  return self;
+}
+
 - (id) initWithCapacity: (unsigned)capacity
 {
   if (capacity < 2)
@@ -3569,110 +3739,20 @@ agree, create a new GSUnicodeInlineString otherwise.
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
-  BOOL	isASCII;
-  BOOL	isLatin1;
-
-  if (GSUnicode(chars, length, &isASCII, &isLatin1) != length)
-    {
-      RELEASE(self);
-      if (flag == YES && chars != 0)
-        {
-	  NSZoneFree(NSZoneFromPointer(chars), chars);
-        }
-      return nil;	// Invalid data
-    }
-  if (isASCII == YES
-    || (intEnc == NSISOLatin1StringEncoding && isLatin1 == YES))
-    {
-      unsigned char	*buf;
-
-#if	GS_WITH_GC
-      _zone = GSAtomicMallocZone();
-#else
-      _zone = NSDefaultMallocZone();
-#endif
-      buf = NSZoneMalloc(_zone, length);
-      _count = length;
-      _capacity = length;
-      _contents.c = buf;
-      _flags.wide = 0;
-      _flags.free = 1;
-      while (length-- > 0)
-        {
-	  buf[length] = (unsigned char)chars[length];
-        }
-      if (flag == YES && chars != 0)
-        {
-	  NSZoneFree(NSZoneFromPointer(chars), chars);
-        }
-    }
-  else
-    {
-      _count = length;
-      _capacity = length;
-      _contents.u = chars;
-      _flags.wide = 1;
-      if (flag == YES && chars != 0)
-	{
-#if	GS_WITH_GC
-	  _zone = GSAtomicMallocZone();
-#else
-	  _zone = NSZoneFromPointer(chars);
-#endif
-	  _flags.free = 1;
-	}
-      else
-	{
-	  _zone = 0;
-	}
-    }
-  return self;
+  return [self initWithBytesNoCopy: (void*)chars
+   			    length: length*sizeof(unichar)
+			  encoding: NSUnicodeStringEncoding
+		      freeWhenDone: flag];
 }
 
 - (id) initWithCStringNoCopy: (char*)chars
 		      length: (unsigned int)length
 	        freeWhenDone: (BOOL)flag
 {
-  if (defEnc != intEnc)
-    {
-      unichar	*u = 0;
-      unsigned	l = 0;
-
-      if (GSToUnicode(&u, &l, (unsigned char*)chars, length, defEnc,
-	GSObjCZone(self), 0) == NO)
-	{
-	  DESTROY(self);
-	}
-      else
-	{
-	  self = [self initWithCharactersNoCopy: u length: l freeWhenDone: YES];
-	}
-      if (flag == YES && chars != 0)
-	{
-	  NSZoneFree(NSZoneFromPointer(chars), chars);
-	}
-      return self;
-    }
-
-  if (flag == YES && chars != 0)
-    {
-#if	GS_WITH_GC
-      _zone = GSAtomicMallocZone();
-#else
-      _zone = NSZoneFromPointer(chars);
-#endif
-      _flags.free = 1;
-    }
-  else
-    {
-      _zone = 0;
-    }
-  _count = length;
-  _capacity = length;
-  _contents.c = (unsigned char*)chars;
-  _flags.wide = 0;
-
-  return self;
+  return [self initWithBytesNoCopy: (void*)chars
+   			    length: length
+			  encoding: defEnc
+		      freeWhenDone: flag];
 }
 
 - (id) initWithFormat: (NSString*)format
@@ -3779,7 +3859,9 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
   else
-    obj = [obj initWithCString: (char*)_contents.c length: _count];
+    obj = [obj initWithBytes: (char*)_contents.c
+		      length: _count
+		    encoding: intEnc];
   return obj;
 }
 
@@ -3792,7 +3874,9 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
   else
-    obj = [obj initWithCString: (char*)_contents.c length: _count];
+    obj = [obj initWithBytes: (char*)_contents.c
+		      length: _count
+		    encoding: intEnc];
   return obj;
 }
 
