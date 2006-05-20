@@ -864,7 +864,7 @@ handle_printf_atsign (FILE *stream,
 {
   if (length == 0)
     {
-      return [self initWithBytesNoCopy: (const void *)0
+      return [self initWithBytesNoCopy: (void *)0
 				length: 0
 			      encoding: encoding
 			  freeWhenDone: NO];
@@ -896,7 +896,7 @@ handle_printf_atsign (FILE *stream,
  * In the GNUstep implementation, your subclasses may override
  * this initialiser in order to have all others function.</p>
  */
-- (id) initWithBytesNoCopy: (const void*)bytes
+- (id) initWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding
 	      freeWhenDone: (BOOL)flag
