@@ -1,5 +1,9 @@
 2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Restore reversions with a bugfix for deserialising ascii strings
+
+2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	Revert last changes ... passed regression tests but broke some
 	software :-(
 
