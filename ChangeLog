@@ -1,3 +1,15 @@
+2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m:
+	* Source/NSSerializer.m:
+	Commit more string tidyups and simplifications made while I was
+	travelling.  Changed private internal string subclasses so that
+	they can't be re-initialised ... all instances are initialised
+	'manually' rather than through a method that could be called by
+	other code outside this file ... thus all initialisation by external
+	code goes through ([-initWithBytesNoCopy:length:encoding:shouldFree])
+	method of the placeholder string.
+
 2006-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Fix error when parsing response with no
