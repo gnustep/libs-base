@@ -463,7 +463,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 		      freeWhenDone: YES];
 }
 
-- (id) initWithBytesNoCopy: (const void*)bytes
+- (id) initWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding
 	      freeWhenDone: (BOOL)flag
@@ -478,7 +478,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
     {
       if (flag == YES && bytes != 0)
 	{
-	  NSZoneFree(NSZoneFromPointer((void*)bytes), (void*)bytes);
+	  NSZoneFree(NSZoneFromPointer(bytes), bytes);
 	}
       return nil;	// Invalid encoding
     }
@@ -606,7 +606,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 			 length: (unsigned)length
 		   freeWhenDone: (BOOL)flag
 {
-  return [self initWithBytesNoCopy: (const void*)chars
+  return [self initWithBytesNoCopy: (void*)chars
 			    length: length * sizeof(unichar)
 			  encoding: NSUnicodeStringEncoding
 		      freeWhenDone: flag];
@@ -624,7 +624,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 		      length: (unsigned)length
 		freeWhenDone: (BOOL)flag
 {
-  return [self initWithBytesNoCopy: (const void*)chars
+  return [self initWithBytesNoCopy: (void*)chars
 			    length: length
 			  encoding: externalEncoding
 		      freeWhenDone: flag];
@@ -2601,13 +2601,13 @@ transmute(GSStr self, NSString *aString)
       memcpy(tmp, chars, length);
       chars = tmp;
     }
-  return [self initWithBytesNoCopy: chars
+  return [self initWithBytesNoCopy: (void*)chars
 			    length: length
 			  encoding: encoding
 		      freeWhenDone: YES];
 }
 
-- (id) initWithBytesNoCopy: (const void*)chars
+- (id) initWithBytesNoCopy: (void*)chars
 		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding
 	      freeWhenDone: (BOOL)flag
@@ -2621,7 +2621,7 @@ transmute(GSStr self, NSString *aString)
   return nil;
 }
 
-- (id) initWithCharacters: (unichar*)chars
+- (id) initWithCharacters: (const unichar*)chars
 		   length: (unsigned int)length
 {
   return [self initWithBytes: chars
@@ -2639,14 +2639,14 @@ transmute(GSStr self, NSString *aString)
 		      freeWhenDone: flag];
 }
 
-- (id) initWithCString: (char*)chars
+- (id) initWithCString: (const char*)chars
 {
   return [self initWithBytes: chars
 		      length: strlen(chars)
 		    encoding: externalEncoding];
 }
 
-- (id) initWithCString: (char*)chars
+- (id) initWithCString: (const char*)chars
 	      encoding: (NSStringEncoding)encoding
 {
   return [self initWithBytes: chars
@@ -2654,7 +2654,7 @@ transmute(GSStr self, NSString *aString)
 		    encoding: encoding];
 }
 
-- (id) initWithCString: (char*)chars
+- (id) initWithCString: (const char*)chars
 		length: (unsigned int)length
 {
   return [self initWithBytes: chars
@@ -3731,21 +3731,17 @@ agree, create a new GSUnicodeInlineString otherwise.
     }
 }
 
-- (id) initWithBytesNoCopy: (const void*)bytes
+- (id) initWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding
 	      freeWhenDone: (BOOL)flag
 {
-  /*
-   * We can't use a 'const void*' as our buffer because we are going to
-   * modify it ... so we do a copy anyway and free the original if needed.
-   */
   self = [self initWithBytes: bytes
 		      length: length
 		    encoding: encoding];
   if (flag == YES && bytes != 0)
     {
-      NSZoneFree(NSZoneFromPointer((void*)bytes), (void*)bytes);
+      NSZoneFree(NSZoneFromPointer(bytes), bytes);
     }
   return self;
 }
@@ -4636,7 +4632,7 @@ agree, create a new GSUnicodeInlineString otherwise.
  */
 #define _self	((GSStr)self)
 
-- (id) initWithBytes: (void*)bytes
+- (id) initWithBytes: (const void*)bytes
 	      length: (unsigned int)length
 	    encoding: (NSStringEncoding)encoding
 {
