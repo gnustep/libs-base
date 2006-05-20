@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 
    <title>NSSerializer class reference</title>
    $Date$ $Revision$
@@ -49,9 +48,21 @@
 @class	NSDataMalloc;
 @interface NSDataMalloc : NSObject	// Help the compiler
 @end
+@class	GSInlineArray;
 @class	GSMutableArray;
 @interface GSMutableArray : NSObject	// Help the compiler
 @end
+@class	GSCString;
+@interface GSCString : NSObject	// Help the compiler
+@end
+@class	GSCBufferString;
+@interface GSCBufferString : NSObject	// Help the compiler
+@end
+@class	GSUnicodeString;
+@class	GSUnicodeBufferString;
+@interface GSUnicodeBufferString : NSObject	// Help the compiler
+@end
+@class	GSMutableString;
 
 /*
  *	Setup for inline operation of string map tables.
@@ -112,8 +123,14 @@ static Class	DataClass = 0;
 static Class	DateClass = 0;
 static Class	DictionaryClass = 0;
 static Class	MutableDictionaryClass = 0;
+static Class	CStringClass = 0;
+static Class	MStringClass = 0;
 static Class	StringClass = 0;
 static Class	NumberClass = 0;
+
+typedef struct {
+  @defs(GSString)
+} *ivars;
 
 typedef struct {
   NSMutableData	*data;
@@ -179,87 +196,86 @@ serializeToInfo(id object, _NSSerializerInfo* info)
     }
   c = GSObjCClass(object);
 
-  if (GSObjCIsKindOf(c, StringClass))
-    {
+  if ((GSObjCIsKindOf(c, CStringClass)
+       || (c == MStringClass && ((ivars)object)->_flags.wide == 0))
       /*
       We can only save it as a c-string if it only contains ASCII characters.
       Other characters might be decoded incorrectly when deserialized since
       the c-string encoding might be different then.
       */
-      if ([object canBeConvertedToEncoding: NSASCIIStringEncoding])
+      && [object canBeConvertedToEncoding: NSASCIIStringEncoding])
+    {
+      GSIMapNode	node;
+
+      if (info->shouldUnique)
+	node = GSIMapNodeForKey(&info->map, (GSIMapKey)object);
+      else
+	node = 0;
+      if (node == 0)
 	{
-	  GSIMapNode	node;
+	  unsigned	slen;
+	  unsigned	dlen;
 
+	  slen = [object length] + 1;
+	  (*info->appImp)(info->data, appSel, &st_cstring, 1);
+	  (*info->serImp)(info->data, serSel, slen);
+	  dlen = (*info->lenImp)(info->data, lenSel);
+	  (*info->setImp)(info->data, setSel, dlen + slen);
+	  [object getCString: (*info->datImp)(info->data, datSel) + dlen
+		   maxLength: slen
+		    encoding: NSASCIIStringEncoding];
 	  if (info->shouldUnique)
-	    node = GSIMapNodeForKey(&info->map, (GSIMapKey)object);
-	  else
-	    node = 0;
-	  if (node == 0)
-	    {
-	      unsigned	slen;
-	      unsigned	dlen;
-
-	      slen = [object length] + 1;
-	      (*info->appImp)(info->data, appSel, &st_cstring, 1);
-	      (*info->serImp)(info->data, serSel, slen);
-	      dlen = (*info->lenImp)(info->data, lenSel);
-	      (*info->setImp)(info->data, setSel, dlen + slen);
-	      [object getCString: (*info->datImp)(info->data, datSel) + dlen
-		       maxLength: slen
-			encoding: NSASCIIStringEncoding];
-	      if (info->shouldUnique)
-		GSIMapAddPair(&info->map,
-		    (GSIMapKey)object, (GSIMapVal)info->count++);
-	    }
-	  else
-	    {
-	      (*info->appImp)(info->data, appSel, &st_xref, 1);
-	      (*info->serImp)(info->data, serSel, node->value.uint);
-	    }
+	    GSIMapAddPair(&info->map,
+		(GSIMapKey)object, (GSIMapVal)info->count++);
 	}
       else
 	{
-	  GSIMapNode	node;
+	  (*info->appImp)(info->data, appSel, &st_xref, 1);
+	  (*info->serImp)(info->data, serSel, node->value.uint);
+	}
+    }
+  else if (GSObjCIsKindOf(c, StringClass))
+    {
+      GSIMapNode	node;
 
-	  if (info->shouldUnique)
-	    node = GSIMapNodeForKey(&info->map, (GSIMapKey)object);
-	  else
-	    node = 0;
-	  if (node == 0)
-	    {
-	      unsigned	slen;
-	      unsigned	dlen;
+      if (info->shouldUnique)
+	node = GSIMapNodeForKey(&info->map, (GSIMapKey)object);
+      else
+	node = 0;
+      if (node == 0)
+	{
+	  unsigned	slen;
+	  unsigned	dlen;
 
-	      slen = [object length];
-	      (*info->appImp)(info->data, appSel, &st_string, 1);
-	      (*info->serImp)(info->data, serSel, slen);
-	      dlen = (*info->lenImp)(info->data, lenSel);
-	      (*info->setImp)(info->data, setSel, dlen + slen*sizeof(unichar));
+	  slen = [object length];
+	  (*info->appImp)(info->data, appSel, &st_string, 1);
+	  (*info->serImp)(info->data, serSel, slen);
+	  dlen = (*info->lenImp)(info->data, lenSel);
+	  (*info->setImp)(info->data, setSel, dlen + slen*sizeof(unichar));
 #if NEED_WORD_ALIGNMENT
-	      /*
-	       * When packing data, an item may not be aligned on a
-	       * word boundary, so we work with an aligned buffer
-	       * and use memcmpy()
-	       */
-	      if ((dlen % __alignof__(uint32_t)) != 0)
-		{
-		  unichar buffer[slen];
-		  [object getCharacters: buffer];
-		  memcpy((*info->datImp)(info->data, datSel) + dlen, buffer,
-			 slen*sizeof(unichar));
-		}
-	      else
-#endif
-	      [object getCharacters: (*info->datImp)(info->data, datSel)+dlen];
-	      if (info->shouldUnique)
-		GSIMapAddPair(&info->map,
-		    (GSIMapKey)object, (GSIMapVal)info->count++);
+	  /*
+	   * When packing data, an item may not be aligned on a
+	   * word boundary, so we work with an aligned buffer
+	   * and use memcmpy()
+	   */
+ 	  if ((dlen % __alignof__(uint32_t)) != 0)
+	    {
+	      unichar buffer[slen];
+	      [object getCharacters: buffer];
+	      memcpy((*info->datImp)(info->data, datSel) + dlen, buffer,
+		     slen*sizeof(unichar));
 	    }
 	  else
-	    {
-	      (*info->appImp)(info->data, appSel, &st_xref, 1);
-	      (*info->serImp)(info->data, serSel, node->value.uint);
-	    }
+#endif
+	  [object getCharacters: (*info->datImp)(info->data, datSel) + dlen];
+	  if (info->shouldUnique)
+	    GSIMapAddPair(&info->map,
+		(GSIMapKey)object, (GSIMapVal)info->count++);
+	}
+      else
+	{
+	  (*info->appImp)(info->data, appSel, &st_xref, 1);
+	  (*info->serImp)(info->data, serSel, node->value.uint);
 	}
     }
   else if (GSObjCIsKindOf(c, ArrayClass))
@@ -365,6 +381,8 @@ static BOOL	shouldBeCompact = NO;
       DictionaryClass = [NSDictionary class];
       MutableDictionaryClass = [NSMutableDictionary class];
       StringClass = [NSString class];
+      CStringClass = [GSCString class];
+      MStringClass = [GSMutableString class];
     }
 }
 
@@ -434,6 +452,8 @@ static BOOL	uniquing = NO;	/* Make incoming strings unique	*/
 static Class	MACls = 0;	/* Mutable Array	*/
 static Class	DCls = 0;	/* Data			*/
 static Class	MDCls = 0;	/* Mutable Dictionary	*/
+static Class	USCls = 0;	/* Unicode String	*/
+static Class	CSCls = 0;	/* C String 		*/
 
 typedef struct {
   NSData	*data;
@@ -447,11 +467,15 @@ typedef struct {
 
 static SEL debSel;
 static SEL deiSel;
+static SEL csInitSel;
+static SEL usInitSel;
 static SEL dInitSel;
 static SEL maInitSel;
 static SEL mdInitSel;
 static SEL maAddSel;
 static SEL mdSetSel;
+static IMP csInitImp;
+static IMP usInitImp;
 static IMP dInitImp;
 static IMP maInitImp;
 static IMP mdInitImp;
@@ -540,16 +564,15 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
       case ST_CSTRING:
 	{
-	  NSString	*s;
+	  GSCString	*s;
 	  char		*b;
 	
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size);
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
-	  s = [[StringClass alloc] initWithBytesNoCopy: b
-						length: size
-					      encoding: NSASCIIStringEncoding
-					  freeWhenDone: YES];
+	  s = (GSCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
+	  s = (*csInitImp)(s, csInitSel, b, size-1, YES);
+
 	  /*
 	   * If we are supposed to be doing uniquing of strings, handle it.
 	   */
@@ -573,15 +596,41 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	{
 	  NSString	*s;
 	  unichar	*b;
+	  unsigned	i;
 	
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size*sizeof(unichar));
 	  (*info->debImp)(info->data, debSel, b, size*sizeof(unichar),
 	    info->cursor);
-	  s = [[StringClass alloc] initWithBytesNoCopy: b
-						length: size*sizeof(unichar)
-					      encoding: NSUnicodeStringEncoding
-					  freeWhenDone: YES];
+
+	  /*
+	   * Check to see if this really IS unicode ... if not, use a cString
+	   */
+	  for (i = 0; i < size; i++)
+	    {
+	      if (b[i] > 127)
+		{
+		  break;
+		}
+	    }
+	  if (i == size)
+	    {
+	      char	*p = (char*)b;
+
+	      for (i = 0; i < size; i++)
+		{
+		  p[i] = (char)b[i];
+		}
+	      p = NSZoneRealloc(NSDefaultMallocZone(), b, size);
+	      s = (NSString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
+	      s = (*csInitImp)(s, csInitSel, p, size, YES);
+	    }
+	  else
+	    {
+	      s = (NSString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
+	      s = (*usInitImp)(s, usInitSel, b, size, YES);
+	    }
+
 	  /*
 	   * If we are supposed to be doing uniquing of strings, handle it.
 	   */
@@ -808,6 +857,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     {
       debSel = @selector(deserializeBytes:length:atCursor:);
       deiSel = @selector(deserializeIntAtCursor:);
+      csInitSel = @selector(initWithCStringNoCopy:length:freeWhenDone:);
+      usInitSel = @selector(initWithCharactersNoCopy:length:freeWhenDone:);
       dInitSel = @selector(initWithBytesNoCopy:length:);
       maInitSel = @selector(initWithCapacity:);
       mdInitSel = @selector(initWithCapacity:);
@@ -816,6 +867,10 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       MACls = [GSMutableArray class];
       DCls = [NSDataMalloc class];
       MDCls = [GSMutableDictionary class];
+      USCls = [GSUnicodeBufferString class];
+      CSCls = [GSCBufferString class];
+      csInitImp = [CSCls instanceMethodForSelector: csInitSel];
+      usInitImp = [USCls instanceMethodForSelector: usInitSel];
       dInitImp = [DCls instanceMethodForSelector: dInitSel];
       maInitImp = [MACls instanceMethodForSelector: maInitSel];
       mdInitImp = [MDCls instanceMethodForSelector: mdInitSel];
