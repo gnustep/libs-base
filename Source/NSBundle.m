@@ -261,14 +261,19 @@ static NSString	*ExecutablePath()
    really needs it (So far only needed if using GNU dld library) */
 #ifdef    __MINGW32__
 const unichar *
-#else  
-const char *
-#endif
 objc_executable_location (void)
 {
   return [[ExecutablePath() stringByDeletingLastPathComponent]
 	     fileSystemRepresentation];
 }
+#else  
+const char *
+objc_executable_location (void)
+{
+  return [[ExecutablePath() stringByDeletingLastPathComponent]
+	     fileSystemRepresentation];
+}
+#endif
 
 static BOOL
 bundle_directory_readable(NSString *path)

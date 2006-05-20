@@ -2290,7 +2290,7 @@ static NSString		*mainFont = nil;
 {
   NSArray	*a;
   NSMutableString *ivarBuf = ivarsAtEnd ?
-    [NSMutableString stringWithCapacity: 1024] : nil;
+    (id)[NSMutableString stringWithCapacity: 1024] : nil;
   NSDictionary	*prop = [node attributes];
 
   node = [node firstChildElement];

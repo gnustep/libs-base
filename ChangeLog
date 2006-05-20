@@ -1,3 +1,57 @@
+2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Revert last changes ... passed regression tests but broke some
+	software :-(
+
+2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m:
+	* Source/NSSerializer.m:
+	Commit more string tidyups and simplifications made while I was
+	travelling.  Changed private internal string subclasses so that
+	they can't be re-initialised ... all instances are initialised
+	'manually' rather than through a method that could be called by
+	other code outside this file ... thus all initialisation by external
+	code goes through ([-initWithBytesNoCopy:length:encoding:shouldFree])
+	method of the placeholder string.
+
+2006-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Fix error when parsing response with no
+	content.
+	* Source/NSPredicate.m: Revert to previous version as last change
+	contained broken code and wouldn't compile.
+	* Source/NSKeyValueCoding.m:
+	* Source/GSArray.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSInvocation.m:
+	* Source/NSCoder.m:
+	* Source/NSObject.m:
+	* Source/Additions/GSCategories.m:
+	* Headers/Foundation/NSLock.h:
+	* Tools/AGSHtml.m:
+	* Tools/autogsdoc.m:
+	Use casts to avoid spurious warnings from gcc-4.1
+
+2006-05-15  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPredicate.m:
+	Extracted all the parsing into a speparate class
+	GSPredicateScanner. This change is based on code by Nikolaus
+	Schaller <hns@computer.org>, but extends this.
+
+2006-05-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m:
+	* Source/GSString.m:
+	Change to use ([initWithBytesNoCopy:length:encoding:freeWhenDone:])
+	as the primary/designated initialiser for strings and update code
+	to fix character encoding errors when copying mutable strings in
+	a UTF8 locale (ie where the internal encoding for 8bit strings is
+	not the same as the external encoding).
+	WARNING ... this is a restructuring of functionality which is core
+	to the library.  Please use with care and report any bugs found.
+
 2006-05-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: validate UTF-16 data when producing a Cstring

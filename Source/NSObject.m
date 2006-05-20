@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSObject class reference</title>
    $Date$ $Revision$
@@ -1388,8 +1389,9 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   mth = GSGetMethod(self, aSelector, YES, YES);
-  return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
-    : nil;
+  if (mth == 0)
+    return nil;
+  return [NSMethodSignature signatureWithObjCTypes:mth->method_types];
 }
 
 /**
@@ -2075,8 +2077,9 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   mth = GSGetMethod(self, aSelector, YES, YES);
-  return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
-    : nil;
+  if (mth == 0)
+    return nil;
+  return [NSMethodSignature signatureWithObjCTypes:mth->method_types];
 }
 
 - (IMP) methodFor: (SEL)aSel

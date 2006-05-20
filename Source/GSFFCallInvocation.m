@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
@@ -684,8 +685,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
     {
       GSMethod method;
       method = GSGetMethod((GSObjCIsInstance(_target)
-                            ? GSObjCClass(_target)
-                            : _target),
+                            ? (id)GSObjCClass(_target)
+                            : (id)_target),
                            _selector,
                            GSObjCIsInstance(_target),
                            YES);

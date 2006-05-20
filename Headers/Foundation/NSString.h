@@ -193,7 +193,7 @@ enum {
 - (id) initWithBytes: (const void*)bytes
 	      length: (unsigned int)length
 	    encoding: (NSStringEncoding)encoding;
-- (id) initWithBytesNoCopy: (const void*)bytes
+- (id) initWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding 
 	      freeWhenDone: (BOOL)flag;
