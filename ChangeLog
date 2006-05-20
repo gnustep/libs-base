@@ -1,5 +1,10 @@
 2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Revert last changes ... passed regression tests but broke some
+	software :-(
+
+2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSString.m:
 	* Source/NSSerializer.m:
 	Commit more string tidyups and simplifications made while I was
