@@ -670,7 +670,13 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 		      else
 			{
 			  (*mdSetImp)(d, mdSetSel, o, k);
-			  RELEASE(k);
+			  /*
+			   * Since a dictionary copies its keys rather
+			   * than retaining them, we must autorelease
+			   * rather than simply releasing as the key may
+			   * be referred to by a cross-reference later.
+			   */
+			  AUTORELEASE(k);
 			  RELEASE(o);
 			}
 		    }
