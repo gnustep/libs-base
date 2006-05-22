@@ -29,7 +29,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include "config.h"
@@ -572,7 +573,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 0;
-      me->_flags.free = 0;
+      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       while (length-- > 0)
         {
 	  me->_contents.c[length] = ((unichar*)chars)[length];
@@ -687,7 +688,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
       me->_count = f._count;
       me->_flags.wide = 1;
-      me->_flags.free = 1;
+      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       memcpy(me->_contents.u, f._contents.u, f._count*sizeof(unichar));
     }
   else
@@ -697,7 +698,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = f._count;
       me->_flags.wide = 0;
-      me->_flags.free = 1;
+      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       memcpy(me->_contents.c, f._contents.c, f._count);
     }
 
@@ -744,7 +745,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 0;
-      me->_flags.free = 1;
+      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       memcpy(me->_contents.c, ((GSStr)string)->_contents.c, length);
     }
   else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
@@ -759,7 +760,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 1;
-      me->_flags.free = 1;
+      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       memcpy(me->_contents.u, ((GSStr)string)->_contents.u,
 	length*sizeof(unichar));
     }
@@ -774,7 +775,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 1;
-      me->_flags.free = 1;
+      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       [string getCharacters: me->_contents.u];
     }
   return (id)me;
@@ -2920,7 +2921,7 @@ agree, create a new GSCInlineString otherwise.
       o->_count = _count;
       memcpy(o->_contents.c, _contents.c, _count);
       o->_flags.wide = 0;
-      o->_flags.free = 0;
+      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       return (id)o;
     }
   else
@@ -2972,7 +2973,7 @@ agree, create a new GSCInlineString otherwise.
   o->_count = _count;
   memcpy(o->_contents.c, _contents.c, _count);
   o->_flags.wide = 0;
-  o->_flags.free = 0;
+  o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
   return (id)o;
 }
 
@@ -3231,7 +3232,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       o->_count = _count;
       memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
       o->_flags.wide = 1;
-      o->_flags.free = 0;
+      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       return (id)o;
     }
   else
@@ -3284,7 +3285,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   o->_count = _count;
   memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
   o->_flags.wide = 1;
-  o->_flags.free = 0;
+  o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
   return (id)o;
 }
 
@@ -3403,7 +3404,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       o->_count = _count;
       memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
       o->_flags.wide = 1;
-      o->_flags.free = 0;
+      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       return (id)o;
     }
   else
@@ -3417,7 +3418,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       o->_count = _count;
       memcpy(o->_contents.c, _contents.c, _count);
       o->_flags.wide = 0;
-      o->_flags.free = 0;
+      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       return (id)o;
     }
 }
@@ -4139,7 +4140,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       memcpy(o->_contents.u, _contents.u + aRange.location,
 	aRange.length * sizeof(unichar));
       o->_flags.wide = 1;
-      o->_flags.free = 0;
+      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       return AUTORELEASE((id)o);
     }
   else
@@ -4154,7 +4155,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       o->_count = aRange.length;
       memcpy(o->_contents.c, _contents.c + aRange.location, aRange.length);
       o->_flags.wide = 0;
-      o->_flags.free = 0;
+      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       return AUTORELEASE((id)o);
     }
 }
@@ -4176,7 +4177,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       memcpy(o->_contents.u, _contents.u + aRange.location,
 	aRange.length * sizeof(unichar));
       o->_flags.wide = 1;
-      o->_flags.free = 0;
+      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       return AUTORELEASE((id)o);
     }
   else
@@ -4191,7 +4192,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       o->_count = aRange.length;
       memcpy(o->_contents.c, _contents.c + aRange.location, aRange.length);
       o->_flags.wide = 0;
-      o->_flags.free = 0;
+      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       return AUTORELEASE((id)o);
     }
 }
