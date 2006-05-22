@@ -7,6 +7,8 @@
 	* Source/GSString.m: Make sure inline strings have 'free' flag set and
 	add comments to say we use it to indicate ownership of buffer rather
 	than whether to free the data.  Maybe we should change the flag name?
+	* Source/Additions/Unicode.m: Fix missing brackets in byte order
+	handling for UTF-16.  Problem pointed out by David Ayers
 
 2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
 
