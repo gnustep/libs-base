@@ -1,9 +1,12 @@
 2006-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
-	Fix longstanding NSSerialiser deserialisation problem ... is not
-	retaining cross-referenced items... which is not a problem unless
+	* Source/NSSerializer.m: Fix longstanding deserialisation problem ...
+	is not retaining cross-referenced items... which is not a problem unless
 	the item happens to be a dictionary key which is copied/released
 	when the corresponding value is added to the dictionary.
+	* Source/GSString.m: Make sure inline strings have 'free' flag set and
+	add comments to say we use it to indicate ownership of buffer rather
+	than whether to free the data.  Maybe we should change the flag name?
 
 2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
 
