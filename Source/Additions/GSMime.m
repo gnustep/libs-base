@@ -2331,7 +2331,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 - (BOOL) _decodeBody: (NSData*)d
 {
   unsigned	l = [d length];
-  BOOL		result = NO;
+  BOOL		needsMore = YES;
 
   rawBodyLength += l;
 
@@ -2381,7 +2381,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
 	    [d length], [d length], [d bytes]);
 	}
-      result = YES;	/* Nothing more to do	*/
+      needsMore = NO;	/* Nothing more to do	*/
     }
   else if (boundary == nil)
     {
@@ -2395,7 +2395,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  NSLog(@"multipart decode attempt without boundary");
 	  flags.inBody = 0;
 	  flags.complete = 1;
-	  result = NO;
+	  needsMore = NO;
 	}
       else
 	{
@@ -2508,8 +2508,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		   */
 		  [document setContent: data];
 		}
+	      needsMore = NO;
 	    }
-	  result = YES;
 	}
     }
   else
@@ -2707,14 +2707,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	{
 	  flags.complete = 1;
 	  flags.inBody = 0;
-	  result = NO;
-	}
-      else
-	{
-	  result = YES;
+	  needsMore = NO;
 	}
     }
-  return result;
+  return needsMore;
 }
 
 - (BOOL) _unfoldHeader
