@@ -2455,6 +2455,10 @@ substring_c(GSStr self, NSRange aRange)
     @defs(GSCSubString)
   } *o;
 
+  if (aRange.length == 0)
+    {
+      return @"";
+    }
   o = (typeof(o))NSAllocateObject(GSCSubStringClass,
     0, NSDefaultMallocZone());
   o->_contents.c = self->_contents.c + aRange.location;
@@ -2473,6 +2477,10 @@ substring_u(GSStr self, NSRange aRange)
     @defs(GSUnicodeSubString)
   } *o;
 
+  if (aRange.length == 0)
+    {
+      return @"";
+    }
   o = (typeof(o))NSAllocateObject(GSUnicodeSubStringClass,
     0, NSDefaultMallocZone());
   o->_contents.u = self->_contents.u + aRange.location;
@@ -4127,6 +4135,10 @@ agree, create a new GSUnicodeInlineString otherwise.
 {
   GS_RANGE_CHECK(aRange, _count);
 
+  if (aRange.length == 0)
+    {
+      return @"";
+    }
   if (_flags.wide == 1)
     {
       struct {
@@ -4164,6 +4176,10 @@ agree, create a new GSUnicodeInlineString otherwise.
 {
   GS_RANGE_CHECK(aRange, _count);
 
+  if (aRange.length == 0)
+    {
+      return @"";
+    }
   if (_flags.wide == 1)
     {
       struct {
