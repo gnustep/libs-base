@@ -4,6 +4,8 @@
 	it needed more data even though it had actually completed.
 	* Source/NSException.m: Don't add stacktrace information if we are
 	not building with debug on.
+	* Source/GSString.m: Minor optimisation ... return @"" for all
+	substrings with a zero length range.
 
 2006-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
