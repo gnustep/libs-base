@@ -2839,7 +2839,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (shouldFree == NO)
     {
+#ifndef NDEBUG
+      GSDebugAllocationRemove(self->isa, self);
+#endif
       self->isa = dataStatic;
+#ifndef NDEBUG
+      GSDebugAllocationAdd(self->isa, self);
+#endif
     }
   bytes = aBuffer;
   length = bufferSize;
