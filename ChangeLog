@@ -2,6 +2,8 @@
 
 	* Source/Additions/GSMime.m: Fix some cases where parse was saying
 	it needed more data even though it had actually completed.
+	* Source/NSException.m: Don't add stacktrace information if we are
+	not building with debug on.
 
 2006-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 

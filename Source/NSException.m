@@ -46,6 +46,16 @@
 #endif
 #endif
 
+/*
+ * Turn off STACKTRACE if we don't have DEBUG defined ... if we are not built
+ * with DEBUG then we are probably missing stackframe information etc.
+ */
+#if !(defined(DEBUG))
+#if	defined(STACKTRACE)
+#undef	STACKTRACE
+#endif
+#endif
+
 #if	defined(STACKTRACE)
 
 // GSStackTrace inspired by  FYStackTrace.m
