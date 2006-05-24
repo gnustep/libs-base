@@ -1354,7 +1354,7 @@
   if (![self isAtEnd])
     {
       [NSException raise: NSInvalidArgumentException 
-		   format: @"Format string contains extra characters: \"%@\"", 
+		  format: @"Format string contains extra characters: \"%@\"", 
 		   [self string]];
     }
   return r;
@@ -1367,39 +1367,43 @@
 
 - (NSPredicate *) parseAnd
 {
-  NSPredicate *l = [self parseOr];
+  NSPredicate	*l = [self parseOr];
 
   while ([self scanPredicateKeyword: @"AND"])
     {
-      NSPredicate *r = [self parseOr];
+      NSPredicate	*r = [self parseOr];
 
-      if ([r isKindOfClass: [NSCompoundPredicate class]] && 
-	  [(NSCompoundPredicate *)r compoundPredicateType] == NSAndPredicateType)
+      if ([r isKindOfClass: [NSCompoundPredicate class]]
+	&& [(NSCompoundPredicate *)r compoundPredicateType]
+	== NSAndPredicateType)
         {
 	  // merge
-	  if ([l isKindOfClass:[NSCompoundPredicate class]] && 
-	      [(NSCompoundPredicate *)l compoundPredicateType] == NSAndPredicateType)
+	  if ([l isKindOfClass:[NSCompoundPredicate class]]
+	    && [(NSCompoundPredicate *)l compoundPredicateType]
+	    == NSAndPredicateType)
 	    {
 	      [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-				 addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+		addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
 	    }
 	  else
 	    {
 	      [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-				 insertObject: l atIndex: 0];
+		insertObject: l atIndex: 0];
 	      l = r;
 	    }
 	}
-      else if ([l isKindOfClass: [NSCompoundPredicate class]] &&  
-	       [(NSCompoundPredicate *)l compoundPredicateType] == NSAndPredicateType)
+      else if ([l isKindOfClass: [NSCompoundPredicate class]]
+	&& [(NSCompoundPredicate *)l compoundPredicateType]
+	== NSAndPredicateType)
         {
 	  // add to l
-	  [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] addObject: r];
+	  [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
+	    addObject: r];
 	}
       else
         {
 	  l = [NSCompoundPredicate andPredicateWithSubpredicates: 
-				       [NSArray arrayWithObjects:l, r, nil]];
+	    [NSArray arrayWithObjects:l, r, nil]];
 	}
     }
   return l;
@@ -1414,7 +1418,7 @@
       if (![self scanString: @")" intoString: NULL])
         {
 	  [NSException raise: NSInvalidArgumentException 
-		       format: @"Missing ) in compound predicate"];
+		      format: @"Missing ) in compound predicate"];
 	}
       return r;
     }
@@ -1422,7 +1426,8 @@
   if ([self scanPredicateKeyword: @"NOT"])
     {
       // -> NOT NOT x or NOT (y)
-      return [NSCompoundPredicate notPredicateWithSubpredicate: [self parseNot]];
+      return [NSCompoundPredicate
+	notPredicateWithSubpredicate: [self parseNot]];
     }
 
   if ([self scanPredicateKeyword:@"TRUEPREDICATE"])
@@ -1439,38 +1444,42 @@
 
 - (NSPredicate *) parseOr
 {
-  NSPredicate *l = [self parseNot];
+  NSPredicate	*l = [self parseNot];
 
   while ([self scanPredicateKeyword:@"OR"])
     {
-      NSPredicate *r = [self parseNot];
+      NSPredicate	*r = [self parseNot];
 
-      if ([r isKindOfClass: [NSCompoundPredicate class]] && 
-	  [(NSCompoundPredicate *)r compoundPredicateType] == NSOrPredicateType)
+      if ([r isKindOfClass: [NSCompoundPredicate class]]
+	&& [(NSCompoundPredicate *)r compoundPredicateType]
+	== NSOrPredicateType)
         {
 	  // merge
-	  if ([l isKindOfClass: [NSCompoundPredicate class]] && 
-	      [(NSCompoundPredicate *)l compoundPredicateType] == NSOrPredicateType)
+	  if ([l isKindOfClass: [NSCompoundPredicate class]]
+	    && [(NSCompoundPredicate *)l compoundPredicateType]
+	    == NSOrPredicateType)
 	    {
 	      [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-				 addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+	        addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
 	    }
 	  else
 	    {
 	      [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-				 insertObject: l atIndex: 0];
+	        insertObject: l atIndex: 0];
 	      l = r;
 	    }		
 	}
-      else if ([l isKindOfClass: [NSCompoundPredicate class]] && 
-	       [(NSCompoundPredicate *)l compoundPredicateType] == NSOrPredicateType)
+      else if ([l isKindOfClass: [NSCompoundPredicate class]]
+	&& [(NSCompoundPredicate *)l compoundPredicateType]
+	== NSOrPredicateType)
         {
-	  [(NSMutableArray *) [(NSCompoundPredicate *) l subpredicates] addObject:r]; // add to l
+	  [(NSMutableArray *) [(NSCompoundPredicate *) l subpredicates]
+	     addObject:r];
 	}
       else
         {
-	  l= [NSCompoundPredicate andPredicateWithSubpredicates: 
-				      [NSArray arrayWithObjects: l, r, nil]];
+	  l = [NSCompoundPredicate andPredicateWithSubpredicates: 
+	    [NSArray arrayWithObjects: l, r, nil]];
 	}
     }
   return l;
@@ -1487,9 +1496,13 @@
   BOOL negate = NO;
 
   if ([self scanPredicateKeyword: @"ANY"])
-    modifier = NSAnyPredicateModifier;
+    {
+      modifier = NSAnyPredicateModifier;
+    }
   else if ([self scanPredicateKeyword: @"ALL"])
-    modifier = NSAllPredicateModifier;
+    {
+      modifier = NSAllPredicateModifier;
+    }
   else if ([self scanPredicateKeyword: @"NONE"])
     {
       modifier = NSAnyPredicateModifier;
@@ -1503,44 +1516,75 @@
 
   left = [self parseBinaryExpression];
   if ([self scanString: @"<" intoString: NULL])
+    {
       type = NSLessThanPredicateOperatorType;
+    }
   else if ([self scanString: @"<=" intoString: NULL])
+    {
       type = NSLessThanOrEqualToPredicateOperatorType;
+    }
   else if ([self scanString: @">" intoString: NULL])
+    {
       type = NSGreaterThanPredicateOperatorType;
+    }
   else if ([self scanString: @">=" intoString: NULL])
+    {
       type = NSGreaterThanOrEqualToPredicateOperatorType;
+    }
   else if ([self scanString: @"=" intoString: NULL])
+    {
       type = NSEqualToPredicateOperatorType;
+    }
   else if ([self scanString: @"!=" intoString: NULL])
+    {
       type = NSNotEqualToPredicateOperatorType;
+    }
   else if ([self scanPredicateKeyword: @"MATCHES"])
+    {
       type = NSMatchesPredicateOperatorType;
+    }
   else if ([self scanPredicateKeyword: @"LIKE"])
+    {
       type = NSLikePredicateOperatorType;
+    }
   else if ([self scanPredicateKeyword: @"BEGINSWITH"])
+    {
       type = NSBeginsWithPredicateOperatorType;
-  else if([self scanPredicateKeyword: @"ENDSWITH"])
+    }
+  else if ([self scanPredicateKeyword: @"ENDSWITH"])
+    {
       type = NSEndsWithPredicateOperatorType;
+    }
   else if ([self scanPredicateKeyword: @"IN"])
+    {
       type = NSInPredicateOperatorType;
+    }
   else
+    {
       [NSException raise: NSInvalidArgumentException 
 		   format: @"Invalid comparison predicate: %@", 
 		   [[self string] substringFromIndex: [self scanLocation]]];
+    }
  
   if ([self scanString: @"[cd]" intoString: NULL])
-    opts = NSCaseInsensitivePredicateOption | NSDiacriticInsensitivePredicateOption;
+    {
+      opts = NSCaseInsensitivePredicateOption
+	| NSDiacriticInsensitivePredicateOption;
+    }
   else if ([self scanString: @"[c]" intoString: NULL])
-    opts = NSCaseInsensitivePredicateOption;
-  else if([self scanString: @"[d]" intoString: NULL])
-    opts = NSDiacriticInsensitivePredicateOption;
+    {
+      opts = NSCaseInsensitivePredicateOption;
+    }
+  else if ([self scanString: @"[d]" intoString: NULL])
+    {
+      opts = NSDiacriticInsensitivePredicateOption;
+    }
 
   p = [NSComparisonPredicate predicateWithLeftExpression: left 
-			     rightExpression: [self parseBinaryExpression]
-			     modifier: modifier 
-			     type: type 
-			     options: opts];
+    rightExpression: [self parseBinaryExpression]
+    modifier: modifier 
+    type: type 
+    options: opts];
 
   return negate ? [NSCompoundPredicate notPredicateWithSubpredicate: p] : p;
 }
@@ -1561,17 +1605,17 @@
   if ([self scanString: @"-" intoString: NULL])
     {
       return [NSExpression expressionForFunction: @"_chs" 
-			   arguments: [NSArray arrayWithObject: [self parseExpression]]];
+        arguments: [NSArray arrayWithObject: [self parseExpression]]];
     }
 
-  if([self scanString: @"(" intoString: NULL])
+  if ([self scanString: @"(" intoString: NULL])
     {
       NSExpression *arg = [self parseExpression];
       
       if (![self scanString: @")" intoString: NULL])
         {
 	  [NSException raise: NSInvalidArgumentException 
-		       format: @"Missing ) in expression"];
+		      format: @"Missing ) in expression"];
 	}
       return arg;
     }
@@ -1594,26 +1638,33 @@
 	  [a addObject: [self parseExpression]];
 	}
 
-      if(![self scanString: @"}" intoString: NULL])
+      if (![self scanString: @"}" intoString: NULL])
         {
 	  [NSException raise: NSInvalidArgumentException 
-		       format: @"Missing } in aggregate"];
+		      format: @"Missing } in aggregate"];
 	}
       // FIXME
       return nil;
     }
 
   if ([self scanPredicateKeyword: @"NULL"])
+    {
       return [NSExpression expressionForConstantValue: [NSNull null]];
+    }
   if ([self scanPredicateKeyword: @"TRUE"])
+    {
       return [NSExpression expressionForConstantValue: 
-			       [NSNumber numberWithBool: YES]];
+	[NSNumber numberWithBool: YES]];
+    }
   if ([self scanPredicateKeyword: @"FALSE"])
+    {
       return [NSExpression expressionForConstantValue: 
-			       [NSNumber numberWithBool: NO]];
+	[NSNumber numberWithBool: NO]];
+    }
   if ([self scanPredicateKeyword: @"SELF"])
+    {
       return [NSExpression expressionForEvaluatedObject];
-
+    }
   if ([self scanString: @"$" intoString: NULL])
     {
       // variable
@@ -1622,7 +1673,7 @@
       if (![var keyPath])
         {
 	  [NSException raise: NSInvalidArgumentException 
-		       format: @"Invalid variable identifier: %@", var];
+		      format: @"Invalid variable identifier: %@", var];
 	}
       return [NSExpression expressionForVariable:[var keyPath]];
     }
@@ -1659,26 +1710,27 @@
       if (![e keyPath])
         {
 	  [NSException raise: NSInvalidArgumentException 
-		       format: @"Invalid keypath identifier: %@", e];
+		      format: @"Invalid keypath identifier: %@", e];
 	}
 
       // prefix with keypath
       return [NSExpression expressionForKeyPath: 
-			       [NSString stringWithFormat: @"@%@", [e keyPath]]];
+	[NSString stringWithFormat: @"@%@", [e keyPath]]];
     }
 
   // skip # as prefix (reserved words)
   [self scanString: @"#" intoString: NULL];
   if (!_identifier)
     {
-      _identifier = [[NSCharacterSet characterSetWithCharactersInString: 
-					 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"] retain];
+      _identifier = [NSCharacterSet characterSetWithCharactersInString: 
+	 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"];
+      RETAIN(_identifier);
     }
 
   if (![self scanCharactersFromSet: _identifier intoString: &ident])
     {
       [NSException raise: NSInvalidArgumentException 
-		   format: @"Missing identifier: %@", 
+		  format: @"Missing identifier: %@", 
 		   [[self string] substringFromIndex: [self scanLocation]]];
     }
 
@@ -1700,7 +1752,7 @@
 	  if (![left keyPath])
 	    {
 	      [NSException raise: NSInvalidArgumentException 
-			   format: @"Invalid function identifier: %@", left];
+			  format: @"Invalid function identifier: %@", left];
 	    }
 
 	  if (![self scanString: @")" intoString: NULL])
@@ -1717,11 +1769,11 @@
 	      if (![self scanString:@")" intoString:NULL])
 	        {
 		  [NSException raise: NSInvalidArgumentException 
-			       format: @"Missing ) in function arguments"];
+			      format: @"Missing ) in function arguments"];
 		}
 	    }
 	  left = [NSExpression expressionForFunction: [left keyPath] 
-			       arguments: args];
+					   arguments: args];
 	}
       else if ([self scanString: @"[" intoString: NULL])
         {
@@ -1729,36 +1781,34 @@
 	  if ([self scanPredicateKeyword: @"FIRST"])
 	    {
 	      left = [NSExpression expressionForFunction: @"_first" 
-				   arguments: [NSArray arrayWithObject: 
-							   [self parseExpression]]];
+		arguments: [NSArray arrayWithObject: [self parseExpression]]];
 	    }
 	  else if ([self scanPredicateKeyword: @"LAST"])
 	    {
 	      left = [NSExpression expressionForFunction: @"_last" 
-				   arguments: [NSArray arrayWithObject:
-							   [self parseExpression]]];
+		arguments: [NSArray arrayWithObject: [self parseExpression]]];
 	    }
 	  else if ([self scanPredicateKeyword: @"SIZE"])
 	    {
 	      left = [NSExpression expressionForFunction: @"count" 
-				   arguments: [NSArray arrayWithObject:
-							   [self parseExpression]]];
+	        arguments: [NSArray arrayWithObject: [self parseExpression]]];
 	    }
 	  else
 	    {
 	      left = [NSExpression expressionForFunction: @"_index" 
-				   arguments: [NSArray arrayWithObjects: left, 
-						       [self parseExpression], nil]];
+		arguments: [NSArray arrayWithObjects: left,
+		[self parseExpression], nil]];
 	    }
 	  if (![self scanString: @"]" intoString: NULL])
 	    {   
 	      [NSException raise: NSInvalidArgumentException 
-			   format: @"Missing ] in index argument"];
+			  format: @"Missing ] in index argument"];
 	    }
 	}
       else if ([self scanString: @"." intoString: NULL])
         {
-	  // keypath - this parser allows for (a).(b.c) to be properly recognized
+	  // keypath - this parser allows for (a).(b.c)
+	  // to be properly recognized
 	  // and even %K.((%K)) if the first %K evaluates to "a" and the 
 	  // second %K to "b.c"
 	  NSExpression *right;
@@ -1766,19 +1816,19 @@
 	  if (![left keyPath])
 	    {
 	      [NSException raise: NSInvalidArgumentException 
-			   format: @"Invalid left keypath: %@", left];
+			  format: @"Invalid left keypath: %@", left];
 	    }
 	  right = [self parseExpression];
 	  if (![right keyPath])
 	    {
 	      [NSException raise: NSInvalidArgumentException 
-			   format: @"Invalid right keypath: %@", left];
+			  format: @"Invalid right keypath: %@", left];
 	    }
 
 	  // concatenate
 	  left = [NSExpression expressionForKeyPath:
-				   [NSString stringWithFormat: @"%@.%@", 
-					     [left keyPath], [right keyPath]]];
+	    [NSString stringWithFormat: @"%@.%@",
+	    [left keyPath], [right keyPath]]];
 	}
       else
         {
@@ -1792,7 +1842,7 @@
 {
   NSExpression *left = [self parseFunctionalExpression];
   
-  while(YES)
+  while (YES)
     {
       NSExpression *right;
 	
@@ -1837,11 +1887,11 @@
 {
   NSExpression *left = [self parseMultiplicationExpression];
   
-  while(YES)
+  while (YES)
     {
       NSExpression *right;
 	
-      if([self scanString: @"+" intoString: NULL])
+      if ([self scanString: @"+" intoString: NULL])
         {
 	  right = [self parseMultiplicationExpression];
           // FIXME
@@ -1872,7 +1922,9 @@
 	  right = [self parseAdditionExpression];
 	}
       else
-	return left;
+	{
+	  return left;
+	}
     }
 }
 
