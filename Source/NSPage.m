@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSPage class reference</title>
    $Date$ $Revision$
@@ -175,11 +176,7 @@ NSAllocateMemoryPages (unsigned bytes)
     return NULL;
   return where;
 #else
-#ifdef HAVE_VALLOC
-  where = valloc (bytes);
-#else
-  where = malloc (bytes);
-#endif
+  where = objc_valloc (bytes);
   if (where == NULL)
     return NULL;
   memset (where, 0, bytes);
@@ -197,7 +194,7 @@ NSDeallocateMemoryPages (void *ptr, unsigned bytes)
 #if __mach__
   vm_deallocate (mach_task_self (), ptr, bytes);
 #else
-  free (ptr);
+  objc_free (ptr);
 #endif
 }
 

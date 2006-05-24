@@ -79,10 +79,6 @@
 #include "GSInvocation.h"
 #include "GSPortPrivate.h"
 
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
-
 @interface	NSPortCoder (Private)
 - (NSMutableArray*) _components;
 @end

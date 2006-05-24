@@ -1305,9 +1305,8 @@ static  retval_t apply_short(short data)
    ARGFRAME.  This function returns a retframe pointer.
 
    In the function that calls this one, be careful about calling more
-   functions after this one.  The memory for the retframe is
-   alloca()'ed, not malloc()'ed, and therefore is on the stack and can
-   be tromped-on by future function calls.
+   functions after this one.  The memory for the retframe is alloca()'ed,
+   and therefore is on the stack and can be tromped-on by future function calls.
 
    The callback function is finally called with the 'type' set to a null pointer
    to tell it that the return value and all return parameters have been

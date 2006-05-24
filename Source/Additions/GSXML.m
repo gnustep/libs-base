@@ -2957,7 +2957,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 {
   if (lib != NULL)
     {
-      free(lib);
+      objc_free(lib);
     }
   [super dealloc];
 }
@@ -3259,7 +3259,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  */
 - (BOOL) _initLibXML
 {
-  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
+  lib = (xmlSAXHandler*)objc_malloc(sizeof(xmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
@@ -3380,7 +3380,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 
 - (BOOL) _initLibXML
 {
-  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
+  lib = (xmlSAXHandler*)objc_malloc(sizeof(xmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
@@ -3446,7 +3446,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (BOOL) _initLibXML
 {
   isHtmlHandler = YES;
-  lib = (xmlSAXHandler*)malloc(sizeof(htmlSAXHandler));
+  lib = (xmlSAXHandler*)objc_malloc(sizeof(htmlSAXHandler));
   if (lib == NULL)
     {
       return NO;

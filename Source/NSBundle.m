@@ -761,21 +761,21 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    Class *classes = NULL;
 	    while (numClasses < newNumClasses) {
 	      numClasses = newNumClasses;
-	      classes = realloc(classes, sizeof(Class) * numClasses);
+	      classes = objc_realloc(classes, sizeof(Class) * numClasses);
 	      newNumClasses = objc_getClassList(classes, numClasses);
 	    }
 	    for (i = 0; i < numClasses; i++)
 	      {
 		[self _addFrameworkFromClass: classes[i]];
 	      }
-	    free(classes);
+	    objc_free(classes);
 	  }
 #else
 	  {
 	    int i, numBufClasses = 10, numClasses = 0;
 	    Class *classes;
 
-	    classes = malloc(sizeof(Class) * numBufClasses);
+	    classes = objc_malloc(sizeof(Class) * numBufClasses);
 
 	    while ((class = objc_next_class(&state)))
 	      {
@@ -791,7 +791,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		    Class *ptr;
 
 		    numClasses += 10;
-		    ptr = realloc(classes, sizeof(Class) * numClasses);
+		    ptr = objc_realloc(classes, sizeof(Class) * numClasses);
 
 		    if (!ptr)
 		      break;
@@ -804,7 +804,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	      {
 		[self _addFrameworkFromClass: classes[i]];
 	      }
-	    free(classes);
+	    objc_free(classes);
 	  }
 #endif
 #if 0

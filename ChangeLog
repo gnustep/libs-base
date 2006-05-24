@@ -1,4 +1,26 @@
-2006-05-2  Richard Frith-Macdonald <rfm@gnu.org>
+2006-05-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m:
+	* Source/NSBundle.m:
+	* Source/NSPropertyList.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSPage.m:
+	* Source/NSCallBacks.m:
+	* Source/NSSortDescriptor.m:
+	* Source/NSFileManager.m:
+	* Source/objc-load.m:
+	* Source/NSException.m:
+	* Source/NSString.m:
+	* Source/mframe.m:
+	* Source/cifframe.m:
+	* Source/Additions/Unicode.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSNextRuntime.m:
+	* Source/NSConnection.m:
+	* Source/callframe.m:
+	Tidy up uses of malloc etc to all go through objc_malloc and friends.
+
+2006-05-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Fix some cases where parse was saying
 	it needed more data even though it had actually completed.

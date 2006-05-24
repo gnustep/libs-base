@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #include "config.h"
@@ -28,10 +29,6 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSData.h"
 #include "GSInvocation.h"
-
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;

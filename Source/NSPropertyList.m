@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    */
 
@@ -3067,7 +3068,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       table_size = UINT_MAX;
     }
 
-  table = malloc(table_size * sizeof(int));
+  table = objc_malloc(table_size * sizeof(int));
   
   objectsToDoList = [[NSMutableArray alloc] init];
   objectList = [[NSMutableArray alloc] init];
@@ -3082,7 +3083,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   DESTROY(objectList);
   if (table != NULL)
     {
-      free(table);
+      objc_free(table);
       table = NULL;
     }
 }
@@ -3159,7 +3160,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   len = [objectList count];
   size = offset_size * len;
 
-  buffer = malloc(size);
+  buffer = objc_malloc(size);
 
   if (offset_size == 1)
     {
@@ -3209,7 +3210,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
 
   [dest appendBytes: buffer length: size];
-  free(buffer);
+  objc_free(buffer);
 }
 
 - (void) writeMetaData
@@ -3396,7 +3397,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	  
 	  code = 0x6F;
 	  [dest appendBytes: &code length: 1];
-	  buffer = malloc(sizeof(unichar)*(len + 1));
+	  buffer = objc_malloc(sizeof(unichar)*(len + 1));
 	  [self storeCount: len];
 	  [string getCharacters: buffer];
 	  for (i = 0; i < len; i++)
@@ -3404,7 +3405,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	      buffer[i] = NSSwapHostShortToBig(buffer[i]);
 	    }
 	  [dest appendBytes: buffer length: sizeof(unichar)*len];
-	  free(buffer);
+	  objc_free(buffer);
 	}
     }
 }
