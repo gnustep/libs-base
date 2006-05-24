@@ -225,7 +225,7 @@
     }
   if (_symbols)
     {
-      free (_symbols);
+      objc_free (_symbols);
       _symbols = NULL;
     }
   [super dealloc];
@@ -291,10 +291,10 @@
       [self release];
       return nil;
     }
-  _symbols = malloc (neededSpace);
+  _symbols = objc_malloc (neededSpace);
   if (!_symbols)
     {
-      NSLog (@"GSBinaryFileInfo: Can't malloc buffer");
+      NSLog (@"GSBinaryFileInfo: Can't allocate buffer");
       [self release];
       return nil;
     }

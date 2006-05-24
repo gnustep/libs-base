@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include "config.h"
@@ -607,7 +608,7 @@ objc_mutex_t
 objc_mutex_allocate(void)
 {
   pthread_mutex_t *p;
-  p = (pthread_mutex_t *)calloc(1, sizeof(pthread_mutex_t));
+  p = (pthread_mutex_t *)objc_calloc(1, sizeof(pthread_mutex_t));
   if (pthread_mutex_init(p, NULL) != 0)
     {
       abort();
@@ -623,7 +624,7 @@ objc_mutex_deallocate(objc_mutex_t mutex)
   ret = pthread_mutex_destroy(p);
   if (ret == 0)
     {
-      free(p);
+      objc_free(p);
     }
   return ret;
 }

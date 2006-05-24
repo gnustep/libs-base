@@ -24,7 +24,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 
    <title>NSTimeZone class reference</title>
-   $Date$ $Revision: 22780 $
+   $Date$ $Revision$
  */
 
 /* Use the system time zones if available. In other cases, use an
@@ -1203,7 +1203,7 @@ static NSMapTable	*absolutes = 0;
 	{
 	  /*
 	   * As a special case, we can return a placeholder for a time zone
-	   * in the default malloc zone extremely efficiently.
+	   * in the default zone extremely efficiently.
 	   */
 	  return defaultPlaceholderTimeZone;
 	}

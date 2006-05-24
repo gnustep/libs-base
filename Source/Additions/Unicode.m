@@ -284,7 +284,7 @@ static void GSSetupEncodingTable(void)
 		  encTableSize = tmp;
 		}
 	    }
-	  encTable = malloc((encTableSize+1)*sizeof(struct _strenc_ *));
+	  encTable = objc_malloc((encTableSize+1)*sizeof(struct _strenc_ *));
 	  memset(encTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
 
 	  /*
@@ -306,13 +306,13 @@ static void GSSetupEncodingTable(void)
 		      /*
 		       * See if we can do a lossy conversion.
 		       */
-		      lossy = malloc(strlen(encTable[tmp]->iconv) + 12);
+		      lossy = objc_malloc(strlen(encTable[tmp]->iconv) + 12);
 		      strcpy(lossy, encTable[tmp]->iconv);
 		      strcat(lossy, "//TRANSLIT");
 		      c = iconv_open(UNICODE_ENC, encTable[tmp]->iconv);
 		      if (c == (iconv_t)-1)
 			{
-			  free(lossy);
+			  objc_free(lossy);
 			}
 		      else
 			{

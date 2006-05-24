@@ -618,7 +618,7 @@ handle_printf_atsign (FILE *stream,
 	{
 	  /*
 	   * As a special case, we can return a placeholder for a string
-	   * in the default malloc zone extremely efficiently.
+	   * in the default zone extremely efficiently.
 	   */
 	  return defaultPlaceholderString;
 	}

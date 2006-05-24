@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #include "Foundation/NSSortDescriptor.h"
@@ -242,7 +243,7 @@ FindEqualityRanges(id * objects,
           if (j - i > 1)
             {
               (*numRanges)++;
-              ranges = (NSRange *) realloc(ranges, (*numRanges) *
+              ranges = (NSRange *) objc_realloc(ranges, (*numRanges) *
                 sizeof(NSRange));
               ranges[(*numRanges)-1].location = i;
               ranges[(*numRanges)-1].length = j - i;
@@ -296,10 +297,10 @@ FindEqualityRanges(id * objects,
   unsigned int i, n;
 
   count = [self count];
-  objects = (id *) calloc(count, sizeof(id));
+  objects = (id *) objc_calloc(count, sizeof(id));
   [self getObjects: objects];
 
-  equalityRanges = (NSRange *) calloc(1, sizeof(NSRange));
+  equalityRanges = (NSRange *) objc_calloc(1, sizeof(NSRange));
   equalityRanges[0].location = 0;
   equalityRanges[0].length = count;
   numEqualityRanges = 1;
@@ -330,18 +331,18 @@ FindEqualityRanges(id * objects,
                 sortDescriptor, newRanges, &newNumRanges);
             }
 
-          free(equalityRanges);
+          objc_free(equalityRanges);
           equalityRanges = newRanges;
           numEqualityRanges = newNumRanges;
         }
     }
 
-  free(equalityRanges);
+  objc_free(equalityRanges);
 
   // now, reconstruct our contents according to the sorted object buffer
   [self setArray: [NSArray arrayWithObjects: objects count: count]];
 
-  free(objects);
+  objc_free(objects);
 }
 
 @end

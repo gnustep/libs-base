@@ -892,7 +892,7 @@ static NSStringEncoding	defaultEncoding;
   int len = GetCurrentDirectoryW(0, 0);
   if (len > 0)
     {
-      _CHAR *lpath = (_CHAR*)calloc(len+10,sizeof(_CHAR));
+      _CHAR *lpath = (_CHAR*)objc_calloc(len+10,sizeof(_CHAR));
 
       if (lpath != 0)
 	{
@@ -905,7 +905,7 @@ static NSStringEncoding	defaultEncoding;
 	      path = [NSString stringWithCharacters: lpath length: len];
 	      currentDir = path;
 	    }
-	  free(lpath);
+	  objc_free(lpath);
 	}
     }
 #else

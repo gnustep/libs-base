@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 /*
@@ -339,7 +340,7 @@ objc_get_symbol_path(Class theClass, Category *theCategory)
     {
       if (len + sizeof(char)*19 > sizeof(buf))
 	{
-	  p = malloc(len + sizeof(char)*19);
+	  p = objc_malloc(len + sizeof(char)*19);
 
 	  if (p == NULL)
 	    {
@@ -358,7 +359,7 @@ objc_get_symbol_path(Class theClass, Category *theCategory)
 
       if (len + sizeof(char)*23 > sizeof(buf))
 	{
-	  p = malloc(len + sizeof(char)*23);
+	  p = objc_malloc(len + sizeof(char)*23);
 
 	  if (p == NULL)
 	    {
@@ -379,7 +380,7 @@ objc_get_symbol_path(Class theClass, Category *theCategory)
 
   if (p != buf)
     {
-      free(p);
+      objc_free(p);
     }
 
   if (ret)

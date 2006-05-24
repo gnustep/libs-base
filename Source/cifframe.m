@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #include "config.h"
@@ -28,10 +29,6 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSData.h"
 #include "GSInvocation.h"
-
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;
@@ -215,7 +212,7 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
   if (ffi_prep_cif (&cframe->cif, FFI_DEFAULT_ABI, cframe->nargs,
 		   rtype, cframe->arg_types) != FFI_OK)
     {
-      free(cframe);
+      objc_free(cframe);
       cframe = NULL;
     }
 
@@ -394,7 +391,7 @@ cifframe_type(const char *typePtr, const char **advance)
 	  {
 	    size += (align - (size % align));
 	  }
-	ftype = malloc(size + maxtypes*sizeof(ffi_type));
+	ftype = objc_malloc(size + maxtypes*sizeof(ffi_type));
 	ftype->size = 0;
 	ftype->alignment = 0;
 	ftype->type = FFI_TYPE_STRUCT;
@@ -421,7 +418,7 @@ cifframe_type(const char *typePtr, const char **advance)
 	    if (types >= maxtypes)
 	      {
 		maxtypes *=2;
-		ftype = realloc(ftype, size + maxtypes*sizeof(ffi_type));
+		ftype = objc_realloc(ftype, size + maxtypes*sizeof(ffi_type));
 	      }
 	  }
 	ftype->elements[types] = NULL;
@@ -455,7 +452,7 @@ cifframe_type(const char *typePtr, const char **advance)
 	    if (align > max_align)
 	      {
 		if (ftype && ftype->type == FFI_TYPE_STRUCT)
-		  free(ftype);
+		  objc_free(ftype);
 		ftype = local;
 		max_align = align;
 	      }
