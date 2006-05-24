@@ -3,6 +3,8 @@
 	* Source/NSPredicate.m: Restore last changes with varargs rewrite
 	using va_copy to try to make code portable.  This version compiles
 	on systems where va_list is not a simple pointer, but is untested.
+	* Source/GSString.m: Use GSIsByteEncoding() to test whether an
+	encoding can hold ascii data.
 
 2006-05-24  Richard Frith-Macdonald <rfm@gnu.org>
 
