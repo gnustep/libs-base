@@ -44,25 +44,32 @@
   GSClassNameFromObject(self), GSObjCIsInstance(self) ? "instance" : "class",\
   GSNameFromSelector(_cmd)]
 
-
-static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
+@interface GSPredicateScanner : NSScanner
 {
-  unsigned loc = [sc scanLocation];  // save to back up
-  unichar c;
-
-  [sc setCaseSensitive: NO];
-  if ([sc scanString: key intoString: NULL] == NO)
-    {
-      return NO;  // no match
-    }
-  c = [[sc string] characterAtIndex: [sc scanLocation]];
-  if (![[NSCharacterSet alphanumericCharacterSet] characterIsMember: c])
-    {
-      return YES;  // ok
-    }
-  [sc setScanLocation: loc];  // back up
-  return NO;  // no match
+  NSEnumerator	*_args;		// Not retained.
+  va_list	_vargs;
+  unsigned	_retrieved;
 }
+
+- (id) initWithString: (NSString*)format
+		 args: (NSArray*)args
+		vargs: (va_list)vargs;
+- (id) nextArg;
+- (BOOL) scanPredicateKeyword: (NSString *) key;
+- (NSPredicate *) parse;
+- (NSPredicate *) parsePredicate;
+- (NSPredicate *) parseAnd;
+- (NSPredicate *) parseNot;
+- (NSPredicate *) parseOr;
+- (NSPredicate *) parseComparison;
+- (NSExpression *) parseExpression;
+- (NSExpression *) parseFunctionalExpression;
+- (NSExpression *) parsePowerExpression;
+- (NSExpression *) parseMultiplicationExpression;
+- (NSExpression *) parseAdditionExpression;
+- (NSExpression *) parseBinaryExpression;
+
+@end
 
 @interface GSTruePredicate : NSPredicate
 @end
@@ -129,36 +136,9 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
 }
 @end
 
-@interface NSExpression (Private)
-+ (id) _parseBinaryExpressionWithScanner: (NSScanner *)sc
-				    args: (NSEnumerator*)e
-				   vargs: (va_list)v;
-+ (id) _parseExpressionWithScanner: (NSScanner *)sc
-			      args: (NSEnumerator*)e
-			     vargs: (va_list)v;
-@end
-
 
 
 @implementation NSPredicate
-
-+ (id) _parseWithScanner: (NSScanner *)sc
-		    args: (NSEnumerator*)e
-		   vargs: (va_list)v
-{
-  NSPredicate *r;
-
-  r = [GSAndCompoundPredicate _parseWithScanner: sc
-					    args: e
-					   vargs: v];
-  if (![sc isAtEnd])
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Format string contains extra characters: \"%@\"",
-	[sc string]];
-    }
-  return r;
-}
 
 + (NSPredicate *) predicateWithFormat: (NSString *) format, ...
 {
@@ -174,19 +154,29 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
 + (NSPredicate *) predicateWithFormat: (NSString *)format
 			argumentArray: (NSArray *)args
 {
-  NSScanner	*s;
+  GSPredicateScanner	*s;
+  NSPredicate		*p;
 
-  s = [NSScanner scannerWithString: format];
-  return [self _parseWithScanner: s args: [args objectEnumerator] vargs: NULL];
+  s = [[GSPredicateScanner alloc] initWithString: format
+					    args: args
+					   vargs: 0];
+  p = [s parse];
+  RELEASE(s);
+  return p;
 }
 
 + (NSPredicate *) predicateWithFormat: (NSString *)format
 			    arguments: (va_list)args
 {
-  NSScanner	*s;
+  GSPredicateScanner	*s;
+  NSPredicate		*p;
 
-  s = [NSScanner scannerWithString: format];
-  return [self _parseWithScanner: s args: nil vargs: args];
+  s = [[GSPredicateScanner alloc] initWithString: format
+					    args: nil
+					   vargs: args];
+  p = [s parse];
+  RELEASE(s);
+  return p;
 }
 
 + (NSPredicate *) predicateWithValue: (BOOL)value
@@ -344,56 +334,6 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
 
 @implementation GSAndCompoundPredicate
 
-+ (id) _parseWithScanner: (NSScanner *)sc
-		    args: (NSEnumerator*)e
-		   vargs: (va_list)v
-{
-  NSPredicate *l;
-
-  l = [GSOrCompoundPredicate _parseWithScanner: sc
-					   args: e
-					  vargs: v];
-  while (scanPredicateKeyword(sc, @"AND"))
-    {
-      NSPredicate	*r;
-
-      r = [GSOrCompoundPredicate _parseWithScanner: sc
-					       args: e
-					      vargs: v];
-      if ([r isKindOfClass: [NSCompoundPredicate class]]
-	&& [(NSCompoundPredicate *)r compoundPredicateType]
-	  == NSAndPredicateType)
-	{ // merge
-	  if ([l isKindOfClass: [NSCompoundPredicate class]]
-	    && [(NSCompoundPredicate *)l compoundPredicateType]
-	      == NSAndPredicateType)
-	    {
-	      [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
-		addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
-	    }
-	  else
-	    {
-	      [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates]
-		insertObject: l atIndex: 0];
-	      l = r;
-	    }
-	}
-      else if ([l isKindOfClass: [NSCompoundPredicate class]]
-	&& [(NSCompoundPredicate *)l compoundPredicateType]
-	  == NSAndPredicateType)
-	{
-	  [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
-	    addObject: r]; // add to l
-	}
-      else
-	{
-	  l = [NSCompoundPredicate andPredicateWithSubpredicates:
-	    [NSArray arrayWithObjects: l, r, nil]];
-	}
-    }
-  return l;
-}
-
 - (id) _initWithSubpredicates: (NSArray *)list
 {
   NSAssert ([list count] > 1, NSInvalidArgumentException);
@@ -501,56 +441,6 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
 
 @implementation GSOrCompoundPredicate
 
-+ (id) _parseWithScanner: (NSScanner *)sc
-		    args: (NSEnumerator*)e
-		   vargs: (va_list)v
-{
-  NSPredicate	*l;
-
-  l = [GSNotCompoundPredicate _parseWithScanner: sc
-					   args: e
-					  vargs: v];
-  while (scanPredicateKeyword(sc, @"OR"))
-    {
-      NSPredicate	*r;
-
-      r = [GSNotCompoundPredicate _parseWithScanner: sc
-					       args: e
-					      vargs: v];
-      if ([r isKindOfClass: [NSCompoundPredicate class]]
-	&& [(NSCompoundPredicate *)r compoundPredicateType]
-	  == NSOrPredicateType)
-	{ // merge
-	  if ([l isKindOfClass: [NSCompoundPredicate class]]
-	    && [(NSCompoundPredicate *)l compoundPredicateType]
-	      == NSOrPredicateType)
-	    {
-	      [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
-		addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
-	    }
-	  else
-	    {
-	      [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates]
-		insertObject: l atIndex: 0];
-	      l = r;
-	    }
-	}
-      else if ([l isKindOfClass: [NSCompoundPredicate class]]
-	&& [(NSCompoundPredicate *) l compoundPredicateType]
-	  == NSOrPredicateType)
-	{
-	  [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
-	    addObject: r]; // add to l
-	}
-      else
-	{
-	  l = [NSCompoundPredicate andPredicateWithSubpredicates:
-	    [NSArray arrayWithObjects: l, r, nil]];
-	}
-    }
-  return l;
-}
-
 - (id) _initWithSubpredicates: (NSArray *)list
 {
   NSAssert ([list count] > 1, NSInvalidArgumentException);
@@ -634,44 +524,6 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
 
 @implementation GSNotCompoundPredicate
 
-+ (id) _parseWithScanner: (NSScanner *)sc
-		    args: (NSEnumerator*)e
-		   vargs: (va_list)v
-{
-  if ([sc scanString: @"(" intoString: NULL])
-    {
-      NSPredicate	*r;
-
-      r = [NSPredicate _parseWithScanner: sc args: e vargs: v];
-      if (![sc scanString: @")" intoString: NULL])
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Missing ) in compound predicate"];
-	}
-      return r;
-    }
-  if (scanPredicateKeyword(sc, @"NOT"))
-    {
-      NSPredicate	*r;
-
-      r = [GSNotCompoundPredicate _parseWithScanner: sc
-						args: e
-					vargs: v];
-      return [self notPredicateWithSubpredicate: r]; // -> NOT NOT x or NOT (y)
-    }
-  if (scanPredicateKeyword(sc, @"TRUEPREDICATE"))
-    {
-      return [NSPredicate predicateWithValue: YES];
-    }
-  if (scanPredicateKeyword(sc, @"FALSEPREDICATE"))
-    {
-      return [NSPredicate predicateWithValue: NO];
-    }
-  return [NSComparisonPredicate _parseWithScanner: sc
-					     args: e
-					    vargs: v];
-}
-
 - (id) _initWithSubpredicate: (id)listOrPredicate
 {
   if ((self = [super init]) != nil)
@@ -731,104 +583,6 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
 @end
 
 @implementation NSComparisonPredicate
-
-+ (id) _parseWithScanner: (NSScanner *)sc
-		    args: (NSEnumerator*)e
-		   vargs: (va_list)v
-{
-  NSComparisonPredicateModifier	modifier = NSDirectPredicateModifier;
-  NSPredicateOperatorType	type = 0;
-  unsigned			opts = 0;
-  NSExpression			*left;
-  NSPredicate			*p;
-  BOOL				negate = NO;
-
-  if (scanPredicateKeyword(sc, @"ANY"))
-    {
-      modifier = NSAnyPredicateModifier;
-    }
-  else if (scanPredicateKeyword(sc, @"ALL"))
-    {
-      modifier = NSAllPredicateModifier;
-    }
-  else if (scanPredicateKeyword(sc, @"NONE"))
-    {
-      modifier = NSAnyPredicateModifier, negate = YES;
-    }
-  else if (scanPredicateKeyword(sc, @"SOME"))
-    {
-      modifier = NSAllPredicateModifier, negate = YES;
-    }
-  left = [NSExpression _parseBinaryExpressionWithScanner: sc
-    args: e vargs: v];
-  if ([sc scanString: @"<" intoString: NULL])
-    {
-      type = NSLessThanPredicateOperatorType;
-    }
-  else if ([sc scanString: @"<=" intoString: NULL])
-    {
-      type = NSLessThanOrEqualToPredicateOperatorType;
-    }
-  else if ([sc scanString: @">" intoString: NULL])
-    {
-      type = NSGreaterThanPredicateOperatorType;
-    }
-  else if ([sc scanString: @">=" intoString: NULL])
-    {
-      type = NSGreaterThanOrEqualToPredicateOperatorType;
-    }
-  else if ([sc scanString: @"=" intoString: NULL])
-    {
-      type = NSEqualToPredicateOperatorType;
-    }
-  else if ([sc scanString: @"!=" intoString: NULL])
-    {
-      type = NSNotEqualToPredicateOperatorType;
-    }
-  else if (scanPredicateKeyword(sc, @"MATCHES"))
-    {
-      type = NSMatchesPredicateOperatorType;
-    }
-  else if (scanPredicateKeyword(sc, @"LIKE"))
-    {
-      type = NSLikePredicateOperatorType;
-    }
-  else if (scanPredicateKeyword(sc, @"BEGINSWITH"))
-    {
-      type = NSBeginsWithPredicateOperatorType;
-    }
-  else if (scanPredicateKeyword(sc, @"ENDSWITH"))
-    {
-      type = NSEndsWithPredicateOperatorType;
-    }
-  else if (scanPredicateKeyword(sc, @"IN"))
-    {
-      type = NSInPredicateOperatorType;
-    }
-  else
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Invalid comparison predicate: %@",
-	[[sc string] substringFromIndex: [sc scanLocation]]];
-    }
-  if ([sc scanString: @"[cd]" intoString: NULL])
-    {
-      opts = NSCaseInsensitivePredicateOption
-	| NSDiacriticInsensitivePredicateOption;
-    }
-  else if ([sc scanString: @"[c]" intoString: NULL])
-    {
-      opts = NSCaseInsensitivePredicateOption;
-    }
-  else if ([sc scanString: @"[d]" intoString: NULL])
-    {
-      opts = NSDiacriticInsensitivePredicateOption;
-    }
-  p = [self predicateWithLeftExpression: left
-    rightExpression: [NSExpression _parseBinaryExpressionWithScanner: sc args: e vargs: v]
-    modifier: modifier type: type options: opts];
-  return negate ? [NSCompoundPredicate notPredicateWithSubpredicate: p] : p;
-}
 
 + (NSPredicate *) predicateWithLeftExpression: (NSExpression *)left
 			      rightExpression: (NSExpression *)right
@@ -990,355 +744,6 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
 
 @implementation NSExpression
 
-+ (id) _parseExpressionWithScanner: (NSScanner *)sc
-			      args: (NSEnumerator*)e
-			     vargs: (va_list)v
-{
-  static NSCharacterSet	*_identifier;
-  NSString		*ident;
-  double		dbl;
-
-  if ([sc scanDouble: &dbl])
-    {
-      return [NSExpression expressionForConstantValue:
-	[NSNumber numberWithDouble: dbl]];
-    }
-  // FIXME: handle integer, hex constants, 0x 0o 0b
-  if ([sc scanString: @"-" intoString: NULL])
-    {
-      return [NSExpression expressionForFunction: @"_chs" arguments:
-	[NSArray arrayWithObject: [self _parseExpressionWithScanner: sc
-	  args: e vargs: v]]];
-    }
-  if ([sc scanString: @"(" intoString: NULL])
-    {
-      NSExpression *arg;
-
-      arg = [self _parseExpressionWithScanner: sc args: e vargs: v];
-      if (![sc scanString: @")" intoString: NULL])
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Missing ) in expression"];
-	}
-      return arg;
-    }
-  if ([sc scanString: @"{" intoString: NULL])
-    {
-      NSMutableArray *a = [NSMutableArray arrayWithCapacity: 10];
-
-      if ([sc scanString: @"}" intoString: NULL])
-	{
-	  return a;  // empty
-	}
-      [a addObject:
-	[self _parseExpressionWithScanner: sc args: e vargs: v]];
-      while ([sc scanString: @"," intoString: NULL])
-	{
-	  [a addObject:
-	    [self _parseExpressionWithScanner: sc args: e vargs: v]];
-	}
-      if (![sc scanString: @"}" intoString: NULL])
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Missing } in aggregate"];
-	}
-      return a;
-    }
-  if (scanPredicateKeyword(sc, @"NULL"))
-    {
-      return [NSExpression expressionForConstantValue: [NSNull null]];
-    }
-  if (scanPredicateKeyword(sc, @"TRUE"))
-    {
-      return [NSExpression expressionForConstantValue:
-	[NSNumber numberWithBool: YES]];
-    }
-  if (scanPredicateKeyword(sc, @"FALSE"))
-    {
-      return [NSExpression expressionForConstantValue:
-	[NSNumber numberWithBool: NO]];
-    }
-  if (scanPredicateKeyword(sc, @"SELF"))
-    {
-      return [NSExpression expressionForEvaluatedObject];
-    }
-  if ([sc scanString: @"$" intoString: NULL])
-    { // variable
-      NSExpression *var;
-
-      var = [self _parseExpressionWithScanner: sc args: e vargs: v];
-      if (![var keyPath])
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Invalid variable identifier: %@", var];
-	}
-      return [NSExpression expressionForVariable: [var keyPath]];
-    }
-  if (scanPredicateKeyword(sc, @"%K"))
-    {
-      if (e)
-	{
-	  return [NSExpression expressionForKeyPath: [e nextObject]];
-	  // should we even allow to pass in/pass through an NSExpression to %K and convert only NSString objects to keyPaths?
-	}
-      return [NSExpression expressionForKeyPath: va_arg (v, id)];
-    }
-  if (scanPredicateKeyword(sc, @"%@"))
-    {
-      if (e)
-	{
-	  return [NSExpression expressionForConstantValue: [e nextObject]];
-	}
-      return [NSExpression expressionForConstantValue: va_arg (v, id)];
-    }
-  // FIXME: other formats
-  if ([sc scanString: @"\"" intoString: NULL])
-    {
-      NSString	*str = @"string constant";
-
-      return [NSExpression expressionForConstantValue: str];
-    }
-  if ([sc scanString: @"'" intoString: NULL])
-    {
-      NSString	*str = @"string constant";
-
-      return [NSExpression expressionForConstantValue: str];
-    }
-  if ([sc scanString: @"@" intoString: NULL])
-    {
-      NSExpression *tmp;
-
-      tmp = [self _parseExpressionWithScanner: sc args: e vargs: v];
-      if (![tmp keyPath])
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Invalid keypath identifier: %@", tmp];
-	}
-      return [NSExpression expressionForKeyPath:
-	[NSString stringWithFormat: @"@%@", [tmp keyPath]]]; 
-    }
-  [sc scanString: @"#" intoString: NULL];  // skip # as prefix (reserved words)
-  if (!_identifier)
-    {
-      _identifier = [[NSCharacterSet characterSetWithCharactersInString: @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"] retain];
-    }
-  if (![sc scanCharactersFromSet: _identifier intoString: &ident])
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Missing identifier: %@",
-	[[sc string] substringFromIndex: [sc scanLocation]]];
-    }
-  return [NSExpression expressionForKeyPath: ident];
-}
-
-+ (id) _parseFunctionalExpressionWithScanner: (NSScanner *)sc
-					args: (NSEnumerator*)e
-				       vargs: (va_list)v
-{
-  NSExpression	*left;
-
-  left = [self _parseExpressionWithScanner: sc
-				      args: e
-				     vargs: v];
-  while (YES)
-    {
-      if ([sc scanString: @"(" intoString: NULL])
-	{ // function - this parser allows for (max)(a, b, c) to be properly recognized and even (%K)(a, b, c) if %K evaluates to "max"
-	  NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
-
-	  if (![left keyPath])
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Invalid function identifier: %@", left];
-	    }
-	  if (![sc scanString: @")" intoString: NULL])
-	    { 
-	      [args addObject:
-		[self _parseExpressionWithScanner: sc args: e vargs: v]];
-	      while ([sc scanString: @"," intoString: NULL])
-		{
-		  [args addObject: [self _parseExpressionWithScanner:
-		    sc args: e vargs: v]];
-		}
-	      if (![sc scanString: @")" intoString: NULL])
-		{
-		  [NSException raise: NSInvalidArgumentException
-			      format: @"Missing ) in function arguments"];
-		}
-	    }
-	  left = [NSExpression expressionForFunction: [left keyPath]
-					   arguments: args];
-	}
-      else if ([sc scanString: @"[" intoString: NULL])
-	{ // index expression
-	  NSArray	*a;
-
-	  a = [NSArray arrayWithObject:
-	    [self _parseExpressionWithScanner: sc args: e vargs: v]];
-	  if (scanPredicateKeyword(sc, @"FIRST"))
-	    {
-	      left = [NSExpression expressionForFunction: @"_first"
-					       arguments: a];
-	    }
-	  else if (scanPredicateKeyword(sc, @"LAST"))
-	    {
-	      left = [NSExpression expressionForFunction: @"_last"
-					       arguments: a];
-	    }
-	  else if (scanPredicateKeyword(sc, @"SIZE"))
-	    {
-	      left = [NSExpression expressionForFunction: @"count"
-					       arguments: a];
-	    }
-	  else
-	    {
-	      left = [NSExpression expressionForFunction: @"_index"
-					       arguments: a];
-	    }
-	  if (![sc scanString: @"]" intoString: NULL])
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Missing ] in index argument"];
-	    }
-	}
-      else if ([sc scanString: @"." intoString: NULL])
-	{ // keypath - this parser allows for (a).(b.c) to be properly recognized and even %K.((%K)) if the first %K evaluates to "a" and the second %K to "b.c"
-	  NSExpression *right;
-
-	  if (![left keyPath])
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Invalid left keypath: %@", left];
-	    }
-	  right
-	    = [self _parseExpressionWithScanner: sc args: e vargs: v];
-	  if (![right keyPath])
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Invalid right keypath: %@", left];
-	    }
-	  left = [NSExpression expressionForKeyPath:
-	    [NSString stringWithFormat: @"%@.%@",
-	      [left keyPath], [right keyPath]]];  // concatenate
-	}
-      else
-	{
-	  return left;  // done with suffixes
-	}
-    }
-}
-
-+ (id) _parsePowerExpressionWithScanner: (NSScanner *)sc
-				   args: (NSEnumerator*)e
-				  vargs: (va_list)v
-{
-  NSExpression *left;
-
-  left = [self _parseFunctionalExpressionWithScanner: sc
-						args: e
-					       vargs: v];
-  while (YES)
-    {
-      NSExpression	*right;
-
-      if ([sc scanString: @"**" intoString: NULL])
-	{
-	  right = [self _parseFunctionalExpressionWithScanner: sc
-							 args: e
-							vargs: v];
-	}
-      else
-	{
-	  return left;
-	}
-    }
-}
-
-+ (id) _parseMultiplicationExpressionWithScanner: (NSScanner *)sc
-					    args: (NSEnumerator*)e
-					   vargs: (va_list)v
-{
-  NSExpression	*left;
-
-  left = [self _parsePowerExpressionWithScanner: sc args: e vargs: v];
-  while (YES)
-    {
-      NSExpression	*right;
-
-      if ([sc scanString: @"*" intoString: NULL])
-	{
-	  right = [self _parsePowerExpressionWithScanner: sc args: e vargs: v];
-	}
-      else if ([sc scanString: @"/" intoString: NULL])
-	{
-	  right = [self _parsePowerExpressionWithScanner: sc args: e vargs: v];
-	}
-      else
-	{
-	  return left;
-	}
-    }
-}
-
-+ (id) _parseAdditionExpressionWithScanner: (NSScanner *)sc
-				      args: (NSEnumerator*)e
-				     vargs: (va_list)v
-{
-  NSExpression	*left;
-
-  left = [self _parseMultiplicationExpressionWithScanner: sc
-						    args: e
-						   vargs: v];
-  while (YES)
-    {
-      NSExpression	*right;
-
-      if ([sc scanString: @"+" intoString: NULL])
-	{
-	  right = [self _parseMultiplicationExpressionWithScanner: sc
-							     args: e
-							    vargs: v];
-	}
-      else if ([sc scanString: @"-" intoString: NULL])
-	{
-	  right = [self _parseMultiplicationExpressionWithScanner: sc
-							     args: e
-							    vargs: v];
-	}
-      else
-	{
-	  return left;
-	}
-    }
-}
-
-+ (id) _parseBinaryExpressionWithScanner: (NSScanner *)sc
-				    args: (NSEnumerator*)e
-				   vargs: (va_list)v
-{
-  NSExpression	*left;
-
-  left = [self _parseAdditionExpressionWithScanner: sc
-					      args: e
-					     vargs: v];
-  while (YES)
-    {
-      NSExpression	*right;
-
-      if ([sc scanString: @": =" intoString: NULL])  // assignment
-	{
-	  // check left to be a variable?
-	  right = [self _parseAdditionExpressionWithScanner: sc
-						       args: e
-						      vargs: v];
-	}
-      else
-	{
-	  return left;
-	}
-    }
-}
-
 + (NSExpression *) expressionForConstantValue: (id)obj
 {
   GSConstantValueExpression *e;
@@ -1396,7 +801,6 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
   e->_variable = [string retain];
   return e;
 }
-
 
 - (NSArray *) arguments
 {
@@ -1863,5 +1267,614 @@ static BOOL scanPredicateKeyword(NSScanner *sc, NSString *key)
     }
   return result;  // we could/should convert to a non-mutable copy
 }
+
+@end
+
+@implementation GSPredicateScanner
+
+- (id) initWithString: (NSString*)format
+		 args: (NSArray*)args
+		vargs: (va_list)vargs
+{
+  self = [super initWithString: format];
+  if (self != nil)
+    {
+      _args = [args objectEnumerator];
+      if (_args == nil)
+        {
+#ifdef __va_copy
+          __va_copy(_vargs, vargs);
+#else
+          _vargs = vargs;
+#endif
+        }
+    }
+  return self;
+}
+
+- (id) nextArg
+{
+  id	o;
+
+  if (_args != nil)
+    {
+      o = [_args nextObject];
+    }
+  else
+    {
+      unsigned	i;
+      va_list	ap;
+
+#ifdef __va_copy
+      __va_copy(ap, _vargs);
+#else
+      ap = _vargs;
+#endif
+
+      for (i = 0; i < _retrieved; i++)
+        {
+	  o = va_arg(ap, id);
+        }
+      _retrieved++;
+      o = va_arg(ap, id);
+    }
+  return o;
+}
+
+- (BOOL) scanPredicateKeyword: (NSString *)key
+{
+  // save to back up
+  unsigned loc = [self scanLocation];
+  unichar c;
+  
+  [self setCaseSensitive: NO];
+  if (![self scanString: key intoString: NULL])
+    {
+      // no match
+      return NO;
+    }
+  c = [[self string] characterAtIndex: [self scanLocation]];
+  if (![[NSCharacterSet alphanumericCharacterSet] characterIsMember: c])
+    {
+      // ok
+      return YES;
+    }
+
+  // back up
+  [self setScanLocation: loc];
+  // no match
+  return NO;
+}
+
+- (NSPredicate *) parse
+{
+  NSPredicate *r;
+
+  r = [self parsePredicate];
+  if (![self isAtEnd])
+    {
+      [NSException raise: NSInvalidArgumentException 
+		   format: @"Format string contains extra characters: \"%@\"", 
+		   [self string]];
+    }
+  return r;
+}
+
+- (NSPredicate *) parsePredicate
+{
+  return [self parseAnd];
+}
+
+- (NSPredicate *) parseAnd
+{
+  NSPredicate *l = [self parseOr];
+
+  while ([self scanPredicateKeyword: @"AND"])
+    {
+      NSPredicate *r = [self parseOr];
+
+      if ([r isKindOfClass: [NSCompoundPredicate class]] && 
+	  [(NSCompoundPredicate *)r compoundPredicateType] == NSAndPredicateType)
+        {
+	  // merge
+	  if ([l isKindOfClass:[NSCompoundPredicate class]] && 
+	      [(NSCompoundPredicate *)l compoundPredicateType] == NSAndPredicateType)
+	    {
+	      [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
+				 addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+	    }
+	  else
+	    {
+	      [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
+				 insertObject: l atIndex: 0];
+	      l = r;
+	    }
+	}
+      else if ([l isKindOfClass: [NSCompoundPredicate class]] &&  
+	       [(NSCompoundPredicate *)l compoundPredicateType] == NSAndPredicateType)
+        {
+	  // add to l
+	  [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] addObject: r];
+	}
+      else
+        {
+	  l = [NSCompoundPredicate andPredicateWithSubpredicates: 
+				       [NSArray arrayWithObjects:l, r, nil]];
+	}
+    }
+  return l;
+}
+
+- (NSPredicate *) parseNot
+{
+  if ([self scanString: @"(" intoString: NULL])
+    {
+      NSPredicate *r = [self parsePredicate];
+	
+      if (![self scanString: @")" intoString: NULL])
+        {
+	  [NSException raise: NSInvalidArgumentException 
+		       format: @"Missing ) in compound predicate"];
+	}
+      return r;
+    }
+
+  if ([self scanPredicateKeyword: @"NOT"])
+    {
+      // -> NOT NOT x or NOT (y)
+      return [NSCompoundPredicate notPredicateWithSubpredicate: [self parseNot]];
+    }
+
+  if ([self scanPredicateKeyword:@"TRUEPREDICATE"])
+    {
+      return [NSPredicate predicateWithValue: YES];
+    }
+  if ([self scanPredicateKeyword:@"FALSEPREDICATE"])
+    {
+      return [NSPredicate predicateWithValue: NO];
+    }
+  
+  return [self parseComparison];
+}
+
+- (NSPredicate *) parseOr
+{
+  NSPredicate *l = [self parseNot];
+
+  while ([self scanPredicateKeyword:@"OR"])
+    {
+      NSPredicate *r = [self parseNot];
+
+      if ([r isKindOfClass: [NSCompoundPredicate class]] && 
+	  [(NSCompoundPredicate *)r compoundPredicateType] == NSOrPredicateType)
+        {
+	  // merge
+	  if ([l isKindOfClass: [NSCompoundPredicate class]] && 
+	      [(NSCompoundPredicate *)l compoundPredicateType] == NSOrPredicateType)
+	    {
+	      [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
+				 addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+	    }
+	  else
+	    {
+	      [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
+				 insertObject: l atIndex: 0];
+	      l = r;
+	    }		
+	}
+      else if ([l isKindOfClass: [NSCompoundPredicate class]] && 
+	       [(NSCompoundPredicate *)l compoundPredicateType] == NSOrPredicateType)
+        {
+	  [(NSMutableArray *) [(NSCompoundPredicate *) l subpredicates] addObject:r]; // add to l
+	}
+      else
+        {
+	  l= [NSCompoundPredicate andPredicateWithSubpredicates: 
+				      [NSArray arrayWithObjects: l, r, nil]];
+	}
+    }
+  return l;
+}
+
+- (NSPredicate *) parseComparison
+{ 
+  // there must always be a comparison
+  NSComparisonPredicateModifier modifier = NSDirectPredicateModifier;
+  NSPredicateOperatorType type = 0;
+  unsigned opts = 0;
+  NSExpression *left;
+  NSPredicate *p;
+  BOOL negate = NO;
+
+  if ([self scanPredicateKeyword: @"ANY"])
+    modifier = NSAnyPredicateModifier;
+  else if ([self scanPredicateKeyword: @"ALL"])
+    modifier = NSAllPredicateModifier;
+  else if ([self scanPredicateKeyword: @"NONE"])
+    {
+      modifier = NSAnyPredicateModifier;
+      negate = YES;
+    }
+  else if ([self scanPredicateKeyword: @"SOME"])
+    {
+      modifier = NSAllPredicateModifier;
+      negate = YES;
+    }
+
+  left = [self parseBinaryExpression];
+  if ([self scanString: @"<" intoString: NULL])
+      type = NSLessThanPredicateOperatorType;
+  else if ([self scanString: @"<=" intoString: NULL])
+      type = NSLessThanOrEqualToPredicateOperatorType;
+  else if ([self scanString: @">" intoString: NULL])
+      type = NSGreaterThanPredicateOperatorType;
+  else if ([self scanString: @">=" intoString: NULL])
+      type = NSGreaterThanOrEqualToPredicateOperatorType;
+  else if ([self scanString: @"=" intoString: NULL])
+      type = NSEqualToPredicateOperatorType;
+  else if ([self scanString: @"!=" intoString: NULL])
+      type = NSNotEqualToPredicateOperatorType;
+  else if ([self scanPredicateKeyword: @"MATCHES"])
+      type = NSMatchesPredicateOperatorType;
+  else if ([self scanPredicateKeyword: @"LIKE"])
+      type = NSLikePredicateOperatorType;
+  else if ([self scanPredicateKeyword: @"BEGINSWITH"])
+      type = NSBeginsWithPredicateOperatorType;
+  else if([self scanPredicateKeyword: @"ENDSWITH"])
+      type = NSEndsWithPredicateOperatorType;
+  else if ([self scanPredicateKeyword: @"IN"])
+      type = NSInPredicateOperatorType;
+  else
+      [NSException raise: NSInvalidArgumentException 
+		   format: @"Invalid comparison predicate: %@", 
+		   [[self string] substringFromIndex: [self scanLocation]]];
+ 
+  if ([self scanString: @"[cd]" intoString: NULL])
+    opts = NSCaseInsensitivePredicateOption | NSDiacriticInsensitivePredicateOption;
+  else if ([self scanString: @"[c]" intoString: NULL])
+    opts = NSCaseInsensitivePredicateOption;
+  else if([self scanString: @"[d]" intoString: NULL])
+    opts = NSDiacriticInsensitivePredicateOption;
+
+  p = [NSComparisonPredicate predicateWithLeftExpression: left 
+			     rightExpression: [self parseBinaryExpression]
+			     modifier: modifier 
+			     type: type 
+			     options: opts];
+
+  return negate ? [NSCompoundPredicate notPredicateWithSubpredicate: p] : p;
+}
+
+- (NSExpression *) parseExpression
+{
+  static NSCharacterSet *_identifier;
+  NSString *ident;
+  double dbl;
+
+  if ([self scanDouble: &dbl])
+    {
+      return [NSExpression expressionForConstantValue: 
+			       [NSNumber numberWithDouble: dbl]];
+    }
+
+  // FIXME: handle integer, hex constants, 0x 0o 0b
+  if ([self scanString: @"-" intoString: NULL])
+    {
+      return [NSExpression expressionForFunction: @"_chs" 
+			   arguments: [NSArray arrayWithObject: [self parseExpression]]];
+    }
+
+  if([self scanString: @"(" intoString: NULL])
+    {
+      NSExpression *arg = [self parseExpression];
+      
+      if (![self scanString: @")" intoString: NULL])
+        {
+	  [NSException raise: NSInvalidArgumentException 
+		       format: @"Missing ) in expression"];
+	}
+      return arg;
+    }
+
+  if ([self scanString: @"{" intoString: NULL])
+    {
+      NSMutableArray *a = [NSMutableArray arrayWithCapacity: 10];
+
+      if ([self scanString: @"}" intoString: NULL])
+        {
+	  // empty
+	  // FIXME
+	  return nil;
+	}
+      // first element
+      [a addObject: [self parseExpression]];
+      while ([self scanString: @"," intoString: NULL])
+        {
+	  // more elements
+	  [a addObject: [self parseExpression]];
+	}
+
+      if(![self scanString: @"}" intoString: NULL])
+        {
+	  [NSException raise: NSInvalidArgumentException 
+		       format: @"Missing } in aggregate"];
+	}
+      // FIXME
+      return nil;
+    }
+
+  if ([self scanPredicateKeyword: @"NULL"])
+      return [NSExpression expressionForConstantValue: [NSNull null]];
+  if ([self scanPredicateKeyword: @"TRUE"])
+      return [NSExpression expressionForConstantValue: 
+			       [NSNumber numberWithBool: YES]];
+  if ([self scanPredicateKeyword: @"FALSE"])
+      return [NSExpression expressionForConstantValue: 
+			       [NSNumber numberWithBool: NO]];
+  if ([self scanPredicateKeyword: @"SELF"])
+      return [NSExpression expressionForEvaluatedObject];
+
+  if ([self scanString: @"$" intoString: NULL])
+    {
+      // variable
+      NSExpression *var = [self parseExpression];
+
+      if (![var keyPath])
+        {
+	  [NSException raise: NSInvalidArgumentException 
+		       format: @"Invalid variable identifier: %@", var];
+	}
+      return [NSExpression expressionForVariable:[var keyPath]];
+    }
+	
+  if ([self scanPredicateKeyword: @"%K"])
+    {
+      return [NSExpression expressionForKeyPath: [self nextArg]];
+    }
+
+  if ([self scanPredicateKeyword: @"%@"])
+    {
+      return [NSExpression expressionForConstantValue: [self nextArg]];
+    }
+	
+  // FIXME: other formats
+  if ([self scanString: @"\"" intoString: NULL])
+    {
+      NSString *str = @"string constant";
+	
+      return [NSExpression expressionForConstantValue: str];
+    }
+	
+  if ([self scanString: @"'" intoString: NULL])
+    {
+      NSString *str = @"string constant";
+
+      return [NSExpression expressionForConstantValue: str];
+    }
+
+  if ([self scanString: @"@" intoString: NULL])
+    {
+      NSExpression *e = [self parseExpression];
+
+      if (![e keyPath])
+        {
+	  [NSException raise: NSInvalidArgumentException 
+		       format: @"Invalid keypath identifier: %@", e];
+	}
+
+      // prefix with keypath
+      return [NSExpression expressionForKeyPath: 
+			       [NSString stringWithFormat: @"@%@", [e keyPath]]];
+    }
+
+  // skip # as prefix (reserved words)
+  [self scanString: @"#" intoString: NULL];
+  if (!_identifier)
+    {
+      _identifier = [[NSCharacterSet characterSetWithCharactersInString: 
+					 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"] retain];
+    }
+
+  if (![self scanCharactersFromSet: _identifier intoString: &ident])
+    {
+      [NSException raise: NSInvalidArgumentException 
+		   format: @"Missing identifier: %@", 
+		   [[self string] substringFromIndex: [self scanLocation]]];
+    }
+
+  return [NSExpression expressionForKeyPath: ident];
+}
+
+- (NSExpression *) parseFunctionalExpression
+{
+  NSExpression *left = [self parseExpression];
+    
+  while (YES)
+    {
+      if ([self scanString: @"(" intoString: NULL])
+        { 
+          // function - this parser allows for (max)(a, b, c) to be properly 
+	  // recognized and even (%K)(a, b, c) if %K evaluates to "max"
+	  NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
+
+	  if (![left keyPath])
+	    {
+	      [NSException raise: NSInvalidArgumentException 
+			   format: @"Invalid function identifier: %@", left];
+	    }
+
+	  if (![self scanString: @")" intoString: NULL])
+	    {
+	      // any arguments
+	      // first argument
+	      [args addObject: [self parseExpression]];
+	      while ([self scanString: @"," intoString: NULL])
+	        {
+		  // more arguments
+		  [args addObject: [self parseExpression]];
+		}
+
+	      if (![self scanString:@")" intoString:NULL])
+	        {
+		  [NSException raise: NSInvalidArgumentException 
+			       format: @"Missing ) in function arguments"];
+		}
+	    }
+	  left = [NSExpression expressionForFunction: [left keyPath] 
+			       arguments: args];
+	}
+      else if ([self scanString: @"[" intoString: NULL])
+        {
+	  // index expression
+	  if ([self scanPredicateKeyword: @"FIRST"])
+	    {
+	      left = [NSExpression expressionForFunction: @"_first" 
+				   arguments: [NSArray arrayWithObject: 
+							   [self parseExpression]]];
+	    }
+	  else if ([self scanPredicateKeyword: @"LAST"])
+	    {
+	      left = [NSExpression expressionForFunction: @"_last" 
+				   arguments: [NSArray arrayWithObject:
+							   [self parseExpression]]];
+	    }
+	  else if ([self scanPredicateKeyword: @"SIZE"])
+	    {
+	      left = [NSExpression expressionForFunction: @"count" 
+				   arguments: [NSArray arrayWithObject:
+							   [self parseExpression]]];
+	    }
+	  else
+	    {
+	      left = [NSExpression expressionForFunction: @"_index" 
+				   arguments: [NSArray arrayWithObjects: left, 
+						       [self parseExpression], nil]];
+	    }
+	  if (![self scanString: @"]" intoString: NULL])
+	    {   
+	      [NSException raise: NSInvalidArgumentException 
+			   format: @"Missing ] in index argument"];
+	    }
+	}
+      else if ([self scanString: @"." intoString: NULL])
+        {
+	  // keypath - this parser allows for (a).(b.c) to be properly recognized
+	  // and even %K.((%K)) if the first %K evaluates to "a" and the 
+	  // second %K to "b.c"
+	  NSExpression *right;
+		
+	  if (![left keyPath])
+	    {
+	      [NSException raise: NSInvalidArgumentException 
+			   format: @"Invalid left keypath: %@", left];
+	    }
+	  right = [self parseExpression];
+	  if (![right keyPath])
+	    {
+	      [NSException raise: NSInvalidArgumentException 
+			   format: @"Invalid right keypath: %@", left];
+	    }
+
+	  // concatenate
+	  left = [NSExpression expressionForKeyPath:
+				   [NSString stringWithFormat: @"%@.%@", 
+					     [left keyPath], [right keyPath]]];
+	}
+      else
+        {
+	  // done with suffixes
+	  return left;
+	}
+    }
+}
+
+- (NSExpression *) parsePowerExpression
+{
+  NSExpression *left = [self parseFunctionalExpression];
+  
+  while(YES)
+    {
+      NSExpression *right;
+	
+      if ([self scanString: @"**" intoString: NULL])
+        {
+	  right = [self parseFunctionalExpression];
+          // FIXME
+	}
+      else
+        {
+	  return left;
+	}
+    }
+}
+
+- (NSExpression *) parseMultiplicationExpression
+{
+  NSExpression *left = [self parsePowerExpression];
+	
+  while (YES)
+    {
+      NSExpression *right;
+	
+      if ([self scanString: @"*" intoString: NULL])
+        {
+	  right = [self parsePowerExpression];
+          // FIXME
+	}
+      else if ([self scanString: @"/" intoString: NULL])
+        {
+	  right = [self parsePowerExpression];
+          // FIXME
+	}
+      else
+        {
+	  return left;
+	}
+    }
+}
+
+- (NSExpression *) parseAdditionExpression
+{
+  NSExpression *left = [self parseMultiplicationExpression];
+  
+  while(YES)
+    {
+      NSExpression *right;
+	
+      if([self scanString: @"+" intoString: NULL])
+        {
+	  right = [self parseMultiplicationExpression];
+          // FIXME
+	}
+      else if ([self scanString: @"-" intoString: NULL])
+        {
+	  right = [self parseMultiplicationExpression];
+          // FIXME
+	}
+      else
+        {
+	  return left;
+	}
+    }
+}
+
+- (NSExpression *) parseBinaryExpression
+{
+  NSExpression *left = [self parseAdditionExpression];
+  
+  while (YES)
+    {
+      NSExpression *right;
+
+      if ([self scanString: @":=" intoString: NULL])	// assignment
+        {
+	  // check left to be a variable?
+	  right = [self parseAdditionExpression];
+	}
+      else
+	return left;
+    }
+}
+
 
 @end
