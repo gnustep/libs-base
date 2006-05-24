@@ -980,11 +980,7 @@ canBeConvertedToEncoding_c(GSStr self, NSStringEncoding enc)
     && enc != internalEncoding
     && enc != NSUTF8StringEncoding
     && enc != NSUnicodeStringEncoding
-    && ((internalEncoding != NSASCIIStringEncoding)
-      || ((enc != NSISOLatin1StringEncoding)
-        && (enc != NSISOLatin2StringEncoding)
-        && (enc != NSNEXTSTEPStringEncoding)
-        && (enc != NSNonLossyASCIIStringEncoding))))
+    && ((internalEncoding != NSASCIIStringEncoding) || !GSIsByteEncoding(enc)))
     {
       unsigned	l = 0;
       unichar	*r = 0;
@@ -1345,7 +1341,7 @@ cStringLength_u(GSStr self, NSStringEncoding enc)
 }
 
 static inline NSData*
-dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
+dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL lossy)
 {
   unsigned	len = self->_count;
 
@@ -1356,10 +1352,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
 
   if ((encoding == internalEncoding)
     || ((internalEncoding == NSASCIIStringEncoding)
-    && ((encoding == NSISOLatin1StringEncoding)
-    || (encoding == NSISOLatin2StringEncoding)
-    || (encoding == NSNEXTSTEPStringEncoding)
-    || (encoding == NSNonLossyASCIIStringEncoding))))
+      && (encoding == NSUTF8StringEncoding || GSIsByteEncoding(encoding))))
     {
       unsigned char *buff;
 
@@ -1373,7 +1366,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
       unichar		*r = 0;
       unsigned int	options = GSUniBOM;
 
-      if (flag == NO)
+      if (lossy == NO)
 	{
 	  options |= GSUniStrict;
 	}
@@ -1399,7 +1392,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
 		      format: @"Can't convert to Unicode string."];
 	}
       if (GSFromUnicode(&r, &s, u, l, encoding, NSDefaultMallocZone(),
-	(flag == NO) ? GSUniStrict : 0) == NO)
+	(lossy == NO) ? GSUniStrict : 0) == NO)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), u);
 	  return nil;
@@ -1410,7 +1403,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL flag)
 }
 
 static inline NSData*
-dataUsingEncoding_u(GSStr self, NSStringEncoding encoding, BOOL flag)
+dataUsingEncoding_u(GSStr self, NSStringEncoding encoding, BOOL lossy)
 {
   unsigned	len = self->_count;
 
@@ -1428,7 +1421,7 @@ dataUsingEncoding_u(GSStr self, NSStringEncoding encoding, BOOL flag)
 
       if ((l = GSUnicode(self->_contents.u, len, 0, 0)) != len)
         {
-	  if (flag == NO)
+	  if (lossy == NO)
 	    {
 	      return nil;
 	    }
@@ -1466,7 +1459,7 @@ dataUsingEncoding_u(GSStr self, NSStringEncoding encoding, BOOL flag)
       unsigned int	l = 0;
 
       if (GSFromUnicode(&r, &l, self->_contents.u, self->_count, encoding,
-	NSDefaultMallocZone(), (flag == NO) ? GSUniStrict : 0) == NO)
+	NSDefaultMallocZone(), (lossy == NO) ? GSUniStrict : 0) == NO)
 	{
 	  return nil;
 	}
