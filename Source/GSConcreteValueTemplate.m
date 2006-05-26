@@ -1,5 +1,5 @@
-# line 1 "GSTemplateValue.m"	/* So gdb knows which file we are in */
-/* GSTemplateValue - Object encapsulation for C types.
+# line 1 "GSConcreteValueTemplate.m"	/* So gdb knows which file we are in */
+/* GSConcreteValueTemplate - Object encapsulation for C types.
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
