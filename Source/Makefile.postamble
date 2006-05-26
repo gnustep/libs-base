@@ -114,16 +114,6 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-# Creation of NSValue and NSNumber concrete classes from templates
-$(NSVALUE_MFILES) : GSTemplateValue.m
-	rm -f $@
-	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
-	cat GSTemplateValue.m >> $@
-$(NSNUMBER_MFILES) : NSConcreteNumber.m
-	rm -f $@
-	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
-	cat NSConcreteNumber.m >> $@
-
 $(GNUSTEP_OBJ_DIR)/objc-load${OEXT}: dynamic-load.h
 
 dynamic-load.h: ../config.status

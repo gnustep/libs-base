@@ -1,4 +1,4 @@
-# line 1 "NSConcreteNumber.m"	/* So gdb knows which file we are in */
+# line 1 "NSConcreteNumberTemplate.m"	/* So gdb knows which file we are in */
 /* NSConcreteNumber - Object encapsulation of numbers
 
    Copyright (C) 1993, 1994, 1996, 2000 Free Software Foundation, Inc.
@@ -24,17 +24,6 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 */
-
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GSConfig.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSCoder.h"
-#include "NSConcreteNumber.h"
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 12 corresponding to each number type */
@@ -618,3 +607,6 @@
 
 @end
 
+#undef TYPE_TYPE
+#undef NumberTemplate
+#undef PT
