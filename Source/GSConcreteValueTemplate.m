@@ -22,14 +22,6 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "GNUstepBase/preface.h"
-
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 4 corresponding to each value type */
@@ -265,3 +257,6 @@
 }
 
 @end
+#undef GSTemplateValue
+#undef TYPE_METHOD
+#undef TYPE_NAME

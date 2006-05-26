@@ -133,6 +133,7 @@ GNU_HEADERS = $(ADD_HEADERS)
 BASE_MFILES = \
 GSArray.m \
 GSAttributedString.m \
+GSConcreteValue.m \
 GSCountedSet.m \
 GSDictionary.m \
 GSFormat.m \
@@ -156,6 +157,7 @@ NSClassDescription.m \
 NSCoder.m \
 NSCopyObject.m \
 NSCountedSet.m \
+NSConcreteNumber.m \
 NSConnection.m \
 NSData.m \
 NSDate.m \
@@ -248,17 +250,9 @@ GNU_MFILES += callframe.m
 BASE_MFILES += GSFFCallInvocation.m
 endif
 
-NSVALUE_MFILES = \
-	GSValue0.m GSValue1.m GSValue2.m GSValue3.m \
-	GSValue4.m GSValue5.m
-NSNUMBER_MFILES = \
-	NSNumber0.m NSNumber1.m NSNumber2.m NSNumber3.m \
-	NSNumber4.m NSNumber5.m NSNumber6.m NSNumber7.m \
-	NSNumber8.m NSNumber9.m NSNumber10.m NSNumber11.m \
-	NSNumber12.m
-
 BASE_OTHER_SRCFILES = \
-NSConcreteNumber.m \
+NSConcreteNumberTemplate.m \
+GSConcreteValueTemplate.m \
 GSTemplateValue.m \
 dld-load.h \
 hpux-load.h \
@@ -374,7 +368,7 @@ endif
 
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
-	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
+	$(BASE_MFILES)
 libgnustep-base_C_FILES = $(GNU_CFILES)
 
 # Extra DLL exports file

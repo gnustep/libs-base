@@ -1,3 +1,13 @@
+2006-05-25  Andrew Ruder <andy@aeruder.net>
+	* Source/NSConcreteNumberTemplate.m (from NSConcreteNumber.m):
+	* Source/GSConcreteValueTemplate.m (from GSTemplateValue.m):
+	* Source/GNUmakefile:
+	* Source/Makefile.postamble:
+	* Source/GSConcreteValue.m (added):
+	* Source/NSConcreteNumber.m (added):
+	Get rid of use of sed to generate concrete NSNumber/NSValue classes.
+	Use preprocessor to get around generation of additional files.
+	
 2006-05-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m: Restore last changes with varargs rewrite
