@@ -18,7 +18,8 @@
 #
 #  You should have received a copy of the GNU General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA.
 
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
@@ -51,7 +52,7 @@ MAN8_PAGES = gdomap.8
 ifeq ($(add),yes)
 TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
-TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge \
+TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults objctidy pl plmerge \
 		plparse sfparse pldes plget plser pl2link xmlparse
 CTOOL_NAME = gdomap
 
@@ -70,6 +71,7 @@ defaults_OBJC_FILES = defaults.m
 dread_OBJC_FILES = dread.m
 dremove_OBJC_FILES = dremove.m
 dwrite_OBJC_FILES = dwrite.m
+objctidy_OBJC_FILES = objctidy.m
 pl_OBJC_FILES = pl.m
 pldes_OBJC_FILES = pldes.m
 plget_OBJC_FILES = plget.m
