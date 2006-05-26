@@ -1,3 +1,9 @@
+2006-05-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/objctidy.m: Crude utility to help importing code into
+	GNUstep by trying to reformat common style differences to something
+	like iour coding standards.
+
 2006-05-25  Andrew Ruder <andy@aeruder.net>
 	* Source/NSConcreteNumberTemplate.m (from NSConcreteNumber.m):
 	* Source/GSConcreteValueTemplate.m (from GSTemplateValue.m):
