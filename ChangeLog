@@ -1,3 +1,10 @@
+2006-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Use 'goto' to jump to 'done' label on
+	failure to grow buffer, rather than 'break' ... because the GROW()
+	macro is not aways called where a break gets you to the right place.
+	Fixes bug spotted by David Ayers, and is also clearer code.
+
 2006-05-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/objctidy.m: Crude utility to help importing code into

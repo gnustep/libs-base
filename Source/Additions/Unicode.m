@@ -1174,7 +1174,7 @@ if (dst == 0) \
 else if (zone == 0) \
   { \
     result = NO; /* No buffer growth possible ... fail. */ \
-    break; \
+    goto done; \
   } \
 else \
   { \
@@ -1325,14 +1325,14 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		  if ((sle < 2) || (sle > 6))
                     {
 	               result = NO;
-		       break;
+		       goto done;
 	            }
 
 		  /* do we have enough bytes ? */
 		  if ((spos + sle) > slen)
                     {
 	               result = NO;
-		       break;
+		       goto done;
 	            }
 
 		  /* get the codepoint */
@@ -1345,7 +1345,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		  if (i < sle)
 		    {
 		      result = NO;
-		      break;
+		      goto done;
 		    }
 	          u = u & ~(0xffffffff << ((5 * sle) + 1));
 		  spos += sle;
@@ -1357,13 +1357,13 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    || (u >= 0xfdd0 && u <= 0xfdef))
 		    {
 		      result = NO;	// Invalid character.
-		      break;
+		      goto done;
 		    }
 
 		  if ((u >= 0xd800) && (u <= 0xdfff))
 		    {
 		      result = NO;	// Unmatched half of surrogate pair.
-		      break;
+		      goto done;
 		    }
                 }
               else
@@ -1412,7 +1412,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	    if (c > 127)
 	      {
 		result = NO;	// Non-ascii data found in input.
-		break;
+		goto done;
 	      }
 	    if (dpos >= bsize)
 	      {
@@ -1542,7 +1542,7 @@ tables:
 	    {
 	      NSLog(@"No iconv for encoding x%02x", enc);
 	      result = NO;
-	      break;
+	      goto done;
 	    }
 	  if (slen == 0)
 	    {
@@ -1554,7 +1554,7 @@ tables:
 	      NSLog(@"No iconv for encoding %@ tried to use %s",
 		GetEncodingName(enc), estr);
 	      result = NO;
-	      break;
+	      goto done;
 	    }
 
 	  inbuf = (unsigned char*)src;
@@ -1587,7 +1587,7 @@ tables:
 		  else
 		    {
 		      result = NO;
-		      break;
+		      goto done;
 		    }
 		}
 	    } while (!done || rval != 0);
@@ -1598,6 +1598,8 @@ tables:
 	result = NO;
 #endif
     }
+
+done:
 
   /*
    * Post conversion ... set output values.
@@ -1697,7 +1699,7 @@ if (dst == 0) \
 else if (zone == 0) \
   { \
     result = NO; /* No buffer growth possible ... fail. */ \
-    break; \
+    goto done; \
   } \
 else \
   { \
@@ -1878,6 +1880,11 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
       bsize = *size;
     }
 
+  if (result == NO)
+    {
+      goto done;
+    }
+
 #ifdef HAVE_ICONV
   if (strict == NO
     && enc != NSUTF8StringEncoding
@@ -1910,7 +1917,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		  if (strict)
 		    {
 		      result = NO;
-		      break;
+		      goto done;
                     }
 		  continue;	// Skip invalid character.
 	        }
@@ -1923,7 +1930,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      if (strict)
 			{
 			  result = NO;
-			  break;
+			  goto done;
 			}
 		      continue;	// At end.
                     }
@@ -1941,7 +1948,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      if (strict)
 			{
 			  result = NO;
-			  break;
+			  goto done;
 			}
 		      continue;		// Skip bad half of surrogate pair.
                     }
@@ -2071,7 +2078,7 @@ bases:
 		else
 		  {
 		    result = NO;
-		    break;
+		    goto done;
 		  }
 	      }
 	  }
@@ -2197,7 +2204,7 @@ tables:
 		 */
 		result = NO;
 		spos = slen;
-		break;
+		goto done;
 	      }
 	  }
 	break;
@@ -2238,7 +2245,7 @@ iconv_start:
 	    {
 	      NSLog(@"No iconv for encoding x%02x", enc);
 	      result = NO;
-	      break;
+	      goto done;
 	    }
 	  if (slen == 0)
 	    {
@@ -2250,7 +2257,7 @@ iconv_start:
 	      NSLog(@"No iconv for encoding %@ tried to use %s",
 		GetEncodingName(enc), estr);
 	      result = NO;
-	      break;
+	      goto done;
 	    }
 
 	  inbuf = (unsigned char*)src;
@@ -2287,7 +2294,7 @@ iconv_start:
 			  if (strict == YES)
 			    {
 			      result = NO;
-			      break;
+			      goto done;
 			    }
 			  /*
 			   * If we are allowing lossy conversion, we replace any
@@ -2304,7 +2311,7 @@ iconv_start:
 		      else
 			{
 			  result = NO;
-			  break;
+			  goto done;
 			}
 		    }
 		  else if (strict == YES)
@@ -2315,7 +2322,7 @@ iconv_start:
 		       * so if we are doing strict conversions we must fail.
 		       */
 		      result = NO;
-		      break;
+		      goto done;
 		    }
 		}
 	    } while (!done || rval != 0);
@@ -2324,9 +2331,11 @@ iconv_start:
 	}
 #else
 	result = NO;
-	break;
+	goto done;
 #endif
     }
+
+  done:
 
   /*
    * Post conversion ... set output values.
