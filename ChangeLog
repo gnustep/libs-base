@@ -1,3 +1,16 @@
+2006-05-30  David Ayers  <d.ayers@inode.at>
+
+	* Source/GSPrivate.h (GSCharPtr): New union type to handle
+	alignment issues.
+	(GSString): Use it.
+	* Source/GSString.m
+	([-initWithBytesNoCopy:length:encoding:freeWhenDone:]): Use GSCharPtr
+	instead of casts to avoid alignment issues.  Fix typo's.
+
+	* Source/NSString.m
+	([-initWithBytesNoCopy:length:encoding:freeWhenDone:]): Correct grammar
+	in comment.
+	
 2006-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Use 'goto' to jump to 'done' label on
