@@ -470,7 +470,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 	      freeWhenDone: (BOOL)flag
 {
   extern BOOL GSEncodingSupported(NSStringEncoding enc);
-  unsigned char	*chars = 0;
+  GSCharPtr	chars = { .u = 0 };
   BOOL		isASCII = NO;
   BOOL		isLatin1 = NO;
   GSStr		me;
@@ -487,7 +487,14 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   if (length > 0)
     {
       fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
-      chars = (unsigned char*)bytes;
+      if (encoding == NSUnicodeStringEncoding)
+	{
+	  chars.u = bytes;
+	}
+      else
+	{
+	  chars.c = bytes;
+	}
     }
 
   if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
@@ -496,13 +503,13 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 
       for (i = 0; i < length; i++)
         {
-	  if (((unsigned char*)chars)[i] > 127)
+	  if ((chars.c)[i] > 127)
 	    {
 	      if (encoding == NSASCIIStringEncoding)
 		{
-		  if (flag == YES && chars != 0)
+		  if (flag == YES && chars.c != 0)
 		    {
-		      NSZoneFree(NSZoneFromPointer(chars), chars);
+		      NSZoneFree(NSZoneFromPointer(chars.c), chars.c);
 		    }
 		  return nil;	// Invalid data
 		}
@@ -512,7 +519,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       if (i == length)
 	{
 	  /*
-	   * This is actually ASCII data ... so we can just stor it as if
+	   * This is actually ASCII data ... so we can just store it as if
 	   * in the internal 8bit encoding scheme.
 	   */
 	  encoding = internalEncoding;
@@ -522,7 +529,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   if (encoding == internalEncoding)
     {
       me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, GSObjCZone(self));
-      me->_contents.c = (unsigned char*)chars;
+      me->_contents.c = chars.c;
       me->_count = length;
       me->_flags.wide = 0;
       me->_flags.free = flag;
@@ -537,30 +544,30 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       unichar	*u = 0;
       unsigned	l = 0;
 
-      if (GSToUnicode(&u, &l, (unsigned char*)chars, length, encoding,
+      if (GSToUnicode(&u, &l, chars.c, length, encoding,
 	GSObjCZone(self), 0) == NO)
 	{
-	  if (flag == YES && chars != 0)
+	  if (flag == YES && chars.c != 0)
 	    {
-	      NSZoneFree(NSZoneFromPointer(chars), chars);
+	      NSZoneFree(NSZoneFromPointer(chars.c), chars.c);
 	    }
 	  return nil;	// Invalid data
 	}
-      if (flag == YES && chars != 0)
+      if (flag == YES && chars.c != 0)
 	{
-	  NSZoneFree(NSZoneFromPointer(chars), chars);
+	  NSZoneFree(NSZoneFromPointer(chars.c), chars.c);
 	}
-      chars = (unsigned char*)u;
+      chars.u = u;
       length = l * sizeof(unichar);
       flag = YES;
     }
 
   length /= sizeof(unichar);
-  if (GSUnicode((unichar*)chars, length, &isASCII, &isLatin1) != length)
+  if (GSUnicode(chars.u, length, &isASCII, &isLatin1) != length)
     {
-      if (flag == YES && chars != 0)
+      if (flag == YES && chars.u != 0)
         {
-	  NSZoneFree(NSZoneFromPointer(chars), chars);
+	  NSZoneFree(NSZoneFromPointer(chars.u), chars.u);
         }
       return nil;	// Invalid data
     }
@@ -576,18 +583,18 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
       me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
       while (length-- > 0)
         {
-	  me->_contents.c[length] = ((unichar*)chars)[length];
+	  me->_contents.c[length] = chars.u[length];
         }
-      if (flag == YES && chars != 0)
+      if (flag == YES && chars.u != 0)
         {
-	  NSZoneFree(NSZoneFromPointer(chars), chars);
+	  NSZoneFree(NSZoneFromPointer(chars.u), chars.u);
         }
     }
   else
     {
       me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass,
 	0, GSObjCZone(self));
-      me->_contents.u = (unichar*)chars;
+      me->_contents.u = chars.u;
       me->_count = length;
       me->_flags.wide = 1;
       me->_flags.free = flag;

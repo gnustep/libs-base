@@ -112,6 +112,15 @@ GS_EXPORT NSString	*GSEncodingName(NSStringEncoding encoding);
 GS_EXPORT BOOL		GSIsByteEncoding(NSStringEncoding encoding);
 
 /*
+ * Type to hold either UTF-16 (unichar) or 8-bit encodings,
+ * while satisfying alignment constraints.
+ */
+typedef union {
+  unichar *u;       // 16-bit unicode characters.
+  unsigned char *c; // 8-bit characters.
+} GSCharPtr;
+
+/*
  * Private concrete string classes.
  * NB. All these concrete string classes MUST have the same initial ivar
  * layout so that we can swap between them as necessary.
@@ -121,10 +130,7 @@ GS_EXPORT BOOL		GSIsByteEncoding(NSStringEncoding encoding);
  */
 @interface GSString : NSString
 {
-  union {
-    unichar		*u;	// 16-bit unicode characters.
-    unsigned char	*c;	// 8-bit characters.
-  } _contents;
+  GSCharPtr _contents;
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;	// 16-bit characters in string?

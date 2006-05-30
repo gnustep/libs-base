@@ -894,7 +894,7 @@ handle_printf_atsign (FILE *stream,
  * is released and nil is returned.
  * <p>Note, this is the most basic initialiser for strings.
  * In the GNUstep implementation, your subclasses may override
- * this initialiser in order to have all others function.</p>
+ * this initialiser in order to have all other functionality.</p>
  */
 - (id) initWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length
