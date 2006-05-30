@@ -1910,7 +1910,9 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		{
 		  u1 = (((u1 & 0xff00) >> 8) + ((u1 & 0x00ff) << 8));
 		}
-	      if (u1 == 0xfffe || u1 == 0xffff		// unexpcted BOM
+	      // 0xfeff is a zero-width-no-break-space inside text (not a BOM).
+	      if (u1 == 0xfffe				// unexpected BOM
+	        || u1 == 0xffff				// not a character
 		|| (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
 		|| (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
 	        {
