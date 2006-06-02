@@ -52,6 +52,8 @@
 
 #include "GSPrivate.h"
 
+extern BOOL GSEncodingSupported(NSStringEncoding enc);
+
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 #include "GNUstepBase/Unicode.h"
@@ -439,6 +441,10 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   void		*chars = 0;
   BOOL		flag = NO;
   
+  if (GSEncodingSupported(encoding) == NO)
+    {
+      return nil;	// Invalid encoding
+    }
   if (length > 0)
     {
       const void	*original = bytes;
@@ -455,6 +461,10 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 	}
       else
 	{
+	  /*
+	   * The fixBOM() function has already copied the data and allocated
+	   * new memory, so we can just pass that to the designated initialiser
+	   */
 	  chars = (void*)bytes;
 	}
     }
@@ -469,7 +479,6 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 		  encoding: (NSStringEncoding)encoding
 	      freeWhenDone: (BOOL)flag
 {
-  extern BOOL GSEncodingSupported(NSStringEncoding enc);
   GSCharPtr	chars = { .u = 0 };
   BOOL		isASCII = NO;
   BOOL		isLatin1 = NO;
@@ -4026,7 +4035,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 		  unsigned char	tmp = _contents.c[aRange.location + length];
 
 		  [aString getCString: (char*)&_contents.c[aRange.location]
-			    maxLength: length
+			    maxLength: length+1
 			     encoding: internalEncoding];
 		  _contents.c[aRange.location + length] = tmp;
 		}
@@ -4040,7 +4049,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 		  if (l > 0)
 		    {
 		      [aString getCString: (char*)&_contents.c[aRange.location]
-				maxLength: l
+				maxLength: l+1
 				 encoding: internalEncoding];
 		    }
 		  u = [aString characterAtIndex: l];
@@ -4106,7 +4115,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 	  if (l > 0)
 	    {
 	      [aString getCString: (char*)_contents.c
-			maxLength: l
+			maxLength: l+1
 			 encoding: internalEncoding];
 	    }
 	  _contents.c[l]

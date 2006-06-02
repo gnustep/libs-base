@@ -1,3 +1,8 @@
+2006-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix position of external function declaration.
+	Fix use gf getCString methods for length error.
+
 2006-05-30  David Ayers  <d.ayers@inode.at>
 
 	* Source/GSPrivate.h (GSCharPtr): New union type to handle
