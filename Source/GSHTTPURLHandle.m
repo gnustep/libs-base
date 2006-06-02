@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include "config.h"
@@ -477,7 +478,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary		*dict = [not userInfo];
   NSData		*d;
   NSRange		r;
-  BOOL			complete;
+  BOOL			complete = NO;
 
   RETAIN(self);
 
@@ -1168,6 +1169,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		 name: GSFileHandleConnectCompletionNotification
 	       object: sock];
       connectionState = connecting;
+      if (debug) NSLog(@"%@ start connect", NSStringFromSelector(_cmd));
     }
   else
     {

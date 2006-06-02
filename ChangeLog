@@ -1,3 +1,7 @@
+2006-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Fix uninitialised variable problem.
+
 2006-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Fix position of external function declaration.
