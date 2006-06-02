@@ -2,6 +2,8 @@
 
 	* Source/GSString.m: Fix position of external function declaration.
 	Fix use gf getCString methods for length error.
+	* Headers/Foundation/NSGeometry.h: Tweaks for stuff reported as
+	problematic with objective-c++ compile.
 
 2006-05-30  David Ayers  <d.ayers@inode.at>
 

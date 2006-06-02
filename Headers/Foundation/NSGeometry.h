@@ -118,21 +118,20 @@ typedef NSRect *NSRectPointer;
 }
 </example>
  */
-typedef enum _NSRectEdge NSRectEdge;
-enum _NSRectEdge
+typedef enum _NSRectEdge
 {
   NSMinXEdge,
   NSMinYEdge,
   NSMaxXEdge,
   NSMaxYEdge
-};
+} NSRectEdge;
 
 /** Point at 0,0 */
-static const NSPoint NSZeroPoint __attribute__((unused));  /* Zero point. */
+static const NSPoint NSZeroPoint __attribute__((unused)) = {0.0,0.0};
 /** Zero-size rectangle at 0,0 */
-static const NSRect NSZeroRect __attribute__((unused));    /* Zero rectangle. */
+static const NSRect NSZeroRect __attribute__((unused)) = {{0.0,0.0},{0.0,0.0}};
 /** Zero size */
-static const NSSize NSZeroSize __attribute__((unused));    /* Zero size. */
+static const NSSize NSZeroSize __attribute__((unused)) = {0.0,0.0};
 
 /**** Function Prototypes ****************************************************/
 
