@@ -33,7 +33,7 @@
 \
   (CUM) = ROUND((CUM), align); \
   (TYPE) = objc_skip_typespec(type); \
-  sprintf((DEST), "%.*s%d", (TYPE)-type, type, (CUM)); \
+  sprintf((DEST), "%.*s%d", (int)((TYPE)-type), type, (CUM)); \
   if (*(TYPE) == '+') \
     { \
       (TYPE)++; \
