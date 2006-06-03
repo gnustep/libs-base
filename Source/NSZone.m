@@ -527,7 +527,7 @@ default_lookup (NSZone *zone, void *ptr)
 static struct NSZoneStats
 default_stats (NSZone *zone)
 {
-  struct NSZoneStats dummy;
+  struct NSZoneStats dummy = {0,0,0,0,0};
 
   /* We can't obtain statistics from the memory managed by objc_malloc(). */
   [NSException raise: NSGenericException
