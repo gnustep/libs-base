@@ -333,7 +333,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 - (void) dealloc
 {
-  return;		// placeholders never get deallocated.
+  GSNOSUPERDEALLOC;	// placeholders never get deallocated.
 }
 
 - (id) initWithName: (NSString*)name data: (NSData*)data

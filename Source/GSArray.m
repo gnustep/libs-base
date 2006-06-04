@@ -147,6 +147,7 @@ static Class	GSInlineArrayClass;
       NSZoneFree([self zone], _contents_array);
     }
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 
 - (id) init
@@ -388,6 +389,7 @@ static Class	GSInlineArrayClass;
 #endif
     }
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 - (id) init
 {
@@ -865,6 +867,7 @@ static Class	GSInlineArrayClass;
 {
   RELEASE(array);
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 
 @end
@@ -1027,7 +1030,7 @@ static Class	GSInlineArrayClass;
 
 - (void) dealloc
 {
-  return;		// placeholders never get deallocated.
+  GSNOSUPERDEALLOC;	// placeholders never get deallocated.
 }
 
 - (id) init

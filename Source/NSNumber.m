@@ -21,7 +21,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSNumber class reference</title>
    $Date$ $Revision$
@@ -54,6 +55,7 @@
 {
   [NSException raise: NSGenericException
 	      format: @"Attempt to deallocate bool number owned by cache"];
+  GSNOSUPERDEALLOC;
 }
 @end
 @implementation GSCachedInt
@@ -65,6 +67,7 @@
 {
   [NSException raise: NSGenericException
 	      format: @"Attempt to deallocate int number owned by cache"];
+  GSNOSUPERDEALLOC;
 }
 @end
 

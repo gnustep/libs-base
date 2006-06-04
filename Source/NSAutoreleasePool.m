@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSAutoreleasePool class reference</title>
    $Date$ $Revision$
@@ -400,6 +401,7 @@ static IMP	initImp;
 
   /* Don't deallocate ourself, just save us for later use. */
   push_pool_to_cache (tv, self);
+  GSNOSUPERDEALLOC;
 }
 
 - (void) emptyPool

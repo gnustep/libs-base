@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */ 
 
 #ifndef __preface_h_OBJECTS_INCLUDE
@@ -164,5 +165,9 @@ extern const char o_NeXT_cc_version[];
 #define VASPRINTF_LENGTH(VASPF_CALL) strlen((VASPF_CALL))
 #endif /* VSPRINTF_RETURNS_LENGTH */
 
+/* Evil hack to stop gcc-4.1 complaining about a dealloc method which
+ * does not call the superclass implementation.
+ */
+#define	GSNOSUPERDEALLOC	if (0) [super dealloc]
 
 #endif /* __preface_h_OBJECTS_INCLUDE */
