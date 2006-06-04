@@ -597,7 +597,7 @@ static NSLock			*placeholderLock;
 
 - (void) dealloc
 {
-  return;		// placeholders never get deallocated.
+  GSNOSUPERDEALLOC;	// placeholders never get deallocated.
 }
 
 - (void) getData: (void*)data

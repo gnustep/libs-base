@@ -78,6 +78,7 @@ static NSNull	*null = 0;
 
 - (void) dealloc
 {
+  GSNOSUPERDEALLOC;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

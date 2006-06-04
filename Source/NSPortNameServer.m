@@ -101,6 +101,7 @@
 {
   [NSException raise: NSGenericException
 	      format: @"attempt to deallocate default port name server"];
+  GSNOSUPERDEALLOC;
 }
 
 /**

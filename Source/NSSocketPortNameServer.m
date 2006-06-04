@@ -592,6 +592,7 @@ typedef enum {
 {
   [NSException raise: NSGenericException
 	      format: @"attempt to deallocate default port name server"];
+  GSNOSUPERDEALLOC;
 }
 
 - (BOOL) _lookupName: (NSString*)name onHost: (NSString*)host

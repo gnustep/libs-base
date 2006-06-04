@@ -1,3 +1,33 @@
+2006-06-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexPath.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSTimeZone.m:
+	* Source/NSPortCoder.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSAttributedString.m:
+	* Source/GSArray.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSUnarchiver.m:
+	* Source/GSAttributedString.m:
+	* Source/Additions/GCArray.m:
+	* Source/Additions/GCDictionary.m:
+	* Source/Additions/GCObject.m:
+	* Source/NSNumber.m:
+	* Source/GSString.m:
+	* Source/NSConnection.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSThread.m:
+	* Source/NSData.m:
+	* Source/NSDate.m:
+	* Source/NSNull.m:
+	* Source/NSValue.m:
+	* Source/NSPortNameServer.m:
+	* Headers/Additions/GNUstepBase/preface.h.in:
+	Fixups to avoid spurious compiler warnings.
+
 2006-06-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Fix uninitialised variable problem.

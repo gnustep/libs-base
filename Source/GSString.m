@@ -328,7 +328,7 @@ setup(void)
 
 - (void) dealloc
 {
-  return;		// Placeholders never get deallocated.
+  GSNOSUPERDEALLOC;	// Placeholders never get deallocated.
 }
 
 /*
@@ -2606,6 +2606,7 @@ transmute(GSStr self, NSString *aString)
 - (void) dealloc
 {
   [self subclassResponsibility: _cmd];
+  GSNOSUPERDEALLOC;
 }
 
 - (id) initWithBytes: (const void*)chars
@@ -2960,6 +2961,7 @@ agree, create a new GSCInlineString otherwise.
       _contents.c = 0;
     }
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 @end
 
@@ -2969,6 +2971,7 @@ agree, create a new GSCInlineString otherwise.
 - (void) dealloc
 {
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 @end
 
@@ -2998,6 +3001,7 @@ agree, create a new GSCInlineString otherwise.
 {
   DESTROY(_parent);
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 @end
 
@@ -3271,6 +3275,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       _contents.u = 0;
     }
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 @end
 
@@ -3280,6 +3285,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (void) dealloc
 {
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 @end
 
@@ -3310,6 +3316,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 {
   DESTROY(_parent);
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 @end
 
@@ -3482,6 +3489,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       self->_zone = 0;
     }
   NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
@@ -4679,6 +4687,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 - (void) dealloc
 {
+  GSNOSUPERDEALLOC;
 }
 
 - (const char*) cString
