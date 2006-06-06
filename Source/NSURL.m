@@ -518,7 +518,9 @@ static unsigned	urlAlign;
 
 /**
  * Initialise by building a URL string from the supplied parameters
- * and calling -initWithString:relativeToURL:
+ * and calling -initWithString:relativeToURL:<br />
+ * This method adds percent escapes to aPath if it contains characters
+ * which need ascaping.
  */
 - (id) initWithScheme: (NSString*)aScheme
 		 host: (NSString*)aHost
@@ -526,6 +528,8 @@ static unsigned	urlAlign;
 {
   NSString	*aUrlString = [NSString alloc];
 
+  aPath
+    = [aPath stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
   if ([aHost length] > 0)
     {
       if ([aPath length] > 0)
