@@ -21,7 +21,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSURL class reference</title>
    $Date$ $Revision$
@@ -476,7 +477,8 @@ static unsigned	urlAlign;
 /**
  * Create and return a file URL with the supplied path.<br />
  * The value of aPath must be a valid filesystem path.<br />
- * Calls -initFileURLWithPath:
+ * Calls -initFileURLWithPath: which escapes characters in the
+ * path where necessary.
  */
 + (id) fileURLWithPath: (NSString*)aPath
 {
