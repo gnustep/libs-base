@@ -349,12 +349,26 @@ main(int argc, char** argv, char **env)
 		    }
 		}
 
-	      /* repair indentation
-	       */
-	      while (pos-- > 0)
-		{
-		  [line replaceCharactersInRange: NSMakeRange(0, 0)
-				      withString: @" "];
+	      if ([line hasPrefix: @"#"])
+	        {
+		  [line replaceString: @"#import" withString: @"#include"];
+		  if ([line hasPrefix: @"#include"])
+		    {
+		      [line replaceString: @"< " withString: @"<"];
+		      [line replaceString: @" >" withString: @">"];
+		      [line replaceString: @"> " withString: @">"];
+		      [line replaceString: @" / " withString: @"/"];
+		    }
+		}
+	      else
+	        {
+		  /* repair indentation
+		   */
+		  while (pos-- > 0)
+		    {
+		      [line replaceCharactersInRange: NSMakeRange(0, 0)
+					  withString: @" "];
+		    }
 		}
 
 	      [lines replaceObjectAtIndex: j withObject: line];
