@@ -64,7 +64,7 @@ notice and this notice are preserved.
 	    <term>NSNotificationQueue private functions</term>
 	    <desc>
 	    Private functions <code>GSNotifyASAP</code>,
-	    <code>GSNotifyIdle</code>, and <code>GSNotifyMore</core>
+	    <code>GSNotifyIdle</code>, and <code>GSNotifyMore</code>
 	    were removed from public interface.
 	    </desc>
 	    <term>NSRunLoop watcher API updates and other changes</term>
