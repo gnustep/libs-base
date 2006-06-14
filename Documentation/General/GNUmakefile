@@ -19,7 +19,8 @@
 #
 #  You should have received a copy of the GNU General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA
 #
 
 # Install into the system root by default
@@ -45,7 +46,7 @@ OpenStepCompliance.gsdoc \
 #General_AGSDOC_FLAGS = -DocumentationDirectory .
 
 # Use local version of autogsdoc in case it is not installed
-AUTOGSDOC=../../Tools/$(GNUSTEP_OBJ_PREFIX)/autogsdoc
+AUTOGSDOC=../../Tools/$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc
 BASE_MAKE_LOADED=yes
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
