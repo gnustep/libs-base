@@ -1,3 +1,10 @@
+2006-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Additions/GNUstepBase/GSXML.h: New XMLRPC settings to control
+	timezone and to produce compact output.
+	* Source/Additions/GSXML.m: New methods and bugfix for handling
+	strng data with no 'string' element markup.
+
 2006-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: ([initWithScheme:host:path:]) escape characters in
