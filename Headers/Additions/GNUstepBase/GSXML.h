@@ -661,7 +661,9 @@
 
 /**
  * Specify whether to generate compact XML (omit indentation and other white
- * space and omit &lt;string&gt; element markup).
+ * space and omit &lt;string&gt; element markup).<br />
+ * Compact representation saves some space (can be important when sent over
+ * slow/low bandwidth connections), but sacrifices readability.
  */
 - (void) setCompact: (BOOL)flag;
 
