@@ -1472,15 +1472,13 @@ wordData(NSString *word)
     }
   else
     {
-      BOOL	result;
-
       if (flags.wantEndOfLine == 1)
 	{
-	  result = [self parse: [NSData dataWithBytes: "\r\n" length: 2]];
+	  [self parse: [NSData dataWithBytes: "\r\n" length: 2]];
 	}
       else if (flags.inBody == 1)
 	{
-	  result = [self _decodeBody: d];
+	  [self _decodeBody: d];
 	}
       else
 	{
@@ -1488,12 +1486,12 @@ wordData(NSString *word)
 	   * If still parsing headers, add CR-LF sequences to terminate
 	   * the headers.
            */
-	  result = [self parse: [NSData dataWithBytes: "\r\n\r\n" length: 4]];
+	  [self parse: [NSData dataWithBytes: "\r\n\r\n" length: 4]];
 	}
       flags.wantEndOfLine = 0;
       flags.inBody = 0;
       flags.complete = 1;	/* Finished parsing	*/
-      return result;
+      return NO;		/* Want no more data	*/
     }
 }
 
@@ -1684,21 +1682,24 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 /**
  * <p>
  *   This method is called to parse a header line and split its
- *   contents into an info dictionary.
+ *   contents into the supplied [GSMimeHeader] instance.
  * </p>
  * <p>
- *   On entry, the dictionary is already partially filled,
- *   the name argument is a lowercase representation of the
- *   header name, and the scanner is set to a scan location
- *   immediately after the colon in the header string.
+ *   On entry, the header (info) is already partially filled,
+ *   the name is a lowercase representation of the
+ *   header name.  The the scanner must be set to a scan location
+ *   immediately after the colon in the original header string
+ *   (ie to the header value string).
  * </p>
  * <p>
  *   If the header is parsed successfully, the method should
  *   return YES, otherwise NO.
  * </p>
  * <p>
- *   You should not call this method directly yourself, but may
- *   override it to support parsing of new headers.
+ *   You would not normally call this method directly yourself,
+ *   but may override it to support parsing of new headers.<br />
+ *   If you do call this yourself, you need to be aware that it
+ *   may change the state of the document in the parser.
  * </p>
  * <p>
  *   You should be aware of the parsing that the standard
@@ -2328,6 +2329,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   return hdr;
 }
 
+/*
+ * Return YES if more data is needed, NO if the body has been completely
+ * parsed.
+ */
 - (BOOL) _decodeBody: (NSData*)d
 {
   unsigned	l = [d length];

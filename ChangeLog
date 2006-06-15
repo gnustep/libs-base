@@ -3,7 +3,10 @@
 	* Additions/GNUstepBase/GSXML.h: New XMLRPC settings to control
 	timezone and to produce compact output.
 	* Source/Additions/GSXML.m: New methods and bugfix for handling
-	strng data with no 'string' element markup.
+	string data with no 'string' element markup.
+	* Additions/GNUstepBase/GSMime.h: Fix possible cases of parsing
+	saying that it needs more data when you have passed it an empty
+	data item to terminate parsing.
 
 2006-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
