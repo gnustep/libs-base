@@ -502,14 +502,31 @@
 #ifdef GNUSTEP
   NSURLHandle		*handle;
 #else
-  NSString *connectionURL;
-  NSURLConnection *connection;
-  NSMutableData *response;
+  NSString		*connectionURL;
+  NSURLConnection	*connection;
+  NSMutableData		*response;
 #endif
   NSTimer		*timer;
   id			result;
   id			delegate;	// Not retained.
+  NSTimeZone		*tz;
+  BOOL			compact;
 }
+
+/**
+ * Given a method name and an array of parameters, this method constructs
+ * the XML document for the corresponding XMLRPC call and returns the
+ * document as an NSData object containing UTF-8 text.<br />
+ * The params array may be empty or nil if there are no parameters to be
+ * passed.<br />
+ * The method returns nil if passed an invalid method name (a method name
+ * may contain any of the ascii alphanumeric characters and underscore,
+ * fullstop, colon, or slash).<br />
+ * This method is used internally when sending an XMLRPC method call to
+ * a remote system, but you can also call it yourself.
+ */
+- (NSData*) buildMethod: (NSString*)method 
+	         params: (NSArray*)params;
 
 /**
  * Given a method name and an array of parameters, this method constructs
@@ -520,8 +537,6 @@
  * The method returns nil if passed an invalid method name (a method name
  * may contain any of the ascii alphanumeric characters and underscore,
  * fullstop, colon, or slash).<br />
- * This method is used internally when sending an XMLRPC method call to
- * a remote system, but you can also call it yourself.
  */
 - (NSString*) buildMethodCall: (NSString*)method 
                        params: (NSArray*)params;
@@ -542,6 +557,11 @@
  * This method is intended for use by applications acting as XMLRPC servers.
  */
 - (NSString*) buildResponseWithParams: (NSArray*)params;
+
+/**
+ * Return the value set by a prior call to -setCompact: (or NO ... the default).
+ */
+- (BOOL) compact;
 
 /**
  * Returns the delegate previously set by the -setDelegate: method.<br />
@@ -640,7 +660,13 @@
 		timeout: (int)seconds;
 
 /**
- * Specify whether to perform mdebug trace on I/O
+ * Specify whether to generate compact XML (omit indentation and other white
+ * space and omit &lt;string&gt; element markup).
+ */
+- (void) setCompact: (BOOL)flag;
+
+/**
+ * Specify whether to perform debug trace on I/O
  */
 - (void) setDebug: (BOOL)flag;
 
@@ -654,11 +680,24 @@
 - (void) setDelegate: (id)aDelegate;
 
 /**
+ * Sets the time zone for use when sending/receiving date/time values.<br />
+ * The XMLRPC specification says that timezone is server dependent so you
+ * will need to set it according to the server you are connecting to.<br />
+ * If this is not set, UCT is assumed.
+ */
+- (void) setTimeZone: (NSTimeZone*)tz;
+
+/**
  * Handles timeouts, passing information to delegate ... you don't need to
  * call this method, but you <em>may</em> call it in order to cancel an
  * asynchronous request as if it had timed out.
  */
 - (void) timeout: (NSTimer*)t;
+
+/**
+ * Return the time zone currently set.
+ */
+- (NSTimeZone*) timeZone;
 
 #ifdef GNUSTEP
 /** <override-dummy />

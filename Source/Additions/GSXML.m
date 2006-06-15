@@ -4352,31 +4352,45 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
  * Categories on other classes which are required for XMLRPC
  */
 @interface	NSArray (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSData (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSDate (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSDictionary (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSObject (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSNumber (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSString (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc;
 @end
 
 
@@ -4415,6 +4429,9 @@ static void indentation(unsigned level, NSMutableString *str)
     }
 }
 
+#define	INDENT(I)	if (compact == NO) indentation(I, str)
+#define	NL		if (compact == NO) [str appendString: @"\n"]
+
 
 
 /*
@@ -4422,35 +4439,45 @@ static void indentation(unsigned level, NSMutableString *str)
  */
 
 @implementation	NSArray (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc
 {
   unsigned 		i;
   unsigned		c = [self count];
+  BOOL			compact = [rpc compact];
   
-  indentation(indent++, str);
-  [str appendString: @"<array>\n"];
-  indentation(indent++, str);
-  [str appendString: @"<data>\n"];
+  INDENT(indent++);
+  [str appendString: @"<array>"];
+  NL;
+  INDENT(indent++);
+  [str appendString: @"<data>"];
+  NL;
   for (i = 0; i < c; i++)
     {
       id	value = [self objectAtIndex: i];
 
-      indentation(indent++, str);
-      [str appendString: @"<value>\n"];
-      [value appendToXMLRPC: str indent: indent];
-      [str appendString: @"\n"];
-      indentation(--indent, str);
-      [str appendString: @"</value>\n"];
+      INDENT(indent++);
+      [str appendString: @"<value>"];
+      NL;
+      [value appendToXMLRPC: str indent: indent for: rpc];
+      NL;
+      INDENT(--indent);
+      [str appendString: @"</value>"];
+      NL;
     }
-  indentation(--indent, str);
-  [str appendString: @"</data>\n"];
-  indentation(--indent, str);
+  INDENT(--indent);
+  [str appendString: @"</data>"];
+  NL;
+  INDENT(--indent);
   [str appendString: @"</array>"];
 }
 @end
 
 @implementation	NSData (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc
 {
   NSData	*d;
   NSString	*s;
@@ -4465,18 +4492,14 @@ static void indentation(unsigned level, NSMutableString *str)
 @end
 
 @implementation	NSDate (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc
 {
-  static NSTimeZone	*z = nil;
   NSString		*s;
 
-  if (z == nil)
-    {
-      s = RETAIN([NSTimeZone timeZoneForSecondsFromGMT: 0]);
-    }
-
   s = [self descriptionWithCalendarFormat: @"%Y%m%dT%H:%M:%S"
-				 timeZone: z
+				 timeZone: [rpc timeZone]
 				   locale: nil];
   [str appendString: @"<dateTime.iso8601>"];
   [str appendString: s];
@@ -4485,43 +4508,55 @@ static void indentation(unsigned level, NSMutableString *str)
 @end
 
 @implementation	NSDictionary (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc
 {
   NSEnumerator	*kEnum = [self keyEnumerator];
   NSString	*key;
+  BOOL		compact = [rpc compact];
 
-  indentation(indent++, str);
-  [str appendString: @"<struct>\n"];
+  INDENT(indent++);
+  [str appendString: @"<struct>"];
+  NL;
   while ((key = [kEnum nextObject]))
     {
       id	value = [self objectForKey: key];
 
-      indentation(indent++, str);
-      [str appendString: @"<member>\n"];
-      indentation(indent, str);
+      INDENT(indent++);
+      [str appendString: @"<member>"];
+      NL;
+      INDENT(indent);
       [str appendString: @"<name>"];
       [str appendString: [[key description] stringByEscapingXML]];
-      [str appendString: @"</name>\n"];
-      indentation(indent++, str);
-      [str appendString: @"<value>\n"];
-      [value appendToXMLRPC: str indent: indent--];
-      [str appendString: @"\n"];
-      indentation(indent--, str);
-      [str appendString: @"</value>\n"];
-      indentation(indent, str);
-      [str appendString: @"</member>\n"];
+      [str appendString: @"</name>"];
+      NL;
+      INDENT(indent++);
+      [str appendString: @"<value>"];
+      NL;
+      [value appendToXMLRPC: str indent: indent-- for: rpc];
+      NL;
+      INDENT(indent--);
+      [str appendString: @"</value>"];
+      NL;
+      INDENT(indent);
+      [str appendString: @"</member>"];
+      NL;
     }
-  indentation(--indent, str);
+  INDENT(--indent);
   [str appendString: @"</struct>"];
 }
 @end
 
 @implementation	NSNumber (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc
 {
   const char	*t = [self objCType];
+  BOOL		compact = [rpc compact];
 
-  indentation(indent, str);
+  INDENT(indent);
   if (strchr("cCsSiIlL", *t) != 0)
     {
       long	i = [self longValue];
@@ -4550,17 +4585,30 @@ static void indentation(unsigned level, NSMutableString *str)
 @end
 
 @implementation	NSObject (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc
 {
-  [[self description] appendToXMLRPC: str indent: indent];
+  [[self description] appendToXMLRPC: str indent: indent for: rpc];
 }
 @end
 
 @implementation	NSString (GSXMLRPC)
-- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+- (void) appendToXMLRPC: (NSMutableString*)str
+		 indent: (unsigned)indent
+		    for: (GSXMLRPC*)rpc
 {
-  indentation(indent, str);
-  [str appendFormat: @"<string>%@</string>", [self stringByEscapingXML]];
+  BOOL	compact = [rpc compact];
+
+  if (compact == YES)
+    {
+      [str appendString: [self stringByEscapingXML]];
+    }
+  else
+    {
+      INDENT(indent);
+      [str appendFormat: @"<string>%@</string>", [self stringByEscapingXML]];
+    }
 }
 @end
 
@@ -4664,15 +4712,36 @@ static void indentation(unsigned level, NSMutableString *str)
 
   if ([name isEqualToString: @"dateTime.iso8601"])
     {
+      NSCalendarDate	*d;
+      const char	*s;
+      int		year;
+      int		month;
+      int		day;
+      int		hour;
+      int		minute;
+      int		second;
+
       str = [node content];
       if (str == nil)
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"missing %@ value", name];
 	}
-      return [NSCalendarDate dateWithString: str
-			     calendarFormat: @"%Y%m%dT%H:%M:%S"
-				     locale: nil];
+      s = [str UTF8String];
+      if (sscanf(s, "%04d%02d%02dT%02d:%02d:%02d",
+        &year, &month, &day, &hour, &minute, &second) != 6)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"bad date/time format '%@'", str];
+	}
+      d = [[NSCalendarDate alloc] initWithYear: year
+					 month: month
+					   day: day
+					  hour: hour
+					minute: minute
+					second: second 
+				      timeZone: tz]; 
+      return AUTORELEASE(d);
     }
 
   if ([name isEqualToString: @"array"])
@@ -4754,6 +4823,13 @@ static void indentation(unsigned level, NSMutableString *str)
  */
 @implementation	GSXMLRPC
 
+- (NSData*) buildMethod: (NSString*)method 
+	         params: (NSArray*)params
+{
+  return [[self buildMethodCall: method params: params] dataUsingEncoding:
+    NSUTF8StringEncoding];
+}
+
 - (NSString*) buildMethodCall: (NSString*)method 
                        params: (NSArray*)params
 {
@@ -4789,23 +4865,39 @@ static void indentation(unsigned level, NSMutableString *str)
 	}
     }
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
-  [str appendString: @"<methodCall>\n"];
-  [str appendFormat: @"  <methodName>%@</methodName>\n",
+  [str appendString: @"<methodCall>"];
+  NL;
+  INDENT(1);
+  [str appendFormat: @"<methodName>%@</methodName>",
     [method stringByEscapingXML]];
+  NL;
   if (c > 0)
     {
-      [str appendString: @"  <params>\n"];
+      INDENT(1);
+      [str appendString: @"<params>"];
+      NL;
       for (i = 0; i < c; i++)
       	{
-	  [str appendString: @"    <param>\n"];
-	  [str appendString: @"      <value>\n"];
-	  [[params objectAtIndex: i] appendToXMLRPC: str indent: 3];
-	  [str appendString: @"\n      </value>\n"];
-	  [str appendString: @"    </param>\n"];
+	  INDENT(2);
+	  [str appendString: @"<param>"];
+	  NL;
+	  INDENT(3);
+	  [str appendString: @"<value>"];
+	  NL;
+	  [[params objectAtIndex: i] appendToXMLRPC: str indent: 3 for: self];
+	  NL;
+	  INDENT(3);
+	  [str appendString: @"</value>"];
+	  INDENT(2);
+	  [str appendString: @"</param>"];
+	  NL;
 	}
-      [str appendString: @"  </params>\n"];
+      INDENT(1);
+      [str appendString: @"</params>"];
+      NL;
     }
-  [str appendString: @"</methodCall>\n"];
+  [str appendString: @"</methodCall>"];
+  NL;
   return str;
 }
 
@@ -4820,13 +4912,24 @@ static void indentation(unsigned level, NSMutableString *str)
     nil];
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
-  [str appendString: @"<methodResponse>\n"];
-  [str appendString: @"  <fault>\n"];
-  [str appendString: @"    <value>\n"];
-  [fault appendToXMLRPC: str indent: 3];
-  [str appendString: @"\n    </value>\n"];
-  [str appendString: @"  </fault>\n"];
-  [str appendString: @"</methodResponse>\n"];
+  [str appendString: @"<methodResponse>"];
+  NL;
+  INDENT(1);
+  [str appendString: @"<fault>"];
+  NL;
+  INDENT(2);
+  [str appendString: @"<value>"];
+  NL;
+  [fault appendToXMLRPC: str indent: 3 for: self];
+  NL;
+  INDENT(2);
+  [str appendString: @"</value>"];
+  NL;
+  INDENT(1);
+  [str appendString: @"</fault>"];
+  NL;
+  [str appendString: @"</methodResponse>"];
+  NL;
   return str;
 }
 
@@ -4837,23 +4940,44 @@ static void indentation(unsigned level, NSMutableString *str)
   unsigned		i;
   
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
-  [str appendString: @"<methodResponse>\n"];
-  [str appendString: @"  <params>\n"];
+  [str appendString: @"<methodResponse>"];
+  NL;
+  INDENT(1);
+  [str appendString: @"<params>"];
+  NL;
   for (i = 0; i < c; i++)
     {
-      [str appendString: @"    <param>\n"];
-      [str appendString: @"      <value>\n"];
-      [[params objectAtIndex: i] appendToXMLRPC: str indent: 3];
-      [str appendString: @"\n      </value>\n"];
-      [str appendString: @"    </param>\n"];
+      INDENT(2);
+      [str appendString: @"<param>"];
+      NL;
+      INDENT(3);
+      [str appendString: @"<value>"];
+      NL;
+      [[params objectAtIndex: i] appendToXMLRPC: str indent: 3 for: self];
+      NL;
+      INDENT(3);
+      [str appendString: @"</value>"];
+      NL;
+      INDENT(2);
+      [str appendString: @"</param>"];
+      NL;
     }
-  [str appendString: @"  </params>\n"];
-  [str appendString: @"</methodResponse>\n"];
+  INDENT(1);
+  [str appendString: @"</params>"];
+  NL;
+  [str appendString: @"</methodResponse>"];
+  NL;
   return str;
+}
+
+- (BOOL) compact
+{
+  return compact;
 }
 
 - (void) dealloc
 {
+  RELEASE(tz);
   if (timer != nil)
     {
       [self timeout: nil];	// Treat as immediate timeout.
@@ -5004,16 +5128,11 @@ static void indentation(unsigned level, NSMutableString *str)
       for (i = 0; i < [ns count]; i++)
 	{
 	  GSXMLNode	*node = [ns nodeAtIndex: i];
+	  id		value = [self _parseValue: node];
 
-	  if ([[node name] isEqualToString: @"value"]
-	    && [node firstChildElement] != nil)
+	  if (value != nil)
 	    {
-	      id	value = [self _parseValue: [node firstChildElement]];
-
-	      if (value != nil)
-		{
-		  [params addObject: value];
-		}
+	      [params addObject: value];
 	    }
 	}
     }
@@ -5073,16 +5192,11 @@ static void indentation(unsigned level, NSMutableString *str)
 	  for (i = 0; i < [ns count]; i++)
 	    {
 	      GSXMLNode	*node = [ns nodeAtIndex: i];
+	      id	value = [self _parseValue: node];
 
-	      if ([[node name] isEqualToString: @"value"]
-		&& [node firstChildElement] != nil)
+	      if (value != nil)
 		{
-		  id	value = [self _parseValue: [node firstChildElement]];
-
-		  if (value != nil)
-		    {
-		      [params addObject: value];
-		    }
+		  [params addObject: value];
 		}
 	    }
 	}
@@ -5122,7 +5236,6 @@ static void indentation(unsigned level, NSMutableString *str)
 		 params: (NSArray*)params
 		timeout: (int)seconds
 {
-  NSString	*xml;
   NSData	*data;
 
   ASSIGN(result, @"unable to send");
@@ -5137,12 +5250,11 @@ static void indentation(unsigned level, NSMutableString *str)
     {
       return NO;	// Send already in progress.
     }
-  xml = [self buildMethodCall: method params: params];
-  if (xml == nil)
+  data = [self buildMethod: method params: params];
+  if (data == nil)
     {
       return NO;
     }
-  data = [xml dataUsingEncoding: NSUTF8StringEncoding];
 
   timer = [NSTimer scheduledTimerWithTimeInterval: seconds
 					   target: self
@@ -5186,9 +5298,19 @@ static void indentation(unsigned level, NSMutableString *str)
 #endif
 }
 
+- (void) setCompact: (BOOL)flag
+{
+  compact = flag;
+}
+
 - (void) setDelegate: (id)aDelegate
 {
   delegate = aDelegate;
+}
+
+- (void) setTimeZone: (NSTimeZone*)timeZone
+{
+  ASSIGN(tz, timeZone);
 }
 
 - (void) timeout: (NSTimer*)t
@@ -5200,6 +5322,15 @@ static void indentation(unsigned level, NSMutableString *str)
 #else
   [connection cancel];
 #endif
+}
+
+- (NSTimeZone*) timeZone
+{
+  if (tz == nil)
+    {
+      tz = RETAIN([NSTimeZone timeZoneForSecondsFromGMT: 0]);
+    }
+  return tz;
 }
 
 #ifdef GNUSTEP
