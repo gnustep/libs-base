@@ -687,7 +687,7 @@
  * will need to set it according to the server you are connecting to.<br />
  * If this is not set, UCT is assumed.
  */
-- (void) setTimeZone: (NSTimeZone*)tz;
+- (void) setTimeZone: (NSTimeZone*)timeZone;
 
 /**
  * Handles timeouts, passing information to delegate ... you don't need to
