@@ -1,3 +1,46 @@
+2006-06-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURLCredential.h:
+	* Headers/Foundation/NSHTTPCookieStorage.h:
+	* Headers/Foundation/NSURLAuthenticationChallenge.h:
+	* Headers/Foundation/NSHTTPCookie.h:
+	* Headers/Foundation/NSURLError.h:
+	* Headers/Foundation/NSURLProtectionSpace.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSURLRequest.h:
+	* Headers/Foundation/NSURLCredentialStorage.h:
+	* Headers/Foundation/Foundation.h:
+	* Headers/Foundation/NSURLResponse.h:
+	* Headers/Foundation/NSURLConnection.h:
+	* Headers/Foundation/NSURLProtocol.h:
+	* Headers/Foundation/NSURLCache.h:
+	Headers for Apple's new URL loading scheme (including documentation).
+	* Source/NSMapTable.m:
+	* Source/NSURLCredential.m:
+	* Source/NSURLAuthenticationChallenge.m:
+	* Source/NSURLHandle.m:
+	* Source/GNUmakefile:
+	* Source/NSURLDownload.m:
+	* Source/NSURLCredentialStorage.m:
+	* Source/NSURLResponse.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLCache.m:
+	* Source/NSHTTPCookieStorage.m:
+	* Source/NSURL.m:
+	* Source/DocMakefile:
+	* Source/NSHTTPCookie.m:
+	* Source/NSURLProtectionSpace.m:
+	* Source/NSURLRequest.m:
+	* Source/NSSet.m:
+	* Source/NSURLConnection.m:
+	Skeleton code for Apple's new URL loading scheme (plus minor
+	tweaks to comments in other files).  This code is not expected
+	to work yet.  Major lacks are ...
+	1. concrete implementations of protocols
+	2. on disk cache/storage management
+	3. thread safety (locking) for shared objects
+	However, I hope it will provide a good starting framework.
+
 2006-06-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Additions/GNUstepBase/GSXML.h: New XMLRPC settings to control

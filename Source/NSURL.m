@@ -1,4 +1,4 @@
-/** NSUrl.m - Class NSURL
+/** NSURL.m - Class NSURL
    Copyright (C) 1999 Free Software Foundation, Inc.
 
    Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
@@ -51,6 +51,9 @@ function may be incorrect
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSZone.h"
+
+NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
+NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
 
 /*
  * Structure describing a URL.

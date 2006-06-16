@@ -20,21 +20,17 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSURLHandle class reference</title>
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSData.h"
+#include "GSURLPrivate.h"
+
 #include "Foundation/NSEnumerator.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSLock.h"
 #include "Foundation/NSURLHandle.h"
-#include "Foundation/NSURL.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSFileManager.h"
 
