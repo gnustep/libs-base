@@ -46,8 +46,8 @@ NSClassDescription.h \
 NSCoder.h \
 NSConnection.h \
 NSData.h \
-NSDate.h \
 NSDateFormatter.h \
+NSDate.h \
 NSDebug.h \
 NSDecimal.h \
 NSDecimalNumber.h \
@@ -64,6 +64,8 @@ NSFormatter.h \
 NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
+NSHTTPCookie.h \
+NSHTTPCookieStorage.h \
 NSIndexPath.h \
 NSIndexSet.h \
 NSInvocation.h \
@@ -80,12 +82,12 @@ NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
 NSPathUtilities.h \
-NSPort.h \
 NSPortCoder.h \
+NSPort.h \
 NSPortMessage.h \
 NSPortNameServer.h \
-NSPropertyList.h \
 NSProcessInfo.h \
+NSPropertyList.h \
 NSProtocolChecker.h \
 NSProxy.h \
 NSRange.h \
@@ -97,15 +99,28 @@ NSStream.h \
 NSString.h \
 NSTask.h \
 NSThread.h \
-NSTimeZone.h \
 NSTimer.h \
+NSTimeZone.h \
+NSUndoManager.h \
+NSURLAuthenticationChallenge.h \
+NSURLCache.h \
+NSURLConnection.h \
+NSURLCredential.h \
+NSURLCredentialStorage.h \
+NSURLDownload.h \
+NSURLError.h \
 NSURL.h \
 NSURLHandle.h \
-NSUndoManager.h \
+NSURLProtectionSpace.h \
+NSURLProtocol.h \
+NSURLRequest.h \
+NSURLResponse.h \
 NSUserDefaults.h \
 NSValue.h \
 NSXMLParser.h \
 NSZone.h
+
+
 
 BaseAdditions_AGSDOC_FILES = \
 ../Documentation/BaseAdditions.gsdoc \

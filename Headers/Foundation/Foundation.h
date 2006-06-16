@@ -20,7 +20,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __Foundation_h_GNUSTEP_BASE_INCLUDE
@@ -44,11 +45,11 @@
 #include <Foundation/NSComparisonPredicate.h>
 #include <Foundation/NSCompoundPredicate.h>
 #include <Foundation/NSConnection.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSDateFormatter.h>
 #include <Foundation/NSData.h>
-#include <Foundation/NSDictionary.h>
+#include <Foundation/NSDateFormatter.h>
+#include <Foundation/NSDate.h>
 #include <Foundation/NSDecimalNumber.h>
+#include <Foundation/NSDictionary.h>
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSDistributedLock.h>
 #include <Foundation/NSDistributedNotificationCenter.h>
@@ -59,14 +60,16 @@
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSFormatter.h>
-#include <Foundation/NSHashTable.h>
 #include <Foundation/NSGeometry.h>
+#include <Foundation/NSHashTable.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSHTTPCookie.h>
+#include <Foundation/NSHTTPCookieStorage.h>
 #include <Foundation/NSIndexPath.h>
 #include <Foundation/NSIndexSet.h>
 #include <Foundation/NSInvocation.h>
-#include <Foundation/NSKeyValueCoding.h>
 #include <Foundation/NSKeyedArchiver.h>
+#include <Foundation/NSKeyValueCoding.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSMethodSignature.h>
@@ -92,11 +95,22 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSTask.h>
 #include <Foundation/NSThread.h>
-#include <Foundation/NSTimeZone.h>
 #include <Foundation/NSTimer.h>
+#include <Foundation/NSTimeZone.h>
+#include <Foundation/NSUndoManager.h>
+#include <Foundation/NSURLAuthenticationChallenge.h>
+#include <Foundation/NSURLCache.h>
+#include <Foundation/NSURLConnection.h>
+#include <Foundation/NSURLCredential.h>
+#include <Foundation/NSURLCredentialStorage.h>
+#include <Foundation/NSURLDownload.h>
+#include <Foundation/NSURLError.h>
 #include <Foundation/NSURL.h>
 #include <Foundation/NSURLHandle.h>
-#include <Foundation/NSUndoManager.h>
+#include <Foundation/NSURLProtectionSpace.h>
+#include <Foundation/NSURLProtocol.h>
+#include <Foundation/NSURLRequest.h>
+#include <Foundation/NSURLResponse.h>
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSXMLParser.h>
