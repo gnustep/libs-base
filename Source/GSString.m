@@ -3482,7 +3482,8 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 - (void) dealloc
 {
-  if (_flags.free == 1 && _zone != 0 && _contents.c != 0)
+NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
+  if (_contents.c != 0)
     {
       NSZoneFree(self->_zone, self->_contents.c);
       self->_contents.c = 0;
@@ -3639,6 +3640,13 @@ agree, create a new GSUnicodeInlineString otherwise.
   BOOL		isLatin1 = NO;
   BOOL		shouldFree = NO;
 
+  _flags.free = YES;
+#if	GS_WITH_GC
+  _zone = GSAtomicMallocZone();
+#else
+  _zone = GSObjCZone(self);
+#endif
+
   if (length > 0)
     {
       fixBOM((unsigned char**)&bytes, &length, &shouldFree, encoding);
@@ -3656,6 +3664,10 @@ agree, create a new GSUnicodeInlineString otherwise.
 	      if (encoding == NSASCIIStringEncoding)
 		{
 		  RELEASE(self);
+		  if (shouldFree == YES)
+		    {
+		      NSZoneFree(NSZoneFromPointer(chars), chars);
+		    }
 		  return nil;	// Invalid data
 		}
 	      break;
@@ -3675,16 +3687,16 @@ agree, create a new GSUnicodeInlineString otherwise.
     {
       if (shouldFree == YES)
         {
+	  _zone = NSZoneFromPointer(chars);
 	  _contents.c = chars;
         }
       else
 	{
-	  _contents.c = NSZoneMalloc(GSObjCZone(self), length);
+	  _contents.c = NSZoneMalloc(_zone, length);
 	  memcpy(_contents.c, chars, length);
 	}
       _count = length;
       _flags.wide = 0;
-      _flags.free = YES;
       return self;
     }
 
@@ -3697,7 +3709,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       unsigned	l = 0;
 
       if (GSToUnicode(&u, &l, (unsigned char*)chars, length, encoding,
-	GSObjCZone(self), 0) == NO)
+	_zone, 0) == NO)
 	{
 	  RELEASE(self);
 	  if (shouldFree == YES)
@@ -3724,10 +3736,9 @@ agree, create a new GSUnicodeInlineString otherwise.
   if (isASCII == YES
     || (internalEncoding == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
-      _contents.c = NSZoneMalloc(GSObjCZone(self), length);
+      _contents.c = NSZoneMalloc(_zone, length);
       _count = length;
       _flags.wide = 0;
-      _flags.free = 1;
       while (length-- > 0)
         {
 	  _contents.c[length] = ((unichar*)chars)[length];
@@ -3742,17 +3753,16 @@ agree, create a new GSUnicodeInlineString otherwise.
     {
       if (shouldFree == YES)
         {
+	  _zone = NSZoneFromPointer(chars);
 	  _contents.u = (unichar*)chars;
         }
       else
 	{
-	  _contents.u = NSZoneMalloc(GSObjCZone(self),
-	    length * sizeof(unichar));
+	  _contents.u = NSZoneMalloc(_zone, length * sizeof(unichar));
 	  memcpy(_contents.u, chars, length * sizeof(unichar));
 	}
       _count = length;
       _flags.wide = 1;
-      _flags.free = YES;
       return self;
     }
 }
@@ -3888,6 +3898,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
+NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 #ifndef NDEBUG
   GSDebugAllocationRemove(isa, self);
 #endif
