@@ -319,6 +319,30 @@ static IMP	initImp;
 - (void) dealloc
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
+
+  [self emptyPool];
+
+  /*
+   * Remove self from the linked list of pools in use.
+   * We already know that we have deallocated our child (if any),
+   * but we may have a parent which needs to know we have gone.
+   */
+  if (tv->current_pool == self)
+    {
+      tv->current_pool = _parent;
+    }
+  if (_parent != nil)
+    {
+      _parent->_child = nil;
+    }
+
+  /* Don't deallocate ourself, just save us for later use. */
+  push_pool_to_cache (tv, self);
+  GSNOSUPERDEALLOC;
+}
+
+- (void) emptyPool
+{
   unsigned	i;
   Class		classes[16];
   IMP	 	imps[16];
@@ -384,50 +408,6 @@ static IMP	initImp;
 	  released = released->next;
 	}
     }
-
-  /*
-   * Remove self from the linked list of pools in use.
-   * We already know that we have deallocated our child (if any),
-   * but we may have a parent which needs to know we have gone.
-   */
-  if (tv->current_pool == self)
-    {
-      tv->current_pool = _parent;
-    }
-  if (_parent != nil)
-    {
-      _parent->_child = nil;
-    }
-
-  /* Don't deallocate ourself, just save us for later use. */
-  push_pool_to_cache (tv, self);
-  GSNOSUPERDEALLOC;
-}
-
-- (void) emptyPool
-{
-  struct autorelease_array_list	*released;
-
-  if (_child)
-    {
-      [_child dealloc];
-    }
-
-  released = _released_head;
-  while (released)
-    {
-      unsigned int	i;
-
-      for (i = 0; i < released->count; i++)
-	{
-	  id anObject = released->objects[i];
-	  released->objects[i] = nil;
-	  [anObject release];
-	}
-      released->count = 0;
-      released = released->next;
-    }
-  _released = _released_head;
 }
 
 - (void) _reallyDealloc

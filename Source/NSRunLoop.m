@@ -405,6 +405,7 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 
 - (void) _checkPerformers: (GSRunLoopCtxt*)context
 {
+  CREATE_AUTORELEASE_POOL(arp);
   if (context != nil)
     {
       GSIArray	performers = context->performers;
@@ -462,9 +463,11 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 	    {
 	      [array[i] fire];
 	      RELEASE(array[i]);
+	      IF_NO_GC([arp emptyPool]);
 	    }
 	}
     }
+  RELEASE(arp);
 }
 
 /**
@@ -793,6 +796,7 @@ extern IMP	wRetImp;
 	    && ([timerDate(t) timeIntervalSinceReferenceDate] <= now))
 	    {
 	      [t fire];
+	      IF_NO_GC([arp emptyPool]);
 	      now = GSTimeNow();
 	    }
 
@@ -831,6 +835,7 @@ extern IMP	wRetImp;
 		  RELEASE(min_timer);
 		}
 	      GSNotifyASAP();		/* Post notifications. */
+	      IF_NO_GC([arp emptyPool]);
 	    }
 	  _currentMode = savedMode;
 	}
