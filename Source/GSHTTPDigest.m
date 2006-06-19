@@ -32,6 +32,7 @@
 
 static NSMutableDictionary	*store = nil;
 static GSLazyLock		*storeLock = nil;
+static GSMimeParser		*mimeParser = nil;
 
 @interface NSData(GSHTTPDigest)
 - (NSString*) digestHex;
@@ -73,6 +74,7 @@ static GSLazyLock		*storeLock = nil;
 {
   if (store == nil)
     {
+      mimeParser = [GSMimeParser new];
       store = [NSMutableDictionary new];
       storeLock = [GSLazyLock new];
     }
@@ -107,6 +109,38 @@ static GSLazyLock		*storeLock = nil;
   return AUTORELEASE(digest);
 }
 
++ (NSString*) digestRealmForAuthentication: (NSString*)authentication
+{
+  if (authentication != nil)
+    {
+      NSScanner		*sc;
+      NSString		*key;
+      NSString		*val;
+
+      sc = [NSScanner scannerWithString: authentication];
+      if ([sc scanString: @"Digest" intoString: 0] == NO)
+	{
+	  return nil;	// Not a digest authentication
+	}
+      while ((key = [mimeParser scanName: sc]) != nil)
+	{
+	  if ([sc scanString: @"=" intoString: 0] == NO)
+	    {
+	      return nil;	// Bad name=value specification
+	    }
+	  if ((val = [mimeParser scanToken: sc]) == nil)
+	    {
+	      return nil;	// Bad name=value specification
+	    }
+	  if ([key caseInsensitiveCompare: @"realm"] == NSOrderedSame)
+	    {
+	      return val;
+	    }
+	}
+    }
+  return nil;
+}
+
 - (NSString*) authorizationForAuthentication: (NSString*)authentication
 				      method: (NSString*)method
 					path: (NSString*)path
@@ -121,34 +155,29 @@ static GSLazyLock		*storeLock = nil;
   NSString		*HA1;
   NSString		*HA2;
   NSString		*response;
-  NSString		*authorisation;
+  NSMutableString	*authorisation;
   int			nc;
 
   if (authentication != nil)
     {
-      static GSMimeParser	*p = nil;
       NSScanner		*sc;
       NSString		*key;
       NSString		*val;
 
-      if (p == nil)
-	{
-	  p = [GSMimeParser new];
-	}
       sc = [NSScanner scannerWithString: authentication];
       if ([sc scanString: @"Digest" intoString: 0] == NO)
 	{
 	  NSDebugMLog(@"Bad format HTTP digest in '%@'", authentication);
 	  return nil;	// Not a digest authentication
 	}
-      while ((key = [p scanName: sc]) != nil)
+      while ((key = [mimeParser scanName: sc]) != nil)
 	{
 	  if ([sc scanString: @"=" intoString: 0] == NO)
 	    {
 	      NSDebugMLog(@"Missing '=' in HTTP digest '%@'", authentication);
 	      return nil;	// Bad name=value specification
 	    }
-	  if ((val = [p scanToken: sc]) == nil)
+	  if ((val = [mimeParser scanToken: sc]) == nil)
 	    {
 	      NSDebugMLog(@"Missing value in HTTP digest '%@'", authentication);
 	      return nil;	// Bad name=value specification
@@ -196,11 +225,6 @@ static GSLazyLock		*storeLock = nil;
       if (nonce == nil)
 	{
 	  NSDebugMLog(@"Missing HTTP digest nonce in '%@'", authentication);
-	  return nil;
-	}
-      if (opaque == nil)
-	{
-	  NSDebugMLog(@"Missing HTTP digest opaque in '%@'", authentication);
 	  return nil;
 	}
 
@@ -253,11 +277,19 @@ static GSLazyLock		*storeLock = nil;
     HA1, nonce, nc, cnonce, qop, HA2]
     dataUsingEncoding: NSUTF8StringEncoding] md5Digest] digestHex];
 
-  authorisation = [NSString stringWithFormat: @"Digest username=\"%@\","
-    @"realm=\"%@\",nonce=\"%@\",uri=\"%@\",qop=\"%@\",nc=%08x,cnonce=\"%@\","
-    @"response=\"%@\",opaque=\"%@\"",
-    [self->_credential user],
-    realm, nonce, path, qop, nc, cnonce, response, opaque];
+  authorisation = [NSMutableString stringWithCapacity: 512];
+  [authorisation appendFormat:  @"Digest realm=\"%@\"", realm];
+  [authorisation appendFormat:  @",username=\"%@\"", [self->_credential user]];
+  [authorisation appendFormat:  @",nonce=\"%@\"", nonce];
+  [authorisation appendFormat:  @",uri=\"%@\"", path];
+  [authorisation appendFormat:  @",response=\"%@\"", response];
+  [authorisation appendFormat:  @",qop=\"%@\"", qop];
+  [authorisation appendFormat:  @",nc=%08x", nc];
+  [authorisation appendFormat:  @",cnonce=\"%@\"", cnonce];
+  if (opaque != nil)
+    {
+      [authorisation appendFormat:  @",opaque=\"%@\"", opaque];
+    }
 
   [self->_lock unlock];
  

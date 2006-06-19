@@ -85,6 +85,10 @@
 + (GSHTTPDigest *) digestWithCredential: (NSURLCredential*)credential
 		      inProtectionSpace: (NSURLProtectionSpace*)space;
 /*
+ * Look for a digest realm in a header
+ */
++ (NSString*) digestRealmForAuthentication: (NSString*)authentication;
+/*
  * Generate next authorisation header for the specified authentication
  * header, method, and path.
  */

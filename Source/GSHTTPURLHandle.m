@@ -44,6 +44,7 @@
 #include "GNUstepBase/GSMime.h"
 #include "GNUstepBase/GSLock.h"
 #include "NSCallBacks.h"
+#include "GSURLPrivate.h"
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -569,16 +570,93 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * Retrieve essential keys from document
 	   */
 	  info = [document headerNamed: @"http"];
+	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  if ([val intValue] == 401)
+	    {
+	      NSString		*a;
+	      GSMimeHeader	*ah;
+
+	      a = (id)NSMapGet(wProperties, (void*)@"Authorization");
+	      if ([a hasPrefix: @"Basic"] == YES
+		&& (ah = [document headerNamed: @"WWW-Authenticate"]) != nil)
+		{
+		  NSString	*realm;
+		  NSString	*ac;
+
+		  ac = [ah value];
+		  realm = [GSHTTPDigest digestRealmForAuthentication: ac];
+		  if (realm != nil)
+		    {
+		      NSURLProtectionSpace	*space;
+		      NSURLCredential		*cred;
+		      GSHTTPDigest		*digest;
+		      NSString			*method;
+		      NSString			*a;
+
+		      /*
+		       * Create credential from user and password
+		       * stored in the URL.
+		       */
+		      cred = [[NSURLCredential alloc]
+		        initWithUser: [url user]
+			password: [url password]
+			persistence: NSURLCredentialPersistenceForSession];
+
+		      /*
+		       * Create protection space from the information in
+		       * the URL and the realm of the authentication
+		       * challenge.
+		       */
+		      space = [[NSURLProtectionSpace alloc]
+			initWithHost: [url host]
+			port: [[url port] intValue]
+			protocol: [url scheme]
+			realm: realm
+			authenticationMethod:
+			NSURLAuthenticationMethodHTTPDigest];
+
+		      /*
+		       * Get the digest object and ask it for a header
+		       * to use for authorisation.
+		       */
+		      digest = [GSHTTPDigest digestWithCredential: cred
+						inProtectionSpace: space];
+		      RELEASE(cred);
+		      RELEASE(space);
+
+		      method = [request objectForKey: GSHTTPPropertyMethodKey];
+		      if (method == nil)
+			{
+			  if ([wData length] > 0)
+			    {
+			      method = @"POST";
+			    }
+			  else
+			    {
+			      method = @"GET";
+			    }
+			}
+		      a = [digest authorizationForAuthentication: ac
+							  method: method
+							    path: [url path]];
+		      if (a != nil)
+		      	{
+			  [self writeProperty: a forKey: @"Authorization"];
+			  [self _tryLoadInBackground: u];
+			  return;	// Retrying.
+			}
+		    }
+		}
+	    }
+	  if (val != nil)
+	    {
+	      [pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
+	    }
 	  val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
 	  if (val != nil)
 	    {
 	      [pageInfo setObject: val
 			   forKey: NSHTTPPropertyServerHTTPVersionKey];
-	    }
-	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-	  if (val != nil)
-	    {
-	      [pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
 	    }
 	  val = [info objectForKey: NSHTTPPropertyStatusReasonKey];
 	  if (val != nil)
