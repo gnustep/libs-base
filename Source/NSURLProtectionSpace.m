@@ -162,7 +162,7 @@ authenticationMethod: (NSString *)authenticationMethod
 
 - (unsigned) isEqual: (id)other
 {
-  if ([other isKindOfClass: [NSURLProtocol class]] == NO)
+  if ([other isKindOfClass: [NSURLProtectionSpace class]] == NO)
     {
       return NO;
     }
