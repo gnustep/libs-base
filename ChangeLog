@@ -6,6 +6,7 @@
 	* Source/NSURLProtectionSpace.m: Implement ([-hash]) and ([-isEqual:])
 	* Headers/Foundation/NSURLAuthenticationChallenge.h: Improve comments.
 	Add GSHTTPDigest class to handle HTTP digest authentication.
+	* Source/GSHTTPURLHandle.m: Perform rudimentary digest authentication.
 
 2006-06-17  Richard Frith-Macdonald <rfm@gnu.org>
 
