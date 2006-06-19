@@ -138,6 +138,7 @@ GSCountedSet.m \
 GSDictionary.m \
 GSFormat.m \
 GSFTPURLHandle.m \
+GSHTTPDigest.m \
 GSHTTPURLHandle.m \
 GSRunLoopWatcher.m \
 GSSet.m \

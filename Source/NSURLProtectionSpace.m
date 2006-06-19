@@ -74,19 +74,26 @@ typedef struct {
 
 - (id) copyWithZone: (NSZone*)z
 {
-  NSURLProtectionSpace	*o = [[self class] allocWithZone: z];
-
-  o = [o initWithHost: this->host
-		 port: this->port
-	     protocol: this->protocol
-		realm: this->realm
- authenticationMethod: this->authenticationMethod];
-  if (o != nil)
+  if (NSShouldRetainWithZone(self, z) == YES)
     {
-      inst->isProxy = this->isProxy;
-      ASSIGN(inst->proxyType, this->proxyType);
+      return RETAIN(self);
     }
-  return o;
+  else
+    {
+      NSURLProtectionSpace	*o = [[self class] allocWithZone: z];
+
+      o = [o initWithHost: this->host
+		     port: this->port
+		 protocol: this->protocol
+		    realm: this->realm
+     authenticationMethod: this->authenticationMethod];
+      if (o != nil)
+	{
+	  inst->isProxy = this->isProxy;
+	  ASSIGN(inst->proxyType, this->proxyType);
+	}
+      return o;
+    }
 }
 
 - (void) dealloc
@@ -101,6 +108,13 @@ typedef struct {
       NSZoneFree([self zone], this);
     }
   [super dealloc];
+}
+
+- (unsigned) hash
+{
+  return [[self host] hash] + [self port]
+    + [[self realm] hash] + [[self protocol] hash]
+    + [[self proxyType] hash] + [[self authenticationMethod] hash];
 }
 
 - (NSString *) host
@@ -144,6 +158,52 @@ authenticationMethod: (NSString *)authenticationMethod
       ASSIGNCOPY(this->proxyType, type);
     }
   return NO;
+}
+
+- (unsigned) isEqual: (id)other
+{
+  if ([other isKindOfClass: [NSURLProtocol class]] == NO)
+    {
+      return NO;
+    }
+  else
+    {
+      NSURLProtectionSpace	*o = (NSURLProtectionSpace*)other;
+
+      if (![[self host] isEqual: [o host]] == NO)
+        {
+	  return NO;
+	}
+      if (![[self realm] isEqual: [o realm]] == NO)
+        {
+	  return NO;
+	}
+      if ([self port] != [o port])
+        {
+	  return NO;
+	}
+      if (![[self authenticationMethod] isEqual: [o authenticationMethod]])
+        {
+	  return NO;
+	}
+      if ([self isProxy] == YES)
+        {
+          if ([o isProxy] == NO
+	    || [[self proxyType] isEqual: [o proxyType]] == NO)
+	    {
+	      return NO;
+	    }
+	}
+      else
+        {
+          if ([o isProxy] == YES
+	    || [[self protocol] isEqual: [o protocol]] == NO)
+	    {
+	      return NO;
+	    }
+	}
+    return YES;
+  }
 }
 
 - (BOOL) isProxy

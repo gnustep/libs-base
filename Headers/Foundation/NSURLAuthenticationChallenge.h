@@ -36,20 +36,31 @@
 @class NSURLResponse;
 
 /**
+ * A challenge sender (usually an NSURLProtocol subclass handling a
+ * connection/download) provides these methods to permit a client to
+ * control authentication.
  */
 @protocol NSURLAuthenticationChallengeSender <NSObject>
 
 /**
+ * Cancels the authenticatiopn challenge, ensuring that the load operation
+ * will fail to retrieve data, completing with only the response headers
+ * containing the challenge having been read from the server.
  */
 - (void) cancelAuthenticationChallenge:
   (NSURLAuthenticationChallenge *)challenge;
 
 /**
+ * Tells the sender to continue the load without providing a new credential
+ * for it to use ... if the challenge already had a proposed credential,
+ * the sender may elect to use it.
  */
 - (void) continueWithoutCredentialForAuthenticationChallenge:
   (NSURLAuthenticationChallenge *)challenge;
 
 /**
+ * Tells the sender to continue the load using the new credential
+ * provided by this method.
  */
 - (void) useCredential: (NSURLCredential *)credential
   forAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge;
