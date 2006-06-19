@@ -68,6 +68,7 @@
 /*
  * Internal class for handling HTTP digest authentication
  */
+@class	GSLazyLock;
 @interface GSHTTPDigest : NSObject
 {
   GSLazyLock		*_lock;
