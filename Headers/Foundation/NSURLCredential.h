@@ -73,6 +73,13 @@ typedef enum {
 	persistence: (NSURLCredentialPersistence)persistence;
 
 /**
+ * Tests two credentials for equality ... credentials are considered to
+ * be equal if their -user methods return the same value, since you cannot
+ * have more than one credential for a suser within an [NSURLProtectionSpace].
+ */
+- (BOOL) isEqual: (id)other;
+
+/**
  * Returns the password for the receiver.<br />
  * May require prompting of the user to authorize retrieval.<br />
  * May return nil if retrieval of the password fails (eg authorization

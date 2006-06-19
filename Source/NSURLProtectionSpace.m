@@ -162,6 +162,10 @@ authenticationMethod: (NSString *)authenticationMethod
 
 - (unsigned) isEqual: (id)other
 {
+  if ((id)self == other)
+    {
+      return YES;
+    }
   if ([other isKindOfClass: [NSURLProtectionSpace class]] == NO)
     {
       return NO;
@@ -202,8 +206,8 @@ authenticationMethod: (NSString *)authenticationMethod
 	      return NO;
 	    }
 	}
-    return YES;
-  }
+      return YES;
+    }
 }
 
 - (BOOL) isProxy
