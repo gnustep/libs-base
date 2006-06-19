@@ -62,5 +62,39 @@
 - (void) _setProperty: (id)value forKey: (NSString*)key;
 @end
 
+
+
+
+/*
+ * Internal class for handling HTTP digest authentication
+ */
+@interface GSHTTPDigest : NSObject
+{
+  GSLazyLock		*_lock;
+  NSURLCredential	*_credential;
+  NSURLProtectionSpace	*_space;
+  NSString		*_nonce;
+  NSString		*_opaque;
+  NSString		*_qop;
+  int			_nc;
+}
+/*
+ *  Return the object for the specified credential/protection space.
+ */
++ (GSHTTPDigest *) digestWithCredential: (NSURLCredential*)credential
+		      inProtectionSpace: (NSURLProtectionSpace*)space;
+/*
+ * Generate next authorisation header for the specified authentication
+ * header, method, and path.
+ */
+- (NSString*) authorizationForAuthentication: (NSString*)authentication
+				      method: (NSString*)method
+					path: (NSString*)path;
+- (NSURLCredential *) credential;
+- (id) initWithCredential: (NSURLCredential*)credential
+	inProtectionSpace: (NSURLProtectionSpace*)space;
+- (NSURLProtectionSpace *) space;
+@end
+
 #endif
 
