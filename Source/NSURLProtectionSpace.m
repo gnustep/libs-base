@@ -170,11 +170,11 @@ authenticationMethod: (NSString *)authenticationMethod
     {
       NSURLProtectionSpace	*o = (NSURLProtectionSpace*)other;
 
-      if (![[self host] isEqual: [o host]] == NO)
+      if ([[self host] isEqual: [o host]] == NO)
         {
 	  return NO;
 	}
-      if (![[self realm] isEqual: [o realm]] == NO)
+      if ([[self realm] isEqual: [o realm]] == NO)
         {
 	  return NO;
 	}
@@ -182,7 +182,7 @@ authenticationMethod: (NSString *)authenticationMethod
         {
 	  return NO;
 	}
-      if (![[self authenticationMethod] isEqual: [o authenticationMethod]])
+      if ([[self authenticationMethod] isEqual: [o authenticationMethod]] == NO)
         {
 	  return NO;
 	}
