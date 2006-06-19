@@ -25,11 +25,13 @@
 #include "GSURLPrivate.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSScanner.h"
+#include "Foundation/NSSet.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSLock.h"
 #include "GNUstepBase/GSMime.h"
 
 
+static NSMutableSet		*spaces = nil;
 static NSMutableDictionary	*store = nil;
 static GSLazyLock		*storeLock = nil;
 static GSMimeParser		*mimeParser = nil;
@@ -75,6 +77,7 @@ static GSMimeParser		*mimeParser = nil;
   if (store == nil)
     {
       mimeParser = [GSMimeParser new];
+      spaces = [NSMutableSet new];
       store = [NSMutableDictionary new];
       storeLock = [GSLazyLock new];
     }
@@ -84,9 +87,21 @@ static GSMimeParser		*mimeParser = nil;
 		      inProtectionSpace: (NSURLProtectionSpace*)space
 {
   NSMutableDictionary	*cDict;
+  NSURLProtectionSpace	*known;
   GSHTTPDigest		*digest = nil;
 
   [storeLock lock];
+  /*
+   * Keep track of known protection spaces so we don't make lots of
+   * duplicate copies, but share one copy between digest objects.
+   */
+  known = [spaces member: space];
+  if (known == nil)
+    {
+      [spaces addObject: space];
+      known = [spaces member: space];
+    }
+  space = known;
   cDict = [store objectForKey: space];
   if (cDict == nil)
     {
@@ -318,8 +333,8 @@ static GSMimeParser		*mimeParser = nil;
   if ((self = [super init]) != nil)
     {
       self->_lock = [GSLazyLock new];
-      ASSIGNCOPY(self->_space, space);
-      ASSIGNCOPY(self->_credential, credential);
+      ASSIGN(self->_space, space);
+      ASSIGN(self->_credential, credential);
     }
   return self;
 }

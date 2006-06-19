@@ -91,6 +91,11 @@ typedef struct {
   return this->hasPassword;
 }
 
+- (unsigned) hash
+{
+  return [this->user hash];
+}
+
 - (id) initWithUser: (NSString *)user
 	   password: (NSString *)password
 	persistence: (NSURLCredentialPersistence)persistence
@@ -112,6 +117,19 @@ typedef struct {
 	}
     }
   return self;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  if ((id)self == other)
+    {
+      return YES;
+    }
+  if ([other isKindOfClass: [NSURLCredential class]] == NO)
+    {
+      return NO;
+    }
+  return [[(NSURLCredential*)other user] isEqualToString: this->user];
 }
 
 - (NSString *) password
