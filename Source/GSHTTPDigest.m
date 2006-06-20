@@ -1,4 +1,4 @@
-/* Implementation for GSHTTPDigest for GNUstep
+/* Implementation for GSHTTPAuthentication for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <frm@gnu.org>
@@ -31,6 +31,7 @@
 #include "GNUstepBase/GSMime.h"
 
 
+static NSMutableDictionary	*domainMap = nil;
 static NSMutableSet		*spaces = nil;
 static NSMutableDictionary	*store = nil;
 static GSLazyLock		*storeLock = nil;
@@ -70,7 +71,7 @@ static GSMimeParser		*mimeParser = nil;
 
 
 
-@implementation GSHTTPDigest
+@implementation GSHTTPAuthentication
 
 + (void) initialize
 {
@@ -78,17 +79,18 @@ static GSMimeParser		*mimeParser = nil;
     {
       mimeParser = [GSMimeParser new];
       spaces = [NSMutableSet new];
+      domainMap = [NSMutableDictionary new];
       store = [NSMutableDictionary new];
       storeLock = [GSLazyLock new];
     }
 }
 
-+ (GSHTTPDigest *) digestWithCredential: (NSURLCredential*)credential
-		      inProtectionSpace: (NSURLProtectionSpace*)space
++ (GSHTTPAuthentication *) digestWithCredential: (NSURLCredential*)credential
+			      inProtectionSpace: (NSURLProtectionSpace*)space
 {
   NSMutableDictionary	*cDict;
   NSURLProtectionSpace	*known;
-  GSHTTPDigest		*digest = nil;
+  GSHTTPAuthentication	*digest = nil;
 
   [storeLock lock];
   /*
@@ -112,8 +114,8 @@ static GSMimeParser		*mimeParser = nil;
   digest = [cDict objectForKey: credential];
   if (digest == nil)
     {
-      digest = [[GSHTTPDigest alloc] initWithCredential: credential
-				      inProtectionSpace: space];
+      digest = [[GSHTTPAuthentication alloc] initWithCredential: credential
+					      inProtectionSpace: space];
       [cDict setObject: digest forKey: [digest credential]];
     }
   else
@@ -124,18 +126,32 @@ static GSMimeParser		*mimeParser = nil;
   return AUTORELEASE(digest);
 }
 
-+ (NSString*) digestRealmForAuthentication: (NSString*)authentication
++ (NSURLProtectionSpace*) protectionSpaceForAuthentication: (NSString*)auth
+                                                requestURL: (NSURL*)URL;
 {
-  if (authentication != nil)
+  if (auth != nil)
     {
-      NSScanner		*sc;
-      NSString		*key;
-      NSString		*val;
+      NSString			*method = nil;
+      NSURLProtectionSpace	*space;
+      NSScanner			*sc;
+      NSString			*domain = nil;
+      NSString			*realm = nil;
+      NSString			*key;
+      NSString			*val;
 
-      sc = [NSScanner scannerWithString: authentication];
-      if ([sc scanString: @"Digest" intoString: 0] == NO)
+      space = [self protectionSpaceForURL: URL];
+      sc = [NSScanner scannerWithString: auth];
+      if ([sc scanString: @"Basic" intoString: 0] == YES)
+        {
+	  method = NSURLAuthenticationMethodHTTPBasic;
+	}
+      else if ([sc scanString: @"Digest" intoString: 0] == NO)
+        {
+	  method = NSURLAuthenticationMethodHTTPDigest;
+	}
+      else
 	{
-	  return nil;	// Not a digest authentication
+	  return nil;	// Not a known authentication
 	}
       while ((key = [mimeParser scanName: sc]) != nil)
 	{
@@ -147,13 +163,161 @@ static GSMimeParser		*mimeParser = nil;
 	    {
 	      return nil;	// Bad name=value specification
 	    }
-	  if ([key caseInsensitiveCompare: @"realm"] == NSOrderedSame)
+	  if ([key caseInsensitiveCompare: @"domain"] == NSOrderedSame)
 	    {
-	      return val;
+	      domain = val;
+	    }
+	  else if ([key caseInsensitiveCompare: @"realm"] == NSOrderedSame)
+	    {
+	      realm = val;
+	    }
+	}
+      if (realm == nil)
+        {
+	  return nil;		// No real to authenticate in
+	}
+
+      /*
+       * If the realm and authentication method match the space we
+       * found for the URL, assume that it is unchanged.
+       */
+      if ([[space realm] isEqualToString: realm]
+	&& [[space authenticationMethod] isEqualToString: method])
+	{
+	  return space;
+	}
+
+      space = [[NSURLProtectionSpace alloc] initWithHost: [URL host]
+						    port: [[URL port] intValue]
+						protocol: [URL scheme]
+						   realm: realm
+				    authenticationMethod: method];
+      [self setProtectionSpace: space
+		    forDomains: [domain componentsSeparatedByString: @" "]
+		       baseURL: URL];
+      return AUTORELEASE(space);
+    }
+  return nil;
+}
+
++ (NSURLProtectionSpace *) protectionSpaceForURL: (NSURL*)URL
+{
+  NSURLProtectionSpace	*space = nil;
+  NSString		*found = nil;
+  NSString		*scheme;
+  NSNumber		*port;
+  NSString		*server;
+  NSDictionary		*sDict;
+  NSArray		*keys;
+  unsigned		count;
+  NSString		*path;
+
+  scheme = [URL scheme];
+  port = [URL port];
+  if ([port intValue] == 80 && [scheme isEqualToString: @"http"])
+    {
+      port = nil;
+    }
+  else if ([port intValue] == 443 && [scheme isEqualToString: @"https"])
+    {
+      port = nil;
+    }
+  if ([port intValue] == 0)
+    {
+      server = [NSString stringWithFormat: @"%@://%@",
+	scheme, [URL host]];
+    }
+  else
+    {
+      server = [NSString stringWithFormat: @"%@://%@:%@",
+	scheme, [URL host], port];
+    }
+  [storeLock lock];
+  sDict = [domainMap objectForKey: server];
+  keys = [sDict allKeys];
+  count = [keys count];
+  path = [URL path];
+  while (count-- > 0)
+    {
+      NSString	*key = [keys objectAtIndex: count];
+
+      if (found == nil || [key length] > [found length])
+        {
+	  if ([path hasPrefix: key] == YES)
+	    {
+	      found = key;
 	    }
 	}
     }
-  return nil;
+  if (found != nil)
+    {
+      space = RETAIN([sDict objectForKey: found]);
+    }
+  [storeLock unlock];
+  return AUTORELEASE(space);
+}
+
++ (void) setProtectionSpace: (NSURLProtectionSpace *)space
+		 forDomains: (NSArray*)domains
+		    baseURL: (NSURL*)base
+{
+  NSEnumerator	*e;
+  NSString	*domain;
+
+  /*
+   * If there are no URIs specified, everything on the
+   * host of the base URL is in the protection space
+   */
+  if ([domains count] == 0)
+    {
+      domains = [NSArray arrayWithObject: @"/"];
+    }
+
+  [storeLock lock];
+  e = [domains objectEnumerator];
+  while ((domain = [e nextObject]) != nil)
+    {
+      NSURL			*u;
+      NSNumber			*port;
+      NSString			*scheme;
+      NSString			*server;
+      NSMutableDictionary	*sDict;
+
+      u = [NSURL URLWithString: domain];
+      if (u == nil)
+        {
+          u = [NSURL URLWithString: domain relativeToURL: base];
+	}
+      port = [u port];
+      scheme = [u scheme];
+      if ([port intValue] == 80 && [scheme isEqualToString: @"http"])
+        {
+	  port = nil;
+	}
+      else if ([port intValue] == 443 && [scheme isEqualToString: @"https"])
+        {
+	  port = nil;
+	}
+      if ([port intValue] == 0)
+        {
+          server = [NSString stringWithFormat: @"%@://%@",
+	    scheme, [u host]];
+        }
+      else
+        {
+          server = [NSString stringWithFormat: @"%@://%@:%@",
+	    scheme, [u host], port];
+	}
+      sDict = [domainMap objectForKey: server];
+      if (sDict == nil)
+        {
+	  sDict = [NSMutableDictionary new];
+	  [domainMap setObject: sDict forKey: server];
+	  RELEASE(sDict);
+	}
+      [sDict setObject: space forKey: [u path]];
+    }
+  [storeLock unlock];
 }
 
 - (NSString*) authorizationForAuthentication: (NSString*)authentication
@@ -232,7 +396,7 @@ static GSMimeParser		*mimeParser = nil;
 	  NSDebugMLog(@"Missing HTTP digest realm in '%@'", authentication);
 	  return nil;
 	}
-      if ([realm isEqual: [self->_space realm]] == NO)
+      if ([realm isEqualToString: [self->_space realm]] == NO)
         {
 	  NSDebugMLog(@"Bad HTTP digest realm in '%@'", authentication);
 	  return nil;
@@ -243,7 +407,7 @@ static GSMimeParser		*mimeParser = nil;
 	  return nil;
 	}
 
-      if ([algorithm isEqual: @"MD5"] == NO)
+      if ([algorithm isEqualToString: @"MD5"] == NO)
         {
 	  NSDebugMLog(@"Unsupported HTTP digest algorithm in '%@'",
 	    authentication);
@@ -257,7 +421,8 @@ static GSMimeParser		*mimeParser = nil;
 	}
 
       [self->_lock lock];
-      if ([stale boolValue] == YES || [nonce isEqual: _nonce] == NO)
+      if ([stale boolValue] == YES
+	|| [nonce isEqualToString: _nonce] == NO)
 	{
 	  _nc = 1;
 	}

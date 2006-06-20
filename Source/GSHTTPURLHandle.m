@@ -580,16 +580,16 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      if ([a hasPrefix: @"Basic"] == YES
 		&& (ah = [document headerNamed: @"WWW-Authenticate"]) != nil)
 		{
-		  NSString	*realm;
-		  NSString	*ac;
+	          NSURLProtectionSpace	*space;
+		  NSString		*ac;
 
 		  ac = [ah value];
-		  realm = [GSHTTPDigest digestRealmForAuthentication: ac];
-		  if (realm != nil)
+		  space = [GSHTTPAuthentication
+		    protectionSpaceForAuthentication: ac requestURL: url];
+		  if (space != nil)
 		    {
-		      NSURLProtectionSpace	*space;
 		      NSURLCredential		*cred;
-		      GSHTTPDigest		*digest;
+		      GSHTTPAuthentication	*digest;
 		      NSString			*method;
 		      NSString			*a;
 
@@ -603,26 +603,13 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			persistence: NSURLCredentialPersistenceForSession];
 
 		      /*
-		       * Create protection space from the information in
-		       * the URL and the realm of the authentication
-		       * challenge.
-		       */
-		      space = [[NSURLProtectionSpace alloc]
-			initWithHost: [url host]
-			port: [[url port] intValue]
-			protocol: [url scheme]
-			realm: realm
-			authenticationMethod:
-			NSURLAuthenticationMethodHTTPDigest];
-
-		      /*
 		       * Get the digest object and ask it for a header
 		       * to use for authorisation.
 		       */
-		      digest = [GSHTTPDigest digestWithCredential: cred
-						inProtectionSpace: space];
+		      digest = [GSHTTPAuthentication
+			digestWithCredential: cred
+			inProtectionSpace: space];
 		      RELEASE(cred);
-		      RELEASE(space);
 
 		      method = [request objectForKey: GSHTTPPropertyMethodKey];
 		      if (method == nil)
