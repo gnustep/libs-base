@@ -66,10 +66,10 @@
 
 
 /*
- * Internal class for handling HTTP digest authentication
+ * Internal class for handling HTTP authentication
  */
 @class	GSLazyLock;
-@interface GSHTTPDigest : NSObject
+@interface GSHTTPAuthentication : NSObject
 {
   GSLazyLock		*_lock;
   NSURLCredential	*_credential;
@@ -82,12 +82,24 @@
 /*
  *  Return the object for the specified credential/protection space.
  */
-+ (GSHTTPDigest *) digestWithCredential: (NSURLCredential*)credential
-		      inProtectionSpace: (NSURLProtectionSpace*)space;
++ (GSHTTPAuthentication *) digestWithCredential: (NSURLCredential*)credential
+			      inProtectionSpace: (NSURLProtectionSpace*)space;
 /*
- * Look for a digest realm in a header
+ * Create/return the protection space involved in the specified authentication
+ * header returned in a response to a request sent to the URL.
  */
-+ (NSString*) digestRealmForAuthentication: (NSString*)authentication;
++ (NSURLProtectionSpace*) protectionSpaceForAuthentication: (NSString*)auth
+						requestURL: (NSURL*)URL;
+
+/*
+ * Return the protection space for the specified URL (if known).
+ */
++ (NSURLProtectionSpace *) protectionSpaceForURL: (NSURL*)URL;
+
++ (void) setProtectionSpace: (NSURLProtectionSpace *)space
+		 forDomains: (NSArray*)domains
+		    baseURL: (NSURL*)base;
+
 /*
  * Generate next authorisation header for the specified authentication
  * header, method, and path.
