@@ -1,3 +1,12 @@
+2006-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPDigest.m: deleted
+	* Source/GSHTTPAuthentication.m: added
+	* Source/GNUmakefile: build GSHTTPAuthentication 
+	* Source/GSHTTPURLHandle.m: use GSHTTPAuthentication
+	Change class name to something more intuitive and add class methods
+	for mapping domains/URLs to protection space objects.
+
 2006-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSURLPrivate.h: Add GSHTTPDigest interface.
