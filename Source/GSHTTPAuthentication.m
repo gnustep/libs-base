@@ -145,7 +145,7 @@ static GSMimeParser		*mimeParser = nil;
         {
 	  method = NSURLAuthenticationMethodHTTPBasic;
 	}
-      else if ([sc scanString: @"Digest" intoString: 0] == NO)
+      else if ([sc scanString: @"Digest" intoString: 0] == YES)
         {
 	  method = NSURLAuthenticationMethodHTTPDigest;
 	}
@@ -171,10 +171,14 @@ static GSMimeParser		*mimeParser = nil;
 	    {
 	      realm = val;
 	    }
+	  if ([sc scanString: @"," intoString: 0] == NO)
+	    {
+	      break;	// No more in list.
+	    }
 	}
       if (realm == nil)
         {
-	  return nil;		// No real to authenticate in
+	  return nil;		// No realm to authenticate in
 	}
 
       /*
@@ -240,10 +244,11 @@ static GSMimeParser		*mimeParser = nil;
   while (count-- > 0)
     {
       NSString	*key = [keys objectAtIndex: count];
+      unsigned	kl = [key length];
 
-      if (found == nil || [key length] > [found length])
+      if (found == nil || kl > [found length])
         {
-	  if ([path hasPrefix: key] == YES)
+	  if (kl == 0 || [path hasPrefix: key] == YES)
 	    {
 	      found = key;
 	    }
@@ -278,18 +283,20 @@ static GSMimeParser		*mimeParser = nil;
   while ((domain = [e nextObject]) != nil)
     {
       NSURL			*u;
+      NSString			*path;
       NSNumber			*port;
       NSString			*scheme;
       NSString			*server;
       NSMutableDictionary	*sDict;
 
       u = [NSURL URLWithString: domain];
-      if (u == nil)
+      scheme = [u scheme];
+      if (scheme == nil)
         {
           u = [NSURL URLWithString: domain relativeToURL: base];
+          scheme = [u scheme];
 	}
       port = [u port];
-      scheme = [u scheme];
       if ([port intValue] == 80 && [scheme isEqualToString: @"http"])
         {
 	  port = nil;
@@ -297,6 +304,11 @@ static GSMimeParser		*mimeParser = nil;
       else if ([port intValue] == 443 && [scheme isEqualToString: @"https"])
         {
 	  port = nil;
+	}
+      path = [u path];
+      if (path == nil)
+        {
+	  path = @"";
 	}
       if ([port intValue] == 0)
         {

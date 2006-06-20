@@ -6,6 +6,8 @@
 	* Source/GSHTTPURLHandle.m: use GSHTTPAuthentication
 	Change class name to something more intuitive and add class methods
 	for mapping domains/URLs to protection space objects.
+	Update code to used cache protection space info to put digest
+	authorisation in place without waiting for challenge.
 
 2006-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 
