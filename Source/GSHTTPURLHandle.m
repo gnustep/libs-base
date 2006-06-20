@@ -419,19 +419,77 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       if ([u user] != nil)
 	{
-	  NSString	*auth;
+	  NSString		*auth = nil;
+	  NSURLProtectionSpace	*space;
 
-	  if ([[u password] length] > 0)
+	  /*
+	   * If the URL we are loading is in a digest authentication space
+	   * we try to create an authorization header using any existing
+	   * cached information so that we can avoid the wasteful
+	   * challenge/response dialogue.
+	   */
+	  space = [GSHTTPAuthentication protectionSpaceForURL: u];
+	  if (space != nil && [[space authenticationMethod] isEqual:
+	    NSURLAuthenticationMethodHTTPDigest] == YES)
 	    {
-	      auth = [NSString stringWithFormat: @"%@:%@",
-		[u user], [u password]];
+	      NSURLCredential		*cred;
+	      GSHTTPAuthentication	*digest;
+	      NSString			*method;
+
+	      /*
+	       * Create credential from user and password
+	       * stored in the URL.
+	       */
+	      cred = [[NSURLCredential alloc]
+		initWithUser: [u user]
+		password: [u password]
+		persistence: NSURLCredentialPersistenceForSession];
+
+	      /*
+	       * Get the digest object and ask it for a header
+	       * to use for authorisation.
+	       */
+	      digest = [GSHTTPAuthentication
+		digestWithCredential: cred
+		inProtectionSpace: space];
+	      RELEASE(cred);
+
+	      method = [request objectForKey: GSHTTPPropertyMethodKey];
+	      if (method == nil)
+		{
+		  if ([wData length] > 0)
+		    {
+		      method = @"POST";
+		    }
+		  else
+		    {
+		      method = @"GET";
+		    }
+		}
+	      auth = [digest authorizationForAuthentication: nil
+						     method: method
+						       path: [u path]];
 	    }
-	  else
+
+	  if (auth == nil)
 	    {
-	      auth = [NSString stringWithFormat: @"%@", [u user]];
+	      /*
+	       * Not able to do a digest authentication,
+	       * so do a basic authentication in case the
+	       * server accepts it.
+	       */
+	      if ([[u password] length] > 0)
+		{
+		  auth = [NSString stringWithFormat: @"%@:%@",
+		    [u user], [u password]];
+		}
+	      else
+		{
+		  auth = [NSString stringWithFormat: @"%@", [u user]];
+		}
+	      auth = [NSString stringWithFormat: @"Basic %@",
+		[GSMimeDocument encodeBase64String: auth]];
 	    }
-	  auth = [NSString stringWithFormat: @"Basic %@",
-	    [GSMimeDocument encodeBase64String: auth]];
 	  NSMapInsert(wProperties, (void*)@"Authorization", (void*)auth);
 	}
     }
