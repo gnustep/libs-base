@@ -542,9 +542,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    {
 	      complete = NO;	// Read chunked body data
 	    }
-	  else
+	  if (complete == NO && [d length] == 0)
 	    {
-	      complete = NO;	// No
+	      complete = YES;	// Had EOF ... terminate
 	    }
 	}
       if (complete == YES)
