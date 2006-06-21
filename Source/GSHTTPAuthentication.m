@@ -27,6 +27,7 @@
 #include "Foundation/NSScanner.h"
 #include "Foundation/NSSet.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSValue.h"
 #include "GNUstepBase/GSLock.h"
 #include "GNUstepBase/GSMime.h"
 
