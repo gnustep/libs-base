@@ -160,7 +160,7 @@ authenticationMethod: (NSString *)authenticationMethod
   return NO;
 }
 
-- (unsigned) isEqual: (id)other
+- (BOOL) isEqual: (id)other
 {
   if ((id)self == other)
     {
