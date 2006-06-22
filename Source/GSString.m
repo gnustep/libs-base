@@ -506,7 +506,27 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 	}
     }
 
-  if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
+  if (encoding == NSUTF8StringEncoding)
+    {
+      unsigned i;
+
+      for (i = 0; i < length; i++)
+        {
+	  if ((chars.c)[i] > 127)
+	    {
+	      break;
+	    }
+        }
+      if (i == length)
+	{
+	  /*
+	   * This is actually ASCII data ... so we can just store it as if
+	   * in the internal 8bit encoding scheme.
+	   */
+	  encoding = internalEncoding;
+	}
+    }
+  else if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
     {
       unsigned i;
 
@@ -3653,7 +3673,27 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
       chars = (unsigned char*)bytes;
     }
 
-  if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
+  if (encoding == NSUTF8StringEncoding)
+    {
+      unsigned i;
+
+      for (i = 0; i < length; i++)
+        {
+	  if (chars[i] > 127)
+	    {
+	      break;
+	    }
+        }
+      if (i == length)
+	{
+	  /*
+	   * This is actually ASCII data ... so we can just store it as if
+	   * in the internal 8bit encoding scheme.
+	   */
+	  encoding = internalEncoding;
+	}
+    }
+  else if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
     {
       unsigned i;
 
