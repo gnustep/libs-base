@@ -1,3 +1,8 @@
+2006-06-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: small optimisation for initialisation with
+	unicode data which happens to be just ascii.
+
 2006-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPDigest.m: deleted
