@@ -20,7 +20,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSUserDefaults class reference</title>
    $Date$ $Revision$
@@ -197,7 +198,7 @@ static void updateCache(NSUserDefaults *self)
  *   <desc>
  *     Information retrieved from the GNUstep configuration system.
  *     Usually the system wide and user specific GNUstep.conf files,
- *     or from information cimplied in when the base library was
+ *     or from information compiled in when the base library was
  *     built.
  *   </desc>
  *   <term><code>NSRegistrationDomain</code> ... volatile</term>

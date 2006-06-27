@@ -22,7 +22,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSPathUtilities function reference</title>
    $Date$ $Revision$
@@ -252,6 +253,7 @@ getPathConfig(NSDictionary *dict, NSString *key)
 static void ExtractValuesFromConfig(NSDictionary *config)
 {
   NSMutableDictionary	*c = [config mutableCopy];
+  NSString		*extra;
 
   /*
    * Move values out of the dictionary and into variables for rapid reference.
@@ -275,6 +277,25 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(localResources, c, @"GNUSTEP_PLATFORM_LOCAL_RESOURCES");
   ASSIGN_PATH(localApps, c, @"GNUSTEP_PLATFORM_LOCAL_APPS");
   ASSIGN_PATH(localLibs, c, @"GNUSTEP_PLATFORM_LOCAL_LIBS");
+
+  /*
+   * The GNUSTEP_EXTRA field may contain a list of extra keys which
+   * we permit in the dictionary without generating a warning.
+   */
+  extra = [c objectForKey: @"GNUSTEP_EXTRA"];
+  if (extra != nil)
+    {
+      NSEnumerator	*enumerator;
+      NSString		*key;
+
+      enumerator = [[extra componentsSeparatedByString: @","] objectEnumerator];
+      [c removeObjectForKey: @"GNUSTEP_EXTRA"];
+      while ((key = [enumerator nextObject]) != nil)
+        {
+	  key = [key stringByTrimmingSpaces];
+	  [c removeObjectForKey: key];
+	}
+    }
 
   /*
    * Remove any other dictionary entries we have used.

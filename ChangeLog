@@ -1,3 +1,10 @@
+2006-06-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Fix spelling in comment
+	* Source/NSPathUtilities.m: Add GNUSTEP_EXTRA to allow extra info
+	in GSConfigDomain without producing an error message.
+	* Documentation/Base.gsdoc: Document GNUSTEP_EXTRA
+
 2006-06-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: small optimisation for initialisation with
