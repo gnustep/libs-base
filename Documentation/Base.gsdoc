@@ -557,15 +557,30 @@ notice and this notice are preserved.
 	    NSLocalDomainMask as appropriate.
 	  </p>
 	  <p>
+	    All the above values from the configuration file are made
+	    available in the NSUserDefaults system at runtime, in the
+	    GSConfigDomain of the defaults.<br />
+	    In addition, the configuration file may contain the key
+	    <em>GNUSTEP_EXTRA</em> with a value set to be a comma separated
+	    list of extra key names which are to be allowed in the config
+	    file.  This lets you add more key/value pairs to the config
+	    file intended to be seen in the NSUserDefaults system.<br />
+	    However, you must take care that any key names you choose
+	    do not conflict with variable names used with the GNUstep
+	    Makefiles package or your configuration script may cause
+	    problems when building software.
+	  </p>
+	  <p>
 	    The exact format of the configuration file is expected to 
 	    be that of a basic unix "conf" style file, with one
 	    <em>key = value</em> per line (the format a unix shell
 	    can 'source' in order to define shell variables).<br />
 	    This configuration file uses the escape sequence and
 	    quoting conventions of the standard bourne shell.<br />
-	    The only Keys permitted are those listed in the
-	    documentation, and all consist of uppercase letters, digits,
-	    and underscores, and must not begin with a digit.<br />
+	    The only Keys permitted are those listed above (plus any
+	    specified in the GNUSTEP_EXTRA list), and all consist of
+	    uppercase letters, digits, and underscores, and must
+	    not begin with a digit.<br />
 	    A value may be any quoted string (or an unquoted string
 	    containing no white space).<br />
 	    Lines beginning with a hash '#' are deemed comment lines
@@ -592,7 +607,7 @@ notice and this notice are preserved.
 	    and just run.
 	  </p>
 	  <p>
-	    Firstly, wariables in the configuration file which define
+	    Firstly, variables in the configuration file which define
 	    paths, are expected to by full path specifications, except
 	    for the special case in which they begin with dot-slash (./).
 	    In this case the text after the dot-slash is appended to
