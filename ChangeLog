@@ -1,3 +1,7 @@
+2006-06-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Tools/gdnc.m: Don't try to trap SIGPROF
+
 2006-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Fix spelling in comment

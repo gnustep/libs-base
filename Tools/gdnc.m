@@ -1106,6 +1106,9 @@ main(int argc, char** argv, char** env)
 
     for (sym = 0; sym < NSIG; sym++)
       {
+#ifdef	SIGPROF
+	if (sym == SIGPROF) continue;
+#endif
 	signal(sym, ihandler);
       }
 #ifndef __MINGW32__
