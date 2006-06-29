@@ -1704,6 +1704,10 @@ static inline BOOL
 getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
   NSStringEncoding enc)
 {
+  if (buffer == 0)
+    {
+      return NO;	// Can't fit in here
+    }
   if (enc == NSUnicodeStringEncoding)
     {
       if (maxLength >= sizeof(unichar))
@@ -1745,7 +1749,43 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 		}
 	      return YES;
 	    }
-	  else if (enc == NSASCIIStringEncoding
+
+	  if (enc == NSUTF8StringEncoding
+	    && GSIsByteEncoding(internalEncoding))
+	    {
+	      unsigned	i;
+
+	      /*
+	       * Maybe we actually contain ascii data, which can be
+	       * copied out directly as a utf-8 string.
+	       */
+	      if (bytes > self->_count)
+		{
+		  bytes = self->_count;
+		}
+	      for (i = 0; i < bytes; i++)
+		{
+		  unsigned char	c = self->_contents.c[i];
+
+		  if (c > 127)
+		    {
+		      break;
+		    }
+		  buffer[i] = c;
+		}
+	      if (i == bytes)
+	        {
+	          buffer[bytes] = '\0';
+	          if (bytes < self->_count)
+		    {
+		      return NO;
+		    }
+	          return YES;
+		}
+	      // Fall through to perform conversion to unicode and back
+	    }
+
+	  if (enc == NSASCIIStringEncoding
 	    && GSIsByteEncoding(internalEncoding))
 	    {
 	      unsigned	i;
@@ -1791,18 +1831,16 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 			      format: @"Can't convert to Unicode string."];
 		}
 	      if (GSFromUnicode((unsigned char**)&c, &bytes, u, l, enc,
-		NSDefaultMallocZone(), GSUniTerminate|GSUniStrict) == NO)
+		0, GSUniTerminate|GSUniStrict) == NO)
 		{
-		  NSZoneFree(NSDefaultMallocZone(), u);
-		  [NSException raise: NSCharacterConversionException
-			      format: @"Can't convert from Unicode string."];
+		  c = 0;	// Unable to convert
 		}
 	      NSZoneFree(NSDefaultMallocZone(), u);
 	      if (c == (unsigned char*)buffer)
 		{
 		  return YES;	// Fitted in original buffer
 		}
-	      else
+	      else if (c != 0)
 		{
 		  NSZoneFree(NSDefaultMallocZone(), c);
 		}
@@ -1898,19 +1936,11 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 
 	      if (GSFromUnicode((unsigned char**)&c, &maxLength,
 		self->_contents.u, self->_count, enc,
-		NSDefaultMallocZone(), GSUniTerminate|GSUniStrict) == NO)
+		0, GSUniTerminate|GSUniStrict) == NO)
 		{
-		  [NSException raise: NSCharacterConversionException
-			      format: @"Can't convert to/from Unicode string."];
+		  return NO;
 		}
-	      if (c == (unsigned char*)buffer)
-		{
-		  return YES;
-		}
-	      else
-		{
-		  NSZoneFree(NSDefaultMallocZone(), c);
-		}
+	      return YES;
 	    }
 	}
       return NO;
