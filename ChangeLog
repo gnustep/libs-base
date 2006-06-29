@@ -2,6 +2,7 @@
 
 	* Source/Tools/gdnc.m: Don't try to trap SIGPROF
 	* Source/GSString.m: fix bug getting Cstring.
+	* Source/NSNotificationQueue.m: fix mem leak in multithreaded apps.
 
 2006-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -21,7 +21,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSNotificationQueue class reference</title>
    $Date$ $Revision$
@@ -43,7 +44,8 @@
    in the thread dictionary and accessed using the key below.
    */
 
-static	NSString*	tkey = @"NotificationQueueListThreadKey";
+static	NSString*	lkey = @"NotificationQueueListThreadKey";
+static	NSString*	qkey = @"NotificationQueueThreadKey";
 
 typedef struct {
   @defs(NSNotificationQueue)
@@ -67,17 +69,29 @@ currentList(void)
   NSMutableDictionary	*d;
 
   d = GSCurrentThreadDictionary();
-  list = (NotificationQueueList*)[d objectForKey: tkey];
+  list = (NotificationQueueList*)[d objectForKey: lkey];
   if (list == nil)
     {
       list = [NotificationQueueList new];
-      [d setObject: list forKey: tkey];
+      [d setObject: list forKey: lkey];
       RELEASE(list);	/* retained in dictionary.	*/
     }
   return list;
 }
 
 @implementation	NotificationQueueList
+
+- (void) dealloc
+{
+  while (next != nil)
+    {
+      NotificationQueueList	*tmp = next;
+
+      next = tmp->next;
+      RELEASE(tmp);
+    }
+  [super dealloc];
+}
 
 + (void) registerQueue: (NSNotificationQueue*)q
 {
@@ -122,12 +136,12 @@ currentList(void)
         {
 	  NotificationQueueList	*tmp = list->next;
 
-          [d setObject: tmp forKey: tkey];
+          [d setObject: tmp forKey: lkey];
 	  RELEASE(tmp);			/* retained in dictionary.	*/
         }
       else
 	{
-	  [d removeObjectForKey: tkey];
+	  [d removeObjectForKey: lkey];
 	}
     }
   else
@@ -291,6 +305,14 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 	0, NSDefaultMallocZone());
       item = [item initWithNotificationCenter:
 	[NSNotificationCenter defaultCenter]];
+      if (item != nil)
+	{
+	  NSMutableDictionary	*d;
+
+	  d = GSCurrentThreadDictionary();
+	  [d setObject: item forKey: qkey];
+	  RELEASE(item);	/* retained in dictionary.	*/
+	}
     }
   return item;
 }
