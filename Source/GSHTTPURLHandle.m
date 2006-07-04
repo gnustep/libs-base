@@ -418,79 +418,53 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   if ((id)NSMapGet(wProperties, (void*)@"Authorization") == nil)
     {
-      if ([u user] != nil)
+      NSURLProtectionSpace	*space;
+
+      /*
+       * If we have username/password stored in the URL, and there is a
+       * known protection space for that URL, we generate an authentication
+       * header.
+       */
+      if ([u user] != nil
+	&& (space = [GSHTTPAuthentication protectionSpaceForURL: u]) != nil)
 	{
-	  NSString		*auth = nil;
-	  NSURLProtectionSpace	*space;
+	  NSString		*auth;
+	  GSHTTPAuthentication	*authentication;
+	  NSURLCredential	*cred;
+	  NSString		*method;
 
 	  /*
-	   * If the URL we are loading is in a digest authentication space
-	   * we try to create an authorization header using any existing
-	   * cached information so that we can avoid the wasteful
-	   * challenge/response dialogue.
+	   * Create credential from user and password
+	   * stored in the URL.
 	   */
-	  space = [GSHTTPAuthentication protectionSpaceForURL: u];
-	  if (space != nil && [[space authenticationMethod] isEqual:
-	    NSURLAuthenticationMethodHTTPDigest] == YES)
+	  cred = [[NSURLCredential alloc]
+	    initWithUser: [u user]
+	    password: [u password]
+	    persistence: NSURLCredentialPersistenceForSession];
+
+	  authentication = [GSHTTPAuthentication
+	    authenticationWithCredential: cred
+	    inProtectionSpace: space];
+
+	  RELEASE(cred);
+
+	  method = [request objectForKey: GSHTTPPropertyMethodKey];
+	  if (method == nil)
 	    {
-	      NSURLCredential		*cred;
-	      GSHTTPAuthentication	*digest;
-	      NSString			*method;
-
-	      /*
-	       * Create credential from user and password
-	       * stored in the URL.
-	       */
-	      cred = [[NSURLCredential alloc]
-		initWithUser: [u user]
-		password: [u password]
-		persistence: NSURLCredentialPersistenceForSession];
-
-	      /*
-	       * Get the digest object and ask it for a header
-	       * to use for authorisation.
-	       */
-	      digest = [GSHTTPAuthentication
-		digestWithCredential: cred
-		inProtectionSpace: space];
-	      RELEASE(cred);
-
-	      method = [request objectForKey: GSHTTPPropertyMethodKey];
-	      if (method == nil)
+	      if ([wData length] > 0)
 		{
-		  if ([wData length] > 0)
-		    {
-		      method = @"POST";
-		    }
-		  else
-		    {
-		      method = @"GET";
-		    }
-		}
-	      auth = [digest authorizationForAuthentication: nil
-						     method: method
-						       path: [u path]];
-	    }
-
-	  if (auth == nil)
-	    {
-	      /*
-	       * Not able to do a digest authentication,
-	       * so do a basic authentication in case the
-	       * server accepts it.
-	       */
-	      if ([[u password] length] > 0)
-		{
-		  auth = [NSString stringWithFormat: @"%@:%@",
-		    [u user], [u password]];
+		  method = @"POST";
 		}
 	      else
 		{
-		  auth = [NSString stringWithFormat: @"%@", [u user]];
+		  method = @"GET";
 		}
-	      auth = [NSString stringWithFormat: @"Basic %@",
-		[GSMimeDocument encodeBase64String: auth]];
 	    }
+
+	  auth = [authentication authorizationForAuthentication: nil
+							 method: method
+							   path: [u path]];
+
 	  NSMapInsert(wProperties, (void*)@"Authorization", (void*)auth);
 	}
     }
@@ -632,65 +606,62 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
 	  if ([val intValue] == 401 && self->challenged < 2)
 	    {
-	      NSString		*a;
 	      GSMimeHeader	*ah;
 
 	      self->challenged++;	// Prevent repeated challenge/auth
-	      a = (id)NSMapGet(wProperties, (void*)@"Authorization");
 	      if ((ah = [document headerNamed: @"WWW-Authenticate"]) != nil)
 		{
 	          NSURLProtectionSpace	*space;
 		  NSString		*ac;
+		  NSURLCredential	*cred;
+		  GSHTTPAuthentication	*authentication;
+		  NSString		*method;
+		  NSString		*a;
 
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
 		    protectionSpaceForAuthentication: ac requestURL: url];
-		  if (space != nil)
+
+		  /*
+		   * Create credential from user and password
+		   * stored in the URL.
+		   */
+		  cred = [[NSURLCredential alloc]
+		    initWithUser: [url user]
+		    password: [url password]
+		    persistence: NSURLCredentialPersistenceForSession];
+
+		  /*
+		   * Get the digest object and ask it for a header
+		   * to use for authorisation.
+		   */
+		  authentication = [GSHTTPAuthentication
+		    authenticationWithCredential: cred
+		    inProtectionSpace: space];
+
+		  RELEASE(cred);
+
+		  method = [request objectForKey: GSHTTPPropertyMethodKey];
+		  if (method == nil)
 		    {
-		      NSURLCredential		*cred;
-		      GSHTTPAuthentication	*digest;
-		      NSString			*method;
-		      NSString			*a;
-
-		      /*
-		       * Create credential from user and password
-		       * stored in the URL.
-		       */
-		      cred = [[NSURLCredential alloc]
-		        initWithUser: [url user]
-			password: [url password]
-			persistence: NSURLCredentialPersistenceForSession];
-
-		      /*
-		       * Get the digest object and ask it for a header
-		       * to use for authorisation.
-		       */
-		      digest = [GSHTTPAuthentication
-			digestWithCredential: cred
-			inProtectionSpace: space];
-		      RELEASE(cred);
-
-		      method = [request objectForKey: GSHTTPPropertyMethodKey];
-		      if (method == nil)
+		      if ([wData length] > 0)
 			{
-			  if ([wData length] > 0)
-			    {
-			      method = @"POST";
-			    }
-			  else
-			    {
-			      method = @"GET";
-			    }
+			  method = @"POST";
 			}
-		      a = [digest authorizationForAuthentication: ac
+		      else
+			{
+			  method = @"GET";
+			}
+		    }
+
+		  a = [authentication authorizationForAuthentication: ac
 							  method: method
 							    path: [url path]];
-		      if (a != nil)
-		      	{
-			  [self writeProperty: a forKey: @"Authorization"];
-			  [self _tryLoadInBackground: u];
-			  return;	// Retrying.
-			}
+		  if (a != nil)
+		    {
+		      [self writeProperty: a forKey: @"Authorization"];
+		      [self _tryLoadInBackground: u];
+		      return;	// Retrying.
 		    }
 		}
 	    }

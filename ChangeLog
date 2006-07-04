@@ -1,6 +1,11 @@
 2006-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: On mingw32 create subtask with CREATE_NO_WINDOW
+	* Source/GSURLPrivate.h: Generalise GSHTTPAuthentication
+	* Source/GSHTTPAuthentication.m: Generalise to support Basic auth
+	* Source/NSURLProtectionSpace.m: Optimise a little.
+	* Source/GSHTTPURLHandle.m: Changes for GSHTTPAuthentication update.
+	Don't send basic authentication info unless challenged by server.
 
 2006-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 

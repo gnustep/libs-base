@@ -82,8 +82,10 @@
 /*
  *  Return the object for the specified credential/protection space.
  */
-+ (GSHTTPAuthentication *) digestWithCredential: (NSURLCredential*)credential
-			      inProtectionSpace: (NSURLProtectionSpace*)space;
++ (GSHTTPAuthentication *) authenticationWithCredential:
+  (NSURLCredential*)credential
+  inProtectionSpace: (NSURLProtectionSpace*)space;
+
 /*
  * Create/return the protection space involved in the specified authentication
  * header returned in a response to a request sent to the URL.
@@ -109,7 +111,7 @@
 					path: (NSString*)path;
 - (NSURLCredential *) credential;
 - (id) initWithCredential: (NSURLCredential*)credential
-	inProtectionSpace: (NSURLProtectionSpace*)space;
+        inProtectionSpace: (NSURLProtectionSpace*)space;
 - (NSURLProtectionSpace *) space;
 @end
 
