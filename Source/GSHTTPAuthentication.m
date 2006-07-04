@@ -149,6 +149,7 @@ static GSMimeParser		*mimeParser = nil;
       if ([sc scanString: @"Basic" intoString: 0] == YES)
         {
 	  method = NSURLAuthenticationMethodHTTPBasic;
+	  domain = [URL path];
 	}
       else if ([sc scanString: @"Digest" intoString: 0] == YES)
         {
