@@ -43,8 +43,8 @@ typedef struct {
   int		port;
   NSString	*protocol;
   NSString	*realm;
-  NSString	*proxyType;
-  NSString	*authenticationMethod;
+  NSString	*proxyType;		// Not retained
+  NSString	*authenticationMethod;	// Not retained
   BOOL		isProxy;
 } Internal;
  
@@ -90,7 +90,7 @@ typedef struct {
       if (o != nil)
 	{
 	  inst->isProxy = this->isProxy;
-	  ASSIGN(inst->proxyType, this->proxyType);
+	  inst->proxyType = this->proxyType;
 	}
       return o;
     }
@@ -102,9 +102,7 @@ typedef struct {
     {
       RELEASE(this->host);
       RELEASE(this->protocol);
-      RELEASE(this->proxyType);
       RELEASE(this->realm);
-      RELEASE(this->authenticationMethod);
       NSZoneFree([self zone], this);
     }
   [super dealloc];
@@ -114,7 +112,7 @@ typedef struct {
 {
   return [[self host] hash] + [self port]
     + [[self realm] hash] + [[self protocol] hash]
-    + [[self proxyType] hash] + [[self authenticationMethod] hash];
+    + (uintptr_t)this->proxyType + (uintptr_t)this->authenticationMethod;
 }
 
 - (NSString *) host
@@ -133,7 +131,25 @@ authenticationMethod: (NSString *)authenticationMethod
       this->host = [host copy];
       this->protocol = [protocol copy];
       this->realm = [realm copy];
-      this->authenticationMethod = [authenticationMethod copy];
+      if ([authenticationMethod isEqualToString: 
+	NSURLAuthenticationMethodHTMLForm] == YES)
+	{
+	  this->authenticationMethod = NSURLAuthenticationMethodHTMLForm;
+	}
+      else if ([authenticationMethod isEqualToString: 
+	NSURLAuthenticationMethodHTTPBasic] == YES)
+	{
+	  this->authenticationMethod = NSURLAuthenticationMethodHTTPBasic;
+	}
+      else if ([authenticationMethod isEqualToString: 
+	NSURLAuthenticationMethodHTTPDigest] == YES)
+	{
+	  this->authenticationMethod = NSURLAuthenticationMethodHTTPDigest;
+	}
+      else
+        {
+	  this->authenticationMethod = NSURLAuthenticationMethodDefault;
+	}
       this->port = port;
       this->proxyType = nil;
       this->isProxy = NO;
@@ -155,9 +171,28 @@ authenticationMethod: (NSString *)authenticationMethod
   if (self != nil)
     {
       this->isProxy = YES;
-      ASSIGNCOPY(this->proxyType, type);
+      if ([type isEqualToString: NSURLProtectionSpaceFTPProxy] == YES)
+        {
+	  this->proxyType = NSURLProtectionSpaceFTPProxy;
+	}
+      else if ([type isEqualToString: NSURLProtectionSpaceHTTPProxy] == YES)
+        {
+	  this->proxyType = NSURLProtectionSpaceHTTPProxy;
+	}
+      else if ([type isEqualToString: NSURLProtectionSpaceHTTPSProxy] == YES)
+        {
+	  this->proxyType = NSURLProtectionSpaceHTTPSProxy;
+	}
+      else if ([type isEqualToString: NSURLProtectionSpaceSOCKSProxy] == YES)
+        {
+	  this->proxyType = NSURLProtectionSpaceSOCKSProxy;
+	}
+      else
+        {
+	  DESTROY(self);	// Bad proxy type.
+	}
     }
-  return NO;
+  return self;
 }
 
 - (BOOL) isEqual: (id)other
@@ -237,13 +272,13 @@ authenticationMethod: (NSString *)authenticationMethod
 
 - (BOOL) receivesCredentialSecurely
 {
-  if ([this->authenticationMethod isEqual: NSURLAuthenticationMethodHTTPDigest])
+  if (this->authenticationMethod == NSURLAuthenticationMethodHTTPDigest)
     {
       return YES;
     }
   if (this->isProxy)
     {
-      if ([this->proxyType isEqual: NSURLProtectionSpaceHTTPSProxy] == YES)
+      if (this->proxyType == NSURLProtectionSpaceHTTPSProxy)
         {
 	  return YES;
 	}
