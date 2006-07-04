@@ -98,6 +98,7 @@ static NSString	*httpVersion = @"1.1";
   BOOL			tunnel;
   BOOL			debug;
   BOOL			keepalive;
+  unsigned char		challenged;
   NSFileHandle          *sock;
   NSURL                 *url;
   NSURL                 *u;
@@ -629,14 +630,14 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   */
 	  info = [document headerNamed: @"http"];
 	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-	  if ([val intValue] == 401)
+	  if ([val intValue] == 401 && self->challenged < 2)
 	    {
 	      NSString		*a;
 	      GSMimeHeader	*ah;
 
+	      self->challenged++;	// Prevent repeated challenge/auth
 	      a = (id)NSMapGet(wProperties, (void*)@"Authorization");
-	      if ([a hasPrefix: @"Basic"] == YES
-		&& (ah = [document headerNamed: @"WWW-Authenticate"]) != nil)
+	      if ((ah = [document headerNamed: @"WWW-Authenticate"]) != nil)
 		{
 	          NSURLProtectionSpace	*space;
 		  NSString		*ac;
@@ -791,6 +792,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 - (void) loadInBackground
 {
+  self->challenged = 0;
   [self _tryLoadInBackground: nil];
 }
 

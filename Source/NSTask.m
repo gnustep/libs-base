@@ -1189,7 +1189,7 @@ quotedFromString(NSString *aString)
     NULL,      			/* proc attrs */
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
-    CREATE_UNICODE_ENVIRONMENT,	/* creation flags */
+    CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT,	/* creation flags */
     envp,			/* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,

@@ -1,3 +1,12 @@
+2006-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: On mingw32 create subtask with CREATE_NO_WINDOW
+
+2006-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Keep count of challenge/authentication
+	to avoid recycling the same authentucation repeatedly.
+
 2006-06-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Tools/gdnc.m: Don't try to trap SIGPROF
