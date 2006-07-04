@@ -331,8 +331,8 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
     {
       GSMethod method;
       method = GSGetMethod((GSObjCIsInstance(_target)
-                            ? GSObjCClass(_target)
-                            : _target),
+                            ? (Class)GSObjCClass(_target)
+                            : (Class)_target),
                            _selector,
                            GSObjCIsInstance(_target),
                            YES);
