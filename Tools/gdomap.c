@@ -24,7 +24,7 @@
 
 /* Ported to mingw 07/12/00 by Björn Giesler <Bjoern.Giesler@gmx.de> */
 
-#include "../Source/config.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -44,7 +44,6 @@
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#include "config.h"
 #ifdef __MINGW32__
 #include <winsock2.h>
 #include <ws2tcpip.h>

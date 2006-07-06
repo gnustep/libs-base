@@ -1,3 +1,7 @@
+2006-07-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: remove unnecessary include of config.h
+
 2006-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: On mingw32 create subtask with CREATE_NO_WINDOW
