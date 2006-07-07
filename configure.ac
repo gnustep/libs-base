@@ -77,15 +77,21 @@ AC_ARG_WITH(config-file,
 				If a trailing '/' is specified, the path is
 				used for locating domains but no GNUstep
 				config file is read at runtime.], 
-  GNUSTEP_CONFIG_FILE="$withval",
-  [if test "$GNUSTEP_CONFIG_FILE" = ""; then
-    case "$target_os" in
-      mingw*)
-	GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
-      *)
-	GNUSTEP_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
-    esac
-  fi])
+  result="$withval",
+  result="no"
+)
+if test "$result" != "no"
+then
+  GNUSTEP_CONFIG_FILE="$result"
+fi
+if test "$GNUSTEP_CONFIG_FILE" = ""; then
+  case "$target_os" in
+    mingw*)
+      GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
+    *)
+      GNUSTEP_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
+  esac
+fi
 AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
 AC_SUBST(GNUSTEP_CONFIG_FILE)
 
@@ -179,13 +185,19 @@ then
 				to use at runtime if no GNUstep config file
 				is found at runtime.  If this is not specified
 				then the path from --with-config-file or from
-				the gnustep-make pacakage is used.],
-    GNUSTEP_DEFAULT_CONFIG="$withval", 
-    [if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
-      if test -f "$GNUSTEP_CONFIG_FILE"; then
-        GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
-      fi
-    fi])
+				the gnustep-make package is used.],
+    result="$withval", 
+    result="no"
+  )
+  if test "$result" != "no"
+  then
+    GNUSTEP_DEFAULT_CONFIG="$result"
+  fi
+  if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
+    if test -f "$GNUSTEP_CONFIG_FILE"; then
+      GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
+    fi
+  fi
   AC_MSG_RESULT($GNUSTEP_DEFAULT_CONFIG)
 
   #
