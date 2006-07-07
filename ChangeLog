@@ -1,3 +1,9 @@
+2006-07-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Resources/Languages/README: describe how to deal with files where
+	the BOM is missing.
+	* Resources/Languages/Korean: update supplied by YunSong Hwang
+
 2006-07-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: remove unnecessary include of config.h
