@@ -1,3 +1,8 @@
+2006-07-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: ([-dealloc]) release objects in array
+	to fix bug #17097
+
 2006-07-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Resources/Languages/README: describe how to deal with files where
