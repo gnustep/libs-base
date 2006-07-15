@@ -31,6 +31,7 @@
 #include <Foundation/NSValue.h>
 
 #include "GSPrivate.h"
+#include "config.h"
 
 /*
  *      Setup for inline operation of arrays.
