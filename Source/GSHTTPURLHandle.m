@@ -708,7 +708,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       if (sock != nil
 	&& (connectionState == reading || connectionState == idle))
 	{
-	  [sock readInBackgroundAndNotify];
+          if ([sock readInProgress] == NO)
+	    {
+	      [sock readInBackgroundAndNotify];
+	    }
 	}
     }
   RELEASE(self);
@@ -755,7 +758,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   else
     {
-      [sock readInBackgroundAndNotify];
+      if ([sock readInProgress] == NO)
+	{
+	  [sock readInBackgroundAndNotify];
+	}
     }
   RELEASE(p);
   RELEASE(self);
