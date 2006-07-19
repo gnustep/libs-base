@@ -1,3 +1,8 @@
+2006-07-19  Jeremy Bettis <jeremy@deadbeef.com>
+
+	* Source/win32/NSUserDefaultsWin32.m: The method wantToReadDefaultsSince:
+	was always returning YES.  Fixed to work as intended.
+	
 2006-07-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Only queue a new read on a handle if there
