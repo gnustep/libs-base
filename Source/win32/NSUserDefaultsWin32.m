@@ -387,7 +387,7 @@ struct NSUserDefaultsWin32_DomainInfo
 
 - (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate
 {
-  if (lastSyncDate == nil && registryInfo != 0)
+  if (lastSyncDate != nil && registryInfo != 0)
     {
       // Detect changes in the registry
       NSMapEnumerator	iter;
