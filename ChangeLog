@@ -1,6 +1,12 @@
+2006-07-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: Reinstate fix of 2006-07-14 which was 
+	erroneously reverted on 2006-07-15.
+
 2006-07-19  Jeremy Bettis <jeremy@deadbeef.com>
 
-	* Source/win32/NSUserDefaultsWin32.m: The method wantToReadDefaultsSince:
+	* Source/win32/NSUserDefaultsWin32.m:
+	The method wantToReadDefaultsSince:
 	was always returning YES.  Fixed to work as intended.
 	
 2006-07-18  Richard Frith-Macdonald <rfm@gnu.org>

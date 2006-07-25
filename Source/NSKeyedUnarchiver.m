@@ -363,7 +363,7 @@ static NSMapTable	globalClassMap = 0;
     {
       NSZone    *z = _objMap->zone;
 
-      GSIArrayClear(_objMap);
+      GSIArrayEmpty(_objMap);
       NSZoneFree(z, (void*)_objMap);
     }
   [super dealloc];
