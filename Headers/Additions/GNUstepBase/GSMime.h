@@ -20,7 +20,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: Additions/GSMime.m
 */
@@ -96,11 +97,27 @@
 }
 
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc;
+
+/**
+ * Decode the source data from base64 encoding and return the result.<br />
+ * The source data is expected to be ASCII text and may be multiple
+ * lines or a line of any length (decoding is very tolerant).
+ */
 + (NSData*) decodeBase64: (NSData*)source;
 + (NSString*) decodeBase64String: (NSString*)source;
 + (GSMimeDocument*) documentWithContent: (id)newContent
 				   type: (NSString*)type
 				   name: (NSString*)name;
+/**
+ * Encode the source data to base64 encoding and return the result.<br />
+ * The resulting data is ASCII text and contains only the base64 encoded
+ * values with no line breaks or extraneous data.  This is base64 encoded
+ * data in it's general format as mandated in RFC 3548.  If the data is
+ * to be used as part of a MIME document body, line breaks must be
+ * introduced at 76 byte intervals (GSMime does this when automatically
+ * encoding data for you).  If the data is to be used in a PEM document
+ * line breaks must be introduced at 74 byte intervals.
+ */
 + (NSData*) encodeBase64: (NSData*)source;
 + (NSString*) encodeBase64String: (NSString*)source;
 + (NSStringEncoding) encodingFromCharset: (NSString*)charset;
