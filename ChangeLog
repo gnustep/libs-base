@@ -1,3 +1,9 @@
+2006-07-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Remove a couple of comments
+	* Headers/Additions/GNUstepBase/GSMime.h: Add improved documentation
+	for the bas64 conversion methods.
+
 2006-07-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedUnarchiver.m: Reinstate fix of 2006-07-14 which was 

@@ -3325,9 +3325,6 @@ static NSCharacterSet	*tokenSet = nil;
   return charset;
 }
 
-/**
- * Decode the source data from base64 encoding and return the result.
- */
 + (NSData*) decodeBase64: (NSData*)source
 {
   int		length;
@@ -3460,9 +3457,6 @@ static NSCharacterSet	*tokenSet = nil;
   return doc;
 }
 
-/**
- * Encode the source data to base64 encoding and return the result.
- */
 + (NSData*) encodeBase64: (NSData*)source
 {
   int		length;
