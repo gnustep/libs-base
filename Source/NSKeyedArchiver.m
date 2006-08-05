@@ -205,6 +205,13 @@ static NSDictionary *makeReference(unsigned ref)
 	    }
 	  GSIMapAddPair(_repMap, (GSIMapKey)original, (GSIMapVal)anObject);
 	}
+      else
+	{
+	  /*
+	   * If the object has a replacement, use it.
+	   */
+	  anObject = node->value.obj;
+	}
     }
 
   if (anObject != nil)
@@ -237,7 +244,7 @@ static NSDictionary *makeReference(unsigned ref)
 	    {
 	      Class	c = [anObject class];
 
-// FIXME ... exactly what classes are stored directly???
+	      // FIXME ... exactly what classes are stored directly???
 	      if ([anObject isKindOfClass: [GSString class]] == YES
 		|| c == [@"literal" class])
 		{

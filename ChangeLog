@@ -1,3 +1,12 @@
+2006-08-04 23:26-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSKeyedArchiver.m: in _encodeObject:forKey: use replacement
+	if it exists.
+	* Source/NSKeyedUnarchiver.m: in unarchiveObjectWithFile: remove
+	autorelease pool, since the unarchiveObjectWithData: object is 
+	already autoreleased, this was causing a crash when unarchiving the
+	object.
+
 2006-07-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Remove a couple of comments

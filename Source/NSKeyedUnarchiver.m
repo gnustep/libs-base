@@ -320,14 +320,14 @@ static NSMapTable	globalClassMap = 0;
 
 + (id) unarchiveObjectWithFile: (NSString*)aPath
 {
-  CREATE_AUTORELEASE_POOL(pool);
   NSData	*d;
   id		o;
 
+  // CREATE_AUTORELEASE_POOL(pool);
   d = [NSData dataWithContentsOfFile: aPath];
   o = [self unarchiveObjectWithData: d];
-  RETAIN(o);
-  RELEASE(pool);
+  // RETAIN(o);
+  // RELEASE(pool);
   return AUTORELEASE(o);
 }
 
