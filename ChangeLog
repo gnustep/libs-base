@@ -2,6 +2,8 @@
 
 	* Source/NSPredicate.m: Reorganize initialisation of scanner to avoid
 	implicit cast of zero to a va_listt (fix bug #17336)
+	* Source/Additions/GSObjCRuntime.m: GSObjCMakeClass() fix incorrect
+	calculation of ivar size/offset information as reported in bug #17069
 
 2006-08-04 23:26-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 

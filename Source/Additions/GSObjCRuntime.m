@@ -506,7 +506,6 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
           ivar->ivar_type = tmp;
 
           // align the ivar (i.e. put it on the first aligned address
-          iVarSize = objc_aligned_size(ivar->ivar_type);
           ivar->ivar_offset = iVarSize;
           iVarSize += objc_sizeof_type(ivar->ivar_type); // add the ivar size
 	  ivar = ivar + 1;
