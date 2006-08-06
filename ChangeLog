@@ -1,3 +1,8 @@
+2006-08-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: Reorganize initialisation of scanner to avoid
+	implicit cast of zero to a va_listt (fix bug #17336)
+
 2006-08-04 23:26-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSKeyedArchiver.m: in _encodeObject:forKey: use replacement
