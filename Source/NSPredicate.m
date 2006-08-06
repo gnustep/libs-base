@@ -52,7 +52,8 @@
 }
 
 - (id) initWithString: (NSString*)format
-		 args: (NSArray*)args
+		 args: (NSArray*)args;
+- (id) initWithString: (NSString*)format
 		vargs: (va_list)vargs;
 - (id) nextArg;
 - (BOOL) scanPredicateKeyword: (NSString *) key;
@@ -158,8 +159,7 @@
   NSPredicate		*p;
 
   s = [[GSPredicateScanner alloc] initWithString: format
-					    args: args
-					   vargs: 0];
+					    args: args];
   p = [s parse];
   RELEASE(s);
   return p;
@@ -172,7 +172,6 @@
   NSPredicate		*p;
 
   s = [[GSPredicateScanner alloc] initWithString: format
-					    args: nil
 					   vargs: args];
   p = [s parse];
   RELEASE(s);
@@ -1274,20 +1273,26 @@
 
 - (id) initWithString: (NSString*)format
 		 args: (NSArray*)args
-		vargs: (va_list)vargs
 {
   self = [super initWithString: format];
   if (self != nil)
     {
       _args = [args objectEnumerator];
-      if (_args == nil)
-        {
+    }
+  return self;
+}
+
+- (id) initWithString: (NSString*)format
+		vargs: (va_list)vargs
+{
+  self = [super initWithString: format];
+  if (self != nil)
+    {
 #ifdef __va_copy
-          __va_copy(_vargs, vargs);
+      __va_copy(_vargs, vargs);
 #else
-          _vargs = vargs;
+      _vargs = vargs;
 #endif
-        }
     }
   return self;
 }
