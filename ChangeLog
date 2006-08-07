@@ -1,3 +1,8 @@
+2006-08-07 00:13-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSData.m: Correct issue in initWithCoder: and encodeWithCoder:
+	with encoding data using keyed archiver.
+
 2006-08-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m: Reorganize initialisation of scanner to avoid

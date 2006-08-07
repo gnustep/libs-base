@@ -1511,12 +1511,28 @@ failure:
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeDataObject: self];
+  if([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: self];
+    }
+  else
+    {
+      [coder encodeDataObject: self];
+    }
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  id	obj = [coder decodeDataObject];
+  id	obj = nil;
+
+  if([coder allowsKeyedCoding])
+    {
+      obj = [coder decodeObject];
+    }
+  else
+    {
+      obj = [coder decodeDataObject];
+    }
 
   if (obj != self)
     {
