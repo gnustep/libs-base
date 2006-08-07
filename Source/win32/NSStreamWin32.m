@@ -794,6 +794,11 @@ static void setNonblocking(SOCKET fd)
           if (error)
             errno = error;
           [self _recordError];
+	  if (_sibling)
+	    {
+	      [_sibling _recordError];
+              [_sibling _sendEvent: NSStreamEventOpenCompleted];
+	    }
         }
     }
   else
@@ -1350,6 +1355,11 @@ static void setNonblocking(SOCKET fd)
           if (error)
             errno = error;
           [self _recordError];
+	  if (_sibling)
+	    {
+	      [_sibling _recordError];
+              [_sibling _sendEvent: NSStreamEventOpenCompleted];
+	    }
         }
     }
   else

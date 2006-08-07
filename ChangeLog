@@ -1,3 +1,10 @@
+2006-08-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSStreamWin32.m:
+	* Source/unix/NSStream.m:
+	If a connection attampt fails, propogate error to sibling stream so
+	both streams in the pair get a failure.
+
 2006-08-07 00:13-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSData.m: Correct issue in initWithCoder: and encodeWithCoder:
