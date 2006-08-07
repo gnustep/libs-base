@@ -524,6 +524,8 @@ static void setNonblocking(int fd)
             errno = error;
           [self _recordError];
           myEvent = NSStreamEventErrorOccurred;
+          [_sibling _recordError];
+          [_sibling _sendEvent: myEvent];
         }
     }
   else
@@ -882,6 +884,8 @@ static void setNonblocking(int fd)
             errno = error;
           [self _recordError];
           myEvent = NSStreamEventErrorOccurred;
+          [_sibling _recordError];
+          [_sibling _sendEvent: myEvent];
         }
     }
   else
@@ -1330,7 +1334,7 @@ static void setNonblocking(int fd)
   return 0;
 }
 
-#define SOCKET_BACKLOG 5
+#define SOCKET_BACKLOG 256
 
 - (void) open
 {
