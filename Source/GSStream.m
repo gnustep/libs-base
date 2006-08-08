@@ -355,7 +355,8 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _sendEvent: (NSStreamEvent)event
 {
-  BOOL	mayReachEnd = NO;
+  NSStreamStatus last = [self streamStatus];
+  NSStreamStatus current;
 
   if (event == NSStreamEventHasSpaceAvailable
     || event == NSStreamEventHasBytesAvailable)
@@ -366,17 +367,20 @@ static RunLoopEventType typeForStream(NSStream *aStream)
        */
       _unhandledData = YES;
       _unhandledData = YES;
-      mayReachEnd = YES;
     }
   if (_delegateValid == YES)
     {
       [(id <GSStreamListener>)_delegate stream: self handleEvent: event];
+    }
 
-      /* If we were not at the end, but a read or write within the
-       * delegate's handler method caused us to reach the end, we must
-       * send an event to say so.
+  while ((current = [self streamStatus]) != last)
+    {
+      last = current;
+
+      /* If we our status changed while the handler was dealing with an
+       * event, we must send it the new event to let it know.
        */
-      if (mayReachEnd == YES && [self streamStatus] == NSStreamStatusAtEnd)
+      if (current == NSStreamStatusAtEnd)
 	{
 	  if (_delegateValid == YES)
 	    {
@@ -384,6 +388,19 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	      [(id <GSStreamListener>)_delegate stream: self
 					   handleEvent: event];
 	    }
+	}
+      else if (current == NSStreamStatusError)
+        {
+	  if (_delegateValid == YES)
+	    {
+	      event = NSStreamEventErrorOccurred;
+	      [(id <GSStreamListener>)_delegate stream: self
+					   handleEvent: event];
+	    }
+	}
+      else
+        {
+	  return;	// not an event.
 	}
     }
 }
@@ -551,7 +568,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   
   [self _setStatus: myStatus];
   [self _sendEvent: myEvent];
- // FIXME should we remain in run loop if NSStreamStatusAtEnd?
 }
 
 @end
@@ -632,7 +648,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     NSStreamEventEndEncountered;
 
   [self _sendEvent: myEvent];
-  // FIXME should we remain in run loop if NSStreamEventEndEncountered?
 }
 
 @end

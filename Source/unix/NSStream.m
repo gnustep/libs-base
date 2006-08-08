@@ -354,6 +354,17 @@ static void setNonblocking(int fd)
   [super close];
 }
 
+- (void) _dispatch
+{
+  if ([self streamStatus] == NSStreamStatusOpen)
+    {
+      [self _sendEvent: NSStreamEventHasBytesAvailable];
+    }
+  else
+    {
+      NSLog(@"_dispatch with unexpected status %d", [self streamStatus]);
+    }
+}
 @end
 
 @implementation GSSocketInputStream
@@ -720,6 +731,17 @@ static void setNonblocking(int fd)
   return [super propertyForKey: key];
 }
 
+- (void) _dispatch
+{
+  if ([self streamStatus] == NSStreamStatusOpen)
+    {
+      [self _sendEvent: NSStreamEventHasSpaceAvailable];
+    }
+  else
+    {
+      NSLog(@"_dispatch with unexpected status %d", [self streamStatus]);
+    }
+}
 @end
 
 @implementation GSSocketOutputStream
@@ -1364,6 +1386,7 @@ static void setNonblocking(int fd)
   socklen_t len = [ins sockLen];
   int acceptReturn = accept((intptr_t)_loopID, [ins peerAddr], &len);
 
+  _unhandledData = NO;
   if (acceptReturn < 0)
     { // test for real error
       if (errno != EWOULDBLOCK
