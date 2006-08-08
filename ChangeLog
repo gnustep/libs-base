@@ -1,9 +1,13 @@
-2006-08-07  Richard Frith-Macdonald <rfm@gnu.org>
+2006-08-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSStream.h:
+	* Source/GSStream.m:
 	* Source/win32/NSStreamWin32.m:
 	* Source/unix/NSStream.m:
-	If a connection attampt fails, propogate error to sibling stream so
+	If a connection attempt fails, propagate error to sibling stream so
 	both streams in the pair get a failure.
+	Try to make behavior of socket streams MacOs-X like, avoiding repeated
+	notifications of events.
 
 2006-08-07 00:13-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 

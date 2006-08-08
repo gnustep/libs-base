@@ -324,6 +324,7 @@ static void setNonblocking(SOCKET fd)
 {
   DWORD readLen;
 
+  _unhandledData = NO;
   if (ReadFile((HANDLE)_loopID, buffer, len, &readLen, NULL) == 0)
     {
       [self _recordError];
@@ -342,7 +343,7 @@ static void setNonblocking(SOCKET fd)
   BOOL av = [self hasBytesAvailable];
   NSStreamEvent myEvent = av ? NSStreamEventHasBytesAvailable : 
     NSStreamEventEndEncountered;
-  NSStreamStatus myStatus = av ? NSStreamStatusReading : 
+  NSStreamStatus myStatus = av ? NSStreamStatusOpen : 
     NSStreamStatusAtEnd;
   
   [self _setStatus: myStatus];
@@ -502,6 +503,7 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
+  _unhandledData = NO;
   if (myStatus == NSStreamStatusReading)
     {
       myStatus = [self _check];
@@ -587,6 +589,11 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
+  if (_unhandledData == YES || myStatus == NSStreamStatusError)
+    {
+      *trigger = NO;
+      return NO;
+    }
   *trigger = YES;
   if (myStatus == NSStreamStatusReading)
     {
@@ -712,19 +719,28 @@ static void setNonblocking(SOCKET fd)
 {
   int readLen;
 
+  _unhandledData = NO;
   readLen = recv(_sock, buffer, len, 0);
   if (readLen == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
       if (errno == WSAEINPROGRESS || errno == WSAEWOULDBLOCK)
-        [self _setStatus: NSStreamStatusReading];
+	{
+	  [self _setStatus: NSStreamStatusReading];
+	}
       else if (errno != WSAEINTR) 
-        [self _recordError];
+	{
+	  [self _recordError];
+	}
     }
   else if (readLen == 0)
-    [self _setStatus: NSStreamStatusAtEnd];
+    {
+      [self _setStatus: NSStreamStatusAtEnd];
+    }
   else 
-    [self _setStatus: NSStreamStatusOpen];
+    {
+      [self _setStatus: NSStreamStatusOpen];
+    }
   return readLen;
 }
 
@@ -742,98 +758,95 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _dispatch
 {
-  NSStreamStatus myStatus;
-  WSANETWORKEVENTS ocurredEvents;
-  int error, getReturn; 
-  unsigned len = sizeof(error);
-
-  /*
-   * it is possible the stream is closed yet recieving event because
-   * of not closed sibling
-   */
   if ([self streamStatus] == NSStreamStatusClosed)
     {
+      /*
+       * It is possible the stream is closed yet recieving event because
+       * of not closed sibling
+       */
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed, 
-               @"Received event for closed stream");
+	@"Received event for closed stream");
       [_sibling _dispatch];
-      return;
-    }
-    
-  if (WSAEnumNetworkEvents(_sock, _loopID, &ocurredEvents) == SOCKET_ERROR)
-    {
-      errno = WSAGetLastError();
-      [self _recordError];
-    }
-  else if ([self streamStatus] == NSStreamStatusOpening)
-    {
-      unsigned	i = [_modes count];
-
-      while (i-- > 0)
-	{
-	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
-	}
-      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
-	(char*)&error, &len);
-
-      if (getReturn >= 0 && !error
-	&& (ocurredEvents.lNetworkEvents & FD_CONNECT))
-        { // finish up the opening
-          ocurredEvents.lNetworkEvents ^= FD_CONNECT;
-          _passive = YES;
-          [self open];
-          [self _sendEvent: NSStreamEventOpenCompleted];
-          // notify sibling
-          if (_sibling)
-            {
-              [_sibling open];
-              [_sibling _sendEvent: NSStreamEventOpenCompleted];
-            }
-        }
-      else // must be an error
-        {
-          if (error)
-            errno = error;
-          [self _recordError];
-	  if (_sibling)
-	    {
-	      [_sibling _recordError];
-              [_sibling _sendEvent: NSStreamEventOpenCompleted];
-	    }
-        }
     }
   else
     {
-      if (ocurredEvents.lNetworkEvents & FD_READ)
-        {
-          ocurredEvents.lNetworkEvents ^= FD_READ;
-          [self _setStatus: NSStreamStatusOpen];
-        }
-      if ((ocurredEvents.lNetworkEvents & FD_WRITE)
-	&& (_sibling && [_sibling _isOpened]))
-        {
-          ocurredEvents.lNetworkEvents ^= FD_WRITE;
-          [_sibling _setStatus: NSStreamStatusOpen];
-        }
-    }
+      WSANETWORKEVENTS events;
+      int error = 0;
+      int getReturn = -1;
 
-  myStatus = [self streamStatus];
-  switch (myStatus)
-    {
-      case NSStreamStatusError: 
+      if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
 	{
+	  error = WSAGetLastError();
+	}
+else NSLog(@"EVENTS:%x", events.lNetworkEvents);
+
+      if ([self streamStatus] == NSStreamStatusOpening)
+	{
+	  unsigned	i = [_modes count];
+
+	  while (i-- > 0)
+	    {
+	      [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
+	    }
+	  if (error == 0)
+	    {
+	      unsigned len = sizeof(error);
+
+	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
+		(char*)&error, &len);
+	    }
+
+	  if (getReturn >= 0 && error == 0
+	    && (events.lNetworkEvents & FD_CONNECT))
+	    { // finish up the opening
+	      _passive = YES;
+	      [self open];
+	      // notify sibling
+	      if (_sibling)
+		{
+		  [_sibling open];
+		  [_sibling _sendEvent: NSStreamEventOpenCompleted];
+		}
+	      [self _sendEvent: NSStreamEventOpenCompleted];
+	    }
+	}
+
+      if (error != 0)
+	{
+	  errno = error;
+	  [self _recordError];
+	  [_sibling _recordError];
 	  [self _sendEvent: NSStreamEventErrorOccurred];
-	  break;
+	  [_sibling _sendEvent: NSStreamEventErrorOccurred];
 	}
-      case NSStreamStatusOpen: 
+      else
 	{
-	  [self _sendEvent: NSStreamEventHasBytesAvailable];
-	  break;        
+	  if (events.lNetworkEvents & FD_WRITE)
+	    {
+	      [_sibling _setStatus: NSStreamStatusOpen];
+	      [_sibling _sendEvent: NSStreamEventHasSpaceAvailable];
+	    }
+	  if (events.lNetworkEvents & FD_READ)
+	    {
+	      [self _setStatus: NSStreamStatusOpen];
+	      [self _sendEvent: NSStreamEventHasBytesAvailable];
+	    }
+	  if (events.lNetworkEvents & FD_CLOSE)
+	    {
+	      [_sibling _setStatus: NSStreamStatusAtEnd];
+	      [_sibling _sendEvent: NSStreamEventEndEncountered];
+	      while ([self streamStatus] == NSStreamStatusOpen
+		&& _unhandledData == NO)
+		{
+		  [self _sendEvent: NSStreamEventHasBytesAvailable];
+		}
+	      if ([self streamStatus] == NSStreamStatusAtEnd)
+		{
+		  [self _sendEvent: NSStreamEventEndEncountered];
+		}
+	    }
 	}
-      default: 
-	break;
     }
-  if (_sibling && [_sibling _isOpened])
-    [_sibling _dispatch];
 }
 
 @end
@@ -871,12 +884,6 @@ static void setNonblocking(SOCKET fd)
 
 @implementation GSFileOutputStream
 
-- (void) close
-{
-  if (CloseHandle((HANDLE)_loopID) == 0)
-    [self _recordError];
-  [super close];
-}
 
 - (void) dealloc
 {
@@ -947,6 +954,7 @@ static void setNonblocking(SOCKET fd)
 {
   DWORD writeLen;
 
+  _unhandledData = NO;
   if (_shouldAppend == YES)
     {
       SetFilePointer((HANDLE)_loopID, 0, 0, FILE_END);
@@ -1061,6 +1069,7 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
+  _unhandledData = NO;
   if (len < 0)
     {
       return -1;
@@ -1152,6 +1161,11 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
+  if (_unhandledData == YES || myStatus == NSStreamStatusError)
+    {
+      *trigger = NO;
+      return NO;
+    }
   *trigger = YES;
   if (myStatus == NSStreamStatusWriting)
     {
@@ -1218,6 +1232,7 @@ static void setNonblocking(SOCKET fd)
 {
   int writeLen;
 
+  _unhandledData = NO;
   writeLen = send(_sock, buffer, len, 0);
   if (writeLen == SOCKET_ERROR)
     {
@@ -1304,96 +1319,97 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _dispatch
 {
-  NSStreamStatus myStatus;
-  WSANETWORKEVENTS ocurredEvents;
-  int error, getReturn;
-  unsigned len = sizeof(error);
-
-  /*
-   * it is possible the stream is closed yet recieving event
-   * because of not closed sibling
-   */
   if ([self streamStatus] == NSStreamStatusClosed)
     {
+      /*
+       * It is possible the stream is closed yet recieving event because
+       * of not closed sibling
+       */
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed, 
 	@"Received event for closed stream");
       [_sibling _dispatch];
-      return;
-    }
-    
-  if (WSAEnumNetworkEvents(_sock, _loopID, &ocurredEvents) == SOCKET_ERROR)
-    {
-      errno = WSAGetLastError();
-      [self _recordError];
-    }
-  else if ([self streamStatus] == NSStreamStatusOpening)
-    {
-      unsigned	i = [_modes count];
-
-      while (i-- > 0)
-	{
-	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
-	}
-      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
-	(char*)&error, &len);
-
-      if (getReturn >= 0 && !error
-	&& (ocurredEvents.lNetworkEvents & FD_CONNECT))
-        { // finish up the opening
-          ocurredEvents.lNetworkEvents ^= FD_CONNECT;
-          _passive = YES;
-          [self open];
-          // notify sibling
-          if (_sibling)
-            {
-              [_sibling open];
-              [_sibling _sendEvent: NSStreamEventOpenCompleted];
-            }
-        }
-      else // must be an error
-        {
-          if (error)
-            errno = error;
-          [self _recordError];
-	  if (_sibling)
-	    {
-	      [_sibling _recordError];
-              [_sibling _sendEvent: NSStreamEventOpenCompleted];
-	    }
-        }
     }
   else
     {
-      if ((ocurredEvents.lNetworkEvents & FD_READ) && 
-          (_sibling && [_sibling _isOpened]))
-        {
-          ocurredEvents.lNetworkEvents ^= FD_READ;
-          [_sibling _setStatus: NSStreamStatusOpen];
-        }
-      if (ocurredEvents.lNetworkEvents & FD_WRITE)
-        {
-          ocurredEvents.lNetworkEvents ^= FD_WRITE;
-          [self _setStatus: NSStreamStatusOpen];
-        }
-    }
-  myStatus = [self streamStatus];
-  switch (myStatus)
-    {
-      case NSStreamStatusError: 
+      WSANETWORKEVENTS events;
+      int error = 0;
+      int getReturn = -1;
+
+      if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
 	{
+	  error = WSAGetLastError();
+	}
+else NSLog(@"EVENTS:%x", events.lNetworkEvents);
+
+      if ([self streamStatus] == NSStreamStatusOpening)
+	{
+	  unsigned	i = [_modes count];
+
+	  while (i-- > 0)
+	    {
+	      [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
+	    }
+
+	  if (error == 0)
+	    {
+	      unsigned len = sizeof(error);
+
+	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
+		(char*)&error, &len);
+	    }
+
+	  if (getReturn >= 0 && error == 0
+	    && (events.lNetworkEvents & FD_CONNECT))
+	    { // finish up the opening
+	      events.lNetworkEvents ^= FD_CONNECT;
+	      _passive = YES;
+	      [self open];
+	      // notify sibling
+	      if (_sibling)
+		{
+		  [_sibling open];
+		  [_sibling _sendEvent: NSStreamEventOpenCompleted];
+		}
+	      [self _sendEvent: NSStreamEventOpenCompleted];
+	    }
+	}
+
+      if (error != 0)
+	{
+	  errno = error;
+	  [self _recordError];
+	  [_sibling _recordError];
 	  [self _sendEvent: NSStreamEventErrorOccurred];
-	  break;
+	  [_sibling _sendEvent: NSStreamEventErrorOccurred];
 	}
-      case NSStreamStatusOpen: 
+      else
 	{
-	  [self _sendEvent: NSStreamEventHasSpaceAvailable];
-	  break;        
+	  if (events.lNetworkEvents & FD_WRITE)
+	    {
+	      [self _setStatus: NSStreamStatusOpen];
+	      [self _sendEvent: NSStreamEventHasSpaceAvailable];
+	    }
+	  if (events.lNetworkEvents & FD_READ)
+	    {
+	      [_sibling _setStatus: NSStreamStatusOpen];
+	      [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
+	    }
+	  if (events.lNetworkEvents & FD_CLOSE)
+	    {
+	      [self _setStatus: NSStreamStatusAtEnd];
+	      [self _sendEvent: NSStreamEventEndEncountered];
+	      while ([_sibling streamStatus] == NSStreamStatusOpen
+		&& [_sibling _unhandledData] == NO)
+		{
+		  [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
+		}
+	      if ([_sibling streamStatus] == NSStreamStatusAtEnd)
+		{
+		  [_sibling _sendEvent: NSStreamEventEndEncountered];
+		}
+	    }
 	}
-      default: 
-	break;
     }
-  if (_sibling && [_sibling _isOpened])
-    [_sibling _dispatch];
 }
 
 @end
@@ -1788,7 +1804,7 @@ static void setNonblocking(SOCKET fd)
   return 0;
 }
 
-#define SOCKET_BACKLOG 5
+#define SOCKET_BACKLOG 255
 
 - (void) open
 {
@@ -1860,17 +1876,17 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _dispatch
 {
-  WSANETWORKEVENTS ocurredEvents;
+  WSANETWORKEVENTS events;
   
-  if (WSAEnumNetworkEvents(_sock, _loopID, &ocurredEvents) == SOCKET_ERROR)
+  if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
     {
       errno = WSAGetLastError();
       [self _recordError];
       [self _sendEvent: NSStreamEventErrorOccurred];
     }
-  else if (ocurredEvents.lNetworkEvents & FD_ACCEPT)
+  else if (events.lNetworkEvents & FD_ACCEPT)
     {
-      ocurredEvents.lNetworkEvents ^= FD_ACCEPT;
+      events.lNetworkEvents ^= FD_ACCEPT;
       [self _setStatus: NSStreamStatusReading];
       [self _sendEvent: NSStreamEventHasBytesAvailable];
     }
