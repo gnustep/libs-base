@@ -68,6 +68,7 @@
   id		         _delegate;	/* Delegate controls operation.	*/\
   NSMutableDictionary	*_properties;	/* storage for properties	*/\
   BOOL                   _delegateValid;/* whether the delegate responds*/\
+  BOOL			_unhandledData; /* no read/write since event    */\
   NSError               *_lastError;    /* last error occured           */\
   NSStreamStatus         _currentStatus;/* current status               */\
   NSMutableArray 	*_modes;	/* currently scheduled modes.	*/\
@@ -121,6 +122,11 @@ IVARS
  * record an error based on errno
  */
 - (void) _recordError; 
+
+/**
+ * say whether there is unahdnled data for the stream.
+ */
+- (BOOL) _unhandledData;
 @end
 
 @interface GSInputStream : NSInputStream

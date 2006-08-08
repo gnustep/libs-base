@@ -318,6 +318,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
 }
 
+- (BOOL) _unhandledData
+{
+  return NO;
+}
 @end
 
 @implementation	GSStream (Private)
@@ -351,7 +355,17 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _sendEvent: (NSStreamEvent)event
 {
-  if (_delegateValid)
+  if (event == NSStreamEventHasSpaceAvailable
+    || event == NSStreamEventHasBytesAvailable)
+    {
+      /* If we have a data event, we mark the stream as having unhandled
+       * data (so we can refrain from triggering again) until a read or
+       * write operation (as approriate) has been performed.
+       */
+      _unhandledData = YES;
+      _unhandledData = YES;
+    }
+  if (_delegateValid == YES)
     {
       [(id <GSStreamListener>)_delegate stream: self handleEvent: event];
     }
@@ -372,6 +386,38 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     }
 }
 
+- (BOOL) _unhandledData
+{
+  return _unhandledData;
+}
+
+- (BOOL) runLoopShouldBlock: (BOOL*)trigger
+{
+  if (_unhandledData == YES
+    || _currentStatus == NSStreamStatusError)
+    {
+      /* If we have an unhandled data event, we should not watch for more
+       * or trigger until the appropriate rad or write has been done.
+       * If an error has occurred, we should not watch for any events at all.
+       */
+      *trigger = NO;
+      return NO;
+    }
+  else if (_loopID == (void*)self)
+    {
+      /* If _loopID is the receiver, the stream is not receiving external
+       * input, so it must trigger an event when the loop runs and must not
+       * block the loop from running.
+       */
+      *trigger = YES;
+      return NO;
+    }
+  else
+    {
+      *trigger = YES;
+      return YES;
+    }
+}
 @end
 
 @implementation	GSInputStream
@@ -432,6 +478,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   unsigned long dataSize = [_data length];
   unsigned long copySize;
 
+  _unhandledData = NO;
   NSAssert(dataSize >= _pointer, @"Buffer overflow!");
   if (len + _pointer > dataSize)
     {
@@ -482,8 +529,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   BOOL av = [self hasBytesAvailable];
   NSStreamEvent myEvent = av ? NSStreamEventHasBytesAvailable : 
     NSStreamEventEndEncountered;
-  NSStreamStatus myStatus = av ? NSStreamStatusReading :
-    NSStreamStatusAtEnd;
+  NSStreamStatus myStatus = av ? NSStreamStatusOpen : NSStreamStatusAtEnd;
   
   [self _setStatus: myStatus];
   [self _sendEvent: myEvent];
@@ -523,6 +569,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
+  _unhandledData = NO;
   if (_fixedSize)
     {
       unsigned long dataLen = [_data length];

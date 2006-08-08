@@ -297,6 +297,7 @@ static void setNonblocking(int fd)
 {
   int readLen;
 
+  _unhandledData = NO;
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -351,15 +352,6 @@ static void setNonblocking(int fd)
   if (closeReturn < 0)
     [self _recordError];
   [super close];
-}
-
-- (void) _dispatch
-{
-  NSStreamEvent myEvent;
-
-  [self _setStatus: NSStreamStatusReading];
-  myEvent = NSStreamEventHasBytesAvailable;
-  [self _sendEvent: myEvent];
 }
 
 @end
@@ -472,6 +464,7 @@ static void setNonblocking(int fd)
 {
   int readLen;
 
+  _unhandledData = NO;
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -507,7 +500,8 @@ static void setNonblocking(int fd)
 	{
 	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
 	}
-      result = getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
+      result
+	= getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
 
       if (result >= 0 && !error)
         { // finish up the opening
@@ -530,7 +524,7 @@ static void setNonblocking(int fd)
     }
   else
     {
-      [self _setStatus: NSStreamStatusReading];
+      [self _setStatus: NSStreamStatusOpen];
       myEvent = NSStreamEventHasBytesAvailable;
     }
   [self _sendEvent: myEvent];
@@ -666,6 +660,8 @@ static void setNonblocking(int fd)
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   int writeLen;
+
+  _unhandledData = NO;
   writeLen = write((intptr_t)_loopID, buffer, len);
   if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -720,15 +716,6 @@ static void setNonblocking(int fd)
   return [super propertyForKey: key];
 }
 
-- (void) _dispatch
-{
-  NSStreamEvent myEvent;
-
-  [self _setStatus: NSStreamStatusWriting];
-  myEvent = NSStreamEventHasSpaceAvailable;
-  [self _sendEvent: myEvent];
-}
-
 @end
 
 @implementation GSSocketOutputStream
@@ -776,6 +763,8 @@ static void setNonblocking(int fd)
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   int writeLen;
+
+  _unhandledData = NO;
   writeLen = write((intptr_t)_loopID, buffer, len);
   if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -868,7 +857,8 @@ static void setNonblocking(int fd)
 	{
 	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
 	}
-      result = getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
+      result
+	= getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
       if (result >= 0 && !error)
         { // finish up the opening
           myEvent = NSStreamEventOpenCompleted;
@@ -890,7 +880,7 @@ static void setNonblocking(int fd)
     }
   else
     {
-      [self _setStatus: NSStreamStatusWriting];
+      [self _setStatus: NSStreamStatusOpen];
       myEvent = NSStreamEventHasSpaceAvailable;
     }
   [self _sendEvent: myEvent];
@@ -1411,7 +1401,7 @@ static void setNonblocking(int fd)
 {
   NSStreamEvent myEvent;
 
-  [self _setStatus: NSStreamStatusReading];
+  [self _setStatus: NSStreamStatusOpen];
   myEvent = NSStreamEventHasBytesAvailable;
   [self _sendEvent: myEvent];
 }
