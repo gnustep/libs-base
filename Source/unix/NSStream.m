@@ -522,6 +522,10 @@ static void setNonblocking(int fd)
           [_sibling _sendEvent: myEvent];
         }
     }
+  else if ([self streamStatus] == NSStreamStatusAtEnd)
+    {
+      myEvent = NSStreamEventEndEncountered;
+    }
   else
     {
       [self _setStatus: NSStreamStatusOpen];
@@ -877,6 +881,10 @@ static void setNonblocking(int fd)
           [_sibling _recordError];
           [_sibling _sendEvent: myEvent];
         }
+    }
+  else if ([self streamStatus] == NSStreamStatusAtEnd)
+    {
+      myEvent = NSStreamEventEndEncountered;
     }
   else
     {

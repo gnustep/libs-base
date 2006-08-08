@@ -840,10 +840,6 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 		{
 		  [self _sendEvent: NSStreamEventHasBytesAvailable];
 		}
-	      if ([self streamStatus] == NSStreamStatusAtEnd)
-		{
-		  [self _sendEvent: NSStreamEventEndEncountered];
-		}
 	    }
 	}
     }
@@ -1402,10 +1398,6 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 		&& [_sibling _unhandledData] == NO)
 		{
 		  [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
-		}
-	      if ([_sibling streamStatus] == NSStreamStatusAtEnd)
-		{
-		  [_sibling _sendEvent: NSStreamEventEndEncountered];
 		}
 	    }
 	}
