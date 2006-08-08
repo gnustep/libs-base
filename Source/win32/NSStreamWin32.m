@@ -1830,6 +1830,7 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
   socklen_t len = [ins sockLen];
   int acceptReturn = accept(_sock, [ins peerAddr], &len);
 
+  _unhandledData = NO;
   if (acceptReturn == INVALID_SOCKET)
     { 
       errno = WSAGetLastError();// test for real error
