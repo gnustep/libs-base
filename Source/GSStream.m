@@ -355,6 +355,8 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _sendEvent: (NSStreamEvent)event
 {
+  BOOL	mayReachEnd = NO;
+
   if (event == NSStreamEventHasSpaceAvailable
     || event == NSStreamEventHasBytesAvailable)
     {
@@ -364,10 +366,25 @@ static RunLoopEventType typeForStream(NSStream *aStream)
        */
       _unhandledData = YES;
       _unhandledData = YES;
+      mayReachEnd = YES;
     }
   if (_delegateValid == YES)
     {
       [(id <GSStreamListener>)_delegate stream: self handleEvent: event];
+
+      /* If we were not at the end, but a read or write within the
+       * delegate's handler method caused us to reach the end, we must
+       * send an event to say so.
+       */
+      if (mayReachEnd == YES && [self streamStatus] == NSStreamStatusAtEnd)
+	{
+	  if (_delegateValid == YES)
+	    {
+	      event = NSStreamEventEndEncountered;
+	      [(id <GSStreamListener>)_delegate stream: self
+					   handleEvent: event];
+	    }
+	}
     }
 }
 
@@ -394,7 +411,8 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   if (_unhandledData == YES
-    || _currentStatus == NSStreamStatusError)
+    || _currentStatus == NSStreamStatusError
+    || _currentStatus == NSStreamStatusAtEnd)
     {
       /* If we have an unhandled data event, we should not watch for more
        * or trigger until the appropriate rad or write has been done.
