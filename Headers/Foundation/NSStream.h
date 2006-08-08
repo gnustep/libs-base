@@ -290,14 +290,6 @@ typedef enum {
 
 @end
 
-@protocol GSStreamListener
-/**
- * The delegate receives this message when streamEvent
- * has occurred on theStream.
- */
-- (void) stream: (NSStream *)theStream handleEvent: (NSStreamEvent)streamEvent;
-@end
-
 GS_EXPORT NSString * const NSStreamDataWrittenToMemoryStreamKey;
 GS_EXPORT NSString * const NSStreamFileCurrentOffsetKey;
 
@@ -318,6 +310,12 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyVersion4;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion5;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
 
+/**
+ * Informal protocol for delegates of instance of the [NSStream] class.
+ */
+@interface	NSObject (NSStreamDelegate)
+- (void) stream: (NSStream*)sStream handleEvent: (NSStreamEvent)anEvent;
+@end
 
 #endif
 

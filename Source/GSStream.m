@@ -370,7 +370,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     }
   if (_delegateValid == YES)
     {
-      [(id <GSStreamListener>)_delegate stream: self handleEvent: event];
+      [_delegate stream: self handleEvent: event];
     }
 
   while ((current = [self streamStatus]) != last)
@@ -385,8 +385,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	  if (_delegateValid == YES)
 	    {
 	      event = NSStreamEventEndEncountered;
-	      [(id <GSStreamListener>)_delegate stream: self
-					   handleEvent: event];
+	      [_delegate stream: self handleEvent: event];
 	    }
 	}
       else if (current == NSStreamStatusError)
@@ -394,8 +393,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	  if (_delegateValid == YES)
 	    {
 	      event = NSStreamEventErrorOccurred;
-	      [(id <GSStreamListener>)_delegate stream: self
-					   handleEvent: event];
+	      [_delegate stream: self handleEvent: event];
 	    }
 	}
       else
