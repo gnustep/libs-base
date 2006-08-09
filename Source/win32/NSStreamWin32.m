@@ -786,7 +786,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  error = WSAGetLastError();
 	}
-else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
+//else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -1374,7 +1374,7 @@ else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
 	{
 	  error = WSAGetLastError();
 	}
-else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
+//else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
