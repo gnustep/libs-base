@@ -55,7 +55,8 @@
 {
   if (checkBlocking == YES)
     {
-      return [(id)receiver runLoopShouldBlock: trigger];
+      BOOL result = [(id)receiver runLoopShouldBlock: trigger];
+      return result;
     }
   else if (type == ET_TRIGGER)
     {
