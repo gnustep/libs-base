@@ -253,7 +253,7 @@ static void setNonblocking(SOCKET fd)
 
 - (void) close
 {
-  if (_loopID != INVALID_HANDLE_VALUE)
+  if (_loopID != (void*)INVALID_HANDLE_VALUE)
     {
       if (CloseHandle((HANDLE)_loopID) == 0)
 	{
@@ -709,16 +709,17 @@ static void setNonblocking(SOCKET fd)
 - (void) close
 {
   // read shutdown is ignored, because the other side may shutdown first.
-  if (_sibling && [_sibling streamStatus]!=NSStreamStatusClosed)
-    shutdown(_sock, SD_RECEIVE);
+  if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
+    {
+      shutdown(_sock, SD_RECEIVE);
+    }
   else
     {
       WSACloseEvent(_loopID);
       closesocket(_sock);
     }
-  // safety against double close
-  _loopID = WSA_INVALID_EVENT;
   [super close];
+  _loopID = WSA_INVALID_EVENT;
 }
 
 - (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
@@ -738,6 +739,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  [self _recordError];
 	}
+      readLen = -1;
     }
   else if (readLen == 0)
     {
@@ -784,7 +786,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  error = WSAGetLastError();
 	}
-else NSLog(@"EVENTS:%x", events.lNetworkEvents);
+else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -830,18 +832,26 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 	  if (events.lNetworkEvents & FD_WRITE)
 	    {
 	      [_sibling _setStatus: NSStreamStatusOpen];
-	      [_sibling _sendEvent: NSStreamEventHasSpaceAvailable];
+	      while ([_sibling hasSpaceAvailable]
+		&& [_sibling _unhandledData] == NO)
+		{
+	          [_sibling _sendEvent: NSStreamEventHasSpaceAvailable];
+		}
 	    }
 	  if (events.lNetworkEvents & FD_READ)
 	    {
 	      [self _setStatus: NSStreamStatusOpen];
-	      [self _sendEvent: NSStreamEventHasBytesAvailable];
+	      while ([self hasBytesAvailable]
+		&& _unhandledData == NO)
+		{
+	          [self _sendEvent: NSStreamEventHasBytesAvailable];
+		}
 	    }
 	  if (events.lNetworkEvents & FD_CLOSE)
 	    {
 	      [_sibling _setStatus: NSStreamStatusAtEnd];
 	      [_sibling _sendEvent: NSStreamEventEndEncountered];
-	      while ([self streamStatus] == NSStreamStatusOpen
+	      while ([self hasBytesAvailable]
 		&& _unhandledData == NO)
 		{
 		  [self _sendEvent: NSStreamEventHasBytesAvailable];
@@ -888,7 +898,7 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 
 - (void) close
 {
-  if (_loopID != INVALID_HANDLE_VALUE)
+  if (_loopID != (void*)INVALID_HANDLE_VALUE)
     {
       if (CloseHandle((HANDLE)_loopID) == 0)
 	{
@@ -1252,12 +1262,19 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
     {
       errno = WSAGetLastError();
       if (errno == WSAEINPROGRESS || errno == WSAEWOULDBLOCK)
-        [self _setStatus: NSStreamStatusWriting];
+	{
+          [self _setStatus: NSStreamStatusWriting];
+	}
       else if (errno != WSAEINTR)
-        [self _recordError];
+	{
+          [self _recordError];
+	}
+      writeLen = -1;
     }
   else
-    [self _setStatus: NSStreamStatusOpen];
+    {
+      [self _setStatus: NSStreamStatusOpen];
+    }
   return writeLen;
 }
 
@@ -1317,18 +1334,22 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 {
   // shutdown may fail (broken pipe). Record it.
   int closeReturn;
-  if (_sibling && [_sibling streamStatus]!=NSStreamStatusClosed)
-    closeReturn = shutdown(_sock, SD_SEND);
+
+  if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
+    {
+      closeReturn = shutdown(_sock, SD_SEND);
+    }
   else
     {
       WSACloseEvent(_loopID);
       closeReturn = closesocket(_sock);
     }
   if (closeReturn < 0)
-    [self _recordError];
-  // safety against double close 
-  _loopID = WSA_INVALID_EVENT;
+    {
+      [self _recordError];
+    }
   [super close];
+  _loopID = WSA_INVALID_EVENT;
 }
 
 - (void) _dispatch
@@ -1353,7 +1374,7 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 	{
 	  error = WSAGetLastError();
 	}
-else NSLog(@"EVENTS:%x", events.lNetworkEvents);
+else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -1401,18 +1422,26 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 	  if (events.lNetworkEvents & FD_WRITE)
 	    {
 	      [self _setStatus: NSStreamStatusOpen];
-	      [self _sendEvent: NSStreamEventHasSpaceAvailable];
+	      while ([self hasSpaceAvailable]
+		&& _unhandledData == NO)
+		{
+	          [self _sendEvent: NSStreamEventHasSpaceAvailable];
+		}
 	    }
 	  if (events.lNetworkEvents & FD_READ)
 	    {
 	      [_sibling _setStatus: NSStreamStatusOpen];
-	      [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
+	      while ([_sibling hasBytesAvailable]
+		&& [_sibling _unhandledData] == NO)
+		{
+	          [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
+		}
 	    }
 	  if (events.lNetworkEvents & FD_CLOSE)
 	    {
 	      [self _setStatus: NSStreamStatusAtEnd];
 	      [self _sendEvent: NSStreamEventEndEncountered];
-	      while ([_sibling streamStatus] == NSStreamStatusOpen
+	      while ([_sibling hasBytesAvailable]
 		&& [_sibling _unhandledData] == NO)
 		{
 		  [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
@@ -1744,13 +1773,15 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 
   s = [[GSInetServerStream alloc] initToAddr: addr port: port];
   return AUTORELEASE(s);
-  return nil;
 }
 
 + (id) serverStreamToAddr: (NSString*)addr
 {
+  GSServerStream *s;
+
   [self notImplemented: _cmd];
-  return nil;
+//  s = [[GSLocalServerStream alloc] initToAddr: addr];
+  return AUTORELEASE(s);
 }
 
 - (id) initToAddr: (NSString*)addr port: (int)port
@@ -1762,8 +1793,9 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 
 - (id) initToAddr: (NSString*)addr
 {
-  RELEASE(self);
   [self notImplemented: _cmd];
+  RELEASE(self);
+//  self = [[GSLocalServerStream alloc] initToAddr: addr];
   return nil;
 }
 
@@ -1838,6 +1870,7 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
   // close a server socket is safe
   closesocket(_sock);
   [super close];
+  _loopID = WSA_INVALID_EVENT;
 }
 
 - (void) acceptWithInputStream: (NSInputStream **)inputStream 

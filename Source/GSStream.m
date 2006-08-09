@@ -144,6 +144,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
 	}
     }
+  _unhandledData = NO;
   [self _setStatus: NSStreamStatusClosed];
 }
 
