@@ -53,17 +53,49 @@
  */
 
 /**
- * Macro to check a defined GNUstep version number (GS_GNUSTEP_V) against the
- * supplied arguments.  Returns true if no GNUstep version is specified,
- * or if ADD &lt;= VER &lt; REM
+ * <p>Macro to check a defined GNUstep version number (GS_GNUSTEP_V) against
+ * the supplied arguments.  Returns true if no GNUstep version is specified,
+ * or if ADD &lt;= version &lt; REM, where ADD is the version
+ * number at which a feature guarded by the macro was introduced and
+ * REM is the version number at which it was removed.
+ * </p>
+ * <p>The version number arguments are six digit integers where the first
+ * two digits are the major version number, the second two are the minor
+ * version number and the last two are the subminor number (all left padded
+ * with a zero where necessary).  However, for convenience you can also
+ * use any of several predefined constants ... 
+ * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
+ * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
+ * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
+ * <ref type="macro" id="GS_API_OPENSTEP">GS_API_OPENSTEP</ref>,
+ * <ref type="macro" id="GS_API_MACOSX">GS_API_MACOSX</ref>
+ * </p>
+ * <p>Also see <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
+ * </p>
  */
 #define	GS_API_VERSION(ADD,REM) \
   (!defined(GS_GNUSTEP_V) || (GS_GNUSTEP_V >= ADD && GS_GNUSTEP_V < REM))
 
 /**
- * Macro to check a defined OpenStep/OPENSTEP/MacOS-X version against the
+ * <p>Macro to check a defined OpenStep/OPENSTEP/MacOS-X version against the
  * supplied arguments.  Returns true if no version is specified, or if
- * ADD &lt;= VER &lt; REM
+ * ADD &lt;= version &lt; REM, where ADD is the version
+ * number at which a feature guarded by the macro was introduced and
+ * REM is the version number at which it was removed.
+ * </p>
+ * <p>The version number arguments are six digit integers where the first
+ * two digits are the major version number, the second two are the minor
+ * version number and the last two are the subminor number (all left padded
+ * with a zero where necessary).  However, for convenience you can also
+ * use any of several predefined constants ... 
+ * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
+ * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
+ * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
+ * <ref type="macro" id="GS_API_OPENSTEP">GS_API_OPENSTEP</ref>,
+ * <ref type="macro" id="GS_API_MACOSX">GS_API_MACOSX</ref>
+ * </p>
+ * <p>Also see <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
+ * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
   (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
@@ -72,29 +104,46 @@
  * A constant to represent a feature which is not present in any version.
  * Use this to say a feature is not present in an API.<br />
  * eg.<br />
- * #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)<br />
+ * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
+ * (GS_API_NONE, GS_API_NONE)<br />
  * denotes  code not present in OpenStep/OPENSTEP/MacOS-X
  */
 #define	GS_API_NONE	     0
 
 /**
  * A constant to represent a feature which is still present in the latest
- * version.  This is the highest possible version number.
+ * version.  This is the highest possible version number.<br />
+ * eg.<br />
+ * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
+ * (GS_API_MACOSX, GS_API_LATEST)<br />
+ * denotes code present from the initial MacOS-X version onwards.
  */
 #define	GS_API_LATEST	999999
 
 /**
- * The version number of the initial OpenStep specification
+ * The version number of the initial OpenStep specification.<br />
+ * eg.<br />
+ * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
+ * (GS_API_OSSPEC, GS_API_LATEST)<br />
+ * denotes code present from the OpenStep specification onwards.
  */
 #define	GS_API_OSSPEC	 10000
 
 /**
- * The version number of the first OPENSTEP implementation
+ * The version number of the first OPENSTEP implementation.<br />
+ * eg.<br />
+ * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
+ * (GS_API_OPENSTEP, GS_API_LATEST)<br />
+ * denotes code present from the initial OPENSTEP version onwards.
  */
 #define	GS_API_OPENSTEP	 40000
 
 /**
- * The version number of the first MacOS-X implementation
+ * The version number of the first MacOS-X implementation.<br />
+ * eg.<br />
+ * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
+ * (GS_API_MACOSX, GS_API_LATEST)<br />
+ * denotes code present from the initial MacOS-X version onwards.
  */
 #define	GS_API_MACOSX	100000
 

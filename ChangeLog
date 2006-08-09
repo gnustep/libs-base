@@ -1,3 +1,12 @@
+2006-08-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc: Improve links to macros.
+	* Headers/Foundation/NSObject.h: Improve versioning documentation
+	* Headers/Foundation/NSNotificationQueue.h: tidied
+	* Headers/Foundation/NSUndoManager.h: ditto
+	* Headers/Foundation/NSAutoreleasePool.h: ditto
+	Documentation improvements and header tidyups.
+
 2006-08-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSStream.h:

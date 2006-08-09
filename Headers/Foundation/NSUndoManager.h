@@ -25,9 +25,9 @@
 #define __NSUndoManager_h_OBJECTS_INCLUDE
 
 #include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
 
 @class NSArray;
+@class NSString;
 @class NSMutableArray;
 @class NSInvocation;
 
