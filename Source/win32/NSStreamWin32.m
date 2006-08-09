@@ -253,9 +253,15 @@ static void setNonblocking(SOCKET fd)
 
 - (void) close
 {
-  if (CloseHandle((HANDLE)_loopID) == 0)
-    [self _recordError];
+  if (_loopID != INVALID_HANDLE_VALUE)
+    {
+      if (CloseHandle((HANDLE)_loopID) == 0)
+	{
+          [self _recordError];
+	}
+    }
   [super close];
+  _loopID = (void*)INVALID_HANDLE_VALUE;
 }
 
 - (void) dealloc
@@ -880,6 +886,18 @@ else NSLog(@"EVENTS:%x", events.lNetworkEvents);
 
 @implementation GSFileOutputStream
 
+- (void) close
+{
+  if (_loopID != INVALID_HANDLE_VALUE)
+    {
+      if (CloseHandle((HANDLE)_loopID) == 0)
+	{
+          [self _recordError];
+	}
+    }
+  [super close];
+  _loopID = (void*)INVALID_HANDLE_VALUE;
+}
 
 - (void) dealloc
 {
