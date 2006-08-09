@@ -861,6 +861,11 @@ static void setNonblocking(SOCKET fd)
     }
 }
 
+- (BOOL) runLoopShouldBlock: (BOOL*)trigger
+{
+  *trigger = YES;
+  return YES;
+}
 @end
 
 @implementation GSInetInputStream
@@ -1451,6 +1456,11 @@ static void setNonblocking(SOCKET fd)
     }
 }
 
+- (BOOL) runLoopShouldBlock: (BOOL*)trigger
+{
+  *trigger = YES;
+  return YES;
+}
 @end
 
 @implementation GSInetOutputStream
