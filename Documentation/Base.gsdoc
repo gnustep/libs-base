@@ -69,7 +69,9 @@ notice and this notice are preserved.
 	      a major number (0-99) followed by a minor number (00-99) and
 	      a subminor number (00-00).<br />
 	      Features in the header file are marked as belonging to different
-	      version ranges using the GS_API_VERSION macro.<br />
+	      version ranges using the
+	      <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
+	      macro.<br />
 	      NB. This is the <em>native</em> versioning of the library being
 	      used via the header file.  You can use this mechanism in your
 	      own libraries and frameworks.
@@ -93,7 +95,9 @@ notice and this notice are preserved.
 	      A major number of 10 indicates the MacOS-X implementation ...
 	      available as the GS_API_MACOSX preprocessor constant.<br />
 	      Features in the header file are marked as belonging to different
-	      version ranges using the OS_API_VERSION macro.<br />
+	      version ranges using the
+	      <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
+	      macro.<br />
 	    </desc>
 	    <term>NO_GNUSTEP</term>
 	    <desc>
