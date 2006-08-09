@@ -72,6 +72,15 @@
  * </p>
  * <p>Also see <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
  * </p>
+ * <p>NB. If you are changing the API (eg adding a new feature) you need
+ * to control the visibility io the new header file code using<br />
+ * <code>#if GS_API_VERSION(ADD,GS_API_LATEST)</code><br />
+ * where <code>ADD</code> is the version number of the next minor
+ * release after the most recent one.<br />
+ * As a general principle you should <em>not</em> change the API with
+ * changing subminor version numbers ... as that tends to confuse
+ * people (though Apple has sometimes done it).
+ * </p>
  */
 #define	GS_API_VERSION(ADD,REM) \
   (!defined(GS_GNUSTEP_V) || (GS_GNUSTEP_V >= ADD && GS_GNUSTEP_V < REM))
