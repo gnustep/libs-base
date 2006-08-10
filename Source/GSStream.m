@@ -144,8 +144,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
 	}
     }
-  _unhandledData = NO;
   [self _setStatus: NSStreamStatusClosed];
+  /* We don't want to send any events the the delegate after the
+   * stream has been closed.
+   */
+  _delegateValid = NO;
 }
 
 - (void) dealloc
@@ -213,18 +216,19 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
 {
-  NSAssert(_runloop == aRunLoop, 
-    @"Attempt to remove unscheduled runloop");
-  if ([_modes containsObject: mode])
+  if (_runloop == aRunLoop)
     {
-      if ([self _isOpened])
+      if ([_modes containsObject: mode])
 	{
-	  [_runloop removeStream: self mode: mode];
-	}
-      [_modes removeObject: mode];
-      if ([_modes count] == 0)
-	{
-	  DESTROY(_runloop);
+	  if ([self _isOpened])
+	    {
+	      [_runloop removeStream: self mode: mode];
+	    }
+	  [_modes removeObject: mode];
+	  if ([_modes count] == 0)
+	    {
+	      DESTROY(_runloop);
+	    }
 	}
     }
 }
@@ -256,8 +260,15 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     {
       _delegate = self;
     }
-  _delegateValid
-    = [_delegate respondsToSelector: @selector(stream:handleEvent:)];
+  if ([self streamStatus] != NSStreamStatusClosed
+    && [self streamStatus] != NSStreamStatusError)
+    {
+      /* We don't want to send any events the the delegate after the
+       * stream has been closed.
+       */
+      _delegateValid
+        = [_delegate respondsToSelector: @selector(stream:handleEvent:)];
+    }
 }
 
 - (BOOL) setProperty: (id)property forKey: (NSString *)key
@@ -359,47 +370,106 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   NSStreamStatus last = [self streamStatus];
   NSStreamStatus current;
 
-  if (event == NSStreamEventHasSpaceAvailable
-    || event == NSStreamEventHasBytesAvailable)
+  if (event == NSStreamEventNone)
     {
-      /* If we have a data event, we mark the stream as having unhandled
-       * data (so we can refrain from triggering again) until a read or
-       * write operation (as approriate) has been performed.
-       */
-      _unhandledData = YES;
-      _unhandledData = YES;
+      return;
     }
-  if (_delegateValid == YES)
+  else if (event == NSStreamEventOpenCompleted)
     {
-      [_delegate stream: self handleEvent: event];
-    }
-
-  while ((current = [self streamStatus]) != last)
-    {
-      last = current;
-
-      /* If we our status changed while the handler was dealing with an
-       * event, we must send it the new event to let it know.
-       */
-      if (current == NSStreamStatusAtEnd)
+      if ((_events & event) == 0)
 	{
+	  _events |= NSStreamEventOpenCompleted;
 	  if (_delegateValid == YES)
 	    {
-	      event = NSStreamEventEndEncountered;
-	      [_delegate stream: self handleEvent: event];
+	      [_delegate stream: self
+		    handleEvent: NSStreamEventOpenCompleted];
 	    }
+	}
+    }
+  else if (event == NSStreamEventHasBytesAvailable)
+    {
+      if ((_events & NSStreamEventOpenCompleted) == 0)
+	{
+	  _events |= NSStreamEventOpenCompleted;
+	  if (_delegateValid == YES)
+	    {
+	      [_delegate stream: self
+		    handleEvent: NSStreamEventOpenCompleted];
+	    }
+	}
+      if ((_events & NSStreamEventHasBytesAvailable) == 0)
+	{
+	  _events |= NSStreamEventHasBytesAvailable;
+	  if (_delegateValid == YES)
+	    {
+	      [_delegate stream: self
+		    handleEvent: NSStreamEventHasBytesAvailable];
+	    }
+	}
+    }
+  else if (event == NSStreamEventHasSpaceAvailable)
+    {
+      if ((_events & NSStreamEventOpenCompleted) == 0)
+	{
+	  _events |= NSStreamEventOpenCompleted;
+	  if (_delegateValid == YES)
+	    {
+	      [_delegate stream: self
+		    handleEvent: NSStreamEventOpenCompleted];
+	    }
+	}
+      if ((_events & NSStreamEventHasSpaceAvailable) == 0)
+	{
+	  _events |= NSStreamEventHasSpaceAvailable;
+	  if (_delegateValid == YES)
+	    {
+	      [_delegate stream: self
+		    handleEvent: NSStreamEventHasSpaceAvailable];
+	    }
+	}
+    }
+  else if (event == NSStreamEventErrorOccurred)
+    {
+      if ((_events & NSStreamEventErrorOccurred) == 0)
+	{
+	  _events |= NSStreamEventErrorOccurred;
+	  if (_delegateValid == YES)
+	    {
+	      [_delegate stream: self
+		    handleEvent: NSStreamEventErrorOccurred];
+	    }
+	}
+    }
+  else if (event == NSStreamEventEndEncountered)
+    {
+      if ((_events & NSStreamEventEndEncountered) == 0)
+	{
+	  _events |= NSStreamEventEndEncountered;
+	  if (_delegateValid == YES)
+	    {
+	      [_delegate stream: self
+		    handleEvent: NSStreamEventEndEncountered];
+	    }
+	}
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Unknown event (%d) passed to _sendEvent:", event];
+    }
+
+  /* If our status changed while the handler was dealing with an
+   * event, we may need to send it the new event to let it know.
+   */
+  if ((current = [self streamStatus]) != last)
+    {
+      if (current == NSStreamStatusAtEnd)
+	{
+	  [self _sendEvent: NSStreamEventEndEncountered];
 	}
       else if (current == NSStreamStatusError)
         {
-	  if (_delegateValid == YES)
-	    {
-	      event = NSStreamEventErrorOccurred;
-	      [_delegate stream: self handleEvent: event];
-	    }
-	}
-      else
-        {
-	  return;	// not an event.
+	  [self _sendEvent: NSStreamEventErrorOccurred];
 	}
     }
 }
@@ -421,12 +491,17 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (BOOL) _unhandledData
 {
-  return _unhandledData;
+  if (_events
+    & (NSStreamEventHasBytesAvailable | NSStreamEventHasSpaceAvailable))
+    {
+      return YES;
+    }
+  return NO;
 }
 
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
-  if (_unhandledData == YES
+  if ([self _unhandledData] == YES
     || _currentStatus == NSStreamStatusError
     || _currentStatus == NSStreamStatusAtEnd)
     {
@@ -512,7 +587,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   unsigned long dataSize = [_data length];
   unsigned long copySize;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasSpaceAvailable;
   NSAssert(dataSize >= _pointer, @"Buffer overflow!");
   if (len + _pointer > dataSize)
     {
@@ -602,7 +677,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasBytesAvailable;
   if (_fixedSize)
     {
       unsigned long dataLen = [_data length];

@@ -330,7 +330,7 @@ static void setNonblocking(SOCKET fd)
 {
   DWORD readLen;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasBytesAvailable;
   if (ReadFile((HANDLE)_loopID, buffer, len, &readLen, NULL) == 0)
     {
       [self _recordError];
@@ -509,7 +509,7 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasBytesAvailable;
   if (myStatus == NSStreamStatusReading)
     {
       myStatus = [self _check];
@@ -595,7 +595,7 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
-  if (_unhandledData == YES || myStatus == NSStreamStatusError)
+  if ([self _unhandledData] == YES || myStatus == NSStreamStatusError)
     {
       *trigger = NO;
       return NO;
@@ -735,7 +735,7 @@ static void setNonblocking(SOCKET fd)
 {
   int readLen;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasBytesAvailable;
   readLen = recv(_sock, buffer, len, 0);
   if (readLen == SOCKET_ERROR)
     {
@@ -847,18 +847,25 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 	{
 	  if (events.lNetworkEvents & FD_WRITE)
 	    {
+	      NSAssert([_sibling _isOpened], NSInternalInconsistencyException);
+	      /* Clear NSStreamStatusWriting if it was set */
 	      [_sibling _setStatus: NSStreamStatusOpen];
-	      while ([_sibling hasSpaceAvailable]
-		&& [_sibling _unhandledData] == NO)
-		{
-	          [_sibling _sendEvent: NSStreamEventHasSpaceAvailable];
-		}
 	    }
+	  /* On winsock a socket is always writable unless it has had
+	   * failure/closure or a write blocked and we have not been
+	   * signalled again.
+	   */
+	  while ([_sibling _unhandledData] == NO
+	    && [_sibling hasSpaceAvailable])
+	    {
+	      [_sibling _sendEvent: NSStreamEventHasSpaceAvailable];
+	    }
+
 	  if (events.lNetworkEvents & FD_READ)
 	    {
 	      [self _setStatus: NSStreamStatusOpen];
 	      while ([self hasBytesAvailable]
-		&& _unhandledData == NO)
+		&& [self _unhandledData] == NO)
 		{
 	          [self _sendEvent: NSStreamEventHasBytesAvailable];
 		}
@@ -871,7 +878,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 		  [_sibling _sendEvent: NSStreamEventEndEncountered];
 		}
 	      while ([self hasBytesAvailable]
-		&& _unhandledData == NO)
+		&& [self _unhandledData] == NO)
 		{
 		  [self _sendEvent: NSStreamEventHasBytesAvailable];
 		}
@@ -1007,7 +1014,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 {
   DWORD writeLen;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasSpaceAvailable;
   if (_shouldAppend == YES)
     {
       SetFilePointer((HANDLE)_loopID, 0, 0, FILE_END);
@@ -1122,7 +1129,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 {
   NSStreamStatus myStatus = [self streamStatus];
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasSpaceAvailable;
   if (len < 0)
     {
       return -1;
@@ -1214,7 +1221,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 {
   NSStreamStatus myStatus = [self streamStatus];
 
-  if (_unhandledData == YES || myStatus == NSStreamStatusError)
+  if ([self _unhandledData] == YES || myStatus == NSStreamStatusError)
     {
       *trigger = NO;
       return NO;
@@ -1285,7 +1292,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 {
   int writeLen;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasSpaceAvailable;
   writeLen = send(_sock, buffer, len, 0);
   if (writeLen == SOCKET_ERROR)
     {
@@ -1466,13 +1473,19 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 	{
 	  if (events.lNetworkEvents & FD_WRITE)
 	    {
+	      /* Clear NSStreamStatusWriting if it was set */
 	      [self _setStatus: NSStreamStatusOpen];
-	      while ([self hasSpaceAvailable]
-		&& _unhandledData == NO)
-		{
-	          [self _sendEvent: NSStreamEventHasSpaceAvailable];
-		}
 	    }
+
+	  /* On winsock a socket is always writable unless it has had
+	   * failure/closure or a write blocked and we have not been
+	   * signalled again.
+	   */
+	  while ([self _unhandledData] == NO && [self hasSpaceAvailable])
+	    {
+	      [self _sendEvent: NSStreamEventHasSpaceAvailable];
+	    }
+
 	  if (events.lNetworkEvents & FD_READ)
 	    {
 	      [_sibling _setStatus: NSStreamStatusOpen];
@@ -1504,6 +1517,14 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   *trigger = YES;
+  if ([self _unhandledData] == NO && [self streamStatus] == NSStreamStatusOpen)
+    {
+      /* In winsock, a writable status is only signalled if an earlier
+       * write failed (because it would block), so we must simulate the
+       * writable event by having the run loop trigger without blocking.
+       */
+      return NO;
+    }
   return YES;
 }
 @end
@@ -1949,7 +1970,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
   socklen_t len = [ins sockLen];
   int acceptReturn = accept(_sock, [ins peerAddr], &len);
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasBytesAvailable;
   if (acceptReturn == INVALID_SOCKET)
     { 
       errno = WSAGetLastError();// test for real error

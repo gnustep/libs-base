@@ -297,7 +297,7 @@ static void setNonblocking(int fd)
 {
   int readLen;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasBytesAvailable;
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -475,7 +475,7 @@ static void setNonblocking(int fd)
 {
   int readLen;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasBytesAvailable;
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -676,7 +676,7 @@ static void setNonblocking(int fd)
 {
   int writeLen;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasSpaceAvailable;
   writeLen = write((intptr_t)_loopID, buffer, len);
   if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -790,7 +790,7 @@ static void setNonblocking(int fd)
 {
   int writeLen;
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasSpaceAvailable;
   writeLen = write((intptr_t)_loopID, buffer, len);
   if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -1386,7 +1386,7 @@ static void setNonblocking(int fd)
   socklen_t len = [ins sockLen];
   int acceptReturn = accept((intptr_t)_loopID, [ins peerAddr], &len);
 
-  _unhandledData = NO;
+  _events &= ~NSStreamEventHasBytesAvailable;
   if (acceptReturn < 0)
     { // test for real error
       if (errno != EWOULDBLOCK
