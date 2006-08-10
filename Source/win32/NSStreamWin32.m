@@ -708,14 +708,23 @@ static void setNonblocking(SOCKET fd)
 
 - (void) close
 {
+  WSACloseEvent(_loopID);
   // read shutdown is ignored, because the other side may shutdown first.
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
+      /*
+       * Windows only permits a single event to be associated with a socket
+       * at any time, but the runloop system only allows an event handle to
+       * be added to the loop once, and we have two streams for each socket.
+       * So we use two events, one for each stream, and when one stream is
+       * closed, we must call WSAEventSelect to ensure that the event handle
+       * of the sibling is used to signal events from now on.
+       */
+      WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
       shutdown(_sock, SD_RECEIVE);
     }
   else
     {
-      WSACloseEvent(_loopID);
       closesocket(_sock);
     }
   [super close];
@@ -766,6 +775,13 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _dispatch
 {
+  /*
+   * Windows only permits a single event to be associated with a socket
+   * at any time, but the runloop system only allows an event handle to
+   * be added to the loop once, and we have two streams for each socket.
+   * So we use two events, one for each stream, and the _dispatch method
+   * must handle things for both streams.
+   */
   if ([self streamStatus] == NSStreamStatusClosed)
     {
       /*
@@ -786,7 +802,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  error = WSAGetLastError();
 	}
-//else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
+//else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -849,12 +865,20 @@ static void setNonblocking(SOCKET fd)
 	    }
 	  if (events.lNetworkEvents & FD_CLOSE)
 	    {
-	      [_sibling _setStatus: NSStreamStatusAtEnd];
-	      [_sibling _sendEvent: NSStreamEventEndEncountered];
+	      if ([_sibling _isOpened])
+		{
+		  [_sibling _setStatus: NSStreamStatusAtEnd];
+		  [_sibling _sendEvent: NSStreamEventEndEncountered];
+		}
 	      while ([self hasBytesAvailable]
 		&& _unhandledData == NO)
 		{
 		  [self _sendEvent: NSStreamEventHasBytesAvailable];
+		}
+	      if ([self _isOpened])
+		{
+		  [self _setStatus: NSStreamStatusAtEnd];
+		  [self _sendEvent: NSStreamEventEndEncountered];
 		}
 	    }
 	}
@@ -1340,13 +1364,22 @@ static void setNonblocking(SOCKET fd)
   // shutdown may fail (broken pipe). Record it.
   int closeReturn;
 
+  WSACloseEvent(_loopID);
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
+      /*
+       * Windows only permits a single event to be associated with a socket
+       * at any time, but the runloop system only allows an event handle to
+       * be added to the loop once, and we have two streams for each socket.
+       * So we use two events, one for each stream, and when one stream is
+       * closed, we must call WSAEventSelect to ensure that the event handle
+       * of the sibling is used to signal events from now on.
+       */
+      WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
       closeReturn = shutdown(_sock, SD_SEND);
     }
   else
     {
-      WSACloseEvent(_loopID);
       closeReturn = closesocket(_sock);
     }
   if (closeReturn < 0)
@@ -1359,6 +1392,13 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _dispatch
 {
+  /*
+   * Windows only permits a single event to be associated with a socket
+   * at any time, but the runloop system only allows an event handle to
+   * be added to the loop once, and we have two streams for each socket.
+   * So we use two events, one for each stream, and the _dispatch method
+   * must handle things for both streams.
+   */
   if ([self streamStatus] == NSStreamStatusClosed)
     {
       /*
@@ -1379,7 +1419,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  error = WSAGetLastError();
 	}
-//else NSLog(@"EVENTS 0x%x", events.lNetworkEvents);
+//else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -1451,6 +1491,11 @@ static void setNonblocking(SOCKET fd)
 		{
 		  [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
 		}
+	      if ([_sibling _isOpened])
+		{
+	          [_sibling _setStatus: NSStreamStatusAtEnd];
+	          [_sibling _sendEvent: NSStreamEventEndEncountered];
+		}
 	    }
 	}
     }
@@ -1505,20 +1550,33 @@ static void setNonblocking(SOCKET fd)
   GSSocketInputStream *ins = nil;
   GSSocketOutputStream *outs = nil;
   int sock;
-  WSAEVENT event;
+  WSAEVENT ievent;
+  WSAEVENT oevent;
 
   ins = AUTORELEASE([[GSInetInputStream alloc]
     initToAddr: address port: port]);
   outs = AUTORELEASE([[GSInetOutputStream alloc]
     initToAddr: address port: port]);
   sock = socket(PF_INET, SOCK_STREAM, 0);
-  event = CreateEvent(NULL, NO, NO, NULL);
+
+  /*
+   * Windows only permits a single event to be associated with a socket
+   * at any time, but the runloop system only allows an event handle to
+   * be added to the loop once, and we have two streams.
+   * So we create two events, one for each stream, so that we can have
+   * both streams scheduled in the run loop, but we make sure that the
+   * _dispatch method in each stream actually handles things for both
+   * streams so that whichever stream gets signalled, the correct
+   * actions are taken.
+   */
+  ievent = CreateEvent(NULL, NO, NO, NULL);
+  oevent = CreateEvent(NULL, NO, NO, NULL);
   
   NSAssert(sock >= 0, @"Cannot open socket");
   [ins setSock: sock];
   [outs setSock: sock];
-  [ins setEvent: event];
-  [outs setEvent: event];
+  [ins setEvent: ievent];
+  [outs setEvent: oevent];
   
   if (inputStream)
     {
@@ -1905,7 +1963,18 @@ static void setNonblocking(SOCKET fd)
     }
   else
     {
-      WSAEVENT  event = CreateEvent(NULL, NO, NO, NULL);
+      /*
+       * Windows only permits a single event to be associated with a socket
+       * at any time, but the runloop system only allows an event handle to
+       * be added to the loop once, and we have two streams.
+       * So we create two events, one for each stream, so that we can have
+       * both streams scheduled in the run loop, but we make sure that the
+       * _dispatch method in each stream actually handles things for both
+       * streams so that whichever stream gets signalled, the correct
+       * actions are taken.
+       */
+      WSAEVENT  ievent = CreateEvent(NULL, NO, NO, NULL);
+      WSAEVENT  oevent = CreateEvent(NULL, NO, NO, NULL);
       // no need to connect again
       [ins setPassive: YES];
       [outs setPassive: YES];
@@ -1913,8 +1982,8 @@ static void setNonblocking(SOCKET fd)
       memcpy([outs peerAddr], [ins peerAddr], len);
       [ins setSock: acceptReturn];
       [outs setSock: acceptReturn];
-      [ins setEvent: event];
-      [outs setEvent: event];
+      [ins setEvent: ievent];
+      [outs setEvent: oevent];
     }
   if (inputStream)
     {
