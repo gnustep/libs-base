@@ -179,7 +179,7 @@ if test "$ac_cv_importing_config_file" = "yes" ;
 then
   AC_MSG_CHECKING([for default GNUstep configuration file to use])
   AC_ARG_WITH(default-config,
-[  --with-defaults-config=PATH   Specify path to a GNUstep config file to be
+[  --with-default-config=PATH   Specify path to a GNUstep config file to be
 				imported at configure time (now) and used to
 				provide default values for the base library
 				to use at runtime if no GNUstep config file
