@@ -58,6 +58,8 @@ typedef int socklen_t;
 }
 @end
 
+@class GSPipeOutputStream;
+
 /** 
  * The concrete subclass of NSInputStream that reads from a pipe
  */
@@ -70,13 +72,16 @@ typedef int socklen_t;
   unsigned	length;	// Amount of data in buffer
   unsigned	want;	// Amount of data we want to read.
   DWORD		size;	// Number of bytes returned by read.
+  GSPipeOutputStream *_sibling;
 }
 - (NSStreamStatus) _check;
 - (void) _queue;
 - (void) _setHandle: (HANDLE)h;
+- (void) setSibling: (GSPipeOutputStream*)s;
 @end
 
 @class GSSocketOutputStream;
+
 /** 
  * The abstract subclass of NSInputStream that reads from a socket
  */
@@ -101,7 +106,7 @@ typedef int socklen_t;
 /**
  * setter for sibling
  */
-- (void) setSibling: (GSOutputStream*)sibling;
+- (void) setSibling: (GSSocketOutputStream*)sibling;
 
 /**
  * setter for passive
@@ -148,10 +153,12 @@ typedef int socklen_t;
   unsigned	offset;
   unsigned	want;
   DWORD		size;
+  GSPipeInputStream *_sibling;
 }
 - (NSStreamStatus) _check;
 - (void) _queue;
 - (void) _setHandle: (HANDLE)h;
+- (void) setSibling: (GSPipeInputStream*)s;
 @end
 
 /**
@@ -178,7 +185,7 @@ typedef int socklen_t;
 /**
  * setter for sibling
  */
-- (void) setSibling: (GSInputStream*)sibling;
+- (void) setSibling: (GSSocketInputStream*)sibling;
 
 /**
  * setter for passive
@@ -241,6 +248,18 @@ typedef int socklen_t;
 }
 @end
 
+
+/**
+ * The concrete subclass of NSServerStream that accepts named pipe connection
+ */
+@interface GSLocalServerStream : GSAbstractServerStream
+{
+  NSString	*path;
+  HANDLE	handle;
+  OVERLAPPED	ov;
+}
+@end
+
 static void setNonblocking(SOCKET fd)
 {
   unsigned long	dummy = 1;
@@ -267,7 +286,9 @@ static void setNonblocking(SOCKET fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
+    {
+      [self close];
+    }
   RELEASE(_path);
   [super dealloc];
 }
@@ -371,7 +392,7 @@ static void setNonblocking(SOCKET fd)
     {
       CloseHandle((HANDLE)_loopID);
     }
-  if (handle != INVALID_HANDLE_VALUE)
+  if (handle != INVALID_HANDLE_VALUE && [_sibling _isOpened] == NO)
     {
       if (CloseHandle(handle) == 0)
 	{
@@ -390,6 +411,8 @@ static void setNonblocking(SOCKET fd)
     {
       [self close];
     }
+  [_sibling setSibling: nil];
+  _sibling = nil;
   [super dealloc];
 }
 
@@ -543,13 +566,16 @@ static void setNonblocking(SOCKET fd)
     {
       len = length - offset;
     }
-  memcpy(buffer, data, len);
+  memcpy(buffer, data + offset, len);
   offset += len;
-  if (offset == length && myStatus == NSStreamStatusOpen)
+  if (offset == length)
     {
       length = 0;
       offset = 0;
-      [self _queue];	// Queue another read
+      if (myStatus == NSStreamStatusOpen)
+	{
+          [self _queue];	// Queue another read
+	}
     }
   return len;
 }
@@ -557,6 +583,11 @@ static void setNonblocking(SOCKET fd)
 - (void) _setHandle: (HANDLE)h
 {
   handle = h;
+}
+
+- (void) setSibling: (GSPipeOutputStream*)s
+{
+  _sibling = s;
 }
 
 - (void) _dispatch
@@ -623,9 +654,9 @@ static void setNonblocking(SOCKET fd)
   return NULL;
 }
 
-- (void) setSibling: (GSOutputStream*)sibling
+- (void) setSibling: (GSSocketOutputStream*)sibling
 {
-  ASSIGN(_sibling, sibling);
+  _sibling = sibling;
 }
 
 -(void) setPassive: (BOOL)passive
@@ -657,8 +688,11 @@ static void setNonblocking(SOCKET fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
-  RELEASE(_sibling);
+    {
+      [self close];
+    }
+  [_sibling setSibling: nil];
+  _sibling = nil;
   [super dealloc];
 }
 
@@ -708,24 +742,30 @@ static void setNonblocking(SOCKET fd)
 
 - (void) close
 {
-  WSACloseEvent(_loopID);
-  // read shutdown is ignored, because the other side may shutdown first.
-  if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
+  if (_loopID != WSA_INVALID_EVENT)
     {
-      /*
-       * Windows only permits a single event to be associated with a socket
-       * at any time, but the runloop system only allows an event handle to
-       * be added to the loop once, and we have two streams for each socket.
-       * So we use two events, one for each stream, and when one stream is
-       * closed, we must call WSAEventSelect to ensure that the event handle
-       * of the sibling is used to signal events from now on.
-       */
-      WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
-      shutdown(_sock, SD_RECEIVE);
+      WSACloseEvent(_loopID);
     }
-  else
+  if (_sock != INVALID_SOCKET)
     {
-      closesocket(_sock);
+      if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
+	{
+	  /*
+	   * Windows only permits a single event to be associated with a socket
+	   * at any time, but the runloop system only allows an event handle to
+	   * be added to the loop once, and we have two streams for each socket.
+	   * So we use two events, one for each stream, and when one stream is
+	   * closed, we must call WSAEventSelect to ensure that the event handle
+	   * of the sibling is used to signal events from now on.
+	   */
+	  WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
+	  shutdown(_sock, SD_RECEIVE);
+	}
+      else
+	{
+	  closesocket(_sock);
+	}
+      _sock = INVALID_SOCKET;
     }
   [super close];
   _loopID = WSA_INVALID_EVENT;
@@ -802,7 +842,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  error = WSAGetLastError();
 	}
-else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
+//else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -948,7 +988,9 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
+    {
+      [self close];
+    }
   RELEASE(_path);
   [super dealloc];
 }
@@ -1046,7 +1088,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
     {
       CloseHandle((HANDLE)_loopID);
     }
-  if (handle != INVALID_HANDLE_VALUE)
+  if (handle != INVALID_HANDLE_VALUE && [_sibling _isOpened] == NO)
     {
       if (CloseHandle(handle) == 0)
 	{
@@ -1062,7 +1104,11 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
+    {
+      [self close];
+    }
+  [_sibling setSibling: nil];
+  _sibling = nil;
   [super dealloc];
 }
 
@@ -1110,6 +1156,10 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 	  if (rc != 0)
 	    {
 	      offset += size;
+	      if (offset == want)
+		{
+		  offset = want = 0;
+		}
 	    }
 	  else if ((errno = GetLastError()) == ERROR_IO_PENDING)
 	    {
@@ -1172,9 +1222,13 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
     {
       [self _setStatus: NSStreamStatusOpen];
       offset += size;
-      if (offset <= want)
+      if (offset < want)
 	{
 	  [self _queue];
+	}
+      else
+	{
+	  offset = want = 0;
 	}
     }
   return [self streamStatus];
@@ -1183,6 +1237,11 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 - (void) _setHandle: (HANDLE)h
 {
   handle = h;
+}
+
+- (void) setSibling: (GSPipeInputStream*)s
+{
+  _sibling = s;
 }
 
 - (void) _dispatch
@@ -1249,9 +1308,9 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
   return NULL;
 }
 
-- (void) setSibling: (GSInputStream*)sibling
+- (void) setSibling: (GSSocketInputStream*)sibling
 {
-  ASSIGN(_sibling, sibling);
+  _sibling = sibling;
 }
 
 -(void)setPassive: (BOOL)passive
@@ -1283,8 +1342,11 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
-  RELEASE(_sibling);
+    {
+      [self close];
+    }
+  [_sibling setSibling: nil];
+  _sibling = nil;
   [super dealloc];
 }
 
@@ -1368,30 +1430,37 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
 - (void) close
 {
-  // shutdown may fail (broken pipe). Record it.
-  int closeReturn;
+  if (_loopID != WSA_INVALID_EVENT)
+    {
+      WSACloseEvent(_loopID);
+    }
 
-  WSACloseEvent(_loopID);
-  if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
+  if (_sock != INVALID_SOCKET)
     {
-      /*
-       * Windows only permits a single event to be associated with a socket
-       * at any time, but the runloop system only allows an event handle to
-       * be added to the loop once, and we have two streams for each socket.
-       * So we use two events, one for each stream, and when one stream is
-       * closed, we must call WSAEventSelect to ensure that the event handle
-       * of the sibling is used to signal events from now on.
-       */
-      WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
-      closeReturn = shutdown(_sock, SD_SEND);
-    }
-  else
-    {
-      closeReturn = closesocket(_sock);
-    }
-  if (closeReturn < 0)
-    {
-      [self _recordError];
+      int closeReturn;	// shutdown may fail (broken pipe). Record it.
+
+      if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
+	{
+	  /*
+	   * Windows only permits a single event to be associated with a socket
+	   * at any time, but the runloop system only allows an event handle to
+	   * be added to the loop once, and we have two streams for each socket.
+	   * So we use two events, one for each stream, and when one stream is
+	   * closed, we must call WSAEventSelect to ensure that the event handle
+	   * of the sibling is used to signal events from now on.
+	   */
+	  WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
+	  closeReturn = shutdown(_sock, SD_SEND);
+	}
+      else
+	{
+	  closeReturn = closesocket(_sock);
+	}
+      _sock = INVALID_SOCKET;
+      if (closeReturn < 0)
+	{
+	  [self _recordError];
+	}
     }
   [super close];
   _loopID = WSA_INVALID_EVENT;
@@ -1426,7 +1495,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 	{
 	  error = WSAGetLastError();
 	}
-else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
+//else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -1593,7 +1662,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
   ievent = CreateEvent(NULL, NO, NO, NULL);
   oevent = CreateEvent(NULL, NO, NO, NULL);
   
-  NSAssert(sock >= 0, @"Cannot open socket");
+  NSAssert(sock != INVALID_SOCKET, @"Cannot open socket");
   [ins setSock: sock];
   [outs setSock: sock];
   [ins setEvent: ievent];
@@ -1616,7 +1685,52 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
                    inputStream: (NSInputStream **)inputStream 
                   outputStream: (NSOutputStream **)outputStream
 {
-  [self notImplemented: _cmd];
+  const unichar *name;
+  GSPipeInputStream *ins = nil;
+  GSPipeOutputStream *outs = nil;
+  SECURITY_ATTRIBUTES saAttr;
+  HANDLE handle;
+
+  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+  saAttr.bInheritHandle = TRUE;
+  saAttr.lpSecurityDescriptor = NULL;
+
+  /*
+   * We allocate a new within the local pipe area
+   */
+  name = [[@"\\\\.\\pipe\\" stringByAppendingString: path]
+    fileSystemRepresentation];
+
+  handle = CreateFileW(name,
+    GENERIC_WRITE|GENERIC_READ,
+    0,
+    &saAttr,
+    OPEN_EXISTING,
+    FILE_FLAG_OVERLAPPED,
+    NULL);
+  if (handle == INVALID_HANDLE_VALUE)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Unable to open named pipe '%@'... %s",
+	path, GSLastErrorStr(GetLastError())];
+    }
+
+  // the type of the stream does not matter, since we are only using the fd
+  ins = AUTORELEASE([GSPipeInputStream new]);
+  outs = AUTORELEASE([GSPipeOutputStream new]);
+
+  [ins _setHandle: handle];
+  [outs _setHandle: handle];
+  if (inputStream)
+    {
+      [ins setSibling: outs];
+      *inputStream = ins;
+    }
+  if (outputStream)
+    {
+      [outs setSibling: ins];
+      *outputStream = outs;
+    }
 }
 
 + (void) pipeWithInputStream: (NSInputStream **)inputStream 
@@ -1868,8 +1982,7 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 {
   GSServerStream *s;
 
-  [self notImplemented: _cmd];
-//  s = [[GSLocalServerStream alloc] initToAddr: addr];
+  s = [[GSLocalServerStream alloc] initToAddr: addr];
   return AUTORELEASE(s);
 }
 
@@ -1882,10 +1995,9 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
 - (id) initToAddr: (NSString*)addr
 {
-  [self notImplemented: _cmd];
   RELEASE(self);
-//  self = [[GSLocalServerStream alloc] initToAddr: addr];
-  return nil;
+  self = [[GSLocalServerStream alloc] initToAddr: addr];
+  return self;
 }
 
 - (void) acceptWithInputStream: (NSInputStream **)inputStream 
@@ -1913,13 +2025,18 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 - (id) init
 {
   if ((self = [super init]) != nil)
-    _loopID = WSA_INVALID_EVENT;
+    {
+      _loopID = WSA_INVALID_EVENT;
+    }
   return self;
 }
+
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
+    {
+      [self close];
+    }
   [super dealloc];
 }
 
@@ -1955,9 +2072,16 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
 - (void) close
 {
-  WSACloseEvent(_loopID);
-  // close a server socket is safe
-  closesocket(_sock);
+  if (_loopID != WSA_INVALID_EVENT)
+    {
+      WSACloseEvent(_loopID);
+    }
+  if (_sock != INVALID_SOCKET)
+    {
+      // close a server socket is safe
+      closesocket(_sock);
+      _sock = INVALID_SOCKET;
+    }
   [super close];
   _loopID = WSA_INVALID_EVENT;
 }
@@ -2078,3 +2202,159 @@ else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 }
 
 @end
+
+@implementation GSLocalServerStream
+
+- (id) init
+{
+  DESTROY(self);
+  return self;
+}
+
+- (id) initToAddr: (NSString*)addr
+{
+  if ((self = [super init]) != nil)
+    {
+      path = RETAIN([@"\\\\.\\pipe\\" stringByAppendingString: addr]);
+      _loopID = INVALID_HANDLE_VALUE;
+      handle = INVALID_HANDLE_VALUE;
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  if ([self _isOpened])
+    {
+      [self close];
+    }
+  RELEASE(path);
+  [super dealloc];
+}
+
+- (void) open
+{
+  SECURITY_ATTRIBUTES saAttr;
+  BOOL alreadyConnected = NO;
+
+  NSAssert(handle == INVALID_HANDLE_VALUE, NSInternalInconsistencyException);
+
+  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+  saAttr.bInheritHandle = TRUE;
+  saAttr.lpSecurityDescriptor = NULL;
+
+  handle = CreateNamedPipeW([path fileSystemRepresentation],
+    PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
+    PIPE_TYPE_BYTE,
+    PIPE_UNLIMITED_INSTANCES,
+    BUFSIZ*64,
+    BUFSIZ*64,
+    100000,
+    &saAttr);
+  if (handle == INVALID_HANDLE_VALUE)
+    {
+      [self _recordError];
+      return;
+    }
+
+  if ([self _loopID] == INVALID_HANDLE_VALUE)
+    {
+      /* No existing event to use ..,. create a new one.
+       */
+      [self _setLoopID: CreateEvent(NULL, NO, NO, NULL)];
+    }
+  ov.Offset = 0;
+  ov.OffsetHigh = 0;
+  ov.hEvent = [self _loopID];
+  if (ConnectNamedPipe(handle, &ov) == 0)
+    {
+      errno = GetLastError();
+      if (errno == ERROR_PIPE_CONNECTED)
+	{
+	  alreadyConnected = YES;
+	}
+      else if (errno != ERROR_IO_PENDING)
+	{
+	  [self _recordError];
+	  return;
+	}
+    }
+
+  if ([self _isOpened] == NO)
+    {
+      [super open];
+    }
+  if (alreadyConnected == YES)
+    {
+      [self _setStatus: NSStreamStatusOpen];
+      [self _sendEvent: NSStreamEventHasBytesAvailable];
+    }
+}
+
+- (void) close
+{
+  if (_loopID != INVALID_HANDLE_VALUE)
+    {
+      CloseHandle((HANDLE)_loopID);
+    }
+  if (handle != INVALID_HANDLE_VALUE)
+    {
+      CancelIo(handle);
+      if (CloseHandle(handle) == 0)
+	{
+	  [self _recordError];
+	}
+      handle = INVALID_HANDLE_VALUE;
+    }
+  [super close];
+  _loopID = INVALID_HANDLE_VALUE;
+}
+
+- (void) acceptWithInputStream: (NSInputStream **)inputStream 
+                  outputStream: (NSOutputStream **)outputStream
+{
+  GSPipeInputStream *ins = nil;
+  GSPipeOutputStream *outs = nil;
+
+  _events &= ~NSStreamEventHasBytesAvailable;
+
+  // the type of the stream does not matter, since we are only using the fd
+  ins = AUTORELEASE([GSPipeInputStream new]);
+  outs = AUTORELEASE([GSPipeOutputStream new]);
+
+  [ins _setHandle: handle];
+  [outs _setHandle: handle];
+
+  handle = INVALID_HANDLE_VALUE;
+  [self open];	// Re-open to accept more
+
+  if (inputStream)
+    {
+      [ins setSibling: outs];
+      *inputStream = ins;
+    }
+  if (outputStream)
+    {
+      [outs setSibling: ins];
+      *outputStream = outs;
+    }
+}
+
+- (void) _dispatch
+{
+  DWORD		size;
+
+  if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
+    {
+      [self _recordError];
+      [self _sendEvent: NSStreamEventErrorOccurred];
+    }
+  else
+    {
+      [self _setStatus: NSStreamStatusOpen];
+      [self _sendEvent: NSStreamEventHasBytesAvailable];
+    }
+}
+
+@end
+

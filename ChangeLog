@@ -1,3 +1,10 @@
+2006-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source\GSStream.m:
+	* Source\win32\NSStreamWin32.m:
+	Fix error in pipe read offset.  Imitial implementation of local
+	'unix domain sockets' (actually named pipe) stream.
+
 2006-08-10  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Fixed typo in help of --with-default-config option.

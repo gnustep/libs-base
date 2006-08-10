@@ -199,6 +199,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	  [_runloop addStream: self mode: [_modes objectAtIndex: i]];
 	}
     }
+  [self _sendEvent: NSStreamEventOpenCompleted];
 }
 
 - (id) propertyForKey: (NSString *)key
@@ -283,11 +284,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (NSError *) streamError
 {
-  if (_currentStatus == NSStreamStatusError)
-    {
-      return _lastError;
-    }
-  return nil;
+  return _lastError;
 }
 
 - (NSStreamStatus) streamStatus
@@ -481,12 +478,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _setStatus: (NSStreamStatus)newStatus
 {
-  // last error before closing is preserved
-  if (_currentStatus != NSStreamStatusError
-    || newStatus != NSStreamStatusClosed)
-    {
-      _currentStatus = newStatus;
-    }
+  _currentStatus = newStatus;
 }
 
 - (BOOL) _unhandledData
