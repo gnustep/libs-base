@@ -68,12 +68,12 @@
   id		         _delegate;	/* Delegate controls operation.	*/\
   NSMutableDictionary	*_properties;	/* storage for properties	*/\
   BOOL                   _delegateValid;/* whether the delegate responds*/\
-  BOOL			_unhandledData; /* no read/write since event    */\
   NSError               *_lastError;    /* last error occured           */\
   NSStreamStatus         _currentStatus;/* current status               */\
   NSMutableArray 	*_modes;	/* currently scheduled modes.	*/\
   NSRunLoop 		*_runloop;	/* currently scheduled loop.	*/\
-  void                  *_loopID;	/* file descriptor etc		*/\
+  void                  *_loopID;	/* file descriptor etc.		*/\
+  int			_events;	/* Signalled events.		*/\
 }
 
 /**
@@ -124,7 +124,7 @@ IVARS
 - (void) _recordError; 
 
 /**
- * say whether there is unahdnled data for the stream.
+ * say whether there is unhandled data for the stream.
  */
 - (BOOL) _unhandledData;
 @end
