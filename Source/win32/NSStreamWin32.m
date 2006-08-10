@@ -405,7 +405,7 @@ static void setNonblocking(SOCKET fd)
 
 - (BOOL) hasBytesAvailable
 {
-  if ([self _isOpened] && [self streamStatus] != NSStreamStatusAtEnd)
+  if ([self streamStatus] == NSStreamStatusOpen)
     return YES;
   return NO;
 }
@@ -768,7 +768,7 @@ static void setNonblocking(SOCKET fd)
 
 - (BOOL) hasBytesAvailable
 {
-  if ([self _isOpened] && [self streamStatus] != NSStreamStatusAtEnd)
+  if ([self streamStatus] == NSStreamStatusOpen)
     return YES;
   return NO;
 }
@@ -802,7 +802,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  error = WSAGetLastError();
 	}
-//else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
+else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -948,7 +948,7 @@ static void setNonblocking(SOCKET fd)
 
 - (BOOL) hasSpaceAvailable
 {
-  if ([self _isOpened])
+  if ([self streamStatus] == NSStreamStatusOpen)
     return YES;
   return NO;
 }
@@ -1061,7 +1061,7 @@ static void setNonblocking(SOCKET fd)
 
 - (BOOL) hasSpaceAvailable
 {
-  if ([self _isOpened] && [self streamStatus] != NSStreamStatusWriting)
+  if ([self streamStatus] == NSStreamStatusOpen)
     return YES;
   return NO;
 }
@@ -1309,7 +1309,7 @@ static void setNonblocking(SOCKET fd)
 
 - (BOOL) hasSpaceAvailable
 {
-  if ([self _isOpened])
+  if ([self streamStatus] == NSStreamStatusOpen)
     return YES;
   return NO;
 }
@@ -1419,7 +1419,7 @@ static void setNonblocking(SOCKET fd)
 	{
 	  error = WSAGetLastError();
 	}
-//else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
+else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
