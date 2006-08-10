@@ -1354,7 +1354,7 @@ Optional Packages:
 				If a trailing '/' is specified, the path is
 				used for locating domains but no GNUstep
 				config file is read at runtime.
-  --with-defaults-config=PATH   Specify path to a GNUstep config file to be
+  --with-default-config=PATH    Specify path to a GNUstep config file to be
 				imported at configure time (now) and used to
 				provide default values for the base library
 				to use at runtime if no GNUstep config file

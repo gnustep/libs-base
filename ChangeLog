@@ -1,3 +1,8 @@
+2006-08-10  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Fixed typo in help of --with-default-config option.
+	* configure: Regenerated
+
 2006-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source\GSStream.h:
