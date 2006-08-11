@@ -297,7 +297,24 @@ static void setNonblocking(int fd)
 {
   int readLen;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte read write requested"];
+    }
+
   _events &= ~NSStreamEventHasBytesAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -475,7 +492,24 @@ static void setNonblocking(int fd)
 {
   int readLen;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte read write requested"];
+    }
+
   _events &= ~NSStreamEventHasBytesAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -676,7 +710,24 @@ static void setNonblocking(int fd)
 {
   int writeLen;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length write requested"];
+    }
+
   _events &= ~NSStreamEventHasSpaceAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   writeLen = write((intptr_t)_loopID, buffer, len);
   if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -790,7 +841,24 @@ static void setNonblocking(int fd)
 {
   int writeLen;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length write requested"];
+    }
+
   _events &= ~NSStreamEventHasSpaceAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   writeLen = write((intptr_t)_loopID, buffer, len);
   if (writeLen < 0 && errno != EAGAIN && errno != EINTR)
     [self _recordError];
@@ -1186,30 +1254,12 @@ static void setNonblocking(int fd)
 
 + (id) inputStreamWithData: (NSData *)data
 {
-  return AUTORELEASE([[GSMemoryInputStream alloc] initWithData: data]);
+  return AUTORELEASE([[GSDataInputStream alloc] initWithData: data]);
 }
 
 + (id) inputStreamWithFileAtPath: (NSString *)path
 {
   return AUTORELEASE([[GSFileInputStream alloc] initWithFileAtPath: path]);
-}
-
-- (id) initWithData: (NSData *)data
-{
-  RELEASE(self);
-  return [[GSMemoryInputStream alloc] initWithData: data];
-}
-
-- (id) initWithFileAtPath: (NSString *)path
-{
-  RELEASE(self);
-  return [[GSFileInputStream alloc] initWithFileAtPath: path];
-}
-
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
-{
-  [self subclassResponsibility: _cmd];
-  return -1;
 }
 
 - (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
@@ -1224,19 +1274,31 @@ static void setNonblocking(int fd)
   return NO;
 }
 
+- (id) initWithData: (NSData *)data
+{
+  RELEASE(self);
+  return [[GSDataInputStream alloc] initWithData: data];
+}
+
+- (id) initWithFileAtPath: (NSString *)path
+{
+  RELEASE(self);
+  return [[GSFileInputStream alloc] initWithFileAtPath: path];
+}
+
+- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+{
+  [self subclassResponsibility: _cmd];
+  return -1;
+}
+
 @end
 
 @implementation NSOutputStream
 
-+ (id) outputStreamToMemory
-{
-  return AUTORELEASE([[GSMemoryOutputStream alloc] 
-    initToBuffer: NULL capacity: 0]);  
-}
-
 + (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
 {
-  return AUTORELEASE([[GSMemoryOutputStream alloc] 
+  return AUTORELEASE([[GSBufferOutputStream alloc] 
     initToBuffer: buffer capacity: capacity]);  
 }
 
@@ -1246,16 +1308,21 @@ static void setNonblocking(int fd)
     initToFileAtPath: path append: shouldAppend]);
 }
 
-- (id) initToMemory
++ (id) outputStreamToMemory
 {
-  RELEASE(self);
-  return [[GSMemoryOutputStream alloc] initToBuffer: NULL capacity: 0];
+  return AUTORELEASE([[GSDataOutputStream alloc] init]);  
+}
+
+- (BOOL) hasSpaceAvailable
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
 }
 
 - (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
 {
   RELEASE(self);
-  return [[GSMemoryOutputStream alloc] initToBuffer: buffer capacity: capacity];
+  return [[GSBufferOutputStream alloc] initToBuffer: buffer capacity: capacity];
 }
 
 - (id) initToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
@@ -1265,16 +1332,16 @@ static void setNonblocking(int fd)
 					       append: shouldAppend];  
 }
 
+- (id) initToMemory
+{
+  RELEASE(self);
+  return [[GSDataOutputStream alloc] init];
+}
+
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   [self subclassResponsibility: _cmd];
   return -1;  
-}
-
-- (BOOL) hasSpaceAvailable
-{
-  [self subclassResponsibility: _cmd];
-  return NO;
 }
 
 @end

@@ -31,6 +31,7 @@
 #include <Foundation/NSError.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSDebug.h>
 
 #include "GSStream.h"
 
@@ -132,9 +133,14 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) close
 {
-  NSAssert(_currentStatus != NSStreamStatusNotOpen
-    && _currentStatus != NSStreamStatusClosed, 
-    @"Attempt to close a stream not yet opened.");
+  if (_currentStatus == NSStreamStatusNotOpen)
+    {
+      NSDebugMLog(@"Attempt to close unopened stream %@", self);
+    }
+  if (_currentStatus == NSStreamStatusClosed)
+    {
+      NSDebugMLog(@"Attempt to close already closed stream %@", self);
+    }
   if (_runloop)
     {
       unsigned	i = [_modes count];
@@ -186,9 +192,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) open
 {
-  NSAssert(_currentStatus == NSStreamStatusNotOpen
-    || _currentStatus == NSStreamStatusOpening, 
-    @"Attempt to open a stream already opened.");  
+  if (_currentStatus != NSStreamStatusNotOpen)
+    {
+      NSDebugMLog(@"Attempt to re-open stream %@", self);
+    }
   [self _setStatus: NSStreamStatusOpen];
   if (_runloop)
     {
@@ -364,9 +371,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _sendEvent: (NSStreamEvent)event
 {
-  NSStreamStatus last = [self streamStatus];
-  NSStreamStatus current;
-
   if (event == NSStreamEventNone)
     {
       return;
@@ -454,21 +458,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Unknown event (%d) passed to _sendEvent:", event];
     }
-
-  /* If our status changed while the handler was dealing with an
-   * event, we may need to send it the new event to let it know.
-   */
-  if ((current = [self streamStatus]) != last)
-    {
-      if (current == NSStreamStatusAtEnd)
-	{
-	  [self _sendEvent: NSStreamEventEndEncountered];
-	}
-      else if (current == NSStreamStatusError)
-        {
-	  [self _sendEvent: NSStreamEventErrorOccurred];
-	}
-    }
 }
 
 - (void) _setLoopID: (void *)ref
@@ -493,18 +482,35 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
-  if ([self _unhandledData] == YES
-    || _currentStatus == NSStreamStatusError
-    || _currentStatus == NSStreamStatusAtEnd)
+  if (_events
+    & (NSStreamEventHasBytesAvailable | NSStreamEventHasSpaceAvailable))
     {
       /* If we have an unhandled data event, we should not watch for more
-       * or trigger until the appropriate rad or write has been done.
-       * If an error has occurred, we should not watch for any events at all.
+       * or trigger until the appropriate read or write has been done.
        */
       *trigger = NO;
       return NO;
     }
-  else if (_loopID == (void*)self)
+  if (_currentStatus == NSStreamStatusError &&
+    (_events & NSStreamEventErrorOccurred) == NSStreamEventErrorOccurred)
+    {
+      /* If an error has occurred (and been handled),
+       * we should not watch for any events at all.
+       */
+      *trigger = NO;
+      return NO;
+    }
+  if (_currentStatus == NSStreamStatusAtEnd &&
+    (_events & NSStreamEventEndEncountered) == NSStreamEventEndEncountered)
+    {
+      /* If an error has occurred (and been handled),
+       * we should not watch for any events at all.
+       */
+      *trigger = NO;
+      return NO;
+    }
+
+  if (_loopID == (void*)self)
     {
       /* If _loopID is the receiver, the stream is not receiving external
        * input, so it must trigger an event when the loop runs and must not
@@ -522,6 +528,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 @end
 
 @implementation	GSInputStream
+
 + (void) initialize
 {
   if (self == [GSInputStream class])
@@ -529,9 +536,31 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       GSObjCAddClassBehavior(self, [GSStream class]);
     }
 }
+
+- (BOOL) hasBytesAvailable
+{
+  if (_currentStatus == NSStreamStatusOpen)
+    {
+      return YES;
+    }
+  if (_currentStatus == NSStreamStatusAtEnd)
+    {
+      if ((_events & NSStreamEventEndEncountered) == 0)
+	{
+	  /* We have not sent the appropriate event yet, so the
+           * client must not have issued a read:maxLength:
+	   * (which is the point at which we should send).
+	   */
+	  return YES;
+	}
+    }
+  return NO;
+}
+
 @end
 
 @implementation	GSOutputStream
+
 + (void) initialize
 {
   if (self == [GSOutputStream class])
@@ -539,6 +568,27 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       GSObjCAddClassBehavior(self, [GSStream class]);
     }
 }
+
+- (BOOL) hasSpaceAvailable
+{
+  if (_currentStatus == NSStreamStatusOpen)
+    {
+      return YES;
+    }
+  if (_currentStatus == NSStreamStatusAtEnd)
+    {
+      if ((_events & NSStreamEventEndEncountered) == 0)
+	{
+	  /* We have not sent the appropriate event yet, so the
+           * client must not have issued a write:maxLength:
+	   * (which is the point at which we should send).
+	   */
+	  return YES;
+	}
+    }
+  return NO;
+}
+
 @end
 @implementation	GSAbstractServerStream
 + (void) initialize
@@ -551,7 +601,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 @end
 
 
-@implementation GSMemoryInputStream
+@implementation GSDataInputStream
 
 /**
  * the designated initializer
@@ -576,10 +626,28 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
 {
-  unsigned long dataSize = [_data length];
+  unsigned long dataSize;
   unsigned long copySize;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte read write requested"];
+    }
+
   _events &= ~NSStreamEventHasSpaceAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
+  dataSize = [_data length];
   NSAssert(dataSize >= _pointer, @"Buffer overflow!");
   if (len + _pointer > dataSize)
     {
@@ -597,6 +665,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   else
     {
       [self _setStatus: NSStreamStatusAtEnd];
+      [self _sendEvent: NSStreamEventEndEncountered];
     }
   return copySize;
 }
@@ -639,23 +708,81 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 @end
 
 
-@implementation GSMemoryOutputStream
+@implementation GSBufferOutputStream
 
 - (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
 {
   if ((self = [super init]) != nil)
     {
-      if (!buffer)
+      _buffer = buffer;
+      _capacity = capacity;
+      _pointer = 0;
+    }
+  return self;
+}
+
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+{
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length write requested"];
+    }
+
+  _events &= ~NSStreamEventHasBytesAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
+  if ((_pointer + len) > _capacity)
+    {
+      len = _capacity - _pointer;
+      if (len == 0)
 	{
-	  _data = [NSMutableData new];
-	  _fixedSize = NO;
+	  [self _setStatus: NSStreamStatusAtEnd];
+	  [self _sendEvent: NSStreamEventEndEncountered];
+	  return 0;
 	}
-      else
-	{
-	  _data = [[NSMutableData alloc] initWithBytesNoCopy: buffer 
-					 length: capacity freeWhenDone: NO];
-	  _fixedSize = YES;
-	}
+    }
+  memcpy((_buffer + _pointer), buffer, len);
+  _pointer += len;
+  return len;
+}
+
+- (id) propertyForKey: (NSString *)key
+{
+  if ([key isEqualToString: NSStreamFileCurrentOffsetKey])
+    {
+      return [NSNumber numberWithLong: _pointer];
+    }
+  return [super propertyForKey: key];
+}
+
+- (void) _dispatch
+{
+  BOOL av = [self hasSpaceAvailable];
+  NSStreamEvent myEvent = av ? NSStreamEventHasSpaceAvailable : 
+    NSStreamEventEndEncountered;
+
+  [self _sendEvent: myEvent];
+}
+
+@end
+
+@implementation GSDataOutputStream
+
+- (id) init
+{
+  if ((self = [super init]) != nil)
+    {
+      _data = [NSMutableData new];
       _pointer = 0;
     }
   return self;
@@ -669,41 +796,44 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
-  _events &= ~NSStreamEventHasBytesAvailable;
-  if (_fixedSize)
+  if (buffer == 0)
     {
-      unsigned long dataLen = [_data length];
-      uint8_t *origin = (uint8_t *)[_data mutableBytes];
-
-      if (_pointer+len>dataLen)
-        len = dataLen - _pointer;
-      memcpy(origin+_pointer, buffer, len);
-      _pointer = _pointer + len;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
     }
-  else
-    [_data appendBytes: buffer length: len];
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length write requested"];
+    }
+
+  _events &= ~NSStreamEventHasBytesAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
+  [_data appendBytes: buffer length: len];
+  _pointer += len;
   return len;
 }
 
 - (BOOL) hasSpaceAvailable
 {
-  if (_fixedSize)
-    return  [_data length]>_pointer;
-  else
-    return YES;
+  return YES;
 }
 
 - (id) propertyForKey: (NSString *)key
 {
   if ([key isEqualToString: NSStreamFileCurrentOffsetKey])
     {
-      if (_fixedSize)
-        return [NSNumber numberWithLong: _pointer];
-      else
-        return [NSNumber numberWithLong:[_data length]];
+      return [NSNumber numberWithLong: _pointer];
     }
   else if ([key isEqualToString: NSStreamDataWrittenToMemoryStreamKey])
-    return _data;
+    {
+      return _data;
+    }
   return [super propertyForKey: key];
 }
 

@@ -41,6 +41,7 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSDebug.h>
 
 #include "../GSStream.h"
 
@@ -73,6 +74,7 @@ typedef int socklen_t;
   unsigned	want;	// Amount of data we want to read.
   DWORD		size;	// Number of bytes returned by read.
   GSPipeOutputStream *_sibling;
+  BOOL		hadEOF;
 }
 - (NSStreamStatus) _check;
 - (void) _queue;
@@ -154,6 +156,8 @@ typedef int socklen_t;
   unsigned	want;
   DWORD		size;
   GSPipeInputStream *_sibling;
+  BOOL		closing;
+  BOOL		writtenEOF;
 }
 - (NSStreamStatus) _check;
 - (void) _queue;
@@ -298,13 +302,6 @@ static void setNonblocking(SOCKET fd)
   return NO;
 }
 
-- (BOOL) hasBytesAvailable
-{
-  if ([self _isOpened] && [self streamStatus] != NSStreamStatusAtEnd)
-    return YES;
-  return NO;
-}
-
 - (id) initWithFileAtPath: (NSString *)path
 {
   if ((self = [super init]) != nil)
@@ -351,7 +348,24 @@ static void setNonblocking(SOCKET fd)
 {
   DWORD readLen;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length read requested"];
+    }
+
   _events &= ~NSStreamEventHasBytesAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   if (ReadFile((HANDLE)_loopID, buffer, len, &readLen, NULL) == 0)
     {
       [self _recordError];
@@ -360,6 +374,7 @@ static void setNonblocking(SOCKET fd)
   else if (readLen == 0)
     {
       [self _setStatus: NSStreamStatusAtEnd];
+      [self _sendEvent: NSStreamEventEndEncountered];
     }
   return (int)readLen;
 }
@@ -383,26 +398,43 @@ static void setNonblocking(SOCKET fd)
 
 - (void) close
 {
-  if (want > 0 && handle != INVALID_HANDLE_VALUE)
-    {
-      want = 0;
-      CancelIo(handle);
-    }
+  length = offset = 0;
   if (_loopID != INVALID_HANDLE_VALUE)
     {
       CloseHandle((HANDLE)_loopID);
     }
-  if (handle != INVALID_HANDLE_VALUE && [_sibling _isOpened] == NO)
+  if (handle != INVALID_HANDLE_VALUE)
     {
-      if (CloseHandle(handle) == 0)
+      /* If we have an outstanding read in progess, we must cancel it
+       * before closing the pipe.
+       */
+      if (want > 0)
 	{
-	  [self _recordError];
+	  want = 0;
+	  CancelIo(handle);
 	}
+
+      /* We can only close the pipe if there is no sibling using it.
+       */
+      if ([_sibling _isOpened] == NO)
+	{
+	  if (DisconnectNamedPipe(handle) == 0)
+	    {
+	      if ((errno = GetLastError()) != ERROR_PIPE_NOT_CONNECTED)
+		{
+		  [self _recordError];
+		}
+	    }
+	  if (CloseHandle(handle) == 0)
+	    {
+	      [self _recordError];
+	    }
+	}
+      handle = INVALID_HANDLE_VALUE;
     }
-  length = offset = 0;
   [super close];
-  handle = INVALID_HANDLE_VALUE;
   _loopID = (void*)INVALID_HANDLE_VALUE;
+
 }
 
 - (void) dealloc
@@ -423,13 +455,6 @@ static void setNonblocking(SOCKET fd)
       *buffer  = data + offset;
       *len = length - offset;
     }
-  return NO;
-}
-
-- (BOOL) hasBytesAvailable
-{
-  if ([self streamStatus] == NSStreamStatusOpen)
-    return YES;
   return NO;
 }
 
@@ -459,8 +484,8 @@ static void setNonblocking(SOCKET fd)
 
   if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
     {
-      errno = GetLastError();
-      if (errno == ERROR_HANDLE_EOF
+      if ((errno = GetLastError()) == ERROR_HANDLE_EOF
+	|| errno == ERROR_PIPE_NOT_CONNECTED
 	|| errno == ERROR_BROKEN_PIPE)
 	{
 	  /*
@@ -469,6 +494,7 @@ static void setNonblocking(SOCKET fd)
 	   */
 	  offset = length = want = 0;
 	  [self _setStatus: NSStreamStatusOpen];
+	  hadEOF = YES;
 	}
       else if (errno != ERROR_IO_PENDING)
 	{
@@ -478,6 +504,12 @@ static void setNonblocking(SOCKET fd)
 	  want = 0;
 	  [self _recordError];
 	}
+    }
+  else if (size == 0)
+    {
+      length = want = 0;
+      [self _setStatus: NSStreamStatusOpen];
+      hadEOF = YES;
     }
   else
     {
@@ -492,7 +524,7 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _queue
 {
-  if ([self streamStatus] == NSStreamStatusOpen)
+  if (hadEOF == NO && [self streamStatus] == NSStreamStatusOpen)
     {
       int	rc;
 
@@ -508,14 +540,14 @@ static void setNonblocking(SOCKET fd)
 	  length = size;
 	  if (length == 0)
 	    {
-	      [self _setStatus: NSStreamStatusAtEnd];
+	      hadEOF = YES;
 	    }
 	}
       else if ((errno = GetLastError()) == ERROR_HANDLE_EOF
+	|| errno == ERROR_PIPE_NOT_CONNECTED
         || errno == ERROR_BROKEN_PIPE)
 	{
-	  offset = length = 0;
-	  [self _setStatus: NSStreamStatusOpen];	// Read of zero length
+	  hadEOF = YES;
 	}
       else if (errno != ERROR_IO_PENDING)
 	{
@@ -530,24 +562,38 @@ static void setNonblocking(SOCKET fd)
 
 - (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
 {
-  NSStreamStatus myStatus = [self streamStatus];
+  NSStreamStatus myStatus;
+
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length read requested"];
+    }
 
   _events &= ~NSStreamEventHasBytesAvailable;
+
+  myStatus = [self streamStatus];
   if (myStatus == NSStreamStatusReading)
     {
       myStatus = [self _check];
     }
-  if (myStatus == NSStreamStatusAtEnd)
+  if (myStatus == NSStreamStatusClosed)
     {
-      return 0;		// At EOF
+      return 0;
     }
-  if (len <= 0
-    || (myStatus != NSStreamStatusReading && myStatus != NSStreamStatusOpen))
-    {
-      return -1;	// Bad length or status
-    }
+
   if (offset == length)
     {
+      if (myStatus == NSStreamStatusError)
+	{
+	  [self _sendEvent: NSStreamEventErrorOccurred];
+	  return -1;	// Waiting for read.
+	}
       if (myStatus == NSStreamStatusOpen)
 	{
 	  /*
@@ -555,10 +601,11 @@ static void setNonblocking(SOCKET fd)
 	   * so we must be at EOF.
 	   */
 	  [self _setStatus: NSStreamStatusAtEnd];
-	  return 0;
+	  [self _sendEvent: NSStreamEventEndEncountered];
 	}
-      return -1;	// Waiting for read.
+      return 0;
     }
+
   /*
    * We already have data buffered ... return some or all of it.
    */
@@ -775,7 +822,24 @@ static void setNonblocking(SOCKET fd)
 {
   int readLen;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length read requested"];
+    }
+
   _events &= ~NSStreamEventHasBytesAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   readLen = recv(_sock, buffer, len, 0);
   if (readLen == SOCKET_ERROR)
     {
@@ -803,13 +867,6 @@ static void setNonblocking(SOCKET fd)
 
 - (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
 {
-  return NO;
-}
-
-- (BOOL) hasBytesAvailable
-{
-  if ([self streamStatus] == NSStreamStatusOpen)
-    return YES;
   return NO;
 }
 
@@ -995,13 +1052,6 @@ static void setNonblocking(SOCKET fd)
   [super dealloc];
 }
 
-- (BOOL) hasSpaceAvailable
-{
-  if ([self streamStatus] == NSStreamStatusOpen)
-    return YES;
-  return NO;
-}
-
 - (id) initToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
 {
   if ((self = [super init]) != nil)
@@ -1056,7 +1106,24 @@ static void setNonblocking(SOCKET fd)
 {
   DWORD writeLen;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length write requested"];
+    }
+
   _events &= ~NSStreamEventHasSpaceAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   if (_shouldAppend == YES)
     {
       SetFilePointer((HANDLE)_loopID, 0, 0, FILE_END);
@@ -1084,21 +1151,67 @@ static void setNonblocking(SOCKET fd)
 
 - (void) close
 {
+  /* If we have a write in progress, we must wait for it to complete,
+   * so we just set a flag to close as soon as the write finishes.
+   */
+  if ([self streamStatus] == NSStreamStatusWriting)
+    {
+      closing = YES;
+      return;
+    }
+
+  /* Where we have a sibling, we can't close the pipe handle, so the
+   * only way to tell the remote end we have finished is to write a
+   * zero length packet to it.
+   */
+  if ([_sibling _isOpened] == YES && writtenEOF == NO)
+    {
+      int	rc;
+
+      writtenEOF = YES;
+      ov.Offset = 0;
+      ov.OffsetHigh = 0;
+      ov.hEvent = (HANDLE)_loopID;
+      size = 0;
+      rc = WriteFile(handle, "", 0, &size, &ov);
+      if (rc == 0)
+	{
+	  if ((errno = GetLastError()) == ERROR_IO_PENDING)
+	    {
+	      [self _setStatus: NSStreamStatusWriting];
+	      return;		// Wait for write to complete
+	    }
+	  [self _recordError];	// Failed to write EOF
+	}
+    }
+
+  offset = want = 0;
   if (_loopID != INVALID_HANDLE_VALUE)
     {
       CloseHandle((HANDLE)_loopID);
     }
-  if (handle != INVALID_HANDLE_VALUE && [_sibling _isOpened] == NO)
+  if (handle != INVALID_HANDLE_VALUE)
     {
-      if (CloseHandle(handle) == 0)
+      if ([_sibling _isOpened] == NO)
 	{
-	  [self _recordError];
+	  if (DisconnectNamedPipe(handle) == 0)
+	    {
+	      if ((errno = GetLastError()) != ERROR_PIPE_NOT_CONNECTED)
+		{
+		  [self _recordError];
+		}
+	      [self _recordError];
+	    }
+	  if (CloseHandle(handle) == 0)
+	    {
+	      [self _recordError];
+	    }
 	}
+      handle = INVALID_HANDLE_VALUE;
     }
-  offset = want = 0;
+
   [super close];
   _loopID = (void*)INVALID_HANDLE_VALUE;
-  handle = INVALID_HANDLE_VALUE;
 }
 
 - (void) dealloc
@@ -1110,13 +1223,6 @@ static void setNonblocking(SOCKET fd)
   [_sibling setSibling: nil];
   _sibling = nil;
   [super dealloc];
-}
-
-- (BOOL) hasSpaceAvailable
-{
-  if ([self streamStatus] == NSStreamStatusOpen)
-    return YES;
-  return NO;
 }
 
 - (id) init
@@ -1179,19 +1285,33 @@ static void setNonblocking(SOCKET fd)
 {
   NSStreamStatus myStatus = [self streamStatus];
 
-  _events &= ~NSStreamEventHasSpaceAvailable;
-  if (len < 0)
+  if (buffer == 0)
     {
-      return -1;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
     }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length write requested"];
+    }
+
+  _events &= ~NSStreamEventHasSpaceAvailable;
+
   if (myStatus == NSStreamStatusWriting)
     {
       myStatus = [self _check];
     }
+  if (myStatus == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   if ((myStatus != NSStreamStatusOpen && myStatus != NSStreamStatusWriting))
     {
       return -1;
     }
+
   if (len > (sizeof(data) - offset))
     {
       len = sizeof(data) - offset;
@@ -1230,6 +1350,10 @@ static void setNonblocking(SOCKET fd)
 	{
 	  offset = want = 0;
 	}
+    }
+  if (closing == YES && [self streamStatus] != NSStreamStatusWriting)
+    {
+      [self close];
     }
   return [self streamStatus];
 }
@@ -1313,7 +1437,7 @@ static void setNonblocking(SOCKET fd)
   _sibling = sibling;
 }
 
--(void)setPassive: (BOOL)passive
+-(void) setPassive: (BOOL)passive
 {
   _passive = passive;
 }
@@ -1354,7 +1478,24 @@ static void setNonblocking(SOCKET fd)
 {
   int writeLen;
 
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length write requested"];
+    }
+
   _events &= ~NSStreamEventHasSpaceAvailable;
+
+  if ([self streamStatus] == NSStreamStatusClosed)
+    {
+      return 0;
+    }
+
   writeLen = send(_sock, buffer, len, 0);
   if (writeLen == SOCKET_ERROR)
     {
@@ -1374,13 +1515,6 @@ static void setNonblocking(SOCKET fd)
       [self _setStatus: NSStreamStatusOpen];
     }
   return writeLen;
-}
-
-- (BOOL) hasSpaceAvailable
-{
-  if ([self streamStatus] == NSStreamStatusOpen)
-    return YES;
-  return NO;
 }
 
 - (void) open
@@ -1691,15 +1825,36 @@ static void setNonblocking(SOCKET fd)
   SECURITY_ATTRIBUTES saAttr;
   HANDLE handle;
 
-  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-  saAttr.bInheritHandle = TRUE;
-  saAttr.lpSecurityDescriptor = NULL;
+  if ([path length] == 0)
+    {
+      NSDebugMLog(@"address nil or empty");
+      goto done;
+    }
+  if ([path length] > 240)
+    {
+      NSDebugMLog(@"address (%@) too long", path);
+      goto done;
+    }
+  if ([path rangeOfString: @"\\"].length > 0)
+    {
+      NSDebugMLog(@"illegal backslash in (%@)", path);
+      goto done;
+    }
+  if ([path rangeOfString: @"/"].length > 0)
+    {
+      NSDebugMLog(@"illegal slash in (%@)", path);
+      goto done;
+    }
 
   /*
    * We allocate a new within the local pipe area
    */
-  name = [[@"\\\\.\\pipe\\" stringByAppendingString: path]
+  name = [[@"\\\\.\\pipe\\GSLocal" stringByAppendingString: path]
     fileSystemRepresentation];
+
+  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+  saAttr.bInheritHandle = TRUE;
+  saAttr.lpSecurityDescriptor = NULL;
 
   handle = CreateFileW(name,
     GENERIC_WRITE|GENERIC_READ,
@@ -1720,15 +1875,17 @@ static void setNonblocking(SOCKET fd)
   outs = AUTORELEASE([GSPipeOutputStream new]);
 
   [ins _setHandle: handle];
+  [ins setSibling: outs];
   [outs _setHandle: handle];
+  [outs setSibling: ins];
+
+done:
   if (inputStream)
     {
-      [ins setSibling: outs];
       *inputStream = ins;
     }
   if (outputStream)
     {
-      [outs setSibling: ins];
       *outputStream = outs;
     }
 }
@@ -1875,30 +2032,12 @@ static void setNonblocking(SOCKET fd)
 
 + (id) inputStreamWithData: (NSData *)data
 {
-  return AUTORELEASE([[GSMemoryInputStream alloc] initWithData: data]);
+  return AUTORELEASE([[GSDataInputStream alloc] initWithData: data]);
 }
 
 + (id) inputStreamWithFileAtPath: (NSString *)path
 {
   return AUTORELEASE([[GSFileInputStream alloc] initWithFileAtPath: path]);
-}
-
-- (id) initWithData: (NSData *)data
-{
-  RELEASE(self);
-  return [[GSMemoryInputStream alloc] initWithData: data];
-}
-
-- (id) initWithFileAtPath: (NSString *)path
-{
-  RELEASE(self);
-  return [[GSFileInputStream alloc] initWithFileAtPath: path];
-}
-
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
-{
-  [self subclassResponsibility: _cmd];
-  return -1;
 }
 
 - (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
@@ -1913,19 +2052,36 @@ static void setNonblocking(SOCKET fd)
   return NO;
 }
 
+- (id) initWithData: (NSData *)data
+{
+  RELEASE(self);
+  return [[GSDataInputStream alloc] initWithData: data];
+}
+
+- (id) initWithFileAtPath: (NSString *)path
+{
+  RELEASE(self);
+  return [[GSFileInputStream alloc] initWithFileAtPath: path];
+}
+
+- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+{
+  [self subclassResponsibility: _cmd];
+  return -1;
+}
+
 @end
 
 @implementation NSOutputStream
 
 + (id) outputStreamToMemory
 {
-  return AUTORELEASE([[GSMemoryOutputStream alloc] 
-    initToBuffer: NULL capacity: 0]);  
+  return AUTORELEASE([[GSDataOutputStream alloc] init]);  
 }
 
 + (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
 {
-  return AUTORELEASE([[GSMemoryOutputStream alloc] 
+  return AUTORELEASE([[GSBufferOutputStream alloc] 
     initToBuffer: buffer capacity: capacity]);  
 }
 
@@ -1935,16 +2091,16 @@ static void setNonblocking(SOCKET fd)
     initToFileAtPath: path append: shouldAppend]);
 }
 
-- (id) initToMemory
+- (BOOL) hasSpaceAvailable
 {
-  RELEASE(self);
-  return [[GSMemoryOutputStream alloc] initToBuffer: NULL capacity: 0];
+  [self subclassResponsibility: _cmd];
+  return NO;
 }
 
 - (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
 {
   RELEASE(self);
-  return [[GSMemoryOutputStream alloc] initToBuffer: buffer capacity: capacity];
+  return [[GSBufferOutputStream alloc] initToBuffer: buffer capacity: capacity];
 }
 
 - (id) initToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
@@ -1954,16 +2110,16 @@ static void setNonblocking(SOCKET fd)
 					       append: shouldAppend];  
 }
 
+- (id) initToMemory
+{
+  RELEASE(self);
+  return [[GSDataOutputStream alloc] init];
+}
+
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   [self subclassResponsibility: _cmd];
   return -1;  
-}
-
-- (BOOL) hasSpaceAvailable
-{
-  [self subclassResponsibility: _cmd];
-  return NO;
 }
 
 @end
@@ -2213,9 +2369,30 @@ static void setNonblocking(SOCKET fd)
 
 - (id) initToAddr: (NSString*)addr
 {
+  if ([addr length] == 0)
+    {
+      NSDebugMLog(@"address nil or empty");
+      DESTROY(self);
+    }
+  if ([addr length] > 246)
+    {
+      NSDebugMLog(@"address (%@) too long", addr);
+      DESTROY(self);
+    }
+  if ([addr rangeOfString: @"\\"].length > 0)
+    {
+      NSDebugMLog(@"illegal backslash in (%@)", addr);
+      DESTROY(self);
+    }
+  if ([addr rangeOfString: @"/"].length > 0)
+    {
+      NSDebugMLog(@"illegal slash in (%@)", addr);
+      DESTROY(self);
+    }
+
   if ((self = [super init]) != nil)
     {
-      path = RETAIN([@"\\\\.\\pipe\\" stringByAppendingString: addr]);
+      path = RETAIN([@"\\\\.\\pipe\\GSLocal" stringByAppendingString: addr]);
       _loopID = INVALID_HANDLE_VALUE;
       handle = INVALID_HANDLE_VALUE;
     }
@@ -2245,7 +2422,7 @@ static void setNonblocking(SOCKET fd)
 
   handle = CreateNamedPipeW([path fileSystemRepresentation],
     PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
-    PIPE_TYPE_BYTE,
+    PIPE_TYPE_MESSAGE,
     PIPE_UNLIMITED_INSTANCES,
     BUFSIZ*64,
     BUFSIZ*64,

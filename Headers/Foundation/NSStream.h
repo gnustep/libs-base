@@ -70,7 +70,8 @@ typedef enum {
              outputStream: (NSOutputStream **)outputStream;
 
 /**
- * Closes the receiver.
+ * Closes the receiver.<br />
+ * Repeated calls to this method on the same stream are quietly ignored.
  */
 - (void) close;
 
@@ -80,7 +81,10 @@ typedef enum {
 - (id) delegate;
 
 /**
- * Opens the receiving stream.
+ * Opens the receiving stream.<br />
+ * Upon completion of the open operation, an NSStreamEventOpenCompleted
+ * event is sent to the recevier's delegate.<br />
+ * Repeated calls to this method on the same stream are quietly ignored.
  */
 - (void) open;
 
@@ -91,12 +95,17 @@ typedef enum {
 
 /**
  * Removes the receiver from the NSRunLoop specified by aRunLoop
- * running in the mode.
+ * running in the mode.<br />
+ * Attempts to remove the receiver from a run loop or a mode in
+ * which it has not been scheduled are quietly ignored.
  */
 - (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode;
 
 /**
- * Schedules the receiver on aRunLoop using the specified mode.
+ * Schedules the receiver on aRunLoop using the specified mode.<br />
+ * You must not attempt to add a stream to more than one run loop,
+ * but you may call this method multiple times to add the receiver
+ * in different modes for the same run loop.
  */
 - (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode;
 
@@ -262,14 +271,17 @@ typedef enum {
  * that is a stream that binds to a socket and accepts incoming connections
  */
 @interface GSServerStream : NSStream
+
 /**
  * Createe a ip (ipv6) server stream
  */
 + (id) serverStreamToAddr: (NSString*)addr port: (int)port;
+
 /**
- * Create a local (unix domain) server stream
+ * Create a local (unix domain or named pipe) server stream
  */
 + (id) serverStreamToAddr: (NSString*)addr;
+
 /**
  * This is the method that accepts a connection and generates two streams
  * as the server side inputStream and OutputStream.
@@ -283,8 +295,10 @@ typedef enum {
  * the designated initializer for a ip (ipv6) server stream
  */
 - (id) initToAddr: (NSString*)addr port: (int)port;
+
 /**
- * the designated initializer for a local (unix domain) server stream
+ * the designated initializer for a local (unix domain or named pipe)
+ * server stream
  */
 - (id) initToAddr: (NSString*)addr;
 
