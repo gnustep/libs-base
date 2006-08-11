@@ -28,7 +28,7 @@
    NSStream 
    |-- NSInputStream
    |   `--GSInputStream
-   |      |-- GSMemoryInputStream
+   |      |-- GSDataInputStream
    |      |-- GSFileInputStream
    |      `-- GSSocketInputStream
    |          |-- GSInetInputStream
@@ -36,7 +36,8 @@
    |          `-- GSInet6InputStream
    |-- NSOutputStream
    |   `--GSOutputStream
-   |      |-- GSMemoryOutputStream
+   |      |-- GSBufferOutputStream
+   |      |-- GSDataOutputStream
    |      |-- GSFileOutputStream
    |      `-- GSSocketOutputStream
    |          |-- GSInetOutputStream
@@ -144,7 +145,7 @@ IVARS
 /**
  * The concrete subclass of NSInputStream that reads from the memory 
  */
-@interface GSMemoryInputStream : GSInputStream
+@interface GSDataInputStream : GSInputStream
 {
 @private
   NSData *_data;
@@ -158,14 +159,30 @@ IVARS
 @end
 
 /**
- * The concrete subclass of NSOutputStream that writes to memory
+ * The concrete subclass of NSOutputStream that writes to a buffer
  */
-@interface GSMemoryOutputStream : GSOutputStream
+@interface GSBufferOutputStream : GSOutputStream
+{
+@private
+  uint8_t	*_buffer;
+  unsigned	_capacity;
+  unsigned long _pointer;
+}
+
+/**
+ * this is the bridge method for asynchronized operation. Do not call.
+ */
+- (void) _dispatch;
+@end
+
+/**
+ * The concrete subclass of NSOutputStream that writes to a variable sise buffer
+ */
+@interface GSDataOutputStream : GSOutputStream
 {
 @private
   NSMutableData *_data;
   unsigned long _pointer;
-  BOOL _fixedSize;
 }
 
 /**
