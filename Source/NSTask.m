@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSTask class reference</title>
    $Date$ $Revision$
@@ -813,6 +814,12 @@ pty_slave(const char* name)
 	}
       lpath = [lpath stringByStandardizingPath];
     }
+#ifdef	__MINGW32__
+  /** We need this to be native windows format, and some of the standardisation
+   * above may have left unix style separators in the string.
+   */
+  lpath = [lpath stringByReplacingString: @"/" withString: @"\\"];
+#endif
   return lpath;
 }
 
@@ -1102,6 +1109,7 @@ quotedFromString(NSString *aString)
       [args appendString: quotedFromString(arg)];
     }
 
+NSLog(@"ARGS: %@", args);
   w_args = NSZoneMalloc(NSDefaultMallocZone(),
     sizeof(wchar_t) * ([args length] + 1));
   [args getCharacters: (unichar*)w_args];
