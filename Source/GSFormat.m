@@ -34,7 +34,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include "config.h"
@@ -1783,7 +1784,15 @@ NSDictionary *locale)
 	      string_malloced = 1;
 
 	    for (slen = 0; slen < len; slen++)
-	      string[slen] = encode_chartouni(str[slen], enc);
+	      {
+	        unsigned int	size = 1;
+		unsigned char	c = str[slen];
+		unichar		u = 0;
+		unichar		*dst = &u;
+
+		GSToUnicode(&dst, &size, &c, 1, enc, 0, 0);
+		string[slen] = u;
+	      }
 	  }
 	else
 	  {
