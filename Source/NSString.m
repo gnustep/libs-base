@@ -2813,7 +2813,6 @@ handle_printf_atsign (FILE *stream,
     || (encoding == NSISOCyrillicStringEncoding)
     || (encoding == NSISOThaiStringEncoding))
     {
-      char		t;
       unsigned char	*buff;
 
       buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
@@ -2821,12 +2820,13 @@ handle_printf_atsign (FILE *stream,
 	{
 	  for (count = 0; count < len; count++)
 	    {
-	      t = encode_unitochar((*caiImp)(self, caiSel, count), encoding);
-	      if (t)
-		{
-		  buff[count] = t;
-		}
-	      else
+	      unichar		u = (*caiImp)(self, caiSel, count);
+	      unsigned		size = 1;
+	      unsigned char	*dst = buff + count;
+
+	      // We know this is a single byte encoding
+	      if (GSFromUnicode(&dst, &size, &u, 1, encoding, 0, GSUniStrict)
+		== NO)
 		{
 		  NSZoneFree(NSDefaultMallocZone(), buff);
 		  return nil;
@@ -2837,18 +2837,15 @@ handle_printf_atsign (FILE *stream,
 	{
 	  for (count = 0; count < len; count++)
 	    {
-	      t = encode_unitochar((*caiImp)(self, caiSel, count), encoding);
-	      if (t)
+	      unichar		u = (*caiImp)(self, caiSel, count);
+	      unsigned		size = 1;
+	      unsigned char	*dst = buff + count;
+
+	      // We know this is a single byte encoding
+	      if (GSFromUnicode(&dst, &size, &u, 1, encoding, 0, 0) == NO)
 		{
-		  buff[count] = t;
-		}
-	      else
-		{
-		  /* xxx should handle decomposed characters */
-		  /* OpenStep documentation is unclear on what to do
-		   * if there is no simple replacement for character
-		   */
-		  buff[count] = '*';
+		  NSZoneFree(NSDefaultMallocZone(), buff);
+		  return nil;
 		}
 	    }
 	}

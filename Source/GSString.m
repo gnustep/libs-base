@@ -4177,7 +4177,8 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 				 encoding: internalEncoding];
 		    }
 		  u = [aString characterAtIndex: l];
-		  GSFromUnicode(&dst, &size, &u, 1, internalEncoding, 0, 0);
+		  GSFromUnicode(&dst, &size, &u, 1,
+		    internalEncoding, 0, GSUniStrict);
 		}
 	    }
 	  else
@@ -4247,7 +4248,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 	    }
 	  u = [aString characterAtIndex: l];
 	  d = _contents.c + l;
-          GSFromUnicode(&d, &s, &u, 1, internalEncoding, 0, 0);
+          GSFromUnicode(&d, &s, &u, 1, internalEncoding, 0, GSUniStrict);
 	}
       else
 	{
