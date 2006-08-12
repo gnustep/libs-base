@@ -2603,47 +2603,18 @@ handle_printf_atsign (FILE *stream,
 	      range: (NSRange)aRange
      remainingRange: (NSRange*)leftoverRange
 {
-  unsigned	len;
-  unsigned	count;
-  unichar	(*caiImp)(NSString*, SEL, unsigned int);
+  NSString	*s;
 
-  len = [self cStringLength];
-  GS_RANGE_CHECK(aRange, len);
-
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
-
-  if (maxLength < aRange.length)
-    {
-      len = maxLength;
-      if (leftoverRange)
-	{
-	  leftoverRange->location = 0;
-	  leftoverRange->length = 0;
-	}
-    }
-  else
-    {
-      len = aRange.length;
-      if (leftoverRange)
-	{
-	  leftoverRange->location = aRange.location + maxLength;
-	  leftoverRange->length = aRange.length - maxLength;
-	}
-    }
-  count = 0;
-  while (count < len)
-    {
-      buffer[count] = encode_unitochar(
-	(*caiImp)(self, caiSel, aRange.location + count),
-	_DefaultStringEncoding);
-      if (buffer[count] == 0)
-	{
-	  [NSException raise: NSCharacterConversionException
-		      format: @"unable to convert to cString"];
-	}
-      count++;
-    }
-  buffer[len] = '\0';
+  /* As this is a deprecated method, keep things simple (but inefficient)
+   * by copying the receiver to a new instance of a base library built-in
+   * class, and use the implementation provided by that class.
+   * We need an autorelease to avoid a memory leak if there is an exception.
+   */
+  s = AUTORELEASE([(NSString*)defaultPlaceholderString initWithString: self]);
+  [s getCString: buffer
+      maxLength: maxLength
+	  range: aRange
+ remainingRange: leftoverRange];
 }
 
 

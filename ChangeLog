@@ -2,6 +2,10 @@
 
 	* Source/GSString.m: getCString_c() call getCString_u() to do the
 	work if external encoding != internal encoding.
+	* Source/NSScanner.m: Fix for utf8
+	* Source/GSFormat.m: remove call to deprecated method.
+	* Source/NSString.m: remove calls to deprecated methods.
+	Fix getCstring... by using concrete class implementation.
 
 2006-08-11  Richard Frith-Macdonald <rfm@gnu.org>
 
