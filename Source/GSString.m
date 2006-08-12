@@ -1150,16 +1150,20 @@ canBeConvertedToEncoding_u(GSStr self, NSStringEncoding enc)
 static inline unichar
 characterAtIndex_c(GSStr self, unsigned index)
 {
-  unichar	c;
+  unichar	u;
 
   if (index >= self->_count)
     [NSException raise: NSRangeException format: @"Invalid index."];
-  c = self->_contents.c[index];
-  if (c > 127)
+  u = self->_contents.c[index];
+  if (u > 127)
     {
-      c = encode_chartouni(c, internalEncoding);
+      unsigned char	c = (unsigned char)u;
+      unsigned int	s = 1;
+      unichar		*d = &u;
+
+      GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
     }
-  return c;
+  return u;
 }
 
 static inline unichar
@@ -2431,13 +2435,17 @@ rangeOfCharacter_c(GSStr self, NSCharacterSet *aSet, unsigned mask,
 
   for (i = start; i != stop; i += step)
     {
-      unichar letter = self->_contents.c[i];
+      unichar u = self->_contents.c[i];
 
-      if (letter > 127)
+      if (u > 127)
 	{
-	  letter = encode_chartouni(letter, internalEncoding);
+	  unsigned char	c = (unsigned char)u;
+	  unsigned int	s = 1;
+	  unichar	*d = &u;
+
+	  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
 	}
-      if ((*mImp)(aSet, cMemberSel, letter))
+      if ((*mImp)(aSet, cMemberSel, u))
 	{
 	  range = NSMakeRange(i, 1);
 	  break;
@@ -4221,6 +4229,9 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
       if (other == 0)
 	{
 	  unsigned	l;
+	  unsigned	s = 1;
+	  unichar	u;
+	  unsigned char	*d;
 
 	  /*
 	   * Since getCString appends a '\0' terminator, we must ask for
@@ -4234,8 +4245,9 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 			maxLength: l+1
 			 encoding: internalEncoding];
 	    }
-	  _contents.c[l]
-	    = encode_unitochar([aString characterAtIndex: l], internalEncoding);
+	  u = [aString characterAtIndex: l];
+	  d = _contents.c + l;
+          GSFromUnicode(&d, &s, &u, 1, internalEncoding, 0, 0);
 	}
       else
 	{
@@ -4856,13 +4868,17 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
       p = _self->_contents.c;
       while (char_count++ < len)
 	{
-	  unichar	c = *p++;
+	  unichar	u = *p++;
 
-	  if (c > 127)
+	  if (u > 127)
 	    {
-	      c = encode_chartouni(c, internalEncoding);
+	      unsigned char	c = (unsigned char)u;
+	      unsigned int	s = 1;
+	      unichar		*d = &u;
+
+	      GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
 	    }
-	  ret = (ret << 5) + ret + c;
+	  ret = (ret << 5) + ret + u;
 	}
 
       /*
