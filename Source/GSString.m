@@ -300,6 +300,12 @@ setup(void)
     }
 }
 
+/* Predeclare a few functions
+ */
+static void GSStrWiden(GSStr s);
+static void getCString_u(GSStr self, char *buffer, unsigned int maxLength,
+  NSRange aRange, NSRange *leftoverRange);
+
 /*
  * The GSPlaceholderString class is used by the abstract cluster root
  * class to provide temporary objects that will be replaced as soon
@@ -1585,11 +1591,32 @@ getCharacters_u(GSStr self, unichar *buffer, NSRange aRange)
     aRange.length*sizeof(unichar));
 }
 
-static inline void
+static void
 getCString_c(GSStr self, char *buffer, unsigned int maxLength,
   NSRange aRange, NSRange *leftoverRange)
 {
   int len;
+
+  /*
+   * If the internal and external encodings don't match, the simplest
+   * thing to do is widen the internal data to unicode and use the
+   * unicode function to get the cString.
+   */
+  if (externalEncoding != internalEncoding)
+    {
+      struct {
+	@defs(GSMutableString)
+      } o;
+
+      memset(&o, '\0', sizeof(o));
+      o._count = self->_count;
+      o._capacity = self->_count;
+      o._contents.c = self->_contents.c;
+      GSStrWiden((GSStr)&o);
+      getCString_u((GSStr)&o, buffer, maxLength, aRange, leftoverRange);
+      NSZoneFree(o._zone, o._contents.u);
+      return;
+    }
 
   if (maxLength > self->_count)
     {
@@ -1618,7 +1645,7 @@ getCString_c(GSStr self, char *buffer, unsigned int maxLength,
   buffer[len] = '\0';
 }
 
-static inline void
+static void
 getCString_u(GSStr self, char *buffer, unsigned int maxLength,
   NSRange aRange, NSRange *leftoverRange)
 {
