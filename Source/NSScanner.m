@@ -72,7 +72,17 @@ static Class		NSConstantStringClass;
 static id		_holder;
 static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel;
+static NSStringEncoding internalEncoding = NSISOLatin1StringEncoding;
 
+static inline unichar myGetC(unsigned char c)
+{
+  unsigned int  size = 1;
+  unichar       u = 0;
+  unichar       *dst = &u;
+
+  GSToUnicode(&dst, &size, &c, 1, internalEncoding, 0, 0);
+  return u;
+}
 /*
  * Hack for direct access to internals of an concrete string object.
  */
@@ -81,7 +91,7 @@ typedef struct {
 } *ivars;
 #define	myLength()	(((ivars)_string)->_count)
 #define	myUnicode(I)	(((ivars)_string)->_contents.u[I])
-#define	myChar(I)	chartouni((((ivars)_string)->_contents.c[I]))
+#define	myChar(I)	myGetC((((ivars)_string)->_contents.c[I]))
 #define	myCharacter(I)	(_isUnicode ? myUnicode(I) : myChar(I))
 
 /*
@@ -117,6 +127,8 @@ typedef struct {
 {
   if (self == [NSScanner class])
     {
+      NSStringEncoding externalEncoding;
+
       memSel = @selector(characterIsMember:);
       defaultSkipSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
       IF_NO_GC(RETAIN(defaultSkipSet));
@@ -127,6 +139,11 @@ typedef struct {
       GSPlaceholderStringClass = [GSPlaceholderString class];
       NSConstantStringClass = [NSString constantStringClass];
       _holder = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
+      externalEncoding = GetDefEncoding();
+      if (GSIsByteEncoding(externalEncoding) == YES)
+	{
+	  internalEncoding = externalEncoding;
+	}
     }
 }
 
