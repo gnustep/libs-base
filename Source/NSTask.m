@@ -1109,7 +1109,7 @@ quotedFromString(NSString *aString)
       [args appendString: quotedFromString(arg)];
     }
 
-NSLog(@"ARGS: %@", args);
+NSLog(@"ARGS: '%@'", args);
   w_args = NSZoneMalloc(NSDefaultMallocZone(),
     sizeof(wchar_t) * ([args length] + 1));
   [args getCharacters: (unichar*)w_args];
@@ -1198,6 +1198,7 @@ NSLog(@"ARGS: %@", args);
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
     CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT,	/* creation flags */
+    //CREATE_UNICODE_ENVIRONMENT,	/* creation flags */
     envp,			/* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,
