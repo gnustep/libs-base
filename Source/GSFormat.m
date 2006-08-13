@@ -1751,47 +1751,68 @@ NSDictionary *locale)
 	    /* This is complicated.  We have to transform the multibyte
 	       string into a unicode string.  */
 	    const char		*str = (const char*)string;
-	    unsigned		slen;
-	    NSStringEncoding	enc = GetDefEncoding();
+	    unsigned		blen;
+	    static NSStringEncoding	enc = GSUndefinedEncoding;
+	    static BOOL			byteEncoding = NO;
+
+	    if (enc == GSUndefinedEncoding)
+	      {
+	        enc = GetDefEncoding();
+		byteEncoding = GSIsByteEncoding(enc);
+	      }
+
+	    len = strlen(str);	// Number of bytes to convert.
+	    blen = len;		// Size of unichar output buffer.
 
 	    if (prec != -1)
 	      {
-		len = (unsigned)prec;
-		/*
-		 * If the actual length is less than the precision,
-		 * we use the actual length.
-		 */
-		for (slen = 0; slen < len; slen++)
+		if (prec < len)
 		  {
-		    if (str[slen] == 0)
+		    /* We don't neeed an output buffer bigger than the
+		     * precision specifies.
+		     */
+		    blen = prec;
+		  }
+		if (byteEncoding == YES)
+		  {
+		    /* Where the external encoding is one byte per character,
+		     * we know we don't need to convert more bytes than the
+		     * precision required for output.
+		     */
+		    if (prec < len)
 		      {
-			len = slen;
+			len = prec;
 		      }
 		  }
-	      }
-	    else
-	      {
-		len = strlen(str);
+		else if (prec * 4 < len)
+		  {
+		    /* We assume no multibyte encoding is going to use more
+		     * than the maximum four bytes used by utf-8 for any
+		     * unicode code point.  So we do not need to convert
+		     * more than four times the precision.
+		     */
+		    len = prec * 4;
+		  }
 	      }
 
 	    /* Allocate dynamically an array which definitely is long
-	       enough for the wide character version.  */
-	    if (len < 8192
-	      || ((string = (unichar *) NSZoneMalloc(s->_zone, len * sizeof (unichar)))
-		    == NULL))
-	      string = (unichar *) alloca (len * sizeof (unichar));
+	     * enough for the unichar version.
+	     */
+	    if (blen < 8192 || ((string = (unichar *)
+	      NSZoneMalloc(s->_zone, blen * sizeof(unichar))) == NULL))
+	      string = (unichar *) alloca (blen * sizeof(unichar));
 	    else
 	      string_malloced = 1;
 
-	    for (slen = 0; slen < len; slen++)
-	      {
-	        unsigned int	size = 1;
-		unsigned char	c = str[slen];
-		unichar		u = 0;
-		unichar		*dst = &u;
+	    GSToUnicode(&string, &blen, (unsigned char*)str, len, enc, 0, 0);
 
-		GSToUnicode(&dst, &size, &c, 1, enc, 0, 0);
-		string[slen] = u;
+	    /* get the number of unichars produced and truncate to the
+	     * required output precision if necessary.
+	     */
+	    len = blen;
+	    if (prec != -1 && prec < len)
+	      {
+	        len = prec;
 	      }
 	  }
 	else
