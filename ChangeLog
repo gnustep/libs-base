@@ -1,3 +1,9 @@
+2006-08-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.m: optimise a bit and fix bug where utf8 (and other
+	multibyte encodings) strings could be truncated at the wrong
+	precision.
+
 2006-08-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: getCString_c() call getCString_u() to do the
