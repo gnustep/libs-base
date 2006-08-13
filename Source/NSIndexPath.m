@@ -196,7 +196,9 @@ static	NSIndexPath	*dummy = nil;
 - (unsigned) indexAtPosition: (unsigned)position
 {
   if (position >= _length)
-    [NSException raise: NSRangeException format: @"Invalid location."];
+    {
+      return NSNotFound;
+    }
   return _indexes[position];
 }
 
