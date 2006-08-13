@@ -4,7 +4,7 @@
 	multibyte encodings) strings could be truncated at the wrong
 	precision.
 	* Source/NSIndexPath.m: ([indexAtPosition:]) return NSNotFound if
-	given a bad position.
+	given a bad position. ([compare:]) fix to match MacOS-X
 	* Source/NSObject.m: implement CRASH_ON_ZOMBIE
 	* Documentation/Base.gsdoc: document it.
 

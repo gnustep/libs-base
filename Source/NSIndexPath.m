@@ -78,35 +78,38 @@ static	NSIndexPath	*dummy = nil;
 
 - (NSComparisonResult) compare: (NSIndexPath*)other
 {
-  if (other == self)
+  if (other != self)
     {
-      return NSOrderedSame;
-    }
-  else
-    {
+      unsigned	olength = other->_length;
+      unsigned	*oindexes = other->_indexes;
+      unsigned	end = (_length > olength) ? _length : olength;
       unsigned	pos;
 
-      for (pos = 0; pos < _length; pos++)
+      for (pos = 0; pos < end; pos++)
 	{
-	  if (pos >= other->_length || other->_indexes[pos] < _indexes[pos])
-	    {
-	      return NSOrderedAscending;
-	    }
-	  if (other->_indexes[pos] > _indexes[pos])
+	  if (pos >= _length)
 	    {
 	      return NSOrderedDescending;
 	    }
+	  else if (pos >= olength)
+	    {
+	      return NSOrderedAscending;
+	    }
+	  if (oindexes[pos] < _indexes[pos])
+	    {
+	      return NSOrderedDescending;
+	    }
+	  if (oindexes[pos] > _indexes[pos])
+	    {
+	      return NSOrderedAscending;
+	    }
 	}
-      if (_length == other->_length)
-	{
-	  /*
-	   * Should never get here.
-	   */
-	  NSLog(@"Argh ... two identical index paths exist!");
-          return NSOrderedSame;
-	}
-      return NSOrderedDescending;
+      /*
+       * Should never get here.
+       */
+      NSLog(@"Argh ... two identical index paths exist!");
     }
+  return NSOrderedSame;
 }
 
 - (id) copyWithZone: (NSZone*)aZone

@@ -69,7 +69,8 @@
 - (void) getIndexes: (unsigned*)aBuffer;
 
 /**
- * Return the index at the specified position or raise an exception.
+ * Return the index at the specified position or NSNotFound if there
+ * is no index at the specified position.
  */
 - (unsigned) indexAtPosition: (unsigned)position;
 
