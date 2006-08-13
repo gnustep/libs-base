@@ -261,6 +261,24 @@ notice and this notice are preserved.
 		variable will cause the program to generate a core dump.
 	      </p>
 	    </desc>
+	    <term>CRASH_ON_ZOMBIE</term>
+	    <desc>
+	      <p>
+		When the a message is sent to a zombie object (see the
+		<code>NSZombieEnabled</code> environment variable) the
+		base library allows you to specify whether the program
+		should continue after logging the message, or have the
+		program abort.<br />
+		By default, the program will attempt to continue.
+	      </p>
+	      <p>
+		The <code>CRASH_ON_ZOMBIE</code> variable can be used to
+		override this behavior.  If this is defined to <em>YES</em>,
+		<em>TRUE</em>, or <em>1</em> then the program will log the
+		message sent to the zombie and then abort, producing a
+		core dump on systems where that is possible.
+	      </p>
+	    </desc>
 	    <term>GNUSTEP_STRING_ENCODING</term>
 	    <desc>
 	      <p>
@@ -405,7 +423,9 @@ notice and this notice are preserved.
 		You can set a breakpoint in this function and examine the
 		process memory if you are running under a debugger.<br />
 		As this overrides actual object deallocation, all memory
-		allocated for objects will be leaked!
+		allocated for objects will be leaked!<br />
+		You can use the <code>CRASH_ON_ZOMBIE</code> environment
+		variable to force an abort afdter the message is logged.
 	      </p>
 	    </desc>
 	    <term>SOCKS5_SERVER</term>

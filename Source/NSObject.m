@@ -147,6 +147,10 @@ static void GSLogZombie(id o, SEL sel)
       NSLog(@"Deallocated %@ (0x%x) sent %@",
 	NSStringFromClass(c), o, NSStringFromSelector(sel));
     }
+  if (GSEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
+    {
+      abort();
+    }
 }
 
 
