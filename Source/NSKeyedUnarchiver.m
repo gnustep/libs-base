@@ -312,6 +312,7 @@ static NSMapTable	globalClassMap = 0;
   NS_HANDLER
     {
       DESTROY(u);
+      DESTROY(o);
       [localException raise];
     }
   NS_ENDHANDLER
@@ -323,12 +324,9 @@ static NSMapTable	globalClassMap = 0;
   NSData	*d;
   id		o;
 
-  // CREATE_AUTORELEASE_POOL(pool);
   d = [NSData dataWithContentsOfFile: aPath];
   o = [self unarchiveObjectWithData: d];
-  // RETAIN(o);
-  // RELEASE(pool);
-  return AUTORELEASE(o);
+  return o;
 }
 
 - (BOOL) allowsKeyedCoding
