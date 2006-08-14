@@ -1,3 +1,10 @@
+2006-08-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedArchiver.m: make a guess at how MacOS-X decides to
+	encode objects directly ... if the classForKeyedArchiver method
+	returns a property list class (other then array and dictionary
+	which contain other objects) we try direct coding.
+
 2006-08-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFormat.m: optimise a bit and fix bug where utf8 (and other
