@@ -242,13 +242,15 @@ static NSDictionary *makeReference(unsigned ref)
 	    }
 	  else
 	    {
-	      Class	c = [anObject class];
+	      Class	c = [anObject classForKeyedArchiver];
 
 	      // FIXME ... exactly what classes are stored directly???
-	      if ([anObject isKindOfClass: [GSString class]] == YES
-		|| c == [@"literal" class])
+	      if (c == [NSString class]
+	        || c == [NSNumber class]
+	        || c == [NSDate class]
+	        || c == [NSData class]
+		)
 		{
-		  // We will store the string object directly.
 		  objectInfo = anObject;
 		}
 	      else
