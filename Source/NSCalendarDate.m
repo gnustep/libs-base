@@ -21,7 +21,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSCalendarDate class reference</title>
    $Date$ $Revision$
@@ -863,7 +864,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    {
 		      error = YES;
 		      NSDebugMLog(@"Day of week '%@' not found in locale",
-			  currDay);
+			currDay);
 		    }
 		  else
 		    {
@@ -906,7 +907,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    {
 		      error = YES;
 		      NSDebugMLog(@"Day of week '%@' not found in locale",
-			  currDay);
+			currDay);
 		    }
 		  else
 		    {
@@ -948,7 +949,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    {
 		      error = YES;
 		      NSDebugMLog(@"Month of year '%@' not found in locale",
-			  currMonth);
+			currMonth);
 		    }
 		  else
 		    {
@@ -992,7 +993,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    {
 		      error = YES;
 		      NSDebugMLog(@"Month of year '%@' not found in locale",
-			  currMonth);
+			currMonth);
 		    }
 		  else
 		    {
