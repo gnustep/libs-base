@@ -464,11 +464,6 @@ static BOOL		_ByteEncodingOk;
 static const unichar byteOrderMark = 0xFEFF;
 static const unichar byteOrderMarkSwapped = 0xFFFE;
 
-/* UTF-16 Surrogate Ranges */
-static NSRange  highSurrogateRange = {0xD800, 1024};
-static NSRange  lowSurrogateRange = {0xDC00, 1024};
-
-
 #ifdef HAVE_REGISTER_PRINTF_FUNCTION
 #include <stdio.h>
 #include <printf.h>
@@ -2765,161 +2760,45 @@ handle_printf_atsign (FILE *stream,
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
 	 allowLossyConversion: (BOOL)flag
 {
-  unsigned int	count = 0;
-  unsigned int	len = [self length];
-  unichar	(*caiImp)(NSString*, SEL, unsigned int);
+  unsigned	len = [self length];
+  NSData	*d;
 
   if (len == 0)
     {
-      return [NSDataClass data];
-    }
-
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
-  if ((encoding == NSASCIIStringEncoding)
-    || (encoding == NSISOLatin1StringEncoding)
-    || (encoding == NSISOLatin2StringEncoding)
-    || (encoding == NSNEXTSTEPStringEncoding)
-    || (encoding == NSNonLossyASCIIStringEncoding)
-    || (encoding == NSSymbolStringEncoding)
-    || (encoding == NSISOCyrillicStringEncoding)
-    || (encoding == NSISOThaiStringEncoding))
-    {
-      unsigned char	*buff;
-
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
-      if (!flag)
-	{
-	  for (count = 0; count < len; count++)
-	    {
-	      unichar		u = (*caiImp)(self, caiSel, count);
-	      unsigned		size = 1;
-	      unsigned char	*dst = buff + count;
-
-	      // We know this is a single byte encoding
-	      if (GSFromUnicode(&dst, &size, &u, 1, encoding, 0, GSUniStrict)
-		== NO)
-		{
-		  NSZoneFree(NSDefaultMallocZone(), buff);
-		  return nil;
-		}
-	    }
-	}
-      else /* lossy */
-	{
-	  for (count = 0; count < len; count++)
-	    {
-	      unichar		u = (*caiImp)(self, caiSel, count);
-	      unsigned		size = 1;
-	      unsigned char	*dst = buff + count;
-
-	      // We know this is a single byte encoding
-	      if (GSFromUnicode(&dst, &size, &u, 1, encoding, 0, 0) == NO)
-		{
-		  NSZoneFree(NSDefaultMallocZone(), buff);
-		  return nil;
-		}
-	    }
-	}
-      buff[count] = '\0';
-      return [NSDataClass dataWithBytesNoCopy: buff length: count];
-    }
-  else if (encoding == NSUTF8StringEncoding)
-    {
-      unsigned char	*buff;
-      unsigned		i, j;
-      unichar		ch, ch2;
-      uint32_t		cp;
-
-      buff = (unsigned char *)NSZoneMalloc(NSDefaultMallocZone(), len*3);
-
-      /*
-       * Each UTF-16 character maps to at most 3 bytes of UTF-8, so we simply
-       * allocate three times as many bytes as UTF-16 characters, then use
-       * NSZoneRealloc() later to trim the excess.  Most Unix virtual memory
-       * implementations allocate address space, and actual memory pages are
-       * not actually allocated until used, so this method shouldn't cause
-       * memory problems on most Unix systems.  On other systems, it may prove
-       * advantageous to scan the UTF-16 string to determine the UTF-8 string
-       * length before allocating memory.
-       */
-      for (i = j = 0; i < len; i++)
-        {
-          ch = (*caiImp)(self, caiSel, i);
-          if (NSLocationInRange(ch, highSurrogateRange) && ((i+1) < len))
-            {
-              ch2 = (*caiImp)(self, caiSel, i+1);
-              if (NSLocationInRange(ch2, lowSurrogateRange))
-                {
-                  cp = surrogatePairValue(ch, ch2);
-                  i++;
-                }
-              else
-                cp = (uint32_t)ch;
-            }
-          else
-            cp = (uint32_t)ch;
-
-          if (cp < 0x80)
-            {
-              buff[j++] = cp;
-            }
-          else if (cp < 0x800)
-            {
-              buff[j++] = 0xC0 | ch>>6;
-              buff[j++] = 0x80 | (ch & 0x3F);
-            }
-          else if (cp < 0x10000)
-            {
-              buff[j++] = 0xE0 | ch>>12;
-              buff[j++] = 0x80 | (ch>>6 & 0x3F);
-              buff[j++] = 0x80 | (ch & 0x3F);
-            }
-          else if (cp < 0x200000)
-            {
-              buff[j++] = 0xF0 | ch>>18;
-              buff[j++] = 0x80 | (ch>>12 & 0x3F);
-              buff[j++] = 0x80 | (ch>>6 & 0x3F);
-              buff[j++] = 0x80 | (ch & 0x3F);
-            }
-        }
-
-      buff = NSZoneRealloc(NSDefaultMallocZone(), buff, j);
-
-      return [NSDataClass dataWithBytesNoCopy: buff
-                                       length: j];
-    }
-  else if (encoding == NSUnicodeStringEncoding)
-    {
-      unichar	*buff;
-
-      buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
-	sizeof(unichar)*(len+1));
-      buff[0] = byteOrderMark;
-      [self getCharacters: &buff[1] range: ((NSRange){0, len})];
-      return [NSDataClass dataWithBytesNoCopy: buff
-					length: sizeof(unichar)*(len+1)];
+      d = [NSDataClass data];
     }
   else
     {
-      unsigned char	*b = 0;
-      unsigned		l = 0;
-      unichar		*u;
+      unichar	buf[8192];
+      unichar	*u = buf;
+      GSStr_t	s;
 
-      u = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), len*sizeof(unichar));
-      [self getCharacters: u range: ((NSRange){0, len})];
-      if (GSFromUnicode(&b, &l, u, len, encoding, NSDefaultMallocZone(),
-	(flag == NO) ? GSUniStrict : 0)
-	== NO)
+      /* Build a fake object on the stack and copy unicode characters
+       * into its buffer from the receiver.
+       * We can then use our concrete subclass implementation to do the
+       * work of converting to the desired encoding.
+       */
+      if (len >= 4096)
 	{
-	  NSZoneFree(NSDefaultMallocZone(), u);
-	  return nil;
+	  u = objc_malloc(len * sizeof(unichar));
 	}
-      NSZoneFree(NSDefaultMallocZone(), u);
-      return [NSDataClass dataWithBytesNoCopy: b length: l];
+      [self getCharacters: u];
+      s.isa = GSMutableStringClass;
+      s._zone = 0;
+      s._contents.u = u;
+      s._capacity = len;
+      s._count = len;
+      s._flags.wide = 1;
+      s._flags.free = 0;
+      d = [(NSString*)&s dataUsingEncoding: encoding
+		      allowLossyConversion: flag];
+      if (u != buf)
+	{
+	  objc_free(u);
+	}
     }
-  return nil;
+  return d;
 }
-
 
 /**
  * Returns the encoding with which this string can be converted without

@@ -158,17 +158,20 @@ instance.
 @interface GSCSubString : GSCString
 {
 @public
-  GSCString	*_parent;
+  GSString	*_parent;
 }
 @end
 
 @interface GSUnicodeSubString : GSUnicodeString
 {
 @public
-  GSUnicodeString	*_parent;
+  GSString	*_parent;
 }
 @end
 
+typedef struct {
+  @defs(GSCSubString)
+} GSSubstringStruct;
 
 /*
  *	Include sequence handling code with instructions to generate search
@@ -1304,7 +1307,9 @@ cString_u(GSStr self, NSStringEncoding enc)
       tmp = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), (c + 1)*2);
       memcpy(tmp, self->_contents.u, c*2);
       tmp[c] = 0;
-      [NSData dataWithBytesNoCopy: tmp length: (c + 1)*2 freeWhenDone: YES];
+      [NSDataClass dataWithBytesNoCopy: tmp
+				length: (c + 1)*2
+			  freeWhenDone: YES];
       return (char*)tmp;
     }
   else
@@ -1496,8 +1501,8 @@ dataUsingEncoding_u(GSStr self, NSStringEncoding encoding, BOOL lossy)
 		}
 	    }
 	}
-      return [NSData dataWithBytesNoCopy: buff
-				  length: sizeof(unichar)*to];
+      return [NSDataClass dataWithBytesNoCopy: buff
+				       length: sizeof(unichar)*to];
     }
   else
     {
@@ -2545,9 +2550,7 @@ rangeOfString_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 static inline NSString*
 substring_c(GSStr self, NSRange aRange)
 {
-  struct {
-    @defs(GSCSubString)
-  } *o;
+  GSSubstringStruct	*o;
 
   if (aRange.length == 0)
     {
@@ -2567,9 +2570,7 @@ substring_c(GSStr self, NSRange aRange)
 static inline NSString*
 substring_u(GSStr self, NSRange aRange)
 {
-  struct {
-    @defs(GSUnicodeSubString)
-  } *o;
+  GSSubstringStruct	*o;
 
   if (aRange.length == 0)
     {

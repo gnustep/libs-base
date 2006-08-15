@@ -1,3 +1,13 @@
+2006-08-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: substring_c(), substring_u() move structure type
+	declaration out of function to help old (pre-gcc-3) compiler, as
+	suggested by Adam.
+	* Source/NSString: ([dataUsingEncoding:allowLossyConversion:]}
+	replace implementation with call to concrete subclass so that we only
+	have one version of this large, complex method to maintain, as
+	suggested by David.
+
 2006-08-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedArchiver.m: make a guess at how MacOS-X decides to
