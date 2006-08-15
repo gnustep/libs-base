@@ -2767,11 +2767,34 @@ handle_printf_atsign (FILE *stream,
     {
       d = [NSDataClass data];
     }
+  else if (encoding == NSUnicodeStringEncoding)
+    {
+      unichar	*u;
+      unsigned	l;
+
+      u = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
+	(len + 1) * sizeof(unichar));
+      *u = byteOrderMark;
+      [self getCharacters: u + 1];
+      l = GSUnicode(u, len, 0, 0);
+      if (l == len || flag == YES)
+	{
+	  d = [NSDataClass dataWithBytesNoCopy: u
+					length: (l + 1) * sizeof(unichar)];
+	}
+      else
+	{
+	  d = nil;
+	  NSZoneFree(NSDefaultMallocZone(), u);
+	}
+    }
   else
     {
-      unichar	buf[8192];
-      unichar	*u = buf;
-      GSStr_t	s;
+      unichar		buf[8192];
+      unichar		*u = buf;
+      unsigned int	options;
+      unsigned char	*b = 0;
+      unsigned int	l = 0;
 
       /* Build a fake object on the stack and copy unicode characters
        * into its buffer from the receiver.
@@ -2783,15 +2806,23 @@ handle_printf_atsign (FILE *stream,
 	  u = objc_malloc(len * sizeof(unichar));
 	}
       [self getCharacters: u];
-      s.isa = GSMutableStringClass;
-      s._zone = 0;
-      s._contents.u = u;
-      s._capacity = len;
-      s._count = len;
-      s._flags.wide = 1;
-      s._flags.free = 0;
-      d = [(NSString*)&s dataUsingEncoding: encoding
-		      allowLossyConversion: flag];
+      if (flag == NO)
+        {
+	  options = GSUniStrict;
+	}
+      else
+        {
+	  options = 0;
+	}
+      if (GSFromUnicode(&b, &l, u, len, encoding, NSDefaultMallocZone(),
+	options) == YES)
+	{
+	  d = [NSDataClass dataWithBytesNoCopy: b length: l];
+	}
+      else
+        {
+	  d = nil;
+	}
       if (u != buf)
 	{
 	  objc_free(u);
