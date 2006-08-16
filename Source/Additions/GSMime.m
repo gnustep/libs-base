@@ -2185,6 +2185,11 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  * headers it is parsing.
  * RFC2047 word encoding in the header is handled by creating a
  * string containing the decoded words.
+ * Strictly speaking, the header should be plain ASCII data with escapes
+ * for non-ascii characters, but for the sake of fault tolerance, we also
+ * attempt to use the default encoding currently set for the document,
+ * and if that fails we try UTF8.  Only if none of these works do we
+ * assume that the header is corrupt/unparsable.
  */
 - (NSString*) _decodeHeader
 {
@@ -2224,6 +2229,18 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      s = [s initWithBytes: beg
 			    length: dst - beg
 			  encoding: NSASCIIStringEncoding];
+	      if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
+	        {
+		  s = [s initWithBytes: beg
+				length: dst - beg
+			      encoding: _defaultEncoding];
+		  if (s == nil && _defaultEncoding != NSUTF8StringEncoding)
+		    {
+		      s = [s initWithBytes: beg
+				    length: dst - beg
+				  encoding: NSUTF8StringEncoding];
+		    }
+		}
 	      [hdr appendString: s];
 	      RELEASE(s);
 	      dst = beg;
@@ -2249,7 +2266,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  *src = '\0';
 
 	  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-	  s = [s initWithCString: (const char *)tmp];
+	  s = [s initWithUTF8String: (const char *)tmp];
 	  enc = [documentClass encodingFromCharset: s];
 	  RELEASE(s);
 
@@ -2322,6 +2339,18 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       s = [s initWithBytes: beg
 		    length: dst - beg
 		  encoding: NSASCIIStringEncoding];
+      if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
+	{
+	  s = [s initWithBytes: beg
+			length: dst - beg
+		      encoding: _defaultEncoding];
+	  if (s == nil && _defaultEncoding != NSUTF8StringEncoding)
+	    {
+	      s = [s initWithBytes: beg
+			    length: dst - beg
+			  encoding: NSUTF8StringEncoding];
+	    }
+	}
       [hdr appendString: s];
       RELEASE(s);
       dst = beg;
