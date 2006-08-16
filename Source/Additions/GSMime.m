@@ -2231,11 +2231,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 			  encoding: NSASCIIStringEncoding];
 	      if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
 	        {
+		  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		  s = [s initWithBytes: beg
 				length: dst - beg
 			      encoding: _defaultEncoding];
 		  if (s == nil && _defaultEncoding != NSUTF8StringEncoding)
 		    {
+		      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		      s = [s initWithBytes: beg
 				    length: dst - beg
 				  encoding: NSUTF8StringEncoding];
@@ -2341,11 +2343,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  encoding: NSASCIIStringEncoding];
       if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
 	{
+	  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 	  s = [s initWithBytes: beg
 			length: dst - beg
 		      encoding: _defaultEncoding];
 	  if (s == nil && _defaultEncoding != NSUTF8StringEncoding)
 	    {
+	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 	      s = [s initWithBytes: beg
 			    length: dst - beg
 			  encoding: NSUTF8StringEncoding];
