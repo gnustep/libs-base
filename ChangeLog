@@ -1,3 +1,18 @@
+2006-08-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSCharacterSets/letterCharSet.dat:
+	* NSCharacterSets/symbolAndOperatorCharSet.dat:
+	* NSCharacterSets/lowercaseLetterCharSet.dat:
+	* NSCharacterSets/uppercaseLetterCharSet.dat:
+	* NSCharacterSets/alphanumericCharSet.dat:
+	* NSCharacterSets/punctuationCharSet.dat:
+	* NSCharacterSets/illegalCharSet.dat:
+	* NSCharacterSets/decimalDigitCharSet.dat:
+	* NSCharacterSets/nonBaseCharSet.dat:
+	* NSCharacterSets/decomposableCharSet.dat: Update for chinese etc.
+	* Source/NSCharacterSetData.h: Update with ranges in UnicodeData.txt
+	* Source/GSStream.m: Add partial implemenmtation of socks5
+
 2006-08-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: substring_c(), substring_u() move structure type

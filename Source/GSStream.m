@@ -848,3 +848,404 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @end
 
+
+/*
+ * States for socks connection negotiation
+ */
+NSString * const GSSOCKSOfferAuth = @"GSSOCKSOfferAuth";
+NSString * const GSSOCKSRecvAuth = @"GSSOCKSRecvAuth";
+NSString * const GSSOCKSSendAuth = @"GSSOCKSSendAuth";
+NSString * const GSSOCKSAckAuth = @"GSSOCKSAckAuth";
+NSString * const GSSOCKSSendConn = @"GSSOCKSSendConn";
+NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
+
+@interface	GSSOCKS
+{
+  NSString		*state;
+  NSString		*addr;
+  int			port;
+  int			roffset;
+  int			woffset;
+  int			rwant;
+  unsigned char		rbuffer[128];
+  NSInputStream		*istream;
+  NSOutputStream	*ostream;
+}
+- (NSString*) addr;
+- (id) initToAddr: (NSString*)_addr port: (int)_port;
+- (int) port;
+- (NSString*) stream: (NSStream*)stream SOCKSEvent: (NSStreamEvent)event;
+@end
+
+@implementation	GSSOCKS
+- (NSString*) addr
+{
+  return addr;
+}
+
+- (id) initToAddr: (NSString*)_addr port: (int)_port
+{
+  ASSIGNCOPY(addr, _addr);
+  port = _port;
+  state = GSSOCKSOfferAuth;
+  return self;
+}
+
+- (int) port
+{
+  return port;
+}
+
+- (NSString*) stream: (NSStream*)stream SOCKSEvent: (NSStreamEvent)event
+{
+  NSString		*error = nil;
+  NSDictionary		*conf;
+  NSString		*user;
+  NSString		*pass;
+
+  if (event == NSStreamEventErrorOccurred
+    || [stream streamStatus] == NSStreamStatusError
+    || [stream streamStatus] == NSStreamStatusClosed)
+    {
+      return @"SOCKS errur during negotiation";
+    }
+
+  conf = [stream propertyForKey: NSStreamSOCKSProxyConfigurationKey];
+  user = [conf objectForKey: NSStreamSOCKSProxyUserKey];
+  pass = [conf objectForKey: NSStreamSOCKSProxyPasswordKey];
+  if ([[conf objectForKey: NSStreamSOCKSProxyVersionKey]
+    isEqual: NSStreamSOCKSProxyVersion4] == YES)
+    {
+    }
+  else
+    {
+      again:
+
+      if (state == GSSOCKSOfferAuth)
+	{
+	  int		result;
+	  int		want;
+	  unsigned char	buf[4];
+
+	  /*
+	   * Authorisation record is at least three bytes -
+	   *   socks version (5)
+	   *   authorisation method bytes to follow (1)
+	   *   say we do no authorisation (0)
+	   *   say we do user/pass authorisation (2)
+	   */
+	  buf[0] = 5;
+	  if (user && pass)
+	    {
+	      buf[1] = 2;
+	      buf[2] = 2;
+	      buf[3] = 0;
+	      want = 4;
+	    }
+	  else
+	    {
+	      buf[1] = 1;
+	      buf[2] = 0;
+	      want = 3;
+	    }
+
+	  result = [ostream write: buf + woffset maxLength: 4 - woffset];
+	  if (result == 0)
+	    {
+	      error = @"end-of-file during SOCKS negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      woffset += result;
+	      if (woffset == want)
+		{
+		  woffset = 0;
+		  state = GSSOCKSRecvAuth;
+		  goto again;
+		}
+	    }
+	}
+      else if (state == GSSOCKSRecvAuth)
+	{
+	  int	result;
+
+	  result = [istream read: rbuffer + roffset maxLength: 2 - roffset];
+	  if (result == 0)
+	    {
+	      error = @"SOCKS end-of-file during negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      roffset += result;
+	      if (roffset == 2)
+		{
+		  roffset = 0;
+		  if (rbuffer[0] != 5)
+		    {
+		      error = @"SOCKS authorisation response had wrong version";
+		    }
+		  else if (rbuffer[1] == 0)
+		    {
+		      state = GSSOCKSSendConn;
+		      goto again;
+		    }
+		  else if (rbuffer[1] == 2)
+		    {
+		      state = GSSOCKSSendAuth;
+		      goto again;
+		    }
+		  else
+		    {
+		      error = @"SOCKS authorisation response had wrong method";
+		    }
+		}
+	    }
+	}
+      else if (state == GSSOCKSSendAuth)
+	{
+	  NSData	*u = [user dataUsingEncoding: NSUTF8StringEncoding];
+	  unsigned	ul = [u length];
+	  NSData	*p = [pass dataUsingEncoding: NSUTF8StringEncoding];
+	  unsigned	pl = [p length];
+
+	  if (ul < 1 || ul > 255)
+	    {
+	      error = @"NSStreamSOCKSProxyUserKey value too long";
+	    }
+	  else if (ul < 1 || ul > 255)
+	    {
+	      error = @"NSStreamSOCKSProxyPasswordKey value too long";
+	    }
+	  else
+	    {
+	      int		want = ul + pl + 3;
+	      unsigned char	buf[want];
+	      int		result;
+
+	      buf[0] = 5;
+	      buf[1] = ul;
+	      memcpy(buf + 2, [u bytes], ul);
+	      buf[ul + 2] = pl;
+	      memcpy(buf + ul + 3, [p bytes], pl);
+	      result = [ostream write: buf + woffset maxLength: want - woffset];
+	      if (result == 0)
+		{
+		  error = @"SOCKS end-of-file during negotiation";
+		}
+	      else if (result > 0)
+		{
+		  woffset += result;
+		  if (woffset == want)
+		    {
+		      state = GSSOCKSAckAuth;
+		      goto again;
+		    }
+		}
+	    }
+	}
+      else if (state == GSSOCKSAckAuth)
+	{
+	  int	result;
+
+	  result = [istream read: rbuffer + roffset maxLength: 2 - roffset];
+	  if (result == 0)
+	    {
+	      error = @"SOCKS end-of-file during negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      roffset += result;
+	      if (roffset == 2)
+		{
+		  roffset = 0;
+		  if (rbuffer[0] != 5)
+		    {
+		      error = @"SOCKS authorisation response had wrong version";
+		    }
+		  else if (rbuffer[1] == 0)
+		    {
+		      state = GSSOCKSSendConn;
+		      goto again;
+		    }
+		  else if (rbuffer[1] == 2)
+		    {
+		      error = @"SOCKS authorisation failed";
+		    }
+		}
+	    }
+	}
+      else if (state == GSSOCKSSendConn)
+	{
+	  unsigned char	buf[10];
+	  int		want = 10;
+	  int		result;
+	  const char	*ptr;
+
+	  /*
+	   * Connect command is ten bytes -
+	   *   socks version
+	   *   connect command
+	   *   reserved byte
+	   *   address type
+	   *   address 4 bytes (big endian)
+	   *   port 2 bytes (big endian)
+	   */
+	  buf[0] = 5;	// Socks version number
+	  buf[1] = 1;	// Connect command
+	  buf[2] = 0;	// Reserved
+	  buf[3] = 1;	// Address type (IPV4)
+	  ptr = [addr lossyCString];
+	  buf[4] = atoi(ptr);
+	  while (isdigit(*ptr))
+	    ptr++;
+	  ptr++;
+	  buf[5] = atoi(ptr);
+	  while (isdigit(*ptr))
+	    ptr++;
+	  ptr++;
+	  buf[6] = atoi(ptr);
+	  while (isdigit(*ptr))
+	    ptr++;
+	  ptr++;
+	  buf[7] = atoi(ptr);
+	  buf[8] = ((port & 0xff00) >> 8);
+	  buf[9] = (port & 0xff);
+
+	  result = [ostream write: buf + woffset maxLength: want - woffset];
+	  if (result == 0)
+	    {
+	      error = @"SOCKS end-of-file during negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      woffset += result;
+	      if (woffset == want)
+		{
+		  rwant = 5;
+		  state = GSSOCKSAckConn;
+		  goto again;
+		}
+	    }
+	}
+      else if (state == GSSOCKSAckConn)
+	{
+	  int	result;
+
+	  result = [istream read: rbuffer + roffset maxLength: rwant - roffset];
+	  if (result == 0)
+	    {
+	      error = @"SOCKS end-of-file during negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      roffset += result;
+	      if (roffset == rwant)
+		{
+		  if (rbuffer[0] != 5)
+		    {
+		      error = @"connect response from SOCKS had wrong version";
+		    }
+		  else if (rbuffer[1] != 0)
+		    {
+		      switch (rbuffer[1])
+			{
+			  case 1:
+			    error = @"SOCKS server general failure";
+			    break;
+			  case 2:
+			    error = @"SOCKS server says permission denied";
+			    break;
+			  case 3:
+			    error = @"SOCKS server says network unreachable";
+			    break;
+			  case 4:
+			    error = @"SOCKS server says host unreachable";
+			    break;
+			  case 5:
+			    error = @"SOCKS server says connection refused";
+			    break;
+			  case 6:
+			    error = @"SOCKS server says connection timed out";
+			    break;
+			  case 7:
+			    error = @"SOCKS server says command not supported";
+			    break;
+			  case 8:
+			    error = @"SOCKS server says address not supported";
+			    break;
+			  default:
+			    error = @"connect response from SOCKS was failure";
+			    break;
+			}
+		    }
+		  else if (rbuffer[3] == 1)
+		    {
+		      rwant = 10;		// Fixed size (IPV4) address
+		    }
+		  else if (rbuffer[3] == 3)
+		    {
+		      rwant = 7 + rbuffer[4];	// Domain name leading length
+		    }
+		  else if (rbuffer[3] == 4)
+		    {
+		      rwant = 22;		// Fixed size (IPV6) address
+		    }
+		  else
+		    {
+		      error = @"SOCKS server returned unknown address type";
+		    }
+		  if (error == nil)
+		    {
+		      if (roffset < rwant)
+			{
+			  goto again;	// Need address/port bytes
+			}
+		      else
+			{
+			  NSString	*a;
+
+			  error = @"";	// success
+			  if (rbuffer[3] == 1)
+			    {
+			      a = [NSString stringWithFormat: @"%d.%d.%d.%d",
+			        rbuffer[4], rbuffer[5], rbuffer[6], rbuffer[7]];
+			    }
+			  else if (rbuffer[3] == 3)
+			    {
+			      rbuffer[rwant] = '\0';
+			      a = [NSString stringWithUTF8String:
+			        (const char*)rbuffer];
+			    }
+			  else if (rbuffer[3] == 4)
+			    {
+			      unsigned char	buf[40];
+			      int		i = 4;
+			      int		j = 0;
+
+			      while (i < rwant)
+			        {
+				  int	val = rbuffer[i++] * 256 + rbuffer[i++];
+
+				  if (i > 4)
+				    {
+				      buf[j++] = ':';
+				    }
+				  sprintf((char*)&buf[j], "%04x", val);
+				  j += 4;
+				}
+			      a = [NSString stringWithUTF8String:
+			        (const char*)buf];
+			    }
+			  ASSIGN(addr, a);
+			  port =  rbuffer[rwant-1] * 256 * rbuffer[rwant-2];
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+  return error;
+}
+
+@end
