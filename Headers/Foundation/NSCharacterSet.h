@@ -51,7 +51,7 @@
 #endif
 
 /**
- *  Returns a character set containing control and format characters.
+ * Returns a character set containing control and format characters.
  */
 + (NSCharacterSet*) controlCharacterSet;
 
@@ -68,7 +68,7 @@
 + (NSCharacterSet*) decomposableCharacterSet;
 
 /**
- * Returns a character set containing unassigned (illegal)
+ * Returns a character set containing unassigned and explicitly illegal
  * character values.
  */
 + (NSCharacterSet*) illegalCharacterSet;
