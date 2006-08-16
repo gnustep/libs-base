@@ -852,12 +852,12 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 /*
  * States for socks connection negotiation
  */
-NSString * const GSSOCKSOfferAuth = @"GSSOCKSOfferAuth";
-NSString * const GSSOCKSRecvAuth = @"GSSOCKSRecvAuth";
-NSString * const GSSOCKSSendAuth = @"GSSOCKSSendAuth";
-NSString * const GSSOCKSAckAuth = @"GSSOCKSAckAuth";
-NSString * const GSSOCKSSendConn = @"GSSOCKSSendConn";
-NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
+static NSString * const GSSOCKSOfferAuth = @"GSSOCKSOfferAuth";
+static NSString * const GSSOCKSRecvAuth = @"GSSOCKSRecvAuth";
+static NSString * const GSSOCKSSendAuth = @"GSSOCKSSendAuth";
+static NSString * const GSSOCKSAckAuth = @"GSSOCKSAckAuth";
+static NSString * const GSSOCKSSendConn = @"GSSOCKSSendConn";
+static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
 @interface	GSSOCKS
 {
