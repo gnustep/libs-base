@@ -2,6 +2,12 @@
 
 	* Source/NSScanner.m: initialisation fix pointed out by David Ayer
 	* Source/NSBundle.m: fix for getting class from gnustep bundle
+	* Source/NSConnection.m: thread deadlock fix based on probelm and
+	solution supplied by Wim Oudshoorn
+	* Source/NSArchiver.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSPortCoder.m: Fix possible problem on 64bit CPUs reported
+	by Wim.
 
 2006-08-16  Richard Frith-Macdonald <rfm@gnu.org>
 

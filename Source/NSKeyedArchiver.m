@@ -42,7 +42,7 @@
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_HASH(M, X)	((X).uint)
-#define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
+#define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #undef	GSI_MAP_NOCLEAN
 
 #include "GNUstepBase/GSIMap.h"

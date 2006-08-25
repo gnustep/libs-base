@@ -3613,23 +3613,28 @@ static void callEncoder (DOContext *ctxt)
  */
 + (void) _threadWillExit: (NSNotification*)notification
 {
-  NSRunLoop		*runLoop = GSRunLoopForThread([notification object]);
+  NSRunLoop *runLoop = GSRunLoopForThread ([notification object]);
 
   if (runLoop != nil)
     {
-      NSHashEnumerator	enumerator;
+      NSEnumerator	*enumerator;
       NSConnection	*c;
 
-      M_LOCK(connection_table_gate);
-      enumerator = NSEnumerateHashTable(connection_table);
-      while ((c = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
+      M_LOCK (connection_table_gate);
+      enumerator = [NSAllHashTableObjects(connection_table) objectEnumerator];
+      M_UNLOCK (connection_table_gate);
+
+      /*
+       * We enumerate an array copy of the contents of the hash table
+       * as we know we can do that safely outside the locked region.
+       * The temporary array and the enumerator are autoreleased and
+       * will be deallocated with the threads autorelease pool. 
+       */
+      while ((c = [enumerator nextObject]) != nil)
 	{
 	  [c removeRunLoop: runLoop];
 	}
-      NSEndHashTableEnumeration(&enumerator);
-      M_UNLOCK(connection_table_gate);
     }
 }
-
 @end
 
