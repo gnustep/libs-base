@@ -20,7 +20,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSScanner class reference</title>
    $Date$ $Revision$
@@ -219,9 +220,9 @@ typedef struct {
       else
 	{
 	  _isUnicode = NO;
-	  _string = [_holder initWithCString:
-	    (char*)((ivars)aString)->_contents.c
-	    length: ((ivars)aString)->_count];
+	  _string = [_holder initWithBytes: ((ivars)aString)->_contents.c
+				    length: ((ivars)aString)->_count
+				  encoding: internalEncoding];
 	}
     }
   else if (c == NSConstantStringClass)
