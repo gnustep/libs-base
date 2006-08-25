@@ -1,3 +1,8 @@
+2006-08-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSScanner.m: initialisation fix pointed out by David Ayer
+	* Source/NSBundle.m: fix for getting class from gnustep bundle
+
 2006-08-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSCharacterSets/letterCharSet.dat:

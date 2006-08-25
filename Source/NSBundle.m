@@ -1265,8 +1265,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (self == _mainBundle || self == _gnustep_bundle)
     {
       theClass = NSClassFromString(className);
-      if (theClass && [[self class] bundleForClass:theClass] != _mainBundle)
-	theClass = Nil;
+      if (theClass && [[self class] bundleForClass: theClass] != self)
+        {
+	  theClass = Nil;
+	}
     }
   else
     {
