@@ -934,7 +934,7 @@ int main(int argc, char *argv[], char *env[])
 - (NSString *) globallyUniqueString
 {
   static unsigned long	counter = 0;
-  int			count;
+  unsigned long		count;
   static NSString	*host = nil;
   static int		pid;
   static unsigned long	start;
