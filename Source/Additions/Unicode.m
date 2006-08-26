@@ -298,7 +298,7 @@ static void GSSetupEncodingTable(void)
 		{
 		  encTable[tmp] = &str_encoding_table[i];
 #ifdef HAVE_ICONV
-		  if (encTable[tmp]->iconv != 0)
+		  if (encTable[tmp]->iconv != 0 && *(encTable[tmp]->iconv) != 0)
 		    {
 		      iconv_t	c;
 		      char	*lossy;
