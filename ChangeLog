@@ -2,6 +2,7 @@
 
 	* Source/NSProcessInfo.m: Fix passing int variable to printf format
 	expecting long.
+	* Source/NSTask.m: create windows task as detached process.
 
 2006-08-25  Richard Frith-Macdonald <rfm@gnu.org>
 
