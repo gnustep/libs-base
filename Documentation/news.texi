@@ -11,6 +11,14 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.13.0}
+
+Several sets of classes have been added for dealing with urls and
+predicates. A few minor api changes have occured as well.
+See the release notes for more details.
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.12.0}
 
 There have been a number of API changes and several
@@ -18,7 +26,7 @@ methods have been depreciated in this release. Although
 current GNUstep programs that use these methods will still
 work in this version, there are enough changes that a new
 library version was considered useful. See the release notes for more
-details
+details.
 
 New NSStream classes where added to the library.
 
@@ -27,8 +35,6 @@ lazily and can be set to not write to an external file at
 all, for developers who wish to use the library as a
 stand-alone library or in other situations where using
 external resources is not desired.
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.11.2}
 
