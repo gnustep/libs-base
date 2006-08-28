@@ -25,6 +25,76 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.13.0</heading>
+	<p> 
+          Several sets of classes have been added for dealing with urls and
+          predicates. A few minor api changes have occured as well.
+	</p>
+	  <deflist>
+	    <term>Character sets</term>
+	    <desc>
+	       Character sets were improved with regard to ranges (chinese
+               characters, etc).
+	    </desc>
+	    <term>Keyed Archiving</term>
+	    <desc>
+               Better compatibility with MacOSX. In particular, some gueses
+               are made as to how some objects should be encoded.
+	    </desc>
+	    <term>GNUstep configuration file</term>
+	    <desc>
+               Extra keys are allowed in the configuration file with the
+               definition of the GNUSTEP_EXTRA key.
+	    </desc>
+	    <term>URL Loading</term>
+	    <desc>
+              Headers and a basic framework for Apple's new URL loading scheme
+              were added, although this is not fully implemented yet.
+	    </desc>
+	    <term>Objective-C++</term>
+	    <desc>
+               Most of the code was updated to compile nicely with the new
+               gcc objective-c++ compiler.
+	    </desc>
+	    <term>NSString designated initializer</term>
+	    <desc>
+               The GNUstep designated initialiser for the NSString class 
+               cluster has changed to 
+               <code>-initWithBytesNoCopy:length:encoding:freeWhenDone:</code>
+               from 
+               <code>-initWithCharactersNoCopy:length:freeWhenDone:</code> 
+               and older code subclassing NSString will need to be updated.
+	    </desc>
+	    <term>NSBundle bundleWithIndentifier:</term>
+	    <desc>
+              The NSBundle method <code>+bundleWithIdentifier:</code> was
+              added.
+	    </desc>
+	    <term>NSPredicate</term>
+	    <desc>
+               A basic implementation of the NSPredicate classes (NSPredicate,
+               NSComparisonPredicate, NSCompoundPredicate, NSExpression) was
+               added.
+	    </desc>
+	    <term>Stack traces</term>
+	    <desc>
+              Support for getting stack traces via bfd was added 
+              experimentally. You have to define STACKTRACE when compiling
+              base to get this.
+	    </desc>
+	    <term>Languages</term>
+	    <desc>
+               Added new language files Esperanto, Korean, and Ukrainian.
+	    </desc>
+	    <term>Run loops</term>
+	    <desc>
+              Removed the timeout facility for runloop watchers - you should
+              use standard timers instead. The watcher interface is deprecated
+              anyway.
+	    </desc>
+	  </deflist>
+      </section>
+      <section>
 	<heading>Version 1.12.0</heading>
 	<p> There have been a number of API changes and several
 	methods have been depreciated in this release. Although

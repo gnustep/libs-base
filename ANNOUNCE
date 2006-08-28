@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.12.0, is now available.
+The GNUstep Base Library, version 1.13.0, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -18,26 +18,17 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.12.0'
+Noteworthy changes in version `1.13.0'
 ======================================
 
-There have been a number of API changes and several methods have been
-depreciated in this release. Although current GNUstep programs that use
-these methods will still work in this version, there are enough changes
-that a new library version was considered useful. See the release notes
-for more details
-
-   New NSStream classes where added to the library.
-
-   User defaults were restructured to create the defaults lazily and
-can be set to not write to an external file at all, for developers who
-wish to use the library as a stand-alone library or in other situations
-where using external resources is not desired.
+Several sets of classes have been added for dealing with urls and
+predicates. A few minor api changes have occured as well.  See the
+release notes for more details.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-The gnustep-base-1.12.0.tar.gz distribution file has been placed at
+The gnustep-base-1.13.0.tar.gz distribution file has been placed at
 <ftp://ftp.gnustep.org/pub/gnustep/core>.
 
 Please log bug reports on the GNUstep project page
