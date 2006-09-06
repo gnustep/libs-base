@@ -1282,15 +1282,22 @@ static NSLock	*cached_proxies_gate = nil;
   /*
    *	If this would cause the connection to be deallocated then we
    *	must perform all necessary work (done in [-gcFinalize]).
+   *
    *	We bracket the code with a retain and release so that any
    *	retain/release pairs in the code won't cause recursion.
+   *
+   *	We lock the connection table while checking, to prevent
+   *	another thread from grabbing this connection while we are
+   *	finalizing/deallocating it.
    */
+  M_LOCK(connection_table_gate);
   if ([self retainCount] == 1)
     {
       [super retain];
       [self gcFinalize];
       [super release];
     }
+  M_UNLOCK(connection_table_gate);
   [super release];
 }
 
