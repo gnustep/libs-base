@@ -540,7 +540,7 @@ static NSLock	*cached_proxies_gate = nil;
 
       if (connection_table_gate == nil)
 	{
-	  connection_table_gate = [GSLazyLock new];
+	  connection_table_gate = [GSLazyRecursiveLock new];
 	}
       if (cached_proxies_gate == nil)
 	{
