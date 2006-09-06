@@ -1,3 +1,9 @@
+2006-09-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: ([release]) protect with connection table
+	lock to prevent an other thread grabbing the connection while we
+	are deallocating it.  Bug reported by Wim Oudshoorn.
+
 2006-08-28  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.13.0
