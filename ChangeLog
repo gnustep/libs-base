@@ -1,7 +1,11 @@
-2006-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+2006-09-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h: Fix incorrect backward compatibility
 	setting for openstep version.
+	* Source/NSObject.m: minor tweak ... put debugging code in the object
+	reference counting function rather than the release method.
+	* Source/NSConnection.m: Change release implementation for better
+	protection of global connection table management.
 
 2006-09-06  Richard Frith-Macdonald <rfm@gnu.org>
 

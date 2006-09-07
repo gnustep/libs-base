@@ -65,6 +65,20 @@
 extern BOOL __objc_responds_to(id, SEL);
 #endif
 
+/* When this is `YES', every call to release/autorelease, checks to
+   make sure isn't being set up to release itself too many times.
+   This does not need mutex protection. */
+static BOOL double_release_check_enabled = NO;
+
+/* The Class responsible for handling autorelease's.  This does not
+   need mutex protection, since it is simply a pointer that gets read
+   and set. */
+static id autorelease_class = nil;
+static SEL autorelease_sel;
+static IMP autorelease_imp;
+
+
+
 #if GS_WITH_GC
 
 #include	<gc.h>
@@ -242,12 +256,21 @@ static GSIMapTable_t	retain_counts = {0};
  * (and hence whether the extra reference count was decremented).<br />
  * This function is used by the [NSObject-release] method.
  */
-inline BOOL
+BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
 #if	GS_WITH_GC
   return NO;
 #else	/* GS_WITH_GC */
+  if (double_release_check_enabled)
+    {
+      unsigned release_count;
+      unsigned retain_count = [anObject retainCount];
+      release_count = [autorelease_class autoreleaseCountForObject: anObject];
+      if (release_count >= retain_count)
+        [NSException raise: NSGenericException
+		    format: @"Release would release object too many times."];
+    }
 #if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
@@ -696,20 +719,6 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 
 
 
-/* The Class responsible for handling autorelease's.  This does not
-   need mutex protection, since it is simply a pointer that gets read
-   and set. */
-static id autorelease_class = nil;
-static SEL autorelease_sel;
-static IMP autorelease_imp;
-
-/* When this is `YES', every call to release/autorelease, checks to
-   make sure isn't being set up to release itself too many times.
-   This does not need mutex protection. */
-static BOOL double_release_check_enabled = NO;
-
-
-
 struct objc_method_description_list {
   int count;
   struct objc_method_description list[1];
@@ -1828,16 +1837,6 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 - (oneway void) release
 {
 #if	GS_WITH_GC == 0
-  if (double_release_check_enabled)
-    {
-      unsigned release_count;
-      unsigned retain_count = [self retainCount];
-      release_count = [autorelease_class autoreleaseCountForObject:self];
-      if (release_count >= retain_count)
-        [NSException raise: NSGenericException
-		     format: @"Release would release object too many times."];
-    }
-
   if (NSDecrementExtraRefCountWasZero(self))
     {
       [self dealloc];
