@@ -1,3 +1,8 @@
+2006-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h: Fix incorrect backward compatibility
+	setting for openstep version.
+
 2006-09-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: ([release]) protect with connection table
