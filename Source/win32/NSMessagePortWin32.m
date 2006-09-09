@@ -203,11 +203,13 @@ static Class		messagePortClass = 0;
     {
       p = [[self alloc] initWithName: name];
     }
-  else
-    {
-      [p _setupSendPort];
-    }
   M_UNLOCK(messagePortLock);
+  if ([self _setupSendPort] == NO)
+    {
+      NSLog(@"unable to access mailslot '%@' - %s",
+	p->name, GSLastErrorStr(errno));
+      DESTROY(p);
+    }
   return p;
 }
 
@@ -382,22 +384,12 @@ static Class		messagePortClass = 0;
       this->wHandle = INVALID_HANDLE_VALUE;
       this->wEvent = INVALID_HANDLE_VALUE;
 
-      if ([self _setupSendPort] == NO)
-	{
-	  NSLog(@"unable to access mailslot '%@' - %s",
-	    this->name, GSLastErrorStr(errno));
-	  DESTROY(self);
-	}
-      else
-	{
-	  NSMapInsert(ports, (void*)this->name, (void*)self);
-	  NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", self);
-	}
+      NSMapInsert(ports, (void*)this->name, (void*)self);
+      NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", self);
     }
   else
     {
       RELEASE(self);
-      [p _setupSendPort];
       self = p;
     }
   M_UNLOCK(messagePortLock);
@@ -933,6 +925,28 @@ again:
 - (unsigned int) reservedSpaceLength
 {
   return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
+}
+
+- (void) release
+{
+  /* We lock the port table while checking, to prevent
+   * another thread from grabbing this port while we are
+   * checking it.
+   * If we are going to deallocate the object, we first remove
+   * it from the table so that no other thread will find it
+   * and try to use it while it is being deallocated.
+   */
+  M_LOCK(messagePortLock);
+  if (NSDecrementExtraRefCountWasZero(self))
+    {
+      NSMapRemove(ports, (void*)this->name);
+      M_UNLOCK(messagePortLock);
+      [self dealloc];
+    }
+  else
+    {
+      M_UNLOCK(messagePortLock);
+    }
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
