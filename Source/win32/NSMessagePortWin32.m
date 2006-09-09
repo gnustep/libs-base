@@ -204,10 +204,10 @@ static Class		messagePortClass = 0;
       p = [[self alloc] initWithName: name];
     }
   M_UNLOCK(messagePortLock);
-  if ([self _setupSendPort] == NO)
+  if ([p _setupSendPort] == NO)
     {
       NSLog(@"unable to access mailslot '%@' - %s",
-	p->name, GSLastErrorStr(errno));
+	[p name], GSLastErrorStr(errno));
       DESTROY(p);
     }
   return p;
@@ -939,7 +939,7 @@ again:
   M_LOCK(messagePortLock);
   if (NSDecrementExtraRefCountWasZero(self))
     {
-      NSMapRemove(ports, (void*)this->name);
+      NSMapRemove(ports, (void*)[self name]);
       M_UNLOCK(messagePortLock);
       [self dealloc];
     }
