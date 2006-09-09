@@ -1,3 +1,10 @@
+2006-09-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortWin32.m: Restructure to try to avoid
+	deadlock reported by Wim.  Also implement -release to remove port
+	from name table so that another thread can't find it in the window
+	between checking the refcount end deallocation.
+
 2006-09-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h: Fix incorrect backward compatibility
