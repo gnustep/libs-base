@@ -2,6 +2,11 @@
 
 	* Source/NSTimeZone.m: Remove unnecessary check on fiel name as
 	Roland Schwingel reported that it caught legitimate files on windows.
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Protect -release with lock and remove port from gloibal table within
+	protected region, to avoid possible double deallocation in a
+	multithreaded process.
 
 2006-09-09  Richard Frith-Macdonald <rfm@gnu.org>
 

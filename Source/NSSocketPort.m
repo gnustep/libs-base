@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #include "config.h"
@@ -1693,7 +1694,8 @@ static Class		tcpPortClass;
                   NSLog(@"Invalid Event - '%d'", WSAGetLastError());
                   abort();
                 }
-              rc = WSAEventSelect(port->listener, port->eventListener, FD_ACCEPT);
+              rc = WSAEventSelect(port->listener,
+		port->eventListener, FD_ACCEPT);
               NSAssert(rc == 0, @"WSAEventSelect failed!");
 #endif
 	      /*
@@ -1725,7 +1727,8 @@ static Class		tcpPortClass;
 	   * Make sure we have the map table for this port.
 	   */
 	  port->portNum = number;
-	  thePorts = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(uintptr_t)number);
+	  thePorts
+	    = (NSMapTable*)NSMapGet(tcpPortMap, (void*)(uintptr_t)number);
 	  if (thePorts == 0)
 	    {
 	      /*
@@ -1734,7 +1737,8 @@ static Class		tcpPortClass;
 	       */
 	      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
 			      NSNonOwnedPointerMapValueCallBacks, 0);
-	      NSMapInsert(tcpPortMap, (void*)(uintptr_t)number, (void*)thePorts);
+	      NSMapInsert(tcpPortMap,
+		(void*)(uintptr_t)number, (void*)thePorts);
 	    }
 	  /*
 	   * Record the port by host.
@@ -2057,18 +2061,19 @@ static Class		tcpPortClass;
 	  thePorts = NSMapGet(tcpPortMap, (void*)(uintptr_t)portNum);
 	  if (thePorts != 0)
 	    {
-	      if (listener >= 0)
-		{
-		  (void) close(listener);
-		  listener = -1;
-#if	defined(__MINGW32__)
-                  WSACloseEvent(eventListener);
-                  eventListener = WSA_INVALID_EVENT;                   
-#endif
-		}
 	      NSMapRemove(thePorts, (void*)host);
 	    }
 	  M_UNLOCK(tcpPortLock);
+
+	  if (listener >= 0)
+	    {
+	      (void) close(listener);
+	      listener = -1;
+#if	defined(__MINGW32__)
+	      WSACloseEvent(eventListener);
+	      eventListener = WSA_INVALID_EVENT;                   
+#endif
+	    }
 
 	  if (handles != 0)
 	    {
@@ -2215,6 +2220,28 @@ static Class		tcpPortClass;
 	}
     }
 }
+
+- (void) release
+{
+  M_LOCK(tcpPortLock);
+  if (NSDecrementExtraRefCountWasZero(self))
+    {
+      NSMapTable	*thePorts;
+
+      thePorts = NSMapGet(tcpPortMap, (void*)(uintptr_t)portNum);
+      if (thePorts != 0)
+	{
+	  NSMapRemove(thePorts, host);
+	}
+      M_UNLOCK(tcpPortLock);
+      [self dealloc];
+    }
+  else
+    {
+      M_UNLOCK(tcpPortLock);
+    }
+}
+
 
 /*
  * This is called when a tcp/ip socket connection is broken.  We remove the

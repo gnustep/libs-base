@@ -1574,14 +1574,14 @@ typedef	struct {
 	  unsigned	i;
 
 	  M_LOCK(messagePortLock);
+	  NSMapRemove(messagePortMap, (void*)name);
+	  M_UNLOCK(messagePortLock);
 	  if (lDesc >= 0)
 	    {
 	      (void) close(lDesc);
 	      unlink([name bytes]);
 	      lDesc = -1;
 	    }
-	  NSMapRemove(messagePortMap, (void*)name);
-	  M_UNLOCK(messagePortLock);
 
 	  if (handles != 0)
 	    {
@@ -1688,6 +1688,21 @@ typedef	struct {
 	{
 	  [handle receivedEvent: data type: type extra: extra forMode: mode];
 	}
+    }
+}
+
+- (void) release
+{
+  M_LOCK(messagePortLock);
+  if (NSDecrementExtraRefCountWasZero(self))
+    {
+      NSMapRemove(messagePortMap, (void*)name);
+      M_UNLOCK(messagePortLock);
+      [self dealloc];
+    }
+  else
+    {
+      M_UNLOCK(messagePortLock);
     }
 }
 
