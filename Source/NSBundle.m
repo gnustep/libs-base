@@ -1428,6 +1428,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return YES;
 }
 
+- (void) release
+{
+  /* We lock during release so that other threads can't grab the
+   * object between us checking the reference count and deallocating.
+   */
+  [load_lock lock];
+  if (NSDecrementExtraRefCountWasZero(self))
+    {
+      [self dealloc];
+    }
+  [load_lock unlock];
+}
+
 /* This method is the backbone of the resource searching for NSBundle. It
    constructs an array of paths, where each path is a possible location
    for a resource in the bundle.  The current algorithm for searching goes:
