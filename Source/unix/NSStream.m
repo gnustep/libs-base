@@ -50,6 +50,10 @@
 #define	PF_LOCAL	PF_UNIX
 #endif
 
+#ifndef	socklen_t
+#define	socklen_t	uint32_t
+#endif
+
 /** 
  * The concrete subclass of NSInputStream that reads from a file
  */

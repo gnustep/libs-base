@@ -9,6 +9,7 @@
 	Protect -release with lock and remove object from global table within
 	protected region, to avoid possible double deallocation in a
 	multithreaded process.
+	* Source/unix/NSStream.m: If socklen_t is not defined, assume uint32_t
 
 2006-09-09  Richard Frith-Macdonald <rfm@gnu.org>
 
