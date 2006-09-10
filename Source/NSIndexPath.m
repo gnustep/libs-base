@@ -31,6 +31,7 @@
 #include	<Foundation/NSKeyedArchiver.h>
 #include	<Foundation/NSLock.h>
 #include	<Foundation/NSZone.h>
+#include	"GNUstepBase/GSLock.h"
 
 static	NSLock		*lock = nil;
 static	NSHashTable	*shared = 0;
@@ -72,7 +73,7 @@ static	NSIndexPath	*dummy = nil;
       dummy = (NSIndexPath*)NSAllocateObject(self, 0, NSDefaultMallocZone());
       shared = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 1024);
       NSHashInsert(shared, empty);
-      lock = [NSLock new];
+      lock = [GSLazyRecursiveLock new];
     }
 }
 
@@ -130,7 +131,7 @@ static	NSIndexPath	*dummy = nil;
   GSNOSUPERDEALLOC;
 }
 
-- (NSString*)description
+- (NSString*) description
 {
   NSMutableString	*m = [[super description] mutableCopy];
   unsigned		i;
@@ -423,6 +424,26 @@ static	NSIndexPath	*dummy = nil;
 - (unsigned) length
 {
   return _length;
+}
+
+- (void) release
+{
+  if (self != empty)
+    {
+      /* We lock the table while checking, to prevent
+       * another thread from grabbing this object while we are
+       * checking it.
+       * If we are going to deallocate the object, we first remove
+       * it from the table so that no other thread will find it
+       * and try to use it while it is being deallocated.
+       */
+      [lock lock];
+      if (NSDecrementExtraRefCountWasZero(self))
+	{
+	  [self dealloc];
+	}
+      [lock unlock];
+    }
 }
 
 @end
