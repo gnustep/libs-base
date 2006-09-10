@@ -464,15 +464,6 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	  if (data == nil)
 	    {
 	      NSString		*fileName;
-	      const char	*str = [name UTF8String];
-
-	      /* Make sure that only time zone files are accessed.
-		 FIXME: Make this more robust. */
-	      if ((str)[0] == '/' || strchr(str, '.') != NULL)
-		{
-		  NSLog(@"Disallowed time zone name `%@'.", name);
-		  return nil;
-		}
 
 	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
 	      if (fileName == nil
