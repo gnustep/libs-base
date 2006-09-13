@@ -33,6 +33,10 @@
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSRange.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  * Instances of this class are collections of unsigned integers in the
  * range 0 to NSNotFound-1.<br />
@@ -211,6 +215,10 @@
 - (void) shiftIndexesStartingAtIndex: (unsigned int)anIndex by: (int)amount;   
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

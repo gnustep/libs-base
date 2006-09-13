@@ -40,6 +40,10 @@
 #ifndef	NO_GNUSTEP
 #include "GSObjCRuntime.h"
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 
 GS_EXPORT NSStringEncoding *GetAvailableEncodings(void);
 GS_EXPORT NSStringEncoding GetDefEncoding(void);
@@ -88,6 +92,10 @@ GS_EXPORT int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
 GS_EXPORT int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl, 
   NSStringEncoding enc);
 
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 

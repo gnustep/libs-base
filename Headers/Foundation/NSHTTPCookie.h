@@ -27,6 +27,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
 
 @class NSArray;
@@ -243,4 +247,9 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
 @end
 
 #endif
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif

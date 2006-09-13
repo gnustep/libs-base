@@ -31,6 +31,10 @@
 #include	<Foundation/NSLock.h>
 #include	<Foundation/NSNotification.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 
 /**
  *  Enumeration of possible values for specifying how
@@ -108,6 +112,10 @@ GS_EXPORT NSString* const GSNetworkNotificationCenterType;
 - (BOOL) suspended;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

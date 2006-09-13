@@ -28,6 +28,10 @@
 
 #include	<Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSArray;
 @class NSMutableArray;
 @class NSDictionary;
@@ -354,5 +358,10 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
 @end
 
 #endif
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif
 

@@ -30,6 +30,10 @@
 
 #include <Foundation/NSDate.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /*
  *	NB. NSRunLoop is optimised using a hack that knows about the
  *	class layout for the fire date and invialidation flag in NSTimer.
@@ -85,5 +89,9 @@
 #endif
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif

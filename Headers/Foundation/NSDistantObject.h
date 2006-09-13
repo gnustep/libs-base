@@ -28,6 +28,10 @@
 
 #include <Foundation/NSProxy.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSConnection;
 
 @interface NSDistantObject : NSProxy <NSCoding>
@@ -59,5 +63,9 @@
 - (void) setProtocolForProxy: (Protocol*)aProtocol;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSDistantObject_h_GNUSTEP_BASE_INCLUDE */

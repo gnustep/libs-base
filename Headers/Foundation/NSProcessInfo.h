@@ -29,6 +29,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSArray;
 @class NSMutableArray;
 @class NSDictionary;
@@ -95,6 +99,10 @@ enum {
  */
 GS_EXPORT BOOL GSDebugSet(NSString *level);
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE */

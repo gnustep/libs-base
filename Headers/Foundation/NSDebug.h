@@ -31,6 +31,10 @@
 #include <Foundation/NSObject.h>
 
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /*
  *	Functions for debugging object allocation/deallocation
  *
@@ -461,5 +465,9 @@ GS_EXPORT void *NSReturnAddress(int offset);
  *  and currently only works up to 100 frames.
  */
 GS_EXPORT unsigned NSCountFrames(void);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif

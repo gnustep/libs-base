@@ -27,6 +27,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #ifndef	STRICT_OPENSTEP
 
 @class NSData;
@@ -210,6 +214,10 @@ typedef enum
 
 @end
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif

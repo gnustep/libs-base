@@ -28,6 +28,10 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSPort.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  * <p>The data transported for distributed objects communications is sent over
  * the network encapsulated by NSPortMessage objects, which consist of two
@@ -99,6 +103,10 @@
  */
 - (unsigned) msgid;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 

@@ -28,6 +28,10 @@
 #ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
 #define __NSObject_h_GNUSTEP_BASE_INCLUDE
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /*
  *	Check consistency of definitions for system compatibility.
  */
@@ -717,6 +721,10 @@ if (__value != __object) \
 
 #define	IF_NO_GC(X)	X
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */

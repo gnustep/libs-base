@@ -27,6 +27,10 @@
 
 #include <Foundation/NSURLHandle.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #ifndef	STRICT_OPENSTEP
 
 @class NSNumber;
@@ -112,6 +116,10 @@ GS_EXPORT NSString* const NSURLFileScheme;
   resourceDidFailLoadingWithReason: (NSString*)reason;
 @end
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif //_NSUrl_h__

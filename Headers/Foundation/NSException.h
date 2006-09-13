@@ -35,6 +35,10 @@
 #include <setjmp.h>
 #include <stdarg.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSDictionary;
 
 /**
@@ -443,5 +447,9 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
  * parameter was supplied to the method. */
 #define NSCParameterAssert(condition)			\
     _NSCAssertArgs((condition), @"Invalid parameter not satisfying: %s", #condition)
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSException_h_GNUSTEP_BASE_INCLUDE */

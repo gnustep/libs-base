@@ -29,6 +29,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSData, NSMutableData;
 
 /**
@@ -185,6 +189,10 @@
 + (void) uniquing: (BOOL)flag;
 @end
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSSerialization_h_GNUSTEP_BASE_INCLUDE */

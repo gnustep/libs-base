@@ -31,6 +31,10 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSFileHandle.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @interface NSTask : NSObject <GCFinalization>
 {
   NSString	*_currentDirectoryPath;
@@ -106,5 +110,9 @@
  *  called.
  */
 GS_EXPORT NSString* const NSTaskDidTerminateNotification;
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSTask_h_GNUSTEP_BASE_INCLUDE */

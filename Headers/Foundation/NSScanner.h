@@ -29,6 +29,10 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSCharacterSet.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /*
  * NSScanner class
  */
@@ -95,5 +99,9 @@
 - (BOOL) scanDecimal: (NSDecimal*)value;
 #endif
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSScanner_h_GNUSTEP_INCLUDE */

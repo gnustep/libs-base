@@ -33,6 +33,10 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /**** Type, Constant, and Macro Definitions **********************************/
 
 /**
@@ -204,5 +208,9 @@ GS_EXPORT void
 NSMapRemove(NSMapTable *table, const void *key);
 
 GS_EXPORT NSString *NSStringFromMapTable (NSMapTable *table);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSMapTable_h_GNUSTEP_BASE_INCLUDE */

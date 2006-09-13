@@ -32,6 +32,10 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSData.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @interface NSFileHandle : NSObject
 
 // Allocating and Initializing a FileHandle Object
@@ -235,6 +239,10 @@ GS_EXPORT NSString * const GSFileHandleWriteCompletionNotification;
  * operation.
  */
 GS_EXPORT NSString * const GSFileHandleNotificationError;
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSFileHandle_h_GNUSTEP_BASE_INCLUDE */

@@ -28,6 +28,10 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSProxy.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class Protocol;
 
 @interface NSProtocolChecker : NSProxy
@@ -53,5 +57,9 @@
 - (NSObject*) target;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif

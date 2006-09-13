@@ -27,6 +27,10 @@
 
 #include <Foundation/NSString.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSData;
 
 /**
@@ -234,5 +238,9 @@
 - (void) invert;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSCharacterSet_h_GNUSTEP_BASE_INCLUDE*/

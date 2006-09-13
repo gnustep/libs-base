@@ -32,6 +32,10 @@
 #include <Foundation/NSFormatter.h>
 #include <Foundation/NSDecimalNumber.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSString, NSAttributedString, NSDictionary;
 
 /**
@@ -294,6 +298,10 @@
 - (void) setMinimum: (NSDecimalNumber*)aMinimum;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

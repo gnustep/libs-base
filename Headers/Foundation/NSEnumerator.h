@@ -29,9 +29,17 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @interface NSEnumerator : NSObject
 - (NSArray *) allObjects;
 - (id) nextObject;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSEnumerator_h_GNUSTEP_BASE_INCLUDE */

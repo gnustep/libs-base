@@ -28,6 +28,9 @@
 
 #include <Foundation/NSMethodSignature.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @interface NSInvocation : NSObject
 {
@@ -145,5 +148,8 @@
   [NSInvocation _returnInvocationAndDestroyProxy: __proxy]; \
 })
 
-#endif /* __NSInvocation_h_GNUSTEP_BASE_INCLUDE */
+#if	defined(__cplusplus)
+}
+#endif
 
+#endif /* __NSInvocation_h_GNUSTEP_BASE_INCLUDE */

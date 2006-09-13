@@ -30,6 +30,10 @@
 
 #include <Foundation/NSFormatter.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  *  <p>Class for generating text representations of [NSDate]s and
  *  [NSCalendarDate]s, and for converting strings into instances of these
@@ -133,6 +137,10 @@
 - (NSString *) dateFormat;
 @end
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* _NSDateFormatter_h_GNUSTEP_BASE_INCLUDE */

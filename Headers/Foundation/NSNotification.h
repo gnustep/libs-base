@@ -32,6 +32,10 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSMapTable.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSString;
 @class NSDictionary;
 @class NSLock;
@@ -84,16 +88,8 @@
 
 @end
 
-#ifndef	NO_GNUSTEP
-
-@interface NSNotificationCenter (GNUstep)
-/**
- * You can disable locking in a multi-threaded program if you KNOW that only
- * one thread will ever use the notification center.<br />
- * DEPRECATED
- */
-- (BOOL) setLockingDisabled: (BOOL)flag;
-@end
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /*__NSNotification_h_GNUSTEP_BASE_INCLUDE */

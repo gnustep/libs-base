@@ -25,13 +25,18 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */ 
 
 #ifndef _GNUstep_H_NSLock
 #define _GNUstep_H_NSLock
 
 #include <Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /**
  * Protocol defining lock and unlock operations.
@@ -285,5 +290,9 @@
 @end
 
 #endif /* NO_GNUSTEP */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* _GNUstep_H_NSLock*/

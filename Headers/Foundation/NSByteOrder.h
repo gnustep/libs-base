@@ -27,6 +27,10 @@
 
 #include <GSConfig.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /*
  *	OPENSTEP type definitions for Byte ordering.
  */
@@ -887,5 +891,8 @@ NSSwapHostShortToLittle(unsigned short num)
 
 #endif
 
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSByteOrder_h_GNUSTEP_BASE_INCLUDE */

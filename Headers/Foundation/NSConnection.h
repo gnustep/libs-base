@@ -33,6 +33,10 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSMapTable.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSDistantObject;
 @class NSPort;
 @class NSPortNameServer;
@@ -294,5 +298,9 @@ GS_EXPORT NSString * const NSConnectionDidInitializeNotification; /* OPENSTEP */
  * cannot authenticate.
  */
 GS_EXPORT NSString * const NSFailedAuthenticationException; /* MacOS-X  */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSConnection_h_GNUSTEP_BASE_INCLUDE */

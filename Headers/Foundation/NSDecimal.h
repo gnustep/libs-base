@@ -36,6 +36,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  *  Enumerated type for specifying decimal rounding behavior.  Can be one of
  *  <code>NSRoundDown</code> (always round down), <code>NSRoundUp</code>
@@ -244,6 +248,10 @@ NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa,
 GS_EXPORT void
 NSDecimalFromString(NSDecimal *result, NSString *numberValue, 
 		    NSDictionary *locale);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

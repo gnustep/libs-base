@@ -27,6 +27,10 @@
 
 #include <Foundation/NSMapTable.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSTimer, NSDate, NSPort;
 
 /**
@@ -144,5 +148,9 @@ typedef	enum {
 	     forMode: (NSString*)mode
 		 all: (BOOL)removeAll;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /*__NSRunLoop_h_GNUSTEP_BASE_INCLUDE */

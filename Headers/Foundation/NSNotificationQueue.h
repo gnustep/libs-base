@@ -49,6 +49,10 @@
 
 #include <Foundation/NSNotification.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSMutableArray;
 
 /*
@@ -125,5 +129,9 @@ struct _NSNotificationQueueList;
 		    forModes: (NSArray*)modes;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSNotificationQueue_h__ */

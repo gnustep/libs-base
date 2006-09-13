@@ -26,6 +26,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSArray;
 @class NSString;
 @class NSMutableArray;
@@ -127,5 +131,9 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 - (void) undoNestedGroup;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSUndoManager_h_OBJECTS_INCLUDE */

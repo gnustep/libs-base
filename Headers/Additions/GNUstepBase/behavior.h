@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
   AutogsdocSource: Additions/behavior.m
 
@@ -28,6 +29,10 @@
 #define __behavior_h_GNUSTEP_BASE_INCLUDE
 
 #include <GNUstepBase/GSObjCRuntime.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /* Call this method from CLASS's +initialize method to add a behavior
    to CLASS.  A "behavior" is like a protocol with an implementation.
@@ -55,5 +60,9 @@ GS_EXPORT void behavior_class_add_methods (Class class,
 
 /* Set to non-zero if you want debugging messages on stderr. */
 GS_EXPORT void behavior_set_debug(int i);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __behavior_h_GNUSTEP_BASE_INCLUDE */

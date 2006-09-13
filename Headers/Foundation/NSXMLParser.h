@@ -31,6 +31,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSData, NSDictionary, NSError, NSString, NSURL;
 
 /**
@@ -398,6 +402,10 @@ typedef enum {
   NSXMLParserNoDTDError = 94,
   NSXMLParserDelegateAbortedParseError = 512
 } NSXMLParserError;
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* STRICT_OPENSTEP */
 #endif	/* __NSXMLParser_h_GNUSTEP_BASE_INCLUDE*/

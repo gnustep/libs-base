@@ -28,6 +28,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSException;
 @class NXConstantString;
 
@@ -240,6 +244,10 @@ if (INDEX >= OVER) \
   [NSException raise: NSRangeException \
                format: @"in %s, index %d is out of range", \
                GSNameFromSelector(_cmd), INDEX]
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSRange_h_GNUSTEP_BASE_INCLUDE */

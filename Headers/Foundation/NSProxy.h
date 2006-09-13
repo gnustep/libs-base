@@ -27,6 +27,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @interface NSProxy <NSObject>
 {
 @public
@@ -74,5 +78,9 @@
 - (NSZone*) zone;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSProxy_h_GNUSTEP_BASE_INCLUDE */

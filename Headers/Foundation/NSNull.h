@@ -31,9 +31,17 @@
 #ifndef	NO_MACOS_X
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @interface	NSNull : NSObject <NSCoding, NSCopying>
 + (NSNull*) null;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 
