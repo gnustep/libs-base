@@ -2312,12 +2312,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	    }
 	  dst = decodeWord(dst, src, tmp, encoding);
 	  tmp++;
+	  src = tmp;
 	  if (*tmp != '=')
 	    {
 	      NSLog(@"Bad encoded word - encoded word terminator missing");
+	      dst = beg;	// Don't append to string.
 	      break;
 	    }
-	  src = tmp;
 	  if (dst > beg)
 	    {
 	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
