@@ -2407,12 +2407,17 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 #define	HANDLER	((GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private))
 
+#ifdef GNUSTEP
+static NSString *applePList
+  = @"file://localhost/System/Library/DTDs/PropertyList.dtd";
+#endif
+
 static xmlParserInputPtr
 loadEntityFunction(void *ctx,
   const unsigned char *eid, const unsigned char *url)
 {
   extern xmlParserInputPtr	xmlNewInputFromFile();
-  NSString			*file;
+  NSString			*file = nil;
   xmlParserInputPtr		ret = 0;
   NSString			*entityId;
   NSString			*location;
@@ -2422,10 +2427,10 @@ loadEntityFunction(void *ctx,
   unsigned			index;
 
   NSCAssert(ctx, @"No Context");
-  if (eid == 0 || url == 0)
+  if (url == 0)
     return 0;
 
-  entityId = UTF8Str(eid);
+  entityId = (eid != 0) ? (id)UTF8Str(eid) : nil;
   location = UTF8Str(url);
   components = [location pathComponents];
   local = [NSMutableString string];
@@ -2450,13 +2455,31 @@ loadEntityFunction(void *ctx,
                             options: NSLiteralSearch
                             range: NSMakeRange(0, [local length])];
 
-  /*
-   * Now ask the SAXHandler callback for the name of a local file
-   */
-  file = [HANDLER loadEntity: entityId at: location];
+#ifdef GNUSTEP
+  if ([location isEqual: applePList] == YES)
+    {
+      file = [location substringFromIndex: 6];
+      if ([[NSFileManager defaultManager] fileExistsAtPath: file] == NO)
+        {
+	  location = [NSBundle pathForLibraryResource: @"plist-0_9"
+					       ofType: @"dtd"
+					  inDirectory: @"DTDs"];
+	  entityId = @"-//GNUstep//DTD plist 0.9//EN";
+	  file = nil;
+	}
+    }
+#endif
+
   if (file == nil)
     {
-      file = [GSXMLParser loadEntity: entityId at: location];
+      /*
+       * Now ask the SAXHandler callback for the name of a local file
+       */
+      file = [HANDLER loadEntity: entityId at: location];
+      if (file == nil)
+	{
+	  file = [GSXMLParser loadEntity: entityId at: location];
+	}
     }
 
   if (file == nil)
@@ -2521,10 +2544,10 @@ loadEntityFunction(void *ctx,
 					    ofType: @"dtd"
 				       inDirectory: @"DTDs"];
 #else
-	  found = [[NSBundle bundleForClass:NSClassFromString(@"GSXMLNode")]
-                    pathForResource:name
-		                     ofType:@"dtd"
-		                inDirectory:@"DTDs"];
+	  found = [[NSBundle bundleForClass: NSClassFromString(@"GSXMLNode")]
+			    pathForResource: name
+		                     ofType: @"dtd"
+		                inDirectory: @"DTDs"];
 #endif
 	  if (found == nil)
 	    {
@@ -2549,6 +2572,26 @@ loadEntityFunction(void *ctx,
 	      file = [NSBundle pathForLibraryResource: local
 					       ofType: @""
 					  inDirectory: @"DTDs"];
+	    }
+	  if (file == nil)
+	    {
+	      NSURL	*aURL;
+
+	      aURL = [NSURL URLWithString: location];
+	      if ([aURL isFileURL] == YES)
+	        {
+		  file = [aURL path];
+		}
+	      else
+	        {
+		  NSData	*data = [aURL resourceDataUsingCache: NO];
+
+		  if ([data length] > 0)
+		    {
+		      file = [@"/tmp" stringByAppendingPathComponent: local];
+		      [data writeToFile: local atomically: NO];
+		    }
+		}
 	    }
 	}
     }

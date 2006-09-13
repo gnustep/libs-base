@@ -1,5 +1,10 @@
 2006-09-13  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSXML.m: Add hack to recognize apple plist info
+	and use the GNUstep plist DTD instead if necessary.
+
+2006-09-13  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSTimeZone.h:
 	* Headers/Foundation/NSHashTable.h:
 	* Headers/Foundation/NSRange.h:
