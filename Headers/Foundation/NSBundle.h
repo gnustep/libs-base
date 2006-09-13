@@ -322,16 +322,20 @@ GS_EXPORT NSString* const NSLoadedClasses;
 - (BOOL) isLoaded;
 
 /**
-   This method returns the same information as
-   -pathsForResourcesOfType:inDirectory: except that only non-localized
-   resources and resources that match the localization localizationName
-   are returned.
+ * This method returns the same information as
+ * -pathsForResourcesOfType:inDirectory: except that only non-localized
+ * resources and resources that match the localization localizationName
+ * are returned.<br />
+ * The GNUstep implementation places localised resources in the array
+ * before any non-localised resources.
  */
 - (NSArray*) pathsForResourcesOfType: (NSString*)extension
 			 inDirectory: (NSString*)subPath
 		     forLocalization: (NSString*)localizationName;
 /**
- *  Not implemented.
+ * This is like -pathForResource:ofType:inDirectory: but returns only
+ * resources matching localizationName (preferentially), or non-localized
+ * resources.
  */
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
@@ -342,18 +346,19 @@ GS_EXPORT NSString* const NSLoadedClasses;
 - (NSDictionary*) infoDictionary;
 
 /** Returns a localized info property list based on the preferred
-    localization or the most appropriate localization if the preferred
-    one cannot be found.
-*/
-- (NSDictionary *)localizedInfoDictionary;
+ *  localization or the most appropriate localization if the preferred
+ *  one cannot be found.
+ */
+- (NSDictionary*) localizedInfoDictionary;
 
 /** Returns all the localizations in the bundle. */
-- (NSArray *)localizations;
+- (NSArray*) localizations;
 
-/** Returns the list of localizations that the bundle uses to search
-    for information. This is based on the user's preferences.
-*/
-- (NSArray *)preferredLocalizations;
+/**
+ * Returns the list of localizations that the bundle uses to search
+ * for information. This is based on the user's preferences.
+ */
+- (NSArray*) preferredLocalizations;
 
 /** Loads any executable code contained in the bundle into the
     application. Load will be called implicitly if any information

@@ -1597,7 +1597,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 }
 
 + (NSArray*) _pathsForResourcesOfType: (NSString*)extension
-			 inRootDirectory: (NSString*)bundlePath
+		      inRootDirectory: (NSString*)bundlePath
 		       inSubDirectory: (NSString *)subPath
 {
   BOOL allfiles;
@@ -1657,17 +1657,20 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
                             inDirectory: subPath];
 
   enumerator = [paths objectEnumerator];
-  while( (path = [enumerator nextObject]) )
+  while ((path = [enumerator nextObject]) != nil)
     {
       /* Add all non-localized paths, plus ones in the particular localization
 	 (if there is one). */
       NSString *theDir = [path stringByDeletingLastPathComponent];
-      if ([[theDir pathExtension] isEqual: @"lproj"] == NO
-	  || (localizationName != nil 
-	      && [localizationName length] != 0
-	      && [[theDir lastPathComponent] hasPrefix: localizationName]) )
-	{ 
+
+      if ([[theDir pathExtension] isEqual: @"lproj"] == NO)
+	{
 	  [result addObject: path];
+	}
+      else if ([localizationName length] > 0
+	&& [[theDir lastPathComponent] hasPrefix: localizationName])
+	{ 
+	  [result insertObject: path atIndex: 0];
 	}
     }
   
@@ -1679,8 +1682,34 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName
 {
-  [self notImplemented: _cmd];
-  return nil;
+  CREATE_AUTORELEASE_POOL(arp);
+  NSString	*result = nil;
+  NSArray	*array;
+
+  array = [self pathsForResourcesOfType: ext
+                            inDirectory: subPath
+                        forLocalization: localizationName];
+
+  if (array != nil)
+    {
+      NSEnumerator	*enumerator = [array objectEnumerator];
+      NSString		*path;
+
+      name = [name stringByAppendingPathExtension: ext];
+      while ((path = [enumerator nextObject]) != nil)
+	{
+	  NSString	*found = [path lastPathComponent];
+
+	  if ([found isEqualToString: name] == YES)
+	    {
+	      result = path;
+	      break;		// localised paths occur before non-localised
+	    }
+	}
+    }
+  RETAIN(result);
+  DESTROY(arp);
+  return AUTORELEASE(result);
 }
 
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray
@@ -1709,7 +1738,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return [array makeImmutableCopyOnFail: NO];
 }
 
-- (NSDictionary *)localizedInfoDictionary
+- (NSDictionary*) localizedInfoDictionary
 {
   NSString  *path;
   NSArray   *locales;

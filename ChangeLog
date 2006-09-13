@@ -3,6 +3,9 @@
 	* Source/Additions/GSMime.m: When decoding a corrupt encoded word
 	in a header, abandon processing of the header without appending
 	any decoded data.
+	* Headers/Foundation/NSBundle.h:
+	* Source/NSBundle.m:
+	([pathForResource:ofType:inDirectory:forLocalization:]) implement.
 
 2006-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
