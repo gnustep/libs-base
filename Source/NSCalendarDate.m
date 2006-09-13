@@ -147,7 +147,7 @@ abbrev(NSTimeZone *tz, NSDate *d)
 }
 
 static inline unsigned int
-lastDayOfGregorianMonth(int month, int year)
+lastDayOfGregorianMonth(unsigned month, unsigned year)
 {
   switch (month)
     {
@@ -165,12 +165,17 @@ lastDayOfGregorianMonth(int month, int year)
     }
 }
 
-static inline int
-absoluteGregorianDay(int day, int month, int year)
+static inline unsigned
+absoluteGregorianDay(unsigned day, unsigned month, unsigned year)
 {
   while (--month > 0)
-    day = day + lastDayOfGregorianMonth(month, year);
-  year--;
+    {
+      day = day + lastDayOfGregorianMonth(month, year);
+    }
+  if (year > 0)
+    {
+      year--;
+    }
   return
     (day            // days this year
      + 365 * year   // days in previous years ignoring leap days
@@ -216,7 +221,7 @@ gregorianDateFromAbsolute(int abs, int *day, int *month, int *year)
  * since the reference date.
  */
 static NSTimeInterval
-GSTime(int day, int month, int year, int hour, int minute, int second, int mil)
+GSTime(unsigned day, unsigned month, unsigned year, unsigned hour, unsigned minute, unsigned second, unsigned mil)
 {
   NSTimeInterval	a;
 
