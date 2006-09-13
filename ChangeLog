@@ -1,3 +1,9 @@
+2006-09-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: When decoding a corrupt encoded word
+	in a header, abandon processing of the header without appending
+	any decoded data.
+
 2006-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: Remove unnecessary check on fiel name as
