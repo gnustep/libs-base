@@ -27,6 +27,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSArray, NSString, NSEnumerator, NSURL;
 
 @interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
@@ -97,5 +101,9 @@
 - (void) setValue: (id)value forKey: (NSString*)key;
 #endif
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif

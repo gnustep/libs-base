@@ -29,6 +29,10 @@
 
 #include <Foundation/NSString.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #ifndef	NO_GNUSTEP
 @class	NSDictionary;
 @class	NSMutableDictionary;
@@ -173,5 +177,9 @@ GS_EXPORT NSArray *NSStandardLibraryPaths(void);
 GS_EXPORT NSString *NSTemporaryDirectory(void);
 GS_EXPORT NSString *NSOpenStepRootDirectory(void);
 #endif /* !STRICT_OPENSTEP */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE */

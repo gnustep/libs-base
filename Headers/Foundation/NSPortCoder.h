@@ -27,6 +27,10 @@
 
 #include <Foundation/NSCoder.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSMutableArray;
 @class NSMutableDictionary;
 @class NSConnection;
@@ -172,5 +176,9 @@
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSPortCoder_h */

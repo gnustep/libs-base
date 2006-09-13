@@ -28,6 +28,10 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSGeometry.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSString;
 
 /**
@@ -361,6 +365,10 @@ GSNumberInfo	*GSNumberInfoFromObject(NSNumber *o);
  *   <br />DO NOT USE
  */
 unsigned	GSSmallHash(int n);
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSValue_h_GNUSTEP_BASE_INCLUDE */

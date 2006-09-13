@@ -28,6 +28,10 @@
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSArray.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @interface NSPredicate : NSObject <NSCoding, NSCopying>
 
 + (NSPredicate *) predicateWithFormat: (NSString *)format, ...;
@@ -46,5 +50,9 @@
 @interface NSArray (NSPredicate)
 - (NSArray *) filteredArrayUsingPredicate: (NSPredicate *)predicate;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSPredicate_h_GNUSTEP_BASE_INCLUDE */

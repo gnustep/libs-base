@@ -28,6 +28,10 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSException.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #ifndef	STRICT_OPENSTEP
 
 @class NSArray;
@@ -66,6 +70,10 @@ GS_EXPORT NSString* const NSClassDescriptionNeededForClassNotification;
 
 @end
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif

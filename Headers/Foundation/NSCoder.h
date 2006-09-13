@@ -29,6 +29,10 @@
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSZone.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSMutableData, NSData, NSString;
 
 /**
@@ -388,5 +392,9 @@
 @end
 
 #endif /* NO_GNUSTEP */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* __NSCoder_h_GNUSTEP_BASE_INCLUDE */

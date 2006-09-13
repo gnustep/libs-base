@@ -31,6 +31,10 @@
 
 #ifndef	STRICT_OPENSTEP
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSPropertyList.h>
@@ -559,6 +563,10 @@ willReplaceObject: (id)anObject
  */
 - (NSSize) decodeSizeForKey: (NSString*)aKey;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* STRICT_OPENSTEP */
 #endif	/* __NSKeyedArchiver_h_GNUSTEP_BASE_INCLUDE*/

@@ -27,7 +27,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 /* Warning -	[-initWithString:attributes:] is the designated initialiser,
@@ -44,8 +45,12 @@
  */
 
 
-#ifndef _NSXKit_H_NSAttributedString
-#define _NSXKit_H_NSAttributedString
+#ifndef _NSAttributedString_H
+#define _NSAttributedString_H
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 #ifndef	STRICT_OPENSTEP
 #include <Foundation/NSString.h>
@@ -132,5 +137,9 @@
 
 #endif //STRICT_OPENSTEP
 
-#endif //_NSXKit_H_NSAttributedString
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif //NSAttributedString_H
 

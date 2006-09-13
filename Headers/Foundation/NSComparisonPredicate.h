@@ -28,6 +28,10 @@
 #include <Foundation/NSExpression.h>
 #include <Foundation/NSPredicate.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 typedef enum _NSComparisonPredicateModifier
 {
   NSDirectPredicateModifier=0,
@@ -93,5 +97,9 @@ typedef enum _NSPredicateOperatorType
 - (NSExpression *) rightExpression;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif

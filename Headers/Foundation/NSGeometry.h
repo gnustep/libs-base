@@ -31,6 +31,10 @@
 #include <Foundation/NSString.h>
 #endif
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /**** Type, Constant, and Macro Definitions **********************************/
 
 #ifndef MAX
@@ -561,4 +565,9 @@ GS_EXPORT NSRect	NSRectFromString(NSString* string);
 #undef	GS_DEFINED_MIN
 #undef	MIN
 #endif
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif /* __NSGeometry_h_GNUSTEP_BASE_INCLUDE */

@@ -27,6 +27,10 @@
 
 #include <Foundation/NSPredicate.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSMutableDictionary;
 
 typedef enum _NSExpressionType
@@ -59,5 +63,10 @@ typedef enum _NSExpressionType
 - (NSString *) variable;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif /* __NSExpression_h_GNUSTEP_BASE_INCLUDE */
 

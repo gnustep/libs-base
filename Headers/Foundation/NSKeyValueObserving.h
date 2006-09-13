@@ -27,6 +27,10 @@
 
 #include	<Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #if OS_API_VERSION(100300,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 
 @class NSArray;
@@ -221,5 +225,10 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey;
 @end
 
 #endif
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif /* __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE */
 

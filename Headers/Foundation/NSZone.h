@@ -57,6 +57,10 @@ typedef struct _NSZone NSZone;
 
 @class NSString;
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 
 /**
  *  <code>NSZoneStats</code> is the structure returned by the NSZoneStats()
@@ -446,5 +450,9 @@ GS_EXPORT void* NSAllocateMemoryPages (unsigned bytes);
 GS_EXPORT void NSDeallocateMemoryPages (void *ptr, unsigned bytes);
 
 GS_EXPORT void NSCopyMemoryPages (const void *src, void *dest, unsigned bytes);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* not __NSZone_h_GNUSTEP_BASE_INCLUDE */

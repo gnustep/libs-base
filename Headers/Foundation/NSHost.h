@@ -26,6 +26,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSString, NSArray, NSSet;
 
 /**
@@ -117,6 +121,10 @@
  */
 + (NSHost*) localHost;		/* All local IP addresses	*/
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 

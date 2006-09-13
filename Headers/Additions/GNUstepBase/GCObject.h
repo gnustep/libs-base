@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: Additions/GCObject.m
    AutogsdocSource: Additions/GCArray.m
@@ -37,6 +38,10 @@
 #include <Foundation/NSMapTable.h>
 #else
 #include <Foundation/Foundation.h>
+#endif
+
+#if	defined(__cplusplus)
+extern "C" {
 #endif
 
 
@@ -109,5 +114,9 @@ typedef struct {
   NSMapTable	*_map;
 }
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __INCLUDED_GCOBJECT_H */

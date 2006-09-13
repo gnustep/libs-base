@@ -31,6 +31,10 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @interface NSThread : NSObject
 {
   id			_target;
@@ -142,6 +146,10 @@ GS_EXPORT NSString* const NSThreadDidStartNotification;
  */
 GS_EXPORT NSThread		*GSCurrentThread(void);
 GS_EXPORT NSMutableDictionary	*GSCurrentThreadDictionary(void);
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSThread_h_GNUSTEP_BASE_INCLUDE */

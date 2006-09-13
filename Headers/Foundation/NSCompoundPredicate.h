@@ -27,6 +27,10 @@
 
 #include <Foundation/NSPredicate.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 typedef enum _NSCompoundPredicateType
 {
   NSNotPredicateType = 0,
@@ -46,5 +50,10 @@ typedef enum _NSCompoundPredicateType
 - (NSArray *) subpredicates;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif
 

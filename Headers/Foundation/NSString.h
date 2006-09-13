@@ -28,6 +28,10 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSRange.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  * Type for representing unicode characters.  (16-bit)
  */
@@ -794,5 +798,9 @@ extern struct objc_class _NSConstantStringClassReference;
 @end
 
 #endif /* NO_GNUSTEP */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSString_h_GNUSTEP_BASE_INCLUDE */

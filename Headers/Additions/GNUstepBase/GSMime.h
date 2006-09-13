@@ -36,6 +36,10 @@
 #include	<Foundation/NSString.h>
 #endif
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSArray;
 @class	NSMutableArray;
 @class	NSData;
@@ -224,5 +228,9 @@
 
 - (void) setIsHttp;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif

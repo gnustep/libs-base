@@ -18,7 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
  
    AutogsdocSource:	Additions/GSFunctions.m
    */ 
@@ -30,6 +31,10 @@
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSArray;
 @class	NSString;
 
@@ -39,5 +44,9 @@
  */
 GS_EXPORT NSString *GSFindNamedFile(NSArray *paths, NSString *aName,
   NSString *anExtension);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE */

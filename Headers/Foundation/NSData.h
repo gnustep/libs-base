@@ -29,6 +29,10 @@
 #include <Foundation/NSRange.h>
 #include <Foundation/NSSerialization.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #ifndef STRICT_OPENSTEP
 @class	NSURL;
 #endif
@@ -344,10 +348,8 @@
 @end
 #endif
 
-/*
-  Local Variables:
-  mode: ObjC
-  End:
-  */
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSData_h_GNUSTEP_BASE_INCLUDE */

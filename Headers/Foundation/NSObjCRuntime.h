@@ -31,6 +31,10 @@
 
 #include <GNUstepBase/GSObjCRuntime.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
 GS_EXPORT Class		NSClassFromString(NSString *aClassName);
@@ -63,6 +67,10 @@ GS_EXPORT void			NSLogv (NSString *format, va_list args);
 #endif
 #ifndef nil
 #define nil		0
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */

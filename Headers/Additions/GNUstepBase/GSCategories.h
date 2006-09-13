@@ -49,6 +49,10 @@
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSMutableSet;
 
 
@@ -341,6 +345,10 @@ GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				     int line, NSString *fmt);
 GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file,
 				       int line, NSString *fmt);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* GNUSTEP */
 

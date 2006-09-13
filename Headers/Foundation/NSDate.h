@@ -24,6 +24,10 @@
 
 #include <Foundation/NSObjCRuntime.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  * Time interval difference between two dates, in seconds.
  */
@@ -110,5 +114,9 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 #endif
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif  /* __NSDate_h_GNUSTEP_BASE_INCLUDE*/

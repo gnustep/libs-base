@@ -29,6 +29,10 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSArray;
 @class NSMutableArray;
 @class NSDictionary;
@@ -286,5 +290,9 @@ GS_EXPORT NSString* const NSLocale;
 - (NSDictionary*) dictionaryRepresentation;
 - (void) registerDefaults: (NSDictionary*)newVals;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSUserDefaults_h_OBJECTS_INCLUDE */

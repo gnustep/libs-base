@@ -27,6 +27,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSAutoreleasePool;
 @class NSThread;
 
@@ -297,5 +301,9 @@ typedef struct autorelease_array_list
 - (void) emptyPool;
 #endif
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE */

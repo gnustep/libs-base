@@ -31,6 +31,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSArray, NSString, NSEnumerator, NSDictionary;
 
 @interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
@@ -174,5 +178,9 @@ void	GSUPurge(unsigned count);
 id	GSUSet(id anObject, unsigned count);
 
 #endif /* NO_GNUSTEP */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif

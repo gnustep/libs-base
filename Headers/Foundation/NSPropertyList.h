@@ -28,9 +28,13 @@
 #ifndef __NSPropertyList_h_GNUSTEP_BASE_INCLUDE
 #define __NSPropertyList_h_GNUSTEP_BASE_INCLUDE
 
-#ifndef	STRICT_OPENSTEP
-
 #include <Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#ifndef	STRICT_OPENSTEP
 
 @class NSData, NSString;
 
@@ -247,4 +251,9 @@ typedef enum {
 @end
 
 #endif	/* STRICT_OPENSTEP */
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif	/* __NSPropertyList_h_GNUSTEP_BASE_INCLUDE*/

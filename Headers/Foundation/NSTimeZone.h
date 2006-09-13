@@ -24,6 +24,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSArray;
 @class	NSDate;
 @class	NSDictionary;
@@ -90,6 +94,10 @@
 - (NSString*) timeZoneAbbreviation;
 - (int) timeZoneSecondsFromGMT;
 @end
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif  /* __NSTimeZone_h_GNUSTEP_BASE_INCLUDE*/

@@ -40,6 +40,10 @@
 #define	SOCKET	int
 #endif
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSMutableArray;
 @class	NSConnection;
 @class	NSDate;
@@ -310,6 +314,10 @@ typedef SOCKET NSSocketNativeHandle;
 @end
 
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 

@@ -30,6 +30,10 @@
 
 #ifndef	STRICT_OPENSTEP
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSString, NSAttributedString, NSDictionary;
 
 /**
@@ -116,6 +120,10 @@
  */
 - (NSString*) stringForObjectValue: (id)anObject;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

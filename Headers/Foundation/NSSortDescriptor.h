@@ -28,6 +28,10 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSArray.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSString;
 
 @interface NSSortDescriptor : NSObject <NSCopying, NSCoding>
@@ -65,5 +69,9 @@
 - (void) sortUsingDescriptors: (NSArray *) sortDescriptors;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSSortDescriptor_h_GNUSTEP_BASE_INCLUDE */

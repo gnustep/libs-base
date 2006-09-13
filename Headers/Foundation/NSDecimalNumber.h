@@ -32,6 +32,10 @@
 #include	<Foundation/NSDecimal.h>
 #include	<Foundation/NSValue.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSDecimalNumber;
 
 /**
@@ -403,6 +407,10 @@
  */
 - (NSDecimal) decimalValue;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

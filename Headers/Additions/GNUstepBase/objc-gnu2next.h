@@ -28,6 +28,10 @@
 #ifndef __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE
 #define __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #if NeXT_RUNTIME
 
 #include <objc/objc-class.h>
@@ -282,5 +286,9 @@ objc_error_handler objc_set_error_handler(objc_error_handler func);
 }), *(anIterator))
 
 #endif /* NeXT_RUNTIME */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE */

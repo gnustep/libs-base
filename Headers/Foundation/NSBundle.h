@@ -21,11 +21,16 @@
   
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
   */
 
 #ifndef __NSBundle_h_GNUSTEP_BASE_INCLUDE
 #define __NSBundle_h_GNUSTEP_BASE_INCLUDE
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
@@ -650,5 +655,9 @@ GS_EXPORT NSString* const NSLoadedClasses;
 #define NSLocalizedStaticString(key, comment) key
 
 #endif /* NO_GNUSTEP */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* __NSBundle_h_GNUSTEP_BASE_INCLUDE */

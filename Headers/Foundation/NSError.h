@@ -31,6 +31,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSDictionary, NSString;
 
 /**
@@ -115,6 +119,10 @@ GS_EXPORT NSString* const NSPOSIXErrorDomain;
  */
 - (NSDictionary*) userInfo;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* STRICT_OPENSTEP */
 #endif	/* __NSError_h_GNUSTEP_BASE_INCLUDE*/

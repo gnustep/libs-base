@@ -29,6 +29,10 @@
 
 #include <Foundation/NSObject.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 #ifndef	STRICT_MACOS_X
 /**
  *	<p>Info about layout of arguments.
@@ -166,6 +170,10 @@ typedef struct	{
  */
 - (const char*) methodType;
 @end
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE */

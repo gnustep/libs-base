@@ -29,6 +29,10 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSDate.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @interface NSDistributedLock : NSObject
 {
   NSString	*_lockPath;
@@ -44,5 +48,9 @@
 - (void) unlock;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSDistributedLock_h_GNUSTEP_BASE_INCLUDE */

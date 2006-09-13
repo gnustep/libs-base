@@ -35,6 +35,10 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSMapTable.h>
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class	NSPort, NSString, NSMutableArray;
 
 @interface	NSPortNameServer : NSObject
@@ -66,6 +70,10 @@
 @interface NSMessagePortNameServer : NSPortNameServer
 + (id) sharedInstance;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 
