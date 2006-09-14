@@ -168,9 +168,12 @@ lastDayOfGregorianMonth(unsigned month, unsigned year)
 static inline unsigned
 absoluteGregorianDay(unsigned day, unsigned month, unsigned year)
 {
-  while (--month > 0)
+  if (month > 1)
     {
-      day = day + lastDayOfGregorianMonth(month, year);
+      while (--month > 0)
+	{
+	  day = day + lastDayOfGregorianMonth(month, year);
+	}
     }
   if (year > 0)
     {
