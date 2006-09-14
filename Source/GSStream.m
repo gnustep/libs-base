@@ -1216,7 +1216,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 			      a = [NSString stringWithUTF8String:
 			        (const char*)rbuffer];
 			    }
-			  else if (rbuffer[3] == 4)
+			  else
 			    {
 			      unsigned char	buf[40];
 			      int		i = 4;
