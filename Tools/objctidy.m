@@ -397,6 +397,7 @@ main(int argc, char** argv, char **env)
 	      RELEASE(line);
 	    }
 
+          [lines addObject: @""];	// Terminating newline
 	  file = [lines componentsJoinedByString: @"\n"];
 	  RELEASE(lines);
 	  [file writeToFile: result atomically: NO];
