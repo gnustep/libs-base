@@ -137,8 +137,12 @@ main(int argc, char** argv, char **env)
 	      /* Now repair any excess space round operators.
 	       */
 	      [line replaceString: @"+ +" withString: @"++"];
+	      [line replaceString: @"+ +" withString: @"++"];
 	      [line replaceString: @"+ =" withString: @"+="];
 	      [line replaceString: @"- -" withString: @"--"];
+	      [line replaceString: @"- -" withString: @"--"];
+	      [line replaceString: @"= =" withString: @"=="];
+	      [line replaceString: @"= =" withString: @"=="];
 	      [line replaceString: @"- =" withString: @"-="];
 	      [line replaceString: @"/ /" withString: @"//"];
 	      [line replaceString: @"/ =" withString: @"/="];
@@ -160,6 +164,9 @@ main(int argc, char** argv, char **env)
 	      [line replaceString: @"- >" withString: @"->"];
 	      [line replaceString: @"-> " withString: @"->"];
 	      [line replaceString: @" ->" withString: @"->"];
+	      [line replaceString: @"/ *" withString: @"/*"];
+	      [line replaceString: @"* /" withString: @"*/"];
+	      [line replaceString: @"/ /" withString: @"//"];
 	      [line replaceString: @" ," withString: @","];
 	      [line replaceString: @"! " withString: @"!"];
 
