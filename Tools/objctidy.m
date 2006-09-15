@@ -287,7 +287,7 @@ main(int argc, char** argv, char **env)
 
 	      if ((pos < 80) && ([line length] + pos >= 80))
 		{
-		  unsigned	off = 80 - pos;
+		  unsigned	off = 79 - pos;
 
 		  /*
 		   * Look for a break in a method call/name
