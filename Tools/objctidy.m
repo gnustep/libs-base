@@ -262,7 +262,7 @@ main(int argc, char** argv, char **env)
 		      indentation += 4;
 		    }
 		}
-	      else if ([line isEqualToString: @"}"])
+	      else if ([line hasPrefix: @"}"])
 		{
 		  if (indentation >= 2)
 		    {
