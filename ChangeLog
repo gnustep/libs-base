@@ -1,3 +1,11 @@
+2006-09-18  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac (GNUSTEP_MAKE_CONFIG): Get this config from
+	config-noarch.make (requires gnustep-make > 1.13.0).  If failing,
+	fall back to taking it from $GNUSTEP_MAKEFILES/config.make as it
+	was done before (works with gnustep-make < 1.13.0 only though).
+	* configure: Regenerated.
+
 2006-09-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Add hack to recognize apple plist info

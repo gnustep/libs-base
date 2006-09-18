@@ -1988,7 +1988,21 @@ test -n "$target_alias" &&
 { echo "$as_me:$LINENO: checking for GNUstep configuration file to use" >&5
 echo $ECHO_N "checking for GNUstep configuration file to use... $ECHO_C" >&6; }
 GNUSTEP_CONFIG_FILE=""
-GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+
+# This requires gnustep-make > 1.13.0 to work.  For gnustep-make =
+# 1.13.0 we would have to parse
+# $GNUSTEP_MAKEFILES/$obj_dir/config.make, but $obj_dir is not defined
+# yet at this stage in config, not sure if it's worth trying to make
+# it work.  For gnustep-make < 1.13.0 we would have to parse
+# $GNUSTEP_MAKEFILES/config.make.
+GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config-noarch.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+
+# So, for backwards compatiblity, we try the plain config.make too.
+# This should work with gnustep-make < 1.13.0, and with 1.13.0 too if
+# they haven't deleted the file.
+if test "$GNUSTEP_MAKE_CONFIG"  = ""; then
+  GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+fi
 
 # Check whether --with-config-file was given.
 if test "${with_config_file+set}" = set; then
