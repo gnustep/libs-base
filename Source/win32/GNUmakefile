@@ -36,7 +36,7 @@ win32_OBJC_FILES =\
 	NSMessagePortNameServerWin32.m \
 	NSStreamWin32.m \
 	NSUserDefaultsWin32.m \
-
+	Win32_Utilities.m
 
 -include Makefile.preamble
 

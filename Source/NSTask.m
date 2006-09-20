@@ -972,6 +972,7 @@ GSCheckTasks()
 
 - (void) interrupt
 {
+  // FIXME: How do we interrupt a process on windows?
 }
 
 - (void) terminate
@@ -1197,8 +1198,8 @@ quotedFromString(NSString *aString)
     NULL,      			/* proc attrs */
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
-    CREATE_NO_WINDOW|DETACHED_PROCESS|CREATE_UNICODE_ENVIRONMENT,
-    envp,			/* env block */
+    CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT,    /* creation flags */
+    envp,                                           /* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,
     &procInfo);

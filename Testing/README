@@ -4,7 +4,7 @@ to do quick checks to make sure things are working. This is not a
 comprehensive test suite. Some tests don't say if they have passed or
 not. Some tests do not even output anything. Some tests never quit!
 
-If you want to run a comprehensive testsuite. Install gnustep-guile
-(ftp://ftp.gnustep.org/pub/gnustep/libs) and run the gnustep testsuite
-(ftp://ftp.gnustep.org/pub/gnustep/tests).
+If you want to run a comprehensive testsuite, install the gnustep
+testsuite from the repository at GNA. You can look at it via:
+  http://svn.gna.org/viewcvs/gnustep/tests/testsuite
 

@@ -67,6 +67,8 @@ CHECKABLE_TOOLS = \
 		nsundomanager \
 		nsxmlparser \
 		release \
+		pathtest \
+		tasklaunch \
 		string \
 		thread \
 		thread-except \
@@ -123,6 +125,7 @@ nstimer_OBJC_FILES = nstimer.m
 nstimezone_OBJC_FILES = nstimezone.m
 nsxmlparser_OBJC_FILES = nsxmlparser.m
 nsundomanager_OBJC_FILES = nsundomanager.m
+pathtest_OBJC_FILES = pathtest.m
 prepend_OBJC_FILES = prepend.m
 release_OBJC_FILES = release.m
 string_OBJC_FILES = string.m
@@ -130,6 +133,7 @@ testtool_OBJC_FILES = testtool.m
 thread_OBJC_FILES = thread.m
 thread-except_OBJC_FILES = thread-except.m
 values_OBJC_FILES = values.m
+tasklaunch_OBJC_FILES = tasklaunch.m
 
 # The bundles to be compiled
 BUNDLE_NAME=LoadMe

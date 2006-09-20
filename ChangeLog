@@ -1,3 +1,19 @@
+2006-09-18  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source/NSTask.m:
+    Revert change making processes launch detached
+    * Source/NSString.m:
+    Corrected deprecation of -[cString]
+    * Headers/Foundation/NSString.h
+    Re-added -[unicharString] as its useful and needed
+
+2006-09-17  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Headers/Additions/GNUstepBase/Win32_Support.h:
+    * Source/win32/Win32_Support.m:
+    * Source/win32/GNUmakefile:
+    Re-added deleted files with ms-windows support routines
+
 2006-09-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Add hack to recognize apple plist info

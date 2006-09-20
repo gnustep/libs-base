@@ -2363,8 +2363,6 @@ handle_printf_atsign (FILE *stream,
   NSMutableData	*data;
   unichar	*uniStr;
 
-  GSOnceMLog(@"deprecated ... use cStringUsingEncoding:");
-
   data = [NSMutableData dataWithLength: ([self length] + 1) * sizeof(unichar)];
   uniStr = (unichar*)[data mutableBytes];
   if (uniStr != 0)
@@ -2380,11 +2378,15 @@ handle_printf_atsign (FILE *stream,
  * caller must copy its contents to keep it.  Raises an
  * <code>NSCharacterConversionException</code> if loss of information would
  * occur during conversion.  (See -canBeConvertedToEncoding: .)
+ *
+ * Deprecated: MacOS 10.4, Base 1.13
  */
 - (const char*) cString
 {
   NSData	*d;
   NSMutableData	*m;
+
+  GSOnceMLog(@"deprecated ... use cStringUsingEncoding:");
 
   d = [self dataUsingEncoding: _DefaultStringEncoding
 	 allowLossyConversion: NO];
