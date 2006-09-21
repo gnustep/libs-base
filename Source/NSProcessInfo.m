@@ -996,49 +996,49 @@ int main(int argc, char *argv[], char *env[])
     {
       NSString	*n = [self operatingSystemName];
 
-      if ([n isEqualToString: @"linux-gnu"] == YES)
+      if ([n isEqualToString: @"NSGNULinuxOperatingSystem"] == YES)
         {
 	  os = NSGNULinuxOperatingSystem;
 	}
-      else if ([n hasPrefix: @"mingw"] == YES)
+      else if ([n isEqualToString: @"NSWindowsNTOperatingSystem"] == YES)
         {
 	  os = NSWindowsNTOperatingSystem;
 	}
-      else if ([n isEqualToString: @"cygwin"] == YES)
+      else if ([n isEqualToString: @"NSWindows95OperatingSystem"] == YES)
+        {
+	  os = NSWindows95OperatingSystem;
+	}
+      else if ([n isEqualToString: @"NSCygwinOperatingSystem"] == YES)
         {
 	  os = NSCygwinOperatingSystem;
 	}
-      else if ([n hasPrefix: @"bsd"] == YES)
+      else if ([n isEqualToString: @"NSBSDOperatingSystem"] == YES)
         {
 	  os = NSBSDOperatingSystem;
 	}
-      else if ([n hasPrefix: @"freebsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n hasPrefix: @"netbsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n hasPrefix: @"openbsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n isEqualToString: @"beos"] == YES)
+      else if ([n isEqualToString: @"NSBeOperatingSystem"] == YES)
 	{
           os = NSBeOperatingSystem;
         }
-      else if ([n hasPrefix: @"darwin"] == YES)
+      else if ([n isEqualToString: @"NSMACHOperatingSystem"] == YES)
 	{
           os = NSMACHOperatingSystem;
         }
-      else if ([n hasPrefix: @"solaris"] == YES)
+      else if ([n isEqualToString: @"NSSolarisOperatingSystem"] == YES)
 	{
           os = NSSolarisOperatingSystem;
         }
-      else if ([n hasPrefix: @"hpux"] == YES)
+      else if ([n isEqualToString: @"NSHPUXOperatingSystem"] == YES)
 	{
           os = NSHPUXOperatingSystem;
+	}
+      else if ([n isEqualToString: @"NSSunOSOperatingSystem"] == YES)
+	{
+          os = NSSunOSOperatingSystem;
+	}
+      else if ([n isEqualToString: @"NSOSF1OperatingSystem"] == YES)
+	{
+          os = NSOSF1OperatingSystem;
         }
       else
         {
@@ -1058,7 +1058,56 @@ int main(int argc, char *argv[], char *env[])
 
   if (os == nil)
     {
-      os = [[NSBundle _gnustep_target_os] copy];
+      os = [NSBundle _gnustep_target_os];
+
+      if ([os hasPrefix: @"linux"] == YES)
+        {
+	  os = @"NSGNULinuxOperatingSystem";
+	}
+      else if ([os hasPrefix: @"mingw"] == YES)
+        {
+	  os = @"NSWindowsNTOperatingSystem";
+	}
+      else if ([os isEqualToString: @"cygwin"] == YES)
+        {
+	  os = @"NSCygwinOperatingSystem";
+	}
+      else if ([os hasPrefix: @"bsd"] == YES
+	|| [os hasPrefix: @"freebsd"] == YES
+	|| [os hasPrefix: @"netbsd"] == YES
+	|| [os hasPrefix: @"openbsd"] == YES)
+        {
+	  os = @"NSBSDOperatingSystem";
+	}
+      else if ([os hasPrefix: @"beos"] == YES)
+	{
+          os = @"NSBeOperatingSystem";
+        }
+      else if ([os hasPrefix: @"darwin"] == YES)
+	{
+          os = @"NSMACHOperatingSystem";
+        }
+      else if ([os hasPrefix: @"solaris"] == YES)
+	{
+          os = @"NSSolarisOperatingSystem";
+        }
+      else if ([os hasPrefix: @"hpux"] == YES)
+	{
+          os = @"NSHPUXOperatingSystem";
+        }
+      else if ([os hasPrefix: @"sunos"] == YES)
+	{
+          os = @"NSSunOSOperatingSystem";
+	}
+      else if ([os hasPrefix: @"osf"] == YES)
+	{
+          os = @"NSOSF10OperatingSystem";
+        }
+      else
+        {
+	  NSLog(@"Unable to determine O/S ... assuming GNU/Linux");
+	  os = @"NSGNULinuxOperatingSystem";
+	}
     }
   return os;
 }
