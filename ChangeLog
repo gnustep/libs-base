@@ -3,6 +3,7 @@
 	* Source/NSString.m: ([stringByAddingPercentEscapesUsingEncoding:])
 	Fix to escape '@' (in fact anything not unreserved acording to
 	RFC2396)
+	* Source/NSPathUtilities.m: Fix missing include.
 
 2006-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 

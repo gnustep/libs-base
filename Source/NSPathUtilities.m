@@ -119,6 +119,9 @@ static NSString	*gnustep_flattened =
 #endif
 
 #if	defined(__MINGW32__)
+
+#include	<lmaccess.h>
+
 /*
  * FIXME ... should check access properly if the file is on an NTFS volume.
  */
@@ -1138,8 +1141,8 @@ NSFullUserName(void)
 #if defined(__MINGW32__)
       struct _USER_INFO_2	*userInfo;
 
-      NSString			*userName = NSUserName();
-      if (NetUserGetInfo(NULL, UniBuf(userName), 2, (LPBYTE*)&userInfo) == 0)
+      if (NetUserGetInfo(NULL, (unichar*)[userName cStringUsingEncoding:
+	NSUnicodeStringEncoding], 2, (LPBYTE*)&userInfo) == 0)
 	{
 	  userName = [NSString stringWithCharacters: userInfo->usri2_full_name
 	    length: wcslen(userInfo->usri2_full_name)];
