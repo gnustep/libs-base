@@ -1328,6 +1328,9 @@ handle_printf_atsign (FILE *stream,
  * Constructs a new ASCII string which is a representation of the receiver
  * in which characters are escaped where necessary in order to produce a
  * legal URL.<br />
+ * Escaping is done for any character which is not 'unreserved' according
+ * to RFC2396.  The unreserved characters are letters, digits, and the
+ * set of 'marks' characters ("-_.!~*'()").<br />
  * Returns nil if the receiver cannot be represented using the specified
  * encoding.
  */
@@ -1351,46 +1354,19 @@ handle_printf_atsign (FILE *stream,
 	  unsigned int	hi;
 	  unsigned int	lo;
 
-	  switch (c)
+	  if (isalpha(c) || isdigit(c)
+	    || c == '-' || c == '_' || c == '.' || c == '!' || c == '~'
+	    || c == '*' || c == '\'' || c == '(' || c == ')')
 	    {
-	      case ',':
-	      case ';':
-	      case '"':
-	      case '\'':
-	      case '&':
-	      case '=':
-	      case '(':
-	      case ')':
-	      case '<':
-	      case '>':
-	      case '?':
-	      case '#':
-	      case '{':
-	      case '}':
-	      case '%':
-	      case ' ':
-	      case '+':
-		dst[dpos++] = '%';
-		hi = (c & 0xf0) >> 4;
-		dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
-		lo = (c & 0x0f);
-		dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
-		break;
-
-	      default:
-		if (c < ' ' || c > 127)
-		  {
-		    dst[dpos++] = '%';
-		    hi = (c & 0xf0) >> 4;
-		    dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
-		    lo = (c & 0x0f);
-		    dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
-		  }
-		else
-		  {
-		    dst[dpos++] = c;
-		  }
-		break;
+	      dst[dpos++] = c;
+	    }
+	  else
+	    {
+	      dst[dpos++] = '%';
+	      hi = (c & 0xf0) >> 4;
+	      dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
+	      lo = (c & 0x0f);
+	      dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
 	    }
 	}
       [d setLength: dpos];

@@ -145,7 +145,8 @@ static NSString *gnustepUserDir = nil;
 static NSString *gnustepUserHome = nil;
 static NSString *gnustepUserDefaultsDir = nil;
 
-static NSString *theUserName = nil;             /*      The user's login name */
+static NSString *theUserName = nil;             /* The user's login name */
+static NSString *theFullUserName = nil;         /* The user's full login name */
 static NSString *tempDir = nil;                 /* user's temporary directory */
 
 static NSString *osSysApps  = nil;
@@ -969,6 +970,7 @@ GSSetUserName(NSString *aName)
    * Reset things as new user
    */
   ASSIGN(theUserName, aName);
+  DESTROY(theFullUserName);
   InitialisePathUtilities();
   [NSUserDefaults resetStandardUserDefaults];
 
@@ -980,7 +982,8 @@ GSSetUserName(NSString *aName)
  * Under unix-like systems, the name associated with the current
  * effective user ID is used.<br/ >
  * Under ms-windows, the 'LOGNAME' environment is used, or if that fails, the
- * GetUserName() call is used to find the user name.
+ * GetUserName() call is used to find the user name.<br />
+ * Raises an exception on failure.
  */
 /* NOTE FOR DEVELOPERS.
  * If you change the behavior of this method you must also change
@@ -1129,20 +1132,32 @@ NSHomeDirectoryForUser(NSString *loginName)
 NSString *
 NSFullUserName(void)
 {
+  if (theFullUserName == nil)
+    {
+      NSString	*userName = NSUserName();
 #if defined(__MINGW32__)
-  /* FIXME: Win32 way to get full user name via Net API */
-  return NSUserName();
+      struct _USER_INFO_2	*userInfo;
+
+      NSString			*userName = NSUserName();
+      if (NetUserGetInfo(NULL, UniBuf(userName), 2, (LPBYTE*)&userInfo) == 0)
+	{
+	  userName = [NSString stringWithCharacters: userInfo->usri2_full_name
+	    length: wcslen(userInfo->usri2_full_name)];
+	}
 #else
 #ifdef  HAVE_PWD_H
-  struct passwd	*pw;
+      struct passwd	*pw;
 
-  pw = getpwnam([NSUserName() cString]);
-  return [NSString stringWithCString: pw->pw_gecos];
+      pw = getpwnam([NSUserName() cString]);
+      userName = [NSString stringWithCString: pw->pw_gecos];
 #else
-  NSLog(@"Warning: NSFullUserName not implemented\n");
-  return NSUserName();
+      NSLog(@"Warning: NSFullUserName not implemented\n");
+      userName = NSUserName();
 #endif /* HAVE_PWD_H */
 #endif /* defined(__Win32__) else */
+      ASSIGN(theFullUserName, userName);
+    }
+  return theFullUserName;
 }
 
 /**
