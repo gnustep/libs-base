@@ -1,3 +1,9 @@
+2006-09-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([stringByAddingPercentEscapesUsingEncoding:])
+	Fix to escape '@' (in fact anything not unreserved acording to
+	RFC2396)
+
 2006-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: ([-operatingSystemName]) conform to
