@@ -1,3 +1,8 @@
+2006-09-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Fix for buffer resize error when registering
+	framework info, as suggested by Andreas Hoschler.
+
 2006-09-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([stringByAddingPercentEscapesUsingEncoding:])

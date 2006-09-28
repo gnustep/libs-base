@@ -746,7 +746,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    library_combo = RETAIN(str);
 
 	  _launchDirectory = RETAIN([[NSFileManager defaultManager]
-	      currentDirectoryPath]);
+	    currentDirectoryPath]);
 
 	  _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"]);
 
@@ -790,15 +790,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		  {
 		    Class *ptr;
 
-		    numClasses += 10;
-		    ptr = objc_realloc(classes, sizeof(Class) * numClasses);
+		    numBufClasses += 10;
+		    ptr = objc_realloc(classes, sizeof(Class) * numBufClasses);
 
 		    if (!ptr)
 		      break;
 
 		    classes = ptr;
 		  }
-	    }
+	      }
 
 	    for (i = 0; i < numClasses; i++)
 	      {
