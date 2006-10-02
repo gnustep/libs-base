@@ -89,11 +89,13 @@ int main( int argc, char *argv[] )
     NSDocumentDirectory,
     NSAllApplicationsDirectory,
     NSAllLibrariesDirectory,
+#ifdef GNUSTEP_BASE_LIBRARY
     GSLibrariesDirectory,
     GSToolsDirectory,
     GSApplicationSupportDirectory,
     GSFrameworksDirectory,
     GSFontsDirectory
+#endif
   };
   
   NSSearchPathDirectory  key;

@@ -4,6 +4,9 @@
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: November 1996
 
+   Modified:  Sheldon Gill <sheldon@westnet.net.au>
+   Date: September 2006
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -37,31 +40,9 @@
 #include "Foundation/NSData.h"
 #include "Foundation/NSThread.h"
 
-#ifdef	HAVE_SYSLOG_H
+#ifdef  HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
-
-#define	UNISTR(X) \
-((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
-
-#if	defined(HAVE_SYSLOG)
-# if	defined(LOG_ERR)
-#   if	defined(LOG_USER)
-#     define	SYSLOGMASK	(LOG_ERR|LOG_USER)
-#   else
-#     define	SYSLOGMASK	(LOG_ERR)
-#   endif	// LOG_USER
-# elif	defined(LOG_ERROR)
-#   if	defined(LOG_USER)
-#     define	SYSLOGMASK	(LOG_ERROR|LOG_USER)
-#   else
-#     define	SYSLOGMASK	(LOG_ERROR)
-#   endif	// LOG_USER
-# else
-#   error "Help, I can't find a logging level for syslog"
-# endif
-#endif	// HAVE_SYSLOG
-
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -69,135 +50,137 @@
 
 #include "GSPrivate.h"
 
-extern NSThread	*GSCurrentThread();
+extern NSThread *GSCurrentThread();  // why isn't this in GSPrivate.h ?? -SG
 
-/**
+// From "Win32Support.h"
+#define UNISTR(X) \
+((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
+
+// From private base shared functions
+void crash(char *description);
+
+void crash(char *description)
+{
+#if defined(__MINGW32__)
+    ExitProcess(-1);
+#else
+    abort();
+#endif
+}
+
+/* DEPRECATED - DELETED  Base 1.14  => we don't support this anymore
+ *
+ * We delete these entirely. Simpler, faster, smaller
+ *
  * A variable holding the file descriptor to which NSLogv() messages are
  * written by default.  GNUstep initialises this to stderr.<br />
  * You may change this, but for thread safety should
  * use the lock provided by GSLogLock() to protect the change.
+ *
+ * int _NSLogDescriptor = 2;
+ *
+ * static NSRecursiveLock   *myLock = nil;
+ * NSRecursiveLock *GSLogLock();
+ *
+ * You can over-ride the printf_handler and do whatever you like...
+ * so we don't need the _NSLogDescriptor as another customisation method
+ *
+ * A pointer store is atomic so the lock isn't needed. (x86, PPC, sparc)
+ * Besides which, that are you doing! Trying to change the handler multiple
+ * times in different threads? Please! -SG
  */
-int _NSLogDescriptor = 2;
 
-static NSRecursiveLock	*myLock = nil;
-
-/**
- * Returns the lock used to protect the GNUstep NSLogv() implementation.
- * Use this to protect changes to
- * <ref type="variable" id="_NSLogDescriptor">_NSLogDescriptor</ref> and
- * <ref type="variable" id="_NSLog_printf_handler">_NSLog_printf_handler</ref>
- */
-NSRecursiveLock *
-GSLogLock()
-{
-  if (myLock == nil)
-    {
-      [gnustep_global_lock lock];
-      if (myLock == nil)
-	{
-	  myLock = [NSRecursiveLock new];
-	}
-      [gnustep_global_lock unlock];
-    }
-  return myLock;
-}
-
+#if defined(__MINGW32__)
 static void
-_NSLog_standard_printf_handler (NSString* message)
+send_event_to_eventlog(WORD eventtype, LPCWSTR msgbuffer)
 {
-  NSData	*d;
-  const char	*buf;
-  unsigned	len;
-#if	defined(__MINGW32__)
-  LPCWSTR	null_terminated_buf;
-#else
-#if	defined(HAVE_SYSLOG)
-  char	*null_terminated_buf;
-#endif
-#endif
-  static NSStringEncoding enc = 0;
+  static HANDLE eventloghandle = 0;
 
-  if (enc == 0)
+  if (!eventloghandle)
     {
-      enc = [NSString defaultCStringEncoding];
+      // FIXME: Need a mechanism for a more descriptive registration -SG
+      eventloghandle = RegisterEventSourceW(NULL,
+          UNISTR([[NSProcessInfo processInfo] processName]));
     }
-  d = [message dataUsingEncoding: enc allowLossyConversion: NO];
-  if (d == nil)
+  if (eventloghandle)
     {
-      d = [message dataUsingEncoding: NSUTF8StringEncoding
-		allowLossyConversion: NO];
-    }
-
-  if (d == nil)		// Should never happen.
-    {
-      buf = [message lossyCString];
-      len = strlen(buf);
+      ReportEventW(eventloghandle,                     // event log handle
+          eventtype,                                         // event type
+          0,                                              // category zero
+          0,                                           // event identifier
+          NULL,                                     // security identifier
+          1,                                    // num substitution string
+          0,                                  // num data for substitution
+         &msgbuffer,                               // message string array
+         NULL);                                         // pointer to data
     }
   else
     {
-      buf = (const char*)[d bytes];
-      len = [d length];
+      [NSException raise: NSGenericException
+                  format: @"Couldn't get handle for eventlog"];
     }
+}
 
-#if	defined(__MINGW32__)
-  null_terminated_buf = UNISTR(message);
+static void
+_GSLog_standard_printf_handler(NSString* message)
+{
+  static HANDLE hStdErr = NULL;
+  LPCWSTR null_terminated_buf = UNISTR(message);
+  DWORD   bytes_out;
 
-  OutputDebugStringW(null_terminated_buf);
+#ifndef RELEASE_VERSION
+  if (IsDebuggerPresent())
+      OutputDebugStringW(null_terminated_buf);
+#endif
 
-  if ((GSUserDefaultsFlag(GSLogSyslog) == YES
-    || write(_NSLogDescriptor, buf, len) != (int)len) && !IsDebuggerPresent())
+  if (hStdErr == NULL)
+      hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+
+  if ((GSUserDefaultsFlag(GSLogSyslog) == YES) || (hStdErr == NULL))
     {
-      static HANDLE eventloghandle = 0;
-
-      if (!eventloghandle)
-	{
-	  eventloghandle = RegisterEventSourceW(NULL,
-	    UNISTR([[NSProcessInfo processInfo] processName]));
-	}
-      if (eventloghandle)
-	{
-	  ReportEventW(eventloghandle,	// event log handle
-	    EVENTLOG_WARNING_TYPE,	// event type
-	    0,				// category zero
-	    0,				// event identifier
-	    NULL,			// no user security identifier
-	    1,				// one substitution string
-	    0,				// no data
-	    &null_terminated_buf,	// pointer to string array
-	    NULL);			// pointer to data
-	}
+      send_event_to_eventlog(EVENTLOG_ERROR_TYPE, null_terminated_buf);
     }
-#else      
-      
-#if	defined(HAVE_SYSLOG)
+  else
+    {
+      if (!WriteFile(hStdErr, null_terminated_buf,
+                      wcslen(null_terminated_buf)*2,
+                      &bytes_out, NULL))
+        {
+          send_event_to_eventlog(EVENTLOG_ERROR_TYPE, null_terminated_buf);
+        }
+    }
+}
+#else // *nix version
+
+int _NSLogDescriptor = 2;
+
+static void
+_GSLog_standard_printf_handler(NSString* message)
+{
+  const char *buf;
+  unsigned   len;
+
+  buf = [message cStringUsingEncoding: NSUTF8StringEncoding];
+  len = strlen(buf);
+
+#if defined(HAVE_SYSLOG)
   if (GSUserDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
     {
-      null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
-      strncpy (null_terminated_buf, buf, len);
-      null_terminated_buf[len] = '\0';
-
-      syslog(SYSLOGMASK, "%s",  null_terminated_buf);
-
-      objc_free (null_terminated_buf);
+      syslog(SYSLOGMASK, "%s", buf);
     }
 #else
   write(_NSLogDescriptor, buf, len);
 #endif
-#endif // __MINGW32__
 }
+#endif // __MINGW32
 
 /**
  * A pointer to a function used to actually write the log data.
  * <p>
  *   GNUstep initialises this to a function implementing the standard
  *   behavior for logging, but you may change this in your program
- *   in order to implement any custom behavior you wish.  You should
- *   use the lock returned by GSLogLock() to protect any change you make.
- * </p>
- * <p>
- *   Calls from NSLogv() to the function pointed to by this variable
- *   are protected by a lock, and should therefore be thread safe.
+ *   in order to implement any custom behavior you wish.
  * </p>
  * <p>
  *   This function should accept a single NSString argument and return void.
@@ -209,27 +192,16 @@ _NSLog_standard_printf_handler (NSString* message)
  *     encoding or, if that is not possible, to UTF8 data.
  *   </item>
  *   <item>
- *     If the system supports writing to syslog and the user default to
+ *     If the platform supports writing to syslog and the user default to
  *     say that logging should be done to syslog (GSLogSyslog) is set,
- *     writes the data to the syslog.<br />
- *     On an mswindows system, where syslog is not available, the
- *     GSLogSyslog user default controls whether or not data is written
- *     to the system event log,
+ *     writes the data to the syslog(*nix) or the EventLog(ms-windows).<br />
  *   </item>
  *   <item>
- *     Otherwise, writes the data to the file descriptor stored in the
- *     variable
- *     <ref type="variable" id="_NSLogDescriptor">_NSLogDescriptor</ref>,
- *     which is set by default to stderr.<br />
- *     Your program may change this descriptor ... but you should protect
- *     changes using the lock provided by GSLogLock().<br />
- *     NB. If the write to the descriptor fails, and the system supports
- *     writing to syslog, then the log is written to syslog as if the
- *     appropriate user default had been set.
+ *     Otherwise, writes the data is written to stderr.<br />
  *   </item>
  * </list>
  */
-NSLog_printf_handler *_NSLog_printf_handler = _NSLog_standard_printf_handler;
+NSLog_printf_handler *_NSLog_printf_handler = _GSLog_standard_printf_handler;
 
 /**
  * <p>Provides the standard OpenStep logging facility.  For details see
@@ -238,13 +210,12 @@ NSLog_printf_handler *_NSLog_printf_handler = _NSLog_standard_printf_handler;
  * <p>GNUstep provides powerful alternatives for logging ... see
  * NSDebugLog(), NSWarnLog() and GSPrintf() for example.  We recommend
  * the use of NSDebugLog() and its relatives for debug purposes, and
- * GSPrintf() for general log messages, with NSLog() being reserved
- * for reporting possible/likely errors.  GSPrintf() is declared in
- * GSObjCRuntime.h.
+ * GSPrintf() for general messages, with NSLog() being reserved
+ * for reporting possible/likely errors.  See GSObjCRuntime.h
  * </p>
  */
 void
-NSLog (NSString* format, ...)
+NSLog(NSString* format, ...)
 {
   va_list ap;
 
@@ -280,61 +251,17 @@ NSLog (NSString* format, ...)
  * </p>
  */
 void
-NSLogv (NSString* format, va_list args)
+NSLogv(NSString* format, va_list args)
 {
-  NSString	*prefix;
-  NSString	*message;
-  static int	pid = 0;
+  NSString  *outMsg;
+  NSString  *idStr;
+  NSString  *message;
+  static NSRecursiveLock *logLock;
   CREATE_AUTORELEASE_POOL(arp);
 
   if (_NSLog_printf_handler == NULL)
     {
-      _NSLog_printf_handler = *_NSLog_standard_printf_handler;
-    }
-
-  if (pid == 0)
-    {
-#if defined(__MINGW32__)
-      pid = (int)GetCurrentProcessId();
-#else
-      pid = (int)getpid();
-#endif
-    }
-
-#ifdef	HAVE_SYSLOG
-  if (GSUserDefaultsFlag(GSLogSyslog) == YES)
-    {
-      if (GSUserDefaultsFlag(GSLogThread) == YES)
-	{
-	  prefix = [NSString stringWithFormat: @"[thread:%x] ",
-	    GSCurrentThread()];
-	}
-      else
-	{
-	  prefix = @"";
-	}
-    }
-  else
-#endif
-    {
-      if (GSUserDefaultsFlag(GSLogThread) == YES)
-	{
-	  prefix = [NSString
-	    stringWithFormat: @"%@ %@[%d,%x] ",
-	    [[NSCalendarDate calendarDate]
-	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
-	    [[NSProcessInfo processInfo] processName],
-	    pid, GSCurrentThread()];
-	}
-      else
-	{
-	  prefix = [NSString
-	    stringWithFormat: @"%@ %@[%d] ",
-	    [[NSCalendarDate calendarDate]
-	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
-	    [[NSProcessInfo processInfo] processName],
-	    pid];
-	}
+      _NSLog_printf_handler = *_GSLog_standard_printf_handler;
     }
 
   /* Check if there is already a newline at the end of the format */
@@ -344,19 +271,52 @@ NSLogv (NSString* format, va_list args)
     }
   message = [NSString stringWithFormat: format arguments: args];
 
-  prefix = [prefix stringByAppendingString: message];
-
-  if (myLock == nil)
+#ifdef  HAVE_SYSLOG
+  if (GSUserDefaultsFlag(GSLogSyslog) == YES)
     {
-      GSLogLock();
+      if ([NSThread isMultiThreaded])
+        {
+          outMsg = [NSString stringWithFormat: @"[thread:%x] %@",
+            GSCurrentThread(),message];
+        }
+      else
+        {
+          outMsg = message;
+        }
+    }
+  else
+#endif
+    {
+      if ([NSThread isMultiThreaded])
+        {
+          idStr = [NSString stringWithFormat: @"%d, %x",
+                    [[NSProcessInfo processInfo] processIdentifier],
+                    GSCurrentThread()];
+        }
+      else
+        {
+          idStr = [NSString stringWithFormat: @"%d",
+                    [[NSProcessInfo processInfo] processIdentifier]];
+        }
+      outMsg = [NSString
+                 stringWithFormat: @"%@ %@[%@] %@",
+        [[NSCalendarDate calendarDate]
+          descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
+        [[NSProcessInfo processInfo] processName],
+        idStr,
+        message];
     }
 
-  [myLock lock];
-
-  _NSLog_printf_handler(prefix);
-
-  [myLock unlock];
+  // Lock and print the output
+  if (logLock == nil)
+    {
+      [gnustep_global_lock lock];
+      logLock = [NSRecursiveLock new];
+      [gnustep_global_lock unlock];
+    }
+  [logLock lock];
+  _NSLog_printf_handler(outMsg);
+  [logLock unlock];
 
   RELEASE(arp);
 }
-

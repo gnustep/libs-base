@@ -4,6 +4,7 @@
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
                 Heidelberg, Germany
    Modified by:  Richard Frith-Macdonald <rfm@gnu.org>
+   Modified by:  Sheldon Gill <sheldon@westnet.net.au>
 
    This file is part of the GNUstep Base Library.
 
@@ -27,27 +28,22 @@
 */
 
 /*************************************************************************
- * File Name  : NSProcessInfo.m
- * Date       : 06-aug-1995
+ ******** Notes
  *************************************************************************
- * Notes      :
  * 1) The class functionality depends on the following UNIX functions and
  * global variables: gethostname(), getpid(), and environ. For all system
  * I had the opportunity to test them they are defined and have the same
  * behavior. The same is true for the meaning of argv[0] (process name).
  * 2) The global variable _gnu_sharedProcessInfoObject should NEVER be
- * deallocate during the process runtime. Therefore I implemented a
+ * deallocated during the process runtime. Therefore I implemented a
  * concrete NSProcessInfo subclass (_NSConcreteProcessInfo) with the only
  * purpose to override the autorelease, retain, and release methods.
- * To Do      :
- * 1) To test the class on more platforms;
+ * -----------------------------------------------------------------------
+ * TODO       : Clean up the initialisation. Its too messy and confusing.
+ *              Drop FallbackInitialisation entirely.
+ *              Clean up the debugging extras; don't alter the argv[]...
+ * -----------------------------------------------------------------------
  * Bugs       : Not known
- * Last update: 07-aug-2002
- * History    : 06-aug-1995    - Birth and the first beta version (v. 0.5);
- *              08-aug-1995    - V. 0.6 (tested on NS, SunOS, Solaris, OSF/1
- *              The use of the environ global var was changed to more
- *              conventional env[] (main function) so now the class could be
- *              used on SunOS and Solaris. [GT]
  *************************************************************************
  * Acknowledgments:
  * - Adam Fedor, Andrew McCallum, and Paul Kunz for their help;
@@ -203,6 +199,7 @@ static BOOL	fallbackInitialisation = NO;
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
 
+// FIXME: This is too much of a mess!!  -SG
 void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
@@ -975,82 +972,48 @@ int main(int argc, char *argv[], char *env[])
  * The known types are listed in the header file, but not all of the
  * listed types are actually implemented ... some are present for
  * MacOS-X compatibility only.<br />
+ * GNUstep adds a few additional definitions for platforms which didn't
+ * have original OpenStep support.
  * <list>
- * <item>NSWindowsNTOperatingSystem - used for windows NT, 2000, XP</item>
+ * <item>NSWindowsNTOperatingSystem - Microsoft Windows (NT/2000/XP/2003/Vista)</item>
  * <item>NSWindows95OperatingSystem - probably never to be implemented</item>
- * <item>NSSolarisOperatingSystem - not yet recognised</item>
+ * <item>NSSolarisOperatingSystem - Sun operating systems from Version 5 on</item>
  * <item>NSHPUXOperatingSystem - not implemented</item>
- * <item>NSMACHOperatingSystem - perhaps the HURD in future?</item>
+ * <item>NSMACHOperatingSystem - Darwin, MacOS-X, NeXTStep and other MACH kernel based</item>
  * <item>NSSunOSOperatingSystem - probably never to be implemented</item>
  * <item>NSOSF1OperatingSystem - probably never to be implemented</item>
- * <item>NSGNULinuxOperatingSystem - the GNUstep 'standard'</item>
- * <item>NSBSDOperatingSystem - BSD derived operating systems</item>
- * <item>NSCygwinOperatingSystem - cygwin unix-like environment</item>
+ * <item>GSGNULinuxOperatingSystem - all GNU/Linux distributions including Debian, RedHat etc</item>
+ * <item>GSBSDOperatingSystem - BSD derived operating systems</item>
+ * <item>GSCygwinOperatingSystem - cygwin unix-like environment on Microsoft Windows</item>
  * </list>
  */
 - (unsigned int) operatingSystem
 {
-  static unsigned int	os = 0;
-
-  if (os == 0)
-    {
-      NSString	*n = [self operatingSystemName];
-
-      if ([n isEqualToString: @"linux-gnu"] == YES)
-        {
-	  os = NSGNULinuxOperatingSystem;
-	}
-      else if ([n hasPrefix: @"mingw"] == YES)
-        {
-	  os = NSWindowsNTOperatingSystem;
-	}
-      else if ([n isEqualToString: @"cygwin"] == YES)
-        {
-	  os = NSCygwinOperatingSystem;
-	}
-      else if ([n hasPrefix: @"bsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n hasPrefix: @"freebsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n hasPrefix: @"netbsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n hasPrefix: @"openbsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n isEqualToString: @"beos"] == YES)
-	{
-          os = NSBeOperatingSystem;
-        }
-      else if ([n hasPrefix: @"darwin"] == YES)
-	{
-          os = NSMACHOperatingSystem;
-        }
-      else if ([n hasPrefix: @"solaris"] == YES)
-	{
-          os = NSSolarisOperatingSystem;
-        }
-      else if ([n hasPrefix: @"hpux"] == YES)
-	{
-          os = NSHPUXOperatingSystem;
-        }
-      else
-        {
-	  NSLog(@"Unable to determine O/S ... assuming GNU/Linux");
-	  os = NSGNULinuxOperatingSystem;
-	}
-    }
-  return os;
+#if defined(__linux)
+  return GSGNULinuxOperatingSystem;
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+      defined(__DragonFly__) || defined(__bsdi__)
+  return GSBSDLinuxOperatingSystem;
+#elif defined(__CYGWIN__)
+  return GSCygwinOperatingSystem;
+#elif defined(__sun)
+  return NSSolarisOperatingSystem;
+#elif defined(DARWIN) || defined(__APPLE__)
+  return NSMACHOperatingSystem;
+#elif defined(__MINGW32__)
+  return NSWindowsNTOperatingSystem;
+#else
+#warning Can't determine the operatingSystem constant for this platform!
+  return 0;
+#endif
 }
 
 /**
- * Returns the name of the operating system in use.
+ * Returns the name of the operating system in use.<br>
+ * OpenStep/Cocoa return a string representation of the operatingSystem
+ * constant. MacOS-X will always return @"NSMACHOperatingSystem"<br/>
+ * This implementation is different in that it will return the
+ * name of the operating system. (eg "Linux", "Darwin", "FreeBSD")
  */
 - (NSString*) operatingSystemName
 {
@@ -1058,9 +1021,51 @@ int main(int argc, char *argv[], char *env[])
 
   if (os == nil)
     {
-      os = [[NSBundle _gnustep_target_os] copy];
+#if defined(__MINGW32__)
+      os = @"Microsoft Windows";
+#else
+      struct utsname uns;
+
+      if (uname(&uns) != -1)
+        {
+            os = [NSString stringWithCString: uts.sysname
+                                    encoding: NSDefaultEncoding];
+        }
+#endif
     }
   return os;
+}
+
+/**
+ * Returns a localised string with the name and version information about the
+ * operating system on which the process is running. The string is designed
+ * to be read by a human and shouldn't be used by an application to determine
+ * details about the host operating system.<p>
+ *
+ * Known Bugs: No localisation support yet
+ * <introduced/>MacOS 10.2, Base 1.14</introduced>
+ */
+- (NSString *) operatingSystemVersionString
+{
+  static NSString *osVerName = nil;
+
+  if (osVerName == nil)
+    {
+#if defined(__MINGW32__)
+      osVerName = @"Version 5.0 or later..";
+#else
+      struct utsname uns;
+
+      if (uname(&uns) != -1)
+        {
+            osVerName = [NSString stringWithCString: uts.version
+                                           encoding: NSDefaultEncoding];
+           // FIXME: Add localisation support and the appropriate
+           //        localisation strings - sheldon
+        }
+#endif
+    }
+  return osVerName;
 }
 
 /**
@@ -1069,14 +1074,11 @@ int main(int argc, char *argv[], char *env[])
  */
 - (int) processIdentifier
 {
-  int	pid;
-
 #if defined(__MINGW32__)
-  pid = (int)GetCurrentProcessId();
+  return (int)GetCurrentProcessId();
 #else
-  pid = (int)getpid();
+  return (int)getpid();
 #endif
-  return pid;
 }
 
 /**
@@ -1090,7 +1092,11 @@ int main(int argc, char *argv[], char *env[])
 }
 
 /**
- * Change the name of the current process to newName.
+ * Change the name of the current process to newName. The newName is used
+ * by the GNUstep libraries but it will not change the name of the binary
+ * being executed.<br>
+ * Use this carefully as other objects use this in their functionality, for
+ * example: NSUserDefaults
  */
 - (void) setProcessName: (NSString *)newName
 {
@@ -1174,32 +1180,18 @@ static BOOL	debugTemporarilyDisabled = NO;
     }
 }
 
-/**
+/* DEPRECATED-DELETED
+ *   You can over-ride the _NSLog_standard_printf_handler and do whatever
+ *     you feel like. That is the *only* mechanism.
+ *
  * Set the file to which NSLog output should be directed.<br />
  * Returns YES on success, NO on failure.<br />
  * By default logging goes to standard error.
- */
+ *
 - (BOOL) setLogFile: (NSString*)path
 {
-  extern int	_NSLogDescriptor;
-  int		desc;
-
-#if	defined(__MINGW32__)
-  desc = _wopen([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
-#else
-  desc = open([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
-#endif
-  if (desc >= 0)
-    {
-      if (_NSLogDescriptor >= 0 && _NSLogDescriptor != 2)
-	{
-	  close(_NSLogDescriptor);
-	}
-      _NSLogDescriptor = desc;
-      return YES;
-    }
-  return NO;
 }
+ */
 @end
 
 /**

@@ -54,28 +54,31 @@ enum {
   NSMACHOperatingSystem,
   NSSunOSOperatingSystem,
   NSOSF1OperatingSystem,
-  NSGNULinuxOperatingSystem = 100,
-  NSBSDOperatingSystem,
-  NSBeOperatingSystem,
-  NSCygwinOperatingSystem
+  GSGNULinuxOperatingSystem = 100,
+  GSBSDOperatingSystem,
+  GSBeOperatingSystem,
+  GSCygwinOperatingSystem
 };
 #endif
 
 
 @interface NSProcessInfo: NSObject
 
-+ (NSProcessInfo*) processInfo;
++ (NSProcessInfo *) processInfo;
 
-- (NSArray*) arguments;
-- (NSDictionary*) environment;
-- (NSString*) globallyUniqueString;
-- (NSString*) hostName;
+- (NSArray *) arguments;
+- (NSDictionary *) environment;
+- (NSString *) globallyUniqueString;
+- (NSString *) hostName;
 #ifndef	STRICT_OPENSTEP
 - (unsigned int) operatingSystem;
-- (NSString*) operatingSystemName;
+- (NSString *) operatingSystemName;
 - (int) processIdentifier;
 #endif
-- (NSString*) processName;
+- (NSString *) processName;
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011400,GS_API_LATEST)
+- (NSString *) operatingSystemVersionString;
+#endif
 
 - (void) setProcessName: (NSString*)newName;
 
@@ -87,7 +90,7 @@ enum {
 - (BOOL) debugLoggingEnabled;
 - (NSMutableSet*) debugSet;
 - (void) setDebugLoggingEnabled: (BOOL)flag;
-- (BOOL) setLogFile: (NSString*)path;
+//- (BOOL) setLogFile: (NSString*)path;  DEPRECATED-DELETED
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env;

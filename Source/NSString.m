@@ -1185,7 +1185,7 @@ handle_printf_atsign (FILE *stream,
       if ((data_ucs2chars[0] == byteOrderMark)
 	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
 	{
-	  /* somebody set up us the BOM! */
+	  /* we've detected the BOM so its UTF-16 */
 	  enc = NSUnicodeStringEncoding;
 	}
       else if (len >= 3
@@ -1195,12 +1195,13 @@ handle_printf_atsign (FILE *stream,
 	{
 	  enc = NSUTF8StringEncoding;
 	}
+	// FIXME: Detect UTF32 BOM. -SG
     }
   self = [self initWithData: d encoding: enc];
   RELEASE(d);
   if (self == nil)
     {
-      NSWarnMLog(@"Contents of file '%@' are not string data", path);
+      NSWarnMLog(@"Contents of file '%@' is not string data", path);
     }
   return self;
 }

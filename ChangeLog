@@ -1,3 +1,18 @@
+2006-09-20  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Headers/Foundation/NSProcessInfo.h
+    * Source/NSProcessInfo.m:
+    Add operatingSystemVersionString
+    Change return of operatingSystem to useful
+    * Headers/Foundation/NSObjCRuntime.h:
+    * Source/NSLog.m:
+    Remove _NSLogDescriptor customisation
+
+2006-09-19  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source/NSString.m:
+    Note where we should add UTF32 detection
+
 2006-09-18  Sheldon Gill  <sheldon@westnet.net.au>
 
     * Source/NSTask.m:
