@@ -201,7 +201,7 @@ then
 				is found at runtime.  If this is not specified
 				then the path from --with-config-file or from
 				the gnustep-make package is used.],
-    result="$withval", 
+    result="$withval",
     result="no"
   )
   if test "$result" != "no"
@@ -271,7 +271,7 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_CONFIG_FILE,
 # building the base library ... as supplied by the gnustep-make package
 #
 if test ! -f "$GNUSTEP_MAKE_CONFIG"; then
-  AC_MSG_NOTICE([Could not find make-specified config file. Either make was installed incorrectly or you are using an old version of gnustep-make. Ignoring this for now...])
+  AC_MSG_NOTICE([Could not find make-specified config file. Either make was installed incorrectly or you are using an old version of gnustep-make. Ignoring this for now... but it will probably fail later on])
 else
   . "$GNUSTEP_MAKE_CONFIG"
 fi
@@ -340,15 +340,18 @@ fi
 # Miscellaneous flags
 #--------------------------------------------------------------------
 # Set location of GNUstep dirs for later use
-if test "$GNUSTEP_FLATTENED" = yes; then
-  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries
-  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers
-else
+if test "$GNUSTEP_IS_FLATTENED" = no; then
   clean_target_os=`$GNUSTEP_MAKEFILES/clean_os.sh $target_os`
   clean_target_cpu=`$GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
   obj_dir=$clean_target_cpu/$clean_target_os
+  lobj_dir=$clean_target_cpu/$clean_target_os/$LIBRARY_COMBO
   GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries/$obj_dir
   GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers/$LIBRARY_COMBO
+else
+  obj_dir=
+  lobj_dir=
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries
+  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers
 fi
 
 #
@@ -422,7 +425,7 @@ AC_MSG_CHECKING(for objc threading flags)
 #
 # Get them from gnustep-make which contains the real code to get them
 #
-objc_threaded=`grep objc_threaded: $GNUSTEP_MAKEFILES/$obj_dir/config.make | sed -e 's/objc_threaded:=//'`
+objc_threaded=`grep objc_threaded: $GNUSTEP_MAKEFILES/$lobj_dir/config.make | sed -e 's/objc_threaded:=//'`
 #
 AC_MSG_RESULT($objc_threaded)
 

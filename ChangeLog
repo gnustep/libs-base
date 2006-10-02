@@ -1,3 +1,29 @@
+2006-10-02  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	More work on having the default flattened gnustep build with just
+	GNUSTEP_MAKEFILES set.  Non-flattened builds will still require
+	sourcing GNUstep.sh before configure instead.
+
+	* configure.ac: Use new variable GNUSTEP_IS_FLATTENED instead
+	of GNUSTEP_FLATTENED, defaulting now to 'yes'.  To build
+	non-flattened you have to source GNUstep.sh first.
+	* configure.ac (config.make): When determining objc threading
+	flags in non-flattened mode, look for config.make in a
+	library-combo subdir since that's where it is installed by
+	gnustep-make now.
+	* configure.ac: Extended the error message when the GNUstep conf
+	file is not found.
+	* configure: Regenerated.
+
+	* SSL/configure.ac: Use GNUSTEP_IS_FLATTENED instead of
+	GNUSTEP_FLATTENED.
+	* SSL/configure: Regenerated.
+	
+	* Source/GNUmakefile: Renamed -DGNUSTEP_FLATTENED to
+	-DGNUSTEP_IS_FLATTENED.  This is just for consistency
+	with the new gnustep-make variable name.
+	* Source/NSPathUtilities.m: Same changes.
+	
 2006-09-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Fix for buffer resize error when registering
