@@ -111,9 +111,9 @@ static NSString	*library_combo =
 #else
   nil;
 #endif
-static NSString	*gnustep_flattened =
-#ifdef GNUSTEP_FLATTENED
-  @GNUSTEP_FLATTENED;
+static NSString	*gnustep_is_flattened =
+#ifdef GNUSTEP_IS_FLATTENED
+  @GNUSTEP_IS_FLATTENED;
 #else
   nil;
 #endif
@@ -1647,7 +1647,7 @@ if (domainMask & mask) \
 	  NSString *part = nil;
 
 	  gslibsDir = [libraryDir stringByAppendingPathComponent: libsDir];
-	  if ([gnustep_flattened boolValue] == NO
+	  if ([gnustep_is_flattened boolValue] == NO
 	    && gnustep_target_cpu != nil && gnustep_target_os != nil)
 	    {
 	      part = [gnustep_target_cpu stringByAppendingPathComponent:
@@ -1684,7 +1684,7 @@ if (domainMask & mask) \
 	  NSString	*full = nil;
 	  NSString	*part = nil;
 
-	  if ([gnustep_flattened boolValue] == NO
+	  if ([gnustep_is_flattened boolValue] == NO
 	    && gnustep_target_cpu != nil && gnustep_target_os != nil)
 	    {
 	      part = [gnustep_target_cpu stringByAppendingPathComponent:
