@@ -114,8 +114,10 @@ extern "C" {
   (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
 
 /**
- * A constant to represent a feature which is not present in any version.
- * Use this to say a feature is not present in an API.<br />
+ * A constant which is the lowest possible version number (0) so that
+ * when used as the removal version (second argument of the GS_API_VERSION
+ * or OS_API_VERSION macro) represents a feature which is not present in
+ * any version.<br />
  * eg.<br />
  * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
  * (GS_API_NONE, GS_API_NONE)<br />

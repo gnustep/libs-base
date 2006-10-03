@@ -1102,6 +1102,11 @@ else
 fi
 
 #--------------------------------------------------------------------
+# Check for uname header used by NSProcessInfo.m 
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(sys/utsname.h)
+
+#--------------------------------------------------------------------
 # Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
 # Needed by NSProcessInfo.m 
 #--------------------------------------------------------------------

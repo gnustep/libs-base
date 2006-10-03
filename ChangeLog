@@ -1,3 +1,15 @@
+2006-10-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version: Bump to version for next release.
+	* configure.ac: Check for utsname
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerate
+	* Headers/Foundation/NSObject.h: Small documentaion improvement
+	* Headers/Foundation/NSProcessInfo.h: Add documentation and update.
+	* Source/NSProcessInfo.m: Moved documentation to header, clean up
+	and complete operating system code.
+	* Testing/nsprocessinfo.m: Trivial test updates.  Avoid use of cString
+
 2006-10-02  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	More work on having the default flattened gnustep build with just
