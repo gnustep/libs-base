@@ -952,7 +952,8 @@ static void determineOperatingSystem()
 {
   if (_operatingSystem == 0)
     {
-      NSString	*os = [NSBundle _gnustep_target_os];
+      NSString	*os = nil;
+      BOOL	parseOS = YES;
 
 #if	defined(__MINGW32__)
       OSVERSIONINFOW	osver;
@@ -978,6 +979,7 @@ static void determineOperatingSystem()
       if (uname(&uts) == 0)
 	{
 	  os = [NSString stringWithCString: uts.sysname                                                           encoding: [NSString defaultCStringEncoding]];
+	  os = [os lowercaseString];
 	  /* Get the operating system version ... usually the version string
 	   * is pretty horrible, and the kernel release string actually
 	   * makes more sense.
@@ -985,6 +987,14 @@ static void determineOperatingSystem()
 	  _operatingSystemVersion = [[NSString alloc]
 	    initWithCString: uts.release
 	    encoding: [NSString defaultCStringEncoding]];
+
+	  /* Hack for sunos/solaris ... sunos version 5 is solaris
+	   */
+	  if ([os isEqualToString: @"sunos"] == YES
+	    && [_operatingSystemVersion intValue] > 4)
+	    {
+	      os = @"solaris";
+	    }
 	}
 #endif	/* HAVE_SYS_UTSNAME_H */
 #endif	/* __MINGW32__ */
@@ -995,60 +1005,77 @@ static void determineOperatingSystem()
 	  _operatingSystemVersion = @"0.0";
 	}
 
-      if ([os hasPrefix: @"linux"] == YES)
-        {
-	  _operatingSystemName = @"GSGNULinuxOperatingSystem";
-	  _operatingSystem = GSGNULinuxOperatingSystem;
+      while (parseOS == YES)
+	{
+	  NSString	*fallback = [NSBundle _gnustep_target_os];
+
+	  if (os == nil)
+	    {
+	      os = fallback;
+	    }
+	  parseOS = NO;
+
+	  if ([os hasPrefix: @"linux"] == YES)
+	    {
+	      _operatingSystemName = @"GSGNULinuxOperatingSystem";
+	      _operatingSystem = GSGNULinuxOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"mingw"] == YES)
+	    {
+	      _operatingSystemName = @"NSWindowsNTOperatingSystem";
+	      _operatingSystem = NSWindowsNTOperatingSystem;
+	    }
+	  else if ([os isEqualToString: @"cygwin"] == YES)
+	    {
+	      _operatingSystemName = @"GSCygwinOperatingSystem";
+	      _operatingSystem = GSCygwinOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"bsd"] == YES
+	    || [os hasPrefix: @"freebsd"] == YES
+	    || [os hasPrefix: @"netbsd"] == YES
+	    || [os hasPrefix: @"openbsd"] == YES)
+	    {
+	      _operatingSystemName = @"GSBSDOperatingSystem";
+	      _operatingSystem = GSBSDOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"beos"] == YES)
+	    {
+	      _operatingSystemName = @"GSBeOperatingSystem";
+	      _operatingSystem = GSBeOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"darwin"] == YES)
+	    {
+	      _operatingSystemName = @"NSMACHOperatingSystem";
+	      _operatingSystem = NSMACHOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"solaris"] == YES)
+	    {
+	      _operatingSystemName = @"NSSolarisOperatingSystem";
+	      _operatingSystem = NSSolarisOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"hpux"] == YES)
+	    {
+	      _operatingSystemName = @"NSHPUXOperatingSystem";
+	      _operatingSystem = NSHPUXOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"sunos"] == YES)
+	    {
+	      _operatingSystemName = @"NSSunOSOperatingSystem";
+	      _operatingSystem = NSSunOSOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"osf"] == YES)
+	    {
+	      _operatingSystemName = @"NSOSF1OperatingSystem";
+	      _operatingSystem = NSOSF1OperatingSystem;
+	    }
+	  if (_operatingSystem == 0 && [os isEqual: fallback] == NO)
+	    {
+	      os = fallback;
+	      parseOS = YES;	// Try again with fallback
+	    }
 	}
-      else if ([os hasPrefix: @"mingw"] == YES)
-        {
-	  _operatingSystemName = @"NSWindowsNTOperatingSystem";
-	  _operatingSystem = NSWindowsNTOperatingSystem;
-	}
-      else if ([os isEqualToString: @"cygwin"] == YES)
-        {
-	  _operatingSystemName = @"GSCygwinOperatingSystem";
-	  _operatingSystem = GSCygwinOperatingSystem;
-	}
-      else if ([os hasPrefix: @"bsd"] == YES
-	|| [os hasPrefix: @"freebsd"] == YES
-	|| [os hasPrefix: @"netbsd"] == YES
-	|| [os hasPrefix: @"openbsd"] == YES)
-        {
-	  _operatingSystemName = @"GSBSDOperatingSystem";
-	  _operatingSystem = GSBSDOperatingSystem;
-	}
-      else if ([os hasPrefix: @"beos"] == YES)
-	{
-          _operatingSystemName = @"GSBeOperatingSystem";
-	  _operatingSystem = GSBeOperatingSystem;
-        }
-      else if ([os hasPrefix: @"darwin"] == YES)
-	{
-          _operatingSystemName = @"NSMACHOperatingSystem";
-	  _operatingSystem = NSMACHOperatingSystem;
-        }
-      else if ([os hasPrefix: @"solaris"] == YES)
-	{
-          _operatingSystemName = @"NSSolarisOperatingSystem";
-	  _operatingSystem = NSSolarisOperatingSystem;
-        }
-      else if ([os hasPrefix: @"hpux"] == YES)
-	{
-          _operatingSystemName = @"NSHPUXOperatingSystem";
-	  _operatingSystem = NSHPUXOperatingSystem;
-        }
-      else if ([os hasPrefix: @"sunos"] == YES)
-	{
-          _operatingSystemName = @"NSSunOSOperatingSystem";
-	  _operatingSystem = NSSunOSOperatingSystem;
-	}
-      else if ([os hasPrefix: @"osf"] == YES)
-	{
-          _operatingSystemName = @"NSOSF1OperatingSystem";
-	  _operatingSystem = NSOSF1OperatingSystem;
-        }
-      else
+
+      if (_operatingSystem == 0)
         {
 	  NSWarnFLog(@"Unable to determine O/S ... assuming GNU/Linux");
 	  _operatingSystemName = @"GSGNULinuxOperatingSystem";
