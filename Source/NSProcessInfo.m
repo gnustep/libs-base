@@ -978,8 +978,12 @@ static void determineOperatingSystem()
       if (uname(&uts) == 0)
 	{
 	  os = [NSString stringWithCString: uts.sysname                                                           encoding: [NSString defaultCStringEncoding]];
+	  /* Get the operating system version ... usually the version string
+	   * is pretty horrible, and the kernel release string actually
+	   * makes more sense.
+	   */
 	  _operatingSystemVersion = [[NSString alloc]
-	    initWithCString: uts.version
+	    initWithCString: uts.release
 	    encoding: [NSString defaultCStringEncoding]];
 	}
 #endif	/* HAVE_SYS_UTSNAME_H */
