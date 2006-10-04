@@ -94,6 +94,11 @@ static GSMimeParser		*mimeParser = nil;
   NSURLProtectionSpace	*known = nil;
   GSHTTPAuthentication	*authentication = nil;
 
+  NSAssert([credential isKindOfClass: [NSURLCredential class]] == YES,
+    NSInvalidArgumentException);
+  NSAssert([space isKindOfClass: [NSURLProtectionSpace class]] == YES,
+    NSInvalidArgumentException);
+
   [storeLock lock];
 
   /*
@@ -146,18 +151,19 @@ static GSMimeParser		*mimeParser = nil;
 
       space = [self protectionSpaceForURL: URL];
       sc = [NSScanner scannerWithString: auth];
-      if ([sc scanString: @"Basic" intoString: 0] == YES)
+      key = [mimeParser scanName: sc];
+      if ([key caseInsensitiveCompare: @"Basic"] == NSOrderedSame)
         {
 	  method = NSURLAuthenticationMethodHTTPBasic;
 	  domain = [URL path];
 	}
-      else if ([sc scanString: @"Digest" intoString: 0] == YES)
+      else if ([key caseInsensitiveCompare: @"Digest"] == NSOrderedSame)
         {
 	  method = NSURLAuthenticationMethodHTTPDigest;
 	}
       else
 	{
-	  return nil;	// Not a known authentication
+	  return nil;	// Unknown authentication
 	}
       while ((key = [mimeParser scanName: sc]) != nil)
 	{

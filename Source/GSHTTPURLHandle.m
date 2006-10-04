@@ -613,7 +613,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		{
 	          NSURLProtectionSpace	*space;
 		  NSString		*ac;
-		  NSURLCredential	*cred;
 		  GSHTTPAuthentication	*authentication;
 		  NSString		*method;
 		  NSString		*a;
@@ -621,25 +620,33 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
 		    protectionSpaceForAuthentication: ac requestURL: url];
+		  if (space != nil)
+		    {
+		      NSURLCredential	*cred;
 
-		  /*
-		   * Create credential from user and password
-		   * stored in the URL.
-		   */
-		  cred = [[NSURLCredential alloc]
-		    initWithUser: [url user]
-		    password: [url password]
-		    persistence: NSURLCredentialPersistenceForSession];
+		      /*
+		       * Create credential from user and password
+		       * stored in the URL.
+		       */
+		      cred = [[NSURLCredential alloc]
+			initWithUser: [url user]
+			password: [url password]
+			persistence: NSURLCredentialPersistenceForSession];
 
-		  /*
-		   * Get the digest object and ask it for a header
-		   * to use for authorisation.
-		   */
-		  authentication = [GSHTTPAuthentication
-		    authenticationWithCredential: cred
-		    inProtectionSpace: space];
+		      /*
+		       * Get the digest object and ask it for a header
+		       * to use for authorisation.
+		       */
+		      authentication = [GSHTTPAuthentication
+			authenticationWithCredential: cred
+			inProtectionSpace: space];
 
-		  RELEASE(cred);
+		      RELEASE(cred);
+		    }
+		  else
+		    {
+		      authentication = nil;
+		    }
 
 		  method = [request objectForKey: GSHTTPPropertyMethodKey];
 		  if (method == nil)
@@ -655,8 +662,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    }
 
 		  a = [authentication authorizationForAuthentication: ac
-							  method: method
-							    path: [url path]];
+		    method: method
+		    path: [url path]];
 		  if (a != nil)
 		    {
 		      [self writeProperty: a forKey: @"Authorization"];
