@@ -1,3 +1,7 @@
+2006-10-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Add a couple more charset mappings.
+
 2006-10-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:
