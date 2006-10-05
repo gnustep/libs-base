@@ -632,11 +632,6 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 
 @end
 
-extern SEL	wRelSel;
-extern SEL	wRetSel;
-extern IMP	wRelImp;
-extern IMP	wRetImp;
-
 /**
  *  <p><code>NSRunLoop</code> instances handle various utility tasks that must
  *  be performed repetitively in an application, such as processing input
@@ -662,12 +657,6 @@ extern IMP	wRetImp;
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
-#if	GS_WITH_GC == 0
-      wRelSel = @selector(release);
-      wRetSel = @selector(retain);
-      wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
-      wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
-#endif
     }
 }
 

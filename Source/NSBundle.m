@@ -669,7 +669,7 @@ typedef struct {
     @defs(NSBundle)
 } *bptr;
 
-void
+static void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);

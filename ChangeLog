@@ -1,6 +1,11 @@
 2006-10-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Add a couple more charset mappings.
+	* Source/NSRunLoop.m: Move some variables to GSRunLoopCtxt.m
+	* Source/GSHTTPURLHandle.m: Make a global static
+	* Source/NSPort.m: Make two globals static
+	* Source/unix/GSRunLoopCtxt.m: Make variable static.
+	* Source/win32/GSRunLoopCtxt.m: Make variable static.
 
 2006-10-04  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -20,10 +20,10 @@
 extern BOOL	GSCheckTasks();
 
 #if	GS_WITH_GC == 0
-SEL	wRelSel;
-SEL	wRetSel;
-IMP	wRelImp;
-IMP	wRetImp;
+static SEL	wRelSel;
+static SEL	wRetSel;
+static IMP	wRelImp;
+static IMP	wRetImp;
 
 static void
 wRelease(NSMapTable* t, void* w)
@@ -48,6 +48,17 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #endif
 
 @implementation	GSRunLoopCtxt
+
++ (void) initialize
+{
+#if	GS_WITH_GC == 0
+  wRelSel = @selector(release);
+  wRetSel = @selector(retain);
+  wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
+  wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
+#endif
+}
+
 - (void) dealloc
 {
   RELEASE(mode);
