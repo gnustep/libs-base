@@ -3773,7 +3773,7 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)@"utf-7");
 	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
 	    (void*)@"utf-8");
-	  NSMapInsert(charsets, (void*)NSGSM0338StringEncoding,
+	  NSMapInsert(encodings, (void*)NSGSM0338StringEncoding,
 	    (void*)@"gsm0338");
 	}
     }
