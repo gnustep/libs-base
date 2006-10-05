@@ -81,7 +81,7 @@ typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
 typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
 typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
 
-const NSMapTableKeyCallBacks writeKeyCallBacks =
+static const NSMapTableKeyCallBacks writeKeyCallBacks =
 {
   (NSMT_hash_func_t) _non_retained_id_hash,
   (NSMT_is_equal_func_t) _non_retained_id_is_equal,
