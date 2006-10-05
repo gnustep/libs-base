@@ -3658,6 +3658,12 @@ static NSCharacterSet	*tokenSet = nil;
 	  NSMapInsert(charsets, (void*)@"csisolatin1",
 	    (void*)NSISOLatin1StringEncoding);
 
+	  // A couple of telecoms charsets
+	  NSMapInsert(charsets, (void*)@"ia5",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"gsm0338",
+	    (void*)NSGSM0338StringEncoding);
+
 	  NSMapInsert(charsets, (void*)@"iso-8859-2",
 	    (void*)NSISOLatin2StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-3",
@@ -3767,6 +3773,8 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)@"utf-7");
 	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
 	    (void*)@"utf-8");
+	  NSMapInsert(charsets, (void*)NSGSM0338StringEncoding,
+	    (void*)@"gsm0338");
 	}
     }
 }
