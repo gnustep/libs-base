@@ -731,7 +731,7 @@ AC_TYPE_SIZE_T
 AC_C_INLINE
 
 #--------------------------------------------------------------------
-# Following header checks needed for bzero in Storage.m and other places
+# Following header checks needed string.h for many places
 #--------------------------------------------------------------------
 AC_HEADER_STDC
 AC_CHECK_HEADERS(string.h memory.h)
@@ -764,10 +764,10 @@ LIBS="$saved_LIBS"
 #--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m
 #--------------------------------------------------------------------
-dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
+dnl AC_REPLACE_FUNCS(gettimeofday)
 
-AC_CHECK_HEADERS(time.h sys/time.h tzfile.h sys/rusage.h ucbinclude/sys/resource.h)
-AC_CHECK_FUNCS(time ctime tzset)
+AC_CHECK_HEADERS(time.h sys/time.h tzfile.h ucbinclude/sys/resource.h)
+AC_CHECK_FUNCS(tzset)
 
 # Check if tzfile contains the proper definitions
 if test $ac_cv_header_tzfile_h = yes; then
@@ -823,27 +823,6 @@ if test $ac_cv_header_pthread_h = yes ; then
   HAVE_PTHREAD_H=yes
 fi
 AC_SUBST(HAVE_PTHREAD_H)
-
-#--------------------------------------------------------------------
-# This function needed by StdioStream.m
-#--------------------------------------------------------------------
-AC_CHECK_FUNCS(vsprintf vasprintf)
-if test $ac_cv_func_vsprintf = yes ; then
-    AC_TRY_RUN([#include "$srcdir/config/config.vsprintf.c"],
-		VSPRINTF_RETURNS_LENGTH=1,
-		VSPRINTF_RETURNS_LENGTH=0,
-		VSPRINTF_RETURNS_LENGTH=1)
-    AC_DEFINE_UNQUOTED(VSPRINTF_RETURNS_LENGTH, $VSPRINTF_RETURNS_LENGTH,
-                       [Define if vsprintf returns the length printed])
-fi
-if test $ac_cv_func_vasprintf = yes ; then
-    AC_TRY_RUN([#include "$srcdir/config/config.vasprintf.c"],
-		VASPRINTF_RETURNS_LENGTH=1,
-		VASPRINTF_RETURNS_LENGTH=0,
-		VASPRINTF_RETURNS_LENGTH=1)
-    AC_DEFINE_UNQUOTED(VASPRINTF_RETURNS_LENGTH, $VASPRINTF_RETURNS_LENGTH,
-                       [Define if vasprintf returns the length printed])
-fi
 
 #--------------------------------------------------------------------
 # This function needed by NSFileManager.m
@@ -967,7 +946,7 @@ AC_SUBST(HAVE_INET_PTON)
 AC_CHECK_FUNCS(nanosleep usleep)
 
 #--------------------------------------------------------------------
-# This function needed by NSDebug.m and NSProcessInfo.m
+# This function needed by GSFormat.m and GSFunctions.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(strerror)
 
@@ -1084,8 +1063,14 @@ else
 fi
 
 #--------------------------------------------------------------------
+# Check for uname() for NSProcessInfo.m
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(sys/utsname.h)
+AC_CHECK_FUNCS(uname)
+
+#--------------------------------------------------------------------
 # Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
-# Needed by NSProcessInfo.m 
+# Used by NSProcessInfo.m when available (eg GNU/Linux)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(procfs.h)
 AC_SYS_PROCFS

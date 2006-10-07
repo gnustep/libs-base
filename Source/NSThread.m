@@ -54,6 +54,8 @@
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSInvocation.h"
 
+#include "GNUstepBase/GSFunctions.h"
+
 #include "GSRunLoopCtxt.h"
 
 @interface NSAutoreleasePool (NSThread)
@@ -889,12 +891,12 @@ static NSDate *theFuture;
 #if defined(__MINGW32__)
   if (SetEvent(event) == 0)
     {
-      NSLog(@"Set event failed - %@", GSLastErrorStr(errno));
+      NSLog(@"Set event failed - %@", GSLastError());
     }
 #else
   if (write(outputFd, "0", 1) != 1)
     {
-      NSLog(@"Write to pipe failed - %@", GSLastErrorStr(errno));
+      NSLog(@"Write to pipe failed - %@", GSLastError());
     }
 #endif
 
@@ -918,12 +920,12 @@ static NSDate *theFuture;
 #if defined(__MINGW32__)
   if (ResetEvent(event) == 0)
     {
-      NSLog(@"Reset event failed - %@", GSLastErrorStr(errno));
+      NSLog(@"Reset event failed - %@", GSLastError());
     }
 #else
   if (read(inputFd, &c, 1) != 1)
     {
-      NSLog(@"Read pipe failed - %@", GSLastErrorStr(errno));
+      NSLog(@"Read pipe failed - %@", GSLastError());
     }
 #endif
 

@@ -38,13 +38,14 @@
 #include "Foundation/NSUserDefaults.h"
 
 #include "GNUstepBase/GSMime.h"
+#include "GNUstepBase/GSFunctions.h"
 
 #include "GSPortPrivate.h"
 
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
-extern int	errno;
+// extern int	errno;  NOT USED -SG
 
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;
@@ -105,7 +106,7 @@ static void clean_up_names(void)
       security.lpSecurityDescriptor = 0;	// Default
       security.bInheritHandle = TRUE;
 
-      registry = @"Software\\GNUstepNSMessagePort";
+      registry = @"Software\\GNUstepNSMessagePort";   //FIXME: GNUstep\\MessagePorts
       rc = RegCreateKeyExW(
 	HKEY_CURRENT_USER,
 	UNISTR(registry),
@@ -312,7 +313,7 @@ OutputDebugStringW(L"");
   else
     {
       NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x) %s",
-	registry, n, rc, GSLastErrorStr(rc));
+	registry, n, rc, GSLastError());
       return NO;
     }
 

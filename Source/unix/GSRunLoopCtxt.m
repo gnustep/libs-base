@@ -408,8 +408,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  /* Some exceptional condition happened. */
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
-	  NSLog (@"poll() error in -acceptInputForMode:beforeDate: '%s'",
-	    GSLastErrorStr(errno));
+	  NSLog (@"poll() error in -acceptInputForMode:beforeDate: '%@'",
+	    GSLastError());
 	  abort ();
 	}
     }
@@ -789,8 +789,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  /* Some exceptional condition happened. */
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
-	  NSLog (@"select() error in -acceptInputForMode:beforeDate: '%s'",
-	    GSLastErrorStr(errno));
+	  NSLog (@"select() error in -acceptInputForMode:beforeDate: '%@'",
+	    GSLastError());
 	  abort ();
 	}
     }

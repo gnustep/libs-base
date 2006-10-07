@@ -42,6 +42,7 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSProcessInfo.h"
+#include "GNUstepBase/GSFunctions.h"
 
 #include "GSPortPrivate.h"
 
@@ -206,8 +207,8 @@ static Class		messagePortClass = 0;
   M_UNLOCK(messagePortLock);
   if ([p _setupSendPort] == NO)
     {
-      NSLog(@"unable to access mailslot '%@' - %s",
-	[p name], GSLastErrorStr(errno));
+      NSLog(@"unable to access mailslot '%@' - %@",
+	[p name], GSLastError());
       DESTROY(p);
     }
   return p;
@@ -334,8 +335,8 @@ static Class		messagePortClass = 0;
 
   if (this->rHandle == INVALID_HANDLE_VALUE)
     {
-      NSLog(@"unable to create mailslot '%@' - %s",
-	this->name, GSLastErrorStr(errno));
+      NSLog(@"unable to create mailslot '%@' - %@",
+	this->name, GSLastError());
       DESTROY(self);
     }
   else
@@ -507,7 +508,7 @@ static Class		messagePortClass = 0;
 	    }
 	  else
 	    {
-	      NSLog(@"GetOverlappedResult failed ...%s", GSLastErrorStr(errno));
+	      NSLog(@"GetOverlappedResult failed ...%s", GSLastError());
 	      this->rState = RS_NONE;
 	      this->rLength = 0;
 	    }
@@ -529,8 +530,8 @@ static Class		messagePortClass = 0;
 	0,
 	0) == 0)
 	{
-	  NSLog(@"unable to get info from mailslot '%@' - %s",
-	    this->name, GSLastErrorStr(errno));
+	  NSLog(@"unable to get info from mailslot '%@' - %@",
+	    this->name, GSLastError());
 	  [self invalidate];
 	  return;
 	}
@@ -546,16 +547,16 @@ static Class		messagePortClass = 0;
 	    &this->rSize,
 	    NULL) == 0)
 	    {
-	      NSLog(@"unable to read from mailslot '%@' - %s",
-		this->name, GSLastErrorStr(errno));
+	      NSLog(@"unable to read from mailslot '%@' - %@",
+		this->name, GSLastError());
 	      [self invalidate];
 	      return;
 	    }
 	  if (this->rSize != this->rWant)
 	    {
-	      NSLog(@"only read %d of %d bytes from mailslot '%@' - %s",
+	      NSLog(@"only read %d of %d bytes from mailslot '%@' - %@",
 		this->rSize, this->rWant, this->name,
-		GSLastErrorStr(errno));
+		GSLastError());
 	      [self invalidate];
 	      return;
 	    }
@@ -749,8 +750,8 @@ static Class		messagePortClass = 0;
 	}
       else
 	{
-	  NSLog(@"unable to read from mailslot '%@' - %s",
-	    this->name, GSLastErrorStr(errno));
+	  NSLog(@"unable to read from mailslot '%@' - %@",
+	    this->name, GSLastError());
 	  [self invalidate];
 	}
     }
@@ -804,7 +805,7 @@ static Class		messagePortClass = 0;
 	&this->wSize,
 	TRUE) == 0)
 	{
-	  NSLog(@"GetOverlappedResult failed ...%s", GSLastErrorStr(errno));
+	  NSLog(@"GetOverlappedResult failed ...%@", GSLastError());
 	}
       else
 	{
@@ -856,8 +857,8 @@ again:
 	}
       else if ((errno = GetLastError()) != ERROR_IO_PENDING)
 	{
-	  NSLog(@"unable to write to mailslot '%@' - %s",
-	    this->name, GSLastErrorStr(errno));
+	  NSLog(@"unable to write to mailslot '%@' - %@",
+	    this->name, GSLastError());
 	  [self invalidate];
 	}
       else

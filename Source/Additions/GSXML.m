@@ -74,6 +74,7 @@
 #else
 #include <Foundation/Foundation.h>
 #endif
+#include "GNUstepBase/GSFunctions.h"
 
 /* libxml headers */
 #include <libxml/tree.h>
@@ -125,6 +126,7 @@ UTF8StrLen(const unsigned char *bytes, unsigned length)
   unsigned char	*buf = NSZoneMalloc(NSDefaultMallocZone(), length+1);
   NSString	*str;
 
+  // FIXME: Should make the string using the given buffer, NoCopy! -SG
   memcpy(buf, bytes, length);
   buf[length] = '\0';
   str = UTF8Str(buf);

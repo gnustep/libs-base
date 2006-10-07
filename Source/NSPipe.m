@@ -28,6 +28,7 @@
 #include "Foundation/NSObject.h"
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
+#include "GNUstepBase/GSFunctions.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -77,7 +78,7 @@
         }
       else
 	{
-	  NSLog(@"Failed to create pipe ... %s", GSLastErrorStr(errno));
+	  NSLog(@"Failed to create pipe ... %@", GSLastError());
 	  DESTROY(self);
 	}
 #else
@@ -94,6 +95,11 @@
 						   closeOnDealloc: YES];
           writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
 						    closeOnDealloc: YES];
+        }
+      else
+        {
+    	  NSLog(@"Failed to create pipe ... %@", GSLastError());
+    	  DESTROY(self);
         }
 #endif
     }

@@ -41,7 +41,7 @@
 #include <lm.h>
 
 /* Use this definition to hand an NSString to a Win32 API call */
-#define  UniBuf( nsstr_ptr )    ((WCHAR *)[nsstr_ptr unicharString])
+#define  UniBuf( nsstr_ptr )    ((WCHAR *)[nsstr_ptr cStringUsingEncoding: NSUnicodeStringEncoding])
 #define  UniBufLen( nsstr_ptr ) ([nsstr_ptr length])
 
 /* ------------------ */
@@ -97,20 +97,26 @@ void Win32_Utilities_fini()
   return; // Nothing to do yet...
 }
 
+/* ------+---------+---------+---------+---------+---------+---------+---------+
+*** -<General utility functions>-
+---------+---------+---------+---------+---------+---------+---------+------- */
+
 /**
- * Translates a Win32 error into a text equivalent
- *
+ * Translates a Win32 error code into a text equivalent
  */
-void Win32PrintError( DWORD ErrorCode )
+NSString *Win32ErrorString( DWORD ErrorCode )
 {
+  NSString *message;
   LPVOID lpMsgBuf;
 
   FormatMessageW( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
                   NULL, ErrorCode,
                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                   (LPWSTR) &lpMsgBuf, 0, NULL );
-  wprintf(L"WinERROR: %s\n", lpMsgBuf );
+  message = [NSString stringWithCharacters: lpMsgBuf
+                                    length: wcslen(lpMsgBuf)];
   LocalFree( lpMsgBuf );
+  return message;
 }
 
 /* ------+---------+---------+---------+---------+---------+---------+---------+
@@ -149,8 +155,7 @@ Win32NSStringFromRegistry(HKEY regkey, NSString *regValue)
   NSCParameterAssert( regkey != NULL );
   NSCParameterAssert( regValue != nil );
 
-//  if (ERROR_SUCCESS==RegQueryValueExW(regkey, [regValue unicharString], 0,
-  if (ERROR_SUCCESS==RegQueryValueExW(regkey, UniBuf(regValue), 0,
+  if (ERROR_SUCCESS == RegQueryValueExW(regkey, UniBuf(regValue), 0,
                                       &type, (LPBYTE)buf, &bufsize))
     {
       /* Check type is correct! */
@@ -180,7 +185,7 @@ Win32NSNumberFromRegistry(HKEY regkey, NSString *regValue)
   NSCParameterAssert( regkey != NULL );
   NSCParameterAssert( regValue != nil );
 
-  if (ERROR_SUCCESS==RegQueryValueExW(regkey, UniBuf(regValue), 0,
+  if (ERROR_SUCCESS == RegQueryValueExW(regkey, UniBuf(regValue), 0,
                                       &type, (LPBYTE)&buf, &bufsize))
     {
       /* Check type is correct! */
@@ -198,52 +203,30 @@ Win32NSNumberFromRegistry(HKEY regkey, NSString *regValue)
 NSData *
 Win32NSDataFromRegistry(HKEY regkey, NSString *regValue)
 {
+  DWORD *buf = NULL;
+  DWORD bufsize = 0;
+  DWORD type;
+
   NSCParameterAssert( regkey != NULL );
   NSCParameterAssert( regValue != nil );
 
-  [NSException raise: NSInternalInconsistencyException
-              format: @"Not implemented! Can't read binary data from the registry.."];
-  return nil;
-}
-
-/* ------+---------+---------+---------+---------+---------+---------+---------+
-*** -<Environment functions>-
----------+---------+---------+---------+---------+---------+---------+------- */
-
-/**
- * Obtains an NSString for the environment variable named envVar.
- */
-NSString *
-Win32NSStringFromEnvironmentVariable(const WCHAR *envVar)
-{
-  WCHAR buf[1024], *nb;
-  DWORD n;
-  NSString *s = nil;
-
-  NSCParameterAssert( envVar != NULL );
-
-  [gnustep_global_lock lock];
-  n = GetEnvironmentVariableW(envVar, buf, 1024);
-  if (n > 1024)
+  if (ERROR_SUCCESS == RegQueryValueExW(regkey, UniBuf(regValue), 0,
+                                      &type, NULL, &bufsize))
     {
-      /* Buffer not big enough, so dynamically allocate it */
-      nb = (WCHAR *)NSZoneMalloc(NSDefaultMallocZone(), sizeof(WCHAR)*(n+1));
-      if (nb != NULL)
+      if (type != REG_BINARY)
+          return nil;
+
+      buf = objc_malloc(bufsize);
+      if (ERROR_SUCCESS == RegQueryValueExW(regkey, UniBuf(regValue),
+                                  0, &type, (LPBYTE)buf, &bufsize))
         {
-          n = GetEnvironmentVariableW(envVar, nb, n+1);
-          nb[n] = '\0';
-          s = [NSString stringWithCharacters: nb length: n];
-          NSZoneFree(NSDefaultMallocZone(), nb);
+            return [NSData dataWithBytesNoCopy: buf
+                                        length: bufsize
+                                  freeWhenDone: YES];
         }
+      objc_free(buf);
     }
-  else if (n > 0)
-    {
-      /* null terminate it and return the string */
-      buf[n] = '\0';
-      s = [NSString stringWithCharacters: buf length: n];
-    }
-  [gnustep_global_lock unlock];
-  return s;
+  return nil;
 }
 
 /* ------+---------+---------+---------+---------+---------+---------+---------+
@@ -261,18 +244,21 @@ Win32GetUserHomeDirectory(NSString *loginName)
   if ([loginName isEqual: NSUserName()] == YES)
     {
       /*
-       * The environment variable HOMEPATH holds the home directory
+       * The environment variables are easiest
        * for the user on Windows NT;
        */
-      s = Win32NSStringFromEnvironmentVariable(L"USERPROFILE");
+      s = [[[NSProcessInfo processInfo] environment]
+               objectForKey: @"USERPROFILE"];
       if (s == nil)
         {
-          s = Win32NSStringFromEnvironmentVariable(L"HOMEPATH");
+          s = [[[NSProcessInfo processInfo] environment]
+                   objectForKey: @"HOMEPATH"];
         }
       if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
         {
-          s = [Win32NSStringFromEnvironmentVariable(L"HOMEDRIVE")
-            stringByAppendingString: s];
+          s = [[[[NSProcessInfo processInfo] environment]
+                   objectForKey: @"HOMEPATH"]
+                     stringByAppendingString: s];
         }
     }
 
@@ -330,7 +316,7 @@ Win32UserName(void)
     {
       return [NSString stringWithCharacters: buf length: (n-1)];
     }
-  return Win32NSStringFromEnvironmentVariable(L"LOGNAME");
+  return NULL;
 }
 
 /**
@@ -345,7 +331,7 @@ Win32FullUserName( NSString *userName )
 
   if (NetUserGetInfo( NULL, UniBuf(userName), 2, (LPBYTE*)&user_info))
     {
-      /* FIXME: Issue warning */
+      NSLog(@"Couldn't get user information for %@",userName);
       return nil;
     }
   return [NSString stringWithCharacters: user_info->usri2_full_name
@@ -357,35 +343,16 @@ Win32FullUserName( NSString *userName )
 ---------+---------+---------+---------+---------+---------+---------+------- */
 
 /**
- * Returns the Windows system directory. eg C:\WinNT\System32
+ * Returns the Windows directory. eg C:\WinNT
  */
 NSString *
-Win32SystemDirectory( void )
+Win32WindowsDirectory( void )
 {
   WCHAR buf[MAX_PATH+1];
   DWORD bufsize = MAX_PATH+1;
   DWORD len;
 
-    len = GetSystemDirectoryW(buf,bufsize);
-    if ((len == 0)||(len > MAX_PATH))
-      {
-        return nil;
-      }
-    return [NSString stringWithCharacters: buf length: len];
-}
-
-/**
- * Returns the temporary directory on windows. This is the per-user
- *   temporary directory on OS versions which support it.
- */
-NSString *
-Win32TemporaryDirectory( void )
-{
-  WCHAR buf[MAX_PATH+1];
-  DWORD bufsize = MAX_PATH+1;
-  DWORD len;
-
-    len = GetTempPathW(bufsize,buf);
+    len = GetWindowsDirectoryW(buf,bufsize);
     if ((len == 0)||(len > MAX_PATH))
       {
         return nil;

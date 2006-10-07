@@ -54,7 +54,7 @@ extern NSThread *GSCurrentThread();  // why isn't this in GSPrivate.h ?? -SG
 
 // From "Win32Support.h"
 #define UNISTR(X) \
-((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
+((WCHAR *)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
 // From private base shared functions
 void crash(char *description);
@@ -91,20 +91,39 @@ void crash(char *description)
  */
 
 #if defined(__MINGW32__)
-static void
-send_event_to_eventlog(WORD eventtype, LPCWSTR msgbuffer)
-{
-  static HANDLE eventloghandle = 0;
+/* A mechanism for a more descriptive event source registration -SG */
+static WCHAR *_source_name = NULL;
+static HANDLE _eventloghandle = NULL;
 
-  if (!eventloghandle)
+/**
+ * Windows applications which log to the EventLog should set a source
+ * name appropriate for the local and app.
+ * This must be called early, before any logging takes place
+ */
+void SGSetEventSource(WCHAR *aName)
+{
+  _source_name = aName;
+  if (_eventloghandle)
+      CloseHandle(_eventloghandle);
+  _eventloghandle = NULL;
+}
+
+static void
+send_event_to_eventlog(WORD eventtype, NSString *message)
+{
+  LPCWSTR msgbuffer = UNISTR(message);
+
+  if (!_eventloghandle)
     {
-      // FIXME: Need a mechanism for a more descriptive registration -SG
-      eventloghandle = RegisterEventSourceW(NULL,
-          UNISTR([[NSProcessInfo processInfo] processName]));
+      if (_source_name == NULL)
+        {
+          _source_name = UNISTR([[NSProcessInfo processInfo] processName]);
+        }
+      _eventloghandle = RegisterEventSourceW(NULL, _source_name);
     }
-  if (eventloghandle)
+  if (_eventloghandle)
     {
-      ReportEventW(eventloghandle,                     // event log handle
+      ReportEventW(_eventloghandle,                    // event log handle
           eventtype,                                         // event type
           0,                                              // category zero
           0,                                           // event identifier
@@ -125,12 +144,10 @@ static void
 _GSLog_standard_printf_handler(NSString* message)
 {
   static HANDLE hStdErr = NULL;
-  LPCWSTR null_terminated_buf = UNISTR(message);
-  DWORD   bytes_out;
 
 #ifndef RELEASE_VERSION
   if (IsDebuggerPresent())
-      OutputDebugStringW(null_terminated_buf);
+      OutputDebugStringW(UNISTR(message));
 #endif
 
   if (hStdErr == NULL)
@@ -138,15 +155,32 @@ _GSLog_standard_printf_handler(NSString* message)
 
   if ((GSUserDefaultsFlag(GSLogSyslog) == YES) || (hStdErr == NULL))
     {
-      send_event_to_eventlog(EVENTLOG_ERROR_TYPE, null_terminated_buf);
+      send_event_to_eventlog(EVENTLOG_ERROR_TYPE, message);
     }
   else
     {
-      if (!WriteFile(hStdErr, null_terminated_buf,
-                      wcslen(null_terminated_buf)*2,
-                      &bytes_out, NULL))
+      DWORD   bytes_out;
+
+      if (GetFileType(hStdErr) == FILE_TYPE_CHAR)
         {
-          send_event_to_eventlog(EVENTLOG_ERROR_TYPE, null_terminated_buf);
+          unichar *buffer = UNISTR(message);
+          if (!WriteConsoleW(hStdErr, buffer+1,
+                          wcslen(buffer+1),
+                          &bytes_out, NULL))
+            {
+              send_event_to_eventlog(EVENTLOG_ERROR_TYPE, message);
+            }
+
+        }
+      else
+        {
+          char *buffer = (char *)[message UTF8String];
+          if (!WriteFile(hStdErr, buffer,
+                          strlen(buffer),
+                          &bytes_out, NULL))
+            {
+              send_event_to_eventlog(EVENTLOG_ERROR_TYPE, message);
+            }
         }
     }
 }
@@ -230,12 +264,8 @@ NSLog(NSString* format, ...)
  *   The function generates a standard log entry by prepending
  *   process ID and date/time information to your message, and
  *   ensuring that a newline is present at the end of the message.
- * </p>
- * <p>
- *   In GNUstep, the GSLogThread user default may be set to YES in
- *   order to instruct this function to include the internal ID of
- *   the current thread after the process ID.  This can help you
- *   to track the behavior of a multi-threaded program.
+ *   If your application is multithreaded, it will also report the
+ *   thread ID as well.
  * </p>
  * <p>
  *   The resulting message is then passed to a handler function to

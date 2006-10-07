@@ -1,7 +1,9 @@
 /* Extension functions for GNUstep
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
+   Written by:  Manuel Guesdon <mguesdon@orange-concept.com>
+   Date: Nov 2002
    Written by:  Sheldon Gill
    Date:    2005
 
@@ -29,6 +31,77 @@
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSFunctions.h"
 #include "Foundation/Foundation.h"
+#include "GNUstepBase/Win32_Utilities.h"
+
+
+#ifndef HAVE_STRERROR
+const char *
+strerror(int eno)
+{
+  extern char  *sys_errlist[];
+  extern int    sys_nerr;
+
+  if (eno < 0 || eno >= sys_nerr)
+    {
+      return("unknown error number");
+    }
+  return(sys_errlist[eno]);
+}
+#endif
+
+/*
+ * Gets the last error from the system libraries...
+ */
+NSString *
+GSErrorString(long error_id)
+{
+#ifdef __MINGW32__
+  return Win32ErrorString(error_id);
+#else
+  return [NSString stringWithCString: strerror(error_id)
+                            encoding: NSUTF8StringEncoding];
+#endif
+}
+
+BOOL
+GSPrintf (FILE *fptr, NSString* format, ...)
+{
+  static Class                  stringClass = 0;
+  static NSStringEncoding       enc;
+  CREATE_AUTORELEASE_POOL(arp);
+  va_list       ap;
+  NSString      *message;
+  NSData        *data;
+  BOOL          ok = NO;
+
+  if (stringClass == 0)
+    {
+      stringClass = [NSString class];
+      enc = [stringClass defaultCStringEncoding];
+    }
+  message = [stringClass allocWithZone: NSDefaultMallocZone()];
+  va_start (ap, format);
+  message = [message initWithFormat: format locale: nil arguments: ap];
+  va_end (ap);
+  data = [message dataUsingEncoding: enc];
+  if (data == nil)
+    {
+      data = [message dataUsingEncoding: NSUTF8StringEncoding];
+    }
+  RELEASE(message);
+
+  if (data != nil)
+    {
+      unsigned int      length = [data length];
+
+      if (length == 0 || fwrite([data bytes], 1, length, fptr) == length)
+        {
+          ok = YES;
+        }
+    }
+  RELEASE(arp);
+  return ok;
+}
 
 NSString *
 GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension)
@@ -62,4 +135,3 @@ GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension)
     }
   return nil;
 }
-

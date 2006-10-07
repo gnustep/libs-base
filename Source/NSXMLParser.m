@@ -28,6 +28,7 @@
 #include <Foundation/NSXMLParser.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <GNUstepBase/GSFunctions.h>
 
 NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 

@@ -1,9 +1,55 @@
+2006-10-06  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Headers/Foundation/NSError.h
+    * Source/NSError.m
+    Updated to Tiger specifications
+
+2006-10-03  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source\GSFileHandle.m
+    * Source\GSFormat.m
+    * Source\GSFTPURLHandle.m
+    * Source\GSHTTPURLHandle.m
+    * Source\GSStream.m
+    * Source\NSData.m
+    * Source\NSDistributedLock.m
+    * Source\NSFileManager.m
+    * Source\NSMessagePort.m
+    * Source\NSPipe.m
+    * Source\NSSocketPort.m
+    * Source\NSTask.m
+    * Source\NSThread.m
+
+    * Source\win32\GSFileHandleWin32.m
+    * Source\win32\GSRunLoopCtxt.m
+    * Source\win32\NSMessagePortNameServerWin32.m
+    * Source\win32\NSMessagePortWin32.m
+    * Source\win32\NSStreamWin32.m
+
+    * Headers/Additions/GNUstepBase/GSObjCRuntime.h
+    * Headers/Additions/GNUstepBase/GSFunctions.h
+    * Additions\GSCompatibility.
+    * Additions\GSObjCRuntime.m
+    * Additions\GSFunctions.m
+
+    Moved GSPrintf() and GSLastErrorStr() to GSFunctions
+    Altered GSLastErrorStr(long) to GSLastError(void)
+    Fixed bug preventing GSLastErrorStr() returning net errors
+    * Headers/Additions/GNUstepBase/Win32_Utilities.h
+    * Source/win32/Win32_Utilities.m:
+    Clean up and rationalise a little
+
+2006-10-03  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source/NSLog.m
+    Better output on Win32. Cleaner module.
+
 2006-09-20  Sheldon Gill  <sheldon@westnet.net.au>
 
     * Headers/Foundation/NSProcessInfo.h
     * Source/NSProcessInfo.m:
     Add operatingSystemVersionString
-    Change return of operatingSystem to useful
+    Change return of operatingSystem to be more useful
     * Headers/Foundation/NSObjCRuntime.h:
     * Source/NSLog.m:
     Remove _NSLogDescriptor customisation

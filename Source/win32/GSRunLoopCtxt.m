@@ -16,6 +16,7 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSStream.h>
+#include "GNUstepBase/GSFunctions.h"
 
 extern BOOL	GSCheckTasks();
 
@@ -399,7 +400,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       /*
        * Wait for signalled events or window messages.
        */
-      wait_return = MsgWaitForMultipleObjects(num_handles, handleArray, 
+      wait_return = MsgWaitForMultipleObjects(num_handles, handleArray,
         NO, wait_timeout, QS_ALLINPUT);
     }
   else if (num_handles > 0)
@@ -408,7 +409,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
        * We are not interested in windows messages ... just wait for
        * signalled events.
        */
-      wait_return = WaitForMultipleObjects(num_handles, handleArray, 
+      wait_return = WaitForMultipleObjects(num_handles, handleArray,
         NO, wait_timeout);
     }
   else
@@ -425,8 +426,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       BOOL	found = NO;
 
       NSDebugMLLog(@"NSRunLoop", @"WaitForMultipleObjects() error in "
-	@"-acceptInputForMode:beforeDate: %s",
-	GSLastErrorStr(GetLastError()));
+	@"-acceptInputForMode:beforeDate: %@",
+	GSLastError());
       /*
        * Check each handle in turn until either we find one which has an
        * event signalled, or we find the one which caused the original
@@ -447,8 +448,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       if (found == NO)
 	{
 	  NSLog(@"WaitForMultipleObjects() error in "
-	    @"-acceptInputForMode:beforeDate: %s",
-	    GSLastErrorStr(GetLastError()));
+	    @"-acceptInputForMode:beforeDate: %@",
+	    GSLastError());
 	  abort ();        
 	}
     }

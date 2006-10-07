@@ -673,28 +673,6 @@ GSAutoreleasedBuffer(unsigned size);
 GS_EXPORT void
 GSAllocateMutexAt(objc_mutex_t *request);
 
-/** Returns a system error message on a variety of systems
- */
-GS_EXPORT const char *
-GSLastErrorStr(long error_id);
-
-/**
- * <p>Prints a message to fptr using the format string provided and any
- * additional arguments.  The format string is interpreted as by
- * the NSString formatted initialisers, and understands the '%@' syntax
- * for printing an object.
- * </p>
- * <p>The data is written to the file pointer in the default CString
- * encoding if possible, as a UTF8 string otherwise.
- * </p>
- * <p>This function is recommended for printing general log messages.
- * For debug messages use NSDebugLog() and friends.  For error logging
- * use NSLog(), and for warnings you might consider NSWarnLog().
- * </p>
- */
-GS_EXPORT BOOL
-GSPrintf (FILE *fptr, NSString *format, ...);
-
 
 
 #ifndef NO_DEPRECATED

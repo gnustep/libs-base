@@ -1,8 +1,8 @@
 /** Additional functions for GNUStep
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006 Free Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
-   Created: 2005
+   Written by:  Sheldon Gill
+   Date:    2005
    
    This file is part of the GNUstep Base Library.
 
@@ -38,7 +38,58 @@ extern "C" {
 @class	NSArray;
 @class	NSString;
 
-/** 
+
+/**
+ * Returns the system error message for the given error number
+ */
+GS_EXPORT NSString *GSErrorString(long errorNumber);
+
+/**
+ * <p>Returns the error message for the last system error.</p>
+ * On *nix, this is equivalent to strerror(errno).
+ * On MS-Windows this is the message for GetLastError().
+ */
+static inline NSString *GSLastError(void)
+{
+#if defined(__MINGW32__)
+    return GSErrorString(GetLastError());
+#else
+    return GSErrorString(errno);
+#endif
+}
+
+/**
+ * <p>Returns the error message for the last sockets library
+ * error.</p>
+ * On *nix, this is equivalent to strerror(errno).
+ * On MS-Windows this is the message for WSAGetLastError().
+ */
+static inline NSString *GSLastSocketError(void)
+{
+#if defined(__MINGW32__)
+    return GSErrorString(WSAGetLastError());
+#else
+    return GSErrorString(errno);
+#endif
+}
+
+/**
+ * <p>Prints a message to fptr using the format string provided and any
+ * additional arguments.  The format string is interpreted as by
+ * the NSString formatted initialisers, and understands the '%@' syntax
+ * for printing an object.
+ * </p>
+ * <p>The data is written to the file pointer in the default CString
+ * encoding if possible, as a UTF8 string otherwise.
+ * </p>
+ * <p>This function is recommended for printing general log messages.
+ * For debug messages use NSDebugLog() and friends.  For error logging
+ * use NSLog(), and for warnings you might consider NSWarnLog().
+ * </p>
+ */
+GS_EXPORT BOOL GSPrintf (FILE *fptr, NSString *format, ...);
+
+/**
  * Try to locate file/directory (aName).(anExtension) in paths.
  * Will return the first found or nil if nothing is found.
  */

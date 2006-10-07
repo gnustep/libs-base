@@ -1,4 +1,4 @@
-                                                                                                             /** Win32 Utility support functions for GNUStep
+/** Win32 Utility support functions for GNUStep
    Copyright (C) 2004 Free Software Foundation, Inc.
 
    Written by:  Sheldon Gill <address@hidden>
@@ -37,11 +37,6 @@ extern "C" {
 #include "Foundation/NSValue.h"
 #endif
 
-/* TODO:
--Win32NSDataFromRegistry()
-NOT IMPLEMENTED YET!
-*/
-
 /* Useful strings for Registry Keys */
 extern NSString *curWindowsKey; // "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
 extern NSString *curWinNTKey;   // "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\"
@@ -50,8 +45,10 @@ extern NSString *curWinNTKey;   // "SOFTWARE\\Microsoft\\Windows NT\\CurrentVers
 void Win32_Utilities_init(void);
 void Win32_Utilities_fini(void);
 
+/* ---- General ---- */
+NSString *Win32ErrorString( DWORD ErrorCode );
+
 /* ---- Environment ---- */
-NSString     *Win32NSStringFromEnvironmentVariable(const WCHAR *envVar);
 //NSString     *Win32OperatingSystemName(void);
 //unsigned int  Win32OperatingSystemVersion(void);
 
@@ -68,8 +65,7 @@ NSString     *Win32FullUserName( NSString *userName );
 NSString     *Win32GetUserHomeDirectory(NSString *userName);
 
 /* ---- Path discovery ---- */
-NSString     *Win32SystemDirectory(void );
-NSString     *Win32TemporaryDirectory(void );
+NSString     *Win32WindowsDirectory(void );
 
 #endif /* defined(__WIN32__) */
 

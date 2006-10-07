@@ -49,6 +49,8 @@
 #include "Foundation/NSEnumerator.h"
 #include "Foundation/NSSet.h"
 #include "Foundation/NSBundle.h"
+#include "GNUstepBase/GSFunctions.h"
+
 #include "GSPrivate.h"
 
 #include <string.h>
@@ -199,6 +201,8 @@
 
 #define	_NUL		L'\0'
 
+#define lasterr     GetLastError()
+
 #else
 
 #define	_CHMOD(A,B)	chmod(A,B)
@@ -217,6 +221,8 @@
 #define	_UTIMB		utimbuf
 
 #define	_NUL		'\0'
+
+#define lasterr     errno
 
 #endif
 
@@ -401,8 +407,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileOwnerAccountID to '%u' - %s",
-	    num, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileOwnerAccountID to '%u' - %@",
+	    num, GSLastError()];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -425,8 +431,8 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      allOk = NO;
 	      str = [NSString stringWithFormat:
-		@"Unable to change NSFileOwnerAccountName to '%@' - %s",
-		str, GSLastErrorStr(errno)];
+		@"Unable to change NSFileOwnerAccountName to '%@' - %@",
+		str, GSLastError()];
 	      ASSIGN(_lastError, str);
 	    }
 	}
@@ -440,7 +446,7 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileGroupOwnerAccountID to '%u' - %s",
-	    num, GSLastErrorStr(errno)];
+	    num, GSLastError()];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -462,11 +468,11 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileGroupOwnerAccountName to '%@' - %s",
-	    str, GSLastErrorStr(errno)];
+	    str, GSLastError()];
 	  ASSIGN(_lastError, str);
 	}
     }
-#endif	/* __MINGW32__ */
+#endif	/* !__MINGW32__ */
 
   num = [attributes filePosixPermissions];
   if (num != NSNotFound)
@@ -475,8 +481,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFilePosixPermissions to '%o' - %s",
-	    num, GSLastErrorStr(errno)];
+	    @"Unable to change NSFilePosixPermissions to '%o' - %@",
+	    num, GSLastError()];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -519,8 +525,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileModificationDate to '%@' - %s",
-	    date, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileModificationDate to '%@' - %@",
+	    date, GSLastError()];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -747,8 +753,8 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      NSString	*s;
 
-	      s = [NSString stringWithFormat: @"Could not create '%s' - '%s'",
-		dirpath, GSLastErrorStr(errno)];
+	      s = [NSString stringWithFormat: @"Could not create '%s' - '%@'",
+		dirpath, GSLastError()];
 	      ASSIGN(_lastError, s);
 	      return NO;
 	    }
@@ -1278,7 +1284,7 @@ static NSStringEncoding	defaultEncoding;
 #endif
 	{
 	  return [self _proceedAccordingToHandler: handler
-	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
+	    forError: GSLastError()
 	    inPath: path];
 	}
       else
@@ -1312,7 +1318,7 @@ static NSStringEncoding	defaultEncoding;
       if (_RMDIR([self fileSystemRepresentationWithPath: path]) < 0)
 	{
 	  return [self _proceedAccordingToHandler: handler
-	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
+	    forError: GSLastError()
 	    inPath: path];
 	}
       else
@@ -2031,8 +2037,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
     }
   else
     {
-      NSLog(@"Failed to recurse into directory '%@' - %s", path,
-	GSLastErrorStr(errno));
+      NSLog(@"Failed to recurse into directory '%@' - %@", path,
+	GSLastError());
     }
   return self;
 }
@@ -2198,8 +2204,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 		    }
 		  else
 		    {
-		      NSLog(@"Failed to recurse into directory '%@' - %s",
-			_currentFilePath, GSLastErrorStr(errno));
+		      NSLog(@"Failed to recurse into directory '%@' - %@",
+			_currentFilePath, GSLastError());
 		    }
 		}
 	    }

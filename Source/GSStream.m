@@ -33,6 +33,8 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSDebug.h>
 
+#include "GNUstepBase/GSFunctions.h"
+
 #include "GSStream.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
@@ -359,12 +361,18 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   NSError *theError;
 
 #if	defined(__MINGW32__)
-  errno = GetLastError();
+  errno = GetLastError();   // FIXME: Make this NSWin32ErrorDomain -SG
+/*
+  theError = [NSError errorWithDomain: NSMSWindowsErrorDomain
+                                 code: GetLastError()
+                             userInfo: nil];
+#else
+*/
 #endif
   theError = [NSError errorWithDomain: NSPOSIXErrorDomain
 					  code: errno
 				      userInfo: nil];
-  NSLog(@"%@ error(%d): - %s", self, errno, GSLastErrorStr(errno));
+  NSLog(@"%@ error(%d): - %@", self, errno, GSLastError());
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
 }

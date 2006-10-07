@@ -36,6 +36,7 @@
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSMime.h"
+#include "GNUstepBase/GSFunctions.h"
 
 GS_EXPORT NSString * const GSTelnetNotification;
 GS_EXPORT NSString * const GSTelnetErrorKey;
@@ -972,14 +973,12 @@ static NSLock			*urlLock = nil;
 						      protocol: @"tcp"];
   if (sock == nil)
     {
-      extern int	errno;
-
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
       [self backgroundLoadDidFailWithReason: [NSString stringWithFormat:
-	@"Unable to connect to %@:%@ ... %s",
-	host, port, GSLastErrorStr(errno)]];
+	@"Unable to connect to %@:%@ ... %@",
+	host, port, GSLastSocketError()]];
       return;
     }
   cHandle = [[GSTelnetHandle alloc] initWithHandle: sock isConnected: NO];

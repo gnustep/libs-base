@@ -31,6 +31,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
+#include "GNUstepBase/GSFunctions.h"
 
 #include <fcntl.h>
 
@@ -76,14 +77,12 @@ static NSFileManager	*mgr = nil;
 
       if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
 	{
-	  const char	*err = GSLastErrorStr(errno);
-
 	  attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
 	  if ([modDate isEqual: [attributes fileModificationDate]] == YES)
 	    {
 	      [NSException raise: NSGenericException
-		      format: @"Failed to remove lock directory '%@' - %s",
-		      _lockPath, err];
+		      format: @"Failed to remove lock directory '%@' - %@",
+		      _lockPath, GSLastError()];
 	    }
 	}
     }
@@ -201,8 +200,8 @@ static NSFileManager	*mgr = nil;
 				   attributes: attributesToSet];
 	  if (locked == NO)
 	    {
-	      NSLog(@"Failed to create lock directory '%@' - %s",
-		    _lockPath, GSLastErrorStr(errno));
+	      NSLog(@"Failed to create lock directory '%@' - %@",
+		    _lockPath, GSLastError());
 	    }
 	}
     }
@@ -257,8 +256,8 @@ static NSFileManager	*mgr = nil;
       if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
 	{
 	  [NSException raise: NSGenericException
-		      format: @"Failed to remove lock directory '%@' - %s",
-			  _lockPath, GSLastErrorStr(errno)];
+		      format: @"Failed to remove lock directory '%@' - %@",
+			  _lockPath, GSLastError()];
 	}
     }
   else
