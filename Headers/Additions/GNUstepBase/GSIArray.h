@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+
 /* To easily un-inline functions for debugging */
 #ifndef	INLINE
 #define INLINE inline
@@ -549,6 +551,8 @@ GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
     }
   return new;
 }
+
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
 #if	defined(__cplusplus)
 }

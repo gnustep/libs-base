@@ -47,8 +47,7 @@
 extern "C" {
 #endif
 
-#ifndef	STRICT_MACOS_X
-#ifndef	STRICT_OPENSTEP
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 
 @class GSXMLAttribute;
 @class GSXMLDocument;
@@ -744,9 +743,7 @@ extern "C" {
 - (void) completedXMLRPC: (GSXMLRPC*)sender;
 @end
 
-
-#endif	/* STRICT_MACOS_X */
-#endif	/* STRICT_OPENSTEP */
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
 #if	defined(__cplusplus)
 }

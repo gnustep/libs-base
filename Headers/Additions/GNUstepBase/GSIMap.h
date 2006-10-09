@@ -30,6 +30,8 @@
 extern "C" {
 #endif
 
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+
 /* To easily un-inline functions for debugging */
 #ifndef	INLINE
 #define INLINE inline
@@ -923,6 +925,8 @@ GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
   GSIMapRightSizeMap(map, capacity);
   GSIMapMoreNodes(map, capacity);
 }
+
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
 #if	defined(__cplusplus)
 }

@@ -132,7 +132,6 @@ GSMime.h \
 GSObjCRuntime.h \
 GSUnion.h \
 GSXML.h \
-GSFunctions.h \
 behavior.h \
 Unicode.h \
 GCObject.h \
