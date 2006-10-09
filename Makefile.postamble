@@ -55,6 +55,7 @@ before-install:: $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional
 # Things to do after uninstalling
 after-uninstall::
 	$(ECHO_NOTHING)rm -f $(INSTALL_ROOT_DIR)$(GNUSTEP_MAKEFILES)/Additional/base.make$(END_ECHO)
+
 # Things to do before cleaning
 # before-clean::
 
