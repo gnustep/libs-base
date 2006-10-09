@@ -1,5 +1,22 @@
 2006-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSObjCRuntime.m:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Remove previously deprecated functionality.
+	* Documentation/TypesAndConstants.gsdoc:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/Functions.gsdoc:
+	* Documentation/BaseAdditions.gsdoc:
+	* Documentation/Base.gsdoc:
+	* ChangeLog:
+	* Tools/AGSHtml.m:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m:
+	* Tools/AGSOutput.m:
+	Update/improve version/deprecation reporting.
+
+2006-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Additions/GNUstepBase/unicode:
 	Moved to Source/Additions/unicode
 	* Source/NSSocketPortNameServer.m:

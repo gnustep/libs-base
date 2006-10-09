@@ -1549,6 +1549,7 @@
 	      return nil;
 	    }
 	}
+      [self setStandards: d];
       return d;
     }
   else
@@ -2314,6 +2315,7 @@ fail:
       DESTROY(dict);
     }
   RELEASE(a);
+  [self setStandards: dict];
   return AUTORELEASE(dict);
 }
 
