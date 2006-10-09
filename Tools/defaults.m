@@ -62,7 +62,7 @@ static NSString *input(char **ptr)
 		{
 		  tmp[-1] = '\0';
 		  *ptr = tmp;
-		  result = [NSString stringWithCString: start];
+		  result = [NSString stringWithUTF8String: start];
 		  break;
 		}
 	    }
@@ -76,7 +76,7 @@ static NSString *input(char **ptr)
 	}
       *tmp++ = '\0';
       *ptr = tmp;
-      result = [NSString stringWithCString: start];
+      result = [NSString stringWithUTF8String: start];
     }
   return result;
 }

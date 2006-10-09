@@ -758,6 +758,10 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
   return nargs;
 }
 
+static inline void GSStrAppendUnichar(GSStr s, unichar u)
+{
+  GSStrAppendUnichars(s, &u, 1);
+}
 
 #define	outchar(Ch)		GSStrAppendUnichar(s, Ch)
 #define outstring(String, Len)	GSStrAppendUnichars(s, String, Len)
@@ -1690,9 +1694,9 @@ NSDictionary *locale)
 
     LABEL (form_strerror):
       /* Print description of error ERRNO.  */
-      string =
-	(unichar *) GSLastErrorStr(save_errno);
-      is_long = 0;		/* This is no wide-char string.  */
+      string = (unichar *)[[_GSPrivate error: save_errno]
+	cStringUsingEncoding: NSUnicodeStringEncoding];
+      is_long = 1;		/* This is a unicode string.  */
       goto LABEL (print_string);
     LABEL (form_character):
       /* Character.  */
@@ -1735,7 +1739,7 @@ NSDictionary *locale)
 	  {
 	    /* Write "(null)" if there's space.  */
 	    if (prec == -1
-		|| prec >= (int) (sizeof (null) / sizeof (null[0])) - 1)
+	      || prec >= (int) (sizeof (null) / sizeof (null[0])) - 1)
 	      {
 		string = (unichar *) null;
 		len = (sizeof (null) / sizeof (null[0])) - 1;
@@ -1757,8 +1761,8 @@ NSDictionary *locale)
 
 	    if (enc == GSUndefinedEncoding)
 	      {
-	        enc = GetDefEncoding();
-		byteEncoding = GSIsByteEncoding(enc);
+	        enc = [NSString defaultCStringEncoding];
+		byteEncoding = [_GSPrivate isByteEncoding: enc];
 	      }
 
 	    len = strlen(str);	// Number of bytes to convert.

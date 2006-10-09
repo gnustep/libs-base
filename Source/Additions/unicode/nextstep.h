@@ -7,8 +7,8 @@
   notice and this notice are preserved.
 */
 
-const unsigned int Next_conv_base = 0x80;
-unichar Next_char_to_uni_table[] =
+static const unsigned int Next_conv_base = 0x80;
+static unichar Next_char_to_uni_table[] =
 {
   0x00A0,
   0x00C0,
@@ -135,9 +135,8 @@ unichar Next_char_to_uni_table[] =
 
 // Unicode to NextStep maping
 
-const unsigned int Next_uni_to_char_table_size = 128;
-
-_ucc_ Next_uni_to_char_table[]=
+static const unsigned int Next_uni_to_char_table_size = 128;
+static _ucc_ Next_uni_to_char_table[]=
 {
   {0x00A0,0x80},
   {0x00A1,0xA1},

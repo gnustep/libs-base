@@ -436,8 +436,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       BOOL	found = NO;
 
       NSDebugMLLog(@"NSRunLoop", @"WaitForMultipleObjects() error in "
-	@"-acceptInputForMode:beforeDate: %s",
-	GSLastErrorStr(GetLastError()));
+	@"-acceptInputForMode:beforeDate: %@", [_GSPrivate error]);
       /*
        * Check each handle in turn until either we find one which has an
        * event signalled, or we find the one which caused the original
@@ -458,8 +457,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       if (found == NO)
 	{
 	  NSLog(@"WaitForMultipleObjects() error in "
-	    @"-acceptInputForMode:beforeDate: %s",
-	    GSLastErrorStr(GetLastError()));
+	    @"-acceptInputForMode:beforeDate: %@", [_GSPrivate error]);
 	  abort ();        
 	}
     }

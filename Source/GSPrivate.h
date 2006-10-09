@@ -38,6 +38,7 @@
 
 
 #include "GNUstepBase/GSObjCRuntime.h"
+#include "Foundation/NSString.h"
 
 /**
  * Macro to manage memory for chunks of code that need to work with
@@ -101,17 +102,6 @@
    to it's internal pointer.  */
 
 /*
- * Function to get the name of a string encoding as an NSString.
- */
-GS_EXPORT NSString	*GSEncodingName(NSStringEncoding encoding);
-
-/*
- * Function to determine whether data in a particular encoding can
- * generally be represented as 8-bit characters including ascii.
- */
-GS_EXPORT BOOL		GSIsByteEncoding(NSStringEncoding encoding);
-
-/*
  * Type to hold either UTF-16 (unichar) or 8-bit encodings,
  * while satisfying alignment constraints.
  */
@@ -173,10 +163,15 @@ typedef struct {
 typedef	GSStr_t	*GSStr;
 
 /*
- * Functions to append to GSStr
+ * Function to append to GSStr
  */
-extern void GSStrAppendUnichar(GSStr s, unichar);
 extern void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l);
+/*
+ * Make the content of this string into unicode if it is not in
+ * the external defaults C string encoding.
+ */
+void GSStrExternalize(GSStr s);
+
 
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
@@ -191,21 +186,6 @@ typedef enum {
   NSWriteOldStylePropertyLists,		// Control PList output.
   GSUserDefaultMaxFlag			// End marker.
 } GSUserDefaultFlagType;
-
-/*
- * Get the dictionary representation.
- */
-NSDictionary	*GSUserDefaultsDictionaryRepresentation(void);
-
-/*
- * Get one of several potentially useful flags.
- */
-BOOL	GSUserDefaultsFlag(GSUserDefaultFlagType type);
-
-/**
- * Get a flag from an environment variable - return def if not defined.
- */
-BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 
 
 
@@ -237,6 +217,69 @@ BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 extern void GSNotifyASAP(void);
 extern void GSNotifyIdle(void);
 extern BOOL GSNotifyMore(void);
+
+/* This class exists to encapsulate various otherwise unrelated functions
+ * so that we expose a single global symbol (the class) whose name marks it
+ * very clearly as for private/internal use only.  Avoiding the exposure
+ * (and hence possible accidental use) of symbols for each function ... 
+ * The formal implementation of the class is a near empty implementation
+ * (in Additions/GSCategories.h), with most methods being provided by other
+ * categories in the files wishing to expose some functionality for use
+ * by other parts of the base library.
+ */
+@interface _GSPrivate : NSObject
+/* Return the text describing the last system error to have occurred.
+ */
++ (NSString*) error;
++ (NSString*) error: (long)number;
+@end
+
+@interface _GSPrivate (ProcessInfo)
+/* Used by NSException uncaught exception handler - must not call any
+ * methods/functions which might cause a recursive exception.
+ */
++ (const char*) argZero;
+
+/* get a flag from an environment variable - return def if not defined.
+ */
++ (BOOL) environmentFlag: (const char *)name defaultValue: (BOOL)def;
+@end
+
+@interface _GSPrivate (Unicode)
+/* get the available string encodings (nul terminated array)
+ */
++ (NSStringEncoding*) availableEncodings;
+
+/* get the default C-string encoding.
+ */
++ (NSStringEncoding) defaultCStringEncoding;
+
+/* get the name of a string encoding as an NSString.
+ */
++ (NSString*) encodingName: (NSStringEncoding)encoding;
+
+/* determine whether data in a particular encoding can
+ * generally be represented as 8-bit characters including ascii.
+ */
++ (BOOL) isByteEncoding: (NSStringEncoding)encoding;
+
+/* determine whether encoding is currently supported.
+ */
++ (BOOL) isEncodingSupported: (NSStringEncoding)encoding;
+
+@end
+
+@interface _GSPrivate (UserDefaults)
+/*
+ * Get the dictionary representation.
+ */
++ (NSDictionary*) userDefaultsDictionaryRepresentation;
+
+/*
+ * Get one of several potentially useful flags.
+ */
++ (BOOL) userDefaultsFlag: (GSUserDefaultFlagType)type;
+@end
 
 #endif /* __GSPrivate_h_ */
 

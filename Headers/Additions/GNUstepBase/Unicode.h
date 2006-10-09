@@ -44,19 +44,17 @@
 extern "C" {
 #endif
 
-
-GS_EXPORT NSStringEncoding *GetAvailableEncodings(void);
-GS_EXPORT NSStringEncoding GetDefEncoding(void);
+#if GS_API_VERSION(GS_API_NONE,011500)
+/* Deprecated functions */
 GS_EXPORT NSStringEncoding GSEncodingFromLocale(const char *clocale);
 GS_EXPORT NSStringEncoding GSEncodingForRegistry(NSString *registry, 
 						 NSString *encoding);
-GS_EXPORT NSString* GSEncodingName(NSStringEncoding encoding);
-
 GS_EXPORT unichar uni_tolower(unichar ch);
 GS_EXPORT unichar uni_toupper(unichar ch);
 GS_EXPORT unsigned char uni_cop(unichar u);
 GS_EXPORT BOOL uni_isnonsp(unichar u);
 GS_EXPORT unichar *uni_is_decomp(unichar u);
+#endif
 
 
 /*
@@ -76,22 +74,6 @@ GS_EXPORT BOOL GSFromUnicode(unsigned char **dst, unsigned int *size,
 GS_EXPORT BOOL GSToUnicode(unichar **dst, unsigned int *size,
   const unsigned char *src, unsigned int slen, NSStringEncoding enc,
   NSZone *zone, unsigned int options);
-
-/*
- *  The next functions are deprecated and will be removed in a future
- *  release.  Use GSFromUnicode() and GSToUnicode() instead.
- */
-GS_EXPORT NSString* GetEncodingName(NSStringEncoding encoding);
-GS_EXPORT unichar chartouni(unsigned char c);
-GS_EXPORT unsigned char unitochar(unichar u);
-GS_EXPORT unichar encode_chartouni(unsigned char c, NSStringEncoding enc);
-GS_EXPORT unsigned char encode_unitochar(unichar u, NSStringEncoding enc);
-GS_EXPORT unsigned encode_unitochar_strict(unichar u, NSStringEncoding enc);
-GS_EXPORT int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl, 
-  NSStringEncoding enc, BOOL strict);
-GS_EXPORT int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl, 
-  NSStringEncoding enc);
-
 
 #if	defined(__cplusplus)
 }

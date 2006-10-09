@@ -311,8 +311,8 @@ OutputDebugStringW(L"");
     }
   else
     {
-      NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x) %s",
-	registry, n, rc, GSLastErrorStr(rc));
+      NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x) %@",
+	registry, n, rc, [_GSPrivate error: rc]);
       return NO;
     }
 

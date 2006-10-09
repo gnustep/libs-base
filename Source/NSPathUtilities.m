@@ -1082,7 +1082,7 @@ NSHomeDirectoryForUser(NSString *loginName)
   pw = getpwnam ([loginName cString]);
   if (pw != 0  && pw->pw_dir != NULL)
     {
-      s = [NSString stringWithCString: pw->pw_dir];
+      s = [NSString stringWithUTF8String: pw->pw_dir];
     }
   [gnustep_global_lock unlock];
 #else
@@ -1152,7 +1152,7 @@ NSFullUserName(void)
       struct passwd	*pw;
 
       pw = getpwnam([NSUserName() cString]);
-      userName = [NSString stringWithCString: pw->pw_gecos];
+      userName = [NSString stringWithUTF8String: pw->pw_gecos];
 #else
       NSLog(@"Warning: NSFullUserName not implemented\n");
       userName = NSUserName();

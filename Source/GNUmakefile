@@ -370,17 +370,8 @@ NSValue.h \
 NSXMLParser.h \
 NSZone.h
 
-UNICODE_HEADERS = \
-unicode/caseconv.h \
-unicode/cop.h \
-unicode/cyrillic.h \
-unicode/latin2.h \
-unicode/decomp.h \
-unicode/nextstep.h
-
 HEADERS_INSTALL = $(GNU_HEADERS) \
-                  $(FOUNDATION_HEADERS) \
-                  $(UNICODE_HEADERS)
+                  $(FOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \

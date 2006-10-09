@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 
@@ -53,6 +54,7 @@
 #include <Foundation/Foundation.h>
 
 #include <GNUstepBase/GSFileHandle.h>
+#include "GSPrivate.h"
 
 #if defined(__MINGW32__)
 #include <winsock2.h>
@@ -105,8 +107,8 @@ sslError(int err, int e)
 	str = @"Want X509 Lookup Error";
 	break;
       case SSL_ERROR_SYSCALL:
-	str = [NSString stringWithFormat: @"Syscall error %d - %s",
-	  e, GSLastErrorStr(e)];
+	str = [NSString stringWithFormat: @"Syscall error %d - %@",
+	  e, [_GSPrivate error: e]];
 	break;
       case SSL_ERROR_SSL:
 	str = @"SSL Error: really helpful";

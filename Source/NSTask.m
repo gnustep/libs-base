@@ -47,6 +47,7 @@
 #include "Foundation/NSTimer.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSDebug.h"
+#include "GSPrivate.h"
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -1561,8 +1562,8 @@ GSCheckTasks()
       result = waitpid(_taskId, &_terminationStatus, WNOHANG);
       if (result < 0)
         {
-          NSLog(@"waitpid %d, result %d, error %s",
-	    _taskId, result, GSLastErrorStr(errno));
+          NSLog(@"waitpid %d, result %d, error %@",
+	    _taskId, result, [_GSPrivate error]);
           [self _terminatedChild: -1];
         }
       else if (result == _taskId || (result > 0 && errno == 0))
@@ -1594,8 +1595,8 @@ GSCheckTasks()
 #ifdef  WAITDEBUG
       else
 	{
-	  NSLog(@"waitpid %d, result %d, error %s",
-	    _taskId, result, GSLastErrorStr(errno));
+	  NSLog(@"waitpid %d, result %d, error %@",
+	    _taskId, result, [_GSPrivate error]);
 	}
 #endif
     }

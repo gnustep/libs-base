@@ -27,9 +27,56 @@
 #include <Foundation/Foundation.h>
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GSLock.h"
+#include "GSPrivate.h"
 
 /* Test for ASCII whitespace which is safe for unicode characters */
 #define	space(C)	((C) > 127 ? NO : isspace(C))
+
+#ifndef HAVE_STRERROR
+const char *
+strerror(int eno)
+{
+  extern char  *sys_errlist[];
+  extern int    sys_nerr;
+
+  if (eno < 0 || eno >= sys_nerr)
+    {
+      return("unknown error number");
+    }
+  return(sys_errlist[eno]);
+}
+#endif
+
+@implementation	_GSPrivate
+
++ (NSString*) error
+{
+#if defined(__MINGW32__)
+  return [self error: GetLastError()];
+#else
+  extern int errno;
+  return [self error: errno];
+#endif
+}
+
++ (NSString*) error: (long)number
+{
+  NSString	*text;
+#if defined(__MINGW32__)
+  LPVOID	lpMsgBuf;
+
+  FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+    NULL, nuymber, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+    (LPWSTR) &lpMsgBuf, 0, NULL );
+  text = [NSString stringWithCharacters: lpMsgBuf length: wcslen(lpMsgBuf)];
+  LocalFree(lpMsgBuf);
+#else
+  text = [NSString stringWithCString: strerror(number)
+			    encoding: [NSString defaultCStringEncoding]];
+#endif
+  return text;
+}
+@end
 
 @implementation NSArray (GSCategories)
 

@@ -522,7 +522,7 @@ int main(int argc, char *argv[], char **env)
   [c setRootObject: l];
 
   if (optind < argc)
-    [c registerName: [NSString stringWithCString: argv[optind]]];
+    [c registerName: [NSString stringWithUTF8String: argv[optind]]];
   else
     [c registerName: @"test2server"];
 

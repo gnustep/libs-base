@@ -566,8 +566,8 @@ handle_printf_atsign (FILE *stream,
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
-      _DefaultStringEncoding = GetDefEncoding();
-      _ByteEncodingOk = GSIsByteEncoding(_DefaultStringEncoding);
+      _DefaultStringEncoding = [_GSPrivate defaultCStringEncoding];
+      _ByteEncodingOk = [_GSPrivate isByteEncoding: _DefaultStringEncoding];
 
       NSStringClass = self;
       [self setVersion: 1];
@@ -1057,7 +1057,6 @@ handle_printf_atsign (FILE *stream,
                locale: (NSDictionary*)locale
             arguments: (va_list)argList
 {
-  extern void GSStrExternalize();
   unsigned char	buf[2048];
   GSStr_t	f;
   unichar	fbuf[1024];
@@ -2685,7 +2684,7 @@ handle_printf_atsign (FILE *stream,
  */
 + (NSStringEncoding*) availableStringEncodings
 {
-  return GetAvailableEncodings();
+  return [_GSPrivate availableEncodings];
 }
 
 /**
@@ -2703,7 +2702,7 @@ handle_printf_atsign (FILE *stream,
 */
   ourbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
 
-  ourname = GetEncodingName(encoding);
+  ourname = [_GSPrivate encodingName: encoding];
   return [ourbundle localizedStringForKey: ourname
 				    value: ourname
 				    table: nil];
@@ -4151,7 +4150,7 @@ static NSFileManager *fm = nil;
     }
   else
     {
-      dict = GSUserDefaultsDictionaryRepresentation();
+      dict = [_GSPrivate userDefaultsDictionaryRepresentation];
       ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
         initWithFormat: format locale: dict arguments: ap]);
     }
@@ -4203,7 +4202,7 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) localizedCompare: (NSString *)string
 {
-  NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary *dict = [_GSPrivate userDefaultsDictionaryRepresentation];
 
   return [self compare: string
                options: 0
@@ -4217,7 +4216,7 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string
 {
-  NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary *dict = [_GSPrivate userDefaultsDictionaryRepresentation];
 
   return [self compare: string
                options: NSCaseInsensitiveSearch

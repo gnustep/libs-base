@@ -144,7 +144,7 @@ _NSLog_standard_printf_handler (NSString* message)
 
   OutputDebugStringW(null_terminated_buf);
 
-  if ((GSUserDefaultsFlag(GSLogSyslog) == YES
+  if (([_GSPrivate userDefaultsFlag: GSLogSyslog] == YES
     || write(_NSLogDescriptor, buf, len) != (int)len) && !IsDebuggerPresent())
     {
       static HANDLE eventloghandle = 0;
@@ -170,7 +170,7 @@ _NSLog_standard_printf_handler (NSString* message)
 #else      
       
 #if	defined(HAVE_SYSLOG)
-  if (GSUserDefaultsFlag(GSLogSyslog) == YES
+  if ([_GSPrivate userDefaultsFlag: GSLogSyslog] == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
     {
       null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
@@ -302,9 +302,9 @@ NSLogv (NSString* format, va_list args)
     }
 
 #ifdef	HAVE_SYSLOG
-  if (GSUserDefaultsFlag(GSLogSyslog) == YES)
+  if ([_GSPrivate userDefaultsFlag: GSLogSyslog] == YES)
     {
-      if (GSUserDefaultsFlag(GSLogThread) == YES)
+      if ([_GSPrivate userDefaultsFlag: GSLogThread] == YES)
 	{
 	  prefix = [NSString stringWithFormat: @"[thread:%x] ",
 	    GSCurrentThread()];
@@ -317,7 +317,7 @@ NSLogv (NSString* format, va_list args)
   else
 #endif
     {
-      if (GSUserDefaultsFlag(GSLogThread) == YES)
+      if ([_GSPrivate userDefaultsFlag: GSLogThread] == YES)
 	{
 	  prefix = [NSString
 	    stringWithFormat: @"%@ %@[%d,%x] ",

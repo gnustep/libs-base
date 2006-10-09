@@ -673,11 +673,6 @@ GSAutoreleasedBuffer(unsigned size);
 GS_EXPORT void
 GSAllocateMutexAt(objc_mutex_t *request);
 
-/** Returns a system error message on a variety of systems
- */
-GS_EXPORT const char *
-GSLastErrorStr(long error_id);
-
 /**
  * <p>Prints a message to fptr using the format string provided and any
  * additional arguments.  The format string is interpreted as by
@@ -698,6 +693,9 @@ GSPrintf (FILE *fptr, NSString *format, ...);
 
 
 #ifndef NO_DEPRECATED
+
+GS_EXPORT const char *
+GSLastErrorStr(long error_id) GS_ATTRIB_DEPRECATED;
 
 GS_EXPORT BOOL
 GSFindInstanceVariable(id obj, const char *name,

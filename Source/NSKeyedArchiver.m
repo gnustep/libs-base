@@ -669,7 +669,7 @@ static NSDictionary *makeReference(unsigned ref)
 	   * Bizzarely MacOS-X seems to encode char* values by creating
 	   * string objects and encoding those objects!
 	   */
-	  o = [NSString stringWithCString: (char*)address];
+	  o = [NSString stringWithUTF8String: (char*)address];
 	  [self encodeObject: o];
 	}
 	return;

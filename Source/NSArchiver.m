@@ -858,7 +858,7 @@ static Class	NSMutableDataMallocClass;
       if (node)
 	{
 	  c = (Class)node->value.ptr;
-	  return [NSString stringWithCString: GSNameFromClass(c)];
+	  return [NSString stringWithUTF8String: GSNameFromClass(c)];
 	}
     }
   return trueName;

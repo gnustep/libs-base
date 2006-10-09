@@ -2168,7 +2168,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       style = NSPropertyListXMLFormat_v1_0;
     }
-  else if (GSUserDefaultsFlag(NSWriteOldStylePropertyLists))
+  else if ([_GSPrivate userDefaultsFlag: NSWriteOldStylePropertyLists] == YES)
     {
       style = NSPropertyListOpenStepFormat;
     }

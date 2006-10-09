@@ -52,11 +52,14 @@
 
 #include "GSPrivate.h"
 
-extern BOOL GSEncodingSupported(NSStringEncoding enc);
-
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 #include "GNUstepBase/Unicode.h"
+
+static BOOL isByteEncoding(NSStringEncoding enc)
+{
+  return [_GSPrivate isByteEncoding: enc];
+}
 
 #ifdef NeXT_RUNTIME
 /* Used by the Darwin/NeXT ObjC Runtime
@@ -249,9 +252,17 @@ setup(void)
 
   if (beenHere == NO)
     {
-      extern NSStringEncoding	GetDefEncoding(void);
-
       beenHere = YES;
+
+      /*
+       * Cache the default string encoding, and set the internal encoding
+       * used by 8-bit character strings to match if possible.
+       */
+      externalEncoding = [_GSPrivate defaultCStringEncoding];
+      if (isByteEncoding(externalEncoding) == YES)
+	{
+	  internalEncoding = externalEncoding;
+	}
 
       /*
        * Cache pointers to classes to work round misfeature in
@@ -290,16 +301,6 @@ setup(void)
       caiSel = @selector(characterAtIndex:);
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
-
-      /*
-       * Cache the default string encoding, and set the internal encoding
-       * used by 8-bit character strings to match if possible.
-       */
-      externalEncoding = GetDefEncoding();
-      if (GSIsByteEncoding(externalEncoding) == YES)
-	{
-	  internalEncoding = externalEncoding;
-	}
     }
 }
 
@@ -450,7 +451,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   void		*chars = 0;
   BOOL		flag = NO;
   
-  if (GSEncodingSupported(encoding) == NO)
+  if ([_GSPrivate isEncodingSupported: encoding] == NO)
     {
       return nil;	// Invalid encoding
     }
@@ -493,7 +494,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   BOOL		isLatin1 = NO;
   GSStr		me;
 
-  if (GSEncodingSupported(encoding) == NO)
+  if ([_GSPrivate isEncodingSupported: encoding] == NO)
     {
       if (flag == YES && bytes != 0)
 	{
@@ -535,7 +536,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 	  encoding = internalEncoding;
 	}
     }
-  else if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
+  else if (encoding != internalEncoding && isByteEncoding(encoding) == YES)
     {
       unsigned i;
 
@@ -1025,7 +1026,7 @@ canBeConvertedToEncoding_c(GSStr self, NSStringEncoding enc)
     && enc != internalEncoding
     && enc != NSUTF8StringEncoding
     && enc != NSUnicodeStringEncoding
-    && ((internalEncoding != NSASCIIStringEncoding) || !GSIsByteEncoding(enc)))
+    && ((internalEncoding != NSASCIIStringEncoding) || !isByteEncoding(enc)))
     {
       unsigned	l = 0;
       unichar	*r = 0;
@@ -1403,7 +1404,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL lossy)
 
   if ((encoding == internalEncoding)
     || ((internalEncoding == NSASCIIStringEncoding)
-      && (encoding == NSUTF8StringEncoding || GSIsByteEncoding(encoding))))
+      && (encoding == NSUTF8StringEncoding || isByteEncoding(encoding))))
     {
       unsigned char *buff;
 
@@ -1787,7 +1788,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	    }
 
 	  if (enc == NSUTF8StringEncoding
-	    && GSIsByteEncoding(internalEncoding))
+	    && isByteEncoding(internalEncoding))
 	    {
 	      unsigned	i;
 
@@ -1822,7 +1823,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	    }
 
 	  if (enc == NSASCIIStringEncoding
-	    && GSIsByteEncoding(internalEncoding))
+	    && isByteEncoding(internalEncoding))
 	    {
 	      unsigned	i;
 
@@ -3759,7 +3760,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 	  encoding = internalEncoding;
 	}
     }
-  else if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
+  else if (encoding != internalEncoding && isByteEncoding(encoding) == YES)
     {
       unsigned i;
 
@@ -5078,44 +5079,7 @@ void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
     }
 }
 
-void GSStrAppendUnichar(GSStr s, unichar u)
-{
-  /*
-   * Make the string wide if necessary.
-   */
-  if (s->_flags.wide == 0)
-    {
-      if (u > 255 || (u > 127 && internalEncoding != NSISOLatin1StringEncoding))
-	{
-	  GSStrWiden(s);
-	}
-    }
 
-  /*
-   * Make room for the characters we are appending.
-   */
-  if (s->_count + 2 >= s->_capacity)
-    {
-      GSStrMakeSpace(s, 1);
-    }
-
-  /*
-   * Copy the characters into place.
-   */
-  if (s->_flags.wide == 1)
-    {
-      s->_contents.u[s->_count++] = u;
-    }
-  else
-    {
-      s->_contents.c[s->_count++] = u;
-    }
-}
-
-/*
- * Make the content of this string into unicode if it is not in
- * the external defaults C string encoding.
- */
 void GSStrExternalize(GSStr s)
 {
   if (s->_flags.wide == 0 && internalEncoding != externalEncoding)

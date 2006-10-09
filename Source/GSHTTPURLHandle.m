@@ -45,6 +45,7 @@
 #include "GNUstepBase/GSLock.h"
 #include "NSCallBacks.h"
 #include "GSURLPrivate.h"
+#include "GSPrivate.h"
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -1267,8 +1268,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * Tell superclass that the load failed - let it do housekeeping.
 	   */
 	  [self backgroundLoadDidFailWithReason:
-	    [NSString stringWithFormat: @"Unable to connect to %@:%@ ... %s",
-	    host, port, GSLastErrorStr(errno)]];
+	    [NSString stringWithFormat: @"Unable to connect to %@:%@ ... %@",
+	    host, port, [_GSPrivate error]]];
 	  return;
 	}
       RETAIN(sock);

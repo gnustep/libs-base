@@ -1202,7 +1202,7 @@ compare(id elem1, id elem2, void* context)
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc = [_GSPrivate userDefaultsDictionaryRepresentation];
   NSString	*desc = nil;
   NSData	*data;
 
@@ -1228,7 +1228,7 @@ compare(id elem1, id elem2, void* context)
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc = [_GSPrivate userDefaultsDictionaryRepresentation];
   NSString	*desc = nil;
   NSData	*data;
 

@@ -653,7 +653,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   sourceLen = strlen(source);
   if (locale == nil)
     {
-      locale = GSUserDefaultsDictionaryRepresentation();
+      locale = [_GSPrivate userDefaultsDictionaryRepresentation];
     }
   if (fmt == nil)
     {
@@ -1064,7 +1064,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  NSString	*currAMPM;
 		  NSArray	*amPMNames;
 
-		  currAMPM = [NSString stringWithCString: tmpStr];
+		  currAMPM = [NSString stringWithUTF8String: tmpStr];
 		  amPMNames = [locale objectForKey: NSAMPMDesignation];
 
 		  /*
@@ -1170,7 +1170,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		tmpStr[tmpIdx - sourceIdx] = '\0';
 		sourceIdx += tmpIdx - sourceIdx;
 		{
-		  NSString	*z = [NSString stringWithCString: tmpStr];
+		  NSString	*z = [NSString stringWithUTF8String: tmpStr];
 
 		  /* Abbreviations aren't one-to-one with time zone names
 		     so just look for the zone named after the abbreviation,
@@ -2191,7 +2191,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
   DescriptionInfo	info;
 
   if (locale == nil)
-    locale = GSUserDefaultsDictionaryRepresentation();
+    locale = [_GSPrivate userDefaultsDictionaryRepresentation];
   if (format == nil)
     format = [locale objectForKey: NSTimeDateFormatString];
 
