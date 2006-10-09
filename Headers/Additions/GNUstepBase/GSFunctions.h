@@ -39,13 +39,14 @@ extern "C" {
 
 @class	NSArray;
 @class	NSString;
-
+#if	GS_API_VERSION(GS_API_NONE,011500)
 /** 
  * Try to locate file/directory (aName).(anExtension) in paths.
  * Will return the first found or nil if nothing is found.
  */
 GS_EXPORT NSString *GSFindNamedFile(NSArray *paths, NSString *aName,
   NSString *anExtension);
+#endif
 
 #if	defined(__cplusplus)
 }

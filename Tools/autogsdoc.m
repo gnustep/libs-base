@@ -547,7 +547,7 @@
 <example>
   &lt;?xml version="1.0"?&gt;
   &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN"
-  "http://www.gnustep.org/gsdoc-1_0_1.xml"&gt;
+  "http://www.gnustep.org/gsdoc-1_0_3.xml"&gt;
   &lt;gsdoc base="index"&gt;
     &lt;head&gt;
       &lt;title&gt;My project reference&lt;/title&gt;
@@ -1774,7 +1774,7 @@ main(int argc, char **argv, char **env)
 
       // skeleton for table of contents files
       [tocSkel setString: @"<?xml version=\"1.0\"?>\n"
-@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
+@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"
 @"<gsdoc base=\"[typeU]\" stylesheeturl=\"gsdoc_contents\">\n"
 @"  <head>\n"
 @"    <title>[typeU]</title>\n"
@@ -1880,7 +1880,7 @@ main(int argc, char **argv, char **env)
 @"named %@ in the documentation output directory.\n"
 @"Then include this file in the arguments to autogsdoc.\n\n", prjFile);
           [prjFileContents setString: @"<?xml version=\"1.0\"?>\n"
-@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
+@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"
 @"<gsdoc base=\"[prjName]\">\n"
 @"  <head>\n"
 @"    <title>The [prjName] Project</title>\n"
