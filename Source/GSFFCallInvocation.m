@@ -168,7 +168,7 @@ gs_offset(const char *type, int index)
 /* Determines if the structure type can be returned entirely in registers.
    See the avcall or vacall man pages for more info. FIXME: I'm betting
    this won't work if a structure contains another structure */
-int
+static int
 gs_splittable (const char *type)
 {
   int i, numtypes;
@@ -297,7 +297,7 @@ gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
   Only passes the first part.  Is used for determining
   the return type for the vacall macros.
 */
-void
+static void
 gs_sel_type_to_callback_type (const char *sel_type,
   vacallReturnTypeInfo *vatype)
 {

@@ -554,7 +554,7 @@ typedef enum {
       serverLock = [NSRecursiveLock new];
       modes = [[NSArray alloc] initWithObjects: &mode count: 1];
 #ifdef	GDOMAP_PORT_OVERRIDE
-      serverPort = RETAIN([NSString stringWithCString:
+      serverPort = RETAIN([NSString stringWithUTF8String:
 	make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
 #endif
       portClass = [NSSocketPort class];
@@ -738,7 +738,7 @@ typedef enum {
 	      [array addObject: com];
 	      RELEASE(com);
 	      [com setAddr: svrs[count]];
-	      addr = [NSString stringWithCString:
+	      addr = [NSString stringWithUTF8String:
 		(char*)inet_ntoa(svrs[count])];
 	      [com startPortLookup: name onHost: addr];
 	      count++;
@@ -802,7 +802,7 @@ typedef enum {
 
   if (*port)
     {
-      *addr = [NSString stringWithCString: inet_ntoa(singleServer)];
+      *addr = [NSString stringWithUTF8String: inet_ntoa(singleServer)];
       return YES;
     }	
   else

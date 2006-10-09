@@ -2333,11 +2333,11 @@ fail:
   method = [[NSMutableDictionary alloc] initWithCapacity: 4];
   if (buffer[pos++] == '-')
     {
-      mname = [NSMutableString stringWithCString: "-"];
+      mname = [NSMutableString stringWithUTF8String: "-"];
     }
   else
     {
-      mname = [NSMutableString stringWithCString: "+"];
+      mname = [NSMutableString stringWithUTF8String: "+"];
     }
   [method setObject: sels forKey: @"Sels"];	// Parts of selector.
 

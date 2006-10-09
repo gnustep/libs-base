@@ -161,7 +161,7 @@ static void GSLogZombie(id o, SEL sel)
       NSLog(@"Deallocated %@ (0x%x) sent %@",
 	NSStringFromClass(c), o, NSStringFromSelector(sel));
     }
-  if (GSEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
+  if ([_GSPrivate environmentFlag: "CRASH_ON_ZOMBIE" defaultValue: NO] == YES)
     {
       abort();
     }
@@ -968,8 +968,10 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       zombieClass = [NSZombie class];
-      NSZombieEnabled = GSEnvironmentFlag("NSZombieEnabled", NO);
-      NSDeallocateZombies = GSEnvironmentFlag("NSDeallocateZombies", NO);
+      NSZombieEnabled = [_GSPrivate environmentFlag: "NSZombieEnabled"
+				       defaultValue: NO];
+      NSDeallocateZombies = [_GSPrivate environmentFlag: "NSDeallocateZombies"
+					   defaultValue: NO];
 
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
@@ -1295,7 +1297,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (aSelector == 0)
     {
-      if (GSUserDefaultsFlag(GSMacOSXCompatible))
+      if ([_GSPrivate userDefaultsFlag: GSMacOSXCompatible])
 	{
 	  [NSException raise: NSInvalidArgumentException
 		    format: @"%@ null selector given",
@@ -1868,7 +1870,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (aSelector == 0)
     {
-      if (GSUserDefaultsFlag(GSMacOSXCompatible))
+      if ([_GSPrivate userDefaultsFlag: GSMacOSXCompatible])
 	{
 	  [NSException raise: NSInvalidArgumentException
 		    format: @"%@ null selector given",

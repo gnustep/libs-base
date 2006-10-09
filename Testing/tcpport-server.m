@@ -72,7 +72,7 @@ int main (int argc, char *argv[])
 {
   if (argc > 1)
     port = [TcpInPort newForReceivingFromRegisteredName:
-	     [NSString stringWithCString: argv[1]]];
+	     [NSString stringWithUTF8String: argv[1]]];
   else
     port = [TcpInPort newForReceivingFromRegisteredName: @"tcpport-test"];
 

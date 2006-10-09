@@ -72,11 +72,11 @@ GS_EXPORT NSString * const GSTelnetTextKey;
 
 	      if (i > 0 && ptr[i-1] == '\r')
 		{
-		  s = [NSString stringWithCString: ptr length: i-1];
+		  s = [NSString stringWithUTF8String: ptr length: i-1];
 		}
 	      else
 		{
-		  s = [NSString stringWithCString: ptr length: i];
+		  s = [NSString stringWithUTF8String: ptr length: i];
 		}
 	      len -= (i + 1);
 	      if (len > 0)

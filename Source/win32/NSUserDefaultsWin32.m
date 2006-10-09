@@ -228,30 +228,35 @@ struct NSUserDefaultsWin32_DomainInfo
 		      id	v;
 		      NSString	*k;
 
-		      switch (type) {
-		      	case REG_SZ: {
-				  int datacharlen = datalen / 2;
-				  if (datacharlen > 0 && data[datacharlen-1] == 0)
-				  		datacharlen--;
+		      switch (type)
+			{
+			  case REG_SZ:
+			    {
+			      int datacharlen = datalen / 2;
+			      if (datacharlen > 0 && data[datacharlen-1] == 0)
+				datacharlen--;
 				  
-			      v = [NSString stringWithCharacters:data length:datacharlen];
-		      	}
-		      	break;
-		      	case REG_BINARY: {
-		      	  v = [NSString stringWithCString: (char*)data
-			encoding: NSASCIIStringEncoding];
-		      	}
-		      	break;
-		      	default:
-		    		NSLog(@"Bad registry type %d for '%S'", type, name);
-		    		v = 0;
-		      }
+			      v = [NSString stringWithCharacters: data
+							  length: datacharlen];
+			    }
+			    break;
+			  case REG_BINARY:
+			    {
+			      v = [NSString stringWithCString: (char*)data
+				encoding: NSASCIIStringEncoding];
+			    }
+			    break;
+			  default:
+			    NSLog(@"Bad registry type %d for '%S'", type, name);
+			    v = 0;
+			}
 		      v = [v propertyList];
 		      if (v)
-		      {
-		      k = [NSString stringWithCharacters: name length: namelen];
-		      [domainDict setObject: v forKey: k];
-		    }
+			{
+			  k = [NSString stringWithCharacters: name
+						      length: namelen];
+			  [domainDict setObject: v forKey: k];
+			}
 		    }
 		  NS_HANDLER
 		    NSLog(@"Bad registry value for '%S'", name);
@@ -319,30 +324,35 @@ struct NSUserDefaultsWin32_DomainInfo
 		      id	v;
 		      NSString	*k;
 
-		      switch (type) {
-		      	case REG_SZ: {
-				  int datacharlen = datalen / 2;
-				  if (datacharlen > 0 && data[datacharlen-1] == 0)
-				  		datacharlen--;
+		      switch (type)
+			{
+			  case REG_SZ:
+			    {
+			      int datacharlen = datalen / 2;
+			      if (datacharlen > 0 && data[datacharlen-1] == 0)
+				datacharlen--;
 				  
-			      v = [NSString stringWithCharacters:data length:datacharlen];
-		      	}
-		      	break;
-		      	case REG_BINARY: {
-		      	  v = [NSString stringWithCString: (char*)data
-			encoding: NSASCIIStringEncoding];
-		      	}
-		      	break;
-		      	default:
-		    		NSLog(@"Bad registry type %d for '%S'", type, name);
-		    		v = 0;
-		      }
+			      v = [NSString stringWithCharacters: data
+							  length: datacharlen];
+			    }
+			    break;
+			  case REG_BINARY:
+			    {
+			      v = [NSString stringWithCString: (char*)data
+				encoding: NSASCIIStringEncoding];
+			    }
+			    break;
+			  default:
+			    NSLog(@"Bad registry type %d for '%S'", type, name);
+			    v = 0;
+			}
 		      v = [v propertyList];
 		      if (v)
-		      {
-		      k = [NSString stringWithCharacters: name length: namelen];
-		      [domainDict setObject: v forKey: k];
-		    }
+			{
+			  k = [NSString stringWithCharacters: name
+						      length: namelen];
+			  [domainDict setObject: v forKey: k];
+			}
 		    }
 		  NS_HANDLER
 		    NSLog(@"Bad registry value for '%S'", name);

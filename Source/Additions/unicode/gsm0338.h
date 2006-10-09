@@ -10,9 +10,8 @@
 
 // GSM0338 to Unicode maping
 
-const unsigned int GSM0338_conv_base = 0x00;
-
-unichar GSM0338_char_to_uni_table[] =
+static const unsigned int GSM0338_conv_base = 0x00;
+static unichar GSM0338_char_to_uni_table[] =
 {
   0x0040,
   0x00A3,
@@ -144,7 +143,7 @@ unichar GSM0338_char_to_uni_table[] =
   0x00E0
 };
 
-_ucc_ GSM0338_uni_to_char_table[] =
+static _ucc_ GSM0338_uni_to_char_table[] =
 {
   {0x000A,0x0A,},
   {0x000D,0x0D,},
@@ -277,7 +276,7 @@ _ucc_ GSM0338_uni_to_char_table[] =
 };
 #define	GSM0338_tsize	(sizeof(GSM0338_uni_to_char_table)/sizeof(_ucc_))
 
-_ucc_ GSM0338_escapes[] =
+static _ucc_ GSM0338_escapes[] =
 {
   {0x000C,0x0A},	/* Form feed	*/
   {0x005B,0x3C},	/* '['		*/
@@ -300,7 +299,7 @@ _ucc_ GSM0338_escapes[] =
  * a cut down version suitable for use when delivering data to phones
  * which don't support escape sequences.
  */
-_ucc_ GSM0338_lossy[] =
+static _ucc_ GSM0338_lossy[] =
 {
   {0x005B,0x3C},	/* '[' => '<'	*/
   {0x005C,0x2F},	/* '\\' => '/'	*/

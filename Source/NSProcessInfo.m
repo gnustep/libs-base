@@ -262,7 +262,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
               objc_free(buffer);
 	    }
 	}
-      tmp = [arg0 UTF8String];
+      tmp = [arg0 cStringUsingEncoding: [NSString defaultCStringEncoding]];
       _gnu_arg_zero = (char*)objc_malloc(strlen(tmp) + 1);
       strcpy(_gnu_arg_zero, tmp);
 #else
@@ -317,6 +317,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
       NSMutableSet	*mySet;
       id		obj_argv[argc];
       int		added = 1;
+      NSStringEncoding	enc = [_GSPrivate defaultCStringEncoding];
 
       mySet = [NSMutableSet new];
 
@@ -325,7 +326,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
       for (i = 1; i < argc; i++)
 	{
-	  str = [NSString stringWithCString: argv[i]];
+	  str = [NSString stringWithCString: argv[i] encoding: enc];
 
 	  if ([str hasPrefix: @"--GNU-Debug="])
 	    [mySet addObject: [str substringFromIndex: 12]];
@@ -345,6 +346,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   {
     NSMutableArray	*keys = [NSMutableArray new];
     NSMutableArray	*values = [NSMutableArray new];
+    NSStringEncoding	enc = [_GSPrivate defaultCStringEncoding];
 
 #if defined(__MINGW32__)
     if (fallbackInitialisation == NO)
@@ -408,8 +410,10 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 		strcpy(buf, env[i]);
 		cp = &buf[cp - env[i]];
 		*cp++ = '\0';
-		[keys addObject: [NSString stringWithCString: buf]];
-		[values addObject: [NSString stringWithCString: cp]];
+		[keys addObject:
+		  [NSString stringWithCString: buf encoding: enc]];
+		[values addObject:
+		  [NSString stringWithCString: cp encoding: enc]];
 	      }
 	    i++;
 	  }
@@ -1230,11 +1234,8 @@ BOOL GSDebugSet(NSString *level)
   return YES;
 }
 
-/**
- * Internal function for GNUstep base library
- */
-BOOL
-GSEnvironmentFlag(const char *name, BOOL def)
+@implementation _GSPrivate (ProcessInfo)
++ (BOOL) environmentFlag: (const char *)name defaultValue: (BOOL)def
 {
   const char	*c = getenv(name);
   BOOL		a = def;
@@ -1261,13 +1262,7 @@ GSEnvironmentFlag(const char *name, BOOL def)
   return a;
 }
 
-/**
- * Internal function for GNUstep base library.
- * Used by NSException uncaught exception handler - must not call any
- * methods/functions which might cause a recursive exception.
- */
-const char*
-GSArgZero(void)
++ (const char*) argZero
 {
   if (_gnu_arg_zero == 0)
     return "";
@@ -1275,4 +1270,5 @@ GSArgZero(void)
     return _gnu_arg_zero;
 }
 
+@end
 

@@ -8,7 +8,7 @@
   are permitted in any medium without royalty provided the copyright
   notice and this notice are preserved.
 */
-unichar gs_casemap_empty_table[] = {
+static unichar gs_casemap_empty_table[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -267,7 +267,7 @@ unichar gs_casemap_empty_table[] = {
 	0x0,
 };
 
-unichar gs_tolower_map_table_0[] = {
+static unichar gs_tolower_map_table_0[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -525,7 +525,8 @@ unichar gs_tolower_map_table_0[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_1[] = {
+
+static unichar gs_tolower_map_table_1[] = {
 	0x101,		/* 0 */
 	0x0,
 	0x103,		/* 2 */
@@ -783,7 +784,8 @@ unichar gs_tolower_map_table_1[] = {
 	0x1ff,		/* fe */
 	0x0,
 };
-unichar gs_tolower_map_table_2[] = {
+
+static unichar gs_tolower_map_table_2[] = {
 	0x201,		/* 0 */
 	0x0,
 	0x203,		/* 2 */
@@ -1041,7 +1043,8 @@ unichar gs_tolower_map_table_2[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_3[] = {
+
+static unichar gs_tolower_map_table_3[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -1299,7 +1302,8 @@ unichar gs_tolower_map_table_3[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_4[] = {
+
+static unichar gs_tolower_map_table_4[] = {
 	0x450,		/* 0 */
 	0x451,		/* 1 */
 	0x452,		/* 2 */
@@ -1557,7 +1561,8 @@ unichar gs_tolower_map_table_4[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_5[] = {
+
+static unichar gs_tolower_map_table_5[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -1815,7 +1820,8 @@ unichar gs_tolower_map_table_5[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_1e[] = {
+
+static unichar gs_tolower_map_table_1e[] = {
 	0x1e01,		/* 0 */
 	0x0,
 	0x1e03,		/* 2 */
@@ -2073,7 +2079,8 @@ unichar gs_tolower_map_table_1e[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_1f[] = {
+
+static unichar gs_tolower_map_table_1f[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -2331,7 +2338,8 @@ unichar gs_tolower_map_table_1f[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_21[] = {
+
+static unichar gs_tolower_map_table_21[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -2589,7 +2597,8 @@ unichar gs_tolower_map_table_21[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_24[] = {
+
+static unichar gs_tolower_map_table_24[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -2847,7 +2856,8 @@ unichar gs_tolower_map_table_24[] = {
 	0x0,
 	0x0,
 };
-unichar gs_tolower_map_table_ff[] = {
+
+static unichar gs_tolower_map_table_ff[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -3106,7 +3116,7 @@ unichar gs_tolower_map_table_ff[] = {
 	0x0,
 };
 
-unichar *gs_tolower_map[] = {
+static unichar *gs_tolower_map[] = {
 	gs_tolower_map_table_0,
 	gs_tolower_map_table_1,
 	gs_tolower_map_table_2,
@@ -3365,7 +3375,7 @@ unichar *gs_tolower_map[] = {
 	gs_tolower_map_table_ff,
 };
 
-unichar gs_toupper_map_table_0[] = {
+static unichar gs_toupper_map_table_0[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -3624,7 +3634,7 @@ unichar gs_toupper_map_table_0[] = {
 	0x178,		/* ff */
 };
 
-unichar gs_toupper_map_table_1[] = {
+static unichar gs_toupper_map_table_1[] = {
 	0x0,
 	0x100,		/* 1 */
 	0x0,
@@ -3883,7 +3893,7 @@ unichar gs_toupper_map_table_1[] = {
 	0x1fe,		/* ff */
 };
 
-unichar gs_toupper_map_table_2[] = {
+static unichar gs_toupper_map_table_2[] = {
 	0x0,
 	0x200,		/* 1 */
 	0x0,
@@ -4142,7 +4152,7 @@ unichar gs_toupper_map_table_2[] = {
 	0x0,
 };
 
-unichar gs_toupper_map_table_3[] = {
+static unichar gs_toupper_map_table_3[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -4401,7 +4411,7 @@ unichar gs_toupper_map_table_3[] = {
 	0x0,
 };
 
-unichar gs_toupper_map_table_4[] = {
+static unichar gs_toupper_map_table_4[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -4660,7 +4670,7 @@ unichar gs_toupper_map_table_4[] = {
 	0x0,
 };
 
-unichar gs_toupper_map_table_5[] = {
+static unichar gs_toupper_map_table_5[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -4919,31 +4929,7 @@ unichar gs_toupper_map_table_5[] = {
 	0x0,
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-unichar gs_toupper_map_table_1e[] = {
+static unichar gs_toupper_map_table_1e[] = {
 	0x0,
 	0x1e00,		/* 1 */
 	0x0,
@@ -5202,7 +5188,7 @@ unichar gs_toupper_map_table_1e[] = {
 	0x0,
 };
 
-unichar gs_toupper_map_table_1f[] = {
+static unichar gs_toupper_map_table_1f[] = {
 	0x1f08,		/* 0 */
 	0x1f09,		/* 1 */
 	0x1f0a,		/* 2 */
@@ -5461,8 +5447,7 @@ unichar gs_toupper_map_table_1f[] = {
 	0x0,
 };
 
-
-unichar gs_toupper_map_table_21[] = {
+static unichar gs_toupper_map_table_21[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -5721,9 +5706,7 @@ unichar gs_toupper_map_table_21[] = {
 	0x0,
 };
 
-
-
-unichar gs_toupper_map_table_24[] = {
+static unichar gs_toupper_map_table_24[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -5982,225 +5965,7 @@ unichar gs_toupper_map_table_24[] = {
 	0x0,
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-unichar gs_toupper_map_table_ff[] = {
+static unichar gs_toupper_map_table_ff[] = {
 	0x0,
 	0x0,
 	0x0,
@@ -6459,8 +6224,7 @@ unichar gs_toupper_map_table_ff[] = {
 	0x0,
 };
 
-
-unichar *gs_toupper_map[] = {
+static unichar *gs_toupper_map[] = {
 	gs_toupper_map_table_0,
 	gs_toupper_map_table_1,
 	gs_toupper_map_table_2,

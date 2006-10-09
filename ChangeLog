@@ -1,3 +1,89 @@
+2006-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/unicode:
+	Moved to Source/Additions/unicode
+	* Source/NSSocketPortNameServer.m:
+	* Source/GSLocale.m:
+	* Source/NSTimeZone.m:
+	* Source/GSCompatibility.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSBundle.m:
+	* Source/NSPropertyList.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSScanner.m:
+	* Source/NSProcessInfo.m:
+	* Source/GNUmakefile:
+	* Source/NSSocketPort.m:
+	* Source/NSUserDefaults.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSArray.m:
+	* Source/GSStream.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSDebug.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/NSDistributedLock.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSMessagePort.m:
+	* Source/GSPrivate.h:
+	* Source/win32/NSMessagePortNameServerWin32.m:
+	* Source/win32/GSFileHandleWin32.m:
+	* Source/win32/NSUserDefaultsWin32.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/win32/NSMessagePortWin32.m:
+	* Source/win32/NSStreamWin32.m:
+	* Source/NSInvocation.m:
+	* Source/NSFileManager.m:
+	* Source/objc-load.m:
+	* Source/NSException.m:
+	* Source/NSString.m:
+	* Source/NSObject.m:
+	* Source/NSDecimalNumber.m:
+	* Source/Additions/Unicode.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSFunctions.m:
+	* Source/Additions/GSCompatibility.m:
+	* Source/Additions/GSCategories.m:
+	* Source/NSDecimal.m:
+	* Source/GSString.m:
+	* Source/NSDateFormatter.m:
+	* Source/NSThread.m:
+	* Source/NSData.m:
+	* Source/NSHost.m:
+	* Source/NSDate.m:
+	* Source/NSObjCRuntime.m:
+	* Source/NSPipe.m:
+	* Source/NSDictionary.m:
+	* Source/NSLog.m:
+	* Source/GSFormat.m:
+	* Source/GSFileHandle.m:
+	* Source/NSTask.m:
+	* Source/NSArchiver.m:
+	* Source/GSFTPURLHandle.m:
+	* SSL/GSSSLHandle.m:
+	* Headers/Foundation/NSException.h:
+	* Headers/Additions/GNUstepBase/GSFunctions.h:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	* Headers/Additions/GNUstepBase/Unicode.h:
+	* Tools/xmlparse.m:
+	* Tools/defaults.m:
+	* Tools/locale_alias.m:
+	* Tools/Makefile.preamble:
+	* Tools/AGSParser.m:
+	* Tools/make_strings/make_strings.m:
+	* Tools/pl.m:
+	* Testing/tcpport-server.m:
+	* Testing/exported-strings.m:
+	* Testing/call.m:
+	* Testing/nsconnection_server.m:
+	* Testing/benchmark.m:
+	* Testing/tcpport-client.m:
+	Continuing effort to reduce global namespace pollution ... made many
+	external variables static (particuarly unicode tables).  Changed
+	several global functions to be methods of a private internal class.
+	Also updated several usages of deprecated cString methods to use
+	either UTF8 methods or cString...encoding methods as seemed most
+	appropriate and/or simplest.
+
 2006-10-06  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/Additions/GSMime.m(GSMimeDocument +initialize): Corrected

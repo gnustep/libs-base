@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include "config.h"
@@ -36,6 +37,7 @@
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSMime.h"
+#include "GSPrivate.h"
 
 GS_EXPORT NSString * const GSTelnetNotification;
 GS_EXPORT NSString * const GSTelnetErrorKey;
@@ -972,14 +974,12 @@ static NSLock			*urlLock = nil;
 						      protocol: @"tcp"];
   if (sock == nil)
     {
-      extern int	errno;
-
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
       [self backgroundLoadDidFailWithReason: [NSString stringWithFormat:
-	@"Unable to connect to %@:%@ ... %s",
-	host, port, GSLastErrorStr(errno)]];
+	@"Unable to connect to %@:%@ ... %@",
+	host, port, [_GSPrivate error]]];
       return;
     }
   cHandle = [[GSTelnetHandle alloc] initWithHandle: sock isConnected: NO];

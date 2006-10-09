@@ -8,9 +8,8 @@
 */
 
 
-const unsigned int Thai_conv_base = 0xA0;
-
-unichar Thai_char_to_uni_table[] =
+static const unsigned int Thai_conv_base = 0xA0;
+static unichar Thai_char_to_uni_table[] =
 {
   0x00A0,
   0x0E01,
@@ -112,9 +111,8 @@ unichar Thai_char_to_uni_table[] =
 
 /* Unicode to ISO_8859-11 maping */
 
-const unsigned int Thai_uni_to_char_table_size = 88;
-
-_ucc_ Thai_uni_to_char_table[]=
+static const unsigned int Thai_uni_to_char_table_size = 88;
+static _ucc_ Thai_uni_to_char_table[]=
 {
 	{0x00A0,0xA0},
 	{0x0E01,0xA1},

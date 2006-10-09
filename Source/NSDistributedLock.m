@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSDistributedLock class reference</title>
    $Date$ $Revision$
@@ -31,6 +32,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
+#include "GSPrivate.h"
 
 #include <fcntl.h>
 
@@ -76,13 +78,13 @@ static NSFileManager	*mgr = nil;
 
       if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
 	{
-	  const char	*err = GSLastErrorStr(errno);
+	  NSString	*err = [_GSPrivate error];
 
 	  attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
 	  if ([modDate isEqual: [attributes fileModificationDate]] == YES)
 	    {
 	      [NSException raise: NSGenericException
-		      format: @"Failed to remove lock directory '%@' - %s",
+		      format: @"Failed to remove lock directory '%@' - %@",
 		      _lockPath, err];
 	    }
 	}
@@ -201,8 +203,8 @@ static NSFileManager	*mgr = nil;
 				   attributes: attributesToSet];
 	  if (locked == NO)
 	    {
-	      NSLog(@"Failed to create lock directory '%@' - %s",
-		    _lockPath, GSLastErrorStr(errno));
+	      NSLog(@"Failed to create lock directory '%@' - %@",
+		    _lockPath, [_GSPrivate error]);
 	    }
 	}
     }
@@ -257,8 +259,8 @@ static NSFileManager	*mgr = nil;
       if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
 	{
 	  [NSException raise: NSGenericException
-		      format: @"Failed to remove lock directory '%@' - %s",
-			  _lockPath, GSLastErrorStr(errno)];
+		      format: @"Failed to remove lock directory '%@' - %@",
+			  _lockPath, [_GSPrivate error]];
 	}
     }
   else

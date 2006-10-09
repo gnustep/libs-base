@@ -122,14 +122,12 @@ UTF8Str(const unsigned char *bytes)
 inline static NSString*
 UTF8StrLen(const unsigned char *bytes, unsigned length)
 {
-  unsigned char	*buf = NSZoneMalloc(NSDefaultMallocZone(), length+1);
   NSString	*str;
 
-  memcpy(buf, bytes, length);
-  buf[length] = '\0';
-  str = UTF8Str(buf);
-  NSZoneFree(NSDefaultMallocZone(), buf);
-  return str;
+  str = [[NSString_class alloc] initWithBytes: bytes
+				       length: length
+				     encoding: NSUTF8StringEncoding];
+  return AUTORELEASE(str);
 }
 
 static BOOL cacheDone = NO;

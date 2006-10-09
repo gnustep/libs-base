@@ -648,13 +648,13 @@ _arg_addr(NSInvocation *inv, int index)
   char buffer[1024];
 
   snprintf (buffer, 1024, "<%s %p selector: %s target: %s>", \
-                GSClassNameFromObject(self), \
-                self, \
-                _selector ? GSNameFromSelector(_selector) : "nil", \
-                _target ?   GSNameFromClass([_target class]) : "nil" \
-               );
+    GSClassNameFromObject(self), \
+    self, \
+    _selector ? GSNameFromSelector(_selector) : "nil", \
+    _target ?   GSNameFromClass([_target class]) : "nil" \
+   );
 
-  return [NSString stringWithCString: buffer];
+  return [NSString stringWithUTF8String: buffer];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

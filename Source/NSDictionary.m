@@ -929,7 +929,7 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc = [_GSPrivate userDefaultsDictionaryRepresentation];
   NSString	*desc = nil;
   NSData	*data;
 
@@ -954,7 +954,7 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc = [_GSPrivate userDefaultsDictionaryRepresentation];
   NSString	*desc = nil;
   NSData	*data;
 

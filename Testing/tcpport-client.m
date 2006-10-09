@@ -33,7 +33,7 @@ int main (int argc, char *argv[])
 
   if (argc > 1)
     out_port = [TcpOutPort newForSendingToRegisteredName:
-			     [NSString stringWithCString: argv[1]]
+			     [NSString stringWithUTF8String: argv[1]]
 			   onHost: @"localhost"];
   else
     out_port = [TcpOutPort newForSendingToRegisteredName: @"tcpport-test"

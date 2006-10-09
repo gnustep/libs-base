@@ -24,7 +24,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include "config.h"
@@ -42,6 +43,7 @@
 #include "GNUstepBase/GSLock.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/Unicode.h"
+#include "../GSPrivate.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,15 +54,15 @@
 
 typedef struct {unichar from; unsigned char to;} _ucc_;
 
-#include "GNUstepBase/unicode/cyrillic.h"
-#include "GNUstepBase/unicode/latin2.h"
-#include "GNUstepBase/unicode/latin9.h"
-#include "GNUstepBase/unicode/nextstep.h"
-#include "GNUstepBase/unicode/caseconv.h"
-#include "GNUstepBase/unicode/cop.h"
-#include "GNUstepBase/unicode/decomp.h"
-#include "GNUstepBase/unicode/gsm0338.h"
-#include "GNUstepBase/unicode/thai.h"
+#include "unicode/cyrillic.h"
+#include "unicode/latin2.h"
+#include "unicode/latin9.h"
+#include "unicode/nextstep.h"
+#include "unicode/caseconv.h"
+#include "unicode/cop.h"
+#include "unicode/decomp.h"
+#include "unicode/gsm0338.h"
+#include "unicode/thai.h"
 
 #ifdef HAVE_ICONV
 #ifdef HAVE_GICONV_H
@@ -329,7 +331,7 @@ static void GSSetupEncodingTable(void)
     }
 }
 
-BOOL GSEncodingSupported(NSStringEncoding enc)
+static BOOL isEncodingSupported(NSStringEncoding enc)
 {
   GSSetupEncodingTable();
 
@@ -385,9 +387,6 @@ BOOL GSEncodingSupported(NSStringEncoding enc)
   return NO;
 }
 
-/**
- * Returns a nul terminated array of the available string encodings.
- */
 NSStringEncoding *
 GetAvailableEncodings()
 {
@@ -412,7 +411,7 @@ GetAvailableEncodings()
 	  pos = 0;
 	  for (i = 0; i < encTableSize+1; i++)
 	    {
-	      if (GSEncodingSupported(i) == YES)
+	      if (isEncodingSupported(i) == YES)
 		{
 		  encodings[pos++] = i;
 		}
@@ -532,7 +531,7 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
  *  deduced from the clocale string itself. If  clocale isn't set or
  *  no match can be found, returns GSUndefinedEncoding.
  */
-/* It would be really nice if this could be used in GetDefEncoding, but
+/* It would be really nice if this could be used in +defaultCStringEncoding, but
  * there are too many dependancies on other parts of the library to
  * make this practical (even if everything possible was written in C,
  * we'd still need some way to find the Locale.encodings file).
@@ -559,7 +558,7 @@ GSEncodingFromLocale(const char *clocale)
       char	*s;
 
       s = strchr (clocale, '.');
-      registry = [[NSString stringWithCString: s+1] lowercaseString];
+      registry = [[NSString stringWithUTF8String: s+1] lowercaseString];
       array = [registry componentsSeparatedByString: @"-"];
       registry = [array objectAtIndex: 0];
       if ([array count] > 1)
@@ -594,7 +593,7 @@ GSEncodingFromLocale(const char *clocale)
 	
 	  dict = [NSDictionary dictionaryWithContentsOfFile: table];
 	  encodstr = [dict objectForKey:
-			     [NSString stringWithCString: clocale]];
+			     [NSString stringWithUTF8String: clocale]];
 	  if (encodstr == nil)
 	    return GSUndefinedEncoding;
 
@@ -618,299 +617,6 @@ GSEncodingFromLocale(const char *clocale)
     }
 
   return encoding;
-}
-
-/**
- * Return the default encoding
- */
-NSStringEncoding
-GetDefEncoding(void)
-{
-  if (defEnc == GSUndefinedEncoding)
-    {
-      char		*encoding;
-      unsigned int	count;
-
-      GSSetupEncodingTable();
-
-      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
-      if (defEnc != GSUndefinedEncoding)
-	{
-	  [local_lock unlock];
-	  return defEnc;
-	}
-
-      encoding = getenv("GNUSTEP_STRING_ENCODING");
-      if (encoding != 0)
-	{
-	  count = 0;
-	  while (str_encoding_table[count].enc
-	    && strcasecmp(str_encoding_table[count].ename, encoding)
-	    && strcasecmp(str_encoding_table[count].iconv, encoding))
-	    {
-	      count++;
-	    }
-	  if (str_encoding_table[count].enc)
-	    {
-	      defEnc = str_encoding_table[count].enc;
-	    }
-	  else
-	    {
-	      fprintf(stderr,
-		      "WARNING: %s - encoding not supported.\n", encoding);
-	      fprintf(stderr,
-		      "  NSISOLatin1StringEncoding set as default.\n");
-	      defEnc = NSISOLatin1StringEncoding;
-	    }
-	}
-      if (defEnc == GSUndefinedEncoding)
-	{
-	  /* Encoding not set */
-#if HAVE_LANGINFO_CODESET
-	  /* Take it from the system locale information.  */
-	  encoding = nl_langinfo(CODESET);
-/*
- * First handle the fallback response from nl_langinfo() ...
- * if we are getting the default value we can't assume that
- * the user has set anything up at all, so we must use the
- * OpenStep/GNUstep default encopding ... latin1, even though
- * the nl_langinfo() stuff would say default is ascii.
- */
-	  if (strcmp(encoding, "ANSI_X3.4-1968") == 0 /* glibc */
-	    || strcmp(encoding, "ISO_646.IRV:1983") == 0 /* glibc */
-	    || strcmp(encoding, "646") == 0 /* Solaris NetBSD */)
-	    defEnc = NSISOLatin1StringEncoding;
-	  else if (strcmp(encoding, "EUC-JP") == 0 /* glibc */
-	    /* HP-UX IRIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "eucJP") == 0
-	    || strcmp(encoding, "IBM-eucJP") == 0 /* AIX */)
-	    defEnc = NSJapaneseEUCStringEncoding;
-	  else if (strcmp(encoding, "UTF-8") == 0 /* glibc AIX OSF/1 Solaris */
-	    || strcmp(encoding, "utf8") == 0 /* HP-UX */)
-	    defEnc = NSUTF8StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-1") == 0 /* glibc */
-	    /* AIX IRIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "ISO8859-1") == 0
-	    || strcmp(encoding, "iso88591") == 0 /* HP-UX */)
-	    defEnc = NSISOLatin1StringEncoding;
-	  else if (strcmp(encoding, "IBM-932") == 0 /* AIX */
-	    || strcmp(encoding, "SJIS") == 0 /* HP-UX OSF/1 NetBSD */
-	    || strcmp(encoding, "PCK") == 0 /* Solaris */)
-	    defEnc = NSShiftJISStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-2") == 0 /* glibc */
-	    /* AIX IRIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "ISO8859-2") == 0
-	    || strcmp(encoding, "iso88592") == 0 /* HP-UX */)
-	    defEnc = NSISOLatin2StringEncoding;
-	  else if (strcmp(encoding, "CP1251") == 0 /* glibc */
-	    || strcmp(encoding, "ansi-1251") == 0 /* Solaris */)
-	    defEnc = NSWindowsCP1251StringEncoding;
-	  else if (strcmp(encoding, "CP1252") == 0 /*  */
-	    || strcmp(encoding, "IBM-1252") == 0 /* AIX */)
-	    defEnc = NSWindowsCP1252StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-5") == 0 /* glibc */
-	    /* AIX IRIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "ISO8859-5") == 0
-	    || strcmp(encoding, "iso88595") == 0 /* HP-UX */)
-	    defEnc = NSISOCyrillicStringEncoding;
-	  else if (strcmp(encoding, "KOI8-R") == 0 /* glibc */
-	    || strcmp(encoding, "koi8-r") == 0 /* Solaris */)
-	    defEnc = NSKOI8RStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-3") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-3") == 0 /* Solaris */)
-	    defEnc = NSISOLatin3StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-4") == 0 /*  */
-	    || strcmp(encoding, "ISO8859-4") == 0 /* OSF/1 Solaris NetBSD */)
-	    defEnc = NSISOLatin4StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-6") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-6") == 0 /* AIX Solaris */
-	    || strcmp(encoding, "iso88596") == 0 /* HP-UX */)
-	    defEnc = NSISOArabicStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-7") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-7") == 0 /* AIX IRIX OSF/1 Solaris */
-	    || strcmp(encoding, "iso88597") == 0 /* HP-UX */)
-	    defEnc = NSISOGreekStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-8") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-8") == 0 /* AIX OSF/1 Solaris */
-	    || strcmp(encoding, "iso88598") == 0 /* HP-UX */)
-	    defEnc = NSISOHebrewStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-9") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-9") == 0 /* AIX IRIX OSF/1 Solaris */
-	    || strcmp(encoding, "iso88599") == 0 /* HP-UX */)
-	    defEnc = NSISOLatin5StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-10") == 0 /*  */
-	    || strcmp(encoding, "ISO8859-10") == 0 /*  */)
-	    defEnc = NSISOLatin6StringEncoding;
-	  else if (strcmp(encoding, "TIS-620") == 0 /* glibc AIX */
-	    || strcmp(encoding, "tis620") == 0 /* HP-UX */
-	    || strcmp(encoding, "TIS620.2533") == 0 /* Solaris */
-	    || strcmp(encoding, "TACTIS") == 0 /* OSF/1 */)
-	    defEnc = NSISOThaiStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-13") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-13") == 0 /*  */
-	    || strcmp(encoding, "IBM-921") == 0 /* AIX */)
-	    defEnc = NSISOLatin7StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-14") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-14") == 0 /*  */)
-	    defEnc = NSISOLatin8StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-15") == 0 /* glibc */
-	    /* AIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "ISO8859-15") == 0
-	    || strcmp(encoding, "iso885915") == 0 /* HP-UX */)
-	    defEnc = NSISOLatin9StringEncoding;
-	  else if (strcmp(encoding, "GB2312") == 0 /* glibc */
-	    || strcmp(encoding, "gb2312") == 0 /* Solaris */
-	    || strcmp(encoding, "eucCN") == 0 /* IRIX NetBSD */
-	    || strcmp(encoding, "IBM-eucCN") == 0 /* AIX */
-	    || strcmp(encoding, "hp15CN") == 0 /* HP-UX */)
-	    defEnc = NSGB2312StringEncoding;
-	  else if (strcmp(encoding, "BIG5") == 0 /* glibc Solaris NetBSD */
-	    || strcmp(encoding, "big5") == 0 /* AIX HP-UX OSF/1 */)
-	    defEnc = NSBIG5StringEncoding;
-	  else if (strcmp(encoding, "EUC-KR") == 0 /* glibc */
-	    || strcmp(encoding, "eucKR") == 0 /* HP-UX IRIX OSF/1 NetBSD */
-	    || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
-	    || strcmp(encoding, "5601") == 0 /* Solaris */)
-	    defEnc = NSKoreanEUCStringEncoding;
-	  else
-#endif
-	    defEnc = NSISOLatin1StringEncoding;
-	}
-      else if (GSEncodingSupported(defEnc) == NO)
-	{
-	  fprintf(stderr, "WARNING: %s - encoding not implemented as "
-		  "default c string encoding.\n", encoding);
-	  fprintf(stderr,
-		  "  NSISOLatin1StringEncoding set as default.\n");
-	  defEnc = NSISOLatin1StringEncoding;
-	}
-      [local_lock unlock];
-    }
-  return defEnc;
-}
-
-BOOL
-GSIsByteEncoding(NSStringEncoding encoding)
-{
-  if (GSEncodingSupported(encoding) == NO)
-    {
-      return NO;
-    }
-  return encodingTable[encoding]->eightBit;
-}
-
-/**
- * Returns the standard name for the specified encoding.
- */
-#ifndef NeXT_Foundation_LIBRARY
-NSString*
-GSEncodingName(NSStringEncoding encoding)
-{
-  if (GSEncodingSupported(encoding) == NO)
-    {
-      return @"Unknown encoding";
-    }
-  return [NSString stringWithCString: encodingTable[encoding]->ename];
-}
-#endif
-
-/**
- * <strong>deprecated</strong> Use GSEncodingName()
- */
-#ifndef NeXT_Foundation_LIBRARY
-NSString*
-GetEncodingName(NSStringEncoding encoding)
-{
-  return GSEncodingName(encoding);
-}
-#endif
-
-/**
- * <strong>deprecated</strong>
- * See GSToUnicode() and GSFromUnicode()
- */
-unichar
-encode_chartouni(unsigned char c, NSStringEncoding enc)
-{
-  BOOL		result;
-  unsigned int	size = 1;
-  unichar	u = 0;
-  unichar	*dst = &u;
-
-  result = GSToUnicode(&dst, &size, &c, 1, enc, 0, 0);
-  if (result == NO)
-    {
-      return 0;
-    }
-  return u;
-}
-
-/**
- * <strong>deprecated</strong>
- * See GSToUnicode() and GSFromUnicode()
- */
-unsigned char
-encode_unitochar(unichar u, NSStringEncoding enc)
-{
-  BOOL		result;
-  unsigned int	size = 1;
-  unsigned char	c = 0;
-  unsigned char	*dst = &c;
-
-  result = GSFromUnicode(&dst, &size, &u, 1, enc, 0, 0);
-  if (result == NO)
-    {
-      return 0;
-    }
-  return c;
-}
-
-/**
- * <strong>deprecated</strong>
- * See GSToUnicode() and GSFromUnicode()
- */
-unsigned
-encode_unitochar_strict(unichar u, NSStringEncoding enc)
-{
-  BOOL		result;
-  unsigned int	size = 1;
-  unsigned char	c = 0;
-  unsigned char	*dst = &c;
-
-  result = GSFromUnicode(&dst, &size, &u, 1, enc, 0, GSUniStrict);
-  if (result == NO)
-    {
-      return 0;
-    }
-  return c;
-}
-
-/**
- * <strong>deprecated</strong>
- * See GSToUnicode() and GSFromUnicode()
- */
-unichar
-chartouni(unsigned char c)
-{
-  if (defEnc == GSUndefinedEncoding)
-    {
-      defEnc = GetDefEncoding();
-    }
-  return encode_chartouni(c, defEnc);
-}
-
-/**
- * <strong>deprecated</strong>
- * See GSToUnicode() and GSFromUnicode()
- */
-unsigned char
-unitochar(unichar u)
-{
-  if (defEnc == GSUndefinedEncoding)
-    {
-      defEnc = GetDefEncoding();
-    }
-  return encode_unitochar(u, defEnc);
 }
 
 /**
@@ -1049,46 +755,6 @@ uni_is_decomp(unichar u)
       return 0;
     }
 }
-
-/**
- * <strong>deprecated</strong>
- * See GSToUnicode() and GSFromUnicode()
- */
-int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
-  NSStringEncoding enc, BOOL strict)
-{
-  BOOL		result;
-  unsigned int	options = (strict == YES) ? GSUniStrict : 0;
-  unsigned int	old = dl;
-
-  result = GSFromUnicode((unsigned char**)&dst, (unsigned int*)&dl,
-    src, sl, enc, 0, options);
-  if (result == NO)
-    {
-      return 0;
-    }
-  return old - dl;	// Number of characters.
-}
-
-/**
- * <strong>deprecated</strong>
- * See GSToUnicode() and GSFromUnicode()
- */
-int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
-  NSStringEncoding enc)
-{
-  BOOL		result;
-  unsigned int	old = dl;
-
-  result = GSToUnicode(&dst, (unsigned int*)&dl, (unsigned char*)src,
-    sl, enc, 0, 0);
-  if (result == NO)
-    {
-      return 0;
-    }
-  return old - dl;
-}
-
 
 /**
  * Function to check a block of data for validity as a unicode string and
@@ -1531,7 +1197,7 @@ tables:
 	  const char	*estr = 0;
 	  BOOL		done = NO;
 
-	  if (GSEncodingSupported(enc) == YES)
+	  if (isEncodingSupported(enc) == YES)
 	    {
 	      estr = encodingTable[enc]->iconv;
 	    }
@@ -1552,7 +1218,7 @@ tables:
 	  if (cd == (iconv_t)-1)
 	    {
 	      NSLog(@"No iconv for encoding %@ tried to use %s",
-		GetEncodingName(enc), estr);
+		[_GSPrivate encodingName: enc], estr);
 	      result = NO;
 	      goto done;
 	    }
@@ -2224,7 +1890,7 @@ iconv_start:
 	  const char	*estr = 0;
 	  BOOL		done = NO;
 
-	  if (GSEncodingSupported(enc) == YES)
+	  if (isEncodingSupported(enc) == YES)
 	    {
 	      if (strict == NO)
 		{
@@ -2257,7 +1923,7 @@ iconv_start:
 	  if (cd == (iconv_t)-1)
 	    {
 	      NSLog(@"No iconv for encoding %@ tried to use %s",
-		GetEncodingName(enc), estr);
+		[_GSPrivate encodingName: enc], estr);
 	      result = NO;
 	      goto done;
 	    }
@@ -2413,4 +2079,232 @@ iconv_start:
 }
 
 #undef	GROW
+
+@implementation	_GSPrivate (Unicode)
+
++ (NSStringEncoding*) availableEncodings
+{
+  if (_availableEncodings == 0)
+    {
+      GSSetupEncodingTable();
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
+      if (_availableEncodings == 0)
+	{
+	  NSStringEncoding	*encodings;
+	  unsigned		pos;
+	  unsigned		i;
+
+	  /*
+	   * Now build up a list of supported encodings ... in the
+	   * format needed to support [NSString+availableStringEncodings]
+	   * Check to see what iconv support we have as we go along.
+	   * This is also the place where we determine the name we use
+	   * for iconv to support unicode.
+	   */
+	  encodings = objc_malloc(sizeof(NSStringEncoding) * (encTableSize+1));
+	  pos = 0;
+	  for (i = 0; i < encTableSize+1; i++)
+	    {
+	      if (isEncodingSupported(i) == YES)
+		{
+		  encodings[pos++] = i;
+		}
+	    }
+	  encodings[pos] = 0;
+	  _availableEncodings = encodings;
+	}
+      [local_lock unlock];
+    }
+  return _availableEncodings;
+}
+
++ (NSStringEncoding) defaultCStringEncoding
+{
+  if (defEnc == GSUndefinedEncoding)
+    {
+      char		*encoding;
+      unsigned int	count;
+
+      GSSetupEncodingTable();
+
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
+      if (defEnc != GSUndefinedEncoding)
+	{
+	  [local_lock unlock];
+	  return defEnc;
+	}
+
+      encoding = getenv("GNUSTEP_STRING_ENCODING");
+      if (encoding != 0)
+	{
+	  count = 0;
+	  while (str_encoding_table[count].enc
+	    && strcasecmp(str_encoding_table[count].ename, encoding)
+	    && strcasecmp(str_encoding_table[count].iconv, encoding))
+	    {
+	      count++;
+	    }
+	  if (str_encoding_table[count].enc)
+	    {
+	      defEnc = str_encoding_table[count].enc;
+	    }
+	  else
+	    {
+	      fprintf(stderr,
+		      "WARNING: %s - encoding not supported.\n", encoding);
+	      fprintf(stderr,
+		      "  NSISOLatin1StringEncoding set as default.\n");
+	      defEnc = NSISOLatin1StringEncoding;
+	    }
+	}
+      if (defEnc == GSUndefinedEncoding)
+	{
+	  /* Encoding not set */
+#if HAVE_LANGINFO_CODESET
+	  /* Take it from the system locale information.  */
+	  encoding = nl_langinfo(CODESET);
+/*
+ * First handle the fallback response from nl_langinfo() ...
+ * if we are getting the default value we can't assume that
+ * the user has set anything up at all, so we must use the
+ * OpenStep/GNUstep default encopding ... latin1, even though
+ * the nl_langinfo() stuff would say default is ascii.
+ */
+	  if (strcmp(encoding, "ANSI_X3.4-1968") == 0 /* glibc */
+	    || strcmp(encoding, "ISO_646.IRV:1983") == 0 /* glibc */
+	    || strcmp(encoding, "646") == 0 /* Solaris NetBSD */)
+	    defEnc = NSISOLatin1StringEncoding;
+	  else if (strcmp(encoding, "EUC-JP") == 0 /* glibc */
+	    /* HP-UX IRIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "eucJP") == 0
+	    || strcmp(encoding, "IBM-eucJP") == 0 /* AIX */)
+	    defEnc = NSJapaneseEUCStringEncoding;
+	  else if (strcmp(encoding, "UTF-8") == 0 /* glibc AIX OSF/1 Solaris */
+	    || strcmp(encoding, "utf8") == 0 /* HP-UX */)
+	    defEnc = NSUTF8StringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-1") == 0 /* glibc */
+	    /* AIX IRIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "ISO8859-1") == 0
+	    || strcmp(encoding, "iso88591") == 0 /* HP-UX */)
+	    defEnc = NSISOLatin1StringEncoding;
+	  else if (strcmp(encoding, "IBM-932") == 0 /* AIX */
+	    || strcmp(encoding, "SJIS") == 0 /* HP-UX OSF/1 NetBSD */
+	    || strcmp(encoding, "PCK") == 0 /* Solaris */)
+	    defEnc = NSShiftJISStringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-2") == 0 /* glibc */
+	    /* AIX IRIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "ISO8859-2") == 0
+	    || strcmp(encoding, "iso88592") == 0 /* HP-UX */)
+	    defEnc = NSISOLatin2StringEncoding;
+	  else if (strcmp(encoding, "CP1251") == 0 /* glibc */
+	    || strcmp(encoding, "ansi-1251") == 0 /* Solaris */)
+	    defEnc = NSWindowsCP1251StringEncoding;
+	  else if (strcmp(encoding, "CP1252") == 0 /*  */
+	    || strcmp(encoding, "IBM-1252") == 0 /* AIX */)
+	    defEnc = NSWindowsCP1252StringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-5") == 0 /* glibc */
+	    /* AIX IRIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "ISO8859-5") == 0
+	    || strcmp(encoding, "iso88595") == 0 /* HP-UX */)
+	    defEnc = NSISOCyrillicStringEncoding;
+	  else if (strcmp(encoding, "KOI8-R") == 0 /* glibc */
+	    || strcmp(encoding, "koi8-r") == 0 /* Solaris */)
+	    defEnc = NSKOI8RStringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-3") == 0 /* glibc */
+	    || strcmp(encoding, "ISO8859-3") == 0 /* Solaris */)
+	    defEnc = NSISOLatin3StringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-4") == 0 /*  */
+	    || strcmp(encoding, "ISO8859-4") == 0 /* OSF/1 Solaris NetBSD */)
+	    defEnc = NSISOLatin4StringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-6") == 0 /* glibc */
+	    || strcmp(encoding, "ISO8859-6") == 0 /* AIX Solaris */
+	    || strcmp(encoding, "iso88596") == 0 /* HP-UX */)
+	    defEnc = NSISOArabicStringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-7") == 0 /* glibc */
+	    || strcmp(encoding, "ISO8859-7") == 0 /* AIX IRIX OSF/1 Solaris */
+	    || strcmp(encoding, "iso88597") == 0 /* HP-UX */)
+	    defEnc = NSISOGreekStringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-8") == 0 /* glibc */
+	    || strcmp(encoding, "ISO8859-8") == 0 /* AIX OSF/1 Solaris */
+	    || strcmp(encoding, "iso88598") == 0 /* HP-UX */)
+	    defEnc = NSISOHebrewStringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-9") == 0 /* glibc */
+	    || strcmp(encoding, "ISO8859-9") == 0 /* AIX IRIX OSF/1 Solaris */
+	    || strcmp(encoding, "iso88599") == 0 /* HP-UX */)
+	    defEnc = NSISOLatin5StringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-10") == 0 /*  */
+	    || strcmp(encoding, "ISO8859-10") == 0 /*  */)
+	    defEnc = NSISOLatin6StringEncoding;
+	  else if (strcmp(encoding, "TIS-620") == 0 /* glibc AIX */
+	    || strcmp(encoding, "tis620") == 0 /* HP-UX */
+	    || strcmp(encoding, "TIS620.2533") == 0 /* Solaris */
+	    || strcmp(encoding, "TACTIS") == 0 /* OSF/1 */)
+	    defEnc = NSISOThaiStringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-13") == 0 /* glibc */
+	    || strcmp(encoding, "ISO8859-13") == 0 /*  */
+	    || strcmp(encoding, "IBM-921") == 0 /* AIX */)
+	    defEnc = NSISOLatin7StringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-14") == 0 /* glibc */
+	    || strcmp(encoding, "ISO8859-14") == 0 /*  */)
+	    defEnc = NSISOLatin8StringEncoding;
+	  else if (strcmp(encoding, "ISO-8859-15") == 0 /* glibc */
+	    /* AIX OSF/1 Solaris NetBSD */
+	    || strcmp(encoding, "ISO8859-15") == 0
+	    || strcmp(encoding, "iso885915") == 0 /* HP-UX */)
+	    defEnc = NSISOLatin9StringEncoding;
+	  else if (strcmp(encoding, "GB2312") == 0 /* glibc */
+	    || strcmp(encoding, "gb2312") == 0 /* Solaris */
+	    || strcmp(encoding, "eucCN") == 0 /* IRIX NetBSD */
+	    || strcmp(encoding, "IBM-eucCN") == 0 /* AIX */
+	    || strcmp(encoding, "hp15CN") == 0 /* HP-UX */)
+	    defEnc = NSGB2312StringEncoding;
+	  else if (strcmp(encoding, "BIG5") == 0 /* glibc Solaris NetBSD */
+	    || strcmp(encoding, "big5") == 0 /* AIX HP-UX OSF/1 */)
+	    defEnc = NSBIG5StringEncoding;
+	  else if (strcmp(encoding, "EUC-KR") == 0 /* glibc */
+	    || strcmp(encoding, "eucKR") == 0 /* HP-UX IRIX OSF/1 NetBSD */
+	    || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
+	    || strcmp(encoding, "5601") == 0 /* Solaris */)
+	    defEnc = NSKoreanEUCStringEncoding;
+	  else
+#endif
+	    defEnc = NSISOLatin1StringEncoding;
+	}
+      else if (isEncodingSupported(defEnc) == NO)
+	{
+	  fprintf(stderr, "WARNING: %s - encoding not implemented as "
+		  "default c string encoding.\n", encoding);
+	  fprintf(stderr,
+		  "  NSISOLatin1StringEncoding set as default.\n");
+	  defEnc = NSISOLatin1StringEncoding;
+	}
+      [local_lock unlock];
+    }
+  return defEnc;
+}
+
++ (NSString*) encodingName: (NSStringEncoding)encoding
+{
+  if (isEncodingSupported(encoding) == NO)
+    {
+      return @"Unknown encoding";
+    }
+  return [NSString stringWithUTF8String: encodingTable[encoding]->ename];
+}
+
++ (BOOL) isByteEncoding: (NSStringEncoding)encoding
+{
+  if (isEncodingSupported(encoding) == NO)
+    {
+      return NO;
+    }
+  return encodingTable[encoding]->eightBit;
+}
+
++ (BOOL) isEncodingSupported: (NSStringEncoding)encoding
+{
+  return isEncodingSupported(encoding);
+}
+
+@end
 

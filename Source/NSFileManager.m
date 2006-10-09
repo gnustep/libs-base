@@ -401,8 +401,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileOwnerAccountID to '%u' - %s",
-	    num, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileOwnerAccountID to '%u' - %@",
+	    num, [_GSPrivate error]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -425,8 +425,8 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      allOk = NO;
 	      str = [NSString stringWithFormat:
-		@"Unable to change NSFileOwnerAccountName to '%@' - %s",
-		str, GSLastErrorStr(errno)];
+		@"Unable to change NSFileOwnerAccountName to '%@' - %@",
+		str, [_GSPrivate error]];
 	      ASSIGN(_lastError, str);
 	    }
 	}
@@ -439,8 +439,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileGroupOwnerAccountID to '%u' - %s",
-	    num, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileGroupOwnerAccountID to '%u' - %@",
+	    num, [_GSPrivate error]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -461,8 +461,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileGroupOwnerAccountName to '%@' - %s",
-	    str, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileGroupOwnerAccountName to '%@' - %@",
+	    str, [_GSPrivate error]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -475,8 +475,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFilePosixPermissions to '%o' - %s",
-	    num, GSLastErrorStr(errno)];
+	    @"Unable to change NSFilePosixPermissions to '%o' - %@",
+	    num, [_GSPrivate error]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -519,8 +519,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileModificationDate to '%@' - %s",
-	    date, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileModificationDate to '%@' - %@",
+	    date, [_GSPrivate error]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -747,8 +747,8 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      NSString	*s;
 
-	      s = [NSString stringWithFormat: @"Could not create '%s' - '%s'",
-		dirpath, GSLastErrorStr(errno)];
+	      s = [NSString stringWithFormat: @"Could not create '%s' - '%@'",
+		dirpath, [_GSPrivate error]];
 	      ASSIGN(_lastError, s);
 	      return NO;
 	    }
@@ -1278,8 +1278,8 @@ static NSStringEncoding	defaultEncoding;
 #endif
 	{
 	  return [self _proceedAccordingToHandler: handler
-	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
-	    inPath: path];
+					 forError: [_GSPrivate error]
+					   inPath: path];
 	}
       else
 	{
@@ -1312,8 +1312,8 @@ static NSStringEncoding	defaultEncoding;
       if (_RMDIR([self fileSystemRepresentationWithPath: path]) < 0)
 	{
 	  return [self _proceedAccordingToHandler: handler
-	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
-	    inPath: path];
+					 forError: [_GSPrivate error]
+					   inPath: path];
 	}
       else
 	{
@@ -2031,8 +2031,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
     }
   else
     {
-      NSLog(@"Failed to recurse into directory '%@' - %s", path,
-	GSLastErrorStr(errno));
+      NSLog(@"Failed to recurse into directory '%@' - %@", path,
+	[_GSPrivate error]);
     }
   return self;
 }
@@ -2198,8 +2198,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 		    }
 		  else
 		    {
-		      NSLog(@"Failed to recurse into directory '%@' - %s",
-			_currentFilePath, GSLastErrorStr(errno));
+		      NSLog(@"Failed to recurse into directory '%@' - %@",
+			_currentFilePath, [_GSPrivate error]);
 		    }
 		}
 	    }
@@ -2940,7 +2940,8 @@ static NSSet	*fileKeys = nil;
   gp = getgrgid(statbuf.st_gid);
   if (gp != 0)
     {
-      group = [NSString stringWithCString: gp->gr_name];
+      group = [NSString stringWithCString: gp->gr_name
+				 encoding: defaultEncoding];
     }
 #endif
 #endif
@@ -3081,7 +3082,8 @@ static NSSet	*fileKeys = nil;
 
   if (pw != 0)
     {
-      owner = [NSString stringWithCString: pw->pw_name];
+      owner = [NSString stringWithCString: pw->pw_name
+				 encoding: defaultEncoding];
     }
 #endif /* HAVE_PWD_H */
 #endif

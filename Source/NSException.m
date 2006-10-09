@@ -353,8 +353,9 @@ static void find_address (bfd *abfd, asection *section,
       fi = [GSFunctionInfo alloc];
       fi = [fi initWithModule: info->module
 		      address: info->theAddress
-			 file: [NSString stringWithCString: fileName]
-		     function: [NSString stringWithCString: functionName]
+			 file: [NSString stringWithCString: fileName
+			   encoding: [NSString defaultCStringEncoding]]
+		     function: [NSString stringWithUTF8String: functionName]
 			 line: line];
       [fi autorelease];
       info->theInfo = fi;
@@ -584,7 +585,8 @@ static void _terminate()
 #else
   shouldAbort = NO;		// exit() by default.
 #endif
-  shouldAbort = GSEnvironmentFlag("CRASH_ON_ABORT", shouldAbort);
+  shouldAbort = [_GSPrivate environmentFlag: "CRASH_ON_ABORT"
+			       defaultValue: shouldAbort];
   if (shouldAbort == YES)
     {
       abort();
@@ -598,9 +600,8 @@ static void _terminate()
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
-  extern const char*	GSArgZero(void);
-
-  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n", GSArgZero(),
+  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
+    [_GSPrivate argZero],
     [[exception name] lossyCString], [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
 

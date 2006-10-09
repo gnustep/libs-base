@@ -335,7 +335,7 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 	    [[NSAssertionHandler currentHandler] 		\
 	    	handleFailureInMethod: _cmd 			\
 		object: self 					\
-		file: [NSString stringWithCString: __FILE__] 	\
+		file: [NSString stringWithUTF8String: __FILE__] 	\
 		lineNumber: __LINE__ 				\
 		description: (desc) , ## args]; 			\
 	}							\
@@ -345,8 +345,8 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
     do {							\
 	if (!(condition)) {					\
 	    [[NSAssertionHandler currentHandler] 		\
-	    handleFailureInFunction: [NSString stringWithCString: __PRETTY_FUNCTION__] 				\
-	    file: [NSString stringWithCString: __FILE__] 		\
+	    handleFailureInFunction: [NSString stringWithUTF8String: __PRETTY_FUNCTION__] 				\
+	    file: [NSString stringWithUTF8String: __FILE__] 		\
 	    lineNumber: __LINE__ 				\
 	    description: (desc) , ## args]; 			\
 	}							\

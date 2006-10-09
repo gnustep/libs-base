@@ -31,6 +31,8 @@
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
 
+#warning "deprecated header ... will be removed in a later release"
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif

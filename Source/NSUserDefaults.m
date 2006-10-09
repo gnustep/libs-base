@@ -1955,8 +1955,9 @@ static BOOL isLocked = NO;
 }
 @end
 
-NSDictionary*
-GSUserDefaultsDictionaryRepresentation()
+@implementation _GSPrivate (UserDefaults)
+
++ (NSDictionary*) userDefaultsDictionaryRepresentation
 {
   NSDictionary	*defs;
 
@@ -1970,11 +1971,7 @@ GSUserDefaultsDictionaryRepresentation()
   return defs;
 }
 
-/*
- * Get one of several potentially useful flags.
- */
-BOOL
-GSUserDefaultsFlag(GSUserDefaultFlagType type)
++ (BOOL) userDefaultsFlag: (GSUserDefaultFlagType)type
 {
   if (sharedDefaults == nil)
     {
@@ -1982,4 +1979,5 @@ GSUserDefaultsFlag(GSUserDefaultFlagType type)
     }
   return flags[type];
 }
+@end
 

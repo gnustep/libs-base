@@ -50,7 +50,7 @@
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSValue.h"
-#include "GNUstepBase/GSFunctions.h"
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -226,7 +226,7 @@ static NSString	*ExecutablePath()
 #ifdef PROCFS_EXE_LINK
 	  executablePath = [[NSFileManager defaultManager]
 	    pathContentOfSymbolicLinkAtPath:
-              [NSString stringWithCString: PROCFS_EXE_LINK]];
+              [NSString stringWithUTF8String: PROCFS_EXE_LINK]];
 
 	  /*
 	  On some systems, the link is of the form "[device]:inode", which
@@ -377,11 +377,29 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 static inline NSString *
 _find_framework(NSString *name)
 {                
-  NSArray  *paths;
+  NSArray	*paths;
+  NSFileManager *file_mgr = [NSFileManager defaultManager];
+  NSString	*file_name;
+  NSString	*file_path;
+  NSString	*path;
+  NSEnumerator	*enumerator;
            
+  NSCParameterAssert(name != nil);
+
   paths = NSSearchPathForDirectoriesInDomains(GSFrameworksDirectory,
             NSAllDomainsMask,YES);
-  return GSFindNamedFile(paths, name, @"framework");  
+
+  enumerator = [paths objectEnumerator];
+  while ((path = [enumerator nextObject]))
+    {
+      file_path = [path stringByAppendingPathComponent: file_name];
+
+      if ([file_mgr fileExistsAtPath: file_path] == YES)
+        {
+          return file_path; // Found it!
+        }
+    }
+  return nil;
 }        
 
 @interface NSBundle (Private)
@@ -464,8 +482,9 @@ _find_framework(NSString *name)
       && !strncmp ("NSFramework_", frameworkClass->name, 12))
     {
       /* The name of the framework.  */
-      NSString *name = [NSString stringWithCString: &frameworkClass->name[12]];
+      NSString *name;
 
+      name = [NSString stringWithUTF8String: &frameworkClass->name[12]];
       /* Important - gnustep-make mangles framework names to encode
        * them as ObjC class names.  Here we need to demangle them.  We
        * apply the reverse transformations in the reverse order.

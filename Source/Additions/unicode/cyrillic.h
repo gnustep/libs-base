@@ -8,9 +8,8 @@
 */
 
 
-const unsigned int Cyrillic_conv_base = 0x80;
-
-unichar Cyrillic_char_to_uni_table[] =
+static const unsigned int Cyrillic_conv_base = 0x80;
+static unichar Cyrillic_char_to_uni_table[] =
 {
   0x0080,
   0x0081,
@@ -144,9 +143,8 @@ unichar Cyrillic_char_to_uni_table[] =
 
 // Unicode to ISO_8859-5,1988 maping
 
-const unsigned int Cyrillic_uni_to_char_table_size = 128;
-
-_ucc_ Cyrillic_uni_to_char_table[]=
+static const unsigned int Cyrillic_uni_to_char_table_size = 128;
+static _ucc_ Cyrillic_uni_to_char_table[]=
 {
   {0x0080,0x80},
   {0x0081,0x81},

@@ -31,7 +31,7 @@
 
 #define MyAssert2(IDENT) do { \
                            NSCAssert2([IDENT isEqual: \
-                                       [NSString stringWithCString: #IDENT]], \
+			       [NSString stringWithUTF8String: #IDENT]], \
                                       @"Invalid value: %@ for: %s", \
                                       IDENT, #IDENT); \
                            NSCAssert2([cache[i++] isEqual: IDENT], \

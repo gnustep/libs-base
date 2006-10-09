@@ -34,6 +34,7 @@
 #include <Foundation/NSDebug.h>
 
 #include "GSStream.h"
+#include "GSPrivate.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
   = @"NSStreamDataWrittenToMemoryStreamKey";
@@ -364,7 +365,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   theError = [NSError errorWithDomain: NSPOSIXErrorDomain
 					  code: errno
 				      userInfo: nil];
-  NSLog(@"%@ error(%d): - %s", self, errno, GSLastErrorStr(errno));
+  NSLog(@"%@ error(%d): - %@", self, errno, [_GSPrivate error]);
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
 }

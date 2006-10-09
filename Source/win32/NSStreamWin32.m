@@ -269,7 +269,7 @@ static void setNonblocking(SOCKET fd)
   unsigned long	dummy = 1;
 
   if (ioctlsocket(fd, FIONBIO, &dummy) == SOCKET_ERROR)
-    NSLog(@"unable to set non-blocking mode - %s",GSLastErrorStr(errno));
+    NSLog(@"unable to set non-blocking mode - %@", [_GSPrivate error]);
 }
 
 @implementation GSFileInputStream
@@ -1866,8 +1866,8 @@ static void setNonblocking(SOCKET fd)
   if (handle == INVALID_HANDLE_VALUE)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"Unable to open named pipe '%@'... %s",
-	path, GSLastErrorStr(GetLastError())];
+		  format: @"Unable to open named pipe '%@'... %@",
+	path, [_GSPrivate error]];
     }
 
   // the type of the stream does not matter, since we are only using the fd
