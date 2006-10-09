@@ -79,7 +79,6 @@ endif
 # The GNU source files
 
 GNU_MFILES = \
-GSCompatibility.m \
 GSLocale.m \
 preface.m \
 mframe.m

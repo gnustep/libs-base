@@ -1,5 +1,15 @@
 2006-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSCompatibility.m: Removed ... no longer used
+	* Source/GNUmakefile: Remove GSCompatibility.m
+	* Source/NSGeometry.m:
+	* Source/NSArray.m:
+	* Source/NSDictionary.m:
+	Update to get rid of a couple of functions which were not really
+	needed, slimming down global symbols a bit more.
+
+2006-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSObjCRuntime.m:
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
 	Remove previously deprecated functionality.

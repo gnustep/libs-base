@@ -50,7 +50,17 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
-extern BOOL	GSMacOSXCompatiblePropertyLists(void);
+static BOOL GSMacOSXCompatiblePropertyLists(void)
+{
+#if	defined(HAVE_LIBXML)
+  if ([_GSPrivate userDefaultsFlag: NSWriteOldStylePropertyLists] == YES)
+    return NO;
+  return [_GSPrivate userDefaultsFlag: GSMacOSXCompatible];
+#else
+  return NO;
+#endif
+}
+
 extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 @interface NSArrayEnumerator : NSEnumerator
