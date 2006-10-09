@@ -61,8 +61,6 @@ SUBPROJECTS += Tools NSTimeZones Resources
 
 -include Makefile.preamble
 
--include GNUmakefile.local
-
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 
 -include Makefile.postamble
