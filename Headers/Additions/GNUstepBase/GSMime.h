@@ -40,6 +40,8 @@
 extern "C" {
 #endif
 
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+
 @class	NSArray;
 @class	NSMutableArray;
 @class	NSData;
@@ -228,6 +230,8 @@ extern "C" {
 
 - (void) setIsHttp;
 @end
+
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
 #if	defined(__cplusplus)
 }

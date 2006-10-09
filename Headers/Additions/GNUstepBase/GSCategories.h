@@ -48,10 +48,13 @@
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSVersionMacros.h"
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 
 @class NSMutableSet;
 
@@ -335,9 +338,6 @@ GS_EXPORT void NSDecimalFromComponents(NSDecimal *result,
 
 GS_EXPORT BOOL GSDebugSet(NSString *level);
 
-GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
-GS_EXPORT NSString *GSEncodingName(NSStringEncoding availableEncodingValue);
-
 GS_EXPORT NSThread *GSCurrentThread(void);
 GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary(void);
 
@@ -345,6 +345,8 @@ GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				     int line, NSString *fmt);
 GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file,
 				       int line, NSString *fmt);
+
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
 #if	defined(__cplusplus)
 }

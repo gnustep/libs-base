@@ -34,10 +34,11 @@
 
 #include <Foundation/NSString.h>	/* For string encodings */
 
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+
 /*
  * Private API used internally by NSString etc.
  */
-#ifndef	NO_GNUSTEP
 #include "GSObjCRuntime.h"
 
 #if	defined(__cplusplus)
@@ -79,6 +80,6 @@ GS_EXPORT BOOL GSToUnicode(unichar **dst, unsigned int *size,
 }
 #endif
 
-#endif
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
 #endif /* __Unicode_h_OBJECTS_INCLUDE */

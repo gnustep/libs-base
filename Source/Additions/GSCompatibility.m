@@ -28,17 +28,6 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GCObject.h"
 
-NSString *GetEncodingName(NSStringEncoding availableEncodingValue)
-{
-  // Deprecated
-  return GSEncodingName(availableEncodingValue);
-}
-
-NSString *GSEncodingName(NSStringEncoding availableEncodingValue)
-{
-  return (NSString *)CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(availableEncodingValue));
-}
-
 NSThread *GSCurrentThread()
 {
   return [NSThread currentThread];
@@ -51,7 +40,7 @@ NSMutableDictionary *GSCurrentThreadDictionary()
 
 NSArray *NSStandardLibraryPaths()
 {
-    return NSSearchPathForDirectoriesInDomains(NSAllLibrariesDirectory,
+  return NSSearchPathForDirectoriesInDomains(NSAllLibrariesDirectory,
 					       NSAllDomainsMask, YES);
 }
 
@@ -69,28 +58,28 @@ void NSDecimalFromComponents(NSDecimal *result,
 NSString*
 GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
 {
-    NSString	*message;
-    Class		cls = (Class)obj;
-    char		c = '+';
+  NSString	*message;
+  Class		cls = (Class)obj;
+  char		c = '+';
 
-    if ([obj isInstance] == YES)
+  if ([obj isInstance] == YES)
     {
-        c = '-';
-        cls = [obj class];
+      c = '-';
+      cls = [obj class];
     }
-    message = [NSString stringWithFormat: @"File %s: %d. In [%@ %c%@] %@",
-        file, line, NSStringFromClass(cls), c, NSStringFromSelector(sel), fmt];
-    return message;
+  message = [NSString stringWithFormat: @"File %s: %d. In [%@ %c%@] %@",
+    file, line, NSStringFromClass(cls), c, NSStringFromSelector(sel), fmt];
+  return message;
 }
 
 NSString*
 GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
 {
-    NSString *message;
+  NSString *message;
 
-    message = [NSString stringWithFormat: @"File %s: %d. In %s %@",
-        file, line, func, fmt];
-    return message;
+  message = [NSString stringWithFormat: @"File %s: %d. In %s %@",
+    file, line, func, fmt];
+  return message;
 }
 
 @implementation NSArray (GSCompatibility)
@@ -364,23 +353,23 @@ BOOL GSDebugSet(NSString *level)
 - (NSMutableSet *) debugSet
 // Derived from GNUStep's
 {
-    if (_debug_set == nil){
-        int				argc = [[self arguments] count];
-        NSMutableSet	*mySet;
-        int				i;
+  if (_debug_set == nil)
+    {
+      int				argc = [[self arguments] count];
+      NSMutableSet	*mySet;
+      int				i;
 
-        mySet = [NSMutableSet new];
-        for (i = 0; i < argc; i++)
-        {
-            NSString	*str = [[self arguments] objectAtIndex:i];
+      mySet = [NSMutableSet new];
+      for (i = 0; i < argc; i++)
+	{
+	  NSString	*str = [[self arguments] objectAtIndex:i];
 
-            if ([str hasPrefix: @"--GNU-Debug="])
-                [mySet addObject: [str substringFromIndex: 12]];
-        }
-        _debug_set = mySet;
+	  if ([str hasPrefix: @"--GNU-Debug="])
+	    [mySet addObject: [str substringFromIndex: 12]];
+	}
+      _debug_set = mySet;
     }
-
-    return _debug_set;
+  return _debug_set;
 }
 
 @end
@@ -395,15 +384,15 @@ BOOL GSDebugSet(NSString *level)
  */
 - (BOOL) boolValue
 {
-    if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
+  if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
     {
         return YES;
     }
-    if ([self caseInsensitiveCompare: @"true"] == NSOrderedSame)
+  if ([self caseInsensitiveCompare: @"true"] == NSOrderedSame)
     {
         return YES;
     }
-    return [self intValue] != 0 ? YES : NO;
+  return [self intValue] != 0 ? YES : NO;
 }
 
 - (NSString*) substringFromRange:(NSRange)range
@@ -417,13 +406,13 @@ BOOL GSDebugSet(NSString *level)
 - (retval_t) returnFrame:(arglist_t)args
 {
 #warning (stephane@sente.ch) Not implemented
-    return (retval_t)[self notImplemented:_cmd];
+  return (retval_t)[self notImplemented:_cmd];
 }
 
 - (id) initWithArgframe:(arglist_t)args selector:(SEL)selector
 {
 #warning (stephane@sente.ch) Not implemented
-    return [self notImplemented:_cmd];
+  return [self notImplemented:_cmd];
 }
 
 @end

@@ -269,7 +269,7 @@ GSObjCVariableNames(id obj)
 /**
  * Gets the value from an instance variable in obj<br />
  * This function performs no checking ... you should use it only where
- * you are providing information from a call to GSFindVariable()
+ * you are providing information from a call to GSObjCFindVariable()
  * and you know that the data area provided is the correct size.
  */
 void

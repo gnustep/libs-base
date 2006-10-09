@@ -29,10 +29,13 @@
 #define __behavior_h_GNUSTEP_BASE_INCLUDE
 
 #include <GNUstepBase/GSObjCRuntime.h>
+#include <GNUstepBase/GSVersionMacros.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 
 /* Call this method from CLASS's +initialize method to add a behavior
    to CLASS.  A "behavior" is like a protocol with an implementation.
@@ -60,6 +63,8 @@ GS_EXPORT void behavior_class_add_methods (Class class,
 
 /* Set to non-zero if you want debugging messages on stderr. */
 GS_EXPORT void behavior_set_debug(int i);
+
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
 #if	defined(__cplusplus)
 }
