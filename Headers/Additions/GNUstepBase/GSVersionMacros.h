@@ -1,4 +1,4 @@
-/* GNUstep.h - macros for managing API versioning
+/* GSVersionMacros.h - macros for managing API versioning
    Copyright (C) 2006 Free Software Foundation, Inc.
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>

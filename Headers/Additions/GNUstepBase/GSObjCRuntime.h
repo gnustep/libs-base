@@ -39,6 +39,8 @@ extern "C" {
 
 #include <stdarg.h>
 
+#include <GNUstepBase/GSVersionMacros.h>
+
 #ifdef GNUSTEP_WITH_DLL
  
 #if BUILD_libgnustep_base_DLL

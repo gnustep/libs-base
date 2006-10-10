@@ -32,8 +32,6 @@
 extern "C" {
 #endif
 
-#include <GNUstepBase/GSVersionMacros.h>
-
 #include <Foundation/NSObjCRuntime.h>
 #include <GNUstepBase/preface.h>
 #include <GSConfig.h>
