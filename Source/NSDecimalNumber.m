@@ -29,6 +29,8 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSDecimal.h"
 #include "Foundation/NSDecimalNumber.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSPortCoder.h"
 #include "GSPrivate.h"
 
 // shared default behavior for NSDecimalNumber class
@@ -661,6 +663,32 @@ static NSDecimalNumber *one;
 - (short) scale
 {
   return [[isa defaultBehavior] scale];
+}
+
+- (Class) classForCoder
+{
+  return [NSDecimalNumber class];
+}
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  if ([aCoder isByref] == NO)
+    return self;
+  return [super replacementObjectForPortCoder: aCoder];
+}
+
+- (void) encodeWithCoder: (NSCoder*)coder
+{
+  NSString	*s = [self descriptionWithLocale: nil];
+
+  [coder encodeObject: s];
+}
+
+- (id) initWithCoder: (NSCoder*)coder
+{
+  NSString	*s = [coder decodeObject];
+
+  return [self initWithString: s locale: nil];
 }
 
 @end

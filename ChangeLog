@@ -1,3 +1,7 @@
+2006-10-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDecimalNumber.m: Implement coding/decoding
+
 2006-10-09  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* GNUmakefile: Do not include GNUmakefile.local.
