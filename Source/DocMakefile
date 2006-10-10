@@ -131,6 +131,7 @@ GSLock.h \
 GSMime.h \
 GSObjCRuntime.h \
 GSUnion.h \
+GSVersionMacros.h \
 GSXML.h \
 behavior.h \
 Unicode.h \
