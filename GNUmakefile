@@ -30,7 +30,8 @@ ifeq ($(GNUSTEP_MAKEFILES),)
 endif
 
 # Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+# FIXME: would it work if you want to install it into local
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 RPM_DISABLE_RELOCATABLE=YES
 PACKAGE_NEEDS_CONFIGURE = YES
