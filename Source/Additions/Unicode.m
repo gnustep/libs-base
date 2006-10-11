@@ -387,43 +387,6 @@ static BOOL isEncodingSupported(NSStringEncoding enc)
   return NO;
 }
 
-NSStringEncoding *
-GetAvailableEncodings()
-{
-  if (_availableEncodings == 0)
-    {
-      GSSetupEncodingTable();
-      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
-      if (_availableEncodings == 0)
-	{
-	  NSStringEncoding	*encodings;
-	  unsigned		pos;
-	  unsigned		i;
-
-	  /*
-	   * Now build up a list of supported encodings ... in the
-	   * format needed to support [NSString+availableStringEncodings]
-	   * Check to see what iconv support we have as we go along.
-	   * This is also the place where we determine the name we use
-	   * for iconv to support unicode.
-	   */
-	  encodings = objc_malloc(sizeof(NSStringEncoding) * (encTableSize+1));
-	  pos = 0;
-	  for (i = 0; i < encTableSize+1; i++)
-	    {
-	      if (isEncodingSupported(i) == YES)
-		{
-		  encodings[pos++] = i;
-		}
-	    }
-	  encodings[pos] = 0;
-	  _availableEncodings = encodings;
-	}
-      [local_lock unlock];
-    }
-  return _availableEncodings;
-}
-
 /** Returns the NSStringEncoding that matches the specified
  *  character set registry and encoding information. For instance,
  *  for the iso8859-5 character set, the registry is iso8859 and

@@ -237,7 +237,7 @@ GSDecimalCompare(const GSDecimal *leftOperand, const GSDecimal *rightOperand)
 static NSComparisonResult
 NSSimpleCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand);
 
-void
+static void
 GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
 {
   int i;
@@ -333,7 +333,7 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
   GSDecimalCompact(result);
 }
 
-NSCalculationError
+static NSCalculationError
 GSDecimalNormalize(GSDecimal *n1, GSDecimal *n2, NSRoundingMode mode)
 {
   // Both are valid numbers and the exponents are not equal
@@ -674,7 +674,7 @@ NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   return error;
 }
 
-NSCalculationError
+static NSCalculationError
 GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   NSRoundingMode mode);
 
@@ -797,7 +797,7 @@ NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power,
   return NSCalculationNoError;
 }
 
-NSString*
+static NSString*
 GSDecimalString(const GSDecimal *number, NSDictionary *locale)
 {
   int i;
@@ -903,7 +903,7 @@ NSDecimalMin(NSDecimal *result)
 }
 
 // Give back the value of a NSDecimal as a double
-double
+static double
 GSDecimalDouble(GSDecimal *number)
 {
   double d = 0.0;
@@ -932,7 +932,7 @@ GSDecimalDouble(GSDecimal *number)
 
 
 // Create a NSDecimal with a cMantissa, exponent and a negative flag
-void
+static void
 GSDecimalFromComponents(GSDecimal *result, unsigned long long mantissa,
 			short exponent, BOOL negative)
 {
@@ -964,7 +964,7 @@ GSDecimalFromComponents(GSDecimal *result, unsigned long long mantissa,
 }
 
 // Create a NSDecimal from a string using the local
-void
+static void
 GSDecimalFromString(GSDecimal *result, NSString *numberValue,
 		    NSDictionary *locale)
 {
@@ -1158,7 +1158,7 @@ NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode)
 */
 }
 
-NSCalculationError
+static NSCalculationError
 GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	     NSRoundingMode mode)
 {
@@ -1236,7 +1236,7 @@ GSSimpleMultiply(NSDecimal *result, NSDecimal *left, NSDecimal *right, NSRoundin
   return error;
 }
 
-NSCalculationError
+static NSCalculationError
 GSSimpleDivide(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	       NSRoundingMode mode)
 {
@@ -1536,7 +1536,7 @@ GSSimpleMultiply(NSDecimal *result, NSDecimal *l, NSDecimal *r, NSRoundingMode m
   return error;
 }
 
-NSCalculationError
+static NSCalculationError
 GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
 	       NSRoundingMode mode)
 {

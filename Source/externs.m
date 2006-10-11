@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #include "config.h"
@@ -72,11 +73,6 @@ NSString *NSThreadWillExitNotification = @"NSThreadWillExitNotification";
 /*
  * Port Notifications
  */
-NSString *PortBecameInvalidNotification = @"PortBecameInvalidNotification";
-
-NSString *InPortClientBecameInvalidNotification = @"InPortClientBecameInvalidNotification";
-
-NSString *InPortAcceptedClientNotification = @"InPortAcceptedClientNotification";
 
 NSString *NSPortDidBecomeInvalidNotification = @"NSPortDidBecomeInvalidNotification";
 
@@ -119,11 +115,6 @@ NSString *NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
 NSString *NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
 
 NSString *NSLoadedClasses = @"NSLoadedClasses";
-
-
-/* Stream */
-NSString *StreamException = @"StreamException";
-
 
 
 /* Standard domains */
@@ -258,8 +249,6 @@ GSBuildStrings()
       [NSStringClass performSelector: @selector(initialize)];
 
       GS_REPLACE_CONSTANT_STRING(GSNetworkNotificationCenterType);
-      GS_REPLACE_CONSTANT_STRING(InPortAcceptedClientNotification);
-      GS_REPLACE_CONSTANT_STRING(InPortClientBecameInvalidNotification);
       GS_REPLACE_CONSTANT_STRING(NSAMPMDesignation);
       GS_REPLACE_CONSTANT_STRING(NSArgumentDomain);
       GS_REPLACE_CONSTANT_STRING(NSBundleDidLoadNotification);
@@ -322,8 +311,6 @@ GSBuildStrings()
       GS_REPLACE_CONSTANT_STRING(NSWeekDayNameArray);
       GS_REPLACE_CONSTANT_STRING(NSWillBecomeMultiThreadedNotification);
       GS_REPLACE_CONSTANT_STRING(NSYearMonthWeekDesignations);
-      GS_REPLACE_CONSTANT_STRING(PortBecameInvalidNotification);
-      GS_REPLACE_CONSTANT_STRING(StreamException);
     }
 }
 

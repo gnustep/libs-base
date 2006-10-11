@@ -218,10 +218,10 @@ enum
 /* Digits.  */
 
 /* Lower-case digits.  */
-const char _itowa_lower_digits[36]
+static const char _itowa_lower_digits[36]
 	= "0123456789abcdefghijklmnopqrstuvwxyz";
 /* Upper-case digits.  */
-const char _itowa_upper_digits[36]
+static const char _itowa_upper_digits[36]
 	= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 

@@ -1,3 +1,13 @@
+2006-10-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/externs.m:
+	* Source/Additions/Unicode.m:
+	* Source/NSDecimal.m:
+	* Source/GSFormat.m:
+	* Testing/tcpport-server.m:
+	* Testing/exported-strings.m:
+	Make many globals static, remove some obsolete variables etc.
+
 2006-10-11  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* SSL/Makefile.postamble (after-distclean): Remove all configure
