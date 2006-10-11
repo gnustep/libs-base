@@ -49,7 +49,7 @@ ADDITIONAL_CFLAGS =
 
 # Additional include directories the compiler should search
 ADDITIONAL_INCLUDE_DIRS = -I./$(GNUSTEP_TARGET_DIR) \
- -I../Source/$(GNUSTEP_TARGET_DIR) \
+ -I../Source/$(GNUSTEP_TARGET_DIR) -I../Source \
  -I../Headers/Additions -I../Headers
 
 # Additional LDFLAGS to pass to the linker

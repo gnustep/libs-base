@@ -1,3 +1,11 @@
+2006-10-11  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/Additions/Makefile.preamble (ADDITIONAL_INCLUDE_DIRS):
+	Added -I.. so that the compiler finds GSPrivate.h when it's using
+	the non-flattened layout, and it compiles again.
+	* SSL/Makefile.preamble (ADDITIONAL_INCLUDE_DIRS): Added
+	-I../Source for the same reason.
+
 2006-10-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDecimalNumber.m: Implement coding/decoding
