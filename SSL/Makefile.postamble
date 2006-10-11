@@ -67,7 +67,7 @@
 
 # Things to do after distcleaning
 after-distclean::
-	rm -rf $(GNUSTEP_TARGET_DIR)/config.h
+	rm -rf $(GNUSTEP_TARGET_DIR)/config.h config.status config.log config.cache TAGS config.mak config.h
 
 # Things to do before checking
 # before-check::
@@ -75,14 +75,20 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-config.mak:	config.mak.in
-	./configure
+config.mak: config.mak.in config.status
+	./config.status
 
 #
 # The config.h file is specific to a target
 #
-$(GNUSTEP_TARGET_DIR)/config.h: ../config.status
+$(GNUSTEP_TARGET_DIR)/config.h: config.status
+	./config.status
+ifneq ($(GNUSTEP_TARGET_DIR), .)
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
 	-mv config.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/config.h
+endif
 
+# Run configure manually if you need to pass any options
+config.status:
+	./configure
