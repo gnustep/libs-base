@@ -55,9 +55,6 @@ main()
   MyAssert1(NSWillBecomeMultiThreadedNotification);
   MyAssert1(NSThreadDidStartNotification);
   MyAssert1(NSThreadWillExitNotification);
-  //  MyAssert1(PortBecameInvalidNotification);
-  //  MyAssert1(InPortClientBecameInvalidNotification);
-  //  MyAssert1(InPortAcceptedClientNotification);
   MyAssert1(NSPortDidBecomeInvalidNotification);
   MyAssert1(NSConnectionReplyMode);
   MyAssert1(NSBundleDidLoadNotification);
@@ -118,9 +115,6 @@ main()
   MyAssert2(NSWillBecomeMultiThreadedNotification);
   MyAssert2(NSThreadDidStartNotification);
   MyAssert2(NSThreadWillExitNotification);
-  //  MyAssert2(PortBecameInvalidNotification);
-  //  MyAssert2(InPortClientBecameInvalidNotification);
-  //  MyAssert2(InPortAcceptedClientNotification);
   MyAssert2(NSPortDidBecomeInvalidNotification);
   MyAssert2(NSConnectionReplyMode);
   MyAssert2(NSBundleDidLoadNotification);
