@@ -1,5 +1,15 @@
 2006-10-11  Nicola Pero <nicola.pero@meta-innovation.com>
 
+	* SSL/Makefile.postamble (after-distclean): Remove all configure
+	generated files.
+	(config.mak): Run config.status, not ../config.status.
+	($(GNUSTEP_TARGET_DIR)/config.h): Run config.status first.  Do not
+	try to move config.h into a target specific dir if the target dir
+	is '.'.
+	(config.status): New rule to recreate it.
+
+2006-10-11  Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* Source/Additions/Makefile.preamble (ADDITIONAL_INCLUDE_DIRS):
 	Added -I.. so that the compiler finds GSPrivate.h when it's using
 	the non-flattened layout, and it compiles again.
