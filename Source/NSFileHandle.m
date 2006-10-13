@@ -713,7 +713,7 @@ NSString * const NSFileHandleOperationException
       NSString	*path;
 
       path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-	NSSystemDomainMask, NO) lastObject];
+	NSAllDomainsMask, NO) lastObject];
       path = [path stringByAppendingPathComponent: @"Bundles"];
       path = [path stringByAppendingPathComponent: @"SSL.bundle"];
       bundle = [NSBundle bundleWithPath: path];
