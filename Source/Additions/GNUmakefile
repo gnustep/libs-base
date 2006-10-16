@@ -19,7 +19,8 @@
 #
 #  You should have received a copy of the GNU Library General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA.
 #
 
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
@@ -39,6 +40,7 @@ Additions_OBJC_FILES =\
 	GSMime.m \
 	GSXML.m \
 	GSFunctions.m \
+	GSPrivate.m \
 	behavior.m
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)

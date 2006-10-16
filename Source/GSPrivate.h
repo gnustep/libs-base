@@ -223,7 +223,7 @@ extern BOOL GSNotifyMore(void);
  * very clearly as for private/internal use only.  Avoiding the exposure
  * (and hence possible accidental use) of symbols for each function ... 
  * The formal implementation of the class is a near empty implementation
- * (in Additions/GSCategories.h), with most methods being provided by other
+ * (in Additions/GSPrivate.m), with most methods being provided by other
  * categories in the files wishing to expose some functionality for use
  * by other parts of the base library.
  */
