@@ -141,7 +141,7 @@ static objc_mutex_t  ff_callback_map_lock = NULL;
 static vacallReturnTypeInfo returnTypeInfo [STATIC_CALLBACK_LIST_SIZE];
 
 /* Function that implements the actual forwarding */
-void
+static void
 GSInvocationCallback(void *callback_data, va_alist args);
 
 /*
@@ -771,7 +771,7 @@ gs_protocol_selector(const char *types)
  * information.
  */
 
-void
+static void
 GSInvocationCallback (void *callback_data, va_alist args)
 {
   id			obj;

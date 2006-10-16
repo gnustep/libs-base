@@ -1,3 +1,14 @@
+2006-10-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFFIInvocation.m:
+	* Source/GSPrivate.h:
+	* Source/Additions/GNUmakefile:
+	* Source/Additions/GSPrivate.m:
+	* Source/Additions/GSCategories.m:
+	Minor further work simplifying and getting rid of unnecessary
+	external symbols etc.
+
 2006-10-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileHandle.m: Look for SSL bundle in any domain.
