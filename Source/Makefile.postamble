@@ -54,10 +54,6 @@ after-install::
 	  $(INSTALL_DATA) ../Headers/Additions/GNUstepBase/$$file \
 	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
-	for file in $(UNICODE_HEADERS); do \
-	  $(INSTALL_DATA) ../Headers/Additions/GNUstepBase/$$file \
-	  $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
-	done
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GSConfig.h \
 	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
 	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
@@ -82,9 +78,6 @@ after-install::
 # Things to do after uninstalling
 before-uninstall::
 	for file in $(GNU_HEADERS); do \
-	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
-	done
-	for file in $(UNICODE_HEADERS); do \
 	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
 	rm -f $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GSConfig.h

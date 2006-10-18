@@ -1,5 +1,11 @@
 2006-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Makefile.postamble:
+	Rewmove use of UNICODE_HEADERS which appears to beave been breaking
+	solaris build.
+
+2006-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSPrivate.m:
 	* Source/Additions/Unicode.m:
 	* Source/GSPrivate.h:
