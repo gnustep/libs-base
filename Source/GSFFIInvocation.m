@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
@@ -44,7 +45,7 @@ typedef void (*ffi_closure_fun) (ffi_cif*,void*,void**,void*);
 
 typedef void (*f_fun) ();
 
-void GSFFIInvocationCallback(ffi_cif*, void*, void **, void*);
+static void GSFFIInvocationCallback(ffi_cif*, void*, void **, void*);
 
 /*
  * If we are using the GNU ObjC runtime we could
@@ -407,7 +408,7 @@ gs_protocol_selector(const char *types)
   return NO;
 }
 
-void
+static void
 GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 {
   id			obj;

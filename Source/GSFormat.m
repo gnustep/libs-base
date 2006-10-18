@@ -220,10 +220,10 @@ enum
 /* Digits.  */
 
 /* Lower-case digits.  */
-const char _itowa_lower_digits[36]
+static const char _itowa_lower_digits[36]
 	= "0123456789abcdefghijklmnopqrstuvwxyz";
 /* Upper-case digits.  */
-const char _itowa_upper_digits[36]
+static const char _itowa_upper_digits[36]
 	= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
@@ -1692,9 +1692,8 @@ NSDictionary *locale)
 
     LABEL (form_strerror):
       /* Print description of error ERRNO.  */
-      string =
-	(unichar *) GSErrorString(save_errno);
-      is_long = 0;		/* This is no wide-char string.  */
+      string = (unichar *)[GSErrorString(save_errno) cStringUsingEncoding: NSUnicodeStringEncoding];
+      is_long = 1;		/* This is wide-char string. */
       goto LABEL (print_string);
     LABEL (form_character):
       /* Character.  */
@@ -1759,7 +1758,7 @@ NSDictionary *locale)
 
 	    if (enc == GSUndefinedEncoding)
 	      {
-	        enc = GetDefEncoding();
+	        enc = [NSString defaultCStringEncoding];
 		byteEncoding = GSIsByteEncoding(enc);
 	      }
 

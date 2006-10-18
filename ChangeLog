@@ -1,68 +1,87 @@
 2006-10-18  Sheldon Gill  <sheldon@westnet.net.au>
 
-    * Source/NSSocketPortNameServer.m
-    * Source/NSTimeZone.m
-    * Source/NSProcessInfo.m
-    * Source/NSSocketPort.m
-    * Source/NSKeyedArchiver.m
-    * Source/NSDebug.m
-    * Source/NSPort.m
-    * Source/NSMessagePort.m
-    * Source/win32/NSMessagePortWin32.m
-    * Source/NSInvocation.m
-    * Source/NSFileManager.m
-    * Source/objc-load.m
-    * Source/NSHTTPCookieStorage.m
-    * Source/NSException.m
-    * Source/Additions/Unicode.m
-    * Source/Additions/GSCompatibility.m
-    * Source/NSHost.m
-    * Source/NSObjCRuntime.m
+    * Headers/Foundation/NSException.h:
+    * Source/GSFFCallInvocation.m:
+    * Source/GSFFIInvocation.m:
+    * Source/NSBundle.m:
+    * Source/NSDecimal.m:
+    * Source/win32/GSRunLoopCtx.m:
+    Make private declarations static
+
+    * Source/GSHTTPURLHandle.m:
+    * Source/GSLocale.m:
+    * Source/NSBundle.m:
+    * Source/NSCalendarDate.m:
+    Fixing c-strings so that they use specific encodings
+
+    * Source/GSFormat.m:
+    Fix bug when printing strerror
+
+2006-10-18  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source/NSSocketPortNameServer.m:
+    * Source/NSTimeZone.m:
+    * Source/NSProcessInfo.m:
+    * Source/NSSocketPort.m:
+    * Source/NSKeyedArchiver.m:
+    * Source/NSDebug.m:
+    * Source/NSPort.m:
+    * Source/NSMessagePort.m:
+    * Source/win32/NSMessagePortWin32.m:
+    * Source/NSInvocation.m:
+    * Source/NSFileManager.m:
+    * Source/objc-load.m:
+    * Source/NSHTTPCookieStorage.m:
+    * Source/NSException.m:
+    * Source/Additions/Unicode.m:
+    * Source/Additions/GSCompatibility.m:
+    * Source/NSHost.m:
+    * Source/NSObjCRuntime.m:
     Fixing c-strings so that they use specific encodings
 
 2006-10-03  Sheldon Gill  <sheldon@westnet.net.au>
 
-    * Source\GSFileHandle.m
-    * Source\GSFormat.m
-    * Source\GSFTPURLHandle.m
-    * Source\GSHTTPURLHandle.m
-    * Source\GSStream.m
-    * Source\NSData.m
-    * Source\NSDistributedLock.m
-    * Source\NSFileManager.m
-    * Source\NSMessagePort.m
-    * Source\NSPipe.m
-    * Source\NSSocketPort.m
-    * Source\NSTask.m
-    * Source\NSThread.m
+    * Source\GSFileHandle.m:
+    * Source\GSFormat.m:
+    * Source\GSFTPURLHandle.m:
+    * Source\GSHTTPURLHandle.m:
+    * Source\GSStream.m:
+    * Source\NSData.m:
+    * Source\NSDistributedLock.m:
+    * Source\NSFileManager.m:
+    * Source\NSMessagePort.m:
+    * Source\NSPipe.m:
+    * Source\NSSocketPort.m:
+    * Source\NSTask.m:
+    * Source\NSThread.m:
 
-    * Source\win32\GSFileHandleWin32.m
-    * Source\win32\GSRunLoopCtxt.m
-    * Source\win32\NSMessagePortNameServerWin32.m
-    * Source\win32\NSMessagePortWin32.m
-    * Source\win32\NSStreamWin32.m
+    * Source\win32\GSFileHandleWin32.m:
+    * Source\win32\GSRunLoopCtxt.m:
+    * Source\win32\NSMessagePortNameServerWin32.m:
+    * Source\win32\NSMessagePortWin32.m:
+    * Source\win32\NSStreamWin32.m:
 
-    * Headers/Additions/GNUstepBase/GSObjCRuntime.h
-    * Headers/Additions/GNUstepBase/GSFunctions.h
-    * Additions\GSCompatibility.
-    * Additions\GSObjCRuntime.m
-    * Additions\GSFunctions.m
+    * Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+    * Headers/Additions/GNUstepBase/GSFunctions.h:
+    * Additions\GSCompatibility.m:
+    * Additions\GSObjCRuntime.m:
+    * Additions\GSFunctions.m:
 
     Moved GSPrintf() and GSLastErrorStr() to GSFunctions
     Altered GSLastErrorStr(long) to GSLastError(void)
     Fixed bug preventing GSLastErrorStr() returning net errors
-    * Headers/Additions/GNUstepBase/Win32_Utilities.h
+    * Headers/Additions/GNUstepBase/Win32_Utilities.h:
     * Source/win32/Win32_Utilities.m:
     Clean up and rationalise a little
 
 2006-10-03  Sheldon Gill  <sheldon@westnet.net.au>
 
-    * Source/NSLog.m
+    * Source/NSLog.m:
     Better output on Win32. Cleaner module.
 
 2006-09-20  Sheldon Gill  <sheldon@westnet.net.au>
 
-    * Headers/Foundation/NSProcessInfo.h
+    * Headers/Foundation/NSProcessInfo.h:
     * Source/NSProcessInfo.m:
     Add operatingSystemVersionString
     Change return of operatingSystem to be more useful
@@ -81,7 +100,7 @@
     Revert change making processes launch detached
     * Source/NSString.m:
     Corrected deprecation of -[cString]
-    * Headers/Foundation/NSString.h
+    * Headers/Foundation/NSString.h:
     Re-added -[unicharString] as its useful and needed
 
 2006-09-17  Sheldon Gill  <sheldon@westnet.net.au>

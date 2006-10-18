@@ -21,10 +21,10 @@
 extern BOOL	GSCheckTasks();
 
 #if	GS_WITH_GC == 0
-SEL	wRelSel;
-SEL	wRetSel;
-IMP	wRelImp;
-IMP	wRetImp;
+static SEL	wRelSel;
+static SEL	wRetSel;
+static IMP	wRelImp;
+static IMP	wRetImp;
 
 static void
 wRelease(NSMapTable* t, void* w)
@@ -49,6 +49,17 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #endif
 
 @implementation	GSRunLoopCtxt
+
++ (void) initialize
+{
+#if	GS_WITH_GC == 0
+  wRelSel = @selector(release);
+  wRetSel = @selector(retain);
+  wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
+  wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
+#endif
+}
+
 - (void) dealloc
 {
   RELEASE(mode);
@@ -426,8 +437,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       BOOL	found = NO;
 
       NSDebugMLLog(@"NSRunLoop", @"WaitForMultipleObjects() error in "
-	@"-acceptInputForMode:beforeDate: %@",
-	GSLastError());
+	@"-acceptInputForMode:beforeDate: %@", GSLastError());
       /*
        * Check each handle in turn until either we find one which has an
        * event signalled, or we find the one which caused the original
@@ -448,8 +458,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       if (found == NO)
 	{
 	  NSLog(@"WaitForMultipleObjects() error in "
-	    @"-acceptInputForMode:beforeDate: %@",
-	    GSLastError());
+	    @"-acceptInputForMode:beforeDate: %@", GSLastError());
 	  abort ();        
 	}
     }

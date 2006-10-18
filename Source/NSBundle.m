@@ -226,7 +226,7 @@ static NSString	*ExecutablePath()
 #ifdef PROCFS_EXE_LINK
 	  executablePath = [[NSFileManager defaultManager]
 	    pathContentOfSymbolicLinkAtPath:
-              [NSString stringWithCString: PROCFS_EXE_LINK]];
+              [NSString stringWithUTF8String: PROCFS_EXE_LINK]];
 
 	  /*
 	  On some systems, the link is of the form "[device]:inode", which
@@ -464,8 +464,9 @@ _find_framework(NSString *name)
       && !strncmp ("NSFramework_", frameworkClass->name, 12))
     {
       /* The name of the framework.  */
-      NSString *name = [NSString stringWithCString: &frameworkClass->name[12]];
+      NSString *name;
 
+      name = [NSString stringWithUTF8String: &frameworkClass->name[12]];
       /* Important - gnustep-make mangles framework names to encode
        * them as ObjC class names.  Here we need to demangle them.  We
        * apply the reverse transformations in the reverse order.
@@ -669,7 +670,7 @@ typedef struct {
     @defs(NSBundle)
 } *bptr;
 
-void
+static void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);

@@ -187,8 +187,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   fileLength = ftell(theFile);
   if (fileLength == -1)
     {
-      NSWarnFLog(@"Ftell on %@ failed - %@", path,
-      GSLastError());
+      NSWarnFLog(@"Ftell on %@ failed - %@", path, GSLastError());
       goto failure;
     }
 	
@@ -1040,9 +1039,10 @@ failure:
         {
 #if defined(__MINGW32__)
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %@",
-	    [NSString stringWithCharacters: wthePath length:wcslen(wthePath)],
-	    [NSString stringWithCharacters:
-	    wtheRealPath length:wcslen(wtheRealPath)],
+	    [NSString stringWithCharacters: wthePath
+                                    length:wcslen(wthePath)],
+	    [NSString stringWithCharacters: wtheRealPath 
+                                    length:wcslen(wtheRealPath)],
 	    GSLastError());
 #else
 	  NSWarnMLog(@"Rename ('%s' to '%s') failed - %@",
@@ -3696,8 +3696,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) initWithCapacity: (unsigned int)bufferSize
 {
-  int	e;
-
   shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_ACCESS);
   if (shmid == -1)			/* Created memory? */
     {
@@ -3709,7 +3707,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 
   bytes = shmat(shmid, 0, 0);
-  e = errno;
   if (bytes == (void*)-1)
     {
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "

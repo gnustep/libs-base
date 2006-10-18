@@ -285,7 +285,7 @@ enum {
 - (NSString*) uppercaseString;
 
 // Getting C Strings
-- (const char*) cString;
+- (const char*) cString;  // DEPRECATED!! -SG
 #ifndef	STRICT_OPENSTEP
 
 #if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
@@ -591,9 +591,9 @@ enum {
 - (id) initWithContentsOfURL: (NSURL*)url;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
-- (NSComparisonResult) compare: (NSString*)string 
-		       options: (unsigned int)mask 
-			 range: (NSRange)compareRange 
+- (NSComparisonResult) compare: (NSString*)string
+		       options: (unsigned int)mask
+			 range: (NSRange)compareRange
 			locale: (NSDictionary*)dict;
 - (NSComparisonResult) localizedCompare: (NSString *)string;
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string;
