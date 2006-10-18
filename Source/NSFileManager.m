@@ -2946,7 +2946,8 @@ static NSSet	*fileKeys = nil;
   gp = getgrgid(statbuf.st_gid);
   if (gp != 0)
     {
-      group = [NSString stringWithCString: gp->gr_name];
+      group = [NSString stringWithCString: gp->gr_name
+				 encoding: defaultEncoding];
     }
 #endif
 #endif
@@ -3087,7 +3088,8 @@ static NSSet	*fileKeys = nil;
 
   if (pw != 0)
     {
-      owner = [NSString stringWithCString: pw->pw_name];
+      owner = [NSString stringWithCString: pw->pw_name
+				 encoding: defaultEncoding];
     }
 #endif /* HAVE_PWD_H */
 #endif

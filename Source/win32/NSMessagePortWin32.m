@@ -508,7 +508,7 @@ static Class		messagePortClass = 0;
 	    }
 	  else
 	    {
-	      NSLog(@"GetOverlappedResult failed ...%s", GSLastError());
+	      NSLog(@"GetOverlappedResult failed ...%@", GSLastError());
 	      this->rState = RS_NONE;
 	      this->rLength = 0;
 	    }

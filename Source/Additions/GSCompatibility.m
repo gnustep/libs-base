@@ -278,7 +278,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
       NSLog(@"unable to bind to port %s:%d - %@",  inet_ntoa(sin.sin_addr),
-	    NSSwapBigShortToHost(sin.sin_port),  GSLastSocketError());
+	    NSSwapBigShortToHost(sin.sin_port), GSLastSocketError());
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -286,7 +286,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if (listen(net, 5) < 0)
     {
-      NSLog(@"unable to listen on port - %@",  GSLastSocketError());
+      NSLog(@"unable to listen on port - %@", GSLastSocketError());
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -294,7 +294,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
     {
-      NSLog(@"unable to get socket name - %@",  GSLastSocketError());
+      NSLog(@"unable to get socket name - %@", GSLastSocketError());
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -323,7 +323,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if (getsockname([self fileDescriptor], (struct sockaddr*)&sin,  &size) < 0)
     {
-      NSLog(@"unable to get socket name - %@",  GSLastSocketError());
+      NSLog(@"unable to get socket name - %@", GSLastSocketError());
       return nil;
     }
 

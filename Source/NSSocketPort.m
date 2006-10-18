@@ -274,7 +274,7 @@ decodePort(NSData *data, NSString *defaultAddress)
 	pi->addr, pnum);
       return nil;
     }
-  addr = [NSString stringWithCString: pi->addr];
+  addr = [NSString stringWithUTF8String: pi->addr];
 
   NSDebugFLLog(@"NSPort", @"Decoded port as '%@:%d'", addr, pnum);
 
@@ -1123,7 +1123,7 @@ static Class	runLoopClass;
           if (len == (int)[d length])
             {
 	      RELEASE(defaultAddress);
-	      defaultAddress = RETAIN([NSString stringWithCString:
+	      defaultAddress = RETAIN([NSString stringWithUTF8String:
 	        inet_ntoa(sockAddr.sin_addr)]);
 	      NSDebugMLLog(@"GSTcpHandle",
 	        @"wrote %d bytes on 0x%x", len, self);
@@ -2184,7 +2184,7 @@ static Class		tcpPortClass;
 	   */
 	  handle = [GSTcpHandle handleWithDescriptor: desc];
 	  memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
-	  handle->defaultAddress = RETAIN([NSString stringWithCString:
+	  handle->defaultAddress = RETAIN([NSString stringWithUTF8String:
 	    inet_ntoa(sockAddr.sin_addr)]);
 
 	  [handle setState: GS_H_ACCEPT];

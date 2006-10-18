@@ -252,7 +252,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
               objc_free(buffer);
 	    }
 	}
-      tmp = [arg0 UTF8String];
+      tmp = [arg0 cStringUsingEncoding: [NSString defaultCStringEncoding]];
       _gnu_arg_zero = (char*)objc_malloc(strlen(tmp) + 1);
       strcpy(_gnu_arg_zero, tmp);
 #else
@@ -315,7 +315,8 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
       for (i = 1; i < argc; i++)
 	{
-	  str = [NSString stringWithCString: argv[i]];
+	  str = [NSString stringWithCString: argv[i]
+                               encoding: [NSString defaultCStringEncoding]];
 
 	  if ([str hasPrefix: @"--GNU-Debug="])
 	    [mySet addObject: [str substringFromIndex: 12]];
@@ -398,8 +399,10 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 		strcpy(buf, env[i]);
 		cp = &buf[cp - env[i]];
 		*cp++ = '\0';
-		[keys addObject: [NSString stringWithCString: buf]];
-		[values addObject: [NSString stringWithCString: cp]];
+		[keys addObject: [NSString stringWithCString: buf
+                                            encoding: [NSString defaultCStringEncoding]]];
+		[values addObject: [NSString stringWithCString: cp
+                                            encoding: [NSString defaultCStringEncoding]]];
 	      }
 	    i++;
 	  }
@@ -522,7 +525,7 @@ static char	**_gnu_noobjc_env = NULL;
   psinfo_t pinfo;
   char **vectors;
   int i, count;
-  
+
   // Read commandline
   proc_file_name = (char*)objc_malloc(sizeof(char) * 2048);
   sprintf(proc_file_name, "/proc/%d/psinfo", (int) getpid());
@@ -1032,7 +1035,7 @@ int main(int argc, char *argv[], char *env[])
       if (uname(&uns) != -1)
         {
             os = [NSString stringWithCString: uts.sysname
-                                    encoding: NSDefaultEncoding];
+                                    encoding: [NSString defaultCStringEncoding]];
         }
 #endif
     }

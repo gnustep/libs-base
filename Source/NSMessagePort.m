@@ -381,8 +381,7 @@ static Class	runLoopClass;
       if (errno != EINPROGRESS)
 	{
 	  NSLog(@"unable to make connection to %s - %@",
-	    sockAddr.sun_path,
-	    GSLastError());
+	    sockAddr.sun_path, GSLastError());
 	  M_UNLOCK(myLock);
 	  return NO;
 	}
@@ -608,7 +607,7 @@ static Class	runLoopClass;
 	  else if (errno != EINTR && errno != EAGAIN)
 	    {
 	      NSDebugMLLog(@"NSMessagePort",
-		@"read failed - %s on 0x%x", GSLastError(), self);
+		@"read failed - %@ on 0x%x", GSLastError(), self);
 	      M_UNLOCK(myLock);
 	      [self invalidate];
 	      return;

@@ -53,8 +53,8 @@
  */
 NSString * const NSPortTimeoutException = @"NSPortTimeoutException";
 
-Class	NSPort_abstract_class;
-Class	NSPort_concrete_class;
+static Class	NSPort_abstract_class;
+static Class	NSPort_concrete_class;
 
 + (id) allocWithZone: (NSZone*)aZone
 {

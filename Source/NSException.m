@@ -353,8 +353,9 @@ static void find_address (bfd *abfd, asection *section,
       fi = [GSFunctionInfo alloc];
       fi = [fi initWithModule: info->module
 		      address: info->theAddress
-			 file: [NSString stringWithCString: fileName]
-		     function: [NSString stringWithCString: functionName]
+			 file: [NSString stringWithCString: fileName
+			   encoding: [NSString defaultCStringEncoding]]
+		     function: [NSString stringWithUTF8String: functionName]
 			 line: line];
       [fi autorelease];
       info->theInfo = fi;

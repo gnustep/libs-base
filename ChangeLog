@@ -1,8 +1,24 @@
-2006-10-06  Sheldon Gill  <sheldon@westnet.net.au>
+2006-10-18  Sheldon Gill  <sheldon@westnet.net.au>
 
-    * Headers/Foundation/NSError.h
-    * Source/NSError.m
-    Updated to Tiger specifications
+    * Source/NSSocketPortNameServer.m
+    * Source/NSTimeZone.m
+    * Source/NSProcessInfo.m
+    * Source/NSSocketPort.m
+    * Source/NSKeyedArchiver.m
+    * Source/NSDebug.m
+    * Source/NSPort.m
+    * Source/NSMessagePort.m
+    * Source/win32/NSMessagePortWin32.m
+    * Source/NSInvocation.m
+    * Source/NSFileManager.m
+    * Source/objc-load.m
+    * Source/NSHTTPCookieStorage.m
+    * Source/NSException.m
+    * Source/Additions/Unicode.m
+    * Source/Additions/GSCompatibility.m
+    * Source/NSHost.m
+    * Source/NSObjCRuntime.m
+    Fixing c-strings so that they use specific encodings
 
 2006-10-03  Sheldon Gill  <sheldon@westnet.net.au>
 

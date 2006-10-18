@@ -594,7 +594,7 @@ GSEncodingFromLocale(const char *clocale)
 	
 	  dict = [NSDictionary dictionaryWithContentsOfFile: table];
 	  encodstr = [dict objectForKey:
-			     [NSString stringWithCString: clocale]];
+			     [NSString stringWithUTF8String: clocale]];
 	  if (encodstr == nil)
 	    return GSUndefinedEncoding;
 

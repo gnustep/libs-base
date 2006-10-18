@@ -40,7 +40,7 @@ NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
-    return [NSString stringWithCString: GSNameFromSelector(aSelector)];
+    return [NSString stringWithUTF8String: GSNameFromSelector(aSelector)];
   return nil;
 }
 
@@ -92,7 +92,7 @@ NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
-    return [NSString stringWithCString: (char*)GSNameFromClass(aClass)];
+    return [NSString stringWithUTF8String: (char*)GSNameFromClass(aClass)];
   return nil;
 }
 

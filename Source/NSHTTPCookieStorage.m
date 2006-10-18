@@ -111,6 +111,8 @@ static NSHTTPCookieStorage   *storage = nil;
 
 - (void) setCookie: (NSHTTPCookie *)cookie
 {
+  NSAssert([cookie isKindOfClass: [NSHTTPCookie class]] == YES,
+    NSInvalidArgumentException);
   [this->_cookies addObject: cookie];
 }
 

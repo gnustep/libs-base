@@ -957,6 +957,7 @@ const char *_NSPrintForDebugger(id object)
 
 NSString *_NSNewStringFromCString(const char *cstring)
 {
-  return [NSString stringWithCString: cstring];
+  return [NSString stringWithCString: cstring
+			    encoding: [NSString defaultCStringEncoding]];
 }
 

@@ -385,7 +385,7 @@ objc_get_symbol_path(Class theClass, Category *theCategory)
 
   if (ret)
     {
-      return [NSString stringWithCString: ret];
+      return [NSString stringWithUTF8String: ret];
     }
 
   return nil;

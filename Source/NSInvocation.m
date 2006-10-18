@@ -654,7 +654,7 @@ _arg_addr(NSInvocation *inv, int index)
                 _target ?   GSNameFromClass([_target class]) : "nil" \
                );
 
-  return [NSString stringWithCString: buffer];
+  return [NSString stringWithUTF8String: buffer];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
