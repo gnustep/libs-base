@@ -70,6 +70,7 @@
 #include "Foundation/NSURL.h"
 #include "Foundation/NSMapTable.h"
 #include "Foundation/NSLock.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSDebug.h"
 // For private method _decodePropertyListForKey:
@@ -106,7 +107,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 @class	GSImmutableString;
 @interface GSImmutableString : NSObject	// Help the compiler
 @end
-
 
 /*
  * Cache classes and method implementations for speed.
@@ -453,7 +453,6 @@ surrogatePairValue(unichar high, unichar low)
   return ((high - (unichar)0xD800) * (unichar)400)
     + ((low - (unichar)0xDC00) + (unichar)10000);
 }
-
 
 @implementation NSString
 //  NSString itself is an abstract class which provides factory
@@ -4141,7 +4140,6 @@ static NSFileManager *fm = nil;
 {
   va_list ap;
   id ret;
-  NSDictionary *dict;
 
   va_start(ap, format);
   if (format == nil)
@@ -4150,9 +4148,8 @@ static NSFileManager *fm = nil;
     }
   else
     {
-      dict = [_GSPrivate userDefaultsDictionaryRepresentation];
       ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-        initWithFormat: format locale: dict arguments: ap]);
+        initWithFormat: format locale: GSPrivateDefaultLocale() arguments: ap]);
     }
   va_end(ap);
   return ret;
@@ -4202,12 +4199,10 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) localizedCompare: (NSString *)string
 {
-  NSDictionary *dict = [_GSPrivate userDefaultsDictionaryRepresentation];
-
   return [self compare: string
                options: 0
                  range: ((NSRange){0, [self length]})
-                locale: dict];
+                locale: GSPrivateDefaultLocale()];
 }
 
 /**
@@ -4216,12 +4211,10 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string
 {
-  NSDictionary *dict = [_GSPrivate userDefaultsDictionaryRepresentation];
-
   return [self compare: string
                options: NSCaseInsensitiveSearch
                  range: ((NSRange){0, [self length]})
-                locale: dict];
+                locale: GSPrivateDefaultLocale()];
 }
 
 /**

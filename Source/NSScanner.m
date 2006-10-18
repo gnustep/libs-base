@@ -169,7 +169,10 @@ typedef struct {
 
   if (scanner != nil)
     {
-      [scanner setLocale: [_GSPrivate userDefaultsDictionaryRepresentation]];
+      NSDictionary	*loc;
+
+      loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+      [scanner setLocale: loc];
     }
   return scanner;
 }

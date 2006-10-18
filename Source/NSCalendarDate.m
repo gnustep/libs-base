@@ -30,19 +30,21 @@
 
 #include "config.h"
 #include <math.h>
-#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSCalendarDate.h"
+#include "Foundation/NSCoder.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDate.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSTimeZone.h"
+#include "Foundation/NSUserDefaults.h"
 #include "GNUstepBase/GSObjCRuntime.h"
+
+#include "GSPrivate.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -51,7 +53,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "GSPrivate.h"
 
 @class	GSTimeZone;
 @interface	GSTimeZone : NSObject	// Help the compiler
@@ -653,7 +654,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   sourceLen = strlen(source);
   if (locale == nil)
     {
-      locale = [_GSPrivate userDefaultsDictionaryRepresentation];
+      locale = GSPrivateDefaultLocale();
     }
   if (fmt == nil)
     {
@@ -2191,7 +2192,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
   DescriptionInfo	info;
 
   if (locale == nil)
-    locale = [_GSPrivate userDefaultsDictionaryRepresentation];
+    locale = GSPrivateDefaultLocale();
   if (format == nil)
     format = [locale objectForKey: NSTimeDateFormatString];
 

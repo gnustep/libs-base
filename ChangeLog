@@ -1,3 +1,25 @@
+2006-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSPrivate.m:
+	* Source/Additions/Unicode.m:
+	* Source/GSPrivate.h:
+	* Source/NSArray.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSDate.m:
+	* Source/NSDecimalNumber.m:
+	* Source/NSDictionary.m:
+	* Source/NSNotification.m:
+	* Source/NSObject.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSScanner.m:
+	* Source/NSString.m:
+	* Source/NSUserDefaults.m:
+	Experiments with gcc attribute for making functions inaccessible
+	outside the library ... new experimental function
+	GSPrivateDefaultLocale() declared in GSPrivate.h, implemented in
+	Additions/GSPrivate.m seems to work and to be invisible to the linker
+	for external apps.
+
 2006-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m:

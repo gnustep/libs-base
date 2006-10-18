@@ -882,6 +882,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 #endif
 
+GSPrivate	*_GSPrivate = nil;
+
 /**
  * This message is sent to a class once just before it is used for the first
  * time.  If class has a superclass, its implementation of +initialize is
@@ -894,6 +896,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   if (self == [NSObject class])
     {
       extern void		GSBuildStrings(void);	// See externs.m
+
+      _GSPrivate = [GSPrivate new];
 
 #ifdef __MINGW32__
       // See libgnustep-base-entry.m

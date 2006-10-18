@@ -21,8 +21,16 @@
    MA 02111 USA.
 */ 
 
-#ifndef __GSPrivate_h_
-#define __GSPrivate_h_
+#ifndef _GSPrivate_h_
+#define _GSPrivate_h_
+
+@class	NSNotification;
+
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3))
+#define GS_ATTRIB_PRIVATE __attribute__ ((visibility("internal")))
+#else
+#define GS_ATTRIB_PRIVATE
+#endif
 
 /* Absolute Gregorian date for NSDate reference date Jan 01 2001
  *
@@ -227,59 +235,71 @@ extern BOOL GSNotifyMore(void);
  * categories in the files wishing to expose some functionality for use
  * by other parts of the base library.
  */
-@interface _GSPrivate : NSObject
+@interface GSPrivate : NSObject
+{
+@public
+  NSDictionary	*cachedLocale;
+}
+
+/* Update information from defaults system
+ */
+- (void) defaultsChanged: (NSNotification*)n;
+
 /* Return the text describing the last system error to have occurred.
  */
-+ (NSString*) error;
-+ (NSString*) error: (long)number;
+- (NSString*) error;
+- (NSString*) error: (long)number;
 @end
 
-@interface _GSPrivate (ProcessInfo)
+extern GSPrivate	*_GSPrivate;
+
+@interface GSPrivate (ProcessInfo)
 /* Used by NSException uncaught exception handler - must not call any
  * methods/functions which might cause a recursive exception.
  */
-+ (const char*) argZero;
+- (const char*) argZero;
 
 /* get a flag from an environment variable - return def if not defined.
  */
-+ (BOOL) environmentFlag: (const char *)name defaultValue: (BOOL)def;
+- (BOOL) environmentFlag: (const char *)name defaultValue: (BOOL)def;
 @end
 
-@interface _GSPrivate (Unicode)
+@interface GSPrivate (Unicode)
 /* get the available string encodings (nul terminated array)
  */
-+ (NSStringEncoding*) availableEncodings;
+- (NSStringEncoding*) availableEncodings;
 
 /* get the default C-string encoding.
  */
-+ (NSStringEncoding) defaultCStringEncoding;
+- (NSStringEncoding) defaultCStringEncoding;
 
 /* get the name of a string encoding as an NSString.
  */
-+ (NSString*) encodingName: (NSStringEncoding)encoding;
+- (NSString*) encodingName: (NSStringEncoding)encoding;
 
 /* determine whether data in a particular encoding can
  * generally be represented as 8-bit characters including ascii.
  */
-+ (BOOL) isByteEncoding: (NSStringEncoding)encoding;
+- (BOOL) isByteEncoding: (NSStringEncoding)encoding;
 
 /* determine whether encoding is currently supported.
  */
-+ (BOOL) isEncodingSupported: (NSStringEncoding)encoding;
+- (BOOL) isEncodingSupported: (NSStringEncoding)encoding;
 
 @end
 
-@interface _GSPrivate (UserDefaults)
-/*
- * Get the dictionary representation.
- */
-+ (NSDictionary*) userDefaultsDictionaryRepresentation;
-
+@interface GSPrivate (UserDefaults)
 /*
  * Get one of several potentially useful flags.
  */
-+ (BOOL) userDefaultsFlag: (GSUserDefaultFlagType)type;
+- (BOOL) userDefaultsFlag: (GSUserDefaultFlagType)type;
 @end
 
-#endif /* __GSPrivate_h_ */
+/* Get default locale quickly (usually from cache).
+ * External apps would cache the locale themselves.
+ */
+NSDictionary *
+GSPrivateDefaultLocale() GS_ATTRIB_PRIVATE;
+
+#endif /* _GSPrivate_h_ */
 
