@@ -23,7 +23,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSArray class reference</title>
    $Date$ $Revision$
@@ -45,6 +46,7 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSNull.h"
+#include "Foundation/NSUserDefaults.h"
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
@@ -1212,10 +1214,11 @@ compare(id elem1, id elem2, void* context)
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = [_GSPrivate userDefaultsDictionaryRepresentation];
+  NSDictionary	*loc;
   NSString	*desc = nil;
   NSData	*data;
 
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);
@@ -1238,10 +1241,11 @@ compare(id elem1, id elem2, void* context)
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = [_GSPrivate userDefaultsDictionaryRepresentation];
+  NSDictionary	*loc;
   NSString	*desc = nil;
   NSData	*data;
 
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);

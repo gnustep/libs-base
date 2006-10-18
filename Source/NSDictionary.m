@@ -40,6 +40,7 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSKeyValueCoding.h"
+#include "Foundation/NSUserDefaults.h"
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
@@ -939,10 +940,11 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = [_GSPrivate userDefaultsDictionaryRepresentation];
+  NSDictionary	*loc;
   NSString	*desc = nil;
   NSData	*data;
 
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);
@@ -964,10 +966,11 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = [_GSPrivate userDefaultsDictionaryRepresentation];
+  NSDictionary	*loc;
   NSString	*desc = nil;
   NSData	*data;
 
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);

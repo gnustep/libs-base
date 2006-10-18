@@ -1234,8 +1234,8 @@ BOOL GSDebugSet(NSString *level)
   return YES;
 }
 
-@implementation _GSPrivate (ProcessInfo)
-+ (BOOL) environmentFlag: (const char *)name defaultValue: (BOOL)def
+@implementation GSPrivate (ProcessInfo)
+- (BOOL) environmentFlag: (const char *)name defaultValue: (BOOL)def
 {
   const char	*c = getenv(name);
   BOOL		a = def;
@@ -1262,7 +1262,7 @@ BOOL GSDebugSet(NSString *level)
   return a;
 }
 
-+ (const char*) argZero
+- (const char*) argZero
 {
   if (_gnu_arg_zero == 0)
     return "";

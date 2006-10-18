@@ -2043,9 +2043,9 @@ iconv_start:
 
 #undef	GROW
 
-@implementation	_GSPrivate (Unicode)
+@implementation	GSPrivate (Unicode)
 
-+ (NSStringEncoding*) availableEncodings
+- (NSStringEncoding*) availableEncodings
 {
   if (_availableEncodings == 0)
     {
@@ -2081,7 +2081,7 @@ iconv_start:
   return _availableEncodings;
 }
 
-+ (NSStringEncoding) defaultCStringEncoding
+- (NSStringEncoding) defaultCStringEncoding
 {
   if (defEnc == GSUndefinedEncoding)
     {
@@ -2246,7 +2246,7 @@ iconv_start:
   return defEnc;
 }
 
-+ (NSString*) encodingName: (NSStringEncoding)encoding
+- (NSString*) encodingName: (NSStringEncoding)encoding
 {
   if (isEncodingSupported(encoding) == NO)
     {
@@ -2255,7 +2255,7 @@ iconv_start:
   return [NSString stringWithUTF8String: encodingTable[encoding]->ename];
 }
 
-+ (BOOL) isByteEncoding: (NSStringEncoding)encoding
+- (BOOL) isByteEncoding: (NSStringEncoding)encoding
 {
   if (isEncodingSupported(encoding) == NO)
     {
@@ -2264,7 +2264,7 @@ iconv_start:
   return encodingTable[encoding]->eightBit;
 }
 
-+ (BOOL) isEncodingSupported: (NSStringEncoding)encoding
+- (BOOL) isEncodingSupported: (NSStringEncoding)encoding
 {
   return isEncodingSupported(encoding);
 }

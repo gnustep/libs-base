@@ -26,11 +26,12 @@
    $Date$ $Revision$
    */
 
-#include "Foundation/NSException.h"
+#include "Foundation/NSCoder.h"
 #include "Foundation/NSDecimal.h"
 #include "Foundation/NSDecimalNumber.h"
-#include "Foundation/NSCoder.h"
+#include "Foundation/NSException.h"
 #include "Foundation/NSPortCoder.h"
+
 #include "GSPrivate.h"
 
 // shared default behavior for NSDecimalNumber class
@@ -263,7 +264,7 @@ static NSDecimalNumber *one;
 - (id) initWithString: (NSString*)numberValue
 {
   return [self initWithString: numberValue
-    locale: [_GSPrivate userDefaultsDictionaryRepresentation]];
+    locale: GSPrivateDefaultLocale()];
 }
 
 - (id) initWithString: (NSString*)numberValue

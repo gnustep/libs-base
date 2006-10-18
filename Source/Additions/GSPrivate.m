@@ -47,9 +47,28 @@ strerror(int eno)
 }
 #endif
 
-@implementation	_GSPrivate
+@implementation	GSPrivate
 
-+ (NSString*) error
+- (void) defaultsChanged: (NSNotification*)n
+{
+  [gnustep_global_lock lock];
+  if (cachedLocale == nil)
+    {
+      if (n == nil)
+        {
+	  [[NSNotificationCenter defaultCenter]
+	    addObserver: self
+	    selector: _cmd
+	    name: NSUserDefaultsDidChangeNotification
+	    object: nil];
+	}
+      ASSIGN(cachedLocale,
+        [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]); 
+    }
+  [gnustep_global_lock unlock];
+}
+
+- (NSString*) error
 {
 #if defined(__MINGW32__)
   return [self error: GetLastError()];
@@ -59,7 +78,7 @@ strerror(int eno)
 #endif
 }
 
-+ (NSString*) error: (long)number
+- (NSString*) error: (long)number
 {
   NSString	*text;
 #if defined(__MINGW32__)
@@ -77,4 +96,15 @@ strerror(int eno)
   return text;
 }
 @end
+
+
+NSDictionary *
+GSPrivateDefaultLocale()
+{
+  if (_GSPrivate->cachedLocale == nil)
+    {
+      [_GSPrivate defaultsChanged: nil];
+    }
+  return _GSPrivate->cachedLocale;
+}
 

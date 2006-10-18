@@ -1955,23 +1955,9 @@ static BOOL isLocked = NO;
 }
 @end
 
-@implementation _GSPrivate (UserDefaults)
+@implementation GSPrivate (UserDefaults)
 
-+ (NSDictionary*) userDefaultsDictionaryRepresentation
-{
-  NSDictionary	*defs;
-
-  if (sharedDefaults == nil)
-    {
-      [NSUserDefaults standardUserDefaults];
-    }
-  [classLock lock];
-  defs = [sharedDefaults dictionaryRepresentation];
-  [classLock unlock];
-  return defs;
-}
-
-+ (BOOL) userDefaultsFlag: (GSUserDefaultFlagType)type
+- (BOOL) userDefaultsFlag: (GSUserDefaultFlagType)type
 {
   if (sharedDefaults == nil)
     {
