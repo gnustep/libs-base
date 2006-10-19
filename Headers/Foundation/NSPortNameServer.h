@@ -35,6 +35,8 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSMapTable.h>
 
+#if	OS_API_VERSION(GS_API_MACOSX,HS_API_LATEST)
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -69,10 +71,24 @@ extern "C" {
 
 @interface NSMessagePortNameServer : NSPortNameServer
 + (id) sharedInstance;
+
+/** Returns the [NSMessagePort] instance registered for the specified name
+ * if it exists on the local host.
+ */
+- (NSPort*) portForName: (NSString*)name;
+
+/** Returns the port registered for the specified name (if it exists).<br />
+ * The host must be an empty string or nil, since [NSMessagePort] instances
+ * on other hosts are inaccessible from the current host.
+ */
+- (NSPort*) portForName: (NSString*)name
+		 onHost: (NSString*)host;
 @end
 
 #if	defined(__cplusplus)
 }
+#endif
+
 #endif
 
 #endif

@@ -2,11 +2,12 @@
 
 	* Source/NSBundle.m: Strip path extension from main bundle name on
 	cygwin.
+	* Headers/Foundation/NSPortNameServer.h: Improve documentation
 
 2006-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Makefile.postamble:
-	Rewmove use of UNICODE_HEADERS which appears to beave been breaking
+	Remove use of UNICODE_HEADERS which appears to beave been breaking
 	solaris build.
 
 2006-10-18  Richard Frith-Macdonald <rfm@gnu.org>
