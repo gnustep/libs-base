@@ -922,7 +922,7 @@ pty_slave(const char* name)
 @implementation NSConcreteWindowsTask
 
 BOOL
-GSCheckTasks()
+GSPrivateCheckTasks()
 {
   BOOL	found = NO;
 
@@ -1257,7 +1257,7 @@ quotedFromString(NSString *aString)
 @implementation NSConcreteUnixTask
 
 BOOL
-GSCheckTasks()
+GSPrivateCheckTasks()
 {
   BOOL	found = NO;
 

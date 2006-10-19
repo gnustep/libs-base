@@ -38,6 +38,7 @@
 #include "Foundation/NSString.h"
 #include "Foundation/NSThread.h"
 
+#include "GSPrivate.h"
 /* NotificationQueueList by Richard Frith-Macdonald
    These objects are used to maintain lists of NSNotificationQueue objects.
    There is one list per NSThread, with the first object in the list stored
@@ -574,7 +575,7 @@ static inline void notifyASAP(NSNotificationQueue *q)
 }
 
 void
-GSNotifyASAP()
+GSPrivateNotifyASAP()
 {
   NotificationQueueList	*item;
 
@@ -613,7 +614,7 @@ static inline void notifyIdle(NSNotificationQueue *q)
 }
 
 void
-GSNotifyIdle()
+GSPrivateNotifyIdle()
 {
   NotificationQueueList	*item;
 
@@ -627,7 +628,7 @@ GSNotifyIdle()
 }
 
 BOOL
-GSNotifyMore()
+GSPrivateNotifyMore()
 {
   NotificationQueueList	*item;
 

@@ -1,6 +1,26 @@
 2006-10-19  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Documentation/manual/DistributedObjects.texi: Update for current API
+	* Source/NSNotificationQueue.m:
+	* Source/NSSocketPort.m:
+	* Source/NSRunLoop.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSDebug.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/GSPrivate.h:
+	* Source/win32/GSFileHandleWin32.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/NSCoder.m:
+	* Source/Additions/GSPrivate.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSTask.m:
+	* Headers/Foundation/NSCoder.h:
+	Remove long deprecated coder extensions (old libobjects
+	compatibility).
+	Hide some internal functions.
+	Make some values static.
+	Make function to obtain locale dictionary thread safe.
 
 2006-10-19  Matt Rice  <ratmice@yahoo.com>
 	

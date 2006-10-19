@@ -45,6 +45,7 @@
 #include "GSRunLoopCtxt.h"
 #include "GSRunLoopWatcher.h"
 #include "GSStream.h"
+
 #include "GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
@@ -67,8 +68,6 @@
 NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 
 static NSDate	*theFuture = nil;
-
-extern BOOL	GSCheckTasks();
 
 @interface NSObject (OptionalPortRunLoop)
 - (void) getFds: (int*)fds count: (int*)count;
@@ -823,7 +822,7 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 		{
 		  RELEASE(min_timer);
 		}
-	      GSNotifyASAP();		/* Post notifications. */
+	      GSPrivateNotifyASAP();		/* Post notifications. */
 	      IF_NO_GC([arp emptyPool]);
 	    }
 	  _currentMode = savedMode;
@@ -915,19 +914,19 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 	|| (i = GSIArrayCount(watchers)) == 0))
 	{
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
-	  GSNotifyASAP();
-	  GSNotifyIdle();
+	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyIdle();
 	  /*
 	   * Pause for as long as possible (up to the limit date)
 	   */
 	  [NSThread sleepUntilDate: limit_date];
 	  ti = [limit_date timeIntervalSinceNow];
-	  GSCheckTasks();
+	  GSPrivateCheckTasks();
 	  if (context != nil)
 	    {
 	      [self _checkPerformers: context];
 	    }
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	  _currentMode = savedMode;
 	  RELEASE(arp);
 	  NS_VOIDRETURN;
@@ -961,10 +960,10 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 	}
       if ([context pollUntil: timeout_ms within: _contextStack] == NO)
 	{
-	  GSNotifyIdle();
+	  GSPrivateNotifyIdle();
 	}
       [self _checkPerformers: context];
-      GSNotifyASAP();
+      GSPrivateNotifyASAP();
       _currentMode = savedMode;
       /*
        * Once a poll has been completed on a context, we can remove that
@@ -1011,9 +1010,9 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
       /*
        * Notify if any tasks have completed.
        */
-      if (GSCheckTasks() == YES)
+      if (GSPrivateCheckTasks() == YES)
 	{
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	}
       RELEASE(arp);
       return NO;

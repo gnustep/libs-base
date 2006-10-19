@@ -30,8 +30,6 @@
 #include <unistd.h>
 #endif
 
-extern BOOL	GSCheckTasks();
-
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
 static SEL	wRetSel;
@@ -368,7 +366,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
     {
       milliseconds = 0;
     }
@@ -406,7 +404,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     {
       if (errno == EINTR)
 	{
-	  GSCheckTasks();
+	  GSPrivateCheckTasks();
 	  poll_return = 0;
 	}
       else if (errno == 0)
@@ -455,7 +453,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSNotifyASAP();
+	GSPrivateNotifyASAP();
     }
 
   /*
@@ -530,7 +528,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSNotifyASAP();
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -562,7 +560,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSNotifyASAP();
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -594,7 +592,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSNotifyASAP();
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -762,7 +760,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
@@ -787,7 +785,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     {
       if (errno == EINTR)
 	{
-	  GSCheckTasks();
+	  GSPrivateCheckTasks();
 	  select_return = 0;
 	}
       else if (errno == 0)
@@ -836,7 +834,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSNotifyASAP();
+	GSPrivateNotifyASAP();
     }
 
   /*
@@ -897,7 +895,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;
@@ -929,7 +927,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;
@@ -961,7 +959,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;

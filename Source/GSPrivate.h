@@ -220,11 +220,12 @@ typedef enum {
 
 /*
  *	Functions used by the NSRunLoop and friends for processing
- *	queued notifications.
+ *	queued notifications and task completion events.
  */
-extern void GSNotifyASAP(void);
-extern void GSNotifyIdle(void);
-extern BOOL GSNotifyMore(void);
+BOOL GSPrivateCheckTasks(void) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyASAP(void) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
+BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
 
 /* This class exists to encapsulate various otherwise unrelated functions
  * so that we expose a single global symbol (the class) whose name marks it
@@ -237,13 +238,7 @@ extern BOOL GSNotifyMore(void);
  */
 @interface GSPrivate : NSObject
 {
-@public
-  NSDictionary	*cachedLocale;
 }
-
-/* Update information from defaults system
- */
-- (void) defaultsChanged: (NSNotification*)n;
 
 /* Return the text describing the last system error to have occurred.
  */

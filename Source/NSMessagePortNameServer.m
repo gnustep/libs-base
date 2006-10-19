@@ -252,6 +252,10 @@ static void clean_up_names(void)
     }
 }
 
+- (NSPort*) portForName: (NSString*)name
+{
+  return [self portForName: name onHost: nil];
+}
 
 - (NSPort*) portForName: (NSString *)name
 		 onHost: (NSString *)host
