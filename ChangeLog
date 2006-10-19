@@ -1,3 +1,7 @@
+2006-10-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Documentation/manual/DistributedObjects.texi: Update for current API
+
 2006-10-19  Matt Rice  <ratmice@yahoo.com>
 	
 	* Source/NSBundle.m (_find_framework): initialize file_name variable.
