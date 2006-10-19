@@ -379,7 +379,7 @@ _find_framework(NSString *name)
 {                
   NSArray	*paths;
   NSFileManager *file_mgr = [NSFileManager defaultManager];
-  NSString	*file_name;
+  NSString	*file_name = [name stringByAppendingPathExtension:@"framework"];
   NSString	*file_path;
   NSString	*path;
   NSEnumerator	*enumerator;
