@@ -49,25 +49,6 @@ strerror(int eno)
 
 @implementation	GSPrivate
 
-- (void) defaultsChanged: (NSNotification*)n
-{
-  [gnustep_global_lock lock];
-  if (cachedLocale == nil)
-    {
-      if (n == nil)
-        {
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	    selector: _cmd
-	    name: NSUserDefaultsDidChangeNotification
-	    object: nil];
-	}
-      ASSIGN(cachedLocale,
-        [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]); 
-    }
-  [gnustep_global_lock unlock];
-}
-
 - (NSString*) error
 {
 #if defined(__MINGW32__)
@@ -85,7 +66,7 @@ strerror(int eno)
   LPVOID	lpMsgBuf;
 
   FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-    NULL, nuymber, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+    NULL, number, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
     (LPWSTR) &lpMsgBuf, 0, NULL );
   text = [NSString stringWithCharacters: lpMsgBuf length: wcslen(lpMsgBuf)];
   LocalFree(lpMsgBuf);
@@ -97,14 +78,4 @@ strerror(int eno)
 }
 @end
 
-
-NSDictionary *
-GSPrivateDefaultLocale()
-{
-  if (_GSPrivate->cachedLocale == nil)
-    {
-      [_GSPrivate defaultsChanged: nil];
-    }
-  return _GSPrivate->cachedLocale;
-}
 

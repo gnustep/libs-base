@@ -1967,3 +1967,21 @@ static BOOL isLocked = NO;
 }
 @end
 
+/* FIXME ... Slightly faster than
+ * [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
+ * but is it really worthwile?
+ */
+NSDictionary *GSPrivateDefaultLocale()
+{
+  NSDictionary	*locale;
+
+  [classLock lock];
+  if (sharedDefaults == nil)
+    {
+      [NSUserDefaults standardUserDefaults];
+    }
+  locale = [sharedDefaults dictionaryRepresentation];
+  [classLock unlock];
+  return locale;
+}
+

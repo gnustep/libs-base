@@ -63,11 +63,13 @@ static NSLock	*uniqueLock = nil;
 static const char*	_GSDebugAllocationList(BOOL difference);
 static const char*	_GSDebugAllocationListAll(void);
 
-void _GSDebugAllocationAdd(Class c, id o);
-void _GSDebugAllocationRemove(Class c, id o);
+static void _GSDebugAllocationAdd(Class c, id o);
+static void _GSDebugAllocationRemove(Class c, id o);
 
-void (*_GSDebugAllocationAddFunc)(Class c, id o) = _GSDebugAllocationAdd;
-void (*_GSDebugAllocationRemoveFunc)(Class c, id o) = _GSDebugAllocationRemove;
+static void (*_GSDebugAllocationAddFunc)(Class c, id o)
+  = _GSDebugAllocationAdd;
+static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
+  = _GSDebugAllocationRemove;
 
 @interface GSDebugAlloc : NSObject
 + (void) initialize;

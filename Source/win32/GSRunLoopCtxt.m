@@ -17,8 +17,6 @@
 #include <Foundation/NSPort.h>
 #include <Foundation/NSStream.h>
 
-extern BOOL	GSCheckTasks();
-
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
 static SEL	wRetSel;
@@ -375,7 +373,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
     {
       wait_timeout = 0;
     }
@@ -493,7 +491,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSNotifyASAP();
+	GSPrivateNotifyASAP();
     }
 
   // if there are windows message
@@ -545,7 +543,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 			       forMode: mode];
     }
 
-  GSNotifyASAP();
+  GSPrivateNotifyASAP();
 
   completed = YES;
   return YES;
