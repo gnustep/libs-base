@@ -172,16 +172,6 @@ typedef struct {
 } GSStr_t;
 typedef	GSStr_t	*GSStr;
 
-/*
- * Function to append to GSStr
- */
-extern void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l);
-/*
- * Make the content of this string into unicode if it is not in
- * the external defaults C string encoding.
- */
-void GSStrExternalize(GSStr s);
-
 
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
@@ -242,6 +232,11 @@ GSPrivateAvailableEncodings() GS_ATTRIB_PRIVATE;
 void
 GSPrivateBuildStrings(void) GS_ATTRIB_PRIVATE;
 
+/* Used to check for termination of background tasks.
+ */
+BOOL
+GSPrivateCheckTasks(void) GS_ATTRIB_PRIVATE;
+
 /* get the default C-string encoding.
  */
 NSStringEncoding
@@ -285,16 +280,32 @@ GSPrivateIsByteEncoding(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
 BOOL
 GSPrivateIsEncodingSupported(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
 
-
-/*
- *	Functions used by the NSRunLoop and friends for processing
- *	queued notifications and task completion events.
+/* Function used by the NSRunLoop and friends for processing
+ * queued notifications which should be processed at the first safe moment.
  */
-BOOL GSPrivateCheckTasks(void) GS_ATTRIB_PRIVATE;
 void GSPrivateNotifyASAP(void) GS_ATTRIB_PRIVATE;
+
+/* Function used by the NSRunLoop and friends for processing
+ * queued notifications which should be processed when the loop is idle.
+ */
 void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
+
+/* Function used by the NSRunLoop and friends for determining whether
+ * there are more queued notifications to be processed.
+ */
 BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
 
+/* Function to append data to an GSStr
+ */
+void
+GSPrivateStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
+  GS_ATTRIB_PRIVATE;
+
+/* Make the content of this string into unicode if it is not in
+ * the external defaults C string encoding.
+ */
+void
+GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
 
 #endif /* _GSPrivate_h_ */
 

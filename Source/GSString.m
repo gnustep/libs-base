@@ -5007,7 +5007,8 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 /**
  * Append characters to a string.
  */
-void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
+void
+GSPrivateStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
 {
   /*
    * Make the string wide if necessary.
@@ -5080,7 +5081,8 @@ void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
 }
 
 
-void GSStrExternalize(GSStr s)
+void
+GSPrivateStrExternalize(GSStr s)
 {
   if (s->_flags.wide == 0 && internalEncoding != externalEncoding)
     {

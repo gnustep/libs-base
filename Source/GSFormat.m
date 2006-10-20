@@ -761,11 +761,11 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
 
 static inline void GSStrAppendUnichar(GSStr s, unichar u)
 {
-  GSStrAppendUnichars(s, &u, 1);
+  GSPrivateStrAppendUnichars(s, &u, 1);
 }
 
 #define	outchar(Ch)		GSStrAppendUnichar(s, Ch)
-#define outstring(String, Len)	GSStrAppendUnichars(s, String, Len)
+#define outstring(String, Len)	GSPrivateStrAppendUnichars(s, String, Len)
 
 /* For handling long_double and longlong we use the same flag.  If
    `long' and `long long' are effectively the same type define it to
