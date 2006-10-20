@@ -979,7 +979,7 @@ static NSLock			*urlLock = nil;
        */
       [self backgroundLoadDidFailWithReason: [NSString stringWithFormat:
 	@"Unable to connect to %@:%@ ... %@",
-	host, port, [_GSPrivate error]]];
+	host, port, [NSError _last]]];
       return;
     }
   cHandle = [[GSTelnetHandle alloc] initWithHandle: sock isConnected: NO];

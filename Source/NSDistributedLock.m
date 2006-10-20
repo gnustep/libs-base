@@ -78,7 +78,7 @@ static NSFileManager	*mgr = nil;
 
       if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
 	{
-	  NSString	*err = [_GSPrivate error];
+	  NSString	*err = [[NSError _last] localizedDescription];
 
 	  attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
 	  if ([modDate isEqual: [attributes fileModificationDate]] == YES)
@@ -204,7 +204,7 @@ static NSFileManager	*mgr = nil;
 	  if (locked == NO)
 	    {
 	      NSLog(@"Failed to create lock directory '%@' - %@",
-		    _lockPath, [_GSPrivate error]);
+		    _lockPath, [NSError _last]);
 	    }
 	}
     }
@@ -260,7 +260,7 @@ static NSFileManager	*mgr = nil;
 	{
 	  [NSException raise: NSGenericException
 		      format: @"Failed to remove lock directory '%@' - %@",
-			  _lockPath, [_GSPrivate error]];
+			  _lockPath, [NSError _last]];
 	}
     }
   else

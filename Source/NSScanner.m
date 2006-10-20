@@ -141,7 +141,7 @@ typedef struct {
       NSConstantStringClass = [NSString constantStringClass];
       _holder = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
       externalEncoding = [NSString defaultCStringEncoding];
-      if ([_GSPrivate isByteEncoding: externalEncoding] == YES)
+      if (GSPrivateIsByteEncoding(externalEncoding) == YES)
 	{
 	  internalEncoding = externalEncoding;
 	}

@@ -798,7 +798,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == -1)
     {
-      NSLog(@"unable to create socket - %@", [_GSPrivate error: errno]);
+      NSLog(@"unable to create socket - %@", [NSError _last]);
       RELEASE(self);
       return nil;
     }
@@ -813,7 +813,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (bind(net, (struct sockaddr *)&lsin, sizeof(lsin)) == -1)
 	{
 	  NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(lsin.sin_addr),
-	    GSSwapBigI16ToHost(sin.sin_port), [_GSPrivate error: errno]);
+	    GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
 	  (void) close(net);
 	  RELEASE(self);
 	  return nil;
@@ -833,7 +833,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    {
 	      NSLog(@"unable to make connection to %s:%d - %@",
 		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), [_GSPrivate error]);
+		GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
 	      RELEASE(self);
 	      return nil;
 	    }
@@ -897,7 +897,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == -1)
     {
-      NSLog(@"unable to create socket - %@", [_GSPrivate error]);
+      NSLog(@"unable to create socket - %@", [NSError _last]);
       RELEASE(self);
       return nil;
     }
@@ -915,7 +915,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) == -1)
     {
       NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(sin.sin_addr),
-	GSSwapBigI16ToHost(sin.sin_port), [_GSPrivate error]);
+	GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -923,7 +923,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (listen(net, 256) == -1)
     {
-      NSLog(@"unable to listen on port - %@", [_GSPrivate error]);
+      NSLog(@"unable to listen on port - %@", [NSError _last]);
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -931,7 +931,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getsockname(net, (struct sockaddr*)&sin, &size) == -1)
     {
-      NSLog(@"unable to get socket name - %@", [_GSPrivate error]);
+      NSLog(@"unable to get socket name - %@", [NSError _last]);
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -1097,7 +1097,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (fstat(desc, &sbuf) < 0)
 	{
           NSLog(@"unable to get status of descriptor %d - %@",
-	    desc, [_GSPrivate error]);
+	    desc, [NSError _last]);
 	}
       else
 	{
@@ -1319,7 +1319,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to read from descriptor - %@",
-                  [_GSPrivate error]];
+                  [NSError _last]];
     }
   return d;
 }
@@ -1344,7 +1344,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to read from descriptor - %@",
-                  [_GSPrivate error]];
+                  [NSError _last]];
     }
   return d;
 }
@@ -1370,7 +1370,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  [NSException raise: NSFileHandleOperationException
 		      format: @"unable to read from descriptor - %@",
-		      [_GSPrivate error]];
+		      [NSError _last]];
 	}
       [d setLength: got];
     }
@@ -1393,7 +1393,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    {
 	      [NSException raise: NSFileHandleOperationException
 			  format: @"unable to read from descriptor - %@",
-			  [_GSPrivate error]];
+			  [NSError _last]];
 	    }
 	}
       while (len > 0 && got > 0);
@@ -1439,7 +1439,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to write to descriptor - %@",
-                  [_GSPrivate error]];
+                  [NSError _last]];
     }
 }
 
@@ -1545,7 +1545,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"failed to move to offset in file - %@",
-                  [_GSPrivate error]];
+                  [NSError _last]];
     }
   return (unsigned long long)result;
 }
@@ -1569,7 +1569,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"failed to move to offset in file - %@",
-                  [_GSPrivate error]];
+                  [NSError _last]];
     }
   return (unsigned long long)result;
 }
@@ -1593,7 +1593,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"failed to move to offset in file - %@",
-                  [_GSPrivate error]];
+                  [NSError _last]];
     }
 }
 
@@ -1929,7 +1929,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  NSString	*s;
 
 	  s = [NSString stringWithFormat: @"Accept attempt failed - %@",
-	    [_GSPrivate error]];
+	    [NSError _last]];
 	  [readInfo setObject: s forKey: GSFileHandleNotificationError];
 	}
       else
@@ -1997,7 +1997,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      NSString	*s;
 
 	      s = [NSString stringWithFormat: @"Read attempt failed - %@",
-		[_GSPrivate error]];
+		[NSError _last]];
 	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
 	      [self postReadNotification];
 	    }
@@ -2033,7 +2033,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
           NSString	*s;
 
           s = [NSString stringWithFormat: @"Connect attempt failed - %@",
-	    [_GSPrivate error]];
+	    [NSError _last]];
           [info setObject: s forKey: GSFileHandleNotificationError];
         }
       else
@@ -2066,7 +2066,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	          NSString	*s;
 
 	          s = [NSString stringWithFormat:
-		    @"Write attempt failed - %@", [_GSPrivate error]];
+		    @"Write attempt failed - %@", [NSError _last]];
 	          [info setObject: s forKey: GSFileHandleNotificationError];
 	          [self postWriteNotification];
 	        }
@@ -2143,7 +2143,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  if (fcntl(descriptor, F_SETFL, e) < 0)
 	    {
 	      NSLog(@"unable to set non-blocking mode for %d - %@",
-		descriptor, [_GSPrivate error]);
+		descriptor, [NSError _last]);
 	    }
 	  else
 	    {
@@ -2153,7 +2153,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       else
 	{
 	  NSLog(@"unable to get non-blocking mode for %d - %@",
-	    descriptor, [_GSPrivate error]);
+	    descriptor, [NSError _last]);
 	}
     }
 }
@@ -2171,7 +2171,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == -1)
     {
-      NSLog(@"unable to get socket name - %@", [_GSPrivate error]);
+      NSLog(@"unable to get socket name - %@", [NSError _last]);
     }
   else
     {
@@ -2188,7 +2188,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == -1)
     {
-      NSLog(@"unable to get socket name - %@", [_GSPrivate error]);
+      NSLog(@"unable to get socket name - %@", [NSError _last]);
     }
   else
     {

@@ -28,7 +28,6 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSError.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSDebug.h>
@@ -365,7 +364,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   theError = [NSError errorWithDomain: NSPOSIXErrorDomain
 					  code: errno
 				      userInfo: nil];
-  NSLog(@"%@ error(%d): - %@", self, errno, [_GSPrivate error]);
+  NSLog(@"%@ error(%d): - %@", self, errno, [NSError _last]);
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
 }

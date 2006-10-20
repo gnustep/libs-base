@@ -161,7 +161,7 @@ static void GSLogZombie(id o, SEL sel)
       NSLog(@"Deallocated %@ (0x%x) sent %@",
 	NSStringFromClass(c), o, NSStringFromSelector(sel));
     }
-  if ([_GSPrivate environmentFlag: "CRASH_ON_ZOMBIE" defaultValue: NO] == YES)
+  if (GSPrivateEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
     {
       abort();
     }
@@ -882,8 +882,6 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 #endif
 
-GSPrivate	*_GSPrivate = nil;
-
 /**
  * This message is sent to a class once just before it is used for the first
  * time.  If class has a superclass, its implementation of +initialize is
@@ -895,10 +893,6 @@ GSPrivate	*_GSPrivate = nil;
 {
   if (self == [NSObject class])
     {
-      extern void		GSBuildStrings(void);	// See externs.m
-
-      _GSPrivate = [GSPrivate new];
-
 #ifdef __MINGW32__
       // See libgnustep-base-entry.m
       extern void gnustep_base_socket_init(void);	
@@ -972,10 +966,8 @@ GSPrivate	*_GSPrivate = nil;
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       zombieClass = [NSZombie class];
-      NSZombieEnabled = [_GSPrivate environmentFlag: "NSZombieEnabled"
-				       defaultValue: NO];
-      NSDeallocateZombies = [_GSPrivate environmentFlag: "NSDeallocateZombies"
-					   defaultValue: NO];
+      NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
+      NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
 
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
@@ -987,7 +979,7 @@ GSPrivate	*_GSPrivate = nil;
 #endif
 #endif
       NSConstantStringClass = [NSString constantStringClass];
-      GSBuildStrings();
+      GSPrivateBuildStrings();
       [[NSNotificationCenter defaultCenter]
 	addObserver: self
 	   selector: @selector(_becomeMultiThreaded:)
@@ -1301,7 +1293,7 @@ GSPrivate	*_GSPrivate = nil;
 {
   if (aSelector == 0)
     {
-      if ([_GSPrivate userDefaultsFlag: GSMacOSXCompatible])
+      if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
 	{
 	  [NSException raise: NSInvalidArgumentException
 		    format: @"%@ null selector given",
@@ -1874,7 +1866,7 @@ GSPrivate	*_GSPrivate = nil;
 {
   if (aSelector == 0)
     {
-      if ([_GSPrivate userDefaultsFlag: GSMacOSXCompatible])
+      if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
 	{
 	  [NSException raise: NSInvalidArgumentException
 		    format: @"%@ null selector given",

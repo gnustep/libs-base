@@ -77,7 +77,6 @@
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSMime.h"
 #include "GSPrivate.h"
-#include "GSFormat.h"
 #include <limits.h>
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
@@ -565,8 +564,8 @@ handle_printf_atsign (FILE *stream,
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
-      _DefaultStringEncoding = [_GSPrivate defaultCStringEncoding];
-      _ByteEncodingOk = [_GSPrivate isByteEncoding: _DefaultStringEncoding];
+      _DefaultStringEncoding = GSPrivateDefaultCStringEncoding();
+      _ByteEncodingOk = GSPrivateIsByteEncoding(_DefaultStringEncoding);
 
       NSStringClass = self;
       [self setVersion: 1];
@@ -1078,7 +1077,7 @@ handle_printf_atsign (FILE *stream,
 
   /*
    * Now set up 'f' as a GSMutableString object whose initial buffer is
-   * allocated on the stack.  The GSFormat function can write into it.
+   * allocated on the stack.  The GSPrivateFormat function can write into it.
    */
   f.isa = GSMutableStringClass;
   f._zone = NSDefaultMallocZone();
@@ -1087,7 +1086,7 @@ handle_printf_atsign (FILE *stream,
   f._count = 0;
   f._flags.wide = 0;
   f._flags.free = 0;
-  GSFormat(&f, fmt, argList, locale);
+  GSPrivateFormat(&f, fmt, argList, locale);
   GSStrExternalize(&f);
   if (fmt != fbuf)
     {
@@ -2683,7 +2682,7 @@ handle_printf_atsign (FILE *stream,
  */
 + (NSStringEncoding*) availableStringEncodings
 {
-  return [_GSPrivate availableEncodings];
+  return GSPrivateAvailableEncodings();
 }
 
 /**
@@ -2701,7 +2700,7 @@ handle_printf_atsign (FILE *stream,
 */
   ourbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
 
-  ourname = [_GSPrivate encodingName: encoding];
+  ourname = GSPrivateEncodingName(encoding);
   return [ourbundle localizedStringForKey: ourname
 				    value: ourname
 				    table: nil];

@@ -9,13 +9,14 @@
 #include "config.h"
 
 #include "GNUstepBase/preface.h"
-#include "../GSRunLoopCtxt.h"
-#include "../GSRunLoopWatcher.h"
-#include "../GSPrivate.h"
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSError.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSStream.h>
+#include "../GSRunLoopCtxt.h"
+#include "../GSRunLoopWatcher.h"
+#include "../GSPrivate.h"
 
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
@@ -434,7 +435,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       BOOL	found = NO;
 
       NSDebugMLLog(@"NSRunLoop", @"WaitForMultipleObjects() error in "
-	@"-acceptInputForMode:beforeDate: %@", [_GSPrivate error]);
+	@"-acceptInputForMode:beforeDate: %@", [NSError _last]);
       /*
        * Check each handle in turn until either we find one which has an
        * event signalled, or we find the one which caused the original
@@ -455,7 +456,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       if (found == NO)
 	{
 	  NSLog(@"WaitForMultipleObjects() error in "
-	    @"-acceptInputForMode:beforeDate: %@", [_GSPrivate error]);
+	    @"-acceptInputForMode:beforeDate: %@", [NSError _last]);
 	  abort ();        
 	}
     }

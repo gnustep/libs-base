@@ -9,13 +9,14 @@
 #include "config.h"
 
 #include "GNUstepBase/preface.h"
-#include "../GSRunLoopCtxt.h"
-#include "../GSRunLoopWatcher.h"
-#include "../GSPrivate.h"
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSError.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSStream.h>
+#include "../GSRunLoopCtxt.h"
+#include "../GSRunLoopWatcher.h"
+#include "../GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -418,7 +419,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
 	  NSLog (@"poll() error in -acceptInputForMode:beforeDate: '%@'",
-	    [_GSPrivate error]);
+	    [NSError _last]);
 	  abort ();
 	}
     }
@@ -799,7 +800,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
 	  NSLog (@"select() error in -acceptInputForMode:beforeDate: '%@'",
-	    [_GSPrivate error]);
+	    [NSError _last]);
 	  abort ();
 	}
     }

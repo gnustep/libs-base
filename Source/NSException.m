@@ -585,8 +585,7 @@ static void _terminate()
 #else
   shouldAbort = NO;		// exit() by default.
 #endif
-  shouldAbort = [_GSPrivate environmentFlag: "CRASH_ON_ABORT"
-			       defaultValue: shouldAbort];
+  shouldAbort = GSPrivateEnvironmentFlag("CRASH_ON_ABORT", shouldAbort);
   if (shouldAbort == YES)
     {
       abort();
@@ -601,7 +600,7 @@ static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
   fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
-    [_GSPrivate argZero],
+    GSPrivateArgZero(),
     [[exception name] lossyCString], [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
 

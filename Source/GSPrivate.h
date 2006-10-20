@@ -24,6 +24,8 @@
 #ifndef _GSPrivate_h_
 #define _GSPrivate_h_
 
+#include "Foundation/NSError.h"
+
 @class	NSNotification;
 
 #if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3))
@@ -218,6 +220,72 @@ typedef enum {
 - (const char*) type;
 @end
 
+/* Get error information.
+ */
+@interface	NSError (GSCategories)
++ (NSError*) _last;
+@end
+
+/* Used by NSException uncaught exception handler - must not call any
+ * methods/functions which might cause a recursive exception.
+ */
+const char*
+GSPrivateArgZero() GS_ATTRIB_PRIVATE;
+
+/* get the available string encodings (nul terminated array)
+ */
+NSStringEncoding *
+GSPrivateAvailableEncodings() GS_ATTRIB_PRIVATE;
+
+/* Initialise constant strings
+ */
+void
+GSPrivateBuildStrings(void) GS_ATTRIB_PRIVATE;
+
+/* get the default C-string encoding.
+ */
+NSStringEncoding
+GSPrivateDefaultCStringEncoding() GS_ATTRIB_PRIVATE;
+
+/* Get default locale quickly (usually from cache).
+ * External apps would cache the locale themselves.
+ */
+NSDictionary *
+GSPrivateDefaultLocale() GS_ATTRIB_PRIVATE;
+
+/* Get one of several standard values.
+ */
+BOOL
+GSPrivateDefaultsFlag(GSUserDefaultFlagType type) GS_ATTRIB_PRIVATE;
+
+/* get the name of a string encoding as an NSString.
+ */
+NSString *
+GSPrivateEncodingName(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
+
+/* get a flag from an environment variable - return def if not defined.
+ */
+BOOL
+GSPrivateEnvironmentFlag(const char *name, BOOL def) GS_ATTRIB_PRIVATE;
+
+/* Format arguments into an internal string.
+ */
+void
+GSPrivateFormat(GSStr fb, const unichar *fmt, va_list ap, NSDictionary *loc)
+  GS_ATTRIB_PRIVATE;
+
+/* determine whether data in a particular encoding can
+ * generally be represented as 8-bit characters including ascii.
+ */
+BOOL
+GSPrivateIsByteEncoding(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
+
+/* determine whether encoding is currently supported.
+ */
+BOOL
+GSPrivateIsEncodingSupported(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
+
+
 /*
  *	Functions used by the NSRunLoop and friends for processing
  *	queued notifications and task completion events.
@@ -227,74 +295,6 @@ void GSPrivateNotifyASAP(void) GS_ATTRIB_PRIVATE;
 void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
 BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
 
-/* This class exists to encapsulate various otherwise unrelated functions
- * so that we expose a single global symbol (the class) whose name marks it
- * very clearly as for private/internal use only.  Avoiding the exposure
- * (and hence possible accidental use) of symbols for each function ... 
- * The formal implementation of the class is a near empty implementation
- * (in Additions/GSPrivate.m), with most methods being provided by other
- * categories in the files wishing to expose some functionality for use
- * by other parts of the base library.
- */
-@interface GSPrivate : NSObject
-{
-}
-
-/* Return the text describing the last system error to have occurred.
- */
-- (NSString*) error;
-- (NSString*) error: (long)number;
-@end
-
-extern GSPrivate	*_GSPrivate;
-
-@interface GSPrivate (ProcessInfo)
-/* Used by NSException uncaught exception handler - must not call any
- * methods/functions which might cause a recursive exception.
- */
-- (const char*) argZero;
-
-/* get a flag from an environment variable - return def if not defined.
- */
-- (BOOL) environmentFlag: (const char *)name defaultValue: (BOOL)def;
-@end
-
-@interface GSPrivate (Unicode)
-/* get the available string encodings (nul terminated array)
- */
-- (NSStringEncoding*) availableEncodings;
-
-/* get the default C-string encoding.
- */
-- (NSStringEncoding) defaultCStringEncoding;
-
-/* get the name of a string encoding as an NSString.
- */
-- (NSString*) encodingName: (NSStringEncoding)encoding;
-
-/* determine whether data in a particular encoding can
- * generally be represented as 8-bit characters including ascii.
- */
-- (BOOL) isByteEncoding: (NSStringEncoding)encoding;
-
-/* determine whether encoding is currently supported.
- */
-- (BOOL) isEncodingSupported: (NSStringEncoding)encoding;
-
-@end
-
-@interface GSPrivate (UserDefaults)
-/*
- * Get one of several potentially useful flags.
- */
-- (BOOL) userDefaultsFlag: (GSUserDefaultFlagType)type;
-@end
-
-/* Get default locale quickly (usually from cache).
- * External apps would cache the locale themselves.
- */
-NSDictionary *
-GSPrivateDefaultLocale() GS_ATTRIB_PRIVATE;
 
 #endif /* _GSPrivate_h_ */
 

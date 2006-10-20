@@ -47,7 +47,6 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "GNUstepBase/GSObjCRuntime.h"
-#include "GSFormat.h"
 #include <limits.h>
 
 #include "GSPrivate.h"
@@ -58,7 +57,7 @@
 
 static BOOL isByteEncoding(NSStringEncoding enc)
 {
-  return [_GSPrivate isByteEncoding: enc];
+  return GSPrivateIsByteEncoding(enc);
 }
 
 #ifdef NeXT_RUNTIME
@@ -258,7 +257,7 @@ setup(void)
        * Cache the default string encoding, and set the internal encoding
        * used by 8-bit character strings to match if possible.
        */
-      externalEncoding = [_GSPrivate defaultCStringEncoding];
+      externalEncoding = GSPrivateDefaultCStringEncoding();
       if (isByteEncoding(externalEncoding) == YES)
 	{
 	  internalEncoding = externalEncoding;
@@ -451,7 +450,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   void		*chars = 0;
   BOOL		flag = NO;
   
-  if ([_GSPrivate isEncodingSupported: encoding] == NO)
+  if (GSPrivateIsEncodingSupported(encoding) == NO)
     {
       return nil;	// Invalid encoding
     }
@@ -494,7 +493,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   BOOL		isLatin1 = NO;
   GSStr		me;
 
-  if ([_GSPrivate isEncodingSupported: encoding] == NO)
+  if (GSPrivateIsEncodingSupported(encoding) == NO)
     {
       if (flag == YES && bytes != 0)
 	{
@@ -704,7 +703,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 
   /*
    * Now set up 'f' as a GSMutableString object whose initial buffer is
-   * allocated on the stack.  The GSFormat function can write into it.
+   * allocated on the stack.  The GSPrivateFormat function can write into it.
    */
   f.isa = GSMutableStringClass;
   f._zone = NSDefaultMallocZone();
@@ -713,7 +712,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   f._count = 0;
   f._flags.wide = 0;
   f._flags.free = 0;
-  GSFormat(&f, fmt, argList, locale);
+  GSPrivateFormat(&f, fmt, argList, locale);
   if (fmt != fbuf)
     {
       objc_free(fmt);
@@ -3435,8 +3434,9 @@ agree, create a new GSUnicodeInlineString otherwise.
 
   /*
    * Make sure we have the format string in a nul terminated array of
-   * unichars for passing to GSFormat.  Use on-stack memory for performance
-   * unless the size of the format string is really big (a rare occurrence).
+   * unichars for passing to GSPrivateFormat.  Use on-stack memory for
+   * performance unless the size of the format string is really big
+   * (a rare occurrence).
    */
   len = [format length];
   if (len >= 1024)
@@ -3458,7 +3458,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       _zone = GSObjCZone(self);
 #endif
     }
-  GSFormat((GSStr)self, fmt, ap, nil);
+  GSPrivateFormat((GSStr)self, fmt, ap, nil);
   _flags.hash = 0;	// Invalidate the hash for this string.
   if (fmt != buf)
     {
@@ -3950,7 +3950,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
   [format getCharacters: fmt];
   fmt[len] = '\0';
 
-  GSFormat((GSStr)self, fmt, argList, locale);
+  GSPrivateFormat((GSStr)self, fmt, argList, locale);
   if (fmt != fbuf)
     {
       objc_free(fmt);

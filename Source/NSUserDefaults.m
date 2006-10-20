@@ -1955,9 +1955,8 @@ static BOOL isLocked = NO;
 }
 @end
 
-@implementation GSPrivate (UserDefaults)
-
-- (BOOL) userDefaultsFlag: (GSUserDefaultFlagType)type
+BOOL
+GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
   if (sharedDefaults == nil)
     {
@@ -1965,7 +1964,6 @@ static BOOL isLocked = NO;
     }
   return flags[type];
 }
-@end
 
 /* FIXME ... Slightly faster than
  * [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
@@ -1975,6 +1973,10 @@ NSDictionary *GSPrivateDefaultLocale()
 {
   NSDictionary	*locale;
 
+  if (classLock == nil)
+    {
+      [NSUserDefaults standardUserDefaults];
+    }
   [classLock lock];
   if (sharedDefaults == nil)
     {

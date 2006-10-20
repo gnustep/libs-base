@@ -73,9 +73,9 @@ setupCache(void)
 
 static BOOL GSMacOSXCompatibleGeometry(void)
 {
-  if ([_GSPrivate userDefaultsFlag: GSOldStyleGeometry] == YES)
+  if (GSPrivateDefaultsFlag(GSOldStyleGeometry) == YES)
     return NO;
-  return [_GSPrivate userDefaultsFlag: GSMacOSXCompatible];
+  return GSPrivateDefaultsFlag(GSMacOSXCompatible);
 }
 
 /**** Function Implementations ***********************************************/

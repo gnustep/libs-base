@@ -207,7 +207,7 @@ static Class		messagePortClass = 0;
   if ([p _setupSendPort] == NO)
     {
       NSLog(@"unable to access mailslot '%@' - %@",
-	[p name], [_GSPrivate error]);
+	[p name], [NSError _last]);
       DESTROY(p);
     }
   return p;
@@ -335,7 +335,7 @@ static Class		messagePortClass = 0;
   if (this->rHandle == INVALID_HANDLE_VALUE)
     {
       NSLog(@"unable to create mailslot '%@' - %@",
-	this->name, [_GSPrivate error]);
+	this->name, [NSError _last]);
       DESTROY(self);
     }
   else
@@ -507,7 +507,7 @@ static Class		messagePortClass = 0;
 	    }
 	  else
 	    {
-	      NSLog(@"GetOverlappedResult failed ... %@", [_GSPrivate error]);
+	      NSLog(@"GetOverlappedResult failed ... %@", [NSError _last]);
 	      this->rState = RS_NONE;
 	      this->rLength = 0;
 	    }
@@ -530,7 +530,7 @@ static Class		messagePortClass = 0;
 	0) == 0)
 	{
 	  NSLog(@"unable to get info from mailslot '%@' - %@",
-	    this->name, [_GSPrivate error]);
+	    this->name, [NSError _last]);
 	  [self invalidate];
 	  return;
 	}
@@ -547,14 +547,14 @@ static Class		messagePortClass = 0;
 	    NULL) == 0)
 	    {
 	      NSLog(@"unable to read from mailslot '%@' - %@",
-		this->name, [_GSPrivate error]);
+		this->name, [NSError _last]);
 	      [self invalidate];
 	      return;
 	    }
 	  if (this->rSize != this->rWant)
 	    {
 	      NSLog(@"only read %d of %d bytes from mailslot '%@' - %@",
-		this->rSize, this->rWant, this->name, [_GSPrivate error]);
+		this->rSize, this->rWant, this->name, [NSError _last]);
 	      [self invalidate];
 	      return;
 	    }
@@ -749,7 +749,7 @@ static Class		messagePortClass = 0;
       else
 	{
 	  NSLog(@"unable to read from mailslot '%@' - %@",
-	    this->name, [_GSPrivate error]);
+	    this->name, [NSError _last]);
 	  [self invalidate];
 	}
     }
@@ -803,7 +803,7 @@ static Class		messagePortClass = 0;
 	&this->wSize,
 	TRUE) == 0)
 	{
-	  NSLog(@"GetOverlappedResult failed ... %@", [_GSPrivate error]);
+	  NSLog(@"GetOverlappedResult failed ... %@", [NSError _last]);
 	}
       else
 	{
@@ -856,7 +856,7 @@ again:
       else if ((errno = GetLastError()) != ERROR_IO_PENDING)
 	{
 	  NSLog(@"unable to write to mailslot '%@' - %@",
-	    this->name, [_GSPrivate error]);
+	    this->name, [NSError _last]);
 	  [self invalidate];
 	}
       else

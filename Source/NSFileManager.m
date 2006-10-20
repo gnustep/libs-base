@@ -30,7 +30,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSFileManager class reference</title>
    $Date$ $Revision$
@@ -402,7 +403,7 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileOwnerAccountID to '%u' - %@",
-	    num, [_GSPrivate error]];
+	    num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -426,7 +427,7 @@ static NSStringEncoding	defaultEncoding;
 	      allOk = NO;
 	      str = [NSString stringWithFormat:
 		@"Unable to change NSFileOwnerAccountName to '%@' - %@",
-		str, [_GSPrivate error]];
+		str, [NSError _last]];
 	      ASSIGN(_lastError, str);
 	    }
 	}
@@ -440,7 +441,7 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileGroupOwnerAccountID to '%u' - %@",
-	    num, [_GSPrivate error]];
+	    num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -462,7 +463,7 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileGroupOwnerAccountName to '%@' - %@",
-	    str, [_GSPrivate error]];
+	    str, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -476,7 +477,7 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFilePosixPermissions to '%o' - %@",
-	    num, [_GSPrivate error]];
+	    num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -520,7 +521,7 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileModificationDate to '%@' - %@",
-	    date, [_GSPrivate error]];
+	    date, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -748,7 +749,7 @@ static NSStringEncoding	defaultEncoding;
 	      NSString	*s;
 
 	      s = [NSString stringWithFormat: @"Could not create '%s' - '%@'",
-		dirpath, [_GSPrivate error]];
+		dirpath, [NSError _last]];
 	      ASSIGN(_lastError, s);
 	      return NO;
 	    }
@@ -1277,8 +1278,10 @@ static NSStringEncoding	defaultEncoding;
       if (unlink(lpath) < 0)
 #endif
 	{
+	  NSString	*message = [[NSError _last] localizedDescription];
+
 	  return [self _proceedAccordingToHandler: handler
-					 forError: [_GSPrivate error]
+					 forError: message
 					   inPath: path];
 	}
       else
@@ -1311,8 +1314,10 @@ static NSStringEncoding	defaultEncoding;
 
       if (_RMDIR([self fileSystemRepresentationWithPath: path]) < 0)
 	{
+	  NSString	*message = [[NSError _last] localizedDescription];
+
 	  return [self _proceedAccordingToHandler: handler
-					 forError: [_GSPrivate error]
+					 forError: message
 					   inPath: path];
 	}
       else
@@ -2032,7 +2037,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
   else
     {
       NSLog(@"Failed to recurse into directory '%@' - %@", path,
-	[_GSPrivate error]);
+	[NSError _last]);
     }
   return self;
 }
@@ -2199,7 +2204,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 		  else
 		    {
 		      NSLog(@"Failed to recurse into directory '%@' - %@",
-			_currentFilePath, [_GSPrivate error]);
+			_currentFilePath, [NSError _last]);
 		    }
 		}
 	    }
