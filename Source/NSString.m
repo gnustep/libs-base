@@ -1087,7 +1087,7 @@ handle_printf_atsign (FILE *stream,
   f._flags.wide = 0;
   f._flags.free = 0;
   GSPrivateFormat(&f, fmt, argList, locale);
-  GSStrExternalize(&f);
+  GSPrivateStrExternalize(&f);
   if (fmt != fbuf)
     {
       objc_free(fmt);
