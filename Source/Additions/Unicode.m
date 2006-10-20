@@ -33,6 +33,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSError.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSLock.h>
@@ -331,7 +332,8 @@ static void GSSetupEncodingTable(void)
     }
 }
 
-static BOOL isEncodingSupported(NSStringEncoding enc)
+BOOL
+GSPrivateIsEncodingSupported(NSStringEncoding enc)
 {
   GSSetupEncodingTable();
 
@@ -1160,7 +1162,7 @@ tables:
 	  const char	*estr = 0;
 	  BOOL		done = NO;
 
-	  if (isEncodingSupported(enc) == YES)
+	  if (GSPrivateIsEncodingSupported(enc) == YES)
 	    {
 	      estr = encodingTable[enc]->iconv;
 	    }
@@ -1181,7 +1183,7 @@ tables:
 	  if (cd == (iconv_t)-1)
 	    {
 	      NSLog(@"No iconv for encoding %@ tried to use %s",
-		[_GSPrivate encodingName: enc], estr);
+		GSPrivateEncodingName(enc), estr);
 	      result = NO;
 	      goto done;
 	    }
@@ -1853,7 +1855,7 @@ iconv_start:
 	  const char	*estr = 0;
 	  BOOL		done = NO;
 
-	  if (isEncodingSupported(enc) == YES)
+	  if (GSPrivateIsEncodingSupported(enc) == YES)
 	    {
 	      if (strict == NO)
 		{
@@ -1886,7 +1888,7 @@ iconv_start:
 	  if (cd == (iconv_t)-1)
 	    {
 	      NSLog(@"No iconv for encoding %@ tried to use %s",
-		[_GSPrivate encodingName: enc], estr);
+		GSPrivateEncodingName(enc), estr);
 	      result = NO;
 	      goto done;
 	    }
@@ -2043,9 +2045,10 @@ iconv_start:
 
 #undef	GROW
 
-@implementation	GSPrivate (Unicode)
 
-- (NSStringEncoding*) availableEncodings
+
+NSStringEncoding*
+GSPrivateAvailableEncodings()
 {
   if (_availableEncodings == 0)
     {
@@ -2068,7 +2071,7 @@ iconv_start:
 	  pos = 0;
 	  for (i = 0; i < encTableSize+1; i++)
 	    {
-	      if (isEncodingSupported(i) == YES)
+	      if (GSPrivateIsEncodingSupported(i) == YES)
 		{
 		  encodings[pos++] = i;
 		}
@@ -2081,7 +2084,8 @@ iconv_start:
   return _availableEncodings;
 }
 
-- (NSStringEncoding) defaultCStringEncoding
+NSStringEncoding
+GSPrivateDefaultCStringEncoding()
 {
   if (defEnc == GSUndefinedEncoding)
     {
@@ -2233,7 +2237,7 @@ iconv_start:
 #endif
 	    defEnc = NSISOLatin1StringEncoding;
 	}
-      else if (isEncodingSupported(defEnc) == NO)
+      else if (GSPrivateIsEncodingSupported(defEnc) == NO)
 	{
 	  fprintf(stderr, "WARNING: %s - encoding not implemented as "
 		  "default c string encoding.\n", encoding);
@@ -2246,28 +2250,24 @@ iconv_start:
   return defEnc;
 }
 
-- (NSString*) encodingName: (NSStringEncoding)encoding
+NSString*
+GSPrivateEncodingName(NSStringEncoding encoding)
 {
-  if (isEncodingSupported(encoding) == NO)
+  if (GSPrivateIsEncodingSupported(encoding) == NO)
     {
       return @"Unknown encoding";
     }
   return [NSString stringWithUTF8String: encodingTable[encoding]->ename];
 }
 
-- (BOOL) isByteEncoding: (NSStringEncoding)encoding
+BOOL
+GSPrivateIsByteEncoding(NSStringEncoding encoding)
 {
-  if (isEncodingSupported(encoding) == NO)
+  if (GSPrivateIsEncodingSupported(encoding) == NO)
     {
       return NO;
     }
   return encodingTable[encoding]->eightBit;
 }
 
-- (BOOL) isEncodingSupported: (NSStringEncoding)encoding
-{
-  return isEncodingSupported(encoding);
-}
-
-@end
 

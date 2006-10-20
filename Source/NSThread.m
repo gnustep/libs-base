@@ -890,12 +890,12 @@ static NSDate *theFuture;
 #if defined(__MINGW32__)
   if (SetEvent(event) == 0)
     {
-      NSLog(@"Set event failed - %@", [_GSPrivate error]);
+      NSLog(@"Set event failed - %@", [NSError _last]);
     }
 #else
   if (write(outputFd, "0", 1) != 1)
     {
-      NSLog(@"Write to pipe failed - %@", [_GSPrivate error]);
+      NSLog(@"Write to pipe failed - %@", [NSError _last]);
     }
 #endif
 
@@ -919,12 +919,12 @@ static NSDate *theFuture;
 #if defined(__MINGW32__)
   if (ResetEvent(event) == 0)
     {
-      NSLog(@"Reset event failed - %@", [_GSPrivate error]);
+      NSLog(@"Reset event failed - %@", [NSError _last]);
     }
 #else
   if (read(inputFd, &c, 1) != 1)
     {
-      NSLog(@"Read pipe failed - %@", [_GSPrivate error]);
+      NSLog(@"Read pipe failed - %@", [NSError _last]);
     }
 #endif
 

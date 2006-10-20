@@ -25,22 +25,22 @@
 
 #include "config.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
+#include "Foundation/NSByteOrder.h"
 #include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSFileHandle.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSString.h"
 #include "Foundation/NSURL.h"
 #include "Foundation/NSURLHandle.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSMapTable.h"
+#include "Foundation/NSValue.h"
 #include "GNUstepBase/GSMime.h"
 #include "GNUstepBase/GSLock.h"
 #include "NSCallBacks.h"
@@ -1269,7 +1269,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   */
 	  [self backgroundLoadDidFailWithReason:
 	    [NSString stringWithFormat: @"Unable to connect to %@:%@ ... %@",
-	    host, port, [_GSPrivate error]]];
+	    host, port, [NSError _last]]];
 	  return;
 	}
       RETAIN(sock);

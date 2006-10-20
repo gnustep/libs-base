@@ -317,7 +317,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
       NSMutableSet	*mySet;
       id		obj_argv[argc];
       int		added = 1;
-      NSStringEncoding	enc = [_GSPrivate defaultCStringEncoding];
+      NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
       mySet = [NSMutableSet new];
 
@@ -346,7 +346,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   {
     NSMutableArray	*keys = [NSMutableArray new];
     NSMutableArray	*values = [NSMutableArray new];
-    NSStringEncoding	enc = [_GSPrivate defaultCStringEncoding];
+    NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
 #if defined(__MINGW32__)
     if (fallbackInitialisation == NO)
@@ -1234,8 +1234,8 @@ BOOL GSDebugSet(NSString *level)
   return YES;
 }
 
-@implementation GSPrivate (ProcessInfo)
-- (BOOL) environmentFlag: (const char *)name defaultValue: (BOOL)def
+BOOL
+GSPrivateEnvironmentFlag(const char *name, BOOL def)
 {
   const char	*c = getenv(name);
   BOOL		a = def;
@@ -1262,13 +1262,12 @@ BOOL GSDebugSet(NSString *level)
   return a;
 }
 
-- (const char*) argZero
+const char*
+GSPrivateArgZero()
 {
   if (_gnu_arg_zero == 0)
     return "";
   else
     return _gnu_arg_zero;
 }
-
-@end
 

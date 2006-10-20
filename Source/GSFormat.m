@@ -73,7 +73,8 @@
 #include "Foundation/NSZone.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSLocale.h"
-#include "GSFormat.h"
+
+#include "GSPrivate.h"
 
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -802,7 +803,7 @@ static unichar *group_number (unichar *, unichar *, const char *, NSString *);
 
 /* The function itself.  */
 void
-GSFormat (GSStr s, const unichar *format, va_list ap,
+GSPrivateFormat (GSStr s, const unichar *format, va_list ap,
 NSDictionary *locale)
 {
   /* The character used as thousands separator.  */
@@ -1694,7 +1695,8 @@ NSDictionary *locale)
 
     LABEL (form_strerror):
       /* Print description of error ERRNO.  */
-      string = (unichar *)[[_GSPrivate error: save_errno]
+      errno = save_errno;
+      string = (unichar *)[[[NSError _last] localizedDescription]
 	cStringUsingEncoding: NSUnicodeStringEncoding];
       is_long = 1;		/* This is a unicode string.  */
       goto LABEL (print_string);
@@ -1762,7 +1764,7 @@ NSDictionary *locale)
 	    if (enc == GSUndefinedEncoding)
 	      {
 	        enc = [NSString defaultCStringEncoding];
-		byteEncoding = [_GSPrivate isByteEncoding: enc];
+		byteEncoding = GSPrivateIsByteEncoding(enc);
 	      }
 
 	    len = strlen(str);	// Number of bytes to convert.

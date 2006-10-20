@@ -79,7 +79,7 @@
         }
       else
 	{
-	  NSLog(@"Failed to create pipe ... %@", [_GSPrivate error]);
+	  NSLog(@"Failed to create pipe ... %@", [NSError _last]);
 	  DESTROY(self);
 	}
 #else
@@ -99,7 +99,7 @@
         }
       else
 	{
-	  NSLog(@"Failed to create pipe ... %@", [_GSPrivate error]);
+	  NSLog(@"Failed to create pipe ... %@", [NSError _last]);
 	  DESTROY(self);
 	}
 #endif

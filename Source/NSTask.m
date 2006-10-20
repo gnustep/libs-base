@@ -1563,7 +1563,7 @@ GSPrivateCheckTasks()
       if (result < 0)
         {
           NSLog(@"waitpid %d, result %d, error %@",
-	    _taskId, result, [_GSPrivate error]);
+	    _taskId, result, [NSError _last]);
           [self _terminatedChild: -1];
         }
       else if (result == _taskId || (result > 0 && errno == 0))
@@ -1596,7 +1596,7 @@ GSPrivateCheckTasks()
       else
 	{
 	  NSLog(@"waitpid %d, result %d, error %@",
-	    _taskId, result, [_GSPrivate error]);
+	    _taskId, result, [NSError _last]);
 	}
 #endif
     }

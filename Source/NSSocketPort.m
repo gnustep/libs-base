@@ -391,7 +391,7 @@ static Class	runLoopClass;
   if (ioctlsocket(d, FIONBIO, &dummy) == SOCKET_ERROR)
     {
       NSLog(@"unable to set non-blocking mode on %d - %@",
-	d, [_GSPrivate error]);
+	d, [NSError _last]);
       return nil;
     }
 #else /* !__MINGW32__ */
@@ -401,14 +401,14 @@ static Class	runLoopClass;
       if (fcntl(d, F_SETFL, e) < 0)
 	{
 	  NSLog(@"unable to set non-blocking mode on %d - %@",
-	    d, [_GSPrivate error]);
+	    d, [NSError _last]);
 	  return nil;
 	}
     }
   else
     {
       NSLog(@"unable to get non-blocking mode on %d - %@",
-	d, [_GSPrivate error]);
+	d, [NSError _last]);
       return nil;
     }
 #endif
@@ -547,7 +547,7 @@ static Class	runLoopClass;
 	{
 	  NSLog(@"unable to make connection to %s:%d - %@",
 	    inet_ntoa(sockAddr.sin_addr),
-	    GSSwapBigI16ToHost(sockAddr.sin_port), [_GSPrivate error]);
+	    GSSwapBigI16ToHost(sockAddr.sin_port), [NSError _last]);
 	  if (addrNum < [addrs count])
 	    {
 	      BOOL	result;
@@ -817,7 +817,7 @@ static Class	runLoopClass;
 #endif /* !__MINGW32__ */
 	{
 	  NSDebugMLLog(@"GSTcpHandle",
-	      @"read failed - %@ on 0x%p", [_GSPrivate error], self);
+	      @"read failed - %@ on 0x%p", [NSError _last], self);
 	  [self invalidate];
 	  return;
 	}
@@ -1108,7 +1108,7 @@ static Class	runLoopClass;
             && res != 0)
         {
           state = GS_H_UNCON;
-          NSLog(@"connect attempt failed - %@", [_GSPrivate error]);
+          NSLog(@"connect attempt failed - %@", [NSError _last]);
         }
       else
         {
@@ -1128,7 +1128,7 @@ static Class	runLoopClass;
 	    {
 	      state = GS_H_UNCON;
 	      NSLog(@"connect write attempt failed - %@",
-	        [_GSPrivate error]);
+	        [NSError _last]);
 	    }
 	  RELEASE(d);
 	}
@@ -1166,7 +1166,7 @@ static Class	runLoopClass;
 	  if (errno != EINTR && errno != EAGAIN)
 #endif /* !__MINGW32__ */
 	    {
-	      NSLog(@"write attempt failed - %@", [_GSPrivate error]);
+	      NSLog(@"write attempt failed - %@", [NSError _last]);
 	      [self invalidate];
 	      return;
 	    }
@@ -1635,7 +1635,7 @@ static Class		tcpPortClass;
 	  else if ((desc = socket(AF_INET, SOCK_STREAM, PF_UNSPEC))
 	    == INVALID_SOCKET)
 	    {
-	      NSLog(@"unable to create socket - %@", [_GSPrivate error]);
+	      NSLog(@"unable to create socket - %@", [NSError _last]);
 	      DESTROY(port);
 	    }
 #ifndef	BROKEN_SO_REUSEADDR
@@ -1650,7 +1650,7 @@ static Class		tcpPortClass;
 	    {
 	      (void) close(desc);
               NSLog(@"unable to set reuse on socket - %@",
-		[_GSPrivate error]);
+		[NSError _last]);
               DESTROY(port);
 	    }
 #endif
@@ -1658,20 +1658,20 @@ static Class		tcpPortClass;
 	    sizeof(sockaddr)) == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to bind to port %s:%d - %@",
-		inet_ntoa(sockaddr.sin_addr), number, [_GSPrivate error]);
+		inet_ntoa(sockaddr.sin_addr), number, [NSError _last]);
 	      (void) close(desc);
               DESTROY(port);
 	    }
 	  else if (listen(desc, 128) == SOCKET_ERROR)
 	    {
-	      NSLog(@"unable to listen on port - %@", [_GSPrivate error]);
+	      NSLog(@"unable to listen on port - %@", [NSError _last]);
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
 	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i)
 	    == SOCKET_ERROR)
 	    {
-	      NSLog(@"unable to get socket name - %@", [_GSPrivate error]);
+	      NSLog(@"unable to get socket name - %@", [NSError _last]);
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
@@ -1971,7 +1971,7 @@ static Class		tcpPortClass;
   handle = nil;
   if ((sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
     {
-      NSLog(@"unable to create socket - %@", [_GSPrivate error]);
+      NSLog(@"unable to create socket - %@", [NSError _last]);
     }
 #ifndef	BROKEN_SO_REUSEADDR
   /*
@@ -1984,13 +1984,13 @@ static Class		tcpPortClass;
     sizeof(opt)) < 0)
     {
       (void)close(sock);
-      NSLog(@"unable to set reuse on socket - %@", [_GSPrivate error]);
+      NSLog(@"unable to set reuse on socket - %@", [NSError _last]);
     }
 #endif
   else if ((handle = [GSTcpHandle handleWithDescriptor: sock]) == nil)
     {
       (void)close(sock);
-      NSLog(@"unable to create GSTcpHandle - %@", [_GSPrivate error]);
+      NSLog(@"unable to create GSTcpHandle - %@", [NSError _last]);
     }
   else
     {

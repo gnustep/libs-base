@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc.,
-   51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #include "config.h"
@@ -304,14 +304,14 @@ static Class	runLoopClass;
       if (fcntl(d, F_SETFL, e) < 0)
 	{
 	  NSLog(@"unable to set non-blocking mode on %d - %@",
-	    d, [_GSPrivate error]);
+	    d, [NSError _last]);
 	  return nil;
 	}
     }
   else
     {
       NSLog(@"unable to get non-blocking mode on %d - %@",
-	d, [_GSPrivate error]);
+	d, [NSError _last]);
       return nil;
     }
   handle = (GSMessageHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
@@ -381,7 +381,7 @@ static Class	runLoopClass;
       if (errno != EINPROGRESS)
 	{
 	  NSLog(@"unable to make connection to %s - %@",
-	    sockAddr.sun_path, [_GSPrivate error]);
+	    sockAddr.sun_path, [NSError _last]);
 	  M_UNLOCK(myLock);
 	  return NO;
 	}
@@ -607,7 +607,7 @@ static Class	runLoopClass;
 	  else if (errno != EINTR && errno != EAGAIN)
 	    {
 	      NSDebugMLLog(@"NSMessagePort",
-		@"read failed - %@ on 0x%p", [_GSPrivate error], self);
+		@"read failed - %@ on 0x%p", [NSError _last], self);
 	      M_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
@@ -906,7 +906,7 @@ static Class	runLoopClass;
 	    && res != 0)
 	    {
 	      state = GS_H_UNCON;
-	      NSLog(@"connect attempt failed - %@", [_GSPrivate error]);
+	      NSLog(@"connect attempt failed - %@", [NSError _last]);
 	    }
 	  else
 	    {
@@ -923,7 +923,7 @@ static Class	runLoopClass;
 		{
 		  state = GS_H_UNCON;
 		  NSLog(@"connect write attempt failed - %@",
-		    [_GSPrivate error]);
+		    [NSError _last]);
 		}
 	      RELEASE(d);
 	    }
@@ -957,7 +957,7 @@ static Class	runLoopClass;
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
 		{
-		  NSLog(@"write attempt failed - %@", [_GSPrivate error]);
+		  NSLog(@"write attempt failed - %@", [NSError _last]);
 		  M_UNLOCK(myLock);
 		  [self invalidate];
 		  return;
@@ -1249,7 +1249,7 @@ typedef	struct {
 	    sizeof(sockAddr.sun_path));
 	  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
 	    {
-	      NSLog(@"unable to create socket - %@", [_GSPrivate error]);
+	      NSLog(@"unable to create socket - %@", [NSError _last]);
 	      desc = -1;
 	    }
 	  else if (bind(desc, (struct sockaddr *)&sockAddr,
@@ -1264,14 +1264,14 @@ typedef	struct {
 		  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
 		    {
 		      NSLog(@"unable to create socket - %@",
-			[_GSPrivate error]);
+			[NSError _last]);
 		      desc = -1;
 		    }
 		  else if (bind(desc, (struct sockaddr *)&sockAddr,
 		    SUN_LEN(&sockAddr)) < 0)
 		    {
 		      NSLog(@"unable to bind to %s - %@",
-			sockAddr.sun_path, [_GSPrivate error]);
+			sockAddr.sun_path, [NSError _last]);
 		      (void) close(desc);
 		      desc = -1;
 		    }
@@ -1279,7 +1279,7 @@ typedef	struct {
 	      else
 		{
 		  NSLog(@"unable to bind to %s - %@",
-		    sockAddr.sun_path, [_GSPrivate error]);
+		    sockAddr.sun_path, [NSError _last]);
 		  (void) close(desc);
 		  desc = -1;
 		}
@@ -1291,13 +1291,13 @@ typedef	struct {
 	    }
 	  else if (listen(desc, 128) < 0)
 	    {
-	      NSLog(@"unable to listen on port - %@", [_GSPrivate error]);
+	      NSLog(@"unable to listen on port - %@", [NSError _last]);
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
 	  else if (getsockname(desc, (struct sockaddr*)&sockAddr, &i) < 0)
 	    {
-	      NSLog(@"unable to get socket name - %@", [_GSPrivate error]);
+	      NSLog(@"unable to get socket name - %@", [NSError _last]);
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
@@ -1492,7 +1492,7 @@ typedef	struct {
   sock = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC);
   if (sock < 0)
     {
-      NSLog(@"unable to create socket - %@", [_GSPrivate error]);
+      NSLog(@"unable to create socket - %@", [NSError _last]);
     }
 #ifndef	BROKEN_SO_REUSEADDR
   /*
@@ -1505,13 +1505,13 @@ typedef	struct {
     sizeof(opt)) < 0)
     {
       (void)close(sock);
-      NSLog(@"unable to set reuse on socket - %@", [_GSPrivate error]);
+      NSLog(@"unable to set reuse on socket - %@", [NSError _last]);
     }
 #endif
   else if ((handle = [GSMessageHandle handleWithDescriptor: sock]) == nil)
     {
       (void)close(sock);
-      NSLog(@"unable to create GSMessageHandle - %@", [_GSPrivate error]);
+      NSLog(@"unable to create GSMessageHandle - %@", [NSError _last]);
     }
   else
     {

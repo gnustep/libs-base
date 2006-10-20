@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #include	<Foundation/NSDictionary.h>
@@ -26,11 +27,25 @@
 #include	<Foundation/NSError.h>
 #include	<Foundation/NSCoder.h>
 
+NSString* const NSFilePathErrorKey = @"NSFilePathErrorKey";
 NSString* const NSLocalizedDescriptionKey = @"NSLocalizedDescriptionKey";
+NSString* const NSStringEncodingErrorKey = @"NSStringEncodingErrorKey";
+NSString* const NSURLErrorKey = @"NSURLErrorKey";
 NSString* const NSUnderlyingErrorKey = @"NSUnderlyingErrorKey";
+
+NSString* const NSLocalizedFailureReasonErrorKey
+  = @"NSLocalizedFailureReasonErrorKey";
+NSString* const NSLocalizedRecoveryOptionsErrorKey
+  = @"NSLocalizedRecoveryOptionsErrorKey";
+NSString* const NSLocalizedRecoverySuggestionErrorKey
+  = @"NSLocalizedRecoverySuggestionErrorKey";
+NSString* const NSRecoveryAttempterErrorKey
+  = @"NSRecoveryAttempterErrorKey";
+
 NSString* const NSMACHErrorDomain = @"NSMACHErrorDomain";
 NSString* const NSOSStatusErrorDomain = @"NSOSStatusErrorDomain";
 NSString* const NSPOSIXErrorDomain = @"NSPOSIXErrorDomain";
+NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
 
 @implementation	NSError
 
@@ -62,6 +77,11 @@ NSString* const NSPOSIXErrorDomain = @"NSPOSIXErrorDomain";
   DESTROY(_domain);
   DESTROY(_userInfo);
   [super dealloc];
+}
+
+- (NSString*) description
+{
+  return [self localizedDescription];
 }
 
 - (NSString*) domain
@@ -131,7 +151,7 @@ NSString* const NSPOSIXErrorDomain = @"NSPOSIXErrorDomain";
   return self;
 }
 
-- (NSString *)localizedDescription
+- (NSString *) localizedDescription
 {
   NSString	*desc = [_userInfo objectForKey: NSLocalizedDescriptionKey];
 
@@ -140,6 +160,26 @@ NSString* const NSPOSIXErrorDomain = @"NSPOSIXErrorDomain";
       desc = [NSString stringWithFormat: @"%@ %d", _domain, _code];
     }
   return desc;
+}
+
+- (NSString *) localizedFailureReason
+{
+  return [_userInfo objectForKey: NSLocalizedFailureReasonErrorKey];
+}
+
+- (NSArray *) localizedRecoveryOptions
+{
+  return [_userInfo objectForKey: NSLocalizedRecoveryOptionsErrorKey];
+}
+
+- (NSString *) localizedRecoverySuggestion
+{
+  return [_userInfo objectForKey: NSLocalizedRecoverySuggestionErrorKey];
+}
+
+- (id) recoveryAttempter
+{
+  return [_userInfo objectForKey: NSRecoveryAttempterErrorKey];
 }
 
 - (NSDictionary*) userInfo

@@ -164,7 +164,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 
   if (theFile == 0)		/* We failed to open the file. */
     {
-      NSWarnFLog(@"Open (%@) attempt failed - %@", path, [_GSPrivate error]);
+      NSWarnFLog(@"Open (%@) attempt failed - %@", path, [NSError _last]);
       goto failure;
     }
 	
@@ -175,7 +175,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   if (c != 0)
     {
       NSWarnFLog(@"Seek to end of file (%@) failed - %@", path,
-	[_GSPrivate error]);
+	[NSError _last]);
       goto failure;
     }
 	
@@ -186,7 +186,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   fileLength = ftell(theFile);
   if (fileLength == -1)
     {
-      NSWarnFLog(@"Ftell on %@ failed - %@", path, [_GSPrivate error]);
+      NSWarnFLog(@"Ftell on %@ failed - %@", path, [NSError _last]);
       goto failure;
     }
 	
@@ -198,7 +198,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   if (c != 0)
     {
       NSWarnFLog(@"Fseek to start of file (%@) failed - %@", path,
-	[_GSPrivate error]);
+	[NSError _last]);
       goto failure;
     }
 	
@@ -224,7 +224,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 	  if (tmp == 0)
 	    {
 	      NSLog(@"Malloc failed for file (%@) of length %d - %@", path,
-		fileLength + c, [_GSPrivate error]);
+		fileLength + c, [NSError _last]);
 	      goto failure;
 	    }
 	  memcpy(tmp + fileLength, buf, c);
@@ -237,7 +237,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       if (tmp == 0)
 	{
 	  NSLog(@"Malloc failed for file (%@) of length %d - %@", path,
-	    fileLength, [_GSPrivate error]);
+	    fileLength, [NSError _last]);
 	  goto failure;
 	}
 	    
@@ -245,7 +245,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       if (c != (int)fileLength)
 	{
 	  NSWarnFLog(@"read of file (%@) contents failed - %@", path,
-	    [_GSPrivate error]);
+	    [NSError _last]);
 	  goto failure;
 	}
     }
@@ -851,7 +851,7 @@ failure:
       strcat(thePath, "XXXXXX");
       if ((desc = mkstemp(thePath)) < 0)
 	{
-          NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [_GSPrivate error]);
+          NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [NSError _last]);
           goto failure;
 	}
       mask = umask(0);
@@ -880,7 +880,7 @@ failure:
 	{
 	  NSWarnMLog(@"mktemp (%@) failed - %@",
 	  [NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
-	    [_GSPrivate error]);
+	    [NSError _last]);
 	  goto failure;
 	}
 #else
@@ -888,7 +888,7 @@ failure:
       strcat(thePath, "XXXXXX");
       if (mktemp(thePath) == 0)
 	{
-          NSWarnMLog(@"mktemp (%s) failed - %@", thePath, [_GSPrivate error]);
+          NSWarnMLog(@"mktemp (%s) failed - %@", thePath, [NSError _last]);
           goto failure;
 	}
 #endif
@@ -917,9 +917,9 @@ failure:
 #if defined(__MINGW32__)
       NSWarnMLog(@"Open (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
-	  [_GSPrivate error]);
+	  [NSError _last]);
 #else
-      NSWarnMLog(@"Open (%s) failed - %@", thePath, [_GSPrivate error]);
+      NSWarnMLog(@"Open (%s) failed - %@", thePath, [NSError _last]);
 #endif
       goto failure;
     }
@@ -935,9 +935,9 @@ failure:
 #if defined(__MINGW32__)
       NSWarnMLog(@"Fwrite (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
-	[_GSPrivate error]);
+	[NSError _last]);
 #else
-      NSWarnMLog(@"Fwrite (%s) failed - %@", thePath, [_GSPrivate error]);
+      NSWarnMLog(@"Fwrite (%s) failed - %@", thePath, [NSError _last]);
 #endif
       goto failure;
     }
@@ -952,9 +952,9 @@ failure:
 #if defined(__MINGW32__)
       NSWarnMLog(@"Fclose (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
-	[_GSPrivate error]);
+	[NSError _last]);
 #else
-      NSWarnMLog(@"Fclose (%s) failed - %@", thePath, [_GSPrivate error]);
+      NSWarnMLog(@"Fclose (%s) failed - %@", thePath, [NSError _last]);
 #endif
       goto failure;
     }
@@ -1040,10 +1040,10 @@ failure:
 				    length: wcslen(wthePath)],
 	    [NSString stringWithCharacters: wtheRealPath
 				    length: wcslen(wtheRealPath)],
-	    [_GSPrivate error]);
+	    [NSError _last]);
 #else
 	  NSWarnMLog(@"Rename ('%s' to '%s') failed - %@",
-	    thePath, theRealPath, [_GSPrivate error]);
+	    thePath, theRealPath, [NSError _last]);
 #endif
           goto failure;
         }
@@ -2916,7 +2916,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #endif
   if (fd < 0)
     {
-      NSWarnMLog(@"unable to open %@ - %@", path, [_GSPrivate error]);
+      NSWarnMLog(@"unable to open %@ - %@", path, [NSError _last]);
       RELEASE(self);
       return nil;
     }
@@ -2924,7 +2924,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   length = lseek(fd, 0, SEEK_END);
   if (length < 0)
     {
-      NSWarnMLog(@"unable to seek to eof %@ - %@", path, [_GSPrivate error]);
+      NSWarnMLog(@"unable to seek to eof %@ - %@", path, [NSError _last]);
       close(fd);
       RELEASE(self);
       return nil;
@@ -2932,7 +2932,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   /* Position at start of file. */
   if (lseek(fd, 0, SEEK_SET) != 0)
     {
-      NSWarnMLog(@"unable to seek to sof %@ - %@", path, [_GSPrivate error]);
+      NSWarnMLog(@"unable to seek to sof %@ - %@", path, [NSError _last]);
       close(fd);
       RELEASE(self);
       return nil;
@@ -2940,7 +2940,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
   if (bytes == MAP_FAILED)
     {
-      NSWarnMLog(@"mapping failed for %s - %@", path, [_GSPrivate error]);
+      NSWarnMLog(@"mapping failed for %s - %@", path, [NSError _last]);
       close(fd);
       RELEASE(self);
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
@@ -2968,14 +2968,14 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
       if (shmctl(shmid, IPC_STAT, &buf) < 0)
         NSLog(@"[NSDataShared -dealloc] shared memory control failed - %@",
-	  [_GSPrivate error]);
+	  [NSError _last]);
       else if (buf.shm_nattch == 1)
 	if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
           NSLog(@"[NSDataShared -dealloc] shared memory delete failed - %@",
-	    [_GSPrivate error]);
+	    [NSError _last]);
       if (shmdt(bytes) < 0)
         NSLog(@"[NSDataShared -dealloc] shared memory detach failed - %@",
-	  [_GSPrivate error]);
+	  [NSError _last]);
       bytes = 0;
       length = 0;
       shmid = -1;
@@ -2992,7 +2992,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (shmid == -1)			/* Created memory? */
 	{
 	  NSLog(@"[-initWithBytes:length:] shared mem get failed for %u - %@",
-	    bufferSize, [_GSPrivate error]);
+	    bufferSize, [NSError _last]);
 	  RELEASE(self);
 	  self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
 	  return [self initWithBytes: aBuffer length: bufferSize];
@@ -3002,7 +3002,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     if (bytes == (void*)-1)
       {
 	NSLog(@"[-initWithBytes:length:] shared mem attach failed for %u - %@",
-	  bufferSize, [_GSPrivate error]);
+	  bufferSize, [NSError _last]);
 	bytes = 0;
 	RELEASE(self);
 	self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
@@ -3021,7 +3021,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
       NSLog(@"[NSDataShared -initWithShmID:length:] shared memory "
-        @"control failed - %@", [_GSPrivate error]);
+        @"control failed - %@", [NSError _last]);
       RELEASE(self);	/* Unable to access memory. */
       return nil;
     }
@@ -3036,7 +3036,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (bytes == (void*)-1)
     {
       NSLog(@"[NSDataShared -initWithShmID:length:] shared memory "
-        @"attach failed - %s", [_GSPrivate error]);
+        @"attach failed - %s", [NSError _last]);
       bytes = 0;
       RELEASE(self);	/* Unable to attach to memory. */
       return nil;
@@ -3162,7 +3162,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (bytes == 0)
 	{
 	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory "
-	    @"for %u bytes - %@", size, [_GSPrivate error]);
+	    @"for %u bytes - %@", size, [NSError _last]);
 	  RELEASE(self);
 	  return nil;
 	}
@@ -3658,20 +3658,20 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (shmctl(shmid, IPC_STAT, &buf) < 0)
 	{
 	  NSLog(@"[NSMutableDataShared -dealloc] shared memory "
-	    @"control failed - %@", [_GSPrivate error]);
+	    @"control failed - %@", [NSError _last]);
 	}
       else if (buf.shm_nattch == 1)
 	{
 	  if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
 	    {
 	      NSLog(@"[NSMutableDataShared -dealloc] shared memory "
-		@"delete failed - %@", [_GSPrivate error]);
+		@"delete failed - %@", [NSError _last]);
 	    }
 	}
       if (shmdt(bytes) < 0)
 	{
 	  NSLog(@"[NSMutableDataShared -dealloc] shared memory "
-	    @"detach failed - %@", [_GSPrivate error]);
+	    @"detach failed - %@", [NSError _last]);
 	}
       bytes = 0;
       length = 0;
@@ -3699,7 +3699,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (shmid == -1)			/* Created memory? */
     {
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "
-	@"get failed for %u - %@", bufferSize, [_GSPrivate error]);
+	@"get failed for %u - %@", bufferSize, [NSError _last]);
       RELEASE(self);
       self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
       return [self initWithCapacity: bufferSize];
@@ -3709,7 +3709,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (bytes == (void*)-1)
     {
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "
-	@"attach failed for %u - %@", bufferSize, [_GSPrivate error]);
+	@"attach failed for %u - %@", bufferSize, [NSError _last]);
       bytes = 0;
       RELEASE(self);
       self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
@@ -3729,7 +3729,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
       NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory "
-	@"control failed - %@", [_GSPrivate error]);
+	@"control failed - %@", [NSError _last]);
       RELEASE(self);	/* Unable to access memory. */
       return nil;
     }
@@ -3744,7 +3744,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (bytes == (void*)-1)
     {
       NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory "
-	@"attach failed - %@", [_GSPrivate error]);
+	@"attach failed - %@", [NSError _last]);
       bytes = 0;
       RELEASE(self);	/* Unable to attach to memory. */
       return nil;
@@ -3767,7 +3767,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  [NSException raise: NSMallocException
 	    format: @"Unable to create shared memory segment (size:%u) - %@.",
-	    size, [_GSPrivate error]];
+	    size, [NSError _last]];
 	}
       tmp = shmat(newid, 0, 0);
       if ((intptr_t)tmp == -1)			/* Attached memory? */
@@ -3783,20 +3783,20 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
           if (shmctl(shmid, IPC_STAT, &buf) < 0)
 	    {
 	      NSLog(@"[NSMutableDataShared -setCapacity:] shared memory "
-		@"control failed - %@", [_GSPrivate error]);
+		@"control failed - %@", [NSError _last]);
 	    }
           else if (buf.shm_nattch == 1)
 	    {
 	      if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
 		{
 		  NSLog(@"[NSMutableDataShared -setCapacity:] shared memory "
-		    @"delete failed - %@", [_GSPrivate error]);
+		    @"delete failed - %@", [NSError _last]);
 		}
 	    }
 	  if (shmdt(bytes) < 0)				/* Detach memory. */
 	    {
               NSLog(@"[NSMutableDataShared -setCapacity:] shared memory "
-		@"detach failed - %@", [_GSPrivate error]);
+		@"detach failed - %@", [NSError _last]);
 	    }
 	}
       bytes = tmp;

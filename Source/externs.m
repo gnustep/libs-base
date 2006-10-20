@@ -25,7 +25,6 @@
 #include "config.h"
 #include "Foundation/NSString.h"
 
-
 #include "Foundation/NSArray.h"
 #include "Foundation/NSException.h"
 
@@ -231,7 +230,7 @@ NSString *NSClassDescriptionNeededForClassNotification = @"NSClassDescriptionNee
  */
 
 void
-GSBuildStrings()
+GSPrivateBuildStrings()
 {
   static Class	NSStringClass = 0;
 
