@@ -1487,7 +1487,8 @@ static NSMapTable	*absolutes = 0;
                     bufsize--;
                   }
 		localZoneString
-		  = [NSString stringWithUTF8String: buf length: bufsize];
+		  = [NSString stringWithCString: buf
+                                 length: bufsize];
               }
             RegCloseKey(regkey);
           }

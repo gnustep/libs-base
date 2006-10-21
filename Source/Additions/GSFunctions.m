@@ -63,6 +63,7 @@ GSErrorString(long error_id)
 #endif
 }
 
+// FIXME: This should be GSFPrintf
 BOOL
 GSPrintf (FILE *fptr, NSString* format, ...)
 {

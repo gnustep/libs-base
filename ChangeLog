@@ -1,3 +1,24 @@
+2006-10-20  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source/NSException.m:
+    * Source/NSProcessInfo.m:
+    No longer need target_os. Hidden concrete class should be GS
+    Clean out need for GSArgZero
+
+2006-10-19  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Headers/Foundation/NSError.h:
+    * Source/NSError.m:
+    Update to Tiger compatible level
+
+2006-10-18  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * SSL/GSSSLHandle.m:
+    Compilation fix
+    * Source/NSDistributedLock.m
+    * Source/win32/NSMessagePortNameServerWin32.m
+    Fix format string error
+
 2006-10-18  Sheldon Gill  <sheldon@westnet.net.au>
 
     * Headers/Foundation/NSException.h:
@@ -41,31 +62,31 @@
 
 2006-10-03  Sheldon Gill  <sheldon@westnet.net.au>
 
-    * Source\GSFileHandle.m:
-    * Source\GSFormat.m:
-    * Source\GSFTPURLHandle.m:
-    * Source\GSHTTPURLHandle.m:
-    * Source\GSStream.m:
-    * Source\NSData.m:
-    * Source\NSDistributedLock.m:
-    * Source\NSFileManager.m:
-    * Source\NSMessagePort.m:
-    * Source\NSPipe.m:
-    * Source\NSSocketPort.m:
-    * Source\NSTask.m:
-    * Source\NSThread.m:
+    * Source/GSFileHandle.m:
+    * Source/GSFormat.m:
+    * Source/GSFTPURLHandle.m:
+    * Source/GSHTTPURLHandle.m:
+    * Source/GSStream.m:
+    * Source/NSData.m:
+    * Source/NSDistributedLock.m:
+    * Source/NSFileManager.m:
+    * Source/NSMessagePort.m:
+    * Source/NSPipe.m:
+    * Source/NSSocketPort.m:
+    * Source/NSTask.m:
+    * Source/NSThread.m:
 
-    * Source\win32\GSFileHandleWin32.m:
-    * Source\win32\GSRunLoopCtxt.m:
-    * Source\win32\NSMessagePortNameServerWin32.m:
-    * Source\win32\NSMessagePortWin32.m:
-    * Source\win32\NSStreamWin32.m:
+    * Source/win32/GSFileHandleWin32.m:
+    * Source/win32/GSRunLoopCtxt.m:
+    * Source/win32/NSMessagePortNameServerWin32.m:
+    * Source/win32/NSMessagePortWin32.m:
+    * Source/win32/NSStreamWin32.m:
 
     * Headers/Additions/GNUstepBase/GSObjCRuntime.h:
     * Headers/Additions/GNUstepBase/GSFunctions.h:
-    * Additions\GSCompatibility.m:
-    * Additions\GSObjCRuntime.m:
-    * Additions\GSFunctions.m:
+    * Additions/GSCompatibility.m:
+    * Additions/GSObjCRuntime.m:
+    * Additions/GSFunctions.m:
 
     Moved GSPrintf() and GSLastErrorStr() to GSFunctions
     Altered GSLastErrorStr(long) to GSLastError(void)

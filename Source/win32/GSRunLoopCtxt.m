@@ -21,10 +21,10 @@
 extern BOOL	GSCheckTasks();
 
 #if	GS_WITH_GC == 0
-static SEL	wRelSel;
-static SEL	wRetSel;
-static IMP	wRelImp;
-static IMP	wRetImp;
+SEL	wRelSel;
+SEL	wRetSel;
+IMP	wRelImp;
+IMP	wRetImp;
 
 static void
 wRelease(NSMapTable* t, void* w)

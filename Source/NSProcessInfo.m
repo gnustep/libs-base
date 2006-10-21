@@ -36,7 +36,7 @@
  * behavior. The same is true for the meaning of argv[0] (process name).
  * 2) The global variable _gnu_sharedProcessInfoObject should NEVER be
  * deallocated during the process runtime. Therefore I implemented a
- * concrete NSProcessInfo subclass (_NSConcreteProcessInfo) with the only
+ * concrete NSProcessInfo subclass (_GSConcreteProcessInfo) with the only
  * purpose to override the autorelease, retain, and release methods.
  * -----------------------------------------------------------------------
  * TODO       : Clean up the initialisation. Its too messy and confusing.
@@ -100,16 +100,12 @@
 
 #include "GSPrivate.h"
 
-@interface NSBundle (Private)
-+ (NSString*) _gnustep_target_os;
-@end
-
 /* This error message should be called only if the private main function
  * was not executed successfully. This may happen ONLY if another library
  * or kit defines its own main function (as gnustep-base does).
  */
 #if GS_FAKE_MAIN
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL @"GNUSTEP Internal Error\n\
 The private GNUstep function to establish the argv and environment\n\
 variables was not called.\n\
 Perhaps your program failed to #include <Foundation/NSObject.h> or\n\
@@ -117,18 +113,18 @@ Perhaps your program failed to #include <Foundation/NSObject.h> or\n\
 If that is not the problem, Please report the error to bug-gnustep@gnu.org.\n\n"
 #else
 #ifdef GS_PASS_ARGUMENTS
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Error:\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL @"GNUSTEP Error\n\
 A call to NSProcessInfo +initializeWithArguments:... must be made\n\
 as the first ObjC statment in main. This function is used to \n\
 establish the argv and environment variables.\n"
 #else
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
-The private GNUstep function to establish the argv and environment\n\
-variables was not called.\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL @"GNUSTEP Internal Error\n\
+GNUstep failed to establish the argv and environment variables so it's\n\
+unable to initialise properly.\n\
 \n\
-Mismatched library versions between GNUstep Foundation (base) and AppKit\n\
-(gui) is most often the cause of this message. Please be sure you\n\
-are using known compatible versions and not a mismatched set. Generally,\n\
+Mismatched library versions between gnustep-base and gnustep-gui is most\n\
+often the cause of this message. Please be sure you are using known\n\
+compatible versions and not a mismatched set. Generally,\n\
 we recommend you use versions of base and gui which were released together.\n\
 \n\
 For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\n"
@@ -136,15 +132,15 @@ For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\
 #endif
 
 /*************************************************************************
- *** _NSConcreteProcessInfo
+ *** _GSConcreteProcessInfo
  *************************************************************************/
-@interface _NSConcreteProcessInfo: NSProcessInfo
+@interface _GSConcreteProcessInfo: NSProcessInfo
 - (id) autorelease;
 - (void) release;
 - (id) retain;
 @end
 
-@implementation _NSConcreteProcessInfo
+@implementation _GSConcreteProcessInfo
 - (id) autorelease
 {
   return self;
@@ -815,7 +811,7 @@ _gnu_noobjc_free_vars(void)
 }
 #else /*! HAVE_PROCFS !HAVE_LOAD_METHOD !HAVE_KVM_ENV */
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__)
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
 + (void) initialize
 {
@@ -852,21 +848,6 @@ int main(int argc, char *argv[], char *env[])
          sizeof(_NSConstantStringClassReference));
 #endif
 
-#if defined(__MINGW32__)
-  WSADATA lpWSAData;
-
-  // Initialize Windows Sockets
-  if (WSAStartup(MAKEWORD(1,1), &lpWSAData))
-    {
-      printf("Could not startup Windows Sockets\n");
-      exit(1);
-    }
-#endif /* __MINGW32__ */
-
-#ifdef __MS_WIN__
-  _MB_init_runtime();
-#endif /* __MS_WIN__ */
-
   _gnu_process_args(argc, argv, env);
 
   /* Call the user defined main function */
@@ -882,18 +863,19 @@ int main(int argc, char *argv[], char *env[])
  */
 + (NSProcessInfo *) processInfo
 {
-  // Check if the main() function was successfully called
+  // Check if we're properly set up.
   // We can't use NSAssert, which calls NSLog, which calls NSProcessInfo...
   if (!(_gnu_processName && _gnu_arguments && _gnu_environment))
     {
-      _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
+      _gnu_processName = @"";
+      _gnu_arguments   = [NSArray arrayWithObjects: nil];
+      _gnu_environment = [NSDictionary dictionaryWithObjectsAndKeys: nil];
       [NSException raise: NSInternalInconsistencyException
-	          format: _GNU_MISSING_MAIN_FUNCTION_CALL];
+                  format: _GNU_MISSING_MAIN_FUNCTION_CALL];
     }
-
   if (!_gnu_sharedProcessInfoObject)
     {
-      _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
+      _gnu_sharedProcessInfoObject = [[_GSConcreteProcessInfo alloc] init];
     }
   return _gnu_sharedProcessInfoObject;
 }
@@ -1224,7 +1206,7 @@ BOOL GSDebugSet(NSString *level)
 	}
       debugImp = [_debug_set methodForSelector: debugSel];
     }
-  if ((*debugImp)(_debug_set, debugSel, level) == nil)
+  if (debugImp && ((*debugImp)(_debug_set, debugSel, level) == nil))
     {
       return NO;
     }
@@ -1259,18 +1241,3 @@ GSEnvironmentFlag(const char *name, BOOL def)
     }
   return a;
 }
-
-/**
- * Used by NSException uncaught exception handler - must not call any
- * methods/functions which might cause a recursive exception.
- */
-const char*
-GSArgZero(void)
-{
-  if (_gnu_arg_zero == 0)
-    return "";
-  else
-    return _gnu_arg_zero;
-}
-
-

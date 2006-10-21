@@ -599,10 +599,11 @@ static void _terminate()
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
-  extern const char*	GSArgZero(void);
+  NSString *process_name = [[NSProcessInfo processInfo] processName];
 
-  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n", GSArgZero(),
-    [[exception name] lossyCString], [[exception reason] lossyCString]);
+  fprintf(stderr, "%s: Uncaught exception %s\n  Reason: %s\n",
+    [process_name lossyCString], [[exception name] lossyCString],
+    [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
 
   _terminate();

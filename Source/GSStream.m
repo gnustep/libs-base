@@ -361,18 +361,16 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   NSError *theError;
 
 #if	defined(__MINGW32__)
-  errno = GetLastError();   // FIXME: Make this NSWin32ErrorDomain -SG
-/*
-  theError = [NSError errorWithDomain: NSMSWindowsErrorDomain
+  theError = [NSError errorWithDomain: (NSString *)GSMSWindowsErrorDomain
                                  code: GetLastError()
                              userInfo: nil];
 #else
-*/
-#endif
-  theError = [NSError errorWithDomain: NSPOSIXErrorDomain
+  theError = [NSError errorWithDomain: (NSString *)NSPOSIXErrorDomain
 					  code: errno
 				      userInfo: nil];
-  NSLog(@"%@ error(%d): - %@", self, errno, GSLastError());
+
+#endif
+  NSDebugLog(@"%@ error(%d): - %@", self, errno, GSLastError());
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
 }
