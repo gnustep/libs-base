@@ -380,7 +380,7 @@ static IMP	initImp;
        * releasing. */
       while (released != 0)
 	{
-	  id	*objects = released->objects;
+	  id	*objects = (id *)(released->objects);
 
 	  for (i = 0; i < released->count; i++)
 	    {

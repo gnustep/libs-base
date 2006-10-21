@@ -48,6 +48,7 @@
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSVersionMacros.h"
 
 #if	defined(__cplusplus)
 extern "C" {

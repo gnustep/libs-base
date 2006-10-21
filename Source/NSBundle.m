@@ -23,7 +23,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
 
    <title>NSBundle class reference</title>
@@ -791,15 +792,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		  {
 		    Class *ptr;
 
-		    numClasses += 10;
-		    ptr = objc_realloc(classes, sizeof(Class) * numClasses);
+		    numBufClasses += 10;
+		    ptr = objc_realloc(classes, sizeof(Class) * numBufClasses);
 
 		    if (!ptr)
 		      break;
 
 		    classes = ptr;
 		  }
-	    }
+	      }
 
 	    for (i = 0; i < numClasses; i++)
 	      {
@@ -920,7 +921,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
          the executable name here - just in case it turns out it's a
          tool.  */
       NSString *toolName = [ExecutablePath() lastPathComponent];
-#if defined(__WIN32__)
+#if defined(__MINGW32__) || defined(__CYGWIN__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
 

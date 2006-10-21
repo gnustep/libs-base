@@ -263,7 +263,7 @@ bench_array()
     {
       char buf1[100];
       sprintf(buf1, "str%0d", i);
-      strings[i] = [stringClass stringWithCString: buf1];
+      strings[i] = [stringClass stringWithUTF8String: buf1];
     }
   printf("NSArray\n");
   array = [NSMutableArray arrayWithCapacity: 16];
@@ -316,8 +316,8 @@ bench_dict()
       char buf1[100], buf2[100];
       sprintf(buf1, "key%0d", i);
       sprintf(buf2, "val%0d", i);
-      keys[i] = [stringClass stringWithCString: buf1];
-      vals[i] = [stringClass stringWithCString: buf2];
+      keys[i] = [stringClass stringWithUTF8String: buf1];
+      vals[i] = [stringClass stringWithUTF8String: buf2];
     }
   printf("NSDictionary\n");
   dict = [NSMutableDictionary dictionaryWithCapacity: 16];
@@ -487,7 +487,7 @@ bench_str()
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
     {
-      str = [stringClass stringWithCString: "hello world"];
+      str = [stringClass stringWithUTF8String: "hello world"];
     }
   END_TIMER;
   PRINT_TIMER("NSString (1 cstring:) \t\t");

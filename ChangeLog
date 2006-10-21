@@ -1,5 +1,91 @@
 2006-10-21  Sheldon Gill  <sheldon@westnet.net.au>
 
+    * Headers/GNUstepBase/GSVersionMacros.h:
+    * Headers/GNUstepBase/GNUstep.h:
+    Merge RFM's version macro changes from trunk/HEAD
+
+    * Source\NSIndexPath.m
+    * Source\NSSocketPortNameServer.m
+    * Source\NSTimeZone.m
+    * Source\NSHashTable.m
+    * Source\NSBundle.m
+    * Source\NSTimer.m
+    * Source\libgnustep-base-entry.m
+    * Source\GSConcreteValueTemplate.m
+    * Source\GNUmakefile
+    * Source\NSGeometry.m
+    * Source\NSUndoManager.m
+    * Source\NSMethodSignature.m
+    * Source\NSFormatter.m
+    * Source\NSArray.m
+    * Source\NSMessagePortNameServer.m
+    * Source\GSStream.m
+    * Source\objc-gnu2next.m
+    * Source\NSDebug.m
+    * Source\GSConcreteValue.m
+    * Source\NSFileHandle.m
+    * Source\preface.m
+    * Source\NSAssertionHandler.m
+    * Source\NSConcreteNumberTemplate.m
+    * Source\NSCallBacks.h
+    * Source\NSZone.m
+    * Source\NSCallBacks.m
+    * Source\NSPort.m
+    * Source\NSMessagePort.m
+    * Source\GSDictionary.m
+    * Source\win32\GSFileHandleWin32.m
+    * Source\GSCountedSet.m
+    * Source\NSFileManager.m
+    * Source\NSConcreteNumber.m
+    * Source\NSNotificationCenter.m
+    * Source\NSRange.m
+    * Source\NSCoder.m
+    * Source\NSException.m
+    * Source\NSCopyObject.m
+    * Source\mframe.m
+    * Source\NSDecimalNumber.m
+    * Source\Additions\Unicode.m
+    * Source\Additions\GNUmakefile
+    * Source\Additions\GSCompatibility.m
+    * Source\GSSet.m
+    * Source\NSNotification.m
+    * Source\NSAutoreleasePool.m
+    * Source\NSHost.m
+    * Source\NSProxy.m
+    * Source\NSObjCRuntime.m
+    * Source\NSProtocolChecker.m
+    * Source\GSValue.m
+    * Source\NSSerializer.m
+    * Source\NSClassDescription.m
+    * Source\NSNull.m
+    * Source\NSValue.m
+    * Source\NSCountedSet.m
+    * Source\NSLog.m
+    * Source\NSIndexSet.m
+    * Source\NSLock.m
+    * Source\NSDistantObject.m
+    * Source\NSArchiver.m
+    * Source\NSPortNameServer.m
+    * Source\NSNumberFormatter.m
+    * Source\NSXMLParser.m
+    * Source\NSEnumerator.m
+    * Source\GSURLPrivate.h
+    * Headers\Foundation\NSCoder.h
+    * Headers\Foundation\NSObject.h
+    * Headers\Foundation\NSError.h
+    * Headers\Additions\GNUstepBase\GSObjCRuntime.h
+    * Headers\Additions\GNUstepBase\GSCategories.h
+    * Headers\Additions\GNUstepBase\GNUstep.h
+    * Headers\Additions\GNUstepBase\Unicode.h
+    * Testing\call.m
+    * Testing\benchmark.m
+    Correct layout of FSF headquarters location
+
+    * Headers/GNUstepBase/GSObjCRuntime.h:
+    Move some declarations to GNUstep.h where they make more sense
+
+2006-10-21  Sheldon Gill  <sheldon@westnet.net.au>
+
     * Headers/GNUstepBase/Win32_Utilities.h:
     * Source/win32/Win32_Utilities.m:
     move Win32ErrorString

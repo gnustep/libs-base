@@ -168,10 +168,10 @@
   return nil;
 }
 
-- (id) initWithModule: (GSBinaryFileInfo*)module
-	      address: (void*)address 
-		 file: (NSString*)file 
-	     function: (NSString*)function
+- (id) initWithModule: (GSBinaryFileInfo *)module
+	      address: (void* )address 
+		 file: (NSString *)file 
+	     function: (NSString *)function
 		 line: (int)lineNo
 {
   _module = [module retain];

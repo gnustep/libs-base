@@ -1,5 +1,5 @@
 /** Interface for NSError for GNUStep
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004-2006 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: May 2004
@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-@class NSDictionary, NSString;
+@class NSArray, NSDictionary, NSString;
 
 /**
  * Key for user info dictionary component which describes the error in

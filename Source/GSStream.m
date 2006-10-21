@@ -370,7 +370,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 				      userInfo: nil];
 
 #endif
-  NSDebugLog(@"%@ error(%d): - %@", self, errno, GSLastError());
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
 }

@@ -353,46 +353,6 @@ extern "C" {
 #endif
 @end
 
-#ifndef NO_GNUSTEP
-
-/**
- *  GNUstep extensions to [NSCoder], supporting compatibility with libObjects.
- *  DEPRECATED
- */
-@interface NSCoder (GNUstep)
-/* Compatibility with libObjects */
-- (void) decodeArrayOfObjCType: (const char*)type
-		         count: (unsigned)count
-			    at: (void*)buf
-		      withName: (id*)name;
-/** <override-dummy /> decodes indentation */
-- (void) decodeIndent;
-- (void) decodeObjectAt: (id*)anObject
-	       withName: (id*)name;
-- (void) decodeValueOfCType: (const char*)type
-			 at: (void*)buf
-		   withName: (id*)name;
-- (void) decodeValueOfObjCType: (const char*)type
-			    at: (void*)buf
-		      withName: (id*)name;
-- (void) encodeArrayOfObjCType: (const char*)type
-		         count: (unsigned)count
-			    at: (const void*)buf
-		      withName: (id)name;
-/** <override-dummy /> encodes indentation */
-- (void) encodeIndent;
-- (void) encodeObjectAt: (id*)anObject
-	       withName: (id)name;
-- (void) encodeValueOfCType: (const char*)type
-			 at: (const void*)buf
-		   withName: (id)name;
-- (void) encodeValueOfObjCType: (const char*)type
-			    at: (const void*)buf
-		      withName: (id)name;
-@end
-
-#endif /* NO_GNUSTEP */
-
 #if	defined(__cplusplus)
 }
 #endif

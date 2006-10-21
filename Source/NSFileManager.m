@@ -30,7 +30,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSFileManager class reference</title>
    $Date$ $Revision$
@@ -201,8 +202,6 @@
 
 #define	_NUL		L'\0'
 
-#define lasterr     GetLastError()
-
 #else
 
 #define	_CHMOD(A,B)	chmod(A,B)
@@ -221,8 +220,6 @@
 #define	_UTIMB		utimbuf
 
 #define	_NUL		'\0'
-
-#define lasterr     errno
 
 #endif
 

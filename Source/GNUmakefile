@@ -108,6 +108,7 @@ win32-def.top \
 libgnustep-base.def
 
 ADD_HEADERS = \
+GSVersionMacros.h \
 GSObjCRuntime.h \
 GSCategories.h \
 GSFileHandle.h \
