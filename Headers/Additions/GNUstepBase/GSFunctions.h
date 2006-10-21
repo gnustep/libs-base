@@ -2,7 +2,7 @@
    Copyright (C) 2005-2006 Free Software Foundation, Inc.
 
    Written by:  Sheldon Gill
-   Date:    2005
+   Date:        2005
    
    This file is part of the GNUstep Base Library.
 
@@ -35,43 +35,56 @@
 extern "C" {
 #endif
 
-@class	NSArray;
-@class	NSString;
+@class NSArray;
+@class NSString;
 
+#include "Foundation/NSError.h"
+
+/*
+ * Functions to create an NSError object for the last error in given domain
+ */
+static inline NSError *GSLastPOSIXError(void)
+{
+  return [NSError errorWithDomain: (NSString *)NSPOSIXErrorDomain
+                             code: errno
+                         userInfo: nil];
+}
+
+#if	defined(__MINGW32__)
+static inline NSError *GSLastMSWinError(void)
+{
+  return [NSError errorWithDomain: (NSString *)GSMSWindowsErrorDomain
+                             code: GetLastError()
+                         userInfo: nil];
+}
+#endif
+
+static inline NSError *GSLastError(void)
+{
+  return [NSError errorWithDomain: (NSString *)NSPOSIXErrorDomain
+                             code: errno
+                         userInfo: nil];
+}
+
+static inline NSError *GSLastSocketError(void)
+{
+#if	defined(__MINGW32__)
+  return [NSError errorWithDomain: (NSString *)GSMSWindowsErrorDomain
+                             code: WSAGetLastError()
+                         userInfo: nil];
+#else
+  return [NSError errorWithDomain: (NSString *)NSPOSIXErrorDomain
+                             code: errno
+                         userInfo: nil];
+#endif
+}
+
+#define GSErrorString GSLastErrorStr
 
 /**
  * Returns the system error message for the given error number
  */
-GS_EXPORT NSString *GSErrorString(long errorNumber);
-
-/**
- * <p>Returns the error message for the last system error.</p>
- * On *nix, this is equivalent to strerror(errno).
- * On MS-Windows this is the message for GetLastError().
- */
-static inline NSString *GSLastError(void)
-{
-#if defined(__MINGW32__)
-    return GSErrorString(GetLastError());
-#else
-    return GSErrorString(errno);
-#endif
-}
-
-/**
- * <p>Returns the error message for the last sockets library
- * error.</p>
- * On *nix, this is equivalent to strerror(errno).
- * On MS-Windows this is the message for WSAGetLastError().
- */
-static inline NSString *GSLastSocketError(void)
-{
-#if defined(__MINGW32__)
-    return GSErrorString(WSAGetLastError());
-#else
-    return GSErrorString(errno);
-#endif
-}
+GS_EXPORT NSString *GSLastErrorStr(long errorNumber);
 
 /**
  * <p>Prints a message to fptr using the format string provided and any
@@ -87,7 +100,11 @@ static inline NSString *GSLastSocketError(void)
  * use NSLog(), and for warnings you might consider NSWarnLog().
  * </p>
  */
-GS_EXPORT BOOL GSPrintf (FILE *fptr, NSString *format, ...);
+GS_EXPORT BOOL GSPrintf(FILE *fptr, NSString *format, ...);
+
+// FIXME: Should really be:
+// GS_EXPORT BOOL GSFPrintf(FILE *fptr, NSString *format, ...);
+// GS_EXPORT BOOL GSPrintf(NSString *format, ...);
 
 /**
  * Try to locate file/directory (aName).(anExtension) in paths.

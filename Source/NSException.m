@@ -37,6 +37,8 @@
 #include "Foundation/NSDictionary.h"
 #include <stdio.h>
 
+#define STACKTRACE
+
 /*
  * Turn off STACKTRACE if we don't have bfd support for it.
  */
@@ -169,7 +171,7 @@
 - (id) initWithModule: (GSBinaryFileInfo*)module
 	      address: (void*)address 
 		 file: (NSString*)file 
-	     function: (NSString*)function 
+	     function: (NSString*)function
 		 line: (int)lineNo
 {
   _module = [module retain];
@@ -489,7 +491,7 @@ static NSNull	*null = nil;
   return [frames count];
 }
 
-// grab the current stack 
+// grab the current stack
 // this MAX_FRAME comes from NSDebug.h which warn only 100 frames are available
 #define MAX_FRAME  100
 - (id) init
@@ -529,7 +531,7 @@ static NSNull	*null = nil;
 	{
 	  aFrame = [GSFunctionInfo alloc];
 	  [aFrame initWithModule: nil
-			 address: address 
+			 address: address
 			    file: nil
 			function: nil
 			    line: 0];
@@ -832,7 +834,7 @@ _NSAddHandler (NSHandler* handler)
     {
       fprintf(stderr, "ERROR: Current exception handler is bogus.\n");
     }
-#endif  
+#endif
   handler->next = thread->_exception_handler;
   thread->_exception_handler = handler;
 }

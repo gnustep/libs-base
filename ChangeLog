@@ -1,3 +1,14 @@
+2006-10-21  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Headers/GNUstepBase/Win32_Utilities.h:
+    * Source/win32/Win32_Utilities.m:
+    move Win32ErrorString
+    * Headers/GNUstepBase/GSFunctions.h:
+    * Source/Additions/GSFunctions.m:
+    * Source/NSError.m:
+    Revert to GSLastErrorStr() for compatibility API
+    Alter error macros
+
 2006-10-20  Sheldon Gill  <sheldon@westnet.net.au>
 
     * Source/NSException.m:

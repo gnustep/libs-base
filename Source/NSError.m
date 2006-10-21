@@ -22,7 +22,10 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */
+
+   <title>NSError class reference</title>
+   $Date$ $Revision$
+*/
 
 #include    <Foundation/NSArray.h>
 #include    <Foundation/NSDictionary.h>
@@ -30,8 +33,6 @@
 #include    <Foundation/NSError.h>
 #include    <Foundation/NSCoder.h>
 #include    <GNUstepBase/GSFunctions.h>
-
-#include    <GNUstepBase/Win32_Utilities.h>
 
 /* ---- Error Keys ---- */
 const NSString *NSLocalizedDescriptionKey = @"NSLocalizedDescriptionKey";
@@ -52,8 +53,48 @@ const NSString *NSPOSIXErrorDomain = @"NSPOSIXErrorDomain";
 
 const NSString *GSMSWindowsErrorDomain = @"GSMSWindowsErrorDomain";
 
+/* ----------------- */
+/* Private Functions */
+/* ----------------- */
 
-@implementation	NSError
+/* Translates a POSIX error code into a text equivalent */
+static NSString *POSIXErrorString(int errorNo)
+{
+  return [NSString stringWithCString: strerror(errorNo)
+                            encoding: [NSString defaultCStringEncoding]];
+}
+
+#if defined(__MINGW32__)
+/* Translates a Win32 error code into a text equivalent */
+static NSString *Win32ErrorString(DWORD errorCode)
+{
+  NSString *message;
+  LPVOID lpMsgBuf;
+
+  FormatMessageW( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                  NULL, errorCode,
+                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                  (LPWSTR) &lpMsgBuf, 0, NULL );
+  message = [NSString stringWithCharacters: lpMsgBuf
+                                    length: wcslen(lpMsgBuf)];
+  LocalFree( lpMsgBuf );
+  return message;
+}
+#endif
+
+#if defined(__MACOSX__)
+/* Translates a Carbon OSStatus code into a text equivalent */
+static NSString *OSStatusErrorString(OSStatus statusCode)
+{
+  return [NSString stringWithCString: GetMacOSStatusErrorString(statusCode)
+                            encoding: NSUTF8StringEncoding];
+}
+#endif
+
+/*************************************************************************
+ *** NSError implementation
+ *************************************************************************/
+@implementation NSError
 
 + (id) errorWithDomain: (NSString*)aDomain
 		  code: (int)aCode
@@ -143,6 +184,14 @@ const NSString *GSMSWindowsErrorDomain = @"GSMSWindowsErrorDomain";
   return self;
 }
 
+/*
+ * NSError objects are best described to humans using their localized version
+ */
+- (NSString*) description
+{
+  return [self localizedDescription];
+}
+
 - (int) code
 {
   return _code;
@@ -165,16 +214,14 @@ const NSString *GSMSWindowsErrorDomain = @"GSMSWindowsErrorDomain";
       if ([_domain isEqualToString: (NSString *)NSPOSIXErrorDomain])
         {
             /* It's the system/libc error code. */
-            return [NSString stringWithCString: strerror(_code)
-                                      encoding: [NSString defaultCStringEncoding]];
+            return POSIXErrorString(_code);
         }
 #if defined(__MACOSX__)
       /* These only have meaning on MacOSX... */
       else if ([_domain isEqualToString: NSOSStatusErrorDomain])
         {
             /* This only has meaning on Carbon... */
-            return [NSString stringWithFormat: @"%@",
-                      GetMacOSStatusErrorString()];
+            return OSStatusErrorString(_code)];
         }
       else if ([_domain isEqualToString: NSMACHErrorDomain])
         {
@@ -185,7 +232,7 @@ const NSString *GSMSWindowsErrorDomain = @"GSMSWindowsErrorDomain";
       /* This only has meaning on MS-Windows... */
       else if ([_domain isEqualToString: (NSString *)GSMSWindowsErrorDomain])
         {
-            return Win32ErrorString(_code);
+          return Win32ErrorString(_code);
         }
 #endif
       else

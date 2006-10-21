@@ -144,23 +144,23 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 #if	GS_WITH_GC == 1
   zone = GSAtomicMallocZone();	// Use non-GC memory inside NSData
 #endif
-	
+
 #if defined(__MINGW32__)
   thePath = (const unichar*)[path fileSystemRepresentation];
 #else
   thePath = [path fileSystemRepresentation];
-#endif	
+#endif
   if (thePath == 0)
     {
       NSWarnFLog(@"Open (%@) attempt failed - bad path", path);
       return NO;
     }
-	
+
 #if defined(__MINGW32__)
   theFile = _wfopen(thePath, L"rb");
 #else
   theFile = fopen(thePath, "rb");
-#endif	
+#endif
 
   if (theFile == 0)		/* We failed to open the file. */
     {
@@ -168,7 +168,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       GSLastError());
       goto failure;
     }
-	
+
   /*
    *	Seek to the end of the file.
    */
@@ -179,7 +179,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       GSLastError());
       goto failure;
     }
-	
+
   /*
    *	Determine the length of the file (having seeked to the end of the
    *	file) by calling ftell().
@@ -190,7 +190,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       NSWarnFLog(@"Ftell on %@ failed - %@", path, GSLastError());
       goto failure;
     }
-	
+
   /*
    *	Rewind the file pointer to the beginning, preparing to read in
    *	the file.
@@ -202,11 +202,11 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       GSLastError());
       goto failure;
     }
-	
+
   if (fileLength == 0)
     {
       unsigned char	buf[BUFSIZ];
-      
+
       /*
        * Special case ... a file of length zero may be a named pipe or some
        * file in the /proc filesystem, which will return us data if we read

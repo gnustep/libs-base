@@ -1,5 +1,5 @@
 /* GSPrivate
-   Copyright (C) 2001,2002 Free Software Foundation, Inc.
+   Copyright (C) 2001-2006 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    
@@ -17,9 +17,11 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
-*/ 
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+   Boston, MA 02111 USA.
+
+   $Date$ $Revision$
+*/
 
 #ifndef __GSPrivate_h_
 #define __GSPrivate_h_
@@ -241,4 +243,3 @@ extern void GSNotifyIdle(void);
 extern BOOL GSNotifyMore(void);
 
 #endif /* __GSPrivate_h_ */
-

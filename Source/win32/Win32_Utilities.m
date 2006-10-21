@@ -101,24 +101,6 @@ void Win32_Utilities_fini()
 *** -<General utility functions>-
 ---------+---------+---------+---------+---------+---------+---------+------- */
 
-/**
- * Translates a Win32 error code into a text equivalent
- */
-NSString *Win32ErrorString( DWORD ErrorCode )
-{
-  NSString *message;
-  LPVOID lpMsgBuf;
-
-  FormatMessageW( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-                  NULL, ErrorCode,
-                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                  (LPWSTR) &lpMsgBuf, 0, NULL );
-  message = [NSString stringWithCharacters: lpMsgBuf
-                                    length: wcslen(lpMsgBuf)];
-  LocalFree( lpMsgBuf );
-  return message;
-}
-
 /* ------+---------+---------+---------+---------+---------+---------+---------+
 *** -<Registry functions>-
 ---------+---------+---------+---------+---------+---------+---------+------- */

@@ -1,7 +1,7 @@
 /** Win32 Utility support functions for GNUStep
    Copyright (C) 2004 Free Software Foundation, Inc.
 
-   Written by:  Sheldon Gill <address@hidden>
+   Written by:  Sheldon Gill <sheldon@westnet.net.au>
    Date: 2004
 
    This file is part of the GNUstep Base Library.
@@ -46,7 +46,6 @@ void Win32_Utilities_init(void);
 void Win32_Utilities_fini(void);
 
 /* ---- General ---- */
-NSString *Win32ErrorString( DWORD ErrorCode );
 
 /* ---- Environment ---- */
 //NSString     *Win32OperatingSystemName(void);
@@ -67,7 +66,7 @@ NSString     *Win32GetUserHomeDirectory(NSString *userName);
 /* ---- Path discovery ---- */
 NSString     *Win32WindowsDirectory(void );
 
-#endif /* defined(__WIN32__) */
+#endif /* defined(__MINGW32__) */
 
 #if	defined(__cplusplus)
 }

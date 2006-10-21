@@ -29,38 +29,17 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSFunctions.h"
 #include "Foundation/Foundation.h"
-#include "GNUstepBase/Win32_Utilities.h"
-
-
-#ifndef HAVE_STRERROR
-const char *
-strerror(int eno)
-{
-  extern char  *sys_errlist[];
-  extern int    sys_nerr;
-
-  if (eno < 0 || eno >= sys_nerr)
-    {
-      return("unknown error number");
-    }
-  return(sys_errlist[eno]);
-}
-#endif
+#include "GNUstepBase/GSFunctions.h"
 
 /*
  * Gets the last error from the system libraries...
  */
 NSString *
-GSErrorString(long error_id)
+GSLastErrorStr(long error_id)
 {
-#ifdef __MINGW32__
-  return Win32ErrorString(error_id);
-#else
   return [NSString stringWithCString: strerror(error_id)
                             encoding: NSUTF8StringEncoding];
-#endif
 }
 
 // FIXME: This should be GSFPrintf
