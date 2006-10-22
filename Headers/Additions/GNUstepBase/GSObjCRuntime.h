@@ -648,27 +648,27 @@ GS_EXPORT BOOL
 GSFindInstanceVariable(id obj, const char *name,
 		       const char **type,
 		       unsigned int *size, 
-		       int *offset) GS_ATTRIB_DEPRECATED;
+		       int *offset) GS_DEPRECATED;
 
 GS_EXPORT void
 GSGetVariable(id obj, int offset, unsigned int size,
-	      void *data) GS_ATTRIB_DEPRECATED;
+	      void *data) GS_DEPRECATED;
 
 GS_EXPORT void
 GSSetVariable(id obj, int offset, unsigned int size,
-	      const void *data) GS_ATTRIB_DEPRECATED;
+	      const void *data) GS_DEPRECATED;
 
 GS_EXPORT id
 GSGetValue(NSObject *self, NSString *key, SEL sel,
 	   const char *type,
 	   unsigned size,
-	   int offset) GS_ATTRIB_DEPRECATED;
+	   int offset) GS_DEPRECATED;
 
 GS_EXPORT void
 GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	   const char *type,
 	   unsigned size,
-	   int offset) GS_ATTRIB_DEPRECATED;
+	   int offset) GS_DEPRECATED;
 
 GS_EXPORT NSArray *
 GSObjCAllSubclassesOfClass(Class cls);
@@ -679,7 +679,7 @@ GSObjCDirectSubclassesOfClass(Class cls);
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCName(Class cls) GS_ATTRIB_DEPRECATED;
+GSObjCName(Class cls) GS_DEPRECATED;
 GS_STATIC_INLINE const char*
 GSObjCName(Class cls)
 {
@@ -689,7 +689,7 @@ GSObjCName(Class cls)
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCSelectorName(SEL sel) GS_ATTRIB_DEPRECATED;
+GSObjCSelectorName(SEL sel) GS_DEPRECATED;
 GS_STATIC_INLINE const char*
 GSObjCSelectorName(SEL sel)
 {
@@ -701,7 +701,7 @@ GSObjCSelectorName(SEL sel)
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*
-GSObjCSelectorTypes(SEL sel) GS_ATTRIB_DEPRECATED;
+GSObjCSelectorTypes(SEL sel) GS_DEPRECATED;
 GS_STATIC_INLINE const char*
 GSObjCSelectorTypes(SEL sel)
 {
@@ -709,7 +709,7 @@ GSObjCSelectorTypes(SEL sel)
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetInstanceMethod(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
+GSGetInstanceMethod(Class cls, SEL sel) GS_DEPRECATED;
 GS_STATIC_INLINE GSMethod
 GSGetInstanceMethod(Class cls, SEL sel)
 {
@@ -717,7 +717,7 @@ GSGetInstanceMethod(Class cls, SEL sel)
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetClassMethod(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
+GSGetClassMethod(Class cls, SEL sel) GS_DEPRECATED;
 GS_STATIC_INLINE GSMethod
 GSGetClassMethod(Class cls, SEL sel)
 {
@@ -726,7 +726,7 @@ GSGetClassMethod(Class cls, SEL sel)
 
 GS_STATIC_INLINE GSMethod
 GSGetInstanceMethodNotInherited(Class cls, 
-				SEL sel) GS_ATTRIB_DEPRECATED;
+				SEL sel) GS_DEPRECATED;
 GS_STATIC_INLINE GSMethod
 GSGetInstanceMethodNotInherited(Class cls, SEL sel)
 {
@@ -734,7 +734,7 @@ GSGetInstanceMethodNotInherited(Class cls, SEL sel)
 }
 
 GS_STATIC_INLINE GSMethod
-GSGetClassMethodNotInherited(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
+GSGetClassMethodNotInherited(Class cls, SEL sel) GS_DEPRECATED;
 GS_STATIC_INLINE GSMethod
 GSGetClassMethodNotInherited(Class cls, SEL sel)
 {

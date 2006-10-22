@@ -23,7 +23,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: Additions/Unicode.m
 
@@ -32,31 +33,32 @@
 #ifndef __Unicode_h_OBJECTS_INCLUDE
 #define __Unicode_h_OBJECTS_INCLUDE
 
-#include <Foundation/NSString.h>	/* For string encodings */
-
 #if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 
 /*
  * Private API used internally by NSString etc.
  */
 #include "GSObjCRuntime.h"
+#include <Foundation/NSString.h>	/* For string encodings */
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
 #if GS_API_VERSION(GS_API_NONE,011500)
+/* Private/internal functions */
+NSStringEncoding *GetAvailableEncodings(void) GS_PRIVATE;
+NSStringEncoding GetDefEncoding(void)  GS_PRIVATE;
 /* Deprecated functions */
-GS_EXPORT NSStringEncoding GSEncodingFromLocale(const char *clocale);
-GS_EXPORT NSStringEncoding GSEncodingForRegistry(NSString *registry, 
-						 NSString *encoding);
-GS_EXPORT unichar uni_tolower(unichar ch);
-GS_EXPORT unichar uni_toupper(unichar ch);
-GS_EXPORT unsigned char uni_cop(unichar u);
-GS_EXPORT BOOL uni_isnonsp(unichar u);
-GS_EXPORT unichar *uni_is_decomp(unichar u);
+GS_EXPORT NSStringEncoding GSEncodingFromLocale(const char *clocale) GS_DEPRECATED;
+GS_EXPORT NSStringEncoding GSEncodingForRegistry(NSString *registry,
+						 NSString *encoding) GS_DEPRECATED;
+GS_EXPORT unichar uni_tolower(unichar ch) GS_DEPRECATED;
+GS_EXPORT unichar uni_toupper(unichar ch) GS_DEPRECATED;
+GS_EXPORT unsigned char uni_cop(unichar u) GS_DEPRECATED;
+GS_EXPORT BOOL uni_isnonsp(unichar u) GS_DEPRECATED;
+GS_EXPORT unichar *uni_is_decomp(unichar u) GS_DEPRECATED;
 #endif
-
 
 /*
  * Options when converting strings.

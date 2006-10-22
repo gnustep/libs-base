@@ -47,8 +47,8 @@
 #else
 #include <Foundation/Foundation.h>
 #endif
-#include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GSCategories.h"
 
 #include <objc/Protocol.h>

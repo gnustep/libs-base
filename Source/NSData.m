@@ -67,7 +67,6 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSObjCRuntime.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSByteOrder.h"
 #include "Foundation/NSCoder.h"

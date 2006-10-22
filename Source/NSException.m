@@ -1,5 +1,5 @@
 /** NSException - Object encapsulation of a general exception handler
-   Copyright (C) 1993, 1994, 1996, 1997, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1993-2006 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -580,22 +580,11 @@ NSString* const NSParseErrorException
 
 static void _terminate()
 {
-  BOOL			shouldAbort;
-
-#ifdef	DEBUG
-  shouldAbort = YES;		// abort() by default.
+#if defined(__MINGW32__)
+  ExitProcess(-1);
 #else
-  shouldAbort = NO;		// exit() by default.
+  exit(1);
 #endif
-  shouldAbort = GSEnvironmentFlag("CRASH_ON_ABORT", shouldAbort);
-  if (shouldAbort == YES)
-    {
-      abort();
-    }
-  else
-    {
-      exit(1);
-    }
 }
 
 static void

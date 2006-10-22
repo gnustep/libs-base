@@ -49,6 +49,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
+#include "GNUstepBase/GNUstep.h"
 #include "GNUstepBase/Unicode.h"
 
 #include "Foundation/NSAttributedString.h"

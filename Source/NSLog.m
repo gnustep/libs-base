@@ -1,5 +1,5 @@
 /** Interface for NSLog for GNUStep
-   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1996-2006 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: November 1996
@@ -51,23 +51,11 @@
 
 #include "GSPrivate.h"
 
-extern NSThread *GSCurrentThread();  // why isn't this in GSPrivate.h ?? -SG
+//extern NSThread *GSCurrentThread();  // why isn't this in GSPrivate.h ?? -SG
 
 // From "Win32Support.h"
 #define UNISTR(X) \
 ((WCHAR *)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
-
-// From private base shared functions
-void crash(char *description);
-
-void crash(char *description)
-{
-#if defined(__MINGW32__)
-    ExitProcess(-1);
-#else
-    abort();
-#endif
-}
 
 /* DEPRECATED - DELETED  Base 1.14  => we don't support this anymore
  *
@@ -246,7 +234,7 @@ NSLog_printf_handler *_NSLog_printf_handler = _GSLog_standard_printf_handler;
  * NSDebugLog(), NSWarnLog() and GSPrintf() for example.  We recommend
  * the use of NSDebugLog() and its relatives for debug purposes, and
  * GSPrintf() for general messages, with NSLog() being reserved
- * for reporting possible/likely errors.  See GSObjCRuntime.h
+ * for reporting possible/likely errors.  See GSFunctions.h
  * </p>
  */
 void

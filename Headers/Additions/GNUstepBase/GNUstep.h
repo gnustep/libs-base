@@ -20,7 +20,7 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
-*/ 
+*/
 
 #ifndef __GNUSTEP_GNUSTEP_H_INCLUDED_
 #define __GNUSTEP_GNUSTEP_H_INCLUDED_
@@ -75,10 +75,10 @@ NSAutoreleasePool *(X) = [NSAutoreleasePool new]
 
 #define NSLocalizedStaticString(X, Y) X
 
-
+#endif /* defined GNUSTEP */
 
 #ifdef GNUSTEP_WITH_DLL
- 
+
 #if BUILD_libgnustep_base_DLL
 #
 # if defined(__MINGW32__)
@@ -86,7 +86,7 @@ NSAutoreleasePool *(X) = [NSAutoreleasePool new]
    * __declspec(dllexport) is not needed.
    */
 #  define GS_EXPORT  extern
-#  define GS_DECLARE 
+#  define GS_DECLARE
 # else
 #  define GS_EXPORT  __declspec(dllexport)
 #  define GS_DECLARE __declspec(dllexport)
@@ -95,16 +95,16 @@ NSAutoreleasePool *(X) = [NSAutoreleasePool new]
 #  define GS_EXPORT  extern __declspec(dllimport)
 #  define GS_DECLARE __declspec(dllimport)
 #endif
- 
+
 #else /* GNUSTEP_WITH[OUT]_DLL */
 
 #  define GS_EXPORT extern
-#  define GS_DECLARE 
+#  define GS_DECLARE
 
 #endif
 
 /*
- * GNUstep attributes
+ * GNUstep attributes - Private, Deprecated
  */
 #if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
 #define GS_DEPRECATED __attribute__ ((deprecated))
@@ -112,14 +112,12 @@ NSAutoreleasePool *(X) = [NSAutoreleasePool new]
 #define GS_DEPRECATED
 #endif
 
-#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
-#define GS_PRIVATE __attribute__ ((internal))
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3))
+#define GS_PRIVATE __attribute__ ((visibility("internal")))
 #else
 #define GS_PRIVATE
 #endif
 
 #include <GNUstepBase/GSVersionMacros.h>
-
-#endif /* GNUSTEP */
 
 #endif /* __GNUSTEP_GNUSTEP_H_INCLUDED_ */

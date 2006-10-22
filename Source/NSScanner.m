@@ -1,5 +1,5 @@
 /** Implemenation of NSScanner class
-   Copyright (C) 1996,1999 Free Software Foundation, Inc.
+   Copyright (C) 1996-2006 Free Software Foundation, Inc.
 
    Author:  Eric Norum <eric@skatter.usask.ca>
    Date: 1996
@@ -33,6 +33,7 @@
 #endif
 
 #include "config.h"
+#include "GNUstepBase/GNUstep.h"
 #include "GNUstepBase/Unicode.h"
 #include "Foundation/NSScanner.h"
 #include "Foundation/NSException.h"

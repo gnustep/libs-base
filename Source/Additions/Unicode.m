@@ -560,7 +560,7 @@ GSEncodingFromLocale(const char *clocale)
       char	*s;
 
       s = strchr (clocale, '.');
-      registry = [[NSString stringWithCString: s+1] lowercaseString];
+      registry = [[NSString stringWithUTF8String: s+1] lowercaseString];
       array = [registry componentsSeparatedByString: @"-"];
       registry = [array objectAtIndex: 0];
       if ([array count] > 1)

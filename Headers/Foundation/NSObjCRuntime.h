@@ -29,6 +29,7 @@
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
+#include <GNUstepBase/GNUstep.h>
 #include <GNUstepBase/GSObjCRuntime.h>
 
 #if	defined(__cplusplus)
@@ -55,16 +56,6 @@ GS_EXPORT NSLog_printf_handler	*_NSLog_printf_handler;
 
 GS_EXPORT void			NSLog (NSString *format, ...);
 GS_EXPORT void			NSLogv (NSString *format, va_list args);
-
-#ifndef YES
-#define YES		1
-#endif
-#ifndef NO
-#define NO		0
-#endif
-#ifndef nil
-#define nil		0
-#endif
 
 #if	defined(__cplusplus)
 }

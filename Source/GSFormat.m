@@ -1736,7 +1736,7 @@ NSDictionary *locale)
 	  {
 	    /* Write "(null)" if there's space.  */
 	    if (prec == -1
-		|| prec >= (int) (sizeof (null) / sizeof (null[0])) - 1)
+	      || prec >= (int) (sizeof (null) / sizeof (null[0])) - 1)
 	      {
 		string = (unichar *) null;
 		len = (sizeof (null) / sizeof (null[0])) - 1;

@@ -28,6 +28,7 @@
 #ifndef __behavior_h_GNUSTEP_BASE_INCLUDE
 #define __behavior_h_GNUSTEP_BASE_INCLUDE
 
+#include <GNUstepBase/GNUstep.h>
 #include <GNUstepBase/GSObjCRuntime.h>
 
 #if	defined(__cplusplus)

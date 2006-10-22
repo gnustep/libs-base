@@ -108,6 +108,35 @@ static Class	NSConstantStringClass;
  */
 static objc_mutex_t allocationLock = NULL;
 
+/*
+ * Check if an environment variable is set to YES/TRUE or non-zero number
+ */
+static BOOL environment_flag(const char *name, BOOL def)
+{
+  const char	*c = getenv(name);
+  BOOL		a = def;
+
+  if (c != 0)
+    {
+      a = NO;
+      if ((c[0] == 'y' || c[0] == 'Y') && (c[1] == 'e' || c[1] == 'E')
+	&& (c[2] == 's' || c[2] == 'S') && c[3] == 0)
+	{
+	  a = YES;
+	}
+      else if ((c[0] == 't' || c[0] == 'T') && (c[1] == 'r' || c[1] == 'R')
+	&& (c[2] == 'u' || c[2] == 'U') && (c[3] == 'e' || c[3] == 'E')
+	&& c[4] == 0)
+	{
+	  a = YES;
+	}
+      else if (isdigit(c[0]) && c[0] != '0')
+	{
+	  a = YES;
+	}
+    }
+  return a;
+}
 
 BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
@@ -161,7 +190,7 @@ static void GSLogZombie(id o, SEL sel)
       NSLog(@"Deallocated %@ (0x%x) sent %@",
 	NSStringFromClass(c), o, NSStringFromSelector(sel));
     }
-  if (GSEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
+  if (environment_flag("CRASH_ON_ZOMBIE", NO) == YES)
     {
       abort();
     }
@@ -968,8 +997,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       zombieClass = [NSZombie class];
-      NSZombieEnabled = GSEnvironmentFlag("NSZombieEnabled", NO);
-      NSDeallocateZombies = GSEnvironmentFlag("NSDeallocateZombies", NO);
+      NSZombieEnabled = environment_flag("NSZombieEnabled", NO);
+      NSDeallocateZombies = environment_flag("NSDeallocateZombies", NO);
 
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
