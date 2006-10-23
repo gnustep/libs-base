@@ -1,3 +1,8 @@
+2006-10-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate: when adding offset to a date, work in
+	the timezone for the date rather than in GMT ... fixes bug #18088
+
 2006-10-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSPrivate.m:
