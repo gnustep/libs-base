@@ -433,7 +433,7 @@ GNUstepConfig(NSDictionary *newConfig)
 	      if ([file hasPrefix: @"./"] == YES)
 		{
 		  Class		c = [NSProcessInfo class];
-		  NSString	*path = objc_get_symbol_path (c, 0);
+		  NSString	*path = GSPrivateSymbolPath (c, 0);
 
 		  // Remove library name from path
 		  path = [path stringByDeletingLastPathComponent];

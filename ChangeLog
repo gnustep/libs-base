@@ -2,6 +2,17 @@
 
 	* Source/NSCalendarDate: when adding offset to a date, work in
 	the timezone for the date rather than in GMT ... fixes bug #18088
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	* Source/preface.m:
+	* Source/NSCallBacks.h:
+	* Source/GSPrivate.h:
+	* Source/NSFileManager.m:
+	* Source/objc-load.h:
+	* Source/objc-load.m:
+	* Headers/Additions/GNUstepBase/preface.h.in:
+	More cleanups hiding private functions and removing a few unused bits.
 
 2006-10-20  Richard Frith-Macdonald <rfm@gnu.org>
 

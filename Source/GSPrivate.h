@@ -263,6 +263,11 @@ GSPrivateEncodingName(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
 BOOL
 GSPrivateEnvironmentFlag(const char *name, BOOL def) GS_ATTRIB_PRIVATE;
 
+/* Get the path to the xcurrent executable.
+ */
+NSString *
+GSPrivateExecutablePath(void) GS_ATTRIB_PRIVATE;
+
 /* Format arguments into an internal string.
  */
 void
@@ -279,6 +284,13 @@ GSPrivateIsByteEncoding(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
  */
 BOOL
 GSPrivateIsEncodingSupported(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
+
+/* load a module into the runtime
+ */
+long
+GSPrivateLoadModule(NSString *filename, FILE *errorStream,
+  void (*loadCallback)(Class, struct objc_category *),
+  void **header, NSString *debugFilename) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed at the first safe moment.
@@ -306,6 +318,59 @@ GSPrivateStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
  */
 void
 GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
+
+/*
+ * GSPrivateSymbolPath() returns the path to the object file from
+ * which a certain class was loaded.
+ *
+ * If the class was loaded from a shared library, this returns the
+ * filesystem path to the shared library; if it was loaded from a
+ * dynamical object (such as a bundle or framework dynamically
+ * loaded), it returns the filesystem path to the object file; if the
+ * class was loaded from the main executable, it returns the
+ * filesystem path to the main executable path.
+ *
+ * This function is implemented by using the available features of
+ * the dynamic linker on the specific platform we are running on.
+ *
+ * On some platforms, the dynamic linker does not provide enough
+ * facilities to support the GSPrivateSymbolPath() function at all;
+ * in this case, GSPrivateSymbolPath() always returns nil.
+ *
+ * On my platform (a Debian GNU Linux), it seems the dynamic linker
+ * always returns the filesystem path that was used to load the
+ * module.  So it returns the full filesystem path for shared libraries
+ * and bundles (which is very nice), but unfortunately it returns 
+ * argv[0] (which might be something as horrible as './obj/test')
+ * for classes in the main executable.
+ *
+ * If theCategory argument is not NULL, GSPrivateSymbolPath() will return
+ * the filesystem path to the module from which the category theCategory
+ * of the class theClass was loaded.
+ *
+ * Currently, the function will return nil if any of the following
+ * conditions is satisfied:
+ *  - the required functionality is not available on the platform we are
+ *    running on;
+ *  - memory allocation fails;
+ *  - the symbol for that class/category could not be found.
+ *
+ * In general, if the function returns nil, it means something serious
+ * went wrong in the system preventing it from getting the symbol path.
+ * If your code is to be portable, you (unfortunately) have to be prepared
+ * to work around it in some way when this happens.
+ *
+ * It seems that this function has no corresponding function in the NeXT
+ * runtime ... as far as I know.
+ */
+NSString *
+GSPrivateSymbolPath (Class theClass, Category *theCategory) GS_ATTRIB_PRIVATE;
+
+/* unload a module from the runtime (not implemented)
+ */
+long
+GSPrivateUnloadModule(FILE *errorStream,
+  void (*unloadCallback)(Class, struct objc_category *)) GS_ATTRIB_PRIVATE;
 
 #endif /* _GSPrivate_h_ */
 
