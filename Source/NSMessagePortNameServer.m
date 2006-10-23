@@ -266,10 +266,15 @@ static void clean_up_names(void)
 
   NSDebugLLog(@"NSMessagePort", @"portForName: %@ host: %@", name, host);
 
-  if ([host length] && ![host isEqual: @"*"])
+  if ([host length] > 0)
     {
-      NSDebugLLog(@"NSMessagePort", @"non-local host");
-      return nil;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to contact a named host using a "
+	@"message port name server.  This name server can only be used "
+	@"to contact processes owned by the same user on the local host "
+	@"(host name must be an empty string).  To contact processes "
+	@"owned by other users or on other hosts you must use an instance "
+	@"of the NSSocketPortNameServer class."];
     }
 
   path = [[self class] _pathForName: name];

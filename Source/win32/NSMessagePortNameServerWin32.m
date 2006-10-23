@@ -27,6 +27,7 @@
 
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSError.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSMapTable.h"
@@ -39,6 +40,7 @@
 
 #include "GNUstepBase/GSMime.h"
 
+#include "../GSPrivate.h"
 #include "GSPortPrivate.h"
 
 #define	UNISTR(X) \
@@ -243,6 +245,11 @@ OutputDebugStringW(L"");
 }
 
 - (NSPort*) portForName: (NSString *)name
+{
+  return [self portForName: name onHost: @""];
+}
+
+- (NSPort*) portForName: (NSString *)name
 		 onHost: (NSString *)host
 {
   NSString	*n;
@@ -250,10 +257,15 @@ OutputDebugStringW(L"");
   NSDebugLLog(@"NSMessagePortNameServer",
     @"portForName: %@ host: %@", name, host);
 
-  if ([host length] && ![host isEqual: @"*"])
+  if ([host length] != 0)
     {
-      NSDebugLLog(@"NSMessagePortNameServer", @"non-local host");
-      return nil;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to contact a named host using a "
+	@"message port name server.  This name server can only be used "
+	@"to contact processes owned by the same user on the local host "
+	@"(host name must be an empty string).  To contact processes "
+	@"owned by other users or on other hosts you must use an instance "
+	@"of the NSSocketPortNameServer class."];
     }
 
   n = [[self class] _query: name];
@@ -312,7 +324,7 @@ OutputDebugStringW(L"");
   else
     {
       NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x) %@",
-	registry, n, rc, [_GSPrivate error: rc]);
+	registry, n, rc, [NSError _last]);
       return NO;
     }
 

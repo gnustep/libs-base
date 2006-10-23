@@ -26,6 +26,7 @@
 #include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSNotification.h"
+#include "Foundation/NSError.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSByteOrder.h"
@@ -43,6 +44,7 @@
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSProcessInfo.h"
 
+#include "../GSPrivate.h"
 #include "GSPortPrivate.h"
 
 #include <stdio.h>
