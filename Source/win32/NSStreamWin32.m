@@ -44,6 +44,7 @@
 #include <Foundation/NSDebug.h>
 
 #include "../GSStream.h"
+#include "../GSPrivate.h"
 
 #define	BUFFERSIZE	(BUFSIZ*64)
 
