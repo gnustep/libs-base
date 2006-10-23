@@ -2378,13 +2378,15 @@ static void Grow(DescriptionInfo *info, unsigned size)
   NSTimeInterval	newOffset;
   int			i, year, month, day, hour, minute, second, mil;
 
-  oldOffset = offset(_time_zone, self);
-  /*
-   * Break into components in GMT time zone.
+  /* Apply timezone offset to _seconds_since_ref from GMT to local time,
+   * then break into components in local time zone.
    */
-  GSBreakTime(_seconds_since_ref, &year, &month, &day, &hour, &minute,
-    &second, &mil);
+  oldOffset = offset(_time_zone, self);
+  s = _seconds_since_ref + oldOffset;
+  GSBreakTime(s, &year, &month, &day, &hour, &minute, &second, &mil);
 
+  /* Apply required offsets to get new local time.
+   */
   while (years != 0 || months != 0 || days != 0
     || hours != 0 || minutes != 0 || seconds != 0)
     {
@@ -2473,9 +2475,11 @@ static void Grow(DescriptionInfo *info, unsigned size)
     }
 
   /*
-   * Reassemble in GMT time zone.
+   * Reassemble and apply original timezone offset to get
+   * _seconds_since_ref back to GMT.
    */
   s = GSTime(day, month, year, hour, minute, second, mil);
+  s -= oldOffset;
   c = [NSCalendarDate alloc];
   c->_calendar_format = cformat;
   c->_time_zone = RETAIN([self timeZone]);

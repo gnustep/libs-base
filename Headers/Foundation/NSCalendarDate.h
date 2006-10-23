@@ -68,7 +68,7 @@ extern "C" {
 	     second: (unsigned int)second
 	   timeZone: (NSTimeZone*)aTimeZone;
 
-// Retreiving Date Elements
+// Retrieving Date Elements
 - (int) dayOfCommonEra;
 - (int) dayOfMonth;
 - (int) dayOfWeek;
