@@ -213,7 +213,7 @@ static BOOL	fallbackInitialisation = NO;
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
 
-void
+static void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
   CREATE_AUTORELEASE_POOL(arp);

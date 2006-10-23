@@ -52,6 +52,8 @@
 #include "Foundation/NSData.h"
 #include "Foundation/NSValue.h"
 
+#include "GSPrivate.h"
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -84,7 +86,7 @@ static NSString		*_launchDirectory = nil;
  */
 static NSDictionary	*_emptyTable = nil;
 
-/* When we are linking in an object file, objc_load_modules calls our
+/* When we are linking in an object file, GSPrivateLoadModule calls our
    callback routine for every Class and Category loaded.  The following
    variable stores the bundle that is currently doing the loading so we know
    where to store the class names.
@@ -214,7 +216,8 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 /*
  * Return the path to this executable.
  */
-static NSString	*ExecutablePath()
+NSString *
+GSPrivateExecutablePath()
 {
   static NSString	*executablePath = nil;
   static BOOL		beenHere = NO;
@@ -257,24 +260,6 @@ static NSString	*ExecutablePath()
     }
   return executablePath;
 }
-
-/* This function is provided for objc-load.c, although I'm not sure it
-   really needs it (So far only needed if using GNU dld library) */
-#ifdef    __MINGW32__
-const unichar *
-objc_executable_location (void)
-{
-  return [[ExecutablePath() stringByDeletingLastPathComponent]
-	     fileSystemRepresentation];
-}
-#else  
-const char *
-objc_executable_location (void)
-{
-  return [[ExecutablePath() stringByDeletingLastPathComponent]
-	     fileSystemRepresentation];
-}
-#endif
 
 static BOOL
 bundle_directory_readable(NSString *path)
@@ -499,9 +484,9 @@ _find_framework(NSString *name)
        * really universal way of getting the framework path ... we can
        * locate the framework no matter where it is on disk!
        */
-      bundlePath = objc_get_symbol_path (frameworkClass, NULL);
+      bundlePath = GSPrivateSymbolPath (frameworkClass, NULL);
 
-      if ([bundlePath isEqualToString: ExecutablePath()])
+      if ([bundlePath isEqualToString: GSPrivateExecutablePath()])
 	{
 	  /* Ops ... the NSFramework_xxx class is linked in the main
 	   * executable.  Maybe the framework was statically linked
@@ -585,8 +570,8 @@ _find_framework(NSString *name)
       if (bundlePath == nil)
 	{
 	  /* NICOLA: In an ideal world, the following is just a hack
-	   * for when objc_get_symbol_path() fails!  But in real life
-	   * objc_get_symbol_path() is risky (some platforms don't
+	   * for when GSPrivateSymbolPath() fails!  But in real life
+	   * GSPrivateSymbolPath() is risky (some platforms don't
 	   * have it at all!), so this hack might be used a lot!  It
 	   * must be quite robust.  We try to look for the framework
 	   * in the standard GNUstep installation dirs and in the main
@@ -938,13 +923,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
          know yet if it's a tool or an application, we always store
          the executable name here - just in case it turns out it's a
          tool.  */
-      NSString *toolName = [ExecutablePath() lastPathComponent];
+      NSString *toolName = [GSPrivateExecutablePath() lastPathComponent];
 #if defined(__WIN32__) || defined(__CYGWIN__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
 
       /* Strip off the name of the program */
-      path = [ExecutablePath() stringByDeletingLastPathComponent];
+      path = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
 
       /* We now need to chop off the extra subdirectories, the library
 	 combo and the target cpu/os if they exist.  The executable
@@ -1061,8 +1046,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	   * convert it to the format for a library name as used
 	   * for obtaining a library resource bundle.
 	   */
-	  lib = objc_get_symbol_path (aClass, NULL);
-	  if ([lib isEqual: ExecutablePath()] == YES)
+	  lib = GSPrivateSymbolPath (aClass, NULL);
+	  if ([lib isEqual: GSPrivateExecutablePath()] == YES)
 	    {
 	      lib = nil;	// In program, not library.
 	    }
@@ -1396,8 +1381,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	 _codeLoaded before loading the bundle. */
       _codeLoaded = YES;
 
-      if (objc_load_module([object fileSystemRepresentation],
-			   stderr, _bundle_load_callback, NULL, NULL))
+      if (GSPrivateLoadModule(object, stderr, _bundle_load_callback, 0, 0))
 	{
 	  _codeLoaded = NO;
 	  DESTROY(_loadingFrameworks);
@@ -1971,11 +1955,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
   if (self == _mainBundle)
     {
-      return ExecutablePath();
+      return GSPrivateExecutablePath();
     }
   if (self->_bundleType == NSBUNDLE_LIBRARY)
     {
-      return objc_get_symbol_path ([self principalClass], NULL);
+      return GSPrivateSymbolPath ([self principalClass], NULL);
     }
   object = [[self infoDictionary] objectForKey: @"NSExecutable"];
   if (object == nil || [object length] == 0)

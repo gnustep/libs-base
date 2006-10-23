@@ -1952,7 +1952,7 @@ typedef	struct	_GSEnumeratedDirectory {
 } GSEnumeratedDirectory;
 
 
-inline void gsedRelease(GSEnumeratedDirectory X)
+static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   DESTROY(X.path);
   _CLOSEDIR(X.pointer);
