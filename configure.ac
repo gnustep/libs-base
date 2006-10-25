@@ -391,6 +391,24 @@ else
   AC_MSG_RESULT([not found])
 fi
 
+AC_MSG_CHECKING(for gcc visibility attribute support)
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Werror"
+AC_COMPILE_IFELSE([
+  #include <stdio.h>
+  int foo() __attribute__ ((visibility("internal")));
+  int foo(){ return 1; }
+  int main(){ return foo(); }],
+  AC_MSG_RESULT([found])
+  gs_visibility=1,
+  AC_MSG_RESULT([not present])
+  gs_visibility=0
+)
+AC_DEFINE_UNQUOTED(HAVE_VISIBILITY_ATTRIBUTE,$gs_visibility,
+  [Says whether the visibility attribute works])
+CFLAGS="$saved_CFLAGS"
+
+
 #--------------------------------------------------------------------
 # Check if system has buggy SO_REUSEADDR
 #--------------------------------------------------------------------
