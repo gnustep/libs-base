@@ -8,6 +8,10 @@
 	* Source/GSPrivate.h: Only use the visibility attribute if it is
 	available.  Avoids warnings (and link errors in at least one case)
 	on systems where it is not fully supported by gcc yet.
+	* Headers/Foundation/NSSortDescriptor.h: Tidy and fix macros marking
+	macos compatibility.
+	* Source/NSSortDescriptor.m: Fix to have usable hash and isEqual
+	(bug #18107).
 
 2006-10-23  Richard Frith-Macdonald <rfm@gnu.org>
 
