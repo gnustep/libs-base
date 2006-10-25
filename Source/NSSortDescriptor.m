@@ -32,11 +32,47 @@
 
 @implementation NSSortDescriptor
 
+- (BOOL) ascending
+{
+  return _ascending;
+}
+
+- (NSComparisonResult) compareObject: (id) object1 toObject: (id) object2
+{
+  NSComparisonResult result;
+  id comparedKey1 = [object1 valueForKeyPath: _key],
+     comparedKey2 = [object2 valueForKeyPath: _key];
+
+  result = (NSComparisonResult) [comparedKey1 performSelector: _selector
+                                                   withObject: comparedKey2];
+
+  if (_ascending != YES)
+    {
+      result = -result;
+    }
+
+  return result;
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  if (NSShouldRetainWithZone(self, zone))
+    {
+      return RETAIN(self);
+    }
+  return [[NSSortDescriptor allocWithZone: zone]
+    initWithKey: _key ascending: _ascending selector: _selector];
+}
+
 - (void) dealloc
 {
   TEST_RELEASE(_key);
-
   [super dealloc];
+}
+
+- (unsigned) hash
+{
+  return _ascending + (unsigned)(uintptr_t)_selector + [_key hash];
 }
 
 - (id) initWithKey: (NSString *) key ascending: (BOOL) ascending
@@ -73,9 +109,25 @@
     }
 }
 
-- (BOOL) ascending
+- (BOOL) isEqual: (id)other
 {
-  return _ascending;
+  if (other == self)
+    {
+      return YES;
+    }
+  if ([other isKindOfClass: [NSSortDescriptor class]] == NO)
+    {
+      return NO;
+    }
+  if (((NSSortDescriptor*)other)->_ascending != _ascending)
+    {
+      return NO;
+    }
+  if (!sel_eq(((NSSortDescriptor*)other)->_selector, _selector))
+    {
+      return NO;
+    }
+  return [((NSSortDescriptor*)other)->_key isEqualToString: _key];
 }
 
 - (NSString *) key
@@ -83,33 +135,15 @@
   return _key;
 }
 
+- (id) reversedSortDescriptor
+{
+  return AUTORELEASE([[NSSortDescriptor alloc]
+    initWithKey: _key ascending: !_ascending selector: _selector]);
+}
+
 - (SEL) selector
 {
   return _selector;
-}
-
-- (NSComparisonResult) compareObject: (id) object1 toObject: (id) object2
-{
-  NSComparisonResult result;
-  id comparedKey1 = [object1 valueForKeyPath: _key],
-     comparedKey2 = [object2 valueForKeyPath: _key];
-
-  result = (NSComparisonResult) [comparedKey1 performSelector: _selector
-                                                   withObject: comparedKey2];
-
-  if (_ascending != YES)
-    {
-      result = -result;
-    }
-
-  return result;
-}
-
-- (id) reversedSortDescriptor
-{
-  return [[[NSSortDescriptor alloc]
-    initWithKey: _key ascending: !_ascending selector: _selector]
-    autorelease];
 }
 
 - (void) encodeWithCoder: (NSCoder *) coder
@@ -129,9 +163,9 @@
     }
 }
 
-- initWithCoder: (NSCoder *) decoder
+- (id) initWithCoder: (NSCoder *)decoder
 {
-  if ([super init])
+  if ((self = [super init]) != nil)
     {
       if ([decoder allowsKeyedCoding])
         {
@@ -146,19 +180,8 @@
           [decoder decodeValueOfObjCType: @encode(BOOL) at: &_ascending];
           [decoder decodeValueOfObjCType: @encode(SEL) at: &_selector];
         }
-
-      return self;
     }
-  else
-    {
-      return nil;
-    }
-}
-
-- (id) copyWithZone: (NSZone*) zone
-{
-  return [[NSSortDescriptor allocWithZone: zone]
-    initWithKey: _key ascending: _ascending selector: _selector];
+  return self;
 }
 
 @end

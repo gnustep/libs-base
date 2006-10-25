@@ -32,46 +32,45 @@
 extern "C" {
 #endif
 
+#if OS_API_VERSION(100300,GS_API_LATEST)
+
 @class NSString;
 
 @interface NSSortDescriptor : NSObject <NSCopying, NSCoding>
 {
-  NSString * _key;
-  BOOL _ascending;
-  SEL _selector;
+  NSString *_key;
+  BOOL	_ascending;
+  SEL	_selector;
 }
 
-// initialization
-- (id) initWithKey: (NSString *) key ascending: (BOOL) ascending;
-- (id) initWithKey: (NSString *) key
-         ascending: (BOOL) ascending
-          selector: (SEL) selector;
-
-// getting information about a sort descriptor's setup
 - (BOOL) ascending;
+- (NSComparisonResult) compareObject: (id) object1 toObject: (id) object2;
+- (id) initWithKey: (NSString *)key
+	 ascending: (BOOL)ascending;
+- (id) initWithKey: (NSString *)key
+         ascending: (BOOL)ascending
+          selector: (SEL)selector;
 - (NSString *) key;
 - (SEL) selector;
-
-// using sort descriptors
-- (NSComparisonResult) compareObject: (id) object1 toObject: (id) object2;
 - (id) reversedSortDescriptor;
-
 @end
 
 @interface NSArray (NSSortDescriptorSorting)
 
-- (NSArray *) sortedArrayUsingDescriptors: (NSArray *) sortDescriptors;
+- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
 
 @end
 
 @interface NSMutableArray (NSSortDescriptorSorting)
 
-- (void) sortUsingDescriptors: (NSArray *) sortDescriptors;
+- (void) sortUsingDescriptors: (NSArray *)sortDescriptors;
 
 @end
 
 #if	defined(__cplusplus)
 }
+#endif
+
 #endif
 
 #endif /* __NSSortDescriptor_h_GNUSTEP_BASE_INCLUDE */
