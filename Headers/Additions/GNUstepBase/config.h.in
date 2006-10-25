@@ -378,6 +378,9 @@
 /* Define to 1 if you have the `vasprintf' function. */
 #undef HAVE_VASPRINTF
 
+/* Says whether the visibility attribute works */
+#undef HAVE_VISIBILITY_ATTRIBUTE
+
 /* Define to 1 if you have the `vsprintf' function. */
 #undef HAVE_VSPRINTF
 

@@ -1,3 +1,14 @@
+2006-10-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Define HAVE_VISIBILITY_ATTRIBUTE if gcc's visibility
+	attribute is both present in the version being used and working on
+	the current platform.
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerate
+	* Source/GSPrivate.h: Only use the visibility attribute if it is
+	available.  Avoids warnings (and link errors in at least one case)
+	on systems where it is not fully supported by gcc yet.
+
 2006-10-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate: when adding offset to a date, work in
