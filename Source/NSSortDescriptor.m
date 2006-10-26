@@ -123,7 +123,12 @@
     {
       return NO;
     }
-  if (!sel_eq(((NSSortDescriptor*)other)->_selector, _selector))
+  /* FIXME ... we should use sel_eq to compare selectors, but if we do
+   * our implementation of -hash will be wrong ... so we will need to
+   * store all instances in a set to ensure uniqueness.
+   */
+  // if (!sel_eq(((NSSortDescriptor*)other)->_selector, _selector))
+  if (((NSSortDescriptor*)other)->_selector != _selector)
     {
       return NO;
     }
@@ -202,15 +207,15 @@ SwapObjects(id * o1, id * o2)
  */
 // Quicksort algorithm copied from Wikipedia :-).
 static void
-SortObjectsWithDescriptor(id * objects,
+SortObjectsWithDescriptor(id *objects,
                           NSRange sortRange,
-                          NSSortDescriptor * sortDescriptor)
+                          NSSortDescriptor *sortDescriptor)
 {
   if (sortRange.length > 1)
     {
       id pivot = objects[sortRange.location];
-      unsigned int left = sortRange.location + 1,
-                   right = NSMaxRange(sortRange);
+      unsigned int left = sortRange.location + 1;
+      unsigned int right = NSMaxRange(sortRange);
 
       while (left < right)
         {
@@ -242,14 +247,14 @@ SortObjectsWithDescriptor(id * objects,
  * A pointer to the new location of the array of ranges is returned.
  */
 static NSRange *
-FindEqualityRanges(id * objects,
+FindEqualityRanges(id *objects,
                    NSRange searchRange,
-                   NSSortDescriptor * sortDescriptor,
-                   NSRange * ranges,
-                   unsigned int * numRanges)
+                   NSSortDescriptor *sortDescriptor,
+                   NSRange *ranges,
+                   unsigned int *numRanges)
 {
-  unsigned int i = searchRange.location,
-               n = NSMaxRange(searchRange);
+  unsigned int i = searchRange.location;
+  unsigned int n = NSMaxRange(searchRange);
 
   if (n > 1)
     {
@@ -257,7 +262,7 @@ FindEqualityRanges(id * objects,
         {
           unsigned int j;
 
-          for (j=i + 1;
+          for (j = i + 1;
             j < n &&
             [sortDescriptor compareObject: objects[i] toObject: objects[j]]
             == NSOrderedSame;
@@ -311,10 +316,10 @@ FindEqualityRanges(id * objects,
  */
 - (void) sortUsingDescriptors: (NSArray *) sortDescriptors
 {
-  id * objects;
+  id *objects;
   unsigned int count;
 
-  NSRange * equalityRanges;
+  NSRange *equalityRanges;
   unsigned int numEqualityRanges;
 
   unsigned int i, n;
@@ -328,13 +333,13 @@ FindEqualityRanges(id * objects,
   equalityRanges[0].length = count;
   numEqualityRanges = 1;
 
-  for (i=0, n = [sortDescriptors count]; i < n && equalityRanges != NULL; i++)
+  for (i = 0, n = [sortDescriptors count]; i < n && equalityRanges != NULL; i++)
     {
       unsigned int j;
-      NSSortDescriptor * sortDescriptor = [sortDescriptors objectAtIndex: i];
+      NSSortDescriptor *sortDescriptor = [sortDescriptors objectAtIndex: i];
 
       // pass through all equality ranges and sort each of them
-      for (j=0; j < numEqualityRanges; j++)
+      for (j = 0; j < numEqualityRanges; j++)
         {
           SortObjectsWithDescriptor(objects, equalityRanges[j],
             sortDescriptor);
@@ -344,11 +349,11 @@ FindEqualityRanges(id * objects,
       if (i < n - 1)
         // reconstruct the equality ranges anew.
         {
-          NSRange * newRanges = NULL;
+          NSRange *newRanges = NULL;
           unsigned newNumRanges = 0;
 
           // process only contents of old equality ranges
-          for (j=0; j < numEqualityRanges; j++)
+          for (j = 0; j < numEqualityRanges; j++)
             {
               newRanges = FindEqualityRanges(objects, equalityRanges[j],
                 sortDescriptor, newRanges, &newNumRanges);
