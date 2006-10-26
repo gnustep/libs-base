@@ -41,6 +41,7 @@
 #include "Foundation/NSObjCRuntime.h"
 
 #include "NSConcreteNumber.h"
+#include "GSPrivate.h"
 
 @interface GSCachedBool : NSBoolNumber
 @end
@@ -152,7 +153,7 @@ GSNumberInfoFromObject(NSNumber *o)
 }
 
 unsigned int
-GSSmallHash(int n)
+GSPrivateSmallHash(int n)
 {
   return smallHashes[n + GS_SMALL];
 }

@@ -48,6 +48,38 @@
 
 
 #include "GNUstepBase/GSObjCRuntime.h"
+
+#include "Foundation/NSArray.h"
+
+
+@interface GSArray : NSArray
+{
+@public
+  id		*_contents_array;
+  unsigned	_count;
+}
+@end
+
+@interface GSMutableArray : NSMutableArray
+{
+@public
+  id		*_contents_array;
+  unsigned	_count;
+  unsigned	_capacity;
+  int		_grow_factor;
+}
+@end
+
+@interface GSInlineArray : GSArray
+{
+}
+@end
+
+@interface GSPlaceholderArray : NSArray
+{
+}
+@end
+
 #include "Foundation/NSString.h"
 
 /**
@@ -285,6 +317,34 @@ GSPrivateIsByteEncoding(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
 BOOL
 GSPrivateIsEncodingSupported(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
 
+/* Hash function to hash up to limit bytes from data of specified length.
+ * If the flag is NO then a result of 0 is mapped to 0xffffffff.
+ * This is a pretty useful general purpose hash function.
+ */
+static inline unsigned
+GSPrivateHash(const void *data, unsigned length, unsigned limit, BOOL zero)
+  __attribute__((unused));
+static inline unsigned
+GSPrivateHash(const void *data, unsigned length, unsigned limit, BOOL zero)
+{
+  unsigned	ret = length;
+  unsigned	l = length;
+
+  if (limit < length)
+    {
+      l = limit;
+    }
+  while (l-- > 0)
+    {
+      ret = (ret << 5) + ret + ((const unsigned char*)data)[l];
+    }
+  if (ret == 0 && zero == NO)
+    {
+       ret = 0xffffffff;
+    }
+  return ret;
+}
+
 /* load a module into the runtime
  */
 long
@@ -306,6 +366,11 @@ void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
  * there are more queued notifications to be processed.
  */
 BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
+
+/* Function to return the hash value for a small integer (used by NSNumber).
+ */
+unsigned
+GSPrivateSmallHash(int n) GS_ATTRIB_PRIVATE;
 
 /* Function to append data to an GSStr
  */

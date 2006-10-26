@@ -79,19 +79,6 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 
 
-@class	GSArray;
-@interface GSArray : NSObject	// Help the compiler
-@end
-@class	GSInlineArray;
-@interface GSInlineArray : NSObject	// Help the compiler
-@end
-@class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
-@end
-@class	GSPlaceholderArray;
-@interface GSPlaceholderArray : NSObject	// Help the compiler
-@end
-
 static Class NSArrayClass;
 static Class GSArrayClass;
 static Class GSInlineArrayClass;

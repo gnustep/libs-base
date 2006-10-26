@@ -30,6 +30,9 @@
 #include "Foundation/NSKeyValueCoding.h"
 #include "Foundation/NSString.h"
 
+#include "GNUstepBase/GSObjCRuntime.h"
+#include "GSPrivate.h"
+
 @implementation NSSortDescriptor
 
 - (BOOL) ascending
@@ -72,7 +75,9 @@
 
 - (unsigned) hash
 {
-  return _ascending + (unsigned)(uintptr_t)_selector + [_key hash];
+  const char	*sel = GSNameFromSelector(_selector);
+
+  return _ascending + GSPrivateHash(sel, strlen(sel), 16, YES) + [_key hash];
 }
 
 - (id) initWithKey: (NSString *) key ascending: (BOOL) ascending
@@ -123,12 +128,7 @@
     {
       return NO;
     }
-  /* FIXME ... we should use sel_eq to compare selectors, but if we do
-   * our implementation of -hash will be wrong ... so we will need to
-   * store all instances in a set to ensure uniqueness.
-   */
-  // if (!sel_eq(((NSSortDescriptor*)other)->_selector, _selector))
-  if (((NSSortDescriptor*)other)->_selector != _selector)
+  if (!sel_eq(((NSSortDescriptor*)other)->_selector, _selector))
     {
       return NO;
     }
@@ -238,139 +238,100 @@ SortObjectsWithDescriptor(id *objects,
     }
 }
 
-/**
- * Finds all objects in the provided range of the objects array that
- * are next to each other and evaluate with the provided sortDescriptor
- * as being NSOrderedSame, records their ranges in the provided
- * recordedRanges array (enlarging it as necessary) and adjusts the
- * numRanges argument to indicate the new size of the range array.
- * A pointer to the new location of the array of ranges is returned.
- */
-static NSRange *
-FindEqualityRanges(id *objects,
-                   NSRange searchRange,
-                   NSSortDescriptor *sortDescriptor,
-                   NSRange *ranges,
-                   unsigned int *numRanges)
-{
-  unsigned int i = searchRange.location;
-  unsigned int n = NSMaxRange(searchRange);
-
-  if (n > 1)
-    {
-      while (i < n - 1)
-        {
-          unsigned int j;
-
-          for (j = i + 1;
-            j < n &&
-            [sortDescriptor compareObject: objects[i] toObject: objects[j]]
-            == NSOrderedSame;
-            j++);
-
-          if (j - i > 1)
-            {
-              (*numRanges)++;
-              ranges = (NSRange *) objc_realloc(ranges, (*numRanges) *
-                sizeof(NSRange));
-              ranges[(*numRanges)-1].location = i;
-              ranges[(*numRanges)-1].length = j - i;
-
-              i = j;
-            }
-          else
-            {
-              i++;
-            }
-        }
-    }
-
-  return ranges;
-}
-
 @implementation NSArray (NSSortDescriptorSorting)
 
 - (NSArray *) sortedArrayUsingDescriptors: (NSArray *) sortDescriptors
 {
-  NSMutableArray * sortedArray = [NSMutableArray arrayWithArray: self];
+  NSMutableArray *sortedArray = [GSMutableArray arrayWithArray: self];
 
   [sortedArray sortUsingDescriptors: sortDescriptors];
 
-  return [sortedArray makeImmutableCopyOnFail:NO];
+  return [sortedArray makeImmutableCopyOnFail: NO];
 }
 
 @end
 
+/* Sort the objects in range using the first descriptor and, if there
+ * are more descriptors, recursively call the function to sort each range
+ * of adhacent equal objects using the remaining descriptors.
+ */
+static void
+SortRange(id *objects, NSRange range, id *descriptors,
+  unsigned numDescriptors)
+{
+  NSSortDescriptor	*sd = (NSSortDescriptor*)descriptors[0];
+
+  SortObjectsWithDescriptor(objects, range, sd);
+  if (numDescriptors > 1)
+    {
+      unsigned	start = range.location;
+      unsigned	finish = NSMaxRange(range);
+
+      while (start < finish)
+	{
+	  unsigned	pos = start + 1;
+
+	  /* Find next range of adjacent objects.
+	   */
+	  while (pos < finish
+	    && [sd compareObject: objects[start]
+	      toObject: objects[pos]] == NSOrderedSame)
+	    {
+	      pos++;
+	    }
+
+	  /* Sort the range using remaining descriptors.
+	   */
+	  if (pos - start > 1)
+	    {
+	      SortRange(objects, NSMakeRange(start, pos - start),
+		descriptors + 1, numDescriptors - 1);
+	    }
+	  start = pos;
+	}
+    }
+}
+
 @implementation NSMutableArray (NSSortDescriptorSorting)
 
-/**
- * This method works like this: first, it sorts the entire
- * contents of the array using the first sort descriptor. Then,
- * after each sort-run, it looks whether there are sort
- * descriptors left to process, and if yes, looks at the partially
- * sorted array, finds all portions in it which are equal
- * (evaluate to NSOrderedSame) and applies the following
- * descriptor onto them. It repeats this either until all
- * descriptors have been applied or there are no more equal
- * portions (equality ranges) left in the array.
- */
-- (void) sortUsingDescriptors: (NSArray *) sortDescriptors
+- (void) sortUsingDescriptors: (NSArray *)sortDescriptors
 {
-  id *objects;
-  unsigned int count;
+  unsigned	count = [self count];
+  unsigned	numDescriptors = [sortDescriptors count];
 
-  NSRange *equalityRanges;
-  unsigned int numEqualityRanges;
-
-  unsigned int i, n;
-
-  count = [self count];
-  objects = (id *) objc_calloc(count, sizeof(id));
-  [self getObjects: objects];
-
-  equalityRanges = (NSRange *) objc_calloc(1, sizeof(NSRange));
-  equalityRanges[0].location = 0;
-  equalityRanges[0].length = count;
-  numEqualityRanges = 1;
-
-  for (i = 0, n = [sortDescriptors count]; i < n && equalityRanges != NULL; i++)
+  if (count > 1 && numDescriptors > 0)
     {
-      unsigned int j;
-      NSSortDescriptor *sortDescriptor = [sortDescriptors objectAtIndex: i];
+      id	descriptors[numDescriptors];
+      GS_BEGINIDBUF(objects, count);
+      NSArray	*a;
 
-      // pass through all equality ranges and sort each of them
-      for (j = 0; j < numEqualityRanges; j++)
-        {
-          SortObjectsWithDescriptor(objects, equalityRanges[j],
-            sortDescriptor);
-        }
-
-      // then, if there are sort descriptors left to process
-      if (i < n - 1)
-        // reconstruct the equality ranges anew.
-        {
-          NSRange *newRanges = NULL;
-          unsigned newNumRanges = 0;
-
-          // process only contents of old equality ranges
-          for (j = 0; j < numEqualityRanges; j++)
-            {
-              newRanges = FindEqualityRanges(objects, equalityRanges[j],
-                sortDescriptor, newRanges, &newNumRanges);
-            }
-
-          objc_free(equalityRanges);
-          equalityRanges = newRanges;
-          numEqualityRanges = newNumRanges;
-        }
+      [self getObjects: objects];
+      [sortDescriptors getObjects: descriptors];
+      SortRange(objects, NSMakeRange(0, count), descriptors, numDescriptors);
+      a = [[NSArray alloc] initWithObjects: objects count: count];
+      [self setArray: a];
+      RELEASE(a);
+      GS_ENDIDBUF();
     }
+}
 
-  objc_free(equalityRanges);
+@end
 
-  // now, reconstruct our contents according to the sorted object buffer
-  [self setArray: [NSArray arrayWithObjects: objects count: count]];
+@implementation GSMutableArray (NSSortDescriptorSorting)
 
-  objc_free(objects);
+- (void) sortUsingDescriptors: (NSArray *)sortDescriptors
+{
+  unsigned	dCount = [sortDescriptors count];
+
+  if (_count > 1 && dCount > 0)
+    {
+      GS_BEGINIDBUF(descriptors, dCount);
+
+      [sortDescriptors getObjects: descriptors];
+      SortRange(_contents_array, NSMakeRange(0, _count), descriptors, dCount);
+
+      GS_ENDIDBUF();
+    }
 }
 
 @end

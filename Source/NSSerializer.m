@@ -49,10 +49,6 @@
 @class	NSDataMalloc;
 @interface NSDataMalloc : NSObject	// Help the compiler
 @end
-@class	GSInlineArray;
-@class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
-@end
 
 /*
  *	Setup for inline operation of string map tables.

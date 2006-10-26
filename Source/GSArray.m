@@ -36,6 +36,8 @@
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 
+#include "GSPrivate.h"
+
 static SEL	eqSel;
 static SEL	oaiSel;
 
@@ -54,37 +56,8 @@ static Class	GSInlineArrayClass;
 @interface GSArrayEnumeratorReverse : GSArrayEnumerator
 @end
 
-
-@interface GSArray : NSArray
-{
-@public
-  id		*_contents_array;
-  unsigned	_count;
-}
-@end
-
-@interface GSInlineArray : GSArray
-{
-}
-@end
-
-@interface GSMutableArray : NSMutableArray
-{
-@public
-  id		*_contents_array;
-  unsigned	_count;
-  unsigned	_capacity;
-  int		_grow_factor;
-}
-@end
-
 @interface GSMutableArray (GSArrayBehavior)
 - (void) _raiseRangeExceptionWithIndex: (unsigned)index from: (SEL)sel;
-@end
-
-@interface GSPlaceholderArray : NSArray
-{
-}
 @end
 
 @implementation GSArray

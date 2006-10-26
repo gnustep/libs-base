@@ -63,6 +63,17 @@ extern "C" {
 
 @interface NSMutableArray (NSSortDescriptorSorting)
 
+/**
+ * This method works like this: first, it sorts the entire
+ * contents of the array using the first sort descriptor. Then,
+ * after each sort-run, it looks whether there are sort
+ * descriptors left to process, and if yes, looks at the partially
+ * sorted array, finds all portions in it which are equal
+ * (evaluate to NSOrderedSame) and applies the following
+ * descriptor onto them. It repeats this either until all
+ * descriptors have been applied or there are no more equal
+ * portions (equality ranges) left in the array.
+ */
 - (void) sortUsingDescriptors: (NSArray *)sortDescriptors;
 
 @end

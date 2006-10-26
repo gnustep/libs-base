@@ -104,7 +104,7 @@
   if (data <= GS_SMALL)
 #endif
     {
-      return GSSmallHash((int)data);
+      return GSPrivateSmallHash((int)data);
     }
 #endif
 

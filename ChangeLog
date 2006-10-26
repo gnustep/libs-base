@@ -1,3 +1,18 @@
+2006-10-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: use declaration of GSArray from GSPrivate.h
+	* Source/GSArray.m: ditto
+	* Source/NSArray.m: ditto
+	* Source/NSSerializer.m ditto
+	* Source/NSConcreteNumberTemplate.m: Use private function to get hash.
+	* Source/NSConcreteNumber.m: ditto
+	* Source/NSNumber.m: ditto
+	* Source/GSPrivate.h: Add hash functions.
+	* Headers/Foundation/NSSortDescriptor.h: Add a little documentation.
+	* Source/NSSortDescriptor.m: Implement better hash/isEqual as
+	suggested by David.  Complete rewrite of sorting to avoid lots of
+	heap memory operations ... should be much much faster.
+
 2006-10-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Define HAVE_VISIBILITY_ATTRIBUTE if gcc's visibility
