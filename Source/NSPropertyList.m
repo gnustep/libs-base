@@ -50,9 +50,6 @@
 
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
-@class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
-@end
 @class	GSMutableDictionary;
 @interface GSMutableDictionary : NSObject	// Help the compiler
 @end

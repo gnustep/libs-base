@@ -30,6 +30,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
 #include "NSConcreteNumber.h"
+#include "GSPrivate.h"
 
 #define TYPE_ORDER 0
 #include "NSConcreteNumberTemplate.m"
