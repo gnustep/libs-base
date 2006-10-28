@@ -373,7 +373,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 - (BOOL) load;
 
 /** Returns the path to the executable code in the bundle */
-- (NSString *)executablePath;
+- (NSString *) executablePath;
 #endif
 
 @end
@@ -399,13 +399,6 @@ GS_EXPORT NSString* const NSLoadedClasses;
 			 inDirectory: (NSString*)bundlePath;
 
 @end
-
-/** Warning - do not use this.  */
-#define GSLocalizedString(key, comment) \
-  [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:nil]
-/** Warning - do not use this.  */
-#define GSLocalizedStringFromTable(key, tbl, comment) \
-  [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:(tbl)]
 
 #endif /* GNUSTEP */
 
