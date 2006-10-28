@@ -1,5 +1,11 @@
 2006-10-28  Sheldon Gill  <sheldon@westnet.net.au>
 
+    * Source/NSDate.m
+    * Source/GSPrivate.h
+    Finish eliminating GSUserDefaultsDictionaryRepresentation()
+
+2006-10-28  Sheldon Gill  <sheldon@westnet.net.au>
+
     * Source/NSDictionary.m:
     * Source/NSArray.m:
     * Source/NSCalendarDate.m:

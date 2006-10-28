@@ -197,11 +197,6 @@ typedef enum {
 } GSUserDefaultFlagType;
 
 /*
- * Get the dictionary representation.
- */
-NSDictionary	*GSUserDefaultsDictionaryRepresentation(void);
-
-/*
  * Get one of several potentially useful flags.
  */
 BOOL	GSUserDefaultsFlag(GSUserDefaultFlagType type);
