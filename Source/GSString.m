@@ -2788,6 +2788,30 @@ transmute(GSStr self, NSString *aString)
 
 
 @implementation GSCString
+/*
+- (const unichar *) UTF16String
+{
+  unsigned	c = self->_count;
+
+  if (c == 0)
+    {
+      return "";
+    }
+  else
+    {
+      unsigned int	l = 0;
+      unsigned char	*r = 0;
+
+      if (GSFromUnicode(&r, &l, self->_contents.u, c, NSUnicodeStringEncoding,
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't get UTF16 from cString string."];
+	}
+      return (char*)r;
+    }
+}
+*/
 - (const char *) UTF8String
 {
   return UTF8String_c((GSStr)self);
@@ -3094,6 +3118,34 @@ agree, create a new GSCInlineString otherwise.
 
 
 @implementation GSUnicodeString
+/*
+- (const unichar *) UTF16String
+{
+  unsigned	c = self->_count;
+
+  if (c == 0)
+    {
+      return "";
+    }
+  else if (self->_flags.wide)
+    {
+        return self->_contents; // copy of required...
+    }
+  else
+    {
+      unsigned int	l = 0;
+      unsigned char	*r = 0;
+
+      if (GSFromUnicode(&r, &l, self->_contents.u, c, NSUnicodeStringEncoding,
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't get UTF16 from Unicode string."];
+	}
+      return (char*)r;
+    }
+}
+*/
 - (const char *) UTF8String
 {
   return UTF8String_u((GSStr)self);

@@ -513,6 +513,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       NSBundle		*gbundle;
 
       gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+
       path = [gbundle pathForResource: lang
 		               ofType: nil
 		          inDirectory: @"Languages"];
@@ -521,6 +522,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 	{
 	  dict = [NSDictionary dictionaryWithContentsOfFile: path];
 	}
+
       if (dict)
 	{
 	  [sharedDefaults setVolatileDomain: dict forName: lang];

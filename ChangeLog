@@ -1,5 +1,20 @@
 2006-10-22  Sheldon Gill  <sheldon@westnet.net.au>
 
+    * Source/NSBundle.m:
+    Minor cosmetic changes
+
+2006-10-22  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Headers/Foundation/NSString.h:
+    * Source/NSString.m:
+    rename unicharString to UTF16String so we can a definitive way to get
+    autoreleased unicode string buffers
+    * Source/NSLog.m:
+    * Source/win32/Win32_Utilities.m:
+    now uses UTF16String
+
+2006-10-22  Sheldon Gill  <sheldon@westnet.net.au>
+
     * Source/NSPropertyList.m:
     Fix bug encoding negative numbers in property lists (by rfm)
     * Source/NSDecimalNumber.m:

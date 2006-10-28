@@ -592,7 +592,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
   NSString *process_name = [[NSProcessInfo processInfo] processName];
 
-  fprintf(stderr, "%s: Uncaught exception %s\n  Reason: %s\n",
+  fprintf(stderr, "%s: Uncaught exception %s Reason: %s\n",
     [process_name lossyCString], [[exception name] lossyCString],
     [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */

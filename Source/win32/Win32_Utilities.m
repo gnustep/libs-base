@@ -40,10 +40,6 @@
 
 #include <lm.h>
 
-/* Use this definition to hand an NSString to a Win32 API call */
-#define  UniBuf( nsstr_ptr )    ((WCHAR *)[nsstr_ptr cStringUsingEncoding: NSUnicodeStringEncoding])
-#define  UniBufLen( nsstr_ptr ) ([nsstr_ptr length])
-
 /* ------------------ */
 /* Global Variables   */
 /* ------------------ */
@@ -116,7 +112,7 @@ Win32OpenRegistry(HKEY hive, NSString *keyName)
 
   NSCParameterAssert( IsHiveRoot(hive) );
 
-  if (ERROR_SUCCESS == RegOpenKeyExW(hive, UniBuf(keyName), 0, KEY_READ, &regkey))
+  if (ERROR_SUCCESS == RegOpenKeyExW(hive, [keyName UTF16String], 0, KEY_READ, &regkey))
     {
       return regkey;
     }
@@ -137,7 +133,7 @@ Win32NSStringFromRegistry(HKEY regkey, NSString *regValue)
   NSCParameterAssert( regkey != NULL );
   NSCParameterAssert( regValue != nil );
 
-  if (ERROR_SUCCESS == RegQueryValueExW(regkey, UniBuf(regValue), 0,
+  if (ERROR_SUCCESS == RegQueryValueExW(regkey, [regValue UTF16String], 0,
                                       &type, (LPBYTE)buf, &bufsize))
     {
       /* Check type is correct! */
@@ -167,7 +163,7 @@ Win32NSNumberFromRegistry(HKEY regkey, NSString *regValue)
   NSCParameterAssert( regkey != NULL );
   NSCParameterAssert( regValue != nil );
 
-  if (ERROR_SUCCESS == RegQueryValueExW(regkey, UniBuf(regValue), 0,
+  if (ERROR_SUCCESS == RegQueryValueExW(regkey, [regValue UTF16String], 0,
                                       &type, (LPBYTE)&buf, &bufsize))
     {
       /* Check type is correct! */
@@ -192,14 +188,14 @@ Win32NSDataFromRegistry(HKEY regkey, NSString *regValue)
   NSCParameterAssert( regkey != NULL );
   NSCParameterAssert( regValue != nil );
 
-  if (ERROR_SUCCESS == RegQueryValueExW(regkey, UniBuf(regValue), 0,
+  if (ERROR_SUCCESS == RegQueryValueExW(regkey, [regValue UTF16String], 0,
                                       &type, NULL, &bufsize))
     {
       if (type != REG_BINARY)
           return nil;
 
       buf = objc_malloc(bufsize);
-      if (ERROR_SUCCESS == RegQueryValueExW(regkey, UniBuf(regValue),
+      if (ERROR_SUCCESS == RegQueryValueExW(regkey, [regValue UTF16String],
                                   0, &type, (LPBYTE)buf, &bufsize))
         {
             return [NSData dataWithBytesNoCopy: buf
@@ -252,7 +248,7 @@ Win32GetUserHomeDirectory(NSString *loginName)
       struct _USER_INFO_2 *user_info;
 
        /* Talk to the NET API and get the home dir */
-      if (NetUserGetInfo( NULL, UniBuf(loginName), 2, (LPBYTE*)&user_info) == NERR_Success)
+      if (NetUserGetInfo( NULL, [loginName UTF16String], 2, (LPBYTE*)&user_info) == NERR_Success)
         {
           if ( user_info->usri2_home_dir && user_info->usri2_home_dir[0] )
             {
@@ -311,7 +307,7 @@ Win32FullUserName( NSString *userName )
 
   NSCParameterAssert(userName != nil);
 
-  if (NetUserGetInfo( NULL, UniBuf(userName), 2, (LPBYTE*)&user_info))
+  if (NetUserGetInfo( NULL, [userName UTF16String], 2, (LPBYTE*)&user_info))
     {
       NSLog(@"Couldn't get user information for %@",userName);
       return nil;

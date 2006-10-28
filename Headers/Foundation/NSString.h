@@ -621,7 +621,7 @@ enum {
 #ifndef NO_GNUSTEP
 + (Class) constantStringClass;
 - (BOOL) boolValue;
-- (const unichar *) unicharString;
+- (const unichar *) UTF16String;
 #endif /* NO_GNUSTEP */
 
 @end

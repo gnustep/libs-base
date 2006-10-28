@@ -111,7 +111,7 @@ static objc_mutex_t allocationLock = NULL;
 /*
  * Check if an environment variable is set to YES/TRUE or non-zero number
  */
-static BOOL environment_flag(const char *name, BOOL def)
+static BOOL _environment_flag(const char *name, BOOL def)
 {
   const char	*c = getenv(name);
   BOOL		a = def;
@@ -190,7 +190,7 @@ static void GSLogZombie(id o, SEL sel)
       NSLog(@"Deallocated %@ (0x%x) sent %@",
 	NSStringFromClass(c), o, NSStringFromSelector(sel));
     }
-  if (environment_flag("CRASH_ON_ZOMBIE", NO) == YES)
+  if (_environment_flag("CRASH_ON_ZOMBIE", NO) == YES)
     {
       abort();
     }
@@ -997,8 +997,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       zombieClass = [NSZombie class];
-      NSZombieEnabled = environment_flag("NSZombieEnabled", NO);
-      NSDeallocateZombies = environment_flag("NSDeallocateZombies", NO);
+      NSZombieEnabled = _environment_flag("NSZombieEnabled", NO);
+      NSDeallocateZombies = _environment_flag("NSDeallocateZombies", NO);
 
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);

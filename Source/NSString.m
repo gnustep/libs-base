@@ -91,7 +91,8 @@
 
 #include "GSPrivate.h"
 
-extern BOOL GSScanDouble(unichar*, unsigned, double*);
+extern BOOL GSScanDouble(unichar*, unsigned, double*);  // from NSScanner.m
+extern NSString* GetEncodingName(NSStringEncoding encoding); // from Additions/Unicode.m
 
 @class	GSString;
 @class	GSMutableString;
@@ -2359,18 +2360,18 @@ handle_printf_atsign (FILE *stream,
  * The memory pointed to is not owned by the caller, so the
  * caller must copy its contents to keep it.
  */
-- (const unichar*) unicharString
+- (const unichar *) UTF16String
 {
-  NSMutableData	*data;
-  unichar	*uniStr;
+  NSData	*data;
+  NSMutableData	*m;
+  unichar c = 0;
 
-  data = [NSMutableData dataWithLength: ([self length] + 1) * sizeof(unichar)];
-  uniStr = (unichar*)[data mutableBytes];
-  if (uniStr != 0)
-    {
-      [self getCharacters: uniStr];
-    }
-  return uniStr;
+  data = [self dataUsingEncoding: NSUnicodeStringEncoding
+            allowLossyConversion: NO];
+  m = [data mutableCopy];
+  [m appendBytes: &c length: 2];
+  AUTORELEASE(m);
+  return (const unichar *)([m bytes]+2);
 }
 
 /**
@@ -2382,7 +2383,7 @@ handle_printf_atsign (FILE *stream,
  *
  * Deprecated: MacOS 10.4, Base 1.13
  */
-- (const char*) cString
+- (const char *) cString
 {
   NSData	*d;
   NSMutableData	*m;
@@ -2412,7 +2413,7 @@ handle_printf_atsign (FILE *stream,
  * Raises an <code>NSCharacterConversionException</code> if loss of
  * information would occur during conversion.
  */
-- (const char*) cStringUsingEncoding: (NSStringEncoding)encoding
+- (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
 {
   NSData	*d;
   NSMutableData	*m;
@@ -2472,7 +2473,7 @@ handle_printf_atsign (FILE *stream,
  * result in information loss.  The memory pointed to is not owned by the
  * caller, so the caller must copy its contents to keep it.
  */
-- (const char*) lossyCString
+- (const char *) lossyCString
 {
   NSData	*d;
   NSMutableData	*m;
@@ -2488,7 +2489,7 @@ handle_printf_atsign (FILE *stream,
 /**
  * Returns null-terminated UTF-8 version of this unicode string.  The char[]
  * memory comes from an autoreleased object, so it will eventually go out of
- * scope.
+ * scope. Copy the data if you need to keep it around.
  */
 - (const char *) UTF8String
 {

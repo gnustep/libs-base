@@ -51,12 +51,6 @@
 
 #include "GSPrivate.h"
 
-//extern NSThread *GSCurrentThread();  // why isn't this in GSPrivate.h ?? -SG
-
-// From "Win32Support.h"
-#define UNISTR(X) \
-((WCHAR *)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
-
 /* DEPRECATED - DELETED  Base 1.14  => we don't support this anymore
  *
  * We delete these entirely. Simpler, faster, smaller
@@ -81,7 +75,7 @@
 
 #if defined(__MINGW32__)
 /* A mechanism for a more descriptive event source registration -SG */
-static WCHAR *_source_name = NULL;
+static const WCHAR *_source_name = NULL;
 static HANDLE _eventloghandle = NULL;
 
 /**
@@ -100,13 +94,14 @@ void SGSetEventSource(WCHAR *aName)
 static void
 send_event_to_eventlog(WORD eventtype, NSString *message)
 {
-  LPCWSTR msgbuffer = UNISTR(message);
+  LPCWSTR msgbuffer = [message UTF16String];
 
   if (!_eventloghandle)
     {
       if (_source_name == NULL)
         {
-          _source_name = UNISTR([[NSProcessInfo processInfo] processName]);
+          _source_name = [[[NSProcessInfo processInfo]
+                              processName] UTF16String];
         }
       _eventloghandle = RegisterEventSourceW(NULL, _source_name);
     }
@@ -136,7 +131,7 @@ _GSLog_standard_printf_handler(NSString* message)
 
 #ifndef RELEASE_VERSION
   if (IsDebuggerPresent())
-      OutputDebugStringW(UNISTR(message));
+      OutputDebugStringW([message UTF16String]);
 #endif
 
   if (hStdErr == NULL)
@@ -152,7 +147,7 @@ _GSLog_standard_printf_handler(NSString* message)
 
       if (GetFileType(hStdErr) == FILE_TYPE_CHAR)
         {
-          unichar *buffer = UNISTR(message);
+          const unichar *buffer = [message UTF16String];
           if (!WriteConsoleW(hStdErr, buffer+1,
                           wcslen(buffer+1),
                           &bytes_out, NULL))
@@ -163,7 +158,8 @@ _GSLog_standard_printf_handler(NSString* message)
         }
       else
         {
-          char *buffer = (char *)[message UTF8String];
+//          char *buffer = (char *)[message UTF8String];
+          const char *buffer = [message UTF8String];
           if (!WriteFile(hStdErr, buffer,
                           strlen(buffer),
                           &bytes_out, NULL))

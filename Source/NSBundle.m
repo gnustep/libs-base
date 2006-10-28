@@ -214,7 +214,7 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 /*
  * Return the path to this executable.
  */
-static NSString	*ExecutablePath()
+static NSString	*executable_path()
 {
   static NSString	*executablePath = nil;
   static BOOL		beenHere = NO;
@@ -260,18 +260,18 @@ static NSString	*ExecutablePath()
 
 /* This function is provided for objc-load.c, although I'm not sure it
    really needs it (So far only needed if using GNU dld library) */
-#ifdef    __MINGW32__
+#if defined(__MINGW32__)
 const unichar *
 objc_executable_location (void)
 {
-  return [[ExecutablePath() stringByDeletingLastPathComponent]
+  return [[executable_path() stringByDeletingLastPathComponent]
 	     fileSystemRepresentation];
 }
-#else  
+#else
 const char *
 objc_executable_location (void)
 {
-  return [[ExecutablePath() stringByDeletingLastPathComponent]
+  return [[executable_path() stringByDeletingLastPathComponent]
 	     fileSystemRepresentation];
 }
 #endif
@@ -483,7 +483,7 @@ _find_framework(NSString *name)
        */
       bundlePath = objc_get_symbol_path (frameworkClass, NULL);
 
-      if ([bundlePath isEqualToString: ExecutablePath()])
+      if ([bundlePath isEqualToString: executable_path()])
 	{
 	  /* Ops ... the NSFramework_xxx class is linked in the main
 	   * executable.  Maybe the framework was statically linked
@@ -920,13 +920,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
          know yet if it's a tool or an application, we always store
          the executable name here - just in case it turns out it's a
          tool.  */
-      NSString *toolName = [ExecutablePath() lastPathComponent];
+      NSString *toolName = [executable_path() lastPathComponent];
 #if defined(__MINGW32__) || defined(__CYGWIN__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
 
       /* Strip off the name of the program */
-      path = [ExecutablePath() stringByDeletingLastPathComponent];
+      path = [executable_path() stringByDeletingLastPathComponent];
 
       /* We now need to chop off the extra subdirectories, the library
 	 combo and the target cpu/os if they exist.  The executable
@@ -1044,7 +1044,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	   * for obtaining a library resource bundle.
 	   */
 	  lib = objc_get_symbol_path (aClass, NULL);
-	  if ([lib isEqual: ExecutablePath()] == YES)
+	  if ([lib isEqual: executable_path()] == YES)
 	    {
 	      lib = nil;	// In program, not library.
 	    }
@@ -1953,7 +1953,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
   if (self == _mainBundle)
     {
-      return ExecutablePath();
+      return executable_path();
     }
   if (self->_bundleType == NSBUNDLE_LIBRARY)
     {
@@ -2091,15 +2091,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 /**
  * <p>Return a bundle which accesses the first existing directory from the list
- * GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_LOCAL_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_SYSTEM_ROOT/Libraries/Resources/libraryName/<br />
+ * GNUSTEP_USER_ROOT/Library/Libraries/Resources/libraryName/
+ * GNUSTEP_NETWORK_ROOT/Library/Libraries/Resources/libraryName/
+ * GNUSTEP_LOCAL_ROOT/Library/Libraries/Resources/libraryName/
+ * GNUSTEP_SYSTEM_ROOT/Library/Libraries/Resources/libraryName/<br />
  * Where libraryName is the name of a library without the <em>lib</em>
  * prefix or any extensions.
  * </p>
  * <p>This method exists to provide resource bundles for libraries and hos no
- * particular relationship to the library code itsself.  The named library
+ * particular relationship to the library code itself.  The named library
  * could be a dynamic library linked in to the running program, a static
  * library (whose code may not even exist on the host machine except where
  * it is linked in to the program), or even a library which is not linked
