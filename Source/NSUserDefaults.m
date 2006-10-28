@@ -1957,21 +1957,6 @@ static BOOL isLocked = NO;
 }
 @end
 
-NSDictionary*
-GSUserDefaultsDictionaryRepresentation()
-{
-  NSDictionary	*defs;
-
-  if (sharedDefaults == nil)
-    {
-      [NSUserDefaults standardUserDefaults];
-    }
-  [classLock lock];
-  defs = [sharedDefaults dictionaryRepresentation];
-  [classLock unlock];
-  return defs;
-}
-
 /*
  * Get one of several potentially useful flags.
  */

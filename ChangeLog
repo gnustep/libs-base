@@ -1,3 +1,15 @@
+2006-10-28  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source/NSDictionary.m:
+    * Source/NSArray.m:
+    * Source/NSCalendarDate.m:
+    * Source/NSDecimalNumber.m:
+    * Source/NSScanner.m:
+    * Source/NSString.m:
+    * Source/NSUserDefaults.m:
+    Eliminate GSUserDefaultsDictionaryRepresentation() in favour of
+    [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
+
 2006-10-22  Sheldon Gill  <sheldon@westnet.net.au>
 
     * Source/NSBundle.m:

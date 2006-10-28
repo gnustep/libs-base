@@ -264,7 +264,8 @@ static NSDecimalNumber *one;
 - (id) initWithString: (NSString*)numberValue
 {
   return [self initWithString: numberValue
-		       locale: GSUserDefaultsDictionaryRepresentation()];
+		       locale: [[NSUserDefaults standardUserDefaults] 
+                           dictionaryRepresentation]];
 }
 
 - (id) initWithString: (NSString*)numberValue

@@ -170,7 +170,8 @@ typedef struct {
 
   if (scanner != nil)
     {
-      [scanner setLocale: GSUserDefaultsDictionaryRepresentation()];
+      [scanner setLocale: [[NSUserDefaults standardUserDefaults] 
+                              dictionaryRepresentation]];
     }
   return scanner;
 }

@@ -4179,7 +4179,7 @@ static NSFileManager *fm = nil;
     }
   else
     {
-      dict = GSUserDefaultsDictionaryRepresentation();
+      dict = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
       ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
         initWithFormat: format locale: dict arguments: ap]);
     }
@@ -4231,8 +4231,9 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) localizedCompare: (NSString *)string
 {
-  NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary *dict;
 
+  dict = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   return [self compare: string
                options: 0
                  range: ((NSRange){0, [self length]})
@@ -4245,8 +4246,9 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string
 {
-  NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary *dict;
 
+  dict = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   return [self compare: string
                options: NSCaseInsensitiveSearch
                  range: ((NSRange){0, [self length]})

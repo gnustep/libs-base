@@ -56,13 +56,13 @@ NSString *curWinNTKey = @"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\";
 /* Internal function prototypes. */
 /* ============================= */
 
-BOOL IsHiveRoot(HKEY);
+static BOOL _is_hive_root(HKEY);
 
 void Win32_Utilities_init();
 void Win32_Utilities_fini();
 /* ============================= */
 
-BOOL IsHiveRoot( HKEY hive_key)
+static BOOL _is_hive_root( HKEY hive_key)
 {
   if (hive_key == HKEY_CLASSES_ROOT)
       return YES;
@@ -110,7 +110,7 @@ Win32OpenRegistry(HKEY hive, NSString *keyName)
 {
   HKEY regkey;
 
-  NSCParameterAssert( IsHiveRoot(hive) );
+  NSCParameterAssert( _is_hive_root(hive) );
 
   if (ERROR_SUCCESS == RegOpenKeyExW(hive, [keyName UTF16String], 0, KEY_READ, &regkey))
     {
