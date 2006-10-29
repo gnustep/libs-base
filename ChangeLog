@@ -8,6 +8,7 @@
 	remove some redundant code.
 	* Source/Additions/GSMime.m: Add support for some more character
 	encodings.
+	Fix uninitialised variable compiler failed to warn about.
 
 2006-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 

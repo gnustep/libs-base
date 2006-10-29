@@ -3737,11 +3737,11 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)NSMacOSRomanStringEncoding);
 	  NSMapInsert(charsets, (void*)@"koi8-r",
 	    (void*)NSKOI8RStringEncoding);
-	  NSMapInsert(encodings, (void*)@"gb2312.1980",
+	  NSMapInsert(charsets, (void*)@"gb2312.1980",
 	    (void*)NSGB2312StringEncoding);
-	  NSMapInsert(encodings, (void*)@"ksc5601.1987",
+	  NSMapInsert(charsets, (void*)@"ksc5601.1987",
 	    (void*)NSKoreanEUCStringEncoding);
-	  NSMapInsert(encodings, (void*)@"ksc5601.1997",
+	  NSMapInsert(charsets, (void*)@"ksc5601.1997",
 	    (void*)NSKoreanEUCStringEncoding);
 	}
       if (encodings == 0)
