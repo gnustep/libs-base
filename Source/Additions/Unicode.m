@@ -438,6 +438,7 @@ GSEncodingFromLocale(const char *clocale)
       /* Locale contains the 'codeset' section. Parse it and see
 	 if we know what encoding this cooresponds to */
       NSString	*registry;
+      NSString	*charset;
       NSArray	*array;
       char	*s;
 
@@ -447,14 +448,15 @@ GSEncodingFromLocale(const char *clocale)
       registry = [array objectAtIndex: 0];
       if ([array count] > 1)
 	{
-	  encodstr = [array lastObject];
+	  charset = [NSString stringWithFormat: @"%@-%@",
+	    registry, [array lastObject]];
 	}
       else
 	{
-	  encodstr = @"0";
+	  charset = registry;
 	}
 
-      encoding = GSEncodingForRegistry(registry, encodstr);
+      encoding = [GSMimeDocument encodingFromCharset: charset];
     }
   else
     {
