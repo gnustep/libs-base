@@ -1277,6 +1277,7 @@ GSCheckTasks()
 
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
+	      AUTORELEASE(RETAIN(t));
 	      [tasksLock unlock];
 	      if (t != nil)
 		{
