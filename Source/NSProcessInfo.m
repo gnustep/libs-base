@@ -1,5 +1,5 @@
 /** Implementation for NSProcessInfo for GNUStep
-   Copyright (C) 1995-2001 Free Software Foundation, Inc.
+   Copyright (C) 1995-2006 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
                 Heidelberg, Germany
@@ -545,7 +545,7 @@ static char	**_gnu_noobjc_env = NULL;
       "Please check the linking process\n");
     abort();
   }
-  
+
   /* copy the environment strings */
   for (count = 0; vectors[count]; count++)
     ;
@@ -997,9 +997,9 @@ int main(int argc, char *argv[], char *env[])
 }
 
 /**
- * Returns the name of the operating system in use.<br>
+ * Returns the name of the operating system in use.<br />
  * OpenStep/Cocoa return a string representation of the operatingSystem
- * constant. MacOS-X will always return @"NSMACHOperatingSystem"<br/>
+ * constant. MacOS-X will always return @"NSMACHOperatingSystem".<br />
  * This implementation is different in that it will return the
  * name of the operating system. (eg "Linux", "Darwin", "FreeBSD")
  */
@@ -1025,13 +1025,13 @@ int main(int argc, char *argv[], char *env[])
 }
 
 /**
- * Returns a localised string with the name and version information about the
- * operating system on which the process is running. The string is designed
+ * <p>Returns a localised string with the name and version information about
+ * the operating system on which the process is running. The string is designed
  * to be read by a human and shouldn't be used by an application to determine
- * details about the host operating system.<p>
+ * details about the host operating system.</p>
  *
- * Known Bugs: No localisation support yet
- * <introduced/>MacOS 10.2, Base 1.14</introduced>
+ * Known Bugs: No localisation support yet<br />
+ * Introduced: MacOS 10.2, Base 1.14
  */
 - (NSString *) operatingSystemVersionString
 {
@@ -1082,7 +1082,7 @@ int main(int argc, char *argv[], char *env[])
 /**
  * Change the name of the current process to newName. The newName is used
  * by the GNUstep libraries but it will not change the name of the binary
- * being executed.<br>
+ * being executed.<br />
  * Use this carefully as other objects use this in their functionality, for
  * example: NSUserDefaults
  */

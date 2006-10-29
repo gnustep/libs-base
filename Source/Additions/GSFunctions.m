@@ -23,7 +23,7 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 
-   <title>NSPathUtilities function reference</title>
+   <title>Additional Utilities function reference</title>
    $Date$ $Revision$
    */
 

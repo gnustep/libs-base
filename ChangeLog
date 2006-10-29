@@ -1,5 +1,25 @@
 2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
 
+    * Tools\AGSHtml.m
+    * Tools\AGSParser.m
+    * Tools\AGSOutput.m
+    * Tools\autogsdoc.m
+    Merge RFM changes from trunk/HEAD
+
+    * Testing\tcpport-client.m
+    * Testing\nsconnection_server.m
+    * Testing\exported-strings.m
+    * Testing\nsprocessinfo.m
+    * Tools\xmlparse.m
+    * Tools\defaults.m
+    * Tools\locale_alias.m
+    * Tools\Makefile.preamble
+    * Tools\make_strings\make_strings.m
+    * Tools\pl.m
+    Use encoded c-strings
+
+2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
+
     * Source/GSArray.h: added
     * Source/GSArray.m:
     Move declarations to header for internal use

@@ -2493,8 +2493,11 @@ static NSString		*mainFont = nil;
 	{
 	  [buf appendString: @", "];
 	  [buf appendString: project];
-	  [buf appendString: @" "];
-	  [buf appendString: gvadd];
+	  if ([gvadd isEqualToString: @"0.0.0"] == NO)
+	    {
+	      [buf appendString: @" "];
+	      [buf appendString: gvadd];
+	    }
 	  if ([gvdep length] > 0)
 	    {
 	      [buf appendString: @" deprecated at "];
@@ -2502,7 +2505,7 @@ static NSString		*mainFont = nil;
 	    }
 	  if ([gvrem length] > 0)
 	    {
-	      [buf appendString: @" removed at "];
+	      [buf appendString: @" deprecated for removal at "];
 	      [buf appendString: gvrem];
 	    }
 	}
@@ -2515,8 +2518,11 @@ static NSString		*mainFont = nil;
       [buf appendString: @"<div class=\"availability\">\n"];
       [buf appendString: @"<b>Availability:</b> "];
       [buf appendString: project];
-      [buf appendString: @" "];
-      [buf appendString: gvadd];
+      if ([gvadd isEqualToString: @"0.0.0"] == NO)
+	{
+	  [buf appendString: @" "];
+	  [buf appendString: gvadd];
+	}
       if ([gvdep length] > 0)
 	{
 	  [buf appendString: @" deprecated at "];
@@ -2525,7 +2531,7 @@ static NSString		*mainFont = nil;
       [buf appendString: @"<br />\n"];
       if ([gvrem length] > 0)
 	{
-	  [buf appendString: @" removed at "];
+	  [buf appendString: @" deprecated for removal at "];
 	  [buf appendString: gvrem];
 	}
       [buf appendString:@"</div>\n"];
