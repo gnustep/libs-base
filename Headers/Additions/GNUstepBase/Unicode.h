@@ -49,15 +49,15 @@ extern "C" {
 /* Private/internal functions */
 NSStringEncoding *GetAvailableEncodings(void) GS_PRIVATE;
 NSStringEncoding GetDefEncoding(void)  GS_PRIVATE;
-/* Deprecated functions */
-GS_EXPORT NSStringEncoding GSEncodingFromLocale(const char *clocale) GS_DEPRECATED;
+/* Functions deprecated from external API */
+GS_EXPORT NSStringEncoding GSEncodingFromLocale(const char *clocale);
 GS_EXPORT NSStringEncoding GSEncodingForRegistry(NSString *registry,
-						 NSString *encoding) GS_DEPRECATED;
-GS_EXPORT unichar uni_tolower(unichar ch) GS_DEPRECATED;
-GS_EXPORT unichar uni_toupper(unichar ch) GS_DEPRECATED;
-GS_EXPORT unsigned char uni_cop(unichar u) GS_DEPRECATED;
-GS_EXPORT BOOL uni_isnonsp(unichar u) GS_DEPRECATED;
-GS_EXPORT unichar *uni_is_decomp(unichar u) GS_DEPRECATED;
+						 NSString *encoding);
+GS_EXPORT unichar uni_tolower(unichar ch);
+GS_EXPORT unichar uni_toupper(unichar ch);
+GS_EXPORT unsigned char uni_cop(unichar u);
+GS_EXPORT BOOL uni_isnonsp(unichar u);
+GS_EXPORT unichar *uni_is_decomp(unichar u);
 #endif
 
 /*

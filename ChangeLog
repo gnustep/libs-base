@@ -1,5 +1,14 @@
 2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
 
+    * Source/GSArray.h: added
+    * Source/GSArray.m:
+    Move declarations to header for internal use
+    
+    * Source/NSNull.m:
+    Minor coding standards mods
+
+2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
+
     * Source/NSTask.m:
     Bugfix for "NSTask not threadsafe" reported by Wim Oudshoorn 27/10/2006
 

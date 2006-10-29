@@ -31,6 +31,7 @@
 #include "Foundation/NSDecimalNumber.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSPortCoder.h"
+#include "Foundation/NSUserDefaults.h"
 
 #include "GSPrivate.h"
 

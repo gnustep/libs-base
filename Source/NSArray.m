@@ -46,10 +46,13 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSNull.h"
+#include "Foundation/NSUserDefaults.h"
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
+
+#include "GSArray.h"
 
 extern BOOL	GSMacOSXCompatiblePropertyLists(void);
 extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
@@ -66,21 +69,6 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @interface NSArrayEnumeratorReverse : NSArrayEnumerator
 @end
 
-
-
-@class	GSArray;
-@interface GSArray : NSObject	// Help the compiler
-@end
-@class	GSInlineArray;
-@interface GSInlineArray : NSObject	// Help the compiler
-@end
-@class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
-@end
-@class	GSPlaceholderArray;
-@interface GSPlaceholderArray : NSObject	// Help the compiler
-@end
-
 static Class NSArrayClass;
 static Class GSArrayClass;
 static Class GSInlineArrayClass;
@@ -93,9 +81,9 @@ static NSMapTable		*placeholderMap;
 static NSLock			*placeholderLock;
 
 /**
- * A simple, low overhead, ordered container for objects.  All the objects
+ * A simple, low overhead, container for ordered objects.  All the objects
  * in the container are retained by it.  The container may not contain nil
- * (though it may contain [NSNull+null]).
+ * (though it may contain +[NSNull null]).
  */
 @implementation NSArray
 

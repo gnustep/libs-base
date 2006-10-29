@@ -56,7 +56,7 @@ static NSNull	*null = 0;
  * Return an object that can be used as a placeholder in a collection.
  * This method always returns the same object.
  */
-+ (NSNull*) null
++ (NSNull *) null
 {
   return null;
 }
@@ -66,7 +66,7 @@ static NSNull	*null = 0;
   return self;
 }
 
-- (id) copyWithZone: (NSZone*)z
+- (id) copyWithZone: (NSZone *)z
 {
   return self;
 }
@@ -81,11 +81,11 @@ static NSNull	*null = 0;
   GSNOSUPERDEALLOC;
 }
 
-- (void) encodeWithCoder: (NSCoder*)aCoder
+- (void) encodeWithCoder: (NSCoder *)aCoder
 {
 }
 
-- (id) initWithCoder: (NSCoder*)aCoder
+- (id) initWithCoder: (NSCoder *)aCoder
 {
   return self;
 }
