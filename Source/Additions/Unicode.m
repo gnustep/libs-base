@@ -42,6 +42,7 @@
 #include <Foundation/Foundation.h>
 #endif
 #include "GNUstepBase/GSLock.h"
+#include "GNUstepBase/GSMime.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/Unicode.h"
 #include "../GSPrivate.h"
@@ -399,95 +400,13 @@ GSPrivateIsEncodingSupported(NSStringEncoding enc)
 NSStringEncoding
 GSEncodingForRegistry (NSString *registry, NSString *encoding)
 {
-  if ([registry isEqualToString: @"iso8859"])
-    {
-      if ([encoding isEqualToString: @"1"])
-	return NSISOLatin1StringEncoding;
-      else if ([encoding isEqualToString: @"2"])
-	return NSISOLatin2StringEncoding;
-      else if ([encoding isEqualToString: @"3"])
-	return NSISOLatin3StringEncoding;
-      else if ([encoding isEqualToString: @"4"])
-	return NSISOLatin4StringEncoding;
-      else if ([encoding isEqualToString: @"5"])
-	return NSISOCyrillicStringEncoding;
-      else if ([encoding isEqualToString: @"6"])
-	return NSISOArabicStringEncoding;
-      else if ([encoding isEqualToString: @"7"])
-	return NSISOGreekStringEncoding;
-      else if ([encoding isEqualToString: @"8"])
-	return NSISOHebrewStringEncoding;
-      else if ([encoding isEqualToString: @"11"])
-	return NSISOThaiStringEncoding;
-      else if ([encoding isEqualToString: @"15"])
-	return NSISOLatin9StringEncoding;
-      // Other latin encodings are currently not supported
-    }
-  else if ([registry isEqualToString: @"iso10646"])
-    {
-      if ([encoding isEqualToString: @"1"])
-	return NSUnicodeStringEncoding;
-    }
-  else if ([registry isEqualToString: @"microsoft"])
-    {
-      if ([encoding isEqualToString: @"symbol"])
-	return NSSymbolStringEncoding;
-      else if ([encoding isEqualToString: @"cp1250"])
-	return NSWindowsCP1250StringEncoding;
-      else if ([encoding isEqualToString: @"cp1251"])
-	return NSWindowsCP1251StringEncoding;
-      else if ([encoding isEqualToString: @"cp1252"])
-	return NSWindowsCP1252StringEncoding;
-      else if ([encoding isEqualToString: @"cp1253"])
-	return NSWindowsCP1253StringEncoding;
-      else if ([encoding isEqualToString: @"cp1254"])
-	return NSWindowsCP1254StringEncoding;
-    }
-  else if ([registry isEqualToString: @"apple"])
-    {
-      if ([encoding isEqualToString: @"roman"])
-	return NSMacOSRomanStringEncoding;
-    }
-  else if ([registry isEqualToString: @"jisx0201.1976"])
-    {
-      if ([encoding isEqualToString: @"0"])
-	return NSShiftJISStringEncoding;
-    }
-  else if ([registry isEqualToString: @"iso646.1991"])
-    {
-      if ([encoding isEqualToString: @"irv"])
-	return NSASCIIStringEncoding;
-    }
-  else if ([registry isEqualToString: @"koi8"])
-    {
-      if ([encoding isEqualToString: @"r"])
-	return NSKOI8RStringEncoding;
-    }
-  else if ([registry isEqualToString: @"gb2312.1980"])
-    {
-      if ([encoding isEqualToString: @"0"])
-	return NSGB2312StringEncoding;
-    }
-  else if ([registry isEqualToString: @"big5"])
-    {
-      if ([encoding isEqualToString: @"0"])
-        return NSBIG5StringEncoding;
-    }
-  else if ([registry isEqualToString: @"ksc5601.1987"])
-    {
-      return NSKoreanEUCStringEncoding;
-    }
-  else if ([registry isEqualToString: @"ksc5601.1997"])
-    {
-      return NSKoreanEUCStringEncoding;
-    }
-  else if ([registry isEqualToString:@"utf8"]
-    || [registry isEqualToString:@"utf-8"])
-    {
-      return NSUTF8StringEncoding;
-    }
+  NSString	*charset = registry;
 
-  return GSUndefinedEncoding;
+  if ([encoding length] > 0 && [encoding isEqualToString: @"0"] == NO)
+    {
+      charset = [NSString stringWithFormat: @"%@-%@", registry, encoding];
+    }
+  return [GSMimeDocument encodingFromCharset: charset];
 }
 
 /** Try to deduce the string encoding from the locale string

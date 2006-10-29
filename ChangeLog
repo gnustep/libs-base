@@ -4,7 +4,8 @@
 	* Source/Additions/Unicode.m:
 	* Source/GSeq.h:
 	* Headers/Additions/GNUstepBase/Unicode.h:
-	uni_cop should be private in future.
+	runi_cop should be private in future.
+	remove some redundant code.
 	* Source/Additions/GSMime.m: Add support for some more character
 	encodings.
 
