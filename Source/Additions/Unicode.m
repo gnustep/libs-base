@@ -613,7 +613,7 @@ uni_toupper(unichar ch)
 }
 
 unsigned char
-uni_cop(unichar u)
+GSPrivateUniCop(unichar u)
 {
   if (u < uni_cop_table[0].code)
     {
@@ -658,6 +658,12 @@ uni_cop(unichar u)
     }
 }
 
+unsigned char
+uni_cop(unichar u)
+{
+  return GSPrivateUniCop(u);
+}
+
 BOOL
 uni_isnonsp(unichar u)
 {
@@ -669,7 +675,7 @@ uni_isnonsp(unichar u)
     return YES;
 
 // FIXME check is uni_cop good for this
-  if (uni_cop(u))
+  if (GSPrivateUniCop(u))
     return YES;
   else
     return NO;
