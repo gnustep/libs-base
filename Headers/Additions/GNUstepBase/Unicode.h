@@ -49,12 +49,15 @@ extern "C" {
 /* Deprecated functions */
 GS_EXPORT NSStringEncoding GSEncodingFromLocale(const char *clocale);
 GS_EXPORT NSStringEncoding GSEncodingForRegistry(NSString *registry, 
-						 NSString *encoding);
+  NSString *encoding);
 GS_EXPORT unichar uni_tolower(unichar ch);
 GS_EXPORT unichar uni_toupper(unichar ch);
+
 GS_EXPORT unsigned char uni_cop(unichar u);
 GS_EXPORT BOOL uni_isnonsp(unichar u);
 GS_EXPORT unichar *uni_is_decomp(unichar u);
+GS_EXPORT unsigned GSUnicode(const unichar *chars, unsigned length,
+  BOOL *isASCII, BOOL *isLatin1);
 #endif
 
 
@@ -67,8 +70,6 @@ GS_EXPORT unichar *uni_is_decomp(unichar u);
 #define	GSUniBOM	0x08
 #define	GSUniShortOk	0x10
 
-GS_EXPORT unsigned GSUnicode(const unichar *chars, unsigned length,
-  BOOL *isASCII, BOOL *isLatin1);
 GS_EXPORT BOOL GSFromUnicode(unsigned char **dst, unsigned int *size,
   const unichar *src, unsigned int slen, NSStringEncoding enc, NSZone *zone,
   unsigned int options);

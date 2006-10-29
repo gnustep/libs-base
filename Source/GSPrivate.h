@@ -431,6 +431,11 @@ GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
 NSString *
 GSPrivateSymbolPath (Class theClass, Category *theCategory) GS_ATTRIB_PRIVATE;
 
+/* Combining class for composite unichars
+ */
+unsigned char
+GSPrivateUniCop(unichar u) GS_ATTRIB_PRIVATE;
+
 /* unload a module from the runtime (not implemented)
  */
 long

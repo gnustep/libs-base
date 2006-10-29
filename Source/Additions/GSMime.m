@@ -3604,8 +3604,9 @@ static NSCharacterSet	*tokenSet = nil;
 	    NSIntMapValueCallBacks, 0);
 
 	  /*
-	   * These mappings were obtained from
+	   * These mappings were obtained primarily from
 	   * http://www.iana.org/assignments/character-sets
+	   * with additions determined empirically.
 	   *
 	   * We should ideally have all the aliases for each
 	   * encoding we support, but I just did the aliases
@@ -3622,6 +3623,8 @@ static NSCharacterSet	*tokenSet = nil;
 	  NSMapInsert(charsets, (void*)@"ansi_x3.4-1986",
 	    (void*)NSASCIIStringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso_646.irv:1991",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso_646.991-irv",
 	    (void*)NSASCIIStringEncoding);
 	  NSMapInsert(charsets, (void*)@"ascii",
 	    (void*)NSASCIIStringEncoding);
@@ -3682,34 +3685,64 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)NSISOLatin5StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-10",
 	    (void*)NSISOLatin6StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-8859-11",
+	    (void*)NSISOThaiStringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-13",
 	    (void*)NSISOLatin7StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-14",
 	    (void*)NSISOLatin8StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-15",
 	    (void*)NSISOLatin9StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-symbol",
+	    (void*)NSSymbolStringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-symbol",
+	    (void*)NSSymbolStringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1250",
+	    (void*)NSWindowsCP1250StringEncoding);
 	  NSMapInsert(charsets, (void*)@"windows-1250",
 	    (void*)NSWindowsCP1250StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1251",
+	    (void*)NSWindowsCP1251StringEncoding);
 	  NSMapInsert(charsets, (void*)@"windows-1251",
 	    (void*)NSWindowsCP1251StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1252",
+	    (void*)NSWindowsCP1252StringEncoding);
 	  NSMapInsert(charsets, (void*)@"windows-1252",
 	    (void*)NSWindowsCP1252StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1253",
+	    (void*)NSWindowsCP1253StringEncoding);
 	  NSMapInsert(charsets, (void*)@"windows-1253",
 	    (void*)NSWindowsCP1253StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1254",
+	    (void*)NSWindowsCP1254StringEncoding);
 	  NSMapInsert(charsets, (void*)@"windows-1254",
 	    (void*)NSWindowsCP1254StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-10646-ucs-2",
 	    (void*)NSUnicodeStringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf-16",
 	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso10646-1",
+	    (void*)NSUnicodeStringEncoding);
 	  NSMapInsert(charsets, (void*)@"big5",
 	    (void*)NSBIG5StringEncoding);
+	  NSMapInsert(charsets, (void*)@"jisx0201.1976",
+	    (void*)NSShiftJISStringEncoding);
 	  NSMapInsert(charsets, (void*)@"shift_JIS",
 	    (void*)NSShiftJISStringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf-7",
 	    (void*)NSUTF7StringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf-8",
 	    (void*)NSUTF8StringEncoding);
+	  NSMapInsert(charsets, (void*)@"apple-roman",
+	    (void*)NSMacOSRomanStringEncoding);
+	  NSMapInsert(charsets, (void*)@"koi8-r",
+	    (void*)NSKOI8RStringEncoding);
+	  NSMapInsert(encodings, (void*)@"gb2312.1980",
+	    (void*)NSGB2312StringEncoding);
+	  NSMapInsert(encodings, (void*)@"ksc5601.1987",
+	    (void*)NSKoreanEUCStringEncoding);
+	  NSMapInsert(encodings, (void*)@"ksc5601.1997",
+	    (void*)NSKoreanEUCStringEncoding);
 	}
       if (encodings == 0)
 	{
@@ -3747,6 +3780,8 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)@"iso-8859-9");
 	  NSMapInsert(encodings, (void*)NSISOLatin6StringEncoding,
 	    (void*)@"iso-8859-10");
+	  NSMapInsert(encodings, (void*)NSISOThaiStringEncoding,
+	    (void*)@"iso-8859-11");
 	  NSMapInsert(encodings, (void*)NSISOLatin7StringEncoding,
 	    (void*)@"iso-8859-13");
 	  NSMapInsert(encodings, (void*)NSISOLatin8StringEncoding,
@@ -3775,6 +3810,14 @@ static NSCharacterSet	*tokenSet = nil;
 	    (void*)@"utf-8");
 	  NSMapInsert(encodings, (void*)NSGSM0338StringEncoding,
 	    (void*)@"gsm0338");
+	  NSMapInsert(encodings, (void*)NSMacOSRomanStringEncoding,
+	    (void*)@"apple-roman");
+	  NSMapInsert(encodings, (void*)NSKOI8RStringEncoding,
+	    (void*)@"koi8-r");
+	  NSMapInsert(encodings, (void*)NSGB2312StringEncoding,
+	    (void*)@"gb2312.1980");
+	  NSMapInsert(encodings, (void*)NSKoreanEUCStringEncoding,
+	    (void*)@"ksc5601.1987");
 	}
     }
 }
