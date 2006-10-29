@@ -1,7 +1,12 @@
+2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Source/NSTask.m:
+    Bugfix for "NSTask not threadsafe" reported by Wim Oudshoorn 27/10/2006
+
 2006-10-28  Sheldon Gill  <sheldon@westnet.net.au>
 
-    * Source/NSDate.m
-    * Source/GSPrivate.h
+    * Source/NSDate.m:
+    * Source/GSPrivate.h:
     Finish eliminating GSUserDefaultsDictionaryRepresentation()
 
 2006-10-28  Sheldon Gill  <sheldon@westnet.net.au>
