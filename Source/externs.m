@@ -127,7 +127,7 @@ NSString *StreamException = @"StreamException";
 
 
 
-/* Standard domains */
+/* Standard domains for NSUserDefaults */
 NSString *NSArgumentDomain = @"NSArgumentDomain";
 
 NSString *NSGlobalDomain = @"NSGlobalDomain";

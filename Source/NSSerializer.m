@@ -41,6 +41,7 @@
 #include "Foundation/NSValue.h"
 
 #include "GSPrivate.h"
+#include "GSString.h"
 
 @class	GSDictionary;
 @class	GSMutableDictionary;

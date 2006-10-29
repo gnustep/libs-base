@@ -45,6 +45,7 @@
 #include <math.h>
 #include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
 #include "GSPrivate.h"
+#include "GSString.h"
 
 /* BSD and Solaris have this */
 #if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)

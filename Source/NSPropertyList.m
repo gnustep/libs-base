@@ -21,7 +21,8 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   */
+   $Date$ $Revision$
+*/
 
 #include "config.h"
 #include <string.h>
@@ -47,6 +48,7 @@
 #include "GNUstepBase/Unicode.h"
 
 #include "GSPrivate.h"
+#include "GSString.h"
 
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 

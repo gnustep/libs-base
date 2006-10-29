@@ -21,13 +21,15 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
+
+   $Date$ $Revision$
 */
 
 #ifndef __GSFormat_h_GNUSTEP_BASE_INCLUDE_PRIVATE
 #define __GSFormat_h_GNUSTEP_BASE_INCLUDE_PRIVATE
 
 #include	<Foundation/NSZone.h>
-#include	"GSPrivate.h"
+#include	"GSString.h"
 
 @class	NSDictionary;
 

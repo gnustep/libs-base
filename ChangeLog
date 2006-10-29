@@ -1,5 +1,24 @@
 2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
 
+    * Source\GSPrivate.h
+    * Source\GSString.h
+    * Source\GSString.m
+    Move definitions for string internals to GSString.h
+
+    * Source\NSPropertyList.m
+    * Source\NSScanner.m
+    * Source\NSSerializer.m
+    * Source\GSFormat.h
+    * Source\GSFormat.m
+    * Source\NSString.m
+    Update to use string internals information from GSString.h
+
+    * Source\externs.m
+    * Source\NSURLAuthenticationChallenge.m
+    Fix compilation warnings
+
+2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
+
     * Source\GSInvocation.h
     * Source\GSRunLoopWatcher.h
     * Source\GSStream.h

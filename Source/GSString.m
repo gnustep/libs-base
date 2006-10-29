@@ -31,6 +31,8 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
+
+   $Date$ $Revision$
 */
 
 #include "config.h"
@@ -51,6 +53,7 @@
 #include <limits.h>
 
 #include "GSPrivate.h"
+#include "GSString.h"
 
 extern BOOL GSEncodingSupported(NSStringEncoding enc);
 
@@ -63,7 +66,6 @@ extern BOOL GSEncodingSupported(NSStringEncoding enc);
    until Apple Radar 2870817 is fixed. */
 struct objc_class _NSConstantStringClassReference;
 #endif
-
 
 /*
  * GSPlaceholderString - placeholder class for objects awaiting intialisation.

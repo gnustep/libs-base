@@ -20,10 +20,12 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+
+   $Date: 2006-10-28 16:43:48 +0800 (Sat, 28 Oct 2006) $ $Revision: 23979 $
+*/
 
 #include "GSURLPrivate.h"
-
+#include "Foundation/NSError.h"
 
 // Internal data storage
 typedef struct {
@@ -128,4 +130,3 @@ typedef struct {
 }
 
 @end
-

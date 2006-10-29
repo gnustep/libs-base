@@ -275,7 +275,12 @@ null-load.h \
 simple-load.h \
 win32-load.h \
 NSCallBacks.h \
-tzfile.h
+tzfile.h \
+GSFormat.h \
+GSString.h \
+GSArray.h \
+GSPrivate.h \
+GSSeq.h \
 
 FOUNDATION_HEADERS = \
 Foundation.h \

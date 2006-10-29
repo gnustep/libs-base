@@ -114,75 +114,6 @@ GS_EXPORT NSString	*GSEncodingName(NSStringEncoding encoding);
 GS_EXPORT BOOL		GSIsByteEncoding(NSStringEncoding encoding);
 
 /*
- * Type to hold either UTF-16 (unichar) or 8-bit encodings,
- * while satisfying alignment constraints.
- */
-typedef union {
-  unichar *u;       // 16-bit unicode characters.
-  unsigned char *c; // 8-bit characters.
-} GSCharPtr;
-
-/*
- * Private concrete string classes.
- * NB. All these concrete string classes MUST have the same initial ivar
- * layout so that we can swap between them as necessary.
- * The initial layout must also match that of NXConstantString (which is
- * determined by the compiler) - an initial pointer to the string data
- * followed by the string length (number of characters).
- */
-@interface GSString : NSString
-{
-  GSCharPtr _contents;
-  unsigned int	_count;
-  struct {
-    unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	free: 1;	// Set if the instance owns the
-                                // _contents buffer
-    unsigned int    fixed:  1;  // is fixed buffer
-    unsigned int	unused: 1;
-    unsigned int	hash: 28;
-  } _flags;
-}
-@end
-
-/*
- * GSMutableString - concrete mutable string, capable of changing its storage
- * from holding 8-bit to 16-bit character set.
- */
-@interface GSMutableString : NSMutableString
-{
-  union {
-    unichar		*u;
-    unsigned char	*c;
-  } _contents;
-  unsigned int	_count;
-  struct {
-    unsigned int	wide: 1;
-    unsigned int	free: 1;
-    unsigned int    fixed:  1;
-    unsigned int	unused: 1;
-    unsigned int	hash: 28;
-  } _flags;
-  NSZone	*_zone;
-  unsigned int	_capacity;
-}
-@end
-
-/*
- * Typedef for access to internals of concrete string objects.
- */
-typedef struct {
-  @defs(GSMutableString)
-} GSStr_t;
-typedef	GSStr_t	*GSStr;
-
-/*
- * Functions to append to GSStr
- */
-extern void GSStrAppendUnichar(GSStr s, unichar);
-extern void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l);
-
-/*
  * Enumeration for MacOS-X compatibility user defaults settings.
  * For efficiency, we save defaults information which is used by the
  * base library.
@@ -200,11 +131,6 @@ typedef enum {
  * Get one of several potentially useful flags.
  */
 BOOL	GSUserDefaultsFlag(GSUserDefaultFlagType type);
-
-/**
- * Get a flag from an environment variable - return def if not defined.
- */
-BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 
 
 

@@ -76,6 +76,7 @@
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSMime.h"
 #include "GSPrivate.h"
+#include "GSString.h"
 #include "GSFormat.h"
 #include <limits.h>
 #include <sys/stat.h>
@@ -89,13 +90,11 @@
 
 #include "GNUstepBase/Unicode.h"
 
-#include "GSPrivate.h"
-
 extern BOOL GSScanDouble(unichar*, unsigned, double*);  // from NSScanner.m
 extern NSString* GetEncodingName(NSStringEncoding encoding); // from Additions/Unicode.m
 
-@class	GSString;
-@class	GSMutableString;
+//@class	GSString;
+//@class	GSMutableString;
 @class	GSPlaceholderString;
 @interface GSPlaceholderString : NSObject	// Help the compiler
 @end
