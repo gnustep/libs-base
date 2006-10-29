@@ -19,19 +19,20 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
-#ifndef __GSFormat_H_
-#define __GSFormat_H_
+#ifndef __GSFormat_h_GNUSTEP_BASE_INCLUDE_PRIVATE
+#define __GSFormat_h_GNUSTEP_BASE_INCLUDE_PRIVATE
 
 #include	<Foundation/NSZone.h>
 #include	"GSPrivate.h"
 
 @class	NSDictionary;
 
-void 
+void
 GSFormat(GSStr fb, const unichar *fmt, va_list ap, NSDictionary *loc);
 
-#endif
+#endif /* __GSFormat_h_GNUSTEP_BASE_INCLUDE_PRIVATE */
 

@@ -20,8 +20,9 @@
   
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
-   */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+*/
 
 /*
  *	Warning - this contains hairy code - handle with care.
@@ -35,8 +36,8 @@
  *	times so the same code can be used for NSString, and subclasses.
  */
 
-#ifndef __GSeq_h_GNUSTEP_BASE_INCLUDE
-#define __GSeq_h_GNUSTEP_BASE_INCLUDE
+#ifndef __GSeq_h_GNUSTEP_BASE_INCLUDE_PRIVATE
+#define __GSeq_h_GNUSTEP_BASE_INCLUDE_PRIVATE
 
 /*
  *	Some standard selectors for frequently used methods. Set in NSString
@@ -300,7 +301,7 @@ static inline void GSeq_uppercase(GSeq seq)
 #define FAS  8
 #define BAS  12
 
-#endif /* __GSeq_h_GNUSTEP_BASE_INCLUDE */
+#endif /* __GSeq_h_GNUSTEP_BASE_INCLUDE_PRIVATE */
 
 /*
  * Set up macros for dealing with 'self' on the basis of GSQ_S

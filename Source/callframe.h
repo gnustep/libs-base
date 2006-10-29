@@ -19,11 +19,12 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
-   */ 
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+*/
 
-#ifndef callframe_h_INCLUDE
-#define callframe_h_INCLUDE
+#ifndef callframe_h_GNUSTEP_BASE_INCLUDE
+#define callframe_h_GNUSTEP_BASE_INCLUDE
 
 #include "Foundation/NSMethodSignature.h"
 #include "GNUstepBase/DistributedObjects.h"
@@ -52,5 +53,5 @@ extern void callframe_build_return (NSInvocation *inv,
 		BOOL out_parameters,
 		void(*decoder)(DOContext*),
 		DOContext* ctxt);
-#endif
+#endif /* callframe_h_GNUSTEP_BASE_INCLUDE */
 

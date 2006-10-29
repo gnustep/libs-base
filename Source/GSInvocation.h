@@ -18,11 +18,12 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
-   */ 
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+*/
 
-#ifndef __GSInvocation_h_GNUSTEP_BASE_INCLUDE
-#define __GSInvocation_h_GNUSTEP_BASE_INCLUDE
+#ifndef __GSInvocation_h_GNUSTEP_BASE_INCLUDE_PRIVATE
+#define __GSInvocation_h_GNUSTEP_BASE_INCLUDE_PRIVATE
 
 #include <Foundation/NSInvocation.h>
 
@@ -61,4 +62,4 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp);
 
 #define RETAIN_RETURN_VALUE do { if (*_info[0].type == _C_ID) RETAIN (*(id*) _retval);} while (0)                                         
 
-#endif
+#endif /* __GSInvocation_h_GNUSTEP_BASE_INCLUDE_PRIVATE */

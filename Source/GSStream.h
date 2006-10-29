@@ -1,12 +1,11 @@
-#ifndef	INCLUDED_GSSTREAM_H
-#define	INCLUDED_GSSTREAM_H
-
 /** Implementation for GSStream for GNUStep
    Copyright (C) 2006 Free Software Foundation, Inc.
 
    Written by:  Derek Zhou <derekzhou@gmail.com>
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
+
+   This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -50,6 +49,9 @@
               |-- GSInet6ServerStream
               `-- GSLocalServerStream 
 */
+
+#ifndef	__GSStream_h_GNUSTEP_BASE_INCLUDE_PRIVATE
+#define	__GSStream_h_GNUSTEP_BASE_INCLUDE_PRIVATE
 
 #include <Foundation/NSStream.h>
 #include <Foundation/NSRunLoop.h>
@@ -191,5 +193,4 @@ IVARS
 - (void) _dispatch;
 @end
 
-#endif
-
+#endif /* __GSStream_h_GNUSTEP_BASE_INCLUDE_PRIVATE */

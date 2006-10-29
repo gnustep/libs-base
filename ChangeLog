@@ -1,5 +1,20 @@
 2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
 
+    * Source\GSInvocation.h
+    * Source\GSRunLoopWatcher.h
+    * Source\GSStream.h
+    * Source\GSRunLoopCtxt.h
+    * Source\NSConcreteNumber.h
+    * Source\dld-load.h
+    * Source\GSPortPrivate.h
+    * Source\callframe.h
+    * Source\GSeq.h
+    * Source\GSFormat.h
+    * Source\GSURLPrivate.h
+    Correct layout of FSF headquarters location and licensing info
+
+2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
+
     * Tools\AGSHtml.m
     * Tools\AGSParser.m
     * Tools\AGSOutput.m

@@ -17,12 +17,12 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */ 
 
-#ifndef __GSPortPrivate_h_
-#define __GSPortPrivate_h_
+#ifndef __GSPortPrivate_h_GNUSTEP_BASE_INCLUDE_PRIVATE
+#define __GSPortPrivate_h_GNUSTEP_BASE_INCLUDE_PRIVATE
 
 /*
  * Nameserver deregistration methods
@@ -63,5 +63,5 @@
 - (void) removeHandle: (GSTcpHandle*)handle;
 @end
 
-#endif
+#endif /* __GSPortPrivate_h_GNUSTEP_BASE_INCLUDE_PRIVATE */
 
