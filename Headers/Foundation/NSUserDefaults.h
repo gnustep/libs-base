@@ -129,7 +129,7 @@ GS_EXPORT NSString* const NSDecimalDigits;
 /** Key for locale dictionary: array of strings for AM and PM. */
 GS_EXPORT NSString* const NSAMPMDesignation;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
 
 /**
  *  Array of arrays of NSStrings, first member of each specifying a time,
@@ -226,68 +226,273 @@ GS_EXPORT NSString* const NSLocale;
   NSDistributedLock	*_fileLock;
 }
 
-/* Getting the Shared Instance */
+/**
+ * Returns the shared defaults object. If it doesn't exist yet, it's
+ * created. The defaults are initialized for the current user.
+ * The search list is guaranteed to be standard only the first time
+ * this method is invoked. The shared instance is provided as a
+ * convenience; other instances may also be created.
+ */
 + (NSUserDefaults*) standardUserDefaults;
-#ifndef	STRICT_OPENSTEP
-/*
- * Called by GSSetUserName() to get the defaults system to use the defaults
- * of a new user.
+
+#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+/**
+ * Resets the shared user defaults object to reflect the current
+ * user ID.  Needed by setuid processes which change the user they
+ * are running as.<br />
+ * In GNUstep you should call GSSetUserName() when changing your
+ * effective user ID, and that function will call this function for you.
  */
 + (void) resetStandardUserDefaults;
 #endif
-#ifndef	STRICT_OPENSTEP
-#ifndef	STRICT_MACOS_X
+
+#if OS_API_VERSION(GSAPI_NONE, GSAPI_NONE)
+/**
+ * Returns the array of user languages preferences.  Uses the
+ * <em>NSLanguages</em> user default if available, otherwise
+ * tries to infer setup from operating system information etc
+ * (in particular, uses the <em>LANGUAGES</em> environment variable).
+ */
 + (NSArray*) userLanguages;
+
+/**
+ * Sets the array of user languages preferences.  Places the specified
+ * array in the <em>NSLanguages</em> user default.
+ */
 + (void) setUserLanguages: (NSArray*)languages;
 #endif
+
+#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+/**
+ * Adds the domain names aName to the search list of the receiver.<br />
+ * The domain is added after the application domain.<br />
+ * Suites may be removed using the -removeSuiteNamed: method.
+ */
+- (void) addSuiteNamed: (NSString*)aName;
 #endif
 
-/* Initializing the User Defaults */
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an NSArray object.  Returns nil if it is not.
+ */
+- (NSArray*) arrayForKey: (NSString*)defaultName;
+
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and returns its boolean representation.<br />
+ * Returns NO if it is not a boolean.<br />
+ * The text 'yes' or 'true' or any non zero numeric value is considered
+ * to be a boolean YES.  Other string values are NO.<br />
+ * NB. This differs slightly from the documented behavior for MacOS-X
+ * (August 2002) in that the GNUstep version accepts the string 'TRUE'
+ * as equivalent to 'YES'.
+ */
+- (BOOL) boolForKey: (NSString*)defaultName;
+
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an NSData object.  Returns nil if it is not.
+ */
+- (NSData*) dataForKey: (NSString*)defaultName;
+
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an NSDictionary object.  Returns nil if it is not.
+ */
+- (NSDictionary*) dictionaryForKey: (NSString*)defaultName;
+
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is a float.  Returns 0.0 if it is not.
+ */
+- (float) floatForKey: (NSString*)defaultName;
+
+/**
+ * Initializes defaults for current user calling initWithUser:
+ */
 - (id) init;
+
+/**
+ * Initializes defaults for the specified user calling -initWithContentsOfFile:
+ */
 - (id) initWithUser: (NSString*)userName;
+
+/**
+ * <init />
+ * Initializes defaults for the specified path. Returns an object with
+ * an empty search list.
+ */
 - (id) initWithContentsOfFile: (NSString*)path;     // This is a new method
 
-/* Getting and Setting a Default */
-- (NSArray*) arrayForKey: (NSString*)defaultName;
-- (BOOL) boolForKey: (NSString*)defaultName;
-- (NSData*) dataForKey: (NSString*)defaultName;
-- (NSDictionary*) dictionaryForKey: (NSString*)defaultName;
-- (float) floatForKey: (NSString*)defaultName;
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and returns its integer value or 0 if it is not representable
+ * as an integer.
+ */
 - (int) integerForKey: (NSString*)defaultName;
-- (id) objectForKey: (NSString*)defaultName;
-- (void) removeObjectForKey: (NSString*)defaultName;
-- (void) setBool: (BOOL)value forKey: (NSString*)defaultName;
-- (void) setFloat: (float)value forKey: (NSString*)defaultName;
-- (void) setInteger: (int)value forKey: (NSString*)defaultName;
-- (void) setObject: (id)value forKey: (NSString*)defaultName;
-- (NSArray*) stringArrayForKey: (NSString*)defaultName;
-- (NSString*) stringForKey: (NSString*)defaultName;
 
-/* Returning the Search List */
-- (NSArray*) searchList;
-- (void) setSearchList: (NSArray*)newList;
-#ifndef	STRICT_OPENSTEP
-- (void) addSuiteNamed: (NSString*)aName;
+/**
+ * Looks up a value for a specified default using.
+ * The lookup is performed by accessing the domains in the order
+ * given in the search list.
+ * <br />Returns nil if defaultName cannot be found.
+ */
+- (id) objectForKey: (NSString*)defaultName;
+
+/**
+ * Removes the default with the specified name from the application
+ * domain.
+ */
+- (void) removeObjectForKey: (NSString*)defaultName;
+
+#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+/**
+ * Removes the named domain from the search list of the receiver.<br />
+ * Suites may be added using the -addSuiteNamed: method.
+ */
 - (void) removeSuiteNamed: (NSString*)aName;
 #endif
 
-/* Maintaining Persistent Domains */
+/**
+ * Returns an array listing the domains searched in order to look up
+ * a value in the defaults system.  The order of the names in the
+ * array is the order in which the domains are searched.
+ */
+- (NSArray*) searchList;
+
+/**
+ * Sets a boolean value for defaultName in the application domain.<br />
+ * Calls -setObject:forKey: to make the change by storing a boolean
+ * [NSNumber] instance.
+ */
+- (void) setBool: (BOOL)value forKey: (NSString*)defaultName;
+
+/**
+ * Sets a float value for defaultName in the application domain.<br />
+ * Calls -setObject:forKey: to make the change by storing a float
+ * [NSNumber] instance.
+ */
+- (void) setFloat: (float)value forKey: (NSString*)defaultName;
+
+/**
+ * Sets an integer value for defaultName in the application domain.<br />
+ * Calls -setObject:forKey: to make the change by storing an intege
+ * [NSNumber] instance.
+ */
+- (void) setInteger: (int)value forKey: (NSString*)defaultName;
+
+/**
+ * Sets an object value for defaultName in the application domain.<br />
+ * The defaultName must be a non-empty string.<br />
+ * The value must be an instance of one of the [NSString-propertyList]
+ * classes.<br />
+ * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
+ * if this is the first change to a persistent-domain since the
+ * last -synchronize.
+ * </p>
+ * If value is nil, this is equivalent to the -removeObjectForKey: method.
+ */
+- (void) setObject: (id)value forKey: (NSString*)defaultName;
+
+/**
+ * Sets the list of the domains searched in order to look up
+ * a value in the defaults system.  The order of the names in the
+ * array is the order in which the domains are searched.<br />
+ * On lookup, the first match is used.
+ */
+- (void) setSearchList: (NSArray*)newList;
+
+/**
+ * Calls -arrayForKey: to get an array value for defaultName and checks
+ * that the array contents are string objects ... if not, returns nil.
+ */
+- (NSArray*) stringArrayForKey: (NSString*)defaultName;
+
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is an NSString.  Returns nil if it is not.
+ */
+- (NSString*) stringForKey: (NSString*)defaultName;
+
+/**
+ * Returns the persistent domain specified by domainName.
+ */
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName;
+
+/**
+ * Returns an array listing the name of all the persistent domains.
+ */
 - (NSArray*) persistentDomainNames;
+
+/**
+ * Removes the persistent domain specified by domainName from the
+ * user defaults.
+ * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
+ * if this is the first change to a persistent-domain since the
+ * last -synchronize.
+ */
 - (void) removePersistentDomainForName: (NSString*)domainName;
+
+/**
+ * Replaces the persistent-domain specified by domainName with
+ * domain ... a dictionary containing keys and defaults values.
+ * <br />Raises an NSInvalidArgumentException if domainName already
+ * exists as a volatile-domain.
+ * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
+ * if this is the first change to a persistent-domain since the
+ * last -synchronize.
+ */
 - (void) setPersistentDomain: (NSDictionary*)domain 
         forName: (NSString*)domainName;
+
+/**
+ * Ensures that the in-memory and on-disk representations of the defaults
+ * are in sync.  You may call this yourself, but probably don't need to
+ * since it is invoked at intervals whenever a runloop is running.<br />
+ * If any persistent domain is changed by reading new values from disk,
+ * an NSUserDefaultsDidChangeNotification is posted.
+ */
 - (BOOL) synchronize;
 
-/* Maintaining Volatile Domains */
+/**
+ * Removes the volatile domain specified by domainName from the
+ * user defaults.
+ */
 - (void) removeVolatileDomainForName: (NSString*)domainName;
+
+/**
+ * Sets the volatile-domain specified by domainName to
+ * domain ... a dictionary containing keys and defaults values.<br />
+ * Raises an NSInvalidArgumentException if domainName already
+ * exists as either a volatile-domain or a persistent-domain.
+ */
 - (void) setVolatileDomain: (NSDictionary*)domain 
         forName: (NSString*)domainName;
+
+/**
+ * Returns the volatile domain specified by domainName.
+ */
 - (NSDictionary*) volatileDomainForName: (NSString*)domainName;
+
+/**
+ * Returns an array listing the name of all the volatile domains.
+ */
 - (NSArray*) volatileDomainNames;
 
-/* Making Advanced Use of Defaults */
+/**
+ * Returns a dictionary representing the current state of the defaults
+ * system ... this is a merged version of all the domains in the
+ * search list.
+ */
 - (NSDictionary*) dictionaryRepresentation;
+
+/**
+ * Merges the contents of the dictionary newVals into the registration
+ * domain.  Registration defaults may be added to or replaced using this
+ * method, but may never be removed.  Thus, setting registration defaults
+ * at any point in your program guarantees that the defaults will be
+ * available thereafter.
+ */
 - (void) registerDefaults: (NSDictionary*)newVals;
 @end
 

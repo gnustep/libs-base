@@ -1,3 +1,10 @@
+2006-10-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSUserDefaults.h:
+	* Source/NSUserDefaults.m:
+	Update comments into headers and tag methods with API version
+	information.
+
 2006-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h:
