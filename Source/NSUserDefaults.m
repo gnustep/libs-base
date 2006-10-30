@@ -261,13 +261,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     }
 }
 
-/**
- * Resets the shared user defaults object to reflect the current
- * user ID.  Needed by setuid processes which change the user they
- * are running as.<br />
- * In GNUstep you should call GSSetUserName() when changing your
- * effective user ID, and that function will call this function for you.
- */
 + (void) resetStandardUserDefaults
 {
   [classLock lock];
@@ -401,13 +394,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return registrationDefaults;
 }
 
-/**
- * Returns the shared defaults object. If it doesn't exist yet, it's
- * created. The defaults are initialized for the current user.
- * The search list is guaranteed to be standard only the first time
- * this method is invoked. The shared instance is provided as a
- * convenience; other instances may also be created.
- */
 + (NSUserDefaults*) standardUserDefaults
 {
   BOOL added_locale, added_lang;
@@ -568,12 +554,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return AUTORELEASE(sharedDefaults);
 }
 
-/**
- * Returns the array of user languages preferences.  Uses the
- * <em>NSLanguages</em> user default if available, otherwise
- * tries to infer setup from operating system information etc
- * (in particular, uses the <em>LANGUAGES</em> environment variable).
- */
 + (NSArray*) userLanguages
 {
   NSArray	*result;
@@ -685,10 +665,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return AUTORELEASE(result);
 }
 
-/**
- * Sets the array of user languages preferences.  Places the specified
- * array in the <em>NSLanguages</em> user default.
- */
 + (void) setUserLanguages: (NSArray*)languages
 {
   NSMutableDictionary	*globDict;
@@ -704,20 +680,11 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   RELEASE(globDict);
 }
 
-/*************************************************************************
- *** Initializing the User Defaults
- *************************************************************************/
-/**
- * Initializes defaults for current user calling initWithUser:
- */
 - (id) init
 {
   return [self initWithUser: NSUserName()];
 }
 
-/**
- * Initializes defaults for the specified user calling -initWithContentsOfFile:
- */
 - (id) initWithUser: (NSString*)userName
 {
   NSString	*path;
@@ -727,11 +694,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return [self initWithContentsOfFile: path];
 }
 
-/**
- * <init />
- * Initializes defaults for the specified path. Returns an object with
- * an empty search list.
- */
 - (id) initWithContentsOfFile: (NSString*)path
 {
   NSFileManager	*mgr = [NSFileManager defaultManager];
@@ -867,11 +829,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return desc;
 }
 
-/**
- * Adds the domain names aName to the search list of the receiver.<br />
- * The domain is added after the application domain.<br />
- * Suites may be removed using the -removeSuiteNamed: method.
- */
 - (void) addSuiteNamed: (NSString*)aName
 {
   unsigned	index;
@@ -893,10 +850,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   RELEASE(aName);
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an NSArray object.  Returns nil if it is not.
- */
 - (NSArray*) arrayForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -906,16 +859,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return nil;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and returns its boolean representation.<br />
- * Returns NO if it is not a boolean.<br />
- * The text 'yes' or 'true' or any non zero numeric value is considered
- * to be a boolean YES.  Other string values are NO.<br />
- * NB. This differs slightly from the documented behavior for MacOS-X
- * (August 2002) in that the GNUstep version accepts the string 'TRUE'
- * as equivalent to 'YES'.
- */
 - (BOOL) boolForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -928,10 +871,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return NO;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an NSData object.  Returns nil if it is not.
- */
 - (NSData*) dataForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -941,10 +880,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return nil;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an NSDictionary object.  Returns nil if it is not.
- */
 - (NSDictionary*) dictionaryForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -956,10 +891,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return nil;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is a float.  Returns 0.0 if it is not.
- */
 - (float) floatForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -972,10 +903,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return 0.0;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an integer.  Returns 0 if it is not.
- */
 - (int) integerForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -988,12 +915,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return 0;
 }
 
-/**
- * Looks up a value for a specified default using.
- * The lookup is performed by accessing the domains in the order
- * given in the search list.
- * <br />Returns nil if defaultName cannot be found.
- */
 - (id) objectForKey: (NSString*)defaultName
 {
   NSEnumerator	*enumerator;
@@ -1026,10 +947,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return AUTORELEASE(object);
 }
 
-/**
- * Removes the default with the specified name from the application
- * domain.
- */
 - (void) removeObjectForKey: (NSString*)defaultName
 {
   id	obj;
@@ -1057,11 +974,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   [_lock unlock];
 }
 
-/**
- * Sets a boolean value for defaultName in the application domain.<br />
- * The boolean value is stored as a string - either YES or NO.
- * Calls -setObject:forKey: to make the change.
- */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
   NSNumber	*n = [NSNumberClass numberWithBool: value];
@@ -1069,10 +981,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   [self setObject: n forKey: defaultName];
 }
 
-/**
- * Sets a float value for defaultName in the application domain.
- * <br />Calls -setObject:forKey: to make the change.
- */
 - (void) setFloat: (float)value forKey: (NSString*)defaultName
 {
   NSNumber	*n = [NSNumberClass numberWithFloat: value];
@@ -1080,10 +988,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   [self setObject: n forKey: defaultName];
 }
 
-/**
- * Sets an integer value for defaultName in the application domain.
- * <br />Calls -setObject:forKey: to make the change.
- */
 - (void) setInteger: (int)value forKey: (NSString*)defaultName
 {
   NSNumber	*n = [NSNumberClass numberWithInt: value];
@@ -1145,17 +1049,6 @@ static BOOL isPlistObject(id o)
   return NO;
 }
 
-/**
- * Sets an object value for defaultName in the application domain.<br />
- * The defaultName must be a non-empty string.<br />
- * The value must be an instance of one of the [NSString-propertyList]
- * classes.<br />
- * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
- * </p>
- * If value is nil, this is equivalent to the -removeObjectForKey: method.
- */
 - (void) setObject: (id)value forKey: (NSString*)defaultName
 {
   NSMutableDictionary	*dict;
@@ -1195,10 +1088,6 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
-/**
- * Calls -arrayForKey: to get an array value for defaultName and checks
- * that the array contents are string objects ... if not, returns nil.
- */
 - (NSArray*) stringArrayForKey: (NSString*)defaultName
 {
   id	arr = [self arrayForKey: defaultName];
@@ -1220,10 +1109,6 @@ static BOOL isPlistObject(id o)
   return nil;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an NSString.  Returns nil if it is not.
- */
 - (NSString*) stringForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -1233,15 +1118,6 @@ static BOOL isPlistObject(id o)
   return nil;
 }
 
-/*************************************************************************
- *** Returning the Search List
- *************************************************************************/
-
-/**
- * Returns an array listing the domains searched in order to look up
- * a value in the defaults system.  The order of the names in the
- * array is the order in which the domains are searched.
- */
 - (NSArray*) searchList
 {
   NSArray	*copy;
@@ -1252,12 +1128,6 @@ static BOOL isPlistObject(id o)
   return AUTORELEASE(copy);
 }
 
-/**
- * Sets the list of the domains searched in order to look up
- * a value in the defaults system.  The order of the names in the
- * array is the order in which the domains are searched.<br />
- * On lookup, the first match is used.
- */
 - (void) setSearchList: (NSArray*)newList
 {
   [_lock lock];
@@ -1268,9 +1138,6 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
-/**
- * Returns the persistent domain specified by domainName.
- */
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName
 {
   NSDictionary	*copy;
@@ -1281,9 +1148,6 @@ static BOOL isPlistObject(id o)
   return AUTORELEASE(copy);
 }
 
-/**
- * Returns an array listing the name of all the persistent domains.
- */
 - (NSArray*) persistentDomainNames
 {
   NSArray	*keys;
@@ -1294,13 +1158,6 @@ static BOOL isPlistObject(id o)
   return keys;
 }
 
-/**
- * Removes the persistent domain specified by domainName from the
- * user defaults.
- * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
- */
 - (void) removePersistentDomainForName: (NSString*)domainName
 {
   [_lock lock];
@@ -1312,15 +1169,6 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
-/**
- * Replaces the persistent-domain specified by domainName with
- * domain ... a dictionary containing keys and defaults values.
- * <br />Raises an NSInvalidArgumentException if domainName already
- * exists as a volatile-domain.
- * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
- */
 - (void) setPersistentDomain: (NSDictionary*)domain
 		     forName: (NSString*)domainName
 {
@@ -1573,13 +1421,6 @@ static BOOL isLocked = NO;
   return YES;
 }
 
-/**
- * Ensures that the in-memory and on-disk representations of the defaults
- * are in sync.  You may call this yourself, but probably don't need to
- * since it is invoked at intervals whenever a runloop is running.<br />
- * If any persistent domain is changed by reading new values from disk,
- * an NSUserDefaultsDidChangeNotification is posted.
- */
 - (BOOL) synchronize
 {
   NSMutableDictionary	*newDict;
@@ -1678,10 +1519,6 @@ static BOOL isLocked = NO;
 }
 
 
-/**
- * Removes the volatile domain specified by domainName from the
- * user defaults.
- */
 - (void) removeVolatileDomainForName: (NSString*)domainName
 {
   [_lock lock];
@@ -1691,12 +1528,6 @@ static BOOL isLocked = NO;
   [_lock unlock];
 }
 
-/**
- * Sets the volatile-domain specified by domainName to
- * domain ... a dictionary containing keys and defaults values.<br />
- * Raises an NSInvalidArgumentException if domainName already
- * exists as either a volatile-domain or a persistent-domain.
- */
 - (void) setVolatileDomain: (NSDictionary*)domain
 		   forName: (NSString*)domainName
 {
@@ -1726,9 +1557,6 @@ static BOOL isLocked = NO;
   [_lock unlock];
 }
 
-/**
- * Returns the volatile domain specified by domainName.
- */
 - (NSDictionary*) volatileDomainForName: (NSString*)domainName
 {
   NSDictionary	*copy;
@@ -1739,9 +1567,6 @@ static BOOL isLocked = NO;
   return AUTORELEASE(copy);
 }
 
-/**
- * Returns an array listing the name of all the volatile domains.
- */
 - (NSArray*) volatileDomainNames
 {
   NSArray	*keys;
@@ -1752,11 +1577,6 @@ static BOOL isLocked = NO;
   return keys;
 }
 
-/**
- * Returns a dictionary representing the current state of the defaults
- * system ... this is a merged version of all the domains in the
- * search list.
- */
 - (NSDictionary*) dictionaryRepresentation
 {
   NSDictionary	*rep;
@@ -1797,13 +1617,6 @@ static BOOL isLocked = NO;
   return AUTORELEASE(rep);
 }
 
-/**
- * Merges the contents of the dictionary newVals into the registration
- * domain.  Registration defaults may be added to or replaced using this
- * method, but may never be removed.  Thus, setting registration defaults
- * at any point in your program guarantees that the defaults will be
- * available thereafter.
- */
 - (void) registerDefaults: (NSDictionary*)newVals
 {
   NSMutableDictionary	*regDefs;
@@ -1822,10 +1635,6 @@ static BOOL isLocked = NO;
   [_lock unlock];
 }
 
-/**
- * Removes the named domain from the search list of the receiver.<br />
- * Suites may be added using the -addSuiteNamed: method.
- */
 - (void) removeSuiteNamed: (NSString*)aName
 {
   if (aName == nil)
