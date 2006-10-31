@@ -24,14 +24,15 @@
 
 #ifndef __NSURLCredential_h_GNUSTEP_BASE_INCLUDE
 #define __NSURLCredential_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
 
 @class NSString;
 
@@ -105,10 +106,10 @@ typedef enum {
 
 @end
 
-#endif
-
 #if	defined(__cplusplus)
 }
+#endif
+
 #endif
 
 #endif

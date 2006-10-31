@@ -32,8 +32,11 @@
 
 */
 
-#ifndef __GSXML_H__
-#define __GSXML_H__
+#ifndef __GSXML_h_GNUSTEP_BASE_INCLUDE
+#define __GSXML_h_GNUSTEP_BASE_INCLUDE
+#include <GNUstepBase/GSVersionMacros.h>
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSObject.h>
@@ -46,8 +49,6 @@
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 
 @class GSXMLAttribute;
 @class GSXMLDocument;
@@ -743,11 +744,11 @@ extern "C" {
 - (void) completedXMLRPC: (GSXMLRPC*)sender;
 @end
 
-#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
-
 #if	defined(__cplusplus)
 }
 #endif
 
-#endif /* __GSXML_H__ */
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
+
+#endif /* __GSXML_h_GNUSTEP_BASE_INCLUDE */
 

@@ -49,6 +49,7 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSString.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSConnection.h"

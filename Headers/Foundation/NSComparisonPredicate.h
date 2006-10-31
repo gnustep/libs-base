@@ -24,9 +24,10 @@
 
 #ifndef __NSComparisonPredicate_h_GNUSTEP_BASE_INCLUDE
 #define __NSComparisonPredicate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSExpression.h>
-#include <Foundation/NSPredicate.h>
+#import	<Foundation/NSExpression.h>
+#import	<Foundation/NSPredicate.h>
 
 #if	defined(__cplusplus)
 extern "C" {

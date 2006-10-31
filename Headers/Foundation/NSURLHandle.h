@@ -18,20 +18,21 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
-#ifndef _NSURLHandle_h__
-#define _NSURLHandle_h__
+#ifndef __NSURLHandle_h_GNUSTEP_BASE_INCLUDE
+#define __NSURLHandle_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#ifndef	STRICT_OPENSTEP
 
 @class NSData;
 @class NSString;
@@ -70,7 +71,7 @@ GS_EXPORT NSString * const NSHTTPPropertyRedirectionHeadersKey;
  */
 GS_EXPORT NSString * const NSHTTPPropertyErrorPageDataKey;
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
@@ -214,10 +215,11 @@ typedef enum
 
 @end
 
-#endif
-
 #if	defined(__cplusplus)
 }
 #endif
 
 #endif
+
+#endif /* __NSURLHandle_h_GNUSTEP_BASE_INCLUDE */
+

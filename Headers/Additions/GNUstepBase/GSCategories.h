@@ -28,6 +28,7 @@
 
 #ifndef	INCLUDED_GS_CATEGORIES_H
 #define	INCLUDED_GS_CATEGORIES_H
+#include "GNUstepBase/GSVersionMacros.h"
 
 /* The following ifndef prevents the categories declared in this file being
  * seen in GNUstep code.  This is necessary because those category
@@ -48,7 +49,6 @@
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSVersionMacros.h"
 
 #if	defined(__cplusplus)
 extern "C" {

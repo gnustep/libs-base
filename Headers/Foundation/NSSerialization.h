@@ -20,14 +20,15 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSSerialization_h_GNUSTEP_BASE_INCLUDE
 #define __NSSerialization_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -91,7 +92,7 @@ extern "C" {
 		      intoData: (NSMutableData*)d;
 @end
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /**
  *	GNUstep extends serialization by having the option to make the
  *	resulting data more compact by ensuring that repeated strings
@@ -167,7 +168,7 @@ extern "C" {
 
 @end
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /**
  *	<p>GNUstep extends deserialization by having the option to make the
  *	resulting data more compact by ensuring that repeated strings

@@ -28,6 +28,7 @@
 #include "config.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSPort.h"
 #include "Foundation/NSPortCoder.h"

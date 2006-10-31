@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
     AutogsdocSource: NSFileHandle.m
     AutogsdocSource: NSPipe.m
@@ -27,14 +27,17 @@
 
 #ifndef __NSFileHandle_h_GNUSTEP_BASE_INCLUDE
 #define __NSFileHandle_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSData.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSRange.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+
+@class NSData;
+@class NSString;
 
 @interface NSFileHandle : NSObject
 
@@ -164,7 +167,7 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 
 
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 // GNUstep class extensions
 

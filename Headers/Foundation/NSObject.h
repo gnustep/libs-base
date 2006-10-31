@@ -18,8 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: NSObject.m
    AutogsdocSource: Additions/GSCategories.m
@@ -27,17 +27,18 @@
 
 #ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
 #define __NSObject_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
+
+#import	<Foundation/NSObjCRuntime.h>
+#import	<GNUstepBase/preface.h>
+#include <GSConfig.h>
+#include <objc/objc.h>
+#include <objc/typedstream.h>
+#import	<Foundation/NSZone.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#include <Foundation/NSObjCRuntime.h>
-#include <GNUstepBase/preface.h>
-#include <GSConfig.h>
-#include <objc/objc.h>
-#include <objc/typedstream.h>
-#include <Foundation/NSZone.h>
 
 @class NSArchiver;
 @class NSArray;
@@ -167,13 +168,13 @@ extern "C" {
   Class isa;
 }
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 #if	GS_WITH_GC
 + (BOOL) requiresTypedMemory;
 #endif
 #endif
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (NSString*) className;
 #endif
 
@@ -288,7 +289,7 @@ NSComparisonResult;
 
 enum {NSNotFound = 0x7fffffff};
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
@@ -370,7 +371,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - (void) gcFinalize;
 @end
 
-#include <Foundation/NSDate.h>
+#import	<Foundation/NSDate.h>
 /**
  *  Declares some methods for sending messages to self after a fixed delay.
  *  (These methods <em>are</em> in OpenStep and OS X.)

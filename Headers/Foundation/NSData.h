@@ -18,22 +18,23 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSData_h_GNUSTEP_BASE_INCLUDE
 #define __NSData_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSSerialization.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSRange.h>
+#import	<Foundation/NSSerialization.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 @class	NSURL;
 #endif
 
@@ -46,14 +47,14 @@ extern "C" {
 	      length: (unsigned int)length;
 + (id) dataWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length;
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) dataWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
 	      freeWhenDone: (BOOL)shouldFree;
 #endif
 + (id) dataWithContentsOfFile: (NSString*)path;
 + (id) dataWithContentsOfMappedFile: (NSString*)path;
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) dataWithContentsOfURL: (NSURL*)url;
 #endif
 + (id) dataWithData: (NSData*)data;
@@ -61,14 +62,14 @@ extern "C" {
 	      length: (unsigned int)bufferSize;
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize;
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
 	      freeWhenDone: (BOOL)shouldFree;
 #endif
 - (id) initWithContentsOfFile: (NSString*)path;
 - (id) initWithContentsOfMappedFile: (NSString*)path;
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithContentsOfURL: (NSURL*)url;
 #endif
 - (id) initWithData: (NSData*)data;
@@ -94,7 +95,7 @@ extern "C" {
 - (BOOL) writeToFile: (NSString*)path
 	  atomically: (BOOL)useAuxiliaryFile;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)flag;
 #endif
 
@@ -119,7 +120,7 @@ extern "C" {
 
 @end
 
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  * Extension methods for the NSData class- mainly conversion utilities.
@@ -298,7 +299,7 @@ extern "C" {
 
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes;
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
 		      length: (unsigned int)length;
@@ -323,7 +324,7 @@ extern "C" {
 
 @end
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 @interface NSMutableData (GNUstepExtensions)
 /*

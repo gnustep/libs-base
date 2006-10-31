@@ -18,16 +18,16 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #ifndef __NSUtilties_h_GNUSTEP_BASE_INCLUDE
 #define __NSUtilties_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
+#import	<Foundation/NSObjCRuntime.h>
+#import	<Foundation/NSString.h>
+#import	<Foundation/NSDictionary.h>
+#import	<Foundation/NSEnumerator.h>
 
 #endif /* __NSUtilties_h_GNUSTEP_BASE_INCLUDE */

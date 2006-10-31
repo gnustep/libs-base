@@ -11,6 +11,7 @@
 #include "GNUstepBase/preface.h"
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSError.h>
+#include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSStream.h>

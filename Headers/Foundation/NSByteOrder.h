@@ -24,6 +24,7 @@
 
 #ifndef __NSByteOrder_h_GNUSTEP_BASE_INCLUDE
 #define __NSByteOrder_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
 #include <GSConfig.h>
 

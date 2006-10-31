@@ -37,6 +37,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSPort.h"
 #include "Foundation/NSTimer.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSStream.h"

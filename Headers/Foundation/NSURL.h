@@ -18,20 +18,21 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
-#ifndef _NSURL_h__
-#define _NSURL_h__
+#ifndef __NSURL_h_GNUSTEP_BASE_INCLUDE
+#define __NSURL_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSURLHandle.h>
+#import	<Foundation/NSURLHandle.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-#ifndef	STRICT_OPENSTEP
+#if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
 @class NSNumber;
 
@@ -116,10 +117,11 @@ GS_EXPORT NSString* const NSURLFileScheme;
   resourceDidFailLoadingWithReason: (NSString*)reason;
 @end
 
-#endif
+#endif	/* GS_API_MACOSX */
 
 #if	defined(__cplusplus)
 }
 #endif
 
-#endif //_NSUrl_h__
+#endif	/* __NSURL_h_GNUSTEP_BASE_INCLUDE */
+

@@ -30,10 +30,12 @@
 #include "config.h"
 #include <stdio.h>
 #include "GNUstepBase/GSLock.h"
+#include "Foundation/NSArray.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSLock.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSThread.h"
 

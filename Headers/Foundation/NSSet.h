@@ -18,8 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: NSSet.m
    AutogsdocSource: NSCountedSet.m
@@ -28,8 +28,9 @@
 
 #ifndef _NSSet_h_GNUSTEP_BASE_INCLUDE
 #define _NSSet_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -43,7 +44,7 @@ extern "C" {
 + (id) setWithArray: (NSArray*)objects;
 + (id) setWithObject: (id)anObject;
 + (id) setWithObjects: (id)firstObject, ...;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) setWithObjects: (id*)objects
 		count: (unsigned)count;
 #endif
@@ -70,7 +71,7 @@ extern "C" {
 
 - (void) makeObjectsPerform: (SEL)aSelector;
 - (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) makeObjectsPerformSelector: (SEL)aSelector;
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)argument;
 #endif
@@ -90,7 +91,7 @@ extern "C" {
 - (void) minusSet: (NSSet*)other;
 - (void) removeAllObjects;
 - (void) removeObject: (id)anObject;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) setSet: (NSSet*)other;
 #endif
 - (void) unionSet: (NSSet*)other;
@@ -102,7 +103,7 @@ extern "C" {
 
 @end
 
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  * Utility methods for using a counted set to handle uniquing of objects.
@@ -177,7 +178,7 @@ void	GSUPurge(unsigned count);
  */
 id	GSUSet(id anObject, unsigned count);
 
-#endif /* NO_GNUSTEP */
+#endif	/* GS_API_NONE */
 
 #if	defined(__cplusplus)
 }

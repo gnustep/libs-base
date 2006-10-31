@@ -21,14 +21,16 @@
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02111 USA. */
 
+#import	<GNUstepBase/GSVersionMacros.h>
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+
 #include <Foundation/NSObject.h>
 #include <Foundation/NSZone.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 
 /* To easily un-inline functions for debugging */
 #ifndef	INLINE
@@ -552,9 +554,9 @@ GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
   return new;
 }
 
-#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
-
 #if	defined(__cplusplus)
 }
 #endif
+
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 

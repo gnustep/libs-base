@@ -29,10 +29,11 @@
    Boston, MA 02111 USA.
 */ 
 
-#ifndef _GNUstep_H_NSLock
-#define _GNUstep_H_NSLock
+#ifndef __NSLock_h_GNUSTEP_BASE_INCLUDE
+#define __NSLock_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -201,7 +202,7 @@ extern "C" {
 
 @end
 
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  * Returns IDENT which will be initialized
@@ -289,10 +290,11 @@ extern "C" {
 + (id) newLockAt: (id *)location;
 @end
 
-#endif /* NO_GNUSTEP */
+#endif	/* GS_API_NONE */
 
 #if	defined(__cplusplus)
 }
 #endif
 
-#endif /* _GNUstep_H_NSLock*/
+#endif /* __NSLock_h_GNUSTEP_BASE_INCLUDE */
+

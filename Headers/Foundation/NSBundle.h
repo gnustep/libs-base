@@ -27,13 +27,14 @@
 
 #ifndef __NSBundle_h_GNUSTEP_BASE_INCLUDE
 #define __NSBundle_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSString.h>
 
 @class NSString;
 @class NSArray;
@@ -306,7 +307,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Set the bundle version */
 - (void) setBundleVersion: (unsigned)version;
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  *  Returns subarray of given array containing those localizations that are
  *  used to locate resources given environment and user preferences.
@@ -378,7 +379,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 
 @end
 
-#ifndef	 NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /**
  *  Augments [NSBundle], including methods for handling libraries in the GNUstep
  *  fashion, for rapid localization, and other purposes.
@@ -497,14 +498,14 @@ GS_EXPORT NSString* const NSLoadedClasses;
 #define NSLocalizedStringFromTableInBundle(key, tbl, bundle, comment) \
   [bundle localizedStringForKey:(key) value:@"" table:(tbl)]
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 #define NSLocalizedStringFromTableInFramework(key, tbl, fpth, comment) \
   [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" \
   table: [bundle pathForGNUstepResource:(tbl) ofType: nil inDirectory: (fpth)]
 #endif /* GNUSTEP */
 
   /* Now Support for Quick Localization */
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
   /* The quickest possible way to localize a string:
     
@@ -647,7 +648,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
  */
 #define NSLocalizedStaticString(key, comment) key
 
-#endif /* NO_GNUSTEP */
+#endif	/* GS_API_NONE */
 
 #if	defined(__cplusplus)
 }
