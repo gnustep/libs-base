@@ -28,6 +28,8 @@
 #define __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
+#import	<GNUstepBase/GSObjCRuntime.h>
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
