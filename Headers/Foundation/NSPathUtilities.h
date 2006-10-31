@@ -26,16 +26,18 @@
 
 #ifndef __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
 #define __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
-
-#include <Foundation/NSString.h>
+#import	<GNUstepBase/GSVersionMacros.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-#ifndef	NO_GNUSTEP
 @class	NSDictionary;
 @class	NSMutableDictionary;
+@class	NSString;
+
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+
 /**
  * This extension permits a change of username from that specified in the
  * LOGNAME environment variable.  Using it will almost certainly cause
@@ -102,7 +104,7 @@ GS_EXPORT NSString *NSUserName(void);
 GS_EXPORT NSString *NSHomeDirectory(void);
 GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * Enumeration of possible requested directory type specifiers for
  * NSSearchPathForDirectoriesInDomains() function.  These correspond to the
@@ -176,7 +178,7 @@ GS_EXPORT NSArray *NSStandardApplicationPaths(void);
 GS_EXPORT NSArray *NSStandardLibraryPaths(void);
 GS_EXPORT NSString *NSTemporaryDirectory(void);
 GS_EXPORT NSString *NSOpenStepRootDirectory(void);
-#endif /* !STRICT_OPENSTEP */
+#endif /* GS_API_MACOSX */
 
 #if	defined(__cplusplus)
 }

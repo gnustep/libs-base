@@ -26,11 +26,11 @@
 
 #ifndef __GSFunctions_h_GNUSTEP_BASE_INCLUDE
 #define __GSFunctions_h_GNUSTEP_BASE_INCLUDE
+#include "GNUstepBase/GSVersionMacros.h"
 
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSVersionMacros.h"
 
 #warning "deprecated header ... will be removed in a later release"
 

@@ -24,8 +24,9 @@
 
 #ifndef __NSCompoundPredicate_h_GNUSTEP_BASE_INCLUDE
 #define __NSCompoundPredicate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSPredicate.h>
+#import	<Foundation/NSPredicate.h>
 
 #if	defined(__cplusplus)
 extern "C" {

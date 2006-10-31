@@ -168,12 +168,13 @@
 
 #ifndef __NSFileManager_h_GNUSTEP_BASE_INCLUDE
 #define __NSFileManager_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
-#ifndef	STRICT_OPENSTEP
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSDictionary.h>
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+#import	<Foundation/NSUtilities.h>
+#import	<Foundation/NSDictionary.h>
 
 #if	defined(__cplusplus)
 extern "C" {

@@ -15,14 +15,15 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
   */
 
 #ifndef __NSTimeZone_h_GNUSTEP_BASE_INCLUDE
 #define __NSTimeZone_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -51,13 +52,13 @@ extern "C" {
 + (NSArray*) timeZoneArray;
 - (NSArray*) timeZoneDetailArray;
 
-#ifndef	NO_GNUSTEP
+#if	OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /* Returns an dictionary that maps abbreviations to the array
    containing all the time zone names that use the abbreviation. */
 + (NSDictionary*) abbreviationMap;
 #endif
 
-#ifndef	STRICT_OPENSTEP
+#if	OS_API_VERSION(GS_API_MACOSX, GS_API_NONE)
 + (void) resetSystemTimeZone;
 + (NSTimeZone*) systemTimeZone;
 + (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data;
@@ -74,7 +75,7 @@ extern "C" {
 - (int) secondsFromGMTForDate: (NSDate*)aDate;
 #endif
 
-#ifndef	STRICT_MACOS_X
+#if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date;
 - (NSString*) timeZoneName;
 #endif
@@ -88,7 +89,7 @@ extern "C" {
 + (NSTimeZone*) timeZoneWithAbbreviation: (NSString*)abbreviation;  
 @end
 
-#ifndef	STRICT_MACOS_X
+#if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 @interface NSTimeZoneDetail : NSTimeZone
 - (BOOL) isDaylightSavingTimeZone;
 - (NSString*) timeZoneAbbreviation;

@@ -18,17 +18,18 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
-#ifndef __NSTimer_include__
-#define __NSTimer_include__
+#ifndef __NSTimer_h_GNUSTEP_BASE_INCLUDE
+#define __NSTimer_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
 /* This class is currently thrown together.  When it is cleaned up, it
    may no longer be concrete. */
 
-#include <Foundation/NSDate.h>
+#import	<Foundation/NSDate.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -76,7 +77,7 @@ extern "C" {
 - (id) userInfo;
 
 
-#ifndef	STRICT_OPENSTEP
+#if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithFireDate: (NSDate*)fd
 	       interval: (NSTimeInterval)ti
 		 target: (id)object
@@ -94,4 +95,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif	/* __NSTimer_h_GNUSTEP_BASE_INCLUDE */

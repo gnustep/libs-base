@@ -24,9 +24,10 @@
 
 #ifndef __NSArray_h_GNUSTEP_BASE_INCLUDE
 #define __NSArray_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSRange.h>
-#include <Foundation/NSUtilities.h>
+#import	<Foundation/NSRange.h>
+#import	<Foundation/NSUtilities.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -40,7 +41,7 @@ extern "C" {
 + (id) array;
 + (id) arrayWithArray: (NSArray*)array;
 + (id) arrayWithContentsOfFile: (NSString*)file;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) arrayWithContentsOfURL: (NSURL*)aURL;
 #endif
 + (id) arrayWithObject: (id)anObject;
@@ -59,11 +60,11 @@ extern "C" {
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (id) init;
 - (id) initWithArray: (NSArray*)array;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
 #endif
 - (id) initWithContentsOfFile: (NSString*)file;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 - (id) initWithObjects: firstObject, ...;
@@ -75,11 +76,11 @@ extern "C" {
 - (id) firstObjectCommonWithArray: (NSArray*)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
 
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 - (void) makeObjectsPerform: (SEL)aSelector;
 - (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
 #endif
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) makeObjectsPerformSelector: (SEL)aSelector;
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)arg;
 #endif
@@ -105,7 +106,7 @@ extern "C" {
 			     indent: (unsigned int)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 - (id) valueForKey: (NSString*)key;
 #endif
@@ -118,7 +119,7 @@ extern "C" {
 
 - (void) addObject: (id)anObject;				// Primitive
 - (void) addObjectsFromArray: (NSArray*)otherArray;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) exchangeObjectAtIndex: (unsigned int)i1
 	     withObjectAtIndex: (unsigned int)i2;
 #endif
@@ -149,7 +150,7 @@ extern "C" {
 		   context: (void*)context;
 - (void) sortUsingSelector: (SEL)comparator;
 
-#ifndef       STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) setValue: (id)value forKey: (NSString*)key;
 #endif
 

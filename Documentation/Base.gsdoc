@@ -99,27 +99,6 @@ notice and this notice are preserved.
 	      <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
 	      macro.<br />
 	    </desc>
-	    <term>NO_GNUSTEP</term>
-	    <desc>
-	      GNUstep specific extensions to the OpenStep and MacOS cocoa
-	      APIs are excluded from the headers.<br />
-	      This is obsolete .. setting GS_OPENSTEP_V should exclude
-	      GNUstep extensions.
-	    </desc>
-	    <term>STRICT_MACOS_X</term>
-	    <desc>
-	      Only methods and classes that are part of the oriignal MacOS
-	      cocoa API are made available in the headers.<br />
-	      This is obsolete .. setting GS_OPENSTEP_V to GS_API_MACOSX should
-	      do this.
-	    </desc>
-	    <term>STRICT_OPENSTEP</term>
-	    <desc>
-	      Only methods and classes that are part of the OpenStep
-	      specification are made available in the headers.<br />
-	      This is obsolete .. setting GS_OPENSTEP_V to GS_API_OPENSTEP
-	      should do this.
-	    </desc>
 	  </deflist>
 	  <p>
 	    <em>NB</em> These preprocessor constants are used in
@@ -131,6 +110,11 @@ notice and this notice are preserved.
 	    The actual GNUstep libraries are always built with the full
 	    GNUstep API in place, so that the feature set is as consistent
 	    as possible.
+	  </p>
+	  <p>
+	    The presence of these macros is also used by autogsdoc to generate
+	    information about which version of the API a particular feature
+	    belongs to.
 	  </p>
 	</subsect>
 	<subsect>

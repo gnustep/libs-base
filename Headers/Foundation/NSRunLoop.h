@@ -24,8 +24,9 @@
 
 #ifndef __NSRunLoop_h_GNUSTEP_BASE_INCLUDE
 #define __NSRunLoop_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSMapTable.h>
+#import	<Foundation/NSMapTable.h>
 
 #if	defined(__cplusplus)
 extern "C" {

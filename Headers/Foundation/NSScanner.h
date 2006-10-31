@@ -18,16 +18,17 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */ 
 
-#ifndef __NSScanner_h_GNUSTEP_INCLUDE
-#define __NSScanner_h_GNUSTEP_INCLUDE
+#ifndef __NSScanner_h_GNUSTEP_BASE_INCLUDE
+#define __NSScanner_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSDecimal.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSCharacterSet.h>
+#import	<Foundation/NSDecimal.h>
+#import	<Foundation/NSDictionary.h>
+#import	<Foundation/NSCharacterSet.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -92,10 +93,10 @@ extern "C" {
 			intoString: (NSString**)value;
 - (BOOL) isAtEnd;
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 - (BOOL) scanRadixUnsignedInt: (unsigned int*)value;
 #endif
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) scanDecimal: (NSDecimal*)value;
 #endif
 @end
@@ -104,4 +105,4 @@ extern "C" {
 }
 #endif
 
-#endif /* __NSScanner_h_GNUSTEP_INCLUDE */
+#endif /* __NSScanner_h_GNUSTEP_BASE_INCLUDE */

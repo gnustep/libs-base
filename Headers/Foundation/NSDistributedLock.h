@@ -18,16 +18,17 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #ifndef __NSDistributedLock_h_GNUSTEP_BASE_INCLUDE
 #define __NSDistributedLock_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDate.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSString.h>
+#import	<Foundation/NSDate.h>
 
 #if	defined(__cplusplus)
 extern "C" {

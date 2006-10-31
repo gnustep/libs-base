@@ -26,10 +26,11 @@
 
 #ifndef __NSXMLParser_h_GNUSTEP_BASE_INCLUDE
 #define __NSXMLParser_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(100300, GS_API_LATEST)
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -407,5 +408,6 @@ typedef enum {
 }
 #endif
 
-#endif	/* STRICT_OPENSTEP */
-#endif	/* __NSXMLParser_h_GNUSTEP_BASE_INCLUDE*/
+#endif
+#endif	/* __NSXMLParser_h_GNUSTEP_BASE_INCLUDE */
+

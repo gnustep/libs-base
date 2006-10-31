@@ -18,15 +18,17 @@
  * 
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02111 USA. */ 
+ * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02111 USA.
+ */ 
 
 #ifndef __NSRange_h_GNUSTEP_BASE_INCLUDE
 #define __NSRange_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
 /**** Included Headers *******************************************************/
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -85,7 +87,7 @@ struct _NSRange
   unsigned int length;
 };
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Pointer to an NSRange structure. */
 typedef NSRange *NSRangePointer;
 #endif
@@ -226,7 +228,7 @@ GS_EXPORT NSRange NSRangeFromString(NSString *aString);
 #undef	MIN
 #endif
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /**
  * To be used inside a method for making sure that a range does not specify
  * anything outside the size of an array/string.  Raises exception if range

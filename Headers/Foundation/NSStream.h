@@ -23,14 +23,15 @@
 
 #ifndef __NSStream_h_GNUSTEP_BASE_INCLUDE
 #define __NSStream_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 
 typedef enum {   
   NSStreamStatusNotOpen = 0,   
@@ -335,10 +336,10 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
 - (void) stream: (NSStream*)sStream handleEvent: (NSStreamEvent)anEvent;
 @end
 
-#endif
-
 #if	defined(__cplusplus)
 }
 #endif
 
-#endif /* __NSStream_h_GNUSTEP_BASE_INCLUDE */
+#endif	/* 100200 */
+
+#endif	/* __NSStream_h_GNUSTEP_BASE_INCLUDE */

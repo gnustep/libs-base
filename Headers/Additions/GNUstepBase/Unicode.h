@@ -31,6 +31,7 @@
 
 #ifndef __Unicode_h_OBJECTS_INCLUDE
 #define __Unicode_h_OBJECTS_INCLUDE
+#include <GNUstepBase/GSVersionMacros.h>
 
 #include <Foundation/NSString.h>	/* For string encodings */
 

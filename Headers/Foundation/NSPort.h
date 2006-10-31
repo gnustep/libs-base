@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
   AutogsdocSource: NSPort.m
   AutogsdocSource: NSSocketPort.m
@@ -28,9 +28,10 @@
 
 #ifndef __NSPort_h_GNUSTEP_BASE_INCLUDE
 #define __NSPort_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSMapTable.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSMapTable.h>
 
 #if	defined(__MINGW32__)
 #include	<winsock2.h>
@@ -137,7 +138,7 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
  */
 - (BOOL) isValid;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * Adds to run loop as input source to be notified for input in given mode.
  * This method is for use by subclasses.
@@ -187,7 +188,7 @@ GS_EXPORT NSString* const NSPortDidBecomeInvalidNotification;
 
 #define	PortBecameInvalidNotification NSPortDidBecomeInvalidNotification
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
 /**
  * Native socket type.

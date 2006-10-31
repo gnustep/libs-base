@@ -19,14 +19,15 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSInvocation_h_GNUSTEP_BASE_INCLUDE
 #define __NSInvocation_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSMethodSignature.h>
+#import	<Foundation/NSMethodSignature.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -40,7 +41,7 @@ extern "C" {
   id			_target;
   SEL			_selector;
   unsigned int		_numArgs;
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
   NSArgumentInfo	*_info;
 #else
   void			*_dummy;
@@ -94,7 +95,7 @@ extern "C" {
 
 @end
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 @interface NSInvocation (GNUstep)
 /**
  * Returns the status of the flag set by -setSendsToSuper:

@@ -29,6 +29,7 @@
 
 #ifndef __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
+#include <GNUstepBase/GSVersionMacros.h>
 
 #include <objc/objc.h>
 #include <objc/objc-api.h>
@@ -38,8 +39,6 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
-
-#include <GNUstepBase/GSVersionMacros.h>
 
 #ifdef GNUSTEP_WITH_DLL
  

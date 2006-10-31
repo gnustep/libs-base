@@ -44,16 +44,19 @@
    Boston, MA 02111 USA.
 */
 
-#ifndef __NSNotificationQueue_h__
-#define __NSNotificationQueue_h__
+#ifndef __NSNotificationQueue_h_GNUSTEP_BASE_INCLUDE
+#define __NSNotificationQueue_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSNotification.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-@class NSMutableArray;
+@class NSArray;
+@class NSNotification;
+@class NSNotificationCenter;
 
 /*
  * Posting styles into notification queue
@@ -134,4 +137,4 @@ struct _NSNotificationQueueList;
 }
 #endif
 
-#endif /* __NSNotificationQueue_h__ */
+#endif /* __NSNotificationQueue_h_GNUSTEP_BASE_INCLUDE */

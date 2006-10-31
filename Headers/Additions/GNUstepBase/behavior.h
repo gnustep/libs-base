@@ -27,9 +27,9 @@
 
 #ifndef __behavior_h_GNUSTEP_BASE_INCLUDE
 #define __behavior_h_GNUSTEP_BASE_INCLUDE
+#include <GNUstepBase/GSVersionMacros.h>
 
 #include <GNUstepBase/GSObjCRuntime.h>
-#include <GNUstepBase/GSVersionMacros.h>
 
 #if	defined(__cplusplus)
 extern "C" {

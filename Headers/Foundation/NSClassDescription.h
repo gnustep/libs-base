@@ -24,15 +24,16 @@
 
 #ifndef __NSClassDescription_h_GNUSTEP_BASE_INCLUDE
 #define __NSClassDescription_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSException.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSException.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
 @class NSArray;
 @class NSDictionary;

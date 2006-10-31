@@ -19,17 +19,18 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */ 
 
 #ifndef __NSThread_h_GNUSTEP_BASE_INCLUDE
 #define __NSThread_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
+#import	<Foundation/NSDictionary.h>
+#import	<Foundation/NSDate.h>
+#import	<Foundation/NSException.h>
+#import	<Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -62,7 +63,7 @@ extern "C" {
 
 @end
 
-#ifndef STRICT_OPENSTEP
+#if	GS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 @interface	NSObject(NSMainThreadPerformAdditions)
 - (void) performSelectorOnMainThread: (SEL)aSelector
 			  withObject: (id)anObject
@@ -74,7 +75,7 @@ extern "C" {
 @end
 #endif
 
-#ifndef NO_GNUSTEP
+#if	GS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /*
  * Don't use the following functions unless you really know what you are 
  * doing ! 
@@ -133,7 +134,7 @@ GS_EXPORT NSString* const NSWillBecomeMultiThreadedNotification;
 GS_EXPORT NSString* const NSThreadWillExitNotification;
 #define NSThreadExiting NSThreadWillExitNotification
 
-#ifndef	NO_GNUSTEP
+#if	GS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  *  Notification posted whenever a new thread is started up.  This is a

@@ -24,9 +24,12 @@
 
 #ifndef __NSPredicate_h_GNUSTEP_BASE_INCLUDE
 #define __NSPredicate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSArray.h>
+#if	OS_API_VERSION(100400, GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSArray.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -55,4 +58,5 @@ extern "C" {
 }
 #endif
 
-#endif /* __NSPredicate_h_GNUSTEP_BASE_INCLUDE */
+#endif	/* 100400 */
+#endif	/* __NSPredicate_h_GNUSTEP_BASE_INCLUDE */

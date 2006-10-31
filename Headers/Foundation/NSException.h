@@ -18,8 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
     <title>NSException and NSAssertionHandler class reference</title>
 
@@ -30,8 +30,9 @@
 
 #ifndef __NSException_h_GNUSTEP_BASE_INCLUDE
 #define __NSException_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSString.h>
+#import	<Foundation/NSString.h>
 #include <setjmp.h>
 #include <stdarg.h>
 
@@ -182,7 +183,7 @@ GS_EXPORT NSString* const NSRangeException;
  */
 GS_EXPORT NSString* const NSCharacterConversionException;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * An exception used when some form of parsing fails.
  */

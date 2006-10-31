@@ -24,8 +24,10 @@
 
 #ifndef __NSCharacterSet_h_GNUSTEP_BASE_INCLUDE
 #define __NSCharacterSet_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSString.h>
+#import	<Foundation/NSRange.h>
+#import	<Foundation/NSString.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -46,7 +48,7 @@ extern "C" {
  */
 + (NSCharacterSet*) alphanumericCharacterSet;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  *  Returns a character set containing letters in the unicode
  *  Titlecase category.
@@ -101,7 +103,7 @@ extern "C" {
  */
 + (NSCharacterSet*) punctuationCharacterSet;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  *  Returns a character set containing mathematical symbols, etc..
  */
@@ -144,7 +146,7 @@ extern "C" {
  */
 + (NSCharacterSet*) characterSetWithRange: (NSRange)aRange;
 
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 /**
  *  Initializes from a bitmap (8192 bytes representing 65536 values).<br />
  *  Each bit set in the bitmap represents the fact that a character at
@@ -168,7 +170,7 @@ extern "C" {
  */
 - (BOOL) characterIsMember: (unichar)aCharacter;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * Returns YES if the receiver contains at least one character in the
  * specified unicode plane.
@@ -182,7 +184,7 @@ extern "C" {
  */
 - (NSCharacterSet*) invertedSet;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * Returns YES is all the characters in aSet are present in the receiver.
  */

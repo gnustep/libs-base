@@ -28,8 +28,9 @@
 
 #ifndef __NSArchiver_h_GNUSTEP_BASE_INCLUDE
 #define __NSArchiver_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSCoder.h>
+#import	<Foundation/NSCoder.h>
 
 #if	defined(__cplusplus)
 extern "C" {

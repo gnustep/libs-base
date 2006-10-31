@@ -18,14 +18,15 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
   */ 
 
 #ifndef _NSDictionary_h_GNUSTEP_BASE_INCLUDE
 #define _NSDictionary_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -36,7 +37,7 @@ extern "C" {
 @interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
 + (id) dictionary;
 + (id) dictionaryWithContentsOfFile: (NSString*)path;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) dictionaryWithContentsOfURL: (NSURL*)aURL;
 #endif
 + (id) dictionaryWithDictionary: (NSDictionary*)otherDictionary;
@@ -59,7 +60,7 @@ extern "C" {
 
 - (id) init;
 - (id) initWithContentsOfFile: (NSString*)path;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 - (id) initWithDictionary: (NSDictionary*)otherDictionary;
@@ -78,7 +79,7 @@ extern "C" {
 - (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)marker;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) valueForKey: (NSString*)key;
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 #endif
@@ -95,7 +96,7 @@ extern "C" {
 - (void) removeObjectsForKeys: (NSArray*)keyArray;
 - (void) setObject: (id)anObject forKey: (id)aKey;		// Primitive
 - (void) setDictionary: (NSDictionary*)otherDictionary;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) takeStoredValue: (id)value forKey: (NSString*)key;
 - (void) takeValue: (id)value forKey: (NSString*)key;
 - (void) setValue: (id)value forKey: (NSString*)key;

@@ -21,8 +21,9 @@
 
 #ifndef __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE
 #define __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSDate.h>
+#import	<Foundation/NSDate.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -100,16 +101,16 @@ extern "C" {
 
 // Getting and Setting Time Zones
 - (void) setTimeZone: (NSTimeZone*)aTimeZone;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (NSTimeZone*) timeZone;
 #endif
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 - (NSTimeZoneDetail*) timeZoneDetail;
 #endif
 
 @end
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  *  Adds <code>-weekOfYear</code> method.
@@ -141,7 +142,7 @@ extern "C" {
 
 #endif
 
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 @interface NSCalendarDate (OPENSTEP)
 
 - (NSCalendarDate*) dateByAddingYears: (int)years

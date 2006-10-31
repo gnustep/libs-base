@@ -36,6 +36,7 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSSet.h"
 #include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSValue.h"
