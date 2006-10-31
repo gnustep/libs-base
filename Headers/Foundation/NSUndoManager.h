@@ -17,9 +17,11 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
-*/ 
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+
+   $Date$ $Revision$
+*/
 
 #ifndef __NSUndoManager_h_OBJECTS_INCLUDE
 #define __NSUndoManager_h_OBJECTS_INCLUDE

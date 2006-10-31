@@ -1,11 +1,9 @@
 /* Interface for NSProcessInfo for GNUStep
-   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1995-2006 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
                 Heidelberg, Germany
                 Tuparev@EMBL-Heidelberg.de
-   Last update: 08-aug-1995
-	 
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -20,9 +18,11 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
-   */ 
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+
+   $Date$ $Revision$
+*/
 
 #ifndef __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE
 #define __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE

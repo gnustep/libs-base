@@ -1,29 +1,28 @@
 /* GNUStep callback functions prototypes.
- * Copyright(C) 1996  Free Software Foundation, Inc.
- * 
- * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
- * Created: Tue Feb 13 23:10:29 EST 1996
- * Updated: Tue Feb 13 23:10:29 EST 1996
- * Updated: Mon Feb  7 10:25:00 GMT 2000
- * Serial: 96.02.13.01
- * 
- * This file is part of the GNUstep Base Library.
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or(at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- * 
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
- * Boston, MA 02111 USA.
- */
+   Copyright(C) 1996-2006 Software Foundation, Inc.
+   
+   Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
+   Created: Tue Feb 13 23:10:29 EST 1996
+   
+   This file is part of the GNUstep Base Library.
+   
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or(at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+   
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+
+   $Date$ $Revision$
+*/
 
 #ifndef __NSCallBacks_h_OBJECTS_INCLUDE
 #define __NSCallBacks_h_OBJECTS_INCLUDE 1

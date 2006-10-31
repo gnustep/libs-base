@@ -18,12 +18,14 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+
+   $Date$ $Revision$
 */
 
-#ifndef _NSURL_h__
-#define _NSURL_h__
+#ifndef __NSURL_h_GNUSTEP_BASE_INCLUDE
+#define __NSURL_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSURLHandle.h>
 
@@ -122,4 +124,4 @@ GS_EXPORT NSString* const NSURLFileScheme;
 }
 #endif
 
-#endif //_NSUrl_h__
+#endif /*__NSURL_h_GNUSTEP_BASE_INCLUDE */

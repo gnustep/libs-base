@@ -19,7 +19,8 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   */
+   $Date: 2006-10-29 18:26:13 +0800 (Sun, 29 Oct 2006) $ $Revision: 23994 $
+*/
 
 #ifndef __NSStream_h_GNUSTEP_BASE_INCLUDE
 #define __NSStream_h_GNUSTEP_BASE_INCLUDE

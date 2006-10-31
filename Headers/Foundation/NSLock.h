@@ -1,6 +1,4 @@
-/* 
-   NSLock.h
-
+/* NSLock.h
    Definitions for locking protocol and classes
 
    Copyright (C) 1996 Free Software Foundation, Inc.
@@ -27,7 +25,9 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-*/ 
+
+   $Date$ $Revision$
+*/
 
 #ifndef _GNUstep_H_NSLock
 #define _GNUstep_H_NSLock

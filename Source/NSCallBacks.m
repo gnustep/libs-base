@@ -26,7 +26,7 @@
 
    <title>NSCallBacks class reference</title>
    $Date$ $Revision$
- */
+*/
 
 /**** Included Headers *******************************************************/
 

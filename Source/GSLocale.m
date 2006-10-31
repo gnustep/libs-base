@@ -21,7 +21,10 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
+
+   $Date$ $Revision$
 */
+
 #include "config.h"
 #include "GNUstepBase/GSLocale.h"
 #include "Foundation/NSDictionary.h"

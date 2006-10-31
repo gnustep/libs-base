@@ -21,8 +21,9 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-*/
 
+   $Date$ $Revision$
+*/
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 4 corresponding to each value type */

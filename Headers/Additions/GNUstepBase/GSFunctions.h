@@ -22,7 +22,8 @@
    Boston, MA 02111 USA.
  
    AutogsdocSource:	Additions/GSFunctions.m
-   */ 
+   $Date$ $Revision$
+*/ 
 
 #ifndef __GSFunctions_h_GNUSTEP_BASE_INCLUDE
 #define __GSFunctions_h_GNUSTEP_BASE_INCLUDE

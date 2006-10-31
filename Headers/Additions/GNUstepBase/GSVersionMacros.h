@@ -19,8 +19,10 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.
-*/ 
+   Boston, MA 02111 USA.
+
+   $Date: 2006-10-29 18:26:13 +0800 (Sun, 29 Oct 2006) $ $Revision: 23994 $
+*/
 
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 #define __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_

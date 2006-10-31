@@ -1,4 +1,3 @@
-
 /* Interface for NSKeyValueCoding for GNUStep
    Copyright (C) 2000 Free Software Foundation, Inc.
 
@@ -19,9 +18,11 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
-   */ 
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+
+   $Date$ $Revision$
+*/
 
 #ifndef __NSKeyValueCoding_h_GNUSTEP_BASE_INCLUDE
 #define __NSKeyValueCoding_h_GNUSTEP_BASE_INCLUDE

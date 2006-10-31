@@ -29,6 +29,8 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
+
+   $Date$ $Revision$
 */
 
 /* Warning -	[-initWithString:attributes:] is the designated initialiser,
@@ -45,8 +47,8 @@
  */
 
 
-#ifndef _NSAttributedString_H
-#define _NSAttributedString_H
+#ifndef __NSAttributedString_h_GNUSTEP_BASE_INCLUDE
+#define __NSAttributedString_h_GNUSTEP_BASE_INCLUDE
 
 #if	defined(__cplusplus)
 extern "C" {

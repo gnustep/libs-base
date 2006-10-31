@@ -27,7 +27,7 @@
 
    <title>NSConnection class reference</title>
    $Date$ $Revision$
-   */
+*/
 
 #include "config.h"
 #include "GNUstepBase/preface.h"

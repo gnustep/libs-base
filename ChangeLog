@@ -1,3 +1,9 @@
+2006-10-31  Sheldon Gill  <sheldon@westnet.net.au>
+
+    * Headers/Additions/GNUstepBase/*.h:
+    * Headers/Foundation/*.h:
+    Correct layout of FSF headquarters location and licensing info & revision
+
 2006-10-29  Sheldon Gill  <sheldon@westnet.net.au>
 
     * Source\GSPrivate.h

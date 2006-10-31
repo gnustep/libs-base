@@ -24,6 +24,7 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
+   $Date$ $Revision$
 
 <chapter>
   <heading>File management</heading>

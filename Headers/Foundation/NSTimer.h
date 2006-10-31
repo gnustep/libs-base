@@ -18,12 +18,14 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
-   */ 
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
-#ifndef __NSTimer_include__
-#define __NSTimer_include__
+   $Date$ $Revision$
+*/
+
+#ifndef __NSTimer_h_GNUSTEP_BASE_INCLUDE
+#define __NSTimer_h_GNUSTEP_BASE_INCLUDE
 
 /* This class is currently thrown together.  When it is cleaned up, it
    may no longer be concrete. */
@@ -94,4 +96,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif /* __NSTimer_h_GNUSTEP_BASE_INCLUDE */

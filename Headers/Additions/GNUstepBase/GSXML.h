@@ -29,11 +29,10 @@
    Boston, MA 02111 USA.
 
    AutogsdocSource: Additions/GSXML.m
-
 */
 
-#ifndef __GSXML_H__
-#define __GSXML_H__
+#ifndef __GSXML_h_GNUSTEP_BASE_INCLUDE
+#define __GSXML_h_GNUSTEP_BASE_INCLUDE
 
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSObject.h>
@@ -752,5 +751,5 @@ extern "C" {
 }
 #endif
 
-#endif /* __GSXML_H__ */
+#endif /* __GSXML_h_GNUSTEP_BASE_INCLUDE */
 

@@ -23,7 +23,7 @@
    Boston, MA 02111 USA.
 
    $Date$ $Revision$
-   */
+*/
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
