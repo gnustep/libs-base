@@ -37,6 +37,11 @@ extern "C" {
 
 @class NSString;
 
+/**
+ * Instances of this class are used to perform multi-level sorts of
+ * arrays containging collections or other objects whose properties
+ * can be obtained using key names.
+ */
 @interface NSSortDescriptor : NSObject <NSCopying, NSCoding>
 {
   NSString *_key;
@@ -44,20 +49,53 @@ extern "C" {
   SEL	_selector;
 }
 
+/** Returns a flag indicating whether the sort descriptor sorts objects
+ * in ascending order (YES) or descending order (NO).
+ */
 - (BOOL) ascending;
-- (NSComparisonResult) compareObject: (id) object1 toObject: (id) object2;
+
+/** Returns the result of comparing object1 to object2 using the property
+ * whose key is defined in the receiver and using the selector of the
+ * receiver.  If the receiver performs a descending order sort, the
+ * result of this comparison is the opposite of that prroduced by
+ * applying the selector.
+ */
+- (NSComparisonResult) compareObject: (id)object1 toObject: (id)object2;
+
+/** Initialises the receiver for comparisons using the 'compare:' selector
+ * and the specified key and ordering.
+ */
 - (id) initWithKey: (NSString *)key
 	 ascending: (BOOL)ascending;
+
+/** <init />
+ * Initialises the receiver to perform comparisons in the specified order
+ * using selector to compar the property key of each object.
+ */
 - (id) initWithKey: (NSString *)key
          ascending: (BOOL)ascending
           selector: (SEL)selector;
+
+/** Returns the key used to obtain the property on which comparisons are based.
+ */
 - (NSString *) key;
+
+/** Returns the selector used to compare the properties of objects.
+ */
 - (SEL) selector;
+
+/** Returns a copy of the receiver which compares and sorts in reversed
+ * order.
+ */
 - (id) reversedSortDescriptor;
 @end
 
 @interface NSArray (NSSortDescriptorSorting)
 
+/**
+ * Produces a sorted array using the mechanism described for
+ * [NSMutableArray-sortUsingDescriptors:]
+ */
 - (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
 
 @end
