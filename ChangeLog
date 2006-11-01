@@ -1,3 +1,10 @@
+2006-11-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSortDescriptor.m; minor tidyups
+	* Headers/Foundation/NSSortDescriptor.h: add documentation
+	* Headers/Foundation/NSKeyValueCoding.h: improve version macros
+	* Headers/Foundation/NSKeyValueObserving.h: add include for NSArray
+
 2006-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPortNameServer.m:

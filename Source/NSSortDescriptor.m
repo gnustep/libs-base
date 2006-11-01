@@ -43,15 +43,21 @@
 - (NSComparisonResult) compareObject: (id) object1 toObject: (id) object2
 {
   NSComparisonResult result;
-  id comparedKey1 = [object1 valueForKeyPath: _key],
-     comparedKey2 = [object2 valueForKeyPath: _key];
+  id comparedKey1 = [object1 valueForKeyPath: _key];
+  id comparedKey2 = [object2 valueForKeyPath: _key];
 
   result = (NSComparisonResult) [comparedKey1 performSelector: _selector
                                                    withObject: comparedKey2];
-
-  if (_ascending != YES)
+  if (_ascending == NO)
     {
-      result = -result;
+      if (result == NSOrderedAscending)
+	{
+	  result = NSOrderedDescending;
+	}
+      else if (result == NSOrderedDescending)
+	{
+	  result = NSOrderedAscending;
+	}
     }
 
   return result;

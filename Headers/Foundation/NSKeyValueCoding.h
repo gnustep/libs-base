@@ -27,6 +27,8 @@
 #define __NSKeyValueCoding_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+
 #import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
@@ -38,8 +40,6 @@ extern "C" {
 @class NSDictionary;
 @class NSError;
 @class NSString;
-
-#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
 /** An exception for an unknown key in [NSObject(NSKeyValueCoding)]. */
 GS_EXPORT NSString* const NSUndefinedKeyException;
@@ -358,11 +358,11 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
 
 @end
 
-#endif
-
 #if	defined(__cplusplus)
 }
 #endif
+
+#endif	/* GS_API_MACOSX */
 
 #endif
 
