@@ -1,3 +1,8 @@
+2006-11-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([stringByAddingPercentEscapesUsingEncoding:])
+	Make the set of characters escaped compatible with MacOS-X (10.4).
+
 2006-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSortDescriptor.m; minor tidyups

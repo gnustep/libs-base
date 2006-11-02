@@ -1325,9 +1325,12 @@ handle_printf_atsign (FILE *stream,
  * Constructs a new ASCII string which is a representation of the receiver
  * in which characters are escaped where necessary in order to produce a
  * legal URL.<br />
- * Escaping is done for any character which is not 'unreserved' according
- * to RFC2396.  The unreserved characters are letters, digits, and the
- * set of 'marks' characters ("-_.!~*'()").<br />
+ * The original string is converted to bytes using the specified encoding
+ * and then those bytes are escaped unless they correspond to 'legal'
+ * ASCII characters.  The byte values escaped are any below 32 and any
+ * above 126 as well as 32 (space), 34 ("), 35 (#), 37 (%), 60 (&lt;),
+ * 62 (&gt;), 91 ([), 92 (\), 93 (]), 94 (^), 96 (~), 123 ({), 124 (|),
+ * and 125 (}).
  * Returns nil if the receiver cannot be represented using the specified
  * encoding.
  */
@@ -1351,19 +1354,19 @@ handle_printf_atsign (FILE *stream,
 	  unsigned int	hi;
 	  unsigned int	lo;
 
-	  if (isalpha(c) || isdigit(c)
-	    || c == '-' || c == '_' || c == '.' || c == '!' || c == '~'
-	    || c == '*' || c == '\'' || c == '(' || c == ')')
-	    {
-	      dst[dpos++] = c;
-	    }
-	  else
+	  if (c <= 32 || c > 126 || c == 34 || c == 35 || c == 37
+	    || c == 60 || c == 62 || c == 91 || c == 92 || c == 93
+	    || c == 94 || c == 96 || c == 123 || c == 124 || c == 125)
 	    {
 	      dst[dpos++] = '%';
 	      hi = (c & 0xf0) >> 4;
 	      dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
 	      lo = (c & 0x0f);
 	      dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
+	    }
+	  else
+	    {
+	      dst[dpos++] = c;
 	    }
 	}
       [d setLength: dpos];
