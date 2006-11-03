@@ -1330,9 +1330,15 @@ handle_printf_atsign (FILE *stream,
  * ASCII characters.  The byte values escaped are any below 32 and any
  * above 126 as well as 32 (space), 34 ("), 35 (#), 37 (%), 60 (&lt;),
  * 62 (&gt;), 91 ([), 92 (\), 93 (]), 94 (^), 96 (~), 123 ({), 124 (|),
- * and 125 (}).
+ * and 125 (}).<br />
  * Returns nil if the receiver cannot be represented using the specified
- * encoding.
+ * encoding.<br />
+ * NB. This behavior is MacOS-X (4.2) compatible, and it should be noted
+ * that it does <em>not</em> produce a string suitable for use as a field
+ * value in a url-encoded form as it does <strong>not</strong> escape the
+ * '+', '=' and '&amp;' characters used in such forms.  If you need to
+ * add a string as a form field value (or name) you must add percent
+ * escapes for those characters yourself.
  */
 - (NSString*) stringByAddingPercentEscapesUsingEncoding: (NSStringEncoding)e
 {
