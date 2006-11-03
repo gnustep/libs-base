@@ -2,6 +2,8 @@
 
 	* Source/NSString.m: ([stringByAddingPercentEscapesUsingEncoding:])
 	Improved documentation.
+	* Source/Additions/GSMime.m: Add more charset mappings for where the
+	hyphen after the 'iso' has been omitted.
 
 2006-11-02  Richard Frith-Macdonald <rfm@gnu.org>
 
