@@ -1485,8 +1485,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  */
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"<%s: %lx>",
-    GSClassNameFromObject(self), (unsigned long)self];
+  return [NSString stringWithFormat: @"<%s: %p>",
+    GSClassNameFromObject(self), self];
 }
 
 /**
@@ -2372,8 +2372,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"<%s: %lx>",
-    GSClassNameFromObject(self), (unsigned long)self];
+  return [NSString stringWithFormat: @"<%s: %p>",
+    GSClassNameFromObject(self), self];
 }
 - (BOOL) isProxy
 {
