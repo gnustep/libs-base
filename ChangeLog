@@ -1,3 +1,18 @@
+2006-11-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Use %p to print address in description.
+	* Documentation/General/OpenStepCompliance.gsdoc:
+	* Documentation/General/Debugging.gsdoc:
+	* Tools/gsdoc.gsdoc:
+	* Tools/gdomap.gsdoc:
+	* Tools/gsdoc-1_0_1.dtd:
+	* Tools/gsdoc-1_0_1.rnc:
+	* Tools/autogsdoc.m:
+	* Tools/AGSOutput.m:
+	* Tools/autogsdoc.1:
+	* Tools/BaseTools.gsdoc:
+	Minor documentation version fixups.
+
 2006-11-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([stringByAddingPercentEscapesUsingEncoding:])

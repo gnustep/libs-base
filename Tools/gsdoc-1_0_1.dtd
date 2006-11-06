@@ -28,7 +28,7 @@
 <!--
   gsdoc is an XML language - Typical usage:
   <?xml version="1.0"?>
-  <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN"
+  <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN"
 	"http://www.gnustep.org/gsdoc.xml">
   <gsdoc base="myDocName">
   </gsdoc>
