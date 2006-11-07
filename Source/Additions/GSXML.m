@@ -3318,10 +3318,9 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       xmlSAXVersion(LIB, 2);	// Set SAX2
       LIB->startElementNs         = (void*) startElementNsFunction;
       LIB->endElementNs           = (void*) endElementNsFunction;
-#else
+#endif
       LIB->startElement           = (void*) startElementFunction;
       LIB->endElement             = (void*) endElementFunction;
-#endif
       LIB->internalSubset         = (void*) internalSubsetFunction;
       LIB->externalSubset         = (void*) externalSubsetFunction;
       LIB->isStandalone           = (void*) isStandaloneFunction;
@@ -3440,10 +3439,9 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       xmlSAXVersion(LIB, 2);	// Set SAX2
       SETCB(startElementNs, startElement:prefix:href:attributes:);
       SETCB(endElementNs, endElement:prefix:href:);
-#else
+#endif
       SETCB(startElement, startElement:attributes:);
       SETCB(endElement, endElement:);
-#endif
       SETCB(internalSubset, internalSubset:externalID:systemID:);
       SETCB(externalSubset, externalSubset:externalID:systemID:);
       SETCB(isStandalone, isStandalone);
