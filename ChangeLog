@@ -1,3 +1,8 @@
+2006-11-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: ([stringByEscapingXML]) Fix bug causing
+	newline characters to be removed from escaped strings.
+
 2006-11-07  David Wetzel <dave@turbocat.de>
 
 	* Source/Additions/GSXML.m:
