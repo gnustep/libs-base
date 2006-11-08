@@ -1,5 +1,10 @@
 2006-11-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Source/NSIndexSet.m: ([addIndexesInRange:])
+	Fix for case when added range lies within existing range.
+
+2006-11-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSXML.m: ([stringByEscapingXML]) Fix bug causing
 	newline characters to be removed from escaped strings.
 

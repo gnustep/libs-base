@@ -673,9 +673,16 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	{
 	  break;
 	}
-      r.length += (NSMaxRange(aRange) - NSMaxRange(r));
-      GSIArrayRemoveItemAtIndex(_array, pos--);
-      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+      if (NSMaxRange(r) >= NSMaxRange(aRange))
+        {
+          GSIArrayRemoveItemAtIndex(_array, pos--);
+	}
+      else
+        {
+          r.length += (NSMaxRange(aRange) - NSMaxRange(r));
+          GSIArrayRemoveItemAtIndex(_array, pos--);
+          GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+	}
     }
 
   /*
