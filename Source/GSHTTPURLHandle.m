@@ -1142,6 +1142,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   [dat setLength: 0];
   RELEASE(document);
   RELEASE(parser);
+  [pageInfo removeAllObjects];
   parser = [GSMimeParser new];
   document = RETAIN([parser mimeDocument]);
 
