@@ -311,7 +311,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
 
       /*
-       * We might be in an idle state with an outstandng read on the
+       * We might be in an idle state with an outstanding read on the
        * socket, keeping the connection alive, but waiting for the
        * remote end to drop it.
        */
@@ -713,6 +713,22 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    loadComplete: NO];
 	    }
 	}
+
+      if (complete == NO && [d length] == 0)
+        {
+	  /* The read failed ... dropped, but parsing is not complete.
+	   * The request was sent, so we can't know whether it was
+	   * lost in the network or the remote end received it and
+	   * the response was lost.
+	   */
+	  if (debug == YES)
+	    {
+	      NSLog(@"HTTP response not received - %@", parser);
+	    }
+	  [self endLoadInBackground];
+	  [self backgroundLoadDidFailWithReason: @"Response not received"];
+	}
+
       if (sock != nil
 	&& (connectionState == reading || connectionState == idle))
 	{
@@ -1003,6 +1019,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  [sock closeFile];
 	  DESTROY(sock);
 	  connectionState = idle;
+	  if (debug)
+	    NSLog(@"%@ restart on new connection", NSStringFromSelector(_cmd));
 	  [self _tryLoadInBackground: u];
 	  return;
 	}
@@ -1294,7 +1312,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    name: NSFileHandleReadCompletionNotification
 		  object: sock];
 
-      keepalive = YES;	// Reusing a connection.
+      /* Reusing a connection. Set flag to say that it has been kept
+       * alive and we don't know if the other end has dropped it
+       * until we write to it and read some response.
+       */
+      keepalive = YES;
       method = [request objectForKey: GSHTTPPropertyMethodKey];
       if (method == nil)
 	{

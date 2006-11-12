@@ -1,6 +1,7 @@
 2006-11-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Clear pageInfo before load.
+	Improve checking for dropped connections.
 
 2006-11-08  Richard Frith-Macdonald <rfm@gnu.org>
 
