@@ -726,7 +726,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      NSLog(@"HTTP response not received - %@", parser);
 	    }
 	  [self endLoadInBackground];
-	  [self backgroundLoadDidFailWithReason: @"Response not received"];
+          [self backgroundLoadDidFailWithReason: @"Response parse failed"];
 	}
 
       if (sock != nil
