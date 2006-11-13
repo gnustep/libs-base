@@ -1,3 +1,8 @@
+2006-11-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Fix a few string parsing errors (check that
+	string matches format in MacOS-X compatible manner).
+
 2006-11-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Clear pageInfo before load.

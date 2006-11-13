@@ -487,10 +487,11 @@ GSTimeNow(void)
  * read up to the specified number of characters, terminating at a non-digit
  * except for leading whitespace characters.
  */
-static inline int getDigits(const char *from, char *to, int limit)
+static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 {
   int	i = 0;
   int	j = 0;
+
   BOOL	foundDigit = NO;
 
   while (i < limit)
@@ -514,6 +515,10 @@ static inline int getDigits(const char *from, char *to, int limit)
       i++;
     }
   to[j] = '\0';
+  if (j == 0)
+    {
+      *error = YES;	// No digits read
+    }
   return i;
 }
 
@@ -529,6 +534,8 @@ static inline int getDigits(const char *from, char *to, int limit)
  * Initializes an NSCalendarDate using the specified description and format
  * string interpreted in the given locale.<br />
  * If description does not match fmt exactly, this method returns nil.<br />
+ * Excess characters in the description (after the format is matched)
+ * are ignored.<br />
  * Format specifiers are -
  * <list>
  *   <item>
@@ -791,7 +798,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   //    last digit to work.
   //
 
-  while (formatIdx < formatLen)
+  while (error == NO && formatIdx < formatLen)
     {
       if (format[formatIdx] != '%')
 	{
@@ -840,6 +847,14 @@ static inline int getDigits(const char *from, char *to, int limit)
 			  description, fmt);
 		      }
 		    sourceIdx++;
+		  }
+		else
+		  {
+		    error = YES;
+		    NSDebugMLog(
+		      @"Expected literal '%%' but got end of string parsing"
+		      @"'%@' using '%@'", source[sourceIdx],
+		      description, fmt);
 		  }
 		break;
 
@@ -1015,38 +1030,38 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 	      case 'd': // fall through
 	      case 'e':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		day = atoi(tmpStr);
 		had |= hadD;
 		break;
 
 	      case 'F':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
 		milliseconds = atoi(tmpStr);
 		break;
 
 	      case 'I': // fall through
 		twelveHrClock = YES;
 	      case 'H':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		hour = atoi(tmpStr);
 		had |= hadh;
 		break;
 
 	      case 'j':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
 		day = atoi(tmpStr);
 		had |= hadD;
 		break;
 
 	      case 'm':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		month = atoi(tmpStr);
 		had |= hadM;
 		break;
 
 	      case 'M':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		min = atoi(tmpStr);
 		had |= hadm;
 		break;
@@ -1081,13 +1096,13 @@ static inline int getDigits(const char *from, char *to, int limit)
 		break;
 
 	      case 'S':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		sec = atoi(tmpStr);
 		had |= hads;
 		break;
 
 	      case 'w':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
 		dayOfWeek = atoi(tmpStr);
 		had |= hadw;
 		break;
@@ -1095,7 +1110,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 	      case 'W': // Fall through
 		weekStartsMonday = 1;
 	      case 'U':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
 		julianWeeks = atoi(tmpStr);
 		break;
 
@@ -1106,7 +1121,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		//	break;
 
 	      case 'y':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		year = atoi(tmpStr);
 		if (year >= 70)
 		  {
@@ -1120,7 +1135,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		break;
 
 	      case 'Y':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4, &error);
 		year = atoi(tmpStr);
 		had |= hadY;
 		break;
@@ -1140,7 +1155,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      sign = -1;
 		      sourceIdx++;
 		    }
-		  found = getDigits(&source[sourceIdx], tmpStr, 4);
+		  found = getDigits(&source[sourceIdx], tmpStr, 4, &error);
 		  if (found > 0)
 		    {
 		      sourceIdx += found;
@@ -1180,15 +1195,21 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  if (tz == nil)
 		    {
 		      tz = [NSTimeZone timeZoneWithAbbreviation: z];
+		      if (tz == nil)
+			{
+			  error = YES;
+			  NSDebugMLog(@"Time zone '%@' not found", z);
+			}
 		    }
 		}
 		break;
 
 	      default:
-		[NSException raise: NSInvalidArgumentException
-			    format: @"Invalid NSCalendar date, "
-		    @"specifier %c not recognized in format %@",
-		    format[formatIdx], fmt];
+	        error = YES;
+		NSLog(@"Invalid NSCalendar date, "
+		  @"specifier %c not recognized in format %@",
+		  format[formatIdx], fmt);
+		break;
 	    }
 	}
       formatIdx++;
