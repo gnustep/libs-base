@@ -2,6 +2,8 @@
 
 	* Source/NSCalendarDate.m: Fix a few string parsing errors (check that
 	string matches format in MacOS-X compatible manner).
+	* Source/GSHTTPURLHandle.m: try to detect socket being closed by
+	remote end of connection before we try writing to it.
 
 2006-11-12  Richard Frith-Macdonald <rfm@gnu.org>
 
