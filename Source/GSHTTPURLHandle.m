@@ -1199,6 +1199,17 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       port = @"80";
     }
 
+  /* An existing socket with keepalive may have been closed by the other
+   * end ... run the loop once (immediately returning) to try to detect it.
+   */
+  if (sock != nil)
+    {
+      NSRunLoop		*loop = [NSRunLoop currentRunLoop];
+      
+      [loop acceptInputForMode: NSDefaultRunLoopMode
+		    beforeDate: nil];
+    }
+
   if (sock == nil)
     {
       keepalive = NO;	// New connection
