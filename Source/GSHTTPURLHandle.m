@@ -1204,10 +1204,24 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
    */
   if (sock != nil)
     {
-      NSRunLoop		*loop = [NSRunLoop currentRunLoop];
+      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+      NSRunLoop			*loop = [NSRunLoop currentRunLoop];
+      NSFileHandle		*test = RETAIN(sock);
       
+      [nc addObserver: self
+	     selector: @selector(bgdTunnelRead:)
+		 name: NSFileHandleReadCompletionNotification
+	       object: test];
+      if ([test readInProgress] == NO)
+	{
+	  [test readInBackgroundAndNotify];
+	}
       [loop acceptInputForMode: NSDefaultRunLoopMode
 		    beforeDate: nil];
+      [nc removeObserver: self
+		    name: NSFileHandleReadCompletionNotification
+		  object: test];
+      RELEASE(test);
     }
 
   if (sock == nil)
