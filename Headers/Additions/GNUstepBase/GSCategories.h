@@ -110,6 +110,20 @@ extern "C" {
 #define NSDebugMLog(format, args...)
 #endif /* DEBUG */
 
+#define GSOnceFLog(format, args...) \
+  do { static BOOL beenHere = NO; if (beenHere == NO) {\
+    NSString *fmt = GSDebugFunctionMsg( \
+        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+    beenHere = YES; \
+    NSLog(fmt , ## args); }} while (0)
+
+#define GSOnceMLog(format, args...) \
+  do { static BOOL beenHere = NO; if (beenHere == NO) {\
+    NSString *fmt = GSDebugMethodMsg( \
+        self, _cmd, __FILE__, __LINE__, format); \
+    beenHere = YES; \
+    NSLog(fmt , ## args); }} while (0)
+
 #ifdef GSWARN
 #define NSWarnLog(format, args...) \
     do { if (GSDebugSet(@"NoWarn") == NO) { \
