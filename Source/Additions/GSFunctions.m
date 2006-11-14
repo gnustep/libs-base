@@ -28,6 +28,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSFunctions.h"
+#include "GNUstepBase/GSCategories.h"
 #include "Foundation/Foundation.h"
 
 NSString *
