@@ -1,3 +1,88 @@
+2006-11-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: fix bug detecting eof in read.
+	Add code to check for eof immediately before writing.
+
+2006-11-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Clear pageInfo before load.
+	Improve checking for dropped connections.
+
+2006-11-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Source/NSIndexSet.m: ([addIndexesInRange:])
+	Fix for case when added range lies within existing range.
+
+2006-11-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: ([stringByEscapingXML]) Fix bug causing
+	newline characters to be removed from escaped strings.
+
+2006-11-07  David Wetzel <dave@turbocat.de>
+
+	* Source/Additions/GSXML.m:
+	Fix  error setting start and end element for SAX.
+
+2006-11-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Use %p to print address in description.
+	* Documentation/General/OpenStepCompliance.gsdoc:
+	* Documentation/General/Debugging.gsdoc:
+	* Tools/gsdoc.gsdoc:
+	* Tools/gdomap.gsdoc:
+	* Tools/gsdoc-1_0_1.dtd:
+	* Tools/gsdoc-1_0_1.rnc:
+	* Tools/autogsdoc.m:
+	* Tools/AGSOutput.m:
+	* Tools/autogsdoc.1:
+	* Tools/BaseTools.gsdoc:
+	Minor documentation version fixups.
+
+2006-11-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([stringByAddingPercentEscapesUsingEncoding:])
+	Improved documentation.
+	* Source/Additions/GSMime.m: Add more charset mappings for where the
+	hyphen after the 'iso' has been omitted.
+
+2006-11-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([stringByAddingPercentEscapesUsingEncoding:])
+	Make the set of characters escaped compatible with MacOS-X (10.4).
+
+2006-11-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSortDescriptor.m; minor tidyups
+	* Headers/Foundation/NSSortDescriptor.h: add documentation
+	* Headers/Foundation/NSKeyValueCoding.h: improve version macros
+	* Headers/Foundation/NSKeyValueObserving.h: add include for NSArray
+
+2006-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSRunLoop.m:
+	* Source/NSDebug.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/NSPort.m:
+	* Source/NSConcreteNumber.h:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/NSThread.m:
+	* Source/NSSerializer.m:
+	* Documentation/Base.gsdoc:
+	* Headers/Foundation/NSTimeZone.h:
+	* Headers/Foundation/NSHashTable.h:
+	* Headers/Foundation/NSCoder.h:
+	* Headers/Foundation/NSRange.h:
+	* Headers/Foundation/NSURLCredential.h:
+	* Headers/Foundation/NSHTTPCookieStorage.h:
+	* Headers/Foundation/NSException.h:
+	* Headers/Foundation/NSByteOrder.h:
+	* Headers/Foundation/NSPortCoder.h:
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSURLAuthenticationChallenge.h:
+	* Headers/Foundation/NSCompoundPredicate.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSString.h:
 2006-11-14  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSCategories.h: Add GSOnce macros.

@@ -516,6 +516,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary		*dict = [not userInfo];
   NSData		*d;
   NSRange		r;
+  unsigned		readCount;
   BOOL			complete = NO;
 
   RETAIN(self);
@@ -523,6 +524,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
+  readCount = [d length];
 
   if (connectionState == idle)
     {
@@ -717,7 +719,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    }
 	}
 
-      if (complete == NO && [d length] == 0)
+      if (complete == NO && readCount == 0)
         {
 	  /* The read failed ... dropped, but parsing is not complete.
 	   * The request was sent, so we can't know whether it was
