@@ -56,6 +56,9 @@
 #ifdef HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>		// For O_WRONLY, etc
 #endif
+#ifdef	HAVE_SYS_SOCKET_H
+#include <sys/socket.h>		// For MSG_PEEK, etc
+#endif
 
 /*
  * Implement map keys for strings with case insensitive comparisons,
@@ -1199,11 +1202,15 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       port = @"80";
     }
 
-  /* An existing socket with keepalive may have been closed by the other
-   * end ... run the loop once (immediately returning) to try to detect it.
-   */
   if (sock != nil)
     {
+      /* An existing socket with keepalive may have been closed by the other
+       * end.  The portable way to detect it is to run the runloop once to
+       * allow us to be sent a notification about end-of-file.
+       * On unix systems (google told me it is not reliable on windows) we can
+       * simply peek on the file descriptor for a much more efficient check.
+       */
+#if	defined(__MINGW__)
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
       NSRunLoop			*loop = [NSRunLoop currentRunLoop];
       NSFileHandle		*test = RETAIN(sock);
@@ -1222,6 +1229,22 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    name: NSFileHandleReadCompletionNotification
 		  object: test];
       RELEASE(test);
+#else
+      int	fd = [sock fileDescriptor];
+
+      if (fd >= 0)
+        {
+	  extern int	errno;
+	  int		result;
+	  unsigned char	c;
+
+	  result = recv(fd, &c, 1, MSG_PEEK | MSG_DONTWAIT);
+	  if (result == 0 || (result < 0 && errno != EAGAIN && errno != EINTR))
+	    {
+	      DESTROY(sock);
+	    }
+	}
+#endif
     }
 
   if (sock == nil)
