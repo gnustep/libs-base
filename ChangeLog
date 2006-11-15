@@ -1,3 +1,10 @@
+2006-11-15  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	Notice: you should now use 'make DESTDIR=/tmp/xxx install' if you
+	want to relocate all the installation into /tmp/xxx/
+	* Makefile.postamble: Use DESTDIR instead of INSTALL_ROOT_DIR
+	everywhere.
+
 2006-11-15  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Documentation/GNUmakefile (GNUSTEP_INSTALLATION_DOMAIN): Use
