@@ -622,6 +622,16 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  * If no second is specified in the format, 0 is assumed.<br />
  * If no millisecond is specified in the format, 0 is assumed.<br />
  * If no timezone is specified in the format, the local timezone is assumed.
+ * <p>NB. Where the format calls for a numeric value and the string contains
+ * fewer digits than expected, the value will be accepted and left padded
+ * with zeros to the expected size.<br />
+ * For instance, the '%z' format implies four digits (two for the hour
+ * offset and two for the digit offset) and if the string contains '01'
+ * it will be treated as '0001' ie. a timezone offset of 1 minute.<br />
+ * Similarly, the '%F' format implies three digits, so a value of '1'
+ * would be treated as '001' or 1 millisecond, not a tenth of a second
+ * (as you might assume as '%F' is usually used after a decimal separator).
+ * </p>
  */
 - (id) initWithString: (NSString*)description
        calendarFormat: (NSString*)fmt
