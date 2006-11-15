@@ -25,26 +25,27 @@
 
 #include "config.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
+#include "Foundation/NSByteOrder.h"
 #include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSFileHandle.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSString.h"
 #include "Foundation/NSURL.h"
 #include "Foundation/NSURLHandle.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSMapTable.h"
+#include "Foundation/NSValue.h"
 #include "GNUstepBase/GSMime.h"
 #include "GNUstepBase/GSLock.h"
 #include "NSCallBacks.h"
 #include "GSURLPrivate.h"
+#include "GSPrivate.h"
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -54,6 +55,9 @@
 
 #ifdef HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>		// For O_WRONLY, etc
+#endif
+#ifdef	HAVE_SYS_SOCKET_H
+#include <sys/socket.h>		// For MSG_PEEK, etc
 #endif
 
 /*
@@ -81,7 +85,7 @@ typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
 typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
 typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
 
-const NSMapTableKeyCallBacks writeKeyCallBacks =
+static const NSMapTableKeyCallBacks writeKeyCallBacks =
 {
   (NSMT_hash_func_t) _non_retained_id_hash,
   (NSMT_is_equal_func_t) _non_retained_id_is_equal,
@@ -310,7 +314,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
 
       /*
-       * We might be in an idle state with an outstandng read on the
+       * We might be in an idle state with an outstanding read on the
        * socket, keeping the connection alive, but waiting for the
        * remote end to drop it.
        */
@@ -512,6 +516,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary		*dict = [not userInfo];
   NSData		*d;
   NSRange		r;
+  unsigned		readCount;
   BOOL			complete = NO;
 
   RETAIN(self);
@@ -519,6 +524,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
+  readCount = [d length];
 
   if (connectionState == idle)
     {
@@ -613,7 +619,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		{
 	          NSURLProtectionSpace	*space;
 		  NSString		*ac;
-		  NSURLCredential	*cred;
 		  GSHTTPAuthentication	*authentication;
 		  NSString		*method;
 		  NSString		*a;
@@ -621,25 +626,33 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
 		    protectionSpaceForAuthentication: ac requestURL: url];
+		  if (space != nil)
+		    {
+		      NSURLCredential	*cred;
 
-		  /*
-		   * Create credential from user and password
-		   * stored in the URL.
-		   */
-		  cred = [[NSURLCredential alloc]
-		    initWithUser: [url user]
-		    password: [url password]
-		    persistence: NSURLCredentialPersistenceForSession];
+		      /*
+		       * Create credential from user and password
+		       * stored in the URL.
+		       */
+		      cred = [[NSURLCredential alloc]
+			initWithUser: [url user]
+			password: [url password]
+			persistence: NSURLCredentialPersistenceForSession];
 
-		  /*
-		   * Get the digest object and ask it for a header
-		   * to use for authorisation.
-		   */
-		  authentication = [GSHTTPAuthentication
-		    authenticationWithCredential: cred
-		    inProtectionSpace: space];
+		      /*
+		       * Get the digest object and ask it for a header
+		       * to use for authorisation.
+		       */
+		      authentication = [GSHTTPAuthentication
+			authenticationWithCredential: cred
+			inProtectionSpace: space];
 
-		  RELEASE(cred);
+		      RELEASE(cred);
+		    }
+		  else
+		    {
+		      authentication = nil;
+		    }
 
 		  method = [request objectForKey: GSHTTPPropertyMethodKey];
 		  if (method == nil)
@@ -655,8 +668,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    }
 
 		  a = [authentication authorizationForAuthentication: ac
-							  method: method
-							    path: [url path]];
+		    method: method
+		    path: [url path]];
 		  if (a != nil)
 		    {
 		      [self writeProperty: a forKey: @"Authorization"];
@@ -705,8 +718,23 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    loadComplete: NO];
 	    }
 	}
-      if (sock != nil
-	&& (connectionState == reading || connectionState == idle))
+
+      if (complete == NO && readCount == 0)
+        {
+	  /* The read failed ... dropped, but parsing is not complete.
+	   * The request was sent, so we can't know whether it was
+	   * lost in the network or the remote end received it and
+	   * the response was lost.
+	   */
+	  if (debug == YES)
+	    {
+	      NSLog(@"HTTP response not received - %@", parser);
+	    }
+	  [self endLoadInBackground];
+          [self backgroundLoadDidFailWithReason: @"Response parse failed"];
+	}
+
+      if (sock != nil && connectionState == reading)
 	{
           if ([sock readInProgress] == NO)
 	    {
@@ -995,6 +1023,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  [sock closeFile];
 	  DESTROY(sock);
 	  connectionState = idle;
+	  if (debug)
+	    NSLog(@"%@ restart on new connection", NSStringFromSelector(_cmd));
 	  [self _tryLoadInBackground: u];
 	  return;
 	}
@@ -1134,6 +1164,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   [dat setLength: 0];
   RELEASE(document);
   RELEASE(parser);
+  [pageInfo removeAllObjects];
   parser = [GSMimeParser new];
   document = RETAIN([parser mimeDocument]);
 
@@ -1170,6 +1201,51 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   else if ([port isEqualToString: @"http"])
     {
       port = @"80";
+    }
+
+  if (sock != nil)
+    {
+      /* An existing socket with keepalive may have been closed by the other
+       * end.  The portable way to detect it is to run the runloop once to
+       * allow us to be sent a notification about end-of-file.
+       * On unix systems (google told me it is not reliable on windows) we can
+       * simply peek on the file descriptor for a much more efficient check.
+       */
+#if	defined(__MINGW__)
+      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+      NSRunLoop			*loop = [NSRunLoop currentRunLoop];
+      NSFileHandle		*test = RETAIN(sock);
+      
+      [nc addObserver: self
+	     selector: @selector(bgdTunnelRead:)
+		 name: NSFileHandleReadCompletionNotification
+	       object: test];
+      if ([test readInProgress] == NO)
+	{
+	  [test readInBackgroundAndNotify];
+	}
+      [loop acceptInputForMode: NSDefaultRunLoopMode
+		    beforeDate: nil];
+      [nc removeObserver: self
+		    name: NSFileHandleReadCompletionNotification
+		  object: test];
+      RELEASE(test);
+#else
+      int	fd = [sock fileDescriptor];
+
+      if (fd >= 0)
+        {
+	  extern int	errno;
+	  int		result;
+	  unsigned char	c;
+
+	  result = recv(fd, &c, 1, MSG_PEEK | MSG_DONTWAIT);
+	  if (result == 0 || (result < 0 && errno != EAGAIN && errno != EINTR))
+	    {
+	      DESTROY(sock);
+	    }
+	}
+#endif
     }
 
   if (sock == nil)
@@ -1260,7 +1336,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * Tell superclass that the load failed - let it do housekeeping.
 	   */
 	  [self backgroundLoadDidFailWithReason:
-	    [NSString stringWithFormat: @"Unable to connect to %@:%@ ... %s",
+	    [NSString stringWithFormat: @"Unable to connect to %@:%@ ... %@",
 	    host, port, GSLastErrorStr(errno)]];
 	  return;
 	}
@@ -1285,7 +1361,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    name: NSFileHandleReadCompletionNotification
 		  object: sock];
 
-      keepalive = YES;	// Reusing a connection.
+      /* Reusing a connection. Set flag to say that it has been kept
+       * alive and we don't know if the other end has dropped it
+       * until we write to it and read some response.
+       */
+      keepalive = YES;
       method = [request objectForKey: GSHTTPPropertyMethodKey];
       if (method == nil)
 	{

@@ -1,3 +1,18 @@
+2006-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m:
+	* Source/NSPropertyList.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSString.m:
+	* Source/NSDecimalNumber.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSMime.m:
+	* Source/NSConnection.m:
+	* Source/NSIndexSet.m:
+	* Tools/AGSHtml.m:
+	* Tools/autogsdoc.m:
+	Backport bugfixes from trunk
+
 2006-08-28  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.13.0

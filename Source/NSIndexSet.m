@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    */
 
@@ -672,9 +673,16 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	{
 	  break;
 	}
-      r.length += (NSMaxRange(aRange) - NSMaxRange(r));
-      GSIArrayRemoveItemAtIndex(_array, pos--);
-      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+      if (NSMaxRange(r) >= NSMaxRange(aRange))
+        {
+          GSIArrayRemoveItemAtIndex(_array, pos--);
+	}
+      else
+        {
+          r.length += (NSMaxRange(aRange) - NSMaxRange(r));
+          GSIArrayRemoveItemAtIndex(_array, pos--);
+          GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+	}
     }
 
   /*

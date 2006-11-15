@@ -122,14 +122,12 @@ UTF8Str(const unsigned char *bytes)
 inline static NSString*
 UTF8StrLen(const unsigned char *bytes, unsigned length)
 {
-  unsigned char	*buf = NSZoneMalloc(NSDefaultMallocZone(), length+1);
   NSString	*str;
 
-  memcpy(buf, bytes, length);
-  buf[length] = '\0';
-  str = UTF8Str(buf);
-  NSZoneFree(NSDefaultMallocZone(), buf);
-  return str;
+  str = [[NSString_class alloc] initWithBytes: bytes
+				       length: length
+				     encoding: NSUTF8StringEncoding];
+  return AUTORELEASE(str);
 }
 
 static BOOL cacheDone = NO;
@@ -2407,12 +2405,17 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 #define	HANDLER	((GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private))
 
+#ifdef GNUSTEP
+static NSString *applePList
+  = @"file://localhost/System/Library/DTDs/PropertyList.dtd";
+#endif
+
 static xmlParserInputPtr
 loadEntityFunction(void *ctx,
   const unsigned char *eid, const unsigned char *url)
 {
   extern xmlParserInputPtr	xmlNewInputFromFile();
-  NSString			*file;
+  NSString			*file = nil;
   xmlParserInputPtr		ret = 0;
   NSString			*entityId;
   NSString			*location;
@@ -2422,10 +2425,10 @@ loadEntityFunction(void *ctx,
   unsigned			index;
 
   NSCAssert(ctx, @"No Context");
-  if (eid == 0 || url == 0)
+  if (url == 0)
     return 0;
 
-  entityId = UTF8Str(eid);
+  entityId = (eid != 0) ? (id)UTF8Str(eid) : nil;
   location = UTF8Str(url);
   components = [location pathComponents];
   local = [NSMutableString string];
@@ -2450,13 +2453,31 @@ loadEntityFunction(void *ctx,
                             options: NSLiteralSearch
                             range: NSMakeRange(0, [local length])];
 
-  /*
-   * Now ask the SAXHandler callback for the name of a local file
-   */
-  file = [HANDLER loadEntity: entityId at: location];
+#ifdef GNUSTEP
+  if ([location isEqual: applePList] == YES)
+    {
+      file = [location substringFromIndex: 6];
+      if ([[NSFileManager defaultManager] fileExistsAtPath: file] == NO)
+        {
+	  location = [NSBundle pathForLibraryResource: @"plist-0_9"
+					       ofType: @"dtd"
+					  inDirectory: @"DTDs"];
+	  entityId = @"-//GNUstep//DTD plist 0.9//EN";
+	  file = nil;
+	}
+    }
+#endif
+
   if (file == nil)
     {
-      file = [GSXMLParser loadEntity: entityId at: location];
+      /*
+       * Now ask the SAXHandler callback for the name of a local file
+       */
+      file = [HANDLER loadEntity: entityId at: location];
+      if (file == nil)
+	{
+	  file = [GSXMLParser loadEntity: entityId at: location];
+	}
     }
 
   if (file == nil)
@@ -2521,10 +2542,10 @@ loadEntityFunction(void *ctx,
 					    ofType: @"dtd"
 				       inDirectory: @"DTDs"];
 #else
-	  found = [[NSBundle bundleForClass:NSClassFromString(@"GSXMLNode")]
-                    pathForResource:name
-		                     ofType:@"dtd"
-		                inDirectory:@"DTDs"];
+	  found = [[NSBundle bundleForClass: NSClassFromString(@"GSXMLNode")]
+			    pathForResource: name
+		                     ofType: @"dtd"
+		                inDirectory: @"DTDs"];
 #endif
 	  if (found == nil)
 	    {
@@ -2549,6 +2570,26 @@ loadEntityFunction(void *ctx,
 	      file = [NSBundle pathForLibraryResource: local
 					       ofType: @""
 					  inDirectory: @"DTDs"];
+	    }
+	  if (file == nil)
+	    {
+	      NSURL	*aURL;
+
+	      aURL = [NSURL URLWithString: location];
+	      if ([aURL isFileURL] == YES)
+	        {
+		  file = [aURL path];
+		}
+	      else
+	        {
+		  NSData	*data = [aURL resourceDataUsingCache: NO];
+
+		  if ([data length] > 0)
+		    {
+		      file = [@"/tmp" stringByAppendingPathComponent: local];
+		      [data writeToFile: local atomically: NO];
+		    }
+		}
 	    }
 	}
     }
@@ -3277,10 +3318,9 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       xmlSAXVersion(LIB, 2);	// Set SAX2
       LIB->startElementNs         = (void*) startElementNsFunction;
       LIB->endElementNs           = (void*) endElementNsFunction;
-#else
+#endif
       LIB->startElement           = (void*) startElementFunction;
       LIB->endElement             = (void*) endElementFunction;
-#endif
       LIB->internalSubset         = (void*) internalSubsetFunction;
       LIB->externalSubset         = (void*) externalSubsetFunction;
       LIB->isStandalone           = (void*) isStandaloneFunction;
@@ -3399,10 +3439,9 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       xmlSAXVersion(LIB, 2);	// Set SAX2
       SETCB(startElementNs, startElement:prefix:href:attributes:);
       SETCB(endElementNs, endElement:prefix:href:);
-#else
+#endif
       SETCB(startElement, startElement:attributes:);
       SETCB(endElement, endElement:);
-#endif
       SETCB(internalSubset, internalSubset:externalID:systemID:);
       SETCB(externalSubset, externalSubset:externalID:systemID:);
       SETCB(isStandalone, isStandalone);
@@ -4100,7 +4139,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
       unichar	c = from[i];
 
       if ((c >= 0x20 && c <= 0xd7ff)
-	|| c == 0x9 || c == 0xd || c == 0xd
+	|| c == 0x9 || c == 0xd || c == 0xa
 	|| (c >= 0xe000 && c <= 0xfffd))
 	{
 	  switch (c)
@@ -4158,7 +4197,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	  unichar	c = from[i];
 
 	  if ((c >= 0x20 && c <= 0xd7ff)
-	    || c == 0x9 || c == 0xd || c == 0xd
+	    || c == 0x9 || c == 0xd || c == 0xa
 	    || (c >= 0xe000 && c <= 0xfffd))
 	    {
 	      switch (c)

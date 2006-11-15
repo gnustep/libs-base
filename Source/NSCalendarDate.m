@@ -30,19 +30,21 @@
 
 #include "config.h"
 #include <math.h>
-#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSCalendarDate.h"
+#include "Foundation/NSCoder.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDate.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSTimeZone.h"
+#include "Foundation/NSUserDefaults.h"
 #include "GNUstepBase/GSObjCRuntime.h"
+
+#include "GSPrivate.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -51,7 +53,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "GSPrivate.h"
 
 @class	GSTimeZone;
 @interface	GSTimeZone : NSObject	// Help the compiler
@@ -147,7 +148,7 @@ abbrev(NSTimeZone *tz, NSDate *d)
 }
 
 static inline unsigned int
-lastDayOfGregorianMonth(int month, int year)
+lastDayOfGregorianMonth(unsigned month, unsigned year)
 {
   switch (month)
     {
@@ -165,12 +166,20 @@ lastDayOfGregorianMonth(int month, int year)
     }
 }
 
-static inline int
-absoluteGregorianDay(int day, int month, int year)
+static inline unsigned
+absoluteGregorianDay(unsigned day, unsigned month, unsigned year)
 {
-  while (--month > 0)
-    day = day + lastDayOfGregorianMonth(month, year);
-  year--;
+  if (month > 1)
+    {
+      while (--month > 0)
+	{
+	  day = day + lastDayOfGregorianMonth(month, year);
+	}
+    }
+  if (year > 0)
+    {
+      year--;
+    }
   return
     (day            // days this year
      + 365 * year   // days in previous years ignoring leap days
@@ -216,7 +225,7 @@ gregorianDateFromAbsolute(int abs, int *day, int *month, int *year)
  * since the reference date.
  */
 static NSTimeInterval
-GSTime(int day, int month, int year, int hour, int minute, int second, int mil)
+GSTime(unsigned day, unsigned month, unsigned year, unsigned hour, unsigned minute, unsigned second, unsigned mil)
 {
   NSTimeInterval	a;
 
@@ -478,10 +487,11 @@ GSTimeNow(void)
  * read up to the specified number of characters, terminating at a non-digit
  * except for leading whitespace characters.
  */
-static inline int getDigits(const char *from, char *to, int limit)
+static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 {
   int	i = 0;
   int	j = 0;
+
   BOOL	foundDigit = NO;
 
   while (i < limit)
@@ -505,6 +515,10 @@ static inline int getDigits(const char *from, char *to, int limit)
       i++;
     }
   to[j] = '\0';
+  if (j == 0)
+    {
+      *error = YES;	// No digits read
+    }
   return i;
 }
 
@@ -520,6 +534,8 @@ static inline int getDigits(const char *from, char *to, int limit)
  * Initializes an NSCalendarDate using the specified description and format
  * string interpreted in the given locale.<br />
  * If description does not match fmt exactly, this method returns nil.<br />
+ * Excess characters in the description (after the format is matched)
+ * are ignored.<br />
  * Format specifiers are -
  * <list>
  *   <item>
@@ -606,6 +622,16 @@ static inline int getDigits(const char *from, char *to, int limit)
  * If no second is specified in the format, 0 is assumed.<br />
  * If no millisecond is specified in the format, 0 is assumed.<br />
  * If no timezone is specified in the format, the local timezone is assumed.
+ * <p>NB. Where the format calls for a numeric value and the string contains
+ * fewer digits than expected, the value will be accepted and left padded
+ * with zeros to the expected size.<br />
+ * For instance, the '%z' format implies four digits (two for the hour
+ * offset and two for the digit offset) and if the string contains '01'
+ * it will be treated as '0001' ie. a timezone offset of 1 minute.<br />
+ * Similarly, the '%F' format implies three digits, so a value of '1'
+ * would be treated as '001' or 1 millisecond, not a tenth of a second
+ * (as you might assume as '%F' is usually used after a decimal separator).
+ * </p>
  */
 - (id) initWithString: (NSString*)description
        calendarFormat: (NSString*)fmt
@@ -782,7 +808,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   //    last digit to work.
   //
 
-  while (formatIdx < formatLen)
+  while (error == NO && formatIdx < formatLen)
     {
       if (format[formatIdx] != '%')
 	{
@@ -831,6 +857,14 @@ static inline int getDigits(const char *from, char *to, int limit)
 			  description, fmt);
 		      }
 		    sourceIdx++;
+		  }
+		else
+		  {
+		    error = YES;
+		    NSDebugMLog(
+		      @"Expected literal '%%' but got end of string parsing"
+		      @"'%@' using '%@'", source[sourceIdx],
+		      description, fmt);
 		  }
 		break;
 
@@ -1006,38 +1040,38 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 	      case 'd': // fall through
 	      case 'e':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		day = atoi(tmpStr);
 		had |= hadD;
 		break;
 
 	      case 'F':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
 		milliseconds = atoi(tmpStr);
 		break;
 
 	      case 'I': // fall through
 		twelveHrClock = YES;
 	      case 'H':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		hour = atoi(tmpStr);
 		had |= hadh;
 		break;
 
 	      case 'j':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
 		day = atoi(tmpStr);
 		had |= hadD;
 		break;
 
 	      case 'm':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		month = atoi(tmpStr);
 		had |= hadM;
 		break;
 
 	      case 'M':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		min = atoi(tmpStr);
 		had |= hadm;
 		break;
@@ -1056,7 +1090,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  NSString	*currAMPM;
 		  NSArray	*amPMNames;
 
-		  currAMPM = [NSString stringWithCString: tmpStr];
+		  currAMPM = [NSString stringWithUTF8String: tmpStr];
 		  amPMNames = [locale objectForKey: NSAMPMDesignation];
 
 		  /*
@@ -1072,13 +1106,13 @@ static inline int getDigits(const char *from, char *to, int limit)
 		break;
 
 	      case 'S':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		sec = atoi(tmpStr);
 		had |= hads;
 		break;
 
 	      case 'w':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
 		dayOfWeek = atoi(tmpStr);
 		had |= hadw;
 		break;
@@ -1086,7 +1120,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 	      case 'W': // Fall through
 		weekStartsMonday = 1;
 	      case 'U':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
 		julianWeeks = atoi(tmpStr);
 		break;
 
@@ -1097,7 +1131,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		//	break;
 
 	      case 'y':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		year = atoi(tmpStr);
 		if (year >= 70)
 		  {
@@ -1111,7 +1145,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		break;
 
 	      case 'Y':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4);
+		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4, &error);
 		year = atoi(tmpStr);
 		had |= hadY;
 		break;
@@ -1131,7 +1165,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      sign = -1;
 		      sourceIdx++;
 		    }
-		  found = getDigits(&source[sourceIdx], tmpStr, 4);
+		  found = getDigits(&source[sourceIdx], tmpStr, 4, &error);
 		  if (found > 0)
 		    {
 		      sourceIdx += found;
@@ -1162,7 +1196,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		tmpStr[tmpIdx - sourceIdx] = '\0';
 		sourceIdx += tmpIdx - sourceIdx;
 		{
-		  NSString	*z = [NSString stringWithCString: tmpStr];
+		  NSString	*z = [NSString stringWithUTF8String: tmpStr];
 
 		  /* Abbreviations aren't one-to-one with time zone names
 		     so just look for the zone named after the abbreviation,
@@ -1171,15 +1205,21 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  if (tz == nil)
 		    {
 		      tz = [NSTimeZone timeZoneWithAbbreviation: z];
+		      if (tz == nil)
+			{
+			  error = YES;
+			  NSDebugMLog(@"Time zone '%@' not found", z);
+			}
 		    }
 		}
 		break;
 
 	      default:
-		[NSException raise: NSInvalidArgumentException
-			    format: @"Invalid NSCalendar date, "
-		    @"specifier %c not recognized in format %@",
-		    format[formatIdx], fmt];
+	        error = YES;
+		NSLog(@"Invalid NSCalendar date, "
+		  @"specifier %c not recognized in format %@",
+		  format[formatIdx], fmt);
+		break;
 	    }
 	}
       formatIdx++;
@@ -2369,13 +2409,15 @@ static void Grow(DescriptionInfo *info, unsigned size)
   NSTimeInterval	newOffset;
   int			i, year, month, day, hour, minute, second, mil;
 
-  oldOffset = offset(_time_zone, self);
-  /*
-   * Break into components in GMT time zone.
+  /* Apply timezone offset to _seconds_since_ref from GMT to local time,
+   * then break into components in local time zone.
    */
-  GSBreakTime(_seconds_since_ref, &year, &month, &day, &hour, &minute,
-    &second, &mil);
+  oldOffset = offset(_time_zone, self);
+  s = _seconds_since_ref + oldOffset;
+  GSBreakTime(s, &year, &month, &day, &hour, &minute, &second, &mil);
 
+  /* Apply required offsets to get new local time.
+   */
   while (years != 0 || months != 0 || days != 0
     || hours != 0 || minutes != 0 || seconds != 0)
     {
@@ -2464,9 +2506,11 @@ static void Grow(DescriptionInfo *info, unsigned size)
     }
 
   /*
-   * Reassemble in GMT time zone.
+   * Reassemble and apply original timezone offset to get
+   * _seconds_since_ref back to GMT.
    */
   s = GSTime(day, month, year, hour, minute, second, mil);
+  s -= oldOffset;
   c = [NSCalendarDate alloc];
   c->_calendar_format = cformat;
   c->_time_zone = RETAIN([self timeZone]);

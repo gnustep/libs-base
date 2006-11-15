@@ -540,7 +540,7 @@ static NSLock	*cached_proxies_gate = nil;
 
       if (connection_table_gate == nil)
 	{
-	  connection_table_gate = [GSLazyLock new];
+	  connection_table_gate = [GSLazyRecursiveLock new];
 	}
       if (cached_proxies_gate == nil)
 	{
@@ -701,6 +701,7 @@ static NSLock	*cached_proxies_gate = nil;
 {
   if (debug_connection)
     NSLog(@"deallocating %@", self);
+  [self gcFinalize];
   [super dealloc];
 }
 
@@ -1279,19 +1280,24 @@ static NSLock	*cached_proxies_gate = nil;
 
 - (void) release
 {
-  /*
-   *	If this would cause the connection to be deallocated then we
-   *	must perform all necessary work (done in [-gcFinalize]).
-   *	We bracket the code with a retain and release so that any
-   *	retain/release pairs in the code won't cause recursion.
+  /* We lock the connection table while checking, to prevent
+   * another thread from grabbing this connection while we are
+   * checking it.
+   * If we are going to deallocate the object, we first remove
+   * it from the table so that no other thread will find it
+   * and try to use it while it is being deallocated.
    */
-  if ([self retainCount] == 1)
+  M_LOCK(connection_table_gate);
+  if (NSDecrementExtraRefCountWasZero(self))
     {
-      [super retain];
-      [self gcFinalize];
-      [super release];
+      NSHashRemove(connection_table, self);
+      M_UNLOCK(connection_table_gate);
+      [self dealloc];
     }
-  [super release];
+  else
+    {
+      M_UNLOCK(connection_table_gate);
+    }
 }
 
 /**

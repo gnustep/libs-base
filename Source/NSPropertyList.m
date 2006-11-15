@@ -1635,7 +1635,8 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  else if (x == NSPropertyListGNUstepFormat)
 	    {
 	      [dest appendBytes: "<*I" length: 3];
-	      PString([obj stringValue], dest);
+	      [dest appendData:
+	        [[obj stringValue] dataUsingEncoding: NSASCIIStringEncoding]];
 	      [dest appendBytes: ">" length: 1];
 	    }
 	  else
@@ -1654,7 +1655,8 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  else if (x == NSPropertyListGNUstepFormat)
 	    {
 	      [dest appendBytes: "<*R" length: 3];
-	      PString([obj stringValue], dest);
+	      [dest appendData:
+	        [[obj stringValue] dataUsingEncoding: NSASCIIStringEncoding]];
 	      [dest appendBytes: ">" length: 1];
 	    }
 	  else

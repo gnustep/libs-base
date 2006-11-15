@@ -19,15 +19,19 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSDecimalNumber class reference</title>
    $Date$ $Revision$
    */
 
-#include "Foundation/NSException.h"
+#include "Foundation/NSCoder.h"
 #include "Foundation/NSDecimal.h"
 #include "Foundation/NSDecimalNumber.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSPortCoder.h"
+
 #include "GSPrivate.h"
 
 // shared default behavior for NSDecimalNumber class
@@ -260,7 +264,7 @@ static NSDecimalNumber *one;
 - (id) initWithString: (NSString*)numberValue
 {
   return [self initWithString: numberValue
-		       locale: GSUserDefaultsDictionaryRepresentation()];
+    locale: GSUserDefaultsDictionaryRepresentation()];
 }
 
 - (id) initWithString: (NSString*)numberValue
@@ -660,6 +664,32 @@ static NSDecimalNumber *one;
 - (short) scale
 {
   return [[isa defaultBehavior] scale];
+}
+
+- (Class) classForCoder
+{
+  return [NSDecimalNumber class];
+}
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  if ([aCoder isByref] == NO)
+    return self;
+  return [super replacementObjectForPortCoder: aCoder];
+}
+
+- (void) encodeWithCoder: (NSCoder*)coder
+{
+  NSString	*s = [self descriptionWithLocale: nil];
+
+  [coder encodeObject: s];
+}
+
+- (id) initWithCoder: (NSCoder*)coder
+{
+  NSString	*s = [coder decodeObject];
+
+  return [self initWithString: s locale: nil];
 }
 
 @end
