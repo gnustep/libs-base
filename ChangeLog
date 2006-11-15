@@ -9,6 +9,7 @@
 	* Source/Additions/GSMime.m:
 	* Source/NSConnection.m:
 	* Source/NSIndexSet.m:
+	* Source/NSSortDescriptor.m:
 	* Tools/AGSHtml.m:
 	* Tools/autogsdoc.m:
 	Backport bugfixes from trunk
