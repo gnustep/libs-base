@@ -1,3 +1,15 @@
+2006-11-15  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Documentation/GNUmakefile (GNUSTEP_INSTALLATION_DOMAIN): Use
+	GNUSTEP_INSTALLATION_DOMAIN instead of GNUSTEP_INSTALLATION_DIR.
+	* Documentation/General/GNUmakefile: Same change.
+	* NSCharacterSets/GNUmakefile: Same change.
+	* NSTimeZones/GNUmakefile: Same change.
+	* Resources/GNUmakefile: Same change.
+	* Source/GNUmakefile: Same change.
+	* SSL/GNUmakefile: Same change.
+	* Tools/GNUmakefile: Same change.
+
 2006-11-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: fix bug detecting eof in read.

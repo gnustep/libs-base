@@ -23,7 +23,7 @@
 #
 
 # Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 # This must set be before reading common.make, which will read the
 # Additional makefiles.
