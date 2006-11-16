@@ -12,6 +12,7 @@
 	* Source/NSSortDescriptor.m:
 	* Tools/AGSHtml.m:
 	* Tools/autogsdoc.m:
+	* Headers/Foundation/NSKeyValueObserving.h:
 	Backport bugfixes from trunk
 
 2006-08-28  Adam Fedor  <fedor@gnu.org>

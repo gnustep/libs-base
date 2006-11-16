@@ -26,6 +26,7 @@
 #define __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE
 
 #include	<Foundation/NSObject.h>
+#include	<Foundation/NSArray.h>
 
 #if OS_API_VERSION(100300,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 
