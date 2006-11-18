@@ -734,8 +734,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
           [self backgroundLoadDidFailWithReason: @"Response parse failed"];
 	}
 
-      if (sock != nil
-	&& (connectionState == reading || connectionState == idle))
+      if (sock != nil && connectionState == reading)
 	{
           if ([sock readInProgress] == NO)
 	    {
