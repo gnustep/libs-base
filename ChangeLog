@@ -1,3 +1,10 @@
+2006-11-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: ([setRootNode:]) Add checks for invalid
+	argument and improve documentation.
+	* Source/GSHTTPURLHandle.m: don't keep unecessary read operation in
+	progress on idle connection.
+	
 2006-11-15  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	Notice: you should now use 'make DESTDIR=/tmp/xxx install' if you
