@@ -470,20 +470,27 @@ static NSMapTable	*attrNames = 0;
 }
 
 /**
- * Sets the root node of the document.
+ * Sets the root of the document.<br />
+ * NB. The node must have been created as part of the receiving document
+ * (eg. using the -makeNodeWithNamespace:name:content: method).
  */
 - (GSXMLNode*) setRoot: (GSXMLNode*)node
 {
-  void  *nodeLib = [node lib];
-  void  *oldRoot = xmlDocSetRootElement(lib, nodeLib);
-  GSXMLNode	*n;
+  xmlNodePtr	nodeLib = (xmlNodePtr)[node lib];
+  xmlNodePtr	selfLib = (xmlNodePtr)[self lib];
 
-  if (oldRoot == NULL)
-    return nil;
-
-  n = [GSXMLNode alloc];
-  n = [n _initFrom: nodeLib parent: self];
-  return AUTORELEASE(n);
+  if (node == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+      		  format: @"Attempt to set root of document to nil"];
+    }
+  if (nodeLib->doc != selfLib->doc)
+    {
+      [NSException raise: NSInvalidArgumentException
+      		  format: @"Attempt to set root to node from other document"];
+    }
+  xmlDocSetRootElement(lib, nodeLib);
+  return node;
 }
 
 /**
