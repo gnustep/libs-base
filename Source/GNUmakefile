@@ -145,10 +145,11 @@ GSSet.m \
 GSStream.m \
 GSString.m \
 GSValue.m \
-NSAttributedString.m \
+NSAffineTransform.m \
 NSArchiver.m \
 NSArray.m \
 NSAssertionHandler.m \
+NSAttributedString.m \
 NSAutoreleasePool.m \
 NSBundle.m \
 NSCachedURLResponse.m \
@@ -278,6 +279,7 @@ tzfile.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
+NSAffineTransform.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \

@@ -1,3 +1,12 @@
+2006-11-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAffineTransform.m: Adapted from old gui code
+	* Headers/Foundation/NSAffineTransform.h: ditto
+	* Source/GNUmakefile: Add NSAffineTransform.
+	* Headers/Foundation/Foundation.h: ditto
+	Add NSAffineTransform for MacOS-X compatibility ... gui specific
+	code is added using a category in the gui library.
+
 2006-11-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: ([setRootNode:]) Add checks for invalid
