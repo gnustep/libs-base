@@ -35,6 +35,7 @@
 #import	<Foundation/NSDebug.h>
 #import	<Foundation/NSObject.h>
 
+#import	<Foundation/NSAffineTransform.h>
 #import	<Foundation/NSArchiver.h>
 #import	<Foundation/NSArray.h>
 #import	<Foundation/NSAttributedString.h>
