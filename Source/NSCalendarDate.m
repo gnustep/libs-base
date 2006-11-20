@@ -1183,8 +1183,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	      case 'Z':
 		for (tmpIdx = sourceIdx; tmpIdx < sourceLen; tmpIdx++)
 		  {
-		    if (isalpha(source[tmpIdx]) || source[tmpIdx] == '-'
-		      || source[tmpIdx] == '+')
+		    if (!isspace(source[tmpIdx]))
 		      {
 			tmpStr[tmpIdx - sourceIdx] = source[tmpIdx];
 		      }

@@ -1,3 +1,8 @@
+2006-11-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Fix to parse timezone names as being
+	whitespace delimited.
+
 2006-11-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAffineTransform.m: Adapted from old gui code
