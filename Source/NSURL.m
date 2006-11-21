@@ -1389,7 +1389,7 @@ static unsigned	urlAlign;
 	  [loop runMode: NSDefaultRunLoopMode beforeDate: future];
 	}
     }
-  data = [handle resourceData];
+  data = [handle availableResourceData];
   return data;
 }
 
