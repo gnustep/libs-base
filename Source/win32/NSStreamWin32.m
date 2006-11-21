@@ -2213,10 +2213,22 @@ done:
 
 - (void) open
 {
-  int bindReturn = bind(_sock, [self serverAddr], [self sockLen]);
-  int listenReturn = listen(_sock, SOCKET_BACKLOG);
+  int	bindReturn;
+  int	listenReturn;
+#ifndef	BROKEN_SO_REUSEADDR
+  int	status = 1;
 
-  if (bindReturn < 0 || listenReturn)
+  /*
+   * Under decent systems, SO_REUSEADDR means that the port can be reused
+   * immediately that this process exits.  Under some it means
+   * that multiple processes can serve the same port simultaneously.
+   * We don't want that broken behavior!
+   */
+  setsockopt(_sock, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
+#endif
+  bindReturn = bind(_sock, [self serverAddr], [self sockLen]);
+  listenReturn = listen(_sock, SOCKET_BACKLOG);
+  if (bindReturn < 0 || listenReturn < 0)
     {
       [self _recordError];
       return;
