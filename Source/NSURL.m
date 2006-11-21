@@ -1363,31 +1363,18 @@ static unsigned	urlAlign;
 
 /**
  * Loads the resource data for the represented URL and returns the result.
- * The shouldUseCache flag determines whether an existing cached NSURLHandle
- * can be used to provide the data.
+ * The shouldUseCache flag determines whether data previously retrieved by
+ * an existing NSURLHandle can be used to provide the data, or if it should
+ * be refetched.
  */
 - (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache
 {
-  NSURLHandle	*handle = [self URLHandleUsingCache: shouldUseCache];
+  NSURLHandle	*handle = [self URLHandleUsingCache: YES];
   NSData	*data;
 
   if (shouldUseCache == NO || [handle status] != NSURLHandleLoadSucceeded)
     {
-      NSRunLoop	*loop;
-      NSDate	*future;
-
-      [self loadResourceDataNotifyingClient: self
-				 usingCache: shouldUseCache];
-
-      /*
-       * Keep the runloop going until the load has completed (or failed).
-       */
-      loop = [NSRunLoop currentRunLoop];
-      future = [NSDate distantFuture];
-      while ([handle status] == NSURLHandleLoadInProgress)
-	{
-	  [loop runMode: NSDefaultRunLoopMode beforeDate: future];
-	}
+      [handle loadInForeground];
     }
   data = [handle availableResourceData];
   return data;
@@ -1464,9 +1451,7 @@ static unsigned	urlAlign;
     {
       return NO;
     }
-  [self loadResourceDataNotifyingClient: self
-			     usingCache: YES];
-  if ([handle resourceData] == nil)
+  if ([handle loadInForeground] == nil)
     {
       return NO;
     }
