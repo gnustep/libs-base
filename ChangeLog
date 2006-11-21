@@ -1,5 +1,7 @@
 2006-11-21  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURL.m:
+	Fix potential double load of URL data.
 	* unix/NSStream.m:
 	* win32/NSStreamWin32.m:
 	Re-use socket ports so that programs can start up again immediately
