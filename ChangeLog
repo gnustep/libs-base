@@ -1,3 +1,10 @@
+2006-11-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* unix/NSStream.m:
+	* win32/NSStreamWin32.m:
+	Re-use socket ports so that programs can start up again immediately
+	after they have shut down.
+
 2006-11-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Fix to parse timezone names as being

@@ -1429,10 +1429,25 @@ static void setNonblocking(int fd)
 
 - (void) open
 {
-  int bindReturn = bind((int)(intptr_t)_loopID, [self serverAddr], [self sockLen]);
-  int listenReturn = listen((intptr_t)_loopID, SOCKET_BACKLOG);
+  int bindReturn;
+  int listenReturn;
 
-  if (bindReturn < 0 || listenReturn)
+#ifndef	BROKEN_SO_REUSEADDR
+  /*
+   * Under decent systems, SO_REUSEADDR means that the port can be reused
+   * immediately that this process exits.  Under some it means
+   * that multiple processes can serve the same port simultaneously.
+   * We don't want that broken behavior!
+   */
+  int	status = 1;
+
+  setsockopt((int)(intptr_t)_loopID, SOL_SOCKET, SO_REUSEADDR,
+    (char *)&status, sizeof(status));
+#endif
+
+  bindReturn = bind((int)(intptr_t)_loopID, [self serverAddr], [self sockLen]);
+  listenReturn = listen((intptr_t)_loopID, SOCKET_BACKLOG);
+  if (bindReturn < 0 || listenReturn < 0)
     {
       [self _recordError];
       return;
