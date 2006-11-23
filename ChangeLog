@@ -5,6 +5,7 @@
 	Merge bugfixes for socket reuse from trunk.
 	* configure.ac:
 	Cope with getting location of config file from more recent gnustep-make
+	Version: Update subminor number for bugfix release
 
 2006-11-21  Richard Frith-Macdonald <rfm@gnu.org>
 
