@@ -56,7 +56,12 @@ AC_CANONICAL_TARGET([])
 #---------------------------------------------------------------------
 AC_MSG_CHECKING([for GNUstep configuration file to use])
 GNUSTEP_CONFIG_FILE=""
-GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+if test -e $GNUSTEP_MAKEFILES/config-noarch.make
+then
+  GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config-noarch.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+else
+  GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+fi
 AC_ARG_WITH(config-file,
 [  --with-config-file=PATH       Specify path to the GNUstep config file.
 				This is the location to be used by the base
