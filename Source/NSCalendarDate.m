@@ -1068,6 +1068,11 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		day = atoi(tmpStr);
 		had |= hadD;
+		if (error == NO && day < 1)
+		  {
+		    error = YES;
+		    NSDebugMLog(@"Day of month is zero");
+		  }
 		break;
 
 	      case 'F':
@@ -1093,6 +1098,11 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		month = atoi(tmpStr);
 		had |= hadM;
+		if (error == NO && month < 1)
+		  {
+		    error = YES;
+		    NSDebugMLog(@"Month of year is zero");
+		  }
 		break;
 
 	      case 'M':
