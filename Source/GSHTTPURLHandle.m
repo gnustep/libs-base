@@ -1205,6 +1205,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if (sock != nil)
     {
+      if (debug)
+        {
+	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
+	}
       /* An existing socket with keepalive may have been closed by the other
        * end.  The portable way to detect it is to run the runloop once to
        * allow us to be sent a notification about end-of-file.
@@ -1245,7 +1249,22 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      DESTROY(sock);
 	    }
 	}
+      else
+        {
+	  DESTROY(sock);
+	}
 #endif
+      if (debug)
+	{
+	  if (sock == nil)
+	    {
+	      NSLog(@"%@ socket closed by remote", NSStringFromSelector(_cmd));
+	    }
+	  else
+	    {
+	      NSLog(@"%@ socket is still open", NSStringFromSelector(_cmd));
+	    }
+	}
     }
 
   if (sock == nil)

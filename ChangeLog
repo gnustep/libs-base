@@ -1,3 +1,10 @@
+2006-11-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Fix buffer oiveflow vulnerability when
+	parsing string ... really needs major rewrite for better locale
+	use and full unicode support though.
+	* Source/GSHTTPURLHandle.m: add a little more debug.
+
 2006-11-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m:

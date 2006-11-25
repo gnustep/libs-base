@@ -654,8 +654,9 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   unsigned	formatLen;
   unsigned	formatIdx = 0;
   unsigned	sourceIdx = 0;
-  char		tmpStr[20];
+  char		tmpStr[120];
   unsigned int	tmpIdx;
+  unsigned int	tmpEnd;
   unsigned	had = 0;
   unsigned int	pos;
   BOOL		hadPercent = NO;
@@ -869,7 +870,10 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		break;
 
 	      case 'a':
-		// Are Short names three chars in all locales?????
+	        /* FIXME ... Should look for all values from the locale,
+		 * matching for longest values first, rather than (wrongly)
+		 * assuming a fixed length of three characters.
+		 */
 		tmpStr[0] = toupper(source[sourceIdx]);
 		if (sourceIdx < sourceLen)
 		  sourceIdx++;
@@ -910,19 +914,28 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		break;
 
 	      case 'A':
-		for (tmpIdx = sourceIdx; tmpIdx < sourceLen; tmpIdx++)
+	        /* FIXME ... Should look for all values from the locale,
+		 * matching for longest values first, rather than (wrongly)
+		 * assuming the name contains only western letters.
+		 */
+	        tmpEnd = sizeof(tmpStr) - 1;
+		if (sourceLen - sourceIdx < tmpEnd)
 		  {
-		    if (isalpha(source[tmpIdx]))
+		    tmpEnd = sourceLen - sourceIdx;
+		  }
+		for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
+		  {
+		    if (isalpha(source[sourceIdx + tmpIdx]))
 		      {
-			tmpStr[tmpIdx - sourceIdx] = source[tmpIdx];
+			tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
 		      }
 		    else
 		      {
 			break;
 		      }
 		  }
-		tmpStr[tmpIdx - sourceIdx] = '\0';
-		sourceIdx += tmpIdx - sourceIdx;
+		tmpStr[tmpIdx] = '\0';
+		sourceIdx += tmpIdx;
 		{
 		  NSString	*currDay;
 		  NSArray	*dayNames;
@@ -953,7 +966,10 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		break;
 
 	      case 'b':
-		// Are Short names three chars in all locales?????
+	        /* FIXME ... Should look for all values from the locale,
+		 * matching for longest values first, rather than (wrongly)
+		 * assuming a fixed length of three characters.
+		 */
 		tmpStr[0] = toupper(source[sourceIdx]);
 		if (sourceIdx < sourceLen)
 		  sourceIdx++;
@@ -995,19 +1011,28 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		break;
 
 	      case 'B':
-		for (tmpIdx = sourceIdx; tmpIdx < sourceLen; tmpIdx++)
+	        /* FIXME ... Should look for all values from the locale,
+		 * matching for longest values first, rather than (wrongly)
+		 * assuming the name contains only western letters.
+		 */
+	        tmpEnd = sizeof(tmpStr) - 1;
+		if (sourceLen - sourceIdx < tmpEnd)
 		  {
-		    if (isalpha(source[tmpIdx]))
+		    tmpEnd = sourceLen - sourceIdx;
+		  }
+		for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
+		  {
+		    if (isalpha(source[sourceIdx + tmpIdx]))
 		      {
-			tmpStr[tmpIdx - sourceIdx] = source[tmpIdx];
+			tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
 		      }
 		    else
 		      {
 			break;
 		      }
 		  }
-		tmpStr[tmpIdx - sourceIdx] = '\0';
-		sourceIdx += tmpIdx - sourceIdx;
+		tmpStr[tmpIdx] = '\0';
+		sourceIdx += tmpIdx;
 		{
 		  NSString	*currMonth;
 		  NSArray	*monthNames;
@@ -1077,8 +1102,10 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		break;
 
 	      case 'p':
-		// Questionable assumption that all am/pm indicators are 2
-		// characters and in upper case....
+	        /* FIXME ... Should look for all values from the locale,
+		 * matching for longest values first, rather than (wrongly)
+		 * assuming the name is always two uppercase letters.
+		 */
 		tmpStr[0] = toupper(source[sourceIdx]);
 		if (sourceIdx < sourceLen)
 		  sourceIdx++;
@@ -1181,19 +1208,26 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		break;
 
 	      case 'Z':
-		for (tmpIdx = sourceIdx; tmpIdx < sourceLen; tmpIdx++)
+	        /* Can we assume a timezone name is always space terminated?
+		 */
+	        tmpEnd = sizeof(tmpStr) - 1;
+		if (sourceLen - sourceIdx < tmpEnd)
 		  {
-		    if (!isspace(source[tmpIdx]))
+		    tmpEnd = sourceLen - sourceIdx;
+		  }
+		for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
+		  {
+		    if (!isspace(source[sourceIdx + tmpIdx]))
 		      {
-			tmpStr[tmpIdx - sourceIdx] = source[tmpIdx];
+			tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
 		      }
 		    else
 		      {
 			break;
 		      }
 		  }
-		tmpStr[tmpIdx - sourceIdx] = '\0';
-		sourceIdx += tmpIdx - sourceIdx;
+		tmpStr[tmpIdx] = '\0';
+		sourceIdx += tmpIdx;
 		{
 		  NSString	*z = [NSString stringWithUTF8String: tmpStr];
 
