@@ -1,4 +1,8 @@
-2006-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+2006-11-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: backport buffer overflow fixups from trunk.
+
+2006-11-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/unix/NSStream.m:
 	* Source/win32/NSStreamWin32.m:
