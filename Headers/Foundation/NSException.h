@@ -183,6 +183,12 @@ GS_EXPORT NSString* const NSRangeException;
  */
 GS_EXPORT NSString* const NSCharacterConversionException;
 
+/**
+ *  An exception when a remote object is sent a message from a thread
+ *  unable to access the object.
+ */
+GS_EXPORT NSString* const NSObjectInaccessibleException;
+
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * An exception used when some form of parsing fails.
