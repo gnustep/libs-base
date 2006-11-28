@@ -1,3 +1,9 @@
+2006-11-27  Matt Rice  <ratmice@gmail.com>
+
+	* Source/NSObject.m: Fix typo.
+	* Headers/Foundation/NSException.h: Export
+	NSObjectInaccessibleException.
+
 2006-11-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Fix buffer oiveflow vulnerability when

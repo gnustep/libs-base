@@ -1618,7 +1618,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  * sent a -release message when the pool is destroyed.<br />
  * Returns the receiver.<br />
  * In GNUstep, the [NSObject+enableDoubleReleaseCheck:] method may be used
- * to turn on checking for ratain/release errors in this method.
+ * to turn on checking for retain/release errors in this method.
  */
 - (id) autorelease
 {
