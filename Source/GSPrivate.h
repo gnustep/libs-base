@@ -246,6 +246,7 @@ typedef enum {
  */
 @interface	NSError (GSCategories)
 + (NSError*) _last;
++ (NSError*) _systemError: (long)number;
 @end
 
 /* Used by NSException uncaught exception handler - must not call any
