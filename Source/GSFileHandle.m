@@ -2043,7 +2043,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
           NSString	*s;
 
           s = [NSString stringWithFormat: @"Connect attempt failed - %@",
-	    result, [NSError _systemError: result]];
+	    [NSError _systemError: result]];
           [info setObject: s forKey: GSFileHandleNotificationError];
         }
       else
