@@ -930,15 +930,24 @@ strerror(int eno)
  */
 + (NSError*) _last
 {
+#if defined(__MINGW32__)
+  return [self _systemError: GetLastError()];
+#else
+  extern int	errno;
+
+  return [self _systemError: errno];
+#endif
+}
+
++ (NSError*) _systemError: (long)code
+{
   NSError	*error;
   NSString	*domain;
   NSDictionary	*info;
-  long		code;
 #if defined(__MINGW32__)
   LPVOID	lpMsgBuf;
   NSString	*message;
 
-  code = GetLastError();
   domain = NSOSStatusErrorDomain;
   FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
     NULL, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
@@ -949,10 +958,8 @@ strerror(int eno)
     message, NSLocalizedDescriptionKey,
     nil];
 #else
-  extern int	errno;
   NSString	*message;
 
-  code = errno;
   /* FIXME ... not all are POSIX, should we use NSMachErrorDomain for some? */
   domain = NSPOSIXErrorDomain;
   message = [NSString stringWithCString: strerror(code)

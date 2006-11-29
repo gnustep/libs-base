@@ -2039,15 +2039,25 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     || operation == GSSOCKSConnect)
     { // Connection attempt completed.
       int	result;
+      int	rval;
       unsigned	len = sizeof(result);
 
-      if (getsockopt((SOCKET)_get_osfhandle(descriptor), SOL_SOCKET, SO_ERROR,
-        (char*)&result, &len) == 0 && result != 0)
+      rval = getsockopt((SOCKET)_get_osfhandle(descriptor), SOL_SOCKET,
+        SO_ERROR, (char*)&result, &len);
+      if (rval != 0)
         {
           NSString	*s;
 
           s = [NSString stringWithFormat: @"Connect attempt failed - %@",
 	    [NSError _last]];
+          [info setObject: s forKey: GSFileHandleNotificationError];
+	}
+      else if (result != 0)
+        {
+          NSString	*s;
+
+          s = [NSString stringWithFormat: @"Connect attempt failed - %@",
+	    [NSError _systemError: result]];
           [info setObject: s forKey: GSFileHandleNotificationError];
         }
       else
