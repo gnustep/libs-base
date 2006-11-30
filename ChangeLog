@@ -1,3 +1,9 @@
+2006-11-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Limit size of handle cache to 16 to
+	avoid increasing memory usage indefinitely if a program keeps
+	loading different URLs.
+
 2006-11-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h:

@@ -214,7 +214,10 @@ static NSString	*httpVersion = @"1.1";
  */
 @implementation GSHTTPURLHandle
 
+#define	MAX_CACHED	16
+
 static NSMutableDictionary	*urlCache = nil;
+static NSMutableArray		*urlOrder = nil;
 static NSLock			*urlLock = nil;
 
 static Class			sslClass = 0;
@@ -282,7 +285,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       //NSLog(@"Lookup for handle for '%@'", page);
       [urlLock lock];
       obj = [urlCache objectForKey: page];
-      AUTORELEASE(RETAIN(obj));
+      if (obj != nil)
+        {
+	  [urlOrder removeObjectIdenticalTo: obj];
+	  [urlOrder addObject: obj];
+          AUTORELEASE(RETAIN(obj));
+	}
       [urlLock unlock];
       //NSLog(@"Found handle %@", obj);
     }
@@ -294,6 +302,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (self == [GSHTTPURLHandle class])
     {
       urlCache = [NSMutableDictionary new];
+      urlOrder = [NSMutableArray new];
       urlLock = [GSLazyLock new];
       debugLock = [GSLazyLock new];
       debugFile = [NSString stringWithFormat: @"%@/GSHTTP.%d",
@@ -313,14 +322,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
 
-      /*
-       * We might be in an idle state with an outstanding read on the
-       * socket, keeping the connection alive, but waiting for the
-       * remote end to drop it.
-       */
-      [nc removeObserver: self
-		    name: NSFileHandleReadCompletionNotification
-		  object: sock];
+      [nc removeObserver: self name: nil object: sock];
       [sock closeFile];
       DESTROY(sock);
     }
@@ -354,10 +356,23 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       connectionState = idle;
       if (cached == YES)
         {
-	  NSString	*page = [newUrl absoluteString];
+	  NSString		*page = [newUrl absoluteString];
+	  GSHTTPURLHandle	*obj;
 
 	  [urlLock lock];
+	  obj = [urlCache objectForKey: page];
 	  [urlCache setObject: self forKey: page];
+	  if (obj != nil)
+	    {
+	      [urlOrder removeObjectIdenticalTo: obj];
+	    }
+	  [urlOrder addObject: self];
+	  while ([urlOrder count] > MAX_CACHED)
+	    {
+	      obj = [urlOrder objectAtIndex: 0];
+	      [urlCache removeObjectForKey: [obj->url absoluteString]];
+	      [urlOrder removeObjectAtIndex: 0];
+	    }
 	  [urlLock unlock];
 	  //NSLog(@"Cache handle %@ for '%@'", self, page);
 	}
@@ -535,8 +550,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
        */
       if (debug == YES && [d length] != 0)
 	{
-	  NSLog(@"%@ %s Unexpected data from remote!",
-	    NSStringFromSelector(_cmd), keepalive?"K":"");
+	  NSLog(@"%@ %s Unexpected data (%*.*s) from remote!",
+	    NSStringFromSelector(_cmd), keepalive?"K":"",
+	    [d length], [d length], [d bytes]);
 	}
       [nc removeObserver: self
 		    name: NSFileHandleReadCompletionNotification
@@ -593,14 +609,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  float		ver;
 
 	  connectionState = idle;
+	  [nc removeObserver: self name: nil object: sock];
 
 	  ver = [[[document headerNamed: @"http"] value] floatValue];
 	  val = [[document headerNamed: @"connection"] value];
 	  if (ver < 1.1 || (val != nil && [val isEqual: @"close"] == YES))
 	    {
-	      [nc removeObserver: self
-			    name: NSFileHandleReadCompletionNotification
-			  object: sock];
 	      [sock closeFile];
 	      DESTROY(sock);
 	    }
@@ -808,16 +822,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (connectionState != idle)
     {
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
-      NSString			*name;
 
-      if (connectionState == connecting)
-	name = GSFileHandleConnectCompletionNotification;
-      else if (connectionState == writing)
-	name = GSFileHandleWriteCompletionNotification;
-      else
-	name = NSFileHandleReadCompletionNotification;
-
-      [nc removeObserver: self name: name object: sock];
+      [nc removeObserver: self name: nil object: sock];
       [sock closeFile];
       DESTROY(sock);
       connectionState = idle;
@@ -1017,9 +1023,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * then we may try again with a new connection.
 	   */
 	  nc = [NSNotificationCenter defaultCenter];
-	  [nc removeObserver: self
-			name: GSFileHandleWriteCompletionNotification
-		      object: sock];
+	  [nc removeObserver: self name: nil object: sock];
 	  [sock closeFile];
 	  DESTROY(sock);
 	  connectionState = idle;
@@ -1221,7 +1225,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSFileHandle		*test = RETAIN(sock);
       
       [nc addObserver: self
-	     selector: @selector(bgdTunnelRead:)
+	     selector: @selector(bgdRead:)
 		 name: NSFileHandleReadCompletionNotification
 	       object: test];
       if ([test readInProgress] == NO)
@@ -1231,7 +1235,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [loop acceptInputForMode: NSDefaultRunLoopMode
 		    beforeDate: nil];
       [nc removeObserver: self
-		    name: NSFileHandleReadCompletionNotification
+		    name: nil
 		  object: test];
       RELEASE(test);
 #else
