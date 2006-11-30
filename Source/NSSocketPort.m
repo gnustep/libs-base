@@ -1104,11 +1104,15 @@ static Class	runLoopClass;
       int	res = 0;
       unsigned	len = sizeof(res);
 
-      if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) == 0
-            && res != 0)
+      if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) != 0)
         {
           state = GS_H_UNCON;
           NSLog(@"connect attempt failed - %@", [NSError _last]);
+        }
+      else if (res != 0)
+        {
+          state = GS_H_UNCON;
+          NSLog(@"connect attempt failed - %@", [NSError _systemError: res]);
         }
       else
         {
