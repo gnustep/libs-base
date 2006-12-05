@@ -777,39 +777,16 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  }
 #else
 	  {
-	    int i, numBufClasses = 10, numClasses = 0;
-	    Class *classes;
-
-	    classes = objc_malloc(sizeof(Class) * numBufClasses);
-
 	    while ((class = objc_next_class(&state)))
 	      {
 		unsigned int len = strlen (class->name);
 
-		if (len > 12 * sizeof(char)
-		  && !strncmp("NSFramework_", class->name, 12))
+		if (len > sizeof("NSFramework_")
+	 	    && !strncmp("NSFramework_", class->name, 12))
 		  {
-		    classes[numClasses++] = class;
-		  }
-		if (numClasses == numBufClasses)
-		  {
-		    Class *ptr;
-
-		    numBufClasses += 10;
-		    ptr = objc_realloc(classes, sizeof(Class) * numBufClasses);
-
-		    if (!ptr)
-		      break;
-
-		    classes = ptr;
+		    [self _addFrameworkFromClass: class];
 		  }
 	      }
-
-	    for (i = 0; i < numClasses; i++)
-	      {
-		[self _addFrameworkFromClass: classes[i]];
-	      }
-	    objc_free(classes);
 	  }
 #endif
 #if 0

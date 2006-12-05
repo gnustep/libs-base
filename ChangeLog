@@ -1,3 +1,7 @@
+2006-12-05  Matt Rice  <ratmice@gmail.com>
+
+	* Source/NSBundle.m (+initialize): Remove usage of classes local array.
+
 2006-12-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSURL.m: Check for missing scheme and return nil.
