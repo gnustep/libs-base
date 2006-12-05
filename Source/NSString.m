@@ -2564,7 +2564,15 @@ handle_printf_atsign (FILE *stream,
       unsigned	length = [d length];
       BOOL	result = (length <= maxLength) ? YES : NO;
 
-      if (length > maxLength) length = maxLength;
+      if (d == nil)
+        {
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to C string."];
+	}
+      if (length > maxLength)
+        {
+          length = maxLength;
+	}
       memcpy(buffer, [d bytes], length);
       buffer[length] = '\0';
       return result;
