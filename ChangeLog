@@ -1,3 +1,11 @@
+2006-12-13  David Ayers  <ayers@fsfe.org>
+
+	* Source/mframe.m (mframe_do_call),
+	* Source/cifframe.m (cifframe_do_call),
+	* Source/callframe.m (callframe_do_call): Simplify by using
+	GSObjCRuntime functions.  Add fallback selector search for invocations
+	passed to proxies.  Add debug diagnostics.
+	
 2006-12-05  Matt Rice  <ratmice@gmail.com>
 
 	* Source/NSBundle.m (+initialize): Remove usage of classes local array.
