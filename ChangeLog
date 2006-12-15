@@ -1,3 +1,7 @@
+2006-12-15  Graham J Lee <leeg@thaesofereode.info>
+	* Source/NSNumberFormatter.m:
+	Implement -stringForObjectValue:
+
 2006-12-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/mframe.m:
