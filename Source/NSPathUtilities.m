@@ -1128,10 +1128,6 @@ NSHomeDirectoryForUser(NSString *loginName)
   return s;
 }
 
-/**
- * Returns the full username of the current user.
- * If unable to determine this, returns the standard user name.
- */
 NSString *
 NSFullUserName(void)
 {
@@ -1208,11 +1204,6 @@ GSDefaultsRootForUser(NSString *userName)
   return home;
 }
 
-/**
- * Returns the standard paths in which applications are stored and
- * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
- * Refer to the GNUstep File System Hierarchy documentation for more info.
- */
 NSArray *
 NSStandardApplicationPaths(void)
 {
@@ -1220,11 +1211,6 @@ NSStandardApplicationPaths(void)
                                              NSAllDomainsMask, YES);
 }
 
-/**
- * Returns the standard paths in which resources are stored and
- * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
- * Refer to the GNUstep File System Hierarchy documentation for more info.
- */
 NSArray *
 NSStandardLibraryPaths(void)
 {
@@ -1232,13 +1218,6 @@ NSStandardLibraryPaths(void)
                                              NSAllDomainsMask, YES);
 }
 
-/**
- * Returns the name of a directory in which temporary files can be stored.
- * Under GNUstep this is a location which is not readable by other users.
- * <br />
- * If a suitable directory can't be found or created, this function raises an
- * NSGenericException.
- */
 NSString *
 NSTemporaryDirectory(void)
 {
@@ -1387,17 +1366,6 @@ NSTemporaryDirectory(void)
   return tempDirName;
 }
 
-/**
- * Returns the location of the <em>root</em> directory of the file
- * hierarchy. This lets you build paths in a system independent manner
- * (for instance the root on unix is '/' but on windows it is 'C:\')
- * by appending path components to the root.<br />
- * Don't assume that /System, /Network etc exist in this path (generally
- * they don't)! Use other path utility functions such as
- * NSSearchPathForDirectoriesInDomains() to find standard locations
- * for libraries, applications etc.<br />
- * Refer to the GNUstep File System Hierarchy documentation for more info.
- */
 NSString *
 NSOpenStepRootDirectory(void)
 {
@@ -1413,10 +1381,6 @@ NSOpenStepRootDirectory(void)
   return root;
 }
 
-/**
- * Returns an array of search paths to look at for resources.<br/ >
- * The paths are returned in domain order: USER, LOCAL, NETWORK then SYSTEM.
- */
 NSArray *
 NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSSearchPathDomainMask domainMask, BOOL expandTilde)
@@ -1426,8 +1390,9 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   static NSString *devDir       = @"Developer";
   static NSString *demosDir     = @"Demos";
   static NSString *libraryDir   = @"Library";
-  static NSString *supportDir   = @"ApplicationSupport";
+  static NSString *supportDir   = @"Library/ApplicationSupport";
   static NSString *docDir       = @"Documentation";
+  static NSString *docsDir      = @"Documentats";
   static NSString *fontsDir     = @"Fonts";
   static NSString *frameworkDir = @"Frameworks";
   static NSString *libsDir      = @"Libraries";
@@ -1522,6 +1487,27 @@ if (domainMask & mask) \
 	}
 	break;
 
+      case NSCoreServicesDirectory:
+	{
+	  NSString *coreDir;
+
+	  coreDir = [devDir stringByAppendingPathComponent:
+	    @"Library/CoreServices"];
+	  ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, coreDir);
+	}
+	break;
+
+      case NSDesktopDirectory:
+	{
+	  NSString *deskDir;
+
+	  // FIXME ... what should desktop really be?
+	  deskDir = [devDir stringByAppendingPathComponent:
+	    @"Desktop"];
+	  ADD_PATH(NSUserDomainMask, gnustepUserRoot, deskDir);
+	}
+	break;
+
       case NSDeveloperApplicationDirectory:
 	{
 	  NSString *devAppsDir;
@@ -1603,8 +1589,32 @@ if (domainMask & mask) \
 	}
 	break;
 
-      /* Now the GNUstep additions */
-      case GSApplicationSupportDirectory:
+      case NSDocumentDirectory:
+	{
+	  NSString *gsdocDir;
+
+	  gsdocDir = [libraryDir stringByAppendingPathComponent: docsDir];
+	  ADD_PATH(NSUserDomainMask, gnustepUserRoot, gsdocDir);
+	  ADD_PATH(NSLocalDomainMask, gnustepLocalRoot, gsdocDir);
+	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkRoot, gsdocDir);
+	  ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, gsdocDir);
+	}
+	break;
+
+      case NSCachesDirectory:
+	{
+	  NSString *cacheDir;
+
+	  cacheDir = [libraryDir stringByAppendingPathComponent:
+	    @"Library/Caches"];
+	  ADD_PATH(NSUserDomainMask, gnustepUserRoot, cacheDir);
+	  ADD_PATH(NSLocalDomainMask, gnustepLocalRoot, cacheDir);
+	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkRoot, cacheDir);
+	  ADD_PATH(NSSystemDomainMask, gnustepSystemRoot, cacheDir);
+	}
+	break;
+
+      case NSApplicationSupportDirectory:
 	{
 	  NSString *appSupDir;
 
@@ -1616,6 +1626,7 @@ if (domainMask & mask) \
 	}
 	break;
 
+      /* Now the GNUstep additions */
       case GSFrameworksDirectory:
 	{
 	  NSString *frameDir;
@@ -1717,12 +1728,6 @@ if (domainMask & mask) \
 	  ADD_PLATFORM_PATH(NSSystemDomainMask, osSysAdmin);
 	}
 	break;
-
-      case GSPreferencesDirectory:
-	{
-	  // Not used
-	}
-	break;
     }
 
 #undef ADD_PATH
@@ -1733,17 +1738,10 @@ if (domainMask & mask) \
     {
       path = [paths objectAtIndex: i];
 
-      /* remove paths which don't exist on this system */
-      if ([MGR() fileExistsAtPath: path] == NO)
-        {
-          [paths removeObjectAtIndex: i];
-          i--;
-          count--;
-        }
-      else if (expandTilde == YES)
+      if (expandTilde == YES)
         {
           [paths replaceObjectAtIndex: i
-                          withObject: [path stringByExpandingTildeInPath]];
+                           withObject: [path stringByExpandingTildeInPath]];
         }
       else
         {
