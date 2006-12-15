@@ -11,6 +11,8 @@
 	* Source/NSPathUtilities.m:
 	Update constants to be MacOS-X compatible, including addition of a
 	few more keys added in recent versions.
+	WARNING ... change of constants to match MacOS0X introduces binary
+	incompatibility, so full recompile is required.
 	Fix bug/misfeature of only returning paths which exist on the
 	filesystem ... which broke MacOS-X applications which were correctly
 	expecting to find a non-existent path and create it as a location
