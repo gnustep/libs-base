@@ -1,3 +1,10 @@
+2006-12-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/mframe.m:
+	* Source/cifframe.m:
+	* Source/callframe.m:
+	Fix error testing whether object is an instance.
+
 2006-12-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSPathUtilities.h:
