@@ -4,6 +4,19 @@
 	* Source/cifframe.m:
 	* Source/callframe.m:
 	Fix error testing whether object is an instance.
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSDistributedNotificationCenter.h:
+	* Headers/Foundation/NSNotificationQueue.h:
+	* Headers/Foundation/NSGeometry.h:
+	* Headers/Foundation/NSDecimal.h:
+	Audit all headers and make more MacOS-X enumeration constant fixups
+	so that we shouldn't need to break binary compatibility for additions
+	to the enumeration constants in future (we hope) there is stll the
+	possibility of apple adding constants which conflict with gnustep
+	extensions, though I've left a big gap between apple and gnu
+	values so that conflict should be unlikely unless they specifically
+	try to do it.
 
 2006-12-14  Richard Frith-Macdonald <rfm@gnu.org>
 

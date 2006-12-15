@@ -51,9 +51,9 @@ extern "C" {
  *  [(NSDecimalNumberBehaviors)] protocol.
  */
 typedef	enum {
+  NSRoundPlain,		/* Round .5 up		*/
   NSRoundDown,
   NSRoundUp,
-  NSRoundPlain,		/* Round .5 up		*/
   NSRoundBankers	/* Make last digit even	*/
 } NSRoundingMode;
 
@@ -75,9 +75,9 @@ typedef	enum {
  */
 typedef enum {
   NSCalculationNoError = 0,
+  NSCalculationLossOfPrecision,
   NSCalculationUnderflow,	/* result became zero */
   NSCalculationOverflow,
-  NSCalculationLossOfPrecision,
   NSCalculationDivideByZero
 } NSCalculationError;
 

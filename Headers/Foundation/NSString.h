@@ -53,7 +53,8 @@ enum
   NSCaseInsensitiveSearch = 1,
   NSLiteralSearch = 2,
   NSBackwardsSearch = 4,
-  NSAnchoredSearch = 8
+  NSAnchoredSearch = 8,
+  NSNumericSearch = 64	/* MacOS-X 10.2 */
 };
 
 /**

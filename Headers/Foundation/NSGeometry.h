@@ -123,10 +123,10 @@ typedef NSRect *NSRectPointer;
  */
 typedef enum _NSRectEdge
 {
-  NSMinXEdge,
-  NSMinYEdge,
-  NSMaxXEdge,
-  NSMaxYEdge
+  NSMinXEdge = 0,
+  NSMinYEdge = 1,
+  NSMaxXEdge = 2,
+  NSMaxYEdge = 3
 } NSRectEdge;
 
 /** Point at 0,0 */

@@ -44,7 +44,7 @@ extern "C" {
  * deserialisation of a property list.
  */
 typedef enum {
-  NSPropertyListImmutable,
+  NSPropertyListImmutable = 0,
 /** <strong>NSPropertyListImmutable</strong>
  * all objects in created list are immutable
  */
@@ -62,19 +62,22 @@ typedef enum {
  * Specifies the serialisation format for a serialised property list.
  */
 typedef enum {
-  NSPropertyListGNUstepFormat,
+  NSPropertyListOpenStepFormat = 1,
+/** <strong>NSPropertyListOpenStepFormat</strong>
+ * the most human-readable format */
+  NSPropertyListXMLFormat_v1_0 = 100,
+/** <strong>NSPropertyListXMLFormat_v1_0</strong>
+ * portable and readable */
+  NSPropertyListBinaryFormat_v1_0 = 200,
+/** <strong>NSPropertyListBinaryFormat_v1_0</strong>
+ * the standard format on macos-x */
+
+  NSPropertyListGNUstepFormat = 1000,
 /** <strong>NSPropertyListGNUstepFormat</strong>
  * extension of OpenStep format */
   NSPropertyListGNUstepBinaryFormat,
 /** <strong>NSPropertyListGNUstepBinaryFormat</strong>
  * efficient, hardware independent */
-  NSPropertyListOpenStepFormat,
-/** <strong>NSPropertyListOpenStepFormat</strong>
- * the most human-readable format */
-  NSPropertyListXMLFormat_v1_0,
-/** <strong>NSPropertyListXMLFormat_v1_0</strong>
- * portable and readable */
-  NSPropertyListBinaryFormat_v1_0,
 } NSPropertyListFormat;
 
 /**
