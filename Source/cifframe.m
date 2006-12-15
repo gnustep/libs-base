@@ -680,7 +680,7 @@ cifframe_do_call (DOContext *ctxt,
     {
       meth = GSGetMethod(object, selector, NO, YES);
     }
-  else if (GSObjCIsInstance)
+  else if (GSObjCIsInstance(object))
     {
       meth = GSGetMethod(GSObjCClass(object), selector, YES, YES);
     }
