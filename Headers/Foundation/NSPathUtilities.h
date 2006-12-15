@@ -122,42 +122,53 @@ GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
   NSDeveloperDirectory,
   NSUserDirectory,
   NSDocumentationDirectory,
+  NSDocumentDirectory,
+  NSCoreServiceDirectory,
+  NSDesktopDirectory,
+  NSCachesDirectory,
+  NSApplicationSupportDirectory
   NSAllApplicationsDirectory,
   NSAllLibrariesDirectory,
   GSLibrariesDirectory,
   GSToolsDirectory,
-  GSApplicationSupportDirectory
+  GSFontsDirectory,
+  GSFrameworksDirectory
 }
  </example>
  */
 typedef enum
 {
-  NSApplicationDirectory,
-  NSDemoApplicationDirectory,
-  NSDeveloperApplicationDirectory,
-  NSAdminApplicationDirectory,
-  NSLibraryDirectory,
-  NSDeveloperDirectory,
-  NSUserDirectory,
-  NSDocumentationDirectory,
-  
-/* Apple Reserved Directory Identifiers */
+  NSApplicationDirectory = 1,		/** Applications */
+  NSDemoApplicationDirectory,		/** Demos */
+  NSDeveloperApplicationDirectory,	/** Developer/Applications */
+  NSAdminApplicationDirectory,		/** Administration */
+  NSLibraryDirectory,			/** Library */
+  NSDeveloperDirectory,			/** Developer */
+  NSUserDirectory,			/** user home directories */
+  NSDocumentationDirectory,		/** Documentation */
+#if OS_API_VERSION(100200, GS_API_LATEST)
+  NSDocumentDirectory,			/** Documents */
+#endif
+#if OS_API_VERSION(100300, GS_API_LATEST)
+  NSCoreServicesDirectory,		/** CoreServices */
+#endif
+#if OS_API_VERSION(100400, GS_API_LATEST)
+  NSDesktopDirectory = 12,		/** location of users desktop */
+  NSCachesDirectory = 13,		/** location of users cache files */
+  NSApplicationSupportDirectory = 14,	/** location of app support files */
+#endif
 
-  NSAllApplicationsDirectory,
-  NSAllLibrariesDirectory,
+  NSAllApplicationsDirectory = 100,	/** all app directories */
+  NSAllLibrariesDirectory = 101,	/** all library resources */
 
-/*  GNUstep Directory Identifiers */
-
-  //GSApplicationSupportDirectory = 150,
-  //GSFontsDirectory,
-  //GSFrameworksDirectory,
-  GSLibrariesDirectory,
-  GSToolsDirectory,
-  GSApplicationSupportDirectory,
-  GSPreferencesDirectory,
-  
-  GSFontsDirectory,
-  GSFrameworksDirectory
+#define  GSApplicationSupportDirectory NSApplicationSupportDirectory
+/*  GNUstep Directory Identifiers
+ *  Start at 1000, we hope Apple will never overlap.
+ */
+  GSLibrariesDirectory = 1000,		/** libraries (binary code) */
+  GSToolsDirectory,			/** non-gui programs */
+  GSFontsDirectory,			/** font storage */
+  GSFrameworksDirectory			/** frameworks */
  } NSSearchPathDirectory;
 
 /**
@@ -167,18 +178,67 @@ typedef enum
  */
 typedef enum
 {
-  NSUserDomainMask = 1,
-  NSLocalDomainMask = 2,
-  NSNetworkDomainMask = 4,
-  NSSystemDomainMask = 8,
-  NSAllDomainsMask = 0xffffffff,
+  NSUserDomainMask = 1,		/** The user's personal items */
+  NSLocalDomainMask = 2,	/** Local for all users on the machine */
+  NSNetworkDomainMask = 4,	/** Public for all users on network */
+  NSSystemDomainMask = 8,	/** Standard GNUstep items */
+  NSAllDomainsMask = 0x0ffff,	/** all domains */
 } NSSearchPathDomainMask;
 
+/**
+ * Returns an array of search paths to look at for resources.<br/ >
+ * The paths are returned in domain order:
+ * USER, LOCAL, NETWORK then SYSTEM.<br />
+ * The presence of a path in this list does <em>not</em> mean that the
+ * path actually exists in the filesystem.<br />
+ * If you are wanting to locate an existing resource, you should normally
+ * call this function with NSAllDomainsMask, but if you wish to find the
+ * path in which you should create a new file, you would generally
+ * specify a particular domain, and then create the path in the file
+ * system if it does not already exist.
+ */
 GS_EXPORT NSArray *NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey, NSSearchPathDomainMask domainMask, BOOL expandTilde);
+
+/**
+ * Returns the full username of the current user.
+ * If unable to determine this, returns the standard user name.
+ */
 GS_EXPORT NSString *NSFullUserName(void);
+
+/**
+ * Returns the standard paths in which applications are stored and
+ * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
+ * Refer to the GNUstep File System Hierarchy documentation for more info.
+ */
 GS_EXPORT NSArray *NSStandardApplicationPaths(void);
+
+/**
+ * Returns the standard paths in which resources are stored and
+ * should be searched for.  Calls NSSearchPathForDirectoriesInDomains()<br/ >
+ * Refer to the GNUstep File System Hierarchy documentation for more info.
+ */
 GS_EXPORT NSArray *NSStandardLibraryPaths(void);
+
+/**
+ * Returns the name of a directory in which temporary files can be stored.
+ * Under GNUstep this is a location which is not readable by other users.
+ * <br />
+ * If a suitable directory can't be found or created, this function raises an
+ * NSGenericException.
+ */
 GS_EXPORT NSString *NSTemporaryDirectory(void);
+
+/**
+ * Returns the location of the <em>root</em> directory of the file
+ * hierarchy. This lets you build paths in a system independent manner
+ * (for instance the root on unix is '/' but on windows it is 'C:\')
+ * by appending path components to the root.<br />
+ * Don't assume that /System, /Network etc exist in this path (generally
+ * they don't)! Use other path utility functions such as
+ * NSSearchPathForDirectoriesInDomains() to find standard locations
+ * for libraries, applications etc.<br />
+ * Refer to the GNUstep File System Hierarchy documentation for more info.
+ */
 GS_EXPORT NSString *NSOpenStepRootDirectory(void);
 #endif /* GS_API_MACOSX */
 
