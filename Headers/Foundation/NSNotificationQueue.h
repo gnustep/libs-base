@@ -74,9 +74,9 @@ extern "C" {
  </example>
  */
 typedef enum {
-  NSPostWhenIdle,	
-  NSPostASAP,		
-  NSPostNow		
+  NSPostWhenIdle = 1,
+  NSPostASAP = 2,
+  NSPostNow = 3
 } NSPostingStyle;
 
 /**
@@ -91,9 +91,9 @@ typedef enum {
  </example>
  */
 typedef enum {
-  NSNotificationNoCoalescing = 0,	
-  NSNotificationCoalescingOnName = 1,	
-  NSNotificationCoalescingOnSender = 2,	
+  NSNotificationNoCoalescing = 0,
+  NSNotificationCoalescingOnName = 1,
+  NSNotificationCoalescingOnSender = 2,
 } NSNotificationCoalescing;
 
 /*
