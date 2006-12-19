@@ -1,4 +1,14 @@
+2006-12-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumberFormatter.m:
+	Changes to match coding standards.
+	Small fix to get it to compile with older versions of gcc.
+	Various changes to avoid compiler warnings with newer gcc.
+	Fix problems of assigning immutable string instances to variables
+	typed as mutable strings.
+
 2006-12-15  Graham J Lee <leeg@thaesofereode.info>
+
 	* Source/NSNumberFormatter.m:
 	Implement -stringForObjectValue:
 
