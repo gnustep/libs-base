@@ -66,11 +66,13 @@
       return [self attributedStringForZero];
     }
 
-  if (([anObject compare: zeroNumber] == NSOrderedDescending) && (_attributesForPositiveValues))
+  if (([anObject compare: zeroNumber] == NSOrderedDescending)
+    && (_attributesForPositiveValues))
     {
       attr = _attributesForPositiveValues;
     }
-  else if (([anObject compare: zeroNumber] == NSOrderedAscending) && (_attributesForNegativeValues))
+  else if (([anObject compare: zeroNumber] == NSOrderedAscending)
+    && (_attributesForNegativeValues))
     {
       attr = _attributesForNegativeValues;
     }
@@ -192,10 +194,11 @@
       if (range.length != 0)
         {
 	  string = AUTORELEASE([string mutableCopy]);
-	  [(NSMutableString*)string replaceOccurrencesOfString: [self thousandSeparator]
-			     withString: @""
-			     options: 0
-			     range: NSMakeRange(0, [string length])];
+	  [(NSMutableString*)string replaceOccurrencesOfString:
+	    [self thousandSeparator]
+	    withString: @""
+	    options: 0
+	    range: NSMakeRange(0, [string length])];
 	}
     }
 
@@ -245,19 +248,23 @@
     {
       if ([decoder containsValueForKey: @"NS.allowsfloats"])
         {
-	  [self setAllowsFloats: [decoder decodeBoolForKey: @"NS.allowsfloats"]];
+	  [self setAllowsFloats:
+	    [decoder decodeBoolForKey: @"NS.allowsfloats"]];
 	}
       if ([decoder containsValueForKey: @"NS.decimal"])
         {
-	  [self setDecimalSeparator: [decoder decodeObjectForKey: @"NS.decimal"]];
+	  [self setDecimalSeparator:
+	    [decoder decodeObjectForKey: @"NS.decimal"]];
 	}
       if ([decoder containsValueForKey: @"NS.hasthousands"])
         {
-	  [self setHasThousandSeparators: [decoder decodeBoolForKey: @"NS.hasthousands"]];
+	  [self setHasThousandSeparators:
+	    [decoder decodeBoolForKey: @"NS.hasthousands"]];
 	}
       if ([decoder containsValueForKey: @"NS.localized"])
         {
-	  [self setLocalizesFormat: [decoder decodeBoolForKey: @"NS.localized"]];
+	  [self setLocalizesFormat:
+	    [decoder decodeBoolForKey: @"NS.localized"]];
 	}
       if ([decoder containsValueForKey: @"NS.max"])
         {
@@ -269,44 +276,54 @@
 	}
       if ([decoder containsValueForKey: @"NS.nan"])
         {
-	  [self setAttributedStringForNotANumber: [decoder decodeObjectForKey: @"NS.nan"]];
+	  [self setAttributedStringForNotANumber:
+	    [decoder decodeObjectForKey: @"NS.nan"]];
 	}
       if ([decoder containsValueForKey: @"NS.negativeattrs"])
         {
-	  [self setTextAttributesForNegativeValues: [decoder decodeObjectForKey: @"NS.negativeattrs"]];
+	  [self setTextAttributesForNegativeValues:
+	    [decoder decodeObjectForKey: @"NS.negativeattrs"]];
 	}
       if ([decoder containsValueForKey: @"NS.negativeformat"])
         {
-	  [self setNegativeFormat: [decoder decodeObjectForKey: @"NS.negativeformat"]];
+	  [self setNegativeFormat:
+	    [decoder decodeObjectForKey: @"NS.negativeformat"]];
 	}
       if ([decoder containsValueForKey: @"NS.nil"])
         {
-	  [self setAttributedStringForNil: [decoder decodeObjectForKey: @"NS.nil"]];
+	  [self setAttributedStringForNil:
+	    [decoder decodeObjectForKey: @"NS.nil"]];
 	}
       if ([decoder containsValueForKey: @"NS.positiveattrs"])
         {
-	  [self setTextAttributesForPositiveValues: [decoder decodeObjectForKey: @"NS.positiveattrs"]];
+	  [self setTextAttributesForPositiveValues:
+	    [decoder decodeObjectForKey: @"NS.positiveattrs"]];
 	}
       if ([decoder containsValueForKey: @"NS.positiveformat"])
         {
-	  [self setPositiveFormat: [decoder decodeObjectForKey: @"NS.positiveformat"]];
+	  [self setPositiveFormat:
+	    [decoder decodeObjectForKey: @"NS.positiveformat"]];
 	}
       if ([decoder containsValueForKey: @"NS.rounding"])
         {
-	  [self setRoundingBehavior: [decoder decodeObjectForKey: @"NS.rounding"]];
+	  [self setRoundingBehavior:
+	    [decoder decodeObjectForKey: @"NS.rounding"]];
 	}
       if ([decoder containsValueForKey: @"NS.thousand"])
         {
-	  [self setThousandSeparator: [decoder decodeObjectForKey: @"NS.thousand"]];
+	  [self setThousandSeparator:
+	    [decoder decodeObjectForKey: @"NS.thousand"]];
 	}
       if ([decoder containsValueForKey: @"NS.zero"])
         {
-	  [self setAttributedStringForZero: [decoder decodeObjectForKey: @"NS.zero"]];
+	  [self setAttributedStringForZero:
+	    [decoder decodeObjectForKey: @"NS.zero"]];
 	}
     }
   else
     {
-      [decoder decodeValueOfObjCType: @encode(BOOL) at: &_hasThousandSeparators];
+      [decoder decodeValueOfObjCType: @encode(BOOL)
+				  at: &_hasThousandSeparators];
       [decoder decodeValueOfObjCType: @encode(BOOL) at: &_allowsFloats];
       [decoder decodeValueOfObjCType: @encode(BOOL) at: &_localizesFormat];
       [decoder decodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
@@ -318,7 +335,8 @@
       [decoder decodeValueOfObjCType: @encode(id) at: &_attributedStringForNil];
       [decoder decodeValueOfObjCType: @encode(id)
 	                          at: &_attributedStringForNotANumber];
-      [decoder decodeValueOfObjCType: @encode(id) at: &_attributedStringForZero];
+      [decoder decodeValueOfObjCType: @encode(id)
+				  at: &_attributedStringForZero];
       [decoder decodeValueOfObjCType: @encode(id) at: &_negativeFormat];
       [decoder decodeValueOfObjCType: @encode(id) at: &_positiveFormat];
       [decoder decodeValueOfObjCType: @encode(id)
@@ -491,20 +509,36 @@
 
 - (NSString*) stringForObjectValue: (id)anObject
 {
-  NSMutableDictionary *locale;
-  NSCharacterSet *formattingCharacters = [NSCharacterSet
-                  characterSetWithCharactersInString: @"0123456789#.,_"],
-                 *placeHolders = [NSCharacterSet 
-                  characterSetWithCharactersInString: @"0123456789#_"];
-  NSString *prefix, *suffix, *wholeString, *fracPad;
-  NSMutableString *formattedNumber, *intPartString, *fracPartString, *intPad;
-  NSRange prefixRange, decimalPlaceRange, suffixRange, intPartRange;
-  NSDecimal representativeDecimal, roundedDecimal;
-  NSDecimalNumber *roundedNumber, *intPart, *fracPart;
-  int decimalPlaces = 0;
-  BOOL displayThousandsSeparators = NO,
-       displayFractionalPart = NO,
-       negativeNumber = NO;
+  NSMutableDictionary	*locale;
+  NSCharacterSet	*formattingCharacters;
+  NSCharacterSet	*placeHolders;
+  NSString		*prefix;
+  NSString		*suffix;
+  NSString		*wholeString;
+  NSString		*fracPad;
+  NSString		*fracPartString;
+  NSMutableString	*intPartString;
+  NSMutableString	*formattedNumber;
+  NSMutableString	*intPad;
+  NSRange		prefixRange;
+  NSRange		decimalPlaceRange;
+  NSRange		suffixRange;
+  NSRange		intPartRange;
+  NSDecimal		representativeDecimal;
+  NSDecimal		roundedDecimal;
+  NSDecimalNumber	*roundedNumber;
+  NSDecimalNumber	*intPart;
+  NSDecimalNumber	*fracPart;
+  int			decimalPlaces = 0;
+  BOOL			displayThousandsSeparators = NO;
+  BOOL			displayFractionalPart = NO;
+  BOOL			negativeNumber = NO;
+  NSString		*useFormat;
+
+  formattingCharacters = [NSCharacterSet
+    characterSetWithCharactersInString: @"0123456789#.,_"];
+  placeHolders = [NSCharacterSet 
+    characterSetWithCharactersInString: @"0123456789#_"];
 
   if (nil == anObject)
     return [[self attributedStringForNil] string];
@@ -515,7 +549,7 @@
   if ([anObject isEqual: [NSDecimalNumber zero]])
     return [[self attributedStringForZero] string];
   
-  NSString *useFormat = _positiveFormat;
+  useFormat = _positiveFormat;
   if ([anObject compare: [NSDecimalNumber zero]] == NSOrderedAscending)
     {
       useFormat = _negativeFormat;
@@ -524,7 +558,9 @@
 
   // if no format specified, use the same default that Cocoa does
   if (nil == useFormat)
-    useFormat = negativeNumber ? @"-#,###.##" : @"#,###.##";
+    {
+      useFormat = negativeNumber ? @"-#,###.##" : @"#,###.##";
+    }
 
   prefixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters];
   if (NSNotFound != prefixRange.location)
@@ -543,16 +579,16 @@
   //should also set NSDecimalDigits?
   
   if ([self hasThousandSeparators]
-      && (0 != [useFormat rangeOfString:@","].length))
+    && (0 != [useFormat rangeOfString:@","].length))
     {
       displayThousandsSeparators = YES;
     }
 
   if ([self allowsFloats]
-      && (NSNotFound != [useFormat rangeOfString:@"." ].location))
+    && (NSNotFound != [useFormat rangeOfString:@"." ].location))
     {
       decimalPlaceRange = [useFormat rangeOfString: @"."
-                                     options: NSBackwardsSearch];
+					   options: NSBackwardsSearch];
       if (NSMaxRange(decimalPlaceRange) == [useFormat length])
         {
           decimalPlaces = 0;
@@ -560,8 +596,7 @@
       else
         {
           while ([placeHolders characterIsMember:
-                                [useFormat characterAtIndex:
-                                            NSMaxRange(decimalPlaceRange)]])
+	    [useFormat characterAtIndex: NSMaxRange(decimalPlaceRange)]])
             {
               decimalPlaceRange.length++;
               if (NSMaxRange(decimalPlaceRange) == [useFormat length])
@@ -576,10 +611,8 @@
     }
 
   representativeDecimal = [anObject decimalValue];
-  NSDecimalRound(&roundedDecimal,
-                 &representativeDecimal,
-                 decimalPlaces,
-                 NSRoundPlain);
+  NSDecimalRound(&roundedDecimal, &representativeDecimal, decimalPlaces,
+    NSRoundPlain);
   roundedNumber = [NSDecimalNumber decimalNumberWithDecimal: roundedDecimal];
 
   /* Arguably this fiddling could be done by GSDecimalString() but I
@@ -588,54 +621,58 @@
    */
   if (negativeNumber)
     roundedNumber = [roundedNumber decimalNumberByMultiplyingBy:
-                                    [NSDecimalNumber numberWithInt: -1]];
-  intPart = [NSDecimalNumber numberWithInt: [roundedNumber intValue]];
+      (NSDecimalNumber*)[NSDecimalNumber numberWithInt: -1]];
+  intPart = (NSDecimalNumber*)
+    [NSDecimalNumber numberWithInt: [roundedNumber intValue]];
   fracPart = [roundedNumber decimalNumberBySubtracting: intPart];
-  intPartString = [intPart descriptionWithLocale:locale];
+  intPartString
+    = AUTORELEASE([[intPart descriptionWithLocale: locale] mutableCopy]);
   
   //sort out the padding for the integer part
   intPartRange = [useFormat rangeOfCharacterFromSet: placeHolders];
   while (([placeHolders characterIsMember:
-                        [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
-	 || [[useFormat substringFromRange:
-              NSMakeRange(NSMaxRange(intPartRange),1)] isEqual: @","])
-          && NSMaxRange(intPartRange)<[useFormat length]-1)
+    [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
+    || [[useFormat substringFromRange:
+      NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual: @","])
+    && NSMaxRange(intPartRange) < [useFormat length] - 1)
     {
       intPartRange.length++;
     }
-  intPad = [[useFormat substringWithRange:intPartRange] mutableCopy];
+  intPad = [[useFormat substringWithRange: intPartRange] mutableCopy];
   [intPad replaceOccurrencesOfString: @","
-              withString: @""
-              options: 0
-              range: NSMakeRange(0, [intPad length])];
+    withString: @""
+    options: 0
+    range: NSMakeRange(0, [intPad length])];
   [intPad replaceOccurrencesOfString: @"#"
-              withString: @""
-              options: NSAnchoredSearch
-              range: NSMakeRange(0, [intPad length])];
+    withString: @""
+    options: NSAnchoredSearch
+    range: NSMakeRange(0, [intPad length])];
   if ([intPad length] > [intPartString length])
     {
-      NSRange ipRange = NSMakeRange(0,
-                            [intPad length] - [intPartString length] + 1);
-      intPartString = [[[intPad substringWithRange: ipRange]
-                        stringByAppendingString: intPartString] mutableCopy];
+      NSRange		ipRange;
+
+      ipRange = NSMakeRange(0, [intPad length] - [intPartString length] + 1);
+      [intPartString insertString:
+        [intPad substringWithRange: ipRange] atIndex: 0];
       [intPartString replaceOccurrencesOfString: @"_"
-                withString: @" "
-                options: nil
-                range: NSMakeRange(0, [intPartString length])];
+	withString: @" "
+	options: 0
+	range: NSMakeRange(0, [intPartString length])];
       [intPartString replaceOccurrencesOfString: @"#"
-                withString: @"0"
-                options: nil
-                range: NSMakeRange(0, [intPartString length])];
+	withString: @"0"
+	options: 0
+	range: NSMakeRange(0, [intPartString length])];
     }
   // fix the thousands separators up
   if (displayThousandsSeparators && [intPartString length] > 3)
-  {
-    int index = [intPartString length];
-    while (0 < (index-=3))
-      {
-        [intPartString insertString:[self thousandSeparator] atIndex: index];
-      }
-  }
+    {
+      int index = [intPartString length];
+
+      while (0 < (index -= 3))
+	{
+	  [intPartString insertString: [self thousandSeparator] atIndex: index];
+	}
+    }
 
   formattedNumber = [intPartString mutableCopy];
 
@@ -644,50 +681,55 @@
     {
       if (0 != decimalPlaces)
         {
+	  NSMutableString	*ms;
+
           fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
-                                decimalPlaces];
-          fracPartString = [fracPart descriptionWithLocale: locale];
-          [fracPartString replaceOccurrencesOfString: @"0"
-                          withString: @""
-                          options: (NSBackwardsSearch
-                                    | NSAnchoredSearch)
-                          range: NSMakeRange(0, [fracPartString length])];
-          if ([fracPad length] > [fracPartString length])
+	    decimalPlaces];
+          ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
+          [ms replaceOccurrencesOfString: @"0"
+	    withString: @""
+	    options: (NSBackwardsSearch | NSAnchoredSearch)
+	    range: NSMakeRange(0, [ms length])];
+          if ([fracPad length] > [ms length])
             {
-              NSRange fpRange = NSMakeRange([fracPartString length],
-                                            ( [fracPad length] - 
-                                            [fracPartString length]));
-              [fracPartString appendString:
-                               [fracPad substringWithRange: fpRange]];
-              [fracPartString replaceOccurrencesOfString: @"#"
-                              withString: @""
-                              options: (NSBackwardsSearch
-                                       | NSAnchoredSearch)
-                              range: NSMakeRange(0, [fracPartString length])];
-              [fracPartString replaceOccurrencesOfString: @"#"
-                              withString: @"0"
-                              options: 0
-                              range: NSMakeRange(0, [fracPartString length])];
-              [fracPartString replaceOccurrencesOfString: @"_"
-                              withString: @" "
-                              options: 0
-                              range: NSMakeRange(0, [fracPartString length])];
+              NSRange fpRange;
+
+              fpRange = NSMakeRange([ms length],
+	        ([fracPad length] - [ms length]));
+              [ms appendString:
+		[fracPad substringWithRange: fpRange]];
+              [ms replaceOccurrencesOfString: @"#"
+		withString: @""
+		options: (NSBackwardsSearch | NSAnchoredSearch)
+		range: NSMakeRange(0, [ms length])];
+              [ms replaceOccurrencesOfString: @"#"
+		withString: @"0"
+		options: 0
+		range: NSMakeRange(0, [ms length])];
+              [ms replaceOccurrencesOfString: @"_"
+		withString: @" "
+		options: 0
+		range: NSMakeRange(0, [ms length])];
             }
+	  fracPartString = AUTORELEASE(ms);
         }
       else
         {
-          fracPartString=@"0";
+          fracPartString = @"0";
         }
-      [formattedNumber appendString:[self decimalSeparator]];
-      [formattedNumber appendString:fracPartString];
+      [formattedNumber appendString: [self decimalSeparator]];
+      [formattedNumber appendString: fracPartString];
     }
-  /*FIXME - the suffix doesn't behave the same as on Mac OS X.  Our suffix is everything which
-    *follows the final formatting character.  Cocoa's suffix is everything which isn't a formatting character
-    *nor in the prefix
-  */
-  suffixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters options: NSBackwardsSearch];
+  /*FIXME - the suffix doesn't behave the same as on Mac OS X.
+   * Our suffix is everything which follows the final formatting
+   * character.  Cocoa's suffix is everything which isn't a
+   * formatting character nor in the prefix
+   */
+  suffixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters
+    options: NSBackwardsSearch];
   suffix = [useFormat substringFromIndex: NSMaxRange(suffixRange)];
-  wholeString = [[prefix stringByAppendingString: formattedNumber] stringByAppendingString: suffix];
+  wholeString = [[prefix stringByAppendingString: formattedNumber]
+    stringByAppendingString: suffix];
   [formattedNumber release];
   return wholeString;
 }
