@@ -66,7 +66,7 @@ notice and this notice are preserved.
 	      introduced at or before the specified version, and not being
 	      removed until or after the specified version are available.<br />
 	      The version consists of five or six digits ...
-	      a major number (00-99) followed by a minor number (00-99) and
+	      a major number (0-99) followed by a minor number (00-99) and
 	      a subminor number (00-99).<br />
 	      Features in the header file are marked as belonging to different
 	      version ranges using the
@@ -86,7 +86,7 @@ notice and this notice are preserved.
 	      and not being removed until or after the specified version
 	      are available.<br />
 	      The version consists of five or six digits ...
-	      a major number (01-99) followed by a minor number (00-99) and
+	      a major number (1-99) followed by a minor number (00-99) and
 	      a subminor number (00-99).<br />
 	      A major number of 1 indicates the OpenStep specification ...
 	      available as the GS_API_OSSPEC preprocessor constant.<br />
