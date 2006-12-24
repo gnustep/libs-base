@@ -98,6 +98,12 @@ notice and this notice are preserved.
 	      version ranges using the
 	      <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
 	      macro.<br />
+	      For MacOS-X compatibility, if this constant is not defined
+	      and MAC_OS_X_VERSION_MAX_ALLOWED <em>is</em> defined, then
+	      GS_OPENSTEP_V is defined to be MAC_OS_X_VERSION_MAX_ALLOWED.<br />
+	      Similarly, for MacOS-X we define MAC_OS_X_VERSION_10_2,
+	      MAC_OS_X_VERSION_10_3 etc as the appropriate numeric version
+	      numbers.
 	    </desc>
 	  </deflist>
 	  <p>
