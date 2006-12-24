@@ -39,6 +39,23 @@
 #endif
 
 /*
+ * For MacOS-X compatibility, we define the MacOS-X version constants and
+ * we allow MAC_OS_X_VERSION_MAX_ALLOWED instead of GS_OPENSTEP_V
+ */
+
+#ifndef	MAC_OS_X_VERSION_10_2
+#define	MAC_OS_X_VERSION_10_2	100200
+#define	MAC_OS_X_VERSION_10_3	100300
+#define	MAC_OS_X_VERSION_10_4	100400
+#endif	/* MAC_OS_X_VERSION_10_2 */
+
+#ifndef	GS_OPENSTEP_V
+#ifdef	MAC_OS_X_VERSION_MAX_ALLOWED
+#define	GS_OPENSTEP_V	MAC_OS_X_VERSION_MAX_ALLOWED
+#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED */
+#endif	/* GS_OPENSTEP_V */
+
+/*
  * NB. The version values below must be integers ... by convention these are
  * made up of two digits each for major, minor and subminor version numbers
  * (ie each is in the range 00 to 99 though a leading zero in the major
