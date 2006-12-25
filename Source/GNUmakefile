@@ -243,6 +243,7 @@ NSURLResponse.m \
 NSURLHandle.m \
 NSUserDefaults.m \
 NSValue.m \
+NSValueTransformer.m \
 NSXMLParser.m \
 NSZone.m \
 externs.m \
@@ -369,6 +370,7 @@ NSURLResponse.h \
 NSUserDefaults.h \
 NSUtilities.h \
 NSValue.h \
+NSValueTransformer.h \
 NSXMLParser.h \
 NSZone.h
 

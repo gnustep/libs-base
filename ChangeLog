@@ -1,3 +1,11 @@
+2006-12-25 Dr. H. Nikolaus Schaller
+
+	* Headers/Foundation/NSValueTransformer.h:
+	* Headers/Foundation/Foundation.h:
+	* Source/NSValueTransformer.h:
+	* Source/GNUmakefile:
+	Initial implementation of NSValueTransformer.
+
 2006-12-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstep/GSVersionMacros.h:

@@ -117,6 +117,7 @@
 #import	<Foundation/NSURLResponse.h>
 #import	<Foundation/NSUserDefaults.h>
 #import	<Foundation/NSValue.h>
+#import	<Foundation/NSValueTransformer.h>
 #import	<Foundation/NSXMLParser.h>
 #import	<Foundation/NSZone.h>
 
