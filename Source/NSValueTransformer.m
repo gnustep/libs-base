@@ -3,6 +3,7 @@
 
    Written Dr. H. Nikolaus Schaller
    Created on Mon Mar 21 2005.
+   Updated (thread safety) by Richard Frith-Macdonald
    
    This file is part of the GNUstep Base Library.
 
@@ -23,6 +24,20 @@
    */ 
 
 #import "Foundation/Foundation.h"
+#import "GNUstepBase/GSLock.h"
+
+@interface NSNegateBooleanTransformer : NSValueTransformer
+@end
+
+@interface NSIsNilTransformer : NSValueTransformer
+@end
+
+@interface NSIsNotNilTransformer : NSValueTransformer
+@end
+
+@interface NSUnarchiveFromDataTransformer : NSValueTransformer
+@end
+
 
 @implementation NSValueTransformer
 
@@ -37,33 +52,68 @@ NSString * const NSUnarchiveFromDataTransformerName
 
 // non-abstract methods
 
-static NSMutableDictionary *names;
+static NSMutableDictionary *registry = nil;
+static GSLazyLock *lock = nil;
+
++ (void) initialize
+{
+  if (lock == nil)
+    {
+      NSValueTransformer	*t;
+
+      lock = [GSLazyLock new];
+      registry = [[NSMutableDictionary alloc] init];
+
+      t = [NSNegateBooleanTransformer new];
+      [self setValueTransformer: t
+		        forName: NSNegateBooleanTransformerName];
+      RELEASE(t);
+
+      t = [NSIsNilTransformer new];
+      [self setValueTransformer: t
+		        forName: NSIsNilTransformerName];
+      RELEASE(t);
+
+      t = [NSIsNotNilTransformer new];
+      [self setValueTransformer: t
+		        forName: NSIsNotNilTransformerName];
+      RELEASE(t);
+
+      t = [NSUnarchiveFromDataTransformer new];
+      [self setValueTransformer: t
+		        forName: NSUnarchiveFromDataTransformerName];
+      RELEASE(t);
+    }
+}
 
 + (void) setValueTransformer: (NSValueTransformer *)transformer
 		     forName: (NSString *)name
 {
-  if (names == nil)
-    {
-      [self valueTransformerNames];	// allocate if needed
-    }
-  [names setObject: transformer forKey: name];
+  [lock lock];
+  [registry setObject: transformer forKey: name];
+  [lock unlock];
 }
 
 + (NSValueTransformer *) valueTransformerForName: (NSString *)name
 {
-  return [names objectForKey: name];
+  NSValueTransformer	*transformer;
+
+  [lock lock];
+  transformer = [registry objectForKey: name];
+  RETAIN(transformer);
+  [lock unlock];
+  return AUTORELEASE(transformer);
 }
 
 + (NSArray *) valueTransformerNames;
 {
-  if (names == nil)
-    {
-      names = [[NSMutableDictionary alloc] init];
-    }
-  return [names allKeys];
-}
+  NSArray	*names;
 
-// abstract methods (must be implemented in subclasses)
+  [lock lock];
+  names = [registry allKeys];
+  [lock unlock];
+  return names;
+}
 
 + (BOOL) allowsReverseTransformation
 {
@@ -78,7 +128,13 @@ static NSMutableDictionary *names;
 
 - (id) reverseTransformedValue: (id)value
 {
-  return [self subclassResponsibility: _cmd];
+  if ([[self class] allowsReverseTransformation] == NO)
+    {
+      [NSException raise: NSGenericException
+      		  format: @"[%@] is not reversible",
+	NSStringFromClass([self class])];
+    }
+  return [self transformedValue: value];
 }
 
 - (id) transformedValue: (id)value
@@ -96,17 +152,20 @@ static NSMutableDictionary *names;
 {
   return YES;
 }
+
 + (Class) transformedValueClass
 {
   return [NSNumber class];
 }
+
 - (id) reverseTransformedValue: (id) value
 {
-  return [NSNumber numberWithBool: ![value boolValue]];
+  return [NSNumber numberWithBool: [value boolValue] ? NO : YES];
 }
+
 - (id) transformedValue: (id)value
 {
-  return [NSNumber numberWithBool: ![value boolValue]];
+  return [NSNumber numberWithBool: [value boolValue] ? NO : YES];
 }
 
 @end
@@ -117,17 +176,15 @@ static NSMutableDictionary *names;
 {
   return NO;
 }
+
 + (Class) transformedValueClass
 {
   return [NSNumber class];
 }
-- (id) reverseTransformedValue: (id)value
-{
-  return [self notImplemented: _cmd];
-}
+
 - (id) transformedValue: (id)value
 {
-  return [NSNumber numberWithBool: (value == nil)];
+  return [NSNumber numberWithBool: (value == nil) ? YES : NO];
 }
 
 @end
@@ -138,17 +195,15 @@ static NSMutableDictionary *names;
 {
   return NO;
 }
+
 + (Class) transformedValueClass
 {
   return [NSNumber class];
 }
-- (id) reverseTransformedValue: (id)value
-{
-  return [self notImplemented: _cmd];
-}
+
 - (id) transformedValue: (id)value
 {
-  return [NSNumber numberWithBool: (value != nil)];
+  return [NSNumber numberWithBool: (value != nil) ? YES : NO];
 }
 
 @end
@@ -159,17 +214,22 @@ static NSMutableDictionary *names;
 {
   return YES;
 }
+
 + (Class) transformedValueClass
 {
   return [NSData class];
 }
+
 - (id) reverseTransformedValue: (id)value
 {
-  return [self notImplemented: _cmd];
+// FIXME ... should we use a keyed archive?
+  return [NSKeyedArchiver archivedDataWithRootObject: value];
 }
+
 - (id) transformedValue: (id)value
 {
-  return [self notImplemented: _cmd];
+// FIXME ... should we use a keyed archive?
+  return [NSKeyedUnarchiver unarchiveObjectWithData: value];
 }
 
 @end
