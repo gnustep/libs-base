@@ -46,6 +46,7 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSObjCRuntime.h"
 #include <limits.h>
 
@@ -2843,6 +2844,12 @@ transmute(GSStr self, NSString *aString)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
+  if ([aCoder allowsKeyedCoding])
+    {
+      [(NSKeyedArchiver*)aCoder _encodePropertyList: self forKey: @"NS.string"];
+      return;
+    }
+
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count > 0)
     {
@@ -3149,6 +3156,12 @@ agree, create a new GSCInlineString otherwise.
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
+  if ([aCoder allowsKeyedCoding])
+    {
+      [(NSKeyedArchiver*)aCoder _encodePropertyList: self forKey: @"NS.string"];
+      return;
+    }
+
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count > 0)
     {
@@ -3599,6 +3612,12 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
+  if ([aCoder allowsKeyedCoding])
+    {
+      [(NSKeyedArchiver*)aCoder _encodePropertyList: self forKey: @"NS.string"];
+      return;
+    }
+
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count > 0)
     {

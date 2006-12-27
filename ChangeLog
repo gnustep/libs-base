@@ -1,3 +1,7 @@
+2006-12-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix keyed archiving error.
+
 2006-12-27  Chris B. Vetter
 
 	* Headers/Foundation/NSNetServices.h: New class
