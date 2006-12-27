@@ -79,6 +79,7 @@
 #import	<Foundation/NSMethodSignature.h>
 #import	<Foundation/NSNotification.h>
 #import	<Foundation/NSNotificationQueue.h>
+#import	<Foundation/NSNetServices.h>
 #import	<Foundation/NSNull.h>
 #import	<Foundation/NSNumberFormatter.h>
 #import	<Foundation/NSPathUtilities.h>
