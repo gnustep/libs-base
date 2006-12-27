@@ -1,3 +1,12 @@
+2006-12-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: remove old defaults as housekeeping
+	observer when we reset.
+	* Source/NSXMLParser.m: deactivate some log messages
+	* Source/NSPropertyList.m: add proplist parser using NSXMLParser
+	to support parsing of MacOS-X property lists even when libxml2
+	is not available.
+
 2006-12-26  Dr. H. Nikolaus Schaller, Richard Frith-Macdonald
 
 	* Source/NSXMLParser.m: Implement reduced functionality parser if
