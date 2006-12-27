@@ -1507,6 +1507,20 @@ fi
 AC_SUBST(HAVE_LIBXML)
 
 #--------------------------------------------------------------------
+# Check for NSNetServices
+#--------------------------------------------------------------------
+HAVE_MDNS=0
+AC_CHECK_HEADERS(dns_sd.h, have_mdns=yes, have_mdns=no)
+if test "$have_mdns" = "yes"; then
+  AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
+  if test "$have_mdns" = "yes"; then
+    LIBS="-ldns_sd $LIBS"
+    HAVE_MDNS=1
+  fi
+fi
+AC_SUBST(HAVE_MDNS)
+
+#--------------------------------------------------------------------
 # Check GMP for NSDecimal
 #--------------------------------------------------------------------
 AC_ARG_WITH(gmp-include,

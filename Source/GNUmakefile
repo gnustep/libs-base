@@ -255,6 +255,11 @@ BASE_MFILES += \
 GSFileHandle.m \
 NSMessagePort.m \
 NSMessagePortNameServer.m
+
+ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
+BASE_MFILES += NSNetServices.m
+endif
+
 endif
 
 ifeq ($(WITH_FFI),libffi)
@@ -325,6 +330,7 @@ NSKeyValueObserving.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \
+NSNetServices.h \
 NSNotification.h \
 NSNotificationQueue.h \
 NSNull.h \
