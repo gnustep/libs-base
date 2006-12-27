@@ -44,6 +44,7 @@
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSXMLParser.h"
 #include "GNUstepBase/Unicode.h"
 
 #include "GSPrivate.h"
@@ -53,6 +54,270 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 @class	GSMutableDictionary;
 @interface GSMutableDictionary : NSObject	// Help the compiler
 @end
+
+
+@interface GSXMLPListParser : NSObject
+{
+  NSXMLParser				*theParser;
+  NSMutableString			*value;
+  NSMutableArray			*stack;
+  NSString				*key;
+  BOOL					inArray;
+  BOOL					inDictionary;
+  id					plist;
+  NSPropertyListMutabilityOptions	opts;
+}
+
+- (id) initWithData: (NSData*)data
+	 mutability: (NSPropertyListMutabilityOptions)options;
+- (BOOL) parse;
+- (void) parser: (NSXMLParser *)parser
+  foundCharacters: (NSString *)string;
+- (void) parser: (NSXMLParser *)parser
+  didStartElement: (NSString *)elementName
+  namespaceURI: (NSString *)namespaceURI
+  qualifiedName: (NSString *)qualifiedName
+  attributes: (NSDictionary *)attributeDict;
+- (void) parser: (NSXMLParser *)parser
+  didEndElement: (NSString *)elementName
+  namespaceURI: (NSString *)namespaceURI
+  qualifiedName: (NSString *)qName;
+- (id) result;
+@end
+
+@implementation GSXMLPListParser
+
+- (void) dealloc
+{
+  RELEASE(key);
+  RELEASE(stack);
+  RELEASE(plist);
+  RELEASE(value);
+  RELEASE(theParser);
+  [super dealloc];
+}
+
+- (id) initWithData: (NSData*)data
+	 mutability: (NSPropertyListMutabilityOptions)options
+{
+  if ((self = [super init]) != nil)
+    {
+      stack = [[NSMutableArray alloc] initWithCapacity: 10];
+      theParser = [[NSXMLParser alloc] initWithData: data];
+      [theParser setDelegate: self];
+      opts = options;
+    }
+  return self;
+}
+
+- (void) parser: (NSXMLParser *)parser
+  foundCharacters: (NSString *)string
+{
+  if (value == nil)
+    {
+      value = [[NSMutableString alloc] initWithCapacity: 50];
+    }
+  [value appendString: string];    
+}
+
+- (void) parser: (NSXMLParser *)parser
+  didStartElement: (NSString *)elementName
+  namespaceURI: (NSString *)namespaceURI
+  qualifiedName: (NSString *)qualifiedName
+  attributes: (NSDictionary *)attributeDict
+{
+  if ([elementName isEqualToString: @"dict"] == YES)
+    {
+      NSMutableDictionary	*d;
+
+      d = [[NSMutableDictionary alloc] initWithCapacity: 10];
+      [stack addObject: d];
+      RELEASE(d);
+      inDictionary = YES;
+      inArray = NO;
+    }
+  else if ([elementName isEqualToString: @"array"] == YES)
+    {
+      NSMutableArray	*a;
+
+      a = [[NSMutableArray alloc] initWithCapacity: 10];
+      [stack addObject: a];
+      RELEASE(a);
+      inArray = YES;
+      inDictionary = NO;
+    }
+}
+
+- (void) parser: (NSXMLParser *)parser
+  didEndElement: (NSString *)elementName
+  namespaceURI: (NSString *)namespaceURI
+  qualifiedName: (NSString *)qName
+{
+  BOOL	inContainer = NO;
+
+  if ([elementName isEqualToString: @"dict"] == YES)
+    {
+      inContainer = YES;
+    }
+  if ([elementName isEqualToString: @"array"] == YES)
+    {
+      inContainer = YES;
+    }
+
+  if (inContainer)
+    {
+      if (opts != NSPropertyListImmutable)
+	{
+	  ASSIGN(plist, [stack lastObject]);
+	}
+      else
+        {
+	  ASSIGN(plist, [[stack lastObject] makeImmutableCopyOnFail: NO]);
+	}
+      inArray = NO;
+      inDictionary = NO;
+      if ([stack count] > 0)
+        {
+	  id	last;
+
+	  [stack removeLastObject];
+	  last = [stack lastObject];
+	  if ([last isKindOfClass: [NSArray class]] == YES)
+	    {
+	      inArray = YES;
+	    }
+	  else if ([last isKindOfClass: [NSDictionary class]] == YES)
+	    {
+	      inDictionary = YES;
+	    }
+	}
+    }
+  else if ([elementName isEqualToString: @"key"] == YES)
+    {
+      ASSIGN(key, [value makeImmutableCopyOnFail: NO]);
+      DESTROY(value);
+      return;
+    }
+  else if ([elementName isEqualToString: @"data"])
+    {
+      NSData	*d;
+
+      d = [GSMimeDocument decodeBase64:
+	     [value dataUsingEncoding: NSASCIIStringEncoding]];
+      if (opts == NSPropertyListMutableContainersAndLeaves)
+	{
+	  d = AUTORELEASE([d mutableCopy]);
+	}
+      ASSIGN(plist, d);
+      if (d == nil)
+	{
+	  [parser abortParsing];
+	  return;
+	}
+    }
+  else if ([elementName isEqualToString: @"date"])
+    {
+      id	result;
+
+      if ([value hasSuffix: @"Z"] == YES && [value length] == 20)
+	{
+	  result = [NSCalendarDate dateWithString: value
+				   calendarFormat: @"%Y-%m-%dT%H:%M:%SZ"];
+	}
+      else
+	{
+	  result = [NSCalendarDate dateWithString: value
+				   calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
+	}
+      ASSIGN(plist, result);
+    }
+  else if ([elementName isEqualToString: @"string"])
+    {
+      id	o;
+
+      if (opts == NSPropertyListMutableContainersAndLeaves)
+        {
+	  if (value == nil)
+	    {
+	      o = [NSMutableString string];
+	    }
+	  else
+	    {
+	      o = value;
+	    }
+	}
+      else
+        {
+	  if (value == nil)
+	    {
+	      o = @"";
+	    }
+	  else
+	    {
+	      o = [value makeImmutableCopyOnFail: NO];
+	    }
+	}
+      ASSIGN(plist, o);
+    }
+  else if ([elementName isEqualToString: @"integer"])
+    {
+      ASSIGN(plist, [NSNumber numberWithInt: [value intValue]]);
+    }
+  else if ([elementName isEqualToString: @"real"])
+    {
+      ASSIGN(plist, [NSNumber numberWithDouble: [value doubleValue]]);
+    }
+  else if ([elementName isEqualToString: @"true"])
+    {
+      ASSIGN(plist, [NSNumber numberWithBool: YES]);
+    }
+  else if ([elementName isEqualToString: @"false"])
+    {
+      ASSIGN(plist, [NSNumber numberWithBool: NO]);
+    }
+  else if ([elementName isEqualToString: @"plist"])
+    {
+      DESTROY(value);
+      return;
+    }
+  else // invalid tag
+    {
+      NSLog(@"unrecognized tag <%@>", elementName);
+      [parser abortParsing];
+      return;
+    }
+
+  if (inArray == YES)
+    {
+      [[stack lastObject] addObject: plist];
+    }
+  else if (inDictionary == YES)
+    {
+      if (key == nil)
+        {
+	  [parser abortParsing];
+	  return;
+	}
+      [[stack lastObject] setObject: plist forKey: key];
+      DESTROY(key);
+    }
+  DESTROY(value);
+}
+
+- (BOOL) parse
+{
+  return [theParser parse];
+}
+
+- (id) result
+{
+  return plist;
+}
+
+@end
+
+
+
 
 @interface GSBinaryPLParser : NSObject
 {
@@ -1877,16 +2142,35 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  [keyArray getObjects: keys];
 	}
 
-      for (i = 0; i < numKeys; i++)
-	{
-	  if (GSObjCClass(keys[i]) == lastClass)
-	    continue;
-	  if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
+      if (x == NSPropertyListXMLFormat_v1_0)
+        {
+	  /* This format can only use strings as keys.
+	   */
+	  lastClass = [NSString class];
+	  for (i = 0; i < numKeys; i++)
 	    {
-	      canCompare = NO;
-	      break;
+	      if ([keys[i] isKindOfClass: lastClass] == NO)
+	        {
+		  [NSException raise: NSInvalidArgumentException
+		    format: @"Bad key in property list: '%@'", keys[i]];
+		}
 	    }
-	  lastClass = GSObjCClass(keys[i]);
+	}
+      else
+	{
+	  /* All keys must respond to -compare: for sorting.
+	   */
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      if (GSObjCClass(keys[i]) == lastClass)
+		continue;
+	      if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
+		{
+		  canCompare = NO;
+		  break;
+		}
+	      lastClass = GSObjCClass(keys[i]);
+	    }
 	}
 
       if (canCompare == YES)
@@ -2070,7 +2354,7 @@ static BOOL	classInitialized = NO;
     {
       classInitialized = YES;
 
-#ifdef	HAVE_LIBXML
+#if	HAVE_LIBXML
       /*
        * Cache XML node information.
        */
@@ -2278,9 +2562,6 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	    {
 	      // It begins with '<?' so it is xml
 	      format = NSPropertyListXMLFormat_v1_0;
-#ifndef	HAVE_LIBXML
-	      error = @"XML format not supported ... XML support not present.";
-#endif
 	    }
 	  else
 	    {
@@ -2294,9 +2575,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       switch (format)
 	{
-#ifdef	HAVE_LIBXML
 	  case NSPropertyListXMLFormat_v1_0:
 	    {
+#if	HAVE_LIBXML
 	      GSXMLParser	*parser;
 	      GSXMLNode		*node;
 
@@ -2316,9 +2597,22 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 		{
 		  result = nodeToObject([node firstChild], anOption, &error);
 		}
+#else
+	      GSXMLPListParser *parser;
+
+	      parser = AUTORELEASE([[GSXMLPListParser alloc] initWithData: data
+	        mutability: anOption]);
+	      if ([parser parse] == YES)
+		{
+		  result = AUTORELEASE(RETAIN([parser result]));
+		}
+	      else
+	        {
+		  error = @"failed to parse as XML property list";
+		}
+#endif
 	    }
 	    break;
-#endif
 
 	  case NSPropertyListOpenStepFormat:
 	    {

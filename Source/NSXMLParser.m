@@ -584,83 +584,93 @@ typedef struct NSXMLParserIvarsType
 	       isEnd: (BOOL)flag
       withAttributes: (NSDictionary *)attributes
 {
-#if 0
-  NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-#endif
   if (this->acceptHTML)
     tag = [tag lowercaseString];  // not case sensitive
   if (!flag)
     {
       if ([tag isEqualToString: @"?xml"])
 	{
-	  // parse, i.e. check for UTF8 encoding and other attributes
-  #if 0
-	NSLog(@"parserDidStartDocument: ");
-  #endif
-	if ([_del respondsToSelector: @selector(parserDidStartDocument:)])
-	  [_del parserDidStartDocument: self];
-	return;
+#if 0
+NSLog(@"parserDidStartDocument: ");
+#endif
+	  if ([_del respondsToSelector: @selector(parserDidStartDocument:)])
+	    [_del parserDidStartDocument: self];
+	  return;
 	}
       if ([tag hasPrefix: @"?"])
 	{
-  #if 1
-	NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-  #endif
-	// parser: foundProcessingInstructionWithTarget: data: 
-	return;
+#if 0
+NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
+#endif
+	  // parser: foundProcessingInstructionWithTarget: data: 
+	  return;
 	}
       if ([tag isEqualToString: @"!DOCTYPE"])
 	{
-  // parse and might load
-  #if 1
-	NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-  #endif
-	return;
+#if 0
+NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
+#endif
+	  return;
 	}
       if ([tag isEqualToString: @"!ENTITY"])
 	{
-  // parse
-  #if 1
-	NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-  #endif
-	return;
+#if 0
+NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
+#endif
+	  return;
 	}
       if ([tag isEqualToString: @"!CDATA"])
 	{
   // pass through as NSData
 	// parser: foundCDATA:   
-  #if 1
-	NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-  #endif
+#if 0
+NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
+#endif
 	return;
 	}
       [this->tagPath addObject: tag];  // push on stack
-      if ([_del respondsToSelector:@selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:)])
-	[_del parser: self didStartElement: tag namespaceURI: nil qualifiedName: nil attributes: attributes];
-      }
+      if ([_del respondsToSelector:
+      @selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:)])
+	[_del parser: self
+	  didStartElement: tag
+	  namespaceURI: nil
+	  qualifiedName: nil
+	  attributes: attributes];
+    }
   else
     {
 // closing tag
-    if (this->acceptHTML)
-      {
-// lazily close any missing tags on stack
-      while([this->tagPath count] > 0 && ![[this->tagPath lastObject] isEqualToString: tag])  // must be literally equal!
-        {
-        if ([_del respondsToSelector: @selector(parser: didEndElement: namespaceURI: qualifiedName: )])
-          [_del parser: self didEndElement: [this->tagPath lastObject] namespaceURI: nil qualifiedName: nil];
-        [this->tagPath removeLastObject];  // pop from stack
-        }
-      if ([this->tagPath count] == 0)
-        return;  // ignore closing tag without matching open...
-      }
-    else if (![[this->tagPath lastObject] isEqualToString: tag])  // must be literally equal!
-      {
-      [self _parseError: [NSString stringWithFormat: @"tag nesting error (</%@> expected, </%@> found)", [this->tagPath lastObject], tag]];
-      return;
-      }
-    if ([_del respondsToSelector: @selector(parser: didEndElement: namespaceURI: qualifiedName: )])
-      [_del parser: self didEndElement: tag namespaceURI: nil qualifiedName: nil];
-    [this->tagPath removeLastObject];  // pop from stack
+      if (this->acceptHTML)
+	{
+	  // lazily close any missing tags on stack
+	  while ([this->tagPath count] > 0
+	    && ![[this->tagPath lastObject] isEqualToString: tag])
+	    {
+	      if ([_del respondsToSelector:
+		@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
+		[_del parser: self
+		  didEndElement: [this->tagPath lastObject]
+		  namespaceURI: nil
+		  qualifiedName: nil];
+	      [this->tagPath removeLastObject];  // pop from stack
+	    }
+	  if ([this->tagPath count] == 0)
+	    return;  // ignore closing tag without matching open...
+	}
+      else if (![[this->tagPath lastObject] isEqualToString: tag])
+	{
+	  [self _parseError: [NSString stringWithFormat:
+	    @"tag nesting error (</%@> expected, </%@> found)",
+	    [this->tagPath lastObject], tag]];
+	  return;
+	}
+      if ([_del respondsToSelector:
+	@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
+	[_del parser: self
+	  didEndElement: tag
+	  namespaceURI: nil
+	  qualifiedName: nil];
+	[this->tagPath removeLastObject];  // pop from stack
     }
 }
 
@@ -675,7 +685,7 @@ typedef struct NSXMLParserIvarsType
 
   do {
     c = cget();
-  } while(c != EOF && c != '<' && c != ';');
+  } while (c != EOF && c != '<' && c != ';');
 
   if (c != ';')
     return nil; // invalid sequence - end of file or missing ; before next tag
@@ -729,7 +739,7 @@ typedef struct NSXMLParserIvarsType
         c = cget();
         if (c == EOF)
           return nil;  // unterminated!
-      } while(c != '\"');
+      } while (c != '\"');
     return UTF8STR(ap + 1, this->cp - ap - 2);
     }
   if (c == '\'')
@@ -739,12 +749,12 @@ typedef struct NSXMLParserIvarsType
       c = cget();
       if (c == EOF)
         return nil;  // unterminated!
-    } while(c != '\'');
+    } while (c != '\'');
     return UTF8STR(ap + 1, this->cp - ap - 2);
     }
   if (!this->acceptHTML)
     ;  // strict XML requires quoting (?)
-  while(!isspace(c) && c != '>' && c != '/' && c != '?' && c != '=' &&c != EOF)
+  while (!isspace(c) && c != '>' && c != '/' && c != '?' && c != '=' &&c != EOF)
     c = cget();
   this->cp--;  // go back to terminating character
   return UTF8STR(ap, this->cp - ap);
@@ -764,7 +774,7 @@ typedef struct NSXMLParserIvarsType
       return [self _parseError: @"missing <?xml > preamble"];
     }
   c = cget();  // get first character
-  while(!this->abort)
+  while (!this->abort)
     {
 // parse next element
 #if 0
@@ -803,7 +813,7 @@ typedef struct NSXMLParserIvarsType
             {
             if (!this->acceptHTML)
               return [self _parseError: @"unexpected end of file"];  // strict XML nesting error
-            while([this->tagPath count] > 0)
+            while ([this->tagPath count] > 0)
               {
 // lazily close all open tags
               if ([_del respondsToSelector: @selector(parser: didEndElement: namespaceURI: qualifiedName: )])
@@ -842,7 +852,7 @@ typedef struct NSXMLParserIvarsType
             {
 // start of comment skip all characters until "-->"
             this->cp+=3;
-            while(this->cp < this->cend-3 && strncmp((char *)this->cp, "-->", 3) != 0)
+            while (this->cp < this->cend-3 && strncmp((char *)this->cp, "-->", 3) != 0)
               this->cp++;  // search
             // if _del responds to parser: foundComment: 
             // convert to string (tp+4 ... cp)
@@ -862,7 +872,7 @@ typedef struct NSXMLParserIvarsType
             // FIXME: this->should process this tag in a special way so that e.g. <?php any PHP script ?> is read as a single tag!
             // to do this properly, we need a notion of comments and quoted string constants...
             }
-          while(!isspace(c) && c != '>' && (c != '/')  && (c != '?'))
+          while (!isspace(c) && c != '>' && (c != '/')  && (c != '?'))
             c = cget(); // scan tag until we find a delimiting character
           if (*tp == '/')
             tag = UTF8STR(tp + 1, this->cp - tp - 2);  // don't include / and delimiting character
@@ -872,7 +882,7 @@ typedef struct NSXMLParserIvarsType
           NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c: ' ');
 #endif
           parameters=[NSMutableDictionary dictionaryWithCapacity: 5];
-          while(c != EOF)
+          while (c != EOF)
             {
 // collect arguments
             if (c == '/' && *tp != '/')
@@ -895,7 +905,7 @@ typedef struct NSXMLParserIvarsType
               [self _processTag: tag isEnd: NO withAttributes: parameters];  // single <?tag ...?>
               break; // done
               }
-            while(isspace(c))  // this->should also allow for line break and tab
+            while (isspace(c))  // this->should also allow for line break and tab
               c = cget();
             if (c == '>')
               {
