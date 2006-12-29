@@ -630,13 +630,16 @@
   
   //sort out the padding for the integer part
   intPartRange = [useFormat rangeOfCharacterFromSet: placeHolders];
-  while (([placeHolders characterIsMember:
-    [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
-    || [[useFormat substringFromRange:
-      NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual: @","])
-    && NSMaxRange(intPartRange) < [useFormat length] - 1)
+  if (NSMaxRange(intPartRange) < ([useFormat length] - 1))
     {
-      intPartRange.length++;
+      while (([placeHolders characterIsMember:
+        [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
+        || [[useFormat substringFromRange:
+          NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual: @","])
+        && NSMaxRange(intPartRange) < [useFormat length] - 1)
+        {
+          intPartRange.length++;
+        }
     }
   intPad = [[useFormat substringWithRange: intPartRange] mutableCopy];
   [intPad replaceOccurrencesOfString: @","
