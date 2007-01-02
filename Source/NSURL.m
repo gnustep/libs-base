@@ -700,21 +700,24 @@ static unsigned	urlAlign;
       /*
        * Set up scheme specific parsing options.
        */
-      if (buf->scheme != 0)
+      if (buf->scheme == 0)
+        {
+	  DESTROY(self);	// Not a valid URL
+	  NS_VALRETURN(nil);
+	}
+
+      if (strcmp(buf->scheme, "file") == 0)
 	{
-	  if (strcmp(buf->scheme, "file") == 0)
-	    {
-	      usesFragments = NO;
-	      usesParameters = NO;
-	      usesQueries = NO;
-	      buf->isFile = YES;
-	    }
-	  else if (strcmp(buf->scheme, "mailto") == 0)
-	    {
-	      usesFragments = NO;
-	      usesParameters = NO;
-	      usesQueries = NO;
-	    }
+	  usesFragments = NO;
+	  usesParameters = NO;
+	  usesQueries = NO;
+	  buf->isFile = YES;
+	}
+      else if (strcmp(buf->scheme, "mailto") == 0)
+	{
+	  usesFragments = NO;
+	  usesParameters = NO;
+	  usesQueries = NO;
 	}
 
       if (canBeGeneric == YES)
