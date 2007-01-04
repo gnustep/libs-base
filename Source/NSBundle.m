@@ -714,8 +714,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (self == [NSBundle class])
     {
       NSDictionary *env;
-      void         *state = NULL;
-      Class         class;
 
       _emptyTable = RETAIN([NSDictionary dictionary]);
 
@@ -772,39 +770,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  }
 #else
 	  {
-	    int i, numBufClasses = 10, numClasses = 0;
-	    Class *classes;
-
-	    classes = objc_malloc(sizeof(Class) * numBufClasses);
+	    void	*state = NULL;
+	    Class	class;
 
 	    while ((class = objc_next_class(&state)))
 	      {
 		unsigned int len = strlen (class->name);
 
-		if (len > 12 * sizeof(char)
-		  && !strncmp("NSFramework_", class->name, 12))
+		if (len > sizeof("NSFramework_")
+	 	    && !strncmp("NSFramework_", class->name, 12))
 		  {
-		    classes[numClasses++] = class;
+		    [self _addFrameworkFromClass: class];
 		  }
-		if (numClasses == numBufClasses)
-		  {
-		    Class *ptr;
-
-		    numClasses += 10;
-		    ptr = objc_realloc(classes, sizeof(Class) * numClasses);
-
-		    if (!ptr)
-		      break;
-
-		    classes = ptr;
-		  }
-	    }
-
-	    for (i = 0; i < numClasses; i++)
-	      {
-		[self _addFrameworkFromClass: classes[i]];
 	      }
-	    objc_free(classes);
 	  }
 #endif
 #if 0
