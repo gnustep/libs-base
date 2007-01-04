@@ -719,8 +719,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (self == [NSBundle class])
     {
       NSDictionary *env;
-      void         *state = NULL;
-      Class         class;
 
       _emptyTable = RETAIN([NSDictionary dictionary]);
 
@@ -777,6 +775,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  }
 #else
 	  {
+	    void	*state = NULL;
+	    Class	class;
+
 	    while ((class = objc_next_class(&state)))
 	      {
 		unsigned int len = strlen (class->name);

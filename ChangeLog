@@ -1,3 +1,8 @@
+2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: (initialize) tiny cleanup to avoid compiler
+	warnings if compiled for NeXT runtime.
+
 2006-12-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Fix keyed archiving error.
