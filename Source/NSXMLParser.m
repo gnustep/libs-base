@@ -500,7 +500,7 @@ typedef struct NSXMLParserIvarsType
   return this->column;
 }
 
-- (void) dealloc;
+- (void) dealloc
 {
   if (this != 0)
     {
@@ -517,9 +517,9 @@ typedef struct NSXMLParserIvarsType
   return _del;
 }
 
-- (id) initWithContentsOfURL: (NSURL *)url
+- (id) initWithContentsOfURL: (NSURL *)anURL
 {
-  return [self initWithData: [NSData dataWithContentsOfURL: url]];
+  return [self initWithData: [NSData dataWithContentsOfURL: anURL]];
 }
 
 - (id) initWithData: (NSData *)data
@@ -549,9 +549,9 @@ typedef struct NSXMLParserIvarsType
   return this->line;
 }
 
-- (void) setDelegate: (id)del
+- (void) setDelegate: (id)delegate
 {
-  _handler = del;
+  _handler = delegate;
 }
 
 - (NSError *) parserError
@@ -674,7 +674,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
     }
 }
 
-- (NSString *) _entity;
+- (NSString *) _entity
 {
 // parse &xxx; sequence
   int c;
@@ -723,7 +723,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
   return entity;
 }
 
-- (NSString *) _qarg;
+- (NSString *) _qarg
 {
 // get argument (might be quoted)
   const unsigned char *ap = --this->cp;  // argument start pointer
@@ -760,7 +760,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
   return UTF8STR(ap, this->cp - ap);
 }
 
-- (BOOL) parse;
+- (BOOL) parse
 {
 // read XML (or HTML) file
   const unsigned char *vp = this->cp;  // value pointer
@@ -957,19 +957,19 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
   return this->shouldResolveExternalEntities;
 }
 
-- (void) setShouldProcessNamespaces: (BOOL)flag
+- (void) setShouldProcessNamespaces: (BOOL)aFlag
 {
-  this->shouldProcessNamespaces = flag;
+  this->shouldProcessNamespaces = aFlag;
 }
 
-- (void) setShouldReportNamespacePrefixes: (BOOL)flag
+- (void) setShouldReportNamespacePrefixes: (BOOL)aFlag
 {
-  this->shouldReportNamespacePrefixes = flag;
+  this->shouldReportNamespacePrefixes = aFlag;
 }
 
-- (void) setShouldResolveExternalEntities: (BOOL)flag
+- (void) setShouldResolveExternalEntities: (BOOL)aFlag
 {
-  this->shouldProcessNamespaces = flag;
+  this->shouldProcessNamespaces = aFlag;
 }
 
 - (void) _setAcceptHTML: (BOOL) flag

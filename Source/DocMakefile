@@ -75,6 +75,7 @@ NSKeyValueObserving.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \
+NSNetServices.h \
 NSNotification.h \
 NSNotificationQueue.h \
 NSNull.h \
@@ -117,6 +118,7 @@ NSURLRequest.h \
 NSURLResponse.h \
 NSUserDefaults.h \
 NSValue.h \
+NSValueTransformer.h \
 NSXMLParser.h \
 NSZone.h
 

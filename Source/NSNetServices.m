@@ -30,7 +30,9 @@
 #import "Foundation/NSStream.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSValue.h"
+#if defined(_REENTRANT)
 #import "GNUstepBase/GSLock.h"
+#endif
 
 #import <dns_sd.h>		// Apple's DNS Service Discovery
 
@@ -43,10 +45,6 @@
 //
 // Define
 //
-
-#define PUBLIC			/* public */
-#define PRIVATE			static
-#define EXTERN			extern
 
 #if ! defined(INET6_ADDRSTRLEN)
 #  define INET6_ADDRSTRLEN	46
@@ -78,8 +76,8 @@
         } while(0);
 
 #if defined(_REENTRANT)
-#  define THE_LOCK		GSLazyLock	*lock
-#  define CREATELOCK(x)		x->lock = [GSLazyLock new]
+#  define THE_LOCK		GSLazyRecursiveLock	*lock
+#  define CREATELOCK(x)		x->lock = [GSLazyRecursiveLock new]
 #  define LOCK(x)		[x->lock lock]
 #  define UNLOCK(x)		[x->lock unlock]
 #  define DESTROYLOCK(x)	DESTROY(x->lock)
@@ -194,21 +192,20 @@ NSString * const NSNetServicesErrorDomain = @"NSNetServicesErrorDomain";
 // Prototype
 //
 
-PRIVATE NSDictionary
-  *CreateError(id sender,
-               int errorCode);
+static NSDictionary *CreateError(id sender, int errorCode);
 
-PRIVATE int
-  ConvertError(int errorCode);
+static int ConvertError(int errorCode);
 
-PRIVATE void DNSSD_API
+static void DNSSD_API
   // used by NSNetServiceBrowser
   EnumerationCallback(DNSServiceRef		 sdRef,
                       DNSServiceFlags		 flags,
                       uint32_t			 interfaceIndex,
                       DNSServiceErrorType	 errorCode,
                       const char		*replyDomain,
-                      void			*context),
+                      void			*context);
+
+static void DNSSD_API
   BrowserCallback(DNSServiceRef			 sdRef,
                   DNSServiceFlags		 flags,
                   uint32_t			 interfaceIndex,
@@ -216,7 +213,9 @@ PRIVATE void DNSSD_API
                   const char			*replyName,
                   const char			*replyType,
                   const char			*replyDomain,
-                  void				*context),
+                  void				*context);
+
+static void DNSSD_API
   // used by NSNetService
   ResolverCallback(DNSServiceRef		 sdRef,
                    DNSServiceFlags		 flags,
@@ -227,14 +226,18 @@ PRIVATE void DNSSD_API
                    uint16_t			 port,
                    uint16_t			 txtLen,
                    const char			*txtRecord,
-                   void				*context),
+                   void				*context);
+
+static void DNSSD_API
   RegistrationCallback(DNSServiceRef		 sdRef,
                        DNSServiceFlags		 flags,
                        DNSServiceErrorType	 errorCode,
                        const char		*name,
                        const char		*regtype,
                        const char		*domain,
-                       void			*context),
+                       void			*context);
+
+static void DNSSD_API
   // used by NSNetService and NSNetServiceMonitor
   QueryCallback(DNSServiceRef			 sdRef,
                 DNSServiceFlags			 flags,
@@ -3095,7 +3098,7 @@ PRIVATE void DNSSD_API
  *
  */
 
-PRIVATE NSDictionary *
+static NSDictionary *
 CreateError(id sender, int errorCode)
 {
   NSMutableDictionary	*dictionary = nil;
@@ -3122,7 +3125,7 @@ CreateError(id sender, int errorCode)
  *
  */
 
-PRIVATE int
+static int
 ConvertError(int errorCode)
 {
   INTERNALTRACE;
@@ -3188,7 +3191,7 @@ ConvertError(int errorCode)
  *
  */
 
-PRIVATE void
+static void
 EnumerationCallback(DNSServiceRef sdRef,
                       DNSServiceFlags flags,
                       uint32_t interfaceIndex,
@@ -3210,7 +3213,7 @@ EnumerationCallback(DNSServiceRef sdRef,
  *
  */
 
-PRIVATE void
+static void
 BrowserCallback(DNSServiceRef sdRef,
                   DNSServiceFlags flags,
                   uint32_t interfaceIndex,
@@ -3236,7 +3239,7 @@ BrowserCallback(DNSServiceRef sdRef,
  *
  */
 
-PRIVATE void
+static void
 ResolverCallback(DNSServiceRef sdRef,
                    DNSServiceFlags flags,
                    uint32_t interfaceIndex,
@@ -3266,7 +3269,7 @@ ResolverCallback(DNSServiceRef sdRef,
  *
  */
 
-PRIVATE void
+static void
 RegistrationCallback(DNSServiceRef sdRef,
                        DNSServiceFlags flags,
                        DNSServiceErrorType errorCode,
@@ -3290,7 +3293,7 @@ RegistrationCallback(DNSServiceRef sdRef,
  *
  */
 
-PRIVATE void
+static void
 QueryCallback(DNSServiceRef sdRef,
                 DNSServiceFlags flags,
                 uint32_t interfaceIndex,
