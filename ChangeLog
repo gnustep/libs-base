@@ -1,3 +1,11 @@
+2007-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNetServices.m: Locking fix pointed out by Chris.
+	Fixes for documentation generation.
+	* Source/DocMakefile: Generate documentation for new classes.
+	* Source/NSXMLParser.m: Fix erroneous semicolons and other
+	autogsdoc warnings.
+
 2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: (initialize) tiny cleanup to avoid compiler
