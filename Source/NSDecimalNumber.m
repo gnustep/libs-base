@@ -239,7 +239,8 @@ static NSDecimalNumber *one;
   NSString	*s;
 
   memcpy(&tmp, value, sizeof(tmp));
-  s = [[NSString alloc] initWithFormat: @"%g", tmp];
+  s = [[NSString alloc] initWithFormat: @"%g"
+    locale: GSUserDefaultsDictionaryRepresentation(), tmp];
   self = [self initWithString: s];
   RELEASE(s);
   return self;
