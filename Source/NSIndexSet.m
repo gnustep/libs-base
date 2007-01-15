@@ -247,14 +247,26 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   unsigned		c = (_array == 0) ? 0 : GSIArrayCount(_array);
   unsigned		i;
 
+  if (c == 0)
+    {
+      return [NSString stringWithFormat: @"%@(no indexes)",
+        [super description]];
+    }
   m = [NSMutableString stringWithFormat:
-    @"%@[number of indexes: %u (in %u ranges), indexes: ",
+    @"%@[number of indexes: %u (in %u ranges), indexes:",
     [super description], [self count], c];
   for (i = 0; i < c; i++)
     {
       NSRange	r = GSIArrayItemAtIndex(_array, i).ext;
 
-      [m appendFormat: @"(%u-%u) ", r.location, NSMaxRange(r) - 1];
+      if (r.length > 1)
+        {
+          [m appendFormat: @" (%u-%u)", r.location, NSMaxRange(r) - 1];
+	}
+      else
+        {
+          [m appendFormat: @" (%u)", r.location];
+	}
     }
   [m appendString: @"]"];
   return m;
