@@ -1,3 +1,8 @@
+2007-01-16  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Fixed url of build guide given in error message
+	when ffcall/ffi is not found.
+
 2007-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNetServices.m: Locking fix pointed out by Chris.
