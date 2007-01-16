@@ -1,11 +1,15 @@
-Introduction
-============
+	ftp.gnustep.org
+
+   	pub/daily-snapshots
+
+0.1 Introduction
+================
 
 If you are installing this package as part of the GNUstep core packages,
 read the file GNUstep-HOWTO for more complete instructions on how to
 install the entire GNUstep package (including this library).
 GNUstep-HOWTO is located in the gnustep-make package or at
-<http://www.gnustep.org>
+`http://www.gnustep.org'
 
    Other external libraries that you may need to install include:
 
@@ -44,8 +48,8 @@ configure are described below.
      make
      make install
 
-Configuration
-=============
+0.2 Configuration
+=================
 
 Configuration is performed by running the `configure' program at a
 shell prompt. You may want to use some of the optional arguments to the
@@ -63,10 +67,10 @@ packages, just to make sure.
    Also make sure you've read the machine-specific instructions for your
 particular operating system and CPU. These instructions come with the
 GNUstep-HOWTO and are also located at the GNUstep web site at
-<http://www.gnustep.org>.
+`http://www.gnustep.org'.
 
-Reading Command-Line Arguments
-------------------------------
+0.2.1 Reading Command-Line Arguments
+------------------------------------
 
 There are two features that change how GNUstep gets access to
 command-line arguments and environment variables (normally passed to
@@ -99,8 +103,8 @@ to pass the program arguments to NSProcessInfo (This would be done
 automatically if you use the NSApplicationMain function in a gui
 application).
 
-FFI Library
------------
+0.2.2 FFI Library
+-----------------
 
 GNUstep's NSInvocations and Distributed Objects code involves detailed
 manipulation of the stack and function calls using a library that
@@ -113,11 +117,11 @@ handling, but this rarely works on non-ix86 machines and is not
 supported.
 
    You need to have the ffcall libraries, which you can get from
-<ftp://www.gnustep.org/pub/gnustep/libs/> or
-<http://clisp.cons.org/~haible/>. You also need to have a special
+`ftp://www.gnustep.org/pub/gnustep/libs/' or
+`http://clisp.cons.org/~haible/'. You also need to have a special
 version of the Objective-C library if you are not using gcc 3.x (before
 gcc 3.0 the required hooks were not in the standard library). You can
-get this library from <ftp://www.gnustep.org/pub/gnustep/libs>.
+get this library from `ftp://www.gnustep.org/pub/gnustep/libs'.
 
    Support for the libffi library has also been added.  Current versions
 of libffi are only distributed with gcc version 3.x, although it is not
@@ -133,8 +137,8 @@ something like:
    To enable this in the gnustep-base library, use the configure option
 `--enable-libffi'.
 
-OpenSSL
--------
+0.2.3 OpenSSL
+-------------
 
 GNUstep base has optional support for using the OpenSSL libraries for
 secure URL connections (with the NSURL classes). This functionality is
@@ -144,8 +148,8 @@ replacement, it can quickly be used by creating another bundle. The
 openssl libraries need to be installed for this to work.  To disable
 this option add `--disable-openssl' when running the `configure' script.
 
-Compilation
-===========
+0.3 Compilation
+===============
 
 To compile this library, type make. After this is complete, type make
 install (make sure you are the root user). Some additional options you
