@@ -1358,7 +1358,7 @@ if test $ffi_ok = no; then
     echo "If you really want to build -base without DO support, add --disable-do"
     echo "to the configure arguments."
     echo "For more information, read the GNUstep build guide, ffcall section:"
-    echo "http://documents.made-it.com/GNUstep/buildguide.html#FOREIGN.FUNCTION.INTERFACES"
+    echo "http://gnustep.made-it.com/BuildGuide/index.html"
     AC_MSG_ERROR([Incomplete support for ffi functionality.])
   fi
   AC_MSG_WARN([Incomplete support for ffi funtionality.])
