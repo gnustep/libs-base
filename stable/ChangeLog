@@ -1,0 +1,3297 @@
+2007-01-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Version 1.13.1
+
+2007-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDecimalNumber.m: ([initWithBytes:objCType:]) Use the
+	default locale to produce string.
+
+2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: backport fix for crash when initialising with
+	lots of frameworks.
+
+2007-01-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: backport check for scheme in URL.
+
+2006-12-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: backport keyed archiving fix.
+
+2006-11-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: backport buffer overflow fixups from trunk.
+
+2006-11-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	Merge bugfixes for socket reuse from trunk.
+	* configure.ac:
+	Cope with getting location of config file from more recent gnustep-make
+	Version: Update subminor number for bugfix release
+
+2006-11-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: merge bugfix from trunk.
+
+2006-11-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m:
+	* Source/NSPropertyList.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSString.m:
+	* Source/NSDecimalNumber.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSMime.m:
+	* Source/NSConnection.m:
+	* Source/NSIndexSet.m:
+	* Source/NSSortDescriptor.m:
+	* Tools/AGSHtml.m:
+	* Tools/autogsdoc.m:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	Backport bugfixes from trunk
+
+2006-08-28  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.13.0
+
+2006-08-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: Fix passing int variable to printf format
+	expecting long.
+	* Source/NSTask.m: create windows task as detached process.
+	* NSTimeZones/NSTimeZones./tar: regenerated
+
+2006-08-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSScanner.m: initialisation fix pointed out by David Ayer
+	* Source/NSBundle.m: fix for getting class from gnustep bundle
+	* Source/NSConnection.m: thread deadlock fix based on probelm and
+	solution supplied by Wim Oudshoorn
+	* Source/NSArchiver.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSPortCoder.m: Fix possible problem on 64bit CPUs reported
+	by Wim.
+
+2006-08-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSCharacterSets/letterCharSet.dat:
+	* NSCharacterSets/symbolAndOperatorCharSet.dat:
+	* NSCharacterSets/lowercaseLetterCharSet.dat:
+	* NSCharacterSets/uppercaseLetterCharSet.dat:
+	* NSCharacterSets/alphanumericCharSet.dat:
+	* NSCharacterSets/punctuationCharSet.dat:
+	* NSCharacterSets/illegalCharSet.dat:
+	* NSCharacterSets/decimalDigitCharSet.dat:
+	* NSCharacterSets/nonBaseCharSet.dat:
+	* NSCharacterSets/decomposableCharSet.dat: Update for chinese etc.
+	* Source/NSCharacterSetData.h: Update with ranges in UnicodeData.txt
+	* Source/GSStream.m: Add partial implemenmtation of socks5
+	* Source/Additions/GSMime.m: improve fault tolerance when parsing
+	headers.
+
+2006-08-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: substring_c(), substring_u() move structure type
+	declaration out of function to help old (pre-gcc-3) compiler, as
+	suggested by Adam.
+	* Source/NSString: ([dataUsingEncoding:allowLossyConversion:]}
+	replace implementation with call to concrete subclass so that we only
+	have one version of this large, complex method to maintain, as
+	suggested by David.
+
+2006-08-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedArchiver.m: make a guess at how MacOS-X decides to
+	encode objects directly ... if the classForKeyedArchiver method
+	returns a property list class (other then array and dictionary
+	which contain other objects) we try direct coding.
+
+2006-08-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.m: optimise a bit and fix bug where utf8 (and other
+	multibyte encodings) strings could be truncated at the wrong
+	precision.
+	* Source/NSIndexPath.m: ([indexAtPosition:]) return NSNotFound if
+	given a bad position. ([compare:]) fix to match MacOS-X
+	* Source/NSObject.m: implement CRASH_ON_ZOMBIE
+	* Documentation/Base.gsdoc: document it.
+	* Source/NSArray.m: Fix error in decoding from keyed archive.
+
+2006-08-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: getCString_c() call getCString_u() to do the
+	work if external encoding != internal encoding.
+	* Source/NSScanner.m: Fix for utf8
+	* Source/GSFormat.m: remove call to deprecated method.
+	* Source/NSString.m: remove calls to deprecated methods.
+	Fix getCstring... by using concrete class implementation.
+
+2006-08-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Fixup for path validation error on mingw32
+	* Headers/Foundation/NSStream.h: improve documentation.
+	* Source/GSStream.h:
+	* Source/GSStream.m:
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	Add lots of error checking, simplify a little, get local streams on
+	mingw to close down properly.
+
+2006-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	Fix error in pipe read offset.  Imitial implementation of local
+	'unix domain sockets' (actually named pipe) stream.
+
+2006-08-10  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Fixed typo in help of --with-default-config option.
+	* configure: Regenerated
+
+2006-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSStream.h:
+	* Source/GSStream.m:
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	Ensure all events are posted.  Fixup for winsock write signalling.
+
+2006-08-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc: Improve links to macros.
+	* Headers/Foundation/NSObject.h: Improve versioning documentation
+	* Headers/Foundation/NSNotificationQueue.h: tidied
+	* Headers/Foundation/NSUndoManager.h: ditto
+	* Headers/Foundation/NSAutoreleasePool.h: ditto
+	Documentation improvements and header tidyups.
+
+2006-08-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSStream.h:
+	* Source/GSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	* Source/unix/NSStream.m:
+	If a connection attempt fails, propagate error to sibling stream so
+	both streams in the pair get a failure.
+	Try to make behavior of socket streams MacOs-X like, avoiding repeated
+	notifications of events.
+
+2006-08-07 00:13-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSData.m: Correct issue in initWithCoder: and encodeWithCoder:
+	with encoding data using keyed archiver.
+
+2006-08-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: Reorganize initialisation of scanner to avoid
+	implicit cast of zero to a va_listt (fix bug #17336)
+	* Source/Additions/GSObjCRuntime.m: GSObjCMakeClass() fix incorrect
+	calculation of ivar size/offset information as reported in bug #17069
+
+2006-08-04 23:26-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSKeyedArchiver.m: in _encodeObject:forKey: use replacement
+	if it exists.
+	* Source/NSKeyedUnarchiver.m: in unarchiveObjectWithFile: remove
+	autorelease pool, since the unarchiveObjectWithData: object is 
+	already autoreleased, this was causing a crash when unarchiving the
+	object.
+
+2006-07-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Remove a couple of comments
+	* Headers/Additions/GNUstepBase/GSMime.h: Add improved documentation
+	for the bas64 conversion methods.
+
+2006-07-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: Reinstate fix of 2006-07-14 which was 
+	erroneously reverted on 2006-07-15.
+
+2006-07-19  Jeremy Bettis <jeremy@deadbeef.com>
+
+	* Source/win32/NSUserDefaultsWin32.m:
+	The method wantToReadDefaultsSince:
+	was always returning YES.  Fixed to work as intended.
+	
+2006-07-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Only queue a new read on a handle if there
+	is not one in progress.  Where a connection has been kept alive, we
+	can have an outstanding read intended to determine when the connection
+	is dropped by the remote end.
+
+2006-07-15 17:00 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSKeyedUnarchiver.m: Partial fix for bug#17112.
+
+2006-07-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: ([-dealloc]) release objects in array
+	to fix bug #17097
+
+2006-07-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Resources/Languages/README: describe how to deal with files where
+	the BOM is missing.
+	* Resources/Languages/Korean: update supplied by YunSong Hwang
+
+2006-07-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: remove unnecessary include of config.h
+
+2006-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: On mingw32 create subtask with CREATE_NO_WINDOW
+	* Source/GSURLPrivate.h: Generalise GSHTTPAuthentication
+	* Source/GSHTTPAuthentication.m: Generalise to support Basic auth
+	* Source/NSURLProtectionSpace.m: Optimise a little.
+	* Source/GSHTTPURLHandle.m: Changes for GSHTTPAuthentication update.
+	Don't send basic authentication info unless challenged by server.
+
+2006-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Keep count of challenge/authentication
+	to avoid recycling the same authentucation repeatedly.
+
+2006-06-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Tools/gdnc.m: Don't try to trap SIGPROF
+	* Source/GSString.m: fix bug getting Cstring.
+	* Source/NSNotificationQueue.m: fix mem leak in multithreaded apps.
+
+2006-06-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Fix spelling in comment
+	* Source/NSPathUtilities.m: Add GNUSTEP_EXTRA to allow extra info
+	in GSConfigDomain without producing an error message.
+	* Documentation/Base.gsdoc: Document GNUSTEP_EXTRA
+
+2006-06-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: small optimisation for initialisation with
+	unicode data which happens to be just ascii.
+
+2006-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPDigest.m: deleted
+	* Source/GSHTTPAuthentication.m: added
+	* Source/GNUmakefile: build GSHTTPAuthentication 
+	* Source/GSHTTPURLHandle.m: use GSHTTPAuthentication
+	Change class name to something more intuitive and add class methods
+	for mapping domains/URLs to protection space objects.
+	Update code to used cache protection space info to put digest
+	authorisation in place without waiting for challenge.
+
+2006-06-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSURLPrivate.h: Add GSHTTPDigest interface.
+	* Source/GSHTTPDigest.m: Add GSHTTPDigest implementation.
+	* Source/GNUmakefile: Build GSHTTPDigest.
+	* Source/NSURLProtectionSpace.m: Implement ([-hash]) and ([-isEqual:])
+	* Headers/Foundation/NSURLAuthenticationChallenge.h: Improve comments.
+	Add GSHTTPDigest class to handle HTTP digest authentication.
+	* Source/GSHTTPURLHandle.m: Perform rudimentary digest authentication.
+
+2006-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix memory leak.
+	* Source/NSAutoreleasePool.m: Optimise -emptyPool method.
+	* Source/NSRunLoop.m: Empty autorelease pool after firing each
+	timer/event so that huge memory footprints are less likely to occur.
+
+2006-06-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURLCredential.h:
+	* Headers/Foundation/NSHTTPCookieStorage.h:
+	* Headers/Foundation/NSURLAuthenticationChallenge.h:
+	* Headers/Foundation/NSHTTPCookie.h:
+	* Headers/Foundation/NSURLError.h:
+	* Headers/Foundation/NSURLProtectionSpace.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSURLRequest.h:
+	* Headers/Foundation/NSURLCredentialStorage.h:
+	* Headers/Foundation/Foundation.h:
+	* Headers/Foundation/NSURLResponse.h:
+	* Headers/Foundation/NSURLConnection.h:
+	* Headers/Foundation/NSURLProtocol.h:
+	* Headers/Foundation/NSURLCache.h:
+	Headers for Apple's new URL loading scheme (including documentation).
+	* Source/NSMapTable.m:
+	* Source/NSURLCredential.m:
+	* Source/NSURLAuthenticationChallenge.m:
+	* Source/NSURLHandle.m:
+	* Source/GNUmakefile:
+	* Source/NSURLDownload.m:
+	* Source/NSURLCredentialStorage.m:
+	* Source/NSURLResponse.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLCache.m:
+	* Source/NSHTTPCookieStorage.m:
+	* Source/NSURL.m:
+	* Source/DocMakefile:
+	* Source/NSHTTPCookie.m:
+	* Source/NSURLProtectionSpace.m:
+	* Source/NSURLRequest.m:
+	* Source/NSSet.m:
+	* Source/NSURLConnection.m:
+	Skeleton code for Apple's new URL loading scheme (plus minor
+	tweaks to comments in other files).  This code is not expected
+	to work yet.  Major lacks are ...
+	1. concrete implementations of protocols
+	2. on disk cache/storage management
+	3. thread safety (locking) for shared objects
+	However, I hope it will provide a good starting framework.
+
+2006-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Additions/GNUstepBase/GSXML.h: New XMLRPC settings to control
+	timezone and to produce compact output.
+	* Source/Additions/GSXML.m: New methods and bugfix for handling
+	string data with no 'string' element markup.
+	* Additions/GNUstepBase/GSMime.h: Fix possible cases of parsing
+	saying that it needs more data when you have passed it an empty
+	data item to terminate parsing.
+
+2006-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: ([initWithScheme:host:path:]) escape characters in
+	path as required.
+
+2006-06-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexPath.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSTimeZone.m:
+	* Source/NSPortCoder.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSAttributedString.m:
+	* Source/GSArray.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSUnarchiver.m:
+	* Source/GSAttributedString.m:
+	* Source/Additions/GCArray.m:
+	* Source/Additions/GCDictionary.m:
+	* Source/Additions/GCObject.m:
+	* Source/NSNumber.m:
+	* Source/GSString.m:
+	* Source/NSConnection.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSThread.m:
+	* Source/NSData.m:
+	* Source/NSDate.m:
+	* Source/NSNull.m:
+	* Source/NSValue.m:
+	* Source/NSPortNameServer.m:
+	* Headers/Additions/GNUstepBase/preface.h.in:
+	Fixups to avoid spurious compiler warnings.
+
+2006-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Fix uninitialised variable problem.
+
+2006-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix position of external function declaration.
+	Fix use gf getCString methods for length error.
+	* Headers/Foundation/NSGeometry.h: Tweaks for stuff reported as
+	problematic with objective-c++ compile.
+
+2006-05-30  David Ayers  <d.ayers@inode.at>
+
+	* Source/GSPrivate.h (GSCharPtr): New union type to handle
+	alignment issues.
+	(GSString): Use it.
+	* Source/GSString.m
+	([-initWithBytesNoCopy:length:encoding:freeWhenDone:]): Use GSCharPtr
+	instead of casts to avoid alignment issues.  Fix typo's.
+
+	* Source/NSString.m
+	([-initWithBytesNoCopy:length:encoding:freeWhenDone:]): Correct grammar
+	in comment.
+	
+2006-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Use 'goto' to jump to 'done' label on
+	failure to grow buffer, rather than 'break' ... because the GROW()
+	macro is not aways called where a break gets you to the right place.
+	Fixes bug spotted by David Ayers, and is also clearer code.
+
+2006-05-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/objctidy.m: Crude utility to help importing code into
+	GNUstep by trying to reformat common style differences to something
+	like iour coding standards.
+
+2006-05-25  Andrew Ruder <andy@aeruder.net>
+	* Source/NSConcreteNumberTemplate.m (from NSConcreteNumber.m):
+	* Source/GSConcreteValueTemplate.m (from GSTemplateValue.m):
+	* Source/GNUmakefile:
+	* Source/Makefile.postamble:
+	* Source/GSConcreteValue.m (added):
+	* Source/NSConcreteNumber.m (added):
+	Get rid of use of sed to generate concrete NSNumber/NSValue classes.
+	Use preprocessor to get around generation of additional files.
+	
+2006-05-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: Restore last changes with varargs rewrite
+	using va_copy to try to make code portable.  This version compiles
+	on systems where va_list is not a simple pointer, but is untested.
+	* Source/GSString.m: Use GSIsByteEncoding() to test whether an
+	encoding can hold ascii data.
+
+2006-05-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m:
+	* Source/NSBundle.m:
+	* Source/NSPropertyList.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSPage.m:
+	* Source/NSCallBacks.m:
+	* Source/NSSortDescriptor.m:
+	* Source/NSFileManager.m:
+	* Source/objc-load.m:
+	* Source/NSException.m:
+	* Source/NSString.m:
+	* Source/mframe.m:
+	* Source/cifframe.m:
+	* Source/Additions/Unicode.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSNextRuntime.m:
+	* Source/NSConnection.m:
+	* Source/callframe.m:
+	Tidy up uses of malloc etc to all go through objc_malloc and friends.
+
+2006-05-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Fix some cases where parse was saying
+	it needed more data even though it had actually completed.
+	* Source/NSException.m: Don't add stacktrace information if we are
+	not building with debug on.
+	* Source/GSString.m: Minor optimisation ... return @"" for all
+	substrings with a zero length range.
+
+2006-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSerializer.m: Fix longstanding deserialisation problem ...
+	is not retaining cross-referenced items... which is not a problem unless
+	the item happens to be a dictionary key which is copied/released
+	when the corresponding value is added to the dictionary.
+	* Source/GSString.m: Make sure inline strings have 'free' flag set and
+	add comments to say we use it to indicate ownership of buffer rather
+	than whether to free the data.  Maybe we should change the flag name?
+	* Source/Additions/Unicode.m: Fix missing brackets in byte order
+	handling for UTF-16.  Problem pointed out by David Ayers
+
+2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Restore reversions with a bugfix for deserialising ascii strings
+
+2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Revert last changes ... passed regression tests but broke some
+	software :-(
+
+2006-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m:
+	* Source/NSSerializer.m:
+	Commit more string tidyups and simplifications made while I was
+	travelling.  Changed private internal string subclasses so that
+	they can't be re-initialised ... all instances are initialised
+	'manually' rather than through a method that could be called by
+	other code outside this file ... thus all initialisation by external
+	code goes through ([-initWithBytesNoCopy:length:encoding:shouldFree])
+	method of the placeholder string.
+
+2006-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Fix error when parsing response with no
+	content.
+	* Source/NSPredicate.m: Revert to previous version as last change
+	contained broken code and wouldn't compile.
+	* Source/NSKeyValueCoding.m:
+	* Source/GSArray.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSInvocation.m:
+	* Source/NSCoder.m:
+	* Source/NSObject.m:
+	* Source/Additions/GSCategories.m:
+	* Headers/Foundation/NSLock.h:
+	* Tools/AGSHtml.m:
+	* Tools/autogsdoc.m:
+	Use casts to avoid spurious warnings from gcc-4.1
+
+2006-05-15  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPredicate.m:
+	Extracted all the parsing into a speparate class
+	GSPredicateScanner. This change is based on code by Nikolaus
+	Schaller <hns@computer.org>, but extends this.
+
+2006-05-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m:
+	* Source/GSString.m:
+	Change to use ([initWithBytesNoCopy:length:encoding:freeWhenDone:])
+	as the primary/designated initialiser for strings and update code
+	to fix character encoding errors when copying mutable strings in
+	a UTF8 locale (ie where the internal encoding for 8bit strings is
+	not the same as the external encoding).
+	WARNING ... this is a restructuring of functionality which is core
+	to the library.  Please use with care and report any bugs found.
+
+2006-05-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: validate UTF-16 data when producing a Cstring
+	* Source/NSCharacterSetData.h: Add code plane 16 (private use)
+	* Source/NSCharacterSet.m: Fix to support code plane 16
+	* Source/GSString.m: Attempt to fix error making a mutable copy of
+	an 8bit string when the external Cstring encoding is not the same as
+	the internal one. Use new initWithBytes... method specifying the
+	encoding used in those cases.
+
+2006-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSBundle.h: add ([bundleWithIdentifier:])
+	* Source/NSBundle.m: implement ([bundleWithIdentifier:]) and prevent
+	loading of multiple bundles with the same non-nil identifier.
+	Use standardised path as cache key to prevent same bundle being
+	loaded multiple times via symlinks etc.
+	* Source/NSMessagePortNameServer.m: Fixup for names which contain bad
+	characters for in a filename.
+	* Source/win32/NSMessagePortNameServerWin32.m: ditto
+
+2006-05-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Check for content-length specified as
+	zero, and mark parsing as complete without attempting to read body.
+
+2006-05-09 Nicolas Roard <nicolas@roard.com>
+
+	* Source/NSSortDescriptor.m: use -valueForKeyPath: instead 
+        of -valueForKey:. Patch from Saso Kiselkov <diablos@manga.sk>.
+
+2006-05-09 Dr. H. Nikolaus Schaller
+
+	* Source/GNUmakefile:
+	* Source/NSPredicate.m:
+	* Headers/Foundation/NSCompoundPredicate.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSPredicate.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/Foundation.h:
+	Basic implementation of NSPredicate and related classes.
+
+2006-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for bfd stuff for stacktrace support.
+	* Source/NSException.m: incorporate code by Lloyd Dupont and Wim
+	Oudshoorn to add a stack trace to a raised exception. Cleaned up
+	and made to conform to coding standards.  Rewrote code to build
+	list of binary files from NSBundle.
+	EXPERIMENTAL!  Turn this on by building with STACKTRACE defined
+
+2006-05-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ignore profile/debug extensions in library name
+	when looking for library bundles.
+
+2006-05-06  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Resources/Languages/Esperanto: New language file.
+	* Resources/Esperanto.lproj/Localizable.string: New string
+	translations. Patch by Ingolf Jandt <i.jandt@web.de>.
+	* Resources/Languages/Korean: New language file.
+	* Resources/Korean.lproj/Localizable.string: New string
+	translations. Patch by Hwang YunSong <hys545@dreamwiz.com>.
+	* Resources/GNUmakefile: Added new languages.
+	
+2006-05-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSBundle.h: fix type of _bundleClasses
+	* Source/NSBundle.m: Try to make bundles for libraries behave as
+	well as possible with respect to the code in the libraries.
+	Rather depends on the Info.plist in the resource directory
+	specifying an NSPrincipalClass so that we can look up that
+	class at runtime and determine the file it came from.
+	Added documentation to mmake it clear that this is not
+	reliable (eg impossible for static or non-existent libraries).
+
+2006-04-30  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSString: Define _GNU_SOURCE to make protoype of fwprintf
+	visible.
+
+2006-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: Fix decoding of NSNull objects.
+	* Source/Additions/GSXML.m: Ensure that calls to parse documents
+	handle the success/failure value returned. Improve exception info.
+
+2006-04-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Fix error unescaping uppercase hex digits.
+
+2006-04-26  Saso Kiselkov
+
+        * Headers/Foundation/NSException.h: Support native exceptions.
+	
+2006-04-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Correction to millisecond fix ... for
+	bug #16426
+	* Resources/GNUmakefile: Fix installation of Ukrainian language.
+	* Source/NSProcessInfo.m: Always use UTF16 args on mingw32.
+
+2006-04-26  Hubert Chan
+
+	* config/config.align.c: force compiler not to optimise away the
+	code being tested ... fixes bug #16342
+
+2006-04-26  Marcus Muller
+
+	* Source/NSKeyValueCoding.m: Fix bug #16386
+
+2006-04-26  Sergii Stoian <stoyan255@ukr.net>
+
+	* Resources/Languages/Russian: Updates and fixes
+	* Resources/Languages/Ukrainian: New file
+	* Resources/Languages/UkrainianRussian: Removed wrong file
+	
+2006-04-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Avoid a couple of minor rounding errors
+	by using floating point constants for millisecond multipliers.
+
+2006-04-24  Alex Perez  <aperez@alexperez.com>
+
+	* Source/NSProcessInfo.m: Elaborated upon the 
+	GNU_MISSING_MAIN_FUNCTION_CALL error message, adding a section about 
+	the most common cause of the error being mismatched gui and base
+	library versions. Feel free to make more clear or re-word.
+
+2006-04-17  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSTimeZone.m: Remove space in @ string define (causes
+	problems with gcc 2.95).
+
+2006-04-14  Jeremy Bettis <jeremy@deadbeef.com>
+	* Source/win32/GSFileHandleWin32.m: Fix background reading of pipes.
+	Several changes for Openstep compatiblity: Don't queue notification,
+	don't raise exception when asked to read while a background operation
+	is in progress.
+	* Source/win32/GSRunLoopCtxt.m: If there are no handles to block on
+	but there is a timer, sleep until the timer needs to wake up.
+
+2006-04-12  Jeremy Bettis <jeremy@deadbeef.com>
+	* Source/NSTimeZone.m: Use native time zone files under Solaris.
+	* Source/GSFFCallInvocation.m: If the returning context is expecting
+	a void* but we have a different return type just cast it. This
+	normally is because the method was not declared and has defaulted
+	to returning id.
+	* Source/win32/NSUserDefaultsWin32.m: Write defaults to registry as
+	unicode strings, read in either unicode(REG_SZ) or ascii(REG_BINARY).
+	* Source/win32-load.h: In mingw, fileSystemRepresentation is unicode
+	* Source/objc-load.m: In mingw, fileSystemRepresentation is unicode
+	* Source/NSPropertyList.m (propertyListFromData:mutabilityOption:format:errorDescription:):
+	Don't call memcmp if the data is smaller than 8 bytes.
+	* Source/NSFileManager.m (isExecutableFileAtPath:):
+	Added a comment
+	* Source/NSBundle.m (objc_executable_location):
+	A cast was obsuring a misuse of fileSystemRepresentation
+		
+2006-04-10  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m (BinaryPLGenerator - storeCount:):
+	Corrected line forgotten when applying last patch.
+
+2006-04-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: ([GSSAXHandler-dealloc]) fix memory leak.
+
+2006-04-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: When loading localisation striong files, check
+	the character encoding used and warn if it's not portable and may
+	be producing incorrect messages due to the current default C string
+	encoding not being the same as the one the file was created in.
+
+2006-04-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSetData.h: Updated to version with comments.
+
+2006-03-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: Add a class for autoreleased
+	memory so it is clearer when using object allocation debugging.
+
+2006-03-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix error initialising mutable string from
+	unicode char array conmtaining ascii characters.
+	Fix a few memory mleaks.
+
+2006-03-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSStreamWin32.m: Various tidyups for pipe streams.
+	* Source/NSDictionary.m: Avoid compiler warning.
+	* Headers/Additions/GNUstepBase/Unicode.h: Add validation function.
+	* Source/Additions/Unicode.m: Add unicode validation function and
+	alter UTF8 handling to be stricter.
+	* Source/GSString.m: validate unicode when initialising a string.
+	Also create 8bit data strings rather than 16bit where possible.
+
+2006-03-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSRunLoopCtxt.h:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	Tidy/improve removal of triggered watchers from outer contexts.
+	* Source/NSDictionary.m: ([valueForKey:]) conform to MacOS spec
+
+2006-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/GSRunLoopWatcher.m: deleted
+	* Source/win32/GSRunLoopWatcher.m: deleted
+	* Source/GSRunLoopWatcher.m: combine drom subdirectories.
+	* Source/GNUmakefile:
+	* Source/NSSocketPort.m:
+	* Source/NSRunLoop.m:
+	* Source/GSRunLoopWatcher.h:
+	* Source/GSStream.h:
+	* Source/GSStream.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/unix/GNUmakefile:
+	* Source/unix/NSStream.m:
+	* Source/GSRunLoopCtxt.h:
+	* Source/NSMessagePort.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/win32/GNUmakefile:
+	* Source/win32/NSStreamWin32.m:
+	* Source/NSThread.m:
+	* Source/GSFileHandle.m:
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Additions/GNUstepBase/GSFileHandle.h:
+	Remove timeout facility for runloop watchers ... can use standard
+	timers instead.  This simplifies api/code somewhat.
+	Added new watcher type ET_TRIGGER to count as an input source for
+	the runloop but work by polling rather than waiting for I/O events.
+	This allows NSStream objects to be added to the runloop even if
+	they don't do real I/O (eg memory streams).
+	Added private internal API to allow watchers to adjust how the loop
+	deals with them for each iteration... needed to simulate unix like
+	level-triggered events on windows where events are edge triggered.
+	Rewrote NSStream code to put handling of runloop scheduling in the
+	abstract classes rather than repeat in every subclass.
+	Rewrote NSStream stuff to use new runloop mechanisms to support
+	memory and file streams in runloops.
+	Implemented pipe base NSStream for windows.
+
+2006-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m: Get rid of bogus '&nbsp;'
+	* Tools/AGSHtml.m: Fix error in display of category method index.
+
+2006-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/cifframe.h: Add code to try to get ffi muld to work on
+	mingw32
+	* GNUmakefile: Don't build SSL subproject for mingw32 as it
+	doesn't work.
+
+2006-03-17  Andrew Sveikauskas <asveikau@mail.rochester.edu>
+
+	* Source/thr-mach.h: include objc/objc-api.h
+	* Source/thr-pthread.m: use pthread_yield() except for apple
+	* Source/GNUmakefile: link pthread library on openbsd where it isn't
+	linked to the objc runtime.
+
+2006-03-13  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.12.0
+
+2006-03-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueCoding.m: Attempt to fix problems introduced into
+	keypath code and reported by Helge ... ensure kvc mnethods are called
+	for each element in the path.
+	* Source/inet_pton.c: fixup for mingw32
+	* Source/NSTimeZone.m: add missing include
+
+2006-03-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Allow for quoting of numeric/date values
+	in property lists.  Fixes bug #16068
+
+2006-03-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSXML.h: clarify documentation of
+	xml entity escaping methods.
+	* Headers/Foundation/NSInvocation.h: don't use 'class' as macro
+	argument ... should be hermless but is confusing to C++ programmers.
+
+2006-03-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m:
+	* Source/NSCalendarDate.m:
+	* Source/GSPrivate.h:
+	* Source/NSDate.m:
+	Reorganise/tidy to avoid making some private symbols external.
+
+2006-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/GSRunLoopCtxt.m: Don't hanlde windows messages unless
+	required.
+	* Source/win32/NSStreamWin32.m: Use fileSystemRepresentation rather
+	than cStringUsingEncoding:
+	* Source/NSCalendarDate.m: Support '%T' and '%t' in description.
+	* Source/NSFileManager.m: don't abort directory copy just because
+	we can't set attributes of destination directory.  Don't try to
+	copy directories with their old owners.
+	* Source/Additions/GSXML.m: Support #x and #X unescaping.
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSBundle.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSAttributedString.m:
+	* Source/NSArray.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/GSPrivate.h:
+	* Source/NSInvocation.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSCoder.m:
+	* Source/mframe.m:
+	* Source/Additions/GSCategories.m:
+	* Source/NSConnection.m:
+	* Source/GSPortPrivate.h:
+	* Source/NSThread.m:
+	* Source/NSNull.m:
+	* Source/NSDistantObject.m:
+	* Source/NSTask.m:
+	* Source/NSPortNameServer.m:
+	* Headers/Foundation/NSTimeZone.h:
+	* Headers/Foundation/NSHashTable.h:
+	* Headers/Foundation/NSRange.h:
+	* Headers/Foundation/NSCoder.h:
+	* Headers/Foundation/NSException.h:
+	* Headers/Foundation/NSByteOrder.h:
+	* Headers/Foundation/NSPortCoder.h:
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSCalendarDate.h:
+	* Headers/Foundation/NSDecimalNumber.h:
+	* Headers/Foundation/NSKeyValueCoding.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSSerialization.h:
+	* Headers/Foundation/NSURLHandle.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSTimer.h:
+	* Headers/Foundation/NSNotification.h:
+	* Headers/Foundation/NSScanner.h:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSDistributedNotificationCenter.h:
+	* Headers/Foundation/NSGeometry.h:
+	* Headers/Foundation/NSAttributedString.h:
+	* Headers/Foundation/NSDecimal.h:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSUndoManager.h:
+	* Headers/Foundation/NSDateFormatter.h:
+	* Headers/Foundation/NSMethodSignature.h:
+	* Headers/Foundation/NSAutoreleasePool.h:
+	* Headers/Foundation/NSFormatter.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSThread.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSDate.h:
+	* Headers/Foundation/NSHost.h:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSProxy.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Headers/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSProtocolChecker.h:
+	* Headers/Foundation/NSDebug.h:
+	* Headers/Foundation/NSPortMessage.h:
+	* Headers/Foundation/NSError.h:
+	* Headers/Foundation/NSDistributedLock.h:
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	* Headers/Foundation/NSDictionary.h:
+	* Headers/Foundation/NSClassDescription.h:
+	* Headers/Foundation/NSNull.h:
+	* Headers/Foundation/NSZone.h:
+	* Headers/Foundation/NSValue.h:
+	* Headers/Foundation/NSIndexSet.h:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSSortDescriptor.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSSet.h:
+	* Headers/Foundation/NSDistantObject.h:
+	* Headers/Foundation/NSTask.h:
+	* Headers/Foundation/NSCharacterSet.h:
+	* Headers/Foundation/NSInvocation.h:
+	* Headers/Foundation/NSUtilities.h:
+	* Headers/Foundation/NSPortNameServer.h:
+	* Headers/Foundation/NSNumberFormatter.h:
+	* Headers/Foundation/NSXMLParser.h:
+	* Headers/Foundation/NSEnumerator.h:
+	* Headers/Foundation/NSMapTable.h:
+	* Headers/Additions/GNUstepBase/DistributedObjects.h:
+	* Headers/Additions/GNUstepBase/GSCategories.h:
+	Tidied a bit ... wrap some long lines.
+	Remove some old deprecated API.
+	Move some internal API out of external headers.
+	Deprecate a few non-standard API features.
+	Move a bit of non-standard API to the additions library.
+
+2006-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopWatcher.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Headers/Foundation/NSRunLoop.h:
+	Add initial attempt at code for adding streams to runloops ...
+	as yet untested and not integrated into the NSStream code.
+	Remove documentation for GNUstep specific loop watcher API and
+	add comments to say that it may be deprecated in a later
+	release if/when we move to using NSStream throughout.
+	* configure.ac: minor documentation corrections.
+	Don't allow environment variable to confuse setup of file location.
+	* configure: regenerated
+
+2006-03-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Optimise timer handling a little and fix very
+	minor bug which would cause runloop to run an extra time on some
+	occasions.
+	* Tools/gdomap.c: Include config.h
+	* configure.ac: Support config file environment variable by default
+	* configure: Regenerate
+	* Documentation/Base.gsdoc: Document default setting for env variable
+
+2006-03-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Rewrite housekeeping timer.
+	* Source/GSRunLoopCtxt.h: Remove obsolete message/selector.
+	* Source/win32/GSRunLoopCtxt.m: Add housekeeping timer.
+	* Source/win32/NSRunLoopWin32.m: remove unused code.
+	* Source/win32/GNUmakefile: remove /NSRunLoopWin32.m
+	* Source/win32/NSStreamWin32.m: minor tidyups
+	* Source/NSThread.m: Use new internal API for housekeeping timer.
+	* Headers/Foundation/NSRunLoop.h: Remove deprecated mingw api
+	Basically, remove deprecated mingw32 specific api, and change
+	housekeeper to try to make it as invisible as possible in terms of
+	side effects.
+	* Source/NSFileManager.m: Fix mingw determination of the ownership
+	of a directory.
+
+2006-03-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Check for HAVE_STDINT_H for safety of include
+
+2006-03-01  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add check for inet_pton. Also check for make-
+	specified GNUstep.conf file
+	* config.make.in: Add variable for inet_pton
+	* Source/inet_pton.c: New file
+	* GNUmakefile: Use it if needed.
+
+2006-03-01  Derek Zhou <dzhou@nvidea.com>
+
+	* Source/GSStream.m: Typo fixes
+	* Source/win32/NSStreamWin32.m: rewrite
+
+2006-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/NSStream.m: Final (hopefully) ifdef to disable ipv6
+	so systems which don't have it can compile.
+
+2006-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/NSStream.m: More portability fixups ... use
+	AF_UNIX and PF_UNIX if AF_LOCAL and PF_LOCAL are not avaulable.
+	Check for PF_INET6
+	* Tools/gdomap.c: include stdint.h for uint32_t on systems
+	where it's not included by other headers.
+
+2006-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Helge spotted thread safety issues with
+	the code controlling warnings and the external entity loader.
+	Changed code to modify internals of the parser context and SAX
+	context to set the values in there directly rather than using the
+	global setter mechanism (strangely recommended in the libxml2 docs),
+	so that all setup is made to the individual parser and should not
+	effect other parsers in other threads.
+	* Source/NSUndoManager.m: ([-removeAllActions]) fixed to remove any
+	grouping in progress.
+	
+2006-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSString.h: Correct return type for
+	([getCString:maxLength:encoding])
+	* Source/NSString.m: ([getCString:maxLength:encoding]) make
+	implementation match MacOS-X implementation rather than their docs.
+	Change API for setting path handling mode to be a function we can
+	call before any string/path operations.  Maybe final API to be made
+	public?
+	Path handling tweaks based on discussion at FOSDEM
+	* Source/GSString.m: ([getCString:maxLength:encoding]) implemented.
+	* Source/unix/NSStream.m: Portabiulity fixups ... use EPROTO only
+	if defined and use dummy implementations of inet6 cclasses if AF_INET6
+	is not defined.
+	* Source/NSKeyValueCoding.m: Some optimisation suggested by Helge ...
+	rewrite key path methods to loop rather than recurse.
+	* Source/GSFFIInvocation.m: Avoid compiler warning
+	* Source/NSURL.m: use new getCString... method
+	* Source/NSSerializer.m: ditto
+	* Documentation/Base.gsdoc: Remove env variable to set path handling.
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Slight change to
+	functions for KVC to allow faster implementation.
+	* Source/Additions/GSObjCRuntime.m: ditto
+
+2006-02-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZone.m: Fix bug in GMT+/-NNNN timezone initialisation so that
+	negative offsets work.  Implement GMT and synonyms as internal
+	absolute timezones.  Implement GMT-14 to GMT+14 as absolute timezones.
+
+2006-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Restructure for lazy creation of defaults
+	database ... only create when we attempt to write.
+	* Source/NSSocketPort.m: Include GSPrivate.h
+	* Source/NSRunLoop.m: ditto
+	* Source/unix/GSRunLoopCtxt.m: ditto
+	* Source/GSPrivate.h: ditto
+	* Source/win32/GSFileHandleWin32.m: ditto
+	* Source/win32/GSRunLoopCtxt.m: ditto
+	* Headers/Foundation/NSNotificationQueue.h: Move library internal
+	function declarations to GSPrivate.h, thanks to Lloyd Dupont for
+	spotting problem.
+
+2006-02-23  Sheldon Gill  <sheldon@westnet.net.au>
+
+	* Source/Additions/GSXML.m: URL munging for local DTD cache fixed for
+	Win32 filesystems
+
+2006-02-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Fix parsing error .. was not recognising
+	base64 elements.
+	* Headers/Foundation/NSPathUtilitites.h: Expand config documentation
+	* NSTimeZone.m:
+	* NSPathUtilities.m:
+	* NSPage.m:
+	* NSException.m:
+	* NSLog.m:
+	Fix some MINGW32 conditional compilation to use __MINGW32__
+
+2006-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Ensure that NSBundle is initialised before
+	changing the current directory.
+	* Source/NSBundle.m: Restructure for lazy evaluation of path to
+	executable ... lots of apps never need it.
+	* Source/NSTimeZone.m: Protect some class methods using locking, and
+	provide (slow) fallback mechanisms if some of the files are missing,
+	including fallback to posix stuff in zoneinfo directory if we really
+	have to.
+
+2006-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: regenerated.
+
+2006-02-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Make config functions public.
+	* Headers/Foundation/NSPathUtilities.h: Declare config functions.
+	* Source/NSUserDefaults.m: Use config functions and add support
+	for new option to turn off external config file.
+
+2006-02-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Fix bug dereferencing nul pointer under
+	some conditions.
+
+2006-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Implement method to get name of files
+	owner on mingw32.
+	* Source/NSPathUtilities.m: Check that user specific config file
+	is owned by user, as suggested by Sheldon.
+
+2006-02-16  Derek Zhou <dzhou@nvidea.com>
+
+	* Source/GSStream.h:
+	* Source/GSStream.m:
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	* Headers/Foundation/NSStream.h:
+	Add server side and pipe stream extensions along with a few fixes.
+
+2006-02-15  Andrew Ruder <aeruder@ksu.edu>
+
+	* Headers/Foundation/NSStream.h: NSRunLoop was not defined in
+	the NSStream header file. (Added @class NSRunLoop;)
+
+2006-02-15  Derek Zhou <dzhou@nvidea.com> Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSStream.h: New NSStream, NSInputStream and
+	NSOutputStream classes and constants.
+	* Headers/Foundation/Foundation.h: include NSStream.h
+	* Source/GSStream.h: Internal headers for GSStream and subclasses
+	* Source/GSStream.m: System independent parts of NSStream
+	* Source/unix/NSStream.m: Unix specific class implementations
+	* Source/unix/GNUmakefile: Build NSStream.m
+	* Source/win32/NSStreamWin32.m: Win32 placeholders
+	* Source/win32/GNUmakefile: Build NSStreamWin32.m
+	* Source/GNUmakefile: Build GSStream.m
+	* Source/DocMakefile: Build NSStream documentation
+	Partial implementation of NSStream ... missing SSL, SOCKS, and
+	Win32 (apart from memory streams).
+
+2006-02-15  Andrew Ruder <aeruder@ksu.edu>
+	* Headers/Foundation/NSString.h: Fixing the oldest bug in GNUstep?
+	The header has says NSObject since Andrew McCallum added the file
+	on March 18th, 1995 (Just short of 11 years ago).
+
+2006-02-14  Richard Frith-Macdonald <rfm@gnu.org>
+	* Source/GSFileHandle.m: ([-availabledata]) fix error in last change
+	as we should block, but not for more than a single byte.
+
+2006-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSCategories.m: Fix MD5 digest for 64bit CPU
+
+2006-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexPath.m: new
+	* Headers/Foundation/NSIndexPath.h: new
+	* Headers/Foundation/Foundation.h: include NSIndexPath.h
+	* Source/GNUmakefile: build NSIndexPath
+	* Source/DocMakefile: document NSIndexPath
+
+2006-02-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandleWin32.m: Ignore extraneous write events.
+	* Source/NSString.m: Don't insert native path separators by default.
+	* Source/NSProcessInfo.m: Report correct operating system on windows.
+
+2006-02-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: ([-availabledata])a fix logic of non-blocking
+	I/O setting.
+	* Source/NSBundle.m: ([-pathForResource:ofType:inDirectory:])
+	ignore versioning on windows.
+
+2006-02-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: (handle_printf_atsign()) extend to support wprintf.
+
+2006-02-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Try to use iconv transliteration for
+	lossy conversion.  When handling unconvertable characters in lossy
+	conversion, substitute a question mark rather than an asterisk for
+	consistency with iconv and other implementations.
+
+2006-01-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedLock.m: ([description]) implemented
+
+2006-01-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: ([addObject:]) fix error in check for
+	missing pool during thread exit.
+
+2006-01-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/plget.m: remove unused variable
+	* Source/GGSString.m: optimise ([canBeConvertedToEncoding:])
+	* Source/NSURL.m: correct misleading/wrong exception text.
+	* Source/NSString.m: mingw path handling tweaks ... build new
+	paths using native separator by default.
+
+2006-01-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSThread.h:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSThread.m:
+	Mimic MacOS-X behavior and create an autorelease pool if necessary
+	to catch any autorelease objects during thread exit.
+	As suggested by Wim Oudshoorn..
+
+2006-01-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: fix for rare case where we could corrupt
+	the stack ... spotted by Wim Oudshoorn.
+
+2006-01-18  Andrew Ruder <aeruder@ksu.edu>
+
+	* config/addlibrarypath.m4: new file
+	* configure.ac: Use new function to set library paths for netbsd
+	* configure: regenerate
+
+2006-01-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/plget.m: New file to extract a string from a plist.
+	* Tools/pldes.1: Include plget
+	* Tools/GNUmakefile: build/install plget.
+
+2006-01-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortNameServerWin32.m:
+	* Source/win32/NSMessagePortWin32.m:
+	Add hack to cope with bug reading registry ... better solution welcome
+	if anyone knows one.
+	Add security attributes to message port stuff ... should only let
+	current user on current machine access message ports I hope.
+
+2006-01-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Fix possible read off end of buffer
+	when parsing config file.
+
+2006-01-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/GNUmakefile:
+	* Documentation/General/GNUmakefile:
+	Fix path to autogsdoc for mingw where the 'obj' symlink doesn't work.
+
+2006-01-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSUnion.h:
+	* Headers/Foundation/NSByteOrder.h:
+	* Headers/Foundation/NSPort.h:
+	* Source/GSFileHandle.m:
+	* Source/GSFormat.m:
+	* Source/NSData.m:
+	* Source/NSDistantObject.m:
+	* Source/NSMessagePort.m:
+	* Source/NSPortCoder.m:
+	* Source/NSSerializer.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/NSUnarchiver.m:
+	* Source/win32/GSFileHandleWin32.m:
+	* Source/win32/NSMessagePortWin32.m:
+	Update to use sized datatypes from stdint.h now that almost all
+	operating systems support it.
+	* Source/NSCalendarDate.m:
+	Support '%T' and '%t' as supplied by unix date/time locale info.
+	* configure.ac: Ensure uintptr_t and intptr_t exist
+	* configure: regenerate
+
+2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/mframe.m:
+	When calculating info about a structure, make sure its alignment is
+	that of its most strictly aligned field and make sure its size is a
+	multiple of its alignment.
+	* Source/NSData.m: ([initWithCoder:]) Fix bug decoding unsigned long
+	into unsigned int variable ... breaks on amd64
+
+2006-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSCallBacks.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistantObject.m:
+	* Source/NSMessagePort.m:
+	* Source/NSObject.m:
+	* Source/NSProtocolChecker.m:
+	* Source/NSProxy.m:
+	* Source/NSSocketPort.m:
+	* Source/NSTask.m:
+	* Source/NSThread.m:
+	* Source/NSZone.m:
+	* Source/Additions/GSXML.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	Add explicit casts to avoid compiler warnings where we are on a
+	processor where the size of an integer is not the same as the size
+	of a pointer.
+	* Tools/gdomap.c:
+	Add type casts to fix comparisons on 64bit processor
+
+2006-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSRunLoopCtxt.m: Apply patch by Jeremy Bettis with
+	fixups for intentation/formatting and minor correction to avoid waiting
+	for an event when we have handled one in the current run of the loop.
+
+2006-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: When generating binary plist, fix bug
+	in case where we have to increase table size.
+	* Source/NSKeyedArchiver.m: Update to use binary plist format
+	by default rather than xml format ... MacOS-X compatible and
+	works when libxml2 is not available.
+	* Source/NSKeyedUnarchiver.m: Print NSLog error if attempting to
+	decode an xml archive when no libxml2 is available.
+
+2006-01-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: be more consistent in use of defined values
+	from config file.
+	* configure.in: Improve comments/help.  Fix error in config where we
+	were attempting OS based decisions before we had determined the OS.
+	Improve default paths on mingw to be relative to the DLL.
+	Load information from make package config fo use during build of
+	base library.
+	Generally try to improve user experience on mingw to make build/install
+	really simple with new config files.
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Documentation/Base.gsdoc: Attempt to clarify config file operation.
+
+2006-01-07  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m (BinaryPLGenerator - storeCount:) Handle
+	count > 256*256. Patch by Derek Zhou <dzhou@nvidia.com>.
+
+2006-01-04  David Ayers  <d.ayers@inode.at>
+
+	Bug #15353
+	* Source/NSProcessInfo.m (fallbackInitialisation): Move 
+	initialization to avoid compiler error.  Reported by
+	Stefan van den Oord (stefan.vandenoord@gmail.com).
+	
+2005-12-21  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.11.2
+
+2005-12-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Partial update for use of CSS ... as provided by
+	Fabien Vallon.  Need to decide where the stylesheet file should come
+	from and where it should be installed.  Probably need a new autogsdoc
+	flag for this and some internal api changes.
+
+2005-12-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Deal with C++ declaration of external C/ObjC libs.
+	* Tools/AGSHtml.m: Add changes to avoid colons in references to allow
+	dumb windows help system to use our output.  Same idea as patch #4569
+	but (hopefully) doesn't break anything.
+	* Source/DocMakefile: A couple of fixes for building documentation of
+	the additions library.
+
+2005-12-20  Adam Fedor  <fedor@gnu.org>
+
+	* SSL/configure.ac: Check for GNUSTEP_MAKEFILES not
+	GNUSTEP_SYSTEM_ROOT.
+
+2005-12-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Increase maximum supported message size from 10MB to 32MB in
+	recognition of the fact that everything is faster/bigger nowadays
+	and people might actually want to send single messages with
+	that much data in them.
+
+2005-12-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Fix error parsing date/time in xmlrpc
+	Remove bad characters when escaping string for xml.
+
+2005-12-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Get paths of system directories
+	(for linux FHS support) from config file.
+	* Documentation/Base.gsdoc: update
+
+2005-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: On mingw, don't get the location of the config file
+	from the make package.  Assume ./GNUstep.conf instead, so that the
+	base library is built for distribution (relocatable relative to the
+	library).
+	* configure: regenerate
+
+2005-12-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: Allow
+	([+initializeWithArguments:count:environment:]) to override the real
+	environment on mingw32.
+	* Source/NSPathUtilities.m: Ignore config files named
+	.GNUstep.conf-ignore (so we can safely disable config file reading
+	and ensure inbuilt defaults are used)
+	* configure.ac: By default, disallow use of GNUSTEP_CONFIG_FILE
+	environment variable.  Remove some redundant code. Document better.
+	* configure: regenerate
+	* Documentation/Base.gsdoc: Update for config changes
+	* Tools/autogsdoc.m: add any gsdoc files explicitly specified on
+	command line to generated dependency file for make.
+
+2005-12-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Fix bug configuring whether GNUstep.conf can be
+	set in the environment
+	* configure: regenerate
+
+2005-12-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Add more checks/warnings about improper
+	configuration.
+	* Headers/Foundation/NSException.h: clarify/extend documentation.
+	* Source/NSException.m: move some documentation to header.
+
+2005-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSConfig.h.in:
+	* Headers/Additions/GNUstepBase/GSXML.h:
+	* Headers/Foundation/NSCoder.h:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSFileManager.h:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSPortCoder.h:
+	* Headers/Foundation/NSProxy.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSXMLParser.h:
+	* Source/NSArray.m:
+	* Source/NSAttributedString.m:
+	* Source/NSCoder.m:
+	* Source/NSConnection.m:
+	* Source/NSDictionary.m:
+	* Source/NSFileHandle.m:
+	* Source/NSFileManager.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSObject.m:
+	* Source/NSPortCoder.m:
+	* Source/NSPortNameServer.m:
+	* Source/NSRunLoop.m:
+	* Source/NSString.m:
+	* Tools/AGSOutput.m:
+	* Tools/gdnc.m:
+	* Tools/gsdoc.gsdoc:
+	Documentation tweaks and minor simplificiations.
+
+2005-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	* Tools/AGSHtml.m:
+	* Tools/autogsdoc.m:
+	* Tools/gsdoc-1_0_3.dtd:
+	* Toold/gsdoc.gsdoc:
+	Added override=dummy attribute for methods which have dummy
+	implementations intendeed to be ocerridden in subclasses.
+	Update to log warning about unimplemented methods which are not
+	tagged as intended to be overridden.
+
+2005-11-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Restructure so that GNUstepConfig() can
+	be used to set/get the global configuration as suggested by
+	Jeremy Bettis
+
+2005-11-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPort.m:
+	* Source/NSMessagePort.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Tools/gdnc.m:
+	Use the NSPortIsMessagePort user default consistently to control
+	whether socket or message ports are used by default.  Remove mingw32
+	specific GSMailslot user default.
+	Source/NSPathUtilities.m: Check for illegal paths (ones which don't
+	appear to be absolute paths) specified in config file ... warn about
+	the bad config, but try to guess what they shjould be for mingw32
+
+2005-11-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add flags to allow detection of headers/libraries
+	installed in the System domain of the GNUstep hierarchy.
+	* configure: regenerate
+	* Source/win32/GSRunLoopCtxt.m: Intercept windows WM_QUIT messages
+	and tell the application to terminate cleanly (or raise an exception
+	if the NSApplication class is not linked).  Should allow ms-windows
+	to get a mingw32-based GNUstep app to shut down cleanly.
+	* Source/NSDistributedNotificationCenter.m: Rewrite code for connecting
+	to and starting up daemon to handle the process more quickly and
+	smoothly.  Only complain if we can't to connect to it even after
+	launching it and retrying the connection for five seconds.
+
+2005-11-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m:
+	* Source/NSUserDefaults.m:
+	Restore reverted changes for code where class initialisation order
+	is not a factor.
+	* Source/NSUser.m: Delete unused file
+	* GNUmakefile: Don't try to build NSUser.m
+
+2005-11-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Revert last changes ... discovered some apps where ordering of
+	class initialisation caused failures.
+
+2005-11-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdnc.m:
+	* Source/GSPrivate.h:
+	* Source/NSException.m:
+	* Source/NSObject.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSString.m:
+	* Source/NSUserDefaults.m:
+	Be consistent and access environment variables only via the
+	NSProcessInfo class ...so a program which uses a category to
+	override it can effectively change the environment safely.
+	* Source/NSPathUtilities.m:
+	Restructure code for gatting config, so that a single function
+	can be used to get/set config information for the system or a
+	user. Decrease code duplication.
+
+2005-11-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandleWin32.m: Move mingw32 implementation of
+	file handle code here.
+	* Source/GSFileHandle.m: Remove mingw32 code.
+	* Source/NSPathUtilitires.m: Fix handling of user config file for
+	when the user name is changed.
+
+2005-11-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: NSOpenStepRootDirectory() remove
+	deprecated status in documentation. Try to clarify doc.
+	Get rid of environment variable.  Use native path for mingw32
+	* Tools/gsdoc.7: Fix obsolete reference to environment variable.
+	* Tools.gsdoc.gsdoc: ditto
+
+2005-11-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Applied Willem Rein Oudshoorn's fix for bug #11055, having tested it
+	and found it OK on windows-xp as well as the windows-2003 system he
+	was using.
+
+2005-11-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortNameServerWin32.m: fix port lookup in case
+	where named port does not exist.  Correct debug logging by class name.
+	* Testing/nsconnection_client.m: don't run large structure test on
+	mingw32 at present ... it crashes (something wrong with the invocation
+	stuff for ffcall and some large structures on mingw32)
+	* Tools/gdnc.m: Obey GSMailslot default on mingw32.
+	* Source/NSDistributedNotificationCenter.m: ditto.
+	* Source/win32/NSMessagePortWin32.m: Fixes for cases where requests
+	we wanted to be async actually complete synchronously.  Moves the
+	state of this code from pre-alpha to alpha/beta quality I guess.
+	* Source/preface.m: Change declaration of variables to be pointer to
+	char rather than array of char ... more usual/safe.
+
+2005-11-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortWin32.m: more changes
+	* Source/win32/NSMessagePortNameServerWin32.m: ditto
+	Working at least in part (pre-alpha I guess) ... enable with the
+	GSMailslot user default.  Known problems -
+	1. no way of telling if the other end of a connection has gone until
+	we try to write to it.
+	2. hangup in my testing comms between three threads.
+
+2005-11-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortWin32.m: more changes
+	* Source/win32/NSMessagePortNameServerWin32.m: ditto
+	* Source/Tools/AGSOutput.m: search for C/ObjC types in text, and
+	render them as <strong> automatically as suggested by Fabien Vallon.
+
+2005-11-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortWin32.m: Lots of work towards implementing
+	this, but nothing usable yet (compiles but won't run).
+	* Source/win32/NSMessagePortNameServerWin32.m: ditto
+	* Source/win32/NSUserDefaultsWin32.m: fix value type problem.
+	* Source/win32/GNUmakefile: build NSMessagePortNameServer.
+	* Source/NSMessagePortNameServer.m: fix minor memory leak.
+
+2005-11-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/Win32Support.h: removed
+	* Headers/Additions/GNUstepBase/Win32_Utilities.h: removed
+	* Source/NSPathUtilities.m: Don't include unused files.
+	* Source/win32/GNUmakefile: Don't build removed files.
+	* Source/win32/NSUserDefaultsWin32.m: fix '%s' to '%S'
+	* Source/win32/Win32Support.m: removed
+	* Source/win32/Win32_Utilities.m: removed
+	Cleanup ... remove some unused win32 cruft.
+
+2005-11-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.ispell: words from base reference documentation
+	* Documentation/Base.gsdoc:
+	* Headers/Additions/GNUstepBase/GSMime.h:
+	* Headers/Additions/GNUstepBase/GSXML.h:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSCalendarDate.h:
+	* Headers/Foundation/NSCharacterSet.h:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSDebug.h:
+	* Headers/Foundation/NSDecimalNumber.h:
+	* Headers/Foundation/NSError.h:
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/Foundation/NSFormatter.h:
+	* Headers/Foundation/NSIndexSet.h:
+	* Headers/Foundation/NSKeyValueCoding.h:
+	* Headers/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSMethodSignature.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSPathUtilities.h:
+	* Headers/Foundation/NSPortMessage.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSURLHandle.h:
+	* Headers/Foundation/NSXMLParser.h:
+	* Headers/Foundation/NSZone.h:
+	* Source/GSCompatibility.m:
+	* Source/GSCountedSet.m:
+	* Source/GSString.m:
+	* Source/GSTemplateValue.m:
+	* Source/NSArchiver.m:
+	* Source/NSArray.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSClassDescription.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSDate.m:
+	* Source/NSDebug.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistantObject.m:
+	* Source/NSDistributedLock.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSFileHandle.m:
+	* Source/NSFileManager.m:
+	* Source/NSHashTable.m:
+	* Source/NSInvocation.m:
+	* Source/NSLock.m:
+	* Source/NSMapTable.m:
+	* Source/NSObject.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSPortMessage.m:
+	* Source/NSProxy.m:
+	* Source/NSScanner.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSString.m:
+	* Source/NSTask.m:
+	* Source/NSTimeZone.m:
+	* Source/NSTimer.m:
+	* Source/NSURL.m:
+	* Source/NSURLHandle.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSUndoManager.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSValue.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/Unicode.m:
+	* Source/win32/NSUserDefaultsWin32.m:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m:
+	* Tools/gdomap.h:
+	Fix typo/spelling mistakes manifesting in reference documentation.
+	I spent half a day going through the tedious process of running
+	all gsdoc output through ispell.
+
+2005-11-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/Win32_Utilities.h:
+	* Headers/Foundation/NSFileManager.h:
+	* Headers/Foundation/NSString.h:
+	* Source/NSBundle.m:
+	* Source/NSData.m:
+	* Source/NSFileManager.m:
+	* Source/NSLog.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/objc-load.m:
+	* Source/win32-load.h:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/win32/NSMessagePortWin32.m:
+	* Source/win32/NSUserDefaultsWin32.m:
+	* Source/win32/Win32_Utilities.m:
+	Attempt to rationalise mingw32 unicode support, use explicit unicode
+	methods throughput, fix several bugs where APIs were not using
+	unicode when they should have been doing.
+
+2005-11-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSCompatibility.m: don't generate macos-x (xml) property
+	lists if we can't parse them.
+	* Source/GSHTTPURLHandle.m: debug fix for mingw32
+	* Headers/Foundation/NSFileManager.h: add mingw32 conditionals.
+	* Headers/Foundation/NSString.h: add mingw32 conditionals.
+	* Source/NSMessagePort.m: remove mingw32 stuff
+	* Source/win32/NSMessagePort.m: added partial implementation
+	* Source/win32/NSMessagePortNewServer.m: added skeleton
+	* Source/win32/GNUmakefile: build message port classes
+
+2005-11-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Cope with backslashes in values from GNUstep.conf
+	* configure: Regenerated.
+	Improvements for mingw32 systems
+	* Source/NSConnection.m: update obsolete methods.
+	* Source/NSMessagePort.m: start mingw32 implementation
+
+2005-11-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m: If a socket file already exists when trying
+	to bind to it, try connecting to it to see if there is a program
+	using it, and unlin/retry if there isn't.  This is an attempt to
+	handle situations where an old process was not killed cleanly and
+	the new process tries to use the same name.
+	* Source/Additions/GSCategories.m: ([uuencodeInto:name:mode:]) fix
+	error encoding the termination marker of the uuencoded data.
+	* Headers/Foundation/NSPort.h: Declare missing category of NSObject
+	Remove some of the subclass stuff that should be private.
+	* Source/GSPortPrivate.h: Put private port stuff here ... needs
+	more to be moved out of NSPort.h
+	* Source/NSMessagePort.m: Hide instance variables.  Use GSPortPrivate.h
+	Add bugfix for possible deadlock situation reported by Wim.
+	* Source/NSSocketPort.m: ditto
+	* Source/NSMessagePortNameServer.m: Use GSPortPrivate.h
+	* Source/NSPort.m: Implement missing informal protocol method.
+
+2005-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: retain self for the duration of I/O
+	handler methods where we may make callbacks to clients.  In case
+	the client owns the handle, and decides to release it.
+	* Source/GSFileHandle.m: Increase backlog size in listen() to improve
+	perfromance of server objects accepting lots of connections.
+	* Source/NSSocketPort.m: ditto ... though unlikely to be needed.
+	* Source/NSMessagePort.m: ditto
+	* Source/GSTcpPort.m: remove obsolete file
+	* Tools/gstcpport_client.m: ditto
+	* Tools/gstcpport_server.m: ditto
+
+2005-10-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: Apply patch #5399 from Jeremy Bettis.
+	Tidy indentation. Fix variable declaration not at start of block
+	(broke compile for older gcc versions).  Avoid repeated system
+	calls to get process ID.
+	* Headers/Additions/GNUstepBase/GSRunLoopCtxt.h: Move private header to
+	Source directory.
+	* Headers/Additions/GNUstepBase/GSRunLoopWatcher.h: ditto
+	* Headers/Foundation/NSRunLoop.h: Add event type for handling windows
+	messages.
+	* Source/GNUmakefile: Don't install private headers in public area.
+	* Source/win32/GSRunLoopCtxt.m: Add code to handle windows messages.
+	Check number of handles waited for.  Avoid unnecessary heap memory
+	allocation/release.
+	* Source/win32/GSRunLoopWatcher.m: update header path.
+	* Source/win32/NSRunLoopWin32.m: update header path.
+	Deprecate addMsgTarget:withMethod:forMode: as our code for the original
+	addEvent:type:watcher:forMode: can be much more efficient if we don't
+	support that extension.  We need to use addEvent:type:watcher:forMode:
+	if we want to implement NSMessagePort using windows messages.
+	if we don't support that as well as the o
+	* Source/win32/NSUserDefaultsWin32.m: update header path.
+
+2005-10-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Revert last change ... it looked OK but it broke
+	internal checking of references.
+
+2005-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: standardise on __MINGW32__
+	* Source/win32/NSUserDefaultsWin32.m: patch #4567 fix a few typos
+	* Source/DocMakefile: get right path for autogsdoc on mingw
+	* Tools/DocMakefile: ditto (patch #4568)
+	* Tools/AGSHtml.m: work round isssues with windows help (patch #4569)
+	Mostly fixes by Jeremy Bettis
+
+2005-10-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Fix error setting version numbers for the
+	various standards.  Was causing generation of html erroneously
+	saying that things were in neither openstep nor macos-x
+	* configure.ac: Add code to initialise default path/config file
+	information by loading GNUstep.conf config file from the location
+	specified by config.make in the makefiles directory.
+	Add --with-config-file= option to specify the name of the config
+	file to be hard-coded into the library.  Overrides the value from
+	the make system if desired.
+	Add --with-default-config= option to specify the config file from
+	which default path values are loaded (at configuration time). This
+	overrides the default behavior of loading  values from the file
+	specified by --with-config-file= or in $GNUSTEP_MAKEFILES/config.make
+	Add --disable-importing-config-file for consistency with makefiles
+	package ... not sure we need to keep this option.
+	Add --disable-environment-config-file to prevent use of the
+	GNUSTEP_CONFIG_FILE enviropnment variable.
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate to include
+	new path definitions produced by configure script.
+	* Source/GNUmakefile: Ignore variables specifying default paths,
+	these are now set at configure time and can't be changed at make
+	time.
+	* SSL/GNUmakefile: ditto.
+	* Source/NSPathUtilities.m: Remove windows-specific hack which
+	got a few values from the registry ... we want to make use of
+	the GNUstep.conf file simple/consistent across all platforms.
+	Get default values from those defined in config.h
+
+2005-10-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Drop 'make' style config file parsing
+	and setting on 'sh' style (so we can source the config file).
+	* Source/NSCalendarDate.m: Fix millisecond printing (bug #14863)
+
+2005-10-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Try to ensure that user root and
+	user library directories exist, so that tools/apps have somewhere
+	to store any resources they don't want to put in the defaults
+	database.
+
+2005-10-23  Jeremy Bettis
+
+	* Source/NSException.m: Added a few debugging checks in the
+	exception handler code.
+	The handler struct that needs to be removed is passed to
+	_NSRemoveHandler.  Therefore, instead of starting at
+	thread->_exception_handler and working your way down through
+	the frames, you can just use the passed in struct. This way,
+	if some bonehead called return in an NS_DURING block,
+	perhaps you can still remove the exception handler without
+	accessing memory that is on a freed section of the stack.
+
+2005-10-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: remove test method for path handling setup,
+	add environment variable (at least for a while until we are even
+	more sure that there are no problems with do-the-right-thing mode).
+	Remove previously deprecated path methods.
+	* Source/NSFileManager.m: remove previously deprecated path method.
+	* Headers/Foundation/NSString.h: Add missing information about
+	windows peculiarities to comments.
+	* Source/NSUserDefaults.m: More tweaks to use windows registry.
+	also remove test user default for path handling setup.
+	* Source/win32/NSUserDefaultsWin32.m: Rewrite
+	* Source/NSPathUtilities.m: Tweaks for windows.
+	Updates to (optionally) use windows registry to store defaults
+	when GNUSTEP_USER_DEFAULTS_DIR is set to ':REGISTRY:'
+	Based on patch #4299 by Jeremy Bettis, but with rewrites to make use
+	of the code configurable in the GNUstep configuration file, to fix
+	some bugs, and to conform to coding standards,  Probably still has
+	bugs to fix, but seems usable now. 
+
+
+2005-10-20  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (+pathsForResourcesOfType:inDirectory:,
+	-pathsForResourcesOfType:inDirectory:forLocalization:):
+	Implement.
+
+2005-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Begin applying registry patch.
+	* Source/win32/NSUserDefaultsWin32.m: Registry patch with
+	some work done towards conforming to gnustep coding standards.
+
+2005-10-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/GSSSLHandle.m: Don't output log/warning on accept/connect
+	failure if it's just a timeout or disconnect.
+
+2005-10-17  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSNumberFormatter.m
+	(-getObjectValue:forString:errorDescription:,
+	stringForObjectValue:): Respect the settings for decimal and
+	thousands separators. Still a very basic implementation.
+
+2005-10-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Simplify by removing options for
+	redefining user home directories.  Add code to use gnumake format
+	rather than shell format for config files.  Fix error in default
+	setup of local root.
+
+2005-10-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Changes to support relocation of the
+	entire system simply by copying the directory containing it around.
+
+2005-10-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Set default value for defaults directory
+	(lost in last set of changes).
+
+2005-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Fix retain/release error exposed by recent
+	changes.  Rewrite config handling (work in progress ... keeping in
+	sync with make package changes).
+	* Documentation/base.gsdoc: update somewhat.
+	* configure.ac: use GNUSTEP_CONFIG_FILE rather than
+	GNUSTEP_CONFIGURATION_FILE ... for consistency with make.
+	* Headers/Additions/GNUstepBase/config.h.in: ditto
+	* configure: regenerate
+
+2005-10-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Complete rewrite of config file parsing
+	to try to make it consistent with the escaping and quoting conventions
+	of shells, so the same file can be source'ed by /bin/sh
+
+2005-10-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Remove some useless functions to clarify
+	code.  Add some explanatory comments, make config file parsing a lot
+	more robust.
+
+2005-10-12  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* configure.ac (config_file): Get the location of the
+	configuration file from gnustep-make rather than from a
+	--with-config-file option.  Everything works exactly as before,
+	but the --with-config-file option was moved to gnustep-make.
+	* configure: Regenerated.
+
+2005-10-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSPathUtilities.h: Remove deprecated functions.
+	* Source/NSPathUtilities.m: Remove backward compatibility hacks for
+	old GNUsteprc support.
+	Remove deprecated functions.
+	Permit specification of config file
+	Simplify code a little.
+	Fix a retain/release bug.
+	Fix per-user .GNUsteprc parsing to work as documented (ie override
+	the system-window config, not just fill in undefined values).
+	Deprecate use of '~' in per-user .GNUsteprc ... it adds complexity
+	for little utility that I can see ... we can undeprecate it if I'm
+	wrong.
+	* Documentation/Base.gsdoc: Update to remove references to old config
+	scheme.  Remove documentation for deprecated '~' in per-user file
+	Clarify how relative/absolute paths in config are treated.
+
+2005-10-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLHandle.m: alter file handle to nitice if a file has
+	changed.
+
+2005-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSFileHandle.h:
+	* Headers/Additions/GNUstepBase/GSRunLoopCtxt.h:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Source/GSFileHandle.m:
+	* Source/NSData.m:
+	* Source/NSFileManager.m:
+	* Source/NSLog.m:
+	* Source/NSRunLoop.m:
+	* Source/NSSocketPort.m:
+	* Source/NSTimeZone.m:
+	Be consistent in usage of __WIN32__ and __MINGW__
+
+2005-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: We had complaints about the new code to log output
+	to the windows event log on microsoft ... so this has been changed to
+	be activated by the GSLogSyslog user default (as the windows event
+	log is roughly analogous to syslog on unix) rather than being done
+	by default.
+	* Source/NSTimeZone.m:
+	* Source/NSPathUtilities.m:
+	Fix a few cases where 16bit chartacter strings were being used as 8bit
+	under windows.
+
+2005-10-07  Chris Vetter <cbv@gmx.net>
+
+	* Source/NSPropertyList.m: Remove bogus newline generated for BOOL.
+
+2005-10-06  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSPage.m: Add include for Cygwin (patch from
+	Tom MacSween).
+
+2005-10-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m:
+	* Source/NSCallBacks.m:
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSSocketPort.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	Attempt to deal with systems where sizeof(int) < sizeof(void*)
+
+2005-10-01  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSString: (dataUsingEncoding:allowLossyConversion:):
+	Use buffer returned by NSZoneRealloc to create the data object.
+	
+2005-09-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/unicode/gsm0338.h: Map unicode
+	no-break-space character to gsm space rather than to gsm escape
+	character.
+
+2005-09-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: (-convertToBinary, -convertToBase64)
+	new convenience methods for making documents compact or 7bit safe.
+
+2005-09-25  David Ayers  <d.ayers@inode.at>
+
+	* Testing/benchmark.m: Add some NSMapTable tests.
+
+2005-09-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: (-rawMimeData) tolerate nil content of
+	document ... should produce output with empty body.
+
+2005-09-18  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.11.1
+
+2005-09-17  Saso Kiselkov <diablos@manga.sk>
+        
+        * Headers/Foundation/NSInvocation.h:
+	* Source/NSInvocation.m:
+        (-targetRetained, -retainArgumentsIncludingTarget:):
+        Added new methods which allow target to be not retained when arguments 
+        are and to check whether it is retained or not (-retainsArguments code
+        moved in -retainArgumentsIncludingTarged and simplified by removing a 
+        redundant nested branch statement).
+        * Source/NSUndoManager.m (-forwardInvocation:, 
+        -registerUndoWithTarget:selector:object:): Fixed bug #14488 by relying 
+        on previous new methods to retain undo invocation (taking in account 
+        the fact arguments may have been released before it is called).
+        Patch committed by Quentin Mathe.
+
+2005-09-01  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSSortDescriptor.m ([NSArray
+	-sortedArrayUsingDescriptors:sortDescriptors]): Use
+	makeImmutableCopyOnFail:.
+
+2005-08-31  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GNUmakefile: Install NSSortDescriptor.h 
+
+2005-08-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumber.m: Improve poor hash function.
+	* Source/NSConcreteNumber.m: Improve poor hash function.
+	* Testing/benchmark.m: Add some NSNumber tests.
+
+2005-08-30  Saso Kiselkov <diablos@manga.sk>
+
+	* Headers/Foundation/NSSortDescriptor.h, Source/NSSortDescriptor.m:
+	New files
+	* Headers/Foundation/Foundation.h, Source/GNUmakefile: Add them to
+	list.
+
+2005-08-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Fix bug subtracting minute interval.
+	* SSL/GSSSLHandle.m: Put handle in non-blocking mode before call
+	to SSL_accept() or SSL_connect() so that we can be interrupted
+	if the remote end doesn't respond (older code can hang waiting
+	for the remote end).
+
+2005-08-22  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSGeometry.m (NSStringFromPoint, NSStringFromRect,
+	NSStringFromSize): Add spaces around '='. (Based on suggestion
+	from Matthias Hengartner).
+
+2005-08-12  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Check if we can read the psinfo struct from 
+	/proc (Solaris).
+	* config/procfs.m4: Add psinfo check
+	* config/config.psinfo.c: New file.
+	* Source/NSProcessInfo.m (+load): Read from psinfo if we can.
+	(Based on patch #4234 from Jeremy Bettis, with some modifications).
+
+2005-07-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUmakefile: Pass GNUSTEP_FLATTENED as preprocessor
+	definitions when building.
+	* Source/NSPathUtilities.m: Use GNUSTEP_FLATTENED and other
+	definitions to fix bug in returning paths for non-flattened
+	systems (code was previously returneing flattened paths
+	irrespective of whether the system was configured flattened
+	or not).
+
+2005-07-30  Jeremy Bettis
+
+	* Source/NSData.m: Support write to file for windows9x  users.
+
+2005-07-27  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.postamble (Info-gnustep.plist): Depend on 
+	../Version.
+
+2005-07-24  Jeremy Bettis
+
+	* Source/NSCalendarDate.m: Fix bug adding interval to date.
+	* Source/NSDebug.m: Implemented _NSNewStringFromCString() for gdb.
+	* Source/GSFormat.m: Fix %S format.
+	* Source/NSObject.m: ([conformsToProtocol:]) return NO if passed nul.
+	* Source/NSBundle.m: be more tolerant.
+	* Source/objc-load.m: Implemented objc_get_symbol_path() for windows.
+	* Source/NSLog.m: On mingw write to debugger and event viewer.
+
+2005-07-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Fix to avoid duplicate paths.
+	Fix bug in order of application paths.
+	* Tools/gspath.m: new utility to display paths/directories
+	* Tools/gspath.1: man page for gspath
+	* Tools/GNUmakefile: build and install gspath
+
+2005-07-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: fix typo in contributed code for when
+	the additions library is built standalone on MacOS-X
+	* Source/GNUmakefile: Don't build base subprojects when only building
+	additions library!
+	* Headers/Foundation/NSRunLoop.h: Tidy up enumerated type, simplifying
+	mingw ifdefs
+	* Tools/AGSHtml.h: Added defines for building without the gnustep
+	base library.
+	* Tools/gdnc.m: Fix minor documentation error.
+	* Tools/gdnc.1: Fix minor documentation error and add documentation
+	of flags to set public/network servers running.
+
+2005-07-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDate.m: ([isEqual:]),([isEqualToDate:]) change behavior to
+	match current MacOS-X rather than OpenStep spec, as the old version
+	was confusing and prevented dates being used as dictionary keys or
+	stored in sets properly.
+
+2005-07-21  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.11.0
+
+2005-07-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUnarchiver.m:
+	* Source/NSPortCoder.m: Relax checking of decoded types information
+	to allow int/long/longlong types to be decoded using 'i/l/q'
+	interchangably and 'I/L'Q' interchangably because the compiler may
+	use different encodings on different machines.
+
+2005-07-15  Adam Fedor  <fedor@gnu.org>
+
+	* ChangeLog, ChangeLog.1, ChangeLog.2, GNUmakefile, Makefile,
+	Makefile.postamble, config.mak.in, configure.ac,
+	Documentation/Base.gsdoc, Documentation/BaseAdditions.gsdoc,
+	Documentation/Functions.gsdoc, Documentation/GNUmakefile,
+	Documentation/Makefile.postamble, Documentation/ReleaseNotes.gsdoc,
+	Documentation/TypesAndConstants.gsdoc, Documentation/announce.texi,
+	Documentation/gnustep-base.texi, Documentation/install.texi,
+	Documentation/news.texi, Documentation/readme.texi,
+	Documentation/General/Debugging.gsdoc,
+	Documentation/General/GNUmakefile,
+	Documentation/General/OpenStepCompliance.gsdoc,
+	Documentation/HtmlNav/docs-web.html, Documentation/HtmlNav/index.html,
+	Documentation/manual/GNUmakefile, Documentation/manual/index.html,
+	Examples/GNUmakefile, Examples/Makefile.postamble,
+	Examples/Makefile.preamble, Examples/custom-zone.m,
+	Examples/dictionary.m,
+	Headers/Additions/GNUstepBase/unicode/*,
+	Source/dld-load.h, Source/hpux-load.h, Source/null-load.h,
+	Source/simple-load.h, Source/win32-load.h,
+	Testing/*,
+	Tools/BaseTools.gsdoc, Tools/DocMakefile, Tools/GNUmakefile,
+	Tools/Makefile.postamble, Tools/Makefile.preamble, Tools/autogsdoc.1,
+	Tools/cvtenc.1, Tools/defaults.1, Tools/gdnc.1, Tools/gdnc.h,
+	Tools/gdomap.c, Tools/gdomap.gsdoc, Tools/gsdoc.gsdoc, Tools/pl.m,
+	Tools/pldes.1, Tools/sfparse.1, Tools/xmlparse.1,
+	Tools/make_strings/GNUmakefile, 
+	Tools/make_strings/GNUmakefile.preamble,
+	Tools/make_strings/README, Tools/make_strings/Using.txt,
+	config/*: Further copyright/license updates.
+
+2005-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: ([+initialize]) always check to see if
+	things have already been initialised before doing the initialisation
+	here.  Based on suggestion by Lloyd Dupont.
+
+2005-07-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/GSSSLHandle.m: Retains self when running runloop to allow
+	ssl connect and accept operations.  If the connect/accept takes
+	a long time, the caller might give up and release the handle,
+	causing resources to be freed and the ssl operation to crash.
+	Retaining self (and noticing when a disconnect has taken place)
+	prevents that.
+	* Source/Additions/GSXML.m: Fix bug escaping emtities in fault
+	message.
+
+2005-07-13  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSBundle.m: When building paths inside framework
+	directories on Mingw (win32), don't add /Versions/%@; the new
+	pseudo-framework support for Mingw does not support framework
+	versioning.
+
+2005-07-12  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSBundle.m ([+_addFrameworkFromClass:]),
+	([-executablePath]): Mangle/demangle framework names so that we
+	can support '-' (and '+') in framework names.  Requires latest
+	gnustep-make if you have a framework with '_', '-' or '+' in the
+	name.
+
+2005-07-08  Adam Fedor  <fedor@gnu.org>
+
+	* Testing/GNUmakefile, Testing/nsfilehandle.m: Minor fixes.
+	
+2005-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/objc-load.m: Under mingw print filenames for debug using
+	%S rather than %s
+
+2005-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Recommit all gcc-4 changes ... I was unable to find a problem
+	in them and have been running lots of stuff ok with them for several
+	days now ... perhaps I made a mistake in thinking there was an issue.
+
+2005-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Fix bug #13685 ... raise exception on an attempt
+	to re-launch a task.
+
+2005-07-04  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/ReleaseNotes.gsdoc: Update.
+
+2005-07-01  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/Base.gsdoc, Documentation/BaseAdditions.gsdoc, 
+	Documentation/Functions.gsdoc, Documentation/ReleaseNotes.gsdoc, 
+	Documentation/TypesAndConstants.gsdoc, 
+	Documentation/General/Debugging.gsdoc, 
+	Documentation/manual/GNUmakefile, 
+	Source/NSMessagePortNameServer.m, 
+	Testing/NSData-test.m, Testing/awake.m, Testing/basic.m, 
+	Testing/coder.m, Testing/containers.m, Testing/fref.m, 
+	Testing/gstcpport-client.m, Testing/gstcpport-server.m, 
+	Testing/heap.m, Testing/nsarchiver.m, Testing/nsarray.m, 
+	Testing/nscharacterset.m, Testing/nsconnection.m, 
+	Testing/nsconnection_client.m, Testing/nsconnection_server.m, 
+	Testing/nsdata.m, Testing/nsdate.m, Testing/nsdictionary.m, 
+	Testing/nsfilehandle.m, Testing/nsfilemanager.m, 
+	Testing/nshashtable.m, Testing/nshost.m, Testing/nsindexset.m, 
+	Testing/nsinvocation.m, Testing/nsmaptable.m, 
+	Testing/nsnotification.m, Testing/nspathutilities.m, 
+	Testing/nsprocessinfo.m, Testing/nsscanner.m, Testing/nsset.m, 
+	Testing/nstask.m, Testing/nstimer.m, Testing/nstimezone.m, 
+	Testing/nsundomanager.m, Testing/nsxmlparser.m, Testing/nxst.m, 
+	Testing/oldserver.h, Testing/prepend.m, Testing/randoms.m, 
+	Testing/release.m, Testing/server.h, Testing/string.m, 
+	Testing/tcpport-client.m, Testing/tcpport-server.m, 
+	Testing/thread-except.m, Testing/thread.m, Testing/values.m, 
+	Testing/wgetopt.h, Tools/BaseTools.gsdoc, Tools/autogsdoc.1, 
+	Tools/cvtenc.1, Tools/defaults.1, Tools/gdnc.1, 
+	Tools/gdomap.8, Tools/gsdoc.7, Tools/locale_alias.m, 
+	Tools/pldes.1, Tools/plist-0_9.dtd, Tools/sfparse.1, 
+	Tools/xmlparse.1: Add/fix copyright/licenses.
+
+2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Bad day ... accidentally updated makefiles to build KVO stuff
+	in last change ... so I might as well commit the partial
+	implementation of NSKeyValueObserving.[hm]
+
+2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* The last change passed regression tests etc, but one program
+	I have has stopped working, so there is a bug somewhere.
+	Reverted change until I can isolate the problem and fix it.
+
+2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSUserDefaults.h: Fix bad return type
+	* Source/GSArray.m:
+	* Source/GSCountedSet.m:
+	* Source/GSFileHandle.m:
+	* Source/GSSet.m:
+	* Source/GSString.m:
+	* Source/GSeq.h:
+	* Source/NSArchiver.m:
+	* Source/NSArray.m:
+	* Source/NSAttributedString.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSConnection.m:
+	* Source/NSCountedSet.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSFileManager.m:
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSNotification.m:
+	* Source/NSObject.m:
+	* Source/NSPipe.m:
+	* Source/NSPortCoder.m:
+	* Source/NSPropertyList.m:
+	* Source/NSRange.m:
+	* Source/NSScanner.m:
+	* Source/NSSerializer.m:
+	* Source/NSSet.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSString.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/NSTimer.m:
+	* Source/NSURLHandle.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSValue.m:
+	* Source/mframe.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/Unicode.m:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.m:
+	* Tools/gdomap.c:
+	* Tools/gdomap.h:
+	* Tools/make_strings/make_strings.m:
+	Tweaks to avoid compiler warnings with gcc-4. Mostly signed pointer
+	casts and bogus interface declarations to allow +class to be called
+	on a class for which we don't have the real interface visible.
+
+2005-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: ([-raise]) Fix behavior to be the same as in
+	MacOS-X (ie call the default uncaught exception handler after
+	whatever handler is set, in case the set handler does not terminate).
+	Ensures that the -raise method cannot return.
+	* Testing/basic.m: Add test for uncaught exception handler.
+
+2005-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSerializer.m: deserializeFromInfo() check that cross
+	reference indices are valid and raise an exception if not ... should
+	fix bug reported by Roland Schwingel, where trying to deserialize a
+	corrupt file could cause a crash.
+
+2005-06-28  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSInvocation.m (-getReturnValue:, -setReturnValue:): Only
+	muck with size of buffer if we're using (deprecated) mframe.
+
+2005-06-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedArchiver.m: Fix typo ... superClass should be
+	superclass
+
+2005-06-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	Preserve case of http headers when writing remote request, so that
+	they can be tailored for remote servers which are buggy in having
+	case sensitivity.
+	When creating default http headers, capitalize the words in the
+	header name, as this is the most common way headers are presented
+	and documented, and thus the least likely to tickle case sensitivity
+	bugs at the remote end of a connection.
+
+2005-06-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/mframe.m (mframe_decode_return): Change return struct
+	to fixed size to avoid gcc bug.
+
+2005-06-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h:
+	* Documentation/coding-standards.texi:
+	Minor documentation fixes.
+
+2005-06-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueCoding.m:
+	* Headers/Foundation/NSKeyValueCoding.h:
+	Change NSUnknownKeyException to NSUndefinedKeyException for
+	MacOSX compatibility.
+	Fixes bug #13842
+
+2005-06-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ([-initWithPath:]) expand paths with tildes.
+
+2005-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Removed bogus
+	NSConnection(ConnectionDelegate) category .. these methods must not be
+	implemented in NSObject.  I hope that removing the concrete
+	implementation of the category from the Object class will not cause
+	problems (I believe there used to be problems with older versions of
+	the compiler if we tried to use @selector(NN) where NN was not
+	implemented in the same code unit, but I can't remember what the
+	problems were and when they occurred).
+	* Headers/Foundation/NSConnection.h: Added comments/documentation from
+	NSConnection.h
+
+2005-06-17  Adam Fedor  <fedor@gnu.org>
+
+	* Remove objc/Protocol.h include from NSObject to avoid warnings
+	with conflicting method signatures.
+	* Headers/Foundation/NSConnection.h: Change Object categories
+	to NSObject.
+	* Source/NSConnection.m: Idem.
+	* Headers/Foundation/NSObject.h: Don't include objc/Protocol.h
+	add a few missing things.
+	* Source/NSDate.m ([NSDate -isEqual:]): Use isKindOfClass.
+	* Source/NSDistantObject.m, Source/NSProtocolChecker.m: 
+	Include objc/Protocol.h
+	* Source/NSSerializer.m: Add method sig for performv::
+
+2005-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/manual/WorkingWithObjects.texi: Correct errors in
+	the summary of memory management conventions.
+	* Documentation/manual/WritingNewClasses.texi: Correct examples of
+	memory management in constructor methods.
+
+2005-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/NSSocketPort.m:
+	* Source/NSMessagePort.m:
+	Enable KEEPALIVE on stream sockets, so we will notice if the remote
+	end drops the connection.
+
+2005-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendardate.m: Fix crash when a nil string is passed to
+	initWithString... methods.
+
+2005-06-06  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.preamble: Add objc lib on all platforms
+	Fixes bug #9920.
+
+2005-06-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h: Add a versioning constant and
+	document a bit better.
+	* Tools/AGSParser.m: Support new version constant and fix version
+	comparison for minor and subminor numbers.
+	* Tools/AGSHtml.m: ditto
+	* Headers/Foundation/NSArchiver.h: convert o new versioning as test.
+	* Documentation/Base.gsdoc: Document version constants.
+
+2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h: Add subminor number to versioning
+	macros as apple sometimes add/remove things at subminor versions.
+	Add some constants for versions.
+	* Tools/AGSParser.m: Support subminor version info
+	* Tools/AGSHtml.m: ditto
+
+2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSFileManager.h: hide private method in enumerator,
+	swap one ivar for a new one keeping size the same.
+	* Headers/Foundation/NSString.h: Mark some deprecated methods.
+	* Source/GSFileHandle.m: Merge in win32 simplifications
+	* Source/NSBundle.m: ditto
+	* Source/NSData.m: ditto
+	* Source/NSFileManager.m: ditto
+	* Source/NSPathUtilities.m: ditto
+	* Source/NSProcessInfo.m: ditto
+	* Source/NSString.m: ditto
+	* Source/NSTask.m: ditto
+	* Source/win32-load.h: ditto
+	Merge in simplifications from the win32 path handling branch
+	and all changes/fixes since.
+
+2005-06-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/NSFileManager.m:
+	Define _FILE_OFFSET_BITS to be 64 so that, on unix-like systems which
+	support large file handling (>2GB) the large file handling routines
+	are used.
+	* Source/NSTask.m: Try to deal with pipes properly when launching under
+	windows.
+	* Source/GSString.m: Fix bug returning unicode string from cString.
+
+2005-05-21  Adam Fedor  <fedor@gnu.org>
+
+	* Update FSF Address.
+
+2005-05-20  Matt Rice  <ratmice@yahoo.com>
+
+	* Source/NSArray.m (NSArray -removeObject:): Fix macro conditional 
+	so we release the object.
+
+2005-05-15 19:57 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSPropertyList.m: Changes to include limits.h rather
+	than explicitly define UINT_MAX.
+
+2005-05-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Minor improvement to detail of failure
+	reason.
+
+2005-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: Increase size of buffer for incoming data ...
+	on modern systems we have more memory and a bugger buffer can make
+	a significant performance improvement when reading large amounts of
+	streamed data.  New define of READ_SIZE for this buffer ... easily
+	adjusted in one place.
+
+2005-05-10  Sheldon Gill <sheldon@westnet.net.au>
+	* Resources/GNUmakefile
+	* Resources/Languages/Locale.aliases
+	* Resources/Spanish
+	* Resources/Spanish.lproj/Localizable.strings
+	Spanish language localisation from diemyr@yahoo.es
+
+2005-05-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m: 
+	* Tools/AGSParser.m:
+	* Tools/gsdoc-1_0_2.dtd:
+	Support deprecation version as well as addition/removal.
+
+2005-05-09  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSPropertyList.m (OAppend): Revert patch from
+	2005-02-28.  It seems to fix the issue in the wrong place.
+	Further investigation is necessary.
+	
+2005-05-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Output 'Releases' rather than 'Standards' as it
+	seems a better term for API version information.
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m: Parse OS_API_VERSION() and GS_API_VERSION() to
+	produce detailed version information.
+	* Headers/Foundation/NSObject.h: defines of the two version macros for
+	proof of concept.
+
+2005-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.h: Support versioning info instead of standards
+	* Tools/AGSHtml.m: ditto
+	* Tools/AGSOutput.m: ditto
+	* Tools/AGSParser.m: ditto
+	* Tools/GNUmakefile: Add new dtd and remove old tool.
+	* Tools/autogsdoc.m: ditto
+	* Tools/gsdoc-1_0_2.dtd: ditto
+	* Tools/gsdoc.m: Remove obsolete tool.
+	* Tools/gsdoc.gsdoc: Updated
+	Changes to support OpenStep/OPENSTEP/MacOS-X versioning and
+	GNUstep versioning, using add/rem attributes to specify the
+	version at which a feature was added to or removed from the
+	API.  Drop the old 'standards' mechanism which was too rigid
+	for detailed versioning.
+
+2005-05-08 14:11 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSPropertyList.m: Corrected setup so that compilation 
+	works on Solaris 9.  
+
+2005-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: nul terminate properly when a returned 'C string'
+	is actually unicode.
+	* Source/GSString.m: ditto.
+
+2005-05-08  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m: Added class BinaryPLGenerator to export
+	property lists in Apple binary format.
+	(+ dataFromPropertyList:format:errorDescription:) Use this new class.
+	(+ propertyList:isValidForFormat:) Report
+	NSPropertyListBinaryFormat_v1_0 as a supported format.
+	(GSBinaryPLParser -initWithData:mutability:) Read table start correctly.
+	(GSBinaryPLParser -objectAtIndex:) Better support for numbers.
+	
+2005-05-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Improve handling of text/xml without
+	a charset.  Add new method to determine the correct charset in the
+	case where it has to be inferred from the actual data.  Follow the
+	instructions in http://www.w3.org/TR/REC-xml/ but be a bit more
+	tolerant. (ebcdic not supported).
+	* Headers/Foundation/GSString.m: Add a few new methods from macosx.
+	* Source/NSString.m: ditto.
+	* Source/GSString.m: ditto.
+
+2005-05-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: If given content of type text/xml without
+	a charset, try to get the charset from the encoding="..." part of the
+	header.
+
+2005-04-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Remove self as an observer of our file
+	handle on deallocation ... prevent notfications being sent to
+	deallocated object.
+
+2005-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/coding-standards.texi: Added what appear to be the
+	generally accepted parts of Sheldon's suggested coding standards
+	additions.
+	* Source/GSHTTPURLHandle.m: Modified to keep watching idle connections
+	and handle things properly when the remote end drops the connection.
+	Should fix occasional trouble when connectioin keepalive is used but
+	the remote host drops the connection between requests.
+
+2005-04-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: remove wProperties and wData from
+	handle in sync.
+
+2005-04-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/defaults.m: Fix bug writing defaults whose values should be
+	quoted strings.
+
+2005-04-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Fix bug in memory management when serializing an
+	object over 65K in length.
+
+2005-04-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Tools/gdnc.m:
+	mingw tweaks
+
+2005-04-19  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (init_iface): Round size to make sure we don't violate
+	pointer alignment boundaries.
+
+2005-04-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Add tweak to cope with buggy mailers
+	which insert space after the boundary in a multipart document.
+
+2005-04-13  Adam Fedor  <fedor@gnu.org>
+
+	* ANNOUNCE, NEWS, Documentation/news.texi,
+	Documentation/ReleaseNotes.gsdoc: Merge in release info from
+	1.10.3 release branch.
+
+2005-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSDistributedNotificationCenter.h:
+	Added GSPublicNotificationCenterType and changed documentation for
+	NSLocalNotificationCenterType to say it's private to the current user.
+	* Source/NSDistributedNotificationCenter.m: Changed so that
+	NSLocalNotificationCenterType is MacOS-X compatible and the new
+	GSPublicNotificationCenterType works like our old implementation.
+	* Source/NSPortNameServer.m: Add detailed message about forthcoming
+	change to make the default port name server deal with message ports
+	rather than socket ports ... for MacOS-X compatibility and security.
+	* Source/externs.m: Added GSPublicNotificationCenterType
+	* Tools/gdnc.m: Changes for new NSDistributedNotificationCenter
+	behavior.
+	Overview ... updated distributed notifications to be private to the
+	owner of the processes by default.  Added one-time warning message
+	for developers that NSConnection will be changing the same way.
+	These changes discussed a year or two ago (mostly with Alexander),
+	but nobody ever actually implemented them.
+	* Source/NSPathUtilities.m: Make temporary directory name based on
+	uid so that it is consistent on a unix system where there are
+	multiple named accounts with the same user id (essentially all
+	aliases for a single account).
+
+2005-04-05  Adam Fedor  <fedor@gnu.org>
+
+	* gnustep-base.spec.in: Update make dependancy
+
+2005-04-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([sttringByAppendingPathComponent:]) Fix bug
+	eliding multiple slashes in path.
+
+2005-04-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Fix missing nul terminator to arguments under win32
+
+2005-04-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Minor debug/warning log tweaks.
+	* Headers/Foundation/NSBundle.h: Document differences between GNUstep
+	and MacOS-X when initialising using a relative path.
+	* Headers/NSString.h: Fix typo in comment.
+
+2005-03-31  Adam Fedor  <fedor@gnu.org>
+
+	* ANNOUNCE, NEWS, Documentation/news.texi,
+	Documentation/ReleaseNotes.gsdoc: Merge in release info from
+	1.10.2 release branch.
+
+2005-03-31  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (_find_framework): New function.
+	([NSBundle +_addFrameworkFromClass:]): Use it. Based on patch
+	from Sheldon Gill.
+
+2005-03-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: (isAbsolutePath) always treat a path beginning
+	with '/' as absolute except when in windows mode or on windows and
+	not in unix mode.  Treat all UNC paths as absolute ... a change made
+	after a lot of trawling the web and looking at examples of UNC path
+	usage.
+
+2005-03-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/pathxml.m4: Fix to get --with-xml-prefix= to work for
+	xml2-config
+	* configure: regenerated
+
+2005-03-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Fix some charset-encoding mappings.
+	Add utf-7 and utf-16.
+	Add all aliases for ascii and latin1
+	Document mapping methods better.
+
+2005-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSFileManager.h: Add path handling documentation.
+	* Headers/Foundation/NSString.h: Add path handling methods
+	documentation and new method to set global path handling mode.
+	* Source/NSUserDefaults.m: Update path handling mode when defaults
+	are read in.
+	* Source/NSString.m: Implement selectable path handling mode ...
+	gnustep/unix/windows.  In the default gnustep mode we try to
+	handle paths in any format and just do the right thing.
+	Also updated handling of path extensions to match MacOSX behavior.
+	* Source/Additions/GSMime.m: Remove deprecated method.
+	Optimise a little by avoiding class lookups.
+
+2005-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Use fprintf rather than NSLog to try to
+	avoid possible recursion when errors occur.
+
+2005-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Tidy variable and function names to fit
+	GNUstep conventions.  Simplify code a little.  Don't attempt to parse
+	per-user config file if its name is nil or empty string.
+	Support parsing old config options for backward compatibility.
+
+2005-03-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Ensure last line of base64 encoded data
+	is terminated with crlf for clients which have buggy base64 decodedrs.
+
+2005-03-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Mark ([setDefaultEncoding:]) as deprecated
+	rather than just removing it ... in case someone has started using it.
+	* Source/NSPathUtilities.m: Tidied a little ... moved a function.
+	* Headers/Additions/GNUstepBase/GSFunctions.h: New header for functions
+	* Headers/Foundation/NSPathUtilities.h: Moved function
+	* Source/DocMakefile: Include GSFunctions.h
+	* Source/GNUmakefile: ditto
+	* Source/Additions/GNUmakefile: Build GSFunctions.m
+	* Source/Additions/GSFunctions.m: New file for extra functions.
+	* Source/NSString.m: ([stringByExpandingTildeInPath]) Improve handling
+	of paths containing mingw drives.
+	* Source/NSDate.m: Use same values for distant past/future as MacOSX
+	* Source/NSCalendarDate.m: Support output of extreme year values.
+
+2005-03-14  Adam Fedor  <fedor@gnu.org>
+
+	* Continuation of NSPathUtilities patches
+	* configure.ac: Add config-file option
+	* Headers/Foundation/NSPathUtilities.h: Add GSFindNamedFile, more 
+	NSSearchPathDirectory enums.
+	* Source/GNUmakefile: Don't install Win32 headers.
+	* Source/NSPathUtilities.m (InitializePathUtilities, ...): Add
+	support for reading standard path locations from a configuration
+	file. Various support functions added/removed to fit.
+	(GSFindNamedFile): New function.
+	(GSSetUserName): Do nothing if the user is the same.
+	(NSHomeDirectoryForUser): Use Windows utilities to get user name
+	(on Windows, of course).
+	(NSFullUserName): Default to NSUserName on Windows.
+	(GSSystemRootDirectory): Mark as deprecated.
+	(GSDefaultsRootForUser): Correctly return the actual defaults
+	directory, not the user directory.
+	(GSStandardPathPrefixes): Mark as deprecated.
+	(NSSearchPathForDirectoriesInDomains): Add platform paths and
+	additional search directories.
+	* Source/NSUserDefaults (pathForUser): Correct use of
+	GSDefaultsRootForUser. Remove obsolete path checking and
+	defaults location checking. (Patches from Sheldon Gill
+	with some modifications).
+
+	* Documentation/Base.gsdoc: Update documentation.
+	* Headers/Additions/GNUstepBase/Win32_Utilities.h,
+	Source/win32/Win32_Utilities.m: Fix function arguments.
+
+2005-03-12  Sungjin Chun <chuns@embian.com>
+
+	* Source/Additions/GSXML.m: Port to MacOS-X
+
+2005-03-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Handle null object passed to OAppend()
+	* Source/Additions/GSMime.m: Optimise setDefaultCharset: a little
+	Add error checking to setDefaultEncoding: to make sure it sets a
+	valid characterset encoding. Should almost certainly remove this
+	method though ... as it duplicates setDefaultCharset: functionality
+	in a somewhat less useful form.
+
+2005-03-11  David Wetzel <dave@turbocat.de>
+        * Source/Additions/GSMime.m:
+        * Headers/Additions/GNUstepBase/GSMime.h
+          Added setDefaultEncoding:
+          This is needed in GSWeb if you use utf-8 and faster than using a
+          String as encoding name.
+
+2005-03-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSet.m: Fix bug in forming union ... was using
+	wrong length.
+
+2005-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSetData.h: Add data outside unicode base plane.
+	* Source/NSCharacterSet.m: Change to support all unicode characters
+	rather than just UTF16.  The current implementation is still based
+	on (often much larger than before) bitmaps.  It may be that the size
+	of the bitmap data is too large for real world use, and we may have
+	to introduce a different storage mechanism.  The current mechanism
+	is good for cases where the number of characters in the set is large
+	and those characters are scattered, or where characters are only
+	present in the base plane.  Another implementation might be better
+	for cases where characters are clustered into contiguous groups
+	and the groups are scattered through the full range.
+
+2005-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: Extra types
+	* configure.ac: Added types for GSConfig.h.in
+	* configure: regenerated
+	* Headers/Foundation/NSCharacterSet.h: New MacOS-X methods
+	* Headers/Foundation/NSIndexSet.h: Remove bogus comment.
+	* Source/GNUmakefile: Don't build NSBitmapCharSet.m
+	* Source/NSBitmapCharSet.h: Removed ... merege into NSCharacterSet.m
+	* Source/NSBitmapCharSet.m: ditto
+	* Source/NSCharacterSet.m: Optimise a few methods.
+	Add new MacOS-X methods (naive implementations)
+	Merge in NSBitmapCharSet as private class
+
+2005-03-06  Matt Rice <ratmice@yahoo.com>
+
+	* Headers/Foundation/NSRunLoop.h: Reorder RunLoopEventType for binary
+	compatibility.
+
+2005-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSCharacterSet.h: Add documentation and method
+	([-capitalizedLetterCharacterSet]) Change name of symbol set to
+	match MacOS-X
+	* Source/NSCharacterSet.m: Add new method and move documentation to
+	header.  Include local NSCharacterSetData.h for bitmap data.
+	* Source/NSCharacterSetData.h: New file containing the bitmap data
+	for the standard charactersets.  Generated by dev-apps/charsets
+	tools using the latest unicode characterset data today.
+	* Source/NSCharacterSets/README.CharSet: mark as obsolete.
+	* Source/GNUmakefile: No longer build/install NSCharacterSets
+	The standard bitmap data for charactersets is now built in to
+	NSCharacterSet.
+	* Headers/Foundation/NSBitmapChar.h: Moved nonstandard header
+	to private source directory.
+	* Source/NSAutoreleasePool.m: Rewrite deallocation to cause the pool
+	to remain as the current pool during the deallocation process ...
+	Requires deallocation to be done in a loop to avoid possible leaks
+	etc if an object which is being deallocated decides to autorelease
+	something.
+	Also removed a few private methods for simplification.
+
+2005-03-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: GSXMLRPC integrated.
+	* Headers/Additions/GSUstepBase/GSXML.h: GSXMLRPC integrated.
+
+2005-03-03  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSFileManager.m (-createFileAtPath:...): Define var at
+	beginning to work on gcc 2.x compilers.
+
+2005-03-03  Adam Fedor  <fedor@gnu.org>
+
+	* Start on integrating Sheldon Gills NSPathUtilities patches.
+	* Headers/Foundation/NSPathUtilities.h: Depreciate 
+	GSSystemRootDirectory, GSStandardPathPrefixes. Add 
+	GSPreferencesDirectory to NSSearchPathDirectory enum. Enumerate
+	NSSearchPathDomainMask values.
+	* Headers/Additions/GNUStepBase/Win32Support.h,
+	Headers/Additions/GNUStepBase/Win32_Utilites.h: New files.
+	* Source/GNUmakefile: Add NSPathUtilities.m
+	* Source/NSUser.m: Move everything in here...
+	* Source/NSPathUtilities.m: to here.
+	* Source/win32/GNUmakefile: Add Win32Support.m, Win32_Utilities.m
+	* Source/win32Win32Support.m, Win32_Utilities.m: New files
+	* Testing/nspathutilites.m: New file.
+	(Files and patches from Sheldon Gill with minor modifications).
+
+2005-03-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSKeyValueCoding.h:
+	* Source/NSArray.m:
+	* Source/NSKeyValueCoding.m:
+	* Source/Additions/GSObjCRuntime.m:
+	On the way back from FOSDEM I updated tje key-value-coding stuff to
+	match the lastest version from Apple/MacOS-X panther.
+	I don't use KVC in my code, and have not testcases for it, so would
+	appreciate it if anyone who does could try this out and get bug
+	reports back to me ASAP.
+
+2005-03-01  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (+gnustepBundle, 
+	+pathForGNUstepResource:ofType:inDirectory:]): Add deprecated
+	log message.
+	* Source/NSNotificationQueue.m, Source/null-load.h: 
+	Fix copyright message.
+
+2005-03-01 02:50 Nicola Pero <n.pero@mi.flashnet.it>
+
+	* Source/Makefile.preamble (ADDITIONAL_LIB_DIRS): When building a
+	shared library, depend on all TARGET_SYSTEM_LIBS, not just
+	CONFIG_SYSTEM_LIBS.
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Do not use
+	__declspec(dllexport) on mingw.  Use extern instead.
+	
+2005-02-28 17:45 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSCharacterSets/GNUmakefile: Use GNUSTEP_OBJ_DIR_NAME to run
+	data conversion tool, since Tom Koelman points out that the 'obj'
+	subdirectory does not work on windoze due to lack of symlinks.
+
+2005-02-28 17:10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSproxy.m:
+	Damn ... when I ran the testsuite for the stuff I did at fosdem, it
+	all worked ... but now I find that it was linking to an older version
+	of the base library and actually the changes were broken.
+	The new modifications should (hopefully) fix all breakage.
+	The changes exposed rare bugs in the existing code ...
+	NSCharacterSet was returning immutable copies of the standard
+	character sets when it should return mutable ones, it was also
+	being a bit bad about allocating new instances.  NSProxy was
+	failing to implement instanceMethodForSelector:, and NSAutoreleasePool
+	had a bug which could mess up a bit if the objects being deallocated
+	by it autoreleased anything.
+
+2005-02-28  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSPropertyList.m (OAppend): Attempt to transform
+	description of non-proporty-list objects into property list
+	before recursing for OPENSTEP compatibility.
+	
+2005-02-27 13:20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m:
+	Set default timeouts to maximum timeouts for MacOS-X compatibility.
+
+2005-02-27 08:45 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSCharacterSets/dataToheader.c: new file to convert data files to
+	constant values in a new header (NSCharacterSetData.h).
+	* NSCharacterSets/GNUmakefile: build header from data files, and
+	don't create resource set, since we no longer use the files at runtime.
+	* Source/NSCharacterSet.m: include NSCharacterSetData.h and use it to
+	create the standard charactersets rather than reading from data files.
+	This has two advantages - It avoids the need to install characterset
+	data files with the library, and it means that we have characterset
+	data available immediately (before we need to access the filesystem)
+	so we can use charactersets and NSString methods which depend upon them
+	earlier on in the system initialisation.
+
+2005-02-27 00:50 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: ([-dealloc]) cache method implementations
+	for release calls on the assumption that many of the objects in the
+	pool will be of the same class.
+	Optimisation suggested by Georg Wallmann
+
+2005-02-23  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add test to check for poll emulation
+	* Source/NSRunLoop.h: Don't use poll if we're just emulating.
+	* Source/unix/GSRunLoopCtxt.m: Idem.
+
+2005-02-23 14:00 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSFileHandle.h: Add windows event
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Source/GNUmakefile:
+	* Source/GSFileHandle.m:
+	* Source/GSLocale.m:
+	* Source/NSMessagePort.m:
+	* Source/NSPipe.m:
+	* Source/NSRunLoop.m:
+	* Source/NSSocketPort.m:
+	* Source/NSThread.m:
+	* Source/NSUser.m:
+	* Source/unix/GNUmakefile:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/unix/GSRunLoopWatcher.m:
+	* Source/unix/Makefile.preamble:
+	* Source/win32/GNUmakefile:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopWatcher.m:
+	* Source/win32/Makefile.preamble:
+	* Source/win32/NSRunLoopWin32.m:
+	Applied patch by Luis Cabellos to use native win32 event handling
+	rather than unix style select/poll on a win32 system.
+	Rewrote various chunks to simplify, conform to coding standards,
+	work for me etc.  In particular, replaced code for thread
+	synchronisation to use win32 Event rather than pipe.
+
+2005-02-22  Adam Fedor  <fedor@gnu.org>
+
+	* Branched freeze-1_10_2 for Version: 1.10.2
+
+2005-02-22 14:00 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc:
+	* Source/GSPrivate.h:
+	* Source/NSDebug.m:
+	* Source/NSLog.m:
+	* Source/NSUserDefaults.m:
+	Add GSLogThread to include thread id in NSLog() and debug output.
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Remove thread reporting in some debug statements as it can be
+	done universally using GSLogThread.
+
+2005-02-22 11:12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFormat.m:
+	* Source/GSString.m:
+	* Source/GSTemplateValue.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSData.m:
+	* Source/NSDebug.m:
+	* Source/NSDecimal.m:
+	* Source/NSInvocation.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSScanner.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/NSUserDefaults.m:
+	* Source/libgnustep-base-entry.m:
+	* Source/thr-mach.m:
+	* Source/thr-pthread.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/Unicode.m:
+	* Source/Additions/behavior.m:
+	Tidy up use of white space a little.
+
+2005-02-21 20:30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.m: Modified code to rewrite output to use correct
+	decimal separator for locale (hopefully).  Also made a small
+	performance improvement in processing digits for output.
+
+2005-02-21 14:30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.m:
+	* Source/NSConnection.m:
+	* Source/callframe.m:
+	* Source/cifframe.m:
+	Include malloc.h for systems where it is needed for alloca()
+	* Tools/gdomap.c: Avoid some warnings on mingw32
+
+2005-02-21 14:10 Stefan Urbanek <stefan@agentfarms.net>
+
+	* Source/NSAttributedString.m: Fix loop decoding from archive.
+
+2005-02-18 06:20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Tidy up some of last patch for unicode filesystem
+	support.
+	* Source/NSFileManager.m: Complete rewrite of  unicode filesystem
+	support to make code more readable and to allow it to easily be
+	turned off by commenting out the 'UNICODE' and '_UNICODE'
+	definitions at the start of the file.
+	There is a bug in the mingw runtime which is (currently) still
+	distributed in the 'current' complete mingw distribution ... which
+	breaks unicode filesystem support very badly.
+	So ... you can now either revert to 8bit charset filesystem support,
+	or download a more recent version of the mingw runtime from the
+	mingw site.
+	* Source/NSTask.m: Fix setting environment for mingw ... use own
+	method to get environment rather than examining instance variable,
+	as the variable may not be set.  Sort variables because windows needs
+	them in alphabetical order.  Fix conversion to unicode.
+
+	2005-02-16 14:40 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/patchxml.m4: Try to detect libxml2 in standard directories
+	exen if xml2-config is not present.
+	* configure.ac: Detect libxml2 becore iconv, in case libxml2
+	requires iconv (which it usually will on a system where iconv is
+	not built into the standard c library).
+	* confingure: Regenerate
+	* Source/Additions/GSXML.m: Set memory allocation functions to be
+	used by libxml2, so we can use objc_free() to release strings returned
+	by the library, and avoid linker problem with xmlFree() on mingw.
+
+2005-02-15 08:00 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Fix incorrect version comitted.
+
+2005-02-14 08:00 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Pass environment settings for mingw based on
+	anonymous bug submission (bug #11360)
+	* Source/NSUser.m: Fix bug #11378
+	* Tools/gdomap.c: Quote mingw arguments toi fix bug #11854
+	* Documentation/manual/Introduction.texi: Apply patch by pupeno
+	(bug #11814)
+
+2005-02-10 01:05  Alexander Malmberg  <alexander@malmberg.org>
+
+	* Tools/gdnc.m (main): Remove the program name from the arguments
+	given to the new task.
+
+2005-02-08 11:20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: (unicodeString) rewrite to conform to coding
+	standards and to be more efficient.
+
+2005-02-08 10:10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdnc.m: Rewrite startup code to create a daemon using NSTask
+	rather than calling fork()/spawn() etc.
+	Make arguments more consistent with gpbs
+	* Source/NSTask.m: Minor code layout/indentation tweaks.
+
+2005-02-02 09:40 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Restructure last patch to conform to
+	gnustep coding standards.
+	(localFromOpenStepPath:) for unix paths, expand '~' abbreviations.
+
+2005-01-31  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/coding-standards.texi: Add section of documentation.
+
+2005-01-29 03:46 Matt Rice <ratmice@yahoo.com>
+	
+	* Source/NSUndoManager.m (-registerUndoWithTarget:selector:object:):
+	Have the invocation to retain it's arguments. (Fixes bug #4692.)
+
+2005-01-21 22:08 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: [NSUndoManager redo] and 
+	[NSUndoManager undoNestedGroup] moved the call to actionName
+	to a later point in both methods to get the name from the 
+	"groupToRedo" or the "groupToUndo" respectively.  This 
+	corrects the issue with the wrong name sometimes appearing
+	in the redo/undo menu items.
+
+2005-01-16 07:59 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Added code to properly set the
+	name of the action when undo/redo is called. 
+
+2005-01-16 06:37 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Check if the group is nil in 
+	endUndoGrouping before checking the count.
+
+2005-01-15 06:17 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Undid previous change here.
+
+2005-01-15 06:13 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Localized undo/redo menu title.
+
+2005-01-14 06:50 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Correction for redo.
+
+2005-01-14 05:43 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Fix forward invocation to not add
+	a group when it doesn't contain any actions. 
+
+2005-01-08  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSCalendarDate.m: fix time zone for %z format with 
+	only 2 digits in -initWithString:calendarFormat:locale:	
+
+2005-01-07  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSTimeZone.m (+abbreviationDictionary): Retain	dictionary
+	(Fixes bug #11516).
+
+Copyright @copyright{} 2005 Free Software Foundation
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+

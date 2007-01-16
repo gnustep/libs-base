@@ -1,0 +1,36 @@
+#
+# Extra make variables for base library
+#
+# Copyright (C) 2005 Free Software Foundation
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.
+
+
+WHOAMI=@WHOAMI@
+
+DYNAMIC_LINKER=@DYNAMIC_LINKER@
+
+HAVE_LIBXML=@HAVE_LIBXML@
+
+WITH_FFI=@WITH_FFI@
+
+NX_CONST_STRING_CLASS=@NX_CONST_STRING_CLASS@
+
+HAVE_PTHREAD_H=@HAVE_PTHREAD_H@
+HAVE_INET_PTON=@HAVE_INET_PTON@
+
+CONFIG_SYSTEM_INCL += @INCLUDE_FLAGS@
+ifeq ($(shared),yes)
+  CONFIG_SYSTEM_LIBS += @LIBS@
+  CONFIG_SYSTEM_LIB_DIR += @LDIR_FLAGS@
+endif
+
+GNUSTEP_BASE_HAVE_LIBXML=@HAVE_LIBXML@
+
+# Default to building only -baseadd
+# on non *-gnu-* library combos
+ifneq ($(FOUNDATION_LIB),gnu)
+add=yes
+base=no
+endif

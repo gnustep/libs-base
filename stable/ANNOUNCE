@@ -1,0 +1,53 @@
+1 Announcement
+**************
+
+	ftp.gnustep.org
+
+	pub/daily-snapshots
+
+The GNUstep Base Library, version 1.13.1, is now available.
+
+1.1 What is the GNUstep Base Library?
+=====================================
+
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+object collections, byte streams, typed coders, invocations,
+notifications, notification dispatchers, moments in time, network ports,
+remote object messaging support (distributed objects), and event loops.
+
+   It provides functionality that aims to implement the non-graphical
+portion of the OpenStep standard (the Foundation library).
+
+   There is more information available at the GNUstep homepage at
+`http://www.gnustep.org'.
+
+   	ftp.gnustep.org
+
+   	pub/daily-snapshots
+
+1.2 Noteworthy changes in version `1.13.1'
+==========================================
+
+Various minor bugs and MacOS-X incompatibilities fixed.  One important
+fix for a possible buffer overrun attack when initialising NSDate
+objects from strings.  One fix for a serious (crash) bug when
+initialising the bundles system in an application which has a lot of
+frameworks linked to it.  See the release notes for more details.
+
+1.3 Where can you get it?  How can you compile it?
+==================================================
+
+The gnustep-base-1.13.1.tar.gz distribution file has been placed at
+`ftp://ftp.gnustep.org/pub/gnustep/core'.
+
+Please log bug reports on the GNUstep project page
+`http://savannah.gnu.org/bugs/?group=gnustep' or send bug reports to
+<bug-gnustep@gnu.org>.
+
+   Copyright (C) 2005 Free Software Foundation
+
+   Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
