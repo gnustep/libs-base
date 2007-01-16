@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.xml">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.xml">
 <!--
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
@@ -12,9 +12,13 @@ notice and this notice are preserved.
       <email address="fedor@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
     <version>$Revision$</version>
     <date>$Date$</date>
-    <copy>2005 Free Software Foundation, Inc.</copy>
+    <copy>2005,2006 Free Software Foundation, Inc.</copy>
   </head>
   <body>
     <chapter>
@@ -24,6 +28,69 @@ notice and this notice are preserved.
 	changes and other information that might help developers and users
 	migrate to using a newer version of the library.
       </p>
+      <section>
+	<heading>Version 1.13.1</heading>
+	<p> 
+          This is a bugfix release improving the stability and security
+	  of applications using the base library.
+          Programs dynamically linked with the existing stable release
+	  will automatically benefit from these changes once this
+	  version is installed.
+	</p>
+	<deflist>
+	  <term>NSBundle</term>
+	  <desc>
+	    Fix for crash when initialising the bundle system in
+	    an applicatiuon linked with many frameworks.
+	  </desc>
+	  <term>NSCalendarDate</term>
+	  <desc>
+	     Fix for buffer overrun problem mwhen initialising
+	     date from string.  Also fixed to return nil when
+	     initialising from some illegal strings.
+	  </desc>
+	  <term>NSConnection</term>
+	  <desc>
+	     Some locking fixes to avoid rare deadlocks in heavily
+	     multithreaded applications.
+	  </desc>
+	  <term>NSDecimalNumber</term>
+	  <desc>
+	     Fix to handle current locale properly when initialising.
+	  </desc>
+	  <term>NSIndexSet</term>
+	  <desc>
+	     Fix bug adding indexes in a range which lies within a
+	     range already in the set.
+	  </desc>
+	  <term>NSPropertyList</term>
+	  <desc>
+	     Fix problem writing negative numbers into old-style
+	     property list.
+	  </desc>
+	  <term>NSString</term>
+	  <desc>
+	     Fix for problem with keyed archiving of simple strings.
+	  </desc>
+	  <term>NSURL</term>
+	  <desc>
+	     Fix a potential repeated load of the same resource.
+	     Also fix to return nil when initialised with a string
+	     which does not contain a URL scheme.
+	  </desc>
+	  <term>NSURLHandle</term>
+	  <desc>
+	    Improve handling of persistent connections when the remote
+	    host drops the connection unexpectedly.
+	  </desc>
+	  <term>GSXML</term>
+	  <desc>
+	    Fix bug causing removal of newline characters from escaped
+	    strings.
+	    Fix error setting start end end element for SAX.
+	  </desc>
+	</deflist>
+      </section>
       <section>
 	<heading>Version 1.13.0</heading>
 	<p> 
