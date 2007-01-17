@@ -1,3 +1,8 @@
+2007-01-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSURLHandle.m: Backport change to make sure resourceData method
+	returns an autoreleased object.
+
 2007-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Version 1.13.1

@@ -526,24 +526,23 @@ static Class		NSURLHandleClass = 0;
  */
 - (NSData*) resourceData
 {
-  if (_status == NSURLHandleLoadSucceeded)
+  if (_status != NSURLHandleLoadSucceeded)
     {
-      return [self availableResourceData];
-    }
-  else if (_status == NSURLHandleLoadInProgress)
-    {
-      return nil;
-    }
-  else
-    {
-      NSData	*d = [self loadInForeground];
-
-      if (d != nil)
+      if (_status == NSURLHandleLoadInProgress)
 	{
-	  ASSIGNCOPY(_data, d);
+	  return nil;
 	}
-      return _data;
+      else
+	{
+	  NSData	*d = [self loadInForeground];
+
+	  if (d != nil)
+	    {
+	      ASSIGNCOPY(_data, d);
+	    }
+	}
     }
+  return [self availableResourceData];
 }
 
 /**
