@@ -627,6 +627,10 @@ static unsigned	urlAlign;
 - (id) initWithString: (NSString*)aUrlString
 	relativeToURL: (NSURL*)aBaseUrl
 {
+  /* RFC 2396 'reserved' characters ...
+   */
+  static const char *reserved = ";/?:@&=+$,";
+
   if (aUrlString == nil)
     {
       [NSException raise: NSInvalidArgumentException
@@ -879,6 +883,11 @@ static unsigned	urlAlign;
 	      if (buf->fragment == 0 && base != 0)
 		{
 		  buf->fragment = base->fragment;
+		  if (legal(buf->fragment, reserved) == NO)
+		    {
+		      [NSException raise: NSGenericException format:
+		        @"illegal character in fragment part"];
+		    }
 		}
 	    }
 
@@ -899,6 +908,11 @@ static unsigned	urlAlign;
 	      if (buf->query == 0 && base != 0)
 		{
 		  buf->query = base->query;
+		  if (legal(buf->query, reserved) == NO)
+		    {
+		      [NSException raise: NSGenericException format:
+		        @"illegal character in query part"];
+		    }
 		}
 	    }
 
@@ -919,6 +933,11 @@ static unsigned	urlAlign;
 	      if (buf->parameters == 0 && base != 0)
 		{
 		  buf->parameters = base->parameters;
+		  if (legal(buf->parameters, reserved) == NO)
+		    {
+		      [NSException raise: NSGenericException format:
+		        @"illegal character in parameters part"];
+		    }
 		}
 	    }
 
@@ -944,6 +963,11 @@ static unsigned	urlAlign;
        * Store the path.
        */
       buf->path = start;
+      if (legal(buf->path, reserved) == NO)
+	{
+	  [NSException raise: NSGenericException format:
+	    @"illegal character in path part"];
+	}
     }
   NS_HANDLER
     {
