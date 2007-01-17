@@ -1,3 +1,8 @@
+2007-01-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLHandle.m: ([resourceData]) make sure value returned
+	is autoreleased.
+
 2007-01-16  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Fixed url of build guide given in error message
