@@ -2,6 +2,7 @@
 
 	* Source/NSURLHandle.m: ([resourceData]) make sure value returned
 	is autoreleased.
+	* Source/NSURL.m: Parse string a bit more strictly according to RFC
 
 2007-01-16  Nicola Pero <nicola.pero@meta-innovation.com>
 
