@@ -362,16 +362,16 @@ main(int argc, char** argv, char **env)
 			  id		obj = [dom objectForKey: key];
 			  const char	*ptr;
 
-			  ptr = [domainName cString];
+			  ptr = [domainName UTF8String];
 			  output(ptr);
 			  putchar(' ');
 
-			  ptr = [key cString];
+			  ptr = [key UTF8String];
 			  output(ptr);
 			  putchar(' ');
 
 			  ptr = [[obj descriptionWithLocale: locale
-			    indent: 0] cString];
+			    indent: 0] UTF8String];
 			  output(ptr);
 			  putchar('\n');
 			}
@@ -384,14 +384,14 @@ main(int argc, char** argv, char **env)
 			{
 			  const char      *ptr;
 
-			  ptr = [domainName cString];
+			  ptr = [domainName UTF8String];
 			  output(ptr);
 			  putchar(' ');
-			  ptr = [name cString];
+			  ptr = [name UTF8String];
 			  output(ptr);
 			  putchar(' ');
 			  ptr = [[obj descriptionWithLocale: locale indent: 0]
-			    cString];
+			    UTF8String];
 			  output(ptr);
 			  putchar('\n');
 			  found = YES;
@@ -403,7 +403,7 @@ main(int argc, char** argv, char **env)
 
       if (found == NO && name != nil)
 	{
-	  printf("defaults read: couldn't read default\n");
+	  GSPrintf(stderr, @"defaults read: couldn't read default\n");
 	  derror = GSEXIT_NOTFOUND;
 	}
     }
@@ -430,7 +430,8 @@ main(int argc, char** argv, char **env)
 	      buf = objc_realloc(buf, size);
 	      if (buf == 0)
 		{
-		  printf("defaults write: out of memory loading defaults\n");
+		  GSPrintf(stderr,
+		    @"defaults write: out of memory loading defaults\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
@@ -458,7 +459,8 @@ main(int argc, char** argv, char **env)
 	      owner = input(&ptr);
 	      if ([owner length] == 0)
 		{
-		  printf("defaults write: invalid input - nul domain name\n");
+		  GSPrintf(stderr,
+		    @"defaults write: invalid input - nul domain name\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
@@ -466,7 +468,8 @@ main(int argc, char** argv, char **env)
 	      name = input(&ptr);
 	      if ([name length] == 0)
 		{
-		  printf("defaults write: invalid input - nul default name.\n");
+		  GSPrintf(stderr,
+		    @"defaults write: invalid input - nul default name.\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
@@ -478,8 +481,9 @@ main(int argc, char** argv, char **env)
 	      obj = input(&ptr);
 	      if (obj == nil)
 		{
-		  printf("defaults write: invalid input - "
-			    "empty property list\n");
+		  GSPrintf(stderr,
+		    @"defaults write: invalid input - "
+		    @"empty property list\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
@@ -496,13 +500,15 @@ main(int argc, char** argv, char **env)
 		  NS_DURING
 		    tmp = [obj propertyList];
 		  NS_HANDLER
-		    NSLog(@"Failed to parse '%@' ... '%@'", obj, localException);
+		    NSLog(@"Failed to parse '%@' ... '%@'",
+		      obj, localException);
 		    tmp = nil;
 		  NS_ENDHANDLER
 		  if (tmp == nil)
 		    {
-		      printf("defaults write: invalid input - "
-				    "bad property list\n");
+		      GSPrintf(stderr,
+		        @"defaults write: invalid input - "
+			@"bad property list\n");
 		      [pool release];
 		      exit(GSEXIT_FAILURE);
 		    }
@@ -536,7 +542,7 @@ main(int argc, char** argv, char **env)
 	      const char	*ptr;
 
 	      value = [args objectAtIndex: i];
-	      ptr = [value cString];
+	      ptr = [value UTF8String];
 
 	      if (*ptr == '(' || *ptr == '{' || *ptr == '<' || *ptr == '"')
 		{
@@ -550,8 +556,8 @@ main(int argc, char** argv, char **env)
 
 		  if (obj == nil)
 		    {
-		      printf("defaults write: invalid input - "
-				    "bad property list\n");
+		      GSPrintf(stderr, @"defaults write: invalid input - "
+			@"bad property list\n");
 		      [pool release];
 		      exit(GSEXIT_FAILURE);
 		    }
@@ -607,7 +613,8 @@ main(int argc, char** argv, char **env)
 	      buf = objc_realloc(buf, size);
 	      if (buf == 0)
 		{
-		  printf("defaults write: out of memory reading domains\n");
+		  GSPrintf(stderr,
+		    @"defaults write: out of memory reading domains\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
@@ -629,22 +636,31 @@ main(int argc, char** argv, char **env)
 	      owner = input(&ptr);
 	      if ([owner length] == 0)
 		{
-		  printf("defaults delete: invalid input - empty owner\n");
+		  GSPrintf(stderr,
+		    @"defaults delete: invalid input - empty domain name\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
 	      name = input(&ptr);
 	      if ([name length] == 0)
 		{
-		  printf("defaults delete: invalid input - empty domain name\n");
+		  GSPrintf(stderr,
+		    @"defaults delete: invalid input - empty key\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
 	      domain = [[defs persistentDomainForName: owner] mutableCopy];
-	      if (domain == nil || [domain objectForKey: name] == nil)
+	      if (domain == nil)
+	        {
+		  GSPrintf(stderr, @"defaults delete: couldn't remove "
+		    @"value from non-existent domain %s\n", [owner UTF8String]);
+		}
+	      else if ([domain objectForKey: name] == nil)
 		{
-		  printf("defaults delete: couldn't remove %s owned by %s\n",
-			[name cString], [owner cString]);
+		  GSPrintf(stderr,
+		    @"defaults delete: couldn't remove non-existent value %s "
+		    @"from domain %s\n",
+		    [name UTF8String], [owner UTF8String]);
 		}
 	      else
 		{
@@ -667,10 +683,17 @@ main(int argc, char** argv, char **env)
 	  if (name)
 	    {
 	      domain = [[defs persistentDomainForName: owner] mutableCopy];
-	      if (domain == nil || [domain objectForKey: name] == nil)
+	      if (domain == nil)
+	        {
+		  GSPrintf(stderr, @"defaults delete: couldn't remove "
+		    @"value from non-existent domain %s\n", [owner UTF8String]);
+		}
+	      else if ([domain objectForKey: name] == nil)
 		{
-		  printf("defaults delete: couldn't remove %s owned by %s\n",
-			[name cString], [owner cString]);
+		  GSPrintf(stderr,
+		    @"defaults delete: couldn't remove non-existent value %s "
+		    @"from domain %s\n",
+		    [name UTF8String], [owner UTF8String]);
 		}
 	      else
 		{
@@ -680,7 +703,15 @@ main(int argc, char** argv, char **env)
 	    }
 	  else
 	    {
-	      [defs removePersistentDomainForName: owner];
+	      if ([defs persistentDomainForName: owner]  == nil)
+	        {
+		  GSPrintf(stderr, @"defaults delete: couldn't remove "
+		    @"non-existent domain %s\n", [owner UTF8String]);
+		}
+	      else
+	        {
+	          [defs removePersistentDomainForName: owner];
+		}
 	    }
 	}
       if ([defs synchronize] == NO)
@@ -697,7 +728,7 @@ main(int argc, char** argv, char **env)
 	{
 	  NSString	*domainName = [domains objectAtIndex: i];
 
-	  output([domainName cString]);
+	  output([domainName UTF8String]);
 	  putchar('\n');
 	}
     }
@@ -719,7 +750,7 @@ main(int argc, char** argv, char **env)
 
 	  if ([domainName isEqual: name])
 	    {
-	      printf("%s\n", [domainName cString]);
+	      GSPrintf(stderr, @"%s\n", [domainName UTF8String]);
 	      found = YES;
 	    }
 
@@ -736,17 +767,18 @@ main(int argc, char** argv, char **env)
 
 		  if ([key isEqual: name])
 		    {
-		      printf("%s %s\n", [domainName cString], [key cString]);
+		      GSPrintf(stderr, @"%s %s\n",
+		        [domainName UTF8String], [key UTF8String]);
 		      found = YES;
 		    }
 		  if ([obj isKindOfClass: [NSString class]])
 		    {
 		      if ([obj isEqual: name])
 			{
-			  printf("%s %s %s\n",
-				[domainName cString],
-				[key cString],
-				[obj cString]);
+			  GSPrintf(stderr, @"%s %s %s\n",
+			    [domainName UTF8String],
+			    [key UTF8String],
+			    [obj UTF8String]);
 			  found = YES;
 			}
 		    }
@@ -756,7 +788,7 @@ main(int argc, char** argv, char **env)
 
       if (found == NO)
 	{
-	  printf("defaults find: couldn't find value\n");
+	  GSPrintf(stderr, @"defaults find: couldn't find value\n");
 	  derror = GSEXIT_NOTFOUND;
 	}
     }
