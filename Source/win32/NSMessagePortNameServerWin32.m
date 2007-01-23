@@ -157,8 +157,9 @@ static void clean_up_names(void)
 
 + (NSString *) _query: (NSString *)name
 {
-  NSString	*n;
-  NSString	*p;
+  NSString	*mailslotName;
+  NSString	*translatedName;
+  NSString	*mailslotPath;
   unsigned char	buf[1024];
   unsigned char	*ptr = buf;
   DWORD		max = 1024;
@@ -167,8 +168,10 @@ static void clean_up_names(void)
   HANDLE	h;
   int		rc;
 
-  n = [[self class] _translate: name];
+  translatedName = [[self class] _translate: name];
 
+
+#if 0
 /* FIXME ... wierd hack.
  * It appears that RegQueryValueExW does not always read from the registry,
  * but will in fact return cached results (even if you close and re-open the
@@ -190,10 +193,11 @@ static void clean_up_names(void)
  * port.
  */
 OutputDebugStringW(L"");
+#endif
 
   rc = RegQueryValueExW(
     key,
-    UNISTR(n),
+    UNISTR(translatedName),
     (LPDWORD)0,
     &type,
     (LPBYTE)ptr,
@@ -209,7 +213,7 @@ OutputDebugStringW(L"");
       len = max;
       rc = RegQueryValueExW(
 	key,
-	UNISTR(n),
+	UNISTR(translatedName),
 	(LPDWORD)0,
 	&type,
 	(LPBYTE)ptr,
@@ -224,7 +228,7 @@ OutputDebugStringW(L"");
       return nil;
     }
 
-  p = [NSString stringWithUTF8String: ptr];
+  mailslotName = [NSString stringWithUTF8String: ptr];
   if (ptr != buf)
     {
       objc_free(ptr);
@@ -234,10 +238,10 @@ OutputDebugStringW(L"");
    * See if we can open the port mailslot ... if not, the query returned
    * an old name, and we can remove it.
    */
-  p = [NSString stringWithFormat:
-    @"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", p];
+  mailslotPath = [NSString stringWithFormat:
+    @"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", mailslotName];
   h = CreateFileW(
-    UNISTR(p),
+    UNISTR(mailslotPath),
     GENERIC_WRITE,
     FILE_SHARE_READ|FILE_SHARE_WRITE,
     &security,
@@ -246,13 +250,16 @@ OutputDebugStringW(L"");
     (HANDLE)0);
   if (h == INVALID_HANDLE_VALUE)
     {
-      RegDeleteValueW(key, UNISTR(n));
+      NSDebugLLog(@"NSMessagePortNameServer",
+        @"Failed to open mailslot (%@) for write on port named %@ - %@",
+	mailslotPath, name, [NSError _last]);
+      //RegDeleteValueW(key, UNISTR(n));
       return nil;
     }
   else
     {
       CloseHandle(h);	// OK
-      return n;
+      return mailslotName;
     }
 }
 
@@ -341,6 +348,7 @@ OutputDebugStringW(L"");
     REG_BINARY,
     str,
     strlen(str)+1);
+  NSDebugLLog(@"NSMessagePortNameServer", @"Set port '%s' for %@", str, n);
   if (rc == ERROR_SUCCESS)
     {
       rc = RegFlushKey(key);
