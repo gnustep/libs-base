@@ -941,9 +941,10 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 #endif
 #endif
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) && defined(__i386__)
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
       // problems on *BSD)
+      // Note this only works on x86
 
       {
 	volatile short cw;
