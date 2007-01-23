@@ -1,3 +1,9 @@
+2007-01-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortNameServerWin32.m:
+	* Source/win32/NSMessagePortWin32.m:
+	Bugfixes to try to make win32 nameserver operation more reliable.
+
 2007-01-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/defaults.m: Make errors go to stderr and be more informative.
