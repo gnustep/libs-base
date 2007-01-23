@@ -206,12 +206,6 @@ static Class		messagePortClass = 0;
       p = [[self alloc] initWithName: name];
     }
   M_UNLOCK(messagePortLock);
-  if ([p _setupSendPort] == NO)
-    {
-      NSLog(@"unable to access mailslot '%@' - %@",
-	[p name], [NSError _last]);
-      DESTROY(p);
-    }
   return p;
 }
 
@@ -364,6 +358,7 @@ static Class		messagePortClass = 0;
 - (id) initWithName: (NSString*)name
 {
   NSMessagePort	*p;
+  BOOL		found = NO;
 
   M_LOCK(messagePortLock);
   p = RETAIN((NSMessagePort*)NSMapGet(ports, (void*)name));
@@ -385,14 +380,33 @@ static Class		messagePortClass = 0;
       this->rEvent = INVALID_HANDLE_VALUE;
       this->wHandle = INVALID_HANDLE_VALUE;
       this->wEvent = INVALID_HANDLE_VALUE;
-
-      NSMapInsert(ports, (void*)this->name, (void*)self);
-      NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", self);
     }
   else
     {
+      found = YES;
       RELEASE(self);
       self = p;
+    }
+
+  /* This is a 'speaking' port ... set it up for write operation
+   * if necessary.
+   * NB. This must be done (to create the mailbox) before the port
+   * is added to the nameserver mapping ... or nother process might
+   * try to access the mailbox before it exists.
+   */
+  if ([self _setupSendPort] == NO)
+    {
+      NSLog(@"unable to access mailslot '%@' - %@",
+	[self name], [NSError _last]);
+      DESTROY(self);
+    }
+
+  if (self != nil && found == NO)
+    {
+      /* This was newly created ... add to map so that it can be found.
+       */
+      NSMapInsert(ports, (void*)[self name], (void*)self);
+      NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", self);
     }
   M_UNLOCK(messagePortLock);
   return self;
