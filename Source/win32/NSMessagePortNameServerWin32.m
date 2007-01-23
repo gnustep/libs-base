@@ -159,8 +159,10 @@ static void clean_up_names(void)
 {
   NSString	*n;
   NSString	*p;
-  unsigned char	buf[25];
-  DWORD		len = 25;
+  unsigned char	buf[1024];
+  unsigned char	*ptr = buf;
+  DWORD		max = 1024;
+  DWORD		len = 1024;
   DWORD		type;
   HANDLE	h;
   int		rc;
@@ -194,21 +196,46 @@ OutputDebugStringW(L"");
     UNISTR(n),
     (LPDWORD)0,
     &type,
-    (LPBYTE)buf,
+    (LPBYTE)ptr,
     &len);
+  while (rc == ERROR_MORE_DATA)
+    {
+      if (ptr != buf)
+        {
+	  objc_free(ptr);
+	}
+      max += 1024;
+      ptr = objc_malloc(max);
+      len = max;
+      rc = RegQueryValueExW(
+	key,
+	UNISTR(n),
+	(LPDWORD)0,
+	&type,
+	(LPBYTE)ptr,
+	&len);
+    }
   if (rc != ERROR_SUCCESS)
     {
+      if (ptr != buf)
+        {
+	  objc_free(ptr);
+	}
       return nil;
     }
 
-  n = [NSString stringWithUTF8String: buf];
+  p = [NSString stringWithUTF8String: ptr];
+  if (ptr != buf)
+    {
+      objc_free(ptr);
+    }
 
   /*
-   * See if we can open the mailslot ... if not, the query returned
+   * See if we can open the port mailslot ... if not, the query returned
    * an old name, and we can remove it.
    */
   p = [NSString stringWithFormat:
-    @"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", n];
+    @"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", p];
   h = CreateFileW(
     UNISTR(p),
     GENERIC_WRITE,
@@ -287,6 +314,7 @@ OutputDebugStringW(L"");
   NSMutableArray	*a;
   NSString		*n;
   int			rc;
+  const unsigned char	*str;
 
   NSDebugLLog(@"NSMessagePortNameServer", @"register %@ as %@\n", port, name);
   if ([port isKindOfClass: [NSMessagePort class]] == NO)
@@ -304,14 +332,15 @@ OutputDebugStringW(L"");
     }
 
   n = [[self class] _translate: name];
+  str = [[(NSMessagePort*)port name] UTF8String];
 
   rc = RegSetValueExW(
     key,
     UNISTR(n),
     0,
     REG_BINARY,
-    [[(NSMessagePort*)port name] UTF8String],
-    25);
+    str,
+    strlen(str)+1);
   if (rc == ERROR_SUCCESS)
     {
       rc = RegFlushKey(key);
