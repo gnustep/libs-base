@@ -162,6 +162,9 @@ static Class		messagePortClass = 0;
 	(HANDLE)0);
       if (this->wHandle == INVALID_HANDLE_VALUE)
 	{
+	  NSDebugMLLog(@"NSMessagePort",
+	    @"unable to access mailslot '%@' for write - %@",
+	    [self name], [NSError _last]);
 	  result = NO;
 	}
       else
@@ -396,8 +399,6 @@ static Class		messagePortClass = 0;
    */
   if ([self _setupSendPort] == NO)
     {
-      NSLog(@"unable to access mailslot '%@' - %@",
-	[self name], [NSError _last]);
       DESTROY(self);
     }
 
