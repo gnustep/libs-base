@@ -170,8 +170,7 @@ static void clean_up_names(void)
 
   translatedName = [[self class] _translate: name];
 
-
-#if 0
+#if 1
 /* FIXME ... wierd hack.
  * It appears that RegQueryValueExW does not always read from the registry,
  * but will in fact return cached results (even if you close and re-open the
