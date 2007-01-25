@@ -1,3 +1,8 @@
+2007-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: fix failure to unlock thread lock when
+	unabel to obtain filesystem lock.
+
 2007-01-23  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSObject.m ([NSObject +initialize]): Apply BSD FPU fix
