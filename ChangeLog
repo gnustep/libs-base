@@ -1,3 +1,9 @@
+2007-01-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* unix/NSStream.m:
+	* win32/NSStreamWin32.m:
+	Send event if an error occurs in the -open method.
+
 2007-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: fix failure to unlock thread lock when
