@@ -360,6 +360,7 @@ static void setNonblocking(int fd)
   if (fd < 0)
     {  
       [self _recordError];
+      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   _loopID = (void*)(intptr_t)fd;
@@ -472,6 +473,7 @@ static void setNonblocking(int fd)
 	      return;
 	    }
           [self _recordError];
+          [self _sendEvent: NSStreamEventErrorOccurred];
           return;
         }
     }
@@ -756,9 +758,10 @@ static void setNonblocking(int fd)
   else
     flag = flag | O_TRUNC;
   fd = open([_path fileSystemRepresentation], flag, mode);
-  if (fd< 0)
+  if (fd < 0)
     {  // make an error
       [self _recordError];
+      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   _loopID = (void*)(intptr_t)fd;
@@ -917,6 +920,7 @@ static void setNonblocking(int fd)
 	      return;
 	    }
           [self _recordError];
+          [self _sendEvent: NSStreamEventErrorOccurred];
           return;
         }
     }
@@ -1450,6 +1454,7 @@ static void setNonblocking(int fd)
   if (bindReturn < 0 || listenReturn < 0)
     {
       [self _recordError];
+      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   setNonblocking((intptr_t)_loopID);
