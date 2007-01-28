@@ -44,6 +44,7 @@
 #include <Foundation/NSDebug.h>
 
 #include "../GSStream.h"
+#include "../GSPrivate.h"
 
 #define	BUFFERSIZE	(BUFSIZ*64)
 
@@ -269,7 +270,7 @@ static void setNonblocking(SOCKET fd)
   unsigned long	dummy = 1;
 
   if (ioctlsocket(fd, FIONBIO, &dummy) == SOCKET_ERROR)
-    NSLog(@"unable to set non-blocking mode - %s",GSLastErrorStr(errno));
+    NSLog(@"unable to set non-blocking mode - %@", GSLastErrorStr(errno));
 }
 
 @implementation GSFileInputStream
@@ -325,6 +326,7 @@ static void setNonblocking(SOCKET fd)
   if (h == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
+      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   [self _setLoopID: (void*)h];
@@ -764,6 +766,7 @@ static void setNonblocking(SOCKET fd)
 	&& WSAGetLastError() != WSAEWOULDBLOCK)
         {// make an error
           [self _recordError];
+          [self _sendEvent: NSStreamEventErrorOccurred];
           return;
         }
       // waiting on writable, as an indication of opened
@@ -1076,6 +1079,7 @@ static void setNonblocking(SOCKET fd)
   if (h == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
+      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   else if (_shouldAppend == NO)
@@ -1083,6 +1087,7 @@ static void setNonblocking(SOCKET fd)
       if (SetEndOfFile(h) == 0)	// Truncate to current file pointer (0)
 	{
           [self _recordError];
+          [self _sendEvent: NSStreamEventErrorOccurred];
 	}
     }
   [self _setLoopID: (void*)h];
@@ -1538,6 +1543,7 @@ static void setNonblocking(SOCKET fd)
 	&& WSAGetLastError() != WSAEWOULDBLOCK)
         {// make an error
           [self _recordError];
+          [self _sendEvent: NSStreamEventErrorOccurred];
           return;
         }
       // waiting on writable, as an indication of opened
@@ -1866,8 +1872,8 @@ static void setNonblocking(SOCKET fd)
   if (handle == INVALID_HANDLE_VALUE)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"Unable to open named pipe '%@'... %s",
-	path, GSLastErrorStr(GetLastError())];
+		  format: @"Unable to open named pipe '%@'... %@",
+	path, GSLastErrorStr(errno)];
     }
 
   // the type of the stream does not matter, since we are only using the fd
@@ -2230,6 +2236,7 @@ done:
   if (bindReturn < 0 || listenReturn < 0)
     {
       [self _recordError];
+      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   setNonblocking(_sock);
@@ -2443,6 +2450,7 @@ done:
   if (handle == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
+      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
 
@@ -2465,6 +2473,7 @@ done:
       else if (errno != ERROR_IO_PENDING)
 	{
 	  [self _recordError];
+          [self _sendEvent: NSStreamEventErrorOccurred];
 	  return;
 	}
     }

@@ -1609,6 +1609,7 @@ static BOOL isLocked = NO;
   
   if ([self lockDefaultsFile: &wasLocked] == NO)
     {
+      [_lock unlock];
       return NO;
     }
   

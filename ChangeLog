@@ -1,3 +1,14 @@
+2007-01-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	Backport fix to send event if error occurs in -open
+
+2007-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: fix failure to unlock thread lock when
+	unable to obtain filesystem lock.
+
 2007-01-23  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSObject.m ([NSObject +initialize]): Apply BSD FPU fix
