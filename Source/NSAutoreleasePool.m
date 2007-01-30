@@ -185,7 +185,7 @@ static IMP	initImp;
 {
   unsigned count = 0;
   struct autorelease_array_list *released = _released_head;
-  while (released && released->count)
+  while (released != 0)
     {
       count += released->count;
       released = released->next;
@@ -199,7 +199,7 @@ static IMP	initImp;
   struct autorelease_array_list *released = _released_head;
   unsigned int i;
 
-  while (released && released->count)
+  while (released != 0)
     {
       for (i = 0; i < released->count; i++)
 	if (released->objects[i] == anObject)
