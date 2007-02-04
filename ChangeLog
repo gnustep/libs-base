@@ -8,6 +8,7 @@
 	* Source/NSException.m: Use non-symbolic stack trace if symbols
 	are not available.
 	* Source/NSIndexSet.m: Add private method for minternal use.
+	* Source/NSMessagePort.m: Fix error releasing uninitialised instance.
 
 2007-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
