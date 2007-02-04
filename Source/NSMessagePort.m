@@ -1701,7 +1701,10 @@ typedef	struct {
   M_LOCK(messagePortLock);
   if (NSDecrementExtraRefCountWasZero(self))
     {
-      NSMapRemove(messagePortMap, (void*)name);
+      if (_internal != 0)
+        {
+          NSMapRemove(messagePortMap, (void*)name);
+	}
       M_UNLOCK(messagePortLock);
       [self dealloc];
     }
