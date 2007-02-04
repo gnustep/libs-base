@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
+#if OS_API_VERSION(GS_API_NONE, GS_API_MACOSX)
 /**
  *	<p>Info about layout of arguments.
  *	Extended from the original OpenStep version to let us know if the
@@ -90,14 +90,10 @@ typedef struct	{
   const char		*_methodTypes;
   unsigned		_argFrameLength;
   unsigned		_numArgs;
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if OS_API_VERSION(GS_API_NONE, GS_API_MACOSX)
   NSArgumentInfo	*_info;
 #else
-#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
   void			*_info;
-#else
-  NSArgumentInfo	*_info;
-#endif
 #endif
 }
 
