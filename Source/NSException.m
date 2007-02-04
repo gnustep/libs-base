@@ -37,26 +37,43 @@
 #include "Foundation/NSDictionary.h"
 #include <stdio.h>
 
+
+@interface GSStackTrace : NSObject
+{
+  NSMutableArray *frames;
+}
++ (GSStackTrace*) currentStack;
+
+- (NSString*) description;
+- (NSEnumerator*) enumerator;
+- (id) frameAt: (unsigned)index;
+- (unsigned) frameCount;
+- (NSEnumerator*) reverseEnumerator;
+
+@end
+
+#define	STACKSYMBOLS	1
+
 /*
- * Turn off STACKTRACE if we don't have bfd support for it.
+ * Turn off STACKSYMBOLS if we don't have bfd support for it.
  */
 #if !(defined(HAVE_BFD_H) && defined(HAVE_LIBBFD) && defined(HAVE_LIBIBERTY))
-#if	defined(STACKTRACE)
-#undef	STACKTRACE
+#if	defined(STACKSYMBOLS)
+#undef	STACKSYMBOLS
 #endif
 #endif
 
 /*
- * Turn off STACKTRACE if we don't have DEBUG defined ... if we are not built
+ * Turn off STACKSYMBOLS if we don't have DEBUG defined ... if we are not built
  * with DEBUG then we are probably missing stackframe information etc.
  */
 #if !(defined(DEBUG))
-#if	defined(STACKTRACE)
-#undef	STACKTRACE
+#if	defined(STACKSYMBOLS)
+#undef	STACKSYMBOLS
 #endif
 #endif
 
-#if	defined(STACKTRACE)
+#if	defined(STACKSYMBOLS)
 
 // GSStackTrace inspired by  FYStackTrace.m
 // created by Wim Oudshoorn on Mon 11-Apr-2006
@@ -99,28 +116,6 @@
 - (GSFunctionInfo *) functionForAddress: (void*) address;
 - (id) initWithBinaryFile: (NSString *)filename;
 - (id) init; // return info for the current executing process
-
-@end
-
-
-@interface GSStackTrace : NSObject
-{
-  NSMutableArray *frames;
-}
-+ (GSStackTrace*) currentStack;
-/*
- * Add some module information to the stack trace information
- * only symbols from the current process's file, GNUstep base library,
- * GNUstep gui library, and any bundles containing code are loaded.
- * All other symbols should be manually added
- */
-+ (BOOL) loadModule: (NSString *)filename;
-
-- (NSString*) description;
-- (NSEnumerator*) enumerator;
-- (GSFunctionInfo*) frameAt: (unsigned)index;
-- (unsigned) frameCount;
-- (NSEnumerator*) reverseEnumerator;
 
 @end
 
@@ -373,8 +368,11 @@ static void find_address (bfd *abfd, asection *section,
 
 @end
 
+static BOOL LoadModule(NSString *filename);
+
 // this method automatically load the current process + GNUstep base & gui.
-static NSMutableDictionary *GetStackModules()
+static NSMutableDictionary *
+GetStackModules()
 {
   static NSMutableDictionary	*stackModules = nil;
 
@@ -400,29 +398,16 @@ static NSMutableDictionary *GetStackModules()
 	{
 	  if ([bundle load] == YES)
 	    {
-	      [GSStackTrace loadModule: [bundle executablePath]];
+	      LoadModule([bundle executablePath]);
 	    }
 	}
     }
   return stackModules;
 }
 
-@implementation GSStackTrace : NSObject
-
-static NSNull	*null = nil;
-
-+ (GSStackTrace*) currentStack
-{
-  return [[[GSStackTrace alloc] init] autorelease];
-}
-
-+ (void) initialize
-{
-  null = RETAIN([NSNull null]);
-}
-
 // initialize stack trace info
-+ (BOOL) loadModule: (NSString *)filename
+static BOOL
+LoadModule(NSString *filename)
 {
   if ([filename length] > 0)
     {
@@ -439,15 +424,25 @@ static NSNull	*null = nil;
 	    }
 	  else
 	    {
-	      [modules setObject: null forKey: filename];
+	      [modules setObject: [NSNull null] forKey: filename];
 	    }
 	}
-      if ([modules objectForKey: filename] != null)
+      if ([modules objectForKey: filename] != [NSNull null])
 	{
 	  return YES;
 	}
     }
   return NO;
+}
+
+#endif	/* STACKSYMBOLS */
+
+
+@implementation GSStackTrace : NSObject
+
++ (GSStackTrace*) currentStack
+{
+  return [[[GSStackTrace alloc] init] autorelease];
 }
 
 - (oneway void) dealloc
@@ -467,7 +462,7 @@ static NSNull	*null = nil;
   n = [frames count];
   for (i = 0; i < n; i++)
     {
-      GSFunctionInfo	*line = [frames objectAtIndex: i];
+      id	line = [frames objectAtIndex: i];
 
       [result appendFormat: @"%3d: %@\n", i, line];
     }
@@ -479,7 +474,7 @@ static NSNull	*null = nil;
   return [frames objectEnumerator];
 }
 
-- (GSFunctionInfo*) frameAt: (unsigned)index
+- (id) frameAt: (unsigned)index
 {
   return [frames objectAtIndex: index];
 }
@@ -490,10 +485,9 @@ static NSNull	*null = nil;
 }
 
 // grab the current stack 
-// this MAX_FRAME comes from NSDebug.h which warn only 100 frames are available
-#define MAX_FRAME  100
 - (id) init
 {
+#if	defined(STACKSYMBOLS)
   NSArray *modules;
   int i;
   int j;
@@ -505,7 +499,7 @@ static NSNull	*null = nil;
   n = NSCountFrames();
   m = [modules count];
 
-  for (i = 0; i < n && i < MAX_FRAME; i++)
+  for (i = 0; i < n; i++)
     {
       GSFunctionInfo	*aFrame = nil;
       void		*address = NSReturnAddress(i);
@@ -514,7 +508,7 @@ static NSNull	*null = nil;
   	{
 	  GSBinaryFileInfo	*bfi = [modules objectAtIndex: j];
 
-	  if ((id)bfi != (id)null)
+	  if ((id)bfi != (id)[NSNull null])
 	    {
 	      aFrame = [bfi functionForAddress: address];
 	      if (aFrame)
@@ -537,6 +531,20 @@ static NSNull	*null = nil;
 	  [frames addObject: aFrame];
 	}
     }
+#else
+  int i;
+  int n;
+
+  frames = [[NSMutableArray alloc] init];
+  n = NSCountFrames();
+
+  for (i = 0; i < n; i++)
+    {
+      void		*address = NSReturnAddress(i);
+
+      [frames addObject: [NSString stringWithFormat: @"%p", address]];
+    }
+#endif
 
   return self;
 }
@@ -548,7 +556,6 @@ static NSNull	*null = nil;
 
 @end
 
-#endif	/* STACKTRACE */
 
 
 
@@ -599,9 +606,17 @@ static void _terminate()
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
+  NSString	*stack;
+
   fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
     GSPrivateArgZero(),
     [[exception name] lossyCString], [[exception reason] lossyCString]);
+  fflush(stderr);	/* NEEDED UNDER MINGW */
+  stack = [[[exception userInfo] objectForKey: @"GSStackTraceKey"] description];
+  if (stack != nil)
+    {
+      fprintf(stderr, "Stack\n%s\n", [stack lossyCString]);
+    }
   fflush(stderr);	/* NEEDED UNDER MINGW */
 
   _terminate();
@@ -665,7 +680,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   NSHandler	*handler;
 #endif
 
-#if	defined(STACKTRACE)
+#if	defined(DEBUG)
   if ([_e_info objectForKey: @"GSStackTraceKey"] == nil)
     {
       NSMutableDictionary	*m;

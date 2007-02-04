@@ -980,3 +980,39 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 @end
 
+@implementation	NSIndexSet (NSCharacterSet)
+/* Extra method to let NSCharacterSet play with index sets more efficiently.
+ */
+- (unsigned int) _gapGreaterThanIndex: (unsigned int)anIndex
+{
+  unsigned	pos;
+  NSRange	r;
+
+  if (anIndex++ == NSNotFound)
+    {
+      return NSNotFound;
+    }
+  if (_array == 0 || GSIArrayCount(_array) == 0)
+    {
+      return NSNotFound;
+    }
+
+  if ((pos = posForIndex(_array, anIndex)) >= GSIArrayCount(_array))
+    {
+      r = GSIArrayItemAtIndex(_array, pos-1).ext;
+      if (anIndex > NSMaxRange(r))
+        {
+          return NSNotFound;
+	}
+      return anIndex;	// anIndex is the gap after the last index.
+    }
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  if (r.location > anIndex)
+    {
+      return anIndex;	// anIndex is in a gap between index ranges.
+    }
+  return NSMaxRange(r);	// Return start of gap after the index range.
+}
+
+@end
+
