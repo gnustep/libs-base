@@ -331,7 +331,7 @@ static void find_address (bfd *abfd, asection *section,
       return;
     }
 
-  address = (bfd_vma) info->theAddress;
+  address = (bfd_vma) (intptr_t)info->theAddress;
 
   vma = bfd_get_section_vma (abfd, section);
   size = bfd_get_section_size (section);
