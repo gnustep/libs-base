@@ -1,3 +1,10 @@
+2007-02-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSCompoundPredicate.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSExpression.h:
+	Fixup version macros
+
 2007-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: Fix bug reporting autorlease count.

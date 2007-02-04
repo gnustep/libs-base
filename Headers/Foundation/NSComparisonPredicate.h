@@ -26,6 +26,8 @@
 #define __NSComparisonPredicate_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
+#if	OS_API_VERSION(100400, GS_API_LATEST)
+
 #import	<Foundation/NSExpression.h>
 #import	<Foundation/NSPredicate.h>
 
@@ -103,4 +105,5 @@ typedef enum _NSPredicateOperatorType
 }
 #endif
 
+#endif	/* 100400 */
 #endif

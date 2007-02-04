@@ -26,6 +26,8 @@
 #define __NSExpression_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
+#if	OS_API_VERSION(100400, GS_API_LATEST)
+
 #import	<Foundation/NSPredicate.h>
 
 #if	defined(__cplusplus)
@@ -68,6 +70,8 @@ typedef enum _NSExpressionType
 #if	defined(__cplusplus)
 }
 #endif
+
+#endif	/* 100400 */
 
 #endif /* __NSExpression_h_GNUSTEP_BASE_INCLUDE */
 
