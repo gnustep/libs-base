@@ -368,11 +368,11 @@ static void find_address (bfd *abfd, asection *section,
 
 @end
 
-static BOOL LoadModule(NSString *filename);
+static BOOL GSLoadModule(NSString *filename);
 
 // this method automatically load the current process + GNUstep base & gui.
 static NSMutableDictionary *
-GetStackModules()
+GSGetStackModules()
 {
   static NSMutableDictionary	*stackModules = nil;
 
@@ -398,7 +398,7 @@ GetStackModules()
 	{
 	  if ([bundle load] == YES)
 	    {
-	      LoadModule([bundle executablePath]);
+	      GSLoadModule([bundle executablePath]);
 	    }
 	}
     }
@@ -407,11 +407,11 @@ GetStackModules()
 
 // initialize stack trace info
 static BOOL
-LoadModule(NSString *filename)
+GSLoadModule(NSString *filename)
 {
   if ([filename length] > 0)
     {
-      NSMutableDictionary	*modules = GetStackModules();
+      NSMutableDictionary	*modules = GSGetStackModules();
 
       if ([modules objectForKey: filename] == nil)
 	{
@@ -495,7 +495,7 @@ LoadModule(NSString *filename)
   int m;
 
   frames = [[NSMutableArray alloc] init];
-  modules = [GetStackModules() allValues];
+  modules = [GSGetStackModules() allValues];
   n = NSCountFrames();
   m = [modules count];
 

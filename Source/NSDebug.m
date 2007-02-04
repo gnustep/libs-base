@@ -872,7 +872,7 @@ unsigned NSCountFrames(void)
  * functions are not reliable (at least not on my EM64T based system) and
  * will sometimes walk off the stack and access illegal memory locations.
  * In order to prevent such an occurrance from crashing the application,
- * we use sigsetjmp() and siglongjmp() to ensure that we can recover, and
+ * we use setjmp() and longjmp() to ensure that we can recover, and
  * we keep the jump buffer in thread-local memory to avoid possible thread
  * safety issues.
  * Of course this will fail horribly if an exception occurs in one of the
@@ -880,7 +880,11 @@ unsigned NSCountFrames(void)
  */
 #include <signal.h>
 
-static sigjmp_buf *
+#if	defined(__MINGW32__)
+#include <setjmp.h>
+#endif
+
+static jmp_buf *
 jbuf()
 {
   NSMutableData	*d;
@@ -888,34 +892,35 @@ jbuf()
   d = [[[NSThread currentThread] threadDictionary] objectForKey: @"GSjbuf"];
   if (d == nil)
     {
-      d = [[NSMutableData alloc] initWithLength: sizeof(sigjmp_buf)];
+      d = [[NSMutableData alloc] initWithLength:
+	sizeof(jmp_buf) + sizeof(void(*)(int))];
       [[[NSThread currentThread] threadDictionary] setObject: d
 						      forKey: @"GSjbuf"];
       RELEASE(d);
     }
-  return (sigjmp_buf*)[d mutableBytes];
+  return (jmp_buf*)[d mutableBytes];
 }
 
 static void
 recover(int sig)
 {
-  sigjmp_buf	*env = jbuf();
+  jmp_buf	*env = jbuf();
 
-  siglongjmp(*env, 1);
+  longjmp(*env, 1);
 }
 
 void *
 NSFrameAddress(int offset)
 {
-  sigjmp_buf	*env;
+  jmp_buf	*env;
+  void		(*old)(int);
   void		*val;
 
   env = jbuf();
-  if (sigsetjmp(*env, 1) == 0)
+  if (setjmp(*env) == 0)
     {
-      void (*old)(int);
-
       old = signal(SIGSEGV, recover);
+      memcpy(env + 1, &old, sizeof(old));
       switch (offset)
 	{
 	  _NS_FRAME_HACK(0); _NS_FRAME_HACK(1); _NS_FRAME_HACK(2);
@@ -958,6 +963,9 @@ NSFrameAddress(int offset)
     }
   else
     {
+      env = jbuf();
+      memcpy(&old, env + 1, sizeof(old));
+      signal(SIGSEGV, old);
       val = NULL;
     }
   return val;
@@ -966,15 +974,15 @@ NSFrameAddress(int offset)
 void *
 NSReturnAddress(int offset)
 {
-  sigjmp_buf	*env;
+  jmp_buf	*env;
+  void		(*old)(int);
   void		*val;
 
   env = jbuf();
-  if (sigsetjmp(*env, 1) == 0)
+  if (setjmp(*env) == 0)
     {
-      void (*old)(int);
-
       old = signal(SIGSEGV, recover);
+      memcpy(env + 1, &old, sizeof(old));
       switch (offset)
 	{
 	  _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
@@ -1017,6 +1025,9 @@ NSReturnAddress(int offset)
     }
   else
     {
+      env = jbuf();
+      memcpy(&old, env + 1, sizeof(old));
+      signal(SIGSEGV, old);
       val = NULL;
     }
 
