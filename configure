@@ -13510,13 +13510,21 @@ fi
 #
 { echo "$as_me:$LINENO: checking whether we have LLONG_MAX" >&5
 echo $ECHO_N "checking whether we have LLONG_MAX... $ECHO_C" >&6; }
+# We need to use the same header environment as the test above because we
+# will be using one or the other set of constants.
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <limits.h>
+#ifndef _GNU_SOURCE
+	#define _GNU_SOURCE
+	#endif
+        #ifdef HAVE_STDINT_H
+	#include <stdint.h>
+	#endif
+	#include <limits.h>
 	#if defined(LLONG_MAX)
 	#if LONG_MAX == LLONG_MAX
 	#error long max equals long long max
@@ -15367,7 +15375,7 @@ echo "${ECHO_T}none" >&6; }
     echo "If you really want to build -base without DO support, add --disable-do"
     echo "to the configure arguments."
     echo "For more information, read the GNUstep build guide, ffcall section:"
-    echo "http://documents.made-it.com/GNUstep/buildguide.html#FOREIGN.FUNCTION.INTERFACES"
+    echo "http://gnustep.made-it.com/BuildGuide/index.html"
     { { echo "$as_me:$LINENO: error: Incomplete support for ffi functionality." >&5
 echo "$as_me: error: Incomplete support for ffi functionality." >&2;}
    { (exit 1); exit 1; }; }
