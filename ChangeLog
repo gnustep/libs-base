@@ -3,6 +3,8 @@
 	* configure.ac: minor tweak to avoid possible inconsistency in
 	environment used to check LLOGN_MAX and LONG_LONG_MAX presence.
 	* configure: regenerate
+	* Source/GSHTTPURLHandle.m: always remove self as observer for all
+	notifications on a socket when closing it.
 
 2007-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 

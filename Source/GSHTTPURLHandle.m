@@ -554,9 +554,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    NSStringFromSelector(_cmd), keepalive?"K":"",
 	    [d length], [d length], [d bytes]);
 	}
-      [nc removeObserver: self
-		    name: NSFileHandleReadCompletionNotification
-		  object: sock];
+      [nc removeObserver: self name: nil object: sock];
       [sock closeFile];
       DESTROY(sock);
     }
@@ -615,6 +613,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  val = [[document headerNamed: @"connection"] value];
 	  if (ver < 1.1 || (val != nil && [val isEqual: @"close"] == YES))
 	    {
+	      [nc removeObserver: self name: nil object: sock];
 	      [sock closeFile];
 	      DESTROY(sock);
 	    }
