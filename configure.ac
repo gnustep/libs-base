@@ -1041,7 +1041,15 @@ fi
 # Solaris and *BSD use LLONG_MAX instead
 #
 AC_MSG_CHECKING([whether we have LLONG_MAX])
-AC_TRY_CPP([#include <limits.h>
+# We need to use the same header environment as the test above because we
+# will be using one or the other set of constants.
+AC_TRY_CPP([#ifndef _GNU_SOURCE
+	#define _GNU_SOURCE
+	#endif
+        #ifdef HAVE_STDINT_H
+	#include <stdint.h>
+	#endif
+	#include <limits.h>
 	#if defined(LLONG_MAX)
 	#if LONG_MAX == LLONG_MAX
 	#error long max equals long long max
