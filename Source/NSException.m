@@ -283,7 +283,7 @@ GSPrivateBaseAddress(void *addr, void **base)
   // 1st initialize the bfd
   if ([fileName length] == 0)
     {
-      NSLog (@"GSBinaryFileInfo: No File");
+      //NSLog (@"GSBinaryFileInfo: No File");
       [self release];
       return nil;
     }
@@ -291,13 +291,13 @@ GSPrivateBaseAddress(void *addr, void **base)
   _abfd = bfd_openr ([fileName cString], NULL);
   if (!_abfd)
     {
-      NSLog (@"GSBinaryFileInfo: No Binary Info");
+      //NSLog (@"GSBinaryFileInfo: No Binary Info");
       [self release];
       return nil;
     }
   if (!bfd_check_format_matches (_abfd, bfd_object, NULL))
     {
-      NSLog (@"GSBinaryFileInfo: BFD format object error");
+      //NSLog (@"GSBinaryFileInfo: BFD format object error");
       [self release];
       return nil;
     }
@@ -305,7 +305,7 @@ GSPrivateBaseAddress(void *addr, void **base)
   // second read the symbols from it
   if (!(bfd_get_file_flags (_abfd) & HAS_SYMS))
     {
-      NSLog (@"GSBinaryFileInfo: BFD does not contain any symbols");
+      //NSLog (@"GSBinaryFileInfo: BFD does not contain any symbols");
       [self release];
       return nil;
     }
@@ -313,27 +313,27 @@ GSPrivateBaseAddress(void *addr, void **base)
   neededSpace = bfd_get_symtab_upper_bound (_abfd);
   if (neededSpace < 0)
     {
-      NSLog (@"GSBinaryFileInfo: BFD error while deducing needed space");
+      //NSLog (@"GSBinaryFileInfo: BFD error while deducing needed space");
       [self release];
       return nil;
     }
   if (neededSpace == 0)
     {
-      NSLog (@"GSBinaryFileInfo: BFD no space for symbols needed");
+      //NSLog (@"GSBinaryFileInfo: BFD no space for symbols needed");
       [self release];
       return nil;
     }
   _symbols = objc_malloc (neededSpace);
   if (!_symbols)
     {
-      NSLog (@"GSBinaryFileInfo: Can't allocate buffer");
+      //NSLog (@"GSBinaryFileInfo: Can't allocate buffer");
       [self release];
       return nil;
     }
   _symbolCount = bfd_canonicalize_symtab (_abfd, _symbols);
   if (_symbolCount < 0)
     {
-      NSLog (@"GSBinaryFileInfo: BFD error while reading symbols");
+      //NSLog (@"GSBinaryFileInfo: BFD error while reading symbols");
       [self release];
       return nil;
     }
@@ -587,7 +587,7 @@ GSListModules()
 	       */
 	      aFrame = [bfi functionForAddress: address];
 	    }
-if (aFrame == nil) NSLog(@"BFI base for %@ (%p) is %p", modulePath, address, base);
+//if (aFrame == nil) NSLog(@"BFI base for %@ (%p) is %p", modulePath, address, base);
 	}
       else
         {
@@ -595,7 +595,7 @@ if (aFrame == nil) NSLog(@"BFI base for %@ (%p) is %p", modulePath, address, bas
 	  int		j;
 	  int		m;
 
-if (modulePath != nil) NSLog(@"BFI not found for %@ (%p)", modulePath, address);
+//if (modulePath != nil) NSLog(@"BFI not found for %@ (%p)", modulePath, address);
 
 	  modules = GSListModules();
 	  m = [modules count];
