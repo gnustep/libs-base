@@ -380,14 +380,25 @@ static void find_address (bfd *abfd, asection *section,
   if (bfd_find_nearest_line (abfd, section, info->symbols,
     address - vma, &fileName, &functionName, &line))
     {
-      GSFunctionInfo *fi;
+      GSFunctionInfo	*fi;
+      NSString		*file = nil;
+      NSString		*func = nil;
 
+      if (fileName != 0)
+        {
+	  file = [NSString stringWithCString: fileName 
+	    encoding: [NSString defaultCStringEncoding]];
+	}
+      if (functionName != 0)
+        {
+	  func = [NSString stringWithCString: functionName 
+	    encoding: [NSString defaultCStringEncoding]];
+	}
       fi = [GSFunctionInfo alloc];
       fi = [fi initWithModule: info->module
 		      address: info->theAddress
-			 file: [NSString stringWithCString: fileName
-			   encoding: [NSString defaultCStringEncoding]]
-		     function: [NSString stringWithUTF8String: functionName]
+			 file: file
+		     function: func
 			 line: line];
       [fi autorelease];
       info->theInfo = fi;
