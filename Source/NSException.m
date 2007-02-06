@@ -34,9 +34,46 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSNull.h"
 #include "Foundation/NSThread.h"
+#include "Foundation/NSLock.h"
 #include "Foundation/NSDictionary.h"
 #include <stdio.h>
 
+#if	defined(__MINGW32__)
+static NSString *
+GSPrivateBaseAddress(void *addr, void **base)
+{
+  return nil;
+}
+#else	/* __MINGW32__ */
+
+#ifndef GNU_SOURCE
+#define GNU_SOURCE
+#endif
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
+#include <dlfcn.h>
+
+static NSString *
+GSPrivateBaseAddress(void *addr, void **base)
+{
+#ifdef HAVE_DLADDR
+  Dl_info     info;
+
+  if (!dladdr(addr, &info))
+    return nil;
+
+  *base = info.dli_fbase;
+
+  return [NSString stringWithUTF8String: info.dli_fname];
+#else
+  return nil;
+#endif
+}
+#endif	/* __MINGW32__ */
+
+
+/* This is the GNU name for the CTOR list */
 
 @interface GSStackTrace : NSObject
 {
@@ -107,14 +144,14 @@
 
 @interface GSBinaryFileInfo : NSObject
 {
-  NSString	*_filename;
+  NSString	*_fileName;
   bfd		*_abfd;
   asymbol	**_symbols;
   long		_symbolCount;
 }
-- (NSString *) filename;
+- (NSString *) fileName;
 - (GSFunctionInfo *) functionForAddress: (void*) address;
-- (id) initWithBinaryFile: (NSString *)filename;
+- (id) initWithBinaryFile: (NSString *)fileName;
 - (id) init; // return info for the current executing process
 
 @end
@@ -142,7 +179,7 @@
 - (NSString *) description
 {
   return [NSString stringWithFormat: @"(%@: %p) %@  %@: %d",
-    [_module filename], _address, _functionName, _fileName, _lineNo];
+    [_module fileName], _address, _functionName, _fileName, _lineNo];
 }
 
 - (NSString *) fileName
@@ -192,9 +229,9 @@
 
 @implementation GSBinaryFileInfo
 
-+ (GSBinaryFileInfo*) infoWithBinaryFile: (NSString *)filename
++ (GSBinaryFileInfo*) infoWithBinaryFile: (NSString *)fileName
 {
-  return [[[self alloc] initWithBinaryFile: filename] autorelease];
+  return [[[self alloc] initWithBinaryFile: fileName] autorelease];
 }
 
 + (void) initialize
@@ -211,8 +248,8 @@
 
 - (oneway void) dealloc
 {
-  [_filename release];
-  _filename = nil;
+  [_fileName release];
+  _fileName = nil;
   if (_abfd)
     {
       bfd_close (_abfd);
@@ -226,9 +263,9 @@
   [super dealloc];
 }
 
-- (NSString *) filename
+- (NSString *) fileName
 {
-  return _filename;
+  return _fileName;
 }
 
 - (id) init
@@ -239,19 +276,19 @@
   return [self initWithBinaryFile: processName];
 }
 
-- (id) initWithBinaryFile: (NSString *)filename
+- (id) initWithBinaryFile: (NSString *)fileName
 {
   int neededSpace;
 
   // 1st initialize the bfd
-  if ([filename length] == 0)
+  if ([fileName length] == 0)
     {
       NSLog (@"GSBinaryFileInfo: No File");
       [self release];
       return nil;
     }
-  _filename = [filename copy];
-  _abfd = bfd_openr ([filename cString], NULL);
+  _fileName = [fileName copy];
+  _abfd = bfd_openr ([fileName cString], NULL);
   if (!_abfd)
     {
       NSLog (@"GSBinaryFileInfo: No Binary Info");
@@ -368,9 +405,12 @@ static void find_address (bfd *abfd, asection *section,
 
 @end
 
-static BOOL GSLoadModule(NSString *filename);
+static id GSLoadModule(NSString *fileName);
 
-// this method automatically load the current process + GNUstep base & gui.
+/*
+ * This method automatically load the current process + GNUstep base & gui.
+ * Only call this when protected by modLock!!
+ */
 static NSMutableDictionary *
 GSGetStackModules()
 {
@@ -405,34 +445,57 @@ GSGetStackModules()
   return stackModules;
 }
 
+static NSRecursiveLock	*modLock = nil;
+
 // initialize stack trace info
-static BOOL
-GSLoadModule(NSString *filename)
+static id
+GSLoadModule(NSString *fileName)
 {
-  if ([filename length] > 0)
+  GSBinaryFileInfo	*module = nil;
+
+  if ([fileName length] > 0)
     {
-      NSMutableDictionary	*modules = GSGetStackModules();
+      NSMutableDictionary	*modules;
 
-      if ([modules objectForKey: filename] == nil)
+      [modLock lock];
+      modules = GSGetStackModules();
+      module = [modules objectForKey: fileName];
+      [modLock unlock];
+      if (module == nil);
 	{
-	  GSBinaryFileInfo	*module;
-
-	  module = [GSBinaryFileInfo infoWithBinaryFile: filename];
-	  if (module != nil)
+	  module = [GSBinaryFileInfo infoWithBinaryFile: fileName];
+	  if (module == nil)
 	    {
-	      [modules setObject: module forKey: filename];
+	      module = (id)[NSNull null];
+	    }
+	  [modLock lock];
+	  if ([modules objectForKey: fileName] == nil)
+	    {
+	      [modules setObject: module forKey: fileName];
 	    }
 	  else
 	    {
-	      [modules setObject: [NSNull null] forKey: filename];
+	      module = [modules objectForKey: fileName];
 	    }
-	}
-      if ([modules objectForKey: filename] != [NSNull null])
-	{
-	  return YES;
+	  [modLock unlock];
 	}
     }
-  return NO;
+  if (module == (id)[NSNull null])
+    {
+      module = nil;
+    }
+  return module;
+}
+
+static NSArray*
+GSListModules()
+{
+  NSArray	*result;
+
+  [modLock lock];
+  result = [GSGetStackModules() allValues];
+  [modLock unlock];
+  return result;
 }
 
 #endif	/* STACKSYMBOLS */
@@ -488,38 +551,60 @@ GSLoadModule(NSString *filename)
 - (id) init
 {
 #if	defined(STACKSYMBOLS)
-  NSArray *modules;
   int i;
-  int j;
   int n;
-  int m;
 
   frames = [[NSMutableArray alloc] init];
-  modules = [GSGetStackModules() allValues];
   n = NSCountFrames();
-  m = [modules count];
 
   for (i = 0; i < n; i++)
     {
       GSFunctionInfo	*aFrame = nil;
       void		*address = NSReturnAddress(i);
+      void		*base;
+      NSString		*modulePath = GSPrivateBaseAddress(address, &base);
+      GSBinaryFileInfo	*bfi;
 
-      for (j = 0; j < m; j++)
-  	{
-	  GSBinaryFileInfo	*bfi = [modules objectAtIndex: j];
-
-	  if ((id)bfi != (id)[NSNull null])
+      if (modulePath != nil && (bfi = GSLoadModule(modulePath)) != nil)
+        {
+	  aFrame = [bfi functionForAddress: (void*)(address - base)];
+	  if (aFrame == nil)
 	    {
+	      /* We know we have the right module be function lookup
+	       * failed ... perhaps we need to use the absolute
+	       * address rather than offest by 'base' in this case.
+	       */
 	      aFrame = [bfi functionForAddress: address];
-	      if (aFrame)
+	    }
+if (aFrame == nil) NSLog(@"BFI base for %@ (%p) is %p", modulePath, address, base);
+	}
+      else
+        {
+	  NSArray	*modules;
+	  int		j;
+	  int		m;
+
+if (modulePath != nil) NSLog(@"BFI not found for %@ (%p)", modulePath, address);
+
+	  modules = GSListModules();
+	  m = [modules count];
+	  for (j = 0; j < m; j++)
+	    {
+	      bfi = [modules objectAtIndex: j];
+
+	      if ((id)bfi != (id)[NSNull null])
 		{
-		  [frames addObject: aFrame];
-		  break;
+		  aFrame = [bfi functionForAddress: address];
+		  if (aFrame != nil)
+		    {
+		      break;
+		    }
 		}
 	    }
-  	}
+	}
+
       // not found (?!), add an 'unknown' function
-      if (!aFrame)
+      if (aFrame == nil)
 	{
 	  aFrame = [GSFunctionInfo alloc];
 	  [aFrame initWithModule: nil
@@ -528,8 +613,8 @@ GSLoadModule(NSString *filename)
 			function: nil
 			    line: 0];
 	  [aFrame autorelease];
-	  [frames addObject: aFrame];
 	}
+      [frames addObject: aFrame];
     }
 #else
   int i;
@@ -623,6 +708,14 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 }
 
 @implementation NSException
+
++ (void) initialize
+{
+  if (modLock == nil)
+    {
+      modLock = [NSRecursiveLock new];
+    }
+}
 
 + (NSException*) exceptionWithName: (NSString*)name
 			    reason: (NSString*)reason

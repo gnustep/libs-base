@@ -1,9 +1,14 @@
 2007-02-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/manual/manual.texi: fix format errors
-	* Source/NSException.m: control stack trace with environment variable
 	* Headers/Foundation/NSException.h: document stack trace
 	* Documentation/Base.gsdoc: document stack trace
+	* Source/NSException.m: control stack trace with environment variable
+	Rewrite module loading code to be thread safe.
+	Use dladdr where available, to get offsets for dynamic library
+	symbols so bfi based lookup of function/method name and line
+	number information can work for libraries as well as the main
+	executable.
 
 2007-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
