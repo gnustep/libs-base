@@ -95,16 +95,16 @@ into another language, under the above conditions for modified versions.
 @page
 
 @c Chapter 1, Introduction
-@include Introduction.texi 
+@include Introduction.texi
 
 @c Chapter 2, The Objective-C Language
-@include ObjcLanguage.texi 
+@include ObjcLanguage.texi
 
 @c Chapter 3, Working with Objects
-@include WorkingWithObjects.texi 
+@include WorkingWithObjects.texi
 
 @c Chapter 4, Writing New Classes
-@include WritingNewClasses.texi 
+@include WritingNewClasses.texi
 
 @c Chapter 5, Advanced Messaging
 @include AdvancedMessaging.texi
