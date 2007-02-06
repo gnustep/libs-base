@@ -681,7 +681,8 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 #endif
 
 #if	defined(DEBUG)
-  if ([_e_info objectForKey: @"GSStackTraceKey"] == nil)
+  if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES
+    && [_e_info objectForKey: @"GSStackTraceKey"] == nil)
     {
       NSMutableDictionary	*m;
 
