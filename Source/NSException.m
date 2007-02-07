@@ -416,16 +416,16 @@ static void find_address (bfd *abfd, asection *section,
 
 @end
 
-static id GSLoadModule(NSString *fileName);
+static NSRecursiveLock		*modLock = nil;
+static NSMutableDictionary	*stackModules = nil;
 
-/*
- * This method automatically load the current process + GNUstep base & gui.
- * Only call this when protected by modLock!!
- */
-static NSMutableDictionary *
-GSGetStackModules()
+// initialize stack trace info
+static id
+GSLoadModule(NSString *fileName)
 {
-  static NSMutableDictionary	*stackModules = nil;
+  GSBinaryFileInfo	*module = nil;
+
+  [modLock lock];
 
   if (stackModules == nil)
     {
@@ -453,25 +453,10 @@ GSGetStackModules()
 	    }
 	}
     }
-  return stackModules;
-}
-
-static NSRecursiveLock	*modLock = nil;
-
-// initialize stack trace info
-static id
-GSLoadModule(NSString *fileName)
-{
-  GSBinaryFileInfo	*module = nil;
 
   if ([fileName length] > 0)
     {
-      NSMutableDictionary	*modules;
-
-      [modLock lock];
-      modules = GSGetStackModules();
-      module = [modules objectForKey: fileName];
-      [modLock unlock];
+      module = [stackModules objectForKey: fileName];
       if (module == nil);
 	{
 	  module = [GSBinaryFileInfo infoWithBinaryFile: fileName];
@@ -479,18 +464,18 @@ GSLoadModule(NSString *fileName)
 	    {
 	      module = (id)[NSNull null];
 	    }
-	  [modLock lock];
-	  if ([modules objectForKey: fileName] == nil)
+	  if ([stackModules objectForKey: fileName] == nil)
 	    {
-	      [modules setObject: module forKey: fileName];
+	      [stackModules setObject: module forKey: fileName];
 	    }
 	  else
 	    {
-	      module = [modules objectForKey: fileName];
+	      module = [stackModules objectForKey: fileName];
 	    }
-	  [modLock unlock];
 	}
     }
+  [modLock unlock];
+
   if (module == (id)[NSNull null])
     {
       module = nil;
@@ -503,8 +488,9 @@ GSListModules()
 {
   NSArray	*result;
 
+  GSLoadModule(nil);	// initialise
   [modLock lock];
-  result = [GSGetStackModules() allValues];
+  result = [stackModules allValues];
   [modLock unlock];
   return result;
 }
@@ -720,6 +706,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 @implementation NSException
 
+#if	defined(STACKSYMBOLS)
 + (void) initialize
 {
   if (modLock == nil)
@@ -727,6 +714,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
       modLock = [NSRecursiveLock new];
     }
 }
+#endif	/* STACKSYMBOLS */
 
 + (NSException*) exceptionWithName: (NSString*)name
 			    reason: (NSString*)reason
