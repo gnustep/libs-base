@@ -25,6 +25,7 @@
 #define MAX_ITER 10000.0 /* Max number of iterations. */
 
 FILE *file;
+int counter;
 
 @interface SingleThread : NSObject
 {
@@ -51,19 +52,17 @@ FILE *file;
 
   NS_DURING
     n = 1+(int)((MAX_ITER*rand())/(RAND_MAX+1.0));
-    fflush(stdout);
     for (i = 0; i < n; i++)
       {
 	fprintf(file, "%d ", i);
 	fflush(file);
       }
-    fflush(stdout);
     [NSException raise: @"Some exception" format: @"thread %d", ident];
   NS_HANDLER
-    printf("%s: %s for thread %d\n", [[localException name] cString],
-	   [[localException reason] cString], ident);
+    NSLog(@"%@ for thread %d\n", localException, ident);
   NS_ENDHANDLER
   DESTROY(pool);
+  counter--;
   [NSThread exit];
 }
 
@@ -80,6 +79,9 @@ int main()
   printf("but the exception associated with each thread must match.\n");
   file = fopen("/dev/null", "w");
   srand(10);
+
+  counter = N;
+
   for (i = 0; i < N; i++)
     threads[i] = [[SingleThread alloc] initWithInt: i];
   NS_DURING
@@ -88,13 +90,14 @@ int main()
 		toTarget: threads[i] withObject: nil];
 
     // Hopefully this will end after all the other threads end.
-    for (i = 0; i < N*MAX_ITER; i++)
+    for (i = 0; i < N*MAX_ITER && counter > 0; i++)
       {
+        [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
 	fprintf(file, "%d", i);
 	fflush(file);
       }
   NS_HANDLER
-    printf("There's a runaway exception!  Something is wrong!\n");
+    fprintf(stderr, "There's a runaway exception!  Something is wrong!\n");
   NS_ENDHANDLER
   fclose(file);
   DESTROY(pool);
