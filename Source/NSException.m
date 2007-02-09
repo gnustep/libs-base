@@ -371,7 +371,13 @@ static void find_address (bfd *abfd, asection *section,
   address = (bfd_vma) (intptr_t)info->theAddress;
 
   vma = bfd_get_section_vma (abfd, section);
-  size = bfd_get_section_size (section);
+
+#if     defined(bfd_get_section_size)
+  size = bfd_get_section_size (section);        // recent
+#else                                
+  size = bfd_section_size (abfd, section);      // older version
+#endif                               
+     
   if (address < vma || address >= vma + size)
     {
       return;
