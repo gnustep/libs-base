@@ -3090,8 +3090,20 @@ static NSFileManager *fm = nil;
   unsigned	originalLength = [self length];
   unsigned	length = originalLength;
   unsigned	aLength = [aString length];
-  unsigned	root = rootOf(aString, aLength);
+  unsigned	root;
   unichar	buf[length+aLength+1];
+
+  /* If the 'component' has a leading path separator (or drive spec
+   * in windows) then we need to find its length so we can strip it.
+   */
+  if (aLength > 0 && [aString characterAtIndex: 0] != '~')
+    {
+      root = rootOf(aString, aLength);
+    }
+  else
+    {
+      root = 0;
+    }
 
   if (length == 0)
     {
@@ -3195,11 +3207,11 @@ static NSFileManager *fm = nil;
     }
 
   /* MacOS-X prohibits an extension beginning with a path separator,
-   * but this code extends that a little to prohibit any root from
-   * being used as an extension.  Perhaps we should be more permissive?
+   * but this code extends that a little to prohibit any root except
+   * one beginning with '~' from being used as an extension. 
    */ 
   root = rootOf(aString, [aString length]);
-  if (root > 0)
+  if (root > 0 && [aString characterAtIndex: 0] != '~')
     {
       NSLog(@"[%@-%@] cannot append extension '%@' to path '%@'",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd),

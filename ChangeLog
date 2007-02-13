@@ -1,3 +1,8 @@
+2007-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Don't treat leading '~' in path component or
+	extension as a root when appending that component or extension.
+
 2007-02-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSException.m: Only initialise modLock where stack module
