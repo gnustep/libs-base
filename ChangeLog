@@ -1,3 +1,7 @@
+2007-02-14  Roland Schwingel <roland.schwingel@onevision.de>
+
+	* Source/NSTimeZone.m: windows bugfix for daylight savings time.
+
 2007-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Don't treat leading '~' in path component or
@@ -1093,7 +1097,7 @@
 
 2006-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSTimeZone.m: Remove unnecessary check on fiel name as
+	* Source/NSTimeZone.m: Remove unnecessary check on file name as
 	Roland Schwingel reported that it caught legitimate files on windows.
 	* Source/NSMessagePort.m:
 	* Source/NSSocketPort.m:
