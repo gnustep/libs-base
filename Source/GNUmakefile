@@ -409,7 +409,12 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 
 # Resources
 RESOURCE_SET_NAME = libbase-resources
-libbase-resources_RESOURCE_FILES_INSTALL_DIR = Library/Libraries/Resources/gnustep-base
+
+# This is for gnustep-make >= 14-02-2007
+libbase-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/Resources/gnustep-base
+# This is kept temporarily for gnustep-make < 14-02-2007
+libbase-resources_RESOURCE_FILES_INSTALL_DIR = /Library/Libraries/Resources/gnustep-base
+
 libbase-resources_LANGUAGES =
 libbase-resources_LOCALIZED_RESOURCE_FILES =
 libbase-resources_RESOURCE_DIRS =
