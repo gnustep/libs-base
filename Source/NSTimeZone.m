@@ -1460,37 +1460,22 @@ static NSMapTable	*absolutes = 0;
 
 #if	defined(__MINGW32__)
       /*
-       * Try to get timezone from windows registry.
+       * Try to get timezone from windows system call.
        */
       {
-        HKEY regkey;
+      	TIME_ZONE_INFORMATION tz;
+      	DWORD DST = GetTimeZoneInformation(&tz);
 
-        if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-	  "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation",
-	  0,
-	  KEY_READ,
-	  &regkey))
-          {
-            char buf[255];
-            DWORD bufsize=255;
-            DWORD type;
-
-            if (ERROR_SUCCESS == RegQueryValueExA(regkey,
-	      "StandardName",
-	      0,
-	      &type,
-	      buf,
-	      &bufsize))
-              {
-                bufsize = strlen(buf);
-                while (bufsize && isspace(buf[bufsize-1]))
-                  {
-                    bufsize--;
-                  }
-		localZoneString = [NSString stringWithUTF8String: buf];
-              }
-            RegCloseKey(regkey);
-          }
+      	if (DST == TIME_ZONE_ID_DAYLIGHT)
+	  {
+	    localZoneString = [NSString stringWithCharacters: tz.DaylightName
+	      length: wcslen(tz.DaylightName)];
+	  }
+      	else
+	  {
+	    localZoneString = [NSString stringWithCharacters: tz.StandardName
+	      length: wcslen(tz.StandardName)];
+	  }
       }
 #endif
 
@@ -2353,12 +2338,36 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
   GSBreakTime(when, &year, &month, &day, &hour, &minute, &second, &mil);
 
-  // Before April or after October is Std
-  if (month < DaylightDate.wMonth || month > StandardDate.wMonth)
-    return NO;
-  // After April and before October is DST
-  if (month > DaylightDate.wMonth && month < StandardDate.wMonth)
-    return YES;
+  // Check north globe
+  if (StandardDate.wMonth >= DaylightDate.wMonth)
+    {
+      // Before April or after October is Std
+      if (month < DaylightDate.wMonth || month > StandardDate.wMonth)
+        {
+	  return NO;
+	}
+      // After April and before October is DST
+      if (month > DaylightDate.wMonth && month < StandardDate.wMonth)
+        {
+	  return YES;
+	}
+    }
+  else
+    {
+      /* check south globe 
+       * Before April or after October is DST
+       */
+      if (month < StandardDate.wMonth || month > DaylightDate.wMonth)
+        {
+	  return YES;
+	}
+      // After April and before October is Std
+      if (month > StandardDate.wMonth && month < DaylightDate.wMonth)
+        {
+	  return NO;
+	}
+  }
+
   dow = ((int)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
   if (dow < 0)
     dow += 7;
@@ -2396,7 +2405,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
       if (mil >= DaylightDate.wMilliseconds)
         return YES;
       return NO;
-  }
+    }
   if (month == StandardDate.wMonth /* October */)
     {
       daylightdate = day - dow + StandardDate.wDayOfWeek;
@@ -2436,7 +2445,17 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
 - (NSString*) name
 {
-  return timeZoneName;
+  TIME_ZONE_INFORMATION tz;
+  DWORD DST = GetTimeZoneInformation(&tz);
+
+  if (DST == TIME_ZONE_ID_DAYLIGHT)
+    {
+      return daylightZoneName;
+    }
+  else
+    {
+      return timeZoneName;
+    }
 }
 
 - (int) secondsFromGMTForDate: (NSDate*)aDate
@@ -2486,7 +2505,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
 - (NSString*) timeZoneName
 {
-  return timeZoneName;
+  return [self name];
 }
 @end
 #endif // __MINGW32__
