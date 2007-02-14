@@ -73,8 +73,8 @@ after-install::
 	  echo "************************************************************"; \
 	  echo ""; \
 	else \
-	  echo "Making gdomap in $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR) setuid to root"; \
-	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR); \
+	  echo "Making gdomap in $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR) setuid to root"; \
+	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR); \
 	fi; \
 	echo "************************************************************"; \
 	echo "WARNING: if gdomap is started automatically, it will probe"; \

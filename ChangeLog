@@ -1,5 +1,14 @@
 2007-02-14  Nicola Pero <nicola.pero@meta-innovation.com>
 
+	We're installing gnustep-base using the new
+	GNUSTEP_INSTALLATION_DOMAIN mechanism, so GNUSTEP_INSTALLATION_DIR
+	will not even be defined in makefiles and should never be
+	referenced.
+	* Tools/Makefile.postamble (after-install): Use GNUSTEP_TOOLS, not
+	GNUSTEP_INSTALLATION_DIR/Tools.
+
+2007-02-14  Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* Resources/GNUmakefile (base-resources_INSTALL_DIR): New variable
 	to get it working with new gnustep-make.  Keep the old one around
 	for older gnustep-makes.
