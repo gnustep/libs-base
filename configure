@@ -1736,7 +1736,7 @@ if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then
 fi
 
 if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then
-  GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_ROOT/Library/Headers"
+  GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_ROOT/Library/Libraries"
 fi
 
 #
