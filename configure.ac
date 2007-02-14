@@ -63,13 +63,13 @@ GNUSTEP_CONFIG_FILE=""
 # yet at this stage in config, not sure if it's worth trying to make
 # it work.  For gnustep-make < 1.13.0 we would have to parse
 # $GNUSTEP_MAKEFILES/config.make.
-GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config-noarch.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+GNUSTEP_MAKE_CONFIG=`(grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config-noarch.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/') 2>&5`
 
 # So, for backwards compatiblity, we try the plain config.make too.
 # This should work with gnustep-make < 1.13.0, and with 1.13.0 too if
 # they haven't deleted the file.
 if test "$GNUSTEP_MAKE_CONFIG"  = ""; then
-  GNUSTEP_MAKE_CONFIG=`grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/'`
+  GNUSTEP_MAKE_CONFIG=`(grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/') 2>&5`
 fi
 
 AC_ARG_WITH(config-file,
@@ -269,11 +269,28 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_CONFIG_FILE,
 #
 # Now load the values to be used in locating libraries etc used when
 # building the base library ... as supplied by the gnustep-make package
+# (FIXME - review the whole idea).
 #
-if test ! -f "$GNUSTEP_MAKE_CONFIG"; then
-  AC_MSG_NOTICE([Could not find make-specified config file. Either make was installed incorrectly or you are using an old version of gnustep-make. Ignoring this for now... but it will probably fail later on])
-else
-  . "$GNUSTEP_MAKE_CONFIG"
+# It looks like we ought to source the whole GNUstep.sh here, and even
+# ask it to output all variables!  That way we have access to (eg)
+# GNUSTEP_SYSTEM_HEADERS below.
+#
+GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
+. "$GNUSTEP_MAKEFILES/GNUstep.sh"
+unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
+
+# For backwards compatibility, define GNUSTEP_SYSTEM_HEADERS from
+# GNUSTEP_SYSTEM_ROOT if not set yet.
+if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then
+  if test x"$GNUSTEP_IS_FLATTENED" = x""; then
+    GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_ROOT/Library/Headers"
+  else
+    GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_ROOT/Library/Headers/$LIBRARY_COMBO"
+  fi
+fi
+
+if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then
+  GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_ROOT/Library/Headers"
 fi
 
 #
@@ -281,8 +298,8 @@ fi
 # plain C developer headers/libraries which haver been installed in the
 # GNUstep hierarchy.
 #
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Library/Headers"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_ROOT/Library/Libraries"
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES"
 
 #--------------------------------------------------------------------
 # Find the compiler
@@ -345,14 +362,15 @@ if test "$GNUSTEP_IS_FLATTENED" = no; then
   clean_target_cpu=`$GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
   obj_dir=$clean_target_cpu/$clean_target_os
   lobj_dir=$clean_target_cpu/$clean_target_os/$LIBRARY_COMBO
-  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries/$obj_dir
-  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers/$LIBRARY_COMBO
+  GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
 else
   obj_dir=
   lobj_dir=
-  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries
-  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers
+  GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES"
 fi
+
+GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS"
+
 
 #
 # The following one is so that headers of custom libraries into
