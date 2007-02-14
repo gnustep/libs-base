@@ -27,7 +27,10 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
 RESOURCE_SET_NAME = base-resources
-base-resources_RESOURCE_FILES_INSTALL_DIR = Library/Libraries/Resources/gnustep-base
+# This is for gnustep-make >= 14-02-2007
+base-resources_INSTALL_DIR = $(GNUSTEP_RESOURCES)/gnustep-base
+# This is kept temporarily for gnustep-make < 14-02-2007
+base-resources_RESOURCE_FILES_INSTALL_DIR = /Library/Libraries/Resources/gnustep-base
 base-resources_LANGUAGES = English German French Italian TraditionalChinese \
 Spanish Esperanto Korean
 base-resources_LOCALIZED_RESOURCE_FILES = Localizable.strings
