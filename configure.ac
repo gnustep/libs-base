@@ -36,10 +36,17 @@ if test -z "$GNUSTEP_MAKEFILES"; then
   AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
 fi
 
+# This variable might get temporarily overwritten with the
+# GNUSTEP_MAKEFILES of the runtime configuration, make sure we keep
+# track of the original one.  CURRENT_GNUSTEP_MAKEFILES is the one
+# that we use to locate the actual gnustep-make installation that 
+# will build the software.
+CURRENT_GNUSTEP_MAKEFILES="$GNUSTEP_MAKEFILES"
+
 #--------------------------------------------------------------------
 # Use config.guess, config.sub and install-sh provided by gnustep-make
 #--------------------------------------------------------------------
-AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
+AC_CONFIG_AUX_DIR($CURRENT_GNUSTEP_MAKEFILES)
 
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
@@ -59,17 +66,17 @@ GNUSTEP_CONFIG_FILE=""
 
 # This requires gnustep-make > 1.13.0 to work.  For gnustep-make =
 # 1.13.0 we would have to parse
-# $GNUSTEP_MAKEFILES/$obj_dir/config.make, but $obj_dir is not defined
+# $CURRENT_GNUSTEP_MAKEFILES/$obj_dir/config.make, but $obj_dir is not defined
 # yet at this stage in config, not sure if it's worth trying to make
 # it work.  For gnustep-make < 1.13.0 we would have to parse
-# $GNUSTEP_MAKEFILES/config.make.
-GNUSTEP_MAKE_CONFIG=`(grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config-noarch.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/') 2>&5`
+# $CURRENT_GNUSTEP_MAKEFILES/config.make.
+GNUSTEP_MAKE_CONFIG=`(grep '^GNUSTEP_CONFIG_FILE *=' $CURRENT_GNUSTEP_MAKEFILES/config-noarch.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/') 2>&5`
 
 # So, for backwards compatiblity, we try the plain config.make too.
 # This should work with gnustep-make < 1.13.0, and with 1.13.0 too if
 # they haven't deleted the file.
 if test "$GNUSTEP_MAKE_CONFIG"  = ""; then
-  GNUSTEP_MAKE_CONFIG=`(grep '^GNUSTEP_CONFIG_FILE *=' $GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/') 2>&5`
+  GNUSTEP_MAKE_CONFIG=`(grep '^GNUSTEP_CONFIG_FILE *=' $CURRENT_GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/') 2>&5`
 fi
 
 AC_ARG_WITH(config-file,
@@ -77,6 +84,9 @@ AC_ARG_WITH(config-file,
 				This is the location to be used by the base
 				library to locate path information at
 				application or tool runtime.
+				This file might not even exist now; it is
+				not read at configure time.  The base library
+				will only read it at runtime.
 				If unspecified, this uses the same value as
 				the GNUstep make package on unix-like systems,
 				but uses ./GNUstep.conf on mingw so that
@@ -137,6 +147,14 @@ else
   AC_MSG_RESULT([no: disabled from the command-line])
 fi
 
+#--------------------------------------------------------------------
+# We are not trying to determine the default GNUstep paths to be
+# used at runtime.  So all GNUSTEP_xxx variables from now on are to be
+# considered as 'runtime' ones.  They refer to paths that might not
+# make any sense now, but might make sense once gnustep-base is
+# installed in its final location.
+#---------------------------------------------------------------------
+
 #
 # Set 'standard' defaults for values from configuration file.
 #
@@ -175,7 +193,7 @@ esac
 # the built-in default paths in the code will match those of your
 # installation (or of the config file you specify).
 # It can be annoying in certain cases though; this option lets you
-# turn it off
+# turn it off.
 AC_MSG_CHECKING([if we should import an existing configuration file])
 AC_ARG_ENABLE(importing-config-file, 
 [  --disable-importing-config-file
@@ -233,10 +251,61 @@ then
   fi
 fi
 
+# Now we have the problem of what to do if some of the paths were not
+# set by GNUstep.conf (eg, old gnustep-make), or if no config file was
+# read, or if the config file was corrupt.  We decide that the most
+# likely case is an old gnustep-make, so by default we configure the
+# other paths basing on GNUSTEP_*_ROOT.
+
+# TODO/FIXME: We should really have better checks once the situation
+# has stabilized.  This is a reasonable hack for now.
+
+if test x"$GNUSTEP_MAKEFILES" = x""; then GNUSTEP_MAKEFILES=$GNUSTEP_SYSTEM_ROOT/Library/Makefiles; fi
+
+if test x"$GNUSTEP_SYSTEM_APPS" = x""; then GNUSTEP_SYSTEM_APPS=$GNUSTEP_SYSTEM_ROOT/Apps; fi
+if test x"$GNUSTEP_SYSTEM_TOOLS" = x""; then GNUSTEP_SYSTEM_TOOLS=$GNUSTEP_SYSTEM_ROOT/Tools; fi
+if test x"$GNUSTEP_SYSTEM_LIBRARY" = x""; then GNUSTEP_SYSTEM_LIBRARY=$GNUSTEP_SYSTEM_ROOT/Library; fi
+if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then GNUSTEP_SYSTEM_LIBRARIES=$GNUSTEP_SYSTEM_ROOT/Libraries; fi
+if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then GNUSTEP_SYSTEM_HEADERS=$GNUSTEP_SYSTEM_ROOT/Headers; fi
+if test x"$GNUSTEP_SYSTEM_DOCUMENTATION" = x""; then GNUSTEP_SYSTEM_DOCUMENTATION=$GNUSTEP_SYSTEM_ROOT/Documentation; fi
+if test x"$GNUSTEP_SYSTEM_DOCUMENTATION_MAN" = x""; then GNUSTEP_SYSTEM_DOCUMENTATION_MAN=$GNUSTEP_SYSTEM_ROOT/Documentation/man; fi
+if test x"$GNUSTEP_SYSTEM_DOCUMENTATION_INFO" = x""; then GNUSTEP_SYSTEM_DOCUMENTATION_INFO=$GNUSTEP_SYSTEM_ROOT/Documentation/info; fi
+
+if test x"$GNUSTEP_NETWORK_APPS" = x""; then GNUSTEP_NETWORK_APPS=$GNUSTEP_NETWORK_ROOT/Apps; fi
+if test x"$GNUSTEP_NETWORK_TOOLS" = x""; then GNUSTEP_NETWORK_TOOLS=$GNUSTEP_NETWORK_ROOT/Tools; fi
+if test x"$GNUSTEP_NETWORK_LIBRARY" = x""; then GNUSTEP_NETWORK_LIBRARY=$GNUSTEP_NETWORK_ROOT/Library; fi
+if test x"$GNUSTEP_NETWORK_LIBRARIES" = x""; then GNUSTEP_NETWORK_LIBRARIES=$GNUSTEP_NETWORK_ROOT/Libraries; fi
+if test x"$GNUSTEP_NETWORK_HEADERS" = x""; then GNUSTEP_NETWORK_HEADERS=$GNUSTEP_NETWORK_ROOT/Headers; fi
+if test x"$GNUSTEP_NETWORK_DOCUMENTATION" = x""; then GNUSTEP_NETWORK_DOCUMENTATION=$GNUSTEP_NETWORK_ROOT/Documentation; fi
+if test x"$GNUSTEP_NETWORK_DOCUMENTATION_MAN" = x""; then GNUSTEP_NETWORK_DOCUMENTATION_MAN=$GNUSTEP_NETWORK_ROOT/Documentation/man; fi
+if test x"$GNUSTEP_NETWORK_DOCUMENTATION_INFO" = x""; then GNUSTEP_NETWORK_DOCUMENTATION_INFO=$GNUSTEP_NETWORK_ROOT/Documentation/info; fi
+
+if test x"$GNUSTEP_LOCAL_APPS" = x""; then GNUSTEP_LOCAL_APPS=$GNUSTEP_LOCAL_ROOT/Apps; fi
+if test x"$GNUSTEP_LOCAL_TOOLS" = x""; then GNUSTEP_LOCAL_TOOLS=$GNUSTEP_LOCAL_ROOT/Tools; fi
+if test x"$GNUSTEP_LOCAL_LIBRARY" = x""; then GNUSTEP_LOCAL_LIBRARY=$GNUSTEP_LOCAL_ROOT/Library; fi
+if test x"$GNUSTEP_LOCAL_LIBRARIES" = x""; then GNUSTEP_LOCAL_LIBRARIES=$GNUSTEP_LOCAL_ROOT/Libraries; fi
+if test x"$GNUSTEP_LOCAL_HEADERS" = x""; then GNUSTEP_LOCAL_HEADERS=$GNUSTEP_LOCAL_ROOT/Headers; fi
+if test x"$GNUSTEP_LOCAL_DOCUMENTATION" = x""; then GNUSTEP_LOCAL_DOCUMENTATION=$GNUSTEP_LOCAL_ROOT/Documentation; fi
+if test x"$GNUSTEP_LOCAL_DOCUMENTATION_MAN" = x""; then GNUSTEP_LOCAL_DOCUMENTATION_MAN=$GNUSTEP_LOCAL_ROOT/Documentation/man; fi
+if test x"$GNUSTEP_LOCAL_DOCUMENTATION_INFO" = x""; then GNUSTEP_LOCAL_DOCUMENTATION_INFO=$GNUSTEP_LOCAL_ROOT/Documentation/info; fi
+
+if test x"$GNUSTEP_USER_DIR_APPS" = x""; then GNUSTEP_USER_DIR_APPS=$GNUSTEP_USER_DIR/Apps; fi
+if test x"$GNUSTEP_USER_DIR_TOOLS" = x""; then GNUSTEP_USER_DIR_TOOLS=$GNUSTEP_USER_DIR/Tools; fi
+if test x"$GNUSTEP_USER_DIR_LIBRARY" = x""; then GNUSTEP_USER_DIR_LIBRARY=$GNUSTEP_USER_DIR/Library; fi
+if test x"$GNUSTEP_USER_DIR_LIBRARIES" = x""; then GNUSTEP_USER_DIR_LIBRARIES=$GNUSTEP_USER_DIR/Libraries; fi
+if test x"$GNUSTEP_USER_DIR_HEADERS" = x""; then GNUSTEP_USER_DIR_HEADERS=$GNUSTEP_USER_DIR/Headers; fi
+if test x"$GNUSTEP_USER_DIR_DOCUMENTATION" = x""; then GNUSTEP_USER_DIR_DOCUMENTATION=$GNUSTEP_USER_DIR/Documentation; fi
+if test x"$GNUSTEP_USER_DIR_DOCUMENTATION_MAN" = x""; then GNUSTEP_USER_DIR_DOCUMENTATION_MAN=$GNUSTEP_USER_DIR/Documentation/man; fi
+if test x"$GNUSTEP_USER_DIR_DOCUMENTATION_INFO" = x""; then GNUSTEP_USER_DIR_DOCUMENTATION_INFO=$GNUSTEP_USER_DIR/Documentation/info; fi
+
 #
 # Set the default configuration file values in config.h to be hard-coded
 # into NSPathUtilities.m
 #
+GNUSTEP_MAKEFILES=`echo $GNUSTEP_MAKEFILES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_MAKEFILES,
+  "$GNUSTEP_MAKEFILES",
+  [Built in default value for GNUstep Makefiles])
 GNUSTEP_SYSTEM_ROOT=`echo $GNUSTEP_SYSTEM_ROOT|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_ROOT,
   "$GNUSTEP_SYSTEM_ROOT",
@@ -267,16 +336,192 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_CONFIG_FILE,
   [Built in default value for GNUstep config file])
 
 #
+# SYSTEM domain paths
+#
+GNUSTEP_SYSTEM_APPS=`echo $GNUSTEP_SYSTEM_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_APPS,
+  "$GNUSTEP_SYSTEM_APPS",
+  [Built in default value for GNUstep system apps])
+
+GNUSTEP_SYSTEM_TOOLS=`echo $GNUSTEP_SYSTEM_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_TOOLS,
+  "$GNUSTEP_SYSTEM_TOOLS",
+  [Built in default value for GNUstep system tools])
+
+GNUSTEP_SYSTEM_LIBRARY=`echo $GNUSTEP_SYSTEM_LIBRARY|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_LIBRARY,
+  "$GNUSTEP_SYSTEM_LIBRARY",
+  [Built in default value for GNUstep system library])
+
+GNUSTEP_SYSTEM_LIBRARIES=`echo $GNUSTEP_SYSTEM_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_LIBRARIES,
+  "$GNUSTEP_SYSTEM_LIBRARIES",
+  [Built in default value for GNUstep system libraries])
+
+GNUSTEP_SYSTEM_HEADERS=`echo $GNUSTEP_SYSTEM_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_HEADERS,
+  "$GNUSTEP_SYSTEM_HEADERS",
+  [Built in default value for GNUstep system headers])
+
+GNUSTEP_SYSTEM_DOCUMENTATION=`echo $GNUSTEP_SYSTEM_DOCUMENTATION|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_DOCUMENTATION,
+  "$GNUSTEP_SYSTEM_DOCUMENTATION",
+  [Built in default value for GNUstep system documentation])
+
+GNUSTEP_SYSTEM_DOCUMENTATION_MAN=`echo $GNUSTEP_SYSTEM_DOCUMENTATION_MAN|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_DOCUMENTATION_MAN,
+  "$GNUSTEP_SYSTEM_DOCUMENTATION_MAN",
+  [Built in default value for GNUstep system manpages documentation])
+
+GNUSTEP_SYSTEM_DOCUMENTATION_INFO=`echo $GNUSTEP_SYSTEM_DOCUMENTATION_INFO|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_SYSTEM_DOCUMENTATION_INFO,
+  "$GNUSTEP_SYSTEM_DOCUMENTATION_INFO",
+  [Built in default value for GNUstep system info documentation])
+
+#
+# NETWORK domain paths
+#
+GNUSTEP_NETWORK_APPS=`echo $GNUSTEP_NETWORK_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_APPS,
+  "$GNUSTEP_NETWORK_APPS",
+  [Built in default value for GNUstep network apps])
+
+GNUSTEP_NETWORK_TOOLS=`echo $GNUSTEP_NETWORK_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_TOOLS,
+  "$GNUSTEP_NETWORK_TOOLS",
+  [Built in default value for GNUstep network tools])
+
+GNUSTEP_NETWORK_LIBRARY=`echo $GNUSTEP_NETWORK_LIBRARY|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_LIBRARY,
+  "$GNUSTEP_NETWORK_LIBRARY",
+  [Built in default value for GNUstep network library])
+
+GNUSTEP_NETWORK_LIBRARIES=`echo $GNUSTEP_NETWORK_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_LIBRARIES,
+  "$GNUSTEP_NETWORK_LIBRARIES",
+  [Built in default value for GNUstep network libraries])
+
+GNUSTEP_NETWORK_HEADERS=`echo $GNUSTEP_NETWORK_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_HEADERS,
+  "$GNUSTEP_NETWORK_HEADERS",
+  [Built in default value for GNUstep network headers])
+
+GNUSTEP_NETWORK_DOCUMENTATION=`echo $GNUSTEP_NETWORK_DOCUMENTATION|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_DOCUMENTATION,
+  "$GNUSTEP_NETWORK_DOCUMENTATION",
+  [Built in default value for GNUstep network documentation])
+
+GNUSTEP_NETWORK_DOCUMENTATION_MAN=`echo $GNUSTEP_NETWORK_DOCUMENTATION_MAN|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_DOCUMENTATION_MAN,
+  "$GNUSTEP_NETWORK_DOCUMENTATION_MAN",
+  [Built in default value for GNUstep network manpages documentation])
+
+GNUSTEP_NETWORK_DOCUMENTATION_INFO=`echo $GNUSTEP_NETWORK_DOCUMENTATION_INFO|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_NETWORK_DOCUMENTATION_INFO,
+  "$GNUSTEP_NETWORK_DOCUMENTATION_INFO",
+  [Built in default value for GNUstep network info documentation])
+
+#
+# LOCAL domain paths
+#
+GNUSTEP_LOCAL_APPS=`echo $GNUSTEP_LOCAL_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_APPS,
+  "$GNUSTEP_LOCAL_APPS",
+  [Built in default value for GNUstep local apps])
+
+GNUSTEP_LOCAL_TOOLS=`echo $GNUSTEP_LOCAL_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_TOOLS,
+  "$GNUSTEP_LOCAL_TOOLS",
+  [Built in default value for GNUstep local tools])
+
+GNUSTEP_LOCAL_LIBRARY=`echo $GNUSTEP_LOCAL_LIBRARY|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_LIBRARY,
+  "$GNUSTEP_LOCAL_LIBRARY",
+  [Built in default value for GNUstep local library])
+
+GNUSTEP_LOCAL_LIBRARIES=`echo $GNUSTEP_LOCAL_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_LIBRARIES,
+  "$GNUSTEP_LOCAL_LIBRARIES",
+  [Built in default value for GNUstep local libraries])
+
+GNUSTEP_LOCAL_HEADERS=`echo $GNUSTEP_LOCAL_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_HEADERS,
+  "$GNUSTEP_LOCAL_HEADERS",
+  [Built in default value for GNUstep local headers])
+
+GNUSTEP_LOCAL_DOCUMENTATION=`echo $GNUSTEP_LOCAL_DOCUMENTATION|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_DOCUMENTATION,
+  "$GNUSTEP_LOCAL_DOCUMENTATION",
+  [Built in default value for GNUstep local documentation])
+
+GNUSTEP_LOCAL_DOCUMENTATION_MAN=`echo $GNUSTEP_LOCAL_DOCUMENTATION_MAN|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_DOCUMENTATION_MAN,
+  "$GNUSTEP_LOCAL_DOCUMENTATION_MAN",
+  [Built in default value for GNUstep local manpages documentation])
+
+GNUSTEP_LOCAL_DOCUMENTATION_INFO=`echo $GNUSTEP_LOCAL_DOCUMENTATION_INFO|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_DOCUMENTATION_INFO,
+  "$GNUSTEP_LOCAL_DOCUMENTATION_INFO",
+  [Built in default value for GNUstep local info documentation])
+
+#
+# USER_DIR domain paths
+#
+GNUSTEP_USER_DIR_APPS=`echo $GNUSTEP_USER_DIR_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_APPS,
+  "$GNUSTEP_USER_DIR_APPS",
+  [Built in default value for GNUstep user_dir apps])
+
+GNUSTEP_USER_DIR_TOOLS=`echo $GNUSTEP_USER_DIR_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_TOOLS,
+  "$GNUSTEP_USER_DIR_TOOLS",
+  [Built in default value for GNUstep user_dir tools])
+
+GNUSTEP_USER_DIR_LIBRARY=`echo $GNUSTEP_USER_DIR_LIBRARY|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_LIBRARY,
+  "$GNUSTEP_USER_DIR_LIBRARY",
+  [Built in default value for GNUstep user_dir library])
+
+GNUSTEP_USER_DIR_LIBRARIES=`echo $GNUSTEP_USER_DIR_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_LIBRARIES,
+  "$GNUSTEP_USER_DIR_LIBRARIES",
+  [Built in default value for GNUstep user_dir libraries])
+
+GNUSTEP_USER_DIR_HEADERS=`echo $GNUSTEP_USER_DIR_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_HEADERS,
+  "$GNUSTEP_USER_DIR_HEADERS",
+  [Built in default value for GNUstep user_dir headers])
+
+GNUSTEP_USER_DIR_DOCUMENTATION=`echo $GNUSTEP_USER_DIR_DOCUMENTATION|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_DOCUMENTATION,
+  "$GNUSTEP_USER_DIR_DOCUMENTATION",
+  [Built in default value for GNUstep user_dir documentation])
+
+GNUSTEP_USER_DIR_DOCUMENTATION_MAN=`echo $GNUSTEP_USER_DIR_DOCUMENTATION_MAN|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_DOCUMENTATION_MAN,
+  "$GNUSTEP_USER_DIR_DOCUMENTATION_MAN",
+  [Built in default value for GNUstep user_dir manpages documentation])
+
+GNUSTEP_USER_DIR_DOCUMENTATION_INFO=`echo $GNUSTEP_USER_DIR_DOCUMENTATION_INFO|sed -e 's/\\\\/\\\\\\\\/g'`
+AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_DOCUMENTATION_INFO,
+  "$GNUSTEP_USER_DIR_DOCUMENTATION_INFO",
+  [Built in default value for GNUstep user_dir info documentation])
+
+#------------------------------------------------------------------------------
+# Now we have finished configuring the default GNUstep filesystem setup of
+# the target.  All GNUstep variables from now on are 
+#------------------------------------------------------------------------------
+
+#
 # Now load the values to be used in locating libraries etc used when
 # building the base library ... as supplied by the gnustep-make package
-# (FIXME - review the whole idea).
 #
 # It looks like we ought to source the whole GNUstep.sh here, and even
 # ask it to output all variables!  That way we have access to (eg)
 # GNUSTEP_SYSTEM_HEADERS below.
 #
 GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
-. "$GNUSTEP_MAKEFILES/GNUstep.sh"
+. "$CURRENT_GNUSTEP_MAKEFILES/GNUstep.sh"
 unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
 
 # For backwards compatibility, define GNUSTEP_SYSTEM_HEADERS from
@@ -354,8 +599,8 @@ fi
 #--------------------------------------------------------------------
 # Set location of GNUstep dirs for later use
 if test "$GNUSTEP_IS_FLATTENED" = no; then
-  clean_target_os=`$GNUSTEP_MAKEFILES/clean_os.sh $target_os`
-  clean_target_cpu=`$GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
+  clean_target_os=`$CURRENT_GNUSTEP_MAKEFILES/clean_os.sh $target_os`
+  clean_target_cpu=`$CURRENT_GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
   obj_dir=$clean_target_cpu/$clean_target_os
   lobj_dir=$clean_target_cpu/$clean_target_os/$LIBRARY_COMBO
   GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
@@ -456,7 +701,7 @@ AC_MSG_CHECKING(for objc threading flags)
 #
 # Get them from gnustep-make which contains the real code to get them
 #
-objc_threaded=`grep objc_threaded: $GNUSTEP_MAKEFILES/$lobj_dir/config.make | sed -e 's/objc_threaded:=//'`
+objc_threaded=`grep objc_threaded: $CURRENT_GNUSTEP_MAKEFILES/$lobj_dir/config.make | sed -e 's/objc_threaded:=//'`
 #
 AC_MSG_RESULT($objc_threaded)
 
