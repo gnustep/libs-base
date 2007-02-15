@@ -509,7 +509,7 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR_DOCUMENTATION_INFO,
 
 #------------------------------------------------------------------------------
 # Now we have finished configuring the default GNUstep filesystem setup of
-# the target.  All GNUstep variables from now on are 
+# the target.  All GNUstep variables from now on are the ones used to build
 #------------------------------------------------------------------------------
 
 #

@@ -2024,7 +2024,7 @@ _ACEOF
 
 #------------------------------------------------------------------------------
 # Now we have finished configuring the default GNUstep filesystem setup of
-# the target.  All GNUstep variables from now on are
+# the target.  All GNUstep variables from now on are the ones used to build
 #------------------------------------------------------------------------------
 
 #
