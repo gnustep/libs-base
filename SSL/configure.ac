@@ -40,15 +40,35 @@ AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
 #--------------------------------------------------------------------
 # Miscellaneous flags
 #--------------------------------------------------------------------
-# Set location of GNUstep dirs for later use
-GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Headers
+
+#
+# It looks like we ought to source the whole GNUstep.sh here, and even
+# ask it to output all variables!  That way we have access to (eg)
+# GNUSTEP_SYSTEM_HEADERS below.
+#
+GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
+. "$GNUSTEP_MAKEFILES/GNUstep.sh"
+unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
+
+# For backwards compatibility, define GNUSTEP_SYSTEM_HEADERS from
+# GNUSTEP_SYSTEM_ROOT if not set yet.
+if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then
+  GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_ROOT/Library/Headers"
+fi
+
+if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then
+  GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_ROOT/Library/Libraries"
+fi
+
 if test "$GNUSTEP_IS_FLATTENED" = no; then
   clean_target_os=`$GNUSTEP_MAKEFILES/clean_os.sh $target_os`
   clean_target_cpu=`$GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
   obj_dir=$clean_target_cpu/$clean_target_os
-  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir
+  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO
 else
-  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_LIBRARIES
+  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_HEADERS
 fi
 
 #
