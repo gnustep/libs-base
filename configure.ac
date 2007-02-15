@@ -282,11 +282,7 @@ unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
 # For backwards compatibility, define GNUSTEP_SYSTEM_HEADERS from
 # GNUSTEP_SYSTEM_ROOT if not set yet.
 if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then
-  if test x"$GNUSTEP_IS_FLATTENED" = x""; then
-    GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_ROOT/Library/Headers"
-  else
-    GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_ROOT/Library/Headers/$LIBRARY_COMBO"
-  fi
+  GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_ROOT/Library/Headers"
 fi
 
 if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then
@@ -363,14 +359,13 @@ if test "$GNUSTEP_IS_FLATTENED" = no; then
   obj_dir=$clean_target_cpu/$clean_target_os
   lobj_dir=$clean_target_cpu/$clean_target_os/$LIBRARY_COMBO
   GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
 else
   obj_dir=
   lobj_dir=
   GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES"
+  GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS"
 fi
-
-GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS"
-
 
 #
 # The following one is so that headers of custom libraries into

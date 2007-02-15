@@ -2,10 +2,14 @@
 
 	* configure.ac (GNUSTEP_MAKE_CONFIG): Output errors to config.log
 	rather than printing them out.
-	Source GNUstep.sh when we need to get the current makefile setup.
-	Use GNUSTEP_SYSTEM_HEADERS and GNUSTEP_SYSTEM_LIBRARIES (with
-	backwards compatibility settings) to compile.
+	
+	* configure.ac: Source GNUstep.sh when we need to get the current
+	makefile setup.  Use GNUSTEP_SYSTEM_HEADERS and
+	GNUSTEP_SYSTEM_LIBRARIES (with backwards compatibility settings)
+	to compile.
+	* SSL/configure.ac: Same changes.
 	* configure: Regenerated.
+	* SSL/configure: Regenerated.
 	
 2007-02-14  Nicola Pero <nicola.pero@meta-innovation.com>
 
