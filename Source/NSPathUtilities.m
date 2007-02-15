@@ -1689,10 +1689,10 @@ if (domainMask & mask) \
 
       case NSAllLibrariesDirectory:
 	{
-	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserLibraries);
-	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalLibraries);
-	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkLibraries);
-	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemLibraries);
+	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserLibrary);
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalLibrary);
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkLibrary);
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemLibrary);
 	}
 	break;
 
