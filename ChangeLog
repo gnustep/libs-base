@@ -1,3 +1,18 @@
+2007-02-15  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	Important: do not update from trunk if you need stability.
+	* Source/NSPathUtilities.m: Updated all the path routines to work
+	with the new filesystem support, reading and managing the new
+	variables.
+	* configure.ac: Updated for the new filesystem support: prepare
+	for NSPathUtilities.m default values for all the new variables.
+	Make sure to avoid config files overwriting our current
+	GNUSTEP_MAKEFILES variable.
+	* configure: Regenerated.
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerated using
+	autoheaders to get all the new filesystem default variable
+	definitions.
+	
 2007-02-14  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac (GNUSTEP_MAKE_CONFIG): Output errors to config.log
