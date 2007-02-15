@@ -4934,6 +4934,7 @@ static void indentation(unsigned level, NSMutableString *str)
 	  NL;
 	  INDENT(3);
 	  [str appendString: @"</value>"];
+	  NL;
 	  INDENT(2);
 	  [str appendString: @"</param>"];
 	  NL;
