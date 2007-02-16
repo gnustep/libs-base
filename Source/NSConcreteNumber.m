@@ -24,7 +24,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include "GSConfig.h"
+#include "GNUstepBase/GSConfig.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSException.h"

@@ -31,7 +31,7 @@
 #import	<objc/objc.h>
 
 #import	<Foundation/NSObjCRuntime.h>
-#import <GSConfig.h>
+#import <GNUstepBase/GSConfig.h>
 #import	<Foundation/NSDebug.h>
 #import	<Foundation/NSObject.h>
 

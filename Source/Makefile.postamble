@@ -54,8 +54,9 @@ after-install::
 	  $(INSTALL_DATA) ../Headers/Additions/GNUstepBase/$$file \
 	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
-	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GSConfig.h \
-	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
+	$(MKDIRS) $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase
+	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h \
+	  $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
 	  services=/etc/services; \
 	  if [ "`$(WHOAMI)`" != root ]; then \
@@ -80,7 +81,6 @@ before-uninstall::
 	for file in $(GNU_HEADERS); do \
 	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
-	rm -f $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GSConfig.h
 
 # Things to do before cleaning
 # before-clean::
@@ -98,7 +98,6 @@ after-distclean::
 		NSNumber[0-9]*.m GSValue[0-9]*.m
 	rm -rf $(GNUSTEP_TARGET_DIR)/config.h
 	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
-	rm -rf $(GNUSTEP_TARGET_DIR)/GSConfig.h
 	rm -rf $(GNUSTEP_TARGET_CPU)
 
 # Things to do before checking
@@ -123,10 +122,10 @@ $(GNUSTEP_TARGET_DIR)/config.h: ../config.status
 	-mv $(HEADER_DIR_BASE)/config.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/config.h
 
-$(GNUSTEP_TARGET_DIR)/GSConfig.h: ../config.status
-	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
-	-mv $(HEADER_DIR_BASE)/GSConfig.h $(GNUSTEP_TARGET_DIR)
-	-touch $(GNUSTEP_TARGET_DIR)/GSConfig.h
+$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h: ../config.status
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)/GNUstepBase
+	-mv $(GNUSTEP_TARGET_DIR)/GSConfig.h $(GNUSTEP_TARGET_DIR)/GNUstepBase
+	-touch $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 
 $(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
