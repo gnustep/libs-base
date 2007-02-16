@@ -159,7 +159,9 @@ static NSString *tempDir = nil;                 /* user's temporary directory */
 static NSString *gnustepMakefiles = nil;
 
 static NSString *gnustepSystemApps = nil;
+static NSString *gnustepSystemAdminApps = nil;
 static NSString *gnustepSystemTools = nil;
+static NSString *gnustepSystemAdminTools = nil;
 static NSString *gnustepSystemLibrary = nil;
 static NSString *gnustepSystemLibraries = nil;
 static NSString *gnustepSystemHeaders = nil;
@@ -168,7 +170,9 @@ static NSString *gnustepSystemDocumentationInfo = nil;
 static NSString *gnustepSystemDocumentationMan = nil;
 
 static NSString *gnustepNetworkApps = nil;
+static NSString *gnustepNetworkAdminApps = nil;
 static NSString *gnustepNetworkTools = nil;
+static NSString *gnustepNetworkAdminTools = nil;
 static NSString *gnustepNetworkLibrary = nil;
 static NSString *gnustepNetworkLibraries = nil;
 static NSString *gnustepNetworkHeaders = nil;
@@ -177,7 +181,9 @@ static NSString *gnustepNetworkDocumentationInfo = nil;
 static NSString *gnustepNetworkDocumentationMan = nil;
 
 static NSString *gnustepLocalApps = nil;
+static NSString *gnustepLocalAdminApps = nil;
 static NSString *gnustepLocalTools = nil;
+static NSString *gnustepLocalAdminTools = nil;
 static NSString *gnustepLocalLibrary = nil;
 static NSString *gnustepLocalLibraries = nil;
 static NSString *gnustepLocalHeaders = nil;
@@ -186,7 +192,9 @@ static NSString *gnustepLocalDocumentationInfo = nil;
 static NSString *gnustepLocalDocumentationMan = nil;
 
 static NSString *gnustepUserApps = nil;
+static NSString *gnustepUserAdminApps = nil;
 static NSString *gnustepUserTools = nil;
+static NSString *gnustepUserAdminTools = nil;
 static NSString *gnustepUserLibrary = nil;
 static NSString *gnustepUserLibraries = nil;
 static NSString *gnustepUserHeaders = nil;
@@ -199,7 +207,9 @@ static NSString *gnustepUserDocumentationMan = nil;
  * we read from config files.
  */
 static NSString *gnustepUserDirApps = nil;
+static NSString *gnustepUserDirAdminApps = nil;
 static NSString *gnustepUserDirTools = nil;
+static NSString *gnustepUserDirAdminTools = nil;
 static NSString *gnustepUserDirLibrary = nil;
 static NSString *gnustepUserDirLibraries = nil;
 static NSString *gnustepUserDirHeaders = nil;
@@ -323,7 +333,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepMakefiles, c, @"GNUSTEP_MAKEFILES");
 
   ASSIGN_PATH(gnustepSystemApps, c, @"GNUSTEP_SYSTEM_APPS");
+  ASSIGN_PATH(gnustepSystemAdminApps, c, @"GNUSTEP_SYSTEM_ADMIN_APPS");
   ASSIGN_PATH(gnustepSystemTools, c, @"GNUSTEP_SYSTEM_TOOLS");
+  ASSIGN_PATH(gnustepSystemAdminTools, c, @"GNUSTEP_SYSTEM_ADMIN_TOOLS");
   ASSIGN_PATH(gnustepSystemLibrary, c, @"GNUSTEP_SYSTEM_LIBRARY");
   ASSIGN_PATH(gnustepSystemLibraries, c, @"GNUSTEP_SYSTEM_LIBRARIES");
   ASSIGN_PATH(gnustepSystemHeaders, c, @"GNUSTEP_SYSTEM_HEADERS");
@@ -332,7 +344,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepSystemDocumentationInfo, c, @"GNUSTEP_SYSTEM_DOCUMENTATION_INFO");
 
   ASSIGN_PATH(gnustepNetworkApps, c, @"GNUSTEP_NETWORK_APPS");
+  ASSIGN_PATH(gnustepNetworkAdminApps, c, @"GNUSTEP_NETWORK_ADMIN_APPS");
   ASSIGN_PATH(gnustepNetworkTools, c, @"GNUSTEP_NETWORK_TOOLS");
+  ASSIGN_PATH(gnustepNetworkAdminTools, c, @"GNUSTEP_NETWORK_ADMIN_TOOLS");
   ASSIGN_PATH(gnustepNetworkLibrary, c, @"GNUSTEP_NETWORK_LIBRARY");
   ASSIGN_PATH(gnustepNetworkLibraries, c, @"GNUSTEP_NETWORK_LIBRARIES");
   ASSIGN_PATH(gnustepNetworkHeaders, c, @"GNUSTEP_NETWORK_HEADERS");
@@ -341,7 +355,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepNetworkDocumentationInfo, c, @"GNUSTEP_NETWORK_DOCUMENTATION_INFO");
 
   ASSIGN_PATH(gnustepLocalApps, c, @"GNUSTEP_LOCAL_APPS");
+  ASSIGN_PATH(gnustepLocalAdminApps, c, @"GNUSTEP_LOCAL_ADMIN_APPS");
   ASSIGN_PATH(gnustepLocalTools, c, @"GNUSTEP_LOCAL_TOOLS");
+  ASSIGN_PATH(gnustepLocalAdminTools, c, @"GNUSTEP_LOCAL_ADMIN_TOOLS");
   ASSIGN_PATH(gnustepLocalLibrary, c, @"GNUSTEP_LOCAL_LIBRARY");
   ASSIGN_PATH(gnustepLocalLibraries, c, @"GNUSTEP_LOCAL_LIBRARIES");
   ASSIGN_PATH(gnustepLocalHeaders, c, @"GNUSTEP_LOCAL_HEADERS");
@@ -350,7 +366,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepLocalDocumentationInfo, c, @"GNUSTEP_LOCAL_DOCUMENTATION_INFO");
 
   ASSIGN_IF_SET(gnustepUserDirApps, c, @"GNUSTEP_USER_DIR_APPS");
+  ASSIGN_IF_SET(gnustepUserDirAdminApps, c, @"GNUSTEP_USER_DIR_ADMIN_APPS");
   ASSIGN_IF_SET(gnustepUserDirTools, c, @"GNUSTEP_USER_DIR_TOOLS");
+  ASSIGN_IF_SET(gnustepUserDirAdminTools, c, @"GNUSTEP_USER_DIR_ADMIN_TOOLS");
   ASSIGN_IF_SET(gnustepUserDirLibrary, c, @"GNUSTEP_USER_DIR_LIBRARY");
   ASSIGN_IF_SET(gnustepUserDirLibraries, c, @"GNUSTEP_USER_DIR_LIBRARIES");
   ASSIGN_IF_SET(gnustepUserDirHeaders, c, @"GNUSTEP_USER_DIR_HEADERS");
@@ -449,8 +467,14 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN(gnustepUserApps,
     [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirApps]);
 
+  ASSIGN(gnustepUserAdminApps,
+    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirAdminApps]);
+
   ASSIGN(gnustepUserTools,
     [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirTools]);
+
+  ASSIGN(gnustepUserAdminTools,
+    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirAdminTools]);
 
   ASSIGN(gnustepUserLibrary,
     [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirLibrary]);
@@ -505,7 +529,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_DEFAULT_PATH(gnustepLocalRoot, @GNUSTEP_TARGET_LOCAL_ROOT);
 
   ASSIGN_DEFAULT_PATH(gnustepSystemApps, @GNUSTEP_TARGET_SYSTEM_APPS);
+  ASSIGN_DEFAULT_PATH(gnustepSystemAdminApps, @GNUSTEP_TARGET_SYSTEM_ADMIN_APPS);
   ASSIGN_DEFAULT_PATH(gnustepSystemTools, @GNUSTEP_TARGET_SYSTEM_TOOLS);
+  ASSIGN_DEFAULT_PATH(gnustepSystemAdminTools, @GNUSTEP_TARGET_SYSTEM_ADMIN_TOOLS);
   ASSIGN_DEFAULT_PATH(gnustepSystemLibrary, @GNUSTEP_TARGET_SYSTEM_LIBRARY);
   ASSIGN_DEFAULT_PATH(gnustepSystemLibraries, @GNUSTEP_TARGET_SYSTEM_LIBRARIES);
   ASSIGN_DEFAULT_PATH(gnustepSystemHeaders, @GNUSTEP_TARGET_SYSTEM_HEADERS);
@@ -514,7 +540,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_DEFAULT_PATH(gnustepSystemDocumentationInfo, @GNUSTEP_TARGET_SYSTEM_DOCUMENTATION_INFO);
 
   ASSIGN_DEFAULT_PATH(gnustepNetworkApps, @GNUSTEP_TARGET_NETWORK_APPS);
+  ASSIGN_DEFAULT_PATH(gnustepNetworkAdminApps, @GNUSTEP_TARGET_NETWORK_ADMIN_APPS);
   ASSIGN_DEFAULT_PATH(gnustepNetworkTools, @GNUSTEP_TARGET_NETWORK_TOOLS);
+  ASSIGN_DEFAULT_PATH(gnustepNetworkAdminTools, @GNUSTEP_TARGET_NETWORK_ADMIN_TOOLS);
   ASSIGN_DEFAULT_PATH(gnustepNetworkLibrary, @GNUSTEP_TARGET_NETWORK_LIBRARY);
   ASSIGN_DEFAULT_PATH(gnustepNetworkLibraries, @GNUSTEP_TARGET_NETWORK_LIBRARIES);
   ASSIGN_DEFAULT_PATH(gnustepNetworkHeaders, @GNUSTEP_TARGET_NETWORK_HEADERS);
@@ -523,7 +551,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_DEFAULT_PATH(gnustepNetworkDocumentationInfo, @GNUSTEP_TARGET_NETWORK_DOCUMENTATION_INFO);
 
   ASSIGN_DEFAULT_PATH(gnustepLocalApps, @GNUSTEP_TARGET_LOCAL_APPS);
+  ASSIGN_DEFAULT_PATH(gnustepLocalAdminApps, @GNUSTEP_TARGET_LOCAL_ADMIN_APPS);
   ASSIGN_DEFAULT_PATH(gnustepLocalTools, @GNUSTEP_TARGET_LOCAL_TOOLS);
+  ASSIGN_DEFAULT_PATH(gnustepLocalAdminTools, @GNUSTEP_TARGET_LOCAL_ADMIN_TOOLS);
   ASSIGN_DEFAULT_PATH(gnustepLocalLibrary, @GNUSTEP_TARGET_LOCAL_LIBRARY);
   ASSIGN_DEFAULT_PATH(gnustepLocalLibraries, @GNUSTEP_TARGET_LOCAL_LIBRARIES);
   ASSIGN_DEFAULT_PATH(gnustepLocalHeaders, @GNUSTEP_TARGET_LOCAL_HEADERS);
@@ -770,7 +800,9 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepMakefiles);
 
   DESTROY(gnustepSystemApps);
+  DESTROY(gnustepSystemAdminApps);
   DESTROY(gnustepSystemTools);
+  DESTROY(gnustepSystemAdminTools);
   DESTROY(gnustepSystemLibrary);
   DESTROY(gnustepSystemLibraries);
   DESTROY(gnustepSystemHeaders);
@@ -779,7 +811,9 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepSystemDocumentationInfo);
 
   DESTROY(gnustepNetworkApps);
+  DESTROY(gnustepNetworkAdminApps);
   DESTROY(gnustepNetworkTools);
+  DESTROY(gnustepNetworkAdminTools);
   DESTROY(gnustepNetworkLibrary);
   DESTROY(gnustepNetworkLibraries);
   DESTROY(gnustepNetworkHeaders);
@@ -788,7 +822,9 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepNetworkDocumentationInfo);
 
   DESTROY(gnustepLocalApps);
+  DESTROY(gnustepLocalAdminApps);
   DESTROY(gnustepLocalTools);
+  DESTROY(gnustepLocalAdminTools);
   DESTROY(gnustepLocalLibrary);
   DESTROY(gnustepLocalLibraries);
   DESTROY(gnustepLocalHeaders);
@@ -797,7 +833,9 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepLocalDocumentationInfo);
 
   DESTROY(gnustepUserApps);
+  DESTROY(gnustepUserAdminApps);
   DESTROY(gnustepUserTools);
+  DESTROY(gnustepUserAdminTools);
   DESTROY(gnustepUserLibrary);
   DESTROY(gnustepUserLibraries);
   DESTROY(gnustepUserHeaders);
@@ -1594,15 +1632,15 @@ if (domainMask & mask) \
     {
       case NSAllApplicationsDirectory:
 	{
-	  /* We don't really have any separation of applications by type,
-	   * we put everything in Applications.  So for now no point
-	   * in returning anything different and spending time scanning
-	   * the disk for non-existing dirs.
-	   */
 	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserApps);
 	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalApps);
 	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkApps);
 	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemApps);
+
+	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserAdminApps);
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalAdminApps);
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkAdminApps);
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemAdminApps);
 	}
 	break;
 
@@ -1669,21 +1707,10 @@ if (domainMask & mask) \
 
       case NSAdminApplicationDirectory:
 	{
-	  /* NSUserDomainMask - users have no Administrator directory */
-	  /* ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserApps); */
-	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalApps);
-	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkApps);
-	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemApps);
-
-	  /* I imagine if ever wanted a separate Administrator directory, the
-	   * only way for this to have some meaning across filesystems
-	   * would be as a subdirectory of Applications, as follows.
-	   */
-	  /*
-	    ADD_PATH(NSLocalDomainMask, gnustepLocalApps, @"Administrator");
-	    ADD_PATH(NSNetworkDomainMask, gnustepNetworkApps, @"Administrator");
-	    ADD_PATH(NSSystemDomainMask, gnustepSystemApps, @"Administrator");
-	  */
+	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserAdminApps);
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalAdminApps);
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkAdminApps);
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemAdminApps);
 	}
 	break;
 
