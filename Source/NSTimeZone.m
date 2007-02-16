@@ -107,7 +107,7 @@
 #include "Foundation/NSByteOrder.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSCategories.h"
-#include "GSConfig.h"
+#include "GNUstepBase/GSConfig.h"
 #include "GSPrivate.h"
 
 #ifdef HAVE_TZHEAD

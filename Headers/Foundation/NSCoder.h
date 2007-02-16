@@ -228,7 +228,7 @@ extern "C" {
 /*
  * Include GSConfig.h for typedefs/defines of uint8_t, int32_t int64_t
  */
-#include <GSConfig.h>
+#include <GNUstepBase/GSConfig.h>
 
 
 /** <override-subclass />

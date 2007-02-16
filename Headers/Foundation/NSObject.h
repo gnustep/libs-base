@@ -31,7 +31,7 @@
 
 #import	<Foundation/NSObjCRuntime.h>
 #import	<GNUstepBase/preface.h>
-#include <GSConfig.h>
+#include <GNUstepBase/GSConfig.h>
 #include <objc/objc.h>
 #include <objc/typedstream.h>
 #import	<Foundation/NSZone.h>

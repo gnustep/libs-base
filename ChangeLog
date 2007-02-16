@@ -1,3 +1,19 @@
+2007-02-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m:
+	* Source/Makefile.postamble:
+	* Source/NSProcessInfo.m:
+	* Source/GNUmakefile:
+	* Source/NSConcreteNumber.m:
+	* Headers/Foundation/NSCoder.h:
+	* Headers/Foundation/NSByteOrder.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSDecimal.h:
+	* Headers/Foundation/Foundation.h:
+	Move GSConfig.h to the GNUstepBase subdirectory so that it doesn't
+	appear at the top level when FHS layout is used, thus avoiding any
+	possible conflict with another file of the same name in /usr/include
+
 2007-02-15  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	Important: do not update from trunk if you need stability.

@@ -88,7 +88,7 @@
 #undef id
 #endif
 
-#include "GSConfig.h"
+#include "GNUstepBase/GSConfig.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSBundle.h"

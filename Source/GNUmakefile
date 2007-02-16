@@ -388,7 +388,7 @@ dynamic-load.h \
 $(HEADER_DIR_BASE)/preface.h \
 $(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
-$(GNUSTEP_TARGET_DIR)/GSConfig.h
+$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 
 ifeq ($(HAVE_INET_PTON), no)
 GNU_CFILES += inet_pton.c
