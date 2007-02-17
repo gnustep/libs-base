@@ -388,6 +388,61 @@ _find_framework(NSString *name)
   return nil;
 }        
 
+
+/* Try to locate resources for tool name (which is this tool) in
+ * standard places like xxx/Library/Tools/Resources/name */
+/* This could be converted into a public +bundleForTool:
+ * method.  At the moment it's only used privately
+ * to locate the main bundle for this tool.
+ */
+static inline NSString *
+_find_main_bundle_for_tool(NSString *toolName)
+{
+  NSArray *paths;
+  NSEnumerator *enumerator;
+  NSString *path;
+  NSString *tail;
+  NSFileManager *fm = [NSFileManager defaultManager];
+
+  /*
+   * Eliminate any base path or extensions.
+   */
+  toolName = [toolName lastPathComponent];
+  do
+    {
+      toolName = [toolName stringByDeletingPathExtension];
+    }
+  while ([[toolName pathExtension] length] > 0);
+
+  if ([toolName length] == 0)
+    {
+      return nil;
+    }
+
+  tail = [@"Tools" stringByAppendingPathComponent:
+	     [@"Resources" stringByAppendingPathComponent: 
+		 toolName]];
+
+  paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
+					       NSAllDomainsMask, YES);
+
+  enumerator = [paths objectEnumerator];
+  while ((path = [enumerator nextObject]))
+    {
+      BOOL isDir;
+      path = [path stringByAppendingPathComponent: tail];
+
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  return path;
+	}
+    }
+
+  return nil;
+}
+
+
+
 @interface NSBundle (Private)
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
 + (void) _addFrameworkFromClass: (Class)frameworkClass;
@@ -878,7 +933,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
  * and the main bundle directory is xxx/Tools/Resources/Control.
  * </p>
  * <p>(when the tool has not yet been installed, it's similar -
- * xxx/shared_obj/ix86/linux-gnu/gnu-gnu-gnu/Control
+ * xxx/obj/ix86/linux-gnu/gnu-gnu-gnu/Control
  * and the main bundle directory is xxx/Resources/Control).
  * </p>
  * <p>(For a flattened structure, the structure is the same without the
@@ -896,6 +951,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       /* We don't know at the beginning if it's a tool or an application.  */
       BOOL isApplication = YES;
+
+      /* Sometimes we detect that this is a non-installed tool.  That is
+       * special because we want to lookup local resources before installed
+       * ones.  Keep track of this special case in this variable.
+       */
+      BOOL isNonInstalledTool = NO;
 
       /* If it's a tool, we will need the tool name.  Since we don't
          know yet if it's a tool or an application, we always store
@@ -933,12 +994,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	}
       /* object dir */
       s = [path lastPathComponent];
-      if ([s hasSuffix: @"_obj"])
+      if ([s hasSuffix: @"obj"])
 	{
 	  path = [path stringByDeletingLastPathComponent];
 	  /* if it has an object dir it can only be a
              non-yet-installed tool.  */
 	  isApplication = NO;
+	  isNonInstalledTool = YES;
 	}
 
       if (isApplication == YES)
@@ -958,8 +1020,52 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       if (isApplication == NO)
 	{
-	  path = [path stringByAppendingPathComponent: @"Resources"];
-	  path = [path stringByAppendingPathComponent: toolName];
+	  NSString *maybePath = nil;
+
+	  if (isNonInstalledTool)
+	    {
+	      /* We're pretty confident about this case.  'path' is
+	       * obtained by {tool location on disk} and walking up
+	       * until we got out of the obj directory.  So we're
+	       * now in GNUSTEP_BUILD_DIR.  Resources will be in
+	       * Resources/{toolName}.
+	       */
+	      path = [path stringByAppendingPathComponent: @"Resources"];
+	      maybePath = [path stringByAppendingPathComponent: toolName];
+
+	      /* PS: We could check here if we found the resources,
+	       * and if not, keep going with the other attempts at
+	       * locating them.  But if we know that this is an
+	       * uninstalled tool, really we don't want to use
+	       * installed resources - we prefer resource lookup to
+	       * fail so the developer will fix whatever issue they
+	       * have with their building.
+	       */
+	    }
+	  else
+	    {
+	      if (maybePath == nil)
+		{
+		  /* This is for gnustep-make version 2, where tool resources
+		   * are in GNUSTEP_*_LIBRARY/Tools/Resources/{toolName}.
+		   */
+		  maybePath = _find_main_bundle_for_tool (toolName);
+		}
+	      
+	      /* If that didn't work, maybe the tool was created with
+	       * gnustep-make version 1.  So we try {tool location on
+	       * disk after walking up the non-flattened
+	       * dirs}/Resources/{toolName}, which is where
+	       * gnustep-make version 1 would put resources.
+	       */
+	      if (maybePath == nil)
+		{
+		  path = [path stringByAppendingPathComponent: @"Resources"];
+		  maybePath = [path stringByAppendingPathComponent: toolName];
+		}
+	    }
+
+	  path = maybePath;
 	}
 
       NSDebugMLLog(@"NSBundle", @"Found main in %@\n", path);
@@ -2078,7 +2184,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
  * Where libraryName is the name of a library without the <em>lib</em>
  * prefix or any extensions.
  * </p>
- * <p>This method exists to provide resource bundles for libraries and hos no
+ * <p>This method exists to provide resource bundles for libraries and has no
  * particular relationship to the library code itsself.  The named library
  * could be a dynamic library linked in to the running program, a static
  * library (whose code may not even exist on the host machine except where

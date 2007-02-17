@@ -1,3 +1,16 @@
+2007-02-17  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/NSBundle.m (_find_main_bundle_for_tool): New inline
+	function to locate tools resources in the new gnustep-make v2
+	location for them.
+	([NSBundle +mainBundle]): (tool resource lookup) Fixed detecting
+	case of an uninstalled tool to work with the gnustep-make v2 as
+	well.  Manage the case separately so we always lookup resources
+	only locally for non-installed tools.  For installed tools, first
+	use _find_main_bundle_for_tool to look in the new location for
+	tool resources, falling back to the old gnustep-make v1 location
+	if nothing is found in the new one.
+
 2007-02-16  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Added GNUSTEP_*_ADMIN_APPS and GNUSTEP_*_ADMIN_TOOLS
