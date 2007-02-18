@@ -30,7 +30,7 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSRunLoop.h>
 
-#include <GSConfig.h>
+#include <GNUstepBase/GSConfig.h>
 
 #if	USE_ZLIB
 #include <zlib.h>
