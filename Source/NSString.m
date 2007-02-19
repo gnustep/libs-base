@@ -3096,13 +3096,29 @@ static NSFileManager *fm = nil;
   /* If the 'component' has a leading path separator (or drive spec
    * in windows) then we need to find its length so we can strip it.
    */
-  if (aLength > 0 && [aString characterAtIndex: 0] != '~')
+  root = rootOf(aString, aLength);
+  if (root > 0)
     {
-      root = rootOf(aString, aLength);
-    }
-  else
-    {
-      root = 0;
+      unichar c = [aString characterAtIndex: 0];
+
+      if (c == '~')
+        {
+	  root = 0;
+	}
+      else if (root > 1 && pathSepMember(c))
+        {
+	  int	i;
+
+	  for (i = 1; i < root; i++)
+	    {
+	      c = [aString characterAtIndex: i];
+	      if (!pathSepMember(c))
+	        {
+		  break;
+		}
+	    }
+	  root = i;
+	}
     }
 
   if (length == 0)
