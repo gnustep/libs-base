@@ -2597,20 +2597,26 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 		{
 		  result = nodeToObject([node firstChild], anOption, &error);
 		}
-#else
-	      GSXMLPListParser *parser;
-
-	      parser = AUTORELEASE([[GSXMLPListParser alloc] initWithData: data
-	        mutability: anOption]);
-	      if ([parser parse] == YES)
-		{
-		  result = AUTORELEASE(RETAIN([parser result]));
-		}
-	      else
-	        {
-		  error = @"failed to parse as XML property list";
-		}
 #endif
+	      /* The libxml based parser is stricter than the fallback
+	       * parser, so if parsing failed using that, we can try again.
+	       */
+	      if (result == nil)
+	        {
+		  GSXMLPListParser *parser;
+
+		  parser = [GSXMLPListParser alloc];
+		  parser = AUTORELEASE([parser initWithData: data
+						 mutability: anOption]);
+		  if ([parser parse] == YES)
+		    {
+		      result = AUTORELEASE(RETAIN([parser result]));
+		    }
+		  else if (error == nil)
+		    {
+		      error = @"failed to parse as XML property list";
+		    }
+		}
 	    }
 	    break;
 
