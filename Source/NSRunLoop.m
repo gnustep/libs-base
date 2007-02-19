@@ -99,6 +99,13 @@ static NSDate	*theFuture = nil;
 
 @implementation GSRunLoopPerformer
 
+- (void) dealloc
+{
+  RELEASE(target);
+  RELEASE(argument);
+  [super dealloc];
+}
+
 - (void) fire
 {
   [target performSelector: selector withObject: argument];
@@ -113,8 +120,8 @@ static NSDate	*theFuture = nil;
   if (self)
     {
       selector = aSelector;
-      target = aTarget;
-      argument = anArgument;
+      target = RETAIN(aTarget);
+      argument = RETAIN(anArgument);
       order = theOrder;
     }
   return self;
@@ -1176,7 +1183,7 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
  * Sets up sending of aSelector to target with argument.<br />
  * The selector is sent before the next runloop iteration (unless
  * cancelled before then) in any of the specified modes.<br />
- * The target and argument objects are <em>not</em> retained.<br />
+ * The target and argument objects are retained.<br />
  * The order value is used to determine the order in which messages
  * are sent if multiple messages have been set up. Messages with a lower
  * order value are sent first.<br />

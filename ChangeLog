@@ -1,3 +1,10 @@
+2007-02-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: ([performSelector:target:argument:order:modes:])
+	Alter to retain target and arguments to match MacOS-X (bug #19099)
+	* Source/NSString.m: Fixup removal of leading path separator when
+	appending path component.
+
 2007-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Use gnustep-config if available.
