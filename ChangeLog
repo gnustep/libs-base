@@ -3,7 +3,10 @@
 	* Source/NSRunLoop.m: ([performSelector:target:argument:order:modes:])
 	Alter to retain target and arguments to match MacOS-X (bug #19099)
 	* Source/NSString.m: Fixup removal of leading path separator when
-	appending path component.
+	appending path componet.
+	* Source/NSPropertyList.m: If parsing of xml property list fails,
+	try again with more tolerant parser which accepts illegal characters.
+	Might fix bug #17112 (illegal character in nib)
 
 2007-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
