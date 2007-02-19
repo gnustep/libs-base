@@ -27,6 +27,15 @@
 GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
+
+GNUSTEP_MAKEFILES?=$(shell gnustep-config GNUSTEP_MAKEFILES 2>/dev/null)
+
+# This usually happens when you source GNUstep.sh, then run ./configure,
+# then log out, then log in again and try to compile
+ifeq ($(GNUSTEP_MAKEFILES),)
+  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
+endif
+
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
@@ -64,7 +73,6 @@ DEFS= -DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
 	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
 	-DGNUSTEP_IS_FLATTENED=\"$(GNUSTEP_IS_FLATTENED)\" \
 	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
-
 
 else
 

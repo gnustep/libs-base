@@ -19,7 +19,8 @@
 #
 #  You should have received a copy of the GNU Library General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA.
 #
 
 # Install into the system root by default
@@ -29,8 +30,14 @@ GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 # Additional makefiles.
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
-# Include common.make as the first thing, as this defined
-# FOUNDATION_LIB which is used in ../config.mak
+GNUSTEP_MAKEFILES?=$(shell gnustep-config GNUSTEP_MAKEFILES 2>/dev/null)
+
+# This usually happens when you source GNUstep.sh, then run ./configure,
+# then log out, then log in again and try to compile
+ifeq ($(GNUSTEP_MAKEFILES),)
+  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
+endif
+
 include $(GNUSTEP_MAKEFILES)/common.make
 
 -include ../config.mak

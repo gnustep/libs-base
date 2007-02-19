@@ -96,7 +96,8 @@ after-clean::
 after-distclean::
 	rm -f mframe/mframe.h Foundation \
 		NSNumber[0-9]*.m GSValue[0-9]*.m
-	rm -rf $(GNUSTEP_TARGET_DIR)/config.h
+	rm -rf $(GNUSTEP_TARGET_DIR)/GNUstepBase
+	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
 	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
 	rm -rf $(GNUSTEP_TARGET_CPU)
 
@@ -124,7 +125,7 @@ $(GNUSTEP_TARGET_DIR)/config.h: ../config.status
 
 $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)/GNUstepBase
-	-mv $(GNUSTEP_TARGET_DIR)/GSConfig.h $(GNUSTEP_TARGET_DIR)/GNUstepBase
+	-mv $(HEADER_DIR_BASE)/GSConfig.h $(GNUSTEP_TARGET_DIR)/GNUstepBase
 	-touch $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 
 $(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status

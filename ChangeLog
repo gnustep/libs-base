@@ -1,3 +1,14 @@
+2007-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Use gnustep-config if available.
+	* configure: Regenerate
+	* Source/Makefile.postamble
+	* Source/GNUmakefile
+	* Source/Makefile.preamble
+	* SSL/GSSSLHandle.m
+	* SSL/GNUmakefile
+	* GNUmakefile
+
 2007-02-17  Sergii Stoian <stoyan255@gmail.com>
 
 	* Headers/GNUstepBase/GSFileHandle.h: Fix GSConfig.h include.

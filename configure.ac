@@ -20,7 +20,8 @@
 #
 #   You should have received a copy of the GNU General Public
 #   License along with this library; if not, write to the Free
-#   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA
+#   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#   Boston, MA 02111 USA
 builtin(include, config/objc-con-autoload.m4)dnl
 builtin(include, config/objc-sys-dynamic.m4)dnl
 builtin(include, config/procfs-exe-link.m4)dnl
@@ -32,8 +33,15 @@ builtin(include, config/addlibrarypath.m4)dnl
 AC_INIT
 AC_CONFIG_SRCDIR([Source/NSArray.m])
 
+# Where GNUSTEP_MAKEFILES is undefined, use gnustep-config if it is available.
+if test -z "$GNUSTEP_MAKEFILES"; then
+  GNUSTEP_MAKEFILES=`gnustep-config GNUSTEP_MAKEFILES 2>&5`
+fi
+
 if test -z "$GNUSTEP_MAKEFILES"; then
   AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
+else
+  . $GNUSTEP_MAKEFILES/GNUstep.sh
 fi
 
 # This variable might get temporarily overwritten with the

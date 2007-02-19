@@ -50,7 +50,6 @@
   #include <openssl/err.h>
   #undef id
 
-#include <GSConfig.h>
 #include <Foundation/Foundation.h>
 
 #include <GNUstepBase/GSFileHandle.h>
