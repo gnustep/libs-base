@@ -33,16 +33,19 @@ builtin(include, config/addlibrarypath.m4)dnl
 AC_INIT
 AC_CONFIG_SRCDIR([Source/NSArray.m])
 
-# Where GNUSTEP_MAKEFILES is undefined, use gnustep-config if it is available.
+# If GNUSTEP_MAKEFILES is undefined, try to use gnustep-config to determine it.
 if test -z "$GNUSTEP_MAKEFILES"; then
-  GNUSTEP_MAKEFILES=`gnustep-config GNUSTEP_MAKEFILES 2>&5`
+  GNUSTEP_MAKEFILES=`gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5`
 fi
 
 if test -z "$GNUSTEP_MAKEFILES"; then
   AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
-else
-  . $GNUSTEP_MAKEFILES/GNUstep.sh
 fi
+
+# We shouldn't be loading GNUstep.sh here.  It would load in a lot of
+# variables which might get confused with the ones that will be used
+# at runtime.  We will load it later once we have determined (and
+# saved) the runtime configuration.
 
 # This variable might get temporarily overwritten with the
 # GNUSTEP_MAKEFILES of the runtime configuration, make sure we keep

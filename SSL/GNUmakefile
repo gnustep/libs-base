@@ -23,20 +23,20 @@
 #  Boston, MA 02111 USA.
 #
 
+ifeq ($(GNUSTEP_MAKEFILES),)
+ GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+endif
+
+ifeq ($(GNUSTEP_MAKEFILES),)
+  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
+endif
+
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 # This must set be before reading common.make, which will read the
 # Additional makefiles.
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
-
-GNUSTEP_MAKEFILES?=$(shell gnustep-config GNUSTEP_MAKEFILES 2>/dev/null)
-
-# This usually happens when you source GNUstep.sh, then run ./configure,
-# then log out, then log in again and try to compile
-ifeq ($(GNUSTEP_MAKEFILES),)
-  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
-endif
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
