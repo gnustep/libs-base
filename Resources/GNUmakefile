@@ -22,17 +22,17 @@
 #  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #  Boston, MA 02111 USA.
 
-GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
+ifeq ($(GNUSTEP_MAKEFILES),)
+ GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+endif
 
-GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
-
-GNUSTEP_MAKEFILES?=$(shell gnustep-config GNUSTEP_MAKEFILES 2>/dev/null)
-
-# This usually happens when you source GNUstep.sh, then run ./configure,
-# then log out, then log in again and try to compile
 ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
+
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
+
+GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
 

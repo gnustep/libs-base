@@ -1,3 +1,20 @@
+2007-02-19  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Updated gnustep-config calls for new/final syntax.
+	Do not source GNUstep.sh at the beginning.
+	* configure: Regenerated.
+	* GNUmakefile: Updated gnustep-config calls, plus set
+	GNUSTEP_MAKEFILES properly using :=, not =.
+	* Documentation/GNUmakefile: Same changes.
+	* Examples/GNUmakefile: Same changes.
+	* NSTimeZones/GNUmakefile: Same changes.
+	* NSTimeZones/GNUmakefile: Same changes.
+	* Resources/GNUmakefile: Same changes.
+	* Source/GNUmakefile: Same changes.
+	* SSL/GNUmakefile: Same changes.
+	* Testing/GNUmakefile: Same changes. 
+	* Tools/GNUmakefile: Same changes. 
+	
 2007-02-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: ([performSelector:target:argument:order:modes:])
