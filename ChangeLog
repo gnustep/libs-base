@@ -3,6 +3,9 @@
 	* configure.ac: Fixup to locate headers and libraries installed in
 	system root subdirectories again.
 	* configure: Regenerated.
+	* Source/NSNumber.m: Chance description and stringValue methods to
+	return 1/0 rather than YES/NO for compatibility with undocumented
+	MacOS-X implementation detail (bug #19010)
 
 2007-02-19  Nicola Pero <nicola.pero@meta-innovation.com>
 

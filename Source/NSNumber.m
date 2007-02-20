@@ -828,7 +828,7 @@ static Class	doubleNumberClass;
       switch (info->typeLevel)
 	{
 	  case 0:
-	    return [self boolValue] ? @"YES" : @"NO";
+	    return [self boolValue] ? @"1" : @"0";
 	    break;
 
 	  case 1:
