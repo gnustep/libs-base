@@ -1,3 +1,16 @@
+2007-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSetData.h:
+	* Source/NSIndexSet.m:
+	* Source/NSCharacterSet.m:
+	Experimental modifications to allow an NSCharacterSet implementation
+	based on NSIndexSet rather than a bitmap representation.  The idea is
+	that such an implementation, while often slower, should use much
+	less memory in most cases and may be a better option on handheld
+	devices for instance.
+	To enable the new code, edit to define GNUSTEP_INDEX_CHARSET near
+	the start of NSCharacterSet.m and build.
+
 2007-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Fixup to locate headers and libraries installed in

@@ -1016,3 +1016,41 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 @end
 
+/* A subclass used to access a pre-generated table of information on the
+ * stack or in other non-heap allocated memory.
+ */
+@interface	_GSStaticIndexSet : NSIndexSet
+@end
+
+@implementation	_GSStaticIndexSet
+- (void) dealloc
+{
+  if (_array != 0)
+    {
+      /* Free the array without freeing its static content.
+       */
+      NSZoneFree([self zone], _array);
+      _data = 0;
+    }
+  [super dealloc];
+}
+
+- (id) _initWithBytes: (const void*)bytes length: (unsigned)length
+{
+  NSAssert(length % sizeof(NSRange) == 0, NSInvalidArgumentException);
+  length /= sizeof(NSRange);
+  _data = NSZoneMalloc([self zone], sizeof(GSIArray_t));
+  _array->ptr = (GSIArrayItem*)bytes;
+  _array->count = length;
+  _array->cap = length;
+  _array->old = length;
+  _array->zone = 0;
+  return self;
+}
+
+- (id) init
+{
+  return [self _initWithBytes: 0 length: 0];
+}
+@end
+
