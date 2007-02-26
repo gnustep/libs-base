@@ -339,9 +339,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepSystemLibrary, c, @"GNUSTEP_SYSTEM_LIBRARY");
   ASSIGN_PATH(gnustepSystemLibraries, c, @"GNUSTEP_SYSTEM_LIBRARIES");
   ASSIGN_PATH(gnustepSystemHeaders, c, @"GNUSTEP_SYSTEM_HEADERS");
-  ASSIGN_PATH(gnustepSystemDocumentation, c, @"GNUSTEP_SYSTEM_DOCUMENTATION");
-  ASSIGN_PATH(gnustepSystemDocumentationMan, c, @"GNUSTEP_SYSTEM_DOCUMENTATION_MAN");
-  ASSIGN_PATH(gnustepSystemDocumentationInfo, c, @"GNUSTEP_SYSTEM_DOCUMENTATION_INFO");
+  ASSIGN_PATH(gnustepSystemDocumentation, c, @"GNUSTEP_SYSTEM_DOC");
+  ASSIGN_PATH(gnustepSystemDocumentationMan, c, @"GNUSTEP_SYSTEM_DOC_MAN");
+  ASSIGN_PATH(gnustepSystemDocumentationInfo, c, @"GNUSTEP_SYSTEM_DOC_INFO");
 
   ASSIGN_PATH(gnustepNetworkApps, c, @"GNUSTEP_NETWORK_APPS");
   ASSIGN_PATH(gnustepNetworkAdminApps, c, @"GNUSTEP_NETWORK_ADMIN_APPS");
@@ -350,9 +350,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepNetworkLibrary, c, @"GNUSTEP_NETWORK_LIBRARY");
   ASSIGN_PATH(gnustepNetworkLibraries, c, @"GNUSTEP_NETWORK_LIBRARIES");
   ASSIGN_PATH(gnustepNetworkHeaders, c, @"GNUSTEP_NETWORK_HEADERS");
-  ASSIGN_PATH(gnustepNetworkDocumentation, c, @"GNUSTEP_NETWORK_DOCUMENTATION");
-  ASSIGN_PATH(gnustepNetworkDocumentationMan, c, @"GNUSTEP_NETWORK_DOCUMENTATION_MAN");
-  ASSIGN_PATH(gnustepNetworkDocumentationInfo, c, @"GNUSTEP_NETWORK_DOCUMENTATION_INFO");
+  ASSIGN_PATH(gnustepNetworkDocumentation, c, @"GNUSTEP_NETWORK_DOC");
+  ASSIGN_PATH(gnustepNetworkDocumentationMan, c, @"GNUSTEP_NETWORK_DOC_MAN");
+  ASSIGN_PATH(gnustepNetworkDocumentationInfo, c, @"GNUSTEP_NETWORK_DOC_INFO");
 
   ASSIGN_PATH(gnustepLocalApps, c, @"GNUSTEP_LOCAL_APPS");
   ASSIGN_PATH(gnustepLocalAdminApps, c, @"GNUSTEP_LOCAL_ADMIN_APPS");
@@ -361,9 +361,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepLocalLibrary, c, @"GNUSTEP_LOCAL_LIBRARY");
   ASSIGN_PATH(gnustepLocalLibraries, c, @"GNUSTEP_LOCAL_LIBRARIES");
   ASSIGN_PATH(gnustepLocalHeaders, c, @"GNUSTEP_LOCAL_HEADERS");
-  ASSIGN_PATH(gnustepLocalDocumentation, c, @"GNUSTEP_LOCAL_DOCUMENTATION");
-  ASSIGN_PATH(gnustepLocalDocumentationMan, c, @"GNUSTEP_LOCAL_DOCUMENTATION_MAN");
-  ASSIGN_PATH(gnustepLocalDocumentationInfo, c, @"GNUSTEP_LOCAL_DOCUMENTATION_INFO");
+  ASSIGN_PATH(gnustepLocalDocumentation, c, @"GNUSTEP_LOCAL_DOC");
+  ASSIGN_PATH(gnustepLocalDocumentationMan, c, @"GNUSTEP_LOCAL_DOC_MAN");
+  ASSIGN_PATH(gnustepLocalDocumentationInfo, c, @"GNUSTEP_LOCAL_DOC_INFO");
 
   ASSIGN_IF_SET(gnustepUserDirApps, c, @"GNUSTEP_USER_DIR_APPS");
   ASSIGN_IF_SET(gnustepUserDirAdminApps, c, @"GNUSTEP_USER_DIR_ADMIN_APPS");
@@ -372,9 +372,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_IF_SET(gnustepUserDirLibrary, c, @"GNUSTEP_USER_DIR_LIBRARY");
   ASSIGN_IF_SET(gnustepUserDirLibraries, c, @"GNUSTEP_USER_DIR_LIBRARIES");
   ASSIGN_IF_SET(gnustepUserDirHeaders, c, @"GNUSTEP_USER_DIR_HEADERS");
-  ASSIGN_IF_SET(gnustepUserDirDocumentation, c, @"GNUSTEP_USER_DIR_DOCUMENTATION");
-  ASSIGN_IF_SET(gnustepUserDirDocumentationMan, c, @"GNUSTEP_USER_DIR_DOCUMENTATION_MAN");
-  ASSIGN_IF_SET(gnustepUserDirDocumentationInfo, c, @"GNUSTEP_USER_DIR_DOCUMENTATION_INFO");
+  ASSIGN_IF_SET(gnustepUserDirDocumentation, c, @"GNUSTEP_USER_DIR_DOC");
+  ASSIGN_IF_SET(gnustepUserDirDocumentationMan, c, @"GNUSTEP_USER_DIR_DOC_MAN");
+  ASSIGN_IF_SET(gnustepUserDirDocumentationInfo, c, @"GNUSTEP_USER_DIR_DOC_INFO");
 
   /*
    * The GNUSTEP_EXTRA field may contain a list of extra keys which
@@ -444,17 +444,17 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   if (gnustepUserDirDocumentation == nil)
     {
       ASSIGN(gnustepUserDirDocumentation, 
-	     @GNUSTEP_TARGET_USER_DIR_DOCUMENTATION);
+	     @GNUSTEP_TARGET_USER_DIR_DOC);
     }
   if (gnustepUserDirDocumentationMan == nil)
     {
       ASSIGN(gnustepUserDirDocumentationMan, 
-	     @GNUSTEP_TARGET_USER_DIR_DOCUMENTATION_MAN);
+	     @GNUSTEP_TARGET_USER_DIR_DOC_MAN);
     }
   if (gnustepUserDirDocumentationInfo == nil)
     {
       ASSIGN(gnustepUserDirDocumentationInfo, 
-	     @GNUSTEP_TARGET_USER_DIR_DOCUMENTATION_INFO);
+	     @GNUSTEP_TARGET_USER_DIR_DOC_INFO);
     }
 
   /*
@@ -535,9 +535,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_DEFAULT_PATH(gnustepSystemLibrary, @GNUSTEP_TARGET_SYSTEM_LIBRARY);
   ASSIGN_DEFAULT_PATH(gnustepSystemLibraries, @GNUSTEP_TARGET_SYSTEM_LIBRARIES);
   ASSIGN_DEFAULT_PATH(gnustepSystemHeaders, @GNUSTEP_TARGET_SYSTEM_HEADERS);
-  ASSIGN_DEFAULT_PATH(gnustepSystemDocumentation, @GNUSTEP_TARGET_SYSTEM_DOCUMENTATION);
-  ASSIGN_DEFAULT_PATH(gnustepSystemDocumentationMan, @GNUSTEP_TARGET_SYSTEM_DOCUMENTATION_MAN);
-  ASSIGN_DEFAULT_PATH(gnustepSystemDocumentationInfo, @GNUSTEP_TARGET_SYSTEM_DOCUMENTATION_INFO);
+  ASSIGN_DEFAULT_PATH(gnustepSystemDocumentation, @GNUSTEP_TARGET_SYSTEM_DOC);
+  ASSIGN_DEFAULT_PATH(gnustepSystemDocumentationMan, @GNUSTEP_TARGET_SYSTEM_DOC_MAN);
+  ASSIGN_DEFAULT_PATH(gnustepSystemDocumentationInfo, @GNUSTEP_TARGET_SYSTEM_DOC_INFO);
 
   ASSIGN_DEFAULT_PATH(gnustepNetworkApps, @GNUSTEP_TARGET_NETWORK_APPS);
   ASSIGN_DEFAULT_PATH(gnustepNetworkAdminApps, @GNUSTEP_TARGET_NETWORK_ADMIN_APPS);
@@ -546,9 +546,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_DEFAULT_PATH(gnustepNetworkLibrary, @GNUSTEP_TARGET_NETWORK_LIBRARY);
   ASSIGN_DEFAULT_PATH(gnustepNetworkLibraries, @GNUSTEP_TARGET_NETWORK_LIBRARIES);
   ASSIGN_DEFAULT_PATH(gnustepNetworkHeaders, @GNUSTEP_TARGET_NETWORK_HEADERS);
-  ASSIGN_DEFAULT_PATH(gnustepNetworkDocumentation, @GNUSTEP_TARGET_NETWORK_DOCUMENTATION);
-  ASSIGN_DEFAULT_PATH(gnustepNetworkDocumentationMan, @GNUSTEP_TARGET_NETWORK_DOCUMENTATION_MAN);
-  ASSIGN_DEFAULT_PATH(gnustepNetworkDocumentationInfo, @GNUSTEP_TARGET_NETWORK_DOCUMENTATION_INFO);
+  ASSIGN_DEFAULT_PATH(gnustepNetworkDocumentation, @GNUSTEP_TARGET_NETWORK_DOC);
+  ASSIGN_DEFAULT_PATH(gnustepNetworkDocumentationMan, @GNUSTEP_TARGET_NETWORK_DOC_MAN);
+  ASSIGN_DEFAULT_PATH(gnustepNetworkDocumentationInfo, @GNUSTEP_TARGET_NETWORK_DOC_INFO);
 
   ASSIGN_DEFAULT_PATH(gnustepLocalApps, @GNUSTEP_TARGET_LOCAL_APPS);
   ASSIGN_DEFAULT_PATH(gnustepLocalAdminApps, @GNUSTEP_TARGET_LOCAL_ADMIN_APPS);
@@ -557,9 +557,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_DEFAULT_PATH(gnustepLocalLibrary, @GNUSTEP_TARGET_LOCAL_LIBRARY);
   ASSIGN_DEFAULT_PATH(gnustepLocalLibraries, @GNUSTEP_TARGET_LOCAL_LIBRARIES);
   ASSIGN_DEFAULT_PATH(gnustepLocalHeaders, @GNUSTEP_TARGET_LOCAL_HEADERS);
-  ASSIGN_DEFAULT_PATH(gnustepLocalDocumentation, @GNUSTEP_TARGET_LOCAL_DOCUMENTATION);
-  ASSIGN_DEFAULT_PATH(gnustepLocalDocumentationMan, @GNUSTEP_TARGET_LOCAL_DOCUMENTATION_MAN);
-  ASSIGN_DEFAULT_PATH(gnustepLocalDocumentationInfo, @GNUSTEP_TARGET_LOCAL_DOCUMENTATION_INFO);
+  ASSIGN_DEFAULT_PATH(gnustepLocalDocumentation, @GNUSTEP_TARGET_LOCAL_DOC);
+  ASSIGN_DEFAULT_PATH(gnustepLocalDocumentationMan, @GNUSTEP_TARGET_LOCAL_DOC_MAN);
+  ASSIGN_DEFAULT_PATH(gnustepLocalDocumentationInfo, @GNUSTEP_TARGET_LOCAL_DOC_INFO);
 
   ASSIGN_DEFAULT_PATH(gnustepMakefiles, @GNUSTEP_TARGET_MAKEFILES);
 }

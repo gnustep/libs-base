@@ -1,3 +1,12 @@
+2007-02-26  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Updated for new (shorter) GNUSTEP_SYSTEM_DOC_MAN
+	variable names in GNUstep.conf (and similar for other DOC variable
+	names).
+	* Headers/Additions/GNUstepBase/config.h.in: Same change.
+	* Source/NSPathUtilities.m: Same change.
+	* configure: Regenerated.
+	
 2007-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCharacterSetData.h:
