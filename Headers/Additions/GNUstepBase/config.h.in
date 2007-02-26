@@ -25,13 +25,13 @@
 #undef GNUSTEP_TARGET_LOCAL_APPS
 
 /* Built in default value for GNUstep local documentation */
-#undef GNUSTEP_TARGET_LOCAL_DOCUMENTATION
+#undef GNUSTEP_TARGET_LOCAL_DOC
 
 /* Built in default value for GNUstep local info documentation */
-#undef GNUSTEP_TARGET_LOCAL_DOCUMENTATION_INFO
+#undef GNUSTEP_TARGET_LOCAL_DOC_INFO
 
 /* Built in default value for GNUstep local manpages documentation */
-#undef GNUSTEP_TARGET_LOCAL_DOCUMENTATION_MAN
+#undef GNUSTEP_TARGET_LOCAL_DOC_MAN
 
 /* Built in default value for GNUstep local headers */
 #undef GNUSTEP_TARGET_LOCAL_HEADERS
@@ -61,13 +61,13 @@
 #undef GNUSTEP_TARGET_NETWORK_APPS
 
 /* Built in default value for GNUstep network documentation */
-#undef GNUSTEP_TARGET_NETWORK_DOCUMENTATION
+#undef GNUSTEP_TARGET_NETWORK_DOC
 
 /* Built in default value for GNUstep network info documentation */
-#undef GNUSTEP_TARGET_NETWORK_DOCUMENTATION_INFO
+#undef GNUSTEP_TARGET_NETWORK_DOC_INFO
 
 /* Built in default value for GNUstep network manpages documentation */
-#undef GNUSTEP_TARGET_NETWORK_DOCUMENTATION_MAN
+#undef GNUSTEP_TARGET_NETWORK_DOC_MAN
 
 /* Built in default value for GNUstep network headers */
 #undef GNUSTEP_TARGET_NETWORK_HEADERS
@@ -94,13 +94,13 @@
 #undef GNUSTEP_TARGET_SYSTEM_APPS
 
 /* Built in default value for GNUstep system documentation */
-#undef GNUSTEP_TARGET_SYSTEM_DOCUMENTATION
+#undef GNUSTEP_TARGET_SYSTEM_DOC
 
 /* Built in default value for GNUstep system info documentation */
-#undef GNUSTEP_TARGET_SYSTEM_DOCUMENTATION_INFO
+#undef GNUSTEP_TARGET_SYSTEM_DOC_INFO
 
 /* Built in default value for GNUstep system manpages documentation */
-#undef GNUSTEP_TARGET_SYSTEM_DOCUMENTATION_MAN
+#undef GNUSTEP_TARGET_SYSTEM_DOC_MAN
 
 /* Built in default value for GNUstep system headers */
 #undef GNUSTEP_TARGET_SYSTEM_HEADERS
@@ -136,13 +136,13 @@
 #undef GNUSTEP_TARGET_USER_DIR_APPS
 
 /* Built in default value for GNUstep user_dir documentation */
-#undef GNUSTEP_TARGET_USER_DIR_DOCUMENTATION
+#undef GNUSTEP_TARGET_USER_DIR_DOC
 
 /* Built in default value for GNUstep user_dir info documentation */
-#undef GNUSTEP_TARGET_USER_DIR_DOCUMENTATION_INFO
+#undef GNUSTEP_TARGET_USER_DIR_DOC_INFO
 
 /* Built in default value for GNUstep user_dir manpages documentation */
-#undef GNUSTEP_TARGET_USER_DIR_DOCUMENTATION_MAN
+#undef GNUSTEP_TARGET_USER_DIR_DOC_MAN
 
 /* Built in default value for GNUstep user_dir headers */
 #undef GNUSTEP_TARGET_USER_DIR_HEADERS
