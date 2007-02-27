@@ -38,7 +38,6 @@ GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 RPM_DISABLE_RELOCATABLE=YES
 PACKAGE_NEEDS_CONFIGURE = YES
 
-CVS_MODULE_NAME = base
 SVN_MODULE_NAME = base
 SVN_BASE_URL = svn+ssh://svn.gna.org/svn/gnustep/libs
 
@@ -58,7 +57,7 @@ PACKAGE_NAME = gnustep-base
 #
 SUBPROJECTS = Source
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
-SUBPROJECTS += SSL
+  SUBPROJECTS += SSL
 endif
 SUBPROJECTS += Tools NSTimeZones Resources
 
