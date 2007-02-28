@@ -1,3 +1,10 @@
+2007-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Update suggested by Larry Campbell to use 32
+	locks for managing retain counts rather than just one, so reducing
+	lock contention when there are lots of threads running.
+	He reports a 50% performance improvement in his program.
+
 2007-02-27  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* GNUmakefile (CVS_MODULE_NAME): Do not set (exports should be
