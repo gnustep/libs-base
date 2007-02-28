@@ -1,3 +1,13 @@
+2007-02-28  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: If no config file to import is specified, then
+	load the gnustep-make one in preference to the runtime config
+	file, which might be a relative path such as ./GNUstep.conf.  On
+	mingw, do not set just GNUSTEP_xxx_ROOT and similar variables to
+	relative paths, but set all of the GNUSTEP_xxx_yyy variables by
+	computing relative paths using gnustep-make's scripts.
+	* configure: Regenerated.
+	
 2007-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Update suggested by Larry Campbell to use 32
