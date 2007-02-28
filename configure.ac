@@ -222,12 +222,14 @@ then
     GNUSTEP_DEFAULT_CONFIG="$result"
   fi
   if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
-    # Try the gnustep-make config file first.  On MinGW this means
-    # we import the gnustep-make paths instead of paths from the non-existing
-    # ./GNUstep.conf file.
-    if test -f "$GNUSTEP_MAKE_CONFIG"; then
-      GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_MAKE_CONFIG"
-    fi
+    # On platforms other than mingw we can fall back to GNUSTEP_CONFIG_FILE
+    # which (if undefined) will already have been set to the value of
+    # GNUSTEP_MAKE_CONFIG.
+    # On mingw we must never use GNUSTEP_MAKE_CONFIG ... as the paths from
+    # the make package are for building and are guaranteed to be wrong for
+    # use at runtime.  We set $GNUSTEP_CONFIG_FILE to ./GNUstep.conf
+    # earlier to handle that case.
+    GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
   fi
   AC_MSG_RESULT($GNUSTEP_DEFAULT_CONFIG)
 
