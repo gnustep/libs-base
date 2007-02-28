@@ -1,3 +1,12 @@
+2007-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Revert part of change which guaranteed use of bad
+	paths on mingw ... we allow a fallback to ./GNUstep.conf instead.
+	of using paths from make (which is guaranteed to be wrong as the
+	paths it uses are for msys and we need runtime paths for the
+	win32 api).
+	* configure: Regenerated.
+
 2007-02-28  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: If no config file to import is specified, then
