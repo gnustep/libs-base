@@ -102,11 +102,35 @@ static Class	NSConstantStringClass;
 @end
 
 /*
- * allocationLock is needed when running multi-threaded for retain/release
- * to work reliably.
- * We also use it for protecting the map table of zombie information.
+ * allocationLock is needed when running multi-threaded for 
+ * protecting the map table of zombie information and for retain
+ * count protection (when using a map table ... REFCNT_LOCAL is NO)
  */
 static objc_mutex_t allocationLock = NULL;
+
+/*
+ * Having just one allocationLock for all leads to lock contention
+ * if there are lots of threads doing lots of retain/release calls.
+ * To alleviate this, if using REFCNT_LOCAL, instead of a single
+ * allocationLock for all objects, we divide the object space into
+ * chunks, each with its own lock. The chunk is selected by shifting
+ * off the low-order ALIGNBITS of the object's pointer (these bits
+ * are presumably always zero) and take
+ * the low-order LOCKBITS of the result to index into a table of locks.
+ */
+
+#define LOCKBITS 5
+#define LOCKCOUNT (1<<LOCKBITS)
+#define LOCKMASK (LOCKCOUNT-1)
+#define ALIGNBITS 3
+
+static objc_mutex_t allocationLocks[LOCKCOUNT] = { 0 };
+
+static inline objc_mutex_t GSAllocationLockForObject(id p)
+{
+  unsigned i = ((((unsigned)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
+  return allocationLocks[i];
+}
 
 
 BOOL	NSZombieEnabled = NO;
@@ -274,16 +298,18 @@ NSDecrementExtraRefCountWasZero(id anObject)
 #if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+
+      objc_mutex_lock(theLock);
       if (((obj)anObject)[-1].retained == 0)
 	{
-	  objc_mutex_unlock(allocationLock);
+	  objc_mutex_unlock(theLock);
 	  return YES;
 	}
       else
 	{
 	  ((obj)anObject)[-1].retained--;
-	  objc_mutex_unlock(allocationLock);
+	  objc_mutex_unlock(theLock);
 	  return NO;
 	}
     }
@@ -364,7 +390,9 @@ NSExtraRefCount(id anObject)
 
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+
+      objc_mutex_lock(theLock);
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node == 0)
 	{
@@ -374,7 +402,7 @@ NSExtraRefCount(id anObject)
 	{
 	  ret = node->value.uint;
 	}
-      objc_mutex_unlock(allocationLock);
+      objc_mutex_unlock(theLock);
     }
   else
     {
@@ -408,15 +436,17 @@ NSIncrementExtraRefCount(id anObject)
 #if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+
+      objc_mutex_lock(theLock);
       if (((obj)anObject)[-1].retained == UINT_MAX - 1)
 	{
-	  objc_mutex_unlock (allocationLock);
+	  objc_mutex_unlock (theLock);
 	  [NSException raise: NSInternalInconsistencyException
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
 	}
       ((obj)anObject)[-1].retained++;
-      objc_mutex_unlock (allocationLock);
+      objc_mutex_unlock (theLock);
     }
   else
     {
@@ -868,6 +898,14 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (allocationLock == 0)
     {
+#if defined(REFCNT_LOCAL)
+      unsigned	i;
+
+      for (i = 0; i < LOCKCOUNT; i++)
+        {
+	  allocationLocks[i] = objc_mutex_allocate();
+	}
+#endif
       allocationLock = objc_mutex_allocate();
     }
 }
