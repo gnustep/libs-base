@@ -1,3 +1,15 @@
+2007-02-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Additions/GNUstepBase/config.h.in:
+	* gnustep-base.script.spec.in:
+	Remove internal GNUSTEP_..._ROOT variables which are no longer used.
+	* configure.ac:
+	Refrain from defining GNUSTEP_..._ROOT default values in config.h
+	* configure: regenerated.
+
 2007-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Revert part of change which guaranteed use of bad

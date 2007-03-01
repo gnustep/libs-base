@@ -138,15 +138,6 @@ static NSString	*gnustep_is_flattened =
 
 static NSString	*gnustepConfigPath = nil;
 
-/* This will be deprecated and removed.  */
-static NSString *gnustepUserRoot = nil;        /*    GNUSTEP_USER_ROOT path */
-/* This will be deprecated and removed.  */
-static NSString *gnustepLocalRoot = nil;       /*   GNUSTEP_LOCAL_ROOT path */
-/* This will be deprecated and removed.  */
-static NSString *gnustepNetworkRoot = nil;     /* GNUSTEP_NETWORK_ROOT path */
-/* This will be deprecated and removed.  */
-static NSString *gnustepSystemRoot = nil;      /*  GNUSTEP_SYSTEM_ROOT path */
-
 static NSString *gnustepUserDir = nil;
 static NSString *gnustepUserHome = nil;
 static NSString *gnustepUserDefaultsDir = nil;
@@ -323,10 +314,6 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   /*
    * Move values out of the dictionary and into variables for rapid reference.
    */
-  ASSIGN_PATH(gnustepSystemRoot, c, @"GNUSTEP_SYSTEM_ROOT");
-  ASSIGN_PATH(gnustepNetworkRoot, c, @"GNUSTEP_NETWORK_ROOT");
-  ASSIGN_PATH(gnustepLocalRoot, c, @"GNUSTEP_LOCAL_ROOT");
-
   ASSIGN_IF_SET(gnustepUserDir, c, @"GNUSTEP_USER_DIR");
   ASSIGN_IF_SET(gnustepUserDefaultsDir, c, @"GNUSTEP_USER_DEFAULTS_DIR");
 
@@ -461,9 +448,6 @@ static void ExtractValuesFromConfig(NSDictionary *config)
    * Set the GNUSTEP_USER_xxx variables from the user home and the
    * GNUSTEP_USER_DIR_xxx variables.
    */
-  ASSIGN(gnustepUserRoot,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDir]);
-
   ASSIGN(gnustepUserApps,
     [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirApps]);
 
@@ -524,10 +508,6 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   /*
    * Finally set default locations for the essential paths if required.
    */
-  ASSIGN_DEFAULT_PATH(gnustepSystemRoot, @GNUSTEP_TARGET_SYSTEM_ROOT);
-  ASSIGN_DEFAULT_PATH(gnustepNetworkRoot, @GNUSTEP_TARGET_NETWORK_ROOT);
-  ASSIGN_DEFAULT_PATH(gnustepLocalRoot, @GNUSTEP_TARGET_LOCAL_ROOT);
-
   ASSIGN_DEFAULT_PATH(gnustepSystemApps, @GNUSTEP_TARGET_SYSTEM_APPS);
   ASSIGN_DEFAULT_PATH(gnustepSystemAdminApps, @GNUSTEP_TARGET_SYSTEM_ADMIN_APPS);
   ASSIGN_DEFAULT_PATH(gnustepSystemTools, @GNUSTEP_TARGET_SYSTEM_TOOLS);
@@ -789,11 +769,6 @@ static void InitialisePathUtilities(void)
  */
 static void ShutdownPathUtilities(void)
 {
-  DESTROY(gnustepSystemRoot);
-  DESTROY(gnustepNetworkRoot);
-  DESTROY(gnustepLocalRoot);
-  DESTROY(gnustepUserRoot);
-
   DESTROY(gnustepUserHome);
   DESTROY(gnustepUserDefaultsDir);
 
@@ -1373,9 +1348,8 @@ NSFullUserName(void)
 
 /**
  * Return the path of the defaults directory for userName.<br />
- * This examines the .GNUsteprc file in the home directory of the
- * user for the GNUSTEP_DEFAULTS_ROOT or the GNUSTEP_USER_ROOT
- * directory definitions, over-riding those in GNUstep.conf.
+ * This examines the GNUSTEP_USER_CONFIG_FILE for the specified user,
+ * with settings in it over-riding those in the main GNUstep.conf.
  */
 NSString *
 GSDefaultsRootForUser(NSString *userName)
@@ -1748,7 +1722,7 @@ if (domainMask & mask) \
 	{
 	  if (domainMask & NSUserDomainMask)
 	    {
-	      [paths addObject: gnustepUserRoot];
+	      [paths addObject: gnustepUserHome];
 	    }
 	}
 	break;
@@ -1788,9 +1762,12 @@ if (domainMask & mask) \
       case NSApplicationSupportDirectory:
 	{
 	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"ApplicationSupport");
-	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"ApplicationSupport");
-	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"ApplicationSupport");
-	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"ApplicationSupport");
+	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary,
+	    @"ApplicationSupport");
+	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary,
+	    @"ApplicationSupport");
+	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary,
+	    @"ApplicationSupport");
 	}
 	break;
 
@@ -1838,8 +1815,10 @@ if (domainMask & mask) \
 	  if (part) ADD_PATH(NSLocalDomainMask, gnustepLocalLibraries, part);
 
 	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkLibraries);
-	  if (full) ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibraries, full);
-	  if (part) ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibraries, part);
+	  if (full)
+	    ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibraries, full);
+	  if (part)
+	    ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibraries, part);
 
 	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemLibraries);
 	  if (full) ADD_PATH(NSSystemDomainMask, gnustepSystemLibraries, full);
