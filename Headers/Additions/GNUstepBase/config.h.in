@@ -42,9 +42,6 @@
 /* Built in default value for GNUstep local library */
 #undef GNUSTEP_TARGET_LOCAL_LIBRARY
 
-/* Built in default value for GNUstep local root */
-#undef GNUSTEP_TARGET_LOCAL_ROOT
-
 /* Built in default value for GNUstep local tools */
 #undef GNUSTEP_TARGET_LOCAL_TOOLS
 
@@ -78,9 +75,6 @@
 /* Built in default value for GNUstep network library */
 #undef GNUSTEP_TARGET_NETWORK_LIBRARY
 
-/* Built in default value for GNUstep network root */
-#undef GNUSTEP_TARGET_NETWORK_ROOT
-
 /* Built in default value for GNUstep network tools */
 #undef GNUSTEP_TARGET_NETWORK_TOOLS
 
@@ -110,9 +104,6 @@
 
 /* Built in default value for GNUstep system library */
 #undef GNUSTEP_TARGET_SYSTEM_LIBRARY
-
-/* Built in default value for GNUstep system root */
-#undef GNUSTEP_TARGET_SYSTEM_ROOT
 
 /* Built in default value for GNUstep system tools */
 #undef GNUSTEP_TARGET_SYSTEM_TOOLS
@@ -546,25 +537,25 @@
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
-/* The size of a `double', as computed by sizeof. */
+/* The size of `double', as computed by sizeof. */
 #undef SIZEOF_DOUBLE
 
-/* The size of a `float', as computed by sizeof. */
+/* The size of `float', as computed by sizeof. */
 #undef SIZEOF_FLOAT
 
-/* The size of a `int', as computed by sizeof. */
+/* The size of `int', as computed by sizeof. */
 #undef SIZEOF_INT
 
-/* The size of a `long', as computed by sizeof. */
+/* The size of `long', as computed by sizeof. */
 #undef SIZEOF_LONG
 
-/* The size of a `long long', as computed by sizeof. */
+/* The size of `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
 
-/* The size of a `short', as computed by sizeof. */
+/* The size of `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
 
-/* The size of a `void*', as computed by sizeof. */
+/* The size of `void*', as computed by sizeof. */
 #undef SIZEOF_VOIDP
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -592,5 +583,5 @@
 #undef inline
 #endif
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t

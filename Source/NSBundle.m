@@ -2175,31 +2175,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 @implementation NSBundle (GNUstep)
 
-/**
- * <p>Return a bundle which accesses the first existing directory from the list
- * GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_LOCAL_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_SYSTEM_ROOT/Libraries/Resources/libraryName/<br />
- * Where libraryName is the name of a library without the <em>lib</em>
- * prefix or any extensions.
- * </p>
- * <p>This method exists to provide resource bundles for libraries and has no
- * particular relationship to the library code itsself.  The named library
- * could be a dynamic library linked in to the running program, a static
- * library (whose code may not even exist on the host machine except where
- * it is linked in to the program), or even a library which is not linked
- * into the program at all (eg. where you want to share resources provided
- * for a library you do not actually use).
- * </p>
- * <p>The bundle for the library <em>gnustep-base</em> is a special case ...
- * for this bundle the -principalClass method returns [NSObject] and the
- * -executablePath method returns the path to the gnustep-base dynamic
- *  library (if it can be found).  As a general rule, library bundles are
- *  not guaranteed to return values for these methods as the library may
- *  not exist on disk.
- * </p>
- */
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName
 {
   NSArray *paths;
