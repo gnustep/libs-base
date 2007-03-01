@@ -387,6 +387,12 @@ static void ExtractValuesFromConfig(NSDictionary *config)
    */
   [c removeObjectForKey: @"GNUSTEP_USER_CONFIG_FILE"];
 
+  /* FIXME ... for the time being we just ignore obsolete keys */
+  [c removeObjectForKey: @"GNUSTEP_USER_ROOT"];
+  [c removeObjectForKey: @"GNUSTEP_LOCAL_ROOT"];
+  [c removeObjectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+  [c removeObjectForKey: @"GNUSTEP_NETWORK_ROOT"];
+
   if ([c count] > 0)
     {
       /*
