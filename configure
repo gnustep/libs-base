@@ -2164,14 +2164,12 @@ fi
     GNUSTEP_DEFAULT_CONFIG="$result"
   fi
   if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
-    # On platforms other than mingw we can fall back to GNUSTEP_CONFIG_FILE
-    # which (if undefined) will already have been set to the value of
-    # GNUSTEP_MAKE_CONFIG.
-    # On mingw we must never use GNUSTEP_MAKE_CONFIG ... as the paths from
-    # the make package are for building and are guaranteed to be wrong for
-    # use at runtime.  We set $GNUSTEP_CONFIG_FILE to ./GNUstep.conf
-    # earlier to handle that case.
-    GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_CONFIG_FILE"
+    # We fall back to useing the make settings for the built-in ones.
+    # However, on mingw these will be msys style paths, and we don't
+    # want that ... so later on we convert these to portable relative
+    # paths based on the directory in which the base library will be
+    # installed.
+    GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_MAKE_FILE"
   fi
   { echo "$as_me:$LINENO: result: $GNUSTEP_DEFAULT_CONFIG" >&5
 echo "${ECHO_T}$GNUSTEP_DEFAULT_CONFIG" >&6; }
@@ -2212,7 +2210,7 @@ if test x"$GNUSTEP_MAKEFILES" = x""; then GNUSTEP_MAKEFILES=$GNUSTEP_SYSTEM_ROOT
 if test x"$GNUSTEP_SYSTEM_APPS" = x""; then GNUSTEP_SYSTEM_APPS=$GNUSTEP_SYSTEM_ROOT/Apps; fi
 if test x"$GNUSTEP_SYSTEM_ADMIN_APPS" = x""; then GNUSTEP_SYSTEM_APPS=$GNUSTEP_SYSTEM_ROOT/Apps/Admin; fi
 if test x"$GNUSTEP_SYSTEM_TOOLS" = x""; then GNUSTEP_SYSTEM_TOOLS=$GNUSTEP_SYSTEM_ROOT/Tools; fi
-if test x"$GNUSTEP_SYSTEM_ADMIN_TOOLS" = x""; then GNUSTEP_SYSTEM_TOOLS=$GNUSTEP_SYSTEM_ROOT/Tools/Admin; fi
+if test x"$GNUSTEP_SYSTEM_ADMIN_TOOLS" = x""; then GNUSTEP_SYSTEM_ADMIN_TOOLS=$GNUSTEP_SYSTEM_ROOT/Tools/Admin; fi
 if test x"$GNUSTEP_SYSTEM_LIBRARY" = x""; then GNUSTEP_SYSTEM_LIBRARY=$GNUSTEP_SYSTEM_ROOT/Library; fi
 if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then GNUSTEP_SYSTEM_LIBRARIES=$GNUSTEP_SYSTEM_LIBRARY/Libraries; fi
 if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then GNUSTEP_SYSTEM_HEADERS=$GNUSTEP_SYSTEM_LIBRARY/Headers; fi

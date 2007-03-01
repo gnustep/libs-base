@@ -1,5 +1,12 @@
 2007-02-29  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: Restorelast reversion and fix actual bug (I hope)
+	which was an incorrect setting of GNUSTEP_SYSTEM_TOOLS to the
+	Admin subdirectory, causing relative path calculations to be wrong.
+	* configure: regenerated.
+
+2007-02-29  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSBundle.m:
 	* Source/NSPathUtilities.m:
 	* Headers/Foundation/NSBundle.h:
