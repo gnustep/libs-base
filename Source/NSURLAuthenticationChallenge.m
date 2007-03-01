@@ -46,7 +46,7 @@ typedef struct {
   if (o != nil)
     {
       o->_NSURLAuthenticationChallengeInternal
-        = NSZoneMalloc(z, sizeof(Internal));
+        = NSZoneCalloc(z, 1, sizeof(Internal));
     }
   return o;
 }

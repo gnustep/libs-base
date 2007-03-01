@@ -1703,12 +1703,12 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       newZone = (NSZone*)zone;
     }
 
-    [gnustep_global_lock lock];
-    newZone->next = zone_list;
-    zone_list = newZone;
-    [gnustep_global_lock unlock];
+  [gnustep_global_lock lock];
+  newZone->next = zone_list;
+  zone_list = newZone;
+  [gnustep_global_lock unlock];
 
-    return newZone;
+  return newZone;
 }
 
 /**

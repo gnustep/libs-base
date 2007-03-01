@@ -68,7 +68,7 @@ static NSHTTPCookieStorage   *storage = nil;
 	  o = (NSHTTPCookieStorage*)
 	    NSAllocateObject(self, 0, NSDefaultMallocZone());
 	  o->_NSHTTPCookieStorageInternal = (Internal*)
-	    NSZoneMalloc(NSDefaultMallocZone(), sizeof(Internal));
+	    NSZoneCalloc(NSDefaultMallocZone(), 1, sizeof(Internal));
 	  inst->_policy = NSHTTPCookieAcceptPolicyAlways;
 	  inst->_cookies = [NSMutableSet new];
 	  storage = o;
