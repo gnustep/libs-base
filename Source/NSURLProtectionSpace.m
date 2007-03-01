@@ -62,7 +62,7 @@ typedef struct {
 
   if (o != nil)
     {
-      o->_NSURLProtectionSpaceInternal = NSZoneMalloc(z, sizeof(Internal));
+      o->_NSURLProtectionSpaceInternal = NSZoneCalloc(z, 1, sizeof(Internal));
     }
   return o;
 }

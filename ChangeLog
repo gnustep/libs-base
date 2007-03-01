@@ -1,3 +1,15 @@
+2007-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLCredential.m:
+	* Source/NSURLAuthenticationChallenge.m:
+	* Source/NSURLCredentialStorage.m:
+	* Source/NSURLResponse.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLCache.m:
+	* Source/NSURLProtectionSpace.m:
+	* Source/NSURLRequest.m:
+	backport memory initialisation fix from trunk
+
 2007-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDebug.m:

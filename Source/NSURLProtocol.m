@@ -51,7 +51,7 @@ static NSLock		*regLock = nil;
 
   if (o != nil)
     {
-      o->_NSURLProtocolInternal = NSZoneMalloc(z, sizeof(Internal));
+      o->_NSURLProtocolInternal = NSZoneCalloc(z, 1, sizeof(Internal));
     }
   return o;
 }

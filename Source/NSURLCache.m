@@ -51,8 +51,7 @@ static NSURLCache	*shared = nil;
 
   if (o != nil)
     {
-      o->_NSURLCacheInternal = NSZoneMalloc(z, sizeof(Internal));
-      memset(o->_NSURLCacheInternal, '\0', sizeof(Internal));
+      o->_NSURLCacheInternal = NSZoneCalloc(z, 1, sizeof(Internal));
     }
   return o;
 }

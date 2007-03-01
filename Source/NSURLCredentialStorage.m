@@ -56,7 +56,7 @@ static NSURLCredentialStorage	*storage = nil;
 	  o = (NSURLCredentialStorage*)
 	    NSAllocateObject(self, 0, NSDefaultMallocZone());
 	  o->_NSURLCredentialStorageInternal = (Internal*)
-	    NSZoneMalloc(NSDefaultMallocZone(), sizeof(Internal));
+	    NSZoneCalloc(NSDefaultMallocZone(), 1, sizeof(Internal));
 	  ((Internal*)(o->_NSURLCredentialStorageInternal))->credentials
 	    = [NSMutableDictionary new];
 	  ((Internal*)(o->_NSURLCredentialStorageInternal))->defaults

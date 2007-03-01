@@ -42,7 +42,7 @@ typedef struct {
 
   if (o != nil)
     {
-      o->_NSURLCredentialInternal = NSZoneMalloc(z, sizeof(Internal));
+      o->_NSURLCredentialInternal = NSZoneCalloc(z, 1, sizeof(Internal));
     }
   return o;
 }

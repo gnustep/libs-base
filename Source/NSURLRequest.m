@@ -60,8 +60,7 @@ typedef struct {
 
   if (o != nil)
     {
-      o->_NSURLRequestInternal = NSZoneMalloc(z, sizeof(Internal));
-      memset(o->_NSURLRequestInternal, '\0', sizeof(Internal));
+      o->_NSURLRequestInternal = NSZoneCalloc(z, 1, sizeof(Internal));
     }
   return o;
 }

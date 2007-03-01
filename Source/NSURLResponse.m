@@ -126,8 +126,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 
   if (o != nil)
     {
-      o->_NSURLResponseInternal = NSZoneMalloc(z, sizeof(Internal));
-      memset(o->_NSURLResponseInternal, '\0', sizeof(Internal));
+      o->_NSURLResponseInternal = NSZoneCalloc(z, 1, sizeof(Internal));
     }
   return o;
 }
