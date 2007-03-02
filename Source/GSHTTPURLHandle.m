@@ -460,13 +460,20 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    password: [u password]
 	    persistence: NSURLCredentialPersistenceForSession];
 
-	  /* Create authentication from credential ... returns nil if
-	   * we have no credential.
-	   */
-	  authentication = [GSHTTPAuthentication
-	    authenticationWithCredential: cred
-	    inProtectionSpace: space];
-	  RELEASE(cred);
+	  if (cred == nil)
+	    {
+	      authentication = nil;
+	    }
+	  else
+	    {
+	      /* Create authentication from credential ... returns nil if
+	       * we have no credential.
+	       */
+	      authentication = [GSHTTPAuthentication
+		authenticationWithCredential: cred
+		inProtectionSpace: space];
+	      RELEASE(cred);
+	    }
 
 	  method = [request objectForKey: GSHTTPPropertyMethodKey];
 	  if (method == nil)
@@ -644,7 +651,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
 		    protectionSpaceForAuthentication: ac requestURL: url];
-		  if (space != nil)
+		  if (space == nil)
+		    {
+		      authentication = nil;
+		    }
+		  else
 		    {
 		      NSURLCredential	*cred;
 
@@ -658,19 +669,18 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			password: [url password]
 			persistence: NSURLCredentialPersistenceForSession];
 
-		      /*
-		       * Get the digest object and ask it for a header
-		       * to use for authorisation.
-		       * Returns nil if we have no credential.
-		       */
-		      authentication = [GSHTTPAuthentication
-			authenticationWithCredential: cred
-			inProtectionSpace: space];
-		      RELEASE(cred);
-		    }
-		  else
-		    {
-		      authentication = nil;
+		      if (cred == nil)
+		        {
+			  /*
+			   * Get the digest object and ask it for a header
+			   * to use for authorisation.
+			   * Returns nil if we have no credential.
+			   */
+			  authentication = [GSHTTPAuthentication
+			    authenticationWithCredential: cred
+			    inProtectionSpace: space];
+			  RELEASE(cred);
+			}
 		    }
 
 		  method = [request objectForKey: GSHTTPPropertyMethodKey];
