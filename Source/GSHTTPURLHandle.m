@@ -671,6 +671,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 		      if (cred == nil)
 		        {
+			  authentication = nil;
+			}
+		      else
+		        {
 			  /*
 			   * Get the digest object and ask it for a header
 			   * to use for authorisation.
