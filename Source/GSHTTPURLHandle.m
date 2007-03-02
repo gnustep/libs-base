@@ -452,19 +452,20 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  NSURLCredential	*cred;
 	  NSString		*method;
 
-	  /*
-	   * Create credential from user and password
-	   * stored in the URL.
+	  /* Create credential from user and password stored in the URL.
+	   * Returns nil if we have no username or password.
 	   */
 	  cred = [[NSURLCredential alloc]
 	    initWithUser: [u user]
 	    password: [u password]
 	    persistence: NSURLCredentialPersistenceForSession];
 
+	  /* Create authentication from credential ... returns nil if
+	   * we have no credential.
+	   */
 	  authentication = [GSHTTPAuthentication
 	    authenticationWithCredential: cred
 	    inProtectionSpace: space];
-
 	  RELEASE(cred);
 
 	  method = [request objectForKey: GSHTTPPropertyMethodKey];
@@ -483,8 +484,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  auth = [authentication authorizationForAuthentication: nil
 							 method: method
 							   path: [u path]];
-
-	  NSMapInsert(wProperties, (void*)@"Authorization", (void*)auth);
+	  /* If authentication is nil then auth will also be nil
+	   */
+	  if (auth != nil)
+	    {
+	      [self writeProperty: auth forKey: @"Authorization"];
+	    }
 	}
     }
 
@@ -634,7 +639,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  NSString		*ac;
 		  GSHTTPAuthentication	*authentication;
 		  NSString		*method;
-		  NSString		*a;
+		  NSString		*auth;
 
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
@@ -646,6 +651,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		      /*
 		       * Create credential from user and password
 		       * stored in the URL.
+		       * Returns nil if we have no username or password.
 		       */
 		      cred = [[NSURLCredential alloc]
 			initWithUser: [url user]
@@ -655,11 +661,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		      /*
 		       * Get the digest object and ask it for a header
 		       * to use for authorisation.
+		       * Returns nil if we have no credential.
 		       */
 		      authentication = [GSHTTPAuthentication
 			authenticationWithCredential: cred
 			inProtectionSpace: space];
-
 		      RELEASE(cred);
 		    }
 		  else
@@ -680,12 +686,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			}
 		    }
 
-		  a = [authentication authorizationForAuthentication: ac
+		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
 		    path: [url path]];
-		  if (a != nil)
+		  if (auth != nil)
 		    {
-		      [self writeProperty: a forKey: @"Authorization"];
+		      [self writeProperty: auth forKey: @"Authorization"];
 		      [self _tryLoadInBackground: u];
 		      return;	// Retrying.
 		    }

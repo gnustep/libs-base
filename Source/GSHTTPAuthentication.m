@@ -100,40 +100,50 @@ static GSMimeParser		*mimeParser = nil;
     NSInvalidArgumentException);
 
   [storeLock lock];
-
-  /*
-   * Keep track of known protection spaces so we don't make lots of
-   * duplicate copies, but share one copy between authentication objects.
-   */
-  known = [spaces member: space];
-  if (known == nil)
+  NS_DURING
     {
-      [spaces addObject: space];
+      /*
+       * Keep track of known protection spaces so we don't make lots of
+       * duplicate copies, but share one copy between authentication objects.
+       */
       known = [spaces member: space];
-    }
-  space = known;
-  cDict = [store objectForKey: space];
-  if (cDict == nil)
-    {
-      cDict = [NSMutableDictionary new];
-      [store setObject: cDict forKey: space];
-      RELEASE(cDict);
-    }
-  authentication = [cDict objectForKey: credential];
+      if (known == nil)
+	{
+	  [spaces addObject: space];
+	  known = [spaces member: space];
+	}
+      space = known;
+      cDict = [store objectForKey: space];
+      if (cDict == nil)
+	{
+	  cDict = [NSMutableDictionary new];
+	  [store setObject: cDict forKey: space];
+	  RELEASE(cDict);
+	}
+      authentication = [cDict objectForKey: credential];
 
-  if (authentication == nil)
-    {
-      authentication = [[GSHTTPAuthentication alloc]
-	initWithCredential: credential
-     inProtectionSpace: space];
-      [cDict setObject: authentication forKey: [authentication credential]];
+      if (authentication == nil)
+	{
+	  authentication = [[GSHTTPAuthentication alloc]
+	    initWithCredential: credential
+	     inProtectionSpace: space];
+	  if (authentication != nil)
+	    {
+	      [cDict setObject: authentication
+			forKey: [authentication credential]];
+	      RELEASE(authentication);
+	    }
+	}
+      AUTORELEASE(RETAIN(authentication));
     }
-  else
+  NS_HANDLER
     {
-      RETAIN(authentication);
+      [storeLock unlock];
+      [localException raise];
     }
+  NS_ENDHANDLER
   [storeLock unlock];
-  return AUTORELEASE(authentication);
+  return authentication;
 }
 
 + (NSURLProtectionSpace*) protectionSpaceForAuthentication: (NSString*)auth
@@ -219,14 +229,9 @@ static GSMimeParser		*mimeParser = nil;
 + (NSURLProtectionSpace *) protectionSpaceForURL: (NSURL*)URL
 {
   NSURLProtectionSpace	*space = nil;
-  NSString		*found = nil;
   NSString		*scheme;
   NSNumber		*port;
   NSString		*server;
-  NSDictionary		*sDict;
-  NSArray		*keys;
-  unsigned		count;
-  NSString		*path;
 
   scheme = [URL scheme];
   port = [URL port];
@@ -248,39 +253,52 @@ static GSMimeParser		*mimeParser = nil;
       server = [NSString stringWithFormat: @"%@://%@:%@",
 	scheme, [URL host], port];
     }
-  [storeLock lock];
-  sDict = [domainMap objectForKey: server];
-  keys = [sDict allKeys];
-  count = [keys count];
-  path = [URL path];
-  while (count-- > 0)
-    {
-      NSString	*key = [keys objectAtIndex: count];
-      unsigned	kl = [key length];
 
-      if (found == nil || kl > [found length])
-        {
-	  if (kl == 0 || [path hasPrefix: key] == YES)
+  [storeLock lock];
+  NS_DURING
+    {
+      NSString		*found = nil;
+      NSDictionary	*sDict;
+      NSArray		*keys;
+      unsigned		count;
+      NSString		*path;
+
+      sDict = [domainMap objectForKey: server];
+      keys = [sDict allKeys];
+      count = [keys count];
+      path = [URL path];
+      while (count-- > 0)
+	{
+	  NSString	*key = [keys objectAtIndex: count];
+	  unsigned	kl = [key length];
+
+	  if (found == nil || kl > [found length])
 	    {
-	      found = key;
+	      if (kl == 0 || [path hasPrefix: key] == YES)
+		{
+		  found = key;
+		}
 	    }
 	}
+      if (found != nil)
+	{
+	  space = AUTORELEASE(RETAIN([sDict objectForKey: found]));
+	}
     }
-  if (found != nil)
+  NS_HANDLER
     {
-      space = RETAIN([sDict objectForKey: found]);
+      [storeLock unlock];
+      [localException raise];
     }
+  NS_ENDHANDLER
   [storeLock unlock];
-  return AUTORELEASE(space);
+  return space;
 }
 
 + (void) setProtectionSpace: (NSURLProtectionSpace *)space
 		 forDomains: (NSArray*)domains
 		    baseURL: (NSURL*)base
 {
-  NSEnumerator	*e;
-  NSString	*domain;
-
   /*
    * If there are no URIs specified, everything on the
    * host of the base URL is in the protection space
@@ -291,56 +309,67 @@ static GSMimeParser		*mimeParser = nil;
     }
 
   [storeLock lock];
-  e = [domains objectEnumerator];
-  while ((domain = [e nextObject]) != nil)
+  NS_DURING
     {
-      NSURL			*u;
-      NSString			*path;
-      NSNumber			*port;
-      NSString			*scheme;
-      NSString			*server;
-      NSMutableDictionary	*sDict;
+      NSEnumerator	*e = [domains objectEnumerator];
+      NSString		*domain;
 
-      u = [NSURL URLWithString: domain];
-      scheme = [u scheme];
-      if (scheme == nil)
-        {
-          u = [NSURL URLWithString: domain relativeToURL: base];
-          scheme = [u scheme];
+      while ((domain = [e nextObject]) != nil)
+	{
+	  NSURL			*u;
+	  NSString		*path;
+	  NSNumber		*port;
+	  NSString		*scheme;
+	  NSString		*server;
+	  NSMutableDictionary	*sDict;
+
+	  u = [NSURL URLWithString: domain];
+	  scheme = [u scheme];
+	  if (scheme == nil)
+	    {
+	      u = [NSURL URLWithString: domain relativeToURL: base];
+	      scheme = [u scheme];
+	    }
+	  port = [u port];
+	  if ([port intValue] == 80 && [scheme isEqualToString: @"http"])
+	    {
+	      port = nil;
+	    }
+	  else if ([port intValue] == 443 && [scheme isEqualToString: @"https"])
+	    {
+	      port = nil;
+	    }
+	  path = [u path];
+	  if (path == nil)
+	    {
+	      path = @"";
+	    }
+	  if ([port intValue] == 0)
+	    {
+	      server = [NSString stringWithFormat: @"%@://%@",
+		scheme, [u host]];
+	    }
+	  else
+	    {
+	      server = [NSString stringWithFormat: @"%@://%@:%@",
+		scheme, [u host], port];
+	    }
+	  sDict = [domainMap objectForKey: server];
+	  if (sDict == nil)
+	    {
+	      sDict = [NSMutableDictionary new];
+	      [domainMap setObject: sDict forKey: server];
+	      RELEASE(sDict);
+	    }
+	  [sDict setObject: space forKey: [u path]];
 	}
-      port = [u port];
-      if ([port intValue] == 80 && [scheme isEqualToString: @"http"])
-        {
-	  port = nil;
-	}
-      else if ([port intValue] == 443 && [scheme isEqualToString: @"https"])
-        {
-	  port = nil;
-	}
-      path = [u path];
-      if (path == nil)
-        {
-	  path = @"";
-	}
-      if ([port intValue] == 0)
-        {
-          server = [NSString stringWithFormat: @"%@://%@",
-	    scheme, [u host]];
-        }
-      else
-        {
-          server = [NSString stringWithFormat: @"%@://%@:%@",
-	    scheme, [u host], port];
-	}
-      sDict = [domainMap objectForKey: server];
-      if (sDict == nil)
-        {
-	  sDict = [NSMutableDictionary new];
-	  [domainMap setObject: sDict forKey: server];
-	  RELEASE(sDict);
-	}
-      [sDict setObject: space forKey: [u path]];
     }
+  NS_HANDLER
+    {
+      [storeLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   [storeLock unlock];
 }
 
