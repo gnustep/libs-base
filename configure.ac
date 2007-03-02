@@ -222,12 +222,17 @@ then
     GNUSTEP_DEFAULT_CONFIG="$result"
   fi
   if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
-    # We fall back to useing the make settings for the built-in ones.
+    # No file to import has been specified.  We need to read the paths
+    # from somewhere though!  GNUstep.sh might not have been sourced,
+    # so at this stage we have no knowledge of what the paths must be.
+    # The only place that we can read them from is the gnustep-make
+    # GNUstep.conf file.
+    # So we fall back to useing the make settings for the built-in ones.
     # However, on mingw these will be msys style paths, and we don't
     # want that ... so later on we convert these to portable relative
     # paths based on the directory in which the base library will be
     # installed.
-    GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_MAKE_FILE"
+    GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_MAKE_CONFIG"
   fi
   AC_MSG_RESULT($GNUSTEP_DEFAULT_CONFIG)
 
@@ -240,7 +245,18 @@ then
     #
     if test ! -f "$GNUSTEP_DEFAULT_CONFIG"; then
       AC_MSG_RESULT([fail: file "$GNUSTEP_DEFAULT_CONFIG" does not exist])
-      AC_MSG_NOTICE([Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
+
+      # Ohoh ... things are not going well.  We are asked to import
+      # a config file that doesn't exist.  So all paths might be unset
+      # and who knows what we'll end up hardcoding into gnustep-base.
+      # It looks like we need to make sure the user knows what they
+      # are doing, as there is a high chance they don't and might end
+      # up with a confused/non-working system.  As far as we know, the
+      # system might be already screwed.  If they don't want to import 
+      # a config file (eg, they don't have one and they don't care about 
+      # the hardcoded paths) they should just say so. ;-)
+      AC_MSG_ERROR([Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
+
     else
       AC_MSG_RESULT([trying to import "$GNUSTEP_DEFAULT_CONFIG"])
       AC_MSG_NOTICE([If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
@@ -308,9 +324,11 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 # If we are on mingw, we now want to convert the paths to relative
 # paths (relative to libgnustep-base.dll).
 #
-# FIXME: To do it properly, we ought to allow the user to configure
+# TODO: To do it properly, we ought to allow the user to configure
 # the installation domain at configure time!  This assumes we always
 # install into System.
+#
+# FIXME: Check that relative_path.sh works with MinGW-style paths too.
 #
 case "$target_os" in
   mingw*)

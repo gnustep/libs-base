@@ -1,3 +1,12 @@
+2007-03-01  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/NSBundle.m ([NSBundle +bundleForLibrary:]): Fixed paths
+	to lookup; it wouldn't work with the new filesystem layout
+	changes.
+	* configure.ac: Raise an error if we're asked to import a config
+	file but no such file is found.
+	* configure: Regenerated.
+	
 2007-03-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSZone.m: tidy indentation
@@ -16,7 +25,7 @@
 
 2007-03-01  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* configure.ac: Restorelast reversion and fix actual bug (I hope)
+	* configure.ac: Restore last reversion and fix actual bug (I hope)
 	which was an incorrect setting of GNUSTEP_SYSTEM_TOOLS to the
 	Admin subdirectory, causing relative path calculations to be wrong.
 	* configure: regenerated.

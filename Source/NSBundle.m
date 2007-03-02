@@ -2213,9 +2213,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       return nil;
     }
 
-  tail = [@"Resources" stringByAppendingPathComponent: libraryName];
+  tail = [@"Libraries" stringByAppendingPathComponent: 
+	     [@"Resources" stringByAppendingPathComponent: libraryName]];
 
-  paths = NSSearchPathForDirectoriesInDomains (GSLibrariesDirectory,
+  paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
 					       NSAllDomainsMask, YES);
 
   enumerator = [paths objectEnumerator];
