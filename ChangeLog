@@ -1,3 +1,10 @@
+2007-03-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Cope with nil authentication info
+	* Source/GSHTTPAuthentication.m: Cope with nil credential and
+	catch exceptions in lock protected areas (there shouldn't be
+	any, but best to be safe).
+
 2007-03-01  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Source/NSBundle.m ([NSBundle +bundleForLibrary:]): Fixed paths
