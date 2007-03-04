@@ -96,6 +96,7 @@
 #import	<Foundation/NSSerialization.h>
 #import	<Foundation/NSSet.h>
 #import	<Foundation/NSSortDescriptor.h>
+#import	<Foundation/NSSpellServer.h>
 #import	<Foundation/NSStream.h>
 #import	<Foundation/NSString.h>
 #import	<Foundation/NSTask.h>

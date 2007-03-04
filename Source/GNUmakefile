@@ -230,6 +230,7 @@ NSSet.m \
 NSSocketPort.m \
 NSSocketPortNameServer.m \
 NSSortDescriptor.m \
+NSSpellServer.m \
 NSString.m \
 NSTask.m \
 NSThread.m \
@@ -361,6 +362,7 @@ NSScanner.h \
 NSSerialization.h \
 NSSet.h \
 NSSortDescriptor.h \
+NSSpellServer.h \
 NSStream.h \
 NSString.h \
 NSTask.h \

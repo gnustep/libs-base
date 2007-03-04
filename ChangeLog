@@ -1,3 +1,11 @@
+2007-03-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSSpellServer.h: Moved from appkit
+	* Source/NSSpellServer.m: Moved from appkit
+	* Source/GNUmakefile: Add NSSpellServer
+	* Headers/Foundation/Foundation.h: Add NSSpellServer
+	Moved NSSpellServer in from gui/appkit for MacOS-X compatibility
+
 2007-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Cope with nil authentication info
