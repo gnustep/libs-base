@@ -230,7 +230,7 @@ typedef int32_t volatile *gsatomic_t;
 #endif
 
 
-#if	defined(__linix__) && (defined(__i386__) || defined(__x86_64__))
+#if	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
 /* Set up atomic read, increment and decrement for intel style linux
  */
 
@@ -378,8 +378,9 @@ NSDecrementExtraRefCountWasZero(id anObject)
   if (allocationLock != 0)
     {
 #if	defined(GSATOMICREAD)
-      int	result = GSAtomicDecrement(&(((obj)anObject)[-1].retained));
+      int	result;
 
+      result = GSAtomicDecrement((gsatomic_t)&(((obj)anObject)[-1].retained));
       if (result < 0)
 	{
 	  if (result != -1)
@@ -542,7 +543,8 @@ NSIncrementExtraRefCount(id anObject)
        * 24 bits in atomic locking, so raise an exception if we try to
        * go beyond 0xfffffe.
        */
-      if (GSAtomicIncrement(&(((obj)anObject)[-1].retained)) > 0xfffffe)
+      if (GSAtomicIncrement((gsatomic_t)&(((obj)anObject)[-1].retained))
+        > 0xfffffe)
 	{
 	  [NSException raise: NSInternalInconsistencyException
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
