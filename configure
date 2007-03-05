@@ -15395,8 +15395,8 @@ fi
 have_forward_hook=yes
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
-echo "$as_me:$LINENO: checking \"for forwarding callback in runtime\"" >&5
-echo $ECHO_N "checking \"for forwarding callback in runtime\"... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking for forwarding callback in runtime" >&5
+echo $ECHO_N "checking for forwarding callback in runtime... $ECHO_C" >&6
 cat >conftest.$ac_ext <<_ACEOF
 #include "$srcdir/config/config.forward.m"
 _ACEOF
@@ -15557,6 +15557,46 @@ rm -f conftest.err conftest.$ac_objext \
     echo "$as_me:$LINENO: result: ffcall" >&5
 echo "${ECHO_T}ffcall" >&6
   fi
+  echo "$as_me:$LINENO: checking if ffcall trampolines work" >&5
+echo $ECHO_N "checking if ffcall trampolines work... $ECHO_C" >&6
+  cat >conftest.$ac_ext <<_ACEOF
+#include "$srcdir/config/config.trampoline.c"
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  have_working_trampoline=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+have_working_trampoline=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+  echo "$as_me:$LINENO: result: $have_working_trampoline" >&5
+echo "${ECHO_T}$have_working_trampoline" >&6
+  if test $have_working_trampoline = no; then
+    ffi_ok=no
+  fi
 else
   ffi_ok=no
 fi
@@ -15567,6 +15607,10 @@ echo "${ECHO_T}none" >&6
   echo
   if test $have_forward_hook = no; then
     echo "You do not have an up-to-date libobjc library installed"
+  elif test $have_working_trampoline = no; then
+    echo "You have ffcall, but it does not work properly. Most likely because"
+    echo "your're system's security policy is blocking some parts of ffcall"
+    echo "we recommend installing libffi instead."
   else
     echo "You do not have either ffcall or libffi installed, or configure needs"
     echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them"
