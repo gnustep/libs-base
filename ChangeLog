@@ -1,3 +1,7 @@
+2007-03-05  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac, config/config.trampoline.c: Add trampoline test.
+
 2007-03-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSAffineTransform.h: Add flags to allow
