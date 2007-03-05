@@ -1,3 +1,8 @@
+2007-03-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Try using atomic increment/decrement to get
+	performance of retain/release improvement in multithreaded programs.
+
 2007-03-05  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac, config/config.trampoline.c: Add trampoline test.
