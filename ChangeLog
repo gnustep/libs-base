@@ -1,3 +1,15 @@
+2007-03-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSAffineTransform.h: Add flags to allow
+	optimisation of identity and flipped coordinates(from mySTEP)
+	* Source/NSAffineTransform.m:  Add code from mySTEP for, optimising
+	common cases.  Fixup optimised code to use B and B consistently.
+	Fixup bug in optimised code for prepending matrix.
+	Add optimised cases for flipped transforms in appand and prepend.
+	Fix bug in ([-transformSize:]) which was causing problems with
+	negative values (MacOS-X allows negative values here, and any issues
+	need to be dealt with by the calling code).
+
 2007-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSSpellServer.h: Moved from appkit
