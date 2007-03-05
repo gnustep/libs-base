@@ -212,8 +212,8 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSATOMICREAD(X)	(*(X))
 
-#define	GSAtomicIncrement(X)	InterlockedIncrement(X)
-#define	GSAtomicDecrement(X)	InterlockedDecrement(X)
+#define	GSAtomicIncrement(X)	InterlockedIncrement((LONG volatile*)X)
+#define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
 
 #endif
 
@@ -352,9 +352,7 @@ static GSIMapTable_t	retain_counts = {0};
 BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
-#if	GS_WITH_GC
-  return NO;
-#else	/* GS_WITH_GC */
+#if	!GS_WITH_GC
   if (double_release_check_enabled)
     {
       unsigned release_count;
@@ -457,9 +455,9 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	  --(node->value.uint);
 	}
     }
+#endif
+#endif
   return NO;
-#endif
-#endif
 }
 
 /**

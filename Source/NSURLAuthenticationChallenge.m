@@ -23,6 +23,7 @@
    */ 
 
 #include "GSURLPrivate.h"
+#include "Foundation/NSError.h"
 
 
 // Internal data storage
