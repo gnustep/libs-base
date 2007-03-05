@@ -109,9 +109,11 @@ GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * Enumeration of possible requested directory type specifiers for
- * NSSearchPathForDirectoriesInDomains() function.  These correspond to the
- * subdirectories that may be found under, e.g., $GNUSTEP_SYSTEM_ROOT, such
- * as "Library" and "Applications".
+ * NSSearchPathForDirectoriesInDomains() function.  On a traditional
+ * GNUstep filesystem layout these correspond to the subdirectories
+ * that may be found in the various domains, such as "Library"
+ * and "Applications".  In a different filesystem layout these
+ * directories might be located anywhere on disk.
  <example>
 {
   NSApplicationDirectory,
@@ -132,7 +134,8 @@ GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
   GSLibrariesDirectory,
   GSToolsDirectory,
   GSFontsDirectory,
-  GSFrameworksDirectory
+  GSFrameworksDirectory,
+  GSWebApplicationsDirectory
 }
  </example>
  */
@@ -168,7 +171,8 @@ typedef enum
   GSLibrariesDirectory = 1000,		/** libraries (binary code) */
   GSToolsDirectory,			/** non-gui programs */
   GSFontsDirectory,			/** font storage */
-  GSFrameworksDirectory			/** frameworks */
+  GSFrameworksDirectory, 		/** frameworks */
+  GSWebApplicationsDirectory		/** web applications (GSWeb or SOPE) */
  } NSSearchPathDirectory;
 
 /**
