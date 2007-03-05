@@ -1,3 +1,22 @@
+2007-03-05  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Fixed setting default GNUSTEP_*_ADMIN_APPS and
+	GNUSTEP_*_ADMIN_TOOLS when none is found in the config file.
+	* configure.ac: Print out the entire filesystem layout that is
+	hardcoded into gnustep-base.  It makes it easier to debug
+	filesystem layout issues.
+	* configure.ac: Read, process and output the new
+	GNUSTEP_*_WEB_APPS variables.
+	* configure.ac: Do not output GNUSTEP_CONFIG_FILE variable which
+	is used nowhere.
+	* configure: Regenerated.
+	* Headers/Additions/GNUstepBase/config.h.in: Added definitions of
+	GNUSTEP_*_WEB_APPS.
+	* Headers/Foundation/NSPathUtilities.h (NSSearchPathDirectory):
+	Added GSWebApplicationsDirectory.
+	* Source/NSPathUtilities.m: Implemented
+	GSWebApplicationsDirectory.
+
 2007-03-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Try using atomic increment/decrement to get
