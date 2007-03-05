@@ -108,31 +108,6 @@ static Class	NSConstantStringClass;
  */
 static objc_mutex_t allocationLock = NULL;
 
-/*
- * Having just one allocationLock for all leads to lock contention
- * if there are lots of threads doing lots of retain/release calls.
- * To alleviate this, if using REFCNT_LOCAL, instead of a single
- * allocationLock for all objects, we divide the object space into
- * chunks, each with its own lock. The chunk is selected by shifting
- * off the low-order ALIGNBITS of the object's pointer (these bits
- * are presumably always zero) and take
- * the low-order LOCKBITS of the result to index into a table of locks.
- */
-
-#define LOCKBITS 5
-#define LOCKCOUNT (1<<LOCKBITS)
-#define LOCKMASK (LOCKCOUNT-1)
-#define ALIGNBITS 3
-
-static objc_mutex_t allocationLocks[LOCKCOUNT] = { 0 };
-
-static inline objc_mutex_t GSAllocationLockForObject(id p)
-{
-  unsigned i = ((((unsigned)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
-  return allocationLocks[i];
-}
-
-
 BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
 
@@ -210,6 +185,100 @@ static void GSLogZombie(id o, SEL sel)
 #define	REFCNT_LOCAL	1
 #define	CACHE_ZONE	1
 #endif
+
+
+/* Now, if we are on a platform where we know how to do atomic
+ * read, increment, and decrement, then we define the GSATOMICREAD
+ * macro and macros or functions to increment/decrement.
+ * The presence of the GSATOMICREAD macro is used later to determine
+ * whether to attempt atomic operations or to use locking for the
+ * retain/release mechanism.
+ * The GSAtomicIncrement() and GSAtomicDecrement() functions take a
+ * pointer to a 32bit integer as an argument, increment/decrement the
+ * value pointed to, and return the result.
+ */
+#ifdef	GSATOMICREAD
+#undef	GSATOMICREAD
+#endif
+
+#if	defined(REFCNT_LOCAL)
+
+#if	defined(__MINGW32__)
+
+/* Set up atomic read, increment and decrement for mswindows
+ */
+
+typedef int32_t volatile *gsatomic_t;
+
+#define	GSATOMICREAD(X)	(*(X))
+
+#define	GSAtomicIncrement(X)	InterlockedIncrement(X)
+#define	GSAtomicDecrement(X)	InterlockedDecrement(X)
+
+#endif
+
+
+#if	defined(__linix__) && (defined(__i386__) || defined(__x86_64__))
+/* Set up atomic read, increment and decrement for intel style linux
+ */
+
+typedef int32_t volatile *gsatomic_t;
+
+#define	GSATOMICREAD(X)	(*(X))
+
+static __inline__ int
+GSAtomicIncrement(gsatomic_t X)
+{
+  int	i = 1;
+  __asm__ __volatile__(
+  "lock ; xaddl %0, %1;"
+  :"=r"(i)
+  :"m"(*X), "0"(i));
+  return i + 1;
+}
+
+static __inline__ int
+GSAtomicDecrement(gsatomic_t X)
+{
+  int	i = -1;
+  __asm__ __volatile__(
+  "lock ; xaddl %0, %1;"
+  :"=r"(i)
+  :"m"(*X), "0"(i));
+  return i - 1;
+}
+
+#endif
+#endif
+
+#if	defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
+
+/*
+ * Having just one allocationLock for all leads to lock contention
+ * if there are lots of threads doing lots of retain/release calls.
+ * To alleviate this, if using REFCNT_LOCAL, instead of a single
+ * allocationLock for all objects, we divide the object space into
+ * chunks, each with its own lock. The chunk is selected by shifting
+ * off the low-order ALIGNBITS of the object's pointer (these bits
+ * are presumably always zero) and take
+ * the low-order LOCKBITS of the result to index into a table of locks.
+ */
+
+#define LOCKBITS 5
+#define LOCKCOUNT (1<<LOCKBITS)
+#define LOCKMASK (LOCKCOUNT-1)
+#define ALIGNBITS 3
+
+static objc_mutex_t allocationLocks[LOCKCOUNT] = { 0 };
+
+static inline objc_mutex_t GSAllocationLockForObject(id p)
+{
+  unsigned i = ((((unsigned)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
+  return allocationLocks[i];
+}
+
+#endif
+
 
 #ifdef ALIGN
 #undef ALIGN
@@ -298,6 +367,27 @@ NSDecrementExtraRefCountWasZero(id anObject)
 #if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
+#if	defined(GSATOMICREAD)
+      int	result = GSAtomicDecrement(&(((obj)anObject)[-1].retained));
+
+      if (result < 0)
+	{
+	  if (result != -1)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"NSDecrementExtraRefCount() decremented too far"];
+	    }
+	  /* The counter has become negative so it must have been zero.
+	   * We reset it and return YES ... in a correctly operating
+	   * process we know we can safely reset back to zero without
+	   * worrying about atomicity, since there can be no other
+	   * thread accessing the object (or its reference count would
+	   * have been greater than zero)
+	   */
+	  (((obj)anObject)[-1].retained) = 0;
+	  return YES;
+	}
+#else	/* GSATOMICREAD */
       objc_mutex_t theLock = GSAllocationLockForObject(anObject);
 
       objc_mutex_lock(theLock);
@@ -312,6 +402,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	  objc_mutex_unlock(theLock);
 	  return NO;
 	}
+#endif	/* GSATOMICREAD */
     }
   else
     {
@@ -436,6 +527,17 @@ NSIncrementExtraRefCount(id anObject)
 #if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
+#if	defined(GSATOMICREAD)
+      /* I've seen comments saying that some platforms only support up to
+       * 24 bits in atomic locking, so raise an exception if we try to
+       * go beyond 0xfffffe.
+       */
+      if (GSAtomicIncrement(&(((obj)anObject)[-1].retained)) > 0xfffffe)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
+	}
+#else	/* GSATOMICREAD */
       objc_mutex_t theLock = GSAllocationLockForObject(anObject);
 
       objc_mutex_lock(theLock);
@@ -447,6 +549,7 @@ NSIncrementExtraRefCount(id anObject)
 	}
       ((obj)anObject)[-1].retained++;
       objc_mutex_unlock (theLock);
+#endif	/* GSATOMICREAD */
     }
   else
     {
@@ -457,8 +560,7 @@ NSIncrementExtraRefCount(id anObject)
 	}
       ((obj)anObject)[-1].retained++;
     }
-  return;
-#else
+#else	/* REFCNT_LOCAL */
   GSIMapNode	node;
 
   if (allocationLock != 0)
@@ -500,9 +602,8 @@ NSIncrementExtraRefCount(id anObject)
 	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
 	}
     }
-  return;
-#endif
-#endif
+#endif	/* REFCNT_LOCAL */
+#endif	/* GS_WITH_GC */
 }
 
 
@@ -898,7 +999,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (allocationLock == 0)
     {
-#if defined(REFCNT_LOCAL)
+#if defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
       unsigned	i;
 
       for (i = 0; i < LOCKCOUNT; i++)

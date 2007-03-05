@@ -11,9 +11,11 @@
 #include <Foundation/Foundation.h>
 
 NSLock	*lock = nil;
+unsigned	retainReleaseThreads = 0;
 
 @interface XX : NSObject
 - (void) fire;
+- (void) retainRelease: (id)obj;
 - (void) setup;
 @end
 
@@ -21,6 +23,21 @@ NSLock	*lock = nil;
 - (void) fire
 {
   NSLog(@"Got here");
+}
+- (void) retainRelease: (id)obj
+{
+  unsigned	i;
+
+  NSLog(@"Start retain/releases in thread %@", [NSThread currentThread]);
+  for (i = 0; i < 1000000; i++)
+    {
+      [obj retain];
+      [obj release];
+    }
+  [lock lock];
+  retainReleaseThreads++;
+  [lock unlock];
+  NSLog(@"Done %d retain/releases in thread %@", i, [NSThread currentThread]);
 }
 - (void) setup
 {
@@ -42,6 +59,7 @@ NSLock	*lock = nil;
 			     withObject: nil
 			  waitUntilDone: YES];
       NSLog(@"Done perform with wait.");
+      [lock unlock];
     }
   else
     {
@@ -55,13 +73,31 @@ NSLock	*lock = nil;
 int main(int argc, char **argv, char **env)
 {
   CREATE_AUTORELEASE_POOL(arp);
+  NSObject	*o = [NSObject new];
+  XX		*x = [XX new];
 
   NSLog(@"Start in main");
   lock = [NSLock new];
   [lock lock];
 
+  [NSThread detachNewThreadSelector: @selector(retainRelease:)
+			   toTarget: x
+			 withObject: o];
+  [NSThread detachNewThreadSelector: @selector(retainRelease:)
+			   toTarget: x
+			 withObject: o];
+  [NSThread detachNewThreadSelector: @selector(retainRelease:)
+			   toTarget: x
+			 withObject: o];
+  [NSThread detachNewThreadSelector: @selector(retainRelease:)
+			   toTarget: x
+			 withObject: o];
+  [NSThread detachNewThreadSelector: @selector(retainRelease:)
+			   toTarget: x
+			 withObject: o];
+
   [NSThread detachNewThreadSelector: @selector(setup)
-			   toTarget: [XX new]
+			   toTarget: x
 			 withObject: nil];
   NSLog(@"Waiting to give thread time to start");
   [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
@@ -73,6 +109,16 @@ int main(int argc, char **argv, char **env)
 
   NSLog(@"Done main thread");
 
+  while (retainReleaseThreads < 5)
+    {
+      NSLog(@"Waiting for all 5 retainRelease threads to complete (%d)",
+        retainReleaseThreads);
+      [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
+    }
+  if ([o retainCount] != 1)
+    {
+      NSLog(@"ERROR ... retain count is %d, expected 1", [o retainCount]);
+    }
   DESTROY(arp);
   return 0;
 }
