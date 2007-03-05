@@ -1146,7 +1146,7 @@ case "$target_os" in
   cygwin*)	PASS_ARG=yes;;
 esac
 
-AC_MSG_CHECKING("use of pass-through arguments")
+AC_MSG_CHECKING(use of pass-through arguments)
 AC_ARG_ENABLE(pass-arguments,
   [  --enable-pass-arguments	Force user main call to NSProcessInfo initialize],,
   enable_pass_arguments=$PASS_ARG)
@@ -1159,7 +1159,7 @@ fi
 AC_SUBST(GS_PASS_ARGUMENTS)
 AC_MSG_RESULT($enable_pass_arguments)
 
-AC_MSG_CHECKING("use of fake-main definition")
+AC_MSG_CHECKING(use of fake-main definition)
 AC_ARG_ENABLE(fake-main,
   [  --enable-fake-main  		Force redefine of user main function],,
   enable_fake_main=no)
@@ -1268,7 +1268,7 @@ fi
 have_forward_hook=yes
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
-AC_MSG_CHECKING("for forwarding callback in runtime")
+AC_MSG_CHECKING(for forwarding callback in runtime)
 AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward.m"],
 	have_forward_hook=yes, have_forward_hook=no)
 AC_MSG_RESULT($have_forward_hook)
@@ -1278,7 +1278,7 @@ if test $have_forward_hook = no; then
 fi
 CPPFLAGS="$saved_CPPFLAGS"
 
-AC_MSG_CHECKING("FFI library usage")
+AC_MSG_CHECKING(FFI library usage)
 WITH_FFI=none
 if test $enable_libffi = yes; then
   AC_DEFINE(USE_LIBFFI,1,
@@ -1298,6 +1298,14 @@ elif test $enable_ffcall = yes; then
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(ffcall)
   fi
+  AC_MSG_CHECKING(if ffcall trampolines work)
+  AC_RUN_IFELSE([#include "$srcdir/config/config.trampoline.c"],
+	  have_working_trampoline=yes, have_working_trampoline=no, 
+	  have_working_trampoline=yes)
+  AC_MSG_RESULT($have_working_trampoline)
+  if test $have_working_trampoline = no; then
+    ffi_ok=no
+  fi
 else
   ffi_ok=no
 fi
@@ -1307,6 +1315,10 @@ if test $ffi_ok = no; then
   echo
   if test $have_forward_hook = no; then
     echo "You do not have an up-to-date libobjc library installed"
+  elif test "$have_working_trampoline" = no; then
+    echo "You have ffcall, but it does not work properly. Most likely because"
+    echo "your're system's security policy is blocking some parts of ffcall"
+    echo "we recommend installing libffi instead."
   else
     echo "You do not have either ffcall or libffi installed, or configure needs"
     echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them"

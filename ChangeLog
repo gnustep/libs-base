@@ -1,3 +1,8 @@
+2007-03-05  Adam Fedor  <fedor@gnu.org>
+
+        * configure.ac, config/config.trampoline.c: Add trampoline test.
+	(backported).
+	
 2007-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSHTTPURLHandle.m:
