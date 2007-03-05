@@ -1861,6 +1861,10 @@ echo "$as_me:$LINENO: checking for System Libraries directory" >&5
 echo $ECHO_N "checking for System Libraries directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_LIBRARIES" >&5
 echo "${ECHO_T}$GNUSTEP_SYSTEM_LIBRARIES" >&6
+echo "$as_me:$LINENO: checking for System Headers directory" >&5
+echo $ECHO_N "checking for System Headers directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_HEADERS" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_HEADERS" >&6
 echo "$as_me:$LINENO: checking for System Documentation directory" >&5
 echo $ECHO_N "checking for System Documentation directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_DOC" >&5
@@ -1902,6 +1906,10 @@ echo "$as_me:$LINENO: checking for Network Libraries directory" >&5
 echo $ECHO_N "checking for Network Libraries directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_LIBRARIES" >&5
 echo "${ECHO_T}$GNUSTEP_NETWORK_LIBRARIES" >&6
+echo "$as_me:$LINENO: checking for Network Headers directory" >&5
+echo $ECHO_N "checking for Network Headers directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_HEADERS" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_HEADERS" >&6
 echo "$as_me:$LINENO: checking for Network Documentation directory" >&5
 echo $ECHO_N "checking for Network Documentation directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_DOC" >&5
@@ -1943,6 +1951,10 @@ echo "$as_me:$LINENO: checking for Local Libraries directory" >&5
 echo $ECHO_N "checking for Local Libraries directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_LIBRARIES" >&5
 echo "${ECHO_T}$GNUSTEP_LOCAL_LIBRARIES" >&6
+echo "$as_me:$LINENO: checking for Local Headers directory" >&5
+echo $ECHO_N "checking for Local Headers directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_HEADERS" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_HEADERS" >&6
 echo "$as_me:$LINENO: checking for Local Documentation directory" >&5
 echo $ECHO_N "checking for Local Documentation directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_DOC" >&5
@@ -1984,6 +1996,10 @@ echo "$as_me:$LINENO: checking for User Libraries directory" >&5
 echo $ECHO_N "checking for User Libraries directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_LIBRARIES" >&5
 echo "${ECHO_T}$GNUSTEP_USER_DIR_LIBRARIES" >&6
+echo "$as_me:$LINENO: checking for User Headers directory" >&5
+echo $ECHO_N "checking for User Headers directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_HEADERS" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_HEADERS" >&6
 echo "$as_me:$LINENO: checking for User Documentation directory" >&5
 echo $ECHO_N "checking for User Documentation directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_DOC" >&5
