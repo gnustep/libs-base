@@ -32,12 +32,12 @@
 #include "config.h"
 #include <math.h>
 
-#include <Foundation/NSArray.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include "Foundation/NSAffineTransform.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDebug.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSAffineTransform.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDebug.h"
 
 /* Private definitions */
 #define A _matrix.m11
@@ -57,6 +57,14 @@
 
 static const float pi = 3.1415926535897932384626434;
 
+#if 0
+#define valid(o) NSAssert((o->_isIdentity && o->A==1.0 && o->B==0.0 && o->C==0.0 && o->D==1.0) || (o->_isFlipY && o->A==1.0 && o->B==0.0 && o->C==0.0 && o->D==-1.0) || !(o->_isIdentity||o->_isFlipY), NSInternalInconsistencyException) 
+#define check() valid(self)
+#else
+#define valid(o)
+#define check()
+#endif
+
 /* Quick function to multiply two coordinate matrices. C = AB */
 static inline NSAffineTransformStruct 
 matrix_multiply (NSAffineTransformStruct MA, NSAffineTransformStruct MB)
@@ -70,6 +78,15 @@ matrix_multiply (NSAffineTransformStruct MA, NSAffineTransformStruct MB)
   MC.tY  = MA.tX * MB.m12 + MA.tY * MB.m22 + MB.tY;
   return MC;
 }
+
+/*
+  MC.m11 = MA->A * MB->A + MA->B * MB->C;
+  MC.m12 = MA->A * MB->B + MA->B * MB->D;
+  MC.m21 = MA->C * MB->A + MA->D * MB->C;
+  MC.m22 = MA->C * MB->B + MA->D * MB->D;
+  MC.tX  = MA->TX * MB->A + MA->TY * MB->C + MB->TX;
+  MC.tY  = MA->TX * MB->B + MA->TY * MB->D + MB->TY;
+ */
 
 @implementation NSAffineTransform
 
@@ -86,6 +103,7 @@ static NSAffineTransformStruct identityTransform = {
 
   t = (NSAffineTransform*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   t->_matrix = identityTransform;
+  t->_isIdentity = YES;
   return AUTORELEASE(t);
 }
 
@@ -98,6 +116,7 @@ static NSAffineTransformStruct identityTransform = {
 
   t = (NSAffineTransform*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   t->_matrix = identityTransform;
+  t->_isIdentity = YES;
   return t;
 }
 
@@ -109,7 +128,68 @@ static NSAffineTransformStruct identityTransform = {
  */
 - (void) appendTransform: (NSAffineTransform*)aTransform
 {
+  valid(aTransform);
+
+  if (aTransform->_isIdentity)
+    {
+      TX += aTransform->TX;
+      TY += aTransform->TY;
+      check()
+      return;
+    }
+
+  if (aTransform->_isFlipY)
+    {
+      B = -B;
+      D = -D;
+      TX = aTransform->TX + TX;
+      TY = aTransform->TY - TY;
+      if (_isIdentity)
+        {
+	  _isFlipY = YES;
+	  _isIdentity = NO;
+	}
+      else if (_isFlipY)
+        {
+	  _isFlipY = NO;
+	  _isIdentity = YES;
+	}
+      check()
+      return;
+    }
+
+  if (_isIdentity)
+    {
+      A = aTransform->A;
+      B = aTransform->B;
+      C = aTransform->C;
+      D = aTransform->D;
+      TX = TX * aTransform->A + TY * aTransform->C + aTransform->TX;
+      TY = TX * aTransform->B + TY * aTransform->D + aTransform->TY;
+      _isIdentity = NO;  // because aTransform is not an identity transform.
+      _isFlipY = aTransform->_isFlipY;
+      check();
+      return;
+    }
+
+  if (_isFlipY)
+    {
+      A = aTransform->A;
+      B = aTransform->B;
+      C = -aTransform->C;
+      D = -aTransform->D;
+      TX  = TX * aTransform->A + TY * aTransform->C + aTransform->TX;
+      TY  = TX * aTransform->B + TY * aTransform->D + aTransform->TY;
+      _isIdentity = NO;
+      _isFlipY = NO;
+      check();
+      return;
+    }
+
   _matrix = matrix_multiply(_matrix, aTransform->_matrix);
+  _isIdentity = NO;
+  _isFlipY = NO;
+  check();
 }
 
 - (NSString*) description
@@ -125,6 +205,7 @@ static NSAffineTransformStruct identityTransform = {
 - (id) init
 {
   _matrix = identityTransform;
+  _isIdentity = YES;
   return self;
 }
 
@@ -135,6 +216,8 @@ static NSAffineTransformStruct identityTransform = {
 - (id) initWithTransform: (NSAffineTransform*)aTransform
 {
   _matrix = aTransform->_matrix;
+  _isIdentity = aTransform->_isIdentity;
+  _isFlipY = aTransform->_isFlipY;
   return self;
 }
 
@@ -146,6 +229,19 @@ static NSAffineTransformStruct identityTransform = {
 {
   float newA, newB, newC, newD, newTX, newTY;
   float det;
+
+  if (_isIdentity)
+    {
+      TX = -TX;
+      TY = -TY;
+      return;
+    }
+
+  if (_isFlipY)
+    {
+      TX = -TX;
+      return;
+    }
 
   det = A * D - B * C;
   if (det == 0)
@@ -180,7 +276,67 @@ static NSAffineTransformStruct identityTransform = {
  */
 - (void) prependTransform: (NSAffineTransform*)aTransform
 {
+  valid(aTransform);
+  if (aTransform->_isIdentity)
+    {
+      TX = aTransform->TX * A + aTransform->TY * C + TX;
+      TY = aTransform->TX * B + aTransform->TY * D + TY;
+      check();
+      return;
+    }
+
+  if (aTransform->_isFlipY)
+    {
+      TX  = aTransform->TX * A + aTransform->TY * C + TX;
+      TY  = aTransform->TX * B + aTransform->TY * D + TY;
+      C = -C;
+      D = -D;
+      if (_isIdentity)
+        {
+	  _isFlipY = YES;
+	  _isIdentity = NO;
+	}
+      else if (_isFlipY)
+        {
+	  _isFlipY = NO;
+	  _isIdentity = YES;
+	}
+      check();
+      return;
+    }
+
+  if (_isIdentity)
+    {
+      A = aTransform->A;
+      B = aTransform->B;
+      C = aTransform->C;
+      D = aTransform->D;
+      TX += aTransform->TX;
+      TY += aTransform->TY;
+      _isIdentity = NO;
+      _isFlipY = aTransform->_isFlipY;
+      check();
+      return;
+    }
+
+  if (_isFlipY)
+    {
+      A = aTransform->A;
+      B = -aTransform->B;
+      C = aTransform->C;
+      D = -aTransform->D;
+      TX += aTransform->TX;
+      TY -= aTransform->TY;
+      _isIdentity = NO;
+      _isFlipY = NO;
+      check();
+      return;
+    }
+
   _matrix = matrix_multiply(aTransform->_matrix, _matrix);
+  _isIdentity = NO;
+  _isFlipY = NO;
+  check();
 }
 
 /**
@@ -200,12 +356,24 @@ static NSAffineTransformStruct identityTransform = {
  */
 - (void) rotateByRadians: (float)angleRad
 {
-  float sine = sin (angleRad);
-  float cosine = cos (angleRad);
-  NSAffineTransformStruct rotm;
-  rotm.m11 = cosine; rotm.m12 = sine; rotm.m21 = -sine; rotm.m22 = cosine;
-  rotm.tX = rotm.tY = 0;
-  _matrix = matrix_multiply(rotm, _matrix);
+  if (angleRad != 0.0)
+    {
+      float sine;
+      float cosine;
+      NSAffineTransformStruct rotm;
+
+      sine = sin (angleRad);
+      cosine = cos (angleRad);
+      rotm.m11 = cosine;
+      rotm.m12 = sine;
+      rotm.m21 = -sine;
+      rotm.m22 = cosine;
+      rotm.tX = rotm.tY = 0;
+      _matrix = matrix_multiply(rotm, _matrix);
+      _isIdentity = NO;
+      _isFlipY = NO;
+      check();
+    }
 }
 
 /**
@@ -215,8 +383,13 @@ static NSAffineTransformStruct identityTransform = {
 - (void) scaleBy: (float)scale
 {
   NSAffineTransformStruct scam = identityTransform;
-  scam.m11 = scale; scam.m22 = scale;
+
+  scam.m11 = scale;
+  scam.m22 = scale;
   _matrix = matrix_multiply(scam, _matrix);
+  _isIdentity = NO;
+  _isFlipY = NO;
+  check();
 }
 
 /**
@@ -225,9 +398,42 @@ static NSAffineTransformStruct identityTransform = {
  */
 - (void) scaleXBy: (float)scaleX yBy: (float)scaleY
 {
-  NSAffineTransformStruct scam = identityTransform;
-  scam.m11 = scaleX; scam.m22 = scaleY;
-  _matrix = matrix_multiply(scam, _matrix);
+  if (_isIdentity && scaleX == 1.0)
+    {
+      if (scaleY == 1.0)
+        {
+	  return;	// no scaling
+	}
+      if (scaleY == -1.0)
+	{
+	  D = -1.0;
+	  _isFlipY = YES;
+	  _isIdentity = NO;
+	  return;
+	}
+    }
+
+  if (_isFlipY && scaleX == 1.0)
+    {
+      if (scaleY == 1.0)
+        {
+	  return;	// no scaling
+	}
+      if (scaleY == -1.0)
+	{
+	  D = 1.0;
+	  _isFlipY = NO;
+	  _isIdentity = YES;
+	  return;
+	}
+    }
+
+  A *= scaleX;
+  B *= scaleX;
+  C *= scaleY;
+  D *= scaleY;
+  _isIdentity = NO;
+  _isFlipY = NO;
 }
 
 /**
@@ -239,6 +445,20 @@ static NSAffineTransformStruct identityTransform = {
 - (void) setTransformStruct: (NSAffineTransformStruct)val
 {
   _matrix = val;
+  _isIdentity = NO;
+  _isFlipY = NO;
+  if (A == 1.0 && B == 0.0 && C == 0.0)
+    {
+      if (D == 1.0)
+	{
+	  _isIdentity = YES;
+	}
+      else if (D == -1.0)
+	{
+	  _isFlipY = YES;
+	}
+    }
+  check();
 }
 
 /**
@@ -249,28 +469,58 @@ static NSAffineTransformStruct identityTransform = {
 {
   NSPoint new;
 
-  new.x = A * aPoint.x + C * aPoint.y + TX;
-  new.y = B * aPoint.x + D * aPoint.y + TY;
+  if (_isIdentity)
+    {
+      new.x = TX + aPoint.x;
+      new.y = TY + aPoint.y;
+    }
+  else if (_isFlipY)
+    {
+      new.x = TX + aPoint.x;
+      new.y = TY - aPoint.y;
+    }
+  else
+    {
+      new.x = A * aPoint.x + C * aPoint.y + TX;
+      new.y = B * aPoint.x + D * aPoint.y + TY;
+    }
 
   return new;
 }
 
 /**
  * Transforms the NSSize represented by aSize using the reciever's 
- * transformation matrix.  Returns the resulting NSSize.
+ * transformation matrix.  Returns the resulting NSSize.<br />
+ * NB. A transform can result in negative size components ... so calling
+ * code should check for and deal with that situation.
  */
 - (NSSize) transformSize: (NSSize)aSize
 {
-  NSSize new;
+  if (_isIdentity)
+    {
+      return aSize;
+    }
+  else
+    {
+      NSSize new;
 
-  new.width = A * aSize.width + C * aSize.height;
-  if (new.width < 0)
-    new.width = - new.width;
-  new.height = B * aSize.width + D * aSize.height;
-  if (new.height < 0)
-    new.height = - new.height;
-
-  return new;
+      if (_isFlipY)
+        {
+	  new.width = aSize.width;
+	  new.height = -aSize.height;
+	}
+      else
+        {
+	  new.width = A * aSize.width + C * aSize.height;
+	  new.height = B * aSize.width + D * aSize.height;
+	}
+#if 0
+// Bad code ... MacOS-X allows values to go negative
+if (new.width < 0.0) new.width = -new.width;
+if (new.height < 0.0) new.height = -new.height;
+#endif
+      return new;
+    }
 }
 
 /**
@@ -286,16 +536,29 @@ static NSAffineTransformStruct identityTransform = {
 }
 
 /**
- * Applies the translation specified by tranX and tranY to the receiver's matrix.
+ * Applies the translation specified by tranX and tranY to the receiver's
+ * matrix.
  * Points transformed by the reciever's matrix after this operation will 
  * be shifted in position based on the specified translation.
  */
 - (void) translateXBy: (float)tranX  yBy: (float)tranY
 {
-  NSAffineTransformStruct tranm = identityTransform;
-  tranm.tX = tranX;
-  tranm.tY = tranY;
-  _matrix = matrix_multiply(tranm, _matrix);
+  if (_isIdentity)
+    {
+      TX += tranX;
+      TY += tranY;
+    }
+  else if (_isFlipY)
+    {
+      TX += tranX;
+      TY -= tranY;
+    }
+  else
+    {
+      TX += A * tranX + C * tranY;
+      TY += B * tranX + D * tranY;
+    }
+  check();
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -324,7 +587,6 @@ static NSAffineTransformStruct identityTransform = {
 			  count: 6
 			     at: (float*)&replace];
   [self setTransformStruct: replace];
-
   return self;
 }
 
