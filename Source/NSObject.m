@@ -214,8 +214,8 @@ static void GSLogZombie(id o, SEL sel)
 
 #undef InterlockedIncrement
 #undef InterlockedDecrement
-extern LONG InterlockedIncrement(LONG volatile *val);
-extern LONG InterlockedDecrement(LONG volatile *val);
+LONG WINAPI InterlockedIncrement(LONG volatile *);
+LONG WINAPI InterlockedDecrement(LONG volatile *);
 
 /* Set up atomic read, increment and decrement for mswindows
  */
