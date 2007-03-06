@@ -1710,6 +1710,10 @@ fi
 
 if test x"$GNUSTEP_MAKEFILES" = x""; then GNUSTEP_MAKEFILES=$GNUSTEP_SYSTEM_ROOT/Library/Makefiles; fi
 
+if test x"$GNUSTEP_SYSTEM_USERS_DIR" = x""; then GNUSTEP_SYSTEM_USERS_DIR=/home; fi
+if test x"$GNUSTEP_NETWORK_USERS_DIR" = x""; then GNUSTEP_NETWORK_USERS_DIR=/home; fi
+if test x"$GNUSTEP_LOCAL_USERS_DIR" = x""; then GNUSTEP_LOCAL_USERS_DIR=/home; fi
+
 if test x"$GNUSTEP_SYSTEM_APPS" = x""; then GNUSTEP_SYSTEM_APPS=$GNUSTEP_SYSTEM_ROOT/Applications; fi
 if test x"$GNUSTEP_SYSTEM_ADMIN_APPS" = x""; then GNUSTEP_SYSTEM_ADMIN_APPS=$GNUSTEP_SYSTEM_ROOT/Applications/Admin; fi
 if test x"$GNUSTEP_SYSTEM_WEB_APPS" = x""; then GNUSTEP_SYSTEM_WEB_APPS=$GNUSTEP_SYSTEM_ROOT/WebApplications; fi
@@ -1769,6 +1773,16 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 case "$target_os" in
   mingw*)
     GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS"
+
+    # TODO: Improve this hack.
+    # According to Wikipedia, this is the default for Windows 2000,
+    # Windows XP and Windows Server 2003.  For Windows Vista this will
+    # change to C:\Users.  The directory name needs to be localized though
+    # (and the disk may need changing as well ?).
+    GNUSTEP_SYSTEM_USERS_DIR="C:\Documents and Settings"
+    GNUSTEP_NETWORK_USERS_DIR="C:\Documents and Settings"
+    GNUSTEP_LOCAL_USERS_DIR="C:\Documents and Settings"
+
     GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
     GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
     GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS`
@@ -2012,6 +2026,19 @@ echo "$as_me:$LINENO: checking for User Man Documentation directory" >&5
 echo $ECHO_N "checking for User Man Documentation directory... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_DOC_MAN" >&5
 echo "${ECHO_T}$GNUSTEP_USER_DIR_DOC_MAN" >&6
+
+echo "$as_me:$LINENO: checking for System User directory" >&5
+echo $ECHO_N "checking for System User directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_USERS_DIR" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_USERS_DIR" >&6
+echo "$as_me:$LINENO: checking for Network User directory" >&5
+echo $ECHO_N "checking for Network User directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_USERS_DIR" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_USERS_DIR" >&6
+echo "$as_me:$LINENO: checking for Local User directory" >&5
+echo $ECHO_N "checking for Local User directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_USERS_DIR" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_USERS_DIR" >&6
 
 #
 # Set the default configuration file values in config.h to be hard-coded
@@ -2366,6 +2393,26 @@ GNUSTEP_USER_DIR_DOC_INFO=`echo $GNUSTEP_USER_DIR_DOC_INFO|sed -e 's/\\\\/\\\\\\
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_USER_DIR_DOC_INFO "$GNUSTEP_USER_DIR_DOC_INFO"
 _ACEOF
+
+
+GNUSTEP_TARGET_SYSTEM_USERS_DIR=`echo $GNUSTEP_TARGET_SYSTEM_USERS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_USERS_DIR "$GNUSTEP_TARGET_SYSTEM_USERS_DIR"
+_ACEOF
+
+GNUSTEP_TARGET_NETWORK_USERS_DIR=`echo $GNUSTEP_TARGET_NETWORK_USERS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_USERS_DIR "$GNUSTEP_TARGET_NETWORK_USERS_DIR"
+_ACEOF
+
+GNUSTEP_TARGET_LOCAL_USERS_DIR=`echo $GNUSTEP_TARGET_LOCAL_USERS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_USERS_DIR "$GNUSTEP_TARGET_LOCAL_USERS_DIR"
+_ACEOF
+
 
 
 #------------------------------------------------------------------------------
