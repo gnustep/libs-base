@@ -45,7 +45,7 @@ static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
 
-static int	log_priority;
+static int	log_priority = LOG_DEBUG;
 
 static void
 gdnc_log (int prio)
