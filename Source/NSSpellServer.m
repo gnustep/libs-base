@@ -173,7 +173,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
   NSString *path = nil;
   NSString *user_gsroot = nil;
   
-  user_gsroot = [NSSearchPathForDirectoriesInDomains(NSUserDirectory,
+  user_gsroot = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
     NSUserDomainMask, YES) lastObject];
 
   if (currentLanguage != nil)
@@ -182,7 +182,8 @@ GSSpellServerName(NSString *vendor, NSString *language)
       NSFileManager *mgr = [NSFileManager defaultManager];
       
       // Build the path and try to get the dictionary
-      dirPath = [user_gsroot stringByAppendingPathComponent: GNU_UserDictionariesDir];
+      dirPath = [user_gsroot stringByAppendingPathComponent:
+        GNU_UserDictionariesDir];
       path =  [dirPath stringByAppendingPathComponent: currentLanguage];
       
       if (![mgr fileExistsAtPath: path ])
@@ -236,6 +237,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
       if ((path = [self _pathToDictionary: language]) != nil)
 	{
 	  NSArray *wordarray = [NSArray arrayWithContentsOfFile: path];
+
 	  if (wordarray == nil)
 	    {
 	      NSLog(@"Unable to load user dictionary from path %@",path);
@@ -351,6 +353,7 @@ is a set of words learned by the spell service for that particular user.
   if ((path = [self _pathToDictionary: language]) != nil)
     {
       NSMutableSet *set = [_userDictionaries objectForKey: language];      
+
       if (![[set allObjects] writeToFile: path atomically: YES])
 	{
 	  NSLog(@"Unable to save dictionary to path %@",path);

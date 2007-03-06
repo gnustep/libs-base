@@ -1,3 +1,12 @@
+2007-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSpellServer.m: Use Library directory in user domain for
+	local dictionaries.
+	* Source/NSDistributedNotificationCenter.m: autolaunch gdnc with the
+	--auto option.
+	* Tools/gdnc.m: Understand --auto to mean that we should shut down
+	automatically when all connections in to us are dropped.
+
 2007-03-06  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Added GNUSTEP_SYSTEM_USERS_DIR,
