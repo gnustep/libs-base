@@ -1,3 +1,8 @@
+2007-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: On mswindows, don't count a '.exe'
+	extension as part of the process name when fetching defaults.
+
 2007-03-05  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Fixed setting default GNUSTEP_*_ADMIN_APPS and

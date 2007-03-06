@@ -712,7 +712,17 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
    */
   if (processName == nil)
     {
-      processName = RETAIN([[NSProcessInfo processInfo] processName]);
+      NSString	*s = [[NSProcessInfo processInfo] processName];
+
+#if	defined(__MINGW32__)
+      NSString	*e = [s pathExtension];
+
+      if (e != nil && [e caseInsensitiveCompare: @"EXE"] == NSOrderedSame)
+        {
+	  s = [s stringByDeletingPathExtension];
+	}
+#endif
+      processName = [s copy];
     }
 
   if (path == nil || [path isEqual: @""] == YES)
