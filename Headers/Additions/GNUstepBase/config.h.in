@@ -18,9 +18,6 @@
 /* Built in default value for GNUstep local apps */
 #undef GNUSTEP_TARGET_LOCAL_ADMIN_APPS
 
-/* Built in default value for GNUstep local web apps */
-#undef GNUSTEP_TARGET_LOCAL_WEB_APPS
-
 /* Built in default value for GNUstep local tools */
 #undef GNUSTEP_TARGET_LOCAL_ADMIN_TOOLS
 
@@ -48,14 +45,17 @@
 /* Built in default value for GNUstep local tools */
 #undef GNUSTEP_TARGET_LOCAL_TOOLS
 
+/* Built in default value for GNUstep Local Users directory */
+#undef GNUSTEP_TARGET_LOCAL_USERS_DIR
+
+/* Built in default value for GNUstep local web apps */
+#undef GNUSTEP_TARGET_LOCAL_WEB_APPS
+
 /* Built in default value for GNUstep Makefiles */
 #undef GNUSTEP_TARGET_MAKEFILES
 
 /* Built in default value for GNUstep network apps */
 #undef GNUSTEP_TARGET_NETWORK_ADMIN_APPS
-
-/* Built in default value for GNUstep network web apps */
-#undef GNUSTEP_TARGET_NETWORK_WEB_APPS
 
 /* Built in default value for GNUstep system tools */
 #undef GNUSTEP_TARGET_NETWORK_ADMIN_TOOLS
@@ -84,11 +84,14 @@
 /* Built in default value for GNUstep network tools */
 #undef GNUSTEP_TARGET_NETWORK_TOOLS
 
+/* Built in default value for GNUstep Network Users directory */
+#undef GNUSTEP_TARGET_NETWORK_USERS_DIR
+
+/* Built in default value for GNUstep network web apps */
+#undef GNUSTEP_TARGET_NETWORK_WEB_APPS
+
 /* Built in default value for GNUstep system apps */
 #undef GNUSTEP_TARGET_SYSTEM_ADMIN_APPS
-
-/* Built in default value for GNUstep system web apps */
-#undef GNUSTEP_TARGET_SYSTEM_WEB_APPS
 
 /* Built in default value for GNUstep system tools */
 #undef GNUSTEP_TARGET_SYSTEM_ADMIN_TOOLS
@@ -117,6 +120,12 @@
 /* Built in default value for GNUstep system tools */
 #undef GNUSTEP_TARGET_SYSTEM_TOOLS
 
+/* Built in default value for GNUstep System Users directory */
+#undef GNUSTEP_TARGET_SYSTEM_USERS_DIR
+
+/* Built in default value for GNUstep web apps */
+#undef GNUSTEP_TARGET_SYSTEM_WEB_APPS
+
 /* Built in default value for GNUstep user config file */
 #undef GNUSTEP_TARGET_USER_CONFIG_FILE
 
@@ -126,11 +135,8 @@
 /* Built in default value for GNUstep user directory */
 #undef GNUSTEP_TARGET_USER_DIR
 
-/* Built in default value for GNUstep user_dir apps */
+/* Built in default value for GNUstep user_dir admin apps */
 #undef GNUSTEP_TARGET_USER_DIR_ADMIN_APPS
-
-/* Built in default value for GNUstep user_dir web apps */
-#undef GNUSTEP_TARGET_USER_DIR_WEB_APPS
 
 /* Built in default value for GNUstep user_dir tools */
 #undef GNUSTEP_TARGET_USER_DIR_ADMIN_TOOLS
@@ -158,6 +164,9 @@
 
 /* Built in default value for GNUstep user_dir tools */
 #undef GNUSTEP_TARGET_USER_DIR_TOOLS
+
+/* Built in default value for GNUstep user_dir web apps */
+#undef GNUSTEP_TARGET_USER_DIR_WEB_APPS
 
 /* Define if this constant is defined */
 #undef HANDLE_LLONG_MAX
@@ -549,25 +558,25 @@
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
-/* The size of `double', as computed by sizeof. */
+/* The size of a `double', as computed by sizeof. */
 #undef SIZEOF_DOUBLE
 
-/* The size of `float', as computed by sizeof. */
+/* The size of a `float', as computed by sizeof. */
 #undef SIZEOF_FLOAT
 
-/* The size of `int', as computed by sizeof. */
+/* The size of a `int', as computed by sizeof. */
 #undef SIZEOF_INT
 
-/* The size of `long', as computed by sizeof. */
+/* The size of a `long', as computed by sizeof. */
 #undef SIZEOF_LONG
 
-/* The size of `long long', as computed by sizeof. */
+/* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
 
-/* The size of `short', as computed by sizeof. */
+/* The size of a `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
 
-/* The size of `void*', as computed by sizeof. */
+/* The size of a `void*', as computed by sizeof. */
 #undef SIZEOF_VOIDP
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -595,5 +604,5 @@
 #undef inline
 #endif
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t

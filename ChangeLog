@@ -1,3 +1,13 @@
+2007-03-06  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Added GNUSTEP_SYSTEM_USERS_DIR,
+	GNUSTEP_NETWORK_USERS_DIR and GNUSTEP_LOCAL_USERS_DIR.
+	* configure: Regenerated.
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerated.
+	* Source/NSPathUtilities.m: Read and process the new variables;
+	fixed NSUserDirectory to return the proper GNUSTEP_*_USERS_DIR
+	instead of the user's home directory.
+	
 2007-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: On mswindows, don't count a '.exe'

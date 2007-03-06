@@ -149,6 +149,10 @@ static NSString *tempDir = nil;                 /* user's temporary directory */
 /* The following list entirely describe our filesystem configuration.  */
 static NSString *gnustepMakefiles = nil;
 
+static NSString *gnustepSystemUsersDir = nil;
+static NSString *gnustepNetworkUsersDir = nil;
+static NSString *gnustepLocalUsersDir = nil;
+
 static NSString *gnustepSystemApps = nil;
 static NSString *gnustepSystemAdminApps = nil;
 static NSString *gnustepSystemWebApps = nil;
@@ -323,6 +327,10 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_IF_SET(gnustepUserDefaultsDir, c, @"GNUSTEP_USER_DEFAULTS_DIR");
 
   ASSIGN_PATH(gnustepMakefiles, c, @"GNUSTEP_MAKEFILES");
+
+  ASSIGN_PATH(gnustepSystemUsersDir, c, @"GNUSTEP_SYSTEM_USERS_DIR");
+  ASSIGN_PATH(gnustepNetworkUsersDir, c, @"GNUSTEP_NETWORK_USERS_DIR");
+  ASSIGN_PATH(gnustepLocalUsersDir, c, @"GNUSTEP_LOCAL_USERS_DIR");
 
   ASSIGN_PATH(gnustepSystemApps, c, @"GNUSTEP_SYSTEM_APPS");
   ASSIGN_PATH(gnustepSystemAdminApps, c, @"GNUSTEP_SYSTEM_ADMIN_APPS");
@@ -563,6 +571,10 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_DEFAULT_PATH(gnustepLocalDocumentationInfo, @GNUSTEP_TARGET_LOCAL_DOC_INFO);
 
   ASSIGN_DEFAULT_PATH(gnustepMakefiles, @GNUSTEP_TARGET_MAKEFILES);
+
+  ASSIGN_DEFAULT_PATH(gnustepSystemUsersDir, @GNUSTEP_TARGET_SYSTEM_USERS_DIR);
+  ASSIGN_DEFAULT_PATH(gnustepNetworkUsersDir, @GNUSTEP_TARGET_NETWORK_USERS_DIR);
+  ASSIGN_DEFAULT_PATH(gnustepLocalUsersDir, @GNUSTEP_TARGET_LOCAL_USERS_DIR);
 }
 
 NSMutableDictionary*
@@ -794,6 +806,10 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepUserDefaultsDir);
 
   DESTROY(gnustepMakefiles);
+
+  DESTROY(gnustepSystemUsersDir);
+  DESTROY(gnustepNetworkUsersDir);
+  DESTROY(gnustepLocalUsersDir);
 
   DESTROY(gnustepSystemApps);
   DESTROY(gnustepSystemAdminApps);
@@ -1745,10 +1761,13 @@ if (domainMask & mask) \
 
       case NSUserDirectory:
 	{
-	  if (domainMask & NSUserDomainMask)
-	    {
-	      [paths addObject: gnustepUserHome];
-	    }
+	  /* This is the directory in which user directories are located.
+	   * You can not have user directories in your own user directory,
+	   * so NSUserDomainMask will always return ''.
+	   */
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalUsersDir);
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkUsersDir);
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemUsersDir);
 	}
 	break;
 
