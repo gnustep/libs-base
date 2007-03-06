@@ -40,6 +40,7 @@
 #endif
 
 static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
+static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
 static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
@@ -642,6 +643,14 @@ ihandler(int sig)
 	  [self removeObserversForClients: table];
 	  NSFreeMapTable(table);
 	}
+
+      if (auto_stop == YES && NSCountMapTable(connections) == 0)
+        {
+	  /* If there is nothing else using this process, and this is not
+	   * a daemon, then we can quietly terminate.
+	   */
+          exit(EXIT_SUCCESS);
+	}
     }
   return nil;
 }
@@ -1046,6 +1055,10 @@ main(int argc, char** argv, char** env)
       printf("--no-fork\tavoid fork() to make debugging easy\n");
       printf("--verbose\tMore verbose debug output\n");
       exit(EXIT_SUCCESS);
+    }
+  if ([[pInfo arguments] containsObject: @"--auto"] == YES)
+    {
+      auto_stop = YES;
     }
   if ([[pInfo arguments] containsObject: @"--daemon"] == YES)
     {
