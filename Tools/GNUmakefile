@@ -61,7 +61,7 @@ MAN8_PAGES = gdomap.8
 ifeq ($(add),yes)
 TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
-TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults objctidy pl plmerge \
+TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge \
 		plparse sfparse pldes plget plser pl2link xmlparse
 CTOOL_NAME = gdomap
 
@@ -80,7 +80,6 @@ defaults_OBJC_FILES = defaults.m
 dread_OBJC_FILES = dread.m
 dremove_OBJC_FILES = dremove.m
 dwrite_OBJC_FILES = dwrite.m
-objctidy_OBJC_FILES = objctidy.m
 pl_OBJC_FILES = pl.m
 pldes_OBJC_FILES = pldes.m
 plget_OBJC_FILES = plget.m
