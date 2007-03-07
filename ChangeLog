@@ -1,5 +1,10 @@
 2007-03-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSHTTPURLHandle.m: Mimic MacOS-X behavior and cancel loading
+	if http status code is not in the 200-299 (success) range.
+
+2007-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/objctidy.m: Removed ... should not have been added really as
 	it's very unreliable ... better remove before it accidentally gets
 	into a stable release.
