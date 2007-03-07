@@ -1,3 +1,9 @@
+2007-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/objctidy.m: Removed ... should not have been added really as
+	it's very unreliable ... better remove before it accidentally gets
+	into a stable release.
+
 2007-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSpellServer.m: Use Library directory in user domain for
