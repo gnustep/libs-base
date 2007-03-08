@@ -5407,9 +5407,20 @@ static void indentation(unsigned level, NSMutableString *str)
 
 - (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender
 {
-  ASSIGN(result, @"timeout");
+  NSString	*str;
+
   [timer invalidate];
   timer = nil;
+  str = [handle propertyForKeyIfAvailable: NSHTTPPropertyStatusCodeKey];
+  if (str == nil)
+    {
+      str = @"timeout";
+    }
+  else
+    {
+      str = [NSString stringWithFormat: @"HTTP status %@", str];
+    }
+  ASSIGN(result, str);
   if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
     {
       [delegate completedXMLRPC: self];

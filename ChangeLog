@@ -1,3 +1,8 @@
+2007-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Addictions/GSXML.m: Cope with cancellation of load from URL
+	in XMLRPC better.
+
 2007-03-08  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Source/NSPathUtilities.h (GSAdminToolsDirectory): New directory
