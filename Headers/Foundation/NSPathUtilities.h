@@ -133,6 +133,7 @@ GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
   NSAllLibrariesDirectory,
   GSLibrariesDirectory,
   GSToolsDirectory,
+  GSAdminToolsDirectory,
   GSFontsDirectory,
   GSFrameworksDirectory,
   GSWebApplicationsDirectory
@@ -172,7 +173,8 @@ typedef enum
   GSToolsDirectory,			/** non-gui programs */
   GSFontsDirectory,			/** font storage */
   GSFrameworksDirectory, 		/** frameworks */
-  GSWebApplicationsDirectory		/** web applications (GSWeb or SOPE) */
+  GSWebApplicationsDirectory,		/** web applications (GSWeb or SOPE) */
+  GSAdminToolsDirectory	        	/** admin non-gui programs */
  } NSSearchPathDirectory;
 
 /**

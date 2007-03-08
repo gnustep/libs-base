@@ -1,3 +1,9 @@
+2007-03-08  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/NSPathUtilities.h (GSAdminToolsDirectory): New directory
+	key.
+	* Source/NSPathUtilities.m: Implemented it.
+
 2007-03-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Mimic MacOS-X behavior and cancel loading

@@ -1904,6 +1904,40 @@ if (domainMask & mask) \
 	}
 	break;
 
+      case GSAdminToolsDirectory:
+	{
+	  NSString	*full = nil;
+	  NSString	*part = nil;
+
+	  if ([gnustep_is_flattened boolValue] == NO
+	    && gnustep_target_cpu != nil && gnustep_target_os != nil)
+	    {
+	      part = [gnustep_target_cpu stringByAppendingPathComponent:
+		gnustep_target_os];
+	      if (library_combo != nil)
+		{
+		  full = [part stringByAppendingPathComponent: library_combo];
+		}
+	    }
+
+	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserAdminTools);
+	  if (full) ADD_PATH(NSUserDomainMask, gnustepUserAdminTools, full);
+	  if (part) ADD_PATH(NSUserDomainMask, gnustepUserAdminTools, part);
+
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalAdminTools);
+	  if (full) ADD_PATH(NSLocalDomainMask, gnustepLocalAdminTools, full);
+	  if (part) ADD_PATH(NSLocalDomainMask, gnustepLocalAdminTools, part);
+
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkAdminTools);
+	  if (full) ADD_PATH(NSNetworkDomainMask, gnustepNetworkAdminTools, full);
+	  if (part) ADD_PATH(NSNetworkDomainMask, gnustepNetworkAdminTools, part);
+
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemAdminTools);
+	  if (full) ADD_PATH(NSSystemDomainMask, gnustepSystemAdminTools, full);
+	  if (part) ADD_PATH(NSSystemDomainMask, gnustepSystemAdminTools, part);
+	}
+	break;
+
       case GSWebApplicationsDirectory:
 	{
 	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserWebApps);
