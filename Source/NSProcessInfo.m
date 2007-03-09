@@ -275,6 +275,19 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   /* Getting the process name */
   IF_NO_GC(RELEASE(_gnu_processName));
   _gnu_processName = [arg0 lastPathComponent];
+#if	defined(__MINGW32__)
+  /* On windows we remove any .exe extension for consistency with app names
+   * under unix
+   */
+  {
+    NSString	*e = [_gnu_processName pathExtension];
+
+    if (e != nil && [e caseInsensitiveCompare: @"EXE"] == NSOrderedSame)
+      {
+	_gnu_processName = [_gnu_processName stringByDeletingPathExtension];
+      }
+  }
+#endif
   IF_NO_GC(RETAIN(_gnu_processName));
 
   /* Copy the argument list */
