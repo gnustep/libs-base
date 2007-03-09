@@ -273,7 +273,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   NSBundle *gbundle;
   if (type == nil)
     type = @"";
-  gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+  gbundle = [NSBundle bundleForClass: [NSObject class]];
   return [gbundle pathForResource: subpath
 		           ofType: type
 		      inDirectory: TIME_ZONE_DIR];

@@ -502,7 +502,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       NSDictionary	*dict;
       NSBundle		*gbundle;
 
-      gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+      gbundle = [NSBundle bundleForClass: [NSObject class]];
       path = [gbundle pathForResource: lang
 		               ofType: nil
 		          inDirectory: @"Languages"];

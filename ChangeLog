@@ -1,3 +1,42 @@
+2007-03-09  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	Implemented library resource bundle versioning.  Updated
+	gnustep-base to use versioned resources.
+	* Source/NSBundle ([+bundleForLibrary:version]): New method.
+	Allow to request the resource bundle for a specific version.
+	Changed bundle resource location to be
+	GNUSTEP_LIBRARY/Libraries/<libraryName>/Versions/<interfaceVersion>/Resources
+	to allow versioned resources and be similar to framework resources
+	- will be handy in the future.  Fall back to the old unversioned
+	bundle at GNUSTEP_LIBRARY/Libraries/Resources/<libraryName> if no
+	specific version is required and no versioned bundle can be found.
+	([+bundleForLibrary:]): Implemented in terms of
+	+bundleForLibrary:version:.  Should be backwards compatible if
+	you're not using resource versioning yet.
+	([+initialize]): When creating _gnustep_bundle, use
+	[+bundleForLibrary:version:] to get the appropriate version of the
+	bundle.
+	
+	* Headers/Foundation/NSBundle.h ([+bundleForLibrary:version:]):
+	New method; updated documentation for this method and for
+	[+bundleForLibrary:].	
+
+	* Resources/GNUmakefile: Include ../Version and install into the
+	new versioned directory.
+	* NSTimeZones/GNUmakefile: Same changes.
+	* Source/GNUmakefile: Same changes.
+	
+	* Source/NSBundle.m ([+bundleForClass:]): If we are asked for the
+	bundle for NSObject, return _gnustep_bundle (prepared during
+	+initialize) immediately.
+	* Source/NSTimeZone.m (_time_zone_path): Use bundleForClass:
+	NSObject to get the gnustep-base bundle immediately and safely.
+	* Source/NSUserDefaults.m ([+standardUserDefaults]): Same change.
+
+	* Source/GNUmakefile (libgnustep-base_INTERFACE_VERSION,
+	libgnustep-baseadd_INTERFACE_VERSION): Use more standard makefile
+	syntax.
+	
 2007-03-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: On mswindows, don't count a '.exe'

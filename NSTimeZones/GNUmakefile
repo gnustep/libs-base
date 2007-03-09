@@ -39,7 +39,9 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ../Version
 include ../config.mak
 
-resourcedir = $(GNUSTEP_RESOURCES)/gnustep-base
+libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
+
+resourcedir = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
 
 TIMEZONE_ARCHIVE = \
 NSTimeZones.tar

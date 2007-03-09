@@ -42,8 +42,8 @@ include ../Version
 include ../config.mak
 
 # Interface version changes with each minor release
-libgnustep-base_INTERFACE_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}
-libgnustep-baseadd_INTERFACE_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}
+libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
+libgnustep-baseadd_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 PACKAGE_NAME = gnustep-base
 
@@ -421,7 +421,7 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 RESOURCE_SET_NAME = libbase-resources
 
 # This is for gnustep-make >= 14-02-2007
-libbase-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/Resources/gnustep-base
+libbase-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
 # This is kept temporarily for gnustep-make < 14-02-2007
 libbase-resources_RESOURCE_FILES_INSTALL_DIR = /Library/Libraries/Resources/gnustep-base
 
