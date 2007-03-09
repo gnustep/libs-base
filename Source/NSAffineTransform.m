@@ -277,6 +277,7 @@ static NSAffineTransformStruct identityTransform = {
 - (void) prependTransform: (NSAffineTransform*)aTransform
 {
   valid(aTransform);
+
   if (aTransform->_isIdentity)
     {
       TX = aTransform->TX * A + aTransform->TY * C + TX;
@@ -398,6 +399,7 @@ static NSAffineTransformStruct identityTransform = {
  */
 - (void) scaleXBy: (float)scaleX yBy: (float)scaleY
 {
+/*
   if (_isIdentity && scaleX == 1.0)
     {
       if (scaleY == 1.0)
@@ -427,7 +429,7 @@ static NSAffineTransformStruct identityTransform = {
 	  return;
 	}
     }
-
+*/
   A *= scaleX;
   B *= scaleX;
   C *= scaleY;
@@ -514,11 +516,6 @@ static NSAffineTransformStruct identityTransform = {
 	  new.width = A * aSize.width + C * aSize.height;
 	  new.height = B * aSize.width + D * aSize.height;
 	}
-#if 0
-// Bad code ... MacOS-X allows values to go negative
-if (new.width < 0.0) new.width = -new.width;
-if (new.height < 0.0) new.height = -new.height;
-#endif
       return new;
     }
 }
