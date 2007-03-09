@@ -1,3 +1,10 @@
+2007-03-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: On mswindows, don't count a '.exe'
+	extension as part of the process name.
+	* Source/NSUserDefaults.m: Revert last change ... now done in
+	NSProcessInfo.m
+
 2007-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Addictions/GSXML.m: Cope with cancellation of load from URL
