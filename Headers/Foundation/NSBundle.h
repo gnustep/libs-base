@@ -387,11 +387,17 @@ GS_EXPORT NSString* const NSLoadedClasses;
 @interface NSBundle (GNUstep)
 
 /** This method is an experimental GNUstep extension, and might change.
- * <p>Return a bundle which accesses the first existing directory from
- * the standard libraries directories whose Resources subdirectory
- * contains libraryName.
- * Where libraryName is the name of a library without the <em>lib</em>
- * prefix or any extensions.
+ * <p>Return a bundle to access the resources for the (static or shared) library
+ * libraryName, with interface version interfaceVersion.
+ * </p>
+ * <p>Resources for shared libraries are stored into
+ * GNUSTEP_LIBRARY/Libraries/libraryName/Versions/interfaceVersion/Resources/;
+ * this method will search for the first such existing directory and return it.
+ *</p>
+ * <p>libraryName should be the name of a library without the
+ * <em>lib</em> prefix or any extensions; interfaceVersion is the
+ * interface version of the library (eg, it's 1.13 in libgnustep-base.so.1.13; 
+ * see library.make on how to control it).
  * </p>
  * <p>This method exists to provide resource bundles for libraries and has no
  * particular relationship to the library code itsself.  The named library
@@ -409,7 +415,15 @@ GS_EXPORT NSString* const NSLoadedClasses;
  *  not exist on disk.
  * </p>
  */
++ (NSBundle *) bundleForLibrary: (NSString *)libraryName
+                        version: (NSString *)interfaceVersion;
+
+/** This method is a equivalent to bundleForLibrary:version: with a nil
+ * version.
+ */
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName;
+
+
 
 /** Find a resource in the "Library" directory. */
 + (NSString*) pathForLibraryResource: (NSString*)name

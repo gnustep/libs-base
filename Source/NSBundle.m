@@ -806,7 +806,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  _launchDirectory = RETAIN([[NSFileManager defaultManager]
 	    currentDirectoryPath]);
 
-	  _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"]);
+	  _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
+					 version: OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]);
 
 #if 0
 	  _loadingBundle = [self mainBundle];
@@ -1095,6 +1096,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (!aClass)
     return nil;
 
+  /* This is asked relatively frequently inside gnustep-base itself;
+   * shortcut it.
+   */
+  if (aClass == [NSObject class])
+    {
+      return _gnustep_bundle;
+    }
+
   [load_lock lock];
   bundle = nil;
   enumerate = NSEnumerateMapTable(_bundles);
@@ -1127,8 +1136,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 	  /*
 	   * Take the path to the binary containing the class and
-	   * convert it to the format for a library name as used
-	   * for obtaining a library resource bundle.
+	   * convert it to the format for a library name as used for
+	   * obtaining a library resource bundle.
 	   */
 	  lib = GSPrivateSymbolPath (aClass, NULL);
 	  if ([lib isEqual: GSPrivateExecutablePath()] == YES)
@@ -1137,9 +1146,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    }
 
 	  /*
-	   * Get the library bundle ... if there wasn't one
-	   * then we will assume the class was in the program
-	   * executable and return the mainBundle instead.
+	   * Get the library bundle ... if there wasn't one then we
+	   * will assume the class was in the program executable and
+	   * return the mainBundle instead.
+	   *
+	   * FIXME: This will not work well with versioned library
+	   * resources.  It used to work fine (maybe) with unversioned
+	   * library resources.
 	   */
 	  bundle = [NSBundle bundleForLibrary: lib];
 	  if (bundle == nil)
@@ -1148,9 +1161,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    }
 
 	  /*
-	   * Add the class to the list of classes known to be in
-	   * the library or executable.  We didn't find it there
-	   * to start with, so we know it's safe to add now.
+	   * Add the class to the list of classes known to be in the
+	   * library or executable.  We didn't find it there to start
+	   * with, so we know it's safe to add now.
 	   */
 	  if (bundle->_bundleClasses == nil)
 	    {
@@ -2177,10 +2190,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName
 {
+  return [self bundleForLibrary: libraryName  version: nil];
+}
+
++ (NSBundle *) bundleForLibrary: (NSString *)libraryName
+			version: (NSString *)interfaceVersion
+{
   NSArray *paths;
   NSEnumerator *enumerator;
   NSString *path;
-  NSString *tail;
   NSFileManager *fm = [NSFileManager defaultManager];
 
   /*
@@ -2199,41 +2217,101 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       libraryName = [libraryName substringFromIndex: 3];
     }
-  /*
-   * Discard debug/profile library suffix
-   */
-  if ([libraryName hasSuffix: @"_d"] == YES
-    || [libraryName hasSuffix: @"_p"] == YES)
-    {
-      libraryName = [libraryName substringToIndex: [libraryName length] - 3];
-    }
 
   if ([libraryName length] == 0)
     {
       return nil;
     }
 
-  tail = [@"Libraries" stringByAppendingPathComponent: 
-	     [@"Resources" stringByAppendingPathComponent: libraryName]];
-
+  /*
+   * We expect to find the library resources into:
+   *
+   * GNUSTEP_LIBRARY/Libraries/<libraryName>/Versions/<interfaceVersion>/Resources/
+   *
+   * if no <interfaceVersion> is specified, and if can't find any versioned
+   * resources in those directories, we'll also accept the old unversioned format 
+   *
+   * GNUSTEP_LIBRARY/Libraries/Resources/<libraryName>/
+   *
+   */
   paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
 					       NSAllDomainsMask, YES);
-
+  
   enumerator = [paths objectEnumerator];
-  while ((path = [enumerator nextObject]))
+  while ((path = [enumerator nextObject]) != nil)
     {
+      NSBundle	*b;
       BOOL isDir;
-      path = [path stringByAppendingPathComponent: tail];
+      path = [path stringByAppendingPathComponent: @"Libraries"];
 
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
-	  NSBundle	*b = [self bundleWithPath: path];
-
-	  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+	  if (interfaceVersion != nil)
 	    {
-	      b->_bundleType = NSBUNDLE_LIBRARY;
+	      /* We're looking for a specific version.  */
+	      path = [[[[path stringByAppendingPathComponent: libraryName]
+			 stringByAppendingPathComponent: @"Versions"]
+			stringByAppendingPathComponent: interfaceVersion]
+		       stringByAppendingPathComponent: @"Resources"];
+	      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+		{
+		  b = [self bundleWithPath: path];
+		  
+		  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+		    {
+		      b->_bundleType = NSBUNDLE_LIBRARY;
+		    }
+		  return b;
+		}
 	    }
-	  return b;
+	  else
+	    {
+	      /* Any version will do.  */
+	      NSString *versionsPath = [[path stringByAppendingPathComponent: libraryName]
+					 stringByAppendingPathComponent: @"Versions"];
+	      if ([fm fileExistsAtPath: versionsPath  isDirectory: &isDir]  &&  isDir)
+		{
+		  NSEnumerator *fileEnumerator = [fm enumeratorAtPath: versionsPath];
+		  NSString *potentialPath;
+		  
+		  while ((potentialPath = [fileEnumerator nextObject]) != nil)
+		    {
+		      potentialPath = [potentialPath stringByAppendingPathComponent: @"Resources"];
+		      if ([fm fileExistsAtPath: potentialPath  isDirectory: &isDir]  &&  isDir)
+			{
+			  b = [self bundleWithPath: potentialPath];
+			  
+			  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+			    {
+			      b->_bundleType = NSBUNDLE_LIBRARY;
+			    }
+			  return b;
+			}
+		    }
+		}
+
+	      /* We didn't find anything!  For backwards
+	       * compatibility, try the unversioned directory itself:
+	       * we used to put library resources directly in
+	       * unversioned directories such as
+	       * GNUSTEP_LIBRARY/Libraries/Resources/gnustep-base/{resources
+	       * here}.  This was deprecated/obsoleted on 9 March 2007
+	       * when we added library resource versioning.
+	       */
+	      {
+		NSString *oldResourcesPath = [[path stringByAppendingPathComponent: @"Resources"]
+					       stringByAppendingPathComponent: libraryName];
+		if ([fm fileExistsAtPath: oldResourcesPath  isDirectory: &isDir]  &&  isDir)
+		  {
+		    b = [self bundleWithPath: oldResourcesPath];
+		    if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+		      {
+			b->_bundleType = NSBUNDLE_LIBRARY;
+		      }
+		    return b;
+		  }
+	      }
+	    }
 	}
     }
 
