@@ -1624,7 +1624,10 @@ getCString_c(GSStr self, char *buffer, unsigned int maxLength,
       o._contents.c = self->_contents.c;
       GSStrWiden((GSStr)&o);
       getCString_u((GSStr)&o, buffer, maxLength, aRange, leftoverRange);
-      NSZoneFree(o._zone, o._contents.u);
+      if (o._flags.free == 1)
+        {
+          NSZoneFree(o._zone, o._contents.u);
+        }
       return;
     }
 
