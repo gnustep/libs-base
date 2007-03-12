@@ -1,6 +1,9 @@
 2007-03-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: regenerated.
+	* Source/GSString.m: getCString_c() Fix error freeing unallocated
+	memory when converting a zero length constant string to external
+	cstring representation.
 
 2007-03-09  Nicola Pero <nicola.pero@meta-innovation.com>
 

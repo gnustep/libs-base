@@ -24,7 +24,7 @@
 */
 #include "config.h"
 #include <string.h>
-#include <Foundation/Foundation.h>
+#include "Foundation/Foundation.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GSLock.h"
 #include "GSPrivate.h"
