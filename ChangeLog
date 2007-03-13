@@ -1,3 +1,9 @@
+2007-03-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m: Expect locale information (nl_langinfo) to be in
+	default c-string encoding ... though it's debatable how one knows what
+	that should be.
+
 2007-03-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: regenerated.
