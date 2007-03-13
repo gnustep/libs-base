@@ -81,7 +81,9 @@ GSSetLocale(int category, NSString *locale)
   return locale;
 }
 
-#define GSLanginfo(value) [NSString stringWithUTF8String: nl_langinfo (value)]
+#define GSLanginfo(value) [NSString stringWithCString: nl_langinfo (value) \
+encoding: [NSString defaultCStringEncoding]]
+
 
 /* Creates a locale dictionary from information provided by i18n functions.
    Many, but not all, of the keys are filled in or inferred from the
