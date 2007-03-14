@@ -1,3 +1,10 @@
+2007-03-14  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/NSUserDefaults.m ([+standardUserDefaults]): Manually
+	lookup gnustep-base language resources without using NSBundle to
+	break the bootstrap chicken-and-egg problem between NSBundle and
+	NSUserDefaults.
+
 2007-03-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Fix memory leak caused by url handle

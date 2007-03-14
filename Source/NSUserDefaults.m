@@ -498,15 +498,44 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   enumerator = [uL objectEnumerator];
   while ((lang = [enumerator nextObject]))
     {
-      NSString		*path;
-      NSDictionary	*dict;
-      NSBundle		*gbundle;
-
-      gbundle = [NSBundle bundleForClass: [NSObject class]];
-      path = [gbundle pathForResource: lang
-		               ofType: nil
-		          inDirectory: @"Languages"];
-      dict = nil;
+      /* We lookup gnustep-base resources manually here to prevent
+       * bootstrap problems.  NSBundle's lookup routines depend on
+       * having NSUserDefaults already bootstrapped, but we're still
+       * bootstrapping here!  So we can't really use NSBundle without
+       * incurring massive bootstrap complications (btw, most of the
+       * times we're here as a consequence of [NSBundle +initialize]
+       * creating the gnustep-base bundle!  So trying to use the
+       * gnustep-base bundle here wouldn't really work.).
+       */
+      /*
+       * We are looking for:
+       *
+       * GNUSTEP_LIBRARY/Libraries/gnustep-base/Versions/<interfaceVersion>/Resources/Languages/<language>
+       */
+      NSDictionary	*dict = nil;
+      NSString		*path = nil;
+      NSFileManager *fm = [NSFileManager defaultManager];
+      NSString *tail = [[[[[[@"Libraries" stringByAppendingPathComponent: @"gnustep-base"]
+			     stringByAppendingPathComponent: @"Versions"]
+			    stringByAppendingPathComponent: OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
+			   stringByAppendingPathComponent: @"Resources"]
+			  stringByAppendingPathComponent: @"Languages"]
+			 stringByAppendingPathComponent: lang];
+      NSArray *paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
+							    NSAllDomainsMask, YES);
+      enumerator = [paths objectEnumerator];
+      while ((path = [enumerator nextObject]) != nil)
+	{
+	  BOOL isDir;
+	  path = [path stringByAppendingPathComponent: tail];
+	  
+	  if ([fm fileExistsAtPath: path  isDirectory: &isDir])
+	    {
+	      /* Path found!  */
+	      break;
+	    }
+	}
+      
       if (path != nil)
 	{
 	  dict = [NSDictionary dictionaryWithContentsOfFile: path];
