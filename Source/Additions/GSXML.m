@@ -5076,7 +5076,6 @@ static void indentation(unsigned level, NSMutableString *str)
 	      [handle writeProperty: pKey forKey: GSHTTPPropertyKeyFileKey];
 	      [handle writeProperty: pwd forKey: GSHTTPPropertyPasswordKey];
 	    }
-	  [handle addClient: self];
 #else
 	  connectionURL = [url copy];
 	  connection = nil;
@@ -5310,6 +5309,7 @@ static void indentation(unsigned level, NSMutableString *str)
 					  repeats: NO];
 
 #ifdef GNUSTEP
+  [handle addClient: self];
   [handle writeProperty: @"POST" forKey: GSHTTPPropertyMethodKey];
   [handle writeProperty: @"GSXMLRPC/1.0.0" forKey: @"User-Agent"];
   [handle writeProperty: @"text/xml" forKey: @"Content-Type"];
@@ -5394,6 +5394,9 @@ static void indentation(unsigned level, NSMutableString *str)
   ASSIGN(result, reason);
   [timer invalidate];
   timer = nil;
+#ifdef GNUSTEP
+  [handle removeClient: self];
+#endif
   if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
     {
       [delegate completedXMLRPC: self];
@@ -5411,6 +5414,9 @@ static void indentation(unsigned level, NSMutableString *str)
 
   [timer invalidate];
   timer = nil;
+#ifdef GNUSTEP
+  [handle removeClient: self];
+#endif
   str = [handle propertyForKeyIfAvailable: NSHTTPPropertyStatusCodeKey];
   if (str == nil)
     {
@@ -5464,6 +5470,9 @@ static void indentation(unsigned level, NSMutableString *str)
 
   [timer invalidate];
   timer = nil;
+#ifdef GNUSTEP
+  [handle removeClient: self];
+#endif
 
   if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
     {
