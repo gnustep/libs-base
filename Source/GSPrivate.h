@@ -353,6 +353,13 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
   void (*loadCallback)(Class, struct objc_category *),
   void **header, NSString *debugFilename) GS_ATTRIB_PRIVATE;
 
+/* Get the native C-string encoding as used by locale specific code in the
+ * operating system.  This may differ from the default C-string encoding
+ * if the latter has bewen set via an environment variable.
+ */
+NSStringEncoding
+GSPrivateNativeCStringEncoding() GS_ATTRIB_PRIVATE;
+
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed at the first safe moment.
  */

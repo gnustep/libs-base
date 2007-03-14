@@ -1,3 +1,16 @@
+2007-03-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: By default disable the GNUSTEP_CONFIOG_FILE
+	environment variable on windows so that we don't accidentally
+	use the development config file (with unix style paths) when
+	we want to be using runtime config (with windows paths).
+	* configure: Regenerate
+	* Source/GSPrivate.h: New private function to determine native
+	C-string encoding.
+	* Source/Additions/Unicode.m: ditto
+	* Source/GSLocale.m: Use native C-String encoding to handle locale
+	information strings.
+
 2007-03-14  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Source/NSUserDefaults.m ([+standardUserDefaults]): Manually
