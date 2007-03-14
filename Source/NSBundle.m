@@ -2196,6 +2196,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName
 			version: (NSString *)interfaceVersion
 {
+  /* Important: if you change this code, make sure to also
+   * change NSUserDefault's manual gnustep-base resource
+   * lookup to match.
+   */
   NSArray *paths;
   NSEnumerator *enumerator;
   NSString *path;
