@@ -152,8 +152,15 @@ AC_ARG_ENABLE(environment-config-file,
 				useful to disable the environment variable
 				for sites which wish to 'lock down' users
 				to always work with a specific system-wide
-				configuration.
-				Normally this should be left enabled.], 
+				configuration.  On unix-like systems the
+				default is for this option to be enabled.
+				It is disabled by default on windows systems
+				so that the base library will not use a
+				config file intended for the gnustep-make
+				system (and containing unix-style paths
+				which cannot be used by widnows apps).
+				Normally this should be left at its default
+				setting.], 
   ac_cv_environment_config_file=$enableval,
   ac_cv_environment_config_file=$enable_env_config)
 if test "$ac_cv_environment_config_file" = "yes"; then

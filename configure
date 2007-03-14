@@ -1331,8 +1331,15 @@ Optional Features:
 				useful to disable the environment variable
 				for sites which wish to 'lock down' users
 				to always work with a specific system-wide
-				configuration.
-				Normally this should be left enabled.
+				configuration.  On unix-like systems the
+				default is for this option to be enabled.
+				It is disabled by default on windows systems
+				so that the base library will not use a
+				config file intended for the gnustep-make
+				system (and containing unix-style paths
+				which cannot be used by widnows apps).
+				Normally this should be left at its default
+				setting.
   --disable-importing-config-file
                                 Disable importing of an existing GNUstep config
 				file and use inbuilt defaults instead.
