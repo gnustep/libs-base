@@ -132,7 +132,16 @@ AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
 
 #-----------------------------------------------------------------
 # Whether the GNUstep.conf file path can be set in the environment
+# By default this is enabled on unix, but disabled on mswindows
+# since the normal setup on mswindows is to have the config file
+# located with the base library dll for runtime configuration and
+# use the environment variable to control the developer config file
+# location (used by gnustep-make when building).
 #-----------------------------------------------------------------
+case "$target_os" in
+    mingw*)	enable_env_config=no;;
+    *)		enable_env_config=yes;;
+esac
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
 AC_ARG_ENABLE(environment-config-file, 
 [  --disable-environment-config-file
@@ -146,7 +155,7 @@ AC_ARG_ENABLE(environment-config-file,
 				configuration.
 				Normally this should be left enabled.], 
   ac_cv_environment_config_file=$enableval,
-  ac_cv_environment_config_file="yes")
+  ac_cv_environment_config_file=$enable_env_config)
 if test "$ac_cv_environment_config_file" = "yes"; then
   AC_DEFINE(OPTION_NO_ENVIRONMENT, 0,
     [Enable GNUSTEP_CONFIG_FILE environment variable])

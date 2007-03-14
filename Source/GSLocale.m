@@ -82,7 +82,7 @@ GSSetLocale(int category, NSString *locale)
 }
 
 #define GSLanginfo(value) [NSString stringWithCString: nl_langinfo (value) \
-encoding: [NSString defaultCStringEncoding]]
+encoding: GSPrivateNativeCStringEncoding()]
 
 
 /* Creates a locale dictionary from information provided by i18n functions.
