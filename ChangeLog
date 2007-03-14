@@ -1,3 +1,8 @@
+2007-03-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Fix memory leak caused by url handle
+	retaining xmlrpc object as a client.
+
 2007-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSLocale.m: Expect locale information (nl_langinfo) to be in
