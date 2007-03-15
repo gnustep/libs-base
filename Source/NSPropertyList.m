@@ -117,7 +117,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     {
       value = [[NSMutableString alloc] initWithCapacity: 50];
     }
-  [value appendString: string];    
+  [value appendString: string];
 }
 
 - (void) parser: (NSXMLParser *)parser
@@ -345,13 +345,13 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   id root;
 
   // Number of bytes per object table index
-  unsigned int index_size;  
+  unsigned int index_size;
   // Number of bytes per object table entry
   unsigned int offset_size;
 
   unsigned int table_start;
-  unsigned int table_size;  
-  unsigned int *table;  
+  unsigned int table_size;
+  unsigned int *table;
 }
 
 + (void) serializePropertyList: (id)aPropertyList intoData: (NSMutableData *)destination;
@@ -2500,10 +2500,10 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
       case NSPropertyListXMLFormat_v1_0:
 	return YES;
-	
+
       case NSPropertyListBinaryFormat_v1_0:
 	return YES;
-	
+
       default:
 	[NSException raise: NSInvalidArgumentException
 		    format: @"[%@ +%@]: unsupported format",
@@ -2836,7 +2836,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   if (offset_size == 1)
     {
       unsigned char offset;
-	
+
       [data getBytes: &offset range: NSMakeRange(table_start + index, 1)];
 
       return offset;
@@ -2844,7 +2844,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   else if (offset_size == 2)
     {
       unsigned short offset;
-	
+
       [data getBytes: &offset range: NSMakeRange(table_start + 2*index, 2)];
 
       return NSSwapBigShortToHost(offset);
@@ -2855,7 +2855,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       int i;
       unsigned long num = 0;
       NSRange	r;
-	
+
       r = NSMakeRange(table_start + offset_size*index, offset_size);
       [data getBytes: &buffer range: r];
       for (i = 0; i < offset_size; i++)
@@ -2891,7 +2891,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned char buffer[index_size];
       int i;
       unsigned num = 0;
-	
+
       [data getBytes: &buffer range: NSMakeRange(*counter, index_size)];
       *counter += index_size;
       for (i = 0; i < index_size; i++)
@@ -2928,11 +2928,11 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   else if ((c > 0x11) && (c <= 0x13))
     {
-      unsigned len = 1 << (c - 0x10);
+      unsigned len = c - 0x0f;
       unsigned char buffer[len];
       int i;
       unsigned long num = 0;
-	
+
       [data getBytes: &buffer range: NSMakeRange(*counter, len)];
       *counter += len;
       for (i = 0; i < len; i++)
@@ -3002,7 +3002,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
         {
 	  result = [NSNumber numberWithUnsignedInt: (unsigned int)num];
 	}
-      else 
+      else
         {
 	  result = [NSNumber numberWithUnsignedLongLong: num];
 	}
@@ -3368,7 +3368,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
 
   table = objc_malloc(table_size * sizeof(int));
-  
+
   objectsToDoList = [[NSMutableArray alloc] init];
   objectList = [[NSMutableArray alloc] init];
 
@@ -3405,7 +3405,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 - (void) markOffset: (unsigned int) offset for: (id)object
 {
   unsigned int oid;
-	  
+
   oid = [objectList indexOfObject: object];
   if (oid == NSNotFound)
     {
@@ -3428,10 +3428,10 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   unsigned int i;
   unsigned char *buffer;
   unsigned int last_offset;
-  
+
   table_start = [dest length];
-  // This is a bit too much, as the length 
-  // of the last object is added. 
+  // This is a bit too much, as the length
+  // of the last object is added.
   last_offset = table_start;
 
   if (last_offset < 256)
@@ -3466,7 +3466,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       for (i = 0; i < len; i++)
         {
 	  unsigned char ci;
-	  
+
 	  ci = table[i];
 	  buffer[i] = ci;
 	}
@@ -3476,7 +3476,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       for (i = 0; i < len; i++)
         {
 	  unsigned short si;
-	  
+
 	  si = table[i];
 	  buffer[2 * i] = (si >> 8);
 	  buffer[2 * i + 1] = si % 256;
@@ -3487,7 +3487,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       for (i = 0; i < len; i++)
         {
 	  unsigned int si;
-	  
+
 	  si = table[i];
 	  buffer[3 * i] = (si >> 16);
 	  buffer[3 * i + 1] = (si >> 8) % 256;
@@ -3499,7 +3499,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       for (i = 0; i < len; i++)
         {
 	  unsigned int si;
-	  
+
 	  si = table[i];
 	  buffer[4 * i] = (si >> 24);
 	  buffer[4 * i + 1] = (si >> 16) % 256;
@@ -3523,9 +3523,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       meta[i] = 0;
     }
 
-  meta[6] = offset_size;  
+  meta[6] = offset_size;
   meta[7] = index_size;
-  
+
   len = [objectList count];
   meta[12] = (len >> 24);
   meta[13] = (len >> 16) % 256;
@@ -3535,8 +3535,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   meta[29] = (table_start >> 16) % 256;
   meta[30] = (table_start >> 8) % 256;
   meta[31] = table_start % 256;
-  
-  [dest appendBytes: meta length: 32];      
+
+  [dest appendBytes: meta length: 32];
 }
 
 - (unsigned int) indexForObject: (id)object
@@ -3561,14 +3561,14 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned char oid;
 
       oid = index;
-      [dest appendBytes: &oid length: 1];      
+      [dest appendBytes: &oid length: 1];
     }
   else if (index_size == 2)
     {
       unsigned short oid;
 
       oid = NSSwapHostShortToBig(index);
-      [dest appendBytes: &oid length: 2];      
+      [dest appendBytes: &oid length: 2];
     }
   else if (index_size == 4)
     {
@@ -3595,7 +3595,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       code = 0x10;
       [dest appendBytes: &code length: 1];
       c = count;
-      [dest appendBytes: &c length: 1];      
+      [dest appendBytes: &c length: 1];
     }
   else if (count < 256 * 256)
     {
@@ -3619,7 +3619,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 - (void) storeData: (NSData*) data
 {
   unsigned int len;
-  unsigned char code; 
+  unsigned char code;
 
   len = [data length];
 
@@ -3642,12 +3642,12 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 {
   unsigned int len;
   BOOL ascii = YES;
-  unsigned char code; 
+  unsigned char code;
   unsigned int i;
   unichar uchar;
 
   len = [string length];
-  
+
   for (i = 0; i < len; i++)
     {
       uchar = [string characterAtIndex: i];
@@ -3693,7 +3693,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       else
         {
 	  unichar *buffer;
-	  
+
 	  code = 0x6F;
 	  [dest appendBytes: &code length: 1];
 	  buffer = objc_malloc(sizeof(unichar)*(len + 1));
@@ -3712,17 +3712,17 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 - (void) storeNumber: (NSNumber*) number
 {
   const char *type;
-  unsigned char code; 
+  unsigned char code;
 
   type = [number objCType];
 
   switch (*type)
     {
-      case 'c':	
-      case 'C':	
-      case 's':	
-      case 'S':	
-      case 'i':	
+      case 'c':
+      case 'C':
+      case 's':
+      case 'S':
+      case 'i':
       case 'I':
       case 'l':
       case 'L':
@@ -3751,7 +3751,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	      code = 0x10;
 	      [dest appendBytes: &code length: 1];
 	      cval = (unsigned char) val;
-	      [dest appendBytes: &cval length: 1];	      
+	      [dest appendBytes: &cval length: 1];
 	    }
 	  else if (val < 256 * 256)
 	    {
@@ -3808,7 +3808,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (void) storeDate: (NSDate*) date
 {
-  unsigned char code; 
+  unsigned char code;
   double out;
 
   code = 0x33;
@@ -3819,7 +3819,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (void) storeArray: (NSArray*) array
 {
-  unsigned char code; 
+  unsigned char code;
   unsigned int len;
   unsigned int i;
 
@@ -3836,12 +3836,12 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       [dest appendBytes: &code length: 1];
       [self storeCount: len];
     }
-  
+
   for (i = 0; i < len; i++)
     {
       id obj;
       unsigned int oid;
-	  
+
       obj = [array objectAtIndex: i];
       oid = [self indexForObject: obj];
       [self storeIndex: oid];
@@ -3850,7 +3850,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (void) storeDictionary: (NSDictionary*) dict
 {
-  unsigned char code; 
+  unsigned char code;
   NSNumber *num;
   unsigned int i;
 
@@ -3873,7 +3873,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       else
         {
 	  unsigned short si;
-      
+
 	  code = 0x81;
 	  [dest appendBytes: &code length: 1];
 	  si = NSSwapHostShortToBig((unsigned short)index);
@@ -3892,7 +3892,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	  key = [keys objectAtIndex: i];
 	  [objects addObject: [dict objectForKey: key]];
 	}
-      
+
       if (len < 0x0F)
         {
 	  code = 0xD0 + len;
@@ -3904,22 +3904,22 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	  [dest appendBytes: &code length: 1];
 	  [self storeCount: len];
 	}
-      
+
       for (i = 0; i < len; i++)
         {
 	  id obj;
 	  unsigned int oid;
-	  
+
 	  obj = [keys objectAtIndex: i];
 	  oid = [self indexForObject: obj];
 	  [self storeIndex: oid];
 	}
-      
+
       for (i = 0; i < len; i++)
         {
 	  id obj;
 	  unsigned int oid;
-	  
+
 	  obj = [objects objectAtIndex: i];
 	  oid = [self indexForObject: obj];
 	  [self storeIndex: oid];
@@ -3955,7 +3955,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       [self storeDictionary: object];
     }
-  else 
+  else
     {
       NSLog(@"Unknown object class %@", object);
     }
@@ -3976,7 +3976,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	  done = YES;
 	}
       NS_HANDLER
-	{ 
+	{
 	  [self cleanup];
 	  index_size += 1;
 	}
