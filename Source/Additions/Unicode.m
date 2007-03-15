@@ -135,7 +135,7 @@ static GSLazyLock *local_lock = nil;
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
 #if	defined(__MINGW32__)
-static NSStringEncoding	natEnc = GSUnicodeStringEncoding
+static NSStringEncoding	natEnc = NSUnicodeStringEncoding;
 #else
 static NSStringEncoding	natEnc = GSUndefinedEncoding;
 #endif
