@@ -321,9 +321,15 @@ static void setNonblocking(int fd)
 
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
-    [self _recordError];
+    {
+      [self _recordError];
+      readLen = -1;
+    }
   else if (readLen == 0)
-    [self _setStatus: NSStreamStatusAtEnd];
+    {
+      [self _setStatus: NSStreamStatusAtEnd];
+      [self _sendEvent: NSStreamEventEndEncountered];
+    }
   return readLen;
 }
 
@@ -518,9 +524,15 @@ static void setNonblocking(int fd)
 
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
-    [self _recordError];
+    {
+      [self _recordError];
+      readLen = -1;
+    }
   else if (readLen == 0)
-    [self _setStatus: NSStreamStatusAtEnd];
+    {
+      [self _setStatus: NSStreamStatusAtEnd];
+      [self _sendEvent: NSStreamEventEndEncountered];
+    }
   return readLen;
 }
 

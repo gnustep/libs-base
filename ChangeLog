@@ -1,3 +1,9 @@
+2007-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	Try to ensure that end of stream events are sent reliably.
+
 2007-03-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: ([GSBinaryPLParser-readCountAt:])
