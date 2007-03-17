@@ -52,6 +52,11 @@ ifeq ($(HAVE_OPENSSL), yes)
 # The bundles to be compiled
 BUNDLE_NAME=SSL
 
+# Interface version changes with each minor release
+include ../Version
+libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
+SSL_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources/
+
 # Additional search directories for linking
 SSL_LIB_DIRS += -L$(GNUSTEP_OBJ_DIR)
 

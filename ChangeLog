@@ -1,5 +1,12 @@
 2007-03-17  Nicola Pero <nicola.pero@meta-innovation.com>
 
+	* SSL/GNUmakefile: Install the SSL bundle in the versioned
+	gnustep-base resource directory.
+	* Source/NSFileHandle.m ([+sslClass]): Load the SSL bundle from
+	the versioned gnustep-base resource directory.
+	
+2007-03-17  Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* Source/Makefile.postamble (before-uninstall): Remove GSConfig.h.
 
 2007-03-17  Nicola Pero <nicola.pero@meta-innovation.com>
