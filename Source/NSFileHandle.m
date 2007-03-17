@@ -710,13 +710,12 @@ NSString * const NSFileHandleOperationException
 {
   if (NSFileHandle_ssl_class == 0)
     {
+      NSString  *path;
       NSBundle	*bundle;
-      NSString	*path;
 
-      path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-	NSAllDomainsMask, NO) lastObject];
-      path = [path stringByAppendingPathComponent: @"Bundles"];
+      path = [[NSBundle bundleForClass: [NSObject class]] bundlePath];
       path = [path stringByAppendingPathComponent: @"SSL.bundle"];
+
       bundle = [NSBundle bundleWithPath: path];
       NSFileHandle_ssl_class = [bundle principalClass];
       if (NSFileHandle_ssl_class == 0 && bundle != nil)
