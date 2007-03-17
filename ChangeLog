@@ -1,5 +1,9 @@
 2007-03-17  Nicola Pero <nicola.pero@meta-innovation.com>
 
+	* Source/Makefile.postamble (before-uninstall): Remove GSConfig.h.
+
+2007-03-17  Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* Source/NSBundle.m ([+bundleForLibrary:version:]): Fixed looking
 	up library resource bundle when no version is provided.
 	
