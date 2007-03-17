@@ -2273,14 +2273,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	      /* Any version will do.  */
 	      NSString *versionsPath = [[path stringByAppendingPathComponent: libraryName]
 					 stringByAppendingPathComponent: @"Versions"];
+
 	      if ([fm fileExistsAtPath: versionsPath  isDirectory: &isDir]  &&  isDir)
 		{
+		  /* TODO: Ignore subdirectories.  */
 		  NSEnumerator *fileEnumerator = [fm enumeratorAtPath: versionsPath];
 		  NSString *potentialPath;
 		  
 		  while ((potentialPath = [fileEnumerator nextObject]) != nil)
 		    {
-		      potentialPath = [potentialPath stringByAppendingPathComponent: @"Resources"];
+		      potentialPath = [versionsPath 
+					stringByAppendingPathComponent: 
+					  [potentialPath 
+					    stringByAppendingPathComponent: @"Resources"]];
 		      if ([fm fileExistsAtPath: potentialPath  isDirectory: &isDir]  &&  isDir)
 			{
 			  b = [self bundleWithPath: potentialPath];
