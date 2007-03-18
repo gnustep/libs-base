@@ -1,3 +1,9 @@
+2007-03-17  Adam Fedor  <fedor@gnu.org>
+
+	* config/config.trampoline.c: Check for proper CPU macro for Darwin
+	* configure.ac: Don't enable libffi by default on Darwin
+	(patches from Wolfgang Lux).
+
 2007-03-17  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* SSL/GNUmakefile: Install the SSL bundle in the versioned
