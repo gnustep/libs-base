@@ -1,3 +1,9 @@
+2007-03-17  Adam Fedor  <fedor@gnu.org>
+
+	* config/config.trampoline.c: Check for proper CPU macro for Darwin
+	* configure.ac: Don't enable libffi by default on Darwin
+	(patches from Wolfgang Lux).
+
 2007-03-05  Adam Fedor  <fedor@gnu.org>
 
         * configure.ac, config/config.trampoline.c: Add trampoline test.

@@ -1215,10 +1215,6 @@ fi
 # We enable ffcall by default now.
 #--------------------------------------------------------------------
 do_enable_libffi=no
-# Enable libffi by default on the following machines
-case "$target_os" in
-    darwin*)	do_enable_libffi=yes;;
-esac
 
 AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
