@@ -15578,10 +15578,6 @@ fi
 # We enable ffcall by default now.
 #--------------------------------------------------------------------
 do_enable_libffi=no
-# Enable libffi by default on the following machines
-case "$target_os" in
-    darwin*)	do_enable_libffi=yes;;
-esac
 
 # Check whether --enable-libffi was given.
 if test "${enable_libffi+set}" = set; then
