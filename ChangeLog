@@ -6,6 +6,8 @@
 	* Tools/gsdoc-1_0_1.rnc: Same change.
 	* Tools/gsdoc.7: Same change.
 	* Tools/gdomap.8: Same change.
+
+	* INSTALL: Updated.
 	
 2007-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
