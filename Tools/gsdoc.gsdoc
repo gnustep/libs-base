@@ -102,8 +102,8 @@ notice and this notice are preserved.
         and where those tags may be placed.  The reader is encouraged to
         consult the DTD directly on any points that the present document leaves
         unclear.  The DTD is stored under
-        <code>GNUSTEP_SYSTEM_ROOT/System/Library/DTDs</code> in a standard
-	GNUstep installation. .. where GNUSTEP_SYSTEM_ROOT is defined in
+        <code>GNUSTEP_SYSTEM_LIBRARY/DTDs</code> in a standard
+	GNUstep installation. .. where GNUSTEP_SYSTEM_LIBRARY is defined in
 	the GNUstep configuration file (GNUstep.conf).
       </p>
       <p>
