@@ -1,7 +1,12 @@
 2007-03-19  Nicola Pero <nicola.pero@meta-innovation.com>
 
-	* Tools/gsdoc.gsdoc: Removed reference to GNUSTEP_SYSTEM_ROOT.
-
+	* Tools/gsdoc.gsdoc: Removed reference to GNUSTEP_SYSTEM_ROOT; use
+	up-to-date variables such as GNUSTEP_SYSTEM_LIBRARY and
+	GNUSTEP_SYSTEM_DOC.
+	* Tools/gsdoc-1_0_1.rnc: Same change.
+	* Tools/gsdoc.7: Same change.
+	* Tools/gdomap.8: Same change.
+	
 2007-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDictionary.m: Correct errors in documentation about keys
