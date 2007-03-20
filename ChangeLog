@@ -1,3 +1,14 @@
+2007-03-20  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/NSUserDefaults.m ([+standardUserDefaults]): Fixed bug
+	were the same enumerator variable was reused in the two nested
+	loops and language resources wouldn't be found.  Optimized a
+	little by factoring some variables out of the inner loop.
+	Reorganized usage of information from the C locale so that we use
+	it whenever a language resource lookup can not be found and the C
+	locale information is precisely for that language, but not
+	otherwise.
+
 2007-03-19  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Tools/gsdoc.gsdoc: Removed reference to GNUSTEP_SYSTEM_ROOT; use
