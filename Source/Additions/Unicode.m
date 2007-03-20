@@ -134,11 +134,7 @@ static GSLazyLock *local_lock = nil;
 
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
-#if	defined(__MINGW32__)
-static NSStringEncoding	natEnc = NSUnicodeStringEncoding;
-#else
 static NSStringEncoding	natEnc = GSUndefinedEncoding;
-#endif
 static NSStringEncoding *_availableEncodings = 0;
 
 struct _strenc_ {
@@ -2036,7 +2032,7 @@ GSPrivateDefaultCStringEncoding()
       if (natEnc == GSUndefinedEncoding)
 	{
 	  /* Encoding not set */
-    #if HAVE_LANGINFO_CODESET
+#if HAVE_LANGINFO_CODESET
 	  /* Take it from the system locale information.  */
 	  encoding = nl_langinfo(CODESET);
 	  /*
@@ -2142,7 +2138,7 @@ GSPrivateDefaultCStringEncoding()
 	    || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
 	    || strcmp(encoding, "5601") == 0 /* Solaris */)
 	    natEnc = NSKoreanEUCStringEncoding;
-    #endif
+#endif
 	}
 
       encoding = getenv("GNUSTEP_STRING_ENCODING");
