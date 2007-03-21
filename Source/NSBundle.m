@@ -774,86 +774,91 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (self == [NSBundle class])
     {
       NSDictionary *env;
+      NSString	   *str;
 
       _emptyTable = RETAIN([NSDictionary dictionary]);
 
-      /* Need to make this recursive since both mainBundle and initWithPath:
-	 want to lock the thread */
+      /* Need to make this recursive since both mainBundle and
+       * initWithPath: want to lock the thread.
+       */
       load_lock = [NSRecursiveLock new];
       env = [[NSProcessInfo processInfo] environment];
-      if (env)
-	{
-	  NSString		*str;
 
-	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
-	    gnustep_target_cpu = RETAIN(str);
-	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_CPU"]) != nil)
-	    gnustep_target_cpu = RETAIN(str);
-	
-	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_OS"]) != nil)
-	    gnustep_target_os = RETAIN(str);
-	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_OS"]) != nil)
-	    gnustep_target_os = RETAIN(str);
-	
-	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
-	    gnustep_target_dir = RETAIN(str);
-	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
-	    gnustep_target_dir = RETAIN(str);
-	
-	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
-	    library_combo = RETAIN(str);
-
-	  _launchDirectory = RETAIN([[NSFileManager defaultManager]
-	    currentDirectoryPath]);
-
-	  _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
-					 version: OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]);
-
+      /* These variables are used when we are running non-flattened.
+       * This means that there are multiple binaries for different
+       * OSes, and we need constantly to choose the right one (eg,
+       * when loading a bundle or a framework).  The choice is based
+       * on these environments variables that are set by GNUstep.sh
+       * (you must source GNUstep.sh when non-flattened).
+       */
+      if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
+	gnustep_target_cpu = RETAIN(str);
+      else if ((str = [env objectForKey: @"GNUSTEP_HOST_CPU"]) != nil)
+	gnustep_target_cpu = RETAIN(str);
+      
+      if ((str = [env objectForKey: @"GNUSTEP_TARGET_OS"]) != nil)
+	gnustep_target_os = RETAIN(str);
+      else if ((str = [env objectForKey: @"GNUSTEP_HOST_OS"]) != nil)
+	gnustep_target_os = RETAIN(str);
+      
+      if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
+	gnustep_target_dir = RETAIN(str);
+      else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
+	gnustep_target_dir = RETAIN(str);
+      
+      if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
+	library_combo = RETAIN(str);
+      
+      _launchDirectory = RETAIN([[NSFileManager defaultManager]
+				  currentDirectoryPath]);
+      
+      _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
+				     version: OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]);
+      
 #if 0
-	  _loadingBundle = [self mainBundle];
-	  handle = objc_open_main_module(stderr);
-	  printf("%08x\n", handle);
+      _loadingBundle = [self mainBundle];
+      handle = objc_open_main_module(stderr);
+      printf("%08x\n", handle);
 #endif
 #if NeXT_RUNTIME
+      {
+	int i, numClasses = 0, newNumClasses = objc_getClassList(NULL, 0);
+	Class *classes = NULL;
+	while (numClasses < newNumClasses) {
+	  numClasses = newNumClasses;
+	  classes = objc_realloc(classes, sizeof(Class) * numClasses);
+	  newNumClasses = objc_getClassList(classes, numClasses);
+	}
+	for (i = 0; i < numClasses; i++)
 	  {
-	    int i, numClasses = 0, newNumClasses = objc_getClassList(NULL, 0);
-	    Class *classes = NULL;
-	    while (numClasses < newNumClasses) {
-	      numClasses = newNumClasses;
-	      classes = objc_realloc(classes, sizeof(Class) * numClasses);
-	      newNumClasses = objc_getClassList(classes, numClasses);
-	    }
-	    for (i = 0; i < numClasses; i++)
-	      {
-		[self _addFrameworkFromClass: classes[i]];
-	      }
-	    objc_free(classes);
+	    [self _addFrameworkFromClass: classes[i]];
 	  }
+	objc_free(classes);
+      }
 #else
+      {
+	void	*state = NULL;
+	Class	class;
+	
+	while ((class = objc_next_class(&state)))
 	  {
-	    void	*state = NULL;
-	    Class	class;
-
-	    while ((class = objc_next_class(&state)))
+	    unsigned int len = strlen (class->name);
+	    
+	    if (len > sizeof("NSFramework_")
+		&& !strncmp("NSFramework_", class->name, 12))
 	      {
-		unsigned int len = strlen (class->name);
-
-		if (len > sizeof("NSFramework_")
-	 	    && !strncmp("NSFramework_", class->name, 12))
-		  {
-		    [self _addFrameworkFromClass: class];
-		  }
+		[self _addFrameworkFromClass: class];
 	      }
 	  }
+      }
 #endif
 #if 0
-	  //		  _bundle_load_callback(class, NULL);
-	  //		  bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
-
-	  objc_close_main_module(handle);
-	  _loadingBundle = nil;
+      //  _bundle_load_callback(class, NULL);
+      //  bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
+      
+      objc_close_main_module(handle);
+      _loadingBundle = nil;
 #endif
-	}
     }
 }
 
