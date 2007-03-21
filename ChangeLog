@@ -1,3 +1,7 @@
+2007-03-21  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/NSBundle.m ([+initialize]): Removed unused check.
+	
 2007-03-20  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Source/NSUserDefaults.m ([+standardUserDefaults]): Fixed bug
