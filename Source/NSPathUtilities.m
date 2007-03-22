@@ -1502,10 +1502,8 @@ NSTemporaryDirectory(void)
   if ([manager fileExistsAtPath: tempDirName isDirectory: &flag] == NO
     || flag == NO)
     {
-      [NSException raise: NSGenericException
-		  format: @"Temporary directory (%@) does not exist",
-			  tempDirName];
-      return nil; /* Not reached. */
+      NSWarnFLog(@"Temporary directory (%@) does not exist", tempDirName);
+      return nil;
     }
 
   /*
@@ -1544,10 +1542,7 @@ NSTemporaryDirectory(void)
       secure = [NSString stringWithFormat: @"GNUstepSecure%d", uid];
       tempDirName
 	= [baseTempDirName stringByAppendingPathComponent: secure];
-      /*
-      NSLog(@"Temporary directory (%@) may be insecure ... attempting to "
-	@"add secure subdirectory", tempDirName);
-      */
+
       if ([manager fileExistsAtPath: tempDirName] == NO)
 	{
 	  NSNumber	*p = [NSNumber numberWithInt: 0700];
@@ -1557,11 +1552,9 @@ NSTemporaryDirectory(void)
 	  if ([manager createDirectoryAtPath: tempDirName
 				  attributes: attr] == NO)
 	    {
-	      [NSException raise: NSGenericException
-			  format:
-		@"Attempt to create a secure temporary directory (%@) failed.",
-				  tempDirName];
-	      return nil; /* Not reached. */
+	      NSWarnFLog(@"Attempt to create a secure temporary"
+	        @" directory (%@) failed.", tempDirName);
+	      return nil;
 	    }
 	}
 
@@ -1574,21 +1567,17 @@ NSTemporaryDirectory(void)
       perm = perm & 0777;
       if ((perm != 0700 && perm != 0600) || owner != uid)
 	{
-	  [NSException raise: NSGenericException
-		      format:
-	    @"Attempt to create a secure temporary directory (%@) failed.",
-			      tempDirName];
-	  return nil; /* Not reached. */
+	  NSWarnFLog(@"Attempt to create a secure temporary"
+	    @" directory (%@) failed.", tempDirName);
+	  return nil;
 	}
     }
 #endif
 
   if ([manager isWritableFileAtPath: tempDirName] == NO)
     {
-      [NSException raise: NSGenericException
-		  format: @"Temporary directory (%@) is not writable",
-			  tempDirName];
-      return nil; /* Not reached. */
+      NSWarnFLog(@"Temporary directory (%@) is not writable", tempDirName);
+      return nil;
     }
   return tempDirName;
 }

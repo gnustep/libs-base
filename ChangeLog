@@ -1,3 +1,10 @@
+2007-03-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: NSTemporaryDirectory() don't raise
+	exception on error, just log a warning and return nil.
+	* Source/NSDateFormatter.m: When given an empty string to convert to
+	a date, just skip the conversion.
+
 2007-03-21  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Source/NSBundle.m ([+initialize]): Removed unused check.
