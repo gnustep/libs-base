@@ -399,7 +399,6 @@ static NSAffineTransformStruct identityTransform = {
  */
 - (void) scaleXBy: (float)scaleX yBy: (float)scaleY
 {
-/*
   if (_isIdentity && scaleX == 1.0)
     {
       if (scaleY == 1.0)
@@ -429,7 +428,7 @@ static NSAffineTransformStruct identityTransform = {
 	  return;
 	}
     }
-*/
+
   A *= scaleX;
   B *= scaleX;
   C *= scaleY;
