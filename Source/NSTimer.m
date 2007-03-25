@@ -150,10 +150,14 @@ static Class	NSDate_class;
 				 invocation: (NSInvocation*)invocation
 				    repeats: (BOOL)f
 {
-  id t = [self timerWithTimeInterval: ti
-			  invocation: invocation
-			     repeats: f];
+  id t = [[self alloc] initWithFireDate: nil
+			       interval: ti
+				 target: invocation
+			       selector: NULL
+			       userInfo: nil
+				repeats: f];
   [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
+  RELEASE(t);
   return t;
 }
 
@@ -171,12 +175,14 @@ static Class	NSDate_class;
 				   userInfo: (id)info
 				    repeats: (BOOL)f
 {
-  id t = [self timerWithTimeInterval: ti
-			      target: object
-			    selector: selector
-			    userInfo: info
-			     repeats: f];
+  id t = [[self alloc] initWithFireDate: nil
+			       interval: ti
+				 target: object
+			       selector: selector
+			       userInfo: info
+				repeats: f];
   [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
+  RELEASE(t);
   return t;
 }
 
