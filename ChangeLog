@@ -1,3 +1,8 @@
+2007-03-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimer.m: minor optimisation ... avoid unnecessary use of
+	autorelease by doing explicit release instead.
+
 2007-03-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: NSTemporaryDirectory() don't raise
