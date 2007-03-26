@@ -1400,7 +1400,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		 name: GSFileHandleConnectCompletionNotification
 	       object: sock];
       connectionState = connecting;
-      if (debug) NSLog(@"%@ start connect", NSStringFromSelector(_cmd));
+      if (debug)
+        {
+          NSLog(@"%@ start connect to %@:%@",
+	    NSStringFromSelector(_cmd), host, port);
+	}
     }
   else
     {
