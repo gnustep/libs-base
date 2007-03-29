@@ -60,7 +60,7 @@ register void* env __asm__("%r29");
 #ifdef __arm__
 register void* env __asm__("r12");
 #endif
-#ifdef __powerpc__
+#if defined(__powerpc__) || defined(__ppc__) || defined(__ppc64__)
 #ifdef __NetBSD__
 register void* env __asm__("r13");
 #else

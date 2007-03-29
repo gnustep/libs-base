@@ -860,6 +860,7 @@ static void setNonblocking(SOCKET fd)
   else if (readLen == 0)
     {
       [self _setStatus: NSStreamStatusAtEnd];
+      [self _sendEvent: NSStreamEventEndEncountered];
     }
   else 
     {
@@ -1019,7 +1020,7 @@ static void setNonblocking(SOCKET fd)
     {
       _peerAddr.sin_family = AF_INET;
       _peerAddr.sin_port = htons(port);
-      _peerAddr.sin_addr.s_addr = inet_addr(addr_c);
+      _peerAddr.sin_addr.s_addr = addr_c ? inet_addr(addr_c) : INADDR_NONE;
       if (_peerAddr.sin_addr.s_addr == INADDR_NONE)   // error
 	{
 	  DESTROY(self);
@@ -1758,7 +1759,7 @@ static void setNonblocking(SOCKET fd)
     {
       _peerAddr.sin_family = AF_INET;
       _peerAddr.sin_port = htons(port);
-      _peerAddr.sin_addr.s_addr = inet_addr(addr_c);
+      _peerAddr.sin_addr.s_addr = addr_c ? inet_addr(addr_c) : INADDR_NONE;
       if (_peerAddr.sin_addr.s_addr == INADDR_NONE)   // error
 	{
 	  DESTROY(self);
@@ -2366,7 +2367,7 @@ done:
   [super init];
   _serverAddr.sin_family = AF_INET;
   _serverAddr.sin_port = htons(port);
-  _serverAddr.sin_addr.s_addr = inet_addr(addr_c);
+  _serverAddr.sin_addr.s_addr = addr_c ? inet_addr(addr_c) : INADDR_NONE;
   _sock = socket(AF_INET, SOCK_STREAM, 0);
   if (_serverAddr.sin_addr.s_addr == INADDR_NONE || _loopID < 0)   // error
     {

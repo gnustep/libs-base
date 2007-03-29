@@ -105,7 +105,7 @@ static GSLazyLock *lock = nil;
   return AUTORELEASE(transformer);
 }
 
-+ (NSArray *) valueTransformerNames;
++ (NSArray *) valueTransformerNames
 {
   NSArray	*names;
 

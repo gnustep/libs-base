@@ -59,13 +59,13 @@
    ===================================
 
    Default place for the NSTimeZone directory is _time_zone_path():
-     {$(GNUSTEP_SYSTEM_ROOT)Libary/Libraries/Resources/TIME_ZONE_DIR}
+     {$(GNUSTEP_SYSTEM_LIBRARY)/Libraries/gnustep-base/Versions/1.14/Resources/TIME_ZONE_DIR)
 
    LOCAL_TIME_FILE is a text file with the name of the time zone file.
 
    ZONES_DIR is a sub-directory under TIME_ZONE_DIR
 
-   (dir) ../System/Library/Libraries/Resources/..
+   (dir) ../System/Library/Libraries/gnustep-base/Versions/1.14/Resources/..
    (dir)     NSTimeZone
    (file)      localtime {text; time zone eg Australia/Perth}
    (dir)       zones

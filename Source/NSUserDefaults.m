@@ -36,7 +36,6 @@
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSArchiver.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSBundle.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDate.h"
 #include "Foundation/NSDictionary.h"
@@ -400,7 +399,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 
 + (NSUserDefaults*) standardUserDefaults
 {
-  BOOL added_locale, added_lang;
+  BOOL added_lang, added_locale;
   id lang;
   NSArray *uL;
   NSEnumerator *enumerator;
@@ -493,63 +492,129 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     }
 
   /* Set up language constants */
-  added_locale = NO;
-  added_lang = NO;
-  enumerator = [uL objectEnumerator];
-  while ((lang = [enumerator nextObject]))
-    {
-      NSString		*path;
-      NSDictionary	*dict;
-      NSBundle		*gbundle;
 
-      gbundle = [NSBundle bundleForClass: [NSObject class]];
-      path = [gbundle pathForResource: lang
-		               ofType: nil
-		          inDirectory: @"Languages"];
-      dict = nil;
-      if (path != nil)
-	{
-	  dict = [NSDictionary dictionaryWithContentsOfFile: path];
-	}
-      if (dict)
-	{
-	  [sharedDefaults setVolatileDomain: dict forName: lang];
-	  added_lang = YES;
-	}
-      else if (added_locale == NO)
-	{
-	  NSString	*locale = nil;
+  /* We lookup gnustep-base resources manually here to prevent
+   * bootstrap problems.  NSBundle's lookup routines depend on having
+   * NSUserDefaults already bootstrapped, but we're still
+   * bootstrapping here!  So we can't really use NSBundle without
+   * incurring massive bootstrap complications (btw, most of the times
+   * we're here as a consequence of [NSBundle +initialize] creating
+   * the gnustep-base bundle!  So trying to use the gnustep-base
+   * bundle here wouldn't really work.).
+   */
+  /*
+   * We are looking for:
+   *
+   * GNUSTEP_LIBRARY/Libraries/gnustep-base/Versions/<interfaceVersion>/Resources/Languages/<language>
+   *
+   * We iterate over <language>, and for each <language> we iterate over GNUSTEP_LIBRARY.
+   */
+  
+  {
+    /* These variables are reused for all languages so we set them up
+     * once here and then reuse them.
+     */
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSString *tail = [[[[[@"Libraries" 
+			   stringByAppendingPathComponent: @"gnustep-base"]
+			  stringByAppendingPathComponent: @"Versions"]
+			 stringByAppendingPathComponent: 
+			   OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
+			stringByAppendingPathComponent: @"Resources"]
+		       stringByAppendingPathComponent: @"Languages"];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
+							  NSAllDomainsMask, YES);
+    
+    added_lang = NO;
+    added_locale = NO;
+    enumerator = [uL objectEnumerator];
+    while ((lang = [enumerator nextObject]))
+      {
+	NSDictionary	*dict = nil;
+	NSString	*path = nil;
+	NSEnumerator *pathEnumerator = [paths objectEnumerator];
 
+	while ((path = [pathEnumerator nextObject]) != nil)
+	  {
+	    path = [[path stringByAppendingPathComponent: tail]
+		     stringByAppendingPathComponent: lang];
+
+	    if ([fm fileExistsAtPath: path])
+	      {
+		/* Path found!  */
+		break;
+	      }
+	  }
+	
+	if (path != nil)
+	  {
+	    dict = [NSDictionary dictionaryWithContentsOfFile: path];
+	  }
+	if (dict != nil)
+	  {
+	    [sharedDefaults setVolatileDomain: dict forName: lang];
+	    added_lang = YES;
+	  }
+	else if (added_locale == NO)
+	  {
+	    /* The resources for the language that we were looking for
+	     * were not found.  If this was the currently set locale
+	     * in the C library, try to get the same information from
+	     * the C library.  This would usually happen for the
+	     * language that was added to the list of languages
+	     * precisely because it is the currently set locale in the
+	     * C library.
+	     */
+	    NSString	*locale = nil;
+	    
 #ifdef HAVE_LOCALE_H
 #ifdef LC_MESSAGES
-	  locale = GSSetLocale(LC_MESSAGES, nil);
+	    locale = GSSetLocale(LC_MESSAGES, nil);
 #endif
 #endif
-	  if (locale == nil)
-	    {
-	      continue;
-	    }
-	  /* See if we can get the dictionary from i18n functions.
-	     Note that we get the dict from the current locale regardless
-	     of what 'lang' is, since it should match anyway. */
-	  /* Also, I don't think that the i18n routines can handle more than
-	     one locale, but tell me if I'm wrong... */
-	  if (GSLanguageFromLocale(locale))
-	    {
-	      lang = GSLanguageFromLocale(locale);
-	    }
-	  dict = GSDomainFromDefaultLocale();
-	  if (dict != nil)
-	    {
-	      [sharedDefaults setVolatileDomain: dict forName: lang];
-	    }
-	  added_locale = YES;
-	}
-    }
+	    if (locale != nil)
+	      {
+		/* See if we can get the dictionary from i18n
+		 * functions.  I don't think that the i18n routines
+		 * can handle more than one locale, so we don't try to
+		 * look 'lang' up but just get what we get and use it
+		 * if it matches 'lang' ... but tell me if I'm wrong
+		 * ...
+		 */
+		if ([lang isEqualToString: GSLanguageFromLocale (locale)])
+		  {
+		    /* We set added_locale to YES to avoid so that we
+		     * won't do this C library locale lookup again
+		     * later on.
+		     */
+		    added_locale = YES;
+		    
+		    dict = GSDomainFromDefaultLocale ();
+		    if (dict != nil)
+		      {
+			[sharedDefaults setVolatileDomain: dict forName: lang];
+			
+			/* We do not set added_lang to YES here
+			 * because we want the improper installation
+			 * warning to be printed below if our own
+			 * English language dictionary is not found,
+			 * and we want the basic hardcoded defaults to
+			 * be used in that case.  (FIXME: Review this
+			 * decision).
+			 */
+		      }
+		  }
+	      }
+	  }
+      }
+  }
+
   if (added_lang == NO)
     {
-      /* Ack! We should never get here */
+      /* Ack! We should never get here.  */
       NSWarnMLog(@"Improper installation: No language locale found");
+
+      /* FIXME - should we set this as volatile domain for English ? */
       [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
     }
   RETAIN(sharedDefaults);
@@ -604,7 +669,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 #endif
 #endif
       currLang = [[NSUserDefaults standardUserDefaults]
-	stringArrayForKey: @"NSLanguages"];
+          stringArrayForKey: @"NSLanguages"];
 
       userLanguages = [[NSMutableArray alloc] initWithCapacity: 5];
 

@@ -81,6 +81,7 @@ before-uninstall::
 	for file in $(GNU_HEADERS); do \
 	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
+	rm -f $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 
 # Things to do before cleaning
 # before-clean::
