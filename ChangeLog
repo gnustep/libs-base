@@ -2,6 +2,7 @@
 
 	* Source/NSPredicate.m: ([-parseOr]) Use orPredicateWithSubpredicates
 	rather than andPredicateWithSubpredicates.  Fix for bug #19446.
+	* Source/unix/NSStream.m: Fix memory leak.
 
 2007-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
