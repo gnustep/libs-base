@@ -1435,11 +1435,11 @@
 	notPredicateWithSubpredicate: [self parseNot]];
     }
 
-  if ([self scanPredicateKeyword:@"TRUEPREDICATE"])
+  if ([self scanPredicateKeyword: @"TRUEPREDICATE"])
     {
       return [NSPredicate predicateWithValue: YES];
     }
-  if ([self scanPredicateKeyword:@"FALSEPREDICATE"])
+  if ([self scanPredicateKeyword: @"FALSEPREDICATE"])
     {
       return [NSPredicate predicateWithValue: NO];
     }
@@ -1451,7 +1451,7 @@
 {
   NSPredicate	*l = [self parseNot];
 
-  while ([self scanPredicateKeyword:@"OR"])
+  while ([self scanPredicateKeyword: @"OR"])
     {
       NSPredicate	*r = [self parseNot];
 
@@ -1483,7 +1483,7 @@
 	}
       else
         {
-	  l = [NSCompoundPredicate andPredicateWithSubpredicates: 
+	  l = [NSCompoundPredicate orPredicateWithSubpredicates: 
 	    [NSArray arrayWithObjects: l, r, nil]];
 	}
     }
@@ -1771,7 +1771,7 @@
 		  [args addObject: [self parseExpression]];
 		}
 
-	      if (![self scanString:@")" intoString:NULL])
+	      if (![self scanString: @")" intoString: NULL])
 	        {
 		  [NSException raise: NSInvalidArgumentException 
 			      format: @"Missing ) in function arguments"];
