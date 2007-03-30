@@ -1,3 +1,8 @@
+2007-03-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: ([-parseOr]) Use orPredicateWithSubpredicates
+	rather than andPredicateWithSubpredicates.  Fix for bug #19446.
+
 2007-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimer.m: minor optimisation ... avoid unnecessary use of
