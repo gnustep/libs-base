@@ -1622,13 +1622,13 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
 if (domainMask & mask) \
 { \
   path = [base_dir stringByAppendingPathComponent: add_dir]; \
-  if (path != nil && [paths containsObject: path] == NO) \
+  if ([path length] > 0 && [paths containsObject: path] == NO) \
     [paths addObject: path]; \
 }
 #define ADD_PLATFORM_PATH(mask, add_dir) \
 if (domainMask & mask) \
 { \
-  if (add_dir != nil && [paths containsObject: add_dir] == NO) \
+  if ([add_dir length] > 0 && [paths containsObject: add_dir] == NO) \
     [paths addObject: add_dir]; \
 }
 
