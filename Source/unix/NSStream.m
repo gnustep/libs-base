@@ -292,8 +292,10 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
-  RELEASE(_path);
+    {
+      [self close];
+    }
+  DESTROY(_path);
   [super dealloc];
 }
 
@@ -411,7 +413,7 @@ static void setNonblocking(int fd)
 
 - (void) setSibling: (GSOutputStream*)sibling
 {
-  ASSIGN(_sibling, sibling);
+  _sibling = sibling;
 }
 
 - (void) setPassive: (BOOL)passive
@@ -433,8 +435,11 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
-  RELEASE(_sibling);
+    {
+      [self close];
+    }
+  [(GSSocketOutputStream*)_sibling setSibling: nil];
+  _sibling = nil;
   [super dealloc];
 }
 
@@ -719,7 +724,9 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
+    {
+      [self close];
+    }
   RELEASE(_path);
   [super dealloc];
 }
@@ -830,7 +837,7 @@ static void setNonblocking(int fd)
 
 - (void) setSibling: (GSInputStream*)sibling
 {
-  ASSIGN(_sibling, sibling);
+  _sibling = sibling;
 }
 
 - (void) setPassive: (BOOL)passive
@@ -851,8 +858,11 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
-  RELEASE(_sibling);
+    {
+      [self close];
+    }
+  [(GSSocketInputStream*)_sibling setSibling: nil];
+  _sibling = nil;
   [super dealloc];
 }
 
@@ -1425,7 +1435,9 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
+    {
+      [self close];
+    }
   [super dealloc];
 }
 
