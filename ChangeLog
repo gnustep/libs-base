@@ -1,3 +1,11 @@
+2007-04-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m:
+	* Source/Additions/Unicode.m:
+	* Headers/Foundation/NSString.h:
+	* Headers/Additions/GNUstepBase/Unicode.h:
+	Header/include fixups for macosx portability.
+
 2007-03-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m: ([-parseOr]) Use orPredicateWithSubpredicates
