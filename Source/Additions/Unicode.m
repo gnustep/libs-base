@@ -41,10 +41,12 @@
 #else
 #include <Foundation/Foundation.h>
 #endif
+
 #include "GNUstepBase/GSLock.h"
 #include "GNUstepBase/GSMime.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/Unicode.h"
+
 #include "../GSPrivate.h"
 #include <stdio.h>
 #include <stdlib.h>

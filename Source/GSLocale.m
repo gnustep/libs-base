@@ -37,6 +37,8 @@
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSBundle.h"
 
+#include "GSPrivate.h"
+
 /*
  * Function called by [NSObject +initialize] to setup locale information
  * from environment variables.  Must *not* use any ObjC code since it needs
