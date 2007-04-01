@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 /* Call this method from CLASS's +initialize method to add a behavior
    to CLASS.  A "behavior" is like a protocol with an implementation.

@@ -30,7 +30,7 @@
 #define __GSMime_h_GNUSTEP_BASE_INCLUDE
 #include <GNUstepBase/GSVersionMacros.h>
 
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #ifdef NeXT_Foundation_LIBRARY
 #include <Foundation/Foundation.h>

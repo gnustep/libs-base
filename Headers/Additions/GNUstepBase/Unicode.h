@@ -35,7 +35,7 @@
 
 #include <Foundation/NSString.h>	/* For string encodings */
 
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 /*
  * Private API used internally by NSString etc.
