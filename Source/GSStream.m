@@ -228,10 +228,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     {
       if ([_modes containsObject: mode])
 	{
-	  if ([self _isOpened])
-	    {
-	      [_runloop removeStream: self mode: mode];
-	    }
+	  [_runloop removeStream: self mode: mode];
 	  [_modes removeObject: mode];
 	  if ([_modes count] == 0)
 	    {
@@ -251,6 +248,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       mode = [mode copy];
       [_modes addObject: mode];
       RELEASE(mode);
+      /* We only add open streams to the runloop .. subclasses may add
+       * streams when they are in the process of opening if they need
+       * to do so.
+       */
       if ([self _isOpened])
 	{
 	  [_runloop addStream: self mode: mode];
