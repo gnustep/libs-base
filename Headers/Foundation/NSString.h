@@ -104,7 +104,7 @@ typedef enum _NSStringEncoding
   NSWindowsCP1250StringEncoding = 15,	// WinLatin2
   NSISO2022JPStringEncoding = 21,
   NSMacOSRomanStringEncoding = 30,
-  NSProprietaryStringEncoding = 31
+  NSProprietaryStringEncoding = 31,
 
   NSKOI8RStringEncoding = 50,		// Russian/Cyrillic
   NSISOLatin3StringEncoding = 51,	// ISO-8859-3; South European
