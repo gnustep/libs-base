@@ -43,6 +43,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSCategories.h"
+#include "GNUstepBase/Unicode.h"
 
 
 #ifdef	HAVE_LIBXML
@@ -5533,7 +5534,6 @@ didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge*)challenge
 {
   NSMutableArray	*params = [NSMutableArray array];
   id			fault = nil;
-  int			code;
 
   NS_DURING
     {

@@ -36,40 +36,6 @@
 
 #import <Foundation/NSString.h>	/* For standard string encodings */
 
-#if	!defined(DEFINED_GSSTRINGENCODING)
-#define	DEFINED_GSSTRINGENCODING 1
-/* Additional string encodings ... must match those in Foundation/NSString.h
- * until removed from there.
- */
-typedef enum {
-/* NB. Must not have an encoding with value zero - so we can use zero to
-   tell that a variable that should contain an encoding has not yet been
-   initialised */
-  GSUndefinedEncoding = 0,
-  NSKOI8RStringEncoding = 50,		// Russian/Cyrillic
-  NSISOLatin3StringEncoding = 51,	// ISO-8859-3; South European
-  NSISOLatin4StringEncoding = 52,	// ISO-8859-4; North European
-  NSISOCyrillicStringEncoding = 22,	// ISO-8859-5
-  NSISOArabicStringEncoding = 53,	// ISO-8859-6
-  NSISOGreekStringEncoding = 54,	// ISO-8859-7
-  NSISOHebrewStringEncoding = 55,	// ISO-8859-8
-  NSISOLatin5StringEncoding = 57,	// ISO-8859-9; Turkish
-  NSISOLatin6StringEncoding = 58,	// ISO-8859-10; Nordic
-  NSISOThaiStringEncoding = 59,		// ISO-8859-11
-/* Possible future ISO-8859 additions
-					// ISO-8859-12
-*/
-  NSISOLatin7StringEncoding = 61,	// ISO-8859-13
-  NSISOLatin8StringEncoding = 62,	// ISO-8859-14
-  NSISOLatin9StringEncoding = 63,	// ISO-8859-15; Replaces ISOLatin1
-  NSGB2312StringEncoding = 56,
-  NSUTF7StringEncoding = 64,		// RFC 2152
-  NSGSM0338StringEncoding,		// GSM (mobile phone) default alphabet
-  NSBIG5StringEncoding,			// Traditional chinese
-  NSKoreanEUCStringEncoding		// Korean
-} GSStringEncoding;
-#endif
-
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #if	defined(__cplusplus)

@@ -54,7 +54,7 @@
 extern "C" {
 #endif
 
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @class NSMutableSet;
 
