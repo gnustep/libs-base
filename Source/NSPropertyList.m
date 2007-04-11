@@ -298,7 +298,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 	  [parser abortParsing];
 	  return;
 	}
-      [[stack lastObject] setObject: plist forKey: key];
+      [(NSMutableDictionary*)[stack lastObject] setObject: plist forKey: key];
       DESTROY(key);
     }
   DESTROY(value);
