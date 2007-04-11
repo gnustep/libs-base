@@ -1,3 +1,13 @@
+2007-04-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSCompatibility.m:
+	* Source/Additions/GSMime.m:
+	* Headers/Foundation/NSString.h:
+	* Headers/Additions/GNUstepBase/GSCategories.h:
+	* Headers/Additions/GNUstepBase/Unicode.h:
+	More macos-x portability fixups.
+
 2007-04-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSLocale.m:

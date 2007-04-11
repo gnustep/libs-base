@@ -28,6 +28,12 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GCObject.h"
 
+/* Avoid compiler warnings about internal method
+*/
+@interface	NSError (GNUstep)
++ (NSError*) _last;
+@end
+
 NSThread *GSCurrentThread()
 {
   return [NSThread currentThread];
