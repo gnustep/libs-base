@@ -1,5 +1,13 @@
 2007-04-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Documentation/news.texi:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/manual/Compliance.texi:
+	Add new stable release information and fixx a couple of documentation
+	errors.
+
+2007-04-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSXML.m:
 	* Source/Additions/GSCompatibility.m:
 	* Source/Additions/GSMime.m:
