@@ -876,6 +876,7 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _dispatch
 {
+  AUTORELEASE(RETAIN(self));
   /*
    * Windows only permits a single event to be associated with a socket
    * at any time, but the runloop system only allows an event handle to
@@ -1089,6 +1090,8 @@ static void setNonblocking(SOCKET fd)
 	{
           [self _recordError];
           [self _sendEvent: NSStreamEventErrorOccurred];
+          CloseHandle(h);
+	  return;
 	}
     }
   [self _setLoopID: (void*)h];
@@ -1609,6 +1612,7 @@ static void setNonblocking(SOCKET fd)
 
 - (void) _dispatch
 {
+  AUTORELEASE(RETAIN(self));
   /*
    * Windows only permits a single event to be associated with a socket
    * at any time, but the runloop system only allows an event handle to
