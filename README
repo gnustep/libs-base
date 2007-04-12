@@ -1,5 +1,5 @@
-Readme
-******
+1 Readme
+********
 
 The GNUstep Base Library is a library of general-purpose, non-graphical
 Objective C objects.  For example, it includes classes for strings,
@@ -10,16 +10,16 @@ remote object messaging support (distributed objects), and event loops.
 It provides functionality that aims to implement the non-graphical
 portion of the OpenStep standard (the Foundation library).
 
-Initial reading
-===============
+1.1 Initial reading
+===================
 
 The file `NEWS' has the library's feature history.
 
    The files `INSTALL' or `GNUstep-HOWTO' (from the web site) gives
 instructions for installing the library.
 
-License
-=======
+1.2 License
+===========
 
 The GNUstep libraries and library resources are covered under the GNU
 Lesser Public License.  This means you can use these libraries in any
@@ -43,14 +43,14 @@ NSConnection.  "Ffcall is under GNU GPL. As a special exception, if used
 in GNUstep or in derivate works of GNUstep, the included parts of ffcall
 are under GNU LGPL" (Text in quotes provided by the author of ffcall).
 
-How can you help?
-=================
+1.3 How can you help?
+=====================
 
    * Give us feedback!  Tell us what you like; tell us what you think
      could be better.
 
      Please log bug reports on the GNUstep project page
-     <http://savannah.gnu.org/bugs/?group=gnustep> or send bug reports
+     `http://savannah.gnu.org/bugs/?group=gnustep' or send bug reports
      to <bug-gnustep@gnu.org>.
 
 
