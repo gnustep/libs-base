@@ -11,6 +11,14 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.15.0}
+
+This is an unstable release from 1.14.0.  It is otherwise
+identical to the 1.14.0 release. Releases in the 1.15 series
+may not be forward compatible with previous 1.15 releases.
+ 
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.14.0}
 
 Many portability (particularly for ms-windows) and MacOS-X compatibility fixes.
@@ -18,7 +26,6 @@ New MacOS-X classes and incorporation of NSAffineTransform and NSSpellServer
 which were formerly in the gui library.
 Improved performance of amssively multithreaded programs.
 
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.13.1}
 

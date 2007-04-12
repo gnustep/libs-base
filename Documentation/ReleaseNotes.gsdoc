@@ -29,6 +29,14 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.15.0</heading>
+	<p> 
+          This is an unstable release from 1.14.0.  It is otherwise
+	  identical to the 1.14.0 release. Releases in the 1.15 series
+	  may not be foreward compatible with previous 1.15 releases.
+	</p>
+      </section>
+      <section>
 	<heading>Version 1.14.0</heading>
 	<p> 
           This is a stable release ... all programs linked with earlier

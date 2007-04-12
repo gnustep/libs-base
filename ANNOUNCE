@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.14.0, is now available.
+The GNUstep Base Library, version 1.15.0, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -18,18 +18,17 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version `1.14.0'
+1.2 Noteworthy changes in version `1.15.0'
 ==========================================
 
-Many portability (particularly for ms-windows) and MacOS-X
-compatibility fixes.  New MacOS-X classes and incorporation of
-NSAffineTransform and NSSpellServer which were formerly in the gui
-library.  Improved performance of amssively multithreaded programs.
+This is an unstable release from 1.14.0.  It is otherwise identical to
+the 1.14.0 release. Releases in the 1.15 series may not be forward
+compatible with previous 1.15 releases.
 
 1.3 Where can you get it?  How can you compile it?
 ==================================================
 
-The gnustep-base-1.14.0.tar.gz distribution file has been placed at
+The gnustep-base-1.15.0.tar.gz distribution file has been placed at
 `ftp://ftp.gnustep.org/pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page
