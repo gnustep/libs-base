@@ -66,12 +66,12 @@
       return [self attributedStringForZero];
     }
 
-  if (([anObject compare: zeroNumber] == NSOrderedDescending)
+  if (([(NSNumber*)anObject compare: zeroNumber] == NSOrderedDescending)
     && (_attributesForPositiveValues))
     {
       attr = _attributesForPositiveValues;
     }
-  else if (([anObject compare: zeroNumber] == NSOrderedAscending)
+  else if (([(NSNumber*)anObject compare: zeroNumber] == NSOrderedAscending)
     && (_attributesForNegativeValues))
     {
       attr = _attributesForNegativeValues;
@@ -550,7 +550,8 @@
     return [[self attributedStringForZero] string];
   
   useFormat = _positiveFormat;
-  if ([anObject compare: [NSDecimalNumber zero]] == NSOrderedAscending)
+  if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
+    == NSOrderedAscending)
     {
       useFormat = _negativeFormat;
       negativeNumber = YES;

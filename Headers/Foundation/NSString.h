@@ -106,7 +106,6 @@ typedef enum _NSStringEncoding
   NSMacOSRomanStringEncoding = 30,
   NSProprietaryStringEncoding = 31,
 
-// GNUstep additions
   NSKOI8RStringEncoding = 50,		// Russian/Cyrillic
   NSISOLatin3StringEncoding = 51,	// ISO-8859-3; South European
   NSISOLatin4StringEncoding = 52,	// ISO-8859-4; North European

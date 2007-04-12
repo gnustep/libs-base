@@ -134,7 +134,7 @@ static NSAffineTransformStruct identityTransform = {
     {
       TX += aTransform->TX;
       TY += aTransform->TY;
-      check()
+      check();
       return;
     }
 
@@ -154,7 +154,7 @@ static NSAffineTransformStruct identityTransform = {
 	  _isFlipY = NO;
 	  _isIdentity = YES;
 	}
-      check()
+      check();
       return;
     }
 

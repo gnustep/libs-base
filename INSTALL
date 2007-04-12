@@ -1,11 +1,11 @@
-Introduction
-============
+0.1 Introduction
+================
 
 If you are installing this package as part of the GNUstep core packages,
 read the file GNUstep-HOWTO for more complete instructions on how to
 install the entire GNUstep package (including this library).
 GNUstep-HOWTO is located in the gnustep-make package or at
-<http://www.gnustep.org>
+`http://www.gnustep.org'
 
    Other external libraries that you may need to install include:
 
@@ -22,16 +22,14 @@ GNUstep-HOWTO is located in the gnustep-make package or at
    If you are installing the GNUstep libraries individually, make sure
 you have installed the GNUstep Makefile package (gnustep-make) already,
 and you have sourced the makefile script:
-     . $GNUSTEP_MAKEFILES/GNUstep.sh
-(usually this means '. /usr/GNUstep/System/Library/Makefiles/GNUstep.sh' or
-'. /usr/local/share/GNUstep/Makefiles/GNUstep.sh')
+     . $GNUSTEP_SYSTEM_ROOT/Library/Makefiles/GNUstep.sh
    See the GNUstep-HOWTO for more information.
 
    After installing this library you should install gnustep-gui if you
 are going to use graphical applications.
 
    When you configure this library, make sure you use the same
-configuration options as with gnustep-make. Some additional options to
+configuration options as with gstep-make. Some additional options to
 configure are described below.
 
    Quick installation instructions:
@@ -46,30 +44,29 @@ configure are described below.
      make
      make install
 
-Configuration
-=============
+0.2 Configuration
+=================
 
-   Configuration is performed by running the `configure' program at a
-shell prompt. You may want to use some of the optional arguments to
-the `configure' program. Type `configure --help' for a list of
-these. It is not likely that you will need to use the `--prefix'
-option, since gnustep-base will automatically install in the directory
-layout specified when you installed gnustep-make.  If you need to
-relocate (for packaging) please use something like 'make
-DESTDIR=/tmp/my-gnustep-base'.
+Configuration is performed by running the `configure' program at a
+shell prompt. You may want to use some of the optional arguments to the
+`configure' program. Type `configure --help' for a list of these. It is
+not likely that you will need to use the `--prefix' option, since
+gstep-base will automatically install in the directory specified by the
+`GNUSTEP_SYSTEM_ROOT' environment variable (specified when you
+installed gnustep-make).
 
    Some configuration options for the base library need to be specified
-when configuring the gnustep-make package.  In some cases, it is a good
+when configuring the gnustep-make package. In most cases, it is a good
 idea to specify the same configuration options when configuring both
 packages, just to make sure.
 
    Also make sure you've read the machine-specific instructions for your
 particular operating system and CPU. These instructions come with the
 GNUstep-HOWTO and are also located at the GNUstep web site at
-<http://www.gnustep.org>.
+`http://www.gnustep.org'.
 
-Reading Command-Line Arguments
-------------------------------
+0.2.1 Reading Command-Line Arguments
+------------------------------------
 
 There are two features that change how GNUstep gets access to
 command-line arguments and environment variables (normally passed to
@@ -102,8 +99,8 @@ to pass the program arguments to NSProcessInfo (This would be done
 automatically if you use the NSApplicationMain function in a gui
 application).
 
-FFI Library
------------
+0.2.2 FFI Library
+-----------------
 
 GNUstep's NSInvocations and Distributed Objects code involves detailed
 manipulation of the stack and function calls using a library that
@@ -116,11 +113,11 @@ handling, but this rarely works on non-ix86 machines and is not
 supported.
 
    You need to have the ffcall libraries, which you can get from
-<ftp://www.gnustep.org/pub/gnustep/libs/> or
-<http://clisp.cons.org/~haible/>. You also need to have a special
+`ftp://www.gnustep.org/pub/gnustep/libs/' or
+`http://clisp.cons.org/~haible/'. You also need to have a special
 version of the Objective-C library if you are not using gcc 3.x (before
 gcc 3.0 the required hooks were not in the standard library). You can
-get this library from <ftp://www.gnustep.org/pub/gnustep/libs>.
+get this library from `ftp://www.gnustep.org/pub/gnustep/libs'.
 
    Support for the libffi library has also been added.  Current versions
 of libffi are only distributed with gcc version 3.x, although it is not
@@ -136,8 +133,8 @@ something like:
    To enable this in the gnustep-base library, use the configure option
 `--enable-libffi'.
 
-OpenSSL
--------
+0.2.3 OpenSSL
+-------------
 
 GNUstep base has optional support for using the OpenSSL libraries for
 secure URL connections (with the NSURL classes). This functionality is
@@ -147,16 +144,16 @@ replacement, it can quickly be used by creating another bundle. The
 openssl libraries need to be installed for this to work.  To disable
 this option add `--disable-openssl' when running the `configure' script.
 
-Compilation
-===========
+0.3 Compilation
+===============
 
 To compile this library, type make. After this is complete, type make
 install (make sure you are the root user). Some additional options you
-can use with make are `debug=no' to make a non-debugging version of the
+can use with make are `debug=yes' to make a debugging version of the
 library and `shared=no' to make a static version of the library. See
-the ggnustep-make package for more information on these options.
+the gstep-make package for more information on these options.
 
-   If you can't install gnustep-base as root, be sure to edit the
+   If you can't install gstep-base as root, be sure to edit the
 `Tools/gdomap.h' file and uncomment the last line.
 
    Copyright (C) 2005 Free Software Foundation

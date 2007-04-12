@@ -56,6 +56,7 @@
 #include	"GNUstepBase/GSMime.h"
 #include	"GNUstepBase/GSXML.h"
 #include	"GNUstepBase/GSCategories.h"
+#include	"GNUstepBase/Unicode.h"
 #include	<string.h>
 #include	<ctype.h>
 

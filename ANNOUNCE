@@ -1,10 +1,10 @@
-Announcement
-************
+1 Announcement
+**************
 
-The GNUstep Base Library, version 1.13.0, is now available.
+The GNUstep Base Library, version 1.14.0, is now available.
 
-What is the GNUstep Base Library?
-=================================
+1.1 What is the GNUstep Base Library?
+=====================================
 
 The GNUstep Base Library is a library of general-purpose, non-graphical
 Objective C objects.  For example, it includes classes for strings,
@@ -18,21 +18,22 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.13.0'
-======================================
+1.2 Noteworthy changes in version `1.14.0'
+==========================================
 
-Several sets of classes have been added for dealing with urls and
-predicates. A few minor api changes have occured as well.  See the
-release notes for more details.
+Many portability (particularly for ms-windows) and MacOS-X
+compatibility fixes.  New MacOS-X classes and incorporation of
+NSAffineTransform and NSSpellServer which were formerly in the gui
+library.  Improved performance of amssively multithreaded programs.
 
-Where can you get it?  How can you compile it?
-==============================================
+1.3 Where can you get it?  How can you compile it?
+==================================================
 
-The gnustep-base-1.13.0.tar.gz distribution file has been placed at
-<ftp://ftp.gnustep.org/pub/gnustep/core>.
+The gnustep-base-1.14.0.tar.gz distribution file has been placed at
+`ftp://ftp.gnustep.org/pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page
-<http://savannah.gnu.org/bugs/?group=gnustep> or send bug reports to
+`http://savannah.gnu.org/bugs/?group=gnustep' or send bug reports to
 <bug-gnustep@gnu.org>.
 
    Copyright (C) 2005 Free Software Foundation

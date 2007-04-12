@@ -25,7 +25,7 @@
 
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSZone.h>

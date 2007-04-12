@@ -23,7 +23,7 @@
 
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSZone.h>
@@ -105,6 +105,8 @@ extern "C" {
 #define	GSI_ARRAY_TYPES	GSUNION_ALL
 #endif
 
+#ifndef GSIArrayItem
+
 /*
  *	Set up the name of the union to store array elements.
  */
@@ -136,6 +138,8 @@ extern "C" {
  *	Generate the union typedef
  */
 #include <GNUstepBase/GSUnion.h>
+
+#endif /* #ifndef GSIArrayItem */
 
 struct	_GSIArray {
   GSIArrayItem	*ptr;
@@ -295,7 +299,7 @@ GSIArrayAddItemNoRetain(GSIArray array, GSIArrayItem item)
  *      if it is greater, and NSOrderedSame if it is equal.
  */
 static INLINE unsigned
-GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item, 
+GSIArraySearch(GSIArray array, GSIArrayItem item, 
 	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned int	upper = array->count;
@@ -304,6 +308,7 @@ GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item,
 
   /*
    *	Binary search for an item equal to the one to be inserted.
+   *	Only for sorted array !
    */
   for (index = upper/2; upper != lower; index = (upper+lower)/2)
     {
@@ -323,6 +328,16 @@ GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item,
           break;
         }
     }
+  return index;
+}
+
+static INLINE unsigned
+GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item, 
+	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
+{
+  unsigned int	index;
+
+  index = GSIArraySearch(array,item,sorter);
   /*
    *	Now skip past any equal items so the insertion point is AFTER any
    *	items that are equal to the new one.

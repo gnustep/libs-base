@@ -32,15 +32,11 @@
 #ifndef __Unicode_h_OBJECTS_INCLUDE
 #define __Unicode_h_OBJECTS_INCLUDE
 #include <GNUstepBase/GSVersionMacros.h>
+#include <GNUstepBase/GSObjCRuntime.h>
 
-#include <Foundation/NSString.h>	/* For string encodings */
+#import <Foundation/NSString.h>	/* For standard string encodings */
 
-#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
-
-/*
- * Private API used internally by NSString etc.
- */
-#include "GSObjCRuntime.h"
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {

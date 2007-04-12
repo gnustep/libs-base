@@ -29,6 +29,63 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.14.0</heading>
+	<p> 
+          This is a stable release ... all programs linked with earlier
+	  versions of the library and wishing to use this latest stable
+	  release need to be rebuilt from source.<br />
+	  This release should be used in conjunction with the latest
+	  stable release of the other gnustep core components.
+	</p>
+	<p>
+	  This release continues the process of cleanup and restructuring
+	  to further improve MacOS-X compatibility, fix bugs, optimise
+	  performance, and improve portability between different
+	  hardware/operating system platforms.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSAffineTransform</term>
+	  <desc>
+	    Imported from gui library for MacOS-X compatibility.
+	  </desc>
+	  <term>NSBundle</term>
+	  <desc>
+	     Implemented library resource versioning.
+	  </desc>
+	  <term>NSException</term>
+	  <desc>
+	     Support provision of stack trace information in exceptions.
+	  </desc>
+	  <term>NSObject</term>
+	  <desc>
+	     Fixes for lock contention with retain/release, so the performance
+	     of massively multithreaded applications is much better.
+	  </desc>
+	  <term>NSNetServices</term>
+	  <desc>
+	     New MacOS-X class implemented.
+	  </desc>
+	  <term>NSPathUtilities</term>
+	  <desc>
+	     Uses new gnustep-make features to provide native filesystem
+	     integration.
+	  </desc>
+	  <term>NSPropertyList</term>
+	  <desc>
+	     XML property list parsing supported even if libxml2 not available.
+	  </desc>
+	  <term>NSSpellServer</term>
+	  <desc>
+	    Imported from gui library for MacOS-X compatibility.
+	  </desc>
+	  <term>NSValueTransformer</term>
+	  <desc>
+	     New MacOS-X class implemented.
+	  </desc>
+	</deflist>
+      </section>
+      <section>
 	<heading>Version 1.13.1</heading>
 	<p> 
           This is a bugfix release improving the stability and security
