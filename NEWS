@@ -1,19 +1,35 @@
-News
-****
+1 News
+******
 
-The currently released version of the library is `1.13.0'.
+The currently released version of the library is `1.14.0'.
 
-See the <ReleaseNotes.html> document for more information.
+See the `ReleaseNotes.html' document for more information.
 
-Noteworthy changes in version `1.13.0'
-======================================
+1.1 Noteworthy changes in version `1.14.0'
+==========================================
+
+Many portability (particularly for ms-windows) and MacOS-X
+compatibility fixes.  New MacOS-X classes and incorporation of
+NSAffineTransform and NSSpellServer which were formerly in the gui
+library.  Improved performance of amssively multithreaded programs.
+
+1.2 Noteworthy changes in version `1.13.1'
+==========================================
+
+Various minor bugs and MacOS-X incompatibilities fixed.  One important
+fix for a possible buffer overrun attack when initialising NSDate
+objects from strings.  One fix for a serious (crash) bug when
+initialising the bundles system in an application which has a lot of
+frameworks linked to it.  See the release notes for more details.
+
+1.3 Noteworthy changes in version `1.13.0'
+==========================================
 
 Several sets of classes have been added for dealing with urls and
-predicates. A few minor api changes have occured as well.  See the
-release notes for more details.
+predicates. A few minor api changes have occured as well.
 
-Noteworthy changes in version `1.12.0'
-======================================
+1.4 Noteworthy changes in version `1.12.0'
+==========================================
 
 There have been a number of API changes and several methods have been
 depreciated in this release. Although current GNUstep programs that use
@@ -28,8 +44,8 @@ can be set to not write to an external file at all, for developers who
 wish to use the library as a stand-alone library or in other situations
 where using external resources is not desired.
 
-Noteworthy changes in version `1.11.2'
-======================================
+1.5 Noteworthy changes in version `1.11.2'
+==========================================
 
    * Support for GNUstep.conf and relocation of the filesystem is much
      improved in this release.
@@ -45,8 +61,8 @@ Noteworthy changes in version `1.11.2'
    * Some support for keeping user defaults in the Windows registry
      implemented.
 
-Noteworthy changes in version `1.11.1'
-======================================
+1.6 Noteworthy changes in version `1.11.1'
+==========================================
 
    * New Cocoa class NSSortDescriptor
 
@@ -57,8 +73,8 @@ Noteworthy changes in version `1.11.1'
    * More support for debugging on mingw, including writing logs to
      debugger and event viewer.
 
-Noteworthy changes in version `1.11.0'
-======================================
+1.7 Noteworthy changes in version `1.11.0'
+==========================================
 
 This release is binary incompatible with previous releases.  The
 interface version of the library has changed so that apps, tools and
@@ -76,13 +92,13 @@ new version.
    * NSRunLoop and related classes use natvie win32 event handling on
      Windows machines.
 
-Noteworthy changes in version `1.10.3'
-======================================
+1.8 Noteworthy changes in version `1.10.3'
+==========================================
 
 This version includes a few minor bug fixes.
 
-Noteworthy changes in version `1.10.2'
-======================================
+1.9 Noteworthy changes in version `1.10.2'
+==========================================
 
 This version mostly includes minor fixes and updates.
 
@@ -95,8 +111,8 @@ This version mostly includes minor fixes and updates.
 
    * Use a proper one-to-one abbreviation dictionary for NSTimeZone.
 
-Noteworthy changes in version `1.10.1'
-======================================
+1.10 Noteworthy changes in version `1.10.1'
+===========================================
 
 This version mostly includes minor fixes and updates.
 
@@ -110,8 +126,8 @@ This version mostly includes minor fixes and updates.
    * Designated initializers for NSArray, NSDictionary, NSSet, and
      NSString have been changed for MacOS X compatibility.
 
-Noteworthy changes in version `1.10.0'
-======================================
+1.11 Noteworthy changes in version `1.10.0'
+===========================================
 
 Note the interface version of the library has changed so that apps,
 tools and libraries the use the base library need to be recompiled to
@@ -124,8 +140,8 @@ use it.
 
    * Mac OSX XML compatibility fixes.
 
-Noteworthy changes in version `1.9.2'
-=====================================
+1.12 Noteworthy changes in version `1.9.2'
+==========================================
 
    * GSMime parsing ignores extraneous data
 
@@ -142,8 +158,8 @@ Noteworthy changes in version `1.9.2'
    * Binary incompatibility:  NSUnarchiver, GSIMapTable have new ivars
      added
 
-Noteworthy changes in version `1.9.1'
-=====================================
+1.13 Noteworthy changes in version `1.9.1'
+==========================================
 
    * Default string encoding taken from system nl_langinfo if not set
      with GNUSTEP_STRING_ENCODING.
@@ -153,8 +169,8 @@ Noteworthy changes in version `1.9.1'
    * NSPropertyLists class added, also decodes Mac OS X binary propery
      lists.
 
-Noteworthy changes in version `1.9.0'
-=====================================
+1.14 Noteworthy changes in version `1.9.0'
+==========================================
 
    * Lazy locking implemented (see GSLock documentation)
 
@@ -170,8 +186,8 @@ Noteworthy changes in version `1.9.0'
    * NSString subclass heirarchy reorganized to fix problems with
      copying and ownership of data.
 
-Noteworthy changes in version `1.8.0'
-=====================================
+1.15 Noteworthy changes in version `1.8.0'
+==========================================
 
 Read the NEWS file for a complete list of changes since the last stable
 version. The major change is that the header files (both in the package
@@ -180,15 +196,15 @@ changes in gnustep-make, several components of gnustep-base are located
 in different locations. Generally this should not affect the
 compilation or running of applications and tools.
 
-Noteworthy changes in version `1.7.4'
-=====================================
+1.16 Noteworthy changes in version `1.7.4'
+==========================================
 
    * Added Korean encoding
 
    * Updated use of ObjCRuntime functions.
 
-Noteworthy changes in version `1.7.3'
-=====================================
+1.17 Noteworthy changes in version `1.7.3'
+==========================================
 
 Note in this version there have been large changes to the location of
 header files (both in the package and when installed). It's possible
@@ -199,8 +215,8 @@ specific headers may not compile because of this.
 
    * New TraditionalChinese language.
 
-Noteworthy changes in version `1.7.2'
-=====================================
+1.18 Noteworthy changes in version `1.7.2'
+==========================================
 
    * NSUndoManager improvements
 
@@ -210,13 +226,13 @@ Noteworthy changes in version `1.7.2'
 
    * Improvements to handle selectors better over remote connections.
 
-Noteworthy changes in version `1.7.1'
-=====================================
+1.19 Noteworthy changes in version `1.7.1'
+==========================================
 
 Bug fixes.
 
-Noteworthy changes in version `1.7.0'
-=====================================
+1.20 Noteworthy changes in version `1.7.0'
+==========================================
 
 See gnustep-make for comments on the filesystem change. Some components
 of gnustep-base are now stored in different directories and in some
@@ -232,8 +248,8 @@ changes:
 
    * Added man page for gdomap
 
-Noteworthy changes in version `1.6.0'
-=====================================
+1.21 Noteworthy changes in version `1.6.0'
+==========================================
 
    * More MinGW support
 
@@ -247,8 +263,8 @@ Noteworthy changes in version `1.6.0'
 
    * Any many many bug fixes and minor improvements.
 
-Noteworthy changes in version `1.5.1'
-=====================================
+1.22 Noteworthy changes in version `1.5.1'
+==========================================
 
    * Port NSThread to MingW
 
@@ -266,8 +282,8 @@ Noteworthy changes in version `1.5.1'
 
    * NSTimeZone code rewritten for speed.
 
-Noteworthy changes in version `1.5.0'
-=====================================
+1.23 Noteworthy changes in version `1.5.0'
+==========================================
 
    * New MacOSX methods implemented (NSString, NSArray, NSObject)
 
@@ -275,13 +291,13 @@ Noteworthy changes in version `1.5.0'
 
    * Tcp connections use runloop in NSConnectionReplyMode.
 
-Noteworthy changes in version `1.4.0'
-=====================================
+1.24 Noteworthy changes in version `1.4.0'
+==========================================
 
    * gdomap - security bug fixes.
 
-Noteworthy changes in version `1.3.4'
-=====================================
+1.25 Noteworthy changes in version `1.3.4'
+==========================================
 
 This is a first pre-release version for 1.4.
 
@@ -292,8 +308,8 @@ users are urged to upgrade to this version as soon as possible.
 
    * New combined Unix/Windows version of NSFileHandle
 
-Noteworthy changes in version `1.3.3'
-=====================================
+1.26 Noteworthy changes in version `1.3.3'
+==========================================
 
 Note there are interface and binary changes in this release that
 require you to recompile all applications and tools that use
@@ -313,8 +329,8 @@ gnustep-base.
 
    * Support for system-wide .GNUsteprc
 
-Noteworthy changes in version `1.3.2'
-=====================================
+1.27 Noteworthy changes in version `1.3.2'
+==========================================
 
    * Corrections for handling Windows file paths, etc
 
@@ -331,8 +347,8 @@ Noteworthy changes in version `1.3.2'
 
    * Unicode and UTF8 handling improvements.
 
-Noteworthy changes in version `1.3.0'
-=====================================
+1.28 Noteworthy changes in version `1.3.0'
+==========================================
 
    * Moved additional classes into subprojects and/or bundles to make it
      easier to port these to other Foundation libraries..
@@ -347,8 +363,8 @@ Noteworthy changes in version `1.3.0'
 
    * New, partially finished Objective-C/Foundation programming manual.
 
-Noteworthy changes in version `1.1.0'
-=====================================
+1.29 Noteworthy changes in version `1.1.0'
+==========================================
 
    * Removed use of distributed lock to sync defaults file.
 
@@ -369,16 +385,16 @@ Noteworthy changes in version `1.1.0'
 
    * XML property lists
 
-Noteworthy changes in version `1.0.2'
-=====================================
+1.30 Noteworthy changes in version `1.0.2'
+==========================================
 
 Mostly a bug fix release to work with the new gcc 3.0.
 
    * Added support for special gcc 3.0 options (constant string
      support).
 
-Noteworthy changes in version `1.0.1'
-=====================================
+1.31 Noteworthy changes in version `1.0.1'
+==========================================
 
    * Many fixes to work better with Darwin (still not there).
 
@@ -393,8 +409,8 @@ Noteworthy changes in version `1.0.1'
 
    * More memory debugging support.
 
-Noteworthy changes in version `1.0.0'
-=====================================
+1.32 Noteworthy changes in version `1.0.0'
+==========================================
 
    * Fix parsing of arguments for new linux kernels.
 
@@ -404,8 +420,8 @@ Noteworthy changes in version `1.0.0'
 
    * Update unicode support and fixes
 
-Noteworthy changes in version `0.9.1'
-=====================================
+1.33 Noteworthy changes in version `0.9.1'
+==========================================
 
    * New MacOSX compatible files for NSCalendarDate, NSTimeZone
 
@@ -417,8 +433,8 @@ Noteworthy changes in version `0.9.1'
 
    * Added some gettext compatible localization macros.
 
-Noteworthy changes in version `0.9.1'
-=====================================
+1.34 Noteworthy changes in version `0.9.1'
+==========================================
 
    * Fixes for building on FreeBSD
 
@@ -428,8 +444,8 @@ Noteworthy changes in version `0.9.1'
 
    * Updated for Makefile package changes.
 
-Noteworthy changes in version `0.9.0'
-=====================================
+1.35 Noteworthy changes in version `0.9.0'
+==========================================
 
    * Workaround when no host IP set.
 
@@ -466,8 +482,8 @@ Noteworthy changes in version `0.9.0'
 
    * Removed obsolete classes.
 
-Noteworthy changes in version `0.6.6'
-=====================================
+1.36 Noteworthy changes in version `0.6.6'
+==========================================
 
    * Lots of new documentation.
 
@@ -483,8 +499,8 @@ Noteworthy changes in version `0.6.6'
 
    * More optimization of classes.
 
-Noteworthy changes in version `0.6.5'
-=====================================
+1.37 Noteworthy changes in version `0.6.5'
+==========================================
 
    * Better debugging information.
 
@@ -497,8 +513,8 @@ Noteworthy changes in version `0.6.5'
 
    * Lots of optimizations and bug fixes.
 
-Noteworthy changes in version `0.6.0'
-=====================================
+1.38 Noteworthy changes in version `0.6.0'
+==========================================
 
 Most of the changes to the Base Library are bug fixes and updates to
 include MacOS-X specifications. Although the base library hasn't been
@@ -513,8 +529,8 @@ and installations, and is considered to be fairly stable.
    * Performance boosts in many classes.
 
 
-Noteworthy changes in version `0.5.5'
-=====================================
+1.39 Noteworthy changes in version `0.5.5'
+==========================================
 
 Too many changes to mention in detail, but here is a list of a few:
 
@@ -532,15 +548,15 @@ Too many changes to mention in detail, but here is a list of a few:
      pasteboards.
 
 
-Noteworthy changes in version `0.5.1'
-=====================================
+1.40 Noteworthy changes in version `0.5.1'
+==========================================
 
    * Additional runtime functions for interaction with Guile and
      ObjC-Guile library.
 
 
-Noteworthy changes in version `0.5.0'
-=====================================
+1.41 Noteworthy changes in version `0.5.0'
+==========================================
 
    * Improvements to the NSInvocation class, from  Masatake Yamato
      <masata-y@aist-nara.ac.jp>.
@@ -554,8 +570,8 @@ Noteworthy changes in version `0.5.0'
      <richard@brainstorm.co.uk>.
 
 
-Noteworthy changes in version `0.4.0'
-=====================================
+1.42 Noteworthy changes in version `0.4.0'
+==========================================
 
    * New tools for maintaining the defaults database.
 
@@ -589,8 +605,8 @@ Noteworthy changes in version `0.4.0'
    * Many, many, many, many bug fixes and new classes.
 
 
-Noteworthy changes since version `0.1.19'
-=========================================
+1.43 Noteworthy changes since version `0.1.19'
+==============================================
 
    * The library has changed its name from `libobjects' to
      `libgnustep-base'.  The Apr 17 ChangeLog entry contains a list of
@@ -691,8 +707,8 @@ Noteworthy changes since version `0.1.19'
    * ...and many bug fixes.
 
 
-Noteworthy changes since version `0.1.14'
-=========================================
+1.44 Noteworthy changes since version `0.1.14'
+==============================================
 
    * Can be made as a shared library by passing `--enabled-shared' to
      `configure'.  Thanks to Jan Kybic <kybic@earn.cvut.cz> and Bryan
@@ -726,8 +742,8 @@ Noteworthy changes since version `0.1.14'
      places.
 
 
-Noteworthy changes since version `0.1.13'
-=========================================
+1.45 Noteworthy changes since version `0.1.13'
+==============================================
 
    * NSProcessInfo class, thanks to Georg Tuparev.
 
@@ -741,8 +757,8 @@ Noteworthy changes since version `0.1.13'
    * Many bug fixes.
 
 
-Noteworthy changes since version `0.1.12'
-=========================================
+1.46 Noteworthy changes since version `0.1.12'
+==============================================
 
    * Bug fixes: installation; NSArray and NSDictionary copying;
      NSArray, NSDictionary, NSData, NSArchiver, NSUnarchiver concrete
@@ -750,8 +766,8 @@ Noteworthy changes since version `0.1.12'
      ChangeLog for more details.
 
 
-Noteworthy changes since version `0.1.10'
-=========================================
+1.47 Noteworthy changes since version `0.1.10'
+==============================================
 
    * Now using `src', `config' and `doc' directories to un-clutter the
      top-level directory.
@@ -768,8 +784,8 @@ Noteworthy changes since version `0.1.10'
    * And several bug fixes.  See the ChangeLog for details.
 
 
-Noteworthy changes since version `0.1.9'
-========================================
+1.48 Noteworthy changes since version `0.1.9'
+=============================================
 
    * Renamed "foundation" include file directory to "Foundation", in
      accordance with OpenStep.
@@ -778,8 +794,8 @@ Noteworthy changes since version `0.1.9'
      0.1.9.
 
 
-Noteworthy changes since version `0.1.8'
-========================================
+1.49 Noteworthy changes since version `0.1.8'
+=============================================
 
    * Many new GNUStep classes: NSEnumerator, NSArrayEnumerator, NSCoder,
      NSArchiver, NSUnarchiver, NSData, NSMutableData, NSGCoder,
@@ -815,8 +831,8 @@ Noteworthy changes since version `0.1.8'
      implementations back in Collection.m.
 
 
-Noteworthy changes since version `0.1.7'
-========================================
+1.50 Noteworthy changes since version `0.1.7'
+=============================================
 
    * Thanks to Adam Fedor <fedor@boulder.colorado.edu>, classes
      NSBundle, NSNumber and NSValue are now operational.  He also
@@ -837,8 +853,8 @@ Noteworthy changes since version `0.1.7'
      deallocation and behavior adding.  See the ChangeLog for details.
 
 
-Noteworthy changes since version `0.1.5'
-========================================
+1.51 Noteworthy changes since version `0.1.5'
+=============================================
 
    * Better string handling.  NSString is now fleshed out, and I've
      implemented a scheme by which the GNU String object and OpenStep's
@@ -865,8 +881,8 @@ Noteworthy changes since version `0.1.5'
      are in the ChangeLog.
 
 
-Noteworthy changes since version `0.1.3'
-========================================
+1.52 Noteworthy changes since version `0.1.3'
+=============================================
 
 This release not well tested at all.  We desperately need someone to
 write a test suite using dejagnu.  Any volunteers?
@@ -892,8 +908,8 @@ made on GNUSTEP.
      `autorelease', `dealloc' instead of `free'.
 
 
-Noteworthy changes since version `0.1.0'
-========================================
+1.53 Noteworthy changes since version `0.1.0'
+=============================================
 
    * New category: ObjectRetaining.  New classes: AutoreleasePool,
      AutoreleaseStack.
@@ -902,8 +918,8 @@ Noteworthy changes since version `0.1.0'
      README.ULTRIX.  Time.m patched for Solaris 2.4.  test12.m free fix.
 
 
-Noteworthy changes in version `0.1.0'
-=====================================
+1.54 Noteworthy changes in version `0.1.0'
+==========================================
 
    * Renamed the library from `libcoll' to `libgnustep-base'.  (See the
      end of the file `DISCUSSION' for the background on this name
@@ -936,8 +952,8 @@ Noteworthy changes in version `0.1.0'
      for NeXT-compatible zone functions.
 
 
-Noteworthy changes in verion `940524'
-=====================================
+1.55 Noteworthy changes in verion `940524'
+==========================================
 
    * A NeXT-compatible NXStringTable object, thanks to Adam Fedor
      <adam@bastille.rmnug.org>.
@@ -963,8 +979,8 @@ Noteworthy changes in verion `940524'
      for better NeXT-compability.  And more.
 
 
-Noteworthy changes in version `931026'
-======================================
+1.56 Noteworthy changes in version `931026'
+===========================================
 
    * Installation using `./configure' and `autoconf'
 
