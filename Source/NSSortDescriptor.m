@@ -79,31 +79,6 @@
   [super dealloc];
 }
 
-/* Hash function to hash up to limit bytes from data of specified length.
- * If the flag is NO then a result of 0 is mapped to 0xffffffff.
- * This is a pretty useful general purpose hash function.
- */
-static inline unsigned
-GSPrivateHash(const void *data, unsigned length, unsigned limit, BOOL zero)
-{
-  unsigned	ret = length;
-  unsigned	l = length;
-
-  if (limit < length)
-    {
-      l = limit;
-    }
-  while (l-- > 0)
-    {
-      ret = (ret << 5) + ret + ((const unsigned char*)data)[l];
-    }
-  if (ret == 0 && zero == NO)
-    {
-       ret = 0xffffffff;
-    }
-  return ret;
-}
-
 - (unsigned) hash
 {
   const char	*sel = GSNameFromSelector(_selector);
@@ -273,7 +248,7 @@ SortObjectsWithDescriptor(id *objects,
 
 - (NSArray *) sortedArrayUsingDescriptors: (NSArray *) sortDescriptors
 {
-  NSMutableArray *sortedArray = [NSMutableArray arrayWithArray: self];
+  NSMutableArray *sortedArray = [GSMutableArray arrayWithArray: self];
 
   [sortedArray sortUsingDescriptors: sortDescriptors];
 
@@ -348,3 +323,21 @@ SortRange(id *objects, NSRange range, id *descriptors,
 
 @end
 
+@implementation GSMutableArray (NSSortDescriptorSorting)
+
+- (void) sortUsingDescriptors: (NSArray *)sortDescriptors
+{
+  unsigned	dCount = [sortDescriptors count];
+
+  if (_count > 1 && dCount > 0)
+    {
+      GS_BEGINIDBUF(descriptors, dCount);
+
+      [sortDescriptors getObjects: descriptors];
+      SortRange(_contents_array, NSMakeRange(0, _count), descriptors, dCount);
+
+      GS_ENDIDBUF();
+    }
+}
+
+@end

@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSPort class reference</title>
    $Date$ $Revision$
@@ -27,6 +28,7 @@
 #include "config.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSPort.h"
 #include "Foundation/NSPortCoder.h"
@@ -53,8 +55,8 @@
  */
 NSString * const NSPortTimeoutException = @"NSPortTimeoutException";
 
-Class	NSPort_abstract_class;
-Class	NSPort_concrete_class;
+static Class	NSPort_abstract_class;
+static Class	NSPort_concrete_class;
 
 + (id) allocWithZone: (NSZone*)aZone
 {

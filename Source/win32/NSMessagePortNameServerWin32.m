@@ -27,6 +27,7 @@
 
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSError.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSMapTable.h"
@@ -39,6 +40,7 @@
 
 #include "GNUstepBase/GSMime.h"
 
+#include "../GSPrivate.h"
 #include "GSPortPrivate.h"
 
 #define	UNISTR(X) \
@@ -155,16 +157,20 @@ static void clean_up_names(void)
 
 + (NSString *) _query: (NSString *)name
 {
-  NSString	*n;
-  NSString	*p;
-  unsigned char	buf[25];
-  DWORD		len = 25;
+  NSString	*mailslotName;
+  NSString	*translatedName;
+  NSString	*mailslotPath;
+  unsigned char	buf[1024];
+  unsigned char	*ptr = buf;
+  DWORD		max = 1024;
+  DWORD		len = 1024;
   DWORD		type;
   HANDLE	h;
   int		rc;
 
-  n = [[self class] _translate: name];
+  translatedName = [[self class] _translate: name];
 
+#if 1
 /* FIXME ... wierd hack.
  * It appears that RegQueryValueExW does not always read from the registry,
  * but will in fact return cached results (even if you close and re-open the
@@ -186,29 +192,55 @@ static void clean_up_names(void)
  * port.
  */
 OutputDebugStringW(L"");
+#endif
 
   rc = RegQueryValueExW(
     key,
-    UNISTR(n),
+    UNISTR(translatedName),
     (LPDWORD)0,
     &type,
-    (LPBYTE)buf,
+    (LPBYTE)ptr,
     &len);
+  while (rc == ERROR_MORE_DATA)
+    {
+      if (ptr != buf)
+        {
+	  objc_free(ptr);
+	}
+      max += 1024;
+      ptr = objc_malloc(max);
+      len = max;
+      rc = RegQueryValueExW(
+	key,
+	UNISTR(translatedName),
+	(LPDWORD)0,
+	&type,
+	(LPBYTE)ptr,
+	&len);
+    }
   if (rc != ERROR_SUCCESS)
     {
+      if (ptr != buf)
+        {
+	  objc_free(ptr);
+	}
       return nil;
     }
 
-  n = [NSString stringWithUTF8String: buf];
+  mailslotName = [NSString stringWithUTF8String: ptr];
+  if (ptr != buf)
+    {
+      objc_free(ptr);
+    }
 
   /*
-   * See if we can open the mailslot ... if not, the query returned
+   * See if we can open the port mailslot ... if not, the query returned
    * an old name, and we can remove it.
    */
-  p = [NSString stringWithFormat:
-    @"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", n];
+  mailslotPath = [NSString stringWithFormat:
+    @"\\\\.\\mailslot\\GNUstep\\NSMessagePort\\%@", mailslotName];
   h = CreateFileW(
-    UNISTR(p),
+    UNISTR(mailslotPath),
     GENERIC_WRITE,
     FILE_SHARE_READ|FILE_SHARE_WRITE,
     &security,
@@ -217,13 +249,16 @@ OutputDebugStringW(L"");
     (HANDLE)0);
   if (h == INVALID_HANDLE_VALUE)
     {
-      RegDeleteValueW(key, UNISTR(n));
+      NSDebugLLog(@"NSMessagePortNameServer",
+        @"Failed to open mailslot (%@) for write on port named %@ - %@",
+	mailslotPath, name, [NSError _last]);
+      //RegDeleteValueW(key, UNISTR(n));
       return nil;
     }
   else
     {
       CloseHandle(h);	// OK
-      return n;
+      return mailslotName;
     }
 }
 
@@ -243,6 +278,11 @@ OutputDebugStringW(L"");
 }
 
 - (NSPort*) portForName: (NSString *)name
+{
+  return [self portForName: name onHost: @""];
+}
+
+- (NSPort*) portForName: (NSString *)name
 		 onHost: (NSString *)host
 {
   NSString	*n;
@@ -250,10 +290,15 @@ OutputDebugStringW(L"");
   NSDebugLLog(@"NSMessagePortNameServer",
     @"portForName: %@ host: %@", name, host);
 
-  if ([host length] && ![host isEqual: @"*"])
+  if ([host length] != 0)
     {
-      NSDebugLLog(@"NSMessagePortNameServer", @"non-local host");
-      return nil;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to contact a named host using a "
+	@"message port name server.  This name server can only be used "
+	@"to contact processes owned by the same user on the local host "
+	@"(host name must be an empty string).  To contact processes "
+	@"owned by other users or on other hosts you must use an instance "
+	@"of the NSSocketPortNameServer class."];
     }
 
   n = [[self class] _query: name];
@@ -275,6 +320,7 @@ OutputDebugStringW(L"");
   NSMutableArray	*a;
   NSString		*n;
   int			rc;
+  const unsigned char	*str;
 
   NSDebugLLog(@"NSMessagePortNameServer", @"register %@ as %@\n", port, name);
   if ([port isKindOfClass: [NSMessagePort class]] == NO)
@@ -292,14 +338,16 @@ OutputDebugStringW(L"");
     }
 
   n = [[self class] _translate: name];
+  str = [[(NSMessagePort*)port name] UTF8String];
 
   rc = RegSetValueExW(
     key,
     UNISTR(n),
     0,
     REG_BINARY,
-    [[(NSMessagePort*)port name] UTF8String],
-    25);
+    str,
+    strlen(str)+1);
+  NSDebugLLog(@"NSMessagePortNameServer", @"Set port '%s' for %@", str, n);
   if (rc == ERROR_SUCCESS)
     {
       rc = RegFlushKey(key);
@@ -311,8 +359,8 @@ OutputDebugStringW(L"");
     }
   else
     {
-      NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x) %s",
-	registry, n, rc, GSLastErrorStr(rc));
+      NSLog(@"Failed to insert HKEY_CURRENT_USER\\%@\\%@ (%x) %@",
+	registry, n, rc, [NSError _last]);
       return NO;
     }
 

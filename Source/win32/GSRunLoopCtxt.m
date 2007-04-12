@@ -9,21 +9,21 @@
 #include "config.h"
 
 #include "GNUstepBase/preface.h"
-#include "../GSRunLoopCtxt.h"
-#include "../GSRunLoopWatcher.h"
-#include "../GSPrivate.h"
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSError.h>
+#include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSStream.h>
-
-extern BOOL	GSCheckTasks();
+#include "../GSRunLoopCtxt.h"
+#include "../GSRunLoopWatcher.h"
+#include "../GSPrivate.h"
 
 #if	GS_WITH_GC == 0
-SEL	wRelSel;
-SEL	wRetSel;
-IMP	wRelImp;
-IMP	wRetImp;
+static SEL	wRelSel;
+static SEL	wRetSel;
+static IMP	wRelImp;
+static IMP	wRetImp;
 
 static void
 wRelease(NSMapTable* t, void* w)
@@ -48,6 +48,17 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #endif
 
 @implementation	GSRunLoopCtxt
+
++ (void) initialize
+{
+#if	GS_WITH_GC == 0
+  wRelSel = @selector(release);
+  wRetSel = @selector(retain);
+  wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
+  wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
+#endif
+}
+
 - (void) dealloc
 {
   RELEASE(mode);
@@ -364,7 +375,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
     {
       wait_timeout = 0;
     }
@@ -425,8 +436,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       BOOL	found = NO;
 
       NSDebugMLLog(@"NSRunLoop", @"WaitForMultipleObjects() error in "
-	@"-acceptInputForMode:beforeDate: %s",
-	GSLastErrorStr(GetLastError()));
+	@"-acceptInputForMode:beforeDate: %@", [NSError _last]);
       /*
        * Check each handle in turn until either we find one which has an
        * event signalled, or we find the one which caused the original
@@ -447,8 +457,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       if (found == NO)
 	{
 	  NSLog(@"WaitForMultipleObjects() error in "
-	    @"-acceptInputForMode:beforeDate: %s",
-	    GSLastErrorStr(GetLastError()));
+	    @"-acceptInputForMode:beforeDate: %@", [NSError _last]);
 	  abort ();        
 	}
     }
@@ -484,7 +493,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSNotifyASAP();
+	GSPrivateNotifyASAP();
     }
 
   // if there are windows message
@@ -536,7 +545,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 			       forMode: mode];
     }
 
-  GSNotifyASAP();
+  GSPrivateNotifyASAP();
 
   completed = YES;
   return YES;

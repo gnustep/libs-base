@@ -18,8 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: NSIndexSet.m
 
@@ -27,11 +27,16 @@
 
 #ifndef _NSIndexSet_h_GNUSTEP_BASE_INCLUDE
 #define _NSIndexSet_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSRange.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSRange.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /**
  * Instances of this class are collections of unsigned integers in the
@@ -211,6 +216,10 @@
 - (void) shiftIndexesStartingAtIndex: (unsigned int)anIndex by: (int)amount;   
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

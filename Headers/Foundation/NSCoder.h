@@ -18,16 +18,21 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSCoder_h_GNUSTEP_BASE_INCLUDE
 #define __NSCoder_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSGeometry.h>
-#include <Foundation/NSZone.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSGeometry.h>
+#import	<Foundation/NSZone.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSMutableData, NSData, NSString;
 
@@ -219,11 +224,11 @@
  */
 - (unsigned int) versionForClassName: (NSString*)className;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /*
  * Include GSConfig.h for typedefs/defines of uint8_t, int32_t int64_t
  */
-#include <GSConfig.h>
+#include <GNUstepBase/GSConfig.h>
 
 
 /** <override-subclass />
@@ -349,44 +354,8 @@
 #endif
 @end
 
-#ifndef NO_GNUSTEP
-
-/**
- *  GNUstep extensions to [NSCoder], supporting compatibility with libObjects.
- *  DEPRECATED
- */
-@interface NSCoder (GNUstep)
-/* Compatibility with libObjects */
-- (void) decodeArrayOfObjCType: (const char*)type
-		         count: (unsigned)count
-			    at: (void*)buf
-		      withName: (id*)name;
-/** <override-dummy /> decodes indentation */
-- (void) decodeIndent;
-- (void) decodeObjectAt: (id*)anObject
-	       withName: (id*)name;
-- (void) decodeValueOfCType: (const char*)type
-			 at: (void*)buf
-		   withName: (id*)name;
-- (void) decodeValueOfObjCType: (const char*)type
-			    at: (void*)buf
-		      withName: (id*)name;
-- (void) encodeArrayOfObjCType: (const char*)type
-		         count: (unsigned)count
-			    at: (const void*)buf
-		      withName: (id)name;
-/** <override-dummy /> encodes indentation */
-- (void) encodeIndent;
-- (void) encodeObjectAt: (id*)anObject
-	       withName: (id)name;
-- (void) encodeValueOfCType: (const char*)type
-			 at: (const void*)buf
-		   withName: (id)name;
-- (void) encodeValueOfObjCType: (const char*)type
-			    at: (const void*)buf
-		      withName: (id)name;
-@end
-
-#endif /* NO_GNUSTEP */
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* __NSCoder_h_GNUSTEP_BASE_INCLUDE */

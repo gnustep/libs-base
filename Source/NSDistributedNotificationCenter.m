@@ -710,17 +710,29 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  if (_type == GSNetworkNotificationCenterType)
 	    {
 	      args = [NSArray arrayWithObjects:
-		@"-GSNetwork", @"YES", nil];
+		@"-GSNetwork", @"YES",
+		@"--auto",
+		nil];
 	    }
 	  else if (_type == GSPublicNotificationCenterType)
 	    {
 	      args = [NSArray arrayWithObjects:
-		@"-GSPublic", @"YES", nil];
+		@"-GSPublic", @"YES",
+		@"--auto",
+		nil];
 	    }
 	  else if ([host length] > 0)
 	    {
 	      args = [NSArray arrayWithObjects:
-		@"-NSHost", host, nil];
+		@"-NSHost", host,
+		@"--auto",
+		nil];
+	    }
+	  else
+	    {
+	      args = [NSArray arrayWithObjects:
+		@"--auto",
+		nil];
 	    }
 	  [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
 

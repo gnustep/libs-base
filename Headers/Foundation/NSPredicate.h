@@ -24,9 +24,16 @@
 
 #ifndef __NSPredicate_h_GNUSTEP_BASE_INCLUDE
 #define __NSPredicate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSArray.h>
+#if	OS_API_VERSION(100400, GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSArray.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @interface NSPredicate : NSObject <NSCoding, NSCopying>
 
@@ -47,4 +54,9 @@
 - (NSArray *) filteredArrayUsingPredicate: (NSPredicate *)predicate;
 @end
 
-#endif /* __NSPredicate_h_GNUSTEP_BASE_INCLUDE */
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif	/* 100400 */
+#endif	/* __NSPredicate_h_GNUSTEP_BASE_INCLUDE */

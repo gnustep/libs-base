@@ -33,7 +33,6 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDictionary.h"
-#include "Foundation/NSError.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSHTTPCookie.h"
 #include "Foundation/NSHTTPCookieStorage.h"

@@ -20,7 +20,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
     AutogsdocSource: Additions/GSObjCRuntime.m
 
@@ -28,6 +29,7 @@
 
 #ifndef __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
+#include <GNUstepBase/GSVersionMacros.h>
 
 #include <objc/objc.h>
 #include <objc/objc-api.h>
@@ -672,11 +674,6 @@ GSAutoreleasedBuffer(unsigned size);
 GS_EXPORT void
 GSAllocateMutexAt(objc_mutex_t *request);
 
-/** Returns a system error message on a variety of systems
- */
-GS_EXPORT const char *
-GSLastErrorStr(long error_id);
-
 /**
  * <p>Prints a message to fptr using the format string provided and any
  * additional arguments.  The format string is interpreted as by
@@ -696,107 +693,18 @@ GSPrintf (FILE *fptr, NSString *format, ...);
 
 
 
-#ifndef NO_DEPRECATED
-
-GS_EXPORT BOOL
-GSFindInstanceVariable(id obj, const char *name,
-		       const char **type,
-		       unsigned int *size, 
-		       int *offset) GS_ATTRIB_DEPRECATED;
-
-GS_EXPORT void
-GSGetVariable(id obj, int offset, unsigned int size,
-	      void *data) GS_ATTRIB_DEPRECATED;
-
-GS_EXPORT void
-GSSetVariable(id obj, int offset, unsigned int size,
-	      const void *data) GS_ATTRIB_DEPRECATED;
-
-GS_EXPORT id
-GSGetValue(NSObject *self, NSString *key, SEL sel,
-	   const char *type,
-	   unsigned size,
-	   int offset) GS_ATTRIB_DEPRECATED;
-
-GS_EXPORT void
-GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-	   const char *type,
-	   unsigned size,
-	   int offset) GS_ATTRIB_DEPRECATED;
-
 GS_EXPORT NSArray *
 GSObjCAllSubclassesOfClass(Class cls);
 
 GS_EXPORT NSArray *
 GSObjCDirectSubclassesOfClass(Class cls);
 
-/** ## deprecated ##
- */
-GS_STATIC_INLINE const char*
-GSObjCName(Class cls) GS_ATTRIB_DEPRECATED;
-GS_STATIC_INLINE const char*
-GSObjCName(Class cls)
-{
-  return class_get_class_name(cls);
-}
+#if GS_API_VERSION(GS_API_ANY,011500)
 
-/** ## deprecated ##
- */
-GS_STATIC_INLINE const char*
-GSObjCSelectorName(SEL sel) GS_ATTRIB_DEPRECATED;
-GS_STATIC_INLINE const char*
-GSObjCSelectorName(SEL sel)
-{
-  if (sel == 0)
-    return 0;
-  return sel_get_name(sel);
-}
+GS_EXPORT const char *
+GSLastErrorStr(long error_id) GS_ATTRIB_DEPRECATED;
 
-/** ## deprecated ##
- */
-GS_STATIC_INLINE const char*
-GSObjCSelectorTypes(SEL sel) GS_ATTRIB_DEPRECATED;
-GS_STATIC_INLINE const char*
-GSObjCSelectorTypes(SEL sel)
-{
-  return sel_get_type(sel);
-}
-
-GS_STATIC_INLINE GSMethod
-GSGetInstanceMethod(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
-GS_STATIC_INLINE GSMethod
-GSGetInstanceMethod(Class cls, SEL sel)
-{
-  return GSGetMethod(cls, sel, YES, YES);
-}
-
-GS_STATIC_INLINE GSMethod
-GSGetClassMethod(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
-GS_STATIC_INLINE GSMethod
-GSGetClassMethod(Class cls, SEL sel)
-{
-  return GSGetMethod(cls, sel, NO, YES);
-}
-
-GS_STATIC_INLINE GSMethod
-GSGetInstanceMethodNotInherited(Class cls, 
-				SEL sel) GS_ATTRIB_DEPRECATED;
-GS_STATIC_INLINE GSMethod
-GSGetInstanceMethodNotInherited(Class cls, SEL sel)
-{
-  return GSGetMethod(cls, sel, YES, NO);
-}
-
-GS_STATIC_INLINE GSMethod
-GSGetClassMethodNotInherited(Class cls, SEL sel) GS_ATTRIB_DEPRECATED;
-GS_STATIC_INLINE GSMethod
-GSGetClassMethodNotInherited(Class cls, SEL sel)
-{
-  return GSGetMethod(cls, sel, NO, NO);
-}
-
-
-#endif  /* NO_DEPRECATED */
+#endif
 
 
 

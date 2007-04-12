@@ -22,7 +22,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
@@ -103,7 +104,7 @@
   if (data <= GS_SMALL)
 #endif
     {
-      return GSSmallHash((int)data);
+      return GSPrivateSmallHash((int)data);
     }
 #endif
 

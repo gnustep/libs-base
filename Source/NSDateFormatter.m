@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSDateFormatter class reference</title>
    $Date$ $Revision$
@@ -81,7 +82,14 @@
 {
   NSCalendarDate	*d;
 
-  d = [NSCalendarDate dateWithString: string calendarFormat: _dateFormat];
+  if ([string length] == 0)
+    {
+      d = nil;
+    }
+  else
+    {
+      d = [NSCalendarDate dateWithString: string calendarFormat: _dateFormat];
+    }
   if (d == nil)
     {
       if (_allowsNaturalLanguage)

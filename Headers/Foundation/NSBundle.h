@@ -21,14 +21,20 @@
   
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
   */
 
 #ifndef __NSBundle_h_GNUSTEP_BASE_INCLUDE
 #define __NSBundle_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSString.h>
 
 @class NSString;
 @class NSArray;
@@ -301,7 +307,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Set the bundle version */
 - (void) setBundleVersion: (unsigned)version;
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  *  Returns subarray of given array containing those localizations that are
  *  used to locate resources given environment and user preferences.
@@ -322,16 +328,20 @@ GS_EXPORT NSString* const NSLoadedClasses;
 - (BOOL) isLoaded;
 
 /**
-   This method returns the same information as
-   -pathsForResourcesOfType:inDirectory: except that only non-localized
-   resources and resources that match the localization localizationName
-   are returned.
+ * This method returns the same information as
+ * -pathsForResourcesOfType:inDirectory: except that only non-localized
+ * resources and resources that match the localization localizationName
+ * are returned.<br />
+ * The GNUstep implementation places localised resources in the array
+ * before any non-localised resources.
  */
 - (NSArray*) pathsForResourcesOfType: (NSString*)extension
 			 inDirectory: (NSString*)subPath
 		     forLocalization: (NSString*)localizationName;
 /**
- *  Not implemented.
+ * This is like -pathForResource:ofType:inDirectory: but returns only
+ * resources matching localizationName (preferentially), or non-localized
+ * resources.
  */
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
@@ -342,18 +352,19 @@ GS_EXPORT NSString* const NSLoadedClasses;
 - (NSDictionary*) infoDictionary;
 
 /** Returns a localized info property list based on the preferred
-    localization or the most appropriate localization if the preferred
-    one cannot be found.
-*/
-- (NSDictionary *)localizedInfoDictionary;
+ *  localization or the most appropriate localization if the preferred
+ *  one cannot be found.
+ */
+- (NSDictionary*) localizedInfoDictionary;
 
 /** Returns all the localizations in the bundle. */
-- (NSArray *)localizations;
+- (NSArray*) localizations;
 
-/** Returns the list of localizations that the bundle uses to search
-    for information. This is based on the user's preferences.
-*/
-- (NSArray *)preferredLocalizations;
+/**
+ * Returns the list of localizations that the bundle uses to search
+ * for information. This is based on the user's preferences.
+ */
+- (NSArray*) preferredLocalizations;
 
 /** Loads any executable code contained in the bundle into the
     application. Load will be called implicitly if any information
@@ -363,25 +374,56 @@ GS_EXPORT NSString* const NSLoadedClasses;
 - (BOOL) load;
 
 /** Returns the path to the executable code in the bundle */
-- (NSString *)executablePath;
+- (NSString *) executablePath;
 #endif
 
 @end
 
-#ifndef	 NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /**
  *  Augments [NSBundle], including methods for handling libraries in the GNUstep
  *  fashion, for rapid localization, and other purposes.
  */
 @interface NSBundle (GNUstep)
 
-/** This method is an experimental GNUstep extension, and
- *  might change.  At the moment, search on the standard GNUstep
- *  directories (starting from GNUSTEP_USER_ROOT, and going on to
- *  GNUSTEP_SYSTEM_ROOT) for a directory
- *  Libraries/Resources/'libraryName'/.
+/** This method is an experimental GNUstep extension, and might change.
+ * <p>Return a bundle to access the resources for the (static or shared) library
+ * libraryName, with interface version interfaceVersion.
+ * </p>
+ * <p>Resources for shared libraries are stored into
+ * GNUSTEP_LIBRARY/Libraries/libraryName/Versions/interfaceVersion/Resources/;
+ * this method will search for the first such existing directory and return it.
+ *</p>
+ * <p>libraryName should be the name of a library without the
+ * <em>lib</em> prefix or any extensions; interfaceVersion is the
+ * interface version of the library (eg, it's 1.13 in libgnustep-base.so.1.13; 
+ * see library.make on how to control it).
+ * </p>
+ * <p>This method exists to provide resource bundles for libraries and has no
+ * particular relationship to the library code itsself.  The named library
+ * could be a dynamic library linked in to the running program, a static
+ * library (whose code may not even exist on the host machine except where
+ * it is linked in to the program), or even a library which is not linked
+ * into the program at all (eg. where you want to share resources provided
+ * for a library you do not actually use).
+ * </p>
+ * <p>The bundle for the library <em>gnustep-base</em> is a special case ...
+ * for this bundle the -principalClass method returns [NSObject] and the
+ * -executablePath method returns the path to the gnustep-base dynamic
+ *  library (if it can be found).  As a general rule, library bundles are
+ *  not guaranteed to return values for these methods as the library may
+ *  not exist on disk.
+ * </p>
+ */
++ (NSBundle *) bundleForLibrary: (NSString *)libraryName
+                        version: (NSString *)interfaceVersion;
+
+/** This method is a equivalent to bundleForLibrary:version: with a nil
+ * version.
  */
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName;
+
+
 
 /** Find a resource in the "Library" directory. */
 + (NSString*) pathForLibraryResource: (NSString*)name
@@ -389,13 +431,6 @@ GS_EXPORT NSString* const NSLoadedClasses;
 			 inDirectory: (NSString*)bundlePath;
 
 @end
-
-/** Warning - do not use this.  */
-#define GSLocalizedString(key, comment) \
-  [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:nil]
-/** Warning - do not use this.  */
-#define GSLocalizedStringFromTable(key, tbl, comment) \
-  [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:(tbl)]
 
 #endif /* GNUSTEP */
 
@@ -494,14 +529,14 @@ GS_EXPORT NSString* const NSLoadedClasses;
 #define NSLocalizedStringFromTableInBundle(key, tbl, bundle, comment) \
   [bundle localizedStringForKey:(key) value:@"" table:(tbl)]
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 #define NSLocalizedStringFromTableInFramework(key, tbl, fpth, comment) \
   [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" \
   table: [bundle pathForGNUstepResource:(tbl) ofType: nil inDirectory: (fpth)]
 #endif /* GNUSTEP */
 
   /* Now Support for Quick Localization */
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
   /* The quickest possible way to localize a string:
     
@@ -644,6 +679,10 @@ GS_EXPORT NSString* const NSLoadedClasses;
  */
 #define NSLocalizedStaticString(key, comment) key
 
-#endif /* NO_GNUSTEP */
+#endif	/* GS_API_NONE */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* __NSBundle_h_GNUSTEP_BASE_INCLUDE */

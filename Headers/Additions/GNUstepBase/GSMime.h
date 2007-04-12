@@ -26,14 +26,21 @@
    AutogsdocSource: Additions/GSMime.m
 */
 
-#ifndef __GSMIME_H__
-#define __GSMIME_H__
+#ifndef __GSMime_h_GNUSTEP_BASE_INCLUDE
+#define __GSMime_h_GNUSTEP_BASE_INCLUDE
+#include <GNUstepBase/GSVersionMacros.h>
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #ifdef NeXT_Foundation_LIBRARY
 #include <Foundation/Foundation.h>
 #else
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSString.h>
+#endif
+
+#if	defined(__cplusplus)
+extern "C" {
 #endif
 
 @class	NSArray;
@@ -225,4 +232,10 @@
 - (void) setIsHttp;
 @end
 
+#if	defined(__cplusplus)
+}
 #endif
+
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
+
+#endif	/* __GSMime_h_GNUSTEP_BASE_INCLUDE */

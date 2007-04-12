@@ -18,18 +18,23 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #ifndef __NSDistributedNotificationCenter_h_GNUSTEP_BASE_INCLUDE
 #define __NSDistributedNotificationCenter_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSLock.h>
-#include	<Foundation/NSNotification.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSLock.h>
+#import	<Foundation/NSNotification.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 
 /**
@@ -46,10 +51,10 @@
  </example>
  */
 typedef enum {
-  NSNotificationSuspensionBehaviorDrop,
-  NSNotificationSuspensionBehaviorCoalesce,
-  NSNotificationSuspensionBehaviorHold,
-  NSNotificationSuspensionBehaviorDeliverImmediately
+  NSNotificationSuspensionBehaviorDrop = 1,
+  NSNotificationSuspensionBehaviorCoalesce = 2,
+  NSNotificationSuspensionBehaviorHold = 3,
+  NSNotificationSuspensionBehaviorDeliverImmediately = 4
 } NSNotificationSuspensionBehavior;
 
 /**
@@ -57,7 +62,7 @@ typedef enum {
  *  localhost current user broadcast only.  This is the only type on OS X.
  */
 GS_EXPORT NSString* const NSLocalNotificationCenterType;
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  *  Type of [NSDistributedNotificationCenter+notificationCenterForType:] -
@@ -108,6 +113,10 @@ GS_EXPORT NSString* const GSNetworkNotificationCenterType;
 - (BOOL) suspended;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

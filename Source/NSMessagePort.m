@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc.,
-   51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #include "config.h"
@@ -44,6 +44,7 @@
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSProcessInfo.h"
 
+#include "GSPrivate.h"
 #include "GSPortPrivate.h"
 
 #include <stdio.h>
@@ -302,15 +303,15 @@ static Class	runLoopClass;
       e |= NBLK_OPT;
       if (fcntl(d, F_SETFL, e) < 0)
 	{
-	  NSLog(@"unable to set non-blocking mode on %d - %s",
-	    d, GSLastErrorStr(errno));
+	  NSLog(@"unable to set non-blocking mode on %d - %@",
+	    d, [NSError _last]);
 	  return nil;
 	}
     }
   else
     {
-      NSLog(@"unable to get non-blocking mode on %d - %s",
-	d, GSLastErrorStr(errno));
+      NSLog(@"unable to get non-blocking mode on %d - %@",
+	d, [NSError _last]);
       return nil;
     }
   handle = (GSMessageHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
@@ -379,9 +380,8 @@ static Class	runLoopClass;
     {
       if (errno != EINPROGRESS)
 	{
-	  NSLog(@"unable to make connection to %s - %s",
-	    sockAddr.sun_path,
-	    GSLastErrorStr(errno));
+	  NSLog(@"unable to make connection to %s - %@",
+	    sockAddr.sun_path, [NSError _last]);
 	  M_UNLOCK(myLock);
 	  return NO;
 	}
@@ -607,7 +607,7 @@ static Class	runLoopClass;
 	  else if (errno != EINTR && errno != EAGAIN)
 	    {
 	      NSDebugMLLog(@"NSMessagePort",
-		@"read failed - %s on 0x%x", GSLastErrorStr(errno), self);
+		@"read failed - %@ on 0x%p", [NSError _last], self);
 	      M_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
@@ -902,11 +902,16 @@ static Class	runLoopClass;
 	  int	   res = 0;
 	  unsigned len = sizeof(res);
 
-	  if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) == 0
-	    && res != 0)
+	  if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) != 0)
 	    {
 	      state = GS_H_UNCON;
-	      NSLog(@"connect attempt failed - %s", GSLastErrorStr(res));
+	      NSLog(@"connect attempt failed - %@", [NSError _last]);
+	    }
+	  else if (res != 0)
+	    {
+	      state = GS_H_UNCON;
+	      NSLog(@"connect attempt failed - %@",
+	        [NSError _systemError: res]);
 	    }
 	  else
 	    {
@@ -922,8 +927,8 @@ static Class	runLoopClass;
 	      else
 		{
 		  state = GS_H_UNCON;
-		  NSLog(@"connect write attempt failed - %s",
-		    GSLastErrorStr(errno));
+		  NSLog(@"connect write attempt failed - %@",
+		    [NSError _last]);
 		}
 	      RELEASE(d);
 	    }
@@ -957,7 +962,7 @@ static Class	runLoopClass;
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
 		{
-		  NSLog(@"write attempt failed - %s", GSLastErrorStr(errno));
+		  NSLog(@"write attempt failed - %@", [NSError _last]);
 		  M_UNLOCK(myLock);
 		  [self invalidate];
 		  return;
@@ -1249,7 +1254,7 @@ typedef	struct {
 	    sizeof(sockAddr.sun_path));
 	  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
 	    {
-	      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
+	      NSLog(@"unable to create socket - %@", [NSError _last]);
 	      desc = -1;
 	    }
 	  else if (bind(desc, (struct sockaddr *)&sockAddr,
@@ -1263,23 +1268,23 @@ typedef	struct {
 		  close(desc);
 		  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
 		    {
-		      NSLog(@"unable to create socket - %s",
-			GSLastErrorStr(errno));
+		      NSLog(@"unable to create socket - %@",
+			[NSError _last]);
 		      desc = -1;
 		    }
 		  else if (bind(desc, (struct sockaddr *)&sockAddr,
 		    SUN_LEN(&sockAddr)) < 0)
 		    {
-		      NSLog(@"unable to bind to %s - %s",
-			sockAddr.sun_path, GSLastErrorStr(errno));
+		      NSLog(@"unable to bind to %s - %@",
+			sockAddr.sun_path, [NSError _last]);
 		      (void) close(desc);
 		      desc = -1;
 		    }
 		}
 	      else
 		{
-		  NSLog(@"unable to bind to %s - %s",
-		    sockAddr.sun_path, GSLastErrorStr(errno));
+		  NSLog(@"unable to bind to %s - %@",
+		    sockAddr.sun_path, [NSError _last]);
 		  (void) close(desc);
 		  desc = -1;
 		}
@@ -1291,13 +1296,13 @@ typedef	struct {
 	    }
 	  else if (listen(desc, 128) < 0)
 	    {
-	      NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
+	      NSLog(@"unable to listen on port - %@", [NSError _last]);
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
 	  else if (getsockname(desc, (struct sockaddr*)&sockAddr, &i) < 0)
 	    {
-	      NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
+	      NSLog(@"unable to get socket name - %@", [NSError _last]);
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
@@ -1492,7 +1497,7 @@ typedef	struct {
   sock = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC);
   if (sock < 0)
     {
-      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
+      NSLog(@"unable to create socket - %@", [NSError _last]);
     }
 #ifndef	BROKEN_SO_REUSEADDR
   /*
@@ -1505,13 +1510,13 @@ typedef	struct {
     sizeof(opt)) < 0)
     {
       (void)close(sock);
-      NSLog(@"unable to set reuse on socket - %s", GSLastErrorStr(errno));
+      NSLog(@"unable to set reuse on socket - %@", [NSError _last]);
     }
 #endif
   else if ((handle = [GSMessageHandle handleWithDescriptor: sock]) == nil)
     {
       (void)close(sock);
-      NSLog(@"unable to create GSMessageHandle - %s", GSLastErrorStr(errno));
+      NSLog(@"unable to create GSMessageHandle - %@", [NSError _last]);
     }
   else
     {
@@ -1574,14 +1579,14 @@ typedef	struct {
 	  unsigned	i;
 
 	  M_LOCK(messagePortLock);
+	  NSMapRemove(messagePortMap, (void*)name);
+	  M_UNLOCK(messagePortLock);
 	  if (lDesc >= 0)
 	    {
 	      (void) close(lDesc);
 	      unlink([name bytes]);
 	      lDesc = -1;
 	    }
-	  NSMapRemove(messagePortMap, (void*)name);
-	  M_UNLOCK(messagePortLock);
 
 	  if (handles != 0)
 	    {
@@ -1688,6 +1693,24 @@ typedef	struct {
 	{
 	  [handle receivedEvent: data type: type extra: extra forMode: mode];
 	}
+    }
+}
+
+- (void) release
+{
+  M_LOCK(messagePortLock);
+  if (NSDecrementExtraRefCountWasZero(self))
+    {
+      if (_internal != 0)
+        {
+          NSMapRemove(messagePortMap, (void*)name);
+	}
+      M_UNLOCK(messagePortLock);
+      [self dealloc];
+    }
+  else
+    {
+      M_UNLOCK(messagePortLock);
     }
 }
 

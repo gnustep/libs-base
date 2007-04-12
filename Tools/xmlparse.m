@@ -55,7 +55,7 @@
     {
       buf[--len] = '\0';
     }
-  str = [NSString stringWithCString: buf];
+  str = [NSString stringWithUTF8String: buf];
   return str;
 }
 @end

@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSSerializer class reference</title>
    $Date$ $Revision$
@@ -36,6 +36,7 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSSet.h"
 #include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSValue.h"
@@ -48,10 +49,6 @@
 @end
 @class	NSDataMalloc;
 @interface NSDataMalloc : NSObject	// Help the compiler
-@end
-@class	GSInlineArray;
-@class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
 @end
 
 /*

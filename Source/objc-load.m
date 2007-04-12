@@ -52,21 +52,16 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSException.h"
 
+#include "GSPrivate.h"
+
 /* include the interface to the dynamic linker */
 #include "dynamic-load.h"
-
-/* Declaration from NSBundle.m */
-#ifdef    __MINGW32__
-const unichar *objc_executable_location (void);
-#else  
-const char *objc_executable_location (void);
-#endif
 
 /* dynamic_loaded is YES if the dynamic loader was sucessfully initialized. */
 static BOOL	dynamic_loaded;
 
 /* Our current callback function */
-void (*_objc_load_load_callback)(Class, struct objc_category *) = 0;
+static void (*_objc_load_load_callback)(Class, struct objc_category *) = 0;
 
 /* List of modules we have loaded (by handle) */
 #ifndef NeXT_RUNTIME
@@ -106,31 +101,27 @@ objc_check_undefineds(FILE *errorStream)
 static int
 objc_initialize_loading(FILE *errorStream)
 {
+  NSString	*path;
 #ifdef    __MINGW32__
-  const unichar *path;
+  const unichar *fsPath;
 #else  
-  const char *path;
+  const char *fsPath;
 #endif  
 
   dynamic_loaded = NO;
-  path   = objc_executable_location();
+  path = GSPrivateExecutablePath();
 
-#ifdef    __MINGW32__
   NSDebugFLLog(@"NSBundle",
-	       @"Debug (objc-load): initializing dynamic loader for %S",
-	       path);
-#else
-  NSDebugFLLog(@"NSBundle",
-	       @"Debug (objc-load): initializing dynamic loader for %s",
-	       path);
-#endif
+    @"Debug (objc-load): initializing dynamic loader for %@", path);
 
-  if (__objc_dynamic_init(path))
+  fsPath = [[path stringByDeletingLastPathComponent] fileSystemRepresentation];
+
+  if (__objc_dynamic_init(fsPath))
     {
       if (errorStream)
 	{
 	  __objc_dynamic_error(errorStream,
-			       "Error (objc-load): Cannot initialize dynamic linker");
+           "Error (objc-load): Cannot initialize dynamic linker");
 	}
       return 1;
     }
@@ -155,25 +146,21 @@ objc_load_callback(Class class, struct objc_category * category)
 }
 
 #if	defined(__MINGW32__)
-long
-objc_load_module (const unichar *filename,
-		  FILE *errorStream,
-		  void (*loadCallback)(Class, struct objc_category *),
-		  void **header,
-		  const unichar *debugFilename)
+#define	FSCHAR	unichar
 #else
-long
-objc_load_module (const char *filename,
-		  FILE *errorStream,
-		  void (*loadCallback)(Class, struct objc_category *),
-		  void **header,
-		  const char *debugFilename)
+#define	FSCHAR	char
 #endif
+
+long
+GSPrivateLoadModule(NSString *filename, FILE *errorStream,
+  void (*loadCallback)(Class, struct objc_category *),
+  void **header, NSString *debugFilename)
 {
 #ifdef NeXT_RUNTIME
   int errcode;
   dynamic_loaded = YES;
-  return objc_loadModule(filename, loadCallback, &errcode);
+  return objc_loadModule([filename fileSystemRepresentation],
+    loadCallback, &errcode);
 #else
   typedef void (*void_fn)();
   dl_handle_t handle;
@@ -195,14 +182,9 @@ objc_load_module (const char *filename,
   _objc_load_callback = objc_load_callback;
 
   /* Link in the object file */
-#ifdef    __MINGW32__
-  NSDebugFLLog(@"NSBundle",
-	       @"Debug (objc-load): Linking file %S\n", filename);
-#else
-  NSDebugFLLog(@"NSBundle",
-	       @"Debug (objc-load): Linking file %s\n", filename);
-#endif
-  handle = __objc_dynamic_link(filename, 1, debugFilename);
+  NSDebugFLLog(@"NSBundle", @"Debug (objc-load): Linking file %@\n", filename);
+  handle = __objc_dynamic_link((FSCHAR*)[filename fileSystemRepresentation],
+    1, (FSCHAR*)[debugFilename fileSystemRepresentation]);
   if (handle == 0)
     {
       if (errorStream)
@@ -232,7 +214,7 @@ objc_load_module (const char *filename,
       if (errorStream)
 	{
 	  fprintf(errorStream,
-		  "Error (objc-load): Cannot load objects (no CTOR list)\n");
+	    "Error (objc-load): Cannot load objects (no CTOR list)\n");
 	}
       _objc_load_load_callback = 0;
       _objc_load_callback = 0;
@@ -240,11 +222,11 @@ objc_load_module (const char *filename,
     }
 
   NSDebugFLLog(@"NSBundle",
-	       @"Debug (objc-load): %d modules\n", (int)ctor_list[0]);
+    @"Debug (objc-load): %d modules\n", (int)ctor_list[0]);
   for (i = 1; ctor_list[i]; i++)
     {
       NSDebugFLLog(@"NSBundle",
-		   @"Debug (objc-load): Invoking CTOR %p\n", ctor_list[i]);
+	@"Debug (objc-load): Invoking CTOR %p\n", ctor_list[i]);
       ctor_list[i]();
     }
 #endif /* not __ELF__ */
@@ -257,8 +239,8 @@ objc_load_module (const char *filename,
 }
 
 long
-objc_unload_module(FILE *errorStream,
-		   void (*unloadCallback)(Class, struct objc_category *))
+GSPrivateUnloadModule(FILE *errorStream,
+  void (*unloadCallback)(Class, struct objc_category *))
 {
   if (!dynamic_loaded)
     {
@@ -272,54 +254,14 @@ objc_unload_module(FILE *errorStream,
   return 0;
 }
 
-#if	defined(__MINGW32__)
-long objc_load_modules(const unichar *files[],FILE *errorStream,
-		       void (*callback)(Class,struct objc_category *),
-		       void **header,
-		       const unichar *debugFilename)
-#else
-long objc_load_modules(const char *files[],FILE *errorStream,
-		       void (*callback)(Class,struct objc_category *),
-		       void **header,
-		       const char *debugFilename)
-#endif
-{
-    while (*files)
-      {
-	if (objc_load_module(*files, errorStream, callback,
-			     (void *)header, debugFilename))
-	  {
-	    return 1;
-	  }
-	files++;
-      }
-    return 0;
-}
-
-long
-objc_unload_modules(FILE *errorStream,
-		    void (*unloadCallback)(Class, struct objc_category *))
-{
-  if (!dynamic_loaded)
-    {
-      return 1;
-    }
-
-  if (errorStream)
-    {
-      fprintf(errorStream, "Warning: unloading modules not implemented\n");
-    }
-
-  return 0;
-}
 
 #ifdef __MINGW32__
 NSString *
-objc_get_symbol_path(Class theClass, Category *theCategory)
+GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {
   unichar buf[MAX_PATH];
   MEMORY_BASIC_INFORMATION memInfo;
-  NSCAssert(!theCategory, @"objc_get_symbol_path doesn't support categories");
+  NSCAssert(!theCategory, @"GSPrivateSymbolPath doesn't support categories");
 
   VirtualQueryEx(GetCurrentProcess(), theClass, &memInfo, sizeof(memInfo));
   if (GetModuleFileNameW(memInfo.AllocationBase, buf, sizeof(buf)))
@@ -330,7 +272,7 @@ objc_get_symbol_path(Class theClass, Category *theCategory)
 }
 #else
 NSString *
-objc_get_symbol_path(Class theClass, Category *theCategory)
+GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {
   const char *ret;
   char        buf[125], *p = buf;
@@ -385,7 +327,7 @@ objc_get_symbol_path(Class theClass, Category *theCategory)
 
   if (ret)
     {
-      return [NSString stringWithCString: ret];
+      return [NSString stringWithUTF8String: ret];
     }
 
   return nil;

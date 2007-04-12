@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.xml">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.xml">
 <!--
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
@@ -67,7 +67,7 @@ notice and this notice are preserved.
 	      removed until or after the specified version are available.<br />
 	      The version consists of five or six digits ...
 	      a major number (0-99) followed by a minor number (00-99) and
-	      a subminor number (00-00).<br />
+	      a subminor number (00-99).<br />
 	      Features in the header file are marked as belonging to different
 	      version ranges using the
 	      <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
@@ -87,7 +87,7 @@ notice and this notice are preserved.
 	      are available.<br />
 	      The version consists of five or six digits ...
 	      a major number (1-99) followed by a minor number (00-99) and
-	      a subminor number (00-00).<br />
+	      a subminor number (00-99).<br />
 	      A major number of 1 indicates the OpenStep specification ...
 	      available as the GS_API_OSSPEC preprocessor constant.<br />
 	      A major number of 4 indicates the OPENSTEP implementation ...
@@ -98,27 +98,12 @@ notice and this notice are preserved.
 	      version ranges using the
 	      <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
 	      macro.<br />
-	    </desc>
-	    <term>NO_GNUSTEP</term>
-	    <desc>
-	      GNUstep specific extensions to the OpenStep and MacOS cocoa
-	      APIs are excluded from the headers.<br />
-	      This is obsolete .. setting GS_OPENSTEP_V should exclude
-	      GNUstep extensions.
-	    </desc>
-	    <term>STRICT_MACOS_X</term>
-	    <desc>
-	      Only methods and classes that are part of the oriignal MacOS
-	      cocoa API are made available in the headers.<br />
-	      This is obsolete .. setting GS_OPENSTEP_V to GS_API_MACOSX should
-	      do this.
-	    </desc>
-	    <term>STRICT_OPENSTEP</term>
-	    <desc>
-	      Only methods and classes that are part of the OpenStep
-	      specification are made available in the headers.<br />
-	      This is obsolete .. setting GS_OPENSTEP_V to GS_API_OPENSTEP
-	      should do this.
+	      For MacOS-X compatibility, if this constant is not defined
+	      and MAC_OS_X_VERSION_MAX_ALLOWED <em>is</em> defined, then
+	      GS_OPENSTEP_V is defined to be MAC_OS_X_VERSION_MAX_ALLOWED.<br />
+	      Similarly, for MacOS-X we define MAC_OS_X_VERSION_10_2,
+	      MAC_OS_X_VERSION_10_3 etc as the appropriate numeric version
+	      numbers.
 	    </desc>
 	  </deflist>
 	  <p>
@@ -131,6 +116,11 @@ notice and this notice are preserved.
 	    The actual GNUstep libraries are always built with the full
 	    GNUstep API in place, so that the feature set is as consistent
 	    as possible.
+	  </p>
+	  <p>
+	    The presence of these macros is also used by autogsdoc to generate
+	    information about which version of the API a particular feature
+	    belongs to.
 	  </p>
 	</subsect>
 	<subsect>
@@ -277,6 +267,16 @@ notice and this notice are preserved.
 		<em>TRUE</em>, or <em>1</em> then the program will log the
 		message sent to the zombie and then abort, producing a
 		core dump on systems where that is possible.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_STACK_TRACE</term>
+	    <desc>
+	      <p>
+	        When this is set to <em>YES</em> a stack trace is placed in
+		the user information dictionary of the NSException object
+		created when an exception is raised.  The trace is keyed
+		on <code>GSStackTraceKey</code> and provides additional
+		information to let you know where the exception occurred.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_STRING_ENCODING</term>

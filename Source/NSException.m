@@ -680,7 +680,7 @@ static void _terminate()
 #else
   shouldAbort = NO;		// exit() by default.
 #endif
-  shouldAbort = GSEnvironmentFlag("CRASH_ON_ABORT", shouldAbort);
+  shouldAbort = GSPrivateEnvironmentFlag("CRASH_ON_ABORT", shouldAbort);
   if (shouldAbort == YES)
     {
       abort();
@@ -694,10 +694,10 @@ static void _terminate()
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
-  extern const char	*GSArgZero(void);
-  NSString		*stack;
+  NSString	*stack;
 
-  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n", GSArgZero(),
+  fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
+    GSPrivateArgZero(),
     [[exception name] lossyCString], [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
   stack = [[[exception userInfo] objectForKey: @"GSStackTraceKey"] description];
@@ -779,7 +779,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 #endif
 
 #if	defined(DEBUG)
-  if (GSEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES
+  if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES
     && [_e_info objectForKey: @"GSStackTraceKey"] == nil)
     {
       NSMutableDictionary	*m;

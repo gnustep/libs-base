@@ -24,8 +24,13 @@
 
 #ifndef __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE
 #define __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSAutoreleasePool;
 @class NSThread;
@@ -223,7 +228,7 @@ typedef struct autorelease_array_list
  */
 - (id) retain;
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /**
  * <p>
  *   Counts the number of times that the specified object occurs
@@ -297,5 +302,9 @@ typedef struct autorelease_array_list
 - (void) emptyPool;
 #endif
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSAutoreleasePool_h_GNUSTEP_BASE_INCLUDE */

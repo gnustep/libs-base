@@ -18,26 +18,39 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
  
    AutogsdocSource:	Additions/GSFunctions.m
    */ 
 
 #ifndef __GSFunctions_h_GNUSTEP_BASE_INCLUDE
 #define __GSFunctions_h_GNUSTEP_BASE_INCLUDE
+#include "GNUstepBase/GSVersionMacros.h"
 
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
 
+#warning "deprecated header ... will be removed in a later release"
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#if	GS_API_VERSION(GS_API_NONE,011500)
 @class	NSArray;
 @class	NSString;
-
 /** 
  * Try to locate file/directory (aName).(anExtension) in paths.
  * Will return the first found or nil if nothing is found.
  */
 GS_EXPORT NSString *GSFindNamedFile(NSArray *paths, NSString *aName,
   NSString *anExtension);
+#endif
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE */

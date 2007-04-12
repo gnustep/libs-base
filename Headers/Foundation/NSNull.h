@@ -18,23 +18,33 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSNull_h_GNUSTEP_BASE_INCLUDE
 #define __NSNull_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
+
+#if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /*
  * An object to use as a placeholder - in collections for instance.
  */
-#ifndef	NO_MACOS_X
-#include <Foundation/NSObject.h>
-
 @interface	NSNull : NSObject <NSCoding, NSCopying>
 + (NSNull*) null;
 @end
 
+#if	defined(__cplusplus)
+}
 #endif
 
-#endif /* __NSNull_h_GNUSTEP_BASE_INCLUDE */
+#endif	/* GS_API_MACOSX */
+
+#endif	/* __NSNull_h_GNUSTEP_BASE_INCLUDE */

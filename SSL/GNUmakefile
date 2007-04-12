@@ -19,18 +19,25 @@
 #
 #  You should have received a copy of the GNU Library General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA.
 #
 
+ifeq ($(GNUSTEP_MAKEFILES),)
+ GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+endif
+
+ifeq ($(GNUSTEP_MAKEFILES),)
+  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
+endif
+
 # Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 # This must set be before reading common.make, which will read the
 # Additional makefiles.
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
-# Include common.make as the first thing, as this defined
-# FOUNDATION_LIB which is used in ../config.mak
 include $(GNUSTEP_MAKEFILES)/common.make
 
 -include ../config.mak
@@ -44,6 +51,11 @@ ifeq ($(HAVE_OPENSSL), yes)
 
 # The bundles to be compiled
 BUNDLE_NAME=SSL
+
+# Interface version changes with each minor release
+include ../Version
+libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
+SSL_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources/
 
 # Additional search directories for linking
 SSL_LIB_DIRS += -L$(GNUSTEP_OBJ_DIR)

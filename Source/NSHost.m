@@ -20,7 +20,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSHost class reference</title>
    $Date$ $Revision$
@@ -204,7 +205,7 @@ static NSMutableDictionary	*_hostCache = nil;
 	  break;
 	}
 
-      h_name = [NSString stringWithCString: entry->h_name];
+      h_name = [NSString stringWithUTF8String: entry->h_name];
       [names addObject: h_name];
 
       if (entry->h_aliases != 0)
@@ -212,7 +213,7 @@ static NSMutableDictionary	*_hostCache = nil;
 	  i = 0;
 	  while ((ptr = entry->h_aliases[i++]) != 0)
 	    {
-	      [names addObject: [NSString stringWithCString: ptr]];
+	      [names addObject: [NSString stringWithUTF8String: ptr]];
 	    }
 	}
       if (entry->h_addr_list != 0)
@@ -223,7 +224,7 @@ static NSMutableDictionary	*_hostCache = nil;
 	      NSString	*addr;
 
 	      memcpy((void*)&in.s_addr, (const void*)ptr, entry->h_length);
-	      addr = [NSString stringWithCString: (char*)inet_ntoa(in)];
+	      addr = [NSString stringWithUTF8String: (char*)inet_ntoa(in)];
 	      [addresses addObject: addr];
 	    }
 	}

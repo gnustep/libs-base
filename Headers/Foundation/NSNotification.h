@@ -19,8 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
   AutogsdocSource: NSNotification.m
   AutogsdocSource: NSNotificationCenter.m
@@ -28,9 +28,14 @@
 
 #ifndef __NSNotification_h_GNUSTEP_BASE_INCLUDE
 #define __NSNotification_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSMapTable.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSMapTable.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSString;
 @class NSDictionary;
@@ -84,16 +89,8 @@
 
 @end
 
-#ifndef	NO_GNUSTEP
-
-@interface NSNotificationCenter (GNUstep)
-/**
- * You can disable locking in a multi-threaded program if you KNOW that only
- * one thread will ever use the notification center.<br />
- * DEPRECATED
- */
-- (BOOL) setLockingDisabled: (BOOL)flag;
-@end
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /*__NSNotification_h_GNUSTEP_BASE_INCLUDE */

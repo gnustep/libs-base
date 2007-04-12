@@ -23,18 +23,27 @@
 #  Boston, MA 02111 USA.
 #
 
+ifeq ($(GNUSTEP_MAKEFILES),)
+ GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+endif
+
+ifeq ($(GNUSTEP_MAKEFILES),)
+  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
+endif
+
 # Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
+
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
 
 # Interface version changes with each minor release
-libgnustep-base_INTERFACE_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}
-libgnustep-baseadd_INTERFACE_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}
+libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
+libgnustep-baseadd_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 PACKAGE_NAME = gnustep-base
 
@@ -62,16 +71,15 @@ ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 DEFS= -DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
 	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
 	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
-	-DGNUSTEP_FLATTENED=\"$(GNUSTEP_FLATTENED)\" \
+	-DGNUSTEP_IS_FLATTENED=\"$(GNUSTEP_IS_FLATTENED)\" \
 	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
-
 
 else
 
 DEFS= -DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
 	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
 	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
-	-DGNUSTEP_FLATTENED=\"$(GNUSTEP_FLATTENED)\" \
+	-DGNUSTEP_IS_FLATTENED=\"$(GNUSTEP_IS_FLATTENED)\" \
 	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
 
 endif
@@ -79,7 +87,6 @@ endif
 # The GNU source files
 
 GNU_MFILES = \
-GSCompatibility.m \
 GSLocale.m \
 preface.m \
 mframe.m
@@ -108,6 +115,7 @@ win32-def.top \
 libgnustep-base.def
 
 ADD_HEADERS = \
+GSVersionMacros.h \
 GSObjCRuntime.h \
 GSCategories.h \
 GSFileHandle.h \
@@ -145,10 +153,11 @@ GSSet.m \
 GSStream.m \
 GSString.m \
 GSValue.m \
-NSAttributedString.m \
+NSAffineTransform.m \
 NSArchiver.m \
 NSArray.m \
 NSAssertionHandler.m \
+NSAttributedString.m \
 NSAutoreleasePool.m \
 NSBundle.m \
 NSCachedURLResponse.m \
@@ -221,6 +230,7 @@ NSSet.m \
 NSSocketPort.m \
 NSSocketPortNameServer.m \
 NSSortDescriptor.m \
+NSSpellServer.m \
 NSString.m \
 NSTask.m \
 NSThread.m \
@@ -242,6 +252,7 @@ NSURLResponse.m \
 NSURLHandle.m \
 NSUserDefaults.m \
 NSValue.m \
+NSValueTransformer.m \
 NSXMLParser.m \
 NSZone.m \
 externs.m \
@@ -253,6 +264,11 @@ BASE_MFILES += \
 GSFileHandle.m \
 NSMessagePort.m \
 NSMessagePortNameServer.m
+
+ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
+BASE_MFILES += NSNetServices.m
+endif
+
 endif
 
 ifeq ($(WITH_FFI),libffi)
@@ -278,6 +294,7 @@ tzfile.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
+NSAffineTransform.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
@@ -322,6 +339,7 @@ NSKeyValueObserving.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \
+NSNetServices.h \
 NSNotification.h \
 NSNotificationQueue.h \
 NSNull.h \
@@ -344,6 +362,7 @@ NSScanner.h \
 NSSerialization.h \
 NSSet.h \
 NSSortDescriptor.h \
+NSSpellServer.h \
 NSStream.h \
 NSString.h \
 NSTask.h \
@@ -367,27 +386,19 @@ NSURLResponse.h \
 NSUserDefaults.h \
 NSUtilities.h \
 NSValue.h \
+NSValueTransformer.h \
 NSXMLParser.h \
 NSZone.h
 
-UNICODE_HEADERS = \
-unicode/caseconv.h \
-unicode/cop.h \
-unicode/cyrillic.h \
-unicode/latin2.h \
-unicode/decomp.h \
-unicode/nextstep.h
-
 HEADERS_INSTALL = $(GNU_HEADERS) \
-                  $(FOUNDATION_HEADERS) \
-                  $(UNICODE_HEADERS)
+                  $(FOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \
 $(HEADER_DIR_BASE)/preface.h \
 $(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
-$(GNUSTEP_TARGET_DIR)/GSConfig.h
+$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 
 ifeq ($(HAVE_INET_PTON), no)
 GNU_CFILES += inet_pton.c
@@ -408,7 +419,12 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 
 # Resources
 RESOURCE_SET_NAME = libbase-resources
-libbase-resources_RESOURCE_FILES_INSTALL_DIR = Library/Libraries/Resources/gnustep-base
+
+# This is for gnustep-make >= 14-02-2007
+libbase-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
+# This is kept temporarily for gnustep-make < 14-02-2007
+libbase-resources_RESOURCE_FILES_INSTALL_DIR = /Library/Libraries/Resources/gnustep-base
+
 libbase-resources_LANGUAGES =
 libbase-resources_LOCALIZED_RESOURCE_FILES =
 libbase-resources_RESOURCE_DIRS =

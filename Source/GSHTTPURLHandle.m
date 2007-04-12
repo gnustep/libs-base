@@ -617,6 +617,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  GSMimeHeader	*info;
 	  NSString	*val;
 	  float		ver;
+	  int		code;
 
 	  connectionState = idle;
 	  [nc removeObserver: self name: nil object: sock];
@@ -635,7 +636,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   */
 	  info = [document headerNamed: @"http"];
 	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-	  if ([val intValue] == 401 && self->challenged < 2)
+	  code = [val intValue];
+	  if (code == 401 && self->challenged < 2)
 	    {
 	      GSMimeHeader	*ah;
 
@@ -734,8 +736,17 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  bodyPos = 0;
 	  DESTROY(wData);
 	  NSResetMapTable(wProperties);
-	  [self didLoadBytes: [d subdataWithRange: r]
-		loadComplete: YES];
+	  if (code >= 200 && code < 300)
+	    {
+	      [self didLoadBytes: [d subdataWithRange: r]
+		    loadComplete: YES];
+	    }
+	  else
+	    {
+	      [self didLoadBytes: [d subdataWithRange: r]
+		    loadComplete: NO];
+	      [self cancelLoadInBackground];
+	    }
 	}
       else
 	{
@@ -1378,8 +1389,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * Tell superclass that the load failed - let it do housekeeping.
 	   */
 	  [self backgroundLoadDidFailWithReason:
-	    [NSString stringWithFormat: @"Unable to connect to %@:%@ ... %s",
-	    host, port, GSLastErrorStr(errno)]];
+	    [NSString stringWithFormat: @"Unable to connect to %@:%@ ... %@",
+	    host, port, [NSError _last]]];
 	  return;
 	}
       RETAIN(sock);
@@ -1389,7 +1400,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		 name: GSFileHandleConnectCompletionNotification
 	       object: sock];
       connectionState = connecting;
-      if (debug) NSLog(@"%@ start connect", NSStringFromSelector(_cmd));
+      if (debug)
+        {
+          NSLog(@"%@ start connect to %@:%@",
+	    NSStringFromSelector(_cmd), host, port);
+	}
     }
   else
     {

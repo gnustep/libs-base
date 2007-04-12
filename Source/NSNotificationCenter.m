@@ -22,8 +22,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSNotificationCenter class reference</title>
    $Date$ $Revision$
@@ -241,12 +241,10 @@ typedef struct NCTbl {
   GSIMapTable		named;		/* Getting named messages only.	*/
   unsigned		lockCount;	/* Count recursive operations.	*/
   GSLazyRecursiveLock	*_lock;		/* Lock out other threads.	*/
-  BOOL			lockingDisabled;
-
-  Observation	*freeList;
-  Observation	**chunks;
-  unsigned	numChunks;
-  GSIMapTable	cache[CACHESIZE];
+  Observation		*freeList;
+  Observation		**chunks;
+  unsigned		numChunks;
+  GSIMapTable		cache[CACHESIZE];
   unsigned short	chunkIndex;
   unsigned short	cacheIndex;
 } NCTable;
@@ -407,16 +405,14 @@ static NCTable *newNCTable(void)
 
 static inline void lockNCTable(NCTable* t)
 {
-  if (t->lockingDisabled == NO)
-    [t->_lock lock];
+  [t->_lock lock];
   t->lockCount++;
 }
 
 static inline void unlockNCTable(NCTable* t)
 {
   t->lockCount--;
-  if (t->lockingDisabled == NO)
-    [t->_lock unlock];
+  [t->_lock unlock];
 }
 
 static void obsFree(Observation *o)
@@ -1138,35 +1134,6 @@ static NSNotificationCenter *default_center = nil;
   object = notification->_object = TEST_RETAIN(object);
   notification->_info = TEST_RETAIN(info);
   [self _postAndRelease: notification];
-}
-
-@end
-
-@implementation	NSNotificationCenter (GNUstep)
-
-- (BOOL) setLockingDisabled: (BOOL)flag
-{
-  BOOL	old;
-
-  GSOnceMLog(@"This method is deprecated");
-  lockNCTable(TABLE);
-  if (self == default_center)
-    {
-      unlockNCTable(TABLE);
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Can't change locking of default center."];
-    }
-  if (LOCKCOUNT > 1)
-    {
-      unlockNCTable(TABLE);
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Can't change locking during post."];
-    }
-
-  old = TABLE->lockingDisabled;
-  TABLE->lockingDisabled = flag;
-  unlockNCTable(TABLE);
-  return old;
 }
 
 @end

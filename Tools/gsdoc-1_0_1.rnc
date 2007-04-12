@@ -40,10 +40,10 @@
 #  <?xml version="1.0" encoding="utf-8"?>
 #  <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
 #     <uri pathSuffix=".gsdoc"
-#          uri="$GNUSTEP_SYSTEM_ROOT/Library/DTDs/gsdoc-1_0_1.rnc"/>
+#          uri="$GNUSTEP_SYSTEM_LIBRARY/DTDs/gsdoc-1_0_1.rnc"/>
 #  </locatingRules>
 #
-# (Replace GNUSTEP_SYSTEM_ROOT by the correct real path on your system.)
+# (Replace GNUSTEP_SYSTEM_LIBRARY by the correct real path on your system.)
 #
 # Voila, whenever you edit a .gsdoc file its validity will be continuously
 # checked, errors will be highlighted, and you can complete tags and
@@ -53,7 +53,7 @@
 
 # gsdoc is an XML language - Typical usage:
 # <?xml version="1.0"?>
-# <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN"
+# <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN"
 #       "http://www.gnustep.org/gsdoc.xml">
 # <gsdoc base="myDocName">
 # </gsdoc>

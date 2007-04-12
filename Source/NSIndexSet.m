@@ -247,14 +247,26 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   unsigned		c = (_array == 0) ? 0 : GSIArrayCount(_array);
   unsigned		i;
 
+  if (c == 0)
+    {
+      return [NSString stringWithFormat: @"%@(no indexes)",
+        [super description]];
+    }
   m = [NSMutableString stringWithFormat:
-    @"%@[number of indexes: %u (in %u ranges), indexes: ",
+    @"%@[number of indexes: %u (in %u ranges), indexes:",
     [super description], [self count], c];
   for (i = 0; i < c; i++)
     {
       NSRange	r = GSIArrayItemAtIndex(_array, i).ext;
 
-      [m appendFormat: @"(%u-%u) ", r.location, NSMaxRange(r) - 1];
+      if (r.length > 1)
+        {
+          [m appendFormat: @" (%u-%u)", r.location, NSMaxRange(r) - 1];
+	}
+      else
+        {
+          [m appendFormat: @" (%u)", r.location];
+	}
     }
   [m appendString: @"]"];
   return m;
@@ -966,5 +978,79 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   SANITY();
 }
 
+@end
+
+@implementation	NSIndexSet (NSCharacterSet)
+/* Extra method to let NSCharacterSet play with index sets more efficiently.
+ */
+- (unsigned int) _gapGreaterThanIndex: (unsigned int)anIndex
+{
+  unsigned	pos;
+  NSRange	r;
+
+  if (anIndex++ == NSNotFound)
+    {
+      return NSNotFound;
+    }
+  if (_array == 0 || GSIArrayCount(_array) == 0)
+    {
+      return NSNotFound;
+    }
+
+  if ((pos = posForIndex(_array, anIndex)) >= GSIArrayCount(_array))
+    {
+      r = GSIArrayItemAtIndex(_array, pos-1).ext;
+      if (anIndex > NSMaxRange(r))
+        {
+          return NSNotFound;
+	}
+      return anIndex;	// anIndex is the gap after the last index.
+    }
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  if (r.location > anIndex)
+    {
+      return anIndex;	// anIndex is in a gap between index ranges.
+    }
+  return NSMaxRange(r);	// Return start of gap after the index range.
+}
+
+@end
+
+/* A subclass used to access a pre-generated table of information on the
+ * stack or in other non-heap allocated memory.
+ */
+@interface	_GSStaticIndexSet : NSIndexSet
+@end
+
+@implementation	_GSStaticIndexSet
+- (void) dealloc
+{
+  if (_array != 0)
+    {
+      /* Free the array without freeing its static content.
+       */
+      NSZoneFree([self zone], _array);
+      _data = 0;
+    }
+  [super dealloc];
+}
+
+- (id) _initWithBytes: (const void*)bytes length: (unsigned)length
+{
+  NSAssert(length % sizeof(NSRange) == 0, NSInvalidArgumentException);
+  length /= sizeof(NSRange);
+  _data = NSZoneMalloc([self zone], sizeof(GSIArray_t));
+  _array->ptr = (GSIArrayItem*)bytes;
+  _array->count = length;
+  _array->cap = length;
+  _array->old = length;
+  _array->zone = 0;
+  return self;
+}
+
+- (id) init
+{
+  return [self _initWithBytes: 0 length: 0];
+}
 @end
 

@@ -140,8 +140,8 @@ typedef struct {
       GSPlaceholderStringClass = [GSPlaceholderString class];
       NSConstantStringClass = [NSString constantStringClass];
       _holder = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
-      externalEncoding = GetDefEncoding();
-      if (GSIsByteEncoding(externalEncoding) == YES)
+      externalEncoding = [NSString defaultCStringEncoding];
+      if (GSPrivateIsByteEncoding(externalEncoding) == YES)
 	{
 	  internalEncoding = externalEncoding;
 	}
@@ -169,7 +169,10 @@ typedef struct {
 
   if (scanner != nil)
     {
-      [scanner setLocale: GSUserDefaultsDictionaryRepresentation()];
+      NSDictionary	*loc;
+
+      loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+      [scanner setLocale: loc];
     }
   return scanner;
 }

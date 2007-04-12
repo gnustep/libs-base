@@ -24,10 +24,15 @@
 
 #ifndef __NSHTTPCookie_h_GNUSTEP_BASE_INCLUDE
 #define __NSHTTPCookie_h_GNUSTEP_BASE_INCLUDE
-
-#include <Foundation/NSObject.h>
+#import	<GNUstepBase/GSVersionMacros.h>
 
 #if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSArray;
 @class NSDate;
@@ -242,5 +247,10 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
 
 @end
 
+#if	defined(__cplusplus)
+}
 #endif
-#endif
+
+#endif	/* 100200 */
+
+#endif	/* __NSHTTPCookie_h_GNUSTEP_BASE_INCLUDE */

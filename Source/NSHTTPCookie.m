@@ -58,7 +58,7 @@ typedef struct {
 
   if (o != nil)
     {
-      o->_NSHTTPCookieInternal = NSZoneMalloc(z, sizeof(Internal));
+      o->_NSHTTPCookieInternal = NSZoneCalloc(z, 1, sizeof(Internal));
     }
   return o;
 }

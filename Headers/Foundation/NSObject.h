@@ -18,8 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: NSObject.m
    AutogsdocSource: Additions/GSCategories.m
@@ -27,141 +27,18 @@
 
 #ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
 #define __NSObject_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-/*
- *	Check consistency of definitions for system compatibility.
- */
-#if	defined(STRICT_OPENSTEP)
-#define OS_API_VERSION	 10000
-#define	NO_GNUSTEP	1
-#elif	defined(STRICT_MACOS_X)
-#define OS_API_VERSION	100000
-#define	NO_GNUSTEP	1
-#else
-#undef	NO_GNUSTEP
-#endif
-
-/*
- * NB. The version values below must be integers ... by convention these are
- * made up of two digits each for major, minor and subminor version numbers
- * (ie each is in the range 00 to 99 though a leading zero in the major
- * number is not permitted).
- * So for a MacOS-X 10.3.9 release the version number would be 100309
- *
- * You may define GS_GNUSTEP_V or GS_OPENSTEP_V to ensure that your
- * program only 'sees' the specified varsion of the API.
- */
-
-/**
- * <p>Macro to check a defined GNUstep version number (GS_GNUSTEP_V) against
- * the supplied arguments.  Returns true if no GNUstep version is specified,
- * or if ADD &lt;= version &lt; REM, where ADD is the version
- * number at which a feature guarded by the macro was introduced and
- * REM is the version number at which it was removed.
- * </p>
- * <p>The version number arguments are six digit integers where the first
- * two digits are the major version number, the second two are the minor
- * version number and the last two are the subminor number (all left padded
- * with a zero where necessary).  However, for convenience you can also
- * use any of several predefined constants ... 
- * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
- * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
- * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
- * <ref type="macro" id="GS_API_OPENSTEP">GS_API_OPENSTEP</ref>,
- * <ref type="macro" id="GS_API_MACOSX">GS_API_MACOSX</ref>
- * </p>
- * <p>Also see <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
- * </p>
- * <p>NB. If you are changing the API (eg adding a new feature) you need
- * to control the visibility io the new header file code using<br />
- * <code>#if GS_API_VERSION(ADD,GS_API_LATEST)</code><br />
- * where <code>ADD</code> is the version number of the next minor
- * release after the most recent one.<br />
- * As a general principle you should <em>not</em> change the API with
- * changing subminor version numbers ... as that tends to confuse
- * people (though Apple has sometimes done it).
- * </p>
- */
-#define	GS_API_VERSION(ADD,REM) \
-  (!defined(GS_GNUSTEP_V) || (GS_GNUSTEP_V >= ADD && GS_GNUSTEP_V < REM))
-
-/**
- * <p>Macro to check a defined OpenStep/OPENSTEP/MacOS-X version against the
- * supplied arguments.  Returns true if no version is specified, or if
- * ADD &lt;= version &lt; REM, where ADD is the version
- * number at which a feature guarded by the macro was introduced and
- * REM is the version number at which it was removed.
- * </p>
- * <p>The version number arguments are six digit integers where the first
- * two digits are the major version number, the second two are the minor
- * version number and the last two are the subminor number (all left padded
- * with a zero where necessary).  However, for convenience you can also
- * use any of several predefined constants ... 
- * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
- * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
- * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
- * <ref type="macro" id="GS_API_OPENSTEP">GS_API_OPENSTEP</ref>,
- * <ref type="macro" id="GS_API_MACOSX">GS_API_MACOSX</ref>
- * </p>
- * <p>Also see <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
- * </p>
- */
-#define	OS_API_VERSION(ADD,REM) \
-  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
-
-/**
- * A constant to represent a feature which is not present in any version.
- * Use this to say a feature is not present in an API.<br />
- * eg.<br />
- * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
- * (GS_API_NONE, GS_API_NONE)<br />
- * denotes  code not present in OpenStep/OPENSTEP/MacOS-X
- */
-#define	GS_API_NONE	     0
-
-/**
- * A constant to represent a feature which is still present in the latest
- * version.  This is the highest possible version number.<br />
- * eg.<br />
- * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
- * (GS_API_MACOSX, GS_API_LATEST)<br />
- * denotes code present from the initial MacOS-X version onwards.
- */
-#define	GS_API_LATEST	999999
-
-/**
- * The version number of the initial OpenStep specification.<br />
- * eg.<br />
- * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
- * (GS_API_OSSPEC, GS_API_LATEST)<br />
- * denotes code present from the OpenStep specification onwards.
- */
-#define	GS_API_OSSPEC	 10000
-
-/**
- * The version number of the first OPENSTEP implementation.<br />
- * eg.<br />
- * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
- * (GS_API_OPENSTEP, GS_API_LATEST)<br />
- * denotes code present from the initial OPENSTEP version onwards.
- */
-#define	GS_API_OPENSTEP	 40000
-
-/**
- * The version number of the first MacOS-X implementation.<br />
- * eg.<br />
- * #if <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
- * (GS_API_MACOSX, GS_API_LATEST)<br />
- * denotes code present from the initial MacOS-X version onwards.
- */
-#define	GS_API_MACOSX	100000
-
-#include <Foundation/NSObjCRuntime.h>
-#include <GNUstepBase/preface.h>
-#include <GSConfig.h>
+#import	<Foundation/NSObjCRuntime.h>
+#import	<GNUstepBase/preface.h>
+#include <GNUstepBase/GSConfig.h>
 #include <objc/objc.h>
 #include <objc/typedstream.h>
-#include <Foundation/NSZone.h>
+#import	<Foundation/NSZone.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSArchiver;
 @class NSArray;
@@ -291,13 +168,13 @@
   Class isa;
 }
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 #if	GS_WITH_GC
 + (BOOL) requiresTypedMemory;
 #endif
 #endif
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (NSString*) className;
 #endif
 
@@ -412,7 +289,7 @@ NSComparisonResult;
 
 enum {NSNotFound = 0x7fffffff};
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
@@ -494,7 +371,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - (void) gcFinalize;
 @end
 
-#include <Foundation/NSDate.h>
+#import	<Foundation/NSDate.h>
 /**
  *  Declares some methods for sending messages to self after a fixed delay.
  *  (These methods <em>are</em> in OpenStep and OS X.)
@@ -717,6 +594,10 @@ if (__value != __object) \
 
 #define	IF_NO_GC(X)	X
 
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */

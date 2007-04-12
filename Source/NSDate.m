@@ -29,17 +29,17 @@
 
 #include "config.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSDate.h"
 #include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSException.h"
 #include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSScanner.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSPortCoder.h"
+#include "Foundation/NSScanner.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSTimeZone.h"
 #include "Foundation/NSUserDefaults.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
@@ -264,7 +264,7 @@ otherTime(NSDate* other)
 
   if (locale == nil)
     {
-      locale = GSUserDefaultsDictionaryRepresentation();
+      locale = GSPrivateDefaultLocale();
     }
   ws = [NSCharacterSet whitespaceAndNewlineCharacterSet];
   digits = [NSCharacterSet decimalDigitCharacterSet];

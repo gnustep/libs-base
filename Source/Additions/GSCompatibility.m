@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
 */
 #include "config.h"
@@ -27,16 +28,11 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GCObject.h"
 
-NSString *GetEncodingName(NSStringEncoding availableEncodingValue)
-{
-  // Deprecated
-  return GSEncodingName(availableEncodingValue);
-}
-
-NSString *GSEncodingName(NSStringEncoding availableEncodingValue)
-{
-  return (NSString *)CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(availableEncodingValue));
-}
+/* Avoid compiler warnings about internal method
+*/
+@interface	NSError (GNUstep)
++ (NSError*) _last;
+@end
 
 NSThread *GSCurrentThread()
 {
@@ -50,7 +46,7 @@ NSMutableDictionary *GSCurrentThreadDictionary()
 
 NSArray *NSStandardLibraryPaths()
 {
-    return NSSearchPathForDirectoriesInDomains(NSAllLibrariesDirectory,
+  return NSSearchPathForDirectoriesInDomains(NSAllLibrariesDirectory,
 					       NSAllDomainsMask, YES);
 }
 
@@ -68,28 +64,28 @@ void NSDecimalFromComponents(NSDecimal *result,
 NSString*
 GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
 {
-    NSString	*message;
-    Class		cls = (Class)obj;
-    char		c = '+';
+  NSString	*message;
+  Class		cls = (Class)obj;
+  char		c = '+';
 
-    if ([obj isInstance] == YES)
+  if ([obj isInstance] == YES)
     {
-        c = '-';
-        cls = [obj class];
+      c = '-';
+      cls = [obj class];
     }
-    message = [NSString stringWithFormat: @"File %s: %d. In [%@ %c%@] %@",
-        file, line, NSStringFromClass(cls), c, NSStringFromSelector(sel), fmt];
-    return message;
+  message = [NSString stringWithFormat: @"File %s: %d. In [%@ %c%@] %@",
+    file, line, NSStringFromClass(cls), c, NSStringFromSelector(sel), fmt];
+  return message;
 }
 
 NSString*
 GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
 {
-    NSString *message;
+  NSString *message;
 
-    message = [NSString stringWithFormat: @"File %s: %d. In %s %@",
-        file, line, func, fmt];
-    return message;
+  message = [NSString stringWithFormat: @"File %s: %d. In %s %@",
+    file, line, func, fmt];
+  return message;
 }
 
 @implementation NSArray (GSCompatibility)
@@ -260,7 +256,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
+      NSLog(@"unable to create socket - %@", [NSError _last]);
       RELEASE(self);
       return nil;
     }
@@ -277,8 +273,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
-      NSLog(@"unable to bind to port %s:%d - %s",  inet_ntoa(sin.sin_addr),
-	    NSSwapBigShortToHost(sin.sin_port),  GSLastErrorStr(errno));
+      NSLog(@"unable to bind to port %s:%d - %@",  inet_ntoa(sin.sin_addr),
+	    NSSwapBigShortToHost(sin.sin_port),  [NSError _last]);
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -286,7 +282,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if (listen(net, 5) < 0)
     {
-      NSLog(@"unable to listen on port - %s",  GSLastErrorStr(errno));
+      NSLog(@"unable to listen on port - %@",  [NSError _last]);
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -294,7 +290,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
     {
-      NSLog(@"unable to get socket name - %s",  GSLastErrorStr(errno));
+      NSLog(@"unable to get socket name - %@",  [NSError _last]);
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -323,7 +319,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if (getsockname([self fileDescriptor], (struct sockaddr*)&sin,  &size) < 0)
     {
-      NSLog(@"unable to get socket name - %s",  GSLastErrorStr(errno));
+      NSLog(@"unable to get socket name - %@",  [NSError _last]);
       return nil;
     }
 
@@ -363,23 +359,23 @@ BOOL GSDebugSet(NSString *level)
 - (NSMutableSet *) debugSet
 // Derived from GNUStep's
 {
-    if (_debug_set == nil){
-        int				argc = [[self arguments] count];
-        NSMutableSet	*mySet;
-        int				i;
+  if (_debug_set == nil)
+    {
+      int				argc = [[self arguments] count];
+      NSMutableSet	*mySet;
+      int				i;
 
-        mySet = [NSMutableSet new];
-        for (i = 0; i < argc; i++)
-        {
-            NSString	*str = [[self arguments] objectAtIndex:i];
+      mySet = [NSMutableSet new];
+      for (i = 0; i < argc; i++)
+	{
+	  NSString	*str = [[self arguments] objectAtIndex:i];
 
-            if ([str hasPrefix: @"--GNU-Debug="])
-                [mySet addObject: [str substringFromIndex: 12]];
-        }
-        _debug_set = mySet;
+	  if ([str hasPrefix: @"--GNU-Debug="])
+	    [mySet addObject: [str substringFromIndex: 12]];
+	}
+      _debug_set = mySet;
     }
-
-    return _debug_set;
+  return _debug_set;
 }
 
 @end
@@ -394,15 +390,15 @@ BOOL GSDebugSet(NSString *level)
  */
 - (BOOL) boolValue
 {
-    if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
+  if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
     {
         return YES;
     }
-    if ([self caseInsensitiveCompare: @"true"] == NSOrderedSame)
+  if ([self caseInsensitiveCompare: @"true"] == NSOrderedSame)
     {
         return YES;
     }
-    return [self intValue] != 0 ? YES : NO;
+  return [self intValue] != 0 ? YES : NO;
 }
 
 - (NSString*) substringFromRange:(NSRange)range
@@ -416,13 +412,13 @@ BOOL GSDebugSet(NSString *level)
 - (retval_t) returnFrame:(arglist_t)args
 {
 #warning (stephane@sente.ch) Not implemented
-    return (retval_t)[self notImplemented:_cmd];
+  return (retval_t)[self notImplemented:_cmd];
 }
 
 - (id) initWithArgframe:(arglist_t)args selector:(SEL)selector
 {
 #warning (stephane@sente.ch) Not implemented
-    return [self notImplemented:_cmd];
+  return [self notImplemented:_cmd];
 }
 
 @end

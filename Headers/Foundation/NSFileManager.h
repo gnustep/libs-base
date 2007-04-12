@@ -21,7 +21,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
 
 <chapter>
@@ -167,12 +168,17 @@
 
 #ifndef __NSFileManager_h_GNUSTEP_BASE_INCLUDE
 #define __NSFileManager_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
-#ifndef	STRICT_OPENSTEP
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSDictionary.h>
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+#import	<Foundation/NSUtilities.h>
+#import	<Foundation/NSDictionary.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSNumber;
 @class NSString;
@@ -458,6 +464,10 @@ GS_EXPORT NSString* const NSFileSystemFreeNodes;
 - (unsigned long) fileSystemNumber;
 - (unsigned long) fileSystemFileNumber;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif /* __NSFileManager_h_GNUSTEP_BASE_INCLUDE */

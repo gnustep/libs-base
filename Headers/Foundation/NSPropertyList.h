@@ -18,8 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: NSPropertyList.m
 
@@ -27,10 +27,15 @@
 
 #ifndef __NSPropertyList_h_GNUSTEP_BASE_INCLUDE
 #define __NSPropertyList_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#ifndef	STRICT_OPENSTEP
+#import	<Foundation/NSObject.h>
 
-#include <Foundation/NSObject.h>
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
 @class NSData, NSString;
 
@@ -39,7 +44,7 @@
  * deserialisation of a property list.
  */
 typedef enum {
-  NSPropertyListImmutable,
+  NSPropertyListImmutable = 0,
 /** <strong>NSPropertyListImmutable</strong>
  * all objects in created list are immutable
  */
@@ -57,19 +62,22 @@ typedef enum {
  * Specifies the serialisation format for a serialised property list.
  */
 typedef enum {
-  NSPropertyListGNUstepFormat,
+  NSPropertyListOpenStepFormat = 1,
+/** <strong>NSPropertyListOpenStepFormat</strong>
+ * the most human-readable format */
+  NSPropertyListXMLFormat_v1_0 = 100,
+/** <strong>NSPropertyListXMLFormat_v1_0</strong>
+ * portable and readable */
+  NSPropertyListBinaryFormat_v1_0 = 200,
+/** <strong>NSPropertyListBinaryFormat_v1_0</strong>
+ * the standard format on macos-x */
+
+  NSPropertyListGNUstepFormat = 1000,
 /** <strong>NSPropertyListGNUstepFormat</strong>
  * extension of OpenStep format */
   NSPropertyListGNUstepBinaryFormat,
 /** <strong>NSPropertyListGNUstepBinaryFormat</strong>
  * efficient, hardware independent */
-  NSPropertyListOpenStepFormat,
-/** <strong>NSPropertyListOpenStepFormat</strong>
- * the most human-readable format */
-  NSPropertyListXMLFormat_v1_0,
-/** <strong>NSPropertyListXMLFormat_v1_0</strong>
- * portable and readable */
-  NSPropertyListBinaryFormat_v1_0,
 } NSPropertyListFormat;
 
 /**
@@ -246,5 +254,10 @@ typedef enum {
 
 @end
 
-#endif	/* STRICT_OPENSTEP */
+#endif	/* GS_API_MACOSX */
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif	/* __NSPropertyList_h_GNUSTEP_BASE_INCLUDE*/

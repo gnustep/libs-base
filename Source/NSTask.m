@@ -47,6 +47,7 @@
 #include "Foundation/NSTimer.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSDebug.h"
+#include "GSPrivate.h"
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -921,7 +922,7 @@ pty_slave(const char* name)
 @implementation NSConcreteWindowsTask
 
 BOOL
-GSCheckTasks()
+GSPrivateCheckTasks()
 {
   BOOL	found = NO;
 
@@ -1197,7 +1198,8 @@ quotedFromString(NSString *aString)
     NULL,      			/* proc attrs */
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
-    CREATE_NO_WINDOW|DETACHED_PROCESS|CREATE_UNICODE_ENVIRONMENT,
+//    CREATE_NO_WINDOW|DETACHED_PROCESS|CREATE_UNICODE_ENVIRONMENT,
+    CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT,
     envp,			/* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,
@@ -1256,7 +1258,7 @@ quotedFromString(NSString *aString)
 @implementation NSConcreteUnixTask
 
 BOOL
-GSCheckTasks()
+GSPrivateCheckTasks()
 {
   BOOL	found = NO;
 
@@ -1276,6 +1278,7 @@ GSCheckTasks()
 
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
+	      AUTORELEASE(RETAIN(t));
 	      [tasksLock unlock];
 	      if (t != nil)
 		{
@@ -1561,8 +1564,8 @@ GSCheckTasks()
       result = waitpid(_taskId, &_terminationStatus, WNOHANG);
       if (result < 0)
         {
-          NSLog(@"waitpid %d, result %d, error %s",
-	    _taskId, result, GSLastErrorStr(errno));
+          NSLog(@"waitpid %d, result %d, error %@",
+	    _taskId, result, [NSError _last]);
           [self _terminatedChild: -1];
         }
       else if (result == _taskId || (result > 0 && errno == 0))
@@ -1594,8 +1597,8 @@ GSCheckTasks()
 #ifdef  WAITDEBUG
       else
 	{
-	  NSLog(@"waitpid %d, result %d, error %s",
-	    _taskId, result, GSLastErrorStr(errno));
+	  NSLog(@"waitpid %d, result %d, error %@",
+	    _taskId, result, [NSError _last]);
 	}
 #endif
     }

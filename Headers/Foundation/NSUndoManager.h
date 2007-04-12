@@ -17,14 +17,21 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */ 
 
 #ifndef __NSUndoManager_h_OBJECTS_INCLUDE
 #define __NSUndoManager_h_OBJECTS_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSArray;
 @class NSString;
@@ -127,5 +134,11 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 - (void) undoNestedGroup;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif	/* GS_API_MACOSX */
 
 #endif /* __NSUndoManager_h_OBJECTS_INCLUDE */

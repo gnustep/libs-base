@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 
@@ -49,10 +50,10 @@
   #include <openssl/err.h>
   #undef id
 
-#include <GSConfig.h>
 #include <Foundation/Foundation.h>
 
 #include <GNUstepBase/GSFileHandle.h>
+#include "GSPrivate.h"
 
 #if defined(__MINGW32__)
 #include <winsock2.h>
@@ -78,10 +79,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <errno.h>
 
 static NSString*
-sslError(int err, int e)
+sslError(int err)
 {
   NSString	*str;
 
@@ -105,8 +105,12 @@ sslError(int err, int e)
 	str = @"Want X509 Lookup Error";
 	break;
       case SSL_ERROR_SYSCALL:
-	str = [NSString stringWithFormat: @"Syscall error %d - %s",
-	  e, GSLastErrorStr(e)];
+        {
+	  NSError	*e = [NSError _last];
+
+	  str = [NSString stringWithFormat: @"Syscall error %d - %@",
+	    [e code], [e description]];
+	}
 	break;
       case SSL_ERROR_SSL:
 	str = @"SSL Error: really helpful";
@@ -222,7 +226,6 @@ sslError(int err, int e)
     }
   if (ret != 1)
     {
-      int		e = errno;
       NSDate		*final;
       NSDate		*when;
       NSTimeInterval	last = 0.0;
@@ -251,7 +254,6 @@ sslError(int err, int e)
 	  ret = SSL_accept(ssl);
 	  if (ret != 1)
 	    {
-	      e = errno;
 	      err = SSL_get_error(ssl, ret);
 	    }
 	  else
@@ -269,7 +271,7 @@ sslError(int err, int e)
 	       * Some other error ... not just a timeout or disconnect
 	       */
 	      NSLog(@"unable to accept SSL connection from %@:%@ - %@",
-		address, service, sslError(err, e));
+		address, service, sslError(err));
 
 	      ERR_print_errors_fp(stderr);
 	    }
@@ -328,7 +330,6 @@ sslError(int err, int e)
     }
   if (ret != 1)
     {
-      int		e = errno;
       NSDate		*final;
       NSDate		*when;
       NSTimeInterval	last = 0.0;
@@ -357,7 +358,6 @@ sslError(int err, int e)
 	  ret = SSL_connect(ssl);
 	  if (ret != 1)
 	    {
-	      e = errno;
 	      err = SSL_get_error(ssl, ret);
 	    }
 	  else
@@ -370,12 +370,13 @@ sslError(int err, int e)
       if (err != SSL_ERROR_NONE)
 	{
 	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
+	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
 	    {
 	      /*
 	       * Some other error ... not just a timeout or disconnect
 	       */
 	      NSLog(@"unable to make SSL connection to %@:%@ - %@",
-		address, service, sslError(err, e));
+		address, service, sslError(err));
 	      ERR_print_errors_fp(stderr);
 	    }
 	  RELEASE(self);
@@ -437,7 +438,7 @@ sslError(int err, int e)
       if (ret != 1)
 	{
 	  NSLog(@"Failed to set certificate file to %@ - %@",
-	    certFile, sslError(ERR_get_error(), errno));
+	    certFile, sslError(ERR_get_error()));
 	}
     }
   if ([privateKey length] > 0)
@@ -447,7 +448,7 @@ sslError(int err, int e)
       if (ret != 1)
 	{
 	  NSLog(@"Failed to set private key file to %@ - %@",
-	    privateKey, sslError(ERR_get_error(), errno));
+	    privateKey, sslError(ERR_get_error()));
 	}
     }
 }

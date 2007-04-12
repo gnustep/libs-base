@@ -18,18 +18,30 @@
 #
 #  You should have received a copy of the GNU Library General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA.
+
+ifeq ($(GNUSTEP_MAKEFILES),)
+ GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+endif
+
+ifeq ($(GNUSTEP_MAKEFILES),)
+  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
+endif
 
 # Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
+
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
 
-resourcedir = $(GNUSTEP_RESOURCES)/gnustep-base
+libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
+
+resourcedir = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
 
 TIMEZONE_ARCHIVE = \
 NSTimeZones.tar

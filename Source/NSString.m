@@ -70,13 +70,13 @@
 #include "Foundation/NSURL.h"
 #include "Foundation/NSMapTable.h"
 #include "Foundation/NSLock.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSDebug.h"
 // For private method _decodePropertyListForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSMime.h"
 #include "GSPrivate.h"
-#include "GSFormat.h"
 #include <limits.h>
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
@@ -106,7 +106,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 @class	GSImmutableString;
 @interface GSImmutableString : NSObject	// Help the compiler
 @end
-
 
 /*
  * Cache classes and method implementations for speed.
@@ -454,7 +453,6 @@ surrogatePairValue(unichar high, unichar low)
     + ((low - (unichar)0xDC00) + (unichar)10000);
 }
 
-
 @implementation NSString
 //  NSString itself is an abstract class which provides factory
 //  methods to generate objects of unspecified subclasses.
@@ -566,8 +564,8 @@ handle_printf_atsign (FILE *stream,
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
-      _DefaultStringEncoding = GetDefEncoding();
-      _ByteEncodingOk = GSIsByteEncoding(_DefaultStringEncoding);
+      _DefaultStringEncoding = GSPrivateDefaultCStringEncoding();
+      _ByteEncodingOk = GSPrivateIsByteEncoding(_DefaultStringEncoding);
 
       NSStringClass = self;
       [self setVersion: 1];
@@ -1057,7 +1055,6 @@ handle_printf_atsign (FILE *stream,
                locale: (NSDictionary*)locale
             arguments: (va_list)argList
 {
-  extern void GSStrExternalize();
   unsigned char	buf[2048];
   GSStr_t	f;
   unichar	fbuf[1024];
@@ -1080,7 +1077,7 @@ handle_printf_atsign (FILE *stream,
 
   /*
    * Now set up 'f' as a GSMutableString object whose initial buffer is
-   * allocated on the stack.  The GSFormat function can write into it.
+   * allocated on the stack.  The GSPrivateFormat function can write into it.
    */
   f.isa = GSMutableStringClass;
   f._zone = NSDefaultMallocZone();
@@ -1089,8 +1086,8 @@ handle_printf_atsign (FILE *stream,
   f._count = 0;
   f._flags.wide = 0;
   f._flags.free = 0;
-  GSFormat(&f, fmt, argList, locale);
-  GSStrExternalize(&f);
+  GSPrivateFormat(&f, fmt, argList, locale);
+  GSPrivateStrExternalize(&f);
   if (fmt != fbuf)
     {
       objc_free(fmt);
@@ -2567,7 +2564,15 @@ handle_printf_atsign (FILE *stream,
       unsigned	length = [d length];
       BOOL	result = (length <= maxLength) ? YES : NO;
 
-      if (length > maxLength) length = maxLength;
+      if (d == nil)
+        {
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to C string."];
+	}
+      if (length > maxLength)
+        {
+          length = maxLength;
+	}
       memcpy(buffer, [d bytes], length);
       buffer[length] = '\0';
       return result;
@@ -2694,7 +2699,7 @@ handle_printf_atsign (FILE *stream,
  */
 + (NSStringEncoding*) availableStringEncodings
 {
-  return GetAvailableEncodings();
+  return GSPrivateAvailableEncodings();
 }
 
 /**
@@ -2712,7 +2717,7 @@ handle_printf_atsign (FILE *stream,
 */
   ourbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
 
-  ourname = GetEncodingName(encoding);
+  ourname = GSPrivateEncodingName(encoding);
   return [ourbundle localizedStringForKey: ourname
 				    value: ourname
 				    table: nil];
@@ -3085,8 +3090,36 @@ static NSFileManager *fm = nil;
   unsigned	originalLength = [self length];
   unsigned	length = originalLength;
   unsigned	aLength = [aString length];
-  unsigned	root = rootOf(aString, aLength);
+  unsigned	root;
   unichar	buf[length+aLength+1];
+
+  /* If the 'component' has a leading path separator (or drive spec
+   * in windows) then we need to find its length so we can strip it.
+   */
+  root = rootOf(aString, aLength);
+  if (root > 0)
+    {
+      unichar c = [aString characterAtIndex: 0];
+
+      if (c == '~')
+        {
+	  root = 0;
+	}
+      else if (root > 1 && pathSepMember(c))
+        {
+	  int	i;
+
+	  for (i = 1; i < root; i++)
+	    {
+	      c = [aString characterAtIndex: i];
+	      if (!pathSepMember(c))
+	        {
+		  break;
+		}
+	    }
+	  root = i;
+	}
+    }
 
   if (length == 0)
     {
@@ -3190,11 +3223,11 @@ static NSFileManager *fm = nil;
     }
 
   /* MacOS-X prohibits an extension beginning with a path separator,
-   * but this code extends that a little to prohibit any root from
-   * being used as an extension.  Perhaps we should be more permissive?
+   * but this code extends that a little to prohibit any root except
+   * one beginning with '~' from being used as an extension. 
    */ 
   root = rootOf(aString, [aString length]);
-  if (root > 0)
+  if (root > 0 && [aString characterAtIndex: 0] != '~')
     {
       NSLog(@"[%@-%@] cannot append extension '%@' to path '%@'",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd),
@@ -4151,7 +4184,6 @@ static NSFileManager *fm = nil;
 {
   va_list ap;
   id ret;
-  NSDictionary *dict;
 
   va_start(ap, format);
   if (format == nil)
@@ -4160,9 +4192,8 @@ static NSFileManager *fm = nil;
     }
   else
     {
-      dict = GSUserDefaultsDictionaryRepresentation();
       ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-        initWithFormat: format locale: dict arguments: ap]);
+        initWithFormat: format locale: GSPrivateDefaultLocale() arguments: ap]);
     }
   va_end(ap);
   return ret;
@@ -4212,12 +4243,10 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) localizedCompare: (NSString *)string
 {
-  NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
-
   return [self compare: string
                options: 0
                  range: ((NSRange){0, [self length]})
-                locale: dict];
+                locale: GSPrivateDefaultLocale()];
 }
 
 /**
@@ -4226,12 +4255,10 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string
 {
-  NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
-
   return [self compare: string
                options: NSCaseInsensitiveSearch
                  range: ((NSRange){0, [self length]})
-                locale: dict];
+                locale: GSPrivateDefaultLocale()];
 }
 
 /**

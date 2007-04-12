@@ -25,6 +25,13 @@
    $Date$ $Revision$
    */
 
+/* On some versions of mingw we need to work around bad function declarations
+ * by defining them away and doing the declarations ourself later.
+ */
+#define InterlockedIncrement	BadInterlockedIncrement
+#define InterlockedDecrement	BadInterlockedDecrement
+
+
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include <stdarg.h>
@@ -65,6 +72,20 @@
 extern BOOL __objc_responds_to(id, SEL);
 #endif
 
+/* When this is `YES', every call to release/autorelease, checks to
+   make sure isn't being set up to release itself too many times.
+   This does not need mutex protection. */
+static BOOL double_release_check_enabled = NO;
+
+/* The Class responsible for handling autorelease's.  This does not
+   need mutex protection, since it is simply a pointer that gets read
+   and set. */
+static id autorelease_class = nil;
+static SEL autorelease_sel;
+static IMP autorelease_imp;
+
+
+
 #if GS_WITH_GC
 
 #include	<gc.h>
@@ -88,12 +109,11 @@ static Class	NSConstantStringClass;
 @end
 
 /*
- * allocationLock is needed when running multi-threaded for retain/release
- * to work reliably.
- * We also use it for protecting the map table of zombie information.
+ * allocationLock is needed when running multi-threaded for 
+ * protecting the map table of zombie information and for retain
+ * count protection (when using a map table ... REFCNT_LOCAL is NO)
  */
 static objc_mutex_t allocationLock = NULL;
-
 
 BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
@@ -147,7 +167,7 @@ static void GSLogZombie(id o, SEL sel)
       NSLog(@"Deallocated %@ (0x%x) sent %@",
 	NSStringFromClass(c), o, NSStringFromSelector(sel));
     }
-  if (GSEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
+  if (GSPrivateEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
     {
       abort();
     }
@@ -172,6 +192,105 @@ static void GSLogZombie(id o, SEL sel)
 #define	REFCNT_LOCAL	1
 #define	CACHE_ZONE	1
 #endif
+
+
+/* Now, if we are on a platform where we know how to do atomic
+ * read, increment, and decrement, then we define the GSATOMICREAD
+ * macro and macros or functions to increment/decrement.
+ * The presence of the GSATOMICREAD macro is used later to determine
+ * whether to attempt atomic operations or to use locking for the
+ * retain/release mechanism.
+ * The GSAtomicIncrement() and GSAtomicDecrement() functions take a
+ * pointer to a 32bit integer as an argument, increment/decrement the
+ * value pointed to, and return the result.
+ */
+#ifdef	GSATOMICREAD
+#undef	GSATOMICREAD
+#endif
+
+#if	defined(REFCNT_LOCAL)
+
+#if	defined(__MINGW32__)
+
+#undef InterlockedIncrement
+#undef InterlockedDecrement
+LONG WINAPI InterlockedIncrement(LONG volatile *);
+LONG WINAPI InterlockedDecrement(LONG volatile *);
+
+/* Set up atomic read, increment and decrement for mswindows
+ */
+
+typedef int32_t volatile *gsatomic_t;
+
+#define	GSATOMICREAD(X)	(*(X))
+
+#define	GSAtomicIncrement(X)	InterlockedIncrement((LONG volatile*)X)
+#define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
+
+#endif
+
+
+#if	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
+/* Set up atomic read, increment and decrement for intel style linux
+ */
+
+typedef int32_t volatile *gsatomic_t;
+
+#define	GSATOMICREAD(X)	(*(X))
+
+static __inline__ int
+GSAtomicIncrement(gsatomic_t X)
+{
+  int	i = 1;
+  __asm__ __volatile__(
+  "lock ; xaddl %0, %1;"
+  :"=r"(i)
+  :"m"(*X), "0"(i));
+  return i + 1;
+}
+
+static __inline__ int
+GSAtomicDecrement(gsatomic_t X)
+{
+  int	i = -1;
+  __asm__ __volatile__(
+  "lock ; xaddl %0, %1;"
+  :"=r"(i)
+  :"m"(*X), "0"(i));
+  return i - 1;
+}
+
+#endif
+#endif
+
+#if	defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
+
+/*
+ * Having just one allocationLock for all leads to lock contention
+ * if there are lots of threads doing lots of retain/release calls.
+ * To alleviate this, if using REFCNT_LOCAL, instead of a single
+ * allocationLock for all objects, we divide the object space into
+ * chunks, each with its own lock. The chunk is selected by shifting
+ * off the low-order ALIGNBITS of the object's pointer (these bits
+ * are presumably always zero) and take
+ * the low-order LOCKBITS of the result to index into a table of locks.
+ */
+
+#define LOCKBITS 5
+#define LOCKCOUNT (1<<LOCKBITS)
+#define LOCKMASK (LOCKCOUNT-1)
+#define ALIGNBITS 3
+
+static objc_mutex_t allocationLocks[LOCKCOUNT] = { 0 };
+
+static inline objc_mutex_t GSAllocationLockForObject(id p)
+{
+  unsigned i = ((((unsigned)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
+  return allocationLocks[i];
+}
+
+#endif
+
 
 #ifdef ALIGN
 #undef ALIGN
@@ -242,27 +361,59 @@ static GSIMapTable_t	retain_counts = {0};
  * (and hence whether the extra reference count was decremented).<br />
  * This function is used by the [NSObject-release] method.
  */
-inline BOOL
+BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
-#if	GS_WITH_GC
-  return NO;
-#else	/* GS_WITH_GC */
+#if	!GS_WITH_GC
+  if (double_release_check_enabled)
+    {
+      unsigned release_count;
+      unsigned retain_count = [anObject retainCount];
+      release_count = [autorelease_class autoreleaseCountForObject: anObject];
+      if (release_count >= retain_count)
+        [NSException raise: NSGenericException
+		    format: @"Release would release object too many times."];
+    }
 #if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+#if	defined(GSATOMICREAD)
+      int	result;
+
+      result = GSAtomicDecrement((gsatomic_t)&(((obj)anObject)[-1].retained));
+      if (result < 0)
+	{
+	  if (result != -1)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"NSDecrementExtraRefCount() decremented too far"];
+	    }
+	  /* The counter has become negative so it must have been zero.
+	   * We reset it and return YES ... in a correctly operating
+	   * process we know we can safely reset back to zero without
+	   * worrying about atomicity, since there can be no other
+	   * thread accessing the object (or its reference count would
+	   * have been greater than zero)
+	   */
+	  (((obj)anObject)[-1].retained) = 0;
+	  return YES;
+	}
+#else	/* GSATOMICREAD */
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+
+      objc_mutex_lock(theLock);
       if (((obj)anObject)[-1].retained == 0)
 	{
-	  objc_mutex_unlock(allocationLock);
+	  objc_mutex_unlock(theLock);
 	  return YES;
 	}
       else
 	{
 	  ((obj)anObject)[-1].retained--;
-	  objc_mutex_unlock(allocationLock);
+	  objc_mutex_unlock(theLock);
 	  return NO;
 	}
+#endif	/* GSATOMICREAD */
     }
   else
     {
@@ -317,9 +468,9 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	  --(node->value.uint);
 	}
     }
+#endif
+#endif
   return NO;
-#endif
-#endif
 }
 
 /**
@@ -341,7 +492,9 @@ NSExtraRefCount(id anObject)
 
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+
+      objc_mutex_lock(theLock);
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node == 0)
 	{
@@ -351,7 +504,7 @@ NSExtraRefCount(id anObject)
 	{
 	  ret = node->value.uint;
 	}
-      objc_mutex_unlock(allocationLock);
+      objc_mutex_unlock(theLock);
     }
   else
     {
@@ -385,15 +538,30 @@ NSIncrementExtraRefCount(id anObject)
 #if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+#if	defined(GSATOMICREAD)
+      /* I've seen comments saying that some platforms only support up to
+       * 24 bits in atomic locking, so raise an exception if we try to
+       * go beyond 0xfffffe.
+       */
+      if (GSAtomicIncrement((gsatomic_t)&(((obj)anObject)[-1].retained))
+        > 0xfffffe)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
+	}
+#else	/* GSATOMICREAD */
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+
+      objc_mutex_lock(theLock);
       if (((obj)anObject)[-1].retained == UINT_MAX - 1)
 	{
-	  objc_mutex_unlock (allocationLock);
+	  objc_mutex_unlock (theLock);
 	  [NSException raise: NSInternalInconsistencyException
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
 	}
       ((obj)anObject)[-1].retained++;
-      objc_mutex_unlock (allocationLock);
+      objc_mutex_unlock (theLock);
+#endif	/* GSATOMICREAD */
     }
   else
     {
@@ -404,8 +572,7 @@ NSIncrementExtraRefCount(id anObject)
 	}
       ((obj)anObject)[-1].retained++;
     }
-  return;
-#else
+#else	/* REFCNT_LOCAL */
   GSIMapNode	node;
 
   if (allocationLock != 0)
@@ -447,9 +614,8 @@ NSIncrementExtraRefCount(id anObject)
 	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
 	}
     }
-  return;
-#endif
-#endif
+#endif	/* REFCNT_LOCAL */
+#endif	/* GS_WITH_GC */
 }
 
 
@@ -696,20 +862,6 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 
 
 
-/* The Class responsible for handling autorelease's.  This does not
-   need mutex protection, since it is simply a pointer that gets read
-   and set. */
-static id autorelease_class = nil;
-static SEL autorelease_sel;
-static IMP autorelease_imp;
-
-/* When this is `YES', every call to release/autorelease, checks to
-   make sure isn't being set up to release itself too many times.
-   This does not need mutex protection. */
-static BOOL double_release_check_enabled = NO;
-
-
-
 struct objc_method_description_list {
   int count;
   struct objc_method_description list[1];
@@ -859,6 +1011,14 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (allocationLock == 0)
     {
+#if defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
+      unsigned	i;
+
+      for (i = 0; i < LOCKCOUNT; i++)
+        {
+	  allocationLocks[i] = objc_mutex_allocate();
+	}
+#endif
       allocationLock = objc_mutex_allocate();
     }
 }
@@ -884,8 +1044,6 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (self == [NSObject class])
     {
-      extern void		GSBuildStrings(void);	// See externs.m
-
 #ifdef __MINGW32__
       // See libgnustep-base-entry.m
       extern void gnustep_base_socket_init(void);	
@@ -960,8 +1118,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       zombieClass = [NSZombie class];
-      NSZombieEnabled = GSEnvironmentFlag("NSZombieEnabled", NO);
-      NSDeallocateZombies = GSEnvironmentFlag("NSDeallocateZombies", NO);
+      NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
+      NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
 
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
@@ -973,7 +1131,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 #endif
 #endif
       NSConstantStringClass = [NSString constantStringClass];
-      GSBuildStrings();
+      GSPrivateBuildStrings();
       [[NSNotificationCenter defaultCenter]
 	addObserver: self
 	   selector: @selector(_becomeMultiThreaded:)
@@ -1287,7 +1445,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (aSelector == 0)
     {
-      if (GSUserDefaultsFlag(GSMacOSXCompatible))
+      if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
 	{
 	  [NSException raise: NSInvalidArgumentException
 		    format: @"%@ null selector given",
@@ -1479,8 +1637,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  */
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"<%s: %lx>",
-    GSClassNameFromObject(self), (unsigned long)self];
+  return [NSString stringWithFormat: @"<%s: %p>",
+    GSClassNameFromObject(self), self];
 }
 
 /**
@@ -1612,7 +1770,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  * sent a -release message when the pool is destroyed.<br />
  * Returns the receiver.<br />
  * In GNUstep, the [NSObject+enableDoubleReleaseCheck:] method may be used
- * to turn on checking for ratain/release errors in this method.
+ * to turn on checking for retain/release errors in this method.
  */
 - (id) autorelease
 {
@@ -1829,16 +1987,6 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 - (oneway void) release
 {
 #if	GS_WITH_GC == 0
-  if (double_release_check_enabled)
-    {
-      unsigned release_count;
-      unsigned retain_count = [self retainCount];
-      release_count = [autorelease_class autoreleaseCountForObject:self];
-      if (release_count >= retain_count)
-        [NSException raise: NSGenericException
-		     format: @"Release would release object too many times."];
-    }
-
   if (NSDecrementExtraRefCountWasZero(self))
     {
       [self dealloc];
@@ -1870,7 +2018,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (aSelector == 0)
     {
-      if (GSUserDefaultsFlag(GSMacOSXCompatible))
+      if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
 	{
 	  [NSException raise: NSInvalidArgumentException
 		    format: @"%@ null selector given",
@@ -2376,8 +2524,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"<%s: %lx>",
-    GSClassNameFromObject(self), (unsigned long)self];
+  return [NSString stringWithFormat: @"<%s: %p>",
+    GSClassNameFromObject(self), self];
 }
 - (BOOL) isProxy
 {

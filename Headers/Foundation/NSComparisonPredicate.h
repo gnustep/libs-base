@@ -24,9 +24,16 @@
 
 #ifndef __NSComparisonPredicate_h_GNUSTEP_BASE_INCLUDE
 #define __NSComparisonPredicate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSExpression.h>
-#include <Foundation/NSPredicate.h>
+#if	OS_API_VERSION(100400, GS_API_LATEST)
+
+#import	<Foundation/NSExpression.h>
+#import	<Foundation/NSPredicate.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 typedef enum _NSComparisonPredicateModifier
 {
@@ -94,4 +101,9 @@ typedef enum _NSPredicateOperatorType
 
 @end
 
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif	/* 100400 */
 #endif

@@ -71,6 +71,9 @@
 #ifdef HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>
 #endif
+#ifdef HAVE_SYS_UTSNAME_H
+#include <sys/utsname.h>
+#endif
 
 #ifdef HAVE_KVM_ENV
 #include <kvm.h>
@@ -85,7 +88,7 @@
 #undef id
 #endif
 
-#include "GSConfig.h"
+#include "GNUstepBase/GSConfig.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSBundle.h"
@@ -97,6 +100,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSHost.h"
 #include "Foundation/NSLock.h"
+#include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSCategories.h"
 
 #include "GSPrivate.h"
@@ -194,16 +198,22 @@ static NSArray		*_gnu_arguments = nil;
 // Dictionary of environment vars and their values
 static NSMutableDictionary	*_gnu_environment = nil;
 
+// The operating system we are using.
+static unsigned int	_operatingSystem = 0;
+static NSString		*_operatingSystemName = nil;
+static NSString		*_operatingSystemVersion = nil;
+
 // Array of debug levels set.
 static NSMutableSet	*_debug_set = nil;
 
 // Flag to indicate that fallbackInitialisation was executed.
 static BOOL	fallbackInitialisation = NO;
+
 /*************************************************************************
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
 
-void
+static void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
   CREATE_AUTORELEASE_POOL(arp);
@@ -252,7 +262,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
               objc_free(buffer);
 	    }
 	}
-      tmp = [arg0 UTF8String];
+      tmp = [arg0 cStringUsingEncoding: [NSString defaultCStringEncoding]];
       _gnu_arg_zero = (char*)objc_malloc(strlen(tmp) + 1);
       strcpy(_gnu_arg_zero, tmp);
 #else
@@ -265,6 +275,19 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   /* Getting the process name */
   IF_NO_GC(RELEASE(_gnu_processName));
   _gnu_processName = [arg0 lastPathComponent];
+#if	defined(__MINGW32__)
+  /* On windows we remove any .exe extension for consistency with app names
+   * under unix
+   */
+  {
+    NSString	*e = [_gnu_processName pathExtension];
+
+    if (e != nil && [e caseInsensitiveCompare: @"EXE"] == NSOrderedSame)
+      {
+	_gnu_processName = [_gnu_processName stringByDeletingPathExtension];
+      }
+  }
+#endif
   IF_NO_GC(RETAIN(_gnu_processName));
 
   /* Copy the argument list */
@@ -307,6 +330,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
       NSMutableSet	*mySet;
       id		obj_argv[argc];
       int		added = 1;
+      NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
       mySet = [NSMutableSet new];
 
@@ -315,7 +339,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
       for (i = 1; i < argc; i++)
 	{
-	  str = [NSString stringWithCString: argv[i]];
+	  str = [NSString stringWithCString: argv[i] encoding: enc];
 
 	  if ([str hasPrefix: @"--GNU-Debug="])
 	    [mySet addObject: [str substringFromIndex: 12]];
@@ -335,6 +359,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   {
     NSMutableArray	*keys = [NSMutableArray new];
     NSMutableArray	*values = [NSMutableArray new];
+    NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
 #if defined(__MINGW32__)
     if (fallbackInitialisation == NO)
@@ -398,8 +423,10 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 		strcpy(buf, env[i]);
 		cp = &buf[cp - env[i]];
 		*cp++ = '\0';
-		[keys addObject: [NSString stringWithCString: buf]];
-		[values addObject: [NSString stringWithCString: cp]];
+		[keys addObject:
+		  [NSString stringWithCString: buf encoding: enc]];
+		[values addObject:
+		  [NSString stringWithCString: cp encoding: enc]];
 	      }
 	    i++;
 	  }
@@ -874,9 +901,6 @@ int main(int argc, char *argv[], char *env[])
 
 #endif /* HAS_LOAD_METHOD && HAS_PROCFS */
 
-/**
- * Returns the shared NSProcessInfo object for the current process.
- */
 + (NSProcessInfo *) processInfo
 {
   // Check if the main() function was successfully called
@@ -895,42 +919,16 @@ int main(int argc, char *argv[], char *env[])
   return _gnu_sharedProcessInfoObject;
 }
 
-/**
- * Returns an array containing the arguments supplied to start this
- * process.<br />
- * NB. In GNUstep, any arguments of the form --GNU-Debug=...
- * are <em>not</em> included in this array ... they are part of the
- * debug mechanism, and are hidden so that setting debug variables
- * will not effect the normal operation of the program.<br />
- * Please note, the special <code>--GNU-Debug=...</code> syntax differs from
- * that which is used to specify values for the [NSUserDefaults] system.<br />
- * User defaults are set on the command line by specifying the default name
- * (with a leading hyphen) as one argument, and the default value as the
- * following argument.  The arguments used to set user defaults are
- * present in the array returned by this method.
- */
 - (NSArray *) arguments
 {
   return _gnu_arguments;
 }
 
-/**
- * Returns a dictionary giving the environment variables which were
- * provided for the process to use.
- */
 - (NSDictionary *) environment
 {
   return _gnu_environment;
 }
 
-/**
- * Returns a string which may be used as a globally unique identifier.<br />
- * The string contains the host name, the process ID, a timestamp and a
- * counter.<br />
- * The first three values identify the process in which the string is
- * generated, while the fourth ensures that multiple strings generated
- * within the same process are unique.
- */
 - (NSString *) globallyUniqueString
 {
   static unsigned long	counter = 0;
@@ -958,9 +956,6 @@ int main(int argc, char *argv[], char *env[])
     host, pid, start, count];
 }
 
-/**
- * Returns the name of the machine on which this process is running.
- */
 - (NSString *) hostName
 {
   if (!_gnu_hostName)
@@ -970,103 +965,169 @@ int main(int argc, char *argv[], char *env[])
   return _gnu_hostName;
 }
 
-/**
- * Return a number representing the operating system type.<br />
- * The known types are listed in the header file, but not all of the
- * listed types are actually implemented ... some are present for
- * MacOS-X compatibility only.<br />
- * <list>
- * <item>NSWindowsNTOperatingSystem - used for windows NT, 2000, XP</item>
- * <item>NSWindows95OperatingSystem - probably never to be implemented</item>
- * <item>NSSolarisOperatingSystem - not yet recognised</item>
- * <item>NSHPUXOperatingSystem - not implemented</item>
- * <item>NSMACHOperatingSystem - perhaps the HURD in future?</item>
- * <item>NSSunOSOperatingSystem - probably never to be implemented</item>
- * <item>NSOSF1OperatingSystem - probably never to be implemented</item>
- * <item>NSGNULinuxOperatingSystem - the GNUstep 'standard'</item>
- * <item>NSBSDOperatingSystem - BSD derived operating systems</item>
- * <item>NSCygwinOperatingSystem - cygwin unix-like environment</item>
- * </list>
- */
+static void determineOperatingSystem()
+{
+  if (_operatingSystem == 0)
+    {
+      NSString	*os = nil;
+      BOOL	parseOS = YES;
+
+#if	defined(__MINGW32__)
+      OSVERSIONINFOW	osver;
+
+      osver.dwOSVersionInfoSize = sizeof(osver);
+      GetVersionExW (&osver);
+      /* Hmm, we could use this to determine operating system version, but
+       * that would not distinguish between mingw and cygwin, so we just
+       * use the information from NSBundle and only get the version info
+       * here.
+       */
+      _operatingSystemVersion = [[NSString alloc] initWithFormat: @"%d.%d",
+        osver.dwMajorVersion, osver.dwMinorVersion];
+#else
+#if	defined(HAVE_SYS_UTSNAME_H)
+      struct utsname uts;
+
+      /* The system supports uname, so we can use it rather than the
+       * value determined at configure/compile time.
+       * That's good if the binary is running on a system other than
+       * the one it was built for (rare, but can happen).
+       */
+      if (uname(&uts) == 0)
+	{
+	  os = [NSString stringWithCString: uts.sysname                                                           encoding: [NSString defaultCStringEncoding]];
+	  os = [os lowercaseString];
+	  /* Get the operating system version ... usually the version string
+	   * is pretty horrible, and the kernel release string actually
+	   * makes more sense.
+	   */
+	  _operatingSystemVersion = [[NSString alloc]
+	    initWithCString: uts.release
+	    encoding: [NSString defaultCStringEncoding]];
+
+	  /* Hack for sunos/solaris ... sunos version 5 is solaris
+	   */
+	  if ([os isEqualToString: @"sunos"] == YES
+	    && [_operatingSystemVersion intValue] > 4)
+	    {
+	      os = @"solaris";
+	    }
+	}
+#endif	/* HAVE_SYS_UTSNAME_H */
+#endif	/* __MINGW32__ */
+
+      if (_operatingSystemVersion == nil)
+        {
+	  NSWarnFLog(@"Unable to determine system version, using 0.0");
+	  _operatingSystemVersion = @"0.0";
+	}
+
+      while (parseOS == YES)
+	{
+	  NSString	*fallback = [NSBundle _gnustep_target_os];
+
+	  if (os == nil)
+	    {
+	      os = fallback;
+	    }
+	  parseOS = NO;
+
+	  if ([os hasPrefix: @"linux"] == YES)
+	    {
+	      _operatingSystemName = @"GSGNULinuxOperatingSystem";
+	      _operatingSystem = GSGNULinuxOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"mingw"] == YES)
+	    {
+	      _operatingSystemName = @"NSWindowsNTOperatingSystem";
+	      _operatingSystem = NSWindowsNTOperatingSystem;
+	    }
+	  else if ([os isEqualToString: @"cygwin"] == YES)
+	    {
+	      _operatingSystemName = @"GSCygwinOperatingSystem";
+	      _operatingSystem = GSCygwinOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"bsd"] == YES
+	    || [os hasPrefix: @"freebsd"] == YES
+	    || [os hasPrefix: @"netbsd"] == YES
+	    || [os hasPrefix: @"openbsd"] == YES)
+	    {
+	      _operatingSystemName = @"GSBSDOperatingSystem";
+	      _operatingSystem = GSBSDOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"beos"] == YES)
+	    {
+	      _operatingSystemName = @"GSBeOperatingSystem";
+	      _operatingSystem = GSBeOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"darwin"] == YES)
+	    {
+	      _operatingSystemName = @"NSMACHOperatingSystem";
+	      _operatingSystem = NSMACHOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"solaris"] == YES)
+	    {
+	      _operatingSystemName = @"NSSolarisOperatingSystem";
+	      _operatingSystem = NSSolarisOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"hpux"] == YES)
+	    {
+	      _operatingSystemName = @"NSHPUXOperatingSystem";
+	      _operatingSystem = NSHPUXOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"sunos"] == YES)
+	    {
+	      _operatingSystemName = @"NSSunOSOperatingSystem";
+	      _operatingSystem = NSSunOSOperatingSystem;
+	    }
+	  else if ([os hasPrefix: @"osf"] == YES)
+	    {
+	      _operatingSystemName = @"NSOSF1OperatingSystem";
+	      _operatingSystem = NSOSF1OperatingSystem;
+	    }
+	  if (_operatingSystem == 0 && [os isEqual: fallback] == NO)
+	    {
+	      os = fallback;
+	      parseOS = YES;	// Try again with fallback
+	    }
+	}
+
+      if (_operatingSystem == 0)
+        {
+	  NSWarnFLog(@"Unable to determine O/S ... assuming GNU/Linux");
+	  _operatingSystemName = @"GSGNULinuxOperatingSystem";
+	  _operatingSystem = GSGNULinuxOperatingSystem;
+	}
+    }
+}
+
 - (unsigned int) operatingSystem
 {
-  static unsigned int	os = 0;
-
-  if (os == 0)
+  if (_operatingSystem == 0)
     {
-      NSString	*n = [self operatingSystemName];
-
-      if ([n isEqualToString: @"linux-gnu"] == YES)
-        {
-	  os = NSGNULinuxOperatingSystem;
-	}
-      else if ([n hasPrefix: @"mingw"] == YES)
-        {
-	  os = NSWindowsNTOperatingSystem;
-	}
-      else if ([n isEqualToString: @"cygwin"] == YES)
-        {
-	  os = NSCygwinOperatingSystem;
-	}
-      else if ([n hasPrefix: @"bsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n hasPrefix: @"freebsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n hasPrefix: @"netbsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n hasPrefix: @"openbsd"] == YES)
-        {
-	  os = NSBSDOperatingSystem;
-	}
-      else if ([n isEqualToString: @"beos"] == YES)
-	{
-          os = NSBeOperatingSystem;
-        }
-      else if ([n hasPrefix: @"darwin"] == YES)
-	{
-          os = NSMACHOperatingSystem;
-        }
-      else if ([n hasPrefix: @"solaris"] == YES)
-	{
-          os = NSSolarisOperatingSystem;
-        }
-      else if ([n hasPrefix: @"hpux"] == YES)
-	{
-          os = NSHPUXOperatingSystem;
-        }
-      else
-        {
-	  NSLog(@"Unable to determine O/S ... assuming GNU/Linux");
-	  os = NSGNULinuxOperatingSystem;
-	}
+      determineOperatingSystem();
     }
-  return os;
+  return _operatingSystem;
 }
 
-/**
- * Returns the name of the operating system in use.
- */
 - (NSString*) operatingSystemName
 {
-  static NSString	*os = nil;
-
-  if (os == nil)
+  if (_operatingSystemName == 0)
     {
-      os = [[NSBundle _gnustep_target_os] copy];
+      determineOperatingSystem();
     }
-  return os;
+  return _operatingSystemName;
 }
 
-/**
- * Returns the process identifier number which identifies this process
- * on this machine.
- */
+- (NSString *) operatingSystemVersionString
+{
+  if (_operatingSystemVersion == nil)
+    {
+      determineOperatingSystem();
+    }
+  return _operatingSystemVersion;
+}
+
 - (int) processIdentifier
 {
   int	pid;
@@ -1079,19 +1140,11 @@ int main(int argc, char *argv[], char *env[])
   return pid;
 }
 
-/**
- * Returns the process name for this process. This may have been set using
- * the -setProcessName: method, or may be the default process name (the
- * file name of the binary being executed).
- */
 - (NSString *) processName
 {
   return _gnu_processName;
 }
 
-/**
- * Change the name of the current process to newName.
- */
 - (void) setProcessName: (NSString *)newName
 {
   if (newName && [newName length]) {
@@ -1103,21 +1156,10 @@ int main(int argc, char *argv[], char *env[])
 
 @end
 
-/**
- * Provides GNUstep-specific methods for controlled debug logging (a GNUstep
- * facility) and an internal/developer-related method.
- */
 @implementation	NSProcessInfo (GNUstep)
 
 static BOOL	debugTemporarilyDisabled = NO;
 
-/**
- * Fallback method. The developer must call this method to initialize
- * the NSProcessInfo system if none of the system-specific hacks to
- * auto-initialize it are working.<br />
- * It should also be safe to call this method to override the effects
- * of the automatic initialisation.
- */
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env
@@ -1128,11 +1170,6 @@ static BOOL	debugTemporarilyDisabled = NO;
   [gnustep_global_lock unlock];
 }
 
-/**
- * Returns a indication of whether debug logging is enabled.
- * This returns YES unless a call to -setDebugLoggingEnabled: has
- * been used to turn logging off.
- */
 - (BOOL) debugLoggingEnabled
 {
   if (debugTemporarilyDisabled == YES)
@@ -1145,23 +1182,11 @@ static BOOL	debugTemporarilyDisabled = NO;
     }
 }
 
-/**
- * This method returns a set of debug levels set using the
- * --GNU-Debug=... command line option and/or the GNU-Debug
- * user default.<br />
- * You can modify this set to change the debug logging under
- * your programs control ... but such modifications are not
- * thread-safe.
- */
 - (NSMutableSet*) debugSet
 {
   return _debug_set;
 }
 
-/**
- * This method permits you to turn all debug logging on or off
- * without modifying the set of debug levels in use.
- */
 - (void) setDebugLoggingEnabled: (BOOL)flag
 {
   if (flag == NO)
@@ -1174,11 +1199,6 @@ static BOOL	debugTemporarilyDisabled = NO;
     }
 }
 
-/**
- * Set the file to which NSLog output should be directed.<br />
- * Returns YES on success, NO on failure.<br />
- * By default logging goes to standard error.
- */
 - (BOOL) setLogFile: (NSString*)path
 {
   extern int	_NSLogDescriptor;
@@ -1202,12 +1222,6 @@ static BOOL	debugTemporarilyDisabled = NO;
 }
 @end
 
-/**
- * Function for rapid testing to see if a debug level is set.<br />
- * This is used by the debugging macros.<br />
- * If debug logging has been turned off, this returns NO even if
- * the specified level exists in the set of debug levels.
- */
 BOOL GSDebugSet(NSString *level)
 {
   static IMP debugImp = 0;
@@ -1233,9 +1247,8 @@ BOOL GSDebugSet(NSString *level)
   return YES;
 }
 
-
 BOOL
-GSEnvironmentFlag(const char *name, BOOL def)
+GSPrivateEnvironmentFlag(const char *name, BOOL def)
 {
   const char	*c = getenv(name);
   BOOL		a = def;
@@ -1262,17 +1275,12 @@ GSEnvironmentFlag(const char *name, BOOL def)
   return a;
 }
 
-/**
- * Used by NSException uncaught exception handler - must not call any
- * methods/functions which might cause a recursive exception.
- */
 const char*
-GSArgZero(void)
+GSPrivateArgZero()
 {
   if (_gnu_arg_zero == 0)
     return "";
   else
     return _gnu_arg_zero;
 }
-
 

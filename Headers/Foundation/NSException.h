@@ -18,8 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
     <title>NSException and NSAssertionHandler class reference</title>
 
@@ -30,10 +30,15 @@
 
 #ifndef __NSException_h_GNUSTEP_BASE_INCLUDE
 #define __NSException_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSString.h>
+#import	<Foundation/NSString.h>
 #include <setjmp.h>
 #include <stdarg.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSDictionary;
 
@@ -84,37 +89,37 @@
 }
 
 /**
-   Create an an exception object with a name, reason and a dictionary
-   userInfo which can be used to provide additional information or
-   access to objects needed to handle the exception. After the
-   exception is created you must -raise it.
-*/
+ * Create an an exception object with a name, reason and a dictionary
+ * userInfo which can be used to provide additional information or
+ * access to objects needed to handle the exception. After the
+ * exception is created you must -raise it.
+ */
 + (NSException*) exceptionWithName: (NSString*)name
 			    reason: (NSString*)reason
 			  userInfo: (NSDictionary*)userInfo;
 
 /**
-   Creates an exception with a name and a reason using the
-   format string and any additional arguments. The exception is then
-   <em>raised</em> using the -raise method.
+ * Creates an exception with a name and a reason using the
+ * format string and any additional arguments. The exception is then
+ * <em>raised</em> using the -raise method.
  */
 + (void) raise: (NSString*)name
 	format: (NSString*)format,...;
 
 /**
-   Creates an exception with a name and a reason string using the
-   format string and additional arguments specified as a variable
-   argument list argList. The exception is then <em>raised</em>
-   using the -raise method.
+ * Creates an exception with a name and a reason string using the
+ * format string and additional arguments specified as a variable
+ * argument list argList. The exception is then <em>raised</em>
+ * using the -raise method.
  */
 + (void) raise: (NSString*)name
 	format: (NSString*)format
      arguments: (va_list)argList;
 
 /**
-   <init/>Initializes a newly allocated NSException object with a
-   name, reason and a dictionary userInfo.
-*/
+ * <init/>Initializes a newly allocated NSException object with a
+ * name, reason and a dictionary userInfo.
+ */
 - (id) initWithName: (NSString*)name 
 	     reason: (NSString*)reason 
 	   userInfo: (NSDictionary*)userInfo;
@@ -123,25 +128,31 @@
 - (NSString*) name;
 
 /**
-   Raises the exception. All code following the raise will not be
-   executed and program control will be transfered to the closest
-   calling method which encapsulates the exception code in an
-   NS_DURING macro.<br />
-   If the exception was not caught in a macro, the currently set
-   uncaught exception handler is called to perform final logging
-   and the program is then terminated.<br />
-   If the uncaught exception handler fails to terminate the program,
-   then the default behavior is to terminate the program as soon as
-   the uncaught exception handler function returns.<br />
-   NB. all other exception raising methods call this one, so if you
-   want to set a breakpoint when debugging, set it in this method.
-*/
+ * Raises the exception. All code following the raise will not be
+ * executed and program control will be transfered to the closest
+ * calling method which encapsulates the exception code in an
+ * NS_DURING macro.<br />
+ * If the exception was not caught in a macro, the currently set
+ * uncaught exception handler is called to perform final logging
+ * and the program is then terminated.<br />
+ * If the uncaught exception handler fails to terminate the program,
+ * then the default behavior is to terminate the program as soon as
+ * the uncaught exception handler function returns.<br />
+ * NB. all other exception raising methods call this one, so if you
+ * want to set a breakpoint when debugging, set it in this method.
+ */
 - (void) raise;
 
 /** Returns the exception reason. */
 - (NSString*) reason;
 
-/** Returns the exception userInfo dictionary. */
+/** Returns the exception userInfo dictionary.<br />
+ * There is a GNUstep extension, enabled when the GNUSTEP_STACK_TRACE
+ * environment variable is set to YES, which causes a stack trace to
+ * be placed in this dictionary (keyed on GSStackTraceKey) at the point
+ * when the exception is raised.  This can be useful for determining
+ * where an exception ocurred.
+ */
 - (NSDictionary*) userInfo;
 
 @end
@@ -178,7 +189,13 @@ GS_EXPORT NSString* const NSRangeException;
  */
 GS_EXPORT NSString* const NSCharacterConversionException;
 
-#ifndef	STRICT_OPENSTEP
+/**
+ *  An exception when a remote object is sent a message from a thread
+ *  unable to access the object.
+ */
+GS_EXPORT NSString* const NSObjectInaccessibleException;
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * An exception used when some form of parsing fails.
  */
@@ -331,7 +348,7 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 	    [[NSAssertionHandler currentHandler] 		\
 	    	handleFailureInMethod: _cmd 			\
 		object: self 					\
-		file: [NSString stringWithCString: __FILE__] 	\
+		file: [NSString stringWithUTF8String: __FILE__] 	\
 		lineNumber: __LINE__ 				\
 		description: (desc) , ## args]; 			\
 	}							\
@@ -341,8 +358,8 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
     do {							\
 	if (!(condition)) {					\
 	    [[NSAssertionHandler currentHandler] 		\
-	    handleFailureInFunction: [NSString stringWithCString: __PRETTY_FUNCTION__] 				\
-	    file: [NSString stringWithCString: __FILE__] 		\
+	    handleFailureInFunction: [NSString stringWithUTF8String: __PRETTY_FUNCTION__] 				\
+	    file: [NSString stringWithUTF8String: __FILE__] 		\
 	    lineNumber: __LINE__ 				\
 	    description: (desc) , ## args]; 			\
 	}							\
@@ -443,5 +460,9 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
  * parameter was supplied to the method. */
 #define NSCParameterAssert(condition)			\
     _NSCAssertArgs((condition), @"Invalid parameter not satisfying: %s", #condition)
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSException_h_GNUSTEP_BASE_INCLUDE */

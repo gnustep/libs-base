@@ -43,6 +43,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSCategories.h"
+#include "GNUstepBase/Unicode.h"
 
 
 #ifdef	HAVE_LIBXML
@@ -4934,6 +4935,7 @@ static void indentation(unsigned level, NSMutableString *str)
 	  NL;
 	  INDENT(3);
 	  [str appendString: @"</value>"];
+	  NL;
 	  INDENT(2);
 	  [str appendString: @"</param>"];
 	  NL;
@@ -5075,7 +5077,6 @@ static void indentation(unsigned level, NSMutableString *str)
 	      [handle writeProperty: pKey forKey: GSHTTPPropertyKeyFileKey];
 	      [handle writeProperty: pwd forKey: GSHTTPPropertyPasswordKey];
 	    }
-	  [handle addClient: self];
 #else
 	  connectionURL = [url copy];
 	  connection = nil;
@@ -5309,6 +5310,7 @@ static void indentation(unsigned level, NSMutableString *str)
 					  repeats: NO];
 
 #ifdef GNUSTEP
+  [handle addClient: self];
   [handle writeProperty: @"POST" forKey: GSHTTPPropertyMethodKey];
   [handle writeProperty: @"GSXMLRPC/1.0.0" forKey: @"User-Agent"];
   [handle writeProperty: @"text/xml" forKey: @"Content-Type"];
@@ -5393,6 +5395,9 @@ static void indentation(unsigned level, NSMutableString *str)
   ASSIGN(result, reason);
   [timer invalidate];
   timer = nil;
+#ifdef GNUSTEP
+  [handle removeClient: self];
+#endif
   if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
     {
       [delegate completedXMLRPC: self];
@@ -5406,9 +5411,23 @@ static void indentation(unsigned level, NSMutableString *str)
 
 - (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender
 {
-  ASSIGN(result, @"timeout");
+  NSString	*str;
+
   [timer invalidate];
   timer = nil;
+#ifdef GNUSTEP
+  [handle removeClient: self];
+#endif
+  str = [handle propertyForKeyIfAvailable: NSHTTPPropertyStatusCodeKey];
+  if (str == nil)
+    {
+      str = @"timeout";
+    }
+  else
+    {
+      str = [NSString stringWithFormat: @"HTTP status %@", str];
+    }
+  ASSIGN(result, str);
   if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
     {
       [delegate completedXMLRPC: self];
@@ -5452,6 +5471,9 @@ static void indentation(unsigned level, NSMutableString *str)
 
   [timer invalidate];
   timer = nil;
+#ifdef GNUSTEP
+  [handle removeClient: self];
+#endif
 
   if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
     {
@@ -5512,7 +5534,6 @@ didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge*)challenge
 {
   NSMutableArray	*params = [NSMutableArray array];
   id			fault = nil;
-  int			code;
 
   NS_DURING
     {

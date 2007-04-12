@@ -18,8 +18,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
     AutogsdocSource: NSObjCRuntime.m
     AutogsdocSource: NSLog.m
@@ -28,8 +28,13 @@
 
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <GNUstepBase/GSObjCRuntime.h>
+#import	<GNUstepBase/GSObjCRuntime.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
@@ -38,7 +43,7 @@ GS_EXPORT NSString	*NSStringFromClass(Class aClass);
 GS_EXPORT const char	*NSGetSizeAndAlignment(const char *typePtr,
   unsigned int *sizep, unsigned int *alignp);
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /* Logging */
 /**
  *  OpenStep spec states that log messages go to stderr, but just in case
@@ -63,6 +68,10 @@ GS_EXPORT void			NSLogv (NSString *format, va_list args);
 #endif
 #ifndef nil
 #define nil		0
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */

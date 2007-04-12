@@ -15,13 +15,19 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
   */
 
 #ifndef __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE
 #define __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSDate.h>
+#import	<Foundation/NSDate.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class	NSTimeZone;
 @class	NSTimeZoneDetail;
@@ -63,7 +69,7 @@
 	     second: (unsigned int)second
 	   timeZone: (NSTimeZone*)aTimeZone;
 
-// Retreiving Date Elements
+// Retrieving Date Elements
 - (int) dayOfCommonEra;
 - (int) dayOfMonth;
 - (int) dayOfWeek;
@@ -95,16 +101,16 @@
 
 // Getting and Setting Time Zones
 - (void) setTimeZone: (NSTimeZone*)aTimeZone;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (NSTimeZone*) timeZone;
 #endif
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 - (NSTimeZoneDetail*) timeZoneDetail;
 #endif
 
 @end
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  *  Adds <code>-weekOfYear</code> method.
@@ -136,7 +142,7 @@
 
 #endif
 
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 @interface NSCalendarDate (OPENSTEP)
 
 - (NSCalendarDate*) dateByAddingYears: (int)years
@@ -154,6 +160,10 @@
        seconds: (int*)seconds
      sinceDate: (NSDate*)date;
 @end
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif  /* __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE*/

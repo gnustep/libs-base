@@ -117,14 +117,6 @@ GSAllocateMutexAt(objc_mutex_t *request)
   objc_mutex_unlock(local_lock);
 }
 
-/**  Deprecated ... use GSObjCFindVariable() */
-BOOL
-GSFindInstanceVariable(id obj, const char *name,
-		       const char **type, unsigned int *size, int *offset)
-{
-  return GSObjCFindVariable(obj, name, type, size, offset);
-}
-
 /**
  * This function is used to locate information about the instance
  * variable of obj called name.  It returns YES if the variable
@@ -274,16 +266,10 @@ GSObjCVariableNames(id obj)
   return array;
 }
 
-/**  Deprecated ... use GSObjCGetVariable() */
-void
-GSGetVariable(id obj, int offset, unsigned int size, void *data)
-{
-  GSObjCGetVariable(obj, offset, size, data);
-}
 /**
  * Gets the value from an instance variable in obj<br />
  * This function performs no checking ... you should use it only where
- * you are providing information from a call to GSFindVariable()
+ * you are providing information from a call to GSObjCFindVariable()
  * and you know that the data area provided is the correct size.
  */
 void
@@ -292,12 +278,6 @@ GSObjCGetVariable(id obj, int offset, unsigned int size, void *data)
   memcpy(data, ((void*)obj) + offset, size);
 }
 
-/**  Deprecated ... use GSObjCSetVariable() */
-void
-GSSetVariable(id obj, int offset, unsigned int size, const void *data)
-{
-  GSObjCSetVariable(obj, offset, size, data);
-}
 /**
  * Sets the value in an instance variable in obj<br />
  * This function performs no checking ... you should use it only where
@@ -1475,13 +1455,6 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 #endif
 
 
-/**  Deprecated ... use GSObjCGetVal() */
-id
-GSGetValue(NSObject *self, NSString *key, SEL sel,
-	   const char *type, unsigned size, int offset)
-{
-  return GSObjCGetVal(self, [key UTF8String], sel, type, size, offset);
-}
 /**
  * This is used internally by the key-value coding methods, to get a
  * value from an object either via an accessor method (if sel is
@@ -1801,13 +1774,6 @@ GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
   return GSObjCGetVal(self, [key UTF8String], sel, type, size, offset);
 }
 
-/**  Deprecated ... use GSObjCSetVal() */
-void
-GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-	   const char *type, unsigned size, int offset)
-{
-  GSObjCSetVal(self, [key UTF8String], val, sel, type, size, offset);
-}
 /**
  * This is used internally by the key-value coding methods, to set a
  * value in an object either via an accessor method (if sel is

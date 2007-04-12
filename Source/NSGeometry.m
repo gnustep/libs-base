@@ -18,7 +18,8 @@
  *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+ * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02111 USA.
 
    <title>NSGeometry class reference</title>
    $Date$ $Revision$
@@ -40,8 +41,7 @@
 #include "Foundation/NSGeometry.h"
 #include "Foundation/NSScanner.h"
 #include "Foundation/NSNotification.h"
-
-extern BOOL	GSMacOSXCompatibleGeometry(void);	// Compatibility mode
+#include "GSPrivate.h"
 
 static Class	NSStringClass = 0;
 static Class	NSScannerClass = 0;
@@ -69,6 +69,13 @@ setupCache(void)
       scannerImp = (id (*)(Class, SEL, NSString*))
 	[NSScannerClass methodForSelector: scannerSel];
     }
+}
+
+static BOOL GSMacOSXCompatibleGeometry(void)
+{
+  if (GSPrivateDefaultsFlag(GSOldStyleGeometry) == YES)
+    return NO;
+  return GSPrivateDefaultsFlag(GSMacOSXCompatible);
 }
 
 /**** Function Implementations ***********************************************/

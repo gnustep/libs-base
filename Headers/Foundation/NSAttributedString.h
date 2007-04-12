@@ -27,7 +27,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 /* Warning -	[-initWithString:attributes:] is the designated initialiser,
@@ -44,14 +45,21 @@
  */
 
 
-#ifndef _NSXKit_H_NSAttributedString
-#define _NSXKit_H_NSAttributedString
+#ifndef __NSAttributedString_h_GNUSTEP_BASE_INCLUDE
+#define __NSAttributedString_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#ifndef	STRICT_OPENSTEP
-#include <Foundation/NSString.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSCoder.h>
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#import	<Foundation/NSObject.h>
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+#import	<Foundation/NSString.h>
+#import	<Foundation/NSDictionary.h>
+#import	<Foundation/NSArray.h>
+#import	<Foundation/NSCoder.h>
 
 @interface NSAttributedString : NSObject <NSCoding, NSCopying, NSMutableCopying>
 {
@@ -120,7 +128,7 @@
 
 @end //NSMutableAttributedString
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 @interface      NSAttributedString (GSCategories)
 /**
  * Dep[recated synonym for attributedSubstringFromRange:
@@ -130,7 +138,11 @@
 @end
 #endif
 
-#endif //STRICT_OPENSTEP
+#endif /* GS_API_MACOSX */
 
-#endif //_NSXKit_H_NSAttributedString
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif	/* __NSAttributedString_h_GNUSTEP_BASE_INCLUDE */
 

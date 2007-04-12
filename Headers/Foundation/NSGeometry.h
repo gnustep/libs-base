@@ -18,17 +18,20 @@
  * 
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02111 USA. */ 
+ * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02111 USA.
+ */ 
 
 #ifndef __NSGeometry_h_GNUSTEP_BASE_INCLUDE
 #define __NSGeometry_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-/**** Included Headers *******************************************************/
+#import <objc/objc.h>
 
-#include <objc/objc.h>
-#ifdef __OBJC__
-#include <Foundation/NSString.h>
+#import <Foundation/NSString.h>
+
+#if	defined(__cplusplus)
+extern "C" {
 #endif
 
 /**** Type, Constant, and Macro Definitions **********************************/
@@ -60,7 +63,7 @@ struct _NSPoint
   float y;
 };
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSPoint structs. */
 typedef NSPoint *NSPointArray;
 /** Pointer to NSPoint struct. */
@@ -80,7 +83,7 @@ struct _NSSize
   float height;
 };
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSSize structs. */
 typedef NSSize *NSSizeArray;
 /** Pointer to NSSize struct. */
@@ -101,7 +104,7 @@ struct _NSRect
   NSSize size;
 };
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSRect structs. */
 typedef NSRect *NSRectArray;
 /** Pointer to NSRect struct. */
@@ -120,10 +123,10 @@ typedef NSRect *NSRectPointer;
  */
 typedef enum _NSRectEdge
 {
-  NSMinXEdge,
-  NSMinYEdge,
-  NSMaxXEdge,
-  NSMaxYEdge
+  NSMinXEdge = 0,
+  NSMinYEdge = 1,
+  NSMaxXEdge = 2,
+  NSMaxYEdge = 3
 } NSRectEdge;
 
 /** Point at 0,0 */
@@ -500,7 +503,7 @@ NSContainsRect(NSRect aRect, NSRect bRect)
 	  && (NSMaxY(aRect) >= NSMaxY(bRect))) ? YES : NO;
 }
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 GS_GEOM_SCOPE BOOL
 NSIntersectsRect(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
@@ -561,4 +564,9 @@ GS_EXPORT NSRect	NSRectFromString(NSString* string);
 #undef	GS_DEFINED_MIN
 #undef	MIN
 #endif
+
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif /* __NSGeometry_h_GNUSTEP_BASE_INCLUDE */

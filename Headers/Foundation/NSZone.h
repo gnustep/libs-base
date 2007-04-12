@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
     AutogsdocSource:	NSZone.m
     AutogsdocSource:	NSPage.m
@@ -28,6 +28,7 @@
 
 #ifndef __NSZone_h_GNUSTEP_BASE_INCLUDE
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
 /**
  * Primary structure representing an <code>NSZone</code>.  Technically it
@@ -53,9 +54,13 @@
  */
 typedef struct _NSZone NSZone;
 
-#include	<Foundation/NSObjCRuntime.h>
+#import	<Foundation/NSObjCRuntime.h>
 
 @class NSString;
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 
 /**
@@ -242,7 +247,7 @@ GS_ZONE_SCOPE NSString* NSZoneName (NSZone *zone)
   return nil;
 }
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  * Allocates mmemory of size bytes from zone, with the assumption that the
@@ -383,7 +388,7 @@ GS_ZONE_SCOPE NSString* NSZoneName (NSZone *zone)
   return zone->name;
 }
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 GS_ZONE_SCOPE void* 
 NSZoneMallocAtomic (NSZone *zone, size_t size) GS_ZONE_ATTR;
 
@@ -424,7 +429,7 @@ GS_ZONE_SCOPE struct NSZoneStats NSZoneStats (NSZone *zone)
     zone = NSDefaultMallocZone();
   return (zone->stats)(zone);
 }
-#endif	/* NO_GNUSTEP */
+#endif	/* GS_API_NONE */
 
 #endif	/* GS_WITH_GC */
 
@@ -446,5 +451,9 @@ GS_EXPORT void* NSAllocateMemoryPages (unsigned bytes);
 GS_EXPORT void NSDeallocateMemoryPages (void *ptr, unsigned bytes);
 
 GS_EXPORT void NSCopyMemoryPages (const void *src, void *dest, unsigned bytes);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* not __NSZone_h_GNUSTEP_BASE_INCLUDE */

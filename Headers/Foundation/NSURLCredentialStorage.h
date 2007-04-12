@@ -24,10 +24,15 @@
 
 #ifndef __NSURLCredentialStorage_h_GNUSTEP_BASE_INCLUDE
 #define __NSURLCredentialStorage_h_GNUSTEP_BASE_INCLUDE
-
-#include <Foundation/NSObject.h>
+#import	<GNUstepBase/GSVersionMacros.h>
 
 #if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSDictionary;
 @class NSString;
@@ -99,5 +104,10 @@ extern NSString *const NSURLCredentialStorageChangedNotification;
 
 @end
 
+#if	defined(__cplusplus)
+}
 #endif
+
+#endif
+
 #endif

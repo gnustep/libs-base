@@ -18,15 +18,12 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include <config.h>
 #include "GNUstepBase/preface.h"
 
 const char *gnustep_base_version = STRINGIFY (GNUSTEP_BASE_VERSION);
-const char *o_gcc_version = STRINGIFY (GNUSTEP_BASE_GCC_VERSION);
 
-#if NeXT_cc
-const char *o_NeXT_cc_version = STRINGIFY (NX_CURRENT_COMPILER_RELEASE);
-#endif /* NeXT_cc */

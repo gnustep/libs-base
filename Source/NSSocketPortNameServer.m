@@ -18,20 +18,22 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    $Date$ $Revision$
    */
 
 #include "config.h"
 #include "Foundation/NSString.h"
+#include "Foundation/NSData.h"
 #include "Foundation/NSByteOrder.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSRunLoop.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSPort.h"
 #include "Foundation/NSMapTable.h"
@@ -554,7 +556,7 @@ typedef enum {
       serverLock = [NSRecursiveLock new];
       modes = [[NSArray alloc] initWithObjects: &mode count: 1];
 #ifdef	GDOMAP_PORT_OVERRIDE
-      serverPort = RETAIN([NSString stringWithCString:
+      serverPort = RETAIN([NSString stringWithUTF8String:
 	make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
 #endif
       portClass = [NSSocketPort class];
@@ -738,7 +740,7 @@ typedef enum {
 	      [array addObject: com];
 	      RELEASE(com);
 	      [com setAddr: svrs[count]];
-	      addr = [NSString stringWithCString:
+	      addr = [NSString stringWithUTF8String:
 		(char*)inet_ntoa(svrs[count])];
 	      [com startPortLookup: name onHost: addr];
 	      count++;
@@ -802,7 +804,7 @@ typedef enum {
 
   if (*port)
     {
-      *addr = [NSString stringWithCString: inet_ntoa(singleServer)];
+      *addr = [NSString stringWithUTF8String: inet_ntoa(singleServer)];
       return YES;
     }	
   else

@@ -37,6 +37,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSPort.h"
 #include "Foundation/NSTimer.h"
+#include "Foundation/NSNotification.h"
 #include "Foundation/NSNotificationQueue.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSStream.h"
@@ -45,6 +46,7 @@
 #include "GSRunLoopCtxt.h"
 #include "GSRunLoopWatcher.h"
 #include "GSStream.h"
+
 #include "GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
@@ -67,8 +69,6 @@
 NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 
 static NSDate	*theFuture = nil;
-
-extern BOOL	GSCheckTasks();
 
 @interface NSObject (OptionalPortRunLoop)
 - (void) getFds: (int*)fds count: (int*)count;
@@ -99,6 +99,13 @@ extern BOOL	GSCheckTasks();
 
 @implementation GSRunLoopPerformer
 
+- (void) dealloc
+{
+  RELEASE(target);
+  RELEASE(argument);
+  [super dealloc];
+}
+
 - (void) fire
 {
   [target performSelector: selector withObject: argument];
@@ -113,8 +120,8 @@ extern BOOL	GSCheckTasks();
   if (self)
     {
       selector = aSelector;
-      target = aTarget;
-      argument = anArgument;
+      target = RETAIN(aTarget);
+      argument = RETAIN(anArgument);
       order = theOrder;
     }
   return self;
@@ -632,11 +639,6 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 
 @end
 
-extern SEL	wRelSel;
-extern SEL	wRetSel;
-extern IMP	wRelImp;
-extern IMP	wRetImp;
-
 /**
  *  <p><code>NSRunLoop</code> instances handle various utility tasks that must
  *  be performed repetitively in an application, such as processing input
@@ -662,12 +664,6 @@ extern IMP	wRetImp;
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
-#if	GS_WITH_GC == 0
-      wRelSel = @selector(release);
-      wRetSel = @selector(retain);
-      wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
-      wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
-#endif
     }
 }
 
@@ -834,7 +830,7 @@ extern IMP	wRetImp;
 		{
 		  RELEASE(min_timer);
 		}
-	      GSNotifyASAP();		/* Post notifications. */
+	      GSPrivateNotifyASAP();		/* Post notifications. */
 	      IF_NO_GC([arp emptyPool]);
 	    }
 	  _currentMode = savedMode;
@@ -926,19 +922,19 @@ extern IMP	wRetImp;
 	|| (i = GSIArrayCount(watchers)) == 0))
 	{
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
-	  GSNotifyASAP();
-	  GSNotifyIdle();
+	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyIdle();
 	  /*
 	   * Pause for as long as possible (up to the limit date)
 	   */
 	  [NSThread sleepUntilDate: limit_date];
 	  ti = [limit_date timeIntervalSinceNow];
-	  GSCheckTasks();
+	  GSPrivateCheckTasks();
 	  if (context != nil)
 	    {
 	      [self _checkPerformers: context];
 	    }
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	  _currentMode = savedMode;
 	  RELEASE(arp);
 	  NS_VOIDRETURN;
@@ -972,10 +968,10 @@ extern IMP	wRetImp;
 	}
       if ([context pollUntil: timeout_ms within: _contextStack] == NO)
 	{
-	  GSNotifyIdle();
+	  GSPrivateNotifyIdle();
 	}
       [self _checkPerformers: context];
-      GSNotifyASAP();
+      GSPrivateNotifyASAP();
       _currentMode = savedMode;
       /*
        * Once a poll has been completed on a context, we can remove that
@@ -1022,9 +1018,9 @@ extern IMP	wRetImp;
       /*
        * Notify if any tasks have completed.
        */
-      if (GSCheckTasks() == YES)
+      if (GSPrivateCheckTasks() == YES)
 	{
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	}
       RELEASE(arp);
       return NO;
@@ -1187,7 +1183,7 @@ extern IMP	wRetImp;
  * Sets up sending of aSelector to target with argument.<br />
  * The selector is sent before the next runloop iteration (unless
  * cancelled before then) in any of the specified modes.<br />
- * The target and argument objects are <em>not</em> retained.<br />
+ * The target and argument objects are retained.<br />
  * The order value is used to determine the order in which messages
  * are sent if multiple messages have been set up. Messages with a lower
  * order value are sent first.<br />

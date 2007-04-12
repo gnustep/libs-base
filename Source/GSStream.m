@@ -28,12 +28,12 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSError.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSDebug.h>
 
 #include "GSStream.h"
+#include "GSPrivate.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
   = @"NSStreamDataWrittenToMemoryStreamKey";
@@ -228,10 +228,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     {
       if ([_modes containsObject: mode])
 	{
-	  if ([self _isOpened])
-	    {
-	      [_runloop removeStream: self mode: mode];
-	    }
+	  [_runloop removeStream: self mode: mode];
 	  [_modes removeObject: mode];
 	  if ([_modes count] == 0)
 	    {
@@ -251,6 +248,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       mode = [mode copy];
       [_modes addObject: mode];
       RELEASE(mode);
+      /* We only add open streams to the runloop .. subclasses may add
+       * streams when they are in the process of opening if they need
+       * to do so.
+       */
       if ([self _isOpened])
 	{
 	  [_runloop addStream: self mode: mode];
@@ -364,7 +365,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   theError = [NSError errorWithDomain: NSPOSIXErrorDomain
 					  code: errno
 				      userInfo: nil];
-  NSLog(@"%@ error(%d): - %s", self, errno, GSLastErrorStr(errno));
+  NSLog(@"%@ error(%d): - %@", self, errno, [NSError _last]);
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
 }
@@ -1216,7 +1217,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 			      a = [NSString stringWithUTF8String:
 			        (const char*)rbuffer];
 			    }
-			  else if (rbuffer[3] == 4)
+			  else
 			    {
 			      unsigned char	buf[40];
 			      int		i = 4;

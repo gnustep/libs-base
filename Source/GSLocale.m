@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 #include "config.h"
 #include "GNUstepBase/GSLocale.h"
@@ -35,6 +36,8 @@
 #endif
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSBundle.h"
+
+#include "GSPrivate.h"
 
 /*
  * Function called by [NSObject +initialize] to setup locale information
@@ -75,12 +78,14 @@ GSSetLocale(int category, NSString *locale)
   locale = nil;
   if (clocale != 0)
     {
-      locale = [NSString stringWithCString: clocale];
+      locale = [NSString stringWithUTF8String: clocale];
     }
   return locale;
 }
 
-#define GSLanginfo(value) [NSString stringWithCString: nl_langinfo (value)]
+#define GSLanginfo(value) [NSString stringWithCString: nl_langinfo (value) \
+encoding: GSPrivateNativeCStringEncoding()]
+
 
 /* Creates a locale dictionary from information provided by i18n functions.
    Many, but not all, of the keys are filled in or inferred from the
@@ -154,33 +159,33 @@ GSDomainFromDefaultLocale(void)
   /* Currency Information */
   if (lconv->currency_symbol)
     {
-      [dict setObject: [NSString stringWithCString: lconv->currency_symbol]
+      [dict setObject: [NSString stringWithUTF8String: lconv->currency_symbol]
 	       forKey: NSCurrencySymbol];
     }
   if (lconv->int_curr_symbol)
     {
-      [dict setObject: [NSString stringWithCString: lconv->int_curr_symbol]
+      [dict setObject: [NSString stringWithUTF8String: lconv->int_curr_symbol]
 	       forKey: NSInternationalCurrencyString];
     }
   if (lconv->mon_decimal_point)
     {
-      [dict setObject: [NSString stringWithCString: lconv->mon_decimal_point]
+      [dict setObject: [NSString stringWithUTF8String: lconv->mon_decimal_point]
 	       forKey: NSInternationalCurrencyString];
     }
   if (lconv->mon_thousands_sep)
     {
-      [dict setObject: [NSString stringWithCString: lconv->mon_thousands_sep]
+      [dict setObject: [NSString stringWithUTF8String: lconv->mon_thousands_sep]
 	       forKey: NSInternationalCurrencyString];
     }
 
   if (lconv->decimal_point)
     {
-      [dict setObject: [NSString stringWithCString: lconv->decimal_point]
+      [dict setObject: [NSString stringWithUTF8String: lconv->decimal_point]
 	       forKey: NSDecimalSeparator];
     }
   if (lconv->thousands_sep)
     {
-      [dict setObject: [NSString stringWithCString: lconv->thousands_sep]
+      [dict setObject: [NSString stringWithUTF8String: lconv->thousands_sep]
 	       forKey: NSThousandsSeparator];
     }
 

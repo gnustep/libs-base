@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.xml">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.xml">
 <!--
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
@@ -15,8 +15,8 @@ notice and this notice are preserved.
         A person who devotes far too much time to GNUstep development.
       </desc>
     </author>
-    <version>1.0.1</version>
-    <date>8 March, 2004</date>
+    <version>1.0.3</version>
+    <date>6 Nov, 2006</date>
     <abstract>
       This documents the GNUstep Documentation markup language.
     </abstract>
@@ -102,8 +102,8 @@ notice and this notice are preserved.
         and where those tags may be placed.  The reader is encouraged to
         consult the DTD directly on any points that the present document leaves
         unclear.  The DTD is stored under
-        <code>GNUSTEP_SYSTEM_ROOT/System/Library/DTDs</code> in a standard
-	GNUstep installation. .. where GNUSTEP_SYSTEM_ROOT is defined in
+        <code>GNUSTEP_SYSTEM_LIBRARY/DTDs</code> in a standard
+	GNUstep installation. .. where GNUSTEP_SYSTEM_LIBRARY is defined in
 	the GNUstep configuration file (GNUstep.conf).
       </p>
       <p>

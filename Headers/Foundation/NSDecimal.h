@@ -18,23 +18,29 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    */
 
 #ifndef __NSDecimal_h_GNUSTEP_BASE_INCLUDE
 #define __NSDecimal_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#ifndef	STRICT_OPENSTEP
+#include <GNUstepBase/GSConfig.h>
 
-#include <GSConfig.h>
+#import	<Foundation/NSObject.h>
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
 #if	USE_GMP
 #include <gmp.h>
 #endif
 
-#include <Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /**
  *  Enumerated type for specifying decimal rounding behavior.  Can be one of
@@ -45,9 +51,9 @@
  *  [(NSDecimalNumberBehaviors)] protocol.
  */
 typedef	enum {
+  NSRoundPlain,		/* Round .5 up		*/
   NSRoundDown,
   NSRoundUp,
-  NSRoundPlain,		/* Round .5 up		*/
   NSRoundBankers	/* Make last digit even	*/
 } NSRoundingMode;
 
@@ -69,9 +75,9 @@ typedef	enum {
  */
 typedef enum {
   NSCalculationNoError = 0,
+  NSCalculationLossOfPrecision,
   NSCalculationUnderflow,	/* result became zero */
   NSCalculationOverflow,
-  NSCalculationLossOfPrecision,
   NSCalculationDivideByZero
 } NSCalculationError;
 
@@ -244,6 +250,10 @@ NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa,
 GS_EXPORT void
 NSDecimalFromString(NSDecimal *result, NSString *numberValue, 
 		    NSDictionary *locale);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

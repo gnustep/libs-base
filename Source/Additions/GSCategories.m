@@ -24,9 +24,10 @@
 */
 #include "config.h"
 #include <string.h>
-#include <Foundation/Foundation.h>
+#include "Foundation/Foundation.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/GSLock.h"
+#include "GSPrivate.h"
 
 /* Test for ASCII whitespace which is safe for unicode characters */
 #define	space(C)	((C) > 127 ? NO : isspace(C))
@@ -898,6 +899,87 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
   return YES;
 }
 @end
+
+
+
+/**
+ * GNUstep specific (non-standard) additions to the NSError class.
+ * Possibly to be made public
+ */
+@implementation NSError(GSCategories)
+
+#ifndef HAVE_STRERROR
+static const char *
+strerror(int eno)
+{
+  extern char  *sys_errlist[];
+  extern int    sys_nerr;
+
+  if (eno < 0 || eno >= sys_nerr)
+    {
+      return("unknown error number");
+    }
+  return(sys_errlist[eno]);
+}
+#endif
+
+/*
+ * Returns an NSError instance encapsulating the last system error.
+ * The user info dictionary of this object will be mutable, so that
+ * additional information can be placed in it by higher level code.
+ */
++ (NSError*) _last
+{
+#if defined(__MINGW32__)
+  return [self _systemError: GetLastError()];
+#else
+  extern int	errno;
+
+  return [self _systemError: errno];
+#endif
+}
+
++ (NSError*) _systemError: (long)code
+{
+  NSError	*error;
+  NSString	*domain;
+  NSDictionary	*info;
+#if defined(__MINGW32__)
+  LPVOID	lpMsgBuf;
+  NSString	*message;
+
+  domain = NSOSStatusErrorDomain;
+  FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+    NULL, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+    (LPWSTR) &lpMsgBuf, 0, NULL );
+  message = [NSString stringWithCharacters: lpMsgBuf length: wcslen(lpMsgBuf)];
+  LocalFree(lpMsgBuf);
+  info = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+    message, NSLocalizedDescriptionKey,
+    nil];
+#else
+  NSString	*message;
+
+  /* FIXME ... not all are POSIX, should we use NSMachErrorDomain for some? */
+  domain = NSPOSIXErrorDomain;
+  message = [NSString stringWithCString: strerror(code)
+			       encoding: [NSString defaultCStringEncoding]];
+  /* FIXME ... can we do better localisation? */
+  info = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+    message, NSLocalizedDescriptionKey,
+    nil];
+#endif
+
+  /* NB we use a mutable dictionary so that calling code can add extra
+   * information to the dictionary before passing it up to higher level
+   * code.
+   */
+  error = [self errorWithDomain: domain code: code userInfo: info];
+  return error;
+}
+@end
+
+
 
 /**
  * GNUstep specific (non-standard) additions to the NSNumber class.

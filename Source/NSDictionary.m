@@ -40,10 +40,22 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSKeyValueCoding.h"
+#include "Foundation/NSUserDefaults.h"
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
+
+static BOOL GSMacOSXCompatiblePropertyLists(void)
+{
+#if	defined(HAVE_LIBXML)
+  if (GSPrivateDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
+    return NO;
+  return GSPrivateDefaultsFlag(GSMacOSXCompatible);
+#else
+  return NO;
+#endif
+}
 
 @class	GSDictionary;
 @interface GSDictionary : NSObject	// Help the compiler
@@ -52,7 +64,6 @@
 @interface GSMutableDictionary : NSObject	// Help the compiler
 @end
 
-extern BOOL	GSMacOSXCompatiblePropertyLists(void);
 extern void	GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 
@@ -76,10 +87,11 @@ static SEL	appSel;
  *  retrieve multiple entries simultaneously, obtain sorted contents, and
  *  read/write from/to a serialized representation.</p>
  *
- *  <p>Both keys and values are retained by the implementation, and released
- *  when either their entry is dropped or the entire dictionary is deallocated.
- *  This differs from the implementation on OS X, where keys are copied instead
- *  of being retained and must therefore implement the [(NSCopying)] protocol.
+ *  <p>The keys are copied and values are retained by the implementation,
+ *  and both are released when either their entry is dropped or the entire
+ *  dictionary is deallocated.<br />
+ *  As in the OS X implementation, keys must therefore implement the
+ *  [(NSCopying)] protocol.
  *  </p>
  *
  *  <p>Objects of this class are immutable.  For a mutable version, use the
@@ -496,7 +508,10 @@ static SEL	appSel;
 /**
  * Initialise dictionary with the keys and values of otherDictionary.
  * If the shouldCopy flag is YES then the values are copied into the
- * newly initialised dictionary, otherwise they are simply retained.
+ * newly initialised dictionary, otherwise they are simply retained,
+ * on the assumption that it is safe to retain the keys from another
+ * dictionary since that other dictionary mwill have copied the keys
+ * originally to ensure that they are immutable.
  */
 - (id) initWithDictionary: (NSDictionary*)other
 		copyItems: (BOOL)shouldCopy
@@ -929,10 +944,11 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc;
   NSString	*desc = nil;
   NSData	*data;
 
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);
@@ -954,10 +970,11 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc;
   NSString	*desc = nil;
   NSData	*data;
 
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);
@@ -1142,9 +1159,9 @@ compareIt(id o1, id o2, void* context)
 /**
  *  Adds entry for aKey, mapping to anObject.  If either is nil, an exception
  *  is raised.  If aKey already in dictionary, the value it maps to is
- *  silently replaced.  aKey and anObject are both retained.  (This differs
- *  from OS X, where the key is copied and must therefore implement the
- *  [(NSCopying)] protocol.)
+ *  silently replaced.  The value anObject is retained, but aKey is copied
+ *  (because a dictionary key must be immutable) and must therefore implement
+ *  the [(NSCopying)] protocol.)
  */
 - (void) setObject: anObject forKey: (id)aKey
 {

@@ -20,16 +20,21 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #ifndef __NSDebug_h_GNUSTEP_BASE_INCLUDE
 #define __NSDebug_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
 #include <errno.h>
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /*
  *	Functions for debugging object allocation/deallocation
@@ -207,8 +212,8 @@ GS_EXPORT BOOL NSDeallocateZombies;
 
 
 #ifdef GSDIAGNOSE
-#include	<Foundation/NSObjCRuntime.h>
-#include	<Foundation/NSProcessInfo.h>
+#import	<Foundation/NSObjCRuntime.h>
+#import	<Foundation/NSProcessInfo.h>
 
 /**
    <p>NSDebugLLog() is the basic debug logging macro used to display
@@ -380,7 +385,7 @@ GS_EXPORT BOOL NSDeallocateZombies;
 
 
 #ifdef GSWARN
-#include	<Foundation/NSObjCRuntime.h>
+#import	<Foundation/NSObjCRuntime.h>
 
 /**
    <p>NSWarnLog() is the basic debug logging macro used to display
@@ -461,5 +466,9 @@ GS_EXPORT void *NSReturnAddress(int offset);
  *  and currently only works up to 100 frames.
  */
 GS_EXPORT unsigned NSCountFrames(void);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif

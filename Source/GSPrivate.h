@@ -21,8 +21,18 @@
    MA 02111 USA.
 */ 
 
-#ifndef __GSPrivate_h_
-#define __GSPrivate_h_
+#ifndef _GSPrivate_h_
+#define _GSPrivate_h_
+
+#include "Foundation/NSError.h"
+
+@class	NSNotification;
+
+#if ( (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3) ) && HAVE_VISIBILITY_ATTRIBUTE )
+#define GS_ATTRIB_PRIVATE __attribute__ ((visibility("internal")))
+#else
+#define GS_ATTRIB_PRIVATE
+#endif
 
 /* Absolute Gregorian date for NSDate reference date Jan 01 2001
  *
@@ -38,6 +48,39 @@
 
 
 #include "GNUstepBase/GSObjCRuntime.h"
+
+#include "Foundation/NSArray.h"
+
+
+@interface GSArray : NSArray
+{
+@public
+  id		*_contents_array;
+  unsigned	_count;
+}
+@end
+
+@interface GSMutableArray : NSMutableArray
+{
+@public
+  id		*_contents_array;
+  unsigned	_count;
+  unsigned	_capacity;
+  int		_grow_factor;
+}
+@end
+
+@interface GSInlineArray : GSArray
+{
+}
+@end
+
+@interface GSPlaceholderArray : NSArray
+{
+}
+@end
+
+#include "Foundation/NSString.h"
 
 /**
  * Macro to manage memory for chunks of code that need to work with
@@ -101,17 +144,6 @@
    to it's internal pointer.  */
 
 /*
- * Function to get the name of a string encoding as an NSString.
- */
-GS_EXPORT NSString	*GSEncodingName(NSStringEncoding encoding);
-
-/*
- * Function to determine whether data in a particular encoding can
- * generally be represented as 8-bit characters including ascii.
- */
-GS_EXPORT BOOL		GSIsByteEncoding(NSStringEncoding encoding);
-
-/*
  * Type to hold either UTF-16 (unichar) or 8-bit encodings,
  * while satisfying alignment constraints.
  */
@@ -172,11 +204,6 @@ typedef struct {
 } GSStr_t;
 typedef	GSStr_t	*GSStr;
 
-/*
- * Functions to append to GSStr
- */
-extern void GSStrAppendUnichar(GSStr s, unichar);
-extern void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l);
 
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
@@ -191,21 +218,6 @@ typedef enum {
   NSWriteOldStylePropertyLists,		// Control PList output.
   GSUserDefaultMaxFlag			// End marker.
 } GSUserDefaultFlagType;
-
-/*
- * Get the dictionary representation.
- */
-NSDictionary	*GSUserDefaultsDictionaryRepresentation(void);
-
-/*
- * Get one of several potentially useful flags.
- */
-BOOL	GSUserDefaultsFlag(GSUserDefaultFlagType type);
-
-/**
- * Get a flag from an environment variable - return def if not defined.
- */
-BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 
 
 
@@ -230,13 +242,213 @@ BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 - (const char*) type;
 @end
 
-/*
- *	Functions used by the NSRunLoop and friends for processing
- *	queued notifications.
+/* Get error information.
  */
-extern void GSNotifyASAP(void);
-extern void GSNotifyIdle(void);
-extern BOOL GSNotifyMore(void);
+@interface	NSError (GSCategories)
++ (NSError*) _last;
++ (NSError*) _systemError: (long)number;
+@end
 
-#endif /* __GSPrivate_h_ */
+/* Used by NSException uncaught exception handler - must not call any
+ * methods/functions which might cause a recursive exception.
+ */
+const char*
+GSPrivateArgZero() GS_ATTRIB_PRIVATE;
+
+/* get the available string encodings (nul terminated array)
+ */
+NSStringEncoding *
+GSPrivateAvailableEncodings() GS_ATTRIB_PRIVATE;
+
+/* Initialise constant strings
+ */
+void
+GSPrivateBuildStrings(void) GS_ATTRIB_PRIVATE;
+
+/* Used to check for termination of background tasks.
+ */
+BOOL
+GSPrivateCheckTasks(void) GS_ATTRIB_PRIVATE;
+
+/* get the default C-string encoding.
+ */
+NSStringEncoding
+GSPrivateDefaultCStringEncoding() GS_ATTRIB_PRIVATE;
+
+/* Get default locale quickly (usually from cache).
+ * External apps would cache the locale themselves.
+ */
+NSDictionary *
+GSPrivateDefaultLocale() GS_ATTRIB_PRIVATE;
+
+/* Get one of several standard values.
+ */
+BOOL
+GSPrivateDefaultsFlag(GSUserDefaultFlagType type) GS_ATTRIB_PRIVATE;
+
+/* get the name of a string encoding as an NSString.
+ */
+NSString *
+GSPrivateEncodingName(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
+
+/* get a flag from an environment variable - return def if not defined.
+ */
+BOOL
+GSPrivateEnvironmentFlag(const char *name, BOOL def) GS_ATTRIB_PRIVATE;
+
+/* Get the path to the xcurrent executable.
+ */
+NSString *
+GSPrivateExecutablePath(void) GS_ATTRIB_PRIVATE;
+
+/* Format arguments into an internal string.
+ */
+void
+GSPrivateFormat(GSStr fb, const unichar *fmt, va_list ap, NSDictionary *loc)
+  GS_ATTRIB_PRIVATE;
+
+/* determine whether data in a particular encoding can
+ * generally be represented as 8-bit characters including ascii.
+ */
+BOOL
+GSPrivateIsByteEncoding(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
+
+/* determine whether encoding is currently supported.
+ */
+BOOL
+GSPrivateIsEncodingSupported(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
+
+/* Hash function to hash up to limit bytes from data of specified length.
+ * If the flag is NO then a result of 0 is mapped to 0xffffffff.
+ * This is a pretty useful general purpose hash function.
+ */
+static inline unsigned
+GSPrivateHash(const void *data, unsigned length, unsigned limit, BOOL zero)
+  __attribute__((unused));
+static inline unsigned
+GSPrivateHash(const void *data, unsigned length, unsigned limit, BOOL zero)
+{
+  unsigned	ret = length;
+  unsigned	l = length;
+
+  if (limit < length)
+    {
+      l = limit;
+    }
+  while (l-- > 0)
+    {
+      ret = (ret << 5) + ret + ((const unsigned char*)data)[l];
+    }
+  if (ret == 0 && zero == NO)
+    {
+       ret = 0xffffffff;
+    }
+  return ret;
+}
+
+/* load a module into the runtime
+ */
+long
+GSPrivateLoadModule(NSString *filename, FILE *errorStream,
+  void (*loadCallback)(Class, struct objc_category *),
+  void **header, NSString *debugFilename) GS_ATTRIB_PRIVATE;
+
+/* Get the native C-string encoding as used by locale specific code in the
+ * operating system.  This may differ from the default C-string encoding
+ * if the latter has bewen set via an environment variable.
+ */
+NSStringEncoding
+GSPrivateNativeCStringEncoding() GS_ATTRIB_PRIVATE;
+
+/* Function used by the NSRunLoop and friends for processing
+ * queued notifications which should be processed at the first safe moment.
+ */
+void GSPrivateNotifyASAP(void) GS_ATTRIB_PRIVATE;
+
+/* Function used by the NSRunLoop and friends for processing
+ * queued notifications which should be processed when the loop is idle.
+ */
+void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
+
+/* Function used by the NSRunLoop and friends for determining whether
+ * there are more queued notifications to be processed.
+ */
+BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
+
+/* Function to return the hash value for a small integer (used by NSNumber).
+ */
+unsigned
+GSPrivateSmallHash(int n) GS_ATTRIB_PRIVATE;
+
+/* Function to append data to an GSStr
+ */
+void
+GSPrivateStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
+  GS_ATTRIB_PRIVATE;
+
+/* Make the content of this string into unicode if it is not in
+ * the external defaults C string encoding.
+ */
+void
+GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
+
+/*
+ * GSPrivateSymbolPath() returns the path to the object file from
+ * which a certain class was loaded.
+ *
+ * If the class was loaded from a shared library, this returns the
+ * filesystem path to the shared library; if it was loaded from a
+ * dynamical object (such as a bundle or framework dynamically
+ * loaded), it returns the filesystem path to the object file; if the
+ * class was loaded from the main executable, it returns the
+ * filesystem path to the main executable path.
+ *
+ * This function is implemented by using the available features of
+ * the dynamic linker on the specific platform we are running on.
+ *
+ * On some platforms, the dynamic linker does not provide enough
+ * facilities to support the GSPrivateSymbolPath() function at all;
+ * in this case, GSPrivateSymbolPath() always returns nil.
+ *
+ * On my platform (a Debian GNU Linux), it seems the dynamic linker
+ * always returns the filesystem path that was used to load the
+ * module.  So it returns the full filesystem path for shared libraries
+ * and bundles (which is very nice), but unfortunately it returns 
+ * argv[0] (which might be something as horrible as './obj/test')
+ * for classes in the main executable.
+ *
+ * If theCategory argument is not NULL, GSPrivateSymbolPath() will return
+ * the filesystem path to the module from which the category theCategory
+ * of the class theClass was loaded.
+ *
+ * Currently, the function will return nil if any of the following
+ * conditions is satisfied:
+ *  - the required functionality is not available on the platform we are
+ *    running on;
+ *  - memory allocation fails;
+ *  - the symbol for that class/category could not be found.
+ *
+ * In general, if the function returns nil, it means something serious
+ * went wrong in the system preventing it from getting the symbol path.
+ * If your code is to be portable, you (unfortunately) have to be prepared
+ * to work around it in some way when this happens.
+ *
+ * It seems that this function has no corresponding function in the NeXT
+ * runtime ... as far as I know.
+ */
+NSString *
+GSPrivateSymbolPath (Class theClass, Category *theCategory) GS_ATTRIB_PRIVATE;
+
+/* Combining class for composite unichars
+ */
+unsigned char
+GSPrivateUniCop(unichar u) GS_ATTRIB_PRIVATE;
+
+/* unload a module from the runtime (not implemented)
+ */
+long
+GSPrivateUnloadModule(FILE *errorStream,
+  void (*unloadCallback)(Class, struct objc_category *)) GS_ATTRIB_PRIVATE;
+
+#endif /* _GSPrivate_h_ */
 

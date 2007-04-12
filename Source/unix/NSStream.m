@@ -292,8 +292,10 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
-  RELEASE(_path);
+    {
+      [self close];
+    }
+  DESTROY(_path);
   [super dealloc];
 }
 
@@ -321,9 +323,15 @@ static void setNonblocking(int fd)
 
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
-    [self _recordError];
+    {
+      [self _recordError];
+      readLen = -1;
+    }
   else if (readLen == 0)
-    [self _setStatus: NSStreamStatusAtEnd];
+    {
+      [self _setStatus: NSStreamStatusAtEnd];
+      [self _sendEvent: NSStreamEventEndEncountered];
+    }
   return readLen;
 }
 
@@ -405,7 +413,7 @@ static void setNonblocking(int fd)
 
 - (void) setSibling: (GSOutputStream*)sibling
 {
-  ASSIGN(_sibling, sibling);
+  _sibling = sibling;
 }
 
 - (void) setPassive: (BOOL)passive
@@ -427,8 +435,11 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
-  RELEASE(_sibling);
+    {
+      [self close];
+    }
+  [(GSSocketOutputStream*)_sibling setSibling: nil];
+  _sibling = nil;
   [super dealloc];
 }
 
@@ -518,9 +529,15 @@ static void setNonblocking(int fd)
 
   readLen = read((intptr_t)_loopID, buffer, len);
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
-    [self _recordError];
+    {
+      [self _recordError];
+      readLen = -1;
+    }
   else if (readLen == 0)
-    [self _setStatus: NSStreamStatusAtEnd];
+    {
+      [self _setStatus: NSStreamStatusAtEnd];
+      [self _sendEvent: NSStreamEventEndEncountered];
+    }
   return readLen;
 }
 
@@ -707,7 +724,9 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
+    {
+      [self close];
+    }
   RELEASE(_path);
   [super dealloc];
 }
@@ -818,7 +837,7 @@ static void setNonblocking(int fd)
 
 - (void) setSibling: (GSInputStream*)sibling
 {
-  ASSIGN(_sibling, sibling);
+  _sibling = sibling;
 }
 
 - (void) setPassive: (BOOL)passive
@@ -839,8 +858,11 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
-  RELEASE(_sibling);
+    {
+      [self close];
+    }
+  [(GSSocketInputStream*)_sibling setSibling: nil];
+  _sibling = nil;
   [super dealloc];
 }
 
@@ -1413,7 +1435,9 @@ static void setNonblocking(int fd)
 - (void) dealloc
 {
   if ([self _isOpened])
-    [self close];
+    {
+      [self close];
+    }
   [super dealloc];
 }
 

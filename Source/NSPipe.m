@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    $Date$ $Revision$
    */
@@ -28,6 +29,7 @@
 #include "Foundation/NSObject.h"
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
+#include "GSPrivate.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -77,7 +79,7 @@
         }
       else
 	{
-	  NSLog(@"Failed to create pipe ... %s", GSLastErrorStr(errno));
+	  NSLog(@"Failed to create pipe ... %@", [NSError _last]);
 	  DESTROY(self);
 	}
 #else
@@ -95,6 +97,11 @@
           writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
 						    closeOnDealloc: YES];
         }
+      else
+	{
+	  NSLog(@"Failed to create pipe ... %@", [NSError _last]);
+	  DESTROY(self);
+	}
 #endif
     }
   return self;

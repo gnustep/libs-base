@@ -30,7 +30,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSFileManager class reference</title>
    $Date$ $Revision$
@@ -401,8 +402,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileOwnerAccountID to '%u' - %s",
-	    num, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileOwnerAccountID to '%u' - %@",
+	    num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -425,8 +426,8 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      allOk = NO;
 	      str = [NSString stringWithFormat:
-		@"Unable to change NSFileOwnerAccountName to '%@' - %s",
-		str, GSLastErrorStr(errno)];
+		@"Unable to change NSFileOwnerAccountName to '%@' - %@",
+		str, [NSError _last]];
 	      ASSIGN(_lastError, str);
 	    }
 	}
@@ -439,8 +440,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileGroupOwnerAccountID to '%u' - %s",
-	    num, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileGroupOwnerAccountID to '%u' - %@",
+	    num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -461,8 +462,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileGroupOwnerAccountName to '%@' - %s",
-	    str, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileGroupOwnerAccountName to '%@' - %@",
+	    str, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -475,8 +476,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFilePosixPermissions to '%o' - %s",
-	    num, GSLastErrorStr(errno)];
+	    @"Unable to change NSFilePosixPermissions to '%o' - %@",
+	    num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -519,8 +520,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileModificationDate to '%@' - %s",
-	    date, GSLastErrorStr(errno)];
+	    @"Unable to change NSFileModificationDate to '%@' - %@",
+	    date, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -747,8 +748,8 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      NSString	*s;
 
-	      s = [NSString stringWithFormat: @"Could not create '%s' - '%s'",
-		dirpath, GSLastErrorStr(errno)];
+	      s = [NSString stringWithFormat: @"Could not create '%s' - '%@'",
+		dirpath, [NSError _last]];
 	      ASSIGN(_lastError, s);
 	      return NO;
 	    }
@@ -1277,9 +1278,11 @@ static NSStringEncoding	defaultEncoding;
       if (unlink(lpath) < 0)
 #endif
 	{
+	  NSString	*message = [[NSError _last] localizedDescription];
+
 	  return [self _proceedAccordingToHandler: handler
-	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
-	    inPath: path];
+					 forError: message
+					   inPath: path];
 	}
       else
 	{
@@ -1311,9 +1314,11 @@ static NSStringEncoding	defaultEncoding;
 
       if (_RMDIR([self fileSystemRepresentationWithPath: path]) < 0)
 	{
+	  NSString	*message = [[NSError _last] localizedDescription];
+
 	  return [self _proceedAccordingToHandler: handler
-	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
-	    inPath: path];
+					 forError: message
+					   inPath: path];
 	}
       else
 	{
@@ -1947,7 +1952,7 @@ typedef	struct	_GSEnumeratedDirectory {
 } GSEnumeratedDirectory;
 
 
-inline void gsedRelease(GSEnumeratedDirectory X)
+static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   DESTROY(X.path);
   _CLOSEDIR(X.pointer);
@@ -2031,8 +2036,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
     }
   else
     {
-      NSLog(@"Failed to recurse into directory '%@' - %s", path,
-	GSLastErrorStr(errno));
+      NSLog(@"Failed to recurse into directory '%@' - %@", path,
+	[NSError _last]);
     }
   return self;
 }
@@ -2198,8 +2203,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 		    }
 		  else
 		    {
-		      NSLog(@"Failed to recurse into directory '%@' - %s",
-			_currentFilePath, GSLastErrorStr(errno));
+		      NSLog(@"Failed to recurse into directory '%@' - %@",
+			_currentFilePath, [NSError _last]);
 		    }
 		}
 	    }
@@ -2940,7 +2945,8 @@ static NSSet	*fileKeys = nil;
   gp = getgrgid(statbuf.st_gid);
   if (gp != 0)
     {
-      group = [NSString stringWithCString: gp->gr_name];
+      group = [NSString stringWithCString: gp->gr_name
+				 encoding: defaultEncoding];
     }
 #endif
 #endif
@@ -3081,7 +3087,8 @@ static NSSet	*fileKeys = nil;
 
   if (pw != 0)
     {
-      owner = [NSString stringWithCString: pw->pw_name];
+      owner = [NSString stringWithCString: pw->pw_name
+				 encoding: defaultEncoding];
     }
 #endif /* HAVE_PWD_H */
 #endif

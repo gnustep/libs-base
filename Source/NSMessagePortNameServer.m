@@ -16,8 +16,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSMessagePortNameServer class reference</title>
    $Date$ $Revision$
@@ -252,6 +252,10 @@ static void clean_up_names(void)
     }
 }
 
+- (NSPort*) portForName: (NSString*)name
+{
+  return [self portForName: name onHost: nil];
+}
 
 - (NSPort*) portForName: (NSString *)name
 		 onHost: (NSString *)host
@@ -262,10 +266,15 @@ static void clean_up_names(void)
 
   NSDebugLLog(@"NSMessagePort", @"portForName: %@ host: %@", name, host);
 
-  if ([host length] && ![host isEqual: @"*"])
+  if ([host length] > 0)
     {
-      NSDebugLLog(@"NSMessagePort", @"non-local host");
-      return nil;
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to contact a named host using a "
+	@"message port name server.  This name server can only be used "
+	@"to contact processes owned by the same user on the local host "
+	@"(host name must be an empty string).  To contact processes "
+	@"owned by other users or on other hosts you must use an instance "
+	@"of the NSSocketPortNameServer class."];
     }
 
   path = [[self class] _pathForName: name];

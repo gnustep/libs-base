@@ -21,7 +21,7 @@ first look at the way code interacts with objects in a single process,
 and then look at how we can achieve the same interaction with objects
 that exist in different processes.
 
-@section Object Interaction 
+@section Object Interaction
 @cindex object interaction, remote objects
 
 To continue with the example above, if the telephone directory existed
@@ -47,7 +47,7 @@ are said to exist in a separate 'address space').
 The Objective-C run-time library was not designed for this inter-process
 communication or 'remote messaging'.
 
-@section The GNUstep Solution 
+@section The GNUstep Solution
 @cindex distributed objects
 @cindex remote objects
 @cindex client/server processes
@@ -89,7 +89,7 @@ remote server process in a suitably coded form.
 Let us now take a look at the additional lines of code required to make
 this 'remote messaging' possible.
 
-@subsection Code at the Server 
+@subsection Code at the Server
 @cindex distributed objects, client code
 
 In order to respond to client messages, the responding server object must be
@@ -118,43 +118,43 @@ runloop would look something like this:
 
 @example
 /*
- * The main() function: Set up the program 
+ * The main() function: Set up the program
  * as a 'Distributed Objects Server'.
  */
 int main(void)
 @{
   /*
-   * Remember, create an instance of the 
+   * Remember, create an instance of the
    * NSAutoreleasePool class.
    */
   CREATE_AUTORELEASE_POOL(pool);
 
-  /* 
+  /*
    * Get the default NSConnection object
-   * (a new one is automatically created if none exists). 
+   * (a new one is automatically created if none exists).
    */
   NSConnection *connXion = [NSConnection defaultConnection];
-  
+
   /*
    * Set the responding server object as
    * the root object for this connection.
    */
   [connXion setRootObject: telephoneDirectory];
-  
-  /* 
+
+  /*
    * Try to register a name for the NSConnection,
    * and report an error if this is not possible.
    */
-  if ([connXion registerName: @@"DirectoryServer"] == NO) 
+  if ([connXion registerName: @@"DirectoryServer"] == NO)
   @{
     NSLog(@@"Unable to register as 'DirectoryServer'");
     NSLog(@@"Perhaps another copy of this program is running?");
     exit(1);
   @}
-  
+
   /* Start the current runloop. */
   [[NSRunLoop currentRunLoop] run];
-  
+
   /* Release the pool */
   RELEASE(pool);
   return 0;
@@ -164,7 +164,7 @@ int main(void)
 These additional lines of code turn a program into a distributed objects
 server, ready to respond to incoming client messages.
 
-@subsection Code at the Client 
+@subsection Code at the Client
 @cindex distributed objects, client code
 
 At the client, all you need do is obtain a proxy for the responding
@@ -176,21 +176,92 @@ at the server.
   CREATE_AUTORELEASE_POOL(pool);
 
   /* Get the proxy */
-  id proxy = [NSConnection 
-                rootProxyForConnectionWithRegisteredName:
-	          @i{registeredServerName}
-	        host: @i{hostName}]; 
-	      
+  id proxy = [NSConnection
+    rootProxyForConnectionWithRegisteredName: @i{registeredServerName}];
+	
   /* The rest of your program code goes here */
-  
+
   /* Release the pool */
   RELEASE(pool);
 @end example
 
 The code that obtains the proxy automatically creates an NSConnection
 object for managing the inter-process communication, so there is no need
-to create one yourself. If the @i{hostName} in this statement is 'nil',
-then only the local host will be searched to find the
+to create one yourself.
+
+The above example serves to establish a secure connection between processes
+which are run by the same person and are both on the same host.
+
+If you want your connections to work between different host or between
+programs being run by different people, you do this slightly differently,
+telling the system that you want to use 'socket' ports, which make TCP/IP
+connections over the network.
+
+@example
+int main(void)
+@{
+  CREATE_AUTORELEASE_POOL(pool);
+
+  /*
+   * Create a new socket port for your connection.
+   */
+  NSSocketPort *port = [NSSocketPort port];
+
+  /*
+   * Create a connection using the socket port.
+   */
+  NSConnection *connXion = [NSConnection connectionWithReceivePort: port
+							  sendPort: port];
+
+  /*
+   * Set the responding server object as
+   * the root object for this connection.
+   */
+  [connXion setRootObject: telephoneDirectory];
+
+  /*
+   * Try to register a name for the NSConnection,
+   * and report an error if this is not possible.
+   */
+  if ([connXion registerName: @@"DirectoryServer"
+    withNameServer: [NSSocketPortNameServer sharedInstance]] == NO)
+  @{
+    NSLog(@@"Unable to register as 'DirectoryServer'");
+    NSLog(@@"Perhaps another copy of this program is running?");
+    exit(1);
+  @}
+
+  [[NSRunLoop currentRunLoop] run];
+
+  RELEASE(pool);
+  return 0;
+@}
+@end example
+
+In the above example, we specify that the socket port name server is used
+to register the name for the connection ... this makes the connection name
+visible to processes running on other machines.
+
+The client side code is as follows
+
+@example
+  /* Create an instance of the NSAutoreleasePool class */
+  CREATE_AUTORELEASE_POOL(pool);
+
+  /* Get the proxy */
+  id proxy = [NSConnection
+    rootProxyForConnectionWithRegisteredName: @i{registeredServerName}
+    host: @i{hostName}
+    usingNameServer: [NSSocketPortNameServer sharedInstance]];
+	
+  /* The rest of your program code goes here */
+
+  /* Release the pool */
+  RELEASE(pool);
+@end example
+
+If the @i{hostName} in this statement is 'nil'
+or an empty string, then only the local host will be searched to find the
 @i{registeredServerName}. If @i{hostName} is "*", then all hosts on the
 local network will be searched.
 
@@ -199,9 +270,9 @@ any host on the network would be:
 
 @example
   id proxyForDirectory = [NSConnection
-                            rootProxyForConnectionWithRegisteredName: 
-                              @@"DirectoryServer" 
-			    host: "*"]; 
+    rootProxyForConnectionWithRegisteredName: @@"DirectoryServer"
+    host: @@"*"
+    usingNameServer: [NSSocketPortNameServer sharedInstance]];
 @end example
 
 With this additional line of code in the client program, you can now
@@ -213,7 +284,7 @@ object.
 @end example
 
 
-@subsection Using a Protocol 
+@subsection Using a Protocol
 @cindex protocol for distributed objects
 @cindex distributed objects, using a protocol
 
@@ -246,15 +317,14 @@ In the telephone directory example, if the declared protocol was
 
 @example
   #include "protocolHeader.h";
-  
+
   /* Extend the type declaration */
   id<TelephoneDirectory> proxyForDirectory;
 
-  /* Cast the returned proxy object to the extended type */  
+  /* Cast the returned proxy object to the extended type */
   proxyForDirectory = (id<TelephoneDirectory>) [NSConnection
-                       rootProxyForConnectionWithRegisteredName: 
-                       @@"DirectoryServer" 
-		       host: "*"]; 
+    rootProxyForConnectionWithRegisteredName: @@"DirectoryServer"
+    usingNameServer: [NSSocketPortNameServer sharedInstance]];
 @end example
 Since class names and protocol names do not share the same 'address
 space' in a process, the declared protocol and the class of the
@@ -280,14 +350,14 @@ run the above example.
 #include "TelephoneDirectory.h"
 
 /*
- * Declare the TelephoneDirectory class that 
+ * Declare the TelephoneDirectory class that
  * implements the 'teleNumber' instance method.
  */
 @@interface TelephoneDirectory : NSObject <TelephoneDirectory>
 @@end
 
 /*
- * Define the TelephoneDirectory class 
+ * Define the TelephoneDirectory class
  * and the instance method (teleNumber).
  */
 @@implementation TelephoneDirectory : NSObject
@@ -313,7 +383,7 @@ run the above example.
 #include "TelephoneDirectory.h"
 
 /*
- * The main() function: Get the telephone number for 
+ * The main() function: Get the telephone number for
  * 'personName' from the server registered as 'DirectoryServer'.
  */
 int main(int argc, char *argv[])
@@ -324,16 +394,16 @@ int main(int argc, char *argv[])
   CREATE_AUTORELEASE_POOL(pool);
 
   /* Acquire the remote reference. */
-  proxyForDirectory = (id<TelephoneDirectory>) [NSConnection 
-                       rootProxyForConnectionWithRegisteredName: 
-                       @@"DirectoryServer" 
-		       host: @@"*"];	       
+  proxyForDirectory = (id<TelephoneDirectory>) [NSConnection
+    rootProxyForConnectionWithRegisteredName: @@"DirectoryServer"
+    host: @@"*"
+    usingNameServer: [NSSocketPortNameServer sharedInstance]];
 
-  if(proxyForDirectory == nil) 
+  if (proxyForDirectory == nil)
     printf("\n** WARNING: NO CONNECTION TO SERVER **\n");
   else printf("\n** Connected to server **\n");
-  
-  if(argc == 2) // Command line name entered
+
+  if (argc == 2) // Command line name entered
   @{
     returnedNumber = (char *)[proxyForDirectory teleNumber: personName];
     printf("\n%s%s%s%s%s\n", "** (In client) The telephone number for ",
@@ -361,7 +431,14 @@ you display a "No Server Connection" warning at the client?
 @cindex Distributed Objects Name Server, GNUstep
 
 You might wonder how the client finds the server, or, rather, how it finds the
-directory the server lists itself in.  In fact an auxiliary process will
+directory the server lists itself in.
+
+For the default connection type (a connection only usable on the local host
+between processes run by the same person), a private file (or the registry
+on ms-windows) is used to hold the name registration information.
+
+For connections using socket ports to communicate between hosts,
+an auxiliary process will
 automatically be started on each machine, if it isn't running already, that
 handles this, allowing the server to register and the client to send a query
 behind the scenes.  This @i{GNUstep Distributed Objects Name Server} runs as
@@ -423,7 +500,7 @@ to class documentation @uref{../Reference/index.html, here} or at the Apple
 web site.
 
 
-@subsection Protocol Adopted at Client 
+@subsection Protocol Adopted at Client
 
 We have chosen @code{GameClient} as the name of both the protocol
 adopted at the client and the class of the responding client object. The
@@ -435,7 +512,7 @@ the class must implement.
 - (void) clientMessage: (bycopy NSString *)theMessage;
 - (int) clientReply;
 
-// Other methods would be added that  
+// Other methods would be added that
 // reflect the nature of the game.
 
 @@end
@@ -456,7 +533,7 @@ the class must implement.
 - (int) startGame: (bycopy NSString*)name;
 - (BOOL) endGame: (bycopy NSString*)name;
 
-// Other methods would be added that  
+// Other methods would be added that
 // reflect the nature of the game.
 
 @@end
@@ -477,19 +554,19 @@ The @code{main()} function attempts to connect to the server, while the
 #include "GameServer.h"
 #include "GameClient.h"
 
-/* 
- * GameClient class declaration: 
+/*
+ * GameClient class declaration:
  * Adopt the GameClient protocol.
  */
 @@interface GameClient : NSObject <GameClient>
 @@end
 
-/* 
+/*
  * GameClient class implementation.
  */
 @@implementation GameClient
 
-/* 
+/*
  * Implement clientMessage: as declared in the protocol.
  * The method simply prints a message at the client.
  */
@@ -498,9 +575,9 @@ The @code{main()} function attempts to connect to the server, while the
   printf([theMessage cString]);
 @}
 
-/* 
+/*
  * Implement clientReply: as declared in the protocol.
- * The method simply returns the character entered 
+ * The method simply returns the character entered
  * at the client keyboard.
  */
 - (int) clientReply
@@ -522,33 +599,34 @@ int main(int argc, char **argv)
 
   /*
    * The NSUserName() function returns the name of the
-   * current user, which is sent to the server when we 
+   * current user, which is sent to the server when we
    * try to join the game.
    */
   name = NSUserName();
 
   /*
    * Create a GameClient object that is sent to
-   * the server when we try to join the game. 
+   * the server when we try to join the game.
    */
   client = AUTORELEASE([GameClient new]);
 
   /*
-   * Try to get a proxy for the root object of a server 
-   * registered under the name 'JoinGame'. Since the host 
+   * Try to get a proxy for the root object of a server
+   * registered under the name 'JoinGame'. Since the host
    * is '*', we can connect to any server on the local network.
    */
-  server = (id<GameServer>)[NSConnection 
-                            rootProxyForConnectionWithRegisteredName: 
-                            @@"JoinGame" host: @@"*"];
-  if(server == nil) 
+  server = (id<GameServer>)[NSConnection
+    rootProxyForConnectionWithRegisteredName: @@"JoinGame"
+    host: @@"*"
+    usingNameServer: [NSSocketPortNameServer sharedInstance]];
+  if (server == nil)
     @{
       printf("\n** No Connection to GameServer **\n");
       result = 1;
     @}
-    
+
   /*
-   * Try to join the game, passing a GameClient object as 
+   * Try to join the game, passing a GameClient object as
    * the client, and our user-name as name. The 'client'
    * argument will be received as a proxy at the server.
    */
@@ -590,8 +668,8 @@ object to reflect the success of the player.
 
 @subsection Code at the Server
 
-The server code contains the @code{main} function and the 
-@code{GameServer} class declaration and implementation. 
+The server code contains the @code{main} function and the
+@code{GameServer} class declaration and implementation.
 
 The @code{main()} function vends the server's root object and starts the
 runloop, while the @code{GameServer} class adopts the @code{GameServer}
@@ -604,9 +682,9 @@ player information).
 #include "GameServer.h"
 #include "GameClient.h"
 
-/* 
+/*
  * GameServer class declaration:
- * Adopt the GameServer protocol and declare  
+ * Adopt the GameServer protocol and declare
  * GameServer instance variables.
  */
 @@interface GameServer : NSObject <GameServer>
@@ -617,7 +695,7 @@ player information).
 @}
 @@end
 
-/* 
+/*
  * GameServer class implementation.
  */
 @@implementation GameServer
@@ -628,26 +706,26 @@ player information).
   self = [super init];
   if (self != nil)
     @{
-      /* 
-       * Create a dictionary for a maximum of 
-       * 10 named players that will hold a 
+      /*
+       * Create a dictionary for a maximum of
+       * 10 named players that will hold a
        * re-joining time delay.
        */
-      delayUntil = [[NSMutableDictionary alloc] 
+      delayUntil = [[NSMutableDictionary alloc]
                      initWithCapacity: 10];
-      /* 
-       * Create a dictionary that will hold the 
+      /*
+       * Create a dictionary that will hold the
        * names of these players and a proxy for
        * the received client objects.
        */
-      currentPlayers = [[NSMutableDictionary alloc] 
+      currentPlayers = [[NSMutableDictionary alloc]
                        initWithCapacity: 10];
 
-      /* 
-       * Create a dictionary that will record 
+      /*
+       * Create a dictionary that will record
        * a win for any of these named players.
        */
-      hasWon = [[NSMutableDictionary alloc] 
+      hasWon = [[NSMutableDictionary alloc]
                  initWithCapacity: 10];
     @}
   return self;
@@ -664,7 +742,7 @@ player information).
 
 /*
  * Implement mayJoin:: as declared in the protocol.
- * Adds the client to the list of current players. 
+ * Adds the client to the list of current players.
  * Each player is represented at the server by both
  * name and by proxy to the received client object.
  * A player cannot join the game if they are already playing,
@@ -680,7 +758,7 @@ player information).
       NSLog(@@"Attempt to join nil user");
       return NO;
     @}
-    
+
   /* Has the player already joined the game? */
   if ([currentPlayers objectForKey: name] != nil)
     @{
@@ -689,39 +767,39 @@ player information).
       [client clientMessage: aMessage];
       return NO;
     @}
-    
+
   /* Get the player's time delay for re-joining. */
   delay = [delayUntil objectForKey: name];
-  
-  /* 
-   * Can the player join the game? Yes if there is 
-   * no restriction or if the time delay has passed; 
+
+  /*
+   * Can the player join the game? Yes if there is
+   * no restriction or if the time delay has passed;
    * otherwise no, they cannot join.
    */
   if (delay == nil || [delay timeIntervalSinceNow] <= 0.0)
     @{
       /* Remove the old restriction on re-joining the game. */
       [delayUntil removeObjectForKey: name];
-      
+
       /* Add the player to the list of current players. */
       [currentPlayers setObject: client forKey: name];
       [hasWon setObject: @@"NO" forKey: name]; // They've not won yet.
-      
+
       /* Inform the client that they have joined the game. */
       aMessage = @@"\nWelcome to GameServer\n";
       [client clientMessage: aMessage];
       return YES;
     @}
-  else  
+  else
     @{
       /* Inform the client that they cannot re-join. */
       aMessage = @@"\nSorry, you cannot re-join GameServer yet.\n";
       [client clientMessage: aMessage];
-      return NO; 
+      return NO;
     @}
 @}
 
-/* 
+/*
  * Implement startGame: as declared in the protocol.
  * Simply ask the player if they want to win, and get
  * there reply.
@@ -731,20 +809,20 @@ player information).
   NSString *aMessage;
   id client;
   int reply;
-  
+
   client = [currentPlayers objectForKey: name];
-  
+
   aMessage = @@"\nDo you want to win this game? (Y/N <RET>) ... ";
   [client clientMessage: aMessage];
-  
+
   reply = [client clientReply];
-  if(reply == 'y' || reply == 'Y')
+  if (reply == 'y' || reply == 'Y')
     [hasWon setObject: @@"YES" forKey: name]; // They win.
   else [hasWon setObject: @@"NO" forKey: name]; // They loose.
   return 0;
 @}
 
-/* 
+/*
  * Implement endGame: as declared in the protocol.
  * Removes a player from the game, and either sets
  * a restriction on the player re-joining or removes
@@ -756,34 +834,34 @@ player information).
   NSString *aMessage, *yesOrNo;
   NSDate *now, *delay;
   NSTimeInterval twoHours = 2 * 60 * 60; // Seconds in 2 hours.
-  
+
   if (name == nil)
     @{
       NSLog(@@"Attempt to end nil user");
       return NO;
     @}
-    
+
   now = [NSDate date];
   delay = [now addTimeInterval: twoHours];
   client = [currentPlayers objectForKey: name];
   yesOrNo = [hasWon objectForKey: name];
-  
+
   if ([yesOrNo isEqualToString: @@"YES"]) // Has player won?
     @{
-      /* 
+      /*
        * Player wins, no time delay to re-joining the game.
        * Remove any re-joining restriction and send
-       * a message to the client. 
+       * a message to the client.
        */
       [delayUntil removeObjectForKey: name];
       aMessage = @@"\nWell played: you can re-join GameServer at any time.\n";
       [client clientMessage: aMessage];
-      
+
     @}
   else // Player lost
-    @{ 
-      /* 
-       * Set a time delay for re-joining the game, 
+    @{
+      /*
+       * Set a time delay for re-joining the game,
        * and send a message to the client.
        */
       [delayUntil setObject: delay forKey: name];
@@ -800,19 +878,22 @@ player information).
 @@end  // End of GameServer class implementation
 
 /*
- * The main function of the server program simply 
+ * The main function of the server program simply
  * vends the root object and starts the runloop.
  */
 int main(int argc, char** argv)
 @{
   CREATE_AUTORELEASE_POOL(pool);
   GameServer	*server;
+  NSSocketPort	*port;
   NSConnection	*connXion;
 
   server = AUTORELEASE([GameServer new]);
-  connXion = [NSConnection defaultConnection];
+  port = [NSSocketPort port];
+  connXion = [NSConnection connectionWithReceivePort: port sendPort: port];
   [connXion setRootObject: server];
-  [connXion registerName: @@"JoinGame"];
+  [connXion registerName: @@"JoinGame"
+    withNameServer: [NSSocketPortNameServer sharedInstance]];
   [[NSRunLoop currentRunLoop] run];
   RELEASE(pool);
   return 0;
@@ -886,34 +967,34 @@ will wait for the remote process to return.
 
 @itemize @bullet
 @item  The @b{oneway} qualifier is used in conjunction with a
-@code{void} return type to inform the run-time system that the sending 
-process does not need to wait for the receiving method to return (known 
-as 'asynchronous' messaging). The protocol declaration for the receiving 
+@code{void} return type to inform the run-time system that the sending
+process does not need to wait for the receiving method to return (known
+as 'asynchronous' messaging). The protocol declaration for the receiving
 method would look something like this:@*@*
 
 @code{- (@b{oneway} void)noWaitForReply;}@*@*
 
-@item The @b{in, out } and @b{inout} qualifiers can be used with pointer 
+@item The @b{in, out } and @b{inout} qualifiers can be used with pointer
 arguments to control the direction in which an argument is passed. The
-protocol declaration for the receiving methods would look something like 
+protocol declaration for the receiving methods would look something like
 this:@*
 
 @example
-/* 
+/*
  * The value that 'number' points to will be passed @b{in} to the remote process.
  * (No need to return the argument's value from the remote process.)
  */
 @code{- setValue: (@b{in} int *)number;}
 
-/* 
+/*
  * The value that 'number' points to will be passed @b{out} of the remote process.
  * (No need to send the argument's value to the remote process.)
  */
 @code{- getValue: (@b{out} int *)number;}
 
-/* 
+/*
  * The value that 'number' points to is first passed @b{in} to the remote
- * process, but will eventually be the value that is passed @b{out} of the   
+ * process, but will eventually be the value that is passed @b{out} of the
  * remote process. (Send and return the argument's value.)
  */
 @code{- changeValue: (@b{inout} int *)number;}
@@ -949,18 +1030,18 @@ type.
 when the argument or return type is an object.@*@*
 
 An object is normally passed by reference and received in the remote
-process as a proxy. When an object is passed by copy, then a copy of 
-the object will be received in the remote process, allowing the remote 
-process to directly interact with the copy. Protocol declarations would 
+process as a proxy. When an object is passed by copy, then a copy of
+the object will be received in the remote process, allowing the remote
+process to directly interact with the copy. Protocol declarations would
 look something like this:@*
 
 @example
-/* 
+/*
  * Copy of object will be received in the remote process.
  */
 - sortNames: (@b{bycopy} id)listOfNames;
 
-/* 
+/*
  * Copy of object will be returned by the remote process.
  */
 - (@b{bycopy} id)returnNames;

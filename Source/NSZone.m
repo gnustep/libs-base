@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSZone class reference</title>
    $Date$ $Revision$
@@ -1702,12 +1703,12 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       newZone = (NSZone*)zone;
     }
 
-    [gnustep_global_lock lock];
-    newZone->next = zone_list;
-    zone_list = newZone;
-    [gnustep_global_lock unlock];
+  [gnustep_global_lock lock];
+  newZone->next = zone_list;
+  zone_list = newZone;
+  [gnustep_global_lock unlock];
 
-    return newZone;
+  return newZone;
 }
 
 /**

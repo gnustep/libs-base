@@ -26,6 +26,7 @@
 #include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSNotification.h"
+#include "Foundation/NSError.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSByteOrder.h"
@@ -43,6 +44,7 @@
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSProcessInfo.h"
 
+#include "../GSPrivate.h"
 #include "GSPortPrivate.h"
 
 #include <stdio.h>
@@ -160,6 +162,9 @@ static Class		messagePortClass = 0;
 	(HANDLE)0);
       if (this->wHandle == INVALID_HANDLE_VALUE)
 	{
+	  NSDebugMLLog(@"NSMessagePort",
+	    @"unable to access mailslot '%@' for write - %@",
+	    [self name], [NSError _last]);
 	  result = NO;
 	}
       else
@@ -202,10 +207,6 @@ static Class		messagePortClass = 0;
   if (p == nil)
     {
       p = [[self alloc] initWithName: name];
-    }
-  else
-    {
-      [p _setupSendPort];
     }
   M_UNLOCK(messagePortLock);
   return p;
@@ -332,8 +333,8 @@ static Class		messagePortClass = 0;
 
   if (this->rHandle == INVALID_HANDLE_VALUE)
     {
-      NSLog(@"unable to create mailslot '%@' - %s",
-	this->name, GSLastErrorStr(errno));
+      NSLog(@"unable to create mailslot '%@' - %@",
+	this->name, [NSError _last]);
       DESTROY(self);
     }
   else
@@ -360,6 +361,7 @@ static Class		messagePortClass = 0;
 - (id) initWithName: (NSString*)name
 {
   NSMessagePort	*p;
+  BOOL		found = NO;
 
   M_LOCK(messagePortLock);
   p = RETAIN((NSMessagePort*)NSMapGet(ports, (void*)name));
@@ -381,24 +383,31 @@ static Class		messagePortClass = 0;
       this->rEvent = INVALID_HANDLE_VALUE;
       this->wHandle = INVALID_HANDLE_VALUE;
       this->wEvent = INVALID_HANDLE_VALUE;
-
-      if ([self _setupSendPort] == NO)
-	{
-	  NSLog(@"unable to access mailslot '%@' - %s",
-	    this->name, GSLastErrorStr(errno));
-	  DESTROY(self);
-	}
-      else
-	{
-	  NSMapInsert(ports, (void*)this->name, (void*)self);
-	  NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", self);
-	}
     }
   else
     {
+      found = YES;
       RELEASE(self);
-      [p _setupSendPort];
       self = p;
+    }
+
+  /* This is a 'speaking' port ... set it up for write operation
+   * if necessary.
+   * NB. This must be done (to create the mailbox) before the port
+   * is added to the nameserver mapping ... or nother process might
+   * try to access the mailbox before it exists.
+   */
+  if ([self _setupSendPort] == NO)
+    {
+      DESTROY(self);
+    }
+
+  if (self != nil && found == NO)
+    {
+      /* This was newly created ... add to map so that it can be found.
+       */
+      NSMapInsert(ports, (void*)[self name], (void*)self);
+      NSDebugMLLog(@"NSMessagePort", @"Created speaking port: %@", self);
     }
   M_UNLOCK(messagePortLock);
   return self;
@@ -515,14 +524,14 @@ static Class		messagePortClass = 0;
 	    }
 	  else
 	    {
-	      NSLog(@"GetOverlappedResult failed ...%s", GSLastErrorStr(errno));
+	      NSLog(@"GetOverlappedResult failed ... %@", [NSError _last]);
 	      this->rState = RS_NONE;
 	      this->rLength = 0;
 	    }
 	}
       else
 	{
-	  NSLog(@"GetOverlappedResult success ...%u", this->rSize);
+	  NSLog(@"GetOverlappedResult success ... %u", this->rSize);
 	  this->rState = RS_NONE;
 	  this->rLength = 0;
 	}
@@ -537,8 +546,8 @@ static Class		messagePortClass = 0;
 	0,
 	0) == 0)
 	{
-	  NSLog(@"unable to get info from mailslot '%@' - %s",
-	    this->name, GSLastErrorStr(errno));
+	  NSLog(@"unable to get info from mailslot '%@' - %@",
+	    this->name, [NSError _last]);
 	  [self invalidate];
 	  return;
 	}
@@ -554,16 +563,15 @@ static Class		messagePortClass = 0;
 	    &this->rSize,
 	    NULL) == 0)
 	    {
-	      NSLog(@"unable to read from mailslot '%@' - %s",
-		this->name, GSLastErrorStr(errno));
+	      NSLog(@"unable to read from mailslot '%@' - %@",
+		this->name, [NSError _last]);
 	      [self invalidate];
 	      return;
 	    }
 	  if (this->rSize != this->rWant)
 	    {
-	      NSLog(@"only read %d of %d bytes from mailslot '%@' - %s",
-		this->rSize, this->rWant, this->name,
-		GSLastErrorStr(errno));
+	      NSLog(@"only read %d of %d bytes from mailslot '%@' - %@",
+		this->rSize, this->rWant, this->name, [NSError _last]);
 	      [self invalidate];
 	      return;
 	    }
@@ -757,8 +765,8 @@ static Class		messagePortClass = 0;
 	}
       else
 	{
-	  NSLog(@"unable to read from mailslot '%@' - %s",
-	    this->name, GSLastErrorStr(errno));
+	  NSLog(@"unable to read from mailslot '%@' - %@",
+	    this->name, [NSError _last]);
 	  [self invalidate];
 	}
     }
@@ -812,7 +820,7 @@ static Class		messagePortClass = 0;
 	&this->wSize,
 	TRUE) == 0)
 	{
-	  NSLog(@"GetOverlappedResult failed ...%s", GSLastErrorStr(errno));
+	  NSLog(@"GetOverlappedResult failed ... %@", [NSError _last]);
 	}
       else
 	{
@@ -864,8 +872,8 @@ again:
 	}
       else if ((errno = GetLastError()) != ERROR_IO_PENDING)
 	{
-	  NSLog(@"unable to write to mailslot '%@' - %s",
-	    this->name, GSLastErrorStr(errno));
+	  NSLog(@"unable to write to mailslot '%@' - %@",
+	    this->name, [NSError _last]);
 	  [self invalidate];
 	}
       else
@@ -933,6 +941,28 @@ again:
 - (unsigned int) reservedSpaceLength
 {
   return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
+}
+
+- (void) release
+{
+  /* We lock the port table while checking, to prevent
+   * another thread from grabbing this port while we are
+   * checking it.
+   * If we are going to deallocate the object, we first remove
+   * it from the table so that no other thread will find it
+   * and try to use it while it is being deallocated.
+   */
+  M_LOCK(messagePortLock);
+  if (NSDecrementExtraRefCountWasZero(self))
+    {
+      NSMapRemove(ports, (void*)[self name]);
+      M_UNLOCK(messagePortLock);
+      [self dealloc];
+    }
+  else
+    {
+      M_UNLOCK(messagePortLock);
+    }
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when

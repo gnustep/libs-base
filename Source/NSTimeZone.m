@@ -21,7 +21,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSTimeZone class reference</title>
    $Date$ $Revision$
@@ -58,13 +59,13 @@
    ===================================
 
    Default place for the NSTimeZone directory is _time_zone_path():
-     {$(GNUSTEP_SYSTEM_ROOT)Libary/Libraries/Resources/TIME_ZONE_DIR}
+     {$(GNUSTEP_SYSTEM_LIBRARY)/Libraries/gnustep-base/Versions/1.14/Resources/TIME_ZONE_DIR)
 
    LOCAL_TIME_FILE is a text file with the name of the time zone file.
 
    ZONES_DIR is a sub-directory under TIME_ZONE_DIR
 
-   (dir) ../System/Library/Libraries/Resources/..
+   (dir) ../System/Library/Libraries/gnustep-base/Versions/1.14/Resources/..
    (dir)     NSTimeZone
    (file)      localtime {text; time zone eg Australia/Perth}
    (dir)       zones
@@ -106,7 +107,7 @@
 #include "Foundation/NSByteOrder.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSCategories.h"
-#include "GSConfig.h"
+#include "GNUstepBase/GSConfig.h"
 #include "GSPrivate.h"
 
 #ifdef HAVE_TZHEAD
@@ -272,7 +273,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   NSBundle *gbundle;
   if (type == nil)
     type = @"";
-  gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+  gbundle = [NSBundle bundleForClass: [NSObject class]];
   return [gbundle pathForResource: subpath
 		           ofType: type
 		      inDirectory: TIME_ZONE_DIR];
@@ -464,15 +465,6 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	  if (data == nil)
 	    {
 	      NSString		*fileName;
-	      const char	*str = [name UTF8String];
-
-	      /* Make sure that only time zone files are accessed.
-		 FIXME: Make this more robust. */
-	      if ((str)[0] == '/' || strchr(str, '.') != NULL)
-		{
-		  NSLog(@"Disallowed time zone name `%@'.", name);
-		  return nil;
-		}
 
 	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
 	      if (fileName == nil
@@ -1468,38 +1460,22 @@ static NSMapTable	*absolutes = 0;
 
 #if	defined(__MINGW32__)
       /*
-       * Try to get timezone from windows registry.
+       * Try to get timezone from windows system call.
        */
       {
-        HKEY regkey;
+      	TIME_ZONE_INFORMATION tz;
+      	DWORD DST = GetTimeZoneInformation(&tz);
 
-        if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-	  "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation",
-	  0,
-	  KEY_READ,
-	  &regkey))
-          {
-            char buf[255];
-            DWORD bufsize=255;
-            DWORD type;
-
-            if (ERROR_SUCCESS == RegQueryValueExA(regkey,
-	      "StandardName",
-	      0,
-	      &type,
-	      buf,
-	      &bufsize))
-              {
-                bufsize = strlen(buf);
-                while (bufsize && isspace(buf[bufsize-1]))
-                  {
-                    bufsize--;
-                  }
-		localZoneString
-		  = [NSString stringWithCString: buf length: bufsize];
-              }
-            RegCloseKey(regkey);
-          }
+      	if (DST == TIME_ZONE_ID_DAYLIGHT)
+	  {
+	    localZoneString = [NSString stringWithCharacters: tz.DaylightName
+	      length: wcslen(tz.DaylightName)];
+	  }
+      	else
+	  {
+	    localZoneString = [NSString stringWithCharacters: tz.StandardName
+	      length: wcslen(tz.StandardName)];
+	  }
       }
 #endif
 
@@ -2362,12 +2338,36 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
   GSBreakTime(when, &year, &month, &day, &hour, &minute, &second, &mil);
 
-  // Before April or after October is Std
-  if (month < DaylightDate.wMonth || month > StandardDate.wMonth)
-    return NO;
-  // After April and before October is DST
-  if (month > DaylightDate.wMonth && month < StandardDate.wMonth)
-    return YES;
+  // Check north globe
+  if (StandardDate.wMonth >= DaylightDate.wMonth)
+    {
+      // Before April or after October is Std
+      if (month < DaylightDate.wMonth || month > StandardDate.wMonth)
+        {
+	  return NO;
+	}
+      // After April and before October is DST
+      if (month > DaylightDate.wMonth && month < StandardDate.wMonth)
+        {
+	  return YES;
+	}
+    }
+  else
+    {
+      /* check south globe 
+       * Before April or after October is DST
+       */
+      if (month < StandardDate.wMonth || month > DaylightDate.wMonth)
+        {
+	  return YES;
+	}
+      // After April and before October is Std
+      if (month > StandardDate.wMonth && month < DaylightDate.wMonth)
+        {
+	  return NO;
+	}
+  }
+
   dow = ((int)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
   if (dow < 0)
     dow += 7;
@@ -2405,7 +2405,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
       if (mil >= DaylightDate.wMilliseconds)
         return YES;
       return NO;
-  }
+    }
   if (month == StandardDate.wMonth /* October */)
     {
       daylightdate = day - dow + StandardDate.wDayOfWeek;
@@ -2445,7 +2445,17 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
 - (NSString*) name
 {
-  return timeZoneName;
+  TIME_ZONE_INFORMATION tz;
+  DWORD DST = GetTimeZoneInformation(&tz);
+
+  if (DST == TIME_ZONE_ID_DAYLIGHT)
+    {
+      return daylightZoneName;
+    }
+  else
+    {
+      return timeZoneName;
+    }
 }
 
 - (int) secondsFromGMTForDate: (NSDate*)aDate
@@ -2495,7 +2505,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
 - (NSString*) timeZoneName
 {
-  return timeZoneName;
+  return [self name];
 }
 @end
 #endif // __MINGW32__

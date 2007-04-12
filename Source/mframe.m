@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 /* These functions can be used for dissecting and making method calls
@@ -38,6 +38,7 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSException.h"
+#include "Foundation/NSDebug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -801,6 +802,8 @@ mframe_do_call (DOContext *ctxt,
   id object;
   /* The selector for the message we're sending to the TARGET. */
   SEL selector;
+  /* The OBJECT's Method(_t) pointer for the SELECTOR. */
+  GSMethod meth;
   /* The OBJECT's implementation of the SELECTOR. */
   IMP method_implementation;
   /* The number bytes for holding arguments passed on the stack. */
@@ -865,25 +868,34 @@ mframe_do_call (DOContext *ctxt,
      as the ENCODED_TYPES string, but it will have different register
      and stack locations if the ENCODED_TYPES came from a machine of a
      different architecture. */
-#if NeXT_RUNTIME
-  {
-    Method m;
-    m = class_getInstanceMethod(object->isa, selector);
-    if (!m)
-      abort();
-    type = m->method_types;
-  }
-#elif 0
-  {
-    Method_t m;
-    m = class_get_instance_method (object->class_pointer,
-				   selector);
-    NSCParameterAssert (m);
-    type = m->method_types;
-  }
-#else
-  type = sel_get_type (selector);
-#endif /* NeXT_runtime */
+  if (GSObjCIsClass(object))
+    {
+      meth = GSGetMethod(object, selector, NO, YES);
+    }
+  else if (GSObjCIsInstance(object))
+    {
+      meth = GSGetMethod(GSObjCClass(object), selector, YES, YES);
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+		   format: @"decoded object %p is invalid", object];
+    }
+  
+  if (meth != 0)
+    {
+      type = meth->method_types;
+    }
+  else
+    {
+      NSDebugLog(@"Local object <%p %s> doesn't implement: %s directly.  "
+		 @"Will search for arbitrary signature.",
+		 object,
+		 GSNameFromClass(GSObjCIsClass(object) 
+ 				 ? object : GSObjCClass(object)),
+ 		 GSNameFromSelector(selector));
+      type = GSTypesFromSelector(selector);
+    }
 
   /* Make sure we successfully got the method type, and that its
      types match the ENCODED_TYPES. */

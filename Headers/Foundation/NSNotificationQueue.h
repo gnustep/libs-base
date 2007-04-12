@@ -44,12 +44,19 @@
    Boston, MA 02111 USA.
 */
 
-#ifndef __NSNotificationQueue_h__
-#define __NSNotificationQueue_h__
+#ifndef __NSNotificationQueue_h_GNUSTEP_BASE_INCLUDE
+#define __NSNotificationQueue_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSNotification.h>
+#import	<Foundation/NSObject.h>
 
-@class NSMutableArray;
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+@class NSArray;
+@class NSNotification;
+@class NSNotificationCenter;
 
 /*
  * Posting styles into notification queue
@@ -67,9 +74,9 @@
  </example>
  */
 typedef enum {
-  NSPostWhenIdle,	
-  NSPostASAP,		
-  NSPostNow		
+  NSPostWhenIdle = 1,
+  NSPostASAP = 2,
+  NSPostNow = 3
 } NSPostingStyle;
 
 /**
@@ -84,9 +91,9 @@ typedef enum {
  </example>
  */
 typedef enum {
-  NSNotificationNoCoalescing = 0,	
-  NSNotificationCoalescingOnName = 1,	
-  NSNotificationCoalescingOnSender = 2,	
+  NSNotificationNoCoalescing = 0,
+  NSNotificationCoalescingOnName = 1,
+  NSNotificationCoalescingOnSender = 2,
 } NSNotificationCoalescing;
 
 /*
@@ -126,4 +133,8 @@ struct _NSNotificationQueueList;
 
 @end
 
-#endif /* __NSNotificationQueue_h__ */
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif /* __NSNotificationQueue_h_GNUSTEP_BASE_INCLUDE */

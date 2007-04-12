@@ -20,7 +20,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSTimer class reference</title>
    $Date$ $Revision$
@@ -121,7 +122,7 @@ static Class	NSDate_class;
 /**
  * Create a timer which will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, the target object will be
- * sent a message specified by selector and with the value info as an
+ * sent a message specified by selector and with the timer as its
  * argument.<br />
  * NB. To make the timer operate, you must add it to a run loop.
  */
@@ -149,17 +150,21 @@ static Class	NSDate_class;
 				 invocation: (NSInvocation*)invocation
 				    repeats: (BOOL)f
 {
-  id t = [self timerWithTimeInterval: ti
-			  invocation: invocation
-			     repeats: f];
+  id t = [[self alloc] initWithFireDate: nil
+			       interval: ti
+				 target: invocation
+			       selector: NULL
+			       userInfo: nil
+				repeats: f];
   [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
+  RELEASE(t);
   return t;
 }
 
 /**
  * Create a timer which will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, the target object will be
- * sent a message specified by selector and with the object info as an
+ * sent a message specified by selector and with the timer as its
  * argument.<br />
  * This timer will automatically be added to the current run loop and
  * will fire in the default run loop mode.
@@ -170,12 +175,14 @@ static Class	NSDate_class;
 				   userInfo: (id)info
 				    repeats: (BOOL)f
 {
-  id t = [self timerWithTimeInterval: ti
-			      target: object
-			    selector: selector
-			    userInfo: info
-			     repeats: f];
+  id t = [[self alloc] initWithFireDate: nil
+			       interval: ti
+				 target: object
+			       selector: selector
+			       userInfo: info
+				repeats: f];
   [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
+  RELEASE(t);
   return t;
 }
 

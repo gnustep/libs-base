@@ -18,17 +18,19 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include "GSConfig.h"
+#include "GNUstepBase/GSConfig.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
 #include "NSConcreteNumber.h"
+#include "GSPrivate.h"
 
 #define TYPE_ORDER 0
 #include "NSConcreteNumberTemplate.m"

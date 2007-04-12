@@ -23,7 +23,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSArray class reference</title>
    $Date$ $Revision$
@@ -45,12 +46,23 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSNull.h"
+#include "Foundation/NSUserDefaults.h"
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
-extern BOOL	GSMacOSXCompatiblePropertyLists(void);
+static BOOL GSMacOSXCompatiblePropertyLists(void)
+{
+#if	defined(HAVE_LIBXML)
+  if (GSPrivateDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
+    return NO;
+  return GSPrivateDefaultsFlag(GSMacOSXCompatible);
+#else
+  return NO;
+#endif
+}
+
 extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 @interface NSArrayEnumerator : NSEnumerator
@@ -66,19 +78,6 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 
-
-@class	GSArray;
-@interface GSArray : NSObject	// Help the compiler
-@end
-@class	GSInlineArray;
-@interface GSInlineArray : NSObject	// Help the compiler
-@end
-@class	GSMutableArray;
-@interface GSMutableArray : NSObject	// Help the compiler
-@end
-@class	GSPlaceholderArray;
-@interface GSPlaceholderArray : NSObject	// Help the compiler
-@end
 
 static Class NSArrayClass;
 static Class GSArrayClass;
@@ -1202,10 +1201,11 @@ compare(id elem1, id elem2, void* context)
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc;
   NSString	*desc = nil;
   NSData	*data;
 
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);
@@ -1228,10 +1228,11 @@ compare(id elem1, id elem2, void* context)
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
+  NSDictionary	*loc;
   NSString	*desc = nil;
   NSData	*data;
 
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);

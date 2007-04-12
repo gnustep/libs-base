@@ -28,6 +28,7 @@
 
 #ifndef	INCLUDED_GS_CATEGORIES_H
 #define	INCLUDED_GS_CATEGORIES_H
+#include "GNUstepBase/GSVersionMacros.h"
 
 /* The following ifndef prevents the categories declared in this file being
  * seen in GNUstep code.  This is necessary because those category
@@ -48,6 +49,12 @@
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @class NSMutableSet;
 
@@ -102,6 +109,20 @@
 #define NSDebugMLLog(level, format, args...)
 #define NSDebugMLog(format, args...)
 #endif /* DEBUG */
+
+#define GSOnceFLog(format, args...) \
+  do { static BOOL beenHere = NO; if (beenHere == NO) {\
+    NSString *fmt = GSDebugFunctionMsg( \
+        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+    beenHere = YES; \
+    NSLog(fmt , ## args); }} while (0)
+
+#define GSOnceMLog(format, args...) \
+  do { static BOOL beenHere = NO; if (beenHere == NO) {\
+    NSString *fmt = GSDebugMethodMsg( \
+        self, _cmd, __FILE__, __LINE__, format); \
+    beenHere = YES; \
+    NSLog(fmt , ## args); }} while (0)
 
 #ifdef GSWARN
 #define NSWarnLog(format, args...) \
@@ -331,9 +352,6 @@ GS_EXPORT void NSDecimalFromComponents(NSDecimal *result,
 
 GS_EXPORT BOOL GSDebugSet(NSString *level);
 
-GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
-GS_EXPORT NSString *GSEncodingName(NSStringEncoding availableEncodingValue);
-
 GS_EXPORT NSThread *GSCurrentThread(void);
 GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary(void);
 
@@ -341,6 +359,12 @@ GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file,
 				     int line, NSString *fmt);
 GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file,
 				       int line, NSString *fmt);
+
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* GNUSTEP */
 

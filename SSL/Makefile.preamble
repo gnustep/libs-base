@@ -48,8 +48,12 @@ ADDITIONAL_OBJCFLAGS = $(SSLFLAGS)
 ADDITIONAL_CFLAGS = 
 
 # Additional include directories the compiler should search
+# FIXME - the -I../Source seems wrong because it might
+# include config.h from gnustep-base instead of the 
+# one in this directory.  It is required to find
+# GSPrivate.h on non-flattened though.
 ADDITIONAL_INCLUDE_DIRS = -I./$(GNUSTEP_TARGET_DIR) \
- -I../Source/$(GNUSTEP_TARGET_DIR) \
+ -I../Source/$(GNUSTEP_TARGET_DIR) -I../Source \
  -I../Headers/Additions -I../Headers
 
 # Additional LDFLAGS to pass to the linker

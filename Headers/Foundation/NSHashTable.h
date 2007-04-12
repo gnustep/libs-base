@@ -21,18 +21,23 @@
  * 
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02111 USA.
+ * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, 02111 USA.
  */ 
 
 #ifndef __NSHashTable_h_GNUSTEP_BASE_INCLUDE
 #define __NSHashTable_h_GNUSTEP_BASE_INCLUDE 1
+#import	<GNUstepBase/GSVersionMacros.h>
 
 /**** Included Headers *******************************************************/
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSString.h>
+#import	<Foundation/NSArray.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -137,5 +142,9 @@ NSHashRemove(NSHashTable *table, const void *element);
 
 GS_EXPORT NSString *
 NSStringFromHashTable(NSHashTable *table);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSHashTable_h_GNUSTEP_BASE_INCLUDE */

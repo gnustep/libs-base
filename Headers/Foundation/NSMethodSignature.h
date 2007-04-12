@@ -20,16 +20,21 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE
 #define __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
-#ifndef	STRICT_MACOS_X
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#if OS_API_VERSION(GS_API_NONE, GS_API_MACOSX)
 /**
  *	<p>Info about layout of arguments.
  *	Extended from the original OpenStep version to let us know if the
@@ -41,9 +46,9 @@ typedef struct	{
   int		offset;
   unsigned	size;
   const char	*type;
-  unsigned	align;  // extension, available only ifndef NO_GNUSTEP
-  unsigned	qual;   // extension, available only ifndef NO_GNUSTEP
-  BOOL		isReg;  // extension, available only ifndef NO_GNUSTEP
+  unsigned	align;  // extension, available only in GNUSTEP
+  unsigned	qual;   // extension, available only in GNUSTEP
+  BOOL		isReg;  // extension, available only in GNUSTEP
 } NSArgumentInfo;
  </example>
  *      <p>NB. The offset and register information may not always be reliable.
@@ -55,7 +60,7 @@ typedef struct	{
   int		offset;
   unsigned	size;
   const char	*type;
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
   unsigned	align;
   unsigned	qual;
   BOOL		isReg;
@@ -85,10 +90,10 @@ typedef struct	{
   const char		*_methodTypes;
   unsigned		_argFrameLength;
   unsigned		_numArgs;
-#ifdef STRICT_MACOS_X
-  void			*_info;
-#else
+#if OS_API_VERSION(GS_API_NONE, GS_API_MACOSX)
   NSArgumentInfo	*_info;
+#else
+  void			*_info;
 #endif
 }
 
@@ -98,7 +103,7 @@ typedef struct	{
  */
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)t;
 
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 /**
  * Returns full information on given argument.  Indices start at 0.  Provide
  * -1 to get info on return value.
@@ -148,7 +153,7 @@ typedef struct	{
 
 @end
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /**
  * Declares a convenience method for getting the entire array of raw type and
  * size information.
@@ -166,6 +171,10 @@ typedef struct	{
  */
 - (const char*) methodType;
 @end
+#endif
+
+#if	defined(__cplusplus)
+}
 #endif
 
 #endif /* __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE */

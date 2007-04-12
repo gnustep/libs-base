@@ -18,8 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSPortNameServer class reference</title>
 
@@ -31,9 +31,16 @@
 
 #ifndef __NSPortNameServer_h_GNUSTEP_BASE_INCLUDE
 #define __NSPortNameServer_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSMapTable.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSMapTable.h>
+
+#if	OS_API_VERSION(GS_API_MACOSX,HS_API_LATEST)
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class	NSPort, NSString, NSMutableArray;
 
@@ -65,7 +72,25 @@
 
 @interface NSMessagePortNameServer : NSPortNameServer
 + (id) sharedInstance;
+
+/** Returns the [NSMessagePort] instance registered for the specified name
+ * if it exists on the local host.
+ */
+- (NSPort*) portForName: (NSString*)name;
+
+/** Returns the port registered for the specified name (if it exists).<br />
+ * The host must be an empty string or nil, since [NSMessagePort] instances
+ * on other hosts are inaccessible from the current host.
+ */
+- (NSPort*) portForName: (NSString*)name
+		 onHost: (NSString*)host;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif
 
 #endif
 

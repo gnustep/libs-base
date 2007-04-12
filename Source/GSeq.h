@@ -167,9 +167,10 @@ static inline void GSeq_normalize(GSeq seq)
 		  notdone = NO;
 		  for (i = 1; i < count; i++)
 		    {
-		      if (uni_cop(*second))
+		      if (GSPrivateUniCop(*second))
 			{
-			  if (uni_cop(*first) > uni_cop(*second))
+			  if (GSPrivateUniCop(*first)
+			    > GSPrivateUniCop(*second))
 			    {
 			      unichar	tmp = *first;
 
@@ -177,7 +178,8 @@ static inline void GSeq_normalize(GSeq seq)
 			      *second = tmp;
 			      notdone = YES;
 			    }
-			  else if (uni_cop(*first) == uni_cop(*second))
+			  else if (GSPrivateUniCop(*first)
+			    == GSPrivateUniCop(*second))
 			    {
 			      if (*first > *second)
 				{

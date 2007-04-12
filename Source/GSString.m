@@ -48,16 +48,18 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSObjCRuntime.h"
-#include "GSFormat.h"
 #include <limits.h>
 
 #include "GSPrivate.h"
 
-extern BOOL GSEncodingSupported(NSStringEncoding enc);
-
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 #include "GNUstepBase/Unicode.h"
+
+static BOOL isByteEncoding(NSStringEncoding enc)
+{
+  return GSPrivateIsByteEncoding(enc);
+}
 
 #ifdef NeXT_RUNTIME
 /* Used by the Darwin/NeXT ObjC Runtime
@@ -250,9 +252,17 @@ setup(void)
 
   if (beenHere == NO)
     {
-      extern NSStringEncoding	GetDefEncoding(void);
-
       beenHere = YES;
+
+      /*
+       * Cache the default string encoding, and set the internal encoding
+       * used by 8-bit character strings to match if possible.
+       */
+      externalEncoding = GSPrivateDefaultCStringEncoding();
+      if (isByteEncoding(externalEncoding) == YES)
+	{
+	  internalEncoding = externalEncoding;
+	}
 
       /*
        * Cache pointers to classes to work round misfeature in
@@ -291,16 +301,6 @@ setup(void)
       caiSel = @selector(characterAtIndex:);
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
-
-      /*
-       * Cache the default string encoding, and set the internal encoding
-       * used by 8-bit character strings to match if possible.
-       */
-      externalEncoding = GetDefEncoding();
-      if (GSIsByteEncoding(externalEncoding) == YES)
-	{
-	  internalEncoding = externalEncoding;
-	}
     }
 }
 
@@ -451,7 +451,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   void		*chars = 0;
   BOOL		flag = NO;
   
-  if (GSEncodingSupported(encoding) == NO)
+  if (GSPrivateIsEncodingSupported(encoding) == NO)
     {
       return nil;	// Invalid encoding
     }
@@ -494,7 +494,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   BOOL		isLatin1 = NO;
   GSStr		me;
 
-  if (GSEncodingSupported(encoding) == NO)
+  if (GSPrivateIsEncodingSupported(encoding) == NO)
     {
       if (flag == YES && bytes != 0)
 	{
@@ -536,7 +536,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 	  encoding = internalEncoding;
 	}
     }
-  else if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
+  else if (encoding != internalEncoding && isByteEncoding(encoding) == YES)
     {
       unsigned i;
 
@@ -704,7 +704,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
 
   /*
    * Now set up 'f' as a GSMutableString object whose initial buffer is
-   * allocated on the stack.  The GSFormat function can write into it.
+   * allocated on the stack.  The GSPrivateFormat function can write into it.
    */
   f.isa = GSMutableStringClass;
   f._zone = NSDefaultMallocZone();
@@ -713,7 +713,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
   f._count = 0;
   f._flags.wide = 0;
   f._flags.free = 0;
-  GSFormat(&f, fmt, argList, locale);
+  GSPrivateFormat(&f, fmt, argList, locale);
   if (fmt != fbuf)
     {
       objc_free(fmt);
@@ -1026,7 +1026,7 @@ canBeConvertedToEncoding_c(GSStr self, NSStringEncoding enc)
     && enc != internalEncoding
     && enc != NSUTF8StringEncoding
     && enc != NSUnicodeStringEncoding
-    && ((internalEncoding != NSASCIIStringEncoding) || !GSIsByteEncoding(enc)))
+    && ((internalEncoding != NSASCIIStringEncoding) || !isByteEncoding(enc)))
     {
       unsigned	l = 0;
       unichar	*r = 0;
@@ -1404,7 +1404,7 @@ dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL lossy)
 
   if ((encoding == internalEncoding)
     || ((internalEncoding == NSASCIIStringEncoding)
-      && (encoding == NSUTF8StringEncoding || GSIsByteEncoding(encoding))))
+      && (encoding == NSUTF8StringEncoding || isByteEncoding(encoding))))
     {
       unsigned char *buff;
 
@@ -1624,7 +1624,10 @@ getCString_c(GSStr self, char *buffer, unsigned int maxLength,
       o._contents.c = self->_contents.c;
       GSStrWiden((GSStr)&o);
       getCString_u((GSStr)&o, buffer, maxLength, aRange, leftoverRange);
-      NSZoneFree(o._zone, o._contents.u);
+      if (o._flags.free == 1)
+        {
+          NSZoneFree(o._zone, o._contents.u);
+        }
       return;
     }
 
@@ -1788,7 +1791,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	    }
 
 	  if (enc == NSUTF8StringEncoding
-	    && GSIsByteEncoding(internalEncoding))
+	    && isByteEncoding(internalEncoding))
 	    {
 	      unsigned	i;
 
@@ -1823,7 +1826,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	    }
 
 	  if (enc == NSASCIIStringEncoding
-	    && GSIsByteEncoding(internalEncoding))
+	    && isByteEncoding(internalEncoding))
 	    {
 	      unsigned	i;
 
@@ -3447,8 +3450,9 @@ agree, create a new GSUnicodeInlineString otherwise.
 
   /*
    * Make sure we have the format string in a nul terminated array of
-   * unichars for passing to GSFormat.  Use on-stack memory for performance
-   * unless the size of the format string is really big (a rare occurrence).
+   * unichars for passing to GSPrivateFormat.  Use on-stack memory for
+   * performance unless the size of the format string is really big
+   * (a rare occurrence).
    */
   len = [format length];
   if (len >= 1024)
@@ -3470,7 +3474,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       _zone = GSObjCZone(self);
 #endif
     }
-  GSFormat((GSStr)self, fmt, ap, nil);
+  GSPrivateFormat((GSStr)self, fmt, ap, nil);
   _flags.hash = 0;	// Invalidate the hash for this string.
   if (fmt != buf)
     {
@@ -3778,7 +3782,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 	  encoding = internalEncoding;
 	}
     }
-  else if (encoding != internalEncoding && GSIsByteEncoding(encoding) == YES)
+  else if (encoding != internalEncoding && isByteEncoding(encoding) == YES)
     {
       unsigned i;
 
@@ -3968,7 +3972,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
   [format getCharacters: fmt];
   fmt[len] = '\0';
 
-  GSFormat((GSStr)self, fmt, argList, locale);
+  GSPrivateFormat((GSStr)self, fmt, argList, locale);
   if (fmt != fbuf)
     {
       objc_free(fmt);
@@ -5025,7 +5029,8 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 /**
  * Append characters to a string.
  */
-void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
+void
+GSPrivateStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
 {
   /*
    * Make the string wide if necessary.
@@ -5097,45 +5102,9 @@ void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
     }
 }
 
-void GSStrAppendUnichar(GSStr s, unichar u)
-{
-  /*
-   * Make the string wide if necessary.
-   */
-  if (s->_flags.wide == 0)
-    {
-      if (u > 255 || (u > 127 && internalEncoding != NSISOLatin1StringEncoding))
-	{
-	  GSStrWiden(s);
-	}
-    }
 
-  /*
-   * Make room for the characters we are appending.
-   */
-  if (s->_count + 2 >= s->_capacity)
-    {
-      GSStrMakeSpace(s, 1);
-    }
-
-  /*
-   * Copy the characters into place.
-   */
-  if (s->_flags.wide == 1)
-    {
-      s->_contents.u[s->_count++] = u;
-    }
-  else
-    {
-      s->_contents.c[s->_count++] = u;
-    }
-}
-
-/*
- * Make the content of this string into unicode if it is not in
- * the external defaults C string encoding.
- */
-void GSStrExternalize(GSStr s)
+void
+GSPrivateStrExternalize(GSStr s)
 {
   if (s->_flags.wide == 0 && internalEncoding != externalEncoding)
     {

@@ -9,9 +9,9 @@
 
 
 struct _cop_ {unichar code; unsigned char cop;};
-const unsigned int uni_cop_table_size = 355;
 
-struct _cop_ uni_cop_table[]=
+static const unsigned int uni_cop_table_size = 355;
+static struct _cop_ uni_cop_table[]=
 {
   {0x0300,230},
   {0x0301,230},

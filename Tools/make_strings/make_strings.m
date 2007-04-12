@@ -135,13 +135,14 @@ static int ParseFile(const char *filename,NSMutableDictionary *tables)
     }
 
 
-  filenamestr=[NSString stringWithCString: filename];
+  filenamestr = [NSString stringWithCString: filename
+    encoding: [NSString defaultCStringEncoding]];
   if (verbose)
-    printf("Parsing '%s'.\n", [filenamestr cString]);
+    printf("Parsing '%s'.\n", filename);
   f=fopen(filename,"rt");
   if (!f)
     {
-      NSLog(@"Unable to open '%s': %m\n",filename);
+      NSLog(@"Unable to open '%@': %m\n",filenamestr);
       return 1;
     }
 

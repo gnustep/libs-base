@@ -36,7 +36,6 @@
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSArchiver.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSBundle.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDate.h"
 #include "Foundation/NSDictionary.h"
@@ -261,13 +260,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     }
 }
 
-/**
- * Resets the shared user defaults object to reflect the current
- * user ID.  Needed by setuid processes which change the user they
- * are running as.<br />
- * In GNUstep you should call GSSetUserName() when changing your
- * effective user ID, and that function will call this function for you.
- */
 + (void) resetStandardUserDefaults
 {
   [classLock lock];
@@ -278,7 +270,11 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       [sharedDefaults synchronize];	// Ensure changes are written.
       regDefs = RETAIN([sharedDefaults->_tempDomains
 	objectForKey: NSRegistrationDomain]);
-
+      /* To ensure that we don't try to synchronise the old defaults to disk
+       * after creating the new ones, remove as housekeeping notification
+       * observer.
+       */
+      [[NSNotificationCenter defaultCenter] removeObserver: sharedDefaults];
       setSharedDefaults = NO;
       DESTROY(sharedDefaults);
       if (regDefs != nil)
@@ -401,16 +397,9 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return registrationDefaults;
 }
 
-/**
- * Returns the shared defaults object. If it doesn't exist yet, it's
- * created. The defaults are initialized for the current user.
- * The search list is guaranteed to be standard only the first time
- * this method is invoked. The shared instance is provided as a
- * convenience; other instances may also be created.
- */
 + (NSUserDefaults*) standardUserDefaults
 {
-  BOOL added_locale, added_lang;
+  BOOL added_lang, added_locale;
   id lang;
   NSArray *uL;
   NSEnumerator *enumerator;
@@ -503,63 +492,129 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     }
 
   /* Set up language constants */
-  added_locale = NO;
-  added_lang = NO;
-  enumerator = [uL objectEnumerator];
-  while ((lang = [enumerator nextObject]))
-    {
-      NSString		*path;
-      NSDictionary	*dict;
-      NSBundle		*gbundle;
 
-      gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
-      path = [gbundle pathForResource: lang
-		               ofType: nil
-		          inDirectory: @"Languages"];
-      dict = nil;
-      if (path != nil)
-	{
-	  dict = [NSDictionary dictionaryWithContentsOfFile: path];
-	}
-      if (dict)
-	{
-	  [sharedDefaults setVolatileDomain: dict forName: lang];
-	  added_lang = YES;
-	}
-      else if (added_locale == NO)
-	{
-	  NSString	*locale = nil;
+  /* We lookup gnustep-base resources manually here to prevent
+   * bootstrap problems.  NSBundle's lookup routines depend on having
+   * NSUserDefaults already bootstrapped, but we're still
+   * bootstrapping here!  So we can't really use NSBundle without
+   * incurring massive bootstrap complications (btw, most of the times
+   * we're here as a consequence of [NSBundle +initialize] creating
+   * the gnustep-base bundle!  So trying to use the gnustep-base
+   * bundle here wouldn't really work.).
+   */
+  /*
+   * We are looking for:
+   *
+   * GNUSTEP_LIBRARY/Libraries/gnustep-base/Versions/<interfaceVersion>/Resources/Languages/<language>
+   *
+   * We iterate over <language>, and for each <language> we iterate over GNUSTEP_LIBRARY.
+   */
+  
+  {
+    /* These variables are reused for all languages so we set them up
+     * once here and then reuse them.
+     */
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSString *tail = [[[[[@"Libraries" 
+			   stringByAppendingPathComponent: @"gnustep-base"]
+			  stringByAppendingPathComponent: @"Versions"]
+			 stringByAppendingPathComponent: 
+			   OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
+			stringByAppendingPathComponent: @"Resources"]
+		       stringByAppendingPathComponent: @"Languages"];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
+							  NSAllDomainsMask, YES);
+    
+    added_lang = NO;
+    added_locale = NO;
+    enumerator = [uL objectEnumerator];
+    while ((lang = [enumerator nextObject]))
+      {
+	NSDictionary	*dict = nil;
+	NSString	*path = nil;
+	NSEnumerator *pathEnumerator = [paths objectEnumerator];
 
+	while ((path = [pathEnumerator nextObject]) != nil)
+	  {
+	    path = [[path stringByAppendingPathComponent: tail]
+		     stringByAppendingPathComponent: lang];
+
+	    if ([fm fileExistsAtPath: path])
+	      {
+		/* Path found!  */
+		break;
+	      }
+	  }
+	
+	if (path != nil)
+	  {
+	    dict = [NSDictionary dictionaryWithContentsOfFile: path];
+	  }
+	if (dict != nil)
+	  {
+	    [sharedDefaults setVolatileDomain: dict forName: lang];
+	    added_lang = YES;
+	  }
+	else if (added_locale == NO)
+	  {
+	    /* The resources for the language that we were looking for
+	     * were not found.  If this was the currently set locale
+	     * in the C library, try to get the same information from
+	     * the C library.  This would usually happen for the
+	     * language that was added to the list of languages
+	     * precisely because it is the currently set locale in the
+	     * C library.
+	     */
+	    NSString	*locale = nil;
+	    
 #ifdef HAVE_LOCALE_H
 #ifdef LC_MESSAGES
-	  locale = GSSetLocale(LC_MESSAGES, nil);
+	    locale = GSSetLocale(LC_MESSAGES, nil);
 #endif
 #endif
-	  if (locale == nil)
-	    {
-	      continue;
-	    }
-	  /* See if we can get the dictionary from i18n functions.
-	     Note that we get the dict from the current locale regardless
-	     of what 'lang' is, since it should match anyway. */
-	  /* Also, I don't think that the i18n routines can handle more than
-	     one locale, but tell me if I'm wrong... */
-	  if (GSLanguageFromLocale(locale))
-	    {
-	      lang = GSLanguageFromLocale(locale);
-	    }
-	  dict = GSDomainFromDefaultLocale();
-	  if (dict != nil)
-	    {
-	      [sharedDefaults setVolatileDomain: dict forName: lang];
-	    }
-	  added_locale = YES;
-	}
-    }
+	    if (locale != nil)
+	      {
+		/* See if we can get the dictionary from i18n
+		 * functions.  I don't think that the i18n routines
+		 * can handle more than one locale, so we don't try to
+		 * look 'lang' up but just get what we get and use it
+		 * if it matches 'lang' ... but tell me if I'm wrong
+		 * ...
+		 */
+		if ([lang isEqualToString: GSLanguageFromLocale (locale)])
+		  {
+		    /* We set added_locale to YES to avoid so that we
+		     * won't do this C library locale lookup again
+		     * later on.
+		     */
+		    added_locale = YES;
+		    
+		    dict = GSDomainFromDefaultLocale ();
+		    if (dict != nil)
+		      {
+			[sharedDefaults setVolatileDomain: dict forName: lang];
+			
+			/* We do not set added_lang to YES here
+			 * because we want the improper installation
+			 * warning to be printed below if our own
+			 * English language dictionary is not found,
+			 * and we want the basic hardcoded defaults to
+			 * be used in that case.  (FIXME: Review this
+			 * decision).
+			 */
+		      }
+		  }
+	      }
+	  }
+      }
+  }
+
   if (added_lang == NO)
     {
-      /* Ack! We should never get here */
+      /* Ack! We should never get here.  */
       NSWarnMLog(@"Improper installation: No language locale found");
+
+      /* FIXME - should we set this as volatile domain for English ? */
       [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
     }
   RETAIN(sharedDefaults);
@@ -568,12 +623,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return AUTORELEASE(sharedDefaults);
 }
 
-/**
- * Returns the array of user languages preferences.  Uses the
- * <em>NSLanguages</em> user default if available, otherwise
- * tries to infer setup from operating system information etc
- * (in particular, uses the <em>LANGUAGES</em> environment variable).
- */
 + (NSArray*) userLanguages
 {
   NSArray	*result;
@@ -620,7 +669,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 #endif
 #endif
       currLang = [[NSUserDefaults standardUserDefaults]
-	stringArrayForKey: @"NSLanguages"];
+          stringArrayForKey: @"NSLanguages"];
 
       userLanguages = [[NSMutableArray alloc] initWithCapacity: 5];
 
@@ -685,10 +734,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return AUTORELEASE(result);
 }
 
-/**
- * Sets the array of user languages preferences.  Places the specified
- * array in the <em>NSLanguages</em> user default.
- */
 + (void) setUserLanguages: (NSArray*)languages
 {
   NSMutableDictionary	*globDict;
@@ -704,20 +749,11 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   RELEASE(globDict);
 }
 
-/*************************************************************************
- *** Initializing the User Defaults
- *************************************************************************/
-/**
- * Initializes defaults for current user calling initWithUser:
- */
 - (id) init
 {
   return [self initWithUser: NSUserName()];
 }
 
-/**
- * Initializes defaults for the specified user calling -initWithContentsOfFile:
- */
 - (id) initWithUser: (NSString*)userName
 {
   NSString	*path;
@@ -727,11 +763,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return [self initWithContentsOfFile: path];
 }
 
-/**
- * <init />
- * Initializes defaults for the specified path. Returns an object with
- * an empty search list.
- */
 - (id) initWithContentsOfFile: (NSString*)path
 {
   NSFileManager	*mgr = [NSFileManager defaultManager];
@@ -746,7 +777,9 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
    */
   if (processName == nil)
     {
-      processName = RETAIN([[NSProcessInfo processInfo] processName]);
+      NSString	*s = [[NSProcessInfo processInfo] processName];
+
+      processName = [s copy];
     }
 
   if (path == nil || [path isEqual: @""] == YES)
@@ -867,11 +900,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return desc;
 }
 
-/**
- * Adds the domain names aName to the search list of the receiver.<br />
- * The domain is added after the application domain.<br />
- * Suites may be removed using the -removeSuiteNamed: method.
- */
 - (void) addSuiteNamed: (NSString*)aName
 {
   unsigned	index;
@@ -893,10 +921,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   RELEASE(aName);
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an NSArray object.  Returns nil if it is not.
- */
 - (NSArray*) arrayForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -906,16 +930,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return nil;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and returns its boolean representation.<br />
- * Returns NO if it is not a boolean.<br />
- * The text 'yes' or 'true' or any non zero numeric value is considered
- * to be a boolean YES.  Other string values are NO.<br />
- * NB. This differs slightly from the documented behavior for MacOS-X
- * (August 2002) in that the GNUstep version accepts the string 'TRUE'
- * as equivalent to 'YES'.
- */
 - (BOOL) boolForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -928,10 +942,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return NO;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an NSData object.  Returns nil if it is not.
- */
 - (NSData*) dataForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -941,10 +951,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return nil;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an NSDictionary object.  Returns nil if it is not.
- */
 - (NSDictionary*) dictionaryForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -956,10 +962,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return nil;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is a float.  Returns 0.0 if it is not.
- */
 - (float) floatForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -972,10 +974,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return 0.0;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an integer.  Returns 0 if it is not.
- */
 - (int) integerForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -988,12 +986,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return 0;
 }
 
-/**
- * Looks up a value for a specified default using.
- * The lookup is performed by accessing the domains in the order
- * given in the search list.
- * <br />Returns nil if defaultName cannot be found.
- */
 - (id) objectForKey: (NSString*)defaultName
 {
   NSEnumerator	*enumerator;
@@ -1026,10 +1018,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return AUTORELEASE(object);
 }
 
-/**
- * Removes the default with the specified name from the application
- * domain.
- */
 - (void) removeObjectForKey: (NSString*)defaultName
 {
   id	obj;
@@ -1057,11 +1045,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   [_lock unlock];
 }
 
-/**
- * Sets a boolean value for defaultName in the application domain.<br />
- * The boolean value is stored as a string - either YES or NO.
- * Calls -setObject:forKey: to make the change.
- */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
   NSNumber	*n = [NSNumberClass numberWithBool: value];
@@ -1069,10 +1052,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   [self setObject: n forKey: defaultName];
 }
 
-/**
- * Sets a float value for defaultName in the application domain.
- * <br />Calls -setObject:forKey: to make the change.
- */
 - (void) setFloat: (float)value forKey: (NSString*)defaultName
 {
   NSNumber	*n = [NSNumberClass numberWithFloat: value];
@@ -1080,10 +1059,6 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   [self setObject: n forKey: defaultName];
 }
 
-/**
- * Sets an integer value for defaultName in the application domain.
- * <br />Calls -setObject:forKey: to make the change.
- */
 - (void) setInteger: (int)value forKey: (NSString*)defaultName
 {
   NSNumber	*n = [NSNumberClass numberWithInt: value];
@@ -1145,17 +1120,6 @@ static BOOL isPlistObject(id o)
   return NO;
 }
 
-/**
- * Sets an object value for defaultName in the application domain.<br />
- * The defaultName must be a non-empty string.<br />
- * The value must be an instance of one of the [NSString-propertyList]
- * classes.<br />
- * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
- * </p>
- * If value is nil, this is equivalent to the -removeObjectForKey: method.
- */
 - (void) setObject: (id)value forKey: (NSString*)defaultName
 {
   NSMutableDictionary	*dict;
@@ -1174,8 +1138,8 @@ static BOOL isPlistObject(id o)
   if (isPlistObject(value) == NO)
     {
       [NSException raise: NSInvalidArgumentException
-	format: @"attempt to set non property list object for key (%@)",
-	defaultName];
+	format: @"attempt to set non property list object (%@) for key (%@)",
+	value, defaultName];
     }
 
   [_lock lock];
@@ -1195,10 +1159,6 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
-/**
- * Calls -arrayForKey: to get an array value for defaultName and checks
- * that the array contents are string objects ... if not, returns nil.
- */
 - (NSArray*) stringArrayForKey: (NSString*)defaultName
 {
   id	arr = [self arrayForKey: defaultName];
@@ -1220,10 +1180,6 @@ static BOOL isPlistObject(id o)
   return nil;
 }
 
-/**
- * Looks up a value for a specified default using -objectForKey:
- * and checks that it is an NSString.  Returns nil if it is not.
- */
 - (NSString*) stringForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -1233,15 +1189,6 @@ static BOOL isPlistObject(id o)
   return nil;
 }
 
-/*************************************************************************
- *** Returning the Search List
- *************************************************************************/
-
-/**
- * Returns an array listing the domains searched in order to look up
- * a value in the defaults system.  The order of the names in the
- * array is the order in which the domains are searched.
- */
 - (NSArray*) searchList
 {
   NSArray	*copy;
@@ -1252,12 +1199,6 @@ static BOOL isPlistObject(id o)
   return AUTORELEASE(copy);
 }
 
-/**
- * Sets the list of the domains searched in order to look up
- * a value in the defaults system.  The order of the names in the
- * array is the order in which the domains are searched.<br />
- * On lookup, the first match is used.
- */
 - (void) setSearchList: (NSArray*)newList
 {
   [_lock lock];
@@ -1268,9 +1209,6 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
-/**
- * Returns the persistent domain specified by domainName.
- */
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName
 {
   NSDictionary	*copy;
@@ -1281,9 +1219,6 @@ static BOOL isPlistObject(id o)
   return AUTORELEASE(copy);
 }
 
-/**
- * Returns an array listing the name of all the persistent domains.
- */
 - (NSArray*) persistentDomainNames
 {
   NSArray	*keys;
@@ -1294,13 +1229,6 @@ static BOOL isPlistObject(id o)
   return keys;
 }
 
-/**
- * Removes the persistent domain specified by domainName from the
- * user defaults.
- * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
- */
 - (void) removePersistentDomainForName: (NSString*)domainName
 {
   [_lock lock];
@@ -1312,15 +1240,6 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
-/**
- * Replaces the persistent-domain specified by domainName with
- * domain ... a dictionary containing keys and defaults values.
- * <br />Raises an NSInvalidArgumentException if domainName already
- * exists as a volatile-domain.
- * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
- * if this is the first change to a persistent-domain since the
- * last -synchronize.
- */
 - (void) setPersistentDomain: (NSDictionary*)domain
 		     forName: (NSString*)domainName
 {
@@ -1573,13 +1492,6 @@ static BOOL isLocked = NO;
   return YES;
 }
 
-/**
- * Ensures that the in-memory and on-disk representations of the defaults
- * are in sync.  You may call this yourself, but probably don't need to
- * since it is invoked at intervals whenever a runloop is running.<br />
- * If any persistent domain is changed by reading new values from disk,
- * an NSUserDefaultsDidChangeNotification is posted.
- */
 - (BOOL) synchronize
 {
   NSMutableDictionary	*newDict;
@@ -1679,10 +1591,6 @@ static BOOL isLocked = NO;
 }
 
 
-/**
- * Removes the volatile domain specified by domainName from the
- * user defaults.
- */
 - (void) removeVolatileDomainForName: (NSString*)domainName
 {
   [_lock lock];
@@ -1692,12 +1600,6 @@ static BOOL isLocked = NO;
   [_lock unlock];
 }
 
-/**
- * Sets the volatile-domain specified by domainName to
- * domain ... a dictionary containing keys and defaults values.<br />
- * Raises an NSInvalidArgumentException if domainName already
- * exists as either a volatile-domain or a persistent-domain.
- */
 - (void) setVolatileDomain: (NSDictionary*)domain
 		   forName: (NSString*)domainName
 {
@@ -1727,9 +1629,6 @@ static BOOL isLocked = NO;
   [_lock unlock];
 }
 
-/**
- * Returns the volatile domain specified by domainName.
- */
 - (NSDictionary*) volatileDomainForName: (NSString*)domainName
 {
   NSDictionary	*copy;
@@ -1740,9 +1639,6 @@ static BOOL isLocked = NO;
   return AUTORELEASE(copy);
 }
 
-/**
- * Returns an array listing the name of all the volatile domains.
- */
 - (NSArray*) volatileDomainNames
 {
   NSArray	*keys;
@@ -1753,11 +1649,6 @@ static BOOL isLocked = NO;
   return keys;
 }
 
-/**
- * Returns a dictionary representing the current state of the defaults
- * system ... this is a merged version of all the domains in the
- * search list.
- */
 - (NSDictionary*) dictionaryRepresentation
 {
   NSDictionary	*rep;
@@ -1798,13 +1689,6 @@ static BOOL isLocked = NO;
   return AUTORELEASE(rep);
 }
 
-/**
- * Merges the contents of the dictionary newVals into the registration
- * domain.  Registration defaults may be added to or replaced using this
- * method, but may never be removed.  Thus, setting registration defaults
- * at any point in your program guarantees that the defaults will be
- * available thereafter.
- */
 - (void) registerDefaults: (NSDictionary*)newVals
 {
   NSMutableDictionary	*regDefs;
@@ -1823,10 +1707,6 @@ static BOOL isLocked = NO;
   [_lock unlock];
 }
 
-/**
- * Removes the named domain from the search list of the receiver.<br />
- * Suites may be added using the -addSuiteNamed: method.
- */
 - (void) removeSuiteNamed: (NSString*)aName
 {
   if (aName == nil)
@@ -1956,31 +1836,35 @@ static BOOL isLocked = NO;
 }
 @end
 
-NSDictionary*
-GSUserDefaultsDictionaryRepresentation()
-{
-  NSDictionary	*defs;
-
-  if (sharedDefaults == nil)
-    {
-      [NSUserDefaults standardUserDefaults];
-    }
-  [classLock lock];
-  defs = [sharedDefaults dictionaryRepresentation];
-  [classLock unlock];
-  return defs;
-}
-
-/*
- * Get one of several potentially useful flags.
- */
 BOOL
-GSUserDefaultsFlag(GSUserDefaultFlagType type)
+GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
   if (sharedDefaults == nil)
     {
       [NSUserDefaults standardUserDefaults];
     }
   return flags[type];
+}
+
+/* FIXME ... Slightly faster than
+ * [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
+ * but is it really worthwile?
+ */
+NSDictionary *GSPrivateDefaultLocale()
+{
+  NSDictionary	*locale;
+
+  if (classLock == nil)
+    {
+      [NSUserDefaults standardUserDefaults];
+    }
+  [classLock lock];
+  if (sharedDefaults == nil)
+    {
+      [NSUserDefaults standardUserDefaults];
+    }
+  locale = [sharedDefaults dictionaryRepresentation];
+  [classLock unlock];
+  return locale;
 }
 

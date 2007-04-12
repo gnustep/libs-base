@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSCoder class reference</title>
    $Date$ $Revision$
@@ -406,105 +407,6 @@
 - (void) encodeObject: (id)anObject forKey: (NSString*)aKey
 {
   [self subclassResponsibility: _cmd];
-}
-
-@end
-
-@implementation NSCoder (GNUstep)
-- (void) decodeArrayOfObjCType: (const char*)type
-		         count: (unsigned)count
-			    at: (void*)buf
-		      withName: (id*)name
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-  if (name)
-    {
-      *name = [self decodeObject];
-    }
-  else
-    {
-      (void)[self decodeObject];
-    }
-  [self decodeArrayOfObjCType: type count: count at: buf];
-}
-
-/** <override-dummy />
- */
-- (void) decodeIndent
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-}
-
-- (void) decodeObjectAt: (id*)anObject
-	       withName: (id*)name
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-  [self decodeValueOfObjCType: @encode(id) at: anObject withName: name];
-}
-
-- (void) decodeValueOfCType: (const char*)type
-			 at: (void*)buf
-		   withName: (id*)name
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-  [self decodeValueOfObjCType: type at: buf withName: name];
-}
-
-- (void) decodeValueOfObjCType: (const char*)type
-			    at: (void*)buf
-		      withName: (id*)name
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-  if (name != 0)
-    {
-      *name = [self decodeObject];
-    }
-  else
-    {
-      (void)[self decodeObject];
-    }
-  [self decodeValueOfObjCType: type at: buf];
-}
-
-- (void) encodeArrayOfObjCType: (const char*)type
-		         count: (unsigned)count
-			    at: (const void*)buf
-		      withName: (id)name
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-  [self encodeObject: name];
-  [self encodeArrayOfObjCType: type count: count at: buf];
-}
-
-/** <override-dummy />
- */
-- (void) encodeIndent
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-}
-
-- (void) encodeValueOfCType: (const char*)type
-			 at: (const void*)buf
-		   withName: (id)name
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-  [self encodeValueOfObjCType: type at: buf withName: name];
-}
-
-- (void) encodeValueOfObjCType: (const char*)type
-			    at: (const void*)buf
-		      withName: (id)name
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-  [self encodeObject: name];
-  [self encodeValueOfObjCType: type at: buf];
-}
-
-- (void) encodeObjectAt: (id*)anObject
-	       withName: (id)name
-{
-  GSOnceMLog(@"Deprecated, use NSKeyedArchiver methods");
-  [self encodeValueOfObjCType: @encode(id) at: anObject withName: name];
 }
 
 @end

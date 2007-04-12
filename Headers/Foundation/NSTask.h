@@ -18,18 +18,23 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #ifndef __NSTask_h_GNUSTEP_BASE_INCLUDE
 #define __NSTask_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSFileHandle.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSString.h>
+#import	<Foundation/NSArray.h>
+#import	<Foundation/NSDictionary.h>
+#import	<Foundation/NSFileHandle.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @interface NSTask : NSObject <GCFinalization>
 {
@@ -77,7 +82,7 @@
  *	Obtaining task state
  */
 - (BOOL) isRunning;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (int) processIdentifier;
 #endif
 - (int) terminationStatus;
@@ -87,14 +92,14 @@
  */
 - (void) interrupt;
 - (void) launch;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) resume;
 - (BOOL) suspend;
 #endif
 - (void) terminate;
 - (void) waitUntilExit;
 
-#ifndef	NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 - (BOOL) usePseudoTerminal;
 - (NSString*) validatedLaunchPath;
 #endif
@@ -106,5 +111,9 @@
  *  called.
  */
 GS_EXPORT NSString* const NSTaskDidTerminateNotification;
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSTask_h_GNUSTEP_BASE_INCLUDE */

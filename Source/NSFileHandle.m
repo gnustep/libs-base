@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSFileHandle class reference</title>
    $Date$ $Revision$
@@ -709,13 +710,12 @@ NSString * const NSFileHandleOperationException
 {
   if (NSFileHandle_ssl_class == 0)
     {
+      NSString  *path;
       NSBundle	*bundle;
-      NSString	*path;
 
-      path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-	NSSystemDomainMask, NO) lastObject];
-      path = [path stringByAppendingPathComponent: @"Bundles"];
+      path = [[NSBundle bundleForClass: [NSObject class]] bundlePath];
       path = [path stringByAppendingPathComponent: @"SSL.bundle"];
+
       bundle = [NSBundle bundleWithPath: path];
       NSFileHandle_ssl_class = [bundle principalClass];
       if (NSFileHandle_ssl_class == 0 && bundle != nil)

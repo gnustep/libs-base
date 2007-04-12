@@ -22,7 +22,16 @@
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02111, USA.
 #
 
+ifeq ($(GNUSTEP_MAKEFILES),)
+ GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)$(warning computed GNUSTEP_MAKEFILES)
+endif
+
+ifeq ($(GNUSTEP_MAKEFILES),)
+  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
+endif
+
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
+
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version

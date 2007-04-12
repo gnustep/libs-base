@@ -28,6 +28,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSFunctions.h"
+#include "GNUstepBase/GSCategories.h"
 #include "Foundation/Foundation.h"
 
 NSString *
@@ -39,6 +40,8 @@ GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension)
 
   NSCParameterAssert(aName != nil);
   NSCParameterAssert(paths != nil);
+
+GSOnceFLog(@"deprecated ... trivial to code directly");
 
   /* make up the name with extension if given */
   if (anExtension != nil)

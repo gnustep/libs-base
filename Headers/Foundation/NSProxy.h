@@ -18,14 +18,19 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 #ifndef __NSProxy_h_GNUSTEP_BASE_INCLUDE
 #define __NSProxy_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @interface NSProxy <NSObject>
 {
@@ -74,5 +79,9 @@
 - (NSZone*) zone;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSProxy_h_GNUSTEP_BASE_INCLUDE */

@@ -25,14 +25,18 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    AutogsdocSource: Additions/GSXML.m
 
 */
 
-#ifndef __GSXML_H__
-#define __GSXML_H__
+#ifndef __GSXML_h_GNUSTEP_BASE_INCLUDE
+#define __GSXML_h_GNUSTEP_BASE_INCLUDE
+#include <GNUstepBase/GSVersionMacros.h>
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSObject.h>
@@ -42,8 +46,9 @@
 #include <Foundation/Foundation.h>
 #endif
 
-#ifndef	STRICT_MACOS_X
-#ifndef	STRICT_OPENSTEP
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class GSXMLAttribute;
 @class GSXMLDocument;
@@ -739,9 +744,11 @@
 - (void) completedXMLRPC: (GSXMLRPC*)sender;
 @end
 
+#if	defined(__cplusplus)
+}
+#endif
 
-#endif	/* STRICT_MACOS_X */
-#endif	/* STRICT_OPENSTEP */
+#endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
-#endif /* __GSXML_H__ */
+#endif /* __GSXML_h_GNUSTEP_BASE_INCLUDE */
 

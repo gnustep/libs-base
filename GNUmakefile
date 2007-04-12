@@ -23,19 +23,21 @@
 #  Boston, MA 02111 USA
 #
 
-# This usually happens when you source GNUstep.sh, then run ./configure,
-# then log out, then log in again and try to compile
 ifeq ($(GNUSTEP_MAKEFILES),)
-  $(error You need to run the GNUstep configuration script before compiling!)
+ GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+endif
+
+ifeq ($(GNUSTEP_MAKEFILES),)
+  $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
 # Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+# FIXME: would it work if you want to install it into local
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 RPM_DISABLE_RELOCATABLE=YES
 PACKAGE_NEEDS_CONFIGURE = YES
 
-CVS_MODULE_NAME = base
 SVN_MODULE_NAME = base
 SVN_BASE_URL = svn+ssh://svn.gna.org/svn/gnustep/libs
 
@@ -55,13 +57,11 @@ PACKAGE_NAME = gnustep-base
 #
 SUBPROJECTS = Source
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
-SUBPROJECTS += SSL
+  SUBPROJECTS += SSL
 endif
 SUBPROJECTS += Tools NSTimeZones Resources
 
 -include Makefile.preamble
-
--include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 

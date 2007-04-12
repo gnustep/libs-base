@@ -23,7 +23,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
 
    <title>NSBundle class reference</title>
@@ -50,7 +51,9 @@
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSValue.h"
-#include "GNUstepBase/GSFunctions.h"
+
+#include "GSPrivate.h"
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -83,7 +86,7 @@ static NSString		*_launchDirectory = nil;
  */
 static NSDictionary	*_emptyTable = nil;
 
-/* When we are linking in an object file, objc_load_modules calls our
+/* When we are linking in an object file, GSPrivateLoadModule calls our
    callback routine for every Class and Category loaded.  The following
    variable stores the bundle that is currently doing the loading so we know
    where to store the class names.
@@ -213,7 +216,8 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 /*
  * Return the path to this executable.
  */
-static NSString	*ExecutablePath()
+NSString *
+GSPrivateExecutablePath()
 {
   static NSString	*executablePath = nil;
   static BOOL		beenHere = NO;
@@ -226,7 +230,7 @@ static NSString	*ExecutablePath()
 #ifdef PROCFS_EXE_LINK
 	  executablePath = [[NSFileManager defaultManager]
 	    pathContentOfSymbolicLinkAtPath:
-              [NSString stringWithCString: PROCFS_EXE_LINK]];
+              [NSString stringWithUTF8String: PROCFS_EXE_LINK]];
 
 	  /*
 	  On some systems, the link is of the form "[device]:inode", which
@@ -256,24 +260,6 @@ static NSString	*ExecutablePath()
     }
   return executablePath;
 }
-
-/* This function is provided for objc-load.c, although I'm not sure it
-   really needs it (So far only needed if using GNU dld library) */
-#ifdef    __MINGW32__
-const unichar *
-objc_executable_location (void)
-{
-  return [[ExecutablePath() stringByDeletingLastPathComponent]
-	     fileSystemRepresentation];
-}
-#else  
-const char *
-objc_executable_location (void)
-{
-  return [[ExecutablePath() stringByDeletingLastPathComponent]
-	     fileSystemRepresentation];
-}
-#endif
 
 static BOOL
 bundle_directory_readable(NSString *path)
@@ -377,12 +363,85 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 static inline NSString *
 _find_framework(NSString *name)
 {                
-  NSArray  *paths;
+  NSArray	*paths;
+  NSFileManager *file_mgr = [NSFileManager defaultManager];
+  NSString	*file_name = [name stringByAppendingPathExtension:@"framework"];
+  NSString	*file_path;
+  NSString	*path;
+  NSEnumerator	*enumerator;
            
+  NSCParameterAssert(name != nil);
+
   paths = NSSearchPathForDirectoriesInDomains(GSFrameworksDirectory,
             NSAllDomainsMask,YES);
-  return GSFindNamedFile(paths, name, @"framework");  
+
+  enumerator = [paths objectEnumerator];
+  while ((path = [enumerator nextObject]))
+    {
+      file_path = [path stringByAppendingPathComponent: file_name];
+
+      if ([file_mgr fileExistsAtPath: file_path] == YES)
+        {
+          return file_path; // Found it!
+        }
+    }
+  return nil;
 }        
+
+
+/* Try to locate resources for tool name (which is this tool) in
+ * standard places like xxx/Library/Tools/Resources/name */
+/* This could be converted into a public +bundleForTool:
+ * method.  At the moment it's only used privately
+ * to locate the main bundle for this tool.
+ */
+static inline NSString *
+_find_main_bundle_for_tool(NSString *toolName)
+{
+  NSArray *paths;
+  NSEnumerator *enumerator;
+  NSString *path;
+  NSString *tail;
+  NSFileManager *fm = [NSFileManager defaultManager];
+
+  /*
+   * Eliminate any base path or extensions.
+   */
+  toolName = [toolName lastPathComponent];
+  do
+    {
+      toolName = [toolName stringByDeletingPathExtension];
+    }
+  while ([[toolName pathExtension] length] > 0);
+
+  if ([toolName length] == 0)
+    {
+      return nil;
+    }
+
+  tail = [@"Tools" stringByAppendingPathComponent:
+	     [@"Resources" stringByAppendingPathComponent: 
+		 toolName]];
+
+  paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
+					       NSAllDomainsMask, YES);
+
+  enumerator = [paths objectEnumerator];
+  while ((path = [enumerator nextObject]))
+    {
+      BOOL isDir;
+      path = [path stringByAppendingPathComponent: tail];
+
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  return path;
+	}
+    }
+
+  return nil;
+}
+
+
 
 @interface NSBundle (Private)
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
@@ -464,8 +523,9 @@ _find_framework(NSString *name)
       && !strncmp ("NSFramework_", frameworkClass->name, 12))
     {
       /* The name of the framework.  */
-      NSString *name = [NSString stringWithCString: &frameworkClass->name[12]];
+      NSString *name;
 
+      name = [NSString stringWithUTF8String: &frameworkClass->name[12]];
       /* Important - gnustep-make mangles framework names to encode
        * them as ObjC class names.  Here we need to demangle them.  We
        * apply the reverse transformations in the reverse order.
@@ -479,9 +539,9 @@ _find_framework(NSString *name)
        * really universal way of getting the framework path ... we can
        * locate the framework no matter where it is on disk!
        */
-      bundlePath = objc_get_symbol_path (frameworkClass, NULL);
+      bundlePath = GSPrivateSymbolPath (frameworkClass, NULL);
 
-      if ([bundlePath isEqualToString: ExecutablePath()])
+      if ([bundlePath isEqualToString: GSPrivateExecutablePath()])
 	{
 	  /* Ops ... the NSFramework_xxx class is linked in the main
 	   * executable.  Maybe the framework was statically linked
@@ -565,8 +625,8 @@ _find_framework(NSString *name)
       if (bundlePath == nil)
 	{
 	  /* NICOLA: In an ideal world, the following is just a hack
-	   * for when objc_get_symbol_path() fails!  But in real life
-	   * objc_get_symbol_path() is risky (some platforms don't
+	   * for when GSPrivateSymbolPath() fails!  But in real life
+	   * GSPrivateSymbolPath() is risky (some platforms don't
 	   * have it at all!), so this hack might be used a lot!  It
 	   * must be quite robust.  We try to look for the framework
 	   * in the standard GNUstep installation dirs and in the main
@@ -669,7 +729,7 @@ typedef struct {
     @defs(NSBundle)
 } *bptr;
 
-void
+static void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);
@@ -714,85 +774,91 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (self == [NSBundle class])
     {
       NSDictionary *env;
+      NSString	   *str;
 
       _emptyTable = RETAIN([NSDictionary dictionary]);
 
-      /* Need to make this recursive since both mainBundle and initWithPath:
-	 want to lock the thread */
+      /* Need to make this recursive since both mainBundle and
+       * initWithPath: want to lock the thread.
+       */
       load_lock = [NSRecursiveLock new];
       env = [[NSProcessInfo processInfo] environment];
-      if (env)
-	{
-	  NSString		*str;
 
-	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
-	    gnustep_target_cpu = RETAIN(str);
-	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_CPU"]) != nil)
-	    gnustep_target_cpu = RETAIN(str);
-	
-	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_OS"]) != nil)
-	    gnustep_target_os = RETAIN(str);
-	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_OS"]) != nil)
-	    gnustep_target_os = RETAIN(str);
-	
-	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
-	    gnustep_target_dir = RETAIN(str);
-	  else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
-	    gnustep_target_dir = RETAIN(str);
-	
-	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
-	    library_combo = RETAIN(str);
-
-	  _launchDirectory = RETAIN([[NSFileManager defaultManager]
-	      currentDirectoryPath]);
-
-	  _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"]);
-
+      /* These variables are used when we are running non-flattened.
+       * This means that there are multiple binaries for different
+       * OSes, and we need constantly to choose the right one (eg,
+       * when loading a bundle or a framework).  The choice is based
+       * on these environments variables that are set by GNUstep.sh
+       * (you must source GNUstep.sh when non-flattened).
+       */
+      if ((str = [env objectForKey: @"GNUSTEP_TARGET_CPU"]) != nil)
+	gnustep_target_cpu = RETAIN(str);
+      else if ((str = [env objectForKey: @"GNUSTEP_HOST_CPU"]) != nil)
+	gnustep_target_cpu = RETAIN(str);
+      
+      if ((str = [env objectForKey: @"GNUSTEP_TARGET_OS"]) != nil)
+	gnustep_target_os = RETAIN(str);
+      else if ((str = [env objectForKey: @"GNUSTEP_HOST_OS"]) != nil)
+	gnustep_target_os = RETAIN(str);
+      
+      if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
+	gnustep_target_dir = RETAIN(str);
+      else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
+	gnustep_target_dir = RETAIN(str);
+      
+      if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
+	library_combo = RETAIN(str);
+      
+      _launchDirectory = RETAIN([[NSFileManager defaultManager]
+				  currentDirectoryPath]);
+      
+      _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
+				     version: OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]);
+      
 #if 0
-	  _loadingBundle = [self mainBundle];
-	  handle = objc_open_main_module(stderr);
-	  printf("%08x\n", handle);
+      _loadingBundle = [self mainBundle];
+      handle = objc_open_main_module(stderr);
+      printf("%08x\n", handle);
 #endif
 #if NeXT_RUNTIME
+      {
+	int i, numClasses = 0, newNumClasses = objc_getClassList(NULL, 0);
+	Class *classes = NULL;
+	while (numClasses < newNumClasses) {
+	  numClasses = newNumClasses;
+	  classes = objc_realloc(classes, sizeof(Class) * numClasses);
+	  newNumClasses = objc_getClassList(classes, numClasses);
+	}
+	for (i = 0; i < numClasses; i++)
 	  {
-	    int i, numClasses = 0, newNumClasses = objc_getClassList(NULL, 0);
-	    Class *classes = NULL;
-	    while (numClasses < newNumClasses) {
-	      numClasses = newNumClasses;
-	      classes = objc_realloc(classes, sizeof(Class) * numClasses);
-	      newNumClasses = objc_getClassList(classes, numClasses);
-	    }
-	    for (i = 0; i < numClasses; i++)
-	      {
-		[self _addFrameworkFromClass: classes[i]];
-	      }
-	    objc_free(classes);
+	    [self _addFrameworkFromClass: classes[i]];
 	  }
+	objc_free(classes);
+      }
 #else
+      {
+	void	*state = NULL;
+	Class	class;
+	
+	while ((class = objc_next_class(&state)))
 	  {
-	    void	*state = NULL;
-	    Class	class;
-
-	    while ((class = objc_next_class(&state)))
+	    unsigned int len = strlen (class->name);
+	    
+	    if (len > sizeof("NSFramework_")
+		&& !strncmp("NSFramework_", class->name, 12))
 	      {
-		unsigned int len = strlen (class->name);
-
-		if (len > sizeof("NSFramework_")
-	 	    && !strncmp("NSFramework_", class->name, 12))
-		  {
-		    [self _addFrameworkFromClass: class];
-		  }
+		[self _addFrameworkFromClass: class];
 	      }
 	  }
+      }
 #endif
 #if 0
-	  //		  _bundle_load_callback(class, NULL);
-	  //		  bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
-
-	  objc_close_main_module(handle);
-	  _loadingBundle = nil;
+      //  _bundle_load_callback(class, NULL);
+      //  bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
+      
+      objc_close_main_module(handle);
+      _loadingBundle = nil;
 #endif
-	}
     }
 }
 
@@ -873,7 +939,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
  * and the main bundle directory is xxx/Tools/Resources/Control.
  * </p>
  * <p>(when the tool has not yet been installed, it's similar -
- * xxx/shared_obj/ix86/linux-gnu/gnu-gnu-gnu/Control
+ * xxx/obj/ix86/linux-gnu/gnu-gnu-gnu/Control
  * and the main bundle directory is xxx/Resources/Control).
  * </p>
  * <p>(For a flattened structure, the structure is the same without the
@@ -892,17 +958,23 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       /* We don't know at the beginning if it's a tool or an application.  */
       BOOL isApplication = YES;
 
+      /* Sometimes we detect that this is a non-installed tool.  That is
+       * special because we want to lookup local resources before installed
+       * ones.  Keep track of this special case in this variable.
+       */
+      BOOL isNonInstalledTool = NO;
+
       /* If it's a tool, we will need the tool name.  Since we don't
          know yet if it's a tool or an application, we always store
          the executable name here - just in case it turns out it's a
          tool.  */
-      NSString *toolName = [ExecutablePath() lastPathComponent];
-#if defined(__WIN32__)
+      NSString *toolName = [GSPrivateExecutablePath() lastPathComponent];
+#if defined(__WIN32__) || defined(__CYGWIN__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
 
       /* Strip off the name of the program */
-      path = [ExecutablePath() stringByDeletingLastPathComponent];
+      path = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
 
       /* We now need to chop off the extra subdirectories, the library
 	 combo and the target cpu/os if they exist.  The executable
@@ -928,12 +1000,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	}
       /* object dir */
       s = [path lastPathComponent];
-      if ([s hasSuffix: @"_obj"])
+      if ([s hasSuffix: @"obj"])
 	{
 	  path = [path stringByDeletingLastPathComponent];
 	  /* if it has an object dir it can only be a
              non-yet-installed tool.  */
 	  isApplication = NO;
+	  isNonInstalledTool = YES;
 	}
 
       if (isApplication == YES)
@@ -953,8 +1026,52 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       if (isApplication == NO)
 	{
-	  path = [path stringByAppendingPathComponent: @"Resources"];
-	  path = [path stringByAppendingPathComponent: toolName];
+	  NSString *maybePath = nil;
+
+	  if (isNonInstalledTool)
+	    {
+	      /* We're pretty confident about this case.  'path' is
+	       * obtained by {tool location on disk} and walking up
+	       * until we got out of the obj directory.  So we're
+	       * now in GNUSTEP_BUILD_DIR.  Resources will be in
+	       * Resources/{toolName}.
+	       */
+	      path = [path stringByAppendingPathComponent: @"Resources"];
+	      maybePath = [path stringByAppendingPathComponent: toolName];
+
+	      /* PS: We could check here if we found the resources,
+	       * and if not, keep going with the other attempts at
+	       * locating them.  But if we know that this is an
+	       * uninstalled tool, really we don't want to use
+	       * installed resources - we prefer resource lookup to
+	       * fail so the developer will fix whatever issue they
+	       * have with their building.
+	       */
+	    }
+	  else
+	    {
+	      if (maybePath == nil)
+		{
+		  /* This is for gnustep-make version 2, where tool resources
+		   * are in GNUSTEP_*_LIBRARY/Tools/Resources/{toolName}.
+		   */
+		  maybePath = _find_main_bundle_for_tool (toolName);
+		}
+	      
+	      /* If that didn't work, maybe the tool was created with
+	       * gnustep-make version 1.  So we try {tool location on
+	       * disk after walking up the non-flattened
+	       * dirs}/Resources/{toolName}, which is where
+	       * gnustep-make version 1 would put resources.
+	       */
+	      if (maybePath == nil)
+		{
+		  path = [path stringByAppendingPathComponent: @"Resources"];
+		  maybePath = [path stringByAppendingPathComponent: toolName];
+		}
+	    }
+
+	  path = maybePath;
 	}
 
       NSDebugMLLog(@"NSBundle", @"Found main in %@\n", path);
@@ -983,6 +1100,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (!aClass)
     return nil;
+
+  /* This is asked relatively frequently inside gnustep-base itself;
+   * shortcut it.
+   */
+  if (aClass == [NSObject class])
+    {
+      return _gnustep_bundle;
+    }
 
   [load_lock lock];
   bundle = nil;
@@ -1016,19 +1141,23 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 	  /*
 	   * Take the path to the binary containing the class and
-	   * convert it to the format for a library name as used
-	   * for obtaining a library resource bundle.
+	   * convert it to the format for a library name as used for
+	   * obtaining a library resource bundle.
 	   */
-	  lib = objc_get_symbol_path (aClass, NULL);
-	  if ([lib isEqual: ExecutablePath()] == YES)
+	  lib = GSPrivateSymbolPath (aClass, NULL);
+	  if ([lib isEqual: GSPrivateExecutablePath()] == YES)
 	    {
 	      lib = nil;	// In program, not library.
 	    }
 
 	  /*
-	   * Get the library bundle ... if there wasn't one
-	   * then we will assume the class was in the program
-	   * executable and return the mainBundle instead.
+	   * Get the library bundle ... if there wasn't one then we
+	   * will assume the class was in the program executable and
+	   * return the mainBundle instead.
+	   *
+	   * FIXME: This will not work well with versioned library
+	   * resources.  It used to work fine (maybe) with unversioned
+	   * library resources.
 	   */
 	  bundle = [NSBundle bundleForLibrary: lib];
 	  if (bundle == nil)
@@ -1037,9 +1166,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    }
 
 	  /*
-	   * Add the class to the list of classes known to be in
-	   * the library or executable.  We didn't find it there
-	   * to start with, so we know it's safe to add now.
+	   * Add the class to the list of classes known to be in the
+	   * library or executable.  We didn't find it there to start
+	   * with, so we know it's safe to add now.
 	   */
 	  if (bundle->_bundleClasses == nil)
 	    {
@@ -1354,8 +1483,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	 _codeLoaded before loading the bundle. */
       _codeLoaded = YES;
 
-      if (objc_load_module([object fileSystemRepresentation],
-			   stderr, _bundle_load_callback, NULL, NULL))
+      if (GSPrivateLoadModule(object, stderr, _bundle_load_callback, 0, 0))
 	{
 	  _codeLoaded = NO;
 	  DESTROY(_loadingFrameworks);
@@ -1404,6 +1532,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
   [load_lock unlock];
   return YES;
+}
+
+- (void) release
+{
+  /* We lock during release so that other threads can't grab the
+   * object between us checking the reference count and deallocating.
+   */
+  [load_lock lock];
+  if (NSDecrementExtraRefCountWasZero(self))
+    {
+      [self dealloc];
+    }
+  [load_lock unlock];
 }
 
 /* This method is the backbone of the resource searching for NSBundle. It
@@ -1562,7 +1703,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 }
 
 + (NSArray*) _pathsForResourcesOfType: (NSString*)extension
-			 inRootDirectory: (NSString*)bundlePath
+		      inRootDirectory: (NSString*)bundlePath
 		       inSubDirectory: (NSString *)subPath
 {
   BOOL allfiles;
@@ -1622,17 +1763,20 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
                             inDirectory: subPath];
 
   enumerator = [paths objectEnumerator];
-  while( (path = [enumerator nextObject]) )
+  while ((path = [enumerator nextObject]) != nil)
     {
       /* Add all non-localized paths, plus ones in the particular localization
 	 (if there is one). */
       NSString *theDir = [path stringByDeletingLastPathComponent];
-      if ([[theDir pathExtension] isEqual: @"lproj"] == NO
-	  || (localizationName != nil 
-	      && [localizationName length] != 0
-	      && [[theDir lastPathComponent] hasPrefix: localizationName]) )
-	{ 
+
+      if ([[theDir pathExtension] isEqual: @"lproj"] == NO)
+	{
 	  [result addObject: path];
+	}
+      else if ([localizationName length] > 0
+	&& [[theDir lastPathComponent] hasPrefix: localizationName])
+	{ 
+	  [result insertObject: path atIndex: 0];
 	}
     }
   
@@ -1644,8 +1788,34 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName
 {
-  [self notImplemented: _cmd];
-  return nil;
+  CREATE_AUTORELEASE_POOL(arp);
+  NSString	*result = nil;
+  NSArray	*array;
+
+  array = [self pathsForResourcesOfType: ext
+                            inDirectory: subPath
+                        forLocalization: localizationName];
+
+  if (array != nil)
+    {
+      NSEnumerator	*enumerator = [array objectEnumerator];
+      NSString		*path;
+
+      name = [name stringByAppendingPathExtension: ext];
+      while ((path = [enumerator nextObject]) != nil)
+	{
+	  NSString	*found = [path lastPathComponent];
+
+	  if ([found isEqualToString: name] == YES)
+	    {
+	      result = path;
+	      break;		// localised paths occur before non-localised
+	    }
+	}
+    }
+  RETAIN(result);
+  DESTROY(arp);
+  return AUTORELEASE(result);
 }
 
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray
@@ -1674,7 +1844,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return [array makeImmutableCopyOnFail: NO];
 }
 
-- (NSDictionary *)localizedInfoDictionary
+- (NSDictionary*) localizedInfoDictionary
 {
   NSString  *path;
   NSArray   *locales;
@@ -1887,11 +2057,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
   if (self == _mainBundle)
     {
-      return ExecutablePath();
+      return GSPrivateExecutablePath();
     }
   if (self->_bundleType == NSBUNDLE_LIBRARY)
     {
-      return objc_get_symbol_path ([self principalClass], NULL);
+      return GSPrivateSymbolPath ([self principalClass], NULL);
     }
   object = [[self infoDictionary] objectForKey: @"NSExecutable"];
   if (object == nil || [object length] == 0)
@@ -2023,37 +2193,21 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 @implementation NSBundle (GNUstep)
 
-/**
- * <p>Return a bundle which accesses the first existing directory from the list
- * GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_LOCAL_ROOT/Libraries/Resources/libraryName/
- * GNUSTEP_SYSTEM_ROOT/Libraries/Resources/libraryName/<br />
- * Where libraryName is the name of a library without the <em>lib</em>
- * prefix or any extensions.
- * </p>
- * <p>This method exists to provide resource bundles for libraries and hos no
- * particular relationship to the library code itsself.  The named library
- * could be a dynamic library linked in to the running program, a static
- * library (whose code may not even exist on the host machine except where
- * it is linked in to the program), or even a library which is not linked
- * into the program at all (eg. where you want to share resources provided
- * for a library you do not actually use).
- * </p>
- * <p>The bundle for the library <em>gnustep-base</em> is a special case ...
- * for this bundle the -principalClass method returns [NSObject] and the
- * -executablePath method returns the path to the gnustep-base dynamic
- *  library (if it can be found).  As a general rule, library bundles are
- *  not guaranteed to return values for these methods as the library may
- *  not exist on disk.
- * </p>
- */
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName
 {
+  return [self bundleForLibrary: libraryName  version: nil];
+}
+
++ (NSBundle *) bundleForLibrary: (NSString *)libraryName
+			version: (NSString *)interfaceVersion
+{
+  /* Important: if you change this code, make sure to also
+   * change NSUserDefault's manual gnustep-base resource
+   * lookup to match.
+   */
   NSArray *paths;
   NSEnumerator *enumerator;
   NSString *path;
-  NSString *tail;
   NSFileManager *fm = [NSFileManager defaultManager];
 
   /*
@@ -2072,40 +2226,106 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       libraryName = [libraryName substringFromIndex: 3];
     }
-  /*
-   * Discard debug/profile library suffix
-   */
-  if ([libraryName hasSuffix: @"_d"] == YES
-    || [libraryName hasSuffix: @"_p"] == YES)
-    {
-      libraryName = [libraryName substringToIndex: [libraryName length] - 3];
-    }
 
   if ([libraryName length] == 0)
     {
       return nil;
     }
 
-  tail = [@"Resources" stringByAppendingPathComponent: libraryName];
-
-  paths = NSSearchPathForDirectoriesInDomains (GSLibrariesDirectory,
+  /*
+   * We expect to find the library resources into:
+   *
+   * GNUSTEP_LIBRARY/Libraries/<libraryName>/Versions/<interfaceVersion>/Resources/
+   *
+   * if no <interfaceVersion> is specified, and if can't find any versioned
+   * resources in those directories, we'll also accept the old unversioned format 
+   *
+   * GNUSTEP_LIBRARY/Libraries/Resources/<libraryName>/
+   *
+   */
+  paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
 					       NSAllDomainsMask, YES);
-
+  
   enumerator = [paths objectEnumerator];
-  while ((path = [enumerator nextObject]))
+  while ((path = [enumerator nextObject]) != nil)
     {
+      NSBundle	*b;
       BOOL isDir;
-      path = [path stringByAppendingPathComponent: tail];
+      path = [path stringByAppendingPathComponent: @"Libraries"];
 
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
-	  NSBundle	*b = [self bundleWithPath: path];
-
-	  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+	  if (interfaceVersion != nil)
 	    {
-	      b->_bundleType = NSBUNDLE_LIBRARY;
+	      /* We're looking for a specific version.  */
+	      path = [[[[path stringByAppendingPathComponent: libraryName]
+			 stringByAppendingPathComponent: @"Versions"]
+			stringByAppendingPathComponent: interfaceVersion]
+		       stringByAppendingPathComponent: @"Resources"];
+	      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+		{
+		  b = [self bundleWithPath: path];
+		  
+		  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+		    {
+		      b->_bundleType = NSBUNDLE_LIBRARY;
+		    }
+		  return b;
+		}
 	    }
-	  return b;
+	  else
+	    {
+	      /* Any version will do.  */
+	      NSString *versionsPath = [[path stringByAppendingPathComponent: libraryName]
+					 stringByAppendingPathComponent: @"Versions"];
+
+	      if ([fm fileExistsAtPath: versionsPath  isDirectory: &isDir]  &&  isDir)
+		{
+		  /* TODO: Ignore subdirectories.  */
+		  NSEnumerator *fileEnumerator = [fm enumeratorAtPath: versionsPath];
+		  NSString *potentialPath;
+		  
+		  while ((potentialPath = [fileEnumerator nextObject]) != nil)
+		    {
+		      potentialPath = [versionsPath 
+					stringByAppendingPathComponent: 
+					  [potentialPath 
+					    stringByAppendingPathComponent: @"Resources"]];
+		      if ([fm fileExistsAtPath: potentialPath  isDirectory: &isDir]  &&  isDir)
+			{
+			  b = [self bundleWithPath: potentialPath];
+			  
+			  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+			    {
+			      b->_bundleType = NSBUNDLE_LIBRARY;
+			    }
+			  return b;
+			}
+		    }
+		}
+
+	      /* We didn't find anything!  For backwards
+	       * compatibility, try the unversioned directory itself:
+	       * we used to put library resources directly in
+	       * unversioned directories such as
+	       * GNUSTEP_LIBRARY/Libraries/Resources/gnustep-base/{resources
+	       * here}.  This was deprecated/obsoleted on 9 March 2007
+	       * when we added library resource versioning.
+	       */
+	      {
+		NSString *oldResourcesPath = [[path stringByAppendingPathComponent: @"Resources"]
+					       stringByAppendingPathComponent: libraryName];
+		if ([fm fileExistsAtPath: oldResourcesPath  isDirectory: &isDir]  &&  isDir)
+		  {
+		    b = [self bundleWithPath: oldResourcesPath];
+		    if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
+		      {
+			b->_bundleType = NSBUNDLE_LIBRARY;
+		      }
+		    return b;
+		  }
+	      }
+	    }
 	}
     }
 

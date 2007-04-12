@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSObjCRuntime class reference</title>
    $Date$ $Revision$
@@ -40,7 +41,7 @@ NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
-    return [NSString stringWithCString: GSNameFromSelector(aSelector)];
+    return [NSString stringWithUTF8String: GSNameFromSelector(aSelector)];
   return nil;
 }
 
@@ -92,7 +93,7 @@ NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
-    return [NSString stringWithCString: (char*)GSNameFromClass(aClass)];
+    return [NSString stringWithUTF8String: (char*)GSNameFromClass(aClass)];
   return nil;
 }
 

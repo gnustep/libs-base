@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #ifndef __GSLocale_H_
@@ -32,6 +33,10 @@
 #endif
 #include "GSObjCRuntime.h"
 
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSDictionary;
 
 GS_EXPORT const char *GSSetLocaleC(int category, const char *loc);
@@ -40,6 +45,10 @@ GS_EXPORT NSString   *GSSetLocale(int category, NSString *locale);
 GS_EXPORT NSDictionary *GSDomainFromDefaultLocale(void);
 
 GS_EXPORT NSString *GSLanguageFromLocale(NSString *locale);
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif
 

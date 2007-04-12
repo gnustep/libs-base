@@ -19,18 +19,23 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
-#ifndef _NSNumberFormatter_h__
-#define _NSNumberFormatter_h__
+#ifndef _NSNumberFormatter_h_GNUSTEP_BASE_INCLUDE
+#define _NSNumberFormatter_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSFormatter.h>
-#include <Foundation/NSDecimalNumber.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSFormatter.h>
+#import	<Foundation/NSDecimalNumber.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class	NSString, NSAttributedString, NSDictionary;
 
@@ -295,5 +300,11 @@
 
 @end
 
+#if	defined(__cplusplus)
+}
 #endif
-#endif
+
+#endif	/* GS_API_MACOSX */
+
+#endif	/* _NSNumberFormatter_h_GNUSTEP_BASE_INCLUDE */
+

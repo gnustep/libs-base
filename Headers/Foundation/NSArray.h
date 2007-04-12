@@ -18,14 +18,20 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSArray_h_GNUSTEP_BASE_INCLUDE
 #define __NSArray_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSRange.h>
-#include <Foundation/NSUtilities.h>
+#import	<Foundation/NSRange.h>
+#import	<Foundation/NSUtilities.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSString;
 @class NSURL;
@@ -35,7 +41,7 @@
 + (id) array;
 + (id) arrayWithArray: (NSArray*)array;
 + (id) arrayWithContentsOfFile: (NSString*)file;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) arrayWithContentsOfURL: (NSURL*)aURL;
 #endif
 + (id) arrayWithObject: (id)anObject;
@@ -54,11 +60,11 @@
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (id) init;
 - (id) initWithArray: (NSArray*)array;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
 #endif
 - (id) initWithContentsOfFile: (NSString*)file;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 - (id) initWithObjects: firstObject, ...;
@@ -70,11 +76,11 @@
 - (id) firstObjectCommonWithArray: (NSArray*)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
 
-#ifndef	STRICT_MACOS_X
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 - (void) makeObjectsPerform: (SEL)aSelector;
 - (void) makeObjectsPerform: (SEL)aSelector withObject: (id)argument;
 #endif
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) makeObjectsPerformSelector: (SEL)aSelector;
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)arg;
 #endif
@@ -100,7 +106,7 @@
 			     indent: (unsigned int)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 - (id) valueForKey: (NSString*)key;
 #endif
@@ -113,7 +119,7 @@
 
 - (void) addObject: (id)anObject;				// Primitive
 - (void) addObjectsFromArray: (NSArray*)otherArray;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) exchangeObjectAtIndex: (unsigned int)i1
 	     withObjectAtIndex: (unsigned int)i2;
 #endif
@@ -144,7 +150,7 @@
 		   context: (void*)context;
 - (void) sortUsingSelector: (SEL)comparator;
 
-#ifndef       STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) setValue: (id)value forKey: (NSString*)key;
 #endif
 
@@ -172,5 +178,9 @@
 - (unsigned) insertionPosition: (id)item
 		 usingSelector: (SEL)comp;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSArray_h_GNUSTEP_BASE_INCLUDE */

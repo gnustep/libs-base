@@ -18,19 +18,23 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE
 #define __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE
-
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSArray.h>
+#import	<GNUstepBase/GSVersionMacros.h>
 
 #if OS_API_VERSION(100300,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 
-@class NSArray;
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSArray.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSIndexSet;
 @class NSSet;
 @class NSString;
@@ -221,6 +225,11 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey;
 
 @end
 
+#if	defined(__cplusplus)
+}
 #endif
-#endif /* __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE */
+
+#endif	/* 100300 */
+
+#endif	/* __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE */
 

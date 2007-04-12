@@ -1549,6 +1549,7 @@
 	      return nil;
 	    }
 	}
+      [self setStandards: d];
       return d;
     }
   else
@@ -2314,6 +2315,7 @@ fail:
       DESTROY(dict);
     }
   RELEASE(a);
+  [self setStandards: dict];
   return AUTORELEASE(dict);
 }
 
@@ -2333,11 +2335,11 @@ fail:
   method = [[NSMutableDictionary alloc] initWithCapacity: 4];
   if (buffer[pos++] == '-')
     {
-      mname = [NSMutableString stringWithCString: "-"];
+      mname = [NSMutableString stringWithUTF8String: "-"];
     }
   else
     {
-      mname = [NSMutableString stringWithCString: "+"];
+      mname = [NSMutableString stringWithUTF8String: "+"];
     }
   [method setObject: sels forKey: @"Sels"];	// Parts of selector.
 

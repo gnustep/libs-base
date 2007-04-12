@@ -24,9 +24,14 @@
 
 #ifndef __NSString_h_GNUSTEP_BASE_INCLUDE
 #define __NSString_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSRange.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSRange.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /**
  * Type for representing unicode characters.  (16-bit)
@@ -37,7 +42,7 @@ typedef unsigned short unichar;
 @class NSCharacterSet;
 @class NSData;
 @class NSDictionary;
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 @class NSURL;
 #endif
 
@@ -48,7 +53,8 @@ enum
   NSCaseInsensitiveSearch = 1,
   NSLiteralSearch = 2,
   NSBackwardsSearch = 4,
-  NSAnchoredSearch = 8
+  NSAnchoredSearch = 8,
+  NSNumericSearch = 64	/* MacOS-X 10.2 */
 };
 
 /**
@@ -100,7 +106,6 @@ typedef enum _NSStringEncoding
   NSMacOSRomanStringEncoding = 30,
   NSProprietaryStringEncoding = 31,
 
-// GNUstep additions
   NSKOI8RStringEncoding = 50,		// Russian/Cyrillic
   NSISOLatin3StringEncoding = 51,	// ISO-8859-3; South European
   NSISOLatin4StringEncoding = 52,	// ISO-8859-4; North European
@@ -282,7 +287,7 @@ enum {
 
 // Getting C Strings
 - (const char*) cString;
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
 #if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding;
@@ -533,7 +538,7 @@ enum {
 // for methods working with decomposed strings
 - (int) _baseLength;
 
-#ifndef STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * Concatenates the path components in the array and returns the result.<br />
  * This method does not remove empty path components, but does recognize an
@@ -614,10 +619,10 @@ enum {
 - (const char *)UTF8String;
 #endif
 
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 + (Class) constantStringClass;
 - (BOOL) boolValue;
-#endif /* NO_GNUSTEP */
+#endif	/* GS_API_NONE */
 
 @end
 
@@ -689,7 +694,7 @@ enum {
 extern struct objc_class _NSConstantStringClassReference;
 #endif
 
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 @interface NSMutableString (GNUstep)
 - (NSString*) immutableProxy;
@@ -793,6 +798,10 @@ extern struct objc_class _NSConstantStringClassReference;
 - (void) trimSpaces;
 @end
 
-#endif /* NO_GNUSTEP */
+#endif	/* GS_API_NONE */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif /* __NSString_h_GNUSTEP_BASE_INCLUDE */

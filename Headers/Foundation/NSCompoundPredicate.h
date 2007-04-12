@@ -24,8 +24,15 @@
 
 #ifndef __NSCompoundPredicate_h_GNUSTEP_BASE_INCLUDE
 #define __NSCompoundPredicate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSPredicate.h>
+#if	OS_API_VERSION(100400, GS_API_LATEST)
+
+#import	<Foundation/NSPredicate.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 typedef enum _NSCompoundPredicateType
 {
@@ -46,5 +53,11 @@ typedef enum _NSCompoundPredicateType
 - (NSArray *) subpredicates;
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif	/* 100400 */
 #endif
 

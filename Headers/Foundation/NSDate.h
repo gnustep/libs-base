@@ -15,14 +15,19 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
   */
 
 #ifndef __NSDate_h_GNUSTEP_BASE_INCLUDE
 #define __NSDate_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObjCRuntime.h>
+#import	<Foundation/NSObjCRuntime.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /**
  * Time interval difference between two dates, in seconds.
@@ -39,7 +44,7 @@ typedef double NSTimeInterval;
  */
 GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
 
 @class NSArray;
 @class NSCalendarDate;
@@ -102,7 +107,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 - (BOOL) isEqualToDate: (NSDate*)other;
 - (NSDate*) laterDate: (NSDate*)otherDate;
 
-#ifndef	STRICT_OPENSTEP
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) dateWithNaturalLanguageString: (NSString*)string;
 + (id) dateWithNaturalLanguageString: (NSString*)string
                               locale: (NSDictionary*)locale;
@@ -110,5 +115,9 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 #endif
 
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif  /* __NSDate_h_GNUSTEP_BASE_INCLUDE*/

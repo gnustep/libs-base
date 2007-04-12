@@ -25,13 +25,19 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */ 
 
-#ifndef _GNUstep_H_NSLock
-#define _GNUstep_H_NSLock
+#ifndef __NSLock_h_GNUSTEP_BASE_INCLUDE
+#define __NSLock_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
+#import	<Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 /**
  * Protocol defining lock and unlock operations.
@@ -196,7 +202,7 @@
 
 @end
 
-#ifndef NO_GNUSTEP
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /**
  * Returns IDENT which will be initialized
@@ -284,6 +290,11 @@
 + (id) newLockAt: (id *)location;
 @end
 
-#endif /* NO_GNUSTEP */
+#endif	/* GS_API_NONE */
 
-#endif /* _GNUstep_H_NSLock*/
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif /* __NSLock_h_GNUSTEP_BASE_INCLUDE */
+

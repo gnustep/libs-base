@@ -9,13 +9,15 @@
 #include "config.h"
 
 #include "GNUstepBase/preface.h"
-#include "../GSRunLoopCtxt.h"
-#include "../GSRunLoopWatcher.h"
-#include "../GSPrivate.h"
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSError.h>
+#include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSStream.h>
+#include "../GSRunLoopCtxt.h"
+#include "../GSRunLoopWatcher.h"
+#include "../GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -30,13 +32,11 @@
 #include <unistd.h>
 #endif
 
-extern BOOL	GSCheckTasks();
-
 #if	GS_WITH_GC == 0
-SEL	wRelSel;
-SEL	wRetSel;
-IMP	wRelImp;
-IMP	wRetImp;
+static SEL	wRelSel;
+static SEL	wRetSel;
+static IMP	wRelImp;
+static IMP	wRetImp;
 
 static void
 wRelease(NSMapTable* t, void* w)
@@ -61,6 +61,17 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #endif
 
 @implementation	GSRunLoopCtxt
+
++ (void) initialize
+{
+#if	GS_WITH_GC == 0
+  wRelSel = @selector(release);
+  wRetSel = @selector(retain);
+  wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
+  wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
+#endif
+}
+
 - (void) dealloc
 {
   RELEASE(mode);
@@ -357,7 +368,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
     {
       milliseconds = 0;
     }
@@ -395,7 +406,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     {
       if (errno == EINTR)
 	{
-	  GSCheckTasks();
+	  GSPrivateCheckTasks();
 	  poll_return = 0;
 	}
       else if (errno == 0)
@@ -408,8 +419,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  /* Some exceptional condition happened. */
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
-	  NSLog (@"poll() error in -acceptInputForMode:beforeDate: '%s'",
-	    GSLastErrorStr(errno));
+	  NSLog (@"poll() error in -acceptInputForMode:beforeDate: '%@'",
+	    [NSError _last]);
 	  abort ();
 	}
     }
@@ -444,7 +455,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSNotifyASAP();
+	GSPrivateNotifyASAP();
     }
 
   /*
@@ -519,7 +530,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSNotifyASAP();
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -551,7 +562,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSNotifyASAP();
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -583,7 +594,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSNotifyASAP();
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -751,7 +762,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSCheckTasks() || GSNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
@@ -776,7 +787,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     {
       if (errno == EINTR)
 	{
-	  GSCheckTasks();
+	  GSPrivateCheckTasks();
 	  select_return = 0;
 	}
       else if (errno == 0)
@@ -789,8 +800,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  /* Some exceptional condition happened. */
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
-	  NSLog (@"select() error in -acceptInputForMode:beforeDate: '%s'",
-	    GSLastErrorStr(errno));
+	  NSLog (@"select() error in -acceptInputForMode:beforeDate: '%@'",
+	    [NSError _last]);
 	  abort ();
 	}
     }
@@ -825,7 +836,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSNotifyASAP();
+	GSPrivateNotifyASAP();
     }
 
   /*
@@ -886,7 +897,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;
@@ -918,7 +929,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;
@@ -950,7 +961,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSNotifyASAP();
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;

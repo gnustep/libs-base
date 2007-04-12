@@ -19,22 +19,27 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __NSKeyValueCoding_h_GNUSTEP_BASE_INCLUDE
 #define __NSKeyValueCoding_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
-#include	<Foundation/NSObject.h>
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSArray;
 @class NSMutableArray;
 @class NSDictionary;
 @class NSError;
 @class NSString;
-
-#ifndef	STRICT_OPENSTEP
 
 /** An exception for an unknown key in [NSObject(NSKeyValueCoding)]. */
 GS_EXPORT NSString* const NSUndefinedKeyException;
@@ -353,6 +358,11 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
 
 @end
 
+#if	defined(__cplusplus)
+}
 #endif
+
+#endif	/* GS_API_MACOSX */
+
 #endif
 
