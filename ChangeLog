@@ -1,5 +1,10 @@
 2007-04-12  Adam Fedor  <fedor@gnu.org>
 
+	* gnustep-base.spec.in, Documentation/install.texi: Document
+	that gnustep-make 2.0.0 is required.
+
+2007-04-12  Adam Fedor  <fedor@gnu.org>
+
 	* Version 1.14.0
 
 2007-04-11  Richard Frith-Macdonald <rfm@gnu.org>
