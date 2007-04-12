@@ -564,6 +564,7 @@ static void setNonblocking(int fd)
       socklen_t len = sizeof(error);
       unsigned i = [_modes count];
 
+      AUTORELEASE(RETAIN(self));
       while (i-- > 0)
 	{
 	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
@@ -977,6 +978,7 @@ static void setNonblocking(int fd)
       int result;
       unsigned i = [_modes count];
 
+      AUTORELEASE(RETAIN(self));
       while (i-- > 0)
 	{
 	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
