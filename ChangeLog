@@ -1,5 +1,7 @@
 2007-04-12  Adam Fedor  <fedor@gnu.org>
 
+	* Tool/HTMLLinker.m: Re-add.
+
 	* Documentation/coding-standards.texi: Add info section
 	* Documentation/manual/manual.texi: Likewise (patch from
 	Marco Bardelli).
