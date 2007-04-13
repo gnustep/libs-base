@@ -1,5 +1,9 @@
 2007-04-13  Ricccardo Mottola <riccardo@kaffe.org>
 
+	* Source/NSSortDescriptor.m : removed C99-ism
+
+2007-04-13  Ricccardo Mottola <riccardo@kaffe.org>
+
 	* Source/GSHTTPURLHandle.m : removed C99-ism
 
 2007-04-13  Adam Fedor  <fedor@gnu.org>

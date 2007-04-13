@@ -308,8 +308,8 @@ SortRange(id *objects, NSRange range, id *descriptors,
   if (count > 1 && numDescriptors > 0)
     {
       id	descriptors[numDescriptors];
-      GS_BEGINIDBUF(objects, count);
       NSArray	*a;
+      GS_BEGINIDBUF(objects, count);
 
       [self getObjects: objects];
       [sortDescriptors getObjects: descriptors];
