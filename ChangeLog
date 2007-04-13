@@ -1,5 +1,10 @@
 2007-04-12  Adam Fedor  <fedor@gnu.org>
 
+	* Documentation/coding-standards.texi: Add info section
+	* Documentation/manual/manual.texi: Likewise (patch from
+	Marco Bardelli).
+	* gnustep-base-debug.spec.in: Remove
+
 	* gnustep-base.spec.in, Documentation/install.texi: Document
 	that gnustep-make 2.0.0 is required.
 
