@@ -1239,6 +1239,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if (sock != nil)
     {
+      int fd;
+    
       if (debug)
         {
 	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
@@ -1269,7 +1271,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  object: test];
       RELEASE(test);
 #else
-      int	fd = [sock fileDescriptor];
+      fd = [sock fileDescriptor];
 
       if (fd >= 0)
         {
