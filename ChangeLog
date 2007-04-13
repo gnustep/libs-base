@@ -1,3 +1,8 @@
+2007-04-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSFileHandle.m: ([-readDataOfLength:]) backport of fix of
+	bug which could cause short reads.
+
 2007-04-12  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/coding-standards.texi: Add info section
