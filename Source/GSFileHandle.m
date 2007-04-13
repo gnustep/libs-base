@@ -1353,51 +1353,34 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSMutableData	*d;
   int		got;
+  char		buf[READ_SIZE];
 
   [self checkRead];
   if (isNonBlocking == YES)
     {
       [self setNonBlocking: NO];
     }
-  if (len <= 65536)
-    {
-      char	*buf;
 
-      buf = NSZoneMalloc(NSDefaultMallocZone(), len);
-      d = [NSMutableData dataWithBytesNoCopy: buf length: len];
-      got = [self read: [d mutableBytes] length: len];
-      if (got < 0)
+  d = [NSMutableData dataWithCapacity: len < READ_SIZE ? len : READ_SIZE];
+  do
+    {
+      int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
+
+      got = [self read: buf length: chunk];
+      if (got > 0)
+	{
+	  [d appendBytes: buf length: got];
+	  len -= got;
+	}
+      else if (got < 0)
 	{
 	  [NSException raise: NSFileHandleOperationException
 		      format: @"unable to read from descriptor - %@",
 		      [NSError _last]];
 	}
-      [d setLength: got];
     }
-  else
-    {
-      char	buf[READ_SIZE];
+  while (len > 0 && got > 0);
 
-      d = [NSMutableData dataWithCapacity: 0];
-      do
-	{
-	  int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
-
-	  got = [self read: buf length: chunk];
-	  if (got > 0)
-	    {
-	      [d appendBytes: buf length: got];
-	      len -= got;
-	    }
-	  else if (got < 0)
-	    {
-	      [NSException raise: NSFileHandleOperationException
-			  format: @"unable to read from descriptor - %@",
-			  [NSError _last]];
-	    }
-	}
-      while (len > 0 && got > 0);
-    }
   return d;
 }
 
