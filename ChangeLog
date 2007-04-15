@@ -1,5 +1,14 @@
 2007-04-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: check for wide character support in printf
+	* config/config.wprintf.c: ditto
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Source/NSString.m: Don't use wide char support if we don't have it.
+	Should fix bug #19587
+
+2007-04-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSBundle.m:
 	* Source/GSHTTPURLHandle.m:
 	* Source/NSSortDescriptor.m:
