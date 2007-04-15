@@ -1237,23 +1237,23 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       port = @"80";
     }
 
+  /* An existing socket with keepalive may have been closed by the other
+   * end.  The portable way to detect it is to run the runloop once to
+   * allow us to be sent a notification about end-of-file.
+   * On unix systems (google told me it is not reliable on windows) we can
+   * simply peek on the file descriptor for a much more efficient check.
+   */
   if (sock != nil)
     {
-      if (debug)
-        {
-	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
-	}
-      /* An existing socket with keepalive may have been closed by the other
-       * end.  The portable way to detect it is to run the runloop once to
-       * allow us to be sent a notification about end-of-file.
-       * On unix systems (google told me it is not reliable on windows) we can
-       * simply peek on the file descriptor for a much more efficient check.
-       */
 #if	defined(__MINGW__)
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
       NSRunLoop			*loop = [NSRunLoop currentRunLoop];
       NSFileHandle		*test = RETAIN(sock);
       
+      if (debug)
+        {
+	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
+	}
       [nc addObserver: self
 	     selector: @selector(bgdRead:)
 		 name: NSFileHandleReadCompletionNotification
@@ -1269,8 +1269,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  object: test];
       RELEASE(test);
 #else
-      int	fd = [sock fileDescriptor];
+      int fd = [sock fileDescriptor];
 
+      if (debug)
+        {
+	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
+	}
       if (fd >= 0)
         {
 	  extern int	errno;

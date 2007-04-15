@@ -1,3 +1,10 @@
+2007-04-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSSortDescriptor.m:
+	Backport minor fixes from trunk.
+
 2007-04-13  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSFileHandle.m: ([-readDataOfLength:]) backport of fix of
