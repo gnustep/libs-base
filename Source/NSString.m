@@ -515,6 +515,8 @@ handle_printf_atsign (FILE *stream,
   string_object = *((id*) ptr);
 #endif
   string_object = [string_object description];
+
+#if HAVE_WIDE_PRINTF_FUNCTION
   if (info->wide)
     {
       if (sizeof(wchar_t) == 4)
@@ -539,6 +541,7 @@ handle_printf_atsign (FILE *stream,
 	}
     }
   else
+#endif	/* HAVE_WIDE_PRINTF_FUNCTION */
     {
       len = fprintf(stream, "%*s",
 	(info->left ? - info->width : info->width),
@@ -1084,7 +1087,9 @@ handle_printf_atsign (FILE *stream,
   f._contents.c = buf;
   f._capacity = sizeof(buf);
   f._count = 0;
+#if HAVE_WIDE_PRINTF_FUNCTION
   f._flags.wide = 0;
+#endif	/* HAVE_WIDE_PRINTF_FUNCTION */
   f._flags.free = 0;
   GSPrivateFormat(&f, fmt, argList, locale);
   GSPrivateStrExternalize(&f);
@@ -1101,11 +1106,13 @@ handle_printf_atsign (FILE *stream,
    * the temporary buffer) for large strings.  For most strings, the
    * on-stack memory will have been used, so we will get better performance.
    */
+#if HAVE_WIDE_PRINTF_FUNCTION
   if (f._flags.wide == 1)
     {
       self = [self initWithCharacters: f._contents.u length: f._count];
     }
   else
+#endif	/* HAVE_WIDE_PRINTF_FUNCTION */
     {
       self = [self initWithCString: (char*)f._contents.c length: f._count];
     }

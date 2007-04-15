@@ -1,5 +1,14 @@
 2007-04-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: check for wide character support in printf
+	* config/config.wprintf.c: ditto
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Source/NSString.m: Don't use wide char support if we don't have it.
+	Should fix bug #19587
+
+2007-04-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSBundle.m:
 	([+pathForResource:ofType:inRootPath:inDirectory:withVersion:])
 	Tolerate nil/empty resource name for compatibility with MacOS-X
@@ -8,6 +17,8 @@
 	NSMutableArray.
 	* Headers/Foundation/NSPredicate.h: Add the
 	([-filterUsingPredicate:]) method and document it.
+	* config/config.printf.c: use 'wide' field in info structure to
+	check that it exists.
 
 2007-04-13  Ricccardo Mottola <riccardo@kaffe.org>
 
