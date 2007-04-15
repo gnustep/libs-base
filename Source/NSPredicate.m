@@ -37,6 +37,8 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSValue.h>
 
+#include "GSPrivate.h"
+
 #include <stdarg.h>
 
 #define	NIMP	  [NSException raise: NSGenericException \
@@ -1252,11 +1254,10 @@
 - (NSArray *) filteredArrayUsingPredicate: (NSPredicate *)predicate
 {
   NSMutableArray	*result;
-
   NSEnumerator		*e = [self objectEnumerator];
   id			object;
 
-  result = [NSMutableArray arrayWithCapacity: [self count]];
+  result = [GSMutableArray arrayWithCapacity: [self count]];
   while ((object = [e nextObject]) != nil)
     {
       if ([predicate evaluateWithObject: object] == YES)
@@ -1264,7 +1265,26 @@
 	  [result addObject: object];  // passes filter
 	}
     }
-  return result;  // we could/should convert to a non-mutable copy
+  return [result makeImmutableCopyOnFail: NO];
+}
+
+@end
+
+@implementation NSMutableArray (NSPredicate)
+
+- (void) filterUsingPredicate: (NSPredicate *)predicate
+{	
+  unsigned	count = [self count];
+
+  while (count-- > 0)
+    {
+      id	object = [self objectAtIndex: count];
+	
+      if ([predicate evaluateWithObject: object] == NO)
+	{
+	  [self removeObjectAtIndex: count];
+	}
+    }
 }
 
 @end
