@@ -1,3 +1,10 @@
+2007-04-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m:
+	([+pathForResource:ofType:inRootPath:inDirectory:withVersion:])
+	Tolerate nil/empty resource name for compatibility with MacOS-X
+	nad to fix bug #19588
+
 2007-04-13  Ricccardo Mottola <riccardo@kaffe.org>
 
 	* Source/NSSortDescriptor.m : removed C99-ism
