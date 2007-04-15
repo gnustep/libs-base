@@ -1641,8 +1641,16 @@ if test $register_printf = 1; then
   if test $working_register_printf = 1; then
     AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,1,
               [Define if you have the register_printf_function function])
+    AC_TRY_RUN([#include "$srcdir/config/config.wprintf.c"],
+	       wide_register_printf=1, wide_register_printf=0, 
+               wide_register_printf=1)
+    if test $wide_register_printf = 1; then
+      AC_DEFINE(HAVE_WIDE_PRINTF_FUNCTION,1,
+              [Define if register_printf_function supports wide characters])
+    fi
   fi
 fi
+
 
 #--------------------------------------------------------------------
 # This function needed by NSString.
