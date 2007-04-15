@@ -3,7 +3,11 @@
 	* Source/NSBundle.m:
 	([+pathForResource:ofType:inRootPath:inDirectory:withVersion:])
 	Tolerate nil/empty resource name for compatibility with MacOS-X
-	nad to fix bug #19588
+	and to fix bug #19588
+	* Source/NSPredicate.m: Implement ([-filterUsingPredicate:]) for
+	NSMutableArray.
+	* Headers/Foundation/NSPredicate.h: Add the
+	([-filterUsingPredicate:]) method and document it.
 
 2007-04-13  Ricccardo Mottola <riccardo@kaffe.org>
 
