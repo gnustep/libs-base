@@ -1595,11 +1595,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSString *path, *fullpath;
   NSEnumerator* pathlist;
 
-  if (!name || [name length] == 0)
+  if (name == nil)
     {
-      [NSException raise: NSInvalidArgumentException
-        format: @"No resource name specified."];
-      /* NOT REACHED */
+      name = @"";
     }
 
   pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
@@ -1627,7 +1625,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		}
 	    }
 	  else
-	    fullpath = nil;
+	    {
+	      fullpath = nil;
+	    }
 	}
       else
 	{
