@@ -196,6 +196,9 @@
 /* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
 
+/* Define if libobjc has the __objc_msg_forward2 function */
+#undef HAVE_FORWARD2
+
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
 
