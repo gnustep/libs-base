@@ -1862,8 +1862,15 @@ have_forward_hook=yes
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
 AC_MSG_CHECKING(for forwarding callback in runtime)
-AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward.m"],
+AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward2.m"],
 	have_forward_hook=yes, have_forward_hook=no)
+if test $have_forward_hook = yes; then
+  AC_DEFINE(HAVE_FORWARD2,1,
+            [Define if libobjc has the __objc_msg_forward2 function])
+else
+  AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward.m"],
+	have_forward_hook=yes, have_forward_hook=no)
+fi
 AC_MSG_RESULT($have_forward_hook)
 if test $have_forward_hook = no; then
   enable_libffi=no

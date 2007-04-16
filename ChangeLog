@@ -1,3 +1,10 @@
+2007-04-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.forward2.m: Test for forward2 function in runtime.
+	* configure.ac: Run forward2 test
+	* Headers/Additions/GNUstepBase/config.h.in: record forward2 test.
+	* configure: regenerate
+
 2007-04-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: check for wide character support in printf
