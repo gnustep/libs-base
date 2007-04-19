@@ -1910,7 +1910,7 @@ if test $ffi_ok = no; then
     echo "You do not have an up-to-date libobjc library installed"
   elif test "$have_working_trampoline" = no; then
     echo "You have ffcall, but it does not work properly. Most likely because"
-    echo "your're system's security policy is blocking some parts of ffcall"
+    echo "your system's security policy is blocking some parts of ffcall"
     echo "we recommend installing libffi instead."
   else
     echo "You do not have either ffcall or libffi installed, or configure needs"
