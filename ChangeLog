@@ -1,3 +1,9 @@
+2007-04-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Reformat for conding standards.  Alter library
+	resource lookup to find correct version when multiple versions of
+	the base library are installed and the old unversioned api is used.
+
 2007-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/config.forward2.m: Test for forward2 function in runtime.
