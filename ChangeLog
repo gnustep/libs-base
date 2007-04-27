@@ -3,6 +3,14 @@
 	* Source/NSBundle.m: Reformat for conding standards.  Alter library
 	resource lookup to find correct version when multiple versions of
 	the base library are installed and the old unversioned api is used.
+	* Source/NSURLHandle.m: Scheduling tweak.
+	* Source/GSFFCallInvocation.m: Use forward2 if available.
+	* Source/GSFFIInvocation.m: Use forward2 if available.
+	* Source/NSURLRequest.m: Tidyups
+	* Source/NSURLConnection.m: Tidyups
+	* Source/NSURLProtocol.m: Incorporate some concrete protocols from
+	mySTEP ....needs rewriting and then testing.
+	* Headers/Foundation/NSURLRequest.h: Fix typos and improve comments.
 
 2007-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
