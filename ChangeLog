@@ -1,3 +1,8 @@
+2007-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/thr-pthread.m: Set thread attributes detached to avoid memory
+	leak as suggested by Chris Ball <cball@borderlinetech.ca>
+
 2007-04-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Reformat for conding standards.  Alter library
