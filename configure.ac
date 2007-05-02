@@ -802,11 +802,12 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_USERS_DIR,
 # ask it to output all variables!  That way we have access to (eg)
 # GNUSTEP_SYSTEM_HEADERS below.
 #
-# We need to unles any values that we really need, or existing settings
+# We need to unset any values that we really need, or existing settings
 # would be used by GNUstep.sh
 #
 unset GNUSTEP_SYSTEM_HEADERS
 unset GNUSTEP_SYSTEM_LIBRARIES
+GNUSTEP_MAKEFILES="$CURRENT_GNUSTEP_MAKEFILES"
 GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
 . "$CURRENT_GNUSTEP_MAKEFILES/GNUstep.sh"
 unset GNUSTEP_SH_EXPORT_ALL_VARIABLES

@@ -1,3 +1,11 @@
+2007-05-02  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Set GNUSTEP_MAKEFILES to CURRENT_GNUSTEP_MAKEFILES
+	before sourcing GNUstep.sh.  Fixes building when paths to hardcode
+	in the library are different from paths used when building,
+	typically a case when packaging.
+	* configure: Regenerated.
+	
 2007-04-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/thr-pthread.m: Set thread attributes detached to avoid memory
