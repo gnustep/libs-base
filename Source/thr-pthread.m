@@ -32,6 +32,7 @@ Boston, MA 02110-1301, USA.  */
 
 /* Key structure for maintaining thread specific storage */
 static pthread_key_t _objc_thread_storage;
+static pthread_attr_t _objc_thread_attribs;
 
 /* Global exit status. */
 int __objc_thread_exit_status = 0;
@@ -188,7 +189,21 @@ int
 __objc_init_thread_system(void)
 {
   /* Initialize the thread storage key */
-  return pthread_key_create(&_objc_thread_storage, NULL);
+  if (pthread_key_create(&_objc_thread_storage, NULL) == 0)
+    {
+      /*
+       * The normal default detach state for threads is PTHREAD_CREATE_JOINABLE
+       * which causes threads to not die when you think they should.
+	   */
+      if (pthread_attr_init(&_objc_thread_attribs) == 0)
+        {
+          if (pthread_attr_setdetachstate(&_objc_thread_attribs, 
+                                          PTHREAD_CREATE_DETACHED) == 0)
+            return 0;
+        }
+    }
+
+  return -1;
 }
 
 /* Close the threads subsystem. */
@@ -196,9 +211,13 @@ int
 __objc_close_thread_system(void)
 {
   /* Destroy the thread storage key */
-  /* Not implemented yet */
-  /* return pthread_key_delete(&_objc_thread_storage); */
-  return 0;
+  if (pthread_key_delete(_objc_thread_storage) == 0)
+    {
+      if (pthread_attr_destroy(&_objc_thread_attribs) == 0)
+        return 0;
+    }
+
+  return -1;
 }
 
 /* Backend thread functions */
@@ -210,7 +229,8 @@ __objc_thread_detach(void (*func)(void *arg), void *arg)
   objc_thread_t thread_id;
   pthread_t new_thread_handle;
 
-  if (!(pthread_create(&new_thread_handle, NULL, (void *)func, arg)))
+  if (!(pthread_create(&new_thread_handle, &_objc_thread_attribs,
+ 	 (void *)func, arg)))
       thread_id = *(objc_thread_t *)&new_thread_handle;
   else
     thread_id = NULL;

@@ -802,11 +802,12 @@ AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_LOCAL_USERS_DIR,
 # ask it to output all variables!  That way we have access to (eg)
 # GNUSTEP_SYSTEM_HEADERS below.
 #
-# We need to unles any values that we really need, or existing settings
+# We need to unset any values that we really need, or existing settings
 # would be used by GNUstep.sh
 #
 unset GNUSTEP_SYSTEM_HEADERS
 unset GNUSTEP_SYSTEM_LIBRARIES
+GNUSTEP_MAKEFILES="$CURRENT_GNUSTEP_MAKEFILES"
 GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
 . "$CURRENT_GNUSTEP_MAKEFILES/GNUstep.sh"
 unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
@@ -1862,8 +1863,15 @@ have_forward_hook=yes
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
 AC_MSG_CHECKING(for forwarding callback in runtime)
-AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward.m"],
+AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward2.m"],
 	have_forward_hook=yes, have_forward_hook=no)
+if test $have_forward_hook = yes; then
+  AC_DEFINE(HAVE_FORWARD2,1,
+            [Define if libobjc has the __objc_msg_forward2 function])
+else
+  AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward.m"],
+	have_forward_hook=yes, have_forward_hook=no)
+fi
 AC_MSG_RESULT($have_forward_hook)
 if test $have_forward_hook = no; then
   enable_libffi=no

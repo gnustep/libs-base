@@ -1,3 +1,23 @@
+2007-05-02  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Set GNUSTEP_MAKEFILES to CURRENT_GNUSTEP_MAKEFILES
+	before sourcing GNUstep.sh.  Fixes building when paths to hardcode
+	in the library are different from paths used when building,
+	typically a case when packaging. (backport from trunk)
+	* configure: regenerate
+
+2007-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/thr-pthread.m: Set thread attributes detached to avoid memory
+	leak as suggested by Chris Ball <cball@borderlinetech.ca>
+	(backport from trunk)
+
+2007-04-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * config/config.forward2.m: Test for forward2 function in runtime.
+	* configure.ac: Run forward2 test
+	* Headers/Additions/GNUstepBase/config.h.in: record forward2 test.
+
 2007-04-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: check for wide character support in printf
