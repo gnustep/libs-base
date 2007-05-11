@@ -1,3 +1,12 @@
+2007-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLResponse.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLRequest.m:
+	* Source/GSURLPrivate.h:
+	* Source/NSURLConnection.m:
+	Changes accidentally missed from update on 27th april.
+
 2007-05-02  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Set GNUSTEP_MAKEFILES to CURRENT_GNUSTEP_MAKEFILES

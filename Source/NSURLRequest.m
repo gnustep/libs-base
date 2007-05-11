@@ -178,6 +178,11 @@ typedef struct {
   return [this->URL hash];
 }
 
+- (id) init
+{
+  return [self initWithURL: nil];
+}
+
 - (id) initWithURL: (NSURL *)URL
 {
   return [self initWithURL: URL
@@ -195,6 +200,7 @@ typedef struct {
       this->cachePolicy = cachePolicy;
       this->timeoutInterval = timeoutInterval;
       this->mainDocumentURL = nil;
+      this->method = @"GET";
     }
   return self;
 }
@@ -474,6 +480,14 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 
 - (void) setHTTPMethod: (NSString *)method
 {
+/* NB. I checked MacOS-X 4.2, and this method actually lets you set any
+ * copyable value (including non-string classes), but setting nil is
+ * equivalent to resetting to the default value of 'GET'
+ */
+  if (method == nil)
+    {
+      method = @"GET";
+    }
   ASSIGNCOPY(this->method, method);
 }
 
