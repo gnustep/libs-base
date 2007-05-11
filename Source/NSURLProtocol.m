@@ -74,16 +74,27 @@ typedef struct {
 
 static NSMutableArray	*registered = nil;
 static NSLock		*regLock = nil;
+static Class		abstractClass = nil;
+static NSURLProtocol	*placeholder = nil;
 
 @implementation	NSURLProtocol
 
 + (id) allocWithZone: (NSZone*)z
 {
-  NSURLProtocol	*o = [super allocWithZone: z];
+  NSURLProtocol	*o;
 
-  if (o != nil)
+  if ((self == abstractClass) && (z == 0 || z == NSDefaultMallocZone()))
     {
-      o->_NSURLProtocolInternal = NSZoneCalloc(z, 1, sizeof(Internal));
+      /* Return a default placeholder instance to avoid the overhead of
+       * creating and destroying instances of the abstract class.
+       */
+      o = placeholder;
+    }
+  else
+    {
+      /* Create and return an instance of the concrete subclass.
+       */
+      o = (NSURLProtocol*)NSAllocateObject(self, 0, z);
     }
   return o;
 }
@@ -92,6 +103,9 @@ static NSLock		*regLock = nil;
 {
   if (registered == nil)
     {
+      abstractClass = [NSURLProtocol class];
+      placeholder = (NSURLProtocol*)NSAllocateObject(abstractClass, 0,
+	NSDefaultMallocZone());
       registered = [NSMutableArray new];
       regLock = [NSLock new];
       [self registerClass: [_NSHTTPURLProtocol class]];
@@ -145,6 +159,11 @@ static NSLock		*regLock = nil;
 
 - (void) dealloc
 {
+  if (self == placeholder)
+    {
+      [self retain];
+      return;
+    }
   if (this != 0)
     {
       [self stopLoading];
@@ -153,6 +172,7 @@ static NSLock		*regLock = nil;
       RELEASE(this->cachedResponse);
       RELEASE(this->request);
       NSZoneFree([self zone], this);
+      _NSURLProtocolInternal = 0;
     }
   [super dealloc];
 }
@@ -160,14 +180,27 @@ static NSLock		*regLock = nil;
 - (NSString*) description
 {
   return [NSString stringWithFormat:@"%@ %@",
-    [super description], this->request];
+    [super description], this ? (id)this->request : nil];
+}
+
+- (id) init
+{
+  if ((self = [super init]) != nil)
+    {
+      if (isa != abstractClass)
+	{
+	  _NSURLProtocolInternal = NSZoneCalloc(GSObjCZone(self),
+	    1, sizeof(Internal));
+	}
+    }
+  return self;
 }
 
 - (id) initWithRequest: (NSURLRequest *)request
 	cachedResponse: (NSCachedURLResponse *)cachedResponse
 		client: (id <NSURLProtocolClient>)client
 {
-  if (isa == [NSURLProtocol class])
+  if (isa == abstractClass)
     {
       unsigned	count;
 
@@ -189,7 +222,7 @@ static NSLock		*regLock = nil;
 		    cachedResponse: cachedResponse
 			    client: client];
     }
-  if ((self = [super init]) != nil)
+  if ((self = [self init]) != nil)
     {
       this->request = [request copy];
       this->cachedResponse = RETAIN(cachedResponse);
@@ -390,82 +423,83 @@ static NSLock		*regLock = nil;
 { // process header line
   unsigned char *c, *end;
   NSString *key, *val;
-#if 0
+#if 1
   NSLog(@"process header line len=%d", len);
 #endif
   // if it begins with ' ' or '\t' it is a continuation line to the previous header field
   if (!_headers)
-  	{ // should be/must be the header line
-  	unsigned major, minor;
-  	if (sscanf((char *) buffer, "HTTP/%u.%u %u", &major, &minor, &_statusCode) == 3)
-  		{ // response header line
-  		if (major != 1 || minor > 1)
-  			[this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"Bad HTTP version" code: 0 userInfo: nil]];
-  		// must be first - but must also be present and valid before we go to receive the body!
-  		_headers=[NSMutableDictionary dictionaryWithCapacity: 10];	// start collecting headers
-  //		if (_statusCode >= 400 && _statusCode <= 499)
-  			NSLog(@"Client header: %.*s", len, buffer);
-  		return NO;	// process next line
-  		}
-  	else
-  		; // invalid header
-  	return NO;	// process next line
-  	}
+    { // should be/must be the header line
+    unsigned major, minor;
+    if (sscanf((char *) buffer, "HTTP/%u.%u %u", &major, &minor, &_statusCode) == 3)
+      { // response header line
+      if (major != 1 || minor > 1)
+        [this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"Bad HTTP version" code: 0 userInfo: nil]];
+      // must be first - but must also be present and valid before we go to receive the body!
+      _headers=[NSMutableDictionary dictionaryWithCapacity: 10];  // start collecting headers
+  //    if (_statusCode >= 400 && _statusCode <= 499)
+        NSLog(@"Client header: %.*s", len, buffer);
+      return NO;  // process next line
+      }
+    else
+      ; // invalid header
+    return NO;  // process next line
+    }
   if (len == 0)
-  	{ // empty line, i.e. end of header
-  	NSString *loc;
-  	NSHTTPURLResponse *response;
+    { // empty line, i.e. end of header
+    NSString *loc;
+    NSHTTPURLResponse *response;
 
-  	response = [[NSHTTPURLResponse alloc] initWithURL: [this->request URL]
-	  MIMEType: nil
-	  expectedContentLength: -1
-	  textEncodingName: nil];
-	[response _setHeaders: _headers];
-	DESTROY(_headers);
-	[response _setStatusCode: _statusCode text: @""];
-  	loc = [response _valueForHTTPHeaderField: @"location"];
-  	if ([loc length])
-  		{ // Location: entry exists
-  		NSURLRequest *request=[NSURLRequest requestWithURL: [NSURL URLWithString: loc]];
-  		if (!request)
-  			[this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"Invalid redirect request" code: 0 userInfo: nil]]; // error
-  		[this->client URLProtocol: self wasRedirectedToRequest: request redirectResponse: response];
-  		}
-  	else
-  		{
-  		NSURLCacheStoragePolicy policy=NSURLCacheStorageAllowed;	// default
-  		// read from [this->request cachePolicy];
-  		/*
-  		 NSURLCacheStorageAllowed,
-  		 NSURLCacheStorageAllowedInMemoryOnly
-  		 NSURLCacheStorageNotAllowed
-  		 */			 
-  		if ([self isKindOfClass: [_NSHTTPSURLProtocol class]])
-  			policy=NSURLCacheStorageNotAllowed;	// never
-  		[this->client URLProtocol: self didReceiveResponse: response cacheStoragePolicy: policy];
-  		}
-  	return YES;
-  	}
+    response = [[NSHTTPURLResponse alloc] initWithURL: [this->request URL]
+    MIMEType: nil
+    expectedContentLength: -1
+    textEncodingName: nil];
+  [response _setHeaders: _headers];
+  DESTROY(_headers);
+  [response _setStatusCode: _statusCode text: @""];
+    loc = [response _valueForHTTPHeaderField: @"location"];
+    if ([loc length])
+      { // Location: entry exists
+      NSURLRequest *request=[NSURLRequest requestWithURL: [NSURL URLWithString: loc]];
+      if (!request)
+        [this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"Invalid redirect request" code: 0 userInfo: nil]]; // error
+      [this->client URLProtocol: self wasRedirectedToRequest: request redirectResponse: response];
+      }
+    else
+      {
+      NSURLCacheStoragePolicy policy=NSURLCacheStorageAllowed;  // default
+      // read from [this->request cachePolicy];
+      /*
+       NSURLCacheStorageAllowed,
+       NSURLCacheStorageAllowedInMemoryOnly
+       NSURLCacheStorageNotAllowed
+       */       
+      if ([self isKindOfClass: [_NSHTTPSURLProtocol class]])
+        policy=NSURLCacheStorageNotAllowed;  // never
+NSLog(@"Received");
+      [this->client URLProtocol: self didReceiveResponse: response cacheStoragePolicy: policy];
+      }
+    return YES;
+    }
   for (c=buffer, end=c+len; *c != ':'; c++)
-  	{
-  	if (c == end)
-  		{ // no colon found!
-  		// raise bad header error or simply ignore?
-  		return NO;	// keep processing header lines
-  		}
-  	}
+    {
+    if (c == end)
+      { // no colon found!
+      // raise bad header error or simply ignore?
+      return NO;  // keep processing header lines
+      }
+    }
   key=[[NSString stringWithCString: (char *) buffer length: c-buffer] capitalizedString];
   while(++c < end && (*c == ' ' || *c == '\t'))
-  	;	// skip spaces
+    ;  // skip spaces
   val=[NSString stringWithCString: (char *) c length: end-c];
   [_headers setObject: val forKey: [key lowercaseString]];
-  return NO;	// not yet done
+  return NO;  // not yet done
 }
 
 - (void) _processHeader: (unsigned char *) buffer length: (int) len
 { // next header fragment received
   unsigned char *ptr, *end;
-#if 0
+#if 1
   NSLog(@"received %d bytes", len);
 #endif
   if (len <= 0)
@@ -534,147 +568,156 @@ static NSLock		*regLock = nil;
 #if 0
   NSLog(@"stream: %@ handleEvent: %x for: %@", stream, event, self);
 #endif
-    if (stream == this->input) 
-  	{
-  	switch(event)
-  		{
-  		case NSStreamEventHasBytesAvailable: 
-  			{
-  				unsigned char buffer[512];
-  				int len=[(NSInputStream *) stream read: buffer maxLength: sizeof(buffer)];
-  				if (len < 0)
-  					{
+  if (stream == this->input) 
+    {
 #if 1
-  					NSLog(@"receive error %@", [NSError _last]);
+  NSLog(@"input stream handleEvent: %x for: %@", event, self);
 #endif
-  					[this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"receive error" code: 0 userInfo: nil]];
-  					[self _unschedule];
-  					return;
-  					}
-  				if (_readingBody)
-  					[this->client URLProtocol: self didLoadData: [NSData dataWithBytes: buffer length: len]];	// notify
-  				else
-  					[self _processHeader: buffer length: len];
-  				return;
-  			}
-  		case NSStreamEventEndEncountered: 	// can this occur in parallel to NSStreamEventHasBytesAvailable???
-  			{
-#if 0
-  				NSLog(@"end of response");
-#endif
-  				if (!_readingBody)
-  					[this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"incomplete header" code: 0 userInfo: nil]];
-  				[this->client URLProtocolDidFinishLoading: self];
-  				_readingBody=NO;
-  				[self _unschedule];
-  				return;
-  			}
-  		case NSStreamEventOpenCompleted: 
-  			{ // prepare to receive header
-#if 0
-  				NSLog(@"HTTP input stream opened");
-#endif
-  				return;
-  			}
-  		default: 
-  			break;
-  		}
-  	}
+      switch(event)
+	{
+	  case NSStreamEventHasBytesAvailable: 
+	    {
+	      unsigned char buffer[512];
+	      int len;
+
+	      len = [(NSInputStream *)stream read: buffer
+					maxLength: sizeof(buffer)];
+	      if (len < 0)
+		{
+    #if 1
+		  NSLog(@"receive error %@", [NSError _last]);
+    #endif
+		  [this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"receive error" code: 0 userInfo: nil]];
+		  [self _unschedule];
+		  return;
+		}
+	      if (_readingBody)
+		[this->client URLProtocol: self didLoadData: [NSData dataWithBytes: buffer length: len]];  // notify
+	      else
+		[self _processHeader: buffer length: len];
+	      return;
+	    }
+	  case NSStreamEventEndEncountered:   // can this occur in parallel to NSStreamEventHasBytesAvailable???
+	    {
+    #if 1
+	      NSLog(@"end of response");
+    #endif
+	      if (!_readingBody)
+		[this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"incomplete header" code: 0 userInfo: nil]];
+	      [this->client URLProtocolDidFinishLoading: self];
+	      _readingBody=NO;
+	      [self _unschedule];
+	      return;
+	    }
+	  case NSStreamEventOpenCompleted: 
+	    { // prepare to receive header
+    #if 1
+	      NSLog(@"HTTP input stream opened");
+    #endif
+	      return;
+	    }
+	  default: 
+	    break;
+	}
+    }
   else if (stream == this->output)
-  	{
-  	unsigned char *msg;
-#if 0
-  	NSLog(@"An event occurred on the output stream.");
-#endif
-  	/* e.g.
-  	POST /wiki/Spezial: Search HTTP/1.1
-  	Host: de.wikipedia.org
-  	Content-Type: application/x-www-form-urlencoded
-  	Content-Length: 24
-  	
-  	search=Katzen&go=Artikel  <- body
-  	*/
-  	switch(event)
-  		{
-  		case NSStreamEventOpenCompleted: 
-  			{
-#if 0
-  				NSLog(@"HTTP output stream opened");
-#endif
-  				msg=(unsigned char *) [[NSString stringWithFormat: @"%@ %@ HTTP/1.1\r\n",
-  					[this->request HTTPMethod],
-  					[[this->request URL] absoluteString]
-  										] cString];	// FIXME: UTF8???
-  				[(NSOutputStream *) stream write: msg maxLength: strlen((char *) msg)];
-#if 1
-  				NSLog(@"sent %s", msg);
-#endif
-  				_headerEnumerator=[[[this->request allHTTPHeaderFields] objectEnumerator] retain];
-  				return;
-  			}
-  		case NSStreamEventHasSpaceAvailable: 
-  			{
-  				// FIXME: should also send out relevant Cookies
-  				if (_headerEnumerator)
-  					{ // send next header
-  					NSString *key;
-  					key=[_headerEnumerator nextObject];
-  					if (key)
-  						{
-#if 1
-  						NSLog(@"sending %@: %@", key, [this->request valueForHTTPHeaderField: key]);
-#endif
-  						msg=(unsigned char *)[[NSString stringWithFormat: @"%@: %@\r\n", key, [this->request valueForHTTPHeaderField: key]] UTF8String];
-  						}
-  					else
-  						{ // was last header entry
-  						[_headerEnumerator release];
-  						_headerEnumerator=nil;
-  						msg=(unsigned char *) "\r\n";				// send empty line
-  						_body=[[this->request HTTPBodyStream] retain];	// if present
-  						if (!_body && [this->request HTTPBody])
-  							_body=[[NSInputStream alloc] initWithData: [this->request HTTPBody]];	// prepare to send request body
-  						[_body open];
-  						}
-  					[(NSOutputStream *) stream write: msg maxLength: strlen((char *) msg)];	// NOTE: we might block here if header value is too long
-#if 1
-  					NSLog(@"sent %s", msg);
-#endif
-  					return;
-  					}
-  				else if (_body)
-  					{ // send (next part of) body until done
-  					if ([_body hasBytesAvailable])
-  						{
-  						unsigned char buffer[512];
-  						int len=[_body read: buffer maxLength: sizeof(buffer)];	// read next block from stream
-  						if (len < 0)
-  							{
-#if 1
-  							NSLog(@"error reading from HTTPBody stream %@", [NSError _last]);
-#endif
-  							[self _unschedule];
-  							return;
-  							}
-  						[(NSOutputStream *) stream write: buffer maxLength: len];	// send
-  						}
-  					else
-  						{ // done
-#if 0
-  						NSLog(@"request sent");
-#endif
-  						[self _unschedule];	// well, we should just unschedule the send stream
-  						[_body close];
-  						[_body release];
-  						_body=nil;
-  						}
-  					}
-  				return;	// done
-  			}
-  		default: 
-  			break;
-  		}
-  	}
+    {
+      unsigned char *msg;
+
+  #if 0
+      NSLog(@"An event occurred on the output stream.");
+  #endif
+      /* e.g.
+      POST /wiki/Spezial: Search HTTP/1.1
+      Host: de.wikipedia.org
+      Content-Type: application/x-www-form-urlencoded
+      Content-Length: 24
+      
+      search=Katzen&go=Artikel  <- body
+      */
+
+      switch(event)
+	{
+	  case NSStreamEventOpenCompleted: 
+	    {
+    #if 0
+	      NSLog(@"HTTP output stream opened");
+    #endif
+	      msg = (unsigned char *)[[NSString stringWithFormat:
+		@"%@ %@ HTTP/1.1\r\n",
+		[this->request HTTPMethod],
+		[[this->request URL] absoluteString]] UTF8String];
+	      [(NSOutputStream *) stream write: msg
+				     maxLength: strlen((char *) msg)];
+    #if 0
+	      NSLog(@"sent %s", msg);
+    #endif
+	      _headerEnumerator = [[[this->request allHTTPHeaderFields] keyEnumerator] retain];
+	      return;
+	    }
+	  case NSStreamEventHasSpaceAvailable: 
+	    {
+	      // FIXME: should also send out relevant Cookies
+	      if (_headerEnumerator)
+		{ // send next header
+		NSString *key;
+		key = [_headerEnumerator nextObject];
+		if (key)
+		  {
+    #if 0
+		  NSLog(@"sending %@: %@", key, [this->request valueForHTTPHeaderField: key]);
+    #endif
+		  msg=(unsigned char *)[[NSString stringWithFormat: @"%@: %@\r\n", key, [this->request valueForHTTPHeaderField: key]] UTF8String];
+		  }
+		else
+		  { // was last header entry
+		  [_headerEnumerator release];
+		  _headerEnumerator=nil;
+		  msg=(unsigned char *) "\r\n";        // send empty line
+		  _body=[[this->request HTTPBodyStream] retain];  // if present
+		  if (!_body && [this->request HTTPBody])
+		    _body=[[NSInputStream alloc] initWithData: [this->request HTTPBody]];  // prepare to send request body
+		  [_body open];
+		  }
+		[(NSOutputStream *) stream write: msg maxLength: strlen((char *) msg)];  // NOTE: we might block here if header value is too long
+    #if 0
+		NSLog(@"sent %s", msg);
+    #endif
+		return;
+		}
+	      else if (_body)
+		{ // send (next part of) body until done
+		if ([_body hasBytesAvailable])
+		  {
+		  unsigned char buffer[512];
+		  int len=[_body read: buffer maxLength: sizeof(buffer)];  // read next block from stream
+		  if (len < 0)
+		    {
+    #if 1
+		    NSLog(@"error reading from HTTPBody stream %@", [NSError _last]);
+    #endif
+		    [self _unschedule];
+		    return;
+		    }
+		  [(NSOutputStream *) stream write: buffer maxLength: len];  // send
+		  }
+		else
+		  { // done
+    #if 0
+		  NSLog(@"request sent");
+    #endif
+		  [self _unschedule];  // well, we should just unschedule the send stream
+		  [_body close];
+		  [_body release];
+		  _body=nil;
+		  }
+		}
+	      return;  // done
+	    }
+	  default: 
+	    break;
+	}
+    }
   NSLog(@"An error %@ occurred on the event %08x of stream %@ of %@", [stream streamError], event, stream, self);
   [this->client URLProtocol: self didFailWithError: [stream streamError]];
 }

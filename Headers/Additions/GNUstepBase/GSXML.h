@@ -442,6 +442,7 @@ extern "C" {
 
 
 #include	<Foundation/NSURLHandle.h>
+#include	<Foundation/NSURLConnection.h>
 
 @class	NSArray;
 @class	NSDictionary;
@@ -504,13 +505,10 @@ extern "C" {
 @interface	GSXMLRPC : NSObject <NSURLHandleClient>
 {
 @private
-#ifdef GNUSTEP
   NSURLHandle		*handle;
-#else
   NSString		*connectionURL;
   NSURLConnection	*connection;
   NSMutableData		*response;
-#endif
   NSTimer		*timer;
   id			result;
   id			delegate;	// Not retained.

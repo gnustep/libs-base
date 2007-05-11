@@ -399,6 +399,5 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 {
   return this->statusCode;
 }
-
 @end
 
