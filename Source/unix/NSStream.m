@@ -31,6 +31,7 @@
 #include <Foundation/NSError.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSByteOrder.h>
 
 #include "../GSStream.h"
 
@@ -52,6 +53,99 @@
 
 #ifndef	socklen_t
 #define	socklen_t	uint32_t
+#endif
+
+static id propertyForInet4Stream(int descriptor, NSString *key)
+{
+  struct sockaddr_in sin;
+  unsigned	size = sizeof(sin);
+  id		result = nil;
+
+  if ([key isEqualToString: GSStreamLocalAddressKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithUTF8String:
+	    (char*)inet_ntoa(sin.sin_addr)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamLocalPortKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin_port)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemoteAddressKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithUTF8String:
+	    (char*)inet_ntoa(sin.sin_addr)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemotePortKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin_port)];
+	}
+    }
+  return result;
+}
+#if	defined(AF_INET6)
+static id propertyForInet6Stream(int descriptor, NSString *key)
+{
+  struct sockaddr_in6 sin;
+  unsigned	size = sizeof(sin);
+  id		result = nil;
+
+  if ([key isEqualToString: GSStreamLocalAddressKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  char	buf[INET6_ADDRSTRLEN+1];
+
+	  if (inet_ntop(AF_INET6, &(sin.sin6_addr), buf, INET6_ADDRSTRLEN) == 0)
+	    {
+	      buf[INET6_ADDRSTRLEN] = '\0';
+	      result = [NSString stringWithUTF8String: buf];
+	    }
+	}
+    }
+  else if ([key isEqualToString: GSStreamLocalPortKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin6_port)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemoteAddressKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  char	buf[INET6_ADDRSTRLEN+1];
+
+	  if (inet_ntop(AF_INET6, &(sin.sin6_addr), buf, INET6_ADDRSTRLEN) == 0)
+	    {
+	      buf[INET6_ADDRSTRLEN] = '\0';
+	      result = [NSString stringWithUTF8String: buf];
+	    }
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemotePortKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin6_port)];
+	}
+    }
+  return result;
+}
 #endif
 
 /** 
@@ -80,7 +174,7 @@
 - (socklen_t) sockLen;
 
 /**
- * get the sockaddr
+ * get the remote sockaddr
  */
 - (struct sockaddr*) peerAddr;
 
@@ -626,7 +720,7 @@ static void setNonblocking(int fd)
   if ((self = [super init]) != nil)
     {
       _peerAddr.sin_family = AF_INET;
-      _peerAddr.sin_port = htons(port);
+      _peerAddr.sin_port = GSSwapHostI16ToBig(port);
       ptonReturn = inet_pton(AF_INET, addr_c, &(_peerAddr.sin_addr));
       if (ptonReturn == 0)   // error
 	{
@@ -634,6 +728,17 @@ static void setNonblocking(int fd)
 	}
     }
   return self;
+}
+
+- (id) propertyForKey: (NSString *)key
+{
+  id result = propertyForInet4Stream((intptr_t)_loopID, key);
+
+  if (result == nil)
+    {
+      result = [super propertyForKey: key];
+    }
+  return result;
 }
 
 @end
@@ -658,7 +763,7 @@ static void setNonblocking(int fd)
   if ((self = [super init]) != nil)
     {
       _peerAddr.sin6_family = AF_INET6;
-      _peerAddr.sin6_port = htons(port);
+      _peerAddr.sin6_port = GSSwapHostI16ToBig(port);
       ptonReturn = inet_pton(AF_INET6, addr_c, &(_peerAddr.sin6_addr));
       if (ptonReturn == 0)   // error
 	{
@@ -667,6 +772,18 @@ static void setNonblocking(int fd)
     }
   return self;
 }
+
+- (id) propertyForKey: (NSString *)key
+{
+  id result = propertyForInet6Stream((intptr_t)_loopID, key);
+
+  if (result == nil)
+    {
+      result = [super propertyForKey: key];
+    }
+  return result;
+}
+
 #else
 - (id) initToAddr: (NSString*)addr port: (int)port
 {
@@ -1038,7 +1155,7 @@ static void setNonblocking(int fd)
   if ((self = [super init]) != nil)
     {
       _peerAddr.sin_family = AF_INET;
-      _peerAddr.sin_port = htons(port);
+      _peerAddr.sin_port = GSSwapHostI16ToBig(port);
       ptonReturn = inet_pton(AF_INET, addr_c, &(_peerAddr.sin_addr));
       if (ptonReturn == 0)   // error
 	{
@@ -1046,6 +1163,17 @@ static void setNonblocking(int fd)
 	}
     }
   return self;
+}
+
+- (id) propertyForKey: (NSString *)key
+{
+  id result = propertyForInet4Stream((intptr_t)_loopID, key);
+
+  if (result == nil)
+    {
+      result = [super propertyForKey: key];
+    }
+  return result;
 }
 
 @end
@@ -1070,7 +1198,7 @@ static void setNonblocking(int fd)
   if ((self = [super init]) != nil)
     {
       _peerAddr.sin6_family = AF_INET6;
-      _peerAddr.sin6_port = htons(port);
+      _peerAddr.sin6_port = GSSwapHostI16ToBig(port);
       ptonReturn = inet_pton(AF_INET6, addr_c, &(_peerAddr.sin6_addr));
       if (ptonReturn == 0)   // error
 	{
@@ -1079,6 +1207,18 @@ static void setNonblocking(int fd)
     }
   return self;
 }
+
+- (id) propertyForKey: (NSString *)key
+{
+  id result = propertyForInet6Stream((intptr_t)_loopID, key);
+
+  if (result == nil)
+    {
+      result = [super propertyForKey: key];
+    }
+  return result;
+}
+
 #else
 - (id) initToAddr: (NSString*)addr port: (int)port
 {
@@ -1585,7 +1725,7 @@ static void setNonblocking(int fd)
 
   [super init];
   _serverAddr.sin_family = AF_INET;
-  _serverAddr.sin_port = htons(port);
+  _serverAddr.sin_port = GSSwapHostI16ToBig(port);
   ptonReturn = inet_pton(AF_INET, addr_c, &(_serverAddr.sin_addr));
   _loopID = (void*)(intptr_t)socket(AF_INET, SOCK_STREAM, 0);
   if (ptonReturn == 0 || _loopID < 0)   // error
@@ -1628,7 +1768,7 @@ static void setNonblocking(int fd)
 
   [super init];
   _serverAddr.sin6_family = AF_INET6;
-  _serverAddr.sin6_port = htons(port);
+  _serverAddr.sin6_port = GSSwapHostI16ToBig(port);
   ptonReturn = inet_pton(AF_INET6, addr_c, &(_serverAddr.sin6_addr));
   _loopID = (void*)(intptr_t)socket(AF_INET6, SOCK_STREAM, 0);
   if (ptonReturn == 0 || _loopID < 0)   // error

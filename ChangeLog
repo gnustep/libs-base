@@ -1,5 +1,16 @@
 2007-05-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSStream.m:
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStreamWin32.m:
+	* Headers/Foundation/NSStream.h:
+	First hack at extensions to get address and port properties for
+	network streams.
+	* Source/GSFFIInvocation.m:
+	Attempt to use forward2 if available.
+
+2007-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLResponse.m:
 	* Source/NSURLProtocol.m:
 	* Source/NSURLRequest.m:

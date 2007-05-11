@@ -42,6 +42,7 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSByteOrder.h>
 
 #include "../GSStream.h"
 #include "../GSPrivate.h"
@@ -49,6 +50,47 @@
 #define	BUFFERSIZE	(BUFSIZ*64)
 
 typedef int socklen_t;
+
+static id propertyForInet4Stream(int descriptor, NSString *key)
+{
+  struct sockaddr_in sin;
+  unsigned	size = sizeof(sin);
+  id		result = nil;
+
+  if ([key isEqualToString: GSStreamLocalAddressKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithUTF8String:
+	    (char*)inet_ntoa(sin.sin_addr)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamLocalPortKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin_port)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemoteAddressKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithUTF8String:
+	    (char*)inet_ntoa(sin.sin_addr)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemotePortKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin_port)];
+	}
+    }
+  return result;
+}
 
 /** 
  * The concrete subclass of NSInputStream that reads from a file
@@ -1030,6 +1072,98 @@ static void setNonblocking(SOCKET fd)
   return self;
 }
 
+static id propertyForInet4Stream(int descriptor, NSString *key)
+{
+  struct sockaddr_in sin;
+  unsigned	size = sizeof(sin);
+  id		result = nil;
+
+  if ([key isEqualToString: GSStreamLocalAddressKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithUTF8String:
+	    (char*)inet_ntoa(sin.sin_addr)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamLocalPortKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin_port)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemoteAddressKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithUTF8String:
+	    (char*)inet_ntoa(sin.sin_addr)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemotePortKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin_port)];
+	}
+    }
+  return result;
+}
+#if	defined(AF_INET6)
+static id propertyForInet6Stream(int descriptor, NSString *key)
+{
+  struct sockaddr_in6 sin;
+  unsigned	size = sizeof(sin);
+  id		result = nil;
+
+  if ([key isEqualToString: GSStreamLocalAddressKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  char	buf[INET6_ADDRSTRLEN+1];
+
+	  if (inet_ntop(AF_INET6, &(sin.sin6_addr), buf, INET6_ADDRSTRLEN) == 0)
+	    {
+	      buf[INET6_ADDRSTRLEN] = '\0';
+	      result = [NSString stringWithUTF8String: buf];
+	    }
+	}
+    }
+  else if ([key isEqualToString: GSStreamLocalPortKey])
+    {
+      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin6_port)];
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemoteAddressKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  char	buf[INET6_ADDRSTRLEN+1];
+
+	  if (inet_ntop(AF_INET6, &(sin.sin6_addr), buf, INET6_ADDRSTRLEN) == 0)
+	    {
+	      buf[INET6_ADDRSTRLEN] = '\0';
+	      result = [NSString stringWithUTF8String: buf];
+	    }
+	}
+    }
+  else if ([key isEqualToString: GSStreamRemotePortKey])
+    {
+      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
+        {
+	  result = [NSString stringWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(sin.sin6_port)];
+	}
+    }
+  return result;
+}
+#endif
 @end
 
 @implementation GSFileOutputStream
@@ -1770,6 +1904,17 @@ static void setNonblocking(SOCKET fd)
 	}
     }
   return self;
+}
+
+- (id) propertyForKey: (NSString *)key
+{
+  id result = propertyForInet4Stream((intptr_t)_loopID, key);
+
+  if (result == nil)
+    {
+      result = [super propertyForKey: key];
+    }
+  return result;
 }
 
 @end
