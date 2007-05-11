@@ -1268,7 +1268,7 @@ static void setNonblocking(int fd)
               inputStream: (NSInputStream **)inputStream 
              outputStream: (NSOutputStream **)outputStream
 {
-  NSString *address = [host address];
+  NSString *address = host ? (id)[host address] : (id)@"127.0.0.1";
   GSSocketInputStream *ins = nil;
   GSSocketOutputStream *outs = nil;
   int sock;
@@ -1281,10 +1281,10 @@ static void setNonblocking(int fd)
   if (!ins)
     {
 #if	defined(PF_INET6)
-      ins = [[GSInet6InputStream alloc] initToAddr: address
-                                        port: port];
-      outs = [[GSInet6OutputStream alloc] initToAddr: address
-                                          port: port];
+      ins = AUTORELEASE([[GSInet6InputStream alloc]
+	initToAddr: address port: port]);
+      outs = AUTORELEASE([[GSInet6OutputStream alloc]
+	initToAddr: address port: port]);
       sock = socket(PF_INET6, SOCK_STREAM, 0);
 #else
       sock = -1;
@@ -1308,7 +1308,6 @@ static void setNonblocking(int fd)
       [outs setSibling: ins];
       *outputStream = outs;
     }
-  return;
 }
 
 + (void) getLocalStreamsToPath: (NSString *)path 

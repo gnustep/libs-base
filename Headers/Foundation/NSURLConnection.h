@@ -72,7 +72,7 @@ extern "C" {
 
 /** <init />
  * Initialises the receiver with the specified request (performing
- * a deep copy so that ithe request does not change during loading)
+ * a deep copy so that the request does not change during loading)
  * and delegate.<br />
  * This automatically initiates an asynchronous load for the request.<br />
  * Processing of the request is done in the thread which calls this

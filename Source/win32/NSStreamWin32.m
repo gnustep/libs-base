@@ -1926,7 +1926,7 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
               inputStream: (NSInputStream **)inputStream 
              outputStream: (NSOutputStream **)outputStream
 {
-  NSString *address = [host address];
+  NSString *address = host ? (id)[host address] : (id)@"127.0.0.1";
   GSSocketInputStream *ins = nil;
   GSSocketOutputStream *outs = nil;
   int sock;
