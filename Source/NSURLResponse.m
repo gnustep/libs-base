@@ -84,19 +84,86 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
   NSNotAPointerMapKey
 };
 
-@interface	NSURLResponse (Internal)
-- (void) setStatusCode: (int)code text: (NSString*)text;
-- (void) setValue: (NSString *)value forHTTPHeaderField: (NSString *)field;
-- (NSString *) valueForHTTPHeaderField: (NSString *)field;
-@end
+@implementation	NSURLResponse (Private)
+- (void) _setHeaders: (id)headers
+{
+  NSEnumerator	*e;
+  NSString	*v;
+  NSString	*contentLength = nil;
+  GSMimeHeader	*contentType = nil;
 
-@implementation	NSURLResponse (Internal)
-- (void) setStatusCode: (int)code text: (NSString*)text
+  if ([headers isKindOfClass: [NSDictionary class]] == YES)
+    {
+      NSString		*k;
+
+      e = [headers keyEnumerator];
+      while ((k = [e nextObject]) != nil)
+	{
+	  v = [headers objectForKey: k];
+	  [self _setValue: v forHTTPHeaderField: k];
+	}
+    }
+  else if ([headers isKindOfClass: [NSArray class]] == YES)
+    {
+      GSMimeHeader	*h;
+
+      e = [headers objectEnumerator];
+      while ((h = [e nextObject]) != nil)
+        {
+	  NSString	*n = [h name];
+
+	  v = [h value];
+	  [self _setValue: v forHTTPHeaderField: n];
+	  if ([n isEqualToString: @"content-length"] == YES)
+	    {
+	      contentLength = v;
+	    }
+	  else if ([n isEqualToString: @"content-type"] == YES)
+	    {
+	      contentType = h;
+	    }
+	}
+    }
+
+  if (contentLength == nil)
+    {
+      contentLength = [self _valueForHTTPHeaderField: @"content-length"];
+    }
+  if ([contentLength length] == 0)
+    {
+      this->expectedContentLength = -1;
+    }
+  else
+    {
+      this->expectedContentLength = [contentLength intValue];
+    }
+
+  if (contentType == nil)
+    {
+      GSMimeParser	*p;
+      NSScanner		*s;
+
+      v = [self _valueForHTTPHeaderField: @"content-type"];
+      if (v == nil)
+        {
+	  v = @"text/plain";	// No content type given.
+	}
+      s = [NSScanner scannerWithString: v];
+      p = [GSMimeParser new];
+      contentType = AUTORELEASE([GSMimeHeader new]);
+      [p scanHeaderBody: s into: contentType];
+      RELEASE(p);
+    }
+  ASSIGNCOPY(this->MIMEType, [contentType value]);
+  v = [contentType parameterForKey: @"charset"];
+  ASSIGNCOPY(this->textEncodingName, v);
+}
+- (void) _setStatusCode: (int)code text: (NSString*)text
 {
   this->statusCode = code;
   ASSIGNCOPY(this->statusText, text);
 }
-- (void) setValue: (NSString *)value forHTTPHeaderField: (NSString *)field
+- (void) _setValue: (NSString *)value forHTTPHeaderField: (NSString *)field
 {
   if (this->headers == 0)
     {
@@ -105,7 +172,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
     }
   NSMapInsert(this->headers, (void*)field, (void*)value);
 }
-- (NSString *) valueForHTTPHeaderField: (NSString *)field
+- (NSString *) _valueForHTTPHeaderField: (NSString *)field
 {
   NSString	*value = nil;
 
@@ -247,7 +314,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
  */
 - (NSString *) suggestedFilename
 {
-  NSString	*disp = [self valueForHTTPHeaderField: @"content-disposition"];
+  NSString	*disp = [self _valueForHTTPHeaderField: @"content-disposition"];
   NSString	*name = nil;
 
   if (disp != nil)

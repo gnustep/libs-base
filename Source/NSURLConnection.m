@@ -22,7 +22,120 @@
    Boston, MA 02111 USA.
    */ 
 
+#include <Foundation/NSRunLoop.h>
 #include "GSURLPrivate.h"
+
+
+@interface _NSURLConnectionDataCollector : NSObject <NSURLProtocolClient>
+{
+  NSURLConnection	*_connection;	// Not retained
+  NSMutableData		*_data;
+  NSError		**_error;
+  NSURLResponse		**_response;
+  BOOL			_done;
+}
+
+- (NSData*) _data;
+- (BOOL) _done;
+- (void) _setConnection: (NSURLConnection *)c;
+
+@end
+
+@implementation _NSURLConnectionDataCollector
+
+- (id) initWithResponsePointer: (NSURLResponse **)response
+	       andErrorPointer: (NSError **)error
+{
+  if ((self = [super init]) != nil)
+    {
+      _response = response;
+      _error = error;
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_data);
+  [super dealloc];
+}
+
+- (BOOL) _done
+{
+  return _done;
+}
+
+- (NSData*) _data
+{
+  return _data;
+}
+
+- (void) _setConnection: (NSURLConnection*)c
+{
+  _connection = c;
+}
+
+// notification handler
+
+- (void) URLProtocol: (NSURLProtocol*)proto
+cachedResponseIsValid: (NSCachedURLResponse*)resp
+{
+  return;
+}
+
+- (void) URLProtocol: (NSURLProtocol*)proto
+didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
+{
+  return;
+}
+
+- (void) URLProtocol: (NSURLProtocol*)proto
+didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
+{
+  return;
+}
+
+- (void) URLProtocol: (NSURLProtocol*)proto
+wasRedirectedToRequest: (NSURLRequest*)request
+redirectResponse: (NSURLResponse*)redirectResponse
+{
+  return;
+}
+
+- (void) URLProtocol: (NSURLProtocol*)proto
+    didFailWithError: (NSError*)error
+{
+  *_error = error;
+  _done = YES;
+}
+
+- (void) URLProtocol: (NSURLProtocol*)proto
+  didReceiveResponse: (NSURLResponse*)response
+  cacheStoragePolicy: (NSURLCacheStoragePolicy)policy
+{
+  *_response = response;
+}
+
+- (void) URLProtocolDidFinishLoading: (NSURLProtocol*)proto
+{
+  _done = YES;
+}
+
+- (void) URLProtocol: (NSURLProtocol*)proto
+	 didLoadData: (NSData*)data
+{
+  if (_data != nil)
+    {
+      _data = [data mutableCopy];
+    }
+  else
+    {
+      [_data appendData: data];
+    }
+}
+
+@end
+
 
 @interface	GSURLConnection : NSObject <NSURLProtocolClient>
 {
@@ -30,7 +143,7 @@
   NSURLConnection		*_parent;	// Not retained
   NSURLRequest			*_request;
   NSURLProtocol			*_protocol;
-  id				_delegate;
+  id				_delegate;	// Not retained
 }
 @end
  
@@ -57,8 +170,7 @@ typedef struct {
 
 + (BOOL) canHandleRequest: (NSURLRequest *)request
 {
-  // FIXME
-  return NO;
+  return [NSURLProtocol canInitWithRequest: request];
 }
 
 + (NSURLConnection *) connectionWithRequest: (NSURLRequest *)request
@@ -87,8 +199,11 @@ typedef struct {
   if ((self = [super init]) != nil)
     {
       this->_request = [request copy];
-      this->_delegate = [delegate retain];
-      // FIXME ... start connection
+      this->_delegate = delegate;
+      this->_protocol = [[NSURLProtocol alloc] initWithRequest: this->_request
+						cachedResponse: nil
+							client: this];
+      [this->_protocol startLoading];
     }
   return self;
 }
@@ -157,12 +272,28 @@ typedef struct {
 
   if ([self canHandleRequest: request] == YES)
     {
-      NSURLConnection	*conn = [self alloc];
+      _NSURLConnectionDataCollector	*collector;
+      NSURLConnection			*conn;
+      NSRunLoop				*loop;
 
-      conn = [conn initWithRequest: request delegate: nil];
-      // FIXME ... handle load and get results;
+      collector = [_NSURLConnectionDataCollector alloc];
+      collector = [collector initWithResponsePointer: response
+				     andErrorPointer: error];
+      conn = [self alloc];
+      conn = [conn initWithRequest: request delegate: AUTORELEASE(collector)];
+      [collector _setConnection: conn];
+      loop = [NSRunLoop currentRunLoop];
+      while ([collector _done] == NO)
+        {
+	  NSDate	*limit;
+
+	  limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
+	  [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+	  RELEASE(limit);
+	}
+      data = RETAIN([collector _data]);
     }
-  return data;
+  return AUTORELEASE(data);
 }
 
 @end
@@ -174,7 +305,6 @@ typedef struct {
 {
   RELEASE(_protocol);
   RELEASE(_request);
-  RELEASE(_delegate);
   [super dealloc];
 }
 
@@ -231,6 +361,7 @@ typedef struct {
 	}
       else
         {
+	  [_protocol stopLoading];
 	  DESTROY(_protocol);
 	  // FIXME start new request loading
 	}
