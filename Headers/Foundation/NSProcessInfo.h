@@ -235,7 +235,7 @@ enum {
  * auto-initialize it are working.<br />
  * It is also safe to call this method to override the effects
  * of the automatic initialisation, which some applications may need
- * to do when using GNUstep libraries embeddedm within other frameworks.
+ * to do when using GNUstep libraries embedded within other frameworks.
  */
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
