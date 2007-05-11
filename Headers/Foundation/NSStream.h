@@ -329,6 +329,15 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyVersion4;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion5;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
 
+/** May be used to read the local IP address of a tcp/ip network stream. */
+GS_EXPORT NSString * const GSStreamLocalAddressKey;
+/** May be used to read the local port of a tcp/ip network stream. */
+GS_EXPORT NSString * const GSStreamLocalPortKey;
+/** May be used to read the remote IP address of a tcp/ip network stream. */
+GS_EXPORT NSString * const GSStreamRemoteAddressKey;
+/** May be used to read the remote port of a tcp/ip network stream. */
+GS_EXPORT NSString * const GSStreamRemotePortKey;
+
 /**
  * Informal protocol for delegates of instance of the [NSStream] class.
  */

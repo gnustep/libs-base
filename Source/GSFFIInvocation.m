@@ -141,37 +141,40 @@ gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 
 @implementation GSFFIInvocation
 
-static IMP gs_objc_msg_forward (SEL sel)
+static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 {
-  const char		*sel_type;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
-
   NSMethodSignature     *sig;
 
-  /* Determine the method types so we can construct the frame. We may not
-     get the right one, though. What to do then? Perhaps it can be fixed up
-     in the callback, but only under limited circumstances.
-   */
-  sel_type = sel_get_type (sel);
-  sig = nil;
+  sig = [receiver methodSignatureForSelector: sel];
 
-  if (sel_type)
+  if (sig == nil)
     {
-      sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
-    }
-  else
-    {
-      static NSMethodSignature *def = nil;
+      const char	*sel_type;
 
-      /*
-       * Default signature is for a method returning an object.
+      /* Determine the method types so we can construct the frame. We may not
+	 get the right one, though. What to do then? Perhaps it can be fixed up
+	 in the callback, but only under limited circumstances.
        */
-      if (def == nil)
+      sel_type = sel_get_type (sel);
+      if (sel_type)
 	{
-	  def = RETAIN([NSMethodSignature signatureWithObjCTypes: "@@:"]);
+	  sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
 	}
-      sig = def;
+      else
+	{
+	  static NSMethodSignature *def = nil;
+
+	  /*
+	   * Default signature is for a method returning an object.
+	   */
+	  if (def == nil)
+	    {
+	      def = RETAIN([NSMethodSignature signatureWithObjCTypes: "@@:"]);
+	    }
+	  sig = def;
+	}
     }
 
   NSCAssert1(sig, @"No signature for selector %@", NSStringFromSelector(sel));
@@ -188,7 +191,7 @@ static IMP gs_objc_msg_forward (SEL sel)
       [NSException raise: NSMallocException format: @"Allocating closure"];
     }
   if (ffi_prep_closure(cclosure, &(cframe->cif),
-		       GSFFIInvocationCallback, cframe) != FFI_OK)
+    GSFFIInvocationCallback, cframe) != FFI_OK)
     {
       [NSException raise: NSGenericException format: @"Preping closure"];
     }
@@ -196,9 +199,18 @@ static IMP gs_objc_msg_forward (SEL sel)
   return (IMP)cclosure;
 }
 
+static IMP gs_objc_msg_forward (SEL sel)
+{
+  return gs_objc_msg_forward2 (nil, sel);
+}
+
 + (void) load
 {
+#if	HAVE_FORWARD2
+  __objc_msg_forward2 = gs_objc_msg_forward2;
+#else
   __objc_msg_forward = gs_objc_msg_forward;
+#endif
 }
 
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
@@ -522,7 +534,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
      not the invocation so it will be demallocd at the end of this call
   */
   if ([sig methodReturnType] && *[sig methodReturnType] == _C_ID
-      && ((NSInvocation_t *)invocation)->_validReturn == YES)
+    && ((NSInvocation_t *)invocation)->_validReturn == YES)
     {
       AUTORELEASE(*(id *)retp);
       ((NSInvocation_t *)invocation)->_validReturn = NO;
