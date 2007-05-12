@@ -53,6 +53,7 @@
 
 #include <Foundation/NSStream.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSMapTable.h>
 
 /**
  * Convenience methods used to add streams to the run loop.
@@ -71,8 +72,7 @@
   BOOL                   _delegateValid;/* whether the delegate responds*/\
   NSError               *_lastError;    /* last error occured           */\
   NSStreamStatus         _currentStatus;/* current status               */\
-  NSMutableArray 	*_modes;	/* currently scheduled modes.	*/\
-  NSRunLoop 		*_runloop;	/* currently scheduled loop.	*/\
+  NSMapTable		*_loops;	/* Run loops and their modes.	*/\
   void                  *_loopID;	/* file descriptor etc.		*/\
   int			_events;	/* Signalled events.		*/\
 }
@@ -104,6 +104,11 @@ IVARS
 - (void*) _loopID;
 
 /**
+ * Place the stream in all the scheduled runloops.
+ */
+- (void) _schedule;
+
+/**
  * send an event to delegate
  */
 - (void) _sendEvent: (NSStreamEvent)event;
@@ -128,6 +133,12 @@ IVARS
  * say whether there is unhandled data for the stream.
  */
 - (BOOL) _unhandledData;
+
+/**
+ * Remove the stream from all the scheduled runloops.
+ */
+- (void) _unschedule;
+
 @end
 
 @interface GSInputStream : NSInputStream
@@ -151,11 +162,6 @@ IVARS
   NSData *_data;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 /**
@@ -168,11 +174,6 @@ IVARS
   unsigned	_capacity;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 /**
@@ -184,11 +185,6 @@ IVARS
   NSMutableData *_data;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 #endif

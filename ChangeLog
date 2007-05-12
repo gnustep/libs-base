@@ -1,5 +1,18 @@
 2007-05-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSStream.h: New runloop management
+	* Source/GSStream.m: Support scheduling in multiple runloops to match
+	documented MacOS-X behavior.  Trigger instant event on error or eof.
+	* Source/unix/NSStream.m: Don't send error and eof events asap, defer
+	until the runloop runs as this is how MacOS-X behaves.
+	* Source/win32/NSStreamWin32.m: ditto.
+	* Source/unix/GSRunLoopCtxt.m: Fix failure to trigger immediate events
+	when there are no non-immediate input sources in th loop.  Fix busy
+	poll when there are no non-immediate sources in the loop.
+	* Source/win32/GSRunLoopCtxt.m: ditto
+
+2007-05-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLProtocol.m: Fix multiple release of headers.
 
 2007-05-11  Richard Frith-Macdonald <rfm@gnu.org>
