@@ -364,7 +364,7 @@ static NSURLProtocol	*placeholder = nil;
 		    outputStream: &this->output];
       if (!this->input || !this->output)
 	{
-#if 1
+#if 0
 	  NSLog(@"did not create streams for %@: %u", host, [[url port] intValue]);
 #endif
 	  [this->client URLProtocol: self didFailWithError:
@@ -397,7 +397,7 @@ static NSURLProtocol	*placeholder = nil;
 
 - (void) stopLoading
 {
-#if 1
+#if 0
   NSLog(@"stopLoading: %@", self);
 #endif
   if (this->input != nil)
@@ -423,7 +423,7 @@ static NSURLProtocol	*placeholder = nil;
 { // process header line
   unsigned char *c, *end;
   NSString *key, *val;
-#if 1
+#if 0
   NSLog(@"process header line len=%d", len);
 #endif
   // if it begins with ' ' or '\t' it is a continuation line to the previous header field
@@ -435,7 +435,7 @@ static NSURLProtocol	*placeholder = nil;
       if (major != 1 || minor > 1)
         [this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"Bad HTTP version" code: 0 userInfo: nil]];
       // must be first - but must also be present and valid before we go to receive the body!
-      _headers=[NSMutableDictionary dictionaryWithCapacity: 10];  // start collecting headers
+      _headers=[NSMutableDictionary new];  // start collecting headers
   //    if (_statusCode >= 400 && _statusCode <= 499)
         NSLog(@"Client header: %.*s", len, buffer);
       return NO;  // process next line
@@ -499,7 +499,7 @@ NSLog(@"Received");
 - (void) _processHeader: (unsigned char *) buffer length: (int) len
 { // next header fragment received
   unsigned char *ptr, *end;
-#if 1
+#if 0
   NSLog(@"received %d bytes", len);
 #endif
   if (len <= 0)
@@ -570,7 +570,7 @@ NSLog(@"Received");
 #endif
   if (stream == this->input) 
     {
-#if 1
+#if 0
   NSLog(@"input stream handleEvent: %x for: %@", event, self);
 #endif
       switch(event)
@@ -584,7 +584,7 @@ NSLog(@"Received");
 					maxLength: sizeof(buffer)];
 	      if (len < 0)
 		{
-    #if 1
+    #if 0
 		  NSLog(@"receive error %@", [NSError _last]);
     #endif
 		  [this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"receive error" code: 0 userInfo: nil]];
@@ -599,7 +599,7 @@ NSLog(@"Received");
 	    }
 	  case NSStreamEventEndEncountered:   // can this occur in parallel to NSStreamEventHasBytesAvailable???
 	    {
-    #if 1
+    #if 0
 	      NSLog(@"end of response");
     #endif
 	      if (!_readingBody)
@@ -611,7 +611,7 @@ NSLog(@"Received");
 	    }
 	  case NSStreamEventOpenCompleted: 
 	    { // prepare to receive header
-    #if 1
+    #if 0
 	      NSLog(@"HTTP input stream opened");
     #endif
 	      return;
@@ -644,7 +644,7 @@ NSLog(@"Received");
 	      NSLog(@"HTTP output stream opened");
     #endif
 	      msg = (unsigned char *)[[NSString stringWithFormat:
-		@"%@ %@ HTTP/1.1\r\n",
+		@"%@ %@ HTTP/1.0\r\n",
 		[this->request HTTPMethod],
 		[[this->request URL] absoluteString]] UTF8String];
 	      [(NSOutputStream *) stream write: msg
@@ -693,7 +693,7 @@ NSLog(@"Received");
 		  int len=[_body read: buffer maxLength: sizeof(buffer)];  // read next block from stream
 		  if (len < 0)
 		    {
-    #if 1
+    #if 0
 		    NSLog(@"error reading from HTTPBody stream %@", [NSError _last]);
     #endif
 		    [self _unschedule];

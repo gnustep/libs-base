@@ -611,7 +611,7 @@ static void setNonblocking(int fd)
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte read write requested"];
+		  format: @"zero byte read requested"];
     }
 
   _events &= ~NSStreamEventHasBytesAvailable;
