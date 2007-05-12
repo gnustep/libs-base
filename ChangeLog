@@ -1,3 +1,7 @@
+2007-05-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m: Fix multiple release of headers.
+
 2007-05-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSStream.m:
