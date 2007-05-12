@@ -424,7 +424,6 @@ static void setNonblocking(int fd)
   else if (readLen == 0)
     {
       [self _setStatus: NSStreamStatusAtEnd];
-      [self _sendEvent: NSStreamEventEndEncountered];
     }
   return readLen;
 }
@@ -462,7 +461,6 @@ static void setNonblocking(int fd)
   if (fd < 0)
     {  
       [self _recordError];
-      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   _loopID = (void*)(intptr_t)fd;
@@ -554,31 +552,25 @@ static void setNonblocking(int fd)
     {
       int result;
       
-      if (_runloop)
+      if (NSCountMapTable(_loops) > 0)
 	{
 	  setNonblocking((intptr_t)_loopID);
 	}
       result = connect((intptr_t)_loopID, [self peerAddr], [self sockLen]);
       if (result < 0)
 	{
-	  if (errno == EINPROGRESS && _runloop != nil)
+	  if (errno == EINPROGRESS && NSCountMapTable(_loops) > 0)
 	    {
-	      unsigned i = [_modes count];
-
 	      /*
 	       * Need to set the status first, so that the run loop can tell
 	       * it needs to add the stream as waiting on writable, as an
 	       * indication of opened
 	       */
 	      [self _setStatus: NSStreamStatusOpening];
-	      while (i-- > 0)
-		{
-		  [_runloop addStream: self mode: [_modes objectAtIndex: i]];
-		}
+	      [self _schedule];
 	      return;
 	    }
           [self _recordError];
-          [self _sendEvent: NSStreamEventErrorOccurred];
           return;
         }
     }
@@ -630,7 +622,6 @@ static void setNonblocking(int fd)
   else if (readLen == 0)
     {
       [self _setStatus: NSStreamStatusAtEnd];
-      [self _sendEvent: NSStreamEventEndEncountered];
     }
   return readLen;
 }
@@ -656,13 +647,9 @@ static void setNonblocking(int fd)
       int error;
       int result;
       socklen_t len = sizeof(error);
-      unsigned i = [_modes count];
 
       AUTORELEASE(RETAIN(self));
-      while (i-- > 0)
-	{
-	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
-	}
+      [self _unschedule];
       result
 	= getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
 
@@ -898,7 +885,6 @@ static void setNonblocking(int fd)
   if (fd < 0)
     {  // make an error
       [self _recordError];
-      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   _loopID = (void*)(intptr_t)fd;
@@ -1036,31 +1022,25 @@ static void setNonblocking(int fd)
     {
       int result;
       
-      if (_runloop)
+      if (NSCountMapTable(_loops) > 0)
 	{
 	  setNonblocking((intptr_t)_loopID);
 	}
       result = connect((intptr_t)_loopID, [self peerAddr], [self sockLen]);
       if (result < 0)
 	{
-	  if (errno == EINPROGRESS && _runloop != nil)
+	  if (errno == EINPROGRESS && NSCountMapTable(_loops) > 0)
 	    {
-	      unsigned i = [_modes count];
-
 	      /*
 	       * Need to set the status first, so that the run loop can tell
 	       * it needs to add the stream as waiting on writable, as an
 	       * indication of opened
 	       */
 	      [self _setStatus: NSStreamStatusOpening];
-	      while (i-- > 0)
-		{
-		  [_runloop addStream: self mode: [_modes objectAtIndex: i]];
-		}
+	      [self _unschedule];
 	      return;
 	    }
           [self _recordError];
-          [self _sendEvent: NSStreamEventErrorOccurred];
           return;
         }
     }
@@ -1093,13 +1073,9 @@ static void setNonblocking(int fd)
       int error;
       socklen_t len = sizeof(error);
       int result;
-      unsigned i = [_modes count];
 
       AUTORELEASE(RETAIN(self));
-      while (i-- > 0)
-	{
-	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
-	}
+      [self _schedule];
       result
 	= getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
       if (result >= 0 && !error)
@@ -1619,7 +1595,6 @@ static void setNonblocking(int fd)
   if (bindReturn < 0 || listenReturn < 0)
     {
       [self _recordError];
-      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   setNonblocking((intptr_t)_loopID);

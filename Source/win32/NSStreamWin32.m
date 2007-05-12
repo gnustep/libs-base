@@ -368,7 +368,6 @@ static void setNonblocking(SOCKET fd)
   if (h == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
-      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   [self _setLoopID: (void*)h];
@@ -418,7 +417,6 @@ static void setNonblocking(SOCKET fd)
   else if (readLen == 0)
     {
       [self _setStatus: NSStreamStatusAtEnd];
-      [self _sendEvent: NSStreamEventEndEncountered];
     }
   return (int)readLen;
 }
@@ -635,7 +633,6 @@ static void setNonblocking(SOCKET fd)
     {
       if (myStatus == NSStreamStatusError)
 	{
-	  [self _sendEvent: NSStreamEventErrorOccurred];
 	  return -1;	// Waiting for read.
 	}
       if (myStatus == NSStreamStatusOpen)
@@ -645,7 +642,6 @@ static void setNonblocking(SOCKET fd)
 	   * so we must be at EOF.
 	   */
 	  [self _setStatus: NSStreamStatusAtEnd];
-	  [self _sendEvent: NSStreamEventEndEncountered];
 	}
       return 0;
     }
@@ -808,19 +804,13 @@ static void setNonblocking(SOCKET fd)
 	&& WSAGetLastError() != WSAEWOULDBLOCK)
         {// make an error
           [self _recordError];
-          [self _sendEvent: NSStreamEventErrorOccurred];
           return;
         }
       // waiting on writable, as an indication of opened
-      if (_runloop)
+      if (NSCountMapTable(_loops) > 0)
         {
-          unsigned i = [_modes count];
-          
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-          while (i-- > 0)
-            {
-              [_runloop addStream: self mode: [_modes objectAtIndex: i]];
-            }
+	  [self _schedule];
         }
       [self _setStatus: NSStreamStatusOpening];
       return;
@@ -902,7 +892,6 @@ static void setNonblocking(SOCKET fd)
   else if (readLen == 0)
     {
       [self _setStatus: NSStreamStatusAtEnd];
-      [self _sendEvent: NSStreamEventEndEncountered];
     }
   else 
     {
@@ -950,12 +939,7 @@ static void setNonblocking(SOCKET fd)
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
-	  unsigned	i = [_modes count];
-
-	  while (i-- > 0)
-	    {
-	      [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
-	    }
+	  [self _unschedule];
 	  if (error == 0)
 	    {
 	      unsigned len = sizeof(error);
@@ -1029,7 +1013,6 @@ static void setNonblocking(SOCKET fd)
 	      if ([self _isOpened])
 		{
 		  [self _setStatus: NSStreamStatusAtEnd];
-		  [self _sendEvent: NSStreamEventEndEncountered];
 		}
 	    }
 	}
@@ -1123,7 +1106,6 @@ static void setNonblocking(SOCKET fd)
   if (h == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
-      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   else if (_shouldAppend == NO)
@@ -1131,7 +1113,6 @@ static void setNonblocking(SOCKET fd)
       if (SetEndOfFile(h) == 0)	// Truncate to current file pointer (0)
 	{
           [self _recordError];
-          [self _sendEvent: NSStreamEventErrorOccurred];
           CloseHandle(h);
 	  return;
 	}
@@ -1589,20 +1570,13 @@ static void setNonblocking(SOCKET fd)
 	&& WSAGetLastError() != WSAEWOULDBLOCK)
         {// make an error
           [self _recordError];
-          [self _sendEvent: NSStreamEventErrorOccurred];
           return;
         }
       // waiting on writable, as an indication of opened
-      if (_runloop)
+      if (NSCountMapTable(_loops) > 0)
         {
-          unsigned i = [_modes count];
-
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-
-          while (i-- > 0)
-            {
-              [_runloop addStream: self mode: [_modes objectAtIndex: i]];
-            }
+	  [self _schedule];
         }
       [self _setStatus: NSStreamStatusOpening];
       return;
@@ -1686,13 +1660,7 @@ static void setNonblocking(SOCKET fd)
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
-	  unsigned	i = [_modes count];
-
-	  while (i-- > 0)
-	    {
-	      [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
-	    }
-
+	  [self _unschedule];
 	  if (error == 0)
 	    {
 	      unsigned len = sizeof(error);
@@ -2294,7 +2262,6 @@ done:
   if (bindReturn < 0 || listenReturn < 0)
     {
       [self _recordError];
-      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
   setNonblocking(_sock);
@@ -2508,7 +2475,6 @@ done:
   if (handle == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
-      [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
 
@@ -2531,7 +2497,6 @@ done:
       else if (errno != ERROR_IO_PENDING)
 	{
 	  [self _recordError];
-          [self _sendEvent: NSStreamEventErrorOccurred];
 	  return;
 	}
     }
@@ -2543,7 +2508,6 @@ done:
   if (alreadyConnected == YES)
     {
       [self _setStatus: NSStreamStatusOpen];
-      [self _sendEvent: NSStreamEventHasBytesAvailable];
     }
 }
 

@@ -382,14 +382,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   fprintf(stderr, "\n");
 }
 #endif
-  if (pollfds_count > 0)
-    {
-      poll_return = poll (pollfds, pollfds_count, milliseconds);
-    }
-  else
-    {
-      poll_return = 0;
-    }
+  poll_return = poll (pollfds, pollfds_count, milliseconds);
 #if 0
 {
   unsigned int i;
@@ -429,33 +422,33 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * Trigger any watchers which are set up to for every runloop wait.
    */
   count =  GSIArrayCount(_trigger);
-  while (completed == NO && count-- > 0)
+  while (count-- > 0)
     {
       GSRunLoopWatcher	*watcher;
 
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
-	if (watcher->_invalidated == NO)
-	  {
-	    i = [contexts count];
-	    while (i-- > 0)
-	      {
-		GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+      if (watcher->_invalidated == NO)
+	{
+	  i = [contexts count];
+	  while (i-- > 0)
+	    {
+	      GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-		if (c != self)
-		  {
-		    [c endEvent: (void*)watcher for: watcher];
-		  }
-	      }
-	    /*
-	     * The watcher is still valid - so call its
-	     * receivers event handling method.
-	     */
-	    [watcher->receiver receivedEvent: watcher->data
-					type: watcher->type
-				       extra: watcher->data
-				     forMode: mode];
-	  }
-	GSPrivateNotifyASAP();
+	      if (c != self)
+		{
+		  [c endEvent: (void*)watcher for: watcher];
+		}
+	    }
+	  /*
+	   * The watcher is still valid - so call its
+	   * receivers event handling method.
+	   */
+	  [watcher->receiver receivedEvent: watcher->data
+				      type: watcher->type
+				     extra: watcher->data
+				   forMode: mode];
+	}
+      GSPrivateNotifyASAP();
     }
 
   /*
@@ -771,15 +764,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
   // NSDebugMLLog(@"NSRunLoop", @"select timeout %d,%d", timeout.tv_sec, timeout.tv_usec);
 
-  if (fdEnd >= 0)
-    {
-      select_return = select (fdEnd, &read_fds, &write_fds,
-	&exception_fds, select_timeout);
-    }
-  else
-    {
-      select_return = 0;
-    }
+  select_return = select (fdEnd, &read_fds, &write_fds,
+    &exception_fds, select_timeout);
 
   NSDebugMLLog(@"NSRunLoop", @"select returned %d", select_return);
 
@@ -810,7 +796,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * Trigger any watchers which are set up to for every runloop wait.
    */
   count = GSIArrayCount(_trigger);
-  while (completed == NO && count-- > 0)
+  while (count-- > 0)
     {
       GSRunLoopWatcher	*watcher;
 

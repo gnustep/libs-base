@@ -424,7 +424,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
   else
     {
-  	  SleepEx(wait_timeout, TRUE);
+      SleepEx(wait_timeout, TRUE);
       wait_return = WAIT_OBJECT_0;
     }
   NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);
@@ -467,7 +467,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    */
   count = GSIArrayCount(_trigger);
   completed = NO;
-  while (completed == NO && count-- > 0)
+  while (count-- > 0)
     {
       GSRunLoopWatcher	*watcher;
 
@@ -503,7 +503,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       return NO;
     }
 
-  // if there arent events
+  // if there aren't events
   if (wait_return == WAIT_TIMEOUT)
     {
       completed = YES;

@@ -150,15 +150,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     {
       NSDebugMLog(@"Attempt to close already closed stream %@", self);
     }
-  if (_runloop)
-    {
-      unsigned	i = [_modes count];
-
-      while (i-- > 0)
-	{
-	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
-	}
-    }
+  [self _unschedule];
   [self _setStatus: NSStreamStatusClosed];
   /* We don't want to send any events the the delegate after the
    * stream has been closed.
@@ -173,8 +165,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     {
       [self close];
     }
-  DESTROY(_runloop);
-  DESTROY(_modes);
+  if (_loops != 0)
+    {
+      NSFreeMapTable(_loops);
+      _loops = 0;
+    }
   DESTROY(_properties);
   DESTROY(_lastError);
   [super dealloc];
@@ -192,7 +187,8 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       _delegate = self;
       _properties = nil;
       _lastError = nil;
-      _modes = [NSMutableArray new];
+      _loops = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	NSObjectMapValueCallBacks, 1);
       _currentStatus = NSStreamStatusNotOpen;
       _loopID = (void*)self;
     }
@@ -206,15 +202,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       NSDebugMLog(@"Attempt to re-open stream %@", self);
     }
   [self _setStatus: NSStreamStatusOpen];
-  if (_runloop)
-    {
-      unsigned	i = [_modes count];
-
-      while (i-- > 0)
-	{
-	  [_runloop addStream: self mode: [_modes objectAtIndex: i]];
-	}
-    }
+  [self _schedule];
   [self _sendEvent: NSStreamEventOpenCompleted];
 }
 
@@ -228,20 +216,24 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
+NSLog(@"Event on %p", self);
   [self _dispatch];
 }
 
 - (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
 {
-  if (_runloop == aRunLoop)
+  if (aRunLoop != nil && mode != nil)
     {
-      if ([_modes containsObject: mode])
+      NSMutableArray	*modes;
+
+      modes = (NSMutableArray*)NSMapGet(_loops, (void*)aRunLoop);
+      if ([modes containsObject: mode])
 	{
-	  [_runloop removeStream: self mode: mode];
-	  [_modes removeObject: mode];
-	  if ([_modes count] == 0)
+	  [aRunLoop removeStream: self mode: mode];
+	  [modes removeObject: mode];
+	  if ([modes count] == 0)
 	    {
-	      DESTROY(_runloop);
+	      NSMapRemove(_loops, (void*)aRunLoop);
 	    }
 	}
     }
@@ -249,21 +241,30 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
 {
-  NSAssert(!_runloop || _runloop == aRunLoop, 
-    @"Attempt to schedule in more than one runloop.");
-  ASSIGN(_runloop, aRunLoop);
-  if ([_modes containsObject: mode] == NO)
+  if (aRunLoop != nil && mode != nil)
     {
-      mode = [mode copy];
-      [_modes addObject: mode];
-      RELEASE(mode);
-      /* We only add open streams to the runloop .. subclasses may add
-       * streams when they are in the process of opening if they need
-       * to do so.
-       */
-      if ([self _isOpened])
+      NSMutableArray	*modes;
+
+      modes = (NSMutableArray*)NSMapGet(_loops, (void*)aRunLoop);
+      if (modes == nil)
 	{
-	  [_runloop addStream: self mode: mode];
+	  modes = [[NSMutableArray alloc] initWithCapacity: 1];
+	  NSMapInsert(_loops, (void*)aRunLoop, (void*)modes);
+	  RELEASE(modes);
+	}
+      if ([modes containsObject: mode] == NO)
+	{
+	  mode = [mode copy];
+	  [modes addObject: mode];
+	  RELEASE(mode);
+	  /* We only add open streams to the runloop .. subclasses may add
+	   * streams when they are in the process of opening if they need
+	   * to do so.
+	   */
+	  if ([self _isOpened])
+	    {
+	      [aRunLoop addStream: self mode: mode];
+	    }
 	}
     }
 }
@@ -332,6 +333,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
 }
 
+- (void) _schedule
+{
+}
+
 - (void) _sendEvent: (NSStreamEvent)event
 {
 }
@@ -348,6 +353,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
   return NO;
 }
+
+- (void) _unschedule
+{
+}
+
 @end
 
 @implementation	GSStream (Private)
@@ -377,6 +387,25 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   NSLog(@"%@ error(%d): - %@", self, errno, [NSError _last]);
   ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
+}
+
+- (void) _schedule
+{
+  NSMapEnumerator	enumerator;
+  NSRunLoop		*k;
+  NSMutableArray	*v;
+
+  enumerator = NSEnumerateMapTable(_loops);
+  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&k), (void**)&v))
+    {
+      unsigned	i = [v count];
+
+      while (i-- > 0)
+	{
+	  [k addStream: self mode: [v objectAtIndex: i]];
+	}
+    }
+  NSEndMapTableEnumeration(&enumerator);
 }
 
 - (void) _sendEvent: (NSStreamEvent)event
@@ -490,6 +519,25 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return NO;
 }
 
+- (void) _unschedule
+{
+  NSMapEnumerator	enumerator;
+  NSRunLoop		*k;
+  NSMutableArray	*v;
+
+  enumerator = NSEnumerateMapTable(_loops);
+  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&k), (void**)&v))
+    {
+      unsigned	i = [v count];
+
+      while (i-- > 0)
+	{
+	  [k removeStream: self mode: [v objectAtIndex: i]];
+	}
+    }
+  NSEndMapTableEnumeration(&enumerator);
+}
+
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   if (_events
@@ -501,23 +549,43 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       *trigger = NO;
       return NO;
     }
-  if (_currentStatus == NSStreamStatusError &&
-    (_events & NSStreamEventErrorOccurred) == NSStreamEventErrorOccurred)
+  if (_currentStatus == NSStreamStatusError)
     {
-      /* If an error has occurred (and been handled),
-       * we should not watch for any events at all.
-       */
-      *trigger = NO;
-      return NO;
+      if ((_events & NSStreamEventErrorOccurred) == 0)
+	{
+	  /* An error has occurred but not been handled,
+	   * so we should trigger an error event at once.
+	   */
+	  *trigger = YES;
+	  return NO;
+	}
+      else
+	{
+	  /* An error has occurred (and been handled),
+	   * so we should not watch for any events at all.
+	   */
+	  *trigger = NO;
+	  return NO;
+	}
     }
-  if (_currentStatus == NSStreamStatusAtEnd &&
-    (_events & NSStreamEventEndEncountered) == NSStreamEventEndEncountered)
+  if (_currentStatus == NSStreamStatusAtEnd)
     {
-      /* If an error has occurred (and been handled),
-       * we should not watch for any events at all.
-       */
-      *trigger = NO;
-      return NO;
+      if ((_events & NSStreamEventEndEncountered) == 0)
+	{
+	  /* An end of stream has occurred but not been handled,
+	   * so we should trigger an end of stream event at once.
+	   */
+	  *trigger = YES;
+	  return NO;
+	}
+      else
+	{
+	  /* An end of stream has occurred (and been handled),
+	   * so we should not watch for any events at all.
+	   */
+	  *trigger = NO;
+	  return NO;
+	}
     }
 
   if (_loopID == (void*)self)
@@ -584,17 +652,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (_currentStatus == NSStreamStatusOpen)
     {
       return YES;
-    }
-  if (_currentStatus == NSStreamStatusAtEnd)
-    {
-      if ((_events & NSStreamEventEndEncountered) == 0)
-	{
-	  /* We have not sent the appropriate event yet, so the
-           * client must not have issued a write:maxLength:
-	   * (which is the point at which we should send).
-	   */
-	  return YES;
-	}
     }
   return NO;
 }
@@ -675,7 +732,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   else
     {
       [self _setStatus: NSStreamStatusAtEnd];
-      [self _sendEvent: NSStreamEventEndEncountered];
     }
   return copySize;
 }
@@ -757,7 +813,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       if (len == 0)
 	{
 	  [self _setStatus: NSStreamStatusAtEnd];
-	  [self _sendEvent: NSStreamEventEndEncountered];
 	  return 0;
 	}
     }
