@@ -26,6 +26,8 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSRunLoop.h>
 
+#include "GNUstepBase/GSMime.h"
+
 #include "GSPrivate.h"
 #include "GSURLPrivate.h"
 
@@ -41,14 +43,17 @@
 
 @interface _NSHTTPURLProtocol : NSURLProtocol
 {
-  NSMutableDictionary	*_headers;		// received headers
-  NSEnumerator		*_headerEnumerator;	// enumerates headers while sending
+  GSMimeParser		*_parser;		// for parsing incoming data
+  NSEnumerator		*_headerEnumerator;
+  float			_version;
   NSInputStream		*_body;			// for sending the body
   unsigned char		*_receiveBuf;		// buffer while receiving header fragments
   unsigned int		_receiveBufLength;	// how much is really used in the current buffer
   unsigned int		_receiveBufCapacity;	// how much is allocated
   unsigned		_statusCode;
-  BOOL			_readingBody;
+  unsigned		_bodyPos;
+  BOOL			_debug;
+  BOOL			_shouldClose;
 }
 @end
 
@@ -296,7 +301,7 @@ static NSURLProtocol	*placeholder = nil;
 
 - (void) dealloc
 {
-  [_headers release];			// received headers
+  [_parser release];			// received headers
   [_body release];			// for sending the body
   [super dealloc];
 }
@@ -345,6 +350,10 @@ static NSURLProtocol	*placeholder = nil;
       NSHost	*host = [NSHost hostWithName: [url host]];
       int	port = [[url port] intValue];
 
+      _bodyPos = 0;
+      DESTROY(_parser);
+      _parser = [GSMimeParser new];
+
       if (host == nil)
         {
 	  host = [NSHost hostWithAddress: [url host]];	// try dotted notation
@@ -358,6 +367,7 @@ static NSURLProtocol	*placeholder = nil;
 	  // default if not specified
 	  port = [[url scheme] isEqualToString: @"https"] ? 433 : 80;
 	}
+
       [NSStream getStreamsToHost: host
 			    port: port
 		     inputStream: &this->input
@@ -419,142 +429,6 @@ static NSURLProtocol	*placeholder = nil;
     }
 }
 
-- (BOOL) _processHeaderLine: (unsigned char *) buffer length: (int) len
-{ // process header line
-  unsigned char *c, *end;
-  NSString *key, *val;
-#if 0
-  NSLog(@"process header line len=%d", len);
-#endif
-  // if it begins with ' ' or '\t' it is a continuation line to the previous header field
-  if (!_headers)
-    { // should be/must be the header line
-    unsigned major, minor;
-    if (sscanf((char *) buffer, "HTTP/%u.%u %u", &major, &minor, &_statusCode) == 3)
-      { // response header line
-      if (major != 1 || minor > 1)
-        [this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"Bad HTTP version" code: 0 userInfo: nil]];
-      // must be first - but must also be present and valid before we go to receive the body!
-      _headers=[NSMutableDictionary new];  // start collecting headers
-  //    if (_statusCode >= 400 && _statusCode <= 499)
-        NSLog(@"Client header: %.*s", len, buffer);
-      return NO;  // process next line
-      }
-    else
-      ; // invalid header
-    return NO;  // process next line
-    }
-  if (len == 0)
-    { // empty line, i.e. end of header
-    NSString *loc;
-    NSHTTPURLResponse *response;
-
-    response = [[NSHTTPURLResponse alloc] initWithURL: [this->request URL]
-    MIMEType: nil
-    expectedContentLength: -1
-    textEncodingName: nil];
-  [response _setHeaders: _headers];
-  DESTROY(_headers);
-  [response _setStatusCode: _statusCode text: @""];
-    loc = [response _valueForHTTPHeaderField: @"location"];
-    if ([loc length])
-      { // Location: entry exists
-      NSURLRequest *request=[NSURLRequest requestWithURL: [NSURL URLWithString: loc]];
-      if (!request)
-        [this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"Invalid redirect request" code: 0 userInfo: nil]]; // error
-      [this->client URLProtocol: self wasRedirectedToRequest: request redirectResponse: response];
-      }
-    else
-      {
-      NSURLCacheStoragePolicy policy=NSURLCacheStorageAllowed;  // default
-      // read from [this->request cachePolicy];
-      /*
-       NSURLCacheStorageAllowed,
-       NSURLCacheStorageAllowedInMemoryOnly
-       NSURLCacheStorageNotAllowed
-       */       
-      if ([self isKindOfClass: [_NSHTTPSURLProtocol class]])
-        policy=NSURLCacheStorageNotAllowed;  // never
-NSLog(@"Received");
-      [this->client URLProtocol: self didReceiveResponse: response cacheStoragePolicy: policy];
-      }
-    return YES;
-    }
-  for (c=buffer, end=c+len; *c != ':'; c++)
-    {
-    if (c == end)
-      { // no colon found!
-      // raise bad header error or simply ignore?
-      return NO;  // keep processing header lines
-      }
-    }
-  key=[[NSString stringWithCString: (char *) buffer length: c-buffer] capitalizedString];
-  while(++c < end && (*c == ' ' || *c == '\t'))
-    ;  // skip spaces
-  val=[NSString stringWithCString: (char *) c length: end-c];
-  [_headers setObject: val forKey: [key lowercaseString]];
-  return NO;  // not yet done
-}
-
-- (void) _processHeader: (unsigned char *) buffer length: (int) len
-{ // next header fragment received
-  unsigned char *ptr, *end;
-#if 0
-  NSLog(@"received %d bytes", len);
-#endif
-  if (len <= 0)
-  	return;	// ignore
-  if (_receiveBufLength + len > _receiveBufCapacity)
-  	{ // needs to increase capacity
-  	_receiveBuf=objc_realloc(_receiveBuf, _receiveBufCapacity=_receiveBufLength+len+1);	// creates new one if NULL
-  	if (!_receiveBuf)
-  		; // FIXME allocation did fail: stop reception
-  	}
-  memcpy(_receiveBuf+_receiveBufLength, buffer, len);		// append to last partial block
-  _receiveBufLength+=len;
-#if 0
-  NSLog(@"len=%u capacity=%u buf=%.*s", _receiveBufLength, _receiveBufCapacity, _receiveBufLength, _receiveBuf);
-#endif
-  ptr=_receiveBuf;	// start of current line
-  end=_receiveBuf+_receiveBufLength;
-  while(YES)
-  	{ // look for complete lines
-  	unsigned char *eol=ptr;
-  	while(!(eol[0] == '\r' && eol[1] == '\n'))
-  		{ // search next line end
-  		eol++;
-  		if (eol == end)
-  			{ // no more lines found
-#if 0
-  			NSLog(@"no CRLF");
-#endif
-  			if (ptr != _receiveBuf)
-  				{ // remove already processed lines from buffer
-  				memmove(_receiveBuf, ptr, end-ptr);
-  				_receiveBufLength-=(end-ptr);
-  				}
-  			return;
-  			}
-  		}
-  	if ([self _processHeaderLine: ptr length: eol-ptr])
-  		{ // done
-  		if (this->input)
-  			{ // is still open, i.e. hasn't been stopped in a client callback
-  			if (eol+2 != end)
-  				{ // we have already received the first fragment of the body
-  				[this->client URLProtocol: self didLoadData: [NSData dataWithBytes: eol+2 length: (end-eol)-2]];	// notify
-  				}
-  			}
-  		objc_free(_receiveBuf);
-  		_receiveBuf=NULL;
-  		_receiveBufLength=0;
-  		_receiveBufCapacity=0;
-  		_readingBody=YES;
-  		return;
-  		}				
-  	ptr=eol+2;	// go to start of next line
-  	}
-}
 
 /*
  FIXME: 
@@ -563,59 +437,342 @@ NSLog(@"Received");
  Ending up in infinite loops blocking the system.
  */
 
-- (void) stream: (NSStream *) stream handleEvent: (NSStreamEvent) event
+- (void) _got: (NSStream*)stream
+{
+  unsigned char	buffer[BUFSIZ*64];
+  int 		readCount;
+  NSError	*e;
+  NSData	*d;
+  BOOL		wasInHeaders = NO;
+  BOOL		complete = NO;
+
+  readCount = [(NSInputStream *)stream read: buffer
+				  maxLength: sizeof(buffer)];
+  if (readCount < 0)
+    {
+      if ([stream  streamStatus] == NSStreamStatusError)
+        {
+	  e = [stream streamError];
+	  if (_debug)
+	    {
+	      NSLog(@"receive error %@", e);
+	    }
+	  [self _unschedule];
+	  [this->client URLProtocol: self didFailWithError: e];
+	}
+      return;
+    }
+
+  wasInHeaders = [_parser isInHeaders];
+  d = [NSData dataWithBytes: buffer length: readCount];
+  if ([_parser parse: d] == NO && (complete = [_parser isComplete]) == NO)
+    {
+      if (_debug == YES)
+	{
+	  NSLog(@"HTTP parse failure - %@", _parser);
+	}
+      e = [NSError errorWithDomain: @"parse error"
+			      code: 0
+			  userInfo: nil];
+      [self _unschedule];
+      [this->client URLProtocol: self didFailWithError: e];
+      return;
+    }
+  else
+    {
+      BOOL		isInHeaders = [_parser isInHeaders];
+      GSMimeDocument	*document = [_parser mimeDocument];
+
+      if (wasInHeaders == YES && isInHeaders == NO)
+        {
+	  NSHTTPURLResponse	*response;
+	  GSMimeHeader		*info;
+	  NSString		*enc;
+	  int			len = -1;
+	  NSString		*s;
+
+	  info = [document headerNamed: @"http"];
+
+	  _version = [[info value] floatValue];
+	  if (_version < 1.1)
+	    {
+	      _shouldClose = YES;
+	    }
+	  else if ((s = [[document headerNamed: @"connection"] value]) != nil
+	    && [s caseInsensitiveCompare: @"close"] == NSOrderedSame)
+	    {
+	      _shouldClose = YES;
+	    }
+	  else
+	    {
+	      _shouldClose = NO;	// Keep connection alive.
+	    }
+
+	  s = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  _statusCode = [s intValue];
+
+	  s = [[document headerNamed: @"content-length"] value];
+	  if ([s length] > 0)
+	    {
+	      len = [s intValue];
+	    }
+
+	  s = [info objectForKey: NSHTTPPropertyStatusReasonKey];
+	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
+	  if (enc == nil)
+	    {
+	      enc = [[document headerNamed: @"transfer-encoding"] value];
+	    }
+
+	  response = [[NSHTTPURLResponse alloc] initWithURL: [this->request URL]
+						   MIMEType: nil
+				      expectedContentLength: len
+					   textEncodingName: nil];
+	  [response _setStatusCode: _statusCode text: s];
+	  [document deleteHeaderNamed: @"http"];
+	  [response _setHeaders: [document allHeaders]];
+
+	  if (_statusCode == 204 || _statusCode == 304)
+	    {
+	      complete = YES;	// No body expected.
+	    }
+	  else if ([enc isEqualToString: @"chunked"] == YES)	
+	    {
+	      complete = NO;	// Read chunked body data
+	    }
+	  if (complete == NO && [d length] == 0)
+	    {
+	      complete = YES;	// Had EOF ... terminate
+	    }
+
+	  s = [[document headerNamed: @"location"] value];
+	  if ([s length] > 0)
+	    { // Location: entry exists
+	      NSURLRequest	*request;
+	      NSURL		*url;
+
+	      url = [NSURL URLWithString: s];
+	      request = [NSURLRequest requestWithURL: url];
+	      if (request != nil)
+	        {
+		  NSError	*e;
+
+		  e = [NSError errorWithDomain: @"Invalid redirect request"
+					  code: 0
+				      userInfo: nil];
+		  [this->client URLProtocol: self
+			   didFailWithError: e];
+		}
+	      else
+	        {
+		  [this->client URLProtocol: self
+		     wasRedirectedToRequest: request
+			   redirectResponse: response];
+		}
+	    }
+	  else
+	    {
+	      NSURLCacheStoragePolicy policy;
+
+	      /* Tell the client that we have a response and how
+	       * it should be cached.
+	       */
+	      policy = [this->request cachePolicy];
+	      if (policy == NSURLRequestUseProtocolCachePolicy)
+		{
+		  if ([self isKindOfClass: [_NSHTTPSURLProtocol class]] == YES)
+		    {
+		      /* For HTTPS we should not allow caching unless the
+		       * request explicitly wants it.
+		       */
+		      policy = NSURLCacheStorageNotAllowed;
+		    }
+		  else
+		    {
+		      /* For HTTP we allow caching unless the request
+		       * specifically denies it.
+		       */
+		      policy = NSURLCacheStorageAllowed;
+		    }
+		}
+	      [this->client URLProtocol: self
+		     didReceiveResponse: response
+		     cacheStoragePolicy: policy];
+	    }
+	}
+
+      if (complete == YES)
+	{
+	  [self _unschedule];
+	  if (_shouldClose == YES)
+	    {
+	      [this->input close];
+	      [this->output close];
+	      DESTROY(this->input);
+	      DESTROY(this->output);
+	    }
+
+#if 0
+	  /*
+	   * Retrieve essential keys from document
+	   */
+	  if (_statusCode == 401 && self->challenged < 2)
+	    {
+	      GSMimeHeader	*ah;
+
+	      self->challenged++;	// Prevent repeated challenge/auth
+	      if ((ah = [document headerNamed: @"WWW-Authenticate"]) != nil)
+		{
+		  NSURLProtectionSpace	*space;
+		  NSString		*ac;
+		  GSHTTPAuthentication	*authentication;
+		  NSString		*method;
+		  NSString		*auth;
+
+		  ac = [ah value];
+		  space = [GSHTTPAuthentication
+		    protectionSpaceForAuthentication: ac requestURL: url];
+		  if (space == nil)
+		    {
+		      authentication = nil;
+		    }
+		  else
+		    {
+		      NSURLCredential	*cred;
+
+		      /*
+		       * Create credential from user and password
+		       * stored in the URL.
+		       * Returns nil if we have no username or password.
+		       */
+		      cred = [[NSURLCredential alloc]
+			initWithUser: [url user]
+			password: [url password]
+			persistence: NSURLCredentialPersistenceForSession];
+
+		      if (cred == nil)
+			{
+			  authentication = nil;
+			}
+		      else
+			{
+			  /*
+			   * Get the digest object and ask it for a header
+			   * to use for authorisation.
+			   * Returns nil if we have no credential.
+			   */
+			  authentication = [GSHTTPAuthentication
+			    authenticationWithCredential: cred
+			    inProtectionSpace: space];
+			  RELEASE(cred);
+			}
+		    }
+
+		  method = [request objectForKey: GSHTTPPropertyMethodKey];
+		  if (method == nil)
+		    {
+		      if ([wData length] > 0)
+			{
+			  method = @"POST";
+			}
+		      else
+			{
+			  method = @"GET";
+			}
+		    }
+
+		  auth = [authentication authorizationForAuthentication: ac
+		    method: method
+		    path: [url path]];
+		  if (auth != nil)
+		    {
+		      [self writeProperty: auth forKey: @"Authorization"];
+		      [self _tryLoadInBackground: u];
+		      return;	// Retrying.
+		    }
+		}
+	    }
+#endif
+
+	  /*
+	   * Tell superclass that we have successfully loaded the data.
+	   */
+	  d = [_parser data];
+	  if (_bodyPos > 0)
+	    {
+	      d = [d subdataWithRange: 
+	        NSMakeRange(_bodyPos, [d length] - _bodyPos)];
+	    }
+	  _bodyPos = [d length];
+	  [this->client URLProtocol: self didLoadData: d];
+
+	  if (_statusCode >= 200 && _statusCode < 300)
+	    {
+	      [this->client URLProtocolDidFinishLoading: self];
+	    }
+	  else
+	    {
+	      [this->client URLProtocol: self
+		       didFailWithError: [NSError errorWithDomain: @"receive error" code: 0 userInfo: nil]];
+
+	    }
+	}
+      else
+	{
+	  /*
+	   * Report partial data if possible.
+	   */
+	  if ([_parser isInBody])
+	    {
+	      d = [_parser data];
+	      if (_bodyPos > 0)
+	        {
+		  d = [d subdataWithRange: 
+		    NSMakeRange(_bodyPos, [d length] - _bodyPos)];
+		}
+	      _bodyPos = [d length];
+	      [this->client URLProtocol: self didLoadData: d];
+	    }
+	}
+
+      if (complete == NO && readCount == 0)
+	{
+	  /* The read failed ... dropped, but parsing is not complete.
+	   * The request was sent, so we can't know whether it was
+	   * lost in the network or the remote end received it and
+	   * the response was lost.
+	   */
+	  if (_debug == YES)
+	    {
+	      NSLog(@"HTTP response not received - %@", _parser);
+	    }
+	  [this->client URLProtocol: self
+		   didFailWithError: [NSError errorWithDomain: @"receive error" code: 0 userInfo: nil]];
+	}
+    }
+}
+
+- (void) stream: (NSStream*) stream handleEvent: (NSStreamEvent) event
 {
 #if 0
   NSLog(@"stream: %@ handleEvent: %x for: %@", stream, event, self);
 #endif
+
   if (stream == this->input) 
     {
-#if 0
-  NSLog(@"input stream handleEvent: %x for: %@", event, self);
-#endif
       switch(event)
 	{
 	  case NSStreamEventHasBytesAvailable: 
-	    {
-	      unsigned char buffer[512];
-	      int len;
+	  case NSStreamEventEndEncountered:
+	    [self _got: stream];
+	    return;
 
-	      len = [(NSInputStream *)stream read: buffer
-					maxLength: sizeof(buffer)];
-	      if (len < 0)
-		{
-    #if 0
-		  NSLog(@"receive error %@", [NSError _last]);
-    #endif
-		  [this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"receive error" code: 0 userInfo: nil]];
-		  [self _unschedule];
-		  return;
-		}
-	      if (_readingBody)
-		[this->client URLProtocol: self didLoadData: [NSData dataWithBytes: buffer length: len]];  // notify
-	      else
-		[self _processHeader: buffer length: len];
-	      return;
-	    }
-	  case NSStreamEventEndEncountered:   // can this occur in parallel to NSStreamEventHasBytesAvailable???
-	    {
-    #if 0
-	      NSLog(@"end of response");
-    #endif
-	      if (!_readingBody)
-		[this->client URLProtocol: self didFailWithError: [NSError errorWithDomain: @"incomplete header" code: 0 userInfo: nil]];
-	      [this->client URLProtocolDidFinishLoading: self];
-	      _readingBody=NO;
-	      [self _unschedule];
-	      return;
-	    }
 	  case NSStreamEventOpenCompleted: 
-	    { // prepare to receive header
-    #if 0
-	      NSLog(@"HTTP input stream opened");
-    #endif
-	      return;
-	    }
+#if 0
+	    NSLog(@"HTTP input stream opened");
+#endif
+	    return;
+
 	  default: 
 	    break;
 	}
