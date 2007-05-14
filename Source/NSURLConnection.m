@@ -340,8 +340,7 @@ typedef struct {
   if (policy == NSURLCacheStorageAllowed
     || policy == NSURLCacheStorageAllowedInMemoryOnly)
     {
-      
-      // FIXME ... cache response here
+      // FIXME ... cache response here?
     }
 }
 
@@ -352,19 +351,23 @@ typedef struct {
   request = [_delegate connection: _parent
 		  willSendRequest: request
 	         redirectResponse: redirectResponse];
-  // If we have been cancelled, our protocol will be nil
-  if (_protocol != nil)
+  if (this->_protocol == nil)
     {
-      if (request == nil)
-        {
-	  [_delegate connectionDidFinishLoading: _parent];
-	}
-      else
-        {
-	  [_protocol stopLoading];
-	  DESTROY(_protocol);
-	  // FIXME start new request loading
-	}
+      /* Our protocol is nil, so we have been cancelled by the delegate.
+       */
+      return;
+    }
+  if (request != nil)
+    {
+      /* Follow the redirect ... stop the old load and start a new one.
+       */
+      [_protocol stopLoading];
+      DESTROY(this->_protocol);
+      ASSIGNCOPY(this->_request, request);
+      this->_protocol = [[NSURLProtocol alloc] initWithRequest: this->_request
+						cachedResponse: nil
+							client: this];
+      [this->_protocol startLoading];
     }
 }
 

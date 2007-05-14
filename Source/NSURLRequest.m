@@ -354,13 +354,17 @@ typedef struct {
 static unsigned int
 _non_retained_id_hash(void *table, NSString* o)
 {
-  return [[o uppercaseString] hash];
+  return [[o lowercaseString] hash];
 }
 
 static BOOL
 _non_retained_id_is_equal(void *table, NSString *o, NSString *p)
 {
-  return ([o caseInsensitiveCompare: p] == NSOrderedSame) ? YES : NO;
+  if (o == nil || [o caseInsensitiveCompare: p] != NSOrderedSame)
+    {
+      return NO;
+    }
+  return YES;
 }
 
 typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);

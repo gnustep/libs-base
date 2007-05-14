@@ -1,4 +1,11 @@
 2007-05-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m:
+	* Source/NSURLRequest.m:
+	* Source/NSURLConnection.m:
+	Added tweaks for redirection andvarious comments.
+
+2007-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 	
 	* Source/Additions/Unicode.m:
 	Avoid using NSString while printing warning about iconv problems ...
@@ -63,7 +70,7 @@
 
 2007-04-27  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSBundle.m: Reformat for conding standards.  Alter library
+	* Source/NSBundle.m: Reformat for coding standards.  Alter library
 	resource lookup to find correct version when multiple versions of
 	the base library are installed and the old unversioned api is used.
 	* Source/NSURLHandle.m: Scheduling tweak.

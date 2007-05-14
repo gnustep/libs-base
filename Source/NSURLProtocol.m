@@ -754,6 +754,10 @@ static NSURLProtocol	*placeholder = nil;
 
 - (void) stream: (NSStream*) stream handleEvent: (NSStreamEvent) event
 {
+  /* Make sure no action triggered by anything else destroys us prematurely.
+   */
+  AUTORELEASE(RETAIN(self));
+
 #if 0
   NSLog(@"stream: %@ handleEvent: %x for: %@", stream, event, self);
 #endif
