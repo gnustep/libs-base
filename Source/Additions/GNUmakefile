@@ -40,6 +40,7 @@ Additions_OBJC_FILES =\
 	GSMime.m \
 	GSXML.m \
 	GSFunctions.m \
+	GSInsensitiveDictionary.m \
 	behavior.m
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
