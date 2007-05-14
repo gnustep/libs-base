@@ -347,7 +347,7 @@ static NSURLProtocol	*placeholder = nil;
     }
   _isLoading = YES;
   _complete = NO;
-  _debug = YES;
+  _debug = NO;
 
   if (0 && this->cachedResponse)
     {
