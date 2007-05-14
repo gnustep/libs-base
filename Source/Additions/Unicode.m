@@ -108,8 +108,8 @@ internal_unicode_enc(void)
       iconv_close(conv);
       return unicode_enc;
     }
-  NSLog(@"Could not initialise iconv() for UTF16, using UCS-2");
-  NSLog(@"Using characters outside 16 bits may give incorrect results");
+  fprintf(stderr, "Could not initialise iconv() for UTF16, using UCS-2\n");
+  fprintf(stderr, "Using characters outside 16 bits may give bad results.\n");
 
   unicode_enc = UNICODE_INT;
   conv = iconv_open(unicode_enc, "ASCII");
