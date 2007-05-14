@@ -24,7 +24,10 @@
 #ifndef _GSPrivate_h_
 #define _GSPrivate_h_
 
-#include "Foundation/NSError.h"
+#import "Foundation/NSError.h"
+
+@class	_GSInsensitiveDictionary;
+@class	_GSMutableInsensitiveDictionary;
 
 @class	NSNotification;
 

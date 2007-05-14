@@ -216,7 +216,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-NSLog(@"Event on %p", self);
   [self _dispatch];
 }
 

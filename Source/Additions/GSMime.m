@@ -52,13 +52,16 @@
 */
 
 #include "config.h"
-#include	<Foundation/Foundation.h>
-#include	"GNUstepBase/GSMime.h"
-#include	"GNUstepBase/GSXML.h"
-#include	"GNUstepBase/GSCategories.h"
-#include	"GNUstepBase/Unicode.h"
-#include	<string.h>
-#include	<ctype.h>
+#include <string.h>
+#include <ctype.h>
+
+#import	<Foundation/Foundation.h>
+#import	"GNUstepBase/GSMime.h"
+#import	"GNUstepBase/GSXML.h"
+#import	"GNUstepBase/GSCategories.h"
+#import	"GNUstepBase/Unicode.h"
+
+#include "../GSPrivate.h"
 
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
@@ -1373,6 +1376,16 @@ wordData(NSString *word)
 	  bytes = (unsigned char*)[data mutableBytes];
 	  dataEnd = [data length];
 
+	  /* If we are parsing an HTTP response, but it doesn't start
+	   * with HTTP/ then it is a very old version where we just
+	   * get the body and no headers.
+	   */
+	  if (flags.isHttp == 1 && dataEnd > 4
+	    && memcmp(bytes, "HTTP/", 5) != 0)
+	    {
+	      flags.inBody = 1;
+	    }
+
 	  while (flags.inBody == 0)
 	    {
 	      if ([self _unfoldHeader] == NO)
@@ -1418,7 +1431,7 @@ wordData(NSString *word)
 	      GSMimeHeader	*hdr;
 
 	      info = [[document headersNamed: @"http"] lastObject];
-	      if (info != nil)
+	      if (info != nil && flags.isHttp == 1)
 		{
 		  NSString	*val;
 
@@ -2158,6 +2171,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 {
   flags.isHttp = 1;
 }
+
 @end
 
 @implementation	GSMimeParser (Private)
@@ -2977,27 +2991,46 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Convert the supplied string to a standardized token by making it
- * lowercase and removing all illegal characters.
+ * Convert the supplied string to a standardized token by removing
+ * all illegal characters.  If preserve is NO then the result is
+ * converted to lowercase.<br />
+ * Returns an autoreleased (and possibly modified) copy of the original.
  */
-+ (NSString*) makeToken: (NSString*)t
++ (NSString*) makeToken: (NSString*)t preservingCase: (BOOL)preserve
 {
-  NSRange	r;
+  NSMutableString	*m = nil;
+  NSRange		r;
 
-  t = [t lowercaseString];
   r = [t rangeOfCharacterFromSet: nonToken];
   if (r.length > 0)
     {
-      NSMutableString	*m = [t mutableCopy];
-
+      m = [t mutableCopy];
       while (r.length > 0)
 	{
 	  [m deleteCharactersInRange: r];
 	  r = [m rangeOfCharacterFromSet: nonToken];
 	}
-      t = AUTORELEASE(m);
+      t = m;
     }
+  if (preserve == YES)
+    {
+      t = [t lowercaseString];
+    }
+  else
+    {
+      t = AUTORELEASE([t copy]);
+    }
+  TEST_RELEASE(m);
   return t;
+}
+
+/**
+ * Convert the supplied string to a standardized token by making it
+ * lowercase and removing all illegal characters.
+ */
++ (NSString*) makeToken: (NSString*)t
+{
+  return [self makeToken: t preservingCase: NO];
 }
 
 - (id) copyWithZone: (NSZone*)z
@@ -3006,9 +3039,9 @@ static NSCharacterSet	*tokenSet = nil;
   NSEnumerator	*e;
   NSString	*k;
 
-  c = [c initWithName: [self name]
+  c = [c initWithName: [self namePreservingCase: YES]
 		value: [self value]
-	   parameters: [self parameters]];
+	   parameters: [self parametersPreservingCase: YES]];
   e = [objects keyEnumerator];
   while ((k = [e nextObject]) != nil)
     {
@@ -3021,8 +3054,8 @@ static NSCharacterSet	*tokenSet = nil;
 {
   RELEASE(name);
   RELEASE(value);
-  RELEASE(objects);
-  RELEASE(params);
+  TEST_RELEASE(objects);
+  TEST_RELEASE(params);
   [super dealloc];
 }
 
@@ -3061,8 +3094,6 @@ static NSCharacterSet	*tokenSet = nil;
 	      value: (NSString*)v
 	 parameters: (NSDictionary*)p
 {
-  objects = [NSMutableDictionary new];
-  params = [NSMutableDictionary new];
   [self setName: n];
   [self setValue: v];
   [self setParameters: p];
@@ -3074,7 +3105,24 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSString*) name
 {
-  return name;
+  return [self namePreservingCase: NO];
+}
+
+/**
+ * Returns the name of this header as originally set (without conversion
+ * to lowercase) if preserve is YES, but as a lowercase string if preserve
+ * is NO.
+ */
+- (NSString*) namePreservingCase: (BOOL)preserve
+{
+  if (preserve == YES)
+    {
+      return name;
+    }
+  else
+    {
+      return [name lowercaseString];
+    }
 }
 
 /**
@@ -3105,7 +3153,7 @@ static NSCharacterSet	*tokenSet = nil;
       k = [GSMimeHeader makeToken: k];
       p = [params objectForKey: k];
     }
-  return p;	
+  return p;
 }
 
 /**
@@ -3115,7 +3163,37 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSDictionary*) parameters
 {
-  return AUTORELEASE([params copy]);
+  return [self parametersPreservingCase: NO];
+}
+
+/**
+ * Returns the parameters of this header ... a dictionary whose keys
+ * are strings preserving the case originally used to set the values
+ * or all lowercase depending on the preserve argument.
+ */
+- (NSDictionary*) parametersPreservingCase: (BOOL)preserve
+{
+  NSMutableDictionary	*m;
+  NSEnumerator		*e;
+  NSString		*k;
+
+  m = [NSMutableDictionary dictionaryWithCapacity: [params count]];
+  e = [params objectEnumerator];
+  if (preserve == YES)
+    {
+      while ((k = [e nextObject]) != nil)
+	{
+	  [m setObject: [params objectForKey: k] forKey: k];
+	}
+    }
+  else
+    {
+      while ((k = [e nextObject]) != nil)
+	{
+	  [m setObject: [params objectForKey: k] forKey: [k lowercaseString]];
+	}
+    }
+  return [m makeImmutableCopyOnFail: NO];
 }
 
 /**
@@ -3124,47 +3202,79 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSMutableData*) rawMimeData
 {
+  return [self rawMimeDataPreservingCase: NO];
+}
+
+/**
+ * Returns the full text of the header, built from its component parts,
+ * and including a terminating CR-LF.<br />
+ * If preserve is YES then we attempt to build the text using the same
+ * case as it was originally parsed/set from, otherwise we use common
+ * onventions of capitalising the header names and using lowercase
+ * parameter names.
+ */
+- (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
+{
   NSMutableData	*md = [NSMutableData dataWithCapacity: 128];
   NSEnumerator	*e = [params keyEnumerator];
   NSString	*k;
-  NSData	*d = [[self name] dataUsingEncoding: NSASCIIStringEncoding];
+  NSString	*n = [self namePreservingCase: preserve];
+  NSData	*d = [n dataUsingEncoding: NSASCIIStringEncoding];
   unsigned	l = [d length];
-  char		buf[l];
-  unsigned int	i = 0;
   BOOL		conv = YES;
 
-#define	LIM	120
-  /*
-   * Capitalise the header name.  However, the version header is a special
-   * case - it is defined as being literally 'MIME-Version'
-   */
-  memcpy(buf, [d bytes], l);
-  if (l == 12 && memcmp(buf, "mime-version", 12) == 0)
+  if (preserve == YES)
     {
-      memcpy(buf, "MIME-Version", 12);
+      /* Protect the user ... MIME-Version *must* have the correct case.
+       */
+      if ([n caseInsensitiveCompare: @"MIME-Version"] == NSOrderedSame)
+        {
+	  [md appendBytes: "MIME-Version" length: 12];
+	}
+      else
+        {
+          [md appendData: d];
+	}
     }
   else
     {
-      while (i < l)
+      char	buf[l];
+      unsigned	i = 0;
+
+#define	LIM	120
+      /*
+       * Capitalise the header name.  However, the version header is a special
+       * case - it is defined as being literally 'MIME-Version'
+       */
+      memcpy(buf, [d bytes], l);
+      if (l == 12 && memcmp(buf, "mime-version", 12) == 0)
 	{
-	  if (conv == YES)
+	  memcpy(buf, "MIME-Version", 12);
+	}
+      else
+	{
+	  while (i < l)
 	    {
-	      if (islower(buf[i]))
+	      if (conv == YES)
 		{
-		  buf[i] = toupper(buf[i]);
+		  if (islower(buf[i]))
+		    {
+		      buf[i] = toupper(buf[i]);
+		    }
+		}
+	      if (buf[i++] == '-')
+		{
+		  conv = YES;
+		}
+	      else
+		{
+		  conv = NO;
 		}
 	    }
-	  if (buf[i++] == '-')
-	    {
-	      conv = YES;
-	    }
-	  else
-	    {
-	      conv = NO;
-	    }
 	}
+      [md appendBytes: buf length: l];
     }
-  [md appendBytes: buf length: l];
+
   d = wordData(value);
   if ([md length] + [d length] + 2 > LIM)
     {
@@ -3188,6 +3298,10 @@ static NSCharacterSet	*tokenSet = nil;
       unsigned	vl;
 
       v = [GSMimeHeader makeQuoted: [params objectForKey: k] always: NO];
+      if (preserve == NO)
+        {
+	  k = [k lowercaseString];
+	}
       kd = wordData(k);
       vd = wordData(v);
       kl = [kd length];
@@ -3216,13 +3330,14 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Sets the name of this header ... converts to lowercase and removes
- * illegal characters.  If given a nil or empty string argument,
- * sets the name to 'unknown'.
+ * Sets the name of this header ... and removes illegal characters.<br />
+ * If given a nil or empty string argument, sets the name to 'unknown'.<br />
+ * NB. The value returned by the -name method will be a lowercase version
+ * of thae name.
  */
 - (void) setName: (NSString*)s
 {
-  s = [GSMimeHeader makeToken: s];
+  s = [GSMimeHeader makeToken: s preservingCase: YES];
   if ([s length] == 0)
     {
       s = @"unknown";
@@ -3244,6 +3359,10 @@ static NSCharacterSet	*tokenSet = nil;
     }
   else
     {
+      if (objects == nil)
+        {
+	  objects = [NSMutableDictionary new];
+	}
       [objects setObject: o forKey: k];
     }
 }
@@ -3256,13 +3375,17 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (void) setParameter: (NSString*)v forKey: (NSString*)k
 {
-  k = [GSMimeHeader makeToken: k];
+  k = [GSMimeHeader makeToken: k preservingCase: YES];
   if (v == nil)
     {
       [params removeObjectForKey: k];
     }
   else
     {
+      if (params == nil)
+	{
+	  params = [_GSMutableInsensitiveDictionary new];
+	}
       [params setObject: v forKey: k];
     }
 }
@@ -3273,13 +3396,20 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (void) setParameters: (NSDictionary*)d
 {
-  NSMutableDictionary	*m = [NSMutableDictionary new];
-  NSEnumerator		*e = [d keyEnumerator];
-  NSString		*k;
+  NSMutableDictionary	*m = nil;
+  unsigned		c = [d count];
 
-  while ((k = [e nextObject]) != nil)
+  if (c > 0)
     {
-      [m setObject: [d objectForKey: k] forKey: [GSMimeHeader makeToken: k]];
+      NSEnumerator	*e = [d keyEnumerator];
+      NSString		*k;
+
+      m = [[_GSMutableInsensitiveDictionary alloc] initWithCapacity: c];
+      while ((k = [e nextObject]) != nil)
+	{
+	  [m setObject: [d objectForKey: k]
+		forKey: [GSMimeHeader makeToken: k preservingCase: YES]];
+	}
     }
   DESTROY(params);
   params = m;

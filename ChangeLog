@@ -1,5 +1,16 @@
 2007-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSInsensitiveDictionary.m: For internal use storing
+	values on case insensitive keys.
+	* Source/Additions/GNUmakefile: Build insensitive dictionaries.
+	* Source/GSPrivate.h: Make insensitive dictionaries available.
+	* Source/NSURLResponse.m: Use insensitive dictionaries.
+	* Source/NSURLProtocol.m: Clean up.
+	* Source/Additions/GSMime.m: New stuff to retain case information.
+	* Headers/Additions/GNUstepBase/GSMime.h: ditto.
+
+2007-05-14  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLProtocol.m:
 	* Source/NSURLRequest.m:
 	* Source/NSURLConnection.m:
