@@ -78,6 +78,7 @@ extern "C" {
 + (NSString*) makeToken: (NSString*)t preservingCase: (BOOL)preserve;
 + (NSString*) makeToken: (NSString*)t;
 - (id) copyWithZone: (NSZone*)z;
+- (NSString*) fullValue;
 - (id) initWithName: (NSString*)n
 	      value: (NSString*)v;
 - (id) initWithName: (NSString*)n

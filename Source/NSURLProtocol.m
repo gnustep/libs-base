@@ -348,7 +348,7 @@ static NSURLProtocol	*placeholder = nil;
 
   _isLoading = YES;
   _complete = NO;
-  _debug = YES;
+  _debug = NO;
 
   /* Perform a redirect if the path is empty.
    * As per MacOs-X documentation.
@@ -764,17 +764,7 @@ static NSURLProtocol	*placeholder = nil;
 		  [this->client URLProtocol: self didLoadData: d];
 		}
 	    }
-
-	  if (_statusCode >= 200 && _statusCode < 300)
-	    {
-	      [this->client URLProtocolDidFinishLoading: self];
-	    }
-	  else
-	    {
-	      [this->client URLProtocol: self
-		       didFailWithError: [NSError errorWithDomain: @"receive error" code: 0 userInfo: nil]];
-
-	    }
+	  [this->client URLProtocolDidFinishLoading: self];
 	}
       else
 	{
@@ -812,8 +802,10 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	      NSLog(@"HTTP response not received - %@", _parser);
 	    }
-	  [this->client URLProtocol: self
-		   didFailWithError: [NSError errorWithDomain: @"receive error" code: 0 userInfo: nil]];
+	  [this->client URLProtocol: self didFailWithError:
+	    [NSError errorWithDomain: @"receive incomplete"
+				code: 0
+			    userInfo: nil]];
 	}
     }
 }
@@ -936,6 +928,7 @@ static NSURLProtocol	*placeholder = nil;
 	  case NSStreamEventHasSpaceAvailable: 
 	    {
 	      int	written;
+	      BOOL	sent = NO;
 
 	      // FIXME: should also send out relevant Cookies
 	      if (_writeData != nil)
@@ -969,6 +962,10 @@ static NSURLProtocol	*placeholder = nil;
 				      _body = [_body initWithData: d];
 				      [_body open];
 				    }
+				  else
+				    {
+				      sent = YES;
+				    }
 				}
 			    }
 			}
@@ -989,7 +986,10 @@ static NSURLProtocol	*placeholder = nil;
 			      NSLog(@"error reading from HTTPBody stream %@",
 				[NSError _last]);
 			    }
-			  [self _unschedule];
+			  [this->client URLProtocol: self didFailWithError:
+			    [NSError errorWithDomain: @"can't read body"
+						code: 0
+					    userInfo: nil]];
 			  return;
 			}
 		      else if (len > 0)
@@ -1018,15 +1018,17 @@ static NSURLProtocol	*placeholder = nil;
 		        {
 			  [_body close];
 			  DESTROY(_body);
+			  sent = YES;
 			}
 		    }
 		  else
 		    {
 		      [_body close];
 		      DESTROY(_body);
+		      sent = YES;
 		    }
 		}
-	      if (_writeData == nil && _body == nil)
+	      if (sent == YES)
 		{
 		  if (_debug)
 		    {
@@ -1101,7 +1103,9 @@ static NSURLProtocol	*placeholder = nil;
       if (this->input == nil || this->output == nil)
 	{
 	  [this->client URLProtocol: self didFailWithError:
-	    [NSError errorWithDomain: @"can't connect" code: 0 userInfo: nil]];
+	    [NSError errorWithDomain: @"can't connect"
+				code: 0
+			    userInfo: nil]];
 	  return;
 	}
       RETAIN(this->input);
