@@ -3070,6 +3070,41 @@ static NSCharacterSet	*tokenSet = nil;
   return desc;
 }
 
+/** Returns the full value of the header including any parameters and
+ * preserving case.  This is an unfolded (long) line with no escape
+ * sequences (ie contains a unicode string not necessarily plain ASCII).<br />
+ * If you just want the plain value excluding any parameters, use the
+ * -value method instead.
+ */
+- (NSString*) fullValue
+{
+  if ([params count] > 0)
+    {
+      NSMutableString	*m;
+      NSEnumerator	*e;
+      NSString		*k;
+
+      m = [value mutableCopy];
+      e = [params keyEnumerator];
+      while ((k = [e nextObject]) != nil)
+	{
+	  NSString	*v;
+
+	  v = [GSMimeHeader makeQuoted: [params objectForKey: k] always: NO];
+	  [m appendString: @"; "];
+	  [m appendString: k];
+	  [m appendString: @"="];
+	  [m appendString: v];
+	}
+      k = [m makeImmutableCopyOnFail: YES];
+      return AUTORELEASE(k);
+    }
+  else
+    {
+      return value;
+    }
+}
+
 - (id) init
 {
   return [self initWithName: @"unknown" value: @"none" parameters: nil];
@@ -3441,7 +3476,8 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Returns the value of this header (excluding any parameters)
+ * Returns the value of this header (excluding any parameters).<br />
+ * Use the -fullValue m,ethod if you want parameter included.
  */
 - (NSString*) value
 {

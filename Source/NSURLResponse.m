@@ -75,18 +75,14 @@ typedef struct {
       e = [headers objectEnumerator];
       while ((h = [e nextObject]) != nil)
         {
-	  NSString	*n = [h name];
+	  NSString	*n = [h namePreservingCase: YES];
+	  NSString	*v = [h fullValue];
 
-	  v = [h value];
-	  [self _setValue: v forHTTPHeaderField: n];
-	  if ([n isEqualToString: @"content-length"] == YES)
-	    {
-	      contentLength = v;
-	    }
-	  else if ([n isEqualToString: @"content-type"] == YES)
+	  if ([n caseInsensitiveCompare: @"content-type"] == NSOrderedSame)
 	    {
 	      contentType = h;
 	    }
+	  [self _setValue: v forHTTPHeaderField: n];
 	}
     }
 
