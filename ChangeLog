@@ -1,3 +1,10 @@
+2007-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLConnection.m: Minor simplifications.
+	* Source/NSURLProtocol.m: Perform automatic redirect from
+	http://host to http://host/ to standardise URL used for caching as
+	noted in Apple documentation.
+
 2007-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSInsensitiveDictionary.m: For internal use storing
