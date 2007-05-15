@@ -345,9 +345,55 @@ static NSURLProtocol	*placeholder = nil;
       NSLog(@"startLoading when load in progress");
       return;
     }
+
   _isLoading = YES;
   _complete = NO;
-  _debug = NO;
+  _debug = YES;
+
+  /* Perform a redirect if the path is empty.
+   * As per MacOs-X documentation.
+   */
+  if ([[[this->request URL] path] length] == 0)
+    {
+      NSURLRequest	*request;
+      NSString		*s = [[this->request URL] absoluteString];
+      NSURL		*url;
+
+      if ([s rangeOfString: @"?"].length > 0)
+        {
+	  s = [s stringByReplacingString: @"?" withString: @"/?"];
+	}
+      else if ([s rangeOfString: @"#"].length > 0)
+        {
+	  s = [s stringByReplacingString: @"#" withString: @"/#"];
+	}
+      else
+        {
+          s = [s stringByAppendingString: @"/"];
+	}
+      url = [NSURL URLWithString: s];
+      request = [NSURLRequest requestWithURL: url];
+      if (request == nil)
+	{
+	  NSError	*e;
+
+	  e = [NSError errorWithDomain: @"Invalid redirect request"
+				  code: 0
+			      userInfo: nil];
+	  [this->client URLProtocol: self
+		   didFailWithError: e];
+	}
+      else
+	{
+	  [this->client URLProtocol: self
+	     wasRedirectedToRequest: request
+		   redirectResponse: nil];
+	}
+      if (_isLoading == NO)
+        {
+	  return;
+	}
+    }
 
   if (0 && this->cachedResponse)
     {

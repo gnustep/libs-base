@@ -137,21 +137,18 @@ redirectResponse: (NSURLResponse*)redirectResponse
 @end
 
 
-@interface	GSURLConnection : NSObject <NSURLProtocolClient>
+typedef struct
 {
-@public
-  NSURLConnection		*_parent;	// Not retained
   NSURLRequest			*_request;
   NSURLProtocol			*_protocol;
   id				_delegate;	// Not retained
-}
-@end
+} Internal;
  
 typedef struct {
   @defs(NSURLConnection)
 } priv;
-#define	this	((GSURLConnection*)(((priv*)self)->_NSURLConnectionInternal))
-#define	inst	((GSURLConnection*)(((priv*)o)->_NSURLConnectionInternal))
+#define	this	((Internal*)(((priv*)self)->_NSURLConnectionInternal))
+#define	inst	((Internal*)(((priv*)o)->_NSURLConnectionInternal))
 
 @implementation	NSURLConnection
 
@@ -161,9 +158,8 @@ typedef struct {
 
   if (o != nil)
     {
-      o->_NSURLConnectionInternal
-        = NSAllocateObject([GSURLConnection class], 0, z);
-      inst->_parent = o;
+      o->_NSURLConnectionInternal = NSZoneCalloc(GSObjCZone(self),
+	1, sizeof(Internal));
     }
   return o;
 }
@@ -184,7 +180,13 @@ typedef struct {
 
 - (void) dealloc
 {
-  RELEASE(this);
+  if (this != 0)
+    {
+      RELEASE(this->_protocol);
+      RELEASE(this->_request);
+      NSZoneFree([self zone], this);
+      _NSURLConnectionInternal = 0;
+    }
   [super dealloc];
 }
 
@@ -200,9 +202,10 @@ typedef struct {
     {
       this->_request = [request copy];
       this->_delegate = delegate;
-      this->_protocol = [[NSURLProtocol alloc] initWithRequest: this->_request
-						cachedResponse: nil
-							client: this];
+      this->_protocol = [[NSURLProtocol alloc]
+	initWithRequest: this->_request
+	cachedResponse: nil
+	client: (id<NSURLProtocolClient>)self];
       [this->_protocol startLoading];
     }
   return self;
@@ -299,14 +302,7 @@ typedef struct {
 @end
 
 
-@implementation	GSURLConnection
-
-- (void) dealloc
-{
-  RELEASE(_protocol);
-  RELEASE(_request);
-  [super dealloc];
-}
+@implementation	NSURLConnection (URLProtocolClient)
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
   cachedResponseIsValid: (NSCachedURLResponse *)cachedResponse
@@ -317,26 +313,27 @@ typedef struct {
 - (void) URLProtocol: (NSURLProtocol *)protocol
     didFailWithError: (NSError *)error
 {
-  [_delegate connection: _parent didFailWithError: error];
+  [this->_delegate connection: self didFailWithError: error];
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
 	 didLoadData: (NSData *)data
 {
-  [_delegate connection: _parent didReceiveData: data];
+  [this->_delegate connection: self didReceiveData: data];
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
   didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
-  [_delegate connection: _parent didReceiveAuthenticationChallenge: challenge];
+  [this->_delegate connection: self
+  didReceiveAuthenticationChallenge: challenge];
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
   didReceiveResponse: (NSURLResponse *)response
   cacheStoragePolicy: (NSURLCacheStoragePolicy)policy
 {
-  [_delegate connection: _parent didReceiveResponse: response];
+  [this->_delegate connection: self didReceiveResponse: response];
   if (policy == NSURLCacheStorageAllowed
     || policy == NSURLCacheStorageAllowedInMemoryOnly)
     {
@@ -348,9 +345,9 @@ typedef struct {
   wasRedirectedToRequest: (NSURLRequest *)request
   redirectResponse: (NSURLResponse *)redirectResponse
 {
-  request = [_delegate connection: _parent
-		  willSendRequest: request
-	         redirectResponse: redirectResponse];
+  request = [this->_delegate connection: self
+			willSendRequest: request
+		       redirectResponse: redirectResponse];
   if (this->_protocol == nil)
     {
       /* Our protocol is nil, so we have been cancelled by the delegate.
@@ -361,25 +358,27 @@ typedef struct {
     {
       /* Follow the redirect ... stop the old load and start a new one.
        */
-      [_protocol stopLoading];
+      [this->_protocol stopLoading];
       DESTROY(this->_protocol);
       ASSIGNCOPY(this->_request, request);
-      this->_protocol = [[NSURLProtocol alloc] initWithRequest: this->_request
-						cachedResponse: nil
-							client: this];
+      this->_protocol = [[NSURLProtocol alloc]
+	initWithRequest: this->_request
+	cachedResponse: nil
+	client: (id<NSURLProtocolClient>)self];
       [this->_protocol startLoading];
     }
 }
 
 - (void) URLProtocolDidFinishLoading: (NSURLProtocol *)protocol
 {
-  [_delegate connectionDidFinishLoading: _parent];
+  [this->_delegate connectionDidFinishLoading: self];
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
   didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
-  [_delegate connection: _parent didCancelAuthenticationChallenge: challenge];
+  [this->_delegate connection: self
+  didCancelAuthenticationChallenge: challenge];
 }
 
 @end
