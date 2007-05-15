@@ -809,16 +809,14 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   handler = thread->_exception_handler;
   if (handler == NULL)
     {
-      static	BOOL	recursion = NO;
+      static	int	recursion = 0;
 
       /*
-       * Set a flag to prevent recursive uncaught exceptions.
+       * Set/check a counter to prevent recursive uncaught exceptions.
+       * Allow a little recursion in case we have different handlers
+       * being tried.
        */
-      if (recursion == NO)
-	{
-	  recursion = YES;
-	}
-      else
+      if (recursion++ > 3)
 	{
 	  fprintf(stderr,
 	    "recursion encountered handling uncaught exception\n");

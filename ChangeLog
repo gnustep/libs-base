@@ -1,5 +1,13 @@
 2007-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSException.m: Permit some recursion in handling uncaught
+	exceptions so that different exception handlers can be tried ...
+	in particular, so that the gui library exception handler can
+	fall back to using the base library handler and get a printout of
+	the exception details when the program terminates.
+
+2007-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLConnection.m: Minor simplifications.
 	* Source/NSURLProtocol.m: Perform automatic redirect from
 	http://host to http://host/ to standardise URL used for caching as
