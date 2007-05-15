@@ -5,6 +5,7 @@
 	http://host to http://host/ to standardise URL used for caching as
 	noted in Apple documentation.
 	* Source/NSURLRequest.m: use case insensitive dictionary for headers.
+	* Source/Additions/GSMime.m: fix error makeing tokens lowercase.
 
 2007-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 

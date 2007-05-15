@@ -3012,7 +3012,7 @@ static NSCharacterSet	*tokenSet = nil;
 	}
       t = m;
     }
-  if (preserve == YES)
+  if (preserve == NO)
     {
       t = [t lowercaseString];
     }
