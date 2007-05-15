@@ -4,6 +4,7 @@
 	* Source/NSURLProtocol.m: Perform automatic redirect from
 	http://host to http://host/ to standardise URL used for caching as
 	noted in Apple documentation.
+	* Source/NSURLRequest.m: use case insensitive dictionary for headers.
 
 2007-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 
