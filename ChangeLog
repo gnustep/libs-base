@@ -1,3 +1,7 @@
+2007-05-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSNetServices.h: fix bug #19872
+
 2007-05-02  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Set GNUSTEP_MAKEFILES to CURRENT_GNUSTEP_MAKEFILES
