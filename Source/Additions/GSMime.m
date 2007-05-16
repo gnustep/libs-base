@@ -3213,7 +3213,7 @@ static NSCharacterSet	*tokenSet = nil;
   NSString		*k;
 
   m = [NSMutableDictionary dictionaryWithCapacity: [params count]];
-  e = [params objectEnumerator];
+  e = [params keyEnumerator];
   if (preserve == YES)
     {
       while ((k = [e nextObject]) != nil)
