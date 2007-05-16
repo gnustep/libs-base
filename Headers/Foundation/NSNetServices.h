@@ -434,5 +434,9 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 @end
 
+#if	defined(__cplusplus)
+}
+#endif
+
 #endif	/* __NSNetServices_h_GNUSTEP_BASE_INCLUDE */
 
