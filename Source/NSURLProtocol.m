@@ -334,6 +334,7 @@ static NSURLProtocol	*placeholder = nil;
   if ([methods objectForKey: [this->request HTTPMethod]] == nil)
     {
       NSLog(@"Invalid HTTP Method: %@", this->request);
+      [self stopLoading];
       [this->client URLProtocol: self didFailWithError:
 	[NSError errorWithDomain: @"Invalid HTTP Method"
 			    code: 0
@@ -380,6 +381,7 @@ static NSURLProtocol	*placeholder = nil;
 	  e = [NSError errorWithDomain: @"Invalid redirect request"
 				  code: 0
 			      userInfo: nil];
+	  [self stopLoading];
 	  [this->client URLProtocol: self
 		   didFailWithError: e];
 	}
@@ -431,6 +433,7 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	      NSLog(@"did not create streams for %@:%@", host, [url port]);
 	    }
+	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError:
 	    [NSError errorWithDomain: @"can't connect" code: 0 userInfo: 
 	      [NSDictionary dictionaryWithObjectsAndKeys: 
@@ -497,7 +500,7 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	      NSLog(@"receive error %@", e);
 	    }
-	  [self _unschedule];
+	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError: e];
 	}
       return;
@@ -523,7 +526,7 @@ static NSURLProtocol	*placeholder = nil;
       e = [NSError errorWithDomain: @"parse error"
 			      code: 0
 			  userInfo: nil];
-      [self _unschedule];
+      [self stopLoading];
       [this->client URLProtocol: self didFailWithError: e];
       return;
     }
@@ -612,6 +615,7 @@ static NSURLProtocol	*placeholder = nil;
 		  e = [NSError errorWithDomain: @"Invalid redirect request"
 					  code: 0
 				      userInfo: nil];
+		  [self stopLoading];
 		  [this->client URLProtocol: self
 			   didFailWithError: e];
 		}
@@ -747,26 +751,35 @@ static NSURLProtocol	*placeholder = nil;
 #endif
 
 	  /*
-	   * Tell superclass that we have successfully loaded the data.
+	   * Tell superclass that we have successfully loaded the data
+	   * (as long as we haven't had the load terminated by the client).
 	   */
-	  d = [_parser data];
-          bodyLength = [d length];
-	  if (bodyLength > _parseOffset)
+	  if (_isLoading == YES)
 	    {
-	      if (_parseOffset > 0)
+	      d = [_parser data];
+	      bodyLength = [d length];
+	      if (bodyLength > _parseOffset)
 		{
-		  d = [d subdataWithRange: 
-		    NSMakeRange(_parseOffset, bodyLength - _parseOffset)];
-		}
-	      _parseOffset = bodyLength;
-	      if (_isLoading == YES)
-		{
+		  if (_parseOffset > 0)
+		    {
+		      d = [d subdataWithRange: 
+			NSMakeRange(_parseOffset, bodyLength - _parseOffset)];
+		    }
+		  _parseOffset = bodyLength;
 		  [this->client URLProtocol: self didLoadData: d];
 		}
+
+	      /* Check again in case the client cancelled the load inside
+	       * the URLProtocol:didLoadData: callback.
+	       */
+	      if (_isLoading == YES)
+	        {
+		  _isLoading = NO;
+	          [this->client URLProtocolDidFinishLoading: self];
+		}
 	    }
-	  [this->client URLProtocolDidFinishLoading: self];
 	}
-      else
+      else if (_isLoading == YES)
 	{
 	  /*
 	   * Report partial data if possible.
@@ -783,15 +796,12 @@ static NSURLProtocol	*placeholder = nil;
 			NSMakeRange(_parseOffset, [d length] - _parseOffset)];
 		    }
 		  _parseOffset = bodyLength;
-		  if (_isLoading == YES)
-		    {
-		      [this->client URLProtocol: self didLoadData: d];
-		    }
+		  [this->client URLProtocol: self didLoadData: d];
 		}
 	    }
 	}
 
-      if (_complete == NO && readCount == 0)
+      if (_complete == NO && readCount == 0 && _isLoading == YES)
 	{
 	  /* The read failed ... dropped, but parsing is not complete.
 	   * The request was sent, so we can't know whether it was
@@ -802,6 +812,7 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	      NSLog(@"HTTP response not received - %@", _parser);
 	    }
+	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError:
 	    [NSError errorWithDomain: @"receive incomplete"
 				code: 0
@@ -986,6 +997,7 @@ static NSURLProtocol	*placeholder = nil;
 			      NSLog(@"error reading from HTTPBody stream %@",
 				[NSError _last]);
 			    }
+			  [self stopLoading];
 			  [this->client URLProtocol: self didFailWithError:
 			    [NSError errorWithDomain: @"can't read body"
 						code: 0
@@ -1050,6 +1062,7 @@ static NSURLProtocol	*placeholder = nil;
 	}
     }
   NSLog(@"An error %@ occurred on the event %08x of stream %@ of %@", [stream streamError], event, stream, self);
+  [self stopLoading];
   [this->client URLProtocol: self didFailWithError: [stream streamError]];
 }
 
