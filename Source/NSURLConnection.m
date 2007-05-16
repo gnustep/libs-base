@@ -182,7 +182,7 @@ typedef struct {
 {
   if (this != 0)
     {
-      RELEASE(this->_protocol);
+      [self cancel];
       RELEASE(this->_request);
       NSZoneFree([self zone], this);
       _NSURLConnectionInternal = 0;
