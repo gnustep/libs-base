@@ -3,6 +3,8 @@
 
    Written by:  Dr. H. Nikolaus Schaller
    Created: 2005
+   Modifications: Fred Kiefer <FredKiefer@gmx.de>
+   Date: May 2007
    
    This file is part of the GNUstep Base Library.
 
@@ -40,6 +42,8 @@
 #include "GSPrivate.h"
 
 #include <stdarg.h>
+// For pow()
+#include <math.h>
 
 #define	NIMP	  [NSException raise: NSGenericException \
   format: @"%s(%s) has not implemented %s",\
@@ -81,27 +85,16 @@
 @end
 
 @interface GSAndCompoundPredicate : NSCompoundPredicate
-{
-  @public
-  NSArray	*_subs;
-}
-- (id) _initWithSubpredicates: (NSArray *)list;
 @end
 
 @interface GSOrCompoundPredicate : NSCompoundPredicate
-{
-  @public
-  NSArray	*_subs;
-}
-- (id) _initWithSubpredicates: (NSArray *)list;
 @end
 
 @interface GSNotCompoundPredicate : NSCompoundPredicate
-{
-  @public
-  NSPredicate	*_sub;
-}
-- (id) _initWithSubpredicate: (id)predicateOrList;
+@end
+
+@interface NSExpression (Private)
+- (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables;
 @end
 
 @interface GSConstantValueExpression : NSExpression
@@ -133,7 +126,6 @@
   @public
   NSString		*_function;
   NSArray		*_args;
-  NSMutableArray	*_eargs;    // temporary space 
   unsigned int		_argc;
   SEL _selector;
 }
@@ -148,33 +140,33 @@
   NSPredicate	*p;
   va_list	va;
 
-  va_start (va, format);
+  va_start(va, format);
   p = [self predicateWithFormat: format arguments: va];
-  va_end (va);
+  va_end(va);
   return p;
 }
 
 + (NSPredicate *) predicateWithFormat: (NSString *)format
-			argumentArray: (NSArray *)args
+                        argumentArray: (NSArray *)args
 {
   GSPredicateScanner	*s;
   NSPredicate		*p;
 
   s = [[GSPredicateScanner alloc] initWithString: format
-					    args: args];
+                                            args: args];
   p = [s parse];
   RELEASE(s);
   return p;
 }
 
 + (NSPredicate *) predicateWithFormat: (NSString *)format
-			    arguments: (va_list)args
+                            arguments: (va_list)args
 {
   GSPredicateScanner	*s;
   NSPredicate		*p;
 
   s = [[GSPredicateScanner alloc] initWithString: format
-					   vargs: args];
+                                           vargs: args];
   p = [s parse];
   RELEASE(s);
   return p;
@@ -184,17 +176,19 @@
 {
   if (value)
     {
-      return (NSPredicate *)[GSTruePredicate new];
-  }
-  return (NSPredicate *)[GSFalsePredicate new];
+      return AUTORELEASE([GSTruePredicate new]);
+    }
+  else
+    {
+      return AUTORELEASE([GSFalsePredicate new]);
+    }
 }
 
 // we don't ever instantiate NSPredicate
 
 - (id) copyWithZone: (NSZone *)z
 {
-  [self subclassResponsibility: _cmd];
-  return RETAIN(self);
+  return NSCopyObject(self, 0, z);
 }
 
 - (BOOL) evaluateWithObject: (id)object
@@ -216,16 +210,23 @@
 
 - (NSPredicate *) predicateWithSubstitutionVariables: (NSDictionary *)variables
 {
-  return [[self copy] autorelease];  
+  return AUTORELEASE([self copy]);  
+}
+
+- (Class) classForCoder
+{
+  return [NSPredicate class];
 }
 
 - (void) encodeWithCoder: (NSCoder *) coder;
 {
+  // FIXME
   [self subclassResponsibility: _cmd];
 }
 
 - (id) initWithCoder: (NSCoder *) coder;
 {
+  // FIXME
   [self subclassResponsibility: _cmd];
   return self;
 }
@@ -233,9 +234,10 @@
 @end
 
 @implementation GSTruePredicate
-- (id) copyWithZone: (NSZone *) z
+
+- (id) copyWithZone: (NSZone *)z
 {
-  return [self retain];
+  return RETAIN(self);
 }
 
 - (BOOL) evaluateWithObject: (id)object
@@ -247,12 +249,14 @@
 {
   return @"TRUEPREDICATE";
 }
+
 @end
 
 @implementation GSFalsePredicate
+
 - (id) copyWithZone: (NSZone *)z
 {
-  return [self retain];
+  return RETAIN(self);
 }
 
 - (BOOL) evaluateWithObject: (id)object
@@ -264,97 +268,98 @@
 {
   return @"FALSEPREDICATE";
 }
+
 @end
 
 @implementation NSCompoundPredicate
 
 + (NSPredicate *) andPredicateWithSubpredicates: (NSArray *)list
 {
-  return [[[GSAndCompoundPredicate alloc] _initWithSubpredicates: list]
-    autorelease];
+  return AUTORELEASE([[GSAndCompoundPredicate alloc] initWithType: NSAndPredicateType
+                                                     subpredicates: list]);
 }
 
 + (NSPredicate *) notPredicateWithSubpredicate: (NSPredicate *)predicate
 {
-  return [[[GSNotCompoundPredicate alloc] _initWithSubpredicate: predicate]
-    autorelease];
+  return AUTORELEASE([[GSNotCompoundPredicate alloc] 
+                         initWithType: NSNotPredicateType
+                         subpredicates: [NSArray arrayWithObject: predicate]]);
 }
 
 + (NSPredicate *) orPredicateWithSubpredicates: (NSArray *)list
 {
-  return [[[GSOrCompoundPredicate alloc] _initWithSubpredicates: list]
-    autorelease];
+  return AUTORELEASE([[GSOrCompoundPredicate alloc] initWithType: NSOrPredicateType
+                                                     subpredicates: list]);
 }
 
 - (NSCompoundPredicateType) compoundPredicateType
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  return _type;
 }
 
 - (id) initWithType: (NSCompoundPredicateType)type
       subpredicates: (NSArray *)list
 {
-  [self release];
-  switch (type)
-    {
-      case NSAndPredicateType: 
-	return [[GSAndCompoundPredicate alloc] _initWithSubpredicates: list];
-      case NSOrPredicateType: 
-	return [[GSOrCompoundPredicate alloc] _initWithSubpredicates: list];
-      case NSNotPredicateType: 
-	return [[GSNotCompoundPredicate alloc] _initWithSubpredicate: list];
-      default: 
-	return nil;
-    }
-}
-
-- (id) copyWithZone: (NSZone *)z
-{
-  [self subclassResponsibility: _cmd];
-  return [self retain];
-}
-
-- (NSArray *) subpredicates
-{
-  [self subclassResponsibility: _cmd];
-  return nil;
-}
-
-- (void) encodeWithCoder: (NSCoder *)coder
-{
-  [self subclassResponsibility: _cmd];
-}
-
-- (id) initWithCoder: (NSCoder *)coder
-{
-  return self;
-}
-
-@end
-
-@implementation GSAndCompoundPredicate
-
-- (id) _initWithSubpredicates: (NSArray *)list
-{
-  NSAssert ([list count] > 1, NSInvalidArgumentException);
   if ((self = [super init]) != nil)
     {
-      _subs = [list retain];
+      _type = type;
+      ASSIGN(_subs, list);
     }
   return self;
 }
 
 - (void) dealloc
 {
-  [_subs release];
+  RELEASE(_subs);
   [super dealloc];
 }
 
-- (NSCompoundPredicateType) compoundPredicateType
+- (id) copyWithZone: (NSZone *)z
 {
-  return NSAndPredicateType;
+  return [[[self class] alloc] initWithType: _type subpredicates: _subs];
 }
+
+- (NSArray *) subpredicates
+{
+  return _subs;
+}
+
+- (NSPredicate *) predicateWithSubstitutionVariables: (NSDictionary *)variables
+{
+  unsigned int count = [_subs count];
+  NSMutableArray *esubs = [NSMutableArray arrayWithCapacity: count];
+   unsigned int i;
+
+  for (i = 0; i < count; i++)
+    {
+      [esubs addObject: [[_subs objectAtIndex: i] 
+                            predicateWithSubstitutionVariables: variables]];
+    }
+
+  return [[[self class] alloc] initWithType: _type subpredicates: esubs];
+}
+
+- (Class) classForCoder
+{
+  return [NSCompoundPredicate class];
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  // FIXME
+  [self subclassResponsibility: _cmd];
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  // FIXME
+  [self subclassResponsibility: _cmd];
+  return self;
+}
+
+@end
+
+@implementation GSAndCompoundPredicate
 
 - (BOOL) evaluateWithObject: (id) object
 {
@@ -364,9 +369,9 @@
   while ((p = [e nextObject]) != nil)
     {
       if ([p evaluateWithObject: object] == NO)
-	{
-	  return NO;  // any NO returns NO
-	}
+        {
+          return NO;  // any NO returns NO
+        }
     }
   return YES;  // all are true
 }
@@ -382,86 +387,42 @@
     {
       // when to add ()? -> if sub is compound and of type "or"
       if (cnt == 0)
-	{
-	  fmt = [sub predicateFormat];  // first
-	}
+        {
+          fmt = [sub predicateFormat];  // first
+        }
       else
-	{
-	  if (cnt == 1
-	    && [[_subs objectAtIndex: 0]
-	      isKindOfClass: [NSCompoundPredicate class]]
-	    && [(NSCompoundPredicate *)[_subs objectAtIndex: 0]
-	      compoundPredicateType] == NSOrPredicateType)
-	    {
-	      // we need () around first OR on left side
-	      fmt = [NSString stringWithFormat: @"(%@)", fmt]; 
-	    }
-	  if ([sub isKindOfClass: [NSCompoundPredicate class]]
-	    && [(NSCompoundPredicate *) sub compoundPredicateType]
-	      == NSOrPredicateType)
-	    {
-	      // we need () around right OR
-	      fmt = [NSString stringWithFormat: @"%@ AND (%@)",
-		fmt, [sub predicateFormat]];
-	    }
-	  else
-	    {
-	      fmt = [NSString stringWithFormat: @"%@ AND %@",
-		fmt, [sub predicateFormat]];
-	    }
-	}
+        {
+          if (cnt == 1
+              && [[_subs objectAtIndex: 0]
+                     isKindOfClass: [NSCompoundPredicate class]]
+              && [(NSCompoundPredicate *)[_subs objectAtIndex: 0]
+                                         compoundPredicateType] == NSOrPredicateType)
+            {
+              // we need () around first OR on left side
+              fmt = [NSString stringWithFormat: @"(%@)", fmt]; 
+            }
+          if ([sub isKindOfClass: [NSCompoundPredicate class]]
+              && [(NSCompoundPredicate *) sub compoundPredicateType]
+              == NSOrPredicateType)
+            {
+              // we need () around right OR
+              fmt = [NSString stringWithFormat: @"%@ AND (%@)",
+                              fmt, [sub predicateFormat]];
+            }
+          else
+            {
+              fmt = [NSString stringWithFormat: @"%@ AND %@",
+                              fmt, [sub predicateFormat]];
+            }
+        }
       cnt++;
     }
   return fmt;
 }
 
-- (NSArray *) subpredicates
-{
-  return _subs;
-}
-
-- (NSPredicate *) predicateWithSubstitutionVariables: (NSDictionary *)variables
-{
-  GSAndCompoundPredicate	*copy = [self copy];
-  unsigned int			count = [copy->_subs count];
-  unsigned int			i;
-
-  for (i = 0; i < count; i++)
-    {
-      NSPredicate	*rep;
-
-      rep = [_subs objectAtIndex: i];
-      rep = [rep predicateWithSubstitutionVariables: variables];
-      [(NSMutableArray *)(copy->_subs) replaceObjectAtIndex: i
-						 withObject: rep];
-    }
-  return [copy autorelease];  
-}
-
 @end
 
 @implementation GSOrCompoundPredicate
-
-- (id) _initWithSubpredicates: (NSArray *)list
-{
-  NSAssert ([list count] > 1, NSInvalidArgumentException);
-  if ((self = [super init]) != nil)
-    {
-      _subs = [list retain];
-    }
-  return self;
-}
-
-- (void) dealloc
-{
-  [_subs release];
-  [super dealloc];
-}
-
-- (NSCompoundPredicateType) compoundPredicateType
-{
-  return NSOrPredicateType;
-}
 
 - (BOOL) evaluateWithObject: (id)object
 {
@@ -471,9 +432,9 @@
   while ((p = [e nextObject]) != nil)
     {
       if ([p evaluateWithObject: object] == YES)
-	{
-	  return YES;  // any YES returns YES
-	}
+        {
+          return YES;  // any YES returns YES
+        }
     }
   return NO;  // none is true
 }
@@ -487,98 +448,40 @@
   while ((sub = [e nextObject]) != nil)
     {
       if ([fmt length] > 0)
-	{
-	  fmt = [NSString stringWithFormat: @"%@ OR %@",
-	    fmt, [sub predicateFormat]];
-	}
+        {
+          fmt = [NSString stringWithFormat: @"%@ OR %@",
+                          fmt, [sub predicateFormat]];
+        }
       else
-	{
-	  fmt = [sub predicateFormat];  // first
-	}
+        {
+          fmt = [sub predicateFormat];  // first
+        }
     }
   return fmt;
-}
-
-- (NSArray *) subpredicates
-{
-  return _subs;
-}
-
-- (NSPredicate *) predicateWithSubstitutionVariables: (NSDictionary *)variables
-{
-  GSOrCompoundPredicate	*copy = [self copy];
-  unsigned int			count = [copy->_subs count];
-  unsigned int			i;
-
-  for (i = 0; i < count; i++)
-    {
-      NSPredicate	*rep;
-
-      rep = [_subs objectAtIndex: i];
-      rep = [rep predicateWithSubstitutionVariables: variables];
-      [(NSMutableArray *)(copy->_subs) replaceObjectAtIndex: i withObject: rep];
-    }
-  return [copy autorelease];  
 }
 
 @end
 
 @implementation GSNotCompoundPredicate
 
-- (id) _initWithSubpredicate: (id)listOrPredicate
-{
-  if ((self = [super init]) != nil)
-    {
-      if ([listOrPredicate isKindOfClass: [NSArray class]])
-	{
-	  _sub = [[listOrPredicate objectAtIndex: 0] retain];
-	}
-      else
-	{
-	  _sub = [listOrPredicate retain];
-	}
-    }
-  return self;
-}
-
-- (void) dealloc
-{
-  [_sub release];
-  [super dealloc];
-}
-
-- (NSCompoundPredicateType) compoundPredicateType
-{
-  return NSNotPredicateType;
-}
-
 - (BOOL) evaluateWithObject: (id)object
 {
-  return ![_sub evaluateWithObject: object];
+  NSPredicate *sub = [_subs objectAtIndex: 0];
+
+  return ![sub evaluateWithObject: object];
 }
 
 - (NSString *) predicateFormat
 {
-  if ([_sub isKindOfClass: [NSCompoundPredicate class]]
-    && [(NSCompoundPredicate *)_sub compoundPredicateType]
+  NSPredicate *sub = [_subs objectAtIndex: 0];
+
+  if ([sub isKindOfClass: [NSCompoundPredicate class]]
+    && [(NSCompoundPredicate *)sub compoundPredicateType]
       != NSNotPredicateType)
     {
-      return [NSString stringWithFormat: @"NOT(%@)", [_sub predicateFormat]];
+      return [NSString stringWithFormat: @"NOT(%@)", [sub predicateFormat]];
     }
-  return [NSString stringWithFormat: @"NOT %@", [_sub predicateFormat]];
-}
-
-- (NSArray *) subpredicates
-{
-  return [NSArray arrayWithObject: _sub];
-}
-
-- (NSPredicate *) predicateWithSubstitutionVariables: (NSDictionary *)variables
-{
-  GSNotCompoundPredicate	*copy = [self copy];
-
-  copy->_sub = [_sub predicateWithSubstitutionVariables: variables];
-  return [copy autorelease];  
+  return [NSString stringWithFormat: @"NOT %@", [sub predicateFormat]];
 }
 
 @end
@@ -586,21 +489,63 @@
 @implementation NSComparisonPredicate
 
 + (NSPredicate *) predicateWithLeftExpression: (NSExpression *)left
-			      rightExpression: (NSExpression *)right
-			       customSelector: (SEL) sel
+                              rightExpression: (NSExpression *)right
+                               customSelector: (SEL) sel
 {
-  return [[[self alloc] initWithLeftExpression: left
-    rightExpression: right customSelector: sel] autorelease];
+  return AUTORELEASE([[self alloc] initWithLeftExpression: left
+                                          rightExpression: right 
+                                           customSelector: sel]);
 }
 
 + (NSPredicate *) predicateWithLeftExpression: (NSExpression *)left
-  rightExpression: (NSExpression *)right
-  modifier: (NSComparisonPredicateModifier)modifier
-  type: (NSPredicateOperatorType)type
-  options: (unsigned)opts
+                              rightExpression: (NSExpression *)right
+                                     modifier: (NSComparisonPredicateModifier)modifier
+                                         type: (NSPredicateOperatorType)type
+                                      options: (unsigned)opts
 {
-  return [[[self alloc] initWithLeftExpression: left rightExpression: right
-    modifier: modifier type: type options: opts] autorelease];
+  return AUTORELEASE([[self alloc] initWithLeftExpression: left 
+                                          rightExpression: right
+                                                 modifier: modifier 
+                                                     type: type 
+                                                  options: opts]);
+}
+
+- (NSPredicate *) initWithLeftExpression: (NSExpression *)left
+                         rightExpression: (NSExpression *)right
+                          customSelector: (SEL)sel
+{
+  if ((self = [super init]) != nil)
+    {
+      ASSIGN(_left, left);
+      ASSIGN(_right, right);
+      _selector = sel;
+      _type = NSCustomSelectorPredicateOperatorType;
+    }
+  return self;
+}
+
+- (id) initWithLeftExpression: (NSExpression *)left
+              rightExpression: (NSExpression *)right
+                     modifier: (NSComparisonPredicateModifier)modifier
+                         type: (NSPredicateOperatorType)type
+                      options: (unsigned)opts
+{
+  if ((self = [super init]) != nil)
+    {
+      ASSIGN(_left, left);
+      ASSIGN(_right, right);
+      _modifier = modifier;
+      _type = type;
+      _options = opts;
+    }
+  return self;
+}
+
+- (void) dealloc;
+{
+  RELEASE(_left);
+  RELEASE(_right);
+  [super dealloc];
 }
 
 - (NSComparisonPredicateModifier) comparisonPredicateModifier
@@ -611,44 +556,6 @@
 - (SEL) customSelector
 {
   return _selector;
-}
-
-- (NSPredicate *) initWithLeftExpression: (NSExpression *)left
-			 rightExpression: (NSExpression *)right
-			  customSelector: (SEL)sel
-{
-  if ((self = [super init]) != nil)
-    {
-      _left = [left retain];
-      _right = [right retain];
-      _selector = sel;
-      _type = NSCustomSelectorPredicateOperatorType;
-    }
-  return self;
-}
-
-- (id) initWithLeftExpression: (NSExpression *)left
-	      rightExpression: (NSExpression *)right
-		     modifier: (NSComparisonPredicateModifier)modifier
-			 type: (NSPredicateOperatorType)type
-		      options: (unsigned)opts
-{
-  if ((self = [super init]) != nil)
-    {
-      _left = [left retain];
-      _right = [right retain];
-      _modifier = modifier;
-      _type = type;
-      _options = opts;
-    }
-  return self;
-}
-
-- (void) dealloc;
-{
-  [_left release];
-  [_right release];
-  [super dealloc];
 }
 
 - (NSExpression *) leftExpression
@@ -680,68 +587,228 @@
   switch (_modifier)
     {
       case NSDirectPredicateModifier:
-	break;
+        break;
       case NSAnyPredicateModifier:
-	modi = @"ANY "; break;
+        modi = @"ANY "; 
+        break;
       case NSAllPredicateModifier:
-	modi = @"ALL"; break;
+        modi = @"ALL"; 
+        break;
       default:
-	modi = @"?modifier?"; break;
+        modi = @"?modifier?";
+        break;
     }
   switch (_type)
     {
       case NSLessThanPredicateOperatorType:
-	comp = @"<"; break;
+        comp = @"<";
+        break;
       case NSLessThanOrEqualToPredicateOperatorType:
-	comp = @"<="; break;
+        comp = @"<=";
+        break;
       case NSGreaterThanPredicateOperatorType:
-	comp = @">="; break;
+        comp = @">=";
+        break;
       case NSGreaterThanOrEqualToPredicateOperatorType:
-	comp = @">"; break;
+        comp = @">";
+        break;
       case NSEqualToPredicateOperatorType:
-	comp = @"="; break;
+        comp = @"=";
+        break;
       case NSNotEqualToPredicateOperatorType:
-	comp = @"!="; break;
+        comp = @"!=";
+        break;
       case NSMatchesPredicateOperatorType:
-	comp = @"MATCHES"; break;
+        comp = @"MATCHES";
+        break;
       case NSLikePredicateOperatorType:
-	comp = @"LIKE"; break;
+        comp = @"LIKE";
+        break;
       case NSBeginsWithPredicateOperatorType:
-	comp = @"BEGINSWITH"; break;
+        comp = @"BEGINSWITH";
+        break;
       case NSEndsWithPredicateOperatorType:
-	comp = @"ENDSWITH"; break;
+        comp = @"ENDSWITH";
+        break;
       case NSInPredicateOperatorType:
-	comp = @"IN"; break;
+        comp = @"IN";
+        break;
       case NSCustomSelectorPredicateOperatorType: 
-	{
-	  comp = NSStringFromSelector (_selector);
-	}
+        comp = NSStringFromSelector(_selector);
+        break;
     }
   switch (_options)
     {
       case NSCaseInsensitivePredicateOption:
-	opt = @"[c]"; break;
+        opt = @"[c]";
+        break;
       case NSDiacriticInsensitivePredicateOption:
-	opt = @"[d]"; break;
+        opt = @"[d]";
+        break;
       case NSCaseInsensitivePredicateOption
-	| NSDiacriticInsensitivePredicateOption:
-	opt = @"[cd]"; break;
+        | NSDiacriticInsensitivePredicateOption:
+        opt = @"[cd]";
+        break;
       default:
-	opt = @"[?options?]"; break;
+        opt = @"[?options?]";
+        break;
     }
   return [NSString stringWithFormat: @"%@%@ %@%@ %@",
-   modi, _left, comp, opt, _right];
+           modi, _left, comp, opt, _right];
 }
 
 - (NSPredicate *) predicateWithSubstitutionVariables: (NSDictionary *)variables
 {
-  NSComparisonPredicate	*copy = [self copy];
+  NSExpression *left = [_left _expressionWithSubstitutionVariables: variables];
+  NSExpression *right = [_right _expressionWithSubstitutionVariables: variables];
+   
+   if (_type == NSCustomSelectorPredicateOperatorType)
+     {
+       return [NSComparisonPredicate predicateWithLeftExpression: left 
+                                                 rightExpression: right 
+                                                  customSelector: _selector];
+     }
+   else
+     {
+       return [NSComparisonPredicate predicateWithLeftExpression: left 
+                                                 rightExpression: right 
+                                                        modifier: _modifier 
+                                                            type: _type 
+                                                         options: _options];
+     }
+}
 
-  // FIXME ... perform substitution in the left and right expressions
-  return [copy autorelease];  
+- (BOOL) _evaluateLeftValue: (id)leftResult rightValue: (id)rightResult
+{
+   unsigned compareOptions = 0;
+   BOOL leftIsNil = (leftResult == nil || [leftResult isEqual: [NSNull null]]);
+   BOOL rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
+	
+   if (leftIsNil || rightIsNil)
+     {
+       // One of the values is nil. The result is YES, if both are nil and equlality is requested.
+       return ((leftIsNil == rightIsNil) && 
+               ((_type == NSEqualToPredicateOperatorType) || 
+                (_type == NSLessThanOrEqualToPredicateOperatorType) || 
+                (_type == NSGreaterThanOrEqualToPredicateOperatorType)));
+     }
+
+   // Change predicate options into string options.
+   if (!(_options & NSDiacriticInsensitivePredicateOption))
+     {
+       compareOptions |= NSLiteralSearch;
+     }
+   if (_options & NSCaseInsensitivePredicateOption)
+     {
+       compareOptions |= NSCaseInsensitiveSearch;
+     }
+
+   // This is a very optimistic implementation, hoping that the values are of the right type.
+   switch (_type)
+     {
+       case NSLessThanPredicateOperatorType:
+         return ([leftResult compare: rightResult] == NSOrderedAscending);
+       case NSLessThanOrEqualToPredicateOperatorType:
+         return ([leftResult compare: rightResult] != NSOrderedDescending);
+       case NSGreaterThanPredicateOperatorType:
+         return ([leftResult compare: rightResult] == NSOrderedDescending);
+       case NSGreaterThanOrEqualToPredicateOperatorType:
+         return ([leftResult compare: rightResult] != NSOrderedAscending);
+       case NSEqualToPredicateOperatorType:
+         return [leftResult isEqual: rightResult];
+       case NSNotEqualToPredicateOperatorType:
+         return ![leftResult isEqual: rightResult];
+       case NSMatchesPredicateOperatorType:
+           // FIXME: Missing implementation of matches.
+         return NO;
+       case NSLikePredicateOperatorType:
+           // FIXME: Missing implementation of like.
+         return NO;
+       case NSBeginsWithPredicateOperatorType:
+         {
+           NSRange range = NSMakeRange(0, [rightResult length]);
+           return ([leftResult compare: rightResult options: compareOptions range: range] == NSOrderedSame);
+         }
+       case NSEndsWithPredicateOperatorType:
+         {
+           NSRange range = NSMakeRange([leftResult length] - [rightResult length], [rightResult length]);
+           return ([leftResult compare: rightResult options: compareOptions range: range] == NSOrderedSame);
+         }
+       case NSInPredicateOperatorType:
+         return ([leftResult rangeOfString: rightResult options: compareOptions].location != NSNotFound);
+       case NSCustomSelectorPredicateOperatorType:
+         {
+           BOOL (*function)(id,SEL,id) = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
+           return function(leftResult, _selector, rightResult);
+         }
+       default:
+         return NO;
+     }
+}
+
+- (BOOL) evaluateWithObject: (id)object
+{
+  id leftValue = [_left expressionValueWithObject: object context: nil];
+  id rightValue = [_right expressionValueWithObject: object context: nil];
+	
+  if (_modifier == NSDirectPredicateModifier)
+    {
+      return [self _evaluateLeftValue: leftValue rightValue: rightValue];
+    }
+  else
+    {		
+      BOOL result = (_modifier == NSAllPredicateModifier);
+      NSEnumerator *e;
+      id value;
+
+      if (![leftValue respondsToSelector: @selector(objectEnumerator)])
+        {
+          [NSException raise: NSInvalidArgumentException 
+                      format: @"The left hand side for an ALL or ANY operator must be a collection"];
+        }
+
+      e = [leftValue objectEnumerator];
+      while ((value = [e nextObject]))
+        {
+          BOOL eval = [self _evaluateLeftValue: value rightValue: rightValue];
+          if (eval != result) 
+            return eval;		
+        }
+
+      return result;
+    }
+}
+
+- (id) copyWithZone: (NSZone *)z
+{
+  NSComparisonPredicate *copy = (NSComparisonPredicate *)NSCopyObject(self, 0, z);
+
+  copy->_left = [_left copyWithZone: z];
+  copy->_right = [_right copyWithZone: z];
+  return copy;
+}
+
+- (Class) classForCoder
+{
+  return [NSComparisonPredicate class];
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  // FIXME
+  [self subclassResponsibility: _cmd];
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  // FIXME
+  [self subclassResponsibility: _cmd];
+  return self;
 }
 
 @end
+
+
 
 @implementation NSExpression
 
@@ -749,23 +816,28 @@
 {
   GSConstantValueExpression *e;
 
-  e = [[[GSConstantValueExpression alloc] init] autorelease];
-  e->_obj = [obj retain];
-  return e;
+  e = [[GSConstantValueExpression alloc] 
+          initWithExpressionType: NSConstantValueExpressionType];
+  ASSIGN(e->_obj, obj);
+  return AUTORELEASE(e);
 }
 
 + (NSExpression *) expressionForEvaluatedObject
 {
-  return [[[GSEvaluatedObjectExpression alloc] init] autorelease];
+  GSEvaluatedObjectExpression *e;
+
+  e = [[GSEvaluatedObjectExpression alloc] 
+          initWithExpressionType: NSEvaluatedObjectExpressionType];
+  return AUTORELEASE(e);
 }
 
 + (NSExpression *) expressionForFunction: (NSString *)name
-			       arguments: (NSArray *)args
+                               arguments: (NSArray *)args
 {
   GSFunctionExpression	*e;
   NSString		*s;
 
-  e = [[[GSFunctionExpression alloc] init] autorelease];
+  e = [[GSFunctionExpression alloc] initWithExpressionType: NSFunctionExpressionType];
   s = [NSString stringWithFormat: @"_eval_%@: context: ", name];
   e->_selector = NSSelectorFromString(s);
   if (![e respondsToSelector: e->_selector])
@@ -773,11 +845,10 @@
       [NSException raise: NSInvalidArgumentException
 		  format: @"Unknown function implementation: %@", name];
     }
-  e->_function = [name retain];
+  ASSIGN(e->_function, name);
   e->_argc = [args count];
-  e->_args = [args retain];
-  e->_eargs = [args copy];  // space for evaluated arguments
-  return e;
+  ASSIGN(e->_args, args);
+  return AUTORELEASE(e);
 }
 
 + (NSExpression *) expressionForKeyPath: (NSString *)path
@@ -789,18 +860,34 @@
       [NSException raise: NSInvalidArgumentException
 		  format: @"Keypath is not NSString: %@", path];
     }
-  e = [[[GSKeyPathExpression alloc] init] autorelease];
-  e->_keyPath = [path retain];
-  return e;
+  e = [[GSKeyPathExpression alloc] 
+          initWithExpressionType: NSKeyPathExpressionType];
+  ASSIGN(e->_keyPath, path);
+  return AUTORELEASE(e);
 }
 
 + (NSExpression *) expressionForVariable: (NSString *)string
 {
   GSVariableExpression *e;
 
-  e = [[[GSVariableExpression alloc] init] autorelease];
-  e->_variable = [string retain];
-  return e;
+  e = [[GSVariableExpression alloc] 
+          initWithExpressionType: NSVariableExpressionType];
+  ASSIGN(e->_variable, string);
+  return AUTORELEASE(e);
+}
+
+- (id) initWithExpressionType: (NSExpressionType)type
+{
+  if ((self = [super init]) != nil)
+    {
+      _type = type;
+    }
+  return self;
+}
+
+- (id) copyWithZone: (NSZone *)z
+{
+  return NSCopyObject(self, 0, z);
 }
 
 - (NSArray *) arguments
@@ -823,8 +910,7 @@
 
 - (NSExpressionType) expressionType
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  return _type;
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -858,39 +944,25 @@
   return nil;
 }
 
-- (id) initWithExpressionType: (NSExpressionType)type
+- (Class) classForCoder
 {
-  [self release];
-  switch (type)
-    {
-      case NSConstantValueExpressionType: 
-	return [[GSConstantValueExpression alloc] init];
-      case NSEvaluatedObjectExpressionType: 
-	return [[GSEvaluatedObjectExpression alloc] init];
-      case NSVariableExpressionType: 
-	return [[GSVariableExpression alloc] init];
-      case NSKeyPathExpressionType: 
-	return [[GSKeyPathExpression alloc] init];
-      case NSFunctionExpressionType: 
-	return [[GSFunctionExpression alloc] init];
-      default: 
-	return nil;
-   
-    }
-}
-
-- (id) copyWithZone: (NSZone *)z
-{
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return [NSExpression class];
 }
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  // FIXME
   [self subclassResponsibility: _cmd];
 }
 
 - (id) initWithCoder: (NSCoder *)coder
+{
+  // FIXME
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -900,11 +972,6 @@
 
 @implementation GSConstantValueExpression
 
-- (NSArray *) arguments
-{
-  return nil;
-}
-
 - (id) constantValue
 {
   return _obj;
@@ -912,12 +979,7 @@
 
 - (NSString *) description
 {
-  return _obj;
-}
-
-- (NSExpressionType) expressionType
-{
-  return NSConstantValueExpressionType;
+  return [_obj description];
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -926,54 +988,33 @@
   return _obj;
 }
 
-- (NSString *) function
-{
-  return nil;
-}
-
-- (NSString *) keyPath
-{
-  return nil;
-}
-
-- (NSExpression *) operand
-{
-  return nil;
-}
-
-- (NSString *) variable
-{
-  return nil;
-}
-
 - (void) dealloc
 {
-  [_obj release];
+  RELEASE(_obj);
   [super dealloc];
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSConstantValueExpression *copy;
+
+  copy = (GSConstantValueExpression *)[super copyWithZone: zone];
+  copy->_obj = [_obj copyWithZone: zone];
+  return copy;
+}
+
+- (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
+{
+  return self;
 }
 
 @end
 
 @implementation GSEvaluatedObjectExpression
 
-- (NSArray *) arguments
-{
-  return nil;
-}
-
-- (id) constantValue
-{
-  return nil;
-}
-
 - (NSString *) description
 {
   return @"SELF";
-}
-
-- (NSExpressionType) expressionType
-{
-  return NSEvaluatedObjectExpressionType;
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -982,69 +1023,24 @@
   return self;
 }
 
-- (NSString *) function
+- (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
 {
-  return nil;
-}
-
-- (NSString *) keyPath
-{
-  return nil;
-}
-
-- (NSExpression *) operand
-{
-  return nil;
-}
-
-- (NSString *) variable
-{
-  return nil;
+  return self;
 }
 
 @end
 
 @implementation GSVariableExpression
 
-- (NSArray *) arguments
-{
-  return nil;
-}
-
-- (id) constantValue
-{
-  return nil;
-}
-
 - (NSString *) description
 {
   return [NSString stringWithFormat: @"$%@", _variable];
-}
-
-- (NSExpressionType) expressionType
-{
-  return NSVariableExpressionType;
 }
 
 - (id) expressionValueWithObject: (id)object
 			 context: (NSMutableDictionary *)context
 {
   return [context objectForKey: _variable];
-}
-
-- (NSString *) function
-{
-  return nil;
-}
-
-- (NSString *) keyPath
-{
-  return nil;
-}
-
-- (NSExpression *) operand
-{
-  return nil;
 }
 
 - (NSString *) variable
@@ -1054,32 +1050,40 @@
 
 - (void) dealloc;
 {
-  [_variable release];
+  RELEASE(_variable);
   [super dealloc];
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSVariableExpression *copy;
+
+  copy = (GSVariableExpression *)[super copyWithZone: zone];
+  copy->_variable = [_variable copyWithZone: zone];
+  return copy;
+}
+
+- (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
+{
+  id result = [variables objectForKey: _variable];
+
+  if (result != nil)
+    {
+      return [NSExpression expressionForConstantValue: result];
+    }
+  else
+    {
+      return self;
+    }
 }
 
 @end
 
 @implementation GSKeyPathExpression
 
-- (NSArray *) arguments
-{
-  return nil;
-}
-
-- (id) constantValue
-{
-  return nil;
-}
-
 - (NSString *) description
 {
   return _keyPath;
-}
-
-- (NSExpressionType) expressionType
-{
-  return NSKeyPathExpressionType;
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -1088,30 +1092,29 @@
   return [object valueForKeyPath: _keyPath];
 }
 
-- (NSString *) function
-{
-  return nil;
-}
-
 - (NSString *) keyPath
 {
   return _keyPath;
 }
 
-- (NSExpression *) operand
-{
-  return nil;
-}
-
-- (NSString *) variable
-{
-  return nil;
-}
-
 - (void) dealloc;
 {
-  [_keyPath release];
+  RELEASE(_keyPath);
   [super dealloc];
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSKeyPathExpression *copy;
+
+  copy = (GSKeyPathExpression *)[super copyWithZone: zone];
+  copy->_keyPath = [_keyPath copyWithZone: zone];
+  return copy;
+}
+
+- (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
+{
+  return self;
 }
 
 @end
@@ -1123,131 +1126,219 @@
   return _args;
 }
 
-- (id) constantValue
-{
-  return nil;
-}
-
 - (NSString *) description
 {
-  // here we should recognize binary and unary operators
+  // FIXME: here we should recognize binary and unary operators
   // and convert back to standard format
   // and add parentheses if required
   return [NSString stringWithFormat: @"%@(%@)",
-    [NSStringFromSelector (_selector) substringFromIndex: 6], _args];
+    [self function], _args];
 }
-
-- (NSExpressionType) expressionType
-{
-  return NSFunctionExpressionType;
-}
-
-- (id) expressionValueWithObject: (id)object
-			 context: (NSMutableDictionary *)context
-{ // apply method selector
-  unsigned int i;
-
-  for (i = 0; i < _argc; i++)
-    {
-      id	o;
-
-      o = [_args objectAtIndex: i];
-      o = [o expressionValueWithObject: object context: context];
-      [_eargs replaceObjectAtIndex: i withObject: o];
-    }
-  return [self performSelector: _selector
-		    withObject: object
-		    withObject: context];
-}
-
-- (id) _eval__chs: (id)object context: (NSMutableDictionary *)context
-{
-  return [NSNumber numberWithInt: -[[_eargs objectAtIndex: 0] intValue]];
-}
-
-- (id) _eval__first: (id)object context: (NSMutableDictionary *)context
-{
-  return [[_eargs objectAtIndex: 0] objectAtIndex: 0];
-}
-
-- (id) _eval__last: (id)object context: (NSMutableDictionary *)context
-{
-  return [[_eargs objectAtIndex: 0] lastObject];
-}
-
-- (id) _eval__index: (id)object context: (NSMutableDictionary *)context
-{
-  if ([[_eargs objectAtIndex: 0] isKindOfClass: [NSDictionary class]])
-    return [[_eargs objectAtIndex: 0] objectForKey: [_eargs objectAtIndex: 1]];
-  return [[_eargs objectAtIndex: 0] objectAtIndex: [[_eargs objectAtIndex: 1] unsignedIntValue]];  // raises exception if invalid
-}
-
-- (id) _eval_count: (id)object context: (NSMutableDictionary *)context
-{
-  if (_argc != 1)
-    ;  // error
-  return [NSNumber numberWithUnsignedInt: [[_eargs objectAtIndex: 0] count]];
-}
-
-- (id) _eval_avg: (NSArray *)expressions
-	 context: (NSMutableDictionary *)context
-{
-  NIMP;
-  return [NSNumber numberWithDouble: 0.0];
-}
-
-- (id) _eval_sum: (NSArray *)expressions
-	 context: (NSMutableDictionary *)context
-{
-  NIMP;
-  return [NSNumber numberWithDouble: 0.0];
-}
-
-- (id) _eval_min: (NSArray *)expressions
-	 context: (NSMutableDictionary *)context
-{
-  NIMP;
-  return [NSNumber numberWithDouble: 0.0];
-}
-
-- (id) _eval_max: (NSArray *)expressions
-	 context: (NSMutableDictionary *)context
-{
-  NIMP;
-  return [NSNumber numberWithDouble: 0.0];
-}
-
-// add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn, now
 
 - (NSString *) function
 {
   return _function;
 }
 
-- (NSString *) keyPath
-{
-  return nil;
-}
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{ 
+  // temporary space 
+  NSMutableArray	*eargs = [NSMutableArray arrayWithCapacity: _argc];
+  unsigned int i;
 
-- (NSExpression *) operand
-{
-  return nil;
-}
-
-- (NSString *) variable
-{
-  return nil;
+  for (i = 0; i < _argc; i++)
+    {
+      [eargs addObject: [[_args objectAtIndex: i] 
+                            expressionValueWithObject: object context: context]];
+    }
+  // apply method selector
+  return [self performSelector: _selector
+                      withObject: eargs];
 }
 
 - (void) dealloc;
 {
-  [_args release];
-  [_eargs release];
-  [_function release];
+  RELEASE(_args);
+  RELEASE(_function);
   [super dealloc];
 }
 
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSFunctionExpression *copy;
+
+  copy = (GSFunctionExpression *)[super copyWithZone: zone];
+  copy->_function = [_function copyWithZone: zone];
+  copy->_args = [_args copyWithZone: zone];
+  return copy;
+}
+
+- (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
+{
+  NSMutableArray *args = [NSMutableArray arrayWithCapacity: _argc];
+  unsigned int i;
+      
+  for (i = 0; i < _argc; i++)
+    {
+      [args addObject: [[_args objectAtIndex: i] 
+                           _expressionWithSubstitutionVariables: variables]];
+    }
+
+   return [NSExpression expressionForFunction: _function arguments: args];
+}
+
+- (id) _eval__chs: (NSArray *)expressions
+{
+  return [NSNumber numberWithInt: -[[expressions objectAtIndex: 0] intValue]];
+}
+
+- (id) _eval__first: (NSArray *)expressions
+{
+  return [[expressions objectAtIndex: 0] objectAtIndex: 0];
+}
+
+- (id) _eval__last: (NSArray *)expressions
+{
+  return [[expressions objectAtIndex: 0] lastObject];
+}
+
+- (id) _eval__index: (NSArray *)expressions
+{
+  id left = [expressions objectAtIndex: 0];
+  id right = [expressions objectAtIndex: 1];
+
+  if ([left isKindOfClass: [NSDictionary class]])
+    {
+      return [left objectForKey: right];
+    }
+  else
+    {
+      // raises exception if invalid
+      return [left objectAtIndex: [right unsignedIntValue]];
+    }
+}
+
+- (id) _eval__pow: (NSArray *)expressions
+{
+  id left = [expressions objectAtIndex: 0];
+  id right = [expressions objectAtIndex: 1];
+
+  return [NSNumber numberWithDouble: pow([left doubleValue], [right doubleValue])];
+}
+
+- (id) _eval__mul: (NSArray *)expressions
+{
+  id left = [expressions objectAtIndex: 0];
+  id right = [expressions objectAtIndex: 1];
+
+  return [NSNumber numberWithDouble: [left doubleValue] * [right doubleValue]];
+}
+
+- (id) _eval__div: (NSArray *)expressions
+{
+  id left = [expressions objectAtIndex: 0];
+  id right = [expressions objectAtIndex: 1];
+
+  return [NSNumber numberWithDouble: [left doubleValue] / [right doubleValue]];
+}
+
+- (id) _eval__add: (NSArray *)expressions
+{
+  id left = [expressions objectAtIndex: 0];
+  id right = [expressions objectAtIndex: 1];
+
+  return [NSNumber numberWithDouble: [left doubleValue] + [right doubleValue]];
+}
+
+- (id) _eval__sub: (NSArray *)expressions
+{
+  id left = [expressions objectAtIndex: 0];
+  id right = [expressions objectAtIndex: 1];
+
+  return [NSNumber numberWithDouble: [left doubleValue] - [right doubleValue]];
+}
+
+- (id) _eval_count: (NSArray *)expressions
+{
+  if (_argc != 1)
+    ;  // error
+  return [NSNumber numberWithUnsignedInt: [[expressions objectAtIndex: 0] count]];
+}
+
+- (id) _eval_avg: (NSArray *)expressions 
+{
+  unsigned int i;
+  double sum = 0.0;
+    
+  for (i = 0; i < _argc; i++)
+    {
+      sum += [[expressions objectAtIndex: i] doubleValue];
+    }
+  return [NSNumber numberWithDouble: sum / _argc];
+}
+
+- (id) _eval_sum: (NSArray *)expressions
+{
+  unsigned int i;
+  double sum = 0.0;
+    
+  for (i = 0; i < _argc; i++)
+    {
+      sum += [[expressions objectAtIndex: i] doubleValue];
+    }
+  return [NSNumber numberWithDouble: sum];
+}
+
+- (id) _eval_min: (NSArray *)expressions
+{
+  unsigned int i;
+  double min = 0.0;
+  double cur;
+  
+  if (_argc > 0)
+    {
+      min = [[expressions objectAtIndex: 0] doubleValue];
+    }
+
+  for (i = 1; i < _argc; i++)
+    {
+      cur = [[expressions objectAtIndex: i] doubleValue];
+      if (min > cur)
+        {
+          min = cur;
+        }
+    }
+  return [NSNumber numberWithDouble: min];
+}
+
+- (id) _eval_max: (NSArray *)expressions
+{
+  unsigned int i;
+  double max = 0.0;
+  double cur;
+  
+  if (_argc > 0)
+    {
+      max = [[expressions objectAtIndex: 0] doubleValue];
+    }
+
+  for (i = 1; i < _argc; i++)
+    {
+      cur = [[expressions objectAtIndex: i] doubleValue];
+      if (max < cur)
+        {
+          max = cur;
+        }
+    }
+  return [NSNumber numberWithDouble: max];
+}
+
+// add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn, now
+
 @end
+
+
 
 @implementation NSArray (NSPredicate)
 
@@ -1257,13 +1348,13 @@
   NSEnumerator		*e = [self objectEnumerator];
   id			object;
 
-  result = [GSMutableArray arrayWithCapacity: [self count]];
+  result = [NSMutableArray arrayWithCapacity: [self count]];
   while ((object = [e nextObject]) != nil)
     {
       if ([predicate evaluateWithObject: object] == YES)
-	{
-	  [result addObject: object];  // passes filter
-	}
+        {
+          [result addObject: object];  // passes filter
+        }
     }
   return [result makeImmutableCopyOnFail: NO];
 }
@@ -1281,18 +1372,20 @@
       id	object = [self objectAtIndex: count];
 	
       if ([predicate evaluateWithObject: object] == NO)
-	{
-	  [self removeObjectAtIndex: count];
-	}
+        {
+          [self removeObjectAtIndex: count];
+        }
     }
 }
 
 @end
 
+
+
 @implementation GSPredicateScanner
 
 - (id) initWithString: (NSString*)format
-		 args: (NSArray*)args
+                 args: (NSArray*)args
 {
   self = [super initWithString: format];
   if (self != nil)
@@ -1303,7 +1396,7 @@
 }
 
 - (id) initWithString: (NSString*)format
-		vargs: (va_list)vargs
+                vargs: (va_list)vargs
 {
   self = [super initWithString: format];
   if (self != nil)
@@ -1338,7 +1431,7 @@
 
       for (i = 0; i < _retrieved; i++)
         {
-	  o = va_arg(ap, id);
+          o = va_arg(ap, id);
         }
       _retrieved++;
       o = va_arg(ap, id);
@@ -1399,37 +1492,37 @@
       NSPredicate	*r = [self parseOr];
 
       if ([r isKindOfClass: [NSCompoundPredicate class]]
-	&& [(NSCompoundPredicate *)r compoundPredicateType]
-	== NSAndPredicateType)
+          && [(NSCompoundPredicate *)r compoundPredicateType]
+          == NSAndPredicateType)
         {
-	  // merge
-	  if ([l isKindOfClass:[NSCompoundPredicate class]]
-	    && [(NSCompoundPredicate *)l compoundPredicateType]
-	    == NSAndPredicateType)
-	    {
-	      [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-		addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
-	    }
-	  else
-	    {
-	      [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-		insertObject: l atIndex: 0];
-	      l = r;
-	    }
-	}
+          // merge
+          if ([l isKindOfClass:[NSCompoundPredicate class]]
+              && [(NSCompoundPredicate *)l compoundPredicateType]
+              == NSAndPredicateType)
+            {
+              [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
+                  addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+            }
+          else
+            {
+              [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
+                                 insertObject: l atIndex: 0];
+              l = r;
+            }
+        }
       else if ([l isKindOfClass: [NSCompoundPredicate class]]
-	&& [(NSCompoundPredicate *)l compoundPredicateType]
-	== NSAndPredicateType)
+               && [(NSCompoundPredicate *)l compoundPredicateType]
+               == NSAndPredicateType)
         {
-	  // add to l
-	  [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
-	    addObject: r];
-	}
+          // add to l
+          [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
+                             addObject: r];
+        }
       else
         {
-	  l = [NSCompoundPredicate andPredicateWithSubpredicates: 
-	    [NSArray arrayWithObjects:l, r, nil]];
-	}
+          l = [NSCompoundPredicate andPredicateWithSubpredicates: 
+                                       [NSArray arrayWithObjects:l, r, nil]];
+        }
     }
   return l;
 }
@@ -1442,9 +1535,9 @@
 	
       if (![self scanString: @")" intoString: NULL])
         {
-	  [NSException raise: NSInvalidArgumentException 
-		      format: @"Missing ) in compound predicate"];
-	}
+          [NSException raise: NSInvalidArgumentException 
+                      format: @"Missing ) in compound predicate"];
+        }
       return r;
     }
 
@@ -1452,7 +1545,7 @@
     {
       // -> NOT NOT x or NOT (y)
       return [NSCompoundPredicate
-	notPredicateWithSubpredicate: [self parseNot]];
+                 notPredicateWithSubpredicate: [self parseNot]];
     }
 
   if ([self scanPredicateKeyword: @"TRUEPREDICATE"])
@@ -1476,36 +1569,36 @@
       NSPredicate	*r = [self parseNot];
 
       if ([r isKindOfClass: [NSCompoundPredicate class]]
-	&& [(NSCompoundPredicate *)r compoundPredicateType]
-	== NSOrPredicateType)
+          && [(NSCompoundPredicate *)r compoundPredicateType]
+          == NSOrPredicateType)
         {
-	  // merge
-	  if ([l isKindOfClass: [NSCompoundPredicate class]]
-	    && [(NSCompoundPredicate *)l compoundPredicateType]
-	    == NSOrPredicateType)
-	    {
-	      [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-	        addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
-	    }
-	  else
-	    {
-	      [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-	        insertObject: l atIndex: 0];
-	      l = r;
-	    }		
-	}
+          // merge
+          if ([l isKindOfClass: [NSCompoundPredicate class]]
+              && [(NSCompoundPredicate *)l compoundPredicateType]
+              == NSOrPredicateType)
+            {
+              [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
+                  addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+            }
+          else
+            {
+              [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
+                                 insertObject: l atIndex: 0];
+              l = r;
+            }
+        }
       else if ([l isKindOfClass: [NSCompoundPredicate class]]
-	&& [(NSCompoundPredicate *)l compoundPredicateType]
-	== NSOrPredicateType)
+               && [(NSCompoundPredicate *)l compoundPredicateType]
+               == NSOrPredicateType)
         {
-	  [(NSMutableArray *) [(NSCompoundPredicate *) l subpredicates]
-	     addObject:r];
-	}
+          [(NSMutableArray *) [(NSCompoundPredicate *) l subpredicates]
+                              addObject:r];
+        }
       else
         {
-	  l = [NSCompoundPredicate orPredicateWithSubpredicates: 
-	    [NSArray arrayWithObjects: l, r, nil]];
-	}
+          l = [NSCompoundPredicate orPredicateWithSubpredicates: 
+                                       [NSArray arrayWithObjects: l, r, nil]];
+        }
     }
   return l;
 }
@@ -1539,7 +1632,7 @@
       negate = YES;
     }
 
-  left = [self parseBinaryExpression];
+  left = [self parseExpression];
   if ([self scanString: @"<" intoString: NULL])
     {
       type = NSLessThanPredicateOperatorType;
@@ -1594,7 +1687,7 @@
   if ([self scanString: @"[cd]" intoString: NULL])
     {
       opts = NSCaseInsensitivePredicateOption
-	| NSDiacriticInsensitivePredicateOption;
+          | NSDiacriticInsensitivePredicateOption;
     }
   else if ([self scanString: @"[c]" intoString: NULL])
     {
@@ -1606,24 +1699,30 @@
     }
 
   p = [NSComparisonPredicate predicateWithLeftExpression: left 
-    rightExpression: [self parseBinaryExpression]
-    modifier: modifier 
-    type: type 
-    options: opts];
+                             rightExpression: [self parseExpression]
+                             modifier: modifier 
+                             type: type 
+                             options: opts];
 
   return negate ? [NSCompoundPredicate notPredicateWithSubpredicate: p] : p;
 }
 
 - (NSExpression *) parseExpression
 {
-  static NSCharacterSet *_identifier;
+//  return [self parseAdditionExpression];
+  return [self parseBinaryExpression];
+}
+
+- (NSExpression *) parseSimpleExpression
+{
+   static NSCharacterSet *_identifier;
   NSString *ident;
   double dbl;
 
   if ([self scanDouble: &dbl])
     {
       return [NSExpression expressionForConstantValue: 
-			       [NSNumber numberWithDouble: dbl]];
+                               [NSNumber numberWithDouble: dbl]];
     }
 
   // FIXME: handle integer, hex constants, 0x 0o 0b
@@ -1639,9 +1738,9 @@
       
       if (![self scanString: @")" intoString: NULL])
         {
-	  [NSException raise: NSInvalidArgumentException 
-		      format: @"Missing ) in expression"];
-	}
+          [NSException raise: NSInvalidArgumentException 
+                       format: @"Missing ) in expression"];
+        }
       return arg;
     }
 
@@ -1651,23 +1750,23 @@
 
       if ([self scanString: @"}" intoString: NULL])
         {
-	  // empty
-	  // FIXME
-	  return nil;
-	}
+          // empty
+          // FIXME
+          return nil;
+        }
       // first element
       [a addObject: [self parseExpression]];
       while ([self scanString: @"," intoString: NULL])
         {
-	  // more elements
-	  [a addObject: [self parseExpression]];
-	}
+          // more elements
+          [a addObject: [self parseExpression]];
+        }
 
       if (![self scanString: @"}" intoString: NULL])
         {
-	  [NSException raise: NSInvalidArgumentException 
-		      format: @"Missing } in aggregate"];
-	}
+          [NSException raise: NSInvalidArgumentException 
+                      format: @"Missing } in aggregate"];
+        }
       // FIXME
       return nil;
     }
@@ -1679,12 +1778,12 @@
   if ([self scanPredicateKeyword: @"TRUE"])
     {
       return [NSExpression expressionForConstantValue: 
-	[NSNumber numberWithBool: YES]];
+                               [NSNumber numberWithBool: YES]];
     }
   if ([self scanPredicateKeyword: @"FALSE"])
     {
       return [NSExpression expressionForConstantValue: 
-	[NSNumber numberWithBool: NO]];
+                               [NSNumber numberWithBool: NO]];
     }
   if ([self scanPredicateKeyword: @"SELF"])
     {
@@ -1697,10 +1796,10 @@
 
       if (![var keyPath])
         {
-	  [NSException raise: NSInvalidArgumentException 
-		      format: @"Invalid variable identifier: %@", var];
-	}
-      return [NSExpression expressionForVariable:[var keyPath]];
+          [NSException raise: NSInvalidArgumentException 
+                      format: @"Invalid variable identifier: %@", var];
+        }
+      return [NSExpression expressionForVariable: [var keyPath]];
     }
 	
   if ([self scanPredicateKeyword: @"%K"])
@@ -1734,29 +1833,28 @@
 
       if (![e keyPath])
         {
-	  [NSException raise: NSInvalidArgumentException 
-		      format: @"Invalid keypath identifier: %@", e];
-	}
+          [NSException raise: NSInvalidArgumentException 
+                      format: @"Invalid keypath identifier: %@", e];
+        }
 
       // prefix with keypath
       return [NSExpression expressionForKeyPath: 
-	[NSString stringWithFormat: @"@%@", [e keyPath]]];
+                               [NSString stringWithFormat: @"@%@", [e keyPath]]];
     }
 
   // skip # as prefix (reserved words)
   [self scanString: @"#" intoString: NULL];
   if (!_identifier)
     {
-      _identifier = [NSCharacterSet characterSetWithCharactersInString: 
-	 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"];
-      RETAIN(_identifier);
+      ASSIGN(_identifier, [NSCharacterSet characterSetWithCharactersInString: 
+	 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"]);
     }
 
   if (![self scanCharactersFromSet: _identifier intoString: &ident])
     {
       [NSException raise: NSInvalidArgumentException 
-		  format: @"Missing identifier: %@", 
-		   [[self string] substringFromIndex: [self scanLocation]]];
+                  format: @"Missing identifier: %@", 
+                   [[self string] substringFromIndex: [self scanLocation]]];
     }
 
   return [NSExpression expressionForKeyPath: ident];
@@ -1764,102 +1862,102 @@
 
 - (NSExpression *) parseFunctionalExpression
 {
-  NSExpression *left = [self parseExpression];
+  NSExpression *left = [self parseSimpleExpression];
     
   while (YES)
     {
       if ([self scanString: @"(" intoString: NULL])
         { 
           // function - this parser allows for (max)(a, b, c) to be properly 
-	  // recognized and even (%K)(a, b, c) if %K evaluates to "max"
-	  NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
+          // recognized and even (%K)(a, b, c) if %K evaluates to "max"
+          NSMutableArray *args = [NSMutableArray arrayWithCapacity: 5];
 
-	  if (![left keyPath])
-	    {
-	      [NSException raise: NSInvalidArgumentException 
-			  format: @"Invalid function identifier: %@", left];
-	    }
+          if (![left keyPath])
+            {
+              [NSException raise: NSInvalidArgumentException 
+                          format: @"Invalid function identifier: %@", left];
+            }
 
-	  if (![self scanString: @")" intoString: NULL])
-	    {
-	      // any arguments
-	      // first argument
-	      [args addObject: [self parseExpression]];
-	      while ([self scanString: @"," intoString: NULL])
-	        {
-		  // more arguments
-		  [args addObject: [self parseExpression]];
-		}
+          if (![self scanString: @")" intoString: NULL])
+            {
+              // any arguments
+              // first argument
+              [args addObject: [self parseExpression]];
+              while ([self scanString: @"," intoString: NULL])
+                {
+                  // more arguments
+                  [args addObject: [self parseExpression]];
+                }
 
-	      if (![self scanString: @")" intoString: NULL])
-	        {
-		  [NSException raise: NSInvalidArgumentException 
-			      format: @"Missing ) in function arguments"];
-		}
-	    }
-	  left = [NSExpression expressionForFunction: [left keyPath] 
-					   arguments: args];
-	}
+              if (![self scanString: @")" intoString: NULL])
+                {
+                  [NSException raise: NSInvalidArgumentException 
+                              format: @"Missing ) in function arguments"];
+                }
+            }
+          left = [NSExpression expressionForFunction: [left keyPath] 
+                                           arguments: args];
+        }
       else if ([self scanString: @"[" intoString: NULL])
         {
-	  // index expression
-	  if ([self scanPredicateKeyword: @"FIRST"])
-	    {
-	      left = [NSExpression expressionForFunction: @"_first" 
-		arguments: [NSArray arrayWithObject: [self parseExpression]]];
-	    }
-	  else if ([self scanPredicateKeyword: @"LAST"])
-	    {
-	      left = [NSExpression expressionForFunction: @"_last" 
-		arguments: [NSArray arrayWithObject: [self parseExpression]]];
-	    }
-	  else if ([self scanPredicateKeyword: @"SIZE"])
-	    {
-	      left = [NSExpression expressionForFunction: @"count" 
-	        arguments: [NSArray arrayWithObject: [self parseExpression]]];
-	    }
-	  else
-	    {
-	      left = [NSExpression expressionForFunction: @"_index" 
-		arguments: [NSArray arrayWithObjects: left,
-		[self parseExpression], nil]];
-	    }
-	  if (![self scanString: @"]" intoString: NULL])
-	    {   
-	      [NSException raise: NSInvalidArgumentException 
-			  format: @"Missing ] in index argument"];
-	    }
-	}
+          // index expression
+          if ([self scanPredicateKeyword: @"FIRST"])
+            {
+              left = [NSExpression expressionForFunction: @"_first" 
+                        arguments: [NSArray arrayWithObject: [self parseExpression]]];
+            }
+          else if ([self scanPredicateKeyword: @"LAST"])
+            {
+              left = [NSExpression expressionForFunction: @"_last" 
+                        arguments: [NSArray arrayWithObject: [self parseExpression]]];
+            }
+          else if ([self scanPredicateKeyword: @"SIZE"])
+            {
+              left = [NSExpression expressionForFunction: @"count" 
+                        arguments: [NSArray arrayWithObject: [self parseExpression]]];
+            }
+          else
+            {
+              left = [NSExpression expressionForFunction: @"_index" 
+                                   arguments: [NSArray arrayWithObjects: left,
+                                                       [self parseExpression], nil]];
+            }
+          if (![self scanString: @"]" intoString: NULL])
+            {   
+              [NSException raise: NSInvalidArgumentException 
+                          format: @"Missing ] in index argument"];
+            }
+        }
       else if ([self scanString: @"." intoString: NULL])
         {
-	  // keypath - this parser allows for (a).(b.c)
-	  // to be properly recognized
-	  // and even %K.((%K)) if the first %K evaluates to "a" and the 
-	  // second %K to "b.c"
-	  NSExpression *right;
+          // keypath - this parser allows for (a).(b.c)
+          // to be properly recognized
+          // and even %K.((%K)) if the first %K evaluates to "a" and the 
+          // second %K to "b.c"
+          NSExpression *right;
 		
-	  if (![left keyPath])
-	    {
-	      [NSException raise: NSInvalidArgumentException 
-			  format: @"Invalid left keypath: %@", left];
-	    }
-	  right = [self parseExpression];
-	  if (![right keyPath])
-	    {
-	      [NSException raise: NSInvalidArgumentException 
-			  format: @"Invalid right keypath: %@", left];
-	    }
+          if (![left keyPath])
+            {
+              [NSException raise: NSInvalidArgumentException 
+                          format: @"Invalid left keypath: %@", left];
+            }
+          right = [self parseExpression];
+          if (![right keyPath])
+            {
+              [NSException raise: NSInvalidArgumentException 
+                          format: @"Invalid right keypath: %@", left];
+            }
 
-	  // concatenate
-	  left = [NSExpression expressionForKeyPath:
-	    [NSString stringWithFormat: @"%@.%@",
-	    [left keyPath], [right keyPath]]];
-	}
+          // concatenate
+          left = [NSExpression expressionForKeyPath:
+                    [NSString stringWithFormat: @"%@.%@",
+                              [left keyPath], [right keyPath]]];
+        }
       else
         {
-	  // done with suffixes
-	  return left;
-	}
+          // done with suffixes
+          return left;
+        }
     }
 }
 
@@ -1873,13 +1971,14 @@
 	
       if ([self scanString: @"**" intoString: NULL])
         {
-	  right = [self parseFunctionalExpression];
-          // FIXME
-	}
+          right = [self parseFunctionalExpression];
+          left = [NSExpression expressionForFunction: @"_pow" 
+                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+        }
       else
         {
-	  return left;
-	}
+          return left;
+        }
     }
 }
 
@@ -1893,18 +1992,20 @@
 	
       if ([self scanString: @"*" intoString: NULL])
         {
-	  right = [self parsePowerExpression];
-          // FIXME
-	}
+          right = [self parsePowerExpression];
+          left = [NSExpression expressionForFunction: @"_mul" 
+                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+        }
       else if ([self scanString: @"/" intoString: NULL])
         {
-	  right = [self parsePowerExpression];
-          // FIXME
-	}
+          right = [self parsePowerExpression];
+          left = [NSExpression expressionForFunction: @"_div" 
+                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+        }
       else
         {
-	  return left;
-	}
+          return left;
+        }
     }
 }
 
@@ -1918,18 +2019,20 @@
 	
       if ([self scanString: @"+" intoString: NULL])
         {
-	  right = [self parseMultiplicationExpression];
-          // FIXME
-	}
+          right = [self parseMultiplicationExpression];
+          left = [NSExpression expressionForFunction: @"_add" 
+                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+        }
       else if ([self scanString: @"-" intoString: NULL])
         {
-	  right = [self parseMultiplicationExpression];
-          // FIXME
-	}
+          right = [self parseMultiplicationExpression];
+          left = [NSExpression expressionForFunction: @"_sub" 
+                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+        }
       else
         {
-	  return left;
-	}
+          return left;
+        }
     }
 }
 
@@ -1943,15 +2046,15 @@
 
       if ([self scanString: @":=" intoString: NULL])	// assignment
         {
-	  // check left to be a variable?
-	  right = [self parseAdditionExpression];
-	}
+          // check left to be a variable?
+          right = [self parseAdditionExpression];
+          // FIXME
+        }
       else
-	{
-	  return left;
-	}
+        {
+          return left;
+        }
     }
 }
-
 
 @end

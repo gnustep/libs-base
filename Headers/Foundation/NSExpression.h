@@ -28,13 +28,15 @@
 
 #if	OS_API_VERSION(100400, GS_API_LATEST)
 
-#import	<Foundation/NSPredicate.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
+@class NSArray;
 @class NSMutableDictionary;
+@class NSString;
 
 typedef enum _NSExpressionType
 {
@@ -46,6 +48,9 @@ typedef enum _NSExpressionType
 } NSExpressionType;
 
 @interface NSExpression : NSObject <NSCoding, NSCopying>
+{
+  NSExpressionType _type;
+}
 
 + (NSExpression *) expressionForConstantValue: (id)obj;
 + (NSExpression *) expressionForEvaluatedObject;

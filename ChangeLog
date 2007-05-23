@@ -1,3 +1,10 @@
+2007-05-23  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSCompoundPredicate.h: Add some common ivars.
+	* Headers/Foundation/NSExpression.h:Add some common ivar.
+	* Source/NSPredicate.m: Implement a lot of missing functionality
+	for the predicate and expression classes. Clean up formatting.
+
 2007-05-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSNetServices.h: fix bug #19872
