@@ -1,3 +1,8 @@
+2007-05-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: when unable to open a file, log should be debug
+	level rather than warn level.
+
 2007-05-23  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSCompoundPredicate.h: Add some common ivars.
