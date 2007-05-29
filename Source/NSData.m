@@ -164,7 +164,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 
   if (theFile == 0)		/* We failed to open the file. */
     {
-      NSWarnFLog(@"Open (%@) attempt failed - %@", path, [NSError _last]);
+      NSDebugFLog(@"Open (%@) attempt failed - %@", path, [NSError _last]);
       goto failure;
     }
 	

@@ -144,6 +144,78 @@ static vacallReturnTypeInfo returnTypeInfo [STATIC_CALLBACK_LIST_SIZE];
 static void
 GSInvocationCallback(void *callback_data, va_alist args);
 
+/* Count the number of subtypes in a structure
+ */
+static const char *gs_subtypes(const char *type, int *result)
+{
+  int	count = 0;
+
+  if (*type == _C_STRUCT_B)
+    {
+      type++;
+      while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+      while (*type != '\0' && *type != _C_STRUCT_E)
+        {
+	  count++;
+	  if (*type == _C_STRUCT_B)
+	    {
+	      /* count a nested structure as a single type.
+	       */
+	      type = gs_subtypes (type, 0);
+	    }
+	  else
+	    {
+	      type = objc_skip_typespec (type);
+	    }
+	}
+      if (*type == _C_STRUCT_E)
+        {
+	  type++;	/* step past end of struct */
+	}
+    }
+  if (result != 0)
+    {
+      *result = count;
+    }
+  return type;
+}
+
+/* return the index'th subtype
+ */
+static const char *gs_subtype(const char *type, int index)
+{
+  int	count = 0;
+
+  if (*type != _C_STRUCT_B)
+    {
+      return "";
+    }
+  type++;
+  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+  while (*type != '\0' && *type != _C_STRUCT_E)
+    {
+      if (count++ == index)
+	{
+	  return type;
+	}
+      if (*type == _C_STRUCT_B)
+	{
+	  /* count and skip a nested structure as a single type.
+	   */
+	  type = gs_subtypes (type, 0);
+	}
+      else
+	{
+	  type = objc_skip_typespec (type);
+	}
+    }
+  if (*type == _C_STRUCT_E)
+    {
+      type++;	/* step past end of struct */
+    }
+  return type;
+}
+
 /*
  * Recursively calculate the offset using the offset of the previous
  * sub-type
