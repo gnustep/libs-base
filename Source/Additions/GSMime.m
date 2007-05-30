@@ -1376,16 +1376,6 @@ wordData(NSString *word)
 	  bytes = (unsigned char*)[data mutableBytes];
 	  dataEnd = [data length];
 
-	  /* If we are parsing an HTTP response, but it doesn't start
-	   * with HTTP/ then it is a very old version where we just
-	   * get the body and no headers.
-	   */
-	  if (flags.isHttp == 1 && dataEnd > 4
-	    && memcmp(bytes, "HTTP/", 5) != 0)
-	    {
-	      flags.inBody = 1;
-	    }
-
 	  while (flags.inBody == 0)
 	    {
 	      if ([self _unfoldHeader] == NO)
