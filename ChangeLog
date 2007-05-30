@@ -1,3 +1,7 @@
+2007-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.m: Don't trap abort signal.
+
 2007-05-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: when unable to open a file, log should be debug

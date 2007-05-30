@@ -1119,6 +1119,7 @@ main(int argc, char** argv, char** env)
 
     for (sym = 0; sym < NSIG; sym++)
       {
+	if (sym == SIGABRT) continue;
 #ifdef	SIGPROF
 	if (sym == SIGPROF) continue;
 #endif
