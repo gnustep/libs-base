@@ -1,3 +1,7 @@
+2007-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.m: Don't trap abort signal.
+
 2007-05-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSNetServices.h: fix bug #19872
