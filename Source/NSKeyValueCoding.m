@@ -270,10 +270,13 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     {
       [self unableToSetNilForKey: aKey];
     }
-
-  [NSException raise: NSInvalidArgumentException
-	      format: @"%@ -- %@ 0x%x: Given nil value to set for key \"%@\"",
-    NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+        format: @"%@ -- %@ 0x%x: Given nil value to set for key \"%@\"",
+        NSStringFromSelector(_cmd), NSStringFromClass([self class]),
+        self, aKey];
+    }
 }
 
 
