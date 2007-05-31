@@ -1,3 +1,8 @@
+2007-05-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Tools/NSKeyValueCoding.m: Backport fix for backward compatibility in
+	([setNilValueForKey:]).
+		
 2007-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.m: Don't trap abort signal.
