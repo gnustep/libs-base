@@ -1562,8 +1562,11 @@ wordData(NSString *word)
   /*
    * Special case - permit web response status line to act like a header.
    */
-  if ([scanner scanString: @"HTTP" intoString: &name] == NO
-    || [scanner scanString: @"/" intoString: 0] == NO)
+  if ([scanner scanString: @"HTTP/" intoString: &name] == YES)
+    {
+      name = @"HTTP";
+    }
+  else
     {
       if ([scanner scanUpToString: @":" intoString: &name] == NO)
 	{

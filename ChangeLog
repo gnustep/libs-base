@@ -1,3 +1,8 @@
+2007-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Fix problem where any header starting
+	with 'http' would be mangled.
+
 2007-05-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/NSKeyValueCoding.m: Minor fix for backward compatibility in
