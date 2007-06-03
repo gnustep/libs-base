@@ -1,3 +1,9 @@
+2007-06-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: define MSG_DONTWAIT as zero if it's not
+	defined ... it should not be needed anyway if the socket is already
+	non-blocking.
+
 2007-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/Additions/GSMime.m: Fix problem where any header starting

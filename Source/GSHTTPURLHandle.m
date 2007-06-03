@@ -1281,6 +1281,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  int		result;
 	  unsigned char	c;
 
+#if     !defined(MSG_DONTWAIT)
+#define MSG_DONTWAIT    0
+#endif
 	  result = recv(fd, &c, 1, MSG_PEEK | MSG_DONTWAIT);
 	  if (result == 0 || (result < 0 && errno != EAGAIN && errno != EINTR))
 	    {
