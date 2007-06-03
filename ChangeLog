@@ -1,3 +1,7 @@
+2007-06-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandleWin32.m: Clean up indentation issues etc.
+
 2007-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Fix problem where any header starting
