@@ -1853,7 +1853,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	     type: event ? ET_HANDLE : ET_TRIGGER
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
-	  else
     }
 }
 
