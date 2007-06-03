@@ -108,16 +108,23 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
     }
   else
     {
-      DWORD readBytes=-1;
-      if (ReadFile((HANDLE)_get_osfhandle(descriptor), buf, len, &readBytes, NULL)) {
-      	return readBytes;
-      } else {
-      	DWORD err = GetLastError();
-      	if (err == ERROR_BROKEN_PIPE || err == ERROR_HANDLE_EOF) {
-      		return readBytes;
-      	}
-      	return -1;
-      }
+      DWORD readBytes = -1;
+
+      if (ReadFile((HANDLE)_get_osfhandle(descriptor), buf, len,
+        &readBytes, NULL))
+        {
+          return readBytes;
+        }
+      else
+        {
+          DWORD err = GetLastError();
+
+          if (err == ERROR_BROKEN_PIPE || err == ERROR_HANDLE_EOF)
+            {
+              return readBytes;
+            }
+          return -1;
+        }
     }
   return len;
 }
@@ -1226,7 +1233,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (readInfo)
     {
-    [self receivedEventRead];
+      [self receivedEventRead];
     }
 }
 
@@ -1761,28 +1768,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	if (event)
 	  [l removeEvent: (void*)(uintptr_t)event
-		    type: ET_HANDLE
-		 forMode: [modes objectAtIndex: i]
-		     all: YES];
-	else
-	  [l removeEvent:0
-		    type: ET_TRIGGER
+		    type: event ? ET_HANDLE : ET_TRIGGER
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
         }
     }
   else
     {
-    if (event)
       [l removeEvent: (void*)(uintptr_t)event
-	        type: ET_HANDLE
-	     forMode: NSDefaultRunLoopMode
-                 all: YES];
-	else             
-      [l removeEvent:0
-	        type: ET_TRIGGER
+	        type: event ? ET_HANDLE : ET_TRIGGER
 	     forMode: NSDefaultRunLoopMode
                  all: YES];
     }
@@ -1845,14 +1840,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  if (event)
 	  [l addEvent: (void*)(uintptr_t)event
-		 type: ET_HANDLE
-	      watcher: self
-	      forMode: [modes objectAtIndex: i]];
-	  else
-	    [l addEvent:0
-		 type: ET_TRIGGER
+		 type: event ? ET_HANDLE : ET_TRIGGER
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
         }
@@ -1860,16 +1849,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-	  if (event)
       [l addEvent: (void*)(uintptr_t)event
-	     type: ET_HANDLE
+	     type: event ? ET_HANDLE : ET_TRIGGER
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
 	  else
-      [l addEvent:0
-	     type: ET_TRIGGER
-	  watcher: self
-	  forMode: NSDefaultRunLoopMode];
     }
 }
 
@@ -2232,21 +2216,26 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       unsigned long	dummy;
 
-      if (isSocket != YES) {
-        // Not a file and not a socket, must be a pipe
-		DWORD mode;
-		if (flag)
-			mode = PIPE_NOWAIT;
-		else
-			mode = PIPE_WAIT;
-		if (SetNamedPipeHandleState((HANDLE)_get_osfhandle(descriptor), &mode, NULL, NULL)) {
-			isNonBlocking = flag;
-		} else {
+      if (isSocket != YES)
+        {                        // Not a file and not a socket, must be a pipe
+          DWORD mode;
+
+          if (flag)
+            mode = PIPE_NOWAIT;
+          else
+            mode = PIPE_WAIT;
+          if (SetNamedPipeHandleState((HANDLE)_get_osfhandle(descriptor),
+            &mode, NULL, NULL))
+            {
+              isNonBlocking = flag;
+            }
+          else
+            {
 	      NSLog(@"unable to set pipe non-blocking mode - %d",
 		GetLastError());
-		}
-        return;
-      }
+            }
+          return;
+        }
 
       if (flag)
 	{
