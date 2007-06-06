@@ -107,7 +107,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
 	    }
 	  else
 	    {
-	      GSOnceFLog(@"Key-value access using _setKey: isdeprecated:");
+	      GSOnceFLog(@"Key-value access using _setKey: is deprecated:");
 	    }
 	}
     }
@@ -282,19 +282,20 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (void) setValue: (id)anObject forKey: (NSString*)aKey
 {
-  unsigned	size = [aKey length];
+  unsigned	size = [aKey length] * 8;
   char		key[size+1];
 
   [aKey getCString: key
 	 maxLength: size+1
-	  encoding: NSASCIIStringEncoding];
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(key);
   SetValueForKey(self, anObject, key, size);
 }
 
 
 - (void) setValue: (id)anObject forKeyPath: (NSString*)aKey
 {
-  unsigned	size = [aKey length];
+  unsigned	size = [aKey length] * 8;
   char		buf[size+1];
   unsigned	start = 0;
   unsigned	end = 0;
@@ -302,7 +303,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
   [aKey getCString: buf
 	 maxLength: size+1
-	  encoding: NSASCIIStringEncoding];
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(buf);
   while (o != nil)
     {
       end = start;
@@ -310,9 +312,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	{
 	  end++;
 	}
-      aKey = [[NSString alloc] initWithBytes:  buf + start
-				      length:  end - start
-				    encoding: NSASCIIStringEncoding];
+      aKey = [[NSString alloc] initWithBytes: buf + start
+				      length: end - start
+				    encoding: NSUTF8StringEncoding];
       AUTORELEASE(aKey);
       if (end >= size)
 	{
@@ -375,7 +377,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       return [self valueForKey: aKey];
     }
 
-  size = [aKey length];
+  size = [aKey length] * 8;
   if (size > 0)
     {
       SEL		sel = 0;
@@ -390,7 +392,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       strcpy(buf, "_get");
       [aKey getCString: key
 	     maxLength: size+1
-	      encoding: NSASCIIStringEncoding];
+	      encoding: NSUTF8StringEncoding];
+      size = strlen(key);
       strcpy(&buf[4], key);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
@@ -458,7 +461,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       return;
     }
 
-  size = [aKey length];
+  size = [aKey length] * 8;
   if (size > 0)
     {
       SEL		sel;
@@ -473,7 +476,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       strcpy(buf, "_set");
       [aKey getCString: key
 	     maxLength: size+1
-	      encoding: NSASCIIStringEncoding];
+	      encoding: NSUTF8StringEncoding];
+      size = strlen(key);
       strcpy(&buf[4], key);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
@@ -546,13 +550,14 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   SEL		sel = 0;
   const char	*type = 0;
   int		off;
-  unsigned	size = [aKey length];
+  unsigned	size = [aKey length] * 8;
   char		key[size+1];
 
   GSOnceMLog(@"This method is deprecated, use -setValue:forKey:");
   [aKey getCString: key
 	 maxLength: size+1
-	  encoding: NSASCIIStringEncoding];
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(key);
   if (size > 0)
     {
       const char	*name;
@@ -651,7 +656,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 {
   unsigned	size;
 
-  if (aValue == 0 || (size = [aKey length]) == 0)
+  if (aValue == 0 || (size = [aKey length] * 8) == 0)
     {
       [NSException raise: NSInvalidArgumentException format: @"nil argument"];
     }
@@ -664,7 +669,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       strcpy(name, "validate");
       [aKey getCString: &name[8]
 	     maxLength: size+1
-	      encoding: NSASCIIStringEncoding];
+	      encoding: NSUTF8StringEncoding];
+      size = strlen(&name[8]);
       strcpy(&name[size+8], ":error:");
       if (islower(name[8]))
 	{
@@ -684,7 +690,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
             forKeyPath: (NSString*)aKey
                  error: (NSError**)anError
 {
-  unsigned	size = [aKey length];
+  unsigned	size = [aKey length] * 8;
   char		buf[size+1];
   unsigned	start = 0;
   unsigned	end = 0;
@@ -692,7 +698,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
   [aKey getCString: buf
 	 maxLength: size+1
-	  encoding: NSASCIIStringEncoding];
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(buf);
   while (o != nil)
     {
       end = start;
@@ -704,9 +711,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	{
 	  break;
 	}
-      aKey = [[NSString alloc] initWithBytes:  buf + start
-				      length:  end - start
-				    encoding: NSASCIIStringEncoding];
+      aKey = [[NSString alloc] initWithBytes: buf + start
+				      length: end - start
+				    encoding: NSUTF8StringEncoding];
       AUTORELEASE(aKey);
       o = [o valueForKey: aKey];
       start = ++end;
@@ -742,19 +749,20 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (id) valueForKey: (NSString*)aKey
 {
-  unsigned	size = [aKey length];
+  unsigned	size = [aKey length] * 8;
   char		key[size+1];
 
   [aKey getCString: key
 	 maxLength: size+1
-	  encoding: NSASCIIStringEncoding];
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(key);
   return ValueForKey(self, key, size);
 }
 
 
 - (id) valueForKeyPath: (NSString*)aKey
 {
-  unsigned	size = [aKey length];
+  unsigned	size = [aKey length] * 8;
   char		buf[size+1];
   unsigned	start = 0;
   unsigned	end = 0;
@@ -762,7 +770,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
   [aKey getCString: buf
 	 maxLength: size+1
-	  encoding: NSASCIIStringEncoding];
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(buf);
   while (start < size && o != nil)
     {
       end = start;
@@ -770,9 +779,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	{
 	  end++;
 	}
-      aKey = [[NSString alloc] initWithBytes:  buf + start
-				      length:  end - start
-				    encoding: NSASCIIStringEncoding];
+      aKey = [[NSString alloc] initWithBytes: buf + start
+				      length: end - start
+				    encoding: NSUTF8StringEncoding];
       AUTORELEASE(aKey);
       o = [o valueForKey: aKey];
       start = ++end;

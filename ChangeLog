@@ -1,3 +1,7 @@
+2007-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueCoding.m: Use UTF8 rather than ASCII
+
 2007-06-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: define MSG_DONTWAIT as zero if it's not
