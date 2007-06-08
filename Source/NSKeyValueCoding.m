@@ -38,7 +38,11 @@
 #include "Foundation/NSKeyValueCoding.h"
 #include "Foundation/NSNull.h"
 
-NSString* const NSUndefinedKeyException = @"NSUndefinedKeyException";
+/* For backward compatibility NSUndefinedKeyException is actually the same
+ * as the older NSUnknownKeyException
+ */
+NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
+NSString* const NSUndefinedKeyException = @"NSUnknownKeyException";
 
 
 static void
@@ -349,7 +353,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     (anObject ? (id)anObject : (id)@"(nil)"), @"NSTargetObjectUserInfoKey",
     (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
     nil];
-  exp = [NSException exceptionWithName: NSInvalidArgumentException
+  exp = [NSException exceptionWithName: NSUndefinedKeyException
 				reason: @"Unable to set nil value for key"
 			      userInfo: dict];
   [exp raise];
