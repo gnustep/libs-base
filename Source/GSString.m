@@ -1864,6 +1864,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	       * from internal format to unicode and then to the specified
 	       * C string encoding.
 	       */
+              bytes = maxLength - sizeof(char);
 	      if (GSToUnicode(&u, &l, self->_contents.c, self->_count,
 		internalEncoding, NSDefaultMallocZone(), 0) == NO)
 		{
