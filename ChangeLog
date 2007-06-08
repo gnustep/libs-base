@@ -2,6 +2,7 @@
 
 	* Source/GSString.m: fix error getting cstring from literal containing
 	illegal characters.
+	* Source/NSKeyValueCoding.m: backport fixes from trunk
 
 2007-06-03  Richard Frith-Macdonald <rfm@gnu.org>
 
