@@ -1,3 +1,8 @@
+2007-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: fix error getting cstring from literal containing
+	illegal characters.
+
 2007-06-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: define MSG_DONTWAIT as zero if it's not
