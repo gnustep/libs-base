@@ -2,6 +2,8 @@
 
 	* Source/GSString.m Fix bug getting cString from literal string
 	with illegal (non-ascii) characters.
+	* Source/NSKeyValueCoding.m: Fix backward compatibility issue with
+	NSUnknownKeyException.
 
 2007-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
