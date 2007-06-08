@@ -1,3 +1,8 @@
+2007-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m Fix bug getting cString from literal string
+	with illegal (non-ascii) characters.
+
 2007-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueCoding.m: Use UTF8 rather than ASCII
