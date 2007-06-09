@@ -735,6 +735,7 @@
            return ([leftResult compare: rightResult options: compareOptions range: range] == NSOrderedSame);
          }
        case NSInPredicateOperatorType:
+         // FIXME: Handle special case where rightResult is a collection and leftResult an element of it.
          return ([leftResult rangeOfString: rightResult options: compareOptions].location != NSNotFound);
        case NSCustomSelectorPredicateOperatorType:
          {
@@ -843,7 +844,7 @@
   if (![e respondsToSelector: e->_selector])
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Unknown function implementation: %@", name];
+                   format: @"Unknown function implementation: %@", name];
     }
   ASSIGN(e->_function, name);
   e->_argc = [args count];
@@ -1451,6 +1452,14 @@
       // no match
       return NO;
     }
+
+  if ([self isAtEnd])
+    {
+       // ok
+      return YES;
+    }
+  
+  // Does the next character still belong to the token?
   c = [[self string] characterAtIndex: [self scanLocation]];
   if (![[NSCharacterSet alphanumericCharacterSet] characterIsMember: c])
     {
@@ -1468,7 +1477,17 @@
 {
   NSPredicate *r;
 
-  r = [self parsePredicate];
+  NS_DURING
+    {
+      r = [self parsePredicate];
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Parsing failed for %@ with %@", [self string], localException);
+      [localException raise];
+    }
+  NS_ENDHANDLER
+
   if (![self isAtEnd])
     {
       [NSException raise: NSInvalidArgumentException 
@@ -1541,7 +1560,7 @@
       return r;
     }
 
-  if ([self scanPredicateKeyword: @"NOT"])
+  if ([self scanPredicateKeyword: @"NOT"] || [self scanPredicateKeyword: @"!"])
     {
       // -> NOT NOT x or NOT (y)
       return [NSCompoundPredicate
@@ -1649,7 +1668,8 @@
     {
       type = NSGreaterThanOrEqualToPredicateOperatorType;
     }
-  else if ([self scanString: @"=" intoString: NULL])
+  else if ([self scanString: @"==" intoString: NULL] ||
+           [self scanString: @"=" intoString: NULL])
     {
       type = NSEqualToPredicateOperatorType;
     }
@@ -1677,10 +1697,18 @@
     {
       type = NSInPredicateOperatorType;
     }
+  else if ([self scanPredicateKeyword: @"BETWEEN"])
+    {
+      // FIXME: Requires special handling to transfer into AND of
+      // two normal comparison predicates
+
+      [NSException raise: NSInvalidArgumentException
+                   format: @"Support for BETWEEN operator is missing"];
+    }
   else
     {
       [NSException raise: NSInvalidArgumentException 
-		   format: @"Invalid comparison predicate: %@", 
+                   format: @"Invalid comparison predicate: %@", 
 		   [[self string] substringFromIndex: [self scanLocation]]];
     }
  
@@ -1771,16 +1799,19 @@
       return nil;
     }
 
-  if ([self scanPredicateKeyword: @"NULL"])
+  if ([self scanPredicateKeyword: @"NULL"] ||
+      [self scanPredicateKeyword: @"NIL"])
     {
       return [NSExpression expressionForConstantValue: [NSNull null]];
     }
-  if ([self scanPredicateKeyword: @"TRUE"])
+  if ([self scanPredicateKeyword: @"TRUE"] ||
+      [self scanPredicateKeyword: @"YES"])
     {
       return [NSExpression expressionForConstantValue: 
                                [NSNumber numberWithBool: YES]];
     }
-  if ([self scanPredicateKeyword: @"FALSE"])
+  if ([self scanPredicateKeyword: @"FALSE"] ||
+      [self scanPredicateKeyword: @"NO"])
     {
       return [NSExpression expressionForConstantValue: 
                                [NSNumber numberWithBool: NO]];
@@ -1812,7 +1843,8 @@
       return [NSExpression expressionForConstantValue: [self nextArg]];
     }
 	
-  // FIXME: other formats
+  // FIXME: Missing other formats such as %d 
+
   if ([self scanString: @"\"" intoString: NULL])
     {
       NSString *str = @"string constant";
