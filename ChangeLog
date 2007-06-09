@@ -1,3 +1,7 @@
+2007-06-09  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPredicate.m:	Improved predicate parsing.
+
 2007-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m Fix bug getting cString from literal string
