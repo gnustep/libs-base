@@ -12,7 +12,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+  
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -75,6 +75,7 @@
 - (NSExpression *) parseMultiplicationExpression;
 - (NSExpression *) parseAdditionExpression;
 - (NSExpression *) parseBinaryExpression;
+- (NSExpression *) parseSimpleExpression;
 
 @end
 
@@ -715,7 +716,14 @@
        case NSGreaterThanOrEqualToPredicateOperatorType:
          return ([leftResult compare: rightResult] != NSOrderedAscending);
        case NSEqualToPredicateOperatorType:
-         return [leftResult isEqual: rightResult];
+         if ([rightResult isKindOfClass: [NSString class]])
+           {
+             return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;  
+           }
+         else
+           {
+             return [leftResult isEqual: rightResult];
+           }
        case NSNotEqualToPredicateOperatorType:
          return ![leftResult isEqual: rightResult];
        case NSMatchesPredicateOperatorType:
@@ -735,7 +743,27 @@
            return ([leftResult compare: rightResult options: compareOptions range: range] == NSOrderedSame);
          }
        case NSInPredicateOperatorType:
-         // FIXME: Handle special case where rightResult is a collection and leftResult an element of it.
+         // Handle special case where rightResult is a collection and leftResult an element of it.
+         if (![rightResult isKindOfClass: [NSString class]])
+           {
+             NSEnumerator *e;
+             id value;
+
+             if (![rightResult respondsToSelector: @selector(objectEnumerator)])
+               {
+                 [NSException raise: NSInvalidArgumentException 
+                              format: @"The right hand side for an IN operator must be a collection"];
+               }
+
+             e = [rightResult objectEnumerator];
+             while ((value = [e nextObject]))
+               {
+                 if ([value isEqual: leftResult]) 
+                   return YES;		
+               }
+
+             return NO;
+           }
          return ([leftResult rangeOfString: rightResult options: compareOptions].location != NSNotFound);
        case NSCustomSelectorPredicateOperatorType:
          {
@@ -1506,7 +1534,8 @@
 {
   NSPredicate	*l = [self parseOr];
 
-  while ([self scanPredicateKeyword: @"AND"])
+  while ([self scanPredicateKeyword: @"AND"] || 
+         [self scanPredicateKeyword: @"&&"])
     {
       NSPredicate	*r = [self parseOr];
 
@@ -1540,7 +1569,7 @@
       else
         {
           l = [NSCompoundPredicate andPredicateWithSubpredicates: 
-                                       [NSArray arrayWithObjects:l, r, nil]];
+                                       [NSArray arrayWithObjects: l, r, nil]];
         }
     }
   return l;
@@ -1583,7 +1612,8 @@
 {
   NSPredicate	*l = [self parseNot];
 
-  while ([self scanPredicateKeyword: @"OR"])
+  while ([self scanPredicateKeyword: @"OR"] || 
+         [self scanPredicateKeyword: @"||"])
     {
       NSPredicate	*r = [self parseNot];
 
@@ -1656,7 +1686,8 @@
     {
       type = NSLessThanPredicateOperatorType;
     }
-  else if ([self scanString: @"<=" intoString: NULL])
+  else if ([self scanString: @"<=" intoString: NULL] ||
+           [self scanString: @"=<" intoString: NULL])
     {
       type = NSLessThanOrEqualToPredicateOperatorType;
     }
@@ -1664,7 +1695,8 @@
     {
       type = NSGreaterThanPredicateOperatorType;
     }
-  else if ([self scanString: @">=" intoString: NULL])
+  else if ([self scanString: @">=" intoString: NULL] ||
+           [self scanString: @"=>" intoString: NULL])
     {
       type = NSGreaterThanOrEqualToPredicateOperatorType;
     }
@@ -1673,7 +1705,8 @@
     {
       type = NSEqualToPredicateOperatorType;
     }
-  else if ([self scanString: @"!=" intoString: NULL])
+  else if ([self scanString: @"!=" intoString: NULL] || 
+           [self scanString: @"<>" intoString: NULL])
     {
       type = NSNotEqualToPredicateOperatorType;
     }
@@ -1693,17 +1726,43 @@
     {
       type = NSEndsWithPredicateOperatorType;
     }
-  else if ([self scanPredicateKeyword: @"IN"])
+  else if ([self scanPredicateKeyword: @"IN"] ||
+           [self scanPredicateKeyword: @"CONTAINS"])
     {
       type = NSInPredicateOperatorType;
     }
   else if ([self scanPredicateKeyword: @"BETWEEN"])
     {
-      // FIXME: Requires special handling to transfer into AND of
+      // Requires special handling to transfer into AND of
       // two normal comparison predicates
+      NSExpression *exp = [self parseSimpleExpression];
+      NSArray *a = (NSArray *)[exp constantValue];
+      NSNumber *lower, *upper;
+      NSExpression *lexp, *uexp;
+      NSPredicate *lp, *up;
 
-      [NSException raise: NSInvalidArgumentException
-                   format: @"Support for BETWEEN operator is missing"];
+      if (![a isKindOfClass: [NSArray class]])
+        {
+          [NSException raise: NSInvalidArgumentException
+                       format: @"BETWEEN operator requires array argument"];
+        }
+
+      lower = [a objectAtIndex: 0];
+      upper = [a objectAtIndex: 1];
+      lexp = [NSExpression expressionForConstantValue: lower];
+      uexp = [NSExpression expressionForConstantValue: upper];
+      lp = [NSComparisonPredicate predicateWithLeftExpression: left 
+                                  rightExpression: lexp
+                                  modifier: modifier 
+                                  type: NSGreaterThanPredicateOperatorType 
+                                  options: opts];
+      up = [NSComparisonPredicate predicateWithLeftExpression: left 
+                                  rightExpression: uexp
+                                  modifier: modifier 
+                                  type: NSLessThanPredicateOperatorType 
+                                  options: opts];
+      return [NSCompoundPredicate andPredicateWithSubpredicates: 
+                                       [NSArray arrayWithObjects: lp, up, nil]];
     }
   else
     {
@@ -1779,8 +1838,7 @@
       if ([self scanString: @"}" intoString: NULL])
         {
           // empty
-          // FIXME
-          return nil;
+          return [NSExpression expressionForConstantValue: a];
         }
       // first element
       [a addObject: [self parseExpression]];
@@ -1795,8 +1853,7 @@
           [NSException raise: NSInvalidArgumentException 
                       format: @"Missing } in aggregate"];
         }
-      // FIXME
-      return nil;
+      return [NSExpression expressionForConstantValue: a];
     }
 
   if ([self scanPredicateKeyword: @"NULL"] ||
