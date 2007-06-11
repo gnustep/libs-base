@@ -1,3 +1,9 @@
+2007-06-11  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPredicate.m:	Improved predicate parsing. Handle more
+	alternate key strings, implemented BETWEEN, use compare:options:
+	for string equality test and handle in for collections.
+
 2007-06-09  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPredicate.m:	Improved predicate parsing.
