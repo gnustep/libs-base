@@ -716,22 +716,15 @@
        case NSGreaterThanOrEqualToPredicateOperatorType:
          return ([leftResult compare: rightResult] != NSOrderedAscending);
        case NSEqualToPredicateOperatorType:
-         if ([rightResult isKindOfClass: [NSString class]])
-           {
-             return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;  
-           }
-         else
-           {
-             return [leftResult isEqual: rightResult];
-           }
+         return [leftResult isEqual: rightResult];
        case NSNotEqualToPredicateOperatorType:
          return ![leftResult isEqual: rightResult];
        case NSMatchesPredicateOperatorType:
-           // FIXME: Missing implementation of matches.
-         return NO;
+         // FIXME: Missing implementation of matches.
+         return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;  
        case NSLikePredicateOperatorType:
-           // FIXME: Missing implementation of like.
-         return NO;
+         // FIXME: Missing implementation of like.
+         return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;  
        case NSBeginsWithPredicateOperatorType:
          {
            NSRange range = NSMakeRange(0, [rightResult length]);

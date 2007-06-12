@@ -1,3 +1,8 @@
+2007-06-12  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPredicate.m:	Fake like and matches by using
+	compare:options: and reverted change for string equality.
+
 2007-06-11  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPredicate.m:	Improved predicate parsing. Handle more
