@@ -481,7 +481,7 @@ static Class		NSURLHandleClass = 0;
       NSDate	*limit;
 
       limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
-      [loop runUntilDate: limit];
+      [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
       RELEASE(limit);
     }
   return _data;

@@ -995,11 +995,13 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 }
 
 /**
- * Calls -acceptInputForMode:beforeDate: to run the loop once.<br />
+ * Calls -limitDateForMode: to determine if a timeout occurs before the
+ * specified date, then calls -acceptInputForMode:beforeDate: to run the
+ * loop once.<br />
  * The specified date may be nil ... in which case the loop runs
  * until the limit date of the first input or timeout.<br />
- * If the specified date is in the past, runs the loop once only, to
- * handle any events already available.<br />
+ * If the specified date is in the past, this runs the loop once only,
+ * to handle any events already available.<br />
  * If there are no input sources in mode, returns NO without running the loop,
  * otherwise returns YES.
  */
