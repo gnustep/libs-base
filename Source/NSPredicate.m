@@ -757,7 +757,7 @@
 
              return NO;
            }
-         return ([leftResult rangeOfString: rightResult options: compareOptions].location != NSNotFound);
+         return ([rightResult rangeOfString: leftResult options: compareOptions].location != NSNotFound);
        case NSCustomSelectorPredicateOperatorType:
          {
            BOOL (*function)(id,SEL,id) = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
@@ -1652,8 +1652,10 @@
   NSPredicateOperatorType type = 0;
   unsigned opts = 0;
   NSExpression *left;
+  NSExpression *right;
   NSPredicate *p;
   BOOL negate = NO;
+  BOOL swap = NO;
 
   if ([self scanPredicateKeyword: @"ANY"])
     {
@@ -1679,8 +1681,8 @@
     {
       type = NSLessThanPredicateOperatorType;
     }
-  else if ([self scanString: @"<=" intoString: NULL] ||
-           [self scanString: @"=<" intoString: NULL])
+  else if ([self scanString: @"<=" intoString: NULL]
+    || [self scanString: @"=<" intoString: NULL])
     {
       type = NSLessThanOrEqualToPredicateOperatorType;
     }
@@ -1688,18 +1690,18 @@
     {
       type = NSGreaterThanPredicateOperatorType;
     }
-  else if ([self scanString: @">=" intoString: NULL] ||
-           [self scanString: @"=>" intoString: NULL])
+  else if ([self scanString: @">=" intoString: NULL]
+    || [self scanString: @"=>" intoString: NULL])
     {
       type = NSGreaterThanOrEqualToPredicateOperatorType;
     }
-  else if ([self scanString: @"==" intoString: NULL] ||
-           [self scanString: @"=" intoString: NULL])
+  else if ([self scanString: @"==" intoString: NULL]
+    || [self scanString: @"=" intoString: NULL])
     {
       type = NSEqualToPredicateOperatorType;
     }
-  else if ([self scanString: @"!=" intoString: NULL] || 
-           [self scanString: @"<>" intoString: NULL])
+  else if ([self scanString: @"!=" intoString: NULL]
+    || [self scanString: @"<>" intoString: NULL])
     {
       type = NSNotEqualToPredicateOperatorType;
     }
@@ -1719,10 +1721,14 @@
     {
       type = NSEndsWithPredicateOperatorType;
     }
-  else if ([self scanPredicateKeyword: @"IN"] ||
-           [self scanPredicateKeyword: @"CONTAINS"])
+  else if ([self scanPredicateKeyword: @"IN"])
     {
       type = NSInPredicateOperatorType;
+    }
+  else if ([self scanPredicateKeyword: @"CONTAINS"])
+    {
+      type = NSInPredicateOperatorType;
+      swap = YES;
     }
   else if ([self scanPredicateKeyword: @"BETWEEN"])
     {
@@ -1767,7 +1773,7 @@
   if ([self scanString: @"[cd]" intoString: NULL])
     {
       opts = NSCaseInsensitivePredicateOption
-          | NSDiacriticInsensitivePredicateOption;
+        | NSDiacriticInsensitivePredicateOption;
     }
   else if ([self scanString: @"[c]" intoString: NULL])
     {
@@ -1778,8 +1784,17 @@
       opts = NSDiacriticInsensitivePredicateOption;
     }
 
+  right = [self parseExpression];
+  if (swap == YES)
+    {
+      NSExpression      *tmp = left;
+
+      left = right;
+      right = tmp;
+    }
+
   p = [NSComparisonPredicate predicateWithLeftExpression: left 
-                             rightExpression: [self parseExpression]
+                             rightExpression: right
                              modifier: modifier 
                              type: type 
                              options: opts];

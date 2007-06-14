@@ -1,6 +1,7 @@
 2007-06-14  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/Source/NSNumber.m: Implement ([isEqualToValue:])
+	* Source/NSNumber.m: Implement ([isEqualToValue:])
+	* Source/NSPredicate.m: Fix bug #20169
 
 2007-06-13  Richard Frith-Macdonald <rfm@gnu.org>
 
