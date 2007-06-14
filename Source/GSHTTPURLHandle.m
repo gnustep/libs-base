@@ -382,8 +382,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 + (BOOL) canInitWithURL: (NSURL*)newUrl
 {
-  if ([[newUrl scheme] isEqualToString: @"http"]
-    || [[newUrl scheme] isEqualToString: @"https"])
+  NSString      *scheme = [newUrl scheme];
+
+  if ([scheme isEqualToString: @"http"]
+    || [scheme isEqualToString: @"https"])
     {
       return YES;
     }
