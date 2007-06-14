@@ -1,3 +1,7 @@
+2007-06-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Source/NSNumber.m: Implement ([isEqualToValue:])
+
 2007-06-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLHandle.m: ([loadInForeground]) return as soon as load
