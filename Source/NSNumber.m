@@ -2429,6 +2429,24 @@ static Class	doubleNumberClass;
   return NO;
 }
 
+- (BOOL) isEqualToValue: (NSValue*)o
+{
+  if (o == self)
+    {
+      return YES;
+    }
+  else if (o == nil)
+    {
+      return NO;
+    }
+  else if (GSObjCIsInstance(o) == YES
+    && GSObjCIsKindOf(GSObjCClass(o), abstractClass))
+    {
+      return [self isEqualToNumber: (NSNumber*)o];
+    }
+  return NO;
+}
+
 /*
  * NSCoding
  */
