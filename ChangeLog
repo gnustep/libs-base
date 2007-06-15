@@ -1,3 +1,8 @@
+2007-06-15  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSTimeZone.m ([NSTimeZone +timeZoneArray]): Skip .tab
+	files when looking for zones.
+
 2007-06-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNumber.m: Implement ([isEqualToValue:])

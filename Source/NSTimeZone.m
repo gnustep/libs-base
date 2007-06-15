@@ -1593,12 +1593,11 @@ static NSMapTable	*absolutes = 0;
 		{
 		  NSTimeZone	*zone = nil;
 		  BOOL		isDir;
-
-		  // FIXME: check file validity.
 		
 		  path = [zonedir stringByAppendingPathComponent: name];
 		  if ([mgr fileExistsAtPath: path isDirectory: &isDir]
-		    && isDir == NO)
+		      && isDir == NO
+		      && [[path pathExtension] isEqual: @"tab"] == NO)
 		    {
 		      zone = [zoneDictionary objectForKey: name];
 		      if (zone == nil)
@@ -1606,6 +1605,10 @@ static NSMapTable	*absolutes = 0;
 			  NSData	*data;
 
 			  data = [NSData dataWithContentsOfFile: path];
+			  /* We should really make sure this is a real
+			     zone file and not something extra that happens
+			     to be in this directory, but initWithName:data:
+			     will do this anyway and log a message if not. */
 			  zone = [[self alloc] initWithName: name data: data];
 			  AUTORELEASE(zone);
 			}
