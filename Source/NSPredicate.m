@@ -1605,41 +1605,41 @@
 {
   NSPredicate	*l = [self parseNot];
 
-  while ([self scanPredicateKeyword: @"OR"] || 
-         [self scanPredicateKeyword: @"||"])
+  while ([self scanPredicateKeyword: @"OR"]
+    || [self scanPredicateKeyword: @"||"])
     {
       NSPredicate	*r = [self parseNot];
 
       if ([r isKindOfClass: [NSCompoundPredicate class]]
-          && [(NSCompoundPredicate *)r compoundPredicateType]
-          == NSOrPredicateType)
+        && [(NSCompoundPredicate *)r compoundPredicateType]
+        == NSOrPredicateType)
         {
           // merge
           if ([l isKindOfClass: [NSCompoundPredicate class]]
-              && [(NSCompoundPredicate *)l compoundPredicateType]
-              == NSOrPredicateType)
+            && [(NSCompoundPredicate *)l compoundPredicateType]
+            == NSOrPredicateType)
             {
               [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-                  addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+                addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
             }
           else
             {
               [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-                                 insertObject: l atIndex: 0];
+                insertObject: l atIndex: 0];
               l = r;
             }
         }
       else if ([l isKindOfClass: [NSCompoundPredicate class]]
-               && [(NSCompoundPredicate *)l compoundPredicateType]
-               == NSOrPredicateType)
+        && [(NSCompoundPredicate *)l compoundPredicateType]
+        == NSOrPredicateType)
         {
           [(NSMutableArray *) [(NSCompoundPredicate *) l subpredicates]
-                              addObject:r];
+            addObject:r];
         }
       else
         {
           l = [NSCompoundPredicate orPredicateWithSubpredicates: 
-                                       [NSArray arrayWithObjects: l, r, nil]];
+            [NSArray arrayWithObjects: l, r, nil]];
         }
     }
   return l;
@@ -1677,33 +1677,33 @@
     }
 
   left = [self parseExpression];
-  if ([self scanString: @"<" intoString: NULL])
+  if ([self scanString: @"!=" intoString: NULL]
+    || [self scanString: @"<>" intoString: NULL])
     {
-      type = NSLessThanPredicateOperatorType;
+      type = NSNotEqualToPredicateOperatorType;
     }
   else if ([self scanString: @"<=" intoString: NULL]
     || [self scanString: @"=<" intoString: NULL])
     {
       type = NSLessThanOrEqualToPredicateOperatorType;
     }
-  else if ([self scanString: @">" intoString: NULL])
-    {
-      type = NSGreaterThanPredicateOperatorType;
-    }
   else if ([self scanString: @">=" intoString: NULL]
     || [self scanString: @"=>" intoString: NULL])
     {
       type = NSGreaterThanOrEqualToPredicateOperatorType;
     }
+  else if ([self scanString: @"<" intoString: NULL])
+    {
+      type = NSLessThanPredicateOperatorType;
+    }
+  else if ([self scanString: @">" intoString: NULL])
+    {
+      type = NSGreaterThanPredicateOperatorType;
+    }
   else if ([self scanString: @"==" intoString: NULL]
     || [self scanString: @"=" intoString: NULL])
     {
       type = NSEqualToPredicateOperatorType;
-    }
-  else if ([self scanString: @"!=" intoString: NULL]
-    || [self scanString: @"<>" intoString: NULL])
-    {
-      type = NSNotEqualToPredicateOperatorType;
     }
   else if ([self scanPredicateKeyword: @"MATCHES"])
     {
