@@ -1,3 +1,8 @@
+2007-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: Fix bug #20215 ... scanning of greater than
+	and less than operators.
+
 2007-06-15  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSTimeZone.m ([NSTimeZone +timeZoneArray]): Skip .tab
