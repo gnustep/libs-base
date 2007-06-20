@@ -50,6 +50,21 @@
   GSClassNameFromObject(self), GSObjCIsInstance(self) ? "instance" : "class",\
   GSNameFromSelector(_cmd)]
 
+typedef enum {
+  stObject,
+  stChar,
+  stUnichar,
+  stString,
+  stUnistring,
+  stSShort,
+  stUShort,
+  stSInt,
+  stUInt,
+  stSQuad,
+  stUQuad,
+  stFloat,
+} scanType;
+
 @interface GSPredicateScanner : NSScanner
 {
   NSEnumerator	*_args;		// Not retained.
@@ -61,7 +76,7 @@
 		 args: (NSArray*)args;
 - (id) initWithString: (NSString*)format
 		vargs: (va_list)vargs;
-- (id) nextArg;
+- (id) nextArg: (scanType)type;
 - (BOOL) scanPredicateKeyword: (NSString *) key;
 - (NSPredicate *) parse;
 - (NSPredicate *) parsePredicate;
@@ -1432,13 +1447,13 @@
   return self;
 }
 
-- (id) nextArg
+- (id) nextArg: (scanType)type
 {
   id	o;
 
   if (_args != nil)
     {
-      o = [_args nextObject];
+      o = [_args nextObject];           // Just assuming type of arg is OK
     }
   else
     {
@@ -1456,7 +1471,103 @@
           o = va_arg(ap, id);
         }
       _retrieved++;
-      o = va_arg(ap, id);
+      switch (type)
+        {
+          case stObject:
+            {
+              o = va_arg(ap, id);
+              break;
+            }
+          case stChar:
+            {
+              signed char   v = (signed char)va_arg(ap, int);
+
+              o = [NSNumber numberWithChar: v];
+              break;
+            }
+          case stUnichar:
+            {
+              uint16_t  v = (uint16_t)va_arg(ap, int);
+
+              o = [NSNumber numberWithInt: v];
+              break;
+            }
+          case stString:
+            {
+              char  *v = (char*)va_arg(ap, char*);
+
+              o = [NSString stringWithCString: v
+                encoding: [NSString defaultCStringEncoding]];
+              break;
+            }
+          case stUnistring:
+            {
+              unichar  *v = (unichar*)va_arg(ap, unichar*);
+              int       l = 0;
+
+              if (v != 0)
+                {
+                  while (v[l] != 0)
+                    {
+                      l++;
+                    }
+                }
+              o = [NSString stringWithCharacters: v length: l];
+              break;
+            }
+          case stSShort:
+            {
+              short   v = (short)va_arg(ap, int);
+
+              o = [NSNumber numberWithShort: v];
+              break;
+            }
+          case stUShort:
+            {
+              unsigned short   v = (unsigned short)va_arg(ap, int);
+
+              o = [NSNumber numberWithUnsignedShort: v];
+              break;
+            }
+          case stSInt:
+            {
+              int   v = va_arg(ap, int);
+
+              o = [NSNumber numberWithInt: v];
+              break;
+            }
+          case stUInt:
+            {
+              unsigned int   v = va_arg(ap, unsigned int);
+
+              o = [NSNumber numberWithUnsignedInt: v];
+              break;
+            }
+          case stSQuad:
+            {
+              long long   v = va_arg(ap, long long);
+
+              o = [NSNumber numberWithLongLong: v];
+              break;
+            }
+          case stUQuad:
+            {
+              unsigned long long   v = va_arg(ap, unsigned long long);
+
+              o = [NSNumber numberWithUnsignedLongLong: v];
+              break;
+            }
+          case stFloat:
+            {
+              double    v = va_arg(ap, double);
+
+              o = [NSNumber numberWithDouble: v];
+              break;
+            }
+          default:
+            [NSException raise: NSGenericException
+                        format: @"Unknown type - '%d'", type];
+        }
     }
   return o;
 }
@@ -1527,42 +1638,42 @@
 {
   NSPredicate	*l = [self parseOr];
 
-  while ([self scanPredicateKeyword: @"AND"] || 
-         [self scanPredicateKeyword: @"&&"])
+  while ([self scanPredicateKeyword: @"AND"]
+    || [self scanPredicateKeyword: @"&&"])
     {
       NSPredicate	*r = [self parseOr];
 
       if ([r isKindOfClass: [NSCompoundPredicate class]]
-          && [(NSCompoundPredicate *)r compoundPredicateType]
-          == NSAndPredicateType)
+        && [(NSCompoundPredicate *)r compoundPredicateType]
+        == NSAndPredicateType)
         {
           // merge
           if ([l isKindOfClass:[NSCompoundPredicate class]]
-              && [(NSCompoundPredicate *)l compoundPredicateType]
-              == NSAndPredicateType)
+            && [(NSCompoundPredicate *)l compoundPredicateType]
+            == NSAndPredicateType)
             {
               [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-                  addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+                addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
             }
           else
             {
               [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-                                 insertObject: l atIndex: 0];
+                insertObject: l atIndex: 0];
               l = r;
             }
         }
       else if ([l isKindOfClass: [NSCompoundPredicate class]]
-               && [(NSCompoundPredicate *)l compoundPredicateType]
-               == NSAndPredicateType)
+        && [(NSCompoundPredicate *)l compoundPredicateType]
+        == NSAndPredicateType)
         {
           // add to l
           [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
-                             addObject: r];
+            addObject: r];
         }
       else
         {
           l = [NSCompoundPredicate andPredicateWithSubpredicates: 
-                                       [NSArray arrayWithObjects: l, r, nil]];
+            [NSArray arrayWithObjects: l, r, nil]];
         }
     }
   return l;
@@ -1810,9 +1921,10 @@
 
 - (NSExpression *) parseSimpleExpression
 {
-   static NSCharacterSet *_identifier;
-  NSString *ident;
-  double dbl;
+  static NSCharacterSet *_identifier;
+  unsigned      location;
+  NSString      *ident;
+  double        dbl;
 
   if ([self scanDouble: &dbl])
     {
@@ -1864,22 +1976,22 @@
       return [NSExpression expressionForConstantValue: a];
     }
 
-  if ([self scanPredicateKeyword: @"NULL"] ||
-      [self scanPredicateKeyword: @"NIL"])
+  if ([self scanPredicateKeyword: @"NULL"]
+    || [self scanPredicateKeyword: @"NIL"])
     {
       return [NSExpression expressionForConstantValue: [NSNull null]];
     }
-  if ([self scanPredicateKeyword: @"TRUE"] ||
-      [self scanPredicateKeyword: @"YES"])
+  if ([self scanPredicateKeyword: @"TRUE"]
+    || [self scanPredicateKeyword: @"YES"])
     {
       return [NSExpression expressionForConstantValue: 
-                               [NSNumber numberWithBool: YES]];
+        [NSNumber numberWithBool: YES]];
     }
-  if ([self scanPredicateKeyword: @"FALSE"] ||
-      [self scanPredicateKeyword: @"NO"])
+  if ([self scanPredicateKeyword: @"FALSE"]
+    || [self scanPredicateKeyword: @"NO"])
     {
       return [NSExpression expressionForConstantValue: 
-                               [NSNumber numberWithBool: NO]];
+        [NSNumber numberWithBool: NO]];
     }
   if ([self scanPredicateKeyword: @"SELF"])
     {
@@ -1898,14 +2010,110 @@
       return [NSExpression expressionForVariable: [var keyPath]];
     }
 	
-  if ([self scanPredicateKeyword: @"%K"])
-    {
-      return [NSExpression expressionForKeyPath: [self nextArg]];
-    }
+  location = [self scanLocation];
 
-  if ([self scanPredicateKeyword: @"%@"])
+  if ([self scanString: @"%" intoString: NULL])
     {
-      return [NSExpression expressionForConstantValue: [self nextArg]];
+      if ([self isAtEnd] == NO)
+        {
+          unichar   c = [[self string] characterAtIndex: [self scanLocation]];
+
+          switch (c)
+            {
+              case '%':                         // '%%' is treated as '%'
+                location = [self scanLocation];
+                break;
+
+              case 'K':
+                [self setScanLocation: [self scanLocation] + 1];
+                return [NSExpression expressionForKeyPath:
+                  [self nextArg: stObject]];
+
+              case '@':
+                [self setScanLocation: [self scanLocation] + 1];
+                return [NSExpression expressionForConstantValue:
+                  [self nextArg: stObject]];
+
+              case 'c':
+                [self setScanLocation: [self scanLocation] + 1];
+                return [NSExpression expressionForConstantValue:
+                  [self nextArg: stChar]];
+
+              case 'C':
+                [self setScanLocation: [self scanLocation] + 1];
+                return [NSExpression expressionForConstantValue:
+                  [self nextArg: stUnichar]];
+
+              case 'd':
+              case 'D':
+              case 'i':
+                [self setScanLocation: [self scanLocation] + 1];
+                return [NSExpression expressionForConstantValue:
+                  [self nextArg: stSInt]];
+
+              case 'o':
+              case 'O':
+              case 'u':
+              case 'U':
+              case 'x':
+              case 'X':
+                [self setScanLocation: [self scanLocation] + 1];
+                return [NSExpression expressionForConstantValue:
+                  [self nextArg: stUInt]];
+
+              case 'e':
+              case 'E':
+              case 'f':
+              case 'g':
+              case 'G':
+                [self setScanLocation: [self scanLocation] + 1];
+                return [NSExpression expressionForConstantValue:
+                  [self nextArg: stFloat]];
+
+              case 'h':
+                [self scanString: @"h" intoString: NULL];
+                if ([self isAtEnd] == NO)
+                  {
+                    c = [[self string] characterAtIndex: [self scanLocation]];
+                    if (c == 'i')
+                      {
+                        [self setScanLocation: [self scanLocation] + 1];
+                        return [NSExpression expressionForConstantValue:
+                          [self nextArg: stSShort]];
+                      }
+                    if (c == 'u')
+                      {
+                        [self setScanLocation: [self scanLocation] + 1];
+                        return [NSExpression expressionForConstantValue:
+                          [self nextArg: stUShort]];
+                      }
+                  }
+                break;
+
+              case 'q':
+                [self scanString: @"q" intoString: NULL];
+                if ([self isAtEnd] == NO)
+                  {
+                    c = [[self string] characterAtIndex: [self scanLocation]];
+                    if (c == 'i')
+                      {
+                        [self setScanLocation: [self scanLocation] + 1];
+                        return [NSExpression expressionForConstantValue:
+                          [self nextArg: stSQuad]];
+                      }
+                    if (c == 'u' || c == 'x' || c == 'X')
+                      {
+                        [self setScanLocation: [self scanLocation] + 1];
+                        return [NSExpression expressionForConstantValue:
+                          [self nextArg: stUQuad]];
+                      }
+                  }
+                break;
+
+            }
+        }
+
+      [self setScanLocation: location];
     }
 	
   // FIXME: Missing other formats such as %d 
@@ -1936,7 +2144,7 @@
 
       // prefix with keypath
       return [NSExpression expressionForKeyPath: 
-                               [NSString stringWithFormat: @"@%@", [e keyPath]]];
+        [NSString stringWithFormat: @"@%@", [e keyPath]]];
     }
 
   // skip # as prefix (reserved words)
@@ -2001,23 +2209,23 @@
           if ([self scanPredicateKeyword: @"FIRST"])
             {
               left = [NSExpression expressionForFunction: @"_first" 
-                        arguments: [NSArray arrayWithObject: [self parseExpression]]];
+                arguments: [NSArray arrayWithObject: [self parseExpression]]];
             }
           else if ([self scanPredicateKeyword: @"LAST"])
             {
               left = [NSExpression expressionForFunction: @"_last" 
-                        arguments: [NSArray arrayWithObject: [self parseExpression]]];
+                arguments: [NSArray arrayWithObject: [self parseExpression]]];
             }
           else if ([self scanPredicateKeyword: @"SIZE"])
             {
               left = [NSExpression expressionForFunction: @"count" 
-                        arguments: [NSArray arrayWithObject: [self parseExpression]]];
+                arguments: [NSArray arrayWithObject: [self parseExpression]]];
             }
           else
             {
               left = [NSExpression expressionForFunction: @"_index" 
-                                   arguments: [NSArray arrayWithObjects: left,
-                                                       [self parseExpression], nil]];
+                arguments: [NSArray arrayWithObjects: left,
+                [self parseExpression], nil]];
             }
           if (![self scanString: @"]" intoString: NULL])
             {   
@@ -2070,7 +2278,7 @@
         {
           right = [self parseFunctionalExpression];
           left = [NSExpression expressionForFunction: @"_pow" 
-                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+            arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else
         {
@@ -2091,13 +2299,13 @@
         {
           right = [self parsePowerExpression];
           left = [NSExpression expressionForFunction: @"_mul" 
-                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+            arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else if ([self scanString: @"/" intoString: NULL])
         {
           right = [self parsePowerExpression];
           left = [NSExpression expressionForFunction: @"_div" 
-                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+            arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else
         {
@@ -2118,13 +2326,13 @@
         {
           right = [self parseMultiplicationExpression];
           left = [NSExpression expressionForFunction: @"_add" 
-                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+            arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else if ([self scanString: @"-" intoString: NULL])
         {
           right = [self parseMultiplicationExpression];
           left = [NSExpression expressionForFunction: @"_sub" 
-                        arguments: [NSArray arrayWithObjects: left, right, nil]];
+            arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else
         {
