@@ -1,3 +1,8 @@
+2007-06-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Rewrite code to support parsing of predicates containing
+	all the '%' format strings (as suggested by Fred).
+
 2007-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m: Fix bug #20215 ... scanning of greater than

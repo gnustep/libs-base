@@ -50,21 +50,6 @@
   GSClassNameFromObject(self), GSObjCIsInstance(self) ? "instance" : "class",\
   GSNameFromSelector(_cmd)]
 
-typedef enum {
-  stObject,
-  stChar,
-  stUnichar,
-  stString,
-  stUnistring,
-  stSShort,
-  stUShort,
-  stSInt,
-  stUInt,
-  stSQuad,
-  stUQuad,
-  stFloat,
-} scanType;
-
 @interface GSPredicateScanner : NSScanner
 {
   NSEnumerator	*_args;		// Not retained.
@@ -76,7 +61,7 @@ typedef enum {
 		 args: (NSArray*)args;
 - (id) initWithString: (NSString*)format
 		vargs: (va_list)vargs;
-- (id) nextArg: (scanType)type;
+- (id) nextArg;
 - (BOOL) scanPredicateKeyword: (NSString *) key;
 - (NSPredicate *) parse;
 - (NSPredicate *) parsePredicate;
@@ -180,9 +165,129 @@ typedef enum {
 {
   GSPredicateScanner	*s;
   NSPredicate		*p;
+  const char            *ptr = [format UTF8String];
+  NSMutableArray        *arr = [NSMutableArray arrayWithCapacity: 10];
 
+  while (*ptr != 0)
+    {
+      char      c = *ptr++;
+
+      if (c == '%')
+        {
+          c = *ptr;
+          switch (c)
+            {
+              case '%':
+                ptr++;
+                break;
+
+              case 'K':
+              case '@':
+                ptr++;
+                [arr addObject: va_arg(args, id)];
+                break;
+
+              case 'c':
+                ptr++;
+                [arr addObject: [NSNumber numberWithChar:
+                  (char)va_arg(args, int)]];
+                break;
+
+              case 'C':
+                ptr++;
+                [arr addObject: [NSNumber numberWithShort:
+                  (short)va_arg(args, int)]];
+                break;
+
+              case 'd':
+              case 'D':
+              case 'i':
+                ptr++;
+                [arr addObject: [NSNumber numberWithInt:
+                  va_arg(args, int)]];
+                break;
+
+              case 'o':
+              case 'O':
+              case 'u':
+              case 'U':
+              case 'x':
+              case 'X':
+                ptr++;
+                [arr addObject: [NSNumber numberWithUnsignedInt:
+                  va_arg(args, unsigned int)]];
+                break;
+
+              case 'e':
+              case 'E':
+              case 'f':
+              case 'g':
+              case 'G':
+                ptr++;
+                [arr addObject: [NSNumber numberWithDouble:
+                  va_arg(args, double)]];
+                break;
+
+              case 'h':
+                ptr++;
+                if (*ptr != 0)
+                  {
+                    c = *ptr;
+                    if (c == 'i')
+                      {
+                        [arr addObject: [NSNumber numberWithShort:
+                          (short)va_arg(args, int)]];
+                      }
+                    if (c == 'u')
+                      {
+                        [arr addObject: [NSNumber numberWithUnsignedShort:
+                          (unsigned short)va_arg(args, int)]];
+                      }
+                  }
+                break;
+
+              case 'q':
+                ptr++;
+                if (*ptr != 0)
+                  {
+                    c = *ptr;
+                    if (c == 'i')
+                      {
+                        [arr addObject: [NSNumber numberWithLongLong:
+                          va_arg(args, long long)]];
+                      }
+                    if (c == 'u' || c == 'x' || c == 'X')
+                      {
+                        [arr addObject: [NSNumber numberWithUnsignedLongLong:
+                          va_arg(args, unsigned long long)]];
+                      }
+                  }
+                break;
+            }
+        }
+      else if (c == '\'')
+        {
+          while (*ptr != 0)
+            {
+              if (*ptr++ == '\'')
+                {
+                  break;
+                }
+            }
+        }
+      else if (c == '"')
+        {
+          while (*ptr != 0)
+            {
+              if (*ptr++ == '"')
+                {
+                  break;
+                }
+            }
+        }
+    }
   s = [[GSPredicateScanner alloc] initWithString: format
-                                           vargs: args];
+                                            args: arr];
   p = [s parse];
   RELEASE(s);
   return p;
@@ -697,16 +802,20 @@ typedef enum {
 - (BOOL) _evaluateLeftValue: (id)leftResult rightValue: (id)rightResult
 {
    unsigned compareOptions = 0;
-   BOOL leftIsNil = (leftResult == nil || [leftResult isEqual: [NSNull null]]);
-   BOOL rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
+   BOOL leftIsNil;
+   BOOL rightIsNil;
 	
+   leftIsNil = (leftResult == nil || [leftResult isEqual: [NSNull null]]);
+   rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
    if (leftIsNil || rightIsNil)
      {
-       // One of the values is nil. The result is YES, if both are nil and equlality is requested.
-       return ((leftIsNil == rightIsNil) && 
-               ((_type == NSEqualToPredicateOperatorType) || 
-                (_type == NSLessThanOrEqualToPredicateOperatorType) || 
-                (_type == NSGreaterThanOrEqualToPredicateOperatorType)));
+       /* One of the values is nil. The result is YES,
+        * if both are nil and equlality is requested.
+        */
+       return ((leftIsNil == rightIsNil)
+         && ((_type == NSEqualToPredicateOperatorType)
+         || (_type == NSLessThanOrEqualToPredicateOperatorType)
+         || (_type == NSGreaterThanOrEqualToPredicateOperatorType)));
      }
 
    // Change predicate options into string options.
@@ -719,7 +828,9 @@ typedef enum {
        compareOptions |= NSCaseInsensitiveSearch;
      }
 
-   // This is a very optimistic implementation, hoping that the values are of the right type.
+   /* This is a very optimistic implementation,
+    * hoping that the values are of the right type.
+    */
    switch (_type)
      {
        case NSLessThanPredicateOperatorType:
@@ -818,8 +929,9 @@ typedef enum {
 
 - (id) copyWithZone: (NSZone *)z
 {
-  NSComparisonPredicate *copy = (NSComparisonPredicate *)NSCopyObject(self, 0, z);
+  NSComparisonPredicate *copy;
 
+  copy = (NSComparisonPredicate *)NSCopyObject(self, 0, z);
   copy->_left = [_left copyWithZone: z];
   copy->_right = [_right copyWithZone: z];
   return copy;
@@ -1187,7 +1299,7 @@ typedef enum {
   for (i = 0; i < _argc; i++)
     {
       [eargs addObject: [[_args objectAtIndex: i] 
-                            expressionValueWithObject: object context: context]];
+        expressionValueWithObject: object context: context]];
     }
   // apply method selector
   return [self performSelector: _selector
@@ -1447,129 +1559,9 @@ typedef enum {
   return self;
 }
 
-- (id) nextArg: (scanType)type
+- (id) nextArg
 {
-  id	o;
-
-  if (_args != nil)
-    {
-      o = [_args nextObject];           // Just assuming type of arg is OK
-    }
-  else
-    {
-      unsigned	i;
-      va_list	ap;
-
-#ifdef __va_copy
-      __va_copy(ap, _vargs);
-#else
-      ap = _vargs;
-#endif
-
-      for (i = 0; i < _retrieved; i++)
-        {
-          o = va_arg(ap, id);
-        }
-      _retrieved++;
-      switch (type)
-        {
-          case stObject:
-            {
-              o = va_arg(ap, id);
-              break;
-            }
-          case stChar:
-            {
-              signed char   v = (signed char)va_arg(ap, int);
-
-              o = [NSNumber numberWithChar: v];
-              break;
-            }
-          case stUnichar:
-            {
-              uint16_t  v = (uint16_t)va_arg(ap, int);
-
-              o = [NSNumber numberWithInt: v];
-              break;
-            }
-          case stString:
-            {
-              char  *v = (char*)va_arg(ap, char*);
-
-              o = [NSString stringWithCString: v
-                encoding: [NSString defaultCStringEncoding]];
-              break;
-            }
-          case stUnistring:
-            {
-              unichar  *v = (unichar*)va_arg(ap, unichar*);
-              int       l = 0;
-
-              if (v != 0)
-                {
-                  while (v[l] != 0)
-                    {
-                      l++;
-                    }
-                }
-              o = [NSString stringWithCharacters: v length: l];
-              break;
-            }
-          case stSShort:
-            {
-              short   v = (short)va_arg(ap, int);
-
-              o = [NSNumber numberWithShort: v];
-              break;
-            }
-          case stUShort:
-            {
-              unsigned short   v = (unsigned short)va_arg(ap, int);
-
-              o = [NSNumber numberWithUnsignedShort: v];
-              break;
-            }
-          case stSInt:
-            {
-              int   v = va_arg(ap, int);
-
-              o = [NSNumber numberWithInt: v];
-              break;
-            }
-          case stUInt:
-            {
-              unsigned int   v = va_arg(ap, unsigned int);
-
-              o = [NSNumber numberWithUnsignedInt: v];
-              break;
-            }
-          case stSQuad:
-            {
-              long long   v = va_arg(ap, long long);
-
-              o = [NSNumber numberWithLongLong: v];
-              break;
-            }
-          case stUQuad:
-            {
-              unsigned long long   v = va_arg(ap, unsigned long long);
-
-              o = [NSNumber numberWithUnsignedLongLong: v];
-              break;
-            }
-          case stFloat:
-            {
-              double    v = va_arg(ap, double);
-
-              o = [NSNumber numberWithDouble: v];
-              break;
-            }
-          default:
-            [NSException raise: NSGenericException
-                        format: @"Unknown type - '%d'", type];
-        }
-    }
-  return o;
+  return [_args nextObject];
 }
 
 - (BOOL) scanPredicateKeyword: (NSString *)key
@@ -2027,40 +2019,20 @@ typedef enum {
               case 'K':
                 [self setScanLocation: [self scanLocation] + 1];
                 return [NSExpression expressionForKeyPath:
-                  [self nextArg: stObject]];
+                  [self nextArg]];
 
               case '@':
-                [self setScanLocation: [self scanLocation] + 1];
-                return [NSExpression expressionForConstantValue:
-                  [self nextArg: stObject]];
-
               case 'c':
-                [self setScanLocation: [self scanLocation] + 1];
-                return [NSExpression expressionForConstantValue:
-                  [self nextArg: stChar]];
-
               case 'C':
-                [self setScanLocation: [self scanLocation] + 1];
-                return [NSExpression expressionForConstantValue:
-                  [self nextArg: stUnichar]];
-
               case 'd':
               case 'D':
               case 'i':
-                [self setScanLocation: [self scanLocation] + 1];
-                return [NSExpression expressionForConstantValue:
-                  [self nextArg: stSInt]];
-
               case 'o':
               case 'O':
               case 'u':
               case 'U':
               case 'x':
               case 'X':
-                [self setScanLocation: [self scanLocation] + 1];
-                return [NSExpression expressionForConstantValue:
-                  [self nextArg: stUInt]];
-
               case 'e':
               case 'E':
               case 'f':
@@ -2068,24 +2040,18 @@ typedef enum {
               case 'G':
                 [self setScanLocation: [self scanLocation] + 1];
                 return [NSExpression expressionForConstantValue:
-                  [self nextArg: stFloat]];
+                  [self nextArg]];
 
               case 'h':
                 [self scanString: @"h" intoString: NULL];
                 if ([self isAtEnd] == NO)
                   {
                     c = [[self string] characterAtIndex: [self scanLocation]];
-                    if (c == 'i')
+                    if (c == 'i' || c == 'u')
                       {
                         [self setScanLocation: [self scanLocation] + 1];
                         return [NSExpression expressionForConstantValue:
-                          [self nextArg: stSShort]];
-                      }
-                    if (c == 'u')
-                      {
-                        [self setScanLocation: [self scanLocation] + 1];
-                        return [NSExpression expressionForConstantValue:
-                          [self nextArg: stUShort]];
+                          [self nextArg]];
                       }
                   }
                 break;
@@ -2095,29 +2061,20 @@ typedef enum {
                 if ([self isAtEnd] == NO)
                   {
                     c = [[self string] characterAtIndex: [self scanLocation]];
-                    if (c == 'i')
+                    if (c == 'i' || c == 'u' || c == 'x' || c == 'X')
                       {
                         [self setScanLocation: [self scanLocation] + 1];
                         return [NSExpression expressionForConstantValue:
-                          [self nextArg: stSQuad]];
-                      }
-                    if (c == 'u' || c == 'x' || c == 'X')
-                      {
-                        [self setScanLocation: [self scanLocation] + 1];
-                        return [NSExpression expressionForConstantValue:
-                          [self nextArg: stUQuad]];
+                          [self nextArg]];
                       }
                   }
                 break;
-
             }
         }
 
       [self setScanLocation: location];
     }
 	
-  // FIXME: Missing other formats such as %d 
-
   if ([self scanString: @"\"" intoString: NULL])
     {
       NSString *str = @"string constant";
