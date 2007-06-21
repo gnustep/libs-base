@@ -5,6 +5,8 @@
    Created: 2005
    Modifications: Fred Kiefer <FredKiefer@gmx.de>
    Date: May 2007
+   Modifications: Richard Frith-Macdoanld <rfm@gnu.org>
+   Date: June 2007
    
    This file is part of the GNUstep Base Library.
 
@@ -53,14 +55,11 @@
 @interface GSPredicateScanner : NSScanner
 {
   NSEnumerator	*_args;		// Not retained.
-  va_list	_vargs;
   unsigned	_retrieved;
 }
 
 - (id) initWithString: (NSString*)format
 		 args: (NSArray*)args;
-- (id) initWithString: (NSString*)format
-		vargs: (va_list)vargs;
 - (id) nextArg;
 - (BOOL) scanPredicateKeyword: (NSString *) key;
 - (NSPredicate *) parse;
@@ -1540,21 +1539,6 @@
   if (self != nil)
     {
       _args = [args objectEnumerator];
-    }
-  return self;
-}
-
-- (id) initWithString: (NSString*)format
-                vargs: (va_list)vargs
-{
-  self = [super initWithString: format];
-  if (self != nil)
-    {
-#ifdef __va_copy
-      __va_copy(_vargs, vargs);
-#else
-      _vargs = vargs;
-#endif
     }
   return self;
 }
