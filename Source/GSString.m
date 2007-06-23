@@ -1823,7 +1823,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	          return YES;
 		}
 	      // Fall through to perform conversion to unicode and back
-              if ([self class] == NSConstantStringClass)
+              if ([(id)self class] == NSConstantStringClass)
                 {
                   NSLog(@"Warning: non-ASCII character in string literal");
                 }
