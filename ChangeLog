@@ -1,3 +1,9 @@
+2007-06-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	Implement support for arrays of objc types to fix bug #20268
+
 2007-06-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Rewrite code to support parsing of predicates containing

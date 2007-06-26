@@ -741,6 +741,18 @@ static NSDictionary *makeReference(unsigned ref)
 	  NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 	return;
 
+      case _C_ARY_B:
+	{
+	  int		count = atoi(++type);
+
+	  while (isdigit(*type))
+	    {
+	      type++;
+	    }
+	  [self encodeArrayOfObjCType: type count: count at: address];
+	}
+	return;
+
       default:	/* Types that can be ignored in first pass.	*/
 	[NSException raise: NSInvalidArgumentException
 		    format: @"-[%@ %@]: unknown type encoding ('%c')",
@@ -768,6 +780,16 @@ static NSDictionary *makeReference(unsigned ref)
   RELEASE(final);
   [_data setData: data];
   [_delegate archiverDidFinish: self];
+}
+
+- (id) init
+{
+  Class c = [self class];
+  RELEASE(self);
+  [NSException raise: NSInvalidArgumentException
+              format: @"-[%@ init]: cannot use -init for initialisation",
+              NSStringFromClass(c)];
+  return nil;
 }
 
 - (id) initForWritingWithMutableData: (NSMutableData*)data
