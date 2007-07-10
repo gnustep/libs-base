@@ -35,6 +35,7 @@ extern "C" {
 
 @class NSString;
 @class NSURL;
+@class NSIndexSet;
 
 @interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
@@ -72,6 +73,7 @@ extern "C" {
 
 - (id) lastObject;
 - (id) objectAtIndex: (unsigned)index;				// Primitive
+- (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes;
 
 - (id) firstObjectCommonWithArray: (NSArray*)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
@@ -126,6 +128,7 @@ extern "C" {
 - (id) initWithCapacity: (unsigned)numItems;			// Primitive
 - (void) insertObject: (id)anObject atIndex: (unsigned)index;	// Primitive
 - (void) removeObjectAtIndex: (unsigned)index;			// Primitive
+- (void) removeObjectsAtIndexes: (NSIndexSet *)indexes;
 - (void) replaceObjectAtIndex: (unsigned)index
 		   withObject: (id)anObject;			// Primitive
 - (void) replaceObjectsInRange: (NSRange)aRange

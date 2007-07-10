@@ -30,6 +30,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
+#include "Foundation/NSSet.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSZone.h"
 #include "Foundation/NSDebug.h"
@@ -37,6 +38,11 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSKeyValueCoding.h"
 #include "Foundation/NSNull.h"
+
+/* For the NSKeyValueMutableArray and NSKeyValueMutableSet classes
+ */
+#include "NSKeyValueMutableArray.m"
+#include "NSKeyValueMutableSet.m"
 
 /* For backward compatibility NSUndefinedKeyException is actually the same
  * as the older NSUnknownKeyException
@@ -247,17 +253,78 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   [exp raise];
 }
 
+- (NSMutableSet*) mutableSetValueForKey: (NSString*)aKey
+{
+  return [NSKeyValueMutableSet setForKey:aKey ofObject:self];
+}
+
+- (NSMutableSet*) mutableSetValueForKeyPath: (NSString*)aKey
+{
+  unsigned	size = [aKey length] * 8;
+  char		buf[size+1];
+  unsigned	start = 0;
+  unsigned	end = 0;
+  id		o = self;
+
+  [aKey getCString: buf
+	 maxLength: size+1
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(buf);
+  while (start < size && o != nil)
+    {
+      end = start;
+      while (end < size && buf[end] != '.')
+	{
+	  end++;
+	}
+      aKey = [[NSString alloc] initWithBytes: buf + start
+				      length: end - start
+				    encoding: NSUTF8StringEncoding];
+      AUTORELEASE(aKey);
+      if (end == size)
+        o = [o mutableSetValueForKey: aKey];
+      else
+        o = [o valueForKey: aKey];
+      start = ++end;
+    }
+  return o;
+}
 
 - (NSMutableArray*) mutableArrayValueForKey: (NSString*)aKey
 {
- [self notImplemented: _cmd];
- return nil;
+  return [NSKeyValueMutableArray arrayForKey:aKey ofObject:self];
 }
 
 - (NSMutableArray*) mutableArrayValueForKeyPath: (NSString*)aKey
 {
- [self notImplemented: _cmd];
- return nil;
+  unsigned	size = [aKey length] * 8;
+  char		buf[size+1];
+  unsigned	start = 0;
+  unsigned	end = 0;
+  id		o = self;
+
+  [aKey getCString: buf
+	 maxLength: size+1
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(buf);
+  while (start < size && o != nil)
+    {
+      end = start;
+      while (end < size && buf[end] != '.')
+	{
+	  end++;
+	}
+      aKey = [[NSString alloc] initWithBytes: buf + start
+				      length: end - start
+				    encoding: NSUTF8StringEncoding];
+      AUTORELEASE(aKey);
+      if (end == size)
+        o = [o mutableArrayValueForKey: aKey];
+      else
+        o = [o valueForKey: aKey];
+      start = ++end;
+    }
+  return o;
 }
 
 - (void) setNilValueForKey: (NSString*)aKey
@@ -819,8 +886,11 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     self, @"NSTargetObjectUserInfoKey",
     (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
     nil];
+  NSString * reason = [NSString stringWithFormat:
+    @"Unable to find value for key \"%@\" of object %@ (%@)",
+    aKey, self, [self class]];
   exp = [NSException exceptionWithName: NSUndefinedKeyException
-				reason: @"Unable to find value for key"
+				reason: reason
 			      userInfo: dict];
 
   [exp raise];

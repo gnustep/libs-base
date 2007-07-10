@@ -47,6 +47,7 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSNull.h"
 #include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSIndexSet.h"
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
@@ -835,6 +836,21 @@ static SEL	rlSel;
   return nil;
 }
 
+- (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes
+{
+  //FIXME: probably slow!
+  NSMutableArray * group = [NSMutableArray arrayWithCapacity: [indexes count]];
+
+  unsigned i = [indexes firstIndex];
+  while (i != NSNotFound)
+    {
+      [group addObject: [self objectAtIndex: i]];
+      i = [indexes indexGreaterThanIndex: i];
+    }
+
+  return [group copy];
+}
+
 - (BOOL) isEqual: (id)anObject
 {
   if (self == anObject)
@@ -843,6 +859,7 @@ static SEL	rlSel;
     return [self isEqualToArray: anObject];
   return NO;
 }
+
 
 /**
  * Returns YES if the receiver is equal to otherArray, NO otherwise.
@@ -1704,6 +1721,22 @@ compare(id elem1, id elem2, void* context)
 {
   [self removeAllObjects];
   [self addObjectsFromArray: otherArray];
+}
+
+/**
+ * Removes objects from the receiver at the indices supplied by an NSIndexSet
+ */
+- (void) removeObjectsAtIndexes: (NSIndexSet *)indexes
+{
+  unsigned count = [indexes count];
+  unsigned indexArray[count];
+
+  [indexes getIndexes: indexArray 
+             maxCount:count 
+         inIndexRange: NULL];
+
+  [self removeObjectsFromIndices: indexArray
+                      numIndices: count];
 }
 
 /**

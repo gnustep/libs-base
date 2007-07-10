@@ -37,6 +37,8 @@ extern "C" {
 
 @class NSArray;
 @class NSMutableArray;
+@class NSSet;
+@class NSMutableSet;
 @class NSDictionary;
 @class NSError;
 @class NSString;
@@ -91,16 +93,56 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
 - (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey;
 
 /**
- * <strong>Not implemented</strong> ... I don't know what this method
- * is good for ... do we need to copy MacOS-X and implement it?
+ * Returns a mutable array value for a given key. This method:
+ * <orderedlist>
+ *  <item>Searches the receiver for methods matching the patterns 
+ *   insertObject:in<Key>AtIndex: and removeObjectFrom<Key>AtIndex:. If both
+ *   methods are found, each message sent to the proxy array will result in the 
+ *   invocation of one or more of these methods. If
+ *   replaceObjectIn<Key>AtIndex:withObject: is also found in the receiver it
+ *   will be used when appropriate for better performance.</item>
+ *  <item>If the set of methods is not found, searches the receiver for a the
+ *   method set<Key>:. Each message sent to the proxy array will result in
+ *   the invocation of set<Key>:</item>
+ *  <item>If the previous do not match, and accessInstanceVariablesDirectly
+ *   returns YES, searches for an instance variable matching _<key> or 
+ *   <key> (in that order). If the instance variable is found, messages sent
+ *   to the proxy object will be forwarded to the instance variable.</item>
+ *  <item>If none of the previous are found, raises an NSUndefinedKeyException 
  */
 - (NSMutableArray*) mutableArrayValueForKey: (NSString*)aKey;
 
 /**
- * <strong>Not implemented</strong> ... I don't know what this method
- * is good for ... do we need to copy MacOS-X and implement it?
+ * Returns a mutable array value for the given key path.
  */
 - (NSMutableArray*) mutableArrayValueForKeyPath: (NSString*)aKey;
+
+/**
+ * Returns a mutable set value for a given key. This method:
+ * <orderedlist>
+ *  <item>Searches the receiver for methods matching the patterns 
+ *   add<Key>Object:, remove<Key>Object:, add<Key>:, and remove<Key>:, which
+ *   correspond to the NSMutableSet methods addObject:, removeObject:,
+ *   unionSet:, and minusSet:, respectively. If at least one addition
+ *   and one removal method are found, each message sent to the proxy set
+ *   will result in the invocation of one or more of these methods. If
+ *   intersect<Key>: or set<Key>: is also found in the receiver, the method(s)
+ *   will be used when appropriate for better performance.</item>
+ *  <item>If the set of methods is not found, searches the receiver for a the
+ *   method set<Key>:. Each message sent to the proxy set will result in
+ *   the invocation of set<Key>:</item>
+ *  <item>If the previous do not match, and accessInstanceVariablesDirectly
+ *   returns YES, searches for an instance variable matching _<key> or 
+ *   <key> (in that order). If the instance variable is found, messages sent
+ *   to the proxy object will be forwarded to the instance variable.</item>
+ *  <item>If none of the previous are found, raises an NSUndefinedKeyException 
+ */
+- (NSMutableSet*) mutableSetValueForKey: (NSString *)aKey;
+
+/**
+ * Returns a mutable set value for the given key path.
+ */
+- (NSMutableSet*) mutableSetValueForKeyPath: (NSString*)aKey;
 
 /**
  * This method is invoked by the NSKeyValueCoding mechanism when an attempt
