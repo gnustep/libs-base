@@ -1,3 +1,7 @@
+2007-07-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandleWin32.m: Backport fix for pipes.
+
 2007-06-14  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/Source/NSNumber.m: Implement ([isEqualToValue:])
