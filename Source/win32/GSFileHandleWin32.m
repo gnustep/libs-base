@@ -1748,6 +1748,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSRunLoop	*l;
   NSArray	*modes;
+  void		*e;
+  int		t;
 
   if (descriptor < 0)
     {
@@ -1762,22 +1764,25 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	NSFileHandleNotificationMonitorModes];
     }
 
+  e = (void*)(event ? (uintptr_t)event : (uintptr_t)descriptor);
+  t = event ? ET_HANDLE : ET_TRIGGER;
+
   if (modes && [modes count])
     {
       unsigned int	i;
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l removeEvent: (void*)(uintptr_t)event
-		    type: event ? ET_HANDLE : ET_TRIGGER
+	  [l removeEvent: e
+		    type: t
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
         }
     }
   else
     {
-      [l removeEvent: (void*)(uintptr_t)event
-	        type: event ? ET_HANDLE : ET_TRIGGER
+      [l removeEvent: e
+	        type: t
 	     forMode: NSDefaultRunLoopMode
                  all: YES];
     }
@@ -1787,6 +1792,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSRunLoop	*l;
   NSArray	*modes;
+  void		*e;
+  int		t;
 
   if (descriptor < 0)
     {
@@ -1802,22 +1809,25 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       modes=(NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
     }
 
+  e = (void*)(event ? (uintptr_t)event : (uintptr_t)descriptor);
+  t = event ? ET_HANDLE : ET_TRIGGER;
+
   if (modes && [modes count])
     {
       unsigned int	i;
 
       for (i = 0; i < [modes count]; i++)
 	{
-          [l removeEvent: (void*)(uintptr_t)event
-	            type: event ? ET_HANDLE : ET_TRIGGER
+          [l removeEvent: e
+	            type: t
 	         forMode: [modes objectAtIndex: i]
                      all: YES];
         }
     }
   else
     {
-      [l removeEvent: (void*)(uintptr_t)event
-                type: event ? ET_HANDLE : ET_TRIGGER
+      [l removeEvent: e
+                type: t
 	     forMode: NSDefaultRunLoopMode
                  all: YES];
     }
@@ -1826,6 +1836,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (void) watchReadDescriptorForModes: (NSArray*)modes;
 {
   NSRunLoop	*l;
+  void		*e;
+  int		t;
 
   if (descriptor < 0)
     {
@@ -1834,14 +1846,18 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   l = [NSRunLoop currentRunLoop];
   [self setNonBlocking: YES];
+
+  e = (void*)(event ? (uintptr_t)event : (uintptr_t)descriptor);
+  t = event ? ET_HANDLE : ET_TRIGGER;
+
   if (modes && [modes count])
     {
       unsigned int	i;
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l addEvent: (void*)(uintptr_t)event
-		 type: event ? ET_HANDLE : ET_TRIGGER
+	  [l addEvent: e
+		 type: t
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
         }
@@ -1849,8 +1865,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      [l addEvent: (void*)(uintptr_t)event
-	     type: event ? ET_HANDLE : ET_TRIGGER
+      [l addEvent: e
+	     type: t
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
     }
@@ -1867,26 +1883,32 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSMutableDictionary	*info = [writeInfo objectAtIndex: 0];
       NSRunLoop			*l = [NSRunLoop currentRunLoop];
       NSArray			*modes = nil;
+      void			*e;
+      int			t;
 
       modes = [info objectForKey: NSFileHandleNotificationMonitorModes];
 
       [self setNonBlocking: YES];
+
+      e = (void*)(event ? (uintptr_t)event : (uintptr_t)descriptor);
+      t = event ? ET_HANDLE : ET_TRIGGER;
+
       if (modes && [modes count])
 	{
 	  unsigned int	i;
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
-	      [l addEvent: (void*)(uintptr_t)event
-		     type: event ? ET_HANDLE : ET_TRIGGER
+	      [l addEvent: e
+		     type: t
 		  watcher: self
 		  forMode: [modes objectAtIndex: i]];
 	    }
 	}
       else
 	{
-	  [l addEvent: (void*)(uintptr_t)event
-		 type: event ? ET_HANDLE : ET_TRIGGER
+	  [l addEvent: e
+		 type: t
 	      watcher: self
 	      forMode: NSDefaultRunLoopMode];
 	}
