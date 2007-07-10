@@ -1,3 +1,20 @@
+2007-07-10  Chris Farber <chris@chrisfarber.net>
+
+	* Source/NSArray.m ([NSArray -objectsAtIndexes:]): New method.
+	([NSMutableArray -removeObjectsAtIndexes:]): New method.
+	* Headers/Foundation/NSArray.h: Added the new methods.
+
+	* Source/NSKeyValueCoding.m ([-mutableArrayValueForKey:]): New
+	method.  ([-mutableArrayValueForKeyPath:]): New method.
+	([-mutableSetValueForKey:]): New method.
+	([-mutableSetValueForKeyPath:]): New method.
+	([-valueForUndefinedKey:]): Include key and object in the reason
+	of an NSUndefinedKeyException.
+	* Headers/Foundation/NSKeyValueCoding.h: Added the new methods.
+	
+	* Source/NSKeyValueMutableSet.m: New file.
+	* Source/NSKeyValueMutableArray.m: New file.
+	
 2007-07-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFileHandleWin32.m: Fixup for pipes as suggested by
