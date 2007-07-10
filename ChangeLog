@@ -1,3 +1,8 @@
+2007-07-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandleWin32.m: Fixup for pipes as suggested by
+	Matthew Jiminez.
+
 2007-06-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedArchiver.m:
