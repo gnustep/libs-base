@@ -4472,7 +4472,12 @@ static NSFileManager *fm = nil;
  * in XML format, the standard SGML comment sequences are used.
  * </p>
  * <p>See the documentation for [NSPropertyListSerialization] for more
- *    information on what a property list is.</p>
+ * information on what a property list is.
+ * </p>
+ * <p>If the string cannot be parsed as a normal property list format,
+ * this method also tries to parse it as 'strings file' format (see the
+ * -propertyListFromStringsFileFormat method).
+ * </p>
  */
 - (id) propertyList
 {
@@ -4496,8 +4501,22 @@ static NSFileManager *fm = nil;
 
   if (result == nil)
     {
-      [NSException raise: NSGenericException
-		  format: @"Parse failed  - %@", error];
+      extern id	GSPropertyListFromStringsFormat(NSString *string);
+
+      NS_DURING
+        {
+          result = GSPropertyListFromStringsFormat(self);
+        }
+      NS_HANDLER
+        {
+          result = nil;
+        }
+      NS_ENDHANDLER
+      if (result == nil)
+        {
+          [NSException raise: NSGenericException
+                      format: @"Parse failed  - %@", error];
+        }
     }
   return result;
 }

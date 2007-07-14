@@ -255,7 +255,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (NSMutableSet*) mutableSetValueForKey: (NSString*)aKey
 {
-  return [NSKeyValueMutableSet setForKey:aKey ofObject:self];
+  return [NSKeyValueMutableSet setForKey: aKey ofObject: self];
 }
 
 - (NSMutableSet*) mutableSetValueForKeyPath: (NSString*)aKey
@@ -292,7 +292,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (NSMutableArray*) mutableArrayValueForKey: (NSString*)aKey
 {
-  return [NSKeyValueMutableArray arrayForKey:aKey ofObject:self];
+  return [NSKeyValueMutableArray arrayForKey: aKey ofObject: self];
 }
 
 - (NSMutableArray*) mutableArrayValueForKeyPath: (NSString*)aKey

@@ -1,3 +1,17 @@
+2007-07-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueCoding.m:
+	* Source/NSKeyValueMutableSet.m:
+	* Source/NSArray.m:
+	* Source/NSKeyValueMutableArray.m:
+	Whitespace and initialisation tidyups.
+
+2007-07-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: For MacOS-X compatibility, alter -propertyList
+	to have the undocumented behavior of parsing strings file format
+	too.
+
 2007-07-10  Chris Farber <chris@chrisfarber.net>
 
 	* Source/NSArray.m ([NSArray -objectsAtIndexes:]): New method.

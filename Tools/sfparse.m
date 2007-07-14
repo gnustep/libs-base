@@ -164,7 +164,8 @@ main(int argc, char** argv, char **env)
 	      if (result == nil)
 		GSPrintf(stderr, @"Parsing '%@' - nil property list\n", file);
 	      else if ([result isKindOfClass: [NSDictionary class]] == YES)
-		GSPrintf(stderr, @"Parsing '%@' - seems ok\n", file);
+		GSPrintf(stderr, @"Parsing '%@' - seems ok (%d entries)\n",
+                  file, [result count]);
 	      else
 		GSPrintf(stderr, @"Parsing '%@' - unexpected class - %@\n",
 		  file, [[result class] description]);
