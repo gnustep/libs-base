@@ -29,28 +29,28 @@
 {
   @protected
   id object;
-  NSString * key;
-  NSMutableSet * set;
+  NSString *key;
+  NSMutableSet *set;
   BOOL changeInProgress;
 }
 
-+ (NSKeyValueMutableSet *)setForKey:(NSString *)aKey ofObject:(id)anObject;
-- (id) initWithKey:(NSString *)aKey ofObject:(id)anObject;
++ (NSKeyValueMutableSet*) setForKey: (NSString*)aKey ofObject: (id)anObject;
+- (id) initWithKey: (NSString*)aKey ofObject: (id)anObject;
 
 @end
 
 @interface NSKeyValueFastMutableSet : NSKeyValueMutableSet 
 {
   @private
-  NSInvocation * addObjectInvocation;
-  NSInvocation * removeObjectInvocation;
-  NSInvocation * addSetInvocation;
-  NSInvocation * removeSetInvocation;
-  NSInvocation * intersectInvocation;
-  NSInvocation * setSetInvocation;
+  NSInvocation *addObjectInvocation;
+  NSInvocation *removeObjectInvocation;
+  NSInvocation *addSetInvocation;
+  NSInvocation *removeSetInvocation;
+  NSInvocation *intersectInvocation;
+  NSInvocation *setSetInvocation;
 }
 
-+ (id) setForKey: (NSString *)aKey ofObject: (id)anObject
++ (id) setForKey: (NSString*)aKey ofObject: (id)anObject
   withCapitalizedKey: (const char *)capitalized;
 
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
@@ -61,7 +61,7 @@
 @interface NSKeyValueSlowMutableSet : NSKeyValueMutableSet
 {
   @private
-  NSInvocation * setSetInvocation;
+  NSInvocation *setSetInvocation;
 }
 
 + (id) setForKey: (NSString *)aKey ofObject: (id)anObject
@@ -86,48 +86,48 @@
 
 @implementation NSKeyValueMutableSet
 
-+ (NSKeyValueMutableSet *)setForKey:(NSString *)aKey ofObject:(id)anObject;
++ (NSKeyValueMutableSet *) setForKey: (NSString *)aKey ofObject: (id)anObject
 {
   unsigned size = [aKey maximumLengthOfBytesUsingEncoding:
-			  NSASCIIStringEncoding];
+			  NSUTF8StringEncoding];
   char key[size + 1];
 
   [aKey getCString: key
          maxLength: size + 1
-          encoding: NSASCIIStringEncoding];
+          encoding: NSUTF8StringEncoding];
   if (islower(*key))
     {
       *key = toupper(*key);
     }
 
-  NSKeyValueMutableSet * proxy;
+  NSKeyValueMutableSet *proxy;
 
-  proxy = [NSKeyValueFastMutableSet setForKey:aKey 
-				    ofObject:anObject
-				    withCapitalizedKey:key];
+  proxy = [NSKeyValueFastMutableSet setForKey: aKey 
+                                     ofObject: anObject
+                           withCapitalizedKey: key];
   if (proxy == nil)
     {
-      proxy = [NSKeyValueSlowMutableSet setForKey:aKey 
-					ofObject:anObject
-					withCapitalizedKey:key];
+      proxy = [NSKeyValueSlowMutableSet setForKey: aKey 
+                                         ofObject: anObject
+                               withCapitalizedKey: key];
 
       if (proxy == nil)
 	{
-	  proxy = [NSKeyValueIvarMutableSet setForKey:aKey 
-					    ofObject:anObject];
+	  proxy = [NSKeyValueIvarMutableSet setForKey: aKey 
+                                             ofObject: anObject];
 	}
     }
   return proxy;
 }
 
-- (id) initWithKey:(NSString *)aKey ofObject:(id)anObject
+- (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
 {
-  [super init];
-
-  object = anObject;
-  key = [aKey copy];
-  changeInProgress = NO;
-
+  if ((self = [super init]) != nil)
+    {
+      object = anObject;
+      key = [aKey copy];
+      changeInProgress = NO;
+    }
   return self;
 }
 
@@ -175,8 +175,8 @@
        withCapitalizedKey: (char *)capitalized
 {
   return [[[self alloc] initWithKey: aKey
-			ofObject: anObject
-			withCapitalizedKey: capitalized] autorelease];
+                           ofObject: anObject
+                 withCapitalizedKey: capitalized] autorelease];
 }
 
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
@@ -201,7 +201,7 @@
   removeSet = NSSelectorFromString
     ([NSString stringWithFormat: @"remove%s:", capitalized]);
 
-  if ([anObject respondsToSelector:addObject])
+  if ([anObject respondsToSelector: addObject])
     {
       canAdd = YES;
       addObjectInvocation = [[NSInvocation invocationWithMethodSignature:
@@ -209,7 +209,7 @@
       [addObjectInvocation setTarget: anObject];
       [addObjectInvocation setSelector: addObject];
     }
-  if ([anObject respondsToSelector:removeObject])
+  if ([anObject respondsToSelector: removeObject])
     {
       canRemove = YES;
       removeObjectInvocation = [[NSInvocation invocationWithMethodSignature:
@@ -217,7 +217,7 @@
       [removeObjectInvocation setTarget: anObject];
       [removeObjectInvocation setSelector: removeObject];
     }
-  if ([anObject respondsToSelector:addSet])
+  if ([anObject respondsToSelector: addSet])
     {
       canAdd = YES;
       addSetInvocation = [[NSInvocation invocationWithMethodSignature:
@@ -225,7 +225,7 @@
       [addSetInvocation setTarget: anObject];
       [addSetInvocation setSelector: addSet];
     }
-  if ([anObject respondsToSelector:removeSet])
+  if ([anObject respondsToSelector: removeSet])
     {
       canRemove = YES;
       removeSetInvocation = [[NSInvocation invocationWithMethodSignature:
@@ -240,32 +240,32 @@
       return nil;
     }
 
-  [super initWithKey: aKey  ofObject: anObject];
-
-  intersect = NSSelectorFromString
-    ([NSString stringWithFormat: @"intersect%s:", capitalized]);
-  setSet = NSSelectorFromString
-    ([NSString stringWithFormat: @"set%s:", capitalized]);
-
-  if ([anObject respondsToSelector: intersect])
+  if ((self = [super initWithKey: aKey  ofObject: anObject]) != nil)
     {
-      intersectInvocation = [[NSInvocation invocationWithMethodSignature:
-        [anObject methodSignatureForSelector: intersect]] retain];
-      [intersectInvocation setTarget: anObject];
-      [intersectInvocation setSelector: intersect];
-    }
-  if ([anObject respondsToSelector: setSet])
-    {
-      setSetInvocation = [[NSInvocation invocationWithMethodSignature:
-        [anObject methodSignatureForSelector: setSet]] retain];
-      [setSetInvocation setTarget: anObject];
-      [setSetInvocation setSelector: setSet];
-    }
+      intersect = NSSelectorFromString
+        ([NSString stringWithFormat: @"intersect%s:", capitalized]);
+      setSet = NSSelectorFromString
+        ([NSString stringWithFormat: @"set%s:", capitalized]);
 
+      if ([anObject respondsToSelector: intersect])
+        {
+          intersectInvocation = [[NSInvocation invocationWithMethodSignature:
+            [anObject methodSignatureForSelector: intersect]] retain];
+          [intersectInvocation setTarget: anObject];
+          [intersectInvocation setSelector: intersect];
+        }
+      if ([anObject respondsToSelector: setSet])
+        {
+          setSetInvocation = [[NSInvocation invocationWithMethodSignature:
+            [anObject methodSignatureForSelector: setSet]] retain];
+          [setSetInvocation setTarget: anObject];
+          [setSetInvocation setSelector: setSet];
+        }
+    }
   return self;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   [setSetInvocation release];
   [intersectInvocation release];
@@ -284,7 +284,7 @@
 	{
 	  [object willChangeValueForKey: key
 		        withSetMutation: NSKeyValueUnionSetMutation
-		           usingObjects: [NSSet setWithObject:anObject]];
+		           usingObjects: [NSSet setWithObject: anObject]];
 	}
       [addObjectInvocation setArgument: &anObject  atIndex: 2];
       [addObjectInvocation invoke];
@@ -292,7 +292,7 @@
 	{
 	  [object didChangeValueForKey: key
 		       withSetMutation: NSKeyValueUnionSetMutation
-		          usingObjects: [NSSet setWithObject:anObject]];
+		          usingObjects: [NSSet setWithObject: anObject]];
 	}
     }
   else
@@ -313,7 +313,7 @@
       [addSetInvocation invoke];
     }
   else
-    [super unionSet:aSet];
+    [super unionSet: aSet];
   [object didChangeValueForKey: key
                withSetMutation: NSKeyValueUnionSetMutation
                   usingObjects: aSet];
@@ -340,7 +340,7 @@
 	}
     }
   else
-    [self minusSet:[NSSet setWithObject:anObject]];
+    [self minusSet: [NSSet setWithObject: anObject]];
 }
 
 - (void) minusSet: (NSSet *)aSet
@@ -413,8 +413,8 @@
 + (id) setForKey: (NSString *)aKey ofObject: (id)anObject
        withCapitalizedKey: (const char *)capitalized
 {
-  return [[[self alloc] initWithKey:aKey ofObject:anObject
-                withCapitalizedKey:capitalized] autorelease];
+  return [[[self alloc] initWithKey: aKey ofObject: anObject
+                withCapitalizedKey: capitalized] autorelease];
 }
 
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
@@ -424,19 +424,19 @@
   SEL setSelector = NSSelectorFromString([NSString stringWithFormat:
     @"set%s:", capitalized]);
 
-  if (![anObject respondsToSelector:setSelector])
+  if (![anObject respondsToSelector: setSelector])
     {
       [self release];
       return nil;
     }
 
-  [super initWithKey:aKey ofObject:anObject];
-
-  setSetInvocation = [[NSInvocation invocationWithMethodSignature:
-    [anObject methodSignatureForSelector:setSelector]] retain];
-  [setSetInvocation setSelector:setSelector];
-  [setSetInvocation setTarget:anObject];
-
+  if ((self = [super initWithKey: aKey ofObject: anObject]) != nil)
+    {
+      setSetInvocation = [[NSInvocation invocationWithMethodSignature:
+        [anObject methodSignatureForSelector: setSelector]] retain];
+      [setSetInvocation setSelector: setSelector];
+      [setSetInvocation setTarget: anObject];
+    }
   return self;
 }
 
@@ -448,52 +448,52 @@
   [setSetInvocation setArgument: &aSet  atIndex: 2];
   [setSetInvocation invoke];
   [object didChangeValueForKey: key
-                withSetMutation: NSKeyValueSetSetMutation
-                   usingObjects: aSet];
+               withSetMutation: NSKeyValueSetSetMutation
+                  usingObjects: aSet];
 }
 
 - (void) removeAllObjects
 {
-  NSSet * theSet = [NSSet setWithSet: [object valueForKey: key]];
+  NSSet *theSet = [NSSet setWithSet: [object valueForKey: key]];
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueMinusSetMutation
                    usingObjects: theSet];
-  NSSet * nothing = [NSSet set];
+  NSSet *nothing = [NSSet set];
   [setSetInvocation setArgument: &nothing  atIndex: 2];
   [setSetInvocation invoke];
   [object didChangeValueForKey: key
-                withSetMutation: NSKeyValueMinusSetMutation
-                   usingObjects: theSet];
+               withSetMutation: NSKeyValueMinusSetMutation
+                  usingObjects: theSet];
 }
 
 - (void) addObject: (id)anObject
 {
-  NSSet * unionSet = [NSSet setWithObject:anObject];
+  NSSet *unionSet = [NSSet setWithObject: anObject];
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueUnionSetMutation
                    usingObjects: unionSet];
-  NSMutableSet * temp = [NSMutableSet setWithSet:[object valueForKey:key]];
-  [temp addObject:anObject];
+  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  [temp addObject: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
   [object didChangeValueForKey: key
-                withSetMutation: NSKeyValueUnionSetMutation
-                   usingObjects: unionSet];
+               withSetMutation: NSKeyValueUnionSetMutation
+                  usingObjects: unionSet];
 }
 
 - (void) removeObject: (id)anObject
 {
-  NSSet * minusSet = [NSSet setWithObject:anObject];
+  NSSet *minusSet = [NSSet setWithObject: anObject];
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueMinusSetMutation
                    usingObjects: minusSet];
-  NSMutableSet * temp = [NSMutableSet setWithSet: [object valueForKey: key]];
-  [temp removeObject:anObject];
+  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  [temp removeObject: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
   [object didChangeValueForKey: key
-                withSetMutation: NSKeyValueMinusSetMutation
-                   usingObjects: minusSet];
+               withSetMutation: NSKeyValueMinusSetMutation
+                  usingObjects: minusSet];
 }
 
 - (void) unionSet: (id)anObject
@@ -501,13 +501,13 @@
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueUnionSetMutation
                    usingObjects: anObject];
-  NSMutableSet * temp = [NSMutableSet setWithSet: [object valueForKey: key]];
-  [temp unionSet:anObject];
+  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  [temp unionSet: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
   [object didChangeValueForKey: key
-                withSetMutation: NSKeyValueUnionSetMutation
-                   usingObjects: anObject];
+               withSetMutation: NSKeyValueUnionSetMutation
+                  usingObjects: anObject];
 }
 
 - (void) minusSet: (id)anObject
@@ -515,13 +515,13 @@
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueMinusSetMutation
                    usingObjects: anObject];
-  NSMutableSet * temp = [NSMutableSet setWithSet: [object valueForKey: key]];
-  [temp minusSet:anObject];
+  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  [temp minusSet: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
   [object didChangeValueForKey: key
-                withSetMutation: NSKeyValueMinusSetMutation
-                   usingObjects: anObject];
+               withSetMutation: NSKeyValueMinusSetMutation
+                  usingObjects: anObject];
 }
 
 - (void) intersectSet: (id)anObject
@@ -529,13 +529,13 @@
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueIntersectSetMutation
                    usingObjects: anObject];
-  NSMutableSet * temp = [NSMutableSet setWithSet: [object valueForKey: key]];
-  [temp intersectSet:anObject];
+  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  [temp intersectSet: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
   [object didChangeValueForKey: key
-                withSetMutation: NSKeyValueIntersectSetMutation
-                   usingObjects: anObject];
+               withSetMutation: NSKeyValueIntersectSetMutation
+                  usingObjects: anObject];
 }
 
 @end
@@ -543,33 +543,34 @@
 
 @implementation NSKeyValueIvarMutableSet
 
-+ (id)setForKey: (NSString *)key ofObject: (id)anObject
++ (id) setForKey: (NSString *)key ofObject: (id)anObject
 {
-  return [[[self alloc] initWithKey:key ofObject:anObject] autorelease];
+  return [[[self alloc] initWithKey: key ofObject: anObject] autorelease];
 }
 
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
 {
-  [super initWithKey: aKey  ofObject: anObject];
-
-  unsigned size = [aKey maximumLengthOfBytesUsingEncoding: NSASCIIStringEncoding];
-  char cKey[size + 2];
-  char *cKeyPtr = &cKey[0];
-  const char *type = 0;
-
-  int offset;
-
-  
-  cKey[0] = '_';
-  [aKey getCString: cKeyPtr + 1
-         maxLength: size + 1
-          encoding: NSASCIIStringEncoding];
-  if (!GSObjCFindVariable (anObject, cKeyPtr, &type, &size, &offset))
+  if ((self = [super initWithKey: aKey  ofObject: anObject]) != nil)
     {
-      GSObjCFindVariable (anObject, ++cKeyPtr, &type, &size, &offset);
-    }
-  set = GSObjCGetVal (anObject, cKeyPtr, NULL, type, size, offset);
+      unsigned size = [aKey maximumLengthOfBytesUsingEncoding:
+        NSUTF8StringEncoding];
+      char cKey[size + 2];
+      char *cKeyPtr = &cKey[0];
+      const char *type = 0;
 
+      int offset;
+
+      
+      cKey[0] = '_';
+      [aKey getCString: cKeyPtr + 1
+             maxLength: size + 1
+              encoding: NSUTF8StringEncoding];
+      if (!GSObjCFindVariable (anObject, cKeyPtr, &type, &size, &offset))
+        {
+          GSObjCFindVariable (anObject, ++cKeyPtr, &type, &size, &offset);
+        }
+      set = GSObjCGetVal (anObject, cKeyPtr, NULL, type, size, offset);
+    }
   return self;
 }
 
@@ -599,9 +600,9 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueUnionSetMutation
-	               usingObjects: [NSSet setWithObject:anObject]];
+	               usingObjects: [NSSet setWithObject: anObject]];
     }
-  [set addObject:anObject];
+  [set addObject: anObject];
   if (!changeInProgress)
     {
       [object didChangeValueForKey: key
@@ -610,7 +611,7 @@
     }
 }
 
-- (void)removeObject: (id)anObject
+- (void) removeObject: (id)anObject
 {
   if (!changeInProgress)
     {
@@ -618,24 +619,24 @@
                     withSetMutation: NSKeyValueMinusSetMutation
                        usingObjects: [NSSet setWithObject:anObject]];
     }
-  [set removeObject:anObject];
+  [set removeObject: anObject];
   if (!changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueMinusSetMutation
-                      usingObjects: [NSSet setWithObject:anObject]];
+                      usingObjects: [NSSet setWithObject: anObject]];
     }
 }
 
-- (void)unionSet: (id)anObject
+- (void) unionSet: (id)anObject
 {
   if (!changeInProgress)
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueUnionSetMutation
-                       usingObjects: [NSSet setWithObject:anObject]];
+                       usingObjects: [NSSet setWithObject: anObject]];
     }
-  [set unionSet:anObject];
+  [set unionSet: anObject];
   if (!changeInProgress)
     {
       [object didChangeValueForKey: key
@@ -644,54 +645,54 @@
     }
 }
 
-- (void)minusSet: (id)anObject
+- (void) minusSet: (id)anObject
 {
   if (!changeInProgress)
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueMinusSetMutation
-                       usingObjects: [NSSet setWithObject:anObject]];
+                       usingObjects: [NSSet setWithObject: anObject]];
     }
-  [set minusSet:anObject];
+  [set minusSet: anObject];
   if (!changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueMinusSetMutation
-                      usingObjects: [NSSet setWithObject:anObject]];
+                      usingObjects: [NSSet setWithObject: anObject]];
     }
 }
 
-- (void)intersectSet: (id)anObject
+- (void) intersectSet: (id)anObject
 {
   if (!changeInProgress)
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueIntersectSetMutation
-                       usingObjects: [NSSet setWithObject:anObject]];
+                       usingObjects: [NSSet setWithObject: anObject]];
     }
-  [set intersectSet:anObject];
+  [set intersectSet: anObject];
   if (!changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueIntersectSetMutation
-                      usingObjects: [NSSet setWithObject:anObject]];
+                      usingObjects: [NSSet setWithObject: anObject]];
     }
 }
 
-- (void)setSet: (id)anObject
+- (void) setSet: (id)anObject
 {
   if (!changeInProgress)
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueSetSetMutation
-                       usingObjects: [NSSet setWithObject:anObject]];
+                       usingObjects: [NSSet setWithObject: anObject]];
     }
-  [set setSet:anObject];
+  [set setSet: anObject];
   if (!changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueSetSetMutation
-                      usingObjects: [NSSet setWithObject:anObject]];
+                      usingObjects: [NSSet setWithObject: anObject]];
     }
 }
 @end

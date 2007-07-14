@@ -839,7 +839,7 @@ static SEL	rlSel;
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes
 {
   //FIXME: probably slow!
-  NSMutableArray * group = [NSMutableArray arrayWithCapacity: [indexes count]];
+  NSMutableArray *group = [NSMutableArray arrayWithCapacity: [indexes count]];
 
   unsigned i = [indexes firstIndex];
   while (i != NSNotFound)
@@ -1732,7 +1732,7 @@ compare(id elem1, id elem2, void* context)
   unsigned indexArray[count];
 
   [indexes getIndexes: indexArray 
-             maxCount:count 
+             maxCount: count 
          inIndexRange: NULL];
 
   [self removeObjectsFromIndices: indexArray
