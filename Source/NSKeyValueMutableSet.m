@@ -88,6 +88,7 @@
 
 + (NSKeyValueMutableSet *) setForKey: (NSString *)aKey ofObject: (id)anObject
 {
+  NSKeyValueMutableSet *proxy;
   unsigned size = [aKey maximumLengthOfBytesUsingEncoding:
 			  NSUTF8StringEncoding];
   char key[size + 1];
@@ -100,7 +101,6 @@
       *key = toupper(*key);
     }
 
-  NSKeyValueMutableSet *proxy;
 
   proxy = [NSKeyValueFastMutableSet setForKey: aKey 
                                      ofObject: anObject
@@ -454,11 +454,12 @@
 
 - (void) removeAllObjects
 {
+  NSSet *nothing;
   NSSet *theSet = [NSSet setWithSet: [object valueForKey: key]];
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueMinusSetMutation
                    usingObjects: theSet];
-  NSSet *nothing = [NSSet set];
+  nothing = [NSSet set];
   [setSetInvocation setArgument: &nothing  atIndex: 2];
   [setSetInvocation invoke];
   [object didChangeValueForKey: key
@@ -468,11 +469,14 @@
 
 - (void) addObject: (id)anObject
 {
-  NSSet *unionSet = [NSSet setWithObject: anObject];
+  NSMutableSet *temp;
+  NSSet *unionSet;
+
+  unionSet = [NSSet setWithObject: anObject];
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueUnionSetMutation
                    usingObjects: unionSet];
-  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  temp = [NSMutableSet setWithSet: [object valueForKey: key]];
   [temp addObject: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
@@ -483,11 +487,12 @@
 
 - (void) removeObject: (id)anObject
 {
+  NSMutableSet *temp;
   NSSet *minusSet = [NSSet setWithObject: anObject];
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueMinusSetMutation
                    usingObjects: minusSet];
-  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  temp = [NSMutableSet setWithSet: [object valueForKey: key]];
   [temp removeObject: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
@@ -498,10 +503,11 @@
 
 - (void) unionSet: (id)anObject
 {
+  NSMutableSet *temp;
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueUnionSetMutation
                    usingObjects: anObject];
-  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  temp = [NSMutableSet setWithSet: [object valueForKey: key]];
   [temp unionSet: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
@@ -512,10 +518,11 @@
 
 - (void) minusSet: (id)anObject
 {
+  NSMutableSet *temp;
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueMinusSetMutation
                    usingObjects: anObject];
-  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  temp = [NSMutableSet setWithSet: [object valueForKey: key]];
   [temp minusSet: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
@@ -526,10 +533,11 @@
 
 - (void) intersectSet: (id)anObject
 {
+  NSMutableSet *temp;
   [object willChangeValueForKey: key
                 withSetMutation: NSKeyValueIntersectSetMutation
                    usingObjects: anObject];
-  NSMutableSet *temp = [NSMutableSet setWithSet: [object valueForKey: key]];
+  temp = [NSMutableSet setWithSet: [object valueForKey: key]];
   [temp intersectSet: anObject];
   [setSetInvocation setArgument: &temp  atIndex: 2];
   [setSetInvocation invoke];
