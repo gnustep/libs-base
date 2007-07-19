@@ -1,3 +1,9 @@
+2007-07-19 Riccardo Mottola <riccardo@kaffe.org> 
+
+	* Source/NSKeyValueCoding.m:
+	* Source/NSKeyValueMutableSet.m:
+	Code cleanup and C99-ism fixes
+
 2007-07-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueCoding.m:

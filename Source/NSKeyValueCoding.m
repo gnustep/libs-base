@@ -871,6 +871,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   NSDictionary	*dict;
   NSException	*exp;
   static IMP	o = 0;
+  NSString *reason;
 
   /* Backward compatibility hack */
   if (o == 0)
@@ -886,7 +887,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     self, @"NSTargetObjectUserInfoKey",
     (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
     nil];
-  NSString * reason = [NSString stringWithFormat:
+  reason = [NSString stringWithFormat:
     @"Unable to find value for key \"%@\" of object %@ (%@)",
     aKey, self, [self class]];
   exp = [NSException exceptionWithName: NSUndefinedKeyException
