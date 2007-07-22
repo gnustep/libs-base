@@ -1,3 +1,8 @@
+2007-07-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m: escape angle brackets in types of function
+	arguments.
+
 2007-07-19 Riccardo Mottola <riccardo@kaffe.org> 
 
 	* Source/NSKeyValueCoding.m:

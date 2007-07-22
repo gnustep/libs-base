@@ -825,16 +825,16 @@ static BOOL snuggleStart(NSString *t)
       NSString		*s = [a objectForKey: @"BaseType"];
 
       [str appendString: @"        <arg type=\""];
-      [str appendString: s];
+      [str appendString: escapeType(s)];
       s = [a objectForKey: @"Prefix"];
       if (s != nil)
 	{
-	  [str appendString: s];
+	  [str appendString: escapeType(s)];
 	}
       s = [a objectForKey: @"Suffix"];
       if (s != nil)
 	{
-	  [str appendString: s];
+	  [str appendString: escapeType(s)];
 	}
       [str appendString: @"\">"];
       [str appendString: [a objectForKey: @"Name"]];
