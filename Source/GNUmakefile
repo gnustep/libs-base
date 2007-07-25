@@ -320,6 +320,7 @@ NSDistributedLock.h \
 NSDistributedNotificationCenter.h \
 NSEnumerator.h \
 NSError.h \
+NSErrorRecoveryAttempting.h \
 NSException.h \
 NSExpression.h \
 NSFileHandle.h \
