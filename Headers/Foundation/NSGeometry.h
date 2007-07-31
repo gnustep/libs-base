@@ -38,14 +38,14 @@ extern "C" {
 
 #ifndef MAX
 #define MAX(a,b) \
-       ({typeof(a) _MAX_a = (a); typeof(b) _MAX_b = (b);  \
+       ({__typeof__(a) _MAX_a = (a); __typeof__(b) _MAX_b = (b);  \
          _MAX_a > _MAX_b ? _MAX_a : _MAX_b; })
 #define	GS_DEFINED_MAX
 #endif
 
 #ifndef MIN
 #define MIN(a,b) \
-       ({typeof(a) _MIN_a = (a); typeof(b) _MIN_b = (b);  \
+       ({__typeof__(a) _MIN_a = (a); __typeof__(b) _MIN_b = (b);  \
          _MIN_a < _MIN_b ? _MIN_a : _MIN_b; })
 #define	GS_DEFINED_MIN
 #endif
