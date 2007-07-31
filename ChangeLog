@@ -1,3 +1,15 @@
+2007-07-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSRange.h:
+	* Headers/Foundation/NSException.h:
+	* Headers/Foundation/NSGeometry.h:
+	* Headers/Foundation/NSAutoreleasePool.h:
+	* Headers/Additions/GNUstepBase/preface.h.in:
+	* macosx/GNUstepBase/preface.h:
+	Use __typeof__ rather than  typeof so that if the header is included
+	in user code which is compiled with a flag to disalow typeof, the
+	code will still work.
+
 2007-07-25  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSErrorRecoveryAttempting.h: Add new file.

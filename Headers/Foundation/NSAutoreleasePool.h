@@ -70,7 +70,8 @@ typedef struct autorelease_thread_vars
 /* Initialize an autorelease_thread_vars structure for a new thread.
    This function is called in NSThread each time an NSThread is created.
    TV should be of type `struct autorelease_thread_vars *' */
-#define init_autorelease_thread_vars(TV)  memset (TV, 0, sizeof (typeof (*TV)))
+#define init_autorelease_thread_vars(TV) \
+memset (TV, 0, sizeof (__typeof__ (*TV)))
 
 
 
