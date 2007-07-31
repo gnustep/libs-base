@@ -304,7 +304,7 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_ENDHANDLER }}}
 
-#define NS_VALRETURN(val)  do { typeof(val) temp = (val);	\
+#define NS_VALRETURN(val)  do { __typeof__(val) temp = (val);	\
 			_NSRemoveHandler(&NSLocalHandler);	\
 			return(temp); } while (0)
 
