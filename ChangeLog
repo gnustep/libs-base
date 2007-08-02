@@ -1,3 +1,8 @@
+2007-08-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: Private method to check existence of
+	process.
+
 2007-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRange.h:

@@ -67,6 +67,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef HAVE_WINDOWS_H
+#  include <windows.h>
+#endif
+
+#ifdef  HAVE_SYS_SIGNAL_H
+#include <sys/signal.h>
+#endif
+#ifdef  HAVE_SIGNAL_H
+#include <signal.h>
+#endif
+
 #include <sys/file.h>
 #ifdef HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>
@@ -917,6 +929,28 @@ int main(int argc, char *argv[], char *env[])
       _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
     }
   return _gnu_sharedProcessInfoObject;
+}
+
++ (BOOL) _exists: (int)pid
+{
+  if (pid > 0)
+    {
+#if	defined(__MINGW32__)
+      HANDLE        h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,0,pid);
+      if (h == NULL && GetLastError() != ERROR_ACCESS_DENIED)
+        {
+          return NO;
+        }
+      CloseHandle(h);
+#else
+      if (kill(0, pid) < 0 && errno == ESRCH)
+        {
+          return NO;
+        }
+#endif
+      return YES;
+    }
+  return NO;
 }
 
 - (NSArray *) arguments
