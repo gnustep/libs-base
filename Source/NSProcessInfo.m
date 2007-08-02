@@ -943,7 +943,7 @@ int main(int argc, char *argv[], char *env[])
         }
       CloseHandle(h);
 #else
-      if (kill(0, pid) < 0 && errno == ESRCH)
+      if (kill(pid, 0) < 0 && errno == ESRCH)
         {
           return NO;
         }
