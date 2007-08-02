@@ -936,7 +936,7 @@ int main(int argc, char *argv[], char *env[])
   if (pid > 0)
     {
 #if	defined(__MINGW32__)
-      HANDLE        h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,0,pid);
+      HANDLE        h = OpenProcess(PROCESS_QUERY_INFORMATION,0,pid);
       if (h == NULL && GetLastError() != ERROR_ACCESS_DENIED)
         {
           return NO;
