@@ -68,13 +68,13 @@
  * captialisation of headers (some http software is faulty like that).
  */
 static unsigned int
-_non_retained_id_hash(void *table, NSString* o)
+_id_hash(void *table, NSString* o)
 {
   return [[o uppercaseString] hash];
 }
 
 static BOOL
-_non_retained_id_is_equal(void *table, NSString *o, NSString *p)
+_id_is_equal(void *table, NSString *o, NSString *p)
 {
   return ([o caseInsensitiveCompare: p] == NSOrderedSame) ? YES : NO;
 }
@@ -87,11 +87,11 @@ typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
 
 static const NSMapTableKeyCallBacks writeKeyCallBacks =
 {
-  (NSMT_hash_func_t) _non_retained_id_hash,
-  (NSMT_is_equal_func_t) _non_retained_id_is_equal,
-  (NSMT_retain_func_t) _NS_non_retained_id_retain,
-  (NSMT_release_func_t) _NS_non_retained_id_release,
-  (NSMT_describe_func_t) _NS_non_retained_id_describe,
+  (NSMT_hash_func_t) _id_hash,
+  (NSMT_is_equal_func_t) _id_is_equal,
+  (NSMT_retain_func_t) _NS_id_retain,
+  (NSMT_release_func_t) _NS_id_release,
+  (NSMT_describe_func_t) _NS_id_describe,
   NSNotAPointerMapKey
 };
 

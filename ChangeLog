@@ -1,3 +1,8 @@
+2007-08-04  David Ayers  <ayers@fsfe.org>
+
+	* Source/GSHTTPURLHandle.m (writeKeyCallBacks): Use retained
+	callbacks for keys.
+	
 2007-08-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: Private method to check existence of
