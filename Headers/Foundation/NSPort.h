@@ -266,40 +266,6 @@ typedef SOCKET NSSocketNativeHandle;
  *  Returns port number of underlying socket.
  */
 - (uint16_t) portNumber;
-
-// This is the OS X interface
-/*
-{
-  NSSocketNativeHandle _socket;
-  int _protocolFamily;
-  int _socketType;
-  int _protocol;
-  NSData *_remoteAddrData;
-}
-- (id) init;
-- (id) initWithTCPPort: (unsigned short)portNumber;
-- (id) initWithProtocolFamily: (int)family
-                   socketType: (int)type
-                     protocol: (int)protocol
-                      address: (NSData *)addrData;
-- (id) initWithProtocolFamily: (int)family
-                   socketType: (int)type
-                     protocol: (int)protocol
-                       socket: (NSSocketNativeHandle)socket;
-- (id) initRemoteWithTCPPort: (unsigned short)portNumber
-                        host: (NSString *)hostname;
-- (id) initRemoteWithProtocolFamily: (int)family
-                         socketType: (int)type
-                           protocol: (int)protocol
-                            address: (NSData *)addrData;
-
-- (NSData *) address;
-- (int) protocol;
-- (int) protocolFamily;
-- (NSSocketNativeHandle) socket;
-- (int) socketType;
-*/
-
 @end
 
 
