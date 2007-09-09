@@ -1,3 +1,8 @@
+2007-09-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: Wrap posting of notification in
+	exception handler to log exceptions.
+
 2007-08-24 23:53-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Headers/Foundation/NSPort.h: Removed commented out declaration
