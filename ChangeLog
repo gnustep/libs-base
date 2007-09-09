@@ -1,3 +1,8 @@
+2007-09-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSNotificationCenter.m: Wrap posting of notification in
+	exception handler to log exceptions.
+		
 2007-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRange.h:

@@ -1053,9 +1053,6 @@ static NSNotificationCenter *default_center = nil;
    */
   unlockNCTable(TABLE);
 
-#if 0
-  NS_DURING
-#endif
   /*
    * Now send all the notifications.
    */
@@ -1065,27 +1062,20 @@ static NSNotificationCenter *default_center = nil;
       o = GSIArrayItemAtIndex(a, count).ext;
       if (o->next != 0)
 	{
-	  (*o->method)(o->observer, o->selector, notification);
+          NS_DURING
+            {
+              (*o->method)(o->observer, o->selector, notification);
+            }
+          NS_HANDLER
+            {
+              NSLog(@"Problem posting notification: %@", localException);
+            }
+          NS_ENDHANDLER
 	}
     }
   lockNCTable(TABLE);
   GSIArrayEmpty(a);
   unlockNCTable(TABLE);
-
-#if 0
-  NS_HANDLER
-    {
-      /*
-       *    If we had a problem - release memory before going on.
-       */
-      lockNCTable(TABLE);
-      GSIArrayEmpty(a);
-      unlockNCTable(TABLE);
-      RELEASE(notification);
-      [localException raise];
-    }
-  NS_ENDHANDLER
-#endif
 
   RELEASE(notification);
 }
