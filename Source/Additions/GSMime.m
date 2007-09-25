@@ -2234,9 +2234,18 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  if (dst > beg)
 	    {
 	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-	      s = [s initWithBytes: beg
-			    length: dst - beg
-			  encoding: NSASCIIStringEncoding];
+              if (flags.isHttp == 1)
+                {
+                  s = [s initWithBytes: beg
+                                length: dst - beg
+                              encoding: NSISOLatin1StringEncoding];
+                }
+              else
+                {
+                  s = [s initWithBytes: beg
+                                length: dst - beg
+                              encoding: NSASCIIStringEncoding];
+                }
 	      if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
 	        {
 		  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
@@ -2347,9 +2356,18 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   if (dst > beg)
     {
       s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-      s = [s initWithBytes: beg
-		    length: dst - beg
-		  encoding: NSASCIIStringEncoding];
+      if (flags.isHttp == 1)
+        {
+          s = [s initWithBytes: beg
+                        length: dst - beg
+                      encoding: NSISOLatin1StringEncoding];
+        }
+      else
+        {
+          s = [s initWithBytes: beg
+                        length: dst - beg
+                      encoding: NSASCIIStringEncoding];
+        }
       if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
 	{
 	  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
