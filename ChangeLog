@@ -1,3 +1,8 @@
+2007-09-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Decode headers as latin1 by default if
+	parsing http rather than mime.
+
 2007-09-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Update files to use LGPL3 and GLP3 licenses.
