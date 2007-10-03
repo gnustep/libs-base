@@ -5171,7 +5171,7 @@ static void indentation(unsigned level, NSMutableString *str)
   return method;
 }
 
-- (NSDictionary*) parseResponse: (NSData*)response
+- (NSDictionary*) parseResponse: (NSData*)resp
 			 params: (NSMutableArray*)params
 {
   GSXPathContext	*ctx = nil;
@@ -5185,7 +5185,7 @@ static void indentation(unsigned level, NSMutableString *str)
     {
       GSXMLDocument	*doc = nil;
 
-      parser = [GSXMLParser parserWithData: response];
+      parser = [GSXMLParser parserWithData: resp];
       [parser substituteEntities: YES];
       [parser saveMessages: YES];
       if ([parser parse] == YES)
@@ -5422,11 +5422,11 @@ static void indentation(unsigned level, NSMutableString *str)
 
   if (code == 200)
     {
-      NSData	*response = [handle availableResourceData];
+      NSData	*resp = [handle availableResourceData];
 
       NS_DURING
 	{
-	  fault = [self parseResponse: response params: params];
+	  fault = [self parseResponse: resp params: params];
 	}
       NS_HANDLER
 	{
