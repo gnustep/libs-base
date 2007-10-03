@@ -2,6 +2,7 @@
 
 	* Source/NSData.m: Fix ([-classForCoder:]) to return base class of
 	cluster (bug #21133)
+	* Source/cifframe.m: avoid compiler warnings (bug #16996)
 
 2007-09-25  Richard Frith-Macdonald <rfm@gnu.org>
 
