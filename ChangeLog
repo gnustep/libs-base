@@ -1,3 +1,8 @@
+2007-10-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSData.m: Fix ([-classForCoder:]) to return base class of
+	cluster (bug #21133)
+		
 2007-09-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Decode headers as latin1 by default if

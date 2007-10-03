@@ -164,7 +164,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 
   if (theFile == 0)		/* We failed to open the file. */
     {
-      NSWarnFLog(@"Open (%@) attempt failed - %@", path, [NSError _last]);
+      NSDebugFLog(@"Open (%@) attempt failed - %@", path, [NSError _last]);
       goto failure;
     }
 	
@@ -1509,7 +1509,7 @@ failure:
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  if([coder allowsKeyedCoding])
+  if ([coder allowsKeyedCoding])
     {
       [coder encodeObject: self];
     }
@@ -1523,7 +1523,7 @@ failure:
 {
   id	obj = nil;
 
-  if([coder allowsKeyedCoding])
+  if ([coder allowsKeyedCoding])
     {
       obj = [coder decodeObject];
     }
@@ -2434,7 +2434,7 @@ failure:
 
 - (Class) classForCoder
 {
-  return dataMalloc;		/* Will not be static data when decoded. */
+  return NSDataAbstract;
 }
 
 /* Basic methods	*/
@@ -3070,7 +3070,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (Class) classForCoder
 {
-  return mutableDataMalloc;
+  return NSMutableDataAbstract;
 }
 
 - (id) copy
