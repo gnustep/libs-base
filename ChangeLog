@@ -1,3 +1,8 @@
+2007-10-10  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSDecimal.m (NSDecimalMultiplyByPowerOf10): Move check of
+	over/underflow after copy. Patch by Mark Tracy <tracy454@concentric.net>.
+
 2007-10-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Fix ([-classForCoder:]) to return base class of

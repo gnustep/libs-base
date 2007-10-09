@@ -780,9 +780,10 @@ NSDecimalPower(NSDecimal *result, const NSDecimal *n, unsigned power, NSRounding
 NSCalculationError
 NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power, NSRoundingMode mode)
 {
-  int p = result->exponent + power;
+  int p;
 
   NSDecimalCopy(result, n);
+  p = result->exponent + power;
   if (p > 127)
     {
       result->validNumber = NO;
