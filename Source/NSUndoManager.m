@@ -162,13 +162,9 @@
 @implementation NSUndoManager (Private)
 - (void) _loop: (id)arg
 {
-  if (_groupsByEvent)
+  if (_groupsByEvent && _group != nil)
     {
-      if (_group != nil)
-	{
-	  [self endUndoGrouping];
-	}
-      [self beginUndoGrouping];
+      [self endUndoGrouping];
     }
   _runLoopGroupingPending = NO;
 }
@@ -218,9 +214,10 @@
     {
       RELEASE(parent);
 
-      [[NSNotificationCenter defaultCenter]
-	  postNotificationName: NSUndoManagerDidOpenUndoGroupNotification
-			object: self];
+      if (_isUndoing == NO && _isRedoing == NO)
+        [[NSNotificationCenter defaultCenter]
+	    postNotificationName: NSUndoManagerDidOpenUndoGroupNotification
+			  object: self];
     }
 }
 
@@ -334,9 +331,10 @@
   p = RETAIN([g parent]);
   _group = p;
   [g orphan];
-  [[NSNotificationCenter defaultCenter]
-      postNotificationName: NSUndoManagerWillCloseUndoGroupNotification
-		    object: self];
+  if (_isUndoing == NO && _isRedoing == NO)
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName: NSUndoManagerWillCloseUndoGroupNotification
+		      object: self];
   if (p == nil)
     {
       if (_isUndoing)
@@ -882,15 +880,18 @@
   if (_modes != newModes)
     {
       ASSIGN(_modes, newModes);
-      [[NSRunLoop currentRunLoop] cancelPerformSelector: @selector(_loop:)
-						 target: self
-					       argument: nil];
-      [[NSRunLoop currentRunLoop] performSelector: @selector(_loop:)
-	target: self
-	argument: nil
-	order: NSUndoCloseGroupingRunLoopOrdering
-	modes: _modes];
-      _runLoopGroupingPending = YES;
+      if (_runLoopGroupingPending)
+      {
+	NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+        [runLoop cancelPerformSelector: @selector(_loop:)
+				target: self
+			      argument: nil];
+        [runLoop performSelector: @selector(_loop:)
+			  target: self
+			argument: nil
+			   order: NSUndoCloseGroupingRunLoopOrdering
+			   modes: _modes];
+      }
     }
 }
 

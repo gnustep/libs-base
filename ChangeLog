@@ -1,7 +1,14 @@
+2007-10-11  Wolfgang Lux <wolfgang.lux@gmail.com>
+
+        * Source/NSUndoManager: Prevent incorrect posting of notifications
+	during undo/redo and avoid unnecessary creation of undo
+	groups.
+
 2007-10-10  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSDecimal.m (NSDecimalMultiplyByPowerOf10): Move check of
-	over/underflow after copy. Patch by Mark Tracy <tracy454@concentric.net>.
+	over/underflow after copy.
+	Patch by Mark Tracy <tracy454@concentric.net>.
 
 2007-10-03  Richard Frith-Macdonald <rfm@gnu.org>
 
