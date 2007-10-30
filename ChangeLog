@@ -1,3 +1,7 @@
+2007-10-30  Adam Fedor  <fedor@gnu.org>
+
+        * gnustep-base.spec.in: Change Copyright to License.
+
 2007-10-11  Wolfgang Lux <wolfgang.lux@gmail.com>
 
         * Source/NSUndoManager: Prevent incorrect posting of notifications
