@@ -363,8 +363,8 @@ GS_EXPORT NSString* const NSLocale;
 
 /**
  * Sets a boolean value for defaultName in the application domain.<br />
- * Calls -setObject:forKey: to make the change by storing a boolean
- * [NSNumber] instance.
+ * Calls -setObject:forKey: to make the change by storing a string
+ * containing either the word YES or NO.
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName;
 
