@@ -1,3 +1,8 @@
+2007-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: ([setBoolForKey:]) changed to store YES
+	or NO as a string for MacOS-X compatibility.
+
 2007-10-30  Adam Fedor  <fedor@gnu.org>
 
         * gnustep-base.spec.in: Change Copyright to License.
