@@ -1,3 +1,11 @@
+2007-11-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXML.m: Make sloppy parser available for internal use when
+	parsing bad xml produced by Apple tools.
+	* Source/NSPropertyList.m: Use GSSloppyXMLParser if normal xml2 based
+	parsing fails due to Ap[ple4's inclusioon of illegal characters in
+	the XML.
+
 2007-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: ([setBoolForKey:]) changed to store YES
