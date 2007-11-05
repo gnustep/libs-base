@@ -44,10 +44,13 @@
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSNull.h"
 #include "Foundation/NSXMLParser.h"
 #include "GNUstepBase/Unicode.h"
 
 #include "GSPrivate.h"
+
+@class  GSSloppyXMLParser;
 
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
@@ -103,7 +106,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   if ((self = [super init]) != nil)
     {
       stack = [[NSMutableArray alloc] initWithCapacity: 10];
-      theParser = [[NSXMLParser alloc] initWithData: data];
+      theParser = [[GSSloppyXMLParser alloc] initWithData: data];
       [theParser setDelegate: self];
       opts = options;
     }
@@ -113,11 +116,15 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 - (void) parser: (NSXMLParser *)parser
   foundCharacters: (NSString *)string
 {
-  if (value == nil)
+  string = [string stringByTrimmingSpaces];
+  if ([string length] > 0)
     {
-      value = [[NSMutableString alloc] initWithCapacity: 50];
+      if (value == nil)
+        {
+          value = [[NSMutableString alloc] initWithCapacity: 50];
+        }
+      [value appendString: string];
     }
-  [value appendString: string];
 }
 
 - (void) parser: (NSXMLParser *)parser
@@ -130,6 +137,12 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     {
       NSMutableDictionary	*d;
 
+      if (key == nil)
+        {
+          key = RETAIN([NSNull null]);
+        }
+      [stack addObject: key];
+      DESTROY(key);
       d = [[NSMutableDictionary alloc] initWithCapacity: 10];
       [stack addObject: d];
       RELEASE(d);
@@ -140,6 +153,12 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     {
       NSMutableArray	*a;
 
+      if (key == nil)
+        {
+          key = RETAIN([NSNull null]);
+        }
+      [stack addObject: key];
+      DESTROY(key);
       a = [[NSMutableArray alloc] initWithCapacity: 10];
       [stack addObject: a];
       RELEASE(a);
@@ -174,13 +193,19 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
         {
 	  ASSIGN(plist, [[stack lastObject] makeImmutableCopyOnFail: NO]);
 	}
+      [stack removeLastObject];
       inArray = NO;
       inDictionary = NO;
+      ASSIGN(key, [stack lastObject]);
+      [stack removeLastObject];
+      if ((id)key == (id)[NSNull null])
+        {
+          DESTROY(key);
+        }
       if ([stack count] > 0)
         {
 	  id	last;
 
-	  [stack removeLastObject];
 	  last = [stack lastObject];
 	  if ([last isKindOfClass: [NSArray class]] == YES)
 	    {
@@ -2584,6 +2609,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	      parser = [GSXMLParser parser];
 	      [parser substituteEntities: YES];
 	      [parser doValidityChecking: YES];
+              [parser saveMessages: YES];
 	      if ([parser parse: data] == NO || [parser parse: nil] == NO)
 		{
 		  error = @"failed to parse as valid XML matching DTD";
