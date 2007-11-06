@@ -2090,12 +2090,6 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int *hour, int *minute, int *second, int *mil);
 
 
-
-/* FIXME
- * It's not unicode ... which is OK as the timezone registry
- * names are ascii ... but we ought to be consistent.
- */
-
 @implementation GSWindowsTimeZone
 
 - (NSString*) abbreviationForDate: (NSDate*)aDate
@@ -2121,209 +2115,175 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
 - (id) initWithName: (NSString*)name data: (NSData*)data
 {
-  HKEY  regDirKey;
-  BOOL  isNT = NO;
-  BOOL	regFound = NO;
+  HKEY     regDirKey;
+  BOOL     isNT = NO,regFound=NO;
 
-  /* Open the key in the local machine hive where
-   * the time zone data is stored. */
-  if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-    "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
-    0,
-    KEY_READ,
-    &regDirKey))
-    {
-      isNT = YES;
-      regFound = YES;
-    }
+  /* Open the key in the local machine hive where the time zone data is stored. */
+  if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+  	L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
+  	0,
+  	KEY_READ,
+  	&regDirKey))
+  {
+    isNT=YES;
+    regFound=YES;
+  }
   else
+  {
+    if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+    	L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
+    	0,
+    	KEY_READ,
+    	&regDirKey))
     {
-      if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-	"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
-	0,
-	KEY_READ,
-	&regDirKey))
-	{
-	  regFound = YES;
-	}
+    	regFound=YES;
     }
+  }
 
   if (regFound)
-    {
-      /* Iterate over all subKeys in the registry to find the right one.
-	 Unfortunately name is a localized value. The keys in the registry are
-	 unlocalized names. */
-      CHAR     achKey[255];              // buffer for subkey name
-      DWORD    cbName;                   // size of name string
-      CHAR     achClass[MAX_PATH] = "";  // buffer for class name
-      DWORD    cchClassName = MAX_PATH;  // size of class string
-      DWORD    cSubKeys=0;               // number of subkeys
-      DWORD    cbMaxSubKey;              // longest subkey size
-      DWORD    cchMaxClass;              // longest class string
-      DWORD    cValues;                  // number of values for key
-      DWORD    cchMaxValue;              // longest value name
-      DWORD    cbMaxValueData;           // longest value data
-      DWORD    cbSecurityDescriptor;     // size of security descriptor
-      FILETIME ftLastWriteTime;          // last write time
-      DWORD i;
-      DWORD retCode;
-      BOOL	tzFound = NO;
-	      
-	      /* Get the class name and the value count. */
-      retCode = RegQueryInfoKeyA(
-	regDirKey,               // key handle
-	achClass,                // buffer for class name
-	&cchClassName,           // size of class string
-	NULL,                    // reserved
-	&cSubKeys,               // number of subkeys
-	&cbMaxSubKey,            // longest subkey size
-	&cchMaxClass,            // longest class string
-	&cValues,                // number of values for this key
-	&cchMaxValue,            // longest value name
-	&cbMaxValueData,         // longest value data
-	&cbSecurityDescriptor,   // security descriptor
-	&ftLastWriteTime);       // last write time
+  {
+    	/* Iterate over all subKeys in the registry to find the right one.
+    	   Unfortunately name is a localized value. The keys in the registry are
+    	   unlocalized names. */
+	   wchar_t  achKey[255];              // buffer for subkey name
+    	DWORD    cbName;                   // size of name string 
+    	wchar_t  achClass[MAX_PATH] = L""; // buffer for class name 
+    	DWORD    cchClassName = MAX_PATH;  // size of class string 
+    	DWORD    cSubKeys=0;               // number of subkeys 
+    	DWORD    cbMaxSubKey;              // longest subkey size 
+    	DWORD    cchMaxClass;              // longest class string 
+    	DWORD    cValues;                  // number of values for key 
+    	DWORD    cchMaxValue;              // longest value name 
+    	DWORD    cbMaxValueData;           // longest value data 
+    	DWORD    cbSecurityDescriptor;     // size of security descriptor 
+    	FILETIME ftLastWriteTime;          // last write time 
+		
+		DWORD i, retCode;
+		BOOL	tzFound = NO;
+		
+		/* Get the class name and the value count. */
+	    retCode = RegQueryInfoKeyW(
+	        regDirKey,               // key handle 
+	        achClass,                // buffer for class name 
+	        &cchClassName,           // size of class string 
+	        NULL,                    // reserved 
+	        &cSubKeys,               // number of subkeys 
+	        &cbMaxSubKey,            // longest subkey size 
+	        &cchMaxClass,            // longest class string 
+	        &cValues,                // number of values for this key 
+	        &cchMaxValue,            // longest value name 
+	        &cbMaxValueData,         // longest value data 
+	        &cbSecurityDescriptor,   // security descriptor 
+	        &ftLastWriteTime);       // last write time 
 
-      if (cSubKeys && (retCode == ERROR_SUCCESS))
-	{
-	  const char *cName = [name cString];
+    	if (cSubKeys && (retCode == ERROR_SUCCESS))
+    	{
+    		wchar_t *wName = malloc(([name length]+1) * sizeof(wchar_t));
+    		if (wName)
+    		{
+    			[name getCharacters:wName];
 
-	  for (i = 0; i < cSubKeys && !tzFound; i++)
-	    {
-	      cbName = 255;
-	    
-	      retCode = RegEnumKeyExA(regDirKey,
-		i,
-		achKey,
-		&cbName,
-		NULL,
-		NULL,
-		NULL,
-		&ftLastWriteTime);
-	      if (retCode == ERROR_SUCCESS)
-		{
-		  char keyBuffer[16384];
-		  HKEY regKey;
-	    
-		  if (isNT)
-		    {
-		      sprintf(keyBuffer, "SOFTWARE\\Microsoft\\Windows NT"
-			"\\CurrentVersion\\Time Zones\\%s", achKey);
-		    }
-		  else
-		    {
-		      sprintf(keyBuffer, "SOFTWARE\\Microsoft\\Windows"
-			"\\CurrentVersion\\Time Zones\\%s", achKey);
-		    }
-	    
-		  if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-		    keyBuffer,
-		    0,
-		    KEY_READ,
-		    &regKey))
-		    {
-		      char buf[256];
-		      char standardName[256];
-		      char daylightName[256];
-		      DWORD bufsize;
-		      DWORD type;
-
-		      /* check standardname */
-		      standardName[0]='\0';
-		      bufsize=sizeof(buf);
-		      if (ERROR_SUCCESS == RegQueryValueExA(regKey,
-			"Std",
-			0,
-			&type,
-			buf,
-			&bufsize))
-			{
-			  strcpy(standardName, buf);
-			  if (strcmp(standardName, cName) == 0)
-			    tzFound = YES;
-			}
-
-		      /* check daylightname */
-		      daylightName[0]='\0';
-		      bufsize = sizeof(buf);
-		      if (ERROR_SUCCESS == RegQueryValueExA(regKey,
-			"Dlt",
-			0,
-			&type,
-			buf,
-			&bufsize))
-			{
-			  strcpy(daylightName, buf);
-			  if (strcmp(daylightName, cName) == 0)
-			    tzFound = YES;
-			}
-
-		      if (tzFound)
-			{
-			  /* Read in the time zone data */
-			  bufsize = sizeof(buf);
-			  if (ERROR_SUCCESS == RegQueryValueExA(regKey,
-			    "TZI",
-			    0,
-			    &type,
-			    buf,
-			    &bufsize))
-			    {
-			      TZI *tzi = (void*)buf;
-			      Bias = tzi->Bias;
-			      StandardBias = tzi->StandardBias;
-			      DaylightBias = tzi->DaylightBias;
-			      StandardDate = tzi->StandardDate;
-			      DaylightDate = tzi->DaylightDate;
-			    }
-		    
-			  /* Set the standard name for the time zone. */
-			  if (strlen(standardName))
-			    {
-			      int a, b;
-
-			      ASSIGN(timeZoneName,
-				[NSString stringWithUTF8String: standardName]);
-
-			      /* Abbr generated here is IMHO a
-			       * bit suspicous but I kept it */
-			      for (a = 0, b = 0; standardName[a]; a++)
-				{
-				  if (isupper(standardName[a]))
-				    standardName[b++] = standardName[a];
+				for (i=0; i<cSubKeys && !tzFound; i++) 
+				{ 
+				   cbName = 255;
+				   
+				   retCode = RegEnumKeyExW(regDirKey, i, achKey, &cbName, NULL, NULL, NULL, &ftLastWriteTime);         
+				   if (retCode == ERROR_SUCCESS) 
+				   {
+				   	 wchar_t keyBuffer[16384];
+				   	 HKEY regKey;
+				       
+				       if (isNT)
+				       	wcscpy(keyBuffer,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\");
+						 else
+						 	wcscpy(keyBuffer,L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones\\");
+				       
+				       wcscat(keyBuffer,achKey);
+	 		          if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE, keyBuffer, 0, KEY_READ, &regKey))
+				       {
+					      wchar_t buf[256];
+					      wchar_t standardName[256];
+					      wchar_t daylightName[256];
+					      DWORD bufsize;
+					      DWORD type;
+	
+							/* check standardname */
+							standardName[0]=L'\0';
+					      bufsize=sizeof(buf);
+					      if (ERROR_SUCCESS==RegQueryValueExW(regKey, L"Std", 0, &type, (BYTE *)buf, &bufsize))
+					      {
+					      	wcscpy(standardName,buf);
+					      	if (wcscmp(standardName,wName) == 0)
+					      		tzFound = YES;
+					   	}
+			
+							/* check daylightname */
+							daylightName[0]=L'\0';
+					      bufsize=sizeof(buf);
+					      if (ERROR_SUCCESS==RegQueryValueExW(regKey, L"Dlt", 0, &type, (BYTE *)buf, &bufsize))
+					      {
+					      	wcscpy(daylightName,buf);
+					      	if (wcscmp(daylightName,wName) == 0)
+					      		tzFound = YES;
+					   	}
+	
+							if (tzFound)
+							{
+						      /* Read in the time zone data */
+						      bufsize=sizeof(buf);
+						      if (ERROR_SUCCESS==RegQueryValueExW(regKey, L"TZI", 0, &type, (BYTE *)buf, &bufsize))
+						      {
+						          TZI *tzi = (void*)buf;
+						          Bias = tzi->Bias;
+						          StandardBias = tzi->StandardBias;
+						          DaylightBias = tzi->DaylightBias;
+						          StandardDate = tzi->StandardDate;
+						          DaylightDate = tzi->DaylightDate;
+						      }
+						      
+						      /* Set the standard name for the time zone. */
+						      if (wcslen(standardName))
+						      {
+						          int a, b;
+						          ASSIGN(timeZoneName,[NSString stringWithCharacters:standardName length:wcslen(standardName)]);
+	
+						          /* Abbr generated here is IMHO a bit suspicous but I kept it */
+						          for(a=0,b=0;standardName[a];a++)
+						          {
+						            if (iswupper(standardName[a]))
+						              standardName[b++]=standardName[a];
+						          }
+						          standardName[b]=L'\0';
+						          ASSIGN(timeZoneNameAbbr,[NSString stringWithCharacters:standardName length:wcslen(standardName)]);
+						      }
+	
+						      /* Set the daylight savings name for the time zone. */
+						      if (wcslen(daylightName))
+						      {
+						          int a,b;
+						          ASSIGN(daylightZoneName,[NSString stringWithCharacters:daylightName length:wcslen(daylightName)]);
+	
+						          /* Abbr generated here is IMHO a bit suspicous but I kept it */
+						          for(a=0,b=0;daylightName[a];a++)
+						          {
+						              if (iswupper(daylightName[a]))
+						                daylightName[b++]=daylightName[a];
+						          }
+						          daylightName[b]=L'\0';
+						          ASSIGN(daylightZoneNameAbbr,[NSString stringWithCharacters:daylightName length:wcslen(daylightName)]);
+					      	}
+					   	}
+					      RegCloseKey(regKey);
+				   	}			       
+				   }
 				}
-			      standardName[b] = 0;
-			      ASSIGN(timeZoneNameAbbr,
-				[NSString stringWithUTF8String: standardName]);
-			    }
-
-			  /* Set the daylight savings name for the time zone. */
-			  if (strlen(daylightName))
-			    {
-			      int a, b;
-
-			      ASSIGN(daylightZoneName,
-				[NSString stringWithUTF8String: daylightName]);
-
-			      /* Abbr generated here is IMHO
-			       * a bit suspicous but I kept it */
-			      for (a = 0, b = 0; daylightName[a]; a++)
-				{
-				  if (isupper(daylightName[a]))
-				    daylightName[b++] = daylightName[a];
-				}
-			      daylightName[b] = 0;
-			      ASSIGN(daylightZoneNameAbbr,
-				[NSString stringWithUTF8String: daylightName]);
-			    }
+				
+				free(wName);
 			}
-		      RegCloseKey(regKey);
-		    }			
-		}
-	    }
-	}
+    	}
       RegCloseKey(regDirKey);
-    }
+  }
+    
   return self;
 }
 

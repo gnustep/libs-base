@@ -1,3 +1,7 @@
+2007-11-06  Roland Schwingel <roland.schwingel@onevision.de>
+
+        * Source/NSTimeZone.m: In windows use wide (unichar) API
+
 2007-11-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXML.m: Make sloppy parser available for internal use when
