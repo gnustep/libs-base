@@ -1,3 +1,23 @@
+2007-11-06  Roland Schwingel <roland.schwingel@onevision.de>
+
+        * Source/NSTimeZone.m: In windows use wide (unichar) API
+	backported from trunk
+
+2007-11-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXML.m: Make sloppy parser available for internal use when
+	parsing bad xml produced by Apple tools.
+	* Source/NSPropertyList.m: Use GSSloppyXMLParser if normal xml2 based
+	parsing fails due to Ap[ple4's inclusioon of illegal characters in
+	the XML.
+	backported from trunk
+
+2007-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: ([setBoolForKey:]) changed to store YES
+	or NO as a string for MacOS-X compatibility.
+	backported from trunk
+
 2007-10-30  Adam Fedor  <fedor@gnu.org>
 
         * gnustep-base.spec.in: Change Copyright to License.

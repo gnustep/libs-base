@@ -1047,9 +1047,14 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
-  NSNumber	*n = [NSNumberClass numberWithBool: value];
-
-  [self setObject: n forKey: defaultName];
+  if (value == YES)
+    {
+      [self setObject: @"YES" forKey: defaultName];
+    }
+  else
+    {
+      [self setObject: @"NO" forKey: defaultName];
+    }
 }
 
 - (void) setFloat: (float)value forKey: (NSString*)defaultName
