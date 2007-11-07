@@ -1,3 +1,7 @@
+2007-10-30  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.14.1
+
 2007-11-06  Roland Schwingel <roland.schwingel@onevision.de>
 
         * Source/NSTimeZone.m: In windows use wide (unichar) API
