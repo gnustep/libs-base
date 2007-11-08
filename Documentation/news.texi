@@ -11,14 +11,21 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.15.1}
+
+This is an unstable release. There may be API and ABI changes 
+from previous releases. The licesne hase changed to GPLv3 and LGPLv3.
+Mostly bug fixes, but a few improvements in NSPredicates and Key-Value
+coding have been added.
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.15.0}
 
 This is an unstable release from 1.14.0.  It is otherwise
 identical to the 1.14.0 release. Releases in the 1.15 series
 may not be forward compatible with previous 1.15 releases.
  
-@ifclear ANNOUNCE-ONLY
-
 @section Noteworthy changes in version @samp{1.14.0}
 
 Many portability (particularly for ms-windows) and MacOS-X compatibility fixes.
