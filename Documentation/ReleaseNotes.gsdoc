@@ -29,6 +29,39 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.15.1</heading>
+	<p> 
+          This is an unstable release. There have been many bug fixes, but
+	  also a few method additions and changes to some headers.
+	  Also the license for this releas is now GPLv3 and LGPLv3.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSUserDefaults</term>
+	  <desc>
+	  Stores YES or NO as a string for MacOS X compatibility.
+	  </desc>
+	  <term>NSErrorRecoveryAttempting</term>
+	  <desc>
+	  Added header (and some support in the gui library).
+	  </desc>
+	  <term>NSArray</term>
+	  <desc>
+	  Added some new methods to handle multiple objects.
+	  </desc>
+	  <term>Key-Value Coding</term>
+	  <desc>
+	  More support for key-value coding.
+	  </desc>
+	  <term>NSPredicate</term>
+	  <desc>
+	  Much improved parsing. Ivars have changed in some of the predicate
+	  classes.
+	  </desc>
+	</deflist>
+      </section>
+      </section>
+      <section>
 	<heading>Version 1.15.0</heading>
 	<p> 
           This is an unstable release from 1.14.0.  It is otherwise
