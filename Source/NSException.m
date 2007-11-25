@@ -36,6 +36,7 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSDictionary.h"
+#include "Foundation/NSValue.h"
 #include <stdio.h>
 
 #if	defined(__MINGW32__)
@@ -83,6 +84,7 @@ GSPrivateBaseAddress(void *addr, void **base)
 
 - (NSString*) description;
 - (NSEnumerator*) enumerator;
+- (NSMutableArray*) frames;
 - (id) frameAt: (unsigned)index;
 - (unsigned) frameCount;
 - (NSEnumerator*) reverseEnumerator;
@@ -513,9 +515,7 @@ GSListModules()
 
 - (oneway void) dealloc
 {
-  [frames release];
-  frames = nil;
-
+  DESTROY(frames);
   [super dealloc];
 }
 
@@ -548,6 +548,11 @@ GSListModules()
 - (unsigned) frameCount
 {
   return [frames count];
+}
+
+- (NSMutableArray*) frames
+{
+  return frames;
 }
 
 // grab the current stack 
@@ -644,6 +649,30 @@ GSListModules()
 
 @end
 
+/**
+ * Get a stack trace and convert it to an array of return addresses.
+ */
+@interface      NSThread (Frames)
++ (NSArray*) callStackReturnAddresses;
+@end
+@implementation NSThread (Frames)
++ (NSArray*) callStackReturnAddresses
+{
+  NSMutableArray        *frames = [[GSStackTrace currentStack] frames];
+  unsigned              count = [frames count];
+
+  while (count-- > 0)
+    {
+      GSFunctionInfo    *info = [frames objectAtIndex: count];
+      NSValue           *address;
+
+      address = [NSValue valueWithPointer: [info address]];
+      [frames replaceObjectAtIndex: count
+                        withObject: address];
+    }
+  return frames;
+}
+@end
 
 
 

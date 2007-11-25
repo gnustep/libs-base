@@ -1,3 +1,10 @@
+2007-11-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSThread.h: Add new methods from MacOS 10.5
+	* Source/NSThread.m: Implement some new MacOS-5 stuff and add stubs
+	for stack size and thread cancellation.
+	* Source/NSException.m Implement ([NSThread+callStackReturnAddresses])
+
 2007-11-09  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.15.1

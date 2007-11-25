@@ -247,11 +247,6 @@ inline static void objc_thread_remove (void)
 }
 #endif /* not HAVE_OBJC_THREAD_ADD */
 
-@interface	NSThread (Private)
-- (id) _initWithSelector: (SEL)s toTarget: (id)t withObject: (id)o;
-- (void) _sendThreadMethod;
-@end
-
 /*
  * Flag indicating whether the objc runtime ever went multi-threaded.
  */
@@ -485,6 +480,16 @@ gnustep_base_thread_callback(void)
  */
 @implementation NSThread
 
++ (NSArray*) callStackReturnAddresses
+{
+  /* NB. This method is actually implemented in a category in
+   * The NSException.m file as the stack trace code there is
+   * able to set up an array of stack addresses and we don't
+   * want to duplicate the code.
+   */
+  return [self notImplemented: _cmd];
+}
+
 /**
  * <p>
  *   Returns the NSThread object corresponding to the current thread.
@@ -543,14 +548,14 @@ gnustep_base_thread_callback(void)
    * Create the new thread.
    */
   thread = (NSThread*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  thread = [thread _initWithSelector: aSelector
-			    toTarget: aTarget
-			  withObject: anArgument];
+  thread = [thread initWithTarget: aTarget
+                         selector: aSelector
+                           object: anArgument];
 
   /*
    * Have the runtime detach the thread
    */
-  if (objc_thread_detach(@selector(_sendThreadMethod), thread, nil) == NULL)
+  if (objc_thread_detach(@selector(start), thread, nil) == NULL)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Unable to detach thread (unknown error)"];
@@ -621,9 +626,7 @@ gnustep_base_thread_callback(void)
        */
       defaultThread
 	= (NSThread*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-      defaultThread = [defaultThread _initWithSelector: (SEL)0
-					      toTarget: nil
-					    withObject: nil];
+      defaultThread = [defaultThread init];
       defaultThread->_active = YES;
       objc_thread_set_data(defaultThread);
       threadClass = self;
@@ -641,6 +644,11 @@ gnustep_base_thread_callback(void)
 + (BOOL) isMultiThreaded
 {
   return entered_multi_threaded_state;
+}
+
++ (NSThread*) mainThread
+{
+  return defaultThread;
 }
 
 /**
@@ -661,6 +669,15 @@ gnustep_base_thread_callback(void)
     p = OBJC_THREAD_INTERACTIVE_PRIORITY;
 
   objc_thread_set_priority(p);
+}
+
++ (void) sleepForTimeInterval: (NSTimeInterval)ti
+{
+  if (ti > 0.0)
+    {
+      GSSleepUntilIntervalSinceReferenceDate(
+        [NSDate timeIntervalSinceReferenceDate] + ti);
+    }
 }
 
 /**
@@ -695,6 +712,16 @@ gnustep_base_thread_callback(void)
  * Thread instance methods.
  */
 
+- (void) cancel
+{
+  _cancelled = YES;
+  if (_active == YES)
+    {
+      [self notImplemented: _cmd];
+      // FIXME
+    }
+}
+
 - (void) dealloc
 {
   if (_active == YES)
@@ -705,6 +732,7 @@ gnustep_base_thread_callback(void)
   DESTROY(_thread_dictionary);
   DESTROY(_target);
   DESTROY(_arg);
+  DESTROY(_name);
   if (_autorelease_vars.pool_cache != 0)
     {
       [NSAutoreleasePool _endThread: self];
@@ -739,24 +767,63 @@ gnustep_base_thread_callback(void)
 
 - (id) init
 {
-  RELEASE(self);
-  return [NSThread currentThread];
+  return self;
 }
 
-- (id) _initWithSelector: (SEL)s toTarget: (id)t withObject: (id)o
+- (id) initWithTarget: (id)aTarget
+             selector: (SEL)aSelector
+               object: (id)anArgument
 {
   /* initialize our ivars. */
-  _selector = s;
-  _target = RETAIN(t);
-  _arg = RETAIN(o);
+  _selector = aSelector;
+  _target = RETAIN(aTarget);
+  _arg = RETAIN(anArgument);
   _thread_dictionary = nil;	// Initialize this later only when needed
   _exception_handler = NULL;
+  _cancelled = NO;
   _active = NO;
+  _name = nil;
   init_autorelease_thread_vars(&_autorelease_vars);
   return self;
 }
 
-- (void) _sendThreadMethod
+- (BOOL) isCancelled
+{
+  return _cancelled;
+}
+
+- (BOOL) isExecuting
+{
+  return _active;
+}
+
+- (BOOL) isMainThread
+{
+  return (self == defaultThread ? YES : NO);
+}
+
+- (NSString*) name
+{
+  return _name;
+}
+
+- (void) setName: (NSString*)aName
+{
+  ASSIGN(_name, aName);
+}
+
+- (void) setStackSize: (unsigned)stackSize
+{
+  [self notImplemented: _cmd];
+  _stackSize = stackSize;       // FIXME
+}
+
+- (unsigned) stackSize
+{
+  return _stackSize;
+}
+
+- (void) start
 {
   /*
    * We are running in the new thread - so we store ourself in the thread
@@ -1149,7 +1216,7 @@ GSRegisterCurrentThread (void)
        */
       thread = (NSThread*)NSAllocateObject (threadClass, 0,
 					NSDefaultMallocZone ());
-      thread = [thread _initWithSelector: NULL  toTarget: nil  withObject: nil];
+      thread = [thread init];
       objc_thread_set_data (thread);
       ((NSThread_ivars *)thread)->_active = YES;
     }

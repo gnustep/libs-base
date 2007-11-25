@@ -32,6 +32,8 @@
 #import	<Foundation/NSException.h>
 #import	<Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
 
+@class  NSArray;
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -41,7 +43,10 @@ extern "C" {
   id			_target;
   id			_arg;
   SEL			_selector;
+  NSString              *_name;
+  unsigned              _stackSize;
 @public
+  BOOL			_cancelled;
   BOOL			_active;
   NSHandler		*_exception_handler;
   NSMutableDictionary	*_thread_dictionary;
@@ -55,11 +60,81 @@ extern "C" {
 		      withObject: (id)anArgument;
 + (void) exit;
 + (BOOL) isMultiThreaded;
-+ (void) setThreadPriority: (double)pri;
 + (void) sleepUntilDate: (NSDate*)date;
-+ (double) threadPriority;
 
 - (NSMutableDictionary*) threadDictionary;
+
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
++ (void) setThreadPriority: (double)pri;
++ (double) threadPriority;
+#endif
+
+#if OS_API_VERSION(100500,GS_API_LATEST) && GS_API_VERSION(011501,GS_API_LATEST)
+
+/** Returns an array of the call stack return addresses.
+ */
++ (NSArray*) callStackReturnAddresses;
+
+/** Returns the main thread of the process.
+ */
++ (NSThread*) mainThread;
+
+/** Suspends execution of the process for the specified period.
+ */
++ (void) sleepForTimeInterval: (NSTimeInterval)ti;
+
+/** Cancels the receiving thread.
+ */
+- (void) cancel;
+
+/** </init>
+ */
+- (id) init;
+
+/** Initialises the receiver to send the message aSelector to the object aTarget
+ * with the argument anArgument (which may be nil).<br />
+ * The arguments aTarget and aSelector are retained while the thread is
+ * running.
+ */
+- (id) initWithTarget: (id)aTarget
+             selector: (SEL)aSelector
+               object: (id)anArgument;
+
+/** Returns a boolean indicating whether the receiving
+ * thread has been cancelled.
+ */
+- (BOOL) isCancelled;
+
+/** Returns a boolean indicating whether the receiving
+ * thread has been started (and has not yet finished or been cancelled).
+ */
+- (BOOL) isExecuting;
+
+/** Returns a boolean indicating whether this thread is the main thread of
+ * the process.
+ */
+- (BOOL) isMainThread;
+
+/** Returns the name of the receiver.
+ */
+- (NSString*) name;
+
+/** Sets the name of the receiver.
+ */
+- (void) setName: (NSString*)aName;
+
+/** Sets the size of the receiver's stack.
+ */
+- (void) setStackSize: (unsigned)stackSize;
+
+/** Returns the size of the receiver's stack.
+ */
+- (unsigned) stackSize;
+
+/** Starts the receiver executing.
+ */
+- (void) start;
+#endif
 
 @end
 
