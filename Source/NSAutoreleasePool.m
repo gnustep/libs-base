@@ -47,7 +47,8 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 #define BEGINNING_POOL_SIZE 32
 
 /* Easy access to the thread variables belonging to NSAutoreleasePool. */
-#define ARP_THREAD_VARS (&(GSCurrentThread()->_autorelease_vars))
+typedef struct { @defs(NSThread) } *TInfo;
+#define ARP_THREAD_VARS (&(((TInfo)GSCurrentThread())->_autorelease_vars))
 
 
 @interface NSAutoreleasePool (Private)
@@ -229,7 +230,7 @@ static IMP	initImp;
 
 + (void) addObject: (id)anObj
 {
-  NSThread		*t = GSCurrentThread();
+  TInfo		t = (TInfo)GSCurrentThread();
   NSAutoreleasePool	*pool;
 
   pool = t->_autorelease_vars.current_pool;
