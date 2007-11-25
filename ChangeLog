@@ -1,6 +1,8 @@
 2007-11-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSThread.h: Add new methods from MacOS 10.5
+	Add new ivars to match.  Add _reserved to preserve binary
+	compatibility over future changes.  Make all ivars private.
 	* Source/NSThread.m: Implement some new MacOS-5 stuff and add stubs
 	for stack size and thread cancellation.
 	* Source/NSException.m Implement ([NSThread+callStackReturnAddresses])

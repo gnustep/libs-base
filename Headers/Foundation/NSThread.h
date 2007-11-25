@@ -40,18 +40,19 @@ extern "C" {
 
 @interface NSThread : NSObject
 {
+@private
   id			_target;
   id			_arg;
   SEL			_selector;
   NSString              *_name;
   unsigned              _stackSize;
-@public
   BOOL			_cancelled;
   BOOL			_active;
   NSHandler		*_exception_handler;
   NSMutableDictionary	*_thread_dictionary;
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
+  void                  *_reserved;     // For mfuture expansion
 }
 
 + (NSThread*) currentThread;
@@ -114,6 +115,10 @@ extern "C" {
  * the process.
  */
 - (BOOL) isMainThread;
+
+/** FIXME ... what does this do?
+ */
+- (void) main;
 
 /** Returns the name of the receiver.
  */

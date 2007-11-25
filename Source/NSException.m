@@ -39,6 +39,8 @@
 #include "Foundation/NSValue.h"
 #include <stdio.h>
 
+typedef struct { @defs(NSThread) } *TInfo;
+
 #if	defined(__MINGW32__)
 static NSString *
 GSPrivateBaseAddress(void *addr, void **base)
@@ -803,7 +805,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 - (void) raise
 {
 #ifndef _NATIVE_OBJC_EXCEPTIONS
-  NSThread	*thread;
+  TInfo         thread;
   NSHandler	*handler;
 #endif
 
@@ -834,7 +836,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 #ifdef _NATIVE_OBJC_EXCEPTIONS
   @throw self;
 #else
-  thread = GSCurrentThread();
+  thread = (TInfo)GSCurrentThread();
   handler = thread->_exception_handler;
   if (handler == NULL)
     {
@@ -962,9 +964,9 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 void
 _NSAddHandler (NSHandler* handler)
 {
-  NSThread *thread;
+  TInfo thread;
 
-  thread = GSCurrentThread();
+  thread = (TInfo)GSCurrentThread();
 #if defined(__MINGW32__) && defined(DEBUG)
   if (thread->_exception_handler
     && IsBadReadPtr(thread->_exception_handler, sizeof(NSHandler)))
@@ -979,9 +981,9 @@ _NSAddHandler (NSHandler* handler)
 void
 _NSRemoveHandler (NSHandler* handler)
 {
-  NSThread *thread;
+  TInfo         thread;
 
-  thread = GSCurrentThread();
+  thread = (TInfo)GSCurrentThread();
 #if defined(DEBUG)  
   if (thread->_exception_handler != handler)
     {

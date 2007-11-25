@@ -306,6 +306,8 @@ GSCurrentThread(void)
   return t;
 }
 
+typedef struct { @defs(NSThread) } *TInfo;
+
 /**
  * Fast access function for thread dictionary of current thread.<br />
  * If there is no dictionary, creates the dictionary.
@@ -323,7 +325,7 @@ GSDictionaryForThread(NSThread *t)
     }
   else
     {
-      NSMutableDictionary	*dict = t->_thread_dictionary;
+      NSMutableDictionary	*dict = ((TInfo)t)->_thread_dictionary;
 
       if (dict == nil)
 	{
@@ -802,6 +804,11 @@ gnustep_base_thread_callback(void)
   return (self == defaultThread ? YES : NO);
 }
 
+- (void) main
+{
+  [_target performSelector: _selector withObject: _arg];
+}
+
 - (NSString*) name
 {
   return _name;
@@ -844,7 +851,7 @@ gnustep_base_thread_callback(void)
 		    object: self
 		  userInfo: nil];
 
-  [_target performSelector: _selector withObject: _arg];
+  [self main];
   [NSThread exit];
 }
 
