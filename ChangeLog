@@ -6,6 +6,7 @@
 	* Source/NSThread.m: Implement some new MacOS-5 stuff and add stubs
 	for stack size and thread cancellation.
 	* Source/NSException.m Implement ([NSThread+callStackReturnAddresses])
+	Restructure a little to avoid problems when building without debug.
 
 2007-11-09  Adam Fedor  <fedor@gnu.org>
 

@@ -41,41 +41,6 @@
 
 typedef struct { @defs(NSThread) } *TInfo;
 
-#if	defined(__MINGW32__)
-static NSString *
-GSPrivateBaseAddress(void *addr, void **base)
-{
-  return nil;
-}
-#else	/* __MINGW32__ */
-
-#ifndef GNU_SOURCE
-#define GNU_SOURCE
-#endif
-#ifndef __USE_GNU
-#define __USE_GNU
-#endif
-#include <dlfcn.h>
-
-static NSString *
-GSPrivateBaseAddress(void *addr, void **base)
-{
-#ifdef HAVE_DLADDR
-  Dl_info     info;
-
-  if (!dladdr(addr, &info))
-    return nil;
-
-  *base = info.dli_fbase;
-
-  return [NSString stringWithUTF8String: info.dli_fname];
-#else
-  return nil;
-#endif
-}
-#endif	/* __MINGW32__ */
-
-
 /* This is the GNU name for the CTOR list */
 
 @interface GSStackTrace : NSObject
@@ -113,6 +78,45 @@ GSPrivateBaseAddress(void *addr, void **base)
 #undef	STACKSYMBOLS
 #endif
 #endif
+
+
+#if	defined(__MINGW32__)
+#if	defined(STACKSYMBOLS)
+static NSString *
+GSPrivateBaseAddress(void *addr, void **base)
+{
+  return nil;
+}
+#endif  /* STACKSYMBOLS */
+#else	/* __MINGW32__ */
+
+#ifndef GNU_SOURCE
+#define GNU_SOURCE
+#endif
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
+#include <dlfcn.h>
+
+#if	defined(STACKSYMBOLS)
+static NSString *
+GSPrivateBaseAddress(void *addr, void **base)
+{
+#ifdef HAVE_DLADDR
+  Dl_info     info;
+
+  if (!dladdr(addr, &info))
+    return nil;
+
+  *base = info.dli_fbase;
+
+  return [NSString stringWithUTF8String: info.dli_fname];
+#else
+  return nil;
+#endif
+}
+#endif  /* STACKSYMBOLS */
+#endif	/* __MINGW32__ */
 
 #if	defined(STACKSYMBOLS)
 
@@ -637,7 +641,7 @@ GSListModules()
     {
       void		*address = NSReturnAddress(i);
 
-      [frames addObject: [NSString stringWithFormat: @"%p", address]];
+      [frames addObject: [NSValue valueWithPointer: address]];
     }
 #endif
 
@@ -661,6 +665,7 @@ GSListModules()
 + (NSArray*) callStackReturnAddresses
 {
   NSMutableArray        *frames = [[GSStackTrace currentStack] frames];
+#if	defined(STACKSYMBOLS)
   unsigned              count = [frames count];
 
   while (count-- > 0)
@@ -672,6 +677,7 @@ GSListModules()
       [frames replaceObjectAtIndex: count
                         withObject: address];
     }
+#endif
   return frames;
 }
 @end
