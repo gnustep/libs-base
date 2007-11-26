@@ -1,3 +1,8 @@
+2007-11-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Make check for apple property lists
+	more tolerant.
+
 2007-11-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSThread.h: Add new methods from MacOS 10.5

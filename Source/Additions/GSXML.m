@@ -2391,11 +2391,6 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 #define	HANDLER	((GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private))
 
-#ifdef GNUSTEP
-static NSString *applePList
-  = @"file://localhost/System/Library/DTDs/PropertyList.dtd";
-#endif
-
 static xmlParserInputPtr
 loadEntityFunction(void *ctx,
   const unsigned char *eid, const unsigned char *url)
@@ -2440,7 +2435,7 @@ loadEntityFunction(void *ctx,
                             range: NSMakeRange(0, [local length])];
 
 #ifdef GNUSTEP
-  if ([location isEqual: applePList] == YES)
+  if ([location rangeOfString: @"/DTDs/PropertyList"].length > 0)
     {
       file = [location substringFromIndex: 6];
       if ([[NSFileManager defaultManager] fileExistsAtPath: file] == NO)
