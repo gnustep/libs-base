@@ -1,3 +1,9 @@
+2007-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Improve code for folding header lines
+	to try to make sure long values don't go beyond the 78 character
+	limit.
+
 2007-11-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Make check for apple property lists
