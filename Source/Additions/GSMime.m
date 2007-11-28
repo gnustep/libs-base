@@ -2781,7 +2781,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 - (BOOL) _unfoldHeader
 {
   char		c;
-  BOOL		unwrappingComplete = NO;
+  BOOL		unfoldingComplete = NO;
 
   lineStart = lineEnd = input;
   NSDebugMLLog(@"GSMimeH", @"entry: input:%u dataEnd:%u lineStart:%u '%*.*s'",
@@ -2792,7 +2792,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
    * first thing we need to do is unfold any folded lines into a single
    * unfolded line (lineStart to lineEnd).
    */
-  while (input < dataEnd && unwrappingComplete == NO)
+  while (input < dataEnd && unfoldingComplete == NO)
     {
       if ((c = bytes[input]) != '\r' && c != '\n')
         {
@@ -2812,7 +2812,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      if (length == 0)
 	        {
 		  /* An empty line cannot be folded.	*/
-		  unwrappingComplete = YES;
+		  unfoldingComplete = YES;
 		}
 	      else if ((c = bytes[input]) != '\r' && c != '\n' && isspace(c))
 	        {
@@ -2825,13 +2825,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      else
 	        {
 		  /* No folding ... done.	*/
-		  unwrappingComplete = YES;
+		  unfoldingComplete = YES;
 		}
 	    }
 	}
     }
 
-  if (unwrappingComplete == YES)
+  if (unfoldingComplete == YES)
     {
       if (lineEnd == lineStart)
 	{
@@ -2861,12 +2861,12 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       input = lineStart;	/* Reset to try again with more data.	*/
     }
 
-  NSDebugMLLog(@"GSMimeH", @"exit: inBody:%d unwrappingComplete: %d "
+  NSDebugMLLog(@"GSMimeH", @"exit: inBody:%d unfoldingComplete: %d "
     @"input:%u dataEnd:%u lineStart:%u '%*.*s'", flags.inBody,
-    unwrappingComplete,
+    unfoldingComplete,
     input, dataEnd, lineStart, lineEnd - lineStart, lineEnd - lineStart,
     &bytes[lineStart]);
-  return unwrappingComplete;
+  return unfoldingComplete;
 }
 
 - (BOOL) _scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info
@@ -3251,12 +3251,93 @@ static NSCharacterSet	*tokenSet = nil;
   return [self rawMimeDataPreservingCase: NO];
 }
 
+static unsigned
+appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
+  const char *bytes, unsigned size)
+{
+  if (offset + size > fold && size  + 8 <= fold)
+    {
+      /* This would take the line beyond the folding limit,
+       * so we fold at this point.
+       */
+      [m appendBytes: @"\r\n\t" length: 3];
+      offset = 8;
+      if (size > 0 && isspace(bytes[0]))
+        {
+          /* The folding counts as a space character,
+           * so we refrain from writing the next character
+           * if it is also a space.
+           */
+          size--;
+          bytes++;
+        }
+    }
+  if (size > 0)
+    {
+      /* Append the supplied byte data and update the offset
+       * on the current line.
+       */
+      [m appendBytes: bytes length: size];
+      offset += size;
+    }
+  return offset;
+}
+
+static unsigned
+appendString(NSMutableData *m, unsigned offset, unsigned fold,
+  NSString *str, BOOL *ok)
+{
+  unsigned      pos = 0;
+  unsigned      size = [str length];
+
+  *ok = YES;
+  while (pos < size)
+    {
+      NSRange   r = NSMakeRange(pos, size - pos);
+
+      r = [str rangeOfCharacterFromSet: whitespace
+                               options: NSLiteralSearch
+                                 range: r];
+      if (r.length > 0 && r.location == 0)
+        {
+          /* Found space at the start of the string, so we reduce
+           * it to a single space in the output.
+           */
+          pos++;
+          offset = appendBytes(m, offset, fold, " ", 1);
+        }
+      else if (r.length == 0)
+        {
+          NSData        *d;
+
+          pos = size;
+          d = wordData(str);
+          offset = appendBytes(m, offset, fold, [d bytes], [d length]);
+        }
+      else
+        {
+          NSString      *sub;
+          NSData        *d;
+
+          sub = [str substringWithRange: NSMakeRange(pos, r.location - pos)];
+          pos = r.location + 1;
+          d = wordData(sub);
+          offset = appendBytes(m, offset, fold, [d bytes], [d length]);
+        }
+      if (offset > fold)
+        {
+          *ok = NO;
+        }
+    }
+  return offset;
+}
+
 /**
  * Returns the full text of the header, built from its component parts,
  * and including a terminating CR-LF.<br />
  * If preserve is YES then we attempt to build the text using the same
  * case as it was originally parsed/set from, otherwise we use common
- * onventions of capitalising the header names and using lowercase
+ * conventions of capitalising the header names and using lowercase
  * parameter names.
  */
 - (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
@@ -3264,36 +3345,44 @@ static NSCharacterSet	*tokenSet = nil;
   NSMutableData	*md = [NSMutableData dataWithCapacity: 128];
   NSEnumerator	*e = [params keyEnumerator];
   NSString	*k;
-  NSString	*n = [self namePreservingCase: preserve];
-  NSData	*d = [n dataUsingEncoding: NSASCIIStringEncoding];
-  unsigned	l = [d length];
+  NSString	*n;
+  NSData	*d;
+  unsigned      fold = 78;      // Maybe pass as a parameter in a later release?
+  unsigned      offset = 0;
   BOOL		conv = YES;
+  BOOL          ok = YES;
 
+  if (fold == 0)
+    {
+      fold = 78;        // This is what the RFCs say we should limit length to.
+    }
+  n = [self namePreservingCase: preserve];
+  d = [n dataUsingEncoding: NSASCIIStringEncoding];
   if (preserve == YES)
     {
       /* Protect the user ... MIME-Version *must* have the correct case.
        */
       if ([n caseInsensitiveCompare: @"MIME-Version"] == NSOrderedSame)
         {
-	  [md appendBytes: "MIME-Version" length: 12];
+          offset = appendBytes(md, offset, fold, "MIME-Version", 12);
 	}
       else
         {
-          [md appendData: d];
+          offset = appendBytes(md, offset, fold, [d bytes], [d length]);
 	}
     }
   else
     {
+      unsigned  l = [d length];
       char	buf[l];
       unsigned	i = 0;
 
-#define	LIM	120
       /*
        * Capitalise the header name.  However, the version header is a special
        * case - it is defined as being literally 'MIME-Version'
        */
       memcpy(buf, [d bytes], l);
-      if (l == 12 && memcmp(buf, "mime-version", 12) == 0)
+      if (l == 12 && strncasecmp(buf, "mime-version", 12) == 0)
 	{
 	  memcpy(buf, "MIME-Version", 12);
 	}
@@ -3318,57 +3407,45 @@ static NSCharacterSet	*tokenSet = nil;
 		}
 	    }
 	}
-      [md appendBytes: buf length: l];
+      offset = appendBytes(md, offset, fold, buf, l);
+    }
+  if (offset > fold)
+    {
+      NSLog(@"Name '%@' too long for folding at %u in header", n, fold);
     }
 
-  d = wordData(value);
-  if ([md length] + [d length] + 2 > LIM)
+  offset = appendBytes(md, offset, fold, ":", 1);
+  offset = appendBytes(md, offset, fold, " ", 1);
+  offset = appendString(md, offset, fold, value, &ok);
+  if (ok == NO)
     {
-      [md appendBytes: ":\r\n\t" length: 4];
-      [md appendData: d];
-      l = [md length] + 8;
-    }
-  else
-    {
-      [md appendBytes: ": " length: 2];
-      [md appendData: d];
-      l = [md length];
+      NSLog(@"Value for '%@' too long for folding at %u in header", n, fold);
     }
 
   while ((k = [e nextObject]) != nil)
     {
       NSString	*v;
-      NSData	*kd;
-      NSData	*vd;
-      unsigned	kl;
-      unsigned	vl;
 
       v = [GSMimeHeader makeQuoted: [params objectForKey: k] always: NO];
       if (preserve == NO)
         {
 	  k = [k lowercaseString];
 	}
-      kd = wordData(k);
-      vd = wordData(v);
-      kl = [kd length];
-      vl = [vd length];
-
-      if ((l + kl + vl + 3) > LIM)
-	{
-	  [md appendBytes: ";\r\n\t" length: 4];
-	  [md appendData: kd];
-	  [md appendBytes: "=" length: 1];
-	  [md appendData: vd];
-	  l = kl + vl + 9;
-	}
-      else
-	{
-	  [md appendBytes: "; " length: 2];
-	  [md appendData: kd];
-	  [md appendBytes: "=" length: 1];
-	  [md appendData: vd];
-	  l += kl + vl + 3;
-	}
+      offset = appendBytes(md, offset, fold, ";", 1);
+      offset = appendBytes(md, offset, fold, " ", 1);
+      offset = appendString(md, offset, fold, k, &ok);
+      if (ok == NO)
+        {
+          NSLog(@"Parameter name '%@' in '%@' too long for folding at %u",
+            k, n, fold);
+        }
+      offset = appendBytes(md, offset, fold, "=", 1);
+      offset = appendString(md, offset, fold, v, &ok);
+      if (ok == NO)
+        {
+          NSLog(@"Parameter value for '%@' in '%@' too long for folding at %u",
+            k, n, fold);
+        }
     }
   [md appendBytes: "\r\n" length: 2];
 
