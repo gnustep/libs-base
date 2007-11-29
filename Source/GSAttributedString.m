@@ -44,18 +44,18 @@
  *		attributes argument and use the values from the string.
  */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSLock.h"
-#include "Foundation/NSAttributedString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSRange.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSZone.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSLock.h"
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSRange.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSZone.h"
 
 #define		SANITY_CHECKS	0
 

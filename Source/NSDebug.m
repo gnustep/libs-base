@@ -856,11 +856,11 @@ GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
 
 unsigned NSCountFrames(void)
 {
-   unsigned    x = 0;
+  unsigned    x = 0;
 
-   while (NSFrameAddress(x + 1)) x++;
+  while (NSFrameAddress(x + 1)) x++;
 
-   return x;
+  return x;
 }
 
 #define _NS_FRAME_HACK(a) case a: val = __builtin_frame_address(a + 1); break;

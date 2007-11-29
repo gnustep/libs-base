@@ -26,6 +26,8 @@
 
 #include <Foundation/NSData.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSError.h>

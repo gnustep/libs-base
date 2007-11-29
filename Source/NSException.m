@@ -24,19 +24,20 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSBundle.h>
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSNull.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSValue.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import <Foundation/NSDebug.h>
+#import <Foundation/NSBundle.h>
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSValue.h"
 #include <stdio.h>
 
 typedef struct { @defs(NSThread) } *TInfo;
@@ -175,12 +176,9 @@ GSPrivateBaseAddress(void *addr, void **base)
 
 - (oneway void) dealloc
 {
-  [_module release];
-  _module = nil;
-  [_fileName release];
-  _fileName = nil;
-  [_functionName release];
-  _functionName = nil;
+  DESTROY(_module);
+  DESTROY(_fileName);
+  DESTROY(_functionName);
   [super dealloc];
 }
 
@@ -212,10 +210,10 @@ GSPrivateBaseAddress(void *addr, void **base)
 	     function: (NSString*)function 
 		 line: (int)lineNo
 {
-  _module = [module retain];
+  _module = RETAIN(_module);
   _address = address;
-  _fileName = [file retain];
-  _functionName = [function retain];
+  _fileName = [file copy];
+  _functionName = [function copy];
   _lineNo = lineNo;
 
   return self;
@@ -256,8 +254,7 @@ GSPrivateBaseAddress(void *addr, void **base)
 
 - (oneway void) dealloc
 {
-  [_fileName release];
-  _fileName = nil;
+  DESTROY(_fileName);
   if (_abfd)
     {
       bfd_close (_abfd);
@@ -564,13 +561,13 @@ GSListModules()
 // grab the current stack 
 - (id) init
 {
-#if	defined(STACKSYMBOLS)
   int i;
   int n;
 
   frames = [[NSMutableArray alloc] init];
   n = NSCountFrames();
 
+#if	defined(STACKSYMBOLS)
   for (i = 0; i < n; i++)
     {
       GSFunctionInfo	*aFrame = nil;
@@ -631,12 +628,6 @@ GSListModules()
       [frames addObject: aFrame];
     }
 #else
-  int i;
-  int n;
-
-  frames = [[NSMutableArray alloc] init];
-  n = NSCountFrames();
-
   for (i = 0; i < n; i++)
     {
       void		*address = NSReturnAddress(i);

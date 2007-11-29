@@ -22,10 +22,10 @@
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
-#include "GSPrivate.h"
+#import "GSURLPrivate.h"
+#import "GSPrivate.h"
 
-#include "Foundation/NSCoder.h"
+#import "Foundation/NSCoder.h"
 
 
 // Internal data storage

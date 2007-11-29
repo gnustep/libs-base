@@ -20,6 +20,8 @@
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSEnumerator.h>
+#include <Foundation/NSString.h>
 
 #include "StringsEntry.h"
 

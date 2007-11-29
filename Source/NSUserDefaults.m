@@ -50,7 +50,6 @@
 #include "Foundation/NSSet.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSTimer.h"
-#include "Foundation/NSUtilities.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSLocale.h"

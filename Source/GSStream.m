@@ -24,16 +24,18 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include <Foundation/NSData.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSDebug.h>
+#import <Foundation/NSData.h>
+#import <Foundation/NSArray.h>
+#import <Foundation/NSDictionary.h>
+#import <Foundation/NSEnumerator.h>
+#import <Foundation/NSRunLoop.h>
+#import <Foundation/NSException.h>
+#import <Foundation/NSValue.h>
+#import <Foundation/NSHost.h>
+#import <Foundation/NSDebug.h>
 
-#include "GSStream.h"
-#include "GSPrivate.h"
+#import "GSStream.h"
+#import "GSPrivate.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
   = @"NSStreamDataWrittenToMemoryStreamKey";

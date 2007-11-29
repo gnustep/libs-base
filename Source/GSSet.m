@@ -23,20 +23,20 @@
    Boston, MA 02111 USA.
    */
 
-#include "config.h"
-#include "Foundation/NSSet.h"
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSObjCRuntime.h"
+#import "config.h"
+#import "Foundation/NSSet.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSObjCRuntime.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
-#include "GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GSPrivate.h"
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ

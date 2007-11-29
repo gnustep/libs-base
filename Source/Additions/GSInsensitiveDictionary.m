@@ -26,7 +26,7 @@
 #include "config.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSUtilities.h"
+#include "Foundation/NSEnumerator.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSPortCoder.h"

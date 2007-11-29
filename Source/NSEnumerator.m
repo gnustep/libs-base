@@ -25,10 +25,10 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSArray.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
 
 /**
  *  Simple class for iterating over a collection of objects, usually returned

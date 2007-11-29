@@ -22,8 +22,8 @@
    Boston, MA 02111 USA.
    */ 
 
-#include <Foundation/NSRunLoop.h>
-#include "GSURLPrivate.h"
+#import <Foundation/NSRunLoop.h>
+#import "GSURLPrivate.h"
 
 
 @interface _NSURLConnectionDataCollector : NSObject <NSURLProtocolClient>

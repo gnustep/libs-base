@@ -27,12 +27,11 @@
    $Date$ $Revision$
 */
 
-#include "GSURLPrivate.h"
+#import "GSURLPrivate.h"
 
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSURLHandle.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSFileManager.h"
+#import "Foundation/NSURLHandle.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSFileManager.h"
 
 
 @class	GSFTPURLHandle;

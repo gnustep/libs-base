@@ -15,6 +15,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSString.h>
 #include <Foundation/NSTimeZone.h>
 #include <Foundation/NSCalendarDate.h>
 

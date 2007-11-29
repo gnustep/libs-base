@@ -29,9 +29,10 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSLock.h"
+#import "config.h"
+#import "Foundation/NSEnumerator.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSLock.h"
 
 /*
  *	Setup for inline operation of pointer map tables.

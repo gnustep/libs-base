@@ -24,27 +24,27 @@
 
 #define	_FILE_OFFSET_BITS 64
 
-#include "config.h"
+#import "config.h"
 
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSFileHandle.h"
-#include "GNUstepBase/GSFileHandle.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSDebug.h"
-#include "GSPrivate.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSFileHandle.h"
+#import "GNUstepBase/GSFileHandle.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSDebug.h"
+#import "GSPrivate.h"
 
-#include "../Tools/gdomap.h"
+#import "../Tools/gdomap.h"
 
 #include <time.h>
 #include <sys/time.h>

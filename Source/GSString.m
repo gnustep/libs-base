@@ -33,28 +33,28 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSRange.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSKeyedArchiver.h"
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSRange.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 #include <limits.h>
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
-#include "GNUstepBase/Unicode.h"
+#import "GNUstepBase/Unicode.h"
 
 static BOOL isByteEncoding(NSStringEncoding enc)
 {

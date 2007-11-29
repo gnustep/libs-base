@@ -22,6 +22,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSArray.h>
 
 #include "make_strings.h"

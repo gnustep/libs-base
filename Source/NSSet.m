@@ -29,7 +29,7 @@
 #include "Foundation/NSSet.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSUtilities.h"
+#include "Foundation/NSEnumerator.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"

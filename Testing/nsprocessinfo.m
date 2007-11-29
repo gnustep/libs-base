@@ -12,6 +12,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSDate.h>
 #include    <Foundation/NSAutoreleasePool.h>
 

@@ -31,6 +31,8 @@
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSSet.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSEnumerator.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSZone.h"
 #include "Foundation/NSDebug.h"

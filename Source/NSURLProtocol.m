@@ -22,14 +22,14 @@
    Boston, MA 02111 USA.
    */ 
 
-#include <Foundation/NSError.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSRunLoop.h>
+#import <Foundation/NSError.h>
+#import <Foundation/NSHost.h>
+#import <Foundation/NSRunLoop.h>
 
-#include "GNUstepBase/GSMime.h"
+#import "GNUstepBase/GSMime.h"
 
-#include "GSPrivate.h"
-#include "GSURLPrivate.h"
+#import "GSPrivate.h"
+#import "GSURLPrivate.h"
 
 
 @interface _NSAboutURLProtocol : NSURLProtocol

@@ -21,16 +21,16 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
-#include "Foundation/NSException.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDistantObject.h"
-#include "Foundation/NSDebug.h"
-#include "GSInvocation.h"
-#include <config.h>
-#include <objc/objc-api.h>
-#include <avcall.h>
-#include <callback.h>
-#include "callframe.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDistantObject.h"
+#import "Foundation/NSDebug.h"
+#import "GSInvocation.h"
+#import <config.h>
+#import <objc/objc-api.h>
+#import <avcall.h>
+#import <callback.h>
+#import "callframe.h"
 
 #ifndef INLINE
 #define INLINE inline
