@@ -558,11 +558,6 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   char		key[size+1];
 
   GSOnceMLog(@"This method is deprecated, use -setValue:forKey:");
-  if (anObject == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"Attempt to set nil value for key '%@'", aKey];
-    }
   [aKey getCString: key
 	 maxLength: size+1
 	  encoding: NSUTF8StringEncoding];
