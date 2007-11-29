@@ -23,6 +23,8 @@
    */ 
 
 #import "Foundation/NSNetServices.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDebug.h"
 #import "Foundation/NSNull.h"

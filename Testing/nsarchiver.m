@@ -16,7 +16,9 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSSet.h>
-#include <Foundation/NSUtilities.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDate.h>
 

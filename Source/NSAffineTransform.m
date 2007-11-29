@@ -29,7 +29,7 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
+#import "config.h"
 #include <math.h>
 
 #import "Foundation/NSArray.h"

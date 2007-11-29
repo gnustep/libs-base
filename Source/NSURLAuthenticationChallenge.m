@@ -22,8 +22,8 @@
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
-#include "Foundation/NSError.h"
+#import "GSURLPrivate.h"
+#import "Foundation/NSError.h"
 
 
 // Internal data storage

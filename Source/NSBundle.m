@@ -40,6 +40,7 @@
 #include "Foundation/NSArray.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSDictionary.h"
+#include "Foundation/NSEnumerator.h"
 #include "Foundation/NSProcessInfo.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSUserDefaults.h"

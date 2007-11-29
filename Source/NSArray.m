@@ -30,28 +30,28 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSRange.h"
+#import "config.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSRange.h"
 #include <limits.h>
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSNull.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSIndexSet.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSIndexSet.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/GSCategories.h"
+#import "GSPrivate.h"
 
 static BOOL GSMacOSXCompatiblePropertyLists(void)
 {

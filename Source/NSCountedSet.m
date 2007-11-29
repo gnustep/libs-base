@@ -25,17 +25,17 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/GSLock.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSObjCRuntime.h"
+#import "config.h"
+#import "GNUstepBase/GSLock.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSObjCRuntime.h"
 
 @class	GSCountedSet;
 @interface GSCountedSet : NSObject	// Help the compiler

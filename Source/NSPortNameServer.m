@@ -25,15 +25,16 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSPortNameServer.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSUserDefaults.h"
-#include "GSPortPrivate.h"
+#import "config.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSPortNameServer.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GSPortPrivate.h"
 
 
 /**

@@ -1,5 +1,81 @@
 2007-11-29  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSLocale.m:
+	* Source/NSTimeZone.m:
+	* Source/NSNetServices.m:
+	* Source/NSURLCredential.m:
+	* Source/NSPortCoder.m:
+	* Source/NSURLAuthenticationChallenge.m:
+	* Source/NSKeyValueCoding.m:
+	* Source/NSBundle.m:
+	* Source/NSURLHandle.m:
+	* Source/NSPropertyList.m:
+	* Source/NSAffineTransform.m:
+	* Source/GSRunLoopWatcher.m:
+	* Source/NSUserDefaults.m:
+	* Source/GSArray.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSArray.m:
+	* Source/GSStream.m:
+	* Source/NSDebug.m:
+	* Source/unix/NSStream.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/GSConcreteValue.m:
+	* Source/NSURLDownload.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLCredentialStorage.m:
+	* Source/GSFFIInvocation.m:
+	* Source/GSDictionary.m:
+	* Source/GSCountedSet.m:
+	* Source/NSUnarchiver.m:
+	* Source/win32/NSStreamWin32.m:
+	* Source/NSURLResponse.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLCache.m:
+	* Source/GSAttributedString.m:
+	* Source/NSException.m:
+	* Source/NSURL.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/GSSet.m:
+	* Source/NSConnection.m:
+	* Source/GSString.m:
+	* Source/NSHost.m:
+	* Source/NSURLProtectionSpace.m:
+	* Source/GSValue.m:
+	* Source/NSDictionary.m:
+	* Source/GSHTTPAuthentication.m:
+	* Source/NSURLRequest.m:
+	* Source/NSCountedSet.m:
+	* Source/GSFormat.m:
+	* Source/GSFileHandle.m:
+	* Source/NSSet.m:
+	* Source/NSArchiver.m:
+	* Source/NSPortNameServer.m:
+	* Source/GSFTPURLHandle.m:
+	* Source/NSEnumerator.m:
+	* Source/GSURLPrivate.h:
+	* Source/NSURLConnection.m:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSFileManager.h:
+	* Headers/Foundation/NSUtilities.h:
+	* Tools/defaults.m:
+	* Tools/make_strings/make_strings.m:
+	* Tools/make_strings/StringsEntry.m:
+	* Testing/nstimezone.m:
+	* Testing/nsarray.m:
+	* Testing/nsprocessinfo.m:
+	* Testing/nsdictionary.m:
+	* Testing/nsset.m:
+	* Testing/nsarchiver.m:
+	* Testing/call.m:
+	* Testing/benchmark.m:
+	* Testing/nsbundle.m:
+	Remove use of deprecated NSUtilities.h header, and add explicit
+	includes of NSDictionary.h, NSEnumerator.h etc.
+
+2007-11-29  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSKeyValueCoding.m: Remove erroneous check for nil argument
 	in obsolete method ([takeValue:forKey:]).
 

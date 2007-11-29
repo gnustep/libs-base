@@ -22,13 +22,13 @@
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
-#include "GSPrivate.h"
+#import "GSURLPrivate.h"
+#import "GSPrivate.h"
 
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSScanner.h"
-#include "NSCallBacks.h"
-#include "GNUstepBase/GSMime.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSScanner.h"
+#import "NSCallBacks.h"
+#import "GNUstepBase/GSMime.h"
 
 
 // Internal data storage

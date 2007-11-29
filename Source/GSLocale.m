@@ -22,11 +22,11 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 */
-#include "config.h"
-#include "GNUstepBase/GSLocale.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSLock.h"
+#import "config.h"
+#import "GNUstepBase/GSLocale.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSLock.h"
 
 #ifdef HAVE_LOCALE_H
 
@@ -34,10 +34,10 @@
 #ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
 #endif
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSBundle.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSBundle.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 /*
  * Function called by [NSObject +initialize] to setup locale information

@@ -26,13 +26,14 @@
 #define __NSArray_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
+#import	<Foundation/NSObject.h>
 #import	<Foundation/NSRange.h>
-#import	<Foundation/NSUtilities.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
+@class NSEnumerator;
 @class NSString;
 @class NSURL;
 @class NSIndexSet;

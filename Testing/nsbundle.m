@@ -16,6 +16,7 @@
 #endif
 #include "Foundation/NSArray.h"
 #include "Foundation/NSBundle.h"
+#include "Foundation/NSDictionary.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"
 #include <Foundation/NSAutoreleasePool.h>

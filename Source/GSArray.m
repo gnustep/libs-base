@@ -25,18 +25,20 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSArray.h"
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSValue.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSArray.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSValue.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 static SEL	eqSel;
 static SEL	oaiSel;

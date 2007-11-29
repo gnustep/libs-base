@@ -23,15 +23,16 @@
 
    */
 
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSNull.h>
-#include <Foundation/NSValue.h>
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSValue.h"
 
-#include "GSPrivate.h"
-#include "config.h"
+#import "GSPrivate.h"
+#import "config.h"
 
 /*
  *      Setup for inline operation of arrays.

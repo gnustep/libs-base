@@ -9,6 +9,7 @@
    This file is part of the GNUstep Base Library.
 */
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSValue.h>

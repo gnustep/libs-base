@@ -36,21 +36,21 @@ function may be incorrect
 * I've put 2 functions to make tests. You can add your own tests
 * Some functions are not implemented
 */
-#include "config.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSURLHandle.h"
-#include "Foundation/NSURL.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSZone.h"
+#import "config.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSURLHandle.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSZone.h"
 
 NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
 NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";

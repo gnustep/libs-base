@@ -25,12 +25,13 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 #include <string.h>
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSByteOrder.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSZone.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSByteOrder.h"
 
 /*
  *	Setup for inline operation of arrays.
@@ -48,7 +49,6 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSData.h"
-#include "Foundation/NSUtilities.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
 

@@ -370,7 +370,6 @@ void
 bench_number()
 {
   int i;
-  int j;
   NSMutableDictionary *dict;
   NSNumber	*n[MAX_COUNT*10];
 

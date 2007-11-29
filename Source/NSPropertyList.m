@@ -23,32 +23,33 @@
 
    */
 
-#include "config.h"
+#import "config.h"
 #include <string.h>
 #include <limits.h>
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSMime.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSMime.h"
 
-#include "Foundation/NSArray.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPropertyList.h"
-#include "Foundation/NSSerialization.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSNull.h"
-#include "Foundation/NSXMLParser.h"
-#include "GNUstepBase/Unicode.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPropertyList.h"
+#import "Foundation/NSSerialization.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSXMLParser.h"
+#import "GNUstepBase/Unicode.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 @class  GSSloppyXMLParser;
 
@@ -489,7 +490,7 @@ static void setupWhitespace(void)
 }
 
 #ifdef	HAVE_LIBXML
-#include	"GNUstepBase/GSXML.h"
+#import	"GNUstepBase/GSXML.h"
 static int      XML_ELEMENT_NODE;
 #endif
 
