@@ -1,3 +1,9 @@
+2007-11-29  Marcus Muller <znek@mulle-kybernetik.com
+
+	* Source/NSKeyValueCoding.m: Make backward compatibility work with
+	situations where we have classes using both new and old APIs in the
+	same executable.
+
 2007-11-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSLocale.m:

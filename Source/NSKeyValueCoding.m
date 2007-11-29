@@ -25,21 +25,20 @@
    */
 
 #include "config.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSSet.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSDebug.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSEnumerator.h"
 #include "Foundation/NSException.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSValue.h"
 #include "Foundation/NSKeyValueCoding.h"
+#include "Foundation/NSMethodSignature.h"
 #include "Foundation/NSNull.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSZone.h"
 
 /* For the NSKeyValueMutableArray and NSKeyValueMutableSet classes
  */
@@ -51,6 +50,10 @@
  */
 NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 NSString* const NSUndefinedKeyException = @"NSUnknownKeyException";
+
+
+/* this should move into autoconf once it's accepted */
+#define WANT_DEPRECATED_KVC_COMPAT 1
 
 
 static void
@@ -199,17 +202,25 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 }
 
 
-+ (BOOL) useStoredAccessor
-{
-  return YES;
-}
-
-
 - (NSDictionary*) dictionaryWithValuesForKeys: (NSArray*)keys
 {
   NSMutableDictionary	*dictionary;
   NSEnumerator		*enumerator;
   id			key;
+#ifdef WANT_DEPRECATED_KVC_COMPAT
+  static IMP	o = 0;
+
+  /* Backward compatibility hack */
+  if (o == 0)
+    {
+      o = [NSObject instanceMethodForSelector:
+	@selector(valuesForKeys:)];
+    }
+  if ([self methodForSelector: @selector(valuesForKeys:)] != o)
+    {
+      return [self valuesForKeys: keys];
+    }
+#endif
 
   dictionary = [NSMutableDictionary dictionaryWithCapacity: [keys count]];
   enumerator = [keys objectEnumerator];
@@ -224,35 +235,6 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       [dictionary setObject: value forKey: key];
     }
   return dictionary;
-}
-
-- (id) handleQueryWithUnboundKey: (NSString*)aKey
-{
-  NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
-    self, @"NSTargetObjectUserInfoKey",
-    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
-    nil];
-  NSException *exp = [NSException exceptionWithName: NSUndefinedKeyException
-				  reason: @"Unable to find value for key"
-				  userInfo: dict];
-
-  GSOnceMLog(@"This method is deprecated, use -valueForUndefinedKey:");
-  [exp raise];
-  return nil;
-}
-
-
-- (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey
-{
-  NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
-    (anObject ? (id)anObject : (id)@"(nil)"), @"NSTargetObjectUserInfoKey",
-    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
-    nil];
-  NSException *exp = [NSException exceptionWithName: NSUndefinedKeyException
-				  reason: @"Unable to set value for key"
-				  userInfo: dict];
-  GSOnceMLog(@"This method is deprecated, use -setValue:forUndefinedKey:");
-  [exp raise];
 }
 
 - (NSMutableSet*) mutableSetValueForKey: (NSString*)aKey
@@ -331,6 +313,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (void) setNilValueForKey: (NSString*)aKey
 {
+#ifdef WANT_DEPRECATED_KVC_COMPAT
   static IMP	o = 0;
 
   /* Backward compatibility hack */
@@ -342,14 +325,13 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   if ([self methodForSelector: @selector(unableToSetNilForKey:)] != o)
     {
       [self unableToSetNilForKey: aKey];
+      return;
     }
-  else
-    {
-      [NSException raise: NSInvalidArgumentException
-        format: @"%@ -- %@ 0x%x: Given nil value to set for key \"%@\"",
-        NSStringFromSelector(_cmd), NSStringFromClass([self class]),
-        self, aKey];
-    }
+#endif
+  [NSException raise: NSInvalidArgumentException
+    format: @"%@ -- %@ 0x%x: Given nil value to set for key \"%@\"",
+    NSStringFromSelector(_cmd), NSStringFromClass([self class]),
+    self, aKey];
 }
 
 
@@ -357,6 +339,20 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 {
   unsigned	size = [aKey length] * 8;
   char		key[size+1];
+#ifdef WANT_DEPRECATED_KVC_COMPAT
+  static IMP	o = 0;
+
+  /* Backward compatibility hack */
+  if (o == 0)
+    {
+      o = [NSObject instanceMethodForSelector: @selector(takeValue:forKey:)];
+    }
+  if ([self methodForSelector: @selector(takeValue:forKey:)] != o)
+    {
+      [self takeValue: anObject forKey: aKey];
+      return;
+    }
+#endif
 
   [aKey getCString: key
 	 maxLength: size+1
@@ -367,6 +363,152 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 
 - (void) setValue: (id)anObject forKeyPath: (NSString*)aKey
+{
+  unsigned	size = [aKey length] * 8;
+  char		buf[size+1];
+  unsigned	start = 0;
+  unsigned	end = 0;
+  id		obj = self;
+#ifdef WANT_DEPRECATED_KVC_COMPAT
+  static IMP	o = 0;
+
+  /* Backward compatibility hack */
+  if (o == 0)
+    {
+      o = [NSObject instanceMethodForSelector:
+  @selector(takeValue:forKeyPath:)];
+    }
+  if ([self methodForSelector: @selector(takeValue:forKeyPath:)] != o)
+    {
+      [self takeValue: anObject forKeyPath: aKey];
+      return;
+    }
+#endif
+
+  [aKey getCString: buf
+	 maxLength: size+1
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(buf);
+  while (obj != nil)
+    {
+      end = start;
+      while (end < size && buf[end] != '.')
+	{
+	  end++;
+	}
+      aKey = [[NSString alloc] initWithBytes: buf + start
+				      length: end - start
+				    encoding: NSUTF8StringEncoding];
+      AUTORELEASE(aKey);
+      if (end >= size)
+	{
+	  [obj setValue: anObject forKey: aKey];
+	  return;
+	}
+      obj = [obj valueForKey: aKey];
+      start = ++end;
+    }
+}
+
+
+- (void) setValue: (id)anObject forUndefinedKey: (NSString*)aKey
+{
+  NSDictionary	*dict;
+  NSException	*exp; 
+#ifdef WANT_DEPRECATED_KVC_COMPAT
+  static IMP	o = 0;
+
+  /* Backward compatibility hack */
+  if (o == 0)
+    {
+      o = [NSObject instanceMethodForSelector:
+	@selector(handleTakeValue:forUnboundKey:)];
+    }
+  if ([self methodForSelector: @selector(handleTakeValue:forUnboundKey:)] != o)
+    {
+      [self handleTakeValue: anObject forUnboundKey: aKey];
+      return;
+    }
+#endif
+
+  dict = [NSDictionary dictionaryWithObjectsAndKeys:
+    (anObject ? (id)anObject : (id)@"(nil)"), @"NSTargetObjectUserInfoKey",
+    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
+    nil];
+  exp = [NSException exceptionWithName: NSUndefinedKeyException
+				reason: @"Unable to set nil value for key"
+			      userInfo: dict];
+  [exp raise];
+}
+
+
+- (void) setValuesForKeysWithDictionary: (NSDictionary*)aDictionary
+{
+  NSEnumerator	*enumerator;
+  NSString	*key;
+#ifdef WANT_DEPRECATED_KVC_COMPAT
+  static IMP	o = 0;
+
+  /* Backward compatibility hack */
+  if (o == 0)
+    {
+      o = [NSObject instanceMethodForSelector:
+	@selector(takeValuesFromDictionary:)];
+    }
+  if ([self methodForSelector: @selector(takeValuesFromDictionary:)] != o)
+    {
+      [self takeValuesFromDictionary: aDictionary];
+      return;
+    }
+#endif
+
+  enumerator = [aDictionary keyEnumerator];
+  while ((key = [enumerator nextObject]) != nil)
+    {
+      [self setValue: [aDictionary objectForKey: key] forKey: key];
+    }
+}
+
+
+- (BOOL) validateValue: (id*)aValue
+                forKey: (NSString*)aKey
+                 error: (NSError**)anError
+{
+  unsigned	size;
+
+  if (aValue == 0 || (size = [aKey length] * 8) == 0)
+    {
+      [NSException raise: NSInvalidArgumentException format: @"nil argument"];
+    }
+  else
+    {
+      char		name[size+16];
+      SEL		sel;
+      BOOL		(*imp)(id,SEL,id*,id*);
+
+      strcpy(name, "validate");
+      [aKey getCString: &name[8]
+	     maxLength: size+1
+	      encoding: NSUTF8StringEncoding];
+      size = strlen(&name[8]);
+      strcpy(&name[size+8], ":error:");
+      if (islower(name[8]))
+	{
+	  name[8] = toupper(name[8]);
+	}
+      sel = GSSelectorFromName(name);
+      if (sel != 0
+	&& (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
+	{
+	  return (*imp)(self, sel, aValue, anError);
+	}
+    }
+  return YES;
+}
+
+- (BOOL) validateValue: (id*)aValue
+            forKeyPath: (NSString*)aKey
+                 error: (NSError**)anError
 {
   unsigned	size = [aKey length] * 8;
   char		buf[size+1];
@@ -385,61 +527,130 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	{
 	  end++;
 	}
+      if (end >= size)
+	{
+	  break;
+	}
       aKey = [[NSString alloc] initWithBytes: buf + start
 				      length: end - start
 				    encoding: NSUTF8StringEncoding];
       AUTORELEASE(aKey);
-      if (end >= size)
-	{
-	  [o setValue: anObject forKey: aKey];
-	  return;
-	}
       o = [o valueForKey: aKey];
       start = ++end;
+    }
+  if (o == nil)
+    {
+      return NO;
+    }
+  else
+    {
+      char		name[end-start+16];
+      SEL		sel;
+      BOOL		(*imp)(id,SEL,id*,id*);
+
+      size = end - start;
+      strcpy(name, "validate");
+      strcpy(&name[8], buf+start);
+      strcpy(&name[size+8], ":error:");
+      if (islower(name[8]))
+	{
+	  name[8] = toupper(name[8]);
+	}
+      sel = GSSelectorFromName(name);
+      if (sel != 0
+	&& (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
+	{
+	  return (*imp)(self, sel, aValue, anError);
+	}
+      return YES;
     }
 }
 
 
-- (void) setValue: (id)anObject forUndefinedKey: (NSString*)aKey
+- (id) valueForKey: (NSString*)aKey
+{
+  unsigned	size = [aKey length] * 8;
+  char		key[size+1];
+
+  [aKey getCString: key
+	 maxLength: size+1
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(key);
+  return ValueForKey(self, key, size);
+}
+
+
+- (id) valueForKeyPath: (NSString*)aKey
+{
+  unsigned	size = [aKey length] * 8;
+  char		buf[size+1];
+  unsigned	start = 0;
+  unsigned	end = 0;
+  id		o = self;
+
+  [aKey getCString: buf
+	 maxLength: size+1
+	  encoding: NSUTF8StringEncoding];
+  size = strlen(buf);
+  while (start < size && o != nil)
+    {
+      end = start;
+      while (end < size && buf[end] != '.')
+	{
+	  end++;
+	}
+      aKey = [[NSString alloc] initWithBytes: buf + start
+				      length: end - start
+				    encoding: NSUTF8StringEncoding];
+      AUTORELEASE(aKey);
+      o = [o valueForKey: aKey];
+      start = ++end;
+    }
+  return o;
+}
+
+
+- (id) valueForUndefinedKey: (NSString*)aKey
 {
   NSDictionary	*dict;
-  NSException	*exp; 
+  NSException	*exp;
+  NSString      *reason;
+#ifdef WANT_DEPRECATED_KVC_COMPAT
   static IMP	o = 0;
 
   /* Backward compatibility hack */
   if (o == 0)
     {
       o = [NSObject instanceMethodForSelector:
-	@selector(handleTakeValue:forUnboundKey:)];
+	@selector(handleQueryWithUnboundKey:)];
     }
-  if ([self methodForSelector: @selector(handleTakeValue:forUnboundKey:)] != o)
+  if ([self methodForSelector: @selector(handleQueryWithUnboundKey:)] != o)
     {
-      [self handleTakeValue: anObject forUnboundKey: aKey];
-      return;
+      return [self handleQueryWithUnboundKey: aKey];
     }
-
+#endif
   dict = [NSDictionary dictionaryWithObjectsAndKeys:
-    (anObject ? (id)anObject : (id)@"(nil)"), @"NSTargetObjectUserInfoKey",
+    self, @"NSTargetObjectUserInfoKey",
     (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
     nil];
+  reason = [NSString stringWithFormat:
+    @"Unable to find value for key \"%@\" of object %@ (%@)",
+    aKey, self, [self class]];
   exp = [NSException exceptionWithName: NSUndefinedKeyException
-				reason: @"Unable to set nil value for key"
+				reason: reason
 			      userInfo: dict];
+
   [exp raise];
+  return nil;
 }
 
 
-- (void) setValuesForKeysWithDictionary: (NSDictionary*)aDictionary
+#ifdef WANT_DEPRECATED_KVC_COMPAT
+
++ (BOOL) useStoredAccessor
 {
-  NSEnumerator	*enumerator = [aDictionary keyEnumerator];
-  NSString	*key;
-
-  while ((key = [enumerator nextObject]) != nil)
-    {
-      [self setValue: [aDictionary objectForKey: key] forKey: key];
-    }
+  return YES;
 }
-
 
 - (id) storedValueForKey: (NSString*)aKey
 {
@@ -617,6 +828,35 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     }
 }
 
+- (id) handleQueryWithUnboundKey: (NSString*)aKey
+{
+  NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+    self, @"NSTargetObjectUserInfoKey",
+    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
+    nil];
+  NSException *exp = [NSException exceptionWithName: NSUndefinedKeyException
+				  reason: @"Unable to find value for key"
+				  userInfo: dict];
+
+  GSOnceMLog(@"This method is deprecated, use -valueForUndefinedKey:");
+  [exp raise];
+  return nil;
+}
+
+
+- (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey
+{
+  NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+    (anObject ? (id)anObject : (id)@"(nil)"), @"NSTargetObjectUserInfoKey",
+    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
+    nil];
+  NSException *exp = [NSException exceptionWithName: NSUndefinedKeyException
+				  reason: @"Unable to set value for key"
+				  userInfo: dict];
+  GSOnceMLog(@"This method is deprecated, use -setValue:forUndefinedKey:");
+  [exp raise];
+}
+
 
 - (void) takeValue: (id)anObject forKey: (NSString*)aKey
 {
@@ -723,179 +963,6 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 }
 
 
-- (BOOL) validateValue: (id*)aValue
-                forKey: (NSString*)aKey
-                 error: (NSError**)anError
-{
-  unsigned	size;
-
-  if (aValue == 0 || (size = [aKey length] * 8) == 0)
-    {
-      [NSException raise: NSInvalidArgumentException format: @"nil argument"];
-    }
-  else
-    {
-      char		name[size+16];
-      SEL		sel;
-      BOOL		(*imp)(id,SEL,id*,id*);
-
-      strcpy(name, "validate");
-      [aKey getCString: &name[8]
-	     maxLength: size+1
-	      encoding: NSUTF8StringEncoding];
-      size = strlen(&name[8]);
-      strcpy(&name[size+8], ":error:");
-      if (islower(name[8]))
-	{
-	  name[8] = toupper(name[8]);
-	}
-      sel = GSSelectorFromName(name);
-      if (sel != 0
-	&& (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
-	{
-	  return (*imp)(self, sel, aValue, anError);
-	}
-    }
-  return YES;
-}
-
-- (BOOL) validateValue: (id*)aValue
-            forKeyPath: (NSString*)aKey
-                 error: (NSError**)anError
-{
-  unsigned	size = [aKey length] * 8;
-  char		buf[size+1];
-  unsigned	start = 0;
-  unsigned	end = 0;
-  id		o = self;
-
-  [aKey getCString: buf
-	 maxLength: size+1
-	  encoding: NSUTF8StringEncoding];
-  size = strlen(buf);
-  while (o != nil)
-    {
-      end = start;
-      while (end < size && buf[end] != '.')
-	{
-	  end++;
-	}
-      if (end >= size)
-	{
-	  break;
-	}
-      aKey = [[NSString alloc] initWithBytes: buf + start
-				      length: end - start
-				    encoding: NSUTF8StringEncoding];
-      AUTORELEASE(aKey);
-      o = [o valueForKey: aKey];
-      start = ++end;
-    }
-  if (o == nil)
-    {
-      return NO;
-    }
-  else
-    {
-      char		name[end-start+16];
-      SEL		sel;
-      BOOL		(*imp)(id,SEL,id*,id*);
-
-      size = end - start;
-      strcpy(name, "validate");
-      strcpy(&name[8], buf+start);
-      strcpy(&name[size+8], ":error:");
-      if (islower(name[8]))
-	{
-	  name[8] = toupper(name[8]);
-	}
-      sel = GSSelectorFromName(name);
-      if (sel != 0
-	&& (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
-	{
-	  return (*imp)(self, sel, aValue, anError);
-	}
-      return YES;
-    }
-}
-
-
-- (id) valueForKey: (NSString*)aKey
-{
-  unsigned	size = [aKey length] * 8;
-  char		key[size+1];
-
-  [aKey getCString: key
-	 maxLength: size+1
-	  encoding: NSUTF8StringEncoding];
-  size = strlen(key);
-  return ValueForKey(self, key, size);
-}
-
-
-- (id) valueForKeyPath: (NSString*)aKey
-{
-  unsigned	size = [aKey length] * 8;
-  char		buf[size+1];
-  unsigned	start = 0;
-  unsigned	end = 0;
-  id		o = self;
-
-  [aKey getCString: buf
-	 maxLength: size+1
-	  encoding: NSUTF8StringEncoding];
-  size = strlen(buf);
-  while (start < size && o != nil)
-    {
-      end = start;
-      while (end < size && buf[end] != '.')
-	{
-	  end++;
-	}
-      aKey = [[NSString alloc] initWithBytes: buf + start
-				      length: end - start
-				    encoding: NSUTF8StringEncoding];
-      AUTORELEASE(aKey);
-      o = [o valueForKey: aKey];
-      start = ++end;
-    }
-  return o;
-}
-
-
-- (id) valueForUndefinedKey: (NSString*)aKey
-{
-  NSDictionary	*dict;
-  NSException	*exp;
-  static IMP	o = 0;
-  NSString *reason;
-
-  /* Backward compatibility hack */
-  if (o == 0)
-    {
-      o = [NSObject instanceMethodForSelector:
-	@selector(handleQueryWithUnboundKey:)];
-    }
-  if ([self methodForSelector: @selector(handleQueryWithUnboundKey:)] != o)
-    {
-      return [self handleQueryWithUnboundKey: aKey];
-    }
-  dict = [NSDictionary dictionaryWithObjectsAndKeys:
-    self, @"NSTargetObjectUserInfoKey",
-    (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
-    nil];
-  reason = [NSString stringWithFormat:
-    @"Unable to find value for key \"%@\" of object %@ (%@)",
-    aKey, self, [self class]];
-  exp = [NSException exceptionWithName: NSUndefinedKeyException
-				reason: reason
-			      userInfo: dict];
-
-  [exp raise];
-  return nil;
-}
-
-
 - (NSDictionary*) valuesForKeys: (NSArray*)keys
 {
   NSMutableDictionary	*dict;
@@ -903,6 +970,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   unsigned		count = [keys count];
   unsigned		pos;
 
+  GSOnceMLog(@"This method is deprecated, use -dictionaryWithValuesForKeys:");
   dict = [NSMutableDictionary dictionaryWithCapacity: count];
   for (pos = 0; pos < count; pos++)
     {
@@ -917,6 +985,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     }
   return AUTORELEASE([dict copy]);
 }
+
+#endif
 
 @end
 
