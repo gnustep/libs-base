@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */
 
 /*
@@ -183,7 +184,7 @@
  */
 #define	GDO_NET_MASK	0x70	/* Network protocol of port.		*/
 #define	GDO_NET_TCP	0x10
-#define	GDO_NET_UDP	0x10
+#define	GDO_NET_UDP	0x20
 #define	GDO_SVC_MASK	0x0f	/* High level protocol of port.		*/
 #define	GDO_SVC_GDO	0x01
 #define	GDO_SVC_FOREIGN	0x02
