@@ -1,3 +1,7 @@
+2007-11-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.h: fix typo
+
 2007-11-29  Marcus Muller <znek@mulle-kybernetik.com
 
 	* Source/NSKeyValueCoding.m: Make backward compatibility work with
