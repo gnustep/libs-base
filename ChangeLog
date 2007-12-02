@@ -11,6 +11,9 @@
 	instances.
 
 	* Source/NSCalendarDate.m: Add explicit include of NSDictionary.h.
+
+	* Source/NSKeyValueMutableArray.m: Various non-functional variable
+	and parameter renames to avoid bogus compiler warnings.
 	
 2007-11-30  Richard Frith-Macdonald <rfm@gnu.org>
 
