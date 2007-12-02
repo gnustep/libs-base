@@ -26,6 +26,7 @@
 #import "GSPrivate.h"
 
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSScanner.h"
 #import "NSCallBacks.h"
 #import "GNUstepBase/GSMime.h"
@@ -33,13 +34,13 @@
 
 // Internal data storage
 typedef struct {
-  long long				expectedContentLength;
-  NSURL					*URL;
-  NSString				*MIMEType;
-  NSString				*textEncodingName;
-  NSString				*statusText;
-  _GSMutableInsensitiveDictionary	*headers;
-  int					statusCode;
+  long long		expectedContentLength;
+  NSURL			*URL;
+  NSString		*MIMEType;
+  NSString		*textEncodingName;
+  NSString		*statusText;
+  NSMutableDictionary	*headers; /* _GSMutableInsensitiveDictionary */
+  int			statusCode;
 } Internal;
  
 typedef struct {

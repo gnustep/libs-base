@@ -35,6 +35,8 @@
   BOOL			_done;
 }
 
+- (id) initWithResponsePointer: (NSURLResponse **)response
+	       andErrorPointer: (NSError **)error;
 - (NSData*) _data;
 - (BOOL) _done;
 - (void) _setConnection: (NSURLConnection *)c;

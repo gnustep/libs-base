@@ -91,25 +91,25 @@
   NSKeyValueMutableSet *proxy;
   unsigned size = [aKey maximumLengthOfBytesUsingEncoding:
 			  NSUTF8StringEncoding];
-  char key[size + 1];
+  char keybuf[size + 1];
 
-  [aKey getCString: key
+  [aKey getCString: keybuf
          maxLength: size + 1
           encoding: NSUTF8StringEncoding];
-  if (islower(*key))
+  if (islower(*keybuf))
     {
-      *key = toupper(*key);
+      *keybuf = toupper(*keybuf);
     }
 
 
   proxy = [NSKeyValueFastMutableSet setForKey: aKey 
                                      ofObject: anObject
-                           withCapitalizedKey: key];
+                           withCapitalizedKey: keybuf];
   if (proxy == nil)
     {
       proxy = [NSKeyValueSlowMutableSet setForKey: aKey 
                                          ofObject: anObject
-                               withCapitalizedKey: key];
+                               withCapitalizedKey: keybuf];
 
       if (proxy == nil)
 	{
@@ -172,7 +172,7 @@
 @implementation NSKeyValueFastMutableSet
 
 + (id) setForKey: (NSString *)aKey ofObject: (id)anObject
-       withCapitalizedKey: (char *)capitalized
+       withCapitalizedKey: (const char *)capitalized
 {
   return [[[self alloc] initWithKey: aKey
                            ofObject: anObject
@@ -551,9 +551,9 @@
 
 @implementation NSKeyValueIvarMutableSet
 
-+ (id) setForKey: (NSString *)key ofObject: (id)anObject
++ (id) setForKey: (NSString *)aKey ofObject: (id)anObject
 {
-  return [[[self alloc] initWithKey: key ofObject: anObject] autorelease];
+  return [[[self alloc] initWithKey: aKey ofObject: anObject] autorelease];
 }
 
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
