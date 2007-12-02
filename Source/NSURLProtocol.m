@@ -25,6 +25,7 @@
 #import <Foundation/NSError.h>
 #import <Foundation/NSHost.h>
 #import <Foundation/NSRunLoop.h>
+#import <Foundation/NSValue.h>
 
 #import "GNUstepBase/GSMime.h"
 

@@ -11,9 +11,15 @@
 	instances.
 
 	* Source/NSCalendarDate.m: Add explicit include of NSDictionary.h.
+	* Source/NSURLResponse.m: Ditto.  Use available dictionary declartion.
+	* Source/NSURLProtocol.m: Add explicit import of NSData.h.
+	* Source/NSSerializer.m: Add explicit import of NSEnumerator.h.
+	* Source/NSURLConnection.m
+	([-initWithResponsePointer:andErrorPointer:]):  Add declaration.
 
 	* Source/NSKeyValueMutableArray.m: Various non-functional variable
 	and parameter renames to avoid bogus compiler warnings.
+	* Source/NSKeyValueMutableSet.m: Ditto.
 	
 2007-11-30  Richard Frith-Macdonald <rfm@gnu.org>
 
