@@ -1,6 +1,10 @@
 2007-12-02  David Ayers  <ayers@fsfe.org>
 
 	* Source/NSDecimal.m (GSDecimalDouble): Use NAN when available.
+	* Source/NSDecimalNumber.m ([initWithBytes:objCType:]): Implement
+	initialization with scalar types.  Use GSPrivateDefaultLocale
+	to initialze intermediate string to match expectations of
+	initWithString.	
 	
 2007-11-30  Richard Frith-Macdonald <rfm@gnu.org>
 
