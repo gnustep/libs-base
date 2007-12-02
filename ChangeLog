@@ -4,7 +4,11 @@
 	* Source/NSDecimalNumber.m ([initWithBytes:objCType:]): Implement
 	initialization with scalar types.  Use GSPrivateDefaultLocale
 	to initialze intermediate string to match expectations of
-	initWithString.	
+	initWithString.
+	(NSDecimalNumberClass): Added local class cache.
+	([+initialize]): Initialize new cache.
+	([-compare]): Test for all subclasses instead of only NSDecimalNumber
+	instances.
 	
 2007-11-30  Richard Frith-Macdonald <rfm@gnu.org>
 
