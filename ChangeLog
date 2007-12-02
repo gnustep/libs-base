@@ -9,12 +9,14 @@
 	([+initialize]): Initialize new cache.
 	([-compare]): Test for all subclasses instead of only NSDecimalNumber
 	instances.
+
+	* Source/NSCalendarDate.m: Add explicit include of NSDictionary.h.
 	
 2007-11-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.h: fix typo
 
-2007-11-29  Marcus Muller <znek@mulle-kybernetik.com
+2007-11-29  Marcus Muller <znek@mulle-kybernetik.com>
 
 	* Source/NSKeyValueCoding.m: Make backward compatibility work with
 	situations where we have classes using both new and old APIs in the
