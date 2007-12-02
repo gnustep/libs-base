@@ -144,6 +144,7 @@ static NSDecimalNumberHandler *handler;
 
 @implementation NSDecimalNumber
 
+static Class NSDecimalNumberClass;
 static NSDecimalNumber *maxNumber;
 static NSDecimalNumber *minNumber;
 static NSDecimalNumber *notANumber;
@@ -166,6 +167,7 @@ static NSDecimalNumber *one;
   one = [[self alloc] initWithMantissa: 1
 			      exponent: 0
 			    isNegative: NO];
+  NSDecimalNumberClass = [NSDecimalNumber class];
 }
 
 + (id <NSDecimalNumberBehaviors>) defaultBehavior
@@ -583,7 +585,7 @@ static NSDecimalNumber *one;
 
 - (NSComparisonResult) compare: (NSNumber*)decimalNumber
 {
-  if ([decimalNumber isMemberOfClass: [self class]])
+  if ([decimalNumber isKindOfClass: NSDecimalNumberClass])
     {
       NSDecimal d1 = [self decimalValue];
       NSDecimal d2 = [(NSDecimalNumber*)decimalNumber decimalValue];
