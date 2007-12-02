@@ -11,6 +11,7 @@
 	instances.
 
 	* Source/NSCalendarDate.m: Add explicit include of NSDictionary.h.
+	* Source/NSNotification.m: Ditto.
 	* Source/NSURLResponse.m: Ditto.  Use available dictionary declartion.
 	* Source/NSURLProtocol.m: Add explicit import of NSData.h.
 	* Source/NSSerializer.m: Add explicit import of NSEnumerator.h.
