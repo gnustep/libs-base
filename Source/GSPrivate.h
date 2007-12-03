@@ -378,6 +378,11 @@ void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
  */
 BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
 
+/* Function to return the current stack return addresses.
+ */
+NSMutableArray *
+GSPrivateStackAddresses(void) GS_ATTRIB_PRIVATE;
+
 /* Function to return the hash value for a small integer (used by NSNumber).
  */
 unsigned

@@ -484,12 +484,9 @@ gnustep_base_thread_callback(void)
 
 + (NSArray*) callStackReturnAddresses
 {
-  /* NB. This method is actually implemented in a category in
-   * The NSException.m file as the stack trace code there is
-   * able to set up an array of stack addresses and we don't
-   * want to duplicate the code.
-   */
-  return [self notImplemented: _cmd];
+  NSMutableArray        *stack = GSPrivateStackAddresses();
+
+  return stack;
 }
 
 /**
