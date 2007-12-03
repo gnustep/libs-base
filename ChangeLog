@@ -1,3 +1,9 @@
+2007-12-03  David Ayers  <ayers@fsfe.org>
+
+	* Source/NSDecimalNumber.m: (isinf,isnan,isinff,isnanf):
+	Temporary empty definitions of C99 macros for environments
+	which do not define them.
+	
 2007-12-03  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSIndexSet.m (-initWithCoder:,	-encodeWithCoder)
