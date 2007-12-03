@@ -37,6 +37,21 @@
 
 #include "GSPrivate.h"
 
+// AYERS: Temporary workaround until correct flags/includes for other
+// libc implemenatations can be identified.
+#ifndef isinf
+#define isinf(n) ( 0 )
+#endif
+#ifndef isnan
+#define isnan(n) ( 0 )
+#endif 
+#ifndef isinff
+#define isinff(n) ( 0 )
+#endif
+#ifndef isnanf
+#define isnanf(n) ( 0 )
+#endif 
+
 // shared default behavior for NSDecimalNumber class
 static NSDecimalNumberHandler *handler;
 
