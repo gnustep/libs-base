@@ -1,3 +1,16 @@
+2007-12-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDebug.m:
+	* Source/GSPrivate.h:
+	* Source/NSException.m:
+	* Source/NSThread.m:
+	Rewrite some stackframe handling code for greater efficiency.
+	When raising an exception, just get the current stack and don't
+	bother translating addresses to method/function information until
+	needed by the -description method.  Improves performance of
+	exception handling and eliminates the possibility of a recursive
+	exception due to a problem in the stacktrace code.
+
 2007-12-02  David Ayers  <ayers@fsfe.org>
 
 	* Source/NSDecimal.m (GSDecimalDouble): Use NAN when available.

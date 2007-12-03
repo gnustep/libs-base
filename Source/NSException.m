@@ -25,6 +25,7 @@
 */
 
 #import "config.h"
+#import "GSPrivate.h"
 #import "GNUstepBase/preface.h"
 #import <Foundation/NSDebug.h>
 #import <Foundation/NSBundle.h>
@@ -55,6 +56,7 @@ typedef struct { @defs(NSThread) } *TInfo;
 - (NSMutableArray*) frames;
 - (id) frameAt: (unsigned)index;
 - (unsigned) frameCount;
+- (id) initWithAddresses: (NSArray*)stack;
 - (NSEnumerator*) reverseEnumerator;
 
 @end
@@ -561,17 +563,24 @@ GSListModules()
 // grab the current stack 
 - (id) init
 {
+  NSMutableArray        *stack = GSPrivateStackAddresses();
+
+  return [self initWithAddresses: stack];
+}
+
+- (id) initWithAddresses: (NSArray*)stack
+{
+#if	defined(STACKSYMBOLS)
   int i;
   int n;
 
-  frames = [[NSMutableArray alloc] init];
-  n = NSCountFrames();
+  n = [stack count];
+  frames = [[NSMutableArray alloc] initWithCapacity: n];
 
-#if	defined(STACKSYMBOLS)
   for (i = 0; i < n; i++)
     {
       GSFunctionInfo	*aFrame = nil;
-      void		*address = NSReturnAddress(i);
+      void		*address = [[stack objectAtIndex: i] pointerValue];
       void		*base;
       NSString		*modulePath = GSPrivateBaseAddress(address, &base);
       GSBinaryFileInfo	*bfi;
@@ -628,12 +637,7 @@ GSListModules()
       [frames addObject: aFrame];
     }
 #else
-  for (i = 0; i < n; i++)
-    {
-      void		*address = NSReturnAddress(i);
-
-      [frames addObject: [NSValue valueWithPointer: address]];
-    }
+  frames = [stack copy];
 #endif
 
   return self;
@@ -645,35 +649,6 @@ GSListModules()
 }
 
 @end
-
-/**
- * Get a stack trace and convert it to an array of return addresses.
- */
-@interface      NSThread (Frames)
-+ (NSArray*) callStackReturnAddresses;
-@end
-@implementation NSThread (Frames)
-+ (NSArray*) callStackReturnAddresses
-{
-  NSMutableArray        *frames = [[GSStackTrace currentStack] frames];
-#if	defined(STACKSYMBOLS)
-  unsigned              count = [frames count];
-
-  while (count-- > 0)
-    {
-      GSFunctionInfo    *info = [frames objectAtIndex: count];
-      NSValue           *address;
-
-      address = [NSValue valueWithPointer: [info address]];
-      [frames replaceObjectAtIndex: count
-                        withObject: address];
-    }
-#endif
-  return frames;
-}
-@end
-
-
 
 
 NSString* const NSGenericException
@@ -696,8 +671,6 @@ NSString* const NSCharacterConversionException
 
 NSString* const NSParseErrorException
   = @"NSParseErrorException";
-
-#include "GSPrivate.h"
 
 static void _terminate()
 {
@@ -826,7 +799,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 	  RELEASE(_e_info);
 	  _e_info = m;
 	}
-      [m setObject: [GSStackTrace currentStack] forKey: @"GSStackTraceKey"];
+      [m setObject: GSPrivateStackAddresses() forKey: @"GSStackTraceKey"];
     }
 #endif
 
@@ -948,11 +921,41 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 - (NSString*) description
 {
   if (_e_info)
-    return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@ INFO:%@",
+    {
+/* Convert stack information from an array of addresses to a stacktrace
+ * for display.
+ */
+#if     defined(STACKSYMBOLS)
+      id    o;
+
+      o = [_e_info objectForKey: @"GSStackTraceKey"];
+      if ([o isKindOfClass: [NSArray class]] == YES)
+        {
+          NSMutableDictionary  *m;
+
+          o = [[GSStackTrace alloc] initWithAddresses:  o];
+          if ([_e_info isKindOfClass: [NSMutableDictionary class]] == YES)
+            {
+              m = (NSMutableDictionary*)_e_info;
+            }
+          else
+            {
+              m = [_e_info mutableCopy];
+              RELEASE(_e_info);
+              _e_info = m;
+            }
+          [m setObject: o forKey: @"GSStackTraceKey"];
+          RELEASE(o);
+        }
+#endif
+      return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@ INFO:%@",
 	[super description], _e_name, _e_reason, _e_info];
+    }
   else
-    return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
+    {
+      return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
 	[super description], _e_name, _e_reason];
+    }
 }
 
 @end
