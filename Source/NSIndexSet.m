@@ -23,6 +23,7 @@
 
    */
 
+#include "Foundation/NSCoder.h"
 #include	<Foundation/NSIndexSet.h>
 #include	<Foundation/NSException.h>
 #include	<Foundation/NSZone.h>
@@ -274,7 +275,32 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self notImplemented:_cmd];
+  int rangeCount = 0;
+
+  if (_array != 0)
+    {
+      rangeCount = GSIArrayCount(_array);
+    }
+
+  [aCoder encodeInt: rangeCount forKey: @"NSRangeCount"];
+  
+  if (rangeCount == 0)
+    {
+      // Do nothing
+    }
+  else if (rangeCount == 1)
+    {
+      NSRange	r;
+      
+      r = GSIArrayItemAtIndex(_array, 0).ext;
+      [aCoder encodeInt: r.location forKey: @"NSLocation"];
+      [aCoder encodeInt: r.length forKey: @"NSLength"];
+    }
+  else
+    {
+      // FIXME
+      [self notImplemented:_cmd];
+    }
 }
 
 - (unsigned int) firstIndex
@@ -456,7 +482,53 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self notImplemented:_cmd];
+  int rangeCount = 0;
+
+  if ([aCoder containsValueForKey: @"NSRangeCount"])
+    {
+      rangeCount = [aCoder decodeIntForKey: @"NSRangeCount"];
+    }
+
+  if (rangeCount == 0)
+    {
+      // Do nothing
+    }
+  else if (rangeCount == 1)
+    {
+      unsigned len = 0;
+      unsigned loc = 0;
+      
+      if ([aCoder containsValueForKey: @"NSLocation"])
+        {
+          loc = [aCoder decodeIntForKey: @"NSLocation"];
+        }
+      if ([aCoder containsValueForKey: @"NSLength"])
+        {
+          len = [aCoder decodeIntForKey: @"NSLength"];
+        }
+      self = [self initWithIndexesInRange: NSMakeRange(loc, len)];
+    }
+  else
+    {
+      NSData * data = nil;
+
+      if ([aCoder containsValueForKey: @"NSRangeData"])
+        {
+          data = [aCoder decodeIntForKey: @"NSRangeData"];
+        }
+      
+      /*
+        FIXME:
+        NSLog(@"Decoded count %d, data %@", rangeCount, data);
+        This is a very strange format:
+
+        5 + 6 + 9 gives <05020901>
+        5 + 6 + 23 gives <05021701>
+        155 + 156 + 223 gives <9b0102df 0101>
+       */
+      [self notImplemented:_cmd];
+    }
+
   return self;
 }
 
