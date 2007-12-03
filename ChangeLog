@@ -1,3 +1,9 @@
+2007-12-03  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSIndexSet.m (-initWithCoder:,	-encodeWithCoder)
+	* Source/NSData.m (NSMutableData-initWithCoder:,
+	-encodeWithCoder): Add some keyed encoding/decoding.
+
 2007-12-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDebug.m:
