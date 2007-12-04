@@ -41,15 +41,22 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSException.h"
+#include "Foundation/NSArray.h"
 #include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSSet.h"
 #include "Foundation/NSBundle.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSEnumerator.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSValue.h"
 #include "GSPrivate.h"
 
 #include <string.h>
@@ -157,17 +164,6 @@
 #else
 #define	GSBINIO	0
 #endif
-
-/* include usual headers */
-
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSFileManager.h"
 
 @interface NSDirectoryEnumerator (Local)
 - (id) initWithDirectoryPath: (NSString*)path 
