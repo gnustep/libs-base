@@ -514,7 +514,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
       if ([aCoder containsValueForKey: @"NSRangeData"])
         {
-          data = [aCoder decodeIntForKey: @"NSRangeData"];
+          data = [aCoder decodeObjectForKey: @"NSRangeData"];
         }
       
       /*
