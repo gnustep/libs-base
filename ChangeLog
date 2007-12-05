@@ -1,3 +1,11 @@
+2007-12-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: Add new MacOS-X method and improve stack trace
+	code.
+	* Source/NSXMLParser.m Add include for NSDictionary.
+	* Documentation/Base.gsdoc: Improve documentation of stack trace.
+	* Headers/Foundation/NSException.h: Add new MacOS-X method.
+
 2007-12-05  David Ayers  <ayers@fsfe.org>
 
 	* Source/NSDecimalNumber.m: (isinf,isnan,isinff,isnanf): Remove.
