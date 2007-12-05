@@ -1,3 +1,10 @@
+2007-12-05  David Ayers  <ayers@fsfe.org>
+
+	* Source/NSDecimalNumber.m: (isinf,isnan,isinff,isnanf): Remove.
+	(GSIsNAN,GSIsInf): Attempt a more portable approach with using
+	_ISOC99_SOURCE which is also supported by some BSD's and possibly
+	Solaris.
+	
 2007-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.h: move includes around to fix bug #21718
