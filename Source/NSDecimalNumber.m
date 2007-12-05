@@ -27,6 +27,7 @@
    */
 
 #define _GNU_SOURCE
+#define _ISOC99_SOURCE
 #include <math.h>
 
 #include "Foundation/NSCoder.h"
@@ -37,20 +38,14 @@
 
 #include "GSPrivate.h"
 
-// AYERS: Temporary workaround until correct flags/includes for other
-// libc implemenatations can be identified.
-#ifndef isinf
-#define isinf(n) ( 0 )
+#ifdef fpclassify
+#define GSIsNAN(n) (fpclassify(n) == FP_NAN)
+#define GSIsInf(n) (fpclassify(n) == FP_INFINITE)
+#else
+#warning C99 macro fpclassify not found: Cannot determine NAN/Inf float-values
+#define GSIsNAN(n) (0)
+#define GSIsInf(n) (0)
 #endif
-#ifndef isnan
-#define isnan(n) ( 0 )
-#endif 
-#ifndef isinff
-#define isinff(n) ( 0 )
-#endif
-#ifndef isnanf
-#define isnanf(n) ( 0 )
-#endif 
 
 // shared default behavior for NSDecimalNumber class
 static NSDecimalNumberHandler *handler;
@@ -359,8 +354,8 @@ static NSDecimalNumber *one;
 	  {
 	    NSString *s;
 	    float v = *(float *)value;
-	    if (isnanf(v)) return notANumber;
-	    if (isinff(v)) return (v < 0.0) ? minNumber : maxNumber;
+	    if (GSIsNAN(v)) return notANumber;
+	    if (GSIsInf(v)) return (v < 0.0) ? minNumber : maxNumber;
 	    s = [[NSString alloc] initWithFormat: @"%g"
 				  locale: GSPrivateDefaultLocale(), (double)v];
 	    self = [self initWithString: s];
@@ -373,8 +368,8 @@ static NSDecimalNumber *one;
 	  {
 	    NSString *s;
 	    double v = *(double *)value;
-	    if (isnan(v)) return notANumber;
-	    if (isinf(v)) return (v < 0.0) ? minNumber : maxNumber;
+	    if (GSIsNAN(v)) return notANumber;
+	    if (GSIsInf(v)) return (v < 0.0) ? minNumber : maxNumber;
 	    s = [[NSString alloc] initWithFormat: @"%g"
 				  locale: GSPrivateDefaultLocale(), v];
 	    self = [self initWithString: s];
