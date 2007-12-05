@@ -272,11 +272,9 @@ notice and this notice are preserved.
 	    <term>GNUSTEP_STACK_TRACE</term>
 	    <desc>
 	      <p>
-	        When this is set to <em>YES</em> a stack trace is placed in
-		the user information dictionary of the NSException object
-		created when an exception is raised.  The trace is keyed
-		on <code>GSStackTraceKey</code> and provides additional
-		information to let you know where the exception occurred.
+	        When this is set to <em>YES</em> a stack trace is
+                added to the output of the description method of
+                a raised exception object.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_STRING_ENCODING</term>

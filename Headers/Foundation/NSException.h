@@ -83,9 +83,10 @@ extern "C" {
 */
 @interface NSException : NSObject <NSCoding, NSCopying>
 {    
+@private
   NSString *_e_name;
   NSString *_e_reason;
-  NSDictionary *_e_info;
+  void *_reserved;
 }
 
 /**
@@ -115,6 +116,14 @@ extern "C" {
 + (void) raise: (NSString*)name
 	format: (NSString*)format
      arguments: (va_list)argList;
+
+#if OS_API_VERSION(100500,GS_API_LATEST) && GS_API_VERSION(011501,GS_API_LATEST)
+/** Returns an array of the call stack return addresses at the point when
+ * the exception was raised.  Re-raising the exception does not change
+ * this value.
+ */
+- (NSArray*) callStackReturnAddresses;
+#endif
 
 /**
  * <init/>Initializes a newly allocated NSException object with a

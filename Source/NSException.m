@@ -41,6 +41,10 @@
 #import "Foundation/NSValue.h"
 #include <stdio.h>
 
+
+#define _e_info (((id*)_reserved)[0])
+#define _e_stack (((id*)_reserved)[1])
+
 typedef struct { @defs(NSThread) } *TInfo;
 
 /* This is the GNU name for the CTOR list */
@@ -760,15 +764,37 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
   ASSIGN(_e_name, name);
   ASSIGN(_e_reason, reason);
-  ASSIGN(_e_info, userInfo);
+  if (userInfo != nil)
+    {
+      if (_reserved == 0)
+        {
+          _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
+        }
+      ASSIGN(_e_info, userInfo);
+    }
   return self;
+}
+
+- (NSArray*) callStackReturnAddresses
+{
+  if (_reserved == 0)
+    {
+      return nil;
+    }
+  return _e_stack;
 }
 
 - (void) dealloc
 {
   DESTROY(_e_name);
   DESTROY(_e_reason);
-  DESTROY(_e_info);
+  if (_reserved != 0)
+    {
+      DESTROY(_e_info);
+      DESTROY(_e_stack);
+      NSZoneFree([self zone], _reserved);
+      _reserved = 0;
+    }
   [super dealloc];
 }
 
@@ -779,27 +805,14 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   NSHandler	*handler;
 #endif
 
-#if	defined(DEBUG)
-  if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES
-    && [_e_info objectForKey: @"GSStackTraceKey"] == nil)
+  if (_reserved == 0)
     {
-      NSMutableDictionary	*m;
-
-      if (_e_info == nil)
-	{
-	  _e_info = m = [NSMutableDictionary new];
-	}
-      else if ([_e_info isKindOfClass: [NSMutableDictionary class]] == YES)
-        {
-	  m = (NSMutableDictionary*)_e_info;
-        }
-      else
-	{
-	  m = [_e_info mutableCopy];
-	  RELEASE(_e_info);
-	  _e_info = m;
-	}
-      [m setObject: GSPrivateStackAddresses() forKey: @"GSStackTraceKey"];
+      _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
+    }
+#if	defined(DEBUG)
+  if (_e_stack == nil)
+    {
+      ASSIGN(_e_stack, GSPrivateStackAddresses());
     }
 #endif
 
@@ -874,6 +887,10 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 - (NSDictionary*) userInfo
 {
+  if (_reserved == 0)
+    {
+      return nil;
+    }
   return _e_info;
 }
 
@@ -889,73 +906,75 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
+  id    info = (_reserved == 0) ? nil : _e_info;
+
   [aCoder encodeValueOfObjCType: @encode(id) at: &_e_name];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_e_reason];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_e_info];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &info];
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
+  id    info;
+
   [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_name];
   [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_reason];
-  [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_info];
-  return self;
-}
-
-- (id) deepen
-{
-  _e_name = [_e_name copyWithZone: [self zone]];
-  _e_reason = [_e_reason copyWithZone: [self zone]];
-  _e_info = [_e_info copyWithZone: [self zone]];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &info];
+  if (info != nil)
+    {
+      if (_reserved == 0)
+        {
+          _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
+        }
+      _e_info = info;
+    }
   return self;
 }
 
 - (id) copyWithZone: (NSZone*)zone
 {
   if (NSShouldRetainWithZone(self, zone))
-    return RETAIN(self);
+    {
+      return RETAIN(self);
+    }
   else
-    return [(NSException*)NSCopyObject(self, 0, zone) deepen];
+    {
+      return [[[self class] alloc] initWithName: [self name]
+                                         reason: [self reason]
+                                       userInfo: [self userInfo]];
+    }
 }
 
 - (NSString*) description
 {
-  if (_e_info)
+  if (_reserved != 0)
     {
-/* Convert stack information from an array of addresses to a stacktrace
- * for display.
- */
-#if     defined(STACKSYMBOLS)
-      id    o;
-
-      o = [_e_info objectForKey: @"GSStackTraceKey"];
-      if ([o isKindOfClass: [NSArray class]] == YES)
+      if (_e_stack != nil)
         {
-          NSMutableDictionary  *m;
+          id    o = _e_stack;
 
-          o = [[GSStackTrace alloc] initWithAddresses:  o];
-          if ([_e_info isKindOfClass: [NSMutableDictionary class]] == YES)
-            {
-              m = (NSMutableDictionary*)_e_info;
-            }
-          else
-            {
-              m = [_e_info mutableCopy];
-              RELEASE(_e_info);
-              _e_info = m;
-            }
-          [m setObject: o forKey: @"GSStackTraceKey"];
-          RELEASE(o);
-        }
+#if     defined(STACKSYMBOLS)
+          /* Convert stack information from an array of addresses
+           * to a stacktrace for display.
+           */
+          o = AUTORELEASE([[GSStackTrace alloc] initWithAddresses:  o]);
 #endif
-      return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@ INFO:%@",
-	[super description], _e_name, _e_reason, _e_info];
+          if (_e_info != nil)
+            {
+              return [NSString stringWithFormat:
+                @"%@ NAME:%@ REASON:%@ INFO:%@ STACK:%@",
+                [super description], _e_name, _e_reason, _e_info, o];
+            }
+          return [NSString stringWithFormat:
+            @"%@ NAME:%@ REASON:%@ STACK:%@",
+            [super description], _e_name, _e_reason, o];
+        }
+      return [NSString stringWithFormat:
+        @"%@ NAME:%@ REASON:%@ INFO:%@",
+        [super description], _e_name, _e_reason, _e_info];
     }
-  else
-    {
-      return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
-	[super description], _e_name, _e_reason];
-    }
+  return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
+    [super description], _e_name, _e_reason];
 }
 
 @end

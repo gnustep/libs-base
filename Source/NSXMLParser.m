@@ -29,6 +29,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSXMLParser.h>
 #include <Foundation/NSData.h>
+#include <Foundation/NSDictionary.h>
 #include <Foundation/NSObjCRuntime.h>
 
 NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
@@ -908,7 +909,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #if EXTRA_DEBUG
           NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c: ' ');
 #endif
-          parameters=[NSMutableDictionary dictionaryWithCapacity: 5];
+          parameters = [NSMutableDictionary dictionaryWithCapacity: 5];
           while (c != EOF)
             {
 // collect arguments
