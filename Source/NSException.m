@@ -699,16 +699,18 @@ static void _terminate()
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
-  NSString	*stack;
-
   fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
     GSPrivateArgZero(),
     [[exception name] lossyCString], [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
-  stack = [[[exception userInfo] objectForKey: @"GSStackTraceKey"] description];
-  if (stack != nil)
+  if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
     {
-      fprintf(stderr, "Stack\n%s\n", [stack lossyCString]);
+      id o = [exception callStackReturnAddresses];
+
+#if     defined(STACKSYMBOLS)
+      o = AUTORELEASE([[GSStackTrace alloc] initWithAddresses:  o]);
+#endif
+      fprintf(stderr, "Stack\n%s\n", [o lossyCString]);
     }
   fflush(stderr);	/* NEEDED UNDER MINGW */
 
@@ -949,7 +951,8 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
   if (_reserved != 0)
     {
-      if (_e_stack != nil)
+      if (_e_stack != nil
+        && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
         {
           id    o = _e_stack;
 
