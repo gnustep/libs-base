@@ -700,6 +700,7 @@ static void _terminate()
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
+  CREATE_AUTORELEASE_POOL(pool);
   fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
     GSPrivateArgZero(),
     [[exception name] lossyCString], [[exception reason] lossyCString]);
@@ -711,10 +712,10 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 #if     defined(STACKSYMBOLS)
       o = AUTORELEASE([[GSStackTrace alloc] initWithAddresses:  o]);
 #endif
-      fprintf(stderr, "Stack\n%s\n", [o lossyCString]);
+      fprintf(stderr, "Stack\n%s\n", [[o description] lossyCString]);
     }
   fflush(stderr);	/* NEEDED UNDER MINGW */
-
+  RELEASE(pool);
   _terminate();
 }
 
@@ -950,6 +951,9 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 - (NSString*) description
 {
+  CREATE_AUTORELEASE_POOL(pool);
+  NSString      *result;
+
   if (_reserved != 0)
     {
       if (_e_stack != nil
@@ -965,20 +969,32 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 #endif
           if (_e_info != nil)
             {
-              return [NSString stringWithFormat:
+              result = [NSString stringWithFormat:
                 @"%@ NAME:%@ REASON:%@ INFO:%@ STACK:%@",
                 [super description], _e_name, _e_reason, _e_info, o];
             }
-          return [NSString stringWithFormat:
-            @"%@ NAME:%@ REASON:%@ STACK:%@",
-            [super description], _e_name, _e_reason, o];
+          else
+            {
+              result = [NSString stringWithFormat:
+                @"%@ NAME:%@ REASON:%@ STACK:%@",
+                [super description], _e_name, _e_reason, o];
+            }
         }
-      return [NSString stringWithFormat:
-        @"%@ NAME:%@ REASON:%@ INFO:%@",
-        [super description], _e_name, _e_reason, _e_info];
+      else
+        {
+          result = [NSString stringWithFormat:
+            @"%@ NAME:%@ REASON:%@ INFO:%@",
+            [super description], _e_name, _e_reason, _e_info];
+        }
     }
-  return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
-    [super description], _e_name, _e_reason];
+  else
+    {
+      result = [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
+        [super description], _e_name, _e_reason];
+    }
+  RETAIN(result);
+  DESTROY(pool);
+  return AUTORELEASE(result);
 }
 
 @end
