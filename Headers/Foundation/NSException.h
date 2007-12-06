@@ -156,11 +156,6 @@ extern "C" {
 - (NSString*) reason;
 
 /** Returns the exception userInfo dictionary.<br />
- * There is a GNUstep extension, enabled when the GNUSTEP_STACK_TRACE
- * environment variable is set to YES, which causes a stack trace to
- * be placed in this dictionary (keyed on GSStackTraceKey) at the point
- * when the exception is raised.  This can be useful for determining
- * where an exception ocurred.
  */
 - (NSDictionary*) userInfo;
 
