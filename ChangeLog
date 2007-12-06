@@ -1,5 +1,10 @@
 2007-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSException.m: honour environment variable for displaying
+	stack trace.
+
+2007-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSIndexSet.m (-initWithCoder:): Implement guessed algorithm
 	for keyed archiving of sets with multiple index ranges.
 
