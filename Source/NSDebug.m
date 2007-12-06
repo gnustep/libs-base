@@ -1110,7 +1110,8 @@ NSMutableArray *
 GSPrivateStackAddresses(void)
 {
   unsigned              n = NSCountFrames();
-  NSMutableArray        *stack;
+  NSMutableArray        *stack = [NSMutableArray arrayWithCapacity: n];
+  CREATE_AUTORELEASE_POOL(pool);
   unsigned              i;
   jmp_buf	        *env;
   void		        (*old)(int);
@@ -1127,7 +1128,6 @@ GSPrivateStackAddresses(void)
       n--;
     }
 
-  stack = [NSMutableArray arrayWithCapacity: n];
   env = jbuf();
   if (setjmp(*env) == 0)
     {
@@ -1192,7 +1192,7 @@ GSPrivateStackAddresses(void)
       memcpy(&old, val, sizeof(old));
       signal(SIGSEGV, old);
     }
-
+  RELEASE(pool);
   return stack;
 }
 
