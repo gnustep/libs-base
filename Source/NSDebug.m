@@ -1110,12 +1110,24 @@ NSMutableArray *
 GSPrivateStackAddresses(void)
 {
   unsigned              n = NSCountFrames();
-  NSMutableArray        *stack = [NSMutableArray arrayWithCapacity: n];
+  NSMutableArray        *stack;
   unsigned              i;
   jmp_buf	        *env;
   void		        (*old)(int);
   void		        *val;
 
+  /* There should be more frame addresses than return addresses.
+   */
+  if (n > 0)
+    {
+      n--;
+    }
+  if (n > 0)
+    {
+      n--;
+    }
+
+  stack = [NSMutableArray arrayWithCapacity: n];
   env = jbuf();
   if (setjmp(*env) == 0)
     {

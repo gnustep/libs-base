@@ -216,7 +216,7 @@ GSPrivateBaseAddress(void *addr, void **base)
 	     function: (NSString*)function 
 		 line: (int)lineNo
 {
-  _module = RETAIN(_module);
+  _module = RETAIN(module);
   _address = address;
   _fileName = [file copy];
   _functionName = [function copy];
@@ -424,7 +424,8 @@ static void find_address (bfd *abfd, asection *section,
 
 - (GSFunctionInfo *) functionForAddress: (void*) address
 {
-  struct SearchAddressStruct searchInfo = { address, self, _symbols, nil };
+  struct SearchAddressStruct searchInfo =
+    { address, self, _symbols, nil };
 
   bfd_map_over_sections (_abfd,
     (void (*) (bfd *, asection *, void *)) find_address, &searchInfo);

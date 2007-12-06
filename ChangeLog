@@ -1,5 +1,10 @@
 2007-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSException.m: fix error reporting module containing code
+	and limit the length of the stack trace.
+
+2007-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURL.m: Increase detail of information about bad URL string
 	on initialisation.  Only output debug info if --GNU-Debug=dflt
 
