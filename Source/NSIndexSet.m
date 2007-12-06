@@ -23,10 +23,11 @@
 
    */
 
-#include "Foundation/NSCoder.h"
-#include	<Foundation/NSIndexSet.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSZone.h>
+#include        "Foundation/NSCoder.h"
+#include        "Foundation/NSData.h"
+#include	"Foundation/NSIndexSet.h"
+#include	"Foundation/NSException.h"
+#include	"Foundation/NSZone.h"
 
 #define	GSI_ARRAY_TYPE	NSRange
 #define GSI_ARRAY_TYPES	GSI_ARRAY_EXTRA
@@ -298,8 +299,48 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      // FIXME
-      [self notImplemented:_cmd];
+      NSMutableData     *m = [NSMutableData dataWithCapacity: rangeCount*2];
+      unsigned          i;
+
+      for (i = 0; i < rangeCount; i++)
+        {
+          NSRange	r;
+          unsigned      v;
+          uint8_t       b;
+      
+          r = GSIArrayItemAtIndex(_array, 0).ext;
+          v = r.location;
+          do
+            {
+              if (v > 0x7f)
+                {
+                  b = (v & 0x7f) | 0x80; 
+                }
+              else
+                {
+                  b = v;
+                }
+              v >>= 7;
+              [m appendBytes: &b length: 1];
+            }
+          while (v > 0);
+          v = r.length;
+          do
+            {
+              if (v > 0x7f)
+                {
+                  b = (v & 0x7f) | 0x80; 
+                }
+              else
+                {
+                  b = v;
+                }
+              v >>= 7;
+              [m appendBytes: &b length: 1];
+            }
+          while (v > 0);
+          [aCoder encodeObject: m forKey: @"NSRangeData"];
+        }
     }
 }
 
@@ -510,13 +551,65 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      NSData * data = nil;
+      NSMutableIndexSet *other = [NSMutableIndexSet new];
+      NSData            *data = nil;
+      const uint8_t     *bytes;
+      unsigned          length;
+      unsigned          index;
 
       if ([aCoder containsValueForKey: @"NSRangeData"])
         {
           data = [aCoder decodeObjectForKey: @"NSRangeData"];
         }
-      
+      bytes = (const uint8_t*)[data bytes];
+      length = [data length];
+      while (index < length)
+        {
+          NSRange       range;
+          unsigned      offset;
+          unsigned      value;
+          unsigned      next;
+
+          for (offset = 0; index + offset < length; offset++)
+            {
+              if (bytes[index + offset] < 0x80)
+                {
+                  break;
+                }
+            }
+          NSAssert(index + offset < length && bytes[index + offset] < 0x80,
+            NSInternalInconsistencyException);
+          next = index + offset + 1;
+          value = bytes[index + offset];
+          while (offset-- > 0)
+            {
+              value <<= 7;
+              value += (bytes[index + offset] & 0x7f);
+            }
+          range.location = value;
+          index  = next;
+          for (offset = 0; index + offset < length; offset++)
+            {
+              if (bytes[index + offset] < 0x80)
+                {
+                  break;
+                }
+            }
+          NSAssert(index + offset < length && bytes[index + offset] < 0x80,
+            NSInternalInconsistencyException);
+          next = index + offset + 1;
+          value = bytes[index + offset];
+          while (offset-- > 0)
+            {
+              value <<= 7;
+              value += (bytes[index + offset] & 0x7f);
+            }
+          range.length = value;
+          index = next;
+          [other addIndexesInRange: range];
+        }
+      self = [self initWithIndexSet: other];
+      RELEASE(other);
       /*
         FIXME:
         NSLog(@"Decoded count %d, data %@", rangeCount, data);
@@ -526,7 +619,6 @@ static unsigned posForIndex(GSIArray array, unsigned index)
         5 + 6 + 23 gives <05021701>
         155 + 156 + 223 gives <9b0102df 0101>
        */
-      [self notImplemented:_cmd];
     }
 
   return self;
