@@ -868,8 +868,8 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 	    }
 	}
 
-      NSDebugMLLog(@"NSRunLoop", @"limit date %f",
-	[when timeIntervalSinceReferenceDate]);
+      NSDebugMLLog(@"NSRunLoop", @"limit date %f in %@",
+	[when timeIntervalSinceReferenceDate], mode);
     }
   return when;
 }
@@ -950,8 +950,6 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
       else
 	{
 	  /* Wait until the LIMIT_DATE. */
-	  NSDebugMLLog(@"NSRunLoop", @"accept I/P before %f (sec from now %f)",
-	    [limit_date timeIntervalSinceReferenceDate], ti);
 	  if (ti >= INT_MAX / 1000)
 	    {
 	      timeout_ms = INT_MAX;	// Far future.
@@ -961,6 +959,10 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 	      timeout_ms = ti * 1000;
 	    }
 	}
+
+      NSDebugMLLog(@"NSRunLoop",
+        @"accept I/P before %f (sec from now %f) in %@",
+        [limit_date timeIntervalSinceReferenceDate], ti, mode);
 
       if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
 	{
@@ -982,6 +984,7 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
        */
       [context endPoll];
       [_contextStack removeObjectIdenticalTo: context];
+      NSDebugMLLog(@"NSRunLoop", @"accept I/P completed in %@", mode);
     }
   NS_HANDLER
     {
@@ -1016,7 +1019,7 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
   d = [self limitDateForMode: mode];
   if (d == nil)
     {
-      NSDebugMLLog(@"NSRunLoop", @"run mode with nothing to do");
+      NSDebugMLLog(@"NSRunLoop", @"run mode with nothing to don %@", mode);
       /*
        * Notify if any tasks have completed.
        */
