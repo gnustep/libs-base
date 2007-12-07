@@ -740,6 +740,10 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 {
   GSRunLoopCtxt	*context;
   GSIArray	timers;
+  unsigned      i;
+
+  NSDebugMLLog(@"NSRunLoop", @"add timer for %f in %@",
+    [[timer fireDate] timeIntervalSinceReferenceDate], mode);
 
   context = NSMapGet(_contextMap, mode);
   if (context == nil)
@@ -749,7 +753,30 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
       RELEASE(context);
     }
   timers = context->timers;
-  GSIArrayInsertSorted(timers, (GSIArrayItem)((id)timer), tSort);
+  i = GSIArrayCount(timers);
+  while (i-- > 0)
+    {
+      if (timer == GSIArrayItemAtIndex(timers, i).obj)
+        {
+          return;       /* Timer already present */
+        }
+    }
+  /*
+   * NB. A previous version of the timer code maintained an ordered
+   * array on the theory that we could improve performance by only
+   * checking the first few timers (up to the first one whose fire
+   * date is in the future) each time -limitDateForMode: is called.
+   * The problem with this was that it's possible for one timer to
+   * be added in multiple modes (or to different run loops) and for
+   * a repeated timer this could mean that the firing of the timer
+   * in one mode/loop adjusts its date ... without changing the
+   * ordering of the timers in the other modes/loops which contain
+   * the timer.  When the ordering of timers in an array was broken
+   * we could get delays in processing timeouts, so we reverted to
+   * simply having timers in an unordered array and checking them
+   * all each time -limitDateForMode: is called.
+   */
+  GSIArrayAddItem(timers, (GSIArrayItem)((id)timer));
 }
 
 
@@ -776,6 +803,7 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 	  GSIArray		timers = context->timers;
 	  NSTimeInterval	now;
 	  NSTimer		*t;
+          unsigned              i;
 
 	  /*
 	   * Save current time so we don't keep redoing system call to
@@ -788,25 +816,32 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 	  /*
 	   * Fire housekeeping timer as necessary
 	   */
-	  while ((t = context->housekeeper) != nil
+	  if ((t = context->housekeeper) != nil
 	    && ([timerDate(t) timeIntervalSinceReferenceDate] <= now))
 	    {
+              NSDate    *next;
+
 	      [t fire];
 	      IF_NO_GC([arp emptyPool]);
 	      now = GSTimeNow();
+              next = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate:
+                now + [t timeInterval]];
+              [t setFireDate: next];
+              RELEASE(next);
 	    }
 
 	  /*
 	   * Handle normal timers ... remove invalidated timers and fire any
 	   * whose date has passed.
 	   */
-	  while (GSIArrayCount(timers) != 0)
+          i = GSIArrayCount(timers);
+          while (i-- > 0)
 	    {
-	      NSTimer	*min_timer = GSIArrayItemAtIndex(timers, 0).obj;
+	      NSTimer	*min_timer = GSIArrayItemAtIndex(timers, i).obj;
 
 	      if (timerInvalidated(min_timer) == YES)
 		{
-		  GSIArrayRemoveItemAtIndex(timers, 0);
+		  GSIArrayRemoveItemAtIndex(timers, i);
 		  min_timer = nil;
 		  continue;
 		}
@@ -817,18 +852,21 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 		  break;
 		}
 
-	      GSIArrayRemoveItemAtIndexNoRelease(timers, 0);
 	      /* Firing will also increment its fireDate, if it is repeating. */
 	      [min_timer fire];
 	      now = GSTimeNow();
 	      if (timerInvalidated(min_timer) == NO)
 		{
-		  GSIArrayInsertSortedNoRetain(timers,
-		    (GSIArrayItem)((id)min_timer), tSort);
+                  NSDate        *next;
+
+                  next = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate:
+                    now + [min_timer timeInterval]];
+                  [min_timer setFireDate: next];
+                  RELEASE(next);
 		}
 	      else
 		{
-		  RELEASE(min_timer);
+                  GSIArrayRemoveItemAtIndex(timers, i);
 		}
 	      GSPrivateNotifyASAP();		/* Post notifications. */
 	      IF_NO_GC([arp emptyPool]);

@@ -29,6 +29,7 @@
 #include <Foundation/NSZone.h>
 
 /* To turn assertions on, define GSI_ARRAY_CHECKS */
+#define GSI_ARRAY_CHECKS 1
 
 #if	defined(__cplusplus)
 extern "C" {
