@@ -5,6 +5,8 @@
 	than one run loop mode and firing in one mode could result in badly
 	ordered timers in another mode.
 	Handle resetting of time for repeating timers.
+	Allow timeout handler callbacks to use ([-setFireDate:]) and have
+	it honoured.
 	* Source/NSTimer.m: Remove resetting of fire date from ([-fire])
 	and move it to the run loop for MacOS-X compatibility.
 
