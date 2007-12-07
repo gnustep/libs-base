@@ -253,11 +253,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
   return ((tvars)t)->_invalidated;
 }
 
-static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
-{
-  return [timerDate(i0.obj) compare: timerDate(i1.obj)];
-}
-
 
 
 @implementation NSObject (TimedPerformers)
@@ -816,19 +811,34 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
 	  /*
 	   * Fire housekeeping timer as necessary
 	   */
-	  if ((t = context->housekeeper) != nil
-	    && ([timerDate(t) timeIntervalSinceReferenceDate] <= now))
-	    {
-              NSDate    *next;
+	  if ((t = context->housekeeper) != nil)
+            {
+              if (timerInvalidated(t))
+                {
+                  DESTROY(context->housekeeper);
+                }
+              else if ([timerDate(t) timeIntervalSinceReferenceDate] <= now)
+                {
+                  NSDate    *d = timerDate(t);
 
-	      [t fire];
-	      IF_NO_GC([arp emptyPool]);
-	      now = GSTimeNow();
-              next = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate:
-                now + [t timeInterval]];
-              [t setFireDate: next];
-              RELEASE(next);
-	    }
+                  [t fire];
+                  GSPrivateNotifyASAP();
+                  IF_NO_GC([arp emptyPool]);
+                  now = GSTimeNow();
+
+                  /* Increment fire date unless timer is invalidated or the 
+                   * timeout handler has already updated it.
+                   */
+                  if (timerInvalidated(t) == NO && timerDate(t) == d)
+                    {
+                      d = [[NSDate alloc]
+                        initWithTimeIntervalSinceReferenceDate:
+                        now + [t timeInterval]];
+                      [t setFireDate: d];
+                      RELEASE(d);
+                    }
+                }
+            }
 
 	  /*
 	   * Handle normal timers ... remove invalidated timers and fire any
@@ -837,39 +847,40 @@ static NSComparisonResult tSort(GSIArrayItem i0, GSIArrayItem i1)
           i = GSIArrayCount(timers);
           while (i-- > 0)
 	    {
-	      NSTimer	*min_timer = GSIArrayItemAtIndex(timers, i).obj;
+              NSDate    *d;
 
-	      if (timerInvalidated(min_timer) == YES)
+	      t = GSIArrayItemAtIndex(timers, i).obj;
+	      if (timerInvalidated(t) == YES)
 		{
 		  GSIArrayRemoveItemAtIndex(timers, i);
-		  min_timer = nil;
+		  t = nil;
 		  continue;
 		}
 
-	      if ([timerDate(min_timer) timeIntervalSinceReferenceDate] > now)
+              d = timerDate(t);
+	      if ([d timeIntervalSinceReferenceDate] > now)
 		{
-		  when = [timerDate(min_timer) copy];
+		  when = [timerDate(t) copy];
 		  break;
 		}
 
 	      /* Firing will also increment its fireDate, if it is repeating. */
-	      [min_timer fire];
-	      now = GSTimeNow();
-	      if (timerInvalidated(min_timer) == NO)
-		{
-                  NSDate        *next;
-
-                  next = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate:
-                    now + [min_timer timeInterval]];
-                  [min_timer setFireDate: next];
-                  RELEASE(next);
-		}
-	      else
-		{
-                  GSIArrayRemoveItemAtIndex(timers, i);
-		}
+	      [t fire];
 	      GSPrivateNotifyASAP();		/* Post notifications. */
 	      IF_NO_GC([arp emptyPool]);
+	      now = GSTimeNow();
+
+              /* Increment fire date unless timer is invalidated or the 
+               * timeout handler has already updated it.
+               */
+	      if (timerInvalidated(t) == NO && timerDate(t) == d)
+                {
+                  d = [[NSDate alloc]
+                    initWithTimeIntervalSinceReferenceDate:
+                    now + [t timeInterval]];
+                  [t setFireDate: d];
+                  RELEASE(d);
+                }
 	    }
 	  _currentMode = savedMode;
 	}
