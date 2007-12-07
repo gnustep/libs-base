@@ -36,7 +36,7 @@ extern "C" {
 /**
  * Type for representing unicode characters.  (16-bit)
  */
-typedef unsigned short unichar;
+typedef uint16_t unichar;
 
 @class NSArray;
 @class NSCharacterSet;
