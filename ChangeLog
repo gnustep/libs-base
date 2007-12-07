@@ -1,3 +1,13 @@
+2007-12-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Keep timers unordered and check all of them
+	each time round ... to avoid bug where a timer is added to more
+	than one run loop mode and firing in one mode could result in badly
+	ordered timers in another mode.
+	Handle resetting of time for repeating timers.
+	* Source/NSTimer.m: Remove resetting of fire date from ([-fire])
+	and move it to the run loop for MacOS-X compatibility.
+
 2007-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Report the current mode when producing detailed
