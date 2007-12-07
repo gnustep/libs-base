@@ -347,6 +347,13 @@ static void setNonblocking(SOCKET fd)
   return NO;
 }
 
+- (BOOL) hasBytesAvailable
+{
+  if ([self _isOpened] && [self streamStatus] != NSStreamStatusAtEnd)
+    return YES;
+  return NO;
+}
+
 - (id) initWithFileAtPath: (NSString *)path
 {
   if ((self = [super init]) != nil)
