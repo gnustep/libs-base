@@ -1,5 +1,11 @@
 2007-12-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Additions/GNUstepBase/GSConfig.h.in:
+	* Headers/Foundation/NSString.h:
+	declare unichar as uint16_t
+
+2007-12-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSRunLoop.m: Keep timers unordered and check all of them
 	each time round ... to avoid bug where a timer is added to more
 	than one run loop mode and firing in one mode could result in badly
