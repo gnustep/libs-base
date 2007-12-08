@@ -1,3 +1,8 @@
+2007-12-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Deal with mutation of timers array during
+	firing of a timer.
+
 2007-12-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSConfig.h.in:
