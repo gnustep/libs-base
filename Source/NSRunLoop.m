@@ -860,26 +860,55 @@ static inline BOOL timerInvalidated(NSTimer *t)
               d = timerDate(t);
 	      if ([d timeIntervalSinceReferenceDate] > now)
 		{
-		  when = [timerDate(t) copy];
+		  when = [d copy];
 		  break;
 		}
 
-	      /* Firing will also increment its fireDate, if it is repeating. */
+	      /* When firing the timer we must remove it from
+               * the loop so that if the -fire methods re-runs
+               * the loop we do not get recursive entry into
+               * the timer.  This appears to be the behavior
+               * in MacOS-X also.
+               */
+	      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
 	      [t fire];
 	      GSPrivateNotifyASAP();		/* Post notifications. */
 	      IF_NO_GC([arp emptyPool]);
 	      now = GSTimeNow();
 
-              /* Increment fire date unless timer is invalidated or the 
-               * timeout handler has already updated it.
+              /* The -fire method could have re-run the current run loop
+               * and caused timers to have been added (not a problem),
+               * or invalidated and/or removed.  In the latter case the
+               * timers array could have shrunk, so we must check that
+               * our loop index is not too large.
                */
-	      if (timerInvalidated(t) == NO && timerDate(t) == d)
+              if (i > GSIArrayCount(timers))
                 {
-                  d = [[NSDate alloc]
-                    initWithTimeIntervalSinceReferenceDate:
-                    now + [t timeInterval]];
-                  [t setFireDate: d];
-                  RELEASE(d);
+                  i = GSIArrayCount(timers);
+                }
+	      if (timerInvalidated(t) == NO)
+                {
+                  /* Increment fire date unless the timeout handler
+                   * has already updated it. Then put the timer back
+                   * in the array so that it can fire again next
+                   * time this method is called.
+                   */
+                  if (timerDate(t) == d)
+                    {
+                      d = [[NSDate alloc]
+                        initWithTimeIntervalSinceReferenceDate:
+                        now + [t timeInterval]];
+                      [t setFireDate: d];
+                      RELEASE(d);
+                    }
+		  GSIArrayInsertItemNoRetain(timers, (GSIArrayItem)((id)t), i);
+                }
+              else
+                {
+                  /* The timer was invalidated, so we can release it as we
+                   * aren't p[utting it back in the array.
+                   */
+                  RELEASE(t);
                 }
 	    }
 	  _currentMode = savedMode;
