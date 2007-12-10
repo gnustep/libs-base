@@ -1,3 +1,8 @@
+2007-12-10  Chris Farber <chris@chrisfarber.net>
+
+	* Source/NSKeyValueObserving.m: implement methods needed for gui
+	bindings.
+
 2007-12-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Deal with mutation of timers array during

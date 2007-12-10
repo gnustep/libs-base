@@ -25,19 +25,23 @@
 */
 
 #include "GNUstepBase/preface.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSKeyValueCoding.h"
-#include "Foundation/NSKeyValueObserving.h"
-#include "Foundation/NSSet.h"
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GNUstepBase/Unicode.h"
-#include "GNUstepBase/GSLock.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSHashTable.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSKeyValueObserving.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/Unicode.h"
+#import "GNUstepBase/GSLock.h"
 
 /*
  * IMPLEMENTATION NOTES
@@ -68,11 +72,10 @@ NSString *const NSKeyValueChangeNewKey
 NSString *const NSKeyValueChangeOldKey
   = @"NSKeyValueChangeOldKey";
 
-static const char	*dummy = "";
-
 static NSRecursiveLock	*kvoLock = nil;
 static NSMapTable	*classTable = 0;
 static NSMapTable	*infoTable = 0;
+static NSMapTable       *dependentKeyTable;
 static Class		baseClass;
 
 /*
@@ -85,9 +88,7 @@ static Class		baseClass;
 
 /*
  * This is a placeholder class which has the abstract setter method used
- * to replace all setter methods in the original.  In fact we need different
- * setter methods for different arguments ... but right now we just have
- * one for objects.
+ * to replace all setter methods in the original.
  */
 @interface	GSKVOSetter : NSObject
 - (void) setter: (void*)val;
@@ -108,16 +109,44 @@ static Class		baseClass;
  */
 @interface	GSKVOInfo : NSObject
 {
-  NSObject	*instance;	// Not retained.
-  NSLock	*iLock;
-  NSMapTable	*paths;
+  NSObject	        *instance;	// Not retained.
+  NSLock	        *iLock;
+  NSMapTable	        *paths;
+  NSMutableDictionary   *changes;
 }
-- (void) changeForKey: (NSString*)aKey;
+- (void) notifyForKey: (NSString *)aKey ofChange: (NSDictionary *)change;
+- (void) setChange: (NSDictionary *)info forKey: (NSString *)key;
+- (NSDictionary *) changeForKey: (NSString *)key;
 - (id) initWithInstance: (NSObject*)i;
 - (BOOL) isUnobserved;
+- (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath;
+
 @end
 
-
+@interface NSKeyValueObservationForwarder : NSObject
+{
+  id                                    target;
+  NSKeyValueObservationForwarder        *child;
+  void                                  *contextToForward;
+  id                                    observedObjectForUpdate;
+  NSString                              *keyForUpdate;
+  id                                    observedObjectForForwarding;
+  NSString                              *keyForForwarding;
+  NSString                              *keyPathToForward;
+}
+
++ (id) forwarderWithKeyPath: (NSString *)keyPath
+                   ofObject: (id)object
+                 withTarget: (id)aTarget
+                    context: (void *)context;
+
+- (id) initWithKeyPath: (NSString *)keyPath
+              ofObject: (id)object
+            withTarget: (id)aTarget
+               context: (void *)context;
+
+- (void) keyPathChanged: (id)objectToObserve;
+@end
 
 @implementation	GSKVOBase
 
@@ -137,71 +166,77 @@ static Class		baseClass;
 
 - (void) setValue: (id)anObject forKey: (NSString*)aKey
 {
-  if ([[self class] automaticallyNotifiesObserversForKey: aKey])
-    {
-      [self willChangeValueForKey: aKey];
-      [super setValue: anObject forKey: aKey];
-      [self didChangeValueForKey: aKey];
-    }
-  else
-    {
-      [super setValue: anObject forKey: aKey];
-    }
-}
+  Class		c = [self class];
+  void		(*imp)(id,SEL,id,id);
 
-- (void) setValue: (id)anObject forKeyPath: (NSString*)aKey
-{
+  imp = (void (*)(id,SEL,id,id))[c instanceMethodForSelector: _cmd];
+
   if ([[self class] automaticallyNotifiesObserversForKey: aKey])
     {
       [self willChangeValueForKey: aKey];
-      [super setValue: anObject forKeyPath: aKey];
+      imp(self,_cmd,anObject,aKey);
       [self didChangeValueForKey: aKey];
     }
   else
     {
-      [super setValue: anObject forKeyPath: aKey];
+      imp(self,_cmd,anObject,aKey);
     }
 }
 
 - (void) takeStoredValue: (id)anObject forKey: (NSString*)aKey
 {
+  Class		c = [self class];
+  void		(*imp)(id,SEL,id,id);
+
+  imp = (void (*)(id,SEL,id,id))[c instanceMethodForSelector: _cmd];
+
   if ([[self class] automaticallyNotifiesObserversForKey: aKey])
     {
       [self willChangeValueForKey: aKey];
-      [super takeStoredValue: anObject forKey: aKey];
+      imp(self,_cmd,anObject,aKey);
       [self didChangeValueForKey: aKey];
     }
   else
     {
-      [super takeStoredValue: anObject forKey: aKey];
+      imp(self,_cmd,anObject,aKey);
     }
 }
 
 - (void) takeValue: (id)anObject forKey: (NSString*)aKey
 {
+  Class		c = [self class];
+  void		(*imp)(id,SEL,id,id);
+
+  imp = (void (*)(id,SEL,id,id))[c instanceMethodForSelector: _cmd];
+
   if ([[self class] automaticallyNotifiesObserversForKey: aKey])
     {
       [self willChangeValueForKey: aKey];
-      [super takeValue: anObject forKey: aKey];
+      imp(self,_cmd,anObject,aKey);
       [self didChangeValueForKey: aKey];
     }
   else
     {
-      [super takeValue: anObject forKey: aKey];
+      imp(self,_cmd,anObject,aKey);
     }
 }
 
 - (void) takeValue: (id)anObject forKeyPath: (NSString*)aKey
 {
+  Class		c = [self class];
+  void		(*imp)(id,SEL,id,id);
+
+  imp = (void (*)(id,SEL,id,id))[c instanceMethodForSelector: _cmd];
+
   if ([[self class] automaticallyNotifiesObserversForKey: aKey])
     {
       [self willChangeValueForKey: aKey];
-      [super takeValue: anObject forKeyPath: aKey];
+      imp(self,_cmd,anObject,aKey);
       [self didChangeValueForKey: aKey];
     }
   else
     {
-      [super takeValue: anObject forKeyPath: aKey];
+      imp(self,_cmd,anObject,aKey);
     }
 }
 
@@ -428,7 +463,8 @@ static NSString *newKey(SEL _cmd)
   Class		c = [self class];
   void		(*imp)(id,SEL,unsigned long long);
 
-  imp = (void (*)(id,SEL,unsigned long long))[c instanceMethodForSelector: _cmd];
+  imp = (void (*)(id,SEL,unsigned long long))
+    [c instanceMethodForSelector: _cmd];
 
   key = newKey(_cmd);
   if ([c automaticallyNotifiesObserversForKey: key] == YES)
@@ -496,7 +532,12 @@ static NSString *newKey(SEL _cmd)
    * FIXME ... should store an object containing context and options.
    * For simplicity right now, just store context or a dummy value.
    */
-  NSMapInsert(observers, (void*)anObserver, aContext == 0 ? dummy : aContext);
+  NSMapTable * observer = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
+      NSNonOwnedPointerMapValueCallBacks, 3);
+  NSMapInsert(observer, (void *)@"context", aContext);
+  NSMapInsert(observer, (void *)@"options", (void *)options);
+
+  NSMapInsert(observers, (void*)anObserver, observer);
   [iLock unlock];
 }
 
@@ -507,7 +548,11 @@ static NSString *newKey(SEL _cmd)
   [super dealloc];
 }
 
-- (void) changeForKey: (NSString*)aKey
+/*
+ * FIXME: This method will provide the observer with both the old and new
+ * values in the change dictionary, regardless of what was asked.
+ */
+- (void) notifyForKey: (NSString *)aKey ofChange: (NSDictionary *)change
 {
   NSMapTable		*observers;
 
@@ -517,20 +562,20 @@ static NSString *newKey(SEL _cmd)
     {
       NSMapEnumerator	enumerator;
       NSObject		*observer;
+      NSMapTable        *info;
       void		*context;
 
       enumerator = NSEnumerateMapTable(observers);
       while (NSNextMapEnumeratorPair(&enumerator,
-	(void **)(&observer), &context))
+	(void **)(&observer), (void **)&info))
 	{
-	  if (context == dummy) context = 0;
-
 	  if ([observer respondsToSelector:
 	    @selector(observeValueForKeyPath:ofObject:change:context:)])
 	    {
+              context = NSMapGet(info, (void*)@"context");
 	      [observer observeValueForKeyPath: aKey
 				      ofObject: instance
-					change: nil
+					change: change
 				       context: context];
 	    }
 	}
@@ -545,7 +590,19 @@ static NSString *newKey(SEL _cmd)
   paths = NSCreateMapTable(NSObjectMapKeyCallBacks,
     NSNonOwnedPointerMapValueCallBacks, 8);
   iLock = [GSLazyRecursiveLock new];
+  changes = [[NSMutableDictionary alloc] init];
   return self;
+}
+
+- (void) setChange: (NSDictionary *)info forKey: (NSString *)key
+{
+  [changes setValue: info forKey: key];
+
+}
+
+- (NSDictionary *) changeForKey: (NSString *)key
+{
+  return [changes valueForKey: key];
 }
 
 - (BOOL) isUnobserved
@@ -561,17 +618,21 @@ static NSString *newKey(SEL _cmd)
   return result;
 }
 
+/*
+ * removes the observer and returns the context.
+ */
 - (void) removeObserver: (NSObject*)anObserver forKeyPath: (NSString*)aPath
 {
   NSMapTable	*observers;
+  NSMapTable * observer;
 
   [iLock lock];
   observers = (NSMapTable*)NSMapGet(paths, (void*)aPath);
   if (observers != 0)
     {
-      void	*context = NSMapGet(observers, (void*)anObserver);
+      observer = NSMapGet(observers, (void*)anObserver);
 
-      if (context != 0)
+      if (observer != 0)
 	{
 	  NSMapRemove(observers, (void*)anObserver);
 	  if (NSCountMapTable(observers) == 0)
@@ -582,6 +643,185 @@ static NSString *newKey(SEL _cmd)
     }
   [iLock unlock];
 }
+
+- (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath
+{
+  NSMapTable	*observers;
+  NSMapTable * observer;
+  void * context = 0;
+
+  [iLock lock];
+  observers = (NSMapTable*)NSMapGet(paths, (void*)aPath);
+  if (observers != 0)
+    {
+      observer = NSMapGet(observers, (void*)anObserver);
+
+      if (observer != 0)
+	{
+          context = NSMapGet(observer, (void*)@"context");
+	}
+    }
+  [iLock unlock];
+  return context;
+}
+@end
+
+@implementation NSKeyValueObservationForwarder
+
++ (id) forwarderWithKeyPath: (NSString *)keyPath
+              ofObject: (id)object
+            withTarget: (id)aTarget
+               context: (void *)context
+{
+  return [[self alloc] initWithKeyPath: keyPath
+                              ofObject: object
+                            withTarget: aTarget
+                               context: context];
+}
+
+- (id) initWithKeyPath: (NSString *)keyPath
+              ofObject: (id)object
+            withTarget: (id)aTarget
+               context: (void *)context
+{
+  NSString * remainingKeyPath;
+  NSRange dot;
+
+  target = aTarget;
+  keyPathToForward = [keyPath copy];
+  contextToForward = context;
+
+  dot = [keyPath rangeOfString: @"."];
+  if (dot.location == NSNotFound)
+    {
+      [NSException raise: NSInvalidArgumentException
+        format: @"NSKeyValueObservationForwarder was not given a key path"];
+    }
+  keyForUpdate = [[keyPath substringToIndex: dot.location] copy];
+  remainingKeyPath = [keyPath substringFromIndex: dot.location + 1];
+  observedObjectForUpdate = object;
+  [object addObserver: self
+           forKeyPath: keyForUpdate
+              options: NSKeyValueObservingOptionNew
+                     | NSKeyValueObservingOptionOld
+              context: target];
+  dot = [remainingKeyPath rangeOfString: @"."];
+  if (dot.location != NSNotFound)
+    {
+      child = [NSKeyValueObservationForwarder
+        forwarderWithKeyPath: remainingKeyPath
+                    ofObject: [object valueForKey: keyForUpdate]
+                  withTarget: self
+                     context: NULL];
+      observedObjectForForwarding = nil;
+    }
+  else
+    {
+      keyForForwarding = [remainingKeyPath copy];
+      observedObjectForForwarding = [object valueForKey: keyForUpdate];
+      [observedObjectForForwarding addObserver: self
+                                    forKeyPath: keyForForwarding
+                                       options: NSKeyValueObservingOptionNew
+                                              | NSKeyValueObservingOptionOld
+                                       context: target];
+      child = nil;
+    }
+
+  return self;
+}
+
+- (void) finalize
+{
+  if (child)
+    {
+      [child finalize];
+    }
+  if (observedObjectForUpdate)
+    {
+      [observedObjectForUpdate removeObserver: self forKeyPath: keyForUpdate];
+    }
+  if (observedObjectForForwarding)
+    {
+      [observedObjectForForwarding removeObserver: self forKeyPath: 
+        keyForForwarding];
+    }
+  [self release];
+}
+
+- (void) dealloc
+{
+  [keyForUpdate release];
+  [keyForForwarding release];
+  [keyPathToForward release];
+
+  [super dealloc];
+}
+
+- (void) observeValueForKeyPath: (NSString *)keyPath
+                       ofObject: (id)anObject
+                         change: (NSDictionary *)change
+                        context: (void *)context
+{
+  if (anObject == observedObjectForUpdate) 
+    {
+      [self keyPathChanged:nil];
+    }
+  else
+    {
+      [target observeValueForKeyPath: keyPathToForward
+                            ofObject: observedObjectForUpdate
+                              change: change
+                             context: contextToForward];
+    }
+}
+
+- (void) keyPathChanged: (id)objectToObserve
+{
+  NSDictionary *change;
+  id oldValue;
+  id newValue;
+
+  if (objectToObserve != nil)
+    {
+      [observedObjectForUpdate removeObserver: self forKeyPath: keyForUpdate];
+      observedObjectForUpdate = objectToObserve;
+      [objectToObserve addObserver: self
+                        forKeyPath: keyForUpdate
+                           options: NSKeyValueObservingOptionNew
+                                  | NSKeyValueObservingOptionOld
+                           context: target];
+    }
+  if (observedObjectForForwarding != nil)
+    {
+      oldValue = [observedObjectForForwarding valueForKey: keyForForwarding];
+      [observedObjectForForwarding removeObserver: self forKeyPath: 
+        keyForForwarding];
+      observedObjectForForwarding = [observedObjectForUpdate
+        valueForKey:keyForUpdate];
+      [observedObjectForForwarding addObserver: self
+                                    forKeyPath: keyForForwarding
+                                       options: NSKeyValueObservingOptionNew
+                                              | NSKeyValueObservingOptionOld
+                                       context: target];
+      //prepare change notification
+      newValue = [observedObjectForForwarding valueForKey: keyForForwarding];
+      change = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSNumber numberWithInt: 1], NSKeyValueChangeKindKey,
+        oldValue, NSKeyValueChangeOldKey,
+        newValue, NSKeyValueChangeNewKey,
+        nil];
+      [target observeValueForKeyPath: keyPathToForward
+                            ofObject: observedObjectForUpdate
+                              change: change
+                             context: contextToForward];
+    }
+  else
+    {
+      [child keyPathChanged:
+        [observedObjectForUpdate valueForKey: keyForUpdate]];
+    }
+}
+
 @end
 
 
@@ -594,6 +834,8 @@ static inline void setup()
 	NSNonOwnedPointerMapValueCallBacks, 128);
       infoTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 1024);
+      dependentKeyTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+          NSOwnedPointerMapValueCallBacks, 128);
       baseClass = NSClassFromString(@"GSKVOBase");
     }
 }
@@ -791,6 +1033,8 @@ static Class classForInstance(id o)
 {
   GSKVOInfo	*info;
   Class		c;
+  NSKeyValueObservationForwarder * forwarder;
+  NSRange dot;
 
   setup();
   [kvoLock lock];
@@ -812,16 +1056,34 @@ static Class classForInstance(id o)
   /*
    * Now add the observer.
    */
-  [info addObserver: anObserver
-	 forKeyPath: aPath
-	    options: options
-	    context: aContext];
+  dot = [aPath rangeOfString:@"."];
+  if (dot.location != NSNotFound)
+    {
+      forwarder = [NSKeyValueObservationForwarder
+        forwarderWithKeyPath: aPath
+                    ofObject: self
+                  withTarget: anObserver
+                     context: aContext];
+      [info addObserver: anObserver
+             forKeyPath: aPath
+                options: options
+                context: forwarder];
+    }
+  else
+    {
+      [info addObserver: anObserver
+             forKeyPath: aPath
+                options: options
+                context: aContext];
+    }
+
   [kvoLock unlock];
 }
 
 - (void) removeObserver: (NSObject*)anObserver forKeyPath: (NSString*)aPath
 {
   GSKVOInfo	*info;
+  id forwarder;
 
   setup();
   [kvoLock lock];
@@ -829,6 +1091,7 @@ static Class classForInstance(id o)
    * Get the observation information and remove this observation.
    */
   info = (GSKVOInfo*)[self observationInfo];
+  forwarder = [info contextForObserver: anObserver ofKeyPath: aPath];
   [info removeObserver: anObserver forKeyPath: aPath];
   if ([info isUnobserved] == YES)
     {
@@ -841,6 +1104,8 @@ static Class classForInstance(id o)
       [self setObservationInfo: nil];
     }
   [kvoLock unlock];
+  if ([aPath rangeOfString:@"."].location != NSNotFound)
+    [forwarder finalize];
 }
 
 @end
@@ -913,39 +1178,191 @@ static Class classForInstance(id o)
 
 @implementation NSObject (NSKeyValueObserverNotification)
 
+- (void) willChangeValueForDependentsOfKey: (NSString *)aKey
+{
+  NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
+  if (keys)
+    {
+      NSHashTable dependents = NSMapGet(keys, aKey);
+      if (!dependents) return;
+      NSHashEnumerator dependentKeyEnum = NSEnumerateHashTable(dependents);
+      NSString * dependentKey;
+      while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
+        {
+          [self willChangeValueForKey:dependentKey];
+        }
+    }
+}
+
+- (void) didChangeValueForDependentsOfKey: (NSString *)aKey
+{
+  NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
+  if (keys)
+    {
+      NSHashTable dependents = NSMapGet(keys, aKey);
+      if (!dependents) return;
+      NSHashEnumerator dependentKeyEnum = NSEnumerateHashTable(dependents);
+      NSString * dependentKey;
+      while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
+        {
+          [self didChangeValueForKey:dependentKey];
+        }
+    }
+}
+
+/* FIXME
+ * It may be beneficial (performance-wise) to only calculate the old and new
+ * values in the willChange... and didChange... methods if explicitly needed
+ * by an observer.
+ */
+- (void) willChangeValueForKey: (NSString*)aKey
+{
+  id old = [self valueForKey: aKey];
+  NSDictionary * change;
+  if (old != nil)
+    change = [NSMutableDictionary
+    dictionaryWithObject: [self valueForKey: aKey]
+                  forKey: NSKeyValueChangeOldKey];
+  else
+    change = [NSMutableDictionary dictionary];
+  [(GSKVOInfo *)[self observationInfo] setChange: change forKey: aKey];
+  [self willChangeValueForDependentsOfKey: aKey];
+}
+
 - (void) didChangeValueForKey: (NSString*)aKey
 {
-  GSKVOInfo	*info = [self observationInfo];
+  GSKVOInfo	        *info;
+  NSMutableDictionary   *change;
 
-  [info changeForKey: aKey];
+  info = (GSKVOInfo *)[self observationInfo];
+  change = (NSMutableDictionary *)[info changeForKey: aKey];
+  [change setValue: [self valueForKey: aKey]
+            forKey: NSKeyValueChangeNewKey];
+  [change setValue: [NSNumber numberWithInt: NSKeyValueChangeSetting]
+            forKey: NSKeyValueChangeKindKey];
+
+  [info notifyForKey: aKey ofChange: change];
+  [info setChange:nil forKey: aKey];
+  [self didChangeValueForDependentsOfKey: aKey];
 }
 
 - (void) didChange: (NSKeyValueChange)changeKind
    valuesAtIndexes: (NSIndexSet*)indexes
 	    forKey: (NSString*)aKey
 {
-}
+  GSKVOInfo	        *info;
+  NSMutableDictionary   *change;
+  NSMutableArray        *array;
 
-- (void) willChangeValueForKey: (NSString*)aKey
-{
+  info = [self observationInfo];
+  change = (NSMutableDictionary *)[info changeForKey: aKey];
+  array = [self valueForKey: aKey];
+
+  [change setValue: [NSNumber numberWithInt: changeKind] forKey:
+    NSKeyValueChangeKindKey];
+  [change setValue: indexes forKey: NSKeyValueChangeIndexesKey];
+
+  if (changeKind == NSKeyValueChangeInsertion
+    || changeKind == NSKeyValueChangeReplacement)
+    {
+      [change setValue: [array objectsAtIndexes: indexes]
+                forKey: NSKeyValueChangeNewKey];
+    }
+
+  [info notifyForKey: aKey ofChange: change];
+  [info setChange:nil forKey: aKey];
+  [self didChangeValueForDependentsOfKey: aKey];
 }
 
 - (void) willChange: (NSKeyValueChange)changeKind
     valuesAtIndexes: (NSIndexSet*)indexes
 	     forKey: (NSString*)aKey
 {
-}
+  GSKVOInfo	        *info;
+  NSDictionary          *change;
+  NSMutableArray        *array;
 
-- (void) didChangeValueForKey: (NSString*)aKey
-	      withSetMutation: (NSKeyValueSetMutationKind)mutationKind
-		 usingObjects: (NSSet*)objects
-{
+  info = [self observationInfo];
+  change = [NSMutableDictionary dictionary];
+  array = [self valueForKey: aKey];
+
+  if (changeKind == NSKeyValueChangeRemoval
+    || changeKind == NSKeyValueChangeReplacement)
+    {
+      [change setValue: [array objectsAtIndexes: indexes]
+                forKey: NSKeyValueChangeOldKey];
+    }
+
+  [info setChange: change forKey: aKey];
+  [self willChangeValueForDependentsOfKey: aKey];
 }
 
 - (void) willChangeValueForKey: (NSString*)aKey
 	       withSetMutation: (NSKeyValueSetMutationKind)mutationKind
 		  usingObjects: (NSSet*)objects
 {
+  GSKVOInfo	*info;
+  NSDictionary  *change;
+  NSMutableSet  *set;
+
+  info = [self observationInfo];
+  change = [NSMutableDictionary dictionary];
+  set = [self valueForKey: aKey];
+
+  [change setValue: [set mutableCopy] forKey: @"oldSet"];
+  [info setChange: change forKey: aKey];
+  [self willChangeValueForDependentsOfKey: aKey];
+}
+
+- (void) didChangeValueForKey: (NSString*)aKey
+	      withSetMutation: (NSKeyValueSetMutationKind)mutationKind
+		 usingObjects: (NSSet*)objects
+{
+  GSKVOInfo	        *info;
+  NSMutableDictionary   *change;
+  NSMutableSet          *oldSet;
+  NSMutableSet          *set;
+
+  info = (GSKVOInfo *)[self observationInfo];
+  change = (NSMutableDictionary *)[info changeForKey: aKey];
+  oldSet = [change valueForKey: @"oldSet"];
+  set = [self valueForKey: aKey];
+
+  [change setValue:nil forKey:@"oldSet"];
+
+  if (mutationKind == NSKeyValueUnionSetMutation)
+    {
+      set = [set mutableCopy];
+      [set minusSet: oldSet];
+      [change setValue: [NSNumber numberWithInt: NSKeyValueChangeInsertion]
+                forKey: NSKeyValueChangeKindKey];
+      [change setValue: set forKey: NSKeyValueChangeNewKey];
+    }
+  else if (mutationKind == NSKeyValueMinusSetMutation
+    || mutationKind == NSKeyValueIntersectSetMutation)
+    {
+      [oldSet minusSet: set];
+      [change setValue: [NSNumber numberWithInt: NSKeyValueChangeRemoval]
+                forKey: NSKeyValueChangeKindKey];
+      [change setValue: oldSet forKey: NSKeyValueChangeOldKey];
+    }
+  else if (mutationKind == NSKeyValueSetSetMutation)
+    {
+      NSMutableSet      *old;
+      NSMutableSet      *new;
+
+      old = [oldSet mutableCopy];
+      [old minusSet: set];
+      new = [set mutableCopy];
+      [new minusSet: oldSet];
+      [change setValue: [NSNumber numberWithInt: NSKeyValueChangeReplacement]
+                forKey: NSKeyValueChangeKindKey];
+      [change setValue: old forKey: NSKeyValueChangeOldKey];
+      [change setValue: new forKey: NSKeyValueChangeNewKey];
+    }
+  [info notifyForKey: aKey ofChange: change];
+  [info setChange:nil forKey: aKey];
+  [self didChangeValueForDependentsOfKey: aKey];
 }
 
 @end
@@ -957,10 +1374,32 @@ static Class classForInstance(id o)
   return YES;
 }
 
-+ (void) setKeys: (NSArray*)keys
++ (void) setKeys: (NSArray*)triggerKeys
 triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
 {
-  [self notImplemented: _cmd];
+  NSMapTable    affectingKeys;
+  NSEnumerator  *enumerator;
+  NSString      *affectingKey;
+
+  setup();
+  affectingKeys = NSMapGet(dependentKeyTable, self);
+  if (!affectingKeys)
+    {
+      affectingKeys = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+        NSNonOwnedPointerMapValueCallBacks, 10);
+      NSMapInsert(dependentKeyTable, self, affectingKeys);
+    }
+  enumerator = [triggerKeys objectEnumerator];
+  while ((affectingKey = [enumerator nextObject]))
+    {
+      NSHashTable dependentKeys = NSMapGet(affectingKeys, affectingKey);
+      if (!dependentKeys)
+        {
+          dependentKeys = NSCreateHashTable(NSObjectHashCallBacks, 10);
+          NSMapInsert(affectingKeys, affectingKey, dependentKeys);
+        }
+      NSHashInsert(dependentKeys, dependentKey);
+    }
 }
 
 - (void*) observationInfo
