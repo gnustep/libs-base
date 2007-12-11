@@ -1,5 +1,10 @@
 2007-12-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSUserDefaults.m: catch any exception if som eone breaks our
+	lock on the defaults file.
+
+2007-12-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSIndexSet.m: Test and debug ([-initWithCoder:])
 	and ([-encodeWithCoder:]) methods for keyed archiving of sets
         with multiple index ranges.
