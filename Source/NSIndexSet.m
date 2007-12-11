@@ -267,7 +267,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	}
       else
         {
-          [m appendFormat: @" (%u)", r.location];
+          [m appendFormat: @" %u", r.location];
 	}
     }
   [m appendString: @"]"];
@@ -308,7 +308,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
           unsigned      v;
           uint8_t       b;
       
-          r = GSIArrayItemAtIndex(_array, 0).ext;
+          r = GSIArrayItemAtIndex(_array, i).ext;
           v = r.location;
           do
             {
@@ -339,8 +339,8 @@ static unsigned posForIndex(GSIArray array, unsigned index)
               [m appendBytes: &b length: 1];
             }
           while (v > 0);
-          [aCoder encodeObject: m forKey: @"NSRangeData"];
         }
+      [aCoder encodeObject: m forKey: @"NSRangeData"];
     }
 }
 
@@ -555,7 +555,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       NSData            *data = nil;
       const uint8_t     *bytes;
       unsigned          length;
-      unsigned          index;
+      unsigned          index = 0;
 
       if ([aCoder containsValueForKey: @"NSRangeData"])
         {
