@@ -276,14 +276,22 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  int rangeCount = 0;
+  unsigned rangeCount = 0;
 
   if (_array != 0)
     {
       rangeCount = GSIArrayCount(_array);
     }
-
-  [aCoder encodeInt: rangeCount forKey: @"NSRangeCount"];
+          
+  if ([aCoder allowsKeyedCoding])
+    {
+      [aCoder encodeInt: rangeCount forKey: @"NSRangeCount"];
+    }
+  else
+    {
+      [aCoder encodeValueOfObjCType: @encode(unsigned int)
+                                 at: &rangeCount];
+    }
   
   if (rangeCount == 0)
     {
@@ -294,8 +302,18 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       NSRange	r;
       
       r = GSIArrayItemAtIndex(_array, 0).ext;
-      [aCoder encodeInt: r.location forKey: @"NSLocation"];
-      [aCoder encodeInt: r.length forKey: @"NSLength"];
+      if ([aCoder allowsKeyedCoding])
+        {
+          [aCoder encodeInt: r.location forKey: @"NSLocation"];
+          [aCoder encodeInt: r.length forKey: @"NSLength"];
+        }
+      else
+        {
+          [aCoder encodeValueOfObjCType: @encode(unsigned int)
+                                     at: &r.location];
+          [aCoder encodeValueOfObjCType: @encode(unsigned int)
+                                     at: &r.length];
+        }
     }
   else
     {
@@ -340,7 +358,14 @@ static unsigned posForIndex(GSIArray array, unsigned index)
             }
           while (v > 0);
         }
-      [aCoder encodeObject: m forKey: @"NSRangeData"];
+      if ([aCoder allowsKeyedCoding])
+        {
+          [aCoder encodeObject: m forKey: @"NSRangeData"];
+        }
+      else
+        {
+          [aCoder encodeObject: m];
+        }
     }
 }
 
@@ -523,11 +548,19 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  int rangeCount = 0;
+  unsigned rangeCount = 0;
 
-  if ([aCoder containsValueForKey: @"NSRangeCount"])
+  if ([aCoder allowsKeyedCoding])
     {
-      rangeCount = [aCoder decodeIntForKey: @"NSRangeCount"];
+      if ([aCoder containsValueForKey: @"NSRangeCount"])
+        {
+          rangeCount = [aCoder decodeIntForKey: @"NSRangeCount"];
+        }
+    }
+  else
+    {
+      [aCoder decodeValueOfObjCType: @encode(unsigned int)
+                                 at: &rangeCount];
     }
 
   if (rangeCount == 0)
@@ -539,13 +572,23 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       unsigned len = 0;
       unsigned loc = 0;
       
-      if ([aCoder containsValueForKey: @"NSLocation"])
+      if ([aCoder allowsKeyedCoding])
         {
-          loc = [aCoder decodeIntForKey: @"NSLocation"];
+          if ([aCoder containsValueForKey: @"NSLocation"])
+            {
+              loc = [aCoder decodeIntForKey: @"NSLocation"];
+            }
+          if ([aCoder containsValueForKey: @"NSLength"])
+            {
+              len = [aCoder decodeIntForKey: @"NSLength"];
+            }
         }
-      if ([aCoder containsValueForKey: @"NSLength"])
+      else
         {
-          len = [aCoder decodeIntForKey: @"NSLength"];
+          [aCoder decodeValueOfObjCType: @encode(unsigned int)
+                                     at: &loc];
+          [aCoder decodeValueOfObjCType: @encode(unsigned int)
+                                     at: &len];
         }
       self = [self initWithIndexesInRange: NSMakeRange(loc, len)];
     }
@@ -557,9 +600,16 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       unsigned          length;
       unsigned          index = 0;
 
-      if ([aCoder containsValueForKey: @"NSRangeData"])
+      if ([aCoder allowsKeyedCoding])
         {
-          data = [aCoder decodeObjectForKey: @"NSRangeData"];
+          if ([aCoder containsValueForKey: @"NSRangeData"])
+            {
+              data = [aCoder decodeObjectForKey: @"NSRangeData"];
+            }
+        }
+      else
+        {
+          data = [aCoder decodeObject];
         }
       bytes = (const uint8_t*)[data bytes];
       length = [data length];

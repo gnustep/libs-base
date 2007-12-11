@@ -3,6 +3,7 @@
 	* Source/NSIndexSet.m: Test and debug ([-initWithCoder:])
 	and ([-encodeWithCoder:]) methods for keyed archiving of sets
         with multiple index ranges.
+	Implement old-style coding/decoding as well.
 
 2007-12-10  Chris Farber <chris@chrisfarber.net>
 
