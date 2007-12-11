@@ -1457,7 +1457,17 @@ static BOOL isLocked = NO;
 
 - (void) unlockDefaultsFile
 {
-  [_fileLock unlock];
+  NS_DURING
+    {
+      [_fileLock unlock];
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Warning ... someone broke our lock (%@) ... and may have"
+        @" interfered with updating defaults data in file.", 
+        [_defaultsDatabase stringByAppendingPathExtension: @"lck"]);
+    }
+  NS_ENDHANDLER
   isLocked = NO;
 }
 

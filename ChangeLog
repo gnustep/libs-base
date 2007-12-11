@@ -1,3 +1,8 @@
+2007-12-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: catch exception when unlocking defaults
+	file.
+
 2007-11-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueCoding.m: Remove erroneous check for nil argument
