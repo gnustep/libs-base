@@ -1,5 +1,10 @@
 2007-12-14  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSKeyValueObserving.m (-overrideSetterFor:): Made aware
+	of dependent key mapping.
+
+2007-12-14  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSKeyValueObserving.m: Rewrite code for the subclass which
 	handles overriding of setters.  Should only override the setters for
 	the keys which have been observed.  Compiles but untested!
