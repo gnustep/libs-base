@@ -78,12 +78,41 @@ static NSMapTable	*infoTable = 0;
 static NSMapTable       *dependentKeyTable;
 static Class		baseClass;
 
+static inline void setup()
+{
+  if (kvoLock == nil)
+    {
+      kvoLock = [GSLazyRecursiveLock new];
+      classTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 128);
+      infoTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 1024);
+      dependentKeyTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+          NSOwnedPointerMapValueCallBacks, 128);
+      baseClass = NSClassFromString(@"GSKVOBase");
+    }
+}
 /*
  * This is the template class whose methods are added to KVO classes to
  * override the originals and make the swizzled class look like the
  * original class.
  */
 @interface	GSKVOBase : NSObject
+@end
+
+/*
+ * This holds information about a subclass replacing a class which is
+ * being observed.
+ */
+@interface	GSKVOReplacement : NSObject
+{
+  Class         original;       /* The original class */
+  Class         replacement;    /* The replacement class */
+  NSMutableSet  *keys;          /* The observed setter keys */
+}
+- (id) initWithClass: (Class)aClass;
+- (void) overrideSetterFor: (NSString*)aKey;
+- (Class) replacement;
 @end
 
 /*
@@ -307,6 +336,187 @@ static NSString *newKey(SEL _cmd)
     }
   return key;
 }
+
+
+static GSKVOReplacement *
+replacementForInstance(id o)
+{
+  Class                 c = GSObjCClass(o);
+  GSKVOReplacement	*r;
+
+  setup();
+
+  [kvoLock lock];
+  r = (GSKVOReplacement*)NSMapGet(classTable, (void*)c);
+  if (r == nil)
+    {
+      r = [[GSKVOReplacement alloc] initWithClass: c];
+      NSMapInsert(classTable, (void*)c, (void*)r);
+    }
+  [kvoLock unlock];
+  return r;
+}
+
+@implementation	GSKVOReplacement
+- (void) dealloc
+{
+  DESTROY(keys);
+  [super dealloc];
+}
+
+- (id) initWithClass: (Class)aClass
+{
+  NSValue		*template;
+  NSString		*superName;
+  NSString		*name;
+
+  original = aClass;
+
+  /*
+   * Create subclass of the original, and override some methods
+   * with implementations from our abstract base class.
+   */
+  superName = NSStringFromClass(original);
+  name = [@"GSKVO" stringByAppendingString: superName];
+  template = GSObjCMakeClass(name, superName, nil);
+  GSObjCAddClasses([NSArray arrayWithObject: template]);
+  replacement = NSClassFromString(name);
+  GSObjCAddClassBehavior(replacement, baseClass);
+
+  /* Create the set of setter methods overridden.
+   */
+  keys = [NSMutableSet new];
+
+  return self;
+}
+
+- (void) overrideSetterFor: (NSString*)aKey
+{
+  if ([keys member: aKey] == nil)
+    {
+      GSMethodList	m;
+      NSMethodSignature	*sig;
+      SEL		sel;
+      IMP		imp;
+      const char	*type;
+      NSString          *suffix;
+      NSString          *a[2];
+      unsigned          i;
+      BOOL              found = NO;
+
+      m = GSAllocMethodList(2);
+
+      suffix = [aKey capitalizedString];
+      a[0] = [NSString stringWithFormat: @"set%@:", suffix];
+      a[1] = [NSString stringWithFormat: @"_set%@:", suffix];
+      for (i = 0; i < 2; i++)
+        {
+          /*
+           * Replace original setter with our own version which does KVO
+           * notifications.
+           */
+          sel = NSSelectorFromString(a[i]);
+          if (sel == 0)
+            {
+              continue;
+            }
+          sig = [original instanceMethodSignatureForSelector: sel];
+          if (sig == 0)
+            {
+              continue;
+            }
+
+          /*
+           * A setter must take three arguments (self, _cmd, value)
+           * and return nothing.
+           */
+          if (*[sig methodReturnType] != _C_VOID
+            || [sig numberOfArguments] != 3)
+            {
+              continue;	// Not a valid setter method.
+            }
+
+          /*
+           * Since the compiler passes different argument types
+           * differently, we must use a different setter method
+           * for each argument type.
+           * FIXME ... support structures
+           * Unsupported types are quietly ignored ... is that right?
+           */
+          type = [sig getArgumentTypeAtIndex: 2];
+          switch (*type)
+            {
+              case _C_CHR:
+              case _C_UCHR:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setterChar:)];
+                break;
+              case _C_SHT:
+              case _C_USHT:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setterShort:)];
+                break;
+              case _C_INT:
+              case _C_UINT:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setterInt:)];
+                break;
+              case _C_LNG:
+              case _C_ULNG:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setterLong:)];
+                break;
+#ifdef  _C_LNG_LNG
+              case _C_LNG_LNG:
+              case _C_ULNG_LNG:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setterLongLong:)];
+                break;
+#endif
+              case _C_FLT:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setterFloat:)];
+                break;
+              case _C_DBL:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setterDouble:)];
+                break;
+              case _C_ID:
+              case _C_CLASS:
+              case _C_PTR:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setter:)];
+                break;
+              default:
+                imp = 0;
+                break;
+            }
+
+          if (imp != 0)
+            {
+              GSAppendMethodToList(m, sel, [sig methodType], imp, YES);
+              found = YES;
+            }
+        }
+      if (found == YES)
+        {
+          GSAddMethodList(replacement, m, YES);
+          GSFlushMethodCacheForClass(replacement);
+          [keys addObject: aKey];
+        }
+      else
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"class not KVC complient for %@", aKey];
+        }
+    }
+}
+
+- (Class) replacement
+{
+  return replacement;
+}
+@end
 
 /*
  * This class
@@ -764,7 +974,7 @@ static NSString *newKey(SEL _cmd)
 {
   if (anObject == observedObjectForUpdate) 
     {
-      [self keyPathChanged:nil];
+      [self keyPathChanged: nil];
     }
   else
     {
@@ -824,201 +1034,17 @@ static NSString *newKey(SEL _cmd)
 
 @end
 
-
-static inline void setup()
-{
-  if (kvoLock == nil)
-    {
-      kvoLock = [GSLazyRecursiveLock new];
-      classTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 128);
-      infoTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 1024);
-      dependentKeyTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-          NSOwnedPointerMapValueCallBacks, 128);
-      baseClass = NSClassFromString(@"GSKVOBase");
-    }
-}
-
-static Class classForInstance(id o)
-{
-  Class c = GSObjCClass(o);
-  Class	p;
-
-  setup();
-
-  [kvoLock lock];
-  p = (Class)NSMapGet(classTable, (void*)c);
-  if (p == 0)
-    {
-      NSValue		*template;
-      NSString		*superName;
-      NSString		*name;
-      NSArray		*methods;
-      NSMutableArray	*setters;
-      unsigned		count;
-      NSCharacterSet	*lc = [NSCharacterSet lowercaseLetterCharacterSet];
-
-      /*
-       * Create subclass of the original, and override some methods
-       * with implementations from our abstract base class.
-       */
-      superName = NSStringFromClass(c);
-      name = [@"GSKVO" stringByAppendingString: superName];
-      template = GSObjCMakeClass(name, superName, nil);
-      GSObjCAddClasses([NSArray arrayWithObject: template]);
-      p = NSClassFromString(name);
-      GSObjCAddClassBehavior(p, baseClass);
-
-      /*
-       * Get the names of all setter methods set(Key): or _set(Key):
-       */
-      methods = GSObjCMethodNames(o);
-      count = [methods count];
-      setters = [NSMutableArray arrayWithCapacity: count];
-      while (count-- > 0)
-	{
-	  NSRange	r;
-	  int		x = 3;
-
-	  name = [methods objectAtIndex: count];
-	  r = [name rangeOfString: @":"];
-	  if (r.length > 0 && r.location == [name length]-1
-	    && ([name hasPrefix: @"set"] || [name hasPrefix: @"_set"]))
-	    {
-	      unichar	u = [name characterAtIndex: x];
-
-	      /*
-	       * If the key name part begins with a lowercase letter,
-	       * this is not a setter method.
-	       */
-	      if ([lc characterIsMember: u] == NO)
-		{
-		  /*
-		   * Don't override setObservationInfo: ... it's a special
-		   * case.
-		   */
-		  if ([name isEqualToString: @"setObservationInfo:"] == NO)
-		    {
-		      [setters addObject: name];
-		    }
-		}
-	    }
-	}
-      count = [setters count];
-
-      if (count > 0)
-	{
-	  GSMethodList	m;
-
-	  /*
-	   * The original class contains setter methods ... so we must
-	   * replace them all with our own version which does KVO
-	   * notifications.
-	   */
-	  m = GSAllocMethodList(count);
-	  while (count-- > 0)
-	    {
-	      NSMethodSignature	*sig;
-	      SEL		sel;
-	      IMP		imp;
-	      const char	*type;
-
-	      name = [setters objectAtIndex: count];
-	      sel = NSSelectorFromString(name);
-	      sig = [o methodSignatureForSelector: sel];
-
-	      /*
-	       * A setter must take three arguments (self, _cmd, value)
-	       * and return nothing.
-	       */
-	      if (*[sig methodReturnType] != _C_VOID
-		|| [sig numberOfArguments] != 3)
-		{
-		  continue;	// Not a valid setter method.
-		}
-
-	      /*
-	       * Since the compiler passes different argument types
-	       * differently, we must use a different setter method
-	       * for each argument type.
-	       * FIXME ... support structures
-	       * Unsupported types are quietly ignored ... is that right?
-	       */
-	      type = [sig getArgumentTypeAtIndex: 2];
-	      switch (*type)
-		{
-		  case _C_CHR:
-		  case _C_UCHR:
-		    imp = [[GSKVOSetter class]
-		      instanceMethodForSelector: @selector(setterChar:)];
-		    break;
-		  case _C_SHT:
-		  case _C_USHT:
-		    imp = [[GSKVOSetter class]
-		      instanceMethodForSelector: @selector(setterShort:)];
-		    break;
-		  case _C_INT:
-		  case _C_UINT:
-		    imp = [[GSKVOSetter class]
-		      instanceMethodForSelector: @selector(setterInt:)];
-		    break;
-		  case _C_LNG:
-		  case _C_ULNG:
-		    imp = [[GSKVOSetter class]
-		      instanceMethodForSelector: @selector(setterLong:)];
-		    break;
-#ifdef  _C_LNG_LNG
-		  case _C_LNG_LNG:
-		  case _C_ULNG_LNG:
-		    imp = [[GSKVOSetter class]
-		      instanceMethodForSelector: @selector(setterLongLong:)];
-		    break;
-#endif
-		  case _C_FLT:
-		    imp = [[GSKVOSetter class]
-		      instanceMethodForSelector: @selector(setterFloat:)];
-		    break;
-		  case _C_DBL:
-		    imp = [[GSKVOSetter class]
-		      instanceMethodForSelector: @selector(setterDouble:)];
-		    break;
-		  case _C_ID:
-		  case _C_CLASS:
-		  case _C_PTR:
-		    imp = [[GSKVOSetter class]
-		      instanceMethodForSelector: @selector(setter:)];
-		    break;
-		  default:
-		    imp = 0;
-		    break;
-		}
-
-	      if (imp != 0)
-		{
-		  GSAppendMethodToList(m, sel, [sig methodType], imp, YES);
-		}
-	    }
-	  GSAddMethodList(p, m, YES);
-	  GSFlushMethodCacheForClass(p);
-	}
-
-      NSMapInsert(classTable, (void*)c, (void*)p);
-    }
-  [kvoLock unlock];
-  return p;
-}
-
 @implementation NSObject (NSKeyValueObserving)
 
-/**
- * NOT IMPLEMENTED
- */
 - (void) observeValueForKeyPath: (NSString*)aPath
 		       ofObject: (id)anObject
 			 change: (NSDictionary*)aChange
 		        context: (void*)aContext
 {
+  [NSException raise: NSInvalidArgumentException
+              format: @"-%@ cannot be sent to %@ ..."
+              @" create an instance overriding this",
+              NSStringFromSelector(_cmd), NSStringFromClass([self class])];
   return;
 }
 
@@ -1031,13 +1057,15 @@ static Class classForInstance(id o)
 	     options: (NSKeyValueObservingOptions)options
 	     context: (void*)aContext
 {
-  GSKVOInfo	*info;
-  Class		c;
-  NSKeyValueObservationForwarder * forwarder;
-  NSRange dot;
+  GSKVOInfo             *info;
+  GSKVOReplacement      *r;
+  NSKeyValueObservationForwarder *forwarder;
+  NSRange               dot;
 
   setup();
   [kvoLock lock];
+
+  r = replacementForInstance(self);
 
   /*
    * Get the existing observation information, creating it (and changing
@@ -1047,10 +1075,9 @@ static Class classForInstance(id o)
   info = (GSKVOInfo*)[self observationInfo];
   if (info == nil)
     {
-      c = classForInstance(self);
       info = [[GSKVOInfo alloc] initWithInstance: self];
       [self setObservationInfo: info];
-      isa = c;
+      isa = [r replacement];
     }
 
   /*
@@ -1071,6 +1098,7 @@ static Class classForInstance(id o)
     }
   else
     {
+      [r overrideSetterFor: aPath];
       [info addObserver: anObserver
              forKeyPath: aPath
                 options: options
@@ -1328,7 +1356,7 @@ static Class classForInstance(id o)
   oldSet = [change valueForKey: @"oldSet"];
   set = [self valueForKey: aKey];
 
-  [change setValue:nil forKey:@"oldSet"];
+  [change setValue: nil forKey: @"oldSet"];
 
   if (mutationKind == NSKeyValueUnionSetMutation)
     {
