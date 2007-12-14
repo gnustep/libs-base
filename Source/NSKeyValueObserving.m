@@ -506,8 +506,39 @@ replacementForInstance(id o)
         }
       else
         {
-          [NSException raise: NSInvalidArgumentException
-                      format: @"class not KVC complient for %@", aKey];
+          NSMapTable depKeys = NSMapGet(dependentKeyTable, [self class]);
+
+          if (depKeys)
+            {
+              NSMapEnumerator enumerator = NSEnumerateMapTable(depKeys);
+              NSString *mainKey;
+              NSHashTable dependents;
+
+              while (NSNextMapEnumeratorPair(&enumerator, (void **)(&mainKey), &dependents))
+                {
+                  NSHashEnumerator dependentKeyEnum;
+                  NSString *dependentKey;
+
+                  if (!dependents) continue;
+                  dependentKeyEnum = NSEnumerateHashTable(dependents);
+                  while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
+                    {
+                      if ([dependentKey isEqual: aKey])
+                        {
+                          [self overrideSetterFor: mainKey];
+                          found = YES;
+                        }
+                    }
+                  NSEndHashTableEnumeration(&dependentKeyEnum);
+               }
+              NSEndMapTableEnumeration(&enumerator); 
+            }
+
+          if (!found)
+            {
+              [NSException raise: NSInvalidArgumentException
+                           format: @"class not KVC complient for %@", aKey];
+            }
         }
     }
 }
@@ -1212,13 +1243,16 @@ replacementForInstance(id o)
   if (keys)
     {
       NSHashTable dependents = NSMapGet(keys, aKey);
+      NSString *dependentKey;
+      NSHashEnumerator dependentKeyEnum;
+
       if (!dependents) return;
-      NSHashEnumerator dependentKeyEnum = NSEnumerateHashTable(dependents);
-      NSString * dependentKey;
+      dependentKeyEnum = NSEnumerateHashTable(dependents);
       while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
         {
           [self willChangeValueForKey:dependentKey];
         }
+      NSEndHashTableEnumeration(&dependentKeyEnum);
     }
 }
 
@@ -1228,13 +1262,16 @@ replacementForInstance(id o)
   if (keys)
     {
       NSHashTable dependents = NSMapGet(keys, aKey);
+      NSString *dependentKey;
+      NSHashEnumerator dependentKeyEnum;
+
       if (!dependents) return;
-      NSHashEnumerator dependentKeyEnum = NSEnumerateHashTable(dependents);
-      NSString * dependentKey;
+      dependentKeyEnum = NSEnumerateHashTable(dependents);
       while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
         {
           [self didChangeValueForKey:dependentKey];
         }
+      NSEndHashTableEnumeration(&dependentKeyEnum);
     }
 }
 
