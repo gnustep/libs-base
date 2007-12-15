@@ -1026,10 +1026,6 @@ replacementForClass(Class c)
 
 - (void) keyPathChanged: (id)objectToObserve
 {
-  NSDictionary *change;
-  id oldValue;
-  id newValue;
-
   if (objectToObserve != nil)
     {
       [observedObjectForUpdate removeObserver: self forKeyPath: keyForUpdate];
@@ -1040,34 +1036,53 @@ replacementForClass(Class c)
                                   | NSKeyValueObservingOptionOld
                            context: target];
     }
-  if (observedObjectForForwarding != nil)
+  if (child != nil)
     {
-      oldValue = [observedObjectForForwarding valueForKey: keyForForwarding];
-      [observedObjectForForwarding removeObserver: self forKeyPath: 
-        keyForForwarding];
+      [child keyPathChanged:
+        [observedObjectForUpdate valueForKey: keyForUpdate]];
+    }
+  else
+    {
+      NSMutableDictionary *change;
+
+      change = [NSMutableDictionary dictionaryWithObject: 
+                                        [NSNumber numberWithInt: 1] 
+                                    forKey:  NSKeyValueChangeKindKey];
+
+      if (observedObjectForForwarding != nil)
+        {
+          id oldValue;
+
+          oldValue = [observedObjectForForwarding valueForKey: keyForForwarding];
+          [observedObjectForForwarding removeObserver: self forKeyPath: 
+                                           keyForForwarding];
+          if (oldValue)
+            {
+              [change setObject: oldValue forKey: NSKeyValueChangeOldKey];
+            }
+        }
       observedObjectForForwarding = [observedObjectForUpdate
         valueForKey:keyForUpdate];
-      [observedObjectForForwarding addObserver: self
-                                    forKeyPath: keyForForwarding
+      if (observedObjectForForwarding != nil)
+        {
+          id newValue;
+
+          [observedObjectForForwarding addObserver: self
+                                       forKeyPath: keyForForwarding
                                        options: NSKeyValueObservingOptionNew
-                                              | NSKeyValueObservingOptionOld
+                                       | NSKeyValueObservingOptionOld
                                        context: target];
-      //prepare change notification
-      newValue = [observedObjectForForwarding valueForKey: keyForForwarding];
-      change = [NSDictionary dictionaryWithObjectsAndKeys:
-        [NSNumber numberWithInt: 1], NSKeyValueChangeKindKey,
-        oldValue, NSKeyValueChangeOldKey,
-        newValue, NSKeyValueChangeNewKey,
-        nil];
+          //prepare change notification
+          newValue = [observedObjectForForwarding valueForKey: keyForForwarding];
+          if (newValue)
+            {
+              [change setObject: newValue forKey: NSKeyValueChangeNewKey];
+            }
+        }
       [target observeValueForKeyPath: keyPathToForward
                             ofObject: observedObjectForUpdate
                               change: change
                              context: contextToForward];
-    }
-  else
-    {
-      [child keyPathChanged:
-        [observedObjectForUpdate valueForKey: keyForUpdate]];
     }
 }
 
