@@ -339,10 +339,9 @@ static NSString *newKey(SEL _cmd)
 
 
 static GSKVOReplacement *
-replacementForInstance(id o)
+replacementForInstance(Class c)
 {
-  Class                 c = GSObjCClass(o);
-  GSKVOReplacement	*r;
+  GSKVOReplacement *r;
 
   setup();
 
@@ -530,6 +529,8 @@ replacementForInstance(id o)
                       if ([dependentKey isEqual: aKey])
                         {
                           [self overrideSetterFor: mainKey];
+                          // Mark the key as used
+                          [keys addObject: aKey];
                           found = YES;
                         }
                     }
@@ -540,8 +541,11 @@ replacementForInstance(id o)
 
           if (!found)
             {
+              NSLog(@"class %@ not KVC complient for %@", original, aKey);
+              /*
               [NSException raise: NSInvalidArgumentException
                            format: @"class not KVC complient for %@", aKey];
+              */
             }
         }
     }
@@ -1100,7 +1104,8 @@ replacementForInstance(id o)
   setup();
   [kvoLock lock];
 
-  r = replacementForInstance(self);
+  // Use the original class
+  r = replacementForClass([self class]);
 
   /*
    * Get the existing observation information, creating it (and changing
