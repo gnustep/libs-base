@@ -1,4 +1,10 @@
-2007-12-14  Richard Frith-Macdonald <rfm@gnu.org>
+2007-12-15  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSKeyValueObserving.m (-overrideSetterFor:): Manually
+	capitalize the string, as the NSString method capitalizedString
+	lowers all other characters.
+
+2007-12-14  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSKeyValueObserving.m (-overrideSetterFor:): Made aware
 	of dependent key mapping.

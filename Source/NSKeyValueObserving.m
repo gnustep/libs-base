@@ -403,12 +403,16 @@ replacementForInstance(id o)
       NSString          *a[2];
       unsigned          i;
       BOOL              found = NO;
+      NSString		*tmp;
+      unichar u;
 
       m = GSAllocMethodList(2);
 
-      suffix = [aKey capitalizedString];
-      a[0] = [NSString stringWithFormat: @"set%@:", suffix];
-      a[1] = [NSString stringWithFormat: @"_set%@:", suffix];
+      suffix = [aKey substringFromIndex: 1];
+      u = uni_toupper([aKey characterAtIndex: 0]);
+      tmp = [[NSString alloc] initWithCharacters: &u length: 1];
+      a[0] = [NSString stringWithFormat: @"set%@%@:", tmp, suffix];
+      a[1] = [NSString stringWithFormat: @"_set%@%@:", tmp, suffix];
       for (i = 0; i < 2; i++)
         {
           /*
@@ -506,7 +510,7 @@ replacementForInstance(id o)
         }
       else
         {
-          NSMapTable depKeys = NSMapGet(dependentKeyTable, [self class]);
+          NSMapTable depKeys = NSMapGet(dependentKeyTable, original);
 
           if (depKeys)
             {
