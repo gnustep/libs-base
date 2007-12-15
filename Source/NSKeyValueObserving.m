@@ -339,7 +339,7 @@ static NSString *newKey(SEL _cmd)
 
 
 static GSKVOReplacement *
-replacementForInstance(Class c)
+replacementForClass(Class c)
 {
   GSKVOReplacement *r;
 
