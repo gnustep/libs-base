@@ -1,5 +1,12 @@
 2007-12-15  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSKeyValueObserving.m (-overrideSetterFor:): Replace
+	exception with log message.
+	* Source/NSKeyValueObserving.m (-addObserver:...context:): Use
+	original class as key for replacement.
+
+2007-12-15  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSKeyValueObserving.m (-overrideSetterFor:): Manually
 	capitalize the string, as the NSString method capitalizedString
 	lowers all other characters.
