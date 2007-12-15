@@ -1,5 +1,10 @@
 2007-12-15  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSKeyValueObserving.m (-keyPathChanged:): Correct
+	forwarding of changes.
+
+2007-12-15  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSValueTransformer.m,
 	* Source/externs.m: Moved name of standard NSValueTransformers to
 	externs and corrected strings.
