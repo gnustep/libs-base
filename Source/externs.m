@@ -100,7 +100,15 @@ NSString *NSURLFileScheme = @"file";
 /* RunLoop modes */
 NSString *NSConnectionReplyMode = @"NSConnectionReplyMode";
 
-
+/* NSValueTransformer constants */
+NSString *const NSNegateBooleanTransformerName
+  = @"NSNegateBoolean";
+NSString *const NSIsNilTransformerName
+  = @"NSIsNil";
+NSString *const NSIsNotNilTransformerName
+  = @"NSIsNotNil"; 
+NSString *const NSUnarchiveFromDataTransformerName
+  = @"NSUnarchiveFromData";
 
 /**
  * Last-resort exception handler, a function taking an NSException and

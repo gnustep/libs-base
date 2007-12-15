@@ -1,5 +1,11 @@
 2007-12-15  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSValueTransformer.m,
+	* Source/externs.m: Moved name of standard NSValueTransformers to
+	externs and corrected strings.
+
+2007-12-15  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSKeyValueObserving.m (-overrideSetterFor:): Replace
 	exception with log message.
 	* Source/NSKeyValueObserving.m (-addObserver:...context:): Use
@@ -1351,7 +1357,7 @@
 2006-12-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSValueTransformer.h:
-	* Source/NSValueTransformer.h:
+	* Source/NSValueTransformer.m:
 	Complete implementation.
 	Make thread-safe.
 	Document.

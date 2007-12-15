@@ -41,15 +41,6 @@
 
 @implementation NSValueTransformer
 
-NSString * const NSNegateBooleanTransformerName
-  = @"NSNegateBooleanTransformerName";
-NSString * const NSIsNilTransformerName
-  = @"NSIsNilTransformerName";
-NSString * const NSIsNotNilTransformerName
-  = @"NSIsNotNilTransformerName"; 
-NSString * const NSUnarchiveFromDataTransformerName
-  = @"NSUnarchiveFromDataTransformerName";
-
 // non-abstract methods
 
 static NSMutableDictionary *registry = nil;
