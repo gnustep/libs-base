@@ -1474,7 +1474,7 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
   affectingKeys = NSMapGet(dependentKeyTable, self);
   if (!affectingKeys)
     {
-      affectingKeys = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+      affectingKeys = NSCreateMapTable(NSObjectMapKeyCallBacks,
         NSNonOwnedPointerMapValueCallBacks, 10);
       NSMapInsert(dependentKeyTable, self, affectingKeys);
     }

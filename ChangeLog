@@ -1,3 +1,9 @@
+2007-12-17  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSKeyValueObserving.m
+	(-setKeys:triggerChangeNotificationsForDependentKey:): Correct the
+	key strategy of the map.
+
 2007-12-17  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Makefile.postamble: Use DESTDIR over obsolete INSTALL_ROOT_DIR
