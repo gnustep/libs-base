@@ -57,7 +57,7 @@ after-install::
 	$(MKDIRS) $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h \
 	  $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
-	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
+	if [ "$(DESTDIR)" = "" ]; then \
 	  services=/etc/services; \
 	  if [ "`$(WHOAMI)`" != root ]; then \
 	      echo "WARNING: Please add the following lines to $$services"; \
