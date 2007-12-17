@@ -1459,7 +1459,9 @@ AC_CHECK_FUNCS(mmap)
 # These functions needed by NSTask.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(killpg setpgrp setpgid)
-AC_FUNC_SETPGRP
+if test "x$ac_cv_func_setpgrp" = xyes; then
+  AC_FUNC_SETPGRP
+fi
 
 HAVE_PTS_STREAM_MODULES=0
 case "${target}" in
@@ -1899,6 +1901,11 @@ elif test $enable_ffcall = yes; then
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(ffcall)
   fi
+else
+  ffi_ok=no
+fi
+
+if test $enable_ffcall = yes -a $ffi_ok = yes; then
   AC_MSG_CHECKING(if ffcall trampolines work)
   AC_RUN_IFELSE([#include "$srcdir/config/config.trampoline.c"],
 	  have_working_trampoline=yes, have_working_trampoline=no, 
@@ -1907,8 +1914,6 @@ elif test $enable_ffcall = yes; then
   if test $have_working_trampoline = no; then
     ffi_ok=no
   fi
-else
-  ffi_ok=no
 fi
 
 if test $ffi_ok = no; then

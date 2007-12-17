@@ -1,3 +1,9 @@
+2007-12-17  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.postamble: Use DESTDIR over obsolete INSTALL_ROOT_DIR
+	* configure.ac, config/objc-con-autoload.m4, config/procfs.m4: Some 
+	improvements for cross-compiling.
+
 2007-12-15  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSKeyValueObserving.m (-keyPathChanged:): Correct
