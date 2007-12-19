@@ -780,6 +780,10 @@ static char	**_gnu_noobjc_env = NULL;
 
  proc_fs_error:
 #ifdef HAVE_STRERROR
+  /* Don't care about thread safety of strerror() here as this is only
+   * called in the initial thread and there shouldn't be any other
+   * threads at this point.
+   */
   fprintf(stderr, "Couldn't open file %s when starting gnustep-base; %s\n",
 	   proc_file_name, strerror(errno));
 #else  /* !HAVE_FUNCTION_STRERROR */

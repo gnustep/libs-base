@@ -19,7 +19,8 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    $Date$ $Revision$
 */
@@ -314,4 +315,9 @@
 }
 
 @end
+
+/* Global lock to be used by classes when operating on any global
+   data that invoke other methods which also access global; thus,
+   creating the potential for deadlock. */
+NSRecursiveLock *gnustep_global_lock = nil;
 

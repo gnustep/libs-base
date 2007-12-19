@@ -1,3 +1,23 @@
+2007-12-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add checks for thread-safe versions of some standard
+	library functions.
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerate
+	* configure: Regenerate
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSFileManager.m:
+	* Source/externs.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSLock.m:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Additions/GNUstepBase/GSLock.h:
+	* Tools/defaults.m:
+	Use thread-safe variants of system functions or pretect unsafe ones
+	using gnustep_global_lock.
+	Fixes part (but not all) of bug #21320
+
 2007-12-17  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSKeyValueObserving.m

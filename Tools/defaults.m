@@ -593,8 +593,7 @@ main(int argc, char** argv, char **env)
       if ([defs synchronize] == NO)
 	{
 	  GSPrintf(stderr,
-	    @"defaults: unable to write to defaults database - %s\n",
-	    strerror(errno));
+	    @"defaults: unable to write to defaults database\n");
 	}
     }
   else if ([[args objectAtIndex: i] isEqual: @"delete"])
@@ -718,8 +717,7 @@ main(int argc, char** argv, char **env)
       if ([defs synchronize] == NO)
 	{
 	  GSPrintf(stderr,
-	    @"defaults: unable to write to defaults database - %s\n",
-	    strerror(errno));
+	    @"defaults: unable to write to defaults database\n");
 	}
     }
   else if ([[args objectAtIndex: i] isEqual: @"domains"])

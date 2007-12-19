@@ -908,19 +908,45 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
  */
 @implementation NSError(GSCategories)
 
-#ifndef HAVE_STRERROR
-static const char *
-strerror(int eno)
+#ifndef HAVE_STRERROR_R
+#ifdef HAVE_STRERROR
+static int
+strerror_r(int eno, char *buf, int len)
+{
+  const char *ptr;
+  int   result;
+
+  [gnustep_global_lock lock];
+  ptr = strerror(eno);
+  if (ptr == 0)
+    {
+      strncpy(buf, "unknown error number", len);
+      result = -1;
+    }
+  else
+    {
+      strncpy(buf, strerror(eno), len);
+      result = 0;
+    }
+  [gnustep_global_lock unlock];
+  return result;
+}
+#else
+static int
+strerror_r(int eno, char *buf, int len)
 {
   extern char  *sys_errlist[];
   extern int    sys_nerr;
 
   if (eno < 0 || eno >= sys_nerr)
     {
-      return("unknown error number");
+      strncpy(buf, "unknown error number", len);
+      return -1;
     }
-  return(sys_errlist[eno]);
+  strncpy(buf, sys_errlist[eno], len);
+  return 0;
 }
+#endif
 #endif
 
 /*
@@ -959,10 +985,15 @@ strerror(int eno)
     nil];
 #else
   NSString	*message;
+  char          buf[BUFSIZ];
 
   /* FIXME ... not all are POSIX, should we use NSMachErrorDomain for some? */
   domain = NSPOSIXErrorDomain;
-  message = [NSString stringWithCString: strerror(code)
+  if (strerror_r(code, buf, BUFSIZ) < 0)
+    {
+      sprintf(buf, "%ld", code);
+    }
+  message = [NSString stringWithCString: buf
 			       encoding: [NSString defaultCStringEncoding]];
   /* FIXME ... can we do better localisation? */
   info = [NSMutableDictionary dictionaryWithObjectsAndKeys:

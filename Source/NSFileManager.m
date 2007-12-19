@@ -409,14 +409,30 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  BOOL	ok = NO;
 #ifdef HAVE_PWD_H
+#if     defined(HAVE_GETPWNAM_R)
+	  struct passwd pw;
+          char buf[BUFSIZ*10];
+
+	  if (getpwnam_r([str cStringUsingEncoding: defaultEncoding],
+            &pw, buf, sizeof(buf), 0) == 0)
+	    {
+	      ok = (chown(lpath, pw.pw_uid, -1) == 0);
+	      chown(lpath, -1, pw.pw_gid);
+	    }
+#else
+#if     defined(HAVE_GETPWNAM)
 	  struct passwd *pw;
 
+          [gnustep_global_lock lock];
 	  pw = getpwnam([str cStringUsingEncoding: defaultEncoding]);
 	  if (pw != 0)
 	    {
 	      ok = (chown(lpath, pw->pw_uid, -1) == 0);
 	      chown(lpath, -1, pw->pw_gid);
 	    }
+          [gnustep_global_lock unlock];
+#endif
+#endif
 #endif
 	  if (ok == NO)
 	    {
@@ -445,14 +461,30 @@ static NSStringEncoding	defaultEncoding;
     {
       BOOL	ok = NO;
 #ifdef HAVE_GRP_H
+#ifdef HAVE_GETGRNAM_R
+      struct group gp;
+      char buf[BUFSIZ*10];
+
+      if (getgrnam_r([str cStringUsingEncoding: defaultEncoding], &gp,
+        buf, sizeof(buf), 0) == 0)
+        {
+	  if (chown(lpath, -1, gp.gr_gid) == 0)
+	    ok = YES;
+        }
+#else
+#ifdef HAVE_GETGRNAM
       struct group *gp;
       
+      [gnustep_global_lock lock];
       gp = getgrnam([str cStringUsingEncoding: defaultEncoding]);
       if (gp)
 	{
 	  if (chown(lpath, -1, gp->gr_gid) == 0)
 	    ok = YES;
 	}
+      [gnustep_global_lock unlock];
+#endif
+#endif
 #endif
       if (ok == NO)
 	{
@@ -2936,14 +2968,29 @@ static NSSet	*fileKeys = nil;
   return [NSString stringWithCharacters: account length: accountSize];
 #else
 #if defined(HAVE_GRP_H)
+#if defined(HAVE_GETGRGID_H)
+  struct group gp;
+  char buf[BUFSIZ*10];
+
+  if (getgrgid_r(statbuf.st_gid, &gp, buf, sizeof(buf), 0) == 0)
+    {
+      group = [NSString stringWithCString: gp.gr_name
+				 encoding: defaultEncoding];
+    }
+#else
+#if defined(HAVE_GETGRGID)
   struct group	*gp;
 
+  [gnustep_global_lock lock];
   gp = getgrgid(statbuf.st_gid);
   if (gp != 0)
     {
       group = [NSString stringWithCString: gp->gr_name
 				 encoding: defaultEncoding];
     }
+  [gnustep_global_lock unlock];
+#endif
+#endif
 #endif
 #endif
   return group;
@@ -3077,15 +3124,29 @@ static NSSet	*fileKeys = nil;
   return [NSString stringWithCharacters: account length: accountSize];
 #else
 #ifdef HAVE_PWD_H
+#if     defined(HAVE_GETPWUID_R)
+  struct passwd pw;
+  char buf[BUFSIZ*10];
+
+  if (getpwuid_r(statbuf.st_uid, &pw, buf, sizeof(buf), 0) == 0)
+    {
+      owner = [NSString stringWithCString: pw.pw_name
+				 encoding: defaultEncoding];
+    }
+#else
+#if     defined(HAVE_GETPWUID)
   struct passwd *pw;
 
+  [gnustep_global_lock lock];
   pw = getpwuid(statbuf.st_uid);
-
   if (pw != 0)
     {
       owner = [NSString stringWithCString: pw->pw_name
 				 encoding: defaultEncoding];
     }
+  [gnustep_global_lock unlock];
+#endif
+#endif
 #endif /* HAVE_PWD_H */
 #endif
   return owner;

@@ -38,12 +38,6 @@
 */
 
 
-/* Global lock to be used by classes when operating on any global
-   data that invoke other methods which also access global; thus,
-   creating the potential for deadlock. */
-@class	NSRecursiveLock;
-NSRecursiveLock *gnustep_global_lock = nil;
-
 /*
  * NSConnection Notification Strings.
  */
