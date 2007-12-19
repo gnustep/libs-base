@@ -1267,9 +1267,10 @@ NSUserName(void)
       const char *loginName = 0;
 #if     defined(HAVE_GETPWUID_R)
       struct passwd pwent;
+      struct passwd *p;
       char buf[BUFSIZ*10];
 
-      if (getpwuid_r(uid, &pwent, buf, sizeof(buf), 0) == 0)
+      if (getpwuid_r(uid, &pwent, buf, sizeof(buf), &p) == 0)
         {
           loginName = pwent.pw_name;
         }
@@ -1316,9 +1317,10 @@ NSHomeDirectoryForUser(NSString *loginName)
 #if !defined(__MINGW32__)
 #if     defined(HAVE_GETPWNAM_R)
   struct passwd pw;
+  struct passwd *p;
   char buf[BUFSIZ*10];
 
-  if (getpwnam_r([loginName cString], &pw, buf, sizeof(buf), 0) == 0
+  if (getpwnam_r([loginName cString], &pw, buf, sizeof(buf), &p) == 0
     && pw.pw_dir != 0)
     {
       s = [NSString stringWithUTF8String: pw.pw_dir];
@@ -1398,9 +1400,10 @@ NSFullUserName(void)
 #ifdef  HAVE_PWD_H
 #if     defined(HAVE_GETPWNAM_R)
       struct passwd pw;
+      struct passwd *p;
       char buf[BUFSIZ*10];
 
-      if (getpwnam_r([NSUserName() cString], &pw, buf, sizeof(buf), 0) == 0)
+      if (getpwnam_r([NSUserName() cString], &pw, buf, sizeof(buf), &p) == 0)
         {
           userName = [NSString stringWithUTF8String: pw.pw_gecos];
         }
