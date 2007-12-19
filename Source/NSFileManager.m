@@ -411,10 +411,11 @@ static NSStringEncoding	defaultEncoding;
 #ifdef HAVE_PWD_H
 #if     defined(HAVE_GETPWNAM_R)
 	  struct passwd pw;
+	  struct passwd *p;
           char buf[BUFSIZ*10];
 
 	  if (getpwnam_r([str cStringUsingEncoding: defaultEncoding],
-            &pw, buf, sizeof(buf), 0) == 0)
+            &pw, buf, sizeof(buf), &p) == 0)
 	    {
 	      ok = (chown(lpath, pw.pw_uid, -1) == 0);
 	      chown(lpath, -1, pw.pw_gid);
@@ -463,10 +464,11 @@ static NSStringEncoding	defaultEncoding;
 #ifdef HAVE_GRP_H
 #ifdef HAVE_GETGRNAM_R
       struct group gp;
+      struct group *p;
       char buf[BUFSIZ*10];
 
       if (getgrnam_r([str cStringUsingEncoding: defaultEncoding], &gp,
-        buf, sizeof(buf), 0) == 0)
+        buf, sizeof(buf), &p) == 0)
         {
 	  if (chown(lpath, -1, gp.gr_gid) == 0)
 	    ok = YES;
@@ -2970,9 +2972,10 @@ static NSSet	*fileKeys = nil;
 #if defined(HAVE_GRP_H)
 #if defined(HAVE_GETGRGID_H)
   struct group gp;
+  struct group *p;
   char buf[BUFSIZ*10];
 
-  if (getgrgid_r(statbuf.st_gid, &gp, buf, sizeof(buf), 0) == 0)
+  if (getgrgid_r(statbuf.st_gid, &gp, buf, sizeof(buf), &p) == 0)
     {
       group = [NSString stringWithCString: gp.gr_name
 				 encoding: defaultEncoding];
@@ -3126,9 +3129,10 @@ static NSSet	*fileKeys = nil;
 #ifdef HAVE_PWD_H
 #if     defined(HAVE_GETPWUID_R)
   struct passwd pw;
+  struct passwd *p;
   char buf[BUFSIZ*10];
 
-  if (getpwuid_r(statbuf.st_uid, &pw, buf, sizeof(buf), 0) == 0)
+  if (getpwuid_r(statbuf.st_uid, &pw, buf, sizeof(buf), &p) == 0)
     {
       owner = [NSString stringWithCString: pw.pw_name
 				 encoding: defaultEncoding];
