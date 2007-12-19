@@ -1340,7 +1340,7 @@ AC_CHECK_HEADERS([sys/mount.h], [], [],
 AC_CHECK_HEADERS(sys/types.h windows.h locale.h langinfo.h)
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwuid getgrgid rint getopt)
+AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt)
 LIBS="$saved_LIBS"
 
 #--------------------------------------------------------------------
@@ -1527,7 +1527,7 @@ AC_SUBST(DEFINE_UINTPTR_T)
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(inet_aton inet_pton sigaction)
+AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
 USE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)
 if test $ac_cv_header_zlib_h = yes; then
@@ -1551,9 +1551,9 @@ AC_SUBST(HAVE_INET_PTON)
 AC_CHECK_FUNCS(nanosleep usleep)
 
 #--------------------------------------------------------------------
-# This function needed by NSDebug.m and NSProcessInfo.m
+# One of these functions needed by NSDebug.m and NSProcessInfo.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(strerror)
+AC_CHECK_FUNCS(strerror_r strerror)
 
 #--------------------------------------------------------------------
 # This type needed by GSFormat

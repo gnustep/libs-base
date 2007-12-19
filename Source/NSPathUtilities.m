@@ -78,7 +78,7 @@
 #include <unistd.h>		// for getuid()
 #endif
 #ifdef	HAVE_PWD_H
-#include <pwd.h>		// for getpwnam()
+#include <pwd.h>		// for getpwnam_r() and getpwuid_r()
 #endif
 #include <sys/types.h>
 #include <stdio.h>
@@ -1265,10 +1265,20 @@ NSUserName(void)
   if (theUserName == nil || uid != olduid)
     {
       const char *loginName = 0;
-#ifdef HAVE_GETPWUID
+#if     defined(HAVE_GETPWUID_R)
+      struct passwd pwent;
+      char buf[BUFSIZ*10];
+
+      if (getpwuid_r(uid, &pwent, buf, sizeof(buf), 0) == 0)
+        {
+          loginName = pwent.pw_name;
+        }
+#else
+#if     defined(HAVE_GETPWUID)
       struct passwd *pwent = getpwuid (uid);
       loginName = pwent->pw_name;
 #endif /* HAVE_GETPWUID */
+#endif /* HAVE_GETPWUID_R */
       olduid = uid;
       if (loginName)
 	theUserName = [[NSString alloc] initWithCString: loginName];
@@ -1304,6 +1314,17 @@ NSHomeDirectoryForUser(NSString *loginName)
   NSString	*s = nil;
 
 #if !defined(__MINGW32__)
+#if     defined(HAVE_GETPWNAM_R)
+  struct passwd pw;
+  char buf[BUFSIZ*10];
+
+  if (getpwnam_r([loginName cString], &pw, buf, sizeof(buf), 0) == 0
+    && pw.pw_dir != 0)
+    {
+      s = [NSString stringWithUTF8String: pw.pw_dir];
+    }
+#else
+#if     defined(HAVE_GETPWNAM)
   struct passwd *pw;
 
   [gnustep_global_lock lock];
@@ -1313,6 +1334,8 @@ NSHomeDirectoryForUser(NSString *loginName)
       s = [NSString stringWithUTF8String: pw->pw_dir];
     }
   [gnustep_global_lock unlock];
+#endif
+#endif
 #else
   if ([loginName isEqual: NSUserName()] == YES)
     {
@@ -1361,11 +1384,11 @@ NSFullUserName(void)
 {
   if (theFullUserName == nil)
     {
-      NSString	*userName = NSUserName();
+      NSString	*userName = nil;
 #if defined(__MINGW32__)
       struct _USER_INFO_2	*userInfo;
 
-      if (NetUserGetInfo(NULL, (unichar*)[userName cStringUsingEncoding:
+      if (NetUserGetInfo(NULL, (unichar*)[NSUserName() cStringUsingEncoding:
 	NSUnicodeStringEncoding], 2, (LPBYTE*)&userInfo) == 0)
 	{
 	  userName = [NSString stringWithCharacters: userInfo->usri2_full_name
@@ -1373,15 +1396,31 @@ NSFullUserName(void)
 	}
 #else
 #ifdef  HAVE_PWD_H
+#if     defined(HAVE_GETPWNAM_R)
+      struct passwd pw;
+      char buf[BUFSIZ*10];
+
+      if (getpwnam_r([NSUserName() cString], &pw, buf, sizeof(buf), 0) == 0)
+        {
+          userName = [NSString stringWithUTF8String: pw.pw_gecos];
+        }
+#else
+#if     defined(HAVE_GETPWNAM)
       struct passwd	*pw;
 
+      [gnustep_global_lock lock];
       pw = getpwnam([NSUserName() cString]);
       userName = [NSString stringWithUTF8String: pw->pw_gecos];
-#else
-      NSLog(@"Warning: NSFullUserName not implemented\n");
-      userName = NSUserName();
+      [gnustep_global_lock lock];
+#endif /* HAVE_GETPWNAM */
+#endif /* HAVE_GETPWNAM_R */
 #endif /* HAVE_PWD_H */
 #endif /* defined(__Win32__) else */
+      if (userName == nil)
+        {
+          NSLog(@"Warning: NSFullUserName not implemented\n");
+          userName = NSUserName();
+        }
       ASSIGN(theFullUserName, userName);
     }
   return theFullUserName;

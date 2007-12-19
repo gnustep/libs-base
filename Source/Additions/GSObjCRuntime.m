@@ -52,6 +52,8 @@
 #include "GNUstepBase/GNUstep.h"
 #include "GNUstepBase/GSCategories.h"
 
+#include "../GSPrivate.h"
+
 #include <objc/Protocol.h>
 
 #include <string.h>
@@ -976,7 +978,7 @@ GSMethodFromList(GSMethodList list,
       /* For the GNU runtime we have use strcmp instead of sel_eq
 	 for free standing method lists.  */
       if ((isFree == YES && strcmp((char *)method_name, (char *)sel) == 0)
-          || (isFree == NO && sel_eq(method_name, sel)))
+        || (isFree == NO && sel_eq(method_name, sel)))
 	{
 	  return method;
 	}
@@ -2204,52 +2206,12 @@ GSAutoreleasedBuffer(unsigned size)
 
 
 /*
- * Getting a system error message on a variety of systems.
- * Currently 8bit string ... perhaps we should move to unicode.
+ * Deprecated function.
  */
-#ifdef __MINGW32__
-
-const char *GetErrorMsg(DWORD msgId)
-{
-  void	*lpMsgBuf = 0;
-
-  FormatMessageA(
-    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
-    | FORMAT_MESSAGE_IGNORE_INSERTS,
-    NULL,
-    msgId,
-    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-    (LPSTR)&lpMsgBuf,
-    (DWORD)0,
-    NULL);
-
-  return (const char*)lpMsgBuf;
-}
-#else
-#ifndef HAVE_STRERROR
-const char *
-strerror(int eno)
-{
-  extern char  *sys_errlist[];
-  extern int    sys_nerr;
-
-  if (eno < 0 || eno >= sys_nerr)
-    {
-      return("unknown error number");
-    }
-  return(sys_errlist[eno]);
-}
-#endif
-#endif /* __MINGW32__ */
-
 const char *
 GSLastErrorStr(long error_id)
 {
-#ifdef __MINGW32__
-  return GetErrorMsg(GetLastError());
-#else
-  return strerror(error_id);
-#endif
+  return [[[NSError _last] localizedDescription] cString];
 }
 
 
