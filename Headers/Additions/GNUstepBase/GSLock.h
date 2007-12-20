@@ -34,6 +34,8 @@
 #include <Foundation/Foundation.h>
 #endif
 
+#include "GNUstepBase/GSObjCRuntime.h"
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif

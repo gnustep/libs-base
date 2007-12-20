@@ -1,3 +1,8 @@
+2007-12-05  David Ayers  <ayers@fsfe.org>
+
+	* Headers/Additions/GNUstepBase/GSLock.h: Include GSObjCRuntime.h for
+	GS_EXPORT declaration.
+	
 2007-12-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Add checks for thread-safe versions of some standard
