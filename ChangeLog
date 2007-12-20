@@ -2,6 +2,8 @@
 
 	* Headers/Additions/GNUstepBase/GSLock.h: Include GSObjCRuntime.h for
 	GS_EXPORT declaration.
+	* Source/NSFileManager.m (_POSIX_PTHREAD_SEMANTICS): Define to expose
+	POSIX compliant signatures for get(pw/gr)(nam/uid)_r.
 	
 2007-12-19  Richard Frith-Macdonald <rfm@gnu.org>
 
