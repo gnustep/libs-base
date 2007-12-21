@@ -54,6 +54,10 @@
    </unit>
 */
 
+/* The following define is needed for Solaris get(pw/gr)(nam/uid)_r declartions
+   which default to pre POSIX declaration.  */
+#define _POSIX_PTHREAD_SEMANTICS
+
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "objc-load.h"
