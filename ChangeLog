@@ -2,6 +2,12 @@
 
 	* Source/NSPathUtilities.m (_POSIX_PTHREAD_SEMANTICS): Define to expose
 	POSIX compliant signatures for get(pw/gr)(nam/uid)_r.
+
+	* Headers/Additions/GNUstepBase/config.h.in, configure.ac (alloca.h):
+	Check for header.
+	* configure: Regenerate.
+	* Source/mframe.m, Source/cifframe.m, Source/NSConnection.m,
+	Source/callframe.m, Source/GSFormat.m: Include alloca.h where available.
 	
 2007-12-20  David Ayers  <ayers@fsfe.org>
 

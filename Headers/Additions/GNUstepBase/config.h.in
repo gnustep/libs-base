@@ -313,6 +313,9 @@
 /* Define if your Obj-C compiler calls +load methods before main */
 #undef HAVE_LOAD_METHOD
 
+/* Define to 1 if you have the <alloca.h> header file. */
+#undef HAVE_ALLOCA_H
+
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 

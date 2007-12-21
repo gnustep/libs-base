@@ -34,14 +34,13 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include <mframe.h>
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSDebug.h"
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <mframe.h>
 
 /* Deal with strrchr: */
 #if STDC_HEADERS || defined(HAVE_STRING_H)
@@ -59,6 +58,11 @@
 #include <strings.h>
 /* memory.h and strings.h conflict on some systems.  */
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
+
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSDebug.h"
 
 
 

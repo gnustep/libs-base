@@ -48,10 +48,14 @@
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
 #include <limits.h>
 
 #include <stdio.h>
 #include <string.h>
+
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"

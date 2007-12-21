@@ -30,6 +30,10 @@
    */
 
 #import "config.h"
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 #import "Foundation/NSEnumerator.h"
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"

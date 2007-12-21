@@ -1316,7 +1316,7 @@ AC_C_INLINE
 # Following header checks needed for bzero in Storage.m and other places
 #--------------------------------------------------------------------
 AC_HEADER_STDC
-AC_CHECK_HEADERS(string.h memory.h)
+AC_CHECK_HEADERS(string.h memory.h alloca.h)
 
 #--------------------------------------------------------------------
 # Following header check needed NSConnection.h
