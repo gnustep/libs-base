@@ -1,4 +1,9 @@
-2007-12-05  David Ayers  <ayers@fsfe.org>
+2007-12-21  David Ayers  <ayers@fsfe.org>
+
+	* Source/NSPathUtilities.m (_POSIX_PTHREAD_SEMANTICS): Define to expose
+	POSIX compliant signatures for get(pw/gr)(nam/uid)_r.
+	
+2007-12-20  David Ayers  <ayers@fsfe.org>
 
 	* Headers/Additions/GNUstepBase/GSLock.h: Include GSObjCRuntime.h for
 	GS_EXPORT declaration.
