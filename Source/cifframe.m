@@ -25,6 +25,10 @@
 
 #include "config.h"
 #include <stdlib.h>
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 #include "cifframe.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSData.h"
