@@ -266,14 +266,20 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     {
       NSDictionary	*regDefs;
 
-      [sharedDefaults synchronize];	// Ensure changes are written.
-      regDefs = RETAIN([sharedDefaults->_tempDomains
-	objectForKey: NSRegistrationDomain]);
       /* To ensure that we don't try to synchronise the old defaults to disk
        * after creating the new ones, remove as housekeeping notification
        * observer.
        */
       [[NSNotificationCenter defaultCenter] removeObserver: sharedDefaults];
+
+      /* Ensure changes are written, and no changes left so we can't end up
+       * writing old changes to the new defaults.
+       */
+      [sharedDefaults synchronize];
+      DESTROY(sharedDefaults->_changedDomains);
+
+      regDefs = RETAIN([sharedDefaults->_tempDomains
+	objectForKey: NSRegistrationDomain]);
       setSharedDefaults = NO;
       DESTROY(sharedDefaults);
       if (regDefs != nil)

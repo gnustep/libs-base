@@ -108,6 +108,11 @@ GSDomainFromDefaultLocale(void)
 
   dict = [NSMutableDictionary dictionary];
 
+  /* Protect locale access with locks to prevent multiple threads using
+   * it and interfering with the buffer.
+   */
+  [gnustep_global_lock lock];
+
 #ifdef HAVE_LANGINFO_H
   /* Time/Date Information */
   arr = [NSMutableArray arrayWithCapacity: 7];
@@ -189,7 +194,6 @@ GSDomainFromDefaultLocale(void)
 	       forKey: NSThousandsSeparator];
     }
 
-
   /* FIXME: Get currency format from localeconv */
 
 #ifdef	LC_MESSAGES
@@ -207,7 +211,6 @@ GSDomainFromDefaultLocale(void)
       [dict setObject: str2 forKey: NSLanguageName];
     }
 
-  [gnustep_global_lock lock];
   /*
    * Another thread might have been faster in setting the static variable.
    * If so, we just drop our dict.
