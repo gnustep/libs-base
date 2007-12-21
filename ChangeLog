@@ -1,3 +1,7 @@
+2007-12-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m: protect locale access with locks.
+
 2007-12-21  David Ayers  <ayers@fsfe.org>
 
 	* Source/NSPathUtilities.m (_POSIX_PTHREAD_SEMANTICS): Define to expose
