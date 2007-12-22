@@ -797,7 +797,10 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  extern NSTimeInterval GSTimeNow(void);
 	  GSIArray		timers = context->timers;
 	  NSTimeInterval	now;
+          NSDate                *earliest = nil;
+          NSTimeInterval        ei;
 	  NSTimer		*t;
+	  NSTimeInterval	ti;
           unsigned              i;
 
 	  /*
@@ -858,10 +861,15 @@ static inline BOOL timerInvalidated(NSTimer *t)
 		}
 
               d = timerDate(t);
-	      if ([d timeIntervalSinceReferenceDate] > now)
+              ti = [d timeIntervalSinceReferenceDate];
+	      if (ti > now)
 		{
-		  when = [d copy];
-		  break;
+                  if (earliest == nil || ti < ei)
+                    {
+                      ei = ti;
+                      earliest = d;
+                    }
+		  continue;
 		}
 
 	      /* When firing the timer we must remove it from
@@ -888,29 +896,45 @@ static inline BOOL timerInvalidated(NSTimer *t)
                 }
 	      if (timerInvalidated(t) == NO)
                 {
+                  NSDate        *next = timerDate(t);
+
                   /* Increment fire date unless the timeout handler
                    * has already updated it. Then put the timer back
                    * in the array so that it can fire again next
                    * time this method is called.
                    */
-                  if (timerDate(t) == d)
+                  if (next == d)
                     {
-                      d = [[NSDate alloc]
+                      next = [[NSDate alloc]
                         initWithTimeIntervalSinceReferenceDate:
                         now + [t timeInterval]];
-                      [t setFireDate: d];
-                      RELEASE(d);
+                      [t setFireDate: next];
+                      RELEASE(next);
                     }
 		  GSIArrayInsertItemNoRetain(timers, (GSIArrayItem)((id)t), i);
+                  ti = [next timeIntervalSinceReferenceDate];
+                  if (earliest == nil || ti < ei)
+                    {
+                      ei = ti;
+                      earliest = next;
+                    }
                 }
               else
                 {
                   /* The timer was invalidated, so we can release it as we
-                   * aren't p[utting it back in the array.
+                   * aren't putting it back in the array.
                    */
                   RELEASE(t);
                 }
 	    }
+
+          /* The earliest date of a valid timeout is copied into 'when'
+           * and used as our limit date.
+           */
+          if (earliest != nil)
+            {
+              when = [earliest copy];
+            }
 	  _currentMode = savedMode;
 	}
       NS_HANDLER
