@@ -853,27 +853,39 @@ gnustep_base_thread_callback(void)
 
 - (void) start
 {
-  if (_active == NO)
+  if (_active == YES)
     {
-      /* Make sure the notification is posted BEFORE the new thread starts.
-       */
-      gnustep_base_thread_callback();
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"[%@-$@] called on active thread",
+        NSStringFromClass([self class]),
+        NSStringFromSelector(_cmd)];
+    }
+  if (_cancelled == YES)
+    {
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"[%@-$@] called on cancelled thread",
+        NSStringFromClass([self class]),
+        NSStringFromSelector(_cmd)];
+    }
 
-      /* The thread must persist until if finishes executing.
-       */
-      RETAIN(self);
+  /* Make sure the notification is posted BEFORE the new thread starts.
+   */
+  gnustep_base_thread_callback();
 
-      /* Mark the thread as active whiul it's running.
-       */
-      _active = YES;
+  /* The thread must persist until it finishes executing.
+   */
+  RETAIN(self);
 
-      if (objc_thread_detach(@selector(main), self, nil) == NULL)
-        {
-          _active = NO;
-          RELEASE(self);
-          [NSException raise: NSInternalInconsistencyException
-                      format: @"Unable to detach thread (unknown error)"];
-        }
+  /* Mark the thread as active whiul it's running.
+   */
+  _active = YES;
+
+  if (objc_thread_detach(@selector(main), self, nil) == NULL)
+    {
+      _active = NO;
+      RELEASE(self);
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"Unable to detach thread (unknown error)"];
     }
 }
 
