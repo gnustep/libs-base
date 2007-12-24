@@ -798,6 +798,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  GSIArray		timers = context->timers;
 	  NSTimeInterval	now;
           NSDate                *earliest = nil;
+          BOOL                  recheck = YES;
           NSTimeInterval        ei;
 	  NSTimer		*t;
 	  NSTimeInterval	ti;
@@ -805,9 +806,12 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 	  /*
 	   * Save current time so we don't keep redoing system call to
-	   * get it.  We must refetch the time after every operation
-	   * (such as a timer firing) which might cause a significant
-	   * delay making the saved value outdated.
+	   * get it and so that we check timer fire dates against a known
+	   * value at the point when the method was called.
+           * If we refetched the date after firing each timer, the time
+           * taken in firing the timer could be large enough so we would
+	   * just keep firing the timer repeatedly and never return from
+           * this method.
 	   */
 	  now = GSTimeNow();
 
@@ -827,16 +831,20 @@ static inline BOOL timerInvalidated(NSTimer *t)
                   [t fire];
                   GSPrivateNotifyASAP();
                   IF_NO_GC([arp emptyPool]);
-                  now = GSTimeNow();
 
                   /* Increment fire date unless timer is invalidated or the 
                    * timeout handler has already updated it.
                    */
                   if (timerInvalidated(t) == NO && timerDate(t) == d)
                     {
+                      ti = [d timeIntervalSinceReferenceDate];
+                      ti += [t timeInterval];
+                      while (ti < now)
+                        {
+                          ti += [t timeInterval];
+                        }
                       d = [[NSDate alloc]
-                        initWithTimeIntervalSinceReferenceDate:
-                        now + [t timeInterval]];
+                        initWithTimeIntervalSinceReferenceDate: ti];
                       [t setFireDate: d];
                       RELEASE(d);
                     }
@@ -847,86 +855,116 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	   * Handle normal timers ... remove invalidated timers and fire any
 	   * whose date has passed.
 	   */
-          i = GSIArrayCount(timers);
-          while (i-- > 0)
-	    {
-              NSDate    *d;
+          while (recheck == YES)
+            {
+              recheck = NO;
+              earliest = nil;
 
-	      t = GSIArrayItemAtIndex(timers, i).obj;
-	      if (timerInvalidated(t) == YES)
-		{
-		  GSIArrayRemoveItemAtIndex(timers, i);
-		  t = nil;
-		  continue;
-		}
-
-              d = timerDate(t);
-              ti = [d timeIntervalSinceReferenceDate];
-	      if (ti > now)
-		{
-                  if (earliest == nil || ti < ei)
-                    {
-                      ei = ti;
-                      earliest = d;
-                    }
-		  continue;
-		}
-
-	      /* When firing the timer we must remove it from
-               * the loop so that if the -fire methods re-runs
-               * the loop we do not get recursive entry into
-               * the timer.  This appears to be the behavior
-               * in MacOS-X also.
-               */
-	      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
-	      [t fire];
-	      GSPrivateNotifyASAP();		/* Post notifications. */
-	      IF_NO_GC([arp emptyPool]);
-	      now = GSTimeNow();
-
-              /* The -fire method could have re-run the current run loop
-               * and caused timers to have been added (not a problem),
-               * or invalidated and/or removed.  In the latter case the
-               * timers array could have shrunk, so we must check that
-               * our loop index is not too large.
-               */
-              if (i > GSIArrayCount(timers))
+              i = GSIArrayCount(timers);
+              while (i-- > 0)
                 {
-                  i = GSIArrayCount(timers);
-                }
-	      if (timerInvalidated(t) == NO)
-                {
-                  NSDate        *next = timerDate(t);
-
-                  /* Increment fire date unless the timeout handler
-                   * has already updated it. Then put the timer back
-                   * in the array so that it can fire again next
-                   * time this method is called.
-                   */
-                  if (next == d)
+                  t = GSIArrayItemAtIndex(timers, i).obj;
+                  if (timerInvalidated(t) == YES)
                     {
-                      next = [[NSDate alloc]
-                        initWithTimeIntervalSinceReferenceDate:
-                        now + [t timeInterval]];
-                      [t setFireDate: next];
-                      RELEASE(next);
-                    }
-		  GSIArrayInsertItemNoRetain(timers, (GSIArrayItem)((id)t), i);
-                  ti = [next timeIntervalSinceReferenceDate];
-                  if (earliest == nil || ti < ei)
-                    {
-                      ei = ti;
-                      earliest = next;
+                      GSIArrayRemoveItemAtIndex(timers, i);
                     }
                 }
-              else
+              for (i = 0; recheck == NO && i < GSIArrayCount(timers); i++)
                 {
-                  /* The timer was invalidated, so we can release it as we
-                   * aren't putting it back in the array.
-                   */
-                  RELEASE(t);
+                  NSDate    *d;
+
+                  t = GSIArrayItemAtIndex(timers, i).obj;
+                  d = timerDate(t);
+                  ti = [d timeIntervalSinceReferenceDate];
+                  if (ti <= now)
+                    {
+                      /* When firing the timer we must remove it from
+                       * the loop so that if the -fire methods re-runs
+                       * the loop we do not get recursive entry into
+                       * the timer.  This appears to be the behavior
+                       * in MacOS-X also.
+                       */
+                      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
+                      [t fire];
+                      GSPrivateNotifyASAP();	/* Post notifications. */
+                      IF_NO_GC([arp emptyPool]);
+
+                      if (timerInvalidated(t) == YES)
+                        {
+                          /* The timer was invalidated, so we can
+                           * release it as we aren't putting it back
+                           * in the array.
+                           */
+                          RELEASE(t);
+                        }
+                      else
+                        {
+                          NSDate        *next = timerDate(t);
+                          BOOL          shouldSetFireDate = NO;
+
+                          if (next == d)
+                            {
+                              /* The timeout handler has not updated
+                               * the fire date, so we increment it.
+                               */
+                              shouldSetFireDate = YES;
+                              ti = [d timeIntervalSinceReferenceDate];
+                              ti += [t timeInterval];
+                            }
+                          else
+                            {
+                              ti = [next timeIntervalSinceReferenceDate];
+                              if (ti <= now)
+                                {
+                                  /* The timeout handler updated the fire
+                                   * date to some time in the past, so we
+                                   * need to override that value.
+                                   */
+                                  shouldSetFireDate = YES;
+                                }
+                            }
+
+                          if (shouldSetFireDate == YES)
+                            {
+                              NSTimeInterval    increment = [t timeInterval];
+
+                              /* First we ensure that the new fire date is
+                               * in the future, then we set it in the timer.
+                               */
+                              while (ti < now)
+                                {
+                                  ti += increment;
+                                }
+                              next = [[NSDate alloc]
+                                initWithTimeIntervalSinceReferenceDate: ti];
+                              [t setFireDate: next];
+                              RELEASE(next);
+                            }
+                          GSIArrayAddItemNoRetain(timers,
+                            (GSIArrayItem)((id)t));
+                        }
+
+                      /* As a timer was fired, it's possible that the
+                       * array of valid timers in this context has changed
+                       * so we must recheck the dates in case a timer we
+                       * already checked has had its start date set back
+                       * earlier than the point at which we checked it.
+                       * It's also possible that the incremented date of
+                       * a repeating timer is still the earliest date in
+                       * the context.
+                       */
+                      recheck = YES;
+                    }
+                  else
+                    {
+                      if (earliest == nil || ti < ei)
+                        {
+                          ei = ti;
+                          earliest = d;
+                        }
+                    }
                 }
-	    }
+            }
 
           /* The earliest date of a valid timeout is copied into 'when'
            * and used as our limit date.
@@ -1077,8 +1115,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
       [self _checkPerformers: context];
       GSPrivateNotifyASAP();
       _currentMode = savedMode;
-      /*
-       * Once a poll has been completed on a context, we can remove that
+
+      /* Once a poll has been completed on a context, we can remove that
        * context from the stack even if it actually polling at an outer
        * level of re-entrancy ... since the poll we have just done will
        * have handled any events that the outer levels would have wanted

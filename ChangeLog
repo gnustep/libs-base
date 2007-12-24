@@ -1,3 +1,9 @@
+2007-12-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Perhaps a bit paranoid, but alter to recheck
+	all timers after any timer is fired, so we ar sure to pick up any
+	changes done to timer fire dates during the firing of a timer.
+
 2007-12-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Fix error finding earliest timer for limit date.
