@@ -52,7 +52,7 @@ extern "C" {
   NSMutableDictionary	*_thread_dictionary;
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
-  void                  *_reserved;     // For mfuture expansion
+  void                  *_reserved;     // For future expansion
 }
 
 + (NSThread*) currentThread;

@@ -196,6 +196,14 @@ static Class	NSDate_class;
     {
       [self invalidate];
     }
+  if (_target != nil)
+    {
+      DESTROY(_target);
+    }
+  if (_info != nil)
+    {
+      DESTROY(_info);
+    }
   RELEASE(_date);
   [super dealloc];
 }
@@ -253,14 +261,6 @@ static Class	NSDate_class;
  */
 - (void) invalidate
 {
-  if (_target != nil)
-    {
-      DESTROY(_target);
-    }
-  if (_info != nil)
-    {
-      DESTROY(_info);
-    }
   /* OPENSTEP allows this method to be called multiple times. */
   //NSAssert(_invalidated == NO, NSInternalInconsistencyException);
   _invalidated = YES;
