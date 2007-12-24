@@ -539,11 +539,6 @@ gnustep_base_thread_callback(void)
   NSThread	*thread;
 
   /*
-   * Make sure the notification is posted BEFORE the new thread starts.
-   */
-  gnustep_base_thread_callback();
-
-  /*
    * Create the new thread.
    */
   thread = (NSThread*)NSAllocateObject(self, 0, NSDefaultMallocZone());
@@ -551,14 +546,8 @@ gnustep_base_thread_callback(void)
                          selector: aSelector
                            object: anArgument];
 
-  /*
-   * Have the runtime detach the thread
-   */
-  if (objc_thread_detach(@selector(start), thread, nil) == NULL)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"Unable to detach thread (unknown error)"];
-    }
+  [thread start];
+  RELEASE(thread);
 }
 
 
@@ -803,7 +792,42 @@ gnustep_base_thread_callback(void)
 
 - (void) main
 {
+  if (_active == NO)
+    {
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"[%@-$@] called on inactive thread",
+        NSStringFromClass([self class]),
+        NSStringFromSelector(_cmd)];
+    }
+  if (objc_thread_get_data() != nil)
+    {
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"[%@-$@] called on running thread",
+        NSStringFromClass([self class]),
+        NSStringFromSelector(_cmd)];
+    }
+
+  /*
+   * We are running in the new thread - so we store ourself in the thread
+   * dictionary and release ourself - thus, when the thread exits, we will
+   * be deallocated cleanly.
+   */
+  objc_thread_set_data(self);
+
+  /*
+   * Let observers know a new thread is starting.
+   */
+  if (nc == nil)
+    {
+      nc = RETAIN([NSNotificationCenter defaultCenter]);
+    }
+  [nc postNotificationName: NSThreadDidStartNotification
+		    object: self
+		  userInfo: nil];
+
   [_target performSelector: _selector withObject: _arg];
+
+  [NSThread exit];
 }
 
 - (NSString*) name
@@ -829,27 +853,28 @@ gnustep_base_thread_callback(void)
 
 - (void) start
 {
-  /*
-   * We are running in the new thread - so we store ourself in the thread
-   * dictionary and release ourself - thus, when the thread exits, we will
-   * be deallocated cleanly.
-   */
-  objc_thread_set_data(self);
-  _active = YES;
-
-  /*
-   * Let observers know a new thread is starting.
-   */
-  if (nc == nil)
+  if (_active == NO)
     {
-      nc = RETAIN([NSNotificationCenter defaultCenter]);
-    }
-  [nc postNotificationName: NSThreadDidStartNotification
-		    object: self
-		  userInfo: nil];
+      /* Make sure the notification is posted BEFORE the new thread starts.
+       */
+      gnustep_base_thread_callback();
 
-  [self main];
-  [NSThread exit];
+      /* The thread must persist until if finishes executing.
+       */
+      RETAIN(self);
+
+      /* Mark the thread as active whiul it's running.
+       */
+      _active = YES;
+
+      if (objc_thread_detach(@selector(main), self, nil) == NULL)
+        {
+          _active = NO;
+          RELEASE(self);
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"Unable to detach thread (unknown error)"];
+        }
+    }
 }
 
 /**
