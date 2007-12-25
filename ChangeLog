@@ -1,3 +1,8 @@
+2007-12-24  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Don't fail if ffcall trampolines don't work.
+	* configure: regnerate.
+
 2007-12-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Perhaps a bit paranoid, but alter to recheck

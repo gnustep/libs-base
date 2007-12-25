@@ -1911,9 +1911,10 @@ if test $enable_ffcall = yes -a $ffi_ok = yes; then
 	  have_working_trampoline=yes, have_working_trampoline=no, 
 	  have_working_trampoline=yes)
   AC_MSG_RESULT($have_working_trampoline)
-  if test $have_working_trampoline = no; then
-    ffi_ok=no
-  fi
+  # Don't enforce this. Sometimes things work fine anyway...
+  #if test $have_working_trampoline = no; then
+  #  ffi_ok=no
+  #fi
 fi
 
 if test $ffi_ok = no; then
