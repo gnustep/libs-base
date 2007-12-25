@@ -885,7 +885,8 @@ gnustep_base_thread_callback(void)
       _active = NO;
       RELEASE(self);
       [NSException raise: NSInternalInconsistencyException
-                  format: @"Unable to detach thread (unknown error)"];
+                  format: @"Unable to detach thread (perhaps %@)",
+                  [NSError _last]];
     }
 }
 
