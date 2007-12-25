@@ -745,6 +745,7 @@ gnustep_base_thread_callback(void)
 	    }
 	}
     }
+  DESTROY(_gcontext);
   if (self == defaultThread)
     {
       defaultThread = nil;
