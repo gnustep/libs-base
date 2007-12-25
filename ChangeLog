@@ -1,3 +1,7 @@
+2007-12-24  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Don't fail if ffcall trampolines don't work.
+
 2007-12-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: catch exception when unlocking defaults
