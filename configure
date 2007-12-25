@@ -16238,9 +16238,10 @@ fi
 
   { echo "$as_me:$LINENO: result: $have_working_trampoline" >&5
 echo "${ECHO_T}$have_working_trampoline" >&6; }
-  if test $have_working_trampoline = no; then
-    ffi_ok=no
-  fi
+  # Don't enforce this. Sometimes things work fine anyway...
+  #if test $have_working_trampoline = no; then
+  #  ffi_ok=no
+  #fi
 fi
 
 if test $ffi_ok = no; then
