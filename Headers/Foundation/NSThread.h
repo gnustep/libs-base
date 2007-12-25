@@ -48,7 +48,7 @@ extern "C" {
   unsigned              _stackSize;
   BOOL			_cancelled;
   BOOL			_active;
-  NSHandler		*_exception_handler;
+  NSHandler		*_exception_handler;    // Not retained.
   NSMutableDictionary	*_thread_dictionary;
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
