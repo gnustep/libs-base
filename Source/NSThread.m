@@ -39,12 +39,22 @@
 #ifdef HAVE_NANOSLEEP
 #include <time.h>
 #endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
 #ifdef NeXT_RUNTIME
 #include "thr-mach.h"
 #endif
 
 #include <errno.h>
 
+#include "Foundation/NSDebug.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSLock.h"
@@ -703,11 +713,6 @@ gnustep_base_thread_callback(void)
 - (void) cancel
 {
   _cancelled = YES;
-  if (_active == YES)
-    {
-      [self notImplemented: _cmd];
-      // FIXME
-    }
 }
 
 - (void) dealloc
@@ -808,12 +813,36 @@ gnustep_base_thread_callback(void)
         NSStringFromSelector(_cmd)];
     }
 
+#if     defined(HAVE_SETRLIMIT) && defined(RLIMIT_STACK)
+  if (_stackSize > 0)
+    {
+      struct rlimit     rl;
+
+      rl.rlim_cur = _stackSize;
+      rl.rlim_max = _stackSize;
+      if (setrlimit(RLIMIT_STACK, &rl) < 0)
+        {
+          NSDebugMLog(@"Unable to set thread stack size to %u: %@",
+            _stackSize, [NSError _last]);
+        }
+    }
+#endif
+
   /*
    * We are running in the new thread - so we store ourself in the thread
    * dictionary and release ourself - thus, when the thread exits, we will
    * be deallocated cleanly.
    */
   objc_thread_set_data(self);
+
+#if     defined(PTHREAD_JOINABLE)
+/* Hack to work around the fact that
+ * some versions of the objective-c
+ * library fail to create the thread detached.
+ * We should really do this only in such cases.
+ */
+pthread_detach(pthread_self());
+#endif
 
   /*
    * Let observers know a new thread is starting.
@@ -843,8 +872,10 @@ gnustep_base_thread_callback(void)
 
 - (void) setStackSize: (unsigned)stackSize
 {
-  [self notImplemented: _cmd];
-  _stackSize = stackSize;       // FIXME
+  _stackSize = stackSize;
+#if     !defined(HAVE_SETRLIMIT) || !defined(RLIMIT_STACK)
+  GSOnceMLog(@"Warning ... -setStackSize: not implemented on this system");
+#endif
 }
 
 - (unsigned) stackSize
