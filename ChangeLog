@@ -1,3 +1,13 @@
+2007-12-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.joinable.m: test for joinable threads.
+	* configure.ac: Add test for setrlimit and joinable threads
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Source/NSThread.m: implement setting stack size for new
+	threads.  Hack in workaround for versions of libobjc which
+	leak thread resource memory.
+
 2007-12-24  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Don't fail if ffcall trampolines don't work.

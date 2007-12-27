@@ -174,6 +174,9 @@
 /* Define if this constant is defined */
 #undef HANDLE_LONG_LONG_MAX
 
+/* Define to 1 if you have the <alloca.h> header file. */
+#undef HAVE_ALLOCA_H
+
 /* Define to 1 if you have the <bfd.h> header file. */
 #undef HAVE_BFD_H
 
@@ -313,9 +316,6 @@
 /* Define if your Obj-C compiler calls +load methods before main */
 #undef HAVE_LOAD_METHOD
 
-/* Define to 1 if you have the <alloca.h> header file. */
-#undef HAVE_ALLOCA_H
-
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
@@ -403,6 +403,9 @@
 /* Define to 1 if you have the `setpgrp' function. */
 #undef HAVE_SETPGRP
 
+/* Define to 1 if you have the `setrlimit' function. */
+#undef HAVE_SETRLIMIT
+
 /* Define to 1 if you have the `shmctl' function. */
 #undef HAVE_SHMCTL
 
@@ -467,6 +470,9 @@
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
 
 /* Define to 1 if you have the <sys/rusage.h> header file. */
 #undef HAVE_SYS_RUSAGE_H
@@ -587,6 +593,9 @@
 
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
+
+/* Define if objc runtime creates jointable threads */
+#undef PTHREAD_JOINABLE
 
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
