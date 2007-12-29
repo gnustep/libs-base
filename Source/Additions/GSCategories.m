@@ -908,8 +908,10 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
  */
 @implementation NSError(GSCategories)
 
-#ifndef HAVE_STRERROR_R
-#ifdef HAVE_STRERROR
+
+#if !defined(__MINGW32__)
+#if !defined(HAVE_STRERROR_R)
+#if defined(HAVE_STRERROR)
 static int
 strerror_r(int eno, char *buf, int len)
 {
@@ -946,6 +948,7 @@ strerror_r(int eno, char *buf, int len)
   strncpy(buf, sys_errlist[eno], len);
   return 0;
 }
+#endif
 #endif
 #endif
 
