@@ -11,13 +11,17 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.14.2}
+
+Minor configuration change so it will compile on darwin with ffcall.
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.14.1}
 
 License changed to GPLv3.
 Mostly bug fixes, particularly with regard to XML handling and handling
 unichar on Windows.
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.14.0}
 
