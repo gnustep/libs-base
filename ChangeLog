@@ -1,3 +1,10 @@
+2007-12-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Fix error sending NSPortMessage objects which have not
+	reserved space in their first component.
+
 2007-12-29  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.14.2
