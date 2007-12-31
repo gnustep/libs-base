@@ -2384,6 +2384,7 @@ static Class		tcpPortClass;
        * a maximum of NETBLOCK bytes.  This is to try to get a single,
        * efficient write operation if possible.
        */
+      c = [components count];
       for (i = 1; i < c; i++)
 	{
 	  id	o = [components objectAtIndex: i];
