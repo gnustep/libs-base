@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.15.1, is now available.
+The GNUstep Base Library, version 1.15.2, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -18,27 +18,19 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version `1.15.1'
+1.2 Noteworthy changes in version `1.15.2'
 ==========================================
 
-This is an unstable release. There may be API and ABI changes from
-previous releases. The licesne hase changed to GPLv3 and LGPLv3.
-Mostly bug fixes, but a few improvements in NSPredicates and Key-Value
-coding have been added.
+Bug fixes include improved thread safety (and a change to the NSThread
+class structure) and Key-Value observing.
 
 1.3 Where can you get it?  How can you compile it?
 ==================================================
 
-The gnustep-base-1.15.1.tar.gz distribution file has been placed at
+The gnustep-base-1.15.2.tar.gz distribution file has been placed at
 `ftp://ftp.gnustep.org/pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page
 `http://savannah.gnu.org/bugs/?group=gnustep' or send bug reports to
 <bug-gnustep@gnu.org>.
-
-   Copyright (C) 2005 Free Software Foundation
-
-   Copying and distribution of this file, with or without modification,
-are permitted in any medium without royalty provided the copyright
-notice and this notice are preserved.
 
