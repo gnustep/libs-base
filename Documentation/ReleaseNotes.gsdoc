@@ -29,11 +29,33 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.15.2</heading>
+	<p> 
+          This is an unstable release. Bug fixes include improved thread
+	  safety and Key-Value observing.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSException</term>
+	  <desc>
+	  New MacOS X methods and improved stack trace.
+	  </desc>
+	  <term>NSThread</term>
+	  <desc>
+	  New methods from Mac OS 10.5 and new ivars
+	  </desc>
+	  <term>NSDecimal and NSDecimalNumber</term>
+	  <desc>
+	  Many improvements
+	  </desc>
+	</deflist>
+      </section>
+      <section>
 	<heading>Version 1.15.1</heading>
 	<p> 
           This is an unstable release. There have been many bug fixes, but
 	  also a few method additions and changes to some headers.
-	  Also the license for this releas is now GPLv3 and LGPLv3.
+	  Also the license for this release is now GPLv3 and LGPLv3.
 	</p>
 	Highlights:
 	<deflist>

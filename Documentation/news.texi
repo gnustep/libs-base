@@ -11,14 +11,18 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.15.2}
+Bug fixes include improved thread safety (and a change to the NSThread
+class structure) and Key-Value observing.
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.15.1}
 
 This is an unstable release. There may be API and ABI changes 
 from previous releases. The licesne hase changed to GPLv3 and LGPLv3.
 Mostly bug fixes, but a few improvements in NSPredicates and Key-Value
 coding have been added.
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.15.0}
 
