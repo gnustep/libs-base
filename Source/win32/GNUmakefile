@@ -30,12 +30,12 @@ include ../../config.mak
 SUBPROJECT_NAME = win32
 
 win32_OBJC_FILES =\
-	GSFileHandleWin32.m \
+	GSFileHandle.m \
 	GSRunLoopCtxt.m \
-	NSMessagePortWin32.m \
-	NSMessagePortNameServerWin32.m \
-	NSStreamWin32.m \
-	NSUserDefaultsWin32.m \
+	NSMessagePort.m \
+	NSMessagePortNameServer.m \
+	NSStream.m \
+	NSUserDefaults.m \
 
 
 -include Makefile.preamble

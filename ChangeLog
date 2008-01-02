@@ -1,3 +1,13 @@
+2007-01-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandle.m: rename to GSFileHandleWin32.m
+	* Source/win32/NSUserDefaultsWin32.m: rename to NSUserDefaults.m
+	* Source/win32/NSMessagePortWin32.m: rename to NSMessagePort.m
+	* Source/win32/NSStreamWin32.m: rename to NSStream.m
+	* Source/win32/NSMessagePortNameServerWin32.m: rename to
+	NSMessagePortNameServer.m
+	* Source/win32/GNUmakefile: Rename source files for consistency.
+
 2008-01-01  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/HTMLLinker.gsdoc: Readded
