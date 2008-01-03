@@ -306,3 +306,64 @@ inet_pton6(const char *src, uint8_t *dst)
 	return (1);
 }
 #endif
+
+
+/*
+   Copyright (C) 2008 Free Software Foundation, Inc.
+
+   Written by:  Richard Frith-Macdoanld <rfm@gnu.org>
+   Date: January 2008
+
+   This is part of the GNUstep Base Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+
+   The remainder of this file is compatibility code for use under
+   mswindows (which does not have inet_ntop()).
+ */
+
+#if	defined(__MINGW32__)
+const char *
+inet_ntop(int af, const void *src, char *dst, socklen_t len)
+{
+  if (af == AF_INET)
+    {
+      struct sockaddr_in in;
+
+      memset(&in, '\0', sizeof(in));
+      in.sin_family = AF_INET;
+      memcpy(&in.sin_addr, src, sizeof(struct in_addr));
+      getnameinfo((struct sockaddr *)&in, sizeof(struct sockaddr_in),
+        dst, len, 0, 0, NI_NUMERICHOST);
+      return dst;
+    }
+#ifdef AF_INET6
+  else if (af == AF_INET6)
+    {
+      struct sockaddr_in6 in;
+
+      memset(&in, '\0', sizeof(in));
+      in.sin6_family = AF_INET6;
+      memcpy(&in.sin6_addr, src, sizeof(struct in_addr6));
+      getnameinfo((struct sockaddr *)&in, sizeof(struct sockaddr_in6),
+        dst, len, 0, 0, NI_NUMERICHOST);
+      return dst;
+    }
+#endif
+  return 0;
+}
+#endif
+
