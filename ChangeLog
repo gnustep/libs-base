@@ -1,3 +1,8 @@
+2007-01-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/inet_pton.c: Add mswindows implementation of
+	inet_ntop() as well.
+
 2007-01-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFileHandle.m: rename to GSFileHandleWin32.m
