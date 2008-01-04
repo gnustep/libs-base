@@ -39,6 +39,262 @@
 #import "GSSocketStream.h"
 #import "GSPrivate.h"
 
+#if     defined(HAVE_GNUTLS)
+#include        <gnutls/gnutls.h>
+#endif
+
+@interface      GSTLS : NSObject
+{
+  GSSocketInputStream   *input;         // Not retained
+  GSSocketOutputStream  *output;        // Not retained
+  BOOL                  handshake;
+  BOOL                  active;
+#if     defined(HAVE_GNUTLS)
+@public
+  gnutls_session_t      session;
+  gnutls_certificate_credentials_t      certcred;
+#endif
+}
+- (id) initWithInput: (GSSocketInputStream*)i
+              output: (GSSocketOutputStream*)o;
+- (GSSocketInputStream*) input;
+- (GSSocketOutputStream*) output;
+
+- (BOOL) bye;           /* Close down the TLS session.  */
+- (BOOL) handshake;     /* A handshake/hello is in progress. */
+- (BOOL) hello;         /* Start up the TLS session.    */
+- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len;
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len;
+@end
+
+/* Callback to allow the TLS code to pull data from the remote system.
+ * If the operation fails, this sets the error number.
+ */
+static ssize_t
+GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
+{
+  ssize_t       result;
+  GSTLS         *tls = (GSTLS*)handle;
+  
+  result = [[tls input] _read: buffer maxLength: len];
+  if (result < 0)
+    {
+      int       e;
+
+      if ([[tls input] streamStatus] == NSStreamStatusError)
+        {
+          e = [[[(GSTLS*)handle input] streamError] code];
+        }
+      else
+        {
+          e = EAGAIN;
+        }
+      gnutls_transport_set_errno (tls->session, e);
+    }
+  return result;
+}
+
+/* Callback to allow the TLS code to push data to the remote system.
+ * If the operation fails, this sets the error number.
+ */
+static ssize_t
+GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
+{
+  ssize_t       result;
+  GSTLS         *tls = (GSTLS*)handle;
+  
+  result = [[tls output] _write: buffer maxLength: len];
+  if (result < 0)
+    {
+      int       e;
+
+      if ([[tls output] streamStatus] == NSStreamStatusError)
+        {
+          e = [[[tls output] streamError] code];
+        }
+      else
+        {
+          e = EAGAIN;
+        }
+      gnutls_transport_set_errno (tls->session, e);
+    }
+  return result;
+}
+
+static void
+GSTLSLog(int level, const char *msg)
+{
+  NSLog(@"%s", msg);
+}
+
+@implementation GSTLS
+static gnutls_anon_client_credentials_t anoncred;
+
++ (void) initialize
+{
+#if     defined(HAVE_GNUTLS)
+  static BOOL   beenHere = NO;
+
+  if (beenHere == NO)
+    {
+      beenHere = YES;
+      gnutls_global_init ();
+      gnutls_anon_allocate_client_credentials (&anoncred);
+      gnutls_global_set_log_function (GSTLSLog);
+//      gnutls_global_set_log_level (11);
+    }
+#endif  /* HAVE_GNUTLS */
+}
+
+- (BOOL) bye
+{
+#if     defined(HAVE_GNUTLS)
+  if (handshake == NO)
+    {
+      if (active == NO)
+        {
+          return YES;
+        }
+      active = NO;
+      gnutls_bye (session, GNUTLS_SHUT_RDWR);
+    }
+  gnutls_deinit (session);
+#endif  /* HAVE_GNUTLS */
+  return YES;
+}
+
+- (void) dealloc
+{
+  [self bye];
+  [super dealloc];
+}
+
+- (BOOL) handshake
+{
+  return handshake;
+}
+
+- (BOOL) hello
+{
+#if     defined(HAVE_GNUTLS)
+  int   ret;
+
+  if (active == YES)
+    {
+      return YES;
+    }
+  if (handshake == NO)
+    {
+      gnutls_certificate_allocate_credentials (&certcred);
+
+      gnutls_certificate_set_x509_trust_file
+        (certcred, "ca.pem", GNUTLS_X509_FMT_PEM);
+
+      gnutls_init (&session, GNUTLS_CLIENT);
+
+      /* Use default priorities */
+      gnutls_set_default_priority (session);
+
+/*
+     {
+        const int kx_prio[] = {
+          GNUTLS_KX_RSA,
+          GNUTLS_KX_RSA_EXPORT,
+          GNUTLS_KX_DHE_RSA,
+          GNUTLS_KX_DHE_DSS,
+          GNUTLS_KX_ANON_DH,
+          0 };
+        gnutls_kx_set_priority (session, kx_prio);
+        gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
+      }
+ */ 
+
+      gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
+
+      gnutls_transport_set_lowat (session, 0);
+      gnutls_transport_set_pull_function (session, GSTLSPull);
+      gnutls_transport_set_push_function (session, GSTLSPush);
+
+      gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
+    }
+  handshake = YES;
+  ret = gnutls_handshake (session);
+  if (ret < 0)
+    {
+      fprintf (stderr, "*** Handshake failed\n");
+      gnutls_perror (ret);
+      return NO;
+    }
+  else
+    {
+      handshake = NO;
+      active = YES;
+      printf ("- Handshake was completed\n");
+    }
+
+#endif  /* HAVE_GNUTLS */
+  return YES;
+}
+
+- (id) initWithInput: (GSSocketInputStream*)i
+              output: (GSSocketOutputStream*)o
+{
+#if     defined(HAVE_GNUTLS)
+  input = i;
+  output = o;
+#else
+  DESTROY(self);
+#endif  /* HAVE_GNUTLS */
+  return self;
+}
+
+- (GSSocketInputStream*) input
+{
+  return input;
+}
+
+- (GSSocketOutputStream*) output
+{
+  return output;
+}
+
+- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+{
+#if     defined(HAVE_GNUTLS)
+  return gnutls_record_recv (session, buffer, len);
+#else
+  return 0;
+#endif  /* HAVE_GNUTLS */
+}
+
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
+{
+//NSLog(@"GSTLS got %d on %p", event, stream);
+
+  if (handshake == YES)
+    {
+      [self hello]; /* try to complete the handshake */
+      if (handshake == NO)
+        {
+          [input _sendEvent: NSStreamEventOpenCompleted];
+          [output _sendEvent: NSStreamEventOpenCompleted];
+        }
+    }
+}
+
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+{
+#if     defined(HAVE_GNUTLS)
+  return gnutls_record_send (session, buffer, len);
+#else
+  return 0;
+#endif  /* HAVE_GNUTLS */
+}
+
+@end
+
+
 /*
  * States for socks connection negotiation
  */
@@ -49,7 +305,7 @@ static NSString * const GSSOCKSAckAuth = @"GSSOCKSAckAuth";
 static NSString * const GSSOCKSSendConn = @"GSSOCKSSendConn";
 static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
-@interface	GSSOCKS
+@interface	GSSOCKS : NSObject
 {
   NSString		*state;
   NSString		*addr;
@@ -494,6 +750,7 @@ setNonBlocking(SOCKET fd)
     }
   [_sibling _setSibling: nil];
   _sibling = nil;
+  DESTROY(_tls);
   [super dealloc];
 }
 
@@ -512,6 +769,7 @@ setNonBlocking(SOCKET fd)
       _loopID = (void*)(intptr_t)-1;
       _sock = -1;
 #endif
+      _tls = nil;
     }
   return self;
 }
@@ -520,6 +778,35 @@ setNonBlocking(SOCKET fd)
 {
   [self subclassResponsibility: _cmd];
   return NULL;
+}
+
+- (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len
+{
+  [self subclassResponsibility: _cmd];
+  return -1;
+}
+
+- (void) _sendEvent: (NSStreamEvent)event
+{
+  /* If the receiver has a TLS handshake in progress,
+   * we must send events to the TLS handler rather than
+   * the stream delegate.
+   */
+  if (_tls != nil && [_tls handshake] == YES)
+    {
+      id        del = _delegate;
+      BOOL      val = _delegateValid;
+
+      _delegate = _tls;
+      _delegateValid = YES;
+      [super _sendEvent: event];
+      _delegate = del;
+      _delegateValid = val;
+    }
+  else
+    {
+      [super _sendEvent: event];
+    }
 }
 
 - (void) _setLoopID: (void *)ref
@@ -562,6 +849,11 @@ setNonBlocking(SOCKET fd)
 #endif
 }
 
+- (void) _setTLS: (GSTLS*)t
+{
+  ASSIGN(_tls, t);
+}
+
 - (SOCKET) _sock
 {
   return _sock;
@@ -571,6 +863,12 @@ setNonBlocking(SOCKET fd)
 {
   [self subclassResponsibility: _cmd];
   return 0;
+}
+
+- (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len
+{
+  [self subclassResponsibility: _cmd];
+  return -1;
 }
 
 @end
@@ -669,7 +967,7 @@ setNonBlocking(SOCKET fd)
       NSDebugMLog(@"Attempt to close already closed stream %@", self);
       return;
     }
-
+  [_tls bye];
 #if	defined(__MINGW32__)
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
@@ -707,8 +1005,6 @@ setNonBlocking(SOCKET fd)
 
 - (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
 {
-  int readLen;
-
   if (buffer == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -719,6 +1015,16 @@ setNonBlocking(SOCKET fd)
       [NSException raise: NSInvalidArgumentException
 		  format: @"zero byte read requested"];
     }
+
+  if (_tls == nil)
+    return [self _read: buffer maxLength: len];
+  else
+    return [_tls read: buffer maxLength: len];
+}
+
+- (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len
+{
+  int readLen;
 
   _events &= ~NSStreamEventHasBytesAvailable;
 
@@ -962,20 +1268,9 @@ setNonBlocking(SOCKET fd)
     }
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   int writeLen;
-
-  if (buffer == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"null pointer for buffer"];
-    }
-  if (len == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte length write requested"];
-    }
 
   _events &= ~NSStreamEventHasSpaceAvailable;
 
@@ -1032,6 +1327,8 @@ setNonBlocking(SOCKET fd)
 
 - (void) open
 {
+  NSString      *tls;
+
   // could be opened because of sibling
   if ([self _isOpened])
     return;
@@ -1099,6 +1396,25 @@ setNonBlocking(SOCKET fd)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
+  tls = [self propertyForKey: NSStreamSocketSecurityLevelKey];
+  if (tls == nil && _sibling != nil)
+    {
+      tls = [_sibling propertyForKey: NSStreamSocketSecurityLevelKey];
+      if (tls != nil)
+        {
+          [self setProperty: tls forKey: NSStreamSocketSecurityLevelKey];
+        }
+    }
+  if (tls != nil)
+    {
+      GSTLS     *t;
+
+      t = [[GSTLS alloc] initWithInput: _sibling output: self];
+      [_sibling _setTLS: t];
+      [self _setTLS: t];
+      RELEASE(t);
+      [_tls hello];
+    }
 }
 
 
@@ -1114,7 +1430,7 @@ setNonBlocking(SOCKET fd)
       NSDebugMLog(@"Attempt to close already closed stream %@", self);
       return;
     }
-
+  [_tls bye];
 #if	defined(__MINGW32__)
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
@@ -1148,6 +1464,25 @@ setNonBlocking(SOCKET fd)
   _loopID = (void*)(intptr_t)-1;
   _sock = -1;
 #endif
+}
+
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+{
+  if (buffer == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"null pointer for buffer"];
+    }
+  if (len == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"zero byte length write requested"];
+    }
+
+  if (_tls == nil)
+    return [self _write: buffer maxLength: len];
+  else
+    return [_tls write: buffer maxLength: len];
 }
 
 - (void) _dispatch
