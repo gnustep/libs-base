@@ -1,4 +1,7 @@
-2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+2008-01-04  Riccardo Mottola <riccardo@kaffe.org>
+	* Source/NSKeyValueObserving.m: fixed cc99ism
+	
+2008-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/pathtls.m4: New checks for gnu tls
 	* configure.ac: Add checks for gnu tls.
@@ -8,7 +11,7 @@
 	* configure: regenerate
 	Preparatory checks for using gnu tls.
 
-2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+2008-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.h: derived from GSStream.h
 	* Source/GSSocketStream.m: derived from GSStream.m
@@ -19,7 +22,7 @@
 	* Source/win32/NSStream.m: include GSSocketStream.h
 	Minor restructuring for clarity.
 
-2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+2008-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSStream.h: Tweak comments.
 	* Source/GSNetwork.h: New file for common networking declarations. 
@@ -36,12 +39,12 @@
 	data in transit in the same way as on unix (ie don't close
 	the local end until a read/write actually fails).
 
-2007-01-03  Richard Frith-Macdonald <rfm@gnu.org>
+2008-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/inet_pton.c: Add mswindows implementation of
 	inet_ntop() as well.
 
-2007-01-02  Richard Frith-Macdonald <rfm@gnu.org>
+2008-01-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFileHandle.m: rename to GSFileHandleWin32.m
 	* Source/win32/NSUserDefaultsWin32.m: rename to NSUserDefaults.m

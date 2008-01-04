@@ -765,6 +765,7 @@ replacementForClass(Class c)
 	     context: (void*)aContext
 {
   NSMapTable	*observers;
+  NSMapTable    *observer;
 
   [iLock lock];
   observers = (NSMapTable*)NSMapGet(paths, (void*)aPath);
@@ -781,7 +782,7 @@ replacementForClass(Class c)
    * FIXME ... should store an object containing context and options.
    * For simplicity right now, just store context or a dummy value.
    */
-  NSMapTable * observer = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
+  observer = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
       NSNonOwnedPointerMapValueCallBacks, 3);
   NSMapInsert(observer, (void *)@"context", aContext);
   NSMapInsert(observer, (void *)@"options", (void *)options);
