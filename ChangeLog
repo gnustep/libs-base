@@ -6,6 +6,7 @@
 	* Source/GSStream.h: remove code to GSSocketStream.h
 	* Source/GSStream.m: remove code to GSSocketStream.m
 	* Source/unix/NSStream.m: include GSSocketStream.h
+	* Source/win32/NSStream.m: include GSSocketStream.h
 	Minor restructuring for clarity.
 
 2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
