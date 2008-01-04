@@ -1,5 +1,15 @@
 2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* config/pathtls.m4: New checks for gnu tls
+	* configure.ac: Add checks for gnu tls.
+	* config.mak.in: Take note of tls availability
+	* Headers/Additions/GNUstepBase/config.h.in: ditto
+	* base.make.in: ditto
+	* configure: regenerate
+	Preparatory checks for using gnu tls.
+
+2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSSocketStream.h: derived from GSStream.h
 	* Source/GSSocketStream.m: derived from GSStream.m
 	* Source/GNUmakefile: use new files

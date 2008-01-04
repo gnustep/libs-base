@@ -12,6 +12,7 @@ WHOAMI=@WHOAMI@
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
 HAVE_LIBXML=@HAVE_LIBXML@
+HAVE_GNUTLS=@HAVE_GNUTLS@
 
 WITH_FFI=@WITH_FFI@
 
@@ -27,6 +28,7 @@ ifeq ($(shared),yes)
 endif
 
 GNUSTEP_BASE_HAVE_LIBXML=@HAVE_LIBXML@
+GNUSTEP_BASE_HAVE_GNUTLS=@HAVE_GNUTLS@
 
 # Default to building only -baseadd
 # on non *-gnu-* library combos

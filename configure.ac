@@ -27,6 +27,7 @@ builtin(include, config/objc-sys-dynamic.m4)dnl
 builtin(include, config/procfs-exe-link.m4)dnl
 builtin(include, config/procfs.m4)dnl
 builtin(include, config/pathxml.m4)dnl
+builtin(include, config/pathtls.m4)dnl
 builtin(include, config/codeset.m4)dnl
 builtin(include, config/addlibrarypath.m4)dnl
 
@@ -2084,7 +2085,8 @@ if test $enable_xml = yes; then
 	LIBS="-lxslt $LIBS"
       else
 	echo
-	echo "You most likely do not want to build base without XSLT support."
+	echo "You may not want to build base without XSLT support."
+	echo "Doing so will disable the XSLT extensions."
 	echo "If you really want to build -base without XSLT support,"
 	echo "add --disable-xslt to the configure arguments."
 	AC_MSG_WARN([Missing support for XSLT functionality.])
@@ -2100,8 +2102,8 @@ if test $enable_xml = yes; then
     LIBS="$saved_LIBS"
     CFLAGS="$saved_CFLAGS"
     echo
-    echo "You most likely do not want to build base without XML support."
-    echo "For instance, MacOS-X compatible property lists require XML."
+    echo "You may not want to build base without libxml2."
+    echo "Doing so will disable the XML, XPATH, and XMLRPC extensions."
     echo "If you really want to build -base without XML support,"
     echo "add --disable-xml to the configure arguments."
     AC_MSG_ERROR([Missing support for XML functionality.])
@@ -2111,6 +2113,45 @@ else
   HAVE_LIBXML=0
 fi
 AC_SUBST(HAVE_LIBXML)
+
+#--------------------------------------------------------------------
+# Check recent libgnutls for SSL streams.
+#--------------------------------------------------------------------
+
+AC_ARG_ENABLE(tls,
+  [  --disable-tls			Disable use of GNUTLS],,
+  enable_tls=no)
+
+if test $enable_tls = yes; then
+  # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
+  # of the success of the macro.
+  saved_LIBS="$LIBS"
+  saved_CFLAGS="$CFLAGS"
+
+  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+  if test $enable_libgnutls = yes; then
+    CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
+    LIBS="$TLS_LIBS $LIBS"
+    HAVE_GNUTLS=1
+    AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
+  else
+    HAVE_GNUTLS=0
+    # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
+    LIBS="$saved_LIBS"
+    CFLAGS="$saved_CFLAGS"
+    echo
+    echo "You may not want to build base without libgnutls."
+    echo "Doing so will disable SSL support in the NSStream class."
+    echo "If you really want to build -base without TLS support,"
+    echo "add --disable-tls to the configure arguments."
+    AC_MSG_ERROR([Missing support for TLS functionality.])
+  fi
+else
+  AC_MSG_WARN([Disabled support for TLS funtionality.])
+  HAVE_GNUTLS=0
+fi
+AC_SUBST(HAVE_GNUTLS)
 
 #--------------------------------------------------------------------
 # Check for NSNetServices
