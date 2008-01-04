@@ -37,8 +37,9 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSByteOrder.h>
 
-#include "../GSStream.h"
 #include "../GSPrivate.h"
+#include "../GSStream.h"
+#include "../GSSocketStream.h"
 
 #define	BUFFERSIZE	(BUFSIZ*64)
 
@@ -931,7 +932,6 @@
   return NO;
 }
 @end
-
 
 @implementation NSStream
 
