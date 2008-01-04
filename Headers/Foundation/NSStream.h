@@ -254,18 +254,18 @@ typedef enum {
 
 /**
  * Creates and returns by reference an NSInputStream object and
- * NSOutputStream object for a local socket connection with the
- * specified path. To use them you need to open them and wait
- * on the NSStreamEventOpenCompleted event on one of them
+ * NSOutputStream object for a local socket or named pipe connection
+ * with the specified path. To use them you need to open them and wait
+ * on the NSStreamEventOpenCompleted event on one of them.
  */
 + (void) getLocalStreamsToPath: (NSString *)path 
 		   inputStream: (NSInputStream **)inputStream 
 		  outputStream: (NSOutputStream **)outputStream;
 /**
  * Creates and returns by reference an NSInputStream object and NSOutputStream 
- * object for a anonymous local socket. Although you still need to open them, 
- * the open will be instantanious, and no NSStreamEventOpenCompleted event 
- * will be delivered.
+ * object for a anonymous local socket or pipe. Although you still need to
+ * open them, the open will be instantaneous, and no NSStreamEventOpenCompleted
+ * event will be delivered.
  */
 + (void) pipeWithInputStream: (NSInputStream **)inputStream 
                 outputStream: (NSOutputStream **)outputStream;

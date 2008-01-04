@@ -23,15 +23,6 @@
    */
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include <winsock2.h>
-#include <io.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include <Foundation/NSData.h>
 #include <Foundation/NSArray.h>
@@ -50,49 +41,6 @@
 #include "../GSPrivate.h"
 
 #define	BUFFERSIZE	(BUFSIZ*64)
-
-typedef int socklen_t;
-
-static id propertyForInet4Stream(int descriptor, NSString *key)
-{
-  struct sockaddr_in sin;
-  unsigned	size = sizeof(sin);
-  id		result = nil;
-
-  if ([key isEqualToString: GSStreamLocalAddressKey])
-    {
-      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
-        {
-	  result = [NSString stringWithUTF8String:
-	    (char*)inet_ntoa(sin.sin_addr)];
-	}
-    }
-  else if ([key isEqualToString: GSStreamLocalPortKey])
-    {
-      if (getsockname(descriptor, (struct sockaddr*)&sin, &size) != -1)
-        {
-	  result = [NSString stringWithFormat: @"%d",
-	    (int)GSSwapBigI16ToHost(sin.sin_port)];
-	}
-    }
-  else if ([key isEqualToString: GSStreamRemoteAddressKey])
-    {
-      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
-        {
-	  result = [NSString stringWithUTF8String:
-	    (char*)inet_ntoa(sin.sin_addr)];
-	}
-    }
-  else if ([key isEqualToString: GSStreamRemotePortKey])
-    {
-      if (getpeername(descriptor, (struct sockaddr*)&sin, &size) != -1)
-        {
-	  result = [NSString stringWithFormat: @"%d",
-	    (int)GSSwapBigI16ToHost(sin.sin_port)];
-	}
-    }
-  return result;
-}
 
 /** 
  * The concrete subclass of NSInputStream that reads from a file
@@ -124,58 +72,7 @@ static id propertyForInet4Stream(int descriptor, NSString *key)
 - (NSStreamStatus) _check;
 - (void) _queue;
 - (void) _setHandle: (HANDLE)h;
-- (void) setSibling: (GSPipeOutputStream*)s;
-@end
-
-@class GSSocketOutputStream;
-
-/** 
- * The abstract subclass of NSInputStream that reads from a socket
- */
-@interface GSSocketInputStream : GSInputStream
-{
-@protected
-  GSSocketOutputStream *_sibling;
-  BOOL _passive;              /* YES means already connected */
-  SOCKET  _sock;
-}
-
-/** 
- * get the length of the socket addr
- */
-- (socklen_t) sockLen;
-
-/**
- * get the sockaddr
- */
-- (struct sockaddr*) peerAddr;
-
-/**
- * setter for sibling
- */
-- (void) setSibling: (GSSocketOutputStream*)sibling;
-
-/**
- * setter for passive
- */
-- (void) setPassive: (BOOL)passive;
-
-- (void) setEvent: (WSAEVENT)event;
-- (void) setSock: (SOCKET)sock;
-
-@end
-
-@interface GSInetInputStream : GSSocketInputStream
-{
-  @private
-  struct sockaddr_in _peerAddr;
-}
-
-/**
- * the designated initializer
- */
-- (id) initToAddr: (NSString*)addr port: (int)port;
-
+- (void) _setSibling: (GSPipeOutputStream*)s;
 @end
 
 /**
@@ -207,94 +104,7 @@ static id propertyForInet4Stream(int descriptor, NSString *key)
 - (NSStreamStatus) _check;
 - (void) _queue;
 - (void) _setHandle: (HANDLE)h;
-- (void) setSibling: (GSPipeInputStream*)s;
-@end
-
-/**
- * The concrete subclass of NSOutputStream that writes to a socket
- */
-@interface GSSocketOutputStream : GSOutputStream
-{
-@protected
-  GSSocketInputStream *_sibling;
-  BOOL _passive;               /* YES means already connected */
-  SOCKET  _sock;
-}
-
-/** 
- * get the length of the socket addr
- */
-- (socklen_t) sockLen;
-
-/**
- * get the sockaddr
- */
-- (struct sockaddr*) peerAddr;
-
-/**
- * setter for sibling
- */
-- (void) setSibling: (GSSocketInputStream*)sibling;
-
-/**
- * setter for passive
- */
-- (void) setPassive: (BOOL)passive;
-
-/**
- * setter for event
- */
-- (void) setEvent: (WSAEVENT)event;
-- (void) setSock: (SOCKET)sock;
-
-@end
-
-@interface GSInetOutputStream : GSSocketOutputStream
-{
-  @private
-  struct sockaddr_in _peerAddr;
-}
-
-/**
- * the designated initializer
- */
-- (id) initToAddr: (NSString*)addr port: (int)port;
-
-@end
-
-/**
- * The concrete subclass of NSServerStream that accept connection from a socket
- */
-@interface GSSocketServerStream : GSAbstractServerStream
-{
-  SOCKET	_sock;
-}
-/**
- * Return the class of the inputStream associated with this
- * type of serverStream.
- */
-- (Class) _inputStreamClass;
-/**
- * Return the class of the outputStream associated with this
- * type of serverStream.
- */
-- (Class) _outputStreamClass;
-/** 
- * get the length of the socket addr
- */
-- (socklen_t) sockLen;
-/**
- * get the sockaddr
- */
-- (struct sockaddr*) serverAddr;
-
-@end
-
-@interface GSInetServerStream : GSSocketServerStream
-{
-  @private
-  struct sockaddr_in _serverAddr;
-}
+- (void) _setSibling: (GSPipeInputStream*)s;
 @end
 
 
@@ -308,14 +118,6 @@ static id propertyForInet4Stream(int descriptor, NSString *key)
   OVERLAPPED	ov;
 }
 @end
-
-static void setNonblocking(SOCKET fd)
-{
-  unsigned long	dummy = 1;
-
-  if (ioctlsocket(fd, FIONBIO, &dummy) == SOCKET_ERROR)
-    NSLog(@"unable to set non-blocking mode - %@", [NSError _last]);
-}
 
 @implementation GSFileInputStream
 
@@ -494,7 +296,7 @@ static void setNonblocking(SOCKET fd)
     {
       [self close];
     }
-  [_sibling setSibling: nil];
+  [_sibling _setSibling: nil];
   _sibling = nil;
   [super dealloc];
 }
@@ -681,7 +483,7 @@ static void setNonblocking(SOCKET fd)
   handle = h;
 }
 
-- (void) setSibling: (GSPipeOutputStream*)s
+- (void) _setSibling: (GSPipeOutputStream*)s
 {
   _sibling = s;
 }
@@ -736,335 +538,6 @@ static void setNonblocking(SOCKET fd)
 }
 @end
 
-@implementation GSSocketInputStream
-
-- (socklen_t) sockLen
-{
-  [self subclassResponsibility: _cmd];
-  return 0;
-}
-
-- (struct sockaddr*) peerAddr
-{
-  [self subclassResponsibility: _cmd];
-  return NULL;
-}
-
-- (void) setSibling: (GSSocketOutputStream*)sibling
-{
-  _sibling = sibling;
-}
-
--(void) setPassive: (BOOL)passive
-{
-  _passive = passive;
-}
-
-- (void) setEvent: (WSAEVENT)event
-{
-  _loopID = event;
-}
-
-- (void) setSock: (SOCKET)sock
-{
-  _sock = sock;
-}
-
-- (id) init
-{
-  if ((self = [super init]) != nil)
-    {
-      _sibling = nil;
-      _passive = NO;
-      _loopID = WSA_INVALID_EVENT;
-    }
-  return self;
-}
-
-- (void) dealloc
-{
-  if ([self _isOpened])
-    {
-      [self close];
-    }
-  [_sibling setSibling: nil];
-  _sibling = nil;
-  [super dealloc];
-}
-
-- (void) open
-{
-  // could be opened because of sibling
-  if ([self _isOpened])
-    return;
-  if (_passive || (_sibling && [_sibling _isOpened]))
-    goto open_ok;
-  // check sibling status, avoid double connect
-  if (_sibling && [_sibling streamStatus] == NSStreamStatusOpening)
-    {
-      [self _setStatus: NSStreamStatusOpening];
-      return;
-    }
-  else
-    {
-      int connectReturn = connect(_sock, [self peerAddr], [self sockLen]);
-      
-      if (connectReturn == SOCKET_ERROR
-	&& WSAGetLastError() != WSAEWOULDBLOCK)
-        {// make an error
-          [self _recordError];
-          return;
-        }
-      // waiting on writable, as an indication of opened
-      if (NSCountMapTable(_loops) > 0)
-        {
-          WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-	  [self _schedule];
-        }
-      [self _setStatus: NSStreamStatusOpening];
-      return;
-    }
-
- open_ok: 
-  [super open];
-  setNonblocking(_sock);
-  WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-}
-
-- (void) close
-{
-  if (_loopID != WSA_INVALID_EVENT)
-    {
-      WSACloseEvent(_loopID);
-    }
-  if (_sock != INVALID_SOCKET)
-    {
-      if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
-	{
-	  /*
-	   * Windows only permits a single event to be associated with a socket
-	   * at any time, but the runloop system only allows an event handle to
-	   * be added to the loop once, and we have two streams for each socket.
-	   * So we use two events, one for each stream, and when one stream is
-	   * closed, we must call WSAEventSelect to ensure that the event handle
-	   * of the sibling is used to signal events from now on.
-	   */
-	  WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
-	  shutdown(_sock, SD_RECEIVE);
-	}
-      else
-	{
-	  closesocket(_sock);
-	}
-      _sock = INVALID_SOCKET;
-    }
-  [super close];
-  _loopID = WSA_INVALID_EVENT;
-}
-
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
-{
-  int readLen;
-
-  if (buffer == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"null pointer for buffer"];
-    }
-  if (len == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte length read requested"];
-    }
-
-  _events &= ~NSStreamEventHasBytesAvailable;
-
-  if ([self streamStatus] == NSStreamStatusClosed)
-    {
-      return 0;
-    }
-
-  readLen = recv(_sock, buffer, len, 0);
-  if (readLen == SOCKET_ERROR)
-    {
-      errno = WSAGetLastError();
-      if (errno == WSAEINPROGRESS || errno == WSAEWOULDBLOCK)
-	{
-	  [self _setStatus: NSStreamStatusReading];
-	}
-      else if (errno != WSAEINTR) 
-	{
-	  [self _recordError];
-	}
-      readLen = -1;
-    }
-  else if (readLen == 0)
-    {
-      [self _setStatus: NSStreamStatusAtEnd];
-    }
-  else 
-    {
-      [self _setStatus: NSStreamStatusOpen];
-    }
-  return readLen;
-}
-
-- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
-{
-  return NO;
-}
-
-- (void) _dispatch
-{
-  AUTORELEASE(RETAIN(self));
-  /*
-   * Windows only permits a single event to be associated with a socket
-   * at any time, but the runloop system only allows an event handle to
-   * be added to the loop once, and we have two streams for each socket.
-   * So we use two events, one for each stream, and the _dispatch method
-   * must handle things for both streams.
-   */
-  if ([self streamStatus] == NSStreamStatusClosed)
-    {
-      /*
-       * It is possible the stream is closed yet recieving event because
-       * of not closed sibling
-       */
-      NSAssert([_sibling streamStatus] != NSStreamStatusClosed, 
-	@"Received event for closed stream");
-      [_sibling _dispatch];
-    }
-  else
-    {
-      WSANETWORKEVENTS events;
-      int error = 0;
-      int getReturn = -1;
-
-      if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
-	{
-	  error = WSAGetLastError();
-	}
-//else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
-
-      if ([self streamStatus] == NSStreamStatusOpening)
-	{
-	  [self _unschedule];
-	  if (error == 0)
-	    {
-	      unsigned len = sizeof(error);
-
-	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
-		(char*)&error, &len);
-	    }
-
-	  if (getReturn >= 0 && error == 0
-	    && (events.lNetworkEvents & FD_CONNECT))
-	    { // finish up the opening
-	      _passive = YES;
-	      [self open];
-	      // notify sibling
-	      if (_sibling)
-		{
-		  [_sibling open];
-		  [_sibling _sendEvent: NSStreamEventOpenCompleted];
-		}
-	      [self _sendEvent: NSStreamEventOpenCompleted];
-	    }
-	}
-
-      if (error != 0)
-	{
-	  errno = error;
-	  [self _recordError];
-	  [_sibling _recordError];
-	  [self _sendEvent: NSStreamEventErrorOccurred];
-	  [_sibling _sendEvent: NSStreamEventErrorOccurred];
-	}
-      else
-	{
-	  if (events.lNetworkEvents & FD_WRITE)
-	    {
-	      NSAssert([_sibling _isOpened], NSInternalInconsistencyException);
-	      /* Clear NSStreamStatusWriting if it was set */
-	      [_sibling _setStatus: NSStreamStatusOpen];
-	    }
-	  /* On winsock a socket is always writable unless it has had
-	   * failure/closure or a write blocked and we have not been
-	   * signalled again.
-	   */
-	  while ([_sibling _unhandledData] == NO
-	    && [_sibling hasSpaceAvailable])
-	    {
-	      [_sibling _sendEvent: NSStreamEventHasSpaceAvailable];
-	    }
-
-	  if (events.lNetworkEvents & FD_READ)
-	    {
-	      [self _setStatus: NSStreamStatusOpen];
-	      while ([self hasBytesAvailable]
-		&& [self _unhandledData] == NO)
-		{
-	          [self _sendEvent: NSStreamEventHasBytesAvailable];
-		}
-	    }
-	  if (events.lNetworkEvents & FD_CLOSE)
-	    {
-	      if ([_sibling _isOpened])
-		{
-		  [_sibling _setStatus: NSStreamStatusAtEnd];
-		  [_sibling _sendEvent: NSStreamEventEndEncountered];
-		}
-	      while ([self hasBytesAvailable]
-		&& [self _unhandledData] == NO)
-		{
-		  [self _sendEvent: NSStreamEventHasBytesAvailable];
-		}
-	      if ([self _isOpened])
-		{
-		  [self _setStatus: NSStreamStatusAtEnd];
-		}
-	    }
-	}
-    }
-}
-
-- (BOOL) runLoopShouldBlock: (BOOL*)trigger
-{
-  *trigger = YES;
-  return YES;
-}
-@end
-
-@implementation GSInetInputStream
-
-- (socklen_t) sockLen
-{
-  return sizeof(struct sockaddr_in);
-}
-
-- (struct sockaddr*) peerAddr
-{
-  return (struct sockaddr*)&_peerAddr;
-}
-
-- (id) initToAddr: (NSString*)addr port: (int)port
-{
-  const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
-
-  if ((self = [super init]) != nil)
-    {
-      _peerAddr.sin_family = AF_INET;
-      _peerAddr.sin_port = htons(port);
-      _peerAddr.sin_addr.s_addr = addr_c ? inet_addr(addr_c) : INADDR_NONE;
-      if (_peerAddr.sin_addr.s_addr == INADDR_NONE)   // error
-	{
-	  DESTROY(self);
-	}
-    }
-  return self;
-}
-
-@end
 
 @implementation GSFileOutputStream
 
@@ -1261,7 +734,7 @@ static void setNonblocking(SOCKET fd)
     {
       [self close];
     }
-  [_sibling setSibling: nil];
+  [_sibling _setSibling: nil];
   _sibling = nil;
   [super dealloc];
 }
@@ -1404,7 +877,7 @@ static void setNonblocking(SOCKET fd)
   handle = h;
 }
 
-- (void) setSibling: (GSPipeInputStream*)s
+- (void) _setSibling: (GSPipeInputStream*)s
 {
   _sibling = s;
 }
@@ -1459,350 +932,6 @@ static void setNonblocking(SOCKET fd)
 }
 @end
 
-@implementation GSSocketOutputStream
-
-- (socklen_t) sockLen
-{
-  [self subclassResponsibility: _cmd];
-  return 0;
-}
-
-- (struct sockaddr*) peerAddr
-{
-  [self subclassResponsibility: _cmd];
-  return NULL;
-}
-
-- (void) setSibling: (GSSocketInputStream*)sibling
-{
-  _sibling = sibling;
-}
-
--(void) setPassive: (BOOL)passive
-{
-  _passive = passive;
-}
-
-- (void) setEvent: (WSAEVENT)event
-{
-  _loopID = event;
-}
-
-- (void) setSock: (SOCKET)sock
-{
-  _sock = sock;
-}
-
-- (id) init
-{
-  if ((self = [super init]) != nil)
-    {
-      _sibling = nil;
-      _passive = NO;
-      _loopID = WSA_INVALID_EVENT;
-    }
-  return self;
-}
-
-- (void) dealloc
-{
-  if ([self _isOpened])
-    {
-      [self close];
-    }
-  [_sibling setSibling: nil];
-  _sibling = nil;
-  [super dealloc];
-}
-
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
-{
-  int writeLen;
-
-  if (buffer == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"null pointer for buffer"];
-    }
-  if (len == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte length write requested"];
-    }
-
-  _events &= ~NSStreamEventHasSpaceAvailable;
-
-  if ([self streamStatus] == NSStreamStatusClosed)
-    {
-      return 0;
-    }
-
-  writeLen = send(_sock, buffer, len, 0);
-  if (writeLen == SOCKET_ERROR)
-    {
-      errno = WSAGetLastError();
-      if (errno == WSAEINPROGRESS || errno == WSAEWOULDBLOCK)
-	{
-          [self _setStatus: NSStreamStatusWriting];
-	}
-      else if (errno != WSAEINTR)
-	{
-          [self _recordError];
-	}
-      writeLen = -1;
-    }
-  else
-    {
-      [self _setStatus: NSStreamStatusOpen];
-    }
-  return writeLen;
-}
-
-- (void) open
-{
-  // could be opened because of sibling
-  if ([self _isOpened])
-    return;
-  if (_passive || (_sibling && [_sibling _isOpened]))
-    goto open_ok;
-  // check sibling status, avoid double connect
-  if (_sibling && [_sibling streamStatus] == NSStreamStatusOpening)
-    {
-      [self _setStatus: NSStreamStatusOpening];
-      return;
-    }
-  else
-    {
-      int connectReturn = connect(_sock, [self peerAddr], [self sockLen]);
-      
-      if (connectReturn == SOCKET_ERROR
-	&& WSAGetLastError() != WSAEWOULDBLOCK)
-        {// make an error
-          [self _recordError];
-          return;
-        }
-      // waiting on writable, as an indication of opened
-      if (NSCountMapTable(_loops) > 0)
-        {
-          WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-	  [self _schedule];
-        }
-      [self _setStatus: NSStreamStatusOpening];
-      return;
-    }
-
- open_ok: 
-  setNonblocking(_sock);
-  WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-  [super open];
-}
-
-- (void) close
-{
-  if (_loopID != WSA_INVALID_EVENT)
-    {
-      WSACloseEvent(_loopID);
-    }
-
-  if (_sock != INVALID_SOCKET)
-    {
-      int closeReturn;	// shutdown may fail (broken pipe). Record it.
-
-      if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
-	{
-	  /*
-	   * Windows only permits a single event to be associated with a socket
-	   * at any time, but the runloop system only allows an event handle to
-	   * be added to the loop once, and we have two streams for each socket.
-	   * So we use two events, one for each stream, and when one stream is
-	   * closed, we must call WSAEventSelect to ensure that the event handle
-	   * of the sibling is used to signal events from now on.
-	   */
-	  WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
-	  closeReturn = shutdown(_sock, SD_SEND);
-	}
-      else
-	{
-	  closeReturn = closesocket(_sock);
-	}
-      _sock = INVALID_SOCKET;
-      if (closeReturn < 0)
-	{
-	  [self _recordError];
-	}
-    }
-  [super close];
-  _loopID = WSA_INVALID_EVENT;
-}
-
-- (void) _dispatch
-{
-  AUTORELEASE(RETAIN(self));
-  /*
-   * Windows only permits a single event to be associated with a socket
-   * at any time, but the runloop system only allows an event handle to
-   * be added to the loop once, and we have two streams for each socket.
-   * So we use two events, one for each stream, and the _dispatch method
-   * must handle things for both streams.
-   */
-  if ([self streamStatus] == NSStreamStatusClosed)
-    {
-      /*
-       * It is possible the stream is closed yet recieving event because
-       * of not closed sibling
-       */
-      NSAssert([_sibling streamStatus] != NSStreamStatusClosed, 
-	@"Received event for closed stream");
-      [_sibling _dispatch];
-    }
-  else
-    {
-      WSANETWORKEVENTS events;
-      int error = 0;
-      int getReturn = -1;
-
-      if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
-	{
-	  error = WSAGetLastError();
-	}
-//else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
-
-      if ([self streamStatus] == NSStreamStatusOpening)
-	{
-	  [self _unschedule];
-	  if (error == 0)
-	    {
-	      unsigned len = sizeof(error);
-
-	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
-		(char*)&error, &len);
-	    }
-
-	  if (getReturn >= 0 && error == 0
-	    && (events.lNetworkEvents & FD_CONNECT))
-	    { // finish up the opening
-	      events.lNetworkEvents ^= FD_CONNECT;
-	      _passive = YES;
-	      [self open];
-	      // notify sibling
-	      if (_sibling)
-		{
-		  [_sibling open];
-		  [_sibling _sendEvent: NSStreamEventOpenCompleted];
-		}
-	      [self _sendEvent: NSStreamEventOpenCompleted];
-	    }
-	}
-
-      if (error != 0)
-	{
-	  errno = error;
-	  [self _recordError];
-	  [_sibling _recordError];
-	  [self _sendEvent: NSStreamEventErrorOccurred];
-	  [_sibling _sendEvent: NSStreamEventErrorOccurred];
-	}
-      else
-	{
-	  if (events.lNetworkEvents & FD_WRITE)
-	    {
-	      /* Clear NSStreamStatusWriting if it was set */
-	      [self _setStatus: NSStreamStatusOpen];
-	    }
-
-	  /* On winsock a socket is always writable unless it has had
-	   * failure/closure or a write blocked and we have not been
-	   * signalled again.
-	   */
-	  while ([self _unhandledData] == NO && [self hasSpaceAvailable])
-	    {
-	      [self _sendEvent: NSStreamEventHasSpaceAvailable];
-	    }
-
-	  if (events.lNetworkEvents & FD_READ)
-	    {
-	      [_sibling _setStatus: NSStreamStatusOpen];
-	      while ([_sibling hasBytesAvailable]
-		&& [_sibling _unhandledData] == NO)
-		{
-	          [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
-		}
-	    }
-	  if (events.lNetworkEvents & FD_CLOSE)
-	    {
-	      [self _setStatus: NSStreamStatusAtEnd];
-	      [self _sendEvent: NSStreamEventEndEncountered];
-	      while ([_sibling hasBytesAvailable]
-		&& [_sibling _unhandledData] == NO)
-		{
-		  [_sibling _sendEvent: NSStreamEventHasBytesAvailable];
-		}
-	      if ([_sibling _isOpened])
-		{
-	          [_sibling _setStatus: NSStreamStatusAtEnd];
-	          [_sibling _sendEvent: NSStreamEventEndEncountered];
-		}
-	    }
-	}
-    }
-}
-
-- (BOOL) runLoopShouldBlock: (BOOL*)trigger
-{
-  *trigger = YES;
-  if ([self _unhandledData] == NO && [self streamStatus] == NSStreamStatusOpen)
-    {
-      /* In winsock, a writable status is only signalled if an earlier
-       * write failed (because it would block), so we must simulate the
-       * writable event by having the run loop trigger without blocking.
-       */
-      return NO;
-    }
-  return YES;
-}
-@end
-
-@implementation GSInetOutputStream
-
-- (socklen_t) sockLen
-{
-  return sizeof(struct sockaddr_in);
-}
-
-- (struct sockaddr*) peerAddr
-{
-  return (struct sockaddr*)&_peerAddr;
-}
-
-- (id) initToAddr: (NSString*)addr port: (int)port
-{
-  const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
-
-  if ((self = [super init]) != nil)
-    {
-      _peerAddr.sin_family = AF_INET;
-      _peerAddr.sin_port = htons(port);
-      _peerAddr.sin_addr.s_addr = addr_c ? inet_addr(addr_c) : INADDR_NONE;
-      if (_peerAddr.sin_addr.s_addr == INADDR_NONE)   // error
-	{
-	  DESTROY(self);
-	}
-    }
-  return self;
-}
-
-- (id) propertyForKey: (NSString *)key
-{
-  id result = propertyForInet4Stream((intptr_t)_loopID, key);
-
-  if (result == nil)
-    {
-      result = [super propertyForKey: key];
-    }
-  return result;
-}
-
-@end
 
 @implementation NSStream
 
@@ -1812,11 +941,9 @@ static void setNonblocking(SOCKET fd)
              outputStream: (NSOutputStream **)outputStream
 {
   NSString *address = host ? (id)[host address] : (id)@"127.0.0.1";
-  GSSocketInputStream *ins = nil;
-  GSSocketOutputStream *outs = nil;
+  GSSocketStream *ins = nil;
+  GSSocketStream *outs = nil;
   int sock;
-  WSAEVENT ievent;
-  WSAEVENT oevent;
 
   ins = AUTORELEASE([[GSInetInputStream alloc]
     initToAddr: address port: port]);
@@ -1834,24 +961,19 @@ static void setNonblocking(SOCKET fd)
    * streams so that whichever stream gets signalled, the correct
    * actions are taken.
    */
-  ievent = CreateEvent(NULL, NO, NO, NULL);
-  oevent = CreateEvent(NULL, NO, NO, NULL);
-  
   NSAssert(sock != INVALID_SOCKET, @"Cannot open socket");
-  [ins setSock: sock];
-  [outs setSock: sock];
-  [ins setEvent: ievent];
-  [outs setEvent: oevent];
+  [ins _setSock: sock];
+  [outs _setSock: sock];
   
   if (inputStream)
     {
-      [ins setSibling: outs];
-      *inputStream = ins;
+      [ins _setSibling: outs];
+      *inputStream = (NSInputStream*)ins;
     }
   if (outputStream)
     {
-      [outs setSibling: ins];
-      *outputStream = outs;
+      [outs _setSibling: ins];
+      *outputStream = (NSOutputStream*)outs;
     }
   return;
 }
@@ -1916,9 +1038,9 @@ static void setNonblocking(SOCKET fd)
   outs = AUTORELEASE([GSPipeOutputStream new]);
 
   [ins _setHandle: handle];
-  [ins setSibling: outs];
+  [ins _setSibling: outs];
   [outs _setHandle: handle];
-  [outs setSibling: ins];
+  [outs _setSibling: ins];
 
 done:
   if (inputStream)
@@ -2165,252 +1287,6 @@ done:
 
 @end
 
-@implementation GSServerStream
-
-+ (id) serverStreamToAddr: (NSString*)addr port: (int)port
-{
-  GSServerStream *s;
-
-  s = [[GSInetServerStream alloc] initToAddr: addr port: port];
-  return AUTORELEASE(s);
-}
-
-+ (id) serverStreamToAddr: (NSString*)addr
-{
-  GSServerStream *s;
-
-  s = [[GSLocalServerStream alloc] initToAddr: addr];
-  return AUTORELEASE(s);
-}
-
-- (id) initToAddr: (NSString*)addr port: (int)port
-{
-  RELEASE(self);
-  self = [[GSInetServerStream alloc] initToAddr: addr port: port];
-  return self;
-}
-
-- (id) initToAddr: (NSString*)addr
-{
-  RELEASE(self);
-  self = [[GSLocalServerStream alloc] initToAddr: addr];
-  return self;
-}
-
-- (void) acceptWithInputStream: (NSInputStream **)inputStream 
-                  outputStream: (NSOutputStream **)outputStream
-{
-  [self subclassResponsibility: _cmd];
-}
-
-@end
-
-@implementation GSSocketServerStream
-
-- (Class) _inputStreamClass
-{
-  [self subclassResponsibility: _cmd];
-  return Nil;
-}
-
-- (Class) _outputStreamClass
-{
-  [self subclassResponsibility: _cmd];
-  return Nil;
-}
-
-- (id) init
-{
-  if ((self = [super init]) != nil)
-    {
-      _loopID = WSA_INVALID_EVENT;
-    }
-  return self;
-}
-
-- (void) dealloc
-{
-  if ([self _isOpened])
-    {
-      [self close];
-    }
-  [super dealloc];
-}
-
-- (socklen_t) sockLen
-{
-  [self subclassResponsibility: _cmd];
-  return 0;
-}
-
-- (struct sockaddr*) serverAddr
-{
-  [self subclassResponsibility: _cmd];
-  return 0;
-}
-
-#define SOCKET_BACKLOG 255
-
-- (void) open
-{
-  int	bindReturn;
-  int	listenReturn;
-#ifndef	BROKEN_SO_REUSEADDR
-  int	status = 1;
-
-  /*
-   * Under decent systems, SO_REUSEADDR means that the port can be reused
-   * immediately that this process exits.  Under some it means
-   * that multiple processes can serve the same port simultaneously.
-   * We don't want that broken behavior!
-   */
-  setsockopt(_sock, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
-#endif
-  bindReturn = bind(_sock, [self serverAddr], [self sockLen]);
-  listenReturn = listen(_sock, SOCKET_BACKLOG);
-  if (bindReturn < 0 || listenReturn < 0)
-    {
-      [self _recordError];
-      return;
-    }
-  setNonblocking(_sock);
-  _loopID = CreateEvent(NULL, NO, NO, NULL);
-  WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-  [super open];
-}
-
-- (void) close
-{
-  if (_loopID != WSA_INVALID_EVENT)
-    {
-      WSACloseEvent(_loopID);
-    }
-  if (_sock != INVALID_SOCKET)
-    {
-      // close a server socket is safe
-      closesocket(_sock);
-      _sock = INVALID_SOCKET;
-    }
-  [super close];
-  _loopID = WSA_INVALID_EVENT;
-}
-
-- (void) acceptWithInputStream: (NSInputStream **)inputStream 
-                  outputStream: (NSOutputStream **)outputStream
-{
-  GSSocketInputStream *ins = AUTORELEASE([[self _inputStreamClass] new]);
-  GSSocketOutputStream *outs = AUTORELEASE([[self _outputStreamClass] new]);
-  socklen_t len = [ins sockLen];
-  int acceptReturn = accept(_sock, [ins peerAddr], &len);
-
-  _events &= ~NSStreamEventHasBytesAvailable;
-  if (acceptReturn == INVALID_SOCKET)
-    { 
-      errno = WSAGetLastError();// test for real error
-      if (errno != WSAEWOULDBLOCK && errno != WSAECONNRESET && 
-          errno != WSAEINPROGRESS && errno != WSAEINTR)
-	{
-          [self _recordError];
-	}
-      ins = nil;
-      outs = nil;
-    }
-  else
-    {
-      /*
-       * Windows only permits a single event to be associated with a socket
-       * at any time, but the runloop system only allows an event handle to
-       * be added to the loop once, and we have two streams.
-       * So we create two events, one for each stream, so that we can have
-       * both streams scheduled in the run loop, but we make sure that the
-       * _dispatch method in each stream actually handles things for both
-       * streams so that whichever stream gets signalled, the correct
-       * actions are taken.
-       */
-      WSAEVENT  ievent = CreateEvent(NULL, NO, NO, NULL);
-      WSAEVENT  oevent = CreateEvent(NULL, NO, NO, NULL);
-      // no need to connect again
-      [ins setPassive: YES];
-      [outs setPassive: YES];
-      // copy the addr to outs
-      memcpy([outs peerAddr], [ins peerAddr], len);
-      [ins setSock: acceptReturn];
-      [outs setSock: acceptReturn];
-      [ins setEvent: ievent];
-      [outs setEvent: oevent];
-    }
-  if (inputStream)
-    {
-      [ins setSibling: outs];
-      *inputStream = ins;
-    }
-  if (outputStream)
-    {
-      [outs setSibling: ins];
-      *outputStream = outs;
-    }
-}
-
-- (void) _dispatch
-{
-  WSANETWORKEVENTS events;
-  
-  if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
-    {
-      errno = WSAGetLastError();
-      [self _recordError];
-      [self _sendEvent: NSStreamEventErrorOccurred];
-    }
-  else if (events.lNetworkEvents & FD_ACCEPT)
-    {
-      events.lNetworkEvents ^= FD_ACCEPT;
-      [self _setStatus: NSStreamStatusReading];
-      [self _sendEvent: NSStreamEventHasBytesAvailable];
-    }
-}
-
-@end
-
-@implementation GSInetServerStream
-
-- (Class) _inputStreamClass
-{
-  return [GSInetInputStream class];
-}
-
-- (Class) _outputStreamClass
-{
-  return [GSInetOutputStream class];
-}
-
-- (socklen_t) sockLen
-{
-  return sizeof(struct sockaddr_in);
-}
-
-- (struct sockaddr*) serverAddr
-{
-  return (struct sockaddr*)&_serverAddr;
-}
-
-- (id) initToAddr: (NSString*)addr port: (int)port
-{
-  const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
-
-  [super init];
-  _serverAddr.sin_family = AF_INET;
-  _serverAddr.sin_port = htons(port);
-  _serverAddr.sin_addr.s_addr = addr_c ? inet_addr(addr_c) : INADDR_NONE;
-  _sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (_serverAddr.sin_addr.s_addr == INADDR_NONE || _loopID < 0)   // error
-    {
-      RELEASE(self);
-      return nil;
-    }
-  return self;
-}
-
-@end
 
 @implementation GSLocalServerStream
 
@@ -2559,12 +1435,12 @@ done:
 
   if (inputStream)
     {
-      [ins setSibling: outs];
+      [ins _setSibling: outs];
       *inputStream = ins;
     }
   if (outputStream)
     {
-      [outs setSibling: ins];
+      [outs _setSibling: ins];
       *outputStream = outs;
     }
 }

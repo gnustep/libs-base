@@ -1,3 +1,20 @@
+2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSStream.h: Tweak comments.
+	* Source/GSNetwork.h: New file for common networking declarations. 
+	* Source/GSStream.h:
+	* Source/GSStream.m:
+	* Source/unix/NSStream.m:
+	* Source/win32/NSStream.m:
+	Extract socket networking code for both unix and windows into
+	semi-abstract superclasses for input/output/server streams so
+	that we avoid huge duplication of code and can maintain the
+	socket code more easily.
+	Alter the behavior of the code on windows so that when the
+	other end closes the connection we should be able to read all
+	data in transit in the same way as on unix (ie don't close
+	the local end until a read/write actually fails).
+
 2007-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/inet_pton.c: Add mswindows implementation of
