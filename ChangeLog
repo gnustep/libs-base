@@ -3,6 +3,13 @@
 	
 2008-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSSocketStream.h:
+	* Source/GSSocketStream.m:
+	Add rudimentary gnutls support. Client sockets only,
+	no checking of certificates etc.
+
+2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* config/pathtls.m4: New checks for gnu tls
 	* configure.ac: Add checks for gnu tls.
 	* config.mak.in: Take note of tls availability

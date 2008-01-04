@@ -29,6 +29,7 @@
 
 #include "GSNetwork.h"
 
+@class  GSTLS;  /* Handle TLS on a pair of socket streams */
 
 #define	SOCKIVARS \
 { \
@@ -36,6 +37,7 @@
   BOOL          _passive;       /* YES means already connected. */\
   BOOL		_closing;	/* Must close on next failure.	*/\
   SOCKET        _sock;          /* Needed for ms-windows.       */\
+  GSTLS         *_tls;          /* TLS security handler.        */\
 }
 
 /* The semi-abstract GSSocketStream class is not intended to be subclassed
@@ -72,6 +74,11 @@ SOCKIVARS
  */
 - (void) _setSock: (SOCKET)sock;
 
+/*
+ * Set the TLS handler for this stream.
+ */
+- (void) _setTLS: (GSTLS*)t;
+
 /* Return the socket
  */
 - (SOCKET) _sock;
@@ -93,10 +100,12 @@ SOCKIVARS
 @end
 @interface GSSocketInputStream (AddedBehaviors)
 - (struct sockaddr*) _peerAddr;
+- (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
+- (void) _setTLS: (GSTLS*)t;
 - (SOCKET) _sock;
 - (socklen_t) _sockLen;
 @end
@@ -144,8 +153,10 @@ SOCKIVARS
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
+- (void) _setTLS: (GSTLS*)t;
 - (SOCKET) _sock;
 - (socklen_t) _sockLen;
+- (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len;
 @end
 
 @interface GSInetOutputStream : GSSocketOutputStream
@@ -210,6 +221,7 @@ SOCKIVARS
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
+- (void) _setTLS: (GSTLS*)t;
 - (SOCKET) _sock;
 - (socklen_t) _sockLen;
 @end
