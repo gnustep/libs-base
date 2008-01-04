@@ -250,6 +250,9 @@
 /* Define to 1 if you have the <gmp.h> header file. */
 #undef HAVE_GMP_H
 
+/* Define if libgnutls available */
+#undef HAVE_GNUTLS
+
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
 
@@ -594,7 +597,7 @@
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
 
-/* Define if objc runtime creates jointable threads */
+/* Define if objc runtime creates joinable threads */
 #undef PTHREAD_JOINABLE
 
 /* Define to 1 if the `setpgrp' function takes no argument. */
