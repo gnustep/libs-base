@@ -36,6 +36,7 @@
 #include <Foundation/NSByteOrder.h>
 
 #include "../GSStream.h"
+#include "../GSSocketStream.h"
 
 /** 
  * The concrete subclass of NSInputStream that reads from a file

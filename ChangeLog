@@ -1,5 +1,15 @@
 2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSSocketStream.h: derived from GSStream.h
+	* Source/GSSocketStream.m: derived from GSStream.m
+	* Source/GNUmakefile: use new files
+	* Source/GSStream.h: remove code to GSSocketStream.h
+	* Source/GSStream.m: remove code to GSSocketStream.m
+	* Source/unix/NSStream.m: include GSSocketStream.h
+	Minor restructuring for clarity.
+
+2007-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSStream.h: Tweak comments.
 	* Source/GSNetwork.h: New file for common networking declarations. 
 	* Source/GSStream.h:
