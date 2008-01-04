@@ -150,6 +150,7 @@ GSHTTPAuthentication.m \
 GSHTTPURLHandle.m \
 GSRunLoopWatcher.m \
 GSSet.m \
+GSSocketStream.m \
 GSStream.m \
 GSString.m \
 GSValue.m \
