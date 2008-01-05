@@ -103,6 +103,8 @@ static struct gcry_thread_cbs gcry_threads_other = {
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len;
 @end
 
+#if     defined(HAVE_GNUTLS)
+
 /* Callback to allow the TLS code to pull data from the remote system.
  * If the operation fails, this sets the error number.
  */
@@ -162,6 +164,9 @@ GSTLSLog(int level, const char *msg)
 {
   NSLog(@"%s", msg);
 }
+
+#endif  /* HAVE_GNUTLS */
+
 
 @implementation GSTLS
 #if     defined(HAVE_GNUTLS)
