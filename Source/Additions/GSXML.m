@@ -70,6 +70,7 @@
 #include <libxml/HTMLparser.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
 #ifdef HAVE_LIBXSLT
 #include <libxslt/xslt.h>
@@ -3751,6 +3752,19 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   xmlXPathFreeCompExpr (comp);
 
   return result;
+}
+
+- (BOOL) registerNamespaceWithPrefix: (NSString *)prefix
+				href: (NSString *)href
+{
+  if (xmlXPathRegisterNs (_lib, UTF8STRING(prefix), UTF8STRING(href)) != 0)
+    {
+      return NO;
+    }
+  else
+    {
+      return YES;
+    }
 }
 
 - (void) dealloc

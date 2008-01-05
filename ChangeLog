@@ -1,3 +1,10 @@
+2008-01-05  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/Additions/GSXML.m ([GSXPathContext
+	-registerNamespaceWithPrefix:href:]): Added new method to support
+	namespaces in XPath expressions.
+	* Headers/Additions/GNUstepBase/GSXML.h: Same.
+	
 2008-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/pathtls.m4: fixup form mingw32
