@@ -363,6 +363,20 @@ extern "C" {
  * GSXPathString *result = [p evaluateExpression: @"string(/body/text())"];
  * NSLog (@"Got %@", [result stringValue]);
  *
+ * If the XML document contains namespaces, you first need to register them
+ * with the parser by using registerNamespaceWithPrefix:href:, as in:
+ *
+ * GSXPathContext *p = [[GSXPathContext alloc] initWithDocument: document];
+ * if ([p registerNamespaceWithPrefix: @"a"  href="http://www.gnustep.org/demo"] == NO)
+ *  {
+ *    // Error registering namespace, do something about it.
+ *  }
+ *
+ * and then you can use the namespace prefix in your expressions, as in
+ *
+ * GSXPathString *result = [p evaluateExpression: @"string(/a:body/text())"];
+ * NSLog (@"Got %@", [result stringValue]);
+ *
  */
 @interface GSXPathContext : NSObject
 {
@@ -371,6 +385,12 @@ extern "C" {
 }
 - (id) initWithDocument: (GSXMLDocument*)d;
 - (GSXPathObject*) evaluateExpression: (NSString*)XPathExpression;
+
+/*
+ * Registers a new namespace.  Return YES if succesful, NO if not.
+ */
+- (BOOL) registerNamespaceWithPrefix: (NSString *)prefix
+                                href: (NSString *)href;
 @end
 
 /** XPath queries return a GSXPathObject.  GSXPathObject in itself is
