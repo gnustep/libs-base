@@ -45,11 +45,8 @@
 #include <gcrypt.h>
 #endif
 
-#undef  HAVE_PTHREAD_H
-#ifdef HAVE_PTHREAD_H
-#include <pthread.h>
-GCRY_THREAD_OPTION_PTHREAD_IMPL;
-#else
+/* Set up locking callbacks for gcrypt so that it will be thread-safe.
+ */
 static int gcry_mutex_init (void **priv)
 {
   NSLock        *lock = [NSLock new];
@@ -79,7 +76,7 @@ static struct gcry_thread_cbs gcry_threads_other = {
   gcry_mutex_lock,
   gcry_mutex_unlock
 };
-#endif
+
 
 @interface      GSTLS : NSObject
 {
@@ -98,9 +95,9 @@ static struct gcry_thread_cbs gcry_threads_other = {
 - (GSSocketInputStream*) input;
 - (GSSocketOutputStream*) output;
 
-- (BOOL) bye;           /* Close down the TLS session.  */
+- (void) bye;           /* Close down the TLS session.  */
 - (BOOL) handshake;     /* A handshake/hello is in progress. */
-- (BOOL) hello;         /* Start up the TLS session.    */
+- (void) hello;         /* Start up the TLS session handshake.    */
 - (int) read: (uint8_t *)buffer maxLength: (unsigned int)len;
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
 - (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len;
@@ -178,34 +175,37 @@ static gnutls_anon_client_credentials_t anoncred;
     {
       beenHere = YES;
 
-#ifdef HAVE_PTHREAD_H
-      gcry_control (GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
-#else
+      /* Make gcrypt thread-safe
+       */
       gcry_control (GCRYCTL_SET_THREAD_CBS, &gcry_threads_other);
-#endif
+      /* Initialise gnutls
+       */
       gnutls_global_init ();
+      /* Allocate global credential information for anonymous tls
+       */
       gnutls_anon_allocate_client_credentials (&anoncred);
+      /* Enable gnutls logging via NSLog
+       */
       gnutls_global_set_log_function (GSTLSLog);
 //      gnutls_global_set_log_level (11);
     }
 #endif  /* HAVE_GNUTLS */
 }
 
-- (BOOL) bye
+- (void) bye
 {
 #if     defined(HAVE_GNUTLS)
   if (handshake == NO)
     {
       if (active == NO)
         {
-          return YES;
+          return;
         }
       active = NO;
       gnutls_bye (session, GNUTLS_SHUT_RDWR);
     }
   gnutls_deinit (session);
 #endif  /* HAVE_GNUTLS */
-  return YES;
 }
 
 - (void) dealloc
@@ -219,66 +219,73 @@ static gnutls_anon_client_credentials_t anoncred;
   return handshake;
 }
 
-- (BOOL) hello
+- (void) hello
 {
+  if (active == NO)
+    {
 #if     defined(HAVE_GNUTLS)
-  int   ret;
+      int   ret;
 
-  if (active == YES)
-    {
-      return YES;
-    }
-  if (handshake == NO)
-    {
-      gnutls_certificate_allocate_credentials (&certcred);
+      if (handshake == NO)
+        {
+          /* Configure this session to support certificate based
+           * operation.
+           */
+          gnutls_certificate_allocate_credentials (&certcred);
 
-      gnutls_certificate_set_x509_trust_file
-        (certcred, "ca.pem", GNUTLS_X509_FMT_PEM);
+          /* FIXME ... should get the trusted authority certificates
+           * from somewhere sensible to validate the remote end!
+           */
+          gnutls_certificate_set_x509_trust_file
+            (certcred, "ca.pem", GNUTLS_X509_FMT_PEM);
 
-      gnutls_init (&session, GNUTLS_CLIENT);
+          /* Initialise session and set default priorities foir key exchange.
+           */
+          gnutls_init (&session, GNUTLS_CLIENT);
+          gnutls_set_default_priority (session);
 
-      /* Use default priorities */
-      gnutls_set_default_priority (session);
+    /*
+         {
+            const int kx_prio[] = {
+              GNUTLS_KX_RSA,
+              GNUTLS_KX_RSA_EXPORT,
+              GNUTLS_KX_DHE_RSA,
+              GNUTLS_KX_DHE_DSS,
+              GNUTLS_KX_ANON_DH,
+              0 };
+            gnutls_kx_set_priority (session, kx_prio);
+            gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
+          }
+     */ 
 
-/*
-     {
-        const int kx_prio[] = {
-          GNUTLS_KX_RSA,
-          GNUTLS_KX_RSA_EXPORT,
-          GNUTLS_KX_DHE_RSA,
-          GNUTLS_KX_DHE_DSS,
-          GNUTLS_KX_ANON_DH,
-          0 };
-        gnutls_kx_set_priority (session, kx_prio);
-        gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
-      }
- */ 
+          /* Set certificate credentials for this session.
+           */
+          gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
 
-      gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
+          /* Set transport layer to use our low level stream code.
+           */
+          gnutls_transport_set_lowat (session, 0);
+          gnutls_transport_set_pull_function (session, GSTLSPull);
+          gnutls_transport_set_push_function (session, GSTLSPush);
+          gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
 
-      gnutls_transport_set_lowat (session, 0);
-      gnutls_transport_set_pull_function (session, GSTLSPull);
-      gnutls_transport_set_push_function (session, GSTLSPush);
-
-      gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
-    }
-  handshake = YES;
-  ret = gnutls_handshake (session);
-  if (ret < 0)
-    {
-      fprintf (stderr, "*** Handshake failed\n");
-      gnutls_perror (ret);
-      return NO;
-    }
-  else
-    {
-      handshake = NO;
-      active = YES;
-      printf ("- Handshake was completed\n");
-    }
+          /* Set flag to say we are now doing a handshake.
+           */
+          handshake = YES;
+        }
+      ret = gnutls_handshake (session);
+      if (ret < 0)
+        {
+          NSDebugMLog(@"NSThread", @"Handshake status %d", ret);
+        }
+      else
+        {
+          handshake = NO;       // Handshake is now complete.
+          active = YES;         // The TLS session is now active.
+        }
 
 #endif  /* HAVE_GNUTLS */
-  return YES;
+    }
 }
 
 - (id) initWithInput: (GSSocketInputStream*)i
