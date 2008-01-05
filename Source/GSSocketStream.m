@@ -32,6 +32,7 @@
 #import <Foundation/NSEnumerator.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSHost.h>
+#import <Foundation/NSLock.h>
 #import <Foundation/NSRunLoop.h>
 #import <Foundation/NSValue.h>
 
@@ -40,7 +41,44 @@
 #import "GSPrivate.h"
 
 #if     defined(HAVE_GNUTLS)
-#include        <gnutls/gnutls.h>
+#include <gnutls/gnutls.h>
+#include <gcrypt.h>
+#endif
+
+#undef  HAVE_PTHREAD_H
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+GCRY_THREAD_OPTION_PTHREAD_IMPL;
+#else
+static int gcry_mutex_init (void **priv)
+{
+  NSLock        *lock = [NSLock new];
+  *priv = (void*)lock;
+  return 0;
+}
+static int gcry_mutex_destroy (void **lock)
+{
+  [((NSLock*)*lock) release];
+  return 0;
+}
+static int gcry_mutex_lock (void **lock)
+{
+  [((NSLock*)*lock) lock];
+  return 0;
+}
+static int gcry_mutex_unlock (void **lock)
+{
+  [((NSLock*)*lock) unlock];
+  return 0;
+}
+static struct gcry_thread_cbs gcry_threads_other = {
+  GCRY_THREAD_OPTION_DEFAULT,
+  NULL,
+  gcry_mutex_init,
+  gcry_mutex_destroy,
+  gcry_mutex_lock,
+  gcry_mutex_unlock
+};
 #endif
 
 @interface      GSTLS : NSObject
@@ -139,6 +177,12 @@ static gnutls_anon_client_credentials_t anoncred;
   if (beenHere == NO)
     {
       beenHere = YES;
+
+#ifdef HAVE_PTHREAD_H
+      gcry_control (GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
+#else
+      gcry_control (GCRYCTL_SET_THREAD_CBS, &gcry_threads_other);
+#endif
       gnutls_global_init ();
       gnutls_anon_allocate_client_credentials (&anoncred);
       gnutls_global_set_log_function (GSTLSLog);
