@@ -43,7 +43,6 @@
 #if     defined(HAVE_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gcrypt.h>
-#endif
 
 /* Set up locking callbacks for gcrypt so that it will be thread-safe.
  */
@@ -76,6 +75,7 @@ static struct gcry_thread_cbs gcry_threads_other = {
   gcry_mutex_lock,
   gcry_mutex_unlock
 };
+#endif
 
 
 @interface      GSTLS : NSObject
@@ -164,7 +164,9 @@ GSTLSLog(int level, const char *msg)
 }
 
 @implementation GSTLS
+#if     defined(HAVE_GNUTLS)
 static gnutls_anon_client_credentials_t anoncred;
+#endif  /* HAVE_GNUTLS */
 
 + (void) initialize
 {
