@@ -3686,9 +3686,10 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 
 
 /**
- * <p>Use of the GSXPathContext claass is simple ... you just need to look up
- * xpath to learn the syntax of xpath expressions, then you can apply those
- * expressions to a context to retrieve data from a document.
+ * <p>Use of the GSXPathContext class is simple ... you just need to
+ * look up xpath to learn the syntax of xpath expressions, then you
+ * can apply those expressions to a context to retrieve data from a
+ * document.
  * </p>
  * <example>
  * GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile: @"xp.xml"];
