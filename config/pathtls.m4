@@ -24,8 +24,8 @@ AC_ARG_ENABLE(tlstest,
   AC_MSG_CHECKING(for libgnutls - version >= $min_tls_version)
   no_tls=""
   if test "$TLS_CONFIG" = "no" ; then
-    TLS_CFLAGS=""
-    TLS_LIBS="-lgnutls"
+    TLS_CFLAGS="-I/usr/include"
+    TLS_LIBS="-L/usr/lib -lgnutls -lgcrypt"
 
     ac_save_CFLAGS="$CFLAGS"
     ac_save_LIBS="$LIBS"
@@ -71,8 +71,6 @@ main()
       sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
     tls_config_micro_version=`$TLS_CONFIG $tls_config_args --version | \
       sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    # Strip '-I/usr/include' off since this is always expected.
-    TLS_CFLAGS=`echo $TLS_CFLAGS | sed -e 's|-I/usr/include||'`
     # Strip '-L/usr/lib' off since this is always in the link path.
     TLS_LIBS=`echo $TLS_LIBS | sed -e 's|-L/usr/lib||'`
 
