@@ -1,3 +1,8 @@
+2008-01-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m: Try to honor protocol requested.
+	* Source/NSURLProtocol.m: Add https
+
 2008-01-05  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Source/Additions/GSXML.m ([GSXPathContext
@@ -5,10 +10,6 @@
 	namespaces in XPath expressions.
 	* Headers/Additions/GNUstepBase/GSXML.h: Same.
 	
-2008-01-05  Richard Frith-Macdonald <rfm@gnu.org>
-
-	* Source/GSSocketStream.m: Try to honor protocol requested.
-
 2008-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/pathtls.m4: fixup form mingw32

@@ -447,6 +447,13 @@ static NSURLProtocol	*placeholder = nil;
       RETAIN(this->input);
       RETAIN(this->output);
       [self _didInitializeOutputStream: this->output];
+      if ([[url scheme] isEqualToString: @"https"] == YES)
+        {
+          [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+                            forKey: NSStreamSocketSecurityLevelKey];
+          [this->output setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+                             forKey: NSStreamSocketSecurityLevelKey];
+        }
       [this->input setDelegate: self];
       [this->output setDelegate: self];
       [self _schedule];
@@ -1124,6 +1131,13 @@ static NSURLProtocol	*placeholder = nil;
 	}
       RETAIN(this->input);
       RETAIN(this->output);
+      if ([[url scheme] isEqualToString: @"https"] == YES)
+        {
+          [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+                            forKey: NSStreamSocketSecurityLevelKey];
+          [this->output setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+                             forKey: NSStreamSocketSecurityLevelKey];
+        }
       [this->input setDelegate: self];
       [this->output setDelegate: self];
       [this->input scheduleInRunLoop: [NSRunLoop currentRunLoop]
