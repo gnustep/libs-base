@@ -7,6 +7,10 @@
 	
 2008-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSSocketStream.m: Try to honor protocol requested.
+
+2008-01-05  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* config/pathtls.m4: fixup form mingw32
 	* configure: regenerate
 	* Source/GSSocketStream.m: Fix missing isfeds
