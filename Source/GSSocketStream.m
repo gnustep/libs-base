@@ -82,6 +82,7 @@ static struct gcry_thread_cbs gcry_threads_other = {
 {
   GSSocketInputStream   *input;         // Not retained
   GSSocketOutputStream  *output;        // Not retained
+  BOOL                  initialised;
   BOOL                  handshake;
   BOOL                  active;
 #if     defined(HAVE_GNUTLS)
@@ -202,22 +203,23 @@ static gnutls_anon_client_credentials_t anoncred;
 - (void) bye
 {
 #if     defined(HAVE_GNUTLS)
-  if (handshake == NO)
+  if (active == YES || handshake == YES)
     {
-      if (active == NO)
-        {
-          return;
-        }
       active = NO;
+      handshake = NO;
       gnutls_bye (session, GNUTLS_SHUT_RDWR);
     }
-  gnutls_deinit (session);
 #endif  /* HAVE_GNUTLS */
 }
 
 - (void) dealloc
 {
   [self bye];
+#if     defined(HAVE_GNUTLS)
+  gnutls_db_remove_session (session);
+  gnutls_deinit (session);
+  gnutls_certificate_free_credentials (&certcred);
+#endif  /* HAVE_GNUTLS */
   [super dealloc];
 }
 
@@ -235,47 +237,6 @@ static gnutls_anon_client_credentials_t anoncred;
 
       if (handshake == NO)
         {
-          /* Configure this session to support certificate based
-           * operation.
-           */
-          gnutls_certificate_allocate_credentials (&certcred);
-
-          /* FIXME ... should get the trusted authority certificates
-           * from somewhere sensible to validate the remote end!
-           */
-          gnutls_certificate_set_x509_trust_file
-            (certcred, "ca.pem", GNUTLS_X509_FMT_PEM);
-
-          /* Initialise session and set default priorities foir key exchange.
-           */
-          gnutls_init (&session, GNUTLS_CLIENT);
-          gnutls_set_default_priority (session);
-
-    /*
-         {
-            const int kx_prio[] = {
-              GNUTLS_KX_RSA,
-              GNUTLS_KX_RSA_EXPORT,
-              GNUTLS_KX_DHE_RSA,
-              GNUTLS_KX_DHE_DSS,
-              GNUTLS_KX_ANON_DH,
-              0 };
-            gnutls_kx_set_priority (session, kx_prio);
-            gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
-          }
-     */ 
-
-          /* Set certificate credentials for this session.
-           */
-          gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
-
-          /* Set transport layer to use our low level stream code.
-           */
-          gnutls_transport_set_lowat (session, 0);
-          gnutls_transport_set_pull_function (session, GSTLSPull);
-          gnutls_transport_set_push_function (session, GSTLSPush);
-          gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
-
           /* Set flag to say we are now doing a handshake.
            */
           handshake = YES;
@@ -299,8 +260,101 @@ static gnutls_anon_client_credentials_t anoncred;
               output: (GSSocketOutputStream*)o
 {
 #if     defined(HAVE_GNUTLS)
+  NSString      *proto = [i propertyForKey: NSStreamSocketSecurityLevelKey];
+
+  if ([[o propertyForKey: NSStreamSocketSecurityLevelKey] isEqual: proto] == NO)
+    {
+      DESTROY(self);
+      return nil;
+    }
+  if ([proto isEqualToString: NSStreamSocketSecurityLevelNone] == YES)
+    {
+      proto = NSStreamSocketSecurityLevelNone;
+      DESTROY(self);
+      return nil;
+    }
+  else if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv2] == YES)
+    {
+      proto = NSStreamSocketSecurityLevelSSLv2;
+      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv1 is insecure ..."
+        @" not implemented");
+      DESTROY(self);
+      return nil;
+    }
+  else if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv3] == YES)
+    {
+      proto = NSStreamSocketSecurityLevelSSLv3;
+    }
+  else if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
+    {
+      proto = NSStreamSocketSecurityLevelTLSv1;
+    }
+  else
+    {
+      proto = NSStreamSocketSecurityLevelNegotiatedSSL;
+    }
+
   input = i;
   output = o;
+  initialised = YES;
+  /* Configure this session to support certificate based
+   * operation.
+   */
+  gnutls_certificate_allocate_credentials (&certcred);
+
+  /* FIXME ... should get the trusted authority certificates
+   * from somewhere sensible to validate the remote end!
+   */
+  gnutls_certificate_set_x509_trust_file
+    (certcred, "ca.pem", GNUTLS_X509_FMT_PEM);
+
+  /* Initialise session and set default priorities foir key exchange.
+   */
+  gnutls_init (&session, GNUTLS_CLIENT);
+  gnutls_set_default_priority (session);
+
+  if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
+    {
+      const int proto_prio[4] = {
+        GNUTLS_TLS1_2,
+        GNUTLS_TLS1_1,
+        GNUTLS_TLS1_0,
+        0 };
+      gnutls_protocol_set_priority (session, proto_prio);
+    }
+  if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv3] == YES)
+    {
+      const int proto_prio[2] = {
+        GNUTLS_SSL3,
+        0 };
+      gnutls_protocol_set_priority (session, proto_prio);
+    }
+
+/*
+ {
+    const int kx_prio[] = {
+      GNUTLS_KX_RSA,
+      GNUTLS_KX_RSA_EXPORT,
+      GNUTLS_KX_DHE_RSA,
+      GNUTLS_KX_DHE_DSS,
+      GNUTLS_KX_ANON_DH,
+      0 };
+    gnutls_kx_set_priority (session, kx_prio);
+    gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
+  }
+ */ 
+
+  /* Set certificate credentials for this session.
+   */
+  gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
+  
+  /* Set transport layer to use our low level stream code.
+   */
+  gnutls_transport_set_lowat (session, 0);
+  gnutls_transport_set_pull_function (session, GSTLSPull);
+  gnutls_transport_set_push_function (session, GSTLSPush);
+  gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
+
 #else
   DESTROY(self);
 #endif  /* HAVE_GNUTLS */
