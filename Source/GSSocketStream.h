@@ -29,7 +29,6 @@
 
 #include "GSNetwork.h"
 
-@class  GSTLS;  /* Handle TLS on a pair of socket streams */
 
 #define	SOCKIVARS \
 { \
@@ -37,7 +36,7 @@
   BOOL          _passive;       /* YES means already connected. */\
   BOOL		_closing;	/* Must close on next failure.	*/\
   SOCKET        _sock;          /* Needed for ms-windows.       */\
-  GSTLS         *_tls;          /* TLS security handler.        */\
+  id            _handler;       /* TLS/SOCKS handler.           */\
 }
 
 /* The semi-abstract GSSocketStream class is not intended to be subclassed
@@ -58,6 +57,11 @@ SOCKIVARS
  */
 - (void) _setClosing: (BOOL)passive;
 
+/*
+ * Set the handler for this stream.
+ */
+- (void) _setHandler: (id)h;
+
 /**
  * setter for passive (the underlying socket connection is already open and
  * doesw not need to be re-opened).
@@ -73,11 +77,6 @@ SOCKIVARS
  * Set the socket used for this stream.
  */
 - (void) _setSock: (SOCKET)sock;
-
-/*
- * Set the TLS handler for this stream.
- */
-- (void) _setTLS: (GSTLS*)t;
 
 /* Return the socket
  */
@@ -102,10 +101,10 @@ SOCKIVARS
 - (struct sockaddr*) _peerAddr;
 - (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len;
 - (void) _setClosing: (BOOL)passive;
+- (void) _setHandler: (id)h;
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
-- (void) _setTLS: (GSTLS*)t;
 - (SOCKET) _sock;
 - (socklen_t) _sockLen;
 @end
@@ -150,10 +149,10 @@ SOCKIVARS
 @interface GSSocketOutputStream (AddedBehaviors)
 - (struct sockaddr*) _peerAddr;
 - (void) _setClosing: (BOOL)passive;
+- (void) _setHandler: (id)h;
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
-- (void) _setTLS: (GSTLS*)t;
 - (SOCKET) _sock;
 - (socklen_t) _sockLen;
 - (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len;
@@ -218,10 +217,10 @@ SOCKIVARS
 @interface GSSocketServerStream (AddedBehaviors)
 - (struct sockaddr*) _peerAddr;
 - (void) _setClosing: (BOOL)passive;
+- (void) _setHandler: (id)h;
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
-- (void) _setTLS: (GSTLS*)t;
 - (SOCKET) _sock;
 - (socklen_t) _sockLen;
 @end
