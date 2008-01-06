@@ -912,12 +912,13 @@ pthread_detach(pthread_self());
    */
   _active = YES;
 
+  errno = 0;
   if (objc_thread_detach(@selector(main), self, nil) == NULL)
     {
       _active = NO;
       RELEASE(self);
       [NSException raise: NSInternalInconsistencyException
-                  format: @"Unable to detach thread (perhaps %@)",
+                  format: @"Unable to detach thread (last error %@)",
                   [NSError _last]];
     }
 }
