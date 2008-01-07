@@ -71,7 +71,12 @@
 #endif
 
 #define SOCKET  int     /* Socket type  */
-#define SOCKLEN(X)    (X->sa_len)
+#ifdef	AF_INET6
+#define SOCKLEN(X)    ((X->sa_family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6))
+#else
+#define SOCKLEN(X)    sizeof(struct sockaddr_in)
+#endif
+/* #define SOCKLEN(X)    (X->sa_len) */
 #define BADSOCKET(X)    ((X) < 0)
 #define GSNETERROR      errno
 #define GSWOULDBLOCK    (errno == EINPROGRESS)
