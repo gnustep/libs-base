@@ -1,3 +1,8 @@
+2008-01-07  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSFileManager.m (-fileSystemAttributesAtPath:): Correct
+	block size for systems using statvfs().
+
 2008-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m: Try to honor protocol requested.

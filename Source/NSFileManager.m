@@ -1743,6 +1743,7 @@ static NSStringEncoding	defaultEncoding;
   struct statfs statfsbuf;
 #endif
   unsigned long long totalsize, freesize;
+  unsigned long blocksize;
   const char* lpath = [self fileSystemRepresentationWithPath: path];
 
   id  values[5];
@@ -1763,16 +1764,18 @@ static NSStringEncoding	defaultEncoding;
     {
       return nil;
     }
+  blocksize = statfsbuf.f_frsize;
 #else
   if (statfs(lpath, &statfsbuf) != 0)
     {
       return nil;
     }
+  blocksize = statfsbuf.f_bsize;
 #endif
 
-  totalsize = (unsigned long long) statfsbuf.f_bsize
+  totalsize = (unsigned long long) blocksize
     * (unsigned long long) statfsbuf.f_blocks;
-  freesize = (unsigned long long) statfsbuf.f_bsize
+  freesize = (unsigned long long) blocksize
     * (unsigned long long) statfsbuf.f_bavail;
 
   values[0] = [NSNumber numberWithUnsignedLongLong: totalsize];
