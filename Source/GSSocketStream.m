@@ -56,16 +56,16 @@
  */
 @interface      GSStreamHandler : NSObject
 {
-  GSSocketInputStream   *input;         // Not retained
-  GSSocketOutputStream  *output;        // Not retained
+  GSSocketInputStream   *istream;	// Not retained
+  GSSocketOutputStream  *ostream;       // Not retained
   BOOL                  initialised;
   BOOL                  handshake;
   BOOL                  active;
 }
 - (id) initWithInput: (GSSocketInputStream*)i
               output: (GSSocketOutputStream*)o;
-- (GSSocketInputStream*) input;
-- (GSSocketOutputStream*) output;
+- (GSSocketInputStream*) istream;
+- (GSSocketOutputStream*) ostream;
 
 - (void) bye;           /* Close down the handled session.   */
 - (BOOL) handshake;     /* A handshake/hello is in progress. */
@@ -96,19 +96,19 @@
 - (id) initWithInput: (GSSocketInputStream*)i
               output: (GSSocketOutputStream*)o
 {
-  input = i;
-  output = o;
+  istream = i;
+  ostream = o;
   return self;
 }
 
-- (GSSocketInputStream*) input
+- (GSSocketInputStream*) istream
 {
-  return input;
+  return istream;
 }
 
-- (GSSocketOutputStream*) output
+- (GSSocketOutputStream*) ostream
 {
-  return output;
+  return ostream;
 }
 
 - (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
@@ -184,14 +184,14 @@ GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
   ssize_t       result;
   GSTLS         *tls = (GSTLS*)handle;
   
-  result = [[tls input] _read: buffer maxLength: len];
+  result = [[tls istream] _read: buffer maxLength: len];
   if (result < 0)
     {
       int       e;
 
-      if ([[tls input] streamStatus] == NSStreamStatusError)
+      if ([[tls istream] streamStatus] == NSStreamStatusError)
         {
-          e = [[[(GSTLS*)handle input] streamError] code];
+          e = [[[(GSTLS*)handle istream] streamError] code];
         }
       else
         {
@@ -211,14 +211,14 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   ssize_t       result;
   GSTLS         *tls = (GSTLS*)handle;
   
-  result = [[tls output] _write: buffer maxLength: len];
+  result = [[tls ostream] _write: buffer maxLength: len];
   if (result < 0)
     {
       int       e;
 
-      if ([[tls output] streamStatus] == NSStreamStatusError)
+      if ([[tls ostream] streamStatus] == NSStreamStatusError)
         {
-          e = [[[tls output] streamError] code];
+          e = [[[tls ostream] streamError] code];
         }
       else
         {
@@ -418,14 +418,14 @@ static gnutls_anon_client_credentials_t anoncred;
   return self;
 }
 
-- (GSSocketInputStream*) input
+- (GSSocketInputStream*) istream
 {
-  return input;
+  return istream;
 }
 
-- (GSSocketOutputStream*) output
+- (GSSocketOutputStream*) ostream
 {
-  return output;
+  return ostream;
 }
 
 - (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
@@ -442,8 +442,8 @@ static gnutls_anon_client_credentials_t anoncred;
       [self hello]; /* try to complete the handshake */
       if (handshake == NO)
         {
-          [input _sendEvent: NSStreamEventOpenCompleted];
-          [output _sendEvent: NSStreamEventOpenCompleted];
+          [istream _sendEvent: NSStreamEventOpenCompleted];
+          [ostream _sendEvent: NSStreamEventOpenCompleted];
         }
     }
 }
@@ -484,44 +484,126 @@ static NSString * const GSSOCKSAckAuth = @"GSSOCKSAckAuth";
 static NSString * const GSSOCKSSendConn = @"GSSOCKSSendConn";
 static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
-@interface	GSSOCKS : NSObject
+@interface	GSSOCKS : GSStreamHandler
 {
-  NSString		*state;
-  NSString		*addr;
-  int			port;
+  NSString		*state;		/* Not retained */
+  NSString		*address;
+  NSString		*port;
   int			roffset;
   int			woffset;
   int			rwant;
   unsigned char		rbuffer[128];
-  NSInputStream		*istream;
-  NSOutputStream	*ostream;
 }
-- (NSString*) addr;
-- (id) initToAddr: (NSString*)_addr port: (int)_port;
-- (int) port;
-- (NSString*) stream: (NSStream*)stream SOCKSEvent: (NSStreamEvent)event;
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
 @end
 
 @implementation	GSSOCKS
-- (NSString*) addr
+- (void) bye
 {
-  return addr;
+  if (handshake == YES)
+    {
+      NSString	*tls;
+      GSTLS     *t = nil;
+
+      handshake = NO;
+      tls = [ostream propertyForKey: NSStreamSocketSecurityLevelKey];
+      if (tls == nil && istream != nil)
+	{
+	  tls = [istream propertyForKey: NSStreamSocketSecurityLevelKey];
+	  if (tls != nil)
+	    {
+	      [ostream setProperty: tls forKey: NSStreamSocketSecurityLevelKey];
+	    }
+	}
+      if (tls != nil)
+	{
+	  t = [[GSTLS alloc] initWithInput: istream output: ostream];
+	}
+      if (t == nil)
+	{
+	  GSSocketInputStream	*is = RETAIN(istream);
+	  GSSocketOutputStream	*os = RETAIN(ostream);
+
+	  /* No TLS required ... simply remove SOCKS handler from streams
+	   * and let the streams know that the open has completed.
+	   * NB. Removing SOCKS handle from streams may cause it to be
+	   * deallocated, so we work with local variables to hold the
+	   * streams long enough to send events to them.
+	   */
+	  [is _setHandler: nil];
+	  [os _setHandler: nil];
+          [is _sendEvent: NSStreamEventOpenCompleted];
+          [os _sendEvent: NSStreamEventOpenCompleted];
+	  RELEASE(is);
+	  RELEASE(os);
+	}
+      else
+	{
+	  /* Replace SOCKS handler wth TLS handler and start TLS handshake.
+	   */
+	  [istream _setHandler: t];
+	  [ostream _setHandler: t];
+	  [t hello];
+	  RELEASE(t);
+	}
+    }
 }
 
-- (id) initToAddr: (NSString*)_addr port: (int)_port
+- (void) dealloc
 {
-  ASSIGNCOPY(addr, _addr);
-  port = _port;
-  state = GSSOCKSOfferAuth;
+  RELEASE(address);
+  RELEASE(port);
+  [super dealloc];
+}
+
+- (void) hello
+{
+  if (handshake == NO)
+    {
+      handshake = YES;
+      /* Now send self an event to say we can write, to kick off the
+       * handshake with the SOCKS server.
+       */
+      [self stream: ostream handleEvent: NSStreamEventHasSpaceAvailable];
+    }
+}
+
+- (id) initWithInput: (GSSocketInputStream*)i
+              output: (GSSocketOutputStream*)o
+{
+  if ((self = [super initWithInput: i output: o]) != nil)
+    {
+      if ([istream isKindOfClass: [GSInetInputStream class]] == NO)
+	{
+	  NSLog(@"Attempt to use SOCKS with non-INET stream ignored");
+	  DESTROY(self);
+	}
+#if	defined(AF_INET6)
+      else if ([istream isKindOfClass: [GSInet6InputStream class]] == YES)
+	{
+          GSOnceMLog(@"INET6 not supported with SOCKS yet...");
+	  DESTROY(self);
+	}
+#endif	/* AF_INET6 */
+      else
+	{
+	  struct sockaddr_in	*addr = (struct sockaddr_in*)[istream _address];
+
+	  address = [[NSString alloc] initWithUTF8String:
+	    (char*)inet_ntoa(addr->sin_addr)];
+	  port = [[NSString alloc] initWithFormat: @"%d",
+	    (int)GSSwapBigI16ToHost(addr->sin_port)];
+	}
+    }
   return self;
 }
 
-- (int) port
+- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
 {
-  return port;
+  return [istream _read: buffer maxLength: len];
 }
 
-- (NSString*) stream: (NSStream*)stream SOCKSEvent: (NSStreamEvent)event
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
   NSString		*error = nil;
   NSDictionary		*conf;
@@ -532,7 +614,8 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
     || [stream streamStatus] == NSStreamStatusError
     || [stream streamStatus] == NSStreamStatusClosed)
     {
-      return @"SOCKS errur during negotiation";
+      [self bye];
+      return;
     }
 
   conf = [stream propertyForKey: NSStreamSOCKSProxyConfigurationKey];
@@ -574,12 +657,8 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	      want = 3;
 	    }
 
-	  result = [ostream write: buf + woffset maxLength: 4 - woffset];
-	  if (result == 0)
-	    {
-	      error = @"end-of-file during SOCKS negotiation";
-	    }
-	  else if (result > 0)
+	  result = [ostream _write: buf + woffset maxLength: 4 - woffset];
+	  if (result > 0)
 	    {
 	      woffset += result;
 	      if (woffset == want)
@@ -594,7 +673,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	{
 	  int	result;
 
-	  result = [istream read: rbuffer + roffset maxLength: 2 - roffset];
+	  result = [istream _read: rbuffer + roffset maxLength: 2 - roffset];
 	  if (result == 0)
 	    {
 	      error = @"SOCKS end-of-file during negotiation";
@@ -652,7 +731,8 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	      memcpy(buf + 2, [u bytes], ul);
 	      buf[ul + 2] = pl;
 	      memcpy(buf + ul + 3, [p bytes], pl);
-	      result = [ostream write: buf + woffset maxLength: want - woffset];
+	      result = [ostream _write: buf + woffset
+			     maxLength: want - woffset];
 	      if (result == 0)
 		{
 		  error = @"SOCKS end-of-file during negotiation";
@@ -672,7 +752,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	{
 	  int	result;
 
-	  result = [istream read: rbuffer + roffset maxLength: 2 - roffset];
+	  result = [istream _read: rbuffer + roffset maxLength: 2 - roffset];
 	  if (result == 0)
 	    {
 	      error = @"SOCKS end-of-file during negotiation";
@@ -719,7 +799,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  buf[1] = 1;	// Connect command
 	  buf[2] = 0;	// Reserved
 	  buf[3] = 1;	// Address type (IPV4)
-	  ptr = [addr lossyCString];
+	  ptr = [address UTF8String];
 	  buf[4] = atoi(ptr);
 	  while (isdigit(*ptr))
 	    ptr++;
@@ -733,10 +813,11 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	    ptr++;
 	  ptr++;
 	  buf[7] = atoi(ptr);
-	  buf[8] = ((port & 0xff00) >> 8);
-	  buf[9] = (port & 0xff);
+	  result = [port intValue];
+	  buf[8] = ((result & 0xff00) >> 8);
+	  buf[9] = (result & 0xff);
 
-	  result = [ostream write: buf + woffset maxLength: want - woffset];
+	  result = [ostream _write: buf + woffset maxLength: want - woffset];
 	  if (result == 0)
 	    {
 	      error = @"SOCKS end-of-file during negotiation";
@@ -756,7 +837,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	{
 	  int	result;
 
-	  result = [istream read: rbuffer + roffset maxLength: rwant - roffset];
+	  result = [istream _read: rbuffer + roffset maxLength: rwant - roffset];
 	  if (result == 0)
 	    {
 	      error = @"SOCKS end-of-file during negotiation";
@@ -861,8 +942,22 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 			      a = [NSString stringWithUTF8String:
 			        (const char*)buf];
 			    }
-			  ASSIGN(addr, a);
-			  port =  rbuffer[rwant-1] * 256 * rbuffer[rwant-2];
+
+			  [istream setProperty: a
+					forKey: GSStreamRemoteAddressKey];
+			  [ostream setProperty: a
+					forKey: GSStreamRemoteAddressKey];
+			  a = [NSString stringWithFormat: @"%d",
+			    rbuffer[rwant-1] * 256 * rbuffer[rwant-2]];
+			  [istream setProperty: a
+					forKey: GSStreamRemotePortKey];
+			  [ostream setProperty: a
+					forKey: GSStreamRemotePortKey];
+			  /* Return immediately after calling -bye as it
+			   * will cause this instance to be deallocted.
+			   */
+			  [self bye];
+			  return;
 			}
 		    }
 		}
@@ -870,7 +965,29 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	}
     }
 
-  return error;
+  if ([error length] > 0)
+    {
+      NSError *theError;
+
+      theError = [NSError errorWithDomain: NSCocoaErrorDomain
+	code: 0
+	userInfo: [NSDictionary dictionaryWithObject: error
+	  forKey: NSLocalizedDescriptionKey]];
+      if ([istream streamStatus] != NSStreamStatusError)
+	{
+	  [istream _recordError: theError];
+	}
+      if ([ostream streamStatus] != NSStreamStatusError)
+	{
+	  [ostream _recordError: theError];
+	}
+      [self bye];
+    }
+}
+
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+{
+  return [ostream _write: buffer maxLength: len];
 }
 
 @end
@@ -930,6 +1047,10 @@ setNonBlocking(SOCKET fd)
   [_sibling _setSibling: nil];
   _sibling = nil;
   DESTROY(_handler);
+  if (_address != 0)
+    {
+      NSZoneFree(NSDefaultMallocZone(), _address);
+    }
   [super dealloc];
 }
 
@@ -953,10 +1074,9 @@ setNonBlocking(SOCKET fd)
   return self;
 }
 
-- (struct sockaddr*) _peerAddr
+- (struct sockaddr*) _address
 {
-  [self subclassResponsibility: _cmd];
-  return NULL;
+  return (struct sockaddr*)_address;
 }
 
 - (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len
@@ -986,6 +1106,21 @@ setNonBlocking(SOCKET fd)
     {
       [super _sendEvent: event];
     }
+}
+
+- (void) _setAddress: (struct sockaddr*)address
+{
+  if (_address != 0 && SOCKLEN(_address) != SOCKLEN(address))
+    {
+      NSZoneFree(NSDefaultMallocZone(), _address);
+      _address = 0;
+    }
+  if (_address == 0)
+    {
+      _address = (struct sockaddr*)
+	NSZoneMalloc(NSDefaultMallocZone(), SOCKLEN(address));
+    }
+  memcpy(_address, address, SOCKLEN(address));
 }
 
 - (void) _setLoopID: (void *)ref
@@ -1038,12 +1173,6 @@ setNonBlocking(SOCKET fd)
   return _sock;
 }
 
-- (socklen_t) _sockLen
-{
-  [self subclassResponsibility: _cmd];
-  return 0;
-}
-
 - (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   [self subclassResponsibility: _cmd];
@@ -1080,7 +1209,7 @@ setNonBlocking(SOCKET fd)
     {
       int result;
 
-      result = connect([self _sock], [self _peerAddr], [self _sockLen]);
+      result = connect([self _sock], _address, SOCKLEN(_address));
       if (socketError(result))
         {
           if (!socketWouldBlock())
@@ -1523,7 +1652,7 @@ setNonBlocking(SOCKET fd)
     {
       int result;
       
-      result = connect([self _sock], [self _peerAddr], [self _sockLen]);
+      result = connect([self _sock], _address, SOCKLEN(_address));
       if (socketError(result))
         {
           if (!socketWouldBlock())
@@ -1859,12 +1988,6 @@ setNonBlocking(SOCKET fd)
   return Nil;
 }
 
-- (struct sockaddr*) _serverAddr
-{
-  [self subclassResponsibility: _cmd];
-  return 0;
-}
-
 #define SOCKET_BACKLOG 256
 
 - (void) open
@@ -1885,7 +2008,7 @@ setNonBlocking(SOCKET fd)
     (char *)&status, sizeof(status));
 #endif
 
-  bindReturn = bind([self _sock], [self _serverAddr], [self _sockLen]);
+  bindReturn = bind([self _sock], _address, SOCKLEN(_address));
   if (socketError(bindReturn))
     {
       [self _recordError];
@@ -1934,9 +2057,12 @@ setNonBlocking(SOCKET fd)
 {
   GSSocketStream *ins = AUTORELEASE([[self _inputStreamClass] new]);
   GSSocketStream *outs = AUTORELEASE([[self _outputStreamClass] new]);
-  socklen_t len = [ins _sockLen];
-  int acceptReturn = accept([self _sock], [ins _peerAddr], &len);
+  uint8_t		buf[BUFSIZ];
+  struct sockaddr	*addr = (struct sockaddr*)buf;
+  socklen_t		len = sizeof(buf);
+  int			acceptReturn;
 
+  acceptReturn = accept([self _sock], addr, &len);
   _events &= ~NSStreamEventHasBytesAvailable;
   if (socketError(acceptReturn))
     { // test for real error
@@ -1953,7 +2079,8 @@ setNonBlocking(SOCKET fd)
       [ins _setPassive: YES];
       [outs _setPassive: YES];
       // copy the addr to outs
-      memcpy([outs _peerAddr], [ins _peerAddr], len);
+      [ins _setAddress: addr];
+      [outs _setAddress: addr];
       [ins _setSock: acceptReturn];
       [outs _setSock: acceptReturn];
     }
@@ -2097,16 +2224,6 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
 @implementation GSInetInputStream
 
-- (socklen_t) _sockLen
-{
-  return sizeof(struct sockaddr_in);
-}
-
-- (struct sockaddr*) _peerAddr
-{
-  return (struct sockaddr*)&_peerAddr;
-}
-
 - (id) initToAddr: (NSString*)addr port: (int)port
 {
   int           ptonReturn;
@@ -2114,12 +2231,18 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
   if ((self = [super init]) != nil)
     {
-      _peerAddr.sin_family = AF_INET;
-      _peerAddr.sin_port = GSSwapHostI16ToBig(port);
-      ptonReturn = inet_pton(AF_INET, addr_c, &(_peerAddr.sin_addr));
+      struct	sockaddr_in	peer;
+
+      peer.sin_family = AF_INET;
+      peer.sin_port = GSSwapHostI16ToBig(port);
+      ptonReturn = inet_pton(AF_INET, addr_c, &peer.sin_addr);
       if (ptonReturn == 0)   // error
 	{
 	  DESTROY(self);
+	}
+      else
+	{
+	  [self _setAddress: (struct sockaddr*)&peer];
 	}
     }
   return self;
@@ -2127,11 +2250,11 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
 - (id) propertyForKey: (NSString *)key
 {
-  id result = propertyForInet4Stream((intptr_t)_loopID, key);
+  id	result = [super propertyForKey: key];
 
   if (result == nil)
     {
-      result = [super propertyForKey: key];
+      result = propertyForInet4Stream((intptr_t)_loopID, key);
     }
   return result;
 }
@@ -2140,15 +2263,6 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
 @implementation GSInet6InputStream
 #if	defined(AF_INET6)
-- (socklen_t) _sockLen
-{
-  return sizeof(struct sockaddr_in6);
-}
-
-- (struct sockaddr*) _peerAddr
-{
-  return (struct sockaddr*)&_peerAddr;
-}
 
 - (id) initToAddr: (NSString*)addr port: (int)port
 {
@@ -2157,12 +2271,18 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
   if ((self = [super init]) != nil)
     {
-      _peerAddr.sin6_family = AF_INET6;
-      _peerAddr.sin6_port = GSSwapHostI16ToBig(port);
-      ptonReturn = inet_pton(AF_INET6, addr_c, &(_peerAddr.sin6_addr));
+      struct	sockaddr_in6	peer;
+
+      peer.sin6_family = AF_INET6;
+      peer.sin6_port = GSSwapHostI16ToBig(port);
+      ptonReturn = inet_pton(AF_INET6, addr_c, &peer.sin6_addr);
       if (ptonReturn == 0)   // error
 	{
 	  DESTROY(self);
+	}
+      else
+	{
+	  [self _setAddress: (struct sockaddr*)&peer];
 	}
     }
   return self;
@@ -2170,11 +2290,11 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
 - (id) propertyForKey: (NSString *)key
 {
-  id result = propertyForInet6Stream((intptr_t)_loopID, key);
+  id	result = [super propertyForKey: key];
 
   if (result == nil)
     {
-      result = [super propertyForKey: key];
+      result = propertyForInet6Stream((intptr_t)_loopID, key);
     }
   return result;
 }
@@ -2190,16 +2310,6 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
 @implementation GSInetOutputStream
 
-- (socklen_t) _sockLen
-{
-  return sizeof(struct sockaddr_in);
-}
-
-- (struct sockaddr*) _peerAddr
-{
-  return (struct sockaddr*)&_peerAddr;
-}
-
 - (id) initToAddr: (NSString*)addr port: (int)port
 {
   int ptonReturn;
@@ -2207,12 +2317,18 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
   if ((self = [super init]) != nil)
     {
-      _peerAddr.sin_family = AF_INET;
-      _peerAddr.sin_port = GSSwapHostI16ToBig(port);
-      ptonReturn = inet_pton(AF_INET, addr_c, &(_peerAddr.sin_addr));
+      struct	sockaddr_in	peer;
+
+      peer.sin_family = AF_INET;
+      peer.sin_port = GSSwapHostI16ToBig(port);
+      ptonReturn = inet_pton(AF_INET, addr_c, &peer.sin_addr);
       if (ptonReturn == 0)   // error
 	{
 	  DESTROY(self);
+	}
+      else
+	{
+	  [self _setAddress: (struct sockaddr*)&peer];
 	}
     }
   return self;
@@ -2220,11 +2336,11 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
 - (id) propertyForKey: (NSString *)key
 {
-  id result = propertyForInet4Stream((intptr_t)_loopID, key);
+  id	result = [super propertyForKey: key];
 
   if (result == nil)
     {
-      result = [super propertyForKey: key];
+      result = propertyForInet4Stream((intptr_t)_loopID, key);
     }
   return result;
 }
@@ -2233,15 +2349,6 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
 @implementation GSInet6OutputStream
 #if	defined(AF_INET6)
-- (socklen_t) _sockLen
-{
-  return sizeof(struct sockaddr_in6);
-}
-
-- (struct sockaddr*) _peerAddr
-{
-  return (struct sockaddr*)&_peerAddr;
-}
 
 - (id) initToAddr: (NSString*)addr port: (int)port
 {
@@ -2250,12 +2357,18 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
   if ((self = [super init]) != nil)
     {
-      _peerAddr.sin6_family = AF_INET6;
-      _peerAddr.sin6_port = GSSwapHostI16ToBig(port);
-      ptonReturn = inet_pton(AF_INET6, addr_c, &(_peerAddr.sin6_addr));
+      struct	sockaddr_in6	peer;
+
+      peer.sin6_family = AF_INET6;
+      peer.sin6_port = GSSwapHostI16ToBig(port);
+      ptonReturn = inet_pton(AF_INET6, addr_c, &peer.sin6_addr);
       if (ptonReturn == 0)   // error
 	{
 	  DESTROY(self);
+	}
+      else
+	{
+	  [self _setAddress: (struct sockaddr*)&peer];
 	}
     }
   return self;
@@ -2263,11 +2376,11 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
 
 - (id) propertyForKey: (NSString *)key
 {
-  id result = propertyForInet6Stream((intptr_t)_loopID, key);
+  id	result = [super propertyForKey: key];
 
   if (result == nil)
     {
-      result = [super propertyForKey: key];
+      result = propertyForInet6Stream((intptr_t)_loopID, key);
     }
   return result;
 }
@@ -2293,30 +2406,21 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
   return [GSInetOutputStream class];
 }
 
-- (socklen_t) _sockLen
-{
-  return sizeof(struct sockaddr_in);
-}
-
-- (struct sockaddr*) _serverAddr
-{
-  return (struct sockaddr*)&_serverAddr;
-}
-
 - (id) initToAddr: (NSString*)addr port: (int)port
 {
   if ((self = [super init]) != nil)
     {
       int ptonReturn;
       const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
+      struct	sockaddr_in	addr;
 
-      _serverAddr.sin_family = AF_INET;
-      _serverAddr.sin_port = GSSwapHostI16ToBig(port);
+      addr.sin_family = AF_INET;
+      addr.sin_port = GSSwapHostI16ToBig(port);
       if (addr_c == 0)
         {
           addr_c = "0.0.0.0";   /* Bind on all addresses */
         }
-      ptonReturn = inet_pton(AF_INET, addr_c, &(_serverAddr.sin_addr));
+      ptonReturn = inet_pton(AF_INET, addr_c, &addr.sin_addr);
       if (ptonReturn == 0)   // error
         {
           DESTROY(self);
@@ -2332,6 +2436,7 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
             }
           else
             {
+	      [self _setAddress: (struct sockaddr*)&addr];
               [self _setSock: s];
             }
         }
@@ -2353,30 +2458,21 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
   return [GSInet6OutputStream class];
 }
 
-- (socklen_t) _sockLen
-{
-  return sizeof(struct sockaddr_in6);
-}
-
-- (struct sockaddr*) _serverAddr
-{
-  return (struct sockaddr*)&_serverAddr;
-}
-
 - (id) initToAddr: (NSString*)addr port: (int)port
 {
   if ([super init] != nil)
     {
       int ptonReturn;
       const char *addr_c = [addr cStringUsingEncoding: NSUTF8StringEncoding];
+      struct	sockaddr_in6	addr;
 
-      _serverAddr.sin6_family = AF_INET6;
-      _serverAddr.sin6_port = GSSwapHostI16ToBig(port);
+      addr.sin6_family = AF_INET6;
+      addr.sin6_port = GSSwapHostI16ToBig(port);
       if (addr_c == 0)
         {
           addr_c = "0:0:0:0:0:0:0:0";   /* Bind on all addresses */
         }
-      ptonReturn = inet_pton(AF_INET6, addr_c, &(_serverAddr.sin6_addr));
+      ptonReturn = inet_pton(AF_INET6, addr_c, &addr.sin6_addr);
       if (ptonReturn == 0)   // error
         {
           DESTROY(self);
@@ -2392,6 +2488,7 @@ static id propertyForInet6Stream(int descriptor, NSString *key)
             }
           else
             {
+              [self _setAddress: (struct sockaddr*)&addr];
               [self _setSock: s];
             }
         }

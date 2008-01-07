@@ -43,6 +43,7 @@
 @end
 
 @interface _NSHTTPURLProtocol : NSURLProtocol
+  <NSURLAuthenticationChallengeSender>
 {
   GSMimeParser		*_parser;	// Parser handling incoming data
   unsigned		_parseOffset;	// Bytes of body loaded in parser.
@@ -55,6 +56,9 @@
   BOOL			_debug;
   BOOL			_isLoading;
   BOOL			_shouldClose;
+  NSURLAuthenticationChallenge	*_challenge;
+  NSURLCredential		*_credential;
+  NSHTTPURLResponse		*_response;
 }
 @end
 
@@ -295,6 +299,23 @@ static NSURLProtocol	*placeholder = nil;
   return request;
 }
 
+- (void) cancelAuthenticationChallenge: (NSURLAuthenticationChallenge*)c
+{
+  if (c == _challenge)
+    {
+      DESTROY(_challenge);	// We should cancel the download
+    }
+}
+
+- (void) continueWithoutCredentialForAuthenticationChallenge:
+  (NSURLAuthenticationChallenge*)c
+{
+  if (c == _challenge)
+    {
+      DESTROY(_credential);	// We download the challenge page
+    }
+}
+
 - (void) _didInitializeOutputStream: (NSOutputStream*)stream
 {
   return;
@@ -304,6 +325,9 @@ static NSURLProtocol	*placeholder = nil;
 {
   [_parser release];			// received headers
   [_body release];			// for sending the body
+  [_response release];
+  [_credential release];
+  [_credential release];
   [super dealloc];
 }
 
@@ -348,6 +372,7 @@ static NSURLProtocol	*placeholder = nil;
       return;
     }
 
+  _statusCode = 0;	/* No status returned yet.	*/
   _isLoading = YES;
   _complete = NO;
   _debug = NO;
@@ -357,7 +382,6 @@ static NSURLProtocol	*placeholder = nil;
    */
   if ([[[this->request URL] path] length] == 0)
     {
-      NSURLRequest	*request;
       NSString		*s = [[this->request URL] absoluteString];
       NSURL		*url;
 
@@ -374,8 +398,7 @@ static NSURLProtocol	*placeholder = nil;
           s = [s stringByAppendingString: @"/"];
 	}
       url = [NSURL URLWithString: s];
-      request = [NSURLRequest requestWithURL: url];
-      if (request == nil)
+      if (url == nil)
 	{
 	  NSError	*e;
 
@@ -388,6 +411,10 @@ static NSURLProtocol	*placeholder = nil;
 	}
       else
 	{
+	  NSMutableURLRequest	*request;
+
+	  request = [this->request mutableCopy];
+	  [request setURL: url];
 	  [this->client URLProtocol: self
 	     wasRedirectedToRequest: request
 		   redirectResponse: nil];
@@ -546,7 +573,6 @@ static NSURLProtocol	*placeholder = nil;
 
       if (wasInHeaders == YES && isInHeaders == NO)
         {
-	  NSHTTPURLResponse	*response;
 	  GSMimeHeader		*info;
 	  NSString		*enc;
 	  int			len = -1;
@@ -585,13 +611,14 @@ static NSURLProtocol	*placeholder = nil;
 	      enc = [[document headerNamed: @"transfer-encoding"] value];
 	    }
 
-	  response = [[NSHTTPURLResponse alloc] initWithURL: [this->request URL]
-						   MIMEType: nil
-				      expectedContentLength: len
-					   textEncodingName: nil];
-	  [response _setStatusCode: _statusCode text: s];
+	  _response = [[NSHTTPURLResponse alloc]
+	    initWithURL: [this->request URL]
+	    MIMEType: nil
+	    expectedContentLength: len
+	    textEncodingName: nil];
+	  [_response _setStatusCode: _statusCode text: s];
 	  [document deleteHeaderNamed: @"http"];
-	  [response _setHeaders: [document allHeaders]];
+	  [_response _setHeaders: [document allHeaders]];
 
 	  if (_statusCode == 204 || _statusCode == 304)
 	    {
@@ -606,17 +633,18 @@ static NSURLProtocol	*placeholder = nil;
 	      _complete = YES;	// Had EOF ... terminate
 	    }
 
-	  /* Check for a redirect.
-	   */
-	  s = [[document headerNamed: @"location"] value];
-	  if ([s length] > 0)
+	  if (_statusCode == 401)
 	    {
-	      NSURLRequest	*request;
-	      NSURL		*url;
+	      /* This is an authentication challenge, so we keep reading
+	       * until the challenge is complete, then try to deal with it.
+	       */
+	    }
+	  else if ((s = [[document headerNamed: @"location"] value]) != nil)
+	    {
+	      NSURL	*url;
 
 	      url = [NSURL URLWithString: s];
-	      request = [NSURLRequest requestWithURL: url];
-	      if (request == nil)
+	      if (url == nil)
 	        {
 		  NSError	*e;
 
@@ -629,9 +657,13 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	      else
 	        {
+		  NSMutableURLRequest	*request;
+
+		  request = [this->request mutableCopy];
+		  [request setURL: url];
 		  [this->client URLProtocol: self
 		     wasRedirectedToRequest: request
-			   redirectResponse: response];
+			   redirectResponse: _response];
 		}
 	    }
 	  else
@@ -660,13 +692,173 @@ static NSURLProtocol	*placeholder = nil;
 		    }
 		}
 	      [this->client URLProtocol: self
-		     didReceiveResponse: response
+		     didReceiveResponse: _response
 		     cacheStoragePolicy: policy];
 	    }
 	}
 
       if (_complete == YES)
 	{
+	  if (_statusCode == 401)
+	    {
+	      NSURLProtectionSpace	*space;
+	      NSString			*hdr;
+	      NSURL			*url;
+	      int			failures = 0;
+
+	      /* This was an authentication challenge.
+	       */
+	      hdr = [[document headerNamed: @"WWW-Authenticate"] value];
+	      url = [this->request URL];
+	      space = [GSHTTPAuthentication
+		protectionSpaceForAuthentication: hdr requestURL: url];
+	      DESTROY(_credential);	
+	      if (space != nil)
+		{
+		  /* Create credential from user and password
+		   * stored in the URL.
+		   * Returns nil if we have no username or password.
+		   */
+		  _credential = [[NSURLCredential alloc]
+		    initWithUser: [url user]
+		    password: [url password]
+		    persistence: NSURLCredentialPersistenceForSession];
+		  if (_credential == nil)
+		    {
+		      /* No credential from the URL, so we try using the
+		       * default credential for the protection space.
+		       */
+		      ASSIGN(_credential,
+			[[NSURLCredentialStorage sharedCredentialStorage]
+			  defaultCredentialForProtectionSpace: space]);
+		    }
+		}
+
+	      if (_challenge != nil)
+		{
+		  /* The failure count is incremented if we have just
+		   * tried a request in the same protection space.
+		   */
+		  if (YES == [[_challenge protectionSpace] isEqual: space])
+		    {
+		      failures = [_challenge previousFailureCount] + 1; 
+		    }
+		}
+	      else if ([this->request valueForHTTPHeaderField:@"Authorization"])
+		{
+		  /* Our request had an authorization header, so we should
+		   * count that as a failure or we wouldn't have been
+		   * challenged.
+		   */
+		  failures = 1;
+		}
+	      DESTROY(_challenge);
+
+	      _challenge = [[NSURLAuthenticationChallenge alloc]
+		initWithProtectionSpace: space
+		proposedCredential: _credential
+		previousFailureCount: failures
+		failureResponse: _response
+		error: nil
+		sender: self];
+
+	      /* Allow the client to control the credential we send
+	       * or whether we actually send at all.
+	       */
+	      [this->client URLProtocol: self
+		didReceiveAuthenticationChallenge: _challenge];
+
+	      if (_challenge == nil)
+		{
+		  NSError	*e;
+
+		  /* The client cancelled the authentication challenge
+		   * so we must cancel the download.
+		   */
+		  e = [NSError errorWithDomain: @"Authentication cancelled"
+					  code: 0
+				      userInfo: nil];
+		  [self stopLoading];
+		  [this->client URLProtocol: self
+			   didFailWithError: e];
+		}
+	      else
+		{
+		  NSString	*auth = nil;
+
+		  if (_credential != nil)
+		    {
+		      GSHTTPAuthentication	*authentication;
+
+		      /* Get information about basic or
+		       * digest authentication.
+		       */
+		      authentication = [GSHTTPAuthentication
+			authenticationWithCredential: _credential
+			inProtectionSpace: space];
+
+		      /* Generate authentication header value for the
+		       * authentication type in the challenge.
+		       */
+		      auth = [authentication
+			authorizationForAuthentication: hdr
+			method: [this->request HTTPMethod]
+			path: [url path]];
+		    }
+
+		  if (auth == nil)
+		    {
+		      NSURLCacheStoragePolicy policy;
+
+		      /* We have no authentication credentials so we
+		       * treat this as a download of the challenge page.
+		       */
+
+		      /* Tell the client that we have a response and how
+		       * it should be cached.
+		       */
+		      policy = [this->request cachePolicy];
+		      if (policy == NSURLRequestUseProtocolCachePolicy)
+			{
+			  if ([self isKindOfClass: [_NSHTTPSURLProtocol class]])
+			    {
+			      /* For HTTPS we should not allow caching unless
+			       * the request explicitly wants it.
+			       */
+			      policy = NSURLCacheStorageNotAllowed;
+			    }
+			  else
+			    {
+			      /* For HTTP we allow caching unless the request
+			       * specifically denies it.
+			       */
+			      policy = NSURLCacheStorageAllowed;
+			    }
+			}
+		      [this->client URLProtocol: self
+			     didReceiveResponse: _response
+			     cacheStoragePolicy: policy];
+		      /* Fall through to code providing page data.
+		       */
+		    }
+		  else
+		    {
+		      NSMutableURLRequest	*request;
+
+		      /* To answer the authentication challenge,
+		       * we must retry with a modified request and
+		       * with the cached response cleared.
+		       */
+		      request = [this->request mutableCopy];
+		      [request setValue: auth
+			forHTTPHeaderField: @"Authorization"];
+		      [self stopLoading];
+		      DESTROY(this->cachedResponse);
+		      [self startLoading];
+		    }
+		}
+	    }
+
 	  [self _unschedule];
 	  if (_shouldClose == YES)
 	    {
@@ -675,88 +867,6 @@ static NSURLProtocol	*placeholder = nil;
 	      DESTROY(this->input);
 	      DESTROY(this->output);
 	    }
-
-#if 0
-	  /*
-	   * Retrieve essential keys from document
-	   */
-	  if (_statusCode == 401 && self->challenged < 2)
-	    {
-	      GSMimeHeader	*ah;
-
-	      self->challenged++;	// Prevent repeated challenge/auth
-	      if ((ah = [document headerNamed: @"WWW-Authenticate"]) != nil)
-		{
-		  NSURLProtectionSpace	*space;
-		  NSString		*ac;
-		  GSHTTPAuthentication	*authentication;
-		  NSString		*method;
-		  NSString		*auth;
-
-		  ac = [ah value];
-		  space = [GSHTTPAuthentication
-		    protectionSpaceForAuthentication: ac requestURL: url];
-		  if (space == nil)
-		    {
-		      authentication = nil;
-		    }
-		  else
-		    {
-		      NSURLCredential	*cred;
-
-		      /*
-		       * Create credential from user and password
-		       * stored in the URL.
-		       * Returns nil if we have no username or password.
-		       */
-		      cred = [[NSURLCredential alloc]
-			initWithUser: [url user]
-			password: [url password]
-			persistence: NSURLCredentialPersistenceForSession];
-
-		      if (cred == nil)
-			{
-			  authentication = nil;
-			}
-		      else
-			{
-			  /*
-			   * Get the digest object and ask it for a header
-			   * to use for authorisation.
-			   * Returns nil if we have no credential.
-			   */
-			  authentication = [GSHTTPAuthentication
-			    authenticationWithCredential: cred
-			    inProtectionSpace: space];
-			  RELEASE(cred);
-			}
-		    }
-
-		  method = [request objectForKey: GSHTTPPropertyMethodKey];
-		  if (method == nil)
-		    {
-		      if ([wData length] > 0)
-			{
-			  method = @"POST";
-			}
-		      else
-			{
-			  method = @"GET";
-			}
-		    }
-
-		  auth = [authentication authorizationForAuthentication: ac
-		    method: method
-		    path: [url path]];
-		  if (auth != nil)
-		    {
-		      [self writeProperty: auth forKey: @"Authorization"];
-		      [self _tryLoadInBackground: u];
-		      return;	// Retrying.
-		    }
-		}
-	    }
-#endif
 
 	  /*
 	   * Tell superclass that we have successfully loaded the data
@@ -787,7 +897,7 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	    }
 	}
-      else if (_isLoading == YES)
+      else if (_isLoading == YES && _statusCode != 401)
 	{
 	  /*
 	   * Report partial data if possible.
@@ -1074,6 +1184,14 @@ static NSURLProtocol	*placeholder = nil;
   [this->client URLProtocol: self didFailWithError: [stream streamError]];
 }
 
+- (void) useCredential: (NSURLCredential*)credential
+  forAuthenticationChallenge: (NSURLAuthenticationChallenge*)challenge
+{
+  if (challenge == _challenge)
+    {
+      ASSIGN(_credential, credential);
+    }
+}
 @end
 
 @implementation _NSHTTPSURLProtocol
