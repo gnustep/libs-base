@@ -183,7 +183,11 @@ typedef struct {
        cachePolicy: (NSURLRequestCachePolicy)cachePolicy
    timeoutInterval: (NSTimeInterval)timeoutInterval
 {
-  if ((self = [super init]) != nil)
+  if ([URL isKindOfClass: [NSURL class]] == NO)
+    {
+      DESTROY(self);
+    }
+  else if ((self = [super init]) != nil)
     {
       this->URL = RETAIN(URL);
       this->cachePolicy = cachePolicy;

@@ -150,7 +150,7 @@ static GSMimeParser		*mimeParser = nil;
 + (NSURLProtectionSpace*) protectionSpaceForAuthentication: (NSString*)auth
                                                 requestURL: (NSURL*)URL;
 {
-  if (auth != nil)
+  if ([auth isKindOfClass: [NSString class]] == YES)
     {
       NSString			*method = nil;
       NSURLProtectionSpace	*space;

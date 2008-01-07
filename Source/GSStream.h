@@ -137,6 +137,7 @@ IVARS
  * record an error based on errno
  */
 - (void) _recordError; 
+- (void) _recordError: (NSError*)anError; 
 
 /**
  * say whether there is unhandled data for the stream.

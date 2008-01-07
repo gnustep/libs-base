@@ -37,6 +37,7 @@
   BOOL		_closing;	/* Must close on next failure.	*/\
   SOCKET        _sock;          /* Needed for ms-windows.       */\
   id            _handler;       /* TLS/SOCKS handler.           */\
+  struct sockaddr *_address;	/* Socket address info.		*/\
 }
 
 /* The semi-abstract GSSocketStream class is not intended to be subclassed
@@ -48,7 +49,12 @@ SOCKIVARS
 /**
  * get the sockaddr
  */
-- (struct sockaddr*) _peerAddr;
+- (struct sockaddr*) _address;
+
+/**
+ * set the sockaddr
+ */
+- (void) _setAddress: (struct sockaddr*)address;
 
 /**
  * setter for closing flag ... the remote end has stopped either sending
@@ -82,11 +88,6 @@ SOCKIVARS
  */
 - (SOCKET) _sock;
 
-/** 
- * Get the length of the socket addr
- */
-- (socklen_t) _sockLen;
-
 @end
 
 /**
@@ -98,7 +99,8 @@ SOCKIVARS
 SOCKIVARS
 @end
 @interface GSSocketInputStream (AddedBehaviors)
-- (struct sockaddr*) _peerAddr;
+- (struct sockaddr*) _address;
+- (void) _setAddress: (struct sockaddr*)address;
 - (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
@@ -106,14 +108,9 @@ SOCKIVARS
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (SOCKET) _sock;
-- (socklen_t) _sockLen;
 @end
 
 @interface GSInetInputStream : GSSocketInputStream
-{
-  @private
-  struct sockaddr_in _peerAddr;
-}
 
 /**
  * the designated initializer
@@ -124,12 +121,6 @@ SOCKIVARS
 
 
 @interface GSInet6InputStream : GSSocketInputStream
-{
-  @private
-#if	defined(AF_INET6)
-  struct sockaddr_in6 _peerAddr;
-#endif
-}
 
 /**
  * the designated initializer
@@ -147,22 +138,18 @@ SOCKIVARS
 SOCKIVARS
 @end
 @interface GSSocketOutputStream (AddedBehaviors)
-- (struct sockaddr*) _peerAddr;
+- (struct sockaddr*) _address;
+- (void) _setAddress: (struct sockaddr*)address;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (SOCKET) _sock;
-- (socklen_t) _sockLen;
 - (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len;
 @end
 
 @interface GSInetOutputStream : GSSocketOutputStream
-{
-  @private
-  struct sockaddr_in _peerAddr;
-}
 
 /**
  * the designated initializer
@@ -172,12 +159,6 @@ SOCKIVARS
 @end
 
 @interface GSInet6OutputStream : GSSocketOutputStream
-{
-  @private
-#if	defined(AF_INET6)
-  struct sockaddr_in6 _peerAddr;
-#endif
-}
 
 /**
  * the designated initializer
@@ -208,37 +189,22 @@ SOCKIVARS
  */
 - (Class) _outputStreamClass;
 
-/**
- * Return the sockaddr for this server
- */
-- (struct sockaddr*) _serverAddr;
-
 @end
 @interface GSSocketServerStream (AddedBehaviors)
-- (struct sockaddr*) _peerAddr;
+- (struct sockaddr*) _address;
+- (void) _setAddress: (struct sockaddr*)address;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (SOCKET) _sock;
-- (socklen_t) _sockLen;
 @end
 
 @interface GSInetServerStream : GSSocketServerStream
-{
-  @private
-  struct sockaddr_in _serverAddr;
-}
 @end
 
 @interface GSInet6ServerStream : GSSocketServerStream
-{
-  @private
-#if	defined(AF_INET6)
-  struct sockaddr_in6 _serverAddr;
-#endif
-}
 @end
 
 #endif

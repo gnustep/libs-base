@@ -1,3 +1,15 @@
+2008-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+ 	* Source\GSSocketStream.h: simplify socket address handling
+ 	* Source\GSSocketStream.m: ditto + more work on socks
+ 	* Source\GSStream.h: minor tweaks
+ 	* Source\GSStream.m:minor tweaks
+ 	* Source\unix\NSStream.m: simplified socket address handling
+ 	* Source\GSNetwork.h: add macro to get socket address length
+ 	* Source\GSHTTPAuthentication.m: Handle arg classh check in init
+ 	* Source\NSURLRequest.m: ditto
+ 	* Source\NSURLProtocol.m: attempt to add support for authentication
+
 2008-01-07  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSFileManager.m (-fileSystemAttributesAtPath:): Correct

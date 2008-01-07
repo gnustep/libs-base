@@ -335,6 +335,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
 }
 
+- (void) _recordError: (NSError*)anError
+{
+  return;
+}
+
 - (void) _schedule
 {
 }
@@ -381,8 +386,13 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   NSError *theError;
 
   theError = [NSError _last];
-// NSLog(@"%@ - %@", self, theError);
-  ASSIGN(_lastError, theError);
+  [self _recordError: theError];
+}
+
+- (void) _recordError: (NSError*)anError
+{
+// NSLog(@"%@ - %@", self, anError);
+  ASSIGN(_lastError, anError);
   _currentStatus = NSStreamStatusError;
 }
 

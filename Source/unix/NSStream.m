@@ -49,11 +49,6 @@
 @end
 
 @interface GSLocalInputStream : GSSocketInputStream
-{
-  @private
-  struct sockaddr_un _peerAddr;
-}
-
 /**
  * the designated initializer
  */
@@ -73,11 +68,6 @@
 @end
 
 @interface GSLocalOutputStream : GSSocketOutputStream
-{
-  @private
-  struct sockaddr_un _peerAddr;
-}
-
 /**
  * the designated initializer
  */
@@ -218,27 +208,20 @@
 
   if ((self = [super init]) != nil)
     {
-      _peerAddr.sun_family = AF_LOCAL;
-      if (strlen(real_addr)>sizeof(_peerAddr.sun_path)-1) // too long
+      struct sockaddr_un	peer;
+
+      peer.sun_family = AF_LOCAL;
+      if (strlen(real_addr) > sizeof(peer.sun_path)-1) // too long
 	{
 	  DESTROY(self);
 	}
       else
 	{
-	  strncpy(_peerAddr.sun_path, real_addr, sizeof(_peerAddr.sun_path)-1);
+	  strncpy(peer.sun_path, real_addr, sizeof(peer.sun_path)-1);
+	  [self _setAddress: (struct sockaddr)&peer];
 	}
     }
   return self;
-}
-
-- (struct sockaddr*) _peerAddr
-{
-  return (struct sockaddr*)&_peerAddr;
-}
-
-- (socklen_t) _sockLen
-{
-  return sizeof(struct sockaddr_un);
 }
 
 @end
@@ -364,27 +347,20 @@
 
   if ((self = [super init]) != nil)
     {
-      _peerAddr.sun_family = AF_LOCAL;
-      if (strlen(real_addr) > sizeof(_peerAddr.sun_path)-1) // too long
+      struct sockaddr_un	peer;
+
+      peer.sun_family = AF_LOCAL;
+      if (strlen(real_addr) > sizeof(peer.sun_path)-1) // too long
 	{
 	  DESTROY(self);
 	}
       else
 	{
-	  strncpy(_peerAddr.sun_path, real_addr, sizeof(_peerAddr.sun_path)-1);
+	  strncpy(peer.sun_path, real_addr, sizeof(peer.sun_path)-1);
+	  [self _setAddress: (struct sockaddr*)&peer];
 	}
     }
   return self;
-}
-
-- (struct sockaddr*) _peerAddr
-{
-  return (struct sockaddr*)&_peerAddr;
-}
-
-- (socklen_t) sockLen
-{
-  return sizeof(struct sockaddr_un);
 }
 
 @end
@@ -657,23 +633,14 @@
   return [GSLocalOutputStream class];
 }
 
-- (socklen_t) _sockLen
-{
-  return sizeof(struct sockaddr_un);
-}
-
-- (struct sockaddr*) _serverAddr
-{
-  return (struct sockaddr*)&_serverAddr;
-}
-
 - (id) initToAddr: (NSString*)addr
 {
   if ((self = [super init]) != nil)
     {
       const char* real_addr = [addr fileSystemRepresentation];
+      struct sockaddr_un	addr;
 
-      if (strlen(real_addr) > sizeof(_serverAddr.sun_path)-1)
+      if (strlen(real_addr) > sizeof(addr.sun_path)-1)
         {
           DESTROY(self);
         }
@@ -681,7 +648,7 @@
         {
           SOCKET s;
 
-          _serverAddr.sun_family = AF_LOCAL;
+          addr.sun_family = AF_LOCAL;
           s = socket(AF_LOCAL, SOCK_STREAM, 0);
           if (s < 0)
             {
@@ -690,8 +657,8 @@
           else
             {
               [(GSSocketStream*)self _setSock: s];
-              strncpy(_serverAddr.sun_path, real_addr,
-                sizeof(_serverAddr.sun_path)-1);
+              strncpy(addr.sun_path, real_addr, sizeof(addr.sun_path)-1);
+	      [self _setAddress: (struct sockaddr)&addr];
             }
         }
     }
