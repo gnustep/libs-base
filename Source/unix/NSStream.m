@@ -218,7 +218,7 @@
       else
 	{
 	  strncpy(peer.sun_path, real_addr, sizeof(peer.sun_path)-1);
-	  [self _setAddress: (struct sockaddr)&peer];
+	  [self _setAddress: (struct sockaddr*)&peer];
 	}
     }
   return self;
@@ -658,7 +658,7 @@
             {
               [(GSSocketStream*)self _setSock: s];
               strncpy(addr.sun_path, real_addr, sizeof(addr.sun_path)-1);
-	      [self _setAddress: (struct sockaddr)&addr];
+	      [self _setAddress: (struct sockaddr*)&addr];
             }
         }
     }
