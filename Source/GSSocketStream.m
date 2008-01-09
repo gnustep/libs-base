@@ -279,7 +279,7 @@ static gnutls_anon_client_credentials_t anoncred;
   [self bye];
   gnutls_db_remove_session (session);
   gnutls_deinit (session);
-  gnutls_certificate_free_credentials (&certcred);
+  gnutls_certificate_free_credentials (certcred);
   [super dealloc];
 }
 
