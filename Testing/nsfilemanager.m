@@ -79,6 +79,12 @@ main ()
 
     }
 
+  {
+    NSDictionary *attributes = [mgr fileSystemAttributesAtPath: @"/"]; 
+    NSNumber *freefs = [attributes objectForKey: NSFileSystemFreeSize]; 
+    NSLog(@"Filesystem free size is %@", freefs);
+  }
+
   RELEASE(arp);
   if (errors == 0)
     printf("Tests passed\n");

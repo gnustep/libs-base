@@ -29,6 +29,8 @@
 
 #include "GSNetwork.h"
 
+unsigned
+GSPrivateSockaddrLength(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
 
 #define	SOCKIVARS \
 { \
@@ -84,6 +86,13 @@ SOCKIVARS
  */
 - (void) _setSock: (SOCKET)sock;
 
+/*
+ * Set the socket addres from string information.
+ */
+- (BOOL) _setSocketAddress: (NSString*)address
+                      port: (int)port
+                    family: (int)family;
+
 /* Return the socket
  */
 - (SOCKET) _sock;
@@ -107,6 +116,9 @@ SOCKIVARS
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
+- (BOOL) _setSocketAddress: (NSString*)address
+                      port: (int)port
+                    family: (int)family;
 - (SOCKET) _sock;
 @end
 
@@ -145,6 +157,9 @@ SOCKIVARS
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
+- (BOOL) _setSocketAddress: (NSString*)address
+                      port: (int)port
+                    family: (int)family;
 - (SOCKET) _sock;
 - (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len;
 @end
@@ -198,6 +213,9 @@ SOCKIVARS
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
+- (BOOL) _setSocketAddress: (NSString*)address
+                      port: (int)port
+                    family: (int)family;
 - (SOCKET) _sock;
 @end
 
