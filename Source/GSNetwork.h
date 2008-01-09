@@ -50,11 +50,6 @@
 #define BADSOCKET(X)    ((X) == INVALID_SOCKET)
 #define GSNETERROR      WSAGetLastError() 
 #define GSWOULDBLOCK    (GSNETERROR == WSAEWOULDBLOCK || GSNETERROR == WSAEINPROGRESS)
-#ifdef	AF_INET6
-#define SOCKLEN(X)    ((X->sa_family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6))
-#else
-#define SOCKLEN(X)    sizeof(struct sockaddr_in)
-#endif
 
 #else
 
@@ -71,12 +66,7 @@
 #endif
 
 #define SOCKET  int     /* Socket type  */
-#ifdef	AF_INET6
-#define SOCKLEN(X)    ((X->sa_family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6))
-#else
-#define SOCKLEN(X)    sizeof(struct sockaddr_in)
-#endif
-/* #define SOCKLEN(X)    (X->sa_len) */
+#define INVALID_SOCKET  -1
 #define BADSOCKET(X)    ((X) < 0)
 #define GSNETERROR      errno
 #define GSWOULDBLOCK    (errno == EINPROGRESS)

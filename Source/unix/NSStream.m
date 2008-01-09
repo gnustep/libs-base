@@ -35,6 +35,7 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSByteOrder.h>
 
+#include "../GSPrivate.h"
 #include "../GSStream.h"
 #include "../GSSocketStream.h"
 
@@ -204,21 +205,11 @@
 
 - (id) initToAddr: (NSString*)addr
 {
-  const char* real_addr = [addr fileSystemRepresentation];
-
   if ((self = [super init]) != nil)
     {
-      struct sockaddr_un	peer;
-
-      peer.sun_family = AF_LOCAL;
-      if (strlen(real_addr) > sizeof(peer.sun_path)-1) // too long
+      if ([self _setSocketAddress: addr port: 0 family: AF_UNIX] == NO)
 	{
 	  DESTROY(self);
-	}
-      else
-	{
-	  strncpy(peer.sun_path, real_addr, sizeof(peer.sun_path)-1);
-	  [self _setAddress: (struct sockaddr*)&peer];
 	}
     }
   return self;
@@ -343,21 +334,11 @@
 
 - (id) initToAddr: (NSString*)addr
 {
-  const char* real_addr = [addr fileSystemRepresentation];
-
   if ((self = [super init]) != nil)
     {
-      struct sockaddr_un	peer;
-
-      peer.sun_family = AF_LOCAL;
-      if (strlen(real_addr) > sizeof(peer.sun_path)-1) // too long
+      if ([self _setSocketAddress: addr port: 0 family: AF_UNIX] == NO)
 	{
 	  DESTROY(self);
-	}
-      else
-	{
-	  strncpy(peer.sun_path, real_addr, sizeof(peer.sun_path)-1);
-	  [self _setAddress: (struct sockaddr*)&peer];
 	}
     }
   return self;
@@ -375,7 +356,6 @@
   NSString *address = host ? (id)[host address] : (id)@"127.0.0.1";
   GSSocketStream *ins = nil;
   GSSocketStream *outs = nil;
-  int sock;
 
   // try ipv4 first
   ins = AUTORELEASE([[GSInetInputStream alloc]
@@ -389,19 +369,9 @@
 	initToAddr: address port: port]);
       outs = AUTORELEASE([[GSInet6OutputStream alloc]
 	initToAddr: address port: port]);
-      sock = socket(PF_INET6, SOCK_STREAM, 0);
-#else
-      sock = -1;
 #endif
     }  
-  else
-    {
-      sock = socket(PF_INET, SOCK_STREAM, 0);
-    }
 
-  NSAssert(sock >= 0, @"Cannot open socket");
-  [ins _setLoopID: (void*)(intptr_t)sock];
-  [outs _setLoopID: (void*)(intptr_t)sock];
   if (inputStream)
     {
       [ins _setSibling: outs];
@@ -420,15 +390,9 @@
 {
   GSSocketStream *ins = nil;
   GSSocketStream *outs = nil;
-  int sock;
 
   ins = AUTORELEASE([[GSLocalInputStream alloc] initToAddr: path]);
   outs = AUTORELEASE([[GSLocalOutputStream alloc] initToAddr: path]);
-  sock = socket(PF_LOCAL, SOCK_STREAM, 0);
-
-  NSAssert(sock >= 0, @"Cannot open socket");
-  [ins _setLoopID: (void*)(intptr_t)sock];
-  [outs _setLoopID: (void*)(intptr_t)sock];
   if (inputStream)
     {
       [ins _setSibling: outs];
@@ -637,29 +601,9 @@
 {
   if ((self = [super init]) != nil)
     {
-      const char* real_addr = [addr fileSystemRepresentation];
-      struct sockaddr_un	addr;
-
-      if (strlen(real_addr) > sizeof(addr.sun_path)-1)
-        {
+      if ([self _setSocketAddress: addr port: 0 family: AF_UNIX] == NO)
+	{
           DESTROY(self);
-        }
-      else
-        {
-          SOCKET s;
-
-          addr.sun_family = AF_LOCAL;
-          s = socket(AF_LOCAL, SOCK_STREAM, 0);
-          if (s < 0)
-            {
-              DESTROY(self);
-            }
-          else
-            {
-              [(GSSocketStream*)self _setSock: s];
-              strncpy(addr.sun_path, real_addr, sizeof(addr.sun_path)-1);
-	      [self _setAddress: (struct sockaddr*)&addr];
-            }
         }
     }
   return self;
