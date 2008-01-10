@@ -402,6 +402,72 @@ main(int argc, char** argv, char **env)
 	    }
 	}
 
+      domains = [defs volatileDomainNames];
+      for (i = 0; i < [domains count]; i++)
+	{
+	  NSString	*domainName = [domains objectAtIndex: i];
+
+#if 0
+	  if (owner == nil || [owner isEqual: domainName])
+#else	
+	  if ([owner isEqual: domainName])
+#endif
+	    {
+	      NSDictionary	*dom;
+
+	      dom = [defs volatileDomainForName: domainName];
+	      if (dom)
+		{
+		  if (name == nil)
+		    {
+		      NSEnumerator	*enumerator;
+		      NSString		*key;
+
+		      enumerator = [dom keyEnumerator];
+		      while ((key = [enumerator nextObject]) != nil)
+			{
+			  id		obj = [dom objectForKey: key];
+			  const char	*ptr;
+
+			  ptr = [domainName UTF8String];
+			  output(ptr);
+			  putchar(' ');
+
+			  ptr = [key UTF8String];
+			  output(ptr);
+			  putchar(' ');
+
+			  ptr = [[obj descriptionWithLocale: locale
+			    indent: 0] UTF8String];
+			  output(ptr);
+			  putchar('\n');
+			}
+		    }
+		  else
+		    {
+		      id	obj = [dom objectForKey: name];
+
+		      if (obj)
+			{
+			  const char      *ptr;
+
+			  ptr = [domainName UTF8String];
+			  output(ptr);
+			  putchar(' ');
+			  ptr = [name UTF8String];
+			  output(ptr);
+			  putchar(' ');
+			  ptr = [[obj descriptionWithLocale: locale indent: 0]
+			    UTF8String];
+			  output(ptr);
+			  putchar('\n');
+			  found = YES;
+			}
+		    }
+		}
+	    }
+	}
+
       if (found == NO && name != nil)
 	{
 	  GSPrintf(stderr, @"defaults read: couldn't read default\n");
