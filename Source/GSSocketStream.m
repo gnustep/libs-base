@@ -48,7 +48,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 #ifdef	AF_INET6
     case AF_INET6:      return sizeof(struct sockaddr_in6);
 #endif
-#ifdef	AF_UNIX
+#ifndef	__MINGW32__
     case AF_UNIX:       return sizeof(struct sockaddr_un);
 #endif
     default:            return 0;
@@ -211,7 +211,12 @@ GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
         }
       else
         {
+#if	defined(__MINGW32__)
+          e = WSAEWOULDBLOCK;
+#else
           e = EWOULDBLOCK;
+#endif
+
         }
       gnutls_transport_set_errno (tls->session, e);
     }
@@ -238,7 +243,11 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
         }
       else
         {
+#if	defined(__MINGW32__)
+          e = WSAEWOULDBLOCK;
+#else
           e = EWOULDBLOCK;
+#endif
         }
       gnutls_transport_set_errno (tls->session, e);
     }
@@ -1326,26 +1335,26 @@ setNonBlocking(SOCKET fd)
         }
 #endif
 
-#if	defined(AF_UNIX)
+#ifndef	__MINGW32__
       case AF_UNIX:
-    {
-      struct sockaddr_un	peer;
-      const char                *c_addr;
+	{
+	  struct sockaddr_un	peer;
+	  const char                *c_addr;
 
-      c_addr = [address fileSystemRepresentation];
-      memset(&peer, '\0', sizeof(peer));
-      peer.sun_family = AF_LOCAL;
-      if (strlen(c_addr) > sizeof(peer.sun_path)-1) // too long
-	{
-	  return NO;
+	  c_addr = [address fileSystemRepresentation];
+	  memset(&peer, '\0', sizeof(peer));
+	  peer.sun_family = AF_LOCAL;
+	  if (strlen(c_addr) > sizeof(peer.sun_path)-1) // too long
+	    {
+	      return NO;
+	    }
+	  else
+	    {
+	      strncpy(peer.sun_path, c_addr, sizeof(peer.sun_path)-1);
+	      [self _setAddress: (struct sockaddr*)&peer];
+	      return YES;
+	    }
 	}
-      else
-	{
-	  strncpy(peer.sun_path, c_addr, sizeof(peer.sun_path)-1);
-	  [self _setAddress: (struct sockaddr*)&peer];
-          return YES;
-	}
-    }
 #endif
 
       default:
