@@ -49,7 +49,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
     case AF_INET6:      return sizeof(struct sockaddr_in6);
 #endif
 #ifndef	__MINGW32__
-    case AF_UNIX:       return sizeof(struct sockaddr_un);
+    case AF_LOCAL:       return sizeof(struct sockaddr_un);
 #endif
     default:            return 0;
   }
@@ -1387,7 +1387,7 @@ setNonBlocking(SOCKET fd)
 #endif
 
 #ifndef	__MINGW32__
-      case AF_UNIX:
+      case AF_LOCAL:
 	{
 	  struct sockaddr_un	peer;
 	  const char                *c_addr;
