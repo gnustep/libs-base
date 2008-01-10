@@ -200,7 +200,8 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) open
 {
-  if (_currentStatus != NSStreamStatusNotOpen)
+  if (_currentStatus != NSStreamStatusNotOpen
+    && _currentStatus != NSStreamStatusOpening)
     {
       NSDebugMLog(@"Attempt to re-open stream %@", self);
     }
