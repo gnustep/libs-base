@@ -592,7 +592,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 @implementation	GSSOCKS
 + (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
 {
-  NSDictionary  *conf;
+  NSDictionary          *conf;
 
   conf = [i propertyForKey: NSStreamSOCKSProxyConfigurationKey];
   if (conf == nil)
@@ -610,7 +610,44 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
   if (conf != nil)
     {
-      GSSOCKS     *h;
+      GSSOCKS           *h;
+      struct sockaddr   *sa = [i _address];
+      NSString          *v;
+      BOOL              i6 = NO;
+
+      v = [conf objectForKey: NSStreamSOCKSProxyVersionKey];
+      if ([v isEqualToString: NSStreamSOCKSProxyVersion4] == YES)
+        {
+          v = NSStreamSOCKSProxyVersion4;
+        }
+      else
+        {
+          v = NSStreamSOCKSProxyVersion5;
+        }
+
+#if     defined(AF_INET6)
+      if (sa->sa_family == AF_INET6)
+        {
+          i6 = YES;
+        }
+      else
+#endif
+      if (sa->sa_family != AF_INET)
+        {
+          GSOnceMLog(@"SOCKS not supported for socket type %d", sa->sa_family);
+          return;
+        }
+
+      if (v == NSStreamSOCKSProxyVersion5)
+        {
+          GSOnceMLog(@"SOCKS 5 not supported yet");
+          return;
+        }
+      else if (i6 == YES)
+        {
+          GSOnceMLog(@"INET6 not supported with SOCKS 4");
+          return;
+        }
 
       h = [[GSSOCKS alloc] initWithInput: i output: o];
       [i _setHandler: h];
