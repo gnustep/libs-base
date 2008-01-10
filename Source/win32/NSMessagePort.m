@@ -45,7 +45,7 @@
 #include "Foundation/NSProcessInfo.h"
 
 #include "../GSPrivate.h"
-#include "GSPortPrivate.h"
+#include "../GSPortPrivate.h"
 
 #include <stdio.h>
 #include <stdlib.h>
