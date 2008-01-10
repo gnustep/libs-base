@@ -77,6 +77,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
   BOOL                  handshake;
   BOOL                  active;
 }
++ (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o;
 - (id) initWithInput: (GSSocketInputStream*)i
               output: (GSSocketOutputStream*)o;
 - (GSSocketInputStream*) istream;
@@ -92,6 +93,11 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 
 
 @implementation GSStreamHandler
+
++ (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
+{
+  [self subclassResponsibility: _cmd];
+}
 
 - (void) bye
 {
@@ -280,6 +286,35 @@ static gnutls_anon_client_credentials_t anoncred;
     }
 }
 
++ (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
+{
+  NSString      *tls;
+
+  tls = [i propertyForKey: NSStreamSocketSecurityLevelKey];
+  if (tls == nil)
+    {
+      tls = [o propertyForKey: NSStreamSocketSecurityLevelKey];
+      if (tls != nil)
+        {
+          [i setProperty: tls forKey: NSStreamSocketSecurityLevelKey];
+        }
+    }
+  else
+    {
+      [o setProperty: tls forKey: NSStreamSocketSecurityLevelKey];
+    }
+
+  if (tls != nil)
+    {
+      GSTLS     *h;
+
+      h = [[GSTLS alloc] initWithInput: i output: o];
+      [i _setHandler: h];
+      [o _setHandler: h];
+      RELEASE(h);
+    }
+}
+
 - (void) bye
 {
   if (active == YES || handshake == YES)
@@ -342,8 +377,13 @@ static gnutls_anon_client_credentials_t anoncred;
 
   if (GSDebugSet(@"NSStream") == YES)
     {
-      gnutls_global_set_log_level (11);
+      gnutls_global_set_log_level (11); // Full debug output
     }
+  else
+    {
+      gnutls_global_set_log_level (0);  // No debug
+    }
+
   if ([[o propertyForKey: NSStreamSocketSecurityLevelKey] isEqual: proto] == NO)
     {
       DESTROY(self);
@@ -550,54 +590,66 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 @end
 
 @implementation	GSSOCKS
++ (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
+{
+  NSDictionary  *conf;
+
+  conf = [i propertyForKey: NSStreamSOCKSProxyConfigurationKey];
+  if (conf == nil)
+    {
+      conf = [o propertyForKey: NSStreamSOCKSProxyConfigurationKey];
+      if (conf != nil)
+        {
+          [i setProperty: conf forKey: NSStreamSOCKSProxyConfigurationKey];
+        }
+    }
+  else
+    {
+      [o setProperty: conf forKey: NSStreamSOCKSProxyConfigurationKey];
+    }
+
+  if (conf != nil)
+    {
+      GSSOCKS     *h;
+
+      h = [[GSSOCKS alloc] initWithInput: i output: o];
+      [i _setHandler: h];
+      [o _setHandler: h];
+      RELEASE(h);
+    }
+}
+
 - (void) bye
 {
   if (handshake == YES)
     {
-      NSString	*tls;
-      GSTLS     *t = nil;
+      GSSocketInputStream	*is = RETAIN(istream);
+      GSSocketOutputStream	*os = RETAIN(ostream);
 
       handshake = NO;
-      tls = [ostream propertyForKey: NSStreamSocketSecurityLevelKey];
-      if (tls == nil && istream != nil)
-	{
-	  tls = [istream propertyForKey: NSStreamSocketSecurityLevelKey];
-	  if (tls != nil)
-	    {
-	      [ostream setProperty: tls forKey: NSStreamSocketSecurityLevelKey];
-	    }
-	}
-      if (tls != nil)
-	{
-	  t = [[GSTLS alloc] initWithInput: istream output: ostream];
-	}
-      if (t == nil)
-	{
-	  GSSocketInputStream	*is = RETAIN(istream);
-	  GSSocketOutputStream	*os = RETAIN(ostream);
 
-	  /* No TLS required ... simply remove SOCKS handler from streams
-	   * and let the streams know that the open has completed.
-	   * NB. Removing SOCKS handle from streams may cause it to be
-	   * deallocated, so we work with local variables to hold the
-	   * streams long enough to send events to them.
-	   */
-	  [is _setHandler: nil];
-	  [os _setHandler: nil];
+      [is _setHandler: nil];
+      [os _setHandler: nil];
+      [GSTLS tryInput: is output: os];
+      if ([is streamStatus] == NSStreamStatusOpen)
+        {
           [is _sendEvent: NSStreamEventOpenCompleted];
-          [os _sendEvent: NSStreamEventOpenCompleted];
-	  RELEASE(is);
-	  RELEASE(os);
-	}
+        }
       else
-	{
-	  /* Replace SOCKS handler wth TLS handler and start TLS handshake.
-	   */
-	  [istream _setHandler: t];
-	  [ostream _setHandler: t];
-	  [t hello];
-	  RELEASE(t);
-	}
+        {
+          [is _sendEvent: NSStreamEventErrorOccurred];
+        }
+      if ([os streamStatus]  == NSStreamStatusOpen)
+        {
+          [os _sendEvent: NSStreamEventOpenCompleted];
+          [os _sendEvent: NSStreamEventHasSpaceAvailable];
+        }
+      else
+        {
+          [os _sendEvent: NSStreamEventErrorOccurred];
+        }
+      RELEASE(is);
+      RELEASE(os);
     }
 }
 
@@ -904,7 +956,8 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	{
 	  int	result;
 
-	  result = [istream _read: rbuffer + roffset maxLength: rwant - roffset];
+	  result = [istream _read: rbuffer + roffset
+                        maxLength: rwant - roffset];
 	  if (result == 0)
 	    {
 	      error = @"SOCKS end-of-file during negotiation";
@@ -1021,7 +1074,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 			  [ostream setProperty: a
 					forKey: GSStreamRemotePortKey];
 			  /* Return immediately after calling -bye as it
-			   * will cause this instance to be deallocted.
+			   * will cause this instance to be deallocated.
 			   */
 			  [self bye];
 			  return;
@@ -1466,6 +1519,10 @@ setNonBlocking(SOCKET fd)
         {
           SOCKET        s;
 
+          if (_handler == nil)
+            {
+              [GSSOCKS tryInput: self output: _sibling];
+            }
           s = socket(_address->sa_family, SOCK_STREAM, 0);
           if (BADSOCKET(s))
             {
@@ -1481,27 +1538,7 @@ setNonBlocking(SOCKET fd)
 
       if (_handler == nil)
         {
-          NSString      *tls;
-
-          tls = [self propertyForKey: NSStreamSocketSecurityLevelKey];
-          if (tls == nil && _sibling != nil)
-            {
-              tls = [_sibling propertyForKey: NSStreamSocketSecurityLevelKey];
-              if (tls != nil)
-                {
-                  [self setProperty: tls
-                             forKey: NSStreamSocketSecurityLevelKey];
-                }
-            }
-          if (tls != nil)
-            {
-              GSTLS     *t;
-
-              t = [[GSTLS alloc] initWithInput: self output: _sibling];
-              [_sibling _setHandler: t];
-              [self _setHandler: t];
-              RELEASE(t);
-            }
+          [GSTLS tryInput: self output: _sibling];
         }
       result = connect([self _sock], _address,
         GSPrivateSockaddrLength(_address));
@@ -1952,6 +1989,10 @@ setNonBlocking(SOCKET fd)
         {
           SOCKET        s;
 
+          if (_handler == nil)
+            {
+              [GSSOCKS tryInput: _sibling output: self];
+            }
           s = socket(_address->sa_family, SOCK_STREAM, 0);
           if (BADSOCKET(s))
             {
@@ -1967,27 +2008,7 @@ setNonBlocking(SOCKET fd)
 
       if (_handler == nil)
         {
-          NSString      *tls;
-
-          tls = [self propertyForKey: NSStreamSocketSecurityLevelKey];
-          if (tls == nil && _sibling != nil)
-            {
-              tls = [_sibling propertyForKey: NSStreamSocketSecurityLevelKey];
-              if (tls != nil)
-                {
-                  [self setProperty: tls
-                             forKey: NSStreamSocketSecurityLevelKey];
-                }
-            }
-          if (tls != nil)
-            {
-              GSTLS     *t;
-
-              t = [[GSTLS alloc] initWithInput: _sibling output: self];
-              [_sibling _setHandler: t];
-              [self _setHandler: t];
-              RELEASE(t);
-            }
+          [GSTLS tryInput: _sibling output: self];
         }
 
       result = connect([self _sock], _address,
