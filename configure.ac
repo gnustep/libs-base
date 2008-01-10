@@ -2160,7 +2160,7 @@ if test $enable_tls = yes; then
     echo "Doing so will disable SSL support in the NSStream class."
     echo "If you really want to build -base without TLS support,"
     echo "add --disable-tls to the configure arguments."
-    AC_MSG_ERROR([Missing support for TLS functionality.])
+    AC_MSG_WARN([Missing support for TLS functionality.])
   fi
 else
   AC_MSG_WARN([Disabled support for TLS funtionality.])

@@ -17918,9 +17918,8 @@ _ACEOF
     echo "Doing so will disable SSL support in the NSStream class."
     echo "If you really want to build -base without TLS support,"
     echo "add --disable-tls to the configure arguments."
-    { { echo "$as_me:$LINENO: error: Missing support for TLS functionality." >&5
-echo "$as_me: error: Missing support for TLS functionality." >&2;}
-   { (exit 1); exit 1; }; }
+    { echo "$as_me:$LINENO: WARNING: Missing support for TLS functionality." >&5
+echo "$as_me: WARNING: Missing support for TLS functionality." >&2;}
   fi
 else
   { echo "$as_me:$LINENO: WARNING: Disabled support for TLS funtionality." >&5
