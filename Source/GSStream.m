@@ -147,11 +147,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
   if (_currentStatus == NSStreamStatusNotOpen)
     {
-      NSDebugMLog(@"Attempt to close unopened stream %@", self);
-    }
-  if (_currentStatus == NSStreamStatusClosed)
-    {
-      NSDebugMLog(@"Attempt to close already closed stream %@", self);
+      NSDebugMLLog(@"NSStream", @"Attempt to close unopened stream %@", self);
     }
   [self _unschedule];
   [self _setStatus: NSStreamStatusClosed];
@@ -203,7 +199,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (_currentStatus != NSStreamStatusNotOpen
     && _currentStatus != NSStreamStatusOpening)
     {
-      NSDebugMLog(@"Attempt to re-open stream %@", self);
+      NSDebugMLLog(@"NSStream", @"Attempt to re-open stream %@", self);
     }
   [self _setStatus: NSStreamStatusOpen];
   [self _schedule];
@@ -392,7 +388,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _recordError: (NSError*)anError
 {
-// NSLog(@"%@ - %@", self, anError);
+  NSDebugMLLog(@"NSStream", @"record error: %@ - %@", self, anError);
   ASSIGN(_lastError, anError);
   _currentStatus = NSStreamStatusError;
 }

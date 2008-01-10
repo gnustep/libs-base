@@ -211,12 +211,7 @@ GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
         }
       else
         {
-#if	defined(__MINGW32__)
-          e = WSAEWOULDBLOCK;
-#else
-          e = EWOULDBLOCK;
-#endif
-
+          e = EAGAIN;	// Tell GNUTLS this would block.
         }
       gnutls_transport_set_errno (tls->session, e);
     }
@@ -243,11 +238,7 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
         }
       else
         {
-#if	defined(__MINGW32__)
-          e = WSAEWOULDBLOCK;
-#else
-          e = EWOULDBLOCK;
-#endif
+          e = EAGAIN;	// Tell GNUTLS this would block.
         }
       gnutls_transport_set_errno (tls->session, e);
     }
@@ -285,7 +276,7 @@ static gnutls_anon_client_credentials_t anoncred;
       /* Enable gnutls logging via NSLog
        */
       gnutls_global_set_log_function (GSTLSLog);
-      //gnutls_global_set_log_level (11);
+
     }
 }
 
@@ -330,7 +321,10 @@ static gnutls_anon_client_credentials_t anoncred;
         {
           NSDebugMLLog(@"NSStream",
             @"Handshake status %d", ret);
-          // gnutls_perror(ret);
+	  if (GSDebugSet(@"NSStream") == YES)
+	    {
+              gnutls_perror(ret);
+	    }
         }
       else
         {
@@ -346,6 +340,10 @@ static gnutls_anon_client_credentials_t anoncred;
 {
   NSString      *proto = [i propertyForKey: NSStreamSocketSecurityLevelKey];
 
+  if (GSDebugSet(@"NSStream") == YES)
+    {
+      gnutls_global_set_log_level (11);
+    }
   if ([[o propertyForKey: NSStreamSocketSecurityLevelKey] isEqual: proto] == NO)
     {
       DESTROY(self);
