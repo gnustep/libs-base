@@ -63,7 +63,8 @@ GS_EXPORT NSString* const NSRegistrationDomain;
 
 #ifndef NO_GNUSTEP
 /**
- *  User defaults domain for GNUstep config file.
+ *  User defaults domain for GNUstep config file and for any defaults
+ *  stored in the GlobalDefaults.plist file alongside the config file.
  */
 GS_EXPORT NSString* const GSConfigDomain;
 #endif

@@ -197,7 +197,13 @@ static void updateCache(NSUserDefaults *self)
  *     Information retrieved from the GNUstep configuration system.
  *     Usually the system wide and user specific GNUstep.conf files,
  *     or from information compiled in when the base library was
- *     built.
+ *     built.<br />
+ *     In addition to this standard configuration information, this
+ *     domain contains all values from the GlobalDefaults.plist file
+ *     stored in the same directory as the system widw GNUstep.conf
+ *     file.  The GlobalDefaults.plist allows packagers and system
+ *     administrators to provide global defaults settings for all
+ *     users of a particular GNUstep installation.
  *   </desc>
  *   <term><code>NSRegistrationDomain</code> ... volatile</term>
  *   <desc>

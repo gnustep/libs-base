@@ -581,7 +581,9 @@ notice and this notice are preserved.
 	  <p>
 	    All the above values from the configuration file are made
 	    available in the NSUserDefaults system at runtime, in the
-	    GSConfigDomain of the defaults.<br />
+	    GSConfigDomain (along with any defaults provided in the
+            GlobalDefaults.plist file in the same directory as the
+            config file).<br />
 	    In addition, the configuration file may contain the key
 	    <em>GNUSTEP_EXTRA</em> with a value set to be a comma separated
 	    list of extra key names which are to be allowed in the config
@@ -631,10 +633,11 @@ notice and this notice are preserved.
 	  <p>
 	    Firstly, variables in the configuration file which define
 	    paths, are expected to by full path specifications, except
-	    for the special case in which they begin with dot-slash (./).
-	    In this case the text after the dot-slash is appended to
-	    the path to the directory containing the configuration file
-	    (or specified to contain the configuration file if no
+	    for the special case in which they begin with dot-slash (./)
+            or dot-dot-slash (../).
+	    In this case the path from the variable is appended to the
+	    path of the directory containing the configuration file
+	    (or the path specified to contain the configuration file if no
 	    configuration file exists) to form the value used.
 	  </p>
 	  <p>
@@ -642,10 +645,8 @@ notice and this notice are preserved.
 	    as the location of the config file (or specified by
 	    the GNUSTEP_CONFIG_FILE environment variable unless that option
 	    was disabled when the base library was configured)
-	    begins with a dot and slash (./) then the path used for that
-	    file is made relative to the base library.<br />
-	    ie the text after the dot-slash is appended to the path of the
-	    directory containing the gnustep-base library.
+	    begins with a dot-slash (./) or dot-dot-slash (../) then the path
+            used for that file is made relative to the base library.
 	  </p>
 	  <p>
 	    So you can bundle the whole lot together in one directory,
@@ -660,7 +661,7 @@ notice and this notice are preserved.
 	    a path with a trailing slash so that the base library will
 	    <em>not</em> read it, and will use the builtin default values.<br />
 	    To do this, you would configure using the options
-	    <code>--with-config-file=./</code> and
+	    <code>--with-config-file=not-used/</code> and
 	    <code>--with-default-file=myConfig</code> where <em>myConfig</em>
 	    is a file containing the paths you want to use relative to the
 	    location the base library gets installed in.<br />
