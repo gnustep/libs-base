@@ -1,5 +1,14 @@
 2008-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPathUtilities.m: Allow '../' to indicate a relocatable
+	resource.  Add suypport for GlobalDefaults.plist.
+	* Source/NSUserDefaults.m: Improve documentation
+	* Documentation/ReleaseNotes.gsdoc: Note recent changes.
+	* Documentation/Base.gsdoc: Improve documentation
+	* Headers/Foundation/NSUserDefaults.h: Improve comments.
+
+2008-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSSocketStream.m: tweak TLS code
 	* Source/GSStream.m: simplify socket code
 	* configure.ac: enable gnu tls by default

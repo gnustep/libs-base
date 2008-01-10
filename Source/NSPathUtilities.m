@@ -279,6 +279,11 @@ getPath(NSString *path)
 	[path substringFromIndex: 2]];
       path = [path stringByStandardizingPath];
     }
+  else if ([path hasPrefix: @"../"] == YES)
+    {
+      path = [gnustepConfigPath stringByAppendingPathComponent: path];
+      path = [path stringByStandardizingPath];
+    }
   return path;
 }
 
@@ -322,7 +327,7 @@ getPathConfig(NSDictionary *dict, NSString *key)
 static void ExtractValuesFromConfig(NSDictionary *config)
 {
   NSMutableDictionary	*c = [config mutableCopy];
-  NSString		*extra;
+  id		        extra;
 
   /*
    * Move values out of the dictionary and into variables for rapid reference.
@@ -394,7 +399,11 @@ static void ExtractValuesFromConfig(NSDictionary *config)
       NSEnumerator	*enumerator;
       NSString		*key;
 
-      enumerator = [[extra componentsSeparatedByString: @","] objectEnumerator];
+      if ([extra isKindOfClass: [NSString class]] == YES)
+        {
+          extra = [extra componentsSeparatedByString: @","];
+        }
+      enumerator = [extra objectEnumerator];
       [c removeObjectForKey: @"GNUSTEP_EXTRA"];
       while ((key = [enumerator nextObject]) != nil)
         {
@@ -402,6 +411,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
 	  [c removeObjectForKey: key];
 	}
     }
+  [c removeObjectForKey: @"GNUSTEP_SYSTEM_DEFAULTS_FILE"];
 
   /*
    * Remove any other dictionary entries we have used.
@@ -623,18 +633,21 @@ GNUstepConfig(NSDictionary *newConfig)
 
 	      /*
 	       * Special case ... if the config file location begins './'
-	       * then we determine it's actual path by working relative
-	       * to the gnustep-base library.
+	       * or '../' then we determine it's actual path by working
+               * relative to the gnustep-base library.
 	       */
-	      if ([file hasPrefix: @"./"] == YES)
+	      if ([file hasPrefix: @"./"] == YES
+	        || [file hasPrefix: @"../"] == YES)
 		{
 		  Class		c = [NSProcessInfo class];
 		  NSString	*path = GSPrivateSymbolPath (c, 0);
 
 		  // Remove library name from path
 		  path = [path stringByDeletingLastPathComponent];
-		  // Remove ./ prefix from filename
-		  file = [file substringFromIndex: 2];
+                  if ([file hasPrefix: @"./"] == YES)
+                    {
+                      file = [file substringFromIndex: 2];
+                    }
 		  // Join the two together
 		  file = [path stringByAppendingPathComponent: file];
 		}
@@ -678,9 +691,82 @@ GNUstepConfig(NSDictionary *newConfig)
 		}
 	      else
 		{
+                  NSString      *defs;
+
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
 		  ParseConfigurationFile(file, conf, nil);
+
+                  defs = [gnustepConfigPath stringByAppendingPathComponent:
+                    @"GlobalDefaults.plist"];
+                  if ([MGR() isReadableFileAtPath: defs] == YES)
+                    {
+                      NSDictionary      *d;
+                      NSDictionary      *attributes;
+
+                      attributes = [MGR() fileAttributesAtPath: defs
+                                                  traverseLink: YES];
+                      if (([attributes filePosixPermissions]
+                        & (0022 & ATTRMASK)) != 0)
+                        {
+#if defined(__MINGW32__)
+                          fprintf(stderr,
+                            "The file '%S' is writable by someone other than"
+                            " its owner (permissions 0%lo).\nIgnoring it.\n",
+                            [defs fileSystemRepresentation],
+                            [attributes filePosixPermissions]);
+#else
+                          fprintf(stderr,
+                            "The file '%s' is writable by someone other than"
+                            " its owner (permissions 0%lo).\nIgnoring it.\n",
+                            [defs fileSystemRepresentation],
+                            [attributes filePosixPermissions]);
+#endif
+                          d = nil;
+                        }
+                      else
+                        {
+                          d = [NSDictionary dictionaryWithContentsOfFile: defs];
+                        }
+
+                      if (d != nil)
+                        {
+                          NSEnumerator  *enumerator;
+                          NSString      *key;
+                          id            extra;
+
+                          extra = [conf objectForKey: @"GNUSTEP_EXTRA"];
+                          extra = [extra componentsSeparatedByString: @","];
+                          extra = [extra mutableCopy];
+                          if (extra == nil)
+                            {
+                              extra = [NSMutableArray new];
+                            }
+                          enumerator = [d keyEnumerator];
+                          while ((key = [enumerator nextObject]) != nil)
+                            {
+                              if ([conf objectForKey: key] == nil)
+                                {
+                                  [extra addObject: key];
+                                }
+                              else
+                                {
+                                  fprintf(stderr, "Key '%s' in '%s' duplicates"
+                                    " key in %s\n", [key UTF8String],
+                                    [defs UTF8String], [file UTF8String]);
+                                }
+                            }
+                          [conf addEntriesFromDictionary: d];
+                          if ([extra count] > 0)
+                            {
+                              NSArray   *c = [extra copy];
+
+                              [conf setObject: c forKey: @"GNUSTEP_EXTRA"];
+                              RELEASE(c);
+                            }
+                          RELEASE(extra);
+                        }
+                    }
 		}
 	    }
 	  else
@@ -1176,7 +1262,6 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
     }
   NSZoneFree(NSDefaultMallocZone(), src);
   NSZoneFree(NSDefaultMallocZone(), dst);
-
   return YES;
 }
 
