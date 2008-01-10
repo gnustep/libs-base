@@ -1,5 +1,16 @@
 2008-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/inet_pton.c:
+	* Source/inet_ntop.c:
+	* Source/GSNetwork.h:
+	* Source/GNUmakefile:
+	* configure.ac:
+	* configure:
+	Avoid using mswindows getnameinfo function as it doesn't work for
+	Riccardo for some reason ... perhaps older mingw32 doesn't have it.
+
+2008-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPathUtilities.m: Allow '../' to indicate a relocatable
 	resource.  Add suypport for GlobalDefaults.plist.
 	* Source/NSUserDefaults.m: Improve documentation

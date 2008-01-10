@@ -77,6 +77,10 @@
 #define INADDRSZ        4
 #endif
 
+#ifndef IN6ADDRSZ
+#define IN6ADDRSZ       16
+#endif
+
 #ifndef	socklen_t
 #define	socklen_t	uint32_t
 #endif

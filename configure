@@ -719,6 +719,7 @@ DEFINE_INTPTR_T
 DEFINE_UINTPTR_T
 USE_ZLIB
 HAVE_INET_PTON
+HAVE_INET_NTOP
 GS_PASS_ARGUMENTS
 GS_FAKE_MAIN
 WITH_FFI
@@ -2318,6 +2319,15 @@ case "$target_os" in
     GNUSTEP_NETWORK_USERS_DIR="C:\Documents and Settings"
     GNUSTEP_LOCAL_USERS_DIR="C:\Documents and Settings"
 
+    # TODO: It would be nice to use the 'short' output of
+    # relative_path.sh, but older versions of relative_path.sh
+    # did not support specifying the type of output and
+    # would abort if they were given more than 2 parameters,
+    # so we can not use the 'short' option if we want gnustep-base
+    # to work with older versions of gnustep-make.
+    # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
+    # two years after it has been released ?), we could switch to the
+    # 'short' output though.
     GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
     GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
     GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS`
@@ -13995,6 +14005,12 @@ if test $ac_cv_func_inet_pton = yes ; then
 fi
 
 
+HAVE_INET_NTOP=no
+if test $ac_cv_func_inet_ntop = yes ; then
+  HAVE_INET_NTOP=yes
+fi
+
+
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m
 #--------------------------------------------------------------------
@@ -19346,6 +19362,7 @@ DEFINE_INTPTR_T!$DEFINE_INTPTR_T$ac_delim
 DEFINE_UINTPTR_T!$DEFINE_UINTPTR_T$ac_delim
 USE_ZLIB!$USE_ZLIB$ac_delim
 HAVE_INET_PTON!$HAVE_INET_PTON$ac_delim
+HAVE_INET_NTOP!$HAVE_INET_NTOP$ac_delim
 GS_PASS_ARGUMENTS!$GS_PASS_ARGUMENTS$ac_delim
 GS_FAKE_MAIN!$GS_FAKE_MAIN$ac_delim
 WITH_FFI!$WITH_FFI$ac_delim
@@ -19373,7 +19390,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 34; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 35; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

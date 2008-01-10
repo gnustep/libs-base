@@ -1572,6 +1572,12 @@ if test $ac_cv_func_inet_pton = yes ; then
 fi
 AC_SUBST(HAVE_INET_PTON)
 
+HAVE_INET_NTOP=no
+if test $ac_cv_func_inet_ntop = yes ; then
+  HAVE_INET_NTOP=yes
+fi
+AC_SUBST(HAVE_INET_NTOP)
+
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m
 #--------------------------------------------------------------------

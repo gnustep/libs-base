@@ -405,6 +405,9 @@ $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 ifeq ($(HAVE_INET_PTON), no)
 GNU_CFILES += inet_pton.c
 endif
+ifeq ($(HAVE_INET_NTOP), no)
+GNU_CFILES += inet_ntop.c
+endif
 
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
