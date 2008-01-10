@@ -113,6 +113,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 {
   istream = i;
   ostream = o;
+  handshake = YES;
   return self;
 }
 
@@ -210,7 +211,7 @@ GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
         }
       else
         {
-          e = EAGAIN;
+          e = EWOULDBLOCK;
         }
       gnutls_transport_set_errno (tls->session, e);
     }
@@ -237,7 +238,7 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
         }
       else
         {
-          e = EAGAIN;
+          e = EWOULDBLOCK;
         }
       gnutls_transport_set_errno (tls->session, e);
     }
@@ -275,7 +276,7 @@ static gnutls_anon_client_credentials_t anoncred;
       /* Enable gnutls logging via NSLog
        */
       gnutls_global_set_log_function (GSTLSLog);
-//      gnutls_global_set_log_level (11);
+      //gnutls_global_set_log_level (11);
     }
 }
 
@@ -318,7 +319,9 @@ static gnutls_anon_client_credentials_t anoncred;
       ret = gnutls_handshake (session);
       if (ret < 0)
         {
-          NSDebugMLog(@"NSThread", @"Handshake status %d", ret);
+          NSDebugMLLog(@"NSStream",
+            @"Handshake status %d", ret);
+          // gnutls_perror(ret);
         }
       else
         {
@@ -450,15 +453,42 @@ static gnutls_anon_client_credentials_t anoncred;
 
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
-//NSLog(@"GSTLS got %d on %p", event, stream);
+  NSDebugMLLog(@"NSStream",
+    @"GSTLS got %d on %p", event, stream);
 
   if (handshake == YES)
     {
-      [self hello]; /* try to complete the handshake */
-      if (handshake == NO)
+      switch (event)
         {
-          [istream _sendEvent: NSStreamEventOpenCompleted];
-          [ostream _sendEvent: NSStreamEventOpenCompleted];
+          case NSStreamEventHasSpaceAvailable:
+          case NSStreamEventHasBytesAvailable:
+          case NSStreamEventOpenCompleted:
+            [self hello]; /* try to complete the handshake */
+            if (handshake == NO)
+              {
+                NSDebugMLLog(@"NSStream",
+                  @"GSTLS completed on %p", stream);
+                if ([istream streamStatus] == NSStreamStatusOpen)
+                  {
+                    [istream _sendEvent: NSStreamEventOpenCompleted];
+                  }
+                else
+                  {
+                    [istream _sendEvent: NSStreamEventErrorOccurred];
+                  }
+                if ([ostream streamStatus]  == NSStreamStatusOpen)
+                  {
+                    [ostream _sendEvent: NSStreamEventOpenCompleted];
+                    [ostream _sendEvent: NSStreamEventHasSpaceAvailable];
+                  }
+                else
+                  {
+                    [ostream _sendEvent: NSStreamEventErrorOccurred];
+                  }
+              }
+            break;
+          default:
+            break;
         }
     }
 }
@@ -1442,6 +1472,30 @@ setNonBlocking(SOCKET fd)
             }
         }
 
+      if (_handler == nil)
+        {
+          NSString      *tls;
+
+          tls = [self propertyForKey: NSStreamSocketSecurityLevelKey];
+          if (tls == nil && _sibling != nil)
+            {
+              tls = [_sibling propertyForKey: NSStreamSocketSecurityLevelKey];
+              if (tls != nil)
+                {
+                  [self setProperty: tls
+                             forKey: NSStreamSocketSecurityLevelKey];
+                }
+            }
+          if (tls != nil)
+            {
+              GSTLS     *t;
+
+              t = [[GSTLS alloc] initWithInput: self output: _sibling];
+              [_sibling _setHandler: t];
+              [self _setHandler: t];
+              RELEASE(t);
+            }
+        }
       result = connect([self _sock], _address,
         GSPrivateSockaddrLength(_address));
       if (socketError(result))
@@ -1449,6 +1503,8 @@ setNonBlocking(SOCKET fd)
           if (!socketWouldBlock())
             {
               [self _recordError];
+              [self _setHandler: nil];
+              [_sibling _setHandler: nil];
               return;
             }
           /*
@@ -1501,12 +1557,14 @@ setNonBlocking(SOCKET fd)
 {
   if (_currentStatus == NSStreamStatusNotOpen)
     {
-      NSDebugMLog(@"Attempt to close unopened stream %@", self);
+      NSDebugMLLog(@"NSStream",
+        @"Attempt to close unopened stream %@", self);
       return;
     }
   if (_currentStatus == NSStreamStatusClosed)
     {
-      NSDebugMLog(@"Attempt to close already closed stream %@", self);
+      NSDebugMLLog(@"NSStream",
+        @"Attempt to close already closed stream %@", self);
       return;
     }
   [_handler bye];
@@ -1868,8 +1926,6 @@ setNonBlocking(SOCKET fd)
 
 - (void) open
 {
-  NSString      *tls;
-
   // could be opened because of sibling
   if ([self _isOpened])
     return;
@@ -1885,6 +1941,48 @@ setNonBlocking(SOCKET fd)
     {
       int result;
       
+      if ([self _sock] == INVALID_SOCKET)
+        {
+          SOCKET        s;
+
+          s = socket(_address->sa_family, SOCK_STREAM, 0);
+          if (BADSOCKET(s))
+            {
+              [self _recordError];
+              return;
+            }
+          else
+            {
+              [self _setSock: s];
+              [_sibling _setSock: s];
+            }
+        }
+
+      if (_handler == nil)
+        {
+          NSString      *tls;
+
+          tls = [self propertyForKey: NSStreamSocketSecurityLevelKey];
+          if (tls == nil && _sibling != nil)
+            {
+              tls = [_sibling propertyForKey: NSStreamSocketSecurityLevelKey];
+              if (tls != nil)
+                {
+                  [self setProperty: tls
+                             forKey: NSStreamSocketSecurityLevelKey];
+                }
+            }
+          if (tls != nil)
+            {
+              GSTLS     *t;
+
+              t = [[GSTLS alloc] initWithInput: _sibling output: self];
+              [_sibling _setHandler: t];
+              [self _setHandler: t];
+              RELEASE(t);
+            }
+        }
+
       result = connect([self _sock], _address,
         GSPrivateSockaddrLength(_address));
       if (socketError(result))
@@ -1892,6 +1990,8 @@ setNonBlocking(SOCKET fd)
           if (!socketWouldBlock())
             {
               [self _recordError];
+              [self _setHandler: nil];
+              [_sibling _setHandler: nil];
               return;
             }
           /*
@@ -1938,25 +2038,7 @@ setNonBlocking(SOCKET fd)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
-  tls = [self propertyForKey: NSStreamSocketSecurityLevelKey];
-  if (tls == nil && _sibling != nil)
-    {
-      tls = [_sibling propertyForKey: NSStreamSocketSecurityLevelKey];
-      if (tls != nil)
-        {
-          [self setProperty: tls forKey: NSStreamSocketSecurityLevelKey];
-        }
-    }
-  if (tls != nil)
-    {
-      GSTLS     *t;
 
-      t = [[GSTLS alloc] initWithInput: _sibling output: self];
-      [_sibling _setHandler: t];
-      [self _setHandler: t];
-      RELEASE(t);
-      [_handler hello];
-    }
 }
 
 
@@ -1964,12 +2046,14 @@ setNonBlocking(SOCKET fd)
 {
   if (_currentStatus == NSStreamStatusNotOpen)
     {
-      NSDebugMLog(@"Attempt to close unopened stream %@", self);
+      NSDebugMLLog(@"NSStream",
+        @"Attempt to close unopened stream %@", self);
       return;
     }
   if (_currentStatus == NSStreamStatusClosed)
     {
-      NSDebugMLog(@"Attempt to close already closed stream %@", self);
+      NSDebugMLLog(@"NSStream",
+        @"Attempt to close already closed stream %@", self);
       return;
     }
   [_handler bye];
@@ -2231,12 +2315,13 @@ setNonBlocking(SOCKET fd)
 
   if (_currentStatus != NSStreamStatusNotOpen)
     {
-      NSDebugMLog(@"Attempt to re-open stream %@", self);
+      NSDebugMLLog(@"NSStream",
+        @"Attempt to re-open stream %@", self);
       return;
     }
 
   s = socket(_address->sa_family, SOCK_STREAM, 0);
-  if (s < 0)
+  if (BADSOCKET(s))
     {
       [self _recordError];
       [self _sendEvent: NSStreamEventErrorOccurred];

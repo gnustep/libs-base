@@ -2120,7 +2120,7 @@ AC_SUBST(HAVE_LIBXML)
 
 AC_ARG_ENABLE(tls,
   [  --disable-tls			Disable use of GNUTLS],,
-  enable_tls=no)
+  enable_tls=yes)
 
 if test $enable_tls = yes; then
   # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless

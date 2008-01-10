@@ -1,3 +1,10 @@
+2008-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m: tweak TLS code
+	* Source/GSStream.m: simplify socket code
+	* configure.ac: enable gnu tls by default
+	* configure: regenerate
+
 2008-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSSocketStream.h:
