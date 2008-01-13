@@ -554,6 +554,10 @@ static gnutls_anon_client_credentials_t anoncred;
 @interface      GSTLS : GSStreamHandler
 @end
 @implementation GSTLS
++ (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
+{
+  return;
+}
 - (id) initWithInput: (GSSocketInputStream*)i
               output: (GSSocketOutputStream*)o
 {
