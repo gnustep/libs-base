@@ -1,3 +1,15 @@
+2008-01-14  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Do not read obsolete GNUSTEP_USER_DIR and do not
+	substitute GNUSTEP_TARGET_USER_DIR.
+	* configure: Regenerated.
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerated.
+	* Source/NSPathUtilities.m: Do not read obsolete GNUSTEP_USER_DIR
+	from the configuration.  Ignore it if found.  It was never used
+	anywhere.
+	* Documentation/Base.gsdoc: Removed or slightly updated some
+	obsolete documentation on filesystem configuration.
+
 2008-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/inet_pton.c:
@@ -35,15 +47,15 @@
 
 2008-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
- 	* Source/GSSocketStream.h: simplify socket address handling
- 	* Source/GSSocketStream.m: ditto + more work on socks
- 	* Source/GSStream.h: minor tweaks
- 	* Source/GSStream.m:minor tweaks
- 	* Source/unix/NSStream.m: simplified socket address handling
- 	* Source/GSNetwork.h: add macro to get socket address length
- 	* Source/GSHTTPAuthentication.m: Handle arg classh check in init
- 	* Source/NSURLRequest.m: ditto
- 	* Source/NSURLProtocol.m: attempt to add support for authentication
+	* Source/GSSocketStream.h: simplify socket address handling
+	* Source/GSSocketStream.m: ditto + more work on socks
+	* Source/GSStream.h: minor tweaks
+	* Source/GSStream.m:minor tweaks
+	* Source/unix/NSStream.m: simplified socket address handling
+	* Source/GSNetwork.h: add macro to get socket address length
+	* Source/GSHTTPAuthentication.m: Handle arg classh check in init
+	* Source/NSURLRequest.m: ditto
+	* Source/NSURLProtocol.m: attempt to add support for authentication
 
 2008-01-07  Fred Kiefer <FredKiefer@gmx.de>
 
@@ -69,6 +81,7 @@
 	* Source/GSSocketStream.m: Fix missing isfeds
 
 2008-01-04  Riccardo Mottola <riccardo@kaffe.org>
+
 	* Source/NSKeyValueObserving.m: fixed cc99ism
 	
 2008-01-04  Richard Frith-Macdonald <rfm@gnu.org>

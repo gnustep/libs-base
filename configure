@@ -2135,7 +2135,6 @@ case "$target_os" in
     GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
     GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
     GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
-    GNUSTEP_USER_DIR=GNUstep
     GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
     GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
     ;;
@@ -2379,10 +2378,6 @@ echo "$as_me: We store the following filesystem layout into gnustep-base, to be 
 echo $ECHO_N "checking for Makefiles directory... $ECHO_C" >&6; }
 { echo "$as_me:$LINENO: result: $GNUSTEP_MAKEFILES" >&5
 echo "${ECHO_T}$GNUSTEP_MAKEFILES" >&6; }
-{ echo "$as_me:$LINENO: checking for user directory" >&5
-echo $ECHO_N "checking for user directory... $ECHO_C" >&6; }
-{ echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR" >&5
-echo "${ECHO_T}$GNUSTEP_USER_DIR" >&6; }
 { echo "$as_me:$LINENO: checking for user defaults directory" >&5
 echo $ECHO_N "checking for user defaults directory... $ECHO_C" >&6; }
 { echo "$as_me:$LINENO: result: $GNUSTEP_USER_DEFAULTS_DIR" >&5
@@ -2593,12 +2588,6 @@ GNUSTEP_MAKEFILES=`echo $GNUSTEP_MAKEFILES|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_MAKEFILES "$GNUSTEP_MAKEFILES"
-_ACEOF
-
-GNUSTEP_USER_DIR=`echo $GNUSTEP_USER_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
-
-cat >>confdefs.h <<_ACEOF
-#define GNUSTEP_TARGET_USER_DIR "$GNUSTEP_USER_DIR"
 _ACEOF
 
 GNUSTEP_USER_DEFAULTS_DIR=`echo $GNUSTEP_USER_DEFAULTS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`

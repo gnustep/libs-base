@@ -190,7 +190,6 @@ case "$target_os" in
     GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
     GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
     GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
-    GNUSTEP_USER_DIR=GNUstep
     GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
     GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
     ;;
@@ -422,8 +421,6 @@ esac
 AC_MSG_NOTICE([We store the following filesystem layout into gnustep-base, to be used when no config file is found])
 AC_MSG_CHECKING([for Makefiles directory])
 AC_MSG_RESULT($GNUSTEP_MAKEFILES)
-AC_MSG_CHECKING([for user directory])
-AC_MSG_RESULT($GNUSTEP_USER_DIR)
 AC_MSG_CHECKING([for user defaults directory])
 AC_MSG_RESULT($GNUSTEP_USER_DEFAULTS_DIR)
 AC_MSG_CHECKING([for user config file])
@@ -536,10 +533,6 @@ GNUSTEP_MAKEFILES=`echo $GNUSTEP_MAKEFILES|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_MAKEFILES,
   "$GNUSTEP_MAKEFILES",
   [Built in default value for GNUstep Makefiles])
-GNUSTEP_USER_DIR=`echo $GNUSTEP_USER_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
-AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR,
-  "$GNUSTEP_USER_DIR",
-  [Built in default value for GNUstep user directory])
 GNUSTEP_USER_DEFAULTS_DIR=`echo $GNUSTEP_USER_DEFAULTS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DEFAULTS_DIR,
   "$GNUSTEP_USER_DEFAULTS_DIR",

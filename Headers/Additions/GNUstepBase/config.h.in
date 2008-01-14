@@ -132,9 +132,6 @@
 /* Built in default value for GNUstep user defaults directory */
 #undef GNUSTEP_TARGET_USER_DEFAULTS_DIR
 
-/* Built in default value for GNUstep user directory */
-#undef GNUSTEP_TARGET_USER_DIR
-
 /* Built in default value for GNUstep user_dir admin apps */
 #undef GNUSTEP_TARGET_USER_DIR_ADMIN_APPS
 
