@@ -142,7 +142,6 @@ static NSString	*gnustep_is_flattened =
 
 static NSString	*gnustepConfigPath = nil;
 
-static NSString *gnustepUserDir = nil;
 static NSString *gnustepUserHome = nil;
 static NSString *gnustepUserDefaultsDir = nil;
 
@@ -332,7 +331,6 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   /*
    * Move values out of the dictionary and into variables for rapid reference.
    */
-  ASSIGN_IF_SET(gnustepUserDir, c, @"GNUSTEP_USER_DIR");
   ASSIGN_IF_SET(gnustepUserDefaultsDir, c, @"GNUSTEP_USER_DEFAULTS_DIR");
 
   ASSIGN_PATH(gnustepMakefiles, c, @"GNUSTEP_MAKEFILES");
@@ -423,6 +421,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   [c removeObjectForKey: @"GNUSTEP_LOCAL_ROOT"];
   [c removeObjectForKey: @"GNUSTEP_SYSTEM_ROOT"];
   [c removeObjectForKey: @"GNUSTEP_NETWORK_ROOT"];
+  [c removeObjectForKey: @"GNUSTEP_USER_DIR"];
 
   if ([c count] > 0)
     {
@@ -437,10 +436,6 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   /*
    * Set default locations for user files if necessary.
    */
-  if (gnustepUserDir == nil)
-    {
-      ASSIGN(gnustepUserDir, @GNUSTEP_TARGET_USER_DIR);
-    }
   if (gnustepUserDefaultsDir == nil)
     {
       ASSIGN(gnustepUserDefaultsDir, @GNUSTEP_TARGET_USER_DEFAULTS_DIR);

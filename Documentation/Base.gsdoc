@@ -487,13 +487,13 @@ notice and this notice are preserved.
 	    <deflist>
 	      <term>GNUSTEP_SYSTEM_ROOT</term>
 	      <desc>
-		Used to specify the GNUstep system root directory ... all
+		Obsolete.  Used to specify the GNUstep system root directory ... all
 		system libraries, tools, applications, headers, resources
 		in general are located relative to this.
 	      </desc>
 	      <term>GNUSTEP_NETWORK_ROOT</term>
 	      <desc>
-		Used to specify the GNUstep root directory for local
+		Obsolete.  Used to specify the GNUstep root directory for local
 		(non-system) resources that are intended to be shared
 		across a local network.  Typically this is an NFS exported
 		directory shared by many machines.  It provides an
@@ -502,7 +502,7 @@ notice and this notice are preserved.
 	      </desc>
 	      <term>GNUSTEP_LOCAL_ROOT</term>
 	      <desc>
-		Used to specify the GNUstep root directory for local
+		Obsolete.  Used to specify the GNUstep root directory for local
 		(non-system) resources.  Typically all locally produced
 		or contributed software is installed relative to this.
 	      </desc>
@@ -512,7 +512,7 @@ notice and this notice are preserved.
 	  </p>
 	  <deflist>
 	    <term>GNUSTEP_USER_DIR</term>
-	    <desc>Path for user specific GNUstep resources (eg. 'GNUstep').
+	    <desc>Obsolete.  Path for user specific GNUstep resources (eg. 'GNUstep').
 	    Relative to the user's home directory.
 	    </desc>
 	    <term>GNUSTEP_USER_CONFIG_FILE</term>
@@ -539,44 +539,6 @@ notice and this notice are preserved.
 	    while on windows  it's the value given by the
 	    HOMEDRIVE and HOMEPATH environment variables (or the USERPROFILE
 	    environment variable if the others can't be used).
-	  </p>
-	  <p>
-	    Support is provided to locate OS/PLATFORM directories. A conf file
-	    may provide the definitions below (with examples typical for
-	    when GNUstep is installed according to the Linux
-	    Filesystem Hierarchy standard):
-	  </p>
-	    <deflist>
-	      <term>GNUSTEP_SYS_APPS</term>
-	      <desc>Place for system/os applications (eg. '/bin')</desc>
-	      <term>GNUSTEP_SYS_LIBS</term>
-	      <desc>Place for system/os shared libraries (eg. '/lib')</desc>
-	      <term>GNUSTEP_SYS_ADMIN</term>
-	      <desc>Place for system administration tools (eg. '/sbin')</desc>
-	      <term>GNUSTEP_PLATFORM_APPS</term>
-	      <desc>Place for non-gnustep applications (eg. '/usr/bin')</desc>
-	      <term>GNUSTEP_PLATFORM_LIBS</term>
-	      <desc>Place for application shared libraries
-	      (eg. '/usr/lib')</desc>
-	      <term>GNUSTEP_PLATFORM_RESOURCES</term>
-	      <desc>Place for shared application resources
-	      (eg. '/usr/share')</desc>
-	      <term>GNUSTEP_PLATFORM_ADMIN</term>
-	      <desc>Place for non-critical administrative tools
-	      (eg. '/usr/sbin')</desc>
-	      <term>GNUSTEP_PLATFORM_LOCAL_APPS</term>
-	      <desc>Place for machine local applications
-	      (eg. '/usr/local/bin')</desc>
-	      <term>GNUSTEP_PLATFORM_LOCAL_LIBS</term>
-	      <desc>Place for machine local shared libraries
-	      (eg. '/usr/local/lib/')</desc>
-	      <term>GNUSTEP_PLATFORM_LOCAL_RESOURCES</term>
-	      <desc>Place for machine local resources.
-	      (eg. '/usr/local/share')</desc>
-	    </deflist>
-	  <p>
-	    These add to the path for NSSystemDomainMask, or
-	    NSLocalDomainMask as appropriate.
 	  </p>
 	  <p>
 	    All the above values from the configuration file are made
@@ -691,10 +653,6 @@ notice and this notice are preserved.
 	    are also ignored.
 	  </p>
 	  <p>
-	    User specific files are stored in the locaton given by
-	    GNUSTEP_USER_DIR (by default, the
-	    <code>GNUstep</code> subdirectory of the users home
-	    directory).<br />
 	    The defaults database for a user is stored in the
 	    subdirectory of the users home directory given by
 	    GNUSTEP_USER_DEFAULTS_DIR (by default, the
