@@ -5,7 +5,7 @@
 	* configure: Regenerated.
 	* Headers/Additions/GNUstepBase/config.h.in: Regenerated.
 	* Source/NSPathUtilities.m: Do not read obsolete GNUSTEP_USER_DIR
-	from the configuration.  Ignore it if found.  It was never used
+	from the configuration.  Ignore it if found.  It is never used
 	anywhere.
 	* Documentation/Base.gsdoc: Removed or slightly updated some
 	obsolete documentation on filesystem configuration.
