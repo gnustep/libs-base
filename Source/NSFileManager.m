@@ -1757,17 +1757,23 @@ static NSStringEncoding	defaultEncoding;
 
   if (_STAT(lpath, &statbuf) != 0)
     {
+      NSDebugMLLog(@"NSFileManager", @"stat failed for '%s' ... %@",
+        lpath, [NSError _last]);
       return nil;
     }
 #ifdef HAVE_STATVFS
   if (statvfs(lpath, &statfsbuf) != 0)
     {
+      NSDebugMLLog(@"NSFileManager", @"statvfs failed for '%s' ... %@",
+        lpath, [NSError _last]);
       return nil;
     }
   blocksize = statfsbuf.f_frsize;
 #else
   if (statfs(lpath, &statfsbuf) != 0)
     {
+      NSDebugMLLog(@"NSFileManager", @"statfs failed for '%s' ... %@",
+        lpath, [NSError _last]);
       return nil;
     }
   blocksize = statfsbuf.f_bsize;
@@ -1786,6 +1792,7 @@ static NSStringEncoding	defaultEncoding;
 
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 #else
+  NSDebugMLLog(@"NSFileManager", @"no support for filesystem attributes");
   return nil;
 #endif
 #endif /* MINGW */
