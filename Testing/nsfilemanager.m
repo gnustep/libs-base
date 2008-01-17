@@ -82,7 +82,9 @@ main ()
   {
     NSDictionary *attributes = [mgr fileSystemAttributesAtPath: @"/"]; 
     NSNumber *freefs = [attributes objectForKey: NSFileSystemFreeSize]; 
-    NSLog(@"Filesystem free size is %@", freefs);
+    unsigned long long  s = [freefs unsignedLongLongValue];
+
+    NSLog(@"Filesystem free size is %llu", s);
   }
 
   RELEASE(arp);
