@@ -2,6 +2,8 @@
 
 	* Tools/autogsdoc.m: Fix bug recording sources and outputs in
 	index and dependencies.
+	* Source/NSTimeZone.m: Fix coding style errors and buffer overrun
+	on mswindows reported by Roland Schwingel.
 
 2008-01-14  Nicola Pero <nicola.pero@meta-innovation.com>
 
