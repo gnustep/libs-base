@@ -1,3 +1,8 @@
+2008-01-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/autogsdoc.m: Fix bug recording sources and outputs in
+	index and dependencies.
+
 2008-01-14  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Do not read obsolete GNUSTEP_USER_DIR and do not

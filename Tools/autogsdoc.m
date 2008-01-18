@@ -1259,6 +1259,7 @@ main(int argc, char **argv, char **env)
 	       */
 	      a = [projectRefs sourcesForHeader: hfile];
 	      [a insertObject: hfile atIndex: 0];
+	      [projectRefs setSources: a forHeader: hfile];
 	      for (j = 0; j < [a count]; j++)
 		{
 		  NSString	*sfile = [a objectAtIndex: j];
@@ -1286,6 +1287,7 @@ main(int argc, char **argv, char **env)
 	      if ([a count] == 0)
 		{
 		  [a insertObject: gsdocfile atIndex: 0];
+                  [projectRefs setOutputs: a forHeader: hfile];
 		}
 	      for (j = 0; j < [a count]; j++)
 		{
