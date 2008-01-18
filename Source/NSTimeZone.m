@@ -2175,10 +2175,12 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
     	if (cSubKeys && (retCode == ERROR_SUCCESS))
     	{
-    		wchar_t *wName = malloc(([name length]+1) * sizeof(wchar_t));
+                unsigned        wLen = [name length];
+    		wchar_t *wName = malloc((wLen+1) * sizeof(wchar_t));
     		if (wName)
     		{
     			[name getCharacters:wName];
+                        wName[wLen] = 0;
 
 				for (i=0; i<cSubKeys && !tzFound; i++) 
 				{ 

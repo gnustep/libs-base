@@ -2,7 +2,8 @@
 
         * Tools/autogsdoc.m: Fix bug recording sources and outputs in
 	index and dependencies.
-		
+	* Source/NSTimeZone.m: Fix possible buffer overrun on mswindows.
+
 2007-12-31  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSMessagePort.m:
