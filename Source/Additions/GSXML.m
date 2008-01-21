@@ -3681,7 +3681,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 }
 - (NSString *) description
 {
-  return [NSString_class stringWithFormat: @"NodeSet (count %d)", [self count]];
+  return [NSString_class stringWithFormat: @"NodeSet (count %u)", [self count]];
 }
 @end
 
@@ -4609,7 +4609,7 @@ static void indentation(unsigned level, NSMutableString *str)
 	}
       else
 	{
-	  [str appendFormat: @"<i4>%d</i4>", i];
+	  [str appendFormat: @"<i4>%ld</i4>", i];
 	}
     }
   else
