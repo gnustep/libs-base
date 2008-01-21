@@ -1,3 +1,8 @@
+2008-01-21  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Resources/Languages/Spanish: Quoting corrections by Matias
+	Adrian <matiasasb@gmail.com>.
+
 2008-01-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m: Fix bug recording sources and outputs in
