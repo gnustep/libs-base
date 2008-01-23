@@ -373,6 +373,10 @@ myHostName()
 	    }
 	}
     }
+  else
+    {
+      AUTORELEASE(RETAIN(host));
+    }
   [_hostCacheLock unlock];
   if (tryByAddress == YES)
     {
