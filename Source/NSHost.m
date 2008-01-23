@@ -372,6 +372,10 @@ myHostName()
 	    }
 	}
     }
+  else
+    {
+    AUTORELEASE(RETAIN(host));
+    }
   [_hostCacheLock unlock];
   if (tryByAddress == YES)
     {
@@ -400,7 +404,6 @@ myHostName()
     {
       host = [_hostCache objectForKey: address];
     }
-
   if (host == nil)
     {
       struct hostent	*h;
@@ -435,6 +438,10 @@ myHostName()
 	  host = [[self alloc] _initWithHostEntry: h key: address];
 	  AUTORELEASE(host);
 	}
+    }
+  else
+    {
+      AUTORELEASE(RETAIN(host));
     }
   [_hostCacheLock unlock];
   return host;
