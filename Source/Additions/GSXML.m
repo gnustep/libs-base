@@ -2813,6 +2813,38 @@ startElementNsFunction(void *ctx, const unsigned char *name,
 	  [dict setObject: obj forKey: key];
 	}
     }
+  if (nb_namespaces > 0)
+    {
+      int       i;
+      int       pos = 0;
+
+      for (i = 0; i < nb_namespaces; i++)
+        {
+          NSString      *key;
+          NSString      *obj;
+
+          if (namespaces[pos] == 0)
+            {
+              key = @"xmlns";
+            }
+          else
+            {
+              key = [@"xmlns:" stringByAppendingString:
+                UTF8Str(namespaces[pos])];
+            }
+          pos++;
+          if (namespaces[pos] == 0)
+            {
+              obj = @"";
+            }
+          else
+            {
+              obj = UTF8Str(namespaces[pos]);
+            }
+          pos++;
+          [dict setObject: obj forKey: key];
+        }
+    }
   [HANDLER startElement: elem
 		 prefix: UTF8Str(prefix)
 		   href: UTF8Str(href)
