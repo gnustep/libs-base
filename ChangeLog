@@ -1,3 +1,8 @@
+2008-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/NSXML.m: In SAX count namespace declarations
+	in element start as attributes.
+
 2008-01-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHost.m: Fix minor thread safety issue ... could get
