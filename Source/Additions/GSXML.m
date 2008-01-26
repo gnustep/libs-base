@@ -2794,23 +2794,24 @@ startElementNsFunction(void *ctx, const unsigned char *name,
   int nb_attributes, int nb_defaulted,
   const unsigned char **atts)
 {
-  NSMutableDictionary	*dict;
+  NSMutableDictionary	*adict = nil;
+  NSMutableDictionary	*ndict = nil;
   NSString		*elem;
 
   NSCAssert(ctx,@"No Context");
   elem = UTF8Str(name);
-  dict = [NSMutableDictionary dictionary];
   if (atts != NULL)
     {
       int 	i;
       int	j;
 
+      adict = [NSMutableDictionary dictionaryWithCapacity: nb_attributes];
       for (i = j = 0; i < nb_attributes; i++, j += 5)
 	{
 	  NSString	*key = UTF8Str(atts[j]);
 	  NSString	*obj = UTF8StrLen(atts[j+3], atts[j+4]-atts[j+3]);
 
-	  [dict setObject: obj forKey: key];
+	  [adict setObject: obj forKey: key];
 	}
     }
   if (nb_namespaces > 0)
@@ -2818,6 +2819,7 @@ startElementNsFunction(void *ctx, const unsigned char *name,
       int       i;
       int       pos = 0;
 
+      ndict = [NSMutableDictionary dictionaryWithCapacity: nb_namespaces];
       for (i = 0; i < nb_namespaces; i++)
         {
           NSString      *key;
@@ -2842,13 +2844,14 @@ startElementNsFunction(void *ctx, const unsigned char *name,
               obj = UTF8Str(namespaces[pos]);
             }
           pos++;
-          [dict setObject: obj forKey: key];
+          [ndict setObject: obj forKey: key];
         }
     }
   [HANDLER startElement: elem
 		 prefix: UTF8Str(prefix)
 		   href: UTF8Str(href)
-	     attributes: dict];
+	     attributes: adict
+             namespaces: ndict];
 }
 
 static void
@@ -3053,6 +3056,18 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 	   attributes: (NSMutableDictionary*)elementAttributes
 {
   [self startElement: elementName attributes: elementAttributes];
+}
+
+- (void) startElement: (NSString*)elementName
+               prefix: (NSString*)prefix
+		 href: (NSString*)href
+	   attributes: (NSMutableDictionary*)elementAttributes
+           namespaces: (NSMutableDictionary*)elementNamespaces
+{
+  [self startElement: elementName
+              prefix: prefix
+                href: href
+          attributes: elementAttributes];
 }
 
 /**
