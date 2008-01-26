@@ -26,6 +26,7 @@
 #include "config.h"
 #include <Foundation/NSArray.h>
 #include <Foundation/NSError.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSXMLParser.h>
 #include <Foundation/NSData.h>
@@ -74,6 +75,7 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 	       prefix: (NSString*)prefix
 		 href: (NSString*)href
 	   attributes: (NSMutableDictionary*)elementAttributes
+	   namespaces: (NSMutableDictionary*)elementNamespaces
 {
   NSString      *qName = elementName;
 
@@ -91,6 +93,33 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
     }
   else
     {
+      /* When we are not handling namespaces specially, any namespaces
+       * should appear as attributes of the element.
+       */
+      if ([elementNamespaces count] > 0)
+        {
+          NSEnumerator  *e = [elementNamespaces keyEnumerator];
+          NSString      *k;
+
+          if (elementAttributes == nil)
+            {
+              elementAttributes = [NSMutableDictionary dictionary];
+            }
+          while ((k = [e nextObject]) != nil)
+            {
+              NSString  *v = [elementNamespaces objectForKey: k];
+
+              if ([k length] == 0)
+                {
+                  [elementAttributes setObject: v forKey: @"xmlns"];
+                }
+              else
+                {
+                  k = [@"xmlns:" stringByAppendingString: k];
+                  [elementAttributes setObject: v forKey: k];
+                }
+            }
+        }
       [_delegate parser: _owner
 	didStartElement: qName
 	   namespaceURI: nil

@@ -2827,12 +2827,11 @@ startElementNsFunction(void *ctx, const unsigned char *name,
 
           if (namespaces[pos] == 0)
             {
-              key = @"xmlns";
+              key = @"";
             }
           else
             {
-              key = [@"xmlns:" stringByAppendingString:
-                UTF8Str(namespaces[pos])];
+              key = UTF8Str(namespaces[pos]);
             }
           pos++;
           if (namespaces[pos] == 0)
