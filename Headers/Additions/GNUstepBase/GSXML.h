@@ -331,7 +331,8 @@ extern "C" {
 - (void) startElement: (NSString*)elementName
 	       prefix: (NSString*)prefix
 		 href: (NSString*)href
-           attributes: (NSMutableDictionary*)elementAttributes;
+           attributes: (NSMutableDictionary*)elementAttributes
+           namespaces: (NSMutableDictionary*)elementNamespaces;
 /** <override-dummy /> */
 - (void) unparsedEntityDecl: (NSString*)name
 		     public: (NSString*)publicId
