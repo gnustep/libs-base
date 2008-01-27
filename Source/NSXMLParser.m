@@ -32,8 +32,11 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSNull.h>
 
 NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
+
+static  NSNull  *null = nil;
 
 #if	 defined(HAVE_LIBXML)
 
@@ -419,6 +422,14 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 
 @implementation NSXMLParser
 
++ (void) initialize
+{
+  if (null == nil)
+    {
+      null = RETAIN([NSNull null]);
+    }
+}
+
 #define	myParser	((GSXMLParser*)_parser)
 #define	myHandler	((NSXMLSAXHandler*)_handler)
 
@@ -591,11 +602,12 @@ static NSString *UTF8STR(const void *ptr, int len)
 
 typedef struct NSXMLParserIvarsType
 {
-  NSMutableArray *tagPath;		// hierarchy of tags
-  NSData *data;
-  NSError *error;
-  const unsigned char *cp;		// character pointer
-  const unsigned char *cend;		// end of data
+  NSMutableArray        *tagPath;	// hierarchy of tags
+  NSMutableArray        *namespaces;
+  NSData                *data;
+  NSError               *error;
+  const unsigned char   *cp;		// character pointer
+  const unsigned char   *cend;		// end of data
   int line;				// current line (counts from 0)
   int column;				// current column (counts from 0)
   BOOL abort;				// abort parse loop
@@ -615,6 +627,14 @@ typedef struct { @defs(NSXMLParser) } *xp;
 #define	this		((NSXMLParserIvars*)_parser)
 #define	_del	((id)_handler)
 
++ (void) initialize
+{
+  if (null == nil)
+    {
+      null = RETAIN([NSNull null]);
+    }
+}
+
 - (void) abortParsing
 {
   this->abort = YES;
@@ -632,6 +652,7 @@ typedef struct { @defs(NSXMLParser) } *xp;
       RELEASE(this->data);
       RELEASE(this->error);
       RELEASE(this->tagPath);
+      RELEASE(this->namespaces);
       NSZoneFree([self zone], this);
       _parser = 0;
       _handler = 0;
@@ -664,6 +685,7 @@ typedef struct { @defs(NSXMLParser) } *xp;
 	  memset(_parser, '\0', sizeof(NSXMLParserIvars));
 	  this->data = [data copy];
 	  this->tagPath = [[NSMutableArray alloc] init];
+	  this->namespaces = [[NSMutableArray alloc] init];
 	  this->cp = [this->data bytes];
 	  this->cend = this->cp + [this->data length];
 	}
@@ -707,6 +729,79 @@ typedef struct { @defs(NSXMLParser) } *xp;
   return NO;
 }
 
+/* Go up the namespace stack looking for a mapping from p to
+ * a URI.  Return the first URI found (or nil if none is found).
+ */
+- (NSString*) _uriForPrefix: (NSString*)p
+{
+  unsigned      i = [this->namespaces count];
+  NSString      *uri = nil;
+
+  while (uri == nil && i-- > 0)
+    {
+      id        o = [this->namespaces objectAtIndex: i];
+
+      if (o != (id)null)
+        {
+          uri = [(NSDictionary*)o objectForKey: p];
+        }
+    }
+  return uri;
+}
+
+- (void) _closeLastTag
+{
+  NSString      *tag = [this->tagPath lastObject];
+
+  if ([_del respondsToSelector:
+    @selector(parser:didEndElement:namespaceURI:qualifiedName:)])
+    {
+      NSString  *qualified = nil;
+      NSString  *uri = nil;
+
+      if (this->shouldProcessNamespaces)
+        {
+          NSRange   r = [tag rangeOfString: @":"];
+          NSString  *p = @"";
+
+          qualified = tag;
+          if (r.length > 0)
+            {
+              p = [tag substringToIndex: r.location];
+              tag = [tag substringFromIndex: NSMaxRange(r)];
+            }
+          uri = [self _uriForPrefix: p];
+        }
+      [_del parser: self
+        didEndElement: tag
+        namespaceURI: uri
+        qualifiedName: qualified];
+    }
+
+  if (this->shouldReportNamespacePrefixes)
+    {
+      if ([_del respondsToSelector:
+        @selector(parser:didEndMappingPrefix:)])
+        {
+          id    d = [this->namespaces lastObject];
+
+          if (d != (id)null)
+            {
+              NSEnumerator  *e = [(NSDictionary*)d keyEnumerator];
+              NSString      *k;
+
+              while ((k = [e nextObject]) != nil)
+                {
+                  [_del parser: self didEndMappingPrefix: k];
+                }
+            }
+        }
+    }
+
+  [this->tagPath removeLastObject];
+  [this->namespaces removeLastObject];
+}
+
 - (void) _processTag: (NSString *)tag
 	       isEnd: (BOOL)flag
       withAttributes: (NSDictionary *)attributes
@@ -728,7 +823,7 @@ NSLog(@"parserDidStartDocument: ");
             }
 	  return;
 	}
-      if ([tag hasPrefix: @"?"])
+      else if ([tag hasPrefix: @"?"])
 	{
 #if EXTRA_DEBUG
 NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
@@ -736,21 +831,21 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	  // parser: foundProcessingInstructionWithTarget: data: 
 	  return;
 	}
-      if ([tag isEqualToString: @"!DOCTYPE"])
+      else if ([tag isEqualToString: @"!DOCTYPE"])
 	{
 #if EXTRA_DEBUG
 NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #endif
 	  return;
 	}
-      if ([tag isEqualToString: @"!ENTITY"])
+      else if ([tag isEqualToString: @"!ENTITY"])
 	{
 #if EXTRA_DEBUG
 NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #endif
 	  return;
 	}
-      if ([tag isEqualToString: @"!CDATA"])
+      else if ([tag isEqualToString: @"!CDATA"])
 	{
           // pass through as NSData
           // parser: foundCDATA:   
@@ -759,15 +854,91 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #endif
           return;
 	}
+      else
+        {
+          NSMutableDictionary   *ns = nil;
+          NSMutableDictionary   *attr = nil;
+          NSEnumerator          *enumerator = [attributes keyEnumerator];
+          NSString              *k;
+          NSString              *uri;
+          NSString              *qualified;
 
-      [this->tagPath addObject: tag];  // push on stack
-      if ([_del respondsToSelector:
-      @selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:)])
-	[_del parser: self
-	  didStartElement: tag
-	  namespaceURI: nil
-	  qualifiedName: nil
-	  attributes: attributes];
+          while ((k = [enumerator nextObject]) != nil)
+            {
+              NSString  *prefix = nil;
+
+              if ([k isEqualToString: @"xmlns"] == YES)
+                {
+                  prefix = @"";
+                }
+              else if ([k hasPrefix: @"xmlns:"] == YES)
+                {
+                  prefix = [k substringFromIndex: 6];
+                }
+              if (prefix != nil)
+                {
+                  if (ns == nil)
+                    {
+                      ns = [NSMutableDictionary dictionary];
+                      if (this->shouldProcessNamespaces)
+                        {
+                          attr = AUTORELEASE([attributes mutableCopy]);
+                        }
+                    }
+                  uri = [attributes objectForKey: k];
+                  [ns setObject: uri forKey: prefix];
+                  if (attr != nil)
+                    {
+                      [attr removeObjectForKey: k];
+                    }
+                  if (this->shouldReportNamespacePrefixes)
+                    {
+                      if ([_del respondsToSelector:
+                        @selector(parser:didStartMappingPrefix:toURI:)])
+                        {
+                          [_del parser: self
+                            didStartMappingPrefix: prefix
+                            toURI: uri];
+                        }
+                    }
+                  if (attr != nil)
+                    {
+                      attributes = attr;
+                    }
+                }
+            }
+
+          [this->tagPath addObject: tag];
+          [this->namespaces addObject: ((ns == nil) ? (id)null : (id)ns)];
+
+          if ([_del respondsToSelector:
+  @selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:)])
+            {
+              if (this->shouldProcessNamespaces)
+                {
+                  NSRange   r = [tag rangeOfString: @":"];
+                  NSString  *p = @"";
+
+                  qualified = tag;
+                  if (r.length > 0)
+                    {
+                      p = [tag substringToIndex: r.location];
+                      tag = [tag substringFromIndex: NSMaxRange(r)];
+                    }
+                  uri = [self _uriForPrefix: p];
+                }
+              else
+                {
+                  qualified = nil;
+                  uri = nil;
+                }
+              [_del parser: self
+                didStartElement: tag
+                namespaceURI: uri
+                qualifiedName: qualified
+                attributes: attributes];
+            }
+        }
     }
   else
     {
@@ -778,13 +949,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	  while ([this->tagPath count] > 0
 	    && ![[this->tagPath lastObject] isEqualToString: tag])
 	    {
-	      if ([_del respondsToSelector:
-		@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
-		[_del parser: self
-		  didEndElement: [this->tagPath lastObject]
-		  namespaceURI: nil
-		  qualifiedName: nil];
-	      [this->tagPath removeLastObject];  // pop from stack
+              [self _closeLastTag];
 	    }
 	  if ([this->tagPath count] == 0)
             {
@@ -798,13 +963,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	    [this->tagPath lastObject], tag]];
 	  return;
 	}
-      if ([_del respondsToSelector:
-	@selector(parser:didEndElement:namespaceURI:qualifiedName:)])
-	[_del parser: self
-	  didEndElement: tag
-	  namespaceURI: nil
-	  qualifiedName: nil];
-	[this->tagPath removeLastObject];  // pop from stack
+
+      [self _closeLastTag];
     }
 }
 
