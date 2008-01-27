@@ -1,7 +1,7 @@
 2008-01-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: Implement reporting of namespace
-	prefixes with libxml2 based parser.
+	prefixes with libxml2 based parser and with sloppy parser.
 
 2008-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 
