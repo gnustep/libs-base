@@ -106,7 +106,7 @@ static  NSNull  *null = nil;
 
   if ([elementNamespaces count] > 0)
     {
-      [_namespaces addObject: elementNamespaces];
+      [_namespaces addObject: [elementNamespaces allKeys]];
       if (_shouldReportNamespacePrefixes)
         {
           NSEnumerator  *e = [elementNamespaces keyEnumerator];
@@ -124,7 +124,7 @@ static  NSNull  *null = nil;
     }
   else
     {
-      [_namespaces addObject: [NSDictionary dictionary]];
+      [_namespaces addObject: null];
     }
 
   if (_shouldProcessNamespaces)
@@ -199,11 +199,11 @@ static  NSNull  *null = nil;
 
   if (_shouldReportNamespacePrefixes)
     {
-      NSDictionary      *d = [_namespaces lastObject];
+      id        o = [_namespaces lastObject];
 
-      if ([d count] > 0)
+      if (o != (id)null)
         {
-          NSEnumerator  *e = [d keyEnumerator];
+          NSEnumerator  *e = [(NSArray*)o objectEnumerator];
           NSString      *k;
 
           while ((k = [e nextObject]) != nil)
