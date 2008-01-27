@@ -1,3 +1,8 @@
+2008-01-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: Implement reporting of namespace
+	prefixes with libxml2 based parser.
+
 2008-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSXML.m: Fixup SAX interface to pass namespace

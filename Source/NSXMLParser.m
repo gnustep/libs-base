@@ -56,11 +56,28 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
   BOOL		_shouldProcessNamespaces;
   BOOL		_shouldReportNamespacePrefixes;
   BOOL		_shouldResolveExternalEntities;
+  NSMutableArray        *_namespaces;
 }
 - (void) _setOwner: (id)owner;
 @end
 
 @implementation	NSXMLSAXHandler
+
+- (void) dealloc
+{
+  DESTROY(_namespaces);
+  DESTROY(_lastError);
+  [super dealloc];
+}
+
+- (id) init
+{
+  if ((self = [super init]) != nil)
+    {
+      _namespaces = [NSMutableArray new];
+    }
+  return self;
+}
 
 - (void) endDocument
 {
@@ -83,6 +100,30 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
     {
       qName = [NSString stringWithFormat: @"%@:%@", prefix, qName];
     }
+
+  if ([elementNamespaces count] > 0)
+    {
+      [_namespaces addObject: elementNamespaces];
+      if (_shouldReportNamespacePrefixes)
+        {
+          NSEnumerator  *e = [elementNamespaces keyEnumerator];
+          NSString      *k;
+
+          while ((k = [e nextObject]) != nil)
+            {
+              NSString  *v = [elementNamespaces objectForKey: k];
+
+              [_delegate parser: _owner
+                didStartMappingPrefix: k
+                toURI: v];
+            }
+        }
+    }
+  else
+    {
+      [_namespaces addObject: [NSDictionary dictionary]];
+    }
+
   if (_shouldProcessNamespaces)
     {
       [_delegate parser: _owner
@@ -152,6 +193,23 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 	   namespaceURI: nil
 	  qualifiedName: nil];
     }
+
+  if (_shouldReportNamespacePrefixes)
+    {
+      NSDictionary      *d = [_namespaces lastObject];
+
+      if ([d count] > 0)
+        {
+          NSEnumerator  *e = [d keyEnumerator];
+          NSString      *k;
+
+          while ((k = [e nextObject]) != nil)
+            {
+              [_delegate parser: _owner didEndMappingPrefix: k];
+            }
+        }
+    }
+  [_namespaces removeLastObject];
 }
 - (void) attribute: (NSString*) name value: (NSString*)value
 {
