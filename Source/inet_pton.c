@@ -29,6 +29,9 @@
 
 #include "GSNetwork.h"
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
 
 #if HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>

@@ -1552,13 +1552,6 @@ AC_SUBST(DEFINE_INTPTR_T)
 AC_SUBST(DEFINE_UINTPTR_T)
 
 #--------------------------------------------------------------------
-# Solaris needs this for internet functions.  It's already in 
-# gnustep-make, which should be deprecated.
-#--------------------------------------------------------------------
-AC_CHECK_LIB(nsl, main)
-AC_CHECK_LIB(socket, main)
-
-#--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
