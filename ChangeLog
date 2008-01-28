@@ -1,7 +1,8 @@
 2008-01-28  Adam Fedor  <fedor@gnu.org>
 
-	* configure.ac: Add option to disable bfd. Add check for 
-	Solaris libs socket and nsl.
+	* configure.ac: Add option to disable bfd. 
+	* Source/inet_pton.c, Source/inet_ntop.c: Add includes to 
+	compile on Solaris
 
 2008-01-27  Richard Frith-Macdonald <rfm@gnu.org>
 

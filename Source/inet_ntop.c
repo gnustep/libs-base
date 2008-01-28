@@ -29,6 +29,9 @@
 
 #include "GSNetwork.h"
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
 
 #if HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>
@@ -65,8 +68,10 @@ inet_ntop(af, src, dst, size)
         switch (af) {
         case AF_INET:
                 return (inet_ntop4(src, dst, size));
+#ifdef INET6
         case AF_INET6:
                 return (inet_ntop6(src, dst, size));
+#endif
         default:
                 errno = EAFNOSUPPORT;
                 return (NULL);
