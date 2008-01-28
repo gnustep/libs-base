@@ -1370,9 +1370,16 @@ dnl AC_REPLACE_FUNCS(recvfrom)
 #--------------------------------------------------------------------
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(bfd.h)
-AC_CHECK_LIB(iberty, dyn_string_append)
-AC_CHECK_LIB(bfd, bfd_openr)
+PASS_ARG=yes
+AC_ARG_ENABLE(bfd,
+  [  --disable-bfd	Don't use bfd functions (stack traces, etc)],,
+  enable_bfd=$PASS_ARG)
+
+if test $enable_bfd = yes; then
+  AC_CHECK_HEADERS(bfd.h)
+  AC_CHECK_LIB(iberty, dyn_string_append)
+  AC_CHECK_LIB(bfd, bfd_openr)
+fi
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
@@ -1543,6 +1550,13 @@ AC_SUBST(DEFINE_INT64_T)
 AC_SUBST(DEFINE_UINT64_T)
 AC_SUBST(DEFINE_INTPTR_T)
 AC_SUBST(DEFINE_UINTPTR_T)
+
+#--------------------------------------------------------------------
+# Solaris needs this for internet functions.  It's already in 
+# gnustep-make, which should be deprecated.
+#--------------------------------------------------------------------
+AC_CHECK_LIB(nsl, main)
+AC_CHECK_LIB(socket, main)
 
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
