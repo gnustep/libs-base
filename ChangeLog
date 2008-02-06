@@ -1,3 +1,9 @@
+2008-02-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: Fix bug in sloppy parser, failing
+	to skip space at end of tag and therefore missing the trailing
+	'/' in a collapsed element.
+
 2008-01-28  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add option to disable bfd. 
