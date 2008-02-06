@@ -1223,6 +1223,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
               NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c: ' ');
 #endif
               parameters = [NSMutableDictionary dictionaryWithCapacity: 5];
+              while (isspace(c))
+                {
+                  c = cget();
+                }
               while (c != EOF)
                 {
                   if (c == '/' && *tp != '/')
