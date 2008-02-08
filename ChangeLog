@@ -1,3 +1,7 @@
+2008-02-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: Fix retain/release error.
+
 2008-02-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: Fix bug in sloppy parser, failing
