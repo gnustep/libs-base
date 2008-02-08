@@ -48,8 +48,8 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 @interface	NSXMLSAXHandler : GSSAXHandler
 {
 @public
-  id		_delegate;
-  id		_owner;
+  id		_delegate;      // Not retained
+  id		_owner;         // Not retained
   NSError	*_lastError;
   BOOL		_shouldProcessNamespaces;
   BOOL		_shouldReportNamespacePrefixes;
@@ -310,7 +310,7 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 
 - (void) _setOwner: (id)owner
 {
-  ASSIGN(_owner, owner);
+  _owner = owner;
 }
 
 @end
