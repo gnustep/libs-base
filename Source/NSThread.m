@@ -89,7 +89,7 @@ static NSNotificationCenter *nc = nil;
  * <p>
  *   As instances, each  instance retains perform receiver and argument
  *   values as long as they are needed, and handles locking to support
- *   mthods which want to block until an action has been performed.
+ *   methods which want to block until an action has been performed.
  * </p>
  * <p>
  *   The initialize method of this class is called before any new threads
