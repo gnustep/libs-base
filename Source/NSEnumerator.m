@@ -37,7 +37,9 @@
 @implementation NSEnumerator
 
 /**
- *  Returns all objects remaining in the enumeration as an array.
+ *  Returns all objects remaining in the enumeration as an array.<br />
+ *  Calling this method 'exhausts' the enumerator, leaving it at the
+ *  end of the collection being enumerated.
  */
 - (NSArray*) allObjects
 {
