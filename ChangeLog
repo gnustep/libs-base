@@ -1,3 +1,8 @@
+2008-02-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSHTTPURLHandle.m: Remove self as observer of socket
+	while ssl connection is in progress.
+		
 2008-02-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: Fix retain/release problem.
