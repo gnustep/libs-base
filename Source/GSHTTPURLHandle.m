@@ -984,9 +984,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   if ([[u scheme] isEqualToString: @"https"])
     {
-      /*
-       * If we are an https connection, negotiate secure connection
+      /* If we are an https connection, negotiate secure connection.
+       * Make sure we are not an observer of the file handle while
+       * it is connecting...
        */
+      [nc removeObserver: self name: nil object: sock];
       if ([sock sslConnect] == NO)
 	{
 	  [self endLoadInBackground];
