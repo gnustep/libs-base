@@ -1,3 +1,8 @@
+2008-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Fix errors in code for folding header
+	lines.
+
 2008-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Remove self as observer of socket
