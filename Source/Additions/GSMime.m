@@ -3255,12 +3255,20 @@ static unsigned
 appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
   const char *bytes, unsigned size)
 {
-  if (offset + size > fold && size  + 8 <= fold)
+  if (offset + size > fold && size + 8 <= fold)
     {
+      unsigned  len = [m length];
+
       /* This would take the line beyond the folding limit,
        * so we fold at this point.
+       * If we already have space at the end of the line,
+       * we remove it because the wrapping counts as a space.
        */
-      [m appendBytes: @"\r\n\t" length: 3];
+      if (len > 0 && ((unsigned char*)[m bytes])[len - 1] == ' ')
+        {
+          [m setLength: --len];
+        }
+      [m appendBytes: "\r\n\t" length: 3];
       offset = 8;
       if (size > 0 && isspace(bytes[0]))
         {
@@ -3298,20 +3306,34 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       r = [str rangeOfCharacterFromSet: whitespace
                                options: NSLiteralSearch
                                  range: r];
-      if (r.length > 0 && r.location == 0)
+      if (r.length > 0 && r.location == pos)
         {
           /* Found space at the start of the string, so we reduce
-           * it to a single space in the output.
+           * it to a single space in the output, or omit it entirely
+           * if the string is nothing but space.
            */
           pos++;
-          offset = appendBytes(m, offset, fold, " ", 1);
+          while (pos < size
+            && [whitespace characterIsMember: [str characterAtIndex: pos]])
+            {
+              pos++;
+            }
+          if (pos < size)
+            {
+              offset = appendBytes(m, offset, fold, " ", 1);
+            }
         }
       else if (r.length == 0)
         {
+          NSString      *sub;
           NSData        *d;
 
+          /* No space found ... we must output the entire string without
+           * folding it.
+           */
+          sub = [str substringWithRange: NSMakeRange(pos, size - pos)];
           pos = size;
-          d = wordData(str);
+          d = wordData(sub);
           offset = appendBytes(m, offset, fold, [d bytes], [d length]);
         }
       else
@@ -3319,8 +3341,10 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
           NSString      *sub;
           NSData        *d;
 
+          /* Output the substring up to the first space.
+           */
           sub = [str substringWithRange: NSMakeRange(pos, r.location - pos)];
-          pos = r.location + 1;
+          pos = r.location;
           d = wordData(sub);
           offset = appendBytes(m, offset, fold, [d bytes], [d length]);
         }
