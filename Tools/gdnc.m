@@ -472,6 +472,7 @@ ihandler(int sig)
 	  name = [service stringByAppendingFormat: @"-%@", name];
 	  if ([ns registerPort: port forName: name] == NO)
 	    {
+              NSLog(@"gdnc - failed to register as %@", name);
 	    }
 	}
       a = [host addresses];
@@ -483,6 +484,7 @@ ihandler(int sig)
 	  name = [service stringByAppendingFormat: @"-%@", name];
 	  if ([ns registerPort: port forName: name] == NO)
 	    {
+              NSLog(@"gdnc - failed to register as %@", name);
 	    }
 	}
     }

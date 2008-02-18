@@ -1,11 +1,13 @@
 2008-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCenter.m: Remove delay and change
-	code to immediately release resources used while trying to conneect
+	code to immediately release resources used while trying to connect
 	to server.
 	* Source/NSConnection.m: When creating a connection and getting its
 	proxy, release the connection immediately if the proxy is nil, so
 	that repeated calls don't use more resources.
+	* Source/NSMessagePortNameServer.m: Implement distributed locking
+	of names directory.
 	* Source/NSNSAutoreleasePool.m: When emptying pool, add diagnostic
 	message and exceptions where an object we are releasing is bad in
 	some way.
