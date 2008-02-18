@@ -3,6 +3,9 @@
 	* Source/NSDistributedNotificationCenter.m: Remove delay and change
 	code to immediately release resources used while trying to conneect
 	to server.
+	* Source/NSConnection.m: When creating a connection and getting its
+	proxy, release the connection immediately if the proxy is nil, so
+	that repeated calls don't use more resources.
 
 2008-02-17 19:21-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
