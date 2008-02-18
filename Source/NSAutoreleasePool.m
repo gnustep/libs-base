@@ -385,22 +385,44 @@ static IMP	initImp;
 
 	  for (i = 0; i < released->count; i++)
 	    {
-	      id	anObject = objects[i];
-	      Class	c = GSObjCClass(anObject);
-	      unsigned	hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
+	      id	anObject;
+	      Class	c;
+	      unsigned	hash;
 
+	      anObject = objects[i];
 	      objects[i] = nil;
+              if (anObject == nil)
+                {
+                  fprintf(stderr,
+                    "nil object encountered in autorelease pool\n");
+                  continue;
+                }
+	      c = GSObjCClass(anObject);
+              if (c == 0)
+                {
+                  [NSException raise: NSInternalInconsistencyException
+                    format: @"nul class for object in autorelease pool"];
+                }
+	      hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
 	      if (classes[hash] != c)
 		{
-		  classes[hash] = c;
+                  IMP   imp;
+
 		  if (GSObjCIsInstance(anObject))
 		    {
-		      imps[hash] = [c instanceMethodForSelector: releaseSel];
+		      imp = [c instanceMethodForSelector: releaseSel];
 		    }
 		  else
 		    {
-		      imps[hash] = [c methodForSelector: releaseSel];
+		      imp = [c methodForSelector: releaseSel];
 		    }
+                  if (imp == 0)
+                    {
+                      [NSException raise: NSInternalInconsistencyException
+                        format: @"nul release for object in autorelease pool"];
+                    }
+		  classes[hash] = c;
+		  imps[hash] = imp;
 		}
 	      (imps[hash])(anObject, releaseSel);
 	    }
