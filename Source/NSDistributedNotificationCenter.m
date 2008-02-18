@@ -740,6 +740,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  while (_remote == nil && [limit timeIntervalSinceNow] > 0)
 	    {
               CREATE_AUTORELEASE_POOL(pool);
+              [NSThread sleepForTimeInterval: 0.05];
 	      _remote = [NSConnection
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
