@@ -42,7 +42,7 @@
 #include	"Foundation/NSHost.h"
 #include	"Foundation/NSPortNameServer.h"
 #include	"Foundation/NSDebug.h"
-
+#include        "Foundation/NSThread.h"
 #include	"../Tools/gdnc.h"
 
 
@@ -735,6 +735,14 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		nil];
 	    }
 	  [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
+
+          /*
+           * Sleep for 3 seconds to prevent excessive polling and to
+           * give the GDNC process some time to start.  On some systems
+           * it is failing to start because the polling is eating up
+           * all of the file descriptors.
+           */
+          [NSThread sleepForTimeInterval: 3.0];
 
 	  limit = [NSDate dateWithTimeIntervalSinceNow: 5.0];
 	  while (_remote == nil && [limit timeIntervalSinceNow] > 0)
