@@ -150,7 +150,7 @@ static void clean_up_names(void)
     {
       NSDate	*limit = [NSDate dateWithTimeIntervalSinceNow: 2.0];
 
-      while ([dl tryLock] == NO)
+      while (dl != nil && [dl tryLock] == NO)
 	{
 	  if ([limit timeIntervalSinceNow] > 0.0)
 	    {
@@ -168,13 +168,14 @@ static void clean_up_names(void)
                     {
                       NSLog(@"Failed to break lock on names for "
                         @"NSMessagePortNameServer: %@", localException);
+                      dl = nil;
                     }
                   NS_ENDHANDLER
                 }
               else
                 {
                   NSLog(@"Failed to lock names for NSMessagePortNameServer");
-                  return nil;
+                  dl = nil;
                 }
 	    }
 	}
