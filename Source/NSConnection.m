@@ -586,16 +586,17 @@ static NSLock	*cached_proxies_gate = nil;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
 						         host: (NSString*)h
 {
+  CREATE_AUTORELEASE_POOL(arp);
   NSConnection		*connection;
   NSDistantObject	*proxy = nil;
 
   connection = [self connectionWithRegisteredName: n host: h];
   if (connection != nil)
     {
-      proxy = [connection rootProxy];
+      proxy = RETAIN([connection rootProxy]);
     }
-
-  return proxy;
+  RELEASE(arp);
+  return AUTORELEASE(proxy);
 }
 
 /**
@@ -611,6 +612,7 @@ static NSLock	*cached_proxies_gate = nil;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
   host: (NSString*)h usingNameServer: (NSPortNameServer*)s
 {
+  CREATE_AUTORELEASE_POOL(arp);
   NSConnection		*connection;
   NSDistantObject	*proxy = nil;
 
@@ -619,10 +621,10 @@ static NSLock	*cached_proxies_gate = nil;
 				  usingNameServer: s];
   if (connection != nil)
     {
-      proxy = [connection rootProxy];
+      proxy = RETAIN([connection rootProxy]);
     }
-
-  return proxy;
+  RELEASE(arp);
+  return AUTORELEASE(proxy);
 }
 
 + (void) _timeout: (NSTimer*)t
