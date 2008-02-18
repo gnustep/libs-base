@@ -1,3 +1,8 @@
+2008-02-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePortNameServer.m: Use locks to prevent two
+	processes from interfering with each other.
+
 2008-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSHTTPURLHandle.m: Remove self as observer of socket
