@@ -9,6 +9,8 @@
 	* Source/NSNSAutoreleasePool.m: When emptying pool, add diagnostic
 	message and exceptions where an object we are releasing is bad in
 	some way.
+	* Headers/Foundation/NSPropertyList.h: Clarify/fix documentation of
+	date format.
 
 2008-02-17 19:21-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
