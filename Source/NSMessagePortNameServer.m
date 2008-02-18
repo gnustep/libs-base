@@ -158,8 +158,24 @@ static void clean_up_names(void)
 	    }
 	  else
 	    {
-	      NSLog(@"Failed to lock names for NSMessagePortNameServer");
-	      return nil;
+              if ([[dl lockDate] timeIntervalSinceNow] < -15.0)
+                {
+                  NS_DURING
+                    {
+                      [dl breakLock];
+                    }
+                  NS_HANDLER
+                    {
+                      NSLog(@"Failed to break lock on names for "
+                        @"NSMessagePortNameServer: %@", localException);
+                    }
+                  NS_ENDHANDLER
+                }
+              else
+                {
+                  NSLog(@"Failed to lock names for NSMessagePortNameServer");
+                  return nil;
+                }
 	    }
 	}
     }
