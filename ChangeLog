@@ -1,3 +1,9 @@
+2008-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m: Remove delay and change
+	code to immediately release resources used while trying to conneect
+	to server.
+
 2008-02-17 19:21-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSDistributedNotificationCenter.m: Added a short wait to the
