@@ -736,20 +736,15 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	    }
 	  [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
 
-          /*
-           * Sleep for 3 seconds to prevent excessive polling and to
-           * give the GDNC process some time to start.  On some systems
-           * it is failing to start because the polling is eating up
-           * all of the file descriptors.
-           */
-          [NSThread sleepForTimeInterval: 3.0];
-
 	  limit = [NSDate dateWithTimeIntervalSinceNow: 5.0];
 	  while (_remote == nil && [limit timeIntervalSinceNow] > 0)
 	    {
+              CREATE_AUTORELEASE_POOL(pool);
 	      _remote = [NSConnection
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
+              RETAIN(_remote);
+              DESTROY(pool);
 	    }
 	  if (_remote == nil)
 	    {
@@ -759,8 +754,11 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		@"I attempted to start it at '%@'\n", cmd];
 	    }
 	}
+      else
+        {
+          RETAIN(_remote);
+        }
 
-      RETAIN(_remote);
       c = [_remote connectionForProxy];
       [_remote setProtocolForProxy: p];
     
