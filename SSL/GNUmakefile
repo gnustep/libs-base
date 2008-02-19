@@ -68,6 +68,8 @@ SSL_PRINCIPAL_CLASS = GSSSLHandle
 
 SSL_BUNDLE_LIBS = $(SSLLIBS) -lgnustep-base -lobjc
 
+SSL_NEEDS_GUI = NO
+
 endif
 endif
 

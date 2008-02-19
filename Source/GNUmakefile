@@ -57,8 +57,8 @@ ifneq ($(base),no)
 LIBRARY_NAME += libgnustep-base
 endif
 
-libgnustep-base_SUBPROJECTS=Additions
-libgnustep-baseadd_SUBPROJECTS=Additions
+libgnustep-base_SUBPROJECTS = Additions
+libgnustep-baseadd_SUBPROJECTS = Additions
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 libgnustep-base_SUBPROJECTS+=win32
@@ -435,6 +435,8 @@ libbase-resources_LOCALIZED_RESOURCE_FILES =
 libbase-resources_RESOURCE_DIRS =
 libbase-resources_RESOURCE_FILES = Info-gnustep.plist
 
+libgnustep-base_NEEDS_GUI = NO
+libgnustep-baseadd_NEEDS_GUI = NO
 
 -include Makefile.preamble
 
