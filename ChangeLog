@@ -1,3 +1,9 @@
+2008-02-19  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* Source/GNUmakefile (libgnustep-base_NEEDS_GUI): Set to NO
+	(libgnustep-baseadd_NEEDS_GUI): Set to NO.
+	* SSL/GNUmakefile (SSL_NEEDS_GUI): Set to NO.
+
 2008-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCenter.m: Remove delay and change
