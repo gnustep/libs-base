@@ -51,7 +51,7 @@
 #include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>		/* for gethostname() */
+#include <unistd.h>
 #endif
 
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */

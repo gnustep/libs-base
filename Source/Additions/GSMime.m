@@ -1361,101 +1361,19 @@ wordData(NSString *word)
  */
 - (BOOL) parse: (NSData*)d
 {
-  unsigned	l = [d length];
-
   if (flags.complete == 1)
     {
       return NO;	/* Already completely parsed! */
     }
-  if (l > 0)
+  if ([d length] > 0)
     {
-      NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
       if (flags.inBody == 0)
-	{
-	  [data appendBytes: [d bytes] length: [d length]];
-	  bytes = (unsigned char*)[data mutableBytes];
-	  dataEnd = [data length];
-
-	  while (flags.inBody == 0)
-	    {
-	      if ([self _unfoldHeader] == NO)
-		{
-		  return YES;	/* Needs more data to fill line.	*/
-		}
-	      if (flags.inBody == 0)
-		{
-		  NSString		*header;
-
-		  header = [self _decodeHeader];
-		  if (header == nil)
-		    {
-		      return NO;	/* Couldn't handle words.	*/
-		    }
-		  if ([self parseHeader: header] == NO)
-		    {
-		      flags.hadErrors = 1;
-		      return NO;	/* Header not parsed properly.	*/
-		    }
-		}
-	      else
-		{
-		  NSDebugMLLog(@"GSMime", @"Parsed end of headers", "");
-		}
-	    }
-	  /*
-	   * All headers have been parsed, so we empty our internal buffer
-	   * (which we will now use to store decoded data) and place unused
-	   * information back in the incoming data object to act as input.
-	   */
-	  d = AUTORELEASE([data copy]);
-	  [data setLength: 0];
-
-	  /*
-	   * If we have finished parsing the headers, we may have http
-	   * continuation header(s), in which case, we must start parsing
-	   * headers again.
-	   */
-	  if (flags.inBody == 1)
-	    {
-	      NSDictionary	*info;
-	      GSMimeHeader	*hdr;
-
-	      info = [[document headersNamed: @"http"] lastObject];
-	      if (info != nil && flags.isHttp == 1)
-		{
-		  NSString	*val;
-
-		  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-		  if (val != nil)
-		    {
-		      int	v = [val intValue];
-
-		      if (v >= 100 && v < 200)
-			{
-			  /*
-			   * This is an intermediary response ... so we have
-			   * to restart the parsing operation!
-			   */
-			  NSDebugMLLog(@"GSMime",
-			    @"Parsed http continuation", "");
-			  flags.inBody = 0;
-			}
-		    }
-		}
-	      /*
-	       * If there is a zero content length, parsing is complete.
-	       */
-	      hdr = [document headerNamed: @"content-length"];
-	      if (hdr != nil && [[hdr value] intValue] == 0)
-		{
-		  [document setContent: @""];
-		  flags.inBody = 0;
-		  flags.complete = 1;
-		  return NO;		// No more data needed
-		}
-	    }
-	}
-
+        {
+          if ([self parseHeaders: d remaining: &d] == YES)
+            {
+              return YES;
+            }
+        }
       if ([d length] > 0)
 	{
 	  if (flags.inBody == 1)
@@ -1497,6 +1415,136 @@ wordData(NSString *word)
       flags.complete = 1;	/* Finished parsing	*/
       return NO;		/* Want no more data	*/
     }
+}
+
+- (BOOL) parseHeaders: (NSData*)d remaining: (NSData**)body
+{
+  NSDictionary	*info;
+  GSMimeHeader	*hdr;
+  unsigned	l = [d length];
+
+  if (flags.complete == 1 || flags.inBody == 1)
+    {
+      return NO;	/* Headers already parsed! */
+    }
+  if (body != 0)
+    {
+      *body = nil;
+    }
+  if (l == 0)
+    {
+      /* Add a CRLF to either end the current header line or act as
+       * the blank linme terminating the headers.
+       */
+      if ([self parseHeaders: [NSData dataWithBytes: "\r\n" length: 2]
+                   remaining: body] == YES)
+        {
+          /* Still in headers ... so we add a CRLF to terminate them.
+           */
+          [self parseHeaders: [NSData dataWithBytes: "\r\n" length: 2]
+                   remaining: body];
+	}
+      flags.wantEndOfLine = 0;
+      flags.inBody = 0;
+      flags.complete = 1;	/* Finished parsing	*/
+      return NO;		/* Want no more data	*/
+    }
+
+  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
+
+  [data appendBytes: [d bytes] length: [d length]];
+  bytes = (unsigned char*)[data mutableBytes];
+  dataEnd = [data length];
+
+  while (flags.inBody == 0)
+    {
+      if ([self _unfoldHeader] == NO)
+        {
+          return YES;	/* Needs more data to fill line.	*/
+        }
+      if (flags.inBody == 0)
+        {
+          NSString		*header;
+
+          header = [self _decodeHeader];
+          if (header == nil)
+            {
+              flags.hadErrors = 1;
+              return NO;	/* Couldn't handle words.	*/
+            }
+          if ([self parseHeader: header] == NO)
+            {
+              flags.hadErrors = 1;
+              return NO;	/* Header not parsed properly.	*/
+            }
+        }
+      else
+        {
+          NSDebugMLLog(@"GSMime", @"Parsed end of headers", "");
+        }
+    }
+
+  /*
+   * All headers have been parsed, so we empty our internal buffer
+   * (which we will now use to store decoded data) and place unused
+   * information back in the incoming data object to act as input.
+   */
+  d = AUTORELEASE([data copy]);
+  if (body != 0)
+    {
+      *body = d;
+    }
+  [data setLength: 0];
+
+  /*
+   * We have finished parsing the headers, but we may have http
+   * continuation header(s), in which case, we must start parsing
+   * headers again.
+   */
+  info = [[document headersNamed: @"http"] lastObject];
+  if (info != nil && flags.isHttp == 1)
+    {
+      NSString	*val;
+
+      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+      if (val != nil)
+        {
+          int	v = [val intValue];
+
+          if (v >= 100 && v < 200)
+            {
+              /*
+               * This is an intermediary response ... so we have
+               * to restart the parsing operation!
+               */
+              NSDebugMLLog(@"GSMime",
+                @"Parsed http continuation", "");
+              flags.inBody = 0;
+              if ([d length] == 0)
+                {
+                  /* We need more data, so we have to return YES
+                   * to ask our caller to provide it.
+                   */
+                  return YES;
+                }
+              return [self parseHeaders: d remaining: body];
+            }
+        }
+    }
+
+  /*
+   * If there is a zero content length, all parsing is complete,
+   * not just header parsing.
+   */
+  hdr = [document headerNamed: @"content-length"];
+  if (hdr != nil && [[hdr value] intValue] == 0)
+    {
+      [document setContent: @""];
+      flags.inBody = 0;
+      flags.complete = 1;
+    }
+
+  return NO;		// No more data needed
 }
 
 /**

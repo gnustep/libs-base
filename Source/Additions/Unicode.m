@@ -2022,6 +2022,9 @@ GSPrivateDefaultCStringEncoding()
   if (defEnc == GSUndefinedEncoding)
     {
       char		*encoding;
+#if HAVE_LANGINFO_CODESET
+      char		encbuf[BUFSIZ];
+#endif
       unsigned int	count;
 
       GSSetupEncodingTable();
@@ -2035,10 +2038,16 @@ GSPrivateDefaultCStringEncoding()
 
       if (natEnc == GSUndefinedEncoding)
 	{
+          
 	  /* Encoding not set */
 #if HAVE_LANGINFO_CODESET
 	  /* Take it from the system locale information.  */
-	  encoding = nl_langinfo(CODESET);
+          [gnustep_global_lock lock];
+          strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
+          [gnustep_global_lock unlock];
+          encbuf[sizeof(encbuf)-1] = '\0';
+          encoding = encbuf;
+
 	  /*
 	   * First handle the fallback response from nl_langinfo() ...
 	   * if we are getting the default value we can't assume that

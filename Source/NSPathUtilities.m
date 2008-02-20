@@ -1349,10 +1349,10 @@ NSUserName(void)
   if (theUserName == nil || uid != olduid)
     {
       const char *loginName = 0;
+      char buf[BUFSIZ*10];
 #if     defined(HAVE_GETPWUID_R)
       struct passwd pwent;
       struct passwd *p;
-      char buf[BUFSIZ*10];
 
       if (getpwuid_r(uid, &pwent, buf, sizeof(buf), &p) == 0)
         {
@@ -1360,8 +1360,13 @@ NSUserName(void)
         }
 #else
 #if     defined(HAVE_GETPWUID)
-      struct passwd *pwent = getpwuid (uid);
-      loginName = pwent->pw_name;
+      struct passwd *pwent;
+
+      [gnustep_global_lock lock];
+      pwent = getpwuid (uid);
+      strcpy(buf, pwent->pw_name);
+      [gnustep_global_lock unlock];
+      loginName = buf;
 #endif /* HAVE_GETPWUID */
 #endif /* HAVE_GETPWUID_R */
       olduid = uid;
