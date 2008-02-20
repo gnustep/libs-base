@@ -207,8 +207,10 @@ static struct _strenc_ str_encoding_table[] = {
     "NSISO2022JPStringEncoding","ISO-2022-JP",0,0,0},
   {NSMacOSRomanStringEncoding,
     "NSMacOSRomanStringEncoding","MACINTOSH",0,0,0},
+#if     defined(GNUSTEP)
   {NSProprietaryStringEncoding,
     "NSProprietaryStringEncoding","",0,0,0},
+#endif
 
 // GNUstep additions
   {NSISOCyrillicStringEncoding,
