@@ -1330,10 +1330,27 @@ AC_CHECK_HEADERS(float.h)
 # Header files and functions for files and filesystems
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
-AC_CHECK_HEADERS(sys/syslimits.h sys/param.h)
-# Twisted header check for NetBSD
+AC_CHECK_HEADERS(sys/cdefs.h sys/syslimits.h sys/param.h)
+# Twisted header checks for some BSDs with stupid interdependencies
+AC_CHECK_HEADERS([sys/syslimits.h], [], [],
+  [#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #include <sys/syslimits.h>
+  ])
+AC_CHECK_HEADERS([sys/param.h], [], [],
+  [#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #if HAVE_SYS_SYSLIMITS_H
+   #include <sys/syslimits.h>
+   #endif
+  ])
 AC_CHECK_HEADERS([sys/mount.h], [], [],
-  [#if HAVE_SYS_SYSLIMITS_H
+  [#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #if HAVE_SYS_SYSLIMITS_H
    #include <sys/syslimits.h>
    #endif
    #if HAVE_SYS_PARAM_H

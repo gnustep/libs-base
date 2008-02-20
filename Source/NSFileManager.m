@@ -102,10 +102,16 @@
 # else
 #   include <utime.h>
 # endif
-#else
-# ifdef HAVE_SYS_PARAM_H
-#  include <sys/param.h>		/* for MAXPATHLEN */
-# endif
+#endif
+
+#ifdef HAVE_SYS_PARAM_H
+# include <sys/cdefs.h>
+#endif
+#ifdef HAVE_SYS_SYSLIMITS_H
+# include <sys/syslimits.h>
+#endif
+#ifdef HAVE_SYS_PARAM_H
+# include <sys/param.h>		/* for MAXPATHLEN */
 #endif
 
 #ifndef PATH_MAX

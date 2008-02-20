@@ -1,5 +1,14 @@
 2008-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: Add convoluted checks to cope with interdependency
+	os some system headers on FreeBSD.
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerate
+	* Source/NSFileManager.m: Include sys/cdefs.h when available
+	(for FreeBSD).
+
+2008-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/Additions/Unicode.m:
         * Headers/Additions/GNUstepBase/GSVersionMacros.h:
         Minor tweaks for building under leopard.
