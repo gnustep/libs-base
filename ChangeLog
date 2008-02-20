@@ -1,5 +1,10 @@
 2008-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additiuons/GSObjCRuntime.m: Add support for NSPoint, NSRange,
+	NSSize and NSRect for bug #22277
+
+2008-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Add convoluted checks to cope with interdependency
 	os some system headers on FreeBSD.
 	* configure: regenerate
