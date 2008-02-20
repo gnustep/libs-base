@@ -104,7 +104,7 @@
 # endif
 #endif
 
-#ifdef HAVE_SYS_PARAM_H
+#ifdef HAVE_SYS_CDEFS_H
 # include <sys/cdefs.h>
 #endif
 #ifdef HAVE_SYS_SYSLIMITS_H
