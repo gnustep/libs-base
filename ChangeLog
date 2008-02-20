@@ -9,6 +9,8 @@
 	* Source/Additions/Unicode.m: add lockign for nl_langinfo
 	* Source/Additions/GSMime.m: New method to parse headers
 	* Headers/Additions/GNUstepBase/GSMime.h: ditto
+	* Source/NSString.m: Change ([-boolValue]) to match new MacOS-X method.
+	* Source/GSString.m: ditto
 
 2008-02-19  Nicola Pero  <nicola.pero@meta-innovation.com>
 

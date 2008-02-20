@@ -2615,21 +2615,26 @@ handle_printf_atsign (FILE *stream,
 // xxx Should we use NSScanner here ?
 
 /**
- * If the string consists of the words 'true' or 'yes' (case insensitive)
- * or begins with a non-zero numeric value, return YES, otherwise return
- * NO.
+ * Returns YES when scanning the receiver's text from left to right finds a
+ * digit in the range 1-9 or a letter in the set ('Y', 'y', 'T', 't').<br />
+ * Any trailing characters are ignored.<br />
+ * Any leading whitespace or zeros or signs are also ignored.<br />
+ * Returns NO if the above conditions are not met.
  */
 - (BOOL) boolValue
 {
-  if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
+  static NSCharacterSet *yes = nil;
+
+  if (yes == nil)
+    {
+      yes = RETAIN([NSCharacterSet characterSetWithCharactersInString:
+      @"123456789yYtT"]);
+    }
+  if ([self rangeOfCharacterFromSet: yes].length > 0)
     {
       return YES;
     }
-  if ([self caseInsensitiveCompare: @"true"] == NSOrderedSame)
-    {
-      return YES;
-    }
-  return [self intValue] != 0 ? YES : NO;
+  return NO;
 }
 
 /**
