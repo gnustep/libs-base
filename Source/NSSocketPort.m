@@ -49,7 +49,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>		/* for gethostname() */
+#include <unistd.h>
 #endif
 
 #ifdef __MINGW32__

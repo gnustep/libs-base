@@ -3,6 +3,12 @@
         * Source/Additions/Unicode.m:
         * Headers/Additions/GNUstepBase/GSVersionMacros.h:
         Minor tweaks for building under leopard.
+	* Source/NSPathUtilities.m: minor thread safety fix.
+	* Source/NSSocketPort.m: remove bogus comment
+	* Source/NSMessagePort.m: remove bogus comment
+	* Source/Additions/Unicode.m: add lockign for nl_langinfo
+	* Source/Additions/GSMime.m: New method to parse headers
+	* Headers/Additions/GNUstepBase/GSMime.h: ditto
 
 2008-02-19  Nicola Pero  <nicola.pero@meta-innovation.com>
 

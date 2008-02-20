@@ -226,6 +226,7 @@ extern "C" {
 - (BOOL) isInHeaders;
 - (GSMimeDocument*) mimeDocument;
 - (BOOL) parse: (NSData*)d;
+- (BOOL) parseHeaders: (NSData*)d remaining: (NSData**)body;
 - (BOOL) parseHeader: (NSString*)aHeader;
 - (BOOL) scanHeaderBody: (NSScanner*)scanner into: (GSMimeHeader*)info;
 - (NSString*) scanName: (NSScanner*)scanner;
