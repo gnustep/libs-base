@@ -1,3 +1,9 @@
+2008-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/Additions/Unicode.m:
+        * Headers/Additions/GNUstepBase/GSVersionMacros.h:
+        Minor tweaks for building under leopard.
+
 2008-02-19  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Source/GNUmakefile (libgnustep-base_NEEDS_GUI): Set to NO
