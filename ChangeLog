@@ -1,3 +1,11 @@
+2008-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSKeyValueCoding.h:
+	* Headers/Foundation/NSThread.h:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	* Headers/Additions/GNUstepBase/GSXML.h:
+	Documentation fixes.
+
 2008-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additiuons/GSObjCRuntime.m: Add support for NSPoint, NSRange,

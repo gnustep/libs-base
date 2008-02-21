@@ -203,10 +203,10 @@ GS_EXPORT NSString *const NSKeyValueChangeOldKey;
 
 /**
  * Tells the observing system that when NSKeyValueObserverNotification
- * protocol messages are sent for any key in the keys array, they should
- * also be sent for dependentKey.
+ * protocol messages are sent for any key in the triggerKeys array,
+ * they should also be sent for dependentKey.
  */
-+ (void) setKeys: (NSArray*)keys
++ (void) setKeys: (NSArray*)triggerKeys
 triggerChangeNotificationsForDependentKey: (NSString*)dependentKey;
 
 /**

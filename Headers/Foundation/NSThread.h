@@ -88,7 +88,7 @@ extern "C" {
  */
 - (void) cancel;
 
-/** </init>
+/** <init/>
  */
 - (id) init;
 

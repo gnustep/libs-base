@@ -648,7 +648,7 @@ extern "C" {
  * Raises an exception if parsing fails.<br />
  * Used internally when making a method call to a remote server.
  */
-- (NSDictionary*) parseResponse: (NSData*)response
+- (NSDictionary*) parseResponse: (NSData*)resp
 			 params: (NSMutableArray*)params;
 
 /**
