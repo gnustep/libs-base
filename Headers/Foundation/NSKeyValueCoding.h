@@ -94,21 +94,26 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
 
 /**
  * Returns a mutable array value for a given key. This method:
- * <orderedlist>
+ * <list>
  *  <item>Searches the receiver for methods matching the patterns 
- *   insertObject:in<Key>AtIndex: and removeObjectFrom<Key>AtIndex:. If both
+ *   insertObject:in&lt;Key&gt;AtIndex: and
+ *   removeObjectFrom&lt;Key&gt;AtIndex:. If both
  *   methods are found, each message sent to the proxy array will result in the 
  *   invocation of one or more of these methods. If
- *   replaceObjectIn<Key>AtIndex:withObject: is also found in the receiver it
+ *   replaceObjectIn&lt;Key&gt;AtIndex:withObject:
+ *   is also found in the receiver it
  *   will be used when appropriate for better performance.</item>
  *  <item>If the set of methods is not found, searches the receiver for a the
- *   method set<Key>:. Each message sent to the proxy array will result in
- *   the invocation of set<Key>:</item>
+ *   method set&lt;Key&gt;:. Each message sent to the proxy array will result in
+ *   the invocation of set&lt;Key&gt;:</item>
  *  <item>If the previous do not match, and accessInstanceVariablesDirectly
- *   returns YES, searches for an instance variable matching _<key> or 
- *   <key> (in that order). If the instance variable is found, messages sent
+ *   returns YES, searches for an instance variable matching _&lt;key&gt; or 
+ *   &lt;key&gt; (in that order). If the instance variable is found,
+ *   messages sent
  *   to the proxy object will be forwarded to the instance variable.</item>
  *  <item>If none of the previous are found, raises an NSUndefinedKeyException 
+ *  </item>
+ * </list>
  */
 - (NSMutableArray*) mutableArrayValueForKey: (NSString*)aKey;
 
@@ -119,23 +124,28 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
 
 /**
  * Returns a mutable set value for a given key. This method:
- * <orderedlist>
+ * <list>
  *  <item>Searches the receiver for methods matching the patterns 
- *   add<Key>Object:, remove<Key>Object:, add<Key>:, and remove<Key>:, which
+ *   add&lt;Key&gt;Object:, remove&lt;Key&gt;Object:,
+ *   add&lt;Key&gt;:, and remove&lt;Key&gt;:, which
  *   correspond to the NSMutableSet methods addObject:, removeObject:,
  *   unionSet:, and minusSet:, respectively. If at least one addition
  *   and one removal method are found, each message sent to the proxy set
  *   will result in the invocation of one or more of these methods. If
- *   intersect<Key>: or set<Key>: is also found in the receiver, the method(s)
+ *   intersect&lt;Key&gt;: or set&lt;Key&gt;:
+ *   is also found in the receiver, the method(s)
  *   will be used when appropriate for better performance.</item>
  *  <item>If the set of methods is not found, searches the receiver for a the
- *   method set<Key>:. Each message sent to the proxy set will result in
- *   the invocation of set<Key>:</item>
+ *   method set&lt;Key&gt;:. Each message sent to the proxy set will result in
+ *   the invocation of set&lt;Key&gt;:</item>
  *  <item>If the previous do not match, and accessInstanceVariablesDirectly
- *   returns YES, searches for an instance variable matching _<key> or 
- *   <key> (in that order). If the instance variable is found, messages sent
+ *   returns YES, searches for an instance variable matching _&lt;key&gt; or 
+ *   &lt;key&gt; (in that order). If the instance variable is found,
+ *   messages sent
  *   to the proxy object will be forwarded to the instance variable.</item>
  *  <item>If none of the previous are found, raises an NSUndefinedKeyException 
+ *  </item>
+ * </list>
  */
 - (NSMutableSet*) mutableSetValueForKey: (NSString *)aKey;
 
