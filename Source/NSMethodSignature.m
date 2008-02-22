@@ -170,13 +170,24 @@
   if (_info == 0)
     {
       const char	*types = _methodTypes;
+      char		*outTypes;
       unsigned int	i;
 
-      _info = NSZoneMalloc(NSDefaultMallocZone(),
-	sizeof(NSArgumentInfo)*(_numArgs+1));
+      /* Allocate space enough for an NSArgumentInfo structure for each
+       * argument (including the return type), and enough space to hold
+       * the type information for each argument as a nul terminated
+       * string.
+       */
+      outTypes = NSZoneMalloc(NSDefaultMallocZone(),
+	sizeof(NSArgumentInfo)*(_numArgs+1) + strlen(types)*2);
+      _info = (NSArgumentInfo*)outTypes;
+      outTypes = outTypes + sizeof(NSArgumentInfo)*(_numArgs+1);
+      /* Fill in the full argment information for each arg.
+       */
       for (i = 0; i <= _numArgs; i++)
 	{
-	  types = mframe_next_arg(types, &_info[i]);
+	  types = mframe_next_arg(types, &_info[i], outTypes);
+	  outTypes += strlen(outTypes) + 1;
 	}
     }
   return _info;

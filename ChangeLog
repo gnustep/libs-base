@@ -1,3 +1,10 @@
+2008-02-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/mframe/mframe.head: Change function arguments
+	* Source/mframe.m: Support nul termination of type strings
+	* Source/NSMethodSignature.m: nul terminate type strings
+	* Source/NSObjCRuntime.m: update for changed function args
+
 2008-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSKeyValueCoding.h:

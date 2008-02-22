@@ -109,7 +109,7 @@ const char *
 NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
 {
   NSArgumentInfo	info;
-  typePtr = mframe_next_arg(typePtr, &info);
+  typePtr = mframe_next_arg(typePtr, &info, 0);
   if (sizep)
     *sizep = info.size;
   if (alignp)
