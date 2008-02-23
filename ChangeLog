@@ -1,3 +1,8 @@
+2008-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSKeyValueObserving.m:
+        Don't calculate KVO info in cases where there is no observer.
+
 2008-02-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/mframe/mframe.head: Change function arguments
