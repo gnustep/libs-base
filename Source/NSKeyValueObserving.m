@@ -517,14 +517,16 @@ replacementForClass(Class c)
               NSString *mainKey;
               NSHashTable dependents;
 
-              while (NSNextMapEnumeratorPair(&enumerator, (void **)(&mainKey), &dependents))
+              while (NSNextMapEnumeratorPair(&enumerator, (void **)(&mainKey),
+                &dependents))
                 {
                   NSHashEnumerator dependentKeyEnum;
                   NSString *dependentKey;
 
                   if (!dependents) continue;
                   dependentKeyEnum = NSEnumerateHashTable(dependents);
-                  while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
+                  while ((dependentKey
+                    = NSNextHashEnumeratorItem(&dependentKeyEnum)))
                     {
                       if ([dependentKey isEqual: aKey])
                         {
@@ -1265,38 +1267,46 @@ replacementForClass(Class c)
 - (void) willChangeValueForDependentsOfKey: (NSString *)aKey
 {
   NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
+
   if (keys)
     {
-      NSHashTable dependents = NSMapGet(keys, aKey);
-      NSString *dependentKey;
-      NSHashEnumerator dependentKeyEnum;
+      NSHashTable       dependents = NSMapGet(keys, aKey);
 
-      if (!dependents) return;
-      dependentKeyEnum = NSEnumerateHashTable(dependents);
-      while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
+      if (dependents != 0)
         {
-          [self willChangeValueForKey:dependentKey];
+          NSString              *dependentKey;
+          NSHashEnumerator      dependentKeyEnum;
+
+          dependentKeyEnum = NSEnumerateHashTable(dependents);
+          while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
+            {
+              [self willChangeValueForKey: dependentKey];
+            }
+          NSEndHashTableEnumeration(&dependentKeyEnum);
         }
-      NSEndHashTableEnumeration(&dependentKeyEnum);
     }
 }
 
 - (void) didChangeValueForDependentsOfKey: (NSString *)aKey
 {
   NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
+
   if (keys)
     {
       NSHashTable dependents = NSMapGet(keys, aKey);
-      NSString *dependentKey;
-      NSHashEnumerator dependentKeyEnum;
 
-      if (!dependents) return;
-      dependentKeyEnum = NSEnumerateHashTable(dependents);
-      while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
+      if (dependents != nil)
         {
-          [self didChangeValueForKey:dependentKey];
+          NSString              *dependentKey;
+          NSHashEnumerator      dependentKeyEnum;
+
+          dependentKeyEnum = NSEnumerateHashTable(dependents);
+          while ((dependentKey = NSNextHashEnumeratorItem(&dependentKeyEnum)))
+            {
+              [self didChangeValueForKey: dependentKey];
+            }
+          NSEndHashTableEnumeration(&dependentKeyEnum);
         }
-      NSEndHashTableEnumeration(&dependentKeyEnum);
     }
 }
 
@@ -1307,32 +1317,43 @@ replacementForClass(Class c)
  */
 - (void) willChangeValueForKey: (NSString*)aKey
 {
-  id old = [self valueForKey: aKey];
-  NSDictionary * change;
-  if (old != nil)
-    change = [NSMutableDictionary
-    dictionaryWithObject: [self valueForKey: aKey]
-                  forKey: NSKeyValueChangeOldKey];
-  else
-    change = [NSMutableDictionary dictionary];
-  [(GSKVOInfo *)[self observationInfo] setChange: change forKey: aKey];
+  GSKVOInfo     *info;
+
+  info = (GSKVOInfo *)[self observationInfo];
+  if (info != nil)
+    {
+      id            old;
+      NSDictionary  *change;
+
+      change = [NSMutableDictionary dictionary];
+      old = [self valueForKey: aKey];
+      if (old != nil)
+        {
+          [change setObject: old forKey: NSKeyValueChangeOldKey];
+        }
+      [info setChange: change forKey: aKey];
+    }
   [self willChangeValueForDependentsOfKey: aKey];
 }
 
 - (void) didChangeValueForKey: (NSString*)aKey
 {
   GSKVOInfo	        *info;
-  NSMutableDictionary   *change;
 
   info = (GSKVOInfo *)[self observationInfo];
-  change = (NSMutableDictionary *)[info changeForKey: aKey];
-  [change setValue: [self valueForKey: aKey]
-            forKey: NSKeyValueChangeNewKey];
-  [change setValue: [NSNumber numberWithInt: NSKeyValueChangeSetting]
-            forKey: NSKeyValueChangeKindKey];
+  if (info != nil)
+    {
+      NSMutableDictionary   *change;
 
-  [info notifyForKey: aKey ofChange: change];
-  [info setChange:nil forKey: aKey];
+      change = (NSMutableDictionary *)[info changeForKey: aKey];
+      [change setValue: [self valueForKey: aKey]
+                forKey: NSKeyValueChangeNewKey];
+      [change setValue: [NSNumber numberWithInt: NSKeyValueChangeSetting]
+                forKey: NSKeyValueChangeKindKey];
+
+      [info notifyForKey: aKey ofChange: change];
+      [info setChange: nil forKey: aKey];
+    }
   [self didChangeValueForDependentsOfKey: aKey];
 }
 
@@ -1341,26 +1362,30 @@ replacementForClass(Class c)
 	    forKey: (NSString*)aKey
 {
   GSKVOInfo	        *info;
-  NSMutableDictionary   *change;
-  NSMutableArray        *array;
 
   info = [self observationInfo];
-  change = (NSMutableDictionary *)[info changeForKey: aKey];
-  array = [self valueForKey: aKey];
-
-  [change setValue: [NSNumber numberWithInt: changeKind] forKey:
-    NSKeyValueChangeKindKey];
-  [change setValue: indexes forKey: NSKeyValueChangeIndexesKey];
-
-  if (changeKind == NSKeyValueChangeInsertion
-    || changeKind == NSKeyValueChangeReplacement)
+  if (info != nil)
     {
-      [change setValue: [array objectsAtIndexes: indexes]
-                forKey: NSKeyValueChangeNewKey];
-    }
+      NSMutableDictionary   *change;
+      NSMutableArray        *array;
 
-  [info notifyForKey: aKey ofChange: change];
-  [info setChange:nil forKey: aKey];
+      change = (NSMutableDictionary *)[info changeForKey: aKey];
+      array = [self valueForKey: aKey];
+
+      [change setValue: [NSNumber numberWithInt: changeKind] forKey:
+        NSKeyValueChangeKindKey];
+      [change setValue: indexes forKey: NSKeyValueChangeIndexesKey];
+
+      if (changeKind == NSKeyValueChangeInsertion
+        || changeKind == NSKeyValueChangeReplacement)
+        {
+          [change setValue: [array objectsAtIndexes: indexes]
+                    forKey: NSKeyValueChangeNewKey];
+        }
+
+      [info notifyForKey: aKey ofChange: change];
+      [info setChange:nil forKey: aKey];
+    }
   [self didChangeValueForDependentsOfKey: aKey];
 }
 
@@ -1369,21 +1394,24 @@ replacementForClass(Class c)
 	     forKey: (NSString*)aKey
 {
   GSKVOInfo	        *info;
-  NSDictionary          *change;
-  NSMutableArray        *array;
 
   info = [self observationInfo];
-  change = [NSMutableDictionary dictionary];
-  array = [self valueForKey: aKey];
-
-  if (changeKind == NSKeyValueChangeRemoval
-    || changeKind == NSKeyValueChangeReplacement)
     {
-      [change setValue: [array objectsAtIndexes: indexes]
-                forKey: NSKeyValueChangeOldKey];
-    }
+      NSDictionary          *change;
+      NSMutableArray        *array;
 
-  [info setChange: change forKey: aKey];
+      change = [NSMutableDictionary dictionary];
+      array = [self valueForKey: aKey];
+
+      if (changeKind == NSKeyValueChangeRemoval
+        || changeKind == NSKeyValueChangeReplacement)
+        {
+          [change setValue: [array objectsAtIndexes: indexes]
+                    forKey: NSKeyValueChangeOldKey];
+        }
+
+      [info setChange: change forKey: aKey];
+    }
   [self willChangeValueForDependentsOfKey: aKey];
 }
 
@@ -1392,15 +1420,19 @@ replacementForClass(Class c)
 		  usingObjects: (NSSet*)objects
 {
   GSKVOInfo	*info;
-  NSDictionary  *change;
-  NSMutableSet  *set;
 
   info = [self observationInfo];
-  change = [NSMutableDictionary dictionary];
-  set = [self valueForKey: aKey];
+  if (info != nil)
+    {
+      NSDictionary  *change;
+      NSMutableSet  *set;
 
-  [change setValue: [set mutableCopy] forKey: @"oldSet"];
-  [info setChange: change forKey: aKey];
+      change = [NSMutableDictionary dictionary];
+      set = [self valueForKey: aKey];
+
+      [change setValue: [set mutableCopy] forKey: @"oldSet"];
+      [info setChange: change forKey: aKey];
+    }
   [self willChangeValueForDependentsOfKey: aKey];
 }
 
@@ -1409,49 +1441,52 @@ replacementForClass(Class c)
 		 usingObjects: (NSSet*)objects
 {
   GSKVOInfo	        *info;
-  NSMutableDictionary   *change;
-  NSMutableSet          *oldSet;
-  NSMutableSet          *set;
 
   info = (GSKVOInfo *)[self observationInfo];
-  change = (NSMutableDictionary *)[info changeForKey: aKey];
-  oldSet = [change valueForKey: @"oldSet"];
-  set = [self valueForKey: aKey];
-
-  [change setValue: nil forKey: @"oldSet"];
-
-  if (mutationKind == NSKeyValueUnionSetMutation)
+  if (info != nil)
     {
-      set = [set mutableCopy];
-      [set minusSet: oldSet];
-      [change setValue: [NSNumber numberWithInt: NSKeyValueChangeInsertion]
-                forKey: NSKeyValueChangeKindKey];
-      [change setValue: set forKey: NSKeyValueChangeNewKey];
-    }
-  else if (mutationKind == NSKeyValueMinusSetMutation
-    || mutationKind == NSKeyValueIntersectSetMutation)
-    {
-      [oldSet minusSet: set];
-      [change setValue: [NSNumber numberWithInt: NSKeyValueChangeRemoval]
-                forKey: NSKeyValueChangeKindKey];
-      [change setValue: oldSet forKey: NSKeyValueChangeOldKey];
-    }
-  else if (mutationKind == NSKeyValueSetSetMutation)
-    {
-      NSMutableSet      *old;
-      NSMutableSet      *new;
+      NSMutableDictionary   *change;
+      NSMutableSet          *oldSet;
+      NSMutableSet          *set;
 
-      old = [oldSet mutableCopy];
-      [old minusSet: set];
-      new = [set mutableCopy];
-      [new minusSet: oldSet];
-      [change setValue: [NSNumber numberWithInt: NSKeyValueChangeReplacement]
-                forKey: NSKeyValueChangeKindKey];
-      [change setValue: old forKey: NSKeyValueChangeOldKey];
-      [change setValue: new forKey: NSKeyValueChangeNewKey];
+      change = (NSMutableDictionary *)[info changeForKey: aKey];
+      oldSet = [change valueForKey: @"oldSet"];
+      set = [self valueForKey: aKey];
+      [change setValue: nil forKey: @"oldSet"];
+      if (mutationKind == NSKeyValueUnionSetMutation)
+        {
+          set = [set mutableCopy];
+          [set minusSet: oldSet];
+          [change setValue: [NSNumber numberWithInt: NSKeyValueChangeInsertion]
+                    forKey: NSKeyValueChangeKindKey];
+          [change setValue: set forKey: NSKeyValueChangeNewKey];
+        }
+      else if (mutationKind == NSKeyValueMinusSetMutation
+        || mutationKind == NSKeyValueIntersectSetMutation)
+        {
+          [oldSet minusSet: set];
+          [change setValue: [NSNumber numberWithInt: NSKeyValueChangeRemoval]
+                    forKey: NSKeyValueChangeKindKey];
+          [change setValue: oldSet forKey: NSKeyValueChangeOldKey];
+        }
+      else if (mutationKind == NSKeyValueSetSetMutation)
+        {
+          NSMutableSet      *old;
+          NSMutableSet      *new;
+
+          old = [oldSet mutableCopy];
+          [old minusSet: set];
+          new = [set mutableCopy];
+          [new minusSet: oldSet];
+          [change setValue:
+            [NSNumber numberWithInt: NSKeyValueChangeReplacement]
+                    forKey: NSKeyValueChangeKindKey];
+          [change setValue: old forKey: NSKeyValueChangeOldKey];
+          [change setValue: new forKey: NSKeyValueChangeNewKey];
+        }
+      [info notifyForKey: aKey ofChange: change];
+      [info setChange:nil forKey: aKey];
     }
-  [info notifyForKey: aKey ofChange: change];
-  [info setChange:nil forKey: aKey];
   [self didChangeValueForDependentsOfKey: aKey];
 }
 
