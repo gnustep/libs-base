@@ -1322,8 +1322,8 @@ replacementForClass(Class c)
   info = (GSKVOInfo *)[self observationInfo];
   if (info != nil)
     {
-      id            old;
-      NSDictionary  *change;
+      id                        old;
+      NSMutableDictionary       *change;
 
       change = [NSMutableDictionary dictionary];
       old = [self valueForKey: aKey];
