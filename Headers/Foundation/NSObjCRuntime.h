@@ -29,12 +29,16 @@
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
-
+#import	<GNUstepBase/preface.h>
+#import	<GNUstepBase/GSConfig.h>
 #import	<GNUstepBase/GSObjCRuntime.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+
+typedef	gsaddr	NSInteger;
+typedef	gsuaddr	NSUInteger;
 
 GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
