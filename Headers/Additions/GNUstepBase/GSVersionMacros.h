@@ -61,13 +61,6 @@
 #endif	/* MAC_OS_X_VERSION_MIN_ALLOWED */
 #endif	/* GS_OPENSTEP_V */
 
-#ifndef	MAC_OS_X_VERSION_MIN_ALLOWED
-#define MAC_OS_X_VERSION_MIN_ALLOWED    GS_OPENSTEP_V
-#endif
-#ifndef	MAC_OS_X_VERSION_MAX_ALLOWED
-#define MAC_OS_X_VERSION_MAX_ALLOWED    GS_OPENSTEP_V
-#endif
-
 /*
  * NB. The version values below must be integers ... by convention these are
  * made up of two digits each for major, minor and subminor version numbers

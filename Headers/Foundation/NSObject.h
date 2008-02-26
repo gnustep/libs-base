@@ -27,13 +27,9 @@
 
 #ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
 #define __NSObject_h_GNUSTEP_BASE_INCLUDE
-#import	<GNUstepBase/GSVersionMacros.h>
-
 #import	<Foundation/NSObjCRuntime.h>
-#import	<GNUstepBase/preface.h>
-#include <GNUstepBase/GSConfig.h>
-#include <objc/objc.h>
-#include <objc/typedstream.h>
+#import <objc/objc.h>
+#import <objc/typedstream.h>
 #import	<Foundation/NSZone.h>
 
 #if	defined(__cplusplus)

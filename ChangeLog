@@ -1,3 +1,13 @@
+2008-02-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h: Moved some headers to NSObjCRuntime.h
+	* Headers/Foundation/NSObjCRuntime.h: Added NSInbteger and NSUInteger
+	for MacOSX compatibiulity.
+	* Headers/Additions/GNUstep/GSVersionMacros.h: Don't declare constants
+	which should be set by the user to say which MacOSX version they want.
+	* Headers/Foundation/NSPointerFunctions.h: New MacOSX declarations ...
+	no definitions yet.
+
 2008-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSKeyValueObserving.m:
