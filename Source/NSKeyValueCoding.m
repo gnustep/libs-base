@@ -55,6 +55,31 @@ NSString* const NSUndefinedKeyException = @"NSUnknownKeyException";
 /* this should move into autoconf once it's accepted */
 #define WANT_DEPRECATED_KVC_COMPAT 1
 
+#ifdef WANT_DEPRECATED_KVC_COMPAT
+
+static IMP      takePath = 0;
+static IMP      takeValue = 0;
+static IMP      takePathKVO = 0;
+static IMP      takeValueKVO = 0;
+
+static inline void setupCompat()
+{
+  if (takePath == 0)
+    {
+      Class  c = NSClassFromString(@"GSKVOBase");
+
+      takePathKVO = [c instanceMethodForSelector:
+        @selector(takeValue:forKeyPath:)];
+      takePath = [NSObject instanceMethodForSelector:
+        @selector(takeValue:forKeyPath:)];
+      takeValueKVO = [c instanceMethodForSelector:
+        @selector(takeValue:forKey:)];
+      takeValue = [NSObject instanceMethodForSelector:
+        @selector(takeValue:forKey:)];
+    }
+}
+
+#endif
 
 static void
 SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
@@ -340,16 +365,12 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   unsigned	size = [aKey length] * 8;
   char		key[size+1];
 #ifdef WANT_DEPRECATED_KVC_COMPAT
-  static IMP	o = 0;
+  IMP   	o = [self methodForSelector: @selector(takeValue:forKey:)];
 
-  /* Backward compatibility hack */
-  if (o == 0)
+  setupCompat();
+  if (o != takeValue && o != takeValueKVO)
     {
-      o = [NSObject instanceMethodForSelector: @selector(takeValue:forKey:)];
-    }
-  if ([self methodForSelector: @selector(takeValue:forKey:)] != o)
-    {
-      [self takeValue: anObject forKey: aKey];
+      (*o)(self, @selector(takeValue:forKey:), aKey);
       return;
     }
 #endif
@@ -370,17 +391,12 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   unsigned	end = 0;
   id		obj = self;
 #ifdef WANT_DEPRECATED_KVC_COMPAT
-  static IMP	o = 0;
+  IMP	        o = [self methodForSelector: @selector(takeValue:forKeyPath:)];
 
-  /* Backward compatibility hack */
-  if (o == 0)
+  setupCompat();
+  if (o != takePath && o != takePathKVO)
     {
-      o = [NSObject instanceMethodForSelector:
-  @selector(takeValue:forKeyPath:)];
-    }
-  if ([self methodForSelector: @selector(takeValue:forKeyPath:)] != o)
-    {
-      [self takeValue: anObject forKeyPath: aKey];
+      (*o)(self, @selector(takeValue:forKeyPath:), anObject, aKey);
       return;
     }
 #endif
