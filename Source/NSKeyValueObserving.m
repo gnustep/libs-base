@@ -143,12 +143,12 @@ static inline void setup()
   NSMapTable	        *paths;
   NSMutableDictionary   *changes;
 }
-- (void) notifyForKey: (NSString *)aKey ofChange: (NSDictionary *)change;
-- (void) setChange: (NSDictionary *)info forKey: (NSString *)key;
-- (NSDictionary *) changeForKey: (NSString *)key;
+- (NSMutableDictionary *) changeForKey: (NSString *)key;
+- (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath;
 - (id) initWithInstance: (NSObject*)i;
 - (BOOL) isUnobserved;
-- (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath;
+- (void) notifyForKey: (NSString *)aKey ofChange: (NSDictionary *)change;
+- (void) setChange: (NSMutableDictionary *)info forKey: (NSString *)key;
 
 @end
 
@@ -369,6 +369,22 @@ replacementForClass(Class c)
   NSString		*superName;
   NSString		*name;
 
+  if ([aClass instanceMethodForSelector: @selector(takeValue:forKey:)]
+    != [NSObject instanceMethodForSelector: @selector(takeValue:forKey:)])
+    {
+      NSLog(@"WARNING The class '%@' (or one of its superclasses) overrides"
+        @" the deprecated takeValue:forKey: method.  Using KVO to observe"
+        @" this class may interfere with this method.  Please change the"
+        @" class to override -setValue:forKey: instead.");
+    }
+  if ([aClass instanceMethodForSelector: @selector(takeValue:forKeyPath:)]
+    != [NSObject instanceMethodForSelector: @selector(takeValue:forKeyPath:)])
+    {
+      NSLog(@"WARNING The class '%@' (or one of its superclasses) overrides"
+        @" the deprecated takeValue:forKeyPath: method.  Using KVO to observe"
+        @" this class may interfere with this method.  Please change the"
+        @" class to override -setValue:forKeyPath: instead.");
+    }
   original = aClass;
 
   /*
@@ -797,6 +813,7 @@ replacementForClass(Class c)
 {
   if (paths != 0) NSFreeMapTable(paths);
   RELEASE(iLock);
+  RELEASE(changes);
   [super dealloc];
 }
 
@@ -846,13 +863,12 @@ replacementForClass(Class c)
   return self;
 }
 
-- (void) setChange: (NSDictionary *)info forKey: (NSString *)key
+- (void) setChange: (NSMutableDictionary *)info forKey: (NSString *)key
 {
   [changes setValue: info forKey: key];
-
 }
 
-- (NSDictionary *) changeForKey: (NSString *)key
+- (NSMutableDictionary *) changeForKey: (NSString *)key
 {
   return [changes valueForKey: key];
 }
@@ -876,7 +892,7 @@ replacementForClass(Class c)
 - (void) removeObserver: (NSObject*)anObserver forKeyPath: (NSString*)aPath
 {
   NSMapTable	*observers;
-  NSMapTable * observer;
+  NSMapTable    *observer;
 
   [iLock lock];
   observers = (NSMapTable*)NSMapGet(paths, (void*)aPath);
@@ -899,8 +915,8 @@ replacementForClass(Class c)
 - (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath
 {
   NSMapTable	*observers;
-  NSMapTable * observer;
-  void * context = 0;
+  NSMapTable    *observer;
+  void          *context = 0;
 
   [iLock lock];
   observers = (NSMapTable*)NSMapGet(paths, (void*)aPath);
@@ -921,9 +937,9 @@ replacementForClass(Class c)
 @implementation NSKeyValueObservationForwarder
 
 + (id) forwarderWithKeyPath: (NSString *)keyPath
-              ofObject: (id)object
-            withTarget: (id)aTarget
-               context: (void *)context
+                   ofObject: (id)object
+                 withTarget: (id)aTarget
+                    context: (void *)context
 {
   return [[self alloc] initWithKeyPath: keyPath
                               ofObject: object
@@ -1056,7 +1072,8 @@ replacementForClass(Class c)
         {
           id oldValue;
 
-          oldValue = [observedObjectForForwarding valueForKey: keyForForwarding];
+          oldValue
+            = [observedObjectForForwarding valueForKey: keyForForwarding];
           [observedObjectForForwarding removeObserver: self forKeyPath: 
                                            keyForForwarding];
           if (oldValue)
@@ -1076,7 +1093,8 @@ replacementForClass(Class c)
                                        | NSKeyValueObservingOptionOld
                                        context: target];
           //prepare change notification
-          newValue = [observedObjectForForwarding valueForKey: keyForForwarding];
+          newValue
+            = [observedObjectForForwarding valueForKey: keyForForwarding];
           if (newValue)
             {
               [change setObject: newValue forKey: NSKeyValueChangeNewKey];
@@ -1310,11 +1328,6 @@ replacementForClass(Class c)
     }
 }
 
-/* FIXME
- * It may be beneficial (performance-wise) to only calculate the old and new
- * values in the willChange... and didChange... methods if explicitly needed
- * by an observer.
- */
 - (void) willChangeValueForKey: (NSString*)aKey
 {
   GSKVOInfo     *info;
@@ -1325,13 +1338,32 @@ replacementForClass(Class c)
       id                        old;
       NSMutableDictionary       *change;
 
-      change = [NSMutableDictionary dictionary];
-      old = [self valueForKey: aKey];
-      if (old != nil)
+      change = [info changeForKey: aKey];
+      if (change == nil)
+        {
+          change = [[NSMutableDictionary alloc] initWithCapacity: 1];
+          [info setChange: change forKey: aKey];
+          RELEASE(change);
+        }
+      old = [change objectForKey: NSKeyValueChangeNewKey];
+      if (old == nil)
+        {
+          old = [self valueForKey: aKey];
+          if (old == nil)
+            {
+              [change removeObjectForKey: NSKeyValueChangeOldKey];
+            }
+          else
+            {
+              [change setObject: old forKey: NSKeyValueChangeOldKey];
+            }
+        }
+      else
         {
           [change setObject: old forKey: NSKeyValueChangeOldKey];
         }
-      [info setChange: change forKey: aKey];
+      [change removeObjectForKey: NSKeyValueChangeNewKey];
+      [change removeObjectForKey: NSKeyValueChangeKindKey];
     }
   [self willChangeValueForDependentsOfKey: aKey];
 }
@@ -1350,9 +1382,7 @@ replacementForClass(Class c)
                 forKey: NSKeyValueChangeNewKey];
       [change setValue: [NSNumber numberWithInt: NSKeyValueChangeSetting]
                 forKey: NSKeyValueChangeKindKey];
-
       [info notifyForKey: aKey ofChange: change];
-      [info setChange: nil forKey: aKey];
     }
   [self didChangeValueForDependentsOfKey: aKey];
 }
@@ -1384,7 +1414,6 @@ replacementForClass(Class c)
         }
 
       [info notifyForKey: aKey ofChange: change];
-      [info setChange:nil forKey: aKey];
     }
   [self didChangeValueForDependentsOfKey: aKey];
 }
@@ -1397,10 +1426,10 @@ replacementForClass(Class c)
 
   info = [self observationInfo];
     {
-      NSDictionary          *change;
+      NSMutableDictionary   *change;
       NSMutableArray        *array;
 
-      change = [NSMutableDictionary dictionary];
+      change = [[NSMutableDictionary alloc] initWithCapacity: 1];
       array = [self valueForKey: aKey];
 
       if (changeKind == NSKeyValueChangeRemoval
@@ -1411,6 +1440,7 @@ replacementForClass(Class c)
         }
 
       [info setChange: change forKey: aKey];
+      RELEASE(change);
     }
   [self willChangeValueForDependentsOfKey: aKey];
 }
@@ -1424,14 +1454,15 @@ replacementForClass(Class c)
   info = [self observationInfo];
   if (info != nil)
     {
-      NSDictionary  *change;
-      NSMutableSet  *set;
+      NSMutableDictionary       *change;
+      NSMutableSet              *set;
 
-      change = [NSMutableDictionary dictionary];
+      change = [[NSMutableDictionary alloc] initWithCapacity: 1];
       set = [self valueForKey: aKey];
 
       [change setValue: [set mutableCopy] forKey: @"oldSet"];
       [info setChange: change forKey: aKey];
+      RELEASE(change);
     }
   [self willChangeValueForDependentsOfKey: aKey];
 }
@@ -1485,7 +1516,6 @@ replacementForClass(Class c)
           [change setValue: new forKey: NSKeyValueChangeNewKey];
         }
       [info notifyForKey: aKey ofChange: change];
-      [info setChange:nil forKey: aKey];
     }
   [self didChangeValueForDependentsOfKey: aKey];
 }
