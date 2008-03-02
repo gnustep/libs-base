@@ -375,7 +375,8 @@ replacementForClass(Class c)
       NSLog(@"WARNING The class '%@' (or one of its superclasses) overrides"
         @" the deprecated takeValue:forKey: method.  Using KVO to observe"
         @" this class may interfere with this method.  Please change the"
-        @" class to override -setValue:forKey: instead.");
+        @" class to override -setValue:forKey: instead.",
+        NSStringFromClass(aClass));
     }
   if ([aClass instanceMethodForSelector: @selector(takeValue:forKeyPath:)]
     != [NSObject instanceMethodForSelector: @selector(takeValue:forKeyPath:)])
@@ -383,7 +384,8 @@ replacementForClass(Class c)
       NSLog(@"WARNING The class '%@' (or one of its superclasses) overrides"
         @" the deprecated takeValue:forKeyPath: method.  Using KVO to observe"
         @" this class may interfere with this method.  Please change the"
-        @" class to override -setValue:forKeyPath: instead.");
+        @" class to override -setValue:forKeyPath: instead.",
+        NSStringFromClass(aClass));
     }
   original = aClass;
 
