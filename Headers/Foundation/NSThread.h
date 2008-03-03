@@ -52,6 +52,7 @@ extern "C" {
   NSMutableDictionary	*_thread_dictionary;
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
+  void                  *_runLoopInfo;  // Per-thread runloop related info.
   void                  *_reserved;     // For future expansion
 }
 
