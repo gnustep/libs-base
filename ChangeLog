@@ -1,3 +1,11 @@
+2008-03-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNull.m: Make result of description method match MacOSX
+	* Headers/Foundation/NSKeyValueObserving.h: Add new MacOSX features.
+	* Source/NSKeyValueObserving.m: Rewrite code for handling observations
+	and notifications.  Fix various bugs and add new options from
+	version 10.5 of MacOS-X
+
 2008-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueCoding.m: Avoid calling deprecated methods as a
