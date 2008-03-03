@@ -2,7 +2,7 @@
    Copyright (C) 2005 Free Software Foundation, Inc.
 
    Written by Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Date: 2005
+   Date: 2005-2008
 
    This file is part of the GNUstep Base Library.
 
@@ -35,6 +35,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSNull.h"
 #import "Foundation/NSObject.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSString.h"
@@ -63,26 +64,25 @@
  * with a another generic setter.
  */
 
-NSString *const NSKeyValueChangeIndexesKey
-  = @"NSKeyValueChangeIndexesKey";
-NSString *const NSKeyValueChangeKindKey
-  = @"NSKeyValueChangeKindKey";
-NSString *const NSKeyValueChangeNewKey
-  = @"NSKeyValueChangeNewKey";
-NSString *const NSKeyValueChangeOldKey
-  = @"NSKeyValueChangeOldKey";
+NSString *const NSKeyValueChangeIndexesKey = @"indexes";
+NSString *const NSKeyValueChangeKindKey = @"kind";
+NSString *const NSKeyValueChangeNewKey = @"new";
+NSString *const NSKeyValueChangeOldKey = @"old";
+NSString *const NSKeyValueChangeNotificationIsPriorKey = @"notificationIsPrior";
 
 static NSRecursiveLock	*kvoLock = nil;
 static NSMapTable	*classTable = 0;
 static NSMapTable	*infoTable = 0;
 static NSMapTable       *dependentKeyTable;
 static Class		baseClass;
+static id               null;
 
 static inline void setup()
 {
   if (kvoLock == nil)
     {
       kvoLock = [GSLazyRecursiveLock new];
+      null = [[NSNull null] retain];
       classTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 128);
       infoTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
@@ -132,6 +132,31 @@ static inline void setup()
 - (void) setterShort: (unsigned short)val;
 @end
 
+/* An instance of this records all the information for a single observation.
+ */
+@interface	GSKVOObservation : NSObject
+{
+@public
+  NSObject      *observer;      // Not retained
+  void          *context;
+  int           options;
+}
+@end
+
+/* An instance of thsi records the observations for a key path and the
+ * recursion state of the process of sending notifications.
+ */
+@interface	GSKVOPathInfo : NSObject
+{
+@public
+  unsigned              recursion;
+  unsigned              allOptions;
+  NSMutableArray        *observations;
+  NSMutableDictionary   *change;
+}
+- (void) notifyForKey: (NSString *)aKey ofInstance: (id)instance prior: (BOOL)f;
+@end
+
 /*
  * Instances of this class are created to hold information about the
  * observers monitoring a particular object which is being observed.
@@ -141,14 +166,13 @@ static inline void setup()
   NSObject	        *instance;	// Not retained.
   NSLock	        *iLock;
   NSMapTable	        *paths;
-  NSMutableDictionary   *changes;
 }
-- (NSMutableDictionary *) changeForKey: (NSString *)key;
+- (GSKVOPathInfo *) lockReturningPathInfoForKey: (NSString *)key;
 - (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath;
 - (id) initWithInstance: (NSObject*)i;
+- (NSObject*) instance;
 - (BOOL) isUnobserved;
-- (void) notifyForKey: (NSString *)aKey ofChange: (NSDictionary *)change;
-- (void) setChange: (NSMutableDictionary *)info forKey: (NSString *)key;
+- (void) unlock;
 
 @end
 
@@ -778,36 +802,202 @@ replacementForClass(Class c)
 @end
 
 
+@implementation	GSKVOObservation
+@end
+
+@implementation	GSKVOPathInfo
+- (void) dealloc
+{
+  [change release];
+  [observations release];
+  [super dealloc];
+}
+
+- (id) init
+{
+  change = [NSMutableDictionary new];
+  observations = [NSMutableArray new];
+  return self;
+}
+ 
+- (void) notifyForKey: (NSString *)aKey ofInstance: (id)instance prior: (BOOL)f
+{
+  unsigned      count;
+  id            oldValue;
+  id            newValue;
+
+  if (f == YES)
+    {
+      if ((allOptions & NSKeyValueObservingOptionPrior) == 0)
+        {
+          return;   // Nothing to do.
+        }
+      [change setObject: [NSNumber numberWithBool: YES]
+                 forKey: NSKeyValueChangeNotificationIsPriorKey];
+    }
+  else
+    {
+      [change removeObjectForKey: NSKeyValueChangeNotificationIsPriorKey];
+    }
+
+  oldValue = [[change objectForKey: NSKeyValueChangeOldKey] retain];
+  if (oldValue == nil)
+    {
+      oldValue = null;
+    }
+  newValue = [[change objectForKey: NSKeyValueChangeNewKey] retain];
+  if (newValue == nil)
+    {
+      newValue = null;
+    }
+
+  count = [observations count];
+  while (count-- > 0)
+    {
+      GSKVOObservation  *o = [observations objectAtIndex: count];
+
+      if (f == YES)
+        {
+          if ((o->options & NSKeyValueObservingOptionPrior) == 0)
+            {
+              continue;
+            }
+        }
+      else
+        {
+          if (o->options & NSKeyValueObservingOptionNew)
+            {
+              [change setObject: newValue
+                         forKey: NSKeyValueChangeNewKey];
+            }
+        }
+
+      if (o->options & NSKeyValueObservingOptionOld)
+        {
+          [change setObject: oldValue
+                     forKey: NSKeyValueChangeOldKey];
+        }
+
+      [o->observer observeValueForKeyPath: aKey
+                                 ofObject: instance
+                                   change: change
+                                  context: o->context];
+    }
+
+  [change setObject: oldValue forKey: NSKeyValueChangeOldKey];
+  [oldValue release];
+  [change setObject: newValue forKey: NSKeyValueChangeNewKey];
+  [newValue release];
+}
+@end
+
 @implementation	GSKVOInfo
+
+- (NSObject*) instance
+{
+  return instance;
+}
+
+/* Locks receiver and returns path info on success, otherwise
+ * leaves receiver munlocked and returns nil.
+ */
+- (GSKVOPathInfo*) lockReturningPathInfoForKey: (NSString*)key
+{
+  GSKVOPathInfo *pathInfo;
+
+  [iLock lock];
+  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)key);
+  if (pathInfo == nil)
+    {
+      [iLock unlock];
+    }
+  return pathInfo;
+}
+
+- (void) unlock
+{
+  [iLock unlock];
+}
+
 - (void) addObserver: (NSObject*)anObserver
 	  forKeyPath: (NSString*)aPath
 	     options: (NSKeyValueObservingOptions)options
 	     context: (void*)aContext
 {
-  NSMapTable	*observers;
-  NSMapTable    *observer;
+  GSKVOPathInfo         *pathInfo;
+  GSKVOObservation      *observation;
+  unsigned              count;
 
-  [iLock lock];
-  observers = (NSMapTable*)NSMapGet(paths, (void*)aPath);
-  if (observers == 0)
+  if ([anObserver respondsToSelector:
+    @selector(observeValueForKeyPath:ofObject:change:context:)] == NO)
     {
-      observers = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 8);
+      return;
+    }
+  [iLock lock];
+  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
+  if (pathInfo == nil)
+    {
+      pathInfo = [GSKVOPathInfo new];
       // use immutable object for map key
       aPath = [aPath copy];
-      NSMapInsert(paths, (void*)aPath, (void*)observers);
-      RELEASE(aPath);
+      NSMapInsert(paths, (void*)aPath, (void*)pathInfo);
+      [pathInfo release];
+      [aPath release];
     }
-  /*
-   * FIXME ... should store an object containing context and options.
-   * For simplicity right now, just store context or a dummy value.
-   */
-  observer = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
-      NSNonOwnedPointerMapValueCallBacks, 3);
-  NSMapInsert(observer, (void *)@"context", aContext);
-  NSMapInsert(observer, (void *)@"options", (void *)options);
 
-  NSMapInsert(observers, (void*)anObserver, observer);
+  observation = nil;
+  pathInfo->allOptions = 0;
+  count = [pathInfo->observations count];
+  while (count-- > 0)
+    {
+      GSKVOObservation      *o;
+
+      o = [pathInfo->observations objectAtIndex: count];
+      if (o->observer == anObserver)
+        {
+          o->observer = anObserver;
+          o->context = aContext;
+          o->options = options;
+          observation = o;
+        }
+      pathInfo->allOptions |= o->options;
+    }
+  if (observation == nil)
+    {
+      observation = [GSKVOObservation new];
+      observation->observer = anObserver;
+      observation->context = aContext;
+      observation->options = options;
+      [pathInfo->observations addObject: observation];
+      [observation release];
+      pathInfo->allOptions |= options;
+    }
+
+  if (options & NSKeyValueObservingOptionInitial)
+    {
+      /* If the NSKeyValueObservingOptionInitial option is set,
+       * we must send an immediate notification containing the
+       * existing value in the NSKeyValueChangeNewKey
+       */
+      [pathInfo->change setObject: [NSNumber numberWithInt: 1]
+                           forKey:  NSKeyValueChangeKindKey];
+      if (options & NSKeyValueObservingOptionNew)
+        {
+          id    value;
+
+          value = [instance valueForKey: aPath];
+          if (value == nil)
+            {
+              value = null;
+            }
+          [pathInfo->change setObject: value
+                               forKey: NSKeyValueChangeNewKey];
+        }
+      [anObserver observeValueForKeyPath: aPath
+                                ofObject: instance
+                                  change: pathInfo->change
+                                 context: aContext];
+    }
   [iLock unlock];
 }
 
@@ -815,64 +1005,16 @@ replacementForClass(Class c)
 {
   if (paths != 0) NSFreeMapTable(paths);
   RELEASE(iLock);
-  RELEASE(changes);
   [super dealloc];
-}
-
-/*
- * FIXME: This method will provide the observer with both the old and new
- * values in the change dictionary, regardless of what was asked.
- */
-- (void) notifyForKey: (NSString *)aKey ofChange: (NSDictionary *)change
-{
-  NSMapTable		*observers;
-
-  [iLock lock];
-  observers = (NSMapTable*)NSMapGet(paths, (void*)aKey);
-  if (observers != 0)
-    {
-      NSMapEnumerator	enumerator;
-      NSObject		*observer;
-      NSMapTable        *info;
-      void		*context;
-
-      enumerator = NSEnumerateMapTable(observers);
-      while (NSNextMapEnumeratorPair(&enumerator,
-	(void **)(&observer), (void **)&info))
-	{
-	  if ([observer respondsToSelector:
-	    @selector(observeValueForKeyPath:ofObject:change:context:)])
-	    {
-              context = NSMapGet(info, (void*)@"context");
-	      [observer observeValueForKeyPath: aKey
-				      ofObject: instance
-					change: change
-				       context: context];
-	    }
-	}
-      NSEndMapTableEnumeration(&enumerator);
-    }
-  [iLock unlock];
 }
 
 - (id) initWithInstance: (NSObject*)i
 {
   instance = i;
   paths = NSCreateMapTable(NSObjectMapKeyCallBacks,
-    NSNonOwnedPointerMapValueCallBacks, 8);
+    NSObjectMapValueCallBacks, 8);
   iLock = [GSLazyRecursiveLock new];
-  changes = [[NSMutableDictionary alloc] init];
   return self;
-}
-
-- (void) setChange: (NSMutableDictionary *)info forKey: (NSString *)key
-{
-  [changes setValue: info forKey: key];
-}
-
-- (NSMutableDictionary *) changeForKey: (NSString *)key
-{
-  return [changes valueForKey: key];
 }
 
 - (BOOL) isUnobserved
@@ -889,26 +1031,36 @@ replacementForClass(Class c)
 }
 
 /*
- * removes the observer and returns the context.
+ * removes the observer 
  */
 - (void) removeObserver: (NSObject*)anObserver forKeyPath: (NSString*)aPath
 {
-  NSMapTable	*observers;
-  NSMapTable    *observer;
+  GSKVOPathInfo	*pathInfo;
 
   [iLock lock];
-  observers = (NSMapTable*)NSMapGet(paths, (void*)aPath);
-  if (observers != 0)
+  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
+  if (pathInfo != nil)
     {
-      observer = NSMapGet(observers, (void*)anObserver);
+      unsigned  count = [pathInfo->observations count];
 
-      if (observer != 0)
-	{
-	  NSMapRemove(observers, (void*)anObserver);
-	  if (NSCountMapTable(observers) == 0)
-	    {
-	      NSMapRemove(paths, (void*)aPath);
-	    }
+      pathInfo->allOptions = 0;
+      while (count-- > 0)
+        {
+          GSKVOObservation      *o;
+
+          o = [pathInfo->observations objectAtIndex: count];
+          if (o->observer == anObserver)
+            {
+              [pathInfo->observations removeObjectAtIndex: count];
+              if ([pathInfo->observations count] == 0)
+                {
+                  NSMapRemove(paths, (void*)aPath);
+                }
+            }
+          else
+            {
+              pathInfo->allOptions |= o->options;
+            }
 	}
     }
   [iLock unlock];
@@ -916,19 +1068,25 @@ replacementForClass(Class c)
 
 - (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath
 {
-  NSMapTable	*observers;
-  NSMapTable    *observer;
+  GSKVOPathInfo	*pathInfo;
   void          *context = 0;
 
   [iLock lock];
-  observers = (NSMapTable*)NSMapGet(paths, (void*)aPath);
-  if (observers != 0)
+  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
+  if (pathInfo != nil)
     {
-      observer = NSMapGet(observers, (void*)anObserver);
+      unsigned  count = [pathInfo->observations count];
 
-      if (observer != 0)
-	{
-          context = NSMapGet(observer, (void*)@"context");
+      while (count-- > 0)
+        {
+          GSKVOObservation      *o;
+
+          o = [pathInfo->observations objectAtIndex: count];
+          if (o->observer == anObserver)
+            {
+              context = o->context;
+              break;
+            }
 	}
     }
   [iLock unlock];
@@ -1080,7 +1238,8 @@ replacementForClass(Class c)
                                            keyForForwarding];
           if (oldValue)
             {
-              [change setObject: oldValue forKey: NSKeyValueChangeOldKey];
+              [change setObject: oldValue
+                         forKey: NSKeyValueChangeOldKey];
             }
         }
       observedObjectForForwarding = [observedObjectForUpdate
@@ -1202,7 +1361,7 @@ replacementForClass(Class c)
   if ([info isUnobserved] == YES)
     {
       /*
-       * The instance is no longer bing observed ... so we can
+       * The instance is no longer being observed ... so we can
        * turn off key-value-observing for it.
        */
       isa = [self class];
@@ -1288,7 +1447,7 @@ replacementForClass(Class c)
 {
   NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
 
-  if (keys)
+  if (keys != nil)
     {
       NSHashTable       dependents = NSMapGet(keys, aKey);
 
@@ -1311,7 +1470,7 @@ replacementForClass(Class c)
 {
   NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
 
-  if (keys)
+  if (keys != nil)
     {
       NSHashTable dependents = NSMapGet(keys, aKey);
 
@@ -1332,60 +1491,93 @@ replacementForClass(Class c)
 
 - (void) willChangeValueForKey: (NSString*)aKey
 {
+  GSKVOPathInfo *pathInfo;
   GSKVOInfo     *info;
 
   info = (GSKVOInfo *)[self observationInfo];
-  if (info != nil)
+  if (info == nil)
     {
-      id                        old;
-      NSMutableDictionary       *change;
-
-      change = [info changeForKey: aKey];
-      if (change == nil)
-        {
-          change = [[NSMutableDictionary alloc] initWithCapacity: 1];
-          [info setChange: change forKey: aKey];
-          RELEASE(change);
-        }
-      old = [change objectForKey: NSKeyValueChangeNewKey];
-      if (old == nil)
-        {
-          old = [self valueForKey: aKey];
-          if (old == nil)
-            {
-              [change removeObjectForKey: NSKeyValueChangeOldKey];
-            }
-          else
-            {
-              [change setObject: old forKey: NSKeyValueChangeOldKey];
-            }
-        }
-      else
-        {
-          [change setObject: old forKey: NSKeyValueChangeOldKey];
-        }
-      [change removeObjectForKey: NSKeyValueChangeNewKey];
-      [change removeObjectForKey: NSKeyValueChangeKindKey];
+      return;
     }
+
+  pathInfo = [info lockReturningPathInfoForKey: aKey];
+  if (pathInfo != nil)
+    {
+      if (pathInfo->recursion++ == 0)
+        {
+          id    old = [pathInfo->change objectForKey: NSKeyValueChangeNewKey];
+          
+          if (old != nil)
+            {
+              /* We have set a value for this key already, so the value
+               * we set must now be the old value and we don't need to
+               * refetch it.
+               */
+              [pathInfo->change setObject: old
+                                   forKey: NSKeyValueChangeOldKey];
+              [pathInfo->change removeObjectForKey: NSKeyValueChangeNewKey];
+            }
+          else if (pathInfo->allOptions & NSKeyValueObservingOptionOld)
+            {
+              /* We don't have an old value set, so we must fetch the
+               * existing value because at least one observation wants it.
+               */
+              old = [self valueForKey: aKey];
+              if (old == nil)
+                {
+                  old = null;
+                }
+              [pathInfo->change setObject: old
+                                   forKey: NSKeyValueChangeOldKey];
+            }
+          [pathInfo->change setValue:
+            [NSNumber numberWithInt: NSKeyValueChangeSetting]
+            forKey: NSKeyValueChangeKindKey];
+
+          [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
+        }
+      [info unlock];
+    }
+
   [self willChangeValueForDependentsOfKey: aKey];
 }
 
 - (void) didChangeValueForKey: (NSString*)aKey
 {
-  GSKVOInfo	        *info;
+  GSKVOPathInfo *pathInfo;
+  GSKVOInfo	*info;
 
   info = (GSKVOInfo *)[self observationInfo];
-  if (info != nil)
+  if (info == nil)
     {
-      NSMutableDictionary   *change;
-
-      change = (NSMutableDictionary *)[info changeForKey: aKey];
-      [change setValue: [self valueForKey: aKey]
-                forKey: NSKeyValueChangeNewKey];
-      [change setValue: [NSNumber numberWithInt: NSKeyValueChangeSetting]
-                forKey: NSKeyValueChangeKindKey];
-      [info notifyForKey: aKey ofChange: change];
+      return;
     }
+
+  pathInfo = [info lockReturningPathInfoForKey: aKey];
+  if (pathInfo != nil)
+    {
+      if (pathInfo->recursion == 1)
+        {
+          id    value = [self valueForKey: aKey];
+
+          if (value == nil)
+            {
+              value = null;
+            }
+          [pathInfo->change setValue: value
+                              forKey: NSKeyValueChangeNewKey];
+          [pathInfo->change setValue:
+            [NSNumber numberWithInt: NSKeyValueChangeSetting]
+            forKey: NSKeyValueChangeKindKey];
+          [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: NO];
+        }
+      if (pathInfo->recursion > 0)
+        {
+          pathInfo->recursion--;
+        }
+      [info unlock];
+    }
+
   [self didChangeValueForDependentsOfKey: aKey];
 }
 
@@ -1393,30 +1585,43 @@ replacementForClass(Class c)
    valuesAtIndexes: (NSIndexSet*)indexes
 	    forKey: (NSString*)aKey
 {
-  GSKVOInfo	        *info;
+  GSKVOPathInfo *pathInfo;
+  GSKVOInfo	*info;
 
   info = [self observationInfo];
-  if (info != nil)
+  if (info == nil)
     {
-      NSMutableDictionary   *change;
-      NSMutableArray        *array;
-
-      change = (NSMutableDictionary *)[info changeForKey: aKey];
-      array = [self valueForKey: aKey];
-
-      [change setValue: [NSNumber numberWithInt: changeKind] forKey:
-        NSKeyValueChangeKindKey];
-      [change setValue: indexes forKey: NSKeyValueChangeIndexesKey];
-
-      if (changeKind == NSKeyValueChangeInsertion
-        || changeKind == NSKeyValueChangeReplacement)
-        {
-          [change setValue: [array objectsAtIndexes: indexes]
-                    forKey: NSKeyValueChangeNewKey];
-        }
-
-      [info notifyForKey: aKey ofChange: change];
+      return;
     }
+
+  pathInfo = [info lockReturningPathInfoForKey: aKey];
+  if (pathInfo != nil)
+    {
+      if (pathInfo->recursion == 1)
+        {
+          NSMutableArray        *array;
+
+          array = [self valueForKey: aKey];
+          [pathInfo->change setValue: [NSNumber numberWithInt: changeKind]
+                              forKey: NSKeyValueChangeKindKey];
+          [pathInfo->change setValue: indexes
+                              forKey: NSKeyValueChangeIndexesKey];
+
+          if (changeKind == NSKeyValueChangeInsertion
+            || changeKind == NSKeyValueChangeReplacement)
+            {
+              [pathInfo->change setValue: [array objectsAtIndexes: indexes]
+                                  forKey: NSKeyValueChangeNewKey];
+            }
+          [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: NO];
+        }
+      if (pathInfo->recursion > 0)
+        {
+          pathInfo->recursion--;
+        }
+      [info unlock];
+    }
+
   [self didChangeValueForDependentsOfKey: aKey];
 }
 
@@ -1424,26 +1629,36 @@ replacementForClass(Class c)
     valuesAtIndexes: (NSIndexSet*)indexes
 	     forKey: (NSString*)aKey
 {
-  GSKVOInfo	        *info;
+  GSKVOPathInfo *pathInfo;
+  GSKVOInfo	*info;
 
   info = [self observationInfo];
+  if (info == nil)
     {
-      NSMutableDictionary   *change;
-      NSMutableArray        *array;
-
-      change = [[NSMutableDictionary alloc] initWithCapacity: 1];
-      array = [self valueForKey: aKey];
-
-      if (changeKind == NSKeyValueChangeRemoval
-        || changeKind == NSKeyValueChangeReplacement)
-        {
-          [change setValue: [array objectsAtIndexes: indexes]
-                    forKey: NSKeyValueChangeOldKey];
-        }
-
-      [info setChange: change forKey: aKey];
-      RELEASE(change);
+      return;
     }
+
+  pathInfo = [info lockReturningPathInfoForKey: aKey];
+  if (pathInfo != nil)
+    {
+      if (pathInfo->recursion++ == 0)
+        {
+          NSMutableArray        *array;
+
+          array = [self valueForKey: aKey];
+          if (changeKind == NSKeyValueChangeRemoval
+            || changeKind == NSKeyValueChangeReplacement)
+            {
+              [pathInfo->change setValue: [array objectsAtIndexes: indexes]
+                                  forKey: NSKeyValueChangeOldKey];
+            }
+          [pathInfo->change setValue: [NSNumber numberWithInt: changeKind]
+                              forKey: NSKeyValueChangeKindKey];
+          [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
+        }
+      [info unlock];
+    }
+
   [self willChangeValueForDependentsOfKey: aKey];
 }
 
@@ -1451,21 +1666,29 @@ replacementForClass(Class c)
 	       withSetMutation: (NSKeyValueSetMutationKind)mutationKind
 		  usingObjects: (NSSet*)objects
 {
+  GSKVOPathInfo *pathInfo;
   GSKVOInfo	*info;
 
   info = [self observationInfo];
-  if (info != nil)
+  if (info == nil)
     {
-      NSMutableDictionary       *change;
-      NSMutableSet              *set;
-
-      change = [[NSMutableDictionary alloc] initWithCapacity: 1];
-      set = [self valueForKey: aKey];
-
-      [change setValue: [set mutableCopy] forKey: @"oldSet"];
-      [info setChange: change forKey: aKey];
-      RELEASE(change);
+      return;
     }
+
+  pathInfo = [info lockReturningPathInfoForKey: aKey];
+  if (pathInfo != nil)
+    {
+      if (pathInfo->recursion++ == 0)
+        {
+          NSMutableSet      *set;
+
+          set = [self valueForKey: aKey];
+          [pathInfo->change setValue: [set mutableCopy] forKey: @"oldSet"];
+          [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
+        }
+      [info unlock];
+    }
+
   [self willChangeValueForDependentsOfKey: aKey];
 }
 
@@ -1473,51 +1696,72 @@ replacementForClass(Class c)
 	      withSetMutation: (NSKeyValueSetMutationKind)mutationKind
 		 usingObjects: (NSSet*)objects
 {
-  GSKVOInfo	        *info;
+  GSKVOPathInfo *pathInfo;
+  GSKVOInfo	*info;
 
-  info = (GSKVOInfo *)[self observationInfo];
-  if (info != nil)
+  info = [self observationInfo];
+  if (info == nil)
     {
-      NSMutableDictionary   *change;
-      NSMutableSet          *oldSet;
-      NSMutableSet          *set;
+      return;
+    }
 
-      change = (NSMutableDictionary *)[info changeForKey: aKey];
-      oldSet = [change valueForKey: @"oldSet"];
-      set = [self valueForKey: aKey];
-      [change setValue: nil forKey: @"oldSet"];
-      if (mutationKind == NSKeyValueUnionSetMutation)
+  pathInfo = [info lockReturningPathInfoForKey: aKey];
+  if (pathInfo != nil)
+    {
+      if (pathInfo->recursion == 1)
         {
-          set = [set mutableCopy];
-          [set minusSet: oldSet];
-          [change setValue: [NSNumber numberWithInt: NSKeyValueChangeInsertion]
-                    forKey: NSKeyValueChangeKindKey];
-          [change setValue: set forKey: NSKeyValueChangeNewKey];
-        }
-      else if (mutationKind == NSKeyValueMinusSetMutation
-        || mutationKind == NSKeyValueIntersectSetMutation)
-        {
-          [oldSet minusSet: set];
-          [change setValue: [NSNumber numberWithInt: NSKeyValueChangeRemoval]
-                    forKey: NSKeyValueChangeKindKey];
-          [change setValue: oldSet forKey: NSKeyValueChangeOldKey];
-        }
-      else if (mutationKind == NSKeyValueSetSetMutation)
-        {
-          NSMutableSet      *old;
-          NSMutableSet      *new;
+          NSMutableSet  *oldSet;
+          NSMutableSet  *set;
 
-          old = [oldSet mutableCopy];
-          [old minusSet: set];
-          new = [set mutableCopy];
-          [new minusSet: oldSet];
-          [change setValue:
-            [NSNumber numberWithInt: NSKeyValueChangeReplacement]
-                    forKey: NSKeyValueChangeKindKey];
-          [change setValue: old forKey: NSKeyValueChangeOldKey];
-          [change setValue: new forKey: NSKeyValueChangeNewKey];
+          oldSet = [pathInfo->change valueForKey: @"oldSet"];
+          set = [self valueForKey: aKey];
+          [pathInfo->change removeObjectForKey: @"oldSet"];
+
+          if (mutationKind == NSKeyValueUnionSetMutation)
+            {
+              set = [set mutableCopy];
+              [set minusSet: oldSet];
+              [pathInfo->change setValue:
+                [NSNumber numberWithInt: NSKeyValueChangeInsertion]
+                        forKey: NSKeyValueChangeKindKey];
+              [pathInfo->change setValue: set
+                                  forKey: NSKeyValueChangeNewKey];
+            }
+          else if (mutationKind == NSKeyValueMinusSetMutation
+            || mutationKind == NSKeyValueIntersectSetMutation)
+            {
+              [oldSet minusSet: set];
+              [pathInfo->change setValue:
+                [NSNumber numberWithInt: NSKeyValueChangeRemoval]
+                        forKey: NSKeyValueChangeKindKey];
+              [pathInfo->change setValue: oldSet
+                                  forKey: NSKeyValueChangeOldKey];
+            }
+          else if (mutationKind == NSKeyValueSetSetMutation)
+            {
+              NSMutableSet      *old;
+              NSMutableSet      *new;
+
+              old = [oldSet mutableCopy];
+              [old minusSet: set];
+              new = [set mutableCopy];
+              [new minusSet: oldSet];
+              [pathInfo->change setValue:
+                [NSNumber numberWithInt: NSKeyValueChangeReplacement]
+                        forKey: NSKeyValueChangeKindKey];
+              [pathInfo->change setValue: old
+                                  forKey: NSKeyValueChangeOldKey];
+              [pathInfo->change setValue: new
+                                  forKey: NSKeyValueChangeNewKey];
+            }
+
+          [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: NO];
         }
-      [info notifyForKey: aKey ofChange: change];
+      if (pathInfo->recursion > 0)
+        {
+          pathInfo->recursion--;
+        }
+      [info unlock];
     }
   [self didChangeValueForDependentsOfKey: aKey];
 }
