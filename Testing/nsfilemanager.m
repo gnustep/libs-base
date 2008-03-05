@@ -87,6 +87,8 @@ main ()
     NSLog(@"Filesystem free size is %llu", s);
   }
 
+  NSLog(@"Home directory is %@", NSHomeDirectory());
+
   RELEASE(arp);
   if (errors == 0)
     printf("Tests passed\n");
