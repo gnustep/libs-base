@@ -1231,8 +1231,39 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names, "
 	@"given '%@'", path);
+
+#if defined(__MINGW32__)
+      if ([path length] > 0 &&
+	([path characterAtIndex: 0]=='/' || [path characterAtIndex: 0]=='\\'))
+	{
+	  NSString	*root;
+	  unsigned	length;
+
+	  /* The path has a leading path separator, so we try assuming
+	   * that it's a path on the current filesystem, and append it
+	   * to the filesystem root.
+	   */
+	  root = [[NSFileManager defaultManager] currentDirectoryPath];
+	  length = [root length];
+	  root = [root stringByDeletingLastPathComponent];
+	  while ([root length] != length)
+	    {
+	      length = [root length];
+	      root = [root stringByDeletingLastPathComponent];
+	    }
+	  path = [root stringByAppendingPathComponent: path];
+	}
+      else
+	{
+	  /* Try appending to the current working directory.
+	   */
+	  path = [[[NSFileManager defaultManager] currentDirectoryPath]
+	    stringByAppendingPathComponent: path];
+	}
+#else
       path = [[[NSFileManager defaultManager] currentDirectoryPath]
-	       stringByAppendingPathComponent: path];
+        stringByAppendingPathComponent: path];
+#endif
     }
 
   /*
