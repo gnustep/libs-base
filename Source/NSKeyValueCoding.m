@@ -370,7 +370,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   setupCompat();
   if (o != takeValue && o != takeValueKVO)
     {
-      (*o)(self, @selector(takeValue:forKey:), aKey);
+      (*o)(self, @selector(takeValue:forKey:), anObject, aKey);
       return;
     }
 #endif
