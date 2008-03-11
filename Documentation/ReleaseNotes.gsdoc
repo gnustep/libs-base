@@ -37,8 +37,8 @@ notice and this notice are preserved.
 	<deflist>
           <term>Configuration/NSUserDefaults</term>
 	  <desc>
-          Syntax withing the configuration file extended so that a leading
-          '../' in a path name denotes a relative path nin a relocatable
+          Syntax within the configuration file extended so that a leading
+          '../' in a path name denotes a relative path in a relocatable
           installation.<br />
           New 'GlobalDefaults.plist' file in the same directory as the main
           GNUstep config file allows packagers/sysadmins to set up global
