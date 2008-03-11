@@ -19,7 +19,7 @@ See the @url{ReleaseNotes.html} document for more information.
 @item Added support for https to NSURLConnection using new stream code and
 added basic support for digest authentication.
 @item Fixed various problems with and added new options to KVO.
-@end itemize.
+@end itemize
 
 
 @ifclear ANNOUNCE-ONLY
