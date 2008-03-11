@@ -11,11 +11,22 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.15.3}
+
+@itemize @bullet
+@item Extended NSUserDefaults so it recognizes ../ as a relative path.
+@item Added TLS/SSL support for NSStream based on GNU TLS
+@item Added support for https to NSURLConnection using new stream code and
+added basic support for digest authentication.
+@item Fixed various problems with and added new options to KVO.
+@end itemize.
+
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.15.2}
 Bug fixes include improved thread safety (and a change to the NSThread
 class structure) and Key-Value observing.
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.15.1}
 

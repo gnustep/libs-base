@@ -29,7 +29,7 @@
 2008-02-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h: Moved some headers to NSObjCRuntime.h
-	* Headers/Foundation/NSObjCRuntime.h: Added NSInbteger and NSUInteger
+	* Headers/Foundation/NSObjCRuntime.h: Added NSInteger and NSUInteger
 	for MacOSX compatibiulity.
 	* Headers/Additions/GNUstep/GSVersionMacros.h: Don't declare constants
 	which should be set by the user to say which MacOSX version they want.
@@ -204,7 +204,7 @@
 2008-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Allow '../' to indicate a relocatable
-	resource.  Add suypport for GlobalDefaults.plist.
+	resource.  Add support for GlobalDefaults.plist.
 	* Source/NSUserDefaults.m: Improve documentation
 	* Documentation/ReleaseNotes.gsdoc: Note recent changes.
 	* Documentation/Base.gsdoc: Improve documentation
@@ -223,7 +223,7 @@
         * Source/GSSocketStream.m:
         * Source/unix/NSStream.m:
         * Source/GSNetwork.h:
-        Further reorganisatio0n and simplification for socks support.
+        Further reorganisation and simplification for socks support.
 
 2008-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -258,7 +258,7 @@
 
 	* config/pathtls.m4: fixup form mingw32
 	* configure: regenerate
-	* Source/GSSocketStream.m: Fix missing isfeds
+	* Source/GSSocketStream.m: Fix missing ifdefs
 
 2008-01-04  Riccardo Mottola <riccardo@kaffe.org>
 
