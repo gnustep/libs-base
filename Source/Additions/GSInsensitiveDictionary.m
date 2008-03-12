@@ -373,11 +373,11 @@ static SEL	objSel;
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-#ifndef NDEBUG
+#if     !defined(NDEBUG) && defined(GNUSTEP_BASE_LIBRARY)
   GSDebugAllocationRemove(isa, self);
 #endif
   isa = [_GSInsensitiveDictionary class];
-#ifndef NDEBUG
+#if     !defined(NDEBUG) && defined(GNUSTEP_BASE_LIBRARY)
   GSDebugAllocationAdd(isa, self);
 #endif
   return self;
