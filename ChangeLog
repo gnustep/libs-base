@@ -1,3 +1,8 @@
+2008-03-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSInsensitiveDictionary.m:
+	Don't do gnustep specific debug if building apple-apple-apple
+
 2008-03-11  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.15.3
