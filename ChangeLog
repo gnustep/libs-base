@@ -1,3 +1,7 @@
+2008-03-12  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.14.3
+
 2008-02-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePortNameServer.m: Use locks to prevent two
