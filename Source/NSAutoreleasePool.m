@@ -410,7 +410,7 @@ static IMP	initImp;
 
 		  if (GSObjCIsInstance(anObject))
 		    {
-		      imp = [anObject methodForSelector: releaseSel];
+		      imp = [c instanceMethodForSelector: releaseSel];
 		    }
 		  else
 		    {
