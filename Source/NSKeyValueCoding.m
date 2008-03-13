@@ -269,34 +269,19 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (NSMutableSet*) mutableSetValueForKeyPath: (NSString*)aKey
 {
-  unsigned	size = [aKey length] * 8;
-  char		buf[size+1];
-  unsigned	start = 0;
-  unsigned	end = 0;
-  id		o = self;
+  NSRange       r = [aKey rangeOfString: @"."];
 
-  [aKey getCString: buf
-	 maxLength: size+1
-	  encoding: NSUTF8StringEncoding];
-  size = strlen(buf);
-  while (start < size && o != nil)
+  if (r.length == 0)
     {
-      end = start;
-      while (end < size && buf[end] != '.')
-	{
-	  end++;
-	}
-      aKey = [[NSString alloc] initWithBytes: buf + start
-				      length: end - start
-				    encoding: NSUTF8StringEncoding];
-      AUTORELEASE(aKey);
-      if (end == size)
-        o = [o mutableSetValueForKey: aKey];
-      else
-        o = [o valueForKey: aKey];
-      start = ++end;
+      return [self mutableSetValueForKey: aKey];
     }
-  return o;
+  else
+    {
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+
+      return [[self valueForKey: key] mutableSetValueForKeyPath: path];
+    }
 }
 
 - (NSMutableArray*) mutableArrayValueForKey: (NSString*)aKey
@@ -306,34 +291,19 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (NSMutableArray*) mutableArrayValueForKeyPath: (NSString*)aKey
 {
-  unsigned	size = [aKey length] * 8;
-  char		buf[size+1];
-  unsigned	start = 0;
-  unsigned	end = 0;
-  id		o = self;
+  NSRange       r = [aKey rangeOfString: @"."];
 
-  [aKey getCString: buf
-	 maxLength: size+1
-	  encoding: NSUTF8StringEncoding];
-  size = strlen(buf);
-  while (start < size && o != nil)
+  if (r.length == 0)
     {
-      end = start;
-      while (end < size && buf[end] != '.')
-	{
-	  end++;
-	}
-      aKey = [[NSString alloc] initWithBytes: buf + start
-				      length: end - start
-				    encoding: NSUTF8StringEncoding];
-      AUTORELEASE(aKey);
-      if (end == size)
-        o = [o mutableArrayValueForKey: aKey];
-      else
-        o = [o valueForKey: aKey];
-      start = ++end;
+      return [self mutableArrayValueForKey: aKey];
     }
-  return o;
+  else
+    {
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+
+      return [[self valueForKey: key] mutableArrayValueForKeyPath: path];
+    }
 }
 
 - (void) setNilValueForKey: (NSString*)aKey
@@ -385,11 +355,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (void) setValue: (id)anObject forKeyPath: (NSString*)aKey
 {
-  unsigned	size = [aKey length] * 8;
-  char		buf[size+1];
-  unsigned	start = 0;
-  unsigned	end = 0;
-  id		obj = self;
+  NSRange       r = [aKey rangeOfString: @"."];
 #ifdef WANT_DEPRECATED_KVC_COMPAT
   IMP	        o = [self methodForSelector: @selector(takeValue:forKeyPath:)];
 
@@ -401,28 +367,16 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     }
 #endif
 
-  [aKey getCString: buf
-	 maxLength: size+1
-	  encoding: NSUTF8StringEncoding];
-  size = strlen(buf);
-  while (obj != nil)
+  if (r.length == 0)
     {
-      end = start;
-      while (end < size && buf[end] != '.')
-	{
-	  end++;
-	}
-      aKey = [[NSString alloc] initWithBytes: buf + start
-				      length: end - start
-				    encoding: NSUTF8StringEncoding];
-      AUTORELEASE(aKey);
-      if (end >= size)
-	{
-	  [obj setValue: anObject forKey: aKey];
-	  return;
-	}
-      obj = [obj valueForKey: aKey];
-      start = ++end;
+      [self setValue: anObject forKey: aKey];
+    }
+  else
+    {
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+      
+      [[self valueForKey: key] setValue: anObject forKeyPath: path];
     }
 }
 
@@ -526,59 +480,20 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
             forKeyPath: (NSString*)aKey
                  error: (NSError**)anError
 {
-  unsigned	size = [aKey length] * 8;
-  char		buf[size+1];
-  unsigned	start = 0;
-  unsigned	end = 0;
-  id		o = self;
+  NSRange       r = [aKey rangeOfString: @"."];
 
-  [aKey getCString: buf
-	 maxLength: size+1
-	  encoding: NSUTF8StringEncoding];
-  size = strlen(buf);
-  while (o != nil)
+  if (r.length == 0)
     {
-      end = start;
-      while (end < size && buf[end] != '.')
-	{
-	  end++;
-	}
-      if (end >= size)
-	{
-	  break;
-	}
-      aKey = [[NSString alloc] initWithBytes: buf + start
-				      length: end - start
-				    encoding: NSUTF8StringEncoding];
-      AUTORELEASE(aKey);
-      o = [o valueForKey: aKey];
-      start = ++end;
-    }
-  if (o == nil)
-    {
-      return NO;
+      return [self validateValue: aValue forKey: aKey error: anError];
     }
   else
     {
-      char		name[end-start+16];
-      SEL		sel;
-      BOOL		(*imp)(id,SEL,id*,id*);
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
 
-      size = end - start;
-      strcpy(name, "validate");
-      strcpy(&name[8], buf+start);
-      strcpy(&name[size+8], ":error:");
-      if (islower(name[8]))
-	{
-	  name[8] = toupper(name[8]);
-	}
-      sel = GSSelectorFromName(name);
-      if (sel != 0
-	&& (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
-	{
-	  return (*imp)(self, sel, aValue, anError);
-	}
-      return YES;
+      return [[self valueForKey: key] validateValue: aValue
+                                         forKeyPath: path
+                                              error: anError];
     }
 }
 
@@ -598,31 +513,19 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (id) valueForKeyPath: (NSString*)aKey
 {
-  unsigned	size = [aKey length] * 8;
-  char		buf[size+1];
-  unsigned	start = 0;
-  unsigned	end = 0;
-  id		o = self;
+  NSRange       r = [aKey rangeOfString: @"."];
 
-  [aKey getCString: buf
-	 maxLength: size+1
-	  encoding: NSUTF8StringEncoding];
-  size = strlen(buf);
-  while (start < size && o != nil)
+  if (r.length == 0)
     {
-      end = start;
-      while (end < size && buf[end] != '.')
-	{
-	  end++;
-	}
-      aKey = [[NSString alloc] initWithBytes: buf + start
-				      length: end - start
-				    encoding: NSUTF8StringEncoding];
-      AUTORELEASE(aKey);
-      o = [o valueForKey: aKey];
-      start = ++end;
+      return [self valueForKey: aKey];
     }
-  return o;
+  else
+    {
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+
+      return [[self valueForKey: key] valueForKeyPath: path];
+    }
 }
 
 
