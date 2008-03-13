@@ -35,6 +35,8 @@
 #include "Foundation/NSKeyedArchiver.h"
 
 #include "GNUstepBase/GSObjCRuntime.h"
+#include "GNUstepBase/GSCategories.h"
+
 
 /*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
