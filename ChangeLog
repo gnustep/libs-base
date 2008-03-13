@@ -1,5 +1,10 @@
 2008-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSAutoreleasePool.m; use ([+instanceMethodForSelector:])
+	to cache release method implementation for a class.
+
+2008-03-13  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSKeyValueCoding.m:
 	Make all keypath methods perform recursive evaluation of the path
 	for compatibility with MacOS-X and to permit classes to effectively
