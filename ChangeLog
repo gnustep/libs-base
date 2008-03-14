@@ -1,3 +1,9 @@
+2008-03-14  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* Source/NSDictionary.m ([-initWithObjectsAndKeys:],
+	[+dictionaryWithObjectsAndKeys:]): Improved documentation: tell
+	people to terminate the list with nil.
+
 2008-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m; use ([+instanceMethodForSelector:])
