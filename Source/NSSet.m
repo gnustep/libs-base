@@ -627,7 +627,14 @@ static Class NSMutableSet_concrete_class;
       r = [path rangeOfString: @"."];
       if (r.length == 0)
         {
-          result = [self valueForKey: path];
+          if ([path isEqualToString: @"@count"] == YES)
+            {
+              result = [NSNumber numberWithUnsignedInt: [self count]];
+            }
+          else
+            {
+              result = [self valueForKey: path];
+            }
         }
       else
         {
@@ -635,7 +642,11 @@ static Class NSMutableSet_concrete_class;
           NSString      *rem = [path substringFromIndex: NSMaxRange(r)];
           unsigned      count = [self count];
 
-          if ([op isEqualToString: @"@avg"] == YES)
+          if ([op isEqualToString: @"@count"] == YES)
+            {
+              result = [NSNumber numberWithUnsignedInt: count];
+            }
+          else if ([op isEqualToString: @"@avg"] == YES)
             {
               double        d = 0;
 
