@@ -1,5 +1,10 @@
 2008-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDebug.m: Trap sigbus if gcc functions to get stack frame
+	info run off the end of the stack.
+
+2008-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSArray.m:
 	* Source/NSSet.m:
 	Add ([-valueForKeyPath:]) to implement KVC aggregate operators.

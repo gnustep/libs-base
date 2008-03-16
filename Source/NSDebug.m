@@ -856,8 +856,10 @@ GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
   return message;
 }
 
-#define _NS_FRAME_HACK(a) case a: val = __builtin_frame_address(a + 1); break;
-#define _NS_RETURN_HACK(a) case a: val = __builtin_return_address(a + 1); break;
+#define _NS_FRAME_HACK(a) \
+case a: env->addr = __builtin_frame_address(a + 1); break;
+#define _NS_RETURN_HACK(a) \
+case a: env->addr = __builtin_return_address(a + 1); break;
 
 /*
  * The following horrible signal handling code is a workaround for the fact
@@ -877,7 +879,14 @@ GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
 #include <setjmp.h>
 #endif
 
-static jmp_buf *
+typedef struct {
+  jmp_buf       buf;
+  void          *addr;
+  void          (*bus)(int);
+  void          (*segv)(int);
+} jbuf_type;
+
+static jbuf_type *
 jbuf()
 {
   NSMutableData	*d;
@@ -885,37 +894,30 @@ jbuf()
   d = [[[NSThread currentThread] threadDictionary] objectForKey: @"GSjbuf"];
   if (d == nil)
     {
-      d = [[NSMutableData alloc] initWithLength:
-	sizeof(jmp_buf) + sizeof(void(*)(int)) + sizeof(void*)];
+      d = [[NSMutableData alloc] initWithLength: sizeof(jbuf_type)];
       [[[NSThread currentThread] threadDictionary] setObject: d
 						      forKey: @"GSjbuf"];
       RELEASE(d);
     }
-  return (jmp_buf*)[d mutableBytes];
+  return (jbuf_type*)[d mutableBytes];
 }
 
 static void
 recover(int sig)
 {
-  jmp_buf	*env = jbuf();
-
-  longjmp(*env, 1);
+  longjmp(jbuf()->buf, 1);
 }
 
 void *
 NSFrameAddress(int offset)
 {
-  jmp_buf	*env;
-  void		(*old)(int);
-  void		*val;
+  jbuf_type     *env;
 
   env = jbuf();
-  if (setjmp(*env) == 0)
+  if (setjmp(env->buf) == 0)
     {
-      old = signal(SIGSEGV, recover);
-      val = (void*)env;
-      val += sizeof(jmp_buf);
-      memcpy(val, &old, sizeof(old));
+      env->segv = signal(SIGSEGV, recover);
+      env->bus = signal(SIGBUS, recover);
       switch (offset)
 	{
 	  _NS_FRAME_HACK(0); _NS_FRAME_HACK(1); _NS_FRAME_HACK(2);
@@ -952,42 +954,33 @@ NSFrameAddress(int offset)
 	  _NS_FRAME_HACK(93); _NS_FRAME_HACK(94); _NS_FRAME_HACK(95);
 	  _NS_FRAME_HACK(96); _NS_FRAME_HACK(97); _NS_FRAME_HACK(98);
 	  _NS_FRAME_HACK(99);
-	  default: val = NULL; break;
+	  default: env->addr = NULL; break;
 	}
-      signal(SIGSEGV, old);
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
     }
   else
     {
-      val = jbuf();
-      val += sizeof(jmp_buf);
-      memcpy(&old, val, sizeof(old));
-      signal(SIGSEGV, old);
-      val = NULL;
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
+      env->addr = NULL;
     }
-  return val;
+  return env->addr;
 }
 
 unsigned NSCountFrames(void)
 {
-  jmp_buf	*env;
-  void		(*old)(int);
-  void		*val;
+  jbuf_type	*env;
 
   env = jbuf();
-  if (setjmp(*env) == 0)
+  if (setjmp(env->buf) == 0)
     {
-      unsigned  *loc;
-
-      old = signal(SIGSEGV, recover);
-      val = (void*)env;
-      val += sizeof(jmp_buf);
-      memcpy(val, &old, sizeof(old));
-      val += sizeof(old);
-      loc = (unsigned*)val;
-      *loc = 0;
+      env->segv = signal(SIGSEGV, recover);
+      env->bus = signal(SIGBUS, recover);
+      env->addr = 0;
 
 #define _NS_COUNT_HACK(X) if (__builtin_frame_address(X + 1) == 0) \
-        goto done; else *loc = X + 1;
+        goto done; else env->addr = (void*)(X + 1);
 
       _NS_COUNT_HACK(0); _NS_COUNT_HACK(1); _NS_COUNT_HACK(2);
       _NS_COUNT_HACK(3); _NS_COUNT_HACK(4); _NS_COUNT_HACK(5);
@@ -1025,35 +1018,29 @@ unsigned NSCountFrames(void)
       _NS_COUNT_HACK(99);
 
 done:
-      signal(SIGSEGV, old);
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
     }
   else
     {
       env = jbuf();
-      val = (void*)env;
-      val += sizeof(jmp_buf);
-      memcpy(&old, val, sizeof(old));
-      signal(SIGSEGV, old);
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
     }
 
-  val = (void*)env + sizeof(jmp_buf) + sizeof(old);
-  return *(unsigned*)val;
+  return (unsigned)(uintptr_t)env->addr;
 }
 
 void *
 NSReturnAddress(int offset)
 {
-  jmp_buf	*env;
-  void		(*old)(int);
-  void		*val;
+  jbuf_type	*env;
 
   env = jbuf();
-  if (setjmp(*env) == 0)
+  if (setjmp(env->buf) == 0)
     {
-      old = signal(SIGSEGV, recover);
-      val = (void*)env;
-      val += sizeof(jmp_buf);
-      memcpy(val, &old, sizeof(old));
+      env->segv = signal(SIGSEGV, recover);
+      env->bus = signal(SIGBUS, recover);
       switch (offset)
 	{
 	  _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
@@ -1090,20 +1077,20 @@ NSReturnAddress(int offset)
 	  _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
 	  _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
 	  _NS_RETURN_HACK(99);
-	  default: val = NULL; break;
+	  default: env->addr = NULL; break;
 	}
-      signal(SIGSEGV, old);
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
     }
   else
     {
-      val = jbuf();
-      val += sizeof(jmp_buf);
-      memcpy(&old, val, sizeof(old));
-      signal(SIGSEGV, old);
-      val = NULL;
+      env = jbuf();
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
+      env->addr = NULL;
     }
 
-  return val;
+  return env->addr;
 }
 
 NSMutableArray *
@@ -1113,9 +1100,7 @@ GSPrivateStackAddresses(void)
   NSMutableArray        *stack = [NSMutableArray arrayWithCapacity: n];
   CREATE_AUTORELEASE_POOL(pool);
   unsigned              i;
-  jmp_buf	        *env;
-  void		        (*old)(int);
-  void		        *val;
+  jbuf_type             *env;
 
   /* There should be more frame addresses than return addresses.
    */
@@ -1129,12 +1114,10 @@ GSPrivateStackAddresses(void)
     }
 
   env = jbuf();
-  if (setjmp(*env) == 0)
+  if (setjmp(env->buf) == 0)
     {
-      old = signal(SIGSEGV, recover);
-      val = (void*)env;
-      val += sizeof(jmp_buf);
-      memcpy(val, &old, sizeof(old));
+      env->segv = signal(SIGSEGV, recover);
+      env->bus = signal(SIGBUS, recover);
 
       for (i = 0; i < n; i++)
         {
@@ -1174,23 +1157,21 @@ GSPrivateStackAddresses(void)
               _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
               _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
               _NS_RETURN_HACK(99);
-              default: val = 0; break;
+              default: env->addr = 0; break;
             }
-          if (val == 0)
+          if (env->addr == 0)
             {
               break;
             }
-          [stack addObject: [NSValue valueWithPointer: val]];
+          [stack addObject: [NSValue valueWithPointer: env->addr]];
         }
-      signal(SIGSEGV, old);
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
     }
   else
     {
-      env = jbuf();
-      val = (void*)env;
-      val += sizeof(jmp_buf);
-      memcpy(&old, val, sizeof(old));
-      signal(SIGSEGV, old);
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
     }
   RELEASE(pool);
   return stack;
