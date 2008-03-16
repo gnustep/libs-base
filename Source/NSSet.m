@@ -826,7 +826,7 @@ static Class NSMutableSet_concrete_class;
             }
           else
             {
-              result = [self valueForKeyPath: path];
+              result = [super valueForKeyPath: path];
             }
         }
     }

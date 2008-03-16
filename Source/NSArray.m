@@ -1525,7 +1525,7 @@ compare(id elem1, id elem2, void* context)
             }
           else
             {
-              result = [self valueForKeyPath: path];
+              result = [super valueForKeyPath: path];
             }
         }
     }
