@@ -199,6 +199,8 @@ GS_EXPORT NSString* const NSCharacterConversionException;
  */
 GS_EXPORT NSString* const NSObjectInaccessibleException;
 
+GS_EXPORT NSString* const NSObjectNotAvailableException;
+
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * An exception used when some form of parsing fails.
