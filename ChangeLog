@@ -2,6 +2,8 @@
 
 	* Source/NSDebug.m: Trap sigbus if gcc functions to get stack frame
 	info run off the end of the stack.
+	* Source/NSString.m: Implement ([-decimalValue]) ... undocumented
+	feature of MacOS-X foundation.
 
 2008-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
