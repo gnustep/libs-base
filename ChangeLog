@@ -1,3 +1,9 @@
+2008-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m:
+	* Source/NSSet.m:
+	Add ([-valueForKeyPath:]) to implement KVC aggregate operators.
+
 2008-03-14  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Source/NSDictionary.m ([-initWithObjectsAndKeys:],
