@@ -1,3 +1,8 @@
+2008-03-16  Matt Rice  <ratmice@gmail.com>
+
+	* Source/NSException.m: Add NSObjectNotAvailableException.
+	* Headers/Foundation/NSException.h: Ditto.
+
 2008-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDebug.m: Trap sigbus if gcc functions to get stack frame
