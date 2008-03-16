@@ -3,6 +3,8 @@
 	* Source/NSArray.m:
 	* Source/NSSet.m:
 	Add ([-valueForKeyPath:]) to implement KVC aggregate operators.
+	* Source/NSKeyValueCoding.m: When accessing instance variable directly
+	look for _var before var as in MacOS-X
 
 2008-03-14  Nicola Pero  <nicola.pero@meta-innovation.com>
 
