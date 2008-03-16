@@ -55,6 +55,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSCalendarDate.h"
+#include "Foundation/NSDecimal.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSCharacterSet.h"
 #include "Foundation/NSException.h"
@@ -2635,6 +2636,18 @@ handle_printf_atsign (FILE *stream,
       return YES;
     }
   return NO;
+}
+
+/**
+ * Returns the string's content as a decimal.<br />
+ * Undocumented feature of Aplle Foundation.
+ */
+- (NSDecimal) decimalValue
+{
+  NSDecimal     result;
+
+  NSDecimalFromString(&result, self, nil);
+  return result;
 }
 
 /**
