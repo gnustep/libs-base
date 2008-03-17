@@ -2847,7 +2847,7 @@ static void callEncoder (DOContext *ctxt)
 	    }
 	  else
 	    {
-	      [NSException raise: NSPortTimeoutException
+	      [NSException raise: NSInvalidReceivePortException
 			  format: @"invalidated while awaiting reply"];
 	    }
 	}
