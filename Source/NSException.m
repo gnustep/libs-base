@@ -656,6 +656,9 @@ GSListModules()
 @end
 
 
+NSString* const NSCharacterConversionException
+  = @"NSCharacterConversionException";
+
 NSString* const NSGenericException
   = @"NSGenericException";
 
@@ -668,14 +671,14 @@ NSString* const NSInvalidArgumentException
 NSString* const NSMallocException
   = @"NSMallocException";
 
-NSString* const NSRangeException
- = @"NSRangeException";
-
-NSString* const NSCharacterConversionException
-  = @"NSCharacterConversionException";
+NSString* const NSOldStyleException
+  = @"NSOldStyleException";
 
 NSString* const NSParseErrorException
   = @"NSParseErrorException";
+
+NSString* const NSRangeException
+ = @"NSRangeException";
 
 static void _terminate()
 {
