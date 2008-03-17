@@ -275,6 +275,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopForThread(nil, YES);
   NSMapEnumerator	hEnum;
   GSRunLoopWatcher	*watcher;
   HANDLE		handleArray[MAXIMUM_WAIT_OBJECTS-1];
@@ -302,8 +303,9 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   GSIArrayRemoveAllItems(_trigger);
 
   i = GSIArrayCount(watchers);
-  num_handles = 0;
+  num_handles = 1;              // One handle for signals from other threads
   num_winMsgs = 0;
+
   while (i-- > 0)
     {
       GSRunLoopWatcher	*info;
@@ -381,6 +383,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
 
   i = 0;
+  handleArray[i++] = threadInfo->event; // Signal from other thread
   hEnum = NSEnumerateMapTable(handleMap);
   while (NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
     {
@@ -521,7 +524,14 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   
   handle = handleArray[i];
 
-  watcher = (GSRunLoopWatcher*)NSMapGet(handleMap, (void*)handle);
+  if (handle == threadInfo->event)
+    {
+      [threadInfo fire];
+    }
+  else
+    {
+      watcher = (GSRunLoopWatcher*)NSMapGet(handleMap, (void*)handle);
+    }
   if (watcher != nil && watcher->_invalidated == NO)
     {
       i = [contexts count];

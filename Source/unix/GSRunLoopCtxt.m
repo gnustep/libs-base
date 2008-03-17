@@ -253,6 +253,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
  */
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
   int		poll_return;
   int		fdEnd;	/* Number of descriptors being monitored. */
   int		fdIndex;
@@ -275,9 +276,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   /*
    * Do the pre-listening set-up for the file descriptors of this mode.
    */
-  if (pollfds_capacity < i + 1)
+  if (pollfds_capacity < i + 2)
     {
-      pollfds_capacity = i + 1;
+      pollfds_capacity = i + 2;
       if (pollfds == 0)
 	{
 	  pollfds = objc_malloc(pollfds_capacity * sizeof(*pollfds));
@@ -289,6 +290,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     }
   pollfds_count = 0;
   ((pollextra*)extra)->limit = 0;
+
+  /* Watch for signals from other threads.
+   */
+  setPollfd(threadInfo->inputFd, POLLIN, self);
 
   while (i-- > 0)
     {
@@ -564,8 +569,16 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    }
 	  if (pollfds[fdIndex].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))
 	    {
-	      watcher
-		= (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)(intptr_t)fd);
+              if (fd == threadInfo->inputFd)
+                {
+                  [threadInfo fire];
+                  watcher = nil;
+                }
+              else
+                {
+                  watcher = (GSRunLoopWatcher*)
+                    NSMapGet(_rfdMap, (void*)(intptr_t)fd);
+                }
 	      if (watcher != nil && watcher->_invalidated == NO)
 		{
 		  i = [contexts count];
@@ -616,6 +629,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
   struct timeval	timeout;
   void			*select_timeout;
   int			select_return;
@@ -667,6 +681,13 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   NSResetMapTable(_rfdMap);
   NSResetMapTable(_wfdMap);
   GSIArrayRemoveAllItems(_trigger);
+
+  /* Watch for signals from otyher threads.
+   */
+  fd = threadInfo->inputFd;
+  if (fd > fdEnd)
+    fdEnd = fd;
+  FD_SET (fd, &read_fds);
 
   while (i-- > 0)
     {
@@ -926,8 +947,16 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	{
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher
-	    = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)(intptr_t)fdIndex);
+          if (fdIndex == threadInfo->inputFd)
+            {
+              [threadInfo fire];
+              watcher = nil;
+            }
+          else
+            {
+              watcher = (GSRunLoopWatcher*)
+                NSMapGet(_rfdMap, (void*)(intptr_t)fdIndex);
+            }
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      i = [contexts count];

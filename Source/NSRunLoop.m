@@ -43,6 +43,7 @@
 #include "Foundation/NSStream.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSDebug.h"
+#include "Foundation/NSInvocation.h"
 #include "GSRunLoopCtxt.h"
 #include "GSRunLoopWatcher.h"
 #include "GSStream.h"
@@ -667,9 +668,61 @@ static inline BOOL timerInvalidated(NSTimer *t)
  */
 + (NSRunLoop*) currentRunLoop
 {
-  extern NSRunLoop	*GSRunLoopForThread();
+  GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(nil);
+  NSRunLoop             *current = info->loop;
 
-  return GSRunLoopForThread(nil);
+  if (current == nil)
+    {
+      current = info->loop = [self new];
+      /* If this is the main thread, set up a housekeeping timer.
+       */
+      if ([GSCurrentThread() isMainThread] == YES)
+        {
+          CREATE_AUTORELEASE_POOL	(arp);
+          GSRunLoopCtxt	                *context;
+          NSNotificationCenter	        *ctr;
+          NSNotification		*not;
+          NSInvocation		        *inv;
+          NSTimer                       *timer;
+          SEL			        sel;
+
+          ctr = [NSNotificationCenter defaultCenter];
+          not = [NSNotification notificationWithName: @"GSHousekeeping"
+                                              object: nil
+                                            userInfo: nil];
+          sel = @selector(postNotification:);
+          inv = [NSInvocation invocationWithMethodSignature:
+            [ctr methodSignatureForSelector: sel]];
+          [inv setTarget: ctr];
+          [inv setSelector: sel];
+          [inv setArgument: &not atIndex: 2];
+          [inv retainArguments];
+            
+          context = NSMapGet(current->_contextMap, NSDefaultRunLoopMode);
+          if (context == nil)
+            {
+              context = [GSRunLoopCtxt alloc];
+              context = [context initWithMode: NSDefaultRunLoopMode
+                                        extra: current->_extra];
+              NSMapInsert(current->_contextMap, context->mode, context);
+              RELEASE(context);
+            }
+          if (context->housekeeper != timer)
+            {
+              [context->housekeeper invalidate];
+              DESTROY(context->housekeeper);
+            }
+          timer = [[NSTimer alloc] initWithFireDate: nil
+                                           interval: 30.0
+                                             target: inv
+                                           selector: NULL
+                                           userInfo: nil
+                                            repeats: YES];
+          context->housekeeper = timer;
+          RELEASE(arp);
+        }
+    }
+  return current;
 }
 
 /* This is the designated initializer. */
@@ -1402,30 +1455,5 @@ static inline BOOL timerInvalidated(NSTimer *t)
   [self removeEvent: (void*)port type: ET_RPORT forMode: mode all: NO];
 }
 
-@end
-
-@implementation	NSRunLoop (Housekeeper)
-- (void) _setHousekeeper: (NSTimer*)timer
-{
-  GSRunLoopCtxt	*context;
-
-  context = NSMapGet(_contextMap, NSDefaultRunLoopMode);
-  if (context == nil)
-    {
-      context = [[GSRunLoopCtxt alloc] initWithMode: NSDefaultRunLoopMode
-					      extra: _extra];
-      NSMapInsert(_contextMap, context->mode, context);
-      RELEASE(context);
-    }
-  if (context->housekeeper != timer)
-    {
-      [context->housekeeper invalidate];
-      DESTROY(context->housekeeper);
-    }
-  if (timer != nil)
-    {
-      context->housekeeper = RETAIN(timer);
-    }
-}
 @end
 

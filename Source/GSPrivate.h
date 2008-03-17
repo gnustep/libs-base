@@ -252,6 +252,43 @@ typedef enum {
 + (NSError*) _systemError: (long)number;
 @end
 
+@class  NSRunLoop;
+@class  NSLock;
+@class  NSThread;
+
+/* Used to handle events performed in one thread from another.
+ */
+@interface      GSRunLoopThreadInfo : NSObject
+{
+  @public
+  NSRunLoop             *loop;
+  NSLock                *lock;
+  NSMutableArray        *performers;
+#ifdef __MINGW32__
+  HANDLE	        event;
+#else
+  int                   inputFd;
+  int                   outputFd;
+#endif	
+}
+/* Add a performer to be run in the loop's thread.  May be called from
+ * any thread.
+ */
+- (void) addPerformer: (id)performer;
+/* Fire all pending performers in the current thread.  May only be called
+ * from the runloop when the event/descriptor is triggered.
+ */
+- (void) fire;
+@end
+
+/* Return (and optionally create) GSRunLoopThreadInfo for the specified
+ * thread (or the current thread if aThread is nil).<br />
+ * If aThread is nil and no value is set for the current thread, create
+ * a GSRunLoopThreadInfo and set it for the current thread.
+ */
+GSRunLoopThreadInfo *
+GSRunLoopInfoForThread(NSThread *aThread) GS_ATTRIB_PRIVATE;
+
 /* Used by NSException uncaught exception handler - must not call any
  * methods/functions which might cause a recursive exception.
  */

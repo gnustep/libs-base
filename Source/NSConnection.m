@@ -84,6 +84,24 @@
 #include "Foundation/NSDebug.h"
 #include "GSInvocation.h"
 #include "GSPortPrivate.h"
+#include "GSPrivate.h"
+
+
+static inline NSRunLoop *
+GSRunLoopForThread(NSThread *aThread)
+{
+  GSRunLoopThreadInfo   *info = GSRunLoopInfoForThread(aThread);
+  if (info == nil || info->loop == nil)
+    {
+      if (aThread == nil)
+        {
+          return [NSRunLoop currentRunLoop];
+        }
+      return nil;
+    }
+  return info->loop;
+}
+
 
 @interface	NSPortCoder (Private)
 - (NSMutableArray*) _components;
@@ -101,8 +119,6 @@
 		  forProxy: (NSDistantObject*)object;
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
 @end
-
-extern NSRunLoop	*GSRunLoopForThread(NSThread*);
 
 #define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define F_UNLOCK(X) {NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
