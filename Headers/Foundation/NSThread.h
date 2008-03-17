@@ -66,12 +66,14 @@ extern "C" {
 
 - (NSMutableDictionary*) threadDictionary;
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) \
+  && GS_API_VERSION(010200,GS_API_LATEST)
 + (void) setThreadPriority: (double)pri;
 + (double) threadPriority;
 #endif
 
-#if OS_API_VERSION(100500,GS_API_LATEST) && GS_API_VERSION(011501,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) \
+  && GS_API_VERSION(011501,GS_API_LATEST)
 
 /** Returns an array of the call stack return addresses.
  */
@@ -144,17 +146,105 @@ extern "C" {
 
 @end
 
-#if	GS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-@interface	NSObject(NSMainThreadPerformAdditions)
+/**
+ * Extra methods to permit messages to be sent to an object such that they
+ * are executed in <em>another</em> thread.<br />
+ * The main thread is the thread in which the GNUstep system is started,
+ * and where the GNUstep gui is used, it is the thread in which gui
+ * drawing operations <strong>must</strong> be performed.
+ */
+@interface	NSObject(NSThreadPerformAdditions)
+#if	GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+/**
+ * <p>This method performs aSelector on the receiver, passing anObject as
+ * an argument, but does so in the main thread of the program.  The receiver
+ * and anObject are both retained until the method is performed.
+ * </p>
+ * <p>The selector is performed when the runloop of the main thread next
+ * runs in one of the modes specified in anArray.<br />
+ * Where this method has been called more than once before the runloop
+ * of the main thread runs in the required mode, the order in which the
+ * operations in the main thread is done is the same as that in which
+ * they were added using this method.
+ * </p>
+ * <p>If there are no modes in anArray,
+ * the method has no effect and simply returns immediately.
+ * </p>
+ * <p>The argument aFlag specifies whether the method should wait until
+ * the selector has been performed before returning.<br />
+ * <strong>NB.</strong> This method does <em>not</em> cause the runloop of
+ * the main thread to be run ... so if the runloop is not executed by some
+ * code in the main thread, the thread waiting for the perform to complete
+ * will block forever.
+ * </p>
+ * <p>As a special case, if aFlag == YES and the current thread is the main
+ * thread, the modes array is ignored and the selector is performed immediately.
+ * This behavior is necessary to avoid the main thread being blocked by
+ * waiting for a perform which will never happen because the runloop is
+ * not executing.
+ * </p>
+ */
 - (void) performSelectorOnMainThread: (SEL)aSelector
 			  withObject: (id)anObject
 		       waitUntilDone: (BOOL)aFlag
 			       modes: (NSArray*)anArray;
+/**
+ * Invokes -performSelectorOnMainThread:withObject:waitUntilDone:modes:
+ * using the supplied arguments and an array containing common modes.<br />
+ * These modes consist of NSRunLoopMode, NSConnectionreplyMode, and if
+ * in an application, the NSApplication modes.
+ */
 - (void) performSelectorOnMainThread: (SEL)aSelector
 			  withObject: (id)anObject
 		       waitUntilDone: (BOOL)aFlag;
-@end
 #endif
+#if	GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/**
+ * <p>This method performs aSelector on the receiver, passing anObject as
+ * an argument, but does so in the specified thread.  The receiver
+ * and anObject are both retained until the method is performed.
+ * </p>
+ * <p>The selector is performed when the runloop of aThread next
+ * runs in one of the modes specified in anArray.<br />
+ * Where this method has been called more than once before the runloop
+ * of the thread runs in the required mode, the order in which the
+ * operations in the thread is done is the same as that in which
+ * they were added using this method.
+ * </p>
+ * <p>If there are no modes in anArray,
+ * the method has no effect and simply returns immediately.
+ * </p>
+ * <p>The argument aFlag specifies whether the method should wait until
+ * the selector has been performed before returning.<br />
+ * <strong>NB.</strong> This method does <em>not</em> cause the runloop of
+ * aThread to be run ... so if the runloop is not executed by some
+ * code in aThread, the thread waiting for the perform to complete
+ * will block forever.
+ * </p>
+ * <p>As a special case, if aFlag == YES and the current thread is aThread,
+ * the modes array is ignored and the selector is performed immediately.
+ * This behavior is necessary to avoid the current thread being blocked by
+ * waiting for a perform which will never happen because the runloop is
+ * not executing.
+ * </p>
+ */
+- (void) performSelector: (SEL)aSelector
+                onThread: (NSThread*)aThread
+              withObject: (id)anObject
+           waitUntilDone: (BOOL)aFlag
+                   modes: (NSArray*)anArray;
+/**
+ * Invokes -performSelector:onThread:withObject:waitUntilDone:modes:
+ * using the supplied arguments and an array containing common modes.<br />
+ * These modes consist of NSRunLoopMode, NSConnectionreplyMode, and if
+ * in an application, the NSApplication modes.
+ */
+- (void) performSelector: (SEL)aSelector
+                onThread: (NSThread*)aThread
+              withObject: (id)anObject
+           waitUntilDone: (BOOL)aFlag;
+#endif
+@end
 
 #if	GS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /*

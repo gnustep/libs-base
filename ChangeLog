@@ -1,5 +1,20 @@
 2008-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSRunLoop.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/GSRunLoopCtxt.h:
+	* Source/GSPrivate.h:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/NSConnection.m:
+	* Source/NSThread.m:
+	* Headers/Foundation/NSThread.h:
+	Got round to committing the thread changes held back for last release.
+	Beware ... this code is not properly tested yet.  The idea is that it
+	should provide the new (in MacOS-X 10.5) methods to support performing
+	of selectors in other threads.
+
+2008-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPort.m:
 	* Source/NSException.m:
 	* Source/NSConnection.m:

@@ -101,20 +101,16 @@ static NSNotificationCenter *nc = nil;
   id			receiver;
   id			argument;
   SEL			selector;
-  NSArray		*modes;
   NSConditionLock	*lock;		// Not retained.
+  NSArray		*modes;
 }
-+ (BOOL) isValid;
 + (GSPerformHolder*) newForReceiver: (id)r
 			   argument: (id)a
 			   selector: (SEL)s
 			      modes: (NSArray*)m
 			       lock: (NSConditionLock*)l;
-+ (void) receivedEvent: (void*)data
-                  type: (RunLoopEventType)type
-                 extra: (void*)extra
-               forMode: (NSString*)mode;
 - (void) fire;
+- (NSArray*) modes;
 @end
 
 /**
@@ -352,75 +348,6 @@ NSMutableDictionary*
 GSCurrentThreadDictionary(void)
 {
   return GSDictionaryForThread(nil);
-}
-
-/*
- * The special timer which we set up in the run loop of the main thread
- * to perform housekeeping duties.  NSRunLoop needs to call this private
- * function so it knows about the housekeeping timer and won't keep the
- * loop running just to do housekeeping.
- *
- * The NSUserDefaults system registers as an observer of GSHousekeeping
- * notifications in order to synchronise the in-memory cache and the
- * on-disk database.
- */
-static NSTimer	*housekeeper = nil;
-
-/**
- * Returns the runloop for the specified thread (or, if t is nil,
- * for the current thread).<br />
- * Creates a new runloop if necessary,
- * as long as the thread dictionary exists.<br />
- * Returns nil on failure.
- */
-NSRunLoop*
-GSRunLoopForThread(NSThread *t)
-{
-  static NSString       *key = @"NSRunLoopThreadKey";
-  NSMutableDictionary   *d = GSDictionaryForThread(t);
-  NSRunLoop             *r;
-
-  r = [d objectForKey: key];
-  if (r == nil)
-    {
-      if (d != nil)
-        {
-          r = [NSRunLoop new];
-          [d setObject: r forKey: key];
-          RELEASE(r);
-	  if (housekeeper == nil && (t == nil || t == defaultThread))
-	    {
-	      CREATE_AUTORELEASE_POOL	(arp);
-	      NSNotificationCenter	*ctr;
-	      NSNotification		*not;
-	      NSInvocation		*inv;
-	      SEL			sel;
-
-	      ctr = [NSNotificationCenter defaultCenter];
-	      not = [NSNotification notificationWithName: @"GSHousekeeping"
-						  object: nil
-						userInfo: nil];
-	      sel = @selector(postNotification:);
-	      inv = [NSInvocation invocationWithMethodSignature:
-		[ctr methodSignatureForSelector: sel]];
-	      [inv setTarget: ctr];
-	      [inv setSelector: sel];
-	      [inv setArgument: &not atIndex: 2];
-	      [inv retainArguments];
-		
-	      housekeeper = [[NSTimer alloc] initWithFireDate: nil
-						     interval: 30.0
-						       target: inv
-						     selector: NULL
-						     userInfo: nil
-						      repeats: YES];
-	      [r _setHousekeeper: housekeeper];
-	      RELEASE(housekeeper);
-	      RELEASE(arp);
-	    }
-        }
-    }
-  return r;
 }
 
 /*
@@ -722,6 +649,13 @@ gnustep_base_thread_callback(void)
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Deallocating an active thread without [+exit]!"];
     }
+  if (_runLoopInfo != 0)
+    {
+      GSRunLoopThreadInfo       *info = (GSRunLoopThreadInfo*)_runLoopInfo;
+
+      _runLoopInfo = 0;
+      [info release];
+    }
   DESTROY(_thread_dictionary);
   DESTROY(_target);
   DESTROY(_arg);
@@ -943,73 +877,135 @@ pthread_detach(pthread_self());
 
 
 
-@implementation GSPerformHolder
+@implementation GSRunLoopThreadInfo
+- (void) addPerformer: (id)performer
+{
+  [lock lock];
+  [performers addObject: performer];
+  [lock unlock];
+#if defined(__MINGW32__)
+  if (SetEvent(event) == 0)
+    {
+      NSLog(@"Set event failed - %@", [NSError _last]);
+    }
+#else
+  if (write(outputFd, "0", 1) != 1)
+    {
+      NSLog(@"Write to pipe failed - %@", [NSError _last]);
+    }
+#endif
+}
 
-static NSLock *subthreadsLock = nil;
+- (void) dealloc
+{
+  DESTROY(lock);
+  DESTROY(loop);
+  [performers makeObjectsPerformSelector: @selector(invalidate)];
+  DESTROY(performers);
 #ifdef __MINGW32__
-static HANDLE	event;
+  if (event != INVALID_HANDLE_VALUE)
+    {
+      CloseHandle(event);
+    }
 #else
-static int inputFd = -1;
-static int outputFd = -1;
-#endif	
-static NSMutableArray *perfArray = nil;
-static NSDate *theFuture;
+  if (inputFd >= 0)
+    {
+      close(inputFd);
+      inputFd = -1;
+    }
+  if (outputFd >= 0)
+    {
+      close(outputFd);
+      outputFd = -1;
+    }
+#endif
+  [super dealloc];
+}
 
-+ (void) initialize
+- (id) init
 {
-  NSRunLoop	*loop = GSRunLoopForThread(defaultThread);
-  NSArray	*m = commonModes();
-  unsigned	count = [m count];
-  unsigned	i;
-
-  theFuture = RETAIN([NSDate distantFuture]);
-  subthreadsLock = [[NSLock alloc] init];
-  perfArray = [[NSMutableArray alloc] initWithCapacity: 10];
-
-#ifndef __MINGW32__
-  {
-    int	fd[2];
-
-    if (pipe(fd) == 0)
-      {
-	inputFd = fd[0];
-	outputFd = fd[1];
-      }
-    else
-      {
-	[NSException raise: NSInternalInconsistencyException
-	  format: @"Failed to create pipe to handle perform in main thread"];
-      }
-    for (i = 0; i < count; i++)
-      {
-	[loop addEvent: (void*)(intptr_t)inputFd
-		  type: ET_RDESC
-	       watcher: (id<RunLoopEvents>)self
-	       forMode: [m objectAtIndex: i]];
-      }
-  }
+#ifdef __MINGW32__
+  if ((event = CreateEvent(NULL, TRUE, FALSE, NULL)) == INVALID_HANDLE_VALUE)
+    {
+      RELEASE(self);
+      [NSException raise: NSInternalInconsistencyException
+        format: @"Failed to create event to handle perform in thread"];
+    }
 #else
-  {
-    if ((event = CreateEvent(NULL, TRUE, FALSE, NULL)) == NULL)
-      {
-	[NSException raise: NSInternalInconsistencyException
-	  format: @"Failed to create event to handle perform in main thread"];
-      }
-    for (i = 0; i < count; i++)
-      {
-	[loop addEvent: (void*)event
-		  type: ET_HANDLE
-	       watcher: (id<RunLoopEvents>)self
-	       forMode: [m objectAtIndex: i]];
-      }
-  }
+  int	fd[2];
+
+  if (pipe(fd) == 0)
+    {
+      inputFd = fd[0];
+      outputFd = fd[1];
+    }
+  else
+    {
+      RELEASE(self);
+      [NSException raise: NSInternalInconsistencyException
+        format: @"Failed to create pipe to handle perform in thread"];
+    }
 #endif  
+  lock = [NSLock new];
+  performers = [NSMutableArray new];
+  return self;
 }
 
-+ (BOOL) isValid
+- (void) fire
 {
-  return YES;
+  NSArray	*toDo;
+  unsigned int	i;
+  unsigned int	c;
+
+#if defined(__MINGW32__)
+  if (ResetEvent(event) == 0)
+    {
+      NSLog(@"Reset event failed - %@", [NSError _last]);
+    }
+#else
+  if (read(inputFd, &c, 1) != 1)
+    {
+      NSLog(@"Read pipe failed - %@", [NSError _last]);
+    }
+#endif
+
+  [lock lock];
+  toDo = [NSArray arrayWithArray: performers];
+  [performers removeAllObjects];
+  [lock unlock];
+
+  c = [toDo count];
+  for (i = 0; i < c; i++)
+    {
+      GSPerformHolder	*h = [toDo objectAtIndex: i];
+
+      [loop performSelector: @selector(fire)
+		     target: h
+		   argument: nil
+		      order: 0
+		      modes: [h modes]];
+    }
 }
+@end
+
+GSRunLoopThreadInfo *
+GSRunLoopInfoForThread(NSThread *aThread)
+{
+  GSRunLoopThreadInfo   *info;
+
+  if (aThread == nil)
+    {
+      aThread = GSCurrentThread();
+      if (((NSThread_ivars*)aThread)->_runLoopInfo == nil)
+        {
+          ((NSThread_ivars*)aThread)->_runLoopInfo = [GSRunLoopThreadInfo new];
+        }
+    }
+  info = ((NSThread_ivars*)aThread)->_runLoopInfo;
+  return info;
+}
+
+@implementation GSPerformHolder
 
 + (GSPerformHolder*) newForReceiver: (id)r
 			   argument: (id)a
@@ -1026,67 +1022,7 @@ static NSDate *theFuture;
   h->modes = RETAIN(m);
   h->lock = l;
 
-  [subthreadsLock lock];
-
-  [perfArray addObject: h];
-
-#if defined(__MINGW32__)
-  if (SetEvent(event) == 0)
-    {
-      NSLog(@"Set event failed - %@", [NSError _last]);
-    }
-#else
-  if (write(outputFd, "0", 1) != 1)
-    {
-      NSLog(@"Write to pipe failed - %@", [NSError _last]);
-    }
-#endif
-
-  [subthreadsLock unlock];
-
   return h;
-}
-
-+ (void) receivedEvent: (void*)data
-                  type: (RunLoopEventType)type
-                 extra: (void*)extra
-               forMode: (NSString*)mode
-{
-  NSRunLoop	*loop = [NSRunLoop currentRunLoop];
-  NSArray	*toDo;
-  unsigned int	i;
-  unsigned int	c;
-
-  [subthreadsLock lock];
-
-#if defined(__MINGW32__)
-  if (ResetEvent(event) == 0)
-    {
-      NSLog(@"Reset event failed - %@", [NSError _last]);
-    }
-#else
-  if (read(inputFd, &c, 1) != 1)
-    {
-      NSLog(@"Read pipe failed - %@", [NSError _last]);
-    }
-#endif
-
-  toDo = [[NSArray alloc] initWithArray: perfArray];
-  [perfArray removeAllObjects];
-  [subthreadsLock unlock];
-
-  c = [toDo count];
-  for (i = 0; i < c; i++)
-    {
-      GSPerformHolder	*h = [toDo objectAtIndex: i];
-
-      [loop performSelector: @selector(fire)
-		     target: h
-		   argument: nil
-		      order: 0
-		      modes: h->modes];
-    }
-  RELEASE(toDo);
 }
 
 - (void) dealloc
@@ -1106,11 +1042,14 @@ static NSDate *theFuture;
 
 - (void) fire
 {
+  GSRunLoopThreadInfo   *threadInfo;
+
   if (receiver == nil)
     {
       return;	// Already fired!
     }
-  [GSRunLoopForThread(defaultThread) cancelPerformSelectorsWithTarget: self];
+  threadInfo = GSRunLoopInfoForThread(GSCurrentThread());
+  [threadInfo->loop cancelPerformSelectorsWithTarget: self];
   [receiver performSelector: selector withObject: argument];
   DESTROY(receiver);
   DESTROY(argument);
@@ -1128,52 +1067,45 @@ static NSDate *theFuture;
       [l unlockWithCondition: 1];
     }
 }
+
+- (NSArray*) modes
+{
+  return modes;
+}
 @end
 
-/**
- * Extra methods to permit messages to be sent to an object such that they
- * are executed in the <em>main</em> thread.<br />
- * The main thread is the thread in which the GNUstep system is started,
- * and where the GNUstep gui is used, it is the thread in which gui
- * drawing operations <strong>must</strong> be performed.
- */
-@implementation	NSObject (NSMainThreadPerformAdditions)
+@implementation	NSObject (NSThreadPerformAdditions)
 
-/**
- * <p>This method performs aSelector on the receiver, passing anObject as
- * an argument, but does so in the main thread of the program.  The receiver
- * and anObject are both retained until the method is performed.
- * </p>
- * <p>The selector is performed when the runloop of the main thread next
- * runs in one of the modes specified in anArray.<br />
- * Where this method has been called more than once before the runloop
- * of the main thread runs in the required mode, the order in which the
- * operations in the main thread is done is the same as that in which
- * they were added using this method.
- * </p>
- * <p>If there are no modes in anArray,
- * the method has no effect and simply returns immediately.
- * </p>
- * <p>The argument aFlag specifies whether the method should wait until
- * the selector has been performed before returning.<br />
- * <strong>NB.</strong> This method does <em>not</em> cause the runloop of
- * the main thread to be run ... so if the runloop is not executed by some
- * code in the main thread, the thread waiting for the perform to complete
- * will block forever.
- * </p>
- * <p>As a special case, if aFlag == YES and the current thread is the main
- * thread, the modes array is ignored and the selector is performed immediately.
- * This behavior is necessary to avoid the main thread being blocked by
- * waiting for a perform which will never happen because the runloop is
- * not executing.
- * </p>
- */
 - (void) performSelectorOnMainThread: (SEL)aSelector
 			  withObject: (id)anObject
 		       waitUntilDone: (BOOL)aFlag
 			       modes: (NSArray*)anArray
 {
-  NSThread	*t;
+  [self performSelector: aSelector
+               onThread: defaultThread
+             withObject: anObject
+          waitUntilDone: aFlag
+                  modes: anArray];
+}
+
+- (void) performSelectorOnMainThread: (SEL)aSelector
+			  withObject: (id)anObject
+		       waitUntilDone: (BOOL)aFlag
+{
+  [self performSelectorOnMainThread: aSelector
+			 withObject: anObject
+		      waitUntilDone: aFlag
+			      modes: commonModes()];
+}
+
+- (void) performSelector: (SEL)aSelector
+                onThread: (NSThread*)aThread
+              withObject: (id)anObject
+           waitUntilDone: (BOOL)aFlag
+                   modes: (NSArray*)anArray
+{
+  GSRunLoopThreadInfo   *info;
+  NSThread	        *t;
 
   if ([anArray count] == 0)
     {
@@ -1181,24 +1113,29 @@ static NSDate *theFuture;
     }
 
   t = GSCurrentThread();
-  if (t == defaultThread)
+  if (aThread == nil)
     {
-      if (aFlag == YES)
+      aThread = t;
+    }
+  info = GSRunLoopInfoForThread(aThread);
+  if (t == aThread)
+    {
+      if (aFlag == YES || info->loop == nil)
 	{
 	  [self performSelector: aSelector withObject: anObject];
 	}
       else
 	{
-	  [GSRunLoopForThread(t) performSelector: aSelector
-					  target: self
-					argument: anObject
-					   order: 0
-					   modes: anArray];
+	  [info->loop performSelector: aSelector
+                               target: self
+                             argument: anObject
+                                order: 0
+                                modes: anArray];
 	}
     }
   else
     {
-      GSPerformHolder	*h;
+      GSPerformHolder   *h;
       NSConditionLock	*l = nil;
 
       if (aFlag == YES)
@@ -1211,31 +1148,27 @@ static NSDate *theFuture;
 				 selector: aSelector
 				    modes: anArray
 				     lock: l];
-
-      if (aFlag == YES)
+      [info addPerformer: h];
+      if (l != nil)
 	{
           [l lockWhenCondition: 1];
-	  RELEASE(h);
 	  [l unlock];
 	  RELEASE(l);
 	}
+      RELEASE(h);
     }
 }
 
-/**
- * Invokes -performSelectorOnMainThread:withObject:waitUntilDone:modes:
- * using the supplied arguments and an array containing common modes.<br />
- * These modes consist of NSRunLoopMode, NSConnectionreplyMode, and if
- * in an application, the NSApplication modes.
- */
-- (void) performSelectorOnMainThread: (SEL)aSelector
-			  withObject: (id)anObject
-		       waitUntilDone: (BOOL)aFlag
+- (void) performSelector: (SEL)aSelector
+                onThread: (NSThread*)aThread
+              withObject: (id)anObject
+           waitUntilDone: (BOOL)aFlag
 {
-  [self performSelectorOnMainThread: aSelector
-			 withObject: anObject
-		      waitUntilDone: aFlag
-			      modes: commonModes()];
+  [self performSelector: aSelector
+               onThread: aThread
+             withObject: anObject
+          waitUntilDone: aFlag
+                  modes: commonModes()];
 }
 @end
 
