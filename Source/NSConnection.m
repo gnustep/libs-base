@@ -109,6 +109,8 @@ extern NSRunLoop	*GSRunLoopForThread(NSThread*);
 #define M_LOCK(X) {NSDebugMLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define M_UNLOCK(X) {NSDebugMLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 
+NSString * const NSDestinationInvalidException =
+  @"NSDestinationInvalidException";
 NSString * const NSFailedAuthenticationException =
   @"NSFailedAuthenticationExceptions";
 NSString * const NSObjectInaccessibleException =

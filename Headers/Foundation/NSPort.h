@@ -62,14 +62,6 @@ extern "C" {
 @end
 
 /**
- *  Exception raised by [NSPort], [NSConnection], and friends if sufficient
- *  time elapses while waiting for a response, or if the receiving port is
- *  invalidated before a request can be received.  See
- *  [NSConnection-setReplyTimeout:].
- */
-GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
-
-/**
  * <p><code>NSPort</code> is an abstract class defining interfaces underlying
  * communications in the distributed objects framework.  Each side of a
  * connection will have an <code>NSPort</code> object, responsible for sending
