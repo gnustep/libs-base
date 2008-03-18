@@ -43,6 +43,7 @@ typedef uint16_t unichar;
 @class NSData;
 @class NSDictionary;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+@class NSError;
 @class NSURL;
 #endif
 
@@ -202,6 +203,14 @@ enum {
 		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding 
 	      freeWhenDone: (BOOL)flag;
+#endif
+#if OS_API_VERSION(100500,GS_API_LATEST)
++ (id) stringWithContentsOfFile: (NSString*)path
+                   usedEncoding: (NSStringEncoding*)enc
+                          error: (NSError**)error;
+- (id) initWithContentsOfFile: (NSString*)path
+                 usedEncoding: (NSStringEncoding*)enc
+                        error: (NSError**)error;
 #endif
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length

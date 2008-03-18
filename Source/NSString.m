@@ -73,6 +73,7 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSNotification.h"
 #include "Foundation/NSUserDefaults.h"
+#include "Foundation/FoundationErrors.h"
 #include "Foundation/NSDebug.h"
 // For private method _decodePropertyListForKey:
 #include "Foundation/NSKeyedArchiver.h"
@@ -778,6 +779,21 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
+ * Load contents of file at path into a new string using the
+ * -initWithContentsOfFile:usedEncoding:error: method.
+ */
++ (id) stringWithContentsOfFile: (NSString *)path
+                   usedEncoding: (NSStringEncoding*)enc
+                          error: (NSError**)error
+{
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfFile: path usedEncoding: enc error: error];
+  return AUTORELEASE(obj);
+}
+
+/**
  * Load contents of given URL into a new string.  Will interpret contents as
  * containing direct unicode if it begins with the unicode byte order mark,
  * else converts to unicode using default C string encoding.
@@ -1206,6 +1222,78 @@ handle_printf_atsign (FILE *stream,
   if (self == nil)
     {
       NSWarnMLog(@"Contents of file '%@' are not string data", path);
+    }
+  return self;
+}
+
+/**
+ * <p>Initialises the receiver with the contents of the file at path.
+ * </p>
+ * <p>Invokes [NSData-initWithContentsOfFile:] to read the file, then
+ * examines the data to infer its encoding type, and converts the
+ * data to a string using -initWithData:encoding:
+ * </p>
+ * <p>The encoding to use is determined as follows ... if the data begins
+ * with the 16-bit unicode Byte Order Marker, then it is assumed to be
+ * unicode data in the appropriate ordering and converted as such.<br />
+ * If it begins with a UTF8 representation of the BOM, the UTF8 encoding
+ * is used.<br />
+ * Otherwise, the default C String encoding is used.
+ * </p>
+ * <p>Releases the receiver and returns nil if the file could not be read
+ * and converted to a string.
+ * </p>
+ */
+- (id) initWithContentsOfFile: (NSString*)path
+                 usedEncoding: (NSStringEncoding*)enc
+                        error: (NSError**)error
+{
+  NSData		*d;
+  unsigned int		len;
+  const unsigned char	*data_bytes;
+
+  d = [[NSDataClass alloc] initWithContentsOfFile: path];
+  if (d == nil)
+    {
+      RELEASE(self);
+      return nil;
+    }
+  *enc = _DefaultStringEncoding;
+  len = [d length];
+  if (len == 0)
+    {
+      RELEASE(d);
+      RELEASE(self);
+      return @"";
+    }
+  data_bytes = [d bytes];
+  if ((data_bytes != NULL) && (len >= 2))
+    {
+      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      if ((data_ucs2chars[0] == byteOrderMark)
+	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
+	{
+	  /* somebody set up us the BOM! */
+	  *enc = NSUnicodeStringEncoding;
+	}
+      else if (len >= 3
+	&& data_bytes[0] == 0xEF
+	&& data_bytes[1] == 0xBB
+	&& data_bytes[2] == 0xBF)
+	{
+	  *enc = NSUTF8StringEncoding;
+	}
+    }
+  self = [self initWithData: d encoding: *enc];
+  RELEASE(d);
+  if (self == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
     }
   return self;
 }

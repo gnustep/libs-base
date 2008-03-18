@@ -408,8 +408,13 @@ static IMP	initImp;
 		{
                   IMP   imp;
 
+#if 1
 		  if (GSObjCIsInstance(anObject))
 		    {
+                      /* We call instanceMethodForSelector: on the class
+                       * rather than methodForSelector: because EOFault
+                       * implements the former but not the latter.
+                       */
 		      imp = [c instanceMethodForSelector: releaseSel];
 		    }
 		  else
@@ -421,6 +426,9 @@ static IMP	initImp;
                       [NSException raise: NSInternalInconsistencyException
                         format: @"nul release for object in autorelease pool"];
                     }
+#else
+                  imp = get_imp(anObject, @selector(release));
+#endif
 		  classes[hash] = c;
 		  imps[hash] = imp;
 		}
