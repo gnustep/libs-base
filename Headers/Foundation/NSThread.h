@@ -38,6 +38,17 @@
 extern "C" {
 #endif
 
+/**
+ * This class encapsulates OpenStep threading.  See [NSLock] and its
+ * subclasses for handling synchronisation between threads.<br />
+ * Each process begins with a main thread and additional threads can
+ * be created using NSThread.  The GNUstep implementation of OpenStep
+ * has been carefully designed so that the internals of the base
+ * library do not use threading (except for methods which explicitly
+ * deal with threads of course) so that you can write applications
+ * without threading.  Non-threaded applications are more efficient
+ * (no locking is required) and are easier to debug during development.
+ */
 @interface NSThread : NSObject
 {
 @private
@@ -48,6 +59,7 @@ extern "C" {
   unsigned              _stackSize;
   BOOL			_cancelled;
   BOOL			_active;
+  BOOL			_finished;
   NSHandler		*_exception_handler;    // Not retained.
   NSMutableDictionary	*_thread_dictionary;
   struct autorelease_thread_vars _autorelease_vars;
@@ -56,11 +68,46 @@ extern "C" {
   void                  *_reserved;     // For future expansion
 }
 
+/**
+ * <p>
+ *   Returns the NSThread object corresponding to the current thread.
+ * </p>
+ * <p>
+ *   NB. In GNUstep the library internals use the GSCurrentThread()
+ *   function as a more efficient mechanism for doing this job - so
+ *   you cannot use a category to override this method and expect
+ *   the library internals to use your implementation.
+ * </p>
+ */
 + (NSThread*) currentThread;
+
+/**
+ * <p>Create a new thread - use this method rather than alloc-init.  The new
+ * thread will begin executing the message given by aSelector, aTarget, and
+ * anArgument.  This should have no return value, and must set up an
+ * autorelease pool if retain/release memory management is used.  It should
+ * free this pool before it finishes execution.</p>
+ */
 + (void) detachNewThreadSelector: (SEL)aSelector
 		        toTarget: (id)aTarget
 		      withObject: (id)anArgument;
+
+/**
+ * Terminates the current thread.<br />
+ * Normally you don't need to call this method explicitly,
+ * since exiting the method with which the thread was detached
+ * causes this method to be called automatically.
+ */
 + (void) exit;
+
+/**
+ * Returns a flag to say whether the application is multi-threaded or not.<br />
+ * An application is considered to be multi-threaded if any thread other
+ * than the main thread has been started, irrespective of whether that
+ * thread has since terminated.<br />
+ * NB. This method returns YES if called within a handler processing
+ * <code>NSWillBecomeMultiThreadedNotification</code>
+ */
 + (BOOL) isMultiThreaded;
 + (void) sleepUntilDate: (NSDate*)date;
 
@@ -78,6 +125,11 @@ extern "C" {
 /** Returns an array of the call stack return addresses.
  */
 + (NSArray*) callStackReturnAddresses;
+
+/** Returns a boolean indicating whether this thread is the main thread of
+ * the process.
+ */
++ (BOOL) isMainThread;
 
 /** Returns the main thread of the process.
  */
@@ -113,6 +165,11 @@ extern "C" {
  * thread has been started (and has not yet finished or been cancelled).
  */
 - (BOOL) isExecuting;
+
+/** Returns a boolean indicating whether the receiving
+ * thread has completed executing.
+ */
+- (BOOL) isFinished;
 
 /** Returns a boolean indicating whether this thread is the main thread of
  * the process.
