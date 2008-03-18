@@ -1,3 +1,7 @@
+2008-03-18  Riccardo Mottola <rmottola@users.sf.net>
+
+        * Source/GNUMakefile: Added FoundationErrors.h
+
 2008-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Add a couple of new MacOS-X methods.
