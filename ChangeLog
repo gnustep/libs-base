@@ -1,3 +1,11 @@
+2008-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Add a couple of new MacOS-X methods.
+	* Headers/Foundation/NSString.h: ditto
+	* Headers/Foundation/FoundationErrors.h: New list of error codes
+	* Headers/Foundation/Foundation.h: include error codes
+	More MacOS-X compatibility tweaks
+
 2008-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSThread.h:
