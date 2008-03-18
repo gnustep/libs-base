@@ -295,6 +295,7 @@ tzfile.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
+FoundationErrors.h \
 NSAffineTransform.h \
 NSArchiver.h \
 NSArray.h \
