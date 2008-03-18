@@ -877,6 +877,7 @@ case a: env->addr = __builtin_return_address(a + 1); break;
 
 #if	defined(__MINGW32__)
 #include <setjmp.h>
+#define SIGBUS  SIGILL
 #endif
 
 typedef struct {
