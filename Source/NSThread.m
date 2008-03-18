@@ -881,23 +881,6 @@ pthread_detach(pthread_self());
   [self invalidate];
   DESTROY(lock);
   DESTROY(loop);
-#ifdef __MINGW32__
-  if (event != INVALID_HANDLE_VALUE)
-    {
-      CloseHandle(event);
-    }
-#else
-  if (inputFd >= 0)
-    {
-      close(inputFd);
-      inputFd = -1;
-    }
-  if (outputFd >= 0)
-    {
-      close(outputFd);
-      outputFd = -1;
-    }
-#endif
   [super dealloc];
 }
 
@@ -936,6 +919,23 @@ pthread_detach(pthread_self());
   [performers makeObjectsPerformSelector: @selector(invalidate)];
   [performers removeAllObjects];
   [lock unlock];
+#ifdef __MINGW32__
+  if (event != INVALID_HANDLE_VALUE)
+    {
+      CloseHandle(event);
+    }
+#else
+  if (inputFd >= 0)
+    {
+      close(inputFd);
+      inputFd = -1;
+    }
+  if (outputFd >= 0)
+    {
+      close(outputFd);
+      outputFd = -1;
+    }
+#endif
 }
 
 - (void) fire
@@ -945,14 +945,20 @@ pthread_detach(pthread_self());
   unsigned int	c;
 
 #if defined(__MINGW32__)
-  if (ResetEvent(event) == 0)
+  if (event != INVALID_HANDLE_VALUE)
     {
-      NSLog(@"Reset event failed - %@", [NSError _last]);
+      if (ResetEvent(event) == 0)
+        {
+          NSLog(@"Reset event failed - %@", [NSError _last]);
+        }
     }
 #else
-  if (read(inputFd, &c, 1) != 1)
+  if (inputFd >= 0)
     {
-      NSLog(@"Read pipe failed - %@", [NSError _last]);
+      if (read(inputFd, &c, 1) != 1)
+        {
+          NSLog(@"Read pipe failed - %@", [NSError _last]);
+        }
     }
 #endif
 
