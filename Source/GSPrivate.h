@@ -279,6 +279,9 @@ typedef enum {
  * from the runloop when the event/descriptor is triggered.
  */
 - (void) fire;
+/* Cancel all pending performers.
+ */
+- (void) invalidate;
 @end
 
 /* Return (and optionally create) GSRunLoopThreadInfo for the specified

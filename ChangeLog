@@ -1,5 +1,12 @@
 2008-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSThread.h:
+	* Source/NSThread.m: Add ([+isMainThread]) and ([-isFinished]).
+	Also check that we are not trying to perform a selector on an invalid
+	thread finished.
+
+2008-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSRunLoop.m:
 	* Source/unix/GSRunLoopCtxt.m:
 	* Source/GSRunLoopCtxt.h:
