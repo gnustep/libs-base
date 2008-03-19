@@ -1,3 +1,16 @@
+2008-03-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/DocMakefile: include GNUstep.h
+	* Headers/Foundation/NSObject.h: include GNUstep.h for macros
+	* Headers/Foundation/NSBundle.h: move gnustep specific macros out
+	* Headers/Additions/GNUstepBase/GSFunctions.h: undeprecate and add
+	GSLocalizedStringFromTableInFramework from NSBundle.h
+	* Headers/Additions/GNUstepBase/GNUstep.h: Add comments etc.
+	Code changes to avoid duplication of macro definitions, make
+	GNUstep.h usable anywhere, and rename a couple of GNUstep specific
+	extensions to use the GS prefix rather than the (reserved by Apple)
+	NS prefix.
+	
 2008-03-18  Riccardo Mottola <rmottola@users.sf.net>
 
         * Source/GNUMakefile: Added FoundationErrors.h

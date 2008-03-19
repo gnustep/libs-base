@@ -126,6 +126,7 @@ NSZone.h
 
 BaseAdditions_AGSDOC_FILES = \
 ../Documentation/BaseAdditions.gsdoc \
+GNUstep.h \
 GSCategories.h \
 GSIArray.h \
 GSIMap.h \
