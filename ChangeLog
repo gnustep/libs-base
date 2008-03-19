@@ -1,5 +1,10 @@
 2008-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSAutoreleasePool.m: Use get_imp() to fetch the
+	implementation of the release method.
+
+2008-03-19  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/DocMakefile: include GNUstep.h
 	* Headers/Foundation/NSObject.h: include GNUstep.h for macros
 	* Headers/Foundation/NSBundle.h: move gnustep specific macros out

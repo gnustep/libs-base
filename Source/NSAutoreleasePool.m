@@ -406,31 +406,16 @@ static IMP	initImp;
 	      hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
 	      if (classes[hash] != c)
 		{
-                  IMP   imp;
-
-#if 1
-		  if (GSObjCIsInstance(anObject))
-		    {
-                      /* We call instanceMethodForSelector: on the class
-                       * rather than methodForSelector: because EOFault
-                       * implements the former but not the latter.
-                       */
-		      imp = [c instanceMethodForSelector: releaseSel];
-		    }
-		  else
-		    {
-		      imp = [c methodForSelector: releaseSel];
-		    }
-                  if (imp == 0)
-                    {
-                      [NSException raise: NSInternalInconsistencyException
-                        format: @"nul release for object in autorelease pool"];
-                    }
-#else
-                  imp = get_imp(anObject, @selector(release));
-#endif
+                  /* If anObject was an instance, c is it's class.
+                   * If anObject was a class, c is its metaclass.
+                   * Either way, get_imp() should get the appropriate pointer.
+                   * If anObject is a proxy to something,
+                   * the +instanceMethodForSelector: and -methodForSelector:
+                   * methods may not exist, but get_imp() will return the
+                   * address of the forwarding method if necessary.
+                   */
+		  imps[hash] = get_imp(c, @selector(release));
 		  classes[hash] = c;
-		  imps[hash] = imp;
 		}
 	      (imps[hash])(anObject, releaseSel);
 	    }
