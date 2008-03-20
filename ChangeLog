@@ -1,3 +1,7 @@
+2008-03-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSRunLoopCtxt.m: Fix bad function call (bug #22676)
+
 2008-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: Use get_imp() to fetch the

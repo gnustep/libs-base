@@ -275,7 +275,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopForThread(nil, YES);
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
   NSMapEnumerator	hEnum;
   GSRunLoopWatcher	*watcher;
   HANDLE		handleArray[MAXIMUM_WAIT_OBJECTS-1];
