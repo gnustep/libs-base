@@ -1,3 +1,9 @@
+2008-03-20  David Chisnall <csdavec@swansea.ac.uk
+
+	* Source/NSObject.m: Changed atomic increment/decrement for intel
+	to simpler (perhaps marginally faster) code, also added atomic
+	increment/decrement for PPC.
+
 2008-03-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSRunLoopCtxt.m: Fix bad function call (bug #22676)
