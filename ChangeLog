@@ -1,3 +1,13 @@
+2008-04-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac
+	* config/config.joinable.m
+	* configure
+	* Headers/Additions/GNUstepBase/config.h.in
+	* Source/NSThread.m
+	Backport workaround for bug in gnu runtime thread support on
+	some systems.
+
 2008-03-12  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.14.3

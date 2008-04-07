@@ -1397,14 +1397,32 @@ if test $ac_cv_header_poll_h = yes; then
 fi
 
 #--------------------------------------------------------------------
-# Check for pthread.h (only when building on Darwin machines)
+# Check for pthread.h 
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(pthread.h)
 HAVE_PTHREAD_H=no
 if test $ac_cv_header_pthread_h = yes ; then
   HAVE_PTHREAD_H=yes
+  if test x"$objc_threaded" != x""; then
+    saved_LIBS="$LIBS"
+    saved_CPPFLAGS="$CPPFLAGS"
+    LIBS="$LIBS $LIBOBJC"
+    CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
+    LIBS="$LIBS $objc_threaded"
+    LIBS="$LIBS $extra_LIBS"
+    AC_TRY_RUN([#include "$srcdir/config/config.joinable.m"],
+             pthread_joinable=1, pthread_joinable=0, 
+             pthread_joinable=1)
+    if test $pthread_joinable = 1; then
+      AC_DEFINE(PTHREAD_JOINABLE,1,
+        [Define if objc runtime creates joinable threads])
+    fi
+    LIBS="$saved_LIBS"
+    CPPFLAGS="$saved_CPPFLAGS"
+  fi
 fi
 AC_SUBST(HAVE_PTHREAD_H)
+
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m

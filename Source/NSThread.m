@@ -764,6 +764,15 @@ gnustep_base_thread_callback(void)
    * be deallocated cleanly.
    */
   objc_thread_set_data(self);
+#if     defined(PTHREAD_JOINABLE)
+  /* Hack to work around the fact that
+   * some versions of the objective-c
+   * library fail to create the thread detached.
+   * We should really do this only in such cases.
+   */
+  pthread_detach(pthread_self());
+#endif
+
   _active = YES;
 
   /*

@@ -561,6 +561,9 @@
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
 
+/* Define if objc runtime creates joinable threads */
+#undef PTHREAD_JOINABLE
+
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
