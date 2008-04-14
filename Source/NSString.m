@@ -1420,7 +1420,7 @@ handle_printf_atsign (FILE *stream,
 /**
  * Constructs a new ASCII string which is a representation of the receiver
  * in which characters are escaped where necessary in order to produce a
- * legal URL.<br />
+ * version of the string legal within a URL.<br />
  * The original string is converted to bytes using the specified encoding
  * and then those bytes are escaped unless they correspond to 'legal'
  * ASCII characters.  The byte values escaped are any below 32 and any
