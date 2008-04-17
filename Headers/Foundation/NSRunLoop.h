@@ -138,6 +138,9 @@ typedef	enum {
 		 extra: (void*)extra
 	       forMode: (NSString*)mode;
 @end
+@interface NSObject (RunLoopEvents)
+- (BOOL) runLoopShouldBlock: (BOOL*)shouldTrigger;
+@end
 @class	NSStream;
 @interface NSRunLoop(GNUstepExtensions)
 - (void) addEvent: (void*)data
