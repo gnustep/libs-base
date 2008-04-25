@@ -1,3 +1,9 @@
+2008-04-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m:
+	Use more memory efficient bitmaps for old style property list parsing
+	where we know we are only using 8bit characters.
+
 2008-03-20  David Chisnall <csdavec@swansea.ac.uk
 
 	* Source/NSObject.m: Changed atomic increment/decrement for intel
