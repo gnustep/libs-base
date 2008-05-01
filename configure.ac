@@ -1868,9 +1868,21 @@ fi
 
 #--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
-# We enable ffcall by default now.
+# We enable ffcall by default now, except on sparc64 (where we think
+# it's broken).
 #--------------------------------------------------------------------
-do_enable_libffi=no
+case "$target_cpu" in
+  sparc64*)
+    do_broken_libffi=no;
+    do_broken_libffcall=yes;
+    do_enable_libffi=yes;
+    do_enable_libffcall=no;;
+  *)
+    do_broken_libffi=no;
+    do_broken_libffcall=no;
+    do_enable_libffi=no;
+    do_enable_libffcall=yes;;
+esac
 
 AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
@@ -1878,7 +1890,7 @@ AC_ARG_ENABLE(libffi,
 
 AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of ffcall library],,
-  enable_ffcall=yes)
+  enable_ffcall=$do_enable_libffcall)
 
 AC_ARG_ENABLE(do,
   [  --disable-do			Compile even if DO-dependencies are not met],,
@@ -1948,6 +1960,9 @@ if test $enable_libffi = yes; then
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(libffi)
   fi
+  if test $do_broken_libffi = yes; then
+    AC_MSG_WARN([ffi may be broken on this system ... try enabling ffcall])
+  fi
 elif test $enable_ffcall = yes; then
   AC_DEFINE(USE_FFCALL,1,
             [Define if using the ffcall library for invocations])
@@ -1956,6 +1971,9 @@ elif test $enable_ffcall = yes; then
   AC_TRY_LINK([#include <callback.h>], , ffi_ok="yes", ffi_ok="no")
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(ffcall)
+  fi
+  if test $do_broken_libffcall = yes; then
+    AC_MSG_WARN([ffcall may be broken on this system ... try enabling ffi])
   fi
 else
   ffi_ok=no

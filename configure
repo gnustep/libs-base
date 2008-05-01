@@ -16099,9 +16099,21 @@ fi
 
 #--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
-# We enable ffcall by default now.
+# We enable ffcall by default now, except on sparc64 (where we think
+# it's broken).
 #--------------------------------------------------------------------
-do_enable_libffi=no
+case "$target_cpu" in
+  sparc64*)
+    do_broken_libffi=no;
+    do_broken_libffcall=yes;
+    do_enable_libffi=yes;
+    do_enable_libffcall=no;;
+  *)
+    do_broken_libffi=no;
+    do_broken_libffcall=no;
+    do_enable_libffi=no;
+    do_enable_libffcall=yes;;
+esac
 
 # Check whether --enable-libffi was given.
 if test "${enable_libffi+set}" = set; then
@@ -16115,7 +16127,7 @@ fi
 if test "${enable_ffcall+set}" = set; then
   enableval=$enable_ffcall;
 else
-  enable_ffcall=yes
+  enable_ffcall=$do_enable_libffcall
 fi
 
 
@@ -16588,6 +16600,10 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
     { echo "$as_me:$LINENO: result: libffi" >&5
 echo "${ECHO_T}libffi" >&6; }
   fi
+  if test $do_broken_libffi = yes; then
+    { echo "$as_me:$LINENO: WARNING: ffi may be broken on this system ... try enabling ffcall" >&5
+echo "$as_me: WARNING: ffi may be broken on this system ... try enabling ffcall" >&2;}
+  fi
 elif test $enable_ffcall = yes; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -16642,6 +16658,10 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
   if test $ffi_ok = yes; then
     { echo "$as_me:$LINENO: result: ffcall" >&5
 echo "${ECHO_T}ffcall" >&6; }
+  fi
+  if test $do_broken_libffcall = yes; then
+    { echo "$as_me:$LINENO: WARNING: ffcall may be broken on this system ... try enabling ffi" >&5
+echo "$as_me: WARNING: ffcall may be broken on this system ... try enabling ffi" >&2;}
   fi
 else
   ffi_ok=no
