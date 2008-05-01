@@ -1,3 +1,8 @@
+2008-05-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: try to use libffi on sparc64 as libffcall does not
+	work.  Warn if user tries to enable libffcall.
+
 2008-04-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m:

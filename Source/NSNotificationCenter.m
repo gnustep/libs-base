@@ -135,6 +135,9 @@ struct	NCTbl;		/* Notification Center Table structure	*/
  * each -addObserver... request.  It holds the requested selector,
  * name and object.  Each struct is placed in one LinkedList,
  * as keyed by the NAME/OBJECT parameters.
+ * If 'next' is 0 then the observation is unused (ie it has been
+ * removed from, or not yet added to  any list).  The end of a
+ * list is marked by 'next' being set to 'ENDOBS'.
  */
 
 typedef	struct	Obs {
