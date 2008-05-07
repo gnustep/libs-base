@@ -17,7 +17,8 @@
 
    You should have received a copy of the GNU General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 #include <Foundation/NSAutoreleasePool.h>
@@ -264,7 +265,7 @@ test_compare_server_signature(void)
 {
   id objct = [MyClass new];
   id proxy = [NSConnection rootProxyForConnectionWithRegisteredName: SRV_NAME
-			   host: @"*"];
+			   host: nil];
   if (proxy)
     {
       const char *rmtSig;
