@@ -1,3 +1,7 @@
+2008-05-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSArray.m: Fix bug allowing nil to be placed in array.
+
 2008-05-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: try to use libffi on sparc64 as libffcall does not
