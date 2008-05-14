@@ -714,6 +714,21 @@ static Class	GSInlineArrayClass;
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
+  if (!anObject)
+    {
+      NSException  *exception;
+      NSDictionary *info;
+
+      info = [NSDictionary dictionaryWithObjectsAndKeys:
+	[NSNumber numberWithUnsignedInt: index], @"Index",
+        _contents_array[index], @"OLdObject",
+	self, @"Array", nil, nil];
+
+      exception = [NSException exceptionWithName: NSInvalidArgumentException
+	reason: @"Tried to replace object in array with nil"
+	userInfo: info];
+      [exception raise];
+    }
   /*
    *	Swap objects in order so that there is always a valid object in the
    *	array in case a retain or release causes an exception.
