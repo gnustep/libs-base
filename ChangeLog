@@ -1,3 +1,7 @@
+2008-05-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Fix reference to uninitialised variable.
+
 2008-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSArray.m: Fix bug allowing nil to be placed in array.
