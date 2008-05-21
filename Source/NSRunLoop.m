@@ -707,7 +707,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
               NSMapInsert(current->_contextMap, context->mode, context);
               RELEASE(context);
             }
-          if (context->housekeeper != timer)
+          if (context->housekeeper != nil)
             {
               [context->housekeeper invalidate];
               DESTROY(context->housekeeper);
