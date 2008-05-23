@@ -1870,9 +1870,15 @@ fi
 
 #--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
-# We enable ffcall by default.
+# We enable ffcall by default now, except on sparc64 (where we think
+# it's broken).
 #--------------------------------------------------------------------
 case "$target_cpu" in
+  sparc64*)
+    do_broken_libffi=no;
+    do_broken_libffcall=yes;
+    do_enable_libffi=yes;
+    do_enable_libffcall=no;;
   *)
     do_broken_libffi=no;
     do_broken_libffcall=no;

@@ -1,6 +1,10 @@
 2008-05-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for systems which need -lnsl (solaris)
+	Reintroduce use of ffi by default on sparc64 as I just couldn't
+	get ffcall to work at all and the latest ffi seems to work atr
+	least for all the common cases.
+	* Tools/gdnc.m: Fix incorrectly sized instance variable.
 
 2008-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
