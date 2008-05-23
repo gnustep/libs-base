@@ -242,7 +242,7 @@ ihandler(int sig)
 @interface	GDNCObserver : NSObject
 {
 @public
-  unsigned		observer;
+  unsigned long		observer;
   NSString		*notificationName;
   NSString		*notificationObject;
   NSString		*selector;
