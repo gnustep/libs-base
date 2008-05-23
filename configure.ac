@@ -1570,7 +1570,9 @@ AC_SUBST(DEFINE_UINTPTR_T)
 
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
+# On some systems we need -lnsl ... so check for that first.
 #--------------------------------------------------------------------
+AC_CHECK_LIB(nsl, inet_ntop)
 AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
 USE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)

@@ -1,3 +1,7 @@
+2008-05-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for systems which need -lnsl (solaris)
+
 2008-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/GSSSLHandle.m: Attempt to improve error logging.
