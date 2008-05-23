@@ -305,11 +305,11 @@ printf("Calling proxy\n");
 
   SETUP(retObject);
   [inv invokeWithTarget: t];
-  printf("Expect: %x, ", t);
+  printf("Expect: %p, ", t);
   [inv getReturnValue: &o];
-  printf("invoke: %x ", o);
+  printf("invoke: %p ", o);
   o = [p retObject];
-  printf("forward: %x\n", o);
+  printf("forward: %p\n", o);
 
   SETUP(retString);
   [inv invokeWithTarget: t];
@@ -374,9 +374,9 @@ printf("Calling proxy\n");
   [inv invokeWithTarget: t];
   printf("Expect: 4, ");
   [inv getReturnValue: &l];
-  printf("invoke: %d ", l);
+  printf("invoke: %ld ", l);
   l = [p loopLong: 3];
-  printf("forward: %d\n", l);
+  printf("forward: %ld\n", l);
 
   SETUP(loopFloat:);
   f = 4.0;
@@ -406,11 +406,11 @@ printf("Calling proxy\n");
   SETUP(loopObject:);
   [inv setArgument: &p atIndex: 2];
   [inv invokeWithTarget: t];
-  printf("Expect: %x, ", p);
+  printf("Expect: %p, ", p);
   [inv getReturnValue: &o];
-  printf("invoke: %x ", o);
+  printf("invoke: %p ", o);
   o = [p loopObject: p];
-  printf("forward: %x\n", o);
+  printf("forward: %p\n", o);
 
   SETUP(loopString:);
   str = "Hello";
