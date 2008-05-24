@@ -1,3 +1,10 @@
+2008-05-24  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Tools/Makefile.postamble: Use GNUSTEP_DOC_MAN instead of
+	GNUSTEP_DOCUMENTATION_MAN.  This requires gnustep-make version 2,
+	but that was already a requirement.  (Suggestion by Chris Vetter
+	<chris.vetter@gmail.com>).
+
 2008-05-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for systems which need -lnsl (solaris)
