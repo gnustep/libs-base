@@ -53,6 +53,14 @@ typedef struct {
 - (short) retShort;
 - (small) retSmall;
 - (char*) retString;
+
+- (void) addObserver: (unsigned long)anObserver
+            selector: (NSString*)aSelector
+                name: (NSString*)notificationName
+              object: (NSString*)anObject
+  suspensionBehavior: (int)suspensionBehavior
+                 for: (id)client;
+
 @end
 
 @implementation	Target
@@ -163,6 +171,16 @@ typedef struct {
 - (char*) retString
 {
   return "string";
+}
+
+- (void) addObserver: (unsigned long)anObserver
+            selector: (NSString*)aSelector
+                name: (NSString*)notificationName
+              object: (NSString*)anObject
+  suspensionBehavior: (int)suspensionBehavior
+                 for: (id)client
+{
+  printf("called multi argument method\n");
 }
 @end
 
@@ -436,7 +454,18 @@ printf("Calling proxy\n");
   printf("forward: '%s'\n", str);
 
 
-
+  
+  SETUP(addObserver:selector:name:object:suspensionBehavior:for:);
+  q = 1;
+  str = @"a";
+  i = 2;
+  [inv setArgument: &q atIndex: 2];
+  [inv setArgument: &str atIndex: 3];
+  [inv setArgument: &str atIndex: 4];
+  [inv setArgument: &str atIndex: 5];
+  [inv setArgument: &i atIndex: 6];
+  [inv setArgument: &str atIndex: 7];
+  [inv invokeWithTarget: t];
 
   SETUP(retSmall);
   [inv invokeWithTarget: t];
