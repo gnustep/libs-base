@@ -32,6 +32,7 @@ typedef struct {
 - (int) loopInt: (int)v;
 - (large) loopLarge: (large)v;
 - (long) loopLong: (long)v;
+- (long long) loopLongLong: (long long)v;
 - (large) loopLargePtr: (large*)v;
 - (id) loopObject: (id)v;
 - (short) loopShort: (short)v;
@@ -47,6 +48,7 @@ typedef struct {
 - (int) retInt;
 - (large) retLarge;
 - (long) retLong;
+- (long long) retLongLong;
 - (id) retObject;
 - (short) retShort;
 - (small) retSmall;
@@ -75,6 +77,10 @@ typedef struct {
   return v;
 }
 - (long) loopLong: (long)v
+{
+  return v+1;
+}
+- (long long) loopLongLong: (long long)v
 {
   return v+1;
 }
@@ -132,6 +138,10 @@ typedef struct {
   return l;
 }
 - (long) retLong
+{
+  return 123456;
+}
+- (long long) retLongLong
 {
   return 123456;
 }
@@ -208,6 +218,7 @@ main ()
   char	c;
   short	s;
   long	l;
+  long long q;
   float	f;
   double	d;
   id		o;
@@ -287,6 +298,14 @@ printf("Calling proxy\n");
   l = [p retLong];
   printf("forward: %ld\n", l);
 
+  SETUP(retLongLong);
+  [inv invokeWithTarget: t];
+  printf("Expect: 123456, ");
+  [inv getReturnValue: &q];
+  printf("invoke: %lld ", q);
+  q = [p retLong];
+  printf("forward: %lld\n", q);
+
   SETUP(retFloat);
   [inv invokeWithTarget: t];
   printf("Expect: 123.456, ");
@@ -318,22 +337,6 @@ printf("Calling proxy\n");
   printf("invoke: '%s' ", str);
   str = [p retString];
   printf("forward: '%s'\n", str);
-
-  SETUP(retSmall);
-  [inv invokeWithTarget: t];
-  printf("Expect: {11,22}, ");
-  [inv getReturnValue: &sm];
-  printf("invoke: {%d,%d} ", sm.c, sm.i);
-  sm = [p retSmall];
-  printf("forward: {%d,%d}\n", sm.c, sm.i);
-
-  SETUP(retLarge);
-  [inv invokeWithTarget: t];
-  printf("Expect: {99,large,99.99}, ");
-  [inv getReturnValue: &la];
-  printf("invoke: {%d,%s,%.2f} ", la.i, la.s, la.f);
-  la = [p retLarge];
-  printf("forward: {%d,%s,%.2f}\n", la.i, la.s, la.f);
 
 
 
@@ -378,6 +381,16 @@ printf("Calling proxy\n");
   l = [p loopLong: 3];
   printf("forward: %ld\n", l);
 
+  SETUP(loopLongLong:);
+  q = 3;
+  [inv setArgument: &q atIndex: 2];
+  [inv invokeWithTarget: t];
+  printf("Expect: 4, ");
+  [inv getReturnValue: &q];
+  printf("invoke: %lld ", q);
+  q = [p loopLong: 3];
+  printf("forward: %lld\n", q);
+
   SETUP(loopFloat:);
   f = 4.0;
   [inv setArgument: &f atIndex: 2];
@@ -421,6 +434,25 @@ printf("Calling proxy\n");
   printf("invoke: '%s' ", str);
   str = [p loopString: str];
   printf("forward: '%s'\n", str);
+
+
+
+
+  SETUP(retSmall);
+  [inv invokeWithTarget: t];
+  printf("Expect: {11,22}, ");
+  [inv getReturnValue: &sm];
+  printf("invoke: {%d,%d} ", sm.c, sm.i);
+  sm = [p retSmall];
+  printf("forward: {%d,%d}\n", sm.c, sm.i);
+
+  SETUP(retLarge);
+  [inv invokeWithTarget: t];
+  printf("Expect: {99,large,99.99}, ");
+  [inv getReturnValue: &la];
+  printf("invoke: {%d,%s,%.2f} ", la.i, la.s, la.f);
+  la = [p retLarge];
+  printf("forward: {%d,%s,%.2f}\n", la.i, la.s, la.f);
 
   SETUP(loopSmall:);
   printf("Expect: {8,9}, ");
