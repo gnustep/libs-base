@@ -1,3 +1,8 @@
+2008-05-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: For now, only use ffi for sparc64 on solaris as
+	it doesn't appear to work on bsd.
+
 2008-05-24  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Tools/Makefile.postamble: Use GNUSTEP_DOC_MAN instead of
