@@ -1873,17 +1873,21 @@ fi
 # We enable ffcall by default now, except on sparc64 (where we think
 # it's broken).
 #--------------------------------------------------------------------
+do_broken_libffi=no
+do_broken_libffcall=no
+do_enable_libffi=no
+do_enable_libffcall=yes
 case "$target_cpu" in
   sparc64*)
-    do_broken_libffi=no;
-    do_broken_libffcall=yes;
-    do_enable_libffi=yes;
-    do_enable_libffcall=no;;
-  *)
-    do_broken_libffi=no;
-    do_broken_libffcall=no;
-    do_enable_libffi=no;
-    do_enable_libffcall=yes;;
+    case "$target_os" in
+      solaris*)
+        do_broken_libffi=no;
+        do_broken_libffcall=yes;
+        do_enable_libffi=yes;
+        do_enable_libffcall=no;;
+      *) ;;
+    esac ;;
+  *) ;;
 esac
 
 AC_ARG_ENABLE(libffi,
