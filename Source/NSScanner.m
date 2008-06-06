@@ -1147,6 +1147,22 @@ typedef struct {
   return n;
 }
 
+- (BOOL) scanHexDouble: (double *)result
+{
+  return NO;    // FIXME
+}
+- (BOOL) scanHexFloat: (float *)result
+{
+  return NO;    // FIXME
+}
+- (BOOL) scanHexLongLong: (unsigned long long *)result
+{
+  return NO;    // FIXME
+}
+- (BOOL) scanInteger: (NSInteger *)value
+{
+  return NO;    // FIXME
+}
 @end
 
 /*

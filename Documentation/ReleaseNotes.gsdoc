@@ -29,6 +29,64 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.15.4</heading>
+	<p> 
+          This is a stable release.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSArray</term>
+	  <desc>New OSX method stubs.</desc>
+	  <term>NSAutoreleasePool</term>
+	  <desc>Dummy OSX method (-drain).</desc>
+	  <term>NSBundle</term>
+	  <desc>New OSX method stubs.</desc>
+	  <term>NSCoder</term>
+	  <desc>
+          New OSX10.5 methods for NSInteger implemented.
+	  </desc>
+	  <term>NSConnection</term>
+	  <desc>
+          New OSX10.5 methods for server connections implemented.
+	  </desc>
+	  <term>NSData</term>
+	  <desc>New OSX method stubs.</desc>
+	  <term>NSException</term>
+	  <desc>Implement stack address reporting.</desc>
+	  <term>NSIndexSet</term>
+	  <desc>Add OSX10.5 stub for countOfIndexesInRange</desc>
+	  <term>NSKeyvalueObserving</term>
+	  <desc>OSX10.5 additions implemented</desc>
+	  <term>NSSet</term>
+	  <desc>Implemented new OSX methods.</desc>
+	  <term>NSThread</term>
+	  <desc>Implemented new OSX methods.</desc>
+	  <term>NSLock, NSRecursiveLock, NSConditionLock</term>
+	  <desc>Implemented names.</desc>
+	</deflist>
+        To do for MacOS-X 10.5 compatibility:
+        Implement most new method stubs.
+        Implement new OSX10.5 NSCalendar class.
+        Implement new OSX10.5 NSLocale class.
+        Implement new OSX10.5 NSOperation class.
+        Implement new OSX10.5 XML classes.
+        Implement NSInteger coding for NSCoder subclasses.
+        Implement support for now enumarated values in NSComparisonPredicate.
+        Implement new OSX10.5 features of NSDateFormatter.
+        Implement new OSX10.5 features of NSExpesssion.
+        Implement new OSX10.5 features of NSPredicate.
+        Implement new OSX10.5 features of NSFileManager.
+        Implement new OSX10.5 features of NSProcessInfo.
+        Implement new OSX10.5 NSHashTable class.
+        Implement new OSX10.5 NSMapTable class.
+        Implement new OSX10.5 NSPointerArray class.
+        Implement new OSX10.5 NSLocale additions.
+        Implement new OSX10.5 features of NSNumberFormatter.
+        Implement new OSX10.5 features of NSNumber/NSValue.
+        Update NSDistributedNotificationCenter with new OSX methods.
+      </section>
+
+      <section>
 	<heading>Version 1.15.3</heading>
 	<p> 
           This is an unstable release.

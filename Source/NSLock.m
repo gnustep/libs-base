@@ -167,6 +167,14 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  if (_name == nil)
+    return [super description];
+  return [NSString stringWithFormat: @"%@ named '%@'",
+    [super description], _name];
+}
+
 - (void) gcFinalize
 {
   if (_mutex != 0)
@@ -175,10 +183,21 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
       // If there are outstanding locks then it will block
       if (objc_mutex_deallocate(_MUTEX) == -1)
 	{
-	  NSWarnMLog(@"objc_mutex_deallocate() failed");
+	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
 	}
       _mutex = 0;
     }
+  DESTROY(_name);
+}
+
+- (NSString*) name
+{
+  return _name;
+}
+
+- (void) setName: (NSString*)name
+{
+  ASSIGNCOPY(_name, name);
 }
 
 /**
@@ -304,6 +323,14 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  if (_name == nil)
+    return [super description];
+  return [NSString stringWithFormat: @"%@ named '%@'",
+    [super description], _name];
+}
+
 - (void) gcFinalize
 {
   if (_condition != 0)
@@ -311,7 +338,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
       // Ask the runtime to deallocate the condition
       if (objc_condition_deallocate(_CONDITION) == -1)
 	{
-	  NSWarnMLog(@"objc_condition_deallocate() failed");
+	  NSWarnMLog(@"objc_condition_deallocate() failed for %@", self);
 	}
     }
   if (_mutex != 0)
@@ -320,9 +347,10 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
       // If there are outstanding locks then it will block
       if (objc_mutex_deallocate(_MUTEX) == -1)
 	{
-	  NSWarnMLog(@"objc_mutex_deallocate() failed");
+	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
 	}
     }
+  DESTROY(_name);
 }
 
 // Return the current condition of the lock
@@ -352,6 +380,16 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
           /* NOT REACHED */
         }
     }
+}
+
+- (NSString*) name
+{
+  return _name;
+}
+
+- (void) setName: (NSString*)name
+{
+  ASSIGNCOPY(_name, name);
 }
 
 - (void) unlockWithCondition: (int)value
@@ -600,6 +638,14 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  if (_name == nil)
+    return [super description];
+  return [NSString stringWithFormat: @"%@ named '%@'",
+    [super description], _name];
+}
+
 - (void) gcFinalize
 {
   if (_mutex != 0)
@@ -608,10 +654,21 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
       // If there are outstanding locks then it will block
       if (objc_mutex_deallocate(_MUTEX) == -1)
 	{
-	  NSWarnMLog(@"objc_mutex_deallocate() failed");
+	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
 	}
       _mutex = 0;
     }
+  DESTROY(_name);
+}
+
+- (NSString*) name
+{
+  return _name;
+}
+
+- (void) setName: (NSString*)name
+{
+  ASSIGNCOPY(_name, name);
 }
 
 /**

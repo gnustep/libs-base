@@ -203,7 +203,7 @@ GSDomainFromDefaultLocale(void)
 #endif
   if (str1 != nil)
     {
-      [dict setObject: str1 forKey: NSLocale];
+      [dict setObject: str1 forKey: GSLocale];
     }
   str2 = GSLanguageFromLocale(str1);
   if (str2 != nil)

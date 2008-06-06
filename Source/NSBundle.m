@@ -1912,6 +1912,16 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return dict;
 }
 
+- (id) objectForInfoDictionaryKey: (NSString *)key
+{
+  return nil;
+}
+
+- (NSString*) developmentLocalization
+{
+  return nil;
+}
+
 - (NSArray *) localizations
 {
   NSString *locale;
@@ -2081,6 +2091,20 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   _strip_after_loading = flag;
 }
 
+- (NSArray *) executableArchitectures
+{
+  return nil;
+}
+- (BOOL) preflightAndReturnError: (NSError **)error
+{
+  return NO;
+}
+- (BOOL) loadAndReturnError: (NSError **)error
+{
+  return NO;
+}
+
+
 - (NSString *) executablePath
 {
   NSString *object, *path;
@@ -2223,6 +2247,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   _version = version;
 }
 
+- (BOOL) unload
+{
+  return NO;
+}
 @end
 
 @implementation NSBundle (GNUstep)

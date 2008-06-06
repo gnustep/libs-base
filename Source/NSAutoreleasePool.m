@@ -305,6 +305,11 @@ static IMP	initImp;
   _released_count++;
 }
 
+- (void) drain
+{
+  return;
+}
+
 - (id) retain
 {
   [NSException raise: NSGenericException

@@ -1192,6 +1192,20 @@ static void determineOperatingSystem()
   return;
 }
 
+- (NSUInteger) processorCount
+{
+  return 0;     // FIXME
+}
+
+- (NSUInteger) activeProcessorCount
+{
+  return 0;     // FIXME
+}
+
+- (unsigned long long) physicalMemory
+{
+  return 0;     // FIXME
+}
 @end
 
 @implementation	NSProcessInfo (GNUstep)

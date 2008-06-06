@@ -40,6 +40,11 @@ extern "C" {
 typedef	gsaddr	NSInteger;
 typedef	gsuaddr	NSUInteger;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);
+GS_EXPORT Protocol	*NSProtocolFromString(NSString *aProtocolName);
+#endif
+GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
 GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
 GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
 GS_EXPORT Class		NSClassFromString(NSString *aClassName);

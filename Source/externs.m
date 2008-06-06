@@ -197,7 +197,7 @@ NSString *NSLanguageName = @"NSLanguageName";
 NSString *NSFormalName = @"NSFormalName";
 
 /* For GNUstep */
-NSString *NSLocale = @"NSLocale";
+NSString *GSLocale = @"GSLocale";
 
 
 /*
@@ -278,7 +278,7 @@ GSPrivateBuildStrings()
       GS_REPLACE_CONSTANT_STRING(NSLanguageName);
       GS_REPLACE_CONSTANT_STRING(NSLaterTimeDesignations);
       GS_REPLACE_CONSTANT_STRING(NSLoadedClasses);
-      GS_REPLACE_CONSTANT_STRING(NSLocale);
+      GS_REPLACE_CONSTANT_STRING(GSLocale);
       GS_REPLACE_CONSTANT_STRING(NSLocalNotificationCenterType);
       GS_REPLACE_CONSTANT_STRING(NSMonthNameArray);
       GS_REPLACE_CONSTANT_STRING(NSNegativeCurrencyFormatString);

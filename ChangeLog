@@ -1,3 +1,51 @@
+2008-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m:
+	* Source/NSTimeZone.m:
+	* Source/NSNetServices.m:
+	* Source/NSSpellServer.m:
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSScanner.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSArray.m:
+	* Source/externs.m:
+	* Source/NSCoder.m:
+	* Source/NSString.m:
+	* Source/NSConnection.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSData.m:
+	* Source/NSObjCRuntime.m:
+	* Source/NSIndexSet.m:
+	* Source/NSLock.m:
+	* Source/NSSet.m:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Headers/Foundation/NSTimeZone.h:
+	* Headers/Foundation/NSNetServices.h:
+	* Headers/Foundation/NSCoder.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSSpellServer.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSPathUtilities.h:
+	* Headers/Foundation/NSScanner.h:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSAutoreleasePool.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Headers/Foundation/NSIndexSet.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSSet.h:
+	Lots of small OSX10.5 compatibility updates:-
+	Some new enumerations and constant strings.
+	Some new method implementations.
+	Some new empty method stubs.
+        Change NSLocale constant string to GSLocale in preparation for adding
+	the new NSLocal class.
+
 2008-05-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: For now, only use ffi for sparc64 on solaris as

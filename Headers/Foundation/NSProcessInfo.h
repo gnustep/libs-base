@@ -189,6 +189,14 @@ enum {
  */
 - (void) setProcessName: (NSString*)newName;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Not implemented */
+- (NSUInteger) processorCount;
+/** Not implemented */
+- (NSUInteger) activeProcessorCount;
+/** Not implemented */
+- (unsigned long long) physicalMemory;
+#endif
 @end
 
 #if OS_API_VERSION(GS_API_NONE,GS_API_NONE)

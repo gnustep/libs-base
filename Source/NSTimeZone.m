@@ -116,6 +116,9 @@
 #include "nstzfile.h"
 #endif
 
+NSString * const NSSystemTimeZoneDidChangeNotification
+  = @"NSSystemTimeZoneDidChangeNotification";
+
 /* Key for local time zone in user defaults. */
 #define LOCALDBKEY @"Local Time Zone"
 
@@ -1312,6 +1315,9 @@ static NSMapTable	*absolutes = 0;
     {
       [zone_mutex unlock];
     }
+  [[NSNotificationCenter defaultCenter]
+    postNotificationName: NSSystemTimeZoneDidChangeNotification
+                  object: nil];
 }
 
 /**
@@ -1934,6 +1940,32 @@ static NSMapTable	*absolutes = 0;
   return [self name];
 }
 
+- (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate
+{
+  return 0.0;   // FIXME
+}
+
+- (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate
+{
+  return nil;   // FIXME;
+}
+
+- (NSTimeInterval) daylightSavingTimeOffset
+{
+  return 0.0;   // FIXME
+}
+
+- (NSDate *) nextDaylightSavingTimeTransition
+{
+  return nil;   // FIXME;
+}
+
+- (NSString *)localizedName: (NSTimeZoneNameStyle)style
+                     locale: (NSLocale *)locale
+{
+  return nil;   // FIXME;
+}
+                    
 @end
 
 /**

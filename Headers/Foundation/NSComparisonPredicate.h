@@ -62,6 +62,11 @@ typedef enum _NSPredicateOperatorType
   NSEndsWithPredicateOperatorType,
   NSInPredicateOperatorType,
   NSCustomSelectorPredicateOperatorType
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+  ,
+  NSContainsPredicateOperatorType = 99,
+  NSBetweenPredicateOperatorType
+#endif
 } NSPredicateOperatorType;
 
 @interface NSComparisonPredicate : NSPredicate

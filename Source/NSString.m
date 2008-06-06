@@ -1517,6 +1517,48 @@ handle_printf_atsign (FILE *stream,
 
 /**
  * <p>Returns an array of [NSString]s representing substrings of this string
+ * that are separated by characters in the set (which must not be nil).
+ * If there are no occurrences of separator, the whole string is
+ * returned.  If string begins or ends with separator, empty strings will
+ * be returned for those positions.</p>
+ */
+- (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)set
+{
+  NSRange	search;
+  NSRange	complete;
+  NSRange	found;
+  NSMutableArray *array;
+
+  if (set == nil)
+    [NSException raise: NSInvalidArgumentException format: @"set is nil"];
+
+  array = [NSMutableArray array];
+  search = NSMakeRange (0, [self length]);
+  complete = search;
+  found = [self rangeOfCharacterFromSet: set];
+  while (found.length != 0)
+    {
+      NSRange current;
+
+      current = NSMakeRange (search.location,
+	found.location - search.location);
+      [array addObject: [self substringWithRange: current]];
+
+      search = NSMakeRange (found.location + found.length,
+	complete.length - found.location - found.length);
+      found = [self rangeOfCharacterFromSet: set
+                                    options: 0
+                                      range: search];
+    }
+  // Add the last search string range
+  [array addObject: [self substringWithRange: search]];
+
+  // FIXME: Need to make mutable array into non-mutable array?
+  return array;
+}
+
+/**
+ * <p>Returns an array of [NSString]s representing substrings of this string
  * that are separated by separator (which itself is never returned in the
  * array).  If there are no occurrences of separator, the whole string is
  * returned.  If string begins or ends with separator, empty strings will
@@ -1703,6 +1745,11 @@ handle_printf_atsign (FILE *stream,
   return range;
 }
 
+- (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
+{
+  return NSMakeRange(0, 0);     // FIXME
+}
+
 /**
  * Invokes -rangeOfString:options: with no options.
  */
@@ -1760,6 +1807,14 @@ handle_printf_atsign (FILE *stream,
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
   return strRangeNsNs(self, aString, mask, aRange);
+}
+
+- (NSRange) rangeOfString: (NSString *)aString
+                  options: (NSStringCompareOptions)mask
+                    range: (NSRange)searchRange
+                   locale: (NSLocale *)locale
+{
+  return NSMakeRange(0, 0);     // FIXME
 }
 
 - (unsigned int) indexOfString: (NSString *)substring
@@ -2287,6 +2342,14 @@ handle_printf_atsign (FILE *stream,
     }
 }
 
+- (void) getParagraphStart: (NSUInteger *)startPtr 
+                       end: (NSUInteger *)parEndPtr
+               contentsEnd: (NSUInteger *)contentsEndPtr
+                  forRange: (NSRange)range
+{
+  // FIXME
+}
+
 // Changing Case
 
 /**
@@ -2782,6 +2845,16 @@ handle_printf_atsign (FILE *stream,
   return atoi([self lossyCString]);
 }
 
+- (NSInteger) integerValue
+{
+  return atol([self lossyCString]);
+}
+
+- (long long) longLongValue
+{
+  return atoll([self lossyCString]);
+}
+
 // Working With Encodings
 
 /**
@@ -3144,6 +3217,11 @@ static NSFileManager *fm = nil;
       i = NSMaxRange(range);
     }
   return [self substringWithRange: ((NSRange){i, l-i})];
+}
+
+- (NSRange) paragraphRangeForRange: (NSRange)range
+{
+  return NSMakeRange(0, 0);     // FIXME
 }
 
 - (NSString*) pathExtension

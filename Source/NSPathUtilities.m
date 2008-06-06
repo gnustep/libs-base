@@ -1909,6 +1909,15 @@ if (domainMask & mask) \
 	}
 	break;
 
+      case NSDownloadsDirectory:
+	{
+	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Downloads");
+	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"Downloads");
+	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"Downloads");
+	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"Downloads");
+	}
+	break;
+
       case NSCachesDirectory:
 	{
 	  /* Uff - at the moment the only place to put Caches seems to

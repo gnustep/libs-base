@@ -848,6 +848,49 @@ static Class NSMutableSet_concrete_class;
 
   return result;
 }
+
+/** Return a set formed by adding anObject to the receiver.
+ */
+- (NSSet *) setByAddingObject: (id)anObject
+{
+  NSMutableSet  *m;
+  NSSet         *s;
+
+  m = [self mutableCopy];
+  [m addObject: anObject];
+  s = [m copy];
+  [m release];
+  return [s autorelease];
+}
+
+/** Return a set formed by adding the contents of other to the receiver.
+ */
+- (NSSet *) setByAddingObjectsFromArray: (NSArray *)other
+{
+  NSMutableSet  *m;
+  NSSet         *s;
+
+  m = [self mutableCopy];
+  [m addObjectsFromArray: other];
+  s = [m copy];
+  [m release];
+  return [s autorelease];
+}
+
+/** Return a set formed as a union of the receiver and other.
+ */
+- (NSSet *) setByAddingObjectsFromSet: (NSSet *)other
+{
+  NSMutableSet  *m;
+  NSSet         *s;
+
+  m = [self mutableCopy];
+  [m unionSet: other];
+  s = [m copy];
+  [m release];
+  return [s autorelease];
+}
+
 @end
 
 
