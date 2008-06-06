@@ -12255,6 +12255,9 @@ _ACEOF
   fi
 fi
 
+if test x"$objc_threaded" = x"-pthread"; then
+  LIBS="$LIBS -lpthread"
+fi
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m

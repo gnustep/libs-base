@@ -219,6 +219,12 @@ typedef struct autorelease_array_list
  */
 - (id) autorelease;
 
+#if OS_API_VERSION(100400, GS_API_LATEST)
+/** Not implemented
+ */
+- (void) drain;
+#endif
+
 /**
  * Destroys the receiver (calls -dealloc).
  */

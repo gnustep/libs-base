@@ -647,6 +647,42 @@ static NSLock	*cached_proxies_gate = nil;
   return AUTORELEASE(proxy);
 }
 
++ (id) serviceConnectionWithName: (NSString *)name 
+                      rootObject: (id)root
+{
+  return [self serviceConnectionWithName: name
+    rootObject: root
+    usingNameServer: [NSPortNameServer systemDefaultPortNameServer]];
+}
+
++ (id) serviceConnectionWithName: (NSString *)name 
+                      rootObject: (id)root
+                 usingNameServer: (NSPortNameServer *)server
+{
+  NSConnection  *c;
+  NSPort        *p;
+
+  if ([server isKindOfClass: [NSMessagePortNameServer class]] == YES)
+    {
+      p = [NSMessagePort port];
+    }
+  else if ([server isKindOfClass: [NSSocketPortNameServer class]] == YES)
+    {
+      p = [NSSocketPort port];
+    }
+  else
+    {
+      p = nil;
+    }
+
+  c = [[NSConnection alloc] initWithReceivePort: p sendPort: nil];
+  if ([c registerName: name withNameServer: server] == NO)
+    {
+      DESTROY(c);
+    }
+  return AUTORELEASE(c);
+}
+
 + (void) _timeout: (NSTimer*)t
 {
   NSArray	*cached_locals;

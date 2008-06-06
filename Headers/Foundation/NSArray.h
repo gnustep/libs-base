@@ -74,7 +74,9 @@ extern "C" {
 
 - (id) lastObject;
 - (id) objectAtIndex: (unsigned)index;				// Primitive
+#if OS_API_VERSION(100400, GS_API_LATEST)
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes;
+#endif
 
 - (id) firstObjectCommonWithArray: (NSArray*)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
@@ -128,10 +130,17 @@ extern "C" {
 #endif
 - (id) initWithCapacity: (unsigned)numItems;			// Primitive
 - (void) insertObject: (id)anObject atIndex: (unsigned)index;	// Primitive
+#if OS_API_VERSION(100400, GS_API_LATEST)
+- (void) insertObjects: (NSArray *)objects atIndexes: (NSIndexSet *)indexes;
+#endif
 - (void) removeObjectAtIndex: (unsigned)index;			// Primitive
 - (void) removeObjectsAtIndexes: (NSIndexSet *)indexes;
 - (void) replaceObjectAtIndex: (unsigned)index
 		   withObject: (id)anObject;			// Primitive
+#if OS_API_VERSION(100400, GS_API_LATEST)
+- (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
+                     withObjects: (NSArray *)objects;
+#endif
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray;
 - (void) replaceObjectsInRange: (NSRange)aRange

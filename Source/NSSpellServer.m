@@ -40,6 +40,10 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSSet.h"
 
+NSString *const NSGrammarRange = @"NSGrammarRange";
+NSString *const NSGrammarUserDescription = @"NSGrammarUserDescription";
+NSString *const NSGrammarCorrections = @"NSGrammarCorrections";
+
 /* User dictionary location */
 static NSString *GNU_UserDictionariesDir = @"Dictionaries";
 
@@ -468,4 +472,19 @@ is a set of words learned by the spell service for that particular user.
   return words;
 }
 
+- (NSArray *) spellServer: (NSSpellServer *)sender
+  suggestCompletionsForPartialWordRange: (NSRange)range
+  inString: (NSString *)string
+  language: (NSString *)language
+{
+  return nil;   // FIXME
+}
+
+- (NSRange) spellServer: (NSSpellServer *)sender
+  checkGrammarInString: (NSString *)stringToCheck
+  language: (NSString *)language
+  details: (NSArray **)details
+{
+  return NSMakeRange(0, 0);     // FIXME
+}
 @end

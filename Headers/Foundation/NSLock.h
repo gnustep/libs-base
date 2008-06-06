@@ -62,7 +62,8 @@ extern "C" {
 @interface NSLock : NSObject <NSLocking, GCFinalization>
 {
 @private
-  void *_mutex;
+  void          *_mutex;
+  NSString      *_name;
 }
 
 /**
@@ -85,6 +86,16 @@ extern "C" {
  */
 - (void) unlock;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Return the name of the receiver or nil of none has been set.
+ */
+- (NSString*) name;
+
+/** Sets the name of the receiver (for use in debugging).
+ */
+- (void) setName: (NSString*)name;
+#endif
+
 @end
 
 /**
@@ -98,6 +109,7 @@ extern "C" {
   void *_condition;
   void *_mutex;
   int   _condition_value;
+  NSString      *_name;
 }
 
 /**
@@ -163,6 +175,16 @@ extern "C" {
  */
 - (void) unlock;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Return the name of the receiver or nil of none has been set.
+ */
+- (NSString*) name;
+
+/** Sets the name of the receiver (for use in debugging).
+ */
+- (void) setName: (NSString*)name;
+#endif
+
 @end
 
 
@@ -177,6 +199,7 @@ extern "C" {
 {
 @private
   void *_mutex;
+  NSString      *_name;
 }
 
 /**
@@ -199,6 +222,16 @@ extern "C" {
  *  Relinquish lock.
  */
 - (void) unlock;
+
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Return the name of the receiver or nil of none has been set.
+ */
+- (NSString*) name;
+
+/** Sets the name of the receiver (for use in debugging).
+ */
+- (void) setName: (NSString*)name;
+#endif
 
 @end
 

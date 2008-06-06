@@ -232,6 +232,11 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
 }
 
+- (NSUInteger) countOfIndexesInRange: (NSRange)range
+{
+  return 0;
+}
+
 - (void) dealloc
 {
   if (_array != 0)

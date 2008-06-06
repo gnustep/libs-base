@@ -1635,6 +1635,13 @@ compare(id elem1, id elem2, void* context)
   [self subclassResponsibility: _cmd];
 }
 
+/** Not implemented
+ */
+- (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
+                     withObjects: (NSArray *)objects
+{
+}
+
 /**
  * Replaces objects in the receiver with those from anArray.<br />
  * Raises an exception if given a range extending beyond the array.<br />
@@ -1674,6 +1681,12 @@ compare(id elem1, id elem2, void* context)
 - (void) insertObject: anObject atIndex: (unsigned)index
 {
   [self subclassResponsibility: _cmd];
+}
+
+/** Not implemented
+ */
+- (void) insertObjects: (NSArray *)objects atIndexes: (NSIndexSet *)indexes
+{
 }
 
 /** <override-subclass />

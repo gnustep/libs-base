@@ -1540,6 +1540,19 @@ failure:
   return self;
 }
 
+- (BOOL) writeToFile: (NSString *)path
+             options: (NSUInteger)writeOptionsMask
+               error: (NSError **)errorPtr
+{
+  return NO;
+}
+
+- (BOOL) writeToURL: (NSURL *)url
+            options: (NSUInteger)writeOptionsMask
+              error: (NSError **)errorPtr
+{
+  return NO;
+}
 @end
 
 /**

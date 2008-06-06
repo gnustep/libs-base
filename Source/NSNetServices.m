@@ -2334,6 +2334,15 @@ static void DNSSD_API
   return [((Service*)_reserved)->info objectForKey: @"Name"];
 }
 
+- (NSInteger) port
+{
+  return 0;
+}
+
+- (void) publishWithOptions: (NSNetServiceOptions)options
+{
+}
+
 /**
  * Returns the type of the service.
  *

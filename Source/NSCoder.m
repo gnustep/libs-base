@@ -344,6 +344,12 @@
   return 0;
 }
 
+- (NSInteger) decodeIntegerForKey: (NSString*)key
+{
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
 - (int32_t) decodeInt32ForKey: (NSString*)aKey
 {
   [self subclassResponsibility: _cmd];
@@ -390,6 +396,11 @@
 }
 
 - (void) encodeInt: (int)anInteger forKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) encodeInteger: (NSInteger)anInteger forKey: (NSString*)key
 {
   [self subclassResponsibility: _cmd];
 }

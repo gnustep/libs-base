@@ -1449,6 +1449,9 @@ if test $ac_cv_header_pthread_h = yes ; then
   fi
 fi
 AC_SUBST(HAVE_PTHREAD_H)
+if test x"$objc_threaded" = x"-pthread"; then
+  LIBS="$LIBS -lpthread"
+fi
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m

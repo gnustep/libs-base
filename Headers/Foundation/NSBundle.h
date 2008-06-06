@@ -42,6 +42,15 @@ extern "C" {
 @class NSMutableArray;
 @class NSMutableDictionary;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+enum {
+  NSBundleExecutableArchitectureI386      = 0x00000007,
+  NSBundleExecutableArchitecturePPC       = 0x00000012,
+  NSBundleExecutableArchitecturePPC64     = 0x01000012,
+  NSBundleExecutableArchitectureX86_64    = 0x01000007,
+};
+#endif
+
 /**
  *  Notification posted when a bundle is loaded.  The notification object is
  *  the [NSBundle] itself.  The notification also contains a <em>userInfo</em>
@@ -322,10 +331,12 @@ GS_EXPORT NSString* const NSLoadedClasses;
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray 
 			       forPreferences: (NSArray *)preferencesArray;
 
+#if OS_API_VERSION(100200,GS_API_LATEST) 
 /**
  * Returns a boolean indicating whether code for the bundle has been loaded.
  */
 - (BOOL) isLoaded;
+#endif
 
 /**
  * This method returns the same information as
@@ -351,11 +362,21 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Returns the info property list associated with the bundle. */
 - (NSDictionary*) infoDictionary;
 
+#if OS_API_VERSION(100200,GS_API_LATEST) 
 /** Returns a localized info property list based on the preferred
  *  localization or the most appropriate localization if the preferred
  *  one cannot be found.
  */
 - (NSDictionary*) localizedInfoDictionary;
+
+/** Not implemented
+ */
+- (NSString*) developmentLocalization;
+
+/** Not implemented
+ */
+- (id) objectForInfoDictionaryKey: (NSString *)key;
+#endif
 
 /** Returns all the localizations in the bundle. */
 - (NSArray*) localizations;
@@ -373,10 +394,24 @@ GS_EXPORT NSString* const NSLoadedClasses;
  */
 - (BOOL) load;
 
+#if OS_API_VERSION(100200,GS_API_LATEST) 
+/** * Not implemented
+ */
+- (BOOL) unload;
+#endif
+
 /** Returns the path to the executable code in the bundle */
 - (NSString *) executablePath;
 #endif
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Not implemented */
+- (NSArray *) executableArchitectures;
+/** Not implemented */
+- (BOOL) preflightAndReturnError: (NSError **)error;
+/** Not implemented */
+- (BOOL) loadAndReturnError: (NSError **)error;
+#endif
 @end
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
