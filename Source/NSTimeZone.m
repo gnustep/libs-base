@@ -322,7 +322,8 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 /* Private methods for obtaining resource file names. */
 @interface NSTimeZone (Private)
-+ (NSString*) getTimeZoneFile: (NSString*)name;
++ (NSString*) _getTimeZoneFile: (NSString*)name;
++ (void) _notified: (NSNotification*)n;
 @end
 
 
@@ -468,7 +469,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	    {
 	      NSString		*fileName;
 
-	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
+	      fileName = [NSTimeZoneClass _getTimeZoneFile: name];
 	      if (fileName == nil
 		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName])
 #if	defined(__MINGW32__)
@@ -1289,6 +1290,11 @@ static NSMapTable	*absolutes = 0;
       localTimeZone = [[NSLocalTimeZone alloc] init];
 
       zone_mutex = [GSLazyRecursiveLock new];
+
+      [[NSNotificationCenter defaultCenter] addObserver: self
+        selector: @selector(_notified:)
+        name: NSUserDefaultsDidChangeNotification
+        object: nil];
     }
 }
 
@@ -1584,7 +1590,7 @@ static NSMapTable	*absolutes = 0;
 	}
       else
 	{
-	  NSString	*zonedir = [NSTimeZone getTimeZoneFile: @"WET"]; 
+	  NSString	*zonedir = [NSTimeZone _getTimeZoneFile: @"WET"]; 
 
 	  if (tzdir != nil)
 	    {
@@ -2033,7 +2039,7 @@ static NSString *zoneDirs[] = {
 /**
  * Returns the path to the named zone info file.
  */
-+ (NSString*) getTimeZoneFile: (NSString *)name
++ (NSString*) _getTimeZoneFile: (NSString *)name
 {
   static BOOL	beenHere = NO;
   NSString	*dir = nil;
@@ -2083,6 +2089,20 @@ static NSString *zoneDirs[] = {
   return [dir stringByAppendingPathComponent: name];
 }
 
++ (void) _notified: (NSNotification*)n
+{
+  NSString      *name;
+
+  /* If the name of the system time zone has changed ...
+   * get a new system time zone.
+   */
+  name = [[NSUserDefaults standardUserDefaults] stringForKey: LOCALDBKEY];
+  if ([name length] > 0 && [name isEqual: [[self systemTimeZone] name]] == NO)
+    {
+      [self resetSystemTimeZone];
+      [self systemTimeZone];
+    }
+}
 @end
 
 

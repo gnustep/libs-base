@@ -1,5 +1,10 @@
 2008-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSTimeZone.m: Monitor to see if the time zone specified in
+	the user defaults system changes.  If so, we update the system zone.
+
+2008-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSLocale.m:
 	* Source/NSTimeZone.m:
 	* Source/NSNetServices.m:
