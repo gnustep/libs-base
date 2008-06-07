@@ -1,13 +1,7 @@
 2008-06-07  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSCalendarDate.m:
 	* Source/NSUserDefaults.m:
-	* Source/GSPrivate.h:
-	* Source/NSString.m:
-	* Source/NSDecimalNumber.m:
-	* Source/NSDate.m:
-	Remove GSPrivateDefaultLocale(), as the performance optimisation
-	doesn't seem worth the additional complexity.
+	Fix possible deadlock reported by Larry Campbell
 
 2008-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 

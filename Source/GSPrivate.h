@@ -318,6 +318,12 @@ GSPrivateCheckTasks(void) GS_ATTRIB_PRIVATE;
 NSStringEncoding
 GSPrivateDefaultCStringEncoding() GS_ATTRIB_PRIVATE;
 
+/* Get default locale quickly (usually from cache).
+ * External apps would cache the locale themselves.
+ */
+NSDictionary *
+GSPrivateDefaultLocale() GS_ATTRIB_PRIVATE;
+
 /* Get one of several standard values.
  */
 BOOL
