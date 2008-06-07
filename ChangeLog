@@ -1,7 +1,8 @@
 2008-06-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m:
-	Fix possible deadlock reported by Larry Campbell
+	Fix possible deadlock reported by Larry Campbell, and improve
+	optimisation a little.
 
 2008-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 

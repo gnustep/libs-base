@@ -1705,10 +1705,11 @@ static BOOL isLocked = NO;
 	{
 	  if ((dict = (*pImp)(_persDomains, objectForKeySel, obj)) != nil
 	    || (dict = (*tImp)(_tempDomains, objectForKeySel, obj)) != nil)
-	    (*addImp)(dictRep, addSel, dict);
+            {
+              (*addImp)(dictRep, addSel, dict);
+            }
 	}
-      _dictionaryRep = [dictRep copy];
-      RELEASE(dictRep);
+      _dictionaryRep = [dictRep makeImmutableCopyOnFail: NO];
     }
   rep = RETAIN(_dictionaryRep);
   [_lock unlock];
@@ -1872,9 +1873,11 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
   return flags[type];
 }
 
-/* FIXME ... Slightly faster than
+/* Slightly faster than
  * [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
- * but is it really worthwile?
+ * Avoiding the autorelease of the standard defaults turns out to be
+ * a modest but significant gain when making heavy use of methods which
+ * need localisation.
  */
 NSDictionary *GSPrivateDefaultLocale()
 {
