@@ -35,6 +35,7 @@
 #include "Foundation/NSDecimalNumber.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSPortCoder.h"
+#include "Foundation/NSUserDefaults.h"
 
 #include "GSPrivate.h"
 
@@ -356,8 +357,9 @@ static NSDecimalNumber *one;
 	    float v = *(float *)value;
 	    if (GSIsNAN(v)) return notANumber;
 	    if (GSIsInf(v)) return (v < 0.0) ? minNumber : maxNumber;
-	    s = [[NSString alloc] initWithFormat: @"%g"
-				  locale: GSPrivateDefaultLocale(), (double)v];
+	    s = [[NSString alloc] initWithFormat: @"%g" locale:
+              [[NSUserDefaults standardUserDefaults] dictionaryRepresentation],
+              (double)v];
 	    self = [self initWithString: s];
 	    RELEASE(s);
 	    return self;
@@ -370,8 +372,9 @@ static NSDecimalNumber *one;
 	    double v = *(double *)value;
 	    if (GSIsNAN(v)) return notANumber;
 	    if (GSIsInf(v)) return (v < 0.0) ? minNumber : maxNumber;
-	    s = [[NSString alloc] initWithFormat: @"%g"
-				  locale: GSPrivateDefaultLocale(), v];
+	    s = [[NSString alloc] initWithFormat: @"%g" locale:
+              [[NSUserDefaults standardUserDefaults] dictionaryRepresentation],
+              v];
 	    self = [self initWithString: s];
 	    RELEASE(s);
 	    return self;
@@ -413,7 +416,7 @@ static NSDecimalNumber *one;
 - (id) initWithString: (NSString*)numberValue
 {
   return [self initWithString: numberValue
-    locale: GSPrivateDefaultLocale()];
+    locale: [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]];
 }
 
 - (id) initWithString: (NSString*)numberValue
