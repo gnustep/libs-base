@@ -673,7 +673,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   sourceLen = strlen(source);
   if (locale == nil)
     {
-      locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+      locale = GSPrivateDefaultLocale();
     }
   if (fmt == nil)
     {
@@ -2267,7 +2267,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
   DescriptionInfo	info;
 
   if (locale == nil)
-    locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+    locale = GSPrivateDefaultLocale();
   if (format == nil)
     format = [locale objectForKey: NSTimeDateFormatString];
 

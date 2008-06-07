@@ -1872,3 +1872,28 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
   return flags[type];
 }
 
+/* FIXME ... Slightly faster than
+ * [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
+ * but is it really worthwile?
+ */
+NSDictionary *GSPrivateDefaultLocale()
+{
+  NSDictionary	        *locale;
+  NSUserDefaults        *defs;
+
+  if (classLock == nil)
+    {
+      [NSUserDefaults standardUserDefaults];
+    }
+  [classLock lock];
+  if (sharedDefaults == nil)
+    {
+      [NSUserDefaults standardUserDefaults];
+    }
+  defs = [sharedDefaults retain];
+  [classLock unlock];
+  locale = [defs dictionaryRepresentation];
+  [defs release];
+  return locale;
+}
+

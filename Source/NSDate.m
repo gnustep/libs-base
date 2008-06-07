@@ -264,7 +264,7 @@ otherTime(NSDate* other)
 
   if (locale == nil)
     {
-      locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+      locale = GSPrivateDefaultLocale();
     }
   ws = [NSCharacterSet whitespaceAndNewlineCharacterSet];
   digits = [NSCharacterSet decimalDigitCharacterSet];
