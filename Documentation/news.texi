@@ -11,11 +11,15 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.14.4}
+
+Minor updates
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.14.3}
 
 Various bug fixes.
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.14.2}
 
