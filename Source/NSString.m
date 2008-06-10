@@ -79,7 +79,12 @@
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSMime.h"
 #include "GSPrivate.h"
+#ifdef HAVE_LIMITS_H
 #include <limits.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -3824,16 +3829,20 @@ static NSFileManager *fm = nil;
 #if defined(__MINGW32__)
   return IMMUTABLE(self);
 #else
-  #ifndef MAX_PATH
-  #define MAX_PATH 1024
+  #ifndef PATH_MAX
+  #define PATH_MAX 1024
+  /* Don't use realpath unless we know we have the correct path size limit */
+  #ifdef        HAVE_REALPATH
+  #undef        HAVE_REALPATH
   #endif
-  char		newBuf[MAX_PATH];
+  #endif
+  char		newBuf[PATH_MAX];
 #ifdef HAVE_REALPATH
 
   if (realpath([self fileSystemRepresentation], newBuf) == 0)
     return IMMUTABLE(self);
 #else
-  char		extra[MAX_PATH];
+  char		extra[PATH_MAX];
   char		*dest;
   const char	*name = [self fileSystemRepresentation];
   const char	*start;
@@ -3842,7 +3851,7 @@ static NSFileManager *fm = nil;
 
   if (name[0] != '/')
     {
-      if (!getcwd(newBuf, MAX_PATH))
+      if (!getcwd(newBuf, PATH_MAX))
 	{
 	  return IMMUTABLE(self);	/* Couldn't get directory.	*/
 	}
@@ -3900,7 +3909,7 @@ static NSFileManager *fm = nil;
 	    {
 	      *dest++ = '/';
 	    }
-          if (&dest[len] >= &newBuf[MAX_PATH])
+          if (&dest[len] >= &newBuf[PATH_MAX])
 	    {
 	      return IMMUTABLE(self);	/* Resolved name too long.	*/
 	    }
@@ -3914,20 +3923,20 @@ static NSFileManager *fm = nil;
 	    }
           if (S_ISLNK(st.st_mode))
             {
-              char buf[MAX_PATH];
+              char buf[PATH_MAX];
 
               if (++num_links > MAXSYMLINKS)
 		{
 		  return IMMUTABLE(self);	/* Too many links.	*/
 		}
-              n = readlink(newBuf, buf, MAX_PATH);
+              n = readlink(newBuf, buf, PATH_MAX);
               if (n < 0)
 		{
 		  return IMMUTABLE(self);	/* Couldn't resolve.	*/
 		}
               buf[n] = '\0';
 
-              if ((n + strlen(end)) >= MAX_PATH)
+              if ((n + strlen(end)) >= PATH_MAX)
 		{
 		  return IMMUTABLE(self);	/* Path too long.	*/
 		}

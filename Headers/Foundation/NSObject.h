@@ -305,6 +305,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
    Removed because OpenStep has -(NSString*)name; */
 @end
 
+#if GS_API_VERSION(GS_API_NONE, 011700)
 @interface NSObject (GNUstep)
 - (BOOL) isInstance;
 - (id) makeImmutableCopyOnFail: (BOOL)force;
@@ -315,6 +316,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - (id) read: (TypedStream*)aStream;
 - (id) write: (TypedStream*)aStream;
 @end
+#endif
 
 /**
  * Provides a number of GNUstep-specific methods that are used to aid

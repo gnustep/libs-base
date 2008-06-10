@@ -414,7 +414,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 #endif
 @end
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if OS_API_VERSION(GS_API_NONE, 011700)
 /**
  *  Augments [NSBundle], including methods for handling libraries in the GNUstep
  *  fashion, for rapid localization, and other purposes.

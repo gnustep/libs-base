@@ -1,3 +1,21 @@
+2008-06-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for stdlib.h
+	* Headers/Additions/GNUstepBase/config.h.in: add stdlib.h
+	* configure: Regenerate
+	* Source/NSString.m: Don't use realpath unless PATH_MAX is known
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSSerialization.h:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSMethodSignature.h:
+	* Headers/Foundation/NSHost.h:
+	* Headers/Foundation/NSArchiver.h:
+	* Headers/Foundation/NSInvocation.h:
+	Mark non-OSX methods as deprecated so we can move them to the
+	additions library or delete them if we want to.
+
 2008-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* COPYINGv3:

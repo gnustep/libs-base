@@ -13629,7 +13629,8 @@ _ACEOF
 
 
 
-for ac_header in libc.h limits.h malloc.h memory.h string.h signal.h 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h 	sys/stropts.h unistd.h utime.h stdint.h inttypes.h sys/inttypes.h
+
+for ac_header in libc.h limits.h malloc.h memory.h string.h signal.h         stdlib.h 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h 	sys/stropts.h unistd.h utime.h stdint.h inttypes.h sys/inttypes.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
