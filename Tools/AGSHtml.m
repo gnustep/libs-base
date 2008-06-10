@@ -2505,7 +2505,7 @@ static NSString		*mainFont = nil;
 	    }
 	  if ([gvrem length] > 0)
 	    {
-	      [buf appendString: @" deprecated for removal at "];
+	      [buf appendString: @" Likely to be changed/moved/removed at "];
 	      [buf appendString: gvrem];
 	    }
 	}
@@ -2531,7 +2531,7 @@ static NSString		*mainFont = nil;
       [buf appendString: @"<br />\n"];
       if ([gvrem length] > 0)
 	{
-	  [buf appendString: @" deprecated for removal at "];
+          [buf appendString: @" Likely to be changed/moved/removed at "];
 	  [buf appendString: gvrem];
 	}
       [buf appendString:@"</div>\n"];

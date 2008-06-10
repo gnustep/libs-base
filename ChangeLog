@@ -1,5 +1,10 @@
 2008-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/AGSHtml.m: if something is scheduled for removal, mark it as
+	'Likely to be changed/moved/removed' rather than 'deprecated'.
+
+2008-06-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSString.h:
 	* Headers/Foundation/NSBundle.h:
 	* Headers/Foundation/NSSerialization.h:
