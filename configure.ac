@@ -1521,6 +1521,7 @@ AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES,
 AC_SUBST(HAVE_PTS_STREAM_MODULES)
 
 AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
+        stdlib.h dnl
 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h dnl
 	sys/stropts.h unistd.h utime.h stdint.h inttypes.h sys/inttypes.h)
 
