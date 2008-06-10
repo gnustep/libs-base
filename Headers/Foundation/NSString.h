@@ -757,7 +757,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 extern struct objc_class _NSConstantStringClassReference;
 #endif
 
-#if OS_API_VERSION(GS_API_NONE, 011700)
+#if GS_API_VERSION(GS_API_NONE, 011700)
 
 @interface NSMutableString (GNUstep)
 - (NSString*) immutableProxy;

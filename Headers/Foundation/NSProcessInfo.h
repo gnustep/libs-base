@@ -199,7 +199,7 @@ enum {
 #endif
 @end
 
-#if OS_API_VERSION(GS_API_NONE,011700)
+#if GS_API_VERSION(GS_API_NONE,011700)
 
 /**
  * Provides GNUstep-specific methods for controlled debug logging (a GNUstep
