@@ -1,5 +1,17 @@
 2008-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSSerialization.h:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSMethodSignature.h:
+	* Headers/Foundation/NSHost.h:
+	* Headers/Foundation/NSArchiver.h:
+	* Headers/Foundation/NSInvocation.h:
+	Fix typo in macro name
+
+2008-06-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Check for stdlib.h
 	* Headers/Additions/GNUstepBase/config.h.in: add stdlib.h
 	* configure: Regenerate
