@@ -1,3 +1,10 @@
+2008-06-11  David Ayers  <ayers@fsfe.org>
+
+	* Source/NSNumberFormatter.m ([-stringForObjectValue:]): Implement
+	handling of localizesFormat.
+	Return string value of attributedStringForZero if applicable so that
+	formatting for the common case is not short circuted for zero.
+
 2008-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: if something is scheduled for removal, mark it as
