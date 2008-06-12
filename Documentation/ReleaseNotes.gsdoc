@@ -29,9 +29,9 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
-	<heading>Version 1.16.0</heading>
+	<heading>Version 1.17.0</heading>
 	<p> 
-          This is a stable release.
+          This is an unstable release.
 	</p>
 	Highlights:
 	<deflist>
