@@ -1,3 +1,8 @@
+2008-06-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/ReleaseNotes.gsdoc:  Add information about movement
+	to MacOS-X compatibility.
+
 2008-06-11  David Ayers  <ayers@fsfe.org>
 
 	* Source/NSNumberFormatter.m ([-stringForObjectValue:]): Implement
