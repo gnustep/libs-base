@@ -24,12 +24,12 @@ notice and this notice are preserved.
     <chapter>
       <heading>Base Release Notes</heading>
       <p>
-        The release notes include descriptions of API changes, behavior
+        The release notes include descriptions of API changes, behaviour
 	changes and other information that might help developers and users
 	migrate to using a newer version of the library.
       </p>
       <section>
-	<heading>Version 1.15.4</heading>
+	<heading>Version 1.16.0</heading>
 	<p> 
           This is a stable release.
 	</p>
@@ -42,13 +42,9 @@ notice and this notice are preserved.
 	  <term>NSBundle</term>
 	  <desc>New OSX method stubs.</desc>
 	  <term>NSCoder</term>
-	  <desc>
-          New OSX10.5 methods for NSInteger implemented.
-	  </desc>
+	  <desc>New OSX10.5 methods for NSInteger implemented.</desc>
 	  <term>NSConnection</term>
-	  <desc>
-          New OSX10.5 methods for server connections implemented.
-	  </desc>
+	  <desc>New OSX10.5 methods for server connections implemented.</desc>
 	  <term>NSData</term>
 	  <desc>New OSX method stubs.</desc>
 	  <term>NSException</term>
@@ -59,31 +55,62 @@ notice and this notice are preserved.
 	  <desc>OSX10.5 additions implemented</desc>
 	  <term>NSSet</term>
 	  <desc>Implemented new OSX methods.</desc>
+	  <term>NSStream</term>
+	  <desc>Implemented basic SSL/TLS support using gnu-TLS.</desc>
 	  <term>NSThread</term>
 	  <desc>Implemented new OSX methods.</desc>
 	  <term>NSLock, NSRecursiveLock, NSConditionLock</term>
 	  <desc>Implemented names.</desc>
+	  <term>GSXML, NSXMLParser</term>
+	  <desc>Fully support namespace handling and fix bugs.</desc>
+	  <term>NSKeyValueCoding, NSKeyValueObserving</term>
+	  <desc>Made fully functional and MacOS-X compatible.</desc>
 	</deflist>
-        To do for MacOS-X 10.5 compatibility:
-        Implement most new method stubs.
-        Implement new OSX10.5 NSCalendar class.
-        Implement new OSX10.5 NSLocale class.
-        Implement new OSX10.5 NSOperation class.
-        Implement new OSX10.5 XML classes.
-        Implement NSInteger coding for NSCoder subclasses.
-        Implement support for now enumarated values in NSComparisonPredicate.
-        Implement new OSX10.5 features of NSDateFormatter.
-        Implement new OSX10.5 features of NSExpesssion.
-        Implement new OSX10.5 features of NSPredicate.
-        Implement new OSX10.5 features of NSFileManager.
-        Implement new OSX10.5 features of NSProcessInfo.
-        Implement new OSX10.5 NSHashTable class.
-        Implement new OSX10.5 NSMapTable class.
-        Implement new OSX10.5 NSPointerArray class.
-        Implement new OSX10.5 NSLocale additions.
-        Implement new OSX10.5 features of NSNumberFormatter.
-        Implement new OSX10.5 features of NSNumber/NSValue.
-        Update NSDistributedNotificationCenter with new OSX methods.
+        <p>The current emphasis of the base library is MacOS-X compatibility,
+        and the headers in this release mark many non-MacOS-X methods as being
+        scheduled for removal by the next release (from 1.17.0).<br />
+        These methods will mostly be moved to the 'additions' library,
+        (which can be built stand-alone in conjunction with the Cocoa Foundation
+        framework as libgnustep-baseadd on OSX) and their declarations will
+        be in the headers of that library (&lt;GNUstepBase/...&gt;) rather
+        than in the <em>Foundation</em> directory.<br />
+        NB. The markup in the headers and documentation should not be
+        assumed to be exhaustive ...  it is planned that the next stable
+        release of the base library will enforce MacOS-X compatibility
+        by default, and you will have to explicitly include headers from
+        &lt;GNUstepBase/...&gt; in order to use GNUstep specific
+        additions.<br />
+        You should track the unstable branch of the base library (subversion
+        trunk) to find out what changes your software actually needs to make.
+        </p>
+        <p>The TODO list for MacOS-X 10.5 compatibility follows,
+        this is all stuff which would ideally be done by the next
+        stable release of this library.
+        </p>
+        <list>
+          <item>Remove all non OSX10.5 declarations from standard headers</item>
+          <item>Implement most new method stubs.</item>
+          <item>Implement new OSX10.5 NSCalendar class.</item>
+          <item>Implement new OSX10.5 NSLocale class.</item>
+          <item>Implement new OSX10.5 NSOperation class.</item>
+          <item>Implement new OSX10.5 XML classes.</item>
+          <item>Implement NSInteger coding for NSCoder subclasses.</item>
+          <item>Implement support for now enumerated values
+          in NSComparisonPredicate.</item>
+          <item>Implement new OSX10.5 features of NSDateFormatter.</item>
+          <item>Implement new OSX10.5 features of NSExpression.</item>
+          <item>Implement new OSX10.5 features of NSPredicate.</item>
+          <item>Implement new OSX10.5 features of NSFileManager.</item>
+          <item>Implement new OSX10.5 features of NSProcessInfo.</item>
+          <item>Implement new OSX10.5 NSHashTable class.</item>
+          <item>Implement new OSX10.5 NSMapTable class.</item>
+          <item>Implement new OSX10.5 NSPointerArray class.</item>
+          <item>Implement new OSX10.5 NSLocale additions.</item>
+          <item>Implement new OSX10.5 features of NSNumberFormatter.</item>
+          <item>Implement new OSX10.5 features of NSNumber/NSValue.</item>
+          <item>Update NSDistributedNotificationCenter
+          with new OSX methods.</item>
+        </list>
       </section>
 
       <section>
@@ -111,7 +138,7 @@ notice and this notice are preserved.
 	  <term>NSURLConnection</term>
 	  <desc>
           Added support for https using new stream code.<br />
-          Added support for basic and digest authentrication.
+          Added support for basic and digest authentication.
 	  </desc>
 	</deflist>
       </section>
@@ -175,7 +202,7 @@ notice and this notice are preserved.
 	<p> 
           This is an unstable release from 1.14.0.  It is otherwise
 	  identical to the 1.14.0 release. Releases in the 1.15 series
-	  may not be foreward compatible with previous 1.15 releases.
+	  may not be forward compatible with previous 1.15 releases.
 	</p>
       </section>
       <section>
@@ -210,7 +237,7 @@ notice and this notice are preserved.
 	  <term>NSObject</term>
 	  <desc>
 	     Fixes for lock contention with retain/release, so the performance
-	     of massively multithreaded applications is much better.
+	     of massively multi-threaded applications is much better.
 	  </desc>
 	  <term>NSNetServices</term>
 	  <desc>
@@ -248,18 +275,18 @@ notice and this notice are preserved.
 	  <term>NSBundle</term>
 	  <desc>
 	    Fix for crash when initialising the bundle system in
-	    an applicatiuon linked with many frameworks.
+	    an application linked with many frameworks.
 	  </desc>
 	  <term>NSCalendarDate</term>
 	  <desc>
-	     Fix for buffer overrun problem mwhen initialising
+	     Fix for buffer overrun problem when initialising
 	     date from string.  Also fixed to return nil when
 	     initialising from some illegal strings.
 	  </desc>
 	  <term>NSConnection</term>
 	  <desc>
 	     Some locking fixes to avoid rare deadlocks in heavily
-	     multithreaded applications.
+	     multi-threaded applications.
 	  </desc>
 	  <term>NSDecimalNumber</term>
 	  <desc>
@@ -302,17 +329,17 @@ notice and this notice are preserved.
 	<heading>Version 1.13.0</heading>
 	<p> 
           Several sets of classes have been added for dealing with urls and
-          predicates. A few minor api changes have occured as well.
+          predicates. A few minor api changes have occurred as well.
 	</p>
 	  <deflist>
 	    <term>Character sets</term>
 	    <desc>
-	       Character sets were improved with regard to ranges (chinese
+	       Character sets were improved with regard to ranges (Chinese
                characters, etc).
 	    </desc>
 	    <term>Keyed Archiving</term>
 	    <desc>
-               Better compatibility with MacOSX. In particular, some gueses
+               Better compatibility with MacOSX. In particular, some guesses
                are made as to how some objects should be encoded.
 	    </desc>
 	    <term>GNUstep configuration file</term>
@@ -330,14 +357,14 @@ notice and this notice are preserved.
                Most of the code was updated to compile nicely with the new
                gcc objective-c++ compiler.
 	    </desc>
-	    <term>NSString designated initializer</term>
+	    <term>NSString designated initialiser</term>
 	    <desc>
                The GNUstep designated initialiser for the NSString class 
                cluster has changed to 
                <code>-initWithBytesNoCopy:length:encoding:freeWhenDone:</code>
                from 
                <code>-initWithCharactersNoCopy:length:freeWhenDone:</code> 
-               and older code subclassing NSString will need to be updated.
+               and older code sub classing NSString will need to be updated.
 	    </desc>
 	    <term>NSBundle bundleWithIndentifier:</term>
 	    <desc>
@@ -362,7 +389,7 @@ notice and this notice are preserved.
 	    </desc>
 	    <term>Run loops</term>
 	    <desc>
-              Removed the timeout facility for runloop watchers - you should
+              Removed the timeout facility for run loop watchers - you should
               use standard timers instead. The watcher interface is deprecated
               anyway.
 	    </desc>
@@ -398,7 +425,7 @@ notice and this notice are preserved.
 	    Several deprecated and private methods were removed from
 	    the public interface including
 	    <code>+gnustepBundle</code>, and
-	    <code>+pathForGNUstepResource:ofTpye:inDirectory:</code>.
+	    <code>+pathForGNUstepResource:ofType:inDirectory:</code>.
 	    </desc>
 	    <term>NSNotificationCenter deprecated method</term>
 	    <desc>
