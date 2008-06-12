@@ -42,6 +42,10 @@ extern "C" {
 typedef enum {
   NSKeyValueObservingOptionNew = 1,
   NSKeyValueObservingOptionOld = 2
+#if OS_API_VERSION(100500,GS_API_LATEST)
+,  NSKeyValueObservingOptionInitial = 4,
+  NSKeyValueObservingOptionPrior = 8
+#endif
 } NSKeyValueObservingOptions;
 
 typedef enum {
@@ -62,6 +66,9 @@ GS_EXPORT NSString *const NSKeyValueChangeIndexesKey;
 GS_EXPORT NSString *const NSKeyValueChangeKindKey;
 GS_EXPORT NSString *const NSKeyValueChangeNewKey;
 GS_EXPORT NSString *const NSKeyValueChangeOldKey;
+#if OS_API_VERSION(100500,GS_API_LATEST)
+GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
+#endif
 
 /* Given that the receiver has been registered as an observer
  * of the value at a key path relative to an object,
@@ -203,10 +210,10 @@ GS_EXPORT NSString *const NSKeyValueChangeOldKey;
 
 /**
  * Tells the observing system that when NSKeyValueObserverNotification
- * protocol messages are sent for any key in the keys array, they should
- * also be sent for dependentKey.
+ * protocol messages are sent for any key in the triggerKeys array,
+ * they should also be sent for dependentKey.
  */
-+ (void) setKeys: (NSArray*)keys
++ (void) setKeys: (NSArray*)triggerKeys
 triggerChangeNotificationsForDependentKey: (NSString*)dependentKey;
 
 /**

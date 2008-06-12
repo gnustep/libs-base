@@ -42,6 +42,15 @@ extern "C" {
 @class NSMutableArray;
 @class NSMutableDictionary;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+enum {
+  NSBundleExecutableArchitectureI386      = 0x00000007,
+  NSBundleExecutableArchitecturePPC       = 0x00000012,
+  NSBundleExecutableArchitecturePPC64     = 0x01000012,
+  NSBundleExecutableArchitectureX86_64    = 0x01000007,
+};
+#endif
+
 /**
  *  Notification posted when a bundle is loaded.  The notification object is
  *  the [NSBundle] itself.  The notification also contains a <em>userInfo</em>
@@ -322,10 +331,12 @@ GS_EXPORT NSString* const NSLoadedClasses;
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray 
 			       forPreferences: (NSArray *)preferencesArray;
 
+#if OS_API_VERSION(100200,GS_API_LATEST) 
 /**
  * Returns a boolean indicating whether code for the bundle has been loaded.
  */
 - (BOOL) isLoaded;
+#endif
 
 /**
  * This method returns the same information as
@@ -351,11 +362,21 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Returns the info property list associated with the bundle. */
 - (NSDictionary*) infoDictionary;
 
+#if OS_API_VERSION(100200,GS_API_LATEST) 
 /** Returns a localized info property list based on the preferred
  *  localization or the most appropriate localization if the preferred
  *  one cannot be found.
  */
 - (NSDictionary*) localizedInfoDictionary;
+
+/** Not implemented
+ */
+- (NSString*) developmentLocalization;
+
+/** Not implemented
+ */
+- (id) objectForInfoDictionaryKey: (NSString *)key;
+#endif
 
 /** Returns all the localizations in the bundle. */
 - (NSArray*) localizations;
@@ -373,13 +394,27 @@ GS_EXPORT NSString* const NSLoadedClasses;
  */
 - (BOOL) load;
 
+#if OS_API_VERSION(100200,GS_API_LATEST) 
+/** * Not implemented
+ */
+- (BOOL) unload;
+#endif
+
 /** Returns the path to the executable code in the bundle */
 - (NSString *) executablePath;
 #endif
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Not implemented */
+- (NSArray *) executableArchitectures;
+/** Not implemented */
+- (BOOL) preflightAndReturnError: (NSError **)error;
+/** Not implemented */
+- (BOOL) loadAndReturnError: (NSError **)error;
+#endif
 @end
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if GS_API_VERSION(GS_API_NONE, 011700)
 /**
  *  Augments [NSBundle], including methods for handling libraries in the GNUstep
  *  fashion, for rapid localization, and other purposes.
@@ -529,157 +564,6 @@ GS_EXPORT NSString* const NSLoadedClasses;
 #define NSLocalizedStringFromTableInBundle(key, tbl, bundle, comment) \
   [bundle localizedStringForKey:(key) value:@"" table:(tbl)]
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-#define NSLocalizedStringFromTableInFramework(key, tbl, fpth, comment) \
-  [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" \
-  table: [bundle pathForGNUstepResource:(tbl) ofType: nil inDirectory: (fpth)]
-#endif /* GNUSTEP */
-
-  /* Now Support for Quick Localization */
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-
-  /* The quickest possible way to localize a string:
-    
-     NSLog (_(@"New Game"));
-    
-     Please make use of the longer functions taking a comment when you
-     get the time to localize seriously your code.
-  */
-
-/**
- * <p>
- *   This function (macro) is a GNUstep extension.
- * </p>
- * <p>
- *   <code>_(@"My string to translate")</code>
- * </p>
- * <p>
- *   is exactly the same as
- * </p>
- * <p>
- *   <code>NSLocalizedString (@"My string to translate", @"")</code>
- * </p>
- * <p>
- *   It is useful when you need to translate an application
- *   very quickly, as you just need to enclose all strings
- *   inside <code>_()</code>.  But please note that when you
- *   use this macro, you are not taking advantage of comments
- *   for the translator, so consider using
- *   <code>NSLocalizedString</code> instead when you need a
- *   comment.
- * </p>
- */
-#define _(X) NSLocalizedString (X, @"")
- 
-  /* The quickest possible way to localize a static string:
-    
-     static NSString *string = __(@"New Game");
-    
-     NSLog (_(string)); */
- 
-/**
- * <p>
- *   This function (macro) is a GNUstep extension.
- * </p>
- * <p>
- *   <code>__(@"My string to translate")</code>
- * </p>
- * <p>
- *   is exactly the same as
- * </p>
- * <p>
- *   <code>NSLocalizedStaticString (@"My string to translate", @"")</code>
- * </p>
- * <p>
- *   It is useful when you need to translate an application very
- *   quickly.  You would use it as follows for static strings:
- * </p>
- * <p>
- *  <code>
- *    NSString *message = __(@"Hello there");
- 
- *    ... more code ...
- 
- *    NSLog (_(messages));
- *  </code>
- * </p>
- * <p>
- *   But please note that when you use this macro, you are not
- *   taking advantage of comments for the translator, so
- *   consider using <code>NSLocalizedStaticString</code>
- *   instead when you need a comment.
- * </p>
- */
-#define __(X) X
-
-  /* The better way for a static string, with a comment - use as follows -
-
-     static NSString *string = NSLocalizedStaticString (@"New Game",
-                                                        @"Menu Option");
-
-     NSLog (_(string));
-
-     If you need anything more complicated than this, please initialize
-     the static strings manually.
-*/
-
-/**
- * <p>
- *   This function (macro) is a GNUstep extensions, and it is used
- *   to localize static strings.  Here is an example of a static
- *   string:
- * </p>
- * <p>
- *   <code>
- *     NSString *message = @"Hi there";
- 
- *     ... some code ...
- 
- *     NSLog (message);
- *  </code>
- * </p>
- * <p>
- *   This string can not be localized using the standard
- *   openstep functions/macros.  By using this gnustep extension,
- *   you can localize it as follows:
- * </p>
- * <p>
- *   <code>
- *     NSString *message = NSLocalizedStaticString (@"Hi there",
- *       @"Greeting");
- * 
- *     ... some code ...
- * 
- *     NSLog (NSLocalizedString (message, @""));
- *  </code>
- * </p>
- * <p>
- *   When the tools generate the
- *   <code>Localizable.strings</code> file from the source
- *   code, they will ignore the <code>NSLocalizedString</code>
- *   call while they will extract the string (and the comment)
- *   to localize from the <code>NSLocalizedStaticString</code>
- *   call.
- * </p>
- * <p>
- *   When the code is compiled, instead, the
- *   <code>NSLocalizedStaticString</code> call is ignored (discarded,
- *   it is a macro which simply expands to <code>key</code>), while
- *   the <code>NSLocalizedString</code> will actually look up the
- *   string for translation in the <code>Localizable.strings</code>
- *   file.
- * </p>
- * <p>
- *   Please note that there is currently no macro/function to
- *   localize static strings using different tables.  If you
- *   need that functionality, you have either to prepare the
- *   localization tables by hand, or to rewrite your code in
- *   such a way as not to use static strings.
- * </p>
- */
-#define NSLocalizedStaticString(key, comment) key
-
-#endif	/* GS_API_NONE */
 
 #if	defined(__cplusplus)
 }

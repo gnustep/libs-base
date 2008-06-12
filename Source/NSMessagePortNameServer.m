@@ -152,12 +152,9 @@ static void clean_up_names(void)
 
       while (dl != nil && [dl tryLock] == NO)
 	{
-          CREATE_AUTORELEASE_POOL(pool);
-
 	  if ([limit timeIntervalSinceNow] > 0.0)
 	    {
-	      [NSThread sleepUntilDate:
-                [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+	      [NSThread sleepForTimeInterval: 0.1];
 	    }
 	  else
 	    {
@@ -181,7 +178,6 @@ static void clean_up_names(void)
                   dl = nil;
                 }
 	    }
-          RELEASE(pool);
 	}
     }
   return dl;

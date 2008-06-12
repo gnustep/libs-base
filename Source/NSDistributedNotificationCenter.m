@@ -42,7 +42,7 @@
 #include	"Foundation/NSHost.h"
 #include	"Foundation/NSPortNameServer.h"
 #include	"Foundation/NSDebug.h"
-
+#include        "Foundation/NSThread.h"
 #include	"../Tools/gdnc.h"
 
 
@@ -739,9 +739,13 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  limit = [NSDate dateWithTimeIntervalSinceNow: 5.0];
 	  while (_remote == nil && [limit timeIntervalSinceNow] > 0)
 	    {
+              CREATE_AUTORELEASE_POOL(pool);
+              [NSThread sleepForTimeInterval: 0.05];
 	      _remote = [NSConnection
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
+              RETAIN(_remote);
+              DESTROY(pool);
 	    }
 	  if (_remote == nil)
 	    {
@@ -751,8 +755,11 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		@"I attempted to start it at '%@'\n", cmd];
 	    }
 	}
+      else
+        {
+          RETAIN(_remote);
+        }
 
-      RETAIN(_remote);
       c = [_remote connectionForProxy];
       [_remote setProtocolForProxy: p];
     

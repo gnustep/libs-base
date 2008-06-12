@@ -25,6 +25,10 @@
 
 #include "config.h"
 #include <stdlib.h>
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 #include "cifframe.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSData.h"
@@ -465,6 +469,7 @@ cifframe_type(const char *typePtr, const char **advance)
     case _C_VOID: ftype = &ffi_type_void;
       break;
     default:
+      ftype = &ffi_type_void;
       NSCAssert(0, @"Unknown type in sig");
     }
 
@@ -700,7 +705,7 @@ cifframe_do_call (DOContext *ctxt,
 		 @"Will search for arbitrary signature.",
 		 object,
 		 GSNameFromClass(GSObjCIsClass(object) 
-				 ? object : GSObjCClass(object)),
+				 ? object : (id)GSObjCClass(object)),
 		 GSNameFromSelector(selector));
       type = GSTypesFromSelector(selector);
     }

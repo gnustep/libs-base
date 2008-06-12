@@ -719,6 +719,7 @@ DEFINE_INTPTR_T
 DEFINE_UINTPTR_T
 USE_ZLIB
 HAVE_INET_PTON
+HAVE_INET_NTOP
 GS_PASS_ARGUMENTS
 GS_FAKE_MAIN
 WITH_FFI
@@ -728,6 +729,10 @@ XML_CFLAGS
 XML_LIBS
 HAVE_LIBXSLT
 HAVE_LIBXML
+TLS_CONFIG
+TLS_CFLAGS
+TLS_LIBS
+HAVE_GNUTLS
 HAVE_MDNS
 USE_GMP
 INCLUDE_FLAGS
@@ -1343,6 +1348,7 @@ Optional Features:
   --disable-importing-config-file
                                 Disable importing of an existing GNUstep config
 				file and use inbuilt defaults instead.
+  --disable-bfd	Don't use bfd functions (stack traces, etc)
   --enable-procfs               Use /proc filesystem (default)
   --enable-procfs-psinfo         Use /proc/%pid% to get info
   --enable-pass-arguments	Force user main call to NSProcessInfo initialize
@@ -1353,6 +1359,8 @@ Optional Features:
   --disable-xml			Compile even if XML-dependencies are not met
   --disable-xmltest		Do not try to compile and run a test XML program
   --disable-xslt		Compile even if XSLT-dependency is not met
+  --disable-tls			Disable use of GNUTLS
+  --disable-tlstest		Do not try to compile and run a test TLS program
   --disable-openssl		Disable support for openssl in URL classes
 
 Optional Packages:
@@ -1393,6 +1401,7 @@ Optional Packages:
   --with-ffi-library=PATH       Library path for ffi (ffcall/libffi) libs
   --with-libiconv-library=PATH  Library path for libiconv libraries
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
+  --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
   --with-openssl-include=PATH  include path for openssl headers
@@ -2127,7 +2136,6 @@ case "$target_os" in
     GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
     GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
     GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
-    GNUSTEP_USER_DIR=GNUstep
     GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
     GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
     ;;
@@ -2311,6 +2319,15 @@ case "$target_os" in
     GNUSTEP_NETWORK_USERS_DIR="C:\Documents and Settings"
     GNUSTEP_LOCAL_USERS_DIR="C:\Documents and Settings"
 
+    # TODO: It would be nice to use the 'short' output of
+    # relative_path.sh, but older versions of relative_path.sh
+    # did not support specifying the type of output and
+    # would abort if they were given more than 2 parameters,
+    # so we can not use the 'short' option if we want gnustep-base
+    # to work with older versions of gnustep-make.
+    # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
+    # two years after it has been released ?), we could switch to the
+    # 'short' output though.
     GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
     GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
     GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS`
@@ -2362,10 +2379,6 @@ echo "$as_me: We store the following filesystem layout into gnustep-base, to be 
 echo $ECHO_N "checking for Makefiles directory... $ECHO_C" >&6; }
 { echo "$as_me:$LINENO: result: $GNUSTEP_MAKEFILES" >&5
 echo "${ECHO_T}$GNUSTEP_MAKEFILES" >&6; }
-{ echo "$as_me:$LINENO: checking for user directory" >&5
-echo $ECHO_N "checking for user directory... $ECHO_C" >&6; }
-{ echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR" >&5
-echo "${ECHO_T}$GNUSTEP_USER_DIR" >&6; }
 { echo "$as_me:$LINENO: checking for user defaults directory" >&5
 echo $ECHO_N "checking for user defaults directory... $ECHO_C" >&6; }
 { echo "$as_me:$LINENO: result: $GNUSTEP_USER_DEFAULTS_DIR" >&5
@@ -2576,12 +2589,6 @@ GNUSTEP_MAKEFILES=`echo $GNUSTEP_MAKEFILES|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_MAKEFILES "$GNUSTEP_MAKEFILES"
-_ACEOF
-
-GNUSTEP_USER_DIR=`echo $GNUSTEP_USER_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
-
-cat >>confdefs.h <<_ACEOF
-#define GNUSTEP_TARGET_USER_DIR "$GNUSTEP_USER_DIR"
 _ACEOF
 
 GNUSTEP_USER_DEFAULTS_DIR=`echo $GNUSTEP_USER_DEFAULTS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
@@ -8414,6 +8421,7 @@ fi
 
 case "$target_os" in
     cygwin*)	objc_cv_con_autoload=yes;;
+    mingw*)	objc_cv_con_autoload=yes;;
 esac
 
 fi
@@ -9731,7 +9739,8 @@ fi
 
 
 
-for ac_header in string.h memory.h
+
+for ac_header in string.h memory.h alloca.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -10165,7 +10174,8 @@ done
 
 
 
-for ac_header in sys/syslimits.h sys/param.h
+
+for ac_header in sys/cdefs.h sys/syslimits.h sys/param.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -10304,7 +10314,133 @@ fi
 
 done
 
-# Twisted header check for NetBSD
+# Twisted header checks for some BSDs with stupid interdependencies
+
+for ac_header in sys/syslimits.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #include <sys/syslimits.h>
+
+
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  eval "$as_ac_Header=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_Header=no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+ac_res=`eval echo '${'$as_ac_Header'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+
+for ac_header in sys/param.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #if HAVE_SYS_SYSLIMITS_H
+   #include <sys/syslimits.h>
+   #endif
+
+
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  eval "$as_ac_Header=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_Header=no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+ac_res=`eval echo '${'$as_ac_Header'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
 
 for ac_header in sys/mount.h
 do
@@ -10320,7 +10456,10 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#if HAVE_SYS_SYSLIMITS_H
+#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #if HAVE_SYS_SYSLIMITS_H
    #include <sys/syslimits.h>
    #endif
    #if HAVE_SYS_PARAM_H
@@ -10589,7 +10728,12 @@ fi
 
 
 
-for ac_func in statvfs link symlink readlink geteuid getlogin getpwnam getpwuid getgrgid rint getopt
+
+
+
+
+
+for ac_func in statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -11100,6 +11244,16 @@ done
 #--------------------------------------------------------------------
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
+PASS_ARG=yes
+# Check whether --enable-bfd was given.
+if test "${enable_bfd+set}" = set; then
+  enableval=$enable_bfd;
+else
+  enable_bfd=$PASS_ARG
+fi
+
+
+if test $enable_bfd = yes; then
 
 for ac_header in bfd.h
 do
@@ -11382,6 +11536,7 @@ _ACEOF
 
 fi
 
+fi
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
@@ -12100,7 +12255,9 @@ _ACEOF
   fi
 fi
 
-
+if test x"$objc_threaded" = x"-pthread"; then
+  LIBS="$LIBS -lpthread"
+fi
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m
@@ -13367,7 +13524,8 @@ _ACEOF
 fi
 done
 
-{ echo "$as_me:$LINENO: checking whether setpgrp takes no argument" >&5
+if test "x$ac_cv_func_setpgrp" = xyes; then
+  { echo "$as_me:$LINENO: checking whether setpgrp takes no argument" >&5
 echo $ECHO_N "checking whether setpgrp takes no argument... $ECHO_C" >&6; }
 if test "${ac_cv_func_setpgrp_void+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -13439,6 +13597,7 @@ _ACEOF
 
 fi
 
+fi
 
 HAVE_PTS_STREAM_MODULES=0
 case "${target}" in
@@ -13470,7 +13629,8 @@ _ACEOF
 
 
 
-for ac_header in libc.h limits.h malloc.h memory.h string.h signal.h 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h 	sys/stropts.h unistd.h utime.h stdint.h inttypes.h sys/inttypes.h
+
+for ac_header in libc.h limits.h malloc.h memory.h string.h signal.h         stdlib.h 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h 	sys/stropts.h unistd.h utime.h stdint.h inttypes.h sys/inttypes.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -13659,11 +13819,85 @@ fi
 
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
+# On some systems we need -lnsl ... so check for that first.
 #--------------------------------------------------------------------
 
+{ echo "$as_me:$LINENO: checking for inet_ntop in -lnsl" >&5
+echo $ECHO_N "checking for inet_ntop in -lnsl... $ECHO_C" >&6; }
+if test "${ac_cv_lib_nsl_inet_ntop+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lnsl  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char inet_ntop ();
+int
+main ()
+{
+return inet_ntop ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_nsl_inet_ntop=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_nsl_inet_ntop=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_nsl_inet_ntop" >&5
+echo "${ECHO_T}$ac_cv_lib_nsl_inet_ntop" >&6; }
+if test $ac_cv_lib_nsl_inet_ntop = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBNSL 1
+_ACEOF
+
+  LIBS="-lnsl $LIBS"
+
+fi
 
 
-for ac_func in inet_aton inet_pton sigaction
+
+
+
+
+for ac_func in gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -13978,6 +14212,12 @@ if test $ac_cv_func_inet_pton = yes ; then
 fi
 
 
+HAVE_INET_NTOP=no
+if test $ac_cv_func_inet_ntop = yes ; then
+  HAVE_INET_NTOP=yes
+fi
+
+
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m
 #--------------------------------------------------------------------
@@ -14078,10 +14318,249 @@ done
 
 
 #--------------------------------------------------------------------
-# This function needed by NSDebug.m and NSProcessInfo.m
+# For setting thread stack size
 #--------------------------------------------------------------------
 
-for ac_func in strerror
+for ac_header in sys/resource.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  { echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+ac_res=`eval echo '${'$as_ac_Header'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+else
+  # Is the header compilable?
+{ echo "$as_me:$LINENO: checking $ac_header usability" >&5
+echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ echo "$as_me:$LINENO: checking $ac_header presence" >&5
+echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <$ac_header>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
+echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
+
+    ;;
+esac
+{ echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  eval "$as_ac_Header=\$ac_header_preproc"
+fi
+ac_res=`eval echo '${'$as_ac_Header'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+
+fi
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+
+for ac_func in setrlimit
+do
+as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $ac_func" >&5
+echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6; }
+if { as_var=$as_ac_var; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_$ac_func || defined __stub___$ac_func
+choke me
+#endif
+
+int
+main ()
+{
+return $ac_func ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  eval "$as_ac_var=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_var=no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+ac_res=`eval echo '${'$as_ac_var'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_var'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
+#--------------------------------------------------------------------
+# One of these functions needed by NSDebug.m and NSProcessInfo.m
+#--------------------------------------------------------------------
+
+
+for ac_func in strerror_r strerror
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -15263,8 +15742,7 @@ else
       cygwin*)     ac_cv_sys_procfs=yes;;
     esac
   elif test "$enable_procfs" = cross; then
-    { echo "$as_me:$LINENO: WARNING: Pass --enable-procfs argument to enable use of /proc filesystem." >&5
-echo "$as_me: WARNING: Pass --enable-procfs argument to enable use of /proc filesystem." >&2;}
+    ac_cv_sys_procfs=no
   else
     ac_cv_sys_procfs=no
   fi
@@ -15272,6 +15750,10 @@ fi
 { echo "$as_me:$LINENO: result: $ac_cv_sys_procfs" >&5
 echo "${ECHO_T}$ac_cv_sys_procfs" >&6; }
 
+  if test "$enable_procfs" = cross; then
+    { echo "$as_me:$LINENO: WARNING: Cross-compiling: Pass --enable-procfs argument to enable use of /proc filesystem." >&5
+echo "$as_me: WARNING: Cross-compiling: Pass --enable-procfs argument to enable use of /proc filesystem." >&2;}
+  fi
   if test $ac_cv_sys_procfs = yes; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -15340,8 +15822,7 @@ fi
 
 
   elif test "$enable_procfs" = cross; then
-    { echo "$as_me:$LINENO: WARNING: Pass --enable-procfs-psinfo argument to enable use of /proc psinfo information." >&5
-echo "$as_me: WARNING: Pass --enable-procfs-psinfo argument to enable use of /proc psinfo information." >&2;}
+    ac_cv_sys_procfs_psinfo=no
   else
     ac_cv_sys_procfs_psinfo=no
   fi
@@ -15349,6 +15830,10 @@ fi
 { echo "$as_me:$LINENO: result: $ac_cv_sys_procfs_psinfo" >&5
 echo "${ECHO_T}$ac_cv_sys_procfs_psinfo" >&6; }
 
+  if test "$enable_procfs" = cross; then
+    { echo "$as_me:$LINENO: WARNING: Cross-compiling: Pass --enable-procfs-psinfo argument to enable use of /proc psinfo information." >&5
+echo "$as_me: WARNING: Cross-compiling: Pass --enable-procfs-psinfo argument to enable use of /proc psinfo information." >&2;}
+  fi
   if test $ac_cv_sys_procfs_psinfo = yes; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -15690,9 +16175,25 @@ fi
 
 #--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
-# We enable ffcall by default now.
+# We enable ffcall by default now, except on sparc64 (where we think
+# it's broken).
 #--------------------------------------------------------------------
+do_broken_libffi=no
+do_broken_libffcall=no
 do_enable_libffi=no
+do_enable_libffcall=yes
+case "$target_cpu" in
+  sparc64*)
+    case "$target_os" in
+      solaris*)
+        do_broken_libffi=no;
+        do_broken_libffcall=yes;
+        do_enable_libffi=yes;
+        do_enable_libffcall=no;;
+      *) ;;
+    esac ;;
+  *) ;;
+esac
 
 # Check whether --enable-libffi was given.
 if test "${enable_libffi+set}" = set; then
@@ -15706,7 +16207,7 @@ fi
 if test "${enable_ffcall+set}" = set; then
   enableval=$enable_ffcall;
 else
-  enable_ffcall=yes
+  enable_ffcall=$do_enable_libffcall
 fi
 
 
@@ -16179,6 +16680,10 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
     { echo "$as_me:$LINENO: result: libffi" >&5
 echo "${ECHO_T}libffi" >&6; }
   fi
+  if test $do_broken_libffi = yes; then
+    { echo "$as_me:$LINENO: WARNING: ffi may be broken on this system ... try enabling ffcall" >&5
+echo "$as_me: WARNING: ffi may be broken on this system ... try enabling ffcall" >&2;}
+  fi
 elif test $enable_ffcall = yes; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -16234,6 +16739,15 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
     { echo "$as_me:$LINENO: result: ffcall" >&5
 echo "${ECHO_T}ffcall" >&6; }
   fi
+  if test $do_broken_libffcall = yes; then
+    { echo "$as_me:$LINENO: WARNING: ffcall may be broken on this system ... try enabling ffi" >&5
+echo "$as_me: WARNING: ffcall may be broken on this system ... try enabling ffi" >&2;}
+  fi
+else
+  ffi_ok=no
+fi
+
+if test $enable_ffcall = yes -a $ffi_ok = yes; then
   { echo "$as_me:$LINENO: checking if ffcall trampolines work" >&5
 echo $ECHO_N "checking if ffcall trampolines work... $ECHO_C" >&6; }
   if test "$cross_compiling" = yes; then
@@ -16281,8 +16795,6 @@ echo "${ECHO_T}$have_working_trampoline" >&6; }
   #if test $have_working_trampoline = no; then
   #  ffi_ok=no
   #fi
-else
-  ffi_ok=no
 fi
 
 if test $ffi_ok = no; then
@@ -17297,7 +17809,8 @@ _ACEOF
 	LIBS="-lxslt $LIBS"
       else
 	echo
-	echo "You most likely do not want to build base without XSLT support."
+	echo "You may not want to build base without XSLT support."
+	echo "Doing so will disable the XSLT extensions."
 	echo "If you really want to build -base without XSLT support,"
 	echo "add --disable-xslt to the configure arguments."
 	{ echo "$as_me:$LINENO: WARNING: Missing support for XSLT functionality." >&5
@@ -17315,8 +17828,8 @@ echo "$as_me: WARNING: Disabled support for XSLT funtionality." >&2;}
     LIBS="$saved_LIBS"
     CFLAGS="$saved_CFLAGS"
     echo
-    echo "You most likely do not want to build base without XML support."
-    echo "For instance, MacOS-X compatible property lists require XML."
+    echo "You may not want to build base without libxml2."
+    echo "Doing so will disable the XML, XPATH, and XMLRPC extensions."
     echo "If you really want to build -base without XML support,"
     echo "add --disable-xml to the configure arguments."
     { { echo "$as_me:$LINENO: error: Missing support for XML functionality." >&5
@@ -17327,6 +17840,322 @@ else
   { echo "$as_me:$LINENO: WARNING: Disabled support for XML funtionality." >&5
 echo "$as_me: WARNING: Disabled support for XML funtionality." >&2;}
   HAVE_LIBXML=0
+fi
+
+
+#--------------------------------------------------------------------
+# Check recent libgnutls for SSL streams.
+#--------------------------------------------------------------------
+
+# Check whether --enable-tls was given.
+if test "${enable_tls+set}" = set; then
+  enableval=$enable_tls;
+else
+  enable_tls=yes
+fi
+
+
+if test $enable_tls = yes; then
+  # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
+  # of the success of the macro.
+  saved_LIBS="$LIBS"
+  saved_CFLAGS="$CFLAGS"
+
+
+
+# Check whether --with-tls-prefix was given.
+if test "${with_tls_prefix+set}" = set; then
+  withval=$with_tls_prefix; tls_config_prefix="$withval"
+else
+  tls_config_prefix=""
+fi
+
+# Check whether --enable-tlstest was given.
+if test "${enable_tlstest+set}" = set; then
+  enableval=$enable_tlstest;
+else
+  enable_tlstest=yes
+fi
+
+
+  if test x$tls_config_prefix != x ; then
+    tls_config_args="$tls_config_args --prefix=$tls_config_prefix"
+    if test x${TLS_CONFIG+set} != xset ; then
+      TLS_CONFIG=$tls_config_prefix/bin/libgnutls-config
+    fi
+  fi
+
+  # Extract the first word of "libgnutls-config", so it can be a program name with args.
+set dummy libgnutls-config; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_TLS_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $TLS_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_TLS_CONFIG="$TLS_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_TLS_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_TLS_CONFIG" && ac_cv_path_TLS_CONFIG="no"
+  ;;
+esac
+fi
+TLS_CONFIG=$ac_cv_path_TLS_CONFIG
+if test -n "$TLS_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $TLS_CONFIG" >&5
+echo "${ECHO_T}$TLS_CONFIG" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+  min_tls_version=2.0.1
+  { echo "$as_me:$LINENO: checking for libgnutls - version >= $min_tls_version" >&5
+echo $ECHO_N "checking for libgnutls - version >= $min_tls_version... $ECHO_C" >&6; }
+  no_tls=""
+  if test "$TLS_CONFIG" = "no" ; then
+    TLS_CFLAGS="-I/usr/include"
+    TLS_LIBS="-L/usr/lib -lgnutls -lgcrypt"
+
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS $TLS_CFLAGS"
+    LIBS="$TLS_LIBS $LIBS"
+    rm -f conf.tlstest
+    if test "$cross_compiling" = yes; then
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <gnutls/gnutls.h>
+
+int
+main()
+{
+  system("touch conf.tlstest");
+
+  if (gnutls_check_version("$min_tls_version") == 0)
+    {
+      printf("\n*** An old version of libgnutls (%s) was found.\n",
+	gnutls_check_version(0));
+      printf("*** You need a version of libtgnuls newer than $min_tls_version.\n");
+      printf("*** If you have already installed a sufficiently new version, this error\n");
+      printf("*** probably means that the wrong copy of the libgnutls-config shell script is\n");
+      printf("*** being found. Yoiu can fix this is by removing the old version\n");
+      printf("*** of libgnutlsthe\n");
+      return 1;
+    }
+  return 0;
+}
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  :
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+no_tls=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+
+
+    CFLAGS="$ac_save_CFLAGS"
+    LIBS="$ac_save_LIBS"
+  else
+    TLS_CFLAGS=`$TLS_CONFIG $tls_config_args --cflags`
+    TLS_LIBS=`$TLS_CONFIG $tls_config_args --libs`
+    tls_config_major_version=`$TLS_CONFIG $tls_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+    tls_config_minor_version=`$TLS_CONFIG $tls_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+    tls_config_micro_version=`$TLS_CONFIG $tls_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+    # Strip '-L/usr/lib' off since this is always in the link path.
+    TLS_LIBS=`echo $TLS_LIBS | sed -e 's|-L/usr/lib||'`
+
+    if test "x$enable_tlstest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $TLS_CFLAGS"
+      LIBS="$TLS_LIBS $LIBS"
+      rm -f conf.tlstest
+      if test "$cross_compiling" = yes; then
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <gnutls/gnutls.h>
+
+int
+main()
+{
+  system("touch conf.tlstest");
+
+  if (gnutls_check_version("$min_tls_version") == 0)
+    {
+      printf("\n*** An old version of libgnutls (%s) was found.\n",
+	gnutls_check_version(0));
+      printf("*** You need a version of libtgnuls newer than $min_tls_version.\n");
+      printf("*** If you have already installed a sufficiently new version, this error\n");
+      printf("*** probably means that the wrong copy of the libgnutls-config shell script is\n");
+      printf("*** being found. Yoiu can fix this is by removing the old version\n");
+      printf("*** of libgnutlsthe\n");
+      return 1;
+    }
+  return 0;
+}
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  :
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+no_tls=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+
+
+      CFLAGS="$ac_save_CFLAGS"
+      LIBS="$ac_save_LIBS"
+    fi
+  fi
+
+  if test "x$no_tls" = x ; then
+    { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+    enable_libgnutls=yes
+  else
+    { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+    if test "$TLS_CONFIG" = "no" ; then
+      echo "*** The libgnutls-config script installed by libgnutls could not be found"
+      echo "*** If libtgnuls was installed in PREFIX, make sure PREFIX/bin is in"
+      echo "*** your path."
+    else
+      if test -f conf.tlstest ; then
+        :
+      else
+        echo "*** Could not run libtgnuls test program, checking why..."
+        CFLAGS="$CFLAGS $TLS_CFLAGS"
+        LIBS="$LIBS $TLS_LIBS"
+              fi
+    fi
+
+    TLS_CFLAGS=""
+    TLS_LIBS=""
+    enable_libgnutls=no
+  fi
+
+
+  rm -f conf.tlstest
+
+  if test $enable_libgnutls = yes; then
+    CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
+    LIBS="$TLS_LIBS $LIBS"
+    HAVE_GNUTLS=1
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GNUTLS 1
+_ACEOF
+
+  else
+    HAVE_GNUTLS=0
+    # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
+    LIBS="$saved_LIBS"
+    CFLAGS="$saved_CFLAGS"
+    echo
+    echo "You may not want to build base without libgnutls."
+    echo "Doing so will disable SSL support in the NSStream class."
+    echo "If you really want to build -base without TLS support,"
+    echo "add --disable-tls to the configure arguments."
+    { echo "$as_me:$LINENO: WARNING: Missing support for TLS functionality." >&5
+echo "$as_me: WARNING: Missing support for TLS functionality." >&2;}
+  fi
+else
+  { echo "$as_me:$LINENO: WARNING: Disabled support for TLS funtionality." >&5
+echo "$as_me: WARNING: Disabled support for TLS funtionality." >&2;}
+  HAVE_GNUTLS=0
 fi
 
 
@@ -18763,6 +19592,7 @@ DEFINE_INTPTR_T!$DEFINE_INTPTR_T$ac_delim
 DEFINE_UINTPTR_T!$DEFINE_UINTPTR_T$ac_delim
 USE_ZLIB!$USE_ZLIB$ac_delim
 HAVE_INET_PTON!$HAVE_INET_PTON$ac_delim
+HAVE_INET_NTOP!$HAVE_INET_NTOP$ac_delim
 GS_PASS_ARGUMENTS!$GS_PASS_ARGUMENTS$ac_delim
 GS_FAKE_MAIN!$GS_FAKE_MAIN$ac_delim
 WITH_FFI!$WITH_FFI$ac_delim
@@ -18772,6 +19602,10 @@ XML_CFLAGS!$XML_CFLAGS$ac_delim
 XML_LIBS!$XML_LIBS$ac_delim
 HAVE_LIBXSLT!$HAVE_LIBXSLT$ac_delim
 HAVE_LIBXML!$HAVE_LIBXML$ac_delim
+TLS_CONFIG!$TLS_CONFIG$ac_delim
+TLS_CFLAGS!$TLS_CFLAGS$ac_delim
+TLS_LIBS!$TLS_LIBS$ac_delim
+HAVE_GNUTLS!$HAVE_GNUTLS$ac_delim
 HAVE_MDNS!$HAVE_MDNS$ac_delim
 USE_GMP!$USE_GMP$ac_delim
 INCLUDE_FLAGS!$INCLUDE_FLAGS$ac_delim
@@ -18786,7 +19620,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 30; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 35; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

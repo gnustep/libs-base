@@ -25,7 +25,7 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 /*
  *	Setup for inline operation of pointer map tables.
  */
@@ -47,7 +47,6 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSException.h"
-#include "Foundation/NSUtilities.h"
 #include "Foundation/NSString.h"
 
 typedef	unsigned char	uchar;

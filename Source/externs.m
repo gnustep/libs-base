@@ -38,12 +38,6 @@
 */
 
 
-/* Global lock to be used by classes when operating on any global
-   data that invoke other methods which also access global; thus,
-   creating the potential for deadlock. */
-@class	NSRecursiveLock;
-NSRecursiveLock *gnustep_global_lock = nil;
-
 /*
  * NSConnection Notification Strings.
  */
@@ -100,7 +94,15 @@ NSString *NSURLFileScheme = @"file";
 /* RunLoop modes */
 NSString *NSConnectionReplyMode = @"NSConnectionReplyMode";
 
-
+/* NSValueTransformer constants */
+NSString *const NSNegateBooleanTransformerName
+  = @"NSNegateBoolean";
+NSString *const NSIsNilTransformerName
+  = @"NSIsNil";
+NSString *const NSIsNotNilTransformerName
+  = @"NSIsNotNil"; 
+NSString *const NSUnarchiveFromDataTransformerName
+  = @"NSUnarchiveFromData";
 
 /**
  * Last-resort exception handler, a function taking an NSException and
@@ -195,7 +197,7 @@ NSString *NSLanguageName = @"NSLanguageName";
 NSString *NSFormalName = @"NSFormalName";
 
 /* For GNUstep */
-NSString *NSLocale = @"NSLocale";
+NSString *GSLocale = @"GSLocale";
 
 
 /*
@@ -276,7 +278,7 @@ GSPrivateBuildStrings()
       GS_REPLACE_CONSTANT_STRING(NSLanguageName);
       GS_REPLACE_CONSTANT_STRING(NSLaterTimeDesignations);
       GS_REPLACE_CONSTANT_STRING(NSLoadedClasses);
-      GS_REPLACE_CONSTANT_STRING(NSLocale);
+      GS_REPLACE_CONSTANT_STRING(GSLocale);
       GS_REPLACE_CONSTANT_STRING(NSLocalNotificationCenterType);
       GS_REPLACE_CONSTANT_STRING(NSMonthNameArray);
       GS_REPLACE_CONSTANT_STRING(NSNegativeCurrencyFormatString);

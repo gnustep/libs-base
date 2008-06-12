@@ -11,32 +11,43 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
-@section Noteworthy changes in version @samp{1.14.4}
+@section Noteworthy changes in version @samp{1.15.3}
 
-Minor updates
+@itemize @bullet
+@item Extended NSUserDefaults so it recognizes ../ as a relative path.
+@item Added TLS/SSL support for NSStream based on GNU TLS
+@item Added support for https to NSURLConnection using new stream code and
+added basic support for digest authentication.
+@item Fixed various problems with and added new options to KVO.
+@end itemize
+
 
 @ifclear ANNOUNCE-ONLY
 
-@section Noteworthy changes in version @samp{1.14.3}
+@section Noteworthy changes in version @samp{1.15.2}
+Bug fixes include improved thread safety (and a change to the NSThread
+class structure) and Key-Value observing.
 
-Various bug fixes.
+@section Noteworthy changes in version @samp{1.15.1}
 
-@section Noteworthy changes in version @samp{1.14.2}
+This is an unstable release. There may be API and ABI changes 
+from previous releases. The licesne hase changed to GPLv3 and LGPLv3.
+Mostly bug fixes, but a few improvements in NSPredicates and Key-Value
+coding have been added.
 
-Minor configuration change so it will compile on darwin with ffcall.
+@section Noteworthy changes in version @samp{1.15.0}
 
-@section Noteworthy changes in version @samp{1.14.1}
-
-License changed to GPLv3.
-Mostly bug fixes, particularly with regard to XML handling and handling
-unichar on Windows.
-
+This is an unstable release from 1.14.0.  It is otherwise
+identical to the 1.14.0 release. Releases in the 1.15 series
+may not be forward compatible with previous 1.15 releases.
+ 
 @section Noteworthy changes in version @samp{1.14.0}
 
 Many portability (particularly for ms-windows) and MacOS-X compatibility fixes.
 New MacOS-X classes and incorporation of NSAffineTransform and NSSpellServer
 which were formerly in the gui library.
 Improved performance of amssively multithreaded programs.
+
 
 @section Noteworthy changes in version @samp{1.13.1}
 

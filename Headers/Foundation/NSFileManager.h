@@ -173,8 +173,8 @@
 #import	<Foundation/NSObject.h>
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-#import	<Foundation/NSUtilities.h>
 #import	<Foundation/NSDictionary.h>
+#import	<Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -186,7 +186,7 @@ extern "C" {
 @class NSDate;
 @class NSArray;
 @class NSMutableArray;
-
+@class NSEnumerator;
 @class NSDirectoryEnumerator;
 
 @interface NSFileManager : NSObject

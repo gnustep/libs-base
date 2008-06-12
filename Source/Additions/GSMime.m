@@ -52,13 +52,16 @@
 */
 
 #include "config.h"
-#include	<Foundation/Foundation.h>
-#include	"GNUstepBase/GSMime.h"
-#include	"GNUstepBase/GSXML.h"
-#include	"GNUstepBase/GSCategories.h"
-#include	"GNUstepBase/Unicode.h"
-#include	<string.h>
-#include	<ctype.h>
+#include <string.h>
+#include <ctype.h>
+
+#import	<Foundation/Foundation.h>
+#import	"GNUstepBase/GSMime.h"
+#import	"GNUstepBase/GSXML.h"
+#import	"GNUstepBase/GSCategories.h"
+#import	"GNUstepBase/Unicode.h"
+
+#include "../GSPrivate.h"
 
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
@@ -1358,101 +1361,19 @@ wordData(NSString *word)
  */
 - (BOOL) parse: (NSData*)d
 {
-  unsigned	l = [d length];
-
   if (flags.complete == 1)
     {
       return NO;	/* Already completely parsed! */
     }
-  if (l > 0)
+  if ([d length] > 0)
     {
-      NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
       if (flags.inBody == 0)
-	{
-	  [data appendBytes: [d bytes] length: [d length]];
-	  bytes = (unsigned char*)[data mutableBytes];
-	  dataEnd = [data length];
-
-	  while (flags.inBody == 0)
-	    {
-	      if ([self _unfoldHeader] == NO)
-		{
-		  return YES;	/* Needs more data to fill line.	*/
-		}
-	      if (flags.inBody == 0)
-		{
-		  NSString		*header;
-
-		  header = [self _decodeHeader];
-		  if (header == nil)
-		    {
-		      return NO;	/* Couldn't handle words.	*/
-		    }
-		  if ([self parseHeader: header] == NO)
-		    {
-		      flags.hadErrors = 1;
-		      return NO;	/* Header not parsed properly.	*/
-		    }
-		}
-	      else
-		{
-		  NSDebugMLLog(@"GSMime", @"Parsed end of headers", "");
-		}
-	    }
-	  /*
-	   * All headers have been parsed, so we empty our internal buffer
-	   * (which we will now use to store decoded data) and place unused
-	   * information back in the incoming data object to act as input.
-	   */
-	  d = AUTORELEASE([data copy]);
-	  [data setLength: 0];
-
-	  /*
-	   * If we have finished parsing the headers, we may have http
-	   * continuation header(s), in which case, we must start parsing
-	   * headers again.
-	   */
-	  if (flags.inBody == 1)
-	    {
-	      NSDictionary	*info;
-	      GSMimeHeader	*hdr;
-
-	      info = [[document headersNamed: @"http"] lastObject];
-	      if (info != nil)
-		{
-		  NSString	*val;
-
-		  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-		  if (val != nil)
-		    {
-		      int	v = [val intValue];
-
-		      if (v >= 100 && v < 200)
-			{
-			  /*
-			   * This is an intermediary response ... so we have
-			   * to restart the parsing operation!
-			   */
-			  NSDebugMLLog(@"GSMime",
-			    @"Parsed http continuation", "");
-			  flags.inBody = 0;
-			}
-		    }
-		}
-	      /*
-	       * If there is a zero content length, parsing is complete.
-	       */
-	      hdr = [document headerNamed: @"content-length"];
-	      if (hdr != nil && [[hdr value] intValue] == 0)
-		{
-		  [document setContent: @""];
-		  flags.inBody = 0;
-		  flags.complete = 1;
-		  return NO;		// No more data needed
-		}
-	    }
-	}
-
+        {
+          if ([self parseHeaders: d remaining: &d] == YES)
+            {
+              return YES;
+            }
+        }
       if ([d length] > 0)
 	{
 	  if (flags.inBody == 1)
@@ -1494,6 +1415,136 @@ wordData(NSString *word)
       flags.complete = 1;	/* Finished parsing	*/
       return NO;		/* Want no more data	*/
     }
+}
+
+- (BOOL) parseHeaders: (NSData*)d remaining: (NSData**)body
+{
+  NSDictionary	*info;
+  GSMimeHeader	*hdr;
+  unsigned	l = [d length];
+
+  if (flags.complete == 1 || flags.inBody == 1)
+    {
+      return NO;	/* Headers already parsed! */
+    }
+  if (body != 0)
+    {
+      *body = nil;
+    }
+  if (l == 0)
+    {
+      /* Add a CRLF to either end the current header line or act as
+       * the blank linme terminating the headers.
+       */
+      if ([self parseHeaders: [NSData dataWithBytes: "\r\n" length: 2]
+                   remaining: body] == YES)
+        {
+          /* Still in headers ... so we add a CRLF to terminate them.
+           */
+          [self parseHeaders: [NSData dataWithBytes: "\r\n" length: 2]
+                   remaining: body];
+	}
+      flags.wantEndOfLine = 0;
+      flags.inBody = 0;
+      flags.complete = 1;	/* Finished parsing	*/
+      return NO;		/* Want no more data	*/
+    }
+
+  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
+
+  [data appendBytes: [d bytes] length: [d length]];
+  bytes = (unsigned char*)[data mutableBytes];
+  dataEnd = [data length];
+
+  while (flags.inBody == 0)
+    {
+      if ([self _unfoldHeader] == NO)
+        {
+          return YES;	/* Needs more data to fill line.	*/
+        }
+      if (flags.inBody == 0)
+        {
+          NSString		*header;
+
+          header = [self _decodeHeader];
+          if (header == nil)
+            {
+              flags.hadErrors = 1;
+              return NO;	/* Couldn't handle words.	*/
+            }
+          if ([self parseHeader: header] == NO)
+            {
+              flags.hadErrors = 1;
+              return NO;	/* Header not parsed properly.	*/
+            }
+        }
+      else
+        {
+          NSDebugMLLog(@"GSMime", @"Parsed end of headers", "");
+        }
+    }
+
+  /*
+   * All headers have been parsed, so we empty our internal buffer
+   * (which we will now use to store decoded data) and place unused
+   * information back in the incoming data object to act as input.
+   */
+  d = AUTORELEASE([data copy]);
+  if (body != 0)
+    {
+      *body = d;
+    }
+  [data setLength: 0];
+
+  /*
+   * We have finished parsing the headers, but we may have http
+   * continuation header(s), in which case, we must start parsing
+   * headers again.
+   */
+  info = [[document headersNamed: @"http"] lastObject];
+  if (info != nil && flags.isHttp == 1)
+    {
+      NSString	*val;
+
+      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+      if (val != nil)
+        {
+          int	v = [val intValue];
+
+          if (v >= 100 && v < 200)
+            {
+              /*
+               * This is an intermediary response ... so we have
+               * to restart the parsing operation!
+               */
+              NSDebugMLLog(@"GSMime",
+                @"Parsed http continuation", "");
+              flags.inBody = 0;
+              if ([d length] == 0)
+                {
+                  /* We need more data, so we have to return YES
+                   * to ask our caller to provide it.
+                   */
+                  return YES;
+                }
+              return [self parseHeaders: d remaining: body];
+            }
+        }
+    }
+
+  /*
+   * If there is a zero content length, all parsing is complete,
+   * not just header parsing.
+   */
+  hdr = [document headerNamed: @"content-length"];
+  if (hdr != nil && [[hdr value] intValue] == 0)
+    {
+      [document setContent: @""];
+      flags.inBody = 0;
+      flags.complete = 1;
+    }
+
+  return NO;		// No more data needed
 }
 
 /**
@@ -2161,6 +2212,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 {
   flags.isHttp = 1;
 }
+
 @end
 
 @implementation	GSMimeParser (Private)
@@ -2777,7 +2829,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 - (BOOL) _unfoldHeader
 {
   char		c;
-  BOOL		unwrappingComplete = NO;
+  BOOL		unfoldingComplete = NO;
 
   lineStart = lineEnd = input;
   NSDebugMLLog(@"GSMimeH", @"entry: input:%u dataEnd:%u lineStart:%u '%*.*s'",
@@ -2788,7 +2840,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
    * first thing we need to do is unfold any folded lines into a single
    * unfolded line (lineStart to lineEnd).
    */
-  while (input < dataEnd && unwrappingComplete == NO)
+  while (input < dataEnd && unfoldingComplete == NO)
     {
       if ((c = bytes[input]) != '\r' && c != '\n')
         {
@@ -2808,7 +2860,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      if (length == 0)
 	        {
 		  /* An empty line cannot be folded.	*/
-		  unwrappingComplete = YES;
+		  unfoldingComplete = YES;
 		}
 	      else if ((c = bytes[input]) != '\r' && c != '\n' && isspace(c))
 	        {
@@ -2821,13 +2873,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      else
 	        {
 		  /* No folding ... done.	*/
-		  unwrappingComplete = YES;
+		  unfoldingComplete = YES;
 		}
 	    }
 	}
     }
 
-  if (unwrappingComplete == YES)
+  if (unfoldingComplete == YES)
     {
       if (lineEnd == lineStart)
 	{
@@ -2857,12 +2909,12 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       input = lineStart;	/* Reset to try again with more data.	*/
     }
 
-  NSDebugMLLog(@"GSMimeH", @"exit: inBody:%d unwrappingComplete: %d "
+  NSDebugMLLog(@"GSMimeH", @"exit: inBody:%d unfoldingComplete: %d "
     @"input:%u dataEnd:%u lineStart:%u '%*.*s'", flags.inBody,
-    unwrappingComplete,
+    unfoldingComplete,
     input, dataEnd, lineStart, lineEnd - lineStart, lineEnd - lineStart,
     &bytes[lineStart]);
-  return unwrappingComplete;
+  return unfoldingComplete;
 }
 
 - (BOOL) _scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info
@@ -2998,27 +3050,46 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Convert the supplied string to a standardized token by making it
- * lowercase and removing all illegal characters.
+ * Convert the supplied string to a standardized token by removing
+ * all illegal characters.  If preserve is NO then the result is
+ * converted to lowercase.<br />
+ * Returns an autoreleased (and possibly modified) copy of the original.
  */
-+ (NSString*) makeToken: (NSString*)t
++ (NSString*) makeToken: (NSString*)t preservingCase: (BOOL)preserve
 {
-  NSRange	r;
+  NSMutableString	*m = nil;
+  NSRange		r;
 
-  t = [t lowercaseString];
   r = [t rangeOfCharacterFromSet: nonToken];
   if (r.length > 0)
     {
-      NSMutableString	*m = [t mutableCopy];
-
+      m = [t mutableCopy];
       while (r.length > 0)
 	{
 	  [m deleteCharactersInRange: r];
 	  r = [m rangeOfCharacterFromSet: nonToken];
 	}
-      t = AUTORELEASE(m);
+      t = m;
     }
+  if (preserve == NO)
+    {
+      t = [t lowercaseString];
+    }
+  else
+    {
+      t = AUTORELEASE([t copy]);
+    }
+  TEST_RELEASE(m);
   return t;
+}
+
+/**
+ * Convert the supplied string to a standardized token by making it
+ * lowercase and removing all illegal characters.
+ */
++ (NSString*) makeToken: (NSString*)t
+{
+  return [self makeToken: t preservingCase: NO];
 }
 
 - (id) copyWithZone: (NSZone*)z
@@ -3027,9 +3098,9 @@ static NSCharacterSet	*tokenSet = nil;
   NSEnumerator	*e;
   NSString	*k;
 
-  c = [c initWithName: [self name]
+  c = [c initWithName: [self namePreservingCase: YES]
 		value: [self value]
-	   parameters: [self parameters]];
+	   parameters: [self parametersPreservingCase: YES]];
   e = [objects keyEnumerator];
   while ((k = [e nextObject]) != nil)
     {
@@ -3042,8 +3113,8 @@ static NSCharacterSet	*tokenSet = nil;
 {
   RELEASE(name);
   RELEASE(value);
-  RELEASE(objects);
-  RELEASE(params);
+  TEST_RELEASE(objects);
+  TEST_RELEASE(params);
   [super dealloc];
 }
 
@@ -3056,6 +3127,41 @@ static NSCharacterSet	*tokenSet = nil;
   [desc appendFormat: @"  value: %@\n", [self value]];
   [desc appendFormat: @"  params: %@\n", [self parameters]];
   return desc;
+}
+
+/** Returns the full value of the header including any parameters and
+ * preserving case.  This is an unfolded (long) line with no escape
+ * sequences (ie contains a unicode string not necessarily plain ASCII).<br />
+ * If you just want the plain value excluding any parameters, use the
+ * -value method instead.
+ */
+- (NSString*) fullValue
+{
+  if ([params count] > 0)
+    {
+      NSMutableString	*m;
+      NSEnumerator	*e;
+      NSString		*k;
+
+      m = [value mutableCopy];
+      e = [params keyEnumerator];
+      while ((k = [e nextObject]) != nil)
+	{
+	  NSString	*v;
+
+	  v = [GSMimeHeader makeQuoted: [params objectForKey: k] always: NO];
+	  [m appendString: @"; "];
+	  [m appendString: k];
+	  [m appendString: @"="];
+	  [m appendString: v];
+	}
+      k = [m makeImmutableCopyOnFail: YES];
+      return AUTORELEASE(k);
+    }
+  else
+    {
+      return value;
+    }
 }
 
 - (id) init
@@ -3082,8 +3188,6 @@ static NSCharacterSet	*tokenSet = nil;
 	      value: (NSString*)v
 	 parameters: (NSDictionary*)p
 {
-  objects = [NSMutableDictionary new];
-  params = [NSMutableDictionary new];
   [self setName: n];
   [self setValue: v];
   [self setParameters: p];
@@ -3095,7 +3199,24 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSString*) name
 {
-  return name;
+  return [self namePreservingCase: NO];
+}
+
+/**
+ * Returns the name of this header as originally set (without conversion
+ * to lowercase) if preserve is YES, but as a lowercase string if preserve
+ * is NO.
+ */
+- (NSString*) namePreservingCase: (BOOL)preserve
+{
+  if (preserve == YES)
+    {
+      return name;
+    }
+  else
+    {
+      return [name lowercaseString];
+    }
 }
 
 /**
@@ -3126,7 +3247,7 @@ static NSCharacterSet	*tokenSet = nil;
       k = [GSMimeHeader makeToken: k];
       p = [params objectForKey: k];
     }
-  return p;	
+  return p;
 }
 
 /**
@@ -3136,7 +3257,37 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSDictionary*) parameters
 {
-  return AUTORELEASE([params copy]);
+  return [self parametersPreservingCase: NO];
+}
+
+/**
+ * Returns the parameters of this header ... a dictionary whose keys
+ * are strings preserving the case originally used to set the values
+ * or all lowercase depending on the preserve argument.
+ */
+- (NSDictionary*) parametersPreservingCase: (BOOL)preserve
+{
+  NSMutableDictionary	*m;
+  NSEnumerator		*e;
+  NSString		*k;
+
+  m = [NSMutableDictionary dictionaryWithCapacity: [params count]];
+  e = [params keyEnumerator];
+  if (preserve == YES)
+    {
+      while ((k = [e nextObject]) != nil)
+	{
+	  [m setObject: [params objectForKey: k] forKey: k];
+	}
+    }
+  else
+    {
+      while ((k = [e nextObject]) != nil)
+	{
+	  [m setObject: [params objectForKey: k] forKey: [k lowercaseString]];
+	}
+    }
+  return [m makeImmutableCopyOnFail: NO];
 }
 
 /**
@@ -3145,91 +3296,228 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSMutableData*) rawMimeData
 {
+  return [self rawMimeDataPreservingCase: NO];
+}
+
+static unsigned
+appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
+  const char *bytes, unsigned size)
+{
+  if (offset + size > fold && size + 8 <= fold)
+    {
+      unsigned  len = [m length];
+
+      /* This would take the line beyond the folding limit,
+       * so we fold at this point.
+       * If we already have space at the end of the line,
+       * we remove it because the wrapping counts as a space.
+       */
+      if (len > 0 && ((unsigned char*)[m bytes])[len - 1] == ' ')
+        {
+          [m setLength: --len];
+        }
+      [m appendBytes: "\r\n\t" length: 3];
+      offset = 8;
+      if (size > 0 && isspace(bytes[0]))
+        {
+          /* The folding counts as a space character,
+           * so we refrain from writing the next character
+           * if it is also a space.
+           */
+          size--;
+          bytes++;
+        }
+    }
+  if (size > 0)
+    {
+      /* Append the supplied byte data and update the offset
+       * on the current line.
+       */
+      [m appendBytes: bytes length: size];
+      offset += size;
+    }
+  return offset;
+}
+
+static unsigned
+appendString(NSMutableData *m, unsigned offset, unsigned fold,
+  NSString *str, BOOL *ok)
+{
+  unsigned      pos = 0;
+  unsigned      size = [str length];
+
+  *ok = YES;
+  while (pos < size)
+    {
+      NSRange   r = NSMakeRange(pos, size - pos);
+
+      r = [str rangeOfCharacterFromSet: whitespace
+                               options: NSLiteralSearch
+                                 range: r];
+      if (r.length > 0 && r.location == pos)
+        {
+          /* Found space at the start of the string, so we reduce
+           * it to a single space in the output, or omit it entirely
+           * if the string is nothing but space.
+           */
+          pos++;
+          while (pos < size
+            && [whitespace characterIsMember: [str characterAtIndex: pos]])
+            {
+              pos++;
+            }
+          if (pos < size)
+            {
+              offset = appendBytes(m, offset, fold, " ", 1);
+            }
+        }
+      else if (r.length == 0)
+        {
+          NSString      *sub;
+          NSData        *d;
+
+          /* No space found ... we must output the entire string without
+           * folding it.
+           */
+          sub = [str substringWithRange: NSMakeRange(pos, size - pos)];
+          pos = size;
+          d = wordData(sub);
+          offset = appendBytes(m, offset, fold, [d bytes], [d length]);
+        }
+      else
+        {
+          NSString      *sub;
+          NSData        *d;
+
+          /* Output the substring up to the first space.
+           */
+          sub = [str substringWithRange: NSMakeRange(pos, r.location - pos)];
+          pos = r.location;
+          d = wordData(sub);
+          offset = appendBytes(m, offset, fold, [d bytes], [d length]);
+        }
+      if (offset > fold)
+        {
+          *ok = NO;
+        }
+    }
+  return offset;
+}
+
+/**
+ * Returns the full text of the header, built from its component parts,
+ * and including a terminating CR-LF.<br />
+ * If preserve is YES then we attempt to build the text using the same
+ * case as it was originally parsed/set from, otherwise we use common
+ * conventions of capitalising the header names and using lowercase
+ * parameter names.
+ */
+- (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
+{
   NSMutableData	*md = [NSMutableData dataWithCapacity: 128];
   NSEnumerator	*e = [params keyEnumerator];
   NSString	*k;
-  NSData	*d = [[self name] dataUsingEncoding: NSASCIIStringEncoding];
-  unsigned	l = [d length];
-  char		buf[l];
-  unsigned int	i = 0;
+  NSString	*n;
+  NSData	*d;
+  unsigned      fold = 78;      // Maybe pass as a parameter in a later release?
+  unsigned      offset = 0;
   BOOL		conv = YES;
+  BOOL          ok = YES;
 
-#define	LIM	120
-  /*
-   * Capitalise the header name.  However, the version header is a special
-   * case - it is defined as being literally 'MIME-Version'
-   */
-  memcpy(buf, [d bytes], l);
-  if (l == 12 && memcmp(buf, "mime-version", 12) == 0)
+  if (fold == 0)
     {
-      memcpy(buf, "MIME-Version", 12);
+      fold = 78;        // This is what the RFCs say we should limit length to.
     }
-  else
+  n = [self namePreservingCase: preserve];
+  d = [n dataUsingEncoding: NSASCIIStringEncoding];
+  if (preserve == YES)
     {
-      while (i < l)
-	{
-	  if (conv == YES)
-	    {
-	      if (islower(buf[i]))
-		{
-		  buf[i] = toupper(buf[i]);
-		}
-	    }
-	  if (buf[i++] == '-')
-	    {
-	      conv = YES;
-	    }
-	  else
-	    {
-	      conv = NO;
-	    }
+      /* Protect the user ... MIME-Version *must* have the correct case.
+       */
+      if ([n caseInsensitiveCompare: @"MIME-Version"] == NSOrderedSame)
+        {
+          offset = appendBytes(md, offset, fold, "MIME-Version", 12);
+	}
+      else
+        {
+          offset = appendBytes(md, offset, fold, [d bytes], [d length]);
 	}
     }
-  [md appendBytes: buf length: l];
-  d = wordData(value);
-  if ([md length] + [d length] + 2 > LIM)
-    {
-      [md appendBytes: ":\r\n\t" length: 4];
-      [md appendData: d];
-      l = [md length] + 8;
-    }
   else
     {
-      [md appendBytes: ": " length: 2];
-      [md appendData: d];
-      l = [md length];
+      unsigned  l = [d length];
+      char	buf[l];
+      unsigned	i = 0;
+
+      /*
+       * Capitalise the header name.  However, the version header is a special
+       * case - it is defined as being literally 'MIME-Version'
+       */
+      memcpy(buf, [d bytes], l);
+      if (l == 12 && strncasecmp(buf, "mime-version", 12) == 0)
+	{
+	  memcpy(buf, "MIME-Version", 12);
+	}
+      else
+	{
+	  while (i < l)
+	    {
+	      if (conv == YES)
+		{
+		  if (islower(buf[i]))
+		    {
+		      buf[i] = toupper(buf[i]);
+		    }
+		}
+	      if (buf[i++] == '-')
+		{
+		  conv = YES;
+		}
+	      else
+		{
+		  conv = NO;
+		}
+	    }
+	}
+      offset = appendBytes(md, offset, fold, buf, l);
+    }
+  if (offset > fold)
+    {
+      NSLog(@"Name '%@' too long for folding at %u in header", n, fold);
+    }
+
+  offset = appendBytes(md, offset, fold, ":", 1);
+  offset = appendBytes(md, offset, fold, " ", 1);
+  offset = appendString(md, offset, fold, value, &ok);
+  if (ok == NO)
+    {
+      NSLog(@"Value for '%@' too long for folding at %u in header", n, fold);
     }
 
   while ((k = [e nextObject]) != nil)
     {
       NSString	*v;
-      NSData	*kd;
-      NSData	*vd;
-      unsigned	kl;
-      unsigned	vl;
 
       v = [GSMimeHeader makeQuoted: [params objectForKey: k] always: NO];
-      kd = wordData(k);
-      vd = wordData(v);
-      kl = [kd length];
-      vl = [vd length];
-
-      if ((l + kl + vl + 3) > LIM)
-	{
-	  [md appendBytes: ";\r\n\t" length: 4];
-	  [md appendData: kd];
-	  [md appendBytes: "=" length: 1];
-	  [md appendData: vd];
-	  l = kl + vl + 9;
+      if (preserve == NO)
+        {
+	  k = [k lowercaseString];
 	}
-      else
-	{
-	  [md appendBytes: "; " length: 2];
-	  [md appendData: kd];
-	  [md appendBytes: "=" length: 1];
-	  [md appendData: vd];
-	  l += kl + vl + 3;
-	}
+      offset = appendBytes(md, offset, fold, ";", 1);
+      offset = appendBytes(md, offset, fold, " ", 1);
+      offset = appendString(md, offset, fold, k, &ok);
+      if (ok == NO)
+        {
+          NSLog(@"Parameter name '%@' in '%@' too long for folding at %u",
+            k, n, fold);
+        }
+      offset = appendBytes(md, offset, fold, "=", 1);
+      offset = appendString(md, offset, fold, v, &ok);
+      if (ok == NO)
+        {
+          NSLog(@"Parameter value for '%@' in '%@' too long for folding at %u",
+            k, n, fold);
+        }
     }
   [md appendBytes: "\r\n" length: 2];
 
@@ -3237,13 +3525,14 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Sets the name of this header ... converts to lowercase and removes
- * illegal characters.  If given a nil or empty string argument,
- * sets the name to 'unknown'.
+ * Sets the name of this header ... and removes illegal characters.<br />
+ * If given a nil or empty string argument, sets the name to 'unknown'.<br />
+ * NB. The value returned by the -name method will be a lowercase version
+ * of thae name.
  */
 - (void) setName: (NSString*)s
 {
-  s = [GSMimeHeader makeToken: s];
+  s = [GSMimeHeader makeToken: s preservingCase: YES];
   if ([s length] == 0)
     {
       s = @"unknown";
@@ -3265,6 +3554,10 @@ static NSCharacterSet	*tokenSet = nil;
     }
   else
     {
+      if (objects == nil)
+        {
+	  objects = [NSMutableDictionary new];
+	}
       [objects setObject: o forKey: k];
     }
 }
@@ -3277,13 +3570,17 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (void) setParameter: (NSString*)v forKey: (NSString*)k
 {
-  k = [GSMimeHeader makeToken: k];
+  k = [GSMimeHeader makeToken: k preservingCase: YES];
   if (v == nil)
     {
       [params removeObjectForKey: k];
     }
   else
     {
+      if (params == nil)
+	{
+	  params = [_GSMutableInsensitiveDictionary new];
+	}
       [params setObject: v forKey: k];
     }
 }
@@ -3294,13 +3591,20 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (void) setParameters: (NSDictionary*)d
 {
-  NSMutableDictionary	*m = [NSMutableDictionary new];
-  NSEnumerator		*e = [d keyEnumerator];
-  NSString		*k;
+  NSMutableDictionary	*m = nil;
+  unsigned		c = [d count];
 
-  while ((k = [e nextObject]) != nil)
+  if (c > 0)
     {
-      [m setObject: [d objectForKey: k] forKey: [GSMimeHeader makeToken: k]];
+      NSEnumerator	*e = [d keyEnumerator];
+      NSString		*k;
+
+      m = [[_GSMutableInsensitiveDictionary alloc] initWithCapacity: c];
+      while ((k = [e nextObject]) != nil)
+	{
+	  [m setObject: [d objectForKey: k]
+		forKey: [GSMimeHeader makeToken: k preservingCase: YES]];
+	}
     }
   DESTROY(params);
   params = m;
@@ -3332,7 +3636,8 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Returns the value of this header (excluding any parameters)
+ * Returns the value of this header (excluding any parameters).<br />
+ * Use the -fullValue m,ethod if you want parameter included.
  */
 - (NSString*) value
 {

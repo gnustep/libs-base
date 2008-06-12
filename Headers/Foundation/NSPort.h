@@ -62,14 +62,6 @@ extern "C" {
 @end
 
 /**
- *  Exception raised by [NSPort], [NSConnection], and friends if sufficient
- *  time elapses while waiting for a response, or if the receiving port is
- *  invalidated before a request can be received.  See
- *  [NSConnection-setReplyTimeout:].
- */
-GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
-
-/**
  * <p><code>NSPort</code> is an abstract class defining interfaces underlying
  * communications in the distributed objects framework.  Each side of a
  * connection will have an <code>NSPort</code> object, responsible for sending
@@ -266,40 +258,6 @@ typedef SOCKET NSSocketNativeHandle;
  *  Returns port number of underlying socket.
  */
 - (uint16_t) portNumber;
-
-// This is the OS X interface
-/*
-{
-  NSSocketNativeHandle _socket;
-  int _protocolFamily;
-  int _socketType;
-  int _protocol;
-  NSData *_remoteAddrData;
-}
-- (id) init;
-- (id) initWithTCPPort: (unsigned short)portNumber;
-- (id) initWithProtocolFamily: (int)family
-                   socketType: (int)type
-                     protocol: (int)protocol
-                      address: (NSData *)addrData;
-- (id) initWithProtocolFamily: (int)family
-                   socketType: (int)type
-                     protocol: (int)protocol
-                       socket: (NSSocketNativeHandle)socket;
-- (id) initRemoteWithTCPPort: (unsigned short)portNumber
-                        host: (NSString *)hostname;
-- (id) initRemoteWithProtocolFamily: (int)family
-                         socketType: (int)type
-                           protocol: (int)protocol
-                            address: (NSData *)addrData;
-
-- (NSData *) address;
-- (int) protocol;
-- (int) protocolFamily;
-- (NSSocketNativeHandle) socket;
-- (int) socketType;
-*/
-
 @end
 
 

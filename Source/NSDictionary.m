@@ -30,7 +30,6 @@
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSData.h"
-#include "Foundation/NSUtilities.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSAutoreleasePool.h"
@@ -450,8 +449,9 @@ static SEL	appSel;
 
 /**
  * Initialises a dictionary created using the list given as argument.
- * The list is alternately composed of objects and keys.
- * Thus, the list's length must be pair.
+ * The list is alternately composed of objects and keys and
+ * terminated by nil.  Thus, the list's length must be even,
+ * followed by nil.
  */
 - (id) initWithObjectsAndKeys: (id)firstObject, ...
 {
@@ -462,8 +462,9 @@ static SEL	appSel;
 
 /**
  * Returns a dictionary created using the list given as argument.
- * The list is alternately composed of objects and keys.
- * Thus, the list's length must be pair.
+ * The list is alternately composed of objects and keys and
+ * terminated by nil.  Thus, the list's length must be even,
+ * followed by nil.
  */
 + (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...
 {

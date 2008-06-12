@@ -32,6 +32,7 @@
 #include "Foundation/NSArray.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSException.h"
+#include "Foundation/NSEnumerator.h"
 #include "Foundation/NSProxy.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSSet.h"

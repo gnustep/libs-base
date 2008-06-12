@@ -32,6 +32,7 @@ extern "C" {
 @class	NSArray;
 @class	NSDate;
 @class	NSDictionary;
+@class  NSLocale;
 @class	NSString;
 
 @interface NSTimeZone : NSObject
@@ -75,6 +76,29 @@ extern "C" {
 - (int) secondsFromGMTForDate: (NSDate*)aDate;
 #endif
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Not implemented */
+- (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate;
+/** Not implemented */
+- (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate;
+/** Not implemented */
+- (NSTimeInterval) daylightSavingTimeOffset;
+/** Not implemented */
+- (NSDate *) nextDaylightSavingTimeTransition;
+
+enum {
+  NSTimeZoneNameStyleStandard,
+  NSTimeZoneNameStyleShortStandard,
+  NSTimeZoneNameStyleDaylightSaving,
+  NSTimeZoneNameStyleShortDaylightSaving
+};
+typedef NSInteger NSTimeZoneNameStyle;
+- (NSString *)localizedName: (NSTimeZoneNameStyle)style
+                     locale: (NSLocale *)locale;
+GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
+
+#endif
+
 #if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date;
 - (NSString*) timeZoneName;
@@ -87,6 +111,7 @@ extern "C" {
  */
 + (NSTimeZone*) defaultTimeZone;
 + (NSTimeZone*) timeZoneWithAbbreviation: (NSString*)abbreviation;  
+
 @end
 
 #if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)

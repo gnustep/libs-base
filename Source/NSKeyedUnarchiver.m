@@ -23,15 +23,16 @@
 
    */
 
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSNull.h>
-#include <Foundation/NSValue.h>
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSValue.h"
 
-#include "GSPrivate.h"
-#include "config.h"
+#import "GSPrivate.h"
+#import "config.h"
 
 /*
  *      Setup for inline operation of arrays.
@@ -715,6 +716,18 @@ static NSMapTable	globalClassMap = 0;
 	  NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 	return;
 
+      case _C_ARY_B:
+	{
+	  int		count = atoi(++type);
+
+	  while (isdigit(*type))
+	    {
+	      type++;
+	    }
+	  [self decodeArrayOfObjCType: type count: count at: address];
+	}
+	return;
+
       default:
 	[NSException raise: NSInvalidArgumentException
 		    format: @"-[%@ %@]: unknown type encoding ('%c')",
@@ -733,6 +746,16 @@ static NSMapTable	globalClassMap = 0;
   [_delegate unarchiverWillFinish: self];
   DESTROY(_archive);
   [_delegate unarchiverDidFinish: self];
+}
+
+- (id) init
+{
+  Class c = [self class];
+  RELEASE(self);
+  [NSException raise: NSInvalidArgumentException
+              format: @"-[%@ init]: cannot use -init for initialisation",
+              NSStringFromClass(c)];
+  return nil;
 }
 
 - (id) initForReadingWithData: (NSData*)data

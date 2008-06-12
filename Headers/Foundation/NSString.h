@@ -36,13 +36,19 @@ extern "C" {
 /**
  * Type for representing unicode characters.  (16-bit)
  */
-typedef unsigned short unichar;
+typedef uint16_t unichar;
+
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+#define NSMaximumStringLength   (INT_MAX-1)
+#endif
 
 @class NSArray;
 @class NSCharacterSet;
 @class NSData;
 @class NSDictionary;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+@class NSError;
+@class NSLocale;
 @class NSURL;
 #endif
 
@@ -55,7 +61,14 @@ enum
   NSBackwardsSearch = 4,
   NSAnchoredSearch = 8,
   NSNumericSearch = 64	/* MacOS-X 10.2 */
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+ ,
+ NSDiacriticInsensitiveSearch = 128,
+ NSWidthInsensitiveSearch = 256,
+ NSForcedOrderingSearch = 512
+#endif
 };
+typedef NSUInteger NSStringCompareOptions;
 
 /**
  *  <p>Enumeration of available encodings for converting between bytes and
@@ -97,6 +110,7 @@ typedef enum _NSStringEncoding
   NSShiftJISStringEncoding = 8,
   NSISOLatin2StringEncoding = 9,	// ISO-8859-2; East European
   NSUnicodeStringEncoding = 10,
+  NSUTF16StringEncoding = NSUnicodeStringEncoding,      // An alias
   NSWindowsCP1251StringEncoding = 11,
   NSWindowsCP1252StringEncoding = 12,	// WinLatin1
   NSWindowsCP1253StringEncoding = 13,	// Greek
@@ -127,11 +141,28 @@ typedef enum _NSStringEncoding
   NSGSM0338StringEncoding,		// GSM (mobile phone) default alphabet
   NSBIG5StringEncoding,			// Traditional chinese
   NSKoreanEUCStringEncoding		// Korean
+
+#if OS_API_VERSION(100400,GS_API_LATEST) 
+  ,
+  NSUTF16BigEndianStringEncoding = 0x90000100,
+  NSUTF16LittleEndianStringEncoding = 0x94000100,
+  NSUTF32StringEncoding = 0x8c000100,
+  NSUTF32BigEndianStringEncoding = 0x98000100,
+  NSUTF32LittleEndianStringEncoding = 0x9c000100
+#endif
 } NSStringEncoding;
 
 enum {
   NSOpenStepUnicodeReservedBase = 0xF400
 };
+
+#if OS_API_VERSION(100400,GS_API_LATEST) 
+enum {
+  NSStringEncodingConversionAllowLossy = 1,
+  NSStringEncodingConversionExternalRepresentation = 2
+};
+typedef NSUInteger NSStringEncodingConversionOptions;
+#endif
 
 /**
  * <p>
@@ -202,6 +233,14 @@ enum {
 		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding 
 	      freeWhenDone: (BOOL)flag;
+#endif
+#if OS_API_VERSION(100500,GS_API_LATEST)
++ (id) stringWithContentsOfFile: (NSString*)path
+                   usedEncoding: (NSStringEncoding*)enc
+                          error: (NSError**)error;
+- (id) initWithContentsOfFile: (NSString*)path
+                 usedEncoding: (NSStringEncoding*)enc
+                        error: (NSError**)error;
 #endif
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
@@ -619,9 +658,33 @@ enum {
 - (const char *)UTF8String;
 #endif
 
+#if OS_API_VERSION(100300,GS_API_LATEST) 
+/** Not implemented */
+- (void) getParagraphStart: (NSUInteger *)startPtr
+                       end: (NSUInteger *)parEndPtr
+               contentsEnd: (NSUInteger *)contentsEndPtr
+                 forRange: (NSRange)range;
+/** Not implemented */
+ - (NSRange) paragraphRangeForRange: (NSRange)range;
+#endif
+
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+- (BOOL) boolValue;
+- (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)separator;
+- (NSInteger) integerValue;
+- (long long) longLongValue;
+/** Not implemented */
+- (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range;
+/** Not implemented */
+- (NSRange) rangeOfString: (NSString *)aString
+                  options: (NSStringCompareOptions)mask
+                    range: (NSRange)searchRange
+                   locale: (NSLocale *)locale;
+
+#endif
+
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 + (Class) constantStringClass;
-- (BOOL) boolValue;
 #endif	/* GS_API_NONE */
 
 @end
@@ -694,7 +757,7 @@ enum {
 extern struct objc_class _NSConstantStringClassReference;
 #endif
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if GS_API_VERSION(GS_API_NONE, 011700)
 
 @interface NSMutableString (GNUstep)
 - (NSString*) immutableProxy;

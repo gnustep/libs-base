@@ -63,7 +63,8 @@ GS_EXPORT NSString* const NSRegistrationDomain;
 
 #ifndef NO_GNUSTEP
 /**
- *  User defaults domain for GNUstep config file.
+ *  User defaults domain for GNUstep config file and for any defaults
+ *  stored in the GlobalDefaults.plist file alongside the config file.
  */
 GS_EXPORT NSString* const GSConfigDomain;
 #endif
@@ -180,7 +181,7 @@ GS_EXPORT NSString* const NSLanguageCode;
 GS_EXPORT NSString* const NSFormalName;
 #ifndef NO_GNUSTEP
 /** Key for locale dictionary: name of locale. */
-GS_EXPORT NSString* const NSLocale;
+GS_EXPORT NSString* const GSLocale;
 #endif
 #endif
 
@@ -363,8 +364,8 @@ GS_EXPORT NSString* const NSLocale;
 
 /**
  * Sets a boolean value for defaultName in the application domain.<br />
- * Calls -setObject:forKey: to make the change by storing a boolean
- * [NSNumber] instance.
+ * Calls -setObject:forKey: to make the change by storing a string
+ * containing either the word YES or NO.
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName;
 

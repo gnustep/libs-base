@@ -26,6 +26,7 @@
    */
 
 #include "Foundation/NSNull.h"
+#include "Foundation/NSString.h"
 
 /**
  * An object to use as a placeholder - in collections for instance.
@@ -79,6 +80,11 @@ static NSNull	*null = 0;
 - (void) dealloc
 {
   GSNOSUPERDEALLOC;
+}
+
+- (NSString*) description
+{
+  return @"<null>";
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

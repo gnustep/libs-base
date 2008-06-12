@@ -48,33 +48,38 @@
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
 #include <limits.h>
 
 #include <stdio.h>
 #include <string.h>
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSRange.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSURL.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSLocale.h"
 
-#include "GSPrivate.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSRange.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSZone.h"
+#import "Foundation/NSDebug.h"
+#import "GNUstepBase/GSLocale.h"
+
+#import "GSPrivate.h"
 
 #include <string.h>		// for strstr()
 #include <sys/stat.h>

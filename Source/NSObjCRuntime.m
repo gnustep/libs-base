@@ -34,7 +34,39 @@
 #include <string.h>
 
 /**
- * Returns a string object containing the method name for
+ * Returns a string object containing the name for
+ * aProtocol.  If aProtocol is 0, returns nil.
+ */
+NSString *
+NSStringFromProtocol(Protocol *aProtocol)
+{
+  if (aProtocol != (Protocol*)0)
+    return [NSString stringWithUTF8String: (const char*)[aProtocol name]];
+  return nil;
+}
+
+/**
+ * Returns the protocol whose name is supplied in the
+ * aProtocolName argument, or 0 if a nil string is supplied.
+ */
+Protocol *   
+NSProtocolFromString(NSString *aProtocolName)
+{
+  if (aProtocolName != nil)
+    {
+      int	len = [aProtocolName length];
+      char	buf[len+1];
+
+      [aProtocolName getCString: buf
+		      maxLength: len + 1
+		       encoding: NSASCIIStringEncoding];
+      return GSProtocolFromName (buf);
+    }
+  return (Protocol*)0;
+}
+
+/**
+ * Returns a string object containing the name for
  * aSelector.  If aSelector is 0, returns nil.
  */
 NSString *
@@ -46,7 +78,7 @@ NSStringFromSelector(SEL aSelector)
 }
 
 /**
- * Returns a selector for the method whose name is supplied in the
+ * Returns the selector whose name is supplied in the
  * aSelectorName argument, or 0 if a nil string is supplied.
  */
 SEL
@@ -109,7 +141,7 @@ const char *
 NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
 {
   NSArgumentInfo	info;
-  typePtr = mframe_next_arg(typePtr, &info);
+  typePtr = mframe_next_arg(typePtr, &info, 0);
   if (sizep)
     *sizep = info.size;
   if (alignp)

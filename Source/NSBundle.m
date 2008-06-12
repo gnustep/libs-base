@@ -40,6 +40,7 @@
 #include "Foundation/NSArray.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSDictionary.h"
+#include "Foundation/NSEnumerator.h"
 #include "Foundation/NSProcessInfo.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSUserDefaults.h"
@@ -80,6 +81,9 @@ static NSMapTable	*_byIdentifier = NULL;
 
 /* Store the working directory at startup */
 static NSString		*_launchDirectory = nil;
+
+static NSString		*_base_version
+  = OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION);
 
 /*
  * An empty strings file table for use when localization files can't be found.
@@ -813,8 +817,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 				  currentDirectoryPath]);
       
       _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
-				     version: OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]);
-      
+					      version: _base_version]);
 #if 0
       _loadingBundle = [self mainBundle];
       handle = objc_open_main_module(stderr);
@@ -914,7 +917,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
     {
       if (bundle->_bundleType == NSBUNDLE_FRAMEWORK
-	  && [array indexOfObjectIdenticalTo: bundle] == NSNotFound)
+	&& [array indexOfObjectIdenticalTo: bundle] == NSNotFound)
 	{
 	  [array addObject: bundle];
 	}
@@ -1228,8 +1231,39 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names, "
 	@"given '%@'", path);
+
+#if defined(__MINGW32__)
+      if ([path length] > 0 &&
+	([path characterAtIndex: 0]=='/' || [path characterAtIndex: 0]=='\\'))
+	{
+	  NSString	*root;
+	  unsigned	length;
+
+	  /* The path has a leading path separator, so we try assuming
+	   * that it's a path on the current filesystem, and append it
+	   * to the filesystem root.
+	   */
+	  root = [[NSFileManager defaultManager] currentDirectoryPath];
+	  length = [root length];
+	  root = [root stringByDeletingLastPathComponent];
+	  while ([root length] != length)
+	    {
+	      length = [root length];
+	      root = [root stringByDeletingLastPathComponent];
+	    }
+	  path = [root stringByAppendingPathComponent: path];
+	}
+      else
+	{
+	  /* Try appending to the current working directory.
+	   */
+	  path = [[[NSFileManager defaultManager] currentDirectoryPath]
+	    stringByAppendingPathComponent: path];
+	}
+#else
       path = [[[NSFileManager defaultManager] currentDirectoryPath]
-	       stringByAppendingPathComponent: path];
+        stringByAppendingPathComponent: path];
+#endif
     }
 
   /*
@@ -1878,6 +1912,16 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return dict;
 }
 
+- (id) objectForInfoDictionaryKey: (NSString *)key
+{
+  return nil;
+}
+
+- (NSString*) developmentLocalization
+{
+  return nil;
+}
+
 - (NSArray *) localizations
 {
   NSString *locale;
@@ -2047,6 +2091,20 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   _strip_after_loading = flag;
 }
 
+- (NSArray *) executableArchitectures
+{
+  return nil;
+}
+- (BOOL) preflightAndReturnError: (NSError **)error
+{
+  return NO;
+}
+- (BOOL) loadAndReturnError: (NSError **)error
+{
+  return NO;
+}
+
+
 - (NSString *) executablePath
 {
   NSString *object, *path;
@@ -2189,6 +2247,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   _version = version;
 }
 
+- (BOOL) unload
+{
+  return NO;
+}
 @end
 
 @implementation NSBundle (GNUstep)
@@ -2233,14 +2295,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   /*
-   * We expect to find the library resources into:
+   * We expect to find the library resources in the GNUSTEP_LIBRARY domain in:
    *
-   * GNUSTEP_LIBRARY/Libraries/<libraryName>/Versions/<interfaceVersion>/Resources/
+   * Libraries/<libraryName>/Versions/<interfaceVersion>/Resources/
    *
    * if no <interfaceVersion> is specified, and if can't find any versioned
-   * resources in those directories, we'll also accept the old unversioned format 
+   * resources in those directories, we'll also accept the old unversioned
+   * subdirectory: 
    *
-   * GNUSTEP_LIBRARY/Libraries/Resources/<libraryName>/
+   * Libraries/Resources/<libraryName>/
    *
    */
   paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
@@ -2255,6 +2318,28 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
+	  /* As a special case, if we have been asked to get the base
+	   * library bundle without a version, we check to see if the
+	   * bundle for the current version is available and use that
+	   * in preference to all others.
+	   * This lets older code (using the non-versioned api) work
+	   * on systems where multiple versions are installed.
+	   */
+	  if (interfaceVersion == nil
+	    && [libraryName isEqualToString: @"gnustep-base"])
+	    {
+	      NSString	*p;
+
+	      p = [[[[path stringByAppendingPathComponent: libraryName]
+			 stringByAppendingPathComponent: @"Versions"]
+			stringByAppendingPathComponent: _base_version]
+		       stringByAppendingPathComponent: @"Resources"];
+	      if ([fm fileExistsAtPath: p  isDirectory: &isDir]  &&  isDir)
+	        {
+		  interfaceVersion = _base_version;
+		}
+	    }
+
 	  if (interfaceVersion != nil)
 	    {
 	      /* We're looking for a specific version.  */
@@ -2276,22 +2361,28 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  else
 	    {
 	      /* Any version will do.  */
-	      NSString *versionsPath = [[path stringByAppendingPathComponent: libraryName]
-					 stringByAppendingPathComponent: @"Versions"];
+	      NSString *versionsPath;
 
-	      if ([fm fileExistsAtPath: versionsPath  isDirectory: &isDir]  &&  isDir)
+	      versionsPath
+		= [[path stringByAppendingPathComponent: libraryName]
+			 stringByAppendingPathComponent: @"Versions"];
+
+	      if ([fm fileExistsAtPath: versionsPath  isDirectory: &isDir]
+	        && isDir)
 		{
 		  /* TODO: Ignore subdirectories.  */
-		  NSEnumerator *fileEnumerator = [fm enumeratorAtPath: versionsPath];
+		  NSEnumerator *fileEnumerator;
 		  NSString *potentialPath;
 		  
+		  fileEnumerator = [fm enumeratorAtPath: versionsPath];
 		  while ((potentialPath = [fileEnumerator nextObject]) != nil)
 		    {
-		      potentialPath = [versionsPath 
-					stringByAppendingPathComponent: 
-					  [potentialPath 
-					    stringByAppendingPathComponent: @"Resources"]];
-		      if ([fm fileExistsAtPath: potentialPath  isDirectory: &isDir]  &&  isDir)
+		      potentialPath = [potentialPath
+			stringByAppendingPathComponent: @"Resources"];
+		      potentialPath = [versionsPath
+			stringByAppendingPathComponent: potentialPath];
+		      if ([fm fileExistsAtPath: potentialPath
+				   isDirectory: &isDir]  &&  isDir)
 			{
 			  b = [self bundleWithPath: potentialPath];
 			  
@@ -2313,9 +2404,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	       * when we added library resource versioning.
 	       */
 	      {
-		NSString *oldResourcesPath = [[path stringByAppendingPathComponent: @"Resources"]
-					       stringByAppendingPathComponent: libraryName];
-		if ([fm fileExistsAtPath: oldResourcesPath  isDirectory: &isDir]  &&  isDir)
+		NSString *oldResourcesPath;
+
+		oldResourcesPath = [path
+		  stringByAppendingPathComponent: @"Resources"];
+		oldResourcesPath = [oldResourcesPath
+		  stringByAppendingPathComponent: libraryName];
+		if ([fm fileExistsAtPath: oldResourcesPath
+		  isDirectory: &isDir]  &&  isDir)
 		  {
 		    b = [self bundleWithPath: oldResourcesPath];
 		    if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)

@@ -36,6 +36,7 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDate.h"
+#include "Foundation/NSDictionary.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"

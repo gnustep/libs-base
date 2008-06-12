@@ -23,6 +23,8 @@
    */ 
 
 #import "Foundation/NSNetServices.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDebug.h"
 #import "Foundation/NSNull.h"
@@ -2330,6 +2332,15 @@ static void DNSSD_API
   INTERNALTRACE;
   
   return [((Service*)_reserved)->info objectForKey: @"Name"];
+}
+
+- (NSInteger) port
+{
+  return 0;
+}
+
+- (void) publishWithOptions: (NSNetServiceOptions)options
+{
 }
 
 /**

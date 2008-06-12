@@ -29,9 +29,14 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSLock.h"
+#import "config.h"
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
+#import "Foundation/NSEnumerator.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSLock.h"
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -79,6 +84,24 @@
 #include "Foundation/NSDebug.h"
 #include "GSInvocation.h"
 #include "GSPortPrivate.h"
+#include "GSPrivate.h"
+
+
+static inline NSRunLoop *
+GSRunLoopForThread(NSThread *aThread)
+{
+  GSRunLoopThreadInfo   *info = GSRunLoopInfoForThread(aThread);
+  if (info == nil || info->loop == nil)
+    {
+      if (aThread == nil)
+        {
+          return [NSRunLoop currentRunLoop];
+        }
+      return nil;
+    }
+  return info->loop;
+}
+
 
 @interface	NSPortCoder (Private)
 - (NSMutableArray*) _components;
@@ -97,17 +120,19 @@
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
 @end
 
-extern NSRunLoop	*GSRunLoopForThread(NSThread*);
-
 #define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define F_UNLOCK(X) {NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 #define M_LOCK(X) {NSDebugMLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define M_UNLOCK(X) {NSDebugMLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 
+NSString * const NSDestinationInvalidException =
+  @"NSDestinationInvalidException";
 NSString * const NSFailedAuthenticationException =
   @"NSFailedAuthenticationExceptions";
 NSString * const NSObjectInaccessibleException =
   @"NSObjectInaccessibleException";
+NSString * const NSObjectNotAvailableException =
+  @"NSObjectNotAvailableException";
 
 /*
  * Set up a type to permit us to have direct access into an NSDistantObject
@@ -581,16 +606,17 @@ static NSLock	*cached_proxies_gate = nil;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
 						         host: (NSString*)h
 {
+  CREATE_AUTORELEASE_POOL(arp);
   NSConnection		*connection;
   NSDistantObject	*proxy = nil;
 
   connection = [self connectionWithRegisteredName: n host: h];
   if (connection != nil)
     {
-      proxy = [connection rootProxy];
+      proxy = RETAIN([connection rootProxy]);
     }
-
-  return proxy;
+  RELEASE(arp);
+  return AUTORELEASE(proxy);
 }
 
 /**
@@ -606,6 +632,7 @@ static NSLock	*cached_proxies_gate = nil;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
   host: (NSString*)h usingNameServer: (NSPortNameServer*)s
 {
+  CREATE_AUTORELEASE_POOL(arp);
   NSConnection		*connection;
   NSDistantObject	*proxy = nil;
 
@@ -614,10 +641,46 @@ static NSLock	*cached_proxies_gate = nil;
 				  usingNameServer: s];
   if (connection != nil)
     {
-      proxy = [connection rootProxy];
+      proxy = RETAIN([connection rootProxy]);
+    }
+  RELEASE(arp);
+  return AUTORELEASE(proxy);
+}
+
++ (id) serviceConnectionWithName: (NSString *)name 
+                      rootObject: (id)root
+{
+  return [self serviceConnectionWithName: name
+    rootObject: root
+    usingNameServer: [NSPortNameServer systemDefaultPortNameServer]];
+}
+
++ (id) serviceConnectionWithName: (NSString *)name 
+                      rootObject: (id)root
+                 usingNameServer: (NSPortNameServer *)server
+{
+  NSConnection  *c;
+  NSPort        *p;
+
+  if ([server isKindOfClass: [NSMessagePortNameServer class]] == YES)
+    {
+      p = [NSMessagePort port];
+    }
+  else if ([server isKindOfClass: [NSSocketPortNameServer class]] == YES)
+    {
+      p = [NSSocketPort port];
+    }
+  else
+    {
+      p = nil;
     }
 
-  return proxy;
+  c = [[NSConnection alloc] initWithReceivePort: p sendPort: nil];
+  if ([c registerName: name withNameServer: server] == NO)
+    {
+      DESTROY(c);
+    }
+  return AUTORELEASE(c);
 }
 
 + (void) _timeout: (NSTimer*)t
@@ -2836,7 +2899,7 @@ static void callEncoder (DOContext *ctxt)
 	    }
 	  else
 	    {
-	      [NSException raise: NSPortTimeoutException
+	      [NSException raise: NSInvalidReceivePortException
 			  format: @"invalidated while awaiting reply"];
 	    }
 	}

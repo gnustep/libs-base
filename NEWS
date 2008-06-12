@@ -1,30 +1,42 @@
 1 News
 ******
 
-The currently released version of the library is `1.14.4'.
+The currently released version of the library is `1.15.3'.
 
 See the `ReleaseNotes.html' document for more information.
 
-1.1 Noteworthy changes in version `1.14.4'
+1.1 Noteworthy changes in version `1.15.3'
 ==========================================
 
-Minor updates
+   * Extended NSUserDefaults so it recognizes ../ as a relative path.
 
-1.2 Noteworthy changes in version `1.14.3'
+   * Added TLS/SSL support for NSStream based on GNU TLS
+
+   * Added support for https to NSURLConnection using new stream code
+     and added basic support for digest authentication.
+
+   * Fixed various problems with and added new options to KVO.
+
+1.2 Noteworthy changes in version `1.15.2'
 ==========================================
 
-Various bug fixes.
+Bug fixes include improved thread safety (and a change to the NSThread
+class structure) and Key-Value observing.
 
-1.3 Noteworthy changes in version `1.14.2'
+1.3 Noteworthy changes in version `1.15.1'
 ==========================================
 
-Minor configuration change so it will compile on darwin with ffcall.
+This is an unstable release. There may be API and ABI changes from
+previous releases. The licesne hase changed to GPLv3 and LGPLv3.
+Mostly bug fixes, but a few improvements in NSPredicates and Key-Value
+coding have been added.
 
-1.4 Noteworthy changes in version `1.14.1'
+1.4 Noteworthy changes in version `1.15.0'
 ==========================================
 
-License changed to GPLv3.  Mostly bug fixes, particularly with regard
-to XML handling and handling unichar on Windows.
+This is an unstable release from 1.14.0.  It is otherwise identical to
+the 1.14.0 release. Releases in the 1.15 series may not be forward
+compatible with previous 1.15 releases.
 
 1.5 Noteworthy changes in version `1.14.0'
 ==========================================

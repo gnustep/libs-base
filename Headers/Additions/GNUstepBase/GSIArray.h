@@ -28,6 +28,9 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSZone.h>
 
+/* To turn assertions on, define GSI_ARRAY_CHECKS */
+#define GSI_ARRAY_CHECKS 1
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -37,15 +40,14 @@ extern "C" {
 #define INLINE inline
 #endif
 
-/* To turn assertions on, define GSI_ARRAY_CHECKS */
 #ifdef	GSI_ARRAY_CHECKS
-#define	GSI_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap && array->old >= 1, NSInternalInconsistencyException)
+#define	GSI_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap, NSInternalInconsistencyException)
 #else
 #define	GSI_ARRAY_CHECK
 #endif
 
 /*
- This file should be INCLUDED in files wanting to use the GSIArray
+ *      This file should be INCLUDED in files wanting to use the GSIArray
  *	functions - these are all declared inline for maximum performance.
  *
  *	The file including this one may predefine some macros to alter
@@ -300,7 +302,7 @@ GSIArrayAddItemNoRetain(GSIArray array, GSIArrayItem item)
  */
 static INLINE unsigned
 GSIArraySearch(GSIArray array, GSIArrayItem item, 
-	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
+  NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned int	upper = array->count;
   unsigned int	lower = 0;
@@ -333,7 +335,7 @@ GSIArraySearch(GSIArray array, GSIArrayItem item,
 
 static INLINE unsigned
 GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item, 
-	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
+  NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned int	index;
 
@@ -356,7 +358,7 @@ GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item,
 #ifdef	GSI_ARRAY_CHECKS
 static INLINE void
 GSIArrayCheckSort(GSIArray array, 
-	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
+  NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned int	i;
 
@@ -364,18 +366,21 @@ GSIArrayCheckSort(GSIArray array,
     {
 #ifdef	GSI_ARRAY_CHECKS
       NSCAssert(((*sorter)(array->ptr[i-1], array->ptr[i]) 
+        != NSOrderedDescending), NSInvalidArgumentException);
 #endif
-	         != NSOrderedDecending), NSInvalidArgumentException);
     }
 }
 #endif
 
 static INLINE void
 GSIArrayInsertSorted(GSIArray array, GSIArrayItem item, 
-	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
+  NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned int	index;
 
+#ifdef	GSI_ARRAY_CHECKS
+  GSIArrayCheckSort(array, sorter);
+#endif
   index = GSIArrayInsertionPosition(array, item, sorter);
   GSIArrayInsertItem(array, item, index);
 #ifdef	GSI_ARRAY_CHECKS
@@ -385,10 +390,13 @@ GSIArrayInsertSorted(GSIArray array, GSIArrayItem item,
 
 static INLINE void
 GSIArrayInsertSortedNoRetain(GSIArray array, GSIArrayItem item,
-	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
+  NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned int	index;
 
+#ifdef	GSI_ARRAY_CHECKS
+  GSIArrayCheckSort(array, sorter);
+#endif
   index = GSIArrayInsertionPosition(array, item, sorter);
   GSIArrayInsertItemNoRetain(array, item, index);
 #ifdef	GSI_ARRAY_CHECKS

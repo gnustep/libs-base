@@ -132,9 +132,6 @@
 /* Built in default value for GNUstep user defaults directory */
 #undef GNUSTEP_TARGET_USER_DEFAULTS_DIR
 
-/* Built in default value for GNUstep user directory */
-#undef GNUSTEP_TARGET_USER_DIR
-
 /* Built in default value for GNUstep user_dir admin apps */
 #undef GNUSTEP_TARGET_USER_DIR_ADMIN_APPS
 
@@ -174,6 +171,9 @@
 /* Define if this constant is defined */
 #undef HANDLE_LONG_LONG_MAX
 
+/* Define to 1 if you have the <alloca.h> header file. */
+#undef HAVE_ALLOCA_H
+
 /* Define to 1 if you have the <bfd.h> header file. */
 #undef HAVE_BFD_H
 
@@ -208,6 +208,18 @@
 /* Define to 1 if you have the `getgrgid' function. */
 #undef HAVE_GETGRGID
 
+/* Define to 1 if you have the `getgrgid_r' function. */
+#undef HAVE_GETGRGID_R
+
+/* Define to 1 if you have the `getgrnam' function. */
+#undef HAVE_GETGRNAM
+
+/* Define to 1 if you have the `getgrnam_r' function. */
+#undef HAVE_GETGRNAM_R
+
+/* Define to 1 if you have the `gethostbyaddr_r' function. */
+#undef HAVE_GETHOSTBYADDR_R
+
 /* Define to 1 if you have the `getlogin' function. */
 #undef HAVE_GETLOGIN
 
@@ -220,14 +232,23 @@
 /* Define to 1 if you have the `getpwnam' function. */
 #undef HAVE_GETPWNAM
 
+/* Define to 1 if you have the `getpwnam_r' function. */
+#undef HAVE_GETPWNAM_R
+
 /* Define to 1 if you have the `getpwuid' function. */
 #undef HAVE_GETPWUID
+
+/* Define to 1 if you have the `getpwuid_r' function. */
+#undef HAVE_GETPWUID_R
 
 /* Define if you have this function */
 #undef HAVE_GICONV
 
 /* Define to 1 if you have the <gmp.h> header file. */
 #undef HAVE_GMP_H
+
+/* Define if libgnutls available */
+#undef HAVE_GNUTLS
 
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
@@ -237,6 +258,9 @@
 
 /* Define to 1 if you have the `inet_aton' function. */
 #undef HAVE_INET_ATON
+
+/* Define to 1 if you have the `inet_ntop' function. */
+#undef HAVE_INET_NTOP
 
 /* Define to 1 if you have the `inet_pton' function. */
 #undef HAVE_INET_PTON
@@ -273,6 +297,9 @@
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
+
+/* Define to 1 if you have the `nsl' library (-lnsl). */
+#undef HAVE_LIBNSL
 
 /* Define if libxml available */
 #undef HAVE_LIBXML
@@ -379,6 +406,9 @@
 /* Define to 1 if you have the `setpgrp' function. */
 #undef HAVE_SETPGRP
 
+/* Define to 1 if you have the `setrlimit' function. */
+#undef HAVE_SETRLIMIT
+
 /* Define to 1 if you have the `shmctl' function. */
 #undef HAVE_SHMCTL
 
@@ -400,6 +430,9 @@
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
 
+/* Define to 1 if you have the `strerror_r' function. */
+#undef HAVE_STRERROR_R
+
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -414,6 +447,9 @@
 
 /* Define to 1 if you have the <syslog.h> header file. */
 #undef HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/cdefs.h> header file. */
+#undef HAVE_SYS_CDEFS_H
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
@@ -440,6 +476,9 @@
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
 
 /* Define to 1 if you have the <sys/rusage.h> header file. */
 #undef HAVE_SYS_RUSAGE_H

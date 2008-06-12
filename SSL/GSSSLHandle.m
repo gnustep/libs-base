@@ -87,37 +87,21 @@ sslError(int err)
 
   SSL_load_error_strings();
 
-  switch (err)
+  if (err == SSL_ERROR_SYSCALL)
     {
-      case SSL_ERROR_NONE:
-	str = @"No error: really helpful";
-	break;
-      case SSL_ERROR_ZERO_RETURN:
-	str = @"Zero Return error";
-	break;
-      case SSL_ERROR_WANT_READ:
-	str = @"Want Read Error";
-	break;
-      case SSL_ERROR_WANT_WRITE:
-	str = @"Want Write Error";
-	break;
-      case SSL_ERROR_WANT_X509_LOOKUP:
-	str = @"Want X509 Lookup Error";
-	break;
-      case SSL_ERROR_SYSCALL:
-        {
-	  NSError	*e = [NSError _last];
+      NSError	*e = [NSError _last];
 
-	  str = [NSString stringWithFormat: @"Syscall error %d - %@",
-	    [e code], [e description]];
-	}
-	break;
-      case SSL_ERROR_SSL:
-	str = @"SSL Error: really helpful";
-	break;
-      default:
-	str = @"Standard system error: really helpful";
-	break;
+      str = [NSString stringWithFormat: @"Syscall error %d - %@",
+        [e code], [e description]];
+    }
+  else if (err == SSL_ERROR_NONE)
+    {
+      str = @"No error: really helpful";
+    }
+  else
+    {
+      str = [NSString stringWithFormat: @"%s", ERR_reason_error_string(err)];
+
     }
   return str;
 }
@@ -270,10 +254,8 @@ sslError(int err)
 	      /*
 	       * Some other error ... not just a timeout or disconnect
 	       */
-	      NSLog(@"unable to accept SSL connection from %@:%@ - %@",
+	      NSWarnLog(@"unable to accept SSL connection from %@:%@ - %@",
 		address, service, sslError(err));
-
-	      ERR_print_errors_fp(stderr);
 	    }
 	  RELEASE(self);
 	  return NO;
@@ -370,14 +352,12 @@ sslError(int err)
       if (err != SSL_ERROR_NONE)
 	{
 	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
-	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
 	    {
 	      /*
 	       * Some other error ... not just a timeout or disconnect
 	       */
 	      NSLog(@"unable to make SSL connection to %@:%@ - %@",
 		address, service, sslError(err));
-	      ERR_print_errors_fp(stderr);
 	    }
 	  RELEASE(self);
 	  return NO;

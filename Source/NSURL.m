@@ -36,21 +36,22 @@ function may be incorrect
 * I've put 2 functions to make tests. You can add your own tests
 * Some functions are not implemented
 */
-#include "config.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSURLHandle.h"
-#include "Foundation/NSURL.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSZone.h"
+#import "config.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSURLHandle.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSZone.h"
 
 NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
 NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
@@ -689,8 +690,12 @@ static unsigned	urlAlign;
 	      if (base != 0 && base->scheme != 0
 		&& strcmp(base->scheme, buf->scheme) != 0)
 		{
-		  [NSException raise: NSGenericException format:
-		    @"scheme of base and relative parts does not match"];
+		  [NSException raise: NSInvalidArgumentException
+                    format: @"[%@ %@](%@, %@) "
+		    @"scheme of base and relative parts does not match",
+                    NSStringFromClass([self class]),
+                    NSStringFromSelector(_cmd),
+                    aUrlString, aBaseUrl];
 		}
 	    }
 	}
@@ -761,8 +766,12 @@ static unsigned	urlAlign;
 		  start = ptr;
 		  if (legal(buf->user, ";:&=+$,") == NO)
 		    {
-		      [NSException raise: NSGenericException format:
-			@"illegal character in user/password part"];
+		      [NSException raise: NSInvalidArgumentException
+                        format: @"[%@ %@](%@, %@) "
+			@"illegal character in user/password part",
+                        NSStringFromClass([self class]),
+                        NSStringFromSelector(_cmd),
+                        aUrlString, aBaseUrl];
 		    }
 		  ptr = strchr(buf->user, ':');
 		  if (ptr != 0)
@@ -824,8 +833,12 @@ static unsigned	urlAlign;
 			    }
 			  else
 			    {
-			      [NSException raise: NSGenericException format:
-				@"illegal port part"];
+			      [NSException raise: NSInvalidArgumentException
+                                format: @"[%@ %@](%@, %@) "
+				@"illegal port part",
+                                NSStringFromClass([self class]),
+                                NSStringFromSelector(_cmd),
+                                aUrlString, aBaseUrl];
 			    }
 			}
 		      else if (isdigit(*str))
@@ -834,16 +847,24 @@ static unsigned	urlAlign;
 			}
 		      else
 			{
-			  [NSException raise: NSGenericException format:
-			    @"illegal character in port part"];
+			  [NSException raise: NSInvalidArgumentException
+                            format: @"[%@ %@](%@, %@) "
+			    @"illegal character in port part",
+                            NSStringFromClass([self class]),
+                            NSStringFromSelector(_cmd),
+                            aUrlString, aBaseUrl];
 			}
 		    }
 		}
 	      start = end;
 	      if (legal(buf->host, "-") == NO)
 		{
-		  [NSException raise: NSGenericException format:
-		    @"illegal character in host part"];
+		  [NSException raise: NSInvalidArgumentException
+                    format: @"[%@ %@](%@, %@) "
+		    @"illegal character in host part",
+                    NSStringFromClass([self class]),
+                    NSStringFromSelector(_cmd),
+                    aUrlString, aBaseUrl];
 		}
 
 	      /*
@@ -885,8 +906,12 @@ static unsigned	urlAlign;
 		  buf->fragment = base->fragment;
 		  if (legal(buf->fragment, reserved) == NO)
 		    {
-		      [NSException raise: NSGenericException format:
-		        @"illegal character in fragment part"];
+		      [NSException raise: NSInvalidArgumentException
+                        format: @"[%@ %@](%@, %@) "
+		        @"illegal character in fragment part",
+                        NSStringFromClass([self class]),
+                        NSStringFromSelector(_cmd),
+                        aUrlString, aBaseUrl];
 		    }
 		}
 	    }
@@ -910,8 +935,12 @@ static unsigned	urlAlign;
 		  buf->query = base->query;
 		  if (legal(buf->query, reserved) == NO)
 		    {
-		      [NSException raise: NSGenericException format:
-		        @"illegal character in query part"];
+		      [NSException raise: NSInvalidArgumentException
+                        format: @"[%@ %@](%@, %@) "
+		        @"illegal character in query part",
+                        NSStringFromClass([self class]),
+                        NSStringFromSelector(_cmd),
+                        aUrlString, aBaseUrl];
 		    }
 		}
 	    }
@@ -935,8 +964,12 @@ static unsigned	urlAlign;
 		  buf->parameters = base->parameters;
 		  if (legal(buf->parameters, reserved) == NO)
 		    {
-		      [NSException raise: NSGenericException format:
-		        @"illegal character in parameters part"];
+		      [NSException raise: NSInvalidArgumentException
+                        format: @"[%@ %@](%@, %@) "
+		        @"illegal character in parameters part",
+                        NSStringFromClass([self class]),
+                        NSStringFromSelector(_cmd),
+                        aUrlString, aBaseUrl];
 		    }
 		}
 	    }
@@ -965,13 +998,17 @@ static unsigned	urlAlign;
       buf->path = start;
       if (legal(buf->path, reserved) == NO)
 	{
-	  [NSException raise: NSGenericException format:
-	    @"illegal character in path part"];
+	  [NSException raise: NSInvalidArgumentException
+            format: @"[%@ %@](%@, %@) "
+	    @"illegal character in path part",
+            NSStringFromClass([self class]),
+            NSStringFromSelector(_cmd),
+            aUrlString, aBaseUrl];
 	}
     }
   NS_HANDLER
     {
-      NSLog(@"%@", localException);
+      NSDebugLog(@"%@", localException);
       DESTROY(self);
     }
   NS_ENDHANDLER

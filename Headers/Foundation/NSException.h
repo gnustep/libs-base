@@ -83,9 +83,10 @@ extern "C" {
 */
 @interface NSException : NSObject <NSCoding, NSCopying>
 {    
+@private
   NSString *_e_name;
   NSString *_e_reason;
-  NSDictionary *_e_info;
+  void *_reserved;
 }
 
 /**
@@ -115,6 +116,14 @@ extern "C" {
 + (void) raise: (NSString*)name
 	format: (NSString*)format
      arguments: (va_list)argList;
+
+#if OS_API_VERSION(100500,GS_API_LATEST) && GS_API_VERSION(011501,GS_API_LATEST)
+/** Returns an array of the call stack return addresses at the point when
+ * the exception was raised.  Re-raising the exception does not change
+ * this value.
+ */
+- (NSArray*) callStackReturnAddresses;
+#endif
 
 /**
  * <init/>Initializes a newly allocated NSException object with a
@@ -147,60 +156,83 @@ extern "C" {
 - (NSString*) reason;
 
 /** Returns the exception userInfo dictionary.<br />
- * There is a GNUstep extension, enabled when the GNUSTEP_STACK_TRACE
- * environment variable is set to YES, which causes a stack trace to
- * be placed in this dictionary (keyed on GSStackTraceKey) at the point
- * when the exception is raised.  This can be useful for determining
- * where an exception ocurred.
  */
 - (NSDictionary*) userInfo;
 
 @end
 
-/**
- * A generic exception for general purpose usage.
+/** An exception when character set conversion fails.
+ */
+GS_EXPORT NSString* const NSCharacterConversionException;
+
+/** Attempt to use an invalidated destination.
+ */
+GS_EXPORT NSString* const NSDestinationInvalidException;
+
+/** A generic exception for general purpose usage.
  */
 GS_EXPORT NSString* const NSGenericException;
 
-/**
- * An exception for cases where unexpected state is detected within an object.
+/** An exception for cases where unexpected state is detected within an object.
  */
 GS_EXPORT NSString* const NSInternalInconsistencyException;
 
-/**
- * An exception used when an invalid argument is passed to a method
+/** An exception used when an invalid argument is passed to a method
  * or function.
  */
 GS_EXPORT NSString* const NSInvalidArgumentException;
 
-/**
- * An exception used when the system fails to allocate required memory.
+/** Attempt to use a receive port which has been invalidated.
+ */
+GS_EXPORT NSString * const NSInvalidReceivePortException;
+
+/** Attempt to use a send port which has been invalidated.
+ */
+GS_EXPORT NSString * const NSInvalidSendPortException;
+
+/** An exception used when the system fails to allocate required memory.
  */
 GS_EXPORT NSString* const NSMallocException;
 
-/**
- * An exception used when an illegal range is encountered ... usually this
- * is used to provide more information than an invalid argument exception.
- */
-GS_EXPORT NSString* const NSRangeException;
-
-/**
- * An exception when character set conversion fails.
- */
-GS_EXPORT NSString* const NSCharacterConversionException;
-
-/**
- *  An exception when a remote object is sent a message from a thread
+/**  An exception when a remote object is sent a message from a thread
  *  unable to access the object.
  */
 GS_EXPORT NSString* const NSObjectInaccessibleException;
 
+/**  Attempt to send to an object which is no longer available.
+ */
+GS_EXPORT NSString* const NSObjectNotAvailableException;
+
+/**  UNused ... for MacOS-X compatibility.
+ */
+GS_EXPORT NSString* const NSOldStyleException;
+
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-/**
- * An exception used when some form of parsing fails.
+/** An exception used when some form of parsing fails.
  */
 GS_EXPORT NSString* const NSParseErrorException;
 #endif
+
+/** Some failure to receive on a port.
+ */
+GS_EXPORT NSString * const NSPortReceiveException;
+
+/** Some failure to send on a port.
+ */
+GS_EXPORT NSString * const NSPortSendException;
+
+/**
+ *  Exception raised by [NSPort], [NSConnection], and friends if sufficient
+ *  time elapses while waiting for a response, or if the receiving port is
+ *  invalidated before a request can be received.  See
+ *  [NSConnection-setReplyTimeout:].
+ */
+GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
+
+/** An exception used when an illegal range is encountered ... usually this
+ * is used to provide more information than an invalid argument exception.
+ */
+GS_EXPORT NSString* const NSRangeException;
 
 /**
  * The actual structure for an NSHandler.  You shouldn't need to worry about it.

@@ -23,29 +23,31 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSURL.h"
-#include "Foundation/NSURLHandle.h"
-#include "Foundation/NSValue.h"
-#include "GNUstepBase/GSMime.h"
-#include "GNUstepBase/GSLock.h"
-#include "NSCallBacks.h"
-#include "GSURLPrivate.h"
-#include "GSPrivate.h"
+#import "config.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSURLHandle.h"
+#import "Foundation/NSValue.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/GSLock.h"
+#import "NSCallBacks.h"
+#import "GSURLPrivate.h"
+#import "GSPrivate.h"
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -68,13 +70,13 @@
  * captialisation of headers (some http software is faulty like that).
  */
 static unsigned int
-_non_retained_id_hash(void *table, NSString* o)
+_id_hash(void *table, NSString* o)
 {
   return [[o uppercaseString] hash];
 }
 
 static BOOL
-_non_retained_id_is_equal(void *table, NSString *o, NSString *p)
+_id_is_equal(void *table, NSString *o, NSString *p)
 {
   return ([o caseInsensitiveCompare: p] == NSOrderedSame) ? YES : NO;
 }
@@ -87,11 +89,11 @@ typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
 
 static const NSMapTableKeyCallBacks writeKeyCallBacks =
 {
-  (NSMT_hash_func_t) _non_retained_id_hash,
-  (NSMT_is_equal_func_t) _non_retained_id_is_equal,
-  (NSMT_retain_func_t) _NS_non_retained_id_retain,
-  (NSMT_release_func_t) _NS_non_retained_id_release,
-  (NSMT_describe_func_t) _NS_non_retained_id_describe,
+  (NSMT_hash_func_t) _id_hash,
+  (NSMT_is_equal_func_t) _id_is_equal,
+  (NSMT_retain_func_t) _NS_id_retain,
+  (NSMT_release_func_t) _NS_id_release,
+  (NSMT_describe_func_t) _NS_id_describe,
   NSNotAPointerMapKey
 };
 
@@ -382,8 +384,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 + (BOOL) canInitWithURL: (NSURL*)newUrl
 {
-  if ([[newUrl scheme] isEqualToString: @"http"]
-    || [[newUrl scheme] isEqualToString: @"https"])
+  NSString      *scheme = [newUrl scheme];
+
+  if ([scheme isEqualToString: @"http"]
+    || [scheme isEqualToString: @"https"])
     {
       return YES;
     }

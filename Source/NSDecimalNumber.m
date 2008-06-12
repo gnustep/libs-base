@@ -26,6 +26,10 @@
    $Date$ $Revision$
    */
 
+#define _GNU_SOURCE
+#define _ISOC99_SOURCE
+#include <math.h>
+
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSDecimal.h"
 #include "Foundation/NSDecimalNumber.h"
@@ -33,6 +37,15 @@
 #include "Foundation/NSPortCoder.h"
 
 #include "GSPrivate.h"
+
+#ifdef fpclassify
+#define GSIsNAN(n) (fpclassify(n) == FP_NAN)
+#define GSIsInf(n) (fpclassify(n) == FP_INFINITE)
+#else
+#warning C99 macro fpclassify not found: Cannot determine NAN/Inf float-values
+#define GSIsNAN(n) (0)
+#define GSIsInf(n) (0)
+#endif
 
 // shared default behavior for NSDecimalNumber class
 static NSDecimalNumberHandler *handler;
@@ -141,6 +154,7 @@ static NSDecimalNumberHandler *handler;
 
 @implementation NSDecimalNumber
 
+static Class NSDecimalNumberClass;
 static NSDecimalNumber *maxNumber;
 static NSDecimalNumber *minNumber;
 static NSDecimalNumber *notANumber;
@@ -163,6 +177,7 @@ static NSDecimalNumber *one;
   one = [[self alloc] initWithMantissa: 1
 			      exponent: 0
 			    isNegative: NO];
+  NSDecimalNumberClass = [NSDecimalNumber class];
 }
 
 + (id <NSDecimalNumberBehaviors>) defaultBehavior
@@ -235,14 +250,148 @@ static NSDecimalNumber *one;
  */
 - (id) initWithBytes: (const void*)value objCType: (const char*)type
 {
-  double	tmp;
-  NSString	*s;
+  unsigned long long val;
+  long long llval;
+  NSDecimal decimal;
+  BOOL negative, llvalSet;
 
-  memcpy(&tmp, value, sizeof(tmp));
-  s = [[NSString alloc] initWithFormat: @"%g", tmp];
-  self = [self initWithString: s];
-  RELEASE(s);
-  return self;
+  if (strlen(type) != 1)
+    {
+      DESTROY(self);
+      return nil;
+    }
+
+  llvalSet = YES;
+  negative = NO;
+
+  switch (*type)
+    {
+    case _C_CHR:
+      {
+	signed char v = *(signed char *)value;
+	llval = (long long)v;
+	break;
+      }
+    case _C_UCHR:
+      {
+	unsigned char v = *(unsigned char *)value;
+	llval = (long long)v;
+	break;
+      }
+    case _C_SHT:
+      {
+	short v = *(short *)value;
+	llval = (long long)v;
+	break;
+      }
+    case _C_USHT:
+      {
+	unsigned short v = *(unsigned short *)value;
+	llval = (long long)v;
+	break;
+      }
+    case _C_INT:
+      {
+	int v = *(int *)value;
+	llval = (long long)v;
+	break;
+      }
+    case _C_UINT:
+      {
+	unsigned int v = *(unsigned int *)value;
+	llval = (long long)v;
+	break;
+      }
+    case _C_LNG:
+      {
+	long v = *(long *)value;
+	llval = (long long)v;
+	break;
+      }
+    case _C_ULNG:
+      {
+	unsigned long v = *(unsigned long *)value;
+	llval = (long long)v;
+	break;
+      }
+#ifdef _C_LNGLNG
+    case _C_LNGLNG:
+#else
+    case 'q':
+#endif
+      {
+	long long v = *(long long *)value;
+	llval = (long long)v;
+	break;
+      }
+#ifdef	_C_ULNGLNG
+    case _C_ULNGLNG:
+#else
+    case 'Q':
+#endif
+    default:
+      {
+	llvalSet = NO;
+	break;
+
+      }
+    }
+  if (llvalSet)
+    {
+      if (llval<0)
+	{
+	  negative = YES;
+	  llval *= -1;
+	}
+      val = llval;
+    }
+  else
+    {
+      switch (*type)
+	{
+	case _C_FLT:
+	  /* FIXME: This is better implemented with GMP where available.  */
+	  {
+	    NSString *s;
+	    float v = *(float *)value;
+	    if (GSIsNAN(v)) return notANumber;
+	    if (GSIsInf(v)) return (v < 0.0) ? minNumber : maxNumber;
+	    s = [[NSString alloc] initWithFormat: @"%g"
+				  locale: GSPrivateDefaultLocale(), (double)v];
+	    self = [self initWithString: s];
+	    RELEASE(s);
+	    return self;
+	    break;
+	  }
+	case _C_DBL:
+	  /* FIXME: This is better implemented with GMP where available.  */
+	  {
+	    NSString *s;
+	    double v = *(double *)value;
+	    if (GSIsNAN(v)) return notANumber;
+	    if (GSIsInf(v)) return (v < 0.0) ? minNumber : maxNumber;
+	    s = [[NSString alloc] initWithFormat: @"%g"
+				  locale: GSPrivateDefaultLocale(), v];
+	    self = [self initWithString: s];
+	    RELEASE(s);
+	    return self;
+	    break;
+	  }
+#ifdef  _C_ULNGLNG
+	case _C_ULNGLNG: 
+#else
+	case 'Q':
+#endif
+	  {
+	    val = *(unsigned long long *)value;
+	    break;
+	  }
+	}
+    }
+
+  NSDecimalFromComponents(&decimal, val,
+			  0, negative);
+  return [self initWithDecimal: decimal];
 }
 
 - (id) initWithDecimal: (NSDecimal)decimal
@@ -446,7 +595,7 @@ static NSDecimalNumber *one;
 
 - (NSComparisonResult) compare: (NSNumber*)decimalNumber
 {
-  if ([decimalNumber isMemberOfClass: [self class]])
+  if ([decimalNumber isKindOfClass: NSDecimalNumberClass])
     {
       NSDecimal d1 = [self decimalValue];
       NSDecimal d2 = [(NSDecimalNumber*)decimalNumber decimalValue];

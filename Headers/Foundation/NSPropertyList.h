@@ -132,9 +132,10 @@ typedef enum {
  *       &lt;*D2002-03-22 11:30:00 +0100&gt;
  *     </example>
  *     In XML format, a date object is an element whose name is
- *     <code>date</code> and whose content is a date in the above format.
+ *     <code>date</code> and whose content is a date in the format
+ *     YYYY-MM-DDTHH:MM:SSZ (or the above dfate format).
  *     <example>
- *       &lt;date&gt;2002-03-22 11:30:00 +0100&lt;/date&gt;
+ *       &lt;date&gt;2002-03-22T11:30:00Z&lt;/date&gt;
  *     </example>
  *   </desc>
  *   <term>[NSDictionary]</term>

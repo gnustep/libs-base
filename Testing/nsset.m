@@ -10,6 +10,7 @@
 */
 #include <Foundation/NSSet.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSString.h>
 #include    <Foundation/NSAutoreleasePool.h>
 #include <assert.h>

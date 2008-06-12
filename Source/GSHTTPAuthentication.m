@@ -22,14 +22,15 @@
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSValue.h"
-#include "GNUstepBase/GSLock.h"
-#include "GNUstepBase/GSMime.h"
+#import "GSURLPrivate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSValue.h"
+#import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/GSMime.h"
 
 
 static NSMutableDictionary	*domainMap = nil;
@@ -149,7 +150,7 @@ static GSMimeParser		*mimeParser = nil;
 + (NSURLProtectionSpace*) protectionSpaceForAuthentication: (NSString*)auth
                                                 requestURL: (NSURL*)URL;
 {
-  if (auth != nil)
+  if ([auth isKindOfClass: [NSString class]] == YES)
     {
       NSString			*method = nil;
       NSURLProtectionSpace	*space;

@@ -26,9 +26,6 @@
 #define __NSTimer_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-/* This class is currently thrown together.  When it is cleaned up, it
-   may no longer be concrete. */
-
 #import	<Foundation/NSDate.h>
 
 #if	defined(__cplusplus)
@@ -39,9 +36,12 @@ extern "C" {
  *	NB. NSRunLoop is optimised using a hack that knows about the
  *	class layout for the fire date and invialidation flag in NSTimer.
  *	These MUST remain the first two items in the class.
+ *	Other classes must not attempt to use instance variables as
+ *	they are subject to change.
  */
 @interface NSTimer : NSObject
 {
+@private
   NSDate 	*_date;		/* Must be first - for NSRunLoop optimisation */
   BOOL		_invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
   BOOL		_repeats;
@@ -76,17 +76,19 @@ extern "C" {
 - (void) invalidate;
 - (id) userInfo;
 
-
 #if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+- (BOOL) isValid;
+- (NSTimeInterval) timeInterval;
+#endif
+
+#if	OS_API_VERSION(100200, GS_API_LATEST)
 - (id) initWithFireDate: (NSDate*)fd
 	       interval: (NSTimeInterval)ti
 		 target: (id)object
 	       selector: (SEL)selector
 	       userInfo: (id)info
 		repeats: (BOOL)f;
-- (BOOL) isValid;
 - (void) setFireDate: (NSDate*)fireDate;
-- (NSTimeInterval) timeInterval;
 #endif
 
 @end

@@ -54,6 +54,10 @@
    </unit>
 */
 
+/* The following define is needed for Solaris get(pw/gr)(nam/uid)_r declartions
+   which default to pre POSIX declaration.  */
+#define _POSIX_PTHREAD_SEMANTICS
+
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "objc-load.h"
@@ -78,7 +82,7 @@
 #include <unistd.h>		// for getuid()
 #endif
 #ifdef	HAVE_PWD_H
-#include <pwd.h>		// for getpwnam()
+#include <pwd.h>		// for getpwnam_r() and getpwuid_r()
 #endif
 #include <sys/types.h>
 #include <stdio.h>
@@ -138,7 +142,6 @@ static NSString	*gnustep_is_flattened =
 
 static NSString	*gnustepConfigPath = nil;
 
-static NSString *gnustepUserDir = nil;
 static NSString *gnustepUserHome = nil;
 static NSString *gnustepUserDefaultsDir = nil;
 
@@ -275,6 +278,11 @@ getPath(NSString *path)
 	[path substringFromIndex: 2]];
       path = [path stringByStandardizingPath];
     }
+  else if ([path hasPrefix: @"../"] == YES)
+    {
+      path = [gnustepConfigPath stringByAppendingPathComponent: path];
+      path = [path stringByStandardizingPath];
+    }
   return path;
 }
 
@@ -318,12 +326,11 @@ getPathConfig(NSDictionary *dict, NSString *key)
 static void ExtractValuesFromConfig(NSDictionary *config)
 {
   NSMutableDictionary	*c = [config mutableCopy];
-  NSString		*extra;
+  id		        extra;
 
   /*
    * Move values out of the dictionary and into variables for rapid reference.
    */
-  ASSIGN_IF_SET(gnustepUserDir, c, @"GNUSTEP_USER_DIR");
   ASSIGN_IF_SET(gnustepUserDefaultsDir, c, @"GNUSTEP_USER_DEFAULTS_DIR");
 
   ASSIGN_PATH(gnustepMakefiles, c, @"GNUSTEP_MAKEFILES");
@@ -390,7 +397,11 @@ static void ExtractValuesFromConfig(NSDictionary *config)
       NSEnumerator	*enumerator;
       NSString		*key;
 
-      enumerator = [[extra componentsSeparatedByString: @","] objectEnumerator];
+      if ([extra isKindOfClass: [NSString class]] == YES)
+        {
+          extra = [extra componentsSeparatedByString: @","];
+        }
+      enumerator = [extra objectEnumerator];
       [c removeObjectForKey: @"GNUSTEP_EXTRA"];
       while ((key = [enumerator nextObject]) != nil)
         {
@@ -398,6 +409,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
 	  [c removeObjectForKey: key];
 	}
     }
+  [c removeObjectForKey: @"GNUSTEP_SYSTEM_DEFAULTS_FILE"];
 
   /*
    * Remove any other dictionary entries we have used.
@@ -409,6 +421,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   [c removeObjectForKey: @"GNUSTEP_LOCAL_ROOT"];
   [c removeObjectForKey: @"GNUSTEP_SYSTEM_ROOT"];
   [c removeObjectForKey: @"GNUSTEP_NETWORK_ROOT"];
+  [c removeObjectForKey: @"GNUSTEP_USER_DIR"];
 
   if ([c count] > 0)
     {
@@ -423,10 +436,6 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   /*
    * Set default locations for user files if necessary.
    */
-  if (gnustepUserDir == nil)
-    {
-      ASSIGN(gnustepUserDir, @GNUSTEP_TARGET_USER_DIR);
-    }
   if (gnustepUserDefaultsDir == nil)
     {
       ASSIGN(gnustepUserDefaultsDir, @GNUSTEP_TARGET_USER_DEFAULTS_DIR);
@@ -619,18 +628,21 @@ GNUstepConfig(NSDictionary *newConfig)
 
 	      /*
 	       * Special case ... if the config file location begins './'
-	       * then we determine it's actual path by working relative
-	       * to the gnustep-base library.
+	       * or '../' then we determine it's actual path by working
+               * relative to the gnustep-base library.
 	       */
-	      if ([file hasPrefix: @"./"] == YES)
+	      if ([file hasPrefix: @"./"] == YES
+	        || [file hasPrefix: @"../"] == YES)
 		{
 		  Class		c = [NSProcessInfo class];
 		  NSString	*path = GSPrivateSymbolPath (c, 0);
 
 		  // Remove library name from path
 		  path = [path stringByDeletingLastPathComponent];
-		  // Remove ./ prefix from filename
-		  file = [file substringFromIndex: 2];
+                  if ([file hasPrefix: @"./"] == YES)
+                    {
+                      file = [file substringFromIndex: 2];
+                    }
 		  // Join the two together
 		  file = [path stringByAppendingPathComponent: file];
 		}
@@ -674,9 +686,82 @@ GNUstepConfig(NSDictionary *newConfig)
 		}
 	      else
 		{
+                  NSString      *defs;
+
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
 		  ParseConfigurationFile(file, conf, nil);
+
+                  defs = [gnustepConfigPath stringByAppendingPathComponent:
+                    @"GlobalDefaults.plist"];
+                  if ([MGR() isReadableFileAtPath: defs] == YES)
+                    {
+                      NSDictionary      *d;
+                      NSDictionary      *attributes;
+
+                      attributes = [MGR() fileAttributesAtPath: defs
+                                                  traverseLink: YES];
+                      if (([attributes filePosixPermissions]
+                        & (0022 & ATTRMASK)) != 0)
+                        {
+#if defined(__MINGW32__)
+                          fprintf(stderr,
+                            "The file '%S' is writable by someone other than"
+                            " its owner (permissions 0%lo).\nIgnoring it.\n",
+                            [defs fileSystemRepresentation],
+                            [attributes filePosixPermissions]);
+#else
+                          fprintf(stderr,
+                            "The file '%s' is writable by someone other than"
+                            " its owner (permissions 0%lo).\nIgnoring it.\n",
+                            [defs fileSystemRepresentation],
+                            [attributes filePosixPermissions]);
+#endif
+                          d = nil;
+                        }
+                      else
+                        {
+                          d = [NSDictionary dictionaryWithContentsOfFile: defs];
+                        }
+
+                      if (d != nil)
+                        {
+                          NSEnumerator  *enumerator;
+                          NSString      *key;
+                          id            extra;
+
+                          extra = [conf objectForKey: @"GNUSTEP_EXTRA"];
+                          extra = [extra componentsSeparatedByString: @","];
+                          extra = [extra mutableCopy];
+                          if (extra == nil)
+                            {
+                              extra = [NSMutableArray new];
+                            }
+                          enumerator = [d keyEnumerator];
+                          while ((key = [enumerator nextObject]) != nil)
+                            {
+                              if ([conf objectForKey: key] == nil)
+                                {
+                                  [extra addObject: key];
+                                }
+                              else
+                                {
+                                  fprintf(stderr, "Key '%s' in '%s' duplicates"
+                                    " key in %s\n", [key UTF8String],
+                                    [defs UTF8String], [file UTF8String]);
+                                }
+                            }
+                          [conf addEntriesFromDictionary: d];
+                          if ([extra count] > 0)
+                            {
+                              NSArray   *c = [extra copy];
+
+                              [conf setObject: c forKey: @"GNUSTEP_EXTRA"];
+                              RELEASE(c);
+                            }
+                          RELEASE(extra);
+                        }
+                    }
 		}
 	    }
 	  else
@@ -1172,7 +1257,6 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
     }
   NSZoneFree(NSDefaultMallocZone(), src);
   NSZoneFree(NSDefaultMallocZone(), dst);
-
   return YES;
 }
 
@@ -1265,10 +1349,26 @@ NSUserName(void)
   if (theUserName == nil || uid != olduid)
     {
       const char *loginName = 0;
-#ifdef HAVE_GETPWUID
-      struct passwd *pwent = getpwuid (uid);
-      loginName = pwent->pw_name;
+      char buf[BUFSIZ*10];
+#if     defined(HAVE_GETPWUID_R)
+      struct passwd pwent;
+      struct passwd *p;
+
+      if (getpwuid_r(uid, &pwent, buf, sizeof(buf), &p) == 0)
+        {
+          loginName = pwent.pw_name;
+        }
+#else
+#if     defined(HAVE_GETPWUID)
+      struct passwd *pwent;
+
+      [gnustep_global_lock lock];
+      pwent = getpwuid (uid);
+      strcpy(buf, pwent->pw_name);
+      [gnustep_global_lock unlock];
+      loginName = buf;
 #endif /* HAVE_GETPWUID */
+#endif /* HAVE_GETPWUID_R */
       olduid = uid;
       if (loginName)
 	theUserName = [[NSString alloc] initWithCString: loginName];
@@ -1304,6 +1404,18 @@ NSHomeDirectoryForUser(NSString *loginName)
   NSString	*s = nil;
 
 #if !defined(__MINGW32__)
+#if     defined(HAVE_GETPWNAM_R)
+  struct passwd pw;
+  struct passwd *p;
+  char buf[BUFSIZ*10];
+
+  if (getpwnam_r([loginName cString], &pw, buf, sizeof(buf), &p) == 0
+    && pw.pw_dir != 0)
+    {
+      s = [NSString stringWithUTF8String: pw.pw_dir];
+    }
+#else
+#if     defined(HAVE_GETPWNAM)
   struct passwd *pw;
 
   [gnustep_global_lock lock];
@@ -1313,6 +1425,8 @@ NSHomeDirectoryForUser(NSString *loginName)
       s = [NSString stringWithUTF8String: pw->pw_dir];
     }
   [gnustep_global_lock unlock];
+#endif
+#endif
 #else
   if ([loginName isEqual: NSUserName()] == YES)
     {
@@ -1361,11 +1475,11 @@ NSFullUserName(void)
 {
   if (theFullUserName == nil)
     {
-      NSString	*userName = NSUserName();
+      NSString	*userName = nil;
 #if defined(__MINGW32__)
       struct _USER_INFO_2	*userInfo;
 
-      if (NetUserGetInfo(NULL, (unichar*)[userName cStringUsingEncoding:
+      if (NetUserGetInfo(NULL, (unichar*)[NSUserName() cStringUsingEncoding:
 	NSUnicodeStringEncoding], 2, (LPBYTE*)&userInfo) == 0)
 	{
 	  userName = [NSString stringWithCharacters: userInfo->usri2_full_name
@@ -1373,15 +1487,32 @@ NSFullUserName(void)
 	}
 #else
 #ifdef  HAVE_PWD_H
+#if     defined(HAVE_GETPWNAM_R)
+      struct passwd pw;
+      struct passwd *p;
+      char buf[BUFSIZ*10];
+
+      if (getpwnam_r([NSUserName() cString], &pw, buf, sizeof(buf), &p) == 0)
+        {
+          userName = [NSString stringWithUTF8String: pw.pw_gecos];
+        }
+#else
+#if     defined(HAVE_GETPWNAM)
       struct passwd	*pw;
 
+      [gnustep_global_lock lock];
       pw = getpwnam([NSUserName() cString]);
       userName = [NSString stringWithUTF8String: pw->pw_gecos];
-#else
-      NSLog(@"Warning: NSFullUserName not implemented\n");
-      userName = NSUserName();
+      [gnustep_global_lock lock];
+#endif /* HAVE_GETPWNAM */
+#endif /* HAVE_GETPWNAM_R */
 #endif /* HAVE_PWD_H */
 #endif /* defined(__Win32__) else */
+      if (userName == nil)
+        {
+          NSLog(@"Warning: NSFullUserName not implemented\n");
+          userName = NSUserName();
+        }
       ASSIGN(theFullUserName, userName);
     }
   return theFullUserName;
@@ -1775,6 +1906,15 @@ if (domainMask & mask) \
 	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"Document");
 	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"Document");
 	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"Document");
+	}
+	break;
+
+      case NSDownloadsDirectory:
+	{
+	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Downloads");
+	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"Downloads");
+	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"Downloads");
+	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"Downloads");
 	}
 	break;
 

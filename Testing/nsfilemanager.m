@@ -79,6 +79,16 @@ main ()
 
     }
 
+  {
+    NSDictionary *attributes = [mgr fileSystemAttributesAtPath: @"/"]; 
+    NSNumber *freefs = [attributes objectForKey: NSFileSystemFreeSize]; 
+    unsigned long long  s = [freefs unsignedLongLongValue];
+
+    NSLog(@"Filesystem free size is %llu", s);
+  }
+
+  NSLog(@"Home directory is %@", NSHomeDirectory());
+
   RELEASE(arp);
   if (errors == 0)
     printf("Tests passed\n");

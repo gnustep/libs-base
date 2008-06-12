@@ -51,7 +51,17 @@ extern "C" {
 @end
 
 @interface NSArray (NSPredicate)
+/** Evaluate each object in the array using the specified predicate and
+ * return an array containing all the objects which evaluate to YES.
+ */
 - (NSArray *) filteredArrayUsingPredicate: (NSPredicate *)predicate;
+@end
+
+@interface NSMutableArray (NSPredicate)
+/** Evaluate each object in the array using the specified predicate and
+ * remove each objects which evaluates to NO.
+ */
+- (void) filterUsingPredicate: (NSPredicate *)predicate;
 @end
 
 #if	defined(__cplusplus)

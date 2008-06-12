@@ -1525,6 +1525,7 @@ failure:
 
   if ([coder allowsKeyedCoding])
     {
+      // FIXME
       obj = [coder decodeObject];
     }
   else
@@ -1539,6 +1540,19 @@ failure:
   return self;
 }
 
+- (BOOL) writeToFile: (NSString *)path
+             options: (NSUInteger)writeOptionsMask
+               error: (NSError **)errorPtr
+{
+  return NO;
+}
+
+- (BOOL) writeToURL: (NSURL *)url
+            options: (NSUInteger)writeOptionsMask
+              error: (NSError **)errorPtr
+{
+  return NO;
+}
 @end
 
 /**
@@ -1776,13 +1790,22 @@ failure:
   unsigned	length = [self length];
   void		*bytes = [self mutableBytes];
 
-  [aCoder encodeValueOfObjCType: @encode(unsigned int)
-			     at: &length];
-  if (length)
+  if ([aCoder allowsKeyedCoding])
     {
-      [aCoder encodeArrayOfObjCType: @encode(unsigned char)
-			      count: length
-				 at: bytes];
+      [aCoder encodeBytes: bytes
+                  length: length
+                  forKey:@"NS.data"]; 
+    }
+  else
+    {  
+      [aCoder encodeValueOfObjCType: @encode(unsigned int)
+              at: &length];
+      if (length)
+        {
+          [aCoder encodeArrayOfObjCType: @encode(unsigned char)
+                  count: length
+                  at: bytes];
+        }
     }
 }
 
@@ -1800,31 +1823,44 @@ failure:
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned	l;
-  NSZone	*zone;
 
-#if	GS_WITH_GC
-  zone = GSAtomicMallocZone();
-#else
-  zone = [self zone];
-#endif
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &l];
-  if (l)
+  if ([aCoder allowsKeyedCoding])
     {
-      void	*b = NSZoneMalloc(zone, l);
+      const uint8_t *data;
 
-      if (b == 0)
-	{
-	  NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %lu bytes", l);
-	  RELEASE(self);
-	  return nil;
-        }
-      [aCoder decodeArrayOfObjCType: @encode(unsigned char) count: l at: b];
-      self = [self initWithBytesNoCopy: b length: l];
+      data = [aCoder decodeBytesForKey: @"NS.data"
+                       returnedLength: &l]; 
+      self = [self initWithBytes: data length: l];
     }
   else
-    {
-      self = [self initWithBytesNoCopy: 0 length: 0];
+    {  
+      [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &l];
+      if (l)
+        {
+          void *b;
+          NSZone	*zone;
+          
+#if	GS_WITH_GC
+          zone = GSAtomicMallocZone();
+#else
+          zone = [self zone];
+#endif
+          
+          b = NSZoneMalloc(zone, l);
+          
+          if (b == 0)
+            {
+              NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %lu bytes", l);
+              RELEASE(self);
+              return nil;
+            }
+          [aCoder decodeArrayOfObjCType: @encode(unsigned char) count: l at: b];
+          self = [self initWithBytesNoCopy: b length: l];
+        }
+      else
+        {
+          self = [self initWithBytesNoCopy: 0 length: 0];
+        }
     }
   return self;
 }

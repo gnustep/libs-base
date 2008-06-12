@@ -38,11 +38,6 @@
 #include <mach.h>
 #endif
 
-#if __linux__
-#include <linux/kernel.h>
-#include <linux/sys.h>
-#endif
-
 #ifdef __CYGWIN__
 #include <malloc.h>
 #endif

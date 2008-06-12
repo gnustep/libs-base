@@ -28,15 +28,16 @@
 
 #ifndef __GSMime_h_GNUSTEP_BASE_INCLUDE
 #define __GSMime_h_GNUSTEP_BASE_INCLUDE
-#include <GNUstepBase/GSVersionMacros.h>
+#import <GNUstepBase/GSVersionMacros.h>
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #ifdef NeXT_Foundation_LIBRARY
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #else
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSString.h>
+#import	<Foundation/NSObject.h>
+#import	<Foundation/NSString.h>
+#import	<Foundation/NSMapTable.h>
 #endif
 
 #if	defined(__cplusplus)
@@ -71,22 +72,27 @@ extern "C" {
   NSString              *name;
   NSString              *value;
   NSMutableDictionary   *objects;
-  NSMutableDictionary   *params;
+  NSMutableDictionary	*params;
 }
 + (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag;
++ (NSString*) makeToken: (NSString*)t preservingCase: (BOOL)preserve;
 + (NSString*) makeToken: (NSString*)t;
 - (id) copyWithZone: (NSZone*)z;
+- (NSString*) fullValue;
 - (id) initWithName: (NSString*)n
 	      value: (NSString*)v;
 - (id) initWithName: (NSString*)n
 	      value: (NSString*)v
 	 parameters: (NSDictionary*)p;
 - (NSString*) name;
+- (NSString*) namePreservingCase: (BOOL)preserve;
 - (id) objectForKey: (NSString*)k;
 - (NSDictionary*) objects;
 - (NSString*) parameterForKey: (NSString*)k;
 - (NSDictionary*) parameters;
+- (NSDictionary*) parametersPreservingCase: (BOOL)preserve;
 - (NSMutableData*) rawMimeData;
+- (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve;
 - (void) setName: (NSString*)s;
 - (void) setObject: (id)o  forKey: (NSString*)k;
 - (void) setParameter: (NSString*)v forKey: (NSString*)k;
@@ -220,6 +226,7 @@ extern "C" {
 - (BOOL) isInHeaders;
 - (GSMimeDocument*) mimeDocument;
 - (BOOL) parse: (NSData*)d;
+- (BOOL) parseHeaders: (NSData*)d remaining: (NSData**)body;
 - (BOOL) parseHeader: (NSString*)aHeader;
 - (BOOL) scanHeaderBody: (NSScanner*)scanner into: (GSMimeHeader*)info;
 - (NSString*) scanName: (NSScanner*)scanner;
@@ -228,7 +235,6 @@ extern "C" {
 - (NSString*) scanToken: (NSScanner*)scanner;
 - (void) setBuggyQuotes: (BOOL)flag;
 - (void) setDefaultCharset: (NSString*)aName;
-
 - (void) setIsHttp;
 @end
 

@@ -1,4 +1,4 @@
-/** Additional functions for GNUStep
+/** Additional functions and macros for GNUStep
    Copyright (C) 2005 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
@@ -26,24 +26,36 @@
 
 #ifndef __GSFunctions_h_GNUSTEP_BASE_INCLUDE
 #define __GSFunctions_h_GNUSTEP_BASE_INCLUDE
-#include "GNUstepBase/GSVersionMacros.h"
+#include "GNUstepBase/GNUstep.h"
 
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSObjCRuntime.h"
-#include "GNUstepBase/GNUstep.h"
-
-#warning "deprecated header ... will be removed in a later release"
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+
+#define GSLocalizedStringFromTableInFramework(key, tbl, fpth, comment) \
+  [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" \
+  table: [bundle pathForGNUstepResource:(tbl) ofType: nil inDirectory: (fpth)]
+
+  /* Now Support for Quick Localization */
+
+  /* The quickest possible way to localize a string:
+    
+     NSLog (_(@"New Game"));
+    
+     Please make use of the longer functions taking a comment when you
+     get the time to localize seriously your code.
+  */
 
 #if	GS_API_VERSION(GS_API_NONE,011500)
 @class	NSArray;
 @class	NSString;
 /** 
  * Try to locate file/directory (aName).(anExtension) in paths.
- * Will return the first found or nil if nothing is found.
+ * Will return the first found or nil if nothing is found.<br />
+ * Deprecated ... may be removed in later release.
  */
 GS_EXPORT NSString *GSFindNamedFile(NSArray *paths, NSString *aName,
   NSString *anExtension);

@@ -66,8 +66,4 @@ typedef struct{
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;
 @end
 
-@interface	NSRunLoop (Housekeeper)
-- (void) _setHousekeeper: (NSTimer*)timer;
-@end
-
 #endif /* __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE */

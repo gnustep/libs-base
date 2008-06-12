@@ -22,7 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
+#import "GSURLPrivate.h"
 
 // FIXME ... locking and disk storage needed
 typedef struct {

@@ -23,32 +23,33 @@
 
    */
 
-#include "config.h"
+#import "config.h"
 #include <string.h>
 #include <limits.h>
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSMime.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSMime.h"
 
-#include "Foundation/NSArray.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPropertyList.h"
-#include "Foundation/NSSerialization.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSNull.h"
-#include "Foundation/NSXMLParser.h"
-#include "GNUstepBase/Unicode.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPropertyList.h"
+#import "Foundation/NSSerialization.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSXMLParser.h"
+#import "GNUstepBase/Unicode.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 @class  GSSloppyXMLParser;
 
@@ -402,49 +403,99 @@ static id	(*plAdd)(id, SEL, id) = 0;
 static Class	plDictionary;
 static id	(*plSet)(id, SEL, id, id) = 0;
 
+/* Bitmap of 'quotable' characters ... those characters which must be
+ * inside a quoted string if written to an old style property list.
+ */
+static const unsigned char quotables[32] = {
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\x85',
+  '\x13',
+  '\x00',
+  '\x78',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x38',
+  '\x01',
+  '\x00',
+  '\x00',
+  '\xa8',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+  '\xff',
+};
+
+/* Bitmap of characters considered white space if in an old style property
+ * list. This is the same as the set given by the isspace() function in the
+ * POSIX locale, but (for cross-locale portability of property list files)
+ * is fixed, rather than locale dependent.
+ */
+static const unsigned char whitespace[32] = {
+  '\x00',
+  '\x3f',
+  '\x00',
+  '\x00',
+  '\x01',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+  '\x00',
+};
 
 #define IS_BIT_SET(a,i) ((((a) & (1<<(i)))) > 0)
 
-static unsigned const char *hexdigitsBitmapRep = NULL;
-#define GS_IS_HEXDIGIT(X) IS_BIT_SET(hexdigitsBitmapRep[(X)/8], (X) % 8)
+#define GS_IS_QUOTABLE(X) IS_BIT_SET(quotables[(X)/8], (X) % 8)
 
-static void setupHexdigits(void)
-{
-  if (hexdigitsBitmapRep == NULL)
-    {
-      NSCharacterSet *hexdigits;
-      NSData *bitmap;
+#define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespace[(X)/8], (X) % 8)
 
-      hexdigits = [NSCharacterSet characterSetWithCharactersInString:
-	@"0123456789abcdefABCDEF"];
-      bitmap = RETAIN([hexdigits bitmapRepresentation]);
-      hexdigitsBitmapRep = [bitmap bytes];
-    }
-}
-
-static NSCharacterSet *quotables = nil;
 static NSCharacterSet *oldQuotables = nil;
 static NSCharacterSet *xmlQuotables = nil;
 
-static unsigned const char *quotablesBitmapRep = NULL;
-#define GS_IS_QUOTABLE(X) IS_BIT_SET(quotablesBitmapRep[(X)/8], (X) % 8)
-
 static void setupQuotables(void)
 {
-  if (quotablesBitmapRep == NULL)
+  if (oldQuotables == nil)
     {
       NSMutableCharacterSet	*s;
-      NSData			*bitmap;
 
-      s = [[NSCharacterSet characterSetWithCharactersInString:
-	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	@"abcdefghijklmnopqrstuvwxyz!#$%&*+-./:?@|~_^"]
-	mutableCopy];
-      [s invert];
-      quotables = [s copy];
-      RELEASE(s);
-      bitmap = RETAIN([quotables bitmapRepresentation]);
-      quotablesBitmapRep = [bitmap bytes];
       s = [[NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	@"abcdefghijklmnopqrstuvwxyz$./_"]
@@ -465,31 +516,8 @@ static void setupQuotables(void)
     }
 }
 
-static unsigned const char *whitespaceBitmapRep = NULL;
-#define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespaceBitmapRep[(X)/8], (X) % 8)
-
-static void setupWhitespace(void)
-{
-  if (whitespaceBitmapRep == NULL)
-    {
-      NSCharacterSet *whitespace;
-      NSData *bitmap;
-
-/*
-  We can not use whitespaceAndNewlineCharacterSet here as this would lead
-  to a recursion, as this also reads in a property list.
-      whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-*/
-      whitespace = [NSCharacterSet characterSetWithCharactersInString:
-				    @" \t\r\n\f\b"];
-
-      bitmap = RETAIN([whitespace bitmapRepresentation]);
-      whitespaceBitmapRep = [bitmap bytes];
-    }
-}
-
 #ifdef	HAVE_LIBXML
-#include	"GNUstepBase/GSXML.h"
+#import	"GNUstepBase/GSXML.h"
 static int      XML_ELEMENT_NODE;
 #endif
 
@@ -619,7 +647,7 @@ static inline id parseQuotedString(pldata* pld)
 	    }
 	  else if (escaped > 1)
 	    {
-	      if (hex && GS_IS_HEXDIGIT(c))
+	      if (hex && isxdigit(c))
 		{
 		  shrink++;
 		  escaped++;
@@ -713,7 +741,7 @@ static inline id parseQuotedString(pldata* pld)
 		}
 	      else if (escaped > 1)
 		{
-		  if (hex && GS_IS_HEXDIGIT(c))
+		  if (hex && isxdigit(c))
 		    {
 		      chars[k] <<= 4;
 		      chars[k] |= char2num(c);
@@ -1088,8 +1116,8 @@ static id parsePlItem(pldata* pld)
 	    data = [[NSMutableData alloc] initWithCapacity: 0];
 	    skipSpace(pld);
 	    while (pld->pos < max
-	      && GS_IS_HEXDIGIT(pld->ptr[pld->pos])
-	      && GS_IS_HEXDIGIT(pld->ptr[pld->pos+1]))
+	      && isxdigit(pld->ptr[pld->pos])
+	      && isxdigit(pld->ptr[pld->pos+1]))
 	      {
 		unsigned char	byte;
 
@@ -2400,10 +2428,7 @@ static BOOL	classInitialized = NO;
       plSet = (id (*)(id, SEL, id, id))
 	[plDictionary instanceMethodForSelector: @selector(setObject:forKey:)];
 
-      setupHexdigits();
       setupQuotables();
-      setupWhitespace();
-
     }
 }
 

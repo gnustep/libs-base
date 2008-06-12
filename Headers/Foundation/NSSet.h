@@ -78,6 +78,11 @@ extern "C" {
 - (id) member: (id)anObject;
 - (NSEnumerator*) objectEnumerator;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+- (NSSet *) setByAddingObject: (id)anObject;
+- (NSSet *) setByAddingObjectsFromSet: (NSSet *)other;
+- (NSSet *) setByAddingObjectsFromArray: (NSArray *)other;
+#endif
 @end
 
 @interface NSMutableSet: NSSet

@@ -34,6 +34,8 @@
 #include <Foundation/Foundation.h>
 #endif
 
+#include "GNUstepBase/GSObjCRuntime.h"
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -53,6 +55,11 @@ extern "C" {
 }
 - (void) _becomeThreaded: (NSNotification*)n;
 @end
+
+/** Global lock to be used by classes when operating on any global
+    data that invoke other methods which also access global; thus,
+    creating the potential for deadlock. */
+GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 #if	defined(__cplusplus)
 }

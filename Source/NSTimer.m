@@ -99,6 +99,10 @@ static Class	NSDate_class;
   _selector = selector;
   _info = RETAIN(info);
   _repeats = f;
+  if (_repeats == NO)
+    {
+      _interval = 0.0;
+    }
   return self;
 }
 
@@ -192,6 +196,14 @@ static Class	NSDate_class;
     {
       [self invalidate];
     }
+  if (_target != nil)
+    {
+      DESTROY(_target);
+    }
+  if (_info != nil)
+    {
+      DESTROY(_info);
+    }
   RELEASE(_date);
   [super dealloc];
 }
@@ -239,28 +251,6 @@ static Class	NSDate_class;
     {
       [self invalidate];
     }
-  else if (_invalidated == NO)
-    {
-      extern NSTimeInterval GSTimeNow();
-      NSTimeInterval	now = GSTimeNow();
-      NSTimeInterval	nxt = [_date timeIntervalSinceReferenceDate];
-      int		inc = -1;
-
-      while (nxt <= now)		// xxx remove this
-	{
-	  inc++;
-	  nxt += _interval;
-	}
-#ifdef	LOG_MISSED
-      if (inc > 0)
-	{
-	  NSLog(@"Missed %d timeouts at %f second intervals", inc, _interval);
-	}
-#endif
-      RELEASE(_date);
-      _date = [[NSDate_class allocWithZone: NSDefaultMallocZone()]
-	initWithTimeIntervalSinceReferenceDate: nxt];
-    }
 }
 
 /**
@@ -271,14 +261,6 @@ static Class	NSDate_class;
  */
 - (void) invalidate
 {
-  if (_target != nil)
-    {
-      DESTROY(_target);
-    }
-  if (_info != nil)
-    {
-      DESTROY(_info);
-    }
   /* OPENSTEP allows this method to be called multiple times. */
   //NSAssert(_invalidated == NO, NSInternalInconsistencyException);
   _invalidated = YES;
@@ -320,7 +302,8 @@ static Class	NSDate_class;
 }
 
 /**
- * Returns the interval between firings.
+ * Returns the interval between firings, or zero if the timer
+ * does not repeat.
  */
 - (NSTimeInterval) timeInterval
 {

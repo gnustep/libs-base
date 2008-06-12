@@ -22,11 +22,11 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 */
-#include "config.h"
-#include "GNUstepBase/GSLocale.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSLock.h"
+#import "config.h"
+#import "GNUstepBase/GSLocale.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSLock.h"
 
 #ifdef HAVE_LOCALE_H
 
@@ -34,10 +34,10 @@
 #ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
 #endif
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSBundle.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSBundle.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 /*
  * Function called by [NSObject +initialize] to setup locale information
@@ -107,6 +107,11 @@ GSDomainFromDefaultLocale(void)
     return saved;
 
   dict = [NSMutableDictionary dictionary];
+
+  /* Protect locale access with locks to prevent multiple threads using
+   * it and interfering with the buffer.
+   */
+  [gnustep_global_lock lock];
 
 #ifdef HAVE_LANGINFO_H
   /* Time/Date Information */
@@ -189,7 +194,6 @@ GSDomainFromDefaultLocale(void)
 	       forKey: NSThousandsSeparator];
     }
 
-
   /* FIXME: Get currency format from localeconv */
 
 #ifdef	LC_MESSAGES
@@ -199,7 +203,7 @@ GSDomainFromDefaultLocale(void)
 #endif
   if (str1 != nil)
     {
-      [dict setObject: str1 forKey: NSLocale];
+      [dict setObject: str1 forKey: GSLocale];
     }
   str2 = GSLanguageFromLocale(str1);
   if (str2 != nil)
@@ -207,7 +211,6 @@ GSDomainFromDefaultLocale(void)
       [dict setObject: str2 forKey: NSLanguageName];
     }
 
-  [gnustep_global_lock lock];
   /*
    * Another thread might have been faster in setting the static variable.
    * If so, we just drop our dict.

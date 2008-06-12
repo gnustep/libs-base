@@ -27,14 +27,17 @@
 
 #ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
 #define __NSObject_h_GNUSTEP_BASE_INCLUDE
-#import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObjCRuntime.h>
-#import	<GNUstepBase/preface.h>
-#include <GNUstepBase/GSConfig.h>
-#include <objc/objc.h>
-#include <objc/typedstream.h>
+#import <objc/objc.h>
+#import <objc/typedstream.h>
 #import	<Foundation/NSZone.h>
+
+#ifndef	GS_WITH_GC
+#define	GS_WITH_GC	0
+#endif
+
+#import	<GNUstepBase/GNUstep.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -291,17 +294,18 @@ enum {NSNotFound = 0x7fffffff};
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
+/** Global lock to be used by classes when operating on any global
+    data that invoke other methods which also access global; thus,
+    creating the potential for deadlock. */
+GS_EXPORT NSRecursiveLock *gnustep_global_lock;
+
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
 /* - (const char *) name;
    Removed because OpenStep has -(NSString*)name; */
 @end
 
-/** Global lock to be used by classes when operating on any global
-    data that invoke other methods which also access global; thus,
-    creating the potential for deadlock. */
-GS_EXPORT NSRecursiveLock *gnustep_global_lock;
-
+#if GS_API_VERSION(GS_API_NONE, 011700)
 @interface NSObject (GNUstep)
 - (BOOL) isInstance;
 - (id) makeImmutableCopyOnFail: (BOOL)force;
@@ -312,6 +316,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - (id) read: (TypedStream*)aStream;
 - (id) write: (TypedStream*)aStream;
 @end
+#endif
 
 /**
  * Provides a number of GNUstep-specific methods that are used to aid
@@ -411,190 +416,6 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 	      afterDelay: (NSTimeInterval)seconds
 		 inModes: (NSArray*)modes;
 @end
-
-/*
- *	RETAIN(), RELEASE(), and AUTORELEASE() are placeholders for the
- *	future day when we have garbage collecting.
- */
-#ifndef	GS_WITH_GC
-#define	GS_WITH_GC	0
-#endif
-#if	GS_WITH_GC
-
-#ifndef	RETAIN
-#define	RETAIN(object)		((id)object)
-#endif
-#ifndef	RELEASE
-#define	RELEASE(object)		
-#endif
-#ifndef	AUTORELEASE
-#define	AUTORELEASE(object)	((id)object)
-#endif
-
-#ifndef	TEST_RETAIN
-#define	TEST_RETAIN(object)	((id)object)
-#endif
-#ifndef	TEST_RELEASE
-#define	TEST_RELEASE(object)
-#endif
-#ifndef	TEST_AUTORELEASE
-#define	TEST_AUTORELEASE(object)	((id)object)
-#endif
-
-#ifndef	ASSIGN
-#define	ASSIGN(object,value)	(object = value)
-#endif
-#ifndef	ASSIGNCOPY
-#define	ASSIGNCOPY(object,value)	(object = [value copy])
-#endif
-#ifndef	DESTROY
-#define	DESTROY(object) 	(object = nil)
-#endif
-
-#ifndef	CREATE_AUTORELEASE_POOL
-#define	CREATE_AUTORELEASE_POOL(X)	
-#endif
-
-#ifndef RECREATE_AUTORELEASE_POOL
-#define RECREATE_AUTORELEASE_POOL(X)
-#endif
-
-#define	IF_NO_GC(X)	
-
-#else
-
-#ifndef	RETAIN
-/**
- *	Basic retain operation ... calls [NSObject-retain]
- */
-#define	RETAIN(object)		[object retain]
-#endif
-
-#ifndef	RELEASE
-/**
- *	Basic release operation ... calls [NSObject-release]
- */
-#define	RELEASE(object)		[object release]
-#endif
-
-#ifndef	AUTORELEASE
-/**
- *	Basic autorelease operation ... calls [NSObject-autorelease]
- */
-#define	AUTORELEASE(object)	[object autorelease]
-#endif
-
-#ifndef	TEST_RETAIN
-/**
- *	Tested retain - only invoke the
- *	objective-c method if the receiver is not nil.
- */
-#define	TEST_RETAIN(object)	({\
-id __object = (id)(object); (__object != nil) ? [__object retain] : nil; })
-#endif
-#ifndef	TEST_RELEASE
-/**
- *	Tested release - only invoke the
- *	objective-c method if the receiver is not nil.
- */
-#define	TEST_RELEASE(object)	({\
-id __object = (id)(object); if (__object != nil) [__object release]; })
-#endif
-#ifndef	TEST_AUTORELEASE
-/**
- *	Tested autorelease - only invoke the
- *	objective-c method if the receiver is not nil.
- */
-#define	TEST_AUTORELEASE(object)	({\
-id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
-#endif
-
-#ifndef	ASSIGN
-/**
- *	ASSIGN(object,value) assigns the value to the object with
- *	appropriate retain and release operations.
- */
-#define	ASSIGN(object,value)	({\
-id __value = (id)(value); \
-id __object = (id)(object); \
-if (__value != __object) \
-  { \
-    if (__value != nil) \
-      { \
-	[__value retain]; \
-      } \
-    object = __value; \
-    if (__object != nil) \
-      { \
-	[__object release]; \
-      } \
-  } \
-})
-#endif
-
-#ifndef	ASSIGNCOPY
-/**
- *	ASSIGNCOPY(object,value) assigns a copy of the value to the object
- *	with release of the original.
- */
-#define	ASSIGNCOPY(object,value)	({\
-id __value = (id)(value); \
-id __object = (id)(object); \
-if (__value != __object) \
-  { \
-    if (__value != nil) \
-      { \
-	__value = [__value copy]; \
-      } \
-    object = __value; \
-    if (__object != nil) \
-      { \
-	[__object release]; \
-      } \
-  } \
-})
-#endif
-
-#ifndef	DESTROY
-/**
- *	DESTROY() is a release operation which also sets the variable to be
- *	a nil pointer for tidiness - we can't accidentally use a DESTROYED
- *	object later.  It also makes sure to set the variable to nil before
- *	releasing the object - to avoid side-effects of the release trying
- *	to reference the object being released through the variable.
- */
-#define	DESTROY(object) 	({ \
-  if (object) \
-    { \
-      id __o = object; \
-      object = nil; \
-      [__o release]; \
-    } \
-})
-#endif
-
-#ifndef	CREATE_AUTORELEASE_POOL
-/**
- * Declares an autorelease pool variable and creates and initialises
- * an autorelease pool object.
- */
-#define	CREATE_AUTORELEASE_POOL(X)	\
-  NSAutoreleasePool *(X) = [NSAutoreleasePool new]
-#endif
-
-#ifndef RECREATE_AUTORELEASE_POOL
-/**
- * Similar, but allows reuse of variables. Be sure to use DESTROY()
- * so the object variable stays nil.
- */
-#define RECREATE_AUTORELEASE_POOL(X)  \
-  if (X == nil) \
-    (X) = [NSAutoreleasePool new]
-#endif
-
-#define	IF_NO_GC(X)	X
-
-#endif
 
 #if	defined(__cplusplus)
 }

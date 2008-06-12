@@ -22,7 +22,8 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>GSObjCRuntime function and macro reference</title>
    $Date$ $Revision$
@@ -50,6 +51,8 @@
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
 #include "GNUstepBase/GSCategories.h"
+
+#include "../GSPrivate.h"
 
 #include <objc/Protocol.h>
 
@@ -975,7 +978,7 @@ GSMethodFromList(GSMethodList list,
       /* For the GNU runtime we have use strcmp instead of sel_eq
 	 for free standing method lists.  */
       if ((isFree == YES && strcmp((char *)method_name, (char *)sel) == 0)
-          || (isFree == NO && sel_eq(method_name, sel)))
+        || (isFree == NO && sel_eq(method_name, sel)))
 	{
 	  return method;
 	}
@@ -1757,6 +1760,82 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
             val = nil;
             break;
 
+          case _C_STRUCT_B:
+            if (strcmp(@encode(NSPoint), type) == 0)
+              {
+                NSPoint	v;
+
+                if (sel == 0)
+                  {
+                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
+                  }
+                else
+                  {
+                    NSPoint	(*imp)(id, SEL) =
+                      (NSPoint (*)(id, SEL))[self methodForSelector: sel];
+
+                    v = (*imp)(self, sel);
+                  }
+                val = [NSValue valueWithPoint: v];
+              }
+            else if (strcmp(@encode(NSRange), type) == 0)
+              {
+                NSRange	v;
+
+                if (sel == 0)
+                  {
+                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
+                  }
+                else
+                  {
+                    NSRange	(*imp)(id, SEL) =
+                      (NSRange (*)(id, SEL))[self methodForSelector: sel];
+
+                    v = (*imp)(self, sel);
+                  }
+                val = [NSValue valueWithRange: v];
+              }
+            else if (strcmp(@encode(NSRect), type) == 0)
+              {
+                NSRect	v;
+
+                if (sel == 0)
+                  {
+                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
+                  }
+                else
+                  {
+                    NSRect	(*imp)(id, SEL) =
+                      (NSRect (*)(id, SEL))[self methodForSelector: sel];
+
+                    v = (*imp)(self, sel);
+                  }
+                val = [NSValue valueWithRect: v];
+              }
+            else if (strcmp(@encode(NSSize), type) == 0)
+              {
+                NSSize	v;
+
+                if (sel == 0)
+                  {
+                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
+                  }
+                else
+                  {
+                    NSSize	(*imp)(id, SEL) =
+                      (NSSize (*)(id, SEL))[self methodForSelector: sel];
+
+                    v = (*imp)(self, sel);
+                  }
+                val = [NSValue valueWithSize: v];
+              }
+            else
+              {
+                [NSException raise: NSInvalidArgumentException
+                            format: @"key-value get method unsupported struct"];
+              }
+            break;
+
 	  default:
 	    [NSException raise: NSInvalidArgumentException
 			format: @"key-value get method has unsupported type"];
@@ -1764,6 +1843,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
       return val;
     }
 }
+
 /**
  * Calls GSObjCGetVal()
  */
@@ -2090,12 +2170,93 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
 	    }
 	    break;
 
+          case _C_STRUCT_B:
+            if (strcmp(@encode(NSPoint), type) == 0)
+              {
+                NSPoint	v = [val pointValue];
+
+                if (sel == 0)
+                  {
+                    NSPoint *ptr = (NSPoint*)((char *)self + offset);
+
+                    *ptr = v;
+                  }
+                else
+                  {
+                    void	(*imp)(id, SEL, NSPoint) =
+                      (void (*)(id, SEL, NSPoint))[self methodForSelector: sel];
+
+                    (*imp)(self, sel, v);
+                  }
+              }
+            else if (strcmp(@encode(NSRange), type) == 0)
+              {
+                NSRange	v = [val rangeValue];
+
+                if (sel == 0)
+                  {
+                    NSRange *ptr = (NSRange*)((char *)self + offset);
+
+                    *ptr = v;
+                  }
+                else
+                  {
+                    void	(*imp)(id, SEL, NSRange) =
+                      (void (*)(id, SEL, NSRange))[self methodForSelector: sel];
+
+                    (*imp)(self, sel, v);
+                  }
+              }
+            else if (strcmp(@encode(NSRect), type) == 0)
+              {
+                NSRect	v = [val rectValue];
+
+                if (sel == 0)
+                  {
+                    NSRect *ptr = (NSRect*)((char *)self + offset);
+
+                    *ptr = v;
+                  }
+                else
+                  {
+                    void	(*imp)(id, SEL, NSRect) =
+                      (void (*)(id, SEL, NSRect))[self methodForSelector: sel];
+
+                    (*imp)(self, sel, v);
+                  }
+              }
+            else if (strcmp(@encode(NSSize), type) == 0)
+              {
+                NSSize	v = [val sizeValue];
+
+                if (sel == 0)
+                  {
+                    NSSize *ptr = (NSSize*)((char *)self + offset);
+
+                    *ptr = v;
+                  }
+                else
+                  {
+                    void	(*imp)(id, SEL, NSSize) =
+                      (void (*)(id, SEL, NSSize))[self methodForSelector: sel];
+
+                    (*imp)(self, sel, v);
+                  }
+              }
+            else
+              {
+                [NSException raise: NSInvalidArgumentException
+                            format: @"key-value set method unsupported struct"];
+              }
+            break;
+
 	  default:
 	    [NSException raise: NSInvalidArgumentException
 			format: @"key-value set method has unsupported type"];
 	}
     }
 }
+
 /**
  * Calls GSObjCSetVal()
  */
@@ -2203,52 +2364,12 @@ GSAutoreleasedBuffer(unsigned size)
 
 
 /*
- * Getting a system error message on a variety of systems.
- * Currently 8bit string ... perhaps we should move to unicode.
+ * Deprecated function.
  */
-#ifdef __MINGW32__
-
-const char *GetErrorMsg(DWORD msgId)
-{
-  void	*lpMsgBuf = 0;
-
-  FormatMessageA(
-    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
-    | FORMAT_MESSAGE_IGNORE_INSERTS,
-    NULL,
-    msgId,
-    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-    (LPSTR)&lpMsgBuf,
-    (DWORD)0,
-    NULL);
-
-  return (const char*)lpMsgBuf;
-}
-#else
-#ifndef HAVE_STRERROR
-const char *
-strerror(int eno)
-{
-  extern char  *sys_errlist[];
-  extern int    sys_nerr;
-
-  if (eno < 0 || eno >= sys_nerr)
-    {
-      return("unknown error number");
-    }
-  return(sys_errlist[eno]);
-}
-#endif
-#endif /* __MINGW32__ */
-
 const char *
 GSLastErrorStr(long error_id)
 {
-#ifdef __MINGW32__
-  return GetErrorMsg(GetLastError());
-#else
-  return strerror(error_id);
-#endif
+  return [[[NSError _last] localizedDescription] cString];
 }
 
 

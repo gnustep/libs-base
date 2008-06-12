@@ -92,7 +92,7 @@ extern "C" {
 		      intoData: (NSMutableData*)d;
 @end
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if GS_API_VERSION(GS_API_NONE, 011700)
 /**
  *	GNUstep extends serialization by having the option to make the
  *	resulting data more compact by ensuring that repeated strings

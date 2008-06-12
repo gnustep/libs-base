@@ -260,15 +260,16 @@ NSString *
 GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {
   unichar buf[MAX_PATH];
+  NSString *s = nil;
   MEMORY_BASIC_INFORMATION memInfo;
   NSCAssert(!theCategory, @"GSPrivateSymbolPath doesn't support categories");
 
   VirtualQueryEx(GetCurrentProcess(), theClass, &memInfo, sizeof(memInfo));
   if (GetModuleFileNameW(memInfo.AllocationBase, buf, sizeof(buf)))
     {
-      return [NSString stringWithCharacters: buf length: wcslen(buf)];
+      s = [NSString stringWithCharacters: buf length: wcslen(buf)];
     }
-  return 0;
+  return s;
 }
 #else
 NSString *

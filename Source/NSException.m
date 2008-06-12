@@ -24,54 +24,28 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSBundle.h>
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSNull.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDictionary.h"
+#import "config.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/preface.h"
+#import <Foundation/NSDebug.h>
+#import <Foundation/NSBundle.h>
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSValue.h"
 #include <stdio.h>
 
-#if	defined(__MINGW32__)
-static NSString *
-GSPrivateBaseAddress(void *addr, void **base)
-{
-  return nil;
-}
-#else	/* __MINGW32__ */
 
-#ifndef GNU_SOURCE
-#define GNU_SOURCE
-#endif
-#ifndef __USE_GNU
-#define __USE_GNU
-#endif
-#include <dlfcn.h>
+#define _e_info (((id*)_reserved)[0])
+#define _e_stack (((id*)_reserved)[1])
 
-static NSString *
-GSPrivateBaseAddress(void *addr, void **base)
-{
-#ifdef HAVE_DLADDR
-  Dl_info     info;
-
-  if (!dladdr(addr, &info))
-    return nil;
-
-  *base = info.dli_fbase;
-
-  return [NSString stringWithUTF8String: info.dli_fname];
-#else
-  return nil;
-#endif
-}
-#endif	/* __MINGW32__ */
-
+typedef struct { @defs(NSThread) } *TInfo;
 
 /* This is the GNU name for the CTOR list */
 
@@ -83,8 +57,10 @@ GSPrivateBaseAddress(void *addr, void **base)
 
 - (NSString*) description;
 - (NSEnumerator*) enumerator;
+- (NSMutableArray*) frames;
 - (id) frameAt: (unsigned)index;
 - (unsigned) frameCount;
+- (id) initWithAddresses: (NSArray*)stack;
 - (NSEnumerator*) reverseEnumerator;
 
 @end
@@ -109,6 +85,45 @@ GSPrivateBaseAddress(void *addr, void **base)
 #undef	STACKSYMBOLS
 #endif
 #endif
+
+
+#if	defined(__MINGW32__)
+#if	defined(STACKSYMBOLS)
+static NSString *
+GSPrivateBaseAddress(void *addr, void **base)
+{
+  return nil;
+}
+#endif  /* STACKSYMBOLS */
+#else	/* __MINGW32__ */
+
+#ifndef GNU_SOURCE
+#define GNU_SOURCE
+#endif
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
+#include <dlfcn.h>
+
+#if	defined(STACKSYMBOLS)
+static NSString *
+GSPrivateBaseAddress(void *addr, void **base)
+{
+#ifdef HAVE_DLADDR
+  Dl_info     info;
+
+  if (!dladdr(addr, &info))
+    return nil;
+
+  *base = info.dli_fbase;
+
+  return [NSString stringWithUTF8String: info.dli_fname];
+#else
+  return nil;
+#endif
+}
+#endif  /* STACKSYMBOLS */
+#endif	/* __MINGW32__ */
 
 #if	defined(STACKSYMBOLS)
 
@@ -167,12 +182,9 @@ GSPrivateBaseAddress(void *addr, void **base)
 
 - (oneway void) dealloc
 {
-  [_module release];
-  _module = nil;
-  [_fileName release];
-  _fileName = nil;
-  [_functionName release];
-  _functionName = nil;
+  DESTROY(_module);
+  DESTROY(_fileName);
+  DESTROY(_functionName);
   [super dealloc];
 }
 
@@ -204,10 +216,10 @@ GSPrivateBaseAddress(void *addr, void **base)
 	     function: (NSString*)function 
 		 line: (int)lineNo
 {
-  _module = [module retain];
+  _module = RETAIN(module);
   _address = address;
-  _fileName = [file retain];
-  _functionName = [function retain];
+  _fileName = [file copy];
+  _functionName = [function copy];
   _lineNo = lineNo;
 
   return self;
@@ -248,8 +260,7 @@ GSPrivateBaseAddress(void *addr, void **base)
 
 - (oneway void) dealloc
 {
-  [_fileName release];
-  _fileName = nil;
+  DESTROY(_fileName);
   if (_abfd)
     {
       bfd_close (_abfd);
@@ -413,7 +424,8 @@ static void find_address (bfd *abfd, asection *section,
 
 - (GSFunctionInfo *) functionForAddress: (void*) address
 {
-  struct SearchAddressStruct searchInfo = { address, self, _symbols, nil };
+  struct SearchAddressStruct searchInfo =
+    { address, self, _symbols, nil };
 
   bfd_map_over_sections (_abfd,
     (void (*) (bfd *, asection *, void *)) find_address, &searchInfo);
@@ -513,9 +525,7 @@ GSListModules()
 
 - (oneway void) dealloc
 {
-  [frames release];
-  frames = nil;
-
+  DESTROY(frames);
   [super dealloc];
 }
 
@@ -550,20 +560,32 @@ GSListModules()
   return [frames count];
 }
 
+- (NSMutableArray*) frames
+{
+  return frames;
+}
+
 // grab the current stack 
 - (id) init
+{
+  NSMutableArray        *stack = GSPrivateStackAddresses();
+
+  return [self initWithAddresses: stack];
+}
+
+- (id) initWithAddresses: (NSArray*)stack
 {
 #if	defined(STACKSYMBOLS)
   int i;
   int n;
 
-  frames = [[NSMutableArray alloc] init];
-  n = NSCountFrames();
+  n = [stack count];
+  frames = [[NSMutableArray alloc] initWithCapacity: n];
 
   for (i = 0; i < n; i++)
     {
       GSFunctionInfo	*aFrame = nil;
-      void		*address = NSReturnAddress(i);
+      void		*address = [[stack objectAtIndex: i] pointerValue];
       void		*base;
       NSString		*modulePath = GSPrivateBaseAddress(address, &base);
       GSBinaryFileInfo	*bfi;
@@ -620,18 +642,7 @@ GSListModules()
       [frames addObject: aFrame];
     }
 #else
-  int i;
-  int n;
-
-  frames = [[NSMutableArray alloc] init];
-  n = NSCountFrames();
-
-  for (i = 0; i < n; i++)
-    {
-      void		*address = NSReturnAddress(i);
-
-      [frames addObject: [NSString stringWithFormat: @"%p", address]];
-    }
+  frames = [stack copy];
 #endif
 
   return self;
@@ -645,8 +656,8 @@ GSListModules()
 @end
 
 
-
-
+NSString* const NSCharacterConversionException
+  = @"NSCharacterConversionException";
 
 NSString* const NSGenericException
   = @"NSGenericException";
@@ -660,16 +671,14 @@ NSString* const NSInvalidArgumentException
 NSString* const NSMallocException
   = @"NSMallocException";
 
-NSString* const NSRangeException
- = @"NSRangeException";
-
-NSString* const NSCharacterConversionException
-  = @"NSCharacterConversionException";
+NSString* const NSOldStyleException
+  = @"NSOldStyleException";
 
 NSString* const NSParseErrorException
   = @"NSParseErrorException";
 
-#include "GSPrivate.h"
+NSString* const NSRangeException
+ = @"NSRangeException";
 
 static void _terminate()
 {
@@ -694,19 +703,22 @@ static void _terminate()
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
-  NSString	*stack;
-
+  CREATE_AUTORELEASE_POOL(pool);
   fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
     GSPrivateArgZero(),
     [[exception name] lossyCString], [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
-  stack = [[[exception userInfo] objectForKey: @"GSStackTraceKey"] description];
-  if (stack != nil)
+  if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
     {
-      fprintf(stderr, "Stack\n%s\n", [stack lossyCString]);
+      id o = [exception callStackReturnAddresses];
+
+#if     defined(STACKSYMBOLS)
+      o = AUTORELEASE([[GSStackTrace alloc] initWithAddresses:  o]);
+#endif
+      fprintf(stderr, "Stack\n%s\n", [[o description] lossyCString]);
     }
   fflush(stderr);	/* NEEDED UNDER MINGW */
-
+  RELEASE(pool);
   _terminate();
 }
 
@@ -759,66 +771,73 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
   ASSIGN(_e_name, name);
   ASSIGN(_e_reason, reason);
-  ASSIGN(_e_info, userInfo);
+  if (userInfo != nil)
+    {
+      if (_reserved == 0)
+        {
+          _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
+        }
+      ASSIGN(_e_info, userInfo);
+    }
   return self;
+}
+
+- (NSArray*) callStackReturnAddresses
+{
+  if (_reserved == 0)
+    {
+      return nil;
+    }
+  return _e_stack;
 }
 
 - (void) dealloc
 {
   DESTROY(_e_name);
   DESTROY(_e_reason);
-  DESTROY(_e_info);
+  if (_reserved != 0)
+    {
+      DESTROY(_e_info);
+      DESTROY(_e_stack);
+      NSZoneFree([self zone], _reserved);
+      _reserved = 0;
+    }
   [super dealloc];
 }
 
 - (void) raise
 {
 #ifndef _NATIVE_OBJC_EXCEPTIONS
-  NSThread	*thread;
+  TInfo         thread;
   NSHandler	*handler;
 #endif
 
-#if	defined(DEBUG)
-  if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES
-    && [_e_info objectForKey: @"GSStackTraceKey"] == nil)
+  if (_reserved == 0)
     {
-      NSMutableDictionary	*m;
-
-      if (_e_info == nil)
-	{
-	  _e_info = m = [NSMutableDictionary new];
-	}
-      else if ([_e_info isKindOfClass: [NSMutableDictionary class]] == YES)
-        {
-	  m = (NSMutableDictionary*)_e_info;
-        }
-      else
-	{
-	  m = [_e_info mutableCopy];
-	  RELEASE(_e_info);
-	  _e_info = m;
-	}
-      [m setObject: [GSStackTrace currentStack] forKey: @"GSStackTraceKey"];
+      _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
+    }
+#if	defined(DEBUG)
+  if (_e_stack == nil)
+    {
+      ASSIGN(_e_stack, GSPrivateStackAddresses());
     }
 #endif
 
 #ifdef _NATIVE_OBJC_EXCEPTIONS
   @throw self;
 #else
-  thread = GSCurrentThread();
+  thread = (TInfo)GSCurrentThread();
   handler = thread->_exception_handler;
   if (handler == NULL)
     {
-      static	BOOL	recursion = NO;
+      static	int	recursion = 0;
 
       /*
-       * Set a flag to prevent recursive uncaught exceptions.
+       * Set/check a counter to prevent recursive uncaught exceptions.
+       * Allow a little recursion in case we have different handlers
+       * being tried.
        */
-      if (recursion == NO)
-	{
-	  recursion = YES;
-	}
-      else
+      if (recursion++ > 3)
 	{
 	  fprintf(stderr,
 	    "recursion encountered handling uncaught exception\n");
@@ -875,6 +894,10 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 - (NSDictionary*) userInfo
 {
+  if (_reserved == 0)
+    {
+      return nil;
+    }
   return _e_info;
 }
 
@@ -890,43 +913,91 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
+  id    info = (_reserved == 0) ? nil : _e_info;
+
   [aCoder encodeValueOfObjCType: @encode(id) at: &_e_name];
   [aCoder encodeValueOfObjCType: @encode(id) at: &_e_reason];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_e_info];
+  [aCoder encodeValueOfObjCType: @encode(id) at: &info];
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
+  id    info;
+
   [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_name];
   [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_reason];
-  [aDecoder decodeValueOfObjCType: @encode(id) at: &_e_info];
-  return self;
-}
-
-- (id) deepen
-{
-  _e_name = [_e_name copyWithZone: [self zone]];
-  _e_reason = [_e_reason copyWithZone: [self zone]];
-  _e_info = [_e_info copyWithZone: [self zone]];
+  [aDecoder decodeValueOfObjCType: @encode(id) at: &info];
+  if (info != nil)
+    {
+      if (_reserved == 0)
+        {
+          _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
+        }
+      _e_info = info;
+    }
   return self;
 }
 
 - (id) copyWithZone: (NSZone*)zone
 {
   if (NSShouldRetainWithZone(self, zone))
-    return RETAIN(self);
+    {
+      return RETAIN(self);
+    }
   else
-    return [(NSException*)NSCopyObject(self, 0, zone) deepen];
+    {
+      return [[[self class] alloc] initWithName: [self name]
+                                         reason: [self reason]
+                                       userInfo: [self userInfo]];
+    }
 }
 
 - (NSString*) description
 {
-  if (_e_info)
-    return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@ INFO:%@",
-	[super description], _e_name, _e_reason, _e_info];
+  CREATE_AUTORELEASE_POOL(pool);
+  NSString      *result;
+
+  if (_reserved != 0)
+    {
+      if (_e_stack != nil
+        && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
+        {
+          id    o = _e_stack;
+
+#if     defined(STACKSYMBOLS)
+          /* Convert stack information from an array of addresses
+           * to a stacktrace for display.
+           */
+          o = AUTORELEASE([[GSStackTrace alloc] initWithAddresses:  o]);
+#endif
+          if (_e_info != nil)
+            {
+              result = [NSString stringWithFormat:
+                @"%@ NAME:%@ REASON:%@ INFO:%@ STACK:%@",
+                [super description], _e_name, _e_reason, _e_info, o];
+            }
+          else
+            {
+              result = [NSString stringWithFormat:
+                @"%@ NAME:%@ REASON:%@ STACK:%@",
+                [super description], _e_name, _e_reason, o];
+            }
+        }
+      else
+        {
+          result = [NSString stringWithFormat:
+            @"%@ NAME:%@ REASON:%@ INFO:%@",
+            [super description], _e_name, _e_reason, _e_info];
+        }
+    }
   else
-    return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
-	[super description], _e_name, _e_reason];
+    {
+      result = [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
+        [super description], _e_name, _e_reason];
+    }
+  RETAIN(result);
+  DESTROY(pool);
+  return AUTORELEASE(result);
 }
 
 @end
@@ -935,9 +1006,9 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 void
 _NSAddHandler (NSHandler* handler)
 {
-  NSThread *thread;
+  TInfo thread;
 
-  thread = GSCurrentThread();
+  thread = (TInfo)GSCurrentThread();
 #if defined(__MINGW32__) && defined(DEBUG)
   if (thread->_exception_handler
     && IsBadReadPtr(thread->_exception_handler, sizeof(NSHandler)))
@@ -952,9 +1023,9 @@ _NSAddHandler (NSHandler* handler)
 void
 _NSRemoveHandler (NSHandler* handler)
 {
-  NSThread *thread;
+  TInfo         thread;
 
-  thread = GSCurrentThread();
+  thread = (TInfo)GSCurrentThread();
 #if defined(DEBUG)  
   if (thread->_exception_handler != handler)
     {

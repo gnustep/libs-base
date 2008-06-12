@@ -55,6 +55,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSCalendarDate.h"
+#include "Foundation/NSDecimal.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSCharacterSet.h"
 #include "Foundation/NSException.h"
@@ -72,12 +73,18 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSNotification.h"
 #include "Foundation/NSUserDefaults.h"
+#include "Foundation/FoundationErrors.h"
 #include "Foundation/NSDebug.h"
 // For private method _decodePropertyListForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSMime.h"
 #include "GSPrivate.h"
+#ifdef HAVE_LIMITS_H
 #include <limits.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -777,6 +784,21 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
+ * Load contents of file at path into a new string using the
+ * -initWithContentsOfFile:usedEncoding:error: method.
+ */
++ (id) stringWithContentsOfFile: (NSString *)path
+                   usedEncoding: (NSStringEncoding*)enc
+                          error: (NSError**)error
+{
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfFile: path usedEncoding: enc error: error];
+  return AUTORELEASE(obj);
+}
+
+/**
  * Load contents of given URL into a new string.  Will interpret contents as
  * containing direct unicode if it begins with the unicode byte order mark,
  * else converts to unicode using default C string encoding.
@@ -1210,6 +1232,78 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
+ * <p>Initialises the receiver with the contents of the file at path.
+ * </p>
+ * <p>Invokes [NSData-initWithContentsOfFile:] to read the file, then
+ * examines the data to infer its encoding type, and converts the
+ * data to a string using -initWithData:encoding:
+ * </p>
+ * <p>The encoding to use is determined as follows ... if the data begins
+ * with the 16-bit unicode Byte Order Marker, then it is assumed to be
+ * unicode data in the appropriate ordering and converted as such.<br />
+ * If it begins with a UTF8 representation of the BOM, the UTF8 encoding
+ * is used.<br />
+ * Otherwise, the default C String encoding is used.
+ * </p>
+ * <p>Releases the receiver and returns nil if the file could not be read
+ * and converted to a string.
+ * </p>
+ */
+- (id) initWithContentsOfFile: (NSString*)path
+                 usedEncoding: (NSStringEncoding*)enc
+                        error: (NSError**)error
+{
+  NSData		*d;
+  unsigned int		len;
+  const unsigned char	*data_bytes;
+
+  d = [[NSDataClass alloc] initWithContentsOfFile: path];
+  if (d == nil)
+    {
+      RELEASE(self);
+      return nil;
+    }
+  *enc = _DefaultStringEncoding;
+  len = [d length];
+  if (len == 0)
+    {
+      RELEASE(d);
+      RELEASE(self);
+      return @"";
+    }
+  data_bytes = [d bytes];
+  if ((data_bytes != NULL) && (len >= 2))
+    {
+      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      if ((data_ucs2chars[0] == byteOrderMark)
+	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
+	{
+	  /* somebody set up us the BOM! */
+	  *enc = NSUnicodeStringEncoding;
+	}
+      else if (len >= 3
+	&& data_bytes[0] == 0xEF
+	&& data_bytes[1] == 0xBB
+	&& data_bytes[2] == 0xBF)
+	{
+	  *enc = NSUTF8StringEncoding;
+	}
+    }
+  self = [self initWithData: d encoding: *enc];
+  RELEASE(d);
+  if (self == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
+    }
+  return self;
+}
+
+/**
  * <p>Initialises the receiver with the contents of the given URL.
  * </p>
  * <p>Invokes [NSData+dataWithContentsOfURL:] to read the contents, then
@@ -1331,7 +1425,7 @@ handle_printf_atsign (FILE *stream,
 /**
  * Constructs a new ASCII string which is a representation of the receiver
  * in which characters are escaped where necessary in order to produce a
- * legal URL.<br />
+ * version of the string legal for inclusion within a URL.<br />
  * The original string is converted to bytes using the specified encoding
  * and then those bytes are escaped unless they correspond to 'legal'
  * ASCII characters.  The byte values escaped are any below 32 and any
@@ -1425,6 +1519,48 @@ handle_printf_atsign (FILE *stream,
 }
 
 // Dividing Strings into Substrings
+
+/**
+ * <p>Returns an array of [NSString]s representing substrings of this string
+ * that are separated by characters in the set (which must not be nil).
+ * If there are no occurrences of separator, the whole string is
+ * returned.  If string begins or ends with separator, empty strings will
+ * be returned for those positions.</p>
+ */
+- (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)set
+{
+  NSRange	search;
+  NSRange	complete;
+  NSRange	found;
+  NSMutableArray *array;
+
+  if (set == nil)
+    [NSException raise: NSInvalidArgumentException format: @"set is nil"];
+
+  array = [NSMutableArray array];
+  search = NSMakeRange (0, [self length]);
+  complete = search;
+  found = [self rangeOfCharacterFromSet: set];
+  while (found.length != 0)
+    {
+      NSRange current;
+
+      current = NSMakeRange (search.location,
+	found.location - search.location);
+      [array addObject: [self substringWithRange: current]];
+
+      search = NSMakeRange (found.location + found.length,
+	complete.length - found.location - found.length);
+      found = [self rangeOfCharacterFromSet: set
+                                    options: 0
+                                      range: search];
+    }
+  // Add the last search string range
+  [array addObject: [self substringWithRange: search]];
+
+  // FIXME: Need to make mutable array into non-mutable array?
+  return array;
+}
 
 /**
  * <p>Returns an array of [NSString]s representing substrings of this string
@@ -1614,6 +1750,11 @@ handle_printf_atsign (FILE *stream,
   return range;
 }
 
+- (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
+{
+  return NSMakeRange(0, 0);     // FIXME
+}
+
 /**
  * Invokes -rangeOfString:options: with no options.
  */
@@ -1671,6 +1812,14 @@ handle_printf_atsign (FILE *stream,
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
   return strRangeNsNs(self, aString, mask, aRange);
+}
+
+- (NSRange) rangeOfString: (NSString *)aString
+                  options: (NSStringCompareOptions)mask
+                    range: (NSRange)searchRange
+                   locale: (NSLocale *)locale
+{
+  return NSMakeRange(0, 0);     // FIXME
 }
 
 - (unsigned int) indexOfString: (NSString *)substring
@@ -2198,6 +2347,14 @@ handle_printf_atsign (FILE *stream,
     }
 }
 
+- (void) getParagraphStart: (NSUInteger *)startPtr 
+                       end: (NSUInteger *)parEndPtr
+               contentsEnd: (NSUInteger *)contentsEndPtr
+                  forRange: (NSRange)range
+{
+  // FIXME
+}
+
 // Changing Case
 
 /**
@@ -2615,21 +2772,38 @@ handle_printf_atsign (FILE *stream,
 // xxx Should we use NSScanner here ?
 
 /**
- * If the string consists of the words 'true' or 'yes' (case insensitive)
- * or begins with a non-zero numeric value, return YES, otherwise return
- * NO.
+ * Returns YES when scanning the receiver's text from left to right finds a
+ * digit in the range 1-9 or a letter in the set ('Y', 'y', 'T', 't').<br />
+ * Any trailing characters are ignored.<br />
+ * Any leading whitespace or zeros or signs are also ignored.<br />
+ * Returns NO if the above conditions are not met.
  */
 - (BOOL) boolValue
 {
-  if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
+  static NSCharacterSet *yes = nil;
+
+  if (yes == nil)
+    {
+      yes = RETAIN([NSCharacterSet characterSetWithCharactersInString:
+      @"123456789yYtT"]);
+    }
+  if ([self rangeOfCharacterFromSet: yes].length > 0)
     {
       return YES;
     }
-  if ([self caseInsensitiveCompare: @"true"] == NSOrderedSame)
-    {
-      return YES;
-    }
-  return [self intValue] != 0 ? YES : NO;
+  return NO;
+}
+
+/**
+ * Returns the string's content as a decimal.<br />
+ * Undocumented feature of Aplle Foundation.
+ */
+- (NSDecimal) decimalValue
+{
+  NSDecimal     result;
+
+  NSDecimalFromString(&result, self, nil);
+  return result;
 }
 
 /**
@@ -2674,6 +2848,16 @@ handle_printf_atsign (FILE *stream,
 - (int) intValue
 {
   return atoi([self lossyCString]);
+}
+
+- (NSInteger) integerValue
+{
+  return atol([self lossyCString]);
+}
+
+- (long long) longLongValue
+{
+  return atoll([self lossyCString]);
 }
 
 // Working With Encodings
@@ -3038,6 +3222,11 @@ static NSFileManager *fm = nil;
       i = NSMaxRange(range);
     }
   return [self substringWithRange: ((NSRange){i, l-i})];
+}
+
+- (NSRange) paragraphRangeForRange: (NSRange)range
+{
+  return NSMakeRange(0, 0);     // FIXME
 }
 
 - (NSString*) pathExtension
@@ -3642,6 +3831,7 @@ static NSFileManager *fm = nil;
 #else
   #ifndef PATH_MAX
   #define PATH_MAX 1024
+  /* Don't use realpath unless we know we have the correct path size limit */
   #ifdef        HAVE_REALPATH
   #undef        HAVE_REALPATH
   #endif
@@ -4475,7 +4665,12 @@ static NSFileManager *fm = nil;
  * in XML format, the standard SGML comment sequences are used.
  * </p>
  * <p>See the documentation for [NSPropertyListSerialization] for more
- *    information on what a property list is.</p>
+ * information on what a property list is.
+ * </p>
+ * <p>If the string cannot be parsed as a normal property list format,
+ * this method also tries to parse it as 'strings file' format (see the
+ * -propertyListFromStringsFileFormat method).
+ * </p>
  */
 - (id) propertyList
 {
@@ -4499,8 +4694,22 @@ static NSFileManager *fm = nil;
 
   if (result == nil)
     {
-      [NSException raise: NSGenericException
-		  format: @"Parse failed  - %@", error];
+      extern id	GSPropertyListFromStringsFormat(NSString *string);
+
+      NS_DURING
+        {
+          result = GSPropertyListFromStringsFormat(self);
+        }
+      NS_HANDLER
+        {
+          result = nil;
+        }
+      NS_ENDHANDLER
+      if (result == nil)
+        {
+          [NSException raise: NSGenericException
+                      format: @"Parse failed  - %@", error];
+        }
     }
   return result;
 }

@@ -72,11 +72,15 @@ GS_EXPORT NSString * const GSTelnetTextKey;
 
 	      if (i > 0 && ptr[i-1] == '\r')
 		{
-		  s = [NSString stringWithUTF8String: ptr length: i-1];
+		  s = [[NSString alloc] initWithBytes: ptr
+                                               length: i-1
+                                             encoding: NSUTF8StringEncoding];
 		}
 	      else
 		{
-		  s = [NSString stringWithUTF8String: ptr length: i];
+		  s = [[NSString alloc] initWithBytes: ptr
+                                               length: i
+                                             encoding: NSUTF8StringEncoding];
 		}
 	      len -= (i + 1);
 	      if (len > 0)
@@ -87,6 +91,7 @@ GS_EXPORT NSString * const GSTelnetTextKey;
 	      ptr = [buf mutableBytes];
 	      i = -1;
 	      [remote putTelnetLine: s];
+              [s release];
 	    }
 	}
       [ichan readInBackgroundAndNotify];

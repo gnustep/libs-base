@@ -35,7 +35,19 @@ extern "C" {
 #endif
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+@class	NSError;
 @class	NSURL;
+#endif
+
+#if OS_API_VERSION(100400,GS_API_LATEST) 
+enum {
+  NSMappedRead = 1,
+  NSUncachedRead = 2
+};
+
+enum {
+  NSAtomicWrite = 1
+};
 #endif
 
 @interface NSData : NSObject <NSCoding, NSCopying, NSMutableCopying>
@@ -118,6 +130,16 @@ extern "C" {
 		   count: (unsigned int)numInts
 		 atIndex: (unsigned int)index;
 
+#if OS_API_VERSION(100400,GS_API_LATEST) 
+/** Not implemented */
+- (BOOL) writeToFile: (NSString *)path
+             options: (NSUInteger)writeOptionsMask
+               error: (NSError **)errorPtr;
+/** Not implemented */
+- (BOOL) writeToURL: (NSURL *)url
+            options: (NSUInteger)writeOptionsMask
+              error: (NSError **)errorPtr;
+#endif
 @end
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)

@@ -38,18 +38,28 @@
 */
 
 #define _FILE_OFFSET_BITS 64
+/* The following define is needed for Solaris get(pw/gr)(nam/uid)_r declartions
+   which default to pre POSIX declaration.  */
+#define _POSIX_PTHREAD_SEMANTICS
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSException.h"
+#include "Foundation/NSArray.h"
 #include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSSet.h"
 #include "Foundation/NSBundle.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSEnumerator.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSValue.h"
 #include "GSPrivate.h"
 
 #include <string.h>
@@ -92,10 +102,16 @@
 # else
 #   include <utime.h>
 # endif
-#else
-# ifdef HAVE_SYS_PARAM_H
-#  include <sys/param.h>		/* for MAXPATHLEN */
-# endif
+#endif
+
+#ifdef HAVE_SYS_CDEFS_H
+# include <sys/cdefs.h>
+#endif
+#ifdef HAVE_SYS_SYSLIMITS_H
+# include <sys/syslimits.h>
+#endif
+#ifdef HAVE_SYS_PARAM_H
+# include <sys/param.h>		/* for MAXPATHLEN */
 #endif
 
 #ifndef PATH_MAX
@@ -157,17 +173,6 @@
 #else
 #define	GSBINIO	0
 #endif
-
-/* include usual headers */
-
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSFileManager.h"
 
 @interface NSDirectoryEnumerator (Local)
 - (id) initWithDirectoryPath: (NSString*)path 
@@ -413,14 +418,31 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  BOOL	ok = NO;
 #ifdef HAVE_PWD_H
+#if     defined(HAVE_GETPWNAM_R)
+	  struct passwd pw;
+	  struct passwd *p;
+          char buf[BUFSIZ*10];
+
+	  if (getpwnam_r([str cStringUsingEncoding: defaultEncoding],
+            &pw, buf, sizeof(buf), &p) == 0)
+	    {
+	      ok = (chown(lpath, pw.pw_uid, -1) == 0);
+	      chown(lpath, -1, pw.pw_gid);
+	    }
+#else
+#if     defined(HAVE_GETPWNAM)
 	  struct passwd *pw;
 
+          [gnustep_global_lock lock];
 	  pw = getpwnam([str cStringUsingEncoding: defaultEncoding]);
 	  if (pw != 0)
 	    {
 	      ok = (chown(lpath, pw->pw_uid, -1) == 0);
 	      chown(lpath, -1, pw->pw_gid);
 	    }
+          [gnustep_global_lock unlock];
+#endif
+#endif
 #endif
 	  if (ok == NO)
 	    {
@@ -449,14 +471,31 @@ static NSStringEncoding	defaultEncoding;
     {
       BOOL	ok = NO;
 #ifdef HAVE_GRP_H
+#ifdef HAVE_GETGRNAM_R
+      struct group gp;
+      struct group *p;
+      char buf[BUFSIZ*10];
+
+      if (getgrnam_r([str cStringUsingEncoding: defaultEncoding], &gp,
+        buf, sizeof(buf), &p) == 0)
+        {
+	  if (chown(lpath, -1, gp.gr_gid) == 0)
+	    ok = YES;
+        }
+#else
+#ifdef HAVE_GETGRNAM
       struct group *gp;
       
+      [gnustep_global_lock lock];
       gp = getgrnam([str cStringUsingEncoding: defaultEncoding]);
       if (gp)
 	{
 	  if (chown(lpath, -1, gp->gr_gid) == 0)
 	    ok = YES;
 	}
+      [gnustep_global_lock unlock];
+#endif
+#endif
 #endif
       if (ok == NO)
 	{
@@ -1710,6 +1749,7 @@ static NSStringEncoding	defaultEncoding;
   struct statfs statfsbuf;
 #endif
   unsigned long long totalsize, freesize;
+  unsigned long blocksize;
   const char* lpath = [self fileSystemRepresentationWithPath: path];
 
   id  values[5];
@@ -1723,23 +1763,31 @@ static NSStringEncoding	defaultEncoding;
 
   if (_STAT(lpath, &statbuf) != 0)
     {
+      NSDebugMLLog(@"NSFileManager", @"stat failed for '%s' ... %@",
+        lpath, [NSError _last]);
       return nil;
     }
 #ifdef HAVE_STATVFS
   if (statvfs(lpath, &statfsbuf) != 0)
     {
+      NSDebugMLLog(@"NSFileManager", @"statvfs failed for '%s' ... %@",
+        lpath, [NSError _last]);
       return nil;
     }
+  blocksize = statfsbuf.f_frsize;
 #else
   if (statfs(lpath, &statfsbuf) != 0)
     {
+      NSDebugMLLog(@"NSFileManager", @"statfs failed for '%s' ... %@",
+        lpath, [NSError _last]);
       return nil;
     }
+  blocksize = statfsbuf.f_bsize;
 #endif
 
-  totalsize = (unsigned long long) statfsbuf.f_bsize
+  totalsize = (unsigned long long) blocksize
     * (unsigned long long) statfsbuf.f_blocks;
-  freesize = (unsigned long long) statfsbuf.f_bsize
+  freesize = (unsigned long long) blocksize
     * (unsigned long long) statfsbuf.f_bavail;
 
   values[0] = [NSNumber numberWithUnsignedLongLong: totalsize];
@@ -1750,6 +1798,7 @@ static NSStringEncoding	defaultEncoding;
 
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 #else
+  NSDebugMLLog(@"NSFileManager", @"no support for filesystem attributes");
   return nil;
 #endif
 #endif /* MINGW */
@@ -2940,14 +2989,30 @@ static NSSet	*fileKeys = nil;
   return [NSString stringWithCharacters: account length: accountSize];
 #else
 #if defined(HAVE_GRP_H)
+#if defined(HAVE_GETGRGID_H)
+  struct group gp;
+  struct group *p;
+  char buf[BUFSIZ*10];
+
+  if (getgrgid_r(statbuf.st_gid, &gp, buf, sizeof(buf), &p) == 0)
+    {
+      group = [NSString stringWithCString: gp.gr_name
+				 encoding: defaultEncoding];
+    }
+#else
+#if defined(HAVE_GETGRGID)
   struct group	*gp;
 
+  [gnustep_global_lock lock];
   gp = getgrgid(statbuf.st_gid);
   if (gp != 0)
     {
       group = [NSString stringWithCString: gp->gr_name
 				 encoding: defaultEncoding];
     }
+  [gnustep_global_lock unlock];
+#endif
+#endif
 #endif
 #endif
   return group;
@@ -3081,15 +3146,30 @@ static NSSet	*fileKeys = nil;
   return [NSString stringWithCharacters: account length: accountSize];
 #else
 #ifdef HAVE_PWD_H
+#if     defined(HAVE_GETPWUID_R)
+  struct passwd pw;
+  struct passwd *p;
+  char buf[BUFSIZ*10];
+
+  if (getpwuid_r(statbuf.st_uid, &pw, buf, sizeof(buf), &p) == 0)
+    {
+      owner = [NSString stringWithCString: pw.pw_name
+				 encoding: defaultEncoding];
+    }
+#else
+#if     defined(HAVE_GETPWUID)
   struct passwd *pw;
 
+  [gnustep_global_lock lock];
   pw = getpwuid(statbuf.st_uid);
-
   if (pw != 0)
     {
       owner = [NSString stringWithCString: pw->pw_name
 				 encoding: defaultEncoding];
     }
+  [gnustep_global_lock unlock];
+#endif
+#endif
 #endif /* HAVE_PWD_H */
 #endif
   return owner;

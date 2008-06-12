@@ -11,7 +11,7 @@
 #   This library is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU General Public
 #   License as published by the Free Software Foundation; either
-#   version 3 of the License, or (at your option) any later version.
+#   version 2 of the License, or (at your option) any later version.
 #   
 #   This library is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,6 +27,7 @@ builtin(include, config/objc-sys-dynamic.m4)dnl
 builtin(include, config/procfs-exe-link.m4)dnl
 builtin(include, config/procfs.m4)dnl
 builtin(include, config/pathxml.m4)dnl
+builtin(include, config/pathtls.m4)dnl
 builtin(include, config/codeset.m4)dnl
 builtin(include, config/addlibrarypath.m4)dnl
 
@@ -189,7 +190,6 @@ case "$target_os" in
     GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
     GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
     GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
-    GNUSTEP_USER_DIR=GNUstep
     GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
     GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
     ;;
@@ -364,6 +364,15 @@ case "$target_os" in
     GNUSTEP_NETWORK_USERS_DIR="C:\Documents and Settings"
     GNUSTEP_LOCAL_USERS_DIR="C:\Documents and Settings"
 
+    # TODO: It would be nice to use the 'short' output of
+    # relative_path.sh, but older versions of relative_path.sh
+    # did not support specifying the type of output and
+    # would abort if they were given more than 2 parameters,
+    # so we can not use the 'short' option if we want gnustep-base
+    # to work with older versions of gnustep-make.
+    # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
+    # two years after it has been released ?), we could switch to the 
+    # 'short' output though.
     GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
     GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
     GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS`
@@ -412,8 +421,6 @@ esac
 AC_MSG_NOTICE([We store the following filesystem layout into gnustep-base, to be used when no config file is found])
 AC_MSG_CHECKING([for Makefiles directory])
 AC_MSG_RESULT($GNUSTEP_MAKEFILES)
-AC_MSG_CHECKING([for user directory])
-AC_MSG_RESULT($GNUSTEP_USER_DIR)
 AC_MSG_CHECKING([for user defaults directory])
 AC_MSG_RESULT($GNUSTEP_USER_DEFAULTS_DIR)
 AC_MSG_CHECKING([for user config file])
@@ -526,10 +533,6 @@ GNUSTEP_MAKEFILES=`echo $GNUSTEP_MAKEFILES|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_MAKEFILES,
   "$GNUSTEP_MAKEFILES",
   [Built in default value for GNUstep Makefiles])
-GNUSTEP_USER_DIR=`echo $GNUSTEP_USER_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
-AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DIR,
-  "$GNUSTEP_USER_DIR",
-  [Built in default value for GNUstep user directory])
 GNUSTEP_USER_DEFAULTS_DIR=`echo $GNUSTEP_USER_DEFAULTS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_DEFAULTS_DIR,
   "$GNUSTEP_USER_DEFAULTS_DIR",
@@ -1316,7 +1319,7 @@ AC_C_INLINE
 # Following header checks needed for bzero in Storage.m and other places
 #--------------------------------------------------------------------
 AC_HEADER_STDC
-AC_CHECK_HEADERS(string.h memory.h)
+AC_CHECK_HEADERS(string.h memory.h alloca.h)
 
 #--------------------------------------------------------------------
 # Following header check needed NSConnection.h
@@ -1327,10 +1330,27 @@ AC_CHECK_HEADERS(float.h)
 # Header files and functions for files and filesystems
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
-AC_CHECK_HEADERS(sys/syslimits.h sys/param.h)
-# Twisted header check for NetBSD
+AC_CHECK_HEADERS(sys/cdefs.h sys/syslimits.h sys/param.h)
+# Twisted header checks for some BSDs with stupid interdependencies
+AC_CHECK_HEADERS([sys/syslimits.h], [], [],
+  [#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #include <sys/syslimits.h>
+  ])
+AC_CHECK_HEADERS([sys/param.h], [], [],
+  [#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #if HAVE_SYS_SYSLIMITS_H
+   #include <sys/syslimits.h>
+   #endif
+  ])
 AC_CHECK_HEADERS([sys/mount.h], [], [],
-  [#if HAVE_SYS_SYSLIMITS_H
+  [#if HAVE_SYS_CDEFS_H
+   #include <sys/cdefs.h>
+   #endif
+   #if HAVE_SYS_SYSLIMITS_H
    #include <sys/syslimits.h>
    #endif
    #if HAVE_SYS_PARAM_H
@@ -1340,7 +1360,7 @@ AC_CHECK_HEADERS([sys/mount.h], [], [],
 AC_CHECK_HEADERS(sys/types.h windows.h locale.h langinfo.h)
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwuid getgrgid rint getopt)
+AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt)
 LIBS="$saved_LIBS"
 
 #--------------------------------------------------------------------
@@ -1367,9 +1387,16 @@ dnl AC_REPLACE_FUNCS(recvfrom)
 #--------------------------------------------------------------------
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(bfd.h)
-AC_CHECK_LIB(iberty, dyn_string_append)
-AC_CHECK_LIB(bfd, bfd_openr)
+PASS_ARG=yes
+AC_ARG_ENABLE(bfd,
+  [  --disable-bfd	Don't use bfd functions (stack traces, etc)],,
+  enable_bfd=$PASS_ARG)
+
+if test $enable_bfd = yes; then
+  AC_CHECK_HEADERS(bfd.h)
+  AC_CHECK_LIB(iberty, dyn_string_append)
+  AC_CHECK_LIB(bfd, bfd_openr)
+fi
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
@@ -1422,7 +1449,9 @@ if test $ac_cv_header_pthread_h = yes ; then
   fi
 fi
 AC_SUBST(HAVE_PTHREAD_H)
-
+if test x"$objc_threaded" = x"-pthread"; then
+  LIBS="$LIBS -lpthread"
+fi
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m
@@ -1477,7 +1506,9 @@ AC_CHECK_FUNCS(mmap)
 # These functions needed by NSTask.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(killpg setpgrp setpgid)
-AC_FUNC_SETPGRP
+if test "x$ac_cv_func_setpgrp" = xyes; then
+  AC_FUNC_SETPGRP
+fi
 
 HAVE_PTS_STREAM_MODULES=0
 case "${target}" in
@@ -1490,6 +1521,7 @@ AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES,
 AC_SUBST(HAVE_PTS_STREAM_MODULES)
 
 AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
+        stdlib.h dnl
 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h dnl
 	sys/stropts.h unistd.h utime.h stdint.h inttypes.h sys/inttypes.h)
 
@@ -1542,8 +1574,10 @@ AC_SUBST(DEFINE_UINTPTR_T)
 
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
+# On some systems we need -lnsl ... so check for that first.
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(inet_aton inet_pton sigaction)
+AC_CHECK_LIB(nsl, inet_ntop)
+AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
 USE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)
 if test $ac_cv_header_zlib_h = yes; then
@@ -1561,15 +1595,27 @@ if test $ac_cv_func_inet_pton = yes ; then
 fi
 AC_SUBST(HAVE_INET_PTON)
 
+HAVE_INET_NTOP=no
+if test $ac_cv_func_inet_ntop = yes ; then
+  HAVE_INET_NTOP=yes
+fi
+AC_SUBST(HAVE_INET_NTOP)
+
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(nanosleep usleep)
 
 #--------------------------------------------------------------------
-# This function needed by NSDebug.m and NSProcessInfo.m
+# For setting thread stack size
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(strerror)
+AC_CHECK_HEADERS(sys/resource.h)
+AC_CHECK_FUNCS(setrlimit)
+
+#--------------------------------------------------------------------
+# One of these functions needed by NSDebug.m and NSProcessInfo.m
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(strerror_r strerror)
 
 #--------------------------------------------------------------------
 # This type needed by GSFormat
@@ -1828,9 +1874,25 @@ fi
 
 #--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
-# We enable ffcall by default now.
+# We enable ffcall by default now, except on sparc64 (where we think
+# it's broken).
 #--------------------------------------------------------------------
+do_broken_libffi=no
+do_broken_libffcall=no
 do_enable_libffi=no
+do_enable_libffcall=yes
+case "$target_cpu" in
+  sparc64*)
+    case "$target_os" in
+      solaris*)
+        do_broken_libffi=no;
+        do_broken_libffcall=yes;
+        do_enable_libffi=yes;
+        do_enable_libffcall=no;;
+      *) ;;
+    esac ;;
+  *) ;;
+esac
 
 AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
@@ -1838,7 +1900,7 @@ AC_ARG_ENABLE(libffi,
 
 AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of ffcall library],,
-  enable_ffcall=yes)
+  enable_ffcall=$do_enable_libffcall)
 
 AC_ARG_ENABLE(do,
   [  --disable-do			Compile even if DO-dependencies are not met],,
@@ -1908,6 +1970,9 @@ if test $enable_libffi = yes; then
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(libffi)
   fi
+  if test $do_broken_libffi = yes; then
+    AC_MSG_WARN([ffi may be broken on this system ... try enabling ffcall])
+  fi
 elif test $enable_ffcall = yes; then
   AC_DEFINE(USE_FFCALL,1,
             [Define if using the ffcall library for invocations])
@@ -1917,6 +1982,14 @@ elif test $enable_ffcall = yes; then
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(ffcall)
   fi
+  if test $do_broken_libffcall = yes; then
+    AC_MSG_WARN([ffcall may be broken on this system ... try enabling ffi])
+  fi
+else
+  ffi_ok=no
+fi
+
+if test $enable_ffcall = yes -a $ffi_ok = yes; then
   AC_MSG_CHECKING(if ffcall trampolines work)
   AC_RUN_IFELSE([#include "$srcdir/config/config.trampoline.c"],
 	  have_working_trampoline=yes, have_working_trampoline=no, 
@@ -1926,8 +1999,6 @@ elif test $enable_ffcall = yes; then
   #if test $have_working_trampoline = no; then
   #  ffi_ok=no
   #fi
-else
-  ffi_ok=no
 fi
 
 if test $ffi_ok = no; then
@@ -2074,7 +2145,8 @@ if test $enable_xml = yes; then
 	LIBS="-lxslt $LIBS"
       else
 	echo
-	echo "You most likely do not want to build base without XSLT support."
+	echo "You may not want to build base without XSLT support."
+	echo "Doing so will disable the XSLT extensions."
 	echo "If you really want to build -base without XSLT support,"
 	echo "add --disable-xslt to the configure arguments."
 	AC_MSG_WARN([Missing support for XSLT functionality.])
@@ -2090,8 +2162,8 @@ if test $enable_xml = yes; then
     LIBS="$saved_LIBS"
     CFLAGS="$saved_CFLAGS"
     echo
-    echo "You most likely do not want to build base without XML support."
-    echo "For instance, MacOS-X compatible property lists require XML."
+    echo "You may not want to build base without libxml2."
+    echo "Doing so will disable the XML, XPATH, and XMLRPC extensions."
     echo "If you really want to build -base without XML support,"
     echo "add --disable-xml to the configure arguments."
     AC_MSG_ERROR([Missing support for XML functionality.])
@@ -2101,6 +2173,45 @@ else
   HAVE_LIBXML=0
 fi
 AC_SUBST(HAVE_LIBXML)
+
+#--------------------------------------------------------------------
+# Check recent libgnutls for SSL streams.
+#--------------------------------------------------------------------
+
+AC_ARG_ENABLE(tls,
+  [  --disable-tls			Disable use of GNUTLS],,
+  enable_tls=yes)
+
+if test $enable_tls = yes; then
+  # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
+  # of the success of the macro.
+  saved_LIBS="$LIBS"
+  saved_CFLAGS="$CFLAGS"
+
+  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+  if test $enable_libgnutls = yes; then
+    CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
+    LIBS="$TLS_LIBS $LIBS"
+    HAVE_GNUTLS=1
+    AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
+  else
+    HAVE_GNUTLS=0
+    # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
+    LIBS="$saved_LIBS"
+    CFLAGS="$saved_CFLAGS"
+    echo
+    echo "You may not want to build base without libgnutls."
+    echo "Doing so will disable SSL support in the NSStream class."
+    echo "If you really want to build -base without TLS support,"
+    echo "add --disable-tls to the configure arguments."
+    AC_MSG_WARN([Missing support for TLS functionality.])
+  fi
+else
+  AC_MSG_WARN([Disabled support for TLS funtionality.])
+  HAVE_GNUTLS=0
+fi
+AC_SUBST(HAVE_GNUTLS)
 
 #--------------------------------------------------------------------
 # Check for NSNetServices

@@ -40,19 +40,25 @@
 
 /*
  * For MacOS-X compatibility, we define the MacOS-X version constants and
- * we allow MAC_OS_X_VERSION_MAX_ALLOWED instead of GS_OPENSTEP_V
+ * we allow MAC_OS_X_VERSION_MIN_ALLOWED or MAC_OS_X_VERSION_MAX_ALLOWED
+ * instead of GS_OPENSTEP_V
  */
 
 #ifndef	MAC_OS_X_VERSION_10_2
 #define	MAC_OS_X_VERSION_10_2	100200
 #define	MAC_OS_X_VERSION_10_3	100300
 #define	MAC_OS_X_VERSION_10_4	100400
+#define	MAC_OS_X_VERSION_10_5	100500
 #endif	/* MAC_OS_X_VERSION_10_2 */
 
 #ifndef	GS_OPENSTEP_V
+#ifdef	MAC_OS_X_VERSION_MIN_ALLOWED
+#define	GS_OPENSTEP_V	MAC_OS_X_VERSION_MIN_ALLOWED
+#else
 #ifdef	MAC_OS_X_VERSION_MAX_ALLOWED
 #define	GS_OPENSTEP_V	MAC_OS_X_VERSION_MAX_ALLOWED
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED */
+#endif	/* MAC_OS_X_VERSION_MIN_ALLOWED */
 #endif	/* GS_OPENSTEP_V */
 
 /*

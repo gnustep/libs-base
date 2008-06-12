@@ -161,6 +161,9 @@ typedef enum
   NSCachesDirectory = 13,		/** location of users cache files */
   NSApplicationSupportDirectory = 14,	/** location of app support files */
 #endif
+#if OS_API_VERSION(100500, GS_API_LATEST)
+  NSDownloadsDirectory = 15,	        /** location of downloaded files */
+#endif
 
   NSAllApplicationsDirectory = 100,	/** all app directories */
   NSAllLibrariesDirectory = 101,	/** all library resources */

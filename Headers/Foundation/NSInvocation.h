@@ -95,7 +95,7 @@ extern "C" {
 
 @end
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if GS_API_VERSION(GS_API_NONE, 011700)
 @interface NSInvocation (GNUstep)
 /**
  * Returns the status of the flag set by -setSendsToSuper:

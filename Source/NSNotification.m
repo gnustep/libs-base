@@ -28,6 +28,7 @@
 #include "config.h"
 #include "Foundation/NSNotification.h"
 #include "Foundation/NSCoder.h"
+#include "Foundation/NSDictionary.h"
 #include "Foundation/NSString.h"
 
 @class	GSNotification;

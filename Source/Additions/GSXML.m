@@ -52,29 +52,7 @@
 
 #include "GNUstepBase/GSMime.h"
 #include "GNUstepBase/GSXML.h"
-#ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSArray.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSCalendarDate.h>
-#include <Foundation/NSCharacterSet.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSHashTable.h>
-#include <Foundation/NSInvocation.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSTimeZone.h>
-#include <Foundation/NSTimer.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSURLHandle.h>
-#include <Foundation/NSValue.h>
-#else
 #include <Foundation/Foundation.h>
-#endif
 
 /* libxml headers */
 #include <libxml/tree.h>
@@ -92,6 +70,7 @@
 #include <libxml/HTMLparser.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
 #ifdef HAVE_LIBXSLT
 #include <libxslt/xslt.h>
@@ -2413,11 +2392,6 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 #define	HANDLER	((GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private))
 
-#ifdef GNUSTEP
-static NSString *applePList
-  = @"file://localhost/System/Library/DTDs/PropertyList.dtd";
-#endif
-
 static xmlParserInputPtr
 loadEntityFunction(void *ctx,
   const unsigned char *eid, const unsigned char *url)
@@ -2462,7 +2436,7 @@ loadEntityFunction(void *ctx,
                             range: NSMakeRange(0, [local length])];
 
 #ifdef GNUSTEP
-  if ([location isEqual: applePList] == YES)
+  if ([location rangeOfString: @"/DTDs/PropertyList"].length > 0)
     {
       file = [location substringFromIndex: 6];
       if ([[NSFileManager defaultManager] fileExistsAtPath: file] == NO)
@@ -2820,29 +2794,63 @@ startElementNsFunction(void *ctx, const unsigned char *name,
   int nb_attributes, int nb_defaulted,
   const unsigned char **atts)
 {
-  NSMutableDictionary	*dict;
+  NSMutableDictionary	*adict = nil;
+  NSMutableDictionary	*ndict = nil;
   NSString		*elem;
 
   NSCAssert(ctx,@"No Context");
   elem = UTF8Str(name);
-  dict = [NSMutableDictionary dictionary];
   if (atts != NULL)
     {
       int 	i;
       int	j;
 
+      adict = [NSMutableDictionary dictionaryWithCapacity: nb_attributes];
       for (i = j = 0; i < nb_attributes; i++, j += 5)
 	{
 	  NSString	*key = UTF8Str(atts[j]);
 	  NSString	*obj = UTF8StrLen(atts[j+3], atts[j+4]-atts[j+3]);
 
-	  [dict setObject: obj forKey: key];
+	  [adict setObject: obj forKey: key];
 	}
+    }
+  if (nb_namespaces > 0)
+    {
+      int       i;
+      int       pos = 0;
+
+      ndict = [NSMutableDictionary dictionaryWithCapacity: nb_namespaces];
+      for (i = 0; i < nb_namespaces; i++)
+        {
+          NSString      *key;
+          NSString      *obj;
+
+          if (namespaces[pos] == 0)
+            {
+              key = @"";
+            }
+          else
+            {
+              key = UTF8Str(namespaces[pos]);
+            }
+          pos++;
+          if (namespaces[pos] == 0)
+            {
+              obj = @"";
+            }
+          else
+            {
+              obj = UTF8Str(namespaces[pos]);
+            }
+          pos++;
+          [ndict setObject: obj forKey: key];
+        }
     }
   [HANDLER startElement: elem
 		 prefix: UTF8Str(prefix)
 		   href: UTF8Str(href)
-	     attributes: dict];
+	     attributes: adict
+             namespaces: ndict];
 }
 
 static void
@@ -3047,6 +3055,18 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 	   attributes: (NSMutableDictionary*)elementAttributes
 {
   [self startElement: elementName attributes: elementAttributes];
+}
+
+- (void) startElement: (NSString*)elementName
+               prefix: (NSString*)prefix
+		 href: (NSString*)href
+	   attributes: (NSMutableDictionary*)elementAttributes
+           namespaces: (NSMutableDictionary*)elementNamespaces
+{
+  [self startElement: elementName
+              prefix: prefix
+                href: href
+          attributes: elementAttributes];
 }
 
 /**
@@ -3707,15 +3727,16 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 }
 - (NSString *) description
 {
-  return [NSString_class stringWithFormat: @"NodeSet (count %d)", [self count]];
+  return [NSString_class stringWithFormat: @"NodeSet (count %u)", [self count]];
 }
 @end
 
 
 /**
- * <p>Use of the GSXPathContext claass is simple ... you just need to look up
- * xpath to learn the syntax of xpath expressions, then you can apply those
- * expressions to a context to retrieve data from a document.
+ * <p>Use of the GSXPathContext class is simple ... you just need to
+ * look up xpath to learn the syntax of xpath expressions, then you
+ * can apply those expressions to a context to retrieve data from a
+ * document.
  * </p>
  * <example>
  * GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile: @"xp.xml"];
@@ -3777,6 +3798,19 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   xmlXPathFreeCompExpr (comp);
 
   return result;
+}
+
+- (BOOL) registerNamespaceWithPrefix: (NSString *)prefix
+				href: (NSString *)href
+{
+  if (xmlXPathRegisterNs (_lib, UTF8STRING(prefix), UTF8STRING(href)) != 0)
+    {
+      return NO;
+    }
+  else
+    {
+      return YES;
+    }
 }
 
 - (void) dealloc
@@ -4621,7 +4655,7 @@ static void indentation(unsigned level, NSMutableString *str)
 	}
       else
 	{
-	  [str appendFormat: @"<i4>%d</i4>", i];
+	  [str appendFormat: @"<i4>%ld</i4>", i];
 	}
     }
   else
@@ -5193,7 +5227,7 @@ static void indentation(unsigned level, NSMutableString *str)
   return method;
 }
 
-- (NSDictionary*) parseResponse: (NSData*)response
+- (NSDictionary*) parseResponse: (NSData*)resp
 			 params: (NSMutableArray*)params
 {
   GSXPathContext	*ctx = nil;
@@ -5207,7 +5241,7 @@ static void indentation(unsigned level, NSMutableString *str)
     {
       GSXMLDocument	*doc = nil;
 
-      parser = [GSXMLParser parserWithData: response];
+      parser = [GSXMLParser parserWithData: resp];
       [parser substituteEntities: YES];
       [parser saveMessages: YES];
       if ([parser parse] == YES)
@@ -5444,11 +5478,11 @@ static void indentation(unsigned level, NSMutableString *str)
 
   if (code == 200)
     {
-      NSData	*response = [handle availableResourceData];
+      NSData	*resp = [handle availableResourceData];
 
       NS_DURING
 	{
-	  fault = [self parseResponse: response params: params];
+	  fault = [self parseResponse: resp params: params];
 	}
       NS_HANDLER
 	{

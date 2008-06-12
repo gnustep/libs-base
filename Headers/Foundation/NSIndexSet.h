@@ -87,6 +87,13 @@ extern "C" {
  */
 - (unsigned int) count;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Not implemented
+ * Returns the number of indexes set within the specified range.
+ */
+- (NSUInteger) countOfIndexesInRange: (NSRange)range;
+#endif
+
 /**
  * Returns the first index value in the receiver or NSNotFound if the
  * receiver is empty.
@@ -206,7 +213,6 @@ extern "C" {
 - (void) removeIndexesInRange: (NSRange)aRange;
 
 /**
- * Not implemented.<br />
  * Moves all the indexes from anIndex upwards by the amount specified.<br />
  * If amount is negative, index values below anIndex will be overwritten
  * by the shifted values.<br />

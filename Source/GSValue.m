@@ -22,15 +22,15 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "GNUstepBase/preface.h"
+#import "config.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSZone.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "GNUstepBase/preface.h"
 
 @interface GSValue : NSValue
 {

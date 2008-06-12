@@ -108,8 +108,8 @@ internal_unicode_enc(void)
       iconv_close(conv);
       return unicode_enc;
     }
-  NSLog(@"Could not initialise iconv() for UTF16, using UCS-2");
-  NSLog(@"Using characters outside 16 bits may give incorrect results");
+  fprintf(stderr, "Could not initialise iconv() for UTF16, using UCS-2\n");
+  fprintf(stderr, "Using characters outside 16 bits may give bad results.\n");
 
   unicode_enc = UNICODE_INT;
   conv = iconv_open(unicode_enc, "ASCII");
@@ -207,8 +207,10 @@ static struct _strenc_ str_encoding_table[] = {
     "NSISO2022JPStringEncoding","ISO-2022-JP",0,0,0},
   {NSMacOSRomanStringEncoding,
     "NSMacOSRomanStringEncoding","MACINTOSH",0,0,0},
+#if     defined(GNUSTEP)
   {NSProprietaryStringEncoding,
     "NSProprietaryStringEncoding","",0,0,0},
+#endif
 
 // GNUstep additions
   {NSISOCyrillicStringEncoding,
@@ -2020,6 +2022,9 @@ GSPrivateDefaultCStringEncoding()
   if (defEnc == GSUndefinedEncoding)
     {
       char		*encoding;
+#if HAVE_LANGINFO_CODESET
+      char		encbuf[BUFSIZ];
+#endif
       unsigned int	count;
 
       GSSetupEncodingTable();
@@ -2033,10 +2038,16 @@ GSPrivateDefaultCStringEncoding()
 
       if (natEnc == GSUndefinedEncoding)
 	{
+          
 	  /* Encoding not set */
 #if HAVE_LANGINFO_CODESET
 	  /* Take it from the system locale information.  */
-	  encoding = nl_langinfo(CODESET);
+          [gnustep_global_lock lock];
+          strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
+          [gnustep_global_lock unlock];
+          encbuf[sizeof(encbuf)-1] = '\0';
+          encoding = encbuf;
+
 	  /*
 	   * First handle the fallback response from nl_langinfo() ...
 	   * if we are getting the default value we can't assume that

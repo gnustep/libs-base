@@ -23,9 +23,11 @@
 
    */
 
-#include	<Foundation/NSIndexSet.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSZone.h>
+#include        "Foundation/NSCoder.h"
+#include        "Foundation/NSData.h"
+#include	"Foundation/NSIndexSet.h"
+#include	"Foundation/NSException.h"
+#include	"Foundation/NSZone.h"
 
 #define	GSI_ARRAY_TYPE	NSRange
 #define GSI_ARRAY_TYPES	GSI_ARRAY_EXTRA
@@ -230,6 +232,11 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
 }
 
+- (NSUInteger) countOfIndexesInRange: (NSRange)range
+{
+  return 0;
+}
+
 - (void) dealloc
 {
   if (_array != 0)
@@ -265,7 +272,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	}
       else
         {
-          [m appendFormat: @" (%u)", r.location];
+          [m appendFormat: @" %u", r.location];
 	}
     }
   [m appendString: @"]"];
@@ -274,7 +281,97 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self notImplemented:_cmd];
+  unsigned rangeCount = 0;
+
+  if (_array != 0)
+    {
+      rangeCount = GSIArrayCount(_array);
+    }
+          
+  if ([aCoder allowsKeyedCoding])
+    {
+      [aCoder encodeInt: rangeCount forKey: @"NSRangeCount"];
+    }
+  else
+    {
+      [aCoder encodeValueOfObjCType: @encode(unsigned int)
+                                 at: &rangeCount];
+    }
+  
+  if (rangeCount == 0)
+    {
+      // Do nothing
+    }
+  else if (rangeCount == 1)
+    {
+      NSRange	r;
+      
+      r = GSIArrayItemAtIndex(_array, 0).ext;
+      if ([aCoder allowsKeyedCoding])
+        {
+          [aCoder encodeInt: r.location forKey: @"NSLocation"];
+          [aCoder encodeInt: r.length forKey: @"NSLength"];
+        }
+      else
+        {
+          [aCoder encodeValueOfObjCType: @encode(unsigned int)
+                                     at: &r.location];
+          [aCoder encodeValueOfObjCType: @encode(unsigned int)
+                                     at: &r.length];
+        }
+    }
+  else
+    {
+      NSMutableData     *m = [NSMutableData dataWithCapacity: rangeCount*2];
+      unsigned          i;
+
+      for (i = 0; i < rangeCount; i++)
+        {
+          NSRange	r;
+          unsigned      v;
+          uint8_t       b;
+      
+          r = GSIArrayItemAtIndex(_array, i).ext;
+          v = r.location;
+          do
+            {
+              if (v > 0x7f)
+                {
+                  b = (v & 0x7f) | 0x80; 
+                }
+              else
+                {
+                  b = v;
+                }
+              v >>= 7;
+              [m appendBytes: &b length: 1];
+            }
+          while (v > 0);
+          v = r.length;
+          do
+            {
+              if (v > 0x7f)
+                {
+                  b = (v & 0x7f) | 0x80; 
+                }
+              else
+                {
+                  b = v;
+                }
+              v >>= 7;
+              [m appendBytes: &b length: 1];
+            }
+          while (v > 0);
+        }
+      if ([aCoder allowsKeyedCoding])
+        {
+          [aCoder encodeObject: m forKey: @"NSRangeData"];
+        }
+      else
+        {
+          [aCoder encodeObject: m];
+        }
+    }
 }
 
 - (unsigned int) firstIndex
@@ -456,7 +553,129 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self notImplemented:_cmd];
+  unsigned rangeCount = 0;
+
+  if ([aCoder allowsKeyedCoding])
+    {
+      if ([aCoder containsValueForKey: @"NSRangeCount"])
+        {
+          rangeCount = [aCoder decodeIntForKey: @"NSRangeCount"];
+        }
+    }
+  else
+    {
+      [aCoder decodeValueOfObjCType: @encode(unsigned int)
+                                 at: &rangeCount];
+    }
+
+  if (rangeCount == 0)
+    {
+      // Do nothing
+    }
+  else if (rangeCount == 1)
+    {
+      unsigned len = 0;
+      unsigned loc = 0;
+      
+      if ([aCoder allowsKeyedCoding])
+        {
+          if ([aCoder containsValueForKey: @"NSLocation"])
+            {
+              loc = [aCoder decodeIntForKey: @"NSLocation"];
+            }
+          if ([aCoder containsValueForKey: @"NSLength"])
+            {
+              len = [aCoder decodeIntForKey: @"NSLength"];
+            }
+        }
+      else
+        {
+          [aCoder decodeValueOfObjCType: @encode(unsigned int)
+                                     at: &loc];
+          [aCoder decodeValueOfObjCType: @encode(unsigned int)
+                                     at: &len];
+        }
+      self = [self initWithIndexesInRange: NSMakeRange(loc, len)];
+    }
+  else
+    {
+      NSMutableIndexSet *other = [NSMutableIndexSet new];
+      NSData            *data = nil;
+      const uint8_t     *bytes;
+      unsigned          length;
+      unsigned          index = 0;
+
+      if ([aCoder allowsKeyedCoding])
+        {
+          if ([aCoder containsValueForKey: @"NSRangeData"])
+            {
+              data = [aCoder decodeObjectForKey: @"NSRangeData"];
+            }
+        }
+      else
+        {
+          data = [aCoder decodeObject];
+        }
+      bytes = (const uint8_t*)[data bytes];
+      length = [data length];
+      while (index < length)
+        {
+          NSRange       range;
+          unsigned      offset;
+          unsigned      value;
+          unsigned      next;
+
+          for (offset = 0; index + offset < length; offset++)
+            {
+              if (bytes[index + offset] < 0x80)
+                {
+                  break;
+                }
+            }
+          NSAssert(index + offset < length && bytes[index + offset] < 0x80,
+            NSInternalInconsistencyException);
+          next = index + offset + 1;
+          value = bytes[index + offset];
+          while (offset-- > 0)
+            {
+              value <<= 7;
+              value += (bytes[index + offset] & 0x7f);
+            }
+          range.location = value;
+          index  = next;
+          for (offset = 0; index + offset < length; offset++)
+            {
+              if (bytes[index + offset] < 0x80)
+                {
+                  break;
+                }
+            }
+          NSAssert(index + offset < length && bytes[index + offset] < 0x80,
+            NSInternalInconsistencyException);
+          next = index + offset + 1;
+          value = bytes[index + offset];
+          while (offset-- > 0)
+            {
+              value <<= 7;
+              value += (bytes[index + offset] & 0x7f);
+            }
+          range.length = value;
+          index = next;
+          [other addIndexesInRange: range];
+        }
+      self = [self initWithIndexSet: other];
+      RELEASE(other);
+      /*
+        FIXME:
+        NSLog(@"Decoded count %d, data %@", rangeCount, data);
+        This is a very strange format:
+
+        5 + 6 + 9 gives <05020901>
+        5 + 6 + 23 gives <05021701>
+        155 + 156 + 223 gives <9b0102df 0101>
+       */
+    }
+
   return self;
 }
 

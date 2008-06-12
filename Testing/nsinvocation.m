@@ -32,6 +32,7 @@ typedef struct {
 - (int) loopInt: (int)v;
 - (large) loopLarge: (large)v;
 - (long) loopLong: (long)v;
+- (long long) loopLongLong: (long long)v;
 - (large) loopLargePtr: (large*)v;
 - (id) loopObject: (id)v;
 - (short) loopShort: (short)v;
@@ -47,10 +48,19 @@ typedef struct {
 - (int) retInt;
 - (large) retLarge;
 - (long) retLong;
+- (long long) retLongLong;
 - (id) retObject;
 - (short) retShort;
 - (small) retSmall;
 - (char*) retString;
+
+- (void) addObserver: (unsigned long)anObserver
+            selector: (NSString*)aSelector
+                name: (NSString*)notificationName
+              object: (NSString*)anObject
+  suspensionBehavior: (int)suspensionBehavior
+                 for: (id)client;
+
 @end
 
 @implementation	Target
@@ -75,6 +85,10 @@ typedef struct {
   return v;
 }
 - (long) loopLong: (long)v
+{
+  return v+1;
+}
+- (long long) loopLongLong: (long long)v
 {
   return v+1;
 }
@@ -135,6 +149,10 @@ typedef struct {
 {
   return 123456;
 }
+- (long long) retLongLong
+{
+  return 123456;
+}
 - (id) retObject
 {
   return self;
@@ -153,6 +171,16 @@ typedef struct {
 - (char*) retString
 {
   return "string";
+}
+
+- (void) addObserver: (unsigned long)anObserver
+            selector: (NSString*)aSelector
+                name: (NSString*)notificationName
+              object: (NSString*)anObject
+  suspensionBehavior: (int)suspensionBehavior
+                 for: (id)client
+{
+  printf("called multi argument method\n");
 }
 @end
 
@@ -208,6 +236,7 @@ main ()
   char	c;
   short	s;
   long	l;
+  long long q;
   float	f;
   double	d;
   id		o;
@@ -287,6 +316,14 @@ printf("Calling proxy\n");
   l = [p retLong];
   printf("forward: %ld\n", l);
 
+  SETUP(retLongLong);
+  [inv invokeWithTarget: t];
+  printf("Expect: 123456, ");
+  [inv getReturnValue: &q];
+  printf("invoke: %lld ", q);
+  q = [p retLong];
+  printf("forward: %lld\n", q);
+
   SETUP(retFloat);
   [inv invokeWithTarget: t];
   printf("Expect: 123.456, ");
@@ -305,11 +342,11 @@ printf("Calling proxy\n");
 
   SETUP(retObject);
   [inv invokeWithTarget: t];
-  printf("Expect: %x, ", t);
+  printf("Expect: %p, ", t);
   [inv getReturnValue: &o];
-  printf("invoke: %x ", o);
+  printf("invoke: %p ", o);
   o = [p retObject];
-  printf("forward: %x\n", o);
+  printf("forward: %p\n", o);
 
   SETUP(retString);
   [inv invokeWithTarget: t];
@@ -318,22 +355,6 @@ printf("Calling proxy\n");
   printf("invoke: '%s' ", str);
   str = [p retString];
   printf("forward: '%s'\n", str);
-
-  SETUP(retSmall);
-  [inv invokeWithTarget: t];
-  printf("Expect: {11,22}, ");
-  [inv getReturnValue: &sm];
-  printf("invoke: {%d,%d} ", sm.c, sm.i);
-  sm = [p retSmall];
-  printf("forward: {%d,%d}\n", sm.c, sm.i);
-
-  SETUP(retLarge);
-  [inv invokeWithTarget: t];
-  printf("Expect: {99,large,99.99}, ");
-  [inv getReturnValue: &la];
-  printf("invoke: {%d,%s,%.2f} ", la.i, la.s, la.f);
-  la = [p retLarge];
-  printf("forward: {%d,%s,%.2f}\n", la.i, la.s, la.f);
 
 
 
@@ -374,9 +395,19 @@ printf("Calling proxy\n");
   [inv invokeWithTarget: t];
   printf("Expect: 4, ");
   [inv getReturnValue: &l];
-  printf("invoke: %d ", l);
+  printf("invoke: %ld ", l);
   l = [p loopLong: 3];
-  printf("forward: %d\n", l);
+  printf("forward: %ld\n", l);
+
+  SETUP(loopLongLong:);
+  q = 3;
+  [inv setArgument: &q atIndex: 2];
+  [inv invokeWithTarget: t];
+  printf("Expect: 4, ");
+  [inv getReturnValue: &q];
+  printf("invoke: %lld ", q);
+  q = [p loopLong: 3];
+  printf("forward: %lld\n", q);
 
   SETUP(loopFloat:);
   f = 4.0;
@@ -406,11 +437,11 @@ printf("Calling proxy\n");
   SETUP(loopObject:);
   [inv setArgument: &p atIndex: 2];
   [inv invokeWithTarget: t];
-  printf("Expect: %x, ", p);
+  printf("Expect: %p, ", p);
   [inv getReturnValue: &o];
-  printf("invoke: %x ", o);
+  printf("invoke: %p ", o);
   o = [p loopObject: p];
-  printf("forward: %x\n", o);
+  printf("forward: %p\n", o);
 
   SETUP(loopString:);
   str = "Hello";
@@ -421,6 +452,36 @@ printf("Calling proxy\n");
   printf("invoke: '%s' ", str);
   str = [p loopString: str];
   printf("forward: '%s'\n", str);
+
+
+  
+  SETUP(addObserver:selector:name:object:suspensionBehavior:for:);
+  q = 1;
+  str = @"a";
+  i = 2;
+  [inv setArgument: &q atIndex: 2];
+  [inv setArgument: &str atIndex: 3];
+  [inv setArgument: &str atIndex: 4];
+  [inv setArgument: &str atIndex: 5];
+  [inv setArgument: &i atIndex: 6];
+  [inv setArgument: &str atIndex: 7];
+  [inv invokeWithTarget: t];
+
+  SETUP(retSmall);
+  [inv invokeWithTarget: t];
+  printf("Expect: {11,22}, ");
+  [inv getReturnValue: &sm];
+  printf("invoke: {%d,%d} ", sm.c, sm.i);
+  sm = [p retSmall];
+  printf("forward: {%d,%d}\n", sm.c, sm.i);
+
+  SETUP(retLarge);
+  [inv invokeWithTarget: t];
+  printf("Expect: {99,large,99.99}, ");
+  [inv getReturnValue: &la];
+  printf("invoke: {%d,%s,%.2f} ", la.i, la.s, la.f);
+  la = [p retLarge];
+  printf("forward: {%d,%s,%.2f}\n", la.i, la.s, la.f);
 
   SETUP(loopSmall:);
   printf("Expect: {8,9}, ");

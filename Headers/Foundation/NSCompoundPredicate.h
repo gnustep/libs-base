@@ -42,6 +42,10 @@ typedef enum _NSCompoundPredicateType
 } NSCompoundPredicateType;
 
 @interface NSCompoundPredicate : NSPredicate
+{
+  NSCompoundPredicateType _type;
+  NSArray	*_subs;
+}
 
 + (NSPredicate *) andPredicateWithSubpredicates: (NSArray *)list;
 + (NSPredicate *) notPredicateWithSubpredicate: (NSPredicate *)predicate;

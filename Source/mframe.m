@@ -34,14 +34,13 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include <mframe.h>
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSDebug.h"
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <mframe.h>
 
 /* Deal with strrchr: */
 #if STDC_HEADERS || defined(HAVE_STRING_H)
@@ -59,6 +58,11 @@
 #include <strings.h>
 /* memory.h and strings.h conflict on some systems.  */
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
+
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSDebug.h"
 
 
 
@@ -198,11 +202,14 @@ mframe_build_signature(const char *typePtr, int *size, int *narg, char *buf)
 }
 
 
-/*
- *      Step through method encoding information extracting details.
+/* Step through method encoding information extracting details.
+ * If outTypes is non-nul then we copy the argument type into
+ * the buffer as a nul terminated string and use the values in
+ * this buffer as the types in info, rather than pointers to
+ * positions in typePtr
  */
 const char *
-mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
+mframe_next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 {
   NSArgumentInfo	local;
   BOOL			flag;
@@ -350,7 +357,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	    {
 	      typePtr++;
 	    }
-	  typePtr = mframe_next_arg(typePtr, &local);
+	  typePtr = mframe_next_arg(typePtr, &local, 0);
 	  info->size = length * ROUND(local.size, local.align);
 	  info->align = local.align;
 	  typePtr++;	/* Skip end-of-array	*/
@@ -376,7 +383,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	   */
 	  if (*typePtr != _C_STRUCT_E)
 	    {
-	      typePtr = mframe_next_arg(typePtr, &local);
+	      typePtr = mframe_next_arg(typePtr, &local, 0);
 	      if (typePtr == 0)
 		{
 		  return 0;		/* error	*/
@@ -391,7 +398,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	   */
 	  while (*typePtr != _C_STRUCT_E)
 	    {
-	      typePtr = mframe_next_arg(typePtr, &local);
+	      typePtr = mframe_next_arg(typePtr, &local, 0);
 	      if (typePtr == 0)
 		{
 		  return 0;		/* error	*/
@@ -430,7 +437,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	    }
 	  while (*typePtr != _C_UNION_E)
 	    {
-	      typePtr = mframe_next_arg(typePtr, &local);
+	      typePtr = mframe_next_arg(typePtr, &local, 0);
 	      if (typePtr == 0)
 		{
 		  return 0;		/* error	*/
@@ -456,6 +463,17 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
   if (typePtr == 0)
     {		/* Error condition.	*/
       return 0;
+    }
+
+  /* Copy tye type information into the buffer if provided.
+   */
+  if (outTypes != 0)
+    {
+      unsigned	len = typePtr - info->type;
+
+      strncpy(outTypes, info->type, len);
+      outTypes[len] = '\0';
+      info->type = outTypes;
     }
 
   /*
@@ -494,7 +512,6 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 
   return typePtr;
 }
-
 
 
 /* Return the number of arguments that the method MTH expects.  Note

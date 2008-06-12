@@ -36,6 +36,8 @@
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSCharacterSet.h"
 
+#include "GNUstepBase/GSLocale.h"
+
 @implementation NSNumberFormatter
 
 - (BOOL) allowsFloats
@@ -534,7 +536,26 @@
   BOOL			displayFractionalPart = NO;
   BOOL			negativeNumber = NO;
   NSString		*useFormat;
+  NSString		*defaultDecimalSeparator = nil;
+  NSString		*defaultThousandsSeparator = nil;
 
+  if (_localizesFormat)
+    {
+      NSDictionary *defaultLocale = GSDomainFromDefaultLocale();
+      defaultDecimalSeparator 
+	= [defaultLocale objectForKey: NSDecimalSeparator];
+      defaultThousandsSeparator 
+	= [defaultLocale objectForKey: NSThousandsSeparator];
+    }
+
+  if (defaultDecimalSeparator == nil)
+    {
+      defaultDecimalSeparator = @".";
+    }
+  if (defaultThousandsSeparator == nil)
+    {
+      defaultThousandsSeparator = @",";
+    }
   formattingCharacters = [NSCharacterSet
     characterSetWithCharactersInString: @"0123456789#.,_"];
   placeHolders = [NSCharacterSet 
@@ -546,7 +567,8 @@
     return [[self attributedStringForNotANumber] string];
   if ([anObject isEqual: [NSDecimalNumber notANumber]])
     return [[self attributedStringForNotANumber] string];
-  if ([anObject isEqual: [NSDecimalNumber zero]])
+  if (_attributedStringForZero
+      && [anObject isEqual: [NSDecimalNumber zero]])
     return [[self attributedStringForZero] string];
   
   useFormat = _positiveFormat;
@@ -560,7 +582,10 @@
   // if no format specified, use the same default that Cocoa does
   if (nil == useFormat)
     {
-      useFormat = negativeNumber ? @"-#,###.##" : @"#,###.##";
+      useFormat = [NSString stringWithFormat: @"%@#%@###%@##",
+			    negativeNumber ? @"-" : @"",
+			    defaultThousandsSeparator,
+			    defaultDecimalSeparator];
     }
 
   prefixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters];
@@ -580,15 +605,16 @@
   //should also set NSDecimalDigits?
   
   if ([self hasThousandSeparators]
-    && (0 != [useFormat rangeOfString:@","].length))
+    && (0 != [useFormat rangeOfString: defaultThousandsSeparator].length))
     {
       displayThousandsSeparators = YES;
     }
 
   if ([self allowsFloats]
-    && (NSNotFound != [useFormat rangeOfString:@"." ].location))
+    && (NSNotFound 
+	!= [useFormat rangeOfString: defaultDecimalSeparator].location))
     {
-      decimalPlaceRange = [useFormat rangeOfString: @"."
+      decimalPlaceRange = [useFormat rangeOfString: defaultDecimalSeparator
 					   options: NSBackwardsSearch];
       if (NSMaxRange(decimalPlaceRange) == [useFormat length])
         {
@@ -636,14 +662,15 @@
       while (([placeHolders characterIsMember:
         [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
         || [[useFormat substringFromRange:
-          NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual: @","])
+          NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual:
+	    defaultThousandsSeparator])
         && NSMaxRange(intPartRange) < [useFormat length] - 1)
         {
           intPartRange.length++;
         }
     }
   intPad = [[useFormat substringWithRange: intPartRange] mutableCopy];
-  [intPad replaceOccurrencesOfString: @","
+  [intPad replaceOccurrencesOfString: defaultThousandsSeparator
     withString: @""
     options: 0
     range: NSMakeRange(0, [intPad length])];

@@ -26,11 +26,14 @@
    */
 
 #include "config.h"
+#include "Foundation/NSArray.h"
 #include "Foundation/NSSet.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSUtilities.h"
+#include "Foundation/NSEnumerator.h"
+#include "Foundation/NSKeyValueCoding.h"
 #include "Foundation/NSString.h"
+#include "Foundation/NSValue.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSDebug.h"
@@ -611,6 +614,281 @@ static Class NSMutableSet_concrete_class;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
   return [[self allObjects] descriptionWithLocale: locale];
+}
+
+- (id) valueForKeyPath: (NSString*)path
+{
+  id result;
+
+  if ([path hasPrefix: @"@"])
+    {
+      NSRange   r;
+
+      r = [path rangeOfString: @"."];
+      if (r.length == 0)
+        {
+          if ([path isEqualToString: @"@count"] == YES)
+            {
+              result = [NSNumber numberWithUnsignedInt: [self count]];
+            }
+          else
+            {
+              result = [self valueForKey: path];
+            }
+        }
+      else
+        {
+          NSString      *op = [path substringToIndex: r.location];
+          NSString      *rem = [path substringFromIndex: NSMaxRange(r)];
+          unsigned      count = [self count];
+
+          if ([op isEqualToString: @"@count"] == YES)
+            {
+              result = [NSNumber numberWithUnsignedInt: count];
+            }
+          else if ([op isEqualToString: @"@avg"] == YES)
+            {
+              double        d = 0;
+
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      d += [[o valueForKeyPath: rem] doubleValue];
+                    }
+                  d /= count;
+                }
+              result = [NSNumber numberWithDouble: d];
+            }
+          else if ([op isEqualToString: @"@max"] == YES)
+            {
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      o = [o valueForKeyPath: rem];
+                      if (result == nil
+                        || [result compare: o] == NSOrderedAscending)
+                        {
+                          result = o;
+                        }
+                    }
+                }
+            }
+          else if ([op isEqualToString: @"@min"] == YES)
+            {
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      o = [o valueForKeyPath: rem];
+                      if (result == nil
+                        || [result compare: o] == NSOrderedDescending)
+                        {
+                          result = o;
+                        }
+                    }
+                }
+            }
+          else if ([op isEqualToString: @"@sum"] == YES)
+            {
+              double        d = 0;
+
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      d += [[o valueForKeyPath: rem] doubleValue];
+                    }
+                }
+              result = [NSNumber numberWithDouble: d];
+            }
+          else if ([op isEqualToString: @"@distinctUnionOfArrays"] == YES)
+            {
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  result = [NSMutableSet set];
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      o = [o valueForKeyPath: rem];
+                      [result addObjectsFromArray: o];
+                    }
+                  result = [result allObjects];
+                }
+              else
+                {
+                  result = [NSArray array];
+                }
+            }
+          else if ([op isEqualToString: @"@distinctUnionOfObjects"] == YES)
+            {
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  result = [NSMutableSet set];
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      o = [o valueForKeyPath: rem];
+                      [result addObject: o];
+                    }
+                  result = [result allObjects];
+                }
+              else
+                {
+                  result = [NSArray array];
+                }
+            }
+          else if ([op isEqualToString: @"@distinctUnionOfSets"] == YES)
+            {
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  result = [NSMutableSet set];
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      o = [o valueForKeyPath: rem];
+                      [result addObjectsFromArray: [o allObjects]];
+                    }
+                  result = [result allObjects];
+                }
+              else
+                {
+                  result = [NSArray array];
+                }
+            }
+          else if ([op isEqualToString: @"@unionOfArrays"] == YES)
+            {
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  result = [GSMutableArray array];
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      o = [o valueForKeyPath: rem];
+                      [result addObjectsFromArray: o];
+                    }
+                  [result makeImmutableCopyOnFail: NO];
+                }
+              else
+                {
+                  result = [NSArray array];
+                }
+            }
+          else if ([op isEqualToString: @"@unionOfObjects"] == YES)
+            {
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  result = [GSMutableArray array];
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      o = [o valueForKeyPath: rem];
+                      [result addObject: o];
+                    }
+                  [result makeImmutableCopyOnFail: NO];
+                }
+              else
+                {
+                  result = [NSArray array];
+                }
+            }
+          else if ([op isEqualToString: @"@unionOfSets"] == YES)
+            {
+              if (count > 0)
+                {
+                  NSEnumerator  *e = [self objectEnumerator];
+                  id            o;
+                  
+                  result = [GSMutableArray array];
+                  while ((o = [e nextObject]) != nil)
+                    {
+                      o = [o valueForKeyPath: rem];
+                      [result addObjectsFromArray: [o allObjects]];
+                    }
+                  [result makeImmutableCopyOnFail: NO];
+                }
+              else
+                {
+                  result = [NSArray array];
+                }
+            }
+          else
+            {
+              result = [super valueForKeyPath: path];
+            }
+        }
+    }
+  else
+    {
+      result = [super valueForKeyPath: path];
+    }
+
+  return result;
+}
+
+/** Return a set formed by adding anObject to the receiver.
+ */
+- (NSSet *) setByAddingObject: (id)anObject
+{
+  NSMutableSet  *m;
+  NSSet         *s;
+
+  m = [self mutableCopy];
+  [m addObject: anObject];
+  s = [m copy];
+  [m release];
+  return [s autorelease];
+}
+
+/** Return a set formed by adding the contents of other to the receiver.
+ */
+- (NSSet *) setByAddingObjectsFromArray: (NSArray *)other
+{
+  NSMutableSet  *m;
+  NSSet         *s;
+
+  m = [self mutableCopy];
+  [m addObjectsFromArray: other];
+  s = [m copy];
+  [m release];
+  return [s autorelease];
+}
+
+/** Return a set formed as a union of the receiver and other.
+ */
+- (NSSet *) setByAddingObjectsFromSet: (NSSet *)other
+{
+  NSMutableSet  *m;
+  NSSet         *s;
+
+  m = [self mutableCopy];
+  [m unionSet: other];
+  s = [m copy];
+  [m release];
+  return [s autorelease];
 }
 
 @end

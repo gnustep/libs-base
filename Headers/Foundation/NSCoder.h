@@ -352,6 +352,18 @@ extern "C" {
  */
 - (void) encodeObject: (id)anObject forKey: (NSString*)aKey;
 #endif
+
+#if OS_API_VERSION(100500, GS_API_LATEST)
+/** <override-subclass />
+ * Encodes anInteger and associates the encoded value with key.
+ */
+
+- (void) encodeInteger: (NSInteger)anInteger forKey: (NSString *)key;
+/** <override-subclass />
+ * Decodes an integer associated with the key.
+ */
+- (NSInteger) decodeIntegerForKey: (NSString *)key;
+#endif
 @end
 
 #if	defined(__cplusplus)

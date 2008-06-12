@@ -47,7 +47,8 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 #define BEGINNING_POOL_SIZE 32
 
 /* Easy access to the thread variables belonging to NSAutoreleasePool. */
-#define ARP_THREAD_VARS (&(GSCurrentThread()->_autorelease_vars))
+typedef struct { @defs(NSThread) } *TInfo;
+#define ARP_THREAD_VARS (&(((TInfo)GSCurrentThread())->_autorelease_vars))
 
 
 @interface NSAutoreleasePool (Private)
@@ -229,7 +230,7 @@ static IMP	initImp;
 
 + (void) addObject: (id)anObj
 {
-  NSThread		*t = GSCurrentThread();
+  TInfo		t = (TInfo)GSCurrentThread();
   NSAutoreleasePool	*pool;
 
   pool = t->_autorelease_vars.current_pool;
@@ -302,6 +303,11 @@ static IMP	initImp;
 
   /* Keep track of the total number of objects autoreleased in this pool */
   _released_count++;
+}
+
+- (void) drain
+{
+  return;
 }
 
 - (id) retain
@@ -384,22 +390,37 @@ static IMP	initImp;
 
 	  for (i = 0; i < released->count; i++)
 	    {
-	      id	anObject = objects[i];
-	      Class	c = GSObjCClass(anObject);
-	      unsigned	hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
+	      id	anObject;
+	      Class	c;
+	      unsigned	hash;
 
+	      anObject = objects[i];
 	      objects[i] = nil;
+              if (anObject == nil)
+                {
+                  fprintf(stderr,
+                    "nil object encountered in autorelease pool\n");
+                  continue;
+                }
+	      c = GSObjCClass(anObject);
+              if (c == 0)
+                {
+                  [NSException raise: NSInternalInconsistencyException
+                    format: @"nul class for object in autorelease pool"];
+                }
+	      hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
 	      if (classes[hash] != c)
 		{
+                  /* If anObject was an instance, c is it's class.
+                   * If anObject was a class, c is its metaclass.
+                   * Either way, get_imp() should get the appropriate pointer.
+                   * If anObject is a proxy to something,
+                   * the +instanceMethodForSelector: and -methodForSelector:
+                   * methods may not exist, but get_imp() will return the
+                   * address of the forwarding method if necessary.
+                   */
+		  imps[hash] = get_imp(c, @selector(release));
 		  classes[hash] = c;
-		  if (GSObjCIsInstance(anObject))
-		    {
-		      imps[hash] = [c instanceMethodForSelector: releaseSel];
-		    }
-		  else
-		    {
-		      imps[hash] = [c methodForSelector: releaseSel];
-		    }
 		}
 	      (imps[hash])(anObject, releaseSel);
 	    }

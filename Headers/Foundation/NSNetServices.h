@@ -90,6 +90,12 @@ typedef enum
   NSNetServicesTimeoutError		= -72007L
 } NSNetServicesError;
 
+enum {
+  NSNetServiceNoAutoRename = 1 << 0
+};
+typedef NSUInteger NSNetServiceOptions;
+
+
 GS_EXPORT NSString * const NSNetServicesErrorCode;
 GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
@@ -140,6 +146,13 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
                    forMode: (NSString *) mode;
 - (void) scheduleInRunLoop: (NSRunLoop *) aRunLoop
                    forMode: (NSString *) mode;
+
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Not implemented */
+- (NSInteger)port;
+/** Not implemented */
+- (void) publishWithOptions: (NSNetServiceOptions)options;
+#endif
 
 - (void) publish;
 - (void) resolve;

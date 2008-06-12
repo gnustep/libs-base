@@ -30,6 +30,7 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<objc/objc.h>
 
+#import	<Foundation/FoundationErrors.h>
 #import	<Foundation/NSObjCRuntime.h>
 #import <GNUstepBase/GSConfig.h>
 #import	<Foundation/NSDebug.h>

@@ -43,7 +43,6 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSData.h"
-#include "Foundation/NSUtilities.h"
 #include "Foundation/NSPort.h"
 #include "Foundation/NSString.h"
 

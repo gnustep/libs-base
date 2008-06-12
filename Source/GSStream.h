@@ -26,10 +26,13 @@
    NSInputStream and NSOutputStream are clusters rather than concrete classes
    The inherance graph is:
    NSStream 
+   |-- GSStream
+   |   `--GSSocketStream
    |-- NSInputStream
    |   `--GSInputStream
    |      |-- GSDataInputStream
    |      |-- GSFileInputStream
+   |      |-- GSPipeInputStream (mswindows only)
    |      `-- GSSocketInputStream
    |          |-- GSInetInputStream
    |          |-- GSLocalInputStream
@@ -39,20 +42,23 @@
    |      |-- GSBufferOutputStream
    |      |-- GSDataOutputStream
    |      |-- GSFileOutputStream
+   |      |-- GSPipeOutputStream (mswindows only)
    |      `-- GSSocketOutputStream
    |          |-- GSInetOutputStream
    |          |-- GSLocalOutputStream
    |          `-- GSInet6InputStream
    `-- GSServerStream
-      `-- GSAbstractServerStream
-          `-- GSSocketServerStream
-              |-- GSInetServerStream
-              |-- GSInet6ServerStream
-              `-- GSLocalServerStream 
+       `-- GSAbstractServerStream
+           |-- GSLocalServerStream (mswindows)
+           `-- GSSocketServerStream
+               |-- GSInetServerStream
+               |-- GSInet6ServerStream
+               `-- GSLocalServerStream (gnu/linux)
 */
 
 #include <Foundation/NSStream.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSMapTable.h>
 
 /**
  * Convenience methods used to add streams to the run loop.
@@ -71,8 +77,7 @@
   BOOL                   _delegateValid;/* whether the delegate responds*/\
   NSError               *_lastError;    /* last error occured           */\
   NSStreamStatus         _currentStatus;/* current status               */\
-  NSMutableArray 	*_modes;	/* currently scheduled modes.	*/\
-  NSRunLoop 		*_runloop;	/* currently scheduled loop.	*/\
+  NSMapTable		*_loops;	/* Run loops and their modes.	*/\
   void                  *_loopID;	/* file descriptor etc.		*/\
   int			_events;	/* Signalled events.		*/\
 }
@@ -83,6 +88,10 @@
  * EXACTLY THE SAME initial ivar layout.
  */
 @interface GSStream : NSStream
+IVARS
+@end
+
+@interface GSAbstractServerStream : GSServerStream
 IVARS
 @end
 
@@ -104,6 +113,11 @@ IVARS
 - (void*) _loopID;
 
 /**
+ * Place the stream in all the scheduled runloops.
+ */
+- (void) _schedule;
+
+/**
  * send an event to delegate
  */
 - (void) _sendEvent: (NSStreamEvent)event;
@@ -123,11 +137,18 @@ IVARS
  * record an error based on errno
  */
 - (void) _recordError; 
+- (void) _recordError: (NSError*)anError; 
 
 /**
  * say whether there is unhandled data for the stream.
  */
 - (BOOL) _unhandledData;
+
+/**
+ * Remove the stream from all the scheduled runloops.
+ */
+- (void) _unschedule;
+
 @end
 
 @interface GSInputStream : NSInputStream
@@ -135,10 +156,6 @@ IVARS
 @end
 
 @interface GSOutputStream : NSOutputStream
-IVARS
-@end
-
-@interface GSAbstractServerStream : GSServerStream
 IVARS
 @end
 
@@ -151,11 +168,6 @@ IVARS
   NSData *_data;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 /**
@@ -168,11 +180,6 @@ IVARS
   unsigned	_capacity;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 /**
@@ -184,11 +191,6 @@ IVARS
   NSMutableData *_data;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 #endif

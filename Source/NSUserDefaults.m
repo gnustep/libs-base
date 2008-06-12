@@ -50,7 +50,6 @@
 #include "Foundation/NSSet.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSTimer.h"
-#include "Foundation/NSUtilities.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSLocale.h"
@@ -198,7 +197,13 @@ static void updateCache(NSUserDefaults *self)
  *     Information retrieved from the GNUstep configuration system.
  *     Usually the system wide and user specific GNUstep.conf files,
  *     or from information compiled in when the base library was
- *     built.
+ *     built.<br />
+ *     In addition to this standard configuration information, this
+ *     domain contains all values from the GlobalDefaults.plist file
+ *     stored in the same directory as the system widw GNUstep.conf
+ *     file.  The GlobalDefaults.plist allows packagers and system
+ *     administrators to provide global defaults settings for all
+ *     users of a particular GNUstep installation.
  *   </desc>
  *   <term><code>NSRegistrationDomain</code> ... volatile</term>
  *   <desc>
@@ -267,14 +272,20 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     {
       NSDictionary	*regDefs;
 
-      [sharedDefaults synchronize];	// Ensure changes are written.
-      regDefs = RETAIN([sharedDefaults->_tempDomains
-	objectForKey: NSRegistrationDomain]);
       /* To ensure that we don't try to synchronise the old defaults to disk
        * after creating the new ones, remove as housekeeping notification
        * observer.
        */
       [[NSNotificationCenter defaultCenter] removeObserver: sharedDefaults];
+
+      /* Ensure changes are written, and no changes left so we can't end up
+       * writing old changes to the new defaults.
+       */
+      [sharedDefaults synchronize];
+      DESTROY(sharedDefaults->_changedDomains);
+
+      regDefs = RETAIN([sharedDefaults->_tempDomains
+	objectForKey: NSRegistrationDomain]);
       setSharedDefaults = NO;
       DESTROY(sharedDefaults);
       if (regDefs != nil)
@@ -1694,10 +1705,11 @@ static BOOL isLocked = NO;
 	{
 	  if ((dict = (*pImp)(_persDomains, objectForKeySel, obj)) != nil
 	    || (dict = (*tImp)(_tempDomains, objectForKeySel, obj)) != nil)
-	    (*addImp)(dictRep, addSel, dict);
+            {
+              (*addImp)(dictRep, addSel, dict);
+            }
 	}
-      _dictionaryRep = [dictRep copy];
-      RELEASE(dictRep);
+      _dictionaryRep = [dictRep makeImmutableCopyOnFail: NO];
     }
   rep = RETAIN(_dictionaryRep);
   [_lock unlock];
@@ -1861,13 +1873,16 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
   return flags[type];
 }
 
-/* FIXME ... Slightly faster than
+/* Slightly faster than
  * [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
- * but is it really worthwile?
+ * Avoiding the autorelease of the standard defaults turns out to be
+ * a modest but significant gain when making heavy use of methods which
+ * need localisation.
  */
 NSDictionary *GSPrivateDefaultLocale()
 {
-  NSDictionary	*locale;
+  NSDictionary	        *locale;
+  NSUserDefaults        *defs;
 
   if (classLock == nil)
     {
@@ -1878,8 +1893,10 @@ NSDictionary *GSPrivateDefaultLocale()
     {
       [NSUserDefaults standardUserDefaults];
     }
-  locale = [sharedDefaults dictionaryRepresentation];
+  defs = [sharedDefaults retain];
   [classLock unlock];
+  locale = [defs dictionaryRepresentation];
+  [defs release];
   return locale;
 }
 

@@ -112,6 +112,8 @@ extern "C" {
 
 @end
 
+#if     GS_API_VERSION(GS_API_NONE,011700)
+
 /**
  *  Adds synonym for +currentHost.
  */
@@ -122,6 +124,7 @@ extern "C" {
  */
 + (NSHost*) localHost;		/* All local IP addresses	*/
 @end
+#endif
 
 #if	defined(__cplusplus)
 }

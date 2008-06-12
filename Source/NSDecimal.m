@@ -26,6 +26,7 @@
    $Date$ $Revision$
    */
 
+#define _GNU_SOURCE
 #include <math.h>
 #if !defined(__APPLE__) || !defined(GNU_RUNTIME)
 #include <ctype.h>
@@ -34,6 +35,10 @@
 #include "Foundation/NSString.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSUserDefaults.h"
+
+#ifndef NAN
+#define NAN 0.0
+#endif 
 
 /*
   This file provides two implementations of the NSDecimal functions.
@@ -780,9 +785,10 @@ NSDecimalPower(NSDecimal *result, const NSDecimal *n, unsigned power, NSRounding
 NSCalculationError
 NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power, NSRoundingMode mode)
 {
-  int p = result->exponent + power;
+  int p;
 
   NSDecimalCopy(result, n);
+  p = result->exponent + power;
   if (p > 127)
     {
       result->validNumber = NO;
@@ -910,8 +916,7 @@ GSDecimalDouble(GSDecimal *number)
   int i;
 
   if (!number->validNumber)
-    // Somehow I dont have NAN defined on my machine
-    return 0.0;
+    return NAN;
 
   // Sum up the digits
   for (i = 0; i < number->length; i++)

@@ -21,16 +21,16 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
-#include "Foundation/NSException.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDistantObject.h"
-#include "Foundation/NSDebug.h"
-#include "GSInvocation.h"
-#include <config.h>
-#include <objc/objc-api.h>
-#include <avcall.h>
-#include <callback.h>
-#include "callframe.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDistantObject.h"
+#import "Foundation/NSDebug.h"
+#import "GSInvocation.h"
+#import <config.h>
+#import <objc/objc-api.h>
+#import <avcall.h>
+#import <callback.h>
+#import "callframe.h"
 
 #ifndef INLINE
 #define INLINE inline
@@ -143,6 +143,78 @@ static vacallReturnTypeInfo returnTypeInfo [STATIC_CALLBACK_LIST_SIZE];
 /* Function that implements the actual forwarding */
 static void
 GSInvocationCallback(void *callback_data, va_alist args);
+
+/* Count the number of subtypes in a structure
+ */
+static const char *gs_subtypes(const char *type, int *result)
+{
+  int	count = 0;
+
+  if (*type == _C_STRUCT_B)
+    {
+      type++;
+      while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+      while (*type != '\0' && *type != _C_STRUCT_E)
+        {
+	  count++;
+	  if (*type == _C_STRUCT_B)
+	    {
+	      /* count a nested structure as a single type.
+	       */
+	      type = gs_subtypes (type, 0);
+	    }
+	  else
+	    {
+	      type = objc_skip_typespec (type);
+	    }
+	}
+      if (*type == _C_STRUCT_E)
+        {
+	  type++;	/* step past end of struct */
+	}
+    }
+  if (result != 0)
+    {
+      *result = count;
+    }
+  return type;
+}
+
+/* return the index'th subtype
+ */
+static const char *gs_subtype(const char *type, int index)
+{
+  int	count = 0;
+
+  if (*type != _C_STRUCT_B)
+    {
+      return "";
+    }
+  type++;
+  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
+  while (*type != '\0' && *type != _C_STRUCT_E)
+    {
+      if (count++ == index)
+	{
+	  return type;
+	}
+      if (*type == _C_STRUCT_B)
+	{
+	  /* count and skip a nested structure as a single type.
+	   */
+	  type = gs_subtypes (type, 0);
+	}
+      else
+	{
+	  type = objc_skip_typespec (type);
+	}
+    }
+  if (*type == _C_STRUCT_E)
+    {
+      type++;	/* step past end of struct */
+    }
+  return type;
+}
 
 /*
  * Recursively calculate the offset using the offset of the previous

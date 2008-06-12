@@ -1,9 +1,9 @@
-#include "config.h"
+#import "config.h"
 
-#include "GNUstepBase/preface.h"
-#include "GSRunLoopWatcher.h"
-#include <Foundation/NSException.h>
-#include <Foundation/NSPort.h>
+#import "GNUstepBase/preface.h"
+#import "GSRunLoopWatcher.h"
+#import <Foundation/NSException.h>
+#import <Foundation/NSPort.h>
 
 @implementation	GSRunLoopWatcher
 

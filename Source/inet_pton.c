@@ -27,26 +27,14 @@
 #endif
 #include <errno.h>
 
-#if	defined(__MINGW32__)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <wininet.h>
-#if	!defined(EAFNOSUPPORT)
-#define	EAFNOSUPPORT WSAEAFNOSUPPORT
-#endif
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
+#include "GSNetwork.h"
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
 
 #if HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>
-#endif
-
-#ifndef INADDRSZ
-#define	INADDRSZ	4
 #endif
 
 /*
@@ -306,3 +294,5 @@ inet_pton6(const char *src, uint8_t *dst)
 	return (1);
 }
 #endif
+
+

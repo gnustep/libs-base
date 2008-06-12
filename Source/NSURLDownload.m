@@ -23,7 +23,7 @@
    */ 
 
 
-#include "GSURLPrivate.h"
+#import "GSURLPrivate.h"
 
 @interface	GSURLDownload : NSObject <NSURLProtocolClient>
 {

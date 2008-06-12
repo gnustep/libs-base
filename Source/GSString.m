@@ -33,28 +33,28 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSRange.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSKeyedArchiver.h"
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSRange.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 #include <limits.h>
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
-#include "GNUstepBase/Unicode.h"
+#import "GNUstepBase/Unicode.h"
 
 static BOOL isByteEncoding(NSStringEncoding enc)
 {
@@ -938,75 +938,33 @@ UTF8String_u(GSStr self)
 static inline BOOL
 boolValue_c(GSStr self)
 {
-  if (self->_count == 0)
-    {
-      return NO;
-    }
-  else
-    {
-      unsigned	len = self->_count < 10 ? self->_count : 9;
+  unsigned  c = self->_count;
+  unsigned  i;
 
-      if (len == 3
-	&& (self->_contents.c[0] == 'Y' || self->_contents.c[0] == 'y')
-	&& (self->_contents.c[1] == 'E' || self->_contents.c[1] == 'e')
-	&& (self->_contents.c[2] == 'S' || self->_contents.c[2] == 's'))
-	{
-	  return YES;
-	}
-      else if (len == 4
-	&& (self->_contents.c[0] == 'T' || self->_contents.c[0] == 't')
-	&& (self->_contents.c[1] == 'R' || self->_contents.c[1] == 'r')
-	&& (self->_contents.c[2] == 'U' || self->_contents.c[2] == 'u')
-	&& (self->_contents.c[3] == 'E' || self->_contents.c[3] == 'e'))
-	{
-	  return YES;
-	}
-      else
-	{
-	  unsigned char	buf[len+1];
-
-	  memcpy(buf, self->_contents.c, len);
-	  buf[len] = '\0';
-	  return atoi((const char*)buf);
-	}
+  for (i = 0; i < c; i++)
+    {
+      if (strchr("123456789yYtT", self->_contents.c[i]) != 0)
+        {
+          return YES;
+        }
     }
+  return NO;
 }
 
 static inline BOOL
 boolValue_u(GSStr self)
 {
-  if (self->_count == 0)
-    {
-      return NO;
-    }
-  else
-    {
-      unsigned int	l = self->_count < 10 ? self->_count : 9;
-      unsigned char	buf[l+1];
-      unsigned char	*b = buf;
+  unsigned  c = self->_count;
+  unsigned  i;
 
-      GSFromUnicode(&b, &l, self->_contents.u, l, internalEncoding,
-	0, GSUniTerminate);
-      if (l == 3
-	&& (buf[0] == 'Y' || buf[0] == 'y')
-	&& (buf[1] == 'E' || buf[1] == 'e')
-	&& (buf[2] == 'S' || buf[2] == 's'))
-	{
-	  return YES;
-	}
-      else if (l == 4
-	&& (buf[0] == 'T' || buf[0] == 't')
-	&& (buf[1] == 'R' || buf[1] == 'r')
-	&& (buf[2] == 'U' || buf[2] == 'u')
-	&& (buf[3] == 'E' || buf[3] == 'e'))
-	{
-	  return YES;
-	}
-      else
-	{
-	  return atoi((const char*)buf);
-	}
+  for (i = 0; i < c; i++)
+    {
+      if (strchr("123456789yYtT", self->_contents.u[i]) != 0)
+        {
+          return YES;
+        }
     }
+  return NO;
 }
 
 static inline BOOL
@@ -1823,6 +1781,10 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	          return YES;
 		}
 	      // Fall through to perform conversion to unicode and back
+              if ([(id)self class] == NSConstantStringClass)
+                {
+                  NSLog(@"Warning: non-ASCII character in string literal");
+                }
 	    }
 
 	  if (enc == NSASCIIStringEncoding

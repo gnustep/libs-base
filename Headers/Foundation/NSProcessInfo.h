@@ -189,9 +189,17 @@ enum {
  */
 - (void) setProcessName: (NSString*)newName;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/** Not implemented */
+- (NSUInteger) processorCount;
+/** Not implemented */
+- (NSUInteger) activeProcessorCount;
+/** Not implemented */
+- (unsigned long long) physicalMemory;
+#endif
 @end
 
-#if OS_API_VERSION(GS_API_NONE,GS_API_NONE)
+#if GS_API_VERSION(GS_API_NONE,011700)
 
 /**
  * Provides GNUstep-specific methods for controlled debug logging (a GNUstep
@@ -235,7 +243,7 @@ enum {
  * auto-initialize it are working.<br />
  * It is also safe to call this method to override the effects
  * of the automatic initialisation, which some applications may need
- * to do when using GNUstep libraries embeddedm within other frameworks.
+ * to do when using GNUstep libraries embedded within other frameworks.
  */
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc

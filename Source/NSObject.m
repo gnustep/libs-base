@@ -230,7 +230,7 @@ typedef int32_t volatile *gsatomic_t;
 #endif
 
 
-#if	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
+#elif	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
 /* Set up atomic read, increment and decrement for intel style linux
  */
 
@@ -241,26 +241,59 @@ typedef int32_t volatile *gsatomic_t;
 static __inline__ int
 GSAtomicIncrement(gsatomic_t X)
 {
-  int	i = 1;
-  __asm__ __volatile__(
-  "lock ; xaddl %0, %1;"
-  :"=r"(i)
-  :"m"(*X), "0"(i));
-  return i + 1;
+ __asm__ __volatile__ (
+     "lock addl $1, %0"
+     :"=m" (*X));
+ return *X;
 }
 
 static __inline__ int
 GSAtomicDecrement(gsatomic_t X)
 {
-  int	i = -1;
-  __asm__ __volatile__(
-  "lock ; xaddl %0, %1;"
-  :"=r"(i)
-  :"m"(*X), "0"(i));
-  return i - 1;
+ __asm__ __volatile__ (
+     "lock subl $1, %0"
+     :"=m" (*X));
+ return *X;
 }
 
-#endif
+#elif defined(__PPC__)
+
+typedef int32_t volatile *gsatomic_t;
+
+#define	GSATOMICREAD(X)	(*(X))
+
+static __inline__ int
+GSAtomicIncrement(gsatomic_t X)
+{
+  int tmp;
+  __asm__ __volatile__ (
+    "modified:"
+    "lwarx %0,0,%1 \n"
+    "addic %0,%0,1 \n"
+    "stwcx. %0,0,%1 \n"
+    "bne- modified \n"
+    :"=&r" (tmp)
+    :"r" (X)
+    :"cc", "memory");
+  return *X;
+}
+
+static __inline__ int
+GSAtomicDecrement(gsatomic_t X)
+{
+  int tmp;
+  __asm__ __volatile__ (
+    "modified:"
+    "lwarx %0,0,%1 \n"
+    "addic %0,%0,-1 \n"
+    "stwcx. %0,0,%1 \n"
+    "bne- modified \n"
+    :"=&r" (tmp)
+    :"r" (X)
+    :"cc", "memory");
+  return *X;
+}
+
 #endif
 
 #if	defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)

@@ -57,8 +57,8 @@ ifneq ($(base),no)
 LIBRARY_NAME += libgnustep-base
 endif
 
-libgnustep-base_SUBPROJECTS=Additions
-libgnustep-baseadd_SUBPROJECTS=Additions
+libgnustep-base_SUBPROJECTS = Additions
+libgnustep-baseadd_SUBPROJECTS = Additions
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 libgnustep-base_SUBPROJECTS+=win32
@@ -150,6 +150,7 @@ GSHTTPAuthentication.m \
 GSHTTPURLHandle.m \
 GSRunLoopWatcher.m \
 GSSet.m \
+GSSocketStream.m \
 GSStream.m \
 GSString.m \
 GSValue.m \
@@ -294,6 +295,7 @@ tzfile.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
+FoundationErrors.h \
 NSAffineTransform.h \
 NSArchiver.h \
 NSArray.h \
@@ -320,6 +322,7 @@ NSDistributedLock.h \
 NSDistributedNotificationCenter.h \
 NSEnumerator.h \
 NSError.h \
+NSErrorRecoveryAttempting.h \
 NSException.h \
 NSExpression.h \
 NSFileHandle.h \
@@ -403,6 +406,9 @@ $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 ifeq ($(HAVE_INET_PTON), no)
 GNU_CFILES += inet_pton.c
 endif
+ifeq ($(HAVE_INET_NTOP), no)
+GNU_CFILES += inet_ntop.c
+endif
 
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
@@ -430,6 +436,8 @@ libbase-resources_LOCALIZED_RESOURCE_FILES =
 libbase-resources_RESOURCE_DIRS =
 libbase-resources_RESOURCE_FILES = Info-gnustep.plist
 
+libgnustep-base_NEEDS_GUI = NO
+libgnustep-baseadd_NEEDS_GUI = NO
 
 -include Makefile.preamble
 

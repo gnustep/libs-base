@@ -254,18 +254,18 @@ typedef enum {
 
 /**
  * Creates and returns by reference an NSInputStream object and
- * NSOutputStream object for a local socket connection with the
- * specified path. To use them you need to open them and wait
- * on the NSStreamEventOpenCompleted event on one of them
+ * NSOutputStream object for a local socket or named pipe connection
+ * with the specified path. To use them you need to open them and wait
+ * on the NSStreamEventOpenCompleted event on one of them.
  */
 + (void) getLocalStreamsToPath: (NSString *)path 
 		   inputStream: (NSInputStream **)inputStream 
 		  outputStream: (NSOutputStream **)outputStream;
 /**
  * Creates and returns by reference an NSInputStream object and NSOutputStream 
- * object for a anonymous local socket. Although you still need to open them, 
- * the open will be instantanious, and no NSStreamEventOpenCompleted event 
- * will be delivered.
+ * object for a anonymous local socket or pipe. Although you still need to
+ * open them, the open will be instantaneous, and no NSStreamEventOpenCompleted
+ * event will be delivered.
  */
 + (void) pipeWithInputStream: (NSInputStream **)inputStream 
                 outputStream: (NSOutputStream **)outputStream;
@@ -328,6 +328,15 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyUserKey;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion4;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion5;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
+
+/** May be used to read the local IP address of a tcp/ip network stream. */
+GS_EXPORT NSString * const GSStreamLocalAddressKey;
+/** May be used to read the local port of a tcp/ip network stream. */
+GS_EXPORT NSString * const GSStreamLocalPortKey;
+/** May be used to read the remote IP address of a tcp/ip network stream. */
+GS_EXPORT NSString * const GSStreamRemoteAddressKey;
+/** May be used to read the remote port of a tcp/ip network stream. */
+GS_EXPORT NSString * const GSStreamRemotePortKey;
 
 /**
  * Informal protocol for delegates of instance of the [NSStream] class.

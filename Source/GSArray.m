@@ -25,18 +25,20 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSArray.h"
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSValue.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSArray.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSValue.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 static SEL	eqSel;
 static SEL	oaiSel;
@@ -711,6 +713,21 @@ static Class	GSInlineArrayClass;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
+    }
+  if (!anObject)
+    {
+      NSException  *exception;
+      NSDictionary *info;
+
+      info = [NSDictionary dictionaryWithObjectsAndKeys:
+	[NSNumber numberWithUnsignedInt: index], @"Index",
+        _contents_array[index], @"OLdObject",
+	self, @"Array", nil, nil];
+
+      exception = [NSException exceptionWithName: NSInvalidArgumentException
+	reason: @"Tried to replace object in array with nil"
+	userInfo: info];
+      [exception raise];
     }
   /*
    *	Swap objects in order so that there is always a valid object in the
