@@ -1,6 +1,7 @@
 2008-06-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Merge trunk/unstable to form new stable release.
+	* Version: bump up to 1.16.0 
 
 2008-06-12  Richard Frith-Macdonald <rfm@gnu.org>
 
