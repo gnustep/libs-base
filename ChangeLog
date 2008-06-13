@@ -1,3 +1,8 @@
+2008-06-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Fix incorrect adjustment of buffer
+	when handling large string containing multibyte utf-8 data.
+
 2008-06-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Update timezones, bump version to 1.17.0 for next release.
