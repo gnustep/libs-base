@@ -720,17 +720,16 @@ if (dst == 0) \
   { \
     /* \
      * Data is just being discarded anyway, so we can \
-     * adjust the offset into the local buffer on the \
+     * reset the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
+    ptr = buf; \
     if (extra == 0) \
       { \
-	ptr -= BUFSIZ; \
 	bsize += BUFSIZ; \
       } \
     else \
       { \
-	ptr -= BUFSIZ-1; \
 	bsize += BUFSIZ-1; \
       } \
   } \
@@ -1245,17 +1244,16 @@ if (dst == 0) \
   { \
     /* \
      * Data is just being discarded anyway, so we can \
-     * adjust the offset into the local buffer on the \
+     * reset the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
+    ptr = buf; \
     if (extra == 0) \
       { \
-	ptr -= BUFSIZ; \
 	bsize += BUFSIZ; \
       } \
     else \
       { \
-	ptr -= BUFSIZ-1; \
 	bsize += BUFSIZ-1; \
       } \
   } \
