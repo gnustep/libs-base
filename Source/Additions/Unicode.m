@@ -723,14 +723,11 @@ if (dst == 0) \
      * reset the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
-    ptr = buf - bsize; \
-    if (extra == 0) \
+    ptr = buf - dpos; \
+    bsize = dpos + BUFSIZ; \
+    if (extra != 0) \
       { \
-	bsize += BUFSIZ; \
-      } \
-    else \
-      { \
-	bsize += BUFSIZ-1; \
+	bsize--; \
       } \
   } \
 else if (zone == 0) \
@@ -1247,14 +1244,11 @@ if (dst == 0) \
      * reset the offset into the local buffer on the \
      * stack and pretend the buffer has grown. \
      */ \
-    ptr = buf - bsize; \
-    if (extra == 0) \
+    ptr = buf - dpos; \
+    bsize = dpos + BUFSIZ; \
+    if (extra != 0) \
       { \
-	bsize += BUFSIZ; \
-      } \
-    else \
-      { \
-	bsize += BUFSIZ-1; \
+	bsize--; \
       } \
   } \
 else if (zone == 0) \
