@@ -26,6 +26,7 @@
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSZone.h>
 
 /* To turn assertions on, define GSI_ARRAY_CHECKS */
