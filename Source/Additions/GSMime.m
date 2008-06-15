@@ -4107,6 +4107,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	    (void*)NSBIG5StringEncoding);
 	  NSMapInsert(charsets, (void*)@"jisx0201.1976",
 	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"jisx0201",
+	    (void*)NSShiftJISStringEncoding);
 	  NSMapInsert(charsets, (void*)@"shift_JIS",
 	    (void*)NSShiftJISStringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf-7",
@@ -4123,9 +4125,15 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	    (void*)NSKOI8RStringEncoding);
 	  NSMapInsert(charsets, (void*)@"gb2312.1980",
 	    (void*)NSGB2312StringEncoding);
+	  NSMapInsert(charsets, (void*)@"gb2312",
+	    (void*)NSGB2312StringEncoding);
 	  NSMapInsert(charsets, (void*)@"ksc5601.1987",
 	    (void*)NSKoreanEUCStringEncoding);
+	  NSMapInsert(charsets, (void*)@"ksc5601",
+	    (void*)NSKoreanEUCStringEncoding);
 	  NSMapInsert(charsets, (void*)@"ksc5601.1997",
+	    (void*)NSKoreanEUCStringEncoding);
+	  NSMapInsert(charsets, (void*)@"ksc5601",
 	    (void*)NSKoreanEUCStringEncoding);
 	}
       if (encodings == 0)
