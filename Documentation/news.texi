@@ -11,6 +11,17 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.16.0}
+
+@itemize @bullet
+@item Many updates to include new OS X methods up to 10.5
+@item Made KeyValueCoding/Observing fully functional and MacOS-X compatible
+@end itemize
+
+See the release notes for more information.
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.15.3}
 
 @itemize @bullet
@@ -20,9 +31,6 @@ See the @url{ReleaseNotes.html} document for more information.
 added basic support for digest authentication.
 @item Fixed various problems with and added new options to KVO.
 @end itemize
-
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.15.2}
 Bug fixes include improved thread safety (and a change to the NSThread
