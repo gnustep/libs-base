@@ -151,19 +151,36 @@ decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
 		{
 		  break;
 		}
-	      if (('\n' == *src) || ('\r' == *src))
-		{
-		  break;
-		}
-	      c = isdigit(*src) ? (*src - '0') : (*src - 55);
-	      c <<= 4;
-	      src++;
-	      if (*src == '\0')
-		{
-		  break;
-		}
-	      c += isdigit(*src) ? (*src - '0') : (*src - 55);
-	      *dst = c;
+              if (('\n' == *src) || ('\r' == *src))
+                {
+                  break;
+                }
+              if (!isxdigit(src[0]) || !isxdigit(src[1]))
+                {
+                  /* Strictly speaking the '=' must be followed by
+                   * two hexadecimal characters, but RFC2045 says that
+                   * 'A reasonable approach by a robust implementation might be
+                   * to include the "=" character and the following character
+                   * in the decoded data without any transformation'
+                   */
+                  *dst++ = '=';
+                  *dst = *src;
+                }
+              else
+                {
+                  int   h;
+                  int   l;
+
+                  /* Strictly speaking only uppercase characters are legal
+                   * here, but we tolerate lowercase too.
+                   */
+                  h = isdigit(*src) ? (*src - '0') : (*src - 55);
+                  if (h > 15) h -= 32;  // lowercase a-f
+                  src++;
+                  l = isdigit(*src) ? (*src - '0') : (*src - 55);
+                  if (l > 15) l -= 32;  // lowercase a-f
+                  *dst = (h << 4) + l;
+                }
 	    }
 	  else if (*src == '_')
 	    {
