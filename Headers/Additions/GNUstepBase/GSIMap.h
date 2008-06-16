@@ -563,8 +563,8 @@ GSIMapNodeForKey(GSIMapTable map, GSIMapKey key)
 #if     (GSI_MAP_KTYPES & GSUNION_INT)
 /*
  * Specialized lookup for the case where keys are known to be simple integer
- * or pointer values that are their own hash values and con be compared with
- * a test for integer equality.
+ * or pointer values that are their own hash values (when converted to unsigned
+ * integers) and can be compared with a test for integer equality.
  */
 static INLINE GSIMapNode 
 GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
@@ -576,7 +576,7 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
     {
       return 0;
     }
-  bucket = map->buckets + key.addr % map->bucketCount;
+  bucket = map->buckets + ((unsigned)key.addr) % map->bucketCount;
   node = bucket->firstNode;
   while ((node != 0) && node->key.addr != key.addr)
     {
