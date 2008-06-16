@@ -576,9 +576,9 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
     {
       return 0;
     }
-  bucket = map->buckets + key.uint % map->bucketCount;
+  bucket = map->buckets + key.addr % map->bucketCount;
   node = bucket->firstNode;
-  while ((node != 0) && node->key.uint != key.uint)
+  while ((node != 0) && node->key.addr != key.addr)
     {
       node = node->nextInBucket;
     }

@@ -23,6 +23,10 @@
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02111 USA. */
 
+/* Need Foundation/NSObjCRuntime.h for type declarations.
+ */
+#import <Foundation/NSObjCRuntime.h>
+
 /*
  *	Definitions for bitmap mask of types of element in union.
  */
@@ -58,6 +62,7 @@
 #if	defined(GSUNION) && defined(GSUNION_TYPES)
 
 typedef	union {
+  NSUInteger    addr;
 #if	((GSUNION_TYPES) & GSUNION_OBJ)
   id		obj;
   NSObject	*nso;
