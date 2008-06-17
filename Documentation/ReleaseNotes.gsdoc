@@ -29,6 +29,23 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.16.1</heading>
+	<p> 
+          This is a bugfix release.
+	</p>
+	<p> 
+          This release differs from 1.16.0 mostly in that it fixes
+          a bug which shows up on some 64bit machines where
+          sizeof(int) != sizeof(void*)<br />
+          The effect of this bug is that some notification observers
+          (those whose address is higher than can be represented in
+          32 bits) may not receive the notifications that they should.<br />
+          It is recommended that you upgrade to this release if you are
+          using a 64bit processor.
+	</p>
+      </section>
+
+      <section>
 	<heading>Version 1.16.0</heading>
 	<p> 
           This is a stable release.

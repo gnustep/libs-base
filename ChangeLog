@@ -1,3 +1,7 @@
+2008-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version 1.16.1
+
 2008-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/Additions/GNUstepBase/GSUnion.h: add NSUInteger type as addr

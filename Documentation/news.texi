@@ -11,6 +11,12 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.16.1}
+
+@itemize @bullet
+@item Fix for bug in notification posting for some observers on 64bit machines
+@end itemize
+
 @section Noteworthy changes in version @samp{1.16.0}
 
 @itemize @bullet
