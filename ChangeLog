@@ -1,3 +1,8 @@
+2008-06-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Fix error getting run loop for current
+	thread when it has not already been set.
+
 2008-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSUnion.h: add NSUInteger type as addr

@@ -91,9 +91,10 @@ static inline NSRunLoop *
 GSRunLoopForThread(NSThread *aThread)
 {
   GSRunLoopThreadInfo   *info = GSRunLoopInfoForThread(aThread);
+
   if (info == nil || info->loop == nil)
     {
-      if (aThread == nil)
+      if (aThread == nil || aThread == GSCurrentThread())
         {
           return [NSRunLoop currentRunLoop];
         }
@@ -1886,8 +1887,7 @@ static void retEncoder (DOContext *ctxt)
   const char	*type;
   retval_t	retframe;
   DOContext	ctxt;
-  NSThread	*thread = GSCurrentThread();
-  NSRunLoop	*runLoop = GSRunLoopForThread(thread);
+  NSRunLoop	*runLoop = GSRunLoopForThread(nil);
 
   memset(&ctxt, 0, sizeof(ctxt));
   ctxt.connection = self;
@@ -2030,8 +2030,7 @@ static void retEncoder (DOContext *ctxt)
   BOOL		needsResponse;
   const char	*type;
   DOContext	ctxt;
-  NSThread	*thread = GSCurrentThread();
-  NSRunLoop	*runLoop = GSRunLoopForThread(thread);
+  NSRunLoop	*runLoop = GSRunLoopForThread(nil);
 
   if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
     {
@@ -2494,8 +2493,7 @@ static void callEncoder (DOContext *ctxt)
    */
   NS_DURING
     {
-      NSThread	*thread = GSCurrentThread();
-      NSRunLoop	*runLoop = GSRunLoopForThread(thread);
+      NSRunLoop	*runLoop = GSRunLoopForThread(nil);
 
       NSParameterAssert (_isValid);
       if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
@@ -2761,8 +2759,7 @@ static void callEncoder (DOContext *ctxt)
   NSTimeInterval	last_interval = 0.0001;
   NSTimeInterval	delay_interval = last_interval;
   NSDate		*delay_date = nil;
-  NSThread		*thread = GSCurrentThread();
-  NSRunLoop		*runLoop = GSRunLoopForThread(thread);
+  NSRunLoop		*runLoop = GSRunLoopForThread(nil);
   BOOL			isLocked = NO;
 
   /*
