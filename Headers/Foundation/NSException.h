@@ -281,7 +281,7 @@ GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
  *  who shouldn't be billed etc), but shuts down as cleanly as possible.
  *  </p>
  *  <p>Process termination is normally accomplished by calling the standard
- *  exit function of theC runtime library, but if the environment variable
+ *  exit function of the C runtime library, but if the environment variable
  *  CRASH_ON_ABORT is set to YES or TRUE or 1 the termination will be
  *  accomplished by calling the abort function instead, which should cause
  *  a core dump to be made for debugging.
