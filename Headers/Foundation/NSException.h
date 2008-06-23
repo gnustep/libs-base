@@ -275,7 +275,7 @@ GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
  *  </p>
  *  <p>NB. If the exception handler set by this function does not terminate
  *  the process, the process will be terminateed anyway.  This is a safety
- *  precaution to ensure that, in the event of an exception ebing raised
+ *  precaution to ensure that, in the event of an exception being raised
  *  and not handled, the program does not try to continue running in a
  *  confused state (possibly doing horrible things like billing customers
  *  who shouldn't be billed etc), but shuts down as cleanly as possible.
@@ -285,6 +285,9 @@ GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
  *  CRASH_ON_ABORT is set to YES or TRUE or 1 the termination will be
  *  accomplished by calling the abort function instead, which should cause
  *  a core dump to be made for debugging.
+ *  </p>
+ *  <p>The value of proc should be a pointer to a function taking an
+ *  [NSException] instance as an argument.
  *  </p>
  */
 #define NSSetUncaughtExceptionHandler(proc) \
