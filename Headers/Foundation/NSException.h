@@ -252,19 +252,14 @@ typedef struct _NSHandler
 typedef void NSUncaughtExceptionHandler(NSException *exception);
 
 /**
- *  Variable used to hold the current uncaught exception handler.  Use the
- *  function NSSetUncaughtExceptionHandler() to set this.
- */
-GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
-
-/**
  *  Returns the exception handler called when an exception is generated and
  *  not caught by the programmer (by enclosing in <code>NS_DURING</code> and
  *  <code>NS_HANDLER</code>...<code>NS_ENDHANDLER</code>).  The default prints
  *  an error message and exits the program.  You can change this behavior by
  *  calling NSSetUncaughtExceptionHandler().
  */
-#define NSGetUncaughtExceptionHandler() _NSUncaughtExceptionHandler
+GS_EXPORT NSUncaughtExceptionHandler *
+NSGetUncaughtExceptionHandler();
 
 /**
  *  <p>Sets the exception handler called when an exception is generated and
@@ -290,8 +285,8 @@ GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
  *  [NSException] instance as an argument.
  *  </p>
  */
-#define NSSetUncaughtExceptionHandler(proc) \
-			(_NSUncaughtExceptionHandler = (proc))
+GS_EXPORT void
+NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler);
 
 /* NS_DURING, NS_HANDLER and NS_ENDHANDLER are always used like: 
 

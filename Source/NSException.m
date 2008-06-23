@@ -42,6 +42,8 @@
 #include <stdio.h>
 
 
+static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
+
 #define _e_info (((id*)_reserved)[0])
 #define _e_stack (((id*)_reserved)[1])
 
@@ -1050,4 +1052,16 @@ _NSRemoveHandler (NSHandler* handler)
 #endif
 #endif
   thread->_exception_handler = handler->next;
+}
+
+NSUncaughtExceptionHandler *
+NSGetUncaughtExceptionHandler()
+{
+  return _NSUncaughtExceptionHandler;
+}
+
+void
+NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler)
+{
+  _NSUncaughtExceptionHandler = handler;
 }

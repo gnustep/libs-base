@@ -1,3 +1,10 @@
+2008-06-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSException.h
+	* Source/NSException.h
+	Change macros for setting uncaught handler to be functions (to match
+	MacOS-X) and make the pointer itsself be private.
+
 2008-06-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Fix error getting run loop for current
