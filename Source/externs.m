@@ -104,12 +104,6 @@ NSString *const NSIsNotNilTransformerName
 NSString *const NSUnarchiveFromDataTransformerName
   = @"NSUnarchiveFromData";
 
-/**
- * Last-resort exception handler, a function taking an NSException and
- * returning void.  Set with NSSetUncaughtExceptionHandler().
- */
-NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
-
 /* NSBundle */
 NSString *NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
 
