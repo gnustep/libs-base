@@ -53,6 +53,19 @@
 
 @class  GSSloppyXMLParser;
 
+/*
+ * Cache classes.
+ */
+static Class	NSArrayClass;
+static Class	NSDataClass;
+static Class	NSDateClass;
+static Class	NSDictionaryClass;
+static Class	NSNumberClass;
+static Class	NSStringClass;
+static Class	NSMutableStringClass;
+static Class	GSStringClass;
+static Class	GSMutableStringClass;
+
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
 @class	GSMutableDictionary;
@@ -208,11 +221,11 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 	  id	last;
 
 	  last = [stack lastObject];
-	  if ([last isKindOfClass: [NSArray class]] == YES)
+	  if ([last isKindOfClass: NSArrayClass] == YES)
 	    {
 	      inArray = YES;
 	    }
-	  else if ([last isKindOfClass: [NSDictionary class]] == YES)
+	  else if ([last isKindOfClass: NSDictionaryClass] == YES)
 	    {
 	      inDictionary = YES;
 	    }
@@ -388,14 +401,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
 @end
 
-/*
- * Cache classes and method implementations for speed.
- */
-static Class	NSDataClass;
-static Class	NSStringClass;
-static Class	NSMutableStringClass;
-static Class	GSStringClass;
-static Class	GSMutableStringClass;
 
 static Class	plArray;
 static id	(*plAdd)(id, SEL, id) = 0;
@@ -1887,7 +1892,11 @@ static void
 OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
   NSPropertyListFormat x, NSMutableData *dest)
 {
-  if ([obj isKindOfClass: [NSString class]])
+  if (NSStringClass == 0)
+    {
+      [NSPropertyListSerialization class];      // Force initialisation
+    }
+  if ([obj isKindOfClass: NSStringClass])
     {
       if (x == NSPropertyListXMLFormat_v1_0)
 	{
@@ -1900,7 +1909,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  PString(obj, dest);
 	}
     }
-  else if ([obj isKindOfClass: [NSNumber class]])
+  else if ([obj isKindOfClass: NSNumberClass])
     {
       const char	*t = [obj objCType];
 
@@ -1980,7 +1989,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    }
 	}
     }
-  else if ([obj isKindOfClass: [NSData class]])
+  else if ([obj isKindOfClass: NSDataClass])
     {
       if (x == NSPropertyListXMLFormat_v1_0)
 	{
@@ -2017,7 +2026,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  dst[j++] = '>';
 	}
     }
-  else if ([obj isKindOfClass: [NSDate class]])
+  else if ([obj isKindOfClass: NSDateClass])
     {
       static NSTimeZone	*z = nil;
 
@@ -2050,7 +2059,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  PString(obj, dest);
 	}
     }
-  else if ([obj isKindOfClass: [NSArray class]])
+  else if ([obj isKindOfClass: NSArrayClass])
     {
       const char	*iBaseString;
       const char	*iSizeString;
@@ -2147,7 +2156,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    }
 	}
     }
-  else if ([obj isKindOfClass: [NSDictionary class]])
+  else if ([obj isKindOfClass: NSDictionaryClass])
     {
       const char	*iBaseString;
       const char	*iSizeString;
@@ -2199,10 +2208,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
         {
 	  /* This format can only use strings as keys.
 	   */
-	  lastClass = [NSString class];
 	  for (i = 0; i < numKeys; i++)
 	    {
-	      if ([keys[i] isKindOfClass: lastClass] == NO)
+	      if ([keys[i] isKindOfClass: NSStringClass] == NO)
 	        {
 		  [NSException raise: NSInvalidArgumentException
 		    format: @"Bad key in property list: '%@'", keys[i]];
@@ -2213,11 +2221,12 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	{
 	  /* All keys must respond to -compare: for sorting.
 	   */
+	  lastClass = NSStringClass;
 	  for (i = 0; i < numKeys; i++)
 	    {
 	      if (GSObjCClass(keys[i]) == lastClass)
 		continue;
-	      if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
+	      if ([keys[i] isKindOfClass: NSStringClass] == NO)
 		{
 		  canCompare = NO;
 		  break;
@@ -2417,6 +2426,10 @@ static BOOL	classInitialized = NO;
       NSStringClass = [NSString class];
       NSMutableStringClass = [NSMutableString class];
       NSDataClass = [NSData class];
+      NSDateClass = [NSDate class];
+      NSNumberClass = [NSNumber class];
+      NSArrayClass = [NSArray class];
+      NSDictionaryClass = [NSDictionary class];
       GSStringClass = [GSString class];
       GSMutableStringClass = [GSMutableString class];
 
@@ -2577,7 +2590,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       error = @"nil data argument passed to method";
     }
-  else if ([data isKindOfClass: [NSData class]] == NO)
+  else if ([data isKindOfClass: NSDataClass] == NO)
     {
       error = @"non-NSData data argument passed to method";
     }
@@ -3982,27 +3995,27 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 {
   [self markOffset: [dest length] for: object];
 
-  if ([object isKindOfClass: [NSString class]])
+  if ([object isKindOfClass: NSStringClass])
     {
       [self storeString: object];
     }
-  else if ([object isKindOfClass: [NSData class]])
+  else if ([object isKindOfClass: NSDataClass])
     {
       [self storeData: object];
     }
-  else if ([object isKindOfClass: [NSNumber class]])
+  else if ([object isKindOfClass: NSNumberClass])
     {
       [self storeNumber: object];
     }
-  else if ([object isKindOfClass: [NSDate class]])
+  else if ([object isKindOfClass: NSDateClass])
     {
       [self storeDate: object];
     }
-  else if ([object isKindOfClass: [NSArray class]])
+  else if ([object isKindOfClass: NSArrayClass])
     {
       [self storeArray: object];
     }
-  else if ([object isKindOfClass: [NSDictionary class]])
+  else if ([object isKindOfClass: NSDictionaryClass])
     {
       [self storeDictionary: object];
     }
