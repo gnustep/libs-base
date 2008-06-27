@@ -1,3 +1,8 @@
+2008-06-27 17:22-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUnarchiver.m: Issue a warning when the class can't be
+	resolved by the runtime in decodeValueOfObjCType:at:.
+
 2008-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: sort dictionary keys only if they are

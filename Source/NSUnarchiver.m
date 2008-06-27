@@ -740,7 +740,7 @@ static Class NSDataMallocClass;
 	      (*desImp)(src, desSel, &cver, @encode(unsigned), &cursor, nil);
 	      if (className == 0)
 		{
-		  NSLog(@"[%s %s] decoded nil class",
+		  NSLog(@"[%s %s] decoded nil class name",
 		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
 		  className = @"_NSUnarchiverUnknownClass";
 		}
@@ -750,6 +750,15 @@ static Class NSDataMallocClass;
 		  classInfo = [NSUnarchiverObjectInfo
 		    newWithName: className];
 		  c = NSClassFromString(className);
+		  /*
+		   * Show a warning, if the class name that's being used to build the
+		   * class causes NSClassFromString to return nil.  This means that the
+		   * class is unknown to the runtime.
+		   */
+		  if(c == nil)
+		    {
+		      NSLog(@"Got nil when trying to unarchive class %s",className);
+		    }
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
 		  RELEASE(classInfo);
