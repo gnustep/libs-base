@@ -588,7 +588,7 @@ int main (int argc, char *argv[], char **env)
 	}
       else
 	prx = [NSConnection rootProxyForConnectionWithRegisteredName:
-		@"test2server" host: @"*"];
+		@"test2server" host: @""];
       if (prx == nil)
 	{
 	  printf("ERROR: Failed to connect to server\n");
