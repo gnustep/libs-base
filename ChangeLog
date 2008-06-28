@@ -1,3 +1,11 @@
+2008-06-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSFFIInvocation.m:
+        * configure.ac:
+        * configure:
+        * Headers/Additions/GNUstepBase/config.h.in:
+	Backport ffi fixes from trunk.
+
 2008-06-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: backport fix from trunk.
