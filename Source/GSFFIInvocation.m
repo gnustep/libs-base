@@ -76,8 +76,11 @@
 - (id) initWithSize: (unsigned)_size
 {
 #if     defined(HAVE_MMAP)
+#ifndef MAP_ANON
+#define MAP_ANON        MAP_ANONYMOUS
+#endif
   buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE|PROT_EXEC,
-    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+    MAP_PRIVATE|MAP_ANON, -1, 0);
   if (buffer == (void*)-1)
 #else
   buffer = malloc(_size);
