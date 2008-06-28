@@ -31,6 +31,86 @@
 #import <objc/objc-api.h>
 #import "cifframe.h"
 #import "mframe.h"
+#import "GSPrivate.h"
+
+#if     defined(HAVE_SYS_MMAN_H)
+#include <sys/mman.h>
+#endif
+
+@interface      GSMMapBuffer : NSObject
+{
+  unsigned      size;
+  void          *buffer;
+}
++ (GSMMapBuffer*) memoryWithSize: (unsigned)_size;
+- (void*) buffer;
+- (id) initWithSize: (unsigned)_size;
+- (void) protect;
+@end
+
+@implementation GSMMapBuffer
+
++ (GSMMapBuffer*) memoryWithSize: (unsigned)_size
+{
+  return [[[self alloc] initWithSize: _size] autorelease];
+}
+
+- (void*) buffer
+{
+  return buffer;
+}
+
+- (void) dealloc
+{
+  if (size > 0)
+    {
+#if     defined(HAVE_MMAP)
+      munmap(buffer, size);
+#else
+      free(buffer);
+#endif
+    }
+  [super dealloc];
+}
+
+- (id) initWithSize: (unsigned)_size
+{
+#if     defined(HAVE_MMAP)
+  buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE|PROT_EXEC,
+    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+  if (buffer == (void*)-1)
+#else
+  buffer = malloc(_size);
+  if (buffer == (void*)0)
+#endif
+    {
+      NSLog(@"Failed to map %u bytes for FFI: %@", _size, [NSError _last]);
+      buffer = 0;
+      [self dealloc];
+      self = nil;
+    }
+  else
+    {
+      size = _size;
+    }
+  return self;
+}
+
+/* Ensurre that the proterction on the buffer is such that it will execute
+ * on any architecture.
+ */
+- (void) protect
+{
+#if     defined(HAVE_MPROTECT)
+  if (mprotect(buffer, size, PROT_READ | PROT_EXEC) == -1)
+    {
+      NSLog(@"Failed to protect closure for FFI: %@", [NSError _last]);
+    }
+#endif
+}
+@end
+
+
 
 #ifndef INLINE
 #define INLINE inline
@@ -146,6 +226,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
   NSMethodSignature     *sig;
+  GSMMapBuffer          *memory;
 
   sig = [receiver methodSignatureForSelector: sel];
 
@@ -185,7 +266,9 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
      worry about freeing it */
   cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
   /* Autorelease the closure through GSAutoreleasedBuffer */
-  cclosure = (ffi_closure *)GSAutoreleasedBuffer(sizeof(ffi_closure));
+
+  memory = [GSMMapBuffer memoryWithSize: sizeof(ffi_closure)];
+  cclosure = [memory buffer];
   if (cframe == NULL || cclosure == NULL)
     {
       [NSException raise: NSMallocException format: @"Allocating closure"];
@@ -195,6 +278,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
     {
       [NSException raise: NSGenericException format: @"Preping closure"];
     }
+  [memory protect];
 
   return (IMP)cclosure;
 }

@@ -1,3 +1,11 @@
+2008-06-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for sys/mman.h and mprotect
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Source/GSFFIInvocation.m: Use mmap and mprotect to ensure that
+	closure memory is executable.
+
 2008-06-27 17:22-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUnarchiver.m: Issue a warning when the class can't be

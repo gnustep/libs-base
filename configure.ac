@@ -1496,11 +1496,13 @@ AC_CHECK_FUNCS(valloc)
 AC_CHECK_FUNCS(times)
 
 #--------------------------------------------------------------------
-# These functions needed by NSData.m
+# These functions needed by NSData.m and GSFFIInvocation.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(mkstemp)
 AC_CHECK_FUNCS(shmctl)
 AC_CHECK_FUNCS(mmap)
+AC_CHECK_FUNCS(mprotect)
+AC_CHECK_HEADERS(sys/mman.h)
 
 #--------------------------------------------------------------------
 # These functions needed by NSTask.m
