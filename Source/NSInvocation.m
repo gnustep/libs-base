@@ -116,14 +116,14 @@
  */
 - (void) protect
 {
-#if     defined(HAVE_MPROTECT)
-  if (mprotect(buffer, size, PROT_READ|PROT_EXEC) == -1)
+#if   defined(__MINGW32__)
+  DWORD old;
+  if (VirtualProtect(buffer, size, PAGE_EXECUTE, &old) == 0)
     {
       NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
     }
-#elif   defined(__MINGW32__)
-  DWORD old;
-  if (VirtualProtect(buffer, size, PAGE_EXECUTE, &old) == 0)
+#elif     defined(HAVE_MPROTECT)
+  if (mprotect(buffer, size, PROT_READ|PROT_EXEC) == -1)
     {
       NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
     }
