@@ -498,5 +498,19 @@ long
 GSPrivateUnloadModule(FILE *errorStream,
   void (*unloadCallback)(Class, struct objc_category *)) GS_ATTRIB_PRIVATE;
 
+
+/* Memory to use to put executabel code in.
+ */
+@interface      GSCodeBuffer : NSObject
+{
+  unsigned      size;
+  void          *buffer;
+}
++ (GSCodeBuffer*) memoryWithSize: (unsigned)_size;
+- (void*) buffer;
+- (id) initWithSize: (unsigned)_size;
+- (void) protect;
+@end
+
 #endif /* _GSPrivate_h_ */
 

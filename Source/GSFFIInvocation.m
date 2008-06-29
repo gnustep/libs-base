@@ -33,111 +33,6 @@
 #import "mframe.h"
 #import "GSPrivate.h"
 
-#if     defined(HAVE_SYS_MMAN_H)
-#include <sys/mman.h>
-#endif
-
-@interface      GSMMapBuffer : NSObject
-{
-  unsigned      size;
-  void          *buffer;
-}
-+ (GSMMapBuffer*) memoryWithSize: (unsigned)_size;
-- (void*) buffer;
-- (id) initWithSize: (unsigned)_size;
-- (void) protect;
-@end
-
-@implementation GSMMapBuffer
-
-+ (GSMMapBuffer*) memoryWithSize: (unsigned)_size
-{
-  return [[[self alloc] initWithSize: _size] autorelease];
-}
-
-- (void*) buffer
-{
-  return buffer;
-}
-
-- (void) dealloc
-{
-  if (size > 0)
-    {
-#if     defined(HAVE_MMAP)
-      munmap(buffer, size);
-#elif   defined(__MINGW32__)
-      VirtualFree(buffer, 0, MEM_RELEASE);
-#else
-      free(buffer);
-#endif
-    }
-  [super dealloc];
-}
-
-- (id) initWithSize: (unsigned)_size
-{
-#if     defined(HAVE_MMAP)
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS   MAP_ANON
-#endif
-#if     defined(HAVE_MPROTECT)
-  /* We have mprotect, so we create memory as writable and change it to
-   * executable later (writable and executable may not be possible at
-   * the same time).
-   */
-  buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE,
-    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-#else
-  /* We do not have mprotect, so we have to try to create writable and
-   * executable memory.
-   */
-  buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE|PROT_EXEC,
-    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-#endif  /* HAVE_MPROTECT */
-  if (buffer == (void*)-1) buffer = (void*)0;
-#elif   defined(__MINGW32__)
-  buffer = VirtualAlloc(NULL, _size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
-#else
-  buffer = malloc(_size);
-#endif  /* HAVE_MMAP */
-
-  if (buffer == (void*)0)
-    {
-      NSLog(@"Failed to map %u bytes for execute: %@", _size, [NSError _last]);
-      buffer = 0;
-      [self dealloc];
-      self = nil;
-    }
-  else
-    {
-      size = _size;
-    }
-  return self;
-}
-
-/* Ensure that the protection on the buffer is such that it will execute
- * on any architecture.
- */
-- (void) protect
-{
-#if     defined(HAVE_MPROTECT)
-  if (mprotect(buffer, size, PROT_READ|PROT_EXEC) == -1)
-    {
-      NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
-    }
-#elif   defined(__MINGW32__)
-  DWORD old;
-  if (VirtualProtect(buffer, size, PAGE_EXECUTE, &old) == 0)
-    {
-      NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
-    }
-#endif
-}
-@end
-
-
-
 #ifndef INLINE
 #define INLINE inline
 #endif
@@ -252,7 +147,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
   NSMethodSignature     *sig;
-  GSMMapBuffer          *memory;
+  GSCodeBuffer          *memory;
 
   sig = [receiver methodSignatureForSelector: sel];
 
@@ -293,7 +188,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
   /* Autorelease the closure through GSAutoreleasedBuffer */
 
-  memory = [GSMMapBuffer memoryWithSize: sizeof(ffi_closure)];
+  memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
   cclosure = [memory buffer];
   if (cframe == NULL || cclosure == NULL)
     {
