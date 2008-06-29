@@ -76,16 +76,28 @@
 - (id) initWithSize: (unsigned)_size
 {
 #if     defined(HAVE_MMAP)
-#ifndef MAP_ANON
-#define MAP_ANON        MAP_ANONYMOUS
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS   MAP_ANON
 #endif
+#if     defined(HAVE_MPROTECT)
+  /* We have mprotect, so we create memory as writable and change it to
+   * executable later (writable and executable may not be possible at
+   * the same time).
+   */
+  buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE,
+    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+#else
+  /* We do not have mprotect, so we have to try to create writable and
+   * executable memory.
+   */
   buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE|PROT_EXEC,
-    MAP_PRIVATE|MAP_ANON, -1, 0);
+    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+#endif  /* HAVE_MPROTECT */
   if (buffer == (void*)-1)
 #else
   buffer = malloc(_size);
   if (buffer == (void*)0)
-#endif
+#endif  /* HAVE_MMAP */
     {
       NSLog(@"Failed to map %u bytes for FFI: %@", _size, [NSError _last]);
       buffer = 0;
@@ -105,7 +117,7 @@
 - (void) protect
 {
 #if     defined(HAVE_MPROTECT)
-  if (mprotect(buffer, size, PROT_READ | PROT_EXEC) == -1)
+  if (mprotect(buffer, size, PROT_READ|PROT_EXEC) == -1)
     {
       NSLog(@"Failed to protect closure for FFI: %@", [NSError _last]);
     }
