@@ -31,12 +31,105 @@
 #include "Foundation/NSInvocation.h"
 #include "GSInvocation.h"
 #include "config.h"
+#include "GSPrivate.h"
 #include <mframe.h>
 #if defined(USE_LIBFFI)
 #include "cifframe.h"
 #elif defined(USE_FFCALL)
 #include "callframe.h"
 #endif
+
+#if     defined(HAVE_SYS_MMAN_H)
+#include <sys/mman.h>
+#endif
+
+@implementation GSCodeBuffer
+
++ (GSCodeBuffer*) memoryWithSize: (unsigned)_size
+{
+  return [[[self alloc] initWithSize: _size] autorelease];
+}
+
+- (void*) buffer
+{
+  return buffer;
+}
+
+- (void) dealloc
+{
+  if (size > 0)
+    {
+#if     defined(HAVE_MMAP)
+      munmap(buffer, size);
+#elif   defined(__MINGW32__)
+      VirtualFree(buffer, 0, MEM_RELEASE);
+#else
+      free(buffer);
+#endif
+    }
+  [super dealloc];
+}
+
+- (id) initWithSize: (unsigned)_size
+{
+#if     defined(HAVE_MMAP)
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS   MAP_ANON
+#endif
+#if     defined(HAVE_MPROTECT)
+  /* We have mprotect, so we create memory as writable and change it to
+   * executable later (writable and executable may not be possible at
+   * the same time).
+   */
+  buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE,
+    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+#else
+  /* We do not have mprotect, so we have to try to create writable and
+   * executable memory.
+   */
+  buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE|PROT_EXEC,
+    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+#endif  /* HAVE_MPROTECT */
+  if (buffer == (void*)-1) buffer = (void*)0;
+#elif   defined(__MINGW32__)
+  buffer = VirtualAlloc(NULL, _size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+#else
+  buffer = malloc(_size);
+#endif  /* HAVE_MMAP */
+
+  if (buffer == (void*)0)
+    {
+      NSLog(@"Failed to map %u bytes for execute: %@", _size, [NSError _last]);
+      buffer = 0;
+      [self dealloc];
+      self = nil;
+    }
+  else
+    {
+      size = _size;
+    }
+  return self;
+}
+
+/* Ensure that the protection on the buffer is such that it will execute
+ * on any architecture.
+ */
+- (void) protect
+{
+#if     defined(HAVE_MPROTECT)
+  if (mprotect(buffer, size, PROT_READ|PROT_EXEC) == -1)
+    {
+      NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
+    }
+#elif   defined(__MINGW32__)
+  DWORD old;
+  if (VirtualProtect(buffer, size, PAGE_EXECUTE, &old) == 0)
+    {
+      NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
+    }
+#endif
+}
+@end
 
 static Class   NSInvocation_abstract_class;
 static Class   NSInvocation_concrete_class;
