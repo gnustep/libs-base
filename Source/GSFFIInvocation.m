@@ -66,6 +66,8 @@
     {
 #if     defined(HAVE_MMAP)
       munmap(buffer, size);
+#elif   defined(__MINGW32__)
+      VirtualFree(buffer, 0, MEM_RELEASE);
 #else
       free(buffer);
 #endif
@@ -93,13 +95,16 @@
   buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE|PROT_EXEC,
     MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 #endif  /* HAVE_MPROTECT */
-  if (buffer == (void*)-1)
+  if (buffer == (void*)-1) buffer = (void*)0;
+#elif   defined(__MINGW32__)
+  buffer = VirtualAlloc(NULL, _size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 #else
   buffer = malloc(_size);
-  if (buffer == (void*)0)
 #endif  /* HAVE_MMAP */
+
+  if (buffer == (void*)0)
     {
-      NSLog(@"Failed to map %u bytes for FFI: %@", _size, [NSError _last]);
+      NSLog(@"Failed to map %u bytes for execute: %@", _size, [NSError _last]);
       buffer = 0;
       [self dealloc];
       self = nil;
@@ -111,7 +116,7 @@
   return self;
 }
 
-/* Ensurre that the proterction on the buffer is such that it will execute
+/* Ensure that the protection on the buffer is such that it will execute
  * on any architecture.
  */
 - (void) protect
@@ -119,7 +124,13 @@
 #if     defined(HAVE_MPROTECT)
   if (mprotect(buffer, size, PROT_READ|PROT_EXEC) == -1)
     {
-      NSLog(@"Failed to protect closure for FFI: %@", [NSError _last]);
+      NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
+    }
+#elif   defined(__MINGW32__)
+  DWORD old;
+  if (VirtualProtect(buffer, size, PAGE_EXECUTE, &old) == 0)
+    {
+      NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
     }
 #endif
 }
