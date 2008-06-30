@@ -1,3 +1,12 @@
+2008-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSFFIInvocation.m:
+        * Source/NSInvocation.m:
+        * Source/cifframe.h:
+        * Source/cifframe.m:
+	Tweaks to get NS_MESSAGE and NS_INVOCATION working on my 64bit
+	system.
+
 2008-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for sys/mman.h and mprotect
