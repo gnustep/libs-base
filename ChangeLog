@@ -1,3 +1,11 @@
+2008-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSFFIInvocation.m:
+	* Source/NSInvocation.m:
+	* Source/cifframe.h:
+	* Source/cifframe.m:
+	Fixes to get NS_MESSAGE and NS_INVOCATION working with libffi 
+
 2008-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSFFIInvocation.m:

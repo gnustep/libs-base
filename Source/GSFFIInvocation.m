@@ -33,100 +33,6 @@
 #import "mframe.h"
 #import "GSPrivate.h"
 
-#if     defined(HAVE_SYS_MMAN_H)
-#include <sys/mman.h>
-#endif
-
-@interface      GSMMapBuffer : NSObject
-{
-  unsigned      size;
-  void          *buffer;
-}
-+ (GSMMapBuffer*) memoryWithSize: (unsigned)_size;
-- (void*) buffer;
-- (id) initWithSize: (unsigned)_size;
-- (void) protect;
-@end
-
-@implementation GSMMapBuffer
-
-+ (GSMMapBuffer*) memoryWithSize: (unsigned)_size
-{
-  return [[[self alloc] initWithSize: _size] autorelease];
-}
-
-- (void*) buffer
-{
-  return buffer;
-}
-
-- (void) dealloc
-{
-  if (size > 0)
-    {
-#if     defined(HAVE_MMAP)
-      munmap(buffer, size);
-#else
-      free(buffer);
-#endif
-    }
-  [super dealloc];
-}
-
-- (id) initWithSize: (unsigned)_size
-{
-#if     defined(HAVE_MMAP)
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS   MAP_ANON
-#endif
-#if     defined(HAVE_MPROTECT)
-  /* We have mprotect, so we create memory as writable and change it to
-   * executable later (writable and executable may not be possible at
-   * the same time).
-   */
-  buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE,
-    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-#else
-  /* We do not have mprotect, so we have to try to create writable and
-   * executable memory.
-   */
-  buffer = mmap (NULL, _size, PROT_READ|PROT_WRITE|PROT_EXEC,
-    MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-#endif  /* HAVE_MPROTECT */
-  if (buffer == (void*)-1)
-#else
-  buffer = malloc(_size);
-  if (buffer == (void*)0)
-#endif  /* HAVE_MMAP */
-    {
-      NSLog(@"Failed to map %u bytes for FFI: %@", _size, [NSError _last]);
-      buffer = 0;
-      [self dealloc];
-      self = nil;
-    }
-  else
-    {
-      size = _size;
-    }
-  return self;
-}
-
-/* Ensurre that the proterction on the buffer is such that it will execute
- * on any architecture.
- */
-- (void) protect
-{
-#if     defined(HAVE_MPROTECT)
-  if (mprotect(buffer, size, PROT_READ|PROT_EXEC) == -1)
-    {
-      NSLog(@"Failed to protect closure for FFI: %@", [NSError _last]);
-    }
-#endif
-}
-@end
-
-
-
 #ifndef INLINE
 #define INLINE inline
 #endif
@@ -241,7 +147,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
   NSMethodSignature     *sig;
-  GSMMapBuffer          *memory;
+  GSCodeBuffer          *memory;
 
   sig = [receiver methodSignatureForSelector: sel];
 
@@ -282,7 +188,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
   /* Autorelease the closure through GSAutoreleasedBuffer */
 
-  memory = [GSMMapBuffer memoryWithSize: sizeof(ffi_closure)];
+  memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
   cclosure = [memory buffer];
   if (cframe == NULL || cclosure == NULL)
     {
@@ -347,23 +253,28 @@ static IMP gs_objc_msg_forward (SEL sel)
 		  frame: (cifframe_t *)frame
 	      signature: (NSMethodSignature*)aSignature
 {
+  int i;
+
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
   _cframe = frame;
   ((cifframe_t *)_cframe)->cif = *cif;
 
+  /* Copy the arguments into our frame so that they are preserved
+   * in the NSInvocation if the stack is changed before the
+   * invocation is used.
+   */
 #if MFRAME_STRUCT_BYREF
-{
-  int i;
-  /* Fix up some of the values. Do this on all processors that pass
-     structs by reference. Is there an automatic way to determine this? */
   for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
     {
       const char *t = _info[i+1].type;
 
       if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
 	{
+          /* Fix up some of the values. Do this on all processors that pass
+             structs by reference.
+             Is there an automatic way to determine this? */
 	  memcpy(((cifframe_t *)_cframe)->values[i], *(void **)vals[i],
 		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
@@ -373,12 +284,20 @@ static IMP gs_objc_msg_forward (SEL sel)
 		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
     }
-}
 #else
-  ((cifframe_t *)_cframe)->values = vals;
+  for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
+    {
+      memcpy(((cifframe_t *)_cframe)->values[i], vals[i],
+             ((cifframe_t *)_cframe)->arg_types[i]->size);
+    }
 #endif
   _retval = retp;
   return self;
+}
+
+- (void) _storeRetval
+{
+  _retval = _cframe + retval_offset_from_info (_info, _numArgs);
 }
 
 /*
