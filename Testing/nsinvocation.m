@@ -14,6 +14,8 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSArchiver.h>
 
+static int      loop_int_result;
+
 typedef struct {
   char	c;
   int	i;
@@ -78,6 +80,7 @@ typedef struct {
 }
 - (int) loopInt: (int)v
 {
+  loop_int_result = v+1;
   return v+1;
 }
 - (large) loopLarge: (large)v
@@ -255,22 +258,24 @@ printf("Calling proxy\n");
 
   printf("Testing NS_MESSAGE ... ");
   inv = NS_MESSAGE(t, loopInt: 5);
+  loop_int_result = 0;
   [inv invoke];
   [inv getReturnValue: &i];
-  if (i == 6)
+  if (i == 6 && loop_int_result == 6)
     printf("OK\n");
   else
-    printf("ERROR ... expecting 6 and got %d\n", i);
+    printf("ERROR ... expecting 6,6 and got %d,%d\n", i, loop_int_result);
 
   printf("Testing NS_INVOCATION ... ");
   inv = NS_INVOCATION([Target class], loopInt: 7);
   [inv setTarget: t];
+  loop_int_result = 0;
   [inv invoke];
   [inv getReturnValue: &i];
-  if (i == 8)
+  if (i == 8 && loop_int_result == 8)
     printf("OK\n");
   else
-    printf("ERROR ... expecting 8 and got %d\n", i);
+    printf("ERROR ... expecting 8,8 and got %d,%d\n", i, loop_int_result);
 
 #define	SETUP(X) \
   sig = [t methodSignatureForSelector: @selector(X)]; \

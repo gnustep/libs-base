@@ -253,23 +253,28 @@ static IMP gs_objc_msg_forward (SEL sel)
 		  frame: (cifframe_t *)frame
 	      signature: (NSMethodSignature*)aSignature
 {
+  int i;
+
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
   _cframe = frame;
   ((cifframe_t *)_cframe)->cif = *cif;
 
+  /* Copy the arguments into our frame so that they are preserved
+   * in the NSInvocation if the stack is changed before the
+   * invocation is used.
+   */
 #if MFRAME_STRUCT_BYREF
-{
-  int i;
-  /* Fix up some of the values. Do this on all processors that pass
-     structs by reference. Is there an automatic way to determine this? */
   for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
     {
       const char *t = _info[i+1].type;
 
       if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
 	{
+          /* Fix up some of the values. Do this on all processors that pass
+             structs by reference.
+             Is there an automatic way to determine this? */
 	  memcpy(((cifframe_t *)_cframe)->values[i], *(void **)vals[i],
 		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
@@ -279,12 +284,20 @@ static IMP gs_objc_msg_forward (SEL sel)
 		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
     }
-}
 #else
-  ((cifframe_t *)_cframe)->values = vals;
+  for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
+    {
+      memcpy(((cifframe_t *)_cframe)->values[i], vals[i],
+             ((cifframe_t *)_cframe)->arg_types[i]->size);
+    }
 #endif
   _retval = retp;
   return self;
+}
+
+- (void) _storeRetval
+{
+  _retval = _cframe + retval_offset_from_info (_info, _numArgs);
 }
 
 /*

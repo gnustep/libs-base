@@ -43,6 +43,13 @@
 #include <sys/mman.h>
 #endif
 
+@interface      NSInvocation (Private)
+/* Tell the invocation to store return values locally rather than writing
+ * themto the stack location specified when the invocation was produced
+ */
+- (void) _storeRetval;
+@end
+
 @implementation GSCodeBuffer
 
 + (GSCodeBuffer*) memoryWithSize: (unsigned)_size
@@ -1147,6 +1154,7 @@ _arg_addr(NSInvocation *inv, int index)
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
   invocation = anInvocation;
+  [invocation _storeRetval];
 }
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
@@ -1159,5 +1167,12 @@ _arg_addr(NSInvocation *inv, int index)
 {
   [invocation setTarget: target];
   return invocation;
+}
+@end
+
+@implementation NSInvocation (Private)
+- (void) _storeRetval
+{
+  return;       // subclass should implemente where necessary
 }
 @end
