@@ -11,6 +11,13 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.16.2}
+
+@itemize @bullet
+@item Fixes for libffi based forwarding and invocations.
+@item Fix for bug in NSConnection used in multiple threads.
+@end itemize
+
 @section Noteworthy changes in version @samp{1.16.1}
 
 @itemize @bullet

@@ -28,6 +28,26 @@ notice and this notice are preserved.
 	changes and other information that might help developers and users
 	migrate to using a newer version of the library.
       </p>
+
+      <section>
+	<heading>Version 1.16.2</heading>
+	<p> 
+          This is a bugfix release.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSConnection</term>
+          <desc>Fixes bug introduced at 1.16.0 causing crashes when using
+          distributed objects between different threads.
+          </desc>
+	  <term>Use of libffi</term>
+          <desc>Fixes use of libffi to work on systems where memory is
+          protected to avoid it being executed.<br />
+          Fixes NS_MESSAGE and NS_INVOCATION macros when used with libffi.
+          </desc>
+        </deflist>
+      </section>
+
       <section>
 	<heading>Version 1.16.1</heading>
 	<p> 
