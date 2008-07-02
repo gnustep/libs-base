@@ -43,6 +43,16 @@
 #include <sys/mman.h>
 #endif
 
+#if     defined(HAVE_MMAP)
+#  if   !defined(MAP_ANONYMOUS)
+#    if defined(MAP_ANON)
+#      define MAP_ANONYMOUS   MAP_ANON
+#    else
+#      undef  HAVE_MMAP
+#    endif
+#  endif
+#endif
+
 @interface      NSInvocation (Private)
 /* Tell the invocation to store return values locally rather than writing
  * themto the stack location specified when the invocation was produced
@@ -80,9 +90,6 @@
 - (id) initWithSize: (unsigned)_size
 {
 #if     defined(HAVE_MMAP)
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS   MAP_ANON
-#endif
 #if     defined(HAVE_MPROTECT)
   /* We have mprotect, so we create memory as writable and change it to
    * executable later (writable and executable may not be possible at
