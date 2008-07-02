@@ -1,3 +1,7 @@
+2008-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexSet.m: Implement ([-countOfIndexesInRange:])
+
 2008-06-30  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSFFIInvocation.m:
