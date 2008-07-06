@@ -1876,13 +1876,15 @@ fi
 
 #--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
-# We enable ffcall by default now, except on sparc64 (where we think
-# it's broken).
+# We enable ffi by default now, as it's fixed for some previouly bad
+# platforms, and it has the advantage over ffcall that it does not
+# mess up the stack, so stacktraces and native exception handling
+# work better with it.
 #--------------------------------------------------------------------
 do_broken_libffi=no
 do_broken_libffcall=no
-do_enable_libffi=no
-do_enable_libffcall=yes
+do_enable_libffi=yes
+do_enable_libffcall=no
 case "$target_cpu" in
   sparc64*)
     case "$target_os" in
@@ -1939,6 +1941,10 @@ if test $have_ffcall = no; then
 fi
 if test $have_libffi = no; then
   enable_libffi=no
+  # If we don't have libffi but do have ffcall, use ffcall
+  if test $have_ffcall = yes; then
+    enable_ffcall=yes
+  fi
 fi
 
 have_forward_hook=yes

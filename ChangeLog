@@ -1,3 +1,9 @@
+2008-07-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: use libffi in preference to ffcall as it doesn't mess
+	up the stack.
+	* configure: regenerate
+
 2008-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexSet.m: Implement ([-countOfIndexesInRange:])
