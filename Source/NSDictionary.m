@@ -437,8 +437,32 @@ static SEL	appSel;
     {
       GS_BEGINIDBUF(o, objectCount*2);
 
-      [objects getObjects: o];
-      [keys getObjects: o + objectCount];
+      if ([objects isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < objectCount; i++)
+	    {
+	      o[i] = [objects objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [objects getObjects: o];
+	}
+      if ([keys isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < objectCount; i++)
+	    {
+	      o[objectCount + i] = [keys objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [keys getObjects: o + objectCount];
+	}
       self = [self initWithObjects: o
 			   forKeys: o + objectCount
 			     count: objectCount];
@@ -899,7 +923,17 @@ compareIt(id o1, id o2, void* context)
       id	result;
       GS_BEGINIDBUF(obuf, c);
 
-      [keys getObjects: obuf];
+      if ([keys isProxy])
+	{
+	  for (i = 0; i < c; i++)
+	    {
+	      obuf[i] = [keys objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [keys getObjects: obuf];
+	}
       for (i = 0; i < c; i++)
 	{
 	  id o = (*myObj)(self, objSel, obuf[i]);
@@ -1245,7 +1279,19 @@ compareIt(id o1, id o2, void* context)
       IMP	remObj = [self methodForSelector: remSel];
       GS_BEGINIDBUF(keys, c);
 
-      [keyArray getObjects: keys];
+      if ([keyArray isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < c; i++)
+	    {
+	      keys[i] = [keyArray objectAtIndex: i];
+	    }
+	}
+      else
+	{
+	  [keyArray getObjects: keys];
+	}
       while (c--)
 	{
 	  (*remObj)(self, remSel, keys[c]);
