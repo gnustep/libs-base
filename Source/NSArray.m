@@ -315,17 +315,33 @@ static SEL	rlSel;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
 {
   id		na;
-  unsigned	c, l;
+  unsigned	c;
+  unsigned	l;
+  unsigned	e;
 
   c = [self count];
   l = [anotherArray count];
+  e = c + l;
 
   {
-    GS_BEGINIDBUF(objects, c+l);
+    GS_BEGINIDBUF(objects, e);
 
     [self getObjects: objects];
-    [anotherArray getObjects: &objects[c]];
-    na = [NSArrayClass arrayWithObjects: objects count: c+l];
+    if ([anotherArray isProxy])
+      {
+	unsigned	i = c;
+	unsigned	j = 0;
+
+	while (i < e)
+	  {
+	    objects[i++] = [anotherArray objectAtIndex: j++];
+	  }
+      }
+    else
+      {
+        [anotherArray getObjects: &objects[c]];
+      }
+    na = [NSArrayClass arrayWithObjects: objects count: e];
 
     GS_ENDIDBUF();
   }
@@ -582,7 +598,19 @@ static SEL	rlSel;
   unsigned	c = [array count];
   GS_BEGINIDBUF(objects, c);
 
-  [array getObjects: objects];
+  if ([array isProxy])
+    {
+      unsigned	i;
+
+      for (i = 0; i < c; i++)
+	{
+	  objects[i] = [array objectAtIndex: i];
+	}
+    }
+  else
+    {
+      [array getObjects: objects];
+    }
   if (shouldCopy == YES)
     {
       unsigned	i;
@@ -617,7 +645,19 @@ static SEL	rlSel;
   unsigned	c = [array count];
   GS_BEGINIDBUF(objects, c);
 
-  [array getObjects: objects];
+  if ([array isProxy])
+    {
+      unsigned	i;
+
+      for (i = 0; i < c; i++)
+	{
+	  objects[i] = [array objectAtIndex: i];
+	}
+    }
+  else
+    {
+      [array getObjects: objects];
+    }
   self = [self initWithObjects: objects count: c];
   GS_ENDIDBUF();
   return self;

@@ -312,7 +312,19 @@ SortRange(id *objects, NSRange range, id *descriptors,
       GS_BEGINIDBUF(objects, count);
 
       [self getObjects: objects];
-      [sortDescriptors getObjects: descriptors];
+      if ([sortDescriptors isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < numDescriptors; i++)
+	    {
+	      descriptors[i] = [sortDescriptors objectAtIndex: i];
+	    }
+	}
+      else
+	{
+	  [sortDescriptors getObjects: descriptors];
+	}
       SortRange(objects, NSMakeRange(0, count), descriptors, numDescriptors);
       a = [[NSArray alloc] initWithObjects: objects count: count];
       [self setArray: a];
@@ -333,7 +345,19 @@ SortRange(id *objects, NSRange range, id *descriptors,
     {
       GS_BEGINIDBUF(descriptors, dCount);
 
-      [sortDescriptors getObjects: descriptors];
+      if ([sortDescriptors isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < dCount; i++)
+	    {
+	      descriptors[i] = [sortDescriptors objectAtIndex: i];
+	    }
+	}
+      else
+	{
+	  [sortDescriptors getObjects: descriptors];
+	}
       SortRange(_contents_array, NSMakeRange(0, _count), descriptors, dCount);
 
       GS_ENDIDBUF();
