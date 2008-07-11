@@ -250,6 +250,17 @@ static struct _strenc_ str_encoding_table[] = {
   {NSKoreanEUCStringEncoding,
     "NSKoreanEUCStringEncoding","EUC-KR",0,0,0},
 
+  {NSUTF16BigEndianStringEncoding,
+    "NSUTF16BigEndianStringEncoding","UTF-16BE",0,1,0},
+  {NSUTF16LittleEndianStringEncoding,
+    "NSUTF16LittleEndianStringEncoding","UTF-16LE",0,1,0},
+  {NSUTF32StringEncoding,
+    "NSUTF32StringEncoding","",0,1,0},
+  {NSUTF32BigEndianStringEncoding,
+    "NSUTF32BigEndianStringEncoding","UTF-32BE",0,1,0},
+  {NSUTF32LittleEndianStringEncoding,
+    "NSUTF32LittleEndianStringEncoding","UTF-32LE",0,1,0},
+
   {0,"Unknown encoding","",0,0,0}
 };
 
@@ -982,7 +993,6 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	break;
 
       case NSISOLatin1StringEncoding:
-      case NSUnicodeStringEncoding:
 	while (spos < slen)
 	  {
 	    if (dpos >= bsize)
