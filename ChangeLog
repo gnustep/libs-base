@@ -1,7 +1,8 @@
 2008-07-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Add support for byte order specific
-	unicode (including 32bit) via iconv.
+	unicode (including 32bit) via iconv. Change encoding lookup
+	mechanism to cope with new Mac-OS-X encoding values.
 
 2008-07-06  Richard Frith-Macdonald <rfm@gnu.org>
 
