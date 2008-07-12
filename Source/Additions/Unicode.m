@@ -85,9 +85,11 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
  */
 #ifdef WORDS_BIGENDIAN
 #define UNICODE_UTF16 "UTF-16BE"
+#define UNICODE_UTF32 "UTF-32BE"
 #define UNICODE_INT "UNICODEBIG"
 #else
 #define UNICODE_UTF16 "UTF-16LE"
+#define UNICODE_UTF32 "UTF-32LE"
 #define UNICODE_INT "UNICODELITTLE"
 #endif
 
@@ -250,6 +252,19 @@ static struct _strenc_ str_encoding_table[] = {
   {NSKoreanEUCStringEncoding,
     "NSKoreanEUCStringEncoding","EUC-KR",0,0,0},
 
+/* Now Apple encodings which have high numeric values.
+ */
+  {NSUTF16BigEndianStringEncoding,
+    "NSUTF16BigEndianStringEncoding","UTF-16BE",0,0,0},
+  {NSUTF16LittleEndianStringEncoding,
+    "NSUTF16LittleEndianStringEncoding","UTF-16LE",0,0,0},
+  {NSUTF32StringEncoding,
+    "NSUTF32StringEncoding",UNICODE_UTF32,0,0,0},
+  {NSUTF32BigEndianStringEncoding,
+    "NSUTF32BigEndianStringEncoding","UTF-32BE",0,0,0},
+  {NSUTF32LittleEndianStringEncoding,
+    "NSUTF32LittleEndianStringEncoding","UTF-32LE",0,0,0},
+
   {0,"Unknown encoding","",0,0,0}
 };
 
@@ -264,8 +279,8 @@ static void GSSetupEncodingTable(void)
       if (encodingTable == 0)
 	{
 	  static struct _strenc_	**encTable = 0;
-	  unsigned		count;
-	  unsigned		i;
+	  unsigned			count;
+	  unsigned			i;
 
 	  /*
 	   * We want to store pointers to our string encoding info in a
@@ -283,14 +298,12 @@ static void GSSetupEncodingTable(void)
 	    {
 	      unsigned	tmp = str_encoding_table[i].enc;
 
-	      if (tmp >= MAX_ENCODING)
+	      if (tmp > encTableSize)
 		{
-		  fprintf(stderr, "ERROR ... illegal NSStringEncoding "
-		    "value in str_encoding_table. Ignored\n");
-		}
-	      else if (tmp > encTableSize)
-		{
-		  encTableSize = tmp;
+		  if (tmp < MAX_ENCODING)
+		    {
+		      encTableSize = tmp;
+		    }
 		}
 	    }
 	  encTable = objc_malloc((encTableSize+1)*sizeof(struct _strenc_ *));
@@ -301,36 +314,37 @@ static void GSSetupEncodingTable(void)
 	   */
 	  for (i = 0; i < count; i++)
 	    {
-	      unsigned	tmp = str_encoding_table[i].enc;
+	      struct _strenc_ *entry = &str_encoding_table[i];
+	      unsigned	tmp = entry->enc;
 
 	      if (tmp < MAX_ENCODING)
 		{
-		  encTable[tmp] = &str_encoding_table[i];
-#ifdef HAVE_ICONV
-		  if (encTable[tmp]->iconv != 0 && *(encTable[tmp]->iconv) != 0)
-		    {
-		      iconv_t	c;
-		      char	*lossy;
-
-		      /*
-		       * See if we can do a lossy conversion.
-		       */
-		      lossy = objc_malloc(strlen(encTable[tmp]->iconv) + 12);
-		      strcpy(lossy, encTable[tmp]->iconv);
-		      strcat(lossy, "//TRANSLIT");
-		      c = iconv_open(UNICODE_ENC, encTable[tmp]->iconv);
-		      if (c == (iconv_t)-1)
-			{
-			  objc_free(lossy);
-			}
-		      else
-			{
-			  encTable[tmp]->lossy = lossy;
-			  iconv_close(c);
-			}
-		    }
-#endif
+		  encTable[tmp] = entry;
 		}
+#ifdef HAVE_ICONV
+	      if (entry->iconv != 0 && *(entry->iconv) != 0)
+		{
+		  iconv_t	c;
+		  char	*lossy;
+
+		  /*
+		   * See if we can do a lossy conversion.
+		   */
+		  lossy = objc_malloc(strlen(entry->iconv) + 12);
+		  strcpy(lossy, entry->iconv);
+		  strcat(lossy, "//TRANSLIT");
+		  c = iconv_open(UNICODE_ENC, entry->iconv);
+		  if (c == (iconv_t)-1)
+		    {
+		      objc_free(lossy);
+		    }
+		  else
+		    {
+		      entry->lossy = lossy;
+		      iconv_close(c);
+		    }
+		}
+#endif
 	    }
 	  encodingTable = encTable;
 	}
@@ -338,61 +352,101 @@ static void GSSetupEncodingTable(void)
     }
 }
 
-BOOL
-GSPrivateIsEncodingSupported(NSStringEncoding enc)
+static struct _strenc_ *
+EntryForEncoding(NSStringEncoding enc)
 {
-  GSSetupEncodingTable();
+  struct _strenc_ *entry = 0;
 
-  if (enc == 0 || enc > encTableSize || encodingTable[enc] == 0)
+  if (enc > 0)
+    {
+      GSSetupEncodingTable();
+      if (enc <= encTableSize)
+	{
+	  entry = encodingTable[enc];
+	}
+      else
+	{
+	  unsigned	i = 0;
+
+	  while (i < sizeof(str_encoding_table) / sizeof(struct _strenc_))
+	    {
+	      if (str_encoding_table[i].enc == enc)
+		{
+		  entry = &str_encoding_table[i];
+		  break;
+		}
+	      i++;
+	    }
+	}
+    }
+  return entry;
+}
+
+static struct _strenc_ *
+EntrySupported(NSStringEncoding enc)
+{
+  struct _strenc_ *entry = EntryForEncoding(enc);
+
+  if (entry == 0)
     {
       return NO;
     }
 #ifdef HAVE_ICONV
-  if (encodingTable[enc]->iconv != 0 && encodingTable[enc]->supported == 0)
+  if (entry->iconv != 0 && entry->supported == 0)
     {
       if (enc == NSUnicodeStringEncoding)
 	{
-	  encodingTable[enc]->iconv = UNICODE_ENC;
-	  encodingTable[enc]->supported = 1;
+	  entry->iconv = UNICODE_ENC;
+	  entry->supported = 1;
 	}
-      else if (encodingTable[enc]->iconv[0] == 0)
+      else if (entry->iconv[0] == 0)
         {
 	  /* explicitly check for empty encoding name since some systems
 	   * have buggy iconv_open() code which succeeds on an empty name.
 	   */
-	  encodingTable[enc]->supported = -1;
+	  entry->supported = -1;
 	}
       else
 	{
 	  iconv_t	c;
 
-	  c = iconv_open(UNICODE_ENC, encodingTable[enc]->iconv);
+	  c = iconv_open(UNICODE_ENC, entry->iconv);
 	  if (c == (iconv_t)-1)
 	    {
-	      encodingTable[enc]->supported = -1;
+	      entry->supported = -1;
 	    }
 	  else
 	    {
 	      iconv_close(c);
-	      c = iconv_open(encodingTable[enc]->iconv, UNICODE_ENC);
+	      c = iconv_open(entry->iconv, UNICODE_ENC);
 	      if (c == (iconv_t)-1)
 		{
-		  encodingTable[enc]->supported = -1;
+		  entry->supported = -1;
 		}
 	      else
 		{
 		  iconv_close(c);
-		  encodingTable[enc]->supported = 1;
+		  entry->supported = 1;
 		}
 	    }
 	}
     }
 #endif
-  if (encodingTable[enc]->supported == 1)
+  if (entry->supported == 1)
     {
-      return YES;
+      return entry;
     }
-  return NO;
+  return 0;
+}
+
+BOOL
+GSPrivateIsEncodingSupported(NSStringEncoding enc)
+{
+  if (EntrySupported(enc) == 0)
+    {
+      return NO;
+    }
+  return YES;
 }
 
 /** Returns the NSStringEncoding that matches the specified
@@ -982,7 +1036,6 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	break;
 
       case NSISOLatin1StringEncoding:
-      case NSUnicodeStringEncoding:
 	while (spos < slen)
 	  {
 	    if (dpos >= bsize)
@@ -1081,6 +1134,7 @@ tables:
       default:
 #ifdef HAVE_ICONV
 	{
+	  struct _strenc_	*encInfo;
 	  unsigned char	*inbuf;
 	  unsigned char	*outbuf;
 	  size_t	inbytesleft;
@@ -1090,9 +1144,9 @@ tables:
 	  const char	*estr = 0;
 	  BOOL		done = NO;
 
-	  if (GSPrivateIsEncodingSupported(enc) == YES)
+	  if ((encInfo = EntrySupported(enc)) != 0)
 	    {
-	      estr = encodingTable[enc]->iconv;
+	      estr = encInfo->iconv;
 	    }
 	  /* explicitly check for empty encoding name since some systems
 	   * have buggy iconv_open() code which succeeds on an empty name.
@@ -1770,6 +1824,7 @@ tables:
 #ifdef HAVE_ICONV
 iconv_start:
 	{
+	  struct _strenc_	*encInfo;
 	  iconv_t	cd;
 	  unsigned char	*inbuf;
 	  unsigned char	*outbuf;
@@ -1779,7 +1834,7 @@ iconv_start:
 	  const char	*estr = 0;
 	  BOOL		done = NO;
 
-	  if (GSPrivateIsEncodingSupported(enc) == YES)
+	  if ((encInfo = EntrySupported(enc)) != 0)
 	    {
 	      if (strict == NO)
 		{
@@ -1787,11 +1842,11 @@ iconv_start:
 		   * Try to transliterate where no direct conversion
 		   * is available.
 		   */
-		  estr = encodingTable[enc]->lossy;
+		  estr = encInfo->lossy;
 		}
 	      if (estr == 0)
 		{
-		  estr = encodingTable[enc]->iconv;
+		  estr = encInfo->iconv;
 		}
 	    }
 	  
@@ -2199,21 +2254,25 @@ GSPrivateDefaultCStringEncoding()
 NSString*
 GSPrivateEncodingName(NSStringEncoding encoding)
 {
-  if (GSPrivateIsEncodingSupported(encoding) == NO)
+  struct _strenc_	*encInfo;
+
+  if ((encInfo = EntrySupported(encoding)) == NO)
     {
       return @"Unknown encoding";
     }
-  return [NSString stringWithUTF8String: encodingTable[encoding]->ename];
+  return [NSString stringWithUTF8String: encInfo->ename];
 }
 
 BOOL
 GSPrivateIsByteEncoding(NSStringEncoding encoding)
 {
-  if (GSPrivateIsEncodingSupported(encoding) == NO)
+  struct _strenc_	*encInfo;
+
+  if ((encInfo = EntrySupported(encoding)) == NO)
     {
       return NO;
     }
-  return encodingTable[encoding]->eightBit;
+  return encInfo->eightBit;
 }
 
 NSStringEncoding

@@ -360,7 +360,17 @@ static inline BOOL timerInvalidated(NSTimer *t)
 						  delay: seconds];
       [[loop _timedPerformers] addObject: item];
       RELEASE(item);
-      [modes getObjects: marray];
+      if ([modes isProxy])
+	{
+	  for (i = 0; i < count; i++)
+	    {
+	      marray[i] = [modes objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [modes getObjects: marray];
+	}
       for (i = 0; i < count; i++)
 	{
 	  [loop addTimer: item->timer forMode: marray[i]];
@@ -1405,7 +1415,19 @@ static inline BOOL timerInvalidated(NSTimer *t)
 						 argument: argument
 						    order: order];
 
-      [modes getObjects: array];
+      if ([modes isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < count; i++)
+	    {
+	      array[i] = [modes objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [modes getObjects: array];
+	}
       while (count-- > 0)
 	{
 	  NSString	*mode = array[count];

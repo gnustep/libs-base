@@ -234,7 +234,26 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (NSUInteger) countOfIndexesInRange: (NSRange)range
 {
-  return 0;
+  if (_array == 0 || GSIArrayCount(_array) == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      unsigned	count = GSIArrayCount(_array);
+      unsigned	total = 0;
+      unsigned	i = 0;
+
+      while (i < count)
+	{
+	  NSRange	r = GSIArrayItemAtIndex(_array, i).ext;
+          
+          r = NSIntersectionRange(r, range);
+	  total += r.length;
+	  i++;
+	}
+      return total;
+    }
 }
 
 - (void) dealloc

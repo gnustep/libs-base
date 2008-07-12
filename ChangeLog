@@ -1,3 +1,27 @@
+2008-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Add support for byte order specific
+	unicode (including 32bit) via iconv. Change encoding lookup
+	mechanism to cope with new Mac-OS-X encoding values.
+	* Source/NSRunLoop.m:
+	* Source/NSArray.m:
+	* Source/NSSortDescriptor.m:
+	* Source/Additions/GSCompatibility.m:
+	* Source/NSDictionary.m:
+	* Source/NSSerializer.m:
+	* Source/NSSet.m:
+	Wherever ([-getObjects:]) is called, check to see if the receiver is
+	a proxy, and if so we populate the buffer by calling ([-objectAtIndex:])
+	instead. This because a proxy via DO does not know how many itesm are
+	in the buffer and assumes it's only one.
+	* configure.ac: use libffi in preference to ffcall as it doesn't mess
+	up the stack.
+	* configure: regenerate
+	Changes backported from trunk
+
+2008-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexSet.m: Implement ([-countOfIndexesInRange:])
 2008-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version 1.16.2

@@ -381,7 +381,19 @@ static Class NSMutableSet_concrete_class;
     {
       GS_BEGINIDBUF(objs, count);
 
-      [other getObjects: objs];
+      if ([other isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < count; i++)
+	    {
+	      objs[i] = [other objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [other getObjects: objs];
+	}
       self = [self initWithObjects: objs count: count];
       GS_ENDIDBUF();
       return self;

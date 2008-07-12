@@ -102,7 +102,19 @@ GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
   unsigned	c = [array count];
   id		objects[c];
 
-  [array getObjects: objects];
+  if ([array isProxy])
+    {
+      unsigned	i;
+
+      for (i = 0; i < c; i++)
+	{
+	  objects[i] = [array objectAtIndex: i];
+	}
+    }
+  else
+    {
+      [array getObjects: objects];
+    }
   if (shouldCopy == YES)
     {
       unsigned	i;

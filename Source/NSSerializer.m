@@ -280,7 +280,17 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  id		objects[count];
 	  unsigned int	i;
 
-	  [object getObjects: objects];
+	  if ([object isProxy])
+	    {
+	      for (i = 0; i < count; i++)
+		{
+		  objects[i] = [object objectAtIndex: i];
+		}
+	    }
+	  else
+	    {
+	      [object getObjects: objects];
+	    }
 	  for (i = 0; i < count; i++)
 	    {
 	      serializeToInfo(objects[i], info);
