@@ -2536,11 +2536,6 @@ rangeOfString_c(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 {
   Class	c;
 
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException format: @"range of nil"];
-  if (GSObjCIsInstance(aString) == NO)
-    return strRangeCsNs((id)self, aString, mask, aRange);
-
   c = GSObjCClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
@@ -2557,11 +2552,6 @@ static inline NSRange
 rangeOfString_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 {
   Class	c;
-
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException format: @"range of nil"];
-  if (GSObjCIsInstance(aString) == NO)
-    return strRangeUsNs((id)self, aString, mask, aRange);
 
   c = GSObjCClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
@@ -3016,6 +3006,15 @@ transmute(GSStr self, NSString *aString)
 		  options: (unsigned)mask
 		    range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, _count);
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] nil string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  if (GSObjCIsInstance(aString) == NO)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] not a string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
   return rangeOfString_c((GSStr)self, aString, mask, aRange);
 }
 
@@ -3329,6 +3328,15 @@ agree, create a new GSCInlineString otherwise.
 		  options: (unsigned)mask
 		    range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, _count);
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] nil string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  if (GSObjCIsInstance(aString) == NO)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] not a string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
   return rangeOfString_u((GSStr)self, aString, mask, aRange);
 }
 
@@ -4127,6 +4135,15 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 		  options: (unsigned)mask
 		    range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, _count);
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] nil string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  if (GSObjCIsInstance(aString) == NO)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] not a string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
   if (_flags.wide == 1)
     return rangeOfString_u((GSStr)self, aString, mask, aRange);
   else
@@ -4590,6 +4607,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 			    options: (unsigned)mask
 			      range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
   return [_parent rangeOfCharacterFromSet: aSet options: mask range: aRange];
 }
 
@@ -4597,6 +4615,15 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 		  options: (unsigned)mask
 		    range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] nil string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  if (GSObjCIsInstance(aString) == NO)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] not a string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
   return [_parent rangeOfString: aString options: mask range: aRange];
 }
 
@@ -4788,6 +4815,15 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 		  options: (unsigned)mask
 		    range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] nil string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  if (GSObjCIsInstance(aString) == NO)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[%@ -%@] not a string argument",
+      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
   if (((GSStr)_parent)->_flags.wide == 1)
     return rangeOfString_u((GSStr)_parent, aString, mask, aRange);
   else

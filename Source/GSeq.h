@@ -381,10 +381,13 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
   unsigned	oLength;			/* Length of other.	*/
   unsigned	sLength = GSEQ_SLEN;
 
+#if	0
+  /* Range should be checked in calling code */
   if (aRange.location > sLength)
     [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > (sLength - aRange.location))
     [NSException raise: NSRangeException format: @"Invalid location+length."];
+#endif
 
   oLength = GSEQ_OLEN;
   if (aRange.length == 0)
@@ -604,11 +607,14 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
   
   /* Check that the search range is reasonable */
   myLength = GSEQ_SLEN;
+
+#if	0
+  /* Range should be checked in calling code */
   if (aRange.location > myLength)
     [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > (myLength - aRange.location))
     [NSException raise: NSRangeException format: @"Invalid location+length."];
-
+#endif
 
   /* Ensure the string can be found */
   strLength = GSEQ_OLEN;
