@@ -1450,11 +1450,11 @@ handle_printf_atsign (FILE *stream,
     {
       unsigned char	*src = (unsigned char*)[data bytes];
       unsigned int	slen = [data length];
-      NSMutableData	*d = [[NSMutableData alloc] initWithLength: slen * 3];
-      unsigned char	*dst = (unsigned char*)[d mutableBytes];
+      unsigned char	*dst;
       unsigned int	spos = 0;
       unsigned int	dpos = 0;
 
+      dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
       while (spos < slen)
 	{
 	  unsigned char	c = src[spos++];
@@ -1476,9 +1476,10 @@ handle_printf_atsign (FILE *stream,
 	      dst[dpos++] = c;
 	    }
 	}
-      [d setLength: dpos];
-      s = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
-      RELEASE(d);
+      s = [[NSString alloc] initWithBytes: dst
+				   length: dpos
+				 encoding: NSASCIIStringEncoding];
+      NSZoneFree(NSDefaultMallocZone(), dst);
       AUTORELEASE(s);
     }
   return s;
@@ -1809,6 +1810,7 @@ handle_printf_atsign (FILE *stream,
 		  options: (unsigned int)mask
 		    range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, [self length]);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
   return strRangeNsNs(self, aString, mask, aRange);
@@ -1917,6 +1919,7 @@ handle_printf_atsign (FILE *stream,
 		       options: (unsigned int)mask
 			 range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, [self length]);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
   return strCompNsNs(self, aString, mask, aRange);
@@ -4967,28 +4970,38 @@ static NSFileManager *fm = nil;
 {
   NSRange	range;
   unsigned int	count = 0;
+  GSRSFunc	func;
 
-  if (replace == nil)
+  if ([replace isKindOfClass: NSStringClass] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%@ nil search string", NSStringFromSelector(_cmd)];
+		  format: @"%@ bad search string", NSStringFromSelector(_cmd)];
     }
-  if (by == nil)
+  if ([by isKindOfClass: NSStringClass] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%@ nil replace string", NSStringFromSelector(_cmd)];
+		  format: @"%@ bad replace string", NSStringFromSelector(_cmd)];
     }
-  range = [self rangeOfString: replace options: opts range: searchRange];
+  if (NSMaxRange(searchRange) > [self length])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ bad search range", NSStringFromSelector(_cmd)];
+    }
+  func = GSPrivateRangeOfString(self, replace);
+  range = (*func)(self, replace, opts, searchRange);
 
   if (range.length > 0)
     {
       unsigned	byLen = [by length];
+      SEL	sel;
+      void	(*imp)(id, SEL, NSRange, NSString*);
 
+      sel = @selector(replaceCharactersInRange:withString:);
+      imp = (void(*)(id, SEL, NSRange, NSString*))[self methodForSelector: sel];
       do
 	{
 	  count++;
-	  [self replaceCharactersInRange: range
-			      withString: by];
+	  (*imp)(self, sel, range, by);
 	  if ((opts & NSBackwardsSearch) == NSBackwardsSearch)
 	    {
 	      searchRange.length = range.location - searchRange.location;
@@ -5002,9 +5015,7 @@ static NSFileManager *fm = nil;
 	      searchRange.length = newEnd - searchRange.location;
 	    }
 
-	  range = [self rangeOfString: replace
-			      options: opts
-				range: searchRange];
+	  range = (*func)(self, replace, opts, searchRange);
 	}
       while (range.length > 0);
     }

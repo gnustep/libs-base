@@ -101,6 +101,11 @@ int main()
   [s2 replaceCharactersInRange:((NSRange){10,4})
       withString:@"changed"];
   print_string(s2);
+  [s2 replaceOccurrencesOfString: @"changed"
+		      withString: @"changed again"
+			 options: NSLiteralSearch
+			   range: NSMakeRange(0, [s2 length])];
+  print_string(s2);
 
 #if 0
   /* Test the use of the `%@' format directive. */
