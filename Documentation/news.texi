@@ -11,6 +11,13 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.16.3}
+
+@itemize @bullet
+@item Fix to support FTP.app (obscure distributed objects problem).
+@item Fix for new string encodings.
+@end itemize
+
 @section Noteworthy changes in version @samp{1.16.2}
 
 @itemize @bullet

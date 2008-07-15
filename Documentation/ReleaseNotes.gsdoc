@@ -30,6 +30,24 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.16.3</heading>
+	<p> 
+          This is a bugfix release.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>Distributed Objects</term>
+          <desc>Avoids use of the NSArray method -getObjects: where the object
+          being messaged is a proxy ... fixes problem with FTP.app
+          </desc>
+	  <term>String updates</term>
+          <desc>Fixes implementation of new string encodings added in MacOS-X
+	  and also implements some internal optimisations.
+          </desc>
+        </deflist>
+      </section>
+
+      <section>
 	<heading>Version 1.16.2</heading>
 	<p> 
           This is a bugfix release.

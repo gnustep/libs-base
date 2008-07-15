@@ -1,3 +1,7 @@
+2008-07-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version 1.16.3
+
 2008-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h:
@@ -31,6 +35,7 @@
 2008-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexSet.m: Implement ([-countOfIndexesInRange:])
+
 2008-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version 1.16.2
