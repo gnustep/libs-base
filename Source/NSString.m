@@ -4967,28 +4967,38 @@ static NSFileManager *fm = nil;
 {
   NSRange	range;
   unsigned int	count = 0;
+  GSRSFunc	func;
 
-  if (replace == nil)
+  if ([replace isKindOfClass: NSStringClass] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%@ nil search string", NSStringFromSelector(_cmd)];
+		  format: @"%@ bad search string", NSStringFromSelector(_cmd)];
     }
-  if (by == nil)
+  if ([by isKindOfClass: NSStringClass] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%@ nil replace string", NSStringFromSelector(_cmd)];
+		  format: @"%@ bad replace string", NSStringFromSelector(_cmd)];
     }
-  range = [self rangeOfString: replace options: opts range: searchRange];
+  if (NSMaxRange(searchRange) > [self length])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ bad search range", NSStringFromSelector(_cmd)];
+    }
+  func = GSPrivateRangeOfString(self, replace);
+  range = (*func)(self, replace, opts, searchRange);
 
   if (range.length > 0)
     {
       unsigned	byLen = [by length];
+      SEL	sel;
+      void	(*imp)(id, SEL, NSRange, NSString*);
 
+      sel = @selector(replaceCharactersInRange:withString:);
+      imp = (void(*)(id, SEL, NSRange, NSString*))[self methodForSelector: sel];
       do
 	{
 	  count++;
-	  [self replaceCharactersInRange: range
-			      withString: by];
+	  (*imp)(self, sel, range, by);
 	  if ((opts & NSBackwardsSearch) == NSBackwardsSearch)
 	    {
 	      searchRange.length = range.location - searchRange.location;
@@ -5002,9 +5012,7 @@ static NSFileManager *fm = nil;
 	      searchRange.length = newEnd - searchRange.location;
 	    }
 
-	  range = [self rangeOfString: replace
-			      options: opts
-				range: searchRange];
+	  range = (*func)(self, replace, opts, searchRange);
 	}
       while (range.length > 0);
     }

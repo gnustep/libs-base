@@ -1,3 +1,12 @@
+2008-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h: New private function to get range of string func.
+	* Source/NSString.m: Optimise replacing string in string.
+	* Source/GSString.m: New function to return range getting function.
+	* Source/GSeq.h: Fixup comment
+	* Testing/string.m: Add trival check.
+	Optimise ([replaceOccurrencesOfString:withString:options:range:])
+
 2008-07-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Add support for byte order specific
