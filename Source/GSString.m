@@ -216,6 +216,16 @@ typedef struct {
 #define	GSEQ_S	GSEQ_CS
 #include "GSeq.h"
 
+/*
+ *	Include sequence handling code with instructions to generate search
+ *	and compare functions for NSString objects.
+ */
+#define	GSEQ_STRCOMP	strCompNsNs
+#define	GSEQ_STRRANGE	strRangeNsNs
+#define	GSEQ_O	GSEQ_NS
+#define	GSEQ_S	GSEQ_NS
+#include "GSeq.h"
+
 static Class NSDataClass = 0;
 static Class NSStringClass = 0;
 static Class GSStringClass = 0;
@@ -253,6 +263,10 @@ setup(void)
   if (beenHere == NO)
     {
       beenHere = YES;
+
+      caiSel = @selector(characterAtIndex:);
+      gcrSel = @selector(getCharacters:range:);
+      ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
       /*
        * Cache the default string encoding, and set the internal encoding
@@ -2468,6 +2482,47 @@ rangeOfCharacter_u(GSStr self, NSCharacterSet *aSet, unsigned mask,
     }
 
   return range;
+}
+
+GSRSFunc
+GSPrivateRangeOfString(NSString *receiver, NSString *target)
+{
+  Class	c;
+
+  c = GSObjCClass(receiver);
+  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+    || (c == GSMutableStringClass && ((GSStr)receiver)->_flags.wide == 1))
+    {
+      c = GSObjCClass(target);
+      if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+        || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 1))
+        return (GSRSFunc)strRangeUsUs;
+      else if (GSObjCIsKindOf(c, GSCStringClass) == YES
+        || c == NSConstantStringClass
+        || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
+        return (GSRSFunc)strRangeUsCs;
+      else
+        return (GSRSFunc)strRangeUsNs;
+    }
+  else if (GSObjCIsKindOf(c, GSCStringClass) == YES
+    || c == NSConstantStringClass
+    || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
+    {
+      c = GSObjCClass(target);
+      if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+        || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 1))
+        return (GSRSFunc)strRangeCsUs;
+      else if (GSObjCIsKindOf(c, GSCStringClass) == YES
+        || c == NSConstantStringClass
+        || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
+        return (GSRSFunc)strRangeCsCs;
+      else
+        return (GSRSFunc)strRangeCsNs;
+    }
+  else
+    {
+      return (GSRSFunc)strRangeNsNs;
+    }
 }
 
 static inline NSRange

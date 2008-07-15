@@ -418,6 +418,12 @@ void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
  */
 BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
 
+/* Function to return the function for searching in a string for a range.
+ */
+typedef NSRange (*GSRSFunc)(id, id, unsigned, NSRange);
+GSRSFunc
+GSPrivateRangeOfString(NSString *receiver, NSString *target) GS_ATTRIB_PRIVATE;
+
 /* Function to return the current stack return addresses.
  */
 NSMutableArray *
