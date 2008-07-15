@@ -1450,11 +1450,11 @@ handle_printf_atsign (FILE *stream,
     {
       unsigned char	*src = (unsigned char*)[data bytes];
       unsigned int	slen = [data length];
-      NSMutableData	*d = [[NSMutableData alloc] initWithLength: slen * 3];
-      unsigned char	*dst = (unsigned char*)[d mutableBytes];
+      unsigned char	*dst;
       unsigned int	spos = 0;
       unsigned int	dpos = 0;
 
+      dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
       while (spos < slen)
 	{
 	  unsigned char	c = src[spos++];
@@ -1476,9 +1476,10 @@ handle_printf_atsign (FILE *stream,
 	      dst[dpos++] = c;
 	    }
 	}
-      [d setLength: dpos];
-      s = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
-      RELEASE(d);
+      s = [[NSString alloc] initWithBytes: dst
+				   length: dpos
+				 encoding: NSASCIIStringEncoding];
+      NSZoneFree(NSDefaultMallocZone(), dst);
       AUTORELEASE(s);
     }
   return s;
