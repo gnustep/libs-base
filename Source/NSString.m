@@ -1918,6 +1918,7 @@ handle_printf_atsign (FILE *stream,
 		       options: (unsigned int)mask
 			 range: (NSRange)aRange
 {
+  GS_RANGE_CHECK(aRange, [self length]);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
   return strCompNsNs(self, aString, mask, aRange);
