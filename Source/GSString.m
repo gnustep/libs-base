@@ -2423,7 +2423,7 @@ rangeOfCharacter_c(GSStr self, NSCharacterSet *aSet, unsigned mask,
     {
       unichar u = self->_contents.c[i];
 
-      if (u > 127)
+      if (u > 127 && internalEncoding != NSISOLatin1StringEncoding)
 	{
 	  unsigned char	c = (unsigned char)u;
 	  unsigned int	s = 1;
@@ -2431,6 +2431,9 @@ rangeOfCharacter_c(GSStr self, NSCharacterSet *aSet, unsigned mask,
 
 	  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
 	}
+      /* FIXME ... what about UTF-16 sequences of more than one 16bit value
+       * corresponding to a single UCS-32 codepoint?
+       */
       if ((*mImp)(aSet, cMemberSel, u))
 	{
 	  range = NSMakeRange(i, 1);
@@ -2470,6 +2473,9 @@ rangeOfCharacter_u(GSStr self, NSCharacterSet *aSet, unsigned mask,
   mImp = (BOOL(*)(id,SEL,unichar))
     [aSet methodForSelector: cMemberSel];
 
+  /* FIXME ... what about UTF-16 sequences of more than one 16bit value
+   * corresponding to a single UCS-32 codepoint?
+   */
   for (i = start; i != stop; i += step)
     {
       unichar letter = self->_contents.u[i];
@@ -4913,7 +4919,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 	{
 	  unichar	u = *p++;
 
-	  if (u > 127)
+          if (u > 127 && internalEncoding != NSISOLatin1StringEncoding)
 	    {
 	      unsigned char	c = (unsigned char)u;
 	      unsigned int	s = 1;
