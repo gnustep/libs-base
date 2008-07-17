@@ -1,3 +1,8 @@
+2008-07-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSCategories.m: littleEndian() fix to work on
+	systems with other word sizes.
+
 2008-07-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version 1.16.3
