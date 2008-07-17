@@ -1,3 +1,8 @@
+2008-07-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSCategories.m: littleEndian() fix to work on
+	systems with other word sizes.
+
 2008-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h: New private function to get range of string func.

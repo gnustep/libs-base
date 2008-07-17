@@ -392,23 +392,27 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16]);
  */
 static void littleEndian (void *buf, unsigned words)
 {
-  uint32_t	*ptr = (uint32_t*)buf;
+  if (NSHostByteOrder() == NS_BigEndian)
+    {
+      while (words-- > 0)
+        {
+          union swap {
+            uint32_t    num;
+            uint8_t     byt[4];
+          } tmp;
+          uint8_t       b0;
+          uint8_t       b1;
 
-#if	(INT_MAX == 2147483647)
-  do
-    {
-      *ptr = NSSwapHostIntToLittle(*ptr);
-      ptr++;
+          tmp.num = ((uint32_t*)buf)[words];
+          b0 = tmp.byt[0];
+          b1 = tmp.byt[1];
+          tmp.byt[0] = tmp.byt[3];
+          tmp.byt[1] = tmp.byt[2];
+          tmp.byt[2] = b1;
+          tmp.byt[3] = b0;
+          ((uint32_t*)buf)[words] = tmp.num;
+        }
     }
-  while (--words);
-#else
-  do
-    {
-      *ptr = NSSwapHostLongToLittle(*ptr);
-      ptr++;
-    }
-  while (--words);
-#endif
 }
 
 /*
