@@ -18,7 +18,7 @@ AC_DEFUN(AC_SYS_PROCFS,
   #  if test -d /proc/0; then
   # but it doesn't work on my linux - /proc/0 does not exist, but /proc
   # works fine
-    if (mount | grep 'proc' >/dev/null 2>/dev/null); then 
+    if grep 'proc' /proc/mounts >/dev/null 2>/dev/null; then
       ac_cv_sys_procfs=yes
     else
       ac_cv_sys_procfs=no
