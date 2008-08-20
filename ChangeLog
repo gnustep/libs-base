@@ -1,3 +1,9 @@
+2008-08-20  Yavor Doganov  <yavor@gnu.org>  (tiny change)
+
+	* config/procfs.m4: Check for `proc' in /proc/mounts rather than
+	relying on the output of `mount'; fixes build issue in
+	chroots.  Reported by Funda Wang (bug #23876).
+
 2008-07-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSCategories.m: littleEndian() fix to work on
