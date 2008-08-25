@@ -1,3 +1,10 @@
+2008-08-25  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSAutoreleasePool.m (-drain): Implement.
+	* Source/NSAutoreleasePool.m (-dealloc): Reset _parent and _child.
+	* Source/NSAutoreleasePool.m (-_endThread:): Free cache of ended
+	thread not of current.
+
 2008-08-20  Yavor Doganov  <yavor@gnu.org>  (tiny change)
 
 	* config/procfs.m4: Check for `proc' in /proc/mounts rather than
