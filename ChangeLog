@@ -1,3 +1,10 @@
+2008-08-25 18:55-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* COPYINGv3: Remove since GNUstep is now GPLv2 again.
+	* Headers/Foundation/NSNumberFormatter.h
+	* Source/NSNumberFormatter.m: Added methods missing from GNUstep
+	that are present in 10.4 (stringFromNumber:, numberFromString:)
+
 2008-08-25  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSAutoreleasePool.m (-drain): Implement.
