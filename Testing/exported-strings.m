@@ -96,7 +96,7 @@ main()
   MyAssert1(NSLanguageCode);
   MyAssert1(NSLanguageName);
   MyAssert1(NSFormalName);
-  MyAssert1(NSLocale);
+  // MyAssert1(NSLocale);
   MyAssert1(NSConnectionRepliesReceived);
   MyAssert1(NSConnectionRepliesSent);
   MyAssert1(NSConnectionRequestsReceived);
@@ -155,7 +155,7 @@ main()
   MyAssert2(NSLanguageCode);
   MyAssert2(NSLanguageName);
   MyAssert2(NSFormalName);
-  MyAssert2(NSLocale);
+  // MyAssert2(NSLocale);
   MyAssert2(NSConnectionRepliesReceived);
   MyAssert2(NSConnectionRepliesSent);
   MyAssert2(NSConnectionRequestsReceived);
