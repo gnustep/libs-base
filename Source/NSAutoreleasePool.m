@@ -340,7 +340,9 @@ static IMP	initImp;
   if (_parent != nil)
     {
       _parent->_child = nil;
+      _parent = nil;
     }
+  _child = nil;
 
   /* Don't deallocate ourself, just save us for later use. */
   push_pool_to_cache (tv, self);
@@ -455,7 +457,7 @@ static IMP	initImp;
   struct autorelease_thread_vars *tv;
   id	pool;
 
-  tv = ARP_THREAD_VARS;
+  tv = &(((TInfo)thread)->_autorelease_vars);
   while (tv->current_pool)
     {
       [tv->current_pool release];
