@@ -1,3 +1,7 @@
+2008-09-14 13:20-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* install.sh: Install script for use by compile-all.
+
 2008-08-25 18:55-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* COPYINGv3: Remove since GNUstep is now GPLv2 again.
