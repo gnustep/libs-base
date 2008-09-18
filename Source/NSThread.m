@@ -51,8 +51,14 @@
 #ifdef NeXT_RUNTIME
 #include "thr-mach.h"
 #endif
-
 #include <errno.h>
+#include <sys/fcntl.h>
+
+#ifdef	__POSIX_SOURCE
+#define NBLK_OPT     O_NONBLOCK
+#else
+#define NBLK_OPT     FNDELAY
+#endif
 
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSException.h"
@@ -862,7 +868,6 @@ pthread_detach(pthread_self());
 {
   [lock lock];
   [performers addObject: performer];
-  [lock unlock];
 #if defined(__MINGW32__)
   if (SetEvent(event) == 0)
     {
@@ -874,6 +879,7 @@ pthread_detach(pthread_self());
       NSLog(@"Write to pipe failed - %@", [NSError _last]);
     }
 #endif
+  [lock unlock];
 }
 
 - (void) dealloc
@@ -898,8 +904,24 @@ pthread_detach(pthread_self());
 
   if (pipe(fd) == 0)
     {
+      int	e;
+
       inputFd = fd[0];
       outputFd = fd[1];
+      if ((e = fcntl(inputFd, F_GETFL, 0)) >= 0)
+	{
+	  e |= NBLK_OPT;
+	  if (fcntl(inputFd, F_SETFL, e) < 0)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"Failed to set non block flag for perform in thread"];
+	    }
+	}
+      else
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"Failed to get non block flag for perform in thread"];
+	}
     }
   else
     {
@@ -918,7 +940,6 @@ pthread_detach(pthread_self());
   [lock lock];
   [performers makeObjectsPerformSelector: @selector(invalidate)];
   [performers removeAllObjects];
-  [lock unlock];
 #ifdef __MINGW32__
   if (event != INVALID_HANDLE_VALUE)
     {
@@ -936,6 +957,7 @@ pthread_detach(pthread_self());
       outputFd = -1;
     }
 #endif
+  [lock unlock];
 }
 
 - (void) fire
@@ -944,6 +966,7 @@ pthread_detach(pthread_self());
   unsigned int	i;
   unsigned int	c;
 
+  [lock lock];
 #if defined(__MINGW32__)
   if (event != INVALID_HANDLE_VALUE)
     {
@@ -962,7 +985,6 @@ pthread_detach(pthread_self());
     }
 #endif
 
-  [lock lock];
   toDo = [NSArray arrayWithArray: performers];
   [performers removeAllObjects];
   [lock unlock];
