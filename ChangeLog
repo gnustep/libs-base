@@ -2,6 +2,7 @@
 
 	* Source/NSThread.m: try to make firing of thread performers
 	more robust.
+	* Source/Additions/GSMime.m: make some NSLog() calls be debug only.
 
 2008-09-14 13:20-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 

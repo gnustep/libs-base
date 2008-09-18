@@ -3508,7 +3508,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   offset = appendString(md, offset, fold, value, &ok);
   if (ok == NO)
     {
-      NSLog(@"Value for '%@' too long for folding at %u in header", n, fold);
+      NSDebugMLLog(@"GSMime",
+	@"Value for '%@' too long for folding at %u in header", n, fold);
     }
 
   while ((k = [e nextObject]) != nil)
@@ -3525,14 +3526,16 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       offset = appendString(md, offset, fold, k, &ok);
       if (ok == NO)
         {
-          NSLog(@"Parameter name '%@' in '%@' too long for folding at %u",
+	  NSDebugMLLog(@"GSMime",
+	    @"Parameter name '%@' in '%@' too long for folding at %u",
             k, n, fold);
         }
       offset = appendBytes(md, offset, fold, "=", 1);
       offset = appendString(md, offset, fold, v, &ok);
       if (ok == NO)
         {
-          NSLog(@"Parameter value for '%@' in '%@' too long for folding at %u",
+	  NSDebugMLLog(@"GSMime",
+	    @"Parameter value for '%@' in '%@' too long for folding at %u",
             k, n, fold);
         }
     }
