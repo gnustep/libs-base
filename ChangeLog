@@ -1,3 +1,9 @@
+2008-09-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: try to make firing of thread performers
+	more robust.
+	* Source/Additions/GSMime.m: make some NSLog() calls be debug only.
+
 2008-08-25  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSAutoreleasePool.m (-dealloc): Reset _parent and _child.
