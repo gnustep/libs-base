@@ -125,20 +125,20 @@ static NSFileManager	*mgr = nil;
   NSString	*lockDir;
   BOOL		isDirectory;
 
-  _lockPath = [aPath copy];
+  _lockPath = [[aPath stringByStandardizingPath] copy];
   _lockTime = nil;
 
   lockDir = [_lockPath stringByDeletingLastPathComponent];
   if ([mgr fileExistsAtPath: lockDir isDirectory: &isDirectory] == NO)
     {
-      NSLog(@"part of the path to the lock file '%@' is missing\n", _lockPath);
+      NSLog(@"part of the path to the lock file '%@' is missing\n", aPath);
       RELEASE(self);
       return nil;
     }
   if (isDirectory == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is not a directory\n",
-		_lockPath);
+	_lockPath);
       RELEASE(self);
       return nil;
     }
