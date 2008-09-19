@@ -1,3 +1,8 @@
+2008-09-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedLock.m: Standardise the path we are given for
+	the lock file.
+
 2008-09-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: try to make firing of thread performers
