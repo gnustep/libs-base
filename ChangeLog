@@ -1,3 +1,7 @@
+2008-09-21 00:05-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* COPYINGv3: Adding back in.
+
 2008-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedLock.m: Standardise the path we are given for
