@@ -51,8 +51,14 @@
 #ifdef NeXT_RUNTIME
 #include "thr-mach.h"
 #endif
-#include <errno.h>
+#ifdef HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
+#ifdef HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>
+#endif
+
+#include <errno.h>
 
 #ifdef	__POSIX_SOURCE
 #define NBLK_OPT     O_NONBLOCK
@@ -617,6 +623,12 @@ gnustep_base_thread_callback(void)
 
 - (void) dealloc
 {
+  if (self == defaultThread)
+    {
+      [self retain];
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Deallocating the default thread is not allowed!"];
+    }
   if (_active == YES)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -658,10 +670,6 @@ gnustep_base_thread_callback(void)
 	}
     }
   DESTROY(_gcontext);
-  if (self == defaultThread)
-    {
-      defaultThread = nil;
-    }
   NSDeallocateObject(self);
   GSNOSUPERDEALLOC;
 }
@@ -1011,10 +1019,10 @@ GSRunLoopInfoForThread(NSThread *aThread)
   if (aThread == nil)
     {
       aThread = GSCurrentThread();
-      if (((NSThread_ivars*)aThread)->_runLoopInfo == nil)
-        {
-          ((NSThread_ivars*)aThread)->_runLoopInfo = [GSRunLoopThreadInfo new];
-        }
+    }
+  if (((NSThread_ivars*)aThread)->_runLoopInfo == nil)
+    {
+      ((NSThread_ivars*)aThread)->_runLoopInfo = [GSRunLoopThreadInfo new];
     }
   info = ((NSThread_ivars*)aThread)->_runLoopInfo;
   return info;
@@ -1114,6 +1122,14 @@ GSRunLoopInfoForThread(NSThread *aThread)
 		       waitUntilDone: (BOOL)aFlag
 			       modes: (NSArray*)anArray
 {
+  /* It's possible that this method could be called before the NSThread
+   * class is initialised, so we check and make sure it's initiailised
+   * if necessary.
+   */
+  if (defaultThread == nil)
+    {
+      [NSThread currentThread];
+    }
   [self performSelector: aSelector
                onThread: defaultThread
              withObject: anObject
