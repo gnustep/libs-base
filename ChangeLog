@@ -1,3 +1,8 @@
+2008-09-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: more checks for correct initialisation of thread
+	run loop info.
+
 2008-09-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: try to make firing of thread performers
