@@ -1,3 +1,8 @@
+2008-09-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: add a couple of checks to ensure correct
+	initialisation of class.
+
 2008-09-21 00:05-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* COPYINGv3: Adding back in.
