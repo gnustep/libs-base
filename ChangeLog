@@ -2,6 +2,9 @@
 
 	* Source/NSThread.m: add a couple of checks to ensure correct
 	initialisation of class.
+	* Source/NSDate.m:
+	* Source/NSCalendarDate.m: Check for time interval since reference
+	date being NaN, and raise an exception.
 
 2008-09-21 00:05-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 

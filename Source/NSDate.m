@@ -46,6 +46,8 @@
 
 #include "GSPrivate.h"
 
+#include <math.h>
+
 /* These constants seem to be what MacOS-X uses */
 #define DISTANT_FUTURE	63113990400.0
 #define DISTANT_PAST	-63113817600.0
@@ -1354,6 +1356,12 @@ otherTime(NSDate* other)
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
+  if (isnan(secs))
+    {
+      [NSException raise: NSInvalidArgumentException
+	          format: @"[%@-%@] interval is not a number",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   _seconds_since_ref = secs;
   return self;
 }
