@@ -652,6 +652,10 @@
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
+/* Define to 1 if the libobjc library contains objc_sync_enter and supports
+   the @synchronize directive.   If not, then we'll provide it. */
+#undef HAVE_OBJC_SYNC_ENTER
+
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus

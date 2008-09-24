@@ -109,6 +109,11 @@ ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 GNU_MFILES += libgnustep-base-entry.m
 endif
 
+ifeq ($(HAVE_OBJC_SYNC_ENTER), no)
+GNU_MFILES += synchronization.m
+endif
+
+
 GNU_OTHER_SRCFILES = \
 win32-entry.m \
 win32-def.top \
