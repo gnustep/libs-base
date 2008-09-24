@@ -1,3 +1,15 @@
+2008-09-23 20:31-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* config.mak.in: Added reference to HAVE_OBJC_SYNC_ENTER
+	* configure: Recompiled script
+	* configure.ac: Changed configure to check for objc_sync_enter 
+	function.
+	* Headers/Additions/GNUstepBase/config.h.in: Added #define here for
+	HAVE_OBJC_SYNC_ENTER
+	* Source/GNUmakefile: Added check for the value, if no, then compile
+	synchronization.m
+	* Source/synchronization.m: Implementation for @synchronize support.
+
 2008-09-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: add a couple of checks to ensure correct

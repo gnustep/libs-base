@@ -1310,6 +1310,17 @@ LIBS="$saved_LIBS"
 CPPFLAGS="$saved_CPPFLAGS"
 
 #--------------------------------------------------------------------
+# Function needed by @synchronize directive
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(objc_sync_enter)
+
+HAVE_OBJC_SYNC_ENTER=no
+if test $ac_cv_func_objc_sync_enter = yes ; then
+  HAVE_OBJC_SYNC_ENTER=yes
+fi
+AC_SUBST(HAVE_OBJC_SYNC_ENTER)
+
+#--------------------------------------------------------------------
 # Generic settings needed by NSZone.m
 #--------------------------------------------------------------------
 AC_TYPE_SIZE_T
