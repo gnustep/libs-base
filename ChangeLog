@@ -1,3 +1,7 @@
+2008-09-24 17:26-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUserDefaults.m: Corrected previous change.
+
 2008-09-24 08:25-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUserDefaults.m: -addSuiteNamed change so that we don't 
