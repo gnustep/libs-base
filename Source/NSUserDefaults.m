@@ -925,10 +925,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   if (self == sharedDefaults) invalidatedLanguages = YES;
   [_searchList removeObject: aName];
   index = [_searchList indexOfObject: processName];
-  if(index == NSNotFound)
-    {
-      index = 0;	// NSNotFound, insert at start.
-    }
+  index = (index == NSNotFound) ? 0 : (index + 1);
   aName = [aName copy];
   [_searchList insertObject: aName atIndex: index];
   [_lock unlock];
