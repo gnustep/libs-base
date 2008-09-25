@@ -257,9 +257,6 @@ int objc_sync_exit(id obj)
       return OBJC_SYNC_NOT_OWNING_THREAD_ERROR;      
     }
  
-  // dealloc the node and return success.
-  free(node);
-
   return OBJC_SYNC_SUCCESS;  
 }
 
