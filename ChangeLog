@@ -1,3 +1,10 @@
+2008-09-25 00:18-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/synchronization.m: Correct issue in objc_sync_remove_node()
+	method where it could do a NULL dereference.  Also moved the locks on
+	the tables to the highest level so to reduce the possibility of
+	threading issues.
+
 2008-09-24 17:26-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUserDefaults.m: Corrected previous change.
