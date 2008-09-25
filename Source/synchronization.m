@@ -74,7 +74,7 @@ static void sync_lock_init()
  */
 lock_node_t* objc_sync_find_node(id obj)
 {
-  lock_node_t *current = NULL;
+  lock_node_t *current = lock_list;
 
   if(lock_list != NULL)
     {
@@ -105,9 +105,6 @@ lock_node_t* objc_sync_add_node(id obj)
   // get the lock...
   sync_lock_init();
   
-  // restrict access to the table....
-  objc_mutex_lock(table_lock);
-
   // if the list hasn't been initialized, initialize it.
   if(lock_list == NULL)
     {
@@ -154,9 +151,6 @@ lock_node_t* objc_sync_add_node(id obj)
       current->lock = objc_mutex_allocate();
     }
 
-  // release access to the table...
-  objc_mutex_unlock(table_lock);
-
   return current;
 }
 
@@ -182,10 +176,17 @@ lock_node_t* objc_sync_remove_node(id obj)
       prev = curr->prev;
       next = curr->next;
 
-      next->prev = prev;
-      prev->next = next;
+      if(next != NULL)
+	{
+	  next->prev = prev;
+	}
+
+      if(prev != NULL)
+	{
+	  prev->next = next;
+	}
     }
-  
+
   // return the removed node...
   return curr;
 }
@@ -198,6 +199,9 @@ int objc_sync_enter(id obj)
   lock_node_t *node = NULL;
   int status = 0;
 
+  // lock access to the table until we're done....
+  objc_mutex_lock(table_lock);
+
   node = objc_sync_find_node(obj);
   if(node == NULL)
     {
@@ -208,8 +212,15 @@ int objc_sync_enter(id obj)
 	}
     }
 
+  // unlock the table....
+  objc_mutex_unlock(table_lock);  
+
+
   status = objc_mutex_lock(node->lock);
-  if(status < 1)
+  // if the status is more than one, then another thread
+  // has this section locked, so we abort.  A status of -1
+  // indicates that an error occurred.
+  if(status > 1 || status == -1)
     {
       return OBJC_SYNC_NOT_OWNING_THREAD_ERROR;
     }
@@ -225,20 +236,30 @@ int objc_sync_exit(id obj)
   lock_node_t *node = NULL;
   int status = 0;
 
-  node = objc_sync_remove_node(obj);
+  // lock access to the table until we're done....
+  objc_mutex_lock(table_lock);
+
+  node = objc_sync_find_node(obj);
   if(node == NULL)
     {
       return OBJC_SYNC_NOT_INITIALIZED;
     }
 
+  // unlock the table....
+  objc_mutex_unlock(table_lock);  
+
   status = objc_mutex_unlock(node->lock);
-  if(status < 1)
+  // if the status is not zero, then we are not the sole
+  // owner of this node.  Also if -1 is returned, this indicates and error
+  // condition.
+  if(status > 0 || status == -1)
     {
       return OBJC_SYNC_NOT_OWNING_THREAD_ERROR;      
     }
  
   // dealloc the node and return success.
   free(node);
+
   return OBJC_SYNC_SUCCESS;  
 }
 
