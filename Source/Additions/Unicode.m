@@ -132,6 +132,8 @@ internal_unicode_enc(void)
   return unicode_enc;
 }
 
+#else
+#define UNICODE_UTF32 ""
 #endif
 
 static GSLazyLock *local_lock = nil;
