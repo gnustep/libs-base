@@ -100,7 +100,8 @@ objc_sync_find_node(id obj)
 /**
  * Add a node for the object, if one doesn't already exist.
  */
-lock_node_t* objc_sync_add_node(id obj)
+lock_node_t*
+objc_sync_add_node(id obj)
 {
   lock_node_t *current = NULL;
 
@@ -218,10 +219,10 @@ objc_sync_enter(id obj)
 	}
     }
 
-  status = objc_mutex_lock(node->lock);
-
   // unlock the table....
   objc_mutex_unlock(table_lock);  
+
+  status = objc_mutex_lock(node->lock);
 
   // if the status is more than one, then another thread
   // has this section locked, so we abort.  A status of -1
