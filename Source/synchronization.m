@@ -158,44 +158,6 @@ objc_sync_add_node(id obj)
 }
 
 /**
- * Remove the node for the object if one does exist.
- */
-lock_node_t*
-objc_sync_remove_node(id obj)
-{
-  lock_node_t *curr = NULL;
-
-  // find the node...
-  curr = objc_sync_find_node(obj);
-
-  // if the node is not null, proceed...
-  if (curr != NULL)
-    {
-      // skip the current node in 
-      // the list and remove it from the
-      // prev and next nodes.
-      lock_node_t *prev = NULL;
-      lock_node_t *next = NULL;
-
-      prev = curr->prev;
-      next = curr->next;
-
-      if (next != NULL)
-	{
-	  next->prev = prev;
-	}
-
-      if (prev != NULL)
-	{
-	  prev->next = next;
-	}
-    }
-
-  // return the removed node...
-  return curr;
-}
-
-/**
  * Add a lock for the object.
  */ 
 int
