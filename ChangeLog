@@ -1,3 +1,8 @@
+2008-09-29 22:54-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/synchronization.m: Remove uneeded objc_sync_remove_node
+	function.
+
 2008-09-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Fix compilation problem on systems
