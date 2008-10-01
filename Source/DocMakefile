@@ -36,6 +36,7 @@ BaseAdditions_DOC_INSTALL_DIR = Developer
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
 NSArchiver.h \
+NSAffineTransform.h \
 NSArray.h \
 NSAttributedString.h \
 NSAutoreleasePool.h \
