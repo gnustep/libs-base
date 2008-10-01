@@ -1,3 +1,7 @@
+2008-10-01  Adam Fedor  <fedor@gnu.org>
+
+	* Source/DocMakefile: Add NSAffineTranform
+
 2008-09-29 22:54-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/synchronization.m: Remove uneeded objc_sync_remove_node
