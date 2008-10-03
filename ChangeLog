@@ -1,3 +1,9 @@
+2008-10-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Ensure that we always return NO when we
+	need mo more data to complete parsing.
+	* Source/GSHTTPURLHandle.mL: Fix check for response parse completion.
+
 2008-10-01  Adam Fedor  <fedor@gnu.org>
 
 	* Source/DocMakefile: Add NSAffineTranform
