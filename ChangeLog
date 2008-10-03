@@ -1,3 +1,9 @@
+2008-10-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	* Source/Additions/GSMime.m:
+	Improve handling of completion of parse of http response.
+
 2008-10-01  Adam Fedor  <fedor@gnu.org>
 
 	* Source/DocMakefile: Add NSAffineTranform
