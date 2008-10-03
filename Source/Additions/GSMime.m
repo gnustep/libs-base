@@ -1406,7 +1406,10 @@ wordData(NSString *word)
 	      return [self parse: d];
 	    }
 	}
-
+      if (flags.complete == 1)
+	{
+	  return NO;
+	}
       return YES;	/* Want more data for body */
     }
   else

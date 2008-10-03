@@ -548,7 +548,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSData		*d;
   NSRange		r;
   unsigned		readCount;
-  BOOL			complete = NO;
 
   RETAIN(self);
 
@@ -574,7 +573,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [sock closeFile];
       DESTROY(sock);
     }
-  else if ([parser parse: d] == NO && (complete = [parser isComplete]) == NO)
+  else if ([parser parse: d] == NO && [parser isComplete] == NO)
     {
       if (debug == YES)
 	{
@@ -585,6 +584,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   else
     {
+      BOOL	complete = [parser isComplete];
+
       if (complete == NO && [parser isInHeaders] == NO)
 	{
 	  GSMimeHeader	*info;
