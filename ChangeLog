@@ -1,3 +1,7 @@
+2008-10-11  Eric Wasylishen
+
+        * Source/NSBundle.m: fix bug #24320
+
 2008-10-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZones/NSTimeZones.tar: updated.
