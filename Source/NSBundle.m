@@ -692,8 +692,30 @@ _find_main_bundle_for_tool(NSString *toolName)
        */
       if (_loadingBundle != nil && _loadingBundle != bundle)
 	{
-	  [_loadingBundle->_bundleClasses
-	    removeObjectsInArray: bundle->_bundleClasses];
+	  int i, j;
+          id b = bundle->_bundleClasses;
+          id l = _loadingBundle->_bundleClasses;
+
+	  /* The following essentially does:
+	   *
+	   * [_loadingBundle->_bundleClasses
+	   *  removeObjectsInArray: bundle->_bundleClasses];
+	   *
+	   * The problem with that code is isEqual: gets
+	   * sent to the classes, which will cause them to be
+	   * initialized (which should not happen.)
+	   */
+	  for (i = 0; i < [b count]; i++)
+	    {
+	      for (j = 0; j < [l count]; j++)
+		{
+		  if ([[l objectAtIndex: j] nonretainedObjectValue]
+		     == [[b objectAtIndex:i] nonretainedObjectValue])
+		    {
+		      [l removeObjectAtIndex:j];
+		    }
+		}
+	    }
 	}
     }
 }
