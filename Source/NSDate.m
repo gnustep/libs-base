@@ -1003,7 +1003,10 @@ otherTime(NSDate* other)
 {
   NSTimeInterval	interval = [self timeIntervalSinceReferenceDate];
 
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+  if ([coder allowsKeyedCoding])
+    [coder encodeDouble: interval forKey: @"NS.time"];
+  else
+    [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
@@ -1011,7 +1014,10 @@ otherTime(NSDate* other)
   NSTimeInterval	interval;
   id			o;
 
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+  if ([coder allowsKeyedCoding])
+    interval = [coder decodeDoubleForKey: @"NS.time"];
+  else
+    [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
   if (interval == DISTANT_PAST)
     {
       o = RETAIN([abstractClass distantPast]);
@@ -1343,14 +1349,18 @@ otherTime(NSDate* other)
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval)
-			    at: &_seconds_since_ref];
+  if ([coder allowsKeyedCoding])
+    [coder encodeDouble:_seconds_since_ref forKey:@"NS.time"];
+  else
+    [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval)
-			    at: &_seconds_since_ref];
+  if ([coder allowsKeyedCoding])
+    _seconds_since_ref = [coder decodeDoubleForKey:@"NS.time"];
+  else
+    [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
   return self;
 }
 
