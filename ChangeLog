@@ -1,3 +1,7 @@
+2008-10-12  Larry Campbelln
+
+        * Source/NSDate.m: Add keyed archiving support.
+
 2008-10-11  Eric Wasylishen
 
         * Source/NSBundle.m: fix bug #24320

@@ -46,6 +46,8 @@
 
 #include "GSPrivate.h"
 
+#include <math.h>
+
 /* These constants seem to be what MacOS-X uses */
 #define DISTANT_FUTURE	63113990400.0
 #define DISTANT_PAST	-63113817600.0
@@ -1001,7 +1003,10 @@ otherTime(NSDate* other)
 {
   NSTimeInterval	interval = [self timeIntervalSinceReferenceDate];
 
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+  if ([coder allowsKeyedCoding])
+    [coder encodeDouble: interval forKey: @"NS.time"];
+  else
+    [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
@@ -1009,7 +1014,10 @@ otherTime(NSDate* other)
   NSTimeInterval	interval;
   id			o;
 
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+  if ([coder allowsKeyedCoding])
+    interval = [coder decodeDoubleForKey: @"NS.time"];
+  else
+    [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
   if (interval == DISTANT_PAST)
     {
       o = RETAIN([abstractClass distantPast]);
@@ -1341,19 +1349,29 @@ otherTime(NSDate* other)
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval)
-			    at: &_seconds_since_ref];
+  if ([coder allowsKeyedCoding])
+    [coder encodeDouble:_seconds_since_ref forKey:@"NS.time"];
+  else
+    [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval)
-			    at: &_seconds_since_ref];
+  if ([coder allowsKeyedCoding])
+    _seconds_since_ref = [coder decodeDoubleForKey:@"NS.time"];
+  else
+    [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
   return self;
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
+  if (isnan(secs))
+    {
+      [NSException raise: NSInvalidArgumentException
+	          format: @"[%@-%@] interval is not a number",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   _seconds_since_ref = secs;
   return self;
 }
