@@ -1,6 +1,8 @@
 2008-10-14  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSSocketStream.m: Fix for #24564
+	* Source/inet_pton.c: Fix for #24563
+	* Source/inet_ntop.c: Fix for #24563
 
 2008-10-12  Larry Campbelln
 
