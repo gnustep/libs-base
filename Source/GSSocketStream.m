@@ -40,6 +40,18 @@
 #import "GSStream.h"
 #import "GSSocketStream.h"
 
+#ifndef SHUT_RD
+# ifdef  SD_RECEIVE
+#   define SHUT_RD      SD_RECEIVE
+#   define SHUT_WR      SD_SEND
+#   define SHUT_RDWR    SD_BOTH
+# else
+#   define SHUT_RD      0
+#   define SHUT_WR      1
+#   define SHUT_RDWR    2
+# endif
+#endif
+
 unsigned
 GSPrivateSockaddrLength(struct sockaddr *addr)
 {
