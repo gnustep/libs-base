@@ -1677,7 +1677,7 @@ setNonBlocking(SOCKET fd)
        * of the sibling is used to signal events from now on.
        */
       WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-      shutdown(_sock, SD_RECEIVE);
+      shutdown(_sock, SHUT_RD);
       WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
     }
   else
@@ -2150,7 +2150,7 @@ setNonBlocking(SOCKET fd)
        * of the sibling is used to signal events from now on.
        */
       WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-      shutdown(_sock, SD_SEND);
+      shutdown(_sock, SHUT_WR);
       WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
     }
   else
