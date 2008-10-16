@@ -1,3 +1,7 @@
+2008-10-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Fix typo (bug #24573)
+
 2008-10-14  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSSocketStream.m: Fix for #24564
