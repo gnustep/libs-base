@@ -1837,7 +1837,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		break;
 
 	      case 'T':
-		[self _format: @"%H:%M:S" locale: locale info: info];
+		[self _format: @"%H:%M:%S" locale: locale info: info];
 		break;
 
 	      case 't':
