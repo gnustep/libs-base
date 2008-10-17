@@ -540,7 +540,7 @@ static NSLock	*cached_proxies_gate = nil;
 
 + (void) initialize
 {
-  if (self == [NSConnection class])
+  if (connectionClass == nil)
     {
       NSNotificationCenter	*nc;
 
@@ -2222,7 +2222,8 @@ static void retEncoder (DOContext *ctxt)
   conn = [connectionClass connectionWithReceivePort: rp sendPort: sp];
   if (conn == nil)
     {
-      NSLog(@"received port message for unknown connection - %@", msg);
+      NSLog(@"Received port message for unknown connection - %@", msg);
+      NSLog(@"All connections: %@", [NSConnection allConnections]);
       return;
     }
   else if ([conn isValid] == NO)
