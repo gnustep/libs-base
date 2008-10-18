@@ -25,12 +25,10 @@
 /* Ported to mingw 07/12/00 by Björn Giesler <Bjoern.Giesler@gmx.de> */
 
 #include "config.h"
+#include "GNUstepBase/GSConfig.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
 #include <unistd.h>		/* for gethostname() */
 #ifndef __MINGW32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
