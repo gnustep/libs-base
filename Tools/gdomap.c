@@ -4266,6 +4266,11 @@ quoteArg(const char *arg)
 /**
  * (A dummy comment to help autogsdoc realize this is a command-line tool.)
  */
+#if	GS_FAKE_MAIN
+/* Since we don't link gnustep-base, the main function below has to be
+ * the real main function. */
+#undef	main
+#endif
 int
 main(int argc, char** argv)
 {
