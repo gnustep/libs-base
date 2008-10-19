@@ -1,3 +1,11 @@
+2008-10-19  Wolfgang Lux
+	
+	* configure.ac: fix test for sychronization in objc runtime.
+
+2008-10-19  Richard Frith-Macdonald <rfm@gnu.org>
+	
+	* Source/synchronization.m: make internal functions private.
+
 2008-10-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Fix typo (bug #24573)

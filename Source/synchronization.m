@@ -73,8 +73,8 @@ sync_lock_init()
 /**
  * Find the node in the list.
  */
-lock_node_t*
-objc_sync_find_node(id obj)
+static lock_node_t*
+sync_find_node(id obj)
 {
   lock_node_t *current = lock_list;
 
@@ -100,8 +100,8 @@ objc_sync_find_node(id obj)
 /**
  * Add a node for the object, if one doesn't already exist.
  */
-lock_node_t*
-objc_sync_add_node(id obj)
+static lock_node_t*
+sync_add_node(id obj)
 {
   lock_node_t *current = NULL;
 
@@ -169,10 +169,10 @@ objc_sync_enter(id obj)
   // lock access to the table until we're done....
   objc_mutex_lock(table_lock);
 
-  node = objc_sync_find_node(obj);
+  node = sync_find_node(obj);
   if (node == NULL)
     {
-      node = objc_sync_add_node(obj);
+      node = sync_add_node(obj);
       if (node == NULL)
 	{
 	  // unlock the table....
@@ -209,7 +209,7 @@ objc_sync_exit(id obj)
   // lock access to the table until we're done....
   objc_mutex_lock(table_lock);
 
-  node = objc_sync_find_node(obj);
+  node = sync_find_node(obj);
   if (node == NULL)
     {
       // unlock the table....
