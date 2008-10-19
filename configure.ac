@@ -1306,9 +1306,6 @@ AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,1,
                   [ Define if objc-api.h defines this function]),)
 
-LIBS="$saved_LIBS"
-CPPFLAGS="$saved_CPPFLAGS"
-
 #--------------------------------------------------------------------
 # Function needed by @synchronize directive
 #--------------------------------------------------------------------
@@ -1319,6 +1316,9 @@ if test $ac_cv_func_objc_sync_enter = yes ; then
   HAVE_OBJC_SYNC_ENTER=yes
 fi
 AC_SUBST(HAVE_OBJC_SYNC_ENTER)
+
+LIBS="$saved_LIBS"
+CPPFLAGS="$saved_CPPFLAGS"
 
 #--------------------------------------------------------------------
 # Generic settings needed by NSZone.m
