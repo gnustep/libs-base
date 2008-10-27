@@ -1,3 +1,8 @@
+2008-10-27  Richard Frith-Macdonald <rfm@gnu.org>
+	
+	* Source/GSFormat.m: Fix possible problem when current unix locale
+	does not use '.' as the decimal separator.
+
 2008-10-27  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Headers/Foundation/NSFileManager.h: Fixed typo - declare NSError

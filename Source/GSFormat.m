@@ -793,6 +793,27 @@ static inline void GSStrAppendUnichar(GSStr s, unichar u)
 # define is_long_num	is_long
 #endif
 
+static NSString	*locale_sep()
+{
+  static NSString	*sep = nil;
+
+  if (sep == nil)
+    {
+      char	buf[32];
+      char	*from = buf;
+      char	*to;
+
+      sprintf(buf, "%g", 1.2);
+      if (*from == '1') from++;
+      to = from;
+      while (*to != '\0' && *to != '2')
+	to++;
+      *to = '\0';
+      sep = [[NSString alloc] initWithCString: from];
+    }
+  return sep;
+}
+ 
 
 /* Global variables.  */
 static const unichar null[] = {'(','n','u','l','l',')','\0'};
@@ -1477,22 +1498,8 @@ NSDictionary *locale)
 	 */
 	if (decimal_sep != nil)
 	  {
-	    static NSString	*sep = nil;
+	    NSString	*sep = locale_sep();
 
-	    if (sep == nil)
-	      {
-		char	buf[32];
-		char	*from = buf;
-		char	*to;
-
-		sprintf(buf, "%g", 1.2);
-		if (*from == '1') from++;
-		to = from;
-		while (*to != '\0' && *to != '2')
-		  to++;
-		*to = '\0';
-		sep = [[NSString alloc] initWithCString: from];
-	      }
 	    if ([decimal_sep isEqual: sep] == NO && [sep length] == 1)
 	      {
 		unichar	m = [sep characterAtIndex: 0];
@@ -1609,11 +1616,8 @@ NSDictionary *locale)
 	 */
 	if (decimal_sep != nil)
 	  {
-	    NSDictionary	*def = GSDomainFromDefaultLocale();
-	    NSString		*sep = [def objectForKey: NSDecimalSeparator];
+	    NSString	*sep = locale_sep();
 
-	    if (sep == nil)
-	      sep = @".";
 	    if ([decimal_sep isEqual: sep] == NO && [sep length] == 1)
 	      {
 		unichar	m = [sep characterAtIndex: 0];
