@@ -206,6 +206,10 @@ extern "C" {
 - (BOOL) copyPath: (NSString*)source
 	   toPath: (NSString*)destination
 	  handler: (id)handler;
+- (BOOL) createDirectoryAtPath: (NSString *)path
+   withIntermediateDirectories: (BOOL)flag
+		    attributes: (NSDictionary *)attributes
+                         error: (NSError **) error;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes;
 - (BOOL) createFileAtPath: (NSString*)path
