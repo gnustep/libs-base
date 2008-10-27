@@ -683,13 +683,14 @@ static NSStringEncoding	defaultEncoding;
 			 error: (NSError **) error
 {
   BOOL result = NO;
-  if(flag == YES)
+
+  if (flag == YES)
     {
       NSEnumerator *paths = [[path pathComponents] objectEnumerator];
       NSString *path = nil;
       NSString *dir = [NSString string];
 
-      while((path = (NSString *)[paths nextObject]) != nil)
+      while ((path = (NSString *)[paths nextObject]) != nil)
 	{
 	  dir = [dir stringByAppendingPathComponent: path];
 	  result = [self createDirectoryAtPath: dir
@@ -698,12 +699,11 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-      NSString *dir = [path lastPathComponent];
-      result = [self createDirectoryAtPath: dir
-		     attributes: attributes];
+      result = [self createDirectoryAtPath: [path lastPathComponent]
+                                attributes: attributes];
     }  
 
-  if(error != NULL)
+  if (error != NULL)
     {
       *error = [NSError _last];
     }
