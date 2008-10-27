@@ -188,6 +188,7 @@ extern "C" {
 @class NSMutableArray;
 @class NSEnumerator;
 @class NSDirectoryEnumerator;
+@class NSError;
 
 @interface NSFileManager : NSObject
 {

@@ -1,3 +1,8 @@
+2008-10-27  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Headers/Foundation/NSFileManager.h: Fixed typo - declare NSError
+	class before referencing it.
+
 2008-10-26 20:59-EDT Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Headers/Foundation/NSFileManager.h: Added declaration for new method
@@ -6,7 +11,7 @@
 	-(BOOL)createDirectoryAtPath:withIntermediateDirectories:attributes:
 	error:.
 
-2008-10-19  Wolfgang Lux
+2008-10-19  Wolfgang Lux <wolfgang.lux@gmail.com>
 	
 	* configure.ac: fix test for sychronization in objc runtime.
 
