@@ -1,3 +1,11 @@
+2008-10-26 20:59-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Headers/Foundation/NSFileManager.h: Added declaration for new method
+	here.
+	* Source/NSFileManager.m: Added implementation for the method 
+	-(BOOL)createDirectoryAtPath:withIntermediateDirectories:attributes:
+	error:.
+
 2008-10-19  Wolfgang Lux
 	
 	* configure.ac: fix test for sychronization in objc runtime.
