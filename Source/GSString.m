@@ -1486,18 +1486,25 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 static inline double
 doubleValue_c(GSStr self)
 {
-  if (self->_count == 0)
+  const char	*ptr = (const char*)self->_contents.c;
+  const char	*end = ptr + self->_count;
+
+  while (isspace(*ptr) && ptr < end)
+    {
+      ptr++;
+    }
+  if (ptr == end)
     {
       return 0.0;
     }
   else
     {
-      unsigned	l = self->_count < 32 ? self->_count : 32;
-      unichar	buf[l];
+      unsigned	l = (end - ptr) < 32 ? (end - ptr) : 31;
+      unichar	buf[l+1];
       unichar	*b = buf;
       double	d = 0.0;
 
-      GSToUnicode(&b, &l, self->_contents.c, l, internalEncoding, 0, 0);
+      GSToUnicode(&b, &l, (const uint8_t*)ptr, l, internalEncoding, 0, 0);
       GSScanDouble(b, l, &d);
       return d;
     }
@@ -1957,16 +1964,23 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 static inline int
 intValue_c(GSStr self)
 {
-  if (self->_count == 0)
+  const char	*ptr = (const char*)self->_contents.c;
+  const char	*end = ptr + self->_count;
+
+  while (isspace(*ptr) && ptr < end)
+    {
+      ptr++;
+    }
+  if (ptr == end)
     {
       return 0;
     }
   else
     {
-      unsigned	len = self->_count < 32 ? self->_count : 31;
+      unsigned	len = (end - ptr) < 32 ? (end - ptr) : 31;
       char	buf[len+1];
 
-      memcpy(buf, self->_contents.c, len);
+      memcpy(buf, ptr, len);
       buf[len] = '\0';
       return atol((const char*)buf);
     }
@@ -1975,18 +1989,24 @@ intValue_c(GSStr self)
 static inline int
 intValue_u(GSStr self)
 {
-  if (self->_count == 0)
+  const unichar	*ptr = self->_contents.u;
+  const unichar	*end = ptr + self->_count;
+
+  while (isspace(*ptr) && ptr < end)
+    {
+      ptr++;
+    }
+  if (ptr == end)
     {
       return 0;
     }
   else
     {
-      unsigned int	l = self->_count < 32 ? self->_count : 31;
+      unsigned int	l = (end - ptr) < 32 ? (end - ptr) : 31;
       unsigned char	buf[l+1];
       unsigned char	*b = buf;
 
-      GSFromUnicode(&b, &l, self->_contents.u, l, internalEncoding,
-	0, GSUniTerminate);
+      GSFromUnicode(&b, &l, ptr, l, internalEncoding, 0, GSUniTerminate);
       return atol((const char*)buf);
     }
 }
