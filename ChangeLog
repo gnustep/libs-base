@@ -2,6 +2,7 @@
 
 	* Source/NSException.m: Fix stacktrace to be available when built
 	without DEBUG=YES.  Check environment variable to activate/deactivate.
+	* Documentation/Basegsdoc: Improve documentation of stack trace.
 
 2008-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 

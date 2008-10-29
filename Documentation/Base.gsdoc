@@ -272,9 +272,35 @@ notice and this notice are preserved.
 	    <term>GNUSTEP_STACK_TRACE</term>
 	    <desc>
 	      <p>
-	        When this is set to <em>YES</em> a stack trace is
-                added to the output of the description method of
-                a raised exception object.
+	        When this is set to <em>YES</em> a human readable stack trace
+		(with function names and line numbers) is added to the output
+		of the description method of a raised exception object.<br />
+	        This only works if gnustep was built with support for it
+		using libbfd, so it may not be available on all systems.
+	      </p>
+	      <p>
+	        When this is set to <em>NO</em> the raw stack trace provided
+		by [NSException-callStackReturnAddresses] is didsabled.<br />
+		The possible reasons for disabling this are:<br />
+		1. that the feature is implemented using a function of the
+		gcc complier to provide stack addresses, and the function is
+		buggy on some systems/compiler versions, and will cause a
+		signal to be sent which would crash your program if not caught.
+		The GNUstep code catches the signal and recovers using a signal
+		handler, but there have been two reports of this not working
+		with no known cause.<br />
+		2. that you have code which uses exceptions in a way in which
+		they were not designed to be used ... so that they are
+		routinely and frquently called rather than being called only
+		occasionally when exceptional conditions occur.  In this case
+		you may want to disable the stack frame generation implicit	
+		in each raised exception, in order to improve performance.
+	      </p>
+	      <p>
+		When this is not set, or is set to a non-boolean value, the
+		stack trace handling on exceptionsis MacOS-X compatible ...
+		stack return addresses are available but a human readable
+		traceback is not logged.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_STRING_ENCODING</term>
