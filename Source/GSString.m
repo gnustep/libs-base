@@ -1499,13 +1499,27 @@ doubleValue_c(GSStr self)
     }
   else
     {
-      unsigned	l = (end - ptr) < 32 ? (end - ptr) : 31;
-      unichar	buf[l+1];
-      unichar	*b = buf;
+      unsigned	s = 99;
+      unichar	b[100];
+      unichar	*u = b;
       double	d = 0.0;
 
-      GSToUnicode(&b, &l, (const uint8_t*)ptr, l, internalEncoding, 0, 0);
-      GSScanDouble(b, l, &d);
+      /* use static buffer unless string is really long, in which case
+       * we use the stack to allocate a bigger one.
+       */
+      if (GSToUnicode(&u, &s, (const uint8_t*)ptr, end - ptr,
+	internalEncoding, NSDefaultMallocZone(), GSUniTerminate) == NO)
+	{
+	  return 0.0;
+	}
+      if (GSScanDouble(u, end - ptr, &d) == NO)
+	{
+	  d = 0.0;
+	}
+      if (u != b)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), u);
+	}
       return d;
     }
 }
