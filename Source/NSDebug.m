@@ -962,6 +962,7 @@ NSFrameAddress(int offset)
     }
   else
     {
+      env = jbuf();
       signal(SIGSEGV, env->segv);
       signal(SIGBUS, env->bus);
       env->addr = NULL;
@@ -1171,6 +1172,7 @@ GSPrivateStackAddresses(void)
     }
   else
     {
+      env = jbuf();
       signal(SIGSEGV, env->segv);
       signal(SIGBUS, env->bus);
     }
