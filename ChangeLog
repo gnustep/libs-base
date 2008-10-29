@@ -1,5 +1,10 @@
 2008-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSException.m: Fix stacktrace to be available when built
+	without DEBUG=YES.  Check environment variable to activate/deactivate.
+
+2008-10-29  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/HSString.m: Allow for leading whitespace when converting to
 	int or double.
 

@@ -816,12 +816,12 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     {
       _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
     }
-#if	defined(DEBUG)
-  if (_e_stack == nil)
+
+  if (_e_stack == nil
+    && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", YES) == NO)
     {
       ASSIGN(_e_stack, GSPrivateStackAddresses());
     }
-#endif
 
 #ifdef _NATIVE_OBJC_EXCEPTIONS
   @throw self;
