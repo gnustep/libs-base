@@ -97,6 +97,18 @@
 #include <syslog.h>
 #endif
 
+#if	HAVE_STRERROR
+  #define	lastErr()	strerror(errno)
+#else
+#ifdef __MINGW32__
+static	errbuf[BUFSIZ];
+  #define	lastErr()	(sprintf(errbuf, "WSAGetLastError()=%d", WSAGetLastError()), errbuf)
+#else
+static	errbuf[BUFSIZ];
+  #define	lastErr()	(sprintf(errbuf, "%m"), errbuf)
+#endif
+#endif
+
 #include	"gdomap.h"
 /*
  *	ABOUT THIS PROGRAM
@@ -1233,7 +1245,7 @@ init_iface()
       int	res = errno;
 
       sprintf(ebuf,
-	"SIOCGIFCONF for init_iface found no active interfaces; %m");
+	"SIOCGIFCONF for init_iface found no active interfaces; %s", lastErr());
       gdomap_log(LOG_ERR);
 
       if (res == EINVAL)
@@ -1242,7 +1254,8 @@ init_iface()
 "Either you have too many network interfaces on your machine (in which case\n"
 "you need to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or\n"
 "your system is buggy, and you need to use the '-a' command line flag for\n"
-"gdomap to manually set the interface addresses and masks to be used.\n");
+"gdomap to manually set the interface addresses and masks to be used.\n"
+"Try 'gdomap -C' for more information.\n");
 	  gdomap_log(LOG_INFO);
 	}
       close(desc);
@@ -1274,7 +1287,7 @@ init_iface()
 
       if (ioctl(desc, SIOCGIFFLAGS, (char *)&ifreq) < 0)
         {
-          sprintf(ebuf, "SIOCGIFFLAGS: %m");
+          sprintf(ebuf, "SIOCGIFFLAGS: %s", lastErr());
           gdomap_log(LOG_ERR);
         }
       else if (ifreq.ifr_flags & IFF_UP)
@@ -1301,7 +1314,7 @@ init_iface()
 #endif
           if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0)
             {
-              sprintf(ebuf, "SIOCGIFADDR: %m");
+              sprintf(ebuf, "SIOCGIFADDR: %s", lastErr());
               gdomap_log(LOG_ERR);
             }
           else if (ifreq.ifr_addr.sa_family == AF_INET)
@@ -1312,7 +1325,8 @@ init_iface()
 "You have too many network interfaces on your machine (in which case you need\n"
 "to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or your\n"
 "system is buggy, and you need to use the '-a' command line flag for\n"
-"gdomap to manually set the interface addresses and masks to be used.");
+"gdomap to manually set the interface addresses and masks to be used.\n"
+"Try 'gdomap -C' for more information.\n");
 	          gdomap_log(LOG_INFO);
 		  close(desc);
 	          exit(EXIT_FAILURE);
@@ -1325,7 +1339,7 @@ init_iface()
 		{
 		  if (ioctl(desc, SIOCGIFDSTADDR, (char*)&ifreq) < 0)
 		    {
-		      sprintf(ebuf, "SIOCGIFADDR: %m");
+		      sprintf(ebuf, "SIOCGIFADDR: %s", lastErr());
 		      gdomap_log(LOG_ERR);
 		      bcok[interfaces] = 0;
 		    }
@@ -1338,10 +1352,10 @@ init_iface()
 	      else
 #endif
 		{
-		  if (!loopback &&
-                      ioctl(desc, SIOCGIFBRDADDR, (char*)&ifreq) < 0)
+		  if (!loopback
+		    && ioctl(desc, SIOCGIFBRDADDR, (char*)&ifreq) < 0)
 		    {
-		      sprintf(ebuf, "SIOCGIFBRDADDR: %m");
+		      sprintf(ebuf, "SIOCGIFBRDADDR: %s", lastErr());
 		      gdomap_log(LOG_ERR);
 		      bcok[interfaces] = 0;
 		    }
@@ -1353,7 +1367,7 @@ init_iface()
 		}
 	      if (ioctl(desc, SIOCGIFNETMASK, (char *)&ifreq) < 0)
 	        {
-		  sprintf(ebuf, "SIOCGIFNETMASK: %m");
+		  sprintf(ebuf, "SIOCGIFNETMASK: %s", lastErr());
 		  gdomap_log(LOG_ERR);
 		  /*
 		   *	If we can't get a netmask - assume a class-c
@@ -1385,7 +1399,8 @@ init_iface()
   if (interfaces == 0)
     {
       sprintf(ebuf, "I can't find any network interfaces on this platform - "
-	"use the '-a' flag to load interface details from a file instead.");
+	"use the '-a' flag to load interface details from a file instead.\n"
+	"Try 'gdomap -C' for more information.\n");
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
@@ -2506,12 +2521,7 @@ handle_recv()
     {
       if (debug)
 	{
-	  sprintf(ebuf, "recvfrom returned %d - "
-#ifdef __MINGW32__
-	    "WSAGetLastError() = %d\n", r, WSAGetLastError());
-#else
-	    "%m", r);
-#endif
+	  sprintf(ebuf, "recvfrom returned %d - %s", r, lastErr());
 	  gdomap_log(LOG_DEBUG);
 	}
       clear_chan(udp_desc);
@@ -4156,7 +4166,7 @@ static void do_help(int argc, char **argv, char *options)
     }
   printf("%s -[%s]\n", argv[0], options);
   printf("GNU Distributed Objects name server\n");
-  printf("-C		help about configuration\n");
+  printf("-C		help about interfaces and configuration\n");
   printf("-H		general help\n");
   printf("-I		pid file to write pid\n");
   printf("-L name		perform lookup for name then quit.\n");
@@ -4365,10 +4375,12 @@ printf(
 "systems, this facility is not available (or is broken), so you must tell\n"
 "gdomap the addresses and masks of the interfaces using the '-a' command line\n"
 "option.  The file named with '-a' should contain a series of lines with\n"
-"space separated pairs of addresses and masks in 'dot' notation.\n"
+"space separated pairs of addresses and masks in 'dot' notation, eg.\n"
+"192.168.1.2 255.255.255.0\n"
 "You must NOT include loopback interfaces in this list.\n"
 "If you want to support broadcasting of probe information on a network,\n"
-"you may supply the broadcast address as a third item on the line.\n"
+"you may supply the broadcast address as a third item on the line, eg.\n"
+"192.168.1.9 255.255.255.0 192.168.1.255\n"
 "If your operating system has some other method of giving you a list of\n"
 "network interfaces and masks, please send me example code so that I can\n"
 "implement it in gdomap.\n");
@@ -4697,7 +4709,8 @@ printf(
       sprintf(ebuf, "I can't find the loopback interface on this machine.");
       gdomap_log(LOG_ERR);
       sprintf(ebuf,
-"Perhaps you should correct your machine configuration or use the -a flag.");
+"Perhaps you should correct your machine configuration or use the -a flag.\n"
+"Try 'gdomap -C' for more information.\n");
       gdomap_log(LOG_INFO);
       if (interfaces < MAX_IFACE)
 	{
