@@ -249,8 +249,8 @@ GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
 {
   unsigned int	i;
 
-  GSI_ARRAY_RETAIN(array, item);
   GSI_ARRAY_CHECK;
+  GSI_ARRAY_RETAIN(array, item);
   if (array->count == array->cap)
     {
       GSIArrayGrow(array);
@@ -284,8 +284,8 @@ GSIArrayInsertItemNoRetain(GSIArray array, GSIArrayItem item, unsigned index)
 static INLINE void
 GSIArrayAddItem(GSIArray array, GSIArrayItem item)
 {
-  GSI_ARRAY_RETAIN(array, item);
   GSI_ARRAY_CHECK;
+  GSI_ARRAY_RETAIN(array, item);
   if (array->count == array->cap)
     {
       GSIArrayGrow(array);
