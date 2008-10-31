@@ -2,6 +2,7 @@
 
 	* Tools/gdomap.c: Improve error messages and information about
 	the -a option.
+	* Source/NSPredicate.m: parse literal strings
 
 2008-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
