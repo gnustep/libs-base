@@ -1,3 +1,10 @@
+2008-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSIArray.h:
+	Minor fixes for memory leak on exception etc.
+	* Source/NSKeyedUnarchiver.m:
+	Make sure array of objects is initialised with correct capacity.
+
 2008-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSException.m: Fix stacktrace to be available when built

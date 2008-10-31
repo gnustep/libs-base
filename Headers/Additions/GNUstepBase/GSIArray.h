@@ -185,6 +185,7 @@ GSIArrayGrow(GSIArray array)
       if (array->old < 1)
 	{
 	  array->old = 1;
+	  array->cap = 1;
 	}
       next = array->cap + array->old;
       size = next*sizeof(GSIArrayItem);
@@ -220,7 +221,18 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
 		  format: @"attempt to shrink below count"];
     }
   size = next*sizeof(GSIArrayItem);
-  tmp = NSZoneRealloc(array->zone, array->ptr, size);
+  if (array->old == 0)
+    {
+      /*
+       * Statically initialised buffer ... copy into new heap buffer.
+       */
+      tmp = NSZoneMalloc(array->zone, size);
+      memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
+    }
+  else
+    {
+      tmp = NSZoneRealloc(array->zone, array->ptr, size);
+    }
 
   if (tmp == 0)
     {
@@ -228,7 +240,7 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
 		  format: @"failed to grow GSIArray"];
     }
   array->ptr = tmp;
-  array->old = array->cap;
+  array->old = (array->cap > 0 ? array->cap : 1);
   array->cap = next;
 }
 
@@ -237,8 +249,8 @@ GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
 {
   unsigned int	i;
 
-  GSI_ARRAY_RETAIN(array, item);
   GSI_ARRAY_CHECK;
+  GSI_ARRAY_RETAIN(array, item);
   if (array->count == array->cap)
     {
       GSIArrayGrow(array);
@@ -272,8 +284,8 @@ GSIArrayInsertItemNoRetain(GSIArray array, GSIArrayItem item, unsigned index)
 static INLINE void
 GSIArrayAddItem(GSIArray array, GSIArrayItem item)
 {
-  GSI_ARRAY_RETAIN(array, item);
   GSI_ARRAY_CHECK;
+  GSI_ARRAY_RETAIN(array, item);
   if (array->count == array->cap)
     {
       GSIArrayGrow(array);
