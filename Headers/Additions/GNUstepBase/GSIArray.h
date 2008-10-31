@@ -226,12 +226,6 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
       /*
        * Statically initialised buffer ... copy into new heap buffer.
        */
-      array->old = array->cap / 2;
-      if (array->old < 1)
-	{
-	  array->old = 1;
-	  array->cap = 1;
-	}
       tmp = NSZoneMalloc(array->zone, size);
       memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
     }
@@ -246,7 +240,7 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
 		  format: @"failed to grow GSIArray"];
     }
   array->ptr = tmp;
-  array->old = array->cap;
+  array->old = (array->cap > 0 ? array->cap : 1);
   array->cap = next;
 }
 
