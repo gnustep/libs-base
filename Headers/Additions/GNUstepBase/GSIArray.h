@@ -185,6 +185,7 @@ GSIArrayGrow(GSIArray array)
       if (array->old < 1)
 	{
 	  array->old = 1;
+	  array->cap = 1;
 	}
       next = array->cap + array->old;
       size = next*sizeof(GSIArrayItem);
@@ -220,7 +221,24 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
 		  format: @"attempt to shrink below count"];
     }
   size = next*sizeof(GSIArrayItem);
-  tmp = NSZoneRealloc(array->zone, array->ptr, size);
+  if (array->old == 0)
+    {
+      /*
+       * Statically initialised buffer ... copy into new heap buffer.
+       */
+      array->old = array->cap / 2;
+      if (array->old < 1)
+	{
+	  array->old = 1;
+	  array->cap = 1;
+	}
+      tmp = NSZoneMalloc(array->zone, size);
+      memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
+    }
+  else
+    {
+      tmp = NSZoneRealloc(array->zone, array->ptr, size);
+    }
 
   if (tmp == 0)
     {
