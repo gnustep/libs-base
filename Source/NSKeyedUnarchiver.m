@@ -798,7 +798,7 @@ static NSMapTable	globalClassMap = 0;
 	    NSNonOwnedPointerMapValueCallBacks, 0);
 	  _objMap = NSZoneMalloc(_zone, sizeof(GSIArray_t));
 	  count = [_objects count];
-	  GSIArrayInitWithZoneAndCapacity(_objMap, _zone, count);
+	  GSIArrayInitWithZoneAndCapacity(_objMap, _zone, count+1);
 	  // Add marker for nil object
 	  GSIArrayAddItem(_objMap, (GSIArrayItem)((id)[NilMarker class]));
 	  // Add markers for unencoded objects.
