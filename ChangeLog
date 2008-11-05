@@ -1,3 +1,14 @@
+2008-11-05 17:27-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Testing/synctest/GNUmakefile
+	* Testing/synctest/GNUmakefile.postamble
+	* Testing/synctest/GNUmakefile.preamble
+	* Testing/synctest/main.m
+	* Testing/synctest/PC.project
+	* Testing/synctest/PC.project.backup
+	* Testing/synctest/SyncTestInfo.plist: Added test tool for 
+	@synchronize.
+
 2008-10-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Improve error messages and information about
