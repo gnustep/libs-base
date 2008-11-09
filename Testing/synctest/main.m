@@ -13,7 +13,7 @@ static NSArray *array;
   @synchronized(array) {
     NSLog(@"In the sync block %@:%d",[NSThread currentThread],[NSThread isMainThread]);
     NSLog(@"Waiting five seconds...");
-    usleep(5000);
+    [NSThread sleepForTimeInterval: 5.0];
     NSLog(@"Done waiting");
   }
   NSLog(@"After the sync block %@",[NSThread currentThread]);
