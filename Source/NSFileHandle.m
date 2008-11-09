@@ -250,8 +250,9 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /**
- *  Reads up to maximum unsigned int bytes from file or communications
- *  channel into return data.
+ * Reads up to maximum unsigned int bytes from file or communications
+ * channel into return data.<br />
+ * If the file is empty, returns an empty data item.
  */
 - (NSData*) readDataToEndOfFile
 {

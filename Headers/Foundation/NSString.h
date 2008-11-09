@@ -20,7 +20,35 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+  */
+
+/**
+<chapter>
+ <heading>Portable path handling</heading>
+ <p>Portable path handling (across both unix-like and mswindows operating
+ systems) requires some care.  A modern operating system uses the concept
+ of a single root to the filesystem, but mswindows has multiple filesystems
+ with no common root, so code must be aware of this.  There is also the
+ more minor issue that windows uses a backslash as a separator between
+ the components of a path and unix-like systems use a forward slash.
+ </p>
+ <p>GNUstep has three path handling modes, 'gnustep', 'unix', and 'windows'.
+ You should probably stick to using the default 'gnustep' mode in which the
+ path handling methods cope with both unix and windows style paths in
+ portable and tolerant manner:<br />
+ Paths are read in literally so they can be in the native format provided
+ by the operating system or in a non-native format.<br />
+ Paths are written out using the native format of the system the application
+ is running on (eg on windows slashes are converted to backslashes).<br />
+ The path handling methods accept either a forward or backward slash as a
+ path separator when parsing any path.<br />
+ The path handling methods add forward slashes when building new paths
+ internally or when standardising paths, so those path strings provide
+ a portable representation (as long as they are relative paths, not including
+ system specific roots).
+ </p>
+</chapter>
+ */ 
 
 #ifndef __NSString_h_GNUSTEP_BASE_INCLUDE
 #define __NSString_h_GNUSTEP_BASE_INCLUDE
@@ -594,7 +622,8 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  * In windows mode a drive specification (eg C:) followed by a slash or
  * backslash, is an absolute path, as is any path beginning with a tilde.<br />
  * In any mode a UNC path (//host/share...) is always absolute.<br />
- * In gnustep path handling mode, the rules are the same as for windows,
+ * In the default gnustep path handling mode,
+ * the rules are the same as for windows,
  * except that a path whose root is a slash denotes an absolute path
  * when running on unix and a relative path when running under windows.
  */

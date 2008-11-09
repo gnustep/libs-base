@@ -337,8 +337,13 @@ pathSepString()
 }
 
 /*
- * Find end of 'root' sequence in a string.  Characters before this
+ * Find the end of 'root' sequence in a string.  Characters before this
  * point in the string cannot be split into path components/extensions.
+ * This usage of the term 'root' is slightly different from the usual in
+ * that it includes the first part of any relative path.  The more normal
+ * usage of 'root' elsewhere is to indicate the first part of an absolute
+ * path.
+
  * Possible roots are -
  *
  * '/'			absolute root on unix
@@ -1528,20 +1533,20 @@ handle_printf_atsign (FILE *stream,
  * returned.  If string begins or ends with separator, empty strings will
  * be returned for those positions.</p>
  */
-- (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)set
+- (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)separator
 {
   NSRange	search;
   NSRange	complete;
   NSRange	found;
   NSMutableArray *array;
 
-  if (set == nil)
-    [NSException raise: NSInvalidArgumentException format: @"set is nil"];
+  if (separator == nil)
+    [NSException raise: NSInvalidArgumentException format: @"separator is nil"];
 
   array = [NSMutableArray array];
   search = NSMakeRange (0, [self length]);
   complete = search;
-  found = [self rangeOfCharacterFromSet: set];
+  found = [self rangeOfCharacterFromSet: separator];
   while (found.length != 0)
     {
       NSRange current;
@@ -1552,7 +1557,7 @@ handle_printf_atsign (FILE *stream,
 
       search = NSMakeRange (found.location + found.length,
 	complete.length - found.location - found.length);
-      found = [self rangeOfCharacterFromSet: set
+      found = [self rangeOfCharacterFromSet: separator
                                     options: 0
                                       range: search];
     }
