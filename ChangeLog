@@ -1,3 +1,8 @@
+2008-10-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: implement KVC methods to get and set values
+	as these appear to be an undocumented feature of MacOS-X (bug #24807).
+
 2008-11-05 17:27-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Testing/synctest/GNUmakefile

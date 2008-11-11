@@ -1175,6 +1175,11 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
+- (void) setValue: (id)value forKey: (NSString*)defaultName
+{
+  [self setObject: value forKey: (NSString*)defaultName];
+}
+
 - (NSArray*) stringArrayForKey: (NSString*)defaultName
 {
   id	arr = [self arrayForKey: defaultName];
@@ -1274,6 +1279,11 @@ static BOOL isPlistObject(id o)
   RELEASE(domain);
   [self __changePersistentDomain: domainName];
   [_lock unlock];
+}
+
+- (id) valueForKey: (NSString*)aKey
+{
+  return [self objectForKey: aKey];
 }
 
 - (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate
