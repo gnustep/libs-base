@@ -77,10 +77,10 @@ typedef struct { @defs(NSThread) } *TInfo;
 #endif
 
 /*
- * Turn off STACKSYMBOLS if we don't have DEBUG defined ... if we are not built
- * with DEBUG then we are probably missing stackframe information etc.
+ * Turn off STACKSYMBOLS if we have NDEBUG defined ... if we are built
+ * with NDEBUG then we are probably missing stackframe information etc.
  */
-#if !(defined(DEBUG))
+#if defined(NDEBUG)
 #if	defined(STACKSYMBOLS)
 #undef	STACKSYMBOLS
 #endif
