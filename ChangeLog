@@ -1,3 +1,7 @@
+2008-11-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version 1.16.4
+
 2008-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSIArray.h:
@@ -9,11 +13,11 @@
 
 	* Source/NSException.m: Fix stacktrace to be available when built
 	without DEBUG=YES.  Check environment variable to activate/deactivate.
-	* Documentation/Basegsdoc: Improve documentation of stack trace.
+	* Documentation/Base.gsdoc: Improve documentation of stack trace.
 
 2008-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/HSString.m: Allow for leading whitespace when converting to
+	* Source/NSString.m: Allow for leading whitespace when converting to
 	int or double.
 
 2008-10-16  Richard Frith-Macdonald <rfm@gnu.org>

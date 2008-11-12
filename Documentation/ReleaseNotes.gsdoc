@@ -30,6 +30,48 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.16.4</heading>
+	<p> 
+          This is a bugfix release.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSAutoreleasePool</term>
+          <desc>Fix bug in multithreaded programs where ending a thread
+	  would empty the pool of the current thread.
+          </desc>
+	  <term>NSBundle</term>
+          <desc>Fix accidental initialisation of classes in frameworks
+	  linked to a bundle being loaded.
+          </desc>
+	  <term>NSCalendarDate</term>
+          <desc>Fix typo causing minor formatting error.
+          </desc>
+	  <term>NSDate</term>
+          <desc>Support keyed archiving.
+          </desc>
+	  <term>NSException</term>
+          <desc>Improve (and document) use of environment variable to control
+	  stack trace behavior..
+          </desc>
+	  <term>NSString</term>
+          <desc>Make intValue and doubleValue tolerate any amount of leading
+	  whitespace.
+          </desc>
+	  <term>NSThread</term>
+          <desc>Make performing methods in other threads fail safe/reliable.
+          </desc>
+	  <term>NSURL</term>
+          <desc>Fix problem parsing a few odd http responses.
+          </desc>
+        </deflist>
+	<p>
+	Also includes several system specific configure/build fixes and an
+	update of timezone information.
+	</p>
+      </section>
+
+      <section>
 	<heading>Version 1.16.3</heading>
 	<p> 
           This is a bugfix release.

@@ -11,6 +11,14 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.16.4}
+
+@itemize @bullet
+@item Several minor bugfixes in various classes.
+@item Fixes for build/configure problems on various operating systems.
+@item New timezone information
+@end itemize
+
 @section Noteworthy changes in version @samp{1.16.3}
 
 @itemize @bullet

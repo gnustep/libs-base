@@ -22,7 +22,7 @@
    Boston, MA 02111 USA.
    */
 
-/* Ported to mingw 07/12/00 by Björn Giesler <Bjoern.Giesler@gmx.de> */
+/* Ported to mingw 07/12/00 by Bjorn Giesler <Bjoern.Giesler@gmx.de> */
 
 #include "config.h"
 #include "GNUstepBase/GSConfig.h"
