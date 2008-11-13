@@ -1185,27 +1185,144 @@ static void determineOperatingSystem()
 
 - (void) setProcessName: (NSString *)newName
 {
-  if (newName && [newName length]) {
-    [_gnu_processName autorelease];
-    _gnu_processName = [newName copyWithZone: [self zone]];
-  }
+  if (newName && [newName length])
+    {
+      [_gnu_processName autorelease];
+      _gnu_processName = [newName copyWithZone: [self zone]];
+    }
   return;
 }
 
 - (NSUInteger) processorCount
 {
-  return 0;     // FIXME
+  static NSUInteger	procCount = 0;
+  static BOOL		beenHere = NO;
+
+  if (beenHere == NO)
+    {
+#if	defined(__MINGW32__)
+      SYSTEM_INFO info;
+
+      GetSystemInfo(&info);
+      return info.dwNumberOfProcessors;
+#elif	defined(_SC_NPROCESSORS_CONF)
+      procCount = sysconf(_SC_NPROCESSORS_CONF);
+#elif	defined(HAVE_PROCFS)
+      NSFileManager	*fileManager = [NSFileManager defaultManager];
+
+      if ([fileManager fileExistsAtPath: @"/proc/cpuinfo"])
+	{
+	  NSString	*cpuInfo;
+	  NSArray	*a;
+	  unsigned	i;
+
+	  cpuInfo = [NSString stringWithContentsOfFile: @"/proc/cpuinfo"];
+	  a = [cpuInfo componentsSeparatedByCharactersInSet:
+	    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	  // syntax is processor : #
+	  // count up each one
+	  for (i = 0; i < [a count]; ++i)
+	    {
+	      if ([[a objectAtIndex: i] isEqualToString: @"processor"])
+		{
+		  if (((i+1) < [a count])
+		    && [[a objectAtIndex: i+1] isEqualToString: @":"])
+		    {
+		      procCount++;
+		    }
+		}
+	    }
+	}
+#else
+#warning	"no known way to determine number of processors on this system"
+#endif
+
+      beenHere = YES;
+      if (procCount == 0)
+	{
+	  NSLog(@"Cannot determine processor count.");
+	}
+    }    
+  return procCount;
 }
 
 - (NSUInteger) activeProcessorCount
 {
-  return 0;     // FIXME
+#if	defined(__MINGW32__)
+  SYSTEM_INFO info;
+  int	index;
+  int	count = 0;
+
+  GetSystemInfo(&info);
+  for (index = 0; index < 32; index++)
+    {
+      if (info.dwActiveProcessorMask & (1<<index))
+	{
+	  count++;
+	}
+    }
+  return count;
+#elif	defined(_SC_NPROCESSORS_ONLN)
+  return sysconf(_SC_NPROCESSORS_ONLN);
+#else
+  return [self processorCount];
+#endif
 }
 
 - (unsigned long long) physicalMemory
 {
-  return 0;     // FIXME
+  static NSUInteger availMem = 0;
+  static BOOL beenHere = NO;
+
+  if (beenHere == NO)
+    {
+#if	defined(__MINGW32__)
+      MEMORYSTATUSEX memory;
+
+      memory.dwLength = sizeof(memory);
+      GlobalMemoryStatusEx(&memory);
+      return memory.ullTotalPhys;
+#elif	defined(_SC_PHYS_PAGES)
+      availMem = sysconf(_SC_PHYS_PAGES) * NSPageSize();
+#elif	defined(HAVE_PROCFS)
+      NSFileManager *fileManager = [NSFileManager defaultManager];
+
+      if ([fileManager fileExistsAtPath: @"/proc/meminfo"])
+	{
+	  NSString	*memInfo;
+	  NSString	*s;
+	  NSArray	*a;
+	  NSRange	r;
+
+	  memInfo = [NSString stringWithContentsOfFile: @"/proc/meminfo"];
+	  r = [memInfo rangeOfString: @"MemTotal:"];
+
+	  if (r.location == NSNotFound)
+	    {
+	      NSLog(@"Cannot determine amount of physical memory.");
+	      return 0;
+	    }
+	  s = [[memInfo substringFromIndex: (r.location + r.length)]
+	    stringByTrimmingCharactersInSet:
+	    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	  a = [s componentsSeparatedByString: @" "];
+	  s = [a objectAtIndex: 0];
+	  availMem = (NSUInteger)[s longLongValue];
+	  availMem *= NSPageSize();
+	}
+#else
+#warning	"no known way to determine amount of memory on this system"
+#endif
+  
+      beenHere = YES;
+      if (availMem == 0)
+	{
+	  NSLog(@"Cannot determine amount of physical memory.");
+	}
+    }
+  return availMem;
 }
+
 @end
 
 @implementation	NSProcessInfo (GNUstep)

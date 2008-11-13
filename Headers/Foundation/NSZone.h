@@ -434,23 +434,23 @@ GS_ZONE_SCOPE struct NSZoneStats NSZoneStats (NSZone *zone)
 #endif	/* GS_WITH_GC */
 
 
-GS_EXPORT unsigned NSPageSize (void) __attribute__ ((const));
+GS_EXPORT NSUInteger NSPageSize (void) __attribute__ ((const));
 
-GS_EXPORT unsigned NSLogPageSize (void) __attribute__ ((const));
+GS_EXPORT NSUInteger NSLogPageSize (void) __attribute__ ((const));
 
-GS_EXPORT unsigned NSRoundDownToMultipleOfPageSize (unsigned bytes)
+GS_EXPORT NSUInteger NSRoundDownToMultipleOfPageSize (NSUInteger bytes)
   __attribute__ ((const));
 
-GS_EXPORT unsigned NSRoundUpToMultipleOfPageSize (unsigned bytes)
+GS_EXPORT NSUInteger NSRoundUpToMultipleOfPageSize (NSUInteger bytes)
   __attribute__ ((const));
 
-GS_EXPORT unsigned NSRealMemoryAvailable (void);
+GS_EXPORT NSUInteger NSRealMemoryAvailable (void);
 
-GS_EXPORT void* NSAllocateMemoryPages (unsigned bytes);
+GS_EXPORT void* NSAllocateMemoryPages (NSUInteger bytes);
 
-GS_EXPORT void NSDeallocateMemoryPages (void *ptr, unsigned bytes);
+GS_EXPORT void NSDeallocateMemoryPages (void *ptr, NSUInteger bytes);
 
-GS_EXPORT void NSCopyMemoryPages (const void *src, void *dest, unsigned bytes);
+GS_EXPORT void NSCopyMemoryPages (const void *src, void *dest, NSUInteger bytes);
 
 #if	defined(__cplusplus)
 }
