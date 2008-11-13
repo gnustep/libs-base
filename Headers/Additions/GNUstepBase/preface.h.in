@@ -45,6 +45,9 @@
 #endif
 
 #if defined(__WIN32__)
+#include <w32api.h>
+#define _WIN32_WINNT Windows2000
+#define WINVER Windows2000
 #include <windows.h>
 #define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)
 #endif

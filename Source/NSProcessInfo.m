@@ -1277,18 +1277,11 @@ static void determineOperatingSystem()
   if (beenHere == NO)
     {
 #if	defined(__MINGW32__)
-#if (_WIN32_WINNT >= 0x0500)
       MEMORYSTATUSEX memory;
 
       memory.dwLength = sizeof(memory);
       GlobalMemoryStatusEx(&memory);
       return memory.ullTotalPhys;
-#else
-      MEMORYSTATUS memory;
-
-      GlobalMemoryStatus(&memory);
-      return memory.dwTotalPhys;
-#endif
 #elif	defined(_SC_PHYS_PAGES)
       availMem = sysconf(_SC_PHYS_PAGES) * NSPageSize();
 #elif	defined(HAVE_PROCFS)
