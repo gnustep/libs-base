@@ -1214,7 +1214,7 @@ static void determineOperatingSystem()
       long	val;
       size_t	len = val;
 
-      if (sysctlbyname("hw.ncpu", &val, 0, 0) == 0)
+      if (sysctlbyname("hw.ncpu", &val, &len, 0, 0) == 0)
         {
           procCount = val;
         }
@@ -1279,11 +1279,11 @@ static void determineOperatingSystem()
   long		val;
   size_t	len = val;
 
-  if (sysctlbyname("kern.smp.cpus", &val, 0, 0) == 0)
+  if (sysctlbyname("kern.smp.cpus", &val, &len, 0, 0) == 0)
     {
       return val;
     }
-  else if (sysctlbyname("activecpu", &val, 0, 0) == 0)
+  else if (sysctlbyname("activecpu", &val, &len, 0, 0) == 0)
     {
       return val;
     }
@@ -1312,7 +1312,7 @@ static void determineOperatingSystem()
       long	val;
       size_t	len = val;
 
-      if (sysctlbyname("hw.physmem", &val, 0, 0) == 0)
+      if (sysctlbyname("hw.physmem", &val, &len, 0, 0) == 0)
         {
           availMem = val;
         }
