@@ -140,11 +140,18 @@ NSRealMemoryAvailable ()
     return 0;
   return  info.freeram;
 #elif defined(__MINGW32__)
+#if (_WIN32_WINNT >= 0x0500)
   MEMORYSTATUSEX memory;
 
   memory.dwLength = sizeof(memory);
   GlobalMemoryStatusEx(&memory);
   return memory.ullAvailPhys;
+#else
+  MEMORYSTATUS memory;
+
+  GlobalMemoryStatus(&memory);
+  return memory.dwAvailPhys;
+#endif
 #elif defined(__BEOS__)
   system_info info;
 
