@@ -91,8 +91,11 @@
 #include <kvm.h>
 #include <fcntl.h>
 #include <sys/param.h>
-#include <sys/sysctl.h>
 #endif /* HAVE_KVM_ENV */
+
+#ifdef HAVE_SYS_SYSCTL_H
+#include <sys/sysctl.h>
+#endif
 
 #if HAVE_PROCFS_H
 #define id _procfs_avoid_id_collision
@@ -1207,6 +1210,14 @@ static void determineOperatingSystem()
       return info.dwNumberOfProcessors;
 #elif	defined(_SC_NPROCESSORS_CONF)
       procCount = sysconf(_SC_NPROCESSORS_CONF);
+#elif	defined(HAVE_SYSCTLBYNAME)
+      long	val;
+      size_t	len = val;
+
+      if (sysctlbyname("hw.ncpu", &val, 0, 0) == 0)
+        {
+          procCount = val;
+        }
 #elif	defined(HAVE_PROCFS)
       NSFileManager	*fileManager = [NSFileManager defaultManager];
 
@@ -1264,6 +1275,19 @@ static void determineOperatingSystem()
   return count;
 #elif	defined(_SC_NPROCESSORS_ONLN)
   return sysconf(_SC_NPROCESSORS_ONLN);
+#elif	defined(HAVE_SYSCTLBYNAME)
+  long		val;
+  size_t	len = val;
+
+  if (sysctlbyname("kern.smp.cpus", &val, 0, 0) == 0)
+    {
+      return val;
+    }
+  else if (sysctlbyname("activecpu", &val, 0, 0) == 0)
+    {
+      return val;
+    }
+  return [self processorCount];
 #else
   return [self processorCount];
 #endif
@@ -1284,6 +1308,14 @@ static void determineOperatingSystem()
       return memory.ullTotalPhys;
 #elif	defined(_SC_PHYS_PAGES)
       availMem = sysconf(_SC_PHYS_PAGES) * NSPageSize();
+#elif	defined(HAVE_SYSCTLBYNAME)
+      long	val;
+      size_t	len = val;
+
+      if (sysctlbyname("hw.physmem", &val, 0, 0) == 0)
+        {
+          availMem = val;
+        }
 #elif	defined(HAVE_PROCFS)
       NSFileManager *fileManager = [NSFileManager defaultManager];
 

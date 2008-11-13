@@ -1764,6 +1764,12 @@ fi
 AC_CHECK_HEADERS(sys/utsname.h)
 
 #--------------------------------------------------------------------
+# Check for sysctlbyname used by NSProcessInfo.m 
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(sys/sysctl.h)
+AC_CHECK_FUNCS(sysctlbyname)
+
+#--------------------------------------------------------------------
 # Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
 # Needed by NSProcessInfo.m 
 #--------------------------------------------------------------------
