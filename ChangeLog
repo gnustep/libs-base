@@ -1,3 +1,13 @@
+2008-10-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPage.m: Update to use NSUInteger and to cope with large
+	address space in windows.
+	* Headers/Foundation/NSObjCRuntime.h: typedef NSUInteger earlier
+	* Headers/Foundation/NSZone.h: Update to use NSUInteger.
+	* Source/NSProcessInfo.m; implement new MacOS-x 5 methods based on
+	Fred's suggestion and Scotts code as fallback and wiht a version
+	for mswindows too.
+
 2008-10-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: implement KVC methods to get and set values

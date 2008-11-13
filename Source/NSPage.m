@@ -72,27 +72,27 @@ getpagesize(void)
 
 /* Cache the size of a memory page here, so we don't have to make the
    getpagesize() system call repeatedly. */
-static unsigned ns_page_size = 0;
+static NSUInteger ns_page_size = 0;
 
 /**
  * Return the number of bytes in a memory page.
  */
-unsigned
+NSUInteger
 NSPageSize (void)
 {
   if (!ns_page_size)
-    ns_page_size = (unsigned) getpagesize ();
+    ns_page_size = getpagesize ();
   return ns_page_size;
 }
 
 /**
  * Return log base 2 of the number of bytes in a memory page.
  */
-unsigned
+NSUInteger
 NSLogPageSize (void)
 {
-  unsigned tmp_page_size = NSPageSize();
-  unsigned log = 0;
+  NSUInteger tmp_page_size = NSPageSize();
+  NSUInteger log = 0;
 
   while (tmp_page_size >>= 1)
     log++;
@@ -103,10 +103,10 @@ NSLogPageSize (void)
  * Round bytes down to the nearest multiple of the memory page size,
  * and return it.
  */
-unsigned
-NSRoundDownToMultipleOfPageSize (unsigned bytes)
+NSUInteger
+NSRoundDownToMultipleOfPageSize (NSUInteger bytes)
 {
-  unsigned a = NSPageSize();
+  NSUInteger a = NSPageSize();
 
   return (bytes / a) * a;
 }
@@ -115,10 +115,10 @@ NSRoundDownToMultipleOfPageSize (unsigned bytes)
  * Round bytes up to the nearest multiple of the memory page size,
  * and return it.
  */
-unsigned
-NSRoundUpToMultipleOfPageSize (unsigned bytes)
+NSUInteger
+NSRoundUpToMultipleOfPageSize (NSUInteger bytes)
 {
-  unsigned a = NSPageSize();
+  NSUInteger a = NSPageSize();
 
   return ((bytes % a) ? ((bytes / a + 1) * a) : bytes);
 }
@@ -130,7 +130,7 @@ NSRoundUpToMultipleOfPageSize (unsigned bytes)
 /**
  * Return the number of bytes of real (physical) memory available.
  */
-unsigned
+NSUInteger
 NSRealMemoryAvailable ()
 {
 #if __linux__
@@ -138,18 +138,19 @@ NSRealMemoryAvailable ()
 
   if ((sysinfo(&info)) != 0)
     return 0;
-  return (unsigned) info.freeram;
+  return  info.freeram;
 #elif defined(__MINGW32__)
-  MEMORYSTATUS memory;
+  MEMORYSTATUSEX memory;
 
-  GlobalMemoryStatus(&memory);
-  return (unsigned)memory.dwAvailPhys;
+  memory.dwLength = sizeof(memory);
+  GlobalMemoryStatusEx(&memory);
+  return memory.ullAvailPhys;
 #elif defined(__BEOS__)
   system_info info;
 
   if (get_system_info(&info) != B_OK)
     return 0;
-  return (unsigned)(info.max_pages - info.used_pages) * B_PAGE_SIZE;
+  return (info.max_pages - info.used_pages) * B_PAGE_SIZE;
 #else
   fprintf (stderr, "NSRealMemoryAvailable() not implemented.\n");
   return 0;
@@ -161,7 +162,7 @@ NSRealMemoryAvailable ()
  * pointer on failure).
  */
 void *
-NSAllocateMemoryPages (unsigned bytes)
+NSAllocateMemoryPages (NSUInteger bytes)
 {
   void *where;
 #if __mach__
@@ -184,7 +185,7 @@ NSAllocateMemoryPages (unsigned bytes)
  * NSAllocateMemoryPages() function.
  */
 void
-NSDeallocateMemoryPages (void *ptr, unsigned bytes)
+NSDeallocateMemoryPages (void *ptr, NSUInteger bytes)
 {
 #if __mach__
   vm_deallocate (mach_task_self (), ptr, bytes);
@@ -198,7 +199,7 @@ NSDeallocateMemoryPages (void *ptr, unsigned bytes)
  * The value bytes specifies the length of the data copied.
  */
 void
-NSCopyMemoryPages (const void *src, void *dest, unsigned bytes)
+NSCopyMemoryPages (const void *src, void *dest, NSUInteger bytes)
 {
 #if __mach__
   kern_return_t r;

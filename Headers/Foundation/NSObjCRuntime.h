@@ -31,14 +31,17 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<GNUstepBase/preface.h>
 #import	<GNUstepBase/GSConfig.h>
+
+/* These typedefs must be in place before GSObjCRuntime.h is imported.
+ */
+typedef	gsaddr	NSInteger;
+typedef	gsuaddr	NSUInteger;
+
 #import	<GNUstepBase/GSObjCRuntime.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-typedef	gsaddr	NSInteger;
-typedef	gsuaddr	NSUInteger;
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
 GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);
