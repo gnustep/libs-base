@@ -1571,7 +1571,11 @@ typedef	struct {
 {
   if ([self isValid] == YES)
     {
-      M_LOCK(myLock);
+      /* Copy the lock into a local variable since the _internal structure
+       * may be freed during the call to [super invalidate]
+       */
+      NSRecursiveLock *lock = ((internal*)_internal)->_myLock;
+      M_LOCK(lock);
 
       if ([self isValid] == YES)
 	{
@@ -1612,7 +1616,7 @@ typedef	struct {
 	  [[NSMessagePortNameServer sharedInstance] removePort: self];
 	  [super invalidate];
 	}
-      M_UNLOCK(myLock);
+      M_UNLOCK(lock);
     }
 }
 
@@ -1716,7 +1720,11 @@ typedef	struct {
 
 - (void) removeHandle: (GSMessageHandle*)handle
 {
-  M_LOCK(myLock);
+  /* Copy the lock into a local variable since the _internal structure
+   * may be freed during the call to [self invalidate]
+   */
+  NSRecursiveLock *lock = ((internal*)_internal)->_myLock;
+  M_LOCK(lock);
   if ([handle sendPort] == self)
     {
       if (handle->caller != YES)
@@ -1741,7 +1749,7 @@ typedef	struct {
     {
       [self invalidate];
     }
-  M_UNLOCK(myLock);
+  M_UNLOCK(lock);
 }
 
 /*

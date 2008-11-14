@@ -1,3 +1,8 @@
+2008-11-15  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSMessagePort.m (-invalidate, -removeHandle:): Fix
+	potential crash while closing a message port.
+
 2008-11-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSProcessInfo.m (-processorCount, -activeProcessorCount):
