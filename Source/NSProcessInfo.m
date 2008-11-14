@@ -1211,8 +1211,8 @@ static void determineOperatingSystem()
 #elif	defined(_SC_NPROCESSORS_CONF)
       procCount = sysconf(_SC_NPROCESSORS_CONF);
 #elif	defined(HAVE_SYSCTLBYNAME)
-      long	val;
-      size_t	len = val;
+      int	val;
+      size_t	len = sizeof(val);
 
       if (sysctlbyname("hw.ncpu", &val, &len, 0, 0) == 0)
         {
@@ -1276,10 +1276,14 @@ static void determineOperatingSystem()
 #elif	defined(_SC_NPROCESSORS_ONLN)
   return sysconf(_SC_NPROCESSORS_ONLN);
 #elif	defined(HAVE_SYSCTLBYNAME)
-  long		val;
-  size_t	len = val;
+  int		val;
+  size_t	len = sizeof(val);
 
   if (sysctlbyname("kern.smp.cpus", &val, &len, 0, 0) == 0)
+    {
+      return val;
+    }
+  else if (sysctlbyname("hw.activecpu", &val, &len, 0, 0) == 0)
     {
       return val;
     }
