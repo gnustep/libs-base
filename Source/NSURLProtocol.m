@@ -448,7 +448,7 @@ static NSURLProtocol	*placeholder = nil;
       if (port == 0)
         {
 	  // default if not specified
-	  port = [[url scheme] isEqualToString: @"https"] ? 433 : 80;
+	  port = [[url scheme] isEqualToString: @"https"] ? 443 : 80;
 	}
 
       [NSStream getStreamsToHost: host

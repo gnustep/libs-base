@@ -1379,6 +1379,8 @@ setNonBlocking(SOCKET fd)
                       port: (int)port
                     family: (int)family
 {
+  uint16_t	p = (uint16_t)port;
+
   switch (family)
     {
       case AF_INET:
@@ -1390,7 +1392,7 @@ setNonBlocking(SOCKET fd)
           addr_c = [address cStringUsingEncoding: NSUTF8StringEncoding];
           memset(&peer, '\0', sizeof(peer));
           peer.sin_family = AF_INET;
-          peer.sin_port = GSSwapHostI16ToBig(port);
+          peer.sin_port = GSSwapHostI16ToBig(p);
           ptonReturn = inet_pton(AF_INET, addr_c, &peer.sin_addr);
           if (ptonReturn == 0)   // error
             {
@@ -1413,7 +1415,7 @@ setNonBlocking(SOCKET fd)
           addr_c = [address cStringUsingEncoding: NSUTF8StringEncoding];
           memset(&peer, '\0', sizeof(peer));
           peer.sin6_family = AF_INET6;
-          peer.sin6_port = GSSwapHostI16ToBig(port);
+          peer.sin6_port = GSSwapHostI16ToBig(p);
           ptonReturn = inet_pton(AF_INET6, addr_c, &peer.sin6_addr);
           if (ptonReturn == 0)   // error
             {
