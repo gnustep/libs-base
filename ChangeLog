@@ -1,3 +1,11 @@
+2008-11-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSProcessInfo.m (-processorCount, -activeProcessorCount):
+	Improve portability.
+
+	* Source/NSPathUtilities.m (NSTemporaryDirectory): Use /var/tmp on
+	Darwin since /tmp is cleaned regularly.
+
 2008-10-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPage.m: Update to use NSUInteger and to cope with large
