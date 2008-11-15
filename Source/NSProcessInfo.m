@@ -1287,10 +1287,6 @@ static void determineOperatingSystem()
     {
       return val;
     }
-  else if (sysctlbyname("activecpu", &val, &len, 0, 0) == 0)
-    {
-      return val;
-    }
   return [self processorCount];
 #else
   return [self processorCount];
