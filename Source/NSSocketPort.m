@@ -1797,8 +1797,6 @@ static Class		tcpPortClass;
 - (void) dealloc
 {
   [self gcFinalize];
-  DESTROY(host);
-  TEST_RELEASE(address);
   [super dealloc];
 }
 
@@ -1824,6 +1822,14 @@ static Class		tcpPortClass;
 {
   NSDebugMLLog(@"NSPort", @"NSSocketPort 0x%x finalized", self);
   [self invalidate];
+  if (handles != 0)
+    {
+      NSFreeMapTable(handles);
+      handles = 0;
+    }
+  DESTROY(host);
+  TEST_RELEASE(address);
+  DESTROY(myLock);
 }
 
 /*
@@ -2053,6 +2059,7 @@ static Class		tcpPortClass;
 {
   if ([self isValid] == YES)
     {
+      RETAIN(self);
       M_LOCK(myLock);
 
       if ([self isValid] == YES)
@@ -2089,15 +2096,6 @@ static Class		tcpPortClass;
 
 		  [handle invalidate];
 		}
-	      /*
-	       * We permit mutual recursive invalidation, so the handles map
-	       * may already have been destroyed.
-	       */
-	      if (handles != 0)
-		{
-		  NSFreeMapTable(handles);
-		  handles = 0;
-		}
 	    }
 #if	defined(__MINGW32__)
 	  if (events != 0)
@@ -2110,6 +2108,7 @@ static Class		tcpPortClass;
 	  [super invalidate];
 	}
       M_UNLOCK(myLock);
+      RELEASE(self);
     }
 }
 
@@ -2254,6 +2253,7 @@ static Class		tcpPortClass;
  */
 - (void) removeHandle: (GSTcpHandle*)handle
 {
+  RETAIN(self);
   M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
@@ -2283,6 +2283,7 @@ static Class		tcpPortClass;
       [self invalidate];
     }
   M_UNLOCK(myLock);
+  RELEASE(self);
 }
 
 /*

@@ -1,3 +1,9 @@
+2008-11-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m: Ensure port is not deallocated while
+	being invalidated.  Fix memory leak of port lock.
+	* Source/NSSocketPort.m: ditto
+
 2008-11-15  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSMessagePort.m (-invalidate, -removeHandle:): Fix
