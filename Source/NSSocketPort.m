@@ -1797,8 +1797,6 @@ static Class		tcpPortClass;
 - (void) dealloc
 {
   [self gcFinalize];
-  DESTROY(host);
-  TEST_RELEASE(address);
   [super dealloc];
 }
 
@@ -1829,6 +1827,9 @@ static Class		tcpPortClass;
       NSFreeMapTable(handles);
       handles = 0;
     }
+  DESTROY(host);
+  TEST_RELEASE(address);
+  DESTROY(myLock);
 }
 
 /*
