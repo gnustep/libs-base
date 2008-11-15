@@ -1369,11 +1369,6 @@ typedef	struct {
 - (void) dealloc
 {
   [self gcFinalize];
-  if (_internal != 0)
-    {
-      DESTROY(name);
-      NSZoneFree(NSDefaultMallocZone(), _internal);
-    }
   [super dealloc];
 }
 
@@ -1390,6 +1385,13 @@ typedef	struct {
 {
   NSDebugMLLog(@"NSMessagePort", @"NSMessagePort 0x%x finalized", self);
   [self invalidate];
+  if (_internal != 0)
+    {
+      DESTROY(name);
+      NSFreeMapTable(handles);
+      RELEASE(myLock);
+      NSZoneFree(NSDefaultMallocZone(), _internal);
+    }
 }
 
 /*
@@ -1571,11 +1573,8 @@ typedef	struct {
 {
   if ([self isValid] == YES)
     {
-      /* Copy the lock into a local variable since the _internal structure
-       * may be freed during the call to [super invalidate]
-       */
-      NSRecursiveLock *lock = ((internal*)_internal)->_myLock;
-      M_LOCK(lock);
+      RETAIN(self);
+      M_LOCK(myLock);
 
       if ([self isValid] == YES)
 	{
@@ -1592,31 +1591,21 @@ typedef	struct {
 	      lDesc = -1;
 	    }
 
-	  if (handles != 0)
+	  handleArray = NSAllMapTableValues(handles);
+	  i = [handleArray count];
+	  while (i-- > 0)
 	    {
-	      handleArray = NSAllMapTableValues(handles);
-	      i = [handleArray count];
-	      while (i-- > 0)
-		{
-		  GSMessageHandle	*handle;
+	      GSMessageHandle	*handle;
 
-		  handle = [handleArray objectAtIndex: i];
-		  [handle invalidate];
-		}
-	      /*
-	       * We permit mutual recursive invalidation, so the handles map
-	       * may already have been destroyed.
-	       */
-	      if (handles != 0)
-		{
-		  NSFreeMapTable(handles);
-		  handles = 0;
-		}
+	      handle = [handleArray objectAtIndex: i];
+	      [handle invalidate];
 	    }
+
 	  [[NSMessagePortNameServer sharedInstance] removePort: self];
 	  [super invalidate];
 	}
-      M_UNLOCK(lock);
+      M_UNLOCK(myLock);
+      RELEASE(self);
     }
 }
 
@@ -1626,7 +1615,7 @@ typedef	struct {
     {
       return YES;
     }
-  if ([anObject class] == [self class])
+  if ([anObject class] == [self class] && [self isValid] && [anObject isValid])
     {
       NSMessagePort	*o = (NSMessagePort*)anObject;
 
@@ -1720,11 +1709,8 @@ typedef	struct {
 
 - (void) removeHandle: (GSMessageHandle*)handle
 {
-  /* Copy the lock into a local variable since the _internal structure
-   * may be freed during the call to [self invalidate]
-   */
-  NSRecursiveLock *lock = ((internal*)_internal)->_myLock;
-  M_LOCK(lock);
+  RETAIN(self);
+  M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
       if (handle->caller != YES)
@@ -1749,7 +1735,8 @@ typedef	struct {
     {
       [self invalidate];
     }
-  M_UNLOCK(lock);
+  M_UNLOCK(myLock);
+  RELEASE(self);
 }
 
 /*
