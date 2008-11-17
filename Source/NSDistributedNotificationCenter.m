@@ -53,7 +53,7 @@
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
 		     selector: (NSString*)aSelector
-			   to: (unsigned long)observer;
+			   to: (size_t)observer;
 @end
 
 /**
@@ -337,7 +337,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)_remote addObserver: (unsigned long)anObserver
+      [(id<GDNCProtocol>)_remote addObserver: (size_t)anObserver
 				   selector: NSStringFromSelector(aSelector)
 				       name: notificationName
 				     object: anObject
@@ -463,7 +463,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)_remote removeObserver: (unsigned long)anObserver
+      [(id<GDNCProtocol>)_remote removeObserver: (size_t)anObserver
 					  name: notificationName
 					object: anObject
 					   for: (id<GDNCClient>)self];
@@ -517,7 +517,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  * in the source where the '@protocol()' directive is used.
  */
 @interface NSDistributedNotificationCenterDummy : NSObject <GDNCProtocol>
-- (void) addObserver: (unsigned long)anObserver
+- (void) addObserver: (size_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
@@ -529,7 +529,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		  deliverImmediately: (BOOL)deliverImmediately
 			         for: (id<GDNCClient>)client;
 - (void) registerClient: (id<GDNCClient>)client;
-- (void) removeObserver: (unsigned long)anObserver
+- (void) removeObserver: (size_t)anObserver
 		   name: (NSString*)notificationname
 		 object: (NSString*)anObject
 		    for: (id<GDNCClient>)client;
@@ -539,7 +539,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 @end
 
 @implementation NSDistributedNotificationCenterDummy
-- (void) addObserver: (unsigned long)anObserver
+- (void) addObserver: (size_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
@@ -557,7 +557,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 - (void) registerClient: (id<GDNCClient>)client
 {
 }
-- (void) removeObserver: (unsigned long)anObserver
+- (void) removeObserver: (size_t)anObserver
 		   name: (NSString*)notificationname
 		 object: (NSString*)anObject
 		    for: (id<GDNCClient>)client
@@ -802,7 +802,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
 		     selector: (NSString*)aSelector
-			   to: (unsigned long)observer
+			   to: (size_t)observer
 {
   id			userInfo;
   NSNotification	*notification;

@@ -517,7 +517,7 @@
   NSString		*prefix;
   NSString		*suffix;
   NSString		*wholeString;
-  NSString		*fracPad;
+  NSString		*fracPad = nil;
   NSString		*fracPartString;
   NSMutableString	*intPartString;
   NSMutableString	*formattedNumber;

@@ -698,7 +698,7 @@ static Class	runLoopClass;
 #if	defined(__MINGW32__)
 - (int) eventHandle
 {
-  return (int)event;
+  return (int) (size_t) event;
 }
 #endif
 
@@ -1102,7 +1102,7 @@ static Class	runLoopClass;
   if (state == GS_H_TRYCON)	/* Connection attempt.	*/
     {
       int	res = 0;
-      unsigned	len = sizeof(res);
+      socklen_t len = sizeof(res);
 
       if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) != 0)
         {
@@ -1541,7 +1541,7 @@ static Class		tcpPortClass;
 		    forceAddress: (NSString*)addr
 			listener: (BOOL)shouldListen
 {
-  unsigned		i;
+  socklen_t 		slen;
   NSSocketPort		*port = nil;
   NSHost		*thisHost = [NSHost localHost];
   NSMapTable		*thePorts;
@@ -1629,7 +1629,7 @@ static Class		tcpPortClass;
 	  /*
            * Need size of buffer for getsockbyname() later.
 	   */
-	  i = sizeof(sockaddr);
+	  slen = sizeof(sockaddr);
 
 	  if (addrOk == NO)
 	    {
@@ -1672,7 +1672,7 @@ static Class		tcpPortClass;
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
-	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i)
+	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &slen)
 	    == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to get socket name - %@", [NSError _last]);
@@ -1935,7 +1935,7 @@ static Class		tcpPortClass;
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
     {
-      if ([handle recvPort] == recvPort)
+      if ((NSPort*) [handle recvPort] == recvPort)
 	{
 	  RETAIN(handle);
 	  NSEndMapTableEnumeration(&me);
@@ -2158,7 +2158,7 @@ static Class		tcpPortClass;
 #endif
     {
       struct sockaddr_in	sockAddr;
-      unsigned			size = sizeof(sockAddr);
+      size_t size = sizeof(sockAddr);
 
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
       if (desc == INVALID_SOCKET)

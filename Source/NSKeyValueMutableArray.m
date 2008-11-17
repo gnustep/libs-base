@@ -221,7 +221,7 @@
 
 - (void) removeObjectAtIndex: (unsigned)index
 {
-  NSIndexSet *indexes;
+  NSIndexSet *indexes = nil;
 
   if (!otherChangeInProgress)
     {
@@ -242,7 +242,7 @@
 
 - (void) insertObject: (id)anObject atIndex: (unsigned)index
 {
-  NSIndexSet *indexes;
+  NSIndexSet *indexes = nil;
 
   if (!otherChangeInProgress)
     {
@@ -264,7 +264,7 @@
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
 {
-  NSIndexSet *indexes;
+  NSIndexSet *indexes = nil;
   BOOL triggerNotifications = !otherChangeInProgress;
 
   if (triggerNotifications)
@@ -332,7 +332,7 @@
 
 - (void) removeObjectAtIndex: (unsigned)index
 {
-  NSIndexSet *indexes;
+  NSIndexSet *indexes = nil;
   NSMutableArray *temp;
 
   if (!otherChangeInProgress)
@@ -359,7 +359,7 @@
 
 - (void) insertObject: (id)anObject atIndex: (unsigned)index
 {
-  NSIndexSet *indexes;
+  NSIndexSet *indexes = nil;
   NSMutableArray *temp;
 
   if (!otherChangeInProgress)
@@ -386,7 +386,7 @@
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
 {
-  NSIndexSet *indexes;
+  NSIndexSet *indexes = nil;
   NSMutableArray *temp;
 
   if (!otherChangeInProgress)
@@ -432,7 +432,7 @@
       char cKey[size + 2];
       char *cKeyPtr = &cKey[0];
       const char *type = 0;
-      BOOL found;
+      BOOL found = NO;
       int offset;
       
       cKey[0] = '_';

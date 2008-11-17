@@ -862,7 +862,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  NSTimeInterval	now;
           NSDate                *earliest = nil;
           BOOL                  recheck = YES;
-          NSTimeInterval        ei;
+          NSTimeInterval        ei = 0;
 	  NSTimer		*t;
 	  NSTimeInterval	ti;
           unsigned              i;
@@ -1089,7 +1089,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 		 beforeDate: (NSDate*)limit_date
 {
   GSRunLoopCtxt		*context;
-  NSTimeInterval	ti;
+  NSTimeInterval	ti = 0;
   int			timeout_ms;
   NSString		*savedMode = _currentMode;
   CREATE_AUTORELEASE_POOL(arp);

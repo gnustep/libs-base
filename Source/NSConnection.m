@@ -2754,7 +2754,7 @@ static void callEncoder (DOContext *ctxt)
  */
 - (NSPortCoder*) _getReplyRmc: (int)sn
 {
-  NSPortCoder		*rmc;
+  NSPortCoder		*rmc = nil;
   GSIMapNode		node = 0;
   NSDate		*timeout_date = nil;
   NSTimeInterval	last_interval = 0.0001;

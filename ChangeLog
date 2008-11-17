@@ -1,4 +1,42 @@
-2008-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+2008-11-07  Roland Schwingel <roland.schwingel@onevision.de>
+
+	* Source/GSSocketStream.m:
+	* Source/NSPropertyList.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSSocketPort.m:
+	* Source/NSRunLoop.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSArray.m:
+	* Source/inet_ntop.c:
+	* Source/NSDebug.m:
+	* Source/NSPredicate.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSFFIInvocation.m:
+	* Source/NSMessagePort.m:
+	* Source/win32/GSFileHandle.m:
+	* Source/win32/NSUserDefaults.m:
+	* Source/win32/NSMessagePort.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/win32/NSMessagePortNameServer.m:
+	* Source/NSKeyValueMutableArray.m:
+	* Source/NSURL.m:
+	* Source/mframe.m:
+	* Source/NSObject.m:
+	* Source/NSString.m:
+	* Source/NSDecimalNumber.m:
+	* Source/cifframe.m:
+	* Source/Additions/GSXML.m:
+	* Source/GSString.m:
+	* Source/NSConnection.m:
+	* Source/NSProxy.m:
+	* Source/GSFormat.m:
+	* Source/NSSet.m:
+	* Source/NSTask.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSNumberFormatter.m:
+	Cosmetic changes plus a couple of fixes for 64bit mswindows.
+
+2008-11-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: Remove useless sysctl command.
 	* Source/NSMessagePort.m: Ensure port is not deallocated while

@@ -2413,7 +2413,7 @@ loadEntityFunction(void *ctx,
   entityId = (eid != 0) ? (id)UTF8Str(eid) : nil;
   location = UTF8Str(url);
   components = [location pathComponents];
-  local = [NSMutableString string];
+  local = (NSMutableString *) [NSMutableString string];
 
   /*
    * Build a local filename by replacing path separator characters with

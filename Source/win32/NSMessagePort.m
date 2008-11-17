@@ -50,7 +50,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern int	errno;
+extern __declspec(dllimport) int	errno;
 
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
@@ -596,8 +596,8 @@ static Class		messagePortClass = 0;
       GSPortItemHeader	*pih;
       unsigned		off = 0;
       unsigned		len;
-      unsigned		rId;
-      unsigned		nItems;
+      unsigned		rId = 0;
+      unsigned		nItems = 0;
       NSMessagePort	*rPort = nil;
       NSMutableArray	*rItems = nil;
 
@@ -971,7 +971,7 @@ again:
                    from: (NSPort*)receivingPort
                reserved: (unsigned)length
 {
-  NSMutableData		*h;
+  NSMutableData		*h = nil;
   NSMutableData		*first;
   BOOL			sent = NO;
   unsigned		c;

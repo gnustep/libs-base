@@ -1730,7 +1730,7 @@ PString(NSString *obj, NSMutableData *output)
 static void
 XString(NSString* obj, NSMutableData *output)
 {
-  static char	*hexdigits = "0123456789ABCDEF";
+  static const char	*hexdigits = "0123456789ABCDEF";
   unsigned	end;
 
   end = [obj length];

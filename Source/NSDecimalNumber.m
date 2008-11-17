@@ -250,8 +250,8 @@ static NSDecimalNumber *one;
  */
 - (id) initWithBytes: (const void*)value objCType: (const char*)type
 {
-  unsigned long long val;
-  long long llval;
+  unsigned long long val = 0ll;
+  long long llval = 0ll;
   NSDecimal decimal;
   BOOL negative, llvalSet;
 

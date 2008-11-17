@@ -46,7 +46,7 @@
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
-extern int	errno;
+extern __declspec(dllimport) int	errno;
 
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;
@@ -112,7 +112,7 @@ static void clean_up_names(void)
 	HKEY_CURRENT_USER,
 	UNISTR(registry),
 	0,
-	L"",
+	(LPWSTR) L"",
 	REG_OPTION_VOLATILE,
 	STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE
 	|KEY_QUERY_VALUE|KEY_NOTIFY,
@@ -227,7 +227,7 @@ OutputDebugStringW(L"");
       return nil;
     }
 
-  mailslotName = [NSString stringWithUTF8String: ptr];
+  mailslotName = [NSString stringWithUTF8String: (const char *) ptr];
   if (ptr != buf)
     {
       objc_free(ptr);
@@ -338,7 +338,7 @@ OutputDebugStringW(L"");
     }
 
   n = [[self class] _translate: name];
-  str = [[(NSMessagePort*)port name] UTF8String];
+  str = (const unsigned char *) [[(NSMessagePort*)port name] UTF8String];
 
   rc = RegSetValueExW(
     key,
@@ -346,7 +346,7 @@ OutputDebugStringW(L"");
     0,
     REG_BINARY,
     str,
-    strlen(str)+1);
+    strlen((const char*) str)+1);
   NSDebugLLog(@"NSMessagePortNameServer", @"Set port '%s' for %@", str, n);
   if (rc == ERROR_SUCCESS)
     {

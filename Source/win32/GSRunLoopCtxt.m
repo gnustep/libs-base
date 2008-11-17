@@ -331,7 +331,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	  switch (info->type)
 	    {
 	      case ET_HANDLE:
-		handle = (HANDLE)(int)info->data;
+		handle = (HANDLE)(size_t)info->data;
 		NSMapInsert(handleMap, (void*)handle, info);
 		num_handles++;
 		break;
@@ -355,13 +355,13 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 		  while (port_handle_count--)
 		    {
 		      NSMapInsert(handleMap, 
-			(void*)port_handle_array[port_handle_count], info);
+			(void*)(size_t) port_handle_array[port_handle_count], info);
 		      num_handles++;
 		    }
 		}
 		break;
 	      case ET_WINMSG:
-		handle = (HANDLE)(int)info->data;
+		handle = (HANDLE)(size_t)info->data;
 		NSMapInsert(winMsgMap, (void*)handle, info);
 		num_winMsgs++;
 		break;

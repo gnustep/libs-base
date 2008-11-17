@@ -978,7 +978,7 @@ static unsigned	urlAlign;
 	    {
 	      buf->user = 0;
 	      buf->password = 0;
-	      buf->host = "localhost";
+	      buf->host = (char*) "localhost";
 	      buf->port = 0;
 	      buf->isGeneric = YES;
 	    }
