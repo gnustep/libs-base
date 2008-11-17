@@ -204,7 +204,8 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   return (IMP)cclosure;
 }
 
-static IMP gs_objc_msg_forward (SEL sel)
+static __attribute__ ((__unused__))
+IMP gs_objc_msg_forward (SEL sel)
 {
   return gs_objc_msg_forward2 (nil, sel);
 }

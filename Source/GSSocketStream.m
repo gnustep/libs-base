@@ -52,6 +52,11 @@
 # endif
 #endif
 
+#ifdef _WIN32
+extern const char *inet_ntop(int, const void *, char *, size_t);
+extern int inet_pton(int , const char *, void *);
+#endif
+
 unsigned
 GSPrivateSockaddrLength(struct sockaddr *addr)
 {
@@ -1264,7 +1269,7 @@ setNonBlocking(SOCKET fd)
           case AF_INET:
             {
               struct sockaddr_in sin;
-              unsigned	        size = sizeof(sin);
+              socklen_t	        size = sizeof(sin);
 
               if ([key isEqualToString: GSStreamLocalAddressKey])
                 {
@@ -1304,7 +1309,7 @@ setNonBlocking(SOCKET fd)
           case AF_INET6:
             {
               struct sockaddr_in6 sin;
-              unsigned	        size = sizeof(sin);
+              socklen_t	        size = sizeof(sin);
 
               if ([key isEqualToString: GSStreamLocalAddressKey])
                 {
@@ -1445,7 +1450,7 @@ setNonBlocking(SOCKET fd)
       case AF_LOCAL:
 	{
 	  struct sockaddr_un	peer;
-	  const char		*c_addr;
+	  const char                *c_addr;
 
 	  c_addr = [address fileSystemRepresentation];
 	  memset(&peer, '\0', sizeof(peer));
@@ -1737,7 +1742,7 @@ setNonBlocking(SOCKET fd)
   else
     {
 #if	defined(__MINGW32__)
-      readLen = recv([self _sock], buffer, len, 0);
+      readLen = recv([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
       readLen = read([self _sock], buffer, len);
 #endif
@@ -1826,7 +1831,7 @@ setNonBlocking(SOCKET fd)
 	  [self _unschedule];
 	  if (error == 0)
 	    {
-	      unsigned len = sizeof(error);
+	      socklen_t len = sizeof(error);
 
 	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
 		(char*)&error, &len);
@@ -1983,9 +1988,9 @@ setNonBlocking(SOCKET fd)
     }
 
 #if	defined(__MINGW32__)
-  writeLen = send([self _sock], buffer, len, 0);
+  writeLen = send([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
-  writeLen = write([self _sock], buffer, len);
+  writeLen = write([self _sock], buffer, (socklen_t) len);
 #endif
 
   if (socketError(writeLen))
@@ -2231,7 +2236,7 @@ setNonBlocking(SOCKET fd)
 	  [self _unschedule];
 	  if (error == 0)
 	    {
-	      unsigned len = sizeof(error);
+	      socklen_t len = sizeof(error);
 
 	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
 		(char*)&error, &len);

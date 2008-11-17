@@ -1589,7 +1589,7 @@
 
 - (NSPredicate *) parse
 {
-  NSPredicate *r;
+  NSPredicate *r = nil;
 
   NS_DURING
     {

@@ -1004,7 +1004,7 @@ static DWORD WINAPI _threadFunction(LPVOID t)
       NSConcreteWindowsTask	*task;
 
       [tasksLock lock];
-      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks, (void*)taskId);
+      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks, (void*)(intptr_t) taskId);
       [tasksLock unlock];
       if (task == nil)
 	{
@@ -1216,7 +1216,7 @@ quotedFromString(NSString *aString)
   ASSIGN(_launchPath, lpath);	// Actual path used.
 
   [tasksLock lock];
-  NSMapInsert(activeTasks, (void*)_taskId, (void*)self);
+  NSMapInsert(activeTasks, (void*)(intptr_t) _taskId, (void*)self);
   [tasksLock unlock];
   /*
    * Create thread to watch for termination of process.

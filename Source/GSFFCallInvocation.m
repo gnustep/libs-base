@@ -182,7 +182,8 @@ static const char *gs_subtypes(const char *type, int *result)
 
 /* return the index'th subtype
  */
-static const char *gs_subtype(const char *type, int index)
+static __attribute__((unused))
+const char *gs_subtype(const char *type, int index)
 {
   int	count = 0;
 

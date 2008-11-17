@@ -445,7 +445,7 @@ static Class NSMutableSet_concrete_class;
   id		e = [self objectEnumerator];
   unsigned	i;
   unsigned	c = [self count];
-  NSArray	*result;
+  NSArray	*result = nil;
   GS_BEGINIDBUF(k, c);
 
   for (i = 0; i < c; i++)
@@ -630,7 +630,7 @@ static Class NSMutableSet_concrete_class;
 
 - (id) valueForKeyPath: (NSString*)path
 {
-  id result;
+  id result = (id) nil;
 
   if ([path hasPrefix: @"@"])
     {

@@ -275,7 +275,7 @@ extern BOOL __objc_responds_to(id, SEL);
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s %lx>",
-	GSClassNameFromObject(self), (unsigned long)self];
+	GSClassNameFromObject(self), (size_t)self];
 }
 
 /**

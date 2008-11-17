@@ -1397,8 +1397,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       if (sock == nil)
 	{
+	#ifdef _WIN32
+	extern int __declspec(dllimport) errno;
+	#else
 	  extern int errno;
-
+    #endif
 	  /*
 	   * Tell superclass that the load failed - let it do housekeeping.
 	   */

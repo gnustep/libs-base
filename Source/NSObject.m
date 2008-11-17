@@ -28,9 +28,10 @@
 /* On some versions of mingw we need to work around bad function declarations
  * by defining them away and doing the declarations ourself later.
  */
+#ifndef _WIN64
 #define InterlockedIncrement	BadInterlockedIncrement
 #define InterlockedDecrement	BadInterlockedDecrement
-
+#endif
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -211,11 +212,12 @@ static void GSLogZombie(id o, SEL sel)
 #if	defined(REFCNT_LOCAL)
 
 #if	defined(__MINGW32__)
-
+#ifndef _WIN64
 #undef InterlockedIncrement
 #undef InterlockedDecrement
 LONG WINAPI InterlockedIncrement(LONG volatile *);
 LONG WINAPI InterlockedDecrement(LONG volatile *);
+#endif
 
 /* Set up atomic read, increment and decrement for mswindows
  */

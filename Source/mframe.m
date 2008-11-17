@@ -820,7 +820,7 @@ mframe_do_call (DOContext *ctxt,
   /* The selector for the message we're sending to the TARGET. */
   SEL selector;
   /* The OBJECT's Method(_t) pointer for the SELECTOR. */
-  GSMethod meth;
+  GSMethod meth = 0;
   /* The OBJECT's implementation of the SELECTOR. */
   IMP method_implementation;
   /* The number bytes for holding arguments passed on the stack. */
@@ -909,7 +909,7 @@ mframe_do_call (DOContext *ctxt,
 		 @"Will search for arbitrary signature.",
 		 object,
 		 GSNameFromClass(GSObjCIsClass(object) 
- 				 ? object : GSObjCClass(object)),
+ 				 ? object : (id) GSObjCClass(object)),
  		 GSNameFromSelector(selector));
       type = GSTypesFromSelector(selector);
     }

@@ -4610,7 +4610,7 @@ static NSFileManager *fm = nil;
 	}
       else
         {
-	  self = [self initWithBytesNoCopy: ""
+	  self = [self initWithBytesNoCopy: (char *)""
 				    length: 0
 			          encoding: NSASCIIStringEncoding
 			      freeWhenDone: NO];

@@ -1452,7 +1452,7 @@ typedef	struct {
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
     {
-      if ([handle recvPort] == recvPort)
+      if ((NSPort*) [handle recvPort] == recvPort)
 	{
 	  RETAIN(handle);
 	  NSEndMapTableEnumeration(&me);
