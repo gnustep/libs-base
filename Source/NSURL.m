@@ -632,10 +632,17 @@ static unsigned	urlAlign;
    */
   static const char *reserved = ";/?:@&=+$,";
 
-  if (aUrlString == nil)
+  if ([aUrlString isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@ %@] nil string parameter",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  if (aBaseUrl != nil
+    && [aBaseUrl isKindOfClass: [NSURL class]] == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@ %@] bad base URL parameter",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   ASSIGNCOPY(_urlString, aUrlString);
