@@ -1,4 +1,8 @@
-2008-11-07  Roland Schwingel <roland.schwingel@onevision.de>
+2008-11-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Check class of arguments to designated initialiser
+
+2008-11-17  Roland Schwingel <roland.schwingel@onevision.de>
 
 	* Source/GSSocketStream.m:
 	* Source/NSPropertyList.m:
