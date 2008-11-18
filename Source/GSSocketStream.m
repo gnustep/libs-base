@@ -573,6 +573,19 @@ static gnutls_anon_client_credentials_t anoncred;
 @implementation GSTLS
 + (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
 {
+  NSString	*tls;
+
+  tls = [i propertyForKey: NSStreamSocketSecurityLevelKey];
+  if (tls == nil)
+    {
+      tls = [o propertyForKey: NSStreamSocketSecurityLevelKey];
+    }
+  if (tls != nil
+    && [tls isEqualToString: NSStreamSocketSecurityLevelNone] == NO)
+    {
+      NSLog(@"Attempt to use SSL/TLS without support.");
+      NSLog(@"Please reconfigure gnustep-base with GNU TLS.");
+    }
   return;
 }
 - (id) initWithInput: (GSSocketInputStream*)i
