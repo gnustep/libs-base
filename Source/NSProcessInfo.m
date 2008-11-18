@@ -539,6 +539,11 @@ static char	**_gnu_noobjc_env = NULL;
   if (!vectors)
     {
       fprintf(stderr, "Error: libkvm does not return arguments for the current process\n");
+      fprintf(stderr, "this may be due to a bug (undocumented feature) in libkvm\n");
+      fprintf(stderr, "which fails to get arguments unless /proc is mounted.\n");
+      fprintf(stderr, "If so, you can mount the /proc filesystem or reconfigure/build\n");
+      fprintf(stderr, "gnustep-base with --enable-fake-main as a workaround, and\n");
+      fprintf(stderr, "should report the bug to the maintainer of libkvm on your operating system.\n");
       abort();
     }
 

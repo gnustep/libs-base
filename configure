@@ -16490,6 +16490,10 @@ if test "$enable_fake_main" = "yes"; then
 elif test "$enable_pass_arguments" = "no"; then
   if test "$objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 -o "$ac_cv_sys_procfs_psinfo" = yes \); then
     GS_FAKE_MAIN=0
+    if test "$have_kvm_env" = "1"; then
+      echo "WARNING ... using libkvm which is known to be buggy on some systems"
+      echo "consider configuring with --enable-fake-main instead."
+    fi
   else
     GS_FAKE_MAIN=1
     enable_fake_main=yes

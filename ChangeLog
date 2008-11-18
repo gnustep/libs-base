@@ -1,6 +1,10 @@
 2008-11-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Check class of arguments to designated initialiser
+	* configure.ac: Warn about bug in libkvm
+	* configure: Regenerate
+	* Source/NSProcessInfo.m: Report problem in libkvm and suggest
+	workarounds.
 
 2008-11-17  Roland Schwingel <roland.schwingel@onevision.de>
 
