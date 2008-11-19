@@ -1,5 +1,13 @@
 2008-11-19  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Version 1.16.5
+	* Version:
+	* Documentation/news.texi:
+	* Documentation/ReleaseNotes.gsdoc:
+	New bugfix release
+
+2008-11-19  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSString.m: Fix null pointer dereference.
 
 2008-11-15  Richard Frith-Macdonald <rfm@gnu.org>

@@ -30,6 +30,13 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.16.5</heading>
+	<p> 
+          This is a bugfix release to correrct a possible null pointer
+	  dereference introduced by a fix in the last release.
+	</p>
+      </section>
+      <section>
 	<heading>Version 1.16.4</heading>
 	<p> 
           This is a bugfix release.
