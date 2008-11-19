@@ -112,6 +112,10 @@ IVARS
  */
 - (void*) _loopID;
 
+/** Reset events in mask to allow them to be sent again.
+ */
+- (void) _resetEvents: (int)mask;
+
 /**
  * Place the stream in all the scheduled runloops.
  */

@@ -236,7 +236,11 @@ GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
         {
           e = EAGAIN;	// Tell GNUTLS this would block.
         }
+#if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       gnutls_transport_set_errno (tls->session, e);
+#else
+      errno = e;	// Not thread-safe
+#endif
     }
   return result;
 }
@@ -263,7 +267,12 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
         {
           e = EAGAIN;	// Tell GNUTLS this would block.
         }
+#if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       gnutls_transport_set_errno (tls->session, e);
+#else
+      errno = e;	// Not thread-safe
+#endif
+
     }
   return result;
 }
@@ -383,7 +392,6 @@ static gnutls_anon_client_credentials_t anoncred;
           handshake = NO;       // Handshake is now complete.
           active = YES;         // The TLS session is now active.
         }
-
     }
 }
 
@@ -458,7 +466,9 @@ static gnutls_anon_client_credentials_t anoncred;
   if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
     {
       const int proto_prio[4] = {
+#if	defined(GNUTLS_TLS1_2)
         GNUTLS_TLS1_2,
+#endif
         GNUTLS_TLS1_1,
         GNUTLS_TLS1_0,
         0 };
@@ -534,19 +544,24 @@ static gnutls_anon_client_credentials_t anoncred;
                   @"GSTLS completed on %p", stream);
                 if ([istream streamStatus] == NSStreamStatusOpen)
                   {
+		    [istream _resetEvents: NSStreamEventOpenCompleted];
                     [istream _sendEvent: NSStreamEventOpenCompleted];
                   }
                 else
                   {
+		    [istream _resetEvents: NSStreamEventErrorOccurred];
                     [istream _sendEvent: NSStreamEventErrorOccurred];
                   }
                 if ([ostream streamStatus]  == NSStreamStatusOpen)
                   {
+		    [ostream _resetEvents: NSStreamEventOpenCompleted
+		      | NSStreamEventHasSpaceAvailable];
                     [ostream _sendEvent: NSStreamEventOpenCompleted];
                     [ostream _sendEvent: NSStreamEventHasSpaceAvailable];
                   }
                 else
                   {
+		    [ostream _resetEvents: NSStreamEventErrorOccurred];
                     [ostream _sendEvent: NSStreamEventErrorOccurred];
                   }
               }
@@ -704,19 +719,24 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
       [GSTLS tryInput: is output: os];
       if ([is streamStatus] == NSStreamStatusOpen)
         {
+	  [is _resetEvents: NSStreamEventOpenCompleted];
           [is _sendEvent: NSStreamEventOpenCompleted];
         }
       else
         {
+	  [is _resetEvents: NSStreamEventErrorOccurred];
           [is _sendEvent: NSStreamEventErrorOccurred];
         }
       if ([os streamStatus]  == NSStreamStatusOpen)
         {
+	  [os _resetEvents: NSStreamEventOpenCompleted
+	    | NSStreamEventHasSpaceAvailable];
           [os _sendEvent: NSStreamEventOpenCompleted];
           [os _sendEvent: NSStreamEventHasSpaceAvailable];
         }
       else
         {
+	  [os _resetEvents: NSStreamEventErrorOccurred];
           [os _sendEvent: NSStreamEventErrorOccurred];
         }
       RELEASE(is);

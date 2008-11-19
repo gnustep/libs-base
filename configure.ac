@@ -2217,13 +2217,18 @@ if test $enable_tls = yes; then
   saved_LIBS="$LIBS"
   saved_CFLAGS="$CFLAGS"
 
-  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+#  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+  AM_PATH_TLS(1.4.0, enable_libgnutls=yes, enable_libgnutls=no)
   if test $enable_libgnutls = yes; then
     CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
     INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
     LIBS="$TLS_LIBS $LIBS"
     HAVE_GNUTLS=1
     AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
+    AC_CHECK_FUNCS(gnutls_transport_set_errno)
+    if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
+      AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
+    fi
   else
     HAVE_GNUTLS=0
     # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them

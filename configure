@@ -18264,6 +18264,7 @@ if test $enable_tls = yes; then
   saved_LIBS="$LIBS"
   saved_CFLAGS="$CFLAGS"
 
+#  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
 
 
 # Check whether --with-tls-prefix or --without-tls-prefix was given.
@@ -18328,7 +18329,7 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-  min_tls_version=2.0.1
+  min_tls_version=1.4.0
   echo "$as_me:$LINENO: checking for libgnutls - version >= $min_tls_version" >&5
 echo $ECHO_N "checking for libgnutls - version >= $min_tls_version... $ECHO_C" >&6
   no_tls=""
@@ -18367,8 +18368,8 @@ main()
       printf("*** You need a version of libtgnuls newer than $min_tls_version.\n");
       printf("*** If you have already installed a sufficiently new version, this error\n");
       printf("*** probably means that the wrong copy of the libgnutls-config shell script is\n");
-      printf("*** being found. Yoiu can fix this is by removing the old version\n");
-      printf("*** of libgnutlsthe\n");
+      printf("*** being found. You can fix this is by removing the old version\n");
+      printf("*** of libgnutls.\n");
       return 1;
     }
   return 0;
@@ -18444,8 +18445,8 @@ main()
       printf("*** You need a version of libtgnuls newer than $min_tls_version.\n");
       printf("*** If you have already installed a sufficiently new version, this error\n");
       printf("*** probably means that the wrong copy of the libgnutls-config shell script is\n");
-      printf("*** being found. Yoiu can fix this is by removing the old version\n");
-      printf("*** of libgnutlsthe\n");
+      printf("*** being found. You can fix this is by removing the old version\n");
+      printf("*** of libgnutls.\n");
       return 1;
     }
   return 0;
@@ -18519,6 +18520,112 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_GNUTLS 1
 _ACEOF
 
+
+for ac_func in gnutls_transport_set_errno
+do
+as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $ac_func" >&5
+echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6
+if eval "test \"\${$as_ac_var+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+char (*f) () = $ac_func;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != $ac_func;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  eval "$as_ac_var=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+eval "$as_ac_var=no"
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_var'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_var'}'`" >&6
+if test `eval echo '${'$as_ac_var'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+    if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
+      { echo "$as_me:$LINENO: WARNING: Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine)." >&5
+echo "$as_me: WARNING: Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine)." >&2;}
+    fi
   else
     HAVE_GNUTLS=0
     # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
