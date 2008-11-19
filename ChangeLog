@@ -8,6 +8,7 @@
 	after SSL or SOCKS module has dealt with them.
 	* Source/GSStream.h: New method to reset sent events mask
 	* Source/GSStream.m: ditto
+	* Source/GSString.m: Fix nil pointer reference
 
 2008-11-18  Richard Frith-Macdonald <rfm@gnu.org>
 
