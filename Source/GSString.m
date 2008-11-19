@@ -1489,7 +1489,7 @@ doubleValue_c(GSStr self)
   const char	*ptr = (const char*)self->_contents.c;
   const char	*end = ptr + self->_count;
 
-  while (isspace(*ptr) && ptr < end)
+  while (ptr < end && isspace(*ptr))
     {
       ptr++;
     }
@@ -1981,7 +1981,7 @@ intValue_c(GSStr self)
   const char	*ptr = (const char*)self->_contents.c;
   const char	*end = ptr + self->_count;
 
-  while (isspace(*ptr) && ptr < end)
+  while (ptr < end && isspace(*ptr))
     {
       ptr++;
     }
@@ -2006,7 +2006,7 @@ intValue_u(GSStr self)
   const unichar	*ptr = self->_contents.u;
   const unichar	*end = ptr + self->_count;
 
-  while (isspace(*ptr) && ptr < end)
+  while (ptr < end && isspace(*ptr))
     {
       ptr++;
     }
