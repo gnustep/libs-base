@@ -1,5 +1,9 @@
 2008-11-19  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSData.m: Fix bug #24883
+
+2008-11-19  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Changes to tolerate older version of gnutls
 	* configure: regenerate
 	* config/pathtls.m4: Fix typos

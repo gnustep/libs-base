@@ -673,11 +673,14 @@ failure:
  * Copies length bytes of data from the memory encapsulated by the receiver
  * into the specified buffer.  The buffer must be large enough to contain
  * length bytes of data ... if it isn't then a crash is likely to occur.<br />
- * Invokes -getBytes:range: with the range set to NSMakeRange(0, length)
+ * If length is greater than the size of the receiver, only the available
+ * bytes are copied.
  */
 - (void) getBytes: (void*)buffer length: (unsigned int)length
 {
-  [self getBytes: buffer range: NSMakeRange(0, length)];
+  NSUInteger	l = [self length];
+
+  [self getBytes: buffer range: NSMakeRange(0,  l < length ? l : length)];
 }
 
 /**
