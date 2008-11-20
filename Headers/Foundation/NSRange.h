@@ -56,8 +56,8 @@ extern "C" {
 /**
  * <example>
 {
-  unsigned int location;
-  unsigned int length;
+  NSUInteger location;
+  NSUInteger length;
 }</example>
  * <p>
  *   The NSRange type is used to specify ranges of locations,
@@ -83,8 +83,8 @@ extern "C" {
 typedef struct _NSRange NSRange;
 struct _NSRange
 {
-  unsigned int location;
-  unsigned int length;
+  NSUInteger location;
+  NSUInteger length;
 };
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -109,24 +109,24 @@ typedef NSRange *NSRangePointer;
 #define GS_RANGE_ATTR    __attribute__((unused))
 #endif
 
-GS_RANGE_SCOPE unsigned
+GS_RANGE_SCOPE NSUInteger
 NSMaxRange(NSRange range) GS_RANGE_ATTR;
 
 /** Returns top end of range (location + length). */
-GS_RANGE_SCOPE unsigned
+GS_RANGE_SCOPE NSUInteger
 NSMaxRange(NSRange range) 
 {
   return range.location + range.length;
 }
 
 GS_RANGE_SCOPE BOOL 
-NSLocationInRange(unsigned location, NSRange range) GS_RANGE_ATTR;
+NSLocationInRange(NSUInteger location, NSRange range) GS_RANGE_ATTR;
 
 /** Returns whether location is greater than or equal to range's location
  *  and less than its max.
  */
 GS_RANGE_SCOPE BOOL 
-NSLocationInRange(unsigned location, NSRange range) 
+NSLocationInRange(NSUInteger location, NSRange range) 
 {
   return (location >= range.location) && (location < NSMaxRange(range));
 }
@@ -142,14 +142,14 @@ GS_EXPORT void _NSRangeExceptionRaise (void);
    implementation of the base classes themselves. */
 
 GS_RANGE_SCOPE NSRange
-NSMakeRange(unsigned int location, unsigned int length) GS_RANGE_ATTR;
+NSMakeRange(NSUInteger location, NSUInteger length) GS_RANGE_ATTR;
 
 /** Creates new range starting at location and of given length. */
 GS_RANGE_SCOPE NSRange
-NSMakeRange(unsigned int location, unsigned int length)
+NSMakeRange(NSUInteger location, NSUInteger length)
 {
   NSRange range;
-  unsigned int end = location + length;
+  NSUInteger end = location + length;
 
   if (end < location || end < length)
     {

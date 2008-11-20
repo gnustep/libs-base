@@ -1,6 +1,7 @@
 2008-11-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Fix bug #24883
+	* Headers/Foundation/NSRange.h: Update to use NSUInteger
 
 2008-11-19  Richard Frith-Macdonald <rfm@gnu.org>
 
