@@ -173,6 +173,9 @@ ihandler(int sig)
 }
 @end
 
+@interface	NSConnection (Private)
+- (void) _enableKeepalive;
+@end
 
 @interface	GDNCNotification : NSObject
 {
@@ -605,7 +608,13 @@ ihandler(int sig)
 	   name: NSConnectionDidDieNotification
 	 object: newConn];
   [newConn setDelegate: self];
-  [newConn _enableKeepalive];
+  /* For ms-windoews we need to enable keepalive on the connection so that
+   * we will find out if the remote end goes away.
+   */
+  if ([newConn respondsToSelector: @selector(_enableKeepalive)])
+    {
+      [newConn _enableKeepalive];
+    }
   /*
    *	Create a new map table entry for this connection with a value that
    *	is a table (normally with a single entry) containing registered

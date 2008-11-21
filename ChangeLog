@@ -1,3 +1,12 @@
+2008-11-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSConnection.h: New ivars
+	* Source/NSConnection.m: Add diuagnostic information and implement
+	private mechanism for keepalive (for mswindows, where the NSMessagePort
+	implementation doesn;t know if the remote end has gone away until it
+	attempts to send to it).
+	* Tools/gdnc..m: Use private keepalive mechanism.
+
 2008-11-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Fix bug #24883
