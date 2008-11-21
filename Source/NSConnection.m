@@ -1975,8 +1975,8 @@ static void retEncoder (DOContext *ctxt)
 
   [self _sendOutRmc: ctxt.encoder type: METHOD_REQUEST];
   ctxt.encoder = nil;
-  NSDebugMLLog(@"NSConnection", @"Sent message (%s) to 0x%x",
-    GSNameFromSelector(sel), (uintptr_t)self);
+  NSDebugMLLog(@"NSConnection", @"Sent message (%s) RMX %d to 0x%x",
+    GSNameFromSelector(sel), ctxt.seq, (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2100,7 +2100,8 @@ static void retEncoder (DOContext *ctxt)
     }
 
   [self _sendOutRmc: op type: METHOD_REQUEST];
-  NSDebugMLLog(@"NSConnection", @"Sent message to 0x%x", (uintptr_t)self);
+  NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%x",
+    GSNameFromSelector([inv selector]), ctxt.seq, (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2569,9 +2570,10 @@ static void callEncoder (DOContext *ctxt)
       ctxt.type = forward_type;
 
       if (debug_connection > 1)
-	{
-	  NSLog(@"Handling message from %@", (uintptr_t)self);
-	}
+      NSLog(
+	@"Handling message (sig %s) RMC %d from %@",
+	ctxt.type, ctxt.seq, (uintptr_t)self);
+
       _reqInCount++;	/* Handling an incoming request. */
 
 #if defined(USE_LIBFFI)
