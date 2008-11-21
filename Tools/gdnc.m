@@ -608,7 +608,7 @@ ihandler(int sig)
 	   name: NSConnectionDidDieNotification
 	 object: newConn];
   [newConn setDelegate: self];
-  /* For ms-windoews we need to enable keepalive on the connection so that
+  /* For ms-windows we need to enable keepalive on the connection so that
    * we will find out if the remote end goes away.
    */
   if ([newConn respondsToSelector: @selector(_enableKeepalive)])
