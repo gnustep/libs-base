@@ -605,6 +605,7 @@ ihandler(int sig)
 	   name: NSConnectionDidDieNotification
 	 object: newConn];
   [newConn setDelegate: self];
+  [newConn _enableKeepalive];
   /*
    *	Create a new map table entry for this connection with a value that
    *	is a table (normally with a single entry) containing registered
