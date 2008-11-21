@@ -442,6 +442,14 @@ ihandler(int sig)
   conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];
   [conn setRootObject: self];
 
+  /* For ms-windows we need to enable keepalive on the connection so that
+   * we will find out if the remote end goes away.
+   */
+  if ([conn respondsToSelector: @selector(_enableKeepalive)])
+    {
+      [conn _enableKeepalive];
+    }
+
   if ([hostname length] == 0
     || [[NSHost hostWithName: hostname] isEqual: [NSHost currentHost]] == YES)
     {
@@ -608,13 +616,6 @@ ihandler(int sig)
 	   name: NSConnectionDidDieNotification
 	 object: newConn];
   [newConn setDelegate: self];
-  /* For ms-windows we need to enable keepalive on the connection so that
-   * we will find out if the remote end goes away.
-   */
-  if ([newConn respondsToSelector: @selector(_enableKeepalive)])
-    {
-      [newConn _enableKeepalive];
-    }
   /*
    *	Create a new map table entry for this connection with a value that
    *	is a table (normally with a single entry) containing registered

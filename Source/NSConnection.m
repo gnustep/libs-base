@@ -997,6 +997,10 @@ static NSLock	*cached_proxies_gate = nil;
 	{
 	  [self addRequestMode: [parent->_requestModes objectAtIndex: count]];
 	}
+      if (parent->_useKeepalive == YES)
+	{
+	  [self _enableKeepalive];
+	}
     }
   else
     {
@@ -1013,6 +1017,7 @@ static NSLock	*cached_proxies_gate = nil;
       _requestModes = [[NSMutableArray alloc] initWithCapacity: 2];
       [self addRequestMode: NSDefaultRunLoopMode];
       [self addRequestMode: NSConnectionReplyMode];
+      _useKeepalive = NO;
 
       /*
        * If we have no parent, we must handle incoming packets on our
@@ -2419,18 +2424,25 @@ static void retEncoder (DOContext *ctxt)
     }
 }
 
+/**
+ */
 - (void) _enableKeepalive
 {
-  if (_receivePort == _sendPort)
-    {
-      [NSException raise: NSGenericException format: @"Illegal operation"];
-    }
-  _useKeepalive = YES;
+  _useKeepalive = YES;	/* Set so that child connections will inherit. */
   _lastKeepalive = 0;
-  [self enableMultipleThreads];
-  [[NSNotificationCenter defaultCenter] addObserver: self
-    selector: @selector(_keepalive:)
-    name: @"GSHousekeeping" object: nil];
+  if (_receivePort != _sendPort)
+    {
+      /* If this is not a listening connection, we actually enable the
+       * keepalive timing (usng the regular housekeeping notifications)
+       * and must also enable multiple thread support as the keepalive
+       * notification may arrive in a different thread from the one we
+       * are running in.
+       */
+      [self enableMultipleThreads];
+      [[NSNotificationCenter defaultCenter] addObserver: self
+	selector: @selector(_keepalive:)
+	name: @"GSHousekeeping" object: nil];
+    }
 }
 
 static void callDecoder (DOContext *ctxt)
