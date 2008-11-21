@@ -1,3 +1,10 @@
+2008-11-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version: set to 1.15.4 for new release on unstable branch.
+	* Documentation/ReleaseNotes.gsdoc: Document the 1.15.4 release
+	Make new release on unstable branch to that it's keeping up with
+	the bugfixes in the stable branch.
+
 2008-11-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSConnection.h: New ivars
