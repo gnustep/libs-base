@@ -101,8 +101,8 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
   BOOL			_authenticateOut;
   BOOL			_multipleThreads;
   BOOL			_shuttingDown;
-  BOOL			_dummy1;
-  BOOL			_dummy2;
+  BOOL			_useKeepalive;
+  BOOL			_dummy;
   NSPort		*_receivePort;
   NSPort		*_sendPort;
   unsigned		_requestDepth;
@@ -132,6 +132,8 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
   NSMutableArray	*_cachedEncoders;
   NSString		*_registeredName;
   NSPortNameServer	*_nameServer;
+  int			_lastKeepalive;
+  void			*_reserved;		// For expansion
 }
 
 + (NSArray*) allConnections;
