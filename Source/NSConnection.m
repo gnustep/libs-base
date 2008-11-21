@@ -239,6 +239,7 @@ stringFromMsgType(int type)
 - (void) handlePortMessage: (NSPortMessage*)msg;
 - (void) _runInNewThread;
 + (void) setDebug: (int)val;
+- (void) _enableKeepalive;
 
 - (void) addLocalObject: (NSDistantObject*)anObj;
 - (void) removeLocalObject: (NSDistantObject*)anObj;
@@ -2328,6 +2329,13 @@ static void retEncoder (DOContext *ctxt)
 	  GSIMapNode	node;
 
 	  [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
+	  if (type == ROOTPROXY_REPLY && sequence == _lastKeepalive)
+	    {
+	      _lastKeepalive = 0;
+	      NSDebugMLLog(@"NSConnection", @"Handled keepalive %d on %@",
+		sequence, conn);
+	      [self _doneInRmc: rmc];
+	    }
 	  M_LOCK(conn->_queueGate);
 	  node = GSIMapNodeForKey(conn->_replyMap, (GSIMapKey)sequence);
 	  if (node == 0)
@@ -2385,6 +2393,42 @@ static void retEncoder (DOContext *ctxt)
 + (void) setDebug: (int)val
 {
   debug_connection = val;
+}
+
+- (void) _keepalive: (NSNotification*)n
+{
+  if ([self isValid])
+    {
+      if (_lastKeepalive == 0)
+	{
+	  NSPortCoder	*op;
+
+	  /* Send out a root proxy request to ping the other end.
+	   */
+	  op = [self _makeOutRmc: 0 generate: &_lastKeepalive reply: NO];
+	  [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
+	}
+      else
+	{
+	  /* keepalive timeout outstanding still.
+	   */
+	  [self invalidate];
+	}
+    }
+}
+
+- (void) _enableKeepalive
+{
+  if (_receivePort == _sendPort)
+    {
+      [NSException raise: NSGenericException format: @"Illegal operation"];
+    }
+  _useKeepalive = YES;
+  _lastKeepalive = 0;
+  [self enableMultipleThreads];
+  [[NSNotificationCenter defaultCenter] addObserver: self
+    selector: @selector(_keepalive:)
+    name: @"GSHousekeeping" object: nil];
 }
 
 static void callDecoder (DOContext *ctxt)
@@ -3063,7 +3107,6 @@ static void callEncoder (DOContext *ctxt)
   NSDate		*limit;
   BOOL			sent = NO;
   BOOL			raiseException = NO;
-  BOOL			needsReply = NO;
   NSMutableArray	*components = [c _components];
 
   if (_authenticateOut == YES
@@ -3084,7 +3127,6 @@ static void callEncoder (DOContext *ctxt)
   switch (msgid)
     {
       case PROXY_RETAIN:
-	needsReply = YES;
       case CONNECTION_SHUTDOWN:
       case METHOD_REPLY:
       case ROOTPROXY_REPLY:
@@ -3097,7 +3139,6 @@ static void callEncoder (DOContext *ctxt)
       case METHOD_REQUEST:
       case ROOTPROXY_REQUEST:
       case METHODTYPE_REQUEST:
-	needsReply = YES;
       default:
 	raiseException = YES;
 	break;
