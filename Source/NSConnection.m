@@ -2329,7 +2329,8 @@ static void retEncoder (DOContext *ctxt)
 	  GSIMapNode	node;
 
 	  [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
-	  if (type == ROOTPROXY_REPLY && sequence == _lastKeepalive)
+	  if (type == ROOTPROXY_REPLY
+	    && _lastKeepalive != 0 && sequence == _lastKeepalive)
 	    {
 	      _lastKeepalive = 0;
 	      NSDebugMLLog(@"NSConnection", @"Handled keepalive %d on %@",
