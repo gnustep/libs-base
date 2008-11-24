@@ -1,3 +1,8 @@
+2008-11-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* re-bump version to 1.17.0 for next release when we make a new
+	unstable branch.
+
 2008-11-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version: set to 1.15.4 for new release on unstable branch.
