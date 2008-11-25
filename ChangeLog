@@ -1,3 +1,9 @@
+2008-11-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/unicode/gsm0338.h: Add more mappings from unicode
+	characters representing accented letters to simple letters in the gsm
+	alphabet for lossy conversion.
+
 2008-11-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version 1.16.5
