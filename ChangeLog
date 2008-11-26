@@ -1,3 +1,10 @@
+2008-11-26 10:09-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h: Add
+	defines for earlier version of Mac OS X back to 10.0.
+	* Source/synchronization.m: Correct a problem found during testing.
+	* Testing/synctest/main.m: Updated test.
+
 2008-11-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: ([methodSignatureForSelector:]) Check that the

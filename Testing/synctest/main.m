@@ -9,14 +9,14 @@ static NSArray *array;
 @implementation SyncTest
 - (void) sayHello
 {
-  NSLog(@"Before the sync block %@",[NSThread currentThread]);
+  NSLog(@"Before the sync block %s\n",[[[NSThread currentThread] description] cString]);
   @synchronized(array) {
-    NSLog(@"In the sync block %@:%d",[NSThread currentThread],[NSThread isMainThread]);
-    NSLog(@"Waiting five seconds...");
+    NSLog(@"In the sync block %s:%d\n",[[[NSThread currentThread] description] cString], [NSThread isMainThread]);
+    NSLog(@"Waiting five seconds...\n");
     [NSThread sleepForTimeInterval: 5.0];
-    NSLog(@"Done waiting");
+    NSLog(@"Done waiting\n");
   }
-  NSLog(@"After the sync block %@",[NSThread currentThread]);
+  NSLog(@"After the sync block %s\n",[[[NSThread currentThread] description] cString]);
 }
 @end
 
