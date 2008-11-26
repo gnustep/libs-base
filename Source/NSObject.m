@@ -1599,6 +1599,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
+  const char		*selTypes;
   const char		*types;
   struct objc_method	*mth;
   Class			c;
@@ -1607,6 +1608,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
+  selTypes = sel_get_type(aSelector);
   c = (GSObjCIsInstance(self) ? GSObjCClass(self) : (Class)self);
   mth = GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
 
@@ -1662,6 +1664,13 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   if (types == 0)
     {
       return nil;
+    }
+  else if (selTypes != 0 && GSSelectorTypesMatch(selTypes, types) == NO)
+    {
+      [NSException raise: NSInternalInconsistencyException
+	format: @"[%@%c%@] selector types (%s) don't match method types (%s)",
+	NSStringFromClass(c), (GSObjCIsInstance(self) ? '-' : '+'),
+	NSStringFromSelector(aSelector), selTypes, types];
     }
   return [NSMethodSignature signatureWithObjCTypes: types];
 }
