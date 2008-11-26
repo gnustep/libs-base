@@ -167,6 +167,7 @@ objc_sync_enter(id obj)
   int status = 0;
 
   // lock access to the table until we're done....
+  sync_lock_init();
   objc_mutex_lock(table_lock);
 
   node = sync_find_node(obj);
@@ -207,6 +208,7 @@ objc_sync_exit(id obj)
   int status = 0;
 
   // lock access to the table until we're done....
+  sync_lock_init();
   objc_mutex_lock(table_lock);
 
   node = sync_find_node(obj);
