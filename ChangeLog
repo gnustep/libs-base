@@ -1,3 +1,9 @@
+2008-11-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: ([methodSignatureForSelector:]) Check that the
+	types of the selector (if known) and the types of the actual method
+	match.  Raise an NSInternalInconsistencyException if they don't.
+
 2008-11-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/unicode/gsm0338.h: Add more mappings from unicode
