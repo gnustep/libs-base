@@ -199,7 +199,7 @@ typedef enum {
 	      path = [path stringByAppendingPathComponent: @"gdomap"];
 	      if ([mgr isExecutableFileAtPath: path])
 		{
-		  launchCmd = path;
+		  launchCmd = [path copy];
 		  break;
 		}
 	    }
