@@ -1,5 +1,13 @@
 2008-11-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: check for native exceptions use.
+	* configure: regenerate
+	Disable the use of ffcall with native exceptions as the two are
+	incompatible (ffcall changes the stack so that throwing an exception
+	will crash the process).
+
+2008-11-27  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSDistributedNotificationCenter.m:
 	* Tools/gdnc.h:
 	* Tools/gdnc.m:

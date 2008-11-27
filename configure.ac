@@ -39,6 +39,13 @@ if test -z "$GNUSTEP_MAKEFILES"; then
   GNUSTEP_MAKEFILES=`gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5`
 fi
 
+exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
+if test -z "$exceptions"; then
+  exceptions=no
+else
+  exceptions=yes
+fi
+
 if test -z "$GNUSTEP_MAKEFILES"; then
   AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
 fi
@@ -1910,7 +1917,6 @@ case "$target_cpu" in
   sparc64*)
     case "$target_os" in
       solaris*)
-        do_broken_libffi=no;
         do_broken_libffcall=yes;
         do_enable_libffi=yes;
         do_enable_libffcall=no;;
@@ -1918,6 +1924,12 @@ case "$target_cpu" in
     esac ;;
   *) ;;
 esac
+
+if test "$exceptions" = "yes"; then
+  # ffcall will mess up native exceptions, so we must disable it.
+  do_broken_libffcall=yes
+  do_enable_libffcall=no
+fi
 
 AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
@@ -1951,8 +1963,16 @@ if test ${ffi_libdir} != "no"; then
 GS_ADD_LIBRARY_PATH([${ffi_libdir}])
 fi
 
-AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
-AC_CHECK_HEADERS(callback.h, have_ffcall=yes, have_ffcall=no)
+if test "$do_broken_ffi" = "no"; then
+  AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
+else
+  have_libffi=no
+fi
+if test "$do_broken_ffcall" = "no"; then
+  AC_CHECK_HEADERS(callback.h, have_ffcall=yes, have_ffcall=no)
+else
+  have_ffcall=no
+fi
 if test $have_ffcall = no; then
   enable_ffcall=no
   # If we don't have ffcall but do have libffi, use libffi
@@ -2041,7 +2061,9 @@ if test $ffi_ok = no; then
     echo "we recommend installing libffi instead."
   else
     echo "You do not have either ffcall or libffi installed, or configure needs"
-    echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them"
+    echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them,"
+    echo "or you have ffcall but gnustep-make is configured to use native exceptions"
+    echo "(native exceptions are not compatible with ffcall)."
   fi
   echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
   echo "invocations and DO."
