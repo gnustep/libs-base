@@ -824,6 +824,8 @@ ihandler(int sig)
 	      NS_HANDLER
 		{
 		  obs = nil;
+		  NSLog(@"Problem posting notification to client: %@",
+		    localException);
 		}
 	      NS_ENDHANDLER
 	      RELEASE(n);
