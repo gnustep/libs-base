@@ -1,3 +1,8 @@
+2008-11-27  Fred Kiefer <FredKiefer@gmx.de>
+
+	* configure.ac: Correct typing error in last change.
+	* configure: regenerate
+
 2008-11-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: check for native exceptions use.

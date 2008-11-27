@@ -1963,12 +1963,12 @@ if test ${ffi_libdir} != "no"; then
 GS_ADD_LIBRARY_PATH([${ffi_libdir}])
 fi
 
-if test "$do_broken_ffi" = "no"; then
+if test "$do_broken_libffi" = "no"; then
   AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
 else
   have_libffi=no
 fi
-if test "$do_broken_ffcall" = "no"; then
+if test "$do_broken_libffcall" = "no"; then
   AC_CHECK_HEADERS(callback.h, have_ffcall=yes, have_ffcall=no)
 else
   have_ffcall=no
