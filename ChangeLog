@@ -1,3 +1,23 @@
+2008-11-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/GNUmakefile:
+	* GNUmakefile:
+	* NSCharacterSets/GNUmakefile:
+	* NSTimeZones/GNUmakefile:
+	* Resources/GNUmakefile:
+	* Source/GNUmakefile:
+	* SSL/GNUmakefile:
+	* Tools/GNUmakefile:
+	Removed GNUSTEP_INSTALLATION_DOMAIN.
+	NB.  This means that gnustep-base will now install in the local domain
+	by default, and to get the old behavior you will need to do
+	'make GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install'
+	The rationale for this change is that the system domain is for
+	resources installed by the operating system packagers, but the
+	local domain is for add-ons you install yourself (to be used by
+	all users of the system), and you don't normally want to overwrite
+	the operating system supplied version by accident.
+
 2008-11-26 10:09-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Headers/Additions/GNUstepBase/GSVersionMacros.h: Add
