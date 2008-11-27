@@ -25,25 +25,26 @@
    $Date$ $Revision$
    */
 
-#include	"config.h"
-#include	"GNUstepBase/preface.h"
-#include	"Foundation/NSObject.h"
-#include	"Foundation/NSConnection.h"
-#include	"Foundation/NSDistantObject.h"
-#include	"Foundation/NSException.h"
-#include	"Foundation/NSArchiver.h"
-#include	"Foundation/NSNotification.h"
-#include	"Foundation/NSDate.h"
-#include	"Foundation/NSPathUtilities.h"
-#include	"Foundation/NSRunLoop.h"
-#include	"Foundation/NSTask.h"
-#include	"Foundation/NSDistributedNotificationCenter.h"
-#include	"Foundation/NSUserDefaults.h"
-#include	"Foundation/NSHost.h"
-#include	"Foundation/NSPortNameServer.h"
-#include	"Foundation/NSDebug.h"
-#include        "Foundation/NSThread.h"
-#include	"../Tools/gdnc.h"
+#import	"config.h"
+#import	"GNUstepBase/preface.h"
+#import	"Foundation/NSObject.h"
+#import	"Foundation/NSConnection.h"
+#import	"Foundation/NSDistantObject.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSArchiver.h"
+#import	"Foundation/NSNotification.h"
+#import	"Foundation/NSDate.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSRunLoop.h"
+#import	"Foundation/NSTask.h"
+#import	"Foundation/NSDistributedNotificationCenter.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSHost.h"
+#import	"Foundation/NSPortNameServer.h"
+#import	"Foundation/NSDebug.h"
+#import "Foundation/NSThread.h"
+#import	"../Tools/gdnc.h"
 
 
 @interface	NSDistributedNotificationCenter (Private)
@@ -694,11 +695,23 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  NSString	*cmd = nil;
 	  NSArray	*args = nil;
 	  NSDate	*limit;
+	  NSEnumerator	*enumerator;
+	  NSString	*path;
+	  NSFileManager	*mgr;
 
-	  cmd = [[NSSearchPathForDirectoriesInDomains(
-	    GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
-	    stringByAppendingPathComponent: @"gdnc"];
-
+	  mgr = [NSFileManager defaultManager];
+	  enumerator = [NSSearchPathForDirectoriesInDomains(
+	    GSToolsDirectory, NSAllDomainsMask, YES) objectEnumerator];
+	  while ((path = [enumerator nextObject]) != nil)
+	    {
+	      path = [path stringByAppendingPathComponent: @"gdnc"];
+	      if ([mgr isExecutableFileAtPath: path])
+		{
+		  cmd = path;
+		  break;
+		}
+	    }
+	
 	  NSDebugMLLog(@"NSDistributedNotificationCenter",
 @"\nI couldn't contact the notification server for %@ -\n"
 @"so I'm attempting to to start one - which will take a few seconds.\n"
