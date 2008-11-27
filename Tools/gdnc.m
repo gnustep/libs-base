@@ -39,6 +39,7 @@
 #define NSIG    32
 #endif
 
+static BOOL	debugging = NO;
 static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
 static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
 static char	ebuf[2048];
@@ -196,6 +197,11 @@ ihandler(int sig)
   RELEASE(object);
   RELEASE(info);
   [super dealloc];
+}
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"%@ Name:'%@' Object:'%@' Info:'%@'",
+    [super description], name, object, info];
 }
 + (GDNCNotification*) notificationWithName: (NSString*)notificationName
 				    object: (NSString*)notificationObject
@@ -524,6 +530,10 @@ ihandler(int sig)
   GDNCObserver	*obs;
   NSConnection	*connection;
 
+  if (debugging)
+    NSLog(@"Adding observer %lu for %@ %@",
+      anObserver, notificationName, anObject);
+
   connection = [(NSDistantObject*)client connectionForProxy];
   clients = (NSMapTable*)NSMapGet(connections, connection);
   if (clients == 0)
@@ -803,6 +813,8 @@ ihandler(int sig)
 	      NS_DURING
 		{
 		  [obs->queue removeObjectAtIndex: 0];
+  if (debugging)
+    NSLog(@"Posting to observer %lu with %@", obs->observer, n);
 		  [obs->client->client postNotificationName: n->name
 						     object: n->object
 						   userInfo: n->info
@@ -822,6 +834,11 @@ ihandler(int sig)
 
 - (void) removeObserver: (GDNCObserver*)observer
 {
+  if (debugging)
+    NSLog(@"Removing observer %lu for %@ %@",
+      observer->observer, observer->notificationName,
+      observer->notificationObject);
+
   if (observer->notificationObject)
     {
       NSMutableArray	*objList;
@@ -1048,7 +1065,6 @@ main(int argc, char** argv, char** env)
 {
   GDNCServer		*server;
   BOOL			subtask = YES;
-  BOOL			debugging = NO;
   NSProcessInfo		*pInfo;
   NSMutableArray	*args;
   CREATE_AUTORELEASE_POOL(pool);
