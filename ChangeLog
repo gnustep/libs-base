@@ -1,5 +1,12 @@
 2008-11-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDistributedNotificationCenter.m:
+	* Tools/gdnc.h:
+	* Tools/gdnc.m:
+	Use NSUInteger for the observer ID.
+
+2008-11-27  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Documentation/GNUmakefile:
 	* GNUmakefile:
 	* NSCharacterSets/GNUmakefile:
