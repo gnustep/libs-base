@@ -724,17 +724,31 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   _terminate();
 }
 
+static void
+callUncaughtHandler(id value)
+{
+  if (_NSUncaughtExceptionHandler != NULL)
+    {
+      (*_NSUncaughtExceptionHandler)(value);
+    }
+  _NSFoundationUncaughtExceptionHandler(value);
+}
+
 @implementation NSException
 
-#if	defined(STACKSYMBOLS)
 + (void) initialize
 {
+#if	defined(STACKSYMBOLS)
   if (modLock == nil)
     {
       modLock = [NSRecursiveLock new];
     }
-}
 #endif	/* STACKSYMBOLS */
+#if	defined(_NATIVE_OBJC_EXCEPTIONS) && defined(HAVE_UNEXPECTED)
+  objc_set_unexpected(callUncaughtHandler);
+#endif
+  return;
+}
 
 + (NSException*) exceptionWithName: (NSString*)name
 			    reason: (NSString*)reason
@@ -850,10 +864,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
       /*
        * Call the uncaught exception handler (if there is one).
        */
-      if (_NSUncaughtExceptionHandler != NULL)
-	{
-	  (*_NSUncaughtExceptionHandler)(self);
-	}
+      callUncaughtHandler(self);
 
       /*
        * The uncaught exception handler which is set has not

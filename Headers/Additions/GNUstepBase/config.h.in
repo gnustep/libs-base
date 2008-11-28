@@ -561,6 +561,9 @@
 /* Define to 1 if the system has the type `uintmax_t'. */
 #undef HAVE_UINTMAX_T
 
+/* Define if libobjc has the objc_set_unexpected() function */
+#undef HAVE_UNEXPECTED
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
