@@ -1,3 +1,13 @@
+2008-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.unexpected.m: Add check for objc_set_unexpected
+	* configure.ac: Use new check
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerate
+	* Source/GSSocketStream.m: Fix reliabce on expression evaluation order
+	* Source/NSException.m: Implement uncaught exception handler for
+	when native objc exceptions are enabled.
+
 2008-11-27  Fred Kiefer <FredKiefer@gmx.de>
 
 	* configure.ac: Correct typing error in last change.

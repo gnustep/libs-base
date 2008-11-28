@@ -1141,8 +1141,10 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
 			      while (i < rwant)
 			        {
-				  int	val = rbuffer[i++] * 256 + rbuffer[i++];
+				  int	val;
 
+				  val = rbuffer[i++];
+				  val = val * 256 + rbuffer[i++];
 				  if (i > 4)
 				    {
 				      buf[j++] = ':';

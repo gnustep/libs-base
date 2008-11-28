@@ -1925,10 +1925,32 @@ case "$target_cpu" in
   *) ;;
 esac
 
+have_unexpected=yes
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
+AC_MSG_CHECKING(for objc_set_unexpected() in runtime)
+AC_COMPILE_IFELSE([#include "$srcdir/config/config.unexpected.m"],
+	have_unexpected=yes, have_unexpected=no)
+if test $have_unexpected = yes; then
+  AC_DEFINE(HAVE_UNEXPECTED,1,
+	    [Define if libobjc has the objc_set_unexpected() function])
+fi
+AC_MSG_RESULT($have_unexpected)
+CPPFLAGS="$saved_CPPFLAGS"
+
 if test "$exceptions" = "yes"; then
   # ffcall will mess up native exceptions, so we must disable it.
   do_broken_libffcall=yes
   do_enable_libffcall=no
+
+  if test "$have_unexpected" = "no"; then
+    echo
+    echo "Your gnustep-make is configured to use native objc exceptions, but"
+    echo "the objc runtime does not appear to support setting an uncaught"
+    echo "exception handler.  This means that any uncaught exception will"
+    echo "cause a program to abort immediately."
+    echo "Consider reconfiguring gnustep-make or updating libobjc to fix this."
+  fi
 fi
 
 AC_ARG_ENABLE(libffi,
