@@ -312,7 +312,7 @@ GSSelectorFromName(const char *name)
     }
   else
     {
-      return sel_get_any_uid(name);
+      return sel_get_uid(name);
     }
 }
 

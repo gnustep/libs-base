@@ -32,6 +32,20 @@
 #import "GSPrivate.h"
 #import "GSURLPrivate.h"
 
+#if	defined(HAVE_ZLIB_H)
+#include	<zlib.h>
+
+static void*
+zalloc(void *opaque, size_t size)
+{
+  return objc_malloc(size);
+}
+static void
+zfree(void *opaque, void *mem)
+{
+  objc_free(mem);
+}
+#endif
 
 @interface _NSAboutURLProtocol : NSURLProtocol
 @end
@@ -74,6 +88,12 @@ typedef struct {
   NSCachedURLResponse		*cachedResponse;
   id <NSURLProtocolClient>	client;		// Not retained
   NSURLRequest			*request;
+#if	defined(HAVE_ZLIB_H)
+  z_stream			z;		// context for decompress
+  BOOL				compressing;	// are we compressing?
+  BOOL				decompressing;	// are we decompressing?
+  NSData			*compressed;	// only partially decompressed
+#endif
 } Internal;
  
 typedef struct {
@@ -181,6 +201,17 @@ static NSURLProtocol	*placeholder = nil;
       RELEASE(this->output);
       RELEASE(this->cachedResponse);
       RELEASE(this->request);
+#if	defined(HAVE_ZLIB_H)
+      if (this->compressing == YES)
+	{
+	  deflateEnd(&this->z);
+	}
+      else if (this->decompressing == YES)
+	{
+	  inflateEnd(&this->z);
+	}
+      RELEASE(this->compressed);
+#endif
       NSZoneFree([self zone], this);
       _NSURLProtocolInternal = 0;
     }
@@ -515,6 +546,10 @@ static NSURLProtocol	*placeholder = nil;
     }
 }
 
+- (void) _didLoad: (NSData*)d
+{
+  [this->client URLProtocol: self didLoadData: d];
+}
 
 - (void) _got: (NSStream*)stream
 {
@@ -695,6 +730,20 @@ static NSURLProtocol	*placeholder = nil;
 		     didReceiveResponse: _response
 		     cacheStoragePolicy: policy];
 	    }
+	  
+#if	defined(HAVE_ZLIB_H)
+	  s = [[document headerNamed: @"content-encoding"] value];
+	  if ([s isEqualToString: @"gzip"] || [s isEqualToString: @"x-gzip"])
+	    {
+	      this->decompressing = YES;
+	      this->z.opaque = 0;
+	      this->z.zalloc = zalloc;
+	      this->z.zfree = zfree;
+	      this->z.next_in = 0;
+	      this->z.avail_in = 0;
+	      inflateInit2(&this->z, 1);	// FIXME
+	    }
+#endif
 	}
 
       if (_complete == YES)
@@ -884,7 +933,7 @@ static NSURLProtocol	*placeholder = nil;
 			NSMakeRange(_parseOffset, bodyLength - _parseOffset)];
 		    }
 		  _parseOffset = bodyLength;
-		  [this->client URLProtocol: self didLoadData: d];
+		  [self _didLoad: d];
 		}
 
 	      /* Check again in case the client cancelled the load inside
@@ -914,7 +963,7 @@ static NSURLProtocol	*placeholder = nil;
 			NSMakeRange(_parseOffset, [d length] - _parseOffset)];
 		    }
 		  _parseOffset = bodyLength;
-		  [this->client URLProtocol: self didLoadData: d];
+		  [self _didLoad: d];
 		}
 	    }
 	}

@@ -314,7 +314,7 @@ con_messages (id prx)
   printf("  ok\n");
 
   printf("performSelector:\n");
-  if (prx != [prx performSelector:sel_get_any_uid("self")])
+  if (prx != [prx performSelector: GSSelectorFromName("self")])
     printf("  ERROR\n");
   else
     printf("  ok\n");

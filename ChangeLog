@@ -1,3 +1,12 @@
+2008-12-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueCoding.m:
+	* Source/NSURLProtocol.m:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	* Testing/nsconnection_client.m:
+	When working with abstract selectors, try to use untyped ones so that
+	we don't confuse checks we put into the method signature code.
+
 2008-11-30  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* install.sh: Fix header syntax and provide default for make
