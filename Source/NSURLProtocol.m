@@ -79,15 +79,17 @@ zfree(void *opaque, void *mem)
 
 @implementation	GSSocketStreamPair
 
-static NSMutableDictionary	*pairByHost = nil;
-static NSLock			*pairLock = nil;
-static unsigned			pairsCached = 0;
+static NSMutableArray	*pairCache = nil;
+static NSLock		*pairLock = nil;
 
 + (void) initialize
 {
-  if (pairByHost == nil)
+  if (pairCache == nil)
     {
-      pairByHost = [NSMutableDictionary new];
+      /* No use trying to use a dictionary ... NSHost objects all hash
+       * to the same value.
+       */
+      pairCache = [NSMutableArray new];
       pairLock = [NSLock new];
       /*  Purge expired pairs at intervals.
        */
@@ -100,29 +102,17 @@ static unsigned			pairsCached = 0;
 + (void) purge: (NSNotification*)n
 {
   NSDate	*now = [NSDate date];
-  NSEnumerator	*enumerator;
-  NSHost	*key;
+  unsigned	count;
 
   [pairLock lock];
-  enumerator = [[pairByHost allKeys] objectEnumerator];
-  while ((key = [enumerator nextObject]) != nil)
+  count = [pairCache count];
+  while (count-- > 0)
     {
-      NSMutableArray	*items = [pairByHost objectForKey: key];
-      unsigned		count = [items count];
+      GSSocketStreamPair	*p = [pairCache objectAtIndex: count];
 
-      while (count-- > 0)
+      if ([[p expires] timeIntervalSinceDate: now] <= 0.0)
 	{
-	  GSSocketStreamPair	*p = [items objectAtIndex: count];
-
-	  if ([[p expires] timeIntervalSinceDate: now] <= 0.0)
-	    {
-	      [items removeObjectAtIndex: count];
-	      pairsCached--;
-	    }
-        }
-      if ([items count] == 0)
-	{
-	  [pairByHost removeObjectForKey: key];
+	  [pairCache removeObjectAtIndex: count];
 	}
     }
   [pairLock unlock];
@@ -130,19 +120,9 @@ static unsigned			pairsCached = 0;
 
 - (void) cache: (NSDate*)when
 {
-  NSMutableArray	*items;
-
   ASSIGN(expires, when);
   [pairLock lock];
-  items = [pairByHost objectForKey: host];
-  if (items == nil)
-    {
-      items = [NSMutableArray new];
-      [pairByHost setObject: items forKey: host];
-      [items release];
-    }
-  [items addObject: self];
-  pairsCached++;
+  [pairCache addObject: self];
   [pairLock unlock];
 }
 
@@ -168,34 +148,27 @@ static unsigned			pairsCached = 0;
 
 - (id) initWithHost: (NSHost*)h port: (uint16_t)p forSSL: (BOOL)s;
 {
-  NSMutableArray	*items;
   unsigned		count;
-  unsigned		index;
   NSDate		*now;
 
   now = [NSDate date];
   [pairLock lock];
-  items = [pairByHost objectForKey: h];
-  count = [items count];
-  for (index = 0; index < count; index++)
+  count = [pairCache count];
+  while (count-- > 0)
     {
-      GSSocketStreamPair	*pair = [items objectAtIndex: count];
+      GSSocketStreamPair	*pair = [pairCache objectAtIndex: count];
 
       if ([pair->expires timeIntervalSinceDate: now] <= 0.0)
 	{
-	  [items removeObjectAtIndex: index];
-	  pairsCached--;
-	  index--;
-	  count--;
+	  [pairCache removeObjectAtIndex: count];
 	}
-      else if (pair->port == p && pair->ssl == s)
+      else if (pair->port == p && pair->ssl == s && [pair->host isEqual: h])
 	{
 	  /* Found a match ... remove from cache and return as self.
 	   */
 	  [self release];
 	  self = [pair retain];
-	  [items removeObjectAtIndex: index];
-	  pairsCached--;
+	  [pairCache removeObjectAtIndex: count];
 	  [pairLock unlock];
 	  return self;
 	}

@@ -1307,9 +1307,15 @@ static  retval_t apply_block(void* data)
 #endif
 static  retval_t apply_char(char data)
     {
+      return 0;
+    }
+/*
+static  retval_t apply_char(char data)
+    {
       void* args = __builtin_apply_args();
       return __builtin_apply((apply_t)return_char, args, sizeof(void*));
     }
+*/
 static  retval_t apply_float(float data)
     {
       void* args = __builtin_apply_args();
