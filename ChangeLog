@@ -1,3 +1,9 @@
+2008-12-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m:
+	Add class for caching pairs of socket streams so we can eventually
+	implement connection keepalive.
+	
 2008-12-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueCoding.m:
