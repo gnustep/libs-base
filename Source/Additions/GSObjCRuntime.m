@@ -686,6 +686,8 @@ extern void class_add_method_list(Class, MethodList_t);
 
 static Method_t search_for_method_in_class (Class cls, SEL op);
 
+extern objc_mutex_t __objc_runtime_mutex;
+
 void
 GSObjCAddMethods (Class cls, GSMethodList methods)
 {
@@ -696,6 +698,8 @@ GSObjCAddMethods (Class cls, GSMethodList methods)
     {
       initialize_sel = sel_register_name ("initialize");
     }
+
+  objc_mutex_lock (__objc_runtime_mutex);
 
   /* Add methods to class->dtable and class->methods */
   for (mlist = methods; mlist; mlist = mlist->method_next)
@@ -754,12 +758,18 @@ GSObjCAddMethods (Class cls, GSMethodList methods)
 	  OBJC_FREE(new_list);
 	}
     }
+  objc_mutex_unlock (__objc_runtime_mutex);
 }
 
 static Method_t
 search_for_method_in_class (Class cls, SEL op)
 {
-  return cls != NULL ? search_for_method_in_list(cls->methods, op) : NULL;
+  Method_t	m;
+
+  objc_mutex_lock (__objc_runtime_mutex);
+  m = cls != NULL ? search_for_method_in_list(cls->methods, op) : NULL;
+  objc_mutex_unlock (__objc_runtime_mutex);
+  return m;
 }
 
 #endif /* NeXT runtime */
