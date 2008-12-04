@@ -527,7 +527,10 @@ static unsigned	urlAlign;
  * Initialise by building a URL string from the supplied parameters
  * and calling -initWithString:relativeToURL:<br />
  * This method adds percent escapes to aPath if it contains characters
- * which need ascaping.
+ * which need ascaping.<br />
+ * Accepts RFC2732 style IPv6 host addresses either with or without the
+ * enclosing square brackets (MacOS-X at least up to version 10.5 does
+ * not handle these correctly, but GNUstep does).<br />
  */
 - (id) initWithScheme: (NSString*)aScheme
 		 host: (NSString*)aHost
@@ -631,6 +634,7 @@ static unsigned	urlAlign;
 /** <init />
  * Initialised using aUrlString and aBaseUrl.  The value of aBaseUrl
  * may be nil, but aUrlString must be non-nil.<br />
+ * Accepts RFC2732 style IPv6 host addresses.<br />
  * If the string cannot be parsed the method returns nil.
  */
 - (id) initWithString: (NSString*)aUrlString
@@ -1210,6 +1214,8 @@ static unsigned	urlAlign;
  * host supplied in the URL.<br />
  * Percent escape sequences in the user string are translated and the string
  * treated as UTF8.<br />
+ * Returns IPv6 addresses <em>without</em> the enclosing square brackets
+ * required (by RFC2732) in URL strings.
  */
 - (NSString*) host
 {
