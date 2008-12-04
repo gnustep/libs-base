@@ -77,10 +77,9 @@ static Class NSMutableSet_concrete_class;
 {
   if (self == [NSSet class])
     {
-      NSSet_abstract_class = [NSSet class];
-      NSMutableSet_abstract_class = [NSMutableSet class];
+      NSSet_abstract_class = self;
       NSSet_concrete_class = [GSSet class];
-      NSMutableSet_concrete_class = [GSMutableSet class];
+      [NSMutableSet class];
     }
 }
 
@@ -915,6 +914,8 @@ static Class NSMutableSet_concrete_class;
 {
   if (self == [NSMutableSet class])
     {
+      NSMutableSet_abstract_class = self;
+      NSMutableSet_concrete_class = [GSMutableSet class];
     }
 }
 

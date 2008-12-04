@@ -1,5 +1,14 @@
 2008-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSObjCRuntime.m: Fix minor thread-safety issue
+	with behaviors ... lock the runtime while modifying method lists.
+	* Source/NSDictionary.m: Fix initialisation order so that if two
+	threads are initialising the cached class info should always be
+	set up in the correct order.
+	* Source/NSSet.m: ditto.
+
+2008-12-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURL.m: Implement ipv6 addresses as per RFC2732
 	Fixes #25003
 
