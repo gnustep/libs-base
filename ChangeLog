@@ -10,6 +10,8 @@
 
 	* Source/NSBundle.m: ([bundleForLibrary:version:]) extract version
 	from end of library name if possible.
+	([_addFrameworkFromClass:]) find the framework directory from path to
+	the dll on windows.
 
 2008-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 

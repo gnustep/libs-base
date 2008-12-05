@@ -595,8 +595,22 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
+#if defined(__MINGW32__)
+	  /* On windows, the library (dll) is in the Tools area rather than
+	   * in the framework, so we can adjust the path here.
+	   */
+	  if ([[bundlePath lastPathComponent] isEqual: @"Tools"])
+	    {
+	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
+	      bundlePath
+		= [bundlePath stringByAppendingPathComponent: @"Library"];
+	      bundlePath
+		= [bundlePath stringByAppendingPathComponent: @"Frameworks"];
+	      bundlePath = [bundlePath stringByAppendingPathComponent:
+		[NSString stringWithFormat: @"%@%@", name, @".framework"]];
+	    }
+#else
 	  /* There are no Versions on MinGW.  Skip the Versions check here.  */
-#if !defined(__MINGW32__)
 	  /* version name */
 	  bundlePath = [bundlePath stringByDeletingLastPathComponent];
 
