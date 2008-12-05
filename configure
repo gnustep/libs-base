@@ -913,6 +913,13 @@ Optional Packages:
 				is found at runtime.  If this is not specified
 				then the path from --with-config-file or from
 				the gnustep-make package is used.
+  --with-installation-domain=DOMAIN   (Mingw32-only option) Specify the domain (SYSTEM, LOCAL, NETWORK
+                                    or USER) into which gnustep-base will be installed.  This is
+                                    necessary on Microsoft Windows (mingw) because relative paths
+                                    are hardcoded into gnustep-base.  If this is not specified, LOCAL
+                                    is used.  Please make sure this matches the DOMAIN where
+                                    you will be installing gnustep-base to prevent problems
+                                    with finding resources at runtime.
   --with-include-flags=FLAGS    Specify all include flags at once
   --with-library-flags=FLAGS    Specify all library flags at once
   --with-ffi-include=PATH       Include path for ffi (ffcall/libffi) headers
@@ -1798,7 +1805,39 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 #
 case "$target_os" in
   mingw*)
-    GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS"
+    echo "$as_me:$LINENO: checking for GNUstep-base installation domain" >&5
+echo $ECHO_N "checking for GNUstep-base installation domain... $ECHO_C" >&6
+
+# Check whether --with-installation-domain or --without-installation-domain was given.
+if test "${with_installation_domain+set}" = set; then
+  withval="$with_installation_domain"
+  result="$withval"
+else
+  result="no"
+
+fi;
+  case "$result" in
+   SYSTEM)
+     echo "$as_me:$LINENO: result: SYSTEM" >&5
+echo "${ECHO_T}SYSTEM" >&6
+     GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
+   LOCAL)
+     echo "$as_me:$LINENO: result: LOCAL" >&5
+echo "${ECHO_T}LOCAL" >&6
+     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+   NETWORK)
+     echo "$as_me:$LINENO: result: NETWORK" >&5
+echo "${ECHO_T}NETWORK" >&6
+     GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
+   USER)
+     echo "$as_me:$LINENO: result: USER" >&5
+echo "${ECHO_T}USER" >&6
+     GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
+   *)
+     echo "$as_me:$LINENO: result: none specified => using LOCAL" >&5
+echo "${ECHO_T}none specified => using LOCAL" >&6
+     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+   esac
 
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,

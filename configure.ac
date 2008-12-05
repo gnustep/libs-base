@@ -360,7 +360,35 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 #
 case "$target_os" in
   mingw*)
-    GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS"
+    AC_MSG_CHECKING([for GNUstep-base installation domain])
+    AC_ARG_WITH(installation-domain,
+    [  --with-installation-domain=DOMAIN   (Mingw32-only option) Specify the domain (SYSTEM, LOCAL, NETWORK 
+                                    or USER) into which gnustep-base will be installed.  This is
+                                    necessary on Microsoft Windows (mingw) because relative paths 
+                                    are hardcoded into gnustep-base.  If this is not specified, LOCAL
+                                    is used.  Please make sure this matches the DOMAIN where
+                                    you will be installing gnustep-base to prevent problems
+                                    with finding resources at runtime.],
+    result="$withval",
+    result="no"
+  )
+  case "$result" in
+   SYSTEM)
+     AC_MSG_RESULT([SYSTEM])
+     GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
+   LOCAL)
+     AC_MSG_RESULT([LOCAL])
+     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+   NETWORK)
+     AC_MSG_RESULT([NETWORK])
+     GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
+   USER)
+     AC_MSG_RESULT([USER])
+     GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
+   *)
+     AC_MSG_RESULT([none specified => using LOCAL])
+     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;     
+   esac
 
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
