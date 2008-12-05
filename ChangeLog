@@ -1,3 +1,8 @@
+2008-12-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ([bundleForLibrary:version:]) extract version
+	from end of library name if possible.
+
 2008-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m: Fix minor thread-safety issue
