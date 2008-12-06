@@ -46,6 +46,7 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSPortNameServer.h"
 #import "Foundation/NSDebug.h"
+#import "GNUstepBase/GSCategories.h"
 
 #import "GSPortPrivate.h"
 
@@ -187,22 +188,7 @@ typedef enum {
       [self close];
       if (launchCmd == nil)
 	{
-	  NSEnumerator	*enumerator;
-	  NSString	*path;
-	  NSFileManager	*mgr;
-
-	  mgr = [NSFileManager defaultManager];
-	  enumerator = [NSSearchPathForDirectoriesInDomains(
-	    GSToolsDirectory, NSAllDomainsMask, YES) objectEnumerator];
-	  while ((path = [enumerator nextObject]) != nil)
-	    {
-	      path = [path stringByAppendingPathComponent: @"gdomap"];
-	      if ([mgr isExecutableFileAtPath: path])
-		{
-		  launchCmd = [path copy];
-		  break;
-		}
-	    }
+	  launchCmd = [NSTask launchPathForTool: @"gdomap"];
 	}
       if (state == GSPC_LOPEN && launchCmd != nil)
 	{
