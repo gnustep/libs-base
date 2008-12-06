@@ -30,6 +30,8 @@
 #define	INCLUDED_GS_CATEGORIES_H
 #include "GNUstepBase/GSVersionMacros.h"
 
+#include <Foundation/Foundation.h>
+
 /* The following ifndef prevents the categories declared in this file being
  * seen in GNUstep code.  This is necessary because those category
  * declarations are also present in the header files for the corresponding
@@ -40,7 +42,6 @@
 #ifndef GNUSTEP
 
 #include <string.h>
-#include <Foundation/Foundation.h>
 
 #ifdef NeXT_Foundation_LIBRARY
 #include <CoreFoundation/CFString.h>
@@ -332,15 +333,6 @@ typedef enum _NSGNUstepStringEncoding
 - (void) gcFinalize;
 @end
 
-@interface	NSTask (GSCategories)
-/** Returns the launch path given the name of a tool.<br />
- * Locates the tool by looking in the standard directories,
- * and failing that in the PATH set in the environment.<br />
- * Returns the path found, or nil if the tool could not be located.
- */
-+ (NSString*) launchPathForTool: (NSString*)name;
-@end
-
 /* ------------------------------------------------------------------------
  * Functions
  */
@@ -375,6 +367,15 @@ GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file,
 #endif
 
 #endif	/* GNUSTEP */
+
+@interface	NSTask (GSCategories)
+/** Returns the launch path given the name of a tool.<br />
+ * Locates the tool by looking in the standard directories,
+ * and failing that in the PATH set in the environment.<br />
+ * Returns the path found, or nil if the tool could not be located.
+ */
++ (NSString*) launchPathForTool: (NSString*)name;
+@end
 
 #endif	/* INCLUDED_GS_CATEGORIES_H */
 
