@@ -54,6 +54,10 @@
 #include "GNUstepBase/GSXML.h"
 #include <Foundation/Foundation.h>
 
+/* Avoid problems on systems where the xml headers use 'id'
+ */
+#define	id	GSXMLID
+
 /* libxml headers */
 #include <libxml/tree.h>
 #include <libxml/entities.h>
@@ -78,6 +82,9 @@
 #include <libxslt/transform.h>
 #include <libxslt/xsltutils.h>
 #endif /* HAVE_LIBXSLT */
+
+#undef	id
+
 
 /*
  * optimization
