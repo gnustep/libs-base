@@ -44,6 +44,7 @@
 #import	"Foundation/NSPortNameServer.h"
 #import	"Foundation/NSDebug.h"
 #import "Foundation/NSThread.h"
+#import	"GNUstepBase/GSCategories.h"
 #import	"../Tools/gdnc.h"
 
 
@@ -695,22 +696,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  NSString	*cmd = nil;
 	  NSArray	*args = nil;
 	  NSDate	*limit;
-	  NSEnumerator	*enumerator;
-	  NSString	*path;
-	  NSFileManager	*mgr;
 
-	  mgr = [NSFileManager defaultManager];
-	  enumerator = [NSSearchPathForDirectoriesInDomains(
-	    GSToolsDirectory, NSAllDomainsMask, YES) objectEnumerator];
-	  while ((path = [enumerator nextObject]) != nil)
-	    {
-	      path = [path stringByAppendingPathComponent: @"gdnc"];
-	      if ([mgr isExecutableFileAtPath: path])
-		{
-		  cmd = path;
-		  break;
-		}
-	    }
+	  cmd = [NSTask launchPathForTool: @"gdnc"];
 	
 	  NSDebugMLLog(@"NSDistributedNotificationCenter",
 @"\nI couldn't contact the notification server for %@ -\n"
