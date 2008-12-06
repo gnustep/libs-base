@@ -2327,7 +2327,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  libraryName = [libraryName substringToIndex: r.location];
 	  if (interfaceVersion == nil)
 	    {
-	      ver = interfaceVersion;
+	      interfaceVersion = ver;
 	    }
 	}
     }

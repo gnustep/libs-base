@@ -370,7 +370,7 @@ case "$target_os" in
                                     you will be installing gnustep-base to prevent problems
                                     with finding resources at runtime.],
     result="$withval",
-    result="no"
+    result="$GNUSTEP_INSTALLATION_DOMAIN"
   )
   case "$result" in
    SYSTEM)
