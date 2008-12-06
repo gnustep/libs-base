@@ -2350,7 +2350,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 #endif
 
-  while ([[libraryName pathExtension] length] > 0);
+  while ([[libraryName pathExtension] length] > 0)
     {
       libraryName = [libraryName stringByDeletingPathExtension];
     }

@@ -1,3 +1,8 @@
+2008-12-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSBundle.m (+bundleForLibrary:version:): Fix infinite
+	loop in code dropping the extension from the library name.
+
 2008-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: 
