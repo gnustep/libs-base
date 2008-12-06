@@ -332,6 +332,14 @@ typedef enum _NSGNUstepStringEncoding
 - (void) gcFinalize;
 @end
 
+@implementation	NSTask (GSCategories)
+/** Sets the launch path given the name of a tool.<br />
+ * Locates the tool by looking in the standard directories,
+ * and failing that in the PATH set in the environment.<br />
+ * Returns the path set, or nil if the tool could not be located.
+ */
+- (NSString*) setLaunchPathForTool: (NSString*)name;
+@end
 
 /* ------------------------------------------------------------------------
  * Functions
