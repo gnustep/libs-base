@@ -1,8 +1,8 @@
 2008-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/Additions/GSCategories.m: ([setLaunchPathForTool:])
+	* Source/Additions/GSCategories.m: ([+launchPathForTool:])
 	Convenience method to locate a tool in the standard locations or in the
-	PATH and set it as the launch path of a task.
+	PATH so that it can be used as the launch path of a task.
 
 2008-12-05  Nicola Pero <nicola.pero@meta-innovation.com>
 

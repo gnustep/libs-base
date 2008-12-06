@@ -1545,7 +1545,7 @@ executablePath(NSFileManager *mgr, NSString *path)
   return nil;
 }
 
-- (NSString*) setLaunchPathForTool: (NSString*)name
++ (NSString*) launchPathForTool: (NSString*)name
 {
   NSEnumerator	*enumerator;
   NSDictionary	*env;
@@ -1563,7 +1563,6 @@ executablePath(NSFileManager *mgr, NSString *path)
       path = [path stringByAppendingPathComponent: name];
       if ((path = executablePath(mgr, path)) != nil)
 	{
-	  [self setLaunchPath: path];
 	  return path;
 	}
     }
@@ -1574,7 +1573,6 @@ executablePath(NSFileManager *mgr, NSString *path)
       path = [path stringByAppendingPathComponent: name];
       if ((path = executablePath(mgr, path)) != nil)
 	{
-	  [self setLaunchPath: path];
 	  return path;
 	}
     }
@@ -1597,7 +1595,6 @@ executablePath(NSFileManager *mgr, NSString *path)
       path = [path stringByAppendingPathComponent: name];
       if ((path = executablePath(mgr, path)) != nil)
 	{
-	  [self setLaunchPath: path];
 	  return path;
 	}
     }
