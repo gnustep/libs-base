@@ -1,5 +1,11 @@
 2008-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSXML.m: 
+	Hack to avoid issues on systems where the xml headers use the reserved
+	word 'id'.
+
+2008-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSCategories.m: ([+launchPathForTool:])
 	Convenience method to locate a tool in the standard locations or in the
 	PATH so that it can be used as the launch path of a task.
