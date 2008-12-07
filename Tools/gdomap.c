@@ -1680,6 +1680,21 @@ init_ports()
       sprintf(ebuf, "Opened UDP socket %d", udp_desc);
       gdomap_log(LOG_DEBUG);
     }
+#if	defined(__MINGW32__)
+  r = 1;
+  if ((setsockopt(udp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
+    {
+      sprintf(ebuf, "Unable to set 're-use' on UDP socket");
+      gdomap_log(LOG_WARNING);
+    }
+  r = 1;
+  if ((setsockopt
+    (udp_desc,SOL_SOCKET,SO_EXCLUSIVEADDRUSE,(char*)&r,sizeof(r)))<0)
+    {
+      sprintf(ebuf, "Unable to set 'exclusive-use' on UDP socket");
+      gdomap_log(LOG_WARNING);
+    }
+#endif
 #ifndef BROKEN_SO_REUSEADDR
   /*
    * Under decent systems, SO_REUSEADDR means that the port can be reused
@@ -1773,6 +1788,21 @@ init_ports()
       sprintf(ebuf, "Opened TDP socket %d", tcp_desc);
       gdomap_log(LOG_DEBUG);
     }
+#if	defined(__MINGW32__)
+  r = 1;
+  if ((setsockopt(tcp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
+    {
+      sprintf(ebuf, "Unable to set 're-use' on TCP socket");
+      gdomap_log(LOG_WARNING);
+    }
+  r = 1;
+  if ((setsockopt
+    (tcp_desc,SOL_SOCKET,SO_EXCLUSIVEADDRUSE,(char*)&r,sizeof(r)))<0)
+    {
+      sprintf(ebuf, "Unable to set 'exclusive-use' on TCP socket");
+      gdomap_log(LOG_WARNING);
+    }
+#endif
 #ifndef BROKEN_SO_REUSEADDR
   /*
    * Under decent systems, SO_REUSEADDR means that the port can be reused
