@@ -41,12 +41,12 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSTask.h"
+#import "GNUstepBase/NSTask+GS.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSPortNameServer.h"
 #import "Foundation/NSDebug.h"
-#import "GNUstepBase/GSCategories.h"
 
 #import "GSPortPrivate.h"
 
