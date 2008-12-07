@@ -2335,13 +2335,14 @@ static void retEncoder (DOContext *ctxt)
 	  GSIMapNode	node;
 
 	  [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
-	  if (type == ROOTPROXY_REPLY
-	    && _lastKeepalive != 0 && sequence == _lastKeepalive)
+	  if (type == ROOTPROXY_REPLY && conn->_keepaliveWait == YES
+	    && sequence == conn->_lastKeepalive)
 	    {
-	      _lastKeepalive = 0;
+	      conn->_keepaliveWait = NO;
 	      NSDebugMLLog(@"NSConnection", @"Handled keepalive %d on %@",
 		sequence, conn);
 	      [self _doneInRmc: rmc];
+	      break;
 	    }
 	  M_LOCK(conn->_queueGate);
 	  node = GSIMapNodeForKey(conn->_replyMap, (GSIMapKey)sequence);
@@ -2406,13 +2407,14 @@ static void retEncoder (DOContext *ctxt)
 {
   if ([self isValid])
     {
-      if (_lastKeepalive == 0)
+      if (_keepaliveWait == NO)
 	{
 	  NSPortCoder	*op;
 
 	  /* Send out a root proxy request to ping the other end.
 	   */
 	  op = [self _makeOutRmc: 0 generate: &_lastKeepalive reply: NO];
+	  _keepaliveWait = YES;
 	  [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
 	}
       else
@@ -2429,7 +2431,7 @@ static void retEncoder (DOContext *ctxt)
 - (void) _enableKeepalive
 {
   _useKeepalive = YES;	/* Set so that child connections will inherit. */
-  _lastKeepalive = 0;
+  _keepaliveWait = NO;
   if (_receivePort != _sendPort)
     {
       /* If this is not a listening connection, we actually enable the
@@ -3114,6 +3116,8 @@ static void callEncoder (DOContext *ctxt)
 			    sendPort: _sendPort
 			  components: nil];
   [coder encodeValueOfObjCType: @encode(int) at: &sno];
+  NSDebugMLLog(@"NSConnection", 
+    @"Make out RMC %u on %@", sno, self);
   return coder;
 }
 
@@ -3159,8 +3163,8 @@ static void callEncoder (DOContext *ctxt)
 	break;
     }
 
-  if (debug_connection > 5)
-    NSLog(@"Sending %@ on %@", stringFromMsgType(msgid), self);
+  NSDebugMLLog(@"NSConnection", 
+    @"Sending %@ on %@", stringFromMsgType(msgid), self);
 
   limit = [dateClass dateWithTimeIntervalSinceNow: _requestTimeout];
   sent = [_sendPort sendBeforeDate: limit
