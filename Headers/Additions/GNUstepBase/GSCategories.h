@@ -362,20 +362,13 @@ GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file,
 
 #endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
 
+#include	<GNUstepBase/NSTask+GS.h>
+
 #if	defined(__cplusplus)
 }
 #endif
 
 #endif	/* GNUSTEP */
-
-@interface	NSTask (GSCategories)
-/** Returns the launch path given the name of a tool.<br />
- * Locates the tool by looking in the standard directories,
- * and failing that in the PATH set in the environment.<br />
- * Returns the path found, or nil if the tool could not be located.
- */
-+ (NSString*) launchPathForTool: (NSString*)name;
-@end
 
 #endif	/* INCLUDED_GS_CATEGORIES_H */
 

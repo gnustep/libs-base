@@ -38,13 +38,13 @@
 #import	"Foundation/NSPathUtilities.h"
 #import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSTask.h"
+#import	"GNUstepBase/NSTask+GS.h"
 #import	"Foundation/NSDistributedNotificationCenter.h"
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSHost.h"
 #import	"Foundation/NSPortNameServer.h"
 #import	"Foundation/NSDebug.h"
 #import "Foundation/NSThread.h"
-#import	"GNUstepBase/GSCategories.h"
 #import	"../Tools/gdnc.h"
 
 
