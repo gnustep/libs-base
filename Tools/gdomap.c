@@ -1680,7 +1680,7 @@ init_ports()
       sprintf(ebuf, "Opened UDP socket %d", udp_desc);
       gdomap_log(LOG_DEBUG);
     }
-#if	defined(__MINGW32__)
+#if	0 && defined(SO_EXCLUSIVEADDRUSE)
   r = 1;
   if ((setsockopt(udp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
     {
@@ -1788,7 +1788,7 @@ init_ports()
       sprintf(ebuf, "Opened TDP socket %d", tcp_desc);
       gdomap_log(LOG_DEBUG);
     }
-#if	defined(__MINGW32__)
+#if	0 && defined(SO_EXCLUSIVEADDRUSE)
   r = 1;
   if ((setsockopt(tcp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
     {
