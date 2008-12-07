@@ -1516,30 +1516,32 @@ newLockAt(Class self, SEL _cmd, id *location)
 static	NSString*
 executablePath(NSFileManager *mgr, NSString *path)
 {
+#if defined(__MINGW32__)
+  NSString	*tmp;
+
   if ([mgr isExecutableFileAtPath: path])
     {
       return path;
     }
-#if defined(__MINGW32__)
-  if ([path pathExtension] == nil)
+  tmp = [path stringByAppendingPathExtension: @"exe"];
+  if ([mgr isExecutableFileAtPath: tmp])
     {
-      NSString	*tmp;
-
-      tmp = [path stringByAppendingPathExtension: @"exe"];
-      if ([mgr isExecutableFileAtPath: tmp])
-	{
-	  return tmp;
-	}
-      tmp = [path stringByAppendingPathExtension: @"com"];
-      if ([mgr isExecutableFileAtPath: tmp])
-	{
-	  return tmp;
-	}
-      tmp = [path stringByAppendingPathExtension: @"cmd"];
-      if ([mgr isExecutableFileAtPath: tmp])
-	{
-	  return tmp;
-	}
+      return tmp;
+    }
+  tmp = [path stringByAppendingPathExtension: @"com"];
+  if ([mgr isExecutableFileAtPath: tmp])
+    {
+      return tmp;
+    }
+  tmp = [path stringByAppendingPathExtension: @"cmd"];
+  if ([mgr isExecutableFileAtPath: tmp])
+    {
+      return tmp;
+    }
+#else
+  if ([mgr isExecutableFileAtPath: path])
+    {
+      return path;
     }
 #endif
   return nil;
