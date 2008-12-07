@@ -102,7 +102,7 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
   BOOL			_multipleThreads;
   BOOL			_shuttingDown;
   BOOL			_useKeepalive;
-  BOOL			_dummy;
+  BOOL			_keepaliveWait;
   NSPort		*_receivePort;
   NSPort		*_sendPort;
   unsigned		_requestDepth;

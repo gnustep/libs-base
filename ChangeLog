@@ -1,5 +1,11 @@
 2008-12-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSConnection.h: 
+	* Source/NSConnection.m:
+	Fix keepalive bugs.
+
+2008-12-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Additions/GNUstepBase/NSTask+GS.h: NSTask category
 	* Headers/Additions/GNUstepBase/GSCategories.h: remove NSTask
 	* Source/NSDistributedNotificationCenter.m: Use new header
