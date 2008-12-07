@@ -130,6 +130,7 @@ GSFunctions.h \
 GSMime.h \
 GSXML.h \
 GSLocale.h \
+NSTask+GS.h \
 Unicode.h \
 GNUstep.h \
 behavior.h \
