@@ -170,8 +170,12 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 @end
 
 #if     defined(HAVE_GNUTLS)
+/* Temporarily redefine 'id' in case the headers use the objc reserved word.
+ */
+#define	id	GNUTLSID
 #include <gnutls/gnutls.h>
 #include <gcrypt.h>
+#undef	id
 
 /* Set up locking callbacks for gcrypt so that it will be thread-safe.
  */
