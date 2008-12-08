@@ -9,6 +9,7 @@ static NSArray *array;
 @implementation SyncTest
 - (void) sayHello
 {
+  NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
   NSLog(@"Before the sync block %s\n",[[[NSThread currentThread] description] cString]);
   @synchronized(array) {
     NSLog(@"In the sync block %s:%d\n",[[[NSThread currentThread] description] cString], [NSThread isMainThread]);
@@ -17,6 +18,7 @@ static NSArray *array;
     NSLog(@"Done waiting\n");
   }
   NSLog(@"After the sync block %s\n",[[[NSThread currentThread] description] cString]);
+  [pool release];
 }
 @end
 
