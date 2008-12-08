@@ -1,3 +1,8 @@
+2008-12-07  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add custom objc library check from gnustep-make (So we can find
+	libobjc in LOCAL domain).
+
 2008-12-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSConnection.h: 

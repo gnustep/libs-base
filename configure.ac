@@ -923,27 +923,77 @@ fi
 #--------------------------------------------------------------------
 # Miscellaneous flags
 #--------------------------------------------------------------------
-# Set location of GNUstep dirs for later use
-if test "$GNUSTEP_IS_FLATTENED" = no; then
-  clean_target_os=`$CURRENT_GNUSTEP_MAKEFILES/clean_os.sh $target_os`
-  clean_target_cpu=`$CURRENT_GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
-  obj_dir=$clean_target_cpu/$clean_target_os
-  lobj_dir=$clean_target_cpu/$clean_target_os/$LIBRARY_COMBO
-  GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
-  GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
-else
-  obj_dir=
-  lobj_dir=
+
+# Check to see if the libobjc library is in our GNUSTEP_SYSTEM_LIBRARIES.
+# If so, there are probably other libraries that we want there also, so
+# leave the proper includes in CPPFLAGS and LDFLAGS
+AC_MSG_CHECKING(for custom shared objc library)
+AC_CACHE_VAL(gs_cv_objc_libdir,
+[dnl
+gs_cv_objc_libdir=NONE
+gs_cv_objc_incdir=NONE
+# Try GNUSTEP_SYSTEM_LIBRARIES first
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
   GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES"
   GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
 fi
 
-#
-# The following one is so that headers of custom libraries into
-# $GNUSTEP_HDIR are used before the standard ones
-#
-INCLUDE_FLAGS="$INCLUDE_FLAGS -I$GNUSTEP_HDIR"
-LDIR_FLAGS="$LDIR_FLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+
+# Try GNUSTEP_NETWORK_LIBRARIES second (override GNUSTEP_SYSTEM if
+# found)
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
+  GNUSTEP_LDIR="$GNUSTEP_NETWORK_LIBRARIES"
+  GNUSTEP_HDIR="$GNUSTEP_NETWORK_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_NETWORK_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_NETWORK_HEADERS/$LIBRARY_COMBO"
+fi
+
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+
+# Try GNUSTEP_LOCAL_LIBRARIES third (override GNUSTEP_SYSTEM and
+# GNUSTEP_NETWORK if found)
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
+  GNUSTEP_LDIR="$GNUSTEP_LOCAL_LIBRARIES"
+  GNUSTEP_HDIR="$GNUSTEP_LOCAL_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_LOCAL_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_LOCAL_HEADERS/$LIBRARY_COMBO"
+fi
+
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+])
+AC_MSG_RESULT($gs_cv_objc_libdir)
+
+if test "$gs_cv_objc_libdir" != "NONE"; then
+  #
+  # The following one is so that headers of custom libraries into
+  # $GNUSTEP_HDIR are used before the standard ones
+  #
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gs_cv_objc_incdir"
+  LDIR_FLAGS="$LDIR_FLAGS -L$gs_cv_objc_libdir/$LIBRARY_COMBO -L$gs_cv_objc_libdir"
+  CPPFLAGS="$CPPFLAGS -I$gs_cv_objc_incdir"
+  LDFLAGS="$LDFLAGS -L$gs_cv_objc_libdir"
+fi
 
 #--------------------------------------------------------------------
 # Check if Objective-C is installed
