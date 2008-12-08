@@ -283,7 +283,7 @@ static NSMutableDictionary	*clsDict;	/* Class information	*/
 @interface	NSUnarchiverObjectInfo : NSUnarchiverClassInfo
 {
 @public
-  unsigned	version;
+  NSInteger	version;
   NSUnarchiverClassInfo	*overrides;
 }
 @end
@@ -747,17 +747,17 @@ static Class NSDataMallocClass;
 	      classInfo = [objDict objectForKey: className];
 	      if (classInfo == nil)
 		{
-		  classInfo = [NSUnarchiverObjectInfo
-		    newWithName: className];
+		  classInfo = [NSUnarchiverObjectInfo newWithName: className];
 		  c = NSClassFromString(className);
 		  /*
-		   * Show a warning, if the class name that's being used to build the
-		   * class causes NSClassFromString to return nil.  This means that the
-		   * class is unknown to the runtime.
+		   * Show a warning, if the class name that's being used to
+		   * build the class causes NSClassFromString to return nil.
+		   * This means that the class is unknown to the runtime.
 		   */
-		  if(c == nil)
+		  if (c == nil)
 		    {
-		      NSLog(@"Got nil when trying to unarchive class %s",className);
+		      NSLog(@"Got nil when trying to unarchive class %s",
+			className);
 		    }
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
@@ -768,7 +768,7 @@ static Class NSDataMallocClass;
 		  c = classInfo->class;
 		}
 	      RELEASE(className);
-	      classInfo->version = cver;
+	      classInfo->version = (NSInteger)cver;
 	      GSIArrayAddItem(clsMap, (GSIArrayItem)((id)classInfo));
 	      *(Class*)address = mapClassObject(classInfo);
 	      /*
@@ -1300,14 +1300,14 @@ static Class NSDataMallocClass;
 	      format: @"object to be replaced does not exist"];
 }
 
-- (unsigned) versionForClassName: (NSString*)className
+- (NSInteger) versionForClassName: (NSString*)className
 {
   NSUnarchiverObjectInfo	*info;
 
   info = [objDict objectForKey: className];
   if (info == nil)
     {
-      return NSNotFound;
+      return (NSInteger)NSNotFound;
     }
   return info->version;
 }

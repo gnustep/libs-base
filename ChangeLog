@@ -1,7 +1,15 @@
+2008-12-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnarchiver.m: ([versionForClassName:]) implement
+	* Source/NSUnarchiver.m:
+	* Source/NSCoder.m:
+	* Headers/Foundation/NSCoder.h:
+	Update method to return NSInteger.
+
 2008-12-07  Adam Fedor  <fedor@gnu.org>
 
-	* configure.ac: Add custom objc library check from gnustep-make (So we can find
-	libobjc in LOCAL domain).
+	* configure.ac: Add custom objc library check from gnustep-make
+	(So we can find libobjc in LOCAL domain).
 
 2008-12-07  Richard Frith-Macdonald <rfm@gnu.org>
 

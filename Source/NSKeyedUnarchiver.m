@@ -828,6 +828,10 @@ static NSMapTable	globalClassMap = 0;
   _delegate = delegate;		// Not retained.
 }
 
+- (NSInteger) versionForClassName: (NSString*)className
+{
+  return 0;	// Not used for keyed unarchiving.
+}
 @end
 
 @implementation NSObject (NSKeyedUnarchiverDelegate)
