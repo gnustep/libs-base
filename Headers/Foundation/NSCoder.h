@@ -222,7 +222,7 @@ extern "C" {
  *  class (decoded).  Version comes from [NSObject -getVersion].
  *  
  */
-- (unsigned int) versionForClassName: (NSString*)className;
+- (NSInteger) versionForClassName: (NSString*)className;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /*
