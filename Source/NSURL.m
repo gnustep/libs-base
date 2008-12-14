@@ -544,7 +544,7 @@ static unsigned	urlAlign;
     {
       /* Add square brackets around ipv6 address if necessary
        */
-      if ([aHost rangeOfString: @":"].length > 0
+      if ([[aHost componentsSeparatedByString: @":"] count] > 2
 	&& [aHost hasPrefix: @"["] == NO)
 	{
 	  aHost = [NSString stringWithFormat: @"[%@]", aHost];
