@@ -542,6 +542,17 @@ static unsigned	urlAlign;
     = [aPath stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
   if ([aHost length] > 0)
     {
+      NSRange	r = [aHost rangeOfString: @"@"];
+      NSString	*auth = nil;
+
+      /* Allow for authentication (username:password) before actual host.
+       */
+      if (r.length > 0)
+	{
+	  auth = [aHost substringToIndex: r.location];
+	  aHost = [aHost substringFromIndex: NSMaxRange(r)];
+	}
+
       /* Add square brackets around ipv6 address if necessary
        */
       if ([[aHost componentsSeparatedByString: @":"] count] > 2
@@ -549,6 +560,12 @@ static unsigned	urlAlign;
 	{
 	  aHost = [NSString stringWithFormat: @"[%@]", aHost];
 	}
+
+      if (auth != nil)
+	{
+	  aHost = [NSString stringWithFormat: @"%@@%@", auth, aHost];
+	}
+
       if ([aPath length] > 0)
 	{
 	  /*
