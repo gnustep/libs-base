@@ -527,10 +527,12 @@ static unsigned	urlAlign;
  * Initialise by building a URL string from the supplied parameters
  * and calling -initWithString:relativeToURL:<br />
  * This method adds percent escapes to aPath if it contains characters
- * which need ascaping.<br />
+ * which need escaping.<br />
  * Accepts RFC2732 style IPv6 host addresses either with or without the
  * enclosing square brackets (MacOS-X at least up to version 10.5 does
  * not handle these correctly, but GNUstep does).<br />
+ * Permits the 'aHost' part to contain 'username:password@host:port' or
+ * 'host:port' in addition to a simple host name or address.
  */
 - (id) initWithScheme: (NSString*)aScheme
 		 host: (NSString*)aHost
