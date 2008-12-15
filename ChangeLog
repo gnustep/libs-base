@@ -1,3 +1,9 @@
+2008-12-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: When initialising with schem, host and path, allow
+	the host to contain username, password and port as well as just the
+	host.  Document this change (which seems to be how MacOS-X works).
+
 2008-12-09  Wolfgang Lux  <wlux@uni-muenster.de>
 
 	* Source/unix/GSRunLoopCtxt.m (-pollUntil:within): Add missing
