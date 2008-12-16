@@ -1,3 +1,7 @@
+2008-12-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLock.m: Tiny cleanup of lock finalisation process.
+
 2008-12-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: When initialising with schem, host and path, allow
