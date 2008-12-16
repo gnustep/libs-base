@@ -179,13 +179,15 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 {
   if (_mutex != 0)
     {
+      objc_mutex_t	tmp = _MUTEX;
+
+      _mutex = 0;
       // Ask the runtime to deallocate the mutex
       // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(_MUTEX) == -1)
+      if (objc_mutex_deallocate(tmp) == -1)
 	{
 	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
 	}
-      _mutex = 0;
     }
   DESTROY(_name);
 }
@@ -335,17 +337,23 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 {
   if (_condition != 0)
     {
+      objc_condition_t	tmp = _CONDITION;
+
+      _condition = 0;
       // Ask the runtime to deallocate the condition
-      if (objc_condition_deallocate(_CONDITION) == -1)
+      if (objc_condition_deallocate(tmp) == -1)
 	{
 	  NSWarnMLog(@"objc_condition_deallocate() failed for %@", self);
 	}
     }
   if (_mutex != 0)
     {
+      objc_mutex_t	tmp = _MUTEX;
+
+      _mutex = 0;
       // Ask the runtime to deallocate the mutex
       // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(_MUTEX) == -1)
+      if (objc_mutex_deallocate(tmp) == -1)
 	{
 	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
 	}
@@ -650,13 +658,15 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 {
   if (_mutex != 0)
     {
+      objc_mutex_t	tmp = _MUTEX;
+
+      _mutex = 0;
       // Ask the runtime to deallocate the mutex
       // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(_MUTEX) == -1)
+      if (objc_mutex_deallocate(tmp) == -1)
 	{
 	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
 	}
-      _mutex = 0;
     }
   DESTROY(_name);
 }
