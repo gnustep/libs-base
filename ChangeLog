@@ -1,3 +1,10 @@
+2008-12-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m:
+	* Tools/gdnc.m:
+	Enable keepalive only on mswindows and for server connections using
+	NSMessagePort.
+
 2008-12-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLock.m: Tiny cleanup of lock finalisation process.
