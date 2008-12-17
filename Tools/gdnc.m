@@ -174,10 +174,6 @@ ihandler(int sig)
 }
 @end
 
-@interface	NSConnection (Private)
-- (void) _enableKeepalive;
-@end
-
 @interface	GDNCNotification : NSObject
 {
 @public
@@ -447,14 +443,6 @@ ihandler(int sig)
 
   conn = [[NSConnection alloc] initWithReceivePort: port sendPort: nil];
   [conn setRootObject: self];
-
-  /* For ms-windows we need to enable keepalive on the connection so that
-   * we will find out if the remote end goes away.
-   */
-  if ([conn respondsToSelector: @selector(_enableKeepalive)])
-    {
-      [conn _enableKeepalive];
-    }
 
   if ([hostname length] == 0
     || [[NSHost hostWithName: hostname] isEqual: [NSHost currentHost]] == YES)
