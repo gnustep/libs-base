@@ -31,7 +31,9 @@ ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
-RPM_DISABLE_RELOCATABLE=YES
+GNUSTEP_CORE_SOFTWARE = YES
+export GNUSTEP_CORE_SOFTWARE
+RPM_DISABLE_RELOCATABLE = YES
 PACKAGE_NEEDS_CONFIGURE = YES
 
 SVN_MODULE_NAME = base
@@ -62,4 +64,3 @@ SUBPROJECTS += Tools NSTimeZones Resources
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 
 -include Makefile.postamble
-
