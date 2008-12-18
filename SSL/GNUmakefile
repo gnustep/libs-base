@@ -31,6 +31,7 @@ ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
+GNUSTEP_CORE_SOFTWARE = YES
 # This must set be before reading common.make, which will read the
 # Additional makefiles.
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
