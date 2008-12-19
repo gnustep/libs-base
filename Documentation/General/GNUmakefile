@@ -23,7 +23,7 @@
 #  Boston, MA 02111 USA
 #
 
-GNUSTEP_CORE_SOFTWARE = YES
+PACKAGE_NAME = gnustep-base
 
 include $(GNUSTEP_MAKEFILES)/common.make
 include ../../config.mak

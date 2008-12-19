@@ -22,7 +22,7 @@
 #  Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 #
 
-GNUSTEP_CORE_SOFTWARE = YES
+PACKAGE_NAME = gnustep-base
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
