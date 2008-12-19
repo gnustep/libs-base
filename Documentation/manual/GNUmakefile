@@ -18,7 +18,7 @@
 #  If not, write to the Free Software Foundation,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-GNUSTEP_CORE_SOFTWARE = YES
+PACKAGE_NAME = gnustep-base
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
