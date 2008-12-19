@@ -376,16 +376,27 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepLocalDocumentationInfo, c, @"GNUSTEP_LOCAL_DOC_INFO");
 
   ASSIGN_IF_SET(gnustepUserDirApps, c, @"GNUSTEP_USER_DIR_APPS");
+  TEST_ASSIGN(gnustepUserDirApps, @GNUSTEP_TARGET_USER_DIR_APPS);
   ASSIGN_IF_SET(gnustepUserDirAdminApps, c, @"GNUSTEP_USER_DIR_ADMIN_APPS");
+  TEST_ASSIGN(gnustepUserDirAdminApps, @GNUSTEP_TARGET_USER_DIR_ADMIN_APPS);
   ASSIGN_IF_SET(gnustepUserDirWebApps, c, @"GNUSTEP_USER_DIR_WEB_APPS");
+  TEST_ASSIGN(gnustepUserDirWebApps, @GNUSTEP_TARGET_USER_DIR_WEB_APPS);
   ASSIGN_IF_SET(gnustepUserDirTools, c, @"GNUSTEP_USER_DIR_TOOLS");
+  TEST_ASSIGN(gnustepUserDirTools, @GNUSTEP_TARGET_USER_DIR_TOOLS);
   ASSIGN_IF_SET(gnustepUserDirAdminTools, c, @"GNUSTEP_USER_DIR_ADMIN_TOOLS");
+  TEST_ASSIGN(gnustepUserDirAdminTools, @GNUSTEP_TARGET_USER_DIR_ADMIN_TOOLS);
   ASSIGN_IF_SET(gnustepUserDirLibrary, c, @"GNUSTEP_USER_DIR_LIBRARY");
+  TEST_ASSIGN(gnustepUserDirLibrary, @GNUSTEP_TARGET_USER_DIR_LIBRARY);
   ASSIGN_IF_SET(gnustepUserDirLibraries, c, @"GNUSTEP_USER_DIR_LIBRARIES");
+  TEST_ASSIGN(gnustepUserDirLibraries, @GNUSTEP_TARGET_USER_DIR_LIBRARIES);
   ASSIGN_IF_SET(gnustepUserDirHeaders, c, @"GNUSTEP_USER_DIR_HEADERS");
+  TEST_ASSIGN(gnustepUserDirHeaders, @GNUSTEP_TARGET_USER_DIR_HEADERS);
   ASSIGN_IF_SET(gnustepUserDirDocumentation, c, @"GNUSTEP_USER_DIR_DOC");
+  TEST_ASSIGN(gnustepUserDirDocumentation, @GNUSTEP_TARGET_USER_DIR_DOC);
   ASSIGN_IF_SET(gnustepUserDirDocumentationMan, c, @"GNUSTEP_USER_DIR_DOC_MAN");
+  TEST_ASSIGN(gnustepUserDirDocumentationMan, @GNUSTEP_TARGET_USER_DIR_DOC_MAN);
   ASSIGN_IF_SET(gnustepUserDirDocumentationInfo, c, @"GNUSTEP_USER_DIR_DOC_INFO");
+  TEST_ASSIGN(gnustepUserDirDocumentationInfo, @GNUSTEP_TARGET_USER_DIR_DOC_INFO);
 
   /*
    * The GNUSTEP_EXTRA field may contain a list of extra keys which
