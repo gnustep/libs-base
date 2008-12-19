@@ -307,7 +307,7 @@ static IMP	initImp;
 
 - (void) drain
 {
-  return;
+  [self dealloc];
 }
 
 - (id) retain
@@ -455,14 +455,17 @@ static IMP	initImp;
 + (void) _endThread: (NSThread*)thread
 {
   struct autorelease_thread_vars *tv;
-  id	pool;
+  NSAutoreleasePool *pool;
 
   tv = &(((TInfo)thread)->_autorelease_vars);
-  while (tv->current_pool)
+  pool = tv->current_pool;
+  while (pool)
     {
-      [tv->current_pool release];
-      pool = pop_pool_from_cache(tv);
+      NSAutoreleasePool *p = pool->_parent;
+
+      [pool emptyPool];
       [pool _reallyDealloc];
+      pool = p;
     }
 
   free_pool_cache(tv);

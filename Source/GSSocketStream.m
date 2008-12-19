@@ -40,6 +40,23 @@
 #import "GSStream.h"
 #import "GSSocketStream.h"
 
+#ifndef SHUT_RD
+# ifdef  SD_RECEIVE
+#   define SHUT_RD      SD_RECEIVE
+#   define SHUT_WR      SD_SEND
+#   define SHUT_RDWR    SD_BOTH
+# else
+#   define SHUT_RD      0
+#   define SHUT_WR      1
+#   define SHUT_RDWR    2
+# endif
+#endif
+
+#ifdef _WIN32
+extern const char *inet_ntop(int, const void *, char *, size_t);
+extern int inet_pton(int , const char *, void *);
+#endif
+
 unsigned
 GSPrivateSockaddrLength(struct sockaddr *addr)
 {
@@ -153,8 +170,12 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 @end
 
 #if     defined(HAVE_GNUTLS)
+/* Temporarily redefine 'id' in case the headers use the objc reserved word.
+ */
+#define	id	GNUTLSID
 #include <gnutls/gnutls.h>
 #include <gcrypt.h>
+#undef	id
 
 /* Set up locking callbacks for gcrypt so that it will be thread-safe.
  */
@@ -219,7 +240,11 @@ GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
         {
           e = EAGAIN;	// Tell GNUTLS this would block.
         }
+#if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       gnutls_transport_set_errno (tls->session, e);
+#else
+      errno = e;	// Not thread-safe
+#endif
     }
   return result;
 }
@@ -246,7 +271,12 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
         {
           e = EAGAIN;	// Tell GNUTLS this would block.
         }
+#if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       gnutls_transport_set_errno (tls->session, e);
+#else
+      errno = e;	// Not thread-safe
+#endif
+
     }
   return result;
 }
@@ -366,7 +396,6 @@ static gnutls_anon_client_credentials_t anoncred;
           handshake = NO;       // Handshake is now complete.
           active = YES;         // The TLS session is now active.
         }
-
     }
 }
 
@@ -441,7 +470,9 @@ static gnutls_anon_client_credentials_t anoncred;
   if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
     {
       const int proto_prio[4] = {
+#if	defined(GNUTLS_TLS1_2)
         GNUTLS_TLS1_2,
+#endif
         GNUTLS_TLS1_1,
         GNUTLS_TLS1_0,
         0 };
@@ -517,19 +548,24 @@ static gnutls_anon_client_credentials_t anoncred;
                   @"GSTLS completed on %p", stream);
                 if ([istream streamStatus] == NSStreamStatusOpen)
                   {
+		    [istream _resetEvents: NSStreamEventOpenCompleted];
                     [istream _sendEvent: NSStreamEventOpenCompleted];
                   }
                 else
                   {
+		    [istream _resetEvents: NSStreamEventErrorOccurred];
                     [istream _sendEvent: NSStreamEventErrorOccurred];
                   }
                 if ([ostream streamStatus]  == NSStreamStatusOpen)
                   {
+		    [ostream _resetEvents: NSStreamEventOpenCompleted
+		      | NSStreamEventHasSpaceAvailable];
                     [ostream _sendEvent: NSStreamEventOpenCompleted];
                     [ostream _sendEvent: NSStreamEventHasSpaceAvailable];
                   }
                 else
                   {
+		    [ostream _resetEvents: NSStreamEventErrorOccurred];
                     [ostream _sendEvent: NSStreamEventErrorOccurred];
                   }
               }
@@ -556,6 +592,19 @@ static gnutls_anon_client_credentials_t anoncred;
 @implementation GSTLS
 + (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
 {
+  NSString	*tls;
+
+  tls = [i propertyForKey: NSStreamSocketSecurityLevelKey];
+  if (tls == nil)
+    {
+      tls = [o propertyForKey: NSStreamSocketSecurityLevelKey];
+    }
+  if (tls != nil
+    && [tls isEqualToString: NSStreamSocketSecurityLevelNone] == NO)
+    {
+      NSLog(@"Attempt to use SSL/TLS without support.");
+      NSLog(@"Please reconfigure gnustep-base with GNU TLS.");
+    }
   return;
 }
 - (id) initWithInput: (GSSocketInputStream*)i
@@ -674,19 +723,24 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
       [GSTLS tryInput: is output: os];
       if ([is streamStatus] == NSStreamStatusOpen)
         {
+	  [is _resetEvents: NSStreamEventOpenCompleted];
           [is _sendEvent: NSStreamEventOpenCompleted];
         }
       else
         {
+	  [is _resetEvents: NSStreamEventErrorOccurred];
           [is _sendEvent: NSStreamEventErrorOccurred];
         }
       if ([os streamStatus]  == NSStreamStatusOpen)
         {
+	  [os _resetEvents: NSStreamEventOpenCompleted
+	    | NSStreamEventHasSpaceAvailable];
           [os _sendEvent: NSStreamEventOpenCompleted];
           [os _sendEvent: NSStreamEventHasSpaceAvailable];
         }
       else
         {
+	  [os _resetEvents: NSStreamEventErrorOccurred];
           [os _sendEvent: NSStreamEventErrorOccurred];
         }
       RELEASE(is);
@@ -1091,8 +1145,10 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
 			      while (i < rwant)
 			        {
-				  int	val = rbuffer[i++] * 256 + rbuffer[i++];
+				  int	val;
 
+				  val = rbuffer[i++];
+				  val = val * 256 + rbuffer[i++];
 				  if (i > 4)
 				    {
 				      buf[j++] = ':';
@@ -1252,7 +1308,7 @@ setNonBlocking(SOCKET fd)
           case AF_INET:
             {
               struct sockaddr_in sin;
-              unsigned	        size = sizeof(sin);
+              socklen_t	        size = sizeof(sin);
 
               if ([key isEqualToString: GSStreamLocalAddressKey])
                 {
@@ -1292,7 +1348,7 @@ setNonBlocking(SOCKET fd)
           case AF_INET6:
             {
               struct sockaddr_in6 sin;
-              unsigned	        size = sizeof(sin);
+              socklen_t	        size = sizeof(sin);
 
               if ([key isEqualToString: GSStreamLocalAddressKey])
                 {
@@ -1667,7 +1723,7 @@ setNonBlocking(SOCKET fd)
        * of the sibling is used to signal events from now on.
        */
       WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-      shutdown(_sock, SD_RECEIVE);
+      shutdown(_sock, SHUT_RD);
       WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
     }
   else
@@ -1725,7 +1781,7 @@ setNonBlocking(SOCKET fd)
   else
     {
 #if	defined(__MINGW32__)
-      readLen = recv([self _sock], buffer, len, 0);
+      readLen = recv([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
       readLen = read([self _sock], buffer, len);
 #endif
@@ -1814,7 +1870,7 @@ setNonBlocking(SOCKET fd)
 	  [self _unschedule];
 	  if (error == 0)
 	    {
-	      unsigned len = sizeof(error);
+	      socklen_t len = sizeof(error);
 
 	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
 		(char*)&error, &len);
@@ -1971,9 +2027,9 @@ setNonBlocking(SOCKET fd)
     }
 
 #if	defined(__MINGW32__)
-  writeLen = send([self _sock], buffer, len, 0);
+  writeLen = send([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
-  writeLen = write([self _sock], buffer, len);
+  writeLen = write([self _sock], buffer, (socklen_t) len);
 #endif
 
   if (socketError(writeLen))
@@ -2140,7 +2196,7 @@ setNonBlocking(SOCKET fd)
        * of the sibling is used to signal events from now on.
        */
       WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
-      shutdown(_sock, SD_SEND);
+      shutdown(_sock, SHUT_WR);
       WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
     }
   else
@@ -2219,7 +2275,7 @@ setNonBlocking(SOCKET fd)
 	  [self _unschedule];
 	  if (error == 0)
 	    {
-	      unsigned len = sizeof(error);
+	      socklen_t len = sizeof(error);
 
 	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
 		(char*)&error, &len);

@@ -30,6 +30,8 @@
 #define	INCLUDED_GS_CATEGORIES_H
 #include "GNUstepBase/GSVersionMacros.h"
 
+#include <Foundation/Foundation.h>
+
 /* The following ifndef prevents the categories declared in this file being
  * seen in GNUstep code.  This is necessary because those category
  * declarations are also present in the header files for the corresponding
@@ -40,7 +42,6 @@
 #ifndef GNUSTEP
 
 #include <string.h>
-#include <Foundation/Foundation.h>
 
 #ifdef NeXT_Foundation_LIBRARY
 #include <CoreFoundation/CFString.h>
@@ -332,7 +333,6 @@ typedef enum _NSGNUstepStringEncoding
 - (void) gcFinalize;
 @end
 
-
 /* ------------------------------------------------------------------------
  * Functions
  */
@@ -361,6 +361,8 @@ GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file,
 				       int line, NSString *fmt);
 
 #endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
+
+#include	<GNUstepBase/NSTask+GS.h>
 
 #if	defined(__cplusplus)
 }

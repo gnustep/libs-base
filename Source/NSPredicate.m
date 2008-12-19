@@ -756,6 +756,12 @@
       case NSCustomSelectorPredicateOperatorType: 
         comp = NSStringFromSelector(_selector);
         break;
+      case NSContainsPredicateOperatorType: 
+        comp = @"CONTAINS";
+        break;
+      case NSBetweenPredicateOperatorType: 
+        comp = @"BETWEEN";
+        break;
     }
   switch (_options)
     {
@@ -1583,7 +1589,7 @@
 
 - (NSPredicate *) parse
 {
-  NSPredicate *r;
+  NSPredicate *r = nil;
 
   NS_DURING
     {
@@ -2061,15 +2067,35 @@
 	
   if ([self scanString: @"\"" intoString: NULL])
     {
-      NSString *str = @"string constant";
-	
+      NSCharacterSet	*skip = [self charactersToBeSkipped];
+      NSString *str = nil;
+
+      [self setCharactersToBeSkipped: nil];
+      if ([self scanUpToString: @"\"" intoString: &str] == NO)
+	{
+	  [self setCharactersToBeSkipped: skip];
+          [NSException raise: NSInvalidArgumentException 
+                      format: @"Invalid double quoted literal at %u", location];
+	}
+      [self setCharactersToBeSkipped: skip];
+      [self scanString: @"\"" intoString: NULL];
       return [NSExpression expressionForConstantValue: str];
     }
 	
   if ([self scanString: @"'" intoString: NULL])
     {
-      NSString *str = @"string constant";
+      NSCharacterSet	*skip = [self charactersToBeSkipped];
+      NSString *str = nil;
 
+      [self setCharactersToBeSkipped: nil];
+      if ([self scanUpToString: @"'" intoString: &str] == NO)
+	{
+	  [self setCharactersToBeSkipped: skip];
+          [NSException raise: NSInvalidArgumentException 
+                      format: @"Invalid single quoted literal at %u", location];
+	}
+      [self setCharactersToBeSkipped: skip];
+      [self scanString: @"'" intoString: NULL];
       return [NSExpression expressionForConstantValue: str];
     }
 

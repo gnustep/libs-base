@@ -876,7 +876,7 @@ fixBOM(unsigned char **bytes, unsigned *length, BOOL *shouldFree,
  * peculiar to its memory management (shrinking, growing, and converting).
  */
 
-static inline char*
+static inline const char*
 UTF8String_c(GSStr self)
 {
   unsigned char *r;
@@ -922,10 +922,10 @@ UTF8String_c(GSStr self)
       NSZoneFree(NSDefaultMallocZone(), u);
     }
 
-  return (char*)r;
+  return (const char*)r;
 }
 
-static inline char*
+static inline const char*
 UTF8String_u(GSStr self)
 {
   unsigned	c = self->_count;
@@ -945,7 +945,7 @@ UTF8String_u(GSStr self)
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get UTF8 from Unicode string."];
 	}
-      return (char*)r;
+      return (const char*)r;
     }
 }
 
@@ -1184,7 +1184,7 @@ compare_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
     return strCompUsNs((id)self, aString, mask, aRange);
 }
 
-static inline char*
+static inline const char*
 cString_c(GSStr self, NSStringEncoding enc)
 {
   unsigned char *r;
@@ -1245,10 +1245,10 @@ cString_c(GSStr self, NSStringEncoding enc)
       NSZoneFree(NSDefaultMallocZone(), u);
     }
 
-  return (char*)r;
+  return (const char*)r;
 }
 
-static inline char*
+static inline const char*
 cString_u(GSStr self, NSStringEncoding enc)
 {
   unsigned	c = self->_count;
@@ -1273,7 +1273,7 @@ cString_u(GSStr self, NSStringEncoding enc)
       [NSDataClass dataWithBytesNoCopy: tmp
 				length: (c + 1)*2
 			  freeWhenDone: YES];
-      return (char*)tmp;
+      return (const char*)tmp;
     }
   else
     {
@@ -1286,7 +1286,7 @@ cString_u(GSStr self, NSStringEncoding enc)
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cString from Unicode string."];
 	}
-      return (char*)r;
+      return (const char*)r;
     }
 }
 
@@ -1499,13 +1499,27 @@ doubleValue_c(GSStr self)
     }
   else
     {
-      unsigned	l = (end - ptr) < 32 ? (end - ptr) : 31;
-      unichar	buf[l+1];
-      unichar	*b = buf;
+      unsigned	s = 99;
+      unichar	b[100];
+      unichar	*u = b;
       double	d = 0.0;
 
-      GSToUnicode(&b, &l, (const uint8_t*)ptr, l, internalEncoding, 0, 0);
-      GSScanDouble(b, l, &d);
+      /* use static buffer unless string is really long, in which case
+       * we use the stack to allocate a bigger one.
+       */
+      if (GSToUnicode(&u, &s, (const uint8_t*)ptr, end - ptr,
+	internalEncoding, NSDefaultMallocZone(), GSUniTerminate) == NO)
+	{
+	  return 0.0;
+	}
+      if (GSScanDouble(u, end - ptr, &d) == NO)
+	{
+	  d = 0.0;
+	}
+      if (u != b)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), u);
+	}
       return d;
     }
 }

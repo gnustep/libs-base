@@ -31,9 +31,6 @@ ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
-# Install into the system root by default
-GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
-
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
@@ -109,6 +106,11 @@ ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 GNU_MFILES += libgnustep-base-entry.m
 endif
 
+ifeq ($(HAVE_OBJC_SYNC_ENTER), no)
+GNU_MFILES += synchronization.m
+endif
+
+
 GNU_OTHER_SRCFILES = \
 win32-entry.m \
 win32-def.top \
@@ -128,6 +130,7 @@ GSFunctions.h \
 GSMime.h \
 GSXML.h \
 GSLocale.h \
+NSTask+GS.h \
 Unicode.h \
 GNUstep.h \
 behavior.h \

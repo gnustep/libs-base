@@ -595,8 +595,22 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
+#if defined(__MINGW32__)
+	  /* On windows, the library (dll) is in the Tools area rather than
+	   * in the framework, so we can adjust the path here.
+	   */
+	  if ([[bundlePath lastPathComponent] isEqual: @"Tools"])
+	    {
+	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
+	      bundlePath
+		= [bundlePath stringByAppendingPathComponent: @"Library"];
+	      bundlePath
+		= [bundlePath stringByAppendingPathComponent: @"Frameworks"];
+	      bundlePath = [bundlePath stringByAppendingPathComponent:
+		[NSString stringWithFormat: @"%@%@", name, @".framework"]];
+	    }
+#else
 	  /* There are no Versions on MinGW.  Skip the Versions check here.  */
-#if !defined(__MINGW32__)
 	  /* version name */
 	  bundlePath = [bundlePath stringByDeletingLastPathComponent];
 
@@ -1179,10 +1193,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	   * Get the library bundle ... if there wasn't one then we
 	   * will assume the class was in the program executable and
 	   * return the mainBundle instead.
-	   *
-	   * FIXME: This will not work well with versioned library
-	   * resources.  It used to work fine (maybe) with unversioned
-	   * library resources.
 	   */
 	  bundle = [NSBundle bundleForLibrary: lib];
 	  if (bundle == nil)
@@ -2293,16 +2303,58 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSEnumerator *enumerator;
   NSString *path;
   NSFileManager *fm = [NSFileManager defaultManager];
+  NSRange	r;
 
   /*
    * Eliminate any base path or extensions.
    */
   libraryName = [libraryName lastPathComponent];
-  do
+
+#if defined(__MINGW32__)
+  /* A dll is usually of the form 'xxx-maj_min.dll'
+   * so we can extract the version info and use it.
+   */
+  if ([[libraryName pathExtension] isEqual: @"dll"])
+    {
+      libraryName = [libraryName stringByDeletingPathExtension];
+      r = [libraryName rangeOfString: @"-" options: NSBackwardsSearch];
+      if (r.length > 0)
+	{
+	  NSString	*ver;
+
+	  ver = [[libraryName substringFromIndex: NSMaxRange(r)]
+	    stringByReplacingString: @"_" withString: @"."];
+	  libraryName = [libraryName substringToIndex: r.location];
+	  if (interfaceVersion == nil)
+	    {
+	      interfaceVersion = ver;
+	    }
+	}
+    }
+#else
+  /* A .so is usually of the form 'libxxx.so.maj.min.sub'
+   * so we can extract the version info and use it.
+   */
+  r = [libraryName rangeOfString: @".so."];
+  if (r.length > 0)
+    {
+      NSString	*s = [libraryName substringFromIndex: NSMaxRange(r)];
+      NSArray	*a = [s componentsSeparatedByString: @"."];
+
+      libraryName = [libraryName substringToIndex: r.location];
+      if (interfaceVersion == nil && [a count] >= 2)
+	{
+	  interfaceVersion = [NSString stringWithFormat: @"%@.%@",
+	    [a objectAtIndex: 0], [a objectAtIndex: 1]];
+	}
+    }
+#endif
+
+  while ([[libraryName pathExtension] length] > 0)
     {
       libraryName = [libraryName stringByDeletingPathExtension];
     }
-  while ([[libraryName pathExtension] length] > 0);
+
   /*
    * Discard leading 'lib'
    */

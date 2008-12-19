@@ -704,6 +704,7 @@ _GSC_S_LNG_LNG
 DYNAMIC_LINKER
 NX_CONST_STRING_OBJCFLAGS
 NX_CONST_STRING_CLASS
+HAVE_OBJC_SYNC_ENTER
 HAVE_PTHREAD_H
 HAVE_PTS_STREAM_MODULES
 INCLUDE_STDINT
@@ -1395,6 +1396,13 @@ Optional Packages:
 				is found at runtime.  If this is not specified
 				then the path from --with-config-file or from
 				the gnustep-make package is used.
+  --with-installation-domain=DOMAIN   (Mingw32-only option) Specify the domain (SYSTEM, LOCAL, NETWORK
+                                    or USER) into which gnustep-base will be installed.  This is
+                                    necessary on Microsoft Windows (mingw) because relative paths
+                                    are hardcoded into gnustep-base.  If this is not specified, LOCAL
+                                    is used.  Please make sure this matches the DOMAIN where
+                                    you will be installing gnustep-base to prevent problems
+                                    with finding resources at runtime.
   --with-include-flags=FLAGS    Specify all include flags at once
   --with-library-flags=FLAGS    Specify all library flags at once
   --with-ffi-include=PATH       Include path for ffi (ffcall/libffi) headers
@@ -1844,6 +1852,13 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 # If GNUSTEP_MAKEFILES is undefined, try to use gnustep-config to determine it.
 if test -z "$GNUSTEP_MAKEFILES"; then
   GNUSTEP_MAKEFILES=`gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5`
+fi
+
+exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
+if test -z "$exceptions"; then
+  exceptions=no
+else
+  exceptions=yes
 fi
 
 if test -z "$GNUSTEP_MAKEFILES"; then
@@ -2308,7 +2323,39 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 #
 case "$target_os" in
   mingw*)
-    GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS"
+    { echo "$as_me:$LINENO: checking for GNUstep-base installation domain" >&5
+echo $ECHO_N "checking for GNUstep-base installation domain... $ECHO_C" >&6; }
+
+# Check whether --with-installation-domain was given.
+if test "${with_installation_domain+set}" = set; then
+  withval=$with_installation_domain; result="$withval"
+else
+  result="$GNUSTEP_INSTALLATION_DOMAIN"
+
+fi
+
+  case "$result" in
+   SYSTEM)
+     { echo "$as_me:$LINENO: result: SYSTEM" >&5
+echo "${ECHO_T}SYSTEM" >&6; }
+     GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
+   LOCAL)
+     { echo "$as_me:$LINENO: result: LOCAL" >&5
+echo "${ECHO_T}LOCAL" >&6; }
+     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+   NETWORK)
+     { echo "$as_me:$LINENO: result: NETWORK" >&5
+echo "${ECHO_T}NETWORK" >&6; }
+     GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
+   USER)
+     { echo "$as_me:$LINENO: result: USER" >&5
+echo "${ECHO_T}USER" >&6; }
+     GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
+   *)
+     { echo "$as_me:$LINENO: result: none specified => using LOCAL" >&5
+echo "${ECHO_T}none specified => using LOCAL" >&6; }
+     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+   esac
 
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
@@ -4286,27 +4333,82 @@ fi
 #--------------------------------------------------------------------
 # Miscellaneous flags
 #--------------------------------------------------------------------
-# Set location of GNUstep dirs for later use
-if test "$GNUSTEP_IS_FLATTENED" = no; then
-  clean_target_os=`$CURRENT_GNUSTEP_MAKEFILES/clean_os.sh $target_os`
-  clean_target_cpu=`$CURRENT_GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
-  obj_dir=$clean_target_cpu/$clean_target_os
-  lobj_dir=$clean_target_cpu/$clean_target_os/$LIBRARY_COMBO
-  GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
-  GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
+
+# Check to see if the libobjc library is in our GNUSTEP_SYSTEM_LIBRARIES.
+# If so, there are probably other libraries that we want there also, so
+# leave the proper includes in CPPFLAGS and LDFLAGS
+{ echo "$as_me:$LINENO: checking for custom shared objc library" >&5
+echo $ECHO_N "checking for custom shared objc library... $ECHO_C" >&6; }
+if test "${gs_cv_objc_libdir+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  obj_dir=
-  lobj_dir=
+  gs_cv_objc_libdir=NONE
+gs_cv_objc_incdir=NONE
+# Try GNUSTEP_SYSTEM_LIBRARIES first
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
   GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES"
   GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
 fi
 
-#
-# The following one is so that headers of custom libraries into
-# $GNUSTEP_HDIR are used before the standard ones
-#
-INCLUDE_FLAGS="$INCLUDE_FLAGS -I$GNUSTEP_HDIR"
-LDIR_FLAGS="$LDIR_FLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+
+# Try GNUSTEP_NETWORK_LIBRARIES second (override GNUSTEP_SYSTEM if
+# found)
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
+  GNUSTEP_LDIR="$GNUSTEP_NETWORK_LIBRARIES"
+  GNUSTEP_HDIR="$GNUSTEP_NETWORK_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_NETWORK_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_NETWORK_HEADERS/$LIBRARY_COMBO"
+fi
+
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+
+# Try GNUSTEP_LOCAL_LIBRARIES third (override GNUSTEP_SYSTEM and
+# GNUSTEP_NETWORK if found)
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
+  GNUSTEP_LDIR="$GNUSTEP_LOCAL_LIBRARIES"
+  GNUSTEP_HDIR="$GNUSTEP_LOCAL_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_LOCAL_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_LOCAL_HEADERS/$LIBRARY_COMBO"
+fi
+
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+
+fi
+
+{ echo "$as_me:$LINENO: result: $gs_cv_objc_libdir" >&5
+echo "${ECHO_T}$gs_cv_objc_libdir" >&6; }
+
+if test "$gs_cv_objc_libdir" != "NONE"; then
+  #
+  # The following one is so that headers of custom libraries into
+  # $GNUSTEP_HDIR are used before the standard ones
+  #
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gs_cv_objc_incdir"
+  LDIR_FLAGS="$LDIR_FLAGS -L$gs_cv_objc_libdir/$LIBRARY_COMBO -L$gs_cv_objc_libdir"
+  CPPFLAGS="$CPPFLAGS  -I$gs_cv_objc_incdir"
+  LDFLAGS="$LDFLAGS -L$gs_cv_objc_libdir"
+fi
 
 #--------------------------------------------------------------------
 # Check if Objective-C is installed
@@ -9419,6 +9521,110 @@ _ACEOF
 
 fi
 rm -f conftest*
+
+
+#--------------------------------------------------------------------
+# Function needed by @synchronize directive
+#--------------------------------------------------------------------
+
+for ac_func in objc_sync_enter
+do
+as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $ac_func" >&5
+echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6; }
+if { as_var=$as_ac_var; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_$ac_func || defined __stub___$ac_func
+choke me
+#endif
+
+int
+main ()
+{
+return $ac_func ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  eval "$as_ac_var=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_var=no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+ac_res=`eval echo '${'$as_ac_var'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_var'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
+HAVE_OBJC_SYNC_ENTER=no
+if test $ac_cv_func_objc_sync_enter = yes ; then
+  HAVE_OBJC_SYNC_ENTER=yes
+fi
 
 
 LIBS="$saved_LIBS"
@@ -15802,6 +16008,244 @@ done
 
 
 #--------------------------------------------------------------------
+# Check for sysctlbyname used by NSProcessInfo.m
+#--------------------------------------------------------------------
+
+for ac_header in sys/sysctl.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  { echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+ac_res=`eval echo '${'$as_ac_Header'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+else
+  # Is the header compilable?
+{ echo "$as_me:$LINENO: checking $ac_header usability" >&5
+echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ echo "$as_me:$LINENO: checking $ac_header presence" >&5
+echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <$ac_header>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
+echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
+
+    ;;
+esac
+{ echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  eval "$as_ac_Header=\$ac_header_preproc"
+fi
+ac_res=`eval echo '${'$as_ac_Header'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+
+fi
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+
+for ac_func in sysctlbyname
+do
+as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $ac_func" >&5
+echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6; }
+if { as_var=$as_ac_var; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_$ac_func || defined __stub___$ac_func
+choke me
+#endif
+
+int
+main ()
+{
+return $ac_func ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  eval "$as_ac_var=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_var=no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+ac_res=`eval echo '${'$as_ac_var'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_var'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
+#--------------------------------------------------------------------
 # Defines HAVE_PROCFS if the kernel supports the /proc filesystem.
 # Needed by NSProcessInfo.m
 #--------------------------------------------------------------------
@@ -16366,6 +16810,10 @@ if test "$enable_fake_main" = "yes"; then
 elif test "$enable_pass_arguments" = "no"; then
   if test "$objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 -o "$ac_cv_sys_procfs_psinfo" = yes \); then
     GS_FAKE_MAIN=0
+    if test "$have_kvm_env" = "1"; then
+      echo "WARNING ... using libkvm which is known to be buggy on some systems"
+      echo "consider configuring with --enable-fake-main instead."
+    fi
   else
     GS_FAKE_MAIN=1
     enable_fake_main=yes
@@ -16422,7 +16870,6 @@ case "$target_cpu" in
   sparc64*)
     case "$target_os" in
       solaris*)
-        do_broken_libffi=no;
         do_broken_libffcall=yes;
         do_enable_libffi=yes;
         do_enable_libffcall=no;;
@@ -16430,6 +16877,66 @@ case "$target_cpu" in
     esac ;;
   *) ;;
 esac
+
+have_unexpected=yes
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
+{ echo "$as_me:$LINENO: checking for objc_set_unexpected() in runtime" >&5
+echo $ECHO_N "checking for objc_set_unexpected() in runtime... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+#include "$srcdir/config/config.unexpected.m"
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  have_unexpected=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	have_unexpected=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+if test $have_unexpected = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_UNEXPECTED 1
+_ACEOF
+
+fi
+{ echo "$as_me:$LINENO: result: $have_unexpected" >&5
+echo "${ECHO_T}$have_unexpected" >&6; }
+CPPFLAGS="$saved_CPPFLAGS"
+
+if test "$exceptions" = "yes"; then
+  # ffcall will mess up native exceptions, so we must disable it.
+  do_broken_libffcall=yes
+  do_enable_libffcall=no
+
+  if test "$have_unexpected" = "no"; then
+    echo
+    echo "Your gnustep-make is configured to use native objc exceptions, but"
+    echo "the objc runtime does not appear to support setting an uncaught"
+    echo "exception handler.  This means that any uncaught exception will"
+    echo "cause a program to abort immediately."
+    echo "Consider reconfiguring gnustep-make or updating libobjc to fix this."
+  fi
+fi
 
 # Check whether --enable-libffi was given.
 if test "${enable_libffi+set}" = set; then
@@ -16494,7 +17001,8 @@ esac
 
 fi
 
-if test "${ac_cv_header_ffi_h+set}" = set; then
+if test "$do_broken_libffi" = "no"; then
+  if test "${ac_cv_header_ffi_h+set}" = set; then
   { echo "$as_me:$LINENO: checking for ffi.h" >&5
 echo $ECHO_N "checking for ffi.h... $ECHO_C" >&6; }
 if test "${ac_cv_header_ffi_h+set}" = set; then
@@ -16626,6 +17134,10 @@ else
 fi
 
 
+else
+  have_libffi=no
+fi
+if test "$do_broken_libffcall" = "no"; then
 
 for ac_header in callback.h
 do
@@ -16768,6 +17280,9 @@ fi
 
 done
 
+else
+  have_ffcall=no
+fi
 if test $have_ffcall = no; then
   enable_ffcall=no
   # If we don't have ffcall but do have libffi, use libffi
@@ -17049,7 +17564,9 @@ echo "${ECHO_T}none" >&6; }
     echo "we recommend installing libffi instead."
   else
     echo "You do not have either ffcall or libffi installed, or configure needs"
-    echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them"
+    echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them,"
+    echo "or you have ffcall but gnustep-make is configured to use native exceptions"
+    echo "(native exceptions are not compatible with ffcall)."
   fi
   echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
   echo "invocations and DO."
@@ -18101,6 +18618,7 @@ if test $enable_tls = yes; then
   saved_LIBS="$LIBS"
   saved_CFLAGS="$CFLAGS"
 
+#  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
 
 
 # Check whether --with-tls-prefix was given.
@@ -18166,7 +18684,7 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  min_tls_version=2.0.1
+  min_tls_version=1.4.0
   { echo "$as_me:$LINENO: checking for libgnutls - version >= $min_tls_version" >&5
 echo $ECHO_N "checking for libgnutls - version >= $min_tls_version... $ECHO_C" >&6; }
   no_tls=""
@@ -18205,8 +18723,8 @@ main()
       printf("*** You need a version of libtgnuls newer than $min_tls_version.\n");
       printf("*** If you have already installed a sufficiently new version, this error\n");
       printf("*** probably means that the wrong copy of the libgnutls-config shell script is\n");
-      printf("*** being found. Yoiu can fix this is by removing the old version\n");
-      printf("*** of libgnutlsthe\n");
+      printf("*** being found. You can fix this is by removing the old version\n");
+      printf("*** of libgnutls.\n");
       return 1;
     }
   return 0;
@@ -18293,8 +18811,8 @@ main()
       printf("*** You need a version of libtgnuls newer than $min_tls_version.\n");
       printf("*** If you have already installed a sufficiently new version, this error\n");
       printf("*** probably means that the wrong copy of the libgnutls-config shell script is\n");
-      printf("*** being found. Yoiu can fix this is by removing the old version\n");
-      printf("*** of libgnutlsthe\n");
+      printf("*** being found. You can fix this is by removing the old version\n");
+      printf("*** of libgnutls.\n");
       return 1;
     }
   return 0;
@@ -18379,6 +18897,104 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_GNUTLS 1
 _ACEOF
 
+
+for ac_func in gnutls_transport_set_errno
+do
+as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $ac_func" >&5
+echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6; }
+if { as_var=$as_ac_var; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_$ac_func || defined __stub___$ac_func
+choke me
+#endif
+
+int
+main ()
+{
+return $ac_func ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  eval "$as_ac_var=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_var=no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+ac_res=`eval echo '${'$as_ac_var'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_var'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+    if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
+      { echo "$as_me:$LINENO: WARNING: Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine)." >&5
+echo "$as_me: WARNING: Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine)." >&2;}
+    fi
   else
     HAVE_GNUTLS=0
     # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
@@ -19776,12 +20392,12 @@ _GSC_S_LNG_LNG!$_GSC_S_LNG_LNG$ac_delim
 DYNAMIC_LINKER!$DYNAMIC_LINKER$ac_delim
 NX_CONST_STRING_OBJCFLAGS!$NX_CONST_STRING_OBJCFLAGS$ac_delim
 NX_CONST_STRING_CLASS!$NX_CONST_STRING_CLASS$ac_delim
+HAVE_OBJC_SYNC_ENTER!$HAVE_OBJC_SYNC_ENTER$ac_delim
 HAVE_PTHREAD_H!$HAVE_PTHREAD_H$ac_delim
 HAVE_PTS_STREAM_MODULES!$HAVE_PTS_STREAM_MODULES$ac_delim
 INCLUDE_STDINT!$INCLUDE_STDINT$ac_delim
 DEFINE_INT8_T!$DEFINE_INT8_T$ac_delim
 DEFINE_UINT8_T!$DEFINE_UINT8_T$ac_delim
-DEFINE_INT16_T!$DEFINE_INT16_T$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -19823,6 +20439,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+DEFINE_INT16_T!$DEFINE_INT16_T$ac_delim
 DEFINE_UINT16_T!$DEFINE_UINT16_T$ac_delim
 DEFINE_INT32_T!$DEFINE_INT32_T$ac_delim
 DEFINE_UINT32_T!$DEFINE_UINT32_T$ac_delim
@@ -19860,7 +20477,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 35; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 36; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

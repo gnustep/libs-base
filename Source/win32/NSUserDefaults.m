@@ -553,7 +553,7 @@ struct NSUserDefaultsWin32_DomainInfo
 	  rc = RegCreateKeyExW(HKEY_CURRENT_USER,
 	    UNISTR(dPath),
 	    0,
-	    L"",
+	    (LPWSTR) L"",
 	    REG_OPTION_NON_VOLATILE,
 	    STANDARD_RIGHTS_WRITE|STANDARD_RIGHTS_READ|KEY_SET_VALUE
 	    |KEY_QUERY_VALUE,

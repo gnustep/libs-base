@@ -24,29 +24,31 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSTask.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSTimer.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSPortNameServer.h"
-#include "Foundation/NSDebug.h"
+#import "config.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSTask.h"
+#import "GNUstepBase/NSTask+GS.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSPortNameServer.h"
+#import "Foundation/NSDebug.h"
 
-#include "GSPortPrivate.h"
+#import "GSPortPrivate.h"
 
 #ifdef __MINGW32__
 #include <winsock2.h>
@@ -186,9 +188,7 @@ typedef enum {
       [self close];
       if (launchCmd == nil)
 	{
-	  launchCmd = RETAIN([[NSSearchPathForDirectoriesInDomains(
-	    GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
-	    stringByAppendingPathComponent: @"gdomap"]);
+	  launchCmd = [NSTask launchPathForTool: @"gdomap"];
 	}
       if (state == GSPC_LOPEN && launchCmd != nil)
 	{

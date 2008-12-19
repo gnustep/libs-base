@@ -89,7 +89,7 @@ static NSLock	*clientsLock = nil;
 static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize);
 static id clientForHandle(void *data, NSURLHandle *hdl);
 static char *findUp(char *str);
-static void unescape(const char *from, char * to);
+static char *unescape(const char *from, char * to);
 
 /**
  * Build an absolute URL as a C string
@@ -400,7 +400,7 @@ static BOOL legal(const char *str, const char *extras)
 /*
  * Convert percent escape sequences to individual characters.
  */
-static void unescape(const char *from, char * to)
+static char *unescape(const char *from, char * to)
 {
   while (*from != '\0')
     {
@@ -461,6 +461,7 @@ static void unescape(const char *from, char * to)
 	}
     }
   *to = '\0';
+  return to;
 }
 
 
@@ -526,7 +527,12 @@ static unsigned	urlAlign;
  * Initialise by building a URL string from the supplied parameters
  * and calling -initWithString:relativeToURL:<br />
  * This method adds percent escapes to aPath if it contains characters
- * which need ascaping.
+ * which need escaping.<br />
+ * Accepts RFC2732 style IPv6 host addresses either with or without the
+ * enclosing square brackets (MacOS-X at least up to version 10.5 does
+ * not handle these correctly, but GNUstep does).<br />
+ * Permits the 'aHost' part to contain 'username:password@host:port' or
+ * 'host:port' in addition to a simple host name or address.
  */
 - (id) initWithScheme: (NSString*)aScheme
 		 host: (NSString*)aHost
@@ -538,6 +544,30 @@ static unsigned	urlAlign;
     = [aPath stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
   if ([aHost length] > 0)
     {
+      NSRange	r = [aHost rangeOfString: @"@"];
+      NSString	*auth = nil;
+
+      /* Allow for authentication (username:password) before actual host.
+       */
+      if (r.length > 0)
+	{
+	  auth = [aHost substringToIndex: r.location];
+	  aHost = [aHost substringFromIndex: NSMaxRange(r)];
+	}
+
+      /* Add square brackets around ipv6 address if necessary
+       */
+      if ([[aHost componentsSeparatedByString: @":"] count] > 2
+	&& [aHost hasPrefix: @"["] == NO)
+	{
+	  aHost = [NSString stringWithFormat: @"[%@]", aHost];
+	}
+
+      if (auth != nil)
+	{
+	  aHost = [NSString stringWithFormat: @"%@@%@", auth, aHost];
+	}
+
       if ([aPath length] > 0)
 	{
 	  /*
@@ -623,19 +653,28 @@ static unsigned	urlAlign;
 /** <init />
  * Initialised using aUrlString and aBaseUrl.  The value of aBaseUrl
  * may be nil, but aUrlString must be non-nil.<br />
+ * Accepts RFC2732 style IPv6 host addresses.<br />
  * If the string cannot be parsed the method returns nil.
  */
 - (id) initWithString: (NSString*)aUrlString
 	relativeToURL: (NSURL*)aBaseUrl
 {
   /* RFC 2396 'reserved' characters ...
+   * as modified by RFC2732
    */
-  static const char *reserved = ";/?:@&=+$,";
+  static const char *reserved = ";/?:@&=+$,[]";
 
-  if (aUrlString == nil)
+  if ([aUrlString isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@ %@] nil string parameter",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  if (aBaseUrl != nil
+    && [aBaseUrl isKindOfClass: [NSURL class]] == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@ %@] bad base URL parameter",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   ASSIGNCOPY(_urlString, aUrlString);
@@ -785,7 +824,41 @@ static unsigned	urlAlign;
 	       * Parse host:port part
 	       */
 	      buf->host = start;
-	      ptr = strchr(buf->host, ':');
+	      if (*start == '[')
+		{
+	          ptr = strchr(buf->host, ']');
+		  if (ptr == 0)
+		    {
+		      [NSException raise: NSInvalidArgumentException
+			format: @"[%@ %@](%@, %@) "
+			@"illegal ipv6 host address",
+			NSStringFromClass([self class]),
+			NSStringFromSelector(_cmd),
+			aUrlString, aBaseUrl];
+		    }
+		  else
+		    {
+		      ptr = start + 1;
+		      while (*ptr != ']')
+			{
+			  if (*ptr != ':' && *ptr != '.' && !isxdigit(*ptr))
+			    {
+			      [NSException raise: NSInvalidArgumentException
+				format: @"[%@ %@](%@, %@) "
+				@"illegal ipv6 host address",
+				NSStringFromClass([self class]),
+				NSStringFromSelector(_cmd),
+				aUrlString, aBaseUrl];
+			    }
+			  ptr++;
+			}
+		    }
+	          ptr = strchr(ptr, ':');
+		}
+	      else
+		{
+	          ptr = strchr(buf->host, ':');
+		}
 	      if (ptr != 0)
 		{
 		  const char	*str;
@@ -857,7 +930,10 @@ static unsigned	urlAlign;
 		    }
 		}
 	      start = end;
-	      if (legal(buf->host, "-") == NO)
+	      /* Check for a legal host, unless it's an ipv6 address
+	       * (which would have been checked earlier).
+	       */
+	      if (*buf->host != '[' && legal(buf->host, "-") == NO)
 		{
 		  [NSException raise: NSInvalidArgumentException
                     format: @"[%@ %@](%@, %@) "
@@ -978,7 +1054,7 @@ static unsigned	urlAlign;
 	    {
 	      buf->user = 0;
 	      buf->password = 0;
-	      buf->host = "localhost";
+	      buf->host = (char*) "localhost";
 	      buf->port = 0;
 	      buf->isGeneric = YES;
 	    }
@@ -1157,6 +1233,8 @@ static unsigned	urlAlign;
  * host supplied in the URL.<br />
  * Percent escape sequences in the user string are translated and the string
  * treated as UTF8.<br />
+ * Returns IPv6 addresses <em>without</em> the enclosing square brackets
+ * required (by RFC2732) in URL strings.
  */
 - (NSString*) host
 {
@@ -1166,7 +1244,19 @@ static unsigned	urlAlign;
     {
       char	buf[strlen(myData->host)+1];
 
-      unescape(myData->host, buf);
+      if (*myData->host == '[')
+	{
+	  char	*end = unescape(myData->host + 1, buf);
+
+	  if (end[-1] == ']')
+	    {
+	      end[-1] = '\0';
+	    }
+	}
+      else
+	{
+          unescape(myData->host, buf);
+	}
       host = [NSString stringWithUTF8String: buf];
     }
   return host;

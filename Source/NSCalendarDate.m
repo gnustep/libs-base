@@ -1511,6 +1511,12 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  */
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
+  if (isnan(seconds))
+    {
+      [NSException raise: NSInvalidArgumentException
+	          format: @"[%@-%@] interval is not a number",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   _seconds_since_ref = seconds;
   if (_calendar_format == nil)
     {

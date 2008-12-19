@@ -603,13 +603,13 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       buf[4] = hi;
 
       name = buf;	// _getKey
-      sel = sel_get_any_uid(name);
+      sel = GSSelectorFromName(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
 	  buf[3] = '_';
 	  buf[4] = lo;
 	  name = &buf[3]; // _key
-	  sel = sel_get_any_uid(name);
+	  sel = GSSelectorFromName(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
 	      sel = 0;
@@ -631,12 +631,12 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	      buf[3] = 't';
 	      buf[4] = hi;
 	      name = &buf[1]; // getKey
-	      sel = sel_get_any_uid(name);
+	      sel = GSSelectorFromName(name);
 	      if (sel == 0 || [self respondsToSelector: sel] == NO)
 		{
 		  buf[4] = lo;
 		  name = &buf[4];	// key
-		  sel = sel_get_any_uid(name);
+		  sel = GSSelectorFromName(name);
 		  if (sel == 0 || [self respondsToSelector: sel] == NO)
 		    {
 		      sel = 0;

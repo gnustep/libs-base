@@ -108,18 +108,16 @@ static SEL	appSel;
 {
   if (self == [NSDictionary class])
     {
-      NSArray_class = [NSArray class];
-      NSDictionaryClass = [NSDictionary class];
-      NSMutableDictionaryClass = [NSMutableDictionary class];
-      GSDictionaryClass = [GSDictionary class];
-      GSMutableDictionaryClass = [GSMutableDictionary class];
-
       eqSel = @selector(isEqual:);
       nxtSel = @selector(nextObject);
       objSel = @selector(objectForKey:);
       remSel = @selector(removeObjectForKey:);
       setSel = @selector(setObject:forKey:);
       appSel = @selector(appendString:);
+      NSArray_class = [NSArray class];
+      NSDictionaryClass = self;
+      GSDictionaryClass = [GSDictionary class];
+      [NSMutableDictionary class];
     }
 }
 
@@ -1123,6 +1121,8 @@ compareIt(id o1, id o2, void* context)
 {
   if (self == [NSMutableDictionary class])
     {
+      NSMutableDictionaryClass = self;
+      GSMutableDictionaryClass = [GSMutableDictionary class];
     }
 }
 

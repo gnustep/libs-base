@@ -708,7 +708,7 @@ cifframe_do_call (DOContext *ctxt,
   /* The selector for the message we're sending to the TARGET. */
   SEL selector;
   /* The OBJECT's Method(_t) pointer for the SELECTOR. */
-  GSMethod meth;
+  GSMethod meth = 0;
   /* The OBJECT's implementation of the SELECTOR. */
   IMP method_implementation;
   /* Type qualifier flags; see <objc/objc-api.h>. */
@@ -782,7 +782,12 @@ cifframe_do_call (DOContext *ctxt,
   /* Make sure we successfully got the method type, and that its
      types match the ENCODED_TYPES. */
   NSCParameterAssert (type);
-  NSCParameterAssert (GSSelectorTypesMatch(encoded_types, type));
+  if (GSSelectorTypesMatch(encoded_types, type) == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"cifframe_do_call types (%s / %s) missmatch for %s", 
+	encoded_types, type, GSNameFromSelector(selector)];
+    }
 
   /* Build the cif frame */
   sig = [NSMethodSignature signatureWithObjCTypes: type];

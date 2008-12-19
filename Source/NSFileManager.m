@@ -671,6 +671,46 @@ static NSStringEncoding	defaultEncoding;
 }
 
 /**
+ * Creates a new directory and all intermediate directories
+ * if flag is YES, creates only the last directory in the path
+ * if flag is NO.  The directory is created with the attributes
+ * specified in attributes and any error is returned in error.<br />
+ * returns YES on success, NO on failure.
+ */
+- (BOOL) createDirectoryAtPath: (NSString *)path
+   withIntermediateDirectories: (BOOL)flag
+		    attributes: (NSDictionary *)attributes
+			 error: (NSError **) error
+{
+  BOOL result = NO;
+
+  if (flag == YES)
+    {
+      NSEnumerator *paths = [[path pathComponents] objectEnumerator];
+      NSString *path = nil;
+      NSString *dir = [NSString string];
+
+      while ((path = (NSString *)[paths nextObject]) != nil)
+	{
+	  dir = [dir stringByAppendingPathComponent: path];
+	  result = [self createDirectoryAtPath: dir
+			 attributes: attributes];
+	}
+    }
+  else
+    {
+      result = [self createDirectoryAtPath: [path lastPathComponent]
+                                attributes: attributes];
+    }  
+
+  if (error != NULL)
+    {
+      *error = [NSError _last];
+    }
+  return result;
+}
+
+/**
  * Creates a new directory, and sets its attributes as specified.<br />
  * Creates other directories in the path as necessary.<br />
  * Returns YES on success, NO on failure.

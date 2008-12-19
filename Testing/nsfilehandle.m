@@ -27,16 +27,20 @@ main ()
 
   pool = [[NSAutoreleasePool alloc] init];
 
-  src = [[NSFileHandle fileHandleForReadingAtPath:@"nsfilehandle.m"] retain];
-  assert(src != nil);
   dst = [[NSFileHandle fileHandleForWritingAtPath:@"nsfilehandle.dat"] retain];
   if (dst == nil)
     {
       creat("nsfilehandle.dat", 0644);
       dst = [[NSFileHandle fileHandleForWritingAtPath:@"nsfilehandle.dat"] retain];
+      src = [NSFileHandle fileHandleForReadingAtPath:@"nsfilehandle.dat"];
+      NSLog(@"%@", [src readDataToEndOfFile]);
     }
   assert(dst != nil);
 
+  src = [[NSFileHandle fileHandleForReadingAtPath:@"nsfilehandle.m"] retain];
+  assert(src != nil);
+
+  assert(src != nil);
   d0 = [[src readDataToEndOfFile] retain];
   [(NSFileHandle*)dst writeData: d0];
   [src release];

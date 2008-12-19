@@ -638,6 +638,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   fd_set 		read_fds;	// Mask for read-ready fds.
   fd_set 		exception_fds;	// Mask for exception fds.
   fd_set 		write_fds;	// Mask for write-ready fds.
+  int			fd;
   int			fdEnd = -1;
   unsigned		count;
   unsigned		i;
@@ -901,7 +902,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      [watcher->receiver receivedEvent: watcher->data
 					  type: watcher->type
-					 extra: watcher->data
+					 extra: (void*)(intptr_t)fdIndex
 				       forMode: mode];
 	    }
 	  GSPrivateNotifyASAP();
@@ -933,7 +934,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      [watcher->receiver receivedEvent: watcher->data
 					  type: watcher->type
-					 extra: watcher->data
+					 extra: (void*)(intptr_t)fdIndex
 				       forMode: mode];
 	    }
 	  GSPrivateNotifyASAP();
@@ -973,7 +974,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      [watcher->receiver receivedEvent: watcher->data
 					  type: watcher->type
-					 extra: watcher->data
+					 extra: (void*)(intptr_t)fdIndex
 				       forMode: mode];
 	    }
 	  GSPrivateNotifyASAP();

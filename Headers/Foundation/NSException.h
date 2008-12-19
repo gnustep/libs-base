@@ -252,19 +252,14 @@ typedef struct _NSHandler
 typedef void NSUncaughtExceptionHandler(NSException *exception);
 
 /**
- *  Variable used to hold the current uncaught exception handler.  Use the
- *  function NSSetUncaughtExceptionHandler() to set this.
- */
-GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
-
-/**
  *  Returns the exception handler called when an exception is generated and
  *  not caught by the programmer (by enclosing in <code>NS_DURING</code> and
  *  <code>NS_HANDLER</code>...<code>NS_ENDHANDLER</code>).  The default prints
  *  an error message and exits the program.  You can change this behavior by
  *  calling NSSetUncaughtExceptionHandler().
  */
-#define NSGetUncaughtExceptionHandler() _NSUncaughtExceptionHandler
+GS_EXPORT NSUncaughtExceptionHandler *
+NSGetUncaughtExceptionHandler();
 
 /**
  *  <p>Sets the exception handler called when an exception is generated and
@@ -275,20 +270,23 @@ GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
  *  </p>
  *  <p>NB. If the exception handler set by this function does not terminate
  *  the process, the process will be terminateed anyway.  This is a safety
- *  precaution to ensure that, in the event of an exception ebing raised
+ *  precaution to ensure that, in the event of an exception being raised
  *  and not handled, the program does not try to continue running in a
  *  confused state (possibly doing horrible things like billing customers
  *  who shouldn't be billed etc), but shuts down as cleanly as possible.
  *  </p>
  *  <p>Process termination is normally accomplished by calling the standard
- *  exit function of theC runtime library, but if the environment variable
+ *  exit function of the C runtime library, but if the environment variable
  *  CRASH_ON_ABORT is set to YES or TRUE or 1 the termination will be
  *  accomplished by calling the abort function instead, which should cause
  *  a core dump to be made for debugging.
  *  </p>
+ *  <p>The value of proc should be a pointer to a function taking an
+ *  [NSException] instance as an argument.
+ *  </p>
  */
-#define NSSetUncaughtExceptionHandler(proc) \
-			(_NSUncaughtExceptionHandler = (proc))
+GS_EXPORT void
+NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler);
 
 /* NS_DURING, NS_HANDLER and NS_ENDHANDLER are always used like: 
 

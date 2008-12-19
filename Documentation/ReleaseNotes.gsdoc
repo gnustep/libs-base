@@ -30,9 +30,77 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.18.0</heading>
+	<p> 
+          This is a new stable release of teh base library.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSBundle</term>
+          <desc>Improve lookup of versioned library resources and improve
+	  location of resources based on the location of the executable
+	  under ms-windows.
+          </desc>
+	  <term>NSConnection</term>
+          <desc>Adds a new keepalive mechanism to check connections at periodic
+	  intervals to see if the other end is still there.  This is enabled
+	  for message ports on ms-windows, where the operating system does
+	  not inform us when the other end goes away, and is not needed on
+	  the socket based connections on Unix.
+          </desc>
+	  <term>NSDate</term>
+          <desc>Implement keyed archiving.
+          </desc>
+	  <term>NSException</term>
+          <desc>Implement full support for native objecive-c exceptions,
+	  though this requires a fix for the objc runtme which is not yet
+	  available in gcc.  The patch for the runtime can be found at
+	  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27466
+          </desc>
+	  <term>NSFileManager</term>
+          <desc>Add
+-createDirectoryAtPath:withIntermediateDirectories:attributes:error: method.
+
+          </desc>
+	  <term>NSKeyedUnarchiver</term>
+          <desc>Implements the -versionForClassName: method.
+          </desc>
+	  <term>NSTask</term>
+          <desc>Adds a new method in a category in the Additions library ...
+	  The +launchPathForTool: method will locate a named tool by looking
+	  in all the standard locations in the USER, LOCAL, NETWORK and
+	  SYSTEM domains, and also by looking in PATH.
+          </desc>
+	  <term>NSThread</term>
+          <desc>Adds the new MacOS-X 10.5 methods to provide more control of
+	  threads.
+	  </desc>
+	  <term>NSURL</term>
+          <desc>Adds support for IPv6 syntax for host specification.  This does
+	  not mean that networking supports IPv6 yet though.
+	  </desc>
+	  <term>NSUserDefaults</term>
+          <desc>Adds undocumented MacOS-X support of KVC methods.
+	  </desc>
+	  <term>Portability and compatibility work</term>
+          <desc>There are lots of minor changes to improve portability
+	  (both improved configuration/detection of system software and
+	  runtime iimprovements) to different operating systems such as
+	  64bit ms-windows.  There are also various improvements to
+	  MacOS-X compatibility.
+	  </desc>
+	  <term>Various other changes</term>
+          <desc>
+	  Implementation of runtime support for @synchronize.<br />
+	  Improvement of the use of libffi to replace ffcall.<br />
+	  </desc>
+	</deflist>
+      </section>
+
+      <section>
 	<heading>Version 1.16.5</heading>
 	<p> 
-          This is a bugfix release to correrct a possible null pointer
+          This is a bugfix release to correct a possible null pointer
 	  dereference introduced by a fix in the last release.
 	</p>
       </section>

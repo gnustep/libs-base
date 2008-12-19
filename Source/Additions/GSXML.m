@@ -54,6 +54,10 @@
 #include "GNUstepBase/GSXML.h"
 #include <Foundation/Foundation.h>
 
+/* Avoid problems on systems where the xml headers use 'id'
+ */
+#define	id	GSXMLID
+
 /* libxml headers */
 #include <libxml/tree.h>
 #include <libxml/entities.h>
@@ -78,6 +82,9 @@
 #include <libxslt/transform.h>
 #include <libxslt/xsltutils.h>
 #endif /* HAVE_LIBXSLT */
+
+#undef	id
+
 
 /*
  * optimization
@@ -2413,7 +2420,7 @@ loadEntityFunction(void *ctx,
   entityId = (eid != 0) ? (id)UTF8Str(eid) : nil;
   location = UTF8Str(url);
   components = [location pathComponents];
-  local = [NSMutableString string];
+  local = (NSMutableString *) [NSMutableString string];
 
   /*
    * Build a local filename by replacing path separator characters with

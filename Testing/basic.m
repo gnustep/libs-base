@@ -2,6 +2,12 @@
 
 #include "Foundation/Foundation.h"
 
+static void
+handler(NSException *e)
+{
+  NSLog(@"Caught %@", e);
+}
+
 int main()
 {
   CREATE_AUTORELEASE_POOL(arp);
@@ -42,6 +48,9 @@ int main()
   [task waitUntilExit];
 
   printf("Second task has completed\n");
+
+  NSSetUncaughtExceptionHandler(handler);
+  [NSException raise: NSGenericException format: @"an exception"];
 
   DESTROY(arp);
   return 0;

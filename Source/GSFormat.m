@@ -1671,7 +1671,7 @@ NSDictionary *locale)
 	  {
 	    /* If the pointer is not NULL, write it as a %#x spec.  */
 	    base = 16;
-	    number.word = (unsigned long int) ptr;
+	    number.word = (size_t) ptr;
 	    is_negative = 0;
 	    alt = 1;
 	    group = 0;

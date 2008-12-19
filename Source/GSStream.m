@@ -337,6 +337,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return;
 }
 
+- (void) _resetEvents: (int)mask
+{
+  return;
+}
+
 - (void) _schedule
 {
 }
@@ -391,6 +396,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   NSDebugMLLog(@"NSStream", @"record error: %@ - %@", self, anError);
   ASSIGN(_lastError, anError);
   _currentStatus = NSStreamStatusError;
+}
+
+- (void) _resetEvents: (int)mask
+{
+  _events &= ~mask;
 }
 
 - (void) _schedule

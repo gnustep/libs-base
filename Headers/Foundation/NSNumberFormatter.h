@@ -298,6 +298,16 @@ extern "C" {
  */
 - (void) setMinimum: (NSDecimalNumber*)aMinimum;
 
+/**
+ * Returns the string version of this number based on the format
+ * specified.
+ */
+- (NSString *) stringFromNumber: (NSNumber *)number;
+
+/**
+ * Returns the number for this string.
+ */
+- (NSNumber *) numberFromString: (NSString *)string;
 @end
 
 #if	defined(__cplusplus)

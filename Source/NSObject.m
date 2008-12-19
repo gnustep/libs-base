@@ -28,9 +28,10 @@
 /* On some versions of mingw we need to work around bad function declarations
  * by defining them away and doing the declarations ourself later.
  */
+#ifndef _WIN64
 #define InterlockedIncrement	BadInterlockedIncrement
 #define InterlockedDecrement	BadInterlockedDecrement
-
+#endif
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -211,11 +212,12 @@ static void GSLogZombie(id o, SEL sel)
 #if	defined(REFCNT_LOCAL)
 
 #if	defined(__MINGW32__)
-
+#ifndef _WIN64
 #undef InterlockedIncrement
 #undef InterlockedDecrement
 LONG WINAPI InterlockedIncrement(LONG volatile *);
 LONG WINAPI InterlockedDecrement(LONG volatile *);
+#endif
 
 /* Set up atomic read, increment and decrement for mswindows
  */
@@ -1597,6 +1599,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
+  const char		*selTypes;
   const char		*types;
   struct objc_method	*mth;
   Class			c;
@@ -1605,6 +1608,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
+  selTypes = sel_get_type(aSelector);
   c = (GSObjCIsInstance(self) ? GSObjCClass(self) : (Class)self);
   mth = GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
 
@@ -1660,6 +1664,13 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   if (types == 0)
     {
       return nil;
+    }
+  else if (selTypes != 0 && GSSelectorTypesMatch(selTypes, types) == NO)
+    {
+      [NSException raise: NSInternalInconsistencyException
+	format: @"[%@%c%@] selector types (%s) don't match method types (%s)",
+	NSStringFromClass(c), (GSObjCIsInstance(self) ? '-' : '+'),
+	NSStringFromSelector(aSelector), selTypes, types];
     }
   return [NSMethodSignature signatureWithObjCTypes: types];
 }

@@ -23,9 +23,6 @@
 #  Boston, MA 02111 USA
 #
 
-# Install into the system root by default
-GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
-
 include $(GNUSTEP_MAKEFILES)/common.make
 include ../../config.mak
 

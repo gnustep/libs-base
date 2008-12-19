@@ -314,7 +314,7 @@ con_messages (id prx)
   printf("  ok\n");
 
   printf("performSelector:\n");
-  if (prx != [prx performSelector:sel_get_any_uid("self")])
+  if (prx != [prx performSelector: GSSelectorFromName("self")])
     printf("  ERROR\n");
   else
     printf("  ok\n");
@@ -588,7 +588,7 @@ int main (int argc, char *argv[], char **env)
 	}
       else
 	prx = [NSConnection rootProxyForConnectionWithRegisteredName:
-		@"test2server" host: @"*"];
+		@"test2server" host: @""];
       if (prx == nil)
 	{
 	  printf("ERROR: Failed to connect to server\n");

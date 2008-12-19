@@ -52,8 +52,8 @@ main()
       printf("*** You need a version of libtgnuls newer than $min_tls_version.\n");
       printf("*** If you have already installed a sufficiently new version, this error\n");
       printf("*** probably means that the wrong copy of the libgnutls-config shell script is\n");
-      printf("*** being found. Yoiu can fix this is by removing the old version\n");
-      printf("*** of libgnutlsthe\n");
+      printf("*** being found. You can fix this is by removing the old version\n");
+      printf("*** of libgnutls.\n");
       return 1;
     }
   return 0;
@@ -100,8 +100,8 @@ main()
       printf("*** You need a version of libtgnuls newer than $min_tls_version.\n");
       printf("*** If you have already installed a sufficiently new version, this error\n");
       printf("*** probably means that the wrong copy of the libgnutls-config shell script is\n");
-      printf("*** being found. Yoiu can fix this is by removing the old version\n");
-      printf("*** of libgnutlsthe\n");
+      printf("*** being found. You can fix this is by removing the old version\n");
+      printf("*** of libgnutls.\n");
       return 1;
     }
   return 0;

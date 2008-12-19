@@ -239,6 +239,7 @@ stringFromMsgType(int type)
 - (void) handlePortMessage: (NSPortMessage*)msg;
 - (void) _runInNewThread;
 + (void) setDebug: (int)val;
+- (void) _enableKeepalive;
 
 - (void) addLocalObject: (NSDistantObject*)anObj;
 - (void) removeLocalObject: (NSDistantObject*)anObj;
@@ -540,7 +541,7 @@ static NSLock	*cached_proxies_gate = nil;
 
 + (void) initialize
 {
-  if (self == [NSConnection class])
+  if (connectionClass == nil)
     {
       NSNotificationCenter	*nc;
 
@@ -996,6 +997,10 @@ static NSLock	*cached_proxies_gate = nil;
 	{
 	  [self addRequestMode: [parent->_requestModes objectAtIndex: count]];
 	}
+      if (parent->_useKeepalive == YES)
+	{
+	  [self _enableKeepalive];
+	}
     }
   else
     {
@@ -1012,6 +1017,7 @@ static NSLock	*cached_proxies_gate = nil;
       _requestModes = [[NSMutableArray alloc] initWithCapacity: 2];
       [self addRequestMode: NSDefaultRunLoopMode];
       [self addRequestMode: NSConnectionReplyMode];
+      _useKeepalive = NO;
 
       /*
        * If we have no parent, we must handle incoming packets on our
@@ -1628,6 +1634,16 @@ static NSLock	*cached_proxies_gate = nil;
 - (void) setRootObject: (id)anObj
 {
   setRootObjectForInPort(anObj, _receivePort);
+#if	defined(__MINGW32__)
+  /* On ms-windows, the operating system does not inform us when the remote
+   * client of a message port goes away ... so we need to enable keepalive
+   * to detect that condition.
+   */
+  if ([_receivePort isKindOfClass: [NSMessagePort class]])
+    {
+      [self _enableKeepalive];
+    }
+#endif
 }
 
 /**
@@ -1974,8 +1990,8 @@ static void retEncoder (DOContext *ctxt)
 
   [self _sendOutRmc: ctxt.encoder type: METHOD_REQUEST];
   ctxt.encoder = nil;
-  NSDebugMLLog(@"NSConnection", @"Sent message (%s) to 0x%x",
-    GSNameFromSelector(sel), (uintptr_t)self);
+  NSDebugMLLog(@"NSConnection", @"Sent message (%s) RMX %d to 0x%x",
+    GSNameFromSelector(sel), ctxt.seq, (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2099,7 +2115,8 @@ static void retEncoder (DOContext *ctxt)
     }
 
   [self _sendOutRmc: op type: METHOD_REQUEST];
-  NSDebugMLLog(@"NSConnection", @"Sent message to 0x%x", (uintptr_t)self);
+  NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%x",
+    GSNameFromSelector([inv selector]), ctxt.seq, (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2328,6 +2345,15 @@ static void retEncoder (DOContext *ctxt)
 	  GSIMapNode	node;
 
 	  [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
+	  if (type == ROOTPROXY_REPLY && conn->_keepaliveWait == YES
+	    && sequence == conn->_lastKeepalive)
+	    {
+	      conn->_keepaliveWait = NO;
+	      NSDebugMLLog(@"NSConnection", @"Handled keepalive %d on %@",
+		sequence, conn);
+	      [self _doneInRmc: rmc];
+	      break;
+	    }
 	  M_LOCK(conn->_queueGate);
 	  node = GSIMapNodeForKey(conn->_replyMap, (GSIMapKey)sequence);
 	  if (node == 0)
@@ -2385,6 +2411,50 @@ static void retEncoder (DOContext *ctxt)
 + (void) setDebug: (int)val
 {
   debug_connection = val;
+}
+
+- (void) _keepalive: (NSNotification*)n
+{
+  if ([self isValid])
+    {
+      if (_keepaliveWait == NO)
+	{
+	  NSPortCoder	*op;
+
+	  /* Send out a root proxy request to ping the other end.
+	   */
+	  op = [self _makeOutRmc: 0 generate: &_lastKeepalive reply: NO];
+	  _keepaliveWait = YES;
+	  [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
+	}
+      else
+	{
+	  /* keepalive timeout outstanding still.
+	   */
+	  [self invalidate];
+	}
+    }
+}
+
+/**
+ */
+- (void) _enableKeepalive
+{
+  _useKeepalive = YES;	/* Set so that child connections will inherit. */
+  _keepaliveWait = NO;
+  if (_receivePort != _sendPort)
+    {
+      /* If this is not a listening connection, we actually enable the
+       * keepalive timing (usng the regular housekeeping notifications)
+       * and must also enable multiple thread support as the keepalive
+       * notification may arrive in a different thread from the one we
+       * are running in.
+       */
+      [self enableMultipleThreads];
+      [[NSNotificationCenter defaultCenter] addObserver: self
+	selector: @selector(_keepalive:)
+	name: @"GSHousekeeping" object: nil];
+    }
 }
 
 static void callDecoder (DOContext *ctxt)
@@ -2524,9 +2594,10 @@ static void callEncoder (DOContext *ctxt)
       ctxt.type = forward_type;
 
       if (debug_connection > 1)
-	{
-	  NSLog(@"Handling message from %@", (uintptr_t)self);
-	}
+      NSLog(
+	@"Handling message (sig %s) RMC %d from %@",
+	ctxt.type, ctxt.seq, (uintptr_t)self);
+
       _reqInCount++;	/* Handling an incoming request. */
 
 #if defined(USE_LIBFFI)
@@ -2754,7 +2825,7 @@ static void callEncoder (DOContext *ctxt)
  */
 - (NSPortCoder*) _getReplyRmc: (int)sn
 {
-  NSPortCoder		*rmc;
+  NSPortCoder		*rmc = nil;
   GSIMapNode		node = 0;
   NSDate		*timeout_date = nil;
   NSTimeInterval	last_interval = 0.0001;
@@ -3055,6 +3126,8 @@ static void callEncoder (DOContext *ctxt)
 			    sendPort: _sendPort
 			  components: nil];
   [coder encodeValueOfObjCType: @encode(int) at: &sno];
+  NSDebugMLLog(@"NSConnection", 
+    @"Make out RMC %u on %@", sno, self);
   return coder;
 }
 
@@ -3063,7 +3136,6 @@ static void callEncoder (DOContext *ctxt)
   NSDate		*limit;
   BOOL			sent = NO;
   BOOL			raiseException = NO;
-  BOOL			needsReply = NO;
   NSMutableArray	*components = [c _components];
 
   if (_authenticateOut == YES
@@ -3084,7 +3156,6 @@ static void callEncoder (DOContext *ctxt)
   switch (msgid)
     {
       case PROXY_RETAIN:
-	needsReply = YES;
       case CONNECTION_SHUTDOWN:
       case METHOD_REPLY:
       case ROOTPROXY_REPLY:
@@ -3097,14 +3168,13 @@ static void callEncoder (DOContext *ctxt)
       case METHOD_REQUEST:
       case ROOTPROXY_REQUEST:
       case METHODTYPE_REQUEST:
-	needsReply = YES;
       default:
 	raiseException = YES;
 	break;
     }
 
-  if (debug_connection > 5)
-    NSLog(@"Sending %@ on %@", stringFromMsgType(msgid), self);
+  NSDebugMLLog(@"NSConnection", 
+    @"Sending %@ on %@", stringFromMsgType(msgid), self);
 
   limit = [dateClass dateWithTimeIntervalSinceNow: _requestTimeout];
   sent = [_sendPort sendBeforeDate: limit

@@ -1250,6 +1250,7 @@ static Class concreteMutableClass = nil;
   NSRange		r;
   BOOL			findingLocation = YES;
 
+  r.location = 0;
   indexes = [NSMutableIndexSet new];
   for (i = 0; i < length; i++)
     {

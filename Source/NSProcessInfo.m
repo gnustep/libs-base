@@ -91,8 +91,11 @@
 #include <kvm.h>
 #include <fcntl.h>
 #include <sys/param.h>
-#include <sys/sysctl.h>
 #endif /* HAVE_KVM_ENV */
+
+#ifdef HAVE_SYS_SYSCTL_H
+#include <sys/sysctl.h>
+#endif
 
 #if HAVE_PROCFS_H
 #define id _procfs_avoid_id_collision
@@ -536,6 +539,11 @@ static char	**_gnu_noobjc_env = NULL;
   if (!vectors)
     {
       fprintf(stderr, "Error: libkvm does not return arguments for the current process\n");
+      fprintf(stderr, "this may be due to a bug (undocumented feature) in libkvm\n");
+      fprintf(stderr, "which fails to get arguments unless /proc is mounted.\n");
+      fprintf(stderr, "If so, you can mount the /proc filesystem or reconfigure/build\n");
+      fprintf(stderr, "gnustep-base with --enable-fake-main as a workaround, and\n");
+      fprintf(stderr, "should report the bug to the maintainer of libkvm on your operating system.\n");
       abort();
     }
 
@@ -1185,27 +1193,173 @@ static void determineOperatingSystem()
 
 - (void) setProcessName: (NSString *)newName
 {
-  if (newName && [newName length]) {
-    [_gnu_processName autorelease];
-    _gnu_processName = [newName copyWithZone: [self zone]];
-  }
+  if (newName && [newName length])
+    {
+      [_gnu_processName autorelease];
+      _gnu_processName = [newName copyWithZone: [self zone]];
+    }
   return;
 }
 
 - (NSUInteger) processorCount
 {
-  return 0;     // FIXME
+  static NSUInteger	procCount = 0;
+  static BOOL		beenHere = NO;
+
+  if (beenHere == NO)
+    {
+#if	defined(__MINGW32__)
+      SYSTEM_INFO info;
+
+      GetSystemInfo(&info);
+      return info.dwNumberOfProcessors;
+#elif	defined(_SC_NPROCESSORS_CONF)
+      procCount = sysconf(_SC_NPROCESSORS_CONF);
+#elif	defined(HAVE_SYSCTLBYNAME)
+      int	val;
+      size_t	len = sizeof(val);
+
+      if (sysctlbyname("hw.ncpu", &val, &len, 0, 0) == 0)
+        {
+          procCount = val;
+        }
+#elif	defined(HAVE_PROCFS)
+      NSFileManager	*fileManager = [NSFileManager defaultManager];
+
+      if ([fileManager fileExistsAtPath: @"/proc/cpuinfo"])
+	{
+	  NSString	*cpuInfo;
+	  NSArray	*a;
+	  unsigned	i;
+
+	  cpuInfo = [NSString stringWithContentsOfFile: @"/proc/cpuinfo"];
+	  a = [cpuInfo componentsSeparatedByCharactersInSet:
+	    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	  // syntax is processor : #
+	  // count up each one
+	  for (i = 0; i < [a count]; ++i)
+	    {
+	      if ([[a objectAtIndex: i] isEqualToString: @"processor"])
+		{
+		  if (((i+1) < [a count])
+		    && [[a objectAtIndex: i+1] isEqualToString: @":"])
+		    {
+		      procCount++;
+		    }
+		}
+	    }
+	}
+#else
+#warning	"no known way to determine number of processors on this system"
+#endif
+
+      beenHere = YES;
+      if (procCount == 0)
+	{
+	  NSLog(@"Cannot determine processor count.");
+	}
+    }    
+  return procCount;
 }
 
 - (NSUInteger) activeProcessorCount
 {
-  return 0;     // FIXME
+#if	defined(__MINGW32__)
+  SYSTEM_INFO info;
+  int	index;
+  int	count = 0;
+
+  GetSystemInfo(&info);
+  for (index = 0; index < 32; index++)
+    {
+      if (info.dwActiveProcessorMask & (1<<index))
+	{
+	  count++;
+	}
+    }
+  return count;
+#elif	defined(_SC_NPROCESSORS_ONLN)
+  return sysconf(_SC_NPROCESSORS_ONLN);
+#elif	defined(HAVE_SYSCTLBYNAME)
+  int		val;
+  size_t	len = sizeof(val);
+
+  if (sysctlbyname("kern.smp.cpus", &val, &len, 0, 0) == 0)
+    {
+      return val;
+    }
+  else if (sysctlbyname("hw.activecpu", &val, &len, 0, 0) == 0)
+    {
+      return val;
+    }
+  return [self processorCount];
+#else
+  return [self processorCount];
+#endif
 }
 
 - (unsigned long long) physicalMemory
 {
-  return 0;     // FIXME
+  static NSUInteger availMem = 0;
+  static BOOL beenHere = NO;
+
+  if (beenHere == NO)
+    {
+#if	defined(__MINGW32__)
+      MEMORYSTATUSEX memory;
+
+      memory.dwLength = sizeof(memory);
+      GlobalMemoryStatusEx(&memory);
+      return memory.ullTotalPhys;
+#elif	defined(_SC_PHYS_PAGES)
+      availMem = sysconf(_SC_PHYS_PAGES) * NSPageSize();
+#elif	defined(HAVE_SYSCTLBYNAME)
+      long	val;
+      size_t	len = val;
+
+      if (sysctlbyname("hw.physmem", &val, &len, 0, 0) == 0)
+        {
+          availMem = val;
+        }
+#elif	defined(HAVE_PROCFS)
+      NSFileManager *fileManager = [NSFileManager defaultManager];
+
+      if ([fileManager fileExistsAtPath: @"/proc/meminfo"])
+	{
+	  NSString	*memInfo;
+	  NSString	*s;
+	  NSArray	*a;
+	  NSRange	r;
+
+	  memInfo = [NSString stringWithContentsOfFile: @"/proc/meminfo"];
+	  r = [memInfo rangeOfString: @"MemTotal:"];
+
+	  if (r.location == NSNotFound)
+	    {
+	      NSLog(@"Cannot determine amount of physical memory.");
+	      return 0;
+	    }
+	  s = [[memInfo substringFromIndex: (r.location + r.length)]
+	    stringByTrimmingCharactersInSet:
+	    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	  a = [s componentsSeparatedByString: @" "];
+	  s = [a objectAtIndex: 0];
+	  availMem = (NSUInteger)[s longLongValue];
+	  availMem *= NSPageSize();
+	}
+#else
+#warning	"no known way to determine amount of memory on this system"
+#endif
+  
+      beenHere = YES;
+      if (availMem == 0)
+	{
+	  NSLog(@"Cannot determine amount of physical memory.");
+	}
+    }
+  return availMem;
 }
+
 @end
 
 @implementation	NSProcessInfo (GNUstep)

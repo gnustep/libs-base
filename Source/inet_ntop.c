@@ -17,14 +17,12 @@
  */
 
 #include "config.h"
+#include "GNUstepBase/GSConfig.h"
 
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/param.h>
 #include <stdio.h>
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
 #include <errno.h>
 
 #include "GSNetwork.h"
@@ -48,7 +46,7 @@
  */
 
 static const char *inet_ntop4(const u_char *src, char *dst, size_t size);
-static const char *inet_ntop6(const u_char *src, char *dst, size_t size);
+static  __attribute__((unused)) const char *inet_ntop6(const u_char *src, char *dst, size_t size);
 
 /* char *
  * inet_ntop(af, src, dst, size)
@@ -116,7 +114,8 @@ inet_ntop4(src, dst, size)
  * author:
  *      Paul Vixie, 1996.
  */
-static const char *
+static __attribute__((unused))
+const char *
 inet_ntop6(src, dst, size)
         const u_char *src;
         char *dst;

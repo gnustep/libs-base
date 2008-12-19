@@ -77,10 +77,9 @@ static Class NSMutableSet_concrete_class;
 {
   if (self == [NSSet class])
     {
-      NSSet_abstract_class = [NSSet class];
-      NSMutableSet_abstract_class = [NSMutableSet class];
+      NSSet_abstract_class = self;
       NSSet_concrete_class = [GSSet class];
-      NSMutableSet_concrete_class = [GSMutableSet class];
+      [NSMutableSet class];
     }
 }
 
@@ -445,7 +444,7 @@ static Class NSMutableSet_concrete_class;
   id		e = [self objectEnumerator];
   unsigned	i;
   unsigned	c = [self count];
-  NSArray	*result;
+  NSArray	*result = nil;
   GS_BEGINIDBUF(k, c);
 
   for (i = 0; i < c; i++)
@@ -630,7 +629,7 @@ static Class NSMutableSet_concrete_class;
 
 - (id) valueForKeyPath: (NSString*)path
 {
-  id result;
+  id result = (id) nil;
 
   if ([path hasPrefix: @"@"])
     {
@@ -915,6 +914,8 @@ static Class NSMutableSet_concrete_class;
 {
   if (self == [NSMutableSet class])
     {
+      NSMutableSet_abstract_class = self;
+      NSMutableSet_concrete_class = [GSMutableSet class];
     }
 }
 

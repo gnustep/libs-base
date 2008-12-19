@@ -517,7 +517,7 @@
   NSString		*prefix;
   NSString		*suffix;
   NSString		*wholeString;
-  NSString		*fracPad;
+  NSString		*fracPad = nil;
   NSString		*fracPartString;
   NSMutableString	*intPartString;
   NSMutableString	*formattedNumber;
@@ -783,4 +783,20 @@
     return [NSString stringWithCharacters: &_thousandSeparator length: 1];
 }
 
+- (NSString *) stringFromNumber: (NSNumber *)number
+{
+  return [self stringForObjectValue: number];
+}
+
+- (NSNumber *) numberFromString: (NSString *)string
+{
+  id number = nil;
+  NSString *error;
+
+  [self getObjectValue: &number
+	forString: string
+	errorDescription: &error];
+
+  return number;
+}
 @end

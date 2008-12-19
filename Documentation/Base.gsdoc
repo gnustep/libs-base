@@ -213,7 +213,7 @@ notice and this notice are preserved.
 		which contain characters not legal in XML.  GNUstep always
 		generates legal XML, at the cost of a certain degree of
 		compatibility.  GNUstep XML property lists use a backslash
-		to escape illegal chatracters, and consequently any string
+		to escape illegal characters, and consequently any string
 		containing either a backslash or an illegal character will
 		be written differently to the same string on MacOS-X.
 	      </p>
@@ -513,7 +513,8 @@ notice and this notice are preserved.
 	    <deflist>
 	      <term>GNUSTEP_SYSTEM_ROOT</term>
 	      <desc>
-		Obsolete.  Used to specify the GNUstep system root directory ... all
+		Obsolete.
+		Used to specify the GNUstep system root directory ... all
 		system libraries, tools, applications, headers, resources
 		in general are located relative to this.
 	      </desc>
@@ -538,7 +539,8 @@ notice and this notice are preserved.
 	  </p>
 	  <deflist>
 	    <term>GNUSTEP_USER_DIR</term>
-	    <desc>Obsolete.  Path for user specific GNUstep resources (eg. 'GNUstep').
+	    <desc>Obsolete.
+	    Path for user specific GNUstep resources (eg. 'GNUstep').
 	    Relative to the user's home directory.
 	    </desc>
 	    <term>GNUSTEP_USER_CONFIG_FILE</term>

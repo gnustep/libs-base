@@ -1617,6 +1617,12 @@ NSTemporaryDirectory(void)
 	      baseTempDirName = @"/cygdrive/c/";
 #elif	defined(__MINGW32__)
 	      baseTempDirName = @"C:\\";
+#elif   defined(__APPLE__)
+	      /*
+	       * Create temporary directory on /var/tmp since /tmp is
+	       * cleaned regularly on Darwin by default
+	       */
+	      baseTempDirName = @"/var/tmp";
 #else
 	      baseTempDirName = @"/tmp";
 #endif

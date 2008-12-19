@@ -1510,3 +1510,97 @@ newLockAt(Class self, SEL _cmd, id *location)
   return newLockAt(self, _cmd, location);
 }
 @end
+
+@implementation	NSTask (GSCategories)
+
+static	NSString*
+executablePath(NSFileManager *mgr, NSString *path)
+{
+#if defined(__MINGW32__)
+  NSString	*tmp;
+
+  if ([mgr isExecutableFileAtPath: path])
+    {
+      return path;
+    }
+  tmp = [path stringByAppendingPathExtension: @"exe"];
+  if ([mgr isExecutableFileAtPath: tmp])
+    {
+      return tmp;
+    }
+  tmp = [path stringByAppendingPathExtension: @"com"];
+  if ([mgr isExecutableFileAtPath: tmp])
+    {
+      return tmp;
+    }
+  tmp = [path stringByAppendingPathExtension: @"cmd"];
+  if ([mgr isExecutableFileAtPath: tmp])
+    {
+      return tmp;
+    }
+#else
+  if ([mgr isExecutableFileAtPath: path])
+    {
+      return path;
+    }
+#endif
+  return nil;
+}
+
++ (NSString*) launchPathForTool: (NSString*)name
+{
+  NSEnumerator	*enumerator;
+  NSDictionary	*env;
+  NSString	*pathlist;
+  NSString	*path;
+  NSFileManager	*mgr;
+
+  mgr = [NSFileManager defaultManager];
+
+#if	defined(GNUSTEP)
+  enumerator = [NSSearchPathForDirectoriesInDomains(
+    GSToolsDirectory, NSAllDomainsMask, YES) objectEnumerator];
+  while ((path = [enumerator nextObject]) != nil)
+    {
+      path = [path stringByAppendingPathComponent: name];
+      if ((path = executablePath(mgr, path)) != nil)
+	{
+	  return path;
+	}
+    }
+  enumerator = [NSSearchPathForDirectoriesInDomains(
+    GSAdminToolsDirectory, NSAllDomainsMask, YES) objectEnumerator];
+  while ((path = [enumerator nextObject]) != nil)
+    {
+      path = [path stringByAppendingPathComponent: name];
+      if ((path = executablePath(mgr, path)) != nil)
+	{
+	  return path;
+	}
+    }
+#endif
+
+  env = [[NSProcessInfo processInfo] environment];
+  pathlist = [env objectForKey:@"PATH"];
+#if defined(__MINGW32__)
+/* Windows 2000 and perhaps others have "Path" not "PATH" */
+  if (pathlist == nil)
+    {
+      pathlist = [env objectForKey: @"Path"];
+    }
+  enumerator = [[pathlist componentsSeparatedByString: @";"] objectEnumerator];
+#else
+  enumerator = [[pathlist componentsSeparatedByString: @":"] objectEnumerator];
+#endif
+  while ((path = [enumerator nextObject]) != nil)
+    {
+      path = [path stringByAppendingPathComponent: name];
+      if ((path = executablePath(mgr, path)) != nil)
+	{
+	  return path;
+	}
+    }
+  return nil;
+}
+@end
+

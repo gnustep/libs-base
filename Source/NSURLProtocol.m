@@ -24,6 +24,7 @@
 
 #import <Foundation/NSError.h>
 #import <Foundation/NSHost.h>
+#import <Foundation/NSNotification.h>
 #import <Foundation/NSRunLoop.h>
 #import <Foundation/NSValue.h>
 
@@ -32,6 +33,186 @@
 #import "GSPrivate.h"
 #import "GSURLPrivate.h"
 
+/* Define to 1 for experimental (net yet working) compression support
+ */
+#ifdef	USE_ZLIB
+# undef	USE_ZLIB
+#endif
+#define	USE_ZLIB	0
+
+#if	USE_ZLIB
+#if	defined(HAVE_ZLIB_H)
+#include	<zlib.h>
+
+static void*
+zalloc(void *opaque, unsigned nitems, unsigned size)
+{
+  return objc_calloc(nitems, size);
+}
+static void
+zfree(void *opaque, void *mem)
+{
+  objc_free(mem);
+}
+#else
+# undef	USE_ZLIB
+# define	USE_ZLIB	0
+#endif
+#endif
+
+@interface	GSSocketStreamPair : NSObject
+{
+  NSInputStream		*ip;
+  NSOutputStream	*op;
+  NSHost		*host;
+  uint16_t		port;
+  NSDate		*expires;
+  BOOL			ssl;
+}
++ (void) purge: (NSNotification*)n;
+- (void) cache: (NSDate*)when;
+- (NSDate*) expires;
+- (id) initWithHost: (NSHost*)h port: (uint16_t)p forSSL: (BOOL)s;
+- (NSInputStream*) inputStream;
+- (NSOutputStream*) outputStream;
+@end
+
+@implementation	GSSocketStreamPair
+
+static NSMutableArray	*pairCache = nil;
+static NSLock		*pairLock = nil;
+
++ (void) initialize
+{
+  if (pairCache == nil)
+    {
+      /* No use trying to use a dictionary ... NSHost objects all hash
+       * to the same value.
+       */
+      pairCache = [NSMutableArray new];
+      pairLock = [NSLock new];
+      /*  Purge expired pairs at intervals.
+       */
+      [[NSNotificationCenter defaultCenter] addObserver: self
+	selector: @selector(purge:)
+	name: @"GSHousekeeping" object: nil];
+    }
+}
+
++ (void) purge: (NSNotification*)n
+{
+  NSDate	*now = [NSDate date];
+  unsigned	count;
+
+  [pairLock lock];
+  count = [pairCache count];
+  while (count-- > 0)
+    {
+      GSSocketStreamPair	*p = [pairCache objectAtIndex: count];
+
+      if ([[p expires] timeIntervalSinceDate: now] <= 0.0)
+	{
+	  [pairCache removeObjectAtIndex: count];
+	}
+    }
+  [pairLock unlock];
+}
+
+- (void) cache: (NSDate*)when
+{
+  ASSIGN(expires, when);
+  [pairLock lock];
+  [pairCache addObject: self];
+  [pairLock unlock];
+}
+
+- (void) dealloc
+{
+  [ip release];
+  [op release];
+  [host release];
+  [expires release];
+  [super dealloc];
+}
+
+- (NSDate*) expires
+{
+  return expires;
+}
+
+- (id) init
+{
+  [self release];
+  return nil;
+}
+
+- (id) initWithHost: (NSHost*)h port: (uint16_t)p forSSL: (BOOL)s;
+{
+  unsigned		count;
+  NSDate		*now;
+
+  now = [NSDate date];
+  [pairLock lock];
+  count = [pairCache count];
+  while (count-- > 0)
+    {
+      GSSocketStreamPair	*pair = [pairCache objectAtIndex: count];
+
+      if ([pair->expires timeIntervalSinceDate: now] <= 0.0)
+	{
+	  [pairCache removeObjectAtIndex: count];
+	}
+      else if (pair->port == p && pair->ssl == s && [pair->host isEqual: h])
+	{
+	  /* Found a match ... remove from cache and return as self.
+	   */
+	  [self release];
+	  self = [pair retain];
+	  [pairCache removeObjectAtIndex: count];
+	  [pairLock unlock];
+	  return self;
+	}
+    }
+  [pairLock unlock];
+
+  if ((self = [super init]) != nil)
+    {
+      [NSStream getStreamsToHost: host
+			    port: port
+		     inputStream: &ip
+		    outputStream: &op];
+      if (ip == nil || op == nil)
+	{
+	  [self release];
+	  return nil;
+	}
+      ssl = s;
+      port = p;
+      host = [h retain];
+      [ip retain];
+      [op retain];
+      if (ssl == YES)
+        {
+          [ip setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+		   forKey: NSStreamSocketSecurityLevelKey];
+          [op setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+		   forKey: NSStreamSocketSecurityLevelKey];
+        }
+    }
+  return self;
+}
+
+- (NSInputStream*) inputStream
+{
+  return ip;
+}
+
+- (NSOutputStream*) outputStream
+{
+  return op;
+}
+
+@end
 
 @interface _NSAboutURLProtocol : NSURLProtocol
 @end
@@ -74,6 +255,12 @@ typedef struct {
   NSCachedURLResponse		*cachedResponse;
   id <NSURLProtocolClient>	client;		// Not retained
   NSURLRequest			*request;
+#if	USE_ZLIB
+  z_stream			z;		// context for decompress
+  BOOL				compressing;	// are we compressing?
+  BOOL				decompressing;	// are we decompressing?
+  NSData			*compressed;	// only partially decompressed
+#endif
 } Internal;
  
 typedef struct {
@@ -181,6 +368,17 @@ static NSURLProtocol	*placeholder = nil;
       RELEASE(this->output);
       RELEASE(this->cachedResponse);
       RELEASE(this->request);
+#if	USE_ZLIB
+      if (this->compressing == YES)
+	{
+	  deflateEnd(&this->z);
+	}
+      else if (this->decompressing == YES)
+	{
+	  inflateEnd(&this->z);
+	}
+      RELEASE(this->compressed);
+#endif
       NSZoneFree([self zone], this);
       _NSURLProtocolInternal = 0;
     }
@@ -314,11 +512,6 @@ static NSURLProtocol	*placeholder = nil;
     {
       DESTROY(_credential);	// We download the challenge page
     }
-}
-
-- (void) _didInitializeOutputStream: (NSOutputStream*)stream
-{
-  return;
 }
 
 - (void) dealloc
@@ -473,7 +666,6 @@ static NSURLProtocol	*placeholder = nil;
 	}
       RETAIN(this->input);
       RETAIN(this->output);
-      [self _didInitializeOutputStream: this->output];
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
@@ -515,6 +707,10 @@ static NSURLProtocol	*placeholder = nil;
     }
 }
 
+- (void) _didLoad: (NSData*)d
+{
+  [this->client URLProtocol: self didLoadData: d];
+}
 
 - (void) _got: (NSStream*)stream
 {
@@ -695,6 +891,20 @@ static NSURLProtocol	*placeholder = nil;
 		     didReceiveResponse: _response
 		     cacheStoragePolicy: policy];
 	    }
+	  
+#if	USE_ZLIB
+	  s = [[document headerNamed: @"content-encoding"] value];
+	  if ([s isEqualToString: @"gzip"] || [s isEqualToString: @"x-gzip"])
+	    {
+	      this->decompressing = YES;
+	      this->z.opaque = 0;
+	      this->z.zalloc = zalloc;
+	      this->z.zfree = zfree;
+	      this->z.next_in = 0;
+	      this->z.avail_in = 0;
+	      inflateInit2(&this->z, 1);	// FIXME
+	    }
+#endif
 	}
 
       if (_complete == YES)
@@ -884,7 +1094,7 @@ static NSURLProtocol	*placeholder = nil;
 			NSMakeRange(_parseOffset, bodyLength - _parseOffset)];
 		    }
 		  _parseOffset = bodyLength;
-		  [this->client URLProtocol: self didLoadData: d];
+		  [self _didLoad: d];
 		}
 
 	      /* Check again in case the client cancelled the load inside
@@ -914,7 +1124,7 @@ static NSURLProtocol	*placeholder = nil;
 			NSMakeRange(_parseOffset, [d length] - _parseOffset)];
 		    }
 		  _parseOffset = bodyLength;
-		  [this->client URLProtocol: self didLoadData: d];
+		  [self _didLoad: d];
 		}
 	    }
 	}
@@ -1199,12 +1409,6 @@ static NSURLProtocol	*placeholder = nil;
 + (BOOL) canInitWithRequest: (NSURLRequest*)request
 {
   return [[[request URL] scheme] isEqualToString: @"https"];
-}
-
-- (void) _didInitializeOutputStream: (NSOutputStream *) stream
-{
-  [stream setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
-	       forKey: NSStreamSocketSecurityLevelKey];
 }
 
 @end

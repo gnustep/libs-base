@@ -39,6 +39,7 @@
 #define NSIG    32
 #endif
 
+static BOOL	debugging = NO;
 static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
 static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
 static char	ebuf[2048];
@@ -160,19 +161,18 @@ ihandler(int sig)
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
-                                  to: (unsigned long)observer;
+                                  to: (NSUInteger)observer;
 @end
 @implementation	NSDistributedNotificationCenterGDNCDummy
 - (oneway void) postNotificationName: (NSString*)name
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
-                                  to: (unsigned long)observer
+                                  to: (NSUInteger)observer
 {
   return;
 }
 @end
-
 
 @interface	GDNCNotification : NSObject
 {
@@ -193,6 +193,11 @@ ihandler(int sig)
   RELEASE(object);
   RELEASE(info);
   [super dealloc];
+}
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"%@ Name:'%@' Object:'%@' Info:'%@'",
+    [super description], name, object, info];
 }
 + (GDNCNotification*) notificationWithName: (NSString*)notificationName
 				    object: (NSString*)notificationObject
@@ -242,7 +247,7 @@ ihandler(int sig)
 @interface	GDNCObserver : NSObject
 {
 @public
-  unsigned long		observer;
+  NSUInteger		observer;
   NSString		*notificationName;
   NSString		*notificationObject;
   NSString		*selector;
@@ -280,7 +285,7 @@ ihandler(int sig)
   NSMutableDictionary	*observersForObjects;
 }
 
-- (void) addObserver: (unsigned long)anObserver
+- (void) addObserver: (NSUInteger)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
@@ -302,7 +307,7 @@ ihandler(int sig)
 
 - (void) removeObserversForClients: (NSMapTable*)clients;
 
-- (void) removeObserver: (unsigned long)anObserver
+- (void) removeObserver: (NSUInteger)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client;
@@ -501,7 +506,7 @@ ihandler(int sig)
   return self;
 }
 
-- (void) addObserver: (unsigned long)anObserver
+- (void) addObserver: (NSUInteger)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
@@ -512,6 +517,10 @@ ihandler(int sig)
   NSMapTable	*clients;
   GDNCObserver	*obs;
   NSConnection	*connection;
+
+  if (debugging)
+    NSLog(@"Adding observer %lu for %@ %@",
+      anObserver, notificationName, anObject);
 
   connection = [(NSDistantObject*)client connectionForProxy];
   clients = (NSMapTable*)NSMapGet(connections, connection);
@@ -792,6 +801,8 @@ ihandler(int sig)
 	      NS_DURING
 		{
 		  [obs->queue removeObjectAtIndex: 0];
+  if (debugging)
+    NSLog(@"Posting to observer %lu with %@", obs->observer, n);
 		  [obs->client->client postNotificationName: n->name
 						     object: n->object
 						   userInfo: n->info
@@ -801,6 +812,8 @@ ihandler(int sig)
 	      NS_HANDLER
 		{
 		  obs = nil;
+		  NSLog(@"Problem posting notification to client: %@",
+		    localException);
 		}
 	      NS_ENDHANDLER
 	      RELEASE(n);
@@ -811,6 +824,11 @@ ihandler(int sig)
 
 - (void) removeObserver: (GDNCObserver*)observer
 {
+  if (debugging)
+    NSLog(@"Removing observer %lu for %@ %@",
+      observer->observer, observer->notificationName,
+      observer->notificationObject);
+
   if (observer->notificationObject)
     {
       NSMutableArray	*objList;
@@ -852,7 +870,7 @@ ihandler(int sig)
     }
 }
 
-- (void) removeObserver: (unsigned long)anObserver
+- (void) removeObserver: (NSUInteger)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client
@@ -1037,7 +1055,6 @@ main(int argc, char** argv, char** env)
 {
   GDNCServer		*server;
   BOOL			subtask = YES;
-  BOOL			debugging = NO;
   NSProcessInfo		*pInfo;
   NSMutableArray	*args;
   CREATE_AUTORELEASE_POOL(pool);

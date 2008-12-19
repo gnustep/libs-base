@@ -39,6 +39,13 @@ if test -z "$GNUSTEP_MAKEFILES"; then
   GNUSTEP_MAKEFILES=`gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5`
 fi
 
+exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
+if test -z "$exceptions"; then
+  exceptions=no
+else
+  exceptions=yes
+fi
+
 if test -z "$GNUSTEP_MAKEFILES"; then
   AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
 fi
@@ -353,7 +360,35 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 #
 case "$target_os" in
   mingw*)
-    GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS"
+    AC_MSG_CHECKING([for GNUstep-base installation domain])
+    AC_ARG_WITH(installation-domain,
+    [  --with-installation-domain=DOMAIN   (Mingw32-only option) Specify the domain (SYSTEM, LOCAL, NETWORK 
+                                    or USER) into which gnustep-base will be installed.  This is
+                                    necessary on Microsoft Windows (mingw) because relative paths 
+                                    are hardcoded into gnustep-base.  If this is not specified, LOCAL
+                                    is used.  Please make sure this matches the DOMAIN where
+                                    you will be installing gnustep-base to prevent problems
+                                    with finding resources at runtime.],
+    result="$withval",
+    result="$GNUSTEP_INSTALLATION_DOMAIN"
+  )
+  case "$result" in
+   SYSTEM)
+     AC_MSG_RESULT([SYSTEM])
+     GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
+   LOCAL)
+     AC_MSG_RESULT([LOCAL])
+     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+   NETWORK)
+     AC_MSG_RESULT([NETWORK])
+     GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
+   USER)
+     AC_MSG_RESULT([USER])
+     GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
+   *)
+     AC_MSG_RESULT([none specified => using LOCAL])
+     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;     
+   esac
 
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
@@ -888,27 +923,77 @@ fi
 #--------------------------------------------------------------------
 # Miscellaneous flags
 #--------------------------------------------------------------------
-# Set location of GNUstep dirs for later use
-if test "$GNUSTEP_IS_FLATTENED" = no; then
-  clean_target_os=`$CURRENT_GNUSTEP_MAKEFILES/clean_os.sh $target_os`
-  clean_target_cpu=`$CURRENT_GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
-  obj_dir=$clean_target_cpu/$clean_target_os
-  lobj_dir=$clean_target_cpu/$clean_target_os/$LIBRARY_COMBO
-  GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
-  GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
-else
-  obj_dir=
-  lobj_dir=
+
+# Check to see if the libobjc library is in our GNUSTEP_SYSTEM_LIBRARIES.
+# If so, there are probably other libraries that we want there also, so
+# leave the proper includes in CPPFLAGS and LDFLAGS
+AC_MSG_CHECKING(for custom shared objc library)
+AC_CACHE_VAL(gs_cv_objc_libdir,
+[dnl
+gs_cv_objc_libdir=NONE
+gs_cv_objc_incdir=NONE
+# Try GNUSTEP_SYSTEM_LIBRARIES first
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
   GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES"
   GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_SYSTEM_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
 fi
 
-#
-# The following one is so that headers of custom libraries into
-# $GNUSTEP_HDIR are used before the standard ones
-#
-INCLUDE_FLAGS="$INCLUDE_FLAGS -I$GNUSTEP_HDIR"
-LDIR_FLAGS="$LDIR_FLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+
+# Try GNUSTEP_NETWORK_LIBRARIES second (override GNUSTEP_SYSTEM if
+# found)
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
+  GNUSTEP_LDIR="$GNUSTEP_NETWORK_LIBRARIES"
+  GNUSTEP_HDIR="$GNUSTEP_NETWORK_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_NETWORK_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_NETWORK_HEADERS/$LIBRARY_COMBO"
+fi
+
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+
+# Try GNUSTEP_LOCAL_LIBRARIES third (override GNUSTEP_SYSTEM and
+# GNUSTEP_NETWORK if found)
+if test "$GNUSTEP_IS_FLATTENED" = yes; then
+  GNUSTEP_LDIR="$GNUSTEP_LOCAL_LIBRARIES"
+  GNUSTEP_HDIR="$GNUSTEP_LOCAL_HEADERS"
+else
+  GNUSTEP_LDIR="$GNUSTEP_LOCAL_LIBRARIES/$obj_dir"
+  GNUSTEP_HDIR="$GNUSTEP_LOCAL_HEADERS/$LIBRARY_COMBO"
+fi
+
+if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+    gs_cv_objc_libdir="$GNUSTEP_LDIR"
+    gs_cv_objc_incdir="$GNUSTEP_HDIR"
+  fi
+fi
+])
+AC_MSG_RESULT($gs_cv_objc_libdir)
+
+if test "$gs_cv_objc_libdir" != "NONE"; then
+  #
+  # The following one is so that headers of custom libraries into
+  # $GNUSTEP_HDIR are used before the standard ones
+  #
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gs_cv_objc_incdir"
+  LDIR_FLAGS="$LDIR_FLAGS -L$gs_cv_objc_libdir/$LIBRARY_COMBO -L$gs_cv_objc_libdir"
+  CPPFLAGS="$CPPFLAGS -I$gs_cv_objc_incdir"
+  LDFLAGS="$LDFLAGS -L$gs_cv_objc_libdir"
+fi
 
 #--------------------------------------------------------------------
 # Check if Objective-C is installed
@@ -1305,6 +1390,17 @@ AC_CHECK_FUNCS(objc_condition_timedwait objc_thread_add)
 AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h, 
 	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,1,
                   [ Define if objc-api.h defines this function]),)
+
+#--------------------------------------------------------------------
+# Function needed by @synchronize directive
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(objc_sync_enter)
+
+HAVE_OBJC_SYNC_ENTER=no
+if test $ac_cv_func_objc_sync_enter = yes ; then
+  HAVE_OBJC_SYNC_ENTER=yes
+fi
+AC_SUBST(HAVE_OBJC_SYNC_ENTER)
 
 LIBS="$saved_LIBS"
 CPPFLAGS="$saved_CPPFLAGS"
@@ -1753,6 +1849,12 @@ fi
 AC_CHECK_HEADERS(sys/utsname.h)
 
 #--------------------------------------------------------------------
+# Check for sysctlbyname used by NSProcessInfo.m 
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(sys/sysctl.h)
+AC_CHECK_FUNCS(sysctlbyname)
+
+#--------------------------------------------------------------------
 # Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
 # Needed by NSProcessInfo.m 
 #--------------------------------------------------------------------
@@ -1844,6 +1946,10 @@ if test "$enable_fake_main" = "yes"; then
 elif test "$enable_pass_arguments" = "no"; then
   if test "$objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 -o "$ac_cv_sys_procfs_psinfo" = yes \); then
     GS_FAKE_MAIN=0
+    if test "$have_kvm_env" = "1"; then
+      echo "WARNING ... using libkvm which is known to be buggy on some systems"
+      echo "consider configuring with --enable-fake-main instead."
+    fi
   else
     GS_FAKE_MAIN=1
     enable_fake_main=yes
@@ -1889,7 +1995,6 @@ case "$target_cpu" in
   sparc64*)
     case "$target_os" in
       solaris*)
-        do_broken_libffi=no;
         do_broken_libffcall=yes;
         do_enable_libffi=yes;
         do_enable_libffcall=no;;
@@ -1897,6 +2002,34 @@ case "$target_cpu" in
     esac ;;
   *) ;;
 esac
+
+have_unexpected=yes
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
+AC_MSG_CHECKING(for objc_set_unexpected() in runtime)
+AC_COMPILE_IFELSE([#include "$srcdir/config/config.unexpected.m"],
+	have_unexpected=yes, have_unexpected=no)
+if test $have_unexpected = yes; then
+  AC_DEFINE(HAVE_UNEXPECTED,1,
+	    [Define if libobjc has the objc_set_unexpected() function])
+fi
+AC_MSG_RESULT($have_unexpected)
+CPPFLAGS="$saved_CPPFLAGS"
+
+if test "$exceptions" = "yes"; then
+  # ffcall will mess up native exceptions, so we must disable it.
+  do_broken_libffcall=yes
+  do_enable_libffcall=no
+
+  if test "$have_unexpected" = "no"; then
+    echo
+    echo "Your gnustep-make is configured to use native objc exceptions, but"
+    echo "the objc runtime does not appear to support setting an uncaught"
+    echo "exception handler.  This means that any uncaught exception will"
+    echo "cause a program to abort immediately."
+    echo "Consider reconfiguring gnustep-make or updating libobjc to fix this."
+  fi
+fi
 
 AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
@@ -1930,8 +2063,16 @@ if test ${ffi_libdir} != "no"; then
 GS_ADD_LIBRARY_PATH([${ffi_libdir}])
 fi
 
-AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
-AC_CHECK_HEADERS(callback.h, have_ffcall=yes, have_ffcall=no)
+if test "$do_broken_libffi" = "no"; then
+  AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
+else
+  have_libffi=no
+fi
+if test "$do_broken_libffcall" = "no"; then
+  AC_CHECK_HEADERS(callback.h, have_ffcall=yes, have_ffcall=no)
+else
+  have_ffcall=no
+fi
 if test $have_ffcall = no; then
   enable_ffcall=no
   # If we don't have ffcall but do have libffi, use libffi
@@ -2020,7 +2161,9 @@ if test $ffi_ok = no; then
     echo "we recommend installing libffi instead."
   else
     echo "You do not have either ffcall or libffi installed, or configure needs"
-    echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them"
+    echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them,"
+    echo "or you have ffcall but gnustep-make is configured to use native exceptions"
+    echo "(native exceptions are not compatible with ffcall)."
   fi
   echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
   echo "invocations and DO."
@@ -2196,13 +2339,18 @@ if test $enable_tls = yes; then
   saved_LIBS="$LIBS"
   saved_CFLAGS="$CFLAGS"
 
-  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+#  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+  AM_PATH_TLS(1.4.0, enable_libgnutls=yes, enable_libgnutls=no)
   if test $enable_libgnutls = yes; then
     CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
     INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
     LIBS="$TLS_LIBS $LIBS"
     HAVE_GNUTLS=1
     AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
+    AC_CHECK_FUNCS(gnutls_transport_set_errno)
+    if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
+      AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
+    fi
   else
     HAVE_GNUTLS=0
     # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
