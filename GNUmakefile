@@ -31,7 +31,17 @@ ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
-RPM_DISABLE_RELOCATABLE=YES
+-include config.mak
+ifeq ($(GNUSTEP_INSTALLATION_DOMAIN),)
+  GNUSTEP_INSTALLATION_DOMAIN := LOCAL
+endif
+ifeq ($(GNUSTEP_BASE_DOMAIN),)
+  GNUSTEP_BASE_DOMAIN := LOCAL
+endif
+
+GNUSTEP_CORE_SOFTWARE = YES
+export GNUSTEP_CORE_SOFTWARE
+RPM_DISABLE_RELOCATABLE = YES
 PACKAGE_NEEDS_CONFIGURE = YES
 
 SVN_MODULE_NAME = base
@@ -62,4 +72,3 @@ SUBPROJECTS += Tools NSTimeZones Resources
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 
 -include Makefile.postamble
-

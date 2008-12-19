@@ -33,7 +33,11 @@
 #
 
 # Things to do before compiling
-# before-all::
+before-all::
+	if [ $(GNUSTEP_BASE_DOMAIN) != $(GNUSTEP_INSTALLATION_DOMAIN) ]; \
+	then \
+	  GNUSTEP_INSTALLATION_DOMAIN=$(GNUSTEP_INSTALLATION_DOMAIN) ./config.status --recheck; \
+	fi 
 
 # Things to do after compiling
 # after-all::

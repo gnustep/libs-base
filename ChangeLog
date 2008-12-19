@@ -2,6 +2,12 @@
 
 	* Source/NSPathUtilities.m: Fix initialisation problem for user path
 	fragments ... was not using configured-in values.
+	* configure.ac: Record configured instyallation domain
+	* configure: Regenerate
+	* config.mak.in: Installation domain recorded here
+	* GNUmakefile: Load installation domain and configured domain
+	* Makefile.postamble: Check if installation domain is not the same
+	as the configured value, and reconfigure if necessary.
 
 2008-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 
