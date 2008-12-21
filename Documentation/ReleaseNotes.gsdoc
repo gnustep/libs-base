@@ -29,6 +29,28 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.18.0</heading>
+	<p> 
+          This is a stable release.  Note that gnustep-core is now installed in 
+	  the LOCAL domain by default instead of the SYSTEM domain. You may 
+	  want to remove old installations in the SYSTEM domain to avoid 
+	  any incompatibility problems.
+	  Or you can force installation in SYSTEM using make
+	  GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSConnection</term>
+	  <desc>Keepalive is only enabled on mswindows and for server
+	  connections using NSMessagePort.
+	  </desc>
+	  <term>NSCoder versionForClassName</term>
+	  <desc>Update to return NSInteger.
+	  </desc>
+	  <term>NSAutoreleasePool</term>
+	</deflist>
+      </section>
+      <section>
 	<heading>Version 1.15.4</heading>
 	<p> 
           This is an unstable release.
