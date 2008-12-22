@@ -350,46 +350,46 @@ if test x"$GNUSTEP_USER_DIR_DOC" = x""; then GNUSTEP_USER_DIR_DOC=$GNUSTEP_USER_
 if test x"$GNUSTEP_USER_DIR_DOC_MAN" = x""; then GNUSTEP_USER_DIR_DOC_MAN=$GNUSTEP_USER_DIR/Documentation/man; fi
 if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNUSTEP_USER_DIR/Documentation/info; fi
 
+AC_MSG_CHECKING([for GNUstep-base installation domain])
+AC_ARG_WITH(installation-domain,
+[  --with-installation-domain=DOMAIN
+Specify the domain (SYSTEM, LOCAL, NETWORK 
+or USER) into which gnustep-base will be installed.  This is
+necessary whenever because relative paths 
+are hardcoded into gnustep-base.  If this is not specified, LOCAL
+is used.  Please make sure this matches the DOMAIN where
+you will be installing gnustep-base to prevent problems
+with finding resources at runtime.],
+  result="$withval",
+  result="$GNUSTEP_INSTALLATION_DOMAIN"
+)
+case "$result" in
+  SYSTEM)
+    AC_MSG_RESULT([SYSTEM])
+    GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
+  LOCAL)
+    AC_MSG_RESULT([LOCAL])
+    GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+  NETWORK)
+    AC_MSG_RESULT([NETWORK])
+    GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
+  USER)
+    AC_MSG_RESULT([USER])
+    GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
+  *)
+    AC_MSG_RESULT([none specified => using LOCAL])
+    result=LOCAL;
+    GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;     
+esac
+GNUSTEP_BASE_DOMAIN=$result
+AC_SUBST(GNUSTEP_BASE_DOMAIN)
+
 #
 # If we are on mingw, we now want to convert the paths to relative
 # paths (relative to libgnustep-base.dll).
 #
-# TODO: To do it properly, we ought to allow the user to configure
-# the installation domain at configure time!  This assumes we always
-# install into System.
-#
 case "$target_os" in
   mingw*)
-    AC_MSG_CHECKING([for GNUstep-base installation domain])
-    AC_ARG_WITH(installation-domain,
-    [  --with-installation-domain=DOMAIN   (Mingw32-only option) Specify the domain (SYSTEM, LOCAL, NETWORK 
-                                    or USER) into which gnustep-base will be installed.  This is
-                                    necessary on Microsoft Windows (mingw) because relative paths 
-                                    are hardcoded into gnustep-base.  If this is not specified, LOCAL
-                                    is used.  Please make sure this matches the DOMAIN where
-                                    you will be installing gnustep-base to prevent problems
-                                    with finding resources at runtime.],
-    result="$withval",
-    result="$GNUSTEP_INSTALLATION_DOMAIN"
-  )
-  case "$result" in
-   SYSTEM)
-     AC_MSG_RESULT([SYSTEM])
-     GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
-   LOCAL)
-     AC_MSG_RESULT([LOCAL])
-     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
-   NETWORK)
-     AC_MSG_RESULT([NETWORK])
-     GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
-   USER)
-     AC_MSG_RESULT([USER])
-     GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
-   *)
-     AC_MSG_RESULT([none specified => using LOCAL])
-     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;     
-   esac
-
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
     # Windows XP and Windows Server 2003.  For Windows Vista this will

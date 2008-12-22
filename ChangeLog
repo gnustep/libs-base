@@ -1,3 +1,12 @@
+2008-12-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config.mak.in:
+	* configure:
+	* Makefile.postamble:
+	* configure.ac:
+	* GNUmakefile:
+	Update from stable branch.
+
 2008-12-21  Adam Fedor  <fedor@gnu.org>
 
 	* Update documentation for version 1.18.0
@@ -8,7 +17,8 @@
 	added PACKAGE_NAME=gnustep-base.
 	* GNUmakefile: Export PACKAGE_NAME to reduce chances of a problem
 	if a GNUmakefile in a subdirectory is missing it.
-	* Tools/make_strings/GNUmakefile: Do not set PACKAGE_NAME to make_strings.
+	* Tools/make_strings/GNUmakefile: Do not set PACKAGE_NAME to
+	make_strings.
 	* Testing/synctest/GNUmakefile: Do not set PACKAGE_NAME to Synctest.
 	
 2008-12-19  Richard Frith-Macdonald <rfm@gnu.org>
