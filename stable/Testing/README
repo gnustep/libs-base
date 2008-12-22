@@ -1,0 +1,10 @@
+
+These tests are mostly just samples of code that developers put together
+to do quick checks to make sure things are working. This is not a
+comprehensive test suite. Some tests don't say if they have passed or
+not. Some tests do not even output anything. Some tests never quit!
+
+If you want to run a comprehensive testsuite, run the gnustep testsuite
+http://svn.gna.org/viewcvs/gnustep/tests/testsuite
+(also ftp://ftp.gnustep.org/pub/gnustep/test).
+
