@@ -662,6 +662,7 @@ target
 target_cpu
 target_vendor
 target_os
+GNUSTEP_BASE_DOMAIN
 CC
 CFLAGS
 LDFLAGS
@@ -1396,13 +1397,14 @@ Optional Packages:
 				is found at runtime.  If this is not specified
 				then the path from --with-config-file or from
 				the gnustep-make package is used.
-  --with-installation-domain=DOMAIN   (Mingw32-only option) Specify the domain (SYSTEM, LOCAL, NETWORK
-                                    or USER) into which gnustep-base will be installed.  This is
-                                    necessary on Microsoft Windows (mingw) because relative paths
-                                    are hardcoded into gnustep-base.  If this is not specified, LOCAL
-                                    is used.  Please make sure this matches the DOMAIN where
-                                    you will be installing gnustep-base to prevent problems
-                                    with finding resources at runtime.
+  --with-installation-domain=DOMAIN
+Specify the domain (SYSTEM, LOCAL, NETWORK
+or USER) into which gnustep-base will be installed.  This is
+necessary whenever because relative paths
+are hardcoded into gnustep-base.  If this is not specified, LOCAL
+is used.  Please make sure this matches the DOMAIN where
+you will be installing gnustep-base to prevent problems
+with finding resources at runtime.
   --with-include-flags=FLAGS    Specify all include flags at once
   --with-library-flags=FLAGS    Specify all library flags at once
   --with-ffi-include=PATH       Include path for ffi (ffcall/libffi) headers
@@ -2313,17 +2315,7 @@ if test x"$GNUSTEP_USER_DIR_DOC" = x""; then GNUSTEP_USER_DIR_DOC=$GNUSTEP_USER_
 if test x"$GNUSTEP_USER_DIR_DOC_MAN" = x""; then GNUSTEP_USER_DIR_DOC_MAN=$GNUSTEP_USER_DIR/Documentation/man; fi
 if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNUSTEP_USER_DIR/Documentation/info; fi
 
-#
-# If we are on mingw, we now want to convert the paths to relative
-# paths (relative to libgnustep-base.dll).
-#
-# TODO: To do it properly, we ought to allow the user to configure
-# the installation domain at configure time!  This assumes we always
-# install into System.
-#
-case "$target_os" in
-  mingw*)
-    { echo "$as_me:$LINENO: checking for GNUstep-base installation domain" >&5
+{ echo "$as_me:$LINENO: checking for GNUstep-base installation domain" >&5
 echo $ECHO_N "checking for GNUstep-base installation domain... $ECHO_C" >&6; }
 
 # Check whether --with-installation-domain was given.
@@ -2334,29 +2326,38 @@ else
 
 fi
 
-  case "$result" in
-   SYSTEM)
-     { echo "$as_me:$LINENO: result: SYSTEM" >&5
+case "$result" in
+  SYSTEM)
+    { echo "$as_me:$LINENO: result: SYSTEM" >&5
 echo "${ECHO_T}SYSTEM" >&6; }
-     GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
-   LOCAL)
-     { echo "$as_me:$LINENO: result: LOCAL" >&5
+    GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
+  LOCAL)
+    { echo "$as_me:$LINENO: result: LOCAL" >&5
 echo "${ECHO_T}LOCAL" >&6; }
-     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
-   NETWORK)
-     { echo "$as_me:$LINENO: result: NETWORK" >&5
+    GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+  NETWORK)
+    { echo "$as_me:$LINENO: result: NETWORK" >&5
 echo "${ECHO_T}NETWORK" >&6; }
-     GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
-   USER)
-     { echo "$as_me:$LINENO: result: USER" >&5
+    GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
+  USER)
+    { echo "$as_me:$LINENO: result: USER" >&5
 echo "${ECHO_T}USER" >&6; }
-     GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
-   *)
-     { echo "$as_me:$LINENO: result: none specified => using LOCAL" >&5
+    GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
+  *)
+    { echo "$as_me:$LINENO: result: none specified => using LOCAL" >&5
 echo "${ECHO_T}none specified => using LOCAL" >&6; }
-     GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
-   esac
+    result=LOCAL;
+    GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+esac
+GNUSTEP_BASE_DOMAIN=$result
 
+
+#
+# If we are on mingw, we now want to convert the paths to relative
+# paths (relative to libgnustep-base.dll).
+#
+case "$target_os" in
+  mingw*)
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
     # Windows XP and Windows Server 2003.  For Windows Vista this will
@@ -4406,7 +4407,7 @@ if test "$gs_cv_objc_libdir" != "NONE"; then
   #
   INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gs_cv_objc_incdir"
   LDIR_FLAGS="$LDIR_FLAGS -L$gs_cv_objc_libdir/$LIBRARY_COMBO -L$gs_cv_objc_libdir"
-  CPPFLAGS="$CPPFLAGS  -I$gs_cv_objc_incdir"
+  CPPFLAGS="$CPPFLAGS -I$gs_cv_objc_incdir"
   LDFLAGS="$LDFLAGS -L$gs_cv_objc_libdir"
 fi
 
@@ -20350,6 +20351,7 @@ target!$target$ac_delim
 target_cpu!$target_cpu$ac_delim
 target_vendor!$target_vendor$ac_delim
 target_os!$target_os$ac_delim
+GNUSTEP_BASE_DOMAIN!$GNUSTEP_BASE_DOMAIN$ac_delim
 CC!$CC$ac_delim
 CFLAGS!$CFLAGS$ac_delim
 LDFLAGS!$LDFLAGS$ac_delim
@@ -20397,7 +20399,6 @@ HAVE_PTHREAD_H!$HAVE_PTHREAD_H$ac_delim
 HAVE_PTS_STREAM_MODULES!$HAVE_PTS_STREAM_MODULES$ac_delim
 INCLUDE_STDINT!$INCLUDE_STDINT$ac_delim
 DEFINE_INT8_T!$DEFINE_INT8_T$ac_delim
-DEFINE_UINT8_T!$DEFINE_UINT8_T$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -20439,6 +20440,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+DEFINE_UINT8_T!$DEFINE_UINT8_T$ac_delim
 DEFINE_INT16_T!$DEFINE_INT16_T$ac_delim
 DEFINE_UINT16_T!$DEFINE_UINT16_T$ac_delim
 DEFINE_INT32_T!$DEFINE_INT32_T$ac_delim
@@ -20477,7 +20479,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 36; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 37; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
