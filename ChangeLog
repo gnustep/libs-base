@@ -4,6 +4,8 @@
 	* Documentation/news.texi:
 	* Documentation/ReleaseNotes.gsdoc:
 	Update for new release.
+	* configure.ac: Fix error checking for objc_set_unexpected
+	* configure: regenerate
 
 2008-12-22  Richard Frith-Macdonald <rfm@gnu.org>
 
