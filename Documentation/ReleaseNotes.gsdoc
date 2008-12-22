@@ -32,7 +32,13 @@ notice and this notice are preserved.
       <section>
 	<heading>Version 1.18.0</heading>
 	<p> 
-          This is a new stable release of teh base library.
+          This is a new stable release of the base library.  Note that
+          gnustep-core is now installed in the LOCAL domain by default
+          instead of the SYSTEM domain. You may want to remove old
+          installations in the SYSTEM domain to avoid any
+          incompatibility problems.  Or you can force installation in
+          SYSTEM using make GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
+          install.
 	</p>
 	Highlights:
 	<deflist>

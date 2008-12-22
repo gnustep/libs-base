@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.15.3, is now available.
+The GNUstep Base Library, version 1.18.0, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -18,22 +18,19 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version `1.15.3'
+1.2 Noteworthy changes in version `1.18.0'
 ==========================================
 
-   * Extended NSUserDefaults so it recognizes ../ as a relative path.
+   * Many new OSX 10.5 methods and stubs and general 10.5 compatibility
 
-   * Added TLS/SSL support for NSStream based on GNU TLS
+   * Changes to build on 64bit Windows
 
-   * Added support for https to NSURLConnection using new stream code
-     and added basic support for digest authentication.
-
-   * Fixed various problems with and added new options to KVO.
+   * Support for @synchronize
 
 1.3 Where can you get it?  How can you compile it?
 ==================================================
 
-The gnustep-base-1.15.3.tar.gz distribution file has been placed at
+The gnustep-base-1.18.0.tar.gz distribution file has been placed at
 `ftp://ftp.gnustep.org/pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page

@@ -18,6 +18,8 @@
 #  If not, write to the Free Software Foundation,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+PACKAGE_NAME = gnustep-base
+
 include $(GNUSTEP_MAKEFILES)/common.make
 
 GNUSTEP_MAKEINFO_FLAGS = -D NO-TEXI2HTML

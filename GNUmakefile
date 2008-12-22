@@ -57,6 +57,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ./Version
 
 PACKAGE_NAME = gnustep-base
+export PACKAGE_NAME
 
 #
 # The list of subproject directories

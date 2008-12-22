@@ -23,6 +23,7 @@
 #  Boston, MA 02111 USA.
 #
 
+PACKAGE_NAME = gnustep-base
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make

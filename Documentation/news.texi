@@ -14,57 +14,12 @@ See the @url{ReleaseNotes.html} document for more information.
 @section Noteworthy changes in version @samp{1.18.0}
 
 @itemize @bullet
-@item Improved lookup of versioned library resources and improved
-location of resources based on the location of the executable under ms-windows.
-@item Connection keepalive for ms-windows so that daemons can shut down automatically when all clients have disconnected.
-@item Keyed archiving improvements for various classes.
-@item Exception and thread handling improvments.
-@item Portability improvments and MacOS-X compatibility improvements.
+@item Many new OSX 10.5 methods and stubs and general 10.5 compatibility
+@item Changes to build on 64bit Windows
+@item Support for @@synchronize
 @end itemize
 
 @ifclear ANNOUNCE-ONLY
-
-
-@section Noteworthy changes in version @samp{1.16.5}
-
-@itemize @bullet
-@item Fix null pointer problem introduced in last release.
-@end itemize
-
-@section Noteworthy changes in version @samp{1.16.4}
-
-@itemize @bullet
-@item Several minor bugfixes in various classes.
-@item Fixes for build/configure problems on various operating systems.
-@item New timezone information
-@end itemize
-
-@section Noteworthy changes in version @samp{1.16.3}
-
-@itemize @bullet
-@item Fix to support FTP.app (obscure distributed objects problem).
-@item Fix for new string encodings.
-@end itemize
-
-@section Noteworthy changes in version @samp{1.16.2}
-
-@itemize @bullet
-@item Fixes for libffi based forwarding and invocations.
-@item Fix for bug in NSConnection used in multiple threads.
-@end itemize
-
-@section Noteworthy changes in version @samp{1.16.1}
-
-@itemize @bullet
-@item Fix for bug in notification posting for some observers on 64bit machines
-@end itemize
-
-@section Noteworthy changes in version @samp{1.16.0}
-
-@itemize @bullet
-@item Many updates to include new OS X methods up to 10.5
-@item Made KeyValueCoding/Observing fully functional and MacOS-X compatible
-@end itemize
 
 @section Noteworthy changes in version @samp{1.15.3}
 

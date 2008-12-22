@@ -23,6 +23,8 @@
 #  Boston, MA 02111 USA
 #
 
+PACKAGE_NAME = gnustep-base
+
 include $(GNUSTEP_MAKEFILES)/common.make
 include ../../config.mak
 

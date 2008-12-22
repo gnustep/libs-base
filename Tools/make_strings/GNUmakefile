@@ -21,14 +21,12 @@
 #  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #  Boston, MA 02111 USA.
 
-# Install into the system root by default
-
+PACKAGE_NAME = gnustep-base
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 include ../../config.mak
 
 VERSION = 0.4.2
-PACKAGE_NAME = make_strings
 TOOL_NAME = make_strings
 
 make_strings_OBJC_FILES = \

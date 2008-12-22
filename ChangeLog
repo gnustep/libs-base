@@ -1,3 +1,16 @@
+2008-12-21  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.18.0
+
+2008-12-19  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* All GNUmakefiles: removed GNUSTEP_CORE_SOFTWARE=YES and
+	added PACKAGE_NAME=gnustep-base.
+	* GNUmakefile: Export PACKAGE_NAME to reduce chances of a problem
+	if a GNUmakefile in a subdirectory is missing it.
+	* Tools/make_strings/GNUmakefile: Do not set PACKAGE_NAME to make_strings.
+	* Testing/synctest/GNUmakefile: Do not set PACKAGE_NAME to Synctest.
+	
 2008-12-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: Fix initialisation problem for user path
