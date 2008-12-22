@@ -1,5 +1,12 @@
 2008-12-22  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Version:
+	* Documentation/news.texi:
+	* Documentation/ReleaseNotes.gsdoc:
+	Update for new release.
+
+2008-12-22  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* config.mak.in:
 	* configure:
 	* Makefile.postamble:
