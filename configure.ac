@@ -1391,6 +1391,22 @@ AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,1,
                   [ Define if objc-api.h defines this function]),)
 
+# Don't revert any Objective-C flags as they are used in the next test
+
+#--------------------------------------------------------------------
+# This function needed by for handling uncaught exceptions
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(for objc_set_unexpected() in runtime)
+AC_LINK_IFELSE([#include "$srcdir/config/config.unexpected.m"],
+	have_unexpected=yes, have_unexpected=no)
+if test $have_unexpected = yes; then
+  AC_DEFINE(HAVE_UNEXPECTED,1,
+	    [Define if libobjc has the objc_set_unexpected() function])
+fi
+AC_MSG_RESULT($have_unexpected)
+
+# Don't revert any Objective-C flags as they are used in the next test
+
 #--------------------------------------------------------------------
 # Function needed by @synchronize directive
 #--------------------------------------------------------------------
@@ -2002,19 +2018,6 @@ case "$target_cpu" in
     esac ;;
   *) ;;
 esac
-
-have_unexpected=yes
-saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
-AC_MSG_CHECKING(for objc_set_unexpected() in runtime)
-AC_COMPILE_IFELSE([#include "$srcdir/config/config.unexpected.m"],
-	have_unexpected=yes, have_unexpected=no)
-if test $have_unexpected = yes; then
-  AC_DEFINE(HAVE_UNEXPECTED,1,
-	    [Define if libobjc has the objc_set_unexpected() function])
-fi
-AC_MSG_RESULT($have_unexpected)
-CPPFLAGS="$saved_CPPFLAGS"
 
 if test "$exceptions" = "yes"; then
   # ffcall will mess up native exceptions, so we must disable it.
