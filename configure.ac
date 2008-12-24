@@ -353,16 +353,37 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 AC_MSG_CHECKING([for GNUstep-base installation domain])
 AC_ARG_WITH(installation-domain,
 [  --with-installation-domain=DOMAIN
-Specify the domain (SYSTEM, LOCAL, NETWORK 
-or USER) into which gnustep-base will be installed.  This is
-necessary whenever because relative paths 
-are hardcoded into gnustep-base.  If this is not specified, LOCAL
-is used.  Please make sure this matches the DOMAIN where
-you will be installing gnustep-base to prevent problems
-with finding resources at runtime.],
+				Specify the domain (SYSTEM, LOCAL,
+				NETWORK or USER) into which
+				gnustep-base will be installed.
+				Whenever relative paths are hardcoded
+				into gnustep-base (at the moment, this
+				happens only on MinGW) this option
+				must be used and must match the domain
+				where you will be installing
+				gnustep-base.
+				If this is not specified, the output of
+				gnustep-config --installation-domain-for=gnustep-base
+				(which should normally be LOCAL) is used.],
   result="$withval",
-  result="$GNUSTEP_INSTALLATION_DOMAIN"
+  result="no"
 )
+if test "$result" == "no"
+then
+  # Check if gnustep-config supports the option
+  # --installation-domain-for, and use it if available.  That option
+  # will automatically use the shell variable GNUSTEP_INSTALLATION_DOMAIN
+  # or the installation-domains.conf files (or the LOCAL default) as appropriate.
+  # Otherwise, if that option is not available just fall back to LOCAL.
+  if (gnustep-config --help | grep installation-domain) >&5 2>&5
+  then
+    result=`gnustep-config --installation-domain-for=gnustep-base 2>&5`
+  else
+    # This case was added on December 2008 and is only for backwards
+    # compatibility with older versions of gnustep-make.
+    result=LOCAL
+  fi
+fi
 case "$result" in
   SYSTEM)
     AC_MSG_RESULT([SYSTEM])
@@ -377,10 +398,12 @@ case "$result" in
     AC_MSG_RESULT([USER])
     GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
   *)
-    AC_MSG_RESULT([none specified => using LOCAL])
-    result=LOCAL;
-    GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;     
+    AC_MSG_ERROR([Unknown installation domain '$result' (it should be SYSTEM, LOCAL, NETWORK or USER).  Please run configure again with the option --with-installation-domain=LOCAL (or whatever domain you want to install into).])
+    exit 1;;
 esac
+# We store GNUSTEP_BASE_DOMAIN in config.mak so that we can check
+# at runtime and make sure it is consistent with the
+# GNUSTEP_INSTALLATION_DOMAIN that is used at runtime.
 GNUSTEP_BASE_DOMAIN=$result
 AC_SUBST(GNUSTEP_BASE_DOMAIN)
 
