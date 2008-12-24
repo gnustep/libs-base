@@ -1,3 +1,24 @@
+2008-12-24  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Improved help for --with-installation-domain=xxx.
+	If no --with-installation-domain=xxx option is used, and
+	gnustep-config supports the new option
+	--installation-domain-for=gnustep-base, use it to determine the
+	installation domain as accurately as possible (including
+	supporting the environment variable GNUSTEP_INSTALLATION_DOMAIN
+	and the installation-domains.conf file).  Otherwise fall back to
+	LOCAL.  If an invalid installation domain is provided on the
+	command-line, abort with an error.
+	* configure: Regenerated.
+	* GNUmakefile: Set PACKAGE_NAME before importing common.make.  Do
+	not try to set GNUSTEP_BASE_DOMAIN or GNUSTEP_INSTALLATION_DOMAIN.
+	* Makefile.postamble (before-all): Only check that
+	GNUSTEP_BASE_DOMAIN matches GNUSTEP_INSTALLATION_DOMAIN on MinGW.
+	Quote GNUSTEP_BASE_DOMAIN and GNUSTEP_INSTALLATION_DOMAIN to catch
+	the case when one of them is empty.  Added ECHO_NOTHING to the
+	rule to suppress ugly code output.  Print an error message when
+	reconfiguring automatically.
+	
 2008-12-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version:

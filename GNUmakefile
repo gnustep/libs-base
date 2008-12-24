@@ -32,17 +32,14 @@ ifeq ($(GNUSTEP_MAKEFILES),)
 endif
 
 -include config.mak
-ifeq ($(GNUSTEP_INSTALLATION_DOMAIN),)
-  GNUSTEP_INSTALLATION_DOMAIN := LOCAL
-endif
-ifeq ($(GNUSTEP_BASE_DOMAIN),)
-  GNUSTEP_BASE_DOMAIN := LOCAL
-endif
 
 GNUSTEP_CORE_SOFTWARE = YES
 export GNUSTEP_CORE_SOFTWARE
 RPM_DISABLE_RELOCATABLE = YES
 PACKAGE_NEEDS_CONFIGURE = YES
+
+PACKAGE_NAME = gnustep-base
+export PACKAGE_NAME
 
 SVN_MODULE_NAME = base
 SVN_BASE_URL = svn+ssh://svn.gna.org/svn/gnustep/libs
@@ -55,9 +52,6 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ./Version
-
-PACKAGE_NAME = gnustep-base
-export PACKAGE_NAME
 
 #
 # The list of subproject directories

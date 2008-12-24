@@ -32,12 +32,18 @@
 #   otherwise the normal makefile rules will not be performed.
 #
 
+# On MinGW, make sure the domain that we are installing into matches
+# the domain that we were configured with.  If they don't match, print
+# an error message and reconfigure.
+ifeq ($(findstring mingw32, $(GNUSTEP_TARGET_OS)), mingw32)
 # Things to do before compiling
 before-all::
-	if [ $(GNUSTEP_BASE_DOMAIN) != $(GNUSTEP_INSTALLATION_DOMAIN) ]; \
+	$(ECHO_NOTHING)if [ "$(GNUSTEP_BASE_DOMAIN)" != "$(GNUSTEP_INSTALLATION_DOMAIN)" ]; \
 	then \
+	  echo "GNUSTEP_INSTALLATION_DOMAIN does not match GNUSTEP_BASE_DOMAIN; reconfiguring"; \
 	  GNUSTEP_INSTALLATION_DOMAIN=$(GNUSTEP_INSTALLATION_DOMAIN) ./config.status --recheck; \
-	fi 
+	fi$(END_ECHO)
+endif
 
 # Things to do after compiling
 # after-all::
