@@ -215,6 +215,7 @@ NSNumber.m \
 NSNumberFormatter.m \
 NSObjCRuntime.m \
 NSObject.m \
+NSObject+NSComparisonMethods.m \
 NSPage.m \
 NSPathUtilities.m \
 NSPipe.m \
