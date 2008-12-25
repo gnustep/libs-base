@@ -1,3 +1,15 @@
+2008-12-25 11:10-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/GNUmakefile: Add new NSObjectNSComparisonMethods.m
+	category to the makefile.
+	* Source/NSObject+NSComparisonMethods.m: Added to implement
+	Mac OS X specific methods for comparison of objects.  On Cocoa these
+	are in NSScriptWhoseTests.h, but since GNUstep doesn't support
+	Apple Script I've put them in a separate category for now.  Some
+	applications use these to do comparisons (even though they are for
+	scripting). The location of these may change in the future depending
+	on if we implement scripting.
+
 2008-12-24  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Improved help for --with-installation-domain=xxx.
