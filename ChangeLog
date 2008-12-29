@@ -1,3 +1,8 @@
+2008-12-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Makefile.postamble (before-all): Remove test for mingw on situation
+	which can occur on all systems, not just mingw.
+	
 2008-12-25 11:10-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/GNUmakefile: Add new NSObjectNSComparisonMethods.m
