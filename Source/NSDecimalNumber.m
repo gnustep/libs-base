@@ -355,15 +355,15 @@ static NSDecimalNumber *one;
 	    NSString *s;
 	    float v = *(float *)value;
 	    if (GSIsNAN(v))
-        {
-          DESTROY(self);
-          return RETAIN(notANumber);
-        }
+	      {
+		DESTROY(self);
+		return RETAIN(notANumber);
+	      }
 	    if (GSIsInf(v))
-        {
-          DESTROY(self);
-          return (v < 0.0) ? RETAIN(minNumber) : RETAIN(maxNumber);
-        }
+	      {
+		DESTROY(self);
+		return (v < 0.0) ? RETAIN(minNumber) : RETAIN(maxNumber);
+	      }
 	    s = [[NSString alloc] initWithFormat: @"%g"
 				  locale: GSPrivateDefaultLocale(), (double)v];
 	    self = [self initWithString: s];
@@ -377,15 +377,15 @@ static NSDecimalNumber *one;
 	    NSString *s;
 	    double v = *(double *)value;
 	    if (GSIsNAN(v))
-        {
-          DESTROY(self);
-          return RETAIN(notANumber);
-        }
+	      {
+		DESTROY(self);
+		return RETAIN(notANumber);
+	      }
 	    if (GSIsInf(v))
-        {
-          DESTROY(self);
-          return (v < 0.0) ? RETAIN(minNumber) : RETAIN(maxNumber);
-        }
+	      {
+		DESTROY(self);
+		return (v < 0.0) ? RETAIN(minNumber) : RETAIN(maxNumber);
+	      }
 	    s = [[NSString alloc] initWithFormat: @"%g"
 				  locale: GSPrivateDefaultLocale(), v];
 	    self = [self initWithString: s];
