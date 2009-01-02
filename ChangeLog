@@ -1,3 +1,8 @@
+2009-01-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ([+bundleForLibrary:]) return nil if the
+	supplied library name is empty.
+
 2008-12-31  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSDecimalNumber.m (-initWithBytes:objCType:): Avoid

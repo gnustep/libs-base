@@ -2305,6 +2305,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSFileManager *fm = [NSFileManager defaultManager];
   NSRange	r;
 
+  if ([libraryName length] == 0)
+    {
+      return nil;
+    }
   /*
    * Eliminate any base path or extensions.
    */
