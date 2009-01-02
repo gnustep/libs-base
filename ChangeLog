@@ -1,7 +1,13 @@
+2009-01-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ([+bundleForLibrary:]) return nil if the
+	supplied library name is empty.
+
 2008-12-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Fix error checking for objc_set_unexpected
 	* configure: regenerate
+	* Release Version 1.18.0
 
 2008-12-21  Adam Fedor  <fedor@gnu.org>
 
