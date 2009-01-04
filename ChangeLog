@@ -1,3 +1,11 @@
+2009-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/mframe/sparc64/generic: guess at a config
+	* Source/mframe/sparc64/openbsd: guess at a config
+	* Source/mframe/configure.ac: add sparc64
+	* Source/mframe/configure: regenerate
+	Guess at config for sparc64 openbsd
+
 2009-01-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: ([+bundleForLibrary:]) return nil if the
