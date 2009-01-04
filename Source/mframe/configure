@@ -1342,6 +1342,7 @@ case "$target_cpu" in
     alpha*)		target_cpu=alpha;;
     hppa*)		target_cpu=hppa;;
     i[3456]86*)	target_cpu=i386;;
+    sparc64*)		target_cpu=sparc64;;
     sparc*)		target_cpu=sparc;;
 esac
 
