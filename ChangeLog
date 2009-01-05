@@ -1,5 +1,11 @@
 2009-01-05  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSKeyValueObserving.m (-overrideSetterFor:): Only output
+	a NSDebugLLog() not an NSLog() when the class has no setter for
+	the key.
+
+2009-01-05  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSString.m (-paragraphRangeForRange:,
 	-getParagraphStart:...): Basic implementation of these methods.
 

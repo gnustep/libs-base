@@ -26,6 +26,7 @@
 
 #include "GNUstepBase/preface.h"
 #import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
@@ -585,7 +586,7 @@ replacementForClass(Class c)
 
           if (!found)
             {
-              NSLog(@"class %@ not KVC complient for %@", original, aKey);
+              NSDebugLLog(@"KVC", @"class %@ not KVC complient for %@", original, aKey);
               /*
               [NSException raise: NSInvalidArgumentException
                            format: @"class not KVC complient for %@", aKey];
