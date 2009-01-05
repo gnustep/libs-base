@@ -2156,7 +2156,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   object = [[self infoDictionary] objectForKey: @"NSExecutable"];
   if (object == nil || [object length] == 0)
     {
-      return nil;
+      object = [[self infoDictionary] objectForKey: @"CFBundleExecutable"];
+      if(object == nil || [object length] == 0)
+	  {
+	    return nil;
+	  }
     }
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
