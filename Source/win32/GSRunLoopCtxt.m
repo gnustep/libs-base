@@ -527,6 +527,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   if (handle == threadInfo->event)
     {
       watcher = nil;
+      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
       [threadInfo fire];
     }
   else

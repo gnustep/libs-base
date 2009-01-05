@@ -1129,9 +1129,18 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  GSPrivateNotifyIdle();
 	  /*
 	   * Pause for as long as possible (up to the limit date)
+	   * Call the polling method so we notice thread notifications
+           * that methods should be performed in this loop.
 	   */
-	  [NSThread sleepUntilDate: limit_date];
 	  ti = [limit_date timeIntervalSinceNow];
+	  if (context == nil)
+	    {
+	      context = [[GSRunLoopCtxt alloc] initWithMode: mode
+						      extra: _extra];
+	      NSMapInsert(_contextMap, context->mode, context);
+	      RELEASE(context);
+	    }
+          [context pollUntil: (int)(ti * 1000) within: nil];
 	  GSPrivateCheckTasks();
 	  if (context != nil)
 	    {

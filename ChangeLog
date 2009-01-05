@@ -1,3 +1,12 @@
+2009-01-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: check for performers in thread even if there are
+	no input sources available.
+	* Source/unix/GSRunLoopCtxt.m: Add diagnostics
+	* Source/win32/GSRunLoopCtxt.m: Add diagnostics
+	* Testing/thread.m: Change to allow perform in maion thrad to take
+	place and program to terminate.
+
 2009-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/mframe/sparc64/generic: guess at a config
