@@ -2361,6 +2361,10 @@ handle_printf_atsign (FILE *stream,
                   forRange: (NSRange)range
 {
   // FIXME
+  [self getLineStart: startPtr
+        end: parEndPtr
+        contentsEnd: contentsEndPtr
+        forRange: range];
 }
 
 // Changing Case
@@ -3234,7 +3238,14 @@ static NSFileManager *fm = nil;
 
 - (NSRange) paragraphRangeForRange: (NSRange)range
 {
-  return NSMakeRange(0, 0);     // FIXME
+  NSUInteger startIndex;
+  NSUInteger endIndex;
+
+  [self getParagraphStart: &startIndex
+        end: &endIndex
+        contentsEnd: NULL
+        forRange: range];
+  return NSMakeRange(startIndex, endIndex - startIndex);
 }
 
 - (NSString*) pathExtension

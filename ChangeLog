@@ -1,3 +1,8 @@
+2009-01-05  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSString.m (-paragraphRangeForRange:,
+	-getParagraphStart:...): Basic implementation of these methods.
+
 2009-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: check for performers in thread even if there are
