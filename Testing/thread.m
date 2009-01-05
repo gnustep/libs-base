@@ -12,6 +12,7 @@
 
 NSLock	*lock = nil;
 unsigned	retainReleaseThreads = 0;
+unsigned	fireCount = 0;
 
 @interface XX : NSObject
 - (void) fire;
@@ -23,6 +24,7 @@ unsigned	retainReleaseThreads = 0;
 - (void) fire
 {
   NSLog(@"Got here");
+  fireCount++;
 }
 - (void) retainRelease: (id)obj
 {
@@ -34,10 +36,11 @@ unsigned	retainReleaseThreads = 0;
       [obj retain];
       [obj release];
     }
+  NSLog(@"Done %d retain/releases in thread %@", i, [NSThread currentThread]);
   [lock lock];
   retainReleaseThreads++;
   [lock unlock];
-  NSLog(@"Done %d retain/releases in thread %@", i, [NSThread currentThread]);
+  NSLog(@"Finished thread %@", [NSThread currentThread]);
 }
 - (void) setup
 {
@@ -105,7 +108,7 @@ int main(int argc, char **argv, char **env)
   [lock unlock];	// Allow other thread to proceed.
 
   [[NSRunLoop currentRunLoop] runUntilDate:
-    [NSDate dateWithTimeIntervalSinceNow: 10.0]];
+    [NSDate dateWithTimeIntervalSinceNow: 30.0]];
 
   NSLog(@"Done main thread");
 
@@ -113,7 +116,8 @@ int main(int argc, char **argv, char **env)
     {
       NSLog(@"Waiting for all 5 retainRelease threads to complete (%d)",
         retainReleaseThreads);
-      [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
+      [[NSRunLoop currentRunLoop] acceptInputForMode: NSDefaultRunLoopMode
+        beforeDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
     }
   if ([o retainCount] != 1)
     {
