@@ -33,33 +33,7 @@
 #
 
 # Things to do before compiling
-# Make sure the domain that we are installing into matches the domain that
-# we were configured with (in case NSPathUtilities is using paths relative
-# to the location of the gnustep config file or the base library ... usually
-# the case on ms-windows, sometimes the case on unix).
-# If they don't match, print an error message and reconfigure.
-# 
-# Important: please note that this is a ugly hack.  At install time,
-# we are most likely running as root/superuser.  So, if we recompile
-# part of gnustep-base as root/superuser, we create
-# root/superuser-owned files, which means when you go back to being a
-# normal user, you can't recompile and you can't even make clean.  You
-# have to manually become root again, make a distclean, and start again.
-#
-# So we avoid this 'reconfiguration at install time' whenever
-# possible.  In fact maybe we should just print an error here, and
-# not try to reconfigure.
-#
-ifeq ($(GNUSTEP_BASE_RELATIVE_PATHS), yes)
-before-all::
-	$(ECHO_NOTHING)if [ "$(GNUSTEP_BASE_DOMAIN)" != "$(GNUSTEP_INSTALLATION_DOMAIN)" ]; \
-	then \
-	  echo " "; \
-	  echo "GNUSTEP_INSTALLATION_DOMAIN does not match GNUSTEP_BASE_DOMAIN; reconfiguring"; \
-	  echo " "; \
-	  GNUSTEP_INSTALLATION_DOMAIN=$(GNUSTEP_INSTALLATION_DOMAIN) ./config.status --recheck; \
-	fi$(END_ECHO)
-endif
+#before-all::
 
 # Things to do after compiling
 # after-all::
@@ -119,4 +93,3 @@ base.make: base.make.in
 
 config.mak: config.mak.in
 	./configure
-
