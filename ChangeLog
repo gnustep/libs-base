@@ -7,7 +7,7 @@
 	* config.mak.in: Added GNUSTEP_BASE_RELATIVE_PATHS.
 	* Makefile.postamble: Only do the automatic reconfiguration at
 	install time if GNUSTEP_BASE_RELATIVE_PATHS is set.  Make the
-	message printed when were reconfigure more prominent.
+	message printed when we reconfigure more prominent.
 	
 2009-01-05 17:58-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
