@@ -1,5 +1,23 @@
 2009-01-06  Nicola Pero <nicola.pero@meta-innovation.com>
 
+	* config.mak.in: Check here if GNUSTEP_BASE_DOMAIN and
+	GNUSTEP_INSTALLATION_DOMAIN do not match when using relative
+	paths.  If they do not match, print a long explanation of how to
+	fix the problem, and abort.  If relative paths are not used,
+	automatically set GNUSTEP_INSTALLATION_DOMAIN to the domain that
+	was chosen at configure time - unless overridden on the command
+	line.
+	* Makefile.postamble: Removed before-all rule that was doing the
+	check now in config.mak.in.
+
+	* SSL/Makefile.postamble (config.mak): Touch config.mak after
+	running config.status to prevent spurious invocations of
+	config.status.
+	(config.h): Always touch config.h after running config.status for
+	the same reason.
+	
+2009-01-06  Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* configure.ac: Detect relative paths in the paths that we
 	hardcode into gnustep-base, and set the
 	GNUSTEP_BASE_RELATIVE_PATHS variable if any is found.

@@ -77,16 +77,17 @@ after-distclean::
 
 config.mak: config.mak.in config.status
 	./config.status
+	-touch config.mak
 
 #
 # The config.h file is specific to a target
 #
 $(GNUSTEP_TARGET_DIR)/config.h: config.status
 	./config.status
+	-touch config.h
 ifneq ($(GNUSTEP_TARGET_DIR), .)
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
 	-mv config.h $(GNUSTEP_TARGET_DIR)
-	-touch $(GNUSTEP_TARGET_DIR)/config.h
 endif
 
 # Run configure manually if you need to pass any options
