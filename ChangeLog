@@ -1,3 +1,14 @@
+2009-01-06  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Detect relative paths in the paths that we
+	hardcode into gnustep-base, and set the
+	GNUSTEP_BASE_RELATIVE_PATHS variable if any is found.
+	* configure: Regenerated.
+	* config.mak.in: Added GNUSTEP_BASE_RELATIVE_PATHS.
+	* Makefile.postamble: Only do the automatic reconfiguration at
+	install time if GNUSTEP_BASE_RELATIVE_PATHS is set.  Make the
+	message printed when were reconfigure more prominent.
+	
 2009-01-05 17:58-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSBundle.m: Use CFBundleExecutable if NSExecutable isn't 
