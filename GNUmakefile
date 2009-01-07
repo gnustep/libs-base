@@ -32,6 +32,7 @@ ifeq ($(GNUSTEP_MAKEFILES),)
 endif
 
 -include config.mak
+-include Source/pathconfig/pathconfig.mak
 
 GNUSTEP_CORE_SOFTWARE = YES
 export GNUSTEP_CORE_SOFTWARE

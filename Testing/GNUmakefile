@@ -37,6 +37,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
+include ../Source/pathconfig/pathconfig.mak
 
 # The tools to be compiled
 CHECKABLE_TOOLS = \

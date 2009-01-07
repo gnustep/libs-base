@@ -36,6 +36,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
+include ../Source/pathconfig/pathconfig.mak
 
 # DTDs to install
 dtddir = $(GNUSTEP_LIBRARY)/DTDs
