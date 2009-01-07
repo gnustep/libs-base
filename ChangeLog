@@ -1,3 +1,25 @@
+2009-01-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure:
+	* config.mak.in:
+	* Source/NSPathUtilities.m:
+	* Source/GNUmakefile:
+	* Source/pathconfig:
+	* Source/pathconfig/configure:
+	* Source/pathconfig/configure.ac:
+	* Source/pathconfig/pathconfig.h.in:
+	* Source/pathconfig/pathconfig.mak.in:
+	* SSL/GNUmakefile:
+	* configure.ac:
+	* Documentation/GNUmakefile:
+	* NSTimeZones/GNUmakefile:
+	* GNUmakefile:
+	* Tools/GNUmakefile:
+	* Testing/GNUmakefile:
+	Move path configuration stuff into separate subdirectry/file so that
+	we can hack it more easily and so that only the code that needs it
+	will include it.
+
 2009-01-06  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* config.mak.in: Check here if GNUSTEP_BASE_DOMAIN and
