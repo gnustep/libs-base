@@ -1692,7 +1692,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    }
 	  else
 	    {
-	      fullpath = nil;
+	      NSString* platpath;
+	      platpath = [path stringByAppendingPathComponent:
+				 [NSString stringWithFormat: @"%@-gnustep.%@",
+					   name, ext]];
+	      if (bundle_file_readable(platpath))
+		fullpath = platpath;
+	      else
+		fullpath = nil;
 	    }
 	}
       else
