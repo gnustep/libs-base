@@ -60,6 +60,19 @@
 #endif
 #include <string.h>
 
+static NSFileManager	*
+manager()
+{
+  static NSFileManager	*mgr = nil;
+
+  if (mgr == nil)
+    {
+      mgr = RETAIN([NSFileManager defaultManager]);
+    }
+  return mgr;
+}
+
+
 @interface NSObject (PrivateFrameworks)
 + (NSString*) frameworkEnv;
 + (NSString*) frameworkPath;
@@ -142,7 +155,7 @@ static NSString	*library_combo =
 static NSString*
 AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 {
-  NSFileManager	*mgr;
+  NSFileManager	*mgr = manager();
   NSDictionary	*env;
   NSString	*pathlist;
   NSString	*prefix;
@@ -154,7 +167,6 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
       return path;
     }
 
-  mgr = [NSFileManager defaultManager];
   env = [[NSProcessInfo processInfo] environment];
   pathlist = [env objectForKey:@"PATH"];
 
@@ -232,7 +244,7 @@ GSPrivateExecutablePath()
       if (beenHere == NO)
 	{
 #ifdef PROCFS_EXE_LINK
-	  executablePath = [[NSFileManager defaultManager]
+	  executablePath = [manager()
 	    pathContentOfSymbolicLinkAtPath:
               [NSString stringWithUTF8String: PROCFS_EXE_LINK]];
 
@@ -268,7 +280,7 @@ GSPrivateExecutablePath()
 static BOOL
 bundle_directory_readable(NSString *path)
 {
-  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSFileManager	*mgr = manager();
   BOOL		directory;
 
   if ([mgr fileExistsAtPath: path isDirectory: &directory] == NO
@@ -278,18 +290,11 @@ bundle_directory_readable(NSString *path)
   return [mgr isReadableFileAtPath: path];
 }
 
-static BOOL
-bundle_file_readable(NSString *path)
-{
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  return [mgr isReadableFileAtPath: path];
-}
-
 /* Get the object file that should be located in the bundle of the same name */
 static NSString *
 bundle_object_name(NSString *path, NSString* executable)
 {
-  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSFileManager	*mgr = manager();
   NSString	*name, *path0, *path1, *path2;
 
   if (executable)
@@ -338,37 +343,13 @@ _bundle_resource_path(NSString *primary, NSString* bundlePath, NSString *lang)
   return primary;
 }
 
-/* Find the first directory entry with a given name (with any extension) */
-static NSString *
-_bundle_name_first_match(NSString* directory, NSString* name)
-{
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  NSEnumerator	*filelist;
-  NSString	*path;
-  NSString	*match;
-  NSString	*cleanname;
-
-  /* name might have a directory in it also, so account for this */
-  path = [[directory stringByAppendingPathComponent: name]
-    stringByDeletingLastPathComponent];
-  cleanname = [[name lastPathComponent] stringByDeletingPathExtension];
-  filelist = [[mgr directoryContentsAtPath: path] objectEnumerator];
-  while ((match = [filelist nextObject]))
-    {
-      if ([cleanname isEqual: [match stringByDeletingPathExtension]])
-	return [path stringByAppendingPathComponent: match];
-    }
-
-  return nil;
-}
-
 /* Try to locate name framework in standard places
    which are like /Library/Frameworks/(name).framework */
 static inline NSString *
 _find_framework(NSString *name)
 {                
   NSArray	*paths;
-  NSFileManager *file_mgr = [NSFileManager defaultManager];
+  NSFileManager *file_mgr = manager();
   NSString	*file_name = [name stringByAppendingPathExtension:@"framework"];
   NSString	*file_path;
   NSString	*path;
@@ -406,7 +387,7 @@ _find_main_bundle_for_tool(NSString *toolName)
   NSEnumerator *enumerator;
   NSString *path;
   NSString *tail;
-  NSFileManager *fm = [NSFileManager defaultManager];
+  NSFileManager *fm = manager();
 
   /*
    * Eliminate any base path or extensions.
@@ -818,6 +799,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       _emptyTable = RETAIN([NSDictionary dictionary]);
 
+      /* Initialise manager here so it's thread-safe.
+       */
+      manager();
+
       /* Need to make this recursive since both mainBundle and
        * initWithPath: want to lock the thread.
        */
@@ -849,8 +834,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	library_combo = RETAIN(str);
       
-      _launchDirectory = RETAIN([[NSFileManager defaultManager]
-				  currentDirectoryPath]);
+      _launchDirectory = RETAIN([manager() currentDirectoryPath]);
       
       _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
 					      version: _base_version]);
@@ -1275,7 +1259,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	   * that it's a path on the current filesystem, and append it
 	   * to the filesystem root.
 	   */
-	  root = [[NSFileManager defaultManager] currentDirectoryPath];
+	  root = [manager() currentDirectoryPath];
 	  length = [root length];
 	  root = [root stringByDeletingLastPathComponent];
 	  while ([root length] != length)
@@ -1289,11 +1273,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	{
 	  /* Try appending to the current working directory.
 	   */
-	  path = [[[NSFileManager defaultManager] currentDirectoryPath]
+	  path = [[manager() currentDirectoryPath]
 	    stringByAppendingPathComponent: path];
 	}
 #else
-      path = [[[NSFileManager defaultManager] currentDirectoryPath]
+      path = [[manager() currentDirectoryPath]
         stringByAppendingPathComponent: path];
 #endif
     }
@@ -1652,106 +1636,73 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return array;
 }
 
-+ (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext	
-		    inRootPath: (NSString *)rootPath
-		   inDirectory: (NSString *)subPath
-		   withVersion: (int)version
++ (NSString *) _pathForResource: (NSString *)name
+			 ofType: (NSString *)ext	
+		     inRootPath: (NSString *)rootPath
+		    inDirectory: (NSString *)subPath
 {
-  NSString *path, *fullpath;
-  NSEnumerator* pathlist;
+  NSFileManager	*mgr = manager();
+  NSString	*path;
+  NSEnumerator	*pathlist;
 
   if (name == nil)
     {
       name = @"";
     }
-
-  pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
-		    subPath: subPath] objectEnumerator];
-  fullpath = nil;
-  while ((path = [pathlist nextObject]))
+  if ([ext length] == 0)
     {
-      if (!bundle_directory_readable(path))
-	continue;
-
-      if (ext && [ext length] != 0)
-	{
-	  fullpath = [path stringByAppendingPathComponent:
-			     [NSString stringWithFormat: @"%@.%@", name, ext]];
-	  if (bundle_file_readable(fullpath))
-	    {
-	      if (gnustep_target_os)
-		{
-		  NSString* platpath;
-		  platpath = [path stringByAppendingPathComponent:
-		    [NSString stringWithFormat: @"%@-%@.%@",
-		    name, gnustep_target_os, ext]];
-		  if (bundle_file_readable(platpath))
-		    fullpath = platpath;
-		}
-	    }
-	  else
-	    {
-	      NSString* platpath;
-	      platpath = [path stringByAppendingPathComponent:
-				 [NSString stringWithFormat: @"%@-gnustep.%@",
-					   name, ext]];
-	      if (bundle_file_readable(platpath))
-		fullpath = platpath;
-	      else
-		fullpath = nil;
-	    }
-	}
-      else
-	{
-	  fullpath = _bundle_name_first_match(path, name);
-	  if (fullpath && gnustep_target_os)
-	    {
-	      NSString	*platpath;
-
-	      platpath = _bundle_name_first_match(path,
-		[NSString stringWithFormat: @"%@-%@",
-		name, gnustep_target_os]);
-	      if (platpath != nil)
-		fullpath = platpath;
-	    }
-	}
-      if (fullpath != nil)
-	break;
+      ext = nil;
     }
 
-  return fullpath;
+  pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
+    subPath: subPath] objectEnumerator];
+  while ((path = [pathlist nextObject]) != nil)
+    {
+      if (bundle_directory_readable(path))
+	{
+	  path = [path stringByAppendingPathComponent: name];
+	  if (ext != nil)
+	    {
+	      path = [path stringByAppendingPathExtension: ext];
+	    }
+	  if ([mgr isReadableFileAtPath: path])
+	    {
+	      return path;
+	    }
+	}
+    }
+
+  return nil;
+}
+
+
++ (NSString *) pathForResource: (NSString *)name
+			ofType: (NSString *)ext	
+		   inDirectory: (NSString *)bundlePath
+		   withVersion: (int)version
+{
+  return [self _pathForResource: name
+			 ofType: ext
+		     inRootPath: bundlePath
+		    inDirectory: nil];
 }
 
 + (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)ext	
 		   inDirectory: (NSString *)bundlePath
-		   withVersion: (int) version
 {
-    return [self pathForResource: name
-		 ofType: ext
-		 inRootPath: bundlePath
-		 inDirectory: nil
-		 withVersion: version];
-}
-
-+ (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext	
-		   inDirectory: (NSString *)bundlePath
-{
-    return [self pathForResource: name
-		 ofType: ext
-		 inRootPath: bundlePath
-		 inDirectory: nil
-		 withVersion: 0];
+  return [self _pathForResource: name
+			 ofType: ext
+		     inRootPath: bundlePath
+		    inDirectory: nil];
 }
 
 - (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)ext
 {
   return [self pathForResource: name
-	       ofType: ext
-	       inDirectory: nil];
+			ofType: ext
+		   inDirectory: nil];
 }
 
 - (NSString *) pathForResource: (NSString *)name
@@ -1763,16 +1714,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 #if !defined(__MINGW32__)
   if (_frameworkVersion)
     rootPath = [NSString stringWithFormat:@"%@/Versions/%@", [self bundlePath],
-			 _frameworkVersion];
+      _frameworkVersion];
   else
 #endif
     rootPath = [self bundlePath];
 
-  return [NSBundle pathForResource: name
-		   ofType: ext
-		   inRootPath: rootPath
-		   inDirectory: subPath
-		   withVersion: _version];
+  return [NSBundle _pathForResource: name
+			     ofType: ext
+			 inRootPath: rootPath
+		        inDirectory: subPath];
 }
 
 + (NSArray*) _pathsForResourcesOfType: (NSString*)extension
@@ -1783,7 +1733,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSString *path;
   NSMutableArray *resources;
   NSEnumerator *pathlist;
-  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSFileManager	*mgr = manager();
 
   pathlist = [[NSBundle _bundleResourcePathsWithRootPath: bundlePath
 			subPath: subPath] objectEnumerator];
@@ -1900,9 +1850,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray
 			       forPreferences: (NSArray *)preferencesArray
 {
-  NSString *locale;
-  NSMutableArray* array;
-  NSEnumerator* enumerate;
+  NSString	*locale;
+  NSMutableArray	*array;
+  NSEnumerator	*enumerate;
 
   array = [NSMutableArray arrayWithCapacity: 2];
   enumerate = [preferencesArray objectEnumerator];
@@ -2313,7 +2263,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSArray *paths;
   NSEnumerator *enumerator;
   NSString *path;
-  NSFileManager *fm = [NSFileManager defaultManager];
+  NSFileManager *fm = manager();
   NSRange	r;
 
   if ([libraryName length] == 0)

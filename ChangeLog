@@ -1,3 +1,11 @@
+2009-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Revert last change.  Remove undocumented code
+	which looked for operating system specific files. Also changed
+	behavior when given a nil/empty extension to match MacOS-X.
+	Also optimised and simplified code and changed a private method
+	which was missing the leading underscore.
+
 2009-01-07 16:33-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSBundle.m: Correct issue where *-gnustep.* is not

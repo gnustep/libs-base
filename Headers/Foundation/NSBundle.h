@@ -271,8 +271,8 @@ GS_EXPORT NSString* const NSLoadedClasses;
    the bundle.
    </p>
    <p>
-   If ext is nil or empty, then the first file with name and any
-   extension is returned.
+   If ext is nil or empty, then the first file exactly matching name
+   (ie with no extension) is returned.
    </p>
 */
 - (NSString*) pathForResource: (NSString*)name
