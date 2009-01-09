@@ -1,3 +1,7 @@
+2009-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimer.m: ([invalidate]) release target and user info.
+
 2009-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/mframe/sparc64/generic: guess at a config
