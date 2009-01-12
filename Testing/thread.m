@@ -123,7 +123,7 @@ int main(int argc, char **argv, char **env)
     {
       NSLog(@"ERROR ... retain count is %d, expected 1", [o retainCount]);
     }
-  DESTROY(arp);
+  IF_NO_GC(DESTROY(arp));
   return 0;
 }
 
