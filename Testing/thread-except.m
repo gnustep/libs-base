@@ -61,7 +61,7 @@ int counter;
   NS_HANDLER
     NSLog(@"%@ for thread %d\n", localException, ident);
   NS_ENDHANDLER
-  DESTROY(pool);
+  IF_NO_GC(DESTROY(pool));
   counter--;
   [NSThread exit];
 }
@@ -100,6 +100,6 @@ int main()
     fprintf(stderr, "There's a runaway exception!  Something is wrong!\n");
   NS_ENDHANDLER
   fclose(file);
-  DESTROY(pool);
+  IF_NO_GC(DESTROY(pool));
   return 0;
 }

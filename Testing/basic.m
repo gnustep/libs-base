@@ -52,6 +52,6 @@ int main()
   NSSetUncaughtExceptionHandler(handler);
   [NSException raise: NSGenericException format: @"an exception"];
 
-  DESTROY(arp);
+  IF_NO_GC(DESTROY(arp));
   return 0;
 }
