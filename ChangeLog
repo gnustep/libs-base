@@ -1,5 +1,13 @@
 2009-01-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GNUmakefile:
+	* Headers/Foundation/NSGarbageCollector.h:
+	* Source/NSGarbageCollector.m:
+	* Headers/Foundation/Foundation.h:
+	Add new MacOS-X class.
+
+2009-01-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSSocketPort.m:
 	* Source/NSRunLoop.m:
 	* Source/NSMessagePort.m:

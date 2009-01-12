@@ -194,6 +194,7 @@ NSException.m \
 NSFileHandle.m \
 NSFileManager.m \
 NSFormatter.m \
+NSGarbageCollector.m \
 NSGeometry.m \
 NSHashTable.m \
 NSHost.m \
@@ -336,6 +337,7 @@ NSExpression.h \
 NSFileHandle.h \
 NSFileManager.h \
 NSFormatter.h \
+NSGarbageCollector.h \
 NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
