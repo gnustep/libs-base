@@ -163,7 +163,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -175,7 +175,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     [super description], _name];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   if (_mutex != 0)
     {
@@ -321,7 +321,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -333,7 +333,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     [super description], _name];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   if (_condition != 0)
     {
@@ -642,7 +642,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -654,7 +654,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     [super description], _name];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   if (_mutex != 0)
     {

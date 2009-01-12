@@ -230,7 +230,7 @@ typedef enum {
   GS_H_CONNECTED	// Currently connected.
 } GSHandleState;
 
-@interface GSMessageHandle : NSObject <GCFinalization, RunLoopEvents>
+@interface GSMessageHandle : NSObject <RunLoopEvents>
 {
   int			desc;		/* File descriptor for I/O.	*/
   unsigned		wItem;		/* Index of item being written.	*/
@@ -459,7 +459,7 @@ static Class	runLoopClass;
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   DESTROY(rData);
   DESTROY(rItems);
   DESTROY(wMsgs);
@@ -478,7 +478,7 @@ static Class	runLoopClass;
   return desc;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   [self invalidate];
   (void)close(desc);
@@ -1368,7 +1368,7 @@ typedef	struct {
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -1381,7 +1381,7 @@ typedef	struct {
   return desc;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   NSDebugMLLog(@"NSMessagePort", @"NSMessagePort 0x%x finalized", self);
   [self invalidate];

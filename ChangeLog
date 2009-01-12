@@ -1,5 +1,31 @@
 2009-01-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSSocketPort.m:
+	* Source/NSRunLoop.m:
+	* Source/NSMessagePort.m:
+	* Source/NSNotificationCenter.m:
+	* Source/GSAttributedString.m:
+	* Source/NSObject.m:
+	* Source/Additions/GSLock.m:
+	* Source/NSConnection.m:
+	* Source/GSFileHandle.m:
+	* Source/NSLock.m:
+	* Source/NSDistantObject.m:
+	* Source/NSTask.m:
+	* SSL/GSSSLHandle.m:
+	* Documentation/Base.ispell:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSNotification.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSTask.h:
+	* Headers/Additions/GNUstepBase/GSFileHandle.h:
+	Change GC finalization API to match MacOS-X ... abandon libFoundation
+	compatibility in GC behavior.
+
+2009-01-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSIndexPath.m:
 	* Source/NSSocketPortNameServer.m:
 	* Source/NSTimeZone.m:

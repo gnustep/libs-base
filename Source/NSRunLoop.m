@@ -147,7 +147,7 @@ static NSDate	*theFuture = nil;
  * The GSTimedPerformer class is used to hold information about
  * messages which are due to be sent to objects at a particular time.
  */
-@interface GSTimedPerformer: NSObject <GCFinalization>
+@interface GSTimedPerformer: NSObject
 {
 @public
   SEL		selector;
@@ -168,7 +168,7 @@ static NSDate	*theFuture = nil;
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   TEST_RELEASE(timer);
   RELEASE(target);
   RELEASE(argument);
@@ -183,7 +183,7 @@ static NSDate	*theFuture = nil;
     removeObjectIdenticalTo: self];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   [self invalidate];
 }
@@ -755,11 +755,11 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
 #ifdef	HAVE_POLL_F
   if (_extra != 0)

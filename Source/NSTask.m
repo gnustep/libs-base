@@ -285,7 +285,7 @@ pty_slave(const char* name)
   return AUTORELEASE(task);
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   [tasksLock lock];
   NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
@@ -294,7 +294,7 @@ pty_slave(const char* name)
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   RELEASE(_arguments);
   RELEASE(_environment);
   RELEASE(_launchPath);
@@ -954,9 +954,9 @@ GSPrivateCheckTasks()
   return found;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
-  [super gcFinalize];
+  [super finalize];
   if (wThread != NULL)
     {
       CloseHandle(wThread);
