@@ -123,6 +123,7 @@ BOOL	NSDeallocateZombies = NO;
 static Class		zombieClass;
 static NSMapTable	zombieMap;
 
+#if	!GS_WITH_GC
 static void GSMakeZombie(NSObject *o)
 {
   Class	c = ((id)o)->class_pointer;
@@ -141,6 +142,7 @@ static void GSMakeZombie(NSObject *o)
 	}
     }
 }
+#endif
 
 static void GSLogZombie(id o, SEL sel)
 {
@@ -384,7 +386,7 @@ typedef	struct obj_layout *obj;
 
 #include "GNUstepBase/GSIMap.h"
 
-static GSIMapTable_t	retain_counts = {0};
+IF_NO_GC(static GSIMapTable_t	retain_counts = {0};)
 
 #endif	/* !defined(REFCNT_LOCAL) */
 
@@ -701,7 +703,7 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 	}
       else if ([aClass requiresTypedMemory])
 	{
-	  new = GC_CALLOC_EXPLICTLY_TYPED(1, size, gc_type);
+	  new = GC_calloc_explicitly_typed(1, size, gc_type);
         }
       else
 	{

@@ -1076,7 +1076,7 @@ static Class	runLoopClass;
           DESTROY(rItems);
           NSDebugMLLog(@"GSTcpHandle",
         	@"got message %@ on 0x%x", pm, self);
-          RETAIN(rp);
+          IF_NO_GC(RETAIN(rp);)
           M_UNLOCK(myLock);
           NS_DURING
             {
@@ -1353,7 +1353,7 @@ static Class	runLoopClass;
 
   l = [runLoopClass currentRunLoop];
 
-  RETAIN(self);
+  IF_NO_GC(RETAIN(self);)
 
 #if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
@@ -1754,7 +1754,7 @@ static Class		tcpPortClass;
     }
   else
     {
-      RETAIN(port);
+      IF_NO_GC(RETAIN(port);)
       NSDebugMLLog(@"NSPort", @"Using pre-existing port: %@", port);
     }
   IF_NO_GC(AUTORELEASE(port));
@@ -1938,7 +1938,7 @@ static Class		tcpPortClass;
     {
       if ((NSPort*) [handle recvPort] == recvPort)
 	{
-	  RETAIN(handle);
+	  IF_NO_GC(RETAIN(handle);)
 	  NSEndMapTableEnumeration(&me);
 	  M_UNLOCK(myLock);
 	  return AUTORELEASE(handle);
@@ -2060,7 +2060,7 @@ static Class		tcpPortClass;
 {
   if ([self isValid] == YES)
     {
-      RETAIN(self);
+      IF_NO_GC(RETAIN(self);)
       M_LOCK(myLock);
 
       if ([self isValid] == YES)
@@ -2254,7 +2254,7 @@ static Class		tcpPortClass;
  */
 - (void) removeHandle: (GSTcpHandle*)handle
 {
-  RETAIN(self);
+  IF_NO_GC(RETAIN(self);)
   M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
@@ -2267,7 +2267,7 @@ static Class		tcpPortClass;
 	   * been retained - we must therefore release this port since the
 	   * handle no longer uses it.
 	   */
-	  AUTORELEASE(self);
+	  IF_NO_GC(AUTORELEASE(self);)
 	}
       handle->sendPort = nil;
     }

@@ -103,9 +103,11 @@ _GCCompareObjects(NSMapTable *table, const GCInfo *o1, const GCInfo *o2)
 static void
 _GCRetainObjects(NSMapTable *table, const void *ptr)
 {
+#if	!GS_WITH_GC
   GCInfo	*objectStruct = (GCInfo*)ptr;
 
-  RETAIN(objectStruct->object);
+  [objectStruct->object retain];
+#endif
 }
 
 static void

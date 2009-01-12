@@ -1047,11 +1047,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
       RELEASE(arp);
 
-      if (when != nil)
-	{
-	  AUTORELEASE(when);
-	}
-      else
+      if (when == nil)
         {
 	  GSIArray		watchers = context->watchers;
 	  unsigned		i = GSIArrayCount(watchers);
@@ -1070,6 +1066,12 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	      when = theFuture;
 	    }
 	}
+#if	!GS_WITH_GC
+      else
+	{
+	  AUTORELEASE(when);
+	}
+#endif
 
       NSDebugMLLog(@"NSRunLoop", @"limit date %f in %@",
 	[when timeIntervalSinceReferenceDate], mode);

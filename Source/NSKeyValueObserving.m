@@ -1366,7 +1366,7 @@ replacementForClass(Class c)
        * turn off key-value-observing for it.
        */
       isa = [self class];
-      AUTORELEASE(info);
+      IF_NO_GC(AUTORELEASE(info);)
       [self setObservationInfo: nil];
     }
   [kvoLock unlock];
@@ -1811,7 +1811,7 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
   setup();
   [kvoLock lock];
   info = NSMapGet(infoTable, (void*)self);
-  AUTORELEASE(RETAIN((id)info));
+  IF_NO_GC(AUTORELEASE(RETAIN((id)info));)
   [kvoLock unlock];
   return info;
 }

@@ -252,10 +252,10 @@ static Class		NSURLHandleClass = 0;
 {
   id	o = client;
 
-  RETAIN(o);
+  IF_NO_GC([o retain];)
   [_clients removeObjectIdenticalTo: o];
   [_clients addObject: o];
-  RELEASE(o);
+  IF_NO_GC([o release];)
 }
 
 /**
@@ -312,12 +312,12 @@ static Class		NSURLHandleClass = 0;
  */
 - (void) cancelLoadInBackground
 {
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   [_clients makeObjectsPerformSelector:
     @selector(URLHandleResourceDidCancelLoading:)
     withObject: self];
   [self endLoadInBackground];
-  RELEASE(self);
+  IF_NO_GC([self release];)
 }
 
 - (void) dealloc
@@ -631,7 +631,7 @@ static NSLock			*fileLock = nil;
       NS_DURING
 	{
 	  obj = [fileCache objectForKey: path];
-	  AUTORELEASE(RETAIN(obj));
+	  IF_NO_GC([[obj retain] autorelease];)
 	}
       NS_HANDLER
 	{
@@ -723,7 +723,7 @@ static NSLock			*fileLock = nil;
 	  if (obj != nil)
 	    {
 	      DESTROY(self);
-	      RETAIN(obj);
+	      IF_NO_GC([obj retain];)
 	    }
 	}
       NS_HANDLER

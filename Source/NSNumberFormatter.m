@@ -102,17 +102,17 @@
 {
   NSNumberFormatter	*c = (NSNumberFormatter*) NSCopyObject(self, 0, zone);
 
-  RETAIN(c->_negativeFormat);
-  RETAIN(c->_positiveFormat);
-  RETAIN(c->_attributesForPositiveValues);
-  RETAIN(c->_attributesForNegativeValues);
-  RETAIN(c->_maximum);
-  RETAIN(c->_minimum);
-  RETAIN(c->_roundingBehavior);
-  RETAIN(c->_roundingBehavior);
-  RETAIN(c->_attributedStringForNil);
-  RETAIN(c->_attributedStringForNotANumber);
-  RETAIN(c->_attributedStringForZero);
+  IF_NO_GC(RETAIN(c->_negativeFormat);)
+  IF_NO_GC(RETAIN(c->_positiveFormat);)
+  IF_NO_GC(RETAIN(c->_attributesForPositiveValues);)
+  IF_NO_GC(RETAIN(c->_attributesForNegativeValues);)
+  IF_NO_GC(RETAIN(c->_maximum);)
+  IF_NO_GC(RETAIN(c->_minimum);)
+  IF_NO_GC(RETAIN(c->_roundingBehavior);)
+  IF_NO_GC(RETAIN(c->_roundingBehavior);)
+  IF_NO_GC(RETAIN(c->_attributedStringForNil);)
+  IF_NO_GC(RETAIN(c->_attributedStringForNotANumber);)
+  IF_NO_GC(RETAIN(c->_attributedStringForZero);)
 
   return c;
 }

@@ -684,7 +684,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 			   * rather than simply releasing as the key may
 			   * be referred to by a cross-reference later.
 			   */
-			  AUTORELEASE(k);
+			  IF_NO_GC(AUTORELEASE(k);)
 			  RELEASE(o);
 			}
 		    }

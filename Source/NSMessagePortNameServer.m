@@ -97,7 +97,7 @@ static void clean_up_names(void)
       [defaultServer removePort: port];
     }
   NSEndMapTableEnumeration(&mEnum);
-  DESTROY(arp);
+  IF_NO_GC(DESTROY(arp);)
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
@@ -206,7 +206,7 @@ static void clean_up_names(void)
       data = [GSMimeDocument encodeBase64: data];
       name = [[NSString alloc] initWithData: data
 				   encoding: NSASCIIStringEncoding];
-      AUTORELEASE(name);
+      IF_NO_GC([name autorelease];)
     }
   [serverLock lock];
   if (!base_path)

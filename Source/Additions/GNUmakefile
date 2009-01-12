@@ -45,7 +45,9 @@ Additions_OBJC_FILES =\
 	behavior.m
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
-Additions_OBJC_FILES += GSNextRuntime.m
+  ifneq ($(OBJC_RUNTIME_LIB), gnugc)
+    Additions_OBJC_FILES += GSNextRuntime.m
+  endif
 endif
 ifneq ($(FOUNDATION_LIB), gnu)
 Additions_OBJC_FILES += GSCompatibility.m

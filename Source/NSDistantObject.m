@@ -674,8 +674,7 @@ enum proxyLocation
 
 	  if (sig == nil)
 	    {
-	      sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
-	      RETAIN(sig);
+	      sig = RETAIN([NSMethodSignature signatureWithObjCTypes: "@@::"]);
 	    }
 	  return sig;
 	}
@@ -690,8 +689,7 @@ enum proxyLocation
 
 	  if (sig == nil)
 	    {
-	      sig = [NSMethodSignature signatureWithObjCTypes: "r*@:"];
-	      RETAIN(sig);
+	      sig = RETAIN([NSMethodSignature signatureWithObjCTypes: "r*@:"]);
 	    }
 	  return sig;
 	}

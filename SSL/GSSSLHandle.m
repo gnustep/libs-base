@@ -195,7 +195,7 @@ sslError(int err)
    * Set non-blocking so accept won't hang if remote end goes wrong.
    */
   [self setNonBlocking: YES];
-  RETAIN(self);		// Don't get destroyed during runloop
+  IF_NO_GC([self retain];)		// Don't get destroyed during runloop
   loop = [NSRunLoop currentRunLoop];
   ret = SSL_set_fd(ssl, descriptor);
   if (ret == 1)
@@ -293,7 +293,7 @@ sslError(int err)
     {
       ssl = SSL_new(ctx);
     }
-  RETAIN(self);		// Don't get destroyed during runloop
+  IF_NO_GC([self retain];)		// Don't get destroyed during runloop
   /*
    * Set non-blocking so accept won't hang if remote end goes wrong.
    */

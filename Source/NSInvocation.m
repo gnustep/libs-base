@@ -823,8 +823,7 @@ _arg_addr(NSInvocation *inv, int index)
   NSZoneFree(NSDefaultMallocZone(), (void*)types);
 
   RELEASE(self);
-  self  = [NSInvocation invocationWithMethodSignature: newSig];
-  RETAIN(self);
+  self  = RETAIN([NSInvocation invocationWithMethodSignature: newSig]);
 
   [aCoder decodeValueOfObjCType: @encode(id) at: &_target];
 

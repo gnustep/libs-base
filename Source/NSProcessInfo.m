@@ -991,7 +991,7 @@ int main(int argc, char *argv[], char *env[])
       pid = [self processIdentifier];
       start = (unsigned long)GSTimeNow();
       host = [[self hostName] stringByReplacingString: @"." withString: @"_"];
-      RETAIN(host);
+      IF_NO_GC(RETAIN(host);)
     }
   count = counter++;
   [gnustep_global_lock unlock];

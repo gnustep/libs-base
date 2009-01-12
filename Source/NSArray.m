@@ -1659,7 +1659,7 @@ compare(id elem1, id elem2, void* context)
 {
   id	tmp = [self objectAtIndex: i1];
 
-  RETAIN(tmp);
+  IF_NO_GC([tmp retain];)
   [self replaceObjectAtIndex: i1 withObject: [self objectAtIndex: i2]];
   [self replaceObjectAtIndex: i2 withObject: tmp];
   RELEASE(tmp);
@@ -1858,7 +1858,7 @@ compare(id elem1, id elem2, void* context)
 		   * first equal object we don't get left with a bad object
 		   * pointer for later comparisons.
 		   */
-		  RETAIN(anObject);
+		  IF_NO_GC([anObject retain];)
 		}
 	      (*rem)(self, remSel, i);
 	    }
@@ -1950,7 +1950,7 @@ compare(id elem1, id elem2, void* context)
 		   * first equal object we don't get left with a bad object
 		   * pointer for later comparisons.
 		   */
-		  RETAIN(anObject);
+		  IF_NO_GC([anObject retain];)
 		}
 	      (*rem)(self, remSel, i);
 	    }

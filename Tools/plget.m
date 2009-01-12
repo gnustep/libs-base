@@ -53,7 +53,6 @@ main(int argc, char** argv, char **env)
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
-  pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {

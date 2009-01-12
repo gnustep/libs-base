@@ -47,7 +47,7 @@ static BOOL snuggleEnd(NSString *t)
   if (set == nil)
     {
       set = [NSCharacterSet characterSetWithCharactersInString: @"]}).,;"];
-      RETAIN(set);
+      IF_NO_GC([set retain];)
     }
   return [set characterIsMember: [t characterAtIndex: 0]];
 }
@@ -59,7 +59,7 @@ static BOOL snuggleStart(NSString *t)
   if (set == nil)
     {
       set = [NSCharacterSet characterSetWithCharactersInString: @"[{("];
-      RETAIN(set);
+      IF_NO_GC([set retain];)
     }
   return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
 }
@@ -1068,7 +1068,7 @@ static BOOL snuggleStart(NSString *t)
 	} while (r.length > 0);
       if (m != nil)
 	{
-	  AUTORELEASE(m);
+	  IF_NO_GC([m autorelease];)
 	}
     }
 

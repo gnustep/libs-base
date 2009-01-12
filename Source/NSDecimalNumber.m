@@ -867,8 +867,8 @@ static NSDecimalNumber *one;
   double num;
   NSDecimalNumber *dnum;
   num = [self doubleValue];
-  dnum = [[NSDecimalNumber alloc] initWithBytes: &num objCType: "d"];
-  AUTORELEASE(dnum);
+  dnum
+    = AUTORELEASE([[NSDecimalNumber alloc] initWithBytes: &num objCType: "d"]);
   return [dnum decimalValue];
 }
 @end

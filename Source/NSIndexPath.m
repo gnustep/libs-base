@@ -60,8 +60,7 @@ static	NSIndexPath	*dummy = nil;
   id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   o = [o initWithIndexes: indexes length: length];
-  AUTORELEASE(o);
-  return o;
+  return AUTORELEASE(o);
 }
 
 + (void) initialize

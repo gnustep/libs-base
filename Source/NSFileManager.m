@@ -2235,9 +2235,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    stringWithFileSystemRepresentation: dirbuf->d_name
 	    length: strlen(dirbuf->d_name)];
 #endif
-	  returnFileName = [dir.path stringByAppendingPathComponent:
-	    returnFileName];
-	  RETAIN(returnFileName);
+	  returnFileName = RETAIN([dir.path stringByAppendingPathComponent:
+	    returnFileName]);
 
 	  /* TODO - can this one can be removed ? */
 	  if (!_flags.justContents)
@@ -2905,7 +2904,7 @@ static NSSet	*fileKeys = nil;
 	NSFileSystemNumber,
 	NSFileType,
 	nil];
-      RETAIN(fileKeys);
+      IF_NO_GC([fileKeys retain];)
     }
 }
 

@@ -874,7 +874,7 @@ static Class	runLoopClass;
 	      DESTROY(rItems);
 	      NSDebugMLLog(@"NSMessagePort_details",
 		@"got message %@ on 0x%x", pm, self);
-	      RETAIN(rp);
+	      IF_NO_GC([rp retain];)
 	      M_UNLOCK(myLock);
 	      NS_DURING
 		{
@@ -1023,7 +1023,7 @@ static Class	runLoopClass;
 
   l = [runLoopClass currentRunLoop];
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
 
   [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
@@ -1137,7 +1137,7 @@ static void clean_up_sockets(void)
 	unlink([name bytes]);
     }
   NSEndMapTableEnumeration(&mEnum);
-  DESTROY(arp);
+  IF_NO_GC(DESTROY(arp);)
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
@@ -1334,7 +1334,7 @@ typedef	struct {
   else
     {
       RELEASE(theName);
-      RETAIN(port);
+      IF_NO_GC([port retain];)
       NSDebugMLLog(@"NSMessagePort", @"Using pre-existing port: %@", port);
     }
   IF_NO_GC(AUTORELEASE(port));
@@ -1454,7 +1454,7 @@ typedef	struct {
     {
       if ((NSPort*) [handle recvPort] == recvPort)
 	{
-	  RETAIN(handle);
+	  IF_NO_GC([handle retain];)
 	  NSEndMapTableEnumeration(&me);
 	  M_UNLOCK(myLock);
 	  return AUTORELEASE(handle);
@@ -1573,7 +1573,7 @@ typedef	struct {
 {
   if ([self isValid] == YES)
     {
-      RETAIN(self);
+      IF_NO_GC([self retain];)
       M_LOCK(myLock);
 
       if ([self isValid] == YES)
@@ -1709,7 +1709,7 @@ typedef	struct {
 
 - (void) removeHandle: (GSMessageHandle*)handle
 {
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
@@ -1722,7 +1722,7 @@ typedef	struct {
 	   * been retained - we must therefore release this port since the
 	   * handle no longer uses it.
 	   */
-	  AUTORELEASE(self);
+	  IF_NO_GC([self autorelease];)
 	}
       handle->sendPort = nil;
     }

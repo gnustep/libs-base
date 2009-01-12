@@ -1384,8 +1384,7 @@ nodeToObject(GSXMLNode* node, NSPropertyListMutabilityOptions o, NSString **e)
 	    }
 	}
     }
-  RETAIN(result);
-  RELEASE(arp);
+  IF_NO_GC([result retain]; [arp release];)
   return AUTORELEASE(result);
 }
 #endif

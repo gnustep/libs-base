@@ -122,7 +122,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
   connection = [[NSConnection alloc] init];
   if (connection)
     {
-      RETAIN(connection);
+      IF_NO_GC(RETAIN(connection);)
       [connection setRootObject: self];
       result = [connection registerName: serverName];
     }
@@ -150,7 +150,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
 - (void) setDelegate: (id)anObject
 {
   /* FIXME - we should not retain the delegate ! */
-  RETAIN(anObject);
+  IF_NO_GC(RETAIN(anObject);)
   ASSIGN(_delegate, anObject);
 }
 

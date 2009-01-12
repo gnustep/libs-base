@@ -1651,7 +1651,7 @@ static unsigned	urlAlign;
       if (c != 0)
 	{
 	  handle = [[c alloc] initWithURL: self cached: shouldUseCache];
-	  AUTORELEASE(handle);
+	  IF_NO_GC([handle autorelease];)
 	}
     }
   return handle;
@@ -1734,7 +1734,7 @@ static unsigned	urlAlign;
 {
   id	c = clientForHandle(_clients, sender);
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   [sender removeClient: self];
   if (c != nil)
     {

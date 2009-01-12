@@ -310,7 +310,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all Source/pathconfig Source/mframe SSL"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_OBJC_SYNC_ENTER HAVE_PTHREAD_H HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_OBJC_SYNC_ENTER HAVE_PTHREAD_H HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1328,6 +1328,11 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 # If GNUSTEP_MAKEFILES is undefined, try to use gnustep-config to determine it.
 if test -z "$GNUSTEP_MAKEFILES"; then
   GNUSTEP_MAKEFILES=`gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5`
+fi
+
+# If LIBRARY_COMBO is undefined, try to use gnustep-config to determine it.
+if test -z "$LIBRARY_COMBO"; then
+  LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
 
 exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
@@ -2792,6 +2797,7 @@ fi
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
+OBJC_WITH_GC=no
 OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 echo "$as_me:$LINENO: checking the Objective-C runtime" >&5
 echo $ECHO_N "checking the Objective-C runtime... $ECHO_C" >&6
@@ -2800,6 +2806,12 @@ if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
 echo "${ECHO_T}NeXT" >&6
   LIBOBJC='-lobjc'
   OBJCFLAGS="-fnext-runtime -DNeXT_RUNTIME"
+elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
+  echo "$as_me:$LINENO: result: GNU" >&5
+echo "${ECHO_T}GNU" >&6
+  LIBOBJC='-lobjc_gc -ldl -lgc'
+  OBJCFLAGS="-fgnu-runtime"
+  OBJC_WITH_GC=yes
 else
   echo "$as_me:$LINENO: result: GNU" >&5
 echo "${ECHO_T}GNU" >&6
@@ -2831,7 +2843,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/libobjc_gc.a" -o -f "$GNUSTEP_LDIR/libobjc_gc.so" -o -f "$GNUSTEP_LDIR/libobjc_gc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc_gc-gnu.dylib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -2848,7 +2860,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/libobjc_gc.a" -o -f "$GNUSTEP_LDIR/libobjc_gc.so" -o -f "$GNUSTEP_LDIR/libobjc_gc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc_gc-gnu.dylib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -2865,7 +2877,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/libobjc_gc.a" -o -f "$GNUSTEP_LDIR/libobjc_gc.so" -o -f "$GNUSTEP_LDIR/libobjc_gc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc_gc-gnu.dylib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -3300,6 +3312,379 @@ if test $ac_cv_header_objc_objc_h = no; then
   { { echo "$as_me:$LINENO: error: Could not find Objective-C headers" >&5
 echo "$as_me: error: Could not find Objective-C headers" >&2;}
    { (exit 1); exit 1; }; }
+fi
+
+if test $OBJC_WITH_GC = yes; then
+
+for ac_header in gc.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+else
+  # Is the header compilable?
+echo "$as_me:$LINENO: checking $ac_header usability" >&5
+echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_header_compiler=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6
+
+# Is the header present?
+echo "$as_me:$LINENO: checking $ac_header presence" >&5
+echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <$ac_header>
+_ACEOF
+if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
+  (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null; then
+  if test -s conftest.err; then
+    ac_cpp_err=$ac_c_preproc_warn_flag
+    ac_cpp_err=$ac_cpp_err$ac_c_werror_flag
+  else
+    ac_cpp_err=
+  fi
+else
+  ac_cpp_err=yes
+fi
+if test -z "$ac_cpp_err"; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+rm -f conftest.err conftest.$ac_ext
+echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
+echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
+    (
+      cat <<\_ASBOX
+## ------------------------------------------ ##
+## Report this to the AC_PACKAGE_NAME lists.  ##
+## ------------------------------------------ ##
+_ASBOX
+    ) |
+      sed "s/^/$as_me: WARNING:     /" >&2
+    ;;
+esac
+echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  eval "$as_ac_Header=\$ac_header_preproc"
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+
+fi
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ gc_ok=yes
+else
+  gc_ok=no
+fi
+
+done
+
+  if test "$gc_ok" = no; then
+    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc.h header" >&5
+echo "$as_me: error: Garbage collection was required, but the gc.h header" >&2;}
+   { (exit 1); exit 1; }; }
+    { echo "$as_me:$LINENO: couldn't be found." >&5
+echo "$as_me: couldn't be found." >&6;}
+  fi
+  saved_LIBS="$LIBS"
+  LIBS+=" -lgc"
+  echo "$as_me:$LINENO: checking for GC_malloc" >&5
+echo $ECHO_N "checking for GC_malloc... $ECHO_C" >&6
+if test "${ac_cv_func_GC_malloc+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define GC_malloc to an innocuous variant, in case <limits.h> declares GC_malloc.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define GC_malloc innocuous_GC_malloc
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char GC_malloc (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef GC_malloc
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char GC_malloc ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_GC_malloc) || defined (__stub___GC_malloc)
+choke me
+#else
+char (*f) () = GC_malloc;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != GC_malloc;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_GC_malloc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_func_GC_malloc=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_GC_malloc" >&5
+echo "${ECHO_T}$ac_cv_func_GC_malloc" >&6
+if test $ac_cv_func_GC_malloc = yes; then
+  gc_ok=yes
+else
+  gc_ok=no
+fi
+
+  if test "$gc_ok" = no; then
+    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc library" >&5
+echo "$as_me: error: Garbage collection was required, but the gc library" >&2;}
+   { (exit 1); exit 1; }; }
+    { echo "$as_me:$LINENO: couldn't be found." >&5
+echo "$as_me: couldn't be found." >&6;}
+  fi
+  LIBS="-lobjc_gc -ldl"
+  echo "$as_me:$LINENO: checking for class_ivar_set_gcinvisible" >&5
+echo $ECHO_N "checking for class_ivar_set_gcinvisible... $ECHO_C" >&6
+if test "${ac_cv_func_class_ivar_set_gcinvisible+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define class_ivar_set_gcinvisible to an innocuous variant, in case <limits.h> declares class_ivar_set_gcinvisible.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define class_ivar_set_gcinvisible innocuous_class_ivar_set_gcinvisible
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char class_ivar_set_gcinvisible (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef class_ivar_set_gcinvisible
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char class_ivar_set_gcinvisible ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_class_ivar_set_gcinvisible) || defined (__stub___class_ivar_set_gcinvisible)
+choke me
+#else
+char (*f) () = class_ivar_set_gcinvisible;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != class_ivar_set_gcinvisible;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_class_ivar_set_gcinvisible=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_func_class_ivar_set_gcinvisible=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_class_ivar_set_gcinvisible" >&5
+echo "${ECHO_T}$ac_cv_func_class_ivar_set_gcinvisible" >&6
+if test $ac_cv_func_class_ivar_set_gcinvisible = yes; then
+  gc_ok=yes
+else
+  gc_ok=no
+fi
+
+  if test "$gc_ok" = no; then
+    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc runtime" >&5
+echo "$as_me: error: Garbage collection was required, but the gc runtime" >&2;}
+   { (exit 1); exit 1; }; }
+    { echo "$as_me:$LINENO: couldn't be found." >&5
+echo "$as_me: couldn't be found." >&6;}
+  fi
+  LIBS="$saved_LIBS"
+
 fi
 
 #--------------------------------------------------------------------
@@ -19153,6 +19538,7 @@ s,@OBJEXT@,$OBJEXT,;t t
 s,@CPP@,$CPP,;t t
 s,@WHOAMI@,$WHOAMI,;t t
 s,@EGREP@,$EGREP,;t t
+s,@OBJC_WITH_GC@,$OBJC_WITH_GC,;t t
 s,@GS_WORDS_BIGENDIAN@,$GS_WORDS_BIGENDIAN,;t t
 s,@GS_SINT8@,$GS_SINT8,;t t
 s,@GS_UINT8@,$GS_UINT8,;t t

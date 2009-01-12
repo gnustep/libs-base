@@ -1270,7 +1270,7 @@ main(int argc, char **argv, char **env)
 		  if (sDate == nil || [d earlierDate: sDate] == sDate)
 		    {
 		      sDate = d;
-		      AUTORELEASE(RETAIN(sDate));
+		      IF_NO_GC([[sDate retain] autorelease];)
 		    }
 		}
 	      if (verbose == YES)
@@ -1298,7 +1298,7 @@ main(int argc, char **argv, char **env)
 		  if (gDate == nil || [d laterDate: gDate] == gDate)
 		    {
 		      gDate = d;
-		      AUTORELEASE(RETAIN(gDate));
+		      IF_NO_GC([[gDate retain] autorelease];)
 		    }
 		}
 	      if (verbose == YES)
@@ -1497,7 +1497,7 @@ main(int argc, char **argv, char **env)
 	    {
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
 	      gDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
+	      IF_NO_GC([[gDate retain] autorelease];)
 	    }
 
 	  /*
@@ -1603,7 +1603,7 @@ main(int argc, char **argv, char **env)
 	  systemProjects = @"";
 	}
       projects = [[defs dictionaryForKey: @"Projects"] mutableCopy];
-      AUTORELEASE(projects);
+      IF_NO_GC([projects autorelease];)
 
       /*
        * Merge any system project references.
@@ -1964,10 +1964,10 @@ main(int argc, char **argv, char **env)
 	       */
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
 	      gDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
+	      IF_NO_GC([[gDate retain] autorelease];)
 	      attrs = [mgr fileAttributesAtPath: htmlfile traverseLink: YES];
 	      hDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(hDate));
+	      IF_NO_GC([[hDate retain] autorelease];)
 	    }
 
 	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)

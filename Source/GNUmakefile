@@ -91,25 +91,27 @@ preface.m \
 mframe.m
 
 ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
-GNU_MFILES += thr-pthread.m
-OBJC_LIBS += -lpthread
+  GNU_MFILES += thr-pthread.m
+  OBJC_LIBS += -lpthread
 endif
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
-GNU_MFILES += objc-gnu2next.m
-ifeq ($(HAVE_PTHREAD_H), yes)
-GNU_MFILES += thr-pthread.m
-else
-GNU_MFILES += thr-mach.m
-endif
+  ifneq ($(OBJC_RUNTIME_LIB), gnugc)
+    GNU_MFILES += objc-gnu2next.m
+    ifeq ($(HAVE_PTHREAD_H), yes)
+      GNU_MFILES += thr-pthread.m
+    else
+      GNU_MFILES += thr-mach.m
+    endif
+  endif
 endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
-GNU_MFILES += libgnustep-base-entry.m
+  GNU_MFILES += libgnustep-base-entry.m
 endif
 
 ifeq ($(HAVE_OBJC_SYNC_ENTER), no)
-GNU_MFILES += synchronization.m
+  GNU_MFILES += synchronization.m
 endif
 
 
