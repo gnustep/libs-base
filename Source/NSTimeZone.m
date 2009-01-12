@@ -1432,14 +1432,16 @@ static NSMapTable	*absolutes = 0;
 		{
 		  tzdir = [tzdir stringByDeletingLastPathComponent];
 		}
-	      if ([tzdir length] > 2)
-		{
-		  RETAIN(tzdir);
-		}
-	      else
+	      if ([tzdir length] <= 2)
 	        {
 		  localZoneString = tzdir = nil;
 		}
+#if	!GS_WITH_GC
+	      else
+		{
+		  [tzdir retain];
+		}
+#endif
 	    }
 #endif
 	  if (localZoneString != nil && [localZoneString hasPrefix: tzdir])
@@ -1621,7 +1623,7 @@ static NSMapTable	*absolutes = 0;
 			     to be in this directory, but initWithName:data:
 			     will do this anyway and log a message if not. */
 			  zone = [[self alloc] initWithName: name data: data];
-			  AUTORELEASE(zone);
+			  IF_NO_GC([zone autorelease];)
 			}
 		      if (zone != nil)
 			{

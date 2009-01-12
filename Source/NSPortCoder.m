@@ -365,7 +365,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
   coder = [self allocWithZone: NSDefaultMallocZone()];
   coder = [coder initWithReceivePort: recv sendPort: send components: comp];
-  AUTORELEASE(coder);
+  IF_NO_GC(AUTORELEASE(coder);)
   return coder;
 }
 

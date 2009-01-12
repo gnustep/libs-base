@@ -664,8 +664,10 @@ static NSURLProtocol	*placeholder = nil;
 		nil]]];
 	  return;
 	}
-      RETAIN(this->input);
-      RETAIN(this->output);
+#if	!GS_WITH_GC
+      [this->input retain];
+      [this->output retain];
+#endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
@@ -1153,7 +1155,7 @@ static NSURLProtocol	*placeholder = nil;
 {
   /* Make sure no action triggered by anything else destroys us prematurely.
    */
-  AUTORELEASE(RETAIN(self));
+  IF_NO_GC([[self retain] autorelease];)
 
 #if 0
   NSLog(@"stream: %@ handleEvent: %x for: %@", stream, event, self);
@@ -1451,8 +1453,10 @@ static NSURLProtocol	*placeholder = nil;
 			    userInfo: nil]];
 	  return;
 	}
-      RETAIN(this->input);
-      RETAIN(this->output);
+#if	!GS_WITH_GC
+      [this->input retain];
+      [this->output retain];
+#endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL

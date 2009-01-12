@@ -335,7 +335,7 @@ myHostName()
 	   * with ALL the IP addresses of any interfaces on the local machine
 	   */
 	  host = [[self alloc] _initWithHostEntry: 0 key: localHostName];
-	  AUTORELEASE(host);
+	  IF_NO_GC([host autorelease];)
 	}
       else
 	{
@@ -369,13 +369,13 @@ myHostName()
 	  else
 	    {
 	      host = [[self alloc] _initWithHostEntry: h key: name];
-	      AUTORELEASE(host);
+	      IF_NO_GC([host autorelease];)
 	    }
 	}
     }
   else
     {
-      AUTORELEASE(RETAIN(host));
+      IF_NO_GC([[host retain] autorelease];)
     }
   [_hostCacheLock unlock];
   if (tryByAddress == YES)
@@ -431,18 +431,18 @@ myHostName()
 	  if (badAddr == NO)
 	    {
 	      host = [[self alloc] _initWithAddress: address];
-	      AUTORELEASE(host);
+	      IF_NO_GC([host autorelease];)
 	    }
 	}
       else
 	{
 	  host = [[self alloc] _initWithHostEntry: h key: address];
-	  AUTORELEASE(host);
+	  IF_NO_GC([host autorelease];)
 	}
     }
   else
     {
-      AUTORELEASE(RETAIN(host));
+      IF_NO_GC([[host retain] autorelease];)
     }
   [_hostCacheLock unlock];
   return host;
@@ -507,7 +507,7 @@ myHostName()
     {
       host = [NSHost currentHost];
     }
-  RETAIN(host);
+  IF_NO_GC([host retain];)
   RELEASE(self);
   return host;
 }

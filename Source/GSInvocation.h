@@ -18,7 +18,8 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
    */ 
 
 #ifndef __GSInvocation_h_GNUSTEP_BASE_INCLUDE
@@ -59,6 +60,6 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp);
                                             }\
                                         } while (0)
 
-#define RETAIN_RETURN_VALUE do { if (*_info[0].type == _C_ID) RETAIN (*(id*) _retval);} while (0)                                         
+#define RETAIN_RETURN_VALUE IF_NO_GC(do { if (*_info[0].type == _C_ID) RETAIN (*(id*) _retval);} while (0))                                         
 
 #endif

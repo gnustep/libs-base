@@ -298,7 +298,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
 	   * We don't want this connection to be destroyed by another thread
 	   * between now and when it's returned from this function and used!
 	   */
-	  AUTORELEASE(RETAIN(c));
+	  IF_NO_GC([[c retain] autorelease];)
 	  break;
 	}
     }
@@ -386,7 +386,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       c = [self allocWithZone: NSDefaultMallocZone()];
       c = [c initWithReceivePort: r sendPort: s];
-      AUTORELEASE(c);
+      IF_NO_GC([c autorelease];)
     }
   return c;
 }
@@ -1150,7 +1150,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   [self setRequestMode: nil];
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
 
   if (debug_connection)
     {
@@ -3058,8 +3058,7 @@ static void callEncoder (DOContext *ctxt)
   if (cacheCoders == YES && _cachedDecoders != nil
     && (count = [_cachedDecoders count]) > 0)
     {
-      coder = [_cachedDecoders objectAtIndex: --count];
-      RETAIN(coder);
+      coder = RETAIN([_cachedDecoders objectAtIndex: --count]);
       [_cachedDecoders removeObjectAtIndex: count];
     }
   else
@@ -3112,8 +3111,7 @@ static void callEncoder (DOContext *ctxt)
   if (cacheCoders == YES && _cachedEncoders != nil
     && (count = [_cachedEncoders count]) > 0)
     {
-      coder = [_cachedEncoders objectAtIndex: --count];
-      RETAIN(coder);
+      coder = RETAIN([_cachedEncoders objectAtIndex: --count]);
       [_cachedEncoders removeObjectAtIndex: count];
     }
   else
@@ -3262,7 +3260,7 @@ static void callEncoder (DOContext *ctxt)
   node = GSIMapNodeForKey(_localTargets, (GSIMapKey)target);
   NSAssert(node == 0, NSInternalInconsistencyException);
 
-  RETAIN(anObj);
+  IF_NO_GC([anObj retain];)
   GSIMapAddPair(_localObjects, (GSIMapKey)object, (GSIMapVal)((id)anObj));
   GSIMapAddPair(_localTargets, (GSIMapKey)target, (GSIMapVal)((id)anObj));
 
@@ -3288,8 +3286,7 @@ static void callEncoder (DOContext *ctxt)
     }
   else
     {
-      p = node->value.obj;
-      RETAIN(p);
+      p = RETAIN(node->value.obj);
       DESTROY(proxy);
     }
   if (p == nil && proxy != nil)
@@ -3642,8 +3639,7 @@ static void callEncoder (DOContext *ctxt)
     }
   else
     {
-      p = node->value.obj;
-      RETAIN(p);
+      p = RETAIN(node->value.obj);
       DESTROY(aProxy);
     }
   if (p == nil && aProxy != nil)

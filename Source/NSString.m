@@ -1485,7 +1485,7 @@ handle_printf_atsign (FILE *stream,
 				   length: dpos
 				 encoding: NSASCIIStringEncoding];
       NSZoneFree(NSDefaultMallocZone(), dst);
-      AUTORELEASE(s);
+      IF_NO_GC([s autorelease];)
     }
   return s;
 }
@@ -2553,7 +2553,7 @@ handle_printf_atsign (FILE *stream,
     }
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  AUTORELEASE(m);
+  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -2589,7 +2589,7 @@ handle_printf_atsign (FILE *stream,
     {
       [m appendBytes: "" length: 1];
     }
-  AUTORELEASE(m);
+  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -2636,7 +2636,7 @@ handle_printf_atsign (FILE *stream,
          allowLossyConversion: YES];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  AUTORELEASE(m);
+  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -2654,7 +2654,7 @@ handle_printf_atsign (FILE *stream,
          allowLossyConversion: NO];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  AUTORELEASE(m);
+  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 

@@ -1008,8 +1008,8 @@ callUncaughtHandler(id value)
       result = [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
         [super description], _e_name, _e_reason];
     }
-  RETAIN(result);
-  DESTROY(pool);
+  IF_NO_GC([result retain];)
+  IF_NO_GC(DESTROY(pool);)
   return AUTORELEASE(result);
 }
 

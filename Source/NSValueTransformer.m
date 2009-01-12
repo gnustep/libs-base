@@ -91,7 +91,7 @@ static GSLazyLock *lock = nil;
 
   [lock lock];
   transformer = [registry objectForKey: name];
-  RETAIN(transformer);
+  IF_NO_GC([transformer retain];)
   [lock unlock];
   return AUTORELEASE(transformer);
 }

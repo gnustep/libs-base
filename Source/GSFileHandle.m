@@ -1019,7 +1019,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stderr != nil)
     {
-      RETAIN(fh_stderr);
+      IF_NO_GC([fh_stderr retain];)
       RELEASE(self);
     }
   else
@@ -1039,7 +1039,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdin != nil)
     {
-      RETAIN(fh_stdin);
+      IF_NO_GC([fh_stdin retain];)
       RELEASE(self);
     }
   else
@@ -1059,7 +1059,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdout != nil)
     {
-      RETAIN(fh_stdout);
+      IF_NO_GC([fh_stdout retain];)
       RELEASE(self);
     }
   else

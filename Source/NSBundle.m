@@ -268,7 +268,7 @@ GSPrivateExecutablePath()
 	      executablePath = AbsolutePathOfExecutable(executablePath, YES);
 	    }
 
-	  RETAIN(executablePath);
+	  IF_NO_GC([executablePath retain];)
 	  beenHere = YES;
 	}
       [load_lock unlock];
@@ -1216,10 +1216,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (_byIdentifier)
     {
       bundle = (NSBundle *)NSMapGet(_byIdentifier, identifier);
+IF_NO_GC(
       if (bundle != nil)
 	{
-	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  [bundle retain]; /* retain - look as if we were alloc'ed */
 	}
+)
     }
   [load_lock unlock];
   return AUTORELEASE(bundle);
@@ -1295,7 +1297,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       if (bundle != nil)
 	{
-	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  IF_NO_GC([bundle retain];)
 	  [load_lock unlock];
 	  [self dealloc];
 	  return bundle;
@@ -1347,7 +1349,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       if (bundle != nil)
 	{
-	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  IF_NO_GC([bundle retain];)
 	  [load_lock unlock];
 	  [self dealloc];
 	  return bundle;
@@ -1371,7 +1373,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
        * dynamically loaded code, so we want to prevent a bundle
        * being loaded twice.
        */
-      RETAIN(self);
+      IF_NO_GC([self retain];)
       return;
     }
   if (_path != nil)
@@ -1556,7 +1558,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	 We need it to answer calls like bundleForClass:; also, users
 	 normally want all loaded bundles to appear when they call
 	 +allBundles.  */
-      RETAIN (self);
+      IF_NO_GC([self retain];)
       _loadingBundle = nil;
 
       DESTROY(_loadingFrameworks);
@@ -1836,8 +1838,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    }
 	}
     }
-  RETAIN(result);
-  DESTROY(arp);
+  IF_NO_GC([result retain]; DESTROY(arp);)
   return AUTORELEASE(result);
 }
 

@@ -203,7 +203,7 @@
       if (sig == nil)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
-	  RETAIN(sig);
+	  IF_NO_GC(RETAIN(sig);)
 	}
       return sig;
     }

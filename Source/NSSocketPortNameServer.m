@@ -1195,7 +1195,7 @@ typedef enum {
       NSMutableSet	*known = (NSMutableSet*)NSMapGet(_portMap, port);
       NSString		*name;
 
-      RETAIN(known);
+      IF_NO_GC(RETAIN(known);)
       while ((name = [known anyObject]) != nil)
 	{
 	  if ([self removePortForName: name] == NO)

@@ -449,7 +449,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
    */
   if (setSharedDefaults == YES)
     {
-      RETAIN(sharedDefaults);
+      IF_NO_GC([sharedDefaults retain];)
       [classLock unlock];
       return AUTORELEASE(sharedDefaults);
     }
@@ -628,7 +628,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       /* FIXME - should we set this as volatile domain for English ? */
       [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
     }
-  RETAIN(sharedDefaults);
+  IF_NO_GC([sharedDefaults retain];)
   updateCache(sharedDefaults);
   [classLock unlock];
   return AUTORELEASE(sharedDefaults);
@@ -1024,7 +1024,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       if (dict != nil && (object = [dict objectForKey: defaultName]))
 	break;
     }
-  RETAIN(object);
+  IF_NO_GC([object retain];)
   [_lock unlock];
   return AUTORELEASE(object);
 }

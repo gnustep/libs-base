@@ -1,3 +1,72 @@
+2009-01-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexPath.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSTimeZone.m:
+	* Source/GSInvocation.h:
+	* Source/GSSocketStream.m:
+	* Source/NSValueTransformer.m:
+	* Source/NSPortCoder.m:
+	* Source/NSSpellServer.m:
+	* Source/NSBundle.m:
+	* Source/NSURLHandle.m:
+	* Source/NSPropertyList.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/GNUmakefile:
+	* Source/NSSocketPort.m:
+	* Source/NSRunLoop.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSArray.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSDebug.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSFFIInvocation.m:
+	* Source/NSMessagePort.m:
+	* Source/NSInvocation.m:
+	* Source/NSFileManager.m:
+	* Source/NSURLResponse.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSException.m:
+	* Source/NSURL.m:
+	* Source/NSString.m:
+	* Source/NSObject.m:
+	* Source/NSDecimalNumber.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GNUmakefile:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GCDictionary.m:
+	* Source/Additions/GSMime.m:
+	* Source/GSString.m:
+	* Source/NSConnection.m:
+	* Source/NSThread.m:
+	* Source/NSHost.m:
+	* Source/NSProtocolChecker.m:
+	* Source/GSHTTPAuthentication.m:
+	* Source/NSSerializer.m:
+	* Source/NSClassDescription.m:
+	* Source/GSFileHandle.m:
+	* Source/NSSet.m:
+	* Source/NSDistantObject.m:
+	* Source/NSTask.m:
+	* Source/NSNumberFormatter.m:
+	* Source/GSFTPURLHandle.m:
+	* SSL/GSSSLHandle.m:
+	* configure.ac:
+	* configure:
+	* base.make.in:
+	* Tools/sfparse.m:
+	* Tools/plget.m:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m:
+	* Tools/AGSOutput.m:
+	* Tools/HTMLLinker.m:
+	Tweaks to get things to compile with garbage collection again
+	and (mostly) compile without warnings.
+
 2009-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimer.m: ([invalidate]) release target and user info.

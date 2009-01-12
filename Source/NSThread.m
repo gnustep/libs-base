@@ -834,7 +834,7 @@ pthread_detach(pthread_self());
 
   /* The thread must persist until it finishes executing.
    */
-  RETAIN(self);
+  IF_NO_GC(RETAIN(self);)
 
   /* Mark the thread as active whiul it's running.
    */

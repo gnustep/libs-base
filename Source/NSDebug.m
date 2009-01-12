@@ -801,11 +801,13 @@ GSDebugAllocationListRecordedObjects(Class c)
 	 the_table[i].num_recorded_objects * sizeof(id));
 
   /* Retain all the objects - NB: if retaining one of the objects as a
-     side effect releases another one of them , we are broken ... */
+     side effect eleases another one of them , we are broken ... */
+#if	!GS_WITH_GC
   for (k = 0; k < the_table[i].num_recorded_objects; k++)
     {
-      RETAIN (tmp[k]);
+      [tmp[k] retain];
     }
+#endif
 
   /* Then, we bravely unlock the lock */
   [uniqueLock unlock];

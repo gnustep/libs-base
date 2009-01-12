@@ -291,7 +291,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
         {
 	  [urlOrder removeObjectIdenticalTo: obj];
 	  [urlOrder addObject: obj];
-          AUTORELEASE(RETAIN(obj));
+          IF_NO_GC([[obj retain] autorelease];)
 	}
       [urlLock unlock];
       //NSLog(@"Found handle %@", obj);
@@ -310,7 +310,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       debugFile = [NSString stringWithFormat: @"%@/GSHTTP.%d",
 			     NSTemporaryDirectory(),
 			     [[NSProcessInfo processInfo] processIdentifier]];
-      RETAIN(debugFile);
+      IF_NO_GC([debugFile retain];)
 
 #if	!defined(__MINGW32__)
       sslClass = [NSFileHandle sslClass];
@@ -404,7 +404,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*version;
   NSMapEnumerator       enumerator;
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
 
   s = [basic mutableCopy];
@@ -549,7 +549,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSRange		r;
   unsigned		readCount;
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
 
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
@@ -801,7 +801,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSData		*d;
   GSMimeParser		*p = [GSMimeParser new];
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
@@ -875,7 +875,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*method;
   NSString		*path;
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
 
   path = [[u path] stringByTrimmingSpaces];
@@ -1046,7 +1046,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary    	*userInfo = [notification userInfo];
   NSString        	*e;
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
@@ -1410,7 +1410,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    host, port, [NSError _last]]];
 	  return;
 	}
-      RETAIN(sock);
+      IF_NO_GC([sock retain];)
       nc = [NSNotificationCenter defaultCenter];
       [nc addObserver: self
 	     selector: @selector(bgdConnect:)

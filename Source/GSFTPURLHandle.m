@@ -529,7 +529,7 @@ static NSLock			*urlLock = nil;
 // NSLog(@"Lookup for handle for '%@'", page);
       [urlLock lock];
       obj = [urlCache objectForKey: page];
-      AUTORELEASE(RETAIN(obj));
+      IF_NO_GC([[obj retain] autorelease];)
       [urlLock unlock];
 // NSLog(@"Found handle %@", obj);
     }
@@ -729,7 +729,7 @@ static NSLock			*urlLock = nil;
 		  dHandle = [NSFileHandle
 		    fileHandleAsClientInBackgroundAtAddress: h service: p
 		    protocol: @"tcp"];
-		  RETAIN(dHandle);
+      		  IF_NO_GC([dHandle retain];)
 		  nc = [NSNotificationCenter defaultCenter];
 		  [nc addObserver: self
 			 selector: @selector(_data:)

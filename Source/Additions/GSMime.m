@@ -681,7 +681,7 @@ wordData(NSString *word)
   if ([parser isComplete] == YES)
     {
       newDocument = [parser mimeDocument];
-      RETAIN(newDocument);
+      IF_NO_GC(RETAIN(newDocument);)
     }
   RELEASE(parser);
   return AUTORELEASE(newDocument);
@@ -853,7 +853,7 @@ wordData(NSString *word)
 	      tmp = [[NSString alloc] initWithBytes: buffer
 		length: buflen
 		encoding: NSASCIIStringEncoding];
-	      AUTORELEASE(tmp);
+	      IF_NO_GC([tmp autorelease];)
 	      return [tmp lowercaseString];
 	    }
 	  buflen = 0;
@@ -2498,7 +2498,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  expect = 0;
 	}
       context = [self contextFor: hdr];
-      RETAIN(context);
+      IF_NO_GC([context retain];)
       NSDebugMLLog(@"GSMime", @"Parse body expects %u bytes", expect);
     }
 
@@ -3821,7 +3821,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       r = [r initWithData: d encoding: NSASCIIStringEncoding];
-      AUTORELEASE(r);
+      IF_NO_GC([r autorelease];)
     }
   return r;
 }
@@ -3882,7 +3882,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       r = [r initWithData: d encoding: NSASCIIStringEncoding];
-      AUTORELEASE(r);
+      IF_NO_GC([r autorelease];)
     }
   return r;
 }
@@ -4753,7 +4753,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       enc = [documentClass encodingFromCharset: charset];
       s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       s = [s initWithData: content encoding: enc];
-      AUTORELEASE(s);
+      IF_NO_GC([s autorelease];)
     }
   return s;
 }
@@ -5620,7 +5620,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
       [hdr setObject: type forKey: @"Type"];
       [hdr setObject: subtype forKey: @"Subtype"];
-      AUTORELEASE(hdr);
+      IF_NO_GC([hdr autorelease];)
     }
   else
     {

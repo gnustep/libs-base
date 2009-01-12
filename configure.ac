@@ -39,6 +39,11 @@ if test -z "$GNUSTEP_MAKEFILES"; then
   GNUSTEP_MAKEFILES=`gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5`
 fi
 
+# If LIBRARY_COMBO is undefined, try to use gnustep-config to determine it.
+if test -z "$LIBRARY_COMBO"; then
+  LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
+fi
+
 exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
 if test -z "$exceptions"; then
   exceptions=no
@@ -153,12 +158,18 @@ fi
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
+OBJC_WITH_GC=no
 OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
   LIBOBJC='-lobjc'
   OBJCFLAGS="-fnext-runtime -DNeXT_RUNTIME"
+elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
+  AC_MSG_RESULT(GNU)
+  LIBOBJC='-lobjc_gc -ldl -lgc'
+  OBJCFLAGS="-fgnu-runtime"
+  OBJC_WITH_GC=yes
 else
   AC_MSG_RESULT(GNU)
   LIBOBJC='-lobjc'
@@ -187,7 +198,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/libobjc_gc.a" -o -f "$GNUSTEP_LDIR/libobjc_gc.so" -o -f "$GNUSTEP_LDIR/libobjc_gc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc_gc-gnu.dylib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -204,7 +215,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/libobjc_gc.a" -o -f "$GNUSTEP_LDIR/libobjc_gc.so" -o -f "$GNUSTEP_LDIR/libobjc_gc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc_gc-gnu.dylib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -221,7 +232,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/libobjc_gc.a" -o -f "$GNUSTEP_LDIR/libobjc_gc.so" -o -f "$GNUSTEP_LDIR/libobjc_gc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc_gc-gnu.dylib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -248,6 +259,29 @@ if test $ac_cv_header_objc_objc_h = no; then
   echo "Check to make sure you have a full installation of the GCC"
   echo "compiler that includes the Objective-C headers and libraries"
   AC_MSG_ERROR(Could not find Objective-C headers)
+fi
+
+if test $OBJC_WITH_GC = yes; then
+  AC_CHECK_HEADERS(gc.h, gc_ok=yes, gc_ok=no)
+  if test "$gc_ok" = no; then
+    AC_MSG_ERROR([Garbage collection was required, but the gc.h header])
+    AC_MSG_NOTICE([couldn't be found.])
+  fi
+  saved_LIBS="$LIBS"
+  LIBS+=" -lgc"
+  AC_CHECK_FUNC(GC_malloc, gc_ok=yes, gc_ok=no)
+  if test "$gc_ok" = no; then
+    AC_MSG_ERROR([Garbage collection was required, but the gc library])
+    AC_MSG_NOTICE([couldn't be found.])
+  fi
+  LIBS="-lobjc_gc -ldl"
+  AC_CHECK_FUNC(class_ivar_set_gcinvisible, gc_ok=yes, gc_ok=no)
+  if test "$gc_ok" = no; then
+    AC_MSG_ERROR([Garbage collection was required, but the gc runtime])
+    AC_MSG_NOTICE([couldn't be found.])
+  fi
+  LIBS="$saved_LIBS"
+  AC_SUBST(OBJC_WITH_GC)
 fi
 
 #--------------------------------------------------------------------

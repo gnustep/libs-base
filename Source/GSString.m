@@ -2604,9 +2604,8 @@ substring_c(GSStr self, NSRange aRange)
   o->_count = aRange.length;
   o->_flags.wide = 0;
   o->_flags.free = 0;
-  ASSIGN(o->_parent, self);
-  AUTORELEASE((id)o);
-  return (id)o;
+  ASSIGN(o->_parent, (id)self);
+  return AUTORELEASE((id)o);
 }
 
 static inline NSString*
@@ -2624,9 +2623,8 @@ substring_u(GSStr self, NSRange aRange)
   o->_count = aRange.length;
   o->_flags.wide = 1;
   o->_flags.free = 0;
-  ASSIGN(o->_parent, self);
-  AUTORELEASE((id)o);
-  return (id)o;
+  ASSIGN(o->_parent, (id)self);
+  return AUTORELEASE((id)o);
 }
 
 /*

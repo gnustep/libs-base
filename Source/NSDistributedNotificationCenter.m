@@ -744,8 +744,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	      _remote = [NSConnection
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
-              RETAIN(_remote);
-              DESTROY(pool);
+              IF_NO_GC([_remote retain];)
+              IF_NO_GC(DESTROY(pool);)
 	    }
 	  if (_remote == nil)
 	    {
@@ -755,10 +755,12 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		@"I attempted to start it at '%@'\n", cmd];
 	    }
 	}
+#if	!GS_WITH_GC
       else
         {
-          RETAIN(_remote);
+          [_remote retain];
         }
+#endif
 
       c = [_remote connectionForProxy];
       [_remote setProtocolForProxy: p];

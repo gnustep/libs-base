@@ -533,7 +533,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 					values: args
  					frame: user
 					signature: sig];
-  AUTORELEASE(invocation);
+  IF_NO_GC([invocation autorelease];)
   [invocation setTarget: obj];
   [invocation setSelector: selector];
 
@@ -555,7 +555,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   if ([sig methodReturnType] && *[sig methodReturnType] == _C_ID
     && ((NSInvocation_t *)invocation)->_validReturn == YES)
     {
-      AUTORELEASE(*(id *)retp);
+      IF_NO_GC([*(id *)retp autorelease];)
       ((NSInvocation_t *)invocation)->_validReturn = NO;
     }
 

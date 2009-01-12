@@ -2116,6 +2116,6 @@ if (domainMask & mask) \
         }
     }
 
-  AUTORELEASE (paths);
+  IF_NO_GC(AUTORELEASE (paths);)
   return paths;
 }

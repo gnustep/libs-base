@@ -784,7 +784,7 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
 	      d = [NSData dataWithBytes: &bytes[off] length: end - off];
 	      name = [[NSString alloc] initWithData: d
 					   encoding: NSASCIIStringEncoding];
-	      AUTORELEASE(name);
+	      IF_NO_GC(AUTORELEASE(name);)
 	      if (namePtr != 0)
 		{
 		  *namePtr = name;
