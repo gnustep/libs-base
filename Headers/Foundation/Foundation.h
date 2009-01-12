@@ -65,6 +65,7 @@
 #import	<Foundation/NSFileHandle.h>
 #import	<Foundation/NSFileManager.h>
 #import	<Foundation/NSFormatter.h>
+#import	<Foundation/NSGarbageCollector.h>
 #import	<Foundation/NSGeometry.h>
 #import	<Foundation/NSHashTable.h>
 #import	<Foundation/NSHost.h>
