@@ -36,7 +36,7 @@
 #include <zlib.h>
 #endif
 
-@interface GSFileHandle : NSFileHandle <RunLoopEvents, GCFinalization>
+@interface GSFileHandle : NSFileHandle <RunLoopEvents>
 {
   int			descriptor;
   BOOL			closeOnDealloc;

@@ -195,7 +195,7 @@ typedef SOCKET NSSocketNativeHandle;
  *
  *  <p>Note that this class is incompatible with the latest OS X version.</p>
  */
-@interface NSSocketPort : NSPort <GCFinalization>
+@interface NSSocketPort : NSPort
 {
   NSRecursiveLock	*myLock;
   NSHost		*host;		/* OpenStep host for this port.	*/
@@ -266,7 +266,7 @@ typedef SOCKET NSSocketNativeHandle;
  *  which can be used for interthread/interprocess communications
  *  on the same host, but not between different hosts.
  */
-@interface NSMessagePort : NSPort <GCFinalization>
+@interface NSMessagePort : NSPort
 {
   void	*_internal;
 }

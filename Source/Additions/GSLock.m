@@ -75,14 +75,14 @@
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
-  [super gcFinalize];
+  [super finalize];
 }
 
 - (id) init
@@ -226,14 +226,14 @@
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
-  [super gcFinalize];
+  [super finalize];
 }
 
 - (id) init

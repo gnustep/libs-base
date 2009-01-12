@@ -171,10 +171,13 @@ extern "C" {
   Class isa;
 }
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-#if	GS_WITH_GC
-+ (BOOL) requiresTypedMemory;
-#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/** On a system which performs garbage collection, you should implement
+ * this method to execute code when the receiver is collected.<br />
+ * You must not call this method yourself (except when a subclass
+ * calls the superclass method within its own implementation).
+ */
+- (void) finalize;
 #endif
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -363,18 +366,6 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 @end
 
 #endif
-
-/**
- *	Protocol for garbage collection finalization - same as libFoundation
- *	for compatibility.
- */
-@protocol       GCFinalization
-/**
- *  Called before receiver is deallocated by garbage collector.  If you want
- *  to do anything special before [NSObject -dealloc] is called, do it here.
- */
-- (void) gcFinalize;
-@end
 
 #import	<Foundation/NSDate.h>
 /**

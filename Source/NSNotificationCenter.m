@@ -607,12 +607,12 @@ static NSNotificationCenter *default_center = nil;
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
 
   [super dealloc];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   if (self == default_center)
     {

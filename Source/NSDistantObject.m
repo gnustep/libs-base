@@ -40,11 +40,11 @@
 #include <objc/Protocol.h>
 
 
-@interface NSDistantObject(GNUstepExtensions) <GCFinalization>
+@interface NSDistantObject(GNUstepExtensions)
 - (Class) classForPortCoder;
 - (const char *) selectorTypeForProxy: (SEL)selector;
 - (id) forward: (SEL)aSel :(arglist_t)frame;
-- (void) gcFinalize;
+- (void) finalize;
 @end
 
 #define DO_FORWARD_INVOCATION(_SELX, _ARG1) ({			\
@@ -446,7 +446,7 @@ enum proxyLocation
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -825,7 +825,7 @@ enum proxyLocation
 /**
  * Used by the garbage collection system to tidy up when a proxy is destroyed.
  */
-- (void) gcFinalize
+- (void) finalize
 {
   if (_connection)
     {

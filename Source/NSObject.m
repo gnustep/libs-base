@@ -92,6 +92,8 @@ static IMP autorelease_imp;
 #include	<gc.h>
 #include	<gc_typed.h>
 
+static SEL finalize_sel;
+static IMP finalize_imp;
 #endif
 
 static Class	NSConstantStringClass;
@@ -672,7 +674,7 @@ GSObjCZone(NSObject *object)
 static void
 GSFinalize(void* object, void* data)
 {
-  [(id)object gcFinalize];
+  [(id)object finalize];
 #ifndef	NDEBUG
   GSDebugAllocationRemove(((id)object)->class_pointer, (id)object);
 #endif
@@ -687,9 +689,16 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 
   NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
   size = aClass->instance_size + extraBytes;
+  if (size % sizeof(void*) != 0)
+    {
+      /* Size must be a multiple of pointer size for the garbage collector
+       * to be able to allocate explicitly typed memory.
+       */
+      size += sizeof(void*) - size % sizeof(void*);
+    }
   if (zone == GSAtomicMallocZone())
     {
-      new = NSZoneMalloc(zone, size);
+      new = NSZoneCalloc(zone, 1, size);
     }
   else
     {
@@ -697,25 +706,22 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 
       if (gc_type == 0)
 	{
-	  new = NSZoneMalloc(zone, size);
+	  new = NSZoneCalloc(zone, 1, size);
 	  NSLog(@"No garbage collection information for '%s'",
 	    GSNameFromClass(aClass));
 	}
-      else if ([aClass requiresTypedMemory])
+      else
 	{
 	  new = GC_calloc_explicitly_typed(1, size, gc_type);
         }
-      else
-	{
-	  new = NSZoneMalloc(zone, size);
-	}
     }
 
   if (new != nil)
     {
       memset(new, 0, size);
       new->class_pointer = aClass;
-      if (__objc_responds_to(new, @selector(gcFinalize)))
+      if (get_imp(aClass, finalize_sel) != finalize_imp
+        && __objc_responds_to(new, finalize_sel))
 	{
 #ifndef	NDEBUG
 	  /*
@@ -1060,16 +1066,6 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     }
 }
 
-#if	GS_WITH_GC
-/**
- * A utility method used when garbage collection is enabled.  Can be ignored.
- */
-+ (BOOL) requiresTypedMemory
-{
-  return NO;
-}
-#endif
-
 /**
  * This message is sent to a class once just before it is used for the first
  * time.  If class has a superclass, its implementation of +initialize is
@@ -1086,6 +1082,11 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       extern void gnustep_base_socket_init(void);	
       gnustep_base_socket_init();	
 #else
+
+#if	GS_WITH_GC
+      finalize_sel = @selector(finalize);
+      finalize_imp = get_imp(self, finalize_sel);
+#endif
 
 #ifdef	SIGPIPE
     /*
@@ -1424,6 +1425,11 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 - (void) dealloc
 {
   NSDeallocateObject (self);
+}
+
+- (void) finalize
+{
+  return;
 }
 
 /**

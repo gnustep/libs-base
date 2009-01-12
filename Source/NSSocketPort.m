@@ -188,7 +188,7 @@ typedef enum {
   GS_H_CONNECTED	// Currently connected.
 } GSHandleState;
 
-@interface GSTcpHandle : NSObject <GCFinalization, RunLoopEvents>
+@interface GSTcpHandle : NSObject <RunLoopEvents>
 {
   SOCKET		desc;		/* File descriptor for I/O.	*/
   unsigned		wItem;		/* Index of item being written.	*/
@@ -676,7 +676,7 @@ static Class	runLoopClass;
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   DESTROY(defaultAddress);
   DESTROY(rData);
   DESTROY(rItems);
@@ -703,7 +703,7 @@ static Class	runLoopClass;
 }
 #endif
 
-- (void) gcFinalize
+- (void) finalize
 {
   [self invalidate];
   (void)close(desc);
@@ -1797,7 +1797,7 @@ static Class		tcpPortClass;
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -1819,7 +1819,7 @@ static Class		tcpPortClass;
   return desc;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   NSDebugMLLog(@"NSPort", @"NSSocketPort 0x%x finalized", self);
   [self invalidate];

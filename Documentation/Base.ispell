@@ -837,8 +837,6 @@ ftp
 func
 functionName
 gcc
-GCFinalization
-gcFinalize
 gcontext
 gdnc
 GDNCHost

@@ -59,7 +59,7 @@ extern "C" {
 /**
  * Simplest lock for protecting critical sections of code.
  */
-@interface NSLock : NSObject <NSLocking, GCFinalization>
+@interface NSLock : NSObject <NSLocking>
 {
 @private
   void          *_mutex;
@@ -103,7 +103,7 @@ extern "C" {
  *  condition is equal to a particular value.  The condition is set on
  *  initialization and whenever the lock is relinquished.
  */
-@interface NSConditionLock : NSObject <NSLocking, GCFinalization>
+@interface NSConditionLock : NSObject <NSLocking>
 {
 @private
   void *_condition;
@@ -195,7 +195,7 @@ extern "C" {
  * thread must also unlock it (n) times before another thread 
  * can acquire the lock.
  */
-@interface NSRecursiveLock : NSObject <NSLocking, GCFinalization>
+@interface NSRecursiveLock : NSObject <NSLocking>
 {
 @private
   void *_mutex;

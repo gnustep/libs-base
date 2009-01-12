@@ -107,7 +107,7 @@ sslError(int err)
 }
 
 
-@interface	GSSSLHandle : GSFileHandle <GCFinalization>
+@interface	GSSSLHandle : GSFileHandle
 {
   SSL_CTX	*ctx;
   SSL		*ssl;
@@ -149,10 +149,10 @@ sslError(int err)
   [super closeFile];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   [self sslDisconnect];
-  [super gcFinalize];
+  [super finalize];
 }
 
 - (int) read: (void*)buf length: (int)len

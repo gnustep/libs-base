@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-@interface NSTask : NSObject <GCFinalization>
+@interface NSTask : NSObject
 {
   NSString	*_currentDirectoryPath;
   NSString	*_launchPath;

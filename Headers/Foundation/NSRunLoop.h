@@ -41,7 +41,7 @@ extern "C" {
  */
 GS_EXPORT NSString * const NSDefaultRunLoopMode;
 
-@interface NSRunLoop : NSObject <GCFinalization>
+@interface NSRunLoop : NSObject
 {
   @private
   NSString		*_currentMode;

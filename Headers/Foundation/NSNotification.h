@@ -63,7 +63,7 @@ extern "C" {
 
 
 
-@interface NSNotificationCenter : NSObject <GCFinalization>
+@interface NSNotificationCenter : NSObject
 {
   void	*_table;
 }

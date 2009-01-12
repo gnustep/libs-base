@@ -111,8 +111,8 @@ GSRunLoopForThread(NSThread *aThread)
 - (NSMutableArray*) _components;
 @end
 
-@interface NSConnection (GNUstepExtensions) <GCFinalization>
-- (void) gcFinalize;
+@interface NSConnection (GNUstepExtensions)
+- (void) finalize;
 - (retval_t) forwardForProxy: (NSDistantObject*)object 
 		    selector: (SEL)sel 
 		    argFrame: (arglist_t)argframe;
@@ -766,7 +766,7 @@ static NSLock	*cached_proxies_gate = nil;
 {
   if (debug_connection)
     NSLog(@"deallocating %@", self);
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -1742,7 +1742,7 @@ static NSLock	*cached_proxies_gate = nil;
   return conn;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   CREATE_AUTORELEASE_POOL(arp);
 
