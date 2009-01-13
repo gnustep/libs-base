@@ -51,6 +51,7 @@ static Class	GSInlineArrayClass;
 #endif
 
 @class	GSArray;
+@class  GSInlineArray;
 
 @interface GSArrayEnumerator : NSEnumerator
 {

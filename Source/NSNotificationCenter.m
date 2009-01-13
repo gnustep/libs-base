@@ -973,7 +973,7 @@ static NSNotificationCenter *default_center = nil;
  */
 - (void) _postAndRelease: (NSNotification*)notification
 {
-  IF_NO_GC(GSGarbageCollector *collector = [NSGarbageCollector defaultCollector])
+  // IF_NO_GC(GSGarbageCollector *collector = [NSGarbageCollector defaultCollector])
   Observation	*o;
   unsigned	count;
   NSString	*name = [notification name];
