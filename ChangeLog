@@ -1,3 +1,9 @@
+2009-01-13 18:35-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/GSArray.m
+	* Source/NSNotificationCenter.m: Quick fixes for two compiler
+	errors introduced by previous change.
+
 2009-01-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSGarbageCollector.m: Mark the two unimplemented methods.
