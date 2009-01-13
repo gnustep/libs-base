@@ -82,6 +82,7 @@ static unsigned			disabled = 0;
 - (void) disableCollectorForPointer: (void *)ptr
 {
   // FIXME
+  [self notImplemented: _cmd];
   return;
 }
 
@@ -102,6 +103,7 @@ static unsigned			disabled = 0;
 - (void) enableCollectorForPointer: (void *)ptr
 {
   // FIXME
+  [self notImplemented: _cmd];
   return;
 }
 

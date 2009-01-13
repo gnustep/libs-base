@@ -30,13 +30,22 @@
 */
 
 #include "config.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSDebug.h"
+#import "GNUstepBase/GSLock.h"
 
+/* purgeCollected() returns a list of observations with any observations for
+ * a collected observer removed.
+ */
+#if	GS_WITH_GC
+#include	<gc.h>
+#define	purgeCollected(X)	(X = listPurge(X, nil))
+#else
+#define	purgeCollected(X)	(X)
+#endif
 
 /**
  * Concrete class implementing NSNotification.
@@ -425,6 +434,9 @@ static void obsFree(Observation *o)
     {
       NCTable	*t = o->link;
 
+#if	GS_WITH_GC
+      GC_unregister_disappearing_link((GC_PTR*)&o->observer);
+#endif
       o->link = (NCTable*)t->freeList;
       t->freeList = o;
     }
@@ -533,7 +545,7 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
  * I know of.
  *
  * We also use this trick to differentiate between map table keys that
- * should be treated as objects (notification names) and thise that
+ * should be treated as objects (notification names) and those that
  * should be treated as pointers (notification objects)
  */
 #define	CHEATGC(X)	(id)(((uintptr_t)X) | 1)
@@ -641,7 +653,10 @@ static NSNotificationCenter *default_center = nil;
  *
  * <p>The notification center does not retain observer or object. Therefore,
  * you should always send removeObserver: or removeObserver:name:object: to
- * the notification center before releasing these objects.</p>
+ * the notification center before releasing these objects.<br />
+ * As a convenience, when built with garbage collection, you do not need to
+ * remove any garbage collected observer as the system will do it implicitly.
+ * </p>
  *
  * <p>NB. For MacOS-X compatibility, adding an observer multiple times will
  * register it to receive multiple copies of any matching notification, however
@@ -687,8 +702,23 @@ static NSNotificationCenter *default_center = nil;
   o->retained = 0;
   o->next = 0;
 
+#if GS_WITH_GC
+  /* Ensure that if the observer is garbage collected, we clear the
+   * oservation so that we don't end up sending notifications to the
+   * deallocated object.
+   * The observer must be a real GC-allocated object  or this mechanism
+   * can't be used.
+   */
+  if (GC_base(observer) != 0)
+    {
+      GC_general_register_disappearing_link((GC_PTR*)&o->observer, observer);
+    }
+#endif
+
   if (object != nil)
-    object = CHEATGC(object);
+    {
+      object = CHEATGC(object);
+    }
 
   /*
    * Record the Observation in one of the linked lists.
@@ -943,6 +973,7 @@ static NSNotificationCenter *default_center = nil;
  */
 - (void) _postAndRelease: (NSNotification*)notification
 {
+  IF_NO_GC(GSGarbageCollector *collector = [NSGarbageCollector defaultCollector])
   Observation	*o;
   unsigned	count;
   NSString	*name = [notification name];
@@ -952,6 +983,9 @@ static NSNotificationCenter *default_center = nil;
   GSIArrayItem	i[64];
   GSIArray_t	b;
   GSIArray	a = &b;
+#if	GS_WITH_GG
+  GSGarbageCollector	*collector = [NSGarbageCollector defaultCollector];
+#endif
 
   if (name == nil)
     {
@@ -971,14 +1005,21 @@ static NSNotificationCenter *default_center = nil;
   GSIArrayInitWithZoneAndStaticCapacity(a, NSDefaultMallocZone(), 64, i);
 
   /*
-   * Lock the table of observers while we traverse it.
+   * Lock the table of observations while we traverse it.
+   *
+   * The table of observations contains weak pointers which are zeroed when
+   * the observers get garbage collected.  So to avoid consistency problems
+   * we disable gc while we copy all the observations we are interested in.
    */
   lockNCTable(TABLE);
+#if	GS_WITH_GG
+  [collector disable];
+#endif
 
   /*
    * Find all the observers that specified neither NAME nor OBJECT.
    */
-  for (o = WILDCARD; o != ENDOBS; o = o->next)
+  for (o = purgeCollected(WILDCARD); o != ENDOBS; o = o->next)
     {
       GSIArrayAddItem(a, (GSIArrayItem)o);
     }
@@ -991,7 +1032,7 @@ static NSNotificationCenter *default_center = nil;
       n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
       if (n != 0)
 	{
-	  o = n->value.ext;
+	  o = purgeCollected(n->value.ext);
 	  while (o != ENDOBS)
 	    {
 	      GSIArrayAddItem(a, (GSIArrayItem)o);
@@ -1023,7 +1064,7 @@ static NSNotificationCenter *default_center = nil;
 	  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
 	  if (n != 0)
 	    {
-	      o = n->value.ext;
+	      o = purgeCollected(n->value.ext);
 	      while (o != ENDOBS)
 		{
 		  GSIArrayAddItem(a, (GSIArrayItem)o);
@@ -1039,7 +1080,7 @@ static NSNotificationCenter *default_center = nil;
 	      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)nil);
 	      if (n != 0)
 		{
-		  o = n->value.ext;
+		  o = purgeCollected(n->value.ext);
 		  while (o != ENDOBS)
 		    {
 		      GSIArrayAddItem(a, (GSIArrayItem)o);
@@ -1047,13 +1088,17 @@ static NSNotificationCenter *default_center = nil;
 		    }
 		}
 	    }
-
 	}
     }
 
   /*
-   * Finished with the table ... we can unlock it.
+   * Finished with the table ... we can unlock it and re-enable garbage
+   * collection, safe in the knowledge that the observers we will be
+   * notifying won't get collected prematurely.
    */
+#if	GS_WITH_GG
+  [collector enable];
+#endif
   unlockNCTable(TABLE);
 
   /*

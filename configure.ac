@@ -264,21 +264,25 @@ fi
 if test $OBJC_WITH_GC = yes; then
   AC_CHECK_HEADERS(gc.h, gc_ok=yes, gc_ok=no)
   if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc.h header])
-    AC_MSG_NOTICE([couldn't be found.])
+    AC_MSG_ERROR([Garbage collection was required, but the gc.h header couldn't be found.])
   fi
   saved_LIBS="$LIBS"
   LIBS+=" -lgc"
   AC_CHECK_FUNC(GC_malloc, gc_ok=yes, gc_ok=no)
   if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc library])
-    AC_MSG_NOTICE([couldn't be found.])
+    AC_MSG_ERROR([Garbage collection was required, but the gc library couldn't be found.])
+  fi
+  AC_CHECK_FUNC(GC_register_my_thread)
+  if test "$ac_cv_func_GC_register_my_thread" = yes; then
+    AC_DEFINE(HAVE_GC_REGISTER_MY_THREAD,1,
+      [Define if GC_register_my_thread function is available])
+  else
+    AC_MSG_NOTICE([It looks like your libgc is quite old ... please use a newer one to support making the garbage collector aware of new threads.])
   fi
   LIBS="-lobjc_gc -ldl"
   AC_CHECK_FUNC(class_ivar_set_gcinvisible, gc_ok=yes, gc_ok=no)
   if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc runtime])
-    AC_MSG_NOTICE([couldn't be found.])
+    AC_MSG_ERROR([Garbage collection was required, but the gc runtime couldn't be found.])
   fi
   LIBS="$saved_LIBS"
   AC_SUBST(OBJC_WITH_GC)

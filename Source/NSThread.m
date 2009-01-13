@@ -80,6 +80,10 @@
 #include "GSPrivate.h"
 #include "GSRunLoopCtxt.h"
 
+#if	GS_WITH_GC
+#include	<gc.h>
+#endif
+
 @interface NSAutoreleasePool (NSThread)
 + (void) _endThread: (NSThread*)thread;
 @end
@@ -506,6 +510,9 @@ gnustep_base_thread_callback(void)
 
       objc_thread_set_data (NULL);
 
+#if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
+      GC_unregister_my_thread();
+#endif
       /*
        * Tell the runtime to exit the thread
        */
@@ -734,6 +741,9 @@ gnustep_base_thread_callback(void)
         NSStringFromSelector(_cmd)];
     }
 
+#if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
+  GC_register_my_thread();
+#endif
 #if     defined(HAVE_SETRLIMIT) && defined(RLIMIT_STACK)
   if (_stackSize > 0)
     {

@@ -84,7 +84,6 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 static Class NSArrayClass;
 static Class GSArrayClass;
-static Class GSInlineArrayClass;
 static Class NSMutableArrayClass;
 static Class GSMutableArrayClass;
 static Class GSPlaceholderArrayClass;
@@ -125,7 +124,6 @@ static SEL	rlSel;
       NSArrayClass = [NSArray class];
       NSMutableArrayClass = [NSMutableArray class];
       GSArrayClass = [GSArray class];
-      GSInlineArrayClass = [GSInlineArray class];
       GSMutableArrayClass = [GSMutableArray class];
       GSPlaceholderArrayClass = [GSPlaceholderArray class];
 
