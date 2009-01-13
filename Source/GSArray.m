@@ -47,6 +47,7 @@ static SEL	oaiSel;
 static Class	GSArrayClass;
 #else
 static Class	GSInlineArrayClass;
+@class	GSInlineArray;
 #endif
 
 @class	GSArray;
