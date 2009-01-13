@@ -73,11 +73,6 @@
 }
 @end
 
-@interface GSInlineArray : GSArray
-{
-}
-@end
-
 @interface GSPlaceholderArray : NSArray
 {
 }

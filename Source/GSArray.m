@@ -43,7 +43,11 @@
 static SEL	eqSel;
 static SEL	oaiSel;
 
+#if	GS_WITH_GC
+static Class	GSArrayClass;
+#else
 static Class	GSInlineArrayClass;
+#endif
 
 @class	GSArray;
 
@@ -75,7 +79,8 @@ static Class	GSInlineArrayClass;
     [NSNumber numberWithUnsignedInt: _count], @"Count",
     self, @"Array", nil, nil];
 
-  reason = [NSString stringWithFormat: @"Index %d is out of range %d (in '%@')",
+  reason = [NSString stringWithFormat:
+    @"Index %d is out of range %d (in '%@')",
     index, _count, NSStringFromSelector(sel)];
 
   exception = [NSException exceptionWithName: NSRangeException
@@ -91,7 +96,11 @@ static Class	GSInlineArrayClass;
       [self setVersion: 1];
       eqSel = @selector(isEqual:);
       oaiSel = @selector(objectAtIndex:);
+#if	GS_WITH_GC
+      GSArrayClass = [GSArray class];
+#else
       GSInlineArrayClass = [GSInlineArray class];
+#endif
     }
 }
 
@@ -349,19 +358,29 @@ static Class	GSInlineArrayClass;
 }
 @end
 
+#if	!GS_WITH_GC
+/* This class stores objects inline in data beyond the end of the instance.
+ * However, when GC is enabled the object data is typed, and all data after
+ * the end of the class is ignored by the garbage collector (which would
+ * mean that objects in the array could be collected).
+ * We therefore do not provide the class ewhan GC is being used.
+ */
+@interface GSInlineArray : GSArray
+{
+}
+@end
+
 @implementation	GSInlineArray
 - (void) dealloc
 {
   if (_contents_array)
     {
-#if	!GS_WITH_GC
       unsigned	i;
 
       for (i = 0; i < _count; i++)
 	{
 	  [_contents_array[i] release];
 	}
-#endif
     }
   NSDeallocateObject(self);
   GSNOSUPERDEALLOC;
@@ -392,6 +411,7 @@ static Class	GSInlineArrayClass;
   return self;
 }
 @end
+#endif
 
 @implementation GSMutableArray
 
@@ -437,7 +457,11 @@ static Class	GSInlineArrayClass;
 {
   NSArray       *copy;
 
+#if	GS_WITH_GC
+  copy = (id)NSAllocateObject(GSArrayClass, 0, zone);
+#else
   copy = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*_count, zone);
+#endif
   return [copy initWithObjects: _contents_array count: _count];
 }
 
@@ -1002,7 +1026,11 @@ static Class	GSInlineArrayClass;
 
 + (void) initialize
 {
+#if	GS_WITH_GC
+  GSArrayClass = [GSArray class];
+#else
   GSInlineArrayClass = [GSInlineArray class];
+#endif
 }
 
 - (id) autorelease
@@ -1039,13 +1067,21 @@ static Class	GSInlineArrayClass;
     }
   else
     {
-      GSInlineArray	*a;
       unsigned	c;
+#if	GS_WITH_GC
+      GSArray	*a;
+
+      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
+      a = (id)NSAllocateObject(GSArrayClass, 0, GSObjCZone(self));
+      a->_contents_array = NSZoneMalloc(GSObjCZone(self), sizeof(id)*c);
+#else
+      GSInlineArray	*a;
 
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
       a = (id)NSAllocateObject(GSInlineArrayClass,
 	sizeof(id)*c, GSObjCZone(self));
       a->_contents_array = (id*)&a[1];
+#endif
       if (c > 0)
         {
 	  [aCoder decodeArrayOfObjCType: @encode(id)
@@ -1059,8 +1095,12 @@ static Class	GSInlineArrayClass;
 
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
+#if	GS_WITH_GC
+  self = (id)NSAllocateObject(GSArrayClass, 0, GSObjCZone(self));
+#else
   self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count,
     GSObjCZone(self));
+#endif
   return [self initWithObjects: objects count: count];
 }
 

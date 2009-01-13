@@ -3468,11 +3468,9 @@ fi
 done
 
   if test "$gc_ok" = no; then
-    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc.h header" >&5
-echo "$as_me: error: Garbage collection was required, but the gc.h header" >&2;}
+    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc.h header couldn't be found." >&5
+echo "$as_me: error: Garbage collection was required, but the gc.h header couldn't be found." >&2;}
    { (exit 1); exit 1; }; }
-    { echo "$as_me:$LINENO: couldn't be found." >&5
-echo "$as_me: couldn't be found." >&6;}
   fi
   saved_LIBS="$LIBS"
   LIBS+=" -lgc"
@@ -3573,11 +3571,110 @@ else
 fi
 
   if test "$gc_ok" = no; then
-    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc library" >&5
-echo "$as_me: error: Garbage collection was required, but the gc library" >&2;}
+    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc library couldn't be found." >&5
+echo "$as_me: error: Garbage collection was required, but the gc library couldn't be found." >&2;}
    { (exit 1); exit 1; }; }
-    { echo "$as_me:$LINENO: couldn't be found." >&5
-echo "$as_me: couldn't be found." >&6;}
+  fi
+  echo "$as_me:$LINENO: checking for GC_register_my_thread" >&5
+echo $ECHO_N "checking for GC_register_my_thread... $ECHO_C" >&6
+if test "${ac_cv_func_GC_register_my_thread+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define GC_register_my_thread to an innocuous variant, in case <limits.h> declares GC_register_my_thread.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define GC_register_my_thread innocuous_GC_register_my_thread
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char GC_register_my_thread (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef GC_register_my_thread
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char GC_register_my_thread ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_GC_register_my_thread) || defined (__stub___GC_register_my_thread)
+choke me
+#else
+char (*f) () = GC_register_my_thread;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != GC_register_my_thread;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_GC_register_my_thread=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_func_GC_register_my_thread=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_GC_register_my_thread" >&5
+echo "${ECHO_T}$ac_cv_func_GC_register_my_thread" >&6
+
+  if test "$ac_cv_func_GC_register_my_thread" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GC_REGISTER_MY_THREAD 1
+_ACEOF
+
+  else
+    { echo "$as_me:$LINENO: It looks like your libgc is quite old ... please use a newer one to support making the garbage collector aware of new threads." >&5
+echo "$as_me: It looks like your libgc is quite old ... please use a newer one to support making the garbage collector aware of new threads." >&6;}
   fi
   LIBS="-lobjc_gc -ldl"
   echo "$as_me:$LINENO: checking for class_ivar_set_gcinvisible" >&5
@@ -3677,11 +3774,9 @@ else
 fi
 
   if test "$gc_ok" = no; then
-    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc runtime" >&5
-echo "$as_me: error: Garbage collection was required, but the gc runtime" >&2;}
+    { { echo "$as_me:$LINENO: error: Garbage collection was required, but the gc runtime couldn't be found." >&5
+echo "$as_me: error: Garbage collection was required, but the gc runtime couldn't be found." >&2;}
    { (exit 1); exit 1; }; }
-    { echo "$as_me:$LINENO: couldn't be found." >&5
-echo "$as_me: couldn't be found." >&6;}
   fi
   LIBS="$saved_LIBS"
 

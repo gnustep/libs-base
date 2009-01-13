@@ -1,3 +1,12 @@
+2009-01-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSGarbageCollector.m: Mark the two unimplemented methods.
+	* Source/NSNotificationCenter.m: Automatically remove observers if
+	they are collected by the GC system.
+	* Source/NSThread.m: Make the GC system aware of each thread if poss.
+	* Source/GSArray.m: Don't use inline array class with GC.
+	* configure.ac: Add check for GC_register_my_thread
+
 2009-01-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile:
