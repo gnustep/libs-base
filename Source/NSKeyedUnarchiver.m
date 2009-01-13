@@ -274,6 +274,8 @@ static NSMapTable	globalClassMap = 0;
 
 + (void) initialize
 {
+  class_ivar_set_gcinvisible (self, "delegate", YES);
+
   if (globalClassMap == 0)
     {
       globalClassMap =

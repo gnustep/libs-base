@@ -277,7 +277,7 @@ if test $OBJC_WITH_GC = yes; then
     AC_DEFINE(HAVE_GC_REGISTER_MY_THREAD,1,
       [Define if GC_register_my_thread function is available])
   else
-    AC_MSG_NOTICE([It looks like your libgc is quite old ... please use a newer one to support making the garbage collector aware of new threads.])
+    AC_MSG_NOTICE([It looks like your libgc is quite old ... please consider using a newer one to support making the garbage collector aware of new threads.  You can get libgc source from http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc-source/ but NB. the libgc used must be compatible with the version of the objective-c runtime library that you are using.])
   fi
   LIBS="-lobjc_gc -ldl"
   AC_CHECK_FUNC(class_ivar_set_gcinvisible, gc_ok=yes, gc_ok=no)
