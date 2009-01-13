@@ -66,6 +66,12 @@ static  NSNull  *null = nil;
 
 @implementation	NSXMLSAXHandler
 
++ (void) initialize
+{
+  class_ivar_set_gcinvisible (self, "_delegate", YES);
+  class_ivar_set_gcinvisible (self, "_owner", YES);
+}
+
 - (void) dealloc
 {
   DESTROY(_namespaces);

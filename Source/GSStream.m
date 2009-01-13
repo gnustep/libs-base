@@ -143,6 +143,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @implementation GSStream
 
++ (void) initialize
+{
+  class_ivar_set_gcinvisible (self, "delegate", YES);
+}
+
 - (void) close
 {
   if (_currentStatus == NSStreamStatusNotOpen)
@@ -626,6 +631,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSInputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
+      class_ivar_set_gcinvisible (self, "delegate", YES);
     }
 }
 
@@ -658,6 +664,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSOutputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
+      class_ivar_set_gcinvisible (self, "delegate", YES);
     }
 }
 
@@ -928,6 +935,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 @class  GSLocalServerStream;
 
 @implementation GSServerStream
+
++ (void) initialize
+{
+  class_ivar_set_gcinvisible (self, "delegate", YES);
+}
 
 + (id) serverStreamToAddr: (NSString*)addr port: (int)port
 {

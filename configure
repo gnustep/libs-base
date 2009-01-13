@@ -3673,8 +3673,8 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   else
-    { echo "$as_me:$LINENO: It looks like your libgc is quite old ... please use a newer one to support making the garbage collector aware of new threads." >&5
-echo "$as_me: It looks like your libgc is quite old ... please use a newer one to support making the garbage collector aware of new threads." >&6;}
+    { echo "$as_me:$LINENO: It looks like your libgc is quite old ... please consider using a newer one to support making the garbage collector aware of new threads.  You can get libgc source from http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc-source/ but NB. the libgc used must be compatible with the version of the objective-c runtime library that you are using." >&5
+echo "$as_me: It looks like your libgc is quite old ... please consider using a newer one to support making the garbage collector aware of new threads.  You can get libgc source from http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc-source/ but NB. the libgc used must be compatible with the version of the objective-c runtime library that you are using." >&6;}
   fi
   LIBS="-lobjc_gc -ldl"
   echo "$as_me:$LINENO: checking for class_ivar_set_gcinvisible" >&5
