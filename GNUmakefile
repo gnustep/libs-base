@@ -32,7 +32,6 @@ ifeq ($(GNUSTEP_MAKEFILES),)
 endif
 
 -include config.mak
--include Source/pathconfig/pathconfig.mak
 
 GNUSTEP_CORE_SOFTWARE = YES
 export GNUSTEP_CORE_SOFTWARE
@@ -51,6 +50,8 @@ SVN_BASE_URL = svn+ssh://svn.gna.org/svn/gnustep/libs
 #
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=base.make
 include $(GNUSTEP_MAKEFILES)/common.make
+
+-include Source/pathconfig/pathconfig.mak
 
 include ./Version
 
