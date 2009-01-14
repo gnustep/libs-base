@@ -1,3 +1,12 @@
+2009-01-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source\NSGarbageCollector.m: Avoid compiler warning
+	* Source\pathconfig/pathconfig.mak.in: Fix syntax error in warning
+	* Headers\Additions\GNUstepBase\GSCategories.h: remove obsolete methods
+	* GNUmakefile: Fix order of includes
+	* Source/GSArray.m: Remove unused line from last change
+	* Source/NSNotificationCenter.m: Remove unused line
+
 2009-01-13 18:35-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/GSArray.m
