@@ -24,20 +24,21 @@
    */
 
 #import	"Foundation/NSGarbageCollector.h"
-#import	"Foundation/NSLock.h"
 #import	"Foundation/NSZone.h"
+
+static NSGarbageCollector	*collector = nil;
+static unsigned			disabled = 0;
 
 #if	GS_WITH_GC
 
 #include <gc.h>
 
+#import	"Foundation/NSLock.h"
+static NSLock			*lock = nil;
+
 #endif
 
 @implementation	NSGarbageCollector
-
-static NSGarbageCollector	*collector = nil;
-static NSLock			*lock = nil;
-static unsigned			disabled = 0;
 
 + (id) defaultCollector
 {
