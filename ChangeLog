@@ -1,5 +1,11 @@
 2009-01-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSRunLoop.m: Cleaned up a little and added hack as a temporary
+	fix for #25327, though I'm suspecting that the actual problme is in the
+	NSAnimation code.
+
+2009-01-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSRunLoop.m:
 	* Source/unix/GSRunLoopCtxt.m:
 	* Source/GSRunLoopCtxt.h:

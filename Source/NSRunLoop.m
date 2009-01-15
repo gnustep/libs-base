@@ -1109,9 +1109,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
   NS_DURING
     {
-      GSIArray		watchers;
-      unsigned		i;
-
       /*
        * If we have a housekeeping timer, and it is earlier than the
        * limit date we have been given, we use the date of the housekeeper
@@ -1124,8 +1121,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  limit_date = timerDate(context->housekeeper);
 	}
 
-      if ((context == nil || (watchers = context->watchers) == 0
-	|| (i = GSIArrayCount(watchers)) == 0))
+      if (context == nil || GSIArrayCount(context->watchers) == 0)
 	{
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
 	  GSPrivateNotifyASAP();
@@ -1216,6 +1212,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   CREATE_AUTORELEASE_POOL(arp);
+  GSRunLoopCtxt	*context;
   NSDate	*d;
 
   NSAssert(mode != nil, NSInvalidArgumentException);
@@ -1235,6 +1232,17 @@ static inline BOOL timerInvalidated(NSTimer *t)
       RELEASE(arp);
       return NO;
     }
+
+#if 0
+  /* Check to see if we have any input sources.
+   */
+  context = NSMapGet(_contextMap, mode);
+  if (context == nil || GSIArrayCount(context->watchers) == 0)
+    {
+      RELEASE(arp);
+      return NO;
+    }
+#endif
 
   /*
    * Use the earlier of the two dates we have.
