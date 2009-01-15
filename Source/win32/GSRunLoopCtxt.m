@@ -563,4 +563,20 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   return YES;
 }
 
++ (BOOL) awakenedBefore: (NSDate*)when
+{
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
+  int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
+  HANDLE		h = threadInfo->event;
+
+  if (WaitForMultipleObjects(1, &h, NO, milliseconds) != WAIT_TIMEOUT)
+    {
+      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo fire];
+      return YES;
+    }
+  return NO;
+}
+
 @end

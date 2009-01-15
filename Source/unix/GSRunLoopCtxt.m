@@ -626,6 +626,27 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   return YES;
 }
 
++ (BOOL) awakenedBefore: (NSDate*)when
+{
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
+  int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
+  struct pollfd		pollfds;
+
+  /* Watch for signals from other threads.
+   */
+  pollfds.fd = threadInfo->inputFd;
+  pollfds.events = POLLIN;
+  pollfds.revents = 0;
+  if (poll(&pollfds, 1, milliseconds) == 1)
+    {
+      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo fire];
+      return YES;
+    }
+  return NO;
+}
+
 #else
 
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
@@ -684,7 +705,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   NSResetMapTable(_wfdMap);
   GSIArrayRemoveAllItems(_trigger);
 
-  /* Watch for signals from otyher threads.
+  /* Watch for signals from other threads.
    */
   fd = threadInfo->inputFd;
   if (fd > fdEnd)
@@ -1001,6 +1022,32 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     }
   completed = YES;
   return YES;
+}
+
++ (BOOL) awakenedBefore: (NSDate*)when
+{
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
+  int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
+  struct timeval	timeout;
+  fd_set 		read_fds;	// Mask for read-ready fds.
+  fd_set 		exception_fds;	// Mask for exception fds.
+  fd_set 		write_fds;	// Mask for write-ready fds.
+
+  memset(&exception_fds, '\0', sizeof(exception_fds));
+  memset(&read_fds, '\0', sizeof(read_fds));
+  memset(&write_fds, '\0', sizeof(write_fds));
+  timeout.tv_sec = milliseconds/1000;
+  timeout.tv_usec = (milliseconds - 1000 * timeout.tv_sec) * 1000;
+  FD_SET (threadInof->inputFd, &read_fds);
+  if (select (threadInfo->inputFd, &read_fds, &write_fds,
+    &exception_fds, &timeout) > 0)
+    {
+      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo fire];
+      return YES;
+    }
+  return NO;
 }
 
 #endif

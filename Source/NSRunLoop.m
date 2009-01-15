@@ -1085,7 +1085,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
  * just poll inputs and return,
  * otherwise block until input is available or until the
  * earliest limit date has passed (whichever comes first).<br />
- * If the supplied mode is nil, uses NSDefaultRunLoopMode.
+ * If the supplied mode is nil, uses NSDefaultRunLoopMode.<br />
+ * If there are no input sources in the mode, returns immediately.
  */
 - (void) acceptInputForMode: (NSString*)mode
 		 beforeDate: (NSDate*)limit_date
@@ -1129,20 +1130,10 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
 	  GSPrivateNotifyASAP();
 	  GSPrivateNotifyIdle();
-	  /*
-	   * Pause for as long as possible (up to the limit date)
-	   * Call the polling method so we notice thread notifications
-           * that methods should be performed in this loop.
+	  /* Pause until the limit date or until we might have
+	   * a method to perform in this thread.
 	   */
-	  ti = [limit_date timeIntervalSinceNow];
-	  if (context == nil)
-	    {
-	      context = [[GSRunLoopCtxt alloc] initWithMode: mode
-						      extra: _extra];
-	      NSMapInsert(_contextMap, context->mode, context);
-	      RELEASE(context);
-	    }
-          [context pollUntil: (int)(ti * 1000) within: nil];
+          [GSRunLoopCtxt awakenedBefore: nil];
 	  GSPrivateCheckTasks();
 	  if (context != nil)
 	    {
@@ -1233,7 +1224,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
   d = [self limitDateForMode: mode];
   if (d == nil)
     {
-      NSDebugMLLog(@"NSRunLoop", @"run mode with nothing to don %@", mode);
+      NSDebugMLLog(@"NSRunLoop", @"run mode with nothing to do %@", mode);
       /*
        * Notify if any tasks have completed.
        */
