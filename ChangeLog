@@ -1,3 +1,8 @@
+2009-01-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Revert temporary hack to work around bug in
+	NSAnimation, hopefully fixed in NSAnimation now.
+
 2009-01-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Cleaned up a little and added hack as a temporary
