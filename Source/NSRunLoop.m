@@ -1233,7 +1233,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
       return NO;
     }
 
-#if 0
   /* Check to see if we have any input sources.
    */
   context = NSMapGet(_contextMap, mode);
@@ -1242,7 +1241,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
       RELEASE(arp);
       return NO;
     }
-#endif
 
   /*
    * Use the earlier of the two dates we have.
