@@ -447,8 +447,6 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (BOOL) tryLock
 {
-  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
-
   // Ask the runtime to acquire a lock on the mutex
   if (objc_mutex_trylock(_MUTEX) == -1)
     return NO;
