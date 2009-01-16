@@ -1,3 +1,9 @@
+2009-01-16 17:26-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSLock.m: Correction for bug #25307.  According to Cocoa
+	documentation, NSConditionLock should return NO, if the lock is
+	unavailable.  No exception should be thrown.
+
 2009-01-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Revert temporary hack to work around bug in
