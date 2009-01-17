@@ -1,3 +1,16 @@
+2009-01-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLock.m: Revert last change.
+	The Cocoa documentation actually says nothing about exceptions either
+	way.  I recall there was some discussion about lock behavior a few
+	years ago, which concluded that the GNUstep behavior was the best
+	available ... it returns NO if the lock is unavailable, but raises an
+	exception if you try to lock the lock twice from the same thread,
+	since locking twice from the same thread is almost guaranteed to be
+	a programming error.
+	If we want to remove this check, we need to do it consistently for
+	all locks and document the new behavior.
+
 2009-01-16 17:26-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSLock.m: Correction for bug #25307.  According to Cocoa
