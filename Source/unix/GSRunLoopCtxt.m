@@ -1039,7 +1039,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   memset(&write_fds, '\0', sizeof(write_fds));
   timeout.tv_sec = milliseconds/1000;
   timeout.tv_usec = (milliseconds - 1000 * timeout.tv_sec) * 1000;
-  FD_SET (threadInof->inputFd, &read_fds);
+  FD_SET (threadInfo->inputFd, &read_fds);
   if (select (threadInfo->inputFd, &read_fds, &write_fds,
     &exception_fds, &timeout) > 0)
     {
