@@ -405,10 +405,6 @@ static NSZone default_zone =
   default_check, default_lookup, default_stats, DEFBLOCK, @"default", 0
 };
 
-/* Default zone.  Name is hopelessly long so that no one will ever
-   want to use it. ;) */
-NSZone* __nszone_private_hidden_default_zone = &default_zone;
-
 /*
  *	Lists of zones to be used to determine if a pointer is in a zone.
  */
@@ -1739,6 +1735,17 @@ NSSetZoneName (NSZone *zone, NSString *name)
   [gnustep_global_lock unlock];
 }
 
+void *
+NSAllocateCollectable(NSUInteger size, NSUInteger options)
+{
+  return NSZoneCalloc(NSDefaultMallocZone(), 1, size);
+}
+
+void *
+NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
+{
+  return NSZoneRealloc(NSDefaultMallocZone(), ptr, size);
+}
 #else
 
 #include <gc.h>
@@ -1752,14 +1759,290 @@ static NSZone default_zone =
 {
   0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
 };
-NSZone* __nszone_private_hidden_default_zone = &default_zone;
 
 static NSZone atomic_zone =
 {
   0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
 };
-NSZone* __nszone_private_hidden_atomic_zone = &atomic_zone;
 
+static NSZone scanned_zone =
+{
+  0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
+};
+
+void *
+NSAllocateCollectable(NSUInteger size, NSUInteger options)
+{
+  void	*ptr;
+
+  if (options & NSScannedOption)
+    {
+      if (options & NSCollectorDisabledOption)
+	{
+          ptr = (void*)GC_MALLOC_UNCOLLECTABLE(size);
+	}
+      else
+	{
+          ptr = (void*)GC_MALLOC(size);
+	}
+    }
+  else
+    {
+      if (options & NSCollectorDisabledOption)
+	{
+	  ptr = (void*)calloc(1, size);
+	}
+      else
+	{
+	  ptr = (void*)GC_MALLOC_ATOMIC(size);
+	}
+    }
+  return ptr;
+}
+
+void *
+NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
+{
+  if (ptr == 0)
+    {
+      ptr = NSAllocateCollectable(size, options);
+    }
+  else
+    {
+      void	*tmp = NSAllocateCollectable(size, options);
+      unsigned	length = GC_size(ptr);
+
+      if (length > size)
+	{
+	  length = size;
+	}
+      if (tmp != 0 && length > 0)
+	{
+          memcpy(tmp, ptr, length);
+	}
+      GC_free(ptr);
+      ptr = tmp;
+    }
+  return ptr;
+}
 
 #endif	/* GS_WITH_GC */
 
+
+#ifdef	IN_NSZONE_M
+#define	GS_ZONE_SCOPE	extern
+#define GS_ZONE_ATTR	
+#else
+#define	GS_ZONE_SCOPE	static inline
+#define GS_ZONE_ATTR	__attribute__((unused))
+#endif
+
+#ifndef	GS_WITH_GC
+#define	GS_WITH_GC	0
+#endif
+#if	GS_WITH_GC
+
+#include <gc.h>
+
+
+NSZone*
+NSCreateZone (size_t start, size_t gran, BOOL canFree)
+{
+  return &default_zone;
+}
+
+NSZone*
+NSDefaultMallocZone (void)
+{
+  return &default_zone;
+}
+
+NSZone*
+GSAtomicMallocZone (void)
+{
+  return &atomic_zone;
+}
+
+NSZone*
+GSScannedMallocZone (void)
+{
+  return &scanned_zone;
+}
+
+NSZone*
+NSZoneFromPointer (void *ptr)
+{
+  return &default_zone;
+}
+
+void*
+NSZoneMalloc (NSZone *zone, size_t size)
+{
+  void	*ptr;
+
+  if (zone == GSAtomicMallocZone())
+    ptr = (void*)GC_MALLOC_ATOMIC(size);
+  else if (zone == GSScannedMallocZone())
+    ptr = (void*)GC_MALLOC(size);
+  else
+    ptr = (void*)malloc(size);
+
+  if (ptr == 0)
+    ptr = GSOutOfMemory(size, YES);
+  return ptr;
+}
+
+void*
+NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
+{
+  size_t	size = elems * bytes;
+  void		*ptr;
+
+  if (zone == &atomic_zone)
+    ptr = (void*)GC_MALLOC_ATOMIC(size);
+  else if (zone == &scanned_zone)
+    ptr = (void*)GC_MALLOC(size);
+  else
+    ptr = (void*)malloc(size);
+
+  if (ptr == 0)
+    ptr = GSOutOfMemory(size, NO);
+  memset(ptr, '\0', size);
+  return ptr;
+}
+
+void*
+NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+{
+  if (GC_base(ptr) != 0)
+    {
+      ptr = GC_REALLOC(ptr, size);
+    }
+  else
+    {
+      ptr = realloc(ptr, size);
+    }
+  if (ptr == 0)
+    GSOutOfMemory(size, NO);
+  return ptr;
+}
+
+void
+NSRecycleZone (NSZone *zone)
+{
+}
+
+void
+NSZoneFree (NSZone *zone, void *ptr)
+{
+  if (GC_base(ptr) != 0)
+    {
+      GC_FREE(ptr);
+    }
+  else
+    {
+      free(ptr);
+    }
+}
+
+void
+NSSetZoneName (NSZone *zone, NSString *name)
+{
+}
+
+NSString*
+NSZoneName (NSZone *zone)
+{
+  return nil;
+}
+
+BOOL
+NSZoneCheck (NSZone *zone)
+{
+  return YES;
+}
+
+struct
+NSZoneStats NSZoneStats (NSZone *zone)
+{
+  struct NSZoneStats stats = { 0 };
+  return stats;
+}
+
+#else	/* GS_WITH_GC */
+
+NSZone*
+NSDefaultMallocZone (void)
+{
+  return &default_zone;
+}
+
+NSZone*
+GSAtomicMallocZone (void)
+{
+  return &default_zone;
+}
+
+NSZone*
+GSScannedMallocZone (void)
+{
+  return &default_zone;
+}
+
+void*
+NSZoneMalloc (NSZone *zone, size_t size)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->malloc)(zone, size);
+}
+
+void* 
+NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->realloc)(zone, ptr, size);
+}
+
+void
+NSRecycleZone (NSZone *zone)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  (zone->recycle)(zone);
+}
+
+void
+NSZoneFree (NSZone *zone, void *ptr)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  (zone->free)(zone, ptr);
+}
+
+NSString*
+NSZoneName (NSZone *zone)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return zone->name;
+}
+
+BOOL
+NSZoneCheck (NSZone *zone)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->check)(zone);
+}
+
+struct NSZoneStats
+NSZoneStats (NSZone *zone)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return (zone->stats)(zone);
+}
+
+#endif	/* GS_WITH_GC */

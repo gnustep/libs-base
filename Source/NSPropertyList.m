@@ -723,7 +723,7 @@ static inline id parseQuotedString(pldata* pld)
 	  return nil;
 	}
       length = temp_length - shrink;
-      chars = NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * length);
+      chars = NSAllocateCollectable(sizeof(unichar) * length, 0);
       escaped = 0;
       hex = NO;
       for (j = 0, k = 0; j < temp_length; j++)
@@ -845,7 +845,7 @@ static inline id parseUnquotedString(pldata *pld)
     }
 
   length = pld->pos - start;
-  chars = NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * length);
+  chars = NSAllocateCollectable(sizeof(unichar) * length, 0);
   for (i = 0; i < length; i++)
     {
       chars[i] = pld->ptr[start + i];
@@ -1606,7 +1606,7 @@ PString(NSString *obj, NSMutableData *output)
 	}
       else
 	{
-	  ustring = NSZoneMalloc(NSDefaultMallocZone(), length*sizeof(unichar));
+	  ustring = NSAllocateCollectable(sizeof(unichar) * length, 0);
 	}
       end = &ustring[length];
       [obj getCharacters: ustring];
@@ -1747,7 +1747,7 @@ XString(NSString* obj, NSMutableData *output)
       unsigned	rpos;
       unsigned	wpos;
 
-      base = NSZoneMalloc(NSDefaultMallocZone(), end * sizeof(unichar));
+      base = NSAllocateCollectable(sizeof(unichar) * end, 0);
       [obj getCharacters: base];
       for (len = rpos = 0; rpos < end; rpos++)
 	{
@@ -1779,7 +1779,7 @@ XString(NSString* obj, NSMutableData *output)
 		break;
 	    }
 	}
-      map = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+      map = NSAllocateCollectable(sizeof(unichar) * len, 0);
       for (wpos = rpos = 0; rpos < end; rpos++)
 	{
 	  c = base[rpos];
@@ -3151,7 +3151,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       char *buffer;
 
       len = [self readCountAt: &counter];
-      buffer = NSZoneMalloc(NSDefaultMallocZone(), len+1);
+      buffer = NSAllocateCollectable(len + 1, 0);
       [data getBytes: buffer range: NSMakeRange(counter, len)];
       buffer[len] = '\0';
       if (mutability == NSPropertyListMutableContainersAndLeaves)
@@ -3196,7 +3196,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unichar	*buffer;
 
       len = [self readCountAt: &counter];
-      buffer = NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar)*len);
+      buffer = NSAllocateCollectable(sizeof(unichar) * len, 0);
       [data getBytes: buffer range: NSMakeRange(counter, sizeof(unichar)*len)];
 
       for (i = 0; i < len; i++)
@@ -3265,7 +3265,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       id	*objects;
 
       len = [self readCountAt: &counter];
-      objects = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * len);
+      objects = NSAllocateCollectable(sizeof(id) * len, NSScannedOption);
 
       for (i = 0; i < len; i++)
         {
@@ -3330,8 +3330,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       id	*values;
 
       len = [self readCountAt: &counter];
-      keys = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*len);
-      values = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*len);
+      keys = NSAllocateCollectable(sizeof(id) * len * 2, NSScannedOption);
+      values = keys + len;
       for (i = 0; i < len; i++)
         {
 	  int oid = [self readObjectIndexAt: &counter];
@@ -3359,7 +3359,6 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 					       forKeys: keys
 						 count: len];
 	}
-      NSZoneFree(NSDefaultMallocZone(), values);
       NSZoneFree(NSDefaultMallocZone(), keys);
     }
   else

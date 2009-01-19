@@ -137,6 +137,9 @@ static Class	NSMutableDataMallocClass;
       /*
        *	Set up map tables.
        */
+#if	GS_WITH_GC
+      zone = GSScannedMallocZone();
+#endif
       _clsMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*6);
       _cIdMap = &_clsMap[1];
       _uIdMap = &_clsMap[2];

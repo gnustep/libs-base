@@ -1709,6 +1709,9 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      _eObjImp = [self methodForSelector: eObjSel];
 	      _eValImp = [self methodForSelector: eValSel];
 
+#if	GS_WITH_GC
+	      _zone = GSScannedMallocZone();
+#endif
 	      /*
 	       *	Set up map tables.
 	       */

@@ -155,6 +155,9 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
       return 0;
     }
 
+#if	GS_WITH_GC
+  zone = GSScannedMallocZone();
+#endif
   t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
   t->extra = ((GSIMapTable)table)->extra;
@@ -213,6 +216,9 @@ NSCreateHashTableWithZone(
 {
   GSIMapTable	table;
 
+#if	GS_WITH_GC
+  zone = GSScannedMallocZone();
+#endif
   table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(table, zone, capacity);
   table->extra = callBacks;

@@ -183,7 +183,11 @@
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
+#if	GS_WITH_GC
+  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), cap);
+#else
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
+#endif
   return self;
 }
 
@@ -199,7 +203,11 @@
 
   (*imp)(aCoder, sel, utype, &count);
 
+#if	GS_WITH_GC
+  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), count);
+#else
   GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
+#endif
   while (count-- > 0)
     {
       (*imp)(aCoder, sel, otype, &value);

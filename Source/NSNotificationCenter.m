@@ -47,6 +47,8 @@
 #define	purgeCollected(X)	(X)
 #endif
 
+static NSZone	*_zone = 0;
+
 /**
  * Concrete class implementing NSNotification.
  */
@@ -286,7 +288,7 @@ static Observation *obsNew(NCTable* t)
 	  size = CHUNKSIZE * sizeof(Observation);
 #if	GS_WITH_GC
 	  t->chunks[t->numChunks - 1]
-	    = (Observation*)NSZoneMallocAtomic(NSDefaultMallocZone(), size);
+	    = (Observation*)NSZoneMalloc(GSAtomicMallocZone(), size);
 #else
 	  t->chunks[t->numChunks - 1]
 	    = (Observation*)NSZoneMalloc(NSDefaultMallocZone(), size);
@@ -312,8 +314,8 @@ static GSIMapTable	mapNew(NCTable *t)
     {
       GSIMapTable	m;
 
-      m = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
-      GSIMapInitWithZoneAndCapacity(m, NSDefaultMallocZone(), 2);
+      m = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
+      GSIMapInitWithZoneAndCapacity(m, _zone, 2);
       return m;
     }
 }
@@ -399,16 +401,16 @@ static NCTable *newNCTable(void)
 {
   NCTable	*t;
 
-  t = (NCTable*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(NCTable));
+  t = (NCTable*)NSZoneMalloc(_zone, sizeof(NCTable));
   memset((void*)t, '\0', sizeof(NCTable));
   t->chunkIndex = CHUNKSIZE;
   t->wildcard = ENDOBS;
 
-  t->nameless = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
-  GSIMapInitWithZoneAndCapacity(t->nameless, NSDefaultMallocZone(), 16);
+  t->nameless = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
 
-  t->named = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
-  GSIMapInitWithZoneAndCapacity(t->named, NSDefaultMallocZone(), 128);
+  t->named = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
 
   // t->_lock = [GSLazyRecursiveLock new];
   t->_lock = [NSRecursiveLock new];
@@ -582,6 +584,11 @@ static NSNotificationCenter *default_center = nil;
 {
   if (self == [NSNotificationCenter class])
     {
+#if	GS_WITH_GC
+      _zone = GSScannedMallocZone();
+#else
+      _zone = NSDefaultMallocZone();
+#endif
       if (concrete == 0)
 	{
 	  concrete = [GSNotification class];
@@ -1001,7 +1008,7 @@ static NSNotificationCenter *default_center = nil;
   /*
    * Initialise static array to store copies of observers.
    */
-  GSIArrayInitWithZoneAndStaticCapacity(a, NSDefaultMallocZone(), 64, i);
+  GSIArrayInitWithZoneAndStaticCapacity(a, _zone, 64, i);
 
   /*
    * Lock the table of observations while we traverse it.

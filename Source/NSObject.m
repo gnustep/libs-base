@@ -668,7 +668,14 @@ NSIncrementExtraRefCount(id anObject)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
-  return 0;
+  /* If we have GC enabled, all objects are garbage collected and memory
+   * they allocate should generally be garbage collectable but not scanned
+   * for pointers.
+   * If an object wants to have memory which IS scanned for pointers by the
+   * garbage collector, it should use NSAllocateCollectable() to get it,
+   * rather than using the old zone based memory allocation.
+   */
+  return GSAtomicMallocZone();
 }
 
 static void
@@ -686,8 +693,10 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 {
   id	new;
   int	size;
+  GC_descr	gc_type;
 
   NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
+  gc_type = (GC_descr)aClass->gc_object_type;
   size = aClass->instance_size + extraBytes;
   if (size % sizeof(void*) != 0)
     {
@@ -696,29 +705,20 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
        */
       size += sizeof(void*) - size % sizeof(void*);
     }
-  if (zone == GSAtomicMallocZone())
+
+  if (gc_type == 0)
     {
       new = NSZoneCalloc(zone, 1, size);
+      NSLog(@"No garbage collection information for '%s'",
+	GSNameFromClass(aClass));
     }
   else
     {
-      GC_descr	gc_type = (GC_descr)aClass->gc_object_type;
-
-      if (gc_type == 0)
-	{
-	  new = NSZoneCalloc(zone, 1, size);
-	  NSLog(@"No garbage collection information for '%s'",
-	    GSNameFromClass(aClass));
-	}
-      else
-	{
-	  new = GC_calloc_explicitly_typed(1, size, gc_type);
-        }
+      new = GC_calloc_explicitly_typed(1, size, gc_type);
     }
 
   if (new != nil)
     {
-      memset(new, 0, size);
       new->class_pointer = aClass;
       if (get_imp(aClass, finalize_sel) != finalize_imp
         && __objc_responds_to(new, finalize_sel))
