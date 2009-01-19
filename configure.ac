@@ -1727,6 +1727,86 @@ AC_ARG_WITH(openssl-include,
 AC_ARG_WITH(openssl-library,
   [  --with-openssl-library=PATH  library path for openssl libraries],
   openssl_libdir="$withval", openssl_libdir="no")
+AC_ARG_WITH(installation-domain,
+[  --with-installation-domain=DOMAIN
+				Specify the domain (SYSTEM, LOCAL,
+				NETWORK or USER) into which
+				gnustep-base will be installed.
+				Whenever relative paths are hardcoded
+				into gnustep-base (at the moment, this
+				happens only on MinGW) this option
+				must be used and must match the domain
+				where you will be installing
+				gnustep-base.
+				If this is not specified, the output of
+				gnustep-config --installation-domain-for=gnustep-base
+				(which should normally be LOCAL) is used.],
+  result="$withval",
+  result="no"
+)
+AC_ARG_WITH(config-file,
+[  --with-config-file=PATH       Specify path to the GNUstep config file.
+				This is the location to be used by the base
+				library to locate path information at
+				application or tool runtime.
+				This file might not even exist now; it is
+				not read at configure time.  The base library
+				will only read it at runtime.
+				If unspecified, this uses the same value as
+				the GNUstep make package on unix-like systems,
+				but uses ./GNUstep.conf on mingw so that
+				it is relative to the location of the
+				base library DLL.
+				If a leading './' is specified, the path
+				is taken to be relative to the base library
+				linked runtime, not all operating systems
+				can support this, so on some platforms you
+				may need to specify the location of the
+				config file using the GNUSTEP_CONFIG_FILE
+				environment variable at runtime.
+				If a trailing '/' is specified, the path is
+				used for locating domains but no GNUstep
+				config file is read at runtime.], 
+  result="$withval",
+  result="no"
+)
+AC_ARG_ENABLE(environment-config-file, 
+[  --disable-environment-config-file
+                                Disables the use of the GNUSTEP_CONFIG_FILE
+				environment variable to specify/override
+				the location of the GNUstep config file
+				at runtime.  This option is occasionally
+				useful to disable the environment variable
+				for sites which wish to 'lock down' users
+				to always work with a specific system-wide
+				configuration.  On unix-like systems the
+				default is for this option to be enabled.
+				It is disabled by default on windows systems
+				so that the base library will not use a
+				config file intended for the gnustep-make
+				system (and containing unix-style paths
+				which cannot be used by widnows apps).
+				Normally this should be left at its default
+				setting.], 
+  ac_cv_environment_config_file=$enableval,
+  ac_cv_environment_config_file=$enable_env_config)
+AC_ARG_ENABLE(importing-config-file, 
+[  --disable-importing-config-file
+                                Disable importing of an existing GNUstep config
+				file and use inbuilt defaults instead.],
+  ac_cv_importing_config_file=$enableval,
+  ac_cv_importing_config_file="yes")
+  AC_ARG_WITH(default-config,
+[  --with-default-config=PATH   Specify path to a GNUstep config file to be
+				imported at configure time (now) and used to
+				provide default values for the base library
+				to use at runtime if no GNUstep config file
+				is found at runtime.  If this is not specified
+				then the path from --with-config-file or from
+				the gnustep-make package is used.],
+    result="$withval",
+    result="no"
+  )
 
 AC_CONFIG_SUBDIRS(Source/pathconfig Source/mframe SSL)
 
