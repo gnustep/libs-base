@@ -227,7 +227,11 @@ static Class	mutableSetClass;
 
       (*imp)(aCoder, sel, @encode(unsigned), &count);
 
+#if	GS_WITH_GC
+      GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), count);
+#else
       GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
+#endif
       while (count-- > 0)
         {
 	  (*imp)(aCoder, sel, type, &value);
@@ -242,7 +246,11 @@ static Class	mutableSetClass;
 {
   unsigned i;
 
+#if	GS_WITH_GC
+  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), c);
+#else
   GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
+#endif
   for (i = 0; i < c; i++)
     {
       GSIMapNode     node;
@@ -576,7 +584,11 @@ static Class	mutableSetClass;
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
+#if	GS_WITH_GC
+  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), cap);
+#else
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
+#endif
   return self;
 }
 

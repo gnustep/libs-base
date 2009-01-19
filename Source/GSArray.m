@@ -147,7 +147,12 @@ static Class	GSInlineArrayClass;
     {
       unsigned	i;
 
+#if	GS_WITH_GC
+      _contents_array = NSAllocateCollectable(sizeof(id)*count,
+	NSScannedOption);
+#else
       _contents_array = NSZoneMalloc([self zone], sizeof(id)*count);
+#endif
       if (_contents_array == 0)
 	{
 	  RELEASE(self);
@@ -204,7 +209,12 @@ static Class	GSInlineArrayClass;
 				 at: &_count];
       if (_count > 0)
 	{
+#if	GS_WITH_GC
+          _contents_array = NSAllocateCollectable(sizeof(id) * _count,
+	    NSScannedOption);
+#else
 	  _contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
+#endif
 	  if (_contents_array == 0)
 	    {
 	      [NSException raise: NSMallocException
@@ -497,7 +507,11 @@ static Class	GSInlineArrayClass;
     {
       cap = 1;
     }
+#if	GS_WITH_GC
+  _contents_array = NSAllocateCollectable(sizeof(id)*cap, NSScannedOption);
+#else
   _contents_array = NSZoneMalloc([self zone], sizeof(id)*cap);
+#endif
   _capacity = cap;
   _grow_factor = cap > 1 ? cap/2 : 1;
   return self;
@@ -1074,7 +1088,7 @@ static Class	GSInlineArrayClass;
 
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
       a = (id)NSAllocateObject(GSArrayClass, 0, GSObjCZone(self));
-      a->_contents_array = NSZoneMalloc(GSObjCZone(self), sizeof(id)*c);
+      a->_contents_array = NSAllocateCollectable(sizeof(id)*c, NSScannedOption);
 #else
       GSInlineArray	*a;
 

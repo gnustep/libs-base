@@ -136,40 +136,31 @@ struct _NSZone
  * If we can't do anything, just return a null pointer.
  * Try to do some logging if possible.
  */
-void *GSOutOfMemory(size_t size, BOOL retry);
+void*
+GSOutOfMemory(size_t size, BOOL retry);
 
-#ifdef	IN_NSZONE_M
-#define	GS_ZONE_SCOPE	extern
-#define GS_ZONE_ATTR	
-#else
-#define	GS_ZONE_SCOPE	static inline
-#define GS_ZONE_ATTR	__attribute__((unused))
-#endif
+NSZone*
+NSCreateZone (size_t start, size_t gran, BOOL canFree);
 
-/* Default zone.  Name is hopelessly long so that no one will ever
-   want to use it. ;) Private variable. */
-GS_EXPORT NSZone* __nszone_private_hidden_default_zone;
+NSZone*
+NSDefaultMallocZone (void);
 
-#ifndef	GS_WITH_GC
-#define	GS_WITH_GC	0
-#endif
-#if	GS_WITH_GC
+/**
+ * Returns the default zone used for memory allocation, created at startup.
+ * This zone cannot be recycled.
+ */
+NSZone*
+GSAtomicMallocZone (void);
 
-#include <gc.h>
+/**
+ * Returns the default zone used for scanned memory allocation ... a
+ * garbage collectable chunk of memory which is scanned for pointers.
+ */
+NSZone*
+GSScannedMallocZone (void);
 
-GS_EXPORT NSZone* __nszone_private_hidden_atomic_zone;
-
-GS_ZONE_SCOPE NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree)
-{ return __nszone_private_hidden_default_zone; }
-
-GS_ZONE_SCOPE NSZone* NSDefaultMallocZone (void)
-{ return __nszone_private_hidden_default_zone; }
-
-GS_ZONE_SCOPE NSZone* GSAtomicMallocZone (void)
-{ return __nszone_private_hidden_atomic_zone; }
-
-GS_ZONE_SCOPE NSZone* NSZoneFromPointer (void *ptr)
-{ return __nszone_private_hidden_default_zone; }
+NSZone*
+NSZoneFromPointer (void *ptr);
 
 /**
  *  Allocates and returns memory for elems items of size bytes, in the
@@ -178,19 +169,8 @@ GS_ZONE_SCOPE NSZone* NSZoneFromPointer (void *ptr)
  *  allocate and no more can be obtained from system, unless using the
  *  default zone, in which case NULL is returned.
  */
-GS_ZONE_SCOPE void* NSZoneMalloc (NSZone *zone, size_t size)
-{
-  void	*ptr;
-
-  if (zone == GSAtomicMallocZone())
-    ptr = (void*)GC_MALLOC_ATOMIC(size);
-  else
-    ptr = (void*)GC_MALLOC(size);
-
-  if (ptr == 0)
-    ptr = GSOutOfMemory(size, YES);
-  return ptr;
-}
+void*
+NSZoneMalloc (NSZone *zone, size_t size);
 
 /**
  *  Allocates and returns cleared memory for elems items of size bytes, in the
@@ -199,134 +179,8 @@ GS_ZONE_SCOPE void* NSZoneMalloc (NSZone *zone, size_t size)
  *  allocate and no more can be obtained from system, unless using the
  *  default zone, in which case NULL is returned.
  */
-GS_ZONE_SCOPE void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
-{
-  size_t	size = elems * bytes;
-  void		*ptr;
-
-  if (zone == __nszone_private_hidden_atomic_zone)
-    ptr = (void*)GC_MALLOC_ATOMIC(size);
-  else
-    ptr = (void*)GC_MALLOC(size);
-
-  if (ptr == 0)
-    ptr = GSOutOfMemory(size, NO);
-  memset(ptr, '\0', size);
-  return ptr;
-}
-
-GS_ZONE_SCOPE void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
-{
-  ptr = GC_REALLOC(ptr, size);
-  if (ptr == 0)
-    GSOutOfMemory(size, NO);
-  return ptr;
-}
-
-GS_ZONE_SCOPE void NSRecycleZone (NSZone *zone)
-{
-}
-
-GS_ZONE_SCOPE void NSZoneFree (NSZone *zone, void *ptr)
-{
-  GC_FREE(ptr);
-}
-
-/**
- * Sets name of the given zone (useful for debugging and logging).
- */
-GS_ZONE_SCOPE void NSSetZoneName (NSZone *zone, NSString *name)
-{
-}
-
-/**
- * Sets name of the given zone (useful for debugging and logging).
- */
-GS_ZONE_SCOPE NSString* NSZoneName (NSZone *zone)
-{
-  return nil;
-}
-
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-
-/**
- * Allocates mmemory of size bytes from zone, with the assumption that the
- * memory will never contain pointers.  This is only relevant in situations
- * where a form of garbage collection is enabled, and NSZoneMalloc() should
- * always be used otherwise.  Not defined by OpenStep or OS X.
- */
-GS_ZONE_SCOPE void* NSZoneMallocAtomic (NSZone *zone, size_t size)
-{
-  return NSZoneMalloc(GSAtomicMallocZone(), size);
-}
-
-GS_ZONE_SCOPE BOOL NSZoneCheck (NSZone *zone)
-{
-  return YES;
-}
-
-GS_ZONE_SCOPE struct NSZoneStats NSZoneStats (NSZone *zone)
-{
-  struct NSZoneStats stats = { 0 };
-  return stats;
-}
-#endif
-
-#else	/* GS_WITH_GC */
-
-GS_EXPORT NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree);
-
-GS_ZONE_SCOPE NSZone* NSDefaultMallocZone (void) GS_ZONE_ATTR;
-
-/**
- * Returns the default zone used for memory allocation, created at startup.
- * This zone cannot be recycled.
- */
-GS_ZONE_SCOPE NSZone* NSDefaultMallocZone (void)
-{
-  return __nszone_private_hidden_default_zone;
-}
-
-GS_ZONE_SCOPE NSZone* GSAtomicMallocZone (void) GS_ZONE_ATTR;
-
-/**
- * Returns the default zone used for atomic memory allocation (see
- * NSMallocAtomic()), if no zone is specified.
- */
-GS_ZONE_SCOPE NSZone* GSAtomicMallocZone (void)
-{
-  return NSDefaultMallocZone();
-}
-
-GS_EXPORT NSZone* NSZoneFromPointer (void *ptr);
-
-GS_ZONE_SCOPE void* NSZoneMalloc (NSZone *zone, size_t size) GS_ZONE_ATTR;
-
-/**
- *  Allocates and returns cleared memory for elems items of size bytes, in the
- *  given zone.  Returns NULL if allocation of size 0 requested.  Raises
- *  <code>NSMallocException</code> if not enough free memory in zone to
- *  allocate and no more can be obtained from system, unless using the
- *  default zone, in which case NULL is returned.
- */
-GS_ZONE_SCOPE void* NSZoneMalloc (NSZone *zone, size_t size)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->malloc)(zone, size);
-}
-
-/**
- *  Allocates and returns cleared memory for elems items of size bytes, in the
- *  given zone.  Returns NULL if allocation of size 0 requested.  Raises
- *  <code>NSMallocException</code> if not enough free memory in zone to
- *  allocate and no more can be obtained from system, unless using the
- *  default zone, in which case NULL is returned.
- */
-GS_EXPORT void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
-
-GS_ZONE_SCOPE void* 
-NSZoneRealloc (NSZone *zone, void *ptr, size_t size) GS_ZONE_ATTR;
+void*
+NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
 
 /**
  *  Reallocates the chunk of memory in zone pointed to by ptr to a new one of
@@ -335,14 +189,8 @@ NSZoneRealloc (NSZone *zone, void *ptr, size_t size) GS_ZONE_ATTR;
  *  zone and no more memory can be obtained from the system, unless using the
  *  default zone, in which case NULL is returned.
  */
-GS_ZONE_SCOPE void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->realloc)(zone, ptr, size);
-}
-
-GS_ZONE_SCOPE void NSRecycleZone (NSZone *zone) GS_ZONE_ATTR;
+void*
+NSZoneRealloc (NSZone *zone, void *ptr, size_t size);
 
 /**
  * Return memory for an entire zone to system.  In fact, this will not be done
@@ -351,14 +199,8 @@ GS_ZONE_SCOPE void NSRecycleZone (NSZone *zone) GS_ZONE_ATTR;
  * must simply equal the number of allocation calls.  The default zone, on the
  * other hand, cannot be recycled.
  */
-GS_ZONE_SCOPE void NSRecycleZone (NSZone *zone)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  (zone->recycle)(zone);
-}
-
-GS_ZONE_SCOPE void NSZoneFree (NSZone *zone, void *ptr) GS_ZONE_ATTR;
+void
+NSRecycleZone (NSZone *zone);
 
 /**
  * Frees memory pointed to by ptr (which should have been allocated by a
@@ -366,91 +208,89 @@ GS_ZONE_SCOPE void NSZoneFree (NSZone *zone, void *ptr) GS_ZONE_ATTR;
  * returns it to zone.  Note, if this is a nonfreeable zone, the memory is
  * not actually freed, but the count of number of free()s is updated.
  */
-GS_ZONE_SCOPE void NSZoneFree (NSZone *zone, void *ptr)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  (zone->free)(zone, ptr);
-}
-
-GS_EXPORT void NSSetZoneName (NSZone *zone, NSString *name);
-
-GS_ZONE_SCOPE NSString* NSZoneName (NSZone *zone) GS_ZONE_ATTR;
+void
+NSZoneFree (NSZone *zone, void *ptr);
 
 /**
- * Returns the name assigned to the zone, if one has been given (see
- * NSSetZoneName()), otherwise nil.  Useful for debugging/logging.
+ * Sets name of the given zone (useful for debugging and logging).
  */
-GS_ZONE_SCOPE NSString* NSZoneName (NSZone *zone)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return zone->name;
-}
+void
+NSSetZoneName (NSZone *zone, NSString *name);
+
+/**
+ * Sets name of the given zone (useful for debugging and logging).
+ */
+NSString*
+NSZoneName (NSZone *zone);
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-GS_ZONE_SCOPE void* 
-NSZoneMallocAtomic (NSZone *zone, size_t size) GS_ZONE_ATTR;
-
-/**
- * Allocates memory of size bytes from zone, with the assumption that the
- * memory will never contain pointers.  This is only relevant in situations
- * where a form of garbage collection is enabled, and NSZoneMalloc() should
- * always be used otherwise.  Not defined by OpenStep or OS X.
- */
-GS_ZONE_SCOPE void* NSZoneMallocAtomic (NSZone *zone, size_t size)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->malloc)(zone, size);
-}
-
-GS_ZONE_SCOPE BOOL NSZoneCheck (NSZone *zone) GS_ZONE_ATTR;
 
 /**
  * Checks integrity of a zone.  Not defined by OpenStep or OS X.
  */
-GS_ZONE_SCOPE BOOL NSZoneCheck (NSZone *zone)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->check)(zone);
-}
-
-GS_ZONE_SCOPE struct NSZoneStats NSZoneStats (NSZone *zone) GS_ZONE_ATTR;
+BOOL
+NSZoneCheck (NSZone *zone);
 
 /**
  *  Obtain statistics about the zone.  Implementation emphasis is on
  *  correctness, not speed.  Not defined by OpenStep or OS X.
  */
-GS_ZONE_SCOPE struct NSZoneStats NSZoneStats (NSZone *zone)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return (zone->stats)(zone);
-}
-#endif	/* GS_API_NONE */
+struct NSZoneStats
+NSZoneStats (NSZone *zone);
 
-#endif	/* GS_WITH_GC */
+#endif
 
+GS_EXPORT NSUInteger
+NSPageSize (void) __attribute__ ((const));
 
-GS_EXPORT NSUInteger NSPageSize (void) __attribute__ ((const));
+GS_EXPORT NSUInteger
+NSLogPageSize (void) __attribute__ ((const));
 
-GS_EXPORT NSUInteger NSLogPageSize (void) __attribute__ ((const));
+GS_EXPORT NSUInteger
+NSRoundDownToMultipleOfPageSize (NSUInteger bytes) __attribute__ ((const));
 
-GS_EXPORT NSUInteger NSRoundDownToMultipleOfPageSize (NSUInteger bytes)
-  __attribute__ ((const));
+GS_EXPORT NSUInteger
+NSRoundUpToMultipleOfPageSize (NSUInteger bytes) __attribute__ ((const));
 
-GS_EXPORT NSUInteger NSRoundUpToMultipleOfPageSize (NSUInteger bytes)
-  __attribute__ ((const));
+GS_EXPORT NSUInteger
+NSRealMemoryAvailable (void);
 
-GS_EXPORT NSUInteger NSRealMemoryAvailable (void);
+GS_EXPORT void*
+NSAllocateMemoryPages (NSUInteger bytes);
 
-GS_EXPORT void* NSAllocateMemoryPages (NSUInteger bytes);
+GS_EXPORT void
+NSDeallocateMemoryPages (void *ptr, NSUInteger bytes);
 
-GS_EXPORT void NSDeallocateMemoryPages (void *ptr, NSUInteger bytes);
+GS_EXPORT void
+NSCopyMemoryPages (const void *src, void *dest, NSUInteger bytes);
 
-GS_EXPORT void NSCopyMemoryPages (const void *src, void *dest, NSUInteger bytes);
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, OS_API_LATEST)
+
+enum {
+  NSScannedOption = (1<<0),
+  NSCollectorDisabledOption = (1<<1),
+};
+
+/** Allocate memory.  If garbage collection is not enabled this uses the
+ * default malloc zone and the options are ignored.<br />
+ * If garbage collection is enabled, the allocate memory is normally not
+ * scanned for pointers but is isttself garbage collectable.  The options
+ * argument is a bitmask in which NSScannedOption sets the memory to be
+ * scanned for pointers by the garbage collector, and
+ * NSCollectorDisabledOption causes the memory to be excempt from being
+ * garbage collected itsself.
+ */
+GS_EXPORT void *
+NSAllocateCollectable(NSUInteger size, NSUInteger options);
+
+/** Reallocate memory to be of a different size and/or to have different
+ * options settings.  The behavior of options is as for
+ * the NSAllocateCollectable() function.
+ */ 
+GS_EXPORT void *
+NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options);
+
+#endif
 
 #if	defined(__cplusplus)
 }

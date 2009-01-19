@@ -421,11 +421,11 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
   /*
    * Our nodes may be allocated from the atomic zone - but we don't want
    * them freed - so we must keep the array of pointers to memory chunks in
-   * the default zone
+   * scanned memory.
    */
   if (map->zone == GSAtomicMallocZone())
     {
-      newArray = (GSIMapNode*)NSZoneMalloc(NSDefaultMallocZone(), arraySize);
+      newArray = (GSIMapNode*)NSAllocateCollectable(arraySize, NSScannedOption);
     }
   else
 #endif
@@ -438,7 +438,8 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
 
       if (map->nodeChunks != 0)
 	{
-	  memcpy(newArray, map->nodeChunks, (map->chunkCount)*sizeof(GSIMapNode));
+	  memcpy(newArray, map->nodeChunks,
+	    (map->chunkCount)*sizeof(GSIMapNode));
 	  NSZoneFree(map->zone, map->nodeChunks);
 	}
       map->nodeChunks = newArray;

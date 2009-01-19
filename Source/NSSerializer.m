@@ -157,7 +157,11 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
   (*info->appImp)(d, appSel, &info->shouldUnique, 1);
   if (u)
     {
+#if	GS_WITH_GC
+      GSIMapInitWithZoneAndCapacity(&info->map, GSScannedMallocZone(), 16);
+#else
       GSIMapInitWithZoneAndCapacity(&info->map, NSDefaultMallocZone(), 16);
+#endif
       info->count = 0;
     }
 }

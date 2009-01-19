@@ -949,6 +949,9 @@ static NSLock	*cached_proxies_gate = nil;
    */
   _requestQueue = [NSMutableArray new];
 
+#if	GS_WITH_GC
+  z = GSScannedMallocZone();
+#endif
   /*
    * This maps request sequence numbers to the NSPortCoder objects representing
    * replies arriving from the remote connection.

@@ -2342,7 +2342,7 @@ void *
 GSAutoreleasedBuffer(unsigned size)
 {
 #if GS_WITH_GC
-  return GC_malloc(size);
+  return NSAllocateCollectable(size, NSScannedOption);
 #else
 #ifdef ALIGN
 #undef ALIGN

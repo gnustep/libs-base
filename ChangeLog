@@ -1,3 +1,38 @@
+2009-01-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSZone.h:
+	* Source/NSZone.m:
+	Add NSAllocateCollectable() and NSReallocateCollectable() functions.
+	Move inline stuff from header to source fle so that GC differences
+	are hidden.   Change behavior under GC so that the default malloc
+	zone is non-collectable (as under MacOS-X).
+	* Headers/Additions/GNUstepBase/GSIMap.h:
+	Use scanned collectable memory for map.
+	* Source/Additions/GSObjCRuntime.m:
+	Use NSAllocateCollectable() for fast buffer.
+	* Source/GSArray.m:
+	* Source/GSCountedSet.m:
+	* Source/GSDictionary.m:
+	* Source/GSSet.m:
+	* Source/NSArchiver.m:
+	* Source/NSConnection.m:
+	* Source/NSHashTable.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSMapTable.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObject.m:
+	* Source/NSPortCoder.m:
+	* Source/NSSerializer.m:
+	* Source/NSPropertyList.m:
+	Use scanned collectable memory in places where we allocate memory to
+	hold pointers.  This change is needed because of the switch to have
+	the default zone use unscanned uncollectable memory as in MacOS-X.
+	These changes probably just scratch the surface ... we need to review
+	all memory allocation as, anywhere we allocate memory now will need
+	to be done differently under GC.  This does mean that all existing
+	code needs more work to port to GC than it otherwise would.  On the
+	other hand, a switch to GC is really quite a major design change.
+
 2009-01-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/unix/GSRunLoopCtxt.m (+awakenedBefore): Fix typo.
