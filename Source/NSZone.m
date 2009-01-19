@@ -420,7 +420,7 @@ NSZoneFromPointer(void *ptr)
   NSZone	*zone;
 
   if (ptr == 0) return 0;
-  if (zone_list == 0) return __nszone_private_hidden_default_zone;
+  if (zone_list == 0) return &default_zone;
 
   /*
    *	See if we can find the zone in our list of all zones.
@@ -434,7 +434,7 @@ NSZoneFromPointer(void *ptr)
 	}
     }
   [gnustep_global_lock unlock];
-  return (zone == 0) ? __nszone_private_hidden_default_zone : zone;
+  return (zone == 0) ? &default_zone : zone;
 }
 
 static inline void
