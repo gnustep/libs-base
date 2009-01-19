@@ -65,12 +65,19 @@
   if (startElem == 0)
     {
       startElem++;
-      if ([anElementName isEqual: @"example"] == NO)
+      if ([anElementName isEqual: @"example"] == NO) {
+        problem = YES;
 	NSLog(@"Bad start element '%@' in namespace '%@' '%@' attributes '%@'",
 	anElementName, aNamespaceURI, aQualifierName, anAttributeDict);
+      }
+      if ([aQualifierName isEqual: @"foo:example"] == NO) {
+        problem = YES;
+	NSLog(@"Bad qualified name '%@'", aQualifierName);
+      }
     }
   else
     {
+      problem = YES;
       NSLog(@"Extra start element '%@' in namespace '%@' '%@' attributes '%@'",
 	anElementName, aNamespaceURI, aQualifierName, anAttributeDict);
     }
@@ -85,12 +92,15 @@
   if (endElem == 0)
     {
       endElem++;
-      if ([anElementName isEqual: @"example"] == NO)
+      if ([anElementName isEqual: @"example"] == NO) {
+        problem = YES;
 	NSLog(@"Bad end element '%@' in namespace '%@' '%@'",
 	anElementName, aNamespaceURI, aQualifierName);
+      }
     }
   else
     {
+      problem = YES;
       NSLog(@"Extra end element '%@' in namespace '%@' '%@'",
 	anElementName, aNamespaceURI, aQualifierName);
     }
@@ -107,8 +117,8 @@ int main ()
   NSXMLParser	*parser;
   const char	*str =
 "<?xml version=\"1.0\"?>"
-"<example>"
-"</example>";
+"<foo:example>"
+"</foo:example>";
 
   document = [NSData dataWithBytes: str length: strlen(str)];
   parser = [[NSXMLParser alloc] initWithData: document];
