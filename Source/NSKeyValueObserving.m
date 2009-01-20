@@ -810,6 +810,10 @@ replacementForClass(Class c)
 {
   GSMakeWeakPointer(self, "observer");
 }
+- (void) finalize
+{
+  GSAssignZeroingWeakPointer((void**)&observer, nil);
+}
 #endif
 @end
 

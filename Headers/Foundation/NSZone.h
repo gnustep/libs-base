@@ -260,9 +260,10 @@ GSMakeWeakPointer(Class class, const char *iVarName);
  * object.  Apart from that case, a source needs to be garbage collectable for
  * this function to work, and using a non-garbage collectable value will
  * cause the function to return NO.<br />
- * The destination object (watching the source object) must also be memory
- * allocated by the garbage colleector, and if it is not the function will
- * return NO.<br />
+ * If the destination object (the weak pointer watching the source object)
+ * belongs to a chunk of memory which may be collected before the source
+ * object is collected, it is important that it is finalised and the
+ * finalisation code assigns zero to the pointer.<br />
  * If garbage collection is not in use, this function performs a simple
  * assignment returning YES, unless destination is null in which case it
  * returns NO.

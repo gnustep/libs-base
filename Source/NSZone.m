@@ -1910,9 +1910,9 @@ GSMakeWeakPointer(Class class, const char *iVarName)
 BOOL
 GSAssignZeroingWeakPointer(void **destination, void *source)
 {
-  if (GC_base(destination) == 0)
+  if (destination == 0)
     {
-      return NO;	// Destination is not in garbage collection system.
+      return NO;	// Bad destination pointer
     }
   if (*destination == source)
     {
