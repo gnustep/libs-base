@@ -62,37 +62,6 @@ typedef struct _NSZone NSZone;
 extern "C" {
 #endif
 
-
-/**
- *  <code>NSZoneStats</code> is the structure returned by the NSZoneStats()
- *  function that summarizes the current usage of a zone.  It is similar to
- *  the structure <em>mstats</em> in the GNU C library.  It has 5 fields of
- *  type <code>size_t</code>-
- *  <deflist>
- *    <term><code>bytes_total</code></term>
- *    <desc>
- *    This is the total size of memory managed by the zone, in bytes.</desc>
- *    <term><code>chunks_used</code></term>
- *    <desc>This is the number of memory chunks in use in the zone.</desc>
- *    <term><code>bytes_used</code></term>
- *    <desc>This is the number of bytes in use.</desc>
- *    <term><code>chunks_free</code></term>
- *    <desc>This is the number of memory chunks that are not in use.</desc>
- *    <term><code>bytes_free</code></term>
- *    <desc>
- *    This is the number of bytes managed by the zone that are not in use.
- *    </desc>
- *  </deflist>
- */
-struct NSZoneStats
-{
-  size_t bytes_total;
-  size_t chunks_used;
-  size_t bytes_used;
-  size_t chunks_free;
-  size_t bytes_free;
-};
-
 /**
  * Primary structure representing an <code>NSZone</code>.  Technically it
  * consists of a set of function pointers for zone upkeep functions plus some
@@ -131,35 +100,13 @@ struct _NSZone
   NSZone *next;
 };
 
-/**
- * Try to get more memory - the normal process has failed.
- * If we can't do anything, just return a null pointer.
- * Try to do some logging if possible.
- */
-void*
-GSOutOfMemory(size_t size, BOOL retry);
-
-NSZone*
+GS_EXPORT NSZone*
 NSCreateZone (size_t start, size_t gran, BOOL canFree);
 
-NSZone*
+GS_EXPORT NSZone*
 NSDefaultMallocZone (void);
 
-/**
- * Returns the default zone used for memory allocation, created at startup.
- * This zone cannot be recycled.
- */
-NSZone*
-GSAtomicMallocZone (void);
-
-/**
- * Returns the default zone used for scanned memory allocation ... a
- * garbage collectable chunk of memory which is scanned for pointers.
- */
-NSZone*
-GSScannedMallocZone (void);
-
-NSZone*
+GS_EXPORT NSZone*
 NSZoneFromPointer (void *ptr);
 
 /**
@@ -169,7 +116,7 @@ NSZoneFromPointer (void *ptr);
  *  allocate and no more can be obtained from system, unless using the
  *  default zone, in which case NULL is returned.
  */
-void*
+GS_EXPORT void*
 NSZoneMalloc (NSZone *zone, size_t size);
 
 /**
@@ -179,7 +126,7 @@ NSZoneMalloc (NSZone *zone, size_t size);
  *  allocate and no more can be obtained from system, unless using the
  *  default zone, in which case NULL is returned.
  */
-void*
+GS_EXPORT void*
 NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
 
 /**
@@ -189,7 +136,7 @@ NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
  *  zone and no more memory can be obtained from the system, unless using the
  *  default zone, in which case NULL is returned.
  */
-void*
+GS_EXPORT void*
 NSZoneRealloc (NSZone *zone, void *ptr, size_t size);
 
 /**
@@ -199,7 +146,7 @@ NSZoneRealloc (NSZone *zone, void *ptr, size_t size);
  * must simply equal the number of allocation calls.  The default zone, on the
  * other hand, cannot be recycled.
  */
-void
+GS_EXPORT void
 NSRecycleZone (NSZone *zone);
 
 /**
@@ -208,35 +155,120 @@ NSRecycleZone (NSZone *zone);
  * returns it to zone.  Note, if this is a nonfreeable zone, the memory is
  * not actually freed, but the count of number of free()s is updated.
  */
-void
+GS_EXPORT void
 NSZoneFree (NSZone *zone, void *ptr);
 
 /**
  * Sets name of the given zone (useful for debugging and logging).
  */
-void
+GS_EXPORT void
 NSSetZoneName (NSZone *zone, NSString *name);
 
 /**
  * Sets name of the given zone (useful for debugging and logging).
  */
-NSString*
+GS_EXPORT NSString*
 NSZoneName (NSZone *zone);
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
-/**
+/** Deprecated ...<br />
  * Checks integrity of a zone.  Not defined by OpenStep or OS X.
  */
 BOOL
 NSZoneCheck (NSZone *zone);
 
 /**
+ *  <code>NSZoneStats</code> is the structure returned by the NSZoneStats()
+ *  function that summarizes the current usage of a zone.  It is similar to
+ *  the structure <em>mstats</em> in the GNU C library.  It has 5 fields of
+ *  type <code>size_t</code>-
+ *  <deflist>
+ *    <term><code>bytes_total</code></term>
+ *    <desc>
+ *    This is the total size of memory managed by the zone, in bytes.</desc>
+ *    <term><code>chunks_used</code></term>
+ *    <desc>This is the number of memory chunks in use in the zone.</desc>
+ *    <term><code>bytes_used</code></term>
+ *    <desc>This is the number of bytes in use.</desc>
+ *    <term><code>chunks_free</code></term>
+ *    <desc>This is the number of memory chunks that are not in use.</desc>
+ *    <term><code>bytes_free</code></term>
+ *    <desc>
+ *    This is the number of bytes managed by the zone that are not in use.
+ *    </desc>
+ *  </deflist>
+ */
+struct NSZoneStats
+{
+  size_t bytes_total;
+  size_t chunks_used;
+  size_t bytes_used;
+  size_t chunks_free;
+  size_t bytes_free;
+};
+
+/** Deprecated ...<br />
  *  Obtain statistics about the zone.  Implementation emphasis is on
  *  correctness, not speed.  Not defined by OpenStep or OS X.
  */
 struct NSZoneStats
 NSZoneStats (NSZone *zone);
+
+/**
+ * Try to get more memory - the normal process has failed.
+ * If we can't do anything, just return a null pointer.
+ * Try to do some logging if possible.
+ */
+void*
+GSOutOfMemory(size_t size, BOOL retry);
+
+/**
+ * Returns the default zone used for memory allocation, created at startup.
+ * This zone cannot be recycled.
+ */
+GS_EXPORT NSZone*
+GSAtomicMallocZone (void);
+
+/**
+ * Returns the default zone used for scanned memory allocation ... a
+ * garbage collectable chunk of memory which is scanned for pointers.
+ */
+GS_EXPORT NSZone*
+GSScannedMallocZone (void);
+
+/**
+ * Called during +initialize to tell the class that instances created
+ * in future should have the specified instance variable as a weak
+ * pointer for garbage collection.<br />
+ * NB. making a pointer weak does not mean that it is automatically
+ * zeroed when the object it points to is garbage collected. To get that
+ * behavior you must asign values to the pointer using the
+ * GSAssignZeroingWeakPointer() function.<rb />
+ * This function has no effect if the system is
+ * not built for garbage collection.
+ */
+GS_EXPORT void
+GSMakeWeakPointer(Class class, const char *iVarName);
+
+/**
+ * This function must be used to assign a value to a zeroing weak pointer.<br />
+ * A zeroing weak pointer is one where, when the garbage collector collects
+ * the object pointed to, it also clears the weak pointer.<br />
+ * Assigning zero (nil) will always succeed and has the effect of telling the
+ * garbage collector that it no longer needs to track the previously assigned
+ * object.  Apart from that case, a source needs to be garbage collectable for
+ * this function to work, and using a non-garbage collectable value will
+ * cause the function to return NO.<br />
+ * The destination object (watching the source object) must also be memory
+ * allocated by the garbage colleector, and if it is not the function will
+ * return NO.<br />
+ * If garbage collection is not in use, this function performs a simple
+ * assignment returning YES, unless destination is null in which case it
+ * returns NO.
+ */
+GS_EXPORT BOOL
+GSAssignZeroingWeakPointer(void **destination, void *source);
 
 #endif
 

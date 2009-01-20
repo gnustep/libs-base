@@ -159,7 +159,11 @@ static SEL	objSel;
       [aCoder decodeValueOfObjCType: @encode(unsigned)
 	                         at: &count];
 
+#if	GS_WITH_GC
+      GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), count);
+#else
       GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
+#endif
       while (count-- > 0)
         {
 	  (*imp)(aCoder, sel, type, &key);
@@ -175,7 +179,12 @@ static SEL	objSel;
 {
   unsigned int	i;
 
+#if	GS_WITH_GC
+  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), c);
+#else
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
+#endif
+
   for (i = 0; i < c; i++)
     {
       GSIMapNode	node;
@@ -214,9 +223,14 @@ static SEL	objSel;
 - (id) initWithDictionary: (NSDictionary*)other
 		copyItems: (BOOL)shouldCopy
 {
-  NSZone	*z = GSObjCZone(self);
+  NSZone	*z;
   unsigned	c = [other count];
 
+#if	GS_WITH_GC
+  z = GSScannedMallocZone();
+#else
+  z = GSObjCZone(self);
+#endif
   GSIMapInitWithZoneAndCapacity(&map, z, c);
 
   if (c > 0)
@@ -369,7 +383,11 @@ static SEL	objSel;
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
+#if	GS_WITH_GC
+  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), cap);
+#else
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), cap);
+#endif
   return self;
 }
 

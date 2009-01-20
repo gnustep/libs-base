@@ -1,3 +1,17 @@
+2009-01-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueObserving.m: Automtically remove collected observers
+	In a garbage collecting environment.
+	* Headers/Foundation/NSZone.h:
+	* Source/NSZone.m:
+	Add new functions for handling weak pointers.  This allows all code
+	which uses the boehm garbage collector header to be localised in
+	NSZone.m and NSGarbageCollector.m
+	* Source/NSNotificationCenter.m:
+	Update to use new functions.
+	* Source/Additions/GSInsensitiveDictionary.m:
+	Fix to use scanned memory in a garbage collecting environment.
+
 2009-01-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Add options from pathconfig
