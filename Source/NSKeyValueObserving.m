@@ -138,7 +138,7 @@ static inline void setup()
 @interface	GSKVOObservation : NSObject
 {
 @public
-  NSObject      *observer;      // Not retained
+  NSObject      *observer;      // Not retained (zeroing weak pointer)
   void          *context;
   int           options;
 }
@@ -586,7 +586,8 @@ replacementForClass(Class c)
 
           if (!found)
             {
-              NSDebugLLog(@"KVC", @"class %@ not KVC complient for %@", original, aKey);
+              NSDebugLLog(@"KVC", @"class %@ not KVC complient for %@",
+		original, aKey);
               /*
               [NSException raise: NSInvalidArgumentException
                            format: @"class not KVC complient for %@", aKey];
@@ -804,6 +805,12 @@ replacementForClass(Class c)
 
 
 @implementation	GSKVOObservation
+#if	GS_WITH_GC
++ (void) initialize
+{
+  GSMakeWeakPointer(self, "observer");
+}
+#endif
 @end
 
 @implementation	GSKVOPathInfo
@@ -956,17 +963,26 @@ replacementForClass(Class c)
       o = [pathInfo->observations objectAtIndex: count];
       if (o->observer == anObserver)
         {
-          o->observer = anObserver;
           o->context = aContext;
           o->options = options;
           observation = o;
         }
+#if	GS_WITH_GC
+      else if (o->observer == nil)
+	{
+	  /* The observer for thsi observation must have been collected.
+	   */
+	  [pathInfo->observations removeObjectAtIndex: count];
+	  continue;
+	}
+#endif
       pathInfo->allOptions |= o->options;
     }
   if (observation == nil)
     {
       observation = [GSKVOObservation new];
-      observation->observer = anObserver;
+      GSAssignZeroingWeakPointer((void**)&observation->observer,
+	(void*)anObserver);
       observation->context = aContext;
       observation->options = options;
       [pathInfo->observations addObject: observation];
@@ -1050,7 +1066,7 @@ replacementForClass(Class c)
           GSKVOObservation      *o;
 
           o = [pathInfo->observations objectAtIndex: count];
-          if (o->observer == anObserver)
+          if (o->observer == anObserver || o->observer == nil)
             {
               [pathInfo->observations removeObjectAtIndex: count];
               if ([pathInfo->observations count] == 0)
@@ -1088,6 +1104,14 @@ replacementForClass(Class c)
               context = o->context;
               break;
             }
+#if	GS_WITH_GC
+	  else if (o->observer == nil)
+	    {
+	      /* The observer for thsi observation must have been collected.
+	       */
+	      [pathInfo->observations removeObjectAtIndex: count];
+	    }
+#endif
 	}
     }
   [iLock unlock];

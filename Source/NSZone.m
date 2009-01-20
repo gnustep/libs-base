@@ -1837,13 +1837,7 @@ NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
 #define GS_ZONE_ATTR	__attribute__((unused))
 #endif
 
-#ifndef	GS_WITH_GC
-#define	GS_WITH_GC	0
-#endif
 #if	GS_WITH_GC
-
-#include <gc.h>
-
 
 NSZone*
 NSCreateZone (size_t start, size_t gran, BOOL canFree)
@@ -1875,74 +1869,9 @@ NSZoneFromPointer (void *ptr)
   return &default_zone;
 }
 
-void*
-NSZoneMalloc (NSZone *zone, size_t size)
-{
-  void	*ptr;
-
-  if (zone == GSAtomicMallocZone())
-    ptr = (void*)GC_MALLOC_ATOMIC(size);
-  else if (zone == GSScannedMallocZone())
-    ptr = (void*)GC_MALLOC(size);
-  else
-    ptr = (void*)malloc(size);
-
-  if (ptr == 0)
-    ptr = GSOutOfMemory(size, YES);
-  return ptr;
-}
-
-void*
-NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
-{
-  size_t	size = elems * bytes;
-  void		*ptr;
-
-  if (zone == &atomic_zone)
-    ptr = (void*)GC_MALLOC_ATOMIC(size);
-  else if (zone == &scanned_zone)
-    ptr = (void*)GC_MALLOC(size);
-  else
-    ptr = (void*)malloc(size);
-
-  if (ptr == 0)
-    ptr = GSOutOfMemory(size, NO);
-  memset(ptr, '\0', size);
-  return ptr;
-}
-
-void*
-NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
-{
-  if (GC_base(ptr) != 0)
-    {
-      ptr = GC_REALLOC(ptr, size);
-    }
-  else
-    {
-      ptr = realloc(ptr, size);
-    }
-  if (ptr == 0)
-    GSOutOfMemory(size, NO);
-  return ptr;
-}
-
 void
 NSRecycleZone (NSZone *zone)
 {
-}
-
-void
-NSZoneFree (NSZone *zone, void *ptr)
-{
-  if (GC_base(ptr) != 0)
-    {
-      GC_FREE(ptr);
-    }
-  else
-    {
-      free(ptr);
-    }
 }
 
 void
@@ -1969,6 +1898,101 @@ NSZoneStats NSZoneStats (NSZone *zone)
   return stats;
 }
 
+void
+GSMakeWeakPointer(Class class, const char *iVarName)
+{
+  class_ivar_set_gcinvisible(class, iVarName, YES);
+}
+
+
+#include <gc.h>
+
+BOOL
+GSAssignZeroingWeakPointer(void **destination, void *source)
+{
+  if (GC_base(destination) == 0)
+    {
+      return NO;	// Destination is not in garbage collection system.
+    }
+  if (*destination == source)
+    {
+      return YES;	// Already assigned.
+    }
+  if (source != 0 && GC_base(source) == 0)
+    {
+      return NO;	// Source is not garbage collectable.
+    }
+  if (*destination != 0)
+    {
+      GC_unregister_disappearing_link((GC_PTR*)destination);
+    }
+  *destination = source;
+  GC_general_register_disappearing_link((GC_PTR*)destination, source);
+  return YES;
+}
+
+void*
+NSZoneMalloc (NSZone *zone, size_t size)
+{
+  return NSZoneCalloc(zone, 1, size);
+}
+
+void*
+NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
+{
+  size_t	size = elems * bytes;
+  void		*ptr;
+
+  if (zone == &atomic_zone)
+    {
+      ptr = (void*)GC_MALLOC_ATOMIC(size);
+    }
+  else if (zone == &scanned_zone)
+    {
+      ptr = (void*)GC_MALLOC(size);
+    }
+  else
+    {
+      ptr = (void*)malloc(size);
+      if (ptr == 0)
+	{
+          ptr = GSOutOfMemory(size, NO);
+	}
+      if (ptr != 0)
+	{
+	  memset(ptr, '\0', size);
+	}
+    }
+  return ptr;
+}
+
+void*
+NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+{
+  if (GC_base(ptr) != 0)
+    {
+      ptr = GC_REALLOC(ptr, size);
+    }
+  else
+    {
+      ptr = realloc(ptr, size);
+    }
+  return ptr;
+}
+
+void
+NSZoneFree (NSZone *zone, void *ptr)
+{
+  if (GC_base(ptr) != 0)
+    {
+      GC_FREE(ptr);
+    }
+  else
+    {
+      free(ptr);
+    }
+}
+
 #else	/* GS_WITH_GC */
 
 NSZone*
@@ -1987,6 +2011,23 @@ NSZone*
 GSScannedMallocZone (void)
 {
   return &default_zone;
+}
+
+void
+GSMakeWeakPointer(Class class, const char *iVarName)
+{
+  return;
+}
+
+BOOL
+GSAssignZeroingWeakPointer(void **destination, void *source)
+{
+  if (destination == 0)
+    {
+      return NO;
+    }
+  *destination = source;
+  return YES;
 }
 
 void*

@@ -41,7 +41,6 @@
  * a collected observer removed.
  */
 #if	GS_WITH_GC
-#include	<gc.h>
 #define	purgeCollected(X)	(X = listPurge(X, nil))
 #else
 #define	purgeCollected(X)	(X)
@@ -437,7 +436,7 @@ static void obsFree(Observation *o)
       NCTable	*t = o->link;
 
 #if	GS_WITH_GC
-      GC_unregister_disappearing_link((GC_PTR*)&o->observer);
+      GSAssignZeroingWeakPointer((void**)&o->observer, 0);
 #endif
       o->link = (NCTable*)t->freeList;
       t->freeList = o;
@@ -705,22 +704,13 @@ static NSNotificationCenter *default_center = nil;
   o = obsNew(TABLE);
   o->selector = selector;
   o->method = method;
+#if	GS_WITH_GC
+  GSAssignZeroingWeakPointer((void**)&o->observer, (void*)observer);
+#else
   o->observer = observer;
+#endif
   o->retained = 0;
   o->next = 0;
-
-#if GS_WITH_GC
-  /* Ensure that if the observer is garbage collected, we clear the
-   * oservation so that we don't end up sending notifications to the
-   * deallocated object.
-   * The observer must be a real GC-allocated object  or this mechanism
-   * can't be used.
-   */
-  if (GC_base(observer) != 0)
-    {
-      GC_general_register_disappearing_link((GC_PTR*)&o->observer, observer);
-    }
-#endif
 
   if (object != nil)
     {
