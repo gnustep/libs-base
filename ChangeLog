@@ -1,5 +1,10 @@
 2009-01-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Documentation/manual/ExceptionHandling.texi: Fix error in
+	example of use of NS_VALUERETURN spotted by David Chisnall.
+
+2009-01-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSKeyValueObserving.m: Automtically remove collected observers
 	In a garbage collecting environment.
 	* Headers/Foundation/NSZone.h:
