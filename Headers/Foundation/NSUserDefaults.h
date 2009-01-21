@@ -384,10 +384,11 @@ GS_EXPORT NSString* const GSLocale;
 - (void) setInteger: (int)value forKey: (NSString*)defaultName;
 
 /**
- * Sets an object value for defaultName in the application domain.<br />
+ * Sets a copy of an object value for defaultName in the
+ * application domain.<br />
  * The defaultName must be a non-empty string.<br />
- * The value must be an instance of one of the [NSString-propertyList]
- * classes.<br />
+ * The value to be copied into the domain must be an instance
+ * of one of the [NSString-propertyList] classes.<br />
  * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
  * if this is the first change to a persistent-domain since the
  * last -synchronize.
