@@ -1158,6 +1158,7 @@ static BOOL isPlistObject(id o)
 	value, defaultName];
     }
 
+  value = [value copy];
   [_lock lock];
   obj = [_persDomains objectForKey: processName];
   if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
@@ -1173,6 +1174,7 @@ static BOOL isPlistObject(id o)
   [dict setObject: value forKey: defaultName];
   [self __changePersistentDomain: processName];
   [_lock unlock];
+  RELEASE(value);
 }
 
 - (void) setValue: (id)value forKey: (NSString*)defaultName

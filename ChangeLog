@@ -1,3 +1,8 @@
+2009-01-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: ([setObject:forKey:]) copy the object
+	rather than just retaining it. Fixes bug #23570
+
 2009-01-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/manual/ExceptionHandling.texi: Fix error in
