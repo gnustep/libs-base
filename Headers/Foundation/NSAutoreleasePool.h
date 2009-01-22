@@ -220,9 +220,9 @@ typedef struct autorelease_array_list
 - (id) autorelease;
 
 #if OS_API_VERSION(100400, GS_API_LATEST)
-/** Acts like the -release method.<br/>
- * Intended to trigger a garbage collection run if in a garbage collected
- * environment.
+/**
+ * Intended to trigger a garbage collection run (if needed) when called in
+ * a garbage collected environment, otherwise has no effect.
  */
 - (void) drain;
 #endif
