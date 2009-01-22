@@ -1,3 +1,10 @@
+2009-01-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	Improve debug logging by including the address of the actual
+	handle concerned so that you can see which handle is doing what
+	when there are multiple handles in use.
+
 2009-01-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: ([setObject:forKey:]) copy the object

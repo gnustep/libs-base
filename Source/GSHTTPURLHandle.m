@@ -242,7 +242,7 @@ static void debugRead(GSHTTPURLHandle *handle, NSData *data)
 #endif
   if (d >= 0)
     {
-      s = [NSString stringWithFormat: @"\nRead for %x at %@ %u bytes - '",
+      s = [NSString stringWithFormat: @"\nRead for %p at %@ %u bytes - '",
 	handle, [NSDate date], [data length]];
       write(d, [s cString], [s cStringLength]);
       write(d, [data bytes], [data length]);
@@ -266,7 +266,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 #endif
   if (d >= 0)
     {
-      s = [NSString stringWithFormat: @"\nWrite for %x at %@ %u bytes - '",
+      s = [NSString stringWithFormat: @"\nWrite for %p at %@ %u bytes - '",
 	handle, [NSDate date], [data length]];
       write(d, [s cString], [s cStringLength]);
       write(d, [data bytes], [data length]);
@@ -376,7 +376,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      [urlOrder removeObjectAtIndex: 0];
 	    }
 	  [urlLock unlock];
-	  //NSLog(@"Cache handle %@ for '%@'", self, page);
+	  //NSLog(@"Cache handle %p for '%@'", self, page);
 	}
     }
   return self;
@@ -405,7 +405,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSMapEnumerator       enumerator;
 
   IF_NO_GC([self retain];)
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
 
   s = [basic mutableCopy];
   if ([[u query] length] > 0)
@@ -551,7 +552,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   IF_NO_GC([self retain];)
 
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
   readCount = [d length];
@@ -565,8 +567,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
        */
       if (debug == YES && [d length] != 0)
 	{
-	  NSLog(@"%@ %s Unexpected data (%*.*s) from remote!",
-	    NSStringFromSelector(_cmd), keepalive?"K":"",
+	  NSLog(@"%@ %p %s Unexpected data (%*.*s) from remote!",
+	    NSStringFromSelector(_cmd), self, keepalive?"K":"",
 	    [d length], [d length], [d bytes]);
 	}
       [nc removeObserver: self name: nil object: sock];
@@ -802,7 +804,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   GSMimeParser		*p = [GSMimeParser new];
 
   IF_NO_GC([self retain];)
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
 
@@ -876,7 +879,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*path;
 
   IF_NO_GC([self retain];)
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
 
   path = [[u path] stringByTrimmingSpaces];
   if ([path length] == 0)
@@ -1047,7 +1051,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString        	*e;
 
   IF_NO_GC([self retain];)
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
@@ -1065,11 +1070,13 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  DESTROY(sock);
 	  connectionState = idle;
 	  if (debug)
-	    NSLog(@"%@ restart on new connection", NSStringFromSelector(_cmd));
+	    NSLog(@"%@ %p restart on new connection",
+	      NSStringFromSelector(_cmd), self);
 	  [self _tryLoadInBackground: u];
 	  return;
 	}
-      NSLog(@"Failed to write command to socket - %@", e);
+      NSLog(@"Failed to write command to socket - %@ %p %s",
+	e, self, keepalive?"K":"");
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
@@ -1259,7 +1266,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       
       if (debug)
         {
-	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
+	  NSLog(@"%@ %p check for reusable socket",
+	    NSStringFromSelector(_cmd), self);
 	}
       [nc addObserver: self
 	     selector: @selector(bgdRead:)
@@ -1280,7 +1288,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
       if (debug)
         {
-	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
+	  NSLog(@"%@ %p check for reusable socket",
+	    NSStringFromSelector(_cmd), self);
 	}
       if (fd >= 0)
         {
@@ -1306,11 +1315,13 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  if (sock == nil)
 	    {
-	      NSLog(@"%@ socket closed by remote", NSStringFromSelector(_cmd));
+	      NSLog(@"%@ %p socket closed by remote",
+		NSStringFromSelector(_cmd), self);
 	    }
 	  else
 	    {
-	      NSLog(@"%@ socket is still open", NSStringFromSelector(_cmd));
+	      NSLog(@"%@ %p socket is still open",
+		NSStringFromSelector(_cmd), self);
 	    }
 	}
     }
@@ -1419,8 +1430,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       connectionState = connecting;
       if (debug)
         {
-          NSLog(@"%@ start connect to %@:%@",
-	    NSStringFromSelector(_cmd), host, port);
+          NSLog(@"%@ %p start connect to %@:%@",
+	    NSStringFromSelector(_cmd), self, host, port);
 	}
     }
   else
@@ -1509,7 +1520,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     || [propertyKey isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%@ with invalid key", NSStringFromSelector(_cmd)];
+        format: @"%@ %p with invalid key", NSStringFromSelector(_cmd), self];
     }
   if ([propertyKey hasPrefix: @"GSHTTPProperty"]
     || [propertyKey hasPrefix: @"NSHTTPProperty"])
