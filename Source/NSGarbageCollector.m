@@ -34,8 +34,9 @@ static unsigned			disabled = 0;
 #include <gc.h>
 
 #import	"Foundation/NSLock.h"
-static NSLock			*lock = nil;
-
+#import	"Foundation/NSHashTable.h"
+static NSLock		*lock = nil;
+static NSHashTable	*uncollectable = 0;
 #endif
 
 @implementation	NSGarbageCollector
@@ -82,8 +83,16 @@ static NSLock			*lock = nil;
 
 - (void) disableCollectorForPointer: (void *)ptr
 {
-  // FIXME
-  [self notImplemented: _cmd];
+#if	GS_WITH_GC
+  [lock lock];
+  if (uncollectable == 0)
+    {
+      uncollectable = NSCreateHashTableWithZone(NSOwnedPointerHashCallBacks,
+	0, GSScannedMallocZone());
+    }
+  NSHashInsertIfAbsent(uncollectable, ptr);
+  [lock unlock];
+#endif
   return;
 }
 
@@ -103,8 +112,14 @@ static NSLock			*lock = nil;
 
 - (void) enableCollectorForPointer: (void *)ptr
 {
-  // FIXME
-  [self notImplemented: _cmd];
+#if	GS_WITH_GC
+  [lock lock];
+  if (uncollectable != 0)
+    {
+      NSHashRemove(uncollectable, ptr);
+    }
+  [lock unlock];
+#endif
   return;
 }
 
