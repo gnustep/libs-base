@@ -4,6 +4,8 @@
 	Improve debug logging by including the address of the actual
 	handle concerned so that you can see which handle is doing what
 	when there are multiple handles in use.
+	* Source/NSGarbageCollector.m: Implement last methods.
+	* Headers/Foundation/NSGarbageCollector.h: Improve documentation.
 
 2009-01-21  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -114,9 +116,9 @@
 
 2009-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source\NSGarbageCollector.m: Avoid compiler warning
-	* Source\pathconfig/pathconfig.mak.in: Fix syntax error in warning
-	* Headers\Additions\GNUstepBase\GSCategories.h: remove obsolete methods
+	* Source/NSGarbageCollector.m: Avoid compiler warning
+	* Source/pathconfig/pathconfig.mak.in: Fix syntax error in warning
+	* Headers/Additions/GNUstepBase/GSCategories.h: remove obsolete methods
 	* GNUmakefile: Fix order of includes
 	* Source/GSArray.m: Remove unused line from last change
 	* Source/NSNotificationCenter.m: Remove unused line

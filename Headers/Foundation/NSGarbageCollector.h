@@ -54,18 +54,28 @@ extern "C" {
 - (void) collectExhaustively;
 
 /** Disables garbage collection until a corresponding call to -enable is made.
+ * NB. Calls to this method stack, and must be matched by the same number of
+ * calls to the -enable method.
  */
 - (void) disable;
 
-/** Disables collection for the area of memory pointed at.
+/** Makes the area of memory pointed at be uncollectable ... that is to say,
+ * the memory will not be collected by the garbage collector.  You must not
+ * explicitly free this memory unless you re-enable collection first.<br />
+ * Calls to this method do not stack, so callig it multiple times for the
+ * same pointer has the same effect as calling it once.
  */
 - (void) disableCollectorForPointer: (void *)ptr;
 
-/** Enables garbage collection prevously disabled by a calle to -disable
+/** Enables garbage collection prevously disabled by a call to the
+ * -disable method.  Since calls to -disable stack, you must make as
+ * many calls to -enable as to -disable in order to re-start collection.
  */
 - (void) enable;
 
-/** Enables collection for the area of memory pointed at.
+/** Enables collection for the area of memory pointed at, which must have
+ * previously been made uncollectable by a call to the
+ * -disableCollectorForPointer: method.
  */
 - (void) enableCollectorForPointer: (void *)ptr;      
 
@@ -78,6 +88,10 @@ extern "C" {
 - (BOOL) isEnabled;
 
 /** Returns a zone for holding non-collectable pointers.<br />
+ * Memory allocated in this zone will be seen by the garbage collector and
+ * collected (so it doesn't need to be freed explicitly), but the presence
+ * of pointers from the memory to other objectrs will not prevent those
+ * other objects from being collected.
  */
 - (NSZone*) zone;
 @end
