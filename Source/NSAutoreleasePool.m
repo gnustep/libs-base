@@ -29,6 +29,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSGarbageCollector.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSZone.h"
@@ -307,7 +308,20 @@ static IMP	initImp;
 
 - (void) drain
 {
-  [self dealloc];
+#if	GS_WITH_GC
+  static NSGarbageCollector	*collector = nil;
+  static SEL			sel;
+  static IMP			imp;
+
+  if (collector == nil)
+    {
+      collector = [NSGarbageCollector defaultCollector];
+      sel = @selector(collectIfNeeded);
+      imp = [collector methodForSelector: sel];
+    }
+  (*imp)(collector, sel);
+#endif
+  return;
 }
 
 - (id) retain

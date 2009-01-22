@@ -6,6 +6,8 @@
 	when there are multiple handles in use.
 	* Source/NSGarbageCollector.m: Implement last methods.
 	* Headers/Foundation/NSGarbageCollector.h: Improve documentation.
+	* Source/NSAutoreleasePool.m: ([-drain[) Implemented.
+	* Headers/Foundation/NSAutoreleasePool.m: ([-drain]) fix comment.
 
 2009-01-21  Richard Frith-Macdonald <rfm@gnu.org>
 
