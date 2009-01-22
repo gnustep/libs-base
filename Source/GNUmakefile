@@ -223,6 +223,7 @@ NSObject+NSComparisonMethods.m \
 NSPage.m \
 NSPathUtilities.m \
 NSPipe.m \
+NSPointerFunctions.m \
 NSPort.m \
 NSPortCoder.m \
 NSPortMessage.m \
@@ -360,6 +361,7 @@ NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
 NSPathUtilities.h \
+NSPointerFunctions.h \
 NSPortCoder.h \
 NSPort.h \
 NSPortMessage.h \

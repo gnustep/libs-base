@@ -8,6 +8,10 @@
 	* Headers/Foundation/NSGarbageCollector.h: Improve documentation.
 	* Source/NSAutoreleasePool.m: ([-drain[) Implemented.
 	* Headers/Foundation/NSAutoreleasePool.m: ([-drain]) fix comment.
+	* Source/NSPointerFunctions.m: New class implementation
+	* Headers/Foundation/NSPointerFunctions.h: Fix some declarations
+	* Headers/Foundation/Foundation.h: Include NSPointerFunctions.h
+	* Source/GNUmakefile: Build and install NSPointerFunctions
 
 2009-01-21  Richard Frith-Macdonald <rfm@gnu.org>
 
