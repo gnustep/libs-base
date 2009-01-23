@@ -31,7 +31,7 @@ typedef struct {
   void* (*acquireFunction)(const void *item,
     NSUInteger (*size)(const void *item), BOOL shouldCopy);
 
-  NSString (*descriptionFunction)(const void *item);
+  NSString *(*descriptionFunction)(const void *item);
 
   NSUInteger (*hashFunction)(const void *item,
     NSUInteger (*size)(const void *item));
@@ -89,7 +89,7 @@ typedef struct {
   return _acquireFunction;
 }
 
-- (NSString (*)(const void *item)) descriptionFunction
+- (NSString *(*)(const void *item)) descriptionFunction
 {
   return _descriptionFunction;
 }
@@ -118,7 +118,7 @@ typedef struct {
   _acquireFunction = func;
 }
 
-- (void) setDescriptionFunction: (NSString (*)(const void *item))func
+- (void) setDescriptionFunction: (NSString *(*)(const void *item))func
 {
   _descriptionFunction = func;
 }
