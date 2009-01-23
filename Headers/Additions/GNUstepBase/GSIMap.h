@@ -28,6 +28,7 @@
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSGarbageCollector.h>
 #include <Foundation/NSZone.h>
 
 #if	defined(__cplusplus)
@@ -197,6 +198,17 @@ extern "C" {
 #else
 #define GSI_MAP_CLEAR_VAL(node)  
 #endif
+
+/* Define fake zones to be used for our nodes when GC is in use.
+ */
+#define	GSIMapStrongKeyAndVal	((NSZone*)0)
+#define	GSIMapWeakKey		((NSZone*)1)
+#define	GSIMapWeakVal		((NSZone*)2)
+#define	GSIMapWeakKeyAndVal	((NSZone*)3)
+
+static BOOL			_GSIMapSetup = NO;
+static NSGarbageCollector	*_GSIMapGC = nil;
+static NSZone			*_GSIMapUnscannedZone = 0;
 
 /*
  *  Description of the datastructure
@@ -417,19 +429,19 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
   GSIMapNode	*newArray;
   size_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
 
-#if	GS_WITH_GC == 1
   /*
    * Our nodes may be allocated from the atomic zone - but we don't want
    * them freed - so we must keep the array of pointers to memory chunks in
    * scanned memory.
    */
-  if (map->zone == GSAtomicMallocZone())
+  if (_GSIMapGC != nil)
     {
       newArray = (GSIMapNode*)NSAllocateCollectable(arraySize, NSScannedOption);
     }
   else
-#endif
-  newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
+    {
+      newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
+    }
   if (newArray)
     {
       GSIMapNode	newNodes;
@@ -460,7 +472,16 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
 	  chunkCount = required;
 	}
       chunkSize = chunkCount * sizeof(GSIMapNode_t);
-      newNodes = (GSIMapNode)NSZoneMalloc(map->zone, chunkSize);
+      if (_GSIMapGC != nil)
+	{
+ 	  // FIXME ... use typed memory for weak pointers.
+          newArray
+	    = (GSIMapNode*)NSAllocateCollectable(chunkSize, NSScannedOption);
+	}
+      else
+	{
+          newNodes = (GSIMapNode)NSZoneMalloc(map->zone, chunkSize);
+	}
       if (newNodes)
 	{
 	  map->nodeChunks[map->chunkCount++] = newNodes;
@@ -617,8 +638,21 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
   /*
    *	Make a new set of buckets for this map
    */
-  new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
-    sizeof(GSIMapBucket_t));
+  if (_GSIMapGC == nil)
+    {
+      /* Use the zone specified for this map.
+       */
+      new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
+        sizeof(GSIMapBucket_t));
+    }
+  else
+    {
+      /* Use the atomic zone since everything we point to is actively
+       * referenced from the nodeChunks array.
+       */
+      new_buckets = (GSIMapBucket)NSZoneCalloc(_GSIMapUnscannedZone, size,
+        sizeof(GSIMapBucket_t));
+    }
   if (new_buckets != 0)
     {
       GSIMapRemangleBuckets(map, map->buckets, map->bucketCount, new_buckets,
@@ -917,7 +951,27 @@ GSIMapEmptyMap(GSIMapTable map)
 static INLINE void 
 GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
 {
-  map->zone = zone;
+  if (_GSIMapSetup == NO)
+    {
+      _GSIMapGC = [NSGarbageCollector defaultCollector];
+      _GSIMapUnscannedZone = [_GSIMapGC zone];
+      _GSIMapSetup = YES;
+    }
+  if (_GSIMapGC != nil && (uintptr_t)zone > 3)
+    {
+      if (zone == _GSIMapUnscannedZone)
+	{
+	  map->zone = GSIMapWeakKeyAndVal;	// Unscanned memory
+	}
+      else
+	{
+          map->zone = GSIMapStrongKeyAndVal;	// Scanned memory
+	}
+    }
+  else
+    {
+      map->zone = zone;
+    }
   map->nodeCount = 0;
   map->bucketCount = 0;
   map->buckets = 0;
