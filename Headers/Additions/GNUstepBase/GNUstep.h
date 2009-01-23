@@ -125,20 +125,9 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  *	appropriate retain and release operations.
  */
 #define	ASSIGN(object,value)	({\
-id __value = (id)(value); \
-id __object = (id)(object); \
-if (__value != __object) \
-  { \
-    if (__value != nil) \
-      { \
-	[__value retain]; \
-      } \
-    object = __value; \
-    if (__object != nil) \
-      { \
-	[__object release]; \
-      } \
-  } \
+  id __object = (id)(object); \
+  object = [((id)value) retain]; \
+  [__object release]; \
 })
 #endif
 
@@ -148,20 +137,9 @@ if (__value != __object) \
  *	with release of the original.
  */
 #define	ASSIGNCOPY(object,value)	({\
-id __value = (id)(value); \
-id __object = (id)(object); \
-if (__value != __object) \
-  { \
-    if (__value != nil) \
-      { \
-	__value = [__value copy]; \
-      } \
-    object = __value; \
-    if (__object != nil) \
-      { \
-	[__object release]; \
-      } \
-  } \
+  id __object = (id)(object); \
+  object = [((id)value) copy];\
+  [__object release]; \
 })
 #endif
 
@@ -174,12 +152,9 @@ if (__value != __object) \
  *	to reference the object being released through the variable.
  */
 #define	DESTROY(object) 	({ \
-  if (object) \
-    { \
-      id __o = object; \
-      object = nil; \
-      [__o release]; \
-    } \
+  id __o = object; \
+  object = nil; \
+  [__o release]; \
 })
 #endif
 
@@ -194,12 +169,12 @@ if (__value != __object) \
 
 #ifndef RECREATE_AUTORELEASE_POOL
 /**
- * Similar, but allows reuse of variables. Be sure to use DESTROY()
- * so the object variable stays nil.
+ * Similar, but allows reuse of variables. This destroys the old pool before
+ * creating the new one.
  */
 #define RECREATE_AUTORELEASE_POOL(X)  \
-  if (X == nil) \
-    (X) = [NSAutoreleasePool new]
+  DESTROY(X);\
+  (X) = [NSAutoreleasePool new]
 #endif
 
 #define	IF_NO_GC(X)	X
