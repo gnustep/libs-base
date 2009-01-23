@@ -3,6 +3,8 @@
 	* Headers/Additions/GNUstepBase/GNUstep.h:
 	Optimise retain/release management macros for the case where they
 	are dealing with none-nil values.
+	* Headers/Additions/GNUstepBase/GSIMap.h:
+	Some changes moving towards use of typed memory for gc.
 
 2009-01-22  Richard Frith-Macdonald <rfm@gnu.org>
 
