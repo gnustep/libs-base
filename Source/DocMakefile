@@ -84,6 +84,8 @@ NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
 NSPathUtilities.h \
+NSPointerFunctions.h \
+NSPointerArray.h \
 NSPortCoder.h \
 NSPort.h \
 NSPortMessage.h \
