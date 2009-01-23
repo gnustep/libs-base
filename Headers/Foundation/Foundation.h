@@ -85,6 +85,7 @@
 #import	<Foundation/NSNull.h>
 #import	<Foundation/NSNumberFormatter.h>
 #import	<Foundation/NSPathUtilities.h>
+#import	<Foundation/NSPointerArray.h>
 #import	<Foundation/NSPointerFunctions.h>
 #import	<Foundation/NSPortCoder.h>
 #import	<Foundation/NSPortMessage.h>
