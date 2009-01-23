@@ -105,7 +105,7 @@ typedef	NSUInteger NSPointerFunctionsOptions;
 - (void* (*)(const void *item,
   NSUInteger (*size)(const void *item), BOOL shouldCopy)) acquireFunction;
 
-- (NSString (*)(const void *item)) descriptionFunction;
+- (NSString *(*)(const void *item)) descriptionFunction;
 
 - (NSUInteger (*)(const void *item,
   NSUInteger (*size)(const void *item))) hashFunction;
@@ -119,7 +119,7 @@ typedef	NSUInteger NSPointerFunctionsOptions;
 - (void) setAcquireFunction: (void* (*)(const void *item,
   NSUInteger (*size)(const void *item), BOOL shouldCopy))func;
 
-- (void) setDescriptionFunction: (NSString (*)(const void *item))func;
+- (void) setDescriptionFunction: (NSString *(*)(const void *item))func;
 
 - (void) setHashFunction: (NSUInteger (*)(const void *item,
   NSUInteger (*size)(const void *item)))func;
