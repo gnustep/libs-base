@@ -4077,13 +4077,25 @@ static NSFileManager *fm = nil;
   while ((r = [s rangeOfString: @"." options: 0 range: r]).length == 1)
     {
       if (r.location > 0
-	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES
-        && (NSMaxRange(r) == l
-	  || pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES))
+	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES)
 	{
-	  r.length++;
-	  [s deleteCharactersInRange: r];
-	  l -= r.length;
+	  unsigned	pos = NSMaxRange(r);
+
+	  if (pos == l)
+	    {
+	      [s deleteCharactersInRange: r];
+	      l -= r.length;
+	    }
+	  else if (pathSepMember((*caiImp)(s, caiSel, pos)) == YES)
+	    {
+	      r.length++;
+	      [s deleteCharactersInRange: r];
+	      l -= r.length;
+	    }
+	  else
+	    {
+	      r.location++;
+	    }
 	}
       else
 	{
