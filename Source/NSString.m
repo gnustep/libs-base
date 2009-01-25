@@ -4072,30 +4072,24 @@ static NSFileManager *fm = nil;
 	}
       r.length = l - r.location;
     }
+  // Remove trailing ('.') component.
+  if (l > root && (*caiImp)(s, caiSel, l-1) == '.'
+    && pathSepMember((*caiImp)(s, caiSel, l-2)) == YES)
+    {
+      l--;
+      [s deleteCharactersInRange: NSMakeRange(l, 1)];
+    }
   // Condense ('/./') sequences.
   r = (NSRange){root, l-root};
   while ((r = [s rangeOfString: @"." options: 0 range: r]).length == 1)
     {
       if (r.location > 0
-	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES)
+	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES
+	&& pathSepMember((*caiImp)(s, caiSel, r.location+1)) == YES)
 	{
-	  unsigned	pos = NSMaxRange(r);
-
-	  if (pos == l)
-	    {
-	      [s deleteCharactersInRange: r];
-	      l -= r.length;
-	    }
-	  else if (pathSepMember((*caiImp)(s, caiSel, pos)) == YES)
-	    {
-	      r.length++;
-	      [s deleteCharactersInRange: r];
-	      l -= r.length;
-	    }
-	  else
-	    {
-	      r.location++;
-	    }
+	  r.length++;
+	  [s deleteCharactersInRange: r];
+	  l -= r.length;
 	}
       else
 	{
