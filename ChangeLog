@@ -1,6 +1,9 @@
 2009-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix for bug #25400
+	* Tools/gdnc.m: Fix failure to log exception (bug #25396)
+	* Tools/gdomap.c: Use snprintf for paranoid double check
+	of data in log buffer.
 
 2009-01-23  Riccardo Mottola <rmottola@users.sf.net>
 

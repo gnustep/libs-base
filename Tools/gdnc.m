@@ -42,14 +42,13 @@
 static BOOL	debugging = NO;
 static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
 static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
-static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
 
 static int	log_priority = LOG_DEBUG;
 
 static void
-gdnc_log (int prio)
+gdnc_log (int prio, const char *ebuf)
 {
   if (is_daemon)
     {
@@ -87,8 +86,8 @@ gdnc_log (int prio)
 #define LOG_ERR		1
 #define LOG_INFO	0
 #define LOG_WARNING	0
-void
-gdnc_log (int prio)
+static void
+gdnc_log (int prio, const char *ebuf)
 {
   write (2, ebuf, strlen (ebuf));
   write (2, "\n", 1);
@@ -1121,7 +1120,7 @@ main(int argc, char** argv, char** env)
 	}
       NS_HANDLER
 	{
-	  gdnc_log(LOG_CRIT);
+	  gdnc_log(LOG_CRIT, [[localException description] UTF8String]);
 	  DESTROY(t);
 	}
       NS_ENDHANDLER
