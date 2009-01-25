@@ -635,7 +635,7 @@ static unsigned	urlAlign;
 	}
     }
   self = [self initWithScheme: NSURLFileScheme
-			 host: nil
+			 host: @"localhost"
 			 path: aPath];
   return self;
 }
@@ -1436,6 +1436,13 @@ static unsigned	urlAlign;
 	}
 
       unescape(buf, buf);
+      /* Remove any trailing '/' from the path for MacOS-X compatibility.
+       */
+      tmp = buf + strlen(buf) - 1;
+      if (tmp > buf && *tmp == '/')
+	{
+	  *tmp = '\0';
+	}
       path = [NSString stringWithUTF8String: buf];
     }
   return path;

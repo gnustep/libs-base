@@ -1,5 +1,13 @@
 2009-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURL.m: Compatibility tweaks for a few MacOS-X oddities...
+	Initialise file URLs with a host of 'localhost' even though they
+	should really have none.
+	Return paths without a trailing slash, even when they were set
+	with one.
+
+2009-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSString.m: Fix for bug #25400
 	* Tools/gdnc.m: Fix failure to log exception (bug #25396)
 	* Tools/gdomap.c: Use snprintf for paranoid double check
