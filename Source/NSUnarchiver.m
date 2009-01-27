@@ -756,8 +756,7 @@ static Class NSDataMallocClass;
 		   */
 		  if (c == nil)
 		    {
-		      NSLog(@"Got nil when trying to unarchive class %s",
-			className);
+		      NSLog(@"Unable to find class named '%s'", className);
 		    }
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
