@@ -1,3 +1,8 @@
+2009-01-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSValue.m: ([valueWithNonretainedObject:]) zero the reference
+	when the object is collected.
+
 2009-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Compatibility tweaks for a few MacOS-X oddities...
