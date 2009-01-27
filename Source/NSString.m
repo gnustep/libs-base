@@ -4072,8 +4072,8 @@ static NSFileManager *fm = nil;
 	}
       r.length = l - r.location;
     }
-  // Remove trailing ('.') component.
-  if (l > root && (*caiImp)(s, caiSel, l-1) == '.'
+  // Remove trailing ('.') as long as it's preceeded by a path separator.
+  if (l > root && l > 1 && (*caiImp)(s, caiSel, l-1) == '.'
     && pathSepMember((*caiImp)(s, caiSel, l-2)) == YES)
     {
       l--;
