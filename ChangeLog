@@ -1,3 +1,9 @@
+2009-01-28  David Chisnall <csdavec@swansea.ac.uk>
+
+	* Headers/Foundation/NSEnumerator.h:
+	* Source/NSEnumerator.m:
+	Add Apple's fast enumeration protocol.
+
 2009-01-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSException.m: Fix problem preventing stack traccces from

@@ -74,4 +74,23 @@
   return nil;
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+  IMP nextObject = [self methodForSelector: @selector(nextObject)];
+  int i;
+
+  for (i = 0; i < len; i++)
+    {
+      id next = nextObject(self, @selector(nextObject));
+
+      if (nil == next)
+	{
+	  return i;
+	}
+      *(stackbuf+i) = next;
+    }
+  return len;
+}
 @end
