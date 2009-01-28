@@ -1,3 +1,8 @@
+2009-01-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSEnumerator.m: Fix bug in fast enumeration code.
+	* Source/GSArray.m: Fix bug in array insertion introduced by last patch.
+
 2009-01-28  David Chisnall <csdavec@swansea.ac.uk>
 
 	* Headers/Foundation/NSEnumerator.h:

@@ -619,7 +619,8 @@ static Class	GSInlineArrayClass;
       _capacity += _grow_factor;
       _grow_factor = _capacity/2;
     }
-  memmove(&_contents_array[index], &_contents_array[index+1], _count - index);
+  memmove(&_contents_array[index+1], &_contents_array[index],
+    (_count - index) * sizeof(id));
   /*
    *	Make sure the array is 'sane' so that it can be deallocated
    *	safely by an autorelease pool if the '[anObject retain]' causes
