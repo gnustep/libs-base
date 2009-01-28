@@ -91,6 +91,7 @@
 	}
       *(stackbuf+i) = next;
     }
+  state->itemsPtr;
   return len;
 }
 @end

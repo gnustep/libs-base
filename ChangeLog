@@ -2,6 +2,8 @@
 
 	* Headers/Foundation/NSEnumerator.h:
 	* Source/NSEnumerator.m:
+	* Source/GSArray.m:
+	* Source/GSprivate.h:
 	Add Apple's fast enumeration protocol.
 
 2009-01-28  Richard Frith-Macdonald <rfm@gnu.org>

@@ -70,6 +70,7 @@
   unsigned	_count;
   unsigned	_capacity;
   int		_grow_factor;
+  int		_version;
 }
 @end
 

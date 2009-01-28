@@ -367,6 +367,15 @@ static Class	GSInlineArrayClass;
       aBuffer[j++] = _contents_array[i];
     }
 }
+
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+  /* For immutable arrays we can return the contents pointer directly. */
+  state->itemsPtr = _contents_array;
+  return _count;
+}
 @end
 
 #if	!GS_WITH_GC
@@ -437,6 +446,7 @@ static Class	GSInlineArrayClass;
 
 - (void) addObject: (id)anObject
 {
+  _version++;
   if (anObject == nil)
     {
       [NSException raise: NSInvalidArgumentException
@@ -459,6 +469,7 @@ static Class	GSInlineArrayClass;
     }
   _contents_array[_count] = RETAIN(anObject);
   _count++;	/* Do this AFTER we have retained the object.	*/
+  _version++;
 }
 
 /**
@@ -479,6 +490,7 @@ static Class	GSInlineArrayClass;
 - (void) exchangeObjectAtIndex: (unsigned int)i1
              withObjectAtIndex: (unsigned int)i2
 {
+  _version++;
   if (i1 >= _count)
     {
       [self _raiseRangeExceptionWithIndex: i1 from: _cmd];
@@ -494,6 +506,7 @@ static Class	GSInlineArrayClass;
       _contents_array[i1] = _contents_array[i2];
       _contents_array[i2] = tmp;
     }
+  _version++;
 }
 
 - (id) init
@@ -572,8 +585,7 @@ static Class	GSInlineArrayClass;
 
 - (void) insertObject: (id)anObject atIndex: (unsigned)index
 {
-  unsigned	i;
-
+  _version++;
   if (!anObject)
     {
       NSException  *exception;
@@ -607,10 +619,7 @@ static Class	GSInlineArrayClass;
       _capacity += _grow_factor;
       _grow_factor = _capacity/2;
     }
-  for (i = _count; i > index; i--)
-    {
-      _contents_array[i] = _contents_array[i - 1];
-    }
+  memmove(&_contents_array[index], &_contents_array[index+1], _count - index);
   /*
    *	Make sure the array is 'sane' so that it can be deallocated
    *	safely by an autorelease pool if the '[anObject retain]' causes
@@ -619,6 +628,7 @@ static Class	GSInlineArrayClass;
   _contents_array[index] = nil;
   _count++;
   _contents_array[index] = RETAIN(anObject);
+  _version++;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
@@ -635,6 +645,7 @@ static Class	GSInlineArrayClass;
 
 - (void) removeLastObject
 {
+  _version++;
   if (_count == 0)
     {
       [NSException raise: NSRangeException
@@ -643,12 +654,14 @@ static Class	GSInlineArrayClass;
   _count--;
   RELEASE(_contents_array[_count]);
   _contents_array[_count] = 0;
+  _version++;
 }
 
 - (void) removeObject: (id)anObject
 {
   unsigned	index;
 
+  _version++;
   if (anObject == nil)
     {
       NSWarnMLog(@"attempt to remove nil object");
@@ -694,12 +707,14 @@ static Class	GSInlineArrayClass;
 	}
 #endif
     }
+  _version++;
 }
 
 - (void) removeObjectAtIndex: (unsigned)index
 {
   id	obj;
 
+  _version++;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
@@ -713,12 +728,14 @@ static Class	GSInlineArrayClass;
     }
   _contents_array[_count] = 0;
   RELEASE(obj);	/* Adjust array BEFORE releasing object.	*/
+  _version++;
 }
 
 - (void) removeObjectIdenticalTo: (id)anObject
 {
   unsigned	index;
 
+  _version++;
   if (anObject == nil)
     {
       NSWarnMLog(@"attempt to remove nil object");
@@ -743,12 +760,14 @@ static Class	GSInlineArrayClass;
 	  RELEASE(obj);
 	}
     }
+  _version++;
 }
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
 {
   id	obj;
 
+  _version++;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
@@ -776,6 +795,7 @@ static Class	GSInlineArrayClass;
   IF_NO_GC(RETAIN(anObject));
   _contents_array[index] = anObject;
   RELEASE(obj);
+  _version++;
 }
 
 - (void) sortUsingFunction: (NSComparisonResult(*)(id,id,void*))compare
@@ -793,6 +813,7 @@ static Class	GSInlineArrayClass;
   BOOL		badComparison = NO;
 #endif
 
+  _version++;
   while (stride <= count)
     {
       stride = stride * STRIDE_FACTOR + 1;
@@ -852,6 +873,7 @@ static Class	GSInlineArrayClass;
       NSWarnMLog(@"Detected bad return value from comparison");
     }
 #endif
+  _version++;
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -870,6 +892,34 @@ static Class	GSInlineArrayClass;
   return AUTORELEASE([enumerator initWithArray: (GSArray*)self]);
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+  NSInteger count;
+
+  /* This is cached in the caller at the start and compared at each
+   * iteration.   If it changes during the iteration then
+   * objc_enumerationMutation() will be called, throwing an exception.
+   */
+  state->mutationsPtr = (unsigned long*)_version;
+  count = MIN(len, _count - state->state);
+  /* If a mutation has occurred then it's possible that we are being asked to
+   * get objects from after the end of the array.  Don't pass negative values
+   * to memcpy.
+   */
+  if (count <= 0)
+    {
+      memcpy(stackbuf, _contents_array, count);
+      state->state += count;
+    }
+  else
+    {
+      count = 0;
+    }
+  state->itemsPtr = stackbuf;
+  return count;
+}
 @end
 
 
