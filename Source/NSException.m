@@ -834,7 +834,7 @@ callUncaughtHandler(id value)
     }
 
   if (_e_stack == nil
-    && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", YES) == NO)
+    && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", YES) == YES)
     {
       ASSIGN(_e_stack, GSPrivateStackAddresses());
     }
