@@ -4061,14 +4061,20 @@ static NSFileManager *fm = nil;
 	}
       r.length = l - r.location;
     }
+  // Remove trailing ('.') as long as it's preceeded by a path separator.
+  if (l > root && l > 1 && (*caiImp)(s, caiSel, l-1) == '.'
+    && pathSepMember((*caiImp)(s, caiSel, l-2)) == YES)
+    {
+      l--;
+      [s deleteCharactersInRange: NSMakeRange(l, 1)];
+    }
   // Condense ('/./') sequences.
   r = (NSRange){root, l-root};
   while ((r = [s rangeOfString: @"." options: 0 range: r]).length == 1)
     {
       if (r.location > 0
 	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES
-        && (NSMaxRange(r) == l
-	  || pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES))
+	&& pathSepMember((*caiImp)(s, caiSel, r.location+1)) == YES)
 	{
 	  r.length++;
 	  [s deleteCharactersInRange: r];
