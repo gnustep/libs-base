@@ -129,6 +129,14 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     }								\
 }
 
+#define WARN_RECURSIVE_CONDITION_LOCK(mutex)			\
+{								\
+  if ((mutex)->owner == objc_thread_id())			\
+    {								\
+      NSLog(@"WARNING: Thread attempted to recursively lock: %@",self);	        \
+    }								\
+}
+
 // NSLock class
 // Simplest lock for protecting critical sections of code
 
@@ -447,7 +455,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (BOOL) tryLock
 {
-  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
+  WARN_RECURSIVE_CONDITION_LOCK(_MUTEX);
 
   // Ask the runtime to acquire a lock on the mutex
   if (objc_mutex_trylock(_MUTEX) == -1)

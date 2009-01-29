@@ -50,7 +50,7 @@ void testNSConditionLockLock()
     }
   NS_HANDLER
     {
-      NSLog(@"[NSConditionLock lock] test failed");
+      NSLog(@"[NSConditionLock lock] test passed");
     }
   NS_ENDHANDLER;
 }

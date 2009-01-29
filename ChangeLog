@@ -1,3 +1,14 @@
+2009-01-29 17:49-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSLock.m: Change to correct documented/tested and observed
+	inconsistency between Cocoa (and OpenStep) and GNUstep.  
+	Reinstatement of correction for bug #25307.   Testing on both OpenStep
+	and on Cocoa clearly illustrates that throwing an exception in this
+	case was incorrect.  It now emits a warning when the lock is attempted
+	again, but does not throw an exception.
+	* Testing/locktest/locktest.m: Change to test to correctly test
+	[NSConditionLock lock]
+
 2009-01-28 21:48-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Testing/locktest/GNUmakefile
@@ -34,7 +45,6 @@
 	* Source/NSValue.m: ([valueWithNonretainedObject:]) zero the reference
 	when the object is collected.
 
->>>>>>> .r27716
 2009-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Compatibility tweaks for a few MacOS-X oddities...
