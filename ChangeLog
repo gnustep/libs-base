@@ -1,7 +1,20 @@
+2009-01-28 21:48-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Testing/locktest/GNUmakefile
+	* Testing/locktest/GNUmakefile.preamble
+	* Testing/locktest/locktest.1
+	* Testing/locktest/LockTestInfo.plist
+	* Testing/locktest/locktest.m
+	* Testing/locktest/locktest_Prefix.pch
+	* Testing/locktest/locktest.xcodeproj/project.pbxproj
+	* Testing/locktest/PC.project: Test which confirms the behavior 
+	observed on Mac OS X/Cocoa.
+
 2009-01-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSEnumerator.m: Fix bug in fast enumeration code.
-	* Source/GSArray.m: Fix bug in array insertion introduced by last patch.
+	* Source/GSArray.m: Fix bug in array insertion introduced by last 
+	patch.
 
 2009-01-28  David Chisnall <csdavec@swansea.ac.uk>
 
@@ -21,6 +34,7 @@
 	* Source/NSValue.m: ([valueWithNonretainedObject:]) zero the reference
 	when the object is collected.
 
+>>>>>>> .r27716
 2009-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Compatibility tweaks for a few MacOS-X oddities...

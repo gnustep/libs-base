@@ -1,0 +1,8 @@
+{
+    Copyright = "Copyright (C) 200x";
+    CopyrightDescription = "Released under ...";
+    FullVersionID = 0.1;
+    ToolDescription = "No description available!";
+    ToolName = LockTest;
+    ToolRelease = 0.1;
+}
