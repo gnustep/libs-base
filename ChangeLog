@@ -1,3 +1,7 @@
+2009-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLock.m: Fixed last change to match MacOS-X behavior.
+
 2009-01-29 17:49-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSLock.m: Change to correct documented/tested and observed
