@@ -1524,12 +1524,12 @@ wordData(NSString *word)
   info = [[document headersNamed: @"http"] lastObject];
   if (info != nil && flags.isHttp == 1)
     {
-      NSString	*val;
+      NSNumber	*num;
 
-      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-      if (val != nil)
+      num = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+      if (num != nil)
         {
-          int	v = [val intValue];
+          int	v = [num intValue];
 
           if (v >= 100 && v < 200)
             {
@@ -1612,7 +1612,7 @@ wordData(NSString *word)
  *   <term>NSHTTPPropertyServerHTTPVersionKey</term>
  *   <desc>The full HTTP protocol version number</desc>
  *   <term>NSHTTPPropertyStatusCodeKey</term>
- *   <desc>The HTTP status code</desc>
+ *   <desc>The HTTP status code (numeric)</desc>
  *   <term>NSHTTPPropertyStatusReasonKey</term>
  *   <desc>The text message (if any) after the status code</desc>
  * </deflist>
@@ -1881,7 +1881,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       forKey: @"HttpVersion"];
       [info setObject: [NSStringClass stringWithFormat: @"%d", major]
 	       forKey: NSHTTPPropertyServerHTTPVersionKey];
-      [info setObject: [NSStringClass stringWithFormat: @"%d", status]
+      [info setObject: [NSNumber numberWithInt: status]
 	       forKey: NSHTTPPropertyStatusCodeKey];
       [self scanPastSpace: scanner];
       value = [[scanner string] substringFromIndex: [scanner scanLocation]];

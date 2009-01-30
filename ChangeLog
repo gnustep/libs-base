@@ -1,6 +1,10 @@
 2009-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: For file URL, make relative path absolute.
+	* Source/GSHTTPURLHandle.m:
+	* Source/Additions/GSMime.m:
+	Change HTTP status code to be an NSNumber rather than NSString
+	for MacOS-X compatibility
 
 2009-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 

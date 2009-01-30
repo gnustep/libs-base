@@ -593,12 +593,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  GSMimeHeader	*info;
 	  NSString	*enc;
 	  NSString	*len;
-	  NSString	*status;
+	  int		status;
 	  float		ver;
 
 	  info = [document headerNamed: @"http"];
 	  ver = [[info value] floatValue];
-	  status = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  status = [[info objectForKey: NSHTTPPropertyStatusCodeKey] intValue];
 	  len = [[document headerNamed: @"content-length"] value];
 	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
 	  if (enc == nil)
@@ -606,7 +606,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      enc = [[document headerNamed: @"transfer-encoding"] value];
 	    }
 
-	  if ([status isEqual: @"204"] || [status isEqual: @"304"])
+	  if (status == 204 || status == 304)
 	    {
 	      complete = YES;	// No body expected.
 	    }
@@ -623,6 +623,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  GSMimeHeader	*info;
 	  NSString	*val;
+	  NSNumber	*num;
 	  float		ver;
 	  int		code;
 
@@ -642,8 +643,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * Retrieve essential keys from document
 	   */
 	  info = [document headerNamed: @"http"];
-	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-	  code = [val intValue];
+	  num = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  code = [num intValue];
 	  if (code == 401 && self->challenged < 2)
 	    {
 	      GSMimeHeader	*ah;
@@ -720,9 +721,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    }
 		}
 	    }
-	  if (val != nil)
+	  if (num != nil)
 	    {
-	      [pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
+	      [pageInfo setObject: num forKey: NSHTTPPropertyStatusCodeKey];
 	    }
 	  val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
 	  if (val != nil)
@@ -818,15 +819,16 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       GSMimeHeader	*info;
       NSString		*val;
+      NSNumber		*num;
 
       [p parse: nil];
       info = [[p mimeDocument] headerNamed: @"http"];
       val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
       if (val != nil)
 	[pageInfo setObject: val forKey: NSHTTPPropertyServerHTTPVersionKey];
-      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-      if (val != nil)
-	[pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
+      num = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+      if (num != nil)
+	[pageInfo setObject: num forKey: NSHTTPPropertyStatusCodeKey];
       val = [info objectForKey: NSHTTPPropertyStatusReasonKey];
       if (val != nil)
 	[pageInfo setObject: val forKey: NSHTTPPropertyStatusReasonKey];
@@ -926,7 +928,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSTimeInterval	limit = 0.01;
       NSData		*buf;
       NSDate		*when;
-      NSString		*status;
+      int		status;
       NSString		*version;
 
       version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
@@ -949,7 +951,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
        * Set up default status for if connection is lost.
        */
       [pageInfo setObject: @"1.0" forKey: NSHTTPPropertyServerHTTPVersionKey];
-      [pageInfo setObject: @"503" forKey: NSHTTPPropertyStatusCodeKey];
+      [pageInfo setObject: [NSNumber numberWithInt: 503]
+		   forKey: NSHTTPPropertyStatusCodeKey];
       [pageInfo setObject: @"Connection dropped by proxy server"
 		   forKey: NSHTTPPropertyStatusReasonKey];
 
@@ -978,8 +981,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       RELEASE(when);
 
-      status = [pageInfo objectForKey: NSHTTPPropertyStatusCodeKey];
-      if ([status isEqual: @"200"] == NO)
+      status = [[pageInfo objectForKey: NSHTTPPropertyStatusCodeKey] intValue];
+      if (status != 200)
 	{
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason: @"Failed proxy tunneling"];
