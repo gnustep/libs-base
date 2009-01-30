@@ -620,10 +620,15 @@ static unsigned	urlAlign;
  */
 - (id) initFileURLWithPath: (NSString*)aPath
 {
-  BOOL	flag = NO;
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  BOOL		flag = NO;
 
-  if ([[NSFileManager defaultManager] fileExistsAtPath: aPath
-    isDirectory: &flag] == YES)
+  if ([aPath isAbsolutePath] == NO)
+    {
+      aPath = [[mgr currentDirectoryPath]
+	stringByAppendingPathComponent: aPath];
+    }
+  if ([mgr fileExistsAtPath: aPath isDirectory: &flag] == YES)
     {
       if ([aPath isAbsolutePath] == NO)
 	{

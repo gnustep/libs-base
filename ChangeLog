@@ -1,5 +1,9 @@
 2009-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURL.m: For file URL, make relative path absolute.
+
+2009-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Documentation/readme.texi:
 	* README: Remove reference to Testing
 	* Examples/nsconnection_server.m:
