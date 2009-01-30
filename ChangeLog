@@ -1,5 +1,19 @@
 2009-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Documentation/readme.texi:
+	* README: Remove reference to Testing
+	* Examples/nsconnection_server.m:
+	* Examples/diningPhilosophers.m:
+	* Examples/nsconnection_client.m:
+	* Examples/nsconnection.m: Transferred from Testing
+	* Testing: removed
+	Removed Testing subdirectory.  Now that locking tests are in the
+	testsuite all the code here is probably obsolete.  If we find any
+	cases where that's not the case, we should recover anything we
+	need from svn and add it to the testsuite.
+
+2009-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSLock.m: Fixed last change to match MacOS-X behavior.
 
 2009-01-29 17:49-EST Gregory John Casamento <greg_casamento@yahoo.com>
