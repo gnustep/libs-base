@@ -406,6 +406,11 @@ static NSZone default_zone =
 };
 
 /*
+ * For backward compatibility.
+ */
+NSZone	*__nszone_private_hidden_default_zone = &default_zone;
+
+/*
  *	Lists of zones to be used to determine if a pointer is in a zone.
  */
 static NSZone	*zone_list = 0;
