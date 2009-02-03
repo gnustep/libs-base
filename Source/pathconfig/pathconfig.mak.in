@@ -18,7 +18,7 @@ $(warning "You can install gnustep-base in one of the four domains: SYSTEM, LOCA
 $(warning " ")
 $(warning "gnustep-base was configured to be installed into: $(GNUSTEP_BASE_DOMAIN)")
 $(warning "but it would now being installed into: $(GNUSTEP_INSTALLATION_DOMAIN)")
-$(warning "That's not right; they must match.")
+$(warning "That's not right: they must match.")
 $(warning " ")
 $(warning "If you want to install into $(GNUSTEP_BASE_DOMAIN), please use")
 $(warning " ")
