@@ -209,8 +209,11 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
 
 #if	GS_WITH_GC
   zone = GSIMapStrongKeyAndVal;
-#endif
+  t = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
   t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
+#endif
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
   t->extra.k = ((GSIMapTable)table)->extra.k;
   t->extra.v = ((GSIMapTable)table)->extra.v;
@@ -275,8 +278,11 @@ NSCreateMapTableWithZone(
 
 #if	GS_WITH_GC
   zone = GSIMapStrongKeyAndVal;
-#endif
+  table = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
   table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
+#endif
   GSIMapInitWithZoneAndCapacity(table, zone, capacity);
   table->extra.k = keyCallBacks;
   table->extra.v = valueCallBacks;
