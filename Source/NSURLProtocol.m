@@ -129,10 +129,18 @@ static NSLock		*pairLock = nil;
 
 - (void) dealloc
 {
-  [ip release];
-  [op release];
-  [host release];
-  [expires release];
+  [ip setDelegate: nil];
+  [op setDelegate: nil];
+  [ip removeFromRunLoop: [NSRunLoop currentRunLoop]
+		forMode: NSDefaultRunLoopMode];
+  [op removeFromRunLoop: [NSRunLoop currentRunLoop]
+		forMode: NSDefaultRunLoopMode];
+  [ip close];
+  [op close];
+  DESTROY(ip);
+  DESTROY(op);
+  DESTROY(host);
+  DESTROY(expires);
   [super dealloc];
 }
 
@@ -537,14 +545,6 @@ static NSURLProtocol	*placeholder = nil;
   [super dealloc];
 }
 
-- (void) _schedule
-{
-  [this->input scheduleInRunLoop: [NSRunLoop currentRunLoop]
-			 forMode: NSDefaultRunLoopMode];
-  [this->output scheduleInRunLoop: [NSRunLoop currentRunLoop]
-			  forMode: NSDefaultRunLoopMode];
-}
-
 - (void) setDebug: (BOOL)flag
 {
   _debug = flag;
@@ -696,18 +696,13 @@ static NSURLProtocol	*placeholder = nil;
         }
       [this->input setDelegate: self];
       [this->output setDelegate: self];
-      [self _schedule];
+      [this->input scheduleInRunLoop: [NSRunLoop currentRunLoop]
+			     forMode: NSDefaultRunLoopMode];
+      [this->output scheduleInRunLoop: [NSRunLoop currentRunLoop]
+			      forMode: NSDefaultRunLoopMode];
       [this->input open];
       [this->output open];
     }
-}
-
-- (void) _unschedule
-{
-  [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
-			 forMode: NSDefaultRunLoopMode];
-  [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
-			  forMode: NSDefaultRunLoopMode];
 }
 
 - (void) stopLoading
@@ -722,7 +717,10 @@ static NSURLProtocol	*placeholder = nil;
     {
       [this->input setDelegate: nil];
       [this->output setDelegate: nil];
-      [self _unschedule];
+      [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
+			     forMode: NSDefaultRunLoopMode];
+      [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
+			      forMode: NSDefaultRunLoopMode];
       [this->input close];
       [this->output close];
       DESTROY(this->input);
@@ -1093,7 +1091,10 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	    }
 
-	  [self _unschedule];
+	  [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
+				 forMode: NSDefaultRunLoopMode];
+	  [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
+				  forMode: NSDefaultRunLoopMode];
 	  if (_shouldClose == YES)
 	    {
 	      [this->input setDelegate: nil];
