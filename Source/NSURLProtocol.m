@@ -27,6 +27,7 @@
 #import <Foundation/NSNotification.h>
 #import <Foundation/NSRunLoop.h>
 #import <Foundation/NSValue.h>
+#import <Foundation/NSDebug.h>
 
 #import "GNUstepBase/GSMime.h"
 
@@ -241,6 +242,7 @@ static NSLock		*pairLock = nil;
   NSURLCredential		*_credential;
   NSHTTPURLResponse		*_response;
 }
+- (void) setDebug: (BOOL)flag;
 @end
 
 @interface _NSHTTPSURLProtocol : _NSHTTPURLProtocol
@@ -543,6 +545,11 @@ static NSURLProtocol	*placeholder = nil;
 			  forMode: NSDefaultRunLoopMode];
 }
 
+- (void) setDebug: (BOOL)flag
+{
+  _debug = flag;
+}
+
 - (void) startLoading
 {
   static NSDictionary *methods = nil;
@@ -579,7 +586,7 @@ static NSURLProtocol	*placeholder = nil;
   _statusCode = 0;	/* No status returned yet.	*/
   _isLoading = YES;
   _complete = NO;
-  _debug = NO;
+  _debug = GSDebugSet(@"NSHTTPURLProtocol");
 
   /* Perform a redirect if the path is empty.
    * As per MacOs-X documentation.
@@ -663,7 +670,8 @@ static NSURLProtocol	*placeholder = nil;
 	{
 	  if (_debug == YES)
 	    {
-	      NSLog(@"did not create streams for %@:%@", host, [url port]);
+	      NSLog(@"%@ did not create streams for %@:%@",
+		self, host, [url port]);
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError:
@@ -706,7 +714,7 @@ static NSURLProtocol	*placeholder = nil;
 {
   if (_debug == YES)
     {
-      NSLog(@"stopLoading: %@", self);
+      NSLog(@"%@ stopLoading", self);
     }
   _isLoading = NO;
   DESTROY(_writeData);
@@ -744,7 +752,7 @@ static NSURLProtocol	*placeholder = nil;
 	  e = [stream streamError];
 	  if (_debug)
 	    {
-	      NSLog(@"receive error %@", e);
+	      NSLog(@"%@ receive error %@", self, e);
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError: e];
@@ -753,7 +761,8 @@ static NSURLProtocol	*placeholder = nil;
     }
   if (_debug)
     {
-      NSLog(@"Read %d bytes: '%*.*s'", readCount, readCount, readCount, buffer);
+      NSLog(@"%@ read %d bytes: '%*.*s'",
+	self, readCount, readCount, readCount, buffer);
     }
 
   if (_parser == nil)
@@ -767,7 +776,7 @@ static NSURLProtocol	*placeholder = nil;
     {
       if (_debug == YES)
 	{
-	  NSLog(@"HTTP parse failure - %@", _parser);
+	  NSLog(@"%@ HTTP parse failure - %@", self, _parser);
 	}
       e = [NSError errorWithDomain: @"parse error"
 			      code: 0
@@ -1155,7 +1164,7 @@ static NSURLProtocol	*placeholder = nil;
 	   */
 	  if (_debug == YES)
 	    {
-	      NSLog(@"HTTP response not received - %@", _parser);
+	      NSLog(@"%@ HTTP response not received - %@", self, _parser);
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError:
@@ -1188,7 +1197,7 @@ static NSURLProtocol	*placeholder = nil;
 	  case NSStreamEventOpenCompleted: 
 	    if (_debug == YES)
 	      {
-		NSLog(@"HTTP input stream opened");
+		NSLog(@"%@ HTTP input stream opened", self);
 	      }
 	    return;
 
@@ -1211,7 +1220,7 @@ static NSURLProtocol	*placeholder = nil;
 
 	      if (_debug == YES)
 	        {
-	          NSLog(@"HTTP output stream opened");
+	          NSLog(@"%@ HTTP output stream opened", self);
 	        }
 	      DESTROY(_writeData);
 	      _writeOffset = 0;
@@ -1298,7 +1307,7 @@ static NSURLProtocol	*placeholder = nil;
 		    {
 		      if (_debug == YES)
 		        {
-			  NSLog(@"Wrote %d bytes: '%*.*s'", written,
+			  NSLog(@"%@ wrote %d bytes: '%*.*s'", self, written,
 			    written, written, bytes + _writeOffset);
 			}
 		      _writeOffset += written;
@@ -1339,8 +1348,8 @@ static NSURLProtocol	*placeholder = nil;
 			{
 			  if (_debug == YES)
 			    {
-			      NSLog(@"error reading from HTTPBody stream %@",
-				[NSError _last]);
+			      NSLog(@"%@ error reading from HTTPBody stream %@",
+				self, [NSError _last]);
 			    }
 			  [self stopLoading];
 			  [this->client URLProtocol: self didFailWithError:
@@ -1356,8 +1365,8 @@ static NSURLProtocol	*placeholder = nil;
 			    {
 			      if (_debug == YES)
 				{
-				  NSLog(@"Wrote %d bytes: '%*.*s'", written,
-				    written, written, buffer);
+				  NSLog(@"%@ wrote %d bytes: '%*.*s'", self,
+				    written, written, written, buffer);
 				}
 			      len -= written;
 			      if (len > 0)
@@ -1389,7 +1398,7 @@ static NSURLProtocol	*placeholder = nil;
 		{
 		  if (_debug)
 		    {
-		      NSLog(@"request sent");
+		      NSLog(@"%@ request sent", self);
 		    }
 		  if (_shouldClose == YES)
 		    {
