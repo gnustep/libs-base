@@ -313,8 +313,13 @@ static GSIMapTable	mapNew(NCTable *t)
     {
       GSIMapTable	m;
 
+#if	GS_WITH_GC
+      m = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
+      GSIMapInitWithZoneAndCapacity(m, GSIMapStrongKeyAndVal, 2);
+#else
       m = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
       GSIMapInitWithZoneAndCapacity(m, _zone, 2);
+#endif
       return m;
     }
 }
@@ -400,15 +405,23 @@ static NCTable *newNCTable(void)
 {
   NCTable	*t;
 
+#if	GS_WITH_GC
+  t = (NCTable*)NSAllocateCollectable(sizeof(NCTable), NSScannedOption);
+#else
   t = (NCTable*)NSZoneMalloc(_zone, sizeof(NCTable));
   memset((void*)t, '\0', sizeof(NCTable));
+#endif
   t->chunkIndex = CHUNKSIZE;
   t->wildcard = ENDOBS;
 
+#if	GS_WITH_GC
+  t->nameless = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
+  t->named = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
+#else
   t->nameless = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
-  GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
-
   t->named = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
+#endif
+  GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
 
   // t->_lock = [GSLazyRecursiveLock new];
