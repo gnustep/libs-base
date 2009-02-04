@@ -756,7 +756,7 @@ static Class NSDataMallocClass;
 		   */
 		  if (c == nil)
 		    {
-		      NSLog(@"Unable to find class named '%s'", className);
+		      NSLog(@"Unable to find class named '%@'", className);
 		    }
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
