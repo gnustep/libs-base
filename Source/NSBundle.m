@@ -669,7 +669,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	  NSValue *value;
 	  Class    class = NSClassFromString(*fmClasses);
 
-	  value = [NSValue valueWithNonretainedObject: class];
+	  value = [NSValue valueWithPointer: (void*)class];
 	
 	  [bundle->_bundleClasses addObject: value];
 	
@@ -704,8 +704,8 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    {
 	      for (j = 0; j < [l count]; j++)
 		{
-		  if ([[l objectAtIndex: j] nonretainedObjectValue]
-		     == [[b objectAtIndex:i] nonretainedObjectValue])
+		  if ([[l objectAtIndex: j] pointerValue]
+		     == [[b objectAtIndex:i] pointerValue])
 		    {
 		      [l removeObjectAtIndex:j];
 		    }
@@ -778,13 +778,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	}
 
       [_loadingFrameworks
-	addObject: [NSValue valueWithNonretainedObject: (id)theClass]];
+	addObject: [NSValue valueWithPointer: (void*)theClass]];
       return;
     }
 
   /* Store classes (but don't store categories) */
   [((bptr)_loadingBundle)->_bundleClasses addObject:
-    [NSValue valueWithNonretainedObject: (id)theClass]];
+    [NSValue valueWithPointer: (void*)theClass]];
 }
 
 
@@ -1144,8 +1144,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       j = [bundleClasses count];
       for (i = 0; i < j && found == NO; i++)
 	{
-	  if ([[bundleClasses objectAtIndex: i]
-	    nonretainedObjectValue] == aClass)
+	  if ([[bundleClasses objectAtIndex: i] pointerValue] == (void*)aClass)
 	    found = YES;
 	}
 
@@ -1195,7 +1194,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		= [[NSMutableArray alloc] initWithCapacity: 2];
 	    }
 	  [bundle->_bundleClasses addObject:
-	    [NSValue valueWithNonretainedObject: aClass]];
+	    [NSValue valueWithPointer: (void*)aClass]];
 	}
     }
   [load_lock unlock];
@@ -1439,7 +1438,7 @@ IF_NO_GC(
 
       for (i = 0; i < j  &&  found == NO; i++)
 	{
-	  Class c = [[_bundleClasses objectAtIndex: i] nonretainedObjectValue];
+	  Class c = (Class)[[_bundleClasses objectAtIndex: i] pointerValue];
 
 	  if (c == theClass)
 	    {
@@ -1487,8 +1486,8 @@ IF_NO_GC(
       [load_lock lock];
       if (_principalClass == nil && [_bundleClasses count] > 0)
 	{
-	  _principalClass = [[_bundleClasses objectAtIndex: 0]
-	    nonretainedObjectValue];
+	  _principalClass = (Class)[[_bundleClasses objectAtIndex: 0]
+	    pointerValue];
 	}
       [load_lock unlock];
     }
@@ -1549,7 +1548,7 @@ IF_NO_GC(
       classEnumerator = [_loadingFrameworks objectEnumerator];
       while ((class = [classEnumerator nextObject]) != nil)
 	{
-	  [NSBundle _addFrameworkFromClass: [class nonretainedObjectValue]];
+	  [NSBundle _addFrameworkFromClass: (Class)[class pointerValue]];
 	}
 
       /* After we load code from a bundle, we retain the bundle until
@@ -1569,7 +1568,7 @@ IF_NO_GC(
       while ((class = [classEnumerator nextObject]) != nil)
 	{
 	  [classNames addObject:
-	    NSStringFromClass([class nonretainedObjectValue])];
+	    NSStringFromClass((Class)[class pointerValue])];
 	}
 
       [load_lock unlock];
