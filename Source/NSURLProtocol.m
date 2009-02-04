@@ -364,10 +364,21 @@ static NSURLProtocol	*placeholder = nil;
   if (this != 0)
     {
       [self stopLoading];
-      RELEASE(this->input);
-      RELEASE(this->output);
-      RELEASE(this->cachedResponse);
-      RELEASE(this->request);
+      if (this->input != nil)
+	{
+	  [this->input setDelegate: nil];
+	  [this->output setDelegate: nil];
+	  [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
+				 forMode: NSDefaultRunLoopMode];
+	  [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
+				  forMode: NSDefaultRunLoopMode];
+          [this->input close];
+          [this->output close];
+          DESTROY(this->input);
+          DESTROY(this->output);
+	}
+      DESTROY(this->cachedResponse);
+      DESTROY(this->request);
 #if	USE_ZLIB
       if (this->compressing == YES)
 	{
@@ -377,7 +388,7 @@ static NSURLProtocol	*placeholder = nil;
 	{
 	  inflateEnd(&this->z);
 	}
-      RELEASE(this->compressed);
+      DESTROY(this->compressed);
 #endif
       NSZoneFree([self zone], this);
       _NSURLProtocolInternal = 0;
@@ -701,6 +712,8 @@ static NSURLProtocol	*placeholder = nil;
   DESTROY(_writeData);
   if (this->input != nil)
     {
+      [this->input setDelegate: nil];
+      [this->output setDelegate: nil];
       [self _unschedule];
       [this->input close];
       [this->output close];
@@ -1074,6 +1087,8 @@ static NSURLProtocol	*placeholder = nil;
 	  [self _unschedule];
 	  if (_shouldClose == YES)
 	    {
+	      [this->input setDelegate: nil];
+	      [this->output setDelegate: nil];
 	      [this->input close];
 	      [this->output close];
 	      DESTROY(this->input);
@@ -1391,9 +1406,23 @@ static NSURLProtocol	*placeholder = nil;
 	    break;
 	}
     }
-  NSLog(@"An error %@ occurred on the event %08x of stream %@ of %@", [stream streamError], event, stream, self);
-  [self stopLoading];
-  [this->client URLProtocol: self didFailWithError: [stream streamError]];
+  else
+    {
+      NSLog(@"Unexpected event %d occurred on stream %@ not being used by %@",
+	event, stream, self);
+    }
+  if (event == NSStreamEventErrorOccurred)
+    {
+      NSLog(@"An error %@ occurred on stream %@ of %@",
+	[stream streamError], stream, self);
+      [self stopLoading];
+      [this->client URLProtocol: self didFailWithError: [stream streamError]];
+    }
+  else
+    {
+      NSLog(@"Unexpected event %d ignored on stream %@ of %@",
+	event, stream, self);
+    }
 }
 
 - (void) useCredential: (NSURLCredential*)credential
@@ -1480,6 +1509,8 @@ static NSURLProtocol	*placeholder = nil;
 {
   if (this->input)
     {
+      [this->input setDelegate: nil];
+      [this->output setDelegate: nil];
       [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
 			     forMode: NSDefaultRunLoopMode];
       [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
@@ -1521,9 +1552,23 @@ static NSURLProtocol	*placeholder = nil;
       NSLog(@"An event occurred on the output stream.");
   	// if successfully opened, send out FTP request header
     }
-  NSLog(@"An error %@ occurred on the event %08x of stream %@ of %@",
-    [stream streamError], event, stream, self);
-  [this->client URLProtocol: self didFailWithError: [stream streamError]];
+  else
+    {
+      NSLog(@"Unexpected event %d occurred on stream %@ not being used by %@",
+	event, stream, self);
+    }
+  if (event == NSStreamEventErrorOccurred)
+    {
+      NSLog(@"An error %@ occurred on stream %@ of %@",
+	[stream streamError], stream, self);
+      [self stopLoading];
+      [this->client URLProtocol: self didFailWithError: [stream streamError]];
+    }
+  else
+    {
+      NSLog(@"Unexpected event %d ignored on stream %@ of %@",
+	event, stream, self);
+    }
 }
 
 @end

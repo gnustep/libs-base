@@ -1,3 +1,8 @@
+2009-02-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m: Add some diagnostics and ensure that
+	delegates are removed from streams.
+
 2009-02-04  David Chisnall <csdavec@swansea.ac.uk>
 
 	* Source/GSArray.m: Firther fast enumeration bugfixes.
