@@ -1,3 +1,8 @@
+2009-02-04 15:00-EST Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUnarchiver.m: Correct issue with printing class name
+	when the unarchiver can't find the class.
+
 2009-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMapTable.m:
