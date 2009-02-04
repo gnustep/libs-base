@@ -1,6 +1,12 @@
+2009-02-04  David Chisnall <csdavec@swansea.ac.uk>
+
+	* Source/GSArray.m: Firther fast enumeration bugfixes.
+	* Source/GSEnumerator.m: ditto.
+
 2009-02-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSZone.m: restore binary compatibility with earlier code.
+	Thanks to David Chisnall for the idea.
 
 2009-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 

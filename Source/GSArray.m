@@ -373,8 +373,11 @@ static Class	GSInlineArrayClass;
 				     count: (NSUInteger)len
 {
   /* For immutable arrays we can return the contents pointer directly. */
-  state->itemsPtr = _contents_array;
-  return _count;
+  NSUInteger count = _count - state->state;
+  state->mutationsPtr = (unsigned long *)self;
+  state->itemsPtr = _contents_array + state->state;
+  state->state += count;
+  return count;
 }
 @end
 
@@ -903,15 +906,15 @@ static Class	GSInlineArrayClass;
    * iteration.   If it changes during the iteration then
    * objc_enumerationMutation() will be called, throwing an exception.
    */
-  state->mutationsPtr = (unsigned long*)_version;
+  state->mutationsPtr = (unsigned long *)&_version;
   count = MIN(len, _count - state->state);
   /* If a mutation has occurred then it's possible that we are being asked to
    * get objects from after the end of the array.  Don't pass negative values
    * to memcpy.
    */
-  if (count <= 0)
+  if (count >= 0)
     {
-      memcpy(stackbuf, _contents_array, count);
+      memcpy(stackbuf, _contents_array + state->state, count * sizeof(id));
       state->state += count;
     }
   else

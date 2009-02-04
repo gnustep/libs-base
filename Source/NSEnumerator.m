@@ -81,6 +81,8 @@
   IMP nextObject = [self methodForSelector: @selector(nextObject)];
   int i;
 
+  state->itemsPtr = stackbuf;
+  state->mutationsPtr = (unsigned long*)self;
   for (i = 0; i < len; i++)
     {
       id next = nextObject(self, @selector(nextObject));
@@ -91,7 +93,6 @@
 	}
       *(stackbuf+i) = next;
     }
-  state->itemsPtr = stackbuf;
   return len;
 }
 @end
