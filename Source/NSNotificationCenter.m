@@ -584,7 +584,7 @@ static NSNotificationCenter *default_center = nil;
   if (self == [NSNotificationCenter class])
     {
 #if	GS_WITH_GC
-      _zone = GSScannedMallocZone();
+      _zone = GSIMapStrongKeyAndVal;
 #else
       _zone = NSDefaultMallocZone();
 #endif

@@ -950,7 +950,7 @@ static NSLock	*cached_proxies_gate = nil;
   _requestQueue = [NSMutableArray new];
 
 #if	GS_WITH_GC
-  z = GSScannedMallocZone();
+  z = GSIMapStrongKeyAndVal;
 #endif
   /*
    * This maps request sequence numbers to the NSPortCoder objects representing

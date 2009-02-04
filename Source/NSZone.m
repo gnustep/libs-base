@@ -1770,11 +1770,6 @@ static NSZone atomic_zone =
   0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
 };
 
-static NSZone scanned_zone =
-{
-  0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
-};
-
 void *
 NSAllocateCollectable(NSUInteger size, NSUInteger options)
 {
@@ -1863,12 +1858,6 @@ GSAtomicMallocZone (void)
 }
 
 NSZone*
-GSScannedMallocZone (void)
-{
-  return &scanned_zone;
-}
-
-NSZone*
 NSZoneFromPointer (void *ptr)
 {
   return &default_zone;
@@ -1952,10 +1941,6 @@ NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
     {
       ptr = (void*)GC_MALLOC_ATOMIC(size);
     }
-  else if (zone == &scanned_zone)
-    {
-      ptr = (void*)GC_MALLOC(size);
-    }
   else
     {
       ptr = (void*)malloc(size);
@@ -2008,12 +1993,6 @@ NSDefaultMallocZone (void)
 
 NSZone*
 GSAtomicMallocZone (void)
-{
-  return &default_zone;
-}
-
-NSZone*
-GSScannedMallocZone (void)
 {
   return &default_zone;
 }

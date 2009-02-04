@@ -231,13 +231,6 @@ GS_EXPORT NSZone*
 GSAtomicMallocZone (void);
 
 /**
- * Returns the default zone used for scanned memory allocation ... a
- * garbage collectable chunk of memory which is scanned for pointers.
- */
-GS_EXPORT NSZone*
-GSScannedMallocZone (void);
-
-/**
  * Called during +initialize to tell the class that instances created
  * in future should have the specified instance variable as a weak
  * pointer for garbage collection.<br />

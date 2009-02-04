@@ -275,7 +275,11 @@ static void _setup(void)
       NSMutableArray	*a;
       NSDictionary	*d;
 
-      GSIMapInitWithZoneAndCapacity(&attrMap, GSScannedMallocZone(), 32);
+#if	GS_WITH_GC
+      GSIMapInitWithZoneAndCapacity(&attrMap, GSIMapStrongKeyAndVal, 32);
+#else
+      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
+#endif
 
       infSel = @selector(newWithZone:value:at:);
       addSel = @selector(addObject:);

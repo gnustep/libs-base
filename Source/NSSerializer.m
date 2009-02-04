@@ -158,7 +158,7 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
   if (u)
     {
 #if	GS_WITH_GC
-      GSIMapInitWithZoneAndCapacity(&info->map, GSScannedMallocZone(), 16);
+      GSIMapInitWithZoneAndCapacity(&info->map, GSIMapStrongKeyAndVal, 16);
 #else
       GSIMapInitWithZoneAndCapacity(&info->map, NSDefaultMallocZone(), 16);
 #endif

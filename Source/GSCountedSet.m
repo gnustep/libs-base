@@ -184,7 +184,7 @@
 - (id) initWithCapacity: (unsigned)cap
 {
 #if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), cap);
+  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, cap);
 #else
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
 #endif
@@ -204,7 +204,7 @@
   (*imp)(aCoder, sel, utype, &count);
 
 #if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), count);
+  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, count);
 #else
   GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
 #endif

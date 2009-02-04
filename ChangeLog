@@ -1,5 +1,26 @@
 2009-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSMapTable.m:
+	* Source/NSHashTable.m:
+	* Source/NSPortCoder.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSGarbageCollector.m:
+	* Source/NSZone.m:
+	* Source/GSDictionary.m:
+	* Source/GSCountedSet.m:
+	* Source/GSAttributedString.m:
+	* Source/NSNotificationCenter.m:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/GSSet.m:
+	* Source/NSConnection.m:
+	* Source/NSSerializer.m:
+	* Source/NSArchiver.m:
+	* Headers/Foundation/NSZone.h:
+	* Headers/Additions/GNUstepBase/GSIMap.h:
+	Scrap GSScannedMallocZone().. not really needed.
+
+2009-02-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLProtocol.m: Add some diagnostics and ensure that
 	delegates are removed from streams.
 	* Source/NSURLConnection.m: Add diagnostics for redirect.

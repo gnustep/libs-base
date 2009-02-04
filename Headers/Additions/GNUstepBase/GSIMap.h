@@ -207,7 +207,7 @@ extern "C" {
 #define	GSIMapWeakKeyAndVal	((NSZone*)3)
 
 static BOOL			_GSIMapSetup = NO;
-static NSZone			*_GSIMapUnscannedZone = 0;
+static NSGarbageCollector	*_collector = nil;
 
 /*
  *  Description of the datastructure
@@ -433,7 +433,7 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
    * them freed - so we must keep the array of pointers to memory chunks in
    * scanned memory.
    */
-  if (_GSIMapUnscannedZone == 0)
+  if (_collector == nil)
     {
       newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
     }
@@ -471,7 +471,7 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
 	  chunkCount = required;
 	}
       chunkSize = chunkCount * sizeof(GSIMapNode_t);
-      if (_GSIMapUnscannedZone == 0)
+      if (_collector == nil)
 	{
           newNodes = (GSIMapNode)NSZoneMalloc(map->zone, chunkSize);
 	}
@@ -637,7 +637,7 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
   /*
    *	Make a new set of buckets for this map
    */
-  if (_GSIMapUnscannedZone == 0)
+  if (_collector == nil)
     {
       /* Use the zone specified for this map.
        */
@@ -953,10 +953,7 @@ GSIMapSetup()
 {
   if (_GSIMapSetup == NO)
     {
-      if ([NSGarbageCollector defaultCollector] != nil)
-	{
-          _GSIMapUnscannedZone = [[NSGarbageCollector defaultCollector] zone];
-	}
+      _collector = [NSGarbageCollector defaultCollector];
       _GSIMapSetup = YES;
     }
 }
@@ -965,9 +962,9 @@ static INLINE void
 GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
 {
   GSIMapSetup();
-  if (_GSIMapUnscannedZone != 0 && (uintptr_t)zone > 3)
+  if (_collector != nil && (uintptr_t)zone > 3)
     {
-      if (zone == _GSIMapUnscannedZone)
+      if (zone == GSAtomicMallocZone())
 	{
 	  map->zone = GSIMapWeakKeyAndVal;	// Unscanned memory
 	}

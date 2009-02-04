@@ -160,7 +160,7 @@ static SEL	objSel;
 	                         at: &count];
 
 #if	GS_WITH_GC
-      GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), count);
+      GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, count);
 #else
       GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
 #endif
@@ -180,7 +180,7 @@ static SEL	objSel;
   unsigned int	i;
 
 #if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), c);
+  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, c);
 #else
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
 #endif
@@ -223,15 +223,14 @@ static SEL	objSel;
 - (id) initWithDictionary: (NSDictionary*)other
 		copyItems: (BOOL)shouldCopy
 {
-  NSZone	*z;
+  NSZone	*z = GSObjCZone(self);
   unsigned	c = [other count];
 
 #if	GS_WITH_GC
-  z = GSScannedMallocZone();
+  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, c);
 #else
-  z = GSObjCZone(self);
-#endif
   GSIMapInitWithZoneAndCapacity(&map, z, c);
+#endif
 
   if (c > 0)
     {
@@ -384,7 +383,7 @@ static SEL	objSel;
 - (id) initWithCapacity: (unsigned)cap
 {
 #if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSScannedMallocZone(), cap);
+  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, cap);
 #else
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), cap);
 #endif
