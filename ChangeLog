@@ -2,6 +2,7 @@
 
 	* Source/NSURLProtocol.m: Add some diagnostics and ensure that
 	delegates are removed from streams.
+	* Source/NSURLConnection.m: Add diagnostics for redirect.
 
 2009-02-04  David Chisnall <csdavec@swansea.ac.uk>
 

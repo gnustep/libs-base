@@ -23,6 +23,7 @@
    */ 
 
 #import <Foundation/NSRunLoop.h>
+#import <Foundation/NSDebug.h>
 #import "GSURLPrivate.h"
 
 
@@ -144,6 +145,7 @@ typedef struct
   NSURLRequest			*_request;
   NSURLProtocol			*_protocol;
   id				_delegate;	// Not retained
+  BOOL				_debug;
 } Internal;
  
 typedef struct {
@@ -160,8 +162,13 @@ typedef struct {
 
   if (o != nil)
     {
+#if	GS_WITH_GC
+      o->_NSURLConnectionInternal
+	= NSAllocateCollectable(sizeof(Internal), NSScannedOption);
+#else
       o->_NSURLConnectionInternal = NSZoneCalloc(GSObjCZone(self),
 	1, sizeof(Internal));
+#endif
     }
   return o;
 }
@@ -180,6 +187,12 @@ typedef struct {
   return AUTORELEASE(o);
 }
 
+- (void) cancel
+{
+  [this->_protocol stopLoading];
+  DESTROY(this->_protocol);
+}
+
 - (void) dealloc
 {
   if (this != 0)
@@ -192,10 +205,12 @@ typedef struct {
   [super dealloc];
 }
 
-- (void) cancel
+- (void) finalize
 {
-  [this->_protocol stopLoading];
-  DESTROY(this->_protocol);
+  if (this != 0)
+    {
+      [self cancel];
+    }
 }
 
 - (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate
@@ -209,6 +224,7 @@ typedef struct {
 	cachedResponse: nil
 	client: (id<NSURLProtocolClient>)self];
       [this->_protocol startLoading];
+      this->_debug = GSDebugSet(@"NSURLConnection");
     }
   return self;
 }
@@ -347,17 +363,30 @@ typedef struct {
   wasRedirectedToRequest: (NSURLRequest *)request
   redirectResponse: (NSURLResponse *)redirectResponse
 {
+  if (this->_debug)
+    {
+      NSLog(@"%@ tell delegate %@ about redirect to %@ as a result of %@",
+        self, this->_delegate, request, redirectResponse);
+    }
   request = [this->_delegate connection: self
 			willSendRequest: request
 		       redirectResponse: redirectResponse];
   if (this->_protocol == nil)
     {
+      if (this->_debug)
+	{
+          NSLog(@"%@ delegate cancelled request", self);
+	}
       /* Our protocol is nil, so we have been cancelled by the delegate.
        */
       return;
     }
   if (request != nil)
     {
+      if (this->_debug)
+	{
+          NSLog(@"%@ delegate allowed redirect to %@", self, request);
+	}
       /* Follow the redirect ... stop the old load and start a new one.
        */
       [this->_protocol stopLoading];
@@ -368,6 +397,10 @@ typedef struct {
 	cachedResponse: nil
 	client: (id<NSURLProtocolClient>)self];
       [this->_protocol startLoading];
+    }
+  else if (this->_debug)
+    {
+      NSLog(@"%@ delegate cancelled redirect", self);
     }
 }
 
