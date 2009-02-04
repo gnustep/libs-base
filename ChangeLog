@@ -4,6 +4,9 @@
 	nonretainedObjectValue  to hold classes ... because the garbage
 	collector might collect the latter, and we really just need to
 	hold references to classes without sending messages to them.
+	* Headers/Additions/GNUstepBase/GSIArray.h: Alterations for noe
+	Apple GC API
+	* Source/NSIndexSet.m: Use scanned memory for arrays.
 
 2009-02-04 15:00-EST Gregory John Casamento <greg_casamento@yahoo.com>
 
