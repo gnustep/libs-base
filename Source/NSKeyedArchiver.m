@@ -810,7 +810,7 @@ static NSDictionary *makeReference(unsigned ref)
        *	Set up map tables.
        */
 #if	GS_WITH_GC
-      zone = GSScannedMallocZone();
+      zone = GSIMapStrongKeyAndVal;
 #endif
       _cIdMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*5);
       _uIdMap = &_cIdMap[1];

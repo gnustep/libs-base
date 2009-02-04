@@ -208,7 +208,7 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
     }
 
 #if	GS_WITH_GC
-  zone = GSScannedMallocZone();
+  zone = GSIMapStrongKeyAndVal;
 #endif
   t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
@@ -274,7 +274,7 @@ NSCreateMapTableWithZone(
   GSIMapTable	table;
 
 #if	GS_WITH_GC
-  zone = GSScannedMallocZone();
+  zone = GSIMapStrongKeyAndVal;
 #endif
   table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(table, zone, capacity);

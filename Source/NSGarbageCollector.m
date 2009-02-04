@@ -87,8 +87,7 @@ static NSHashTable	*uncollectable = 0;
   [lock lock];
   if (uncollectable == 0)
     {
-      uncollectable = NSCreateHashTableWithZone(NSOwnedPointerHashCallBacks,
-	0, GSScannedMallocZone());
+      uncollectable = NSCreateHashTable(NSOwnedPointerHashCallBacks, 0);
     }
   NSHashInsertIfAbsent(uncollectable, ptr);
   [lock unlock];
