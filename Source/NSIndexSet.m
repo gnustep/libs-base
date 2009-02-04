@@ -721,8 +721,14 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	}
       else
 	{
+#if	GS_WITH_GC
+	  _data = (GSIArray)NSAllocateCollectable(sizeof(GSIArray_t),
+	    NSScannedOption);
+	  GSIArrayInitWithZoneAndCapacity(_array, 0, 1);
+#else
 	  _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
 	  GSIArrayInitWithZoneAndCapacity(_array, [self zone], 1);
+#endif
 	  GSIArrayAddItem(_array, (GSIArrayItem)aRange);
 	}
     }
@@ -743,8 +749,14 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	{
 	  unsigned	i;
 
+#if	GS_WITH_GC
+	  _data = (GSIArray)NSAllocateCollectable(sizeof(GSIArray_t),
+	    NSScannedOption);
+	  GSIArrayInitWithZoneAndCapacity(_array, 0, 1);
+#else
 	  _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
 	  GSIArrayInitWithZoneAndCapacity(_array, [self zone], count);
+#endif
 	  for (i = 0; i < count; i++)
 	    {
 	      GSIArrayAddItem(_array, GSIArrayItemAtIndex(_other, i));
@@ -888,8 +900,14 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   if (_array == 0)
     {
+#if	GS_WITH_GC
+      _data = (GSIArray)NSAllocateCollectable(sizeof(GSIArray_t),
+	NSScannedOption);
+      GSIArrayInitWithZoneAndCapacity(_array, 0, 1);
+#else
       _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(_array, [self zone], 1);
+#endif
     }
 
   pos = posForIndex(_array, aRange.location);
