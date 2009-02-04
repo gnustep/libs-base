@@ -3,6 +3,7 @@
 	* Source/NSURLProtocol.m: Add some diagnostics and ensure that
 	delegates are removed from streams.
 	* Source/NSURLConnection.m: Add diagnostics for redirect.
+	* Source/GSStream.m: Set delegate to nil after failure.
 
 2009-02-04  David Chisnall <csdavec@swansea.ac.uk>
 

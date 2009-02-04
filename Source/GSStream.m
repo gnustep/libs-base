@@ -275,17 +275,22 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) setDelegate: (id)delegate
 {
-  if (delegate)
+  if ([self streamStatus] == NSStreamStatusClosed
+    || [self streamStatus] == NSStreamStatusError)
     {
-      _delegate = delegate;
+      _delegateValid = NO;
+      _delegate = nil;
     }
   else
     {
-      _delegate = self;
-    }
-  if ([self streamStatus] != NSStreamStatusClosed
-    && [self streamStatus] != NSStreamStatusError)
-    {
+      if (delegate)
+	{
+	  _delegate = delegate;
+	}
+      else
+	{
+	  _delegate = self;
+	}
       /* We don't want to send any events the the delegate after the
        * stream has been closed.
        */
