@@ -281,9 +281,16 @@ static Observation *obsNew(NCTable* t)
 	  unsigned	size;
 
 	  t->numChunks++;
+
 	  size = t->numChunks * sizeof(Observation*);
+#if	GS_WITH_GC
+	  t->chunks = (Observation**)NSReallocateCollectable(
+	    t->chunks, size, NSScannedOption);
+#else
 	  t->chunks = (Observation**)NSZoneRealloc(NSDefaultMallocZone(),
 	    t->chunks, size);
+#endif
+
 	  size = CHUNKSIZE * sizeof(Observation);
 #if	GS_WITH_GC
 	  t->chunks[t->numChunks - 1]
@@ -327,7 +334,9 @@ static GSIMapTable	mapNew(NCTable *t)
 static void	mapFree(NCTable *t, GSIMapTable m)
 {
   if (t->cacheIndex < CACHESIZE)
-    t->cache[t->cacheIndex++] = m;
+    {
+      t->cache[t->cacheIndex++] = m;
+    }
   else
     {
       GSIMapEmptyMap(m);
