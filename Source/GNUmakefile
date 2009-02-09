@@ -265,6 +265,11 @@ NSURLHandle.m \
 NSUserDefaults.m \
 NSValue.m \
 NSValueTransformer.m \
+NSXMLDocument.m \
+NSXMLDTD.m \
+NSXMLDTDNode.m \
+NSXMLElement.m \
+NSXMLNode.m \
 NSXMLParser.m \
 NSZone.m \
 externs.m \
@@ -404,6 +409,12 @@ NSUserDefaults.h \
 NSUtilities.h \
 NSValue.h \
 NSValueTransformer.h \
+NSXMLDocument.h \
+NSXMLDTD.h \
+NSXMLDTDNode.h \
+NSXMLElement.h \
+NSXMLNode.h \
+NSXMLNodeOptions.h \
 NSXMLParser.h \
 NSZone.h
 

@@ -122,6 +122,12 @@ NSURLResponse.h \
 NSUserDefaults.h \
 NSValue.h \
 NSValueTransformer.h \
+NSXMLDocument.h \
+NSXMLDTD.h \
+NSXMLDTDNode.h \
+NSXMLElement.h \
+NSXMLNode.h \
+NSXMLNodeOptions.h \
 NSXMLParser.h \
 NSZone.h
 

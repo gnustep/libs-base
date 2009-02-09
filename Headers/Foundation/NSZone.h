@@ -237,7 +237,7 @@ GSAtomicMallocZone (void);
  * NB. making a pointer weak does not mean that it is automatically
  * zeroed when the object it points to is garbage collected. To get that
  * behavior you must asign values to the pointer using the
- * GSAssignZeroingWeakPointer() function.<rb />
+ * GSAssignZeroingWeakPointer() function.<br />
  * This function has no effect if the system is
  * not built for garbage collection.
  */

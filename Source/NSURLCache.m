@@ -159,11 +159,13 @@ static NSURLCache	*shared = nil;
 
 - (void) setDiskCapacity: (unsigned)diskCapacity
 {
+  [self notImplemented: _cmd];
   // FIXME
 }
 
 - (void) setMemoryCapacity: (unsigned)memoryCapacity
 {
+  [self notImplemented: _cmd];
   // FIXME
 }
 

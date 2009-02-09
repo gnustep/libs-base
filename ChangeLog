@@ -1,5 +1,37 @@
 2009-02-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSArray.m: Implement new methods for inserting and replacing
+	objects at indexes in an NSIndexSet.
+	* Headers/Foundation/NSObject.h: Minor whitespace fix
+	* Source/NSNetServices.m: Mark unimplemented method.
+	* Headers/Foundation/NSXMLDocument.h: new class
+	* Headers/Foundation/NSXMLNode.h: new class
+	* Headers/Foundation/NSXMLNodeOptions.h: new class
+	* Headers/Foundation/NSXMLDTD.h: new class
+	* Headers/Foundation/NSXMLDTDNode.h: new class
+	* Headers/Foundation/NSXMLElement.h: new class
+	* Headers/Foundation/Foundation.h: Add new class headers
+	* Source/NSXMLDocument.m: skeleton of class
+	* Source/NSXMLDTD.m: skeleton of class
+	* Source/NSXMLNode.m: skeleton of class
+	* Source/NSXMLDTDNode.m: skeleton of class
+	* Source/NSXMLElement.m: skeleton of class
+	* Source/NSXMLPrivate.h: Private header for all NSXMLNode based stuff.
+	* Source/GNUmakefile: Add new NSXML classes
+	* Source/DocMakefile: ditto
+	Mostly, add the (unimplemented) XML classes introduced in the latest
+	version of MacOS-X.  Currently the classes are unimplemented method
+	stubs, but the idea is to wrap libxml2 in a similar way to that in
+	which GSXML does it.
+	NB. The current ivar layout is reverse engineered from MacOS-X on the
+	assumption that we will try to be extremely compatible and use the
+	same (inferred) mechanism of having the libxml2 tree be the master
+	data and only using the objc ivars to cache information when we
+	retrieve it in the form of NSStrings etc. Maybe we will chose to
+	do something different later.
+
+2009-02-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSObjCRuntime.m: Correct error comparing method
 	signatures.  Fixes bug #25520
 

@@ -1673,11 +1673,22 @@ compare(id elem1, id elem2, void* context)
   [self subclassResponsibility: _cmd];
 }
 
-/** Not implemented
+/** Replaces the values in the receiver at the locations given by the
+ * indexes set with values from the objects array.
  */
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
                      withObjects: (NSArray *)objects
 {
+  NSUInteger	index = [indexes firstIndex];
+  NSEnumerator	*enumerator = [objects objectEnumerator];
+  id		object = [enumerator nextObject];
+
+  while (object != nil && index != NSNotFound)
+    {
+      [self replaceObjectAtIndex: index withObject: object];
+      object = [enumerator nextObject];
+      index = [indexes indexGreaterThanIndex: index];
+    }
 }
 
 /**
@@ -1721,10 +1732,23 @@ compare(id elem1, id elem2, void* context)
   [self subclassResponsibility: _cmd];
 }
 
-/** Not implemented
+/** Inserts the values from the objects array into the receiver at the
+ * locations given by the indexes set.<br />
+ * The values are inserted in the same order that they appear in the
+ * array.
  */
 - (void) insertObjects: (NSArray *)objects atIndexes: (NSIndexSet *)indexes
 {
+  NSUInteger	index = [indexes firstIndex];
+  NSEnumerator	*enumerator = [objects objectEnumerator];
+  id		object = [enumerator nextObject];
+
+  while (object != nil && index != NSNotFound)
+    {
+      [self insertObject: object atIndex: index];
+      object = [enumerator nextObject];
+      index = [indexes indexGreaterThanIndex: index];
+    }
 }
 
 /** <override-subclass />
