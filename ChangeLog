@@ -1,3 +1,8 @@
+2009-02-09  Matt Rice  <ratmice@gmail.com>
+
+	* Headers/Foundation/NSZone.h (GSMakeWeakPointer): Rename class
+	variable to theClass for objc++.
+
 2009-02-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: Implement new methods for inserting and replacing
