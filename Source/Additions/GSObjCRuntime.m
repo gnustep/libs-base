@@ -1129,10 +1129,10 @@ GSSelectorTypesMatch(const char *types1, const char *types2)
       /* Ignore structure name yet compare layout.  */
       if (*types1 == '{' && *types2 == '{')
 	{
-	  while (*types1 != '=')
+	  while (*types1 != '=' && *types1 != '}')
 	    types1++;
 
-	  while (*types2 != '=')
+	  while (*types2 != '=' && *types2 != '}')
 	    types2++;
 	}
 
