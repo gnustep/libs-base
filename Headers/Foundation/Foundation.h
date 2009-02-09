@@ -124,6 +124,12 @@
 #import	<Foundation/NSUserDefaults.h>
 #import	<Foundation/NSValue.h>
 #import	<Foundation/NSValueTransformer.h>
+#import <Foundation/NSXMLDocument.h>
+#import <Foundation/NSXMLDTD.h>
+#import <Foundation/NSXMLDTDNode.h>
+#import <Foundation/NSXMLElement.h>
+#import <Foundation/NSXMLNode.h>
+#import <Foundation/NSXMLNodeOptions.h>
 #import	<Foundation/NSXMLParser.h>
 #import	<Foundation/NSZone.h>
 

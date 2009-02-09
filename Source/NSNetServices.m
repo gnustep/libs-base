@@ -2341,6 +2341,7 @@ static void DNSSD_API
 
 - (void) publishWithOptions: (NSNetServiceOptions)options
 {
+  [self notImplemented: _cmd];
 }
 
 /**

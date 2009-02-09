@@ -332,7 +332,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
  * (but cannot due to compiler constraint), and wants to make sure it is not
  * called by mistake.  Default implementation raises an exception at runtime.
  */
-- notImplemented:(SEL)aSel;
+- (id) notImplemented: (SEL)aSel;
 
 /**
  * Message sent when an implementation wants to explicitly require a subclass
