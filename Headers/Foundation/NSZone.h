@@ -242,7 +242,7 @@ GSAtomicMallocZone (void);
  * not built for garbage collection.
  */
 GS_EXPORT void
-GSMakeWeakPointer(Class class, const char *iVarName);
+GSMakeWeakPointer(Class theClass, const char *iVarName);
 
 /**
  * This function must be used to assign a value to a zeroing weak pointer.<br />
