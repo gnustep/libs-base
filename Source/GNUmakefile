@@ -225,6 +225,7 @@ NSPathUtilities.m \
 NSPipe.m \
 NSPointerArray.m \
 NSPointerFunctions.m \
+NSConcretePointerFunctions.m \
 NSPort.m \
 NSPortCoder.m \
 NSPortMessage.m \
