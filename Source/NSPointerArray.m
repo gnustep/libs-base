@@ -35,8 +35,33 @@
 #import "Foundation/NSKeyedArchiver.h"
 
 #import "GSPrivate.h"
+#import "NSConcretePointerFunctions.h"
+
+@class	NSConcretePointerArray;
+
+static Class	abstractClass = Nil;
+static Class	concreteClass = Nil;
+
 
 @implementation NSPointerArray
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (abstractClass == self)
+    {
+      return NSAllocateObject(concreteClass, 0, z);
+    }
+  return [super allocWithZone: z];
+}
+
++ (void) initialize
+{
+  if (abstractClass == Nil)
+    {
+      abstractClass = [NSPointerArray class];
+      concreteClass = [NSConcretePointerArray class];
+    }
+}
 
 + (id) pointerArrayWithOptions: (NSPointerFunctionsOptions)options
 {
@@ -93,6 +118,30 @@
 {
   [self subclassResponsibility: _cmd];
   return nil;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  NSUInteger	count;
+
+  if (other == self)
+    {
+      return YES;
+    }
+  if ([other isKindOfClass: abstractClass] == NO)
+    {
+      return NO;
+    }
+  if ([other hash] != [self hash])
+    {
+      return NO;
+    }
+  count = [self count];
+  while (count-- > 0)
+    {
+// FIXME
+    }
+  return YES;
 }
 
 - (void) addPointer: (void*)pointer
@@ -154,17 +203,17 @@
 
 @end
 
-@interface	GSPointerArray : NSPointerArray
+@interface	NSConcretePointerArray : NSPointerArray
 {
   NSUInteger		_count;
   void			**_contents_array;
   unsigned		_capacity;
   unsigned		_grow_factor;
-  NSPointerFunctions	*_functions;
+  NSConcretePointerFunctions	*_functions;
 }
 @end
 
-@implementation GSPointerArray
+@implementation NSConcretePointerArray
 
 - (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
 {
@@ -190,6 +239,11 @@
 - (id) copyWithZone: (NSZone*)zone
 {
   return RETAIN(self);	// FIXME
+}
+
+- (unsigned) count
+{
+  return _count;
 }
 
 - (void) dealloc
@@ -222,6 +276,11 @@
 				     at: _contents_array];
 	}
     }
+}
+
+- (unsigned) hash
+{
+  return _count;
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -257,14 +316,33 @@
   return self;
 }
 
-- (unsigned) count
+- (id) initWithOptions: (NSPointerFunctionsOptions)options
 {
-  return _count;
+  _functions = [[NSConcretePointerFunctions alloc] initWithOptions: options];
+  return self;
 }
 
-- (unsigned) hash
+- (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 {
-  return _count;
+  if ([functions class] == [NSConcretePointerFunctions class])
+    {
+      _functions = [functions copy];
+    }
+  else
+    {
+      _functions = [NSConcretePointerFunctions new];
+      [_functions setAcquireFunction: [functions acquireFunction]];
+      [_functions setDescriptionFunction: [functions descriptionFunction]];
+      [_functions setHashFunction: [functions hashFunction]];
+      [_functions setIsEqualFunction: [functions isEqualFunction]];
+      [_functions setRelinquishFunction: [functions relinquishFunction]];
+      [_functions setSizeFunction: [functions sizeFunction]];
+      [_functions setUsesStrongWriteBarrier:
+	[functions usesStrongWriteBarrier]];
+      [_functions setUsesWeakReadAndWriteBarriers:
+	[functions usesWeakReadAndWriteBarriers]];
+    }
+  return self;
 }
 
 - (void) insertPointer: (void*)pointer atIndex: (NSUInteger)index
@@ -292,5 +370,6 @@
   _contents_array[_count] = pointer;
   _count++;
 }
+
 @end
 

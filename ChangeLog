@@ -1,3 +1,12 @@
+2009-02-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcretePointerFunctions.h:
+	* Source/NSConcretePointerFunctions.m:
+	* Source/NSPointerFunctions.m:
+	* Source/NSPointerArray.m:
+	* Source/GNUmakefile:
+	Partial implementation of concrete pointer functions class.
+
 2009-02-09  Xavier Glattard <xavier.glattard@online.fr>
 
 	* Headers/Foundation/NSPredicate.h: 

@@ -23,48 +23,29 @@
 
    */ 
 
-#import	"Foundation/NSPointerFunctions.h"
+#import	"NSConcretePointerFunctions.h"
 
-typedef struct {
-  NSUInteger	options;
-
-  void* (*acquireFunction)(const void *item,
-    NSUInteger (*size)(const void *item), BOOL shouldCopy);
-
-  NSString *(*descriptionFunction)(const void *item);
-
-  NSUInteger (*hashFunction)(const void *item,
-    NSUInteger (*size)(const void *item));
-
-  BOOL (*isEqualFunction)(const void *item1, const void *item2,
-    NSUInteger (*size)(const void *item));
-
-  void (*relinquishFunction)(const void *item,
-    NSUInteger (*size)(const void *item));
-
-  NSUInteger (*sizeFunction)(const void *item);
-
-  BOOL usesStrongWriteBarrier;
-
-  BOOL usesWeakReadAndWriteBarriers;
-} _internal;
-
-#define	_options		((_internal*)(self+1))->options
-#define	_acquireFunction	((_internal*)(self+1))->acquireFunction
-#define	_descriptionFunction	((_internal*)(self+1))->descriptionFunction
-#define	_hashFunction		((_internal*)(self+1))->hashFunction
-#define	_isEqualFunction	((_internal*)(self+1))->isEqualFunction
-#define	_relinquishFunction	((_internal*)(self+1))->relinquishFunction
-#define	_sizeFunction		((_internal*)(self+1))->sizeFunction
-#define	_usesStrongWriteBarrier	((_internal*)(self+1))->usesStrongWriteBarrier
-#define	_usesWeakReadAndWriteBarriers	((_internal*)(self+1))->usesWeakReadAndWriteBarriers
-
+static Class	abstractClass = Nil;
+static Class	concreteClass = Nil;
 
 @implementation NSPointerFunctions
 
 + (id) allocWithZone: (NSZone*)zone
 {
-  return (id) NSAllocateObject(self, sizeof(_internal), zone);
+  if (self == abstractClass)
+    {
+      return (id) NSAllocateObject(concreteClass, 0, zone);
+    }
+  return [super allocWithZone: zone];
+}
+
++ (void) initialize
+{
+  if (abstractClass == nil)
+    {
+      abstractClass = [NSPointerFunctions class];
+      concreteClass = [NSConcretePointerFunctions class];
+    }
 }
 
 + (id) pointerFunctionsWithOptions: (NSPointerFunctionsOptions)options
@@ -74,101 +55,108 @@ typedef struct {
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  return NSCopyObject(self, sizeof(_internal), zone);
+  return NSCopyObject(self, 0, zone);
 }
 
 - (id) initWithOptions: (NSPointerFunctionsOptions)options
 {
-  _options = options;
-  return self;
+  return [self subclassResponsibility: _cmd];
 }
 
 - (void* (*)(const void *item,
   NSUInteger (*size)(const void *item), BOOL shouldCopy)) acquireFunction
 {
-  return _acquireFunction;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (NSString *(*)(const void *item)) descriptionFunction
 {
-  return _descriptionFunction;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (NSUInteger (*)(const void *item,
   NSUInteger (*size)(const void *item))) hashFunction
 {
-  return _hashFunction;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (BOOL (*)(const void *item1, const void *item2,
   NSUInteger (*size)(const void *item))) isEqualFunction
 {
-  return _isEqualFunction;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (void (*)(const void *item,
   NSUInteger (*size)(const void *item))) relinquishFunction
 {
-  return _relinquishFunction;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (void) setAcquireFunction: (void* (*)(const void *item,
   NSUInteger (*size)(const void *item), BOOL shouldCopy))func
 {
-  _acquireFunction = func;
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) setDescriptionFunction: (NSString *(*)(const void *item))func
 {
-  _descriptionFunction = func;
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) setHashFunction: (NSUInteger (*)(const void *item,
   NSUInteger (*size)(const void *item)))func
 {
-  _hashFunction = func;
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) setIsEqualFunction: (BOOL (*)(const void *item1, const void *item2,
   NSUInteger (*size)(const void *item)))func
 {
-  _isEqualFunction = func;
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) setRelinquishFunction: (void (*)(const void *item,
   NSUInteger (*size)(const void *item))) func
 {
-  _relinquishFunction = func;
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) setSizeFunction: (NSUInteger (*)(const void *item))func
 {
-  _sizeFunction = func;
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) setUsesStrongWriteBarrier: (BOOL)flag
 {
-  _usesStrongWriteBarrier = flag;
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) setUsesWeakReadAndWriteBarriers: (BOOL)flag
 {
-  _usesWeakReadAndWriteBarriers = flag;
+  [self subclassResponsibility: _cmd];
 }
 
 - (NSUInteger (*)(const void *item)) sizeFunction
 {
-  return _sizeFunction;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (BOOL) usesStrongWriteBarrier
 {
-  return _usesStrongWriteBarrier;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (BOOL) usesWeakReadAndWriteBarriers
 {
-  return _usesStrongWriteBarrier;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 @end
