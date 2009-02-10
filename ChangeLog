@@ -1,3 +1,8 @@
+2009-02-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePortNameServer.m: Fix GC error on windows
+	as reported by Ly Liyi
+
 2009-02-09  Matt Rice  <ratmice@gmail.com>
 
 	* Headers/Foundation/NSZone.h (GSMakeWeakPointer): Rename class

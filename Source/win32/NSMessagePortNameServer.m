@@ -76,7 +76,7 @@ static void clean_up_names(void)
       [defaultServer removePort: port];
     }
   NSEndMapTableEnumeration(&mEnum);
-  DESTROY(arp);
+  IF_NO_GC([arp release]);
   RegCloseKey(key);
   if (unknownThread == YES)
     {
