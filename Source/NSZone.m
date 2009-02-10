@@ -1918,10 +1918,10 @@ GSAssignZeroingWeakPointer(void **destination, void *source)
     }
   if (*destination != 0)
     {
-      GC_unregister_disappearing_link((GC_PTR*)destination);
+      GC_unregister_disappearing_link(destination);
     }
   *destination = source;
-  GC_general_register_disappearing_link((GC_PTR*)destination, source);
+  GC_general_register_disappearing_link(destination, source);
   return YES;
 }
 

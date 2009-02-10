@@ -756,7 +756,7 @@ gnustep_base_thread_callback(void)
       {
 	int	result;
 
-	result = GC_register_my_thread(base);
+	result = GC_register_my_thread(&base);
 	if (result != GC_SUCCESS && result != GC_DUPLICATE)
 	  {
 	    fprintf(stderr, "Argh ... no thread support in garbage collection library\n");
