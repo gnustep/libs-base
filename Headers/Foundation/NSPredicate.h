@@ -30,6 +30,7 @@
 
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSArray.h>
+#import	<Foundation/NSSet.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -59,6 +60,20 @@ extern "C" {
 
 @interface NSMutableArray (NSPredicate)
 /** Evaluate each object in the array using the specified predicate and
+ * remove each objects which evaluates to NO.
+ */
+- (void) filterUsingPredicate: (NSPredicate *)predicate;
+@end
+
+@interface NSSet (NSPredicate)
+/** Evaluate each object in the set using the specified predicate and
+ * return an set containing all the objects which evaluate to YES.
+ */
+- (NSSet *) filteredSetUsingPredicate: (NSPredicate *)predicate;
+@end
+
+@interface NSMutableSet (NSPredicate)
+/** Evaluate each object in the set using the specified predicate and
  * remove each objects which evaluates to NO.
  */
 - (void) filterUsingPredicate: (NSPredicate *)predicate;
