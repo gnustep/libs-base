@@ -1,3 +1,11 @@
+2009-02-09  Xavier Glattard <xavier.glattard@online.fr>
+
+	* Headers/Foundation/NSPredicate.h: 
+	* Source/NSPredicate.m: Declare and implement two new methods for
+	filtering NSSet: 
+	  * [-filterUsingPredicate:]
+	  * [+filteredSetUsingPredicate:]
+
 2009-02-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/NSMessagePortNameServer.m: Fix GC error on windows

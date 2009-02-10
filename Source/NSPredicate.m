@@ -1534,6 +1534,48 @@
 
 @end
 
+@implementation NSSet (NSPredicate)
+
+- (NSSet *) filteredSetUsingPredicate: (NSPredicate *)predicate
+{
+  NSMutableSet	*result;
+  NSEnumerator	*e = [self objectEnumerator];
+  id		object;
+
+  result = [NSMutableSet setWithCapacity: [self count]];
+  while ((object = [e nextObject]) != nil)
+    {
+      if ([predicate evaluateWithObject: object] == YES)
+        {
+          [result addObject: object];  // passes filter
+        }
+    }
+  return [result makeImmutableCopyOnFail: NO];
+}
+
+@end
+
+@implementation NSMutableSet (NSPredicate)
+
+- (void) filterUsingPredicate: (NSPredicate *)predicate
+{
+  NSMutableSet	*rejected;
+  NSEnumerator	*e = [self objectEnumerator];
+  id		object;
+
+  rejected = [NSMutableSet setWithCapacity: [self count]];
+  while ((object = [e nextObject]) != nil)
+    {
+      if ([predicate evaluateWithObject: object] == NO)
+        {
+          [rejected addObject: object];
+        }
+    }
+  [self minusSet: rejected];
+}
+
+@end
+
 
 
 @implementation GSPredicateScanner
