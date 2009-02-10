@@ -1081,12 +1081,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       // See libgnustep-base-entry.m
       extern void gnustep_base_socket_init(void);	
       gnustep_base_socket_init();	
-#else
-
-#if	GS_WITH_GC
-      finalize_sel = @selector(finalize);
-      finalize_imp = get_imp(self, finalize_sel);
-#endif
+#else /* __MINGW32__ */
 
 #ifdef	SIGPIPE
     /*
@@ -1116,7 +1111,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 	    fprintf(stderr, "Unable to retrieve information about SIGPIPE\n");
 	  }
       }
-#else
+#else /* HAVE_SIGACTION */
       {
 	void	(*handler)(int);
 
@@ -1126,8 +1121,13 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 	    signal(SIGPIPE, handler);
 	  }
       }
-#endif
-#endif
+#endif /* HAVE_SIGACTION */
+#endif /* SIGPIPE */
+#endif /* __MINGW32__ */
+
+#if	GS_WITH_GC
+      finalize_sel = @selector(finalize);
+      finalize_imp = get_imp(self, finalize_sel);
 #endif
 
 #if defined(__FreeBSD__) && defined(__i386__)
