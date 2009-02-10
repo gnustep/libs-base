@@ -393,6 +393,13 @@ gnustep_base_thread_callback(void)
 	   * threaded BEFORE sending the notifications.
 	   */
 	  entered_multi_threaded_state = YES;
+#if	GS_WITH_GC && defined(HAVE_GC_ALLOW_REGISTER_THREADS)
+	  /* This function needs to be called before going multi-threaded
+	   * so that the garbage collection library knows to support
+	   * registration of new threads.
+	   */
+	  GS_allow_register_threads();
+#endif
 	  NS_DURING
 	    {
 	      [GSPerformHolder class];	// Force initialization
@@ -742,8 +749,26 @@ gnustep_base_thread_callback(void)
     }
 
 #if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
-  GC_register_my_thread();
+  {
+    struct GC_stack_base	base;
+
+    if (GC_get_stack_base(&base) == GC_SUCCESS)
+      {
+	int	result;
+
+	result = GC_register_my_thread(base);
+	if (result != GC_SUCCESS && result != GC_DUPLICATE)
+	  {
+	    fprintf(stderr, "Argh ... no thread support in garbage collection library\n");
+	  }
+      }
+    else
+      {
+	fprintf(stderr, "Unable to determine stack base to register new thread for garbage collection\n");
+      }
+  }
 #endif
+
 #if     defined(HAVE_SETRLIMIT) && defined(RLIMIT_STACK)
   if (_stackSize > 0)
     {
