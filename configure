@@ -3734,9 +3734,104 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_GC_REGISTER_MY_THREAD 1
 _ACEOF
 
-  else
-    { echo "$as_me:$LINENO: It looks like your libgc is quite old ... please consider using a newer one to support making the garbage collector aware of new threads.  You can get libgc source from http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc-source/ but NB. the libgc used must be compatible with the version of the objective-c runtime library that you are using." >&5
-echo "$as_me: It looks like your libgc is quite old ... please consider using a newer one to support making the garbage collector aware of new threads.  You can get libgc source from http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc-source/ but NB. the libgc used must be compatible with the version of the objective-c runtime library that you are using." >&6;}
+  fi
+  echo "$as_me:$LINENO: checking for GC_allow_register_threads" >&5
+echo $ECHO_N "checking for GC_allow_register_threads... $ECHO_C" >&6
+if test "${ac_cv_func_GC_allow_register_threads+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define GC_allow_register_threads to an innocuous variant, in case <limits.h> declares GC_allow_register_threads.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define GC_allow_register_threads innocuous_GC_allow_register_threads
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char GC_allow_register_threads (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef GC_allow_register_threads
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char GC_allow_register_threads ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_GC_allow_register_threads) || defined (__stub___GC_allow_register_threads)
+choke me
+#else
+char (*f) () = GC_allow_register_threads;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != GC_allow_register_threads;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_GC_allow_register_threads=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_func_GC_allow_register_threads=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_GC_allow_register_threads" >&5
+echo "${ECHO_T}$ac_cv_func_GC_allow_register_threads" >&6
+
+  if test "$ac_cv_func_GC_allow_register_threads" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GC_ALLOW_REGISTER_THREADS 1
+_ACEOF
+
   fi
   LIBS="-lobjc_gc -ldl"
   echo "$as_me:$LINENO: checking for class_ivar_set_gcinvisible" >&5

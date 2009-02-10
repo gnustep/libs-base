@@ -46,6 +46,9 @@
 /* Define if libobjc has the __objc_msg_forward2 function */
 #undef HAVE_FORWARD2
 
+/* Define if GC_allow_register_threads function is available */
+#undef HAVE_GC_ALLOW_REGISTER_THREADS
+
 /* Define to 1 if you have the <gc.h> header file. */
 #undef HAVE_GC_H
 
