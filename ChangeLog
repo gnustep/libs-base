@@ -4,6 +4,7 @@
 	as reported by Ly Liyi
 	* configure.ac: Check for new GC_allow_register_threads() function.
 	* Source/NSThread.m: Attempt to fix thread registration for GC.
+	* Source/NSObject.m: Initialise finalize on mingw as well as unix.
 
 2009-02-09  Matt Rice  <ratmice@gmail.com>
 
