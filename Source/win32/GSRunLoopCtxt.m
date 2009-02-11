@@ -151,19 +151,26 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
       mode = [theMode copy];
       extra = e;
+#if	GS_WITH_GC
+      performers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      timers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      watchers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      _trigger = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
       timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
+      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
+#endif
+      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
+      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
+      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
 
       handleMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
       winMsgMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
-      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
   return self;
 }
