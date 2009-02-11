@@ -179,12 +179,21 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
       mode = [theMode copy];
       extra = e;
+#if	GS_WITH_GC
+      performers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      timers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      watchers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      _trigger = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
       timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
+      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
+#endif
+      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
+      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
+      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
 
       _efdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				      WatcherMapValueCallBacks, 0);
@@ -192,8 +201,6 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				      WatcherMapValueCallBacks, 0);
       _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				      WatcherMapValueCallBacks, 0);
-      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
   return self;
 }
@@ -213,11 +220,21 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       pe->limit = fd + 1;
       if (pe->index == 0)
 	{
+#if	GS_WITH_GC
+	  pe->index
+	    = NSAllocateCollectable(pe->limit * sizeof(*(pe->index)), 0);
+#else
 	  pe->index = objc_malloc(pe->limit * sizeof(*(pe->index)));
+#endif
 	}
       else
 	{
+#if	GS_WITH_GC
+	  pe->index = NSReallocateCollectable(pe->index,
+	    pe->limit * sizeof(*(pe->index)), 0);
+#else
 	  pe->index = objc_realloc(pe->index, pe->limit * sizeof(*(pe->index)));
+#endif
 	}
       do
 	{
@@ -231,8 +248,13 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       if (ctxt->pollfds_count >= ctxt->pollfds_capacity)
 	{
 	  ctxt->pollfds_capacity += 8;
+#if	GS_WITH_GC
+	  pollfds = NSReallocateCollectable(pollfds,
+	    ctxt->pollfds_capacity * sizeof (*pollfds), 0);
+#else
 	  pollfds =
 	    objc_realloc(pollfds, ctxt->pollfds_capacity * sizeof (*pollfds));
+#endif
 	  ctxt->pollfds = pollfds;
 	}
       index = ctxt->pollfds_count++;
@@ -281,11 +303,21 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       pollfds_capacity = i + 2;
       if (pollfds == 0)
 	{
+#if	GS_WITH_GC
+	  pollfds
+	    = NSAllocateCollectable(pollfds_capacity * sizeof(*pollfds), 0);
+#else
 	  pollfds = objc_malloc(pollfds_capacity * sizeof(*pollfds));
+#endif
 	}
       else
 	{
+#if	GS_WITH_GC
+	  pollfds = NSReallocateCollectable(pollfds,
+	    pollfds_capacity * sizeof(*pollfds), 0);
+#else
 	  pollfds = objc_realloc(pollfds, pollfds_capacity * sizeof(*pollfds));
+#endif
 	}
     }
   pollfds_count = 0;

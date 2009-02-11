@@ -6,6 +6,8 @@
 	* Source/NSData.m:
 	* Source/GSHTTPAuthentication.m:
 	* Source/NSSerializer.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
 	Various changes to use unscanned collectable memory with GC.
 
 2009-02-11  Richard Frith-Macdonald <rfm@gnu.org>
