@@ -148,7 +148,7 @@ static NSHashTable	*uncollectable = 0;
 
 - (NSZone*) zone
 {
-  return GSAtomicMallocZone();
+  return NSDefaultMallocZone();
 }
 @end
 

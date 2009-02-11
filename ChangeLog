@@ -2,6 +2,11 @@
 
 	* Source/NSNotificationCenter.m: Fix bug removing observations for
 	collected observers.
+	* Headers/Foundation/NSGarbageCollector.h:
+	* Source/NSGarbageCollector.m:
+	* Source/NSObject.m:
+	Update the behavior of the -zone method to match MacOS-X 10.5 and
+	always return the default zone when used with GC.
 
 2009-02-10  Richard Frith-Macdonald <rfm@gnu.org>
 

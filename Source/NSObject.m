@@ -668,14 +668,9 @@ NSIncrementExtraRefCount(id anObject)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
-  /* If we have GC enabled, all objects are garbage collected and memory
-   * they allocate should generally be garbage collectable but not scanned
-   * for pointers.
-   * If an object wants to have memory which IS scanned for pointers by the
-   * garbage collector, it should use NSAllocateCollectable() to get it,
-   * rather than using the old zone based memory allocation.
+  /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
    */
-  return GSAtomicMallocZone();
+  return NSDefaultMallocZone();
 }
 
 static void

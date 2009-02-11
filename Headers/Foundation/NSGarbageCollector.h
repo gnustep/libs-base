@@ -88,10 +88,10 @@ extern "C" {
 - (BOOL) isEnabled;
 
 /** Returns a zone for holding non-collectable pointers.<br />
- * Memory allocated in this zone will be seen by the garbage collector and
- * collected (so it doesn't need to be freed explicitly), but the presence
- * of pointers from the memory to other objectrs will not prevent those
- * other objects from being collected.
+ * Memory allocated in this zone will not be seen by the garbage collector
+ * and will never be collected (so it needs to be freed explicitly).
+ * The presence of pointers from the memory to other objects will not
+ * prevent those other objects from being collected.
  */
 - (NSZone*) zone;
 @end
