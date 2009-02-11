@@ -37,15 +37,6 @@
 #import "Foundation/NSDebug.h"
 #import "GNUstepBase/GSLock.h"
 
-/* purgeCollected() returns a list of observations with any observations for
- * a collected observer removed.
- */
-#if	GS_WITH_GC
-#define	purgeCollected(X)	(X = listPurge(X, nil))
-#else
-#define	purgeCollected(X)	(X)
-#endif
-
 static NSZone	*_zone = 0;
 
 /**
@@ -482,6 +473,8 @@ static void listFree(Observation *list)
  *	we remove to be zero so that, if it currently exists in an array
  *	of observations being posted, the posting code can notice that it
  *	has been removed from its linked list.
+ *
+ *	Also, 
  */
 static Observation *listPurge(Observation *list, id observer)
 {
@@ -560,6 +553,30 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 	}
     }
 }
+
+/* purgeCollected() returns a list of observations with any observations for
+ * a collected observer removed.
+ * purgeCollectedFromMapNode() does the same thing but also handles cleanup
+ * of the map node containing the list if necessary.
+ */
+#if	GS_WITH_GC
+#define	purgeCollected(X)	listPurge(X, nil)
+static Observation*
+purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
+{
+  Observation	*o;
+
+  o = node->value.ext = purgeCollected((Observation*)(node->value.ext));
+  if (o == ENDOBS)
+    {
+      GSIMapRemoveKey(map, node->key);
+    }
+  return o;
+}
+#else
+#define	purgeCollected(X)	(X)
+#define purgeCollectedFromMapNode(X, Y) ((Observation*)Y->value.ext)
+#endif
 
 /*
  * In order to hide pointers from garbage collection, we OR in an
@@ -1037,7 +1054,7 @@ static NSNotificationCenter *default_center = nil;
   /*
    * Find all the observers that specified neither NAME nor OBJECT.
    */
-  for (o = purgeCollected(WILDCARD); o != ENDOBS; o = o->next)
+  for (o = WILDCARD = purgeCollected(WILDCARD); o != ENDOBS; o = o->next)
     {
       GSIArrayAddItem(a, (GSIArrayItem)o);
     }
@@ -1050,7 +1067,7 @@ static NSNotificationCenter *default_center = nil;
       n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
       if (n != 0)
 	{
-	  o = purgeCollected(n->value.ext);
+	  o = purgeCollectedFromMapNode(NAMELESS, n);
 	  while (o != ENDOBS)
 	    {
 	      GSIArrayAddItem(a, (GSIArrayItem)o);
@@ -1082,7 +1099,7 @@ static NSNotificationCenter *default_center = nil;
 	  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
 	  if (n != 0)
 	    {
-	      o = purgeCollected(n->value.ext);
+	      o = purgeCollectedFromMapNode(m, n);
 	      while (o != ENDOBS)
 		{
 		  GSIArrayAddItem(a, (GSIArrayItem)o);
@@ -1098,7 +1115,7 @@ static NSNotificationCenter *default_center = nil;
 	      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)nil);
 	      if (n != 0)
 		{
-		  o = purgeCollected(n->value.ext);
+	          o = purgeCollectedFromMapNode(m, n);
 		  while (o != ENDOBS)
 		    {
 		      GSIArrayAddItem(a, (GSIArrayItem)o);
