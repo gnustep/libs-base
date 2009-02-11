@@ -559,7 +559,11 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  char		*b;
 	
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
+#if	GS_WITH_GC
+	  b = NSAllocateCollectable(size, 0);
+#else
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size);
+#endif
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = [[StringClass alloc] initWithBytesNoCopy: b
 						length: size - 1
@@ -590,7 +594,11 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  unichar	*b;
 	
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
+#if	GS_WITH_GC
+	  b = NSAllocateCollectable(size*sizeof(unichar), 0);
+#else
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size*sizeof(unichar));
+#endif
 	  (*info->debImp)(info->data, debSel, b, size*sizeof(unichar),
 	    info->cursor);
 	  s = [[StringClass alloc] initWithBytesNoCopy: b

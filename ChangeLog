@@ -1,5 +1,15 @@
 2009-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSUnarchiver.m:
+	* Source/NSString.m:
+	* Source/Additions/GSMime.m:
+	* Source/NSData.m:
+	* Source/GSHTTPAuthentication.m:
+	* Source/NSSerializer.m:
+	Various changes to use unscanned collectable memory with GC.
+
+2009-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNotificationCenter.m: Fix bug removing observations for
 	collected observers.
 	* Headers/Foundation/NSGarbageCollector.h:

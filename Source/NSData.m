@@ -515,7 +515,11 @@ failure:
 
   if (bufferSize > 0)
     {
+#if	GS_WITH_GC
+      ptr = NSAllocateCollectable(bufferSize, 0);
+#else
       ptr = NSZoneMalloc(NSDefaultMallocZone(), bufferSize);
+#endif
       if (ptr == 0)
         {
 	  DESTROY(self);
