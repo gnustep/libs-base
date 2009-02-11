@@ -1,4 +1,9 @@
-2009-02-09  Richard Frith-Macdonald <rfm@gnu.org>
+2009-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: Fix bug removing observations for
+	collected observers.
+
+2009-02-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConcretePointerFunctions.h:
 	* Source/NSConcretePointerFunctions.m:
