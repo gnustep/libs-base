@@ -1697,8 +1697,13 @@ wordData(NSString *word)
       if (tmp != nil)
 	{
 	  unsigned int	l = [tmp cStringLength] + 2;
-	  unsigned char	*b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
+	  unsigned char	*b;
 
+#if	GS_WITH_GC
+	  b = NSAllocateCollectable(l + 1, 0);
+#else
+	  b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
+#endif
 	  b[0] = '-';
 	  b[1] = '-';
 	  [tmp getCString: (char*)&b[2]];
@@ -3733,7 +3738,11 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   src = (const unsigned char*)[source bytes];
   end = &src[length];
 
+#if	GS_WITH_GC
+  result = (unsigned char*)NSAllocateCollectable(declen, 0);
+#else
   result = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), declen);
+#endif
   dst = result;
 
   while ((src != end) && *src != '\0')
@@ -3859,7 +3868,11 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     }
   destlen = 4 * ((length + 2) / 3);
   sBuf = (unsigned char*)[source bytes];
+#if	GS_WITH_GC
+  dBuf = NSAllocateCollectable(destlen, 0);
+#else
   dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
+#endif
 
   destlen = encodebase64(dBuf, sBuf, length);
 

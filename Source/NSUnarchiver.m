@@ -1116,14 +1116,12 @@ static Class NSDataMallocClass;
 	{
 	  void		*b;
 	  NSData	*d;
-	  NSZone	*z;
 
 #if	GS_WITH_GC
-	  z = GSAtomicMallocZone();
+	  b = NSAllocateCollectable(l, 0);
 #else
-	  z = zone;
+	  b = NSZoneMalloc(zone, l);
 #endif
-	  b = NSZoneMalloc(z, l);
 	  [self decodeArrayOfObjCType: @encode(unsigned char)
 				count: l
 				   at: b];

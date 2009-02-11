@@ -894,8 +894,13 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      void	*buf = NSZoneMalloc(GSObjCZone(self), length);
+      void	*buf;
 
+#if	GS_WITH_GC
+      buf = NSAllocateCollectable(length, 0);
+#else
+      buf = NSZoneMalloc(GSObjCZone(self), length);
+#endif
       memcpy(buf, bytes, length);
       return [self initWithBytesNoCopy: buf
 				length: length
@@ -4615,7 +4620,11 @@ static NSFileManager *fm = nil;
 	    {
 	      unsigned char	*chars;
 	
+#if	GS_WITH_GC
+	      chars = NSAllocateCollectable(count+1, 0);
+#else
 	      chars = NSZoneMalloc(zone, count+1);
+#endif
 	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 		                      count: count
 				         at: chars];
