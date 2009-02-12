@@ -1802,7 +1802,12 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	   */
 	  if (firstTime == YES)
 	    {
+#if	GS_WITH_GC
+	      _clsAry
+		= NSAllocateCollectable(sizeof(GSIArray_t)*3, NSScannedOption);
+#else
 	      _clsAry = NSZoneMalloc(_zone, sizeof(GSIArray_t)*3);
+#endif
 	      _objAry = &_clsAry[1];
 	      _ptrAry = &_clsAry[2];
 	      GSIArrayInitWithZoneAndCapacity(_clsAry, _zone, sizeC);

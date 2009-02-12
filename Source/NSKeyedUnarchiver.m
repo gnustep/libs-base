@@ -798,7 +798,11 @@ static NSMapTable	globalClassMap = 0;
 
 	  _clsMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
 	    NSNonOwnedPointerMapValueCallBacks, 0);
+#if	GS_WITH_GC
+	  _objMap = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
 	  _objMap = NSZoneMalloc(_zone, sizeof(GSIArray_t));
+#endif
 	  count = [_objects count];
 	  GSIArrayInitWithZoneAndCapacity(_objMap, _zone, count);
 	  // Add marker for nil object

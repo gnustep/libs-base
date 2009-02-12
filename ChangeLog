@@ -1,3 +1,9 @@
+2009-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortCoder.m: Use scanned memory to hold array
+	* Source/NSKeyedUnarchiver.m: ditto
+	* Source/NSFileManager.m: ditto
+
 2009-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUnarchiver.m:
