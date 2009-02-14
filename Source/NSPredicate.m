@@ -47,11 +47,6 @@
 // For pow()
 #include <math.h>
 
-#define	NIMP	  [NSException raise: NSGenericException \
-  format: @"%s(%s) has not implemented %s",\
-  GSClassNameFromObject(self), GSObjCIsInstance(self) ? "instance" : "class",\
-  GSNameFromSelector(_cmd)]
-
 @interface GSPredicateScanner : NSScanner
 {
   NSEnumerator	*_args;		// Not retained.

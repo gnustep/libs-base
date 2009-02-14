@@ -23,6 +23,7 @@
 
    */ 
 
+#import	"Foundation/NSString.h"
 #import	"NSConcretePointerFunctions.h"
 
 static void*
@@ -56,6 +57,61 @@ acquireExistingMemory(const void *item,
   NSUInteger (*size)(const void *item), BOOL shouldCopy)
 {
   return (void*)item;
+}
+
+static NSString*
+describeString(const void *item)
+{
+  return AUTORELEASE([[NSString alloc] initWithUTF8String: item]);
+}
+
+static NSString*
+describeInteger(const void *item)
+{
+  return [NSString stringWithFormat: @"%ld", (long)(intptr_t)item];
+}
+
+static NSString*
+describeObject(const void *item)
+{
+  return [(NSObject*)item description];
+}
+
+static NSString*
+describePointer(const void *item)
+{
+  return [NSString stringWithFormat: @"%p", item];
+}
+
+static BOOL
+equalDirect(const void *item1, const void *item2,
+  NSUInteger (*size)(const void *item))
+{
+  return (item1 == item2) ? YES : NO;
+}
+
+static BOOL
+equalObject(const void *item1, const void *item2,
+  NSUInteger (*size)(const void *item))
+{
+  return [(NSObject*)item1 isEqual: (NSObject*)item2];
+}
+
+static BOOL
+equalMemory(const void *item1, const void *item2,
+  NSUInteger (*size)(const void *item))
+{
+  NSUInteger	s1 = (*size)(item1);
+  NSUInteger	s2 = (*size)(item2);
+
+  return (s1 == s2 && memcmp(item1, item2, s1) == 0) ? YES : NO;
+}
+
+static BOOL
+equalString(const void *item1, const void *item2,
+  NSUInteger (*size)(const void *item))
+{
+  return (strcmp((const char*)item1, (const char*)item2) == 0) ? YES : NO;
 }
 
 static NSUInteger
@@ -117,15 +173,6 @@ relinquishRetainedMemory(const void *item,
 #endif
 }
 
-static void
-relinquishZeroingWeakMemory(const void *item,
-  NSUInteger (*size)(const void *item))
-{
-#if	GS_WITH_GC
-  GSAssignZeroingWeakPointer((void**)&item, 0);
-#endif
-}
-
 @implementation NSConcretePointerFunctions
 
 + (id) allocWithZone: (NSZone*)zone
@@ -146,10 +193,10 @@ relinquishZeroingWeakMemory(const void *item,
    * should be used to relinquish contents of a container with these
    * options.
    */
-  _usesWeakReadAndWriteBarriers = YES;
   if (options & NSPointerFunctionsZeroingWeakMemory)
     {
-      _relinquishFunction = relinquishZeroingWeakMemory;
+      _relinquishFunction = 0;
+      _usesWeakReadAndWriteBarriers = YES;
     }
   else if (options & NSPointerFunctionsOpaqueMemory)
     {
@@ -170,7 +217,6 @@ relinquishZeroingWeakMemory(const void *item,
        * containers to allocate scanned memory.
        */
       _usesStrongWriteBarrier = YES;
-      _usesWeakReadAndWriteBarriers = NO;
       _relinquishFunction = relinquishRetainedMemory;
     }
 
@@ -184,32 +230,44 @@ relinquishZeroingWeakMemory(const void *item,
   if (options & NSPointerFunctionsOpaquePersonality)
     {
       _acquireFunction = acquireExistingMemory;
+      _descriptionFunction = describePointer;
       _hashFunction = hashShifted;
+      _isEqualFunction = equalDirect;
     }
   else if (options & NSPointerFunctionsObjectPointerPersonality)
     {
       _acquireFunction = acquireRetainedObject;
+      _descriptionFunction = describeObject;
       _hashFunction = hashShifted;
+      _isEqualFunction = equalDirect;
     }
   else if (options & NSPointerFunctionsCStringPersonality)
     {
       _acquireFunction = acquireMallocMemory;
+      _descriptionFunction = describeString;
       _hashFunction = hashString;
+      _isEqualFunction = equalString;
     }
   else if (options & NSPointerFunctionsStructPersonality)
     {
       _acquireFunction = acquireMallocMemory;
+      _descriptionFunction = describePointer;
       _hashFunction = hashMemory;
+      _isEqualFunction = equalMemory;
     }
   else if (options & NSPointerFunctionsIntegerPersonality)
     {
       _acquireFunction = acquireExistingMemory;
+      _descriptionFunction = describeInteger;
       _hashFunction = hashDirect;
+      _isEqualFunction = equalDirect;
     }
   else		/* objects */
     {
       _acquireFunction = acquireRetainedObject;
+      _descriptionFunction = describeObject;
       _hashFunction = hashObject;
+      _isEqualFunction = equalObject;
     }
 
   return self;

@@ -30,7 +30,6 @@
 #include	"Foundation/NSZone.h"
 
 #define	GSI_ARRAY_TYPE	NSRange
-#define GSI_ARRAY_TYPES	GSI_ARRAY_EXTRA
 
 #define	GSI_ARRAY_NO_RELEASE	1
 #define	GSI_ARRAY_NO_RETAIN	1
