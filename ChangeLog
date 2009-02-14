@@ -1,3 +1,8 @@
+2009-02-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPointerFunctions.m: Add some more functions to be set by
+	options.
+
 2009-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortCoder.m: Use scanned memory to hold array

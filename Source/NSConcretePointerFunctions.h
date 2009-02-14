@@ -55,3 +55,39 @@
 
 @end
 
+/* Macros to make use of the pointer functions.
+ */
+
+/* Acquire the pointer value to store for the specified item.
+ */
+#define	GSPFAcquire(PF,Item) \
+  (*(PF)->_acquireFunction)(Item, (PF)->_sizeFunction, (PF)->shouldCopyIn)
+
+
+/* Generate an NSString description of the item
+ */
+#define	GSPFDescribe(PF,Item) (*(PF)->_acquireFunction)(Item)
+
+
+/* Generate the hash of the item
+ */
+#define	GSPFHash(PF,Item) (*(PF)->_hashFunction)(Item, (PF)->_sizeFunction)
+
+
+/* Compare two items for equality
+ */
+#define	GSPFIsEqual(PF,Item1, Item2) \
+  (*(PF)->_isEqualFunction)(Item1, Item2, (PF)->_sizeFunction)
+
+
+/* Relinquish the specified item and set it to zero.
+ */
+#define	GSPFRelinquish(PF,Item) ({ \
+  if ((PF)->_relinquishFunction != 0) \
+    (*(PF)->_relinquishFunction)(Item, (PF)->_sizeFunction); \
+  if ((PF)->usesWeakReadAndWriteBarriers) \
+    GSAssignZeroingWeakPointer((void**)&Item, (void*)0); \
+  else \
+    Item = 0; \
+})
+
