@@ -55,39 +55,70 @@
 
 @end
 
-/* Macros to make use of the pointer functions.
+/* Wrapper functions to make use of the pointer functions.
  */
 
 /* Acquire the pointer value to store for the specified item.
  */
-#define	GSPFAcquire(PF,Item) \
-  (*(PF)->_acquireFunction)(Item, (PF)->_sizeFunction, (PF)->shouldCopyIn)
+static inline void
+pointerFunctionsAcquire(NSConcretePointerFunctions *PF, void **dst, void *src)
+{
+  if (PF->_acquireFunction != 0)
+    src = (*PF->_acquireFunction)(src, PF->_sizeFunction, PF->_shouldCopyIn);
+#if	GS_WITH_GC
+  if (PF->usesWeakReadAndWriteBarriers)
+    GSAssignZeroingWeakPointer(dst, src);
+  else
+#endif
+    *dst = src;
+}
 
 
 /* Generate an NSString description of the item
  */
-#define	GSPFDescribe(PF,Item) (*(PF)->_acquireFunction)(Item)
+static inline NSString *
+pointerFunctionsDescribe(NSConcretePointerFunctions *PF, void *item)
+{
+  if (PF->_descriptionFunction != 0)
+    return (*PF->_descriptionFunction)(item);
+  return nil;
+}
 
 
 /* Generate the hash of the item
  */
-#define	GSPFHash(PF,Item) (*(PF)->_hashFunction)(Item, (PF)->_sizeFunction)
+static inline NSUInteger
+pointerFunctionsHash(NSConcretePointerFunctions *PF, void *item)
+{
+  if (PF->_hashFunction != 0)
+    return (*PF->_hashFunction)(item, PF->_sizeFunction);
+  return (NSUInteger)item;
+}
 
 
 /* Compare two items for equality
  */
-#define	GSPFIsEqual(PF,Item1, Item2) \
-  (*(PF)->_isEqualFunction)(Item1, Item2, (PF)->_sizeFunction)
+static inline BOOL
+pointerFunctionsEqual(NSConcretePointerFunctions *PF, void *item1, void *item2)
+{
+  if (PF->_isEqualFunction != 0)
+    return (*PF->_isEqualFunction)(item1, item2, PF->_sizeFunction);
+  if (item1 == item2)
+    return YES;
+  return NO;
+}
 
 
 /* Relinquish the specified item and set it to zero.
  */
-#define	GSPFRelinquish(PF,Item) ({ \
-  if ((PF)->_relinquishFunction != 0) \
-    (*(PF)->_relinquishFunction)(Item, (PF)->_sizeFunction); \
-  if ((PF)->usesWeakReadAndWriteBarriers) \
-    GSAssignZeroingWeakPointer((void**)&Item, (void*)0); \
-  else \
-    Item = 0; \
-})
+static inline void
+pointerFunctionsRelinquish(NSConcretePointerFunctions *PF, void **itemptr)
+{
+  if (PF->_relinquishFunction != 0)
+    (*PF->_relinquishFunction)(*itemptr, PF->_sizeFunction);
+  if (PF->_usesWeakReadAndWriteBarriers)
+    GSAssignZeroingWeakPointer(itemptr, (void*)0);
+  else
+    *itemptr = 0;
+}
 
