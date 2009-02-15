@@ -131,3 +131,21 @@ pointerFunctionsRelinquish(PFInfo *PF, void **itemptr)
     *itemptr = 0;
 }
 
+
+static inline void
+pointerFunctionsReplace(PFInfo *PF, void **dst, void *src)
+{
+  if (src != *dst)
+    {
+      if (PF->acquireFunction != 0)
+	src = (*PF->acquireFunction)(src, PF->sizeFunction, PF->shouldCopyIn);
+      if (PF->relinquishFunction != 0)
+	(*PF->relinquishFunction)(*dst, PF->sizeFunction);
+#if	GSWITHGC
+      if (PF->usesWeakReadAndWriteBarriers)
+	GSAssignZeroingWeakPointer(dst, src);
+      else
+#endif
+	*dst = src;
+    }
+}

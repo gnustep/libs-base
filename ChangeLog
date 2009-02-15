@@ -1,3 +1,8 @@
+2009-02-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPointerArray.m: Initial implementation.  Untested.
+	No coding/decoding support.
+
 2009-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPointerFunctions.m: Add some more functions to be set by
