@@ -25,32 +25,41 @@
 
 #import	"Foundation/NSPointerFunctions.h"
 
+/* Declare a structure type to copy poinnnnnnter functions information 
+ * around easily.
+ */
+typedef struct
+{
+  void* (*acquireFunction)(const void *item,
+    NSUInteger (*size)(const void *item), BOOL shouldCopy);
+
+  NSString *(*descriptionFunction)(const void *item);
+
+  NSUInteger (*hashFunction)(const void *item,
+    NSUInteger (*size)(const void *item));
+
+  BOOL (*isEqualFunction)(const void *item1, const void *item2,
+    NSUInteger (*size)(const void *item));
+
+  void (*relinquishFunction)(const void *item,
+    NSUInteger (*size)(const void *item));
+
+  NSUInteger (*sizeFunction)(const void *item);
+
+  BOOL shouldCopyIn;
+
+  BOOL usesStrongWriteBarrier;
+
+  BOOL usesWeakReadAndWriteBarriers;
+} PFInfo;
+
+/* Declare the concrete pointer functions class as a wrapper around
+ * an instance of the PFInfo structure.
+ */
 @interface NSConcretePointerFunctions : NSPointerFunctions
 {
 @public
-  NSUInteger	_options;
-
-  void* (*_acquireFunction)(const void *item,
-    NSUInteger (*size)(const void *item), BOOL shouldCopy);
-
-  NSString *(*_descriptionFunction)(const void *item);
-
-  NSUInteger (*_hashFunction)(const void *item,
-    NSUInteger (*size)(const void *item));
-
-  BOOL (*_isEqualFunction)(const void *item1, const void *item2,
-    NSUInteger (*size)(const void *item));
-
-  void (*_relinquishFunction)(const void *item,
-    NSUInteger (*size)(const void *item));
-
-  NSUInteger (*_sizeFunction)(const void *item);
-
-  BOOL _shouldCopyIn;
-
-  BOOL _usesStrongWriteBarrier;
-
-  BOOL _usesWeakReadAndWriteBarriers;
+  PFInfo	_x;
 }
 
 @end
@@ -61,11 +70,11 @@
 /* Acquire the pointer value to store for the specified item.
  */
 static inline void
-pointerFunctionsAcquire(NSConcretePointerFunctions *PF, void **dst, void *src)
+pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
 {
-  if (PF->_acquireFunction != 0)
-    src = (*PF->_acquireFunction)(src, PF->_sizeFunction, PF->_shouldCopyIn);
-#if	GS_WITH_GC
+  if (PF->acquireFunction != 0)
+    src = (*PF->acquireFunction)(src, PF->sizeFunction, PF->shouldCopyIn);
+#if	GSWITHGC
   if (PF->usesWeakReadAndWriteBarriers)
     GSAssignZeroingWeakPointer(dst, src);
   else
@@ -77,10 +86,10 @@ pointerFunctionsAcquire(NSConcretePointerFunctions *PF, void **dst, void *src)
 /* Generate an NSString description of the item
  */
 static inline NSString *
-pointerFunctionsDescribe(NSConcretePointerFunctions *PF, void *item)
+pointerFunctionsDescribe(PFInfo *PF, void *item)
 {
-  if (PF->_descriptionFunction != 0)
-    return (*PF->_descriptionFunction)(item);
+  if (PF->descriptionFunction != 0)
+    return (*PF->descriptionFunction)(item);
   return nil;
 }
 
@@ -88,10 +97,10 @@ pointerFunctionsDescribe(NSConcretePointerFunctions *PF, void *item)
 /* Generate the hash of the item
  */
 static inline NSUInteger
-pointerFunctionsHash(NSConcretePointerFunctions *PF, void *item)
+pointerFunctionsHash(PFInfo *PF, void *item)
 {
-  if (PF->_hashFunction != 0)
-    return (*PF->_hashFunction)(item, PF->_sizeFunction);
+  if (PF->hashFunction != 0)
+    return (*PF->hashFunction)(item, PF->sizeFunction);
   return (NSUInteger)item;
 }
 
@@ -99,10 +108,10 @@ pointerFunctionsHash(NSConcretePointerFunctions *PF, void *item)
 /* Compare two items for equality
  */
 static inline BOOL
-pointerFunctionsEqual(NSConcretePointerFunctions *PF, void *item1, void *item2)
+pointerFunctionsEqual(PFInfo *PF, void *item1, void *item2)
 {
-  if (PF->_isEqualFunction != 0)
-    return (*PF->_isEqualFunction)(item1, item2, PF->_sizeFunction);
+  if (PF->isEqualFunction != 0)
+    return (*PF->isEqualFunction)(item1, item2, PF->sizeFunction);
   if (item1 == item2)
     return YES;
   return NO;
@@ -112,11 +121,11 @@ pointerFunctionsEqual(NSConcretePointerFunctions *PF, void *item1, void *item2)
 /* Relinquish the specified item and set it to zero.
  */
 static inline void
-pointerFunctionsRelinquish(NSConcretePointerFunctions *PF, void **itemptr)
+pointerFunctionsRelinquish(PFInfo *PF, void **itemptr)
 {
-  if (PF->_relinquishFunction != 0)
-    (*PF->_relinquishFunction)(*itemptr, PF->_sizeFunction);
-  if (PF->_usesWeakReadAndWriteBarriers)
+  if (PF->relinquishFunction != 0)
+    (*PF->relinquishFunction)(*itemptr, PF->sizeFunction);
+  if (PF->usesWeakReadAndWriteBarriers)
     GSAssignZeroingWeakPointer(itemptr, (void*)0);
   else
     *itemptr = 0;
