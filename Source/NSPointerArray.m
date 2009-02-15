@@ -205,11 +205,11 @@ static Class	concreteClass = Nil;
 
 @interface	NSConcretePointerArray : NSPointerArray
 {
-  NSUInteger		_count;
-  void			**_contents_array;
-  unsigned		_capacity;
-  unsigned		_grow_factor;
-  NSConcretePointerFunctions	*_functions;
+  PFInfo	_pf;
+  NSUInteger	_count;
+  void		**_contents;
+  unsigned	_capacity;
+  unsigned	_grow_factor;
 }
 @end
 
@@ -236,9 +236,56 @@ static Class	concreteClass = Nil;
   [exception raise];
 }
 
+- (void) compact
+{
+  NSUInteger	i = _count;
+
+  while (i-- > 0)
+    {
+      if (_contents[i] == 0)
+	{
+	  NSUInteger	j = i;
+
+	  while (j > 0 && _contents[j-1] != 0)
+	    {
+	      j--;
+	    }
+	  if (i < _count - 1)
+	    {
+	      memcpy(_contents + j, _contents + i + 1,
+		(_count - i) * sizeof(void*));
+	    }
+	  _count = i = j;
+	}
+    }
+}
+
 - (id) copyWithZone: (NSZone*)zone
 {
-  return RETAIN(self);	// FIXME
+  NSConcretePointerArray	*c;
+  unsigned			i;
+  
+  c = (NSConcretePointerArray*)NSCopyObject(self, 0, NSDefaultMallocZone());
+  c->_capacity = c->_count;
+  c->_grow_factor = c->_capacity/2;
+#if	GS_WITH_GC
+  if (_pf.usesWeakReadAndWriteBarriers)
+    {
+      c->_contents = NSAllocateCollectable(sizeof(id) * _count, 0);
+    }
+  else
+    {
+      c->_contents = NSAllocateCollectable(sizeof(id) * _count,
+	NSScannedOption);
+    }
+#else
+  c->_contents = NSZoneCalloc([self zone], _count, sizeof(id));
+#endif
+  for (i = 0; i < _count; i++)
+    {
+      pointerFunctionsAcquire(&_pf, &c->_contents[i], _contents[i]);
+    }
+  return c;
 }
 
 - (unsigned) count
@@ -249,16 +296,18 @@ static Class	concreteClass = Nil;
 - (void) dealloc
 {
   [self finalize];
-  if (_contents_array != 0)
+  if (_contents != 0)
     {
-      NSZoneFree([self zone], _contents_array);
+      NSZoneFree([self zone], _contents);
     }
-  [_functions release];
   [super dealloc];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
+/* FIXME ... how can we meaningfully encode the pointer functions???
+ */
+  [self notImplemented: _cmd];
   if ([aCoder allowsKeyedCoding])
     {
       [super encodeWithCoder: aCoder];
@@ -273,7 +322,7 @@ static Class	concreteClass = Nil;
 	{
 	  [aCoder encodeArrayOfObjCType: @encode(id)
 				  count: _count
-				     at: _contents_array];
+				     at: _contents];
 	}
     }
 }
@@ -285,6 +334,9 @@ static Class	concreteClass = Nil;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
+/* FIXME ... how can we meaningfully encode the pointer functions???
+ */
+  [self notImplemented: _cmd];
   if ([aCoder allowsKeyedCoding])
     {
       self = [super initWithCoder: aCoder];
@@ -298,19 +350,26 @@ static Class	concreteClass = Nil;
       if (_count > 0)
 	{
 #if	GS_WITH_GC
-          _contents_array = NSAllocateCollectable(sizeof(id) * _count,
-	    NSScannedOption);
+          if (_pf.usesWeakReadAndWriteBarriers)
+	    {
+	      _contents = NSAllocateCollectable(sizeof(id) * _count, 0);
+	    }
+	  else
+	    {
+	      _contents = NSAllocateCollectable(sizeof(id) * _count,
+		NSScannedOption);
+	    }
 #else
-	  _contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
+	  _contents = NSZoneCalloc([self zone], _count, sizeof(id));
 #endif
-	  if (_contents_array == 0)
+	  if (_contents == 0)
 	    {
 	      [NSException raise: NSMallocException
 			  format: @"Unable to make array"];
 	    }
 	  [aCoder decodeArrayOfObjCType: @encode(id)
 				  count: _count
-				     at: _contents_array];
+				     at: _contents];
 	}
     }
   return self;
@@ -318,7 +377,11 @@ static Class	concreteClass = Nil;
 
 - (id) initWithOptions: (NSPointerFunctionsOptions)options
 {
-  _functions = [[NSConcretePointerFunctions alloc] initWithOptions: options];
+  NSConcretePointerFunctions	*f;
+
+  f = [[NSConcretePointerFunctions alloc] initWithOptions: options];
+  self = [self initWithPointerFunctions: f];
+  [f release];
   return self;
 }
 
@@ -326,49 +389,177 @@ static Class	concreteClass = Nil;
 {
   if ([functions class] == [NSConcretePointerFunctions class])
     {
-      _functions = [functions copy];
+      memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
     }
   else
     {
-      _functions = [NSConcretePointerFunctions new];
-      [_functions setAcquireFunction: [functions acquireFunction]];
-      [_functions setDescriptionFunction: [functions descriptionFunction]];
-      [_functions setHashFunction: [functions hashFunction]];
-      [_functions setIsEqualFunction: [functions isEqualFunction]];
-      [_functions setRelinquishFunction: [functions relinquishFunction]];
-      [_functions setSizeFunction: [functions sizeFunction]];
-      [_functions setUsesStrongWriteBarrier:
-	[functions usesStrongWriteBarrier]];
-      [_functions setUsesWeakReadAndWriteBarriers:
-	[functions usesWeakReadAndWriteBarriers]];
+      _pf.acquireFunction = [functions acquireFunction];
+      _pf.descriptionFunction = [functions descriptionFunction];
+      _pf.hashFunction = [functions hashFunction];
+      _pf.isEqualFunction = [functions isEqualFunction];
+      _pf.relinquishFunction = [functions relinquishFunction];
+      _pf.sizeFunction = [functions sizeFunction];
+      _pf.usesStrongWriteBarrier
+	= [functions usesStrongWriteBarrier];
+      _pf.usesWeakReadAndWriteBarriers
+	= [functions usesWeakReadAndWriteBarriers];
     }
   return self;
 }
 
 - (void) insertPointer: (void*)pointer atIndex: (NSUInteger)index
 {
+  NSUInteger	i;
+
   if (index > _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
-  if (_count >= _capacity)
+  i = _count;
+  [self setCount: _count + 1];
+  while (i > index)
     {
-      void	**ptr;
-      size_t	size = (_capacity + _grow_factor)*sizeof(void*);
-
-      ptr = (void**)NSZoneRealloc([self zone], _contents_array, size);
-      if (ptr == 0)
-	{
-	  [NSException raise: NSMallocException
-		      format: @"Unable to grow array"];
-	}
-      _contents_array = ptr;
-      _capacity += _grow_factor;
-      _grow_factor = _capacity/2;
+      _contents[i] = _contents[i-1];
     }
-// FIXME ... retain/copy in
-  _contents_array[_count] = pointer;
-  _count++;
+  pointerFunctionsAcquire(&_pf, &_contents[index], pointer);
+}
+
+- (BOOL) isEqual: (id)other
+{
+  NSUInteger	count;
+
+  if (other == self)
+    {
+      return YES;
+    }
+  if ([other isKindOfClass: abstractClass] == NO)
+    {
+      return NO;
+    }
+  if ([other hash] != [self hash])
+    {
+      return NO;
+    }
+  count = [self count];
+  while (count-- > 0)
+    {
+      if (pointerFunctionsEqual(&_pf, _contents[count],
+	[other pointerAtIndex: count]) == NO)
+	return NO;
+    }
+  return YES;
+}
+
+- (void*) pointerAtIndex: (NSUInteger)index
+{
+  if (index >= _count)
+    {
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
+    }
+  return _contents[index];
+}
+
+- (NSPointerFunctions*) pointerFunctions
+{
+  NSConcretePointerFunctions	*pf = [NSConcretePointerFunctions new];
+
+  pf->_x = _pf;
+  return [pf autorelease];
+}
+
+- (void) removePointerAtIndex: (NSUInteger)index
+{
+  if (index >= _count)
+    {
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
+    }
+  pointerFunctionsRelinquish(&_pf, &_contents[index]);
+  while (++index < _count)
+    {
+      _contents[index-1] = _contents[index];
+    }
+  [self setCount: _count - 1];
+}
+
+- (void) replacePointerAtIndex: (NSUInteger)index withPointer: (void*)item
+{
+  if (index >= _count)
+    {
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
+    }
+  pointerFunctionsReplace(&_pf, &_contents[index], item);
+}
+
+- (void) setCount: (NSUInteger)count
+{
+  if (count > _count)
+    {
+      _count = count;
+      if (_count >= _capacity)
+	{
+	  void		**ptr;
+	  size_t	size;
+	  size_t	new_cap = _capacity;
+	  size_t	new_gf = _grow_factor;
+
+	  while (new_cap + new_gf < _count)
+	    {
+	      new_cap += new_gf;
+	      new_gf = new_cap/2;
+	    }
+	  size = (new_cap + new_gf)*sizeof(void*);
+	  new_cap += new_gf;
+	  new_gf = new_cap / 2;
+	  if (_contents == 0)
+	    {
+#if	GS_WITH_GC
+	      ptr = (void**)NSZoneMalloc([self zone], size);
+#else
+	      if (_pf.usesWeakReadAndWriteBarriers)
+		{
+		  ptr = (void**)NSAllocateCollectable(size, 0);
+		}
+	      else
+		{
+		  ptr = (void**)NSAllocateCollectable(size, NSScannedOption);
+		} 
+#endif
+	    }
+	  else
+	    {
+#if	GS_WITH_GC
+	      ptr = (void**)NSZoneRealloc([self zone], _contents, size);
+#else
+	      if (_pf.usesWeakReadAndWriteBarriers)
+		{
+		  ptr = (void**)NSReallocateCollectable(
+		    _contents, size, 0);
+		}
+	      else
+		{
+		  ptr = (void**)NSReallocateCollectable(
+		    _contents, size, NSScannedOption);
+		} 
+#endif
+	    }
+	  if (ptr == 0)
+	    {
+	      [NSException raise: NSMallocException
+			  format: @"Unable to grow array"];
+	    }
+	  _contents = ptr;
+	  _capacity = new_cap;
+	  _grow_factor = new_gf;
+	}
+    }
+  else
+    {
+      while (count < _count)
+	{
+	  _count--;
+	  pointerFunctionsRelinquish(&_pf, &_contents[_count]);
+	}
+    }
 }
 
 @end
