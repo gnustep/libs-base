@@ -358,16 +358,22 @@ if test "$result" == "no"
 then
   # Check if gnustep-config supports the option
   # --installation-domain-for, and use it if available.  That option
-  # will automatically use the shell variable GNUSTEP_INSTALLATION_DOMAIN
-  # or the installation-domains.conf files (or the LOCAL default) as appropriate.
-  # Otherwise, if that option is not available just fall back to LOCAL.
+  # will automatically use the shell variable GNUSTEP_INSTALLATION_DOMAIN or
+  # the installation-domains.conf files (or the LOCAL default) as appropriate.
+  # Otherwise, if that option is not available just fall back to
+  # using GNUSTEP_INSTALLATION_DOMAIN or (if that was not defiend) LOCAL.
   if (gnustep-config --help | grep installation-domain) >&5 2>&5
   then
     result=`gnustep-config --installation-domain-for=gnustep-base 2>&5`
   else
-    # This case was added on December 2008 and is only for backwards
-    # compatibility with older versions of gnustep-make.
-    result=LOCAL
+    AC_MSG_WARN([The 'gnustep-config' script was not found or out of date.])
+    result=$GNUSTEP_INSTALLATION_DOMAIN
+    if test "$result" == ""
+    then
+      # This case was added on December 2008 and is only for backwards
+      # compatibility with older versions of gnustep-make.
+      result=LOCAL
+    fi
   fi
 fi
 case "$result" in

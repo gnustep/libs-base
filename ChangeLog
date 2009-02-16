@@ -1,3 +1,9 @@
+2009-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/pathconfig/configure.ac: Warn if gnustep-config not found.
+	* Source/pathconfig/configure: regenerate
+	* Headers/Foundation/NSPointerArray.h: Add more comments.
+
 2009-02-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPointerArray.m: Initial implementation.  Untested.
