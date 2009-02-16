@@ -354,7 +354,7 @@ AC_ARG_WITH(installation-domain,
   result="$withval",
   result="no"
 )
-if test "$result" == "no"
+if test "$result" = "no"
 then
   # Check if gnustep-config supports the option
   # --installation-domain-for, and use it if available.  That option
@@ -368,7 +368,7 @@ then
   else
     AC_MSG_WARN([The 'gnustep-config' script was not found or out of date.])
     result=$GNUSTEP_INSTALLATION_DOMAIN
-    if test "$result" == ""
+    if test "$result" = ""
     then
       # This case was added on December 2008 and is only for backwards
       # compatibility with older versions of gnustep-make.
