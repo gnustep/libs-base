@@ -1,3 +1,14 @@
+2009-02-16  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Look in LOCAL for headers/libs
+
+	* Headers/Foundation/NSObjCRuntime.h: Define NSINTEGER_DEFINED.
+	* Headers/Additions/GNUstepBase/GSCategories.h,
+	Headers/Additions/GNUstepBase/GSUnion.h: Additional definitions to compile
+	with apple-apple-apple.
+
+	backported from trunk.
+
 2009-01-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSException.m: backport bugfix from trunk

@@ -37,6 +37,8 @@
 typedef	gsaddr	NSInteger;
 typedef	gsuaddr	NSUInteger;
 
+#define NSINTEGER_DEFINED 1
+
 #import	<GNUstepBase/GSObjCRuntime.h>
 
 #if	defined(__cplusplus)

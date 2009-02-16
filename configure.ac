@@ -865,8 +865,9 @@ fi
 # plain C developer headers/libraries which haver been installed in the
 # GNUstep hierarchy.
 #
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES"
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS -I$GNUSTEP_LOCAL_HEADERS"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES -L$GNUSTEP_LOCAL_LIBRARIES"
+
 
 #--------------------------------------------------------------------
 # Find the compiler
