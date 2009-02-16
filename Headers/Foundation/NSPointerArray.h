@@ -76,7 +76,12 @@ extern "C" {
 - (void) addPointer: (void*)pointer;
 
 /** Inserts an item at the specified index causing all higher indexed
- * items to be adjusted upwards.
+ * items to be adjusted upwards.<br />
+ * WARNING ... the Apple documented (and implemented in MacOS-X 10.5)
+ * behavior is to raise an exception if index is the same as the count of
+ * items in the array.  This is insane ... for arrays, data and strings you
+ * can insert at the end of an object to append to it, so the behavior of
+ * this class in MacOS is inconsistent and must be considered buggy.
  */
 - (void) insertPointer: (void*)pointer atIndex: (NSUInteger)index;
 
