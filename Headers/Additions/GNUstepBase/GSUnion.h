@@ -27,6 +27,13 @@
  */
 #import <Foundation/NSObjCRuntime.h>
 
+/* These are not defined in older Mac OS X systems */
+#ifndef NSINTEGER_DEFINED
+typedef int NSInteger;
+typedef unsigned int NSUInteger;
+#define NSINTEGER_DEFINED 1
+#endif
+
 /*
  *	Definitions for bitmap mask of types of element in union.
  */
