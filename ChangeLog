@@ -1,3 +1,8 @@
+2009-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUndoManager.m: Don't post checkpoint notification when
+	beginning top level group.  Fix for #25607
+
 2009-02-16  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Look in LOCAL for headers/libs

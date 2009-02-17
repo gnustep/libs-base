@@ -189,14 +189,15 @@
  * Starts a new grouping of undo actions which can be
  * atomically undone by an [-undo] invocation.
  * This method posts an NSUndoManagerCheckpointNotification
- * unless an undo is currently in progress.  It posts an
+ * unless an undo is currently in progress or this is begiinng a
+ * top level group.  It posts an
  * NSUndoManagerDidOpenUndoGroupNotification upon creating the grouping.
  */
 - (void) beginUndoGrouping
 {
   PrivateUndoGroup	*parent;
 
-  if (_isUndoing == NO)
+  if (_isUndoing == NO && _group != nil)
     {
       [[NSNotificationCenter defaultCenter]
 	  postNotificationName: NSUndoManagerCheckpointNotification
