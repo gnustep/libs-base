@@ -1654,7 +1654,7 @@ static NSString		*mainFont = nil;
 	      str = [prop objectForKey: @"override"];
 	      if ([str isEqual: @"subclass"] == YES)
 		{
-		  [buf appendString: @"Subclasses <strong>should</strong> "
+		  [buf appendString: @"Subclasses <strong>must</strong> "
 		    @"override this method.<br />\n"];
 		}
 	      else if ([str isEqual: @"dummy"] == YES)
@@ -1664,7 +1664,7 @@ static NSString		*mainFont = nil;
 		}
 	      else if ([str isEqual: @"never"] == YES)
 		{
-		  [buf appendString: @"Subclasses should <strong>NOT</strong> "
+		  [buf appendString: @"Subclasses must <strong>NOT</strong> "
 		    @"override this method.<br />\n"];
 		}
 
