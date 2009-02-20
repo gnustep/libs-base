@@ -195,6 +195,11 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
 	full += cifframe_guess_struct_size(rtype);
       else
 	full += MAX(rtype->size, sizeof(smallret_t));
+      /* HACK ... not sure why, but on my 64bit intel system adding a bit
+       * more to the buffer size prevents writing outside the allocated
+       * memory by the ffi stuff.
+       */
+      full += 1;
       cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
       if (cframe && retval)
 	{

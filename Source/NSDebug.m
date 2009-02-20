@@ -41,6 +41,10 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSValue.h"
 
+#if     HAVE_EXECINFO_H
+#include        <execinfo.h>
+#endif
+
 typedef struct {
   Class	class;
   /* The following are used for statistical info */
@@ -1102,12 +1106,28 @@ NSReturnAddress(int offset)
 NSMutableArray *
 GSPrivateStackAddresses(void)
 {
+  NSMutableArray        *stack;
+  NSAutoreleasePool     *pool;
+
+#if HAVE_BACKTRACE
+  void                  *addresses[1024];
+  int                   n = backtrace(addresses, 1024);
+  int                   i;
+
+  stack = [NSMutableArray arrayWithCapacity: n];
+  pool = [NSAutoreleasePool new];
+  for (i = 0; i < n; i++)
+    {
+      [stack addObject: [NSValue valueWithPointer: addresses[i]]];
+    }
+
+#else
   unsigned              n = NSCountFrames();
-  NSMutableArray        *stack = [NSMutableArray arrayWithCapacity: n];
-  CREATE_AUTORELEASE_POOL(pool);
   unsigned              i;
   jbuf_type             *env;
 
+  stack = [NSMutableArray arrayWithCapacity: n];
+  pool = [NSAutoreleasePool new];
   /* There should be more frame addresses than return addresses.
    */
   if (n > 0)
@@ -1180,6 +1200,7 @@ GSPrivateStackAddresses(void)
       signal(SIGSEGV, env->segv);
       signal(SIGBUS, env->bus);
     }
+#endif
   RELEASE(pool);
   return stack;
 }

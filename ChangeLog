@@ -1,3 +1,14 @@
+2009-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Add checks for backtrace() function
+        * Headers/Additions/GNUstepBase/config.h.in: regenerate
+        * configure: regenerate
+        * Source/NSDebug.m: Use backtrace() to get stack if possible ...
+        it's more reliable than gcc's __builtin_frame_address() function.
+        * Source/cifframe.m: Allocate a slightly larger buffer when
+        processing invocations ... somehow this fixes a write outside
+        allocated memory by the ffi library on my 64bit debian system.
+
 2009-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUndoManager.m: Don't post checkpoint notification when
