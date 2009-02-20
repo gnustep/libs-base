@@ -795,6 +795,8 @@ if test $enable_bfd = yes; then
   AC_CHECK_LIB(iberty, dyn_string_append)
   AC_CHECK_LIB(bfd, bfd_openr)
 fi
+AC_CHECK_HEADERS(execinfo.h)
+AC_CHECK_FUNCS(backtrace)
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
