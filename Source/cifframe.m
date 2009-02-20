@@ -199,7 +199,7 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
        * more to the buffer size prevents writing outside the allocated
        * memory by the ffi stuff.
        */
-      full += 1;
+      full += 8;
       cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
       if (cframe && retval)
 	{
