@@ -288,7 +288,7 @@ static Class	concreteClass = Nil;
   return c;
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return _count;
 }
@@ -316,7 +316,7 @@ static Class	concreteClass = Nil;
     {
       /* For performace we encode directly ... must exactly match the
        * superclass implemenation. */
-      [aCoder encodeValueOfObjCType: @encode(unsigned)
+      [aCoder encodeValueOfObjCType: @encode(NSUInteger)
 				 at: &_count];
       if (_count > 0)
 	{
@@ -327,7 +327,7 @@ static Class	concreteClass = Nil;
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return _count;
 }
@@ -345,7 +345,7 @@ static Class	concreteClass = Nil;
     {
       /* for performance, we decode directly into memory rather than
        * using the superclass method. Must exactly match superclass. */
-      [aCoder decodeValueOfObjCType: @encode(unsigned)
+      [aCoder decodeValueOfObjCType: @encode(NSUInteger)
 				 at: &_count];
       if (_count > 0)
 	{
@@ -420,6 +420,7 @@ static Class	concreteClass = Nil;
   while (i > index)
     {
       _contents[i] = _contents[i-1];
+      i--;
     }
   pointerFunctionsAcquire(&_pf, &_contents[index], pointer);
 }
@@ -500,7 +501,7 @@ static Class	concreteClass = Nil;
 	  void		**ptr;
 	  size_t	size;
 	  size_t	new_cap = _capacity;
-	  size_t	new_gf = _grow_factor;
+	  size_t	new_gf = _grow_factor ? _grow_factor : 2;
 
 	  while (new_cap + new_gf < _count)
 	    {
