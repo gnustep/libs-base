@@ -1052,7 +1052,7 @@ strerror_r(int eno, char *buf, int len)
 - (id) notImplemented: (SEL)aSel
 {
   [NSException
-    raise: NSGenericException
+    raise: NSInvalidArgumentException
     format: @"method %s not implemented in %s(%s)",
     aSel ? GSNameFromSelector(aSel) : "(null)",
     GSClassNameFromObject(self),
