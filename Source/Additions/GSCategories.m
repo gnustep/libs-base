@@ -1052,7 +1052,7 @@ strerror_r(int eno, char *buf, int len)
 - (id) notImplemented: (SEL)aSel
 {
   [NSException
-    raise: NSInvalidArgumentException
+    raise: NSGenericException
     format: @"method %s not implemented in %s(%s)",
     aSel ? GSNameFromSelector(aSel) : "(null)",
     GSClassNameFromObject(self),
@@ -1073,7 +1073,7 @@ strerror_r(int eno, char *buf, int len)
 
 - (id) subclassResponsibility: (SEL)aSel
 {
-  [NSException raise: NSGenericException
+  [NSException raise: NSInvalidArgumentException
     format: @"subclass %s(%s) should override %s",
 	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
