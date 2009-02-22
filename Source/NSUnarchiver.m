@@ -220,6 +220,11 @@ typeCheck(char t1, char t2)
 	|| t1 == _C_ULNG_LNG
 #endif
 	)) return;
+/* HACK also allow float and double to be used interchangably as MacOS-X
+ * intorduced CGFloat, which may be aither a float or a double.
+ */
+      if ((c == _C_FLT || c == _C_DBL) && (t1 == _C_FLT || t1 == _C_DBL))
+	return;
 
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
@@ -990,12 +995,36 @@ static Class NSDataMallocClass;
 #endif
       case _GSC_FLT:
 	typeCheck(*type, _GSC_FLT);
-	(*desImp)(src, desSel, address, type, &cursor, nil);
+	if (*type == _C_FLT)
+	  {
+	    (*desImp)(src, desSel, address, type, &cursor, nil);
+	  }
+	else
+	  {
+	    float	val;
+
+	    /* We found a float when expecting a double ... handle it.
+	     */
+	    (*desImp)(src, desSel, &val, @encode(float), &cursor, nil);
+	    *(double*)address = (double)val;
+	  }
 	return;
 
       case _GSC_DBL:
 	typeCheck(*type, _GSC_DBL);
-	(*desImp)(src, desSel, address, type, &cursor, nil);
+	if (*type == _C_DBL)
+	  {
+	    (*desImp)(src, desSel, address, type, &cursor, nil);
+	  }
+	else
+	  {
+	    double	val;
+
+	    /* We found a double when expecting a float ... handle it.
+	     */
+	    (*desImp)(src, desSel, &val, @encode(double), &cursor, nil);
+	    *(float*)address = (float)val;
+	  }
 	return;
 
       default:

@@ -1,3 +1,9 @@
+2009-02-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUnarchiver.m:
+	make float and double interchangable to cope with MacOS-X 10.5
+	API which can use either for CGFloat.
+
 2009-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/mframe/i386/linux:
