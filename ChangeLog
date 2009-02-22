@@ -3,6 +3,7 @@
 	* Source/NSUnarchiver.m:
 	make float and double interchangable to cope with MacOS-X 10.5
 	API which can use either for CGFloat.
+	* Source/NSXMLParser.m: optimize sloppy parser somewhat.
 
 2009-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 

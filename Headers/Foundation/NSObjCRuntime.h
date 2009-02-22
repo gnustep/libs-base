@@ -34,8 +34,13 @@
 
 /* These typedefs must be in place before GSObjCRuntime.h is imported.
  */
-typedef	gsaddr	NSInteger;
-typedef	gsuaddr	NSUInteger;
+typedef	intptr_t	NSInteger;
+typedef	uintptr_t	NSUInteger;
+#if	GS_SIZEOF_VOIDP == 8
+typedef	double		CGFloat;
+#else
+typedef	float		CGFloat;
+#endif
 
 #define NSINTEGER_DEFINED 1
 
