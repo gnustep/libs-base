@@ -260,6 +260,12 @@ typeCheck(char t1, char t2)
 #endif
 	)) return;
 
+/* HACK also allow float and double to be used interchangably as MacOS-X
+ * intorduced CGFloat, which may be aither a float or a double.
+ */
+      if ((c == _C_FLT || c == _C_DBL) && (t1 == _C_FLT || t1 == _C_DBL))
+	return;
+
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
 		    typeToName1(t1), typeToName2(t2)];
@@ -923,12 +929,36 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 #endif
       case _GSC_FLT:
 	typeCheck(*type, _GSC_FLT);
-	(*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	if (*type == _C_FLT)
+	  {
+	    (*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	  }
+	else
+	  {
+	    float	val;
+
+	    /* We found a float when expecting a double ... handle it.
+	     */
+	    (*_dDesImp)(_src, dDesSel, &val, @encode(float), &_cursor, nil);
+	    *(double*)address = (double)val;
+	  }
 	return;
 
       case _GSC_DBL:
 	typeCheck(*type, _GSC_DBL);
-	(*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	if (*type == _C_DBL)
+	  {
+	    (*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	  }
+	else
+	  {
+	    double	val;
+
+	    /* We found a double when expecting a float ... handle it.
+	     */
+	    (*_dDesImp)(_src, dDesSel, &val, @encode(double), &_cursor, nil);
+	    *(float*)address = (float)val;
+	  }
 	return;
 
       default:
