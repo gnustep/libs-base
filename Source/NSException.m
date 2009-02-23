@@ -725,7 +725,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler
   = _NSFoundationUncaughtExceptionHandler;
 
-#if	defined(_NATIVE_OBJC_EXCEPTIONS) && defined(HAVE_UNEXPECTED)
+#if	!defined(_NATIVE_OBJC_EXCEPTIONS) || defined(HAVE_UNEXPECTED)
 static void
 callUncaughtHandler(id value)
 {

@@ -626,7 +626,9 @@ typedef struct NSXMLParserIvarsType
   IMP	didEndMappingPrefix;
   IMP	didStartElement;
   IMP	didStartMappingPrefix;
+  IMP	foundCDATA;
   IMP	foundCharacters;
+  IMP	foundComment;
   
 } NSXMLParserIvars;
 
@@ -634,7 +636,9 @@ static SEL	didEndElementSel = 0;
 static SEL	didEndMappingPrefixSel;
 static SEL	didStartElementSel;
 static SEL	didStartMappingPrefixSel;
+static SEL	foundCDATASel;
 static SEL	foundCharactersSel;
+static SEL	foundCommentSel;
 
 @implementation SloppyXMLParser
 
@@ -662,8 +666,12 @@ typedef struct { @defs(NSXMLParser) } *xp;
 = @selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:);
       didStartMappingPrefixSel
 	= @selector(parser:didStartMappingPrefix:toURI:);
+      foundCDATASel
+	= @selector(parser:foundCDATA:);
       foundCharactersSel
 	= @selector(parser:foundCharacters:);
+      foundCommentSel
+	= @selector(parser:foundComment:);
     }
 }
 
@@ -774,6 +782,16 @@ typedef struct { @defs(NSXMLParser) } *xp;
 	  this->didStartMappingPrefix = 0;
 	}
 
+      if ([_del respondsToSelector: foundCDATASel])
+	{
+	  this->foundCDATA
+	    = [_del methodForSelector: foundCDATASel];
+	}
+      else
+	{
+	  this->foundCDATA = 0;
+	}
+
       if ([_del respondsToSelector: foundCharactersSel])
 	{
 	  this->foundCharacters
@@ -782,6 +800,16 @@ typedef struct { @defs(NSXMLParser) } *xp;
       else
 	{
 	  this->foundCharacters = 0;
+	}
+
+      if ([_del respondsToSelector: foundCommentSel])
+	{
+	  this->foundComment
+	    = [_del methodForSelector: foundCommentSel];
+	}
+      else
+	{
+	  this->foundComment = 0;
 	}
     }
 }
@@ -798,17 +826,26 @@ typedef struct { @defs(NSXMLParser) } *xp;
 
 #define cget() ((this->cp < this->cend)?(this->column++, *this->cp++): -1)
 
-- (BOOL) _parseError: (NSString *)message
+- (BOOL) _parseError: (NSString *)message code: (NSInteger)code
 {
 #if EXTRA_DEBUG
   NSLog(@"XML parseError: %@", message);
 #endif
-  NSError *err = nil;
+  NSDictionary *info = nil;
 
-  ASSIGN(this->error, err);
-  this->abort = YES;  // break look
+  [this->error release];
+  if (message != nil)
+    {
+      info = [[NSDictionary alloc] initWithObjectsAndKeys:
+	message, NSLocalizedFailureReasonErrorKey, nil];
+    }
+  this->error = [[NSError alloc] initWithDomain: NSXMLParserErrorDomain
+					   code: code
+				       userInfo: info];
+  [info release];
+  this->abort = YES;
   if ([_del respondsToSelector: @selector(parser:parseErrorOccurred:)])
-    [_del parser: self parseErrorOccurred: this->error];  // pass error
+    [_del parser: self parseErrorOccurred: this->error];
   return NO;
 }
 
@@ -925,15 +962,6 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #endif
 	  return;
 	}
-      else if ([tag isEqualToString: @"!CDATA"])
-	{
-          // pass through as NSData
-          // parser: foundCDATA:   
-#if EXTRA_DEBUG
-NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-#endif
-          return;
-	}
       else
         {
           NSMutableDictionary   *ns = nil;
@@ -1036,7 +1064,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	{
 	  [self _parseError: [NSString stringWithFormat:
 	    @"tag nesting error (</%@> expected, </%@> found)",
-	    [this->tagPath lastObject], tag]];
+	    [this->tagPath lastObject], tag]
+	    code: NSXMLParserNotWellBalancedError];
 	  return;
 	}
       [self _closeLastTag];
@@ -1186,7 +1215,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
       || strncmp((char *)this->cp, "<?xml ", 6) != 0))
     {
       // not a valid XML document start
-      return [self _parseError: @"missing <?xml > preamble"];
+      return [self _parseError: @"missing <?xml > preamble"
+	code: NSXMLParserDocumentStartError];
     }
   c = cget();  // get first character
   while (!this->abort)
@@ -1243,7 +1273,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                     {
                       /* strict XML nesting error
                        */
-                      return [self _parseError: @"unexpected end of file"];
+                      return [self _parseError: @"unexpected end of file"
+			code: NSXMLParserNotWellBalancedError];
                     }
                 while ([this->tagPath count] > 0)
                   {
@@ -1274,7 +1305,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
               if ([self _parseEntity: &entity] == NO)
                 {
-                  return [self _parseError: @"empty entity name"];
+                  return [self _parseError: @"empty entity name"
+		    code: NSXMLParserEntityRefAtEOFError];
                 }
 	      if (this->foundCharacters != 0)
 		{
@@ -1300,19 +1332,53 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                   /* start of comment skip all characters until "-->"
                    */
                   this->cp += 3;
+		  tp = this->cp;
                   while (this->cp < this->cend-3
                     && strncmp((char *)this->cp, "-->", 3) != 0)
                     {
                       this->cp++;  // search
                     }
-                  /* if _del responds to parser: foundComment: 
-                   * convert to string (tp+4 ... cp)
-                   */
-                  this->cp += 3;    // might go beyond cend but does not care
-                  vp = this->cp;    // value might continue
-                  c = cget();  // get first character behind comment
+		  if (this->foundComment != 0)
+		    {
+		      NSString	*c = NewUTF8STR(tp, this->cp - tp);
+
+		      (*this->foundComment)(_del,
+			foundCommentSel, self, c);
+		      [c release];
+		    }
+                  this->cp += 3;	// might go beyond cend ... ok
+                  vp = this->cp;	// value might continue
+                  c = cget();		// get first character after comment
                   continue;
                 }
+              if (this->cp < this->cend-8
+                && strncmp((char *)this->cp, "![CDATA[", 8) == 0)
+		{
+                  /* start of CDATA skip all characters until "]>"
+                   */
+                  this->cp += 8;
+		  tp = this->cp;
+                  while (this->cp < this->cend-3
+                    && strncmp((char *)this->cp, "]]>", 3) != 0)
+                    {
+                      this->cp++;  // search
+                    }
+		  if (this->foundCDATA != 0)
+		    {
+		      NSData	*d;
+
+		      d = [[NSData alloc] initWithBytes: tp
+						 length: this->cp - tp];
+		      (*this->foundCDATA)(_del,
+			foundCDATASel, self, d);
+		      [d release];
+		    }
+                  this->cp += 3;	// might go beyond cend ... ok
+                  vp = this->cp;	// value might continue
+                  c = cget();		// get first character after CDATA
+                  continue;
+                }
+
               c = cget(); // get first character of tag
               if (c == '/')
                 {
@@ -1361,7 +1427,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       c = cget();
                       if (c != '>')
                         {
-                          return [self _parseError: @"<tag/ is missing the >"];
+                          return [self _parseError: @"<tag/ is missing the >"
+			    code: NSXMLParserGTRequiredError];
                         }
                       [self _processTag: tag
                                   isEnd: NO
@@ -1377,7 +1444,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       if (c != '>')
                         {
                           return [self _parseError:
-                            @"<?tag ...? is missing the >"];
+                            @"<?tag ...? is missing the >"
+			    code: NSXMLParserGTRequiredError];
                         }
                       // process
                       [self _processTag: tag
@@ -1405,7 +1473,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #endif
                   if (!this->acceptHTML && [arg length] == 0)
                     {
-                      return [self _parseError: @"empty attribute name"];
+                      return [self _parseError: @"empty attribute name"
+			code: NSXMLParserAttributeNotStartedError];
                     }
                   c = cget();  // get delimiting character
                   if (c == '=')
@@ -1432,7 +1501,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
             }
         }
     }
-  return [self _parseError: @"this->aborted"];  // this->aborted
+  return [self _parseError: @"this->aborted"
+    code: NSXMLParserDelegateAbortedParseError];
 }
 
 - (BOOL) acceptsHTML
