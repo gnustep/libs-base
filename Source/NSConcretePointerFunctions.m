@@ -117,7 +117,7 @@ equalString(const void *item1, const void *item2,
 static NSUInteger
 hashDirect(const void *item, NSUInteger (*size)(const void *item))
 {
-  return (NSUInteger)item;
+  return (NSUInteger)(uintptr_t)item;
 }
 
 static NSUInteger
@@ -142,7 +142,7 @@ hashMemory(const void *item, NSUInteger (*size)(const void *item))
 static NSUInteger
 hashShifted(const void *item, NSUInteger (*size)(const void *item))
 {
-  return ((NSUInteger)item) >> 2;
+  return ((NSUInteger)(uintptr_t)item) >> 2;
 }
 
 static NSUInteger

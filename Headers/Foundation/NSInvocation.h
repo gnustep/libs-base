@@ -61,11 +61,11 @@ extern "C" {
  *	Accessing message elements.
  */
 - (void) getArgument: (void*)buffer
-	     atIndex: (int)index;
+	     atIndex: (NSInteger)index;
 - (void) getReturnValue: (void*)buffer;
 - (SEL) selector;
 - (void) setArgument: (void*)buffer
-	     atIndex: (int)index;
+	     atIndex: (NSInteger)index;
 - (void) setReturnValue: (void*)buffer;
 - (void) setSelector: (SEL)aSelector;
 - (void) setTarget: (id)anObject;

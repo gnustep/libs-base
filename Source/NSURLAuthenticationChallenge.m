@@ -91,7 +91,7 @@ typedef struct {
 
 - (id) initWithProtectionSpace: (NSURLProtectionSpace *)space
 	    proposedCredential: (NSURLCredential *)credential
-	  previousFailureCount: (int)previousFailureCount
+	  previousFailureCount: (NSInteger)previousFailureCount
 	       failureResponse: (NSURLResponse *)response
 			 error: (NSError *)error
 			sender: (id<NSURLAuthenticationChallengeSender>)sender
@@ -108,7 +108,7 @@ typedef struct {
   return self;
 }
 
-- (int) previousFailureCount
+- (NSInteger) previousFailureCount
 {
   return this->previousFailureCount;
 }

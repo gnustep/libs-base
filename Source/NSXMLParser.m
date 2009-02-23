@@ -543,12 +543,12 @@ static  NSNull  *null = nil;
 @end
 
 @implementation NSXMLParser (NSXMLParserLocatorAdditions)
-- (int) columnNumber
+- (NSInteger) columnNumber
 {
   return [myParser columnNumber];
 }
 
-- (int) lineNumber
+- (NSInteger) lineNumber
 {
   return [myParser lineNumber];
 }
@@ -672,7 +672,7 @@ typedef struct { @defs(NSXMLParser) } *xp;
   this->abort = YES;
 }
 
-- (int) columnNumber
+- (NSInteger) columnNumber
 {
   return this->column;
 }
@@ -725,7 +725,7 @@ typedef struct { @defs(NSXMLParser) } *xp;
   return self;
 }
 
-- (int) lineNumber
+- (NSInteger) lineNumber
 {
   return this->line;
 }

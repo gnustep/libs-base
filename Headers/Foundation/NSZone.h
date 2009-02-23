@@ -101,7 +101,7 @@ struct _NSZone
 };
 
 GS_EXPORT NSZone*
-NSCreateZone (size_t start, size_t gran, BOOL canFree);
+NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree);
 
 GS_EXPORT NSZone*
 NSDefaultMallocZone (void);
@@ -117,7 +117,7 @@ NSZoneFromPointer (void *ptr);
  *  default zone, in which case NULL is returned.
  */
 GS_EXPORT void*
-NSZoneMalloc (NSZone *zone, size_t size);
+NSZoneMalloc (NSZone *zone, NSUInteger size);
 
 /**
  *  Allocates and returns cleared memory for elems items of size bytes, in the
@@ -127,7 +127,7 @@ NSZoneMalloc (NSZone *zone, size_t size);
  *  default zone, in which case NULL is returned.
  */
 GS_EXPORT void*
-NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
+NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes);
 
 /**
  *  Reallocates the chunk of memory in zone pointed to by ptr to a new one of
@@ -137,7 +137,7 @@ NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
  *  default zone, in which case NULL is returned.
  */
 GS_EXPORT void*
-NSZoneRealloc (NSZone *zone, void *ptr, size_t size);
+NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size);
 
 /**
  * Return memory for an entire zone to system.  In fact, this will not be done
@@ -221,7 +221,7 @@ NSZoneStats (NSZone *zone);
  * Try to do some logging if possible.
  */
 void*
-GSOutOfMemory(size_t size, BOOL retry);
+GSOutOfMemory(NSUInteger size, BOOL retry);
 
 /**
  * Returns the default zone used for memory allocation, created at startup.

@@ -97,7 +97,7 @@ static Class NSCountedSet_concrete_class;
  * specified object (as determined by the [-isEqual:] method) has
  * been added to the set and not removed from it.
  */
-- (unsigned int) countForObject: (id)anObject
+- (NSUInteger) countForObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -209,7 +209,7 @@ static Class NSCountedSet_concrete_class;
   return self;
 }
 
-- (void) purge: (int)level
+- (void) purge: (NSInteger)level
 {
   if (level > 0)
     {
@@ -232,7 +232,7 @@ static Class NSCountedSet_concrete_class;
 	    {
 	      unsigned	c = (*cImp)(self, @selector(countForObject:), obj);
 
-	      if (c <= (unsigned int)level)
+	      if (c <= (NSUInteger)level)
 		{
 		  while (c-- > 0)
 		    {
@@ -270,7 +270,7 @@ static Class NSCountedSet_concrete_class;
  * purge the set even when uniquing is turned off.
  */
 void
-GSUPurge(unsigned count)
+GSUPurge(NSUInteger count)
 {
   if (uniqueLock != nil)
     {
@@ -292,10 +292,10 @@ GSUPurge(unsigned count)
  * alter the set even when uniquing is turned off.
  */
 id
-GSUSet(id anObject, unsigned count)
+GSUSet(id anObject, NSUInteger count)
 {
   id		found;
-  unsigned	i;
+  NSUInteger	i;
 
   if (uniqueLock != nil)
     {

@@ -237,9 +237,10 @@ static Class	NSMutableDataMallocClass;
 }
 
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)count
+			 count: (NSUInteger)count
 			    at: (const void*)buf
 {
+  unsigned      c = count;
   unsigned	i;
   unsigned	offset = 0;
   unsigned	size = objc_sizeof_type(type);
@@ -272,9 +273,9 @@ static Class	NSMutableDataMallocClass;
       if (_initialPass == NO)
 	{
 	  (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-	  (*_serImp)(_dst, serSel, &count, @encode(unsigned), nil);
+	  (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
 	}
-      for (i = 0; i < count; i++)
+      for (i = 0; i < c; i++)
 	{
 	  (*_eValImp)(self, eValSel, type, (char*)buf + offset);
 	  offset += size;
@@ -283,10 +284,10 @@ static Class	NSMutableDataMallocClass;
   else if (_initialPass == NO)
     {
       (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-      (*_serImp)(_dst, serSel, &count, @encode(unsigned), nil);
+      (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
 
       (*_tagImp)(_dst, tagSel, info);
-      for (i = 0; i < count; i++)
+      for (i = 0; i < c; i++)
 	{
 	  (*_serImp)(_dst, serSel, (char*)buf + offset, type, nil);
 	  offset += size;
@@ -305,7 +306,7 @@ static Class	NSMutableDataMallocClass;
 
       case _C_ARY_B:
 	{
-	  int		count = atoi(++type);
+	  unsigned	count = atoi(++type);
 
 	  while (isdigit(*type))
 	    {

@@ -163,7 +163,7 @@ typedef struct {
 }
 
 - (void) download: (NSURLDownload *)download
-  didReceiveDataOfLength: (unsigned)length
+  didReceiveDataOfLength: (NSUInteger)length
 {
 }
 

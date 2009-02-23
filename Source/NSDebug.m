@@ -918,7 +918,7 @@ recover(int sig)
 }
 
 void *
-NSFrameAddress(int offset)
+NSFrameAddress(NSUInteger offset)
 {
   jbuf_type     *env;
 
@@ -978,7 +978,7 @@ NSFrameAddress(int offset)
   return env->addr;
 }
 
-unsigned NSCountFrames(void)
+NSUInteger NSCountFrames(void)
 {
   jbuf_type	*env;
 
@@ -1038,11 +1038,11 @@ done:
       signal(SIGBUS, env->bus);
     }
 
-  return (unsigned)(uintptr_t)env->addr;
+  return (uintptr_t)env->addr;
 }
 
 void *
-NSReturnAddress(int offset)
+NSReturnAddress(NSUInteger offset)
 {
   jbuf_type	*env;
 

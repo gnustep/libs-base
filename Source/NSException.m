@@ -42,8 +42,6 @@
 #include <stdio.h>
 
 
-static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
-
 #define _e_info (((id*)_reserved)[0])
 #define _e_stack (((id*)_reserved)[1])
 
@@ -60,8 +58,8 @@ typedef struct { @defs(NSThread) } *TInfo;
 - (NSString*) description;
 - (NSEnumerator*) enumerator;
 - (NSMutableArray*) frames;
-- (id) frameAt: (unsigned)index;
-- (unsigned) frameCount;
+- (id) frameAt: (NSUInteger)index;
+- (NSUInteger) frameCount;
 - (id) initWithAddresses: (NSArray*)stack;
 - (NSEnumerator*) reverseEnumerator;
 
@@ -152,8 +150,8 @@ GSPrivateBaseAddress(void *addr, void **base)
 	      address: (void*)address 
 		 file: (NSString*)file 
 	     function: (NSString*)function 
-		 line: (int)lineNo;
-- (int) lineNumber;
+		 line: (NSInteger)lineNo;
+- (NSInteger) lineNumber;
 - (GSBinaryFileInfo*) module;
 
 @end
@@ -216,7 +214,7 @@ GSPrivateBaseAddress(void *addr, void **base)
 	      address: (void*)address 
 		 file: (NSString*)file 
 	     function: (NSString*)function 
-		 line: (int)lineNo
+		 line: (NSInteger)lineNo
 {
   _module = RETAIN(module);
   _address = address;
@@ -227,7 +225,7 @@ GSPrivateBaseAddress(void *addr, void **base)
   return self;
 }
 
-- (int) lineNumber
+- (NSInteger) lineNumber
 {
   return _lineNo;
 }
@@ -552,12 +550,12 @@ GSListModules()
   return [frames objectEnumerator];
 }
 
-- (id) frameAt: (unsigned)index
+- (id) frameAt: (NSUInteger)index
 {
   return [frames objectAtIndex: index];
 }
 
-- (unsigned) frameCount
+- (NSUInteger) frameCount
 {
   return [frames count];
 }
@@ -724,6 +722,10 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   _terminate();
 }
 
+static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler
+  = _NSFoundationUncaughtExceptionHandler;
+
+#if	defined(_NATIVE_OBJC_EXCEPTIONS) && defined(HAVE_UNEXPECTED)
 static void
 callUncaughtHandler(id value)
 {
@@ -733,6 +735,8 @@ callUncaughtHandler(id value)
     }
   _NSFoundationUncaughtExceptionHandler(value);
 }
+#endif
+
 
 @implementation NSException
 

@@ -50,12 +50,13 @@ extern "C" {
 }
  </example>
  */
-typedef enum {
+enum {
   NSNotificationSuspensionBehaviorDrop = 1,
   NSNotificationSuspensionBehaviorCoalesce = 2,
   NSNotificationSuspensionBehaviorHold = 3,
   NSNotificationSuspensionBehaviorDeliverImmediately = 4
-} NSNotificationSuspensionBehavior;
+};
+typedef NSUInteger NSNotificationSuspensionBehavior;
 
 /**
  *  Type for [NSDistributedNotificationCenter+notificationCenterForType:] -

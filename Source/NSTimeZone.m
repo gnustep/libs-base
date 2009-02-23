@@ -252,10 +252,10 @@ decode (const void *ptr)
 #if defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4
 #if NEED_WORD_ALIGNMENT
   int value;
-  memcpy(&value, ptr, sizeof(int));
+  memcpy(&value, ptr, sizeof(NSInteger));
   return value;
 #else
-  return *(const int *) ptr;
+  return *(const NSInteger*) ptr;
 #endif
 #else /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
   const unsigned char *p = ptr;
@@ -292,7 +292,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   int		offset; // Offset from UTC in seconds.
 }
 
-- (id) initWithOffset: (int)anOffset name: (NSString*)aName;
+- (id) initWithOffset: (NSInteger)anOffset name: (NSString*)aName;
 @end
 
 @interface NSLocalTimeZone : NSTimeZone
@@ -308,7 +308,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 - (id) initWithTimeZone: (NSTimeZone*)aZone
 	     withAbbrev: (NSString*)anAbbrev
-	     withOffset: (int)anOffset
+	     withOffset: (NSInteger)anOffset
 		withDST: (BOOL)isDST;
 @end
 
@@ -379,7 +379,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   if (zone == nil)
     {
       unichar	c;
-      unsigned	i;
+      int	i;
 
       if ((length == 3
 	&& ([name isEqualToString: @"GMT"] == YES
@@ -567,12 +567,12 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   return self;
 }
 
-- (int) secondsFromGMT
+- (NSInteger) secondsFromGMT
 {
   return [[NSTimeZoneClass defaultTimeZone] secondsFromGMT];
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   return [[NSTimeZoneClass defaultTimeZone] secondsFromGMTForDate: aDate];
 }
@@ -634,7 +634,7 @@ static NSMapTable	*absolutes = 0;
   [aCoder encodeObject: name];
 }
 
-- (id) initWithOffset: (int)anOffset name: (NSString*)aName
+- (id) initWithOffset: (NSInteger)anOffset name: (NSString*)aName
 {
   GSAbsTimeZone	*z;
   int		extra;
@@ -729,7 +729,7 @@ static NSMapTable	*absolutes = 0;
   return name;
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   return offset;
 }
@@ -769,7 +769,7 @@ static NSMapTable	*absolutes = 0;
 
 - (id) initWithTimeZone: (NSTimeZone*)aZone
 	     withAbbrev: (NSString*)anAbbrev
-	     withOffset: (int)anOffset
+	     withOffset: (NSInteger)anOffset
 		withDST: (BOOL)isDST
 {
   timeZone = RETAIN(aZone);
@@ -804,12 +804,12 @@ static NSMapTable	*absolutes = 0;
   return [timeZone timeZoneDetailForDate: date];
 }
 
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   return offset;
 }
 
-- (int) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
 {
   return offset;
 }
@@ -871,12 +871,12 @@ static NSMapTable	*absolutes = 0;
   return self;
 }
 
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   return zone->offset;
 }
 
-- (int) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
 {
   return zone->offset;
 }
@@ -1686,7 +1686,7 @@ static NSMapTable	*absolutes = 0;
  * Time zones with an offset of more than +/- 18 hours  are disallowed,
  * and nil is returned.
  */
-+ (NSTimeZone*) timeZoneForSecondsFromGMT: (int)seconds
++ (NSTimeZone*) timeZoneForSecondsFromGMT: (NSInteger)seconds
 {
   NSTimeZone	*zone;
 
@@ -1902,7 +1902,7 @@ static NSMapTable	*absolutes = 0;
  * from Greenwich Mean Time at the current date and time.<br />
  * Invokes -secondsFromGMTForDate:
  */
-- (int) secondsFromGMT
+- (NSInteger) secondsFromGMT
 {
   return [self secondsFromGMTForDate: [NSDate date]];
 }
@@ -1913,7 +1913,7 @@ static NSMapTable	*absolutes = 0;
  * If the time zone uses daylight savings time, the returned value
  * will vary at different times of year.
  */
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   NSTimeZoneDetail	*detail;
   int			offset;
@@ -2012,7 +2012,7 @@ static NSMapTable	*absolutes = 0;
 /**
  * DEPRECATED: Class is no longer used.
  */
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -2139,8 +2139,8 @@ lastDayOfGregorianMonth(int month, int year)
 
 /* IMPORT from NSCalendar date */
 void
-GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
-  int *hour, int *minute, int *second, int *mil);
+GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
+  NSInteger*hour, NSInteger*minute, NSInteger*second, NSInteger*mil);
 
 
 @implementation GSWindowsTimeZone
@@ -2403,7 +2403,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 	}
     }
 
-  dow = ((int)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
+  dow = ((NSInteger)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
   if (dow < 0)
     dow += 7;
 
@@ -2493,7 +2493,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
     }
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   if ([self isDaylightSavingTimeForDate: aDate])
     return -Bias*60 - DaylightBias*60;
@@ -2823,7 +2823,7 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
   return timeZoneName;
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
 

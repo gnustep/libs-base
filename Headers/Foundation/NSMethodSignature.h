@@ -88,8 +88,8 @@ typedef struct	{
 @interface NSMethodSignature : NSObject
 {
   const char		*_methodTypes;
-  unsigned		_argFrameLength;
-  unsigned		_numArgs;
+  NSUInteger		_argFrameLength;
+  NSUInteger		_numArgs;
 #if OS_API_VERSION(GS_API_NONE, GS_API_MACOSX)
   NSArgumentInfo	*_info;
 #else
@@ -108,14 +108,14 @@ typedef struct	{
  * Returns full information on given argument.  Indices start at 0.  Provide
  * -1 to get info on return value.
  */
-- (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index;
+- (NSArgumentInfo) argumentInfoAtIndex: (NSUInteger)index;
 #endif
 
 /**
  * Number of bytes that the full set of arguments occupies on the stack, which
  * is platform(hardware)-dependent.
  */
-- (unsigned) frameLength;
+- (NSUInteger) frameLength;
 
 /**
  * Returns Objective-C <code>@encode(...)</code> compatible string.  Arguments
@@ -123,7 +123,7 @@ typedef struct	{
  * <code><em>self</em></code> (type <code>id</code>, at position 0) and
  * <code><em>_cmd</em></code> (type <code>SEL</code>, at position 1).
  */
-- (const char*) getArgumentTypeAtIndex: (unsigned)index;
+- (const char*) getArgumentTypeAtIndex: (NSUInteger)index;
 
 /**
  * Pertains to distributed objects; method is asynchronous when invoked and
@@ -135,7 +135,7 @@ typedef struct	{
  * Number of bytes that the return value occupies on the stack, which is
  * platform(hardware)-dependent.
  */
-- (unsigned) methodReturnLength;
+- (NSUInteger) methodReturnLength;
 
 /**
  * Returns Objective-C <code>@encode(...)</code> compatible string.  Arguments
@@ -149,7 +149,7 @@ typedef struct	{
  * Returns number of arguments to method, including the implicit
  * <code><em>self</em></code> and <code><em>_cmd</em></code>.
  */
-- (unsigned) numberOfArguments;
+- (NSUInteger) numberOfArguments;
 
 @end
 

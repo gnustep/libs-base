@@ -89,7 +89,7 @@ static NSString *dict_key = @"NSAssertionHandler";
  */
 - (void) handleFailureInFunction: (NSString*)functionName
 			    file: (NSString*)fileName
-		      lineNumber: (int)line
+		      lineNumber: (NSInteger)line
 		     description: (NSString*)format,...
 {
   id		message;
@@ -116,7 +116,7 @@ static NSString *dict_key = @"NSAssertionHandler";
 - (void) handleFailureInMethod: (SEL) aSelector
                         object: object
                           file: (NSString *) fileName
-                    lineNumber: (int) line
+                    lineNumber: (NSInteger) line
                    description: (NSString *) format,...
 {
   id		message;

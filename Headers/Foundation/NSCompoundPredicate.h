@@ -34,12 +34,13 @@
 extern "C" {
 #endif
 
-typedef enum _NSCompoundPredicateType
+enum
 {
   NSNotPredicateType = 0,
   NSAndPredicateType,
   NSOrPredicateType
-} NSCompoundPredicateType;
+};
+typedef NSUInteger NSCompoundPredicateType;
 
 @interface NSCompoundPredicate : NSPredicate
 {

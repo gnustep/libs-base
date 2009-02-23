@@ -88,7 +88,7 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 - (void) performSelector: (SEL)aSelector
 		  target: (id)target
 		argument: (id)argument
-		   order: (unsigned int)order
+		   order: (NSUInteger)order
 		   modes: (NSArray*)modes;
 
 - (void) removePort: (NSPort*)port

@@ -72,7 +72,7 @@ NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 static NSDate	*theFuture = nil;
 
 @interface NSObject (OptionalPortRunLoop)
-- (void) getFds: (int*)fds count: (int*)count;
+- (void) getFds: (NSInteger*)fds count: (NSInteger*)count;
 @end
 
 
@@ -95,7 +95,7 @@ static NSDate	*theFuture = nil;
 - (id) initWithSelector: (SEL)aSelector
 		 target: (id)target
 	       argument: (id)argument
-		  order: (unsigned int)order;
+		  order: (NSUInteger)order;
 @end
 
 @implementation GSRunLoopPerformer
@@ -115,7 +115,7 @@ static NSDate	*theFuture = nil;
 - (id) initWithSelector: (SEL)aSelector
 		 target: (id)aTarget
 	       argument: (id)anArgument
-		  order: (unsigned int)theOrder
+		  order: (NSUInteger)theOrder
 {
   self = [super init];
   if (self)
@@ -1408,7 +1408,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 - (void) performSelector: (SEL)aSelector
 		  target: (id)target
 		argument: (id)argument
-		   order: (unsigned int)order
+		   order: (NSUInteger)order
 		   modes: (NSArray*)modes
 {
   unsigned		count = [modes count];

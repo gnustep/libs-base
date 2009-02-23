@@ -184,13 +184,13 @@
               case 'c':
                 ptr++;
                 [arr addObject: [NSNumber numberWithChar:
-                  (char)va_arg(args, int)]];
+                  (char)va_arg(args, NSInteger)]];
                 break;
 
               case 'C':
                 ptr++;
                 [arr addObject: [NSNumber numberWithShort:
-                  (short)va_arg(args, int)]];
+                  (short)va_arg(args, NSInteger)]];
                 break;
 
               case 'd':
@@ -198,7 +198,7 @@
               case 'i':
                 ptr++;
                 [arr addObject: [NSNumber numberWithInt:
-                  va_arg(args, int)]];
+                  va_arg(args, NSInteger)]];
                 break;
 
               case 'o':
@@ -209,7 +209,7 @@
               case 'X':
                 ptr++;
                 [arr addObject: [NSNumber numberWithUnsignedInt:
-                  va_arg(args, unsigned int)]];
+                  va_arg(args, NSUInteger)]];
                 break;
 
               case 'e':
@@ -230,12 +230,12 @@
                     if (c == 'i')
                       {
                         [arr addObject: [NSNumber numberWithShort:
-                          (short)va_arg(args, int)]];
+                          (short)va_arg(args, NSInteger)]];
                       }
                     if (c == 'u')
                       {
                         [arr addObject: [NSNumber numberWithUnsignedShort:
-                          (unsigned short)va_arg(args, int)]];
+                          (unsigned short)va_arg(args, NSInteger)]];
                       }
                   }
                 break;
@@ -616,7 +616,7 @@
                               rightExpression: (NSExpression *)right
                                      modifier: (NSComparisonPredicateModifier)modifier
                                          type: (NSPredicateOperatorType)type
-                                      options: (unsigned)opts
+                                      options: (NSUInteger)opts
 {
   return AUTORELEASE([[self alloc] initWithLeftExpression: left 
                                           rightExpression: right
@@ -643,7 +643,7 @@
               rightExpression: (NSExpression *)right
                      modifier: (NSComparisonPredicateModifier)modifier
                          type: (NSPredicateOperatorType)type
-                      options: (unsigned)opts
+                      options: (NSUInteger)opts
 {
   if ((self = [super init]) != nil)
     {
@@ -678,7 +678,7 @@
   return _left;
 }
 
-- (unsigned) options
+- (NSUInteger) options
 {
   return _options;
 }

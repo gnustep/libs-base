@@ -68,7 +68,7 @@ extern "C" {
 - (BOOL) isKindOfClass: (Class)aClass;	/** See [NSObject-isKindOfClass:] */
 - (BOOL) isMemberOfClass: (Class)aClass;/** See [NSObject-isMemberOfClass:] */
 - (BOOL) isProxy;			/** See [NSObject-isProxy] */
-- (unsigned) hash;			/** See [NSObject-hash] */
+- (NSUInteger) hash;			/** See [NSObject-hash] */
 - (id) self;				/** See [NSObject-self] */
 - (id) performSelector: (SEL)aSelector;	/** See [NSObject-performSelector:] */
 /** See [NSObject-performSelector:withObject:] */
@@ -85,7 +85,7 @@ extern "C" {
 - (id) retain;				/** See [NSObject-retain] */
 - (id) autorelease			/** See [NSObject-autorelease] */;
 - (oneway void) release;		/** See [NSObject-release] */
-- (unsigned) retainCount;		/** See [NSObject-retainCount] */
+- (NSUInteger) retainCount;		/** See [NSObject-retainCount] */
 - (NSZone*) zone;			/** See [NSObject-zone] */
 - (NSString*) description;		/** See [NSObject-description] */
 @end
@@ -195,9 +195,9 @@ extern "C" {
 + (BOOL) isSubclassOfClass: (Class)aClass;
 + (id) new;
 + (void) poseAsClass: (Class)aClassObject;
-+ (id) setVersion: (int)aVersion;
++ (id) setVersion: (NSInteger)aVersion;
 + (Class) superclass;
-+ (int) version;
++ (NSInteger) version;
 
 - (id) autorelease;
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
@@ -210,7 +210,7 @@ extern "C" {
 - (NSString*) description;
 - (void) doesNotRecognizeSelector: (SEL)aSelector;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (unsigned) hash;
+- (NSUInteger) hash;
 - (id) init;
 - (BOOL) isEqual: anObject;
 - (BOOL) isKindOfClass: (Class)aClass;
@@ -230,7 +230,7 @@ extern "C" {
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
 - (BOOL) respondsToSelector: (SEL)aSelector;
 - (id) retain;
-- (unsigned) retainCount;
+- (NSUInteger) retainCount;
 - (id) self;
 - (Class) superclass;
 - (NSZone*) zone;
@@ -244,7 +244,7 @@ extern "C" {
  * This function is used by the [NSObject+allocWithZone:] method.
  */
 GS_EXPORT NSObject *
-NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
+NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone);
 
 /**
  * Used to release the memory used by an object.<br />
@@ -262,7 +262,7 @@ NSDeallocateObject(NSObject *anObject);
  * [(NSCopying)-copyWithZone:] method.
  */
 GS_EXPORT NSObject *
-NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
+NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone);
 
 /**
  * Returns a flag to indicate whether anObject should be retained or
@@ -276,7 +276,7 @@ NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
 GS_EXPORT BOOL
 NSDecrementExtraRefCountWasZero(id anObject);
 
-GS_EXPORT unsigned
+GS_EXPORT NSUInteger
 NSExtraRefCount(id anObject);
 
 GS_EXPORT void

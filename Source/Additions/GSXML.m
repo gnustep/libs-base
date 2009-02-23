@@ -225,7 +225,7 @@ static NSMapTable	*attrNames = 0;
     }
 }
 
-+ (int) typeFromDescription: (NSString*)desc
++ (NSInteger) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
@@ -236,22 +236,22 @@ static NSMapTable	*attrNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)(intptr_t)key;
+	  return (NSInteger)(intptr_t)key;
 	}
     }
   return -1;
 }
 
-+ (NSString*) descriptionFromType: (int)type
++ (NSString*) descriptionFromType: (NSInteger)type
 {
   NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)(intptr_t)type);
 
   return desc;
 }
 
-- (int) type
+- (NSInteger) type
 {
-  return (int)((xmlAttrPtr)(lib))->atype;
+  return (NSInteger)((xmlAttrPtr)(lib))->atype;
 }
 
 - (NSString*) typeDescription
@@ -400,9 +400,9 @@ static NSMapTable	*attrNames = 0;
   return UTF8Str(((xmlDocPtr)(lib))->encoding);
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
-  return (((unsigned)(uintptr_t)lib) >> 3);
+  return (((NSUInteger)(intptr_t)lib) >> 3);
 }
 
 - (id) init
@@ -553,7 +553,7 @@ static NSMapTable	*nsNames = 0;
 /**
  * Return the string representation of the specified numeric type.
  */
-+ (NSString*) descriptionFromType: (int)type
++ (NSString*) descriptionFromType: (NSInteger)type
 {
   NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)(intptr_t)type);
 
@@ -582,7 +582,7 @@ static NSMapTable	*nsNames = 0;
  *   <item>XML_LOCAL_NAMESPACE</item>
  * </list>
  */
-+ (int) typeFromDescription: (NSString*)desc
++ (NSInteger) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
@@ -593,7 +593,7 @@ static NSMapTable	*nsNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)(intptr_t)key;
+	  return (NSInteger)(intptr_t)key;
 	}
     }
   return -1;
@@ -610,9 +610,9 @@ static NSMapTable	*nsNames = 0;
   [super dealloc];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
-  return (((unsigned)(uintptr_t)lib) >> 3);
+  return (((NSUInteger)(intptr_t)lib) >> 3);
 }
 
 /**
@@ -676,9 +676,9 @@ static NSMapTable	*nsNames = 0;
 /**
  * Return type of namespace
  */
-- (int) type
+- (NSInteger) type
 {
-  return (int)((xmlNsPtr)(lib))->type;
+  return (NSInteger)((xmlNsPtr)(lib))->type;
 }
 
 /**
@@ -731,7 +731,7 @@ static NSMapTable	*nodeNames = 0;
 /**
  * Return the string constant value for the node type given.
  */
-+ (NSString*) descriptionFromType: (int)type
++ (NSString*) descriptionFromType: (NSInteger)type
 {
   NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)(intptr_t)type);
 
@@ -810,7 +810,7 @@ static NSMapTable	*nodeNames = 0;
  *   <item>XML_ENTITY_DECL</item>
  * </list>
  */
-+ (int) typeFromDescription: (NSString*)desc
++ (NSInteger) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
@@ -821,7 +821,7 @@ static NSMapTable	*nodeNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)(intptr_t)key;
+	  return (NSInteger)(intptr_t)key;
 	}
     }
   return -1;
@@ -894,11 +894,11 @@ static NSMapTable	*nodeNames = 0;
     {
       return UTF8Str(ptr->content);
     }
-  if ((int)ptr->type == XML_TEXT_NODE)
+  if ((NSInteger)ptr->type == XML_TEXT_NODE)
     {
       return @"";
     }
-  else if ((int)ptr->type == XML_ELEMENT_NODE)
+  else if ((NSInteger)ptr->type == XML_ELEMENT_NODE)
     {
       ptr = ptr->children;
       if (ptr != NULL)
@@ -1070,9 +1070,9 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
-  return (((unsigned)(uintptr_t)lib) >> 3);
+  return (((NSUInteger)(intptr_t)lib) >> 3);
 }
 
 - (id) init
@@ -1089,7 +1089,7 @@ static NSMapTable	*nodeNames = 0;
  */
 - (BOOL) isElement
 {
-  if ((int)((xmlNodePtr)(lib))->type == XML_ELEMENT_NODE)
+  if ((NSInteger)((xmlNodePtr)(lib))->type == XML_ELEMENT_NODE)
     {
       return YES;
     }
@@ -1116,7 +1116,7 @@ static NSMapTable	*nodeNames = 0;
  */
 - (BOOL) isText
 {
-  if ((int)((xmlNodePtr)(lib))->type == XML_TEXT_NODE)
+  if ((NSInteger)((xmlNodePtr)(lib))->type == XML_TEXT_NODE)
     {
       return YES;
     }
@@ -1531,9 +1531,9 @@ static NSMapTable	*nodeNames = 0;
  * use this method and compare the return value with a value you previously
  * obtained using the +typeFromDescription: method.
  */
-- (int) type
+- (NSInteger) type
 {
-  return (int)((xmlNodePtr)(lib))->type;
+  return (NSInteger)((xmlNodePtr)(lib))->type;
 }
 
 /**
@@ -1847,7 +1847,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 /**
  * If executed during a parse operation, returns the current column number.
  */
-- (int) columnNumber
+- (NSInteger) columnNumber
 {
   return  xmlSAX2GetColumnNumber(lib);
 }
@@ -1891,7 +1891,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 /**
  * Return error code for last parse operation.
  */
-- (int) errNo
+- (NSInteger) errNo
 {
   return ((xmlParserCtxtPtr)lib)->errNo;
 }
@@ -2057,7 +2057,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 /**
  * If executed during a parse operation, returns the current line number.
  */
-- (int) lineNumber
+- (NSInteger) lineNumber
 {
   return  xmlSAX2GetLineNumber(lib);
 }
@@ -3043,7 +3043,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Called to detemrine if the document is standalone.
  */
-- (int) isStandalone
+- (NSInteger) isStandalone
 {
   return 1;
 }
@@ -3166,7 +3166,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * An entity definition has been parsed.
  */
 - (void) entityDecl: (NSString*)name
-	       type: (int)type
+	       type: (NSInteger)type
 	     public: (NSString*)publicId
 	     system: (NSString*)systemId
 	    content: (NSString*)content
@@ -3178,8 +3178,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  */
 - (void) attributeDecl: (NSString*)nameElement
 		  name: (NSString*)name
-		  type: (int)type
-	  typeDefValue: (int)defType
+		  type: (NSInteger)type
+	  typeDefValue: (NSInteger)defType
 	  defaultValue: (NSString*)value
 {
 }
@@ -3188,7 +3188,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * An element definition has been parsed.
  */
 - (void) elementDecl: (NSString*)name
-		type: (int)type
+		type: (NSInteger)type
 {
 }
 
@@ -3246,8 +3246,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Called when a warning message needs to be output.
  */
 - (void) warning: (NSString*)e
-       colNumber: (int)colNumber
-      lineNumber: (int)lineNumber
+       colNumber: (NSInteger)colNumber
+      lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
     lineNumber, colNumber, e];
@@ -3258,8 +3258,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Called when an error message needs to be output.
  */
 - (void) error: (NSString*)e
-     colNumber: (int)colNumber
-    lineNumber: (int)lineNumber
+     colNumber: (NSInteger)colNumber
+    lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
     lineNumber, colNumber, e];
@@ -3270,8 +3270,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Called when a fatal error message needs to be output.
  */
 - (void) fatalError: (NSString*)e
-       colNumber: (int)colNumber
-      lineNumber: (int)lineNumber
+       colNumber: (NSInteger)colNumber
+      lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
     lineNumber, colNumber, e];
@@ -3281,7 +3281,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Called to find out whether there is an internal subset.
  */
-- (int) hasInternalSubset
+- (NSInteger) hasInternalSubset
 {
   return 0;
 }
@@ -3299,7 +3299,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Called to find out whether there is an external subset.
  */
-- (int) hasExternalSubset
+- (NSInteger) hasExternalSubset
 {
   return 0;
 }
@@ -3688,7 +3688,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Returns the number of nodes in the receiver.
  */
-- (unsigned int) count
+- (NSUInteger) count
 {
   if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
     {
@@ -3700,7 +3700,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Deprecated
  */
-- (unsigned int) length
+- (NSUInteger) length
 {
   if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
     {
@@ -3714,7 +3714,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Returns the node from the receiver at the specified index, or nil
  * if no such node exists.
  */
-- (GSXMLNode *) nodeAtIndex: (unsigned)index
+- (GSXMLNode *) nodeAtIndex: (NSUInteger)index
 {
   if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
     {
@@ -3726,7 +3726,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       GSXMLNode *n;
 
       node = xmlXPathNodeSetItem (((xmlXPathObject*)_lib)->nodesetval,
-	(int)index);
+	(NSInteger)index);
       n = [GSXMLNode alloc];
       n = [n _initFrom: node  parent: self];
       return AUTORELEASE(n);
@@ -4441,43 +4441,43 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
  */
 @interface	NSArray (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSData (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSDate (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSDictionary (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSObject (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSNumber (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSString (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
@@ -4528,7 +4528,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSArray (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   unsigned 		i;
@@ -4564,7 +4564,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSData (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   NSData	*d;
@@ -4581,7 +4581,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSDate (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   NSString		*s;
@@ -4597,7 +4597,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSDictionary (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   NSEnumerator	*kEnum = [self keyEnumerator];
@@ -4638,7 +4638,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSNumber (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   const char	*t = [self objCType];
@@ -4674,7 +4674,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSObject (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   [[self description] appendToXMLRPC: str indent: indent for: rpc];
@@ -4683,7 +4683,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSString (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   BOOL	compact = [rpc compact];
@@ -4990,7 +4990,7 @@ static void indentation(unsigned level, NSMutableString *str)
   return str;
 }
 
-- (NSString*) buildResponseWithFaultCode: (int)code andString: (NSString*)s
+- (NSString*) buildResponseWithFaultCode: (NSInteger)code andString: (NSString*)s
 {
   NSMutableString	*str = [NSMutableString stringWithCapacity: 1024];
   NSDictionary		*fault;
@@ -5140,7 +5140,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 - (id) makeMethodCall: (NSString*)method 
 	       params: (NSArray*)params
-	      timeout: (int)seconds
+	      timeout: (NSInteger)seconds
 {
   NS_DURING
     {
@@ -5322,7 +5322,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 - (BOOL) sendMethodCall: (NSString*)method 
 		 params: (NSArray*)params
-		timeout: (int)seconds
+		timeout: (NSInteger)seconds
 {
   NSData	*data;
 

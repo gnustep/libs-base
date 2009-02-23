@@ -73,11 +73,12 @@ extern "C" {
 }
  </example>
  */
-typedef enum {
+enum {
   NSPostWhenIdle = 1,
   NSPostASAP = 2,
   NSPostNow = 3
-} NSPostingStyle;
+};
+typedef NSUInteger NSPostingStyle;
 
 /**
  * Enumeration of possible ways to combine notifications when dealing with
@@ -90,11 +91,12 @@ typedef enum {
 }
  </example>
  */
-typedef enum {
+enum {
   NSNotificationNoCoalescing = 0,
   NSNotificationCoalescingOnName = 1,
   NSNotificationCoalescingOnSender = 2,
-} NSNotificationCoalescing;
+};
+typedef NSUInteger NSNotificationCoalescing;
 
 /*
  * NSNotificationQueue class
@@ -121,14 +123,14 @@ struct _NSNotificationQueueList;
 /* Inserting and Removing Notifications From a Queue */
 
 - (void) dequeueNotificationsMatching: (NSNotification*)notification
-			 coalesceMask: (unsigned int)coalesceMask;
+			 coalesceMask: (NSUInteger)coalesceMask;
 
 - (void) enqueueNotification: (NSNotification*)notification
 	        postingStyle: (NSPostingStyle)postingStyle;
 
 - (void) enqueueNotification: (NSNotification*)notification
 	        postingStyle: (NSPostingStyle)postingStyle
-	        coalesceMask: (unsigned int)coalesceMask
+	        coalesceMask: (NSUInteger)coalesceMask
 		    forModes: (NSArray*)modes;
 
 @end

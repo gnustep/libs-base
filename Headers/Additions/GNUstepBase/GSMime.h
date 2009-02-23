@@ -62,7 +62,7 @@ extern "C" {
 }
 - (BOOL) atEnd;
 - (BOOL) decodeData: (const void*)sData
-             length: (unsigned)length
+             length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData;
 - (void) setAtEnd: (BOOL)flag;
 @end

@@ -26,11 +26,11 @@
 			      object: (NSString*)object
 			    userInfo: (NSData*)info
 			    selector: (NSString*)aSelector
-				  to: (NSUInteger)observer;
+				  to: (uint64_t)observer;
 @end
 
 @protocol	GDNCProtocol
-- (void) addObserver: (NSUInteger)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
@@ -45,7 +45,7 @@
 
 - (void) registerClient: (id<GDNCClient>)client;
 
-- (void) removeObserver: (NSUInteger)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationname
 		 object: (NSString*)anObject
 		    for: (id<GDNCClient>)client;

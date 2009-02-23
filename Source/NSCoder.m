@@ -74,7 +74,7 @@
 // Encoding Data
 
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)count
+			 count: (NSUInteger)count
 			    at: (const void*)array
 {
   unsigned	i;
@@ -99,7 +99,7 @@
   [self encodeObject: anObject];
 }
 
-- (void) encodeBytes: (void*)d length: (unsigned)l
+- (void) encodeBytes: (void*)d length: (NSUInteger)l
 {
   const char		*type = @encode(unsigned char);
   const unsigned char	*where = (const unsigned char*)d;
@@ -169,7 +169,7 @@
 // Decoding Data
 
 - (void) decodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)count
+			 count: (NSUInteger)count
 			    at: (void*)address
 {
   unsigned	i;
@@ -185,9 +185,9 @@
     }
 }
 
-- (void*) decodeBytesWithReturnedLength: (unsigned*)l
+- (void*) decodeBytesWithReturnedLength: (NSUInteger*)l
 {
-  unsigned	count;
+  unsigned int	count;
   const char	*type = @encode(unsigned char);
   unsigned char	*where;
   unsigned char	*array;
@@ -196,8 +196,8 @@
   imp = [self methodForSelector: @selector(decodeValueOfObjCType:at:)];
 
   (*imp)(self, @selector(decodeValueOfObjCType:at:),
-    @encode(unsigned), &count);
-  *l = count;
+    @encode(unsigned int), &count);
+  *l = (NSUInteger)count;
   array = NSZoneMalloc(NSDefaultMallocZone(), count);
   where = array;
   while (count-- > 0)
@@ -291,7 +291,7 @@
 
 // Getting a Version
 
-- (unsigned int) systemVersion
+- (unsigned) systemVersion
 {
   return (((GNUSTEP_BASE_MAJOR_VERSION * 100)
     + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
@@ -318,7 +318,7 @@
 }
 
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (unsigned*)alength
+		      returnedLength: (NSUInteger*)alength
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -372,7 +372,7 @@
 }
 
 - (void) encodeBytes: (const uint8_t*)aPointer
-	      length: (unsigned)length
+	      length: (NSUInteger)length
 	      forKey: (NSString*)aKey
 {
   [self subclassResponsibility: _cmd];
@@ -429,7 +429,7 @@
 {
   return _a;
 }
-- (unsigned) count
+- (NSUInteger) count
 {
   return _c;
 }
@@ -465,7 +465,7 @@
   return self;
 }
 
-- (id) initWithObjCType: (const char*)t count: (int)c at: (const void*)a
+- (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a
 {
   _t[0] = *t;
   _t[1] = '\0';
@@ -489,7 +489,7 @@
     }
 }
 
-- (unsigned) size
+- (NSUInteger) size
 {
   return _s;
 }

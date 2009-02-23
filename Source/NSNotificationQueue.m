@@ -392,7 +392,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
  * <em>not</em> posted.
  */
 - (void) dequeueNotificationsMatching: (NSNotification*)notification
-			 coalesceMask: (unsigned int)coalesceMask
+			 coalesceMask: (NSUInteger)coalesceMask
 {
   NSNotificationQueueRegistration	*item;
   NSNotificationQueueRegistration	*next;
@@ -507,7 +507,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
  */
 - (void) enqueueNotification: (NSNotification*)notification
 		postingStyle: (NSPostingStyle)postingStyle
-		coalesceMask: (unsigned int)coalesceMask
+		coalesceMask: (NSUInteger)coalesceMask
 		    forModes: (NSArray*)modes
 {
   if (coalesceMask != NSNotificationNoCoalescing)

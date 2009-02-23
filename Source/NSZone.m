@@ -102,7 +102,7 @@
  * Try to do some logging if possible.
  */
 void *
-GSOutOfMemory(size_t size, BOOL retry)
+GSOutOfMemory(NSUInteger size, BOOL retry)
 {
   fprintf(stderr, "GSOutOfMemory ... wanting %lu bytes.\n",
     (unsigned long)size);
@@ -1598,7 +1598,7 @@ static void rnfree (NSZone *zone, void *ptr);
  * pointers is kept and must reach zero before freeing the zone.
  */
 NSZone*
-NSCreateZone (size_t start, size_t gran, BOOL canFree)
+NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
 {
   size_t i, startsize, granularity;
   NSZone *newZone;
@@ -1719,7 +1719,7 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
  *  allocate and no more can be obtained from system.
  */
 void*
-NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
+NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
   return memset(NSZoneMalloc(zone, elems*bytes), 0, elems*bytes);
 }
@@ -1840,7 +1840,7 @@ NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
 #if	GS_WITH_GC
 
 NSZone*
-NSCreateZone (size_t start, size_t gran, BOOL canFree)
+NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
 {
   return &default_zone;
 }
@@ -1926,13 +1926,13 @@ GSAssignZeroingWeakPointer(void **destination, void *source)
 }
 
 void*
-NSZoneMalloc (NSZone *zone, size_t size)
+NSZoneMalloc (NSZone *zone, NSUInteger size)
 {
   return NSZoneCalloc(zone, 1, size);
 }
 
 void*
-NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
+NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
   size_t	size = elems * bytes;
   void		*ptr;
@@ -1957,7 +1957,7 @@ NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
 }
 
 void*
-NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
 {
   if (GC_base(ptr) != 0)
     {
@@ -2015,7 +2015,7 @@ GSAssignZeroingWeakPointer(void **destination, void *source)
 }
 
 void*
-NSZoneMalloc (NSZone *zone, size_t size)
+NSZoneMalloc (NSZone *zone, NSUInteger size)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
@@ -2023,7 +2023,7 @@ NSZoneMalloc (NSZone *zone, size_t size)
 }
 
 void* 
-NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
 {
   if (!zone)
     zone = NSDefaultMallocZone();

@@ -347,7 +347,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return;
 }
 
-- (void) _resetEvents: (int)mask
+- (void) _resetEvents: (NSUInteger)mask
 {
   return;
 }
@@ -408,7 +408,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   _currentStatus = NSStreamStatusError;
 }
 
-- (void) _resetEvents: (int)mask
+- (void) _resetEvents: (NSUInteger)mask
 {
   _events &= ~mask;
 }
@@ -708,7 +708,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   [super dealloc];
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   unsigned long dataSize;
   unsigned long copySize;
@@ -753,7 +753,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return copySize;
 }
 
-- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
+- (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
 {
   unsigned long dataSize = [_data length];
 
@@ -793,7 +793,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @implementation GSBufferOutputStream
 
-- (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
+- (id) initToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity
 {
   if ((self = [super init]) != nil)
     {
@@ -804,7 +804,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return self;
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   if (buffer == 0)
     {
@@ -876,7 +876,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   [super dealloc];
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   if (buffer == 0)
     {
@@ -946,7 +946,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   class_ivar_set_gcinvisible (self, "delegate", YES);
 }
 
-+ (id) serverStreamToAddr: (NSString*)addr port: (int)port
++ (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port
 {
   GSServerStream *s;
 
@@ -962,7 +962,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return AUTORELEASE([[GSLocalServerStream alloc] initToAddr: addr]);
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   RELEASE(self);
   // try inet first, then inet6

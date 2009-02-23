@@ -331,7 +331,7 @@ GS_EXPORT NSString* const GSLocale;
  * and returns its integer value or 0 if it is not representable
  * as an integer.
  */
-- (int) integerForKey: (NSString*)defaultName;
+- (NSInteger) integerForKey: (NSString*)defaultName;
 
 /**
  * Looks up a value for a specified default using.
@@ -381,7 +381,7 @@ GS_EXPORT NSString* const GSLocale;
  * Calls -setObject:forKey: to make the change by storing an intege
  * [NSNumber] instance.
  */
-- (void) setInteger: (int)value forKey: (NSString*)defaultName;
+- (void) setInteger: (NSInteger)value forKey: (NSString*)defaultName;
 
 /**
  * Sets a copy of an object value for defaultName in the

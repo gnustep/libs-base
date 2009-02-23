@@ -33,12 +33,12 @@
 #import <Foundation/NSGeometry.h>
 
 typedef	struct {
-  float	m11;
-  float	m12;
-  float	m21;
-  float	m22;
-  float	tX;
-  float	tY;
+  CGFloat	m11;
+  CGFloat	m12;
+  CGFloat	m21;
+  CGFloat	m22;
+  CGFloat	tX;
+  CGFloat	tY;
 } NSAffineTransformStruct;
 
 @interface NSAffineTransform : NSObject <NSCopying, NSCoding>
@@ -56,15 +56,15 @@ typedef	struct {
 - (id) initWithTransform: (NSAffineTransform*)aTransform;
 - (void) invert;
 - (void) prependTransform: (NSAffineTransform*)aTransform;
-- (void) rotateByDegrees: (float)angle;
-- (void) rotateByRadians: (float)angleRad;
-- (void) scaleBy: (float)scale;
-- (void) scaleXBy: (float)scaleX yBy: (float)scaleY;
+- (void) rotateByDegrees: (CGFloat)angle;
+- (void) rotateByRadians: (CGFloat)angleRad;
+- (void) scaleBy: (CGFloat)scale;
+- (void) scaleXBy: (CGFloat)scaleX yBy: (CGFloat)scaleY;
 - (void) setTransformStruct: (NSAffineTransformStruct)val;
 - (NSPoint) transformPoint: (NSPoint)aPoint;
 - (NSSize) transformSize: (NSSize)aSize;
 - (NSAffineTransformStruct) transformStruct;
-- (void) translateXBy: (float)tranX yBy: (float)tranY;
+- (void) translateXBy: (CGFloat)tranX yBy: (CGFloat)tranY;
 @end
 
 #endif /* __NSAffineTransform_h_GNUSTEP_BASE_INCLUDE */

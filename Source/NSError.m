@@ -50,7 +50,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
 @implementation	NSError
 
 + (id) errorWithDomain: (NSString*)aDomain
-		  code: (int)aCode
+		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary
 {
   NSError	*e = [self allocWithZone: NSDefaultMallocZone()];
@@ -59,7 +59,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
   return AUTORELEASE(e);
 }
 
-- (int) code
+- (NSInteger) code
 {
   return _code;
 }
@@ -133,7 +133,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
 }
 
 - (id) initWithDomain: (NSString*)aDomain
-		 code: (int)aCode
+		 code: (NSInteger)aCode
 	     userInfo: (NSDictionary*)aDictionary
 {
   if (aDomain == nil)

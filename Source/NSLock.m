@@ -293,7 +293,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 // Designated initializer
 // Initialize lock with condition
-- (id) initWithCondition: (int)value
+- (id) initWithCondition: (NSInteger)value
 {
   self = [super init];
   if (self != nil)
@@ -362,13 +362,13 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 }
 
 // Return the current condition of the lock
-- (int) condition
+- (NSInteger) condition
 {
   return _condition_value;
 }
 
 // Acquiring and release the lock
-- (void) lockWhenCondition: (int)value
+- (void) lockWhenCondition: (NSInteger)value
 {
   CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
 
@@ -400,7 +400,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   ASSIGNCOPY(_name, name);
 }
 
-- (void) unlockWithCondition: (int)value
+- (void) unlockWithCondition: (NSInteger)value
 {
   int depth;
 
@@ -459,7 +459,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     return YES;
 }
 
-- (BOOL) tryLockWhenCondition: (int)value
+- (BOOL) tryLockWhenCondition: (NSInteger)value
 {
   // tryLock message will check for recursive locks
 
@@ -498,7 +498,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 }
 
 
-- (BOOL) lockWhenCondition: (int)condition_to_meet
+- (BOOL) lockWhenCondition: (NSInteger)condition_to_meet
                 beforeDate: (NSDate*)limitDate
 {
 #ifndef HAVE_OBJC_CONDITION_TIMEDWAIT
@@ -550,8 +550,8 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     return YES;
 
   atimeinterval = [limitDate timeIntervalSince1970];
-  endtime.tv_sec =(unsigned int)atimeinterval; // 941883028;//
-  endtime.tv_nsec = (unsigned int)((atimeinterval - (float)endtime.tv_sec)
+  endtime.tv_sec =(NSUInteger)atimeinterval; // 941883028;//
+  endtime.tv_nsec = (NSUInteger)((atimeinterval - (float)endtime.tv_sec)
 				   * 1000000000.0);
 
   while (_condition_value != condition_to_meet)

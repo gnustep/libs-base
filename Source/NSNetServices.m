@@ -370,7 +370,7 @@ static void DNSSD_API
  *
  */
 
-- (void) searchForDomain: (int) aFlag
+- (void) searchForDomain: (NSInteger) aFlag
 {
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
   Browser		*browser;
@@ -1899,7 +1899,7 @@ static void DNSSD_API
 - (id) initWithDomain: (NSString *) domain
                  type: (NSString *) type
                  name: (NSString *) name
-                 port: (int) port
+                 port: (NSInteger) port
 {
   INTERNALTRACE;
   

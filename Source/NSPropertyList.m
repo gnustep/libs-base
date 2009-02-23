@@ -372,7 +372,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 - (id) initWithData: (NSData*)plData
 	 mutability: (NSPropertyListMutabilityOptions)m;
 - (id) rootObject;
-- (id) objectAtIndex: (unsigned)index;
+- (id) objectAtIndex: (NSUInteger)index;
 
 @end
 
@@ -3019,7 +3019,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   return [self objectAtIndex: 0];
 }
 
-- (id) objectAtIndex: (unsigned)index
+- (id) objectAtIndex: (NSUInteger)index
 {
   unsigned char	next;
   unsigned counter = [self offsetForIndex: index];

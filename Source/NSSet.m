@@ -113,7 +113,7 @@ static Class NSMutableSet_concrete_class;
  *  New set containing (unique elements of) objects.
  */
 + (id) setWithObjects: (id*)objects
-	        count: (unsigned)count
+	        count: (NSUInteger)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: objects count: count]);
@@ -162,7 +162,7 @@ static Class NSMutableSet_concrete_class;
 /**
  * Returns the number of objects stored in the set.
  */
-- (unsigned) count
+- (NSUInteger) count
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -317,7 +317,7 @@ static Class NSMutableSet_concrete_class;
  * other initialisers work.
  */
 - (id) initWithObjects: (id*)objects
-		 count: (unsigned)count
+		 count: (NSUInteger)count
 {
   self = [self init];
   return self;
@@ -480,7 +480,7 @@ static Class NSMutableSet_concrete_class;
   return (([self member: anObject]) ? YES : NO);
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [self count];
 }
@@ -922,7 +922,7 @@ static Class NSMutableSet_concrete_class;
 /**
  *  New autoreleased instance with given capacity.
  */
-+ (id) setWithCapacity: (unsigned)numItems
++ (id) setWithCapacity: (NSUInteger)numItems
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithCapacity: numItems]);
@@ -955,7 +955,7 @@ static Class NSMutableSet_concrete_class;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithCapacity: (unsigned)numItems
+- (id) initWithCapacity: (NSUInteger)numItems
 {
   self = [self init];
   return self;
@@ -979,7 +979,7 @@ static Class NSMutableSet_concrete_class;
 }
 
 - (id) initWithObjects: (id*)objects
-		 count: (unsigned)count
+		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (self != nil)

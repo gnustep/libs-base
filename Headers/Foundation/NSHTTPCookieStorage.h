@@ -38,17 +38,18 @@ extern "C" {
 @class NSHTTPCookie;
 @class NSURL;
 
+enum {
+  NSHTTPCookieAcceptPolicyAlways,
+  NSHTTPCookieAcceptPolicyNever,
+  NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain
+};
 /**
  * NSHTTPCookieAcceptPolicyAlways Accept all cookies
  * NSHTTPCookieAcceptPolicyNever Reject all cookies
  * NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain Accept cookies
  * only from the main document domain
  */
-typedef enum {
-  NSHTTPCookieAcceptPolicyAlways,
-  NSHTTPCookieAcceptPolicyNever,
-  NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain
-} NSHTTPCookieAcceptPolicy;
+typedef NSUInteger NSHTTPCookieAcceptPolicy;
 
 /**
  * Posted to the distributed notification center when the cookie

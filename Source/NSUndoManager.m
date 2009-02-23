@@ -476,7 +476,7 @@
  * groupings which can be nested, not the number of of groups on either
  * the undo or redo stack.
  */
-- (int) groupingLevel
+- (NSInteger) groupingLevel
 {
   PrivateUndoGroup	*g = (PrivateUndoGroup*)_group;
   int			level = 0;
@@ -552,7 +552,7 @@
  * The default value is 0 meaning the number is only limited by
  * memory availability.
  */
-- (unsigned int) levelsOfUndo
+- (NSUInteger) levelsOfUndo
 {
   return _levelsOfUndo;
 }
@@ -853,7 +853,7 @@
  * When set to 0 the stack size is limited by the range of a unsigned int,
  * available memory.
  */
-- (void) setLevelsOfUndo: (unsigned)num
+- (void) setLevelsOfUndo: (NSUInteger)num
 {
   _levelsOfUndo = num;
   if (num > 0)

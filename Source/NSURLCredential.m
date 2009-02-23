@@ -91,7 +91,7 @@ typedef struct {
   return this->hasPassword;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [this->user hash];
 }

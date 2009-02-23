@@ -46,12 +46,12 @@ extern "C" {
 + (id) dateWithString: (NSString*)description
        calendarFormat: (NSString*)format
 	       locale: (NSDictionary*)dictionary;
-+ (id) dateWithYear: (int)year
-	      month: (unsigned int)month
-	        day: (unsigned int)day
-	       hour: (unsigned int)hour
-	     minute: (unsigned int)minute
-	     second: (unsigned int)second
++ (id) dateWithYear: (NSInteger)year
+	      month: (NSUInteger)month
+	        day: (NSUInteger)day
+	       hour: (NSUInteger)hour
+	     minute: (NSUInteger)minute
+	     second: (NSUInteger)second
 	   timeZone: (NSTimeZone*)aTimeZone;
 
 // Initializing an NSCalendar Date
@@ -61,32 +61,32 @@ extern "C" {
 - (id) initWithString: (NSString*)description
        calendarFormat: (NSString*)fmt
 	       locale: (NSDictionary*)locale;
-- (id) initWithYear: (int)year
-	      month: (unsigned int)month
-	        day: (unsigned int)day
-	       hour: (unsigned int)hour
-	     minute: (unsigned int)minute
-	     second: (unsigned int)second
+- (id) initWithYear: (NSInteger)year
+	      month: (NSUInteger)month
+	        day: (NSUInteger)day
+	       hour: (NSUInteger)hour
+	     minute: (NSUInteger)minute
+	     second: (NSUInteger)second
 	   timeZone: (NSTimeZone*)aTimeZone;
 
 // Retrieving Date Elements
-- (int) dayOfCommonEra;
-- (int) dayOfMonth;
-- (int) dayOfWeek;
-- (int) dayOfYear;
-- (int) hourOfDay;
-- (int) minuteOfHour;
-- (int) monthOfYear;
-- (int) secondOfMinute;
-- (int) yearOfCommonEra;
+- (NSInteger) dayOfCommonEra;
+- (NSInteger) dayOfMonth;
+- (NSInteger) dayOfWeek;
+- (NSInteger) dayOfYear;
+- (NSInteger) hourOfDay;
+- (NSInteger) minuteOfHour;
+- (NSInteger) monthOfYear;
+- (NSInteger) secondOfMinute;
+- (NSInteger) yearOfCommonEra;
 
 // Providing Adjusted Dates
-- (NSCalendarDate*) addYear: (int)year
-		      month: (int)month
-			day: (int)day
-		       hour: (int)hour
-		     minute: (int)minute
-		     second: (int)second;
+- (NSCalendarDate*) addYear: (NSInteger)year
+		      month: (NSInteger)month
+			day: (NSInteger)day
+		       hour: (NSInteger)hour
+		     minute: (NSInteger)minute
+		     second: (NSInteger)second;
 
 // Getting String Descriptions of Dates
 - (NSString*) description;
@@ -126,17 +126,17 @@ extern "C" {
  * last day of the year is a monday tuesday or wednesday, these days are
  * part of week 1 of the next year.
  */
-- (int) weekOfYear;
+- (NSInteger) weekOfYear;
 @end
 
 @interface NSCalendarDate (GregorianDate)
 
-- (int) lastDayOfGregorianMonth: (int)month year: (int)year;
-- (int) absoluteGregorianDay: (int)day month: (int)month year: (int)year;
-- (void) gregorianDateFromAbsolute: (int)d
-			       day: (int*)day
-			     month: (int*)month
-			      year: (int*)year;
+- (NSInteger) lastDayOfGregorianMonth: (NSInteger)month year: (NSInteger)year;
+- (NSInteger) absoluteGregorianDay: (NSInteger)day month: (NSInteger)month year: (NSInteger)year;
+- (void) gregorianDateFromAbsolute: (NSInteger)d
+			       day: (NSInteger*)day
+			     month: (NSInteger*)month
+			      year: (NSInteger*)year;
 
 @end
 
@@ -145,19 +145,19 @@ extern "C" {
 #if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 @interface NSCalendarDate (OPENSTEP)
 
-- (NSCalendarDate*) dateByAddingYears: (int)years
-			       months: (int)months
-				 days: (int)days
-				hours: (int)hours
-			      minutes: (int)minutes
-			      seconds: (int)seconds;
+- (NSCalendarDate*) dateByAddingYears: (NSInteger)years
+			       months: (NSInteger)months
+				 days: (NSInteger)days
+				hours: (NSInteger)hours
+			      minutes: (NSInteger)minutes
+			      seconds: (NSInteger)seconds;
 
-- (void) years: (int*)years
-	months: (int*)months
-          days: (int*)days
-         hours: (int*)hours
-       minutes: (int*)minutes
-       seconds: (int*)seconds
+- (void) years: (NSInteger*)years
+	months: (NSInteger*)months
+          days: (NSInteger*)days
+         hours: (NSInteger*)hours
+       minutes: (NSInteger*)minutes
+       seconds: (NSInteger*)seconds
      sinceDate: (NSDate*)date;
 @end
 #endif

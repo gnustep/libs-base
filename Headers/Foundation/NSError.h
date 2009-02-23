@@ -126,14 +126,14 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  * -initWithDomain:code:userInfo:
  */
 + (id) errorWithDomain: (NSString*)aDomain
-		  code: (int)aCode
+		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary;
 
 /**
  * Return the error code ... which is not globally unique, just unique for
  * a particular domain.
  */
-- (int) code;
+- (NSInteger) code;
 
 /**
  * Return the domain for this instance.
@@ -145,7 +145,7 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  * The domain must be non-nil.
  */
 - (id) initWithDomain: (NSString*)aDomain
-		 code: (int)aCode
+		 code: (NSInteger)aCode
 	     userInfo: (NSDictionary*)aDictionary;
 
 /**

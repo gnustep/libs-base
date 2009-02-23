@@ -114,7 +114,7 @@ IVARS
 
 /** Reset events in mask to allow them to be sent again.
  */
-- (void) _resetEvents: (int)mask;
+- (void) _resetEvents: (NSUInteger)mask;
 
 /**
  * Place the stream in all the scheduled runloops.

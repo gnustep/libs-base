@@ -49,7 +49,7 @@ static Class	NSScannerClass = 0;
 static SEL	scanFloatSel;
 static SEL	scanStringSel;
 static SEL	scannerSel;
-static BOOL	(*scanFloatImp)(NSScanner*, SEL, float*);
+static BOOL	(*scanFloatImp)(NSScanner*, SEL, CGFloat*);
 static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
 
@@ -60,10 +60,17 @@ setupCache(void)
     {
       NSStringClass = [NSString class];
       NSScannerClass = [NSScanner class];
-      scanFloatSel = @selector(scanFloat:);
+      if (sizeof(CGFloat) == sizeof(double))
+        {
+          scanFloatSel = @selector(scanDouble:);
+        }
+      else
+        {
+          scanFloatSel = @selector(scanFloat:);
+        }
       scanStringSel = @selector(scanString:intoString:);
       scannerSel = @selector(scannerWithString:);
-      scanFloatImp = (BOOL (*)(NSScanner*, SEL, float*))
+      scanFloatImp = (BOOL (*)(NSScanner*, SEL, CGFloat*))
 	[NSScannerClass instanceMethodForSelector: scanFloatSel];
       scanStringImp = (BOOL (*)(NSScanner*, SEL, NSString*, NSString**))
 	[NSScannerClass instanceMethodForSelector: scanStringSel];
@@ -101,7 +108,7 @@ void
 NSDivideRect(NSRect aRect,
              NSRect *slice,
              NSRect *remainder,
-             float amount,
+             CGFloat amount,
              NSRectEdge edge)
 {
   static NSRect sRect;

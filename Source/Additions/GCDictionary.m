@@ -170,7 +170,7 @@ static Class	gcClass = 0;
   return [[GCDictionary allocWithZone: zone] initWithDictionary: self];
 }
 
-- (unsigned int) count
+- (NSUInteger) count
 {
   return NSCountMapTable(_map);
 }
@@ -239,7 +239,7 @@ static Class	gcClass = 0;
 {
   id		keys = [dictionary keyEnumerator];
   id		key;
-  unsigned int	size = ([dictionary count] * 4) / 3;
+  NSUInteger	size = ([dictionary count] * 4) / 3;
   NSZone	*z = NSDefaultMallocZone();
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
@@ -266,9 +266,9 @@ static Class	gcClass = 0;
 
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
-		 count: (unsigned int)count
+		 count: (NSUInteger)count
 {
-  unsigned int	size = (count * 4) / 3;
+  NSUInteger	size = (count * 4) / 3;
   NSZone	*z = NSDefaultMallocZone();
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
@@ -368,9 +368,9 @@ static Class	gcClass = 0;
   return [self initWithCapacity: 0];
 }
 
-- (id) initWithCapacity: (unsigned int)aNumItems
+- (id) initWithCapacity: (NSUInteger)aNumItems
 {
-  unsigned int	size = (aNumItems * 4) / 3;
+  NSUInteger	size = (aNumItems * 4) / 3;
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
     GCInfoValueCallBacks, size, [self zone]);

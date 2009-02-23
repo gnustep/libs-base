@@ -116,7 +116,7 @@ extern "C" {
  */
 - (id) initWithProtectionSpace: (NSURLProtectionSpace *)space
 	    proposedCredential: (NSURLCredential *)credential
-	  previousFailureCount: (int)previousFailureCount
+	  previousFailureCount: (NSInteger)previousFailureCount
 	       failureResponse: (NSURLResponse *)response
 			 error: (NSError *)error
 			sender: (id<NSURLAuthenticationChallengeSender>)sender;
@@ -124,7 +124,7 @@ extern "C" {
 /**
  * Returns the count of failed authentication attempts.
  */
-- (int) previousFailureCount;
+- (NSInteger) previousFailureCount;
 
 /**
  * Returns a proposed credential to answer the challenge.<br />

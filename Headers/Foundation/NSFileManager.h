@@ -268,7 +268,7 @@ extern "C" {
  * with unicode strings.
  */
 - (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
-					  length: (unsigned int)len;
+					  length: (NSUInteger)len;
 
 - (NSArray*) subpathsAtPath: (NSString*)path;
 
@@ -465,9 +465,9 @@ GS_EXPORT NSString* const NSFileSystemFreeNodes;
 - (unsigned long) fileGroupOwnerAccountID;
 - (NSString*) fileGroupOwnerAccountName;
 - (NSDate*) fileModificationDate;
-- (unsigned long) filePosixPermissions;
-- (unsigned long) fileSystemNumber;
-- (unsigned long) fileSystemFileNumber;
+- (NSUInteger) filePosixPermissions;
+- (NSUInteger) fileSystemNumber;
+- (NSUInteger) fileSystemFileNumber;
 @end
 
 #if	defined(__cplusplus)

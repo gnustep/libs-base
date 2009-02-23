@@ -160,14 +160,14 @@ ihandler(int sig)
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
-                                  to: (NSUInteger)observer;
+                                  to: (uint64_t)observer;
 @end
 @implementation	NSDistributedNotificationCenterGDNCDummy
 - (oneway void) postNotificationName: (NSString*)name
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
-                                  to: (NSUInteger)observer
+                                  to: (uint64_t)observer
 {
   return;
 }
@@ -246,7 +246,7 @@ ihandler(int sig)
 @interface	GDNCObserver : NSObject
 {
 @public
-  NSUInteger		observer;
+  uint64_t		observer;
   NSString		*notificationName;
   NSString		*notificationObject;
   NSString		*selector;
@@ -284,7 +284,7 @@ ihandler(int sig)
   NSMutableDictionary	*observersForObjects;
 }
 
-- (void) addObserver: (NSUInteger)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
@@ -306,7 +306,7 @@ ihandler(int sig)
 
 - (void) removeObserversForClients: (NSMapTable*)clients;
 
-- (void) removeObserver: (NSUInteger)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client;
@@ -505,7 +505,7 @@ ihandler(int sig)
   return self;
 }
 
-- (void) addObserver: (NSUInteger)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
@@ -869,7 +869,7 @@ ihandler(int sig)
     }
 }
 
-- (void) removeObserver: (NSUInteger)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client

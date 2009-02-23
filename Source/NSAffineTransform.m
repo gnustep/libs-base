@@ -55,7 +55,7 @@
 
  */
 
-static const float pi = 3.1415926535897932384626434;
+static const CGFloat pi = 3.1415926535897932384626434;
 
 #if 0
 #define valid(o) NSAssert((o->_isIdentity && o->A==1.0 && o->B==0.0 && o->C==0.0 && o->D==1.0) || (o->_isFlipY && o->A==1.0 && o->B==0.0 && o->C==0.0 && o->D==-1.0) || !(o->_isIdentity||o->_isFlipY), NSInternalInconsistencyException) 
@@ -227,8 +227,8 @@ static NSAffineTransformStruct identityTransform = {
  */
 - (void) invert
 {
-  float newA, newB, newC, newD, newTX, newTY;
-  float det;
+  CGFloat newA, newB, newC, newD, newTX, newTY;
+  CGFloat det;
 
   if (_isIdentity)
     {
@@ -345,7 +345,7 @@ static NSAffineTransformStruct identityTransform = {
  * with the transformation matrix of the receiver are rotated counter-clockwise 
  * by the number of degrees specified by angle.
  */
-- (void) rotateByDegrees: (float)angle
+- (void) rotateByDegrees: (CGFloat)angle
 {
   [self rotateByRadians: pi * angle / 180];
 }
@@ -355,12 +355,12 @@ static NSAffineTransformStruct identityTransform = {
  * with the transformation matrix of the receiver are rotated counter-clockwise 
  * by the number of radians specified by angle.
  */
-- (void) rotateByRadians: (float)angleRad
+- (void) rotateByRadians: (CGFloat)angleRad
 {
   if (angleRad != 0.0)
     {
-      float sine;
-      float cosine;
+      CGFloat sine;
+      CGFloat cosine;
       NSAffineTransformStruct rotm;
 
       sine = sin (angleRad);
@@ -381,7 +381,7 @@ static NSAffineTransformStruct identityTransform = {
  * Scales the transformation matrix of the reciever by the factor specified
  * by scale.  
  */
-- (void) scaleBy: (float)scale
+- (void) scaleBy: (CGFloat)scale
 {
   NSAffineTransformStruct scam = identityTransform;
 
@@ -397,7 +397,7 @@ static NSAffineTransformStruct identityTransform = {
  * Scales the X axis of the receiver's transformation matrix 
  * by scaleX and the Y axis of the transformation matrix by scaleY.
  */
-- (void) scaleXBy: (float)scaleX yBy: (float)scaleY
+- (void) scaleXBy: (CGFloat)scaleX yBy: (CGFloat)scaleY
 {
   if (_isIdentity && scaleX == 1.0)
     {
@@ -537,7 +537,7 @@ static NSAffineTransformStruct identityTransform = {
  * Points transformed by the reciever's matrix after this operation will 
  * be shifted in position based on the specified translation.
  */
-- (void) translateXBy: (float)tranX  yBy: (float)tranY
+- (void) translateXBy: (CGFloat)tranX  yBy: (CGFloat)tranY
 {
   if (_isIdentity)
     {
@@ -579,9 +579,9 @@ static NSAffineTransformStruct identityTransform = {
 {
   NSAffineTransformStruct	replace;
     
-  [aCoder decodeArrayOfObjCType: @encode(float)
+  [aCoder decodeArrayOfObjCType: @encode(CGFloat)
 			  count: 6
-			     at: (float*)&replace];
+			     at: (CGFloat*)&replace];
   [self setTransformStruct: replace];
   return self;
 }
@@ -591,9 +591,9 @@ static NSAffineTransformStruct identityTransform = {
   NSAffineTransformStruct	replace;
     
   replace = [self transformStruct];
-  [aCoder encodeArrayOfObjCType: @encode(float)
+  [aCoder encodeArrayOfObjCType: @encode(CGFloat)
 			  count: 6
-			     at: (float*)&replace];
+			     at: (CGFloat*)&replace];
 }
 
 @end /* NSAffineTransform */

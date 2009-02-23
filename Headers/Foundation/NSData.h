@@ -56,12 +56,12 @@ enum {
 
 + (id) data;
 + (id) dataWithBytes: (const void*)bytes
-	      length: (unsigned int)length;
+	      length: (NSUInteger)length;
 + (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length;
+		    length: (NSUInteger)length;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) dataWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree;
 #endif
 + (id) dataWithContentsOfFile: (NSString*)path;
@@ -71,12 +71,12 @@ enum {
 #endif
 + (id) dataWithData: (NSData*)data;
 - (id) initWithBytes: (const void*)aBuffer
-	      length: (unsigned int)bufferSize;
+	      length: (NSUInteger)bufferSize;
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize;
+		    length: (NSUInteger)bufferSize;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree;
 #endif
 - (id) initWithContentsOfFile: (NSString*)path;
@@ -92,7 +92,7 @@ enum {
 - (NSString*) description;
 - (void) getBytes: (void*)buffer;
 - (void) getBytes: (void*)buffer
-	   length: (unsigned int)length;
+	   length: (NSUInteger)length;
 - (void) getBytes: (void*)buffer
 	    range: (NSRange)aRange;
 - (NSData*) subdataWithRange: (NSRange)aRange;
@@ -100,7 +100,7 @@ enum {
 // Querying a Data Object
 
 - (BOOL) isEqualToData: (NSData*)other;
-- (unsigned int) length;
+- (NSUInteger) length;
 
 // Storing Data
 
@@ -284,8 +284,8 @@ enum {
 #define	_GSC_CID	0x17	/* Class encoded as id	*/
 
 @interface NSData (GNUstepExtensions)
-+ (id) dataWithShmID: (int)anID length: (unsigned int) length;
-+ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int) length;
++ (id) dataWithShmID: (int)anID length: (NSUInteger) length;
++ (id) dataWithSharedBytes: (const void*)bytes length: (NSUInteger) length;
 
 /*
  *	-deserializeTypeTag:andCrossRef:atCursor:
@@ -300,21 +300,21 @@ enum {
 
 @interface NSMutableData :  NSData
 
-+ (id) dataWithCapacity: (unsigned int)numBytes;
-+ (id) dataWithLength: (unsigned int)length;
-- (id) initWithCapacity: (unsigned int)capacity;
-- (id) initWithLength: (unsigned int)length;
++ (id) dataWithCapacity: (NSUInteger)numBytes;
++ (id) dataWithLength: (NSUInteger)length;
+- (id) initWithCapacity: (NSUInteger)capacity;
+- (id) initWithLength: (NSUInteger)length;
 
 // Adjusting Capacity
 
-- (void) increaseLengthBy: (unsigned int)extraLength;
-- (void) setLength: (unsigned int)size;
+- (void) increaseLengthBy: (NSUInteger)extraLength;
+- (void) setLength: (NSUInteger)size;
 - (void*) mutableBytes;
 
 // Appending Data
 
 - (void) appendBytes: (const void*)aBuffer
-	      length: (unsigned int)bufferSize;
+	      length: (NSUInteger)bufferSize;
 - (void) appendData: (NSData*)other;
 
 // Modifying Data
@@ -324,7 +324,7 @@ enum {
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
-		      length: (unsigned int)length;
+		      length: (NSUInteger)length;
 #endif
 - (void) resetBytesInRange: (NSRange)aRange;
 - (void) setData: (NSData*)data;
@@ -353,8 +353,8 @@ enum {
  *	Capacity management - GNUstep gives you control over the size of
  *	the data buffer as well as the 'length' of valid data in it.
  */
-- (unsigned int) capacity;
-- (id) setCapacity: (unsigned int)newCapacity;
+- (NSUInteger) capacity;
+- (id) setCapacity: (NSUInteger)newCapacity;
 
 - (int) shmID;	/* Shared memory ID for data buffer (if any)	*/
 

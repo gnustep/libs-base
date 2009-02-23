@@ -65,7 +65,7 @@
 
 @interface	NSURLResponse (Private)
 - (void) _setHeaders: (id)headers;
-- (void) _setStatusCode: (int)code text: (NSString*)text;
+- (void) _setStatusCode: (NSInteger)code text: (NSString*)text;
 - (void) _setValue: (NSString *)value forHTTPHeaderField: (NSString *)field;
 - (NSString*) _valueForHTTPHeaderField: (NSString*)field;
 @end
