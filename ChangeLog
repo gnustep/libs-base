@@ -1,5 +1,11 @@
 2009-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPortCoder.m:
+	make float and double interchangable to cope with MacOS-X 10.5
+	API which can use either for CGFloat.
+
+2009-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSGeometry.h:
 	* Source/NSGeometry.m:
 	Inspired by Matt Rice's comments on NSEqualRects(), moved the
