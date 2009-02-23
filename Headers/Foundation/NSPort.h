@@ -91,7 +91,7 @@ extern "C" {
 /**
  * NSMachPort compatibility method.
  */
-+ (NSPort*) portWithMachPort: (int)machPort;
++ (NSPort*) portWithMachPort: (NSInteger)machPort;
 
 /**
  *  Returns the object that received messages will be passed off to.
@@ -112,12 +112,12 @@ extern "C" {
 /**
  * NSMachPort compatibility method.
  */
-- (id) initWithMachPort: (int)machPort;
+- (id) initWithMachPort: (NSInteger)machPort;
 
 /**
  * NSMachPort compatibility.
  */
-- (int) machPort;
+- (NSInteger) machPort;
 
 /**
  * Mark port as invalid, deregister with listeners and cease further network
@@ -151,16 +151,16 @@ extern "C" {
  * Returns amount of space used for header info at beginning of messages.
  * Subclasses should override (this implementation returns 0).
  */
-- (unsigned) reservedSpaceLength;
+- (NSUInteger) reservedSpaceLength;
 
 /**
  * Internal method for sending message, for use by subclasses.
  */
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (int)msgid
+		  msgid: (NSInteger)msgid
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
-	       reserved: (unsigned)length;
+	       reserved: (NSUInteger)length;
 
 /**
  * Internal method for sending message, for use by subclasses.
@@ -168,7 +168,7 @@ extern "C" {
 - (BOOL) sendBeforeDate: (NSDate*)when
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
-	       reserved: (unsigned)length;
+	       reserved: (NSUInteger)length;
 #endif
 @end
 

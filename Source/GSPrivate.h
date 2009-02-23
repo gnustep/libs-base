@@ -233,11 +233,11 @@ typedef enum {
   NSData	*_d;	// Only valid after initWithCoder:
 }
 - (const void*) bytes;
-- (unsigned) count;
+- (NSUInteger) count;
 - (void) encodeWithCoder: (NSCoder*)aCoder;
 - (id) initWithCoder: (NSCoder*)aCoder;
-- (id) initWithObjCType: (const char*)t count: (int)c at: (const void*)a;
-- (unsigned) size;
+- (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a;
+- (NSUInteger) size;
 - (const char*) type;
 @end
 
@@ -508,9 +508,9 @@ GSPrivateUnloadModule(FILE *errorStream,
   unsigned      size;
   void          *buffer;
 }
-+ (GSCodeBuffer*) memoryWithSize: (unsigned)_size;
++ (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size;
 - (void*) buffer;
-- (id) initWithSize: (unsigned)_size;
+- (id) initWithSize: (NSUInteger)_size;
 - (void) protect;
 @end
 

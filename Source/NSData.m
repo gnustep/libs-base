@@ -276,7 +276,7 @@ failure:
  */
 @interface	NSDataStatic : NSData
 {
-  unsigned	length;
+  NSUInteger	length;
   void		*bytes;
 }
 @end
@@ -290,14 +290,14 @@ failure:
 
 @interface	NSMutableDataMalloc : NSMutableData
 {
-  unsigned	length;
+  NSUInteger	length;
   void		*bytes;
   NSZone	*zone;
-  unsigned	capacity;
-  unsigned	growth;
+  NSUInteger	capacity;
+  NSUInteger	growth;
 }
 /* Increase capacity to at least the specified minimum value.	*/
-- (void) _grow: (unsigned int)minimum;
+- (void) _grow: (NSUInteger)minimum;
 @end
 
 #ifdef	HAVE_MMAP
@@ -310,14 +310,14 @@ failure:
 {
   int		shmid;
 }
-- (id) initWithShmID: (int)anId length: (unsigned int)bufferSize;
+- (id) initWithShmID: (int)anId length: (NSUInteger)bufferSize;
 @end
 
 @interface	NSMutableDataShared : NSMutableDataMalloc
 {
   int		shmid;
 }
-- (id) initWithShmID: (int)anId length: (unsigned int)bufferSize;
+- (id) initWithShmID: (int)anId length: (NSUInteger)bufferSize;
 @end
 #endif
 
@@ -381,7 +381,7 @@ failure:
  * and with the specified length.  Invokes -initWithBytes:length:
  */
 + (id) dataWithBytes: (const void*)bytes
-	      length: (unsigned int)length
+	      length: (NSUInteger)length
 {
   NSData	*d;
 
@@ -396,7 +396,7 @@ failure:
  * -initWithBytesNoCopy:length:freeWhenDone: with YES
  */
 + (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length
+		    length: (NSUInteger)length
 {
   NSData	*d;
 
@@ -411,7 +411,7 @@ failure:
  * -initWithBytesNoCopy:length:freeWhenDone:
  */
 + (id) dataWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
   NSData	*d;
@@ -509,7 +509,7 @@ failure:
  * to initialise the receiver.  Returns the result.
  */
 - (id) initWithBytes: (const void*)aBuffer
-	      length: (unsigned int)bufferSize
+	      length: (NSUInteger)bufferSize
 {
   void	*ptr = 0;
 
@@ -538,7 +538,7 @@ failure:
  * be the receiver).
  */
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 {
   return [self initWithBytesNoCopy: aBuffer
 			    length: bufferSize
@@ -556,7 +556,7 @@ failure:
  * leaks or crashes.
  */
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
   [self subclassResponsibility: _cmd];
@@ -680,7 +680,7 @@ failure:
  * If length is greater than the size of the receiver, only the available
  * bytes are copied.
  */
-- (void) getBytes: (void*)buffer length: (unsigned int)length
+- (void) getBytes: (void*)buffer length: (NSUInteger)length
 {
   NSUInteger	l = [self length];
 
@@ -736,7 +736,7 @@ failure:
   return [NSData dataWithBytesNoCopy: buffer length: aRange.length];
 }
 
-- (unsigned int) hash
+- (NSUInteger) hash
 {
   unsigned char	buf[64];
   unsigned	l = [self length];
@@ -780,7 +780,7 @@ failure:
  */
 - (BOOL) isEqualToData: (NSData*)other
 {
-  unsigned int len;
+  NSUInteger len;
   if (other == self)
     {
       return YES;
@@ -795,7 +795,7 @@ failure:
 /** <override-subclass>
  * Returns the number of bytes of data encapsulated by the receiver.
  */
-- (unsigned int) length
+- (NSUInteger) length
 {
   /* This is left to concrete subclasses to implement. */
   [self subclassResponsibility: _cmd];
@@ -815,7 +815,7 @@ failure:
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile
 {
 #if defined(__MINGW32__)
-  unsigned int	length = [path length];
+  NSUInteger	length = [path length];
   unichar	wthePath[length + 100];
   unichar	wtheRealPath[length + 100];
 #else
@@ -1570,7 +1570,7 @@ failure:
 /**
  *  New instance with given shared memory ID.
  */
-+ (id) dataWithShmID: (int)anID length: (unsigned int)length
++ (id) dataWithShmID: (int)anID length: (NSUInteger)length
 {
 #ifdef	HAVE_SHMCTL
   NSDataShared	*d;
@@ -1587,7 +1587,7 @@ failure:
 /**
  *  New instance with given bytes in shared memory.
  */
-+ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int)length
++ (id) dataWithSharedBytes: (const void*)bytes length: (NSUInteger)length
 {
   NSData	*d;
 
@@ -1601,7 +1601,7 @@ failure:
   return AUTORELEASE(d);
 }
 
-+ (id) dataWithStaticBytes: (const void*)bytes length: (unsigned int)length
++ (id) dataWithStaticBytes: (const void*)bytes length: (NSUInteger)length
 {
   NSDataStatic	*d;
 
@@ -1693,7 +1693,7 @@ failure:
 }
 
 + (id) dataWithBytes: (const void*)bytes
-	      length: (unsigned int)length
+	      length: (NSUInteger)length
 {
   NSData	*d;
 
@@ -1703,7 +1703,7 @@ failure:
 }
 
 + (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length
+		    length: (NSUInteger)length
 {
   NSData	*d;
 
@@ -1716,7 +1716,7 @@ failure:
  *  New instance with buffer of given numBytes with length of valid data set
  *  to zero.  Note that capacity will be automatically increased as necessary.
  */
-+ (id) dataWithCapacity: (unsigned int)numBytes
++ (id) dataWithCapacity: (NSUInteger)numBytes
 {
   NSMutableData	*d;
 
@@ -1769,7 +1769,7 @@ failure:
  *  valid data is set to zero.  Note that buffer will be automatically
  *  increased as necessary.
  */
-+ (id) dataWithLength: (unsigned int)length
++ (id) dataWithLength: (NSUInteger)length
 {
   NSMutableData	*d;
 
@@ -1821,7 +1821,7 @@ failure:
  *  data is initially set to zero.
  *  <init/>
  */
-- (id) initWithCapacity: (unsigned int)capacity
+- (id) initWithCapacity: (NSUInteger)capacity
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -1829,18 +1829,20 @@ failure:
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned	l;
-
   if ([aCoder allowsKeyedCoding])
     {
       const uint8_t *data;
+      NSUInteger	l;
+
 
       data = [aCoder decodeBytesForKey: @"NS.data"
-                       returnedLength: &l]; 
+                        returnedLength: &l]; 
       self = [self initWithBytes: data length: l];
     }
   else
     {  
+      unsigned  l;
+
       [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &l];
       if (l)
         {
@@ -1857,7 +1859,8 @@ failure:
           
           if (b == 0)
             {
-              NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %lu bytes", l);
+              NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %u bytes",
+                l);
               RELEASE(self);
               return nil;
             }
@@ -1876,7 +1879,7 @@ failure:
  *  Initialize with buffer of capacity equal to length, and with the length
  *  of valid data set to length.  Data is set to zero.
  */
-- (id) initWithLength: (unsigned int)length
+- (id) initWithLength: (NSUInteger)length
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -1887,7 +1890,7 @@ failure:
  *  Increases buffer length by given number of bytes, filling the new space
  *  with zeros.
  */
-- (void) increaseLengthBy: (unsigned int)extraLength
+- (void) increaseLengthBy: (NSUInteger)extraLength
 {
   [self setLength: [self length]+extraLength];
 }
@@ -1903,7 +1906,7 @@ failure:
  *   if you write a subclass of NSMutableData.
  * </p>
  */
-- (void) setLength: (unsigned int)size
+- (void) setLength: (NSUInteger)size
 {
   [self subclassResponsibility: _cmd];
 }
@@ -1939,7 +1942,7 @@ failure:
  *  necessary.
  */
 - (void) appendBytes: (const void*)aBuffer
-	      length: (unsigned int)bufferSize
+	      length: (NSUInteger)bufferSize
 {
   unsigned	oldLength = [self length];
   void*		buffer;
@@ -1996,7 +1999,7 @@ failure:
  */
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
-		      length: (unsigned int)length
+		      length: (NSUInteger)length
 {
   unsigned	size = [self length];
   unsigned	end = NSMaxRange(aRange);
@@ -2316,7 +2319,7 @@ failure:
 /**
  *  New instance with given shared memory ID.
  */
-+ (id) dataWithShmID: (int)anID length: (unsigned int)length
++ (id) dataWithShmID: (int)anID length: (NSUInteger)length
 {
 #ifdef	HAVE_SHMCTL
   NSDataShared	*d;
@@ -2333,7 +2336,7 @@ failure:
 /**
  *  New instance with given bytes in shared memory.
  */
-+ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int)length
++ (id) dataWithSharedBytes: (const void*)bytes length: (NSUInteger)length
 {
   NSData	*d;
 
@@ -2350,7 +2353,7 @@ failure:
 /**
  *  Returns current capacity of data buffer.
  */
-- (unsigned int) capacity
+- (NSUInteger) capacity
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -2360,7 +2363,7 @@ failure:
  *  Sets current capacity of data buffer.  Unlike [-setLength:], this will
  *  shrink the buffer if requested.
  */
-- (id) setCapacity: (unsigned int)newCapacity
+- (id) setCapacity: (NSUInteger)newCapacity
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -2467,7 +2470,7 @@ failure:
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
   bytes = aBuffer;
@@ -2494,7 +2497,7 @@ failure:
   memcpy(buffer, bytes + aRange.location, aRange.length);
 }
 
-- (unsigned int) length
+- (NSUInteger) length
 {
   return length;
 }
@@ -2893,7 +2896,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
   if (shouldFree == NO)
@@ -3026,7 +3029,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super dealloc];
 }
 
-- (id) initWithBytes: (const void*)aBuffer length: (unsigned int)bufferSize
+- (id) initWithBytes: (const void*)aBuffer length: (NSUInteger)bufferSize
 {
   shmid = -1;
   if (aBuffer && bufferSize)
@@ -3056,7 +3059,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithShmID: (int)anId length: (unsigned int)bufferSize
+- (id) initWithShmID: (int)anId length: (NSUInteger)bufferSize
 {
   struct shmid_ds	buf;
 
@@ -3141,7 +3144,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super dealloc];
 }
 
-- (id) initWithBytes: (const void*)aBuffer length: (unsigned int)bufferSize
+- (id) initWithBytes: (const void*)aBuffer length: (NSUInteger)bufferSize
 {
   self = [self initWithCapacity: bufferSize];
   if (self)
@@ -3156,7 +3159,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
   if (aBuffer == 0)
@@ -3192,7 +3195,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
  *  Initialize with buffer capable of holding size bytes.
  *  <init/>
  */
-- (id) initWithCapacity: (unsigned int)size
+- (id) initWithCapacity: (NSUInteger)size
 {
 #if	GS_WITH_GC
   zone = GSAtomicMallocZone();
@@ -3225,7 +3228,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
  *  Initialize with buffer capable of holding size bytes.  Buffer is zeroed
  *  out.
  */
-- (id) initWithLength: (unsigned int)size
+- (id) initWithLength: (NSUInteger)size
 {
   self = [self initWithCapacity: size];
   if (self)
@@ -3256,7 +3259,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 - (void) appendBytes: (const void*)aBuffer
-	      length: (unsigned int)bufferSize
+	      length: (NSUInteger)bufferSize
 {
   unsigned	oldLength = length;
   unsigned	minimum = length + bufferSize;
@@ -3269,12 +3272,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   length = minimum;
 }
 
-- (unsigned int) capacity
+- (NSUInteger) capacity
 {
   return capacity;
 }
 
-- (void) _grow: (unsigned int)minimum
+- (void) _grow: (NSUInteger)minimum
 {
   if (minimum > capacity)
     {
@@ -3600,7 +3603,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 }
 
-- (id) setCapacity: (unsigned int)size
+- (id) setCapacity: (NSUInteger)size
 {
   if (size != capacity)
     {
@@ -3669,7 +3672,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   memcpy(bytes, [data bytes], length);
 }
 
-- (void) setLength: (unsigned int)size
+- (void) setLength: (NSUInteger)size
 {
   if (size > capacity)
     {
@@ -3724,7 +3727,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super dealloc];
 }
 
-- (id) initWithBytes: (const void*)aBuffer length: (unsigned int)bufferSize
+- (id) initWithBytes: (const void*)aBuffer length: (NSUInteger)bufferSize
 {
   self = [self initWithCapacity: bufferSize];
   if (self)
@@ -3736,7 +3739,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithCapacity: (unsigned int)bufferSize
+- (id) initWithCapacity: (NSUInteger)bufferSize
 {
   shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_ACCESS);
   if (shmid == -1)			/* Created memory? */
@@ -3764,7 +3767,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithShmID: (int)anId length: (unsigned int)bufferSize
+- (id) initWithShmID: (int)anId length: (NSUInteger)bufferSize
 {
   struct shmid_ds	buf;
 
@@ -3798,7 +3801,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) setCapacity: (unsigned int)size
+- (id) setCapacity: (NSUInteger)size
 {
   if (size != capacity)
     {

@@ -389,7 +389,7 @@ wordData(NSString *word)
  * Return YES on success, NO if there is an error.
  */
 - (BOOL) decodeData: (const void*)sData
-	     length: (unsigned)length
+	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
   unsigned	size = [dData length];
@@ -417,7 +417,7 @@ wordData(NSString *word)
 @end
 @implementation	GSMimeBase64DecoderContext
 - (BOOL) decodeData: (const void*)sData
-	     length: (unsigned)length
+	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
   unsigned	size = [dData length];
@@ -517,7 +517,7 @@ wordData(NSString *word)
 @end
 @implementation	GSMimeQuotedDecoderContext
 - (BOOL) decodeData: (const void*)sData
-	     length: (unsigned)length
+	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
   unsigned	size = [dData length];
@@ -618,7 +618,7 @@ wordData(NSString *word)
 
 @implementation	GSMimeUUCodingContext
 - (BOOL) decodeData: (const void*)sData
-	     length: (unsigned)length
+	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
   [super decodeData: sData length: length intoData: dData];
@@ -3676,7 +3676,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 
 
 @interface GSMimeDocument (Private)
-- (unsigned) _indexOfHeaderNamed: (NSString*)name;
+- (NSUInteger) _indexOfHeaderNamed: (NSString*)name;
 @end
 
 /**
@@ -5743,7 +5743,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  * NB. The supplied name <em>must</em> be lowercase.<br />
  * This method is for internal use
  */
-- (unsigned) _indexOfHeaderNamed: (NSString*)name
+- (NSUInteger) _indexOfHeaderNamed: (NSString*)name
 {
   unsigned		count = [headers count];
   unsigned		index;

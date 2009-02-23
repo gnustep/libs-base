@@ -62,7 +62,7 @@
 
 @implementation GSCodeBuffer
 
-+ (GSCodeBuffer*) memoryWithSize: (unsigned)_size
++ (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size
 {
   return [[[self alloc] initWithSize: _size] autorelease];
 }
@@ -87,7 +87,7 @@
   [super dealloc];
 }
 
-- (id) initWithSize: (unsigned)_size
+- (id) initWithSize: (NSUInteger)_size
 {
 #if     defined(HAVE_MMAP)
 #if     defined(HAVE_MPROTECT)
@@ -365,9 +365,9 @@ _arg_addr(NSInvocation *inv, int index)
  * so the actual method arguments start at index 2.
  */
 - (void) getArgument: (void*)buffer
-	     atIndex: (int)index
+	     atIndex: (NSInteger)index
 {
-  if ((unsigned)index >= _numArgs)
+  if ((NSUInteger)index >= _numArgs)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"bad invocation argument index"];
@@ -439,9 +439,9 @@ _arg_addr(NSInvocation *inv, int index)
  * receiver is retained by it.
  */
 - (void) setArgument: (void*)buffer
-	     atIndex: (int)index
+	     atIndex: (NSInteger)index
 {
-  if ((unsigned)index >= _numArgs)
+  if ((NSUInteger)index >= _numArgs)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"bad invocation argument index"];
@@ -999,19 +999,19 @@ _arg_addr(NSInvocation *inv, int index)
 	      CASE_TYPE(_C_SEL, SEL);
 	      CASE_TYPE(_C_LNG, long);
 	      CASE_TYPE(_C_ULNG, unsigned long);
-	      CASE_TYPE(_C_INT, int);
-	      CASE_TYPE(_C_UINT, unsigned int);
+	      CASE_TYPE(_C_INT, NSInteger);
+	      CASE_TYPE(_C_UINT, NSUInteger);
 	      case _C_SHT:
-		*(short*)datum = (short)va_arg(ap, int);
+		*(short*)datum = (short)va_arg(ap, NSInteger);
 		break;
 	      case _C_USHT:
-		*(unsigned short*)datum = (unsigned short)va_arg(ap, int);
+		*(unsigned short*)datum = (unsigned short)va_arg(ap, NSInteger);
 		break;
 	      case _C_CHR:
-		*(char*)datum = (char)va_arg(ap, int);
+		*(char*)datum = (char)va_arg(ap, NSInteger);
 		break;
 	      case _C_UCHR:
-		*(unsigned char*)datum = (unsigned char)va_arg(ap, int);
+		*(unsigned char*)datum = (unsigned char)va_arg(ap, NSInteger);
 		break;
 	      case _C_FLT:
 		*(float*)datum = (float)va_arg(ap, double);
@@ -1025,7 +1025,7 @@ _arg_addr(NSInvocation *inv, int index)
 		/* FIXME: This only appears on sparc and ppc machines so far.
 		structures appear to be aligned on word boundaries.
 		Hopefully there is a more general way to figure this out */
-		size = (size<sizeof(int))?4:size;
+		size = (size<sizeof(NSInteger))?4:size;
 #endif
 #endif
 	      NSLog(@"Unsafe handling of type of %d argument.", i-1);

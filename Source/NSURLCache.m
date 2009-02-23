@@ -101,23 +101,23 @@ static NSURLCache	*shared = nil;
   return [this->memory objectForKey: request];
 }
 
-- (unsigned) currentDiskUsage
+- (NSUInteger) currentDiskUsage
 {
   return this->diskUsage;
 }
 
-- (unsigned) currentMemoryUsage
+- (NSUInteger) currentMemoryUsage
 {
   return this->memoryUsage;
 }
 
-- (unsigned) diskCapacity
+- (NSUInteger) diskCapacity
 {
   return this->diskCapacity;
 }
 
-- (id) initWithMemoryCapacity: (unsigned)memoryCapacity
-		 diskCapacity: (unsigned)diskCapacity
+- (id) initWithMemoryCapacity: (NSUInteger)memoryCapacity
+		 diskCapacity: (NSUInteger)diskCapacity
 		     diskPath: (NSString *)path
 {
   if ((self = [super init]) != nil)
@@ -132,7 +132,7 @@ static NSURLCache	*shared = nil;
   return self;
 }
 
-- (unsigned) memoryCapacity
+- (NSUInteger) memoryCapacity
 {
   return this->memoryCapacity;
 }
@@ -157,13 +157,13 @@ static NSURLCache	*shared = nil;
     }
 }
 
-- (void) setDiskCapacity: (unsigned)diskCapacity
+- (void) setDiskCapacity: (NSUInteger)diskCapacity
 {
   [self notImplemented: _cmd];
   // FIXME
 }
 
-- (void) setMemoryCapacity: (unsigned)memoryCapacity
+- (void) setMemoryCapacity: (NSUInteger)memoryCapacity
 {
   [self notImplemented: _cmd];
   // FIXME

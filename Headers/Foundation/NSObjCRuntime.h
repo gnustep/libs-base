@@ -34,13 +34,30 @@
 
 /* These typedefs must be in place before GSObjCRuntime.h is imported.
  */
+
+
+#define GS_64BIT_OLD    1       // Temporarily disable new OSX 10.5 64bit API
+
+
+#if     defined(GS_64BIT_OLD)
+
+typedef	int	NSInteger;
+typedef	unsigned int	NSUInteger;
+typedef	float		CGFloat;
+
+#else /* GS_64BIT_OLD */
+
 typedef	intptr_t	NSInteger;
 typedef	uintptr_t	NSUInteger;
-#if	GS_SIZEOF_VOIDP == 8
-typedef	double		CGFloat;
+#if     GS_SIZEOF_VOIDP == 8
+#define CGFLOAT_IS_DBL  1
+typedef double          CGFloat;
 #else
-typedef	float		CGFloat;
+typedef float           CGFloat;
 #endif
+
+#endif /* GS_64BIT_OLD */
+
 
 #define NSINTEGER_DEFINED 1
 

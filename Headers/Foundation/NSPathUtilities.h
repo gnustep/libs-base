@@ -107,40 +107,7 @@ GS_EXPORT NSString *NSHomeDirectory(void);
 GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-/**
- * Enumeration of possible requested directory type specifiers for
- * NSSearchPathForDirectoriesInDomains() function.  On a traditional
- * GNUstep filesystem layout these correspond to the subdirectories
- * that may be found in the various domains, such as "Library"
- * and "Applications".  In a different filesystem layout these
- * directories might be located anywhere on disk.
- <example>
-{
-  NSApplicationDirectory,
-  NSDemoApplicationDirectory,
-  NSDeveloperApplicationDirectory,
-  NSAdminApplicationDirectory,
-  NSLibraryDirectory,
-  NSDeveloperDirectory,
-  NSUserDirectory,
-  NSDocumentationDirectory,
-  NSDocumentDirectory,
-  NSCoreServiceDirectory,
-  NSDesktopDirectory,
-  NSCachesDirectory,
-  NSApplicationSupportDirectory
-  NSAllApplicationsDirectory,
-  NSAllLibrariesDirectory,
-  GSLibrariesDirectory,
-  GSToolsDirectory,
-  GSAdminToolsDirectory,
-  GSFontsDirectory,
-  GSFrameworksDirectory,
-  GSWebApplicationsDirectory
-}
- </example>
- */
-typedef enum
+enum
 {
   NSApplicationDirectory = 1,		/** Applications */
   NSDemoApplicationDirectory,		/** Demos */
@@ -178,21 +145,56 @@ typedef enum
   GSFrameworksDirectory, 		/** frameworks */
   GSWebApplicationsDirectory,		/** web applications (GSWeb or SOPE) */
   GSAdminToolsDirectory	        	/** admin non-gui programs */
- } NSSearchPathDirectory;
-
+};
 /**
- * Mask type for NSSearchPathForDirectoriesInDomains() function.  A bitwise OR
- * of one or more of <code>NSUserDomainMask, NSLocalDomainMask,
- * NSNetworkDomainMask, NSSystemDomainMask, NSAllDomainsMask</code>.
+ * Enumeration of possible requested directory type specifiers for
+ * NSSearchPathForDirectoriesInDomains() function.  On a traditional
+ * GNUstep filesystem layout these correspond to the subdirectories
+ * that may be found in the various domains, such as "Library"
+ * and "Applications".  In a different filesystem layout these
+ * directories might be located anywhere on disk.
+ <example>
+{
+  NSApplicationDirectory,
+  NSDemoApplicationDirectory,
+  NSDeveloperApplicationDirectory,
+  NSAdminApplicationDirectory,
+  NSLibraryDirectory,
+  NSDeveloperDirectory,
+  NSUserDirectory,
+  NSDocumentationDirectory,
+  NSDocumentDirectory,
+  NSCoreServiceDirectory,
+  NSDesktopDirectory,
+  NSCachesDirectory,
+  NSApplicationSupportDirectory
+  NSAllApplicationsDirectory,
+  NSAllLibrariesDirectory,
+  GSLibrariesDirectory,
+  GSToolsDirectory,
+  GSAdminToolsDirectory,
+  GSFontsDirectory,
+  GSFrameworksDirectory,
+  GSWebApplicationsDirectory
+}
+ </example>
  */
-typedef enum
+typedef NSUInteger NSSearchPathDirectory;
+
+enum
 {
   NSUserDomainMask = 1,		/** The user's personal items */
   NSLocalDomainMask = 2,	/** Local for all users on the machine */
   NSNetworkDomainMask = 4,	/** Public for all users on network */
   NSSystemDomainMask = 8,	/** Standard GNUstep items */
   NSAllDomainsMask = 0x0ffff,	/** all domains */
-} NSSearchPathDomainMask;
+};
+/**
+ * Mask type for NSSearchPathForDirectoriesInDomains() function.  A bitwise OR
+ * of one or more of <code>NSUserDomainMask, NSLocalDomainMask,
+ * NSNetworkDomainMask, NSSystemDomainMask, NSAllDomainsMask</code>.
+ */
+typedef NSUInteger NSSearchPathDomainMask;
 
 /**
  * Returns an array of search paths to look at for resources.<br/ >

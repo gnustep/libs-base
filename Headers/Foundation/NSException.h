@@ -357,13 +357,13 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 - (void) handleFailureInFunction: (NSString*)functionName 
 			    file: (NSString*)fileName 
-		      lineNumber: (int)line 
+		      lineNumber: (NSInteger)line 
 		     description: (NSString*)format,...;
 
 - (void) handleFailureInMethod: (SEL)aSelector 
 			object: object 
 			  file: (NSString*)fileName 
-		    lineNumber: (int)line 
+		    lineNumber: (NSInteger)line 
 		   description: (NSString*)format,...;
 
 @end

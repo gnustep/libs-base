@@ -162,7 +162,7 @@ typedef struct {
   return self;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [this->URL hash];
 }

@@ -101,7 +101,7 @@ pointerFunctionsHash(PFInfo *PF, void *item)
 {
   if (PF->hashFunction != 0)
     return (*PF->hashFunction)(item, PF->sizeFunction);
-  return (NSUInteger)item;
+  return (NSUInteger)(uintptr_t)item;
 }
 
 

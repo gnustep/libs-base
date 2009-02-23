@@ -48,18 +48,18 @@ extern "C" {
 #endif
 + (id) arrayWithObject: (id)anObject;
 + (id) arrayWithObjects: (id)firstObject, ...;
-+ (id) arrayWithObjects: (id*)objects count: (unsigned)count;
++ (id) arrayWithObjects: (id*)objects count: (NSUInteger)count;
 
 - (NSArray*) arrayByAddingObject: (id)anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
 - (BOOL) containsObject: anObject;
-- (unsigned) count;						// Primitive
+- (NSUInteger) count;						// Primitive
 - (void) getObjects: (id*)aBuffer;
 - (void) getObjects: (id*)aBuffer range: (NSRange)aRange;
-- (unsigned) indexOfObject: (id)anObject;
-- (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange;
-- (unsigned) indexOfObjectIdenticalTo: (id)anObject;
-- (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
+- (NSUInteger) indexOfObject: (id)anObject;
+- (NSUInteger) indexOfObject: (id)anObject inRange: (NSRange)aRange;
+- (NSUInteger) indexOfObjectIdenticalTo: (id)anObject;
+- (NSUInteger) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (id) init;
 - (id) initWithArray: (NSArray*)array;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -70,10 +70,10 @@ extern "C" {
 - (id) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 - (id) initWithObjects: firstObject, ...;
-- (id) initWithObjects: (id*)objects count: (unsigned)count;	// Primitive
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count;	// Primitive
 
 - (id) lastObject;
-- (id) objectAtIndex: (unsigned)index;				// Primitive
+- (id) objectAtIndex: (NSUInteger)index;			// Primitive
 #if OS_API_VERSION(100400, GS_API_LATEST)
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes;
 #endif
@@ -108,7 +108,7 @@ extern "C" {
 - (NSString*) description;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
-			     indent: (unsigned int)level;
+			     indent: (NSUInteger)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -120,22 +120,22 @@ extern "C" {
 
 @interface NSMutableArray : NSArray
 
-+ (id) arrayWithCapacity: (unsigned)numItems;
++ (id) arrayWithCapacity: (NSUInteger)numItems;
 
 - (void) addObject: (id)anObject;				// Primitive
 - (void) addObjectsFromArray: (NSArray*)otherArray;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (void) exchangeObjectAtIndex: (unsigned int)i1
-	     withObjectAtIndex: (unsigned int)i2;
+- (void) exchangeObjectAtIndex: (NSUInteger)i1
+	     withObjectAtIndex: (NSUInteger)i2;
 #endif
-- (id) initWithCapacity: (unsigned)numItems;			// Primitive
-- (void) insertObject: (id)anObject atIndex: (unsigned)index;	// Primitive
+- (id) initWithCapacity: (NSUInteger)numItems;			// Primitive
+- (void) insertObject: (id)anObject atIndex: (NSUInteger)index;	// Primitive
 #if OS_API_VERSION(100400, GS_API_LATEST)
 - (void) insertObjects: (NSArray *)objects atIndexes: (NSIndexSet *)indexes;
 #endif
-- (void) removeObjectAtIndex: (unsigned)index;			// Primitive
+- (void) removeObjectAtIndex: (NSUInteger)index;			// Primitive
 - (void) removeObjectsAtIndexes: (NSIndexSet *)indexes;
-- (void) replaceObjectAtIndex: (unsigned)index
+- (void) replaceObjectAtIndex: (NSUInteger)index
 		   withObject: (id)anObject;			// Primitive
 #if OS_API_VERSION(100400, GS_API_LATEST)
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
@@ -156,8 +156,8 @@ extern "C" {
 - (void) removeObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (void) removeObjectsInArray: (NSArray*)otherArray;
 - (void) removeObjectsInRange: (NSRange)aRange;
-- (void) removeObjectsFromIndices: (unsigned*)indices 
-		       numIndices: (unsigned)count;
+- (void) removeObjectsFromIndices: (NSUInteger*)indices 
+		       numIndices: (NSUInteger)count;
 
 - (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare 
 		   context: (void*)context;
@@ -185,11 +185,11 @@ extern "C" {
  *	The selector version works the same - returning NSOrderedAscending if
  *	the receiver is 'less than' the item in the array.
  */
-- (unsigned) insertionPosition: (id)item
-		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
-		       context: (void *)context;
-- (unsigned) insertionPosition: (id)item
-		 usingSelector: (SEL)comp;
+- (NSUInteger) insertionPosition: (id)item
+		   usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		         context: (void *)context;
+- (NSUInteger) insertionPosition: (id)item
+		   usingSelector: (SEL)comp;
 @end
 
 #if	defined(__cplusplus)

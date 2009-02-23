@@ -53,7 +53,7 @@
   return newMs;
 }
 
-- (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index
+- (NSArgumentInfo) argumentInfoAtIndex: (NSUInteger)index
 {
   if (index >= _numArgs)
     {
@@ -67,12 +67,12 @@
   return _info[index+1];
 }
 
-- (unsigned) frameLength
+- (NSUInteger) frameLength
 {
   return _argFrameLength;
 }
 
-- (const char*) getArgumentTypeAtIndex: (unsigned)index
+- (const char*) getArgumentTypeAtIndex: (NSUInteger)index
 {
   if (index >= _numArgs)
     {
@@ -95,7 +95,7 @@
   return (_info[0].qual & _F_ONEWAY) ? YES : NO;
 }
 
-- (unsigned) methodReturnLength
+- (NSUInteger) methodReturnLength
 {
   if (_info == 0)
     {
@@ -113,7 +113,7 @@
   return _info[0].type;
 }
 
-- (unsigned) numberOfArguments
+- (NSUInteger) numberOfArguments
 {
   return _numArgs;
 }

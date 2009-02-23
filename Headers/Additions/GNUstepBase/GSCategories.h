@@ -207,7 +207,7 @@ typedef enum _NSGNUstepStringEncoding
 */
 
 @interface NSCalendarDate (GSCategories)
-- (int) weekOfYear;
+- (NSInteger) weekOfYear;
 @end
 
 @interface NSData (GSCategories)
@@ -216,10 +216,10 @@ typedef enum _NSGNUstepStringEncoding
 - (NSData*) md5Digest;
 - (BOOL) uudecodeInto: (NSMutableData*)decoded
 		 name: (NSString**)namePtr
-		 mode: (int*)modePtr;
+		 mode: (NSInteger*)modePtr;
 - (BOOL) uuencodeInto: (NSMutableData*)encoded
 		 name: (NSString*)name
-		 mode: (int)mode;
+		 mode: (NSInteger)mode;
 @end
 
 @interface NSString (GSCategories)
@@ -275,11 +275,11 @@ typedef enum _NSGNUstepStringEncoding
 
 @interface NSArray (GSCompatibility)
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
-- (unsigned) insertionPosition: (id)item
-		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
-		       context: (void *)context;
-- (unsigned) insertionPosition: (id)item
-		 usingSelector: (SEL)comp;
+- (NSUInteger) insertionPosition: (id)item
+		   usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		         context: (void *)context;
+- (NSUInteger) insertionPosition: (id)item
+		   usingSelector: (SEL)comp;
 @end
 
 @interface      NSAttributedString (GSCategories)
@@ -293,7 +293,7 @@ typedef enum _NSGNUstepStringEncoding
 @end
 
 @interface NSDistantObject (GSCompatibility)
-+ (void) setDebug: (int)val;
++ (void) setDebug: (NSInteger)val;
 @end
 
 @interface NSFileHandle(GSCompatibility)

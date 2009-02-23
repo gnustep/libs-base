@@ -103,9 +103,9 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 - (void) bye;           /* Close down the handled session.   */
 - (BOOL) handshake;     /* A handshake/hello is in progress. */
 - (void) hello;         /* Start up the session handshake.   */
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len;
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len;
 @end
 
 
@@ -150,7 +150,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
   return ostream;
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -161,7 +161,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
   [self subclassResponsibility: _cmd];
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -524,7 +524,7 @@ static gnutls_anon_client_credentials_t anoncred;
   return ostream;
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return gnutls_record_recv (session, buffer, len);
 }
@@ -576,7 +576,7 @@ static gnutls_anon_client_credentials_t anoncred;
     }
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return gnutls_record_send (session, buffer, len);
 }
@@ -797,7 +797,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  address = [[NSString alloc] initWithUTF8String:
 	    (char*)inet_ntoa(addr->sin_addr)];
 	  port = [[NSString alloc] initWithFormat: @"%d",
-	    (int)GSSwapBigI16ToHost(addr->sin_port)];
+	    (NSInteger)GSSwapBigI16ToHost(addr->sin_port)];
 
           /* Now reconfigure the streams so they will actually connect
            * to the socks proxy server.
@@ -812,7 +812,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
   return self;
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return [istream _read: buffer maxLength: len];
 }
@@ -1202,7 +1202,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
     }
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return [ostream _write: buffer maxLength: len];
 }
@@ -1402,7 +1402,7 @@ setNonBlocking(SOCKET fd)
   return result;
 }
 
-- (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return -1;
@@ -1432,8 +1432,8 @@ setNonBlocking(SOCKET fd)
 }
 
 - (BOOL) _setSocketAddress: (NSString*)address
-                      port: (int)port
-                    family: (int)family
+                      port: (NSInteger)port
+                    family: (NSInteger)family
 {
   uint16_t	p = (uint16_t)port;
 
@@ -1578,7 +1578,7 @@ setNonBlocking(SOCKET fd)
   return _sock;
 }
 
-- (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) _write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return -1;
@@ -1745,7 +1745,7 @@ setNonBlocking(SOCKET fd)
   _sock = INVALID_SOCKET;
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   if (buffer == 0)
     {
@@ -1764,7 +1764,7 @@ setNonBlocking(SOCKET fd)
     return [_handler read: buffer maxLength: len];
 }
 
-- (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   int readLen;
 
@@ -2010,7 +2010,7 @@ setNonBlocking(SOCKET fd)
     }
 }
 
-- (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) _write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   int writeLen;
 
@@ -2218,7 +2218,7 @@ setNonBlocking(SOCKET fd)
   _sock = INVALID_SOCKET;
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   if (buffer == 0)
     {
@@ -2599,7 +2599,7 @@ setNonBlocking(SOCKET fd)
 
 @implementation GSInetInputStream
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2616,7 +2616,7 @@ setNonBlocking(SOCKET fd)
 @implementation GSInet6InputStream
 #if	defined(AF_INET6)
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2629,7 +2629,7 @@ setNonBlocking(SOCKET fd)
 }
 
 #else
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   RELEASE(self);
   return nil;
@@ -2639,7 +2639,7 @@ setNonBlocking(SOCKET fd)
 
 @implementation GSInetOutputStream
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2656,7 +2656,7 @@ setNonBlocking(SOCKET fd)
 @implementation GSInet6OutputStream
 #if	defined(AF_INET6)
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2669,7 +2669,7 @@ setNonBlocking(SOCKET fd)
 }
 
 #else
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   RELEASE(self);
   return nil;
@@ -2689,7 +2689,7 @@ setNonBlocking(SOCKET fd)
   return [GSInetOutputStream class];
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2719,7 +2719,7 @@ setNonBlocking(SOCKET fd)
   return [GSInet6OutputStream class];
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ([super init] != nil)
     {
@@ -2735,7 +2735,7 @@ setNonBlocking(SOCKET fd)
   return self;
 }
 #else
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   RELEASE(self);
   return nil;

@@ -115,12 +115,12 @@ extern "C" {
 /**
  * Initialize lock with given condition.
  */
-- (id) initWithCondition: (int)value;
+- (id) initWithCondition: (NSInteger)value;
 
 /**
  * Return the current condition of the lock.
  */
-- (int) condition;
+- (NSInteger) condition;
 
 /*
  * Acquiring and releasing the lock.
@@ -130,12 +130,12 @@ extern "C" {
  *  Acquire lock when it is available and the internal condition is equal to
  *  value.  Blocks until this occurs.
  */
-- (void) lockWhenCondition: (int)value;
+- (void) lockWhenCondition: (NSInteger)value;
 
 /**
  *  Relinquish the lock, setting internal condition to value.
  */
-- (void) unlockWithCondition: (int)value;
+- (void) unlockWithCondition: (NSInteger)value;
 
 /**
  *  Try to acquire lock regardless of condition and return immediately, YES if
@@ -147,7 +147,7 @@ extern "C" {
  *  Try to acquire lock if condition is equal to value and return immediately
  *  in any case, YES if succeeded, NO if not.
  */
-- (BOOL) tryLockWhenCondition: (int)value;
+- (BOOL) tryLockWhenCondition: (NSInteger)value;
 
 /*
  * Acquiring the lock with a date condition.
@@ -162,7 +162,7 @@ extern "C" {
  *  Try to acquire lock, when internal condition is equal to condition_to_meet,
  *  and return before limit, YES if succeeded, NO if not.
  */
-- (BOOL) lockWhenCondition: (int)condition_to_meet
+- (BOOL) lockWhenCondition: (NSInteger)condition_to_meet
                 beforeDate: (NSDate*)limitDate;
 
 /**

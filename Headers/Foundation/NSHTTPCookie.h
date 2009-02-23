@@ -243,7 +243,7 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
  * Returns 0 for an unversioned Netscape style cookie or a
  * positive integer for a versioned cookie.
  */
-- (unsigned) version;
+- (NSUInteger) version;
 
 @end
 

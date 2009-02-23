@@ -34,7 +34,7 @@
 
 @implementation NSArray (GSCategories)
 
-- (unsigned) insertionPosition: (id)item
+- (NSUInteger) insertionPosition: (id)item
 		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
 		       context: (void *)context
 {
@@ -91,7 +91,7 @@
   return index;
 }
 
-- (unsigned) insertionPosition: (id)item
+- (NSUInteger) insertionPosition: (id)item
 		 usingSelector: (SEL)comp
 {
   unsigned	count = [self count];
@@ -178,10 +178,10 @@
  * last day of the year is a monday tuesday or wednesday, these days are
  * part of week 1 of the next year.
  */
-- (int) weekOfYear
+- (NSInteger) weekOfYear
 {
-  int	dayOfWeek = [self dayOfWeek];
-  int	dayOfYear;
+  NSInteger	dayOfWeek = [self dayOfWeek];
+  NSInteger	dayOfYear;
 
   /*
    * Whether a week is considered to be in a year or not depends on its
@@ -825,7 +825,7 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
   /*
    * The header is a line of the form 'begin mode filename'
    */
-  sprintf((char*)buf, "begin %03o ", mode);
+  sprintf((char*)buf, "begin %03o ", (int)mode);
   [encoded appendBytes: buf length: strlen((const char*)buf)];
   [encoded appendData: [name dataUsingEncoding: NSASCIIStringEncoding]];
   [encoded appendBytes: "\n" length: 1];
@@ -1172,7 +1172,7 @@ strerror_r(int eno, char *buf, int len)
   if (length > 0)
     {
       unsigned	start = 0;
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
@@ -1199,7 +1199,7 @@ strerror_r(int eno, char *buf, int len)
   if (length > 0)
     {
       unsigned	end = length;
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
@@ -1231,7 +1231,7 @@ strerror_r(int eno, char *buf, int len)
     {
       unsigned	start = 0;
       unsigned	end = length;
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
@@ -1385,7 +1385,7 @@ strerror_r(int eno, char *buf, int len)
   if (length > 0)
     {
       unsigned	start = 0;
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
@@ -1410,7 +1410,7 @@ strerror_r(int eno, char *buf, int len)
   if (length > 0)
     {
       unsigned	end = length;
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       SEL caiSel = @selector(characterAtIndex:);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];

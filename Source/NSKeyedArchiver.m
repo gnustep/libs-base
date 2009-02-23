@@ -67,7 +67,7 @@ static Class	NSScannerClass = 0;
 static SEL	scanFloatSel;
 static SEL	scanStringSel;
 static SEL	scannerSel;
-static BOOL	(*scanFloatImp)(NSScanner*, SEL, float*);
+static BOOL	(*scanFloatImp)(NSScanner*, SEL, CGFloat*);
 static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
 
@@ -78,10 +78,17 @@ setupCache(void)
     {
       NSStringClass = [NSString class];
       NSScannerClass = [NSScanner class];
-      scanFloatSel = @selector(scanFloat:);
+      if (sizeof(CGFloat) == sizeof(double))
+        {
+          scanFloatSel = @selector(scanDouble:);
+        }
+      else
+        {
+          scanFloatSel = @selector(scanFloat:);
+        }
       scanStringSel = @selector(scanString:intoString:);
       scannerSel = @selector(scannerWithString:);
-      scanFloatImp = (BOOL (*)(NSScanner*, SEL, float*))
+      scanFloatImp = (BOOL (*)(NSScanner*, SEL, CGFloat*))
 	[NSScannerClass instanceMethodForSelector: scanFloatSel];
       scanStringImp = (BOOL (*)(NSScanner*, SEL, NSString*, NSString**))
 	[NSScannerClass instanceMethodForSelector: scanStringSel];
@@ -528,7 +535,7 @@ static NSDictionary *makeReference(unsigned ref)
 }
 
 - (void) encodeArrayOfObjCType: (const char*)aType
-			 count: (unsigned)aCount
+			 count: (NSUInteger)aCount
 			    at: (const void*)address
 {
   id	o;
@@ -547,7 +554,7 @@ static NSDictionary *makeReference(unsigned ref)
   [_enc setObject: [NSNumber  numberWithBool: aBool] forKey: aKey];
 }
 
-- (void) encodeBytes: (const uint8_t*)aPointer length: (unsigned)length forKey: (NSString*)aKey
+- (void) encodeBytes: (const uint8_t*)aPointer length: (NSUInteger)length forKey: (NSString*)aKey
 {
   CHECKKEY
 
@@ -624,22 +631,22 @@ static NSDictionary *makeReference(unsigned ref)
 
 - (void) encodePoint: (NSPoint)p
 {
-  [self encodeValueOfObjCType: @encode(float) at: &p.x];
-  [self encodeValueOfObjCType: @encode(float) at: &p.y];
+  [self encodeValueOfObjCType: @encode(CGFloat) at: &p.x];
+  [self encodeValueOfObjCType: @encode(CGFloat) at: &p.y];
 }
 
 - (void) encodeRect: (NSRect)r
 {
-  [self encodeValueOfObjCType: @encode(float) at: &r.origin.x];
-  [self encodeValueOfObjCType: @encode(float) at: &r.origin.y];
-  [self encodeValueOfObjCType: @encode(float) at: &r.size.width];
-  [self encodeValueOfObjCType: @encode(float) at: &r.size.height];
+  [self encodeValueOfObjCType: @encode(CGFloat) at: &r.origin.x];
+  [self encodeValueOfObjCType: @encode(CGFloat) at: &r.origin.y];
+  [self encodeValueOfObjCType: @encode(CGFloat) at: &r.size.width];
+  [self encodeValueOfObjCType: @encode(CGFloat) at: &r.size.height];
 }
 
 - (void) encodeSize: (NSSize)s
 {
-  [self encodeValueOfObjCType: @encode(float) at: &s.width];
-  [self encodeValueOfObjCType: @encode(float) at: &s.height];
+  [self encodeValueOfObjCType: @encode(CGFloat) at: &s.width];
+  [self encodeValueOfObjCType: @encode(CGFloat) at: &s.height];
 }
 
 - (void) encodeValueOfObjCType: (const char*)type
@@ -677,17 +684,17 @@ static NSDictionary *makeReference(unsigned ref)
 	return;
 
       case _C_CHR:
-	o = [NSNumber numberWithInt: (int)*(char*)address];
+	o = [NSNumber numberWithInt: (NSInteger)*(char*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
       case _C_UCHR:
-	o = [NSNumber numberWithInt: (int)*(unsigned char*)address];
+	o = [NSNumber numberWithInt: (NSInteger)*(unsigned char*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
       case _C_SHT:
-	o = [NSNumber numberWithInt: (int)*(short*)address];
+	o = [NSNumber numberWithInt: (NSInteger)*(short*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
@@ -697,12 +704,12 @@ static NSDictionary *makeReference(unsigned ref)
 	return;
 
       case _C_INT:
-	o = [NSNumber numberWithInt: *(int*)address];
+	o = [NSNumber numberWithInt: *(NSInteger*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
       case _C_UINT:
-	o = [NSNumber numberWithUnsignedInt: *(unsigned int*)address];
+	o = [NSNumber numberWithUnsignedInt: *(NSUInteger*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 

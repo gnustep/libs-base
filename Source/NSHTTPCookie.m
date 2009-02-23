@@ -164,9 +164,9 @@ typedef struct {
   return [this->_properties objectForKey: NSHTTPCookieValue];
 }
 
-- (unsigned) version
+- (NSUInteger) version
 {
-  return [[this->_properties objectForKey: NSHTTPCookieVersion] intValue];
+  return [[this->_properties objectForKey: NSHTTPCookieVersion] integerValue];
 }
 
 @end

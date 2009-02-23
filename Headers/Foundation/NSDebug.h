@@ -453,19 +453,19 @@ GS_EXPORT BOOL NSDeallocateZombies;
  *  Retrieve stack information.  Use caution: uses built-in gcc functions
  *  and currently only works up to 100 frames.
  */
-GS_EXPORT void *NSFrameAddress(int offset);
+GS_EXPORT void *NSFrameAddress(NSUInteger offset);
 
 /**
  *  Retrieve stack information.  Use caution: uses built-in gcc functions
  *  and currently only works up to 100 frames.
  */
-GS_EXPORT void *NSReturnAddress(int offset);
+GS_EXPORT void *NSReturnAddress(NSUInteger offset);
 
 /**
  *  Retrieve stack information.  Use caution: uses built-in gcc functions
  *  and currently only works up to 100 frames.
  */
-GS_EXPORT unsigned NSCountFrames(void);
+GS_EXPORT NSUInteger NSCountFrames(void);
 
 #if	defined(__cplusplus)
 }

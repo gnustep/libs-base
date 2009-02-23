@@ -572,7 +572,7 @@ static char	**_gnu_noobjc_env = NULL;
   
   // Read commandline
   proc_file_name = (char*)objc_malloc(sizeof(char) * 2048);
-  sprintf(proc_file_name, "/proc/%d/psinfo", (int) getpid());
+  sprintf(proc_file_name, "/proc/%d/psinfo", (int)getpid());
   
   ifp = fopen(proc_file_name, "r");
   if (ifp == NULL)
@@ -681,7 +681,7 @@ static char	**_gnu_noobjc_env = NULL;
 
   // Read commandline
   proc_file_name = (char *)objc_malloc(sizeof(char) * 2048);
-  sprintf(proc_file_name, "/proc/%d/cmdline", (int) getpid());
+  sprintf(proc_file_name, "/proc/%d/cmdline", (int)getpid());
 
   /*
    * We read the /proc file thrice.
@@ -1147,7 +1147,7 @@ static void determineOperatingSystem()
     }
 }
 
-- (unsigned int) operatingSystem
+- (NSUInteger) operatingSystem
 {
   if (_operatingSystem == 0)
     {

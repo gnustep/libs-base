@@ -207,12 +207,12 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
   while (delay > 0)
     {
 #ifdef	HAVE_USLEEP
-      usleep ((int)(delay*1000000));
+      usleep ((NSInteger)(delay*1000000));
 #else
 #if defined(__MINGW32__)
       Sleep (delay*1000);
 #else
-      sleep ((int)delay);
+      sleep ((NSInteger)delay);
 #endif
 #endif
       delay = when - GSTimeNow();
@@ -826,7 +826,7 @@ pthread_detach(pthread_self());
   ASSIGN(_name, aName);
 }
 
-- (void) setStackSize: (unsigned)stackSize
+- (void) setStackSize: (NSUInteger)stackSize
 {
   _stackSize = stackSize;
 #if     !defined(HAVE_SETRLIMIT) || !defined(RLIMIT_STACK)
@@ -834,7 +834,7 @@ pthread_detach(pthread_self());
 #endif
 }
 
-- (unsigned) stackSize
+- (NSUInteger) stackSize
 {
   return _stackSize;
 }

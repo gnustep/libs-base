@@ -57,7 +57,7 @@ extern "C" {
  *  well.
  */
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)count
+			 count: (NSUInteger)count
 			    at: (const void*)array;
 
 /**
@@ -72,7 +72,7 @@ extern "C" {
 /**
  *  Stores bytes directly into archive.  
  */
-- (void) encodeBytes: (void*)d length: (unsigned)l;
+- (void) encodeBytes: (void*)d length: (NSUInteger)l;
 
 /**
  *  Encode object if it is/will be encoded unconditionally by this coder,
@@ -141,13 +141,13 @@ extern "C" {
  *  well.  Objects will be retained and you must release them.
  */
 - (void) decodeArrayOfObjCType: (const char*)type
-                         count: (unsigned)count
+                         count: (NSUInteger)count
                             at: (void*)address;
 
 /**
  *  Retrieve bytes directly from archive.
  */
-- (void*) decodeBytesWithReturnedLength: (unsigned*)l;
+- (void*) decodeBytesWithReturnedLength: (NSUInteger*)l;
 
 /**
  *  Decode an instance of [NSData].
@@ -257,7 +257,7 @@ extern "C" {
  * -encodeBytes:length:forKey:
  */
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (unsigned*)alength;
+		      returnedLength: (NSUInteger*)alength;
 
 /** <override-subclass />
  * Returns a double value associated with aKey.  This value must previously
@@ -313,7 +313,7 @@ extern "C" {
  * and associates the encoded value with aKey.
  */
 - (void) encodeBytes: (const uint8_t*)aPointer
-	      length: (unsigned)length
+	      length: (NSUInteger)length
 	      forKey: (NSString*)aKey;
 
 /** <override-subclass />
@@ -333,17 +333,17 @@ extern "C" {
 - (void) encodeFloat: (float)aFloat forKey: (NSString*)aKey;
 
 /** <override-subclass />
- * Encodes anInteger and associates the encoded value with aKey.
+ * Encodes an int and associates the encoded value with aKey.
  */
 - (void) encodeInt: (int)anInteger forKey: (NSString*)aKey;
 
 /** <override-subclass />
- * Encodes anInteger and associates the encoded value with aKey.
+ * Encodes 32 bit integer and associates the encoded value with aKey.
  */
 - (void) encodeInt32: (int32_t)anInteger forKey: (NSString*)aKey;
 
 /** <override-subclass />
- * Encodes anInteger and associates the encoded value with aKey.
+ * Encodes a 64 bit integer and associates the encoded value with aKey.
  */
 - (void) encodeInt64: (int64_t)anInteger forKey: (NSString*)aKey;
 
@@ -355,12 +355,12 @@ extern "C" {
 
 #if OS_API_VERSION(100500, GS_API_LATEST)
 /** <override-subclass />
- * Encodes anInteger and associates the encoded value with key.
+ * Encodes an NSInteger and associates the encoded value with key.
  */
 
 - (void) encodeInteger: (NSInteger)anInteger forKey: (NSString *)key;
 /** <override-subclass />
- * Decodes an integer associated with the key.
+ * Decodes an NSInteger associated with the key.
  */
 - (NSInteger) decodeIntegerForKey: (NSString *)key;
 #endif

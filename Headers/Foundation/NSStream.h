@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-typedef enum {   
+enum {   
   NSStreamStatusNotOpen = 0,   
   NSStreamStatusOpening = 1,
   NSStreamStatusOpen = 2,   
@@ -42,16 +42,18 @@ typedef enum {
   NSStreamStatusAtEnd = 5,   
   NSStreamStatusClosed = 6,   
   NSStreamStatusError = 7
-} NSStreamStatus;
+};
+typedef NSUInteger NSStreamStatus;
 
-typedef enum {   
+enum {   
   NSStreamEventNone = 0,    
   NSStreamEventOpenCompleted = 1,    
   NSStreamEventHasBytesAvailable = 2,
   NSStreamEventHasSpaceAvailable = 4,    
   NSStreamEventErrorOccurred = 8,    
   NSStreamEventEndEncountered = 16
-} NSStreamEvent;
+};
+typedef NSUInteger NSStreamEvent;
 
 @class NSError;
 @class NSHost;
@@ -70,7 +72,7 @@ typedef enum {
  * object for a socket connection with the specified port on host.
  */
 + (void) getStreamsToHost: (NSHost *)host 
-                     port: (int)port 
+                     port: (NSInteger)port 
               inputStream: (NSInputStream **)inputStream 
              outputStream: (NSOutputStream **)outputStream;
 
@@ -162,7 +164,7 @@ typedef enum {
  * Returns a pointer to the read buffer in buffer and, by reference, the number 
  * of bytes available in len.
  */
-- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len;
+- (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len;
 
 /**
  * Returns YES if the receiver has bytes available to read.
@@ -185,7 +187,7 @@ typedef enum {
 /**
  * Reads up to len bytes into buffer, returning the actual number of bytes read.
  */
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len;
 
 @end
 
@@ -199,7 +201,7 @@ typedef enum {
  * Creates and returns an initialized NSOutputStream object
  * that can write to buffer, up to a maximum of capacity bytes.
  */
-+ (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity;
++ (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity;
 
 /**
  * Creates and returns an initialized NSOutputStream object
@@ -224,7 +226,7 @@ typedef enum {
  * Returns an initialized NSOutputStream object that can write to buffer, 
  * up to a maximum of capacity bytes.
  */
-- (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity;
+- (id) initToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity;
 
 /**
  * Returns an initialized NSOutputStream object for writing to the file
@@ -243,7 +245,7 @@ typedef enum {
  * Writes the contents of buffer, up to a maximum of len bytes,
  * to the receiver.
  */
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len;
 
 @end
 
@@ -280,7 +282,7 @@ typedef enum {
 /**
  * Createe a ip (ipv6) server stream
  */
-+ (id) serverStreamToAddr: (NSString*)addr port: (int)port;
++ (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port;
 
 /**
  * Create a local (unix domain or named pipe) server stream
@@ -299,7 +301,7 @@ typedef enum {
 /**
  * the designated initializer for a ip (ipv6) server stream
  */
-- (id) initToAddr: (NSString*)addr port: (int)port;
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port;
 
 /**
  * the designated initializer for a local (unix domain or named pipe)

@@ -1,5 +1,152 @@
 2009-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSIndexPath.m:
+	* Source/GSSocketStream.h:
+	* Source/NSTimeZone.m:
+	* Source/NSNetServices.m:
+	* Source/NSURLCredential.m:
+	* Source/GSSocketStream.m:
+	* Source/NSURLAuthenticationChallenge.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSPropertyList.m:
+	* Source/GSConcreteValueTemplate.m:
+	* Source/NSAffineTransform.m:
+	* Source/NSConcretePointerFunctions.h:
+	* Source/NSPathUtilities.m:
+	* Source/NSScanner.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSNotificationQueue.m:
+	* Source/NSGeometry.m:
+	* Source/NSConcretePointerFunctions.m:
+	* Source/NSRunLoop.m:
+	* Source/NSAttributedString.m:
+	* Source/NSUndoManager.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSArray.m:
+	* Source/GSStream.h:
+	* Source/GSStream.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSDebug.m:
+	* Source/unix/NSStream.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSURLDownload.m:
+	* Source/NSPredicate.m:
+	* Source/NSAssertionHandler.m:
+	* Source/NSZone.m:
+	* Source/NSPort.m:
+	* Source/GSPrivate.h:
+	* Source/win32/NSStream.m:
+	* Source/NSInvocation.m:
+	* Source/NSFileManager.m:
+	* Source/NSURLResponse.m:
+	* Source/NSURLCache.m:
+	* Source/NSCoder.m:
+	* Source/NSException.m:
+	* Source/NSCopyObject.m:
+	* Source/NSURL.m:
+	* Source/NSString.m:
+	* Source/NSObject.m:
+	* Source/NSDecimalNumber.m:
+	* Source/cifframe.m:
+	* Source/Additions/GCArray.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GCDictionary.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSMime.m:
+	* Source/NSNumber.m:
+	* Source/NSDecimal.m:
+	* Source/GSString.m:
+	* Source/NSThread.m:
+	* Source/NSHTTPCookie.m:
+	* Source/NSData.m:
+	* Source/NSProxy.m:
+	* Source/NSURLProtectionSpace.m:
+	* Source/NSError.m:
+	* Source/NSDictionary.m:
+	* Source/NSURLRequest.m:
+	* Source/NSValue.m:
+	* Source/NSCountedSet.m:
+	* Source/NSIndexSet.m:
+	* Source/GSFileHandle.m:
+	* Source/NSLock.m:
+	* Source/NSSet.m:
+	* Source/NSArchiver.m:
+	* Source/NSXMLParser.m:
+	* Source/GSURLPrivate.h:
+	* Headers/Foundation/NSTimeZone.h:
+	* Headers/Foundation/NSNetServices.h:
+	* Headers/Foundation/NSCoder.h:
+	* Headers/Foundation/NSException.h:
+	* Headers/Foundation/NSHTTPCookieStorage.h:
+	* Headers/Foundation/NSURLAuthenticationChallenge.h:
+	* Headers/Foundation/NSCompoundPredicate.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSSpellServer.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSCalendarDate.h:
+	* Headers/Foundation/NSDecimalNumber.h:
+	* Headers/Foundation/NSURLHandle.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSAffineTransform.h:
+	* Headers/Foundation/NSPathUtilities.h:
+	* Headers/Foundation/NSScanner.h:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSDistributedNotificationCenter.h:
+	* Headers/Foundation/NSStream.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSGeometry.h:
+	* Headers/Foundation/NSNotificationQueue.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Foundation/NSDecimal.h:
+	* Headers/Foundation/NSAttributedString.h:
+	* Headers/Foundation/NSUndoManager.h:
+	* Headers/Foundation/NSMethodSignature.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSThread.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSHTTPCookie.h:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Headers/Foundation/NSProxy.h:
+	* Headers/Foundation/NSURLProtectionSpace.h:
+	* Headers/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSDebug.h:
+	* Headers/Foundation/NSError.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	* Headers/Foundation/NSDictionary.h:
+	* Headers/Foundation/NSURLRequest.h:
+	* Headers/Foundation/NSZone.h:
+	* Headers/Foundation/NSValue.h:
+	* Headers/Foundation/NSIndexSet.h:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSSet.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/NSInvocation.h:
+	* Headers/Foundation/NSFileManager.h:
+	* Headers/Foundation/NSXMLParser.h:
+	* Headers/Foundation/NSURLResponse.h:
+	* Headers/Foundation/NSIndexPath.h:
+	* Headers/Foundation/NSURLCache.h:
+	* Headers/Additions/GNUstepBase/GSXML.h:
+	* Headers/Additions/GNUstepBase/GSCategories.h:
+	* Headers/Additions/GNUstepBase/GSMime.h:
+	* Headers/Additions/GNUstepBase/GSFileHandle.h:
+	* Tools/gdnc.h:
+	* Tools/gdnc.m:
+        Conversion of everything to use the new MacOS-X 10.5 API where return
+        values and arguments use the NSInteger, NSUInteger, and CGFloat types.
+        For now, as suggesed by David, the proper 10.5 behavior is turned off
+        and those types are equivalent to the types used by the old API.
+        Edit Headers/Foundation/NSObjCRuntime.h to turn on the new behavior
+        where the integer types are the same size as a pointer, and the float
+        type is actually a double on 64bit processors.
+
+2009-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPortCoder.m:
 	make float and double interchangable to cope with MacOS-X 10.5
 	API which can use either for CGFloat.

@@ -50,12 +50,13 @@ extern "C" {
  *  .5 rounds to make last remaining digit even).  See the
  *  [(NSDecimalNumberBehaviors)] protocol.
  */
-typedef	enum {
+enum {
   NSRoundPlain,		/* Round .5 up		*/
   NSRoundDown,
   NSRoundUp,
   NSRoundBankers	/* Make last digit even	*/
-} NSRoundingMode;
+};
+typedef NSUInteger NSRoundingMode;
 
 /**
  *  Enumerated type for specifying a decimal calculation error.  Can be one of
@@ -73,13 +74,14 @@ typedef	enum {
  *  <desc>The caller tried to divide by 0.</desc>
  *  </deflist>
  */
-typedef enum {
+enum {
   NSCalculationNoError = 0,
   NSCalculationLossOfPrecision,
   NSCalculationUnderflow,	/* result became zero */
   NSCalculationOverflow,
   NSCalculationDivideByZero
-} NSCalculationError;
+};
+typedef NSUInteger  NSCalculationError;
 
 /**
  *	Give a precision of at least 38 decimal digits
@@ -149,7 +151,8 @@ NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand);
  *  but can be the same as number.
  */
 GS_EXPORT void
-NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale, NSRoundingMode mode);
+NSDecimalRound(NSDecimal *result, const NSDecimal *number, NSInteger scale,
+  NSRoundingMode mode);
 
 /**
  *  Sets the exponents of n1 and n2 equal to one another, adjusting mantissas
@@ -201,7 +204,8 @@ NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *rr, NSRo
  *  n or power.
  */
 GS_EXPORT NSCalculationError
-NSDecimalPower(NSDecimal *result, const NSDecimal *n, unsigned power, NSRoundingMode mode);
+NSDecimalPower(NSDecimal *result, const NSDecimal *n, NSUInteger power,
+  NSRoundingMode mode);
 
 /**
  *  Multiplies n by 10^power and returns result to 38-digit precision.  See the

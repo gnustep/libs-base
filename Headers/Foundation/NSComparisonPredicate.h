@@ -73,7 +73,7 @@ typedef enum _NSPredicateOperatorType
 {
   NSComparisonPredicateModifier	_modifier;
   SEL				_selector;
-  unsigned			_options;
+  NSUInteger			_options;
   NSPredicateOperatorType	_type;
   @public
   NSExpression			*_left;
@@ -87,7 +87,7 @@ typedef enum _NSPredicateOperatorType
   rightExpression: (NSExpression *)right
   modifier: (NSComparisonPredicateModifier)modifier
   type: (NSPredicateOperatorType)type
-  options: (unsigned) opts;
+  options: (NSUInteger) opts;
 
 - (NSComparisonPredicateModifier) comparisonPredicateModifier;
 - (SEL) customSelector;
@@ -98,9 +98,9 @@ typedef enum _NSPredicateOperatorType
 	      rightExpression: (NSExpression *)right
 		     modifier: (NSComparisonPredicateModifier)modifier
 			 type: (NSPredicateOperatorType)type
-		      options: (unsigned) opts;
+		      options: (NSUInteger) opts;
 - (NSExpression *) leftExpression;
-- (unsigned) options;
+- (NSUInteger) options;
 - (NSPredicateOperatorType) predicateOperatorType;
 - (NSExpression *) rightExpression;
 

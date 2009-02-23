@@ -339,7 +339,7 @@ typedef struct {
   if (value)
     {
       if (overflow
-	|| (num > (negative ? (unsigned int)INT_MIN : (unsigned int)INT_MAX)))
+	|| (num > (negative ? (NSUInteger)INT_MIN : (NSUInteger)INT_MAX)))
 	*value = negative ? INT_MIN: INT_MAX;
       else if (negative)
 	*value = -num;
@@ -373,8 +373,8 @@ typedef struct {
  * Scan an unsigned int of the given radix into value.
  * Internal version used by scanRadixUnsignedInt: and scanHexInt: .
  */
-- (BOOL) scanUnsignedInt_: (unsigned int *)value
-		    radix: (unsigned int)radix
+- (BOOL) scanUnsignedInt_: (unsigned int*)value
+		    radix: (NSUInteger)radix
 		gotDigits: (BOOL)gotDigits
 {
   unsigned int	num = 0;
@@ -462,7 +462,7 @@ typedef struct {
  * <br/>
  * Scans past any excess digits
  */
-- (BOOL) scanRadixUnsignedInt: (unsigned int *)value
+- (BOOL) scanRadixUnsignedInt: (unsigned int*)value
 {
   unsigned int	radix;
   BOOL		gotDigits = NO;
@@ -512,7 +512,7 @@ typedef struct {
  * <br/>
  * Scans past any excess digits
  */
-- (BOOL) scanHexInt: (unsigned int *)value
+- (BOOL) scanHexInt: (unsigned int*)value
 {
   unsigned int saveScanLocation = _scanLocation;
 
@@ -1020,7 +1020,7 @@ typedef struct {
  * scanning the string.  This is the position at which the next scan
  * operation will begin.
  */
-- (unsigned) scanLocation
+- (NSUInteger) scanLocation
 {
   return _scanLocation;
 }
@@ -1031,7 +1031,7 @@ typedef struct {
  * Raises an NSRangeException if index is beyond the end of the
  * scanned string.
  */
-- (void) setScanLocation: (unsigned int)anIndex
+- (void) setScanLocation: (NSUInteger)anIndex
 {
   if (_scanLocation <= myLength())
     _scanLocation = anIndex;
@@ -1219,7 +1219,7 @@ GSScanInt(unichar *buf, unsigned length, int *result)
   if (result)
     {
       if (overflow
-	|| (num > (negative ? (unsigned int)INT_MIN : (unsigned int)INT_MAX)))
+	|| (num > (negative ? (NSUInteger)INT_MIN : (NSUInteger)INT_MAX)))
 	*result = negative ? INT_MIN: INT_MAX;
       else if (negative)
 	*result = -num;
@@ -1230,7 +1230,7 @@ GSScanInt(unichar *buf, unsigned length, int *result)
 }
 
 /**
- * Scan in a double value in the standard locale ('.' as decimal point).<br />
+ * Scan in a double value in the standard locale ('.' as decimal poNSInteger).<br />
  * Return YES on success, NO on failure.<br />
  * The value pointed to by result is unmodified on failure.<br />
  * No value is returned in result if it is a null pointer.
@@ -1247,7 +1247,7 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
   unsigned	pos = 0;
 
   /* Skip whitespace */
-  while (pos < length && isspace((int)buf[pos]))
+  while (pos < length && isspace((NSInteger)buf[pos]))
     {
       pos++;
     }

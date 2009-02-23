@@ -121,7 +121,7 @@ extern "C" {
  * and associates the encoded value with aKey.
  */
 - (void) encodeBytes: (const uint8_t*)aPointer
-	      length: (unsigned)length
+	      length: (NSUInteger)length
 	      forKey: (NSString*)aKey;
 
 /**
@@ -298,7 +298,7 @@ extern "C" {
  * -encodeBytes:length:forKey:
  */
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (unsigned*)length;
+		      returnedLength: (NSUInteger*)length;
 
 /**
  * Returns a double value associated with aKey.  This value must previously

@@ -103,7 +103,7 @@ static Class	NSPort_concrete_class;
     return AUTORELEASE([self new]);
 }
 
-+ (NSPort*) portWithMachPort: (int)machPort
++ (NSPort*) portWithMachPort: (NSInteger)machPort
 {
   return AUTORELEASE([[self alloc] initWithMachPort: machPort]);
 }
@@ -141,7 +141,7 @@ static Class	NSPort_concrete_class;
   return self;
 }
 
-- (id) initWithMachPort: (int)machPort
+- (id) initWithMachPort: (NSInteger)machPort
 {
   [self shouldNotImplement: _cmd];
   return nil;
@@ -167,7 +167,7 @@ static Class	NSPort_concrete_class;
   return _is_valid;
 }
 
-- (int) machPort
+- (NSInteger) machPort
 {
   [self shouldNotImplement: _cmd];
   return 0;
@@ -221,7 +221,7 @@ static Class	NSPort_concrete_class;
   [aLoop removePort: self forMode: aMode];
 }
 
-- (unsigned) reservedSpaceLength
+- (NSUInteger) reservedSpaceLength
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -230,7 +230,7 @@ static Class	NSPort_concrete_class;
 - (BOOL) sendBeforeDate: (NSDate*)when
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
-               reserved: (unsigned) length
+               reserved: (NSUInteger)length
 {
   return [self sendBeforeDate: when
 			msgid: 0
@@ -240,10 +240,10 @@ static Class	NSPort_concrete_class;
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (int)msgid
+		  msgid: (NSInteger)msgid
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
-               reserved: (unsigned)length
+               reserved: (NSUInteger)length
 {
   [self subclassResponsibility: _cmd];
   return YES;

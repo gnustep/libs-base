@@ -63,7 +63,7 @@ extern "C" {
  */
 - (id) initWithURL: (NSURL *)URL
   MIMEType: (NSString *)MIMEType
-  expectedContentLength: (int)length
+  expectedContentLength: (NSInteger)length
   textEncodingName: (NSString *)name;
 
 /**
@@ -107,7 +107,7 @@ extern "C" {
 /**
  * Returns a string representation of a status code.
  */
-+ (NSString *) localizedStringForStatusCode: (int)statusCode;
++ (NSString *) localizedStringForStatusCode: (NSInteger)statusCode;
 
 /**
  * Returns a dictionary containing all the HTTP header fields.
@@ -117,7 +117,7 @@ extern "C" {
 /**
  * Returns the HTTP status code for the response.
  */
-- (int) statusCode;
+- (NSInteger) statusCode;
 
 @end
 

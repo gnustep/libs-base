@@ -108,7 +108,7 @@ typedef struct {
   [super dealloc];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [[self host] hash] + [self port]
     + [[self realm] hash] + [[self protocol] hash]
@@ -121,7 +121,7 @@ typedef struct {
 }
 
 - (id) initWithHost: (NSString *)host
-	       port: (int)port
+	       port: (NSInteger)port
 	   protocol: (NSString *)protocol
 	      realm: (NSString *)realm
 authenticationMethod: (NSString *)authenticationMethod
@@ -158,7 +158,7 @@ authenticationMethod: (NSString *)authenticationMethod
 }
 
 - (id) initWithProxyHost: (NSString *)host
-		    port: (int)port
+		    port: (NSInteger)port
 		    type: (NSString *)type
 		   realm: (NSString *)realm
     authenticationMethod: (NSString *)authenticationMethod
@@ -250,7 +250,7 @@ authenticationMethod: (NSString *)authenticationMethod
   return this->isProxy;
 }
 
-- (int) port
+- (NSInteger) port
 {
   return this->port;
 }

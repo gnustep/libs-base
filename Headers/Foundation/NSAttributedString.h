@@ -71,19 +71,19 @@ extern "C" {
 - (id) initWithString: (NSString*)aString attributes: (NSDictionary*)attributes;
 
 //Retrieving character information
-- (unsigned int) length;
+- (NSUInteger) length;
 - (NSString*) string;					//Primitive method!
 
 //Retrieving attribute information
-- (NSDictionary*) attributesAtIndex: (unsigned int)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 		     effectiveRange: (NSRange*)aRange;	//Primitive method!
-- (NSDictionary*) attributesAtIndex: (unsigned int)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 	      longestEffectiveRange: (NSRange*)aRange
 			    inRange: (NSRange)rangeLimit;
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (unsigned int)index
+	 atIndex: (NSUInteger)index
   effectiveRange: (NSRange*)aRange;
-- (id) attribute: (NSString*)attributeName atIndex: (unsigned int)index
+- (id) attribute: (NSString*)attributeName atIndex: (NSUInteger)index
   longestEffectiveRange: (NSRange*)aRange inRange: (NSRange)rangeLimit;
 
 //Comparing attributed strings
@@ -115,7 +115,7 @@ extern "C" {
 //Changing characters and attributes
 - (void) appendAttributedString: (NSAttributedString*)attributedString;
 - (void) insertAttributedString: (NSAttributedString*)attributedString
-			atIndex: (unsigned int)index;
+			atIndex: (NSUInteger)index;
 - (void) replaceCharactersInRange: (NSRange)aRange
 	     withAttributedString: (NSAttributedString*)attributedString;
 - (void) replaceCharactersInRange: (NSRange)aRange

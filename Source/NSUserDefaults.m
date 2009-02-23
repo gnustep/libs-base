@@ -985,14 +985,14 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return 0.0;
 }
 
-- (int) integerForKey: (NSString*)defaultName
+- (NSInteger) integerForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
 
   if (obj != nil && ([obj isKindOfClass: NSStringClass]
     || [obj isKindOfClass: NSNumberClass]))
     {
-      return [obj intValue];
+      return [obj integerValue];
     }
   return 0;
 }
@@ -1075,9 +1075,9 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   [self setObject: n forKey: defaultName];
 }
 
-- (void) setInteger: (int)value forKey: (NSString*)defaultName
+- (void) setInteger: (NSInteger)value forKey: (NSString*)defaultName
 {
-  NSNumber	*n = [NSNumberClass numberWithInt: value];
+  NSNumber	*n = [NSNumberClass numberWithInteger: value];
 
   [self setObject: n forKey: defaultName];
 }

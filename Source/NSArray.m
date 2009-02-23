@@ -269,7 +269,7 @@ static SEL	rlSel;
  * Returns an autoreleased array containing the specified
  * objects, preserving order.
  */
-+ (id) arrayWithObjects: (id*)objects count: (unsigned)count
++ (id) arrayWithObjects: (id*)objects count: (NSUInteger)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: objects count: count]);
@@ -380,7 +380,7 @@ static SEL	rlSel;
 /** <override-subclass />
  * Returns the number of elements contained in the receiver.
  */
-- (unsigned) count
+- (NSUInteger) count
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -467,7 +467,7 @@ static SEL	rlSel;
 /**
  * Returns the same value as -count
  */
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [self count];
 }
@@ -476,7 +476,7 @@ static SEL	rlSel;
  * Returns the index of the specified object in the receiver, or
  * NSNotFound if the object is not present.
  */
-- (unsigned) indexOfObjectIdenticalTo: (id)anObject
+- (NSUInteger) indexOfObjectIdenticalTo: (id)anObject
 {
   unsigned c = [self count];
 
@@ -496,7 +496,7 @@ static SEL	rlSel;
  * Returns the index of the specified object in the range of the receiver,
  * or NSNotFound if the object is not present.
  */
-- (unsigned) indexOfObjectIdenticalTo: anObject inRange: (NSRange)aRange
+- (NSUInteger) indexOfObjectIdenticalTo: anObject inRange: (NSRange)aRange
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
   IMP	get = [self methodForSelector: oaiSel];
@@ -514,7 +514,7 @@ static SEL	rlSel;
  * which is equal to anObject (using anObject's [NSObject-isEqual:] method).
  * Returns NSNotFound on failure.
  */
-- (unsigned) indexOfObject: (id)anObject
+- (NSUInteger) indexOfObject: (id)anObject
 {
   unsigned	c = [self count];
 
@@ -537,7 +537,7 @@ static SEL	rlSel;
  * which is equal to anObject (using anObject's [NSObject-isEqual:] method).
  * Returns NSNotFound on failure.
  */
-- (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange
+- (NSUInteger) indexOfObject: (id)anObject inRange: (NSRange)aRange
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
   IMP	get = [self methodForSelector: oaiSel];
@@ -835,7 +835,7 @@ static SEL	rlSel;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithObjects: (id*)objects count: (unsigned)count
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count
 {
   self = [self init];
   return self;
@@ -870,7 +870,7 @@ static SEL	rlSel;
  * Returns the object at the specified index.
  * Raises an exception of the index is beyond the array.
  */
-- (id) objectAtIndex: (unsigned)index
+- (id) objectAtIndex: (NSUInteger)index
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -1224,7 +1224,7 @@ compare(id elem1, id elem2, void* context)
  * they appear in the receiver.
  */
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
-			     indent: (unsigned int)level
+			     indent: (NSUInteger)level
 {
   NSString	*result = nil;
 
@@ -1633,7 +1633,7 @@ compare(id elem1, id elem2, void* context)
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithCapacity: (unsigned)numItems
+- (id) initWithCapacity: (NSUInteger)numItems
 {
   self = [self init];
   return self;
@@ -1652,8 +1652,8 @@ compare(id elem1, id elem2, void* context)
  * Swaps the positions of two objects in the array.  Raises an exception
  * if either array index is out of bounds.
  */
-- (void) exchangeObjectAtIndex: (unsigned int)i1
-             withObjectAtIndex: (unsigned int)i2
+- (void) exchangeObjectAtIndex: (NSUInteger)i1
+             withObjectAtIndex: (NSUInteger)i2
 {
   id	tmp = [self objectAtIndex: i1];
 
@@ -1668,7 +1668,7 @@ compare(id elem1, id elem2, void* context)
  * Raises an exception if given an array index which is too large.<br />
  * The object is retained by the array.
  */
-- (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
+- (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
 }
@@ -1727,7 +1727,7 @@ compare(id elem1, id elem2, void* context)
  * The size of the array increases by one.<br />
  * The object is retained by the array.
  */
-- (void) insertObject: anObject atIndex: (unsigned)index
+- (void) insertObject: anObject atIndex: (NSUInteger)index
 {
   [self subclassResponsibility: _cmd];
 }
@@ -1756,7 +1756,7 @@ compare(id elem1, id elem2, void* context)
  * The size of the array decreases by one.<br />
  * Raises an exception if given an array index which is too large.<br />
  */
-- (void) removeObjectAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (NSUInteger)index
 {
   [self subclassResponsibility: _cmd];
 }
@@ -1765,7 +1765,7 @@ compare(id elem1, id elem2, void* context)
  * Creates an autoreleased mutable array able to store at least numItems.
  * See the -initWithCapacity: method.
  */
-+ (id) arrayWithCapacity: (unsigned)numItems
++ (id) arrayWithCapacity: (NSUInteger)numItems
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithCapacity: numItems]);
@@ -1774,7 +1774,7 @@ compare(id elem1, id elem2, void* context)
 /**
  * Override our superclass's designated initializer to go our's
  */
-- (id) initWithObjects: (id*)objects count: (unsigned)count
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (count > 0)
@@ -2037,8 +2037,8 @@ compare(id elem1, id elem2, void* context)
  */
 - (void) removeObjectsAtIndexes: (NSIndexSet *)indexes
 {
-  unsigned count = [indexes count];
-  unsigned indexArray[count];
+  NSUInteger count = [indexes count];
+  NSUInteger indexArray[count];
 
   [indexes getIndexes: indexArray 
              maxCount: count 
@@ -2054,15 +2054,15 @@ compare(id elem1, id elem2, void* context)
  * removed in such a way that the removal is <em>safe</em> irrespective
  * of the order in which they are specified in the indices array.
  */
-- (void) removeObjectsFromIndices: (unsigned*)indices
-		       numIndices: (unsigned)count
+- (void) removeObjectsFromIndices: (NSUInteger*)indices
+		       numIndices: (NSUInteger)count
 {
   if (count > 0)
     {
       unsigned	to = 0;
       unsigned	from = 0;
       unsigned	i;
-      GS_BEGINITEMBUF(sorted, count, unsigned int);
+      GS_BEGINITEMBUF(sorted, count, NSUInteger);
 
       while (from < count)
 	{

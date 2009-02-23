@@ -163,7 +163,7 @@ static Class GSMutableAttributedStringClass;
     {
       attrs = [self attributesAtIndex: index effectiveRange: &r];
       index = NSMaxRange(r);
-      [aCoder encodeValueOfObjCType: @encode(unsigned int) at: &index];
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &index];
       [aCoder encodeObject: attrs];
     }
 }
@@ -191,7 +191,7 @@ static Class GSMutableAttributedStringClass;
 	  unsigned		index;
 	  NSDictionary	*attrs;
 	
-	  [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
+	  [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
 	  attrs = [aDecoder decodeObject];
 	  if (index == length)
 	    {
@@ -208,7 +208,7 @@ static Class GSMutableAttributedStringClass;
 	      [m setAttributes: attrs range: r];
 	      while (index < length)
 	        {
-		  [aDecoder decodeValueOfObjCType: @encode(unsigned int)
+		  [aDecoder decodeValueOfObjCType: @encode(unsigned)
 			 		       at: &index];
 		  attrs = [aDecoder decodeObject];
 		  r = NSMakeRange(last, index - last);
@@ -306,7 +306,7 @@ static Class GSMutableAttributedStringClass;
 /**
  *  Return length of the underlying string.
  */
-- (unsigned int) length
+- (NSUInteger) length
 {
   return [[self string] length];
 }
@@ -327,7 +327,7 @@ static Class GSMutableAttributedStringClass;
  *  and values still hold.  This may not be the maximum range, depending
  *  on the implementation.
  */
-- (NSDictionary*) attributesAtIndex: (unsigned int)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 		     effectiveRange: (NSRange*)aRange
 {
   [self subclassResponsibility: _cmd];/* Primitive method! */
@@ -339,7 +339,7 @@ static Class GSMutableAttributedStringClass;
  *  is non-nil, this gets filled with the range over which the attribute-value
  *  set is the same as at index, clipped to rangeLimit.
  */
-- (NSDictionary*) attributesAtIndex: (unsigned int)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 	      longestEffectiveRange: (NSRange*)aRange
 			    inRange: (NSRange)rangeLimit
 {
@@ -394,7 +394,7 @@ static Class GSMutableAttributedStringClass;
  *  may not be the maximum range, depending on the implementation.
  */
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (unsigned int)index
+	 atIndex: (NSUInteger)index
   effectiveRange: (NSRange*)aRange
 {
   NSDictionary *tmpDictionary;
@@ -424,7 +424,7 @@ static Class GSMutableAttributedStringClass;
  *  applies, clipped to rangeLimit.
  */
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (unsigned int)index
+	 atIndex: (NSUInteger)index
   longestEffectiveRange: (NSRange*)aRange
 	 inRange: (NSRange)rangeLimit
 {
@@ -639,7 +639,7 @@ static Class GSMutableAttributedStringClass;
       unsigned		index;
       NSDictionary	*attrs;
 
-      [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
+      [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
       attrs = [aDecoder decodeObject];
       if (index == length)
 	{
@@ -654,7 +654,7 @@ static Class GSMutableAttributedStringClass;
 	  [self setAttributes: attrs range: r];
 	  while (index < length)
 	    {
-	      [aDecoder decodeValueOfObjCType: @encode(unsigned int)
+	      [aDecoder decodeValueOfObjCType: @encode(unsigned)
 					   at: &index];
 	      attrs = [aDecoder decodeObject];
 	      r = NSMakeRange(last, index - last);
@@ -865,7 +865,7 @@ static Class GSMutableAttributedStringClass;
  *  Inserts attributed string within this one, preserving attributes.
  */
 - (void) insertAttributedString: (NSAttributedString*)attributedString
-			atIndex: (unsigned int)index
+			atIndex: (NSUInteger)index
 {
   [self replaceCharactersInRange: NSMakeRange(index,0)
 	    withAttributedString: attributedString];
@@ -979,12 +979,12 @@ static Class GSMutableAttributedStringClass;
   GSNOSUPERDEALLOC;
 }
 
-- (unsigned int) length
+- (NSUInteger) length
 {
   return [[_owner string] length];
 }
 
-- (unichar) characterAtIndex: (unsigned int)index
+- (unichar) characterAtIndex: (NSUInteger)index
 {
   return [[_owner string] characterAtIndex: index];
 }
@@ -1004,7 +1004,7 @@ static Class GSMutableAttributedStringClass;
   return [[_owner string] cString];
 }
 
-- (unsigned int) cStringLength
+- (NSUInteger) cStringLength
 {
   return [[_owner string] cStringLength];
 }
@@ -1019,7 +1019,7 @@ static Class GSMutableAttributedStringClass;
   return [[_owner string] smallestEncoding];
 }
 
-- (int) _baseLength
+- (NSInteger) _baseLength
 {
   return [[_owner string] _baseLength];
 }

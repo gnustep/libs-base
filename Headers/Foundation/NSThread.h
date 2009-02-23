@@ -56,7 +56,7 @@ extern "C" {
   id			_arg;
   SEL			_selector;
   NSString              *_name;
-  unsigned              _stackSize;
+  NSUInteger            _stackSize;
   BOOL			_cancelled;
   BOOL			_active;
   BOOL			_finished;
@@ -190,11 +190,11 @@ extern "C" {
 
 /** Sets the size of the receiver's stack.
  */
-- (void) setStackSize: (unsigned)stackSize;
+- (void) setStackSize: (NSUInteger)stackSize;
 
 /** Returns the size of the receiver's stack.
  */
-- (unsigned) stackSize;
+- (NSUInteger) stackSize;
 
 /** Starts the receiver executing.
  */

@@ -39,28 +39,31 @@ extern "C" {
 @class NSSet;
 @class NSString;
 
-typedef enum {
+enum {
   NSKeyValueObservingOptionNew = 1,
   NSKeyValueObservingOptionOld = 2
 #if OS_API_VERSION(100500,GS_API_LATEST)
 ,  NSKeyValueObservingOptionInitial = 4,
   NSKeyValueObservingOptionPrior = 8
 #endif
-} NSKeyValueObservingOptions;
+};
+typedef NSUInteger NSKeyValueObservingOptions;
 
-typedef enum {
+enum {
   NSKeyValueChangeSetting = 1,
   NSKeyValueChangeInsertion = 2,
   NSKeyValueChangeRemoval = 3,
   NSKeyValueChangeReplacement = 4
-} NSKeyValueChange;
+};
+typedef NSUInteger NSKeyValueChange;
 
-typedef enum {
+enum {
   NSKeyValueUnionSetMutation = 1,
   NSKeyValueMinusSetMutation = 2,
   NSKeyValueIntersectSetMutation = 3,
   NSKeyValueSetSetMutation = 4
-} NSKeyValueSetMutationKind;
+};
+typedef NSUInteger NSKeyValueSetMutationKind;
 
 GS_EXPORT NSString *const NSKeyValueChangeIndexesKey;
 GS_EXPORT NSString *const NSKeyValueChangeKindKey;

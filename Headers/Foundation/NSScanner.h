@@ -44,7 +44,7 @@ extern "C" {
   NSCharacterSet	*_charactersToBeSkipped;
   BOOL			(*_skipImp)(NSCharacterSet*, SEL, unichar);
   NSDictionary		*_locale;
-  unsigned int		_scanLocation;
+  NSUInteger		_scanLocation;
   unichar		_decimal;
   BOOL			_caseSensitive;
   BOOL			_isUnicode;
@@ -65,8 +65,8 @@ extern "C" {
 /*
  * Configuring an NSScanner
  */
-- (unsigned) scanLocation;
-- (void) setScanLocation: (unsigned int)anIndex;
+- (NSUInteger) scanLocation;
+- (void) setScanLocation: (NSUInteger)anIndex;
 
 - (BOOL) caseSensitive;
 - (void) setCaseSensitive: (BOOL)flag;

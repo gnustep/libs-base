@@ -322,6 +322,29 @@ extern "C" {
  * Returns whether receiver and otherNumber represent the same numerical value.
  */
 - (BOOL) isEqualToNumber: (NSNumber*)otherNumber;
+
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/** Return a number intialised with NSInteger.
+ */
++ (NSNumber*) numberWithInteger: (NSInteger)value;
+/** Return a number intialised with NSUInteger.
+ */
++ (NSNumber*) numberWithUnsignedInteger: (NSUInteger)value;
+/** Initialise the receiver with NSInteger content.
+ */
+- (id) initWithInteger: (NSInteger)value;
+/** Initialise the receiver with NSUInteger content.
+ */
+- (id) initWithUnsignedInteger: (NSUInteger)value;
+/** Return the contents of the receiver as NSInteger.
+ */
+- (NSInteger) integerValue;
+/** Return the contents of the receiver as NSUInteger.
+ */
+- (NSUInteger) unsignedIntegerValue;
+#endif
+
 @end
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)

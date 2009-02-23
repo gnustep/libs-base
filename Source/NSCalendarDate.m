@@ -148,8 +148,8 @@ abbrev(NSTimeZone *tz, NSDate *d)
     }
 }
 
-static inline unsigned int
-lastDayOfGregorianMonth(unsigned month, unsigned year)
+static inline NSUInteger
+lastDayOfGregorianMonth(NSUInteger month, NSUInteger year)
 {
   switch (month)
     {
@@ -167,8 +167,8 @@ lastDayOfGregorianMonth(unsigned month, unsigned year)
     }
 }
 
-static inline unsigned
-absoluteGregorianDay(unsigned day, unsigned month, unsigned year)
+static inline NSUInteger
+absoluteGregorianDay(NSUInteger day, NSUInteger month, NSUInteger year)
 {
   if (month > 1)
     {
@@ -198,12 +198,12 @@ dayOfCommonEra(NSTimeInterval when)
   when /= 86400.0;
   // Offset by Gregorian reference
   when += GREGORIAN_REFERENCE;
-  r = (int)when;
+  r = (NSInteger)when;
   return r;
 }
 
 static void
-gregorianDateFromAbsolute(int abs, int *day, int *month, int *year)
+gregorianDateFromAbsolute(NSInteger abs, int *day, int *month, int *year)
 {
   // Search forward year by year from approximate year
   *year = abs/366;
@@ -259,7 +259,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   // Offset by Gregorian reference
   a += GREGORIAN_REFERENCE;
   // result is the day of common era.
-  dayOfEra = (int)a;
+  dayOfEra = (NSInteger)a;
 
   // Calculate year, month, and day
   gregorianDateFromAbsolute(dayOfEra, day, month, year);
@@ -269,17 +269,17 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   d *= 86400;
   a = abs(d - when);
   b = a / 3600;
-  *hour = (int)b;
+  *hour = (NSInteger)b;
   h = *hour;
   h = h * 3600;
   b = a - h;
   b = b / 60;
-  *minute = (int)b;
+  *minute = (NSInteger)b;
   m = *minute;
   m = m * 60;
   c = a - h - m;
-  *second = (int)c;
-  *mil = (int)((a - h - m - c) * 1000.0 + 0.5);
+  *second = (NSInteger)c;
+  *mil = (NSInteger)((a - h - m - c) * 1000.0 + 0.5);
 }
 
 /**
@@ -391,12 +391,12 @@ GSTimeNow(void)
  * Creates and returns an NSCalendarDate from the specified values
  * by calling -initWithYear:month:day:hour:minute:second:timeZone:
  */
-+ (id) dateWithYear: (int)year
-	      month: (unsigned int)month
-	        day: (unsigned int)day
-	       hour: (unsigned int)hour
-	     minute: (unsigned int)minute
-	     second: (unsigned int)second
++ (id) dateWithYear: (NSInteger)year
+	      month: (NSUInteger)month
+	        day: (NSUInteger)day
+	       hour: (NSUInteger)hour
+	     minute: (NSUInteger)minute
+	     second: (NSUInteger)second
 	   timeZone: (NSTimeZone *)aTimeZone
 {
   NSCalendarDate *d = [[self alloc] initWithYear: year
@@ -769,14 +769,14 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		      [fd setLength:
 			(formatLen + sLen - 2) * sizeof(unichar)];
 		      format = (unichar*)[fd mutableBytes];
-		      for (i = formatLen-1; i > (int)pos; i--)
+		      for (i = formatLen-1; i > (NSInteger)pos; i--)
 			{
 			  format[i+sLen-2] = format[i];
 			}
 		    }
 		  else
 		    {
-		      for (i = pos+1; i < (int)formatLen; i++)
+		      for (i = pos+1; i < (NSInteger)formatLen; i++)
 			{
 			  format[i+sLen-2] = format[i];
 			}
@@ -1422,12 +1422,12 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  *   </item>
  * </list>
  */
-- (id) initWithYear: (int)year
-	      month: (unsigned int)month
-	        day: (unsigned int)day
-	       hour: (unsigned int)hour
-	     minute: (unsigned int)minute
-	     second: (unsigned int)second
+- (id) initWithYear: (NSInteger)year
+	      month: (NSUInteger)month
+	        day: (NSUInteger)day
+	       hour: (NSUInteger)hour
+	     minute: (NSUInteger)minute
+	     second: (NSUInteger)second
 	   timeZone: (NSTimeZone *)aTimeZone
 {
   unsigned int		c;
@@ -1533,7 +1533,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  * Return the day number (ie number of days since the start of) in the
  * 'common' era of the receiving date.  The era starts at 1 A.D.
  */
-- (int) dayOfCommonEra
+- (NSInteger) dayOfCommonEra
 {
   NSTimeInterval	when;
 
@@ -1544,7 +1544,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 /**
  * Return the month (1 to 31) of the receiving date.
  */
-- (int) dayOfMonth
+- (NSInteger) dayOfMonth
 {
   int m, d, y;
   NSTimeInterval	when;
@@ -1567,7 +1567,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  *   <item>6 is saturday</item>
  * </list>
  */
-- (int) dayOfWeek
+- (NSInteger) dayOfWeek
 {
   int	d;
   NSTimeInterval	when;
@@ -1588,7 +1588,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 /**
  * Return the day of the year (1 to 366) of the receiving date.
  */
-- (int) dayOfYear
+- (NSInteger) dayOfYear
 {
   int m, d, y, days, i;
   NSTimeInterval	when;
@@ -1605,7 +1605,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 /**
  * Return the hour of the day (0 to 23) of the receiving date.
  */
-- (int) hourOfDay
+- (NSInteger) hourOfDay
 {
   int h;
   double a, d;
@@ -1617,7 +1617,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d *= 86400;
   a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
   a = a / 3600;
-  h = (int)a;
+  h = (NSInteger)a;
 
   // There is a small chance of getting
   // it right at the stroke of midnight
@@ -1630,7 +1630,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 /**
  * Return the minute of the hour (0 to 59) of the receiving date.
  */
-- (int) minuteOfHour
+- (NSInteger) minuteOfHour
 {
   int h, m;
   double a, b, d;
@@ -1642,11 +1642,11 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d *= 86400;
   a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
   b = a / 3600;
-  h = (int)b;
+  h = (NSInteger)b;
   h = h * 3600;
   b = a - h;
   b = b / 60;
-  m = (int)b;
+  m = (NSInteger)b;
 
   return m;
 }
@@ -1654,7 +1654,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 /**
  * Return the month of the year (1 to 12) of the receiving date.
  */
-- (int) monthOfYear
+- (NSInteger) monthOfYear
 {
   int m, d, y;
   NSTimeInterval	when;
@@ -1668,7 +1668,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 /**
  * Return the second of the minute (0 to 59) of the receiving date.
  */
-- (int) secondOfMinute
+- (NSInteger) secondOfMinute
 {
   int h, m, s;
   double a, b, c, d;
@@ -1680,14 +1680,14 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d *= 86400;
   a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
   b = a / 3600;
-  h = (int)b;
+  h = (NSInteger)b;
   h = h * 3600;
   b = a - h;
   b = b / 60;
-  m = (int)b;
+  m = (NSInteger)b;
   m = m * 60;
   c = a - h - m;
-  s = (int)c;
+  s = (NSInteger)c;
 
   return s;
 }
@@ -1696,7 +1696,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  * Return the year of the 'common' era of the receiving date.
  * The era starts at 1 A.D.
  */
-- (int) yearOfCommonEra
+- (NSInteger) yearOfCommonEra
 {
   int m, d, y;
   NSTimeInterval	when;
@@ -1712,12 +1712,12 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  * Its use is deprecated ... it simply calls
  * -dateByAddingYears:months:days:hours:minutes:seconds:
  */
-- (NSCalendarDate*) addYear: (int)year
-		      month: (int)month
-			day: (int)day
-		       hour: (int)hour
-		     minute: (int)minute
-		     second: (int)second
+- (NSCalendarDate*) addYear: (NSInteger)year
+		      month: (NSInteger)month
+			day: (NSInteger)day
+		       hour: (NSInteger)hour
+		     minute: (NSInteger)minute
+		     second: (NSInteger)second
 {
   return [self dateByAddingYears: year
 		          months: month
@@ -1989,7 +1989,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		  s = fabs(s);
 		  s -= floor(s);
 		  s *= 1000.0;
-		  v = (int)(s + 0.5);
+		  v = (NSInteger)(s + 0.5);
 		}
 		Grow(info, 3);
 		info->t[info->offset+2] = (v%10) + '0';
@@ -2402,7 +2402,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 /**
  * Returns the number of the last day of the month in the specified year.
  */
-- (int) lastDayOfGregorianMonth: (int)month year: (int)year
+- (NSInteger) lastDayOfGregorianMonth: (NSInteger)month year: (NSInteger)year
 {
   return lastDayOfGregorianMonth(month, year);
 }
@@ -2411,7 +2411,9 @@ static void Grow(DescriptionInfo *info, unsigned size)
  * Returns the number of days since the start of the era for the specified
  * day, month, and year.
  */
-- (int) absoluteGregorianDay: (int)day month: (int)month year: (int)year
+- (NSInteger) absoluteGregorianDay: (NSInteger)day
+			     month: (NSInteger)month
+			      year: (NSInteger)year
 {
   return absoluteGregorianDay(day, month, year);
 }
@@ -2420,12 +2422,17 @@ static void Grow(DescriptionInfo *info, unsigned size)
  * Given a day number since the start of the era, returns the date as a
  * day, month, and year.
  */
-- (void) gregorianDateFromAbsolute: (int)d
-			       day: (int *)day
-			     month: (int *)month
-			      year: (int *)year
+- (void) gregorianDateFromAbsolute: (NSInteger)d
+			       day: (NSInteger *)day
+			     month: (NSInteger *)month
+			      year: (NSInteger *)year
 {
-  gregorianDateFromAbsolute(d, day, month, year);
+  int   dd, mm, yy;
+
+  gregorianDateFromAbsolute(d, &dd, &mm, &yy);
+  *day = dd;
+  *month = mm;
+  *year = yy;
 }
 
 @end
@@ -2446,12 +2453,12 @@ static void Grow(DescriptionInfo *info, unsigned size)
  * savings time changes so that it preserves expected clock time.
  * </p>
  */
-- (NSCalendarDate*) dateByAddingYears: (int)years
-			       months: (int)months
-				 days: (int)days
-			        hours: (int)hours
-			      minutes: (int)minutes
-			      seconds: (int)seconds
+- (NSCalendarDate*) dateByAddingYears: (NSInteger)years
+			       months: (NSInteger)months
+				 days: (NSInteger)days
+			        hours: (NSInteger)hours
+			      minutes: (NSInteger)minutes
+			      seconds: (NSInteger)seconds
 {
   NSCalendarDate	*c;
   NSTimeInterval	s;
@@ -2603,12 +2610,12 @@ static void Grow(DescriptionInfo *info, unsigned size)
  * hours is null, then the value returned in minutes will be increased
  * by 60.
  */
-- (void) years: (int*)years
-	months: (int*)months
-          days: (int*)days
-         hours: (int*)hours
-       minutes: (int*)minutes
-       seconds: (int*)seconds
+- (void) years: (NSInteger*)years
+	months: (NSInteger*)months
+          days: (NSInteger*)days
+         hours: (NSInteger*)hours
+       minutes: (NSInteger*)minutes
+       seconds: (NSInteger*)seconds
      sinceDate: (NSDate*)date
 {
   NSCalendarDate	*start;

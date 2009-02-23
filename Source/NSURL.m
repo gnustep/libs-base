@@ -1144,7 +1144,7 @@ static unsigned	urlAlign;
   [aCoder encodeObject: _baseURL];
 }
 
-- (unsigned int) hash
+- (NSUInteger) hash
 {
   return [[self absoluteString] hash];
 }

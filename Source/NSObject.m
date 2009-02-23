@@ -324,7 +324,7 @@ static objc_mutex_t allocationLocks[LOCKCOUNT] = { 0 };
 
 static inline objc_mutex_t GSAllocationLockForObject(id p)
 {
-  unsigned i = ((((unsigned)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
+  NSUInteger i = ((((NSUInteger)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
   return allocationLocks[i];
 }
 
@@ -344,7 +344,7 @@ static inline objc_mutex_t GSAllocationLockForObject(id p)
  */
 typedef struct obj_layout_unpadded {
 #if	defined(REFCNT_LOCAL)
-    unsigned	retained;
+    NSUInteger	retained;
 #endif
 #if	defined(CACHE_ZONE)
     NSZone	*zone;
@@ -359,7 +359,7 @@ typedef struct obj_layout_unpadded {
  */
 struct obj_layout {
 #if	defined(REFCNT_LOCAL)
-    unsigned	retained;
+    NSUInteger	retained;
 #endif
 #if	defined(CACHE_ZONE)
     NSZone	*zone;
@@ -406,8 +406,8 @@ NSDecrementExtraRefCountWasZero(id anObject)
 #if	!GS_WITH_GC
   if (double_release_check_enabled)
     {
-      unsigned release_count;
-      unsigned retain_count = [anObject retainCount];
+      NSUInteger release_count;
+      NSUInteger retain_count = [anObject retainCount];
       release_count = [autorelease_class autoreleaseCountForObject: anObject];
       if (release_count >= retain_count)
         [NSException raise: NSGenericException
@@ -486,7 +486,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	}
       else
 	{
-	  (node->value.uint)--;
+	  (node->value.uNSInteger)--;
 	}
       objc_mutex_unlock(allocationLock);
     }
@@ -497,14 +497,14 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	{
 	  return YES;
 	}
-      if ((node->value.uint) == 0)
+      if ((node->value.uNSInteger) == 0)
 	{
 	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
 	  return YES;
 	}
       else
 	{
-	  --(node->value.uint);
+	  --(node->value.uNSInteger);
 	}
     }
 #endif
@@ -517,7 +517,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
  * from 0 to the maximum unsigned integer value minus one).<br />
  * The retain count for an object is this value plus one.
  */
-inline unsigned
+inline NSUInteger
 NSExtraRefCount(id anObject)
 {
 #if	GS_WITH_GC
@@ -527,7 +527,7 @@ NSExtraRefCount(id anObject)
   return ((obj)anObject)[-1].retained;
 #else
   GSIMapNode	node;
-  unsigned	ret;
+  NSUInteger	ret;
 
   if (allocationLock != 0)
     {
@@ -620,14 +620,14 @@ NSIncrementExtraRefCount(id anObject)
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node != 0)
 	{
-	  if ((node->value.uint) == UINT_MAX - 1)
+	  if ((node->value.uNSInteger) == UINT_MAX - 1)
 	    {
 	      objc_mutex_unlock(allocationLock);
 	      [NSException raise: NSInternalInconsistencyException
 		format:
 		@"NSIncrementExtraRefCount() asked to increment too far"];
 	    }
-	  (node->value.uint)++;
+	  (node->value.uNSInteger)++;
 	}
       else
 	{
@@ -640,13 +640,13 @@ NSIncrementExtraRefCount(id anObject)
       node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
       if (node != 0)
 	{
-	  if ((node->value.uint) == UINT_MAX - 1)
+	  if ((node->value.uNSInteger) == UINT_MAX - 1)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
 		format:
 		@"NSIncrementExtraRefCount() asked to increment too far"];
 	    }
-	  (node->value.uint)++;
+	  (node->value.uNSInteger)++;
 	}
       else
 	{
@@ -684,7 +684,7 @@ GSFinalize(void* object, void* data)
 }
 
 inline NSObject *
-NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
+NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
   id	new;
   int	size;
@@ -764,7 +764,7 @@ GSObjCZone(NSObject *object)
 #endif	/* defined(CACHE_ZONE)	*/
 
 inline NSObject *
-NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
 #ifndef	NDEBUG
   extern void GSDebugAllocationAdd(Class c, id o);
@@ -836,7 +836,7 @@ GSObjCZone(NSObject *object)
 }
 
 inline NSObject *
-NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
   id	new;
   int	size;
@@ -1050,7 +1050,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   if (allocationLock == 0)
     {
 #if defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < LOCKCOUNT; i++)
         {
@@ -1108,7 +1108,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       }
 #else /* HAVE_SIGACTION */
       {
-	void	(*handler)(int);
+	void	(*handler)(NSInteger);
 
 	handler = signal(SIGPIPE, SIG_IGN);
 	if (handler != SIG_DFL)
@@ -1508,7 +1508,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   for (proto_list = ((struct objc_class*)self)->protocols;
        proto_list; proto_list = proto_list->next)
     {
-      unsigned int i;
+      NSUInteger i;
 
       for (i = 0; i < proto_list->count; i++)
 	{
@@ -1638,7 +1638,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
       while (found == NO && protocols != 0)
 	{
-	  unsigned	i = 0;
+	  NSUInteger	i = 0;
 
 	  while (found == NO && i < protocols->count)
 	    {
@@ -1824,8 +1824,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 #if	GS_WITH_GC == 0
   if (double_release_check_enabled)
     {
-      unsigned release_count;
-      unsigned retain_count = [self retainCount];
+      NSUInteger release_count;
+      NSUInteger retain_count = [self retainCount];
       release_count = [autorelease_class autoreleaseCountForObject:self];
       if (release_count > retain_count)
         [NSException
@@ -1863,7 +1863,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  * The default implementation returns a value based on the address
  * of the instance.
  */
-- (unsigned) hash
+- (NSUInteger) hash
 {
   /*
    * Ideally we would shift left to lose any zero bits produced by the
@@ -1872,7 +1872,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
    * In the absence of detailed information, pick a reasonable value
    * assuming the object will be aligned to an eight byte boundary.
    */
-  return (unsigned)(uintptr_t)self >> 3;
+  return (NSUInteger)(uintptr_t)self >> 3;
 }
 
 /**
@@ -2108,7 +2108,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  * By convention, objects which should (or can) never be deallocated
  * return the maximum unsigned integer value.
  */
-- (unsigned) retainCount
+- (NSUInteger) retainCount
 {
 #if	GS_WITH_GC
   return UINT_MAX;
@@ -2122,7 +2122,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  * the maximum unsigned integer value, as classes can not be deallocated
  * the retain count mechanism is a dummy system for them.
  */
-+ (unsigned) retainCount
++ (NSUInteger) retainCount
 {
   return UINT_MAX;
 }
@@ -2168,7 +2168,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  *  a number assigned by the Objective C compiler if [NSObject -setVersion] has
  *  not been called.
  */
-+ (int) version
++ (NSInteger) version
 {
   return class_get_version(self);
 }
@@ -2176,7 +2176,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 /**
  * Sets the version number of the receiving class.  Should be nonnegative.
  */
-+ (id) setVersion: (int)aVersion
++ (id) setVersion: (NSInteger)aVersion
 {
   if (aVersion < 0)
     [NSException raise: NSInvalidArgumentException
@@ -2387,13 +2387,13 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  * level information.
  */
 - (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
-			     indent: (unsigned)level
+			     indent: (NSUInteger)level
 {
   return [self descriptionWithLocale: aLocale];
 }
 
 + (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
-			     indent: (unsigned)level
+			     indent: (NSUInteger)level
 {
   return [self descriptionWithLocale: aLocale];
 }
@@ -2489,7 +2489,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   return 0;
 }
 
-+ (int) streamVersion: (TypedStream*)aStream
++ (NSInteger) streamVersion: (TypedStream*)aStream
 {
 #ifndef NeXT_RUNTIME
   if (aStream->mode == OBJC_READONLY)
@@ -2611,7 +2611,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-  unsigned	size = [[anInvocation methodSignature] methodReturnLength];
+  NSUInteger	size = [[anInvocation methodSignature] methodReturnLength];
   unsigned char	v[size];
 
   memset(v, '\0', size);

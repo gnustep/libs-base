@@ -201,7 +201,7 @@ extern BOOL __objc_responds_to(id, SEL);
 /**
  * Returns the maximum unsigned integer value.
  */
-+ (unsigned int) retainCount
++ (NSUInteger) retainCount
 {
   return UINT_MAX;
 }
@@ -304,7 +304,7 @@ extern BOOL __objc_responds_to(id, SEL);
 /**
  * Returns the address of the receiver ... so it can be stored in a dictionary.
  */
-- (unsigned int) hash
+- (NSUInteger) hash
 {
   /*
    * Ideally we would shift left to lose any zero bits produced by the
@@ -313,7 +313,7 @@ extern BOOL __objc_responds_to(id, SEL);
    * In the absence of detailed information, pick a reasonable value
    * assuming the object will be aligned to an eight byte boundary.
    */
-  return ((unsigned)(uintptr_t)self)>>3;
+  return ((NSUInteger)(uintptr_t)self)>>3;
 }
 
 /** <init /> <override-subclass />
@@ -550,7 +550,7 @@ extern BOOL __objc_responds_to(id, SEL);
 /**
  * Return the retain count for the receiver.
  */
-- (unsigned int) retainCount
+- (NSUInteger) retainCount
 {
   return _retain_count + 1;
 }

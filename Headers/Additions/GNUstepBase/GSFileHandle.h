@@ -92,7 +92,7 @@
 - (void) setNonBlocking: (BOOL)flag;
 - (void) postReadNotification;
 - (void) postWriteNotification;
-- (int) read: (void*)buf length: (int)len;
+- (NSInteger) read: (void*)buf length: (NSUInteger)len;
 - (void) receivedEvent: (void*)data
 		  type: (RunLoopEventType)type
 	         extra: (void*)extra
@@ -101,7 +101,7 @@
 - (BOOL) useCompression;
 - (void) watchReadDescriptorForModes: (NSArray*)modes;
 - (void) watchWriteDescriptor;
-- (int) write: (const void*)buf length: (int)len;
+- (NSInteger) write: (const void*)buf length: (NSUInteger)len;
 
 @end
 

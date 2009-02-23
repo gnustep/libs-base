@@ -141,7 +141,7 @@ enum {
  * <item>GSCygwinOperatingSystem - cygwin unix-like environment</item>
  * </list>
  */
-- (unsigned int) operatingSystem;
+- (NSUInteger) operatingSystem;
 
 /**
  * Return a human readable string representing the operating system type.<br />

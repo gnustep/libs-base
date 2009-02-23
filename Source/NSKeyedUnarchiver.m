@@ -419,7 +419,7 @@ static NSMapTable	globalClassMap = 0;
 }
 
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (unsigned*)length
+		      returnedLength: (NSUInteger*)length
 {
   NSString	*oldKey = aKey;
   GETVAL
@@ -609,8 +609,8 @@ static NSMapTable	globalClassMap = 0;
 {
   NSPoint	p;
 
-  [self decodeValueOfObjCType: @encode(float) at: &p.x];
-  [self decodeValueOfObjCType: @encode(float) at: &p.y];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &p.x];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &p.y];
   return p;
 }
 
@@ -618,10 +618,10 @@ static NSMapTable	globalClassMap = 0;
 {
   NSRect	r;
 
-  [self decodeValueOfObjCType: @encode(float) at: &r.origin.x];
-  [self decodeValueOfObjCType: @encode(float) at: &r.origin.y];
-  [self decodeValueOfObjCType: @encode(float) at: &r.size.width];
-  [self decodeValueOfObjCType: @encode(float) at: &r.size.height];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.origin.x];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.origin.y];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.size.width];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.size.height];
   return r;
 }
 
@@ -629,8 +629,8 @@ static NSMapTable	globalClassMap = 0;
 {
   NSSize	s;
 
-  [self decodeValueOfObjCType: @encode(float) at: &s.width];
-  [self decodeValueOfObjCType: @encode(float) at: &s.height];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &s.width];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &s.height];
   return s;
 }
 

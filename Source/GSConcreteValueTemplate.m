@@ -182,7 +182,7 @@
   return NO;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
 #if TYPE_ORDER == 0
   return [data hash];
@@ -199,7 +199,7 @@
     hash += val.c[i];
   return hash;
 #elif TYPE_ORDER == 2
-  return (unsigned)(uintptr_t)data;
+  return (NSUInteger)(uintptr_t)data;
 #elif TYPE_ORDER == 3
   return (data.length ^ data.location);
 #elif TYPE_ORDER == 4

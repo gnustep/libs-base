@@ -2015,7 +2015,7 @@ static NSStringEncoding	defaultEncoding;
     (const GSNativeChar*)[path cStringUsingEncoding: defaultEncoding];
 }
 - (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
-					  length: (unsigned int)len
+					  length: (NSUInteger)len
 {
   return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
     initWithBytes: string length: len encoding: defaultEncoding]);
@@ -2450,7 +2450,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
  * Return the file posix permissions attribute (or NSNotFound if
  * the attribute is not present in the dictionary).
  */
-- (unsigned long) filePosixPermissions
+- (NSUInteger) filePosixPermissions
 {
   NSNumber	*n = [self objectForKey: NSFilePosixPermissions];
 
@@ -2458,14 +2458,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
       return NSNotFound;
     }
-  return [n unsignedLongValue];
+  return [n unsignedIntegerValue];
 }
 
 /**
  * Return the file system number attribute (or NSNotFound if
  * the attribute is not present in the dictionary).
  */
-- (unsigned long) fileSystemNumber
+- (NSUInteger) fileSystemNumber
 {
   NSNumber	*n = [self objectForKey: NSFileSystemNumber];
 
@@ -2473,14 +2473,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
       return NSNotFound;
     }
-  return [n unsignedLongValue];
+  return [n unsignedIntegerValue];
 }
 
 /**
  * Return the file system file identification number attribute
  * or NSNotFound if the attribute is not present in the dictionary).
  */
-- (unsigned long) fileSystemFileNumber
+- (NSUInteger) fileSystemFileNumber
 {
   NSNumber	*n = [self objectForKey: NSFileSystemFileNumber];
 
@@ -2488,7 +2488,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
       return NSNotFound;
     }
-  return [n unsignedLongValue];
+  return [n unsignedIntegerValue];
 }
 @end
 

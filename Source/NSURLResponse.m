@@ -120,7 +120,7 @@ typedef struct {
   v = [contentType parameterForKey: @"charset"];
   ASSIGNCOPY(this->textEncodingName, v);
 }
-- (void) _setStatusCode: (int)code text: (NSString*)text
+- (void) _setStatusCode: (NSInteger)code text: (NSString*)text
 {
   this->statusCode = code;
   ASSIGNCOPY(this->statusText, text);
@@ -233,7 +233,7 @@ typedef struct {
  */
 - (id) initWithURL: (NSURL *)URL
   MIMEType: (NSString *)MIMEType
-  expectedContentLength: (int)length
+  expectedContentLength: (NSInteger)length
   textEncodingName: (NSString *)name
 {
   if ((self = [super init]) != nil)
@@ -320,7 +320,7 @@ typedef struct {
 
 @implementation NSHTTPURLResponse
 
-+ (NSString *) localizedStringForStatusCode: (int)statusCode
++ (NSString *) localizedStringForStatusCode: (NSInteger)statusCode
 {
 // FIXME ... put real responses in here
   return [NSString stringWithFormat: @"%d", statusCode];
@@ -331,7 +331,7 @@ typedef struct {
   return AUTORELEASE([this->headers copy]);
 }
 
-- (int) statusCode
+- (NSInteger) statusCode
 {
   return this->statusCode;
 }

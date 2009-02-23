@@ -41,6 +41,13 @@ extern "C" {
 @class NSString;
 @class NSURL;
 
+enum
+{
+  NSURLRequestUseProtocolCachePolicy,
+  NSURLRequestReloadIgnoringCacheData,
+  NSURLRequestReturnCacheDataElseLoad,
+  NSURLRequestReturnCacheDataDontLoad,
+};
 /**
  * <deflist>
  *   <term>NSURLRequestUseProtocolCachePolicy</term>
@@ -67,13 +74,7 @@ extern "C" {
  *   </desc>
  * </deflist>
  */
-typedef enum
-{
-  NSURLRequestUseProtocolCachePolicy,
-  NSURLRequestReloadIgnoringCacheData,
-  NSURLRequestReturnCacheDataElseLoad,
-  NSURLRequestReturnCacheDataDontLoad,
-} NSURLRequestCachePolicy;
+typedef NSUInteger NSURLRequestCachePolicy;
 
 
 /**

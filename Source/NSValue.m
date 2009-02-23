@@ -482,8 +482,8 @@ static NSLock			*placeholderLock;
 	}
       else
 	{
-	  NSData            *d;
-	  unsigned          cursor = 0;
+	  NSData        *d;
+	  unsigned      cursor = 0;
 
 	  /*
 	   * For performance, decode small values directly onto the stack,
@@ -521,7 +521,7 @@ static NSLock			*placeholderLock;
   else
     {
       static NSData	*d = nil;
-      unsigned		cursor = 0;
+      unsigned  	cursor = 0;
 
       if (d == nil)
 	{
