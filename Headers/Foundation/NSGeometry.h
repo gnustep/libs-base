@@ -423,41 +423,18 @@ NSIntersectionRect (NSRect aRect, NSRect bRect)
 
 /** Test geometric relationships... **/
 
-GS_GEOM_SCOPE BOOL
+/** Returns 'YES' iff aRect's and bRect's origin and size are the same. */
+GS_EXPORT BOOL
 NSEqualRects(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
-/** Returns 'YES' iff aRect's and bRect's origin and size are the same. */
-GS_GEOM_SCOPE BOOL
-NSEqualRects(NSRect aRect, NSRect bRect)
-{
-  return ((NSMinX(aRect) == NSMinX(bRect))
-          && (NSMinY(aRect) == NSMinY(bRect))
-          && (NSWidth(aRect) == NSWidth(bRect))
-          && (NSHeight(aRect) == NSHeight(bRect))) ? YES : NO;
-}
-
-GS_GEOM_SCOPE BOOL
-NSEqualSizes(NSSize aSize, NSSize bSize) GS_GEOM_ATTR;
-
 /** Returns 'YES' iff aSize's and bSize's width and height are the same. */
-GS_GEOM_SCOPE BOOL
-NSEqualSizes(NSSize aSize, NSSize bSize)
-{
-  return ((aSize.width == bSize.width)
-          && (aSize.height == bSize.height)) ? YES : NO;
-}
-
-GS_GEOM_SCOPE BOOL
-NSEqualPoints(NSPoint aPoint, NSPoint bPoint) GS_GEOM_ATTR;
+GS_EXPORT BOOL
+NSEqualSizes(NSSize aSize, NSSize bSize) GS_GEOM_ATTR;
 
 /** Returns 'YES' iff aPoint's and bPoint's x- and y-coordinates
  * are the same. */
-GS_GEOM_SCOPE BOOL
-NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
-{
-  return ((aPoint.x == bPoint.x)
-          && (aPoint.y == bPoint.y)) ? YES : NO;
-}
+GS_EXPORT BOOL
+NSEqualPoints(NSPoint aPoint, NSPoint bPoint) GS_GEOM_ATTR;
 
 GS_GEOM_SCOPE BOOL
 NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped) GS_GEOM_ATTR;

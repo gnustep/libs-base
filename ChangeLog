@@ -1,3 +1,13 @@
+2009-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSGeometry.h:
+	* Source/NSGeometry.m:
+	Inspired by Matt Rice's comments on NSEqualRects(), moved the
+	equality testing functions from the header to the implementation
+	file and added conditionally compiled code to allow us to do a
+	fuzzy equality test.  Still need to decide whether this is actually
+	the correct thing to do though.
+
 2009-02-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUnarchiver.m:
