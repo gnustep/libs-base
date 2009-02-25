@@ -1,3 +1,10 @@
+2009-02-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUndoManager.m: Revert last change (to match OSX 10.5)
+	Also rework a little to recreate undocumented OSX behavior of
+	implicitly creating a top-level undo group if -beginUndoGroup
+	is called for a manager configured with groupByEvent.
+
 2009-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexPath.m:
