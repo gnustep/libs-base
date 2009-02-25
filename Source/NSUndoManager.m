@@ -156,10 +156,45 @@
  *	Private category for the method used to handle default grouping
  */
 @interface NSUndoManager (Private)
+- (void) _begin;
 - (void) _loop: (id)arg;
 @end
 
 @implementation NSUndoManager (Private)
+/* This method is used to begin undo grouping internally.
+ * It's necessary to have a different mechanism from the -beginUndoGroup
+ * because it seems that in MacOS-X 10.5 a call to -beginUndoGroup when
+ * at the top level will actually create two undo groups.
+ */
+- (void) _begin
+{
+  PrivateUndoGroup	*parent;
+
+  parent = (PrivateUndoGroup*)_group;
+  _group = [[PrivateUndoGroup alloc] initWithParent: parent];
+  if (_group == nil)
+    {
+      _group = parent;
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"beginUndoGrouping failed to greate group"];
+    }
+  else
+    {
+      RELEASE(parent);
+
+      if (_isUndoing == NO && _isRedoing == NO)
+        [[NSNotificationCenter defaultCenter]
+	    postNotificationName: NSUndoManagerDidOpenUndoGroupNotification
+			  object: self];
+    }
+  if (_isUndoing == NO)
+    {
+      [[NSNotificationCenter defaultCenter]
+	  postNotificationName: NSUndoManagerCheckpointNotification
+			object: self];
+    }
+}
+
 - (void) _loop: (id)arg
 {
   if (_groupsByEvent && _group != nil)
@@ -187,39 +222,25 @@
 
 /**
  * Starts a new grouping of undo actions which can be
- * atomically undone by an [-undo] invocation.
- * This method posts an NSUndoManagerCheckpointNotification
- * unless an undo is currently in progress or this is begiinng a
- * top level group.  It posts an
- * NSUndoManagerDidOpenUndoGroupNotification upon creating the grouping.
+ * atomically undone by an [-undo] invocation.<br />
+ * This method posts an NSUndoManagerDidOpenUndoGroupNotification
+ * upon creating the grouping.<br />
+ * It then posts an NSUndoManagerCheckpointNotification
+ * unless an undo is currently in progress.<br />
+ * The order of these notifications is undefined, but the GNUstep
+ * implementation currently mimics the observed order in MacOS-X 10.5
  */
 - (void) beginUndoGrouping
 {
-  PrivateUndoGroup	*parent;
-
-  if (_isUndoing == NO && _group != nil)
+  /* It seems that MacOS-X 10.5 implicitly creates a top-level group
+   * if this method is called when groupsbyEvent is set and there is
+   * no existing top level group.
+   */
+  if (_group == nil && [self groupsByEvent])
     {
-      [[NSNotificationCenter defaultCenter]
-	  postNotificationName: NSUndoManagerCheckpointNotification
-			object: self];
+      [self _begin];	// Start top level group
     }
-  parent = (PrivateUndoGroup*)_group;
-  _group = [[PrivateUndoGroup alloc] initWithParent: parent];
-  if (_group == nil)
-    {
-      _group = parent;
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"beginUndoGrouping failed to greate group"];
-    }
-  else
-    {
-      RELEASE(parent);
-
-      if (_isUndoing == NO && _isRedoing == NO)
-        [[NSNotificationCenter defaultCenter]
-	    postNotificationName: NSUndoManagerDidOpenUndoGroupNotification
-			  object: self];
-    }
+  [self _begin];	// Start a new group
 }
 
 /**
@@ -421,7 +442,7 @@
 	{
 	  if ([self groupsByEvent])
 	    {
-	      [self beginUndoGrouping];
+	      [self _begin];
 	    }
 	  else
 	    {
@@ -720,7 +741,7 @@
 	{
 	  if ([self groupsByEvent])
 	    {
-	      [self beginUndoGrouping];
+	      [self _begin];
 	    }
 	  else
 	    {
@@ -882,17 +903,17 @@
     {
       ASSIGN(_modes, newModes);
       if (_runLoopGroupingPending)
-      {
-	NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
-        [runLoop cancelPerformSelector: @selector(_loop:)
-				target: self
-			      argument: nil];
-        [runLoop performSelector: @selector(_loop:)
-			  target: self
-			argument: nil
-			   order: NSUndoCloseGroupingRunLoopOrdering
-			   modes: _modes];
-      }
+	{
+	  NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+	  [runLoop cancelPerformSelector: @selector(_loop:)
+				  target: self
+				argument: nil];
+	  [runLoop performSelector: @selector(_loop:)
+			    target: self
+			  argument: nil
+			     order: NSUndoCloseGroupingRunLoopOrdering
+			     modes: _modes];
+	}
     }
 }
 
