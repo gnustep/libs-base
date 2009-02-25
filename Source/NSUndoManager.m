@@ -187,12 +187,6 @@
 	    postNotificationName: NSUndoManagerDidOpenUndoGroupNotification
 			  object: self];
     }
-  if (_isUndoing == NO)
-    {
-      [[NSNotificationCenter defaultCenter]
-	  postNotificationName: NSUndoManagerCheckpointNotification
-			object: self];
-    }
 }
 
 - (void) _loop: (id)arg
@@ -225,7 +219,7 @@
  * atomically undone by an [-undo] invocation.<br />
  * This method posts an NSUndoManagerDidOpenUndoGroupNotification
  * upon creating the grouping.<br />
- * It then posts an NSUndoManagerCheckpointNotification
+ * It first posts an NSUndoManagerCheckpointNotification
  * unless an undo is currently in progress.<br />
  * The order of these notifications is undefined, but the GNUstep
  * implementation currently mimics the observed order in MacOS-X 10.5
@@ -233,12 +227,22 @@
 - (void) beginUndoGrouping
 {
   /* It seems that MacOS-X 10.5 implicitly creates a top-level group
-   * if this method is called when groupsbyEvent is set and there is
-   * no existing top level group.
+   * if this method is called when groupsByEvent is set and there is
+   * no existing top level group.  There is no checkpoint notification
+   * posted for the implicit group creation.
    */
   if (_group == nil && [self groupsByEvent])
     {
       [self _begin];	// Start top level group
+    }
+
+  /* Post the checkpoint notification and THEN create the group.
+   */
+  if (_isUndoing == NO)
+    {
+      [[NSNotificationCenter defaultCenter]
+	  postNotificationName: NSUndoManagerCheckpointNotification
+			object: self];
     }
   [self _begin];	// Start a new group
 }
