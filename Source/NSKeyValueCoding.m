@@ -467,9 +467,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	  name[8] = toupper(name[8]);
 	}
       sel = GSSelectorFromName(name);
-      if (sel != 0
-	&& (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
+      if (sel != 0 && [self respondsToSelector: sel] == YES)
 	{
+	  imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel];
 	  return (*imp)(self, sel, aValue, anError);
 	}
     }
