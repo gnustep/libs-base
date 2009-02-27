@@ -1,3 +1,8 @@
+2009-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueCoding.m:
+	Fix for bug #25720 as suggested by Michael Johnston
+
 2009-02-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCharacterSetData.h:
