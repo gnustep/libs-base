@@ -1086,7 +1086,7 @@ static NSURLProtocol	*placeholder = nil;
 			forHTTPHeaderField: @"Authorization"];
 		      [self stopLoading];
 		      [this->request release];
-		      this->requests = request;
+		      this->request = request;
 		      DESTROY(this->cachedResponse);
 		      [self startLoading];
 		      return;
