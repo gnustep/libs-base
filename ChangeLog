@@ -1,3 +1,8 @@
+2009-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m:
+	Fix for retry with authentication based on patch by Philippe Roussel
+
 2009-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueCoding.m:
