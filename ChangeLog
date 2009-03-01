@@ -1,3 +1,8 @@
+2009-03-01  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSBundle.m (-localizedStringForKey:value:table): Correct
+	output when NSShowNonLocalizedStrings is YES.
+
 2009-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLProtocol.m:
