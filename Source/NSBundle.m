@@ -1935,8 +1935,8 @@ IF_NO_GC(
 }
 
 - (NSString *) localizedStringForKey: (NSString *)key	
-			       value: (NSString *)value
-			       table: (NSString *)tableName
+                               value: (NSString *)value
+                               table: (NSString *)tableName
 {
   NSDictionary	*table;
   NSString	*newString = nil;
@@ -1969,107 +1969,107 @@ IF_NO_GC(
 
       tablePath = [self pathForResource: tableName ofType: @"strings"];
       if (tablePath != nil)
-	{
-	  NSStringEncoding	encoding;
-	  NSString		*tableContent;
-	  NSData		*tableData;
-	  const unsigned char	*bytes;
-	  unsigned		length;
-
-	  tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
-	  bytes = [tableData bytes];
-	  length = [tableData length];
-	  /*
-	   * A localisation file can be ...
-	   * UTF16 with a leading BOM,
-	   * UTF8 with a leading BOM,
-	   * or ASCII (the original standard) with \U escapes.
-	   */
-	  if (length > 2
-	    && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
-	      || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
-	    {
-	      encoding = NSUnicodeStringEncoding;
-	    }
-	  else if (length > 2
-	    && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
-	    {
-	      encoding = NSUTF8StringEncoding;
-	    }
-	  else
-	    {
-	      encoding = NSASCIIStringEncoding;
-	    }
-	  tableContent = [[NSString alloc] initWithData: tableData
-					       encoding: encoding];
-	  if (tableContent == nil && encoding == NSASCIIStringEncoding)
-	    {
-	      encoding = [NSString defaultCStringEncoding];
-	      tableContent = [[NSString alloc] initWithData: tableData
-						   encoding: encoding];
-	      if (tableContent != nil)
-		{
-		  NSWarnMLog (@"Localisation file %@ not in portable encoding"
-		    @" so I'm using the default encoding for the current"
-		    @" system, which may not display messages correctly.\n"
-		    @"The file should be ASCII (using \\U escapes for unicode"
-		    @" characters) or Unicode (UTF16 or UTF8) with a leading "
-		    @"byte-order-marker.\n", tablePath);
-		}
-	    }
-	  if (tableContent == nil)
-	    {
-	      NSWarnMLog(@"Failed to load strings file %@ - bad character"
-		@" encoding", tablePath);
-	    }
-	  else
-	    {
-	      NS_DURING
-		{
-		  table = [tableContent propertyListFromStringsFileFormat];
-		}
-	      NS_HANDLER
-		{
-		  NSWarnMLog(@"Failed to parse strings file %@ - %@",
-		    tablePath, localException);
-		}
-	      NS_ENDHANDLER
-	    }
-	  RELEASE(tableData);
-	  RELEASE(tableContent);
-	}
+        {
+          NSStringEncoding	encoding;
+          NSString		*tableContent;
+          NSData		*tableData;
+          const unsigned char	*bytes;
+          unsigned		length;
+          
+          tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
+          bytes = [tableData bytes];
+          length = [tableData length];
+          /*
+           * A localisation file can be ...
+           * UTF16 with a leading BOM,
+           * UTF8 with a leading BOM,
+           * or ASCII (the original standard) with \U escapes.
+           */
+          if (length > 2
+              && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
+                  || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
+            {
+              encoding = NSUnicodeStringEncoding;
+            }
+          else if (length > 2
+                   && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            {
+              encoding = NSUTF8StringEncoding;
+            }
+          else
+            {
+              encoding = NSASCIIStringEncoding;
+            }
+          tableContent = [[NSString alloc] initWithData: tableData
+                                           encoding: encoding];
+          if (tableContent == nil && encoding == NSASCIIStringEncoding)
+            {
+              encoding = [NSString defaultCStringEncoding];
+              tableContent = [[NSString alloc] initWithData: tableData
+                                               encoding: encoding];
+              if (tableContent != nil)
+                {
+                  NSWarnMLog (@"Localisation file %@ not in portable encoding"
+                              @" so I'm using the default encoding for the current"
+                              @" system, which may not display messages correctly.\n"
+                              @"The file should be ASCII (using \\U escapes for unicode"
+                              @" characters) or Unicode (UTF16 or UTF8) with a leading "
+                              @"byte-order-marker.\n", tablePath);
+                }
+            }
+          if (tableContent == nil)
+            {
+              NSWarnMLog(@"Failed to load strings file %@ - bad character"
+                         @" encoding", tablePath);
+            }
+          else
+            {
+              NS_DURING
+                {
+                  table = [tableContent propertyListFromStringsFileFormat];
+                }
+              NS_HANDLER
+                {
+                  NSWarnMLog(@"Failed to parse strings file %@ - %@",
+                             tablePath, localException);
+                }
+              NS_ENDHANDLER
+            }
+          RELEASE(tableData);
+          RELEASE(tableContent);
+        }
       else
-	{
-	  NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
-	    tableName);
-	}
+        {
+          NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
+                       tableName);
+        }
       /*
        * If we couldn't found and parsed the strings table, we put it in
        * the cache of strings tables in this bundle, otherwise we will just
        * be keeping the empty table in the cache so we don't keep retrying.
        */
       if (table != nil)
-	[_localizations setObject: table forKey: tableName];
+        [_localizations setObject: table forKey: tableName];
     }
 
   if (key == nil || (newString = [table objectForKey: key]) == nil)
     {
       NSString	*show = [[NSUserDefaults standardUserDefaults]
-			 objectForKey: NSShowNonLocalizedStrings];
+                            objectForKey: NSShowNonLocalizedStrings];
       if (show && [show isEqual: @"YES"])
         {
-	  /* It would be bad to localize this string! */
-	  NSLog(@"Non-localized string: %@\n", newString);
-	  newString = [key uppercaseString];
-	}
+          /* It would be bad to localize this string! */
+          NSLog(@"Non-localized string: %@\n", key);
+          newString = [key uppercaseString];
+        }
       else
-	{
-	  newString = value;
-	  if (newString == nil || [newString isEqualToString: @""] == YES)
-	    newString = key;
-	}
+        {
+          newString = value;
+          if (newString == nil || [newString isEqualToString: @""] == YES)
+            newString = key;
+        }
       if (newString == nil)
-	newString = @"";
+        newString = @"";
     }
 
   return newString;
