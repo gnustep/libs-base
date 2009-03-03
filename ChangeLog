@@ -1,11 +1,3 @@
-2009-03-02  Richard Frith-Macdonald <rfm@gnu.org>
-
-	* Headers/Foundation/NSURLHandle.h: Add new key.
-	* Source/NSURLHandle.m: Ditto
-	* Source/GSHTTPURLHandle.m: When a request completes with an HTTP
-	status code outside the 200-299 range, report it as a load complete
-	rather than cancelling the load is the new 'ReturnAll' key is set.
-
 2009-03-01  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSBundle.m (-localizedStringForKey:value:table): Correct

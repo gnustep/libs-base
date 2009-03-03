@@ -88,9 +88,6 @@ NSString * const GSHTTPPropertyKeyFileKey
 NSString * const GSHTTPPropertyPasswordKey
   = @"GSHTTPPropertyPasswordKey";
 
-NSString * const GSHTTPPropertyReturnAllKey
-  = @"GSHTTPPropertyReturnAllKey";
-
 
 /**
  * <p>

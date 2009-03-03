@@ -115,13 +115,6 @@ GS_EXPORT NSString * const GSHTTPPropertyKeyFileKey;
  */
 GS_EXPORT NSString * const GSHTTPPropertyPasswordKey;
 
-/**
- * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
- * specify that all results should be returned, not just those where the
- * HTTP status code is in the 200-299 range.
- */
-GS_EXPORT NSString * const GSHTTPPropertyReturnAllKey;
-
 #endif
 
 /**
