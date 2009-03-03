@@ -1,3 +1,9 @@
+2009-03-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Implement new mechanism for handling
+	SOAP responses with HTTP status 500.  Interim measure lntil the
+	NSURLConnection family of class is more complete.
+
 2009-03-01  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSBundle.m (-localizedStringForKey:value:table): Correct
