@@ -104,6 +104,7 @@ static NSString	*httpVersion = @"1.1";
   BOOL			tunnel;
   BOOL			debug;
   BOOL			keepalive;
+  BOOL			returnAll;
   unsigned char		challenged;
   NSFileHandle          *sock;
   NSURL                 *url;
@@ -744,7 +745,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  bodyPos = 0;
 	  DESTROY(wData);
 	  NSResetMapTable(wProperties);
-	  if (code >= 200 && code < 300)
+	  if (returnAll || (code >= 200 && code < 300))
 	    {
 	      [self didLoadBytes: [d subdataWithRange: r]
 		    loadComplete: YES];
@@ -1194,6 +1195,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) setDebug: (BOOL)flag
 {
   debug = flag;
+}
+
+- (void) setReturnAll: (BOOL)flag
+{
+  returnAll = flag;
 }
 
 - (void) _tryLoadInBackground: (NSURL*)fromURL
