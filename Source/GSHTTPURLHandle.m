@@ -744,8 +744,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  bodyPos = 0;
 	  DESTROY(wData);
 	  NSResetMapTable(wProperties);
-	  if ((code >= 200 && code < 300)
-	    || [[request objectForKey: GSHTTPPropertyReturnAllKey] boolValue])
+	  if (code >= 200 && code < 300)
 	    {
 	      [self didLoadBytes: [d subdataWithRange: r]
 		    loadComplete: YES];
@@ -1512,11 +1511,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
  *     GSHTTPPropertyProxyPortKey - specify the port number to
  *     connect to on the proxy host.  If not give, this defaults
  *     to 8080 for <code>http</code> and 4430 for <code>https</code>.
- *   </item>
- *   <item>
- *     GSHTTPPropertyReturnAllKey - specify whether the handle is to
- *     return all HTTP responses, or only those where the code is in
- *     the range from 200 to 299.
  *   </item>
  *   <item>
  *     Any NSHTTPProperty... key
