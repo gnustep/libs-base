@@ -662,6 +662,11 @@ wordData(NSString *word)
  *   [GSMimeParser-mimeDocument] method returns the
  *   resulting parsed document.
  * </p>
+ * <p>If you need to parse faulty documents (eg where a faulty mail client
+ *   has produced an email which does not conform to the MIME standards), you
+ *   should look at the -setBuggyQotes: and -setDefaultCharset: methods, which
+ *   are designed to cope with the most common faults.
+ * </p>
  */
 @implementation	GSMimeParser
 
@@ -2212,10 +2217,15 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     }
 }
 
-/**
- * Method to inform the parser that body parts with no content-type
+/** This is a method to inform the parser that body parts with no content-type
  * header (which are treated as text/plain) should use the specified
- * characterset rather than the default (us-ascii)
+ * characterset rather than the default (us-ascii).<br />
+ * This also controls the parsing of headers ... in a legal MIME document
+ * these must consst solely of us-ascii characters, but setting a different
+ * default characterset (such as latin1) will permit many illegal header
+ * lines (produced by faulty mail clients) to be parsed.<br />
+ * HTTP requests use headers in the latin1 characterset,  so this is the
+ * header line characterset used most commonly by faulty clients.
  */
 - (void) setDefaultCharset: (NSString*)aName
 {
