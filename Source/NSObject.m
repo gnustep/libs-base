@@ -113,8 +113,7 @@ static Class	NSConstantStringClass;
 
 /*
  * allocationLock is needed when running multi-threaded for 
- * protecting the map table of zombie information and for retain
- * count protection (when using a map table ... REFCNT_LOCAL is NO)
+ * protecting the map table of zombie information.
  */
 static objc_mutex_t allocationLock = NULL;
 
@@ -181,23 +180,11 @@ static void GSLogZombie(id o, SEL sel)
 
 /*
  *	Reference count and memory management
- *
- *	If REFCNT_LOCAL is defined, reference counts for object are stored
- *	with the object, otherwise they are stored in a global map table
- *	that has to be protected by mutexes in a multithreraded environment.
- *	You therefore want REFCNT_LOCAL defined for best performance.
- *
- *	If CACHE_ZONE is defined, the zone in which an object has been
- *	allocated is stored with the object - this makes lookup of the
- *	correct zone to free memory very fast.
+ *	Reference counts for object are stored
+ *	with the object.
+ *	The zone in which an object has been
+ *	allocated is stored with the object.
  */
-
-
-#if	GS_WITH_GC == 0 && !defined(NeXT_RUNTIME)
-#define	REFCNT_LOCAL	1
-#define	CACHE_ZONE	1
-#endif
-
 
 /* Now, if we are on a platform where we know how to do atomic
  * read, increment, and decrement, then we define the GSATOMICREAD
@@ -212,8 +199,6 @@ static void GSLogZombie(id o, SEL sel)
 #ifdef	GSATOMICREAD
 #undef	GSATOMICREAD
 #endif
-
-#if	defined(REFCNT_LOCAL)
 
 #if	defined(__MINGW32__)
 #ifndef _WIN64
@@ -232,8 +217,6 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSAtomicIncrement(X)	InterlockedIncrement((LONG volatile*)X)
 #define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
-
-#endif
 
 
 #elif	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
@@ -302,12 +285,12 @@ GSAtomicDecrement(gsatomic_t X)
 
 #endif
 
-#if	defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
+#if	!defined(GSATOMICREAD)
 
 /*
  * Having just one allocationLock for all leads to lock contention
  * if there are lots of threads doing lots of retain/release calls.
- * To alleviate this, if using REFCNT_LOCAL, instead of a single
+ * To alleviate this, instead of a single
  * allocationLock for all objects, we divide the object space into
  * chunks, each with its own lock. The chunk is selected by shifting
  * off the low-order ALIGNBITS of the object's pointer (these bits
@@ -336,19 +319,13 @@ static inline objc_mutex_t GSAllocationLockForObject(id p)
 #endif
 #define	ALIGN __alignof__(double)
 
-#if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
-
 /*
  *	Define a structure to hold information that is held locally
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
-#if	defined(REFCNT_LOCAL)
     NSUInteger	retained;
-#endif
-#if	defined(CACHE_ZONE)
     NSZone	*zone;
-#endif
 } unp;
 #define	UNP sizeof(unp)
 
@@ -358,39 +335,11 @@ typedef struct obj_layout_unpadded {
  *	structure correct.
  */
 struct obj_layout {
-#if	defined(REFCNT_LOCAL)
     NSUInteger	retained;
-#endif
-#if	defined(CACHE_ZONE)
     NSZone	*zone;
-#endif
     char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
 };
 typedef	struct obj_layout *obj;
-
-#endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
-
-#if !defined(REFCNT_LOCAL)
-
-/*
- * Set up map table for non-local reference counts.
- */
-
-#define GSI_MAP_EQUAL(M, X, Y)	(X.obj == Y.obj)
-#define GSI_MAP_HASH(M, X)	(X.uint >> 2)
-#define GSI_MAP_RETAIN_KEY(M, X)
-#define GSI_MAP_RELEASE_KEY(M, X)
-#define GSI_MAP_RETAIN_VAL(M, X)
-#define GSI_MAP_RELEASE_VAL(M, X)
-#define GSI_MAP_KTYPES  GSUNION_OBJ|GSUNION_INT
-#define GSI_MAP_VTYPES  GSUNION_INT
-#define	GSI_MAP_NOCLEAN	1
-
-#include "GNUstepBase/GSIMap.h"
-
-IF_NO_GC(static GSIMapTable_t	retain_counts = {0};)
-
-#endif	/* !defined(REFCNT_LOCAL) */
 
 
 /**
@@ -413,7 +362,6 @@ NSDecrementExtraRefCountWasZero(id anObject)
         [NSException raise: NSGenericException
 		    format: @"Release would release object too many times."];
     }
-#if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
 #if	defined(GSATOMICREAD)
@@ -466,49 +414,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	  return NO;
 	}
     }
-#else
-  GSIMapNode	node;
-
-  if (allocationLock != 0)
-    {
-      objc_mutex_lock(allocationLock);
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node == 0)
-	{
-	  objc_mutex_unlock(allocationLock);
-	  return YES;
-	}
-      if (node->value.uint == 0)
-	{
-	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
-	  objc_mutex_unlock(allocationLock);
-	  return YES;
-	}
-      else
-	{
-	  (node->value.uNSInteger)--;
-	}
-      objc_mutex_unlock(allocationLock);
-    }
-  else
-    {
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node == 0)
-	{
-	  return YES;
-	}
-      if ((node->value.uNSInteger) == 0)
-	{
-	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
-	  return YES;
-	}
-      else
-	{
-	  --(node->value.uNSInteger);
-	}
-    }
-#endif
-#endif
+#endif /* !GS_WITH_GC */
   return NO;
 }
 
@@ -523,43 +429,8 @@ NSExtraRefCount(id anObject)
 #if	GS_WITH_GC
   return UINT_MAX - 1;
 #else	/* GS_WITH_GC */
-#if	defined(REFCNT_LOCAL)
   return ((obj)anObject)[-1].retained;
-#else
-  GSIMapNode	node;
-  NSUInteger	ret;
-
-  if (allocationLock != 0)
-    {
-      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
-
-      objc_mutex_lock(theLock);
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node == 0)
-	{
-	  ret = 0;
-	}
-      else
-	{
-	  ret = node->value.uint;
-	}
-      objc_mutex_unlock(theLock);
-    }
-  else
-    {
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node == 0)
-	{
-	  ret = 0;
-	}
-      else
-	{
-	  ret = node->value.uint;
-	}
-    }
-  return ret;
-#endif
-#endif
+#endif /* GS_WITH_GC */
 }
 
 /**
@@ -574,7 +445,6 @@ NSIncrementExtraRefCount(id anObject)
 #if	GS_WITH_GC
   return;
 #else	/* GS_WITH_GC */
-#if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
 #if	defined(GSATOMICREAD)
@@ -611,49 +481,6 @@ NSIncrementExtraRefCount(id anObject)
 	}
       ((obj)anObject)[-1].retained++;
     }
-#else	/* REFCNT_LOCAL */
-  GSIMapNode	node;
-
-  if (allocationLock != 0)
-    {
-      objc_mutex_lock(allocationLock);
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node != 0)
-	{
-	  if ((node->value.uNSInteger) == UINT_MAX - 1)
-	    {
-	      objc_mutex_unlock(allocationLock);
-	      [NSException raise: NSInternalInconsistencyException
-		format:
-		@"NSIncrementExtraRefCount() asked to increment too far"];
-	    }
-	  (node->value.uNSInteger)++;
-	}
-      else
-	{
-	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
-	}
-      objc_mutex_unlock(allocationLock);
-    }
-  else
-    {
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node != 0)
-	{
-	  if ((node->value.uNSInteger) == UINT_MAX - 1)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-		format:
-		@"NSIncrementExtraRefCount() asked to increment too far"];
-	    }
-	  (node->value.uNSInteger)++;
-	}
-      else
-	{
-	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
-	}
-    }
-#endif	/* REFCNT_LOCAL */
 #endif	/* GS_WITH_GC */
 }
 
@@ -739,10 +566,6 @@ NSDeallocateObject(NSObject *anObject)
 
 #else	/* GS_WITH_GC */
 
-#if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
-
-#if defined(CACHE_ZONE)
-
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
@@ -750,18 +573,6 @@ GSObjCZone(NSObject *object)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
 }
-
-#else	/* defined(CACHE_ZONE)	*/
-
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  if (GSObjCClass(object) == NSConstantStringClass)
-    return NSDefaultMallocZone();
-  return NSZoneFromPointer(&((obj)object)[-1]);
-}
-
-#endif	/* defined(CACHE_ZONE)	*/
 
 inline NSObject *
 NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
@@ -782,9 +593,7 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
   if (new != nil)
     {
       memset (new, 0, size);
-#if	defined(CACHE_ZONE)
       ((obj)new)->zone = zone;
-#endif
       new = (id)&((obj)new)[1];
       new->class_pointer = aClass;
 #ifndef	NDEBUG
@@ -824,65 +633,6 @@ NSDeallocateObject(NSObject *anObject)
     }
   return;
 }
-
-#else
-
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  if (GSObjCClass(object) == NSConstantStringClass)
-    return NSDefaultMallocZone();
-  return NSZoneFromPointer(object);
-}
-
-inline NSObject *
-NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
-{
-  id	new;
-  int	size;
-
-  NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
-  size = aClass->instance_size + extraBytes;
-  new = NSZoneMalloc (zone, size);
-  if (new != nil)
-    {
-      memset (new, 0, size);
-      new->class_pointer = aClass;
-#ifndef	NDEBUG
-      GSDebugAllocationAdd(aClass, new);
-#endif
-    }
-  return new;
-}
-
-inline void
-NSDeallocateObject(NSObject *anObject)
-{
-  if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
-    {
-      NSZone	*z = [anObject zone];
-
-#ifndef	NDEBUG
-      GSDebugAllocationRemove(((id)anObject)->class_pointer, (id)anObject);
-#endif
-      if (NSZombieEnabled == YES)
-	{
-	  GSMakeZombie(anObject);
-	  if (NSDeallocateZombies == YES)
-	    {
-	      NSZoneFree(z, anObject);
-	    }
-	}
-      else
-	{
-	  ((id)anObject)->class_pointer = (void*) 0xdeadface;
-	  NSZoneFree(z, anObject);
-	}
-    }
-  return;
-}
-
-#endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
 
 #endif	/* GS_WITH_GC */
 
@@ -1049,7 +799,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (allocationLock == 0)
     {
-#if defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
+#if !defined(GSATOMICREAD)
       NSUInteger	i;
 
       for (i = 0; i < LOCKCOUNT; i++)
@@ -1157,12 +907,6 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
-#if	GS_WITH_GC == 0
-#if	!defined(REFCNT_LOCAL)
-      GSIMapInitWithZoneAndCapacity(&retain_counts,
-	NSDefaultMallocZone(), 1024);
-#endif
-#endif
       NSConstantStringClass = [NSString constantStringClass];
       GSPrivateBuildStrings();
       [[NSNotificationCenter defaultCenter]
