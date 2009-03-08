@@ -471,7 +471,7 @@ static NSDictionary *makeReference(unsigned ref)
 
 + (void) initialize
 {
-  class_ivar_set_gcinvisible (self, "delegate", YES);
+  GSMakeWeakPointer(self, "delegate");
 
   if (globalClassMap == 0)
     {

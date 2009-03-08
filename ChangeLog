@@ -1,3 +1,15 @@
+2009-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/NSConnection.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSObject.m:
+	* Source/NSPort.m:
+	* Source/NSXMLParser.m:
+	GC tweaks to use new API.
+
 2009-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Remove unused code for holding reference counts

@@ -274,7 +274,7 @@ static NSMapTable	globalClassMap = 0;
 
 + (void) initialize
 {
-  class_ivar_set_gcinvisible (self, "delegate", YES);
+  GSMakeWeakPointer(self, "delegate");
 
   if (globalClassMap == 0)
     {

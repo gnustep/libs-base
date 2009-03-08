@@ -1266,7 +1266,7 @@ setNonBlocking(SOCKET fd)
   DESTROY(_handler);
   if (_address != 0)
     {
-      NSZoneFree(NSDefaultMallocZone(), _address);
+      NSZoneFree(0, _address);
     }
   [super dealloc];
 }
@@ -1517,13 +1517,13 @@ setNonBlocking(SOCKET fd)
   if (_address != 0
     && GSPrivateSockaddrLength(_address) != GSPrivateSockaddrLength(address))
     {
-      NSZoneFree(NSDefaultMallocZone(), _address);
+      NSZoneFree(0, _address);
       _address = 0;
     }
   if (_address == 0)
     {
       _address = (struct sockaddr*)
-	NSZoneMalloc(NSDefaultMallocZone(), GSPrivateSockaddrLength(address));
+	NSAllocateCollectable(GSPrivateSockaddrLength(address), 0);
     }
   memcpy(_address, address, GSPrivateSockaddrLength(address));
 }
