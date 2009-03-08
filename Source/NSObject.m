@@ -822,10 +822,19 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   if (self == [NSObject class])
     {
+#if	GS_WITH_GC
+      /* Make sure that the garbage collection library is initialised.
+       * This is not necessary on most platforms, but is good practice.
+       */
+      GC_init();
+#endif
+
 #ifdef __MINGW32__
-      // See libgnustep-base-entry.m
-      extern void gnustep_base_socket_init(void);	
-      gnustep_base_socket_init();	
+      {
+        // See libgnustep-base-entry.m
+        extern void gnustep_base_socket_init(void);	
+        gnustep_base_socket_init();	
+      }
 #else /* __MINGW32__ */
 
 #ifdef	SIGPIPE
