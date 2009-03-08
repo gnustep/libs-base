@@ -545,7 +545,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       NSNotificationCenter	*nc;
 
-      class_ivar_set_gcinvisible (self, "delegate", YES);
+      GSMakeWeakPointer(self, "delegate");
       connectionClass = self;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];

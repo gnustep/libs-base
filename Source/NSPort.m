@@ -81,7 +81,7 @@ static Class	NSPort_concrete_class;
     {
       NSUserDefaults	*defs;
 
-      class_ivar_set_gcinvisible (self, "delegate", YES);
+      GSMakeWeakPointer(self, "delegate");
 
       NSPort_abstract_class = self;
       NSPort_concrete_class = [NSMessagePort class];

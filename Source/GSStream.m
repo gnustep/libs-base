@@ -145,7 +145,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 + (void) initialize
 {
-  class_ivar_set_gcinvisible (self, "delegate", YES);
+  GSMakeWeakPointer(self, "delegate");
 }
 
 - (void) close
@@ -162,13 +162,19 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   _delegateValid = NO;
 }
 
-- (void) dealloc
+- (void) finalize
 {
   if (_currentStatus != NSStreamStatusNotOpen
     && _currentStatus != NSStreamStatusClosed)
     {
       [self close];
     }
+  GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
+}
+
+- (void) dealloc
+{
+  [self finalize];
   if (_loops != 0)
     {
       NSFreeMapTable(_loops);
@@ -279,17 +285,25 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     || [self streamStatus] == NSStreamStatusError)
     {
       _delegateValid = NO;
-      _delegate = nil;
+      GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
     }
   else
     {
-      if (delegate)
+      if (delegate == nil)
 	{
+	  _delegate = self;
+	}
+      if (delegate == self)
+	{
+	  if (_delegate != nil && _delegate != self)
+	    {
+              GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
+	    }
 	  _delegate = delegate;
 	}
       else
 	{
-	  _delegate = self;
+          GSAssignZeroingWeakPointer((void**)&_delegate, (void*)delegate);
 	}
       /* We don't want to send any events the the delegate after the
        * stream has been closed.
@@ -636,7 +650,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSInputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
-      class_ivar_set_gcinvisible (self, "delegate", YES);
+      GSMakeWeakPointer(self, "delegate");
     }
 }
 
@@ -669,7 +683,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSOutputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
-      class_ivar_set_gcinvisible (self, "delegate", YES);
+      GSMakeWeakPointer(self, "delegate");
     }
 }
 
@@ -943,7 +957,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 + (void) initialize
 {
-  class_ivar_set_gcinvisible (self, "delegate", YES);
+  GSMakeWeakPointer(self, "delegate");
 }
 
 + (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port

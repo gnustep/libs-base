@@ -68,8 +68,8 @@ static  NSNull  *null = nil;
 
 + (void) initialize
 {
-  class_ivar_set_gcinvisible (self, "_delegate", YES);
-  class_ivar_set_gcinvisible (self, "_owner", YES);
+  GSMakeWeakPointer(self, "_delegate");
+  GSMakeWeakPointer(self, "_owner");
 }
 
 - (void) dealloc
