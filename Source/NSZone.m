@@ -1780,10 +1780,12 @@ NSAllocateCollectable(NSUInteger size, NSUInteger options)
       if (options & NSCollectorDisabledOption)
 	{
           ptr = (void*)GC_MALLOC_UNCOLLECTABLE(size);
+	  memset(ptr, '\0', size);
 	}
       else
 	{
           ptr = (void*)GC_MALLOC(size);
+	  memset(ptr, '\0', size);
 	}
     }
   else
@@ -1795,6 +1797,7 @@ NSAllocateCollectable(NSUInteger size, NSUInteger options)
       else
 	{
 	  ptr = (void*)GC_MALLOC_ATOMIC(size);
+	  memset(ptr, '\0', size);
 	}
     }
   return ptr;
@@ -1940,6 +1943,7 @@ NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
   if (zone == &atomic_zone)
     {
       ptr = (void*)GC_MALLOC_ATOMIC(size);
+      memset(ptr, '\0', size);
     }
   else
     {

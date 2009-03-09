@@ -159,11 +159,7 @@ static SEL	objSel;
       [aCoder decodeValueOfObjCType: @encode(unsigned)
 	                         at: &count];
 
-#if	GS_WITH_GC
-      GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, count);
-#else
       GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
-#endif
       while (count-- > 0)
         {
 	  (*imp)(aCoder, sel, type, &key);
@@ -179,12 +175,7 @@ static SEL	objSel;
 {
   unsigned int	i;
 
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, c);
-#else
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
-#endif
-
   for (i = 0; i < c; i++)
     {
       GSIMapNode	node;
@@ -226,12 +217,7 @@ static SEL	objSel;
   NSZone	*z = GSObjCZone(self);
   unsigned	c = [other count];
 
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, c);
-#else
   GSIMapInitWithZoneAndCapacity(&map, z, c);
-#endif
-
   if (c > 0)
     {
       NSEnumerator	*e = [other keyEnumerator];
@@ -382,11 +368,7 @@ static SEL	objSel;
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, cap);
-#else
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), cap);
-#endif
   return self;
 }
 

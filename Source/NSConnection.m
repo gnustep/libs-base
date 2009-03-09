@@ -48,6 +48,14 @@
 #define	GSI_MAP_HASH(M, X)	((X).uint ^ ((X).uint >> 3))
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
+#if	GS_WITH_GC
+// FIXME ... 
+#include	<gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
+
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -546,6 +554,16 @@ static NSLock	*cached_proxies_gate = nil;
       NSNotificationCenter	*nc;
 
       GSMakeWeakPointer(self, "delegate");
+
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * FIXME
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
       connectionClass = self;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];
@@ -949,14 +967,16 @@ static NSLock	*cached_proxies_gate = nil;
    */
   _requestQueue = [NSMutableArray new];
 
-#if	GS_WITH_GC
-  z = GSIMapStrongKeyAndVal;
-#endif
   /*
    * This maps request sequence numbers to the NSPortCoder objects representing
    * replies arriving from the remote connection.
    */
+#if	GS_WITH_GC
+  _replyMap = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
   _replyMap = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
+#endif
   GSIMapInitWithZoneAndCapacity(_replyMap, z, 4);
 
   /*
@@ -964,19 +984,34 @@ static NSLock	*cached_proxies_gate = nil;
    * We use this instead of an NSHashTable because we only care about
    * the object's address, and don't want to send the -hash message to it.
    */
+#if	GS_WITH_GC
+  _localObjects= (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
   _localObjects = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
+#endif
   GSIMapInitWithZoneAndCapacity(_localObjects, z, 4);
 
   /*
    * This maps handles for local objects to their local proxies.
    */
+#if	GS_WITH_GC
+  _localTargets = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
   _localTargets = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
+#endif
   GSIMapInitWithZoneAndCapacity(_localTargets, z, 4);
 
   /*
    * This maps targets to remote proxies.
    */
+#if	GS_WITH_GC
+  _remoteProxies = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
   _remoteProxies = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
+#endif
   GSIMapInitWithZoneAndCapacity(_remoteProxies, z, 4);
 
   _requestDepth = 0;

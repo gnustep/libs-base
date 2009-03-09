@@ -57,7 +57,31 @@
  (M->extra.retain)((NSHashTable*)M, X.ptr)
 #define GSI_MAP_ENUMERATOR	NSHashEnumerator
 
+#if	GS_WITH_GC
+#include	<gc_typed.h>
+static GC_descr	nodeStrong = 0;
+static GC_descr	nodeWeak = 0;
+#define	GSI_MAP_NODES(M, X) (GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), (GC_descr)M->zone)
+#endif
+
 #include "GNUstepBase/GSIMap.h"
+
+#if	GS_WITH_GC
+static inline void
+initialize()
+{
+  if (nodeStrong == 0)
+    {
+      /* We create a typed memory descriptor for map nodes.
+       * Only the pointer to the key needs to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      nodeWeak = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      nodeStrong = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+    }
+}
+#endif
 
 /**
  * Returns an array of all the objects in the table.
@@ -156,9 +180,9 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
     }
 
 #if	GS_WITH_GC
-  zone = GSIMapStrongKeyAndVal;
   t = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
     NSScannedOption);
+  zone = ((GSIMapTable)table)->zone;
 #else
   t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
 #endif
@@ -220,9 +244,10 @@ NSCreateHashTableWithZone(
   GSIMapTable	table;
 
 #if	GS_WITH_GC
-  zone = GSIMapStrongKeyAndVal;
+  initialize();
   table = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
     NSScannedOption);
+  zone = (NSZone*)nodeStrong;
 #else
   table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
 #endif

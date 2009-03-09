@@ -67,7 +67,39 @@ typedef struct {
  (M->extra.v.retain)((NSMapTable*)M, X.ptr)
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
+#if	GS_WITH_GC
+#include	<gc_typed.h>
+static GC_descr	nodeSS = 0;
+static GC_descr	nodeSW = 0;
+static GC_descr	nodeWS = 0;
+static GC_descr	nodeWW = 0;
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), (GC_descr)M->zone)
+#endif
+
 #include "GNUstepBase/GSIMap.h"
+
+#if	GS_WITH_GC
+static void
+initialize()
+{
+  /* We create a typed memory descriptor for map nodes.
+   */
+  if (nodeSS == 0)
+    {
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+
+      nodeWW = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      nodeSW = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeSS = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+      memset(&w[0], '\0', sizeof(w));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeWS = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+    }
+}
+#endif
 
 /**** Function Implementations ****/
 
@@ -208,9 +240,9 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
     }
 
 #if	GS_WITH_GC
-  zone = GSIMapStrongKeyAndVal;
   t = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
     NSScannedOption);
+  zone = ((GSIMapTable)table)->zone;
 #else
   t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
 #endif
@@ -277,9 +309,10 @@ NSCreateMapTableWithZone(
   GSIMapTable	table;
 
 #if	GS_WITH_GC
-  zone = GSIMapStrongKeyAndVal;
+  initialize();
   table = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
     NSScannedOption);
+  zone = (NSZone*)nodeSS;
 #else
   table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
 #endif
@@ -355,10 +388,14 @@ NSFreeMapTable(NSMapTable *table)
     }
   else
     {
+#if	GS_WITH_GC
+      GSIMapEmptyMap((GSIMapTable)table);
+#else
       NSZone	*z = ((GSIMapTable)table)->zone;
 
       GSIMapEmptyMap((GSIMapTable)table);
       NSZoneFree(z, table);
+#endif
     }
 }
 

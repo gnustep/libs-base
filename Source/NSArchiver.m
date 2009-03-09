@@ -36,6 +36,11 @@
 #define	GSI_MAP_HASH(M, X)	((X).uint)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
+#if	GS_WITH_GC
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)NSAllocateCollectable(X * sizeof(GSIMapNode_t), 0)
+#endif
+
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -138,9 +143,11 @@ static Class	NSMutableDataMallocClass;
        *	Set up map tables.
        */
 #if	GS_WITH_GC
-      zone = GSIMapStrongKeyAndVal;
-#endif
+      _clsMap = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*6,
+	NSScannedOption);
+#else
       _clsMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*6);
+#endif
       _cIdMap = &_clsMap[1];
       _uIdMap = &_clsMap[2];
       _ptrMap = &_clsMap[3];

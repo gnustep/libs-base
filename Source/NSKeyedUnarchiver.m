@@ -37,8 +37,13 @@
 /*
  *      Setup for inline operation of arrays.
  */
-#define GSI_ARRAY_RETAIN(A, X)	RETAIN((X).obj)
-#define GSI_ARRAY_RELEASE(A, X)	RELEASE((X).obj)
+#if	GS_WITH_GC
+#define GSI_ARRAY_RETAIN(A, X)
+#define GSI_ARRAY_RELEASE(A, X)
+#else
+#define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
+#define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
+#endif
 #define GSI_ARRAY_TYPES GSUNION_OBJ
 
 

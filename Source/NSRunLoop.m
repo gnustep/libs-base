@@ -746,7 +746,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 					 NSObjectMapValueCallBacks, 0);
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
 #ifdef	HAVE_POLL_F
-      _extra = objc_malloc(sizeof(pollextra));
+      _extra = NSZoneMalloc(NSDefaultMallocZone(), sizeof(pollextra));
       memset(_extra, '\0', sizeof(pollextra));
 #endif
     }
@@ -767,8 +767,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
       pollextra	*e = (pollextra*)_extra;
 
       if (e->index != 0)
-	objc_free(e->index);
-      objc_free(e);
+	NSZoneFree(NSDefaultMallocZone(), e->index);
+      NSZoneFree(NSDefaultMallocZone(), e);
     }
 #endif
   RELEASE(_contextStack);

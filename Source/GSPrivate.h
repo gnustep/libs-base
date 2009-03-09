@@ -514,5 +514,8 @@ GSPrivateUnloadModule(FILE *errorStream,
 - (void) protect;
 @end
 
+NSZone*
+GSAtomicMallocZone (void);
+
 #endif /* _GSPrivate_h_ */
 

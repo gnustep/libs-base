@@ -212,6 +212,13 @@ static void obsFree(Observation *o);
 #define GSI_MAP_VEXTRA Observation*
 #define	GSI_MAP_EXTRA	void*
 
+#if	GS_WITH_GC
+#include	<gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
+
 #include "GNUstepBase/GSIMap.h"
 
 @class	GSLazyRecursiveLock;
@@ -285,7 +292,7 @@ static Observation *obsNew(NCTable* t)
 	  size = CHUNKSIZE * sizeof(Observation);
 #if	GS_WITH_GC
 	  t->chunks[t->numChunks - 1]
-	    = (Observation*)NSZoneMalloc(GSAtomicMallocZone(), size);
+	    = (Observation*)NSAllocateCollectable(size, 0);
 #else
 	  t->chunks[t->numChunks - 1]
 	    = (Observation*)NSZoneMalloc(NSDefaultMallocZone(), size);
@@ -313,11 +320,10 @@ static GSIMapTable	mapNew(NCTable *t)
 
 #if	GS_WITH_GC
       m = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
-      GSIMapInitWithZoneAndCapacity(m, GSIMapStrongKeyAndVal, 2);
 #else
       m = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
-      GSIMapInitWithZoneAndCapacity(m, _zone, 2);
 #endif
+      GSIMapInitWithZoneAndCapacity(m, _zone, 2);
       return m;
     }
 }
@@ -623,7 +629,12 @@ static NSNotificationCenter *default_center = nil;
   if (self == [NSNotificationCenter class])
     {
 #if	GS_WITH_GC
-      _zone = GSIMapStrongKeyAndVal;
+      /* We create a typed memory descriptor for map nodes.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
 #else
       _zone = NSDefaultMallocZone();
 #endif

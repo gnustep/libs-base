@@ -145,9 +145,6 @@ extern "C" {
 
 #endif /* #ifndef GSIArrayItem */
 
-static BOOL			_GSIArraySetup = NO;
-static NSGarbageCollector	*_GSIArrayCollector = nil;
-
 struct	_GSIArray {
   GSIArrayItem	*ptr;
   unsigned	count;
@@ -193,29 +190,23 @@ GSIArrayGrow(GSIArray array)
 	}
       next = array->cap + array->old;
       size = next*sizeof(GSIArrayItem);
-      if (_GSIArrayCollector == nil)
-	{
-          tmp = NSZoneMalloc(array->zone, size);
-	}
-      else
-	{
-	  tmp = NSAllocateCollectable(size, array->zone ? NSScannedOption : 0);
-	}
+#if	GS_WITH_GC
+      tmp = NSAllocateCollectable(size, array->zone ? NSScannedOption : 0);
+#else
+      tmp = NSZoneMalloc(array->zone, size);
+#endif
       memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
     }
   else
     {
       next = array->cap + array->old;
       size = next*sizeof(GSIArrayItem);
-      if (_GSIArrayCollector == nil)
-	{
-          tmp = NSZoneRealloc(array->zone, array->ptr, size);
-	}
-      else
-	{
-          tmp = NSReallocateCollectable(array->ptr, size,
-	    array->zone ? NSScannedOption : 0);
-	}
+#if	GS_WITH_GC
+      tmp = NSReallocateCollectable(array->ptr, size,
+	array->zone ? NSScannedOption : 0);
+#else
+      tmp = NSZoneRealloc(array->zone, array->ptr, size);
+#endif
     }
 
   if (tmp == 0)
@@ -245,27 +236,21 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
       /*
        * Statically initialised buffer ... copy into new heap buffer.
        */
-      if (_GSIArrayCollector == nil)
-	{
-          tmp = NSZoneMalloc(array->zone, size);
-	}
-      else
-	{
-	  tmp = NSAllocateCollectable(size, array->zone ? NSScannedOption : 0);
-	}
+#if	GS_WITH_GC
+      tmp = NSAllocateCollectable(size, array->zone ? NSScannedOption : 0);
+#else
+      tmp = NSZoneMalloc(array->zone, size);
+#endif
       memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
     }
   else
     {
-      if (_GSIArrayCollector == nil)
-	{
-          tmp = NSZoneRealloc(array->zone, array->ptr, size);
-	}
-      else
-	{
-          tmp = NSReallocateCollectable(array->ptr, size,
-	    array->zone ? NSScannedOption : 0);
-	}
+#if	GS_WITH_GC
+      tmp = NSReallocateCollectable(array->ptr, size,
+	array->zone ? NSScannedOption : 0);
+#else
+      tmp = NSZoneRealloc(array->zone, array->ptr, size);
+#endif
     }
 
   if (tmp == 0)
@@ -534,6 +519,7 @@ GSIArrayClear(GSIArray array)
 {
   if (array->ptr)
     {
+#if	!GS_WITH_GC
       /*
        * Only free memory if it was dynamically initialised (old > 0)
        */
@@ -541,6 +527,7 @@ GSIArrayClear(GSIArray array)
 	{
 	  NSZoneFree(array->zone, (void*)array->ptr);
 	}
+#endif
       array->ptr = 0;
       array->cap = 0;
     }
@@ -585,38 +572,19 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
 {
   unsigned int	size;
 
-  if (_GSIArraySetup == NO)
-    {
-      _GSIArrayCollector = [NSGarbageCollector defaultCollector];
-      _GSIArraySetup = YES;
-    }
-  if (_GSIArrayCollector == nil)
-    {
-      array->zone = zone;
-    }
-  else if (zone == GSAtomicMallocZone())
-    {
-      array->zone = (NSZone*)0;
-    }
-  else
-    {
-      array->zone = (NSZone*)1;
-    }
+  array->zone = zone;
   array->count = 0;
   if (capacity < 2)
     capacity = 2;
   array->cap = capacity;
   array->old = capacity/2;
   size = capacity*sizeof(GSIArrayItem);
-  if (_GSIArrayCollector == nil)
-    {
-      array->ptr = (GSIArrayItem*)NSZoneMalloc(zone, size);
-    }
-  else
-    {
-      array->ptr = (GSIArrayItem*)NSAllocateCollectable(size,
-	array->zone ? NSScannedOption : 0);
-    }
+#if	GS_WITH_GC
+  array->ptr = (GSIArrayItem*)NSAllocateCollectable(size,
+    array->zone ? NSScannedOption : 0);
+#else
+  array->ptr = (GSIArrayItem*)NSZoneMalloc(zone, size);
+#endif
   return array;
 }
 
@@ -624,23 +592,7 @@ static INLINE GSIArray
 GSIArrayInitWithZoneAndStaticCapacity(GSIArray array, NSZone *zone,
     size_t capacity, GSIArrayItem *buffer)
 {
-  if (_GSIArraySetup == NO)
-    {
-      _GSIArrayCollector = [NSGarbageCollector defaultCollector];
-      _GSIArraySetup = YES;
-    }
-  if (_GSIArrayCollector == nil)
-    {
-      array->zone = zone;
-    }
-  else if (zone == GSAtomicMallocZone())
-    {
-      array->zone = (NSZone*)0;
-    }
-  else
-    {
-      array->zone = (NSZone*)1;
-    }
+  array->zone = zone;
   array->count = 0;
   array->cap = capacity;
   array->old = 0;
@@ -654,18 +606,13 @@ GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
   unsigned int i;
   GSIArray new;
 
-  if (_GSIArrayCollector == nil)
-    {
-      new = NSZoneMalloc(zone, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(new, zone, array->count);
-    }
-  else
-    {
-      new = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-      GSIArrayInitWithZoneAndCapacity(new, (zone ? 0 : GSAtomicMallocZone()),
-	array->count);
-    }
+#if	GS_WITH_GC
+  new = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
+  new = NSZoneMalloc(zone, sizeof(GSIArray_t));
+#endif
 
+  GSIArrayInitWithZoneAndCapacity(new, zone, array->count);
   for (i = 0; i < array->count; i++)
     {
       GSI_ARRAY_RETAIN(array, array->ptr[i]);
