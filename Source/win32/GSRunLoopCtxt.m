@@ -147,16 +147,18 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   self = [super init];
   if (self != nil)
     {
-      NSZone	*z = [self zone];
+      NSZone	*z;
 
       mode = [theMode copy];
       extra = e;
 #if	GS_WITH_GC
+      z = (NSZone*)1;
       performers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
       timers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
       watchers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
       _trigger = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
 #else
+      z = [self zone];
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
       timers = NSZoneMalloc(z, sizeof(GSIArray_t));
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));

@@ -224,13 +224,6 @@ void*
 GSOutOfMemory(NSUInteger size, BOOL retry);
 
 /**
- * Returns the default zone used for memory allocation, created at startup.
- * This zone cannot be recycled.
- */
-GS_EXPORT NSZone*
-GSAtomicMallocZone (void);
-
-/**
  * Called during +initialize to tell the class that instances created
  * in future should have the specified instance variable as a weak
  * pointer for garbage collection.<br />
@@ -300,11 +293,12 @@ enum {
 /** Allocate memory.  If garbage collection is not enabled this uses the
  * default malloc zone and the options are ignored.<br />
  * If garbage collection is enabled, the allocate memory is normally not
- * scanned for pointers but is isttself garbage collectable.  The options
+ * scanned for pointers but is itsself garbage collectable.  The options
  * argument is a bitmask in which NSScannedOption sets the memory to be
  * scanned for pointers by the garbage collector, and
  * NSCollectorDisabledOption causes the memory to be excempt from being
- * garbage collected itsself.
+ * garbage collected itsself.<br />
+ * In any case the memory returned is zero'ed.
  */
 GS_EXPORT void *
 NSAllocateCollectable(NSUInteger size, NSUInteger options);

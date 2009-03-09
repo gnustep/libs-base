@@ -98,7 +98,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #ifdef	HAVE_POLL_F
   if (pollfds != 0)
     {
-      objc_free(pollfds);
+      NSZoneFree(NSDefaultMallocZone(), pollfds);
     }
 #endif
   [super dealloc];
@@ -175,16 +175,18 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   self = [super init];
   if (self != nil)
     {
-      NSZone	*z = [self zone];
+      NSZone	*z;
 
       mode = [theMode copy];
       extra = e;
 #if	GS_WITH_GC
+      z = (NSZone*)1;
       performers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
       timers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
       watchers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
       _trigger = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
 #else
+      z = [self zone];
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
       timers = NSZoneMalloc(z, sizeof(GSIArray_t));
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
@@ -224,7 +226,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  pe->index
 	    = NSAllocateCollectable(pe->limit * sizeof(*(pe->index)), 0);
 #else
-	  pe->index = objc_malloc(pe->limit * sizeof(*(pe->index)));
+	  pe->index = NSZoneMalloc(NSDefaultMallocZone(),
+	    pe->limit * sizeof(*(pe->index)));
 #endif
 	}
       else
@@ -233,7 +236,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  pe->index = NSReallocateCollectable(pe->index,
 	    pe->limit * sizeof(*(pe->index)), 0);
 #else
-	  pe->index = objc_realloc(pe->index, pe->limit * sizeof(*(pe->index)));
+	  pe->index = NSZoneRealloc(NSDefaultMallocZone(),
+	    pe->index, pe->limit * sizeof(*(pe->index)));
 #endif
 	}
       do
@@ -252,8 +256,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  pollfds = NSReallocateCollectable(pollfds,
 	    ctxt->pollfds_capacity * sizeof (*pollfds), 0);
 #else
-	  pollfds =
-	    objc_realloc(pollfds, ctxt->pollfds_capacity * sizeof (*pollfds));
+	  pollfds = NSZoneRealloc(NSDefaultMallocZone(),
+	    pollfds, ctxt->pollfds_capacity * sizeof (*pollfds));
 #endif
 	  ctxt->pollfds = pollfds;
 	}
@@ -307,7 +311,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  pollfds
 	    = NSAllocateCollectable(pollfds_capacity * sizeof(*pollfds), 0);
 #else
-	  pollfds = objc_malloc(pollfds_capacity * sizeof(*pollfds));
+	  pollfds = NSZoneMalloc(NSDefaultMallocZone(),
+	    pollfds_capacity * sizeof(*pollfds));
 #endif
 	}
       else
@@ -316,7 +321,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  pollfds = NSReallocateCollectable(pollfds,
 	    pollfds_capacity * sizeof(*pollfds), 0);
 #else
-	  pollfds = objc_realloc(pollfds, pollfds_capacity * sizeof(*pollfds));
+	  pollfds = NSZoneRealloc(NSDefaultMallocZone(),
+	    pollfds, pollfds_capacity * sizeof(*pollfds));
 #endif
 	}
     }

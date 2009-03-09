@@ -63,6 +63,11 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToString: (Y).obj]
 #define	GSI_MAP_NOCLEAN	1
 
+#if	GS_WITH_GC
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)NSAllocateCollectable(X * sizeof(GSIMapNode_t), 0)
+#endif
+
 #include "GNUstepBase/GSIMap.h"
 
 /*
@@ -157,11 +162,7 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
   (*info->appImp)(d, appSel, &info->shouldUnique, 1);
   if (u)
     {
-#if	GS_WITH_GC
-      GSIMapInitWithZoneAndCapacity(&info->map, GSIMapStrongKeyAndVal, 16);
-#else
       GSIMapInitWithZoneAndCapacity(&info->map, NSDefaultMallocZone(), 16);
-#endif
       info->count = 0;
     }
 }

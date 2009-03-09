@@ -105,6 +105,13 @@ static	NSDictionary	*blank;
 #define GSI_MAP_VTYPES	GSUNION_INT
 #define	GSI_MAP_NOCLEAN	1
 
+#if	GS_WITH_GC
+#include	<gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
+
 #include "GNUstepBase/GSIMap.h"
 
 static NSLock		*attrLock = nil;
@@ -276,10 +283,14 @@ static void _setup(void)
       NSDictionary	*d;
 
 #if	GS_WITH_GC
-      GSIMapInitWithZoneAndCapacity(&attrMap, GSIMapStrongKeyAndVal, 32);
-#else
-      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
+      /* We create a typed memory descriptor for map nodes.
+       * Only the pointer to the key needs to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
 #endif
+      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
 
       infSel = @selector(newWithZone:value:at:);
       addSel = @selector(addObject:);

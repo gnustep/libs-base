@@ -81,6 +81,9 @@ extern "C" {
  *		values do not need to be released when the map is emptied.
  *		This permits some optimisation.
  *
+ *      GSI_MAP_NODES()
+ *              Define this macro to allocate nodes for the map using typed
+ *              memory when working with garbage collection.
  */
 
 #ifndef	GSI_MAP_HAS_VALUE
@@ -104,6 +107,10 @@ extern "C" {
 #endif
 #ifndef	GSI_MAP_EQUAL
 #define	GSI_MAP_EQUAL(M, X, Y)		[(X).obj isEqual: (Y).obj]
+#endif
+#ifndef GSI_MAP_NODES
+#define GSI_MAP_NODES(M, X) \
+(GSIMapNode)NSAllocateCollectable(X*sizeof(GSIMapNode_t), NSScannedOption)
 #endif
 
 /*
@@ -198,16 +205,6 @@ extern "C" {
 #else
 #define GSI_MAP_CLEAR_VAL(node)  
 #endif
-
-/* Define fake zones to be used for our nodes when GC is in use.
- */
-#define	GSIMapStrongKeyAndVal	((NSZone*)0)
-#define	GSIMapWeakKey		((NSZone*)1)
-#define	GSIMapWeakVal		((NSZone*)2)
-#define	GSIMapWeakKeyAndVal	((NSZone*)3)
-
-static BOOL			_GSIMapSetup = NO;
-static NSGarbageCollector	*_collector = nil;
 
 /*
  *  Description of the datastructure
@@ -428,30 +425,26 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
   GSIMapNode	*newArray;
   size_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
 
-  /*
-   * Our nodes may be allocated from the atomic zone - but we don't want
-   * them freed - so we must keep the array of pointers to memory chunks in
-   * scanned memory.
+#if     GS_WITH_GC
+  /* We don't want our nodes collected before we have finished with them,
+   * so we must keep the array of pointers to memory chunks in scanned memory.
    */
-  if (_collector == nil)
-    {
-      newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
-    }
-  else
-    {
-      newArray = (GSIMapNode*)NSAllocateCollectable(arraySize, NSScannedOption);
-    }
+  newArray = (GSIMapNode*)NSAllocateCollectable(arraySize, NSScannedOption);
+#else
+  newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
+#endif
   if (newArray)
     {
       GSIMapNode	newNodes;
       size_t		chunkCount;
-      size_t		chunkSize;
 
       if (map->nodeChunks != 0)
 	{
 	  memcpy(newArray, map->nodeChunks,
 	    (map->chunkCount)*sizeof(GSIMapNode));
+#if     !GS_WITH_GC
 	  NSZoneFree(map->zone, map->nodeChunks);
+#endif
 	}
       map->nodeChunks = newArray;
 
@@ -470,17 +463,12 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
 	{
 	  chunkCount = required;
 	}
-      chunkSize = chunkCount * sizeof(GSIMapNode_t);
-      if (_collector == nil)
-	{
-          newNodes = (GSIMapNode)NSZoneMalloc(map->zone, chunkSize);
-	}
-      else
-	{
- 	  // FIXME ... use typed memory for weak pointers.
-          newNodes
-	    = (GSIMapNode)NSAllocateCollectable(chunkSize, NSScannedOption);
-	}
+#if     GS_WITH_GC
+      newNodes = GSI_MAP_NODES(map, chunkCount);
+#else
+      newNodes
+        = (GSIMapNode)NSZoneMalloc(map->zone, chunkCount*sizeof(GSIMapNode_t));
+#endif
       if (newNodes)
 	{
 	  map->nodeChunks[map->chunkCount++] = newNodes;
@@ -634,34 +622,30 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
       size++;
     }
 
-  /*
-   *	Make a new set of buckets for this map
+#if     GS_WITH_GC
+  /* We don't need to use scanned memory because the nodes are not 'owned'
+   * by the bucket they are in, but rather are in chunks pointed to by
+   * the nodeChunks array.
    */
-  if (_collector == nil)
-    {
-      /* Use the zone specified for this map.
-       */
-      new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
-        sizeof(GSIMapBucket_t));
-    }
-  else
-    {
-      /* Use scanned memory so that nodes in each bucket are not collected.
-       * FIXME ... should use typed memory as the node count of each
-       * bucket does not need to be scanned.
-       */
-      new_buckets = (GSIMapBucket)NSAllocateCollectable
-	(size * sizeof(GSIMapBucket_t), NSScannedOption);
-    }
+  new_buckets = (GSIMapBucket)NSAllocateCollectable
+    (size * sizeof(GSIMapBucket_t), 0);
+#else
+  /* Use the zone specified for this map.
+   */
+  new_buckets = (GSIMapBucket)NSZoneCalloc(map->zone, size,
+    sizeof(GSIMapBucket_t));
+#endif
+
   if (new_buckets != 0)
     {
       GSIMapRemangleBuckets(map, map->buckets, map->bucketCount, new_buckets,
 	size);
-
+#if     !GS_WITH_GC
       if (map->buckets != 0)
 	{
 	  NSZoneFree(map->zone, map->buckets);
 	}
+#endif
       map->buckets = new_buckets;
       map->bucketCount = size;
     }
@@ -914,8 +898,6 @@ GSIMapCleanMap(GSIMapTable map)
 static INLINE void
 GSIMapEmptyMap(GSIMapTable map)
 {
-  unsigned int	i;
-
 #ifdef	GSI_MAP_NOCLEAN
   if (GSI_MAP_NOCLEAN)
     {
@@ -930,53 +912,34 @@ GSIMapEmptyMap(GSIMapTable map)
 #endif
   if (map->buckets != 0)
     {
+#if	!GS_WITH_GC
       NSZoneFree(map->zone, map->buckets);
+#endif
       map->buckets = 0;
       map->bucketCount = 0;
     }
   if (map->nodeChunks != 0)
     {
+#if	!GS_WITH_GC
+      unsigned int	i;
+
       for (i = 0; i < map->chunkCount; i++)
 	{
 	  NSZoneFree(map->zone, map->nodeChunks[i]);
 	}
-      map->chunkCount = 0;
       NSZoneFree(map->zone, map->nodeChunks);
+#endif
+      map->chunkCount = 0;
       map->nodeChunks = 0;
     }
   map->freeNodes = 0;
   map->zone = 0;
 }
 
-static inline void
-GSIMapSetup()
-{
-  if (_GSIMapSetup == NO)
-    {
-      _collector = [NSGarbageCollector defaultCollector];
-      _GSIMapSetup = YES;
-    }
-}
-
 static INLINE void 
 GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
 {
-  GSIMapSetup();
-  if (_collector != nil && (uintptr_t)zone > 3)
-    {
-      if (zone == GSAtomicMallocZone())
-	{
-	  map->zone = GSIMapWeakKeyAndVal;	// Unscanned memory
-	}
-      else
-	{
-          map->zone = GSIMapStrongKeyAndVal;	// Scanned memory
-	}
-    }
-  else
-    {
-      map->zone = zone;
-    }
+  map->zone = zone;
   map->nodeCount = 0;
   map->bucketCount = 0;
   map->buckets = 0;

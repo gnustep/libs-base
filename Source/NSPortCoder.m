@@ -61,6 +61,13 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
 
+#if	GS_WITH_GC
+#include	<gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
+
 #include "GNUstepBase/GSIMap.h"
 
 /*
@@ -360,6 +367,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       _eTagImp = [mutableDataClass instanceMethodForSelector: eTagSel];
       _xRefImp = [mutableDataClass instanceMethodForSelector: xRefSel];
       mutableDictionaryClass = [NSMutableDictionary class];
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
     }
 }
 
@@ -1739,14 +1754,17 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      _eObjImp = [self methodForSelector: eObjSel];
 	      _eValImp = [self methodForSelector: eValSel];
 
-#if	GS_WITH_GC
-	      _zone = GSIMapStrongKeyAndVal;
-#endif
 	      /*
 	       *	Set up map tables.
 	       */
+#if	GS_WITH_GC
+	      _clsMap
+		= (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*4,
+		NSScannedOption);
+#else
 	      _clsMap
 		= (GSIMapTable)NSZoneMalloc(_zone, sizeof(GSIMapTable_t)*4);
+#endif
 	      _cIdMap = &_clsMap[1];
 	      _uIdMap = &_clsMap[2];
 	      _ptrMap = &_clsMap[3];

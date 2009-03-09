@@ -47,6 +47,13 @@
 #define	GSI_MAP_RETAIN_KEY(M, X)	((X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
 
+#if	GS_WITH_GC
+#include	<gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
+
 #include	"GNUstepBase/GSIMap.h"
 
 @interface GSDictionary : NSDictionary
@@ -82,6 +89,15 @@ static SEL	objSel;
 {
   if (self == [GSDictionary class])
     {
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * The pointers to the key and value need to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
       nxtSel = @selector(nextObject);
       objSel = @selector(objectForKey:);
     }
@@ -156,11 +172,7 @@ static SEL	objSel;
       [aCoder decodeValueOfObjCType: @encode(unsigned)
 	                         at: &count];
 
-#if	GS_WITH_GC
-      GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, count);
-#else
       GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
-#endif
       while (count-- > 0)
         {
 	  (*imp)(aCoder, sel, type, &key);
@@ -176,11 +188,7 @@ static SEL	objSel;
 {
   unsigned int	i;
 
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, c);
-#else
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
-#endif
   for (i = 0; i < c; i++)
     {
       GSIMapNode	node;
@@ -222,12 +230,7 @@ static SEL	objSel;
   NSZone	*z = GSObjCZone(self);
   unsigned	c = [other count];
 
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, c);
-#else
   GSIMapInitWithZoneAndCapacity(&map, z, c);
-#endif
-
   if (c > 0)
     {
       NSEnumerator	*e = [other keyEnumerator];
@@ -378,11 +381,7 @@ static SEL	objSel;
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, cap);
-#else
   GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), cap);
-#endif
   return self;
 }
 

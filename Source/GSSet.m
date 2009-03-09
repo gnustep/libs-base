@@ -40,6 +40,13 @@
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
+#if	GS_WITH_GC
+#include	<gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
+
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -114,6 +121,14 @@ static Class	mutableSetClass;
       setClass = [GSSet class];
       mutableSetClass = [GSMutableSet class];
       memberSel = @selector(member:);
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * Only the pointer to the key needs to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
     }
 }
 
@@ -227,11 +242,7 @@ static Class	mutableSetClass;
 
       (*imp)(aCoder, sel, @encode(unsigned), &count);
 
-#if	GS_WITH_GC
-      GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, count);
-#else
       GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
-#endif
       while (count-- > 0)
         {
 	  (*imp)(aCoder, sel, type, &value);
@@ -246,11 +257,7 @@ static Class	mutableSetClass;
 {
   unsigned i;
 
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, c);
-#else
   GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
-#endif
   for (i = 0; i < c; i++)
     {
       GSIMapNode     node;
@@ -584,11 +591,7 @@ static Class	mutableSetClass;
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(&map, GSIMapStrongKeyAndVal, cap);
-#else
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
-#endif
   return self;
 }
 
