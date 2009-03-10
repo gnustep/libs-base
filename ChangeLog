@@ -1,3 +1,11 @@
+2009-03-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSIArray.h:
+	* Source/NSNotificationCenter.m:
+	* Source/NSRunLoop.m:
+	* Source/NSZone.m:
+	Various small GC bugfixes to get more of testsuite passing.
+
 2009-03-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSIArray.h:

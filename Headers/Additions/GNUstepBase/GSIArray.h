@@ -447,7 +447,12 @@ GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
+#if	!defined(GS_NO_RELEASE)
+#if	GS_WITH_GC
+  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
   GSI_ARRAY_RELEASE(array, tmp);
+#endif
 }
 
 static INLINE void
@@ -456,8 +461,13 @@ GSIArrayRemoveLastItem(GSIArray array)
 #ifdef	GSI_ARRAY_CHECKS
   NSCAssert(array->count, NSInvalidArgumentException);
 #endif
-  GSI_ARRAY_RELEASE(array, array->ptr[array->count-1]);
   array->count--;
+#if	!defined(GS_NO_RELEASE)
+  GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#if	GS_WITH_GC
+  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
+#endif
 }
 
 static INLINE void
@@ -471,6 +481,9 @@ GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
+#if	GS_WITH_GC && !defined(GS_NO_RELEASE)
+  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
 }
 
 static INLINE void
@@ -542,6 +555,9 @@ GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
       while (array->count-- > index)
 	{
 	  GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#if	GS_WITH_GC
+  	  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
 	}
 #endif
       array->count = index;
@@ -555,6 +571,9 @@ GSIArrayRemoveAllItems(GSIArray array)
   while (array->count--)
     {
       GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#if	GS_WITH_GC
+      array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
     }
 #endif
   array->count = 0;
