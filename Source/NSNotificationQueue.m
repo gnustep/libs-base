@@ -241,7 +241,12 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 {
   NSNotificationQueueRegistration	*item;
 
+#if	GS_WITH_GC
+  item = NSAllocateCollectable(sizeof(NSNotificationQueueRegistration),
+    NSScannedOption);
+#else
   item = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueRegistration));
+#endif
   if (item == 0)
     {
       [NSException raise: NSMallocException
@@ -334,8 +339,15 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 
   // init queue
   _center = RETAIN(notificationCenter);
+#if	GS_WITH_GC
+  _asapQueue = NSAllocateCollectable(sizeof(NSNotificationQueueList),
+    NSScannedOption);
+  _idleQueue = NSAllocateCollectable(sizeof(NSNotificationQueueList),
+    NSScannedOption);
+#else
   _asapQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
   _idleQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
+#endif
   if (_asapQueue == 0 || _idleQueue == 0)
     {
       DESTROY(self);

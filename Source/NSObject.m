@@ -811,6 +811,18 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     }
 }
 
+#if	GS_WITH_GC
+/* Function to turn Boehm GC warnings into NSLog warnings.
+ */
+static void
+warn_proc(char *msg, GC_word arg)
+{
+  char	buf[strlen(msg)+1024];
+  sprintf(buf, msg, (unsigned long)arg);
+  NSLog(@"Garbage collector: %s", buf);
+}
+#endif
+
 /**
  * This message is sent to a class once just before it is used for the first
  * time.  If class has a superclass, its implementation of +initialize is
@@ -827,6 +839,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
        * This is not necessary on most platforms, but is good practice.
        */
       GC_init();
+      GC_set_warn_proc(warn_proc);
 #endif
 
 #ifdef __MINGW32__
