@@ -1924,7 +1924,10 @@ GSAssignZeroingWeakPointer(void **destination, void *source)
       GC_unregister_disappearing_link(destination);
     }
   *destination = source;
-  GC_general_register_disappearing_link(destination, source);
+  if (source != 0)
+    {
+      GC_general_register_disappearing_link(destination, source);
+    }
   return YES;
 }
 

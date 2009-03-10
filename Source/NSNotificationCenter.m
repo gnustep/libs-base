@@ -1029,8 +1029,8 @@ static NSNotificationCenter *default_center = nil;
   GSIArrayItem	i[64];
   GSIArray_t	b;
   GSIArray	a = &b;
-#if	GS_WITH_GG
-  GSGarbageCollector	*collector = [NSGarbageCollector defaultCollector];
+#if	GS_WITH_GC
+  NSGarbageCollector	*collector = [NSGarbageCollector defaultCollector];
 #endif
 
   if (name == nil)
@@ -1046,21 +1046,21 @@ static NSNotificationCenter *default_center = nil;
     }
 
   /*
-   * Initialise static array to store copies of observers.
-   */
-  GSIArrayInitWithZoneAndStaticCapacity(a, _zone, 64, i);
-
-  /*
    * Lock the table of observations while we traverse it.
    *
    * The table of observations contains weak pointers which are zeroed when
    * the observers get garbage collected.  So to avoid consistency problems
    * we disable gc while we copy all the observations we are interested in.
+   * We use scanned memory in the array in the case where there are more
+   * than the 64 observers we allowed room for on the stack.
    */
-  lockNCTable(TABLE);
-#if	GS_WITH_GG
+#if	GS_WITH_GC
+  GSIArrayInitWithZoneAndStaticCapacity(a, (NSZone*)1, 64, i);
   [collector disable];
+#else
+  GSIArrayInitWithZoneAndStaticCapacity(a, _zone, 64, i);
 #endif
+  lockNCTable(TABLE);
 
   /*
    * Find all the observers that specified neither NAME nor OBJECT.
@@ -1142,10 +1142,10 @@ static NSNotificationCenter *default_center = nil;
    * collection, safe in the knowledge that the observers we will be
    * notifying won't get collected prematurely.
    */
-#if	GS_WITH_GG
+  unlockNCTable(TABLE);
+#if	GS_WITH_GC
   [collector enable];
 #endif
-  unlockNCTable(TABLE);
 
   /*
    * Now send all the notifications.
