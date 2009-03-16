@@ -64,7 +64,7 @@
 NSString * const NSInvalidUnarchiveOperationException
   = @"NSInvalidUnarchiveOperationException";
 
-static NSMapTable	globalClassMap = 0;
+static NSMapTable	*globalClassMap = 0;
 
 #define	GETVAL \
   id		o; \

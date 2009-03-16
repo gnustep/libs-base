@@ -176,6 +176,7 @@ NSClassDescription.m \
 NSCoder.m \
 NSCopyObject.m \
 NSCountedSet.m \
+NSConcreteMapTable.m \
 NSConcreteNumber.m \
 NSConnection.m \
 NSData.m \
