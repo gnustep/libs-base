@@ -552,7 +552,7 @@ replacementForClass(Class c)
         }
       else
         {
-          NSMapTable depKeys = NSMapGet(dependentKeyTable, original);
+          NSMapTable *depKeys = NSMapGet(dependentKeyTable, original);
 
           if (depKeys)
             {
@@ -1474,7 +1474,7 @@ replacementForClass(Class c)
 
 - (void) willChangeValueForDependentsOfKey: (NSString *)aKey
 {
-  NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
+  NSMapTable *keys = NSMapGet(dependentKeyTable, [self class]);
 
   if (keys != nil)
     {
@@ -1497,7 +1497,7 @@ replacementForClass(Class c)
 
 - (void) didChangeValueForDependentsOfKey: (NSString *)aKey
 {
-  NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
+  NSMapTable *keys = NSMapGet(dependentKeyTable, [self class]);
 
   if (keys != nil)
     {
@@ -1807,7 +1807,7 @@ replacementForClass(Class c)
 + (void) setKeys: (NSArray*)triggerKeys
 triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
 {
-  NSMapTable    affectingKeys;
+  NSMapTable    *affectingKeys;
   NSEnumerator  *enumerator;
   NSString      *affectingKey;
 

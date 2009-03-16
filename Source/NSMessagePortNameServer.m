@@ -74,7 +74,7 @@ Since we _have_to_ deal with this anyway, we handle it in -removePort: and
 -removePort:forName:, and we don't bother removing entries in the map when
 unregistering a name not for a specific port.
 */
-static NSMapTable portToNamesMap;
+static NSMapTable *portToNamesMap;
 
 
 @interface NSMessagePortNameServer (private)

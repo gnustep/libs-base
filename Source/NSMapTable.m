@@ -1,11 +1,7 @@
 /** NSMapTable implementation for GNUStep.
- * Copyright (C) 1994, 1995, 1996, 2002  Free Software Foundation, Inc.
+ * Copyright (C) 2009  Free Software Foundation, Inc.
  *
- * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
- * Created: Mon Dec 12 23:59:57 EST 1994
- * Updated: Sun Mar 17 18:37:12 EST 1996
- * Serial: 96.03.17.31
- * Rewrite by: Richard Frith-Macdonald <rfm@gnu.org>
+ * Author: Richard Frith-Macdonald <rfm@gnu.org>
  *
  * This file is part of the GNUstep Base Library.
  *
@@ -28,776 +24,189 @@
  * $Date$ $Revision$
  */
 
-/**** Included Headers *******************************************************/
-
 #include "config.h"
 #include "Foundation/NSObject.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSException.h"
+#include "Foundation/NSPointerFunctions.h"
 #include "Foundation/NSZone.h"
 #include "Foundation/NSMapTable.h"
 #include "Foundation/NSDebug.h"
 #include "NSCallBacks.h"
 
+@implementation	NSMapTable
 
-typedef struct {
-  NSMapTableKeyCallBacks	k;
-  NSMapTableValueCallBacks	v;
-} extraData;
+@class	NSConcreteMapTable;
 
-/*
- *      The 'Fastmap' stuff provides an inline implementation of a mapping
- *      table - for maximum performance.
- */
-#define	GSI_MAP_EXTRA		extraData
-#define GSI_MAP_KTYPES		GSUNION_PTR
-#define GSI_MAP_VTYPES		GSUNION_PTR
-#define GSI_MAP_HASH(M, X)\
- (M->extra.k.hash)((NSMapTable*)M, X.ptr)
-#define GSI_MAP_EQUAL(M, X, Y)\
- (M->extra.k.isEqual)((NSMapTable*)M, X.ptr, Y.ptr)
-#define GSI_MAP_RELEASE_KEY(M, X)\
- (M->extra.k.release)((NSMapTable*)M, X.ptr)
-#define GSI_MAP_RETAIN_KEY(M, X)\
- (M->extra.k.retain)((NSMapTable*)M, X.ptr)
-#define GSI_MAP_RELEASE_VAL(M, X)\
- (M->extra.v.release)((NSMapTable*)M, X.ptr)
-#define GSI_MAP_RETAIN_VAL(M, X)\
- (M->extra.v.retain)((NSMapTable*)M, X.ptr)
-#define	GSI_MAP_ENUMERATOR	NSMapEnumerator
+static Class	abstractClass = 0;
+static Class	concreteClass = 0;
 
-#if	GS_WITH_GC
-#include	<gc_typed.h>
-static GC_descr	nodeSS = 0;
-static GC_descr	nodeSW = 0;
-static GC_descr	nodeWS = 0;
-static GC_descr	nodeWW = 0;
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), (GC_descr)M->zone)
++ (id) allocWithZone: (NSZone*)aZone
+{
+  if (self == abstractClass)
+    {
+      return NSAllocateObject(concreteClass, 0, aZone);
+    }
+  return NSAllocateObject(self, 0, aZone);
+}
+
++ (void) initialize
+{
+  if (abstractClass == 0)
+    {
+      abstractClass = [NSMapTable class];
+      concreteClass = [NSConcreteMapTable class];
+    }
+}
+
++ (id) mapTableWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
+		 valueOptions: (NSPointerFunctionsOptions)valueOptions
+{
+  NSMapTable	*t;
+
+  t = [self allocWithZone: NSDefaultMallocZone()];
+  t = [t initWithKeyOptions: keyOptions
+	       valueOptions: valueOptions
+		   capacity: 0];
+  return AUTORELEASE(t);
+}
+
++ (id) mapTableWithStrongToStrongObjects
+{
+  return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
+			 valueOptions: NSPointerFunctionsObjectPersonality];
+}
+
++ (id) mapTableWithStrongToWeakObjects
+{
+  return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
+			 valueOptions: NSPointerFunctionsObjectPersonality
+    | NSPointerFunctionsZeroingWeakMemory];
+}
+
++ (id) mapTableWithWeakToStrongObjects
+{
+  return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
+    | NSPointerFunctionsZeroingWeakMemory
+			 valueOptions: NSPointerFunctionsObjectPersonality];
+}
+
++ (id) mapTableWithWeakToWeakObjects
+{
+  return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
+    | NSPointerFunctionsZeroingWeakMemory
+			 valueOptions: NSPointerFunctionsObjectPersonality
+    | NSPointerFunctionsZeroingWeakMemory];
+}
+
+- (id) initWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
+	     valueOptions: (NSPointerFunctionsOptions)valueOptions
+	         capacity: (NSUInteger)initialCapacity
+{
+  NSPointerFunctions	*k;
+  NSPointerFunctions	*v;
+  id			o;
+
+  k = [[NSPointerFunctions alloc] initWithOptions: keyOptions];
+  v = [[NSPointerFunctions alloc] initWithOptions: valueOptions];
+  o = [self initWithKeyPointerFunctions: k
+		  valuePointerFunctions: v
+			       capacity: initialCapacity];
+#if	!GS_WITH_GC
+  [k release];
+  [v release];
 #endif
-
-#include "GNUstepBase/GSIMap.h"
-
-#if	GS_WITH_GC
-static void
-initialize()
-{
-  /* We create a typed memory descriptor for map nodes.
-   */
-  if (nodeSS == 0)
-    {
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-
-      nodeWW = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      nodeSW = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeSS = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-      memset(&w[0], '\0', sizeof(w));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeWS = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-    }
-}
-#endif
-
-/**** Function Implementations ****/
-
-/**
- * Returns an array of all the keys in the table.
- * NB. The table <em>must</em> contain objects for its keys.
- */
-NSArray *
-NSAllMapTableKeys(NSMapTable *table)
-{
-  NSMutableArray	*keyArray;
-  NSMapEnumerator	enumerator;
-  id			key = nil;
-  void			*dummy;
-
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-      return nil;
-    }
-
-  /* Create our mutable key array. */
-  keyArray = [NSMutableArray arrayWithCapacity: NSCountMapTable(table)];
-
-  /* Get an enumerator for TABLE. */
-  enumerator = NSEnumerateMapTable(table);
-
-  /* Step through TABLE... */
-  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&key), &dummy))
-    {
-      [keyArray addObject: key];
-    }
-  NSEndMapTableEnumeration(&enumerator);
-  return keyArray;
+  return o;
 }
 
-/**
- * Returns an array of all the values in the table.
- * NB. The table <em>must</em> contain objects for its values.
- */
-NSArray *
-NSAllMapTableValues(NSMapTable *table)
+- (id) initWithKeyPointerFunctions: (NSPointerFunctions*)keyFunctions
+	     valuePointerFunctions: (NSPointerFunctions*)valueFunctions
+			  capacity: (NSUInteger)initialCapacity
 {
-  NSMapEnumerator	enumerator;
-  NSMutableArray	*valueArray;
-  id			value = nil;
-  void			*dummy;
-
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-      return nil;
-    }
-
-  /* Create our mutable value array. */
-  valueArray = [NSMutableArray arrayWithCapacity: NSCountMapTable(table)];
-
-  /* Get an enumerator for TABLE. */
-  enumerator = NSEnumerateMapTable(table);
-
-  /* Step through TABLE... */
-  while (NSNextMapEnumeratorPair(&enumerator, &dummy, (void **)(&value)))
-    {
-      [valueArray addObject: value];
-    }
-  NSEndMapTableEnumeration(&enumerator);
-  return valueArray;
+  return [self subclassResponsibility: _cmd];
 }
 
-/**
- * Compares the two map tables for equality.
- * If the tables are different sizes, returns NO.
- * Otherwise, compares the keys <em>(not the values)</em>
- * in the two map tables and returns NO if they differ.<br />
- * The GNUstep implementation enumerates the keys in table1
- * and uses the hash and isEqual functions of table2 for comparison.
- */
-BOOL
-NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
+- (id) copyWithZone: (NSZone*)aZone
 {
-  GSIMapTable	t1 = (GSIMapTable)table1;
-  GSIMapTable	t2 = (GSIMapTable)table2;
-
-  if (t1 == t2)
-    {
-      return YES;
-    }
-  if (t1 == 0)
-    {
-      NSWarnFLog(@"Nul first argument supplied");
-      return NO;
-    }
-  if (t2 == 0)
-    {
-      NSWarnFLog(@"Nul second argument supplied");
-      return NO;
-    }
-
-  if (t1->nodeCount != t2->nodeCount)
-    {
-      return NO;
-    }
-  else
-    {
-      NSMapEnumerator enumerator = GSIMapEnumeratorForMap((GSIMapTable)t1);
-      GSIMapNode n;
-
-      while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
-        {
-          if (GSIMapNodeForKey(t2, n->key) == 0)
-            {
-	      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
-              return NO;
-            }
-        }
-      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
-      return YES;
-    }
+  return [self subclassResponsibility: _cmd];
 }
 
-/**
- * Copy the supplied map table.<br />
- * Returns a map table, space for which is allocated in zone, which
- * has (newly retained) copies of table's keys and values.  As always,
- * if zone is 0, then NSDefaultMallocZone() is used.
- */
-NSMapTable *
-NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
+- (NSUInteger) count
 {
-  GSIMapTable	t;
-  GSIMapNode	n;
-  NSMapEnumerator enumerator;
-
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-      return 0;
-    }
-
-#if	GS_WITH_GC
-  t = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
-    NSScannedOption);
-  zone = ((GSIMapTable)table)->zone;
-#else
-  t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
-#endif
-  GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
-  t->extra.k = ((GSIMapTable)table)->extra.k;
-  t->extra.v = ((GSIMapTable)table)->extra.v;
-  enumerator = GSIMapEnumeratorForMap((GSIMapTable)table);
-  while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
-    {
-      GSIMapAddPair(t, n->key, n->value);
-    }
-  GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
-
-  return (NSMapTable*)t;
+  return (NSUInteger)[self subclassResponsibility: _cmd];
 }
 
-/**
- * Returns the number of key/value pairs in the table.
- */
-unsigned int
-NSCountMapTable(NSMapTable *table)
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
 {
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-      return 0;
-    }
-  return ((GSIMapTable)table)->nodeCount;
+  return (NSUInteger)[self subclassResponsibility: _cmd];
 }
 
-/**
- * Create a new map table by calling NSCreateMapTableWithZone() using
- * NSDefaultMallocZone().<br />
- * Returns a (pointer to) an NSMapTable space for which is allocated
- * in the default zone.  If capacity is small or 0, then the returned
- * table has a reasonable capacity.
- */
-NSMapTable *
-NSCreateMapTable(
-  NSMapTableKeyCallBacks keyCallBacks,
-  NSMapTableValueCallBacks valueCallBacks,
-  unsigned int capacity)
+- (NSDictionary*) dictionaryRepresentation
 {
-  return NSCreateMapTableWithZone(keyCallBacks, valueCallBacks,
-    capacity, NSDefaultMallocZone());
+  return [self subclassResponsibility: _cmd];
 }
 
-/**
- * Create a new map table using the supplied callbacks structures.
- * If any functions in the callback structures are null the default
- * values are used ... as for non-owned pointers.<br />
- * Of course, if you send 0 for zone, then the map table will be
- * created in NSDefaultMallocZone().<br />
- * The table will be created with the specified capacity ... ie ready
- * to hold at least that many items.
- */
-NSMapTable *
-NSCreateMapTableWithZone(
-  NSMapTableKeyCallBacks keyCallBacks,
-  NSMapTableValueCallBacks valueCallBacks,
-  unsigned int capacity,
-  NSZone *zone)
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  GSIMapTable	table;
-
-#if	GS_WITH_GC
-  initialize();
-  table = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
-    NSScannedOption);
-  zone = (NSZone*)nodeSS;
-#else
-  table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
-#endif
-  GSIMapInitWithZoneAndCapacity(table, zone, capacity);
-  table->extra.k = keyCallBacks;
-  table->extra.v = valueCallBacks;
-
-  if (table->extra.k.hash == 0)
-    table->extra.k.hash = NSNonOwnedPointerMapKeyCallBacks.hash;
-  if (table->extra.k.isEqual == 0)
-    table->extra.k.isEqual = NSNonOwnedPointerMapKeyCallBacks.isEqual;
-  if (table->extra.k.retain == 0)
-    table->extra.k.retain = NSNonOwnedPointerMapKeyCallBacks.retain;
-  if (table->extra.k.release == 0)
-    table->extra.k.release = NSNonOwnedPointerMapKeyCallBacks.release;
-  if (table->extra.k.describe == 0)
-    table->extra.k.describe = NSNonOwnedPointerMapKeyCallBacks.describe;
-
-  if (table->extra.v.retain == 0)
-    table->extra.v.retain = NSNonOwnedPointerMapValueCallBacks.retain;
-  if (table->extra.v.release == 0)
-    table->extra.v.release = NSNonOwnedPointerMapValueCallBacks.release;
-  if (table->extra.v.describe == 0)
-    table->extra.v.describe = NSNonOwnedPointerMapValueCallBacks.describe;
-
-  return (NSMapTable*)table;
+  [self subclassResponsibility: _cmd];
 }
 
-/**
- * Function to be called when finished with the enumerator.
- * This permits memory used by the enumerator to be released!
- */
-void
-NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
+- (NSUInteger) hash
 {
-  if (enumerator == 0)
-    {
-      NSWarnFLog(@"Nul enumerator argument supplied");
-      return;
-    }
-  GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
+  return (NSUInteger)[self subclassResponsibility: _cmd];
 }
 
-/**
- * Return an enumerator for stepping through a map table using the
- * NSNextMapEnumeratorPair() function.
- */
-NSMapEnumerator
-NSEnumerateMapTable(NSMapTable *table)
+- (id) initWithCoder: (NSCoder*)aCoder
 {
-  if (table == 0)
-    {
-      NSMapEnumerator	v = {0, 0};
-
-      NSWarnFLog(@"Nul table argument supplied");
-      return v;
-    }
-  return GSIMapEnumeratorForMap((GSIMapTable)table);
+  return [self subclassResponsibility: _cmd];
 }
 
-/**
- * Destroy the map table and release its contents.<br />
- * Releases all the keys and values of table (using the key and
- * value callbacks specified at the time of table's creation),
- * and then proceeds to deallocate the space allocated for table itself.
- */
-void
-NSFreeMapTable(NSMapTable *table)
+- (BOOL) isEqual: (id)other
 {
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-    }
-  else
-    {
-#if	GS_WITH_GC
-      GSIMapEmptyMap((GSIMapTable)table);
-#else
-      NSZone	*z = ((GSIMapTable)table)->zone;
-
-      GSIMapEmptyMap((GSIMapTable)table);
-      NSZoneFree(z, table);
-#endif
-    }
+  return (BOOL)(uintptr_t)[self subclassResponsibility: _cmd];
 }
 
-/**
- * Returns the value for the specified key, or a null pointer if the
- * key is not found in the table.
- */
-void *
-NSMapGet(NSMapTable *table, const void *key)
+- (NSEnumerator*) keyEnumerator
 {
-  GSIMapNode	n;
-
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-      return 0;
-    }
-  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
-  if (n == 0)
-    {
-      return 0;
-    }
-  else
-    {
-      return n->value.ptr;
-    }
+  return [self subclassResponsibility: _cmd];
 }
 
-/**
- * Adds the key and value to table.<br />
- * If an equal key is already in table, replaces its mapped value
- * with the new one, without changing the key itself.<br />
- * If key is equal to the notAKeyMarker field of the table's
- * NSMapTableKeyCallBacks, raises an NSInvalidArgumentException.
- */
-void
-NSMapInsert(NSMapTable *table, const void *key, const void *value)
+- (NSPointerFunctions*) keyPointerFunctions
 {
-  GSIMapTable	t = (GSIMapTable)table;
-  GSIMapNode	n;
-
-  if (table == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place key-value in null table"];
-    }
-  if (key == t->extra.k.notAKeyMarker)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place notAKeyMarker in map table"];
-    }
-  n = GSIMapNodeForKey(t, (GSIMapKey)key);
-  if (n == 0)
-    {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
-    }
-  else
-    {
-      GSIMapVal	tmp = n->value;
-
-      n->value = (GSIMapVal)value;
-      GSI_MAP_RETAIN_VAL(t, n->value);
-      GSI_MAP_RELEASE_VAL(t, tmp);
-    }
+  return [self subclassResponsibility: _cmd];
 }
 
-/**
- * Adds the key and value to table and returns nul.<br />
- * If an equal key is already in table, returns the old key
- * instead of adding the new key-value pair.<br />
- * If key is equal to the notAKeyMarker field of the table's
- * NSMapTableKeyCallBacks, raises an NSInvalidArgumentException.
- */
-void *
-NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
+- (NSEnumerator*) objectEnumerator
 {
-  GSIMapTable	t = (GSIMapTable)table;
-  GSIMapNode	n;
-
-  if (table == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place key-value in null table"];
-    }
-  if (key == t->extra.k.notAKeyMarker)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place notAKeyMarker in map table"];
-    }
-  n = GSIMapNodeForKey(t, (GSIMapKey)key);
-  if (n == 0)
-    {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
-      return 0;
-    }
-  else
-    {
-      return n->key.ptr;
-    }
+  return [self subclassResponsibility: _cmd];
 }
 
-/**
- * Adds the key and value to table and returns nul.<br />
- * If an equal key is already in table, raises an NSInvalidArgumentException.
- * <br />If key is equal to the notAKeyMarker field of the table's
- * NSMapTableKeyCallBacks, raises an NSInvalidArgumentException.
- */
-void
-NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
+- (id) objectForKey: (id)aKey
 {
-  GSIMapTable	t = (GSIMapTable)table;
-  GSIMapNode	n;
-
-  if (table == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place key-value in null table"];
-    }
-  if (key == t->extra.k.notAKeyMarker)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place notAKeyMarker in map table"];
-    }
-  n = GSIMapNodeForKey(t, (GSIMapKey)key);
-  if (n == 0)
-    {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
-    }
-  else
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"NSMapInsertKnownAbsent ... key not absent"];
-    }
+  return [self subclassResponsibility: _cmd];
 }
 
-/**
- * Returns a flag to say whether the table contains the specified key.
- * Returns the original key and the value it maps to.<br />
- * The GNUstep implementation checks originalKey and value to see if
- * they are null pointers, and only updates them if non-null.
- */
-BOOL
-NSMapMember(NSMapTable *table, const void *key,
-  void **originalKey, void **value)
+- (void) removeAllObjects
 {
-  GSIMapNode	n;
-
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-      return NO;
-    }
-  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
-  if (n == 0)
-    {
-      return NO;
-    }
-  else
-    {
-      if (originalKey != 0)
-	{
-	  *originalKey = n->key.ptr;
-	}
-      if (value != 0)
-	{
-	  *value = n->value.ptr;
-	}
-      return YES;
-    }
+  [self subclassResponsibility: _cmd];
 }
 
-/**
- * Remove the specified key from the table (if present).<br />
- * Causes the key and its associated value to be released.
- */
-void
-NSMapRemove(NSMapTable *table, const void *key)
+- (void) removeObjectForKey: (id)aKey
 {
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-      return;
-    }
-  GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)key);
+  [self subclassResponsibility: _cmd];
 }
 
-/**
- * Step through the map table ... return the next key-value pair and
- * return YES, or hit the end of the table and return NO.<br />
- * The enumerator parameter is a value supplied by NSEnumerateMapTable()
- * and must be destroyed using NSEndMapTableEnumeration().<br />
- * The GNUstep implementation permits either key or value to be a
- * null pointer, and refrains from attempting to return the appropriate
- * result in that case.
- */
-BOOL
-NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
-			void **key, void **value)
+- (void) setObject: (id)anObject forKey: (id)aKey
 {
-  GSIMapNode	n;
-
-  if (enumerator == 0)
-    {
-      NSWarnFLog(@"Nul enumerator argument supplied");
-      return NO;
-    }
-  n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
-  if (n == 0)
-    {
-      return NO;
-    }
-  else
-    {
-      if (key != 0)
-	{
-	  *key = n->key.ptr;
-	}
-      else
-	{
-	  NSWarnFLog(@"Nul key return address");
-	}
-
-      if (value != 0)
-	{
-	  *value = n->value.ptr;
-	}
-      else
-	{
-	  NSWarnFLog(@"Nul value return address");
-	}
-      return YES;
-    }
+  [self subclassResponsibility: _cmd];
 }
 
-/**
- * Empty the map table (releasing every key and value),
- * but preserve its capacity.
- */
-void
-NSResetMapTable(NSMapTable *table)
+- (NSPointerFunctions*) valuePointerFunctions
 {
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-    }
-  else
-    {
-      GSIMapCleanMap((GSIMapTable)table);
-    }
+  return [self subclassResponsibility: _cmd];
 }
-
-/**
- * Returns a string describing the table contents.<br />
- * For each key-value pair, a string of the form "key = value;\n"
- * is appended.  The appropriate describe functions are used to generate
- * the strings for each key and value.
- */
-NSString *
-NSStringFromMapTable(NSMapTable *table)
-{
-  GSIMapTable		t = (GSIMapTable)table;
-  NSMutableString	*string;
-  NSMapEnumerator	enumerator;
-  void			*key;
-  void			*value;
-
-  if (table == 0)
-    {
-      NSWarnFLog(@"Nul table argument supplied");
-      return nil;
-    }
-  string = [NSMutableString stringWithCapacity: 0];
-  enumerator = NSEnumerateMapTable(table);
-
-  /*
-   * Now, just step through the elements of the table, and add their
-   * descriptions to the string.
-   */
-  while (NSNextMapEnumeratorPair(&enumerator, &key, &value) == YES)
-    {
-      [string appendFormat: @"%@ = %@;\n",
-	(t->extra.k.describe)(table, key),
-	(t->extra.v.describe)(table, value)];
-    }
-  NSEndMapTableEnumeration(&enumerator);
-  return string;
-}
-
-
-
-
-/* These are to increase readabilty locally. */
-typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
-typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *, const void *);
-typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
-typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
-typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
-
-
-/** For keys that are pointer-sized or smaller quantities. */
-const NSMapTableKeyCallBacks NSIntMapKeyCallBacks =
-{
-  (NSMT_hash_func_t) _NS_int_hash,
-  (NSMT_is_equal_func_t) _NS_int_is_equal,
-  (NSMT_retain_func_t) _NS_int_retain,
-  (NSMT_release_func_t) _NS_int_release,
-  (NSMT_describe_func_t) _NS_int_describe,
-  NSNotAnIntMapKey
-};
-
-/** For keys that are pointers not freed. */
-const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks =
-{
-  (NSMT_hash_func_t) _NS_non_owned_void_p_hash,
-  (NSMT_is_equal_func_t) _NS_non_owned_void_p_is_equal,
-  (NSMT_retain_func_t) _NS_non_owned_void_p_retain,
-  (NSMT_release_func_t) _NS_non_owned_void_p_release,
-  (NSMT_describe_func_t) _NS_non_owned_void_p_describe,
-  NSNotAPointerMapKey
-};
-
-/** For keys that are pointers not freed, or 0. */
-const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks =
-{
-  (NSMT_hash_func_t) _NS_non_owned_void_p_hash,
-  (NSMT_is_equal_func_t) _NS_non_owned_void_p_is_equal,
-  (NSMT_retain_func_t) _NS_non_owned_void_p_retain,
-  (NSMT_release_func_t) _NS_non_owned_void_p_release,
-  (NSMT_describe_func_t) _NS_non_owned_void_p_describe,
-  NSNotAPointerMapKey
-};
-
-/** For sets of objects without retaining and releasing. */
-const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks =
-{
-  (NSMT_hash_func_t) _NS_non_retained_id_hash,
-  (NSMT_is_equal_func_t) _NS_non_retained_id_is_equal,
-  (NSMT_retain_func_t) _NS_non_retained_id_retain,
-  (NSMT_release_func_t) _NS_non_retained_id_release,
-  (NSMT_describe_func_t) _NS_non_retained_id_describe,
-  NSNotAPointerMapKey
-};
-
-/** For keys that are objects. */
-const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks =
-{
-  (NSMT_hash_func_t) _NS_id_hash,
-  (NSMT_is_equal_func_t) _NS_id_is_equal,
-  (NSMT_retain_func_t) _NS_id_retain,
-  (NSMT_release_func_t) _NS_id_release,
-  (NSMT_describe_func_t) _NS_id_describe,
-  NSNotAPointerMapKey
-};
-
-/** For keys that are pointers with transfer of ownership upon insertion. */
-const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks =
-{
-  (NSMT_hash_func_t) _NS_owned_void_p_hash,
-  (NSMT_is_equal_func_t) _NS_owned_void_p_is_equal,
-  (NSMT_retain_func_t) _NS_owned_void_p_retain,
-  (NSMT_release_func_t) _NS_owned_void_p_release,
-  (NSMT_describe_func_t) _NS_owned_void_p_describe,
-  NSNotAPointerMapKey
-};
-
-/** For values that are pointer-sized integer quantities. */
-const NSMapTableValueCallBacks NSIntMapValueCallBacks =
-{
-  (NSMT_retain_func_t) _NS_int_retain,
-  (NSMT_release_func_t) _NS_int_release,
-  (NSMT_describe_func_t) _NS_int_describe
-};
-
-/** For values that are pointers not freed. */
-const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks =
-{
-  (NSMT_retain_func_t) _NS_non_owned_void_p_retain,
-  (NSMT_release_func_t) _NS_non_owned_void_p_release,
-  (NSMT_describe_func_t) _NS_non_owned_void_p_describe
-};
-
-/** For sets of objects without retaining and releasing. */
-const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks =
-{
-  (NSMT_retain_func_t) _NS_non_retained_id_retain,
-  (NSMT_release_func_t) _NS_non_retained_id_release,
-  (NSMT_describe_func_t) _NS_non_retained_id_describe
-};
-
-/** For values that are objects. */
-const NSMapTableValueCallBacks NSObjectMapValueCallBacks =
-{
-  (NSMT_retain_func_t) _NS_id_retain,
-  (NSMT_release_func_t) _NS_id_release,
-  (NSMT_describe_func_t) _NS_id_describe
-};
-
-/** For values that are pointers with transfer of ownership upon insertion. */
-const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
-{
-  (NSMT_retain_func_t) _NS_owned_void_p_retain,
-  (NSMT_release_func_t) _NS_owned_void_p_release,
-  (NSMT_describe_func_t) _NS_owned_void_p_describe
-};
+@end
 

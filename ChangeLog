@@ -1,3 +1,17 @@
+2009-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcretePointerFunctions.h: Minor GC tweaks
+	* Source/NSMessagePortNameServer.m: Fix map table declaration
+	* Source/NSKeyedUnarchiver.m: ditto
+	* Source/NSKeyValueObserving.m: ditto
+	* Source/NSObject.m: ditto
+	* Source/GNUmakefile: Add NSConcreteMapTable.m
+	* Source/NSConcreteMapTable.m: New file for new class
+	* Source/NSMapTable.m: Change to be an abstract class
+	* Headers/Foundation/NSMapTable.h: Add new MacOS-X 10.5 API
+	* Headers/Additions/GNUstepBase/GSIMap.h: Some changes for
+	new map table API.
+
 2009-03-12  Bernard Cafferelli <voyageursp@gmail.com>
 
 	* configure.ac: Add --disable-zeroconf option to control whether

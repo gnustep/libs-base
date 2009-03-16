@@ -25,7 +25,7 @@
 
 #import	"Foundation/NSPointerFunctions.h"
 
-/* Declare a structure type to copy poinnnnnnter functions information 
+/* Declare a structure type to copy pointer functions information 
  * around easily.
  */
 typedef struct

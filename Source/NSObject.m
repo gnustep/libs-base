@@ -122,7 +122,7 @@ BOOL	NSDeallocateZombies = NO;
 
 @class	NSZombie;
 static Class		zombieClass;
-static NSMapTable	zombieMap;
+static NSMapTable	*zombieMap;
 
 #if	!GS_WITH_GC
 static void GSMakeZombie(NSObject *o)
