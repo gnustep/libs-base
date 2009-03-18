@@ -372,15 +372,15 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
   [NotificationQueueList unregisterQueue: self];
 
   /*
-   * release self from queues
+   * release items from our queues
    */
-  for (item = _asapQueue->head; item; item=item->prev)
+  while ((item = _asapQueue->head) != 0)
     {
       remove_from_queue(_asapQueue, item, _zone);
     }
   NSZoneFree(_zone, _asapQueue);
 
-  for (item = _idleQueue->head; item; item=item->prev)
+  while ((item = _idleQueue->head) != 0)
     {
       remove_from_queue(_idleQueue, item, _zone);
     }
