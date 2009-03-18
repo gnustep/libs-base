@@ -3086,7 +3086,7 @@ static NSSet	*fileKeys = nil;
   return [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
 }
 
-- (unsigned long) filePosixPermissions
+- (NSUInteger) filePosixPermissions
 {
   return (statbuf.st_mode & ~S_IFMT);
 }
@@ -3223,12 +3223,12 @@ static NSSet	*fileKeys = nil;
   return statbuf.st_size;
 }
 
-- (unsigned long) fileSystemFileNumber
+- (NSUInteger) fileSystemFileNumber
 {
   return statbuf.st_ino;
 }
 
-- (unsigned long) fileSystemNumber
+- (NSUInteger) fileSystemNumber
 {
   return statbuf.st_dev;
 }

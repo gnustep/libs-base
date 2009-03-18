@@ -1914,7 +1914,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   return _version;
 }
 
-- (unsigned) versionForClassName: (NSString*)className
+- (NSInteger) versionForClassName: (NSString*)className
 {
   GSClassInfo	*info = nil;
   unsigned	version = NSNotFound;

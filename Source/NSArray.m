@@ -1355,7 +1355,7 @@ compare(id elem1, id elem2, void* context)
 
 - (id) valueForKeyPath: (NSString*)path
 {
-  id result = nil;
+  id	result = nil;
 
   if ([path hasPrefix: @"@"])
     {
