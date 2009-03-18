@@ -1034,7 +1034,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
       fprintf(stderr, "The file '%S' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
 	[fileName fileSystemRepresentation],
-        [attributes filePosixPermissions]);
+        (long)[attributes filePosixPermissions]);
 #else
       fprintf(stderr, "The file '%s' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
