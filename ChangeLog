@@ -1,5 +1,10 @@
 2009-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSNotificationQueue.m: Fix dealloc bug pointed out by
+	Larry Campbell.
+
+2009-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source\win32\GSFileHandle.m:
 	* Source\win32\NSMessagePort.m:
 	* Source\win32\NSMessagePortNameServer.m:
