@@ -248,14 +248,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   RELEASE(service);
   RELEASE(protocol);
 
-  [self gcFinalize];
+  [self finalize];
 
   RELEASE(readInfo);
   RELEASE(writeInfo);
   [super dealloc];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   if (self == fh_stdin)
     fh_stdin = nil;

@@ -485,22 +485,3 @@ BOOL GSDebugSet(NSString *level)
 
 @end
 
-@implementation	NSLock (GSCompatibility)
-/*
- * Dummy implementation of garbage collection cleanup method called by
- * GSLazyLock on deallocation.
- */
-- (void) gcFinalize
-{
-}
-@end
-
-@implementation	NSRecursiveLock (GSCompatibility)
-/*
- * Dummy implementation of garbage collection cleanup method called by
- * GSLazyRecursiveLock on deallocation.
- */
-- (void) gcFinalize
-{
-}
-@end

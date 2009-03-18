@@ -72,30 +72,30 @@ typedef GSIMapNode_t *GSIMapNode;
       NSMapTableKeyCallBacks k;
       NSMapTableValueCallBacks v;
     } old;
-  };
+  }cb;
 }
 @end
 
 #define	GSI_MAP_TABLE_T	NSConcreteMapTable
 
 #define GSI_MAP_HASH(M, X)\
- (M->legacy ? M->old.k.hash(M, X.ptr) \
- : pointerFunctionsHash(&M->pf.k, X.ptr))
+ (M->legacy ? M->cb.old.k.hash(M, X.ptr) \
+ : pointerFunctionsHash(&M->cb.pf.k, X.ptr))
 #define GSI_MAP_EQUAL(M, X, Y)\
- (M->legacy ? M->old.k.isEqual(M, X.ptr, Y.ptr) \
- : pointerFunctionsEqual(&M->pf.k, X.ptr, Y.ptr))
+ (M->legacy ? M->cb.old.k.isEqual(M, X.ptr, Y.ptr) \
+ : pointerFunctionsEqual(&M->cb.pf.k, X.ptr, Y.ptr))
 #define GSI_MAP_RELEASE_KEY(M, X)\
- (M->legacy ? M->old.k.release(M, X.ptr) \
- : pointerFunctionsRelinquish(&M->pf.k, &X.ptr))
+ (M->legacy ? M->cb.old.k.release(M, X.ptr) \
+ : pointerFunctionsRelinquish(&M->cb.pf.k, &X.ptr))
 #define GSI_MAP_RETAIN_KEY(M, X)\
- (M->legacy ? M->old.k.retain(M, X.ptr) \
- : pointerFunctionsAcquire(&M->pf.k, &X.ptr, X.ptr))
+ (M->legacy ? M->cb.old.k.retain(M, X.ptr) \
+ : pointerFunctionsAcquire(&M->cb.pf.k, &X.ptr, X.ptr))
 #define GSI_MAP_RELEASE_VAL(M, X)\
- (M->legacy ? M->old.v.release(M, X.ptr) \
- : pointerFunctionsRelinquish(&M->pf.v, &X.ptr))
+ (M->legacy ? M->cb.old.v.release(M, X.ptr) \
+ : pointerFunctionsRelinquish(&M->cb.pf.v, &X.ptr))
 #define GSI_MAP_RETAIN_VAL(M, X)\
- (M->legacy ? M->old.v.retain(M, X.ptr) \
- : pointerFunctionsAcquire(&M->pf.v, &X.ptr, X.ptr))
+ (M->legacy ? M->cb.old.v.retain(M, X.ptr) \
+ : pointerFunctionsAcquire(&M->cb.pf.v, &X.ptr, X.ptr))
 
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
@@ -253,13 +253,13 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
   t->legacy = o->legacy;
   if (t->legacy == YES)
     {
-      t->old.k = o->old.k;
-      t->old.v = o->old.v;
+      t->cb.old.k = o->cb.old.k;
+      t->cb.old.v = o->cb.old.v;
     }
   else
     {
-      t->pf.k = o->pf.k;
-      t->pf.v = o->pf.v;
+      t->cb.pf.k = o->cb.pf.k;
+      t->cb.pf.v = o->cb.pf.v;
     }
 #if	GS_WITH_GC
   zone = ((GSIMapTable)table)->zone;
@@ -350,8 +350,8 @@ NSCreateMapTableWithZone(
     v.describe = NSNonOwnedPointerMapValueCallBacks.describe;
 
   table->legacy = YES;
-  table->old.k = k;
-  table->old.v = v;
+  table->cb.old.k = k;
+  table->cb.old.v = v;
 
 #if	GS_WITH_GC
   GSIMapInitWithZoneAndCapacity(table, (NSZone*)nodeSS, capacity);
@@ -456,7 +456,7 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (key == t->old.k.notAKeyMarker)
+  if (key == t->cb.old.k.notAKeyMarker)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place notAKeyMarker in map table"];
@@ -494,7 +494,7 @@ NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (key == t->old.k.notAKeyMarker)
+  if (key == t->cb.old.k.notAKeyMarker)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place notAKeyMarker in map table"];
@@ -528,7 +528,7 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (key == t->old.k.notAKeyMarker)
+  if (key == t->cb.old.k.notAKeyMarker)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place notAKeyMarker in map table"];
@@ -693,8 +693,8 @@ NSStringFromMapTable(NSMapTable *table)
       while (NSNextMapEnumeratorPair(&enumerator, &key, &value) == YES)
 	{
 	  [string appendFormat: @"%@ = %@;\n",
-	    (t->old.k.describe)(table, key),
-	    (t->old.v.describe)(table, value)];
+	    (t->cb.old.k.describe)(table, key),
+	    (t->cb.old.v.describe)(table, value)];
 	}
     }
   else
@@ -702,8 +702,8 @@ NSStringFromMapTable(NSMapTable *table)
       while (NSNextMapEnumeratorPair(&enumerator, &key, &value) == YES)
 	{
 	  [string appendFormat: @"%@ = %@;\n",
-	    (t->pf.k.descriptionFunction)(key),
-	    (t->pf.v.descriptionFunction)(value)];
+	    (t->cb.pf.k.descriptionFunction)(key),
+	    (t->cb.pf.v.descriptionFunction)(value)];
 	}
     }
   NSEndMapTableEnumeration(&enumerator);
@@ -926,45 +926,45 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
   legacy = NO;
   if ([keyFunctions class] == [NSConcretePointerFunctions class])
     {
-      memcpy(&self->pf.k, &((NSConcretePointerFunctions*)keyFunctions)->_x,
-	sizeof(self->pf.k));
+      memcpy(&self->cb.pf.k, &((NSConcretePointerFunctions*)keyFunctions)->_x,
+	sizeof(self->cb.pf.k));
     }
   else
     {
-      self->pf.k.acquireFunction = [keyFunctions acquireFunction];
-      self->pf.k.descriptionFunction = [keyFunctions descriptionFunction];
-      self->pf.k.hashFunction = [keyFunctions hashFunction];
-      self->pf.k.isEqualFunction = [keyFunctions isEqualFunction];
-      self->pf.k.relinquishFunction = [keyFunctions relinquishFunction];
-      self->pf.k.sizeFunction = [keyFunctions sizeFunction];
-      self->pf.k.usesStrongWriteBarrier
+      self->cb.pf.k.acquireFunction = [keyFunctions acquireFunction];
+      self->cb.pf.k.descriptionFunction = [keyFunctions descriptionFunction];
+      self->cb.pf.k.hashFunction = [keyFunctions hashFunction];
+      self->cb.pf.k.isEqualFunction = [keyFunctions isEqualFunction];
+      self->cb.pf.k.relinquishFunction = [keyFunctions relinquishFunction];
+      self->cb.pf.k.sizeFunction = [keyFunctions sizeFunction];
+      self->cb.pf.k.usesStrongWriteBarrier
 	= [keyFunctions usesStrongWriteBarrier];
-      self->pf.k.usesWeakReadAndWriteBarriers
+      self->cb.pf.k.usesWeakReadAndWriteBarriers
 	= [keyFunctions usesWeakReadAndWriteBarriers];
     }
   if ([valueFunctions class] == [NSConcretePointerFunctions class])
     {
-      memcpy(&self->pf.v, &((NSConcretePointerFunctions*)valueFunctions)->_x,
-	sizeof(self->pf.v));
+      memcpy(&self->cb.pf.v, &((NSConcretePointerFunctions*)valueFunctions)->_x,
+	sizeof(self->cb.pf.v));
     }
   else
     {
-      self->pf.v.acquireFunction = [valueFunctions acquireFunction];
-      self->pf.v.descriptionFunction = [valueFunctions descriptionFunction];
-      self->pf.v.hashFunction = [valueFunctions hashFunction];
-      self->pf.v.isEqualFunction = [valueFunctions isEqualFunction];
-      self->pf.v.relinquishFunction = [valueFunctions relinquishFunction];
-      self->pf.v.sizeFunction = [valueFunctions sizeFunction];
-      self->pf.v.usesStrongWriteBarrier
+      self->cb.pf.v.acquireFunction = [valueFunctions acquireFunction];
+      self->cb.pf.v.descriptionFunction = [valueFunctions descriptionFunction];
+      self->cb.pf.v.hashFunction = [valueFunctions hashFunction];
+      self->cb.pf.v.isEqualFunction = [valueFunctions isEqualFunction];
+      self->cb.pf.v.relinquishFunction = [valueFunctions relinquishFunction];
+      self->cb.pf.v.sizeFunction = [valueFunctions sizeFunction];
+      self->cb.pf.v.usesStrongWriteBarrier
 	= [valueFunctions usesStrongWriteBarrier];
-      self->pf.v.usesWeakReadAndWriteBarriers
+      self->cb.pf.v.usesWeakReadAndWriteBarriers
 	= [valueFunctions usesWeakReadAndWriteBarriers];
     }
 
 #if	GC_WITH_GC
-  if (self->pf.k.usesWeakReadAndWriteBarriers)
+  if (self->cb.pf.k.usesWeakReadAndWriteBarriers)
     {
-      if (self->pf.v.usesWeakReadAndWriteBarriers)
+      if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
 	{
 	  zone = (NSZone*)nodeWW;
 	}
@@ -975,7 +975,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
     }
   else
     {
-      if (self->pf.v.usesWeakReadAndWriteBarriers)
+      if (self->cb.pf.v.usesWeakReadAndWriteBarriers)
 	{
 	  zone = (NSZone*)nodeSW;
 	}
@@ -1003,7 +1003,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 {
   NSConcretePointerFunctions	*p = [NSConcretePointerFunctions new];
 
-  p->_x = self->pf.k;
+  p->_x = self->cb.pf.k;
   return [p autorelease];
 }
 
@@ -1074,7 +1074,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 {
   NSConcretePointerFunctions	*p = [NSConcretePointerFunctions new];
 
-  p->_x = self->pf.v;
+  p->_x = self->cb.pf.v;
   return [p autorelease];
 }
 @end

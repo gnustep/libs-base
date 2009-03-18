@@ -50,7 +50,7 @@ extern __declspec(dllimport) int	errno;
 
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;
-static NSMapTable portToNamesMap;
+static NSMapTable *portToNamesMap;
 static NSString	*registry;
 static HKEY	key;
 

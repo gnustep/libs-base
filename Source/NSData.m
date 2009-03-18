@@ -79,6 +79,7 @@
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSRange.h"
 #include "Foundation/NSURL.h"
+#include "Foundation/NSValue.h"
 #include "Foundation/NSZone.h"
 #include "GSPrivate.h"
 #include <stdio.h>
@@ -987,6 +988,9 @@ failure:
     {
       NSFileManager		*mgr = [NSFileManager defaultManager];
       NSMutableDictionary	*att = nil;
+#if defined(__MINGW32__)
+      NSUInteger		perm;
+#endif
 
       if ([mgr fileExistsAtPath: path])
 	{
@@ -996,6 +1000,15 @@ failure:
 	}
 
 #if defined(__MINGW32__)
+      /* To replace the existing file on windows, it must be writable.
+       */
+      perm = [att filePosixPermissions];
+      if (perm != NSNotFound && (perm & 0200) == 0)
+	{
+          [mgr changeFileAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
+	    [NSNumber numberWithUnsignedInt: 0777], NSFilePosixPermissions,
+	    nil] atPath: path];
+	}
       /*
        * The windoze implementation of the POSIX rename() function is buggy
        * and doesn't work if the destination file already exists ... so we
