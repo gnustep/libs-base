@@ -233,7 +233,7 @@ static Class		messagePortClass = 0;
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -246,7 +246,7 @@ static Class		messagePortClass = 0;
   return desc;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   internal	*this;
 

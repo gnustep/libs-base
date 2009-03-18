@@ -1,3 +1,17 @@
+2009-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source\win32\GSFileHandle.m:
+	* Source\win32\NSMessagePort.m:
+	* Source\win32\NSMessagePortNameServer.m:
+	* Source\NSConcreteMapTable.m:
+	* Source\Additions\GSCompatibility.m:
+	* Source\Additions\GSCategories.m:
+	* Source\NSData.m:
+	Fixes for windows and changes to GC code, plus changes for old
+	compilers which don't support anonymous unions, plus improvement
+	to error reporting on windows, plus fix to correctly rename
+	protected files if possible.
+
 2009-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConcretePointerFunctions.h: Minor GC tweaks

@@ -963,13 +963,15 @@ strerror_r(int eno, char *buf, int len)
  */
 + (NSError*) _last
 {
-#if defined(__MINGW32__)
-  return [self _systemError: GetLastError()];
-#else
   extern int	errno;
-
-  return [self _systemError: errno];
+  int	eno;
+#if defined(__MINGW32__)
+  eno = GetLastError();
+  if (eno == 0) eno = errno;
+#else
+  eno = errno;
 #endif
+  return [self _systemError: eno];
 }
 
 + (NSError*) _systemError: (long)code
