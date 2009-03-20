@@ -1,8 +1,9 @@
 /* Implementation for NSURLProtocol for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
+   Parts (FTP and About in particular) based on later code by Nikolaus Schaller
    
    This file is part of the GNUstep Base Library.
 

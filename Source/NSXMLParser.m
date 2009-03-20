@@ -4,6 +4,8 @@
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: May 2004
 
+   SloppyParser additions based on code by Nikolaus Schaller
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
