@@ -1229,7 +1229,7 @@ static Class	runLoopClass;
   WSANETWORKEVENTS ocurredEvents;
 #endif
   NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x",
-    type == ET_RPORT ? "read" : "write", self);
+    type != ET_WDESC ? "read" : "write", self);
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
@@ -1326,7 +1326,7 @@ static Class	runLoopClass;
       abort();      
     }
 #else
-  if (type == ET_RPORT)
+  if (type != ET_WDESC)
     {
       [self receivedEventRead];
     }

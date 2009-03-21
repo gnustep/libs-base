@@ -1,3 +1,10 @@
+2009-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Fix to treat exceptional (out of band) event as meaning a readable
+	rather than a writable descriptor.
+
 2009-03-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLCredential.m:

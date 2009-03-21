@@ -536,7 +536,7 @@ static Class	runLoopClass;
 {
   NSDebugMLLog(@"NSMessagePort_details",
     @"received %s event on 0x%x",
-    type == ET_RPORT ? "read" : "write", self);
+    type != ET_WDESC ? "read" : "write", self);
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
@@ -558,7 +558,7 @@ static Class	runLoopClass;
 
   M_LOCK(myLock);
 
-  if (type == ET_RPORT)
+  if (type != ET_WDESC)
     {
       unsigned	want;
       void	*bytes;
