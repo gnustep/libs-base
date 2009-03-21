@@ -1,4 +1,12 @@
 2009-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+	* configure.ac:
+	* configure:
+	* Headers/Additions/GNUstepBase/config.h.in:
+	* Source/NSDebug.m:
+	Try using sigsetjmp for dealing with signals during stack trace,
+	in case it helps work arouns bugs in signal handling.
+
+2009-03-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePort.m:
 	* Source/NSSocketPort.m:
