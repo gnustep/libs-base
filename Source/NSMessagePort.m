@@ -394,15 +394,7 @@ static Class	runLoopClass;
       watcher: self
       forMode: NSConnectionReplyMode];
   [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_EDESC
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
 
@@ -417,15 +409,7 @@ static Class	runLoopClass;
 	 forMode: NSConnectionReplyMode
 	     all: NO];
   [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_EDESC
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 
@@ -504,10 +488,6 @@ static Class	runLoopClass;
 		    type: ET_WDESC
 		 forMode: nil
 		     all: YES];
-	  [l removeEvent: (void*)(uintptr_t)desc
-		    type: ET_EDESC
-		 forMode: nil
-		     all: YES];
 	  NSDebugMLLog(@"NSMessagePort", @"invalidated 0x%x", self);
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
@@ -547,10 +527,6 @@ static Class	runLoopClass;
 
       [l removeEvent: data
 		type: ET_WDESC
-	     forMode: mode
-		 all: YES];
-      [l removeEvent: data
-		type: ET_EDESC
 	     forMode: mode
 		 all: YES];
       return;
@@ -1030,15 +1006,7 @@ static Class	runLoopClass;
       watcher: self
       forMode: NSConnectionReplyMode];
   [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_EDESC
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
 
@@ -1056,15 +1024,7 @@ static Class	runLoopClass;
 	 forMode: NSConnectionReplyMode
 	     all: NO];
   [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_EDESC
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 
@@ -1673,7 +1633,6 @@ typedef	struct {
 
 	  if (type == ET_RDESC) t = "rdesc";
 	  else if (type == ET_WDESC) t = "wdesc";
-	  else if (type == ET_EDESC) t = "edesc";
 	  else if (type == ET_RPORT) t = "rport";
 	  else t = "unknown";
 	  NSLog(@"No handle for event %s on descriptor %d", t, desc);
