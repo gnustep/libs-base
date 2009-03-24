@@ -1753,6 +1753,10 @@ NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
 }
 #else
 
+#if	defined(DEBUG)
+#define	GC_DEBUG	1
+#endif
+
 #include <gc.h>
 
 /*
@@ -1784,7 +1788,7 @@ NSAllocateCollectable(NSUInteger size, NSUInteger options)
 	}
       else
 	{
-          ptr = (void*)GC_MALLOC(size);
+          ptr = (void*)GC_MALLOC_IGNORE_OFF_PAGE(size);
 	  memset(ptr, '\0', size);
 	}
     }
@@ -1796,7 +1800,7 @@ NSAllocateCollectable(NSUInteger size, NSUInteger options)
 	}
       else
 	{
-	  ptr = (void*)GC_MALLOC_ATOMIC(size);
+	  ptr = (void*)GC_MALLOC_ATOMIC_IGNORE_OFF_PAGE(size);
 	  memset(ptr, '\0', size);
 	}
     }
