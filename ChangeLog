@@ -1,4 +1,11 @@
+2009-03-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.h:
+	* Source/GSSocketStream.m:
+	Avoid unnecessary memory allocation.
+
 2009-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac:
 	* configure:
 	* Headers/Additions/GNUstepBase/config.h.in:
