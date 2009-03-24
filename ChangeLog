@@ -4,6 +4,8 @@
 	* Source/GSSocketStream.m:
 	Avoid unnecessary memory allocation.
 	Use weak pointers to break finalisation cycles.
+	* Source/NSZone.m: Use GC debug unless built with 'debug=no'
+	Allocate memory ignoring pointers into the allocated data.
 
 2009-03-21  Richard Frith-Macdonald <rfm@gnu.org>
 
