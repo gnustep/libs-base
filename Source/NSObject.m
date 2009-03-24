@@ -812,14 +812,16 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 #if	GS_WITH_GC
-/* Function to turn Boehm GC warnings into NSLog warnings.
+/* Function to log Boehm GC warnings
+ * NB. This must not allocate any collectable memory as it may result
+ * in a deadlock in the garbage collecting library.
  */
 static void
 warn_proc(char *msg, GC_word arg)
 {
   char	buf[strlen(msg)+1024];
   sprintf(buf, msg, (unsigned long)arg);
-  NSLog(@"Garbage collector: %s", buf);
+  fprintf(stderr, "Garbage collector: %s", buf);
 }
 #endif
 

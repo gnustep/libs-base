@@ -156,7 +156,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     }
   [self _unschedule];
   [self _setStatus: NSStreamStatusClosed];
-  /* We don't want to send any events the the delegate after the
+  /* We don't want to send any events to the delegate after the
    * stream has been closed.
    */
   _delegateValid = NO;
