@@ -3,6 +3,7 @@
 	* Source/GSSocketStream.h:
 	* Source/GSSocketStream.m:
 	Avoid unnecessary memory allocation.
+	Use weak pointers to break finalisation cycles.
 
 2009-03-21  Richard Frith-Macdonald <rfm@gnu.org>
 
