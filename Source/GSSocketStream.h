@@ -32,6 +32,17 @@
 unsigned
 GSPrivateSockaddrLength(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
 
+typedef	union {
+  struct sockaddr	s;
+  struct sockaddr_in	i4;
+#ifdef	AF_INET6
+  struct sockaddr_in	i6;
+#endif
+#ifndef	__MINGW__
+  struct sockaddr_un	u;
+#endif
+} sockaddr_any;
+
 #define	SOCKIVARS \
 { \
   id            _sibling;       /* For bidirectional traffic.  	*/\
@@ -39,7 +50,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
   BOOL		_closing;	/* Must close on next failure.	*/\
   SOCKET        _sock;          /* Needed for ms-windows.       */\
   id            _handler;       /* TLS/SOCKS handler.           */\
-  struct sockaddr *_address;	/* Socket address info.		*/\
+  sockaddr_any	_address;	/* Socket address info.		*/\
 }
 
 /* The semi-abstract GSSocketStream class is not intended to be subclassed

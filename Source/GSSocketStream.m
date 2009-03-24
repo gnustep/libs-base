@@ -1264,10 +1264,6 @@ setNonBlocking(SOCKET fd)
   [_sibling _setSibling: nil];
   _sibling = nil;
   DESTROY(_handler);
-  if (_address != 0)
-    {
-      NSZoneFree(0, _address);
-    }
   [super dealloc];
 }
 
@@ -1286,24 +1282,25 @@ setNonBlocking(SOCKET fd)
 #endif
       _sock = INVALID_SOCKET;
       _handler = nil;
+      _address.s.sa_family = AF_UNSPEC;
     }
   return self;
 }
 
 - (struct sockaddr*) _address
 {
-  return (struct sockaddr*)_address;
+  return &_address.s;
 }
 
 - (id) propertyForKey: (NSString *)key
 {
   id	result = [super propertyForKey: key];
 
-  if (result == nil && _address != 0)
+  if (result == nil && _address.s.sa_family != AF_UNSPEC)
     {
       SOCKET    s = [self _sock];
 
-      switch (_address->sa_family)
+      switch (_address.s.sa_family)
         {
           case AF_INET:
             {
@@ -1514,18 +1511,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _setAddress: (struct sockaddr*)address
 {
-  if (_address != 0
-    && GSPrivateSockaddrLength(_address) != GSPrivateSockaddrLength(address))
-    {
-      NSZoneFree(0, _address);
-      _address = 0;
-    }
-  if (_address == 0)
-    {
-      _address = (struct sockaddr*)
-	NSAllocateCollectable(GSPrivateSockaddrLength(address), 0);
-    }
-  memcpy(_address, address, GSPrivateSockaddrLength(address));
+  memcpy(&_address.s, address, GSPrivateSockaddrLength(address));
 }
 
 - (void) _setLoopID: (void *)ref
@@ -1622,7 +1608,7 @@ setNonBlocking(SOCKET fd)
             {
               [GSSOCKS tryInput: self output: _sibling];
             }
-          s = socket(_address->sa_family, SOCK_STREAM, 0);
+          s = socket(_address.s.sa_family, SOCK_STREAM, 0);
           if (BADSOCKET(s))
             {
               [self _recordError];
@@ -1639,8 +1625,8 @@ setNonBlocking(SOCKET fd)
         {
           [GSTLS tryInput: self output: _sibling];
         }
-      result = connect([self _sock], _address,
-        GSPrivateSockaddrLength(_address));
+      result = connect([self _sock], &_address.s,
+        GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
           if (!socketWouldBlock())
@@ -2092,7 +2078,7 @@ setNonBlocking(SOCKET fd)
             {
               [GSSOCKS tryInput: _sibling output: self];
             }
-          s = socket(_address->sa_family, SOCK_STREAM, 0);
+          s = socket(_address.s.sa_family, SOCK_STREAM, 0);
           if (BADSOCKET(s))
             {
               [self _recordError];
@@ -2110,8 +2096,8 @@ setNonBlocking(SOCKET fd)
           [GSTLS tryInput: _sibling output: self];
         }
 
-      result = connect([self _sock], _address,
-        GSPrivateSockaddrLength(_address));
+      result = connect([self _sock], &_address.s,
+        GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
           if (!socketWouldBlock())
@@ -2447,7 +2433,7 @@ setNonBlocking(SOCKET fd)
       return;
     }
 
-  s = socket(_address->sa_family, SOCK_STREAM, 0);
+  s = socket(_address.s.sa_family, SOCK_STREAM, 0);
   if (BADSOCKET(s))
     {
       [self _recordError];
@@ -2460,9 +2446,9 @@ setNonBlocking(SOCKET fd)
     }
 
 #ifndef	BROKEN_SO_REUSEADDR
-  if (_address->sa_family == AF_INET
+  if (_address.s.sa_family == AF_INET
 #ifdef  AF_INET6
-    || _address->sa_family == AF_INET6
+    || _address.s.sa_family == AF_INET6
 #endif
   )
     {
@@ -2479,7 +2465,8 @@ setNonBlocking(SOCKET fd)
     }
 #endif
 
-  bindReturn = bind([self _sock], _address, GSPrivateSockaddrLength(_address));
+  bindReturn = bind([self _sock],
+    &_address.s, GSPrivateSockaddrLength(&_address.s));
   if (socketError(bindReturn))
     {
       [self _recordError];
