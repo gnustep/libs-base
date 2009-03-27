@@ -1,3 +1,10 @@
+2009-03-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationQueue.m: dealloc bug fix
+	* configure.ac: check for sigjmp capability
+	* Source/NSDebug.m: Use setsigjmp if available
+	Changes backported from trunk.
+
 2009-03-12  Bernard Cafferelli <voyageursp@gmail.com>
 
 	* configure.ac: Add --disable-zeroconf option to control whether

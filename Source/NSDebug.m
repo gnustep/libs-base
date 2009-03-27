@@ -41,6 +41,10 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSValue.h"
 
+#if     HAVE_EXECINFO_H
+#include        <execinfo.h>
+#endif
+
 typedef struct {
   Class	class;
   /* The following are used for statistical info */
@@ -801,11 +805,13 @@ GSDebugAllocationListRecordedObjects(Class c)
 	 the_table[i].num_recorded_objects * sizeof(id));
 
   /* Retain all the objects - NB: if retaining one of the objects as a
-     side effect releases another one of them , we are broken ... */
+     side effect eleases another one of them , we are broken ... */
+#if	!GS_WITH_GC
   for (k = 0; k < the_table[i].num_recorded_objects; k++)
     {
-      RETAIN (tmp[k]);
+      [tmp[k] retain];
     }
+#endif
 
   /* Then, we bravely unlock the lock */
   [uniqueLock unlock];
@@ -867,23 +873,32 @@ case a: env->addr = __builtin_return_address(a + 1); break;
  * functions are not reliable (at least not on my EM64T based system) and
  * will sometimes walk off the stack and access illegal memory locations.
  * In order to prevent such an occurrance from crashing the application,
- * we use setjmp() and longjmp() to ensure that we can recover, and
+ * we use sigsetjmp() and siglongjmp() to ensure that we can recover, and
  * we keep the jump buffer in thread-local memory to avoid possible thread
  * safety issues.
  * Of course this will fail horribly if an exception occurs in one of the
  * few methods we use to manage the per-thread jump buffer.
  */
 #include <signal.h>
+#include <setjmp.h>
 
 #if	defined(__MINGW32__)
-#include <setjmp.h>
 #ifndef SIGBUS
 #define SIGBUS  SIGILL
 #endif
 #endif
 
+/* sigsetjmp may be a function or a macro.  The test for the function is
+ * done at configure time so we can tell here if either is available.
+ */
+#if	!defined(HAVE_SIGSETJMP) && !defined(sigsetjmp)
+#define	siglongjmp(A,B)	longjmp(A,B)
+#define	sigsetjmp(A,B)	setjmp(A)
+#define	sigjmp_buf	jmp_buf
+#endif
+
 typedef struct {
-  jmp_buf       buf;
+  sigjmp_buf    buf;
   void          *addr;
   void          (*bus)(int);
   void          (*segv)(int);
@@ -908,16 +923,16 @@ jbuf()
 static void
 recover(int sig)
 {
-  longjmp(jbuf()->buf, 1);
+  siglongjmp(jbuf()->buf, 1);
 }
 
 void *
-NSFrameAddress(int offset)
+NSFrameAddress(NSUInteger offset)
 {
   jbuf_type     *env;
 
   env = jbuf();
-  if (setjmp(env->buf) == 0)
+  if (sigsetjmp(env->buf, 1) == 0)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
@@ -972,12 +987,12 @@ NSFrameAddress(int offset)
   return env->addr;
 }
 
-unsigned NSCountFrames(void)
+NSUInteger NSCountFrames(void)
 {
   jbuf_type	*env;
 
   env = jbuf();
-  if (setjmp(env->buf) == 0)
+  if (sigsetjmp(env->buf, 1) == 0)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
@@ -1032,16 +1047,16 @@ done:
       signal(SIGBUS, env->bus);
     }
 
-  return (unsigned)(uintptr_t)env->addr;
+  return (uintptr_t)env->addr;
 }
 
 void *
-NSReturnAddress(int offset)
+NSReturnAddress(NSUInteger offset)
 {
   jbuf_type	*env;
 
   env = jbuf();
-  if (setjmp(env->buf) == 0)
+  if (sigsetjmp(env->buf, 1) == 0)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
@@ -1100,12 +1115,28 @@ NSReturnAddress(int offset)
 NSMutableArray *
 GSPrivateStackAddresses(void)
 {
+  NSMutableArray        *stack;
+  NSAutoreleasePool     *pool;
+
+#if HAVE_BACKTRACE
+  void                  *addresses[1024];
+  int                   n = backtrace(addresses, 1024);
+  int                   i;
+
+  stack = [NSMutableArray arrayWithCapacity: n];
+  pool = [NSAutoreleasePool new];
+  for (i = 0; i < n; i++)
+    {
+      [stack addObject: [NSValue valueWithPointer: addresses[i]]];
+    }
+
+#else
   unsigned              n = NSCountFrames();
-  NSMutableArray        *stack = [NSMutableArray arrayWithCapacity: n];
-  CREATE_AUTORELEASE_POOL(pool);
   unsigned              i;
   jbuf_type             *env;
 
+  stack = [NSMutableArray arrayWithCapacity: n];
+  pool = [NSAutoreleasePool new];
   /* There should be more frame addresses than return addresses.
    */
   if (n > 0)
@@ -1118,7 +1149,7 @@ GSPrivateStackAddresses(void)
     }
 
   env = jbuf();
-  if (setjmp(env->buf) == 0)
+  if (sigsetjmp(env->buf, 1) == 0)
     {
       env->segv = signal(SIGSEGV, recover);
       env->bus = signal(SIGBUS, recover);
@@ -1178,6 +1209,7 @@ GSPrivateStackAddresses(void)
       signal(SIGSEGV, env->segv);
       signal(SIGBUS, env->bus);
     }
+#endif
   RELEASE(pool);
   return stack;
 }

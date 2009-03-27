@@ -12,159 +12,6 @@
 /* Define if constructors are automatically loaded */
 #undef CON_AUTOLOAD
 
-/* Built in default value for GNUstep config file */
-#undef GNUSTEP_TARGET_CONFIG_FILE
-
-/* Built in default value for GNUstep local apps */
-#undef GNUSTEP_TARGET_LOCAL_ADMIN_APPS
-
-/* Built in default value for GNUstep local tools */
-#undef GNUSTEP_TARGET_LOCAL_ADMIN_TOOLS
-
-/* Built in default value for GNUstep local apps */
-#undef GNUSTEP_TARGET_LOCAL_APPS
-
-/* Built in default value for GNUstep local documentation */
-#undef GNUSTEP_TARGET_LOCAL_DOC
-
-/* Built in default value for GNUstep local info documentation */
-#undef GNUSTEP_TARGET_LOCAL_DOC_INFO
-
-/* Built in default value for GNUstep local manpages documentation */
-#undef GNUSTEP_TARGET_LOCAL_DOC_MAN
-
-/* Built in default value for GNUstep local headers */
-#undef GNUSTEP_TARGET_LOCAL_HEADERS
-
-/* Built in default value for GNUstep local libraries */
-#undef GNUSTEP_TARGET_LOCAL_LIBRARIES
-
-/* Built in default value for GNUstep local library */
-#undef GNUSTEP_TARGET_LOCAL_LIBRARY
-
-/* Built in default value for GNUstep local tools */
-#undef GNUSTEP_TARGET_LOCAL_TOOLS
-
-/* Built in default value for GNUstep Local Users directory */
-#undef GNUSTEP_TARGET_LOCAL_USERS_DIR
-
-/* Built in default value for GNUstep local web apps */
-#undef GNUSTEP_TARGET_LOCAL_WEB_APPS
-
-/* Built in default value for GNUstep Makefiles */
-#undef GNUSTEP_TARGET_MAKEFILES
-
-/* Built in default value for GNUstep network apps */
-#undef GNUSTEP_TARGET_NETWORK_ADMIN_APPS
-
-/* Built in default value for GNUstep system tools */
-#undef GNUSTEP_TARGET_NETWORK_ADMIN_TOOLS
-
-/* Built in default value for GNUstep network apps */
-#undef GNUSTEP_TARGET_NETWORK_APPS
-
-/* Built in default value for GNUstep network documentation */
-#undef GNUSTEP_TARGET_NETWORK_DOC
-
-/* Built in default value for GNUstep network info documentation */
-#undef GNUSTEP_TARGET_NETWORK_DOC_INFO
-
-/* Built in default value for GNUstep network manpages documentation */
-#undef GNUSTEP_TARGET_NETWORK_DOC_MAN
-
-/* Built in default value for GNUstep network headers */
-#undef GNUSTEP_TARGET_NETWORK_HEADERS
-
-/* Built in default value for GNUstep network libraries */
-#undef GNUSTEP_TARGET_NETWORK_LIBRARIES
-
-/* Built in default value for GNUstep network library */
-#undef GNUSTEP_TARGET_NETWORK_LIBRARY
-
-/* Built in default value for GNUstep network tools */
-#undef GNUSTEP_TARGET_NETWORK_TOOLS
-
-/* Built in default value for GNUstep Network Users directory */
-#undef GNUSTEP_TARGET_NETWORK_USERS_DIR
-
-/* Built in default value for GNUstep network web apps */
-#undef GNUSTEP_TARGET_NETWORK_WEB_APPS
-
-/* Built in default value for GNUstep system apps */
-#undef GNUSTEP_TARGET_SYSTEM_ADMIN_APPS
-
-/* Built in default value for GNUstep system tools */
-#undef GNUSTEP_TARGET_SYSTEM_ADMIN_TOOLS
-
-/* Built in default value for GNUstep system apps */
-#undef GNUSTEP_TARGET_SYSTEM_APPS
-
-/* Built in default value for GNUstep system documentation */
-#undef GNUSTEP_TARGET_SYSTEM_DOC
-
-/* Built in default value for GNUstep system info documentation */
-#undef GNUSTEP_TARGET_SYSTEM_DOC_INFO
-
-/* Built in default value for GNUstep system manpages documentation */
-#undef GNUSTEP_TARGET_SYSTEM_DOC_MAN
-
-/* Built in default value for GNUstep system headers */
-#undef GNUSTEP_TARGET_SYSTEM_HEADERS
-
-/* Built in default value for GNUstep system libraries */
-#undef GNUSTEP_TARGET_SYSTEM_LIBRARIES
-
-/* Built in default value for GNUstep system library */
-#undef GNUSTEP_TARGET_SYSTEM_LIBRARY
-
-/* Built in default value for GNUstep system tools */
-#undef GNUSTEP_TARGET_SYSTEM_TOOLS
-
-/* Built in default value for GNUstep System Users directory */
-#undef GNUSTEP_TARGET_SYSTEM_USERS_DIR
-
-/* Built in default value for GNUstep web apps */
-#undef GNUSTEP_TARGET_SYSTEM_WEB_APPS
-
-/* Built in default value for GNUstep user config file */
-#undef GNUSTEP_TARGET_USER_CONFIG_FILE
-
-/* Built in default value for GNUstep user defaults directory */
-#undef GNUSTEP_TARGET_USER_DEFAULTS_DIR
-
-/* Built in default value for GNUstep user_dir admin apps */
-#undef GNUSTEP_TARGET_USER_DIR_ADMIN_APPS
-
-/* Built in default value for GNUstep user_dir tools */
-#undef GNUSTEP_TARGET_USER_DIR_ADMIN_TOOLS
-
-/* Built in default value for GNUstep user_dir apps */
-#undef GNUSTEP_TARGET_USER_DIR_APPS
-
-/* Built in default value for GNUstep user_dir documentation */
-#undef GNUSTEP_TARGET_USER_DIR_DOC
-
-/* Built in default value for GNUstep user_dir info documentation */
-#undef GNUSTEP_TARGET_USER_DIR_DOC_INFO
-
-/* Built in default value for GNUstep user_dir manpages documentation */
-#undef GNUSTEP_TARGET_USER_DIR_DOC_MAN
-
-/* Built in default value for GNUstep user_dir headers */
-#undef GNUSTEP_TARGET_USER_DIR_HEADERS
-
-/* Built in default value for GNUstep user_dir libraries */
-#undef GNUSTEP_TARGET_USER_DIR_LIBRARIES
-
-/* Built in default value for GNUstep user_dir library */
-#undef GNUSTEP_TARGET_USER_DIR_LIBRARY
-
-/* Built in default value for GNUstep user_dir tools */
-#undef GNUSTEP_TARGET_USER_DIR_TOOLS
-
-/* Built in default value for GNUstep user_dir web apps */
-#undef GNUSTEP_TARGET_USER_DIR_WEB_APPS
-
 /* Define if this constant is defined */
 #undef HANDLE_LLONG_MAX
 
@@ -173,6 +20,9 @@
 
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
+
+/* Define to 1 if you have the `backtrace' function. */
+#undef HAVE_BACKTRACE
 
 /* Define to 1 if you have the <bfd.h> header file. */
 #undef HAVE_BFD_H
@@ -193,11 +43,23 @@
 /* Define to 1 if you have the <dns_sd.h> header file. */
 #undef HAVE_DNS_SD_H
 
+/* Define to 1 if you have the <execinfo.h> header file. */
+#undef HAVE_EXECINFO_H
+
 /* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
 
 /* Define if libobjc has the __objc_msg_forward2 function */
 #undef HAVE_FORWARD2
+
+/* Define if GC_allow_register_threads function is available */
+#undef HAVE_GC_ALLOW_REGISTER_THREADS
+
+/* Define to 1 if you have the <gc.h> header file. */
+#undef HAVE_GC_H
+
+/* Define if GC_register_my_thread function is available */
+#undef HAVE_GC_REGISTER_MY_THREAD
 
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
@@ -427,6 +289,9 @@
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
 
+/* Define to 1 if you have the `sigsetjmp' function. */
+#undef HAVE_SIGSETJMP
+
 /* Define to 1 if you have the `statvfs' function. */
 #undef HAVE_STATVFS
 
@@ -599,9 +464,6 @@
 
 /* Define if your system needs to have short/int word aligned */
 #undef NEED_WORD_ALIGNMENT
-
-/* Disable GNUSTEP_CONFIG_FILE environment variable */
-#undef OPTION_NO_ENVIRONMENT
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
