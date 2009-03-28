@@ -1,3 +1,8 @@
+2009-03-28  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSSocketPort.m (-receivedEvent:...forMode:): Fix usage of
+	ET_WDESC for MINGW32.
+
 2009-03-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.h:
