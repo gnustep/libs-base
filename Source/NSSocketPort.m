@@ -1228,8 +1228,6 @@ static Class	runLoopClass;
 #if	defined(__MINGW32__)
   WSANETWORKEVENTS ocurredEvents;
 #else
-  NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x",
-    type != ET_WDESC ? "read" : "write", self);
 #endif
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
