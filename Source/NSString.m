@@ -443,10 +443,6 @@ static unsigned rootOf(NSString *s, unsigned l)
 				  root = NSMaxRange(range);
 				}
 			    }
-			  else
-			    {
-			      root = l;
-			    }
 			}
 		    }
 		}

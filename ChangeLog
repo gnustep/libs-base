@@ -1,3 +1,7 @@
+2009-03-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: backport bugfix for UNC path parsing.
+
 2009-03-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNotificationQueue.m: dealloc bug fix
