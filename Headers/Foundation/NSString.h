@@ -29,10 +29,17 @@
  systems) requires some care.  A modern operating system uses the concept
  of a single root to the filesystem, but mswindows has multiple filesystems
  with no common root, so code must be aware of this.  There is also the
- more minor issue that windows uses a backslash as a separator between
- the components of a path and unix-like systems use a forward slash.
+ more minor issue that windows often uses a backslash as a separator between
+ the components of a path and unix-like systems always use forward slash.<br />
+ On windows there is also the issue that two styles of path are used,
+ most commonly with a drive letter and a path on that drive
+ (eg. 'C:\directory\file') but also UNC paths
+ (eg. '//host/share/directory/file') so path handling functions must deal
+ with both formats.
  </p>
  <p>GNUstep has three path handling modes, 'gnustep', 'unix', and 'windows'.
+ The mode defaults to 'gnustep' but may be set using the GSPathHandling()
+ function.<br />
  You should probably stick to using the default 'gnustep' mode in which the
  path handling methods cope with both unix and windows style paths in
  portable and tolerant manner:<br />
@@ -45,7 +52,11 @@
  The path handling methods add forward slashes when building new paths
  internally or when standardising paths, so those path strings provide
  a portable representation (as long as they are relative paths, not including
- system specific roots).
+ system specific roots).<br />
+ An important case to note is that on windows a path which looks at first
+ glance like an absolute path may actually be a relative one.<br />
+ 'C:file' is a relative path because it specifies  a file on the C drive
+ but does not say what directory it is in.
  </p>
 </chapter>
  */ 
@@ -530,17 +541,17 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  * without alteration.<br />
  * See -lastPathComponent for a definition of a path component.
  * <example>
- *   @"hello/there" produces @"hello"
- *   @"hello" produces @""
- *   @"/hello" produces @"/"
- *   @"/" produces @"/"
- *   @"C:file" produces @"C:"
- *   @"C:" produces @"C:"
- *   @"C:/file" produces @"C:/"
- *   @"C:/" produces @"C:/"
- *   @"//host/share/file" produces @"//host/share/"
- *   @"//host/share/" produces @"/host/share/"
- *   @"//host/share" produces @"/host/share"
+ *   @"hello/there" produces @"hello" (a relative path)
+ *   @"hello" produces @"" (a relative path)
+ *   @"/hello" produces @"/" (an absolute unix path)
+ *   @"/" produces @"/" (an absolute unix path)
+ *   @"C:file" produces @"C:" (a relative windows path)
+ *   @"C:" produces @"C:" (a relative windows path)
+ *   @"C:/file" produces @"C:/" (an absolute windows path)
+ *   @"C:/" produces @"C:/" (an absolute windows path)
+ *   @"//host/share/file" produces @"//host/share/" (a UNC path)
+ *   @"//host/share/" produces @"//host/share/" (a UNC path)
+ *   @"//path/file" produces @"//path" (an absolute Unix path)
  * </example>
  */
 - (NSString*) stringByDeletingLastPathComponent;

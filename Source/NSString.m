@@ -351,7 +351,6 @@ pathSepString()
  * 'C:/'		absolute root for a drive on windows
  * 'C:'			if entire path is 'C:' or 'C:relativepath'
  * '//host/share/'	absolute root for a host and share on windows
- * '//host/share'	if entire path is '//host/share'
  * '~/'			home directory for user
  * '~'			if entire path is '~'
  * '~username/'		home directory for user
@@ -440,12 +439,11 @@ static unsigned rootOf(NSString *s, unsigned l)
 			       */
 			      if (range.location > pos)
 				{
+				  /* OK ... we have the '//host/share/'
+				   * format, so this is a valid UNC path.
+				   */
 				  root = NSMaxRange(range);
 				}
-			    }
-			  else
-			    {
-			      root = l;
 			    }
 			}
 		    }

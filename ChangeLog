@@ -1,3 +1,7 @@
+2009-03-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Fix error in parsing root of UNC path
+
 2009-03-28  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSSocketPort.m (-receivedEvent:...forMode:): Fix usage of
