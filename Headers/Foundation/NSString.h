@@ -539,8 +539,8 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  *   @"C:/file" produces @"C:/"
  *   @"C:/" produces @"C:/"
  *   @"//host/share/file" produces @"//host/share/"
- *   @"//host/share/" produces @"/host/share/"
- *   @"//host/share" produces @"/host/share"
+ *   @"//host/share/" produces @"//host/share/"
+ *   @"//host/share" produces @"//host"
  * </example>
  */
 - (NSString*) stringByDeletingLastPathComponent;
