@@ -282,9 +282,10 @@ GS_EXPORT BOOL NSDeallocateZombies;
  */
 #define NSDebugFLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) { \
-    NSString *fmt = GSDebugFunctionMsg( \
-	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-    NSLog(fmt , ## args); }} while (0)
+    NSString *s = GSDebugFunctionMsg( \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+      [NSString stringWithFormat: format, ##args]); \
+    NSLog(@"%@", s); }} while (0)
 
 /**
  * This macro is a shorthand for NSDebugFLLog() using then default debug
@@ -292,9 +293,10 @@ GS_EXPORT BOOL NSDeallocateZombies;
  */
 #define NSDebugFLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) { \
-    NSString *fmt = GSDebugFunctionMsg( \
-	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-    NSLog(fmt , ## args); }} while (0)
+    NSString *s = GSDebugFunctionMsg( \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+      [NSString stringWithFormat: format, ##args]); \
+    NSLog(@"%@", s); }} while (0)
 
 /**
  * This macro is like NSDebugLLog() but includes the name and location
@@ -302,9 +304,10 @@ GS_EXPORT BOOL NSDeallocateZombies;
  */
 #define NSDebugMLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) { \
-    NSString *fmt = GSDebugMethodMsg( \
-	self, _cmd, __FILE__, __LINE__, format); \
-    NSLog(fmt , ## args); }} while (0)
+    NSString *s = GSDebugFunctionMsg( \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+      [NSString stringWithFormat: format, ##args]); \
+    NSLog(@"%@", s); }} while (0)
 
 /**
  * This macro is a shorthand for NSDebugMLLog() using then default debug
@@ -312,9 +315,10 @@ GS_EXPORT BOOL NSDeallocateZombies;
  */
 #define NSDebugMLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) { \
-    NSString *fmt = GSDebugMethodMsg( \
-	self, _cmd, __FILE__, __LINE__, format); \
-    NSLog(fmt , ## args); }} while (0)
+    NSString *s = GSDebugFunctionMsg( \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+      [NSString stringWithFormat: format, ##args]); \
+    NSLog(@"%@", s); }} while (0)
 
 /**
  * This macro saves the name and location of the function in
@@ -361,10 +365,12 @@ GS_EXPORT BOOL NSDeallocateZombies;
  */
 #define GSOnceFLog(format, args...) \
   do { static BOOL beenHere = NO; if (beenHere == NO) {\
-    NSString *fmt = GSDebugFunctionMsg( \
-	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+    NSString *s = GSDebugFunctionMsg( \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+      [NSString stringWithFormat: format, ##args]); \
     beenHere = YES; \
-    NSLog(fmt , ## args); }} while (0)
+    NSLog(@"%@", s); }} while (0)
+
 /**
  * Macro to log a message only the first time it is encountered.<br />
  * Not entirely thread safe ... but that's not really important,
@@ -377,10 +383,11 @@ GS_EXPORT BOOL NSDeallocateZombies;
  */
 #define GSOnceMLog(format, args...) \
   do { static BOOL beenHere = NO; if (beenHere == NO) {\
-    NSString *fmt = GSDebugMethodMsg( \
-	self, _cmd, __FILE__, __LINE__, format); \
+    NSString *s = GSDebugFunctionMsg( \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+      [NSString stringWithFormat: format, ##args]); \
     beenHere = YES; \
-    NSLog(fmt , ## args); }} while (0)
+    NSLog(@"%@", s); }} while (0)
 
 
 
@@ -430,9 +437,10 @@ GS_EXPORT BOOL NSDeallocateZombies;
  */
 #define NSWarnFLog(format, args...) \
   do { if (GSDebugSet(@"NoWarn") == NO) { \
-    NSString *fmt = GSDebugFunctionMsg( \
-	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-    NSLog(fmt , ## args); }} while (0)
+    NSString *s = GSDebugFunctionMsg( \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+      [NSString stringWithFormat: format, ##args]); \
+    NSLog(@"%@", s); }} while (0)
 
 /**
  * This macro is like NSWarnLog() but includes the name and location of the
@@ -440,9 +448,10 @@ GS_EXPORT BOOL NSDeallocateZombies;
  */
 #define NSWarnMLog(format, args...) \
   do { if (GSDebugSet(@"NoWarn") == NO) { \
-    NSString *fmt = GSDebugMethodMsg( \
-	self, _cmd, __FILE__, __LINE__, format); \
-    NSLog(fmt , ## args); }} while (0)
+    NSString *s = GSDebugFunctionMsg( \
+      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+      [NSString stringWithFormat: format, ##args]); \
+    NSLog(@"%@", s); }} while (0)
 #else
 #define NSWarnLog(format, args...)
 #define NSWarnFLog(format, args...)
