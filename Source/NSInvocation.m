@@ -923,7 +923,8 @@ _arg_addr(NSInvocation *inv, int index)
   types = sel_get_type(aSelector);
   if (types == 0)
     {
-      types = sel_get_type(sel_get_any_typed_uid(GSNameFromSelector(aSelector)));
+      types
+        = sel_get_type(sel_get_any_typed_uid(GSNameFromSelector(aSelector)));
     }
   if (types == 0)
     {
@@ -934,113 +935,6 @@ _arg_addr(NSInvocation *inv, int index)
     }
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
   return [self initWithMethodSignature: newSig];
-}
-
-/**
- * Initialises the receiver with the specified target, selector, and
- * a variable number of arguments.
- */
-- (id) initWithTarget: anObject selector: (SEL)aSelector, ...
-{
-  va_list	     ap;
-  NSMethodSignature *newSig;
-
-  if (anObject)
-    {
-      newSig = [anObject methodSignatureForSelector: aSelector];
-      self = [self initWithMethodSignature: newSig];
-    }
-  else
-    {
-      self = [self initWithSelector: aSelector];
-    }
-  if (self)
-    {
-      unsigned int	i;
-
-      [self setTarget: anObject];
-      [self setSelector: aSelector];
-      va_start (ap, aSelector);
-      for (i = 3; i <= _numArgs; i++)
-	{
-	  const char	*type = _info[i].type;
-	  unsigned	size = _info[i].size;
-	  void		*datum;
-
-	  datum = _arg_addr(self, i-1);
-
-#define CASE_TYPE(_C,_T) case _C: *(_T*)datum = va_arg (ap, _T); break
-	  switch (*type)
-	    {
-	      case _C_ID:
-		*(id*)datum = va_arg (ap, id);
-		if (_argsRetained)
-		  {
-		    IF_NO_GC(RETAIN(*(id*)datum));
-		  }
-		break;
-	      case _C_CHARPTR:
-		*(char**)datum = va_arg (ap, char*);
-		if (_argsRetained)
-		  {
-		    char	*old = *(char**)datum;
-
-		    if (old != 0)
-		      {
-			char	*tmp;
-
-			tmp = NSZoneMalloc(NSDefaultMallocZone(),strlen(old)+1);
-			strcpy(tmp, old);
-			*(char**)datum = tmp;
-		      }
-		  }
-		break;
-	      CASE_TYPE(_C_CLASS, Class);
-	      CASE_TYPE(_C_SEL, SEL);
-	      CASE_TYPE(_C_LNG, long);
-	      CASE_TYPE(_C_ULNG, unsigned long);
-	      CASE_TYPE(_C_INT, NSInteger);
-	      CASE_TYPE(_C_UINT, NSUInteger);
-	      case _C_SHT:
-		*(short*)datum = (short)va_arg(ap, NSInteger);
-		break;
-	      case _C_USHT:
-		*(unsigned short*)datum = (unsigned short)va_arg(ap, NSInteger);
-		break;
-	      case _C_CHR:
-		*(char*)datum = (char)va_arg(ap, NSInteger);
-		break;
-	      case _C_UCHR:
-		*(unsigned char*)datum = (unsigned char)va_arg(ap, NSInteger);
-		break;
-	      case _C_FLT:
-		*(float*)datum = (float)va_arg(ap, double);
-		break;
-	      CASE_TYPE(_C_DBL, double);
-	      CASE_TYPE(_C_PTR, void*);
-	      case _C_STRUCT_B:
-	      default:
-#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
-#if defined(sparc) || defined(powerpc)
-		/* FIXME: This only appears on sparc and ppc machines so far.
-		structures appear to be aligned on word boundaries.
-		Hopefully there is a more general way to figure this out */
-		size = (size<sizeof(NSInteger))?4:size;
-#endif
-#endif
-	      NSLog(@"Unsafe handling of type of %d argument.", i-1);
-	      {
-		struct {
-		  char	x[size];
-		} dummy;
-		dummy = va_arg(ap, typeof(dummy));
-	        memcpy(datum, dummy.x, size);
-	      }
-	      break;
-	    }
-	}
-    }
-  return self;
 }
 
 /**
