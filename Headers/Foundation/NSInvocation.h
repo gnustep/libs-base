@@ -120,7 +120,6 @@ extern "C" {
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
 - (id) initWithSelector: (SEL)aSelector;
-- (id) initWithTarget: (id)anObject selector: (SEL)aSelector, ...;
 - (void*) returnFrame: (arglist_t)argFrame;
 @end
 

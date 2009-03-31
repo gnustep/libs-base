@@ -1,5 +1,11 @@
 2009-03-31  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSInvocation.h:
+	* Source/NSInvocation.m:
+	Remove unused private method pointed out by David Chisnall.
+
+2009-03-31  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSDebug.h:
 	* Source/mframe.m:
 	* Source/NSObject.m:
