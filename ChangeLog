@@ -1,3 +1,11 @@
+2009-03-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSDebug.h:
+	* Source/mframe.m:
+	* Source/NSObject.m:
+	Cleanups for building with other compilers as suggested/provided
+	by David Chisnall.
+
 2009-03-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix error in parsing root of UNC path

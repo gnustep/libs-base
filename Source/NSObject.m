@@ -907,9 +907,9 @@ warn_proc(char *msg, GC_word arg)
       {
 	volatile short cw;
 
-	__asm__ volatile ("fstcw (%0)" : : "g" (&cw));
+	__asm__ volatile ("fstcw %0" : : "g" (&cw));
 	cw |= 1; /* Mask 'invalid' exception */
-	__asm__ volatile ("fldcw (%0)" : : "g" (&cw));
+	__asm__ volatile ("fldcw %0" : : "g" (&cw));
       }
 #endif
 

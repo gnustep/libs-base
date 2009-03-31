@@ -803,6 +803,60 @@ mframe_dissect_call (arglist_t argframe, const char *type,
   single data item (for distributed objects).
 */
 
+static inline id retframe_id(void *rframe)
+{
+  __builtin_return (rframe);
+}
+static inline Class retframe_Class(void *rframe)
+{
+  __builtin_return (rframe);
+}
+static inline SEL retframe_SEL(void *rframe)
+{
+  __builtin_return (rframe);
+}
+static inline unsigned long retframe_long(void *rframe)
+{
+  __builtin_return (rframe);
+}
+static inline unsigned long long retframe_longlong(void *rframe)
+{
+  __builtin_return (rframe);
+}
+static inline char* retframe_pointer(void *rframe)
+{
+  __builtin_return (rframe);
+}
+typedef struct {
+  char	val[4];
+} block;
+static inline block retframe_block(void *rframe)
+{
+  __builtin_return (rframe);
+}
+static inline float retframe_float (void *rframe)
+{
+  __builtin_return (rframe);
+}
+/* For extracting a return value of type `double' from RETFRAME. */
+static inline double retframe_double (void *rframe)
+{
+  __builtin_return (rframe);
+}
+/* For extracting a return value of type `char' from RETFRAME */
+static inline char retframe_char (void *rframe)
+{
+  __builtin_return (rframe);
+}
+static inline short retframe_short (void *rframe)
+{
+  __builtin_return (rframe);
+}
+static inline int retframe_int (void *rframe)
+{
+  __builtin_return (rframe);
+}
+
 void
 mframe_do_call (DOContext *ctxt,
 		void(*decoder)(DOContext*),
@@ -841,26 +895,6 @@ mframe_do_call (DOContext *ctxt,
      If so, we need to encode them, since the method may have changed them. */
   BOOL out_parameters = NO;
   const char *encoded_types = ctxt->type;
-  /* For extracting a return value of type `float' from RETFRAME. */
-  float retframe_float (void *rframe)
-    {
-      __builtin_return (rframe);
-    }
-  /* For extracting a return value of type `double' from RETFRAME. */
-  double retframe_double (void *rframe)
-    {
-      __builtin_return (rframe);
-    }
-  /* For extracting a return value of type `char' from RETFRAME */
-  char retframe_char (void *rframe)
-    {
-      __builtin_return (rframe);
-    }
-  /* For extracting a return value of type `short' from RETFRAME */
-  short retframe_short (void *rframe)
-    {
-      __builtin_return (rframe);
-    }
 
   /* Decode the object, (which is always the first argument to a method),
      into the local variable OBJECT. */
@@ -1620,30 +1654,18 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     {
     case _C_ID:
       {
-	inline id retframe_id(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(id*)buffer = retframe_id(retframe);
 	break;
       }
 
     case _C_CLASS:
       {
-	inline Class retframe_Class(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(Class*)buffer = retframe_Class(retframe);
 	break;
       }
 
     case _C_SEL:
       {
-	inline SEL retframe_SEL(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(SEL*)buffer = retframe_SEL(retframe);
 	break;
       }
@@ -1651,10 +1673,6 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     case _C_CHR:
     case _C_UCHR:
       {
-	inline unsigned char retframe_char(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(unsigned char*)buffer = retframe_char(retframe);
 	break;
       }
@@ -1662,10 +1680,6 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     case _C_SHT:
     case _C_USHT:
       {
-	inline unsigned short retframe_short(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(unsigned short*)buffer = retframe_short(retframe);
 	break;
       }
@@ -1673,10 +1687,6 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     case _C_INT:
     case _C_UINT:
       {
-	inline unsigned int retframe_int(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(unsigned int*)buffer = retframe_int(retframe);
 	break;
       }
@@ -1684,10 +1694,6 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     case _C_LNG:
     case _C_ULNG:
       {
-	inline unsigned long retframe_long(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(unsigned long*)buffer = retframe_long(retframe);
 	break;
       }
@@ -1695,30 +1701,18 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     case _C_LNG_LNG:
     case _C_ULNG_LNG:
       {
-	inline unsigned long long retframe_longlong(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(unsigned long long*)buffer = retframe_longlong(retframe);
 	break;
       }
 
     case _C_FLT:
       {
-	inline float retframe_float(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(float*)buffer = retframe_float(retframe);
 	break;
       }
 
     case _C_DBL:
       {
-	inline double retframe_double(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(double*)buffer = retframe_double(retframe);
 	break;
       }
@@ -1727,10 +1721,6 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     case _C_ATOM:
     case _C_CHARPTR:
       {
-	inline char* retframe_pointer(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(char**)buffer = retframe_pointer(retframe);
 	break;
       }
@@ -1739,13 +1729,6 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
     case _C_STRUCT_B:
     case _C_UNION_B:
       {
-	typedef struct {
-	  char	val[4];
-	} block;
-	inline block retframe_block(void *rframe)
-	{
-	  __builtin_return (rframe);
-	}
 	*(block*)buffer = retframe_block(retframe);
 	break;
       }
