@@ -1,3 +1,7 @@
+2009-04-03  Adam Fedor <fedor@gnu.org>
+
+	* Source/NSObject.m: Revert previous patch (David to fix up later).
+
 2009-03-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSInvocation.h:
