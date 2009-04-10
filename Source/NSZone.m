@@ -744,6 +744,10 @@ static void* rrealloc (NSZone *zone, void *ptr, size_t size);
 static void rffree (NSZone *zone, void *ptr);
 static void rnfree (NSZone *zone, void *ptr);
 
+/*
+ *	Lists of zones to be used to determine if a pointer is in a zone.
+ */
+static NSZone	*zone_list = 0;
 
 static inline void
 destroy_zone(NSZone* zone)
@@ -1813,11 +1817,6 @@ rrealloc (NSZone *zone, void *ptr, size_t size)
 }
 
 static void rnfree (NSZone *zone, void *ptr);
-
-/*
- *	Lists of zones to be used to determine if a pointer is in a zone.
- */
-static NSZone	*zone_list = 0;
 
 /**
  * Searches and finds the zone ptr was allocated from.  The speed depends
