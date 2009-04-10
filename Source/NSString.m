@@ -1103,7 +1103,7 @@ handle_printf_atsign (FILE *stream,
   len = [format length];
   if (len >= 1024)
     {
-      fmt = objc_malloc((len+1)*sizeof(unichar));
+      fmt = NSZoneMalloc(NSDefaultMallocZone(), (len+1)*sizeof(unichar));
     }
   [format getCharacters: fmt range: ((NSRange){0, len})];
   fmt[len] = '\0';
@@ -1120,12 +1120,12 @@ handle_printf_atsign (FILE *stream,
 #if HAVE_WIDE_PRINTF_FUNCTION
   f._flags.wide = 0;
 #endif	/* HAVE_WIDE_PRINTF_FUNCTION */
-  f._flags.free = 0;
+  f._flags.owned = 0;
   GSPrivateFormat(&f, fmt, argList, locale);
   GSPrivateStrExternalize(&f);
   if (fmt != fbuf)
     {
-      objc_free(fmt);
+      NSZoneFree(NSDefaultMallocZone(), fmt);
     }
 
   /*
@@ -1151,7 +1151,7 @@ handle_printf_atsign (FILE *stream,
    * If the string had to grow beyond the initial buffer size, we must
    * release any allocated memory.
    */
-  if (f._flags.free == 1)
+  if (f._flags.owned == 1)
     {
       NSZoneFree(f._zone, f._contents.c);
     }
@@ -2999,7 +2999,7 @@ handle_printf_atsign (FILE *stream,
        */
       if (len >= 4096)
 	{
-	  u = objc_malloc(len * sizeof(unichar));
+	  u = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
 	}
       [self getCharacters: u];
       if (flag == NO)
@@ -3021,7 +3021,7 @@ handle_printf_atsign (FILE *stream,
 	}
       if (u != buf)
 	{
-	  objc_free(u);
+	  NSZoneFree(NSDefaultMallocZone(), u);
 	}
     }
   return d;

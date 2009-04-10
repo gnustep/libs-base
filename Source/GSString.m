@@ -94,9 +94,6 @@ a single flag for the structure classes: free. This is set only if the
 _contents buffer is guaranteed to remain valid at least until the instance
 has been deallocated.
 
-(It really should be named 'ownsContents' or something similar, but it's
-'free' in GSMutableString, and the structures need to be interchangeable.)
-
 Many optimizations, such as retaining instead of copying, and using pointers
 to another strings _contents buffer, are valid only if this flag is set.
 
@@ -125,8 +122,8 @@ method which can be used to initialize that specific subclass.
 
 GS*BufferString, concrete subclasses that store the data in an external
 (wrt. the instance itself) buffer. The buffer may or may not be owned
-by the instance; the 'free' flag indicates which. If it is set,
-we need to free the buffer when we are deallocated.
+by the instance; the 'owned' flag indicates which. If it is set,
+we may need to free the buffer when we are deallocated.
 */
 @interface GSCBufferString : GSCString
 {
@@ -367,7 +364,7 @@ static void getCString_u(GSStr self, char *buffer, unsigned int maxLength,
  * Remove any BOM and perform byte swapping if required.
  */
 static void
-fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
+fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   NSStringEncoding encoding)
 {
   unsigned char	*b = *bytes;
@@ -379,17 +376,16 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       // Got a byte order marker ... remove it.
       if (len == sizeof(unichar))
 	{
-	  if (*shouldFree)
+	  if (*owned)
 	    {
 	      NSZoneFree(NSZoneFromPointer(b), b);
+	      *owned = NO;
 	    }
 	  *length = 0;
-	  *shouldFree = NO;
 	  *bytes = 0;
 	}
       else
 	{
-	  NSZone	*z = NSZoneFromPointer(b);
 	  unsigned char	*from = b;
 	  unsigned char	*to;
 	  unichar	u;
@@ -398,7 +394,11 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
 	  len -= sizeof(unichar);
 	  memcpy(&u, from, sizeof(unichar));
 	  from += sizeof(unichar);
-	  to = NSZoneMalloc(z, len);
+#if	GS_WITH_GC
+	  to = NSAllocateCollectable(len, 0);
+#else
+	  to = NSZoneMalloc(NSDefaultMallocZone(), len);
+#endif
 	  if (u == 0xFEFF)
 	    {
 	      // Native byte order
@@ -414,13 +414,16 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
 		  to[i+1] = from[i];
 		}
 	    }
-	  if (*shouldFree == YES)
+	  if (*owned == YES)
 	    {
-	      NSZoneFree(z, b);
+	      NSZoneFree(NSZoneFromPointer(b), b);
+	    }
+	  else
+	    {
+	      *owned = YES;
 	    }
 	  *length = len;
 	  *bytes = to;
-	  *shouldFree = YES;
         }
     }
   else if (encoding == NSUTF8StringEncoding && len >= 3
@@ -428,32 +431,38 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
     {
       if (len == 3)
 	{
-	  if (*shouldFree)
+	  if (*owned)
 	    {
 	      NSZoneFree(NSZoneFromPointer(b), b);
+	      *owned = NO;
 	    }
 	  *length = 0;
-	  *shouldFree = NO;
 	  *bytes = 0;
 	}
       else
 	{
-	  NSZone	*z = NSZoneFromPointer(b);
 	  unsigned char	*from = b;
 	  unsigned char	*to;
 
 	  // Got a byte order marker ... remove it.
 	  len -= 3;
 	  from += 3;
-	  to = NSZoneMalloc(z, len);
+#if	GS_WITH_GC
+	  to = NSAllocateCollectable(len, 0);
+#else
+	  to = NSZoneMalloc(NSDefaultMallocZone(), len);
+#endif
 	  memcpy(to, from, len);
-	  if (*shouldFree == YES)
+	  if (*owned == YES)
 	    {
-	      NSZoneFree(z, b);
+	      NSZoneFree(NSZoneFromPointer(b), b);
+	    }
+	  else
+	    {
+	      *owned = YES;
 	    }
 	  *length = len;
 	  *bytes = to;
-	  *shouldFree = YES;
 	}
     }
 }
@@ -480,7 +489,11 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
        */
       if (original == bytes)
 	{
+#if	GS_WITH_GC
+	  chars = NSAllocateCollectable(length, 0);
+#else
 	  chars = NSZoneMalloc(GSObjCZone(self), length);
+#endif
 	  memcpy(chars, bytes, length);
 	}
       else
@@ -585,7 +598,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       me->_contents.c = chars.c;
       me->_count = length;
       me->_flags.wide = 0;
-      me->_flags.free = flag;
+      me->_flags.owned = flag;
       return (id)me;
     }
 
@@ -633,7 +646,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 0;
-      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       while (length-- > 0)
         {
 	  me->_contents.c[length] = chars.u[length];
@@ -650,7 +663,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       me->_contents.u = chars.u;
       me->_count = length;
       me->_flags.wide = 1;
-      me->_flags.free = flag;
+      me->_flags.owned = flag;
     }
   return (id)me;
 }
@@ -711,7 +724,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
   len = [format length];
   if (len >= 1024)
     {
-      fmt = objc_malloc((len+1)*sizeof(unichar));
+      fmt = NSZoneMalloc(NSDefaultMallocZone(), (len+1)*sizeof(unichar));
     }
   [format getCharacters: fmt];
   fmt[len] = '\0';
@@ -726,11 +739,11 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
   f._capacity = sizeof(buf);
   f._count = 0;
   f._flags.wide = 0;
-  f._flags.free = 0;
+  f._flags.owned = 0;
   GSPrivateFormat(&f, fmt, argList, locale);
   if (fmt != fbuf)
     {
-      objc_free(fmt);
+      NSZoneFree(NSDefaultMallocZone(), fmt);
     }
 
   /*
@@ -748,7 +761,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
       me->_count = f._count;
       me->_flags.wide = 1;
-      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       memcpy(me->_contents.u, f._contents.u, f._count*sizeof(unichar));
     }
   else
@@ -758,7 +771,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = f._count;
       me->_flags.wide = 0;
-      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       memcpy(me->_contents.c, f._contents.c, f._count);
     }
 
@@ -766,7 +779,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
    * If the string had to grow beyond the initial buffer size, we must
    * release any allocated memory.
    */
-  if (f._flags.free == 1)
+  if (f._flags.owned == 1)
     {
       NSZoneFree(f._zone, f._contents.c);
     }
@@ -805,7 +818,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 0;
-      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       memcpy(me->_contents.c, ((GSStr)string)->_contents.c, length);
     }
   else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
@@ -820,7 +833,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 1;
-      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       memcpy(me->_contents.u, ((GSStr)string)->_contents.u,
 	length*sizeof(unichar));
     }
@@ -835,7 +848,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *shouldFree,
       me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
       me->_count = length;
       me->_flags.wide = 1;
-      me->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       [string getCharacters: me->_contents.u];
     }
   return (id)me;
@@ -1607,7 +1620,7 @@ getCString_c(GSStr self, char *buffer, unsigned int maxLength,
       o._contents.c = self->_contents.c;
       GSStrWiden((GSStr)&o);
       getCString_u((GSStr)&o, buffer, maxLength, aRange, leftoverRange);
-      if (o._flags.free == 1)
+      if (o._flags.owned == 1)
         {
           NSZoneFree(o._zone, o._contents.u);
         }
@@ -2229,7 +2242,7 @@ static void GSStrMakeSpace(GSStr s, unsigned size)
     {
       s->_capacity = want;
     }
-  if (s->_flags.free == 1)
+  if (s->_flags.owned == 1)
     {
       /*
        * If we own the character buffer, we can simply realloc.
@@ -2287,7 +2300,7 @@ static void GSStrMakeSpace(GSStr s, unsigned size)
 	      memcpy(s->_contents.c, tmp, s->_count);
 	    }
 	}
-      s->_flags.free = 1;
+      s->_flags.owned = 1;
     }
 }
 
@@ -2341,13 +2354,13 @@ static void GSStrWiden(GSStr s)
       [NSException raise: NSInternalInconsistencyException
 		  format: @"widen of string failed"];
     }
-  if (s->_flags.free == 1)
+  if (s->_flags.owned == 1)
     {
       NSZoneFree(s->_zone, s->_contents.c);
     }
   else
     {
-      s->_flags.free = 1;
+      s->_flags.owned = 1;
     }
   s->_contents.u = tmp;
   s->_flags.wide = 1;
@@ -2603,7 +2616,7 @@ substring_c(GSStr self, NSRange aRange)
   o->_contents.c = self->_contents.c + aRange.location;
   o->_count = aRange.length;
   o->_flags.wide = 0;
-  o->_flags.free = 0;
+  o->_flags.owned = 0;
   ASSIGN(o->_parent, (id)self);
   return AUTORELEASE((id)o);
 }
@@ -2622,7 +2635,7 @@ substring_u(GSStr self, NSRange aRange)
   o->_contents.u = self->_contents.u + aRange.location;
   o->_count = aRange.length;
   o->_flags.wide = 1;
-  o->_flags.free = 0;
+  o->_flags.owned = 0;
   ASSIGN(o->_parent, (id)self);
   return AUTORELEASE((id)o);
 }
@@ -3078,7 +3091,7 @@ agree, create a new GSCInlineString otherwise.
 */
 - (id) copyWithZone: (NSZone*)z
 {
-  if (!_flags.free || NSShouldRetainWithZone(self, z) == NO)
+  if (!_flags.owned || NSShouldRetainWithZone(self, z) == NO)
     {
       struct {
 	@defs(GSCInlineString)
@@ -3089,7 +3102,7 @@ agree, create a new GSCInlineString otherwise.
       o->_count = _count;
       memcpy(o->_contents.c, _contents.c, _count);
       o->_flags.wide = 0;
-      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       return (id)o;
     }
   else
@@ -3105,7 +3118,7 @@ agree, create a new GSCInlineString otherwise.
 @implementation GSCBufferString
 - (void) dealloc
 {
-  if (_flags.free && _contents.c != 0)
+  if (_flags.owned && _contents.c != 0)
     {
       NSZoneFree(NSZoneFromPointer(_contents.c), _contents.c);
       _contents.c = 0;
@@ -3143,7 +3156,7 @@ agree, create a new GSCInlineString otherwise.
   o->_count = _count;
   memcpy(o->_contents.c, _contents.c, _count);
   o->_flags.wide = 0;
-  o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+  o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
   return (id)o;
 }
 
@@ -3415,7 +3428,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 */
 - (id) copyWithZone: (NSZone*)z
 {
-  if (!_flags.free || NSShouldRetainWithZone(self, z) == NO)
+  if (!_flags.owned || NSShouldRetainWithZone(self, z) == NO)
     {
       struct {
 	@defs(GSUnicodeInlineString)
@@ -3427,7 +3440,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       o->_count = _count;
       memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
       o->_flags.wide = 1;
-      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       return (id)o;
     }
   else
@@ -3443,7 +3456,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 @implementation	GSUnicodeBufferString
 - (void) dealloc
 {
-  if (_flags.free && _contents.u != 0)
+  if (_flags.owned && _contents.u != 0)
     {
       NSZoneFree(NSZoneFromPointer(_contents.u), _contents.u);
       _contents.u = 0;
@@ -3482,7 +3495,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   o->_count = _count;
   memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
   o->_flags.wide = 1;
-  o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+  o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
   return (id)o;
 }
 
@@ -3529,7 +3542,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   len = [format length];
   if (len >= 1024)
     {
-      fmt = objc_malloc((len+1)*sizeof(unichar));
+      fmt = NSZoneMalloc(NSDefaultMallocZone(), (len+1)*sizeof(unichar));
     }
   [format getCharacters: fmt];
   fmt[len] = '\0';
@@ -3550,7 +3563,7 @@ agree, create a new GSUnicodeInlineString otherwise.
   _flags.hash = 0;	// Invalidate the hash for this string.
   if (fmt != buf)
     {
-      objc_free(fmt);
+      NSZoneFree(NSDefaultMallocZone(), fmt);
     }
   va_end(ap);
 }
@@ -3612,7 +3625,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       o->_count = _count;
       memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
       o->_flags.wide = 1;
-      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       return (id)o;
     }
   else
@@ -3626,7 +3639,7 @@ agree, create a new GSUnicodeInlineString otherwise.
       o->_count = _count;
       memcpy(o->_contents.c, _contents.c, _count);
       o->_flags.wide = 0;
-      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       return (id)o;
     }
 }
@@ -3666,7 +3679,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 - (void) dealloc
 {
-NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
+NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   if (_contents.c != 0)
     {
       NSZoneFree(self->_zone, self->_contents.c);
@@ -3830,7 +3843,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
   BOOL		isLatin1 = NO;
   BOOL		shouldFree = NO;
 
-  _flags.free = YES;
+  _flags.owned = YES;
 #if	GS_WITH_GC
   _zone = GSAtomicMallocZone();
 #else
@@ -4007,7 +4020,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 #endif
   _contents.c = NSZoneMalloc(_zone, capacity + 1);
   _flags.wide = 0;
-  _flags.free = 1;
+  _flags.owned = 1;
   return self;
 }
 
@@ -4048,7 +4061,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
   len = [format length];
   if (len >= 1024)
     {
-      fmt = objc_malloc((len+1)*sizeof(unichar));
+      fmt = NSZoneMalloc(NSDefaultMallocZone(), (len+1)*sizeof(unichar));
     }
   [format getCharacters: fmt];
   fmt[len] = '\0';
@@ -4056,7 +4069,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
   GSPrivateFormat((GSStr)self, fmt, argList, locale);
   if (fmt != fbuf)
     {
-      objc_free(fmt);
+      NSZoneFree(NSDefaultMallocZone(), fmt);
     }
   return self;
 }
@@ -4108,7 +4121,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
+NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 #ifndef NDEBUG
   GSDebugAllocationRemove(isa, self);
 #endif
@@ -4404,7 +4417,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
       memcpy(o->_contents.u, _contents.u + aRange.location,
 	aRange.length * sizeof(unichar));
       o->_flags.wide = 1;
-      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       return AUTORELEASE((id)o);
     }
   else
@@ -4419,7 +4432,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
       o->_count = aRange.length;
       memcpy(o->_contents.c, _contents.c + aRange.location, aRange.length);
       o->_flags.wide = 0;
-      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       return AUTORELEASE((id)o);
     }
 }
@@ -4445,7 +4458,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
       memcpy(o->_contents.u, _contents.u + aRange.location,
 	aRange.length * sizeof(unichar));
       o->_flags.wide = 1;
-      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       return AUTORELEASE((id)o);
     }
   else
@@ -4460,7 +4473,7 @@ NSAssert(_flags.free == 1 && _zone != 0, NSInternalInconsistencyException);
       o->_count = aRange.length;
       memcpy(o->_contents.c, _contents.c + aRange.location, aRange.length);
       o->_flags.wide = 0;
-      o->_flags.free = 1;	// Ignored on dealloc, but means we own buffer
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
       return AUTORELEASE((id)o);
     }
 }

@@ -96,6 +96,364 @@
 #include "Foundation/NSZone.h"
 #include "Foundation/NSLock.h"
 
+/* Default zone functions for default zone. */
+static void* default_malloc (NSZone *zone, size_t size);
+static void* default_realloc (NSZone *zone, void *ptr, size_t size);
+static void default_free (NSZone *zone, void *ptr);
+static void default_recycle (NSZone *zone);
+static BOOL default_check (NSZone *zone);
+static BOOL default_lookup (NSZone *zone, void *ptr);
+static struct NSZoneStats default_stats (NSZone *zone);
+
+static void*
+default_malloc (NSZone *zone, size_t size)
+{
+  void *mem;
+
+  mem = objc_malloc(size);
+  if (mem == NULL)
+    [NSException raise: NSMallocException
+                 format: @"Default zone has run out of memory"];
+  return mem;
+}
+
+static void*
+default_realloc (NSZone *zone, void *ptr, size_t size)
+{
+  void *mem;
+
+  if (size == 0)
+    {
+      objc_free(ptr);
+      return NULL;
+    }
+  if (ptr == 0)
+    {
+      mem = objc_malloc(size);
+      if (mem == NULL)
+	[NSException raise: NSMallocException
+		     format: @"Default zone has run out of memory"];
+      return mem;
+    }
+  mem = objc_realloc(ptr, size);
+  if (mem == NULL)
+    [NSException raise: NSMallocException
+                 format: @"Default zone has run out of memory"];
+  return mem;
+}
+
+static void
+default_free (NSZone *zone, void *ptr)
+{
+  objc_free(ptr);
+}
+
+static void
+default_recycle (NSZone *zone)
+{
+  /* Recycle the default zone?  Thou hast got to be kiddin'. */
+  [NSException raise: NSGenericException
+              format: @"Trying to recycle default zone"];
+}
+
+static BOOL
+default_check (NSZone *zone)
+{
+  /* We can't check memory managed by objc_malloc(). */
+  [NSException raise: NSGenericException
+	      format: @"No checking for default zone"];
+  return NO;
+}
+
+static BOOL
+default_lookup (NSZone *zone, void *ptr)
+{
+  /* Assume all memory is in default zone. */
+  return YES;
+}
+
+static struct NSZoneStats
+default_stats (NSZone *zone)
+{
+  struct NSZoneStats dummy = {0,0,0,0,0};
+
+  /* We can't obtain statistics from the memory managed by objc_malloc(). */
+  [NSException raise: NSGenericException
+	      format: @"No statistics for default zone"];
+  return dummy;
+}
+
+static NSZone default_zone =
+{
+  default_malloc, default_realloc, default_free, default_recycle,
+  default_check, default_lookup, default_stats, 0, @"default", 0
+};
+
+/*
+ * For backward compatibility.
+ */
+NSZone	*__nszone_private_hidden_default_zone = &default_zone;
+
+
+
+/**
+ * Sets name of the given zone (useful for debugging and logging).
+ */
+void
+NSSetZoneName (NSZone *zone, NSString *name)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  [gnustep_global_lock lock];
+  name = [name copy];
+  if (zone->name != nil)
+    [zone->name release];
+  zone->name = name;
+  [gnustep_global_lock unlock];
+}
+
+NSString*
+NSZoneName (NSZone *zone)
+{
+  if (!zone)
+    zone = NSDefaultMallocZone();
+  return zone->name;
+}
+
+#if	GS_WITH_GC
+
+#if	defined(DEBUG)
+#define	GC_DEBUG	1
+#endif	/* DEBUG */
+
+#include <gc.h>
+
+/*
+ * Dummy zones used with garbage collection.
+ * The 'atomic' zone is for memory that will be assumed not to contain
+ * pointers for garbage collection purposes.
+ */
+static NSZone atomic_zone =
+{
+  0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
+};
+
+void *
+NSAllocateCollectable(NSUInteger size, NSUInteger options)
+{
+  void	*ptr;
+
+  if (options & NSScannedOption)
+    {
+      if (options & NSCollectorDisabledOption)
+	{
+          ptr = (void*)GC_MALLOC_UNCOLLECTABLE(size);
+	  memset(ptr, '\0', size);
+	}
+      else
+	{
+          ptr = (void*)GC_MALLOC_IGNORE_OFF_PAGE(size);
+	  memset(ptr, '\0', size);
+	}
+    }
+  else
+    {
+      if (options & NSCollectorDisabledOption)
+	{
+	  ptr = (void*)calloc(1, size);
+	}
+      else
+	{
+	  ptr = (void*)GC_MALLOC_ATOMIC_IGNORE_OFF_PAGE(size);
+	  memset(ptr, '\0', size);
+	}
+    }
+  return ptr;
+}
+
+void *
+NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
+{
+  if (ptr == 0)
+    {
+      ptr = NSAllocateCollectable(size, options);
+    }
+  else if (size > 0 && GC_base(ptr) == 0)
+    {
+      /* This is not collectable memory, so we don't know how big it is.
+       * that means we must use realloc first, to get a known size, and
+       * then, if needed, allocate a chunk the right size and copy to it.
+       */
+      ptr = realloc(ptr, size);
+      if (ptr != 0)
+	{
+	  if ((options & NSScannedOption)
+	    || !(options & NSCollectorDisabledOption))
+	    {
+	      void	*tmp = NSAllocateCollectable(size, options);
+
+	      memcpy(tmp, ptr, size);
+	      free(ptr);
+	      ptr = tmp;
+	    }
+	}
+    }
+  else
+    {
+      void	*tmp = NSAllocateCollectable(size, options);
+      unsigned	length = GC_size(ptr);
+
+      if (length > size)
+	{
+	  length = size;
+	}
+      if (tmp != 0 && length > 0)
+	{
+          memcpy(tmp, ptr, length);
+	}
+      GC_FREE(ptr);
+      ptr = tmp;
+    }
+  return ptr;
+}
+
+NSZone*
+NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
+{
+  NSLog(@" *** Creating a zone while running GC is ignored.");
+  return &default_zone;
+}
+
+NSZone*
+NSDefaultMallocZone (void)
+{
+  return &default_zone;
+}
+
+NSZone*
+GSAtomicMallocZone (void)
+{
+  return &atomic_zone;
+}
+
+NSZone*
+NSZoneFromPointer (void *ptr)
+{
+  return &default_zone;
+}
+
+void
+NSRecycleZone (NSZone *zone)
+{
+}
+
+BOOL
+NSZoneCheck (NSZone *zone)
+{
+  return YES;
+}
+
+struct
+NSZoneStats NSZoneStats (NSZone *zone)
+{
+  struct NSZoneStats stats = { 0 };
+  return stats;
+}
+
+void
+GSMakeWeakPointer(Class class, const char *iVarName)
+{
+  class_ivar_set_gcinvisible(class, iVarName, YES);
+}
+
+BOOL
+GSAssignZeroingWeakPointer(void **destination, void *source)
+{
+  if (destination == 0)
+    {
+      return NO;	// Bad destination pointer
+    }
+  if (*destination == source)
+    {
+      return YES;	// Already assigned.
+    }
+  if (source != 0 && GC_base(source) == 0)
+    {
+      return NO;	// Source is not garbage collectable.
+    }
+  if (*destination != 0)
+    {
+      GC_unregister_disappearing_link(destination);
+    }
+  *destination = source;
+  if (source != 0)
+    {
+      GC_general_register_disappearing_link(destination, source);
+    }
+  return YES;
+}
+
+void*
+NSZoneMalloc (NSZone *zone, NSUInteger size)
+{
+  return NSZoneCalloc(zone, 1, size);
+}
+
+void*
+NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
+{
+  size_t	size = elems * bytes;
+  void		*ptr;
+
+  if (zone == &atomic_zone)
+    {
+      ptr = (void*)GC_MALLOC_ATOMIC(size);
+      memset(ptr, '\0', size);
+    }
+  else
+    {
+      ptr = (void*)malloc(size);
+      if (ptr == 0)
+	{
+          ptr = GSOutOfMemory(size, NO);
+	}
+      if (ptr != 0)
+	{
+	  memset(ptr, '\0', size);
+	}
+    }
+  return ptr;
+}
+
+void*
+NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
+{
+  if (GC_base(ptr) != 0)
+    {
+      ptr = GC_REALLOC(ptr, size);
+    }
+  else
+    {
+      ptr = realloc(ptr, size);
+    }
+  return ptr;
+}
+
+void
+NSZoneFree (NSZone *zone, void *ptr)
+{
+  if (GC_base(ptr) != 0)
+    {
+      GC_FREE(ptr);
+    }
+  else
+    {
+      free(ptr);
+    }
+}
+
+#else	/* GS_WITH_GC */
+
 /**
  * Try to get more memory - the normal process has failed.
  * If we can't do anything, just return a null pointer.
@@ -109,7 +467,6 @@ GSOutOfMemory(NSUInteger size, BOOL retry)
   return 0;
 }
 
-#if	GS_WITH_GC == 0
 
 /* Alignment */
 #ifdef ALIGN
@@ -355,17 +712,6 @@ struct _nfree_zone_struct
   size_t use;
 };
 
-
-
-/* Default zone functions for default zone. */
-static void* default_malloc (NSZone *zone, size_t size);
-static void* default_realloc (NSZone *zone, void *ptr, size_t size);
-static void default_free (NSZone *zone, void *ptr);
-static void default_recycle (NSZone *zone);
-static BOOL default_check (NSZone *zone);
-static BOOL default_lookup (NSZone *zone, void *ptr);
-static struct NSZoneStats default_stats (NSZone *zone);
-
 /* Memory management functions for freeable zones. */
 static void* fmalloc (NSZone *zone, size_t size);
 static void* frealloc (NSZone *zone, void *ptr, size_t size);
@@ -399,49 +745,6 @@ static void rffree (NSZone *zone, void *ptr);
 static void rnfree (NSZone *zone, void *ptr);
 
 
-static NSZone default_zone =
-{
-  default_malloc, default_realloc, default_free, default_recycle,
-  default_check, default_lookup, default_stats, DEFBLOCK, @"default", 0
-};
-
-/*
- * For backward compatibility.
- */
-NSZone	*__nszone_private_hidden_default_zone = &default_zone;
-
-/*
- *	Lists of zones to be used to determine if a pointer is in a zone.
- */
-static NSZone	*zone_list = 0;
-
-/**
- * Searches and finds the zone ptr was allocated from.  The speed depends
- * upon the number of zones and their size.
- */
-GS_DECLARE NSZone*
-NSZoneFromPointer(void *ptr)
-{
-  NSZone	*zone;
-
-  if (ptr == 0) return 0;
-  if (zone_list == 0) return &default_zone;
-
-  /*
-   *	See if we can find the zone in our list of all zones.
-   */
-  [gnustep_global_lock lock];
-  for (zone = zone_list; zone != 0; zone = zone->next)
-    {
-      if ((zone->lookup)(zone, ptr) == YES)
-	{
-	  break;
-	}
-    }
-  [gnustep_global_lock unlock];
-  return (zone == 0) ? &default_zone : zone;
-}
-
 static inline void
 destroy_zone(NSZone* zone)
 {
@@ -457,84 +760,6 @@ destroy_zone(NSZone* zone)
         ptr->next = zone->next;
     }
   objc_free((void*)zone);
-}
-
-static void*
-default_malloc (NSZone *zone, size_t size)
-{
-  void *mem;
-
-  mem = objc_malloc(size);
-  if (mem == NULL)
-    [NSException raise: NSMallocException
-                 format: @"Default zone has run out of memory"];
-  return mem;
-}
-
-static void*
-default_realloc (NSZone *zone, void *ptr, size_t size)
-{
-  void *mem;
-
-  if (size == 0)
-    {
-      objc_free(ptr);
-      return NULL;
-    }
-  if (ptr == 0)
-    {
-      mem = objc_malloc(size);
-      if (mem == NULL)
-	[NSException raise: NSMallocException
-		     format: @"Default zone has run out of memory"];
-      return mem;
-    }
-  mem = objc_realloc(ptr, size);
-  if (mem == NULL)
-    [NSException raise: NSMallocException
-                 format: @"Default zone has run out of memory"];
-  return mem;
-}
-
-static void
-default_free (NSZone *zone, void *ptr)
-{
-  objc_free(ptr);
-}
-
-static void
-default_recycle (NSZone *zone)
-{
-  /* Recycle the default zone?  Thou hast got to be kiddin'. */
-  [NSException raise: NSGenericException
-              format: @"Trying to recycle default zone"];
-}
-
-static BOOL
-default_check (NSZone *zone)
-{
-  /* We can't check memory managed by objc_malloc(). */
-  [NSException raise: NSGenericException
-	      format: @"No checking for default zone"];
-  return NO;
-}
-
-static BOOL
-default_lookup (NSZone *zone, void *ptr)
-{
-  /* Assume all memory is in default zone. */
-  return YES;
-}
-
-static struct NSZoneStats
-default_stats (NSZone *zone)
-{
-  struct NSZoneStats dummy = {0,0,0,0,0};
-
-  /* We can't obtain statistics from the memory managed by objc_malloc(). */
-  [NSException raise: NSGenericException
-	      format: @"No statistics for default zone"];
-  return dummy;
 }
 
 /* Search the buffer to see if there is any memory chunks large enough
@@ -1589,6 +1814,38 @@ rrealloc (NSZone *zone, void *ptr, size_t size)
 
 static void rnfree (NSZone *zone, void *ptr);
 
+/*
+ *	Lists of zones to be used to determine if a pointer is in a zone.
+ */
+static NSZone	*zone_list = 0;
+
+/**
+ * Searches and finds the zone ptr was allocated from.  The speed depends
+ * upon the number of zones and their size.
+ */
+GS_DECLARE NSZone*
+NSZoneFromPointer(void *ptr)
+{
+  NSZone	*zone;
+
+  if (ptr == 0) return 0;
+  if (zone_list == 0) return &default_zone;
+
+  /*
+   *	See if we can find the zone in our list of all zones.
+   */
+  [gnustep_global_lock lock];
+  for (zone = zone_list; zone != 0; zone = zone->next)
+    {
+      if ((zone->lookup)(zone, ptr) == YES)
+	{
+	  break;
+	}
+    }
+  [gnustep_global_lock unlock];
+  return (zone == 0) ? &default_zone : zone;
+}
+
 /**
  * Creates a new zone of start bytes, which will grow and shrink by
  * granularity bytes.  If canFree is 0, memory in zone is allocated but
@@ -1724,22 +1981,6 @@ NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
   return memset(NSZoneMalloc(zone, elems*bytes), 0, elems*bytes);
 }
 
-/**
- * Sets name of the given zone (useful for debugging and logging).
- */
-void
-NSSetZoneName (NSZone *zone, NSString *name)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  [gnustep_global_lock lock];
-  name = [name copy];
-  if (zone->name != nil)
-    [zone->name release];
-  zone->name = name;
-  [gnustep_global_lock unlock];
-}
-
 void *
 NSAllocateCollectable(NSUInteger size, NSUInteger options)
 {
@@ -1749,252 +1990,8 @@ NSAllocateCollectable(NSUInteger size, NSUInteger options)
 void *
 NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
 {
-  return NSZoneRealloc(NSDefaultMallocZone(), ptr, size);
+  return NSZoneRealloc(0, ptr, size);
 }
-#else
-
-#if	defined(DEBUG)
-#define	GC_DEBUG	1
-#endif
-
-#include <gc.h>
-
-/*
- * Dummy zones used with garbage collection.
- * The 'atomic' zone is for memory that will be assumed not to contain
- * pointers for garbage collection purposes.
- */
-static NSZone default_zone =
-{
-  0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
-};
-
-static NSZone atomic_zone =
-{
-  0, 0, 0, 0, 0, 0, 0, 0, @"default", 0
-};
-
-void *
-NSAllocateCollectable(NSUInteger size, NSUInteger options)
-{
-  void	*ptr;
-
-  if (options & NSScannedOption)
-    {
-      if (options & NSCollectorDisabledOption)
-	{
-          ptr = (void*)GC_MALLOC_UNCOLLECTABLE(size);
-	  memset(ptr, '\0', size);
-	}
-      else
-	{
-          ptr = (void*)GC_MALLOC_IGNORE_OFF_PAGE(size);
-	  memset(ptr, '\0', size);
-	}
-    }
-  else
-    {
-      if (options & NSCollectorDisabledOption)
-	{
-	  ptr = (void*)calloc(1, size);
-	}
-      else
-	{
-	  ptr = (void*)GC_MALLOC_ATOMIC_IGNORE_OFF_PAGE(size);
-	  memset(ptr, '\0', size);
-	}
-    }
-  return ptr;
-}
-
-void *
-NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
-{
-  if (ptr == 0)
-    {
-      ptr = NSAllocateCollectable(size, options);
-    }
-  else
-    {
-      void	*tmp = NSAllocateCollectable(size, options);
-      unsigned	length = GC_size(ptr);
-
-      if (length > size)
-	{
-	  length = size;
-	}
-      if (tmp != 0 && length > 0)
-	{
-          memcpy(tmp, ptr, length);
-	}
-      GC_free(ptr);
-      ptr = tmp;
-    }
-  return ptr;
-}
-
-#endif	/* GS_WITH_GC */
-
-
-#ifdef	IN_NSZONE_M
-#define	GS_ZONE_SCOPE	extern
-#define GS_ZONE_ATTR	
-#else
-#define	GS_ZONE_SCOPE	static inline
-#define GS_ZONE_ATTR	__attribute__((unused))
-#endif
-
-#if	GS_WITH_GC
-
-NSZone*
-NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
-{
-  return &default_zone;
-}
-
-NSZone*
-NSDefaultMallocZone (void)
-{
-  return &default_zone;
-}
-
-NSZone*
-GSAtomicMallocZone (void)
-{
-  return &atomic_zone;
-}
-
-NSZone*
-NSZoneFromPointer (void *ptr)
-{
-  return &default_zone;
-}
-
-void
-NSRecycleZone (NSZone *zone)
-{
-}
-
-void
-NSSetZoneName (NSZone *zone, NSString *name)
-{
-}
-
-NSString*
-NSZoneName (NSZone *zone)
-{
-  return nil;
-}
-
-BOOL
-NSZoneCheck (NSZone *zone)
-{
-  return YES;
-}
-
-struct
-NSZoneStats NSZoneStats (NSZone *zone)
-{
-  struct NSZoneStats stats = { 0 };
-  return stats;
-}
-
-void
-GSMakeWeakPointer(Class class, const char *iVarName)
-{
-  class_ivar_set_gcinvisible(class, iVarName, YES);
-}
-
-
-#include <gc.h>
-
-BOOL
-GSAssignZeroingWeakPointer(void **destination, void *source)
-{
-  if (destination == 0)
-    {
-      return NO;	// Bad destination pointer
-    }
-  if (*destination == source)
-    {
-      return YES;	// Already assigned.
-    }
-  if (source != 0 && GC_base(source) == 0)
-    {
-      return NO;	// Source is not garbage collectable.
-    }
-  if (*destination != 0)
-    {
-      GC_unregister_disappearing_link(destination);
-    }
-  *destination = source;
-  if (source != 0)
-    {
-      GC_general_register_disappearing_link(destination, source);
-    }
-  return YES;
-}
-
-void*
-NSZoneMalloc (NSZone *zone, NSUInteger size)
-{
-  return NSZoneCalloc(zone, 1, size);
-}
-
-void*
-NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
-{
-  size_t	size = elems * bytes;
-  void		*ptr;
-
-  if (zone == &atomic_zone)
-    {
-      ptr = (void*)GC_MALLOC_ATOMIC(size);
-      memset(ptr, '\0', size);
-    }
-  else
-    {
-      ptr = (void*)malloc(size);
-      if (ptr == 0)
-	{
-          ptr = GSOutOfMemory(size, NO);
-	}
-      if (ptr != 0)
-	{
-	  memset(ptr, '\0', size);
-	}
-    }
-  return ptr;
-}
-
-void*
-NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
-{
-  if (GC_base(ptr) != 0)
-    {
-      ptr = GC_REALLOC(ptr, size);
-    }
-  else
-    {
-      ptr = realloc(ptr, size);
-    }
-  return ptr;
-}
-
-void
-NSZoneFree (NSZone *zone, void *ptr)
-{
-  if (GC_base(ptr) != 0)
-    {
-      GC_FREE(ptr);
-    }
-  else
-    {
-      free(ptr);
-    }
-}
-
-#else	/* GS_WITH_GC */
 
 NSZone*
 NSDefaultMallocZone (void)
@@ -2055,14 +2052,6 @@ NSZoneFree (NSZone *zone, void *ptr)
   if (!zone)
     zone = NSDefaultMallocZone();
   (zone->free)(zone, ptr);
-}
-
-NSString*
-NSZoneName (NSZone *zone)
-{
-  if (!zone)
-    zone = NSDefaultMallocZone();
-  return zone->name;
 }
 
 BOOL
