@@ -1,3 +1,12 @@
+2009-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h:
+	* Source/NSString.m:
+	* Source/NSObject.m:
+	* Source/GSString.m:
+	* Source/NSZone.m:
+	GC tweaks ... Improve realloc when in gc world.
+
 2009-04-03  Adam Fedor <fedor@gnu.org>
 
 	* Source/NSObject.m: Revert previous patch (David to fix up later).

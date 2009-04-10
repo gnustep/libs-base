@@ -542,8 +542,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
   if (new != nil)
     {
       new->class_pointer = aClass;
-      if (get_imp(aClass, finalize_sel) != finalize_imp
-        && __objc_responds_to(new, finalize_sel))
+      if (get_imp(aClass, finalize_sel) != finalize_imp)
 	{
 #ifndef	NDEBUG
 	  /*
@@ -817,7 +816,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  * in a deadlock in the garbage collecting library.
  */
 static void
-warn_proc(char *msg, GC_word arg)
+GSGarbageCollectorLog(char *msg, GC_word arg)
 {
   char	buf[strlen(msg)+1024];
   sprintf(buf, msg, (unsigned long)arg);
@@ -841,7 +840,7 @@ warn_proc(char *msg, GC_word arg)
        * This is not necessary on most platforms, but is good practice.
        */
       GC_init();
-      GC_set_warn_proc(warn_proc);
+      GC_set_warn_proc(GSGarbageCollectorLog);
 #endif
 
 #ifdef __MINGW32__

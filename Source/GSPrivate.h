@@ -165,7 +165,7 @@ typedef union {
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	free: 1;	// Set if the instance owns the
+    unsigned int	owned: 1;	// Set if the instance owns the
 					// _contents buffer
     unsigned int	unused: 2;
     unsigned int	hash: 28;
@@ -186,12 +186,12 @@ typedef union {
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;
-    unsigned int	free: 1;
+    unsigned int	owned: 1;
     unsigned int	unused: 2;
     unsigned int	hash: 28;
   } _flags;
-  NSZone	*_zone;
   unsigned int	_capacity;
+  NSZone	*_zone;
 }
 @end
 
