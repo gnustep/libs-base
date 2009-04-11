@@ -1,3 +1,7 @@
+2009-04-11 01:12-EDT Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSLock.m: Move the warning to a debug log.
+
 2009-04-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h:
