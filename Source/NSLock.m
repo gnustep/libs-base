@@ -449,7 +449,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 {
   if ((_MUTEX)->owner == objc_thread_id())
     {
-      NSLog(@"WARNING: Thread attempted to recursively tryLock : %@", self);
+      NSDebugLog(@"WARNING: Thread attempted to recursively tryLock : %@", self);
       return NO;
     }
   // Ask the runtime to acquire a lock on the mutex
