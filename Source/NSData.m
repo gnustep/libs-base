@@ -51,9 +51,11 @@
  *		NSDataMalloc			Concrete class.
  *		    NSDataMappedFile		Memory mapped files.
  *		    NSDataShared		Extension for shared memory.
+ *		    NSDataFinalized		For GC of non-GC data.
  *	    NSMutableData			Abstract base class.
  *		NSMutableDataMalloc		Concrete class.
  *		    NSMutableDataShared		Extension for shared memory.
+ *		    NSDataMutableFinalized	For GC of non-GC data.
  *
  *	NSMutableDataMalloc MUST share it's initial instance variable layout
  *	with NSDataMalloc so that it can use the 'behavior' code to inherit
@@ -113,17 +115,20 @@
 #endif
 
 @class	NSDataMalloc;
+@class	NSDataFinalized;
 @class	NSDataStatic;
 @class	NSMutableDataMalloc;
+@class	NSMutableDataFinalized;
 
 /*
  *	Some static variables to cache classes and methods for quick access -
  *	these are set up at process startup or in [NSData +initialize]
  */
-static SEL	appendSel;
 static Class	dataStatic;
 static Class	dataMalloc;
+static Class	dataFinalized;
 static Class	mutableDataMalloc;
+static Class	mutableDataFinalized;
 static Class	NSDataAbstract;
 static Class	NSMutableDataAbstract;
 static SEL	appendSel;
@@ -294,19 +299,23 @@ failure:
   void		*bytes;
 }
 @end
+
 @interface	NSDataEmpty: NSDataStatic
 @end
 
 @interface	NSDataMalloc : NSDataStatic
-{
-}
+@end
+
+@interface	NSDataFinalized : NSDataMalloc
 @end
 
 @interface	NSMutableDataMalloc : NSMutableData
 {
   NSUInteger	length;
   void		*bytes;
-#if	!GS_WITH_GC
+#if	GS_WITH_GC
+  BOOL		owned;
+#else
   NSZone	*zone;
 #endif
   NSUInteger	capacity;
@@ -314,6 +323,9 @@ failure:
 }
 /* Increase capacity to at least the specified minimum value.	*/
 - (void) _grow: (NSUInteger)minimum;
+@end
+
+@interface	NSMutableDataFinalized : NSMutableDataMalloc
 @end
 
 #ifdef	HAVE_MMAP
@@ -357,9 +369,11 @@ failure:
     {
       NSDataAbstract = self;
       NSMutableDataAbstract = [NSMutableData class];
-      dataMalloc = [NSDataMalloc class];
       dataStatic = [NSDataStatic class];
+      dataMalloc = [NSDataMalloc class];
+      dataFinalized = [NSDataFinalized class];
       mutableDataMalloc = [NSMutableDataMalloc class];
+      mutableDataFinalized = [NSMutableDataFinalized class];
       appendSel = @selector(appendBytes:length:);
       appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
@@ -386,7 +400,7 @@ failure:
 
   if (empty == nil)
     {
-      empty = [NSDataEmpty allocWithZone: NSDefaultMallocZone()];
+      empty = [dataStatic allocWithZone: NSDefaultMallocZone()];
       empty = [empty initWithBytesNoCopy: 0 length: 0 freeWhenDone: NO];
     }
   return empty;
@@ -2924,20 +2938,29 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (shouldFree == NO)
     {
-#ifndef NDEBUG
-      GSDebugAllocationRemove(self->isa, self);
-#endif
-      self->isa = dataStatic;
-#ifndef NDEBUG
-      GSDebugAllocationAdd(self->isa, self);
-#endif
+      GSPrivateSwizzle(self, dataStatic);
     }
+#if	GS_WITH_GC
+  else if (aBuffer != 0 && GSPrivateIsCollectable(aBuffer) == NO)
+    {
+      GSPrivateSwizzle(self, dataFinalized);
+    }
+#endif
   bytes = aBuffer;
   length = bufferSize;
   return self;
 }
 
 @end
+
+@implementation	NSDataFinalized
+- (void) finalize
+{
+  NSZoneFree(NSDefaultMallocZone(), bytes);
+  [super finalize];
+}
+@end
+ 
 
 #ifdef	HAVE_MMAP
 @implementation	NSDataMappedFile
@@ -2948,12 +2971,18 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (void) dealloc
 {
+  [self finalize];
+  [super dealloc];
+}
+
+- (void) finalize
+{
   if (bytes != 0)
     {
       munmap(bytes, length);
       bytes = 0;
     }
-  [super dealloc];
+  [super finalize];
 }
 
 /**
@@ -3196,10 +3225,18 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       return self;
     }
+#if	GS_WITH_GC
+  if (shouldFree == YES && GSPrivateIsCollectable(aBuffer) == NO)
+    {
+      GSPrivateSwizzle(self, mutableDataFinalized);
+    }
+#endif
   self = [self initWithCapacity: 0];
   if (self)
     {
-#if	!GS_WITH_GC
+#if	GS_WITH_GC
+      owned = shouldFree;	// Free memory on finalisation.
+#else
       if (shouldFree == NO)
 	{
 	  zone = 0;		// Don't free this memory.
@@ -3655,7 +3692,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (bytes)
 	{
 	  memcpy(tmp, bytes, capacity < size ? capacity : size);
-#if	!GS_WITH_GC
+#if	GS_WITH_GC
+	  if (owned == YES)
+	    {
+	      NSZoneFree(NSDefaultMallocZone(), bytes);
+	      owned = NO;
+	    }
+#else
 	  if (zone == 0)
 	    {
 	      zone = NSDefaultMallocZone();
@@ -3705,6 +3748,15 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 @end
 
+@implementation	NSMutableDataFinalized
+- (void) finalize
+{
+  if (owned == YES)
+    NSZoneFree(NSDefaultMallocZone(), bytes);
+  [super finalize];
+}
+@end
+ 
 
 #ifdef	HAVE_SHMCTL
 @implementation	NSMutableDataShared
@@ -3714,6 +3766,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 - (void) dealloc
+{
+  [self finalize];
+  [super dealloc];
+}
+
+- (void) finalize
 {
   if (bytes != 0)
     {
@@ -3742,7 +3800,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       capacity = 0;
       shmid = -1;
     }
-  [super dealloc];
+  [super finalize];
 }
 
 - (id) initWithBytes: (const void*)aBuffer length: (NSUInteger)bufferSize

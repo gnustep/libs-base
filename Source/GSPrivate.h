@@ -501,7 +501,7 @@ GSPrivateUnloadModule(FILE *errorStream,
   void (*unloadCallback)(Class, struct objc_category *)) GS_ATTRIB_PRIVATE;
 
 
-/* Memory to use to put executabel code in.
+/* Memory to use to put executable code in.
  */
 @interface      GSCodeBuffer : NSObject
 {
@@ -513,6 +513,15 @@ GSPrivateUnloadModule(FILE *errorStream,
 - (id) initWithSize: (NSUInteger)_size;
 - (void) protect;
 @end
+
+/* Function to safely change the class of an object by 'isa' swizzling
+ * wile maintaining allocation accounting and finalization in a GC world.
+ */
+void
+GSPrivateSwizzle(id o, Class c) GS_ATTRIB_PRIVATE;
+
+BOOL
+GSPrivateIsCollectable(const void *ptr) GS_ATTRIB_PRIVATE;
 
 NSZone*
 GSAtomicMallocZone (void);

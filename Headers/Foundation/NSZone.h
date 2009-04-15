@@ -62,28 +62,6 @@ typedef struct _NSZone NSZone;
 extern "C" {
 #endif
 
-/**
- * Primary structure representing an <code>NSZone</code>.  Technically it
- * consists of a set of function pointers for zone upkeep functions plus some
- * other things-
-<example>
-{
-  // Functions for zone.
-  void *(*malloc)(struct _NSZone *zone, size_t size);
-  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
-  void (*free)(struct _NSZone *zone, void *ptr);
-  void (*recycle)(struct _NSZone *zone);
-  BOOL (*check)(struct _NSZone *zone);
-  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
-
-  // Zone statistics (not always maintained).
-  struct NSZoneStats (*stats)(struct _NSZone *zone);
-  
-  size_t gran;    // Zone granularity (passed in on initialization)
-  NSString *name; // Name of zone (default is 'nil')
-  NSZone *next;   // Pointer used for internal management of multiple zones.
-}</example>
-*/
 struct _NSZone
 {
   /* Functions for zone. */
@@ -100,41 +78,68 @@ struct _NSZone
   NSZone *next;
 };
 
+/**
+ * Creates a new zone of start bytes, which will grow and shrink by
+ * granularity bytes.  If canFree is 0, memory in zone is allocated but
+ * never freed, meaning allocation will be very fast.  The whole zone can
+ * still be freed with NSRecycleZone(), and you should still call NSZoneFree
+ * on memory in the zone that is no longer needed, since a count of allocated
+ * pointers is kept and must reach zero before freeing the zone.<br />
+ * If Garbage Collection is enabled, this function does nothing other than
+ * log a warning and return the same value as the NSDefaultMallocZone()
+ * function.
+ */
 GS_EXPORT NSZone*
 NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree);
 
+/** Returns the default zone for memory allocation.  Memory created in this
+ * zone is the same as memory allocates using the system malloc() function.
+ */
 GS_EXPORT NSZone*
 NSDefaultMallocZone (void);
 
+/**
+ * Searches and finds the zone ptr was allocated from.  The speed depends
+ * upon the number of zones and their size.<br />
+ * If Garbage Collection is enabled, this function always returns the
+ * same as the NSDefaultMallocZone() function.
+ */
 GS_EXPORT NSZone*
 NSZoneFromPointer (void *ptr);
 
 /**
- *  Allocates and returns memory for elems items of size bytes, in the
- *  given zone.  Returns NULL if allocation of size 0 requested.  Raises
- *  <code>NSMallocException</code> if not enough free memory in zone to
- *  allocate and no more can be obtained from system, unless using the
- *  default zone, in which case NULL is returned.
+ * Allocates and returns memory for elems items of size bytes, in the
+ * given zone.  Returns NULL if allocation of size 0 requested.  Raises
+ * <code>NSMallocException</code> if not enough free memory in zone to
+ * allocate and no more can be obtained from system, unless using the
+ * default zone, in which case NULL is returned.<br \>
+ * If Garbage Collection is enabled, this function always allocates
+ * non-scanned, non-collectable memory in the NSDefaultMallocZone() and
+ * the zone argument is ignored.
  */
 GS_EXPORT void*
 NSZoneMalloc (NSZone *zone, NSUInteger size);
 
 /**
- *  Allocates and returns cleared memory for elems items of size bytes, in the
- *  given zone.  Returns NULL if allocation of size 0 requested.  Raises
- *  <code>NSMallocException</code> if not enough free memory in zone to
- *  allocate and no more can be obtained from system, unless using the
- *  default zone, in which case NULL is returned.
+ * Allocates and returns cleared memory for elems items of size bytes, in the
+ * given zone.  Returns NULL if allocation of size 0 requested.  Raises
+ * <code>NSMallocException</code> if not enough free memory in zone to
+ * allocate and no more can be obtained from system, unless using the
+ * default zone, in which case NULL is returned.<br />
+ * If Garbage Collection is enabled, this function always allocates
+ * non-scanned, non-collectable memory in the NSDefaultMallocZone() and
+ * the zone argument is ignored.
  */
 GS_EXPORT void*
 NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes);
 
 /**
- *  Reallocates the chunk of memory in zone pointed to by ptr to a new one of
- *  size bytes.  Existing contents in ptr are copied over.  Raises an
- *  <code>NSMallocException</code> if insufficient memory is available in the
- *  zone and no more memory can be obtained from the system, unless using the
- *  default zone, in which case NULL is returned.
+ * Reallocates the chunk of memory in zone pointed to by ptr to a new one of
+ * size bytes.  Existing contents in ptr are copied over.  Raises an
+ * <code>NSMallocException</code> if insufficient memory is available in the
+ * zone and no more memory can be obtained from the system, unless using the
+ * default zone, in which case NULL is returned.<br />
+ * If Garbage Collection is enabled, the zone argument is ignored.
  */
 GS_EXPORT void*
 NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size);
@@ -144,7 +149,8 @@ NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size);
  * unless all memory in the zone has been explicitly freed (by calls to
  * NSZoneFree()).  For "non-freeable" zones, the number of NSZoneFree() calls
  * must simply equal the number of allocation calls.  The default zone, on the
- * other hand, cannot be recycled.
+ * other hand, cannot be recycled.<br />
+ * If Garbage Collection is enabled, this function has not effect.
  */
 GS_EXPORT void
 NSRecycleZone (NSZone *zone);
@@ -153,7 +159,9 @@ NSRecycleZone (NSZone *zone);
  * Frees memory pointed to by ptr (which should have been allocated by a
  * previous call to NSZoneMalloc(), NSZoneCalloc(), or NSZoneRealloc()) and
  * returns it to zone.  Note, if this is a nonfreeable zone, the memory is
- * not actually freed, but the count of number of free()s is updated.
+ * not actually freed, but the count of number of free()s is updated.<br />
+ * If Garbage Collection is enabled, the zone argument is ignored and this
+ * function causes ptr to be deallocated immediately.
  */
 GS_EXPORT void
 NSZoneFree (NSZone *zone, void *ptr);
@@ -165,7 +173,7 @@ GS_EXPORT void
 NSSetZoneName (NSZone *zone, NSString *name);
 
 /**
- * Sets name of the given zone (useful for debugging and logging).
+ * Returns the name of the given zone (useful for debugging and logging).
  */
 GS_EXPORT NSString*
 NSZoneName (NSZone *zone);

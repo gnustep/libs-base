@@ -31,15 +31,122 @@
 
 /**** Included Headers *******************************************************/
 
-#import	<Foundation/NSObject.h>
+#import <Foundation/NSEnumerator.h>
+#import <Foundation/NSPointerFunctions.h>
 #import	<Foundation/NSString.h>
-#import	<Foundation/NSArray.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
+#if 0
+@class NSArray, NSSet, NSHashTable;
+
 /**** Type, Constant, and Macro Definitions **********************************/
+
+enum {
+  NSHashTableStrongMemory
+    = NSPointerFunctionsStrongMemory,
+  NSHashTableZeroingWeakMemory
+    = NSPointerFunctionsZeroingWeakMemory,
+  NSHashTableCopyIn
+    = NSPointerFunctionsCopyIn,
+  NSHashTableObjectPointerPersonality
+    = NSPointerFunctionsObjectPointerPersonality,
+};
+
+typedef NSUInteger NSHashTableOptions;
+
+@interface NSHashTable : NSObject <NSCopying, NSCoding, NSFastEnumeration>
+
++ (id) hashTableWithOptions: (NSPointerFunctionsOptions)options;
+
++ (id) hashTableWithWeakObjects;
+
+- (id) initWithOptions: (NSPointerFunctionsOptions)options
+	      capacity: (NSUInteger)initialCapacity;
+
+- (id) initWithPointerFunctions: (NSPointerFunctions*)functions
+		       capacity: (NSUInteger)initialCapacity;
+
+/** Adds the object to the receiver.
+ */
+- (void) addObject: (id)object;
+
+/** Returns an array containing all objects in the receiver.
+ */
+- (NSArray*) allObjects;
+
+/** Returns any objct from the receiver, or nil if the receiver contains no
+ * objects.
+ */
+- (id) anyObject;
+
+/** Returns YES if the receiver contains an item equal to anObject, or NO
+ * otherwise.
+ */
+- (BOOL) containsObject: (id)anObject;
+
+/** Return the number of items atored in the receiver.
+ */
+- (NSUInteger) count;
+
+/** Removes from the receiver any items which are not also present in 'other'.
+ */
+- (void) intersectHashTable: (NSHashTable*)other;
+
+/** Returns YES if the receiver and 'other' contain any items in common.
+ */
+- (BOOL) intersectsHashTable: (NSHashTable*)other;
+
+/** Returns YES if the receiver and 'other' contain equal sets of items.
+ */
+- (BOOL) isEqualToHashTable: (NSHashTable*)other;
+
+/** Returns YES fi all the items in the receiver are also present in 'other'
+ */
+- (BOOL) isSubsetOfHashTable: (NSHashTable*)other;
+
+/** Returns an item stored in the receiver which is equal to the supplied
+ * object argument, or nil if no matchi is found.
+ */
+- (id) member: (id)object;
+
+/** Removes from the receivr all those items which are prsent in both
+ * the receiver and in 'other'.
+ */
+- (void) minusHashTable: (NSHashTable*)other;
+
+/** Return an enumerator for the receiver.
+ */
+- (NSEnumerator*) objectEnumerator;
+
+/** Return an NSPointerFunctions value describing the functions used by the
+ * receiver to handle its contents.
+ */
+- (NSPointerFunctions*) pointerFunctions;
+
+/** Removes all objects.
+ */
+- (void) removeAllObjects;
+
+/** Remove the object (or any equal object) from the receiver.
+ */
+- (void) removeObject: (id)object;
+
+/** Returns a set containing all the objects in the receiver.
+ */
+- (NSSet*) setRepresentation; 
+
+/** Adds to the receiver thse items present in 'other' which were
+ * not present in the receiver.
+ */
+- (void) unionHashTable: (NSHashTable*)other;
+
+
+@end
+
+#endif
 
 /**
  * Hash table type ... an opaque pointer to a data structure.

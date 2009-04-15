@@ -484,6 +484,13 @@ NSIncrementExtraRefCount(id anObject)
 #endif	/* GS_WITH_GC */
 }
 
+#ifndef	NDEBUG
+#define	AADD(c, o) GSDebugAllocationAdd(c, o)
+#define	AREM(c, o) GSDebugAllocationRemove(c, o)
+#else
+#define	AADD(c, o) 
+#define	AREM(c, o) 
+#endif
 
 /*
  *	Now do conditional compilation of memory allocation functions
@@ -504,10 +511,47 @@ static void
 GSFinalize(void* object, void* data)
 {
   [(id)object finalize];
-#ifndef	NDEBUG
-  GSDebugAllocationRemove(((id)object)->class_pointer, (id)object);
-#endif
+  AREM(((id)object)->class_pointer, (id)object);
   ((id)object)->class_pointer = (void*)0xdeadface;
+}
+
+static BOOL
+GSIsFinalizable(Class c)
+{
+  if (get_imp(c, finalize_sel) != finalize_imp)
+    return YES;
+  return NO;
+}
+
+void
+GSPrivateSwizzle(id o, Class c)
+{
+  if (o->class_pointer != c)
+    {
+#if	GS_WITH_GC
+      /* We only do allocation counting for objects that can be
+       * finalised - for other objects we have no way of decrementing
+       * the count when the object is collected.
+       */
+      if (GSIsFinalizable(o->class_pointer))
+	{
+	  /* Already finalizable, so we just need to do any allocation
+	   * accounting.
+	   */
+          AREM(o->class_pointer, o);
+          AADD(c, o);
+	}
+      else if (GSIsFinalizable(c))
+	{
+	  /* New clas is finalizable, so we must register the instance
+	   * for finalisation and do allocation acounting for it.
+	   */
+	  AADD(c, o);
+	  GC_REGISTER_FINALIZER (o, GSFinalize, NULL, NULL, NULL);
+	}
+#endif	/* GS_WITH_GC */
+      o->class_pointer = c;
+    }
 }
 
 inline NSObject *
@@ -542,16 +586,13 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
   if (new != nil)
     {
       new->class_pointer = aClass;
-      if (get_imp(aClass, finalize_sel) != finalize_imp)
+      if (GSIsFinalizable(aClass))
 	{
-#ifndef	NDEBUG
-	  /*
-	   *	We only do allocation counting for objects that can be
-	   *	finalised - for other objects we have no way of decrementing
-	   *	the count when the object is collected.
+	  /* We only do allocation counting for objects that can be
+	   * finalised - for other objects we have no way of decrementing
+	   * the count when the object is collected.
 	   */
-	  GSDebugAllocationAdd(aClass, new);
-#endif
+	  AADD(aClass, new);
 	  GC_REGISTER_FINALIZER (new, GSFinalize, NULL, NULL, NULL);
 	}
     }
@@ -576,9 +617,6 @@ GSObjCZone(NSObject *object)
 inline NSObject *
 NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
-#ifndef	NDEBUG
-  extern void GSDebugAllocationAdd(Class c, id o);
-#endif
   id	new;
   int	size;
 
@@ -595,9 +633,7 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
       ((obj)new)->zone = zone;
       new = (id)&((obj)new)[1];
       new->class_pointer = aClass;
-#ifndef	NDEBUG
-      GSDebugAllocationAdd(aClass, new);
-#endif
+      AADD(aClass, new);
     }
   return new;
 }
@@ -605,17 +641,12 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 inline void
 NSDeallocateObject(NSObject *anObject)
 {
-#ifndef	NDEBUG
-  extern void GSDebugAllocationRemove(Class c, id o);
-#endif
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
       obj	o = &((obj)anObject)[-1];
       NSZone	*z = GSObjCZone(anObject);
 
-#ifndef	NDEBUG
-      GSDebugAllocationRemove(((id)anObject)->class_pointer, (id)anObject);
-#endif
+      AREM(((id)anObject)->class_pointer, (id)anObject);
       if (NSZombieEnabled == YES)
 	{
 	  GSMakeZombie(anObject);
