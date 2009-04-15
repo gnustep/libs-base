@@ -115,10 +115,12 @@
 #endif
 
 @class	NSDataMalloc;
-@class	NSDataFinalized;
 @class	NSDataStatic;
 @class	NSMutableDataMalloc;
+#if	GS_WITH_GC
+@class	NSDataFinalized;
 @class	NSMutableDataFinalized;
+#endif
 
 /*
  *	Some static variables to cache classes and methods for quick access -
@@ -126,11 +128,13 @@
  */
 static Class	dataStatic;
 static Class	dataMalloc;
-static Class	dataFinalized;
 static Class	mutableDataMalloc;
-static Class	mutableDataFinalized;
 static Class	NSDataAbstract;
 static Class	NSMutableDataAbstract;
+#if	GS_WITH_GC
+static Class	dataFinalized;
+static Class	mutableDataFinalized;
+#endif
 static SEL	appendSel;
 static IMP	appendImp;
 
@@ -306,9 +310,6 @@ failure:
 @interface	NSDataMalloc : NSDataStatic
 @end
 
-@interface	NSDataFinalized : NSDataMalloc
-@end
-
 @interface	NSMutableDataMalloc : NSMutableData
 {
   NSUInteger	length;
@@ -325,8 +326,13 @@ failure:
 - (void) _grow: (NSUInteger)minimum;
 @end
 
+#if	GS_WITH_GC
+@interface	NSDataFinalized : NSDataMalloc
+@end
+
 @interface	NSMutableDataFinalized : NSMutableDataMalloc
 @end
+#endif
 
 #ifdef	HAVE_MMAP
 @interface	NSDataMappedFile : NSDataMalloc
@@ -371,9 +377,11 @@ failure:
       NSMutableDataAbstract = [NSMutableData class];
       dataStatic = [NSDataStatic class];
       dataMalloc = [NSDataMalloc class];
-      dataFinalized = [NSDataFinalized class];
       mutableDataMalloc = [NSMutableDataMalloc class];
+#if	GS_WITH_GC
+      dataFinalized = [NSDataFinalized class];
       mutableDataFinalized = [NSMutableDataFinalized class];
+#endif
       appendSel = @selector(appendBytes:length:);
       appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
@@ -2953,6 +2961,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 @end
 
+#if	GS_WITH_GC
 @implementation	NSDataFinalized
 - (void) finalize
 {
@@ -2960,6 +2969,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super finalize];
 }
 @end
+#endif
  
 
 #ifdef	HAVE_MMAP
@@ -3748,6 +3758,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 @end
 
+#if	GS_WITH_GC
 @implementation	NSMutableDataFinalized
 - (void) finalize
 {
@@ -3756,6 +3767,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super finalize];
 }
 @end
+#endif
  
 
 #ifdef	HAVE_SHMCTL
