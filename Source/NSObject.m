@@ -523,37 +523,6 @@ GSIsFinalizable(Class c)
   return NO;
 }
 
-void
-GSPrivateSwizzle(id o, Class c)
-{
-  if (o->class_pointer != c)
-    {
-#if	GS_WITH_GC
-      /* We only do allocation counting for objects that can be
-       * finalised - for other objects we have no way of decrementing
-       * the count when the object is collected.
-       */
-      if (GSIsFinalizable(o->class_pointer))
-	{
-	  /* Already finalizable, so we just need to do any allocation
-	   * accounting.
-	   */
-          AREM(o->class_pointer, o);
-          AADD(c, o);
-	}
-      else if (GSIsFinalizable(c))
-	{
-	  /* New clas is finalizable, so we must register the instance
-	   * for finalisation and do allocation acounting for it.
-	   */
-	  AADD(c, o);
-	  GC_REGISTER_FINALIZER (o, GSFinalize, NULL, NULL, NULL);
-	}
-#endif	/* GS_WITH_GC */
-      o->class_pointer = c;
-    }
-}
-
 inline NSObject *
 NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
@@ -665,6 +634,39 @@ NSDeallocateObject(NSObject *anObject)
 }
 
 #endif	/* GS_WITH_GC */
+
+
+void
+GSPrivateSwizzle(id o, Class c)
+{
+  if (o->class_pointer != c)
+    {
+#if	GS_WITH_GC
+      /* We only do allocation counting for objects that can be
+       * finalised - for other objects we have no way of decrementing
+       * the count when the object is collected.
+       */
+      if (GSIsFinalizable(o->class_pointer))
+	{
+	  /* Already finalizable, so we just need to do any allocation
+	   * accounting.
+	   */
+          AREM(o->class_pointer, o);
+          AADD(c, o);
+	}
+      else if (GSIsFinalizable(c))
+	{
+	  /* New clas is finalizable, so we must register the instance
+	   * for finalisation and do allocation acounting for it.
+	   */
+	  AADD(c, o);
+	  GC_REGISTER_FINALIZER (o, GSFinalize, NULL, NULL, NULL);
+	}
+#endif	/* GS_WITH_GC */
+      o->class_pointer = c;
+    }
+}
+
 
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
