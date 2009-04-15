@@ -90,7 +90,11 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
 	}
       pos = full;
       full += MAX(info[0].size, sizeof(smallret_t));
+#if	GS_WITH_GC
+      cframe = buf = NSAllocateCollectable(full, NSScannedOption);
+#else
       cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
+#endif
       if (cframe)
 	{
 	  *retval = buf + pos;
@@ -98,7 +102,11 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
     }
   else
     {
+#if	GS_WITH_GC
+      cframe = buf = NSAllocateCollectable(size, NSScannedOption);
+#else
       cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), size, 1);
+#endif
     }
 
   if (cframe)
@@ -567,8 +575,9 @@ callframe_do_call (DOContext *ctxt,
 	    }
 	}
     }
-
+#if	!GS_WITH_GC
   NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
+#endif
   ctxt->datToFree = 0;
 
   return;
@@ -647,12 +656,17 @@ callframe_build_return (NSInvocation *inv,
 		tmptype++;
 		retLength = objc_sizeof_type(tmptype);
 		/* Allocate memory to hold the value we're pointing to. */
+#if	GS_WITH_GC
+		*(void**)retval =
+		  NSAllocateCollectable(retLength, NSScannedOption);
+#else
 		*(void**)retval =
 		  NSZoneCalloc(NSDefaultMallocZone(), retLength, 1);
 		/* We are responsible for making sure this memory gets free'd
 		   eventually.  Ask NSData class to autorelease it. */
 		[NSData dataWithBytesNoCopy: *(void**)retval
 				     length: retLength];
+#endif
 		ctxt->type = tmptype;
 		ctxt->datum = *(void**)retval;
 		/* Decode the return value into the memory we allocated. */
@@ -758,7 +772,9 @@ callframe_build_return (NSInvocation *inv,
 
   if (ctxt->datToFree != 0)
     {
+#if	!GS_WITH_GC
       NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
+#endif
       ctxt->datToFree = 0;
     }
 

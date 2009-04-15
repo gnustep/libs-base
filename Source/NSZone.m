@@ -95,6 +95,20 @@
 #include "Foundation/NSString.h"
 #include "Foundation/NSZone.h"
 #include "Foundation/NSLock.h"
+#include "GSPrivate.h"
+
+/**
+ * Try to get more memory - the normal process has failed.
+ * If we can't do anything, just return a null pointer.
+ * Try to do some logging if possible.
+ */
+void *
+GSOutOfMemory(NSUInteger size, BOOL retry)
+{
+  fprintf(stderr, "GSOutOfMemory ... wanting %lu bytes.\n",
+    (unsigned long)size);
+  return 0;
+}
 
 /* Default zone functions for default zone. */
 static void* default_malloc (NSZone *zone, size_t size);
@@ -196,9 +210,6 @@ NSZone	*__nszone_private_hidden_default_zone = &default_zone;
 
 
 
-/**
- * Sets name of the given zone (useful for debugging and logging).
- */
 void
 NSSetZoneName (NSZone *zone, NSString *name)
 {
@@ -452,20 +463,14 @@ NSZoneFree (NSZone *zone, void *ptr)
     }
 }
 
-#else	/* GS_WITH_GC */
-
-/**
- * Try to get more memory - the normal process has failed.
- * If we can't do anything, just return a null pointer.
- * Try to do some logging if possible.
- */
-void *
-GSOutOfMemory(NSUInteger size, BOOL retry)
+BOOL
+GSPrivateIsCollectable(const void *ptr)
 {
-  fprintf(stderr, "GSOutOfMemory ... wanting %lu bytes.\n",
-    (unsigned long)size);
-  return 0;
+  if (GC_base((void*)ptr) == 0) return NO;
+  else return YES;
 }
+
+#else	/* GS_WITH_GC */
 
 
 /* Alignment */
@@ -1818,10 +1823,6 @@ rrealloc (NSZone *zone, void *ptr, size_t size)
 
 static void rnfree (NSZone *zone, void *ptr);
 
-/**
- * Searches and finds the zone ptr was allocated from.  The speed depends
- * upon the number of zones and their size.
- */
 GS_DECLARE NSZone*
 NSZoneFromPointer(void *ptr)
 {
@@ -1845,14 +1846,6 @@ NSZoneFromPointer(void *ptr)
   return (zone == 0) ? &default_zone : zone;
 }
 
-/**
- * Creates a new zone of start bytes, which will grow and shrink by
- * granularity bytes.  If canFree is 0, memory in zone is allocated but
- * never freed, meaning allocation will be very fast.  The whole zone can
- * still be freed with NSRecycleZone(), and you should still call NSZoneFree
- * on memory in the zone that is no longer needed, since a count of allocated
- * pointers is kept and must reach zero before freeing the zone.
- */
 NSZone*
 NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
 {
@@ -1968,12 +1961,6 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
   return newZone;
 }
 
-/**
- *  Allocates and returns cleared memory for elems items of size bytes, in the
- *  given zone.  Returns NULL if allocation of size 0 requested.  Raises
- *  <code>NSMallocException</code> if not enough free memory in zone to
- *  allocate and no more can be obtained from system.
- */
 void*
 NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
@@ -2067,6 +2054,12 @@ NSZoneStats (NSZone *zone)
   if (!zone)
     zone = NSDefaultMallocZone();
   return (zone->stats)(zone);
+}
+
+BOOL
+GSPrivateIsCollectable(const void *ptr)
+{
+  return NO;
 }
 
 #endif	/* GS_WITH_GC */

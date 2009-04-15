@@ -592,8 +592,26 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 	}
     }
 
+
   if (encoding == internalEncoding)
     {
+#if	GS_WITH_GC
+      /* If we are using GC, copy and free any non-collectable buffer so
+       * we don't leak memory.
+       */
+      if (GSPrivateIsCollectable(chars.c) == NO)
+	{
+          me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
+	    GSObjCZone(self));
+          me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
+          me->_count = length;
+          me->_flags.wide = 0;
+          me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+	  memcpy(me->_contents.c, chars.c, length);
+	  NSZoneFree(NSZoneFromPointer(chars.c), chars.c);
+          return (id)me;
+	}
+#endif
       me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, GSObjCZone(self));
       me->_contents.c = chars.c;
       me->_count = length;
@@ -658,6 +676,23 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     }
   else
     {
+#if	GS_WITH_GC
+      /* If we are using GC, copy and free any non-collectable buffer so
+       * we don't leak memory.
+       */
+      if (GSPrivateIsCollectable(chars.u) == NO)
+	{
+          me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass, length,
+	    GSObjCZone(self));
+          me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
+          me->_count = length;
+          me->_flags.wide = 1;
+          me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+	  memcpy(me->_contents.u, chars.u, length * sizeof(unichar));
+	  NSZoneFree(NSZoneFromPointer(chars.u), chars.u);
+          return (id)me;
+	}
+#endif
       me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass,
 	0, GSObjCZone(self));
       me->_contents.u = chars.u;
