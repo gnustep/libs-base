@@ -1,3 +1,10 @@
+2009-04-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSHasTable.h: new OSX 10.5 API
+	* Source/NSHashTable.m: New abstract class
+	* Source/NSConcreteHashTable.m: concrete implementation
+	* Source/NSKeyValueObserving.m: Fix incorrect hash table references.
+
 2009-04-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Change placeholder string initialisation so that,

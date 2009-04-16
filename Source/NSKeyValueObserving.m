@@ -558,10 +558,10 @@ replacementForClass(Class c)
             {
               NSMapEnumerator enumerator = NSEnumerateMapTable(depKeys);
               NSString *mainKey;
-              NSHashTable dependents;
+              NSHashTable *dependents;
 
               while (NSNextMapEnumeratorPair(&enumerator, (void **)(&mainKey),
-                &dependents))
+                (void**)&dependents))
                 {
                   NSHashEnumerator dependentKeyEnum;
                   NSString *dependentKey;
@@ -1478,7 +1478,7 @@ replacementForClass(Class c)
 
   if (keys != nil)
     {
-      NSHashTable       dependents = NSMapGet(keys, aKey);
+      NSHashTable       *dependents = NSMapGet(keys, aKey);
 
       if (dependents != 0)
         {
@@ -1501,7 +1501,7 @@ replacementForClass(Class c)
 
   if (keys != nil)
     {
-      NSHashTable dependents = NSMapGet(keys, aKey);
+      NSHashTable *dependents = NSMapGet(keys, aKey);
 
       if (dependents != nil)
         {
@@ -1822,7 +1822,8 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
   enumerator = [triggerKeys objectEnumerator];
   while ((affectingKey = [enumerator nextObject]))
     {
-      NSHashTable dependentKeys = NSMapGet(affectingKeys, affectingKey);
+      NSHashTable *dependentKeys = NSMapGet(affectingKeys, affectingKey);
+
       if (!dependentKeys)
         {
           dependentKeys = NSCreateHashTable(NSObjectHashCallBacks, 10);
