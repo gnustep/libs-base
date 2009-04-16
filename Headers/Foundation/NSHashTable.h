@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-#if 0
+
 @class NSArray, NSSet, NSHashTable;
 
 /**** Type, Constant, and Macro Definitions **********************************/
@@ -146,12 +146,6 @@ typedef NSUInteger NSHashTableOptions;
 
 @end
 
-#endif
-
-/**
- * Hash table type ... an opaque pointer to a data structure.
- */
-typedef void* NSHashTable;
 
 /**
  * Type for enumerating.<br />
