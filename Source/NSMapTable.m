@@ -166,7 +166,8 @@ static Class	concreteClass = 0;
 
 - (BOOL) isEqual: (id)other
 {
-  return (BOOL)(uintptr_t)[self subclassResponsibility: _cmd];
+  if ([other isKindOfClass: abstractClass] == NO) return NO;
+  return NSCompareMapTables(self, other);
 }
 
 - (NSEnumerator*) keyEnumerator

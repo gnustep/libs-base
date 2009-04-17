@@ -179,6 +179,13 @@ NSAllMapTableValues(NSMapTable *table)
   return valueArray;
 }
 
+static BOOL
+equalPointers(const void *item1, const void *item2,
+  NSUInteger (*size)(const void *item))
+{
+  return (item1 == item2) ? YES : NO;
+}
+
 /**
  * Compares the two map tables for equality.
  * If the tables are different sizes, returns NO.
@@ -190,43 +197,123 @@ NSAllMapTableValues(NSMapTable *table)
 BOOL
 NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
 {
-  GSIMapTable	t1 = (GSIMapTable)table1;
-  GSIMapTable	t2 = (GSIMapTable)table2;
-
-  if (t1 == t2)
+  if (table1 == table2)
     {
       return YES;
     }
-  if (t1 == nil)
+  if (table1 == nil)
     {
       NSWarnFLog(@"Null first argument supplied");
       return NO;
     }
-  if (t2 == nil)
+  if (table2 == nil)
     {
       NSWarnFLog(@"Null second argument supplied");
       return NO;
     }
 
-  if (t1->nodeCount != t2->nodeCount)
+  if ([table1 count] != [table2 count])
     {
       return NO;
     }
+
+  if (GSObjCClass(table1) != concreteClass
+    && GSObjCClass(table2) == concreteClass)
+    {
+      id	t = table1;
+
+      table1 = table2;
+      table2 = t;
+    }
+
+  if (GSObjCClass(table1) == concreteClass)
+    {
+      NSConcreteMapTable	*c1 = (NSConcreteMapTable*)table1;
+      GSIMapTable	t1 = (GSIMapTable)table1;
+      BOOL		result = YES;
+      NSMapEnumerator	enumerator;
+      GSIMapNode	n1;
+
+      enumerator = GSIMapEnumeratorForMap(t1);
+      if (GSObjCClass(table2) == concreteClass)
+	{
+	  GSIMapTable	t2 = (GSIMapTable)table2;
+    
+	  while ((n1 = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+	    {
+	      GSIMapNode	n2;
+
+	      n2 = GSIMapNodeForKey(t2, n1->key);
+	      if (n2 == 0)
+		{
+		  result = NO;
+		}
+	      else
+		{
+		  void		*v1 = n1->value.ptr;
+		  void		*v2 = n2->value.ptr;
+
+		  result = (c1->legacy
+		    ? c1->cb.old.k.isEqual(c1, v1, v2)
+		    : pointerFunctionsEqual(&c1->cb.pf.v, v2, v2));
+		}
+	      if (result == NO)
+		{
+		  break;
+		}
+	    }
+	}
+      else
+	{
+	  while ((n1 = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+	    {
+	      void	*k1 = n1->key.ptr;
+	      void	*v1 = n1->value.ptr;
+	      void	*v2 = NSMapGet(table2, k1);
+
+	      result = (c1->legacy
+		? c1->cb.old.k.isEqual(c1, v1, v2)
+		: pointerFunctionsEqual(&c1->cb.pf.v, v1, v2));
+	      if (result == NO)
+		{
+		  break;
+		}
+	    }
+	}
+      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
+      return result;
+    }
   else
     {
-      NSMapEnumerator enumerator = GSIMapEnumeratorForMap((GSIMapTable)t1);
-      GSIMapNode n;
+      BOOL		result = YES;
+      NSMapEnumerator	enumerator;
+      void		*k1;
+      void		*v1;
+      NSPointerFunctions	*pf;
+      BOOL (*isEqualFunction)(const void *item1, const void *item2,
+        NSUInteger (*size)(const void *item));
+      NSUInteger (*sizeFunction)(const void *item);
 
-      while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
-        {
-          if (GSIMapNodeForKey(t2, n->key) == 0)
-            {
-	      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
-              return NO;
-            }
-        }
-      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
-      return YES;
+      /* Get functions needed for comparison.
+       */
+      pf = [table1 valuePointerFunctions];
+      isEqualFunction = [pf isEqualFunction];
+      sizeFunction = [pf sizeFunction];
+      if (isEqualFunction == 0) isEqualFunction = equalPointers;
+
+      enumerator = NSEnumerateMapTable(table1);
+      while (NSNextMapEnumeratorPair(&enumerator, &k1, &v1) == YES)
+	{
+	  void	*v2 = NSMapGet(table2, k1);
+
+	  if ((*isEqualFunction)(v1, v2, sizeFunction) == NO)
+	    {
+	      result = NO;
+	      break;
+	    }
+	}
+      NSEndMapTableEnumeration(&enumerator);
+      return result;
     }
 }
 
@@ -915,51 +1002,28 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 	     valuePointerFunctions: (NSPointerFunctions*)valueFunctions
 			  capacity: (NSUInteger)initialCapacity
 {
-  if (keyFunctions == nil)
+  static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+  if (defaultFunctions == nil)
     {
-      keyFunctions = [NSPointerFunctions pointerFunctionsWithOptions: 0];
-    }
-  if (valueFunctions == nil)
-    {
-      valueFunctions = [NSPointerFunctions pointerFunctionsWithOptions: 0];
+      defaultFunctions
+	= [[NSConcretePointerFunctions alloc] initWithOptions: 0];
     }
   legacy = NO;
-  if ([keyFunctions class] == [NSConcretePointerFunctions class])
+
+  if (![keyFunctions isKindOfClass: [NSConcretePointerFunctions class]])
     {
-      memcpy(&self->cb.pf.k, &((NSConcretePointerFunctions*)keyFunctions)->_x,
-	sizeof(self->cb.pf.k));
+      keyFunctions = defaultFunctions;
     }
-  else
+  memcpy(&self->cb.pf.k, &((NSConcretePointerFunctions*)keyFunctions)->_x,
+    sizeof(self->cb.pf.k));
+
+  if (![valueFunctions isKindOfClass: [NSConcretePointerFunctions class]])
     {
-      self->cb.pf.k.acquireFunction = [keyFunctions acquireFunction];
-      self->cb.pf.k.descriptionFunction = [keyFunctions descriptionFunction];
-      self->cb.pf.k.hashFunction = [keyFunctions hashFunction];
-      self->cb.pf.k.isEqualFunction = [keyFunctions isEqualFunction];
-      self->cb.pf.k.relinquishFunction = [keyFunctions relinquishFunction];
-      self->cb.pf.k.sizeFunction = [keyFunctions sizeFunction];
-      self->cb.pf.k.usesStrongWriteBarrier
-	= [keyFunctions usesStrongWriteBarrier];
-      self->cb.pf.k.usesWeakReadAndWriteBarriers
-	= [keyFunctions usesWeakReadAndWriteBarriers];
+      valueFunctions = defaultFunctions;
     }
-  if ([valueFunctions class] == [NSConcretePointerFunctions class])
-    {
-      memcpy(&self->cb.pf.v, &((NSConcretePointerFunctions*)valueFunctions)->_x,
-	sizeof(self->cb.pf.v));
-    }
-  else
-    {
-      self->cb.pf.v.acquireFunction = [valueFunctions acquireFunction];
-      self->cb.pf.v.descriptionFunction = [valueFunctions descriptionFunction];
-      self->cb.pf.v.hashFunction = [valueFunctions hashFunction];
-      self->cb.pf.v.isEqualFunction = [valueFunctions isEqualFunction];
-      self->cb.pf.v.relinquishFunction = [valueFunctions relinquishFunction];
-      self->cb.pf.v.sizeFunction = [valueFunctions sizeFunction];
-      self->cb.pf.v.usesStrongWriteBarrier
-	= [valueFunctions usesStrongWriteBarrier];
-      self->cb.pf.v.usesWeakReadAndWriteBarriers
-	= [valueFunctions usesWeakReadAndWriteBarriers];
-    }
+  memcpy(&self->cb.pf.v, &((NSConcretePointerFunctions*)valueFunctions)->_x,
+    sizeof(self->cb.pf.v));
 
 #if	GC_WITH_GC
   if (self->cb.pf.k.usesWeakReadAndWriteBarriers)
@@ -991,7 +1055,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 - (BOOL) isEqual: (id)other
 {
-  return (BOOL)(uintptr_t)[self subclassResponsibility: _cmd];
+  return NSCompareMapTables(self, other);
 }
 
 - (NSEnumerator*) keyEnumerator

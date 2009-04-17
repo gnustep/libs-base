@@ -46,11 +46,8 @@ typedef struct
 
   NSUInteger (*sizeFunction)(const void *item);
 
-  BOOL shouldCopyIn;
+  NSPointerFunctionsOptions	options;
 
-  BOOL usesStrongWriteBarrier;
-
-  BOOL usesWeakReadAndWriteBarriers;
 } PFInfo;
 
 /* Declare the concrete pointer functions class as a wrapper around
@@ -73,9 +70,10 @@ static inline void
 pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
 {
   if (PF->acquireFunction != 0)
-    src = (*PF->acquireFunction)(src, PF->sizeFunction, PF->shouldCopyIn);
+    src = (*PF->acquireFunction)(src, PF->sizeFunction,
+    PF->options & NSPointerFunctionsCopyIn ? YES : NO);
 #if	GSWITHGC
-  if (PF->usesWeakReadAndWriteBarriers)
+  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
     GSAssignZeroingWeakPointer(dst, src);
   else
 #endif
@@ -125,7 +123,7 @@ pointerFunctionsRelinquish(PFInfo *PF, void **itemptr)
 {
   if (PF->relinquishFunction != 0)
     (*PF->relinquishFunction)(*itemptr, PF->sizeFunction);
-  if (PF->usesWeakReadAndWriteBarriers)
+  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
     GSAssignZeroingWeakPointer(itemptr, (void*)0);
   else
     *itemptr = 0;
@@ -138,11 +136,12 @@ pointerFunctionsReplace(PFInfo *PF, void **dst, void *src)
   if (src != *dst)
     {
       if (PF->acquireFunction != 0)
-	src = (*PF->acquireFunction)(src, PF->sizeFunction, PF->shouldCopyIn);
+	src = (*PF->acquireFunction)(src, PF->sizeFunction,
+          PF->options & NSPointerFunctionsCopyIn ? YES : NO);
       if (PF->relinquishFunction != 0)
 	(*PF->relinquishFunction)(*dst, PF->sizeFunction);
 #if	GSWITHGC
-      if (PF->usesWeakReadAndWriteBarriers)
+      if (PF->options & NSPointerFunctionsZeroingWeakMemory)
 	GSAssignZeroingWeakPointer(dst, src);
       else
 #endif

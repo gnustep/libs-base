@@ -160,15 +160,13 @@ static Class	concreteClass = 0;
 
 - (BOOL) isEqual: (id)other
 {
-  if (other == self) return YES;
-  if (other == nil) return NO;
   if ([other isKindOfClass: abstractClass] == NO) return NO;
-  return [self isEqualToHashTable: other];
+  return NSCompareHashTables(self, other);
 }
 
 - (BOOL) isEqualToHashTable: (NSHashTable*)other
 {
-  return (BOOL)(uintptr_t)[self subclassResponsibility: _cmd];
+  return NSCompareHashTables(self, other);
 }
 
 - (BOOL) isSubsetOfHashTable: (NSHashTable*)other

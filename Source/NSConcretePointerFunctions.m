@@ -187,6 +187,8 @@ relinquishRetainedMemory(const void *item,
 
 - (id) initWithOptions: (NSPointerFunctionsOptions)options
 {
+  _x.options = options;
+
   /* First we look at the memory management options to see which function
    * should be used to relinquish contents of a container with these
    * options.
@@ -194,7 +196,6 @@ relinquishRetainedMemory(const void *item,
   if (options & NSPointerFunctionsZeroingWeakMemory)
     {
       _x.relinquishFunction = 0;
-      _x.usesWeakReadAndWriteBarriers = YES;
     }
   else if (options & NSPointerFunctionsOpaqueMemory)
     {
@@ -210,17 +211,7 @@ relinquishRetainedMemory(const void *item,
     }
   else
     {
-      /* Only retained pointers need the array memory to be scanned,
-       * so for these we set the usesStrongWriteBarrier flag to tell
-       * containers to allocate scanned memory.
-       */
-      _x.usesStrongWriteBarrier = YES;
       _x.relinquishFunction = relinquishRetainedMemory;
-    }
-
-  if (options & NSPointerFunctionsCopyIn)
-    {
-      _x.shouldCopyIn = YES;
     }
 
   /* Now we look at the personality options to determine other functions.
@@ -336,12 +327,20 @@ relinquishRetainedMemory(const void *item,
 
 - (void) setUsesStrongWriteBarrier: (BOOL)flag
 {
-  _x.usesStrongWriteBarrier = flag;
+  _x.options &=
+    ~(NSPointerFunctionsZeroingWeakMemory
+    |NSPointerFunctionsOpaqueMemory
+    |NSPointerFunctionsMallocMemory
+    |NSPointerFunctionsMachVirtualMemory);
 }
 
 - (void) setUsesWeakReadAndWriteBarriers: (BOOL)flag
 {
-  _x.usesWeakReadAndWriteBarriers = flag;
+  _x.options |= NSPointerFunctionsZeroingWeakMemory;
+  _x.options &=
+    ~(NSPointerFunctionsOpaqueMemory
+    |NSPointerFunctionsMallocMemory
+    |NSPointerFunctionsMachVirtualMemory);
 }
 
 - (NSUInteger (*)(const void *item)) sizeFunction
@@ -351,12 +350,20 @@ relinquishRetainedMemory(const void *item,
 
 - (BOOL) usesStrongWriteBarrier
 {
-  return _x.usesStrongWriteBarrier;
+  if ((_x.options &
+    (NSPointerFunctionsZeroingWeakMemory
+    |NSPointerFunctionsOpaqueMemory
+    |NSPointerFunctionsMallocMemory
+    |NSPointerFunctionsMachVirtualMemory)) == NSPointerFunctionsStrongMemory)
+    return YES;
+  return NO;
 }
 
 - (BOOL) usesWeakReadAndWriteBarriers
 {
-  return _x.usesStrongWriteBarrier;
+  if (_x.options & NSPointerFunctionsZeroingWeakMemory)
+    return YES;
+  return NO;
 }
 
 @end
