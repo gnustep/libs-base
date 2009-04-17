@@ -173,16 +173,16 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
     {
       BOOL		result = YES;
       NSHashEnumerator	enumerator;
-      GSIMapNode	n;
+      GSIMapNode	n1;
 
       enumerator = NSEnumerateHashTable(table1);
       if (GSObjCClass(table2) == concreteClass)
 	{
           GSIMapTable	t2 = (GSIMapTable)table2;
 
-	  while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+	  while ((n1 = GSIMapEnumeratorNextNode(&enumerator)) != 0)
 	    {
-	      if (GSIMapNodeForKey(t2, n->key) == 0)
+	      if (GSIMapNodeForKey(t2, n1->key) == 0)
 		{
 		  result = NO;
 		  break;
@@ -191,12 +191,13 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
 	}
       else
 	{
-	  while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+	  while ((n1 = GSIMapEnumeratorNextNode(&enumerator)) != 0)
 	    {
+	      void	*v1 = n1->key.ptr;
 	      void	*v2;
 
-	      v2 = NSHashGet(table2, n->key.ptr);
-	      if (v2 == 0 && v2 != n->key.ptr)
+	      v2 = NSHashGet(table2, v1);
+	      if (v2 == 0 && v2 != v1)
 		{
 		  result = NO;
 		  break;
@@ -215,9 +216,10 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
       enumerator = NSEnumerateHashTable(table1);
       while ((v1 = NSNextHashEnumeratorItem(&enumerator)) != 0)
 	{
-	  void	*v2 = NSHashGet(table2, v1);
+	  void	*v2;
 
-	  if ((v2 = NSHashGet(table2, v1)) == 0)
+	  v2 = NSHashGet(table2, v1);
+	  if (v2 == 0 && v2 != v1)
 	    {
 	      result = NO;
 	      break;
@@ -793,29 +795,20 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 		       capacity: (NSUInteger)initialCapacity
 {
-  if (functions == nil)
-    {
-      functions = [NSPointerFunctions pointerFunctionsWithOptions: 0];
-    }
   legacy = NO;
-  if ([functions class] == [NSConcretePointerFunctions class])
+  if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
     {
-      memcpy(&self->cb.pf, &((NSConcretePointerFunctions*)functions)->_x,
-	sizeof(self->cb.pf));
+      static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+      if (defaultFunctions == nil)
+	{
+          defaultFunctions
+	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	}
+      functions = defaultFunctions;
     }
-  else
-    {
-      self->cb.pf.acquireFunction = [functions acquireFunction];
-      self->cb.pf.descriptionFunction = [functions descriptionFunction];
-      self->cb.pf.hashFunction = [functions hashFunction];
-      self->cb.pf.isEqualFunction = [functions isEqualFunction];
-      self->cb.pf.relinquishFunction = [functions relinquishFunction];
-      self->cb.pf.sizeFunction = [functions sizeFunction];
-      self->cb.pf.usesStrongWriteBarrier
-	= [functions usesStrongWriteBarrier];
-      self->cb.pf.usesWeakReadAndWriteBarriers
-	= [functions usesWeakReadAndWriteBarriers];
-    }
+  memcpy(&self->cb.pf, &((NSConcretePointerFunctions*)functions)->_x,
+    sizeof(self->cb.pf));
 
 #if	GC_WITH_GC
   if (self->cb.pf.usesWeakReadAndWriteBarriers)
@@ -829,11 +822,6 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 #endif
   GSIMapInitWithZoneAndCapacity(self, zone, initialCapacity);
   return self;
-}
-
-- (BOOL) isEqualToHashTable: (NSHashTable*)other
-{
-  return NSCompareHashTables(self, other);
 }
 
 - (NSEnumerator*) objectEnumerator

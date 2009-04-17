@@ -269,7 +269,7 @@ static Class	concreteClass = Nil;
   c->_capacity = c->_count;
   c->_grow_factor = c->_capacity/2;
 #if	GS_WITH_GC
-  if (_pf.usesWeakReadAndWriteBarriers)
+  if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
     {
       c->_contents = NSAllocateCollectable(sizeof(id) * _count, 0);
     }
@@ -350,7 +350,7 @@ static Class	concreteClass = Nil;
       if (_count > 0)
 	{
 #if	GS_WITH_GC
-          if (_pf.usesWeakReadAndWriteBarriers)
+	  if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
 	    {
 	      _contents = NSAllocateCollectable(sizeof(id) * _count, 0);
 	    }
@@ -387,23 +387,18 @@ static Class	concreteClass = Nil;
 
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 {
-  if ([functions class] == [NSConcretePointerFunctions class])
+  if (![functions isKindOfClass: [NSConcretePointerFunctions class]])
     {
-      memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
+      static NSConcretePointerFunctions	*defaultFunctions = nil;
+
+      if (defaultFunctions == nil)
+	{
+          defaultFunctions
+	    = [[NSConcretePointerFunctions alloc] initWithOptions: 0];
+	}
+      functions = defaultFunctions;
     }
-  else
-    {
-      _pf.acquireFunction = [functions acquireFunction];
-      _pf.descriptionFunction = [functions descriptionFunction];
-      _pf.hashFunction = [functions hashFunction];
-      _pf.isEqualFunction = [functions isEqualFunction];
-      _pf.relinquishFunction = [functions relinquishFunction];
-      _pf.sizeFunction = [functions sizeFunction];
-      _pf.usesStrongWriteBarrier
-	= [functions usesStrongWriteBarrier];
-      _pf.usesWeakReadAndWriteBarriers
-	= [functions usesWeakReadAndWriteBarriers];
-    }
+  memcpy(&_pf, &((NSConcretePointerFunctions*)functions)->_x, sizeof(_pf));
   return self;
 }
 
@@ -516,7 +511,7 @@ static Class	concreteClass = Nil;
 #if	GS_WITH_GC
 	      ptr = (void**)NSZoneMalloc([self zone], size);
 #else
-	      if (_pf.usesWeakReadAndWriteBarriers)
+	      if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
 		{
 		  ptr = (void**)NSAllocateCollectable(size, 0);
 		}
@@ -531,7 +526,7 @@ static Class	concreteClass = Nil;
 #if	GS_WITH_GC
 	      ptr = (void**)NSZoneRealloc([self zone], _contents, size);
 #else
-	      if (_pf.usesWeakReadAndWriteBarriers)
+	      if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
 		{
 		  ptr = (void**)NSReallocateCollectable(
 		    _contents, size, 0);
