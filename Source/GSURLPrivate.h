@@ -71,6 +71,9 @@
 @end
 
 
+@interface      NSURLProtocol (Private)
++ (Class) _classToHandleRequest:(NSURLRequest *)request;
+@end
 
 /*
  * Internal class for handling HTTP authentication
