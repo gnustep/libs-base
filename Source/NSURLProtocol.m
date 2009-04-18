@@ -341,6 +341,26 @@ static NSURLProtocol	*placeholder = nil;
   return NO;
 }
 
++(Class) _classToHandleRequest:(NSURLRequest *)request
+{
+  Class protoClass = nil;
+  [regLock lock];
+  int count = [registered count];
+  while (count-- > 0)
+    {
+      Class	proto = [registered objectAtIndex: count];
+
+      if ([proto canInitWithRequest: request] == YES)
+	{
+	  protoClass = proto;
+	  break;
+	}
+    }
+  [regLock unlock];
+  return protoClass;
+}
+
+
 + (void) setProperty: (id)value
 	      forKey: (NSString *)key
 	   inRequest: (NSMutableURLRequest *)request

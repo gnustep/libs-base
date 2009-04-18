@@ -1,3 +1,13 @@
+2009-04-18 10:15-EDT Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/GSURLPrivate.h: Addition of private method to NSURLProtocol 
+	category.
+	* Source/NSURLConnection.m: Changes to use the new method and to correct
+	bug #26107.  Patch by: doug@riverrock.org
+	* Source/NSURLProtocol.m: Addition of static method to look up class 
+	which can handle the given connection protocol.  
+	Patch by: doug@riverrock.org
+	
 2009-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSHasTable.h: new OSX 10.5 API

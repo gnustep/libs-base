@@ -26,7 +26,6 @@
 #import <Foundation/NSDebug.h>
 #import "GSURLPrivate.h"
 
-
 @interface _NSURLConnectionDataCollector : NSObject <NSURLProtocolClient>
 {
   NSURLConnection	*_connection;	// Not retained
@@ -112,6 +111,13 @@ redirectResponse: (NSURLResponse*)redirectResponse
   _done = YES;
 }
 
+- (void) connection: (NSURLConnection *)connection
+   didFailWithError: (NSError *)error
+{
+  *_error = error;
+  _done = YES;
+}
+
 - (void) URLProtocol: (NSURLProtocol*)proto
   didReceiveResponse: (NSURLResponse*)response
   cacheStoragePolicy: (NSURLCacheStoragePolicy)policy
@@ -124,10 +130,29 @@ redirectResponse: (NSURLResponse*)redirectResponse
   _done = YES;
 }
 
+- (void) connectionDidFinishLoading: (NSURLConnection *)connection
+{
+  _done = YES;
+}
+
+
 - (void) URLProtocol: (NSURLProtocol*)proto
 	 didLoadData: (NSData*)data
 {
-  if (_data != nil)
+  if (_data == nil)
+    {
+      _data = [data mutableCopy];
+    }
+  else
+    {
+      [_data appendData: data];
+    }
+}
+
+- (void) connection: (NSURLConnection *)connection
+     didReceiveData: (NSData *)data
+{
+  if (_data == nil)
     {
       _data = [data mutableCopy];
     }
@@ -175,7 +200,7 @@ typedef struct {
 
 + (BOOL) canHandleRequest: (NSURLRequest *)request
 {
-  return [NSURLProtocol canInitWithRequest: request];
+  return ([NSURLProtocol _classToHandleRequest: request] != nil);
 }
 
 + (NSURLConnection *) connectionWithRequest: (NSURLRequest *)request
