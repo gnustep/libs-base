@@ -1147,24 +1147,23 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-  NSInteger count;
+  NSInteger 		count;
+  NSMapEnumerator	enumerator;
 
   state->mutationsPtr = (unsigned long *)version;
   if (state->state == 0 && state->extra[0] == 0)
     {
-      while (state->extra[0] < bucketCount)
-	{
-	  state->state = (unsigned long)buckets[state->extra[0]].firstNode;
-	  if (state->state != 0)
-	    {
-	      break;	// Got first node, and recorded its bucket.
-	    }
-	  state->extra[0]++;
-	}
+      enumerator = GSIMapEnumeratorForMap(self);
+    }
+  else
+    {
+      enumerator.map = self;
+      enumerator.node = (GSIMapNode)(uintptr_t)state->state;
+      enumerator.bucket = state->extra[0];
     }
   for (count = 0; count < len; count++)
     {
-      GSIMapNode	node = (GSIMapNode)state->state;
+      GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
 
       if (node == 0)
 	{
@@ -1172,22 +1171,11 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 	}
       else
 	{
-	  GSIMapNode	next = node->nextInBucket;
-
-	  if (next == 0)
-	    {
-	      size_t	bucket = state->extra[0];
-
-	      while (next == 0 && ++bucket < bucketCount)
-		{
-		  next = buckets[bucket].firstNode;
-		}
-	      state->extra[0] = bucket;
-	    }
-	  state->state = (unsigned long)(uintptr_t)next;
 	  stackbuf[count] = node->key.obj;
 	}
     }
+  state->state = (unsigned long)(uintptr_t)enumerator.node;
+  state->extra[0] = enumerator.bucket;
   state->itemsPtr = stackbuf;
   return count;
 }
