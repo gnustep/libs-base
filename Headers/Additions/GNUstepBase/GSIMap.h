@@ -804,13 +804,13 @@ static INLINE GSIMapNode
 GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 {
   GSIMapNode	node = ((_GSIE)enumerator)->node;
+  GSIMapTable	map = ((_GSIE)enumerator)->map;
 
 #if	GS_WITH_GC
   /* Find the frst available non-zeroed node.
    */
   if (node != 0 && GSI_MAP_ZEROED(map) && node->key.addr == 0)
     {
-      GSIMapTable	map = ((_GSIE)enumerator)->map;
       size_t		bucketCount = map->bucketCount;
       size_t		bucket = ((_GSIE)enumerator)->bucket;
 
@@ -838,7 +838,6 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 #if	GS_WITH_GC
       if (GSI_MAP_ZEROED(map))
 	{
-	  GSIMapTable	map = ((_GSIE)enumerator)->map;
 	  size_t	bucket = ((_GSIE)enumerator)->bucket;
 
 	  while (next != 0 && next->key.addr == 0)
@@ -850,7 +849,6 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 
       if (next == 0)
 	{
-	  GSIMapTable	map = ((_GSIE)enumerator)->map;
 	  size_t	bucketCount = map->bucketCount;
 	  size_t	bucket = ((_GSIE)enumerator)->bucket;
 
