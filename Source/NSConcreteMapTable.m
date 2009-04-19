@@ -97,6 +97,9 @@ typedef GSIMapNode_t *GSIMapNode;
 #define GSI_MAP_RETAIN_VAL(M, X)\
  (M->legacy ? M->cb.old.v.retain(M, X.ptr) \
  : pointerFunctionsAcquire(&M->cb.pf.v, &X.ptr, X.ptr))
+#define GSI_MAP_ZEROED(M)\
+ (M->legacy ? 0 \
+ : ((M->cb.pf.k.options & NSPointerFunctionsZeroingWeakMemory) ? YES : NO))
 
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
