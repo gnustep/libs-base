@@ -40,6 +40,7 @@
 
 #import "NSConcretePointerFunctions.h"
 #import "NSCallBacks.h"
+#import "GSPrivate.h"
 
 static Class	concreteClass = 0;
 
@@ -62,6 +63,7 @@ typedef GSIMapNode_t *GSIMapNode;
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
   size_t	chunkCount;	/* Number of chunks in array.	*/
   size_t	increment;	/* Amount to grow by.		*/
+  unsigned long	version;	/* For fast enumeration.	*/
   BOOL		legacy;		/* old style callbacks?		*/
   union {
     PFInfo	pf;
@@ -107,29 +109,7 @@ static GC_descr	nodeW = 0;
 NSArray *
 NSAllHashTableObjects(NSHashTable *table)
 {
-  NSMutableArray	*array;
-  NSHashEnumerator	enumerator;
-  id			element;
-
-  if (table == nil)
-    {
-      NSWarnFLog(@"Null table argument supplied");
-      return nil;
-    }
-
-  /* Create our mutable key array. */
-  array = [NSMutableArray arrayWithCapacity: NSCountHashTable(table)];
-
-  /* Get an enumerator for TABLE. */
-  enumerator = NSEnumerateHashTable(table);
-
-  /* Step through TABLE... */
-  while ((element = NSNextHashEnumeratorItem(&enumerator)) != nil)
-    {
-      [array addObject: element];
-    }
-  NSEndHashTableEnumeration(&enumerator);
-  return array;
+  return [table allObjects];
 }
 
 /**
@@ -280,12 +260,7 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 unsigned int
 NSCountHashTable(NSHashTable *table)
 {
-  if (table == nil)
-    {
-      NSWarnFLog(@"Null table argument supplied");
-      return 0;
-    }
-  return ((GSIMapTable)table)->nodeCount;
+  return [table count];
 }
 
 /**
@@ -361,7 +336,15 @@ NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
       NSWarnFLog(@"Null enumerator argument supplied");
       return;
     }
-  GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
+  if (enumerator->map != 0)
+    {
+      GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
+    }
+  else if (enumerator->node != 0)
+    {
+      [(id)enumerator->node release];
+      memset(enumerator, '\0', sizeof(GSIMapEnumerator));
+    }
 }
 
 /**
@@ -378,7 +361,17 @@ NSEnumerateHashTable(NSHashTable *table)
       NSWarnFLog(@"Null table argument supplied");
       return v;
     }
-  return GSIMapEnumeratorForMap((GSIMapTable)table);
+  if (GSObjCClass(table) == concreteClass)
+    {
+      return GSIMapEnumeratorForMap((GSIMapTable)table);
+    }
+  else
+    {
+      NSHashEnumerator	v = {0, 0, 0};
+
+      v.node = (void*)[[table objectEnumerator] retain];
+      return v;
+    }
 }
 
 /**
@@ -390,14 +383,7 @@ NSEnumerateHashTable(NSHashTable *table)
 void
 NSFreeHashTable(NSHashTable *table)
 {
-  if (table == nil)
-    {
-      NSWarnFLog(@"Null table argument supplied");
-    }
-  else
-    {
-      [table release];
-    }
+  [table release];
 }
 
 /**
@@ -407,22 +393,26 @@ NSFreeHashTable(NSHashTable *table)
 void *
 NSHashGet(NSHashTable *table, const void *element)
 {
-  GSIMapNode	n;
-
   if (table == nil)
     {
       NSWarnFLog(@"Null table argument supplied");
       return 0;
     }
-  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)element);
-  if (n == 0)
+  if (GSObjCClass(table) == concreteClass)
     {
-      return 0;
+      GSIMapNode	n;
+
+      n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)element);
+      if (n == 0)
+	{
+	  return 0;
+	}
+      else
+	{
+	  return n->key.ptr;
+	}
     }
-  else
-    {
-      return n->key.ptr;
-    }
+  return [table member: (id)element];
 }
 
 /**
@@ -433,9 +423,6 @@ NSHashGet(NSHashTable *table, const void *element)
 void
 NSHashInsert(NSHashTable *table, const void *element)
 {
-  GSIMapTable   t = (GSIMapTable)table;
-  GSIMapNode    n;
-
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -446,16 +433,28 @@ NSHashInsert(NSHashTable *table, const void *element)
       [NSException raise: NSInvalidArgumentException
                   format: @"Attempt to place null in hash table"];
     }
-  n = GSIMapNodeForKey(t, (GSIMapKey)element);
-  if (n == 0)
+  if (GSObjCClass(table) == concreteClass)
     {
-      GSIMapAddKey(t, (GSIMapKey)element);
+      GSIMapTable   t = (GSIMapTable)table;
+      GSIMapNode    n;
+
+      n = GSIMapNodeForKey(t, (GSIMapKey)element);
+      if (n == 0)
+	{
+	  GSIMapAddKey(t, (GSIMapKey)element);
+	  ((NSConcreteHashTable*)table)->version++;
+	}
+      else if (element != n->key.ptr)
+	{
+	  GSI_MAP_RELEASE_KEY(t, n->key);
+	  n->key = (GSIMapKey)element;
+	  GSI_MAP_RETAIN_KEY(t, n->key);
+	  ((NSConcreteHashTable*)table)->version++;
+	}
     }
   else
     {
-      GSI_MAP_RELEASE_KEY(t, n->key);
-      n->key = (GSIMapKey)element;
-      GSI_MAP_RETAIN_KEY(t, n->key);
+      [table addObject: (id)element];
     }
 }
 
@@ -468,9 +467,6 @@ NSHashInsert(NSHashTable *table, const void *element)
 void *
 NSHashInsertIfAbsent(NSHashTable *table, const void *element)
 {
-  GSIMapTable   t = (GSIMapTable)table;
-  GSIMapNode    n;
-
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -481,15 +477,36 @@ NSHashInsertIfAbsent(NSHashTable *table, const void *element)
       [NSException raise: NSInvalidArgumentException
                   format: @"Attempt to place null in hash table"];
     }
-  n = GSIMapNodeForKey(t, (GSIMapKey)element);
-  if (n == 0)
+  if (GSObjCClass(table) == concreteClass)
     {
-      GSIMapAddKey(t, (GSIMapKey)element);
-      return 0;
+      GSIMapTable   t = (GSIMapTable)table;
+      GSIMapNode    n;
+
+      n = GSIMapNodeForKey(t, (GSIMapKey)element);
+      if (n == 0)
+	{
+	  GSIMapAddKey(t, (GSIMapKey)element);
+	  ((NSConcreteHashTable*)table)->version++;
+	  return 0;
+	}
+      else
+	{
+	  return n->key.ptr;
+	}
     }
   else
     {
-      return n->key.ptr;
+      id	old = [table member: (id)element];
+
+      if (old == nil)
+	{
+	  [table addObject: (id)element];
+	  return 0;
+	}
+      else
+	{
+	  return (void*)old;
+	}
     }
 }
 
@@ -501,9 +518,6 @@ NSHashInsertIfAbsent(NSHashTable *table, const void *element)
 void
 NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
 {
-  GSIMapTable   t = (GSIMapTable)table;
-  GSIMapNode    n;
-
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -514,15 +528,36 @@ NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
       [NSException raise: NSInvalidArgumentException
                   format: @"Attempt to place null in hash table"];
     }
-  n = GSIMapNodeForKey(t, (GSIMapKey)element);
-  if (n == 0)
+  if (GSObjCClass(table) == concreteClass)
     {
-      GSIMapAddKey(t, (GSIMapKey)element);
+      GSIMapTable   t = (GSIMapTable)table;
+      GSIMapNode    n;
+
+      n = GSIMapNodeForKey(t, (GSIMapKey)element);
+      if (n == 0)
+	{
+	  GSIMapAddKey(t, (GSIMapKey)element);
+	  ((NSConcreteHashTable*)table)->version++;
+	}
+      else
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"NSHashInsertKnownAbsent ... item not absent"];
+	}
     }
   else
     {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSHashInsertKnownAbsent ... element not absent"];
+      id	old = [table member: (id)element];
+
+      if (old == nil)
+	{
+	  [table addObject: (id)element];
+	}
+      else
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"NSHashInsertKnownAbsent ... item not absent"];
+	}
     }
 }
 
@@ -535,10 +570,26 @@ NSHashRemove(NSHashTable *table, const void *element)
   if (table == 0)
     {
       NSWarnFLog(@"Nul table argument supplied");
+      return;
+    }
+  if (GSObjCClass(table) == concreteClass)
+    {
+      GSIMapTable	map = (GSIMapTable)table;
+      GSIMapBucket	bucket;
+      GSIMapNode	node;
+
+      bucket = GSIMapBucketForKey(map, (GSIMapKey)element);
+      node = GSIMapNodeForKeyInBucket(map, bucket, (GSIMapKey)element);
+      if (node != 0)
+	{
+	  GSIMapRemoveNodeFromMap(map, bucket, node);
+	  GSIMapFreeNode(map, node);
+          ((NSConcreteHashTable*)table)->version++;
+	}
     }
   else
     {
-      GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)element);
+      [table removeObject: (id)element];
     }
 }
 
@@ -549,21 +600,32 @@ NSHashRemove(NSHashTable *table, const void *element)
 void *
 NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 {
-  GSIMapNode    n;
-
   if (enumerator == 0)
     {
       NSWarnFLog(@"Nul enumerator argument supplied");
       return 0;
     }
-  n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
-  if (n == 0)
+  if (enumerator->map != 0)		// Got a GSIMapTable enumerator
     {
-      return 0;
+      GSIMapNode    n;
+
+      n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
+      if (n == 0)
+	{
+	  return 0;
+	}
+      else
+	{
+	  return n->key.ptr;
+	}
+    }
+  else if (enumerator->node != 0)	// Got an enumerator object
+    {
+      return (void*)[(id)enumerator->node nextObject];
     }
   else
     {
-      return n->key.ptr;
+      return 0;
     }
 }
 
@@ -576,10 +638,21 @@ NSResetHashTable(NSHashTable *table)
   if (table == 0)
     {
       NSWarnFLog(@"Nul table argument supplied");
+      return;
+    }
+  if (GSObjCClass(table) == concreteClass)
+    {
+      NSConcreteHashTable	*t = (NSConcreteHashTable*)table;
+
+      if (t->nodeCount > 0)
+	{
+	  GSIMapCleanMap((GSIMapTable)table);
+	  t->version++;
+	}
     }
   else
     {
-      GSIMapCleanMap((GSIMapTable)table);
+      [table removeAllObjects];
     }
 }
 
@@ -704,6 +777,14 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 
 
+@interface NSConcreteHashTableEnumerator : NSEnumerator
+{
+  NSConcreteHashTable		*table;
+  GSIMapEnumerator_t		enumerator;
+}
+- (id) initWithHashTable: (NSConcreteHashTable*)t;
+@end
+
 @implementation	NSConcreteHashTable
 
 + (void) initialize
@@ -735,13 +816,34 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   if (n == 0)
     {
       GSIMapAddKey(t, (GSIMapKey)anObject);
+      version++;
     }
   else if (n->key.obj != anObject)
     {
       GSI_MAP_RELEASE_KEY(t, n->key);
       n->key = (GSIMapKey)anObject;
       GSI_MAP_RETAIN_KEY(t, n->key);
+      version++;
     }
+}
+
+- (NSArray*) allObjects
+{
+  NSHashEnumerator	enumerator;
+  unsigned		index;
+  NSArray		*a;
+  GS_BEGINITEMBUF(objects, nodeCount, id);
+
+  enumerator = NSEnumerateHashTable(self);
+  index = 0;
+  while ((objects[index] = NSNextHashEnumeratorItem(&enumerator)) != nil)
+    {
+      index++;
+    }
+  NSEndHashTableEnumeration(&enumerator);
+  a = [[[NSArray alloc] initWithObjects: objects count: nodeCount] autorelease];
+  GS_ENDITEMBUF();
+  return a;
 }
 
 - (id) copyWithZone: (NSZone*)aZone
@@ -758,7 +860,49 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-  return (NSUInteger)[self subclassResponsibility: _cmd];
+  NSInteger count;
+
+  state->mutationsPtr = (unsigned long *)version;
+  if (state->state == 0 && state->extra[0] == 0)
+    {
+      while (state->extra[0] < bucketCount)
+	{
+	  state->state = (unsigned long)buckets[state->extra[0]].firstNode;
+	  if (state->state != 0)
+	    {
+	      break;	// Got first node, and recorded its bucket.
+	    }
+	  state->extra[0]++;
+	}
+    }
+  for (count = 0; count < len; count++)
+    {
+      GSIMapNode	node = (GSIMapNode)state->state;
+
+      if (node == 0)
+	{
+	  break;
+	}
+      else
+	{
+	  GSIMapNode	next = node->nextInBucket;
+
+	  if (next == 0)
+	    {
+	      size_t	bucket = state->extra[0];
+
+	      while (next == 0 && ++bucket < bucketCount)
+		{
+		  next = buckets[bucket].firstNode;
+		}
+	      state->extra[0] = bucket;
+	    }
+	  state->state = (unsigned long)(uintptr_t)next;
+	  stackbuf[count] = node->key.obj;
+	}
+    }
+  state->itemsPtr = stackbuf;
+  return count;
 }
 
 - (void) dealloc
@@ -826,7 +970,10 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [self subclassResponsibility: _cmd];
+  NSEnumerator	*e;
+
+  e = [[NSConcreteHashTableEnumerator alloc] initWithHashTable: self];
+  return [e autorelease];
 }
 
 - (id) member: (id)aKey
@@ -853,12 +1000,64 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 - (void) removeAllObjects
 {
-  GSIMapEmptyMap(self);
+  if (nodeCount > 0)
+    {
+      GSIMapCleanMap(self);
+      version++;
+    }
 }
 
-- (NSSet*) setRepresentation
+- (void) removeObject: (id)anObject
 {
-  return [self subclassResponsibility: _cmd];
+  if (anObject == nil)
+    {
+      NSWarnMLog(@"attempt to remove nil object from hash table %@", self);
+      return;
+    }
+  if (nodeCount > 0)
+    {
+      GSIMapTable	map = (GSIMapTable)self;
+      GSIMapBucket	bucket;
+      GSIMapNode	node;
+
+      bucket = GSIMapBucketForKey(map, (GSIMapKey)anObject);
+      node = GSIMapNodeForKeyInBucket(map, bucket, (GSIMapKey)anObject);
+      if (node != 0)
+	{
+	  GSIMapRemoveNodeFromMap(map, bucket, node);
+	  GSIMapFreeNode(map, node);
+	  version++;
+	}
+    }
+}
+
+@end
+
+@implementation NSConcreteHashTableEnumerator
+
+- (id) initWithHashTable: (NSConcreteHashTable*)t
+{
+  table = RETAIN(t);
+  enumerator = GSIMapEnumeratorForMap(table);
+  return self;
+}
+
+- (id) nextObject
+{
+  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
+
+  if (node == 0)
+    {
+      return nil;
+    }
+  return node->key.obj;
+}
+
+- (void) dealloc
+{
+  GSIMapEndEnumerator(&enumerator);
+  RELEASE(table);
+  [super dealloc];
 }
 
 @end

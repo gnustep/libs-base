@@ -30,10 +30,12 @@
 #include "Foundation/NSArray.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSPointerFunctions.h"
+#include "Foundation/NSSet.h"
 #include "Foundation/NSZone.h"
 #include "Foundation/NSHashTable.h"
 #include "Foundation/NSDebug.h"
 #include "NSCallBacks.h"
+#include "GSPrivate.h"
 
 @implementation	NSHashTable
 
@@ -103,12 +105,26 @@ static Class	concreteClass = 0;
 
 - (NSArray*) allObjects
 {
-  return [self subclassResponsibility: _cmd];
+  NSEnumerator	*enumerator;
+  unsigned	nodeCount = [self count];
+  unsigned	index;
+  NSArray	*a;
+  GS_BEGINITEMBUF(objects, nodeCount, id);
+
+  enumerator = [self objectEnumerator];
+  index = 0;
+  while ((objects[index] = [enumerator nextObject]) != nil)
+    {
+      index++;
+    }
+  a = [[[NSArray alloc] initWithObjects: objects count: nodeCount] autorelease];
+  GS_ENDITEMBUF();
+  return a;
 }
 
 - (id) anyObject
 {
-  return [self subclassResponsibility: _cmd];
+  return [[self objectEnumerator] nextObject];
 }
 
 - (BOOL) containsObject: (id)anObject
@@ -140,7 +156,7 @@ static Class	concreteClass = 0;
 
 - (NSUInteger) hash
 {
-  return (NSUInteger)[self subclassResponsibility: _cmd];
+  return [self count];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -150,12 +166,45 @@ static Class	concreteClass = 0;
 
 - (void) intersectHashTable: (NSHashTable*)other
 {
-  [self subclassResponsibility: _cmd];
+  unsigned		count = [self count];
+
+  if (count > 0)
+    {
+      NSEnumerator	*enumerator;
+      NSMutableArray	*array;
+      id		object;
+
+      array = [NSMutableArray arrayWithCapacity: count];
+      enumerator = [self objectEnumerator];
+      while ((object = [enumerator nextObject]) != nil)
+	{
+	  if ([other member: object] != nil)
+	    {
+	      [array addObject: object];
+	    }
+	}
+      enumerator = [array objectEnumerator];
+      while ((object = [enumerator nextObject]) != nil)
+	{
+	  [self removeObject: object];
+	}
+    }
 }
 
 - (BOOL) intersectsHashTable: (NSHashTable*)other
 {
-  return (BOOL)(uintptr_t)[self subclassResponsibility: _cmd];
+  NSEnumerator	*enumerator;
+  id		object;
+
+  enumerator = [self objectEnumerator];
+  while ((object = [enumerator nextObject]) != nil)
+    {
+      if ([other member: object] != nil)
+	{
+	  return YES;
+	}
+    }
+  return NO;
 }
 
 - (BOOL) isEqual: (id)other
@@ -171,7 +220,18 @@ static Class	concreteClass = 0;
 
 - (BOOL) isSubsetOfHashTable: (NSHashTable*)other
 {
-  return (BOOL)(uintptr_t)[self subclassResponsibility: _cmd];
+  NSEnumerator	*enumerator;
+  id		object;
+
+  enumerator = [self objectEnumerator];
+  while ((object = [enumerator nextObject]) != nil)
+    {
+      if ([other member: object] == nil)
+	{
+	  return NO;
+	}
+    }
+  return YES;
 }
 
 - (id) member: (id)object
@@ -181,7 +241,17 @@ static Class	concreteClass = 0;
 
 - (void) minusHashTable: (NSHashTable*)other
 {
-  [self subclassResponsibility: _cmd];
+  if ([self count] > 0 && [other count] > 0)
+    {
+      NSEnumerator	*enumerator;
+      id		object;
+
+      enumerator = [other objectEnumerator];
+      while ((object = [enumerator nextObject]) != nil)
+	{
+	  [self removeObject: object];
+	}
+    }
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -196,7 +266,14 @@ static Class	concreteClass = 0;
 
 - (void) removeAllObjects
 {
-  [self subclassResponsibility: _cmd];
+  NSEnumerator	*enumerator;
+  id		object;
+
+  enumerator = [[self allObjects] objectEnumerator];
+  while ((object = [enumerator nextObject]) != nil)
+    {
+      [self removeObject: object];
+    }
 }
 
 - (void) removeObject: (id)aKey
@@ -206,12 +283,29 @@ static Class	concreteClass = 0;
 
 - (NSSet*) setRepresentation 
 {
-  return [self subclassResponsibility: _cmd];
+  NSEnumerator	*enumerator;
+  NSMutableSet	*set;
+  id		object;
+
+  set = [NSMutableSet setWithCapacity: [self count]];
+  enumerator = [[self allObjects] objectEnumerator];
+  while ((object = [enumerator nextObject]) != nil)
+    {
+      [set addObject: object];
+    }
+  return [[set copy] autorelease];
 }
 
 - (void) unionHashTable: (NSHashTable*)other
 {
-  [self subclassResponsibility: _cmd];
+  NSEnumerator	*enumerator;
+  id		object;
+
+  enumerator = [other objectEnumerator];
+  while ((object = [enumerator nextObject]) != nil)
+    {
+      [self addObject: object];
+    }
 }
 
 @end

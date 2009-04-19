@@ -912,7 +912,7 @@ static Class	GSInlineArrayClass;
    * get objects from after the end of the array.  Don't pass negative values
    * to memcpy.
    */
-  if (count >= 0)
+  if (count > 0)
     {
       memcpy(stackbuf, _contents_array + state->state, count * sizeof(id));
       state->state += count;

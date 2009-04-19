@@ -1,3 +1,18 @@
+2009-04-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHashTable.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSMapTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Headers/Additions/GNUstepBase/GSIMap.h:
+	Changes for GC zeroing weak pointers.  Implement enumeration stuff for
+	new classes. Add code to support subclassing.
+
+2009-04-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: Implement the
+	([countByEnumeratingWithState:objects:count:]) method.
+
 2009-04-18 10:15-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/GSURLPrivate.h: Addition of private method to NSURLProtocol 

@@ -62,6 +62,7 @@ typedef GSIMapNode_t *GSIMapNode;
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
   size_t	chunkCount;	/* Number of chunks in array.	*/
   size_t	increment;	/* Amount to grow by.		*/
+  unsigned long	version;	/* For fast enumeration.	*/
   BOOL		legacy;		/* old style callbacks?		*/
   union {
     struct {
@@ -329,7 +330,6 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
   GSIMapTable	o = (GSIMapTable)table;
   GSIMapTable	t;
   GSIMapNode	n;
-  NSMapEnumerator enumerator;
 
   if (table == nil)
     {
@@ -353,12 +353,28 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
 #endif
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
 
-  enumerator = GSIMapEnumeratorForMap((GSIMapTable)table);
-  while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+  if (GSObjCClass(table) == concreteClass)
     {
-      GSIMapAddPair(t, n->key, n->value);
+      NSMapEnumerator	enumerator;
+
+      enumerator = GSIMapEnumeratorForMap((GSIMapTable)table);
+      while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+	{
+	  GSIMapAddPair(t, n->key, n->value);
+	}
+      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
     }
-  GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
+  else
+    {
+      NSEnumerator	*enumerator;
+      id		k;
+
+      enumerator = [table keyEnumerator];
+      while ((k = [enumerator nextObject]) != nil)
+	{
+	  GSIMapAddPair(t, (GSIMapKey)k, (GSIMapVal)[table objectForKey: k]);
+	}
+    }
 
   return (NSMapTable*)t;
 }
@@ -374,7 +390,11 @@ NSCountMapTable(NSMapTable *table)
       NSWarnFLog(@"Null table argument supplied");
       return 0;
     }
-  return ((GSIMapTable)table)->nodeCount;
+  if (GSObjCClass(table) == concreteClass)
+    {
+      return ((GSIMapTable)table)->nodeCount;
+    }
+  return [table count];
 }
 
 /**
@@ -461,7 +481,15 @@ NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
       NSWarnFLog(@"Null enumerator argument supplied");
       return;
     }
-  GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
+  if (enumerator->map != 0)
+    {
+      GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
+    }
+  else if (enumerator->node != 0)
+    {
+      [(id)enumerator->node release];
+      memset(enumerator, '\0', sizeof(GSIMapEnumerator));
+    }
 }
 
 /**
@@ -473,12 +501,23 @@ NSEnumerateMapTable(NSMapTable *table)
 {
   if (table == nil)
     {
-      NSMapEnumerator	v = {0, 0};
+      NSMapEnumerator	v = {0, 0, 0};
 
       NSWarnFLog(@"Null table argument supplied");
       return v;
     }
-  return GSIMapEnumeratorForMap((GSIMapTable)table);
+  if (GSObjCClass(table) == concreteClass)
+    {
+      return GSIMapEnumeratorForMap((GSIMapTable)table);
+    }
+  else
+    {
+      NSMapEnumerator	v = {0, 0, 0};
+
+      v.node = (void*)[[table keyEnumerator] retain];
+      v.bucket = (unsigned long)(uintptr_t)table;
+      return v;
+    }
 }
 
 /**
@@ -507,21 +546,28 @@ NSFreeMapTable(NSMapTable *table)
 void *
 NSMapGet(NSMapTable *table, const void *key)
 {
-  GSIMapNode	n;
-
   if (table == nil)
     {
       NSWarnFLog(@"Null table argument supplied");
       return 0;
     }
-  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
-  if (n == 0)
+  if (GSObjCClass(table) == concreteClass)
     {
-      return 0;
+      GSIMapNode	n;
+
+      n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
+      if (n == 0)
+	{
+	  return 0;
+	}
+      else
+	{
+	  return n->value.ptr;
+	}
     }
   else
     {
-      return n->value.ptr;
+      return [table objectForKey: (id)key];
     }
 }
 
@@ -535,31 +581,48 @@ NSMapGet(NSMapTable *table, const void *key)
 void
 NSMapInsert(NSMapTable *table, const void *key, const void *value)
 {
-  GSIMapTable	t = (GSIMapTable)table;
-  GSIMapNode	n;
-
   if (table == nil)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (key == t->cb.old.k.notAKeyMarker)
+  if (GSObjCClass(table) == concreteClass)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place notAKeyMarker in map table"];
-    }
-  n = GSIMapNodeForKey(t, (GSIMapKey)key);
-  if (n == 0)
-    {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
+      GSIMapTable	t = (GSIMapTable)table;
+      GSIMapNode	n;
+
+      if (t->legacy == YES)
+	{
+	  if (key == t->cb.old.k.notAKeyMarker)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+		          format: @"Attempt to place notAKeyMarker in map"];
+	    }
+	}
+      else if (key == 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Attempt to place nil key in map"];
+	}
+      n = GSIMapNodeForKey(t, (GSIMapKey)key);
+      if (n == 0)
+	{
+	  GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
+	  t->version++;
+	}
+      else if (n->value.ptr != value)
+	{
+	  GSIMapVal	tmp = n->value;
+
+	  n->value = (GSIMapVal)value;
+	  GSI_MAP_RETAIN_VAL(t, n->value);
+	  GSI_MAP_RELEASE_VAL(t, tmp);
+	  t->version++;
+	}
     }
   else
     {
-      GSIMapVal	tmp = n->value;
-
-      n->value = (GSIMapVal)value;
-      GSI_MAP_RETAIN_VAL(t, n->value);
-      GSI_MAP_RELEASE_VAL(t, tmp);
+      [table setObject: (id)value forKey: (id)key];
     }
 }
 
@@ -573,28 +636,51 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
 void *
 NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
 {
-  GSIMapTable	t = (GSIMapTable)table;
-  GSIMapNode	n;
-
   if (table == nil)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (key == t->cb.old.k.notAKeyMarker)
+  if (GSObjCClass(table) == concreteClass)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place notAKeyMarker in map table"];
-    }
-  n = GSIMapNodeForKey(t, (GSIMapKey)key);
-  if (n == 0)
-    {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
-      return 0;
+      GSIMapTable	t = (GSIMapTable)table;
+      GSIMapNode	n;
+
+      if (t->legacy == YES)
+	{
+	  if (key == t->cb.old.k.notAKeyMarker)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+		format: @"Attempt to place notAKeyMarker in map table"];
+	    }
+	}
+      else if (key == 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Attempt to place nil key in map"];
+	}
+      n = GSIMapNodeForKey(t, (GSIMapKey)key);
+      if (n == 0)
+	{
+	  GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
+	  t->version++;
+	  return 0;
+	}
+      else
+	{
+	  return n->key.ptr;
+	}
     }
   else
     {
-      return n->key.ptr;
+      void	*v = (void*)[table objectForKey: (id)key];
+
+      if (v == 0)
+	{
+	  [table setObject: (id)value forKey: (id)v];
+	  return 0;
+	}
+      return v;
     }
 }
 
@@ -607,28 +693,54 @@ NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
 void
 NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
 {
-  GSIMapTable	t = (GSIMapTable)table;
-  GSIMapNode	n;
-
   if (table == nil)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (key == t->cb.old.k.notAKeyMarker)
+  if (GSObjCClass(table) == concreteClass)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place notAKeyMarker in map table"];
-    }
-  n = GSIMapNodeForKey(t, (GSIMapKey)key);
-  if (n == 0)
-    {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
+      GSIMapTable	t = (GSIMapTable)table;
+      GSIMapNode	n;
+
+      if (t->legacy == YES)
+	{
+	  if (key == t->cb.old.k.notAKeyMarker)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+		format: @"Attempt to place notAKeyMarker in map table"];
+	    }
+	}
+      else if (key == 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Attempt to place nil key in map"];
+	}
+      n = GSIMapNodeForKey(t, (GSIMapKey)key);
+      if (n == 0)
+	{
+	  GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
+	  t->version++;
+	}
+      else
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"NSMapInsertKnownAbsent ... key not absent"];
+	}
     }
   else
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"NSMapInsertKnownAbsent ... key not absent"];
+      void	*v = (void*)[table objectForKey: (id)key];
+
+      if (v == 0)
+	{
+	  [table setObject: (id)value forKey: (id)v];
+	}
+      else
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"NSMapInsertKnownAbsent ... key not absent"];
+	}
     }
 }
 
@@ -642,29 +754,36 @@ BOOL
 NSMapMember(NSMapTable *table, const void *key,
   void **originalKey, void **value)
 {
-  GSIMapNode	n;
-
   if (table == nil)
     {
       NSWarnFLog(@"Null table argument supplied");
       return NO;
     }
-  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
-  if (n == 0)
+  if (GSObjCClass(table) == concreteClass)
     {
-      return NO;
+      GSIMapNode	n;
+
+      n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
+      if (n == 0)
+	{
+	  return NO;
+	}
+      else
+	{
+	  if (originalKey != 0)
+	    {
+	      *originalKey = n->key.ptr;
+	    }
+	  if (value != 0)
+	    {
+	      *value = n->value.ptr;
+	    }
+	  return YES;
+	}
     }
   else
     {
-      if (originalKey != 0)
-	{
-	  *originalKey = n->key.ptr;
-	}
-      if (value != 0)
-	{
-	  *value = n->value.ptr;
-	}
-      return YES;
+      return [table objectForKey: (id)key] ? YES : NO;
     }
 }
 
@@ -680,7 +799,18 @@ NSMapRemove(NSMapTable *table, const void *key)
       NSWarnFLog(@"Null table argument supplied");
       return;
     }
-  GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)key);
+  if (GSObjCClass(table) == concreteClass)
+    {
+      if (((GSIMapTable)table)->nodeCount > 0)
+	{
+	  GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)key);
+	  ((GSIMapTable)table)->version++;
+	}
+    }
+  else
+    {
+      [table removeObjectForKey: (id)key];
+    }
 }
 
 /**
@@ -696,38 +826,71 @@ BOOL
 NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 			void **key, void **value)
 {
-  GSIMapNode	n;
-
   if (enumerator == 0)
     {
       NSWarnFLog(@"Null enumerator argument supplied");
       return NO;
     }
-  n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
-  if (n == 0)
+  if (enumerator->map != 0)
     {
-      return NO;
+      GSIMapNode	n;
+
+      n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
+      if (n == 0)
+	{
+	  return NO;
+	}
+      else
+	{
+	  if (key != 0)
+	    {
+	      *key = n->key.ptr;
+	    }
+	  else
+	    {
+	      NSWarnFLog(@"Null key return address");
+	    }
+
+	  if (value != 0)
+	    {
+	      *value = n->value.ptr;
+	    }
+	  else
+	    {
+	      NSWarnFLog(@"Null value return address");
+	    }
+	  return YES;
+	}
     }
-  else
+  else if (enumerator->node != 0)
     {
+      id	k = [(NSEnumerator*)enumerator->node nextObject];
+
+      if (k == nil)
+	{
+	  return NO;
+	}
       if (key != 0)
 	{
-	  *key = n->key.ptr;
+	  *key = k;
 	}
       else
 	{
 	  NSWarnFLog(@"Null key return address");
 	}
-
       if (value != 0)
 	{
-	  *value = n->value.ptr;
+	  *value = [(NSMapTable*)enumerator->bucket objectForKey: k];
 	}
       else
 	{
 	  NSWarnFLog(@"Null value return address");
 	}
       return YES;
+    }
+  else
+    {
+      return NO;
     }
 }
 
@@ -741,10 +904,19 @@ NSResetMapTable(NSMapTable *table)
   if (table == nil)
     {
       NSWarnFLog(@"Null table argument supplied");
+      return;
+    }
+  if (GSObjCClass(table) == concreteClass)
+    {
+      if (((GSIMapTable)table)->nodeCount > 0)
+	{
+	  GSIMapCleanMap((GSIMapTable)table);
+	  ((GSIMapTable)table)->version++;
+	}
     }
   else
     {
-      GSIMapCleanMap((GSIMapTable)table);
+      [table removeAllObjects];
     }
 }
 
@@ -757,44 +929,51 @@ NSResetMapTable(NSMapTable *table)
 NSString *
 NSStringFromMapTable(NSMapTable *table)
 {
-  GSIMapTable		t = (GSIMapTable)table;
-  NSMutableString	*string;
-  NSMapEnumerator	enumerator;
-  void			*key;
-  void			*value;
-
   if (table == nil)
     {
       NSWarnFLog(@"Null table argument supplied");
       return nil;
     }
-  string = [NSMutableString stringWithCapacity: 0];
-  enumerator = NSEnumerateMapTable(table);
-
-  /*
-   * Now, just step through the elements of the table, and add their
-   * descriptions to the string.
-   */
-  if (t->legacy)
+  if (GSObjCClass(table) == concreteClass)
     {
-      while (NSNextMapEnumeratorPair(&enumerator, &key, &value) == YES)
+      GSIMapTable	t = (GSIMapTable)table;
+      NSMutableString	*string;
+      NSMapEnumerator	enumerator;
+      void		*key;
+      void		*value;
+
+      string = [NSMutableString stringWithCapacity: 0];
+      enumerator = NSEnumerateMapTable(table);
+
+      /*
+       * Now, just step through the elements of the table, and add their
+       * descriptions to the string.
+       */
+      if (t->legacy)
 	{
-	  [string appendFormat: @"%@ = %@;\n",
-	    (t->cb.old.k.describe)(table, key),
-	    (t->cb.old.v.describe)(table, value)];
+	  while (NSNextMapEnumeratorPair(&enumerator, &key, &value) == YES)
+	    {
+	      [string appendFormat: @"%@ = %@;\n",
+		(t->cb.old.k.describe)(table, key),
+		(t->cb.old.v.describe)(table, value)];
+	    }
 	}
+      else
+	{
+	  while (NSNextMapEnumeratorPair(&enumerator, &key, &value) == YES)
+	    {
+	      [string appendFormat: @"%@ = %@;\n",
+		(t->cb.pf.k.descriptionFunction)(key),
+		(t->cb.pf.v.descriptionFunction)(value)];
+	    }
+	}
+      NSEndMapTableEnumeration(&enumerator);
+      return string;
     }
   else
     {
-      while (NSNextMapEnumeratorPair(&enumerator, &key, &value) == YES)
-	{
-	  [string appendFormat: @"%@ = %@;\n",
-	    (t->cb.pf.k.descriptionFunction)(key),
-	    (t->cb.pf.v.descriptionFunction)(value)];
-	}
+      return [table description];
     }
-  NSEndMapTableEnumeration(&enumerator);
-  return string;
 }
 
 
@@ -916,6 +1095,17 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 
 
+@interface NSConcreteMapTableKeyEnumerator : NSEnumerator
+{
+  NSConcreteMapTable		*table;
+  GSIMapEnumerator_t		enumerator;
+}
+- (id) initWithMapTable: (NSConcreteMapTable*)m;
+@end
+
+@interface NSConcreteMapTableObjectEnumerator : NSConcreteMapTableKeyEnumerator
+@end
+
 @implementation	NSConcreteMapTable
 
 + (void) initialize
@@ -957,18 +1147,55 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-  return (NSUInteger)[self subclassResponsibility: _cmd];
+  NSInteger count;
+
+  state->mutationsPtr = (unsigned long *)version;
+  if (state->state == 0 && state->extra[0] == 0)
+    {
+      while (state->extra[0] < bucketCount)
+	{
+	  state->state = (unsigned long)buckets[state->extra[0]].firstNode;
+	  if (state->state != 0)
+	    {
+	      break;	// Got first node, and recorded its bucket.
+	    }
+	  state->extra[0]++;
+	}
+    }
+  for (count = 0; count < len; count++)
+    {
+      GSIMapNode	node = (GSIMapNode)state->state;
+
+      if (node == 0)
+	{
+	  break;
+	}
+      else
+	{
+	  GSIMapNode	next = node->nextInBucket;
+
+	  if (next == 0)
+	    {
+	      size_t	bucket = state->extra[0];
+
+	      while (next == 0 && ++bucket < bucketCount)
+		{
+		  next = buckets[bucket].firstNode;
+		}
+	      state->extra[0] = bucket;
+	    }
+	  state->state = (unsigned long)(uintptr_t)next;
+	  stackbuf[count] = node->key.obj;
+	}
+    }
+  state->itemsPtr = stackbuf;
+  return count;
 }
 
 - (void) dealloc
 {
   GSIMapEmptyMap(self);
   [super dealloc];
-}
-
-- (NSDictionary*) dictionaryRepresentation
-{
-  return [self subclassResponsibility: _cmd];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -1060,7 +1287,10 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 - (NSEnumerator*) keyEnumerator
 {
-  return [self subclassResponsibility: _cmd];
+  NSEnumerator	*e;
+
+  e = [[NSConcreteMapTableKeyEnumerator alloc] initWithMapTable: self];
+  return [e autorelease];
 }
 
 - (NSPointerFunctions*) keyPointerFunctions
@@ -1073,7 +1303,10 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [self subclassResponsibility: _cmd];
+  NSEnumerator	*e;
+
+  e = [[NSConcreteMapTableObjectEnumerator alloc] initWithMapTable: self];
+  return [e autorelease];
 }
 
 - (id) objectForKey: (id)aKey
@@ -1092,7 +1325,11 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 - (void) removeAllObjects
 {
-  GSIMapEmptyMap(self);
+  if (nodeCount > 0)
+    {
+      GSIMapEmptyMap(self);
+      version++;
+    }
 }
 
 - (void) removeObjectForKey: (id)aKey
@@ -1102,7 +1339,21 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
       NSWarnMLog(@"attempt to remove nil key from map table %@", self);
       return;
     }
-  GSIMapRemoveKey(self, (GSIMapKey)aKey);
+  if (nodeCount > 0)
+    {
+      GSIMapTable	map = (GSIMapTable)self;
+      GSIMapBucket	bucket;
+      GSIMapNode	node;
+
+      bucket = GSIMapBucketForKey(map, (GSIMapKey)aKey);
+      node = GSIMapNodeForKeyInBucket(map, bucket, (GSIMapKey)aKey);
+      if (node != 0)
+	{
+	  GSIMapRemoveNodeFromMap(map, bucket, node);
+	  GSIMapFreeNode(map, node);
+	  version++;
+	}
+    }
 }
 
 - (void) setObject: (id)anObject forKey: (id)aKey
@@ -1126,11 +1377,13 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
           GSI_MAP_RELEASE_VAL(self, node->value);
           node->value.obj = anObject;
           GSI_MAP_RETAIN_VAL(self, node->value);
+	  version++;
 	}
     }
   else
     {
       GSIMapAddPair(self, (GSIMapKey)aKey, (GSIMapVal)anObject);
+      version++;
     }
 }
 
@@ -1141,5 +1394,49 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
   p->_x = self->cb.pf.v;
   return [p autorelease];
 }
+@end
+
+@implementation NSConcreteMapTableKeyEnumerator
+
+- (id) initWithMapTable: (NSConcreteMapTable*)t
+{
+  table = RETAIN(t);
+  enumerator = GSIMapEnumeratorForMap(table);
+  return self;
+}
+
+- (id) nextObject
+{
+  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
+
+  if (node == 0)
+    {
+      return nil;
+    }
+  return node->key.obj;
+}
+
+- (void) dealloc
+{
+  GSIMapEndEnumerator(&enumerator);
+  RELEASE(table);
+  [super dealloc];
+}
+
+@end
+
+@implementation NSConcreteMapTableObjectEnumerator
+
+- (id) nextObject
+{
+  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
+
+  if (node == 0)
+    {
+      return nil;
+    }
+  return node->value.obj;
+}
+
 @end
 
