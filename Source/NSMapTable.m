@@ -28,6 +28,7 @@
 #include "Foundation/NSObject.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
+#include "Foundation/NSDictionary.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSPointerFunctions.h"
 #include "Foundation/NSZone.h"
@@ -146,7 +147,17 @@ static Class	concreteClass = 0;
 
 - (NSDictionary*) dictionaryRepresentation
 {
-  return [self subclassResponsibility: _cmd];
+  NSEnumerator		*enumerator;
+  NSMutableDictionary	*dictionary;
+  id			key;
+
+  dictionary = [NSMutableDictionary dictionaryWithCapacity: [self count]];
+  enumerator = [self keyEnumerator];
+  while ((key = [enumerator nextObject]) != nil)
+    {
+      [dictionary setObject: [self objectForKey: key] forKey: key];
+    }
+  return [[dictionary copy] autorelease];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -156,7 +167,7 @@ static Class	concreteClass = 0;
 
 - (NSUInteger) hash
 {
-  return (NSUInteger)[self subclassResponsibility: _cmd];
+  return [self count];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -192,7 +203,27 @@ static Class	concreteClass = 0;
 
 - (void) removeAllObjects
 {
-  [self subclassResponsibility: _cmd];
+  unsigned	count = [self count];
+
+  if (count > 0)
+    {
+      NSEnumerator	*enumerator;
+      NSMutableArray	*array;
+      id		key;
+
+      array = [[NSMutableArray alloc] initWithCapacity: count];
+      enumerator = [self objectEnumerator];
+      while ((key = [enumerator nextObject]) != nil)
+	{
+	  [array addObject: key];
+	}
+      enumerator = [array objectEnumerator];
+      while ((key = [enumerator nextObject]) != nil)
+	{
+	  [self removeObjectForKey: key];
+	}
+      [array release];
+    }
 }
 
 - (void) removeObjectForKey: (id)aKey
