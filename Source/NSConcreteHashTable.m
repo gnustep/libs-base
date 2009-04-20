@@ -815,6 +815,13 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   GSIMapTable   t = (GSIMapTable)self;
   GSIMapNode	n;
 
+  if (anObject == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@:] given nil argument",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+
   n = GSIMapNodeForKey(t, (GSIMapKey)anObject);
   if (n == 0)
     {
@@ -847,6 +854,17 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   a = [[[NSArray alloc] initWithObjects: objects count: nodeCount] autorelease];
   GS_ENDITEMBUF();
   return a;
+}
+
+- (id) anyObject
+{
+  GSIMapNode	node = GSIMapFirstNode(self);
+
+  if (node == 0)
+    {
+      return nil;
+    }
+  return node->key.obj;
 }
 
 - (id) copyWithZone: (NSZone*)aZone

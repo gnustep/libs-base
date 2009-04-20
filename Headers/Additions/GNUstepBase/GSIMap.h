@@ -592,6 +592,51 @@ GSIMapNodeForKey(GSIMapTable map, GSIMapKey key)
   return node;
 }
 
+static INLINE GSIMapNode 
+GSIMapFirstNode(GSIMapTable map)
+{
+  if (map->nodeCount > 0)
+    {
+      size_t		count = map->bucketCount;
+      size_t		bucket = 0;
+      GSIMapNode	node = 0;
+
+#if	GS_WITH_GC
+      if (GSI_MAP_ZEROED(map))
+	{
+	  while (bucket < count)
+	    {
+	      node = map->buckets[bucket].firstNode;
+	      while (node != 0 && node->key.addr == 0)
+		{
+		  node = GSIMapRemoveAndFreeNode(map, bucket, node);
+		}
+	      if (node != 0)
+		{
+		  break;
+		}
+	      bucket++;
+	    }
+	  return node;
+	}
+#endif
+      while (bucket < count)
+	{
+	  node = map->buckets[bucket].firstNode;
+	  if (node != 0)
+	    {
+	      break;
+	    }
+	  bucket++;
+	}
+      return node;
+    }
+  else
+    {
+      return 0;
+    }
+}
+
 #if     (GSI_MAP_KTYPES & GSUNION_INT)
 /*
  * Specialized lookup for the case where keys are known to be simple integer
