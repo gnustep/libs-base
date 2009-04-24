@@ -1,3 +1,11 @@
+2009-04-24  Fred Morcos <fred.morcos"gmail.com>
+
+	* Headers/Foundation/NSFileManager.h:
+	* Source/NSFileManager.m:
+	Fix -fileOwnerAccountID and -fileGroupOwnerAccountID to return the
+	correct type.  Also fix return type of HFS methods (though these are
+	Apple filesystem specific and do nothing in GNUstep).
+
 2009-04-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHashTable.m:
