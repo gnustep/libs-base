@@ -190,6 +190,10 @@ extern "C" {
 @class NSDirectoryEnumerator;
 @class NSError;
 
+/* MacOS-X defines OSType as a 32bit unsigned integer.
+ */
+typedef	uint32_t	OSType;
+
 @interface NSFileManager : NSObject
 {
   NSString	*_lastError;
@@ -454,15 +458,15 @@ GS_EXPORT NSString* const NSFileSystemFreeNodes;
 @interface NSDictionary(NSFileAttributes)
 - (NSDate*) fileCreationDate;
 - (BOOL) fileExtensionHidden;
-- (int) fileHFSCreatorCode;
-- (int) fileHFSTypeCode;
+- (OSType) fileHFSCreatorCode;
+- (OSType) fileHFSTypeCode;
 - (BOOL) fileIsAppendOnly;
 - (BOOL) fileIsImmutable;
 - (unsigned long long) fileSize;
 - (NSString*) fileType;
-- (unsigned long) fileOwnerAccountID;
+- (NSNumber*) fileOwnerAccountID;
 - (NSString*) fileOwnerAccountName;
-- (unsigned long) fileGroupOwnerAccountID;
+- (NSNumber*) fileGroupOwnerAccountID;
 - (NSString*) fileGroupOwnerAccountName;
 - (NSDate*) fileModificationDate;
 - (NSUInteger) filePosixPermissions;
