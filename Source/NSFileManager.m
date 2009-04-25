@@ -388,6 +388,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
   const _CHAR	*lpath = 0;
+  NSNumber	*tmpNum;
   unsigned long	num;
   NSString	*str;
   NSDate	*date;
@@ -400,7 +401,8 @@ static NSStringEncoding	defaultEncoding;
   lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef __MINGW32__
-  num = (unsigned long)[(id)attributes fileOwnerAccountID];
+  tmpNum = [attributes fileOwnerAccountID];
+  num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
   if (num != NSNotFound)
     {
       if (chown(lpath, num, -1) != 0)
@@ -455,7 +457,8 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-  num =(unsigned long)[(id)attributes fileGroupOwnerAccountID];
+  tmpNum = [attributes fileGroupOwnerAccountID];
+  num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
   if (num != NSNotFound)
     {
       if (chown(lpath, -1, num) != 0)
@@ -508,7 +511,7 @@ static NSStringEncoding	defaultEncoding;
     }
 #endif	/* __MINGW32__ */
 
-  num = [(id)attributes filePosixPermissions];
+  num = [attributes filePosixPermissions];
   if (num != NSNotFound)
     {
       if (_CHMOD(lpath, num) != 0)
@@ -521,7 +524,7 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-  date = [(id)attributes fileModificationDate];
+  date = [attributes fileModificationDate];
   if (date != nil)
     {
       BOOL		ok = NO;
@@ -2922,9 +2925,9 @@ static NSSet	*fileKeys = nil;
   return NO;
 }
 
-- (unsigned long) fileGroupOwnerAccountID
+- (NSNumber*) fileGroupOwnerAccountID
 {
-  return statbuf.st_gid;
+  return [NSNumber numberWithInt: statbuf.st_gid];
 }
 
 - (NSString*) fileGroupOwnerAccountName
@@ -3079,9 +3082,9 @@ static NSSet	*fileKeys = nil;
   return (statbuf.st_mode & ~S_IFMT);
 }
 
-- (unsigned long) fileOwnerAccountID
+- (NSNumber*) fileOwnerAccountID
 {
-  return statbuf.st_uid;
+  return [NSNumber numberWithInt: statbuf.st_uid];
 }
 
 - (NSString*) fileOwnerAccountName
@@ -3267,7 +3270,7 @@ static NSSet	*fileKeys = nil;
       if (key == NSFileGroupOwnerAccountName)
 	return [self fileGroupOwnerAccountName];
       if (key == NSFileGroupOwnerAccountID)
-	return [NSNumber numberWithInt: [self fileGroupOwnerAccountID]];
+	return [self fileGroupOwnerAccountID];
       if (key == NSFileHFSCreatorCode)
 	return [NSNumber numberWithUnsignedLong: [self fileHFSCreatorCode]];
       if (key == NSFileHFSTypeCode)
@@ -3279,7 +3282,7 @@ static NSSet	*fileKeys = nil;
       if (key == NSFileOwnerAccountName)
 	return [self fileOwnerAccountName];
       if (key == NSFileOwnerAccountID)
-	return [NSNumber numberWithInt: [self fileOwnerAccountID]];
+	return [self fileOwnerAccountID];
       if (key == NSFilePosixPermissions)
 	return [NSNumber numberWithUnsignedInt: [self filePosixPermissions]];
       if (key == NSFileReferenceCount)
