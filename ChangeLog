@@ -1,3 +1,9 @@
+2009-04-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Reinstate incorrectly reverted changes.
+	Fix actual bug in Fred's patched version ... some code incorrectly
+	returning an integer when it should return an NSNumber.
+
 2009-04-25 08:35-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSFileManager.m: Partial reversion of previous patch.
