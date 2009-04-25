@@ -388,7 +388,6 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
   const _CHAR	*lpath = 0;
-  NSNumber	*tmpNum;
   unsigned long	num;
   NSString	*str;
   NSDate	*date;
@@ -401,8 +400,7 @@ static NSStringEncoding	defaultEncoding;
   lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef __MINGW32__
-  tmpNum = [attributes fileOwnerAccountID];
-  num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
+  num = (unsigned long)[(id)attributes fileOwnerAccountID];
   if (num != NSNotFound)
     {
       if (chown(lpath, num, -1) != 0)
@@ -457,8 +455,7 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-  tmpNum = [attributes fileGroupOwnerAccountID];
-  num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
+  num =(unsigned long)[(id)attributes fileGroupOwnerAccountID];
   if (num != NSNotFound)
     {
       if (chown(lpath, -1, num) != 0)
@@ -511,7 +508,7 @@ static NSStringEncoding	defaultEncoding;
     }
 #endif	/* __MINGW32__ */
 
-  num = [attributes filePosixPermissions];
+  num = [(id)attributes filePosixPermissions];
   if (num != NSNotFound)
     {
       if (_CHMOD(lpath, num) != 0)
@@ -524,7 +521,7 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-  date = [attributes fileModificationDate];
+  date = [(id)attributes fileModificationDate];
   if (date != nil)
     {
       BOOL		ok = NO;

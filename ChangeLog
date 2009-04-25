@@ -1,3 +1,10 @@
+2009-04-25 08:35-EDT Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSFileManager.m: Partial reversion of previous patch.
+	The calls in the method changeAttribues:atPath: to the GSAttrDictionary
+	which is used there were erroneously changed to assume an NSNumber.
+	This was causing a crash in various applications.
+
 2009-04-24  Fred Morcos <fred.morcos"gmail.com>
 
 	* Headers/Foundation/NSFileManager.h:
