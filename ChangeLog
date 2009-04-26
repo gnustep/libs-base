@@ -1,3 +1,9 @@
+2009-04-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: ([changeFileAttributes:atPath:]) optimise
+	to avoid unnecessary creation of NSNumber objects as suggested by
+	Greg.
+
 2009-04-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Reinstate incorrectly reverted changes.
