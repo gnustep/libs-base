@@ -72,7 +72,7 @@ static Class	concreteClass = 0;
   return AUTORELEASE(t);
 }
 
-+ (id) hashTableWithWeakObjects;
++ (id) hashTableWithWeakObjects
 {
   return [self hashTableWithOptions:
     NSPointerFunctionsObjectPersonality | NSPointerFunctionsZeroingWeakMemory];
@@ -276,7 +276,7 @@ static Class	concreteClass = 0;
     }
 }
 
-- (void) removeObject: (id)aKey
+- (void) removeObject: (id)object
 {
   [self subclassResponsibility: _cmd];
 }

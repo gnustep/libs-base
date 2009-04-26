@@ -1,5 +1,15 @@
 2009-04-26 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSTimeZone.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSZone.h:
+	* Source/NSHashTable.m:
+	* Source/NSZone.m:
+	* Source/NSDecimal.m:
+	Fix errors generating documentation.
+
+2009-04-26 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSFileManager.m: ([changeFileAttributes:atPath:]) optimise
 	to avoid unnecessary creation of NSNumber objects as suggested by
 	Greg.
