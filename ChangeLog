@@ -1,5 +1,10 @@
 2009-04-26 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSFTPURLHandle.m: Implement full support for multiline
+	responses. Fix for bug #26348
+
+2009-04-26 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSTimeZone.h:
 	* Headers/Foundation/NSPropertyList.h:
 	* Headers/Foundation/NSZone.h:
