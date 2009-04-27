@@ -2445,16 +2445,6 @@ static void Grow(DescriptionInfo *info, unsigned size)
  */
 @implementation NSCalendarDate (OPENSTEP)
 
-/**
- * <p>Returns a calendar date formed by adding the specified offsets to the
- * receiver.  The offsets are added in order, years, then months, then
- * days, then hours then minutes then seconds, so if you add 1 month and
- * forty days to 20th September, the result will be 9th November.
- * </p>
- * <p>This method understands leap years and tries to adjust for daylight
- * savings time changes so that it preserves expected clock time.
- * </p>
- */
 - (NSCalendarDate*) dateByAddingYears: (NSInteger)years
 			       months: (NSInteger)months
 				 days: (NSInteger)days
