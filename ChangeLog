@@ -1,6 +1,7 @@
 2009-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Fix bug #26360 plus optimise a little.
+	* Source/NSURL.m: Send over DO bycopy as default.
 
 2009-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 
