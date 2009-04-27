@@ -238,12 +238,15 @@
  */
 @interface	GSAttrDictionary : NSDictionary
 {
+@public
   struct _STATB	statbuf;
   _CHAR		_path[0];
 }
 + (NSDictionary*) attributesAt: (const _CHAR*)lpath
 		  traverseLink: (BOOL)traverse;
 @end
+
+static Class	GSAttrDictionaryClass = 0;
 
 /*
  * We also need a special enumerator class to enumerate the dictionary.
@@ -342,6 +345,7 @@ static NSStringEncoding	defaultEncoding;
 + (void) initialize
 {
   defaultEncoding = [NSString defaultCStringEncoding];
+  GSAttrDictionaryClass = [GSAttrDictionary class];
 }
 
 - (void) dealloc
@@ -401,8 +405,15 @@ static NSStringEncoding	defaultEncoding;
   lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef __MINGW32__
-  tmpNum = [attributes fileOwnerAccountID];
-  num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
+  if (GSObjCClass(attributes) == GSAttrDictionaryClass)
+    {
+      num = ((GSAttrDictionary*)attributes)->statbuf.st_uid;
+    }
+  else
+    {
+      tmpNum = [attributes fileOwnerAccountID];
+      num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
+    }
   if (num != NSNotFound)
     {
       if (chown(lpath, num, -1) != 0)
@@ -457,8 +468,15 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-  tmpNum = [attributes fileGroupOwnerAccountID];
-  num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
+  if (GSObjCClass(attributes) == GSAttrDictionaryClass)
+    {
+      num = ((GSAttrDictionary*)attributes)->statbuf.st_gid;
+    }
+  else
+    {
+      tmpNum = [attributes fileGroupOwnerAccountID];
+      num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
+    }
   if (num != NSNotFound)
     {
       if (chown(lpath, -1, num) != 0)
@@ -1724,7 +1742,7 @@ static NSStringEncoding	defaultEncoding;
 {
   NSDictionary	*d;
 
-  d = [GSAttrDictionary attributesAt:
+  d = [GSAttrDictionaryClass attributesAt:
     [self fileSystemRepresentationWithPath: path] traverseLink: flag];
   return d;
 }
