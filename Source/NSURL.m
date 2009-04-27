@@ -46,6 +46,7 @@ function may be incorrect
 #import "Foundation/NSLock.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSObject.h"
+#import "Foundation/NSPortCoder.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSURL.h"
@@ -1533,6 +1534,15 @@ static unsigned	urlAlign;
 - (NSString*) relativeString
 {
   return _urlString;
+}
+
+/* Encode bycopy unless explicitly requested otherwise.
+ */
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  if ([aCoder isByref] == NO)
+    return self;
+  return [super replacementObjectForPortCoder: aCoder];
 }
 
 /**
