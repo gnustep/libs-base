@@ -70,6 +70,7 @@ static NSString	*cformat = @"%Y-%m-%d %H:%M:%S %z";
 
 static NSTimeZone	*localTZ = nil;
 
+static Class	NSCalendarDateClass;
 static Class	absClass;
 static Class	dstClass;
 
@@ -321,6 +322,7 @@ GSTimeNow(void)
 {
   if (self == [NSCalendarDate class])
     {
+      NSCalendarDateClass = self;
       [self setVersion: 1];
       localTZ = RETAIN([NSTimeZone localTimeZone]);
 
@@ -1295,7 +1297,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 
 	  if ((had & (hadY|hadw)) != (hadY|hadw))
 	    {
-	      NSCalendarDate	*now = [[NSCalendarDate alloc] init];
+	      NSCalendarDate	*now = [[NSCalendarDateClass alloc] init];
 
 	      [now setTimeZone: gmtZone];
 	      if ((had & hadY) == 0)
@@ -1311,13 +1313,13 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	      RELEASE(now);
 	    }
 
-	  d = [[NSCalendarDate alloc] initWithYear: year
-					     month: 1
-					       day: 1
-					      hour: 0
-					    minute: 0
-					    second: 0
-					  timeZone: gmtZone];
+	  d = [[NSCalendarDateClass alloc] initWithYear: year
+						  month: 1
+						    day: 1
+						   hour: 0
+						 minute: 0
+						 second: 0
+					       timeZone: gmtZone];
 	  currDay = [d dayOfWeek];
 	  RELEASE(d);
 
@@ -1347,7 +1349,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
        */
       if ((had & hadY) == 0)
 	{
-	  NSCalendarDate	*now = [[NSCalendarDate alloc] init];
+	  NSCalendarDate	*now = [[NSCalendarDateClass alloc] init];
 
 	  year = [now yearOfCommonEra];
 	  RELEASE(now);
@@ -2568,9 +2570,9 @@ static void Grow(DescriptionInfo *info, unsigned size)
    */
   s = GSTime(day, month, year, hour, minute, second, mil);
   s -= oldOffset;
-  c = [NSCalendarDate alloc];
-  c->_calendar_format = cformat;
-  c->_time_zone = RETAIN([self timeZone]);
+  c = [NSCalendarDateClass alloc];
+  c->_calendar_format = [_calendar_format copy];
+  c->_time_zone = [_time_zone copy];
   c->_seconds_since_ref = s;
 
   /*
@@ -2631,13 +2633,13 @@ static void Grow(DescriptionInfo *info, unsigned size)
   /* FIXME What if the two dates are in different time zones?
     How about daylight savings time?
    */
-  if ([date isKindOfClass: [NSCalendarDate class]])
+  if ([date isKindOfClass: NSCalendarDateClass])
     {
       tmp = (NSCalendarDate*)RETAIN(date);
     }
   else if ([date isKindOfClass: [NSDate class]])
     {
-      tmp = [[NSCalendarDate alloc] initWithTimeIntervalSinceReferenceDate:
+      tmp = [[NSCalendarDateClass alloc] initWithTimeIntervalSinceReferenceDate:
 	[date timeIntervalSinceReferenceDate]];
     }
   else

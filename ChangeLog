@@ -1,5 +1,9 @@
 2009-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSCalendarDate.m: Fix bug #26360 plus optimise a little.
+
+2009-04-27 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSData.h:
 	* Source/NSData.m:
 	Implement new MacOS-X methods for writing data (no support for
