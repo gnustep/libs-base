@@ -1969,16 +1969,15 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		v = info->dom;
 		Grow(info, 2);
 		v = v % 100;
-		if (v%10 == '0')
+		if (v < 10)
 		  {
-		    info->t[info->offset+1] = ' ';
+		    info->t[info->offset] = ' ';
 		  }
 		else
 		  {
-		    info->t[info->offset+1] = (v%10) + '0';
+		    info->t[info->offset] = (v/10) + '0';
 		  }
-		v /= 10;
-		info->t[info->offset+0] = (v%10) + '0';
+		info->t[info->offset+1] = (v%10) + '0';
 		info->offset += 2;
 		break;
 
