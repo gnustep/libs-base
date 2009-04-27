@@ -1,3 +1,10 @@
+2009-04-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSData.h:
+	* Source/NSData.m:
+	Implement new MacOS-X methods for writing data (no support for
+	returning NSError objects yet).
+
 2009-04-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFTPURLHandle.m: Implement full support for multiline
