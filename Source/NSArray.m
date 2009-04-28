@@ -57,13 +57,9 @@
 
 static BOOL GSMacOSXCompatiblePropertyLists(void)
 {
-#if	defined(HAVE_LIBXML)
   if (GSPrivateDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
     return NO;
   return GSPrivateDefaultsFlag(GSMacOSXCompatible);
-#else
-  return NO;
-#endif
 }
 
 extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
