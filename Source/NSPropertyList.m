@@ -521,11 +521,6 @@ static void setupQuotables(void)
     }
 }
 
-#ifdef	HAVE_LIBXML
-#import	"GNUstepBase/GSXML.h"
-static int      XML_ELEMENT_NODE;
-#endif
-
 #define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
 #define char2num(ch) \
 inrange(ch,'0','9') \
@@ -1178,216 +1173,6 @@ static id parsePlItem(pldata* pld)
     }
   return result;
 }
-
-#ifdef	HAVE_LIBXML
-static GSXMLNode*
-elementNode(GSXMLNode* node)
-{
-  while (node != nil)
-    {
-      if ([node type] == XML_ELEMENT_NODE)
-        {
-          break;
-        }
-      node = [node next];
-    }
-  return node;
-}
-
-static id
-nodeToObject(GSXMLNode* node, NSPropertyListMutabilityOptions o, NSString **e)
-{
-  CREATE_AUTORELEASE_POOL(arp);
-  id		result = nil;
-
-  node = elementNode(node);
-  if (node != nil)
-    {
-      NSString	*name;
-      NSString	*content;
-      GSXMLNode	*children;
-      BOOL	isKey = NO;
-
-      name = [node name];
-      children = [node firstChild];
-      content = [children content];
-      children = elementNode(children);
-
-      isKey = [name isEqualToString: @"key"];
-      if (isKey == YES || [name isEqualToString: @"string"] == YES)
-	{
-	  if (content == nil)
-	    {
-	      content = @"";
-	    }
-	  else
-	    {
-	      NSRange	r;
-
-	      r = [content rangeOfString: @"\\"];
-	      if (r.length == 1)
-		{
-		  unsigned	len = [content length];
-		  unichar	buf[len];
-		  unsigned	pos = r.location;
-
-		  [content getCharacters: buf];
-		  while (pos < len)
-		    {
-		      if (++pos < len)
-			{
-			  if ((buf[pos] == 'u' || buf[pos] == 'U')
-			    && (len >= pos + 4))
-			    {
-			      unichar	val = 0;
-			      unsigned	i;
-			      BOOL	ok = YES;
-
-			      for (i = 1; i < 5; i++)
-				{
-				  unichar	c = buf[pos + i];
-
-				  if (c >= '0' && c <= '9')
-				    {
-				      val = (val << 4) + c - '0';
-				    }
-				  else if (c >= 'A' && c <= 'F')
-				    {
-				      val = (val << 4) + c - 'A' + 10;
-				    }
-				  else if (c >= 'a' && c <= 'f')
-				    {
-				      val = (val << 4) + c - 'a' + 10;
-				    }
-				  else
-				    {
-				      ok = NO;
-				    }
-				}
-			      if (ok == YES)
-				{
-				  len -= 5;
-				  memcpy(&buf[pos], &buf[pos+5],
-				    (len - pos) * sizeof(unichar));
-				  buf[pos - 1] = val;
-				}
-			    }
-			  while (pos < len && buf[pos] != '\\')
-			    {
-			      pos++;
-			    }
-			}
-		    }
-		  if (isKey == NO
-		    && o == NSPropertyListMutableContainersAndLeaves)
-		    {
-		      content = [NSMutableString stringWithCharacters: buf
-							       length: len];
-		    }
-		  else
-		    {
-		      content = [NSString stringWithCharacters: buf
-							length: len];
-		    }
-		}
-	    }
-	  result = content;
-	}
-      else if ([name isEqualToString: @"true"])
-	{
-	  result = [NSNumber numberWithBool: YES];
-	}
-      else if ([name isEqualToString: @"false"])
-	{
-	  result = [NSNumber numberWithBool: NO];
-	}
-      else if ([name isEqualToString: @"integer"])
-	{
-	  if (content == nil)
-	    {
-	      content = @"0";
-	    }
-	  result = [NSNumber numberWithInt: [content intValue]];
-	}
-      else if ([name isEqualToString: @"real"])
-	{
-	  if (content == nil)
-	    {
-	      content = @"0.0";
-	    }
-	  result = [NSNumber numberWithDouble: [content doubleValue]];
-	}
-      else if ([name isEqualToString: @"date"])
-	{
-	  if (content == nil)
-	    {
-	      content = @"";
-	    }
-	  if ([content hasSuffix: @"Z"] == YES && [content length] == 20)
-	    {
-	      result = [NSCalendarDate dateWithString: content
-				       calendarFormat: @"%Y-%m-%dT%H:%M:%SZ"];
-	    }
-	  else
-	    {
-	      result = [NSCalendarDate dateWithString: content
-				       calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
-	    }
-	}
-      else if ([name isEqualToString: @"data"])
-	{
-	  result = [GSMimeDocument decodeBase64:
-		       [content dataUsingEncoding: NSASCIIStringEncoding]];
-	  if (o == NSPropertyListMutableContainersAndLeaves)
-	    {
-	      result = AUTORELEASE([result mutableCopy]);
-	    }
-	}
-      // container class
-      else if ([name isEqualToString: @"array"])
-	{
-	  NSMutableArray	*container = [plArray array];
-
-	  while (children != nil)
-	    {
-	      id	val;
-
-	      val = nodeToObject(children, o, e);
-	      [container addObject: val];
-	      children = [children nextElement];
-	    }
-	  result = container;
-	  if (o == NSPropertyListImmutable)
-	    {
-	      [result makeImmutableCopyOnFail: NO];
-	    }
-	}
-      else if ([name isEqualToString: @"dict"])
-	{
-	  NSMutableDictionary	*container = [plDictionary dictionary];
-
-	  while (children != nil)
-	    {
-	      NSString	*key;
-	      id	val;
-
-	      key = nodeToObject(children, o, e);
-	      children = [children nextElement];
-	      val = nodeToObject(children, o, e);
-	      children = [children nextElement];
-	      [container setObject: val forKey: key];
-	    }
-	  result = container;
-	  if (o == NSPropertyListImmutable)
-	    {
-	      [result makeImmutableCopyOnFail: NO];
-	    }
-	}
-    }
-  IF_NO_GC([result retain]; [arp release];)
-  return AUTORELEASE(result);
-}
-#endif
 
 id
 GSPropertyListFromStringsFormat(NSString *string)
@@ -2415,13 +2200,6 @@ static BOOL	classInitialized = NO;
     {
       classInitialized = YES;
 
-#if	HAVE_LIBXML
-      /*
-       * Cache XML node information.
-       */
-      XML_ELEMENT_NODE = [GSXMLNode typeFromDescription: @"XML_ELEMENT_NODE"];
-#endif
-
       NSStringClass = [NSString class];
       NSMutableStringClass = [NSMutableString class];
       NSDataClass = [NSData class];
@@ -2639,46 +2417,18 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	{
 	  case NSPropertyListXMLFormat_v1_0:
 	    {
-#if	HAVE_LIBXML
-	      GSXMLParser	*parser;
-	      GSXMLNode		*node;
+	      GSXMLPListParser *parser;
 
-	      parser = [GSXMLParser parser];
-	      [parser substituteEntities: YES];
-	      [parser doValidityChecking: YES];
-              [parser saveMessages: YES];
-	      if ([parser parse: data] == NO || [parser parse: nil] == NO)
+	      parser = [GSXMLPListParser alloc];
+	      parser = AUTORELEASE([parser initWithData: data
+					     mutability: anOption]);
+	      if ([parser parse] == YES)
 		{
-		  error = @"failed to parse as valid XML matching DTD";
+		  result = AUTORELEASE(RETAIN([parser result]));
 		}
-	      node = [[parser document] root];
-	      if (error == nil && [[node name] isEqualToString: @"plist"] == NO)
+	      else if (error == nil)
 		{
 		  error = @"failed to parse as XML property list";
-		}
-	      if (error == nil)
-		{
-		  result = nodeToObject([node firstChild], anOption, &error);
-		}
-#endif
-	      /* The libxml based parser is stricter than the fallback
-	       * parser, so if parsing failed using that, we can try again.
-	       */
-	      if (result == nil)
-	        {
-		  GSXMLPListParser *parser;
-
-		  parser = [GSXMLPListParser alloc];
-		  parser = AUTORELEASE([parser initWithData: data
-						 mutability: anOption]);
-		  if ([parser parse] == YES)
-		    {
-		      result = AUTORELEASE(RETAIN([parser result]));
-		    }
-		  else if (error == nil)
-		    {
-		      error = @"failed to parse as XML property list";
-		    }
 		}
 	    }
 	    break;
