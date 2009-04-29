@@ -780,13 +780,6 @@ static NSMapTable	*globalClassMap = 0;
 	errorDescription: &error];
       if (_archive == nil)
 	{
-#ifndef	HAVE_LIBXML
-	  if (format == NSPropertyListXMLFormat_v1_0)
-	    {
-	      NSLog(@"Unable to parse XML archive as the base "
-		@"library was not configured with libxml2 support.");
-	    }
-#endif
 	  DESTROY(self);
 	}
       else

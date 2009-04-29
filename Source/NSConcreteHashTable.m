@@ -867,6 +867,20 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   return node->key.obj;
 }
 
+- (BOOL) containsObject: (id)anObject
+{
+  if (anObject != nil)
+    {
+      GSIMapNode	node  = GSIMapNodeForKey(self, (GSIMapKey)anObject);
+
+      if (node)
+	{
+	  return YES;
+	}
+    }
+  return NO;
+}
+
 - (id) copyWithZone: (NSZone*)aZone
 {
   return NSCopyHashTableWithZone(self, aZone);

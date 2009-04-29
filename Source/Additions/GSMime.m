@@ -2901,6 +2901,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	        {
 		  unsigned	diff = input - lineEnd;
 
+		  bytes[input] = ' ';
 		  memmove(&bytes[lineStart + diff], &bytes[lineStart], length);
 		  lineStart += diff;
 		  lineEnd += diff;
@@ -3347,7 +3348,7 @@ appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
        * If we already have space at the end of the line,
        * we remove it because the wrapping counts as a space.
        */
-      if (len > 0 && ((unsigned char*)[m bytes])[len - 1] == ' ')
+      if (len > 0 && isspace(((unsigned char*)[m bytes])[len - 1]))
         {
           [m setLength: --len];
         }

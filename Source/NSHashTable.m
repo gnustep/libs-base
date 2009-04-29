@@ -129,7 +129,7 @@ static Class	concreteClass = 0;
 
 - (BOOL) containsObject: (id)anObject
 {
-  return (BOOL)(uintptr_t)[self subclassResponsibility: _cmd];
+  return [self member: anObject] ? YES : NO;
 }
 
 - (id) copyWithZone: (NSZone*)aZone
@@ -178,7 +178,7 @@ static Class	concreteClass = 0;
       enumerator = [self objectEnumerator];
       while ((object = [enumerator nextObject]) != nil)
 	{
-	  if ([other member: object] != nil)
+	  if ([other member: object] == nil)
 	    {
 	      [array addObject: object];
 	    }
