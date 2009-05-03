@@ -1,3 +1,8 @@
+2009-03-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GNUmakefile.postamble: remove generated files from pathconfig
+        subdirectory on distclean.
+
 2009-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Fix bug #26360 plus optimise a little.
