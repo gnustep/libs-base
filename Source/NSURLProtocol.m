@@ -344,8 +344,10 @@ static NSURLProtocol	*placeholder = nil;
 +(Class) _classToHandleRequest:(NSURLRequest *)request
 {
   Class protoClass = nil;
+  int count;
   [regLock lock];
-  int count = [registered count];
+
+  count = [registered count];
   while (count-- > 0)
     {
       Class	proto = [registered objectAtIndex: count];
