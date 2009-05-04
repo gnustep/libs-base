@@ -25,6 +25,15 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+  ifeq ($(GNUSTEP_MAKEFILES),)
+    $(info )
+    $(info Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
+    $(info Perhaps gnustep-make is not properly installed,)
+    $(info so gnustep-config is not in your PATH.)
+    $(info )
+    $(info Your PATH is currently $(PATH))
+    $(info )
+  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
