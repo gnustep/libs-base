@@ -219,6 +219,15 @@ typedef int32_t volatile *gsatomic_t;
 #define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
 
 
+#elif defined(USE_ATOMIC_BUILDINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+/* Use the GCC atomic operations with recent GCC versions */
+
+typedef int32_t volatile *gsatomic_t;
+#define GSATOMICREAD(X) (*(X))
+#define GSAtomicIncrement(X)    __sync_fetch_and_add(X, 1)
+#define GSAtomicDecrement(X)    __sync_fetch_and_sub(X, 1)
+
+
 #elif	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
 /* Set up atomic read, increment and decrement for intel style linux
  */
@@ -256,11 +265,11 @@ GSAtomicIncrement(gsatomic_t X)
 {
   int tmp;
   __asm__ __volatile__ (
-    "modified:"
+    "incmodified:"
     "lwarx %0,0,%1 \n"
     "addic %0,%0,1 \n"
     "stwcx. %0,0,%1 \n"
-    "bne- modified \n"
+    "bne- incmodified \n"
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");
@@ -272,11 +281,11 @@ GSAtomicDecrement(gsatomic_t X)
 {
   int tmp;
   __asm__ __volatile__ (
-    "modified:"
+    "decmodified:"
     "lwarx %0,0,%1 \n"
     "addic %0,%0,-1 \n"
     "stwcx. %0,0,%1 \n"
-    "bne- modified \n"
+    "bne- decmodified \n"
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");

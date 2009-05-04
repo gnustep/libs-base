@@ -1,4 +1,12 @@
-2009-03-04 Richard Frith-Macdonald <rfm@gnu.org>
+2009-05-04  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSObject.m: Correct asm for PPC.
+	Patch by Eric Wasylishen <ewasylishen@gmail.com>
+	* Source/NSObject.m: Add support for new gcc atomic build
+	ins. Currently still disabled.
+	Patch by David Chisnall <theraven@sucs.org>
+
+2009-05-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSCharacterSets/GNUmakefile:
 	* Source/GNUmakefile:
@@ -16,7 +24,7 @@
 
 	* Source/NSURLProtocol.m: Removed c99-ism
 
-2009-03-03 Richard Frith-Macdonald <rfm@gnu.org>
+2009-05-03 Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GNUmakefile.postamble: remove generated files from pathconfig
         subdirectory on distclean.
