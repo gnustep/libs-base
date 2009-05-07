@@ -1,3 +1,7 @@
+2009-05-06  Adam Fedor  <fedor@gnu.org>
+
+	*  Documentation/news.texi, Documentation/releasenotes.texi: Update.
+
 2009-05-04  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSObject.m: Correct asm for PPC.

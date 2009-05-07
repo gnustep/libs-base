@@ -28,6 +28,47 @@ notice and this notice are preserved.
 	changes and other information that might help developers and users
 	migrate to using a newer version of the library.
       </p>
+     <section>
+	<heading>Version 1.19.1</heading>
+	<p>A great deal of improvements have occured recently.  This includes
+	many improvements in garbage collection (first to get it working again).
+	Also many Mac OS X 10.5 methods and classes have been added, as well
+	as compatibility improvements.
+	</p>
+	Highlights:
+	<deflist>
+	  <term>NSData</term>
+          <desc>
+	    Implemented new Mac OS X methods for writing data.
+          </desc>
+	  <term>NSFileManager</term>
+          <desc>
+	    Fix -fileOwnerAccountID and -fileGroupOwnerAccountID to
+	    return the correct type.
+          </desc>
+	  <term>NSHashTable, NSMapTable</term>
+          <desc>
+	    New Mac OS X 10.5 API classes.
+          </desc>
+	  <term>Garbage Collection</term>
+          <desc>
+	    Get GC working again. Fixes in various classes to work better with GC.
+          </desc>
+	  <term>Mac OS X 10.5 Return Types</term>
+          <desc>
+	    Methods have been converted to use return types and
+	    arguments of NSInteger, NSUInteger and CGFloat.  For now,
+	    these types are equivalent to the old types. This can be
+	    changed in NSObjCRuntime.h so that integer tpyes are the
+	    same size as a pointer, and the float type is actually a
+	    double on 64bit processors.
+          </desc>
+	  <term>NSArray</term>
+          <desc>
+	    New methods for inserting objects with NSIndexSet
+          </desc>
+	</deflist>
+      </section>
       <section>
 	<heading>Version 1.19.0</heading>
 	<p> 
