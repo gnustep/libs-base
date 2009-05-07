@@ -11,6 +11,17 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.19.1}
+
+@item @bullet
+@item New Mac OS X methods for writing data in NSData
+@item New classes NSHashTable and NSMapTable
+@item Garbage collection now works again and is much improved.
+@item Method return types and arguments have been changed for Mac OS X 10.5
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.19.0}
 
 @itemize @bullet
@@ -20,8 +31,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item Changes to build on 64bit ms-windows
 @item Support for @@synchronize
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.15.3}
 
