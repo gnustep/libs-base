@@ -13,7 +13,7 @@ See the @url{ReleaseNotes.html} document for more information.
 
 @section Noteworthy changes in version @samp{1.19.1}
 
-@item @bullet
+@itemize @bullet
 @item New Mac OS X methods for writing data in NSData
 @item New classes NSHashTable and NSMapTable
 @item Garbage collection now works again and is much improved.

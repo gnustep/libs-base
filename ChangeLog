@@ -1,6 +1,10 @@
+2009-05-10  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.19.1
+
 2009-05-06  Adam Fedor  <fedor@gnu.org>
 
-	*  Documentation/news.texi, Documentation/releasenotes.texi: Update.
+	* Documentation/news.texi, Documentation/releasenotes.texi: Update.
 
 2009-05-04  Fred Kiefer <FredKiefer@gmx.de>
 
@@ -1232,7 +1236,7 @@
 	
 2008-12-22  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Version:
+	* Version 1.19.0
 	* Documentation/news.texi:
 	* Documentation/ReleaseNotes.gsdoc:
 	Update for new release.
