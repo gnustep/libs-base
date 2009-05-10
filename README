@@ -10,12 +10,6 @@ remote object messaging support (distributed objects), and event loops.
 It provides functionality that aims to implement the non-graphical
 portion of the OpenStep standard (the Foundation library).
 
-Regression testing is available in the GNUstep testsuite.
-You can check this out using subversion with the following command:
-svn co svn://svn.gna.org/gnustep/tests/testsuite/trunk testsuite
-or  view it in a web browser at 
-http://svn.gna.org/viewcvs/gnustep/tests/testsuite/trunk
-
 1.1 Initial reading
 ===================
 
@@ -40,8 +34,8 @@ and subdirectories under this are covered under the GLPL.
 GNU Public License. This means if you make changes to these programs,
 you cannot charge a fee, other than distribution fees, for others to
 use the program. You should read the COPYING file for more information.
-All files in the `Documentation', `Examples', `Tools',
-`config', and `macosx' directories are covered under the GPL.
+All files in the `Documentation', `Examples', `Tools', `config', and
+`macosx' directories are covered under the GPL.
 
    With GNUstep-Base, we strongly recommend the use of the ffcall
 libraries, which provides stack frame handling for NSInvocation and
