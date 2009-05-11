@@ -50,7 +50,7 @@ static  NSNull  *null = nil;
 @interface      GSSloppyXMLParser : NSXMLParser
 @end
 
-#include <Additions/GNUstepBase/GSXML.h>
+#include <GNUstepBase/GSXML.h>
 
 @interface	NSXMLSAXHandler : GSSAXHandler
 {
