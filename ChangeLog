@@ -1,3 +1,9 @@
+2009-05-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Add support for file URLs on mswindows.  The path
+	may be of the form C:\... rather than /... (and the colon might be
+	a vertical bar).
+
 2009-05-11  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSXMLParser.m: Fix include location
