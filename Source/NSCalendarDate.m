@@ -1785,6 +1785,21 @@ static void Grow(DescriptionInfo *info, unsigned size)
     }
 }
 
+#define MAX_FLD_WIDTH 99
+
+static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
+{
+  char	cbuf[MAX_FLD_WIDTH + 1];
+  int	idx = 0;
+
+  sprintf((char*)cbuf, fldfmt, v);
+  Grow(info, strlen((char*)cbuf));
+  while (cbuf[idx] != '\0')
+    {
+      info->t[info->offset++] = cbuf[idx++];
+    }
+}
+
 - (void) _format: (NSString*)fmt
 	  locale: (NSDictionary*)locale
 	    info: (DescriptionInfo*)info
@@ -1816,11 +1831,27 @@ static void Grow(DescriptionInfo *info, unsigned size)
       BOOL	mname = NO;
       BOOL	dname = NO;
       BOOL	twelve = NO;
+      char	fldfmt[8];
+      int	fmtlen = 0;
+      int	width = 0;
 
       // Only care about a format specifier
       if (f[i] == '%')
 	{
           i++;
+	  fldfmt[fmtlen++] = '%'; // start format with %
+          while (fmtlen < 5 && f[i] >= '0' && f[i] <= '9') // field width specified
+	    {
+	      fldfmt[fmtlen++] = f[i];
+	      width = 10 * width + f[i] - '0';
+	      i++;
+	    }
+	  if (fmtlen >= 5 || width > MAX_FLD_WIDTH)
+	    {
+	      // ignore formats that specify field width greater than the max allowed
+	      i -= fmtlen; // set i back so all ignored characters will be copied
+	    }
+
 	  // check the character that comes after
 	  switch (f[i++])
 	    {
@@ -1877,41 +1908,25 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		v = info->yd;
 		if (ycent)
 		  {
-		    if (v >= 0 && v <= 9999)
+		    if (fmtlen == 1) // no format width specified; supply default
 		      {
-			Grow(info, 4);
-			info->t[info->offset+3] = (v%10) + '0';
-			v /= 10;
-			info->t[info->offset+2] = (v%10) + '0';
-			v /= 10;
-			info->t[info->offset+1] = (v%10) + '0';
-			v /= 10;
-			info->t[info->offset+0] = (v%10) + '0';
-			info->offset += 4;
-		      }
-		    else
-		      {
-			unsigned char	tmp[16];
-			int		idx = 0;
-
-			sprintf((char*)tmp, "%d", v);
-			Grow(info, strlen((char*)tmp));
-			while (tmp[idx] != '\0')
-			  {
-			    info->t[info->offset++] = tmp[idx++];
-			  }
+			fldfmt[fmtlen++] = '0';
+			fldfmt[fmtlen++] = '4';
 		      }
 		  }
 		else
 		  {
-		    Grow(info, 2);
 		    if (v < 0) v = -v;
 		    v = v % 100;
-		    info->t[info->offset+1] = (v%10) + '0';
-		    v /= 10;
-		    info->t[info->offset+0] = (v%10) + '0';
-		    info->offset += 2;
+		    if (fmtlen == 1) // no format width specified; supply default
+		      {
+			fldfmt[fmtlen++] = '0';
+			fldfmt[fmtlen++] = '2';
+		      }
 		  }
+		  fldfmt[fmtlen++] = 'd';
+		  fldfmt[fmtlen++] = 0;
+		  outputValueWithFormat(v, fldfmt, info);
 		break;
 
 		// is it the month
@@ -1946,39 +1961,41 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		if (mtag == NO)
 		  {
 		    v = info->md;
-		    Grow(info, 2);
 		    v = v % 100;
-		    info->t[info->offset+1] = (v%10) + '0';
-		    v /= 10;
-		    info->t[info->offset+0] = (v%10) + '0';
-		    info->offset += 2;
+		    if (fmtlen == 1) // no format width specified; supply default
+		      {
+			fldfmt[fmtlen++] = '0';
+			fldfmt[fmtlen++] = '2';
+		      }
+		    fldfmt[fmtlen++] = 'd';
+		    fldfmt[fmtlen++] = 0;
+		    outputValueWithFormat(v, fldfmt, info);
 		  }
 		break;
 
 	      case 'd': 	// day of month with leading zero
 		v = info->dom;
-		Grow(info, 2);
 		v = v % 100;
-		info->t[info->offset+1] = (v%10) + '0';
-		v /= 10;
-		info->t[info->offset+0] = (v%10) + '0';
-		info->offset += 2;
+		    if (fmtlen == 1) // no format width specified; supply default
+		      {
+			fldfmt[fmtlen++] = '0';
+			fldfmt[fmtlen++] = '2';
+		      }
+		    fldfmt[fmtlen++] = 'd';
+		    fldfmt[fmtlen++] = 0;
+		    outputValueWithFormat(v, fldfmt, info);
 		break;
 
 	      case 'e': 	// day of month with leading space
 		v = info->dom;
-		Grow(info, 2);
 		v = v % 100;
-		if (v < 10)
-		  {
-		    info->t[info->offset] = ' ';
-		  }
-		else
-		  {
-		    info->t[info->offset] = (v/10) + '0';
-		  }
-		info->t[info->offset+1] = (v%10) + '0';
-		info->offset += 2;
+		    if (fmtlen == 1) // no format width specified; supply default
+		      {
+			fldfmt[fmtlen++] = '1'; // no leading space, just like Cocoa
+		      }
+		    fldfmt[fmtlen++] = 'd';
+		    fldfmt[fmtlen++] = 0;
+		    outputValueWithFormat(v, fldfmt, info);
 		break;
 
 	      case 'F': 	// milliseconds
@@ -1992,24 +2009,26 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		  s *= 1000.0;
 		  v = (NSInteger)(s + 0.5);
 		}
-		Grow(info, 3);
-		info->t[info->offset+2] = (v%10) + '0';
-		v /= 10;
-		info->t[info->offset+1] = (v%10) + '0';
-		v /= 10;
-		info->t[info->offset+0] = (v%10) + '0';
-		info->offset += 3;
+		if (fmtlen == 1) // no format width specified; supply default
+		  {
+		    fldfmt[fmtlen++] = '0';
+		    fldfmt[fmtlen++] = '3';
+		  }
+		fldfmt[fmtlen++] = 'd';
+		fldfmt[fmtlen++] = 0;
+		outputValueWithFormat(v, fldfmt, info);
 		break;
 
 	      case 'j': 	// day of year
 		v = [self dayOfYear];
-		Grow(info, 3);
-		info->t[info->offset+2] = (v%10) + '0';
-		v /= 10;
-		info->t[info->offset+1] = (v%10) + '0';
-		v /= 10;
-		info->t[info->offset+0] = (v%10) + '0';
-		info->offset += 3;
+		if (fmtlen == 1) // no format width specified; supply default
+		  {
+		    fldfmt[fmtlen++] = '0';
+		    fldfmt[fmtlen++] = '3';
+		  }
+		fldfmt[fmtlen++] = 'd';
+		fldfmt[fmtlen++] = 0;
+		outputValueWithFormat(v, fldfmt, info);
 		break;
 
 		// is it the week-day
@@ -2045,8 +2064,13 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		    }
 		  if (dtag == NO)
 		    {
-		      info->t[info->offset+0] = (v%10) + '0';
-		      info->offset += 1;
+		      if (fmtlen == 1) // no format width specified; supply default
+			{
+			  fldfmt[fmtlen++] = '1';
+			  }
+		      fldfmt[fmtlen++] = 'd';
+		      fldfmt[fmtlen++] = 0;
+		      outputValueWithFormat(v, fldfmt, info);
 		    }
 		}
 		break;
@@ -2067,31 +2091,40 @@ static void Grow(DescriptionInfo *info, unsigned size)
 			v = v % 12;
 		      }
 		  }
-		Grow(info, 2);
-		info->t[info->offset+1] = (v%10) + '0';
-		v /= 10;
-		info->t[info->offset+0] = (v%10) + '0';
-		info->offset += 2;
+		if (fmtlen == 1) // no format width specified; supply default
+		  {
+		    fldfmt[fmtlen++] = '0';
+		    fldfmt[fmtlen++] = '2';
+		  }
+		fldfmt[fmtlen++] = 'd';
+		fldfmt[fmtlen++] = 0;
+		outputValueWithFormat(v, fldfmt, info);
 		break;
 
 		// is it the minute
 	      case 'M':
 		v = info->mnd;
-		Grow(info, 2);
-		info->t[info->offset+1] = (v%10) + '0';
-		v /= 10;
-		info->t[info->offset+0] = (v%10) + '0';
-		info->offset += 2;
+		if (fmtlen == 1) // no format width specified; supply default
+		  {
+		    fldfmt[fmtlen++] = '0';
+		    fldfmt[fmtlen++] = '2';
+		  }
+		fldfmt[fmtlen++] = 'd';
+		fldfmt[fmtlen++] = 0;
+		outputValueWithFormat(v, fldfmt, info);
 		break;
 
 		// is it the second
 	      case 'S':
 		v = info->sd;
-		Grow(info, 2);
-		info->t[info->offset+1] = (v%10) + '0';
-		v /= 10;
-		info->t[info->offset+0] = (v%10) + '0';
-		info->offset += 2;
+		if (fmtlen == 1) // no format width specified; supply default
+		  {
+		    fldfmt[fmtlen++] = '0';
+		    fldfmt[fmtlen++] = '2';
+		  }
+		fldfmt[fmtlen++] = 'd';
+		fldfmt[fmtlen++] = 0;
+		outputValueWithFormat(v, fldfmt, info);
 		break;
 
 		// Is it the am/pm indicator
