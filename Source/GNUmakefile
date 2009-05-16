@@ -47,7 +47,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
-include pathconfig/pathconfig.mak
+-include pathconfig/pathconfig.mak
 
 # Interface version changes with each minor release
 libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
