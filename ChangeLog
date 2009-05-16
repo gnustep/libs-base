@@ -1,3 +1,9 @@
+2009-05-16 Doug Simons <doug@riverrock.org>
+
+	* Source/NSCalendarDate.m:
+	Implement field widths for numeric fields in a date format for
+	MacOS-X compatibility.
+
 2009-05-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Add support for file URLs on mswindows.  The path
