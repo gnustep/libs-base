@@ -2021,6 +2021,10 @@ static NSStringEncoding	defaultEncoding;
 #if	defined(__MINGW32__)
 - (const GSNativeChar*) fileSystemRepresentationWithPath: (NSString*)path
 {
+  if (path != nil && [path rangeOfString: @"/"].length > 0)
+    {
+      path = [path stringByReplacingString: @"/" withString: @"\\"];
+    }
   return
     (const GSNativeChar*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
 }
