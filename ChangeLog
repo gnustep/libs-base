@@ -1,3 +1,10 @@
+2009-05-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m:
+	* Source/NSBundle.m:
+	Try to get the path right for loading dynamic library code on windows
+	when NSExecutable doesn't have the .dll path extension.
+
 2009-05-16 Doug Simons <doug@riverrock.org>
 
 	* Source/NSCalendarDate.m:
