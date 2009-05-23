@@ -1,3 +1,8 @@
+2009-05-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueObserving.m:
+	Permit setters which return values.
+
 2009-05-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m:
