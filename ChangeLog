@@ -1,3 +1,8 @@
+2009-05-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Use lock to prevent race condition setting up
+	runloop info for thread.
+
 2009-05-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueObserving.m:
