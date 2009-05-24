@@ -323,7 +323,24 @@ bundle_object_name(NSString *path, NSString* executable)
     return path1;
   else if ([mgr isReadableFileAtPath: path0] == YES)
     return path0;
-  return path2;
+#if defined(__MINGW32__)
+  /* If we couldn't find the binary, and we are on windows, and the name
+   * has no path extension, then let's try looking for a dll.
+   */
+  if ([name pathExtension] == nil)
+    {
+      if ([mgr isReadableFileAtPath:
+	[path2 stringByAppendingPathExtension: @"dll"]] == YES)
+	return [path2 stringByAppendingPathExtension: @"dll"];
+      else if ([mgr isReadableFileAtPath:
+	[path1 stringByAppendingPathExtension: @"dll"]] == YES)
+	return [path1 stringByAppendingPathExtension: @"dll"];
+      else if ([mgr isReadableFileAtPath:
+	[path0 stringByAppendingPathExtension: @"dll"]] == YES)
+	return [path0 stringByAppendingPathExtension: @"dll"];
+    }
+#endif
+  return path0;
 }
 
 /* Construct a path from components */

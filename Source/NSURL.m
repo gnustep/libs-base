@@ -1398,6 +1398,7 @@ static unsigned	urlAlign;
       unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
 	+ strlen(myData->path) + 3;
       char		buf[len];
+      char		*ptr = buf;
       char		*tmp = buf;
 
       if (myData->pathIsAbsolute == YES)
@@ -1436,7 +1437,36 @@ static unsigned	urlAlign;
 	}
 
       unescape(buf, buf);
-      path = [NSString stringWithUTF8String: buf];
+      /* Remove any trailing '/' from the path for MacOS-X compatibility.
+       */
+      tmp = buf + strlen(buf) - 1;
+      if (tmp > buf && *tmp == '/')
+	{
+	  *tmp = '\0';
+	}
+
+#if	defined(__MINGW32__)
+      /* On windows a file URL path may be of the form C:\xxx (ie we should
+       * not insert the leading slash).
+       * Also the vertical bar symbol may have been used instead of the
+       * colon, so we need to convert that.
+       */
+      if (myData->isFile == YES)
+	{
+          if (ptr[1] && isalpha(ptr[1]))
+	    {
+	      if (ptr[2] == ':' || ptr[2] == '|')
+		{
+		  if (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\')
+		    {
+		      ptr[2] = ':';
+		      ptr++;
+		    }
+		}
+	    }
+	}
+#endif
+      path = [NSString stringWithUTF8String: ptr];
     }
   return path;
 }

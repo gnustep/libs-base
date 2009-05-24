@@ -1,3 +1,18 @@
+2009-05-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Use lock to prevent race condition setting up
+	runloop info for thread.
+	* Source/NSKeyValueObserving.m:
+	Permit setters which return values.
+	* Source/NSFileManager.m:
+	* Source/NSBundle.m:
+	Try to get the path right for loading dynamic library code on windows
+	when NSExecutable doesn't have the .dll path extension.
+	* Source/NSURL.m: Add support for file URLs on mswindows.  The path
+	may be of the form C:\... rather than /... (and the colon might be
+	a vertical bar).
+	All backported from trunk
+
 2009-03-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: backport bugfix for UNC path parsing.
