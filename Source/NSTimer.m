@@ -57,6 +57,14 @@ static Class	NSDate_class;
     }
 }
 
+/* For MacOS-X compatibility, this returns nil.
+ */
+- (id) init
+{
+  [self release];
+  return nil;
+}
+
 /**
  * <init />
  * Initialise the receive, a newly allocated NSTimer object.<br />

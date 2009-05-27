@@ -1,3 +1,12 @@
+2009-05-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Updates to match latest MacOS-X behavior.
+	The +new and -init methods now return nil.
+	Timers are now treated like input sources for purposes of deciding
+	whether the loop will block and whether performerds will execute.
+	* Source/NSTimer.m: Updates to match latest MacOS-X behavior.
+	The +new and -init methods now return nil.
+
 2009-05-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Use lock to prevent race condition setting up

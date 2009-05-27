@@ -390,6 +390,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 - (GSRunLoopWatcher*) _getWatcher: (void*)data
 			     type: (RunLoopEventType)type
 			  forMode: (NSString*)mode;
+- (id) _init;
 - (void) _removeWatcher: (void*)data
 		   type: (RunLoopEventType)type
 		forMode: (NSString*)mode;
@@ -523,6 +524,27 @@ static inline BOOL timerInvalidated(NSTimer *t)
   return nil;
 }
 
+- (id) _init
+{
+  self = [super init];
+  if (self != nil)
+    {
+      _contextStack = [NSMutableArray new];
+      _contextMap = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
+					 NSObjectMapValueCallBacks, 0);
+      _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
+#ifdef	HAVE_POLL_F
+#if	GS_WITH_GC
+      _extra = NSAllocateCollectable(sizeof(pollextra), NSScannedOption);
+#else
+      _extra = NSZoneMalloc(NSDefaultMallocZone(), sizeof(pollextra));
+      memset(_extra, '\0', sizeof(pollextra));
+#endif
+#endif
+    }
+  return self;
+}
+
 /**
  * Removes a runloop watcher matching the specified data and type in this
  * runloop.  If the mode is nil, either the currentMode is used (if the
@@ -652,7 +674,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
  *  [NSTimer]s, and sending notifications and other messages
  *  asynchronously.</p>
  *
- * <p>In general, there is one run loop per thread in an application, which
+ * <p>There is one run loop per thread in an application, which
  *  may always be obtained through the <code>+currentRunLoop</code> method,
  *  however unless you are using the AppKit and the [NSApplication] class, the
  *  run loop will not be started unless you explicitly send it a
@@ -683,7 +705,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
   if (current == nil)
     {
-      current = info->loop = [self new];
+      current = info->loop = [[self alloc] _init];
       /* If this is the main thread, set up a housekeeping timer.
        */
       if ([GSCurrentThread() isMainThread] == YES)
@@ -735,26 +757,10 @@ static inline BOOL timerInvalidated(NSTimer *t)
   return current;
 }
 
-/* This is the designated initializer. */
 - (id) init
 {
-  self = [super init];
-  if (self != nil)
-    {
-      _contextStack = [NSMutableArray new];
-      _contextMap = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
-					 NSObjectMapValueCallBacks, 0);
-      _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
-#ifdef	HAVE_POLL_F
-#if	GS_WITH_GC
-      _extra = NSAllocateCollectable(sizeof(pollextra), NSScannedOption);
-#else
-      _extra = NSZoneMalloc(NSDefaultMallocZone(), sizeof(pollextra));
-      memset(_extra, '\0', sizeof(pollextra));
-#endif
-#endif
-    }
-  return self;
+  [self release];
+  return nil;
 }
 
 - (void) dealloc
@@ -839,7 +845,10 @@ static inline BOOL timerInvalidated(NSTimer *t)
 /**
  * Fires timers whose fire date has passed, and checks timers and limit dates
  * for input sources, determining the earliest time that any future timeout
- * becomes due.  Returns that date/time.
+ * becomes due.  Returns that date/time.<br />
+ * Returns distant future if the loop contains no timers, just input sources
+ * without timeouts.<br />
+ * Returns nil if the loop contains neither timers nor input sources.
  */
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
@@ -1084,7 +1093,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
  * otherwise block until input is available or until the
  * earliest limit date has passed (whichever comes first).<br />
  * If the supplied mode is nil, uses NSDefaultRunLoopMode.<br />
- * If there are no input sources in the mode, returns immediately.
+ * If there are no input sources or timers in the mode, returns immediately.
  */
 - (void) acceptInputForMode: (NSString*)mode
 		 beforeDate: (NSDate*)limit_date
@@ -1119,9 +1128,11 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  limit_date = timerDate(context->housekeeper);
 	}
 
-      if (context == nil || GSIArrayCount(context->watchers) == 0)
+      if (context == nil
+	|| (GSIArrayCount(context->watchers) == 0
+	  && GSIArrayCount(context->timers) == 0))
 	{
-	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
+	  NSDebugMLLog(@"NSRunLoop", @"no inputs or timers in mode %@", mode);
 	  GSPrivateNotifyASAP();
 	  GSPrivateNotifyIdle();
 	  /* Pause until the limit date or until we might have
@@ -1155,13 +1166,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	    }
 	  else
 	    {
-	      timeout_ms = ti * 1000;
+	      timeout_ms = (ti * 1000.0);
 	    }
 	}
 
       NSDebugMLLog(@"NSRunLoop",
-        @"accept I/P before %f (sec from now %f) in %@",
-        [limit_date timeIntervalSinceReferenceDate], ti, mode);
+        @"accept I/P before %d millisec from now in %@",
+	timeout_ms, mode);
 
       if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
 	{
@@ -1204,13 +1215,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
  * until the limit date of the first input or timeout.<br />
  * If the specified date is in the past, this runs the loop once only,
  * to handle any events already available.<br />
- * If there are no input sources in mode, returns NO without running the loop,
- * otherwise returns YES.
+ * If there are no input sources or timers in mode, thi method
+ * returns NO without running the loop (irrespective of the supplied
+ * date argument), otherwise returns YES.
  */
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   CREATE_AUTORELEASE_POOL(arp);
-  GSRunLoopCtxt	*context;
   NSDate	*d;
 
   NSAssert(mode != nil, NSInvalidArgumentException);
@@ -1218,23 +1229,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
   /* Find out how long we can wait before first limit date. */
   d = [self limitDateForMode: mode];
   if (d == nil)
-    {
-      NSDebugMLLog(@"NSRunLoop", @"run mode with nothing to do %@", mode);
-      /*
-       * Notify if any tasks have completed.
-       */
-      if (GSPrivateCheckTasks() == YES)
-	{
-	  GSPrivateNotifyASAP();
-	}
-      RELEASE(arp);
-      return NO;
-    }
-
-  /* Check to see if we have any input sources.
-   */
-  context = NSMapGet(_contextMap, mode);
-  if (context == nil || GSIArrayCount(context->watchers) == 0)
     {
       RELEASE(arp);
       return NO;
