@@ -675,7 +675,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
  *  asynchronously.</p>
  *
  * <p>There is one run loop per thread in an application, which
- *  may always be obtained through the <code>+currentRunLoop</code> method,
+ *  may always be obtained through the <code>+currentRunLoop</code> method
+ *  (you cannot use -init or +new),
  *  however unless you are using the AppKit and the [NSApplication] class, the
  *  run loop will not be started unless you explicitly send it a
  *  <code>-run</code> message.</p>
