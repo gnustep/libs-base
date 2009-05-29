@@ -24,13 +24,13 @@
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
   ifeq ($(GNUSTEP_MAKEFILES),)
-    $(info )
-    $(info Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
-    $(info Perhaps gnustep-make is not properly installed,)
-    $(info so gnustep-config is not in your PATH.)
-    $(info )
-    $(info Your PATH is currently $(PATH))
-    $(info )
+    $(warning )
+    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
+    $(warning Perhaps gnustep-make is not properly installed,)
+    $(warning so gnustep-config is not in your PATH.)
+    $(warning )
+    $(warning Your PATH is currently $(PATH))
+    $(warning )
   endif
 endif
 

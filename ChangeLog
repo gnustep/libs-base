@@ -1,3 +1,16 @@
+2009-05-29 Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* GNUmakefile: Use $(warning ...) instead of $(info ...) since
+	$(info ...) exists only in GNU make >= 3.81.
+	* NSCharacterSets/GNUmakefile: Same change.
+	* Source/GNUmakefile: Same change.
+	* SSL/GNUmakefile: Same change.
+	* Documentation/GNUmakefile: Same change.
+	* Resources/GNUmakefile: Same change.
+	* NSTimeZones/GNUmakefile: Same change.
+	* Examples/GNUmakefile: Same change.
+	* Tools/GNUmakefile: Same change.
+
 2009-05-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Updates to match latest MacOS-X behavior.
