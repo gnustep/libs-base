@@ -292,6 +292,30 @@ GSAtomicDecrement(gsatomic_t X)
   return *X;
 }
 
+#elif defined(__m68k__)
+
+typedef int32_t volatile *gsatomic_t;
+
+#define	GSATOMICREAD(X)	(*(X))
+
+static __inline__ int
+GSAtomicIncrement(gsatomic_t X)
+{
+  __asm__ __volatile__ (
+    "addq%.l %#1, %0"
+    :"=m" (*X));
+    return *X;
+}
+
+static __inline__ int
+GSAtomicDecrement(gsatomic_t X)
+{
+  __asm__ __volatile__ (
+    "subq%.l %#1, %0"
+    :"=m" (*X));
+    return *X;
+}
+
 #endif
 
 #if	!defined(GSATOMICREAD)
