@@ -1,3 +1,17 @@
+2009-06-02  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSUndoManager.m (-undo, -redo): Call -_begin instead of
+	-beginUndoGrouping to avoid creation of a spurious top-level group
+	while performing undo or redo operations, which was causing the
+	recorded actions to be dropped silently.
+
+	* Source/NSUndoManager.m (-beginUndoGrouping): Post
+	NSUndoManagerCheckpointNotification also during undo as on OS X.
+
+	* Source/NSUndoManager.m (-endUndoGrouping): Post
+	NSUndoManagerWillCloseUndoGroupNotification before changing the
+	group so that clients see the same grouping level as on OS X.
+
 2009-05-29 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Source/NSObject.m: Atomic increment and decrement functions for m68k
