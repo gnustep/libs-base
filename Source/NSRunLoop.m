@@ -1106,9 +1106,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
   NS_DURING
     {
-      GSIArray		watchers;
-      unsigned		i;
-
       /*
        * If we have a housekeeping timer, and it is earlier than the
        * limit date we have been given, we use the date of the housekeeper
@@ -1121,10 +1118,11 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  limit_date = timerDate(context->housekeeper);
 	}
 
-      if ((context == nil || (watchers = context->watchers) == 0
-	|| (i = GSIArrayCount(watchers)) == 0))
+      if (context == nil
+	|| (GSIArrayCount(context->watchers) == 0
+	  && GSIArrayCount(context->timers) == 0))
 	{
-	  NSDebugMLLog(@"NSRunLoop", @"no inputs in mode %@", mode);
+	  NSDebugMLLog(@"NSRunLoop", @"no inputs or timers in mode %@", mode);
 	  GSPrivateNotifyASAP();
 	  GSPrivateNotifyIdle();
 	  /*
@@ -1222,14 +1220,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
   d = [self limitDateForMode: mode];
   if (d == nil)
     {
-      NSDebugMLLog(@"NSRunLoop", @"run mode with nothing to don %@", mode);
-      /*
-       * Notify if any tasks have completed.
-       */
-      if (GSPrivateCheckTasks() == YES)
-	{
-	  GSPrivateNotifyASAP();
-	}
       RELEASE(arp);
       return NO;
     }
