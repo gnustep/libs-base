@@ -1,3 +1,10 @@
+2009-06-05 18:12-EDT Gregory John Casamento <greg.casamento@gmail.com>
+	
+	* Source/NSDistantObject.m: NSProxy subclasses must override -init 
+	or an exception will be thrown. This change calls the forwarding 
+	mechanism to invoke -init on the remote object.
+	Patch by David Chisnall <theraven@sucs.org>
+	
 2009-06-04 Georg Fleischmann <G.Fleischmann@vhf.de>
 
 	* Source/Additions/unicode/nextstep.h: Fixups for encoding mapping.
