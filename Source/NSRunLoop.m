@@ -1216,7 +1216,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
  * until the limit date of the first input or timeout.<br />
  * If the specified date is in the past, this runs the loop once only,
  * to handle any events already available.<br />
- * If there are no input sources or timers in mode, thi method
+ * If there are no input sources or timers in mode, this method
  * returns NO without running the loop (irrespective of the supplied
  * date argument), otherwise returns YES.
  */

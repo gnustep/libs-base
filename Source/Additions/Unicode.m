@@ -1082,31 +1082,125 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
-	while (spos < slen)
+	if (dst == 0)
 	  {
-	    unichar	c = (unichar)((unc)src[spos++]);
+	    /* Just counting bytes, and we know there is exactly one
+	     * unicode codepoint needed for each ascii character.
+	     */
+	    dpos += slen;
+	  }
+        else
+	  {
+	    /* Because we know that each ascii chartacter is exactly
+	     * one unicode character, we can check the destination
+	     * buffer size and allocate more space in one go, before
+	     * entering the loop where we deal with each character.
+	     */
+	    if (dpos + slen + (extra ? 1 : 0) > bsize)
+	      {
+		if (zone == 0)
+		  {
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
+		  }
+		else
+		  {
+		    unsigned	grow = (dpos + slen) * sizeof(unichar);
+		    unichar	*tmp;
 
-	    if (c > 127)
-	      {
-		result = NO;	// Non-ascii data found in input.
-		goto done;
+#if	GS_WITH_GC
+		    tmp = NSAllocateCollectable(grow + extra, 0);
+#else
+		    tmp = NSZoneMalloc(zone, grow + extra);
+#endif
+		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
+		      {
+			memcpy(tmp, ptr, bsize * sizeof(unichar));
+		      }
+#if	!GS_WITH_GC
+		    if (ptr != buf)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+#endif
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			result = NO;	/* Not enough memory */
+			break;
+		      }
+		    bsize = grow / sizeof(unichar);
+		  }
 	      }
-	    if (dpos >= bsize)
+	    while (spos < slen)
 	      {
-		GROW();
+		unichar	c = (unichar)((unc)src[spos++]);
+
+		if (c > 127)
+		  {
+		    result = NO;	// Non-ascii data found in input.
+		    goto done;
+		  }
+		ptr[dpos++] = c;
 	      }
-	    ptr[dpos++] = c;
 	  }
 	break;
 
       case NSISOLatin1StringEncoding:
-	while (spos < slen)
+	if (dst == 0)
 	  {
-	    if (dpos >= bsize)
+	    /* Just counting bytes, and we know there is exactly one
+	     * unicode codepoint needed for each latin1 character.
+	     */
+	    dpos += slen;
+	  }
+        else
+	  {
+	    /* Because we know that each latin1 chartacter is exactly
+	     * one unicode character, we can check the destination
+	     * buffer size and allocate more space in one go, before
+	     * entering the loop where we deal with each character.
+	     */
+	    if (dpos + slen + (extra ? 1 : 0) > bsize)
 	      {
-		GROW();
+		if (zone == 0)
+		  {
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
+		  }
+		else
+		  {
+		    unsigned	grow = (dpos + slen) * sizeof(unichar);
+		    unichar	*tmp;
+
+#if	GS_WITH_GC
+		    tmp = NSAllocateCollectable(grow + extra, 0);
+#else
+		    tmp = NSZoneMalloc(zone, grow + extra);
+#endif
+		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
+		      {
+			memcpy(tmp, ptr, bsize * sizeof(unichar));
+		      }
+#if	!GS_WITH_GC
+		    if (ptr != buf)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+#endif
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			result = NO;	/* Not enough memory */
+			break;
+		      }
+		    bsize = grow / sizeof(unichar);
+		  }
 	      }
-	    ptr[dpos++] = (unichar)((unc)src[spos++]);
+	    while (spos < slen)
+	      {
+		ptr[dpos++] = (unichar)((unc)src[spos++]);
+	      }
 	  }
 	break;
 
@@ -1143,23 +1237,70 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 #endif
 
 tables:
-	while (spos < slen)
+	if (dst == 0)
 	  {
-	    unc c = (unc)src[spos];
+	    /* Just counting bytes, and we know there is exactly one
+	     * unicode codepoint needed for each character.
+	     */
+	    dpos += slen;
+	  }
+        else
+	  {
+	    /* Because we know that each character in the table is exactly
+	     * one unicode character, we can check the destination
+	     * buffer size and allocate more space in one go, before
+	     * entering the loop where we deal with each character.
+	     */
+	    if (dpos + slen + (extra ? 1 : 0) > bsize)
+	      {
+		if (zone == 0)
+		  {
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
+		  }
+		else
+		  {
+		    unsigned	grow = (dpos + slen) * sizeof(unichar);
+		    unichar	*tmp;
 
-	    if (dpos >= bsize)
-	      {
-		GROW();
+#if	GS_WITH_GC
+		    tmp = NSAllocateCollectable(grow + extra, 0);
+#else
+		    tmp = NSZoneMalloc(zone, grow + extra);
+#endif
+		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
+		      {
+			memcpy(tmp, ptr, bsize * sizeof(unichar));
+		      }
+#if	!GS_WITH_GC
+		    if (ptr != buf)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+#endif
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			result = NO;	/* Not enough memory */
+			break;
+		      }
+		    bsize = grow / sizeof(unichar);
+		  }
 	      }
-	    if (c < base)
+	    while (spos < slen)
 	      {
-		ptr[dpos++] = c;
+		unc c = (unc)src[spos];
+
+		if (c < base)
+		  {
+		    ptr[dpos++] = c;
+		  }
+		else
+		  {
+		    ptr[dpos++] = table[c - base];
+		  }
+		spos++;
 	      }
-	    else
-	      {
-		ptr[dpos++] = table[c - base];
-	      }
-	    spos++;
 	  }
 	break;
 
@@ -1172,7 +1313,6 @@ tables:
 	      {
 		GROW();
 	      }
-
 	    ptr[dpos] = GSM0338_char_to_uni_table[c];
 	    if (c == 0x1b && spos < slen)
 	      {
@@ -1281,13 +1421,13 @@ done:
   /*
    * Post conversion ... set output values.
    */
-  if (extra != 0)
-    {
-      ptr[dpos] = (unichar)0;
-    }
   *size = dpos;
   if (dst != 0 && (result == YES || (options & GSUniShortOk)))
     {
+      if (extra != 0)
+        {
+          ptr[dpos] = (unichar)0;
+        }
       if (options & GSUniTemporary)
 	{
 	  unsigned	bytes = dpos * sizeof(unichar) + extra;
