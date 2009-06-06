@@ -1,3 +1,8 @@
+2009-06-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Optimise case where we are converting
+	from unicode to latin1 or ascii.
+
 2009-06-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSFFIInvocation.m
