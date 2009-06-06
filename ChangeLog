@@ -1,3 +1,10 @@
+2009-06-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/GSFFIInvocation.m
+	(-initWithCallback:returnp:values:frame:signature:): Fix bug
+	#26419 by removing bogus code which was used on targets where
+	MFRAME_STRUCT_BYREF is defined.
+
 2009-06-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: When converting from a characterset
