@@ -1419,15 +1419,15 @@ tables:
 done:
 
   /*
-   * Post conversion ... set output values.
+   * Post conversion ... terminate if needed, and set output values.
    */
+  if (extra != 0 && dst != 0)
+    {
+      ptr[dpos] = (unichar)0;
+    }
   *size = dpos;
   if (dst != 0 && (result == YES || (options & GSUniShortOk)))
     {
-      if (extra != 0)
-        {
-          ptr[dpos] = (unichar)0;
-        }
       if (options & GSUniTemporary)
 	{
 	  unsigned	bytes = dpos * sizeof(unichar) + extra;
