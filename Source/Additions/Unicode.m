@@ -1922,53 +1922,121 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	goto bases;
 
 bases:
-	if (strict == NO)
+	if (dst == 0)
 	  {
-	    while (spos < slen)
+	    /* Just counting bytes, and we know there is exactly one
+	     * unicode codepoint needed for each character.
+	     */
+	    dpos = slen;
+	  }
+        else
+	  {
+	    /* Because we know that each ascii chartacter is exactly
+	     * one unicode character, we can check the destination
+	     * buffer size and allocate more space in one go, before
+	     * entering the loop where we deal with each character.
+	     */
+	    if (slen > bsize)
 	      {
-		unichar	u = src[spos++];
-
-		if (swapped == YES)
+		if (zone == 0)
 		  {
-		    u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
-		  }
-		
-		if (dpos >= bsize)
-		  {
-		    GROW();
-		  }
-		if (u < base)
-		  {
-		    ptr[dpos++] = (unsigned char)u;
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
 		  }
 		else
 		  {
-		    ptr[dpos++] =  '?';
+		    uint8_t	*tmp;
+
+#if	GS_WITH_GC
+		    tmp = NSAllocateCollectable(slen, 0);
+#else
+		    tmp = NSZoneMalloc(zone, slen);
+		    if (ptr != buf)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+#endif
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			result = NO;	/* Not enough memory */
+			break;
+		      }
+		    bsize = slen;
+		  }
+	      }
+	  }
+	if (strict == NO)
+	  {
+	    if (swapped == YES)
+	      {
+		while (spos < slen)
+		  {
+		    unichar	u = src[spos++];
+
+		    u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		    if (u < base)
+		      {
+			ptr[dpos++] = (unsigned char)u;
+		      }
+		    else
+		      {
+			ptr[dpos++] =  '?';
+		      }
+		  }
+	      }
+	    else
+	      {
+		while (spos < slen)
+		  {
+		    unichar	u = src[spos++];
+
+		    if (u < base)
+		      {
+			ptr[dpos++] = (unsigned char)u;
+		      }
+		    else
+		      {
+			ptr[dpos++] =  '?';
+		      }
 		  }
 	      }
 	  }
 	else
 	  {
-	    while (spos < slen)
+	    if (swapped == YES)
 	      {
-		unichar	u = src[spos++];
+		while (spos < slen)
+		  {
+		    unichar	u = src[spos++];
 
-		if (swapped == YES)
-		  {
 		    u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		    if (u < base)
+		      {
+			ptr[dpos++] = (unsigned char)u;
+		      }
+		    else
+		      {
+			result = NO;
+			goto done;
+		      }
 		  }
-		if (dpos >= bsize)
+	      }
+	    else
+	      {
+		while (spos < slen)
 		  {
-		    GROW();
-		  }
-		if (u < base)
-		  {
-		    ptr[dpos++] = (unsigned char)u;
-		  }
-		else
-		  {
-		    result = NO;
-		    goto done;
+		    unichar	u = src[spos++];
+
+		    if (u < base)
+		      {
+			ptr[dpos++] = (unsigned char)u;
+		      }
+		    else
+		      {
+			result = NO;
+			goto done;
+		      }
 		  }
 	      }
 	  }
