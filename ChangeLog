@@ -2,6 +2,7 @@
 
 	* Source/Additions/Unicode.m: Optimise case where we are converting
 	from unicode to latin1 or ascii.
+	* Source/GSString.m: Optimise -hash method of NXConstantString too.
 
 2009-06-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
 

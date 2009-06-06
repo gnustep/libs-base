@@ -5053,23 +5053,33 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
   if (len > 0)
     {
-      const unsigned char	*p;
-      unsigned			char_count = 0;
+      register const unsigned char	*p;
+      register unsigned			index = 0;
 
       p = _self->_contents.c;
-      while (char_count++ < len)
+      if (internalEncoding == NSISOLatin1StringEncoding)
 	{
-	  unichar	u = *p++;
-
-          if (u > 127 && internalEncoding != NSISOLatin1StringEncoding)
+	  while (index < len)
 	    {
-	      unsigned char	c = (unsigned char)u;
-	      unsigned int	s = 1;
-	      unichar		*d = &u;
-
-	      GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
+	      ret = (ret << 5) + ret + p[index++];
 	    }
-	  ret = (ret << 5) + ret + u;
+	}
+      else
+	{
+	  while (index < len)
+	    {
+	      unichar	u = p[index++];
+
+	      if (u > 127)
+		{
+		  unsigned char	c = (unsigned char)u;
+		  unsigned int	s = 1;
+		  unichar	*d = &u;
+
+		  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
+		}
+	      ret = (ret << 5) + ret + u;
+	    }
 	}
 
       /*
