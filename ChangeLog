@@ -2,6 +2,7 @@
 
 	* Source/Additions/Unicode.m: Optimise somewhat for converting
 	from unicode (UTF-2) to UTF-8
+	* Source/GSString.m: Optimise 8 bit string equality tests a little.
 
 2009-06-06 Richard Frith-Macdonald <rfm@gnu.org>
 
