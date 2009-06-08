@@ -1786,127 +1786,249 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
     {
       case NSUTF8StringEncoding:
 	{
-	  while (spos < slen)
+	  if (swapped == YES)
 	    {
-	      unichar 		u1, u2;
-	      unsigned long	u;
-	      int		sl = 0;
-
-	      /* get first unichar */
-	      u1 = src[spos++];
-	      if (swapped == YES)
+	      while (spos < slen)
 		{
+		  unichar 	u1, u2;
+		  unsigned char	reversed[8];
+		  unsigned long	u;
+		  int		sl;
+		  int		i;
+
+		  /* get first unichar */
+		  u1 = src[spos++];
 		  u1 = (((u1 & 0xff00) >> 8) + ((u1 & 0x00ff) << 8));
-		}
-	      // 0xfeff is a zero-width-no-break-space inside text (not a BOM).
-	      if (u1 == 0xfffe				// unexpected BOM
-	        || u1 == 0xffff				// not a character
-		|| (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
-		|| (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
-	        {
-		  if (strict)
-		    {
-		      result = NO;
-		      goto done;
-                    }
-		  continue;	// Skip invalid character.
-	        }
 
-	      /* possibly get second character and calculate 'u' */
-	      if ((u1 >= 0xd800) && (u1 < 0xdc00))
-                {
-	  	  if (spos >= slen)
-                    {
-		      if (strict)
+		  /* Fast track ... if this is actually an ascii character
+		   * it just converts straight to utf-8
+		   */
+		  if (u1 <= 0x7f)
+		    {
+		      if (dpos >= bsize)
 			{
-			  result = NO;
-			  goto done;
+			  GROW();
 			}
-		      continue;	// At end.
-                    }
-
-	          /* get second unichar */
-	          u2 = src[spos++];
-	          if (swapped == YES)
-		    {
-		      u2 = (((u2 & 0xff00) >> 8) + ((u2 & 0x00ff) << 8));
+		      ptr[dpos++] = (unsigned char)u1;
+		      continue;
 		    }
 
-	          if ((u2 < 0xdc00) && (u2 > 0xdfff))
-                    {
-		      spos--;
+		  // 0xfeff is a zero-width-no-break-space inside text
+		  if (u1 == 0xfffe			// unexpected BOM
+		    || u1 == 0xffff			// not a character
+		    || (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
+		    || (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
+		    {
 		      if (strict)
 			{
 			  result = NO;
 			  goto done;
 			}
-		      continue;		// Skip bad half of surrogate pair.
-                    }
+		      continue;	// Skip invalid character.
+		    }
 
-                  /* make the full value */
-		  u = ((unsigned long)(u1 - 0xd800) * 0x400)
-		    + (u2 - 0xdc00) + 0x10000;
-                }
-              else
-		{
-		  u = u1;
-		}
+		  /* possibly get second character and calculate 'u' */
+		  if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		    {
+		      if (spos >= slen)
+			{
+			  if (strict)
+			    {
+			      result = NO;
+			      goto done;
+			    }
+			  continue;	// At end.
+			}
 
-              /* calculate the sequence length */
-              if (u <= 0x7f)
-		{
-		  sl = 1;
-		}
-              else if (u <= 0x7ff)
-		{
-		  sl = 2;
-		}
-              else if (u <= 0xffff)
-		{
-		  sl = 3;
-		}
-              else if (u <= 0x1fffff)
-		{
-		  sl = 4;
-		}
-              else if (u <= 0x3ffffff)
-		{
-		  sl = 5;
-		}
-              else
-		{
-		  sl = 6;
-		}
+		      /* get second unichar */
+		      u2 = src[spos++];
+		      u2 = (((u2 & 0xff00) >> 8) + ((u2 & 0x00ff) << 8));
 
-              /* make sure we have enough space for it */
-	      while (dpos + sl >= bsize)
-		{
-		  GROW();
-		}
+		      if ((u2 < 0xdc00) && (u2 > 0xdfff))
+			{
+			  spos--;
+			  if (strict)
+			    {
+			      result = NO;
+			      goto done;
+			    }
+			  continue;	// Skip bad half of surrogate pair.
+			}
 
-	      if (sl == 1)
-                {
-	          ptr[dpos++] = u & 0x7f;
-                }
-              else
-                {
-                  int		i;
-                  unsigned char	reversed[8];
+		      /* make the full value */
+		      u = ((unsigned long)(u1 - 0xd800) * 0x400)
+			+ (u2 - 0xdc00) + 0x10000;
+		    }
+		  else
+		    {
+		      u = u1;
+		    }
 
-                  /* split value into reversed array */
-                  for (i = 0; i < sl; i++)
-                    {
-                      reversed[i] = (u & 0x3f);
-                      u = u >> 6;
-                    }
+		  /* calculate the sequence length
+		   * a length of 1 was dealt with earlier
+		   */
+		  if (u <= 0x7ff)
+		    {
+		      sl = 2;
+		    }
+		  else if (u <= 0xffff)
+		    {
+		      sl = 3;
+		    }
+		  else if (u <= 0x1fffff)
+		    {
+		      sl = 4;
+		    }
+		  else if (u <= 0x3ffffff)
+		    {
+		      sl = 5;
+		    }
+		  else
+		    {
+		      sl = 6;
+		    }
 
-	          ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
-                  /* add bytes into the output sequence */
-                  for (i = sl - 2; i >= 0; i--)
+		  /* make sure we have enough space for it */
+		  while (dpos + sl >= bsize)
+		    {
+		      GROW();
+		    }
+
+		  /* split value into reversed array */
+		  for (i = 0; i < sl; i++)
+		    {
+		      reversed[i] = (u & 0x3f);
+		      u = u >> 6;
+		    }
+
+		  ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
+		  /* add bytes into the output sequence */
+		  for (i = sl - 2; i >= 0; i--)
 		    {
 		      ptr[dpos++] = reversed[i] | 0x80;
 		    }
-                }
+		}
+	    }
+	  else
+	    {
+	      while (spos < slen)
+		{
+		  unichar 	u1, u2;
+		  unsigned char	reversed[8];
+		  unsigned long	u;
+		  int		sl;
+		  int		i;
+
+		  /* get first unichar */
+		  u1 = src[spos++];
+
+		  /* Fast track ... if this is actually an ascii character
+		   * it just converts straight to utf-8
+		   */
+		  if (u1 <= 0x7f)
+		    {
+		      if (dpos >= bsize)
+			{
+			  GROW();
+			}
+		      ptr[dpos++] = (unsigned char)u1;
+		      continue;
+		    }
+
+		  // 0xfeff is a zero-width-no-break-space inside text
+		  if (u1 == 0xfffe			// unexpected BOM
+		    || u1 == 0xffff			// not a character
+		    || (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
+		    || (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
+		    {
+		      if (strict)
+			{
+			  result = NO;
+			  goto done;
+			}
+		      continue;	// Skip invalid character.
+		    }
+
+		  /* possibly get second character and calculate 'u' */
+		  if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		    {
+		      if (spos >= slen)
+			{
+			  if (strict)
+			    {
+			      result = NO;
+			      goto done;
+			    }
+			  continue;	// At end.
+			}
+
+		      /* get second unichar */
+		      u2 = src[spos++];
+
+		      if ((u2 < 0xdc00) && (u2 > 0xdfff))
+			{
+			  spos--;
+			  if (strict)
+			    {
+			      result = NO;
+			      goto done;
+			    }
+			  continue;	// Skip bad half of surrogate pair.
+			}
+
+		      /* make the full value */
+		      u = ((unsigned long)(u1 - 0xd800) * 0x400)
+			+ (u2 - 0xdc00) + 0x10000;
+		    }
+		  else
+		    {
+		      u = u1;
+		    }
+
+		  /* calculate the sequence length
+		   * a length of 1 was dealt with earlier
+		   */
+		  if (u <= 0x7ff)
+		    {
+		      sl = 2;
+		    }
+		  else if (u <= 0xffff)
+		    {
+		      sl = 3;
+		    }
+		  else if (u <= 0x1fffff)
+		    {
+		      sl = 4;
+		    }
+		  else if (u <= 0x3ffffff)
+		    {
+		      sl = 5;
+		    }
+		  else
+		    {
+		      sl = 6;
+		    }
+
+		  /* make sure we have enough space for it */
+		  while (dpos + sl >= bsize)
+		    {
+		      GROW();
+		    }
+
+		  /* split value into reversed array */
+		  for (i = 0; i < sl; i++)
+		    {
+		      reversed[i] = (u & 0x3f);
+		      u = u >> 6;
+		    }
+
+		  ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
+		  /* add bytes into the output sequence */
+		  for (i = sl - 2; i >= 0; i--)
+		    {
+		      ptr[dpos++] = reversed[i] | 0x80;
+		    }
+		}
 	    }
         }
         break;

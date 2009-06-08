@@ -1,3 +1,8 @@
+2009-06-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Optimise somewhat for converting
+	from unicode (UTF-2) to UTF-8
+
 2009-06-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Optimise case where we are converting
