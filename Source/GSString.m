@@ -2094,13 +2094,13 @@ isEqual_c(GSStr self, id anObject)
   if (c == NSConstantStringClass)
     {
       GSStr	other = (GSStr)anObject;
-      NSRange	r = {0, self->_count};
 
-      if (strCompCsCs((id)self, (id)other, 0, r) == NSOrderedSame)
+      if (other->_count == self->_count
+	&& memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
 	return YES;
       return NO;
     }
-  else if (GSObjCIsKindOf(c, GSStringClass) == YES || c == GSMutableStringClass)
+  else if (c == GSMutableStringClass)
     {
       GSStr	other = (GSStr)anObject;
       NSRange	r = {0, self->_count};
@@ -2125,9 +2125,30 @@ isEqual_c(GSStr self, id anObject)
 	}
       else
 	{
-	  if (strCompCsCs((id)self, (id)other, 0, r) == NSOrderedSame)
+	  if (other->_count == self->_count
+	    && memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
 	    return YES;
 	}
+      return NO;
+    }
+  else if (GSObjCIsKindOf(c, GSStringClass) == YES)
+    {
+      GSStr	other = (GSStr)anObject;
+
+      /*
+       * First see if the hash is the same - if not, we can't be equal.
+       */
+      if (self->_flags.hash == 0)
+        self->_flags.hash = (*hashImp)((id)self, hashSel);
+      if (other->_flags.hash == 0)
+        other->_flags.hash = (*hashImp)((id)other, hashSel);
+      if (self->_flags.hash != other->_flags.hash)
+	return NO;
+
+      if (other->_count == self->_count
+	&& memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
+	return YES;
+
       return NO;
     }
   else if (GSObjCIsKindOf(c, NSStringClass))
