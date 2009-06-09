@@ -433,7 +433,7 @@ static gnutls_anon_client_credentials_t anoncred;
   else if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv2] == YES)
     {
       proto = NSStreamSocketSecurityLevelSSLv2;
-      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv1 is insecure ..."
+      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
         @" not implemented");
       DESTROY(self);
       return nil;

@@ -1,3 +1,8 @@
+2009-06-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/Source/GSSSLHandle.m: Disable v2 by default due to
+	security issues.  GSPermitSSLv2 user default can enable it again.
+
 2009-06-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Optimise somewhat for converting
