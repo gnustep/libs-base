@@ -1,3 +1,8 @@
+009-06-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * SSL/Source/GSSSLHandle.m: Disable v2 by default due to
+        security issues.  GSPermitSSLv2 user default can enable it again.
+
 2009-06-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: backport changes controlling when loop is run.
