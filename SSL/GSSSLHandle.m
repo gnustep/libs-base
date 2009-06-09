@@ -122,11 +122,21 @@ sslError(int err)
 		 PEMpasswd: (NSString*)PEMpasswd;
 @end
 
+static BOOL	permitSSLv2 = NO;
+
 @implementation	GSSSLHandle
++ (void) _defaultsChanged: (NSNotification*)n
+{
+  permitSSLv2
+    = [[NSUserDefaults standardUserDefaults] boolForKey: @"GSPermitSSLv2"];
+}
+
 + (void) initialize
 {
   if (self == [GSSSLHandle class])
     {
+      NSUserDefaults	*defs;
+
       SSL_library_init();
 
       /*
@@ -140,6 +150,13 @@ sslError(int err)
 	  inf = [[[NSProcessInfo processInfo] globallyUniqueString] UTF8String];
 	  RAND_seed(inf, strlen(inf));
 	}
+      defs = [NSUserDefaults standardUserDefaults];
+      permitSSLv2 = [defs boolForKey: @"GSPermitSSLv2"];
+      [[NSNotificationCenter defaultCenter]
+	addObserver: self
+	   selector: @selector(_defaultsChanged:)
+	       name: NSUserDefaultsDidChangeNotification
+	     object: nil];
     }
 }
 
@@ -186,6 +203,10 @@ sslError(int err)
   if (ctx == 0)
     {
       ctx = SSL_CTX_new(SSLv23_server_method());
+      if (permitSSLv2 == NO)
+	{
+          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+	}
     }
   if (ssl == 0)
     {
@@ -288,6 +309,10 @@ sslError(int err)
   if (ctx == 0)
     {
       ctx = SSL_CTX_new(SSLv23_client_method());
+      if (permitSSLv2 == NO)
+	{
+          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+	}
     }
   if (ssl == 0)
     {
@@ -405,6 +430,10 @@ sslError(int err)
   if (ctx == 0)
     {
       ctx = SSL_CTX_new(SSLv23_method());
+      if (permitSSLv2 == NO)
+	{
+          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+	}
     }
   if ([PEMpasswd length] > 0)
     {
