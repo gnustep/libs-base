@@ -339,7 +339,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)_remote addObserver: (uint64_t)anObserver
+      [(id<GDNCProtocol>)_remote addObserver: (uint64_t)(uintptr_t)anObserver
 				    selector: NSStringFromSelector(aSelector)
 				        name: notificationName
 				      object: anObject
@@ -465,7 +465,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)_remote removeObserver: (uint64_t)anObserver
+      [(id<GDNCProtocol>)_remote removeObserver: (uint64_t)(uintptr_t)anObserver
 					   name: notificationName
 					 object: anObject
 					    for: (id<GDNCClient>)self];
@@ -808,7 +808,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 {
   id			userInfo;
   NSNotification	*notification;
-  id			recipient = (id)observer;
+  id			recipient = (id)(uintptr_t)observer;
 
   userInfo = [NSUnarchiver unarchiveObjectWithData: info];
   notification = [NSNotification notificationWithName: name

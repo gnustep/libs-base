@@ -1,3 +1,8 @@
+2009-06-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m: add explicit size casts
+	to avoid compiler warnings.
+
 2009-06-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/Source/GSSSLHandle.m: Disable v2 by default due to
