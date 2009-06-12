@@ -46,6 +46,7 @@
 #include "Foundation/NSNotification.h"
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSPropertyList.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSSet.h"
 #include "Foundation/NSThread.h"
@@ -132,6 +133,42 @@ static void updateCache(NSUserDefaults *self)
       flags[NSWriteOldStylePropertyLists]
 	= [self boolForKey: @"NSWriteOldStylePropertyLists"];
     }
+}
+
+static BOOL
+writeDictionary(NSDictionary *dict, NSString *file)
+{
+  if (dict == nil)
+    {
+      NSLog(@"Defaults database is nil when writing");
+    }
+  else if ([file length] == 0)
+    {
+      NSLog(@"Defaults database filename is empty when writing");
+    }
+  else
+    {
+      NSData	*data;
+      NSString	*err;
+
+      err = nil;
+      data = [NSPropertyListSerialization dataFromPropertyList: dict
+	       format: NSPropertyListXMLFormat_v1_0
+	       errorDescription: &err];
+      if (data == nil)
+	{
+	  NSLog(@"Failed to serialize defaults database for writing: %@", err);
+	}
+      else if ([data writeToFile: file atomically: YES] == NO)
+	{
+	  NSLog(@"Failed to write defaults database to file: %@", file);
+	}
+      else
+	{
+	  return YES;
+	}
+    }
+  return NO;
 }
 
 /*************************************************************************
@@ -1431,16 +1468,17 @@ static BOOL isLocked = NO;
 	  uint32_t	attributes;
 
 	  /*
-	   * If the lock did not exist ... make sure the databsase exists.
+	   * If the lock did not exist ... make sure the database exists.
 	   */
 	  if ([mgr isReadableFileAtPath: _defaultsDatabase] == NO)
 	    {
 	      NSDictionary	*empty = [NSDictionary new];
 
+NSLog(@"Creating empty user defaults database");
 	      /*
 	       * Create empty database.
 	       */
-	      if ([empty writeToFile: _defaultsDatabase atomically: NO] == NO)
+	      if (writeDictionary(empty, _defaultsDatabase) == NO)
 		{
 		  NSLog(@"Failed to create defaults database file %@",
 		    _defaultsDatabase);
@@ -1522,10 +1560,7 @@ static BOOL isLocked = NO;
   // Save the changes if we have an external database file
   if (_fileLock != nil)
     {
-      if ([defaults writeToFile: _defaultsDatabase atomically: YES] == NO)
-	{
-	  return NO;
-	}
+      return writeDictionary(defaults, _defaultsDatabase);
     }
   return YES;
 }

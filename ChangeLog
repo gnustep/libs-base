@@ -2,6 +2,10 @@
 
 	* Source/NSDistributedNotificationCenter.m: add explicit size casts
 	to avoid compiler warnings.
+	* Source/NSUserDefaults.m: Save defaults in xml format and add some
+	error checking.
+	* Source/NSPropertyList.m: tolerate NSNumber values used as dictionary
+	keys, by using their string representation.
 
 2009-06-09 Richard Frith-Macdonald <rfm@gnu.org>
 
