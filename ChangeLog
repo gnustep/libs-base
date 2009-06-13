@@ -1,3 +1,9 @@
+2009-06-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSArchiver.h:
+	Fix error cleaning up a define.
+
 2009-06-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCenter.m: add explicit size casts

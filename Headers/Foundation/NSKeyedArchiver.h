@@ -230,7 +230,7 @@ extern "C" {
 #endif
   GSIArray		_objMap; /* Decoded objects.		*/
 #ifndef	_IN_NSKEYEDUNARCHIVER_M
-#undef	GSUnarchiverArray
+#undef	GSIArray
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
 }
