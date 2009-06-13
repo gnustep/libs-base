@@ -40,6 +40,11 @@ extern "C" {
 #endif
 
 /*
+ *      NB. This file is intended for internal use by the GNUstep libraries
+ *      and may change siugnificantly between releases.
+ *      While it is unlikley to be removed from the distributiuon any time
+ *      soon, its use by other software is not officially supported.
+ *
  *	This file should be INCLUDED in files wanting to use the GSIMap
  *	functions - these are all declared inline for maximum performance.
  *
