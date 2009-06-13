@@ -164,7 +164,7 @@ extern "C" {
   GSIArray		objMap;		/* Object crossreference map.	*/
   GSIArray		ptrMap;		/* Pointer crossreference map.	*/
 #ifndef	_IN_NSUNARCHIVER_M
-#undef	GSUnarchiverArray
+#undef	GSIArray
 #endif
   unsigned		cursor;		/* Position in data buffer.	*/
   unsigned		version;	/* Version of archiver used.	*/

@@ -1,4 +1,10 @@
-009-06-09 Richard Frith-Macdonald <rfm@gnu.org>
+2009-06-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSArchiver.h:
+	Fix error cleaning up a define.
+
+2009-06-09 Richard Frith-Macdonald <rfm@gnu.org>
 
         * SSL/Source/GSSSLHandle.m: Disable v2 by default due to
         security issues.  GSPermitSSLv2 user default can enable it again.
