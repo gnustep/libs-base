@@ -447,16 +447,19 @@ enum proxyLocation
  * NSProxy subclasses must override -init or an exception will be thrown.  This
  * calls the forwarding mechanism to invoke -init on the remote object.
  */
-- (id)init
+- (id) init
 {
-	NSMethodSignature *sig = [self methodSignatureForSelector: _cmd];
-	NSInvocation *inv = [NSInvocation invocationWithMethodSignature: sig];
-	id ret;
-	[inv setTarget: self];
-	[inv setSelector: _cmd];
-	[self forwardInvocation: inv];
-	[inv getReturnValue: &ret];
-	return ret;
+  NSMethodSignature	*sig;
+  NSInvocation		*inv;
+  id			ret;
+
+  sig = [self methodSignatureForSelector: _cmd];
+  inv = [NSInvocation invocationWithMethodSignature: sig];
+  [inv setTarget: self];
+  [inv setSelector: _cmd];
+  [self forwardInvocation: inv];
+  [inv getReturnValue: &ret];
+  return ret;
 }
 
 - (void) dealloc
