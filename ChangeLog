@@ -1,3 +1,9 @@
+2009-06-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/NSMessagePort.m: Don't use NSLog() to report error
+	when writing to mailslot ... it's usually just that the remote
+	end has terminated, so invalidating the port silently is better.
+
 2009-06-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSKeyedArchiver.h:
