@@ -3,6 +3,8 @@
 	* Source/win32/NSMessagePort.m: Don't use NSLog() to report error
 	when writing to mailslot ... it's usually just that the remote
 	end has terminated, so invalidating the port silently is better.
+	* Source/GSFileHandle.m: Adjust code to deal with fstat() returning
+	a failure on windows if the descriptor is a pipe/socket.
 
 2009-06-13 Richard Frith-Macdonald <rfm@gnu.org>
 
