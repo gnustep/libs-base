@@ -8,7 +8,7 @@
 
    This file is part of the GNUstep Base Library.
 */
-#define	STRICT_OPENSTEP	1
+
 #include	<Foundation/Foundation.h>
 
 id	myServer;

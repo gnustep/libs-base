@@ -47,10 +47,17 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 # The tools to be created
 TEST_TOOL_NAME = \
-	dictionary
+	dictionary \
+	nsconnection \
+	nsconnection_client \
+	nsconnection_server \
+
 
 # The Objective-C source files to be compiled to create each tool
 dictionary_OBJC_FILES = dictionary.m
+nsconnection_OBJC_FILES = nsconnection.m
+nsconnection_client_OBJC_FILES = nsconnection_client.m
+nsconnection_server_OBJC_FILES = nsconnection_server.m
 
 include Makefile.preamble
 
