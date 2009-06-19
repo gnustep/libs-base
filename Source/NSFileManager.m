@@ -392,7 +392,6 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
   const _CHAR	*lpath = 0;
-  NSNumber	*tmpNum;
   unsigned long	num;
   NSString	*str;
   NSDate	*date;
@@ -411,7 +410,8 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-      tmpNum = [attributes fileOwnerAccountID];
+      NSNumber	*tmpNum = [attributes fileOwnerAccountID];
+
       num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
     }
   if (num != NSNotFound)
@@ -474,7 +474,8 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-      tmpNum = [attributes fileGroupOwnerAccountID];
+      NSNumber	*tmpNum = [attributes fileGroupOwnerAccountID];
+
       num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
     }
   if (num != NSNotFound)
