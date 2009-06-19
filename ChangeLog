@@ -1,3 +1,8 @@
+2009-06-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSRunLoopCtxt.m: Fix to send handle associated with
+	event to watcher.  Corrects bitrot which had broken tcp/ip based DO.
+
 2009-06-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSKeyedArchiver.h:

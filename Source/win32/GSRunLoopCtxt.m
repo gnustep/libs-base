@@ -552,7 +552,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       NSDebugMLLog(@"NSRunLoop", @"Event callback found");
       [watcher->receiver receivedEvent: watcher->data
 				  type: watcher->type
-				 extra: watcher->data
+				 extra: (void*)handle
 			       forMode: mode];
     }
 
