@@ -820,8 +820,7 @@ else \
       } \
     if (ptr == 0) \
       { \
-	result = NO;	/* Not enough memory */ \
-	break; \
+	return NO;	/* Not enough memory */ \
       } \
     bsize = grow / sizeof(unichar); \
   }
@@ -875,8 +874,7 @@ else \
       } \
     if (ptr == 0) \
       { \
-	result = NO;	/* Not enough memory */ \
-	break; \
+	return NO;	/* Not enough memory */ \
       } \
     bsize = grow / sizeof(unichar); \
   }
@@ -1118,7 +1116,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
 #if	!GS_WITH_GC
-		    if (ptr != buf)
+		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
@@ -1126,8 +1124,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
-			result = NO;	/* Not enough memory */
-			break;
+			return NO;	/* Not enough memory */
 		      }
 		    bsize = grow / sizeof(unichar);
 		  }
@@ -1183,7 +1180,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
 #if	!GS_WITH_GC
-		    if (ptr != buf)
+		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
@@ -1191,8 +1188,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
-			result = NO;	/* Not enough memory */
-			break;
+			return NO;	/* Not enough memory */
 		      }
 		    bsize = grow / sizeof(unichar);
 		  }
@@ -1273,7 +1269,7 @@ tables:
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
 #if	!GS_WITH_GC
-		    if (ptr != buf)
+		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
@@ -1281,8 +1277,7 @@ tables:
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
-			result = NO;	/* Not enough memory */
-			break;
+			return NO;	/* Not enough memory */
 		      }
 		    bsize = grow / sizeof(unichar);
 		  }
@@ -1442,7 +1437,7 @@ done:
 #else
 	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
-	  if (ptr != buf && (dst == 0 || ptr != *dst))
+	  if (ptr != buf && ptr != *dst)
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
@@ -1494,7 +1489,7 @@ done:
 	}
     }
 #if	!GS_WITH_GC
-  else if (ptr != buf && dst != 0 && ptr != *dst)
+  else if (ptr != buf && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
@@ -1557,8 +1552,7 @@ else \
       } \
     if (ptr == 0) \
       { \
-	result = NO;	/* Not enough memory */ \
-	break; \
+	return NO;	/* Not enough memory */ \
       } \
     bsize = grow; \
   }
@@ -1611,8 +1605,7 @@ else \
       } \
     if (ptr == 0) \
       { \
-	result = NO;	/* Not enough memory */ \
-	break; \
+	return NO;	/* Not enough memory */ \
       } \
     bsize = grow; \
   }
@@ -2073,7 +2066,7 @@ bases:
 		    tmp = NSAllocateCollectable(slen, 0);
 #else
 		    tmp = NSZoneMalloc(zone, slen);
-		    if (ptr != buf)
+		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
@@ -2081,8 +2074,7 @@ bases:
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
-			result = NO;	/* Not enough memory */
-			break;
+			return NO;	/* Not enough memory */
 		      }
 		    bsize = slen;
 		  }
@@ -2442,7 +2434,7 @@ iconv_start:
 #else
 	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
-	  if (ptr != buf && (dst == 0 || ptr != *dst))
+	  if (ptr != buf && ptr != *dst)
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
@@ -2494,7 +2486,7 @@ iconv_start:
 	}
     }
 #if	!GS_WITH_GC
-  else if (ptr != buf && dst != 0 && ptr != *dst)
+  else if (ptr != buf && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
