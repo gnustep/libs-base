@@ -1874,6 +1874,7 @@ static Class		tcpPortClass;
       if (handle->recvPort == recvSelf && handle->inReplyMode == NO)
 	{
 	  fds[(*count)++] = (uintptr_t)event;
+          NSDebugMLLog(@"NSPort", @"Add event %p", event);
 	}
     }
   NSEndMapTableEnumeration(&me);
@@ -2148,8 +2149,8 @@ static Class		tcpPortClass;
 #endif
   GSTcpHandle	*handle;
 
-  NSDebugMLLog(@"NSPort", @"received %s event on 0x%x",
-    type == ET_RPORT ? "read" : "write", self);
+  NSDebugMLLog(@"NSPort", @"received %s event %p on 0x%x",
+    type == ET_RPORT ? "read" : "write", extra, self);
 
 #if	defined(__MINGW32__)
   if (event == eventListener)

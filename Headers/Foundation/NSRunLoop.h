@@ -133,6 +133,17 @@ typedef	enum {
 #endif
 } RunLoopEventType;
 @protocol RunLoopEvents
+/* This is the message sent back to a watcher when an event is observed
+ * by the run loop.
+ * The 'data', 'type' and 'mode' arguments are the same as the arguments
+ * passed to the -addEvent:type:watcher:forMode: method.
+ * The 'extra' argument varies.  For an ET_TRIGGER event, it is the same
+ * as the 'data' argument.  For other events on unix it is the file
+ * descriptor associated with the event (which may be the same as the
+ * 'data' argument, but is not in the case of ET_RPORT).
+ * For windows it will be the handle or the windows message assciated
+ * with the event.
+ */ 
 - (void) receivedEvent: (void*)data
 		  type: (RunLoopEventType)type
 		 extra: (void*)extra

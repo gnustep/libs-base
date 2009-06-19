@@ -1,5 +1,10 @@
 2009-06-19 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/win32/GSRunLoopCtxt.m: Fix error sending received event
+	handle to watcher.  Had broken TCP/IP ports.
+
+2009-06-19 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/Unicode.m: Fix incorrect attempt to free memory
 	we shouldn't.  Should fix bug #26843
 
