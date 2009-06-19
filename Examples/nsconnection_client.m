@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSConnection.h>
+#include <Foundation/NSPort.h>
+#include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
@@ -91,8 +93,6 @@ int con_data (id prx)
   id obj;
   small_struct small = {12};
   foo ffoo = {'Z', 1234.5678, 99, "cow", 9876543};
-  int a3[3] = {66,77,88};
-  struct myarray ma = {{55,66,77}};
 
   printf("Testing data sending\n");
 
@@ -502,6 +502,7 @@ int main (int argc, char *argv[], char **env)
   id cobj, prx;
   unsigned	connect_attempts;
   NSAutoreleasePool	*arp;
+  NSPortNameServer	*ns;
   Auth *auth;
 #ifndef __MINGW32__
   extern int optind;
@@ -517,7 +518,7 @@ int main (int argc, char *argv[], char **env)
   debug = 0;
   type_test = 0;
   stats = 0;
-  while ((c = getopt(argc, argv, "hdtbmslocr")) != EOF)
+  while ((c = wgetopt(argc, argv, "hdtbmslocr")) != EOF)
     switch (c)
       {
       case 'd':
@@ -573,6 +574,7 @@ int main (int argc, char *argv[], char **env)
       [NSObject enableDoubleReleaseCheck: YES];
     }
 
+  ns = [NSSocketPortNameServer sharedInstance];
   while (connect_attempts-- > 0)
     {
       if (optind < argc)
@@ -580,15 +582,18 @@ int main (int argc, char *argv[], char **env)
 	  if (optind+1 < argc)
 	    prx = [NSConnection rootProxyForConnectionWithRegisteredName:
 				  [NSString stringWithCString: argv[optind+1]]
-			    host: [NSString stringWithCString:argv[optind]]];
+			    host: [NSString stringWithCString:argv[optind]]
+		 usingNameServer: ns];
 	  else
 	    prx = [NSConnection rootProxyForConnectionWithRegisteredName:
 				 @"test2server"
-			    host:[NSString stringWithCString:argv[optind]]];
+			    host:[NSString stringWithCString:argv[optind]]
+		 usingNameServer: ns];
 	}
       else
 	prx = [NSConnection rootProxyForConnectionWithRegisteredName:
-		@"test2server" host: @""];
+		@"test2server" host: @""
+		    usingNameServer: ns];
       if (prx == nil)
 	{
 	  printf("ERROR: Failed to connect to server\n");
