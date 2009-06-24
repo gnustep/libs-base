@@ -1235,6 +1235,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
           case '\n': 
             this->line++;
             this->column = 0;
+	    break;
 
           case EOF: 
           case '<': 

@@ -1,3 +1,8 @@
+2009-06-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: ([-parse]) don't split whitespace strings
+	at newline.
+
 2009-06-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSRunLoopCtxt.m: Fix error sending received event
