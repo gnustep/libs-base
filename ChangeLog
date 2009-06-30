@@ -1,3 +1,11 @@
+2009-06-30  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* configure.ac:
+	* configure:
+	* config/config.poll-dev.c: Add test to configure to avoid using
+	the broken poll implementation on Mac OS X 10.4 and later, which
+	does not support devices.
+
 2009-06-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: ([-parse]) don't split whitespace strings

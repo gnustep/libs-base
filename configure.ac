@@ -817,7 +817,14 @@ if test $ac_cv_header_poll_h = yes; then
   	have_poll=no,)
   if test $have_poll = yes; then
     AC_MSG_RESULT(no)
-    AC_DEFINE(HAVE_POLL_F,1, [ Define if poll is NOT emulated via select])
+    AC_MSG_CHECKING([if poll supports devices])
+    AC_TRY_RUN([#include "$srcdir/config/config.poll-dev.c"], ,have_poll=no, )
+    if test $have_poll = yes; then
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(HAVE_POLL_F,1, [ Define if poll is NOT emulated via select])
+    else
+      AC_MSG_RESULT(no)
+    fi
   else
     AC_MSG_RESULT(yes)
   fi
