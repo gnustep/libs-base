@@ -43,6 +43,7 @@
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSDebug.h"
 
+#include "GSNetwork.h"
 #include "GSPortPrivate.h"
 #include "GSPrivate.h"
 
@@ -54,7 +55,6 @@
 
 #ifdef __MINGW32__
 #define close closesocket
-#define socklen_t	int
 #else
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>

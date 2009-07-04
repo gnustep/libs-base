@@ -349,23 +349,23 @@ static NSMutableSet	*_debug_set = nil;
 BOOL GSDebugSet(NSString *level)
 // From GNUStep's
 {
-    static IMP debugImp = 0;
-    static SEL debugSel;
+  static IMP debugImp = 0;
+  static SEL debugSel;
 
-    if (debugImp == 0)
+  if (debugImp == 0)
     {
-        debugSel = @selector(member:);
-        if (_debug_set == nil)
-        {
-            [[NSProcessInfo processInfo] debugSet];
-        }
-        debugImp = [_debug_set methodForSelector: debugSel];
+      debugSel = @selector(member:);
+      if (_debug_set == nil)
+	{
+	  [[NSProcessInfo processInfo] debugSet];
+	}
+      debugImp = [_debug_set methodForSelector: debugSel];
     }
-    if ((*debugImp)(_debug_set, debugSel, level) == nil)
+  if ((*debugImp)(_debug_set, debugSel, level) == nil)
     {
-        return NO;
+      return NO;
     }
-    return YES;
+  return YES;
 }
 
 - (NSMutableSet *) debugSet
@@ -373,9 +373,9 @@ BOOL GSDebugSet(NSString *level)
 {
   if (_debug_set == nil)
     {
-      int				argc = [[self arguments] count];
+      int		argc = [[self arguments] count];
       NSMutableSet	*mySet;
-      int				i;
+      int		i;
 
       mySet = [NSMutableSet new];
       for (i = 0; i < argc; i++)
