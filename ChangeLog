@@ -1,3 +1,9 @@
+2009-07-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: Add daignostic check.
+	* Source/NSSocketPort.m: Make sure socklen_t is defined.
+	Shoudl fix bug #26856
+
 2009-06-30  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* configure.ac:
