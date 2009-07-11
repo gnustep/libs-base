@@ -307,7 +307,7 @@ struct	_GSIMapNode {
 };
 
 struct	_GSIMapBucket {
-  size_t	nodeCount;	/* Number of nodes in bucket.	*/
+  uintptr_t	nodeCount;	/* Number of nodes in bucket.	*/
   GSIMapNode	firstNode;	/* The linked list of nodes.	*/
 };
 
@@ -319,13 +319,13 @@ typedef GSIMapTable_t *GSIMapTable;
 
 struct	_GSIMapTable {
   NSZone	*zone;
-  size_t	nodeCount;	/* Number of used nodes in map.	*/
-  size_t	bucketCount;	/* Number of buckets in map.	*/
+  uintptr_t	nodeCount;	/* Number of used nodes in map.	*/
+  uintptr_t	bucketCount;	/* Number of buckets in map.	*/
   GSIMapBucket	buckets;	/* Array of buckets.		*/
   GSIMapNode	freeNodes;	/* List of unused nodes.	*/
-  size_t	chunkCount;	/* Number of chunks in array.	*/
+  uintptr_t	chunkCount;	/* Number of chunks in array.	*/
   GSIMapNode	*nodeChunks;	/* Chunks of allocated memory.	*/
-  size_t	increment;
+  uintptr_t	increment;
 #ifdef	GSI_MAP_EXTRA
   GSI_MAP_EXTRA	extra;
 #endif
@@ -335,7 +335,7 @@ struct	_GSIMapTable {
 typedef struct	_GSIMapEnumerator {
   GSIMapTable	map;		/* the map being enumerated.	*/
   GSIMapNode	node;		/* The next node to use.	*/
-  size_t	bucket;		/* The next bucket to use.	*/
+  uintptr_t	bucket;		/* The next bucket to use.	*/
 } *_GSIE;
 
 #ifdef	GSI_MAP_ENUMERATOR
@@ -346,7 +346,7 @@ typedef struct _GSIMapEnumerator GSIMapEnumerator_t;
 typedef GSIMapEnumerator_t	*GSIMapEnumerator;
 
 static INLINE GSIMapBucket
-GSIMapPickBucket(unsigned hash, GSIMapBucket buckets, size_t bucketCount)
+GSIMapPickBucket(unsigned hash, GSIMapBucket buckets, uintptr_t bucketCount)
 {
   return buckets + hash % bucketCount;
 }
@@ -431,7 +431,7 @@ GSIMapFreeNode(GSIMapTable map, GSIMapNode node)
 }
 
 static INLINE GSIMapNode
-GSIMapRemoveAndFreeNode(GSIMapTable map, size_t bkt, GSIMapNode node)
+GSIMapRemoveAndFreeNode(GSIMapTable map, uintptr_t bkt, GSIMapNode node)
 {
   GSIMapNode	next = node->nextInBucket;
   GSIMapRemoveNodeFromMap(map, &(map->buckets[bkt]), node);
@@ -441,8 +441,8 @@ GSIMapRemoveAndFreeNode(GSIMapTable map, size_t bkt, GSIMapNode node)
 
 static INLINE void
 GSIMapRemangleBuckets(GSIMapTable map,
-  GSIMapBucket old_buckets, size_t old_bucketCount,
-  GSIMapBucket new_buckets, size_t new_bucketCount)
+  GSIMapBucket old_buckets, uintptr_t old_bucketCount,
+  GSIMapBucket new_buckets, uintptr_t new_bucketCount)
 {
 #if	GS_WITH_GC
   if (GSI_MAP_ZEROED(map))
@@ -494,7 +494,7 @@ static INLINE void
 GSIMapMoreNodes(GSIMapTable map, unsigned required)
 {
   GSIMapNode	*newArray;
-  size_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
+  uintptr_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
 
 #if     GS_WITH_GC
   /* We don't want our nodes collected before we have finished with them,
@@ -507,7 +507,7 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
   if (newArray)
     {
       GSIMapNode	newNodes;
-      size_t		chunkCount;
+      uintptr_t		chunkCount;
 
       if (map->nodeChunks != 0)
 	{
@@ -602,8 +602,8 @@ GSIMapFirstNode(GSIMapTable map)
 {
   if (map->nodeCount > 0)
     {
-      size_t		count = map->bucketCount;
-      size_t		bucket = 0;
+      uintptr_t		count = map->bucketCount;
+      uintptr_t		bucket = 0;
       GSIMapNode	node = 0;
 
 #if	GS_WITH_GC
@@ -686,18 +686,18 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
 #endif
 
 static INLINE void
-GSIMapResize(GSIMapTable map, size_t new_capacity)
+GSIMapResize(GSIMapTable map, uintptr_t new_capacity)
 {
   GSIMapBucket	new_buckets;
-  size_t	size = 1;
-  size_t	old = 1;
+  uintptr_t	size = 1;
+  uintptr_t	old = 1;
 
   /*
    *	Find next size up in the fibonacci series
    */
   while (size < new_capacity)
     {
-      size_t	tmp = old;
+      uintptr_t	tmp = old;
 
       old = size;
       size += tmp;
@@ -742,7 +742,7 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
 }
 
 static INLINE void
-GSIMapRightSizeMap(GSIMapTable map, size_t capacity)
+GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
 {
   /* FIXME: Now, this is a guess, based solely on my intuition.  If anyone
    * knows of a better ratio (or other test, for that matter) and can
@@ -861,8 +861,8 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
    */
   if (node != 0 && GSI_MAP_ZEROED(map) && node->key.addr == 0)
     {
-      size_t		bucketCount = map->bucketCount;
-      size_t		bucket = ((_GSIE)enumerator)->bucket;
+      uintptr_t		bucketCount = map->bucketCount;
+      uintptr_t		bucket = ((_GSIE)enumerator)->bucket;
 
       while (node != 0 && node->key.addr == 0)
 	{
@@ -888,7 +888,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 #if	GS_WITH_GC
       if (GSI_MAP_ZEROED(map))
 	{
-	  size_t	bucket = ((_GSIE)enumerator)->bucket;
+	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
 
 	  while (next != 0 && next->key.addr == 0)
 	    {
@@ -899,8 +899,8 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 
       if (next == 0)
 	{
-	  size_t	bucketCount = map->bucketCount;
-	  size_t	bucket = ((_GSIE)enumerator)->bucket;
+	  uintptr_t	bucketCount = map->bucketCount;
+	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
 
 #if	GS_WITH_GC
 	  if (GSI_MAP_ZEROED(map))
@@ -1129,7 +1129,7 @@ GSIMapEmptyMap(GSIMapTable map)
 }
 
 static INLINE void 
-GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
+GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, uintptr_t capacity)
 {
   map->zone = zone;
   map->nodeCount = 0;

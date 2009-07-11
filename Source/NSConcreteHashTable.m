@@ -341,10 +341,17 @@ NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
     }
   if (enumerator->map != 0)
     {
+      /* The 'map' field is non-null, so this NSHashEnumerator is actually
+       * a GSIMapEnumerator.
+       */
       GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
     }
   else if (enumerator->node != 0)
     {
+      /* The 'map' field is null but the 'node' field is not, so the
+       * NSHashEnumerator structure actually contains an NSEnumerator
+       * in the 'node' field.
+       */
       [(id)enumerator->node release];
       memset(enumerator, '\0', sizeof(GSIMapEnumerator));
     }
@@ -612,6 +619,9 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
     {
       GSIMapNode    n;
 
+      /* The 'map' field is non-null, so this NSHashEnumerator is actually
+       * a GSIMapEnumerator.
+       */
       n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
       if (n == 0)
 	{
@@ -624,6 +634,11 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
     }
   else if (enumerator->node != 0)	// Got an enumerator object
     {
+      /* The 'map' field is null but the 'node' field is not, so the
+       * NSHashEnumerator structure actually contains an NSEnumerator
+       * in the 'node' field, and the map table being enumerated in the
+       * 'bucket' field.
+       */
       return (void*)[(id)enumerator->node nextObject];
     }
   else
