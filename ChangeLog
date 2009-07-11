@@ -1,3 +1,10 @@
+2009-07-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcreteMapTable.m: Add some comments.
+	* Source/NSConcreteHashTable.m: Dito
+	* Headers/Additions/GNUstepBase/GSIMap.h: Make explicit that fields in
+	enumerator are all big enough to hold pointers.
+
 2009-07-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: Add daignostic check.
