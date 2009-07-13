@@ -231,6 +231,7 @@ NSNumberFormatter.m \
 NSObjCRuntime.m \
 NSObject.m \
 NSObject+NSComparisonMethods.m \
+NSOperation.m \
 NSPage.m \
 NSPathUtilities.m \
 NSPipe.m \
@@ -378,6 +379,7 @@ NSNull.h \
 NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
+NSOperation.h \
 NSPathUtilities.h \
 NSPointerArray.h \
 NSPointerFunctions.h \

@@ -84,6 +84,7 @@
 #import	<Foundation/NSNetServices.h>
 #import	<Foundation/NSNull.h>
 #import	<Foundation/NSNumberFormatter.h>
+#import	<Foundation/NSOperation.h>
 #import	<Foundation/NSPathUtilities.h>
 #import	<Foundation/NSPointerArray.h>
 #import	<Foundation/NSPointerFunctions.h>
