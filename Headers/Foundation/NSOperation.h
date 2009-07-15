@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
 
    AutogsdocSource: NSOperation.m
+   AutogsdocSource: NSOperationQueue.m
    */ 
 
 #import <Foundation/NSObject.h>
@@ -79,4 +80,35 @@ typedef NSInteger NSOperationQueuePriority;
 // Prioritization 
 - (NSOperationQueuePriority) queuePriority;
 - (void) setQueuePriority: (NSOperationQueuePriority)priority;
+@end
+
+
+/**
+ * NSOperationQueue
+ */
+
+// Enumerated type for default operation count.
+enum {
+   NSOperationQueueDefaultMaxConcurrentOperationCount = -1
+};
+
+// NSOperationQueue
+@interface NSOperationQueue : NSObject
+{
+  NSMutableArray *operations;
+  BOOL suspended;
+  NSInteger count;
+}
+
+// status
+- (BOOL) isSuspended;
+- (void) setSuspended: (BOOL)flag;
+- (NSInteger) maxConcurrentOperationCount;
+- (void) setMaxConcurrentOperationCount: (NSInteger)cnt;
+
+// operations
+- (void) addOperation: (NSOperation *) op;
+- (NSArray *) operations;
+- (void) cancelAllOperations;
+- (void) waitUntilAllOperationsAreFinished;
 @end
