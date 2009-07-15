@@ -26,6 +26,7 @@
 
 #import <Foundation/NSOperation.h>
 #import <Foundation/NSArray.h>
+#import <Foundation/NSEnumerator.h>
 #import <Foundation/NSException.h>
 
 @implementation NSOperation : NSObject
@@ -143,5 +144,65 @@
 - (void) setQueuePriority: (NSOperationQueuePriority)pri
 {
   priority = pri;
+}
+@end
+
+@implementation NSOperationQueue
+
+- (id) init
+{
+  if((self = [super init]) != nil)
+    {
+      suspended = NO;
+      count = NSOperationQueueDefaultMaxConcurrentOperationCount;
+    }
+  return self;
+}
+
+// status
+- (BOOL) isSuspended
+{
+  return suspended;
+}
+
+- (void) setSuspended: (BOOL)flag
+{
+  suspended = flag;
+}
+
+- (NSInteger) maxConcurrentOperationCount
+{
+  return count;
+}
+
+- (void) setMaxConcurrentOperationCount: (NSInteger)cnt
+{
+  count = cnt;
+}
+
+// operations
+- (void) addOperation: (NSOperation *) op
+{
+  [operations addObject: op];
+}
+
+- (NSArray *) operations
+{
+  return [[NSArray alloc] initWithArray: operations];
+}
+
+- (void) cancelAllOperations
+{
+  NSEnumerator *en = [operations objectEnumerator];
+  id o = nil;
+  while( (o = [en nextObject]) != nil )
+    {
+      [o cancel];
+    }
+}
+
+- (void) waitUntilAllOperationsAreFinished
+{
+  // not yet implemented...
 }
 @end
