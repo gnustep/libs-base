@@ -29,38 +29,60 @@
 #import <Foundation/NSEnumerator.h>
 #import <Foundation/NSException.h>
 
+@interface	NSOperationInternal : NSObject
+{
+@public
+  NSOperationQueuePriority priority;
+  BOOL cancelled;
+  BOOL concurrent;
+  BOOL executing;
+  BOOL finished;
+  BOOL ready;
+  NSMutableArray *dependencies;
+}
+@end
+
+@implementation	NSOperationInternal
+/* As long as this class does nothing but act as a container for ivars,
+ * we can easily remove it at a later date using a global substitution
+ * to replace all the code of the form 'internal->ivar' with 'ivar'.
+ */
+@end
+
+
 @implementation NSOperation : NSObject
-// Initialization
+
+#define	internal	((NSOperationInternal*)_internal)
+
+- (void) dealloc
+{
+  if (_internal != nil)
+    {
+      RELEASE(internal->dependencies);
+      [_internal release];
+    }
+  [super dealloc];
+}
+
 - (id) init
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
-      priority = NSOperationQueuePriorityNormal;
-      
-      cancelled = NO;
-      concurrent = NO;
-      executing = NO;
-      finished = NO;
-      ready = NO;
-      
-      dependencies = [[NSMutableArray alloc] initWithCapacity: 5];
+      _internal = [NSOperationInternal new];
+      internal->priority = NSOperationQueuePriorityNormal;
+      internal->dependencies = [[NSMutableArray alloc] initWithCapacity: 5];
     }
   return self;
 }
 
-- (void) dealloc
-{
-  RELEASE(dependencies);
-  [super dealloc];
-}
 
 // Executing the operation
 - (void) start
 {
-  executing = YES;
-  finished = NO;
+  internal->executing = YES;
+  internal->finished = NO;
 
-  if([self isConcurrent])
+  if ([self isConcurrent])
     {
       [self main];
     }
@@ -77,8 +99,8 @@
       NS_ENDHANDLER;
     }
 
-  executing = NO;
-  finished = YES;
+  internal->executing = NO;
+  internal->finished = YES;
 }
 
 - (void) main;
@@ -122,39 +144,71 @@
 // Managing dependencies
 - (void) addDependency: (NSOperation *)op
 {
-  [dependencies addObject: op];
+  [internal->dependencies addObject: op];
 }
 
 - (void) removeDependency: (NSOperation *)op
 {
-  [dependencies removeObject: op];
+  [internal->dependencies removeObject: op];
 }
 
 - (NSArray *)dependencies
 {
-  return [[NSArray alloc] initWithArray: dependencies];
+  return [NSArray arrayWithArray: internal->dependencies];
 }
 
 // Prioritization 
 - (NSOperationQueuePriority) queuePriority
 {
-  return priority;
+  return internal->priority;
 }
 
 - (void) setQueuePriority: (NSOperationQueuePriority)pri
 {
-  priority = pri;
+  internal->priority = pri;
 }
+@end
+
+
+@interface NSOperationQueueInternal : NSObject
+{
+  @public
+  NSMutableArray	*operations;
+  BOOL			suspended;
+  NSInteger		count;
+}
+@end
+
+@implementation NSOperationQueueInternal : NSObject
+/* As long as this class does nothing but act as a container for ivars,
+ * we can easily remove it at a later date using a global substitution
+ * to replace all the code of the form 'internal->ivar' with 'ivar'.
+ */
 @end
 
 @implementation NSOperationQueue
 
+#undef	internal
+#define	internal	((NSOperationQueueInternal*)_internal)
+
+- (void) dealloc
+{
+  if (_internal != nil)
+    {
+      [internal->operations release];
+      [_internal release];
+    }
+  [super dealloc];
+}
+
 - (id) init
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
-      suspended = NO;
-      count = NSOperationQueueDefaultMaxConcurrentOperationCount;
+      _internal = [NSOperationQueueInternal new];
+      internal->suspended = NO;
+      internal->count = NSOperationQueueDefaultMaxConcurrentOperationCount;
+      internal->operations = [NSMutableArray new];
     }
   return self;
 }
@@ -162,40 +216,41 @@
 // status
 - (BOOL) isSuspended
 {
-  return suspended;
+  return internal->suspended;
 }
 
 - (void) setSuspended: (BOOL)flag
 {
-  suspended = flag;
+  internal->suspended = flag;
 }
 
 - (NSInteger) maxConcurrentOperationCount
 {
-  return count;
+  return internal->count;
 }
 
 - (void) setMaxConcurrentOperationCount: (NSInteger)cnt
 {
-  count = cnt;
+  internal->count = cnt;
 }
 
 // operations
 - (void) addOperation: (NSOperation *) op
 {
-  [operations addObject: op];
+  [internal->operations addObject: op];
 }
 
 - (NSArray *) operations
 {
-  return [[NSArray alloc] initWithArray: operations];
+  return [NSArray arrayWithArray: internal->operations];
 }
 
 - (void) cancelAllOperations
 {
-  NSEnumerator *en = [operations objectEnumerator];
+  NSEnumerator *en = [internal->operations objectEnumerator];
   id o = nil;
-  while( (o = [en nextObject]) != nil )
+
+  while ((o = [en nextObject]) != nil )
     {
       [o cancel];
     }
