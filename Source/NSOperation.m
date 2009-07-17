@@ -1,4 +1,4 @@
-/**Interface for NSOperation for GNUStep
+/**Implementation for NSOperation for GNUStep
    Copyright (C) 2009 Free Software Foundation, Inc.
 
    Written by:  Gregory Casamento <greg.casamento@gmail.com>
@@ -21,13 +21,15 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   AutogsdocSource: NSOperation.m
+   <title>NSOperation class reference</title>
+   $Date: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008) $ $Revision: 26606 $
    */ 
 
-#import <Foundation/NSOperation.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSEnumerator.h>
-#import <Foundation/NSException.h>
+#import "config.h"
+#import "Foundation/NSOperation.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
 
 @interface	NSOperationInternal : NSObject
 {

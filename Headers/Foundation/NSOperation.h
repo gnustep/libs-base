@@ -21,11 +21,18 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   AutogsdocSource: NSOperation.m
-   AutogsdocSource: NSOperationQueue.m
    */ 
 
+#ifndef __NSOperation_h_GNUSTEP_BASE_INCLUDE
+#define __NSOperation_h_GNUSTEP_BASE_INCLUDE
+
 #import <Foundation/NSObject.h>
+
+#if OS_API_VERSION(100500, GS_API_LATEST)
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
 
 @class NSMutableArray;
 
@@ -41,18 +48,8 @@ typedef NSInteger NSOperationQueuePriority;
 
 @interface NSOperation : NSObject
 {
-  // Priority...
-  NSOperationQueuePriority priority;
-
-  // Status...
-  BOOL cancelled;
-  BOOL concurrent;
-  BOOL executing;
-  BOOL finished;
-  BOOL ready;
-
-  // Dependencies
-  NSMutableArray *dependencies;
+@private
+  id	_internal;
 }
 
 // Initialization
@@ -95,9 +92,8 @@ enum {
 // NSOperationQueue
 @interface NSOperationQueue : NSObject
 {
-  NSMutableArray *operations;
-  BOOL suspended;
-  NSInteger count;
+@private
+  id	_internal;
 }
 
 // status
@@ -112,3 +108,11 @@ enum {
 - (void) cancelAllOperations;
 - (void) waitUntilAllOperationsAreFinished;
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif
+
+#endif /* __NSOperation_h_GNUSTEP_BASE_INCLUDE */
