@@ -31,9 +31,9 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 
-@interface	NSOperationInternal : NSObject
-{
-@public
+#define	GSInternal	NSOperationInternal
+#include	"GSInternal.h"
+GS_BEGIN_INTERNAL(NSOperation)
   NSOperationQueuePriority priority;
   BOOL cancelled;
   BOOL concurrent;
@@ -41,27 +41,17 @@
   BOOL finished;
   BOOL ready;
   NSMutableArray *dependencies;
-}
-@end
-
-@implementation	NSOperationInternal
-/* As long as this class does nothing but act as a container for ivars,
- * we can easily remove it at a later date using a global substitution
- * to replace all the code of the form 'internal->ivar' with 'ivar'.
- */
-@end
+GS_END_INTERNAL(NSOperation)
 
 
 @implementation NSOperation : NSObject
 
-#define	internal	((NSOperationInternal*)_internal)
-
 - (void) dealloc
 {
-  if (_internal != nil)
+  if (internal != nil)
     {
       RELEASE(internal->dependencies);
-      [_internal release];
+      GS_DESTROY_INTERNAL(NSOperation);
     }
   [super dealloc];
 }
@@ -70,7 +60,7 @@
 {
   if ((self = [super init]) != nil)
     {
-      _internal = [NSOperationInternal new];
+      GS_CREATE_INTERNAL(NSOperation);
       internal->priority = NSOperationQueuePriorityNormal;
       internal->dependencies = [[NSMutableArray alloc] initWithCapacity: 5];
     }
@@ -172,33 +162,24 @@
 @end
 
 
-@interface NSOperationQueueInternal : NSObject
-{
-  @public
+#undef	GSInternal
+#define	GSInternal	NSOperationQueueInternal
+#include	"GSInternal.h"
+GS_BEGIN_INTERNAL(NSOperationQueue)
   NSMutableArray	*operations;
   BOOL			suspended;
   NSInteger		count;
-}
-@end
+GS_END_INTERNAL(NSOperationQueue)
 
-@implementation NSOperationQueueInternal : NSObject
-/* As long as this class does nothing but act as a container for ivars,
- * we can easily remove it at a later date using a global substitution
- * to replace all the code of the form 'internal->ivar' with 'ivar'.
- */
-@end
 
 @implementation NSOperationQueue
-
-#undef	internal
-#define	internal	((NSOperationQueueInternal*)_internal)
 
 - (void) dealloc
 {
   if (_internal != nil)
     {
       [internal->operations release];
-      [_internal release];
+      GS_DESTROY_INTERNAL(NSOperationQueue);
     }
   [super dealloc];
 }
@@ -207,7 +188,7 @@
 {
   if ((self = [super init]) != nil)
     {
-      _internal = [NSOperationQueueInternal new];
+      GS_CREATE_INTERNAL(NSOperationQueue);
       internal->suspended = NO;
       internal->count = NSOperationQueueDefaultMaxConcurrentOperationCount;
       internal->operations = [NSMutableArray new];
