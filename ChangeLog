@@ -1,3 +1,8 @@
+2009-07-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSInternal.h: New macros for CLANG/non-fragile ivar compat.
+	* Source/NSOperation.m: Use new macros.
+
 2009-07-17 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: Fix includes and text of comments at start
