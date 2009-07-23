@@ -424,7 +424,22 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if ((id)NSMapGet(wProperties, (void*)@"Host") == nil)
     {
-      NSMapInsert(wProperties, (void*)@"Host", (void*)[u host]);
+      id	p = [u port];
+      id	h = [u host];
+
+      if (h == nil)
+	{
+	  h = @"";	// Must use an empty host header
+	}
+      if (p == nil)
+	{
+          NSMapInsert(wProperties, (void*)@"Host", (void*)h);
+	}
+      else
+	{
+          NSMapInsert(wProperties, (void*)@"Host",
+	    (void*)[NSString stringWithFormat: @"%@:%@", h, p]);
+	}
     }
 
   if ([wData length] > 0)
