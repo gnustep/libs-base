@@ -1305,7 +1305,21 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
-		  [m appendFormat: @"Host: %@\r\n", [u host]];
+		  id	p = [u port];
+		  id	h = [u host];
+
+		  if (h == nil)
+		    {
+		      h = @"";	// Must send an empty host header
+		    }
+		  if (p == nil)
+		    {
+		      [m appendFormat: @"Host: %@\r\n", h];
+		    }
+		  else
+		    {
+		      [m appendFormat: @"Host: %@:%@\r\n", h, p];
+		    }
 		}
 	      if (l >= 0 && [this->request
 	        valueForHTTPHeaderField: @"Content-Length"] == nil)
