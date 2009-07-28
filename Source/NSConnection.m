@@ -2870,8 +2870,14 @@ static void callEncoder (DOContext *ctxt)
   NSTimeInterval	last_interval = 0.0001;
   NSTimeInterval	delay_interval = last_interval;
   NSDate		*delay_date = nil;
-  NSRunLoop		*runLoop = GSRunLoopForThread(nil);
+  NSRunLoop		*runLoop;
   BOOL			isLocked = NO;
+
+  if (_isValid == NO)
+    {
+      [NSException raise: NSObjectInaccessibleException
+		  format: @"Connection has been invalidated"];
+    }
 
   /*
    * If we have sent out a request on a run loop that we don't already
@@ -2879,6 +2885,7 @@ static void callEncoder (DOContext *ctxt)
    * enabled, we must add the run loop of the new thread so that we can
    * get the reply in this thread.
    */
+  runLoop = GSRunLoopForThread(nil);
   if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
     {
       if (_multipleThreads == YES)
