@@ -1,3 +1,7 @@
+2009-07-30  Quentin Mathe <qmathe@club-internet.fr>
+
+	* Headers/Foundation/Foundation.h: Included NSKeyValueObserving.h.
+
 2009-07-28 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Correct the text in exception when attempting
