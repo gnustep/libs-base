@@ -1709,22 +1709,22 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
       if ([scanner scanInt: &major] == NO || major < 0)
 	{
-	  NSLog(@"Bad value for http major version");
+	  NSLog(@"Bad value for http major version in %@", [scanner string]);
 	  return NO;
 	}
       if ([scanner scanString: @"." intoString: 0] == NO)
 	{
-	  NSLog(@"Bad format for http version");
+	  NSLog(@"Bad format for http version in %@", [scanner string]);
 	  return NO;
 	}
       if ([scanner scanInt: &minor] == NO || minor < 0)
 	{
-	  NSLog(@"Bad value for http minor version");
+	  NSLog(@"Bad value for http minor version in %@", [scanner string]);
 	  return NO;
 	}
       if ([scanner scanInt: &status] == NO || status < 0)
 	{
-	  NSLog(@"Bad value for http status");
+	  NSLog(@"Bad value for http status in %@", [scanner string]);
 	  return NO;
 	}
       [info setObject: [NSStringClass stringWithFormat: @"%d", minor]
@@ -1761,7 +1761,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       value = [self scanToken: scanner];
       if ([value length] == 0)
 	{
-	  NSLog(@"Bad value for content-transfer-encoding header");
+	  NSLog(@"Bad value for content-transfer-encoding header in %@",
+	    [scanner string]);
 	  return NO;
 	}
       value = [value lowercaseString];
@@ -1774,7 +1775,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       type = [self scanName: scanner];
       if ([type length] == 0)
 	{
-	  NSLog(@"Invalid Mime content-type");
+	  NSLog(@"Invalid Mime content-type in %@", [scanner string]);
 	  return NO;
 	}
       type = [type lowercaseString];
@@ -1784,7 +1785,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  subtype = [self scanName: scanner];
 	  if ([subtype length] == 0)
 	    {
-	      NSLog(@"Invalid Mime content-type (subtype)");
+	      NSLog(@"Invalid Mime content-type (subtype) in %@",
+		[scanner string]);
 	      return NO;
 	    }
 	  subtype = [subtype lowercaseString];
