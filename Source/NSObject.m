@@ -689,12 +689,15 @@ GSPrivateSwizzle(id o, Class c)
 	}
       else if (GSIsFinalizable(c))
 	{
-	  /* New clas is finalizable, so we must register the instance
+	  /* New class is finalizable, so we must register the instance
 	   * for finalisation and do allocation acounting for it.
 	   */
 	  AADD(c, o);
 	  GC_REGISTER_FINALIZER (o, GSFinalize, NULL, NULL, NULL);
 	}
+#else
+      AREM(o->class_pointer, o);
+      AADD(c, o);
 #endif	/* GS_WITH_GC */
       o->class_pointer = c;
     }
