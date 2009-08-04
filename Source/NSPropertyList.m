@@ -81,6 +81,8 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   NSString				*key;
   BOOL					inArray;
   BOOL					inDictionary;
+  BOOL					parsed;
+  BOOL					success;
   id					plist;
   NSPropertyListMutabilityOptions	opts;
 }
@@ -119,7 +121,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 {
   if ((self = [super init]) != nil)
     {
-      stack = [[NSMutableArray alloc] initWithCapacity: 10];
       theParser = [[GSSloppyXMLParser alloc] initWithData: data];
       [theParser setDelegate: self];
       opts = options;
@@ -133,10 +134,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   string = [string stringByTrimmingSpaces];
   if ([string length] > 0)
     {
-      if (value == nil)
-        {
-          value = [[NSMutableString alloc] initWithCapacity: 50];
-        }
       [value appendString: string];
     }
 }
@@ -233,15 +230,8 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     }
   else if ([elementName isEqualToString: @"key"] == YES)
     {
-      if (value == nil)
-	{
-	  ASSIGN(key, @"");	// Empty key.
-	}
-      else
-	{
-          ASSIGN(key, [value makeImmutableCopyOnFail: NO]);
-          DESTROY(value);
-	}
+      ASSIGNCOPY(key, value);
+      [value setString: @""];
       return;
     }
   else if ([elementName isEqualToString: @"data"])
@@ -283,25 +273,11 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
       if (opts == NSPropertyListMutableContainersAndLeaves)
         {
-	  if (value == nil)
-	    {
-	      o = [NSMutableString string];
-	    }
-	  else
-	    {
-	      o = value;
-	    }
+	  o = [value mutableCopy];
 	}
       else
         {
-	  if (value == nil)
-	    {
-	      o = @"";
-	    }
-	  else
-	    {
-	      o = [value makeImmutableCopyOnFail: NO];
-	    }
+	  o = [value copy];
 	}
       ASSIGN(plist, o);
     }
@@ -323,7 +299,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     }
   else if ([elementName isEqualToString: @"plist"])
     {
-      DESTROY(value);
+      [value setString: @""];
       return;
     }
   else // invalid tag
@@ -347,12 +323,19 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
       [(NSMutableDictionary*)[stack lastObject] setObject: plist forKey: key];
       DESTROY(key);
     }
-  DESTROY(value);
+  [value setString: @""];
 }
 
 - (BOOL) parse
 {
-  return [theParser parse];
+  if (parsed == NO)
+    {
+      parsed = YES;
+      stack = [[NSMutableArray alloc] initWithCapacity: 10];
+      value = [[NSMutableString alloc] initWithCapacity: 50];
+      success = [theParser parse];
+    }
+  return success;
 }
 
 - (id) result
