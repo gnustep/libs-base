@@ -1,3 +1,8 @@
+2009-08-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Fix for handling empty key values in
+	XML property lists.
+
 2009-08-03 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Fix error in memory allocation debug when

@@ -1504,7 +1504,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
             }
         }
     }
-  return [self _parseError: @"this->aborted"
+  return [self _parseError: @"aborted"
     code: NSXMLParserDelegateAbortedParseError];
 }
 
