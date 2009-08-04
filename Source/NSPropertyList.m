@@ -233,8 +233,15 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     }
   else if ([elementName isEqualToString: @"key"] == YES)
     {
-      ASSIGN(key, [value makeImmutableCopyOnFail: NO]);
-      DESTROY(value);
+      if (value == nil)
+	{
+	  ASSIGN(key, @"");	// Empty key.
+	}
+      else
+	{
+          ASSIGN(key, [value makeImmutableCopyOnFail: NO]);
+          DESTROY(value);
+	}
       return;
     }
   else if ([elementName isEqualToString: @"data"])
