@@ -1,3 +1,10 @@
+2009-08-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m:
+	* Headers/Foundation/NSFileManager.h:
+	Updated comments/documentation to say that directory enumeration order
+	is undefined.
+
 2009-08-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Escape non-ascii characters etc in author.
