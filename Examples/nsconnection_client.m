@@ -610,7 +610,19 @@ int main (int argc, char *argv[], char **env)
 	}
     }
 
+#if 0
+  /* Check that we can retain the connection, release the proxy,
+   * and then regain the proxy from the connection.
+   */
+  cobj = RETAIN([prx connectionForProxy]);
+  RELEASE(arp);
+  arp = [NSAutoreleasePool new];
+  prx = [cobj rootObject];
+  AUTORELEASE(cobj);
+#else
   cobj = [prx connectionForProxy];
+#endif
+
   [cobj setDelegate:auth];
   [cobj setRequestTimeout:180.0];
   [cobj setReplyTimeout:180.0];

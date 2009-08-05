@@ -1925,11 +1925,6 @@ static NSStringEncoding	defaultEncoding;
   return [path lastPathComponent];
 }
 
-/**
- * Returns an enumerator which can be used to return each item with
- * the directory at path in turn.<br />
- * The enumeration is recursive ... following all nested subdirectories.
- */
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path
 {
   return AUTORELEASE([[NSDirectoryEnumerator alloc]
@@ -2081,16 +2076,6 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #include "GNUstepBase/GSIArray.h"
 
 
-/**
- *  <p>This is a subclass of <code>NSEnumerator</code> which provides a full
- *  listing of all the files beneath a directory and its subdirectories.
- *  Instances can be obtained through [NSFileManager-enumeratorAtPath:],
- *  or through an initializer in this class.  (For compatibility with OS X,
- *  use the <code>NSFileManager</code> method.)</p>
- *
- *  <p>This implementation is optimized and performance should be comparable
- *  to the speed of standard Unix tools for large directories.</p>
- */
 @implementation NSDirectoryEnumerator
 /*
  * The Objective-C interface hides a traditional C implementation.
@@ -2104,8 +2089,6 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
     }
 }
-
-// Initializing
 
 /**
  *  Initialize instance to enumerate contents at path, which should be a
