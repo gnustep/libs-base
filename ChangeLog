@@ -1,3 +1,7 @@
+2009-08-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: handle empty key in xml property list.
+
 2009-06-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: backport fix for collecting whitespace.
