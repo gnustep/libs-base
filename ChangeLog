@@ -1,3 +1,7 @@
+2009-08-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Fix memory leak introduced with GC changes.
+
 2009-08-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m:

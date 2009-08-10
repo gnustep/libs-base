@@ -3699,25 +3699,30 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 #if	GS_WITH_GC
       tmp = NSAllocateCollectable(size, 0);
-#else
-      tmp = NSZoneMalloc(zone, size);
-#endif
       if (tmp == 0)
 	{
 	  [NSException raise: NSMallocException
 	    format: @"Unable to set data capacity to '%d'", size];
 	}
-
       if (bytes)
 	{
 	  memcpy(tmp, bytes, capacity < size ? capacity : size);
-#if	GS_WITH_GC
 	  if (owned == YES)
 	    {
 	      NSZoneFree(NSDefaultMallocZone(), bytes);
 	      owned = NO;
 	    }
+	}
 #else
+      tmp = NSZoneMalloc(zone, size);
+      if (tmp == 0)
+	{
+	  [NSException raise: NSMallocException
+	    format: @"Unable to set data capacity to '%d'", size];
+	}
+      if (bytes)
+	{
+	  memcpy(tmp, bytes, capacity < size ? capacity : size);
 	  if (zone == 0)
 	    {
 	      zone = NSDefaultMallocZone();
@@ -3726,8 +3731,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    {
 	      NSZoneFree(zone, bytes);
 	    }
-#endif
 	}
+      else if (zone == 0)
+	{
+	  zone = NSDefaultMallocZone();
+	}
+#endif
       bytes = tmp;
       capacity = size;
       growth = capacity/2;
