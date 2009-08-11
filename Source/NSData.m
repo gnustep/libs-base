@@ -3256,9 +3256,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #if	GS_WITH_GC
       owned = shouldFree;	// Free memory on finalisation.
 #else
-      if (shouldFree == NO)
+      if (shouldFree == NO || aBuffer == 0)
 	{
 	  zone = 0;		// Don't free this memory.
+	}
+      else
+	{
+          zone = NSZoneFromPointer(aBuffer);
 	}
 #endif
       bytes = aBuffer;
