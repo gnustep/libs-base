@@ -1,3 +1,8 @@
+2009-08-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Fix memory leak introduced with GC changes.
+	* Source/Additions/GSMime.m: Use memmove() as fix for bug #27224
+
 2009-08-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Fix memory leak introduced with GC changes.
