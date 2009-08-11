@@ -1,3 +1,8 @@
+2009-08-11  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSAttributedString.m: Fix keyeded encodgin decoding for
+	both NSAttributedString and NSMutableAttributedString.
+
 2009-08-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Fix memory leak introduced with GC changes.
