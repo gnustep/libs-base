@@ -2679,7 +2679,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       */
 	      lineStart += bLength;
 	      sectionStart = lineStart;
-	      memcpy(bytes, &bytes[sectionStart], dataEnd - sectionStart);
+	      memmove(bytes, &bytes[sectionStart], dataEnd - sectionStart);
 	      dataEnd -= sectionStart;
 	      [data setLength: dataEnd];
 	      bytes = (unsigned char*)[data mutableBytes];
@@ -2772,7 +2772,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  lengthRemaining = dataEnd - input;
 	  if (lengthRemaining > 0)
 	    {
-	      memcpy(bytes, &bytes[input], lengthRemaining);
+	      memmove(bytes, &bytes[input], lengthRemaining);
 	    }
 	  dataEnd = lengthRemaining;
 	  [data setLength: lengthRemaining];
