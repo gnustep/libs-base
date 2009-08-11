@@ -152,19 +152,32 @@ static Class GSMutableAttributedStringClass;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  NSRange		r = NSMakeRange(0, 0);
-  unsigned		index = NSMaxRange(r);
-  unsigned		length = [self length];
-  NSString		*string = [self string];
-  NSDictionary		*attrs;
-
-  [aCoder encodeObject: string];
-  while (index < length)
+  if ([aCoder allowsKeyedCoding])
     {
-      attrs = [self attributesAtIndex: index effectiveRange: &r];
-      index = NSMaxRange(r);
-      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &index];
-      [aCoder encodeObject: attrs];
+      [aCoder  encodeObject: [self string] forKey: @"NSString"];
+      if ([self length] > 0) 
+	{
+	  NSDictionary* attrs = [self attributesAtIndex: 0 effectiveRange: NULL];
+
+	  [aCoder  encodeObject: attrs forKey: @"NSAttributes"];
+	}
+    }
+  else
+    {
+      NSRange		r = NSMakeRange(0, 0);
+      unsigned		index = NSMaxRange(r);
+      unsigned		length = [self length];
+      NSString		*string = [self string];
+      NSDictionary	*attrs;
+
+      [aCoder encodeObject: string];
+      while (index < length)
+	{
+	  attrs = [self attributesAtIndex: index effectiveRange: &r];
+	  index = NSMaxRange(r);
+	  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &index];
+	  [aCoder encodeObject: attrs];
+	}
     }
 }
 
@@ -188,7 +201,7 @@ static Class GSMutableAttributedStringClass;
 	}
       else
         {
-	  unsigned		index;
+	  unsigned	index;
 	  NSDictionary	*attrs;
 	
 	  [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
@@ -627,42 +640,53 @@ static Class GSMutableAttributedStringClass;
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
-  NSString	*string = [aDecoder decodeObject];
-  unsigned	length = [string length];
-
-  if (length == 0)
+  if ([aDecoder allowsKeyedCoding])
     {
-      self = [self initWithString: string attributes: nil];
+      NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
+      NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+
+      self = [self initWithString: string attributes: attributes];
     }
   else
     {
-      unsigned		index;
-      NSDictionary	*attrs;
+      NSString	*string = [aDecoder decodeObject];
+      unsigned	length = [string length];
 
-      [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
-      attrs = [aDecoder decodeObject];
-      if (index == length)
+      if (length == 0)
 	{
-	  self = [self initWithString: string attributes: attrs];
+	  self = [self initWithString: string attributes: nil];
 	}
       else
 	{
-	  NSRange	r = NSMakeRange(0, index);
-	  unsigned	last = index;
+	  unsigned	index;
+	  NSDictionary	*attrs;
 
-	  self = [self initWithString: string attributes: nil];
-	  [self setAttributes: attrs range: r];
-	  while (index < length)
+	  [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
+	  attrs = [aDecoder decodeObject];
+	  if (index == length)
 	    {
-	      [aDecoder decodeValueOfObjCType: @encode(unsigned)
-					   at: &index];
-	      attrs = [aDecoder decodeObject];
-	      r = NSMakeRange(last, index - last);
+	      self = [self initWithString: string attributes: attrs];
+	    }
+	  else
+	    {
+	      NSRange	r = NSMakeRange(0, index);
+	      unsigned	last = index;
+	      
+	      self = [self initWithString: string attributes: nil];
 	      [self setAttributes: attrs range: r];
-	      last = index;
+	      while (index < length)
+		{
+		  [aDecoder decodeValueOfObjCType: @encode(unsigned)
+					   at: &index];
+		  attrs = [aDecoder decodeObject];
+		  r = NSMakeRange(last, index - last);
+		  [self setAttributes: attrs range: r];
+		  last = index;
+		}
 	    }
 	}
     }
+
   return self;
 }
 
