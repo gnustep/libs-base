@@ -3256,7 +3256,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #if	GS_WITH_GC
       owned = shouldFree;	// Free memory on finalisation.
 #else
-      if (shouldFree == NO || aBuffer == 0)
+      if (shouldFree == NO)
 	{
 	  zone = 0;		// Don't free this memory.
 	}
@@ -3335,6 +3335,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       return nil;
     }
 #else
+  zone = GSObjCZone(self);
   if (readContentsOfFile(path, &bytes, &length, zone) == NO)
     {
       [self release];
