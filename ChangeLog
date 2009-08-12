@@ -2,6 +2,7 @@
 
 	* Source/NSData.m: Remove some redundant methods and add checks for
 	attempts to use a null pointer to set bytes in the data.
+	* Source/NSCharacterSet.m: Save mem with index set rather than bitmap set
 
 2009-08-11  Fred Kiefer <FredKiefer@gmx.de>
 
