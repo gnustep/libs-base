@@ -1,3 +1,8 @@
+2009-08-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Remove some redundant methods and add checks for
+	attempts to use a null pointer to set bytes in the data.
+
 2009-08-11  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSAttributedString.m: Fix keyeded encodgin decoding for
