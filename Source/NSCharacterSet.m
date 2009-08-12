@@ -41,8 +41,8 @@
 #include "Foundation/NSData.h"
 #include "Foundation/NSDebug.h"
 
-//#define	GNUSTEP_INDEX_CHARSET	1
-#undef	GNUSTEP_INDEX_CHARSET
+#define	GNUSTEP_INDEX_CHARSET	1
+//#undef	GNUSTEP_INDEX_CHARSET
 
 #include "NSCharacterSetData.h"
 
