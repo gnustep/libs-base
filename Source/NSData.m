@@ -553,16 +553,22 @@ failure:
 
   if (bufferSize > 0)
     {
+      if (aBuffer == 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"[%@-initWithBytes:length:] called with "
+	    @"length but null bytes", NSStringFromClass([self class])];
+	}
 #if	GS_WITH_GC
       ptr = NSAllocateCollectable(bufferSize, 0);
 #else
       ptr = NSZoneMalloc(NSDefaultMallocZone(), bufferSize);
 #endif
       if (ptr == 0)
-        {
+	{
 	  DESTROY(self);
 	  return nil;
-        }
+	}
       memcpy(ptr, aBuffer, bufferSize);
     }
   return [self initWithBytesNoCopy: ptr
@@ -2494,20 +2500,9 @@ failure:
 
 /*	Creation and Destruction of objects.	*/
 
-- (id) copy
-{
-  return RETAIN(self);
-}
-
 - (id) copyWithZone: (NSZone*)z
 {
   return RETAIN(self);
-}
-
-- (id) mutableCopy
-{
-  return [[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
-    initWithBytes: bytes length: length];
 }
 
 - (id) mutableCopyWithZone: (NSZone*)z
@@ -2527,6 +2522,12 @@ failure:
 		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
+  if (bytes == 0 && length > 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-initWithBytesNoCopy:length:freeWhenDone:] called with "
+	@"length but null bytes", NSStringFromClass([self class])];
+    }
   bytes = aBuffer;
   length = bufferSize;
   return self;
@@ -2921,15 +2922,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 @implementation	NSDataMalloc
 
-- (id) copy
-{
-  if (NSShouldRetainWithZone(self, NSDefaultMallocZone()))
-    return RETAIN(self);
-  else
-    return [[dataMalloc allocWithZone: NSDefaultMallocZone()]
-      initWithBytes: bytes length: length];
-}
-
 - (id) copyWithZone: (NSZone*)z
 {
   if (NSShouldRetainWithZone(self, z))
@@ -2953,6 +2945,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
+  if (aBuffer == 0 && bufferSize > 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-initWithBytesNoCopy:length:freeWhenDone:] called with "
+	@"length but null bytes", NSStringFromClass([self class])];
+    }
   if (shouldFree == NO)
     {
       GSPrivateSwizzle(self, dataStatic);
@@ -3103,8 +3101,14 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 - (id) initWithBytes: (const void*)aBuffer length: (NSUInteger)bufferSize
 {
   shmid = -1;
-  if (aBuffer && bufferSize)
+  if (bufferSize > 0)
     {
+      if (aBuffer == 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"[%@-initWithBytes:length:] called with "
+	    @"length but null bytes", NSStringFromClass([self class])];
+	}
       shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_RDONLY);
       if (shmid == -1)			/* Created memory? */
 	{
@@ -3190,12 +3194,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return NSMutableDataAbstract;
 }
 
-- (id) copy
-{
-  return [[dataMalloc allocWithZone: NSDefaultMallocZone()]
-    initWithBytes: bytes length: length];
-}
-
 - (id) copyWithZone: (NSZone*)z
 {
   return [[dataMalloc allocWithZone: z]
@@ -3222,10 +3220,16 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   self = [self initWithCapacity: bufferSize];
   if (self)
     {
-      if (aBuffer && bufferSize > 0)
+      if (bufferSize > 0)
 	{
-	  memcpy(bytes, aBuffer, bufferSize);
+	  if (aBuffer == 0)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+		format: @"[%@-initWithBytes:length:] called with "
+		@"length but null bytes", NSStringFromClass([self class])];
+	    }
 	  length = bufferSize;
+	  memcpy(bytes, aBuffer, length);
 	}
     }
   return self;
@@ -3237,11 +3241,14 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (aBuffer == 0)
     {
-      self = [self initWithCapacity: bufferSize];
-      if (self != nil)
+      if (bufferSize > 0)
 	{
-	  [self setLength: bufferSize];
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"[%@-initWithBytesNoCopy:length:freeWhenDone:] called with "
+	    @"length but null bytes", NSStringFromClass([self class])];
 	}
+      self = [self initWithCapacity: bufferSize];
+      [self setLength: 0];
       return self;
     }
 #if	GS_WITH_GC
@@ -3326,26 +3333,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-- (id) initWithContentsOfFile: (NSString *)path
-{
-  self = [self initWithCapacity: 0];
-#if	GS_WITH_GC
-  if (readContentsOfFile(path, &bytes, &length, 0) == NO)
-    {
-      return nil;
-    }
-#else
-  zone = GSObjCZone(self);
-  if (readContentsOfFile(path, &bytes, &length, zone) == NO)
-    {
-      [self release];
-      return nil;
-    }
-#endif
-  capacity = length;
-  return self;
-}
-
 - (id) initWithContentsOfMappedFile: (NSString *)path
 {
   return [self initWithContentsOfFile: path];
@@ -3354,15 +3341,24 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 - (void) appendBytes: (const void*)aBuffer
 	      length: (NSUInteger)bufferSize
 {
-  unsigned	oldLength = length;
-  unsigned	minimum = length + bufferSize;
-
-  if (minimum > capacity)
+  if (bufferSize > 0)
     {
-      [self _grow: minimum];
+      unsigned	oldLength = length;
+      unsigned	minimum = length + bufferSize;
+
+      if (aBuffer == 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"[%@-appendBytes:length:] called with "
+	    @"length but null bytes", NSStringFromClass([self class])];
+	}
+      if (minimum > capacity)
+	{
+	  [self _grow: minimum];
+	}
+      memcpy(bytes + oldLength, aBuffer, bufferSize);
+      length = minimum;
     }
-  memcpy(bytes + oldLength, aBuffer, bufferSize);
-  length = minimum;
 }
 
 - (NSUInteger) capacity
@@ -3402,10 +3398,16 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (aRange.location > length)
     {
       [NSException raise: NSRangeException
-		  format: @"location bad in replaceByteInRange:withBytes:"];
+		  format: @"location bad in replaceBytesInRange:withBytes:"];
     }
   if (aRange.length > 0)
     {
+      if (moreBytes == 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"[%@-replaceBytesInRange:withBytes:] called with "
+	    @"range but null bytes", NSStringFromClass([self class])];
+	}
       if (need > length)
 	{
 	  [self setCapacity: need];
@@ -3836,18 +3838,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       shmid = -1;
     }
   [super finalize];
-}
-
-- (id) initWithBytes: (const void*)aBuffer length: (NSUInteger)bufferSize
-{
-  self = [self initWithCapacity: bufferSize];
-  if (self)
-    {
-      if (bufferSize && aBuffer)
-        memcpy(bytes, aBuffer, bufferSize);
-      length = bufferSize;
-    }
-  return self;
 }
 
 - (id) initWithCapacity: (NSUInteger)bufferSize
