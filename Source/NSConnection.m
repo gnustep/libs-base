@@ -37,6 +37,7 @@
 #import "Foundation/NSEnumerator.h"
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
+#import "Foundation/NSDebug.h"
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -1937,6 +1938,7 @@ static void retEncoder (DOContext *ctxt)
 		    selector: (SEL)sel
                     argFrame: (arglist_t)argframe
 {
+#if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
   BOOL		outParams;
   BOOL		needsResponse;
   const char	*type;
@@ -2071,6 +2073,14 @@ static void retEncoder (DOContext *ctxt)
       NSAssert(ctxt.decoder == nil, NSInternalInconsistencyException);
     }
   return retframe;
+#else
+  /* If we've got to here then something has gone badly wrong.  Most likely a
+   * mismatch between NSDistantObject and NSConnection implementations.
+   */
+  NSAssert(NO, @"Legacy forwardForProxy:selector:argFrame: method called when"
+                " compiled with fcall/ffi."); 
+  return 0; // Not reached.
+#endif //!defined(USE_FFCALL) && !defined(USE_LIBFFI)
 }
 
 /*

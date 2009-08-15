@@ -1,3 +1,14 @@
+2009-08-15 David Chisnall <theraven@gna.org>
+
+	* Source/NSObject:
+		- Tweaked NSObject to use atomic ops with LLVM as well as gcc (this
+		  probably isn't actually needed)
+		- Fixed SIGFPE problem on FreeBSD using proper interfaces instead of
+		an asm hack.
+	* Removes various mframe things from being compiled when ffcall/libffi is
+	used (mframe.m, NSConnection.m, NSInvocation.m)
+	* Turned a nested function in make_strings.m into a macro.  
+
 2009-08-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Remove some redundant methods and add checks for

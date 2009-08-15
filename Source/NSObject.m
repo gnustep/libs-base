@@ -65,6 +65,9 @@
 #ifdef	HAVE_SYS_SIGNAL_H
 #include	<sys/signal.h>
 #endif
+#ifdef __FreeBSD__
+#include <fenv.h>
+#endif
 
 #include "GSPrivate.h"
 
@@ -219,7 +222,7 @@ typedef int32_t volatile *gsatomic_t;
 #define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
 
 
-#elif defined(USE_ATOMIC_BUILDINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#elif defined(__llvm__) || (defined(USE_ATOMIC_BUILDINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
 /* Use the GCC atomic operations with recent GCC versions */
 
 typedef int32_t volatile *gsatomic_t;
@@ -971,14 +974,7 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
       // problems on *BSD)
       // Note this only works on x86
-
-      {
-	volatile short cw;
-
-	__asm__ volatile ("fstcw (%0)" : : "g" (&cw));
-	cw |= 1; /* Mask 'invalid' exception */
-	__asm__ volatile ("fldcw (%0)" : : "g" (&cw));
-      }
+      fedisableexcept(FE_INVALID);
 #endif
 
 

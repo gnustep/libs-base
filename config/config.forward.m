@@ -1,3 +1,4 @@
+#include <objc/objc.h>
 #include <objc/objc-api.h>
 
 int main (void)
