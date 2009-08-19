@@ -43,7 +43,6 @@
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSDebug.h"
 
-#include "GSNetwork.h"
 #include "GSPortPrivate.h"
 #include "GSPrivate.h"
 
@@ -55,6 +54,7 @@
 
 #ifdef __MINGW32__
 #define close closesocket
+#define socklen_t	int
 #else
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
@@ -1874,7 +1874,6 @@ static Class		tcpPortClass;
       if (handle->recvPort == recvSelf && handle->inReplyMode == NO)
 	{
 	  fds[(*count)++] = (uintptr_t)event;
-          NSDebugMLLog(@"NSPort", @"Add event %p", event);
 	}
     }
   NSEndMapTableEnumeration(&me);
@@ -2149,8 +2148,8 @@ static Class		tcpPortClass;
 #endif
   GSTcpHandle	*handle;
 
-  NSDebugMLLog(@"NSPort", @"received %s event %p on 0x%x",
-    type == ET_RPORT ? "read" : "write", extra, self);
+  NSDebugMLLog(@"NSPort", @"received %s event on 0x%x",
+    type == ET_RPORT ? "read" : "write", self);
 
 #if	defined(__MINGW32__)
   if (event == eventListener)

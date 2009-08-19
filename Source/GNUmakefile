@@ -25,15 +25,6 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
-  ifeq ($(GNUSTEP_MAKEFILES),)
-    $(warning )
-    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
-    $(warning Perhaps gnustep-make is not properly installed,)
-    $(warning so gnustep-config is not in your PATH.)
-    $(warning )
-    $(warning Your PATH is currently $(PATH))
-    $(warning )
-  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -47,7 +38,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
--include pathconfig/pathconfig.mak
+include pathconfig/pathconfig.mak
 
 # Interface version changes with each minor release
 libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
@@ -231,7 +222,6 @@ NSNumberFormatter.m \
 NSObjCRuntime.m \
 NSObject.m \
 NSObject+NSComparisonMethods.m \
-NSOperation.m \
 NSPage.m \
 NSPathUtilities.m \
 NSPipe.m \
@@ -379,7 +369,6 @@ NSNull.h \
 NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
-NSOperation.h \
 NSPathUtilities.h \
 NSPointerArray.h \
 NSPointerFunctions.h \

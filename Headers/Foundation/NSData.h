@@ -102,23 +102,12 @@ enum {
 - (BOOL) isEqualToData: (NSData*)other;
 - (NSUInteger) length;
 
-/**
- * <p>Writes a copy of the data encapsulated by the receiver to a file
- * at path.  If the useAuxiliaryFile flag is YES, this writes to a
- * temporary file and then renames that to the file at path, thus
- * ensuring that path exists and does not contain partially written
- * data at any point.
- * </p>
- * <p>On success returns YES, on failure returns NO.
- * </p>
- */
+// Storing Data
+
 - (BOOL) writeToFile: (NSString*)path
 	  atomically: (BOOL)useAuxiliaryFile;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-/**
- * Writes a copy of the contents of the receiver to the specified URL.
- */
 - (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)flag;
 #endif
 
@@ -142,23 +131,11 @@ enum {
 		 atIndex: (unsigned int)index;
 
 #if OS_API_VERSION(100400,GS_API_LATEST) 
-/**
- * <p>Writes a copy of the data encapsulated by the receiver to a file
- * at path.  If the NSAtomicWrite option is set, this writes to a
- * temporary file and then renames that to the file at path, thus
- * ensuring that path exists and does not contain partially written
- * data at any point.
- * </p>
- * <p>On success returns YES, on failure returns NO.
- * </p>
- */
+/** Not implemented */
 - (BOOL) writeToFile: (NSString *)path
              options: (NSUInteger)writeOptionsMask
                error: (NSError **)errorPtr;
-
-/**
- * Writes a copy of the contents of the receiver to the specified URL.
- */
+/** Not implemented */
 - (BOOL) writeToURL: (NSURL *)url
             options: (NSUInteger)writeOptionsMask
               error: (NSError **)errorPtr;

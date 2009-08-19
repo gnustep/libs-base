@@ -1057,12 +1057,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
     }
   if (((NSThread_ivars*)aThread)->_runLoopInfo == nil)
     {
-      [gnustep_global_lock lock];
-      if (((NSThread_ivars*)aThread)->_runLoopInfo == nil)
-        {
-          ((NSThread_ivars*)aThread)->_runLoopInfo = [GSRunLoopThreadInfo new];
-	}
-      [gnustep_global_lock unlock];
+      ((NSThread_ivars*)aThread)->_runLoopInfo = [GSRunLoopThreadInfo new];
     }
   info = ((NSThread_ivars*)aThread)->_runLoopInfo;
   return info;

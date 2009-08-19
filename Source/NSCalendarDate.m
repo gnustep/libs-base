@@ -70,7 +70,6 @@ static NSString	*cformat = @"%Y-%m-%d %H:%M:%S %z";
 
 static NSTimeZone	*localTZ = nil;
 
-static Class	NSCalendarDateClass;
 static Class	absClass;
 static Class	dstClass;
 
@@ -322,7 +321,6 @@ GSTimeNow(void)
 {
   if (self == [NSCalendarDate class])
     {
-      NSCalendarDateClass = self;
       [self setVersion: 1];
       localTZ = RETAIN([NSTimeZone localTimeZone]);
 
@@ -1297,7 +1295,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 
 	  if ((had & (hadY|hadw)) != (hadY|hadw))
 	    {
-	      NSCalendarDate	*now = [[NSCalendarDateClass alloc] init];
+	      NSCalendarDate	*now = [[NSCalendarDate alloc] init];
 
 	      [now setTimeZone: gmtZone];
 	      if ((had & hadY) == 0)
@@ -1313,13 +1311,13 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	      RELEASE(now);
 	    }
 
-	  d = [[NSCalendarDateClass alloc] initWithYear: year
-						  month: 1
-						    day: 1
-						   hour: 0
-						 minute: 0
-						 second: 0
-					       timeZone: gmtZone];
+	  d = [[NSCalendarDate alloc] initWithYear: year
+					     month: 1
+					       day: 1
+					      hour: 0
+					    minute: 0
+					    second: 0
+					  timeZone: gmtZone];
 	  currDay = [d dayOfWeek];
 	  RELEASE(d);
 
@@ -1349,7 +1347,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
        */
       if ((had & hadY) == 0)
 	{
-	  NSCalendarDate	*now = [[NSCalendarDateClass alloc] init];
+	  NSCalendarDate	*now = [[NSCalendarDate alloc] init];
 
 	  year = [now yearOfCommonEra];
 	  RELEASE(now);
@@ -1785,21 +1783,6 @@ static void Grow(DescriptionInfo *info, unsigned size)
     }
 }
 
-#define MAX_FLD_WIDTH 99
-
-static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
-{
-  char	cbuf[MAX_FLD_WIDTH + 1];
-  int	idx = 0;
-
-  sprintf((char*)cbuf, fldfmt, v);
-  Grow(info, strlen((char*)cbuf));
-  while (cbuf[idx] != '\0')
-    {
-      info->t[info->offset++] = cbuf[idx++];
-    }
-}
-
 - (void) _format: (NSString*)fmt
 	  locale: (NSDictionary*)locale
 	    info: (DescriptionInfo*)info
@@ -1831,27 +1814,11 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
       BOOL	mname = NO;
       BOOL	dname = NO;
       BOOL	twelve = NO;
-      char	fldfmt[8];
-      int	fmtlen = 0;
-      int	width = 0;
 
       // Only care about a format specifier
       if (f[i] == '%')
 	{
           i++;
-	  fldfmt[fmtlen++] = '%'; // start format with %
-          while (fmtlen < 5 && f[i] >= '0' && f[i] <= '9') // field width specified
-	    {
-	      fldfmt[fmtlen++] = f[i];
-	      width = 10 * width + f[i] - '0';
-	      i++;
-	    }
-	  if (fmtlen >= 5 || width > MAX_FLD_WIDTH)
-	    {
-	      // ignore formats that specify field width greater than the max allowed
-	      i -= fmtlen; // set i back so all ignored characters will be copied
-	    }
-
 	  // check the character that comes after
 	  switch (f[i++])
 	    {
@@ -1908,25 +1875,41 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		v = info->yd;
 		if (ycent)
 		  {
-		    if (fmtlen == 1) // no format width specified; supply default
+		    if (v >= 0 && v <= 9999)
 		      {
-			fldfmt[fmtlen++] = '0';
-			fldfmt[fmtlen++] = '4';
+			Grow(info, 4);
+			info->t[info->offset+3] = (v%10) + '0';
+			v /= 10;
+			info->t[info->offset+2] = (v%10) + '0';
+			v /= 10;
+			info->t[info->offset+1] = (v%10) + '0';
+			v /= 10;
+			info->t[info->offset+0] = (v%10) + '0';
+			info->offset += 4;
+		      }
+		    else
+		      {
+			unsigned char	tmp[16];
+			int		idx = 0;
+
+			sprintf((char*)tmp, "%d", v);
+			Grow(info, strlen((char*)tmp));
+			while (tmp[idx] != '\0')
+			  {
+			    info->t[info->offset++] = tmp[idx++];
+			  }
 		      }
 		  }
 		else
 		  {
+		    Grow(info, 2);
 		    if (v < 0) v = -v;
 		    v = v % 100;
-		    if (fmtlen == 1) // no format width specified; supply default
-		      {
-			fldfmt[fmtlen++] = '0';
-			fldfmt[fmtlen++] = '2';
-		      }
+		    info->t[info->offset+1] = (v%10) + '0';
+		    v /= 10;
+		    info->t[info->offset+0] = (v%10) + '0';
+		    info->offset += 2;
 		  }
-		  fldfmt[fmtlen++] = 'd';
-		  fldfmt[fmtlen++] = 0;
-		  outputValueWithFormat(v, fldfmt, info);
 		break;
 
 		// is it the month
@@ -1961,41 +1944,40 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		if (mtag == NO)
 		  {
 		    v = info->md;
+		    Grow(info, 2);
 		    v = v % 100;
-		    if (fmtlen == 1) // no format width specified; supply default
-		      {
-			fldfmt[fmtlen++] = '0';
-			fldfmt[fmtlen++] = '2';
-		      }
-		    fldfmt[fmtlen++] = 'd';
-		    fldfmt[fmtlen++] = 0;
-		    outputValueWithFormat(v, fldfmt, info);
+		    info->t[info->offset+1] = (v%10) + '0';
+		    v /= 10;
+		    info->t[info->offset+0] = (v%10) + '0';
+		    info->offset += 2;
 		  }
 		break;
 
 	      case 'd': 	// day of month with leading zero
 		v = info->dom;
+		Grow(info, 2);
 		v = v % 100;
-		    if (fmtlen == 1) // no format width specified; supply default
-		      {
-			fldfmt[fmtlen++] = '0';
-			fldfmt[fmtlen++] = '2';
-		      }
-		    fldfmt[fmtlen++] = 'd';
-		    fldfmt[fmtlen++] = 0;
-		    outputValueWithFormat(v, fldfmt, info);
+		info->t[info->offset+1] = (v%10) + '0';
+		v /= 10;
+		info->t[info->offset+0] = (v%10) + '0';
+		info->offset += 2;
 		break;
 
 	      case 'e': 	// day of month with leading space
 		v = info->dom;
+		Grow(info, 2);
 		v = v % 100;
-		    if (fmtlen == 1) // no format width specified; supply default
-		      {
-			fldfmt[fmtlen++] = '1'; // no leading space, just like Cocoa
-		      }
-		    fldfmt[fmtlen++] = 'd';
-		    fldfmt[fmtlen++] = 0;
-		    outputValueWithFormat(v, fldfmt, info);
+		if (v%10 == '0')
+		  {
+		    info->t[info->offset+1] = ' ';
+		  }
+		else
+		  {
+		    info->t[info->offset+1] = (v%10) + '0';
+		  }
+		v /= 10;
+		info->t[info->offset+0] = (v%10) + '0';
+		info->offset += 2;
 		break;
 
 	      case 'F': 	// milliseconds
@@ -2009,26 +1991,24 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		  s *= 1000.0;
 		  v = (NSInteger)(s + 0.5);
 		}
-		if (fmtlen == 1) // no format width specified; supply default
-		  {
-		    fldfmt[fmtlen++] = '0';
-		    fldfmt[fmtlen++] = '3';
-		  }
-		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
-		outputValueWithFormat(v, fldfmt, info);
+		Grow(info, 3);
+		info->t[info->offset+2] = (v%10) + '0';
+		v /= 10;
+		info->t[info->offset+1] = (v%10) + '0';
+		v /= 10;
+		info->t[info->offset+0] = (v%10) + '0';
+		info->offset += 3;
 		break;
 
 	      case 'j': 	// day of year
 		v = [self dayOfYear];
-		if (fmtlen == 1) // no format width specified; supply default
-		  {
-		    fldfmt[fmtlen++] = '0';
-		    fldfmt[fmtlen++] = '3';
-		  }
-		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
-		outputValueWithFormat(v, fldfmt, info);
+		Grow(info, 3);
+		info->t[info->offset+2] = (v%10) + '0';
+		v /= 10;
+		info->t[info->offset+1] = (v%10) + '0';
+		v /= 10;
+		info->t[info->offset+0] = (v%10) + '0';
+		info->offset += 3;
 		break;
 
 		// is it the week-day
@@ -2064,13 +2044,8 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		    }
 		  if (dtag == NO)
 		    {
-		      if (fmtlen == 1) // no format width specified; supply default
-			{
-			  fldfmt[fmtlen++] = '1';
-			  }
-		      fldfmt[fmtlen++] = 'd';
-		      fldfmt[fmtlen++] = 0;
-		      outputValueWithFormat(v, fldfmt, info);
+		      info->t[info->offset+0] = (v%10) + '0';
+		      info->offset += 1;
 		    }
 		}
 		break;
@@ -2091,40 +2066,31 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 			v = v % 12;
 		      }
 		  }
-		if (fmtlen == 1) // no format width specified; supply default
-		  {
-		    fldfmt[fmtlen++] = '0';
-		    fldfmt[fmtlen++] = '2';
-		  }
-		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
-		outputValueWithFormat(v, fldfmt, info);
+		Grow(info, 2);
+		info->t[info->offset+1] = (v%10) + '0';
+		v /= 10;
+		info->t[info->offset+0] = (v%10) + '0';
+		info->offset += 2;
 		break;
 
 		// is it the minute
 	      case 'M':
 		v = info->mnd;
-		if (fmtlen == 1) // no format width specified; supply default
-		  {
-		    fldfmt[fmtlen++] = '0';
-		    fldfmt[fmtlen++] = '2';
-		  }
-		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
-		outputValueWithFormat(v, fldfmt, info);
+		Grow(info, 2);
+		info->t[info->offset+1] = (v%10) + '0';
+		v /= 10;
+		info->t[info->offset+0] = (v%10) + '0';
+		info->offset += 2;
 		break;
 
 		// is it the second
 	      case 'S':
 		v = info->sd;
-		if (fmtlen == 1) // no format width specified; supply default
-		  {
-		    fldfmt[fmtlen++] = '0';
-		    fldfmt[fmtlen++] = '2';
-		  }
-		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
-		outputValueWithFormat(v, fldfmt, info);
+		Grow(info, 2);
+		info->t[info->offset+1] = (v%10) + '0';
+		v /= 10;
+		info->t[info->offset+0] = (v%10) + '0';
+		info->offset += 2;
 		break;
 
 		// Is it the am/pm indicator
@@ -2477,6 +2443,16 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
  */
 @implementation NSCalendarDate (OPENSTEP)
 
+/**
+ * <p>Returns a calendar date formed by adding the specified offsets to the
+ * receiver.  The offsets are added in order, years, then months, then
+ * days, then hours then minutes then seconds, so if you add 1 month and
+ * forty days to 20th September, the result will be 9th November.
+ * </p>
+ * <p>This method understands leap years and tries to adjust for daylight
+ * savings time changes so that it preserves expected clock time.
+ * </p>
+ */
 - (NSCalendarDate*) dateByAddingYears: (NSInteger)years
 			       months: (NSInteger)months
 				 days: (NSInteger)days
@@ -2592,9 +2568,9 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
    */
   s = GSTime(day, month, year, hour, minute, second, mil);
   s -= oldOffset;
-  c = [NSCalendarDateClass alloc];
-  c->_calendar_format = [_calendar_format copy];
-  c->_time_zone = [_time_zone copy];
+  c = [NSCalendarDate alloc];
+  c->_calendar_format = cformat;
+  c->_time_zone = RETAIN([self timeZone]);
   c->_seconds_since_ref = s;
 
   /*
@@ -2655,13 +2631,13 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
   /* FIXME What if the two dates are in different time zones?
     How about daylight savings time?
    */
-  if ([date isKindOfClass: NSCalendarDateClass])
+  if ([date isKindOfClass: [NSCalendarDate class]])
     {
       tmp = (NSCalendarDate*)RETAIN(date);
     }
   else if ([date isKindOfClass: [NSDate class]])
     {
-      tmp = [[NSCalendarDateClass alloc] initWithTimeIntervalSinceReferenceDate:
+      tmp = [[NSCalendarDate alloc] initWithTimeIntervalSinceReferenceDate:
 	[date timeIntervalSinceReferenceDate]];
     }
   else

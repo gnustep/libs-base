@@ -473,10 +473,11 @@ replacementForClass(Class c)
             }
 
           /*
-           * A setter must take three arguments (self, _cmd, value).
-           * The return value (if any) is ignored.
+           * A setter must take three arguments (self, _cmd, value)
+           * and return nothing.
            */
-          if ([sig numberOfArguments] != 3)
+          if (*[sig methodReturnType] != _C_VOID
+            || [sig numberOfArguments] != 3)
             {
               continue;	// Not a valid setter method.
             }

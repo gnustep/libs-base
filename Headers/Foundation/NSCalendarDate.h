@@ -80,18 +80,7 @@ extern "C" {
 - (NSInteger) secondOfMinute;
 - (NSInteger) yearOfCommonEra;
 
-/**
- * <p>Returns a calendar date formed by adding the specified offsets to the
- * receiver.  The offsets are added in order, years, then months, then
- * days, then hours then minutes then seconds, so if you add 1 month and
- * forty days to 20th September, the result will be 9th November.
- * </p>
- * <p>This method understands leap years and tries to adjust for daylight
- * savings time changes so that it preserves expected clock time.
- * </p>
- * <p>The returned date has the calendar format and timezone of the receiver.
- * </p>
- */
+// Providing Adjusted Dates
 - (NSCalendarDate*) addYear: (NSInteger)year
 		      month: (NSInteger)month
 			day: (NSInteger)day

@@ -409,14 +409,6 @@ static gnutls_anon_client_credentials_t anoncred;
               output: (GSSocketOutputStream*)o
 {
   NSString      *proto = [i propertyForKey: NSStreamSocketSecurityLevelKey];
-  BOOL		server = NO;
-
-/* FIXME
-  if ([[o propertyForKey: NSStreamSocketCertificateServerKey] boolValue] == YES)
-    {
-      server = YES;
-    }
- */
 
   if (GSDebugSet(@"NSStream") == YES)
     {
@@ -429,7 +421,6 @@ static gnutls_anon_client_credentials_t anoncred;
 
   if ([[o propertyForKey: NSStreamSocketSecurityLevelKey] isEqual: proto] == NO)
     {
-      NSLog(@"NSStreamSocketSecurityLevel on input stream does not match output stream");
       DESTROY(self);
       return nil;
     }
@@ -442,7 +433,7 @@ static gnutls_anon_client_credentials_t anoncred;
   else if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv2] == YES)
     {
       proto = NSStreamSocketSecurityLevelSSLv2;
-      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
+      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv1 is insecure ..."
         @" not implemented");
       DESTROY(self);
       return nil;
@@ -479,15 +470,7 @@ static gnutls_anon_client_credentials_t anoncred;
 
   /* Initialise session and set default priorities foir key exchange.
    */
-  if (server)
-    {
-      gnutls_init (&session, GNUTLS_SERVER);
-      /* FIXME ... need to set up DH information and key/certificate. */
-    }
-  else
-    {
-      gnutls_init (&session, GNUTLS_CLIENT);
-    }
+  gnutls_init (&session, GNUTLS_CLIENT);
   gnutls_set_default_priority (session);
 
   if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)

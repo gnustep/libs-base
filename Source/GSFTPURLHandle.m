@@ -485,7 +485,6 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
   NSFileHandle          *dHandle;
   NSURL                 *url;
   NSData		*wData;
-  NSString		*term;
   enum {
     idle,
     cConnect,		// Establishing control connection
@@ -554,7 +553,6 @@ static NSLock			*urlLock = nil;
     }
   RELEASE(url);
   RELEASE(wData);
-  RELEASE(term);
   [super dealloc];
 }
 
@@ -600,46 +598,14 @@ static NSLock			*urlLock = nil;
 
       text = [info objectForKey: GSTelnetTextKey];
 // NSLog(@"Ctl: %@", text);
-      /* Find first reply line which is not a continuation of another.
+      /*
+       * Find first reply line which is not a continuation of another.
        */
       enumerator = [text objectEnumerator];
       while ((line = [enumerator nextObject]) != nil)
 	{
-	  if (term == nil)
+	  if ([line length] > 4 && [line characterAtIndex: 3] != '-')
 	    {
-	      if ([line length] > 4)
-		{
-		  char	buf[4];	
-
-		  buf[0] = (char)[line characterAtIndex: 0];
-		  buf[1] = (char)[line characterAtIndex: 1];
-		  buf[2] = (char)[line characterAtIndex: 2];
-		  buf[3] = (char)[line characterAtIndex: 3];
-		  if (isdigit(buf[0]) && isdigit(buf[1]) && isdigit(buf[2]))
-		    {
-		      if (buf[3] == '-')
-			{
-			  /* Got start of a multiline block ...
-			   * set the terminator we need to look for.
-			   */
-			  buf[3] = ' ';
-			  term = [[NSString alloc]
-			    initWithCString: buf length: 4];
-			}
-		      else if (buf[3] == ' ')
-			{
-			  /* Found single line response.
-			   */
-			  break;
-			}
-		    }
-		}
-	    }
-	  else if ([line hasPrefix: term] == YES)
-	    {
-	      /* Found end of a multiline response.
-	       */
-	      DESTROY(term);
 	      break;
 	    }
 	}

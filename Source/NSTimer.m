@@ -40,16 +40,12 @@
 static Class	NSDate_class;
 
 /**
- * <p>An <code>NSTimer</code> provides a way to send a message at some time in
+ * An <code>NSTimer</code> provides a way to send a message at some time in
  * the future, possibly repeating every time a fixed interval has passed. To
  * use a timer, you can either create one that will automatically be added to
  * the run loop in the current thread (using the -addTimer:forMode: method),
  * or you can create it without adding it then add it to an [NSRunLoop]
  * explicitly later.
- * </p>
- * <p>NB. You may not use -init or +new to create a timer, as the timer must
- * be properly initialised to send an action after some interval.
- * </p>
  */
 @implementation NSTimer
 
@@ -59,14 +55,6 @@ static Class	NSDate_class;
     {
       NSDate_class = [NSGDate class];
     }
-}
-
-/* For MacOS-X compatibility, this returns nil.
- */
-- (id) init
-{
-  [self release];
-  return nil;
 }
 
 /**

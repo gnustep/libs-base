@@ -872,11 +872,7 @@ again:
 	}
       else if ((errno = GetLastError()) != ERROR_IO_PENDING)
 	{
-	  /* This is probably an end of file
-	   * eg. when the process at the other end has terminated.
-	   */
-	  NSDebugMLog(@"NSMessagePort",
-	    @"unable to write to mailslot '%@' - %@",
+	  NSLog(@"unable to write to mailslot '%@' - %@",
 	    this->name, [NSError _last]);
 	  [self invalidate];
 	}

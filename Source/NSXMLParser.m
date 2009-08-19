@@ -50,7 +50,7 @@ static  NSNull  *null = nil;
 @interface      GSSloppyXMLParser : NSXMLParser
 @end
 
-#include <GNUstepBase/GSXML.h>
+#include <Additions/GNUstepBase/GSXML.h>
 
 @interface	NSXMLSAXHandler : GSSAXHandler
 {
@@ -1235,7 +1235,6 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
           case '\n': 
             this->line++;
             this->column = 0;
-	    break;
 
           case EOF: 
           case '<': 
@@ -1504,7 +1503,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
             }
         }
     }
-  return [self _parseError: @"aborted"
+  return [self _parseError: @"this->aborted"
     code: NSXMLParserDelegateAbortedParseError];
 }
 

@@ -112,7 +112,7 @@ NSZoneFromPointer (void *ptr);
  * given zone.  Returns NULL if allocation of size 0 requested.  Raises
  * <code>NSMallocException</code> if not enough free memory in zone to
  * allocate and no more can be obtained from system, unless using the
- * default zone, in which case NULL is returned.<br />
+ * default zone, in which case NULL is returned.<br \>
  * If Garbage Collection is enabled, this function always allocates
  * non-scanned, non-collectable memory in the NSDefaultMallocZone() and
  * the zone argument is ignored.

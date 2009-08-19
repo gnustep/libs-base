@@ -1215,8 +1215,8 @@ static NSString		*mainFont = nil;
 		  if (url == nil)
 		    {
 		      [buf appendString: @"<dt>"];
-		      [buf appendString: [[[author attributes]
-			objectForKey: @"name"] stringByEscapingXML]];
+		      [buf appendString: [[author attributes]
+			objectForKey: @"name"]];
 		    }
 		  else
 		    {
@@ -1224,8 +1224,8 @@ static NSString		*mainFont = nil;
 		      [buf appendString: [[url attributes]
 			objectForKey: @"url"]];
 		      [buf appendString: @"\">"];
-		      [buf appendString: [[[author attributes]
-			objectForKey: @"name"] stringByEscapingXML]];
+		      [buf appendString: [[author attributes]
+			objectForKey: @"name"]];
 		      [buf appendString: @"</a>"];
 		    }
 		  if (email != nil)
@@ -2209,14 +2209,14 @@ static NSString		*mainFont = nil;
             }
           [buf appendString: indent];
           [buf appendString: @"<dt>"];
-          [buf appendString: [[dProp objectForKey: @"key"] stringByEscapingXML]];
+          [buf appendString: [dProp objectForKey: @"key"]];
           [buf appendString: @" = </dt>\n"];
 	  [buf appendString: indent];
           [buf appendString: @"<dd>\n"];
           [self incIndent];
           if (value != nil)
             {
-              [buf appendString: [value stringByEscapingXML]];
+              [buf appendString: value];
             }
           else
             {

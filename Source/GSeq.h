@@ -379,12 +379,13 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
   GSEQ_ST	s = (GSEQ_ST)ss;
   GSEQ_OT	o = (GSEQ_OT)os;
   unsigned	oLength;			/* Length of other.	*/
+  unsigned	sLength = GSEQ_SLEN;
 
 #if	0
   /* Range should be checked in calling code */
-  if (aRange.location > GSEQ_SLEN)
+  if (aRange.location > sLength)
     [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > (GSEQ_SLEN - aRange.location))
+  if (aRange.length > (sLength - aRange.location))
     [NSException raise: NSRangeException format: @"Invalid location+length."];
 #endif
 
@@ -461,13 +462,8 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	{
 	  for (i = 0; i < end; i++)
 	    {
-#if	GSEQ_O == GSEQ_CS && GSEQ_S == GSEQ_CS
-	      char	c1 = tolower(sBuf[i]);
-	      char	c2 = tolower(oBuf[i]);
-#else
 	      unichar	c1 = uni_tolower((unichar)sBuf[i]);
 	      unichar	c2 = uni_tolower((unichar)oBuf[i]);
-#endif
 
 	      if (c1 < c2)
 		return NSOrderedAscending;
@@ -479,17 +475,10 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	{
 	  for (i = 0; i < end; i++)
 	    {
-#if	GSEQ_O == GSEQ_CS && GSEQ_S == GSEQ_CS
-	      if (sBuf[i] < oBuf[i])
-		return NSOrderedAscending;
-	      if (sBuf[i] > oBuf[i])
-		return NSOrderedDescending;
-#else
 	      if ((unichar)sBuf[i] < (unichar)oBuf[i])
 		return NSOrderedAscending;
 	      if ((unichar)sBuf[i] > (unichar)oBuf[i])
 		return NSOrderedDescending;
-#endif
 	    }
 	}
       if (sLen > oLen)
@@ -503,7 +492,6 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
     {
       unsigned		start = aRange.location;
       unsigned		end = start + aRange.length;
-      unsigned		sLength = GSEQ_SLEN;
       unsigned		sCount = start;
       unsigned		oCount = 0;
       NSComparisonResult result;

@@ -10,8 +10,6 @@
 */
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSConnection.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotification.h>
@@ -477,8 +475,6 @@ int main(int argc, char *argv[], char **env)
   id l;
   id o = [[NSObject alloc] init];
   NSConnection *c;
-  NSPortNameServer *ns;
-  NSPort *port;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 #ifndef __MINGW32__
   extern int optind;
@@ -491,7 +487,7 @@ int main(int argc, char *argv[], char **env)
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
   debug = 0;
   timeout = 0;
-  while ((i = wgetopt(argc, argv, "hdt:")) != EOF)
+  while ((i = getopt(argc, argv, "hdt:")) != EOF)
     switch (i)
       {
       case 'd':
@@ -522,16 +518,13 @@ int main(int argc, char *argv[], char **env)
       [NSConnection setDebug: debug];
       [NSObject enableDoubleReleaseCheck: YES];
     }
-  ns = [NSSocketPortNameServer sharedInstance];
-  port = [NSSocketPort port];
-  c = [NSConnection connectionWithReceivePort: port sendPort: port];
+  c = [NSConnection defaultConnection];
   [c setRootObject: l];
 
   if (optind < argc)
-    [c registerName: [NSString stringWithUTF8String: argv[optind]]
-      withNameServer: ns];
+    [c registerName: [NSString stringWithUTF8String: argv[optind]]];
   else
-    [c registerName: @"test2server" withNameServer: ns];
+    [c registerName: @"test2server"];
 
   [[NSNotificationCenter defaultCenter]
     addObserver: s

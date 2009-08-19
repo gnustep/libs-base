@@ -37,7 +37,6 @@
 #import "Foundation/NSEnumerator.h"
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
-#import "Foundation/NSDebug.h"
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -1905,7 +1904,6 @@ static void retDecoder(DOContext *ctxt)
     }
 }
 
-#if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
 static void retEncoder (DOContext *ctxt)
 {
   switch (*ctxt->type)
@@ -1930,7 +1928,6 @@ static void retEncoder (DOContext *ctxt)
       [ctxt->encoder encodeValueOfObjCType: ctxt->type at: ctxt->datum];
     }
 }
-#endif
 
 /*
  * NSDistantObject's -forward:: method calls this to send the message
@@ -1940,7 +1937,6 @@ static void retEncoder (DOContext *ctxt)
 		    selector: (SEL)sel
                     argFrame: (arglist_t)argframe
 {
-#if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
   BOOL		outParams;
   BOOL		needsResponse;
   const char	*type;
@@ -2075,14 +2071,6 @@ static void retEncoder (DOContext *ctxt)
       NSAssert(ctxt.decoder == nil, NSInternalInconsistencyException);
     }
   return retframe;
-#else
-  /* If we've got to here then something has gone badly wrong.  Most likely a
-   * mismatch between NSDistantObject and NSConnection implementations.
-   */
-  NSAssert(NO, @"Legacy forwardForProxy:selector:argFrame: method called when"
-                " compiled with fcall/ffi."); 
-  return 0; // Not reached.
-#endif //!defined(USE_FFCALL) && !defined(USE_LIBFFI)
 }
 
 /*
@@ -2882,14 +2870,8 @@ static void callEncoder (DOContext *ctxt)
   NSTimeInterval	last_interval = 0.0001;
   NSTimeInterval	delay_interval = last_interval;
   NSDate		*delay_date = nil;
-  NSRunLoop		*runLoop;
+  NSRunLoop		*runLoop = GSRunLoopForThread(nil);
   BOOL			isLocked = NO;
-
-  if (_isValid == NO)
-    {
-      [NSException raise: NSObjectInaccessibleException
-		  format: @"Connection has been invalidated"];
-    }
 
   /*
    * If we have sent out a request on a run loop that we don't already
@@ -2897,7 +2879,6 @@ static void callEncoder (DOContext *ctxt)
    * enabled, we must add the run loop of the new thread so that we can
    * get the reply in this thread.
    */
-  runLoop = GSRunLoopForThread(nil);
   if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
     {
       if (_multipleThreads == YES)

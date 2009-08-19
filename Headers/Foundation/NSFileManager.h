@@ -190,10 +190,6 @@ extern "C" {
 @class NSDirectoryEnumerator;
 @class NSError;
 
-/* MacOS-X defines OSType as a 32bit unsigned integer.
- */
-typedef	uint32_t	OSType;
-
 @interface NSFileManager : NSObject
 {
   NSString	*_lastError;
@@ -225,17 +221,6 @@ typedef	uint32_t	OSType;
 - (NSString*) currentDirectoryPath;
 - (NSArray*) directoryContentsAtPath: (NSString*)path;
 - (NSString*) displayNameAtPath: (NSString*)path;
-/**
- * <p>Returns an enumerator which can be used to return each item with
- * the directory at path in turn.
- * </p>
- * <p>The enumeration is recursive ... following all nested subdirectories.
- * </p>
- * <p>The order in which directory contents are enumerated is undefined,
- * and in the current implementation the natural order of the underlying
- * filesystem is used.
- * </p>
- */
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path
 			  traverseLink: (BOOL)flag;
@@ -346,19 +331,6 @@ typedef	uint32_t	OSType;
 @end
 
 
-/**
- *  <p>This is a subclass of <code>NSEnumerator</code> which provides a full
- *  listing of all the files beneath a directory and its subdirectories.
- *  Instances can be obtained through [NSFileManager-enumeratorAtPath:].
- *  </p>
- *
- *  <p>This implementation is optimized and performance should be comparable
- *  to the speed of standard Unix tools for large directories.</p>
- *
- *  <p>The order in which directory contents are enumerated is undefined,
- *  and in the current implementation the natural order of the underlying
- *  filesystem is used.</p>
- */
 @interface NSDirectoryEnumerator : NSEnumerator
 {
 @private
@@ -482,15 +454,15 @@ GS_EXPORT NSString* const NSFileSystemFreeNodes;
 @interface NSDictionary(NSFileAttributes)
 - (NSDate*) fileCreationDate;
 - (BOOL) fileExtensionHidden;
-- (OSType) fileHFSCreatorCode;
-- (OSType) fileHFSTypeCode;
+- (int) fileHFSCreatorCode;
+- (int) fileHFSTypeCode;
 - (BOOL) fileIsAppendOnly;
 - (BOOL) fileIsImmutable;
 - (unsigned long long) fileSize;
 - (NSString*) fileType;
-- (NSNumber*) fileOwnerAccountID;
+- (unsigned long) fileOwnerAccountID;
 - (NSString*) fileOwnerAccountName;
-- (NSNumber*) fileGroupOwnerAccountID;
+- (unsigned long) fileGroupOwnerAccountID;
 - (NSString*) fileGroupOwnerAccountName;
 - (NSDate*) fileModificationDate;
 - (NSUInteger) filePosixPermissions;

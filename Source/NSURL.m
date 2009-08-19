@@ -46,7 +46,6 @@ function may be incorrect
 #import "Foundation/NSLock.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSObject.h"
-#import "Foundation/NSPortCoder.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSURL.h"
@@ -1412,7 +1411,6 @@ static unsigned	urlAlign;
       unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
 	+ strlen(myData->path) + 3;
       char		buf[len];
-      char		*ptr = buf;
       char		*tmp = buf;
 
       if (myData->pathIsAbsolute == YES)
@@ -1458,29 +1456,7 @@ static unsigned	urlAlign;
 	{
 	  *tmp = '\0';
 	}
-
-#if	defined(__MINGW32__)
-      /* On windows a file URL path may be of the form C:\xxx (ie we should
-       * not insert the leading slash).
-       * Also the vertical bar symbol may have been used instead of the
-       * colon, so we need to convert that.
-       */
-      if (myData->isFile == YES)
-	{
-          if (ptr[1] && isalpha(ptr[1]))
-	    {
-	      if (ptr[2] == ':' || ptr[2] == '|')
-		{
-		  if (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\')
-		    {
-		      ptr[2] = ':';
-		      ptr++;
-		    }
-		}
-	    }
-	}
-#endif
-      path = [NSString stringWithUTF8String: ptr];
+      path = [NSString stringWithUTF8String: buf];
     }
   return path;
 }
@@ -1557,15 +1533,6 @@ static unsigned	urlAlign;
 - (NSString*) relativeString
 {
   return _urlString;
-}
-
-/* Encode bycopy unless explicitly requested otherwise.
- */
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
-{
-  if ([aCoder isByref] == NO)
-    return self;
-  return [super replacementObjectForPortCoder: aCoder];
 }
 
 /**

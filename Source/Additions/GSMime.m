@@ -716,6 +716,164 @@ wordData(NSString *word)
   return AUTORELEASE([[self alloc] init]);
 }
 
+/*
+ * Examine xml data to find out the characterset needed to convert from
+ * binary data to an NSString object.
+ */
++ (NSString*) charsetForXml: (NSData*)xml
+{
+  unsigned int		length = [xml length];
+  const unsigned char	*ptr = (const unsigned char*)[xml bytes];
+  const unsigned char	*end = ptr + length;
+  unsigned int		offset = 0;
+  unsigned int		size = 1;
+  unsigned char		quote = 0;
+  unsigned char		buffer[30];
+  unsigned int		buflen = 0;
+  BOOL			found = NO;
+
+  if (length < 4)
+    {
+      // Not long enough to determine an encoding
+      return nil;
+    }
+
+  /*
+   * Determine encoding using byte-order-mark if present
+   */
+  if ((ptr[0] == 0xFE && ptr[1] == 0xFF)
+    || (ptr[0] == 0xFF && ptr[1] == 0xFE))
+    {
+      return @"utf-16";
+    }
+  if (ptr[0] == 0xEF && ptr[1] == 0xBB && ptr[2] == 0xBF)
+    {
+      return @"utf-8";
+    }
+  if ((ptr[0] == 0x00 && ptr[1] == 0x00)
+    && ((ptr[2] == 0xFE && ptr[3] == 0xFF)
+      || (ptr[2] == 0xFF && ptr[3] == 0xFE)))
+    {
+      return @"ucs-4";
+    }
+
+  /*
+   * Look for nul bytes to determine whether this is a four byte
+   * encoding or a two byte encoding (or the default).
+   */
+  if (ptr[0] == 0 && ptr[1] == 0 && ptr[2] == 0)
+    {
+      offset = 3;
+      size = 4;
+    }
+  else if (ptr[0] == 0 && ptr[1] == 0 && ptr[3] == 0)
+    {
+      offset = 2;
+      size = 4;
+    }
+  else if (ptr[0] == 0 && ptr[2] == 0 && ptr[3] == 0)
+    {
+      offset = 1;
+      size = 4;
+    }
+  else if (ptr[1] == 0 && ptr[2] == 0 && ptr[3] == 0)
+    {
+      offset = 0;
+      size = 4;
+    }
+  else if (ptr[0] == 0)
+    {
+      offset = 1;
+      size = 2;
+    }
+  else if (ptr[1] == 0)
+    {
+      offset = 0;
+      size = 2;
+    }
+
+  /*
+   * Now look for the xml encoding declaration ... 
+   */
+
+  // Tolerate leading whitespace
+  while (ptr + size <= end && isspace(ptr[offset])) ptr += size;
+
+  if (ptr + (size * 20) >= end || ptr[offset] != '<' || ptr[offset+size] != '?')
+    {
+      if (size == 1)
+	{
+	  return @"utf-8";
+	}
+      else if (size == 2)
+	{
+	  return @"utf-16";
+	}
+      else
+	{
+	  return @"ucs-4";
+	}
+    }
+  ptr += size * 5;	// Step past '<?xml' prefix
+
+  while (ptr + size <= end)
+    {
+      unsigned char	c = ptr[offset];
+
+      ptr += size;
+      if (quote == 0)
+	{
+	  if (c == '\'' || c == '"')
+	    {
+	      buflen = 0;
+	      quote = c;
+	    }
+	  else
+	    {
+	      if (isspace(c) || c == '=')
+		{
+		  if (buflen == 8)
+		    {
+		      buffer[8] = '\0';
+		      if (strcasecmp((char*)buffer, "encoding") == 0)
+			{
+			  found = YES;
+			}
+		    }
+		  buflen = 0;
+		}
+	      else
+		{
+		  if (buflen == sizeof(buffer)) buflen = 0;
+		  buffer[buflen++] = c;
+		}
+	    }
+	}
+      else if (c == quote)
+	{
+	  if (found == YES)
+	    {
+	      NSString		*tmp;
+
+	      tmp = [[NSString alloc] initWithBytes: buffer
+		length: buflen
+		encoding: NSASCIIStringEncoding];
+	      IF_NO_GC([tmp autorelease];)
+	      return [tmp lowercaseString];
+	    }
+	  buflen = 0;
+	  quote = 0;	// End of quoted section
+	}
+      else
+	{
+	  if (buflen == sizeof(buffer)) buflen = 0;
+	  buffer[buflen++] = c;
+	}
+    }
+
+  return @"utf-8";
+}
+
 /**
  * Return a coding context object to be used for decoding data
  * according to the scheme specified in the header.
@@ -1709,22 +1867,22 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
       if ([scanner scanInt: &major] == NO || major < 0)
 	{
-	  NSLog(@"Bad value for http major version in %@", [scanner string]);
+	  NSLog(@"Bad value for http major version");
 	  return NO;
 	}
       if ([scanner scanString: @"." intoString: 0] == NO)
 	{
-	  NSLog(@"Bad format for http version in %@", [scanner string]);
+	  NSLog(@"Bad format for http version");
 	  return NO;
 	}
       if ([scanner scanInt: &minor] == NO || minor < 0)
 	{
-	  NSLog(@"Bad value for http minor version in %@", [scanner string]);
+	  NSLog(@"Bad value for http minor version");
 	  return NO;
 	}
       if ([scanner scanInt: &status] == NO || status < 0)
 	{
-	  NSLog(@"Bad value for http status in %@", [scanner string]);
+	  NSLog(@"Bad value for http status");
 	  return NO;
 	}
       [info setObject: [NSStringClass stringWithFormat: @"%d", minor]
@@ -1761,8 +1919,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       value = [self scanToken: scanner];
       if ([value length] == 0)
 	{
-	  NSLog(@"Bad value for content-transfer-encoding header in %@",
-	    [scanner string]);
+	  NSLog(@"Bad value for content-transfer-encoding header");
 	  return NO;
 	}
       value = [value lowercaseString];
@@ -1775,7 +1932,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       type = [self scanName: scanner];
       if ([type length] == 0)
 	{
-	  NSLog(@"Invalid Mime content-type in %@", [scanner string]);
+	  NSLog(@"Invalid Mime content-type");
 	  return NO;
 	}
       type = [type lowercaseString];
@@ -1785,8 +1942,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  subtype = [self scanName: scanner];
 	  if ([subtype length] == 0)
 	    {
-	      NSLog(@"Invalid Mime content-type (subtype) in %@",
-		[scanner string]);
+	      NSLog(@"Invalid Mime content-type (subtype)");
 	      return NO;
 	    }
 	  subtype = [subtype lowercaseString];
@@ -2679,7 +2835,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       */
 	      lineStart += bLength;
 	      sectionStart = lineStart;
-	      memmove(bytes, &bytes[sectionStart], dataEnd - sectionStart);
+	      memcpy(bytes, &bytes[sectionStart], dataEnd - sectionStart);
 	      dataEnd -= sectionStart;
 	      [data setLength: dataEnd];
 	      bytes = (unsigned char*)[data mutableBytes];
@@ -2745,7 +2901,6 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	        {
 		  unsigned	diff = input - lineEnd;
 
-		  bytes[input] = ' ';
 		  memmove(&bytes[lineStart + diff], &bytes[lineStart], length);
 		  lineStart += diff;
 		  lineEnd += diff;
@@ -2772,7 +2927,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  lengthRemaining = dataEnd - input;
 	  if (lengthRemaining > 0)
 	    {
-	      memmove(bytes, &bytes[input], lengthRemaining);
+	      memcpy(bytes, &bytes[input], lengthRemaining);
 	    }
 	  dataEnd = lengthRemaining;
 	  [data setLength: lengthRemaining];
@@ -3192,7 +3347,7 @@ appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
        * If we already have space at the end of the line,
        * we remove it because the wrapping counts as a space.
        */
-      if (len > 0 && isspace(((unsigned char*)[m bytes])[len - 1]))
+      if (len > 0 && ((unsigned char*)[m bytes])[len - 1] == ' ')
         {
           [m setLength: --len];
         }
@@ -3548,164 +3703,6 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  * </p>
  */
 @implementation	GSMimeDocument
-
-/*
- * Examine xml data to find out the characterset needed to convert from
- * binary data to an NSString object.
- */
-+ (NSString*) charsetForXml: (NSData*)xml
-{
-  unsigned int		length = [xml length];
-  const unsigned char	*ptr = (const unsigned char*)[xml bytes];
-  const unsigned char	*end = ptr + length;
-  unsigned int		offset = 0;
-  unsigned int		size = 1;
-  unsigned char		quote = 0;
-  unsigned char		buffer[30];
-  unsigned int		buflen = 0;
-  BOOL			found = NO;
-
-  if (length < 4)
-    {
-      // Not long enough to determine an encoding
-      return nil;
-    }
-
-  /*
-   * Determine encoding using byte-order-mark if present
-   */
-  if ((ptr[0] == 0xFE && ptr[1] == 0xFF)
-    || (ptr[0] == 0xFF && ptr[1] == 0xFE))
-    {
-      return @"utf-16";
-    }
-  if (ptr[0] == 0xEF && ptr[1] == 0xBB && ptr[2] == 0xBF)
-    {
-      return @"utf-8";
-    }
-  if ((ptr[0] == 0x00 && ptr[1] == 0x00)
-    && ((ptr[2] == 0xFE && ptr[3] == 0xFF)
-      || (ptr[2] == 0xFF && ptr[3] == 0xFE)))
-    {
-      return @"ucs-4";
-    }
-
-  /*
-   * Look for nul bytes to determine whether this is a four byte
-   * encoding or a two byte encoding (or the default).
-   */
-  if (ptr[0] == 0 && ptr[1] == 0 && ptr[2] == 0)
-    {
-      offset = 3;
-      size = 4;
-    }
-  else if (ptr[0] == 0 && ptr[1] == 0 && ptr[3] == 0)
-    {
-      offset = 2;
-      size = 4;
-    }
-  else if (ptr[0] == 0 && ptr[2] == 0 && ptr[3] == 0)
-    {
-      offset = 1;
-      size = 4;
-    }
-  else if (ptr[1] == 0 && ptr[2] == 0 && ptr[3] == 0)
-    {
-      offset = 0;
-      size = 4;
-    }
-  else if (ptr[0] == 0)
-    {
-      offset = 1;
-      size = 2;
-    }
-  else if (ptr[1] == 0)
-    {
-      offset = 0;
-      size = 2;
-    }
-
-  /*
-   * Now look for the xml encoding declaration ... 
-   */
-
-  // Tolerate leading whitespace
-  while (ptr + size <= end && isspace(ptr[offset])) ptr += size;
-
-  if (ptr + (size * 20) >= end || ptr[offset] != '<' || ptr[offset+size] != '?')
-    {
-      if (size == 1)
-	{
-	  return @"utf-8";
-	}
-      else if (size == 2)
-	{
-	  return @"utf-16";
-	}
-      else
-	{
-	  return @"ucs-4";
-	}
-    }
-  ptr += size * 5;	// Step past '<?xml' prefix
-
-  while (ptr + size <= end)
-    {
-      unsigned char	c = ptr[offset];
-
-      ptr += size;
-      if (quote == 0)
-	{
-	  if (c == '\'' || c == '"')
-	    {
-	      buflen = 0;
-	      quote = c;
-	    }
-	  else
-	    {
-	      if (isspace(c) || c == '=')
-		{
-		  if (buflen == 8)
-		    {
-		      buffer[8] = '\0';
-		      if (strcasecmp((char*)buffer, "encoding") == 0)
-			{
-			  found = YES;
-			}
-		    }
-		  buflen = 0;
-		}
-	      else
-		{
-		  if (buflen == sizeof(buffer)) buflen = 0;
-		  buffer[buflen++] = c;
-		}
-	    }
-	}
-      else if (c == quote)
-	{
-	  if (found == YES)
-	    {
-	      NSString		*tmp;
-
-	      tmp = [[NSString alloc] initWithBytes: buffer
-		length: buflen
-		encoding: NSASCIIStringEncoding];
-	      IF_NO_GC([tmp autorelease];)
-	      return [tmp lowercaseString];
-	    }
-	  buflen = 0;
-	  quote = 0;	// End of quoted section
-	}
-      else
-	{
-	  if (buflen == sizeof(buffer)) buflen = 0;
-	  buffer[buflen++] = c;
-	}
-    }
-
-  return @"utf-8";
-}
 
 /**
  * Return the MIME characterset name corresponding to the

@@ -47,12 +47,12 @@ enum {
 /**
  * Describes the mutability to use when generating objects during
  * deserialisation of a property list.
- * <list>
- * <item><strong>NSPropertyListImmutable</strong>
- * all objects in created list are immutable</item>
- * <item><strong>NSPropertyListMutableContainers</strong>
- * dictionaries, arrays, strings and data objects are mutable</item>
- * </list>
+ * <example>
+ * <strong>NSPropertyListImmutable</strong>
+ * all objects in created list are immutable
+ * <strong>NSPropertyListMutableContainers</strong>
+ * dictionaries, arrays, strings and data objects are mutable
+ * </example>
  */
 typedef NSUInteger NSPropertyListMutabilityOptions;
 
@@ -66,18 +66,18 @@ enum {
 };
 /**
  * Specifies the serialisation format for a serialised property list.
- * <list>
- * <item><strong>NSPropertyListOpenStepFormat</strong>
- * the most human-readable format</item>
- * <item><strong>NSPropertyListXMLFormat_v1_0</strong>
- * portable and readable</item>
- * <item><strong>NSPropertyListBinaryFormat_v1_0</strong>
- * the standard format on macos-x</item>
- * <item><strong>NSPropertyListGNUstepFormat</strong>
- * extension of OpenStep format</item>
- * <item><strong>NSPropertyListGNUstepBinaryFormat</strong>
- * efficient, hardware independent</item>
- * </list>
+ * <example>
+ * <strong>NSPropertyListOpenStepFormat</strong>
+ * the most human-readable format
+ * <strong>NSPropertyListXMLFormat_v1_0</strong>
+ * portable and readable
+ * <strong>NSPropertyListBinaryFormat_v1_0</strong>
+ * the standard format on macos-x
+ * <strong>NSPropertyListGNUstepFormat</strong>
+ * extension of OpenStep format
+ * <strong>NSPropertyListGNUstepBinaryFormat</strong>
+ * efficient, hardware independent
+ * </example>
  */
 typedef NSUInteger NSPropertyListFormat;
 

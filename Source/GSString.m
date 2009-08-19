@@ -2094,13 +2094,13 @@ isEqual_c(GSStr self, id anObject)
   if (c == NSConstantStringClass)
     {
       GSStr	other = (GSStr)anObject;
+      NSRange	r = {0, self->_count};
 
-      if (other->_count == self->_count
-	&& memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
+      if (strCompCsCs((id)self, (id)other, 0, r) == NSOrderedSame)
 	return YES;
       return NO;
     }
-  else if (c == GSMutableStringClass)
+  else if (GSObjCIsKindOf(c, GSStringClass) == YES || c == GSMutableStringClass)
     {
       GSStr	other = (GSStr)anObject;
       NSRange	r = {0, self->_count};
@@ -2125,30 +2125,9 @@ isEqual_c(GSStr self, id anObject)
 	}
       else
 	{
-	  if (other->_count == self->_count
-	    && memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
+	  if (strCompCsCs((id)self, (id)other, 0, r) == NSOrderedSame)
 	    return YES;
 	}
-      return NO;
-    }
-  else if (GSObjCIsKindOf(c, GSStringClass) == YES)
-    {
-      GSStr	other = (GSStr)anObject;
-
-      /*
-       * First see if the hash is the same - if not, we can't be equal.
-       */
-      if (self->_flags.hash == 0)
-        self->_flags.hash = (*hashImp)((id)self, hashSel);
-      if (other->_flags.hash == 0)
-        other->_flags.hash = (*hashImp)((id)other, hashSel);
-      if (self->_flags.hash != other->_flags.hash)
-	return NO;
-
-      if (other->_count == self->_count
-	&& memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
-	return YES;
-
       return NO;
     }
   else if (GSObjCIsKindOf(c, NSStringClass))
@@ -5074,33 +5053,23 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
   if (len > 0)
     {
-      register const unsigned char	*p;
-      register unsigned			index = 0;
+      const unsigned char	*p;
+      unsigned			char_count = 0;
 
       p = _self->_contents.c;
-      if (internalEncoding == NSISOLatin1StringEncoding)
+      while (char_count++ < len)
 	{
-	  while (index < len)
-	    {
-	      ret = (ret << 5) + ret + p[index++];
-	    }
-	}
-      else
-	{
-	  while (index < len)
-	    {
-	      unichar	u = p[index++];
+	  unichar	u = *p++;
 
-	      if (u > 127)
-		{
-		  unsigned char	c = (unsigned char)u;
-		  unsigned int	s = 1;
-		  unichar	*d = &u;
+          if (u > 127 && internalEncoding != NSISOLatin1StringEncoding)
+	    {
+	      unsigned char	c = (unsigned char)u;
+	      unsigned int	s = 1;
+	      unichar		*d = &u;
 
-		  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
-		}
-	      ret = (ret << 5) + ret + u;
+	      GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
 	    }
+	  ret = (ret << 5) + ret + u;
 	}
 
       /*

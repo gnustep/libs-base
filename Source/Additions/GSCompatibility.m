@@ -349,23 +349,23 @@ static NSMutableSet	*_debug_set = nil;
 BOOL GSDebugSet(NSString *level)
 // From GNUStep's
 {
-  static IMP debugImp = 0;
-  static SEL debugSel;
+    static IMP debugImp = 0;
+    static SEL debugSel;
 
-  if (debugImp == 0)
+    if (debugImp == 0)
     {
-      debugSel = @selector(member:);
-      if (_debug_set == nil)
-	{
-	  [[NSProcessInfo processInfo] debugSet];
-	}
-      debugImp = [_debug_set methodForSelector: debugSel];
+        debugSel = @selector(member:);
+        if (_debug_set == nil)
+        {
+            [[NSProcessInfo processInfo] debugSet];
+        }
+        debugImp = [_debug_set methodForSelector: debugSel];
     }
-  if ((*debugImp)(_debug_set, debugSel, level) == nil)
+    if ((*debugImp)(_debug_set, debugSel, level) == nil)
     {
-      return NO;
+        return NO;
     }
-  return YES;
+    return YES;
 }
 
 - (NSMutableSet *) debugSet
@@ -373,9 +373,9 @@ BOOL GSDebugSet(NSString *level)
 {
   if (_debug_set == nil)
     {
-      int		argc = [[self arguments] count];
+      int				argc = [[self arguments] count];
       NSMutableSet	*mySet;
-      int		i;
+      int				i;
 
       mySet = [NSMutableSet new];
       for (i = 0; i < argc; i++)
@@ -394,30 +394,24 @@ BOOL GSDebugSet(NSString *level)
 
 @implementation NSString(GSCompatibility)
 
-#ifndef MAC_OS_X_VERSION_10_5
+// From GNUStep
 /**
- * Returns YES when scanning the receiver's text from left to right finds a
- * digit in the range 1-9 or a letter in the set ('Y', 'y', 'T', 't').<br />
- * Any trailing characters are ignored.<br />
- * Any leading whitespace or zeros or signs are also ignored.<br />
- * Returns NO if the above conditions are not met.
+ * If the string consists of the words 'true' or 'yes' (case insensitive)
+ * or begins with a non-zero numeric value, return YES, otherwise return
+ * NO.
  */
 - (BOOL) boolValue
 {
-  static NSCharacterSet *yes = nil;
-
-  if (yes == nil)
+  if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
     {
-      yes = RETAIN([NSCharacterSet characterSetWithCharactersInString:
-      @"123456789yYtT"]);
+        return YES;
     }
-  if ([self rangeOfCharacterFromSet: yes].length > 0)
+  if ([self caseInsensitiveCompare: @"true"] == NSOrderedSame)
     {
-      return YES;
+        return YES;
     }
-  return NO;
+  return [self intValue] != 0 ? YES : NO;
 }
-#endif
 
 - (NSString*) substringFromRange:(NSRange)range
 {

@@ -660,7 +660,82 @@ _arg_addr(NSInvocation *inv, int index)
  */
 - (void) invokeWithTarget: (id)anObject
 {
-  [self subclassResponsibility: _cmd];
+  id		old_target;
+  retval_t	returned;
+  IMP		imp;
+  int		stack_argsize;
+
+
+  CLEAR_RETURN_VALUE_IF_OBJECT;
+  _validReturn = NO;
+
+  /*
+   *	A message to a nil object returns nil.
+   */
+  if (anObject == nil)
+    {
+      _validReturn = YES;
+      memset(_retval, '\0', _info[0].size);	/* Clear return value */
+      return;
+    }
+
+  NSAssert(_selector != 0, @"you must set the selector before invoking");
+
+  /*
+   *	Temporarily set new target and copy it (and the selector) into the
+   *	_cframe.
+   */
+  old_target = RETAIN(_target);
+  [self setTarget: anObject];
+
+  _set_arg(self, 0, &_target);
+  _set_arg(self, 1, &_selector);
+
+  if (_sendToSuper == YES)
+    {
+      Super	s;
+
+#ifndef NeXT_RUNTIME
+      s.self = _target;
+#else
+      s.receiver = _target;
+#endif
+      if (GSObjCIsInstance(_target))
+	s.class = GSObjCSuper(GSObjCClass(_target));
+      else
+	s.class = GSObjCSuper((Class)_target);
+      imp = objc_msg_lookup_super(&s, _selector);
+    }
+  else
+    {
+      GSMethod method;
+      method = GSGetMethod((GSObjCIsInstance(_target)
+			    ? (id)GSObjCClass(_target)
+			    : (id)_target),
+			   _selector,
+			   GSObjCIsInstance(_target),
+			   YES);
+      imp = method_get_imp(method);
+	/*
+	 * If fast lookup failed, we may be forwarding or something ...
+	 */
+      if (imp == 0)
+	imp = objc_msg_lookup(_target, _selector);
+    }
+  [self setTarget: old_target];
+  RELEASE(old_target);
+
+  stack_argsize = [_sig frameLength];
+
+  returned = __builtin_apply((void(*)(void))imp,
+    (arglist_t)_cframe, stack_argsize);
+  if (_info[0].size)
+    {
+      mframe_decode_return(_info[0].type, _retval, returned);
+    }
+
+  RETAIN_RETURN_VALUE;
+  _validReturn = YES;
 }
 
 /**
@@ -898,8 +973,6 @@ _arg_addr(NSInvocation *inv, int index)
 
 @end
 
-#if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
-#warning Using unreliable NSInvocation implementation.  It is strongly recommended that you use libffi.
 @implementation GSFrameInvocation
 
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
@@ -945,92 +1018,12 @@ _arg_addr(NSInvocation *inv, int index)
     }
   return self;
 }
-- (void)invokeWithTarget: (id)anObject
-{
-  id		old_target;
-  retval_t	returned;
-  IMP		imp;
-  int		stack_argsize;
-
-
-  CLEAR_RETURN_VALUE_IF_OBJECT;
-  _validReturn = NO;
-
-  /*
-   *	A message to a nil object returns nil.
-   */
-  if (anObject == nil)
-    {
-      _validReturn = YES;
-      memset(_retval, '\0', _info[0].size);	/* Clear return value */
-      return;
-    }
-
-  NSAssert(_selector != 0, @"you must set the selector before invoking");
-
-  /*
-   *	Temporarily set new target and copy it (and the selector) into the
-   *	_cframe.
-   */
-  old_target = RETAIN(_target);
-  [self setTarget: anObject];
-
-  _set_arg(self, 0, &_target);
-  _set_arg(self, 1, &_selector);
-
-  if (_sendToSuper == YES)
-    {
-      Super	s;
-
-#ifndef NeXT_RUNTIME
-      s.self = _target;
-#else
-      s.receiver = _target;
-#endif
-      if (GSObjCIsInstance(_target))
-	s.class = GSObjCSuper(GSObjCClass(_target));
-      else
-	s.class = GSObjCSuper((Class)_target);
-      imp = objc_msg_lookup_super(&s, _selector);
-    }
-  else
-    {
-      GSMethod method;
-      method = GSGetMethod((GSObjCIsInstance(_target)
-			    ? (id)GSObjCClass(_target)
-			    : (id)_target),
-			   _selector,
-			   GSObjCIsInstance(_target),
-			   YES);
-      imp = method_get_imp(method);
-	/*
-	 * If fast lookup failed, we may be forwarding or something ...
-	 */
-      if (imp == 0)
-	imp = objc_msg_lookup(_target, _selector);
-    }
-  [self setTarget: old_target];
-  RELEASE(old_target);
-
-  stack_argsize = [_sig frameLength];
-
-  returned = __builtin_apply((void(*)(void))imp,
-    (arglist_t)_cframe, stack_argsize);
-  if (_info[0].size)
-    {
-      mframe_decode_return(_info[0].type, _retval, returned);
-    }
-
-  RETAIN_RETURN_VALUE;
-  _validReturn = YES;
-}
 
 - (void*) returnFrame: (arglist_t)argFrame
 {
   return mframe_handle_return(_info[0].type, _retval, argFrame);
 }
 @end
-#endif
 
 
 @implementation	GSInvocationProxy

@@ -25,15 +25,6 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
-  ifeq ($(GNUSTEP_MAKEFILES),)
-    $(warning )
-    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
-    $(warning Perhaps gnustep-make is not properly installed,)
-    $(warning so gnustep-config is not in your PATH.)
-    $(warning )
-    $(warning Your PATH is currently $(PATH))
-    $(warning )
-  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -47,17 +38,10 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 # The tools to be created
 TEST_TOOL_NAME = \
-	dictionary \
-	nsconnection \
-	nsconnection_client \
-	nsconnection_server \
-
+	dictionary
 
 # The Objective-C source files to be compiled to create each tool
 dictionary_OBJC_FILES = dictionary.m
-nsconnection_OBJC_FILES = nsconnection.m
-nsconnection_client_OBJC_FILES = nsconnection_client.m
-nsconnection_server_OBJC_FILES = nsconnection_server.m
 
 include Makefile.preamble
 

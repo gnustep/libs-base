@@ -1120,7 +1120,7 @@ NSSimpleCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
 }
 
 void
-NSDecimalRound(NSDecimal *result, const NSDecimal *number, NSInteger scale,
+NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale,
 	       NSRoundingMode mode)
 {
   GSDecimal m;

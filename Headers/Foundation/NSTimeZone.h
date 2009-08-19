@@ -35,16 +35,6 @@ extern "C" {
 @class  NSLocale;
 @class	NSString;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-enum {
-  NSTimeZoneNameStyleStandard,
-  NSTimeZoneNameStyleShortStandard,
-  NSTimeZoneNameStyleDaylightSaving,
-  NSTimeZoneNameStyleShortDaylightSaving
-};
-typedef NSInteger NSTimeZoneNameStyle;
-#endif
-
 @interface NSTimeZone : NSObject
 
 //Creating and Initializing an NSTimeZone
@@ -96,6 +86,13 @@ typedef NSInteger NSTimeZoneNameStyle;
 /** Not implemented */
 - (NSDate *) nextDaylightSavingTimeTransition;
 
+enum {
+  NSTimeZoneNameStyleStandard,
+  NSTimeZoneNameStyleShortStandard,
+  NSTimeZoneNameStyleDaylightSaving,
+  NSTimeZoneNameStyleShortDaylightSaving
+};
+typedef NSInteger NSTimeZoneNameStyle;
 - (NSString *)localizedName: (NSTimeZoneNameStyle)style
                      locale: (NSLocale *)locale;
 GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;

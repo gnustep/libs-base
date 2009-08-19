@@ -372,9 +372,9 @@ NSZoneStats NSZoneStats (NSZone *zone)
 }
 
 void
-GSMakeWeakPointer(Class theClass, const char *iVarName)
+GSMakeWeakPointer(Class class, const char *iVarName)
 {
-  class_ivar_set_gcinvisible(theClass, iVarName, YES);
+  class_ivar_set_gcinvisible(class, iVarName, YES);
 }
 
 BOOL
@@ -1992,7 +1992,7 @@ GSAtomicMallocZone (void)
 }
 
 void
-GSMakeWeakPointer(Class theClass, const char *iVarName)
+GSMakeWeakPointer(Class class, const char *iVarName)
 {
   return;
 }

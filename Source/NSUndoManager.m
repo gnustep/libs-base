@@ -162,9 +162,9 @@
 
 @implementation NSUndoManager (Private)
 /* This method is used to begin undo grouping internally.
- * It's necessary to have a different mechanism from the -beginUndoGrouping
- * because it seems that in MacOS X a call to -beginUndoGrouping when at the
- * top level will actually create two undo groups.
+ * It's necessary to have a different mechanism from the -beginUndoGroup
+ * because it seems that in MacOS-X 10.5 a call to -beginUndoGroup when
+ * at the top level will actually create two undo groups.
  */
 - (void) _begin
 {
@@ -222,14 +222,14 @@
  * It first posts an NSUndoManagerCheckpointNotification
  * unless an undo is currently in progress.<br />
  * The order of these notifications is undefined, but the GNUstep
- * implementation currently mimics the observed order in MacOS X 10.5
+ * implementation currently mimics the observed order in MacOS-X 10.5
  */
 - (void) beginUndoGrouping
 {
-  /* It seems that MacOS X implicitly creates a top-level group if this
-   * method is called when groupsByEvent is set and there is no existing
-   * top level group.  There is no checkpoint notification posted for the
-   * implicit group creation.
+  /* It seems that MacOS-X 10.5 implicitly creates a top-level group
+   * if this method is called when groupsByEvent is set and there is
+   * no existing top level group.  There is no checkpoint notification
+   * posted for the implicit group creation.
    */
   if (_group == nil && [self groupsByEvent])
     {
@@ -238,9 +238,12 @@
 
   /* Post the checkpoint notification and THEN create the group.
    */
-  [[NSNotificationCenter defaultCenter]
-      postNotificationName: NSUndoManagerCheckpointNotification
-		    object: self];
+  if (_isUndoing == NO)
+    {
+      [[NSNotificationCenter defaultCenter]
+	  postNotificationName: NSUndoManagerCheckpointNotification
+			object: self];
+    }
   [self _begin];	// Start a new group
 }
 
@@ -350,14 +353,14 @@
   [[NSNotificationCenter defaultCenter]
       postNotificationName: NSUndoManagerCheckpointNotification
 		    object: self];
-  if (_isUndoing == NO && _isRedoing == NO)
-    [[NSNotificationCenter defaultCenter]
-        postNotificationName: NSUndoManagerWillCloseUndoGroupNotification
-		      object: self];
   g = (PrivateUndoGroup*)_group;
   p = RETAIN([g parent]);
   _group = p;
   [g orphan];
+  if (_isUndoing == NO && _isRedoing == NO)
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName: NSUndoManagerWillCloseUndoGroupNotification
+		      object: self];
   if (p == nil)
     {
       if (_isUndoing)
@@ -637,7 +640,7 @@
       _group = nil;
       _isRedoing = YES;
 
-      [self _begin];
+      [self beginUndoGrouping];
       [groupToRedo perform];
       RELEASE(groupToRedo);
       [self endUndoGrouping];
@@ -1050,7 +1053,7 @@
 
   name = [NSString stringWithString: [groupToUndo actionName]];
 
-  [self _begin];
+  [self beginUndoGrouping];
   [groupToUndo perform];
   RELEASE(groupToUndo);
   [self endUndoGrouping];

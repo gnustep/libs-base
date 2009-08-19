@@ -803,7 +803,6 @@ mframe_dissect_call (arglist_t argframe, const char *type,
   single data item (for distributed objects).
 */
 
-#if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
 static inline id retframe_id(void *rframe)
 {
   __builtin_return (rframe);
@@ -1796,4 +1795,3 @@ mframe_handle_return(const char* type, void* retval, arglist_t argframe)
   return retframe;
 }
 
-#endif //!defined(USE_FFCALL) && !defined(USE_LIBFFI)

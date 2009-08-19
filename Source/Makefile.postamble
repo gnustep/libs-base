@@ -96,11 +96,7 @@ after-clean::
 # Things to do after distcleaning
 after-distclean::
 	rm -f mframe/mframe.h Foundation \
-		NSNumber[0-9]*.m GSValue[0-9]*.m \
-                pathconfig/config.log \
-                pathconfig/config.status \
-                pathconfig/pathconfig.h \
-                pathconfig/pathconfig.mak \
+		NSNumber[0-9]*.m GSValue[0-9]*.m
 	rm -rf $(GNUSTEP_TARGET_DIR)/GNUstepBase
 	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
 	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h

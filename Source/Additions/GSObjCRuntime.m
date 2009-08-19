@@ -1841,14 +1841,14 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
               }
             else
               {
-	        val = [self valueForUndefinedKey:
-		  [NSString stringWithUTF8String: key]];
+                [NSException raise: NSInvalidArgumentException
+                            format: @"key-value get method unsupported struct"];
               }
             break;
 
 	  default:
-	    val = [self valueForUndefinedKey:
-	      [NSString stringWithUTF8String: key]];
+	    [NSException raise: NSInvalidArgumentException
+			format: @"key-value get method has unsupported type"];
 	}
       return val;
     }
@@ -1897,8 +1897,8 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
     }
   if (type == NULL)
     {
-      [self setValue: val forUndefinedKey:
-	[NSString stringWithUTF8String: key]];
+      [self setValue: val
+     forUndefinedKey: [NSString stringWithUTF8String: key]];
     }
   else if ((val == nil || val == null) && *type != _C_ID && *type != _C_CLASS)
     {
@@ -2255,14 +2255,14 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
               }
             else
               {
-                [self setValue: val forUndefinedKey:
-		  [NSString stringWithUTF8String: key]];
+                [NSException raise: NSInvalidArgumentException
+                            format: @"key-value set method unsupported struct"];
               }
             break;
 
 	  default:
-            [self setValue: val forUndefinedKey:
-	      [NSString stringWithUTF8String: key]];
+	    [NSException raise: NSInvalidArgumentException
+			format: @"key-value set method has unsupported type"];
 	}
     }
 }

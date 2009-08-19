@@ -11,8 +11,6 @@
 #include <stdio.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSConnection.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
@@ -93,6 +91,8 @@ int con_data (id prx)
   id obj;
   small_struct small = {12};
   foo ffoo = {'Z', 1234.5678, 99, "cow", 9876543};
+  int a3[3] = {66,77,88};
+  struct myarray ma = {{55,66,77}};
 
   printf("Testing data sending\n");
 
@@ -502,7 +502,6 @@ int main (int argc, char *argv[], char **env)
   id cobj, prx;
   unsigned	connect_attempts;
   NSAutoreleasePool	*arp;
-  NSPortNameServer	*ns;
   Auth *auth;
 #ifndef __MINGW32__
   extern int optind;
@@ -518,7 +517,7 @@ int main (int argc, char *argv[], char **env)
   debug = 0;
   type_test = 0;
   stats = 0;
-  while ((c = wgetopt(argc, argv, "hdtbmslocr")) != EOF)
+  while ((c = getopt(argc, argv, "hdtbmslocr")) != EOF)
     switch (c)
       {
       case 'd':
@@ -574,7 +573,6 @@ int main (int argc, char *argv[], char **env)
       [NSObject enableDoubleReleaseCheck: YES];
     }
 
-  ns = [NSSocketPortNameServer sharedInstance];
   while (connect_attempts-- > 0)
     {
       if (optind < argc)
@@ -582,18 +580,15 @@ int main (int argc, char *argv[], char **env)
 	  if (optind+1 < argc)
 	    prx = [NSConnection rootProxyForConnectionWithRegisteredName:
 				  [NSString stringWithCString: argv[optind+1]]
-			    host: [NSString stringWithCString:argv[optind]]
-		 usingNameServer: ns];
+			    host: [NSString stringWithCString:argv[optind]]];
 	  else
 	    prx = [NSConnection rootProxyForConnectionWithRegisteredName:
 				 @"test2server"
-			    host:[NSString stringWithCString:argv[optind]]
-		 usingNameServer: ns];
+			    host:[NSString stringWithCString:argv[optind]]];
 	}
       else
 	prx = [NSConnection rootProxyForConnectionWithRegisteredName:
-		@"test2server" host: @""
-		    usingNameServer: ns];
+		@"test2server" host: @""];
       if (prx == nil)
 	{
 	  printf("ERROR: Failed to connect to server\n");
@@ -610,19 +605,7 @@ int main (int argc, char *argv[], char **env)
 	}
     }
 
-#if 0
-  /* Check that we can retain the connection, release the proxy,
-   * and then regain the proxy from the connection.
-   */
-  cobj = RETAIN([prx connectionForProxy]);
-  RELEASE(arp);
-  arp = [NSAutoreleasePool new];
-  prx = [cobj rootObject];
-  AUTORELEASE(cobj);
-#else
   cobj = [prx connectionForProxy];
-#endif
-
   [cobj setDelegate:auth];
   [cobj setRequestTimeout:180.0];
   [cobj setReplyTimeout:180.0];

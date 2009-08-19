@@ -344,10 +344,8 @@ static NSURLProtocol	*placeholder = nil;
 +(Class) _classToHandleRequest:(NSURLRequest *)request
 {
   Class protoClass = nil;
-  int count;
   [regLock lock];
-
-  count = [registered count];
+  int count = [registered count];
   while (count-- > 0)
     {
       Class	proto = [registered objectAtIndex: count];
@@ -1305,21 +1303,7 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
-		  id	p = [u port];
-		  id	h = [u host];
-
-		  if (h == nil)
-		    {
-		      h = @"";	// Must send an empty host header
-		    }
-		  if (p == nil)
-		    {
-		      [m appendFormat: @"Host: %@\r\n", h];
-		    }
-		  else
-		    {
-		      [m appendFormat: @"Host: %@:%@\r\n", h, p];
-		    }
+		  [m appendFormat: @"Host: %@\r\n", [u host]];
 		}
 	      if (l >= 0 && [this->request
 	        valueForHTTPHeaderField: @"Content-Length"] == nil)

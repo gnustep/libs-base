@@ -65,9 +65,6 @@
 #ifdef	HAVE_SYS_SIGNAL_H
 #include	<sys/signal.h>
 #endif
-#ifdef __FreeBSD__
-#include <fenv.h>
-#endif
 
 #include "GSPrivate.h"
 
@@ -222,15 +219,6 @@ typedef int32_t volatile *gsatomic_t;
 #define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
 
 
-#elif defined(__llvm__) || (defined(USE_ATOMIC_BUILDINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
-/* Use the GCC atomic operations with recent GCC versions */
-
-typedef int32_t volatile *gsatomic_t;
-#define GSATOMICREAD(X) (*(X))
-#define GSAtomicIncrement(X)    __sync_fetch_and_add(X, 1)
-#define GSAtomicDecrement(X)    __sync_fetch_and_sub(X, 1)
-
-
 #elif	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
 /* Set up atomic read, increment and decrement for intel style linux
  */
@@ -268,11 +256,11 @@ GSAtomicIncrement(gsatomic_t X)
 {
   int tmp;
   __asm__ __volatile__ (
-    "incmodified:"
+    "modified:"
     "lwarx %0,0,%1 \n"
     "addic %0,%0,1 \n"
     "stwcx. %0,0,%1 \n"
-    "bne- incmodified \n"
+    "bne- modified \n"
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");
@@ -284,39 +272,15 @@ GSAtomicDecrement(gsatomic_t X)
 {
   int tmp;
   __asm__ __volatile__ (
-    "decmodified:"
+    "modified:"
     "lwarx %0,0,%1 \n"
     "addic %0,%0,-1 \n"
     "stwcx. %0,0,%1 \n"
-    "bne- decmodified \n"
+    "bne- modified \n"
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");
   return *X;
-}
-
-#elif defined(__m68k__)
-
-typedef int32_t volatile *gsatomic_t;
-
-#define	GSATOMICREAD(X)	(*(X))
-
-static __inline__ int
-GSAtomicIncrement(gsatomic_t X)
-{
-  __asm__ __volatile__ (
-    "addq%.l %#1, %0"
-    :"=m" (*X));
-    return *X;
-}
-
-static __inline__ int
-GSAtomicDecrement(gsatomic_t X)
-{
-  __asm__ __volatile__ (
-    "subq%.l %#1, %0"
-    :"=m" (*X));
-    return *X;
 }
 
 #endif
@@ -692,15 +656,12 @@ GSPrivateSwizzle(id o, Class c)
 	}
       else if (GSIsFinalizable(c))
 	{
-	  /* New class is finalizable, so we must register the instance
+	  /* New clas is finalizable, so we must register the instance
 	   * for finalisation and do allocation acounting for it.
 	   */
 	  AADD(c, o);
 	  GC_REGISTER_FINALIZER (o, GSFinalize, NULL, NULL, NULL);
 	}
-#else
-      AREM(o->class_pointer, o);
-      AADD(c, o);
 #endif	/* GS_WITH_GC */
       o->class_pointer = c;
     }
@@ -974,7 +935,14 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
       // problems on *BSD)
       // Note this only works on x86
-      fedisableexcept(FE_INVALID);
+
+      {
+	volatile short cw;
+
+	__asm__ volatile ("fstcw (%0)" : : "g" (&cw));
+	cw |= 1; /* Mask 'invalid' exception */
+	__asm__ volatile ("fldcw (%0)" : : "g" (&cw));
+      }
 #endif
 
 
