@@ -1905,6 +1905,7 @@ static void retDecoder(DOContext *ctxt)
     }
 }
 
+#if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
 static void retEncoder (DOContext *ctxt)
 {
   switch (*ctxt->type)
@@ -1929,6 +1930,7 @@ static void retEncoder (DOContext *ctxt)
       [ctxt->encoder encodeValueOfObjCType: ctxt->type at: ctxt->datum];
     }
 }
+#endif
 
 /*
  * NSDistantObject's -forward:: method calls this to send the message
