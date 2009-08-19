@@ -1,19 +1,26 @@
+2009-08-19 Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Source/Additions/GSObjCRuntime.m:
+	Behave consistently with MacOS-X when a getter or setter method
+	returns a type of data which is not supported by KVC.
+
 2009-08-15 David Chisnall <theraven@gna.org>
 
 	* Source/NSObject:
-		- Tweaked NSObject to use atomic ops with LLVM as well as gcc (this
-		  probably isn't actually needed)
-		- Fixed SIGFPE problem on FreeBSD using proper interfaces instead of
-		an asm hack.
-	* Removes various mframe things from being compiled when ffcall/libffi is
-	used (mframe.m, NSConnection.m, NSInvocation.m)
+	- Tweaked NSObject to use atomic ops with LLVM as well as gcc (this
+	  probably isn't actually needed)
+	- Fixed SIGFPE problem on FreeBSD using proper interfaces instead of
+	an asm hack.
+	* Removes various mframe things from being compiled when ffcall/libffi
+	is used (mframe.m, NSConnection.m, NSInvocation.m)
 	* Turned a nested function in make_strings.m into a macro.  
 
 2009-08-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Remove some redundant methods and add checks for
 	attempts to use a null pointer to set bytes in the data.
-	* Source/NSCharacterSet.m: Save mem with index set rather than bitmap set
+	* Source/NSCharacterSet.m: Save mem with index set rather than
+	bitmap set
 
 2009-08-11  Fred Kiefer <FredKiefer@gmx.de>
 
