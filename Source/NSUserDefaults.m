@@ -268,38 +268,47 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 + (void) resetStandardUserDefaults
 {
   [classLock lock];
-  if (sharedDefaults != nil)
+  NS_DURING
     {
-      NSDictionary	*regDefs;
+      if (sharedDefaults != nil)
+        {
+          NSDictionary	*regDefs;
+    
+          /* To ensure that we don't try to synchronise the old defaults to disk
+           * after creating the new ones, remove as housekeeping notification
+           * observer.
+           */
+          [[NSNotificationCenter defaultCenter] removeObserver: sharedDefaults];
 
-      /* To ensure that we don't try to synchronise the old defaults to disk
-       * after creating the new ones, remove as housekeeping notification
-       * observer.
-       */
-      [[NSNotificationCenter defaultCenter] removeObserver: sharedDefaults];
-
-      /* Ensure changes are written, and no changes left so we can't end up
-       * writing old changes to the new defaults.
-       */
-      [sharedDefaults synchronize];
-      DESTROY(sharedDefaults->_changedDomains);
-
-      regDefs = RETAIN([sharedDefaults->_tempDomains
-	objectForKey: NSRegistrationDomain]);
-      setSharedDefaults = NO;
-      DESTROY(sharedDefaults);
-      if (regDefs != nil)
-	{
-	  [self standardUserDefaults];
-	  if (sharedDefaults != nil)
+          /* Ensure changes are written, and no changes left so we can't end up
+           * writing old changes to the new defaults.
+           */
+          [sharedDefaults synchronize];
+          DESTROY(sharedDefaults->_changedDomains);
+    
+          regDefs = RETAIN([sharedDefaults->_tempDomains
+	    objectForKey: NSRegistrationDomain]);
+          setSharedDefaults = NO;
+          DESTROY(sharedDefaults);
+          if (regDefs != nil)
 	    {
-	      [sharedDefaults->_tempDomains setObject: regDefs
-					       forKey: NSRegistrationDomain];
+	      [self standardUserDefaults];
+	      if (sharedDefaults != nil)
+	        {
+	          [sharedDefaults->_tempDomains setObject: regDefs
+					           forKey: NSRegistrationDomain];
+	        }
+	      RELEASE(regDefs);
 	    }
-	  RELEASE(regDefs);
-	}
+        }
+      [classLock unlock];
     }
-  [classLock unlock];
+  NS_HANDLER
+    {
+      [classLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 /* Create a locale dictionary when we have absolutely no information
@@ -455,182 +464,191 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     }
   setSharedDefaults = YES;
 
-  // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
+  NS_DURING
+    {
+      // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
 #if	defined(__MINGW32__)
-  {
-    NSString	*path = GSDefaultsRootForUser(NSUserName());
-    NSRange	r = [path rangeOfString: @":REGISTRY:"];
-
-    if (r.length > 0)
       {
-	sharedDefaults = [[NSUserDefaultsWin32 alloc] init];
-      }
-    else
-      {
-	sharedDefaults = [[self alloc] init];
-      }
-  }
-#else
-  sharedDefaults = [[self alloc] init];
-#endif
-  if (sharedDefaults == nil)
-    {
-      NSLog(@"WARNING - unable to create shared user defaults!\n");
-      [classLock unlock];
-      return nil;
-    }
-
-  /*
-   * Set up search list (excluding language list, which we don't know yet)
-   */
-  [sharedDefaults->_searchList addObject: NSArgumentDomain];
-  [sharedDefaults->_searchList addObject: processName];
-  [sharedDefaults->_searchList addObject: NSGlobalDomain];
-  [sharedDefaults->_searchList addObject: GSConfigDomain];
-  [sharedDefaults->_searchList addObject: NSRegistrationDomain];
-
-  /*
-   * Look up user languages list and insert language specific domains
-   * into search list before NSRegistrationDomain
-   */
-  uL = [self userLanguages];
-  enumerator = [uL objectEnumerator];
-  while ((lang = [enumerator nextObject]))
-    {
-      unsigned	index = [sharedDefaults->_searchList count] - 1;
-
-      [sharedDefaults->_searchList insertObject: lang atIndex: index];
-    }
-
-  /* Set up language constants */
-
-  /* We lookup gnustep-base resources manually here to prevent
-   * bootstrap problems.  NSBundle's lookup routines depend on having
-   * NSUserDefaults already bootstrapped, but we're still
-   * bootstrapping here!  So we can't really use NSBundle without
-   * incurring massive bootstrap complications (btw, most of the times
-   * we're here as a consequence of [NSBundle +initialize] creating
-   * the gnustep-base bundle!  So trying to use the gnustep-base
-   * bundle here wouldn't really work.).
-   */
-  /*
-   * We are looking for:
-   *
-   * GNUSTEP_LIBRARY/Libraries/gnustep-base/Versions/<interfaceVersion>/Resources/Languages/<language>
-   *
-   * We iterate over <language>, and for each <language> we iterate over GNUSTEP_LIBRARY.
-   */
-  
-  {
-    /* These variables are reused for all languages so we set them up
-     * once here and then reuse them.
-     */
-    NSFileManager *fm = [NSFileManager defaultManager];
-    NSString *tail = [[[[[@"Libraries" 
-			   stringByAppendingPathComponent: @"gnustep-base"]
-			  stringByAppendingPathComponent: @"Versions"]
-			 stringByAppendingPathComponent: 
-			   OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
-			stringByAppendingPathComponent: @"Resources"]
-		       stringByAppendingPathComponent: @"Languages"];
-    NSArray *paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
-							  NSAllDomainsMask, YES);
+        NSString	*path = GSDefaultsRootForUser(NSUserName());
+        NSRange	r = [path rangeOfString: @":REGISTRY:"];
     
-    added_lang = NO;
-    added_locale = NO;
-    enumerator = [uL objectEnumerator];
-    while ((lang = [enumerator nextObject]))
+        if (r.length > 0)
+          {
+	    sharedDefaults = [[NSUserDefaultsWin32 alloc] init];
+          }
+        else
+          {
+	    sharedDefaults = [[self alloc] init];
+          }
+      }
+#else
+      sharedDefaults = [[self alloc] init];
+#endif
+      if (sharedDefaults == nil)
+        {
+          NSLog(@"WARNING - unable to create shared user defaults!\n");
+          [classLock unlock];
+          NS_VALRETURN(nil);
+        }
+
+      /*
+       * Set up search list (excluding language list, which we don't know yet)
+       */
+      [sharedDefaults->_searchList addObject: NSArgumentDomain];
+      [sharedDefaults->_searchList addObject: processName];
+      [sharedDefaults->_searchList addObject: NSGlobalDomain];
+      [sharedDefaults->_searchList addObject: GSConfigDomain];
+      [sharedDefaults->_searchList addObject: NSRegistrationDomain];
+
+      /*
+       * Look up user languages list and insert language specific domains
+       * into search list before NSRegistrationDomain
+       */
+      uL = [self userLanguages];
+      enumerator = [uL objectEnumerator];
+      while ((lang = [enumerator nextObject]))
+        {
+          unsigned	index = [sharedDefaults->_searchList count] - 1;
+
+          [sharedDefaults->_searchList insertObject: lang atIndex: index];
+        }
+
+      /* Set up language constants */
+
+      /* We lookup gnustep-base resources manually here to prevent
+       * bootstrap problems.  NSBundle's lookup routines depend on having
+       * NSUserDefaults already bootstrapped, but we're still
+       * bootstrapping here!  So we can't really use NSBundle without
+       * incurring massive bootstrap complications (btw, most of the times
+       * we're here as a consequence of [NSBundle +initialize] creating
+       * the gnustep-base bundle!  So trying to use the gnustep-base
+       * bundle here wouldn't really work.).
+       */
+      /*
+       * We are looking for:
+       *
+       * GNUSTEP_LIBRARY/Libraries/gnustep-base/Versions/<interfaceVersion>/Resources/Languages/<language>
+       *
+       * We iterate over <language>, and for each <language> we iterate over GNUSTEP_LIBRARY.
+       */
+  
       {
-	NSDictionary	*dict = nil;
-	NSString	*path = nil;
-	NSEnumerator *pathEnumerator = [paths objectEnumerator];
+        /* These variables are reused for all languages so we set them up
+         * once here and then reuse them.
+         */
+        NSFileManager *fm = [NSFileManager defaultManager];
+        NSString *tail = [[[[[@"Libraries" 
+			       stringByAppendingPathComponent: @"gnustep-base"]
+			      stringByAppendingPathComponent: @"Versions"]
+			     stringByAppendingPathComponent: 
+			       OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
+			    stringByAppendingPathComponent: @"Resources"]
+		           stringByAppendingPathComponent: @"Languages"];
+        NSArray *paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
+							      NSAllDomainsMask, YES);
+        
+        added_lang = NO;
+        added_locale = NO;
+        enumerator = [uL objectEnumerator];
+        while ((lang = [enumerator nextObject]))
+          {
+	    NSDictionary	*dict = nil;
+	    NSString	*path = nil;
+	    NSEnumerator *pathEnumerator = [paths objectEnumerator];
 
-	while ((path = [pathEnumerator nextObject]) != nil)
-	  {
-	    path = [[path stringByAppendingPathComponent: tail]
-		     stringByAppendingPathComponent: lang];
-
-	    if ([fm fileExistsAtPath: path])
+	    while ((path = [pathEnumerator nextObject]) != nil)
 	      {
-		/* Path found!  */
-		break;
+	        path = [[path stringByAppendingPathComponent: tail]
+		             stringByAppendingPathComponent: lang];
+
+	        if ([fm fileExistsAtPath: path])
+	          {
+		    /* Path found!  */
+		    break;
+	          }
 	      }
-	  }
-	
-	if (path != nil)
-	  {
-	    dict = [NSDictionary dictionaryWithContentsOfFile: path];
-	  }
-	if (dict != nil)
-	  {
-	    [sharedDefaults setVolatileDomain: dict forName: lang];
-	    added_lang = YES;
-	  }
-	else if (added_locale == NO)
-	  {
-	    /* The resources for the language that we were looking for
-	     * were not found.  If this was the currently set locale
-	     * in the C library, try to get the same information from
-	     * the C library.  This would usually happen for the
-	     * language that was added to the list of languages
-	     * precisely because it is the currently set locale in the
-	     * C library.
-	     */
-	    NSString	*locale = nil;
 	    
+	    if (path != nil)
+	      {
+	        dict = [NSDictionary dictionaryWithContentsOfFile: path];
+	      }
+	    if (dict != nil)
+	      {
+	        [sharedDefaults setVolatileDomain: dict forName: lang];
+	        added_lang = YES;
+	      }
+	    else if (added_locale == NO)
+	      {
+	        /* The resources for the language that we were looking for
+	         * were not found.  If this was the currently set locale
+	         * in the C library, try to get the same information from
+	         * the C library.  This would usually happen for the
+	         * language that was added to the list of languages
+	         * precisely because it is the currently set locale in the
+	         * C library.
+	         */
+	        NSString	*locale = nil;
+	        
 #ifdef HAVE_LOCALE_H
 #ifdef LC_MESSAGES
-	    locale = GSSetLocale(LC_MESSAGES, nil);
+	        locale = GSSetLocale(LC_MESSAGES, nil);
 #endif
 #endif
-	    if (locale != nil)
-	      {
-		/* See if we can get the dictionary from i18n
-		 * functions.  I don't think that the i18n routines
-		 * can handle more than one locale, so we don't try to
-		 * look 'lang' up but just get what we get and use it
-		 * if it matches 'lang' ... but tell me if I'm wrong
-		 * ...
-		 */
-		if ([lang isEqualToString: GSLanguageFromLocale (locale)])
-		  {
-		    /* We set added_locale to YES to avoid so that we
-		     * won't do this C library locale lookup again
-		     * later on.
+	        if (locale != nil)
+	          {
+		    /* See if we can get the dictionary from i18n
+		     * functions.  I don't think that the i18n routines
+		     * can handle more than one locale, so we don't try to
+		     * look 'lang' up but just get what we get and use it
+		     * if it matches 'lang' ... but tell me if I'm wrong
+		     * ...
 		     */
-		    added_locale = YES;
-		    
-		    dict = GSDomainFromDefaultLocale ();
-		    if (dict != nil)
+		    if ([lang isEqualToString: GSLanguageFromLocale (locale)])
 		      {
-			[sharedDefaults setVolatileDomain: dict forName: lang];
+		        /* We set added_locale to YES to avoid so that we
+		         * won't do this C library locale lookup again
+		         * later on.
+		         */
+		        added_locale = YES;
+		        
+		        dict = GSDomainFromDefaultLocale ();
+		        if (dict != nil)
+		          {
+			    [sharedDefaults setVolatileDomain: dict forName: lang];
 			
-			/* We do not set added_lang to YES here
-			 * because we want the improper installation
-			 * warning to be printed below if our own
-			 * English language dictionary is not found,
-			 * and we want the basic hardcoded defaults to
-			 * be used in that case.  (FIXME: Review this
-			 * decision).
-			 */
+			    /* We do not set added_lang to YES here
+			     * because we want the improper installation
+			     * warning to be printed below if our own
+			     * English language dictionary is not found,
+			     * and we want the basic hardcoded defaults to
+			     * be used in that case.  (FIXME: Review this
+			     * decision).
+			     */
+		          }
 		      }
-		  }
+	          }
 	      }
-	  }
+          }
       }
-  }
-
-  if (added_lang == NO)
-    {
-      /* Ack! We should never get here.  */
-      NSWarnMLog(@"Improper installation: No language locale found");
-
-      /* FIXME - should we set this as volatile domain for English ? */
-      [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
+    
+      if (added_lang == NO)
+        {
+          /* Ack! We should never get here.  */
+          NSWarnMLog(@"Improper installation: No language locale found");
+    
+          /* FIXME - should we set this as volatile domain for English ? */
+          [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
+        }
+      IF_NO_GC([sharedDefaults retain];)
+      updateCache(sharedDefaults);
+      [classLock unlock];
     }
-  IF_NO_GC([sharedDefaults retain];)
-  updateCache(sharedDefaults);
-  [classLock unlock];
+  NS_HANDLER
+    {
+      [classLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return AUTORELEASE(sharedDefaults);
 }
 
@@ -664,84 +682,93 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
    */
 
   [classLock lock];
-  if (invalidatedLanguages == YES)
+  NS_DURING
     {
-      invalidatedLanguages = NO;
-      DESTROY(userLanguages);
-    }
-  if (userLanguages == nil)
-    {
-      NSArray	*currLang = nil;
-      NSString	*locale = nil;
+      if (invalidatedLanguages == YES)
+        {
+          invalidatedLanguages = NO;
+          DESTROY(userLanguages);
+        }
+      if (userLanguages == nil)
+        {
+          NSArray	*currLang = nil;
+          NSString	*locale = nil;
 
 #ifdef HAVE_LOCALE_H
 #ifdef LC_MESSAGES
-      locale = GSSetLocale(LC_MESSAGES, nil);
+          locale = GSSetLocale(LC_MESSAGES, nil);
 #endif
 #endif
-      currLang = [[NSUserDefaults standardUserDefaults]
-          stringArrayForKey: @"NSLanguages"];
+          currLang = [[NSUserDefaults standardUserDefaults]
+              stringArrayForKey: @"NSLanguages"];
 
-      userLanguages = [[NSMutableArray alloc] initWithCapacity: 5];
+          userLanguages = [[NSMutableArray alloc] initWithCapacity: 5];
 
-      if (currLang == nil && locale != nil && GSLanguageFromLocale(locale))
-	{
-	  currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
-	}
+          if (currLang == nil && locale != nil && GSLanguageFromLocale(locale))
+	    {
+	      currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
+	    }
 #ifdef __MINGW32__
-      if (currLang == nil && locale != nil)
-	{
-	  /* Check for language as the first part of the locale string */
-	  NSRange under = [locale rangeOfString: @"_"];
-	  if (under.location)
-	    currLang = [NSArray arrayWithObject:
-			 [locale substringToIndex: under.location]];
-	}
+          if (currLang == nil && locale != nil)
+	    {
+	      /* Check for language as the first part of the locale string */
+	      NSRange under = [locale rangeOfString: @"_"];
+	      if (under.location)
+	        currLang = [NSArray arrayWithObject:
+			     [locale substringToIndex: under.location]];
+	    }
 #endif
-      if (currLang == nil)
-	{
-	  NSString	*env;
-
-	  env = [[[NSProcessInfo processInfo] environment]
-	    objectForKey: @"LANGUAGES"];
-	  if (env != nil)
+          if (currLang == nil)
 	    {
-	      currLang = [env componentsSeparatedByString: @";"];
+	      NSString	*env;
+
+	      env = [[[NSProcessInfo processInfo] environment]
+	        objectForKey: @"LANGUAGES"];
+	      if (env != nil)
+	        {
+	          currLang = [env componentsSeparatedByString: @";"];
+	        }
 	    }
-	}
 
-      if (currLang != nil)
-	{
-	  NSMutableArray	*a = [currLang mutableCopy];
-	  unsigned		c = [a count];
-
-	  while (c-- > 0)
+          if (currLang != nil)
 	    {
-	      NSString	*s = [[a objectAtIndex: c] stringByTrimmingSpaces];
+	      NSMutableArray	*a = [currLang mutableCopy];
+	      unsigned		c = [a count];
 
-	      if ([s length] == 0)
-		{
-		  [a removeObjectAtIndex: c];
-		}
-	      else
-		{
-		  [a replaceObjectAtIndex: c withObject: s];
-		}
+	      while (c-- > 0)
+	        {
+	          NSString	*s = [[a objectAtIndex: c] stringByTrimmingSpaces];
+
+	          if ([s length] == 0)
+		    {
+		      [a removeObjectAtIndex: c];
+		    }
+	          else
+		    {
+		      [a replaceObjectAtIndex: c withObject: s];
+		    }
+	        }
+	      [userLanguages addObjectsFromArray: a];
+	      RELEASE(a);
 	    }
-	  [userLanguages addObjectsFromArray: a];
-	  RELEASE(a);
-	}
 
-      /* Check if "English" is included. We do this to make sure all the
-	 required language constants are set somewhere if they aren't set
-	 in the default language */
-      if ([userLanguages containsObject: @"English"] == NO)
-	{
-	  [userLanguages addObject: @"English"];
-	}
+          /* Check if "English" is included. We do this to make sure all the
+	     required language constants are set somewhere if they aren't set
+	     in the default language */
+          if ([userLanguages containsObject: @"English"] == NO)
+	    {
+	      [userLanguages addObject: @"English"];
+	    }
+        }
+      result = RETAIN(userLanguages);
+      [classLock unlock];
     }
-  result = RETAIN(userLanguages);
-  [classLock unlock];
+  NS_HANDLER
+    {
+      [classLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return AUTORELEASE(result);
 }
 
@@ -903,11 +930,20 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   NSMutableString *desc;
 
   [_lock lock];
-  desc = [NSMutableString stringWithFormat: @"%@", [super description]];
-  [desc appendFormat: @" SearchList: %@", _searchList];
-  [desc appendFormat: @" Persistant: %@", _persDomains];
-  [desc appendFormat: @" Temporary: %@", _tempDomains];
-  [_lock unlock];
+  NS_DURING
+    {
+      desc = [NSMutableString stringWithFormat: @"%@", [super description]];
+      [desc appendFormat: @" SearchList: %@", _searchList];
+      [desc appendFormat: @" Persistant: %@", _persDomains];
+      [desc appendFormat: @" Temporary: %@", _tempDomains];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return desc;
 }
 
@@ -921,14 +957,23 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 		  format: @"attempt to add suite with nil name"];
     }
   [_lock lock];
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults) invalidatedLanguages = YES;
-  [_searchList removeObject: aName];
-  index = [_searchList indexOfObject: processName];
-  index = (index == NSNotFound) ? 0 : (index + 1);
-  aName = [aName copy];
-  [_searchList insertObject: aName atIndex: index];
-  [_lock unlock];
+  NS_DURING
+    {
+      DESTROY(_dictionaryRep);
+      if (self == sharedDefaults) invalidatedLanguages = YES;
+      [_searchList removeObject: aName];
+      index = [_searchList indexOfObject: processName];
+      index = (index == NSNotFound) ? 0 : (index + 1);
+      aName = [aName copy];
+      [_searchList insertObject: aName atIndex: index];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   RELEASE(aName);
 }
 
@@ -1007,25 +1052,34 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   IMP		tImp;
 
   [_lock lock];
-  enumerator = [_searchList objectEnumerator];
-  nImp = [enumerator methodForSelector: nextObjectSel];
-  object = nil;
-  pImp = [_persDomains methodForSelector: objectForKeySel];
-  tImp = [_tempDomains methodForSelector: objectForKeySel];
-
-  while ((dN = (*nImp)(enumerator, nextObjectSel)) != nil)
+  NS_DURING
     {
-      NSDictionary	*dict;
+      enumerator = [_searchList objectEnumerator];
+      nImp = [enumerator methodForSelector: nextObjectSel];
+      object = nil;
+      pImp = [_persDomains methodForSelector: objectForKeySel];
+      tImp = [_tempDomains methodForSelector: objectForKeySel];
 
-      dict = (*pImp)(_persDomains, objectForKeySel, dN);
-      if (dict != nil && (object = [dict objectForKey: defaultName]))
-	break;
-      dict = (*tImp)(_tempDomains, objectForKeySel, dN);
-      if (dict != nil && (object = [dict objectForKey: defaultName]))
-	break;
+      while ((dN = (*nImp)(enumerator, nextObjectSel)) != nil)
+        {
+          NSDictionary	*dict;
+    
+          dict = (*pImp)(_persDomains, objectForKeySel, dN);
+          if (dict != nil && (object = [dict objectForKey: defaultName]))
+	    break;
+          dict = (*tImp)(_tempDomains, objectForKeySel, dN);
+          if (dict != nil && (object = [dict objectForKey: defaultName]))
+	    break;
+        }
+      IF_NO_GC([object retain];)
+      [_lock unlock];
     }
-  IF_NO_GC([object retain];)
-  [_lock unlock];
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return AUTORELEASE(object);
 }
 
@@ -1034,26 +1088,35 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   id	obj;
 
   [_lock lock];
-  obj = [_persDomains objectForKey: processName];
-  obj = [(NSDictionary*)obj objectForKey: defaultName];
-  if (obj != nil)
+  NS_DURING
     {
-      NSMutableDictionary	*dict;
-      id			obj = [_persDomains objectForKey: processName];
+      obj = [_persDomains objectForKey: processName];
+      obj = [(NSDictionary*)obj objectForKey: defaultName];
+      if (obj != nil)
+        {
+          NSMutableDictionary	*dict;
+          id			obj = [_persDomains objectForKey: processName];
 
-      if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
-	{
-	  dict = obj;
-	}
-      else
-	{
-	  dict = [obj mutableCopy];
-	  [_persDomains setObject: dict forKey: processName];
-	}
-      [dict removeObjectForKey: defaultName];
-      [self __changePersistentDomain: processName];
+          if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
+	    {
+	      dict = obj;
+	    }
+          else
+	    {
+	      dict = [obj mutableCopy];
+	      [_persDomains setObject: dict forKey: processName];
+	    }
+          [dict removeObjectForKey: defaultName];
+          [self __changePersistentDomain: processName];
+        }
+      [_lock unlock];
     }
-  [_lock unlock];
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
@@ -1160,20 +1223,29 @@ static BOOL isPlistObject(id o)
 
   value = [value copy];
   [_lock lock];
-  obj = [_persDomains objectForKey: processName];
-  if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
+  NS_DURING
     {
-      dict = obj;
+      obj = [_persDomains objectForKey: processName];
+      if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
+        {
+          dict = obj;
+        }
+      else
+        {
+          dict = [obj mutableCopy];
+          [_persDomains setObject: dict forKey: processName];
+          RELEASE(dict);
+        }
+      [dict setObject: value forKey: defaultName];
+      [self __changePersistentDomain: processName];
+      [_lock unlock];
     }
-  else
+  NS_HANDLER
     {
-      dict = [obj mutableCopy];
-      [_persDomains setObject: dict forKey: processName];
-      RELEASE(dict);
+      [_lock unlock];
+      [localException raise];
     }
-  [dict setObject: value forKey: defaultName];
-  [self __changePersistentDomain: processName];
-  [_lock unlock];
+  NS_ENDHANDLER
   RELEASE(value);
 }
 
@@ -1217,19 +1289,37 @@ static BOOL isPlistObject(id o)
   NSArray	*copy;
 
   [_lock lock];
-  copy = [_searchList copy];
-  [_lock unlock];
+  NS_DURING
+    {
+      copy = [_searchList copy];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return AUTORELEASE(copy);
 }
 
 - (void) setSearchList: (NSArray*)newList
 {
   [_lock lock];
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults) invalidatedLanguages = YES;
-  RELEASE(_searchList);
-  _searchList = [newList mutableCopy];
-  [_lock unlock];
+  NS_DURING
+    {
+      DESTROY(_dictionaryRep);
+      if (self == sharedDefaults) invalidatedLanguages = YES;
+      RELEASE(_searchList);
+      _searchList = [newList mutableCopy];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName
@@ -1237,8 +1327,17 @@ static BOOL isPlistObject(id o)
   NSDictionary	*copy;
 
   [_lock lock];
-  copy = [[_persDomains objectForKey: domainName] copy];
-  [_lock unlock];
+  NS_DURING
+    {
+      copy = [[_persDomains objectForKey: domainName] copy];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return AUTORELEASE(copy);
 }
 
@@ -1247,20 +1346,38 @@ static BOOL isPlistObject(id o)
   NSArray	*keys;
 
   [_lock lock];
-  keys = [_persDomains allKeys];
-  [_lock unlock];
+  NS_DURING
+    {
+      keys = [_persDomains allKeys];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return keys;
 }
 
 - (void) removePersistentDomainForName: (NSString*)domainName
 {
   [_lock lock];
-  if ([_persDomains objectForKey: domainName])
+  NS_DURING
     {
-      [_persDomains removeObjectForKey: domainName];
-      [self __changePersistentDomain: domainName];
+      if ([_persDomains objectForKey: domainName])
+        {
+          [_persDomains removeObjectForKey: domainName];
+          [self __changePersistentDomain: domainName];
+        }
+      [_lock unlock];
     }
-  [_lock unlock];
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 - (void) setPersistentDomain: (NSDictionary*)domain
@@ -1269,18 +1386,26 @@ static BOOL isPlistObject(id o)
   NSDictionary	*dict;
 
   [_lock lock];
-  dict = [_tempDomains objectForKey: domainName];
-  if (dict != nil)
+  NS_DURING
+    {
+      dict = [_tempDomains objectForKey: domainName];
+      if (dict != nil)
+        {
+          [NSException raise: NSInvalidArgumentException
+		      format: @"a volatile domain called %@ exists", domainName];
+        }
+      domain = [domain mutableCopy];
+      [_persDomains setObject: domain forKey: domainName];
+      RELEASE(domain);
+      [self __changePersistentDomain: domainName];
+      [_lock unlock];
+    }
+  NS_HANDLER
     {
       [_lock unlock];
-      [NSException raise: NSInvalidArgumentException
-		  format: @"a volatile domain called %@ exists", domainName];
+      [localException raise];
     }
-  domain = [domain mutableCopy];
-  [_persDomains setObject: domain forKey: domainName];
-  RELEASE(domain);
-  [self __changePersistentDomain: domainName];
-  [_lock unlock];
+  NS_ENDHANDLER
 }
 
 - (id) valueForKey: (NSString*)aKey
@@ -1536,95 +1661,103 @@ static BOOL isLocked = NO;
   BOOL			wasLocked;
 
   [_lock lock];
-
-  /*
-   *	If we haven't changed anything, we only need to synchronise if
-   *	the on-disk database has been changed by someone else.
-   */
+  NS_DURING
+    {
+      /*
+       *	If we haven't changed anything, we only need to synchronise if
+       *	the on-disk database has been changed by someone else.
+       */
    
-  if (_changedDomains == nil)
-    {
-      if ([self wantToReadDefaultsSince: _lastSync] == NO)
-	{
-	  [_lock unlock];
-	  return YES;
-	}
-    }
-
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults)
-    {
-      invalidatedLanguages = YES;
-    }
-  
-  if ([self lockDefaultsFile: &wasLocked] == NO)
-    {
-      [_lock unlock];
-      return NO;
-    }
-  
-  newDict = [self readDefaults];
-  
-  if (newDict == nil)
-    {
-      if (wasLocked == NO)
-	{
-	  [self unlockDefaultsFile];
-	}
-      [_lock unlock];
-      return NO;
-    }
-
-  if (_changedDomains != nil)
-    {           // Synchronize both dictionaries
-      NSEnumerator	*enumerator = [_changedDomains objectEnumerator];
-      NSString		*domainName;
-      NSDictionary	*domain;
-      NSDictionary	*oldData = AUTORELEASE([newDict copy]);
-
-      DESTROY(_changedDomains);	// Retained by enumerator.
-      while ((domainName = [enumerator nextObject]) != nil)
-	{
-	  domain = [_persDomains objectForKey: domainName];
-	  if (domain != nil)	// Domain was added or changed
+      if (_changedDomains == nil)
+        {
+          if ([self wantToReadDefaultsSince: _lastSync] == NO)
 	    {
-	      [newDict setObject: domain forKey: domainName];
+	      [_lock unlock];
+	      NS_VALRETURN(YES);
 	    }
-	  else			// Domain was removed
-	    {
-	      [newDict removeObjectForKey: domainName];
-	    }
-	}
-      ASSIGN(_persDomains, newDict);
-      if ([self writeDefaults: _persDomains oldData: oldData] == NO)
-	{
-	  if (wasLocked == NO)
+        }
+
+      DESTROY(_dictionaryRep);
+      if (self == sharedDefaults)
+        {
+          invalidatedLanguages = YES;
+        }
+      
+      if ([self lockDefaultsFile: &wasLocked] == NO)
+        {
+          [_lock unlock];
+          NS_VALRETURN(NO);
+        }
+  
+      newDict = [self readDefaults];
+  
+      if (newDict == nil)
+        {
+          if (wasLocked == NO)
 	    {
 	      [self unlockDefaultsFile];
 	    }
-	  [_lock unlock];
-	  return NO;
-	}
-      ASSIGN(_lastSync, [NSDateClass date]);
-    }
-  else
-    {
-      ASSIGN(_lastSync, [NSDateClass date]);
-      if ([_persDomains isEqual: newDict] == NO)
-	{
-	  ASSIGN(_persDomains, newDict);
-	  updateCache(self);
-	  [[NSNotificationCenter defaultCenter]
-	    postNotificationName: NSUserDefaultsDidChangeNotification
-			  object: self];
-	}
-    }
+          [_lock unlock];
+          NS_VALRETURN(NO);
+        }
 
-  if (wasLocked == NO)
-    {
-      [self unlockDefaultsFile];
+      if (_changedDomains != nil)
+        {           // Synchronize both dictionaries
+          NSEnumerator	*enumerator = [_changedDomains objectEnumerator];
+          NSString		*domainName;
+          NSDictionary	*domain;
+          NSDictionary	*oldData = AUTORELEASE([newDict copy]);
+
+          DESTROY(_changedDomains);	// Retained by enumerator.
+          while ((domainName = [enumerator nextObject]) != nil)
+	    {
+	      domain = [_persDomains objectForKey: domainName];
+	      if (domain != nil)	// Domain was added or changed
+	        {
+	          [newDict setObject: domain forKey: domainName];
+	        }
+	      else			// Domain was removed
+	        {
+	          [newDict removeObjectForKey: domainName];
+	        }
+	    }
+          ASSIGN(_persDomains, newDict);
+          if ([self writeDefaults: _persDomains oldData: oldData] == NO)
+	    {
+	      if (wasLocked == NO)
+	        {
+	          [self unlockDefaultsFile];
+	        }
+	      [_lock unlock];
+	      NS_VALRETURN(NO);
+	    }
+          ASSIGN(_lastSync, [NSDateClass date]);
+        }
+      else
+        {
+          ASSIGN(_lastSync, [NSDateClass date]);
+          if ([_persDomains isEqual: newDict] == NO)
+	    {
+	      ASSIGN(_persDomains, newDict);
+	      updateCache(self);
+	      [[NSNotificationCenter defaultCenter]
+	        postNotificationName: NSUserDefaultsDidChangeNotification
+			      object: self];
+	    }
+        }
+
+      if (wasLocked == NO)
+        {
+          [self unlockDefaultsFile];
+        }
+      [_lock unlock];
     }
-  [_lock unlock];
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return YES;
 }
 
@@ -1632,10 +1765,19 @@ static BOOL isLocked = NO;
 - (void) removeVolatileDomainForName: (NSString*)domainName
 {
   [_lock lock];
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults) invalidatedLanguages = YES;
-  [_tempDomains removeObjectForKey: domainName];
-  [_lock unlock];
+  NS_DURING
+    {
+      DESTROY(_dictionaryRep);
+      if (self == sharedDefaults) invalidatedLanguages = YES;
+      [_tempDomains removeObjectForKey: domainName];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 - (void) setVolatileDomain: (NSDictionary*)domain
@@ -1644,27 +1786,34 @@ static BOOL isLocked = NO;
   id	dict;
 
   [_lock lock];
-  dict = [_persDomains objectForKey: domainName];
-  if (dict != nil)
+  NS_DURING
     {
-      [_lock unlock];
-      [NSException raise: NSInvalidArgumentException
-		  format: @"a persistent domain called %@ exists", domainName];
-    }
-  dict = [_tempDomains objectForKey: domainName];
-  if (dict != nil)
-    {
-      [_lock unlock];
-      [NSException raise: NSInvalidArgumentException
-		  format: @"the volatile domain %@ already exists", domainName];
-    }
+      dict = [_persDomains objectForKey: domainName];
+      if (dict != nil)
+        {
+          [NSException raise: NSInvalidArgumentException
+		      format: @"a persistent domain called %@ exists", domainName];
+        }
+      dict = [_tempDomains objectForKey: domainName];
+      if (dict != nil)
+        {
+          [NSException raise: NSInvalidArgumentException
+		      format: @"the volatile domain %@ already exists", domainName];
+        }
 
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults) invalidatedLanguages = YES;
-  domain = [domain mutableCopy];
-  [_tempDomains setObject: domain forKey: domainName];
-  RELEASE(domain);
-  [_lock unlock];
+      DESTROY(_dictionaryRep);
+      if (self == sharedDefaults) invalidatedLanguages = YES;
+      domain = [domain mutableCopy];
+      [_tempDomains setObject: domain forKey: domainName];
+      RELEASE(domain);
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 - (NSDictionary*) volatileDomainForName: (NSString*)domainName
@@ -1672,8 +1821,17 @@ static BOOL isLocked = NO;
   NSDictionary	*copy;
 
   [_lock lock];
-  copy = [[_tempDomains objectForKey: domainName] copy];
-  [_lock unlock];
+  NS_DURING
+    {
+      copy = [[_tempDomains objectForKey: domainName] copy];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return AUTORELEASE(copy);
 }
 
@@ -1682,8 +1840,17 @@ static BOOL isLocked = NO;
   NSArray	*keys;
 
   [_lock lock];
-  keys = [_tempDomains allKeys];
-  [_lock unlock];
+  NS_DURING
+    {
+      keys = [_tempDomains allKeys];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return keys;
 }
 
@@ -1692,39 +1859,48 @@ static BOOL isLocked = NO;
   NSDictionary	*rep;
 
   [_lock lock];
-  if (_dictionaryRep == nil)
+  NS_DURING
     {
-      NSEnumerator		*enumerator;
-      NSMutableDictionary	*dictRep;
-      id			obj;
-      id			dict;
-      IMP			nImp;
-      IMP			pImp;
-      IMP			tImp;
-      IMP			addImp;
+      if (_dictionaryRep == nil)
+        {
+          NSEnumerator		*enumerator;
+          NSMutableDictionary	*dictRep;
+          id			obj;
+          id			dict;
+          IMP			nImp;
+          IMP			pImp;
+          IMP			tImp;
+          IMP			addImp;
 
-      pImp = [_persDomains methodForSelector: objectForKeySel];
-      tImp = [_tempDomains methodForSelector: objectForKeySel];
+          pImp = [_persDomains methodForSelector: objectForKeySel];
+          tImp = [_tempDomains methodForSelector: objectForKeySel];
 
-      enumerator = [_searchList reverseObjectEnumerator];
-      nImp = [enumerator methodForSelector: nextObjectSel];
+          enumerator = [_searchList reverseObjectEnumerator];
+          nImp = [enumerator methodForSelector: nextObjectSel];
 
-      dictRep = [NSMutableDictionaryClass allocWithZone: NSDefaultMallocZone()];
-      dictRep = [dictRep initWithCapacity: 512];
-      addImp = [dictRep methodForSelector: addSel];
+          dictRep = [NSMutableDictionaryClass allocWithZone: NSDefaultMallocZone()];
+          dictRep = [dictRep initWithCapacity: 512];
+          addImp = [dictRep methodForSelector: addSel];
 
-      while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
-	{
-	  if ((dict = (*pImp)(_persDomains, objectForKeySel, obj)) != nil
-	    || (dict = (*tImp)(_tempDomains, objectForKeySel, obj)) != nil)
-            {
-              (*addImp)(dictRep, addSel, dict);
-            }
-	}
-      _dictionaryRep = [dictRep makeImmutableCopyOnFail: NO];
+          while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
+	    {
+	      if ((dict = (*pImp)(_persDomains, objectForKeySel, obj)) != nil
+	        || (dict = (*tImp)(_tempDomains, objectForKeySel, obj)) != nil)
+                {
+                  (*addImp)(dictRep, addSel, dict);
+                }
+	    }
+          _dictionaryRep = [dictRep makeImmutableCopyOnFail: NO];
+        }
+      rep = RETAIN(_dictionaryRep);
+      [_lock unlock];
     }
-  rep = RETAIN(_dictionaryRep);
-  [_lock unlock];
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return AUTORELEASE(rep);
 }
 
@@ -1733,17 +1909,26 @@ static BOOL isLocked = NO;
   NSMutableDictionary	*regDefs;
 
   [_lock lock];
-  regDefs = [_tempDomains objectForKey: NSRegistrationDomain];
-  if (regDefs == nil)
+  NS_DURING
     {
-      regDefs = [NSMutableDictionaryClass
-	dictionaryWithCapacity: [newVals count]];
-      [_tempDomains setObject: regDefs forKey: NSRegistrationDomain];
+      regDefs = [_tempDomains objectForKey: NSRegistrationDomain];
+      if (regDefs == nil)
+        {
+          regDefs = [NSMutableDictionaryClass
+	    dictionaryWithCapacity: [newVals count]];
+          [_tempDomains setObject: regDefs forKey: NSRegistrationDomain];
+        }
+      DESTROY(_dictionaryRep);
+      if (self == sharedDefaults) invalidatedLanguages = YES;
+      [regDefs addEntriesFromDictionary: newVals];
+      [_lock unlock];
     }
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults) invalidatedLanguages = YES;
-  [regDefs addEntriesFromDictionary: newVals];
-  [_lock unlock];
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 - (void) removeSuiteNamed: (NSString*)aName
@@ -1754,10 +1939,19 @@ static BOOL isLocked = NO;
 		  format: @"attempt to remove suite with nil name"];
     }
   [_lock lock];
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults) invalidatedLanguages = YES;
-  [_searchList removeObject: aName];
-  [_lock unlock];
+  NS_DURING
+    {
+      DESTROY(_dictionaryRep);
+      if (self == sharedDefaults) invalidatedLanguages = YES;
+      [_searchList removeObject: aName];
+      [_lock unlock];
+    }
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 /*************************************************************************
@@ -1773,105 +1967,123 @@ static BOOL isLocked = NO;
   id		key, val;
 
   [_lock lock];
-  args = [[NSProcessInfo processInfo] arguments];
-  enumerator = [args objectEnumerator];
-  argDict = [NSMutableDictionaryClass dictionaryWithCapacity: 2];
-  [enumerator nextObject];	// Skip process name.
-  done = ((key = [enumerator nextObject]) == nil) ? YES : NO;
-
-  while (done == NO)
+  NS_DURING
     {
-      if ([key hasPrefix: @"-"] == YES && [key isEqual: @"-"] == NO)
-	{
-	  NSString	*old = nil;
+      args = [[NSProcessInfo processInfo] arguments];
+      enumerator = [args objectEnumerator];
+      argDict = [NSMutableDictionaryClass dictionaryWithCapacity: 2];
+      [enumerator nextObject];	// Skip process name.
+      done = ((key = [enumerator nextObject]) == nil) ? YES : NO;
 
-	  /* anything beginning with a '-' is a defaults key and we must strip
-	      the '-' from it.  As a special case, we leave the '- in place
-	      for '-GS...' and '--GS...' for backward compatibility. */
-	  if ([key hasPrefix: @"-GS"] == YES || [key hasPrefix: @"--GS"] == YES)
+      while (done == NO)
+        {
+          if ([key hasPrefix: @"-"] == YES && [key isEqual: @"-"] == NO)
 	    {
-	      old = key;
-	    }
-	  key = [key substringFromIndex: 1];
-	  val = [enumerator nextObject];
-	  if (val == nil)
-	    {            // No more args
-	      [argDict setObject: @"" forKey: key];		// arg is empty.
-	      if (old != nil)
-		{
-		  [argDict setObject: @"" forKey: old];
-		}
-	      done = YES;
-	      continue;
-	    }
-	  else if ([val hasPrefix: @"-"] == YES && [val isEqual: @"-"] == NO)
-	    {  // Yet another argument
-	      [argDict setObject: @"" forKey: key];		// arg is empty.
-	      if (old != nil)
-		{
-		  [argDict setObject: @"" forKey: old];
-		}
-	      key = val;
-	      continue;
-	    }
-	  else
-	    {                            // Real parameter
-	      /* Parsing the argument as a property list is very
-		 delicate.  We *MUST NOT* crash here just because a
-		 strange parameter (such as `(load "test.scm")`) is
-		 passed, otherwise the whole library is useless in a
-		 foreign environment. */
-	      NSObject *plist_val;
+	      NSString	*old = nil;
 
-	      NS_DURING
-		{
-		  plist_val = [val propertyList];
-		}
-	      NS_HANDLER
-		{
-		  plist_val = val;
-		}
-	      NS_ENDHANDLER
+	      /* anything beginning with a '-' is a defaults key and we must strip
+	          the '-' from it.  As a special case, we leave the '- in place
+	          for '-GS...' and '--GS...' for backward compatibility. */
+	      if ([key hasPrefix: @"-GS"] == YES || [key hasPrefix: @"--GS"] == YES)
+	        {
+	          old = key;
+	        }
+	      key = [key substringFromIndex: 1];
+	      val = [enumerator nextObject];
+	      if (val == nil)
+	        {            // No more args
+	          [argDict setObject: @"" forKey: key];		// arg is empty.
+	          if (old != nil)
+		    {
+		      [argDict setObject: @"" forKey: old];
+		    }
+	          done = YES;
+	          continue;
+	        }
+	      else if ([val hasPrefix: @"-"] == YES && [val isEqual: @"-"] == NO)
+	        {  // Yet another argument
+	          [argDict setObject: @"" forKey: key];		// arg is empty.
+	          if (old != nil)
+		    {
+		      [argDict setObject: @"" forKey: old];
+		    }
+	          key = val;
+	          continue;
+	        }
+	      else
+	        {                            // Real parameter
+	          /* Parsing the argument as a property list is very
+		     delicate.  We *MUST NOT* crash here just because a
+		     strange parameter (such as `(load "test.scm")`) is
+		     passed, otherwise the whole library is useless in a
+		     foreign environment. */
+	          NSObject *plist_val;
 
-	      /* Make sure we don't crash being caught adding nil to
-                 a dictionary. */
-	      if (plist_val == nil)
-		{
-		  plist_val = val;
-		}
+	          NS_DURING
+		    {
+		      plist_val = [val propertyList];
+		    }
+	          NS_HANDLER
+		    {
+		      plist_val = val;
+		    }
+	          NS_ENDHANDLER
 
-	      [argDict setObject: plist_val  forKey: key];
-	      if (old != nil)
-		{
-		  [argDict setObject: plist_val  forKey: old];
-		}
+	          /* Make sure we don't crash being caught adding nil to
+                     a dictionary. */
+	          if (plist_val == nil)
+		    {
+		      plist_val = val;
+		    }
+    
+	          [argDict setObject: plist_val  forKey: key];
+	          if (old != nil)
+		    {
+		      [argDict setObject: plist_val  forKey: old];
+		    }
+	        }
 	    }
-	}
-      done = ((key = [enumerator nextObject]) == nil);
+          done = ((key = [enumerator nextObject]) == nil);
+        }
+      [_lock unlock];
     }
-  [_lock unlock];
+  NS_HANDLER
+    {
+      [_lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   return argDict;
 }
 
 - (void) __changePersistentDomain: (NSString*)domainName
 {
   [_lock lock];
-  DESTROY(_dictionaryRep);
-  if (self == sharedDefaults) invalidatedLanguages = YES;
-  if (_changedDomains == nil)
+  NS_DURING
     {
-      _changedDomains = [[NSMutableArray alloc] initWithObjects: &domainName
-							  count: 1];
-      updateCache(self);
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      DESTROY(_dictionaryRep);
+      if (self == sharedDefaults) invalidatedLanguages = YES;
+      if (_changedDomains == nil)
+        {
+          _changedDomains = [[NSMutableArray alloc] initWithObjects: &domainName
+							      count: 1];
+          updateCache(self);
+          [[NSNotificationCenter defaultCenter]
+	    postNotificationName: NSUserDefaultsDidChangeNotification
+		          object: self];
+        }
+      else if ([_changedDomains containsObject: domainName] == NO)
+        {
+          [_changedDomains addObject: domainName];
+        }
+      [_lock unlock];
     }
-  else if ([_changedDomains containsObject: domainName] == NO)
+  NS_HANDLER
     {
-      [_changedDomains addObject: domainName];
+      [_lock unlock];
+      [localException raise];
     }
-  [_lock unlock];
+  NS_ENDHANDLER
 }
 @end
 
@@ -1901,12 +2113,21 @@ NSDictionary *GSPrivateDefaultLocale()
       [NSUserDefaults standardUserDefaults];
     }
   [classLock lock];
-  if (sharedDefaults == nil)
+  NS_DURING
     {
-      [NSUserDefaults standardUserDefaults];
+      if (sharedDefaults == nil)
+        {
+          [NSUserDefaults standardUserDefaults];
+        }
+      defs = [sharedDefaults retain];
+      [classLock unlock];
     }
-  defs = [sharedDefaults retain];
-  [classLock unlock];
+  NS_HANDLER
+    {
+      [classLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   locale = [defs dictionaryRepresentation];
   [defs release];
   return locale;
