@@ -1,3 +1,7 @@
+2009-08-21 Riccardo Mottola <rmottola@users.sf.net>
+
+	* Source/NSConnection.m: Joined split-line string constant
+
 2009-08-21 Doug Simons <dpsimons@testplant.com>
 
 	* Source/NSUserDefaults.m: Changes to bulletproof NSUserDefaults from
