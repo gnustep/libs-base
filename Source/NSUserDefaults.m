@@ -449,6 +449,17 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
    * +userLanguages uses this to rebuild language information and return it.
    */
 
+  /* Return the sharedDefaults without locking in the simple case.
+   * We need to lock and check again before CREATING sharedDefaults if it doesn't exist,
+   * so that two threads can't create it at once (or call resetStandardUserDefaults at
+   * the same time).
+   * By not locking here, we avoid a deadlock that can occur between classLock and _lock. */  
+  if (setSharedDefaults == YES)
+    {
+      IF_NO_GC([sharedDefaults retain];)
+      return AUTORELEASE(sharedDefaults);
+    }
+
   [classLock lock];
 
   /*
