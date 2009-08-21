@@ -1,3 +1,9 @@
+2009-08-21 Doug Simons <dpsimons@testplant.com>
+
+	* Source/NSUserDefaults.m: Changes to bulletproof NSUserDefaults from
+	deadlocks when it is accessed by more than one thread.
+	Patch applied by: Gregory Casamento <greg.casamento@gmail.com>
+
 2009-08-19 Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/Additions/GSObjCRuntime.m:
