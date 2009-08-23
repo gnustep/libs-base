@@ -93,7 +93,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
  * Encapsulates low level read operation to get data from the operating
  * system.
  */
-- (int) read: (void*)buf length: (int)len
+- (int) read: (void*)buf length: (NSUInteger)len
 {
 #if	USE_ZLIB
   if (gzDescriptor != 0)
@@ -133,7 +133,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
  * Encapsulates low level write operation to send data to the operating
  * system.
  */
-- (int) write: (const void*)buf length: (int)len
+- (int) write: (const void*)buf length: (NSUInteger)len
 {
 #if	USE_ZLIB
   if (gzDescriptor != 0)
@@ -870,11 +870,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       [writeInfo addObject: info];
       RELEASE(info);
-      [self watchWriteDescriptor];
       connectOK = YES;
       acceptOK = NO;
       readOK = NO;
       writeOK = NO;
+      [self watchWriteDescriptor];
     }
   return self;
 }
@@ -1097,6 +1097,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (self != nil)
     {
       struct _stat sbuf;
+      HANDLE	h = (HANDLE)_get_osfhandle(desc);
 
       if (_fstat(desc, &sbuf) != 0)
 	{
@@ -1117,24 +1118,26 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       if (isStandardFile == NO)
 	{
-	  unsigned long nbio = 0;
-
-	  isSocket = YES;
-	  /*
-	   * This is probably a socket ... try
-	   * using a socket specific call and see if that fails.
-	   */
-	  if (ioctlsocket((SOCKET)_get_osfhandle(desc), FIONBIO, &nbio) == 0)
+ 	  if (GetFileType(h) == FILE_TYPE_PIPE)
 	    {
-	      wasNonBlocking = (nbio == 0) ? NO : YES;
+	      /* If we can't get named pipe ino, we assume this is a socket.
+	       */
+	      if (GetNamedPipeInfo(h, 0, 0, 0, 0) == 0)
+		{
+		  isSocket = YES;
+		}
+	      else
+		{
+		  NSLog(@"Named pipe");
+		}
 	    }
 	  else
 	    {
-	      isSocket = NO; // maybe special file desc. like std in/out/err?
+	      NSLog(@"Not a pipe");
 	    }
 	}
 
-      isNonBlocking = wasNonBlocking;
+      isNonBlocking = 0;
       descriptor = desc;
       closeOnDealloc = flag;
       readInfo = nil;
@@ -1153,7 +1156,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
               NSLog(@"Invalid Event - '%d'", WSAGetLastError());
               return nil;
             }
-          WSAEventSelect(_get_osfhandle(descriptor), event, FD_ALL_EVENTS);
+          WSAEventSelect((SOCKET)h, event, FD_ALL_EVENTS);
         }
       else
 	{
@@ -1653,7 +1656,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
 {
-  NSMutableDictionary*	info;
+  NSMutableDictionary	*info;
+  BOOL			writeWasInProgress;
 
   [self checkWrite];
 
@@ -1665,9 +1669,20 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
     }
+  writeWasInProgress = [writeInfo count] == 0 ? NO : YES;
   [writeInfo addObject: info];
   RELEASE(info);
-  [self watchWriteDescriptor];
+  /* On mswindows we receive a write trigger only when a write actually
+   * completes, so if there is no write in progress, we trigger one.
+   */
+  if (writeWasInProgress == NO)
+    {
+      [self receivedEventWrite];
+    }
+  else
+    {
+      [self watchWriteDescriptor];
+    }
 }
 
 - (void) writeInBackgroundAndNotify: (NSData*)item;
@@ -1763,9 +1778,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       modes = (NSArray*)[readInfo objectForKey:
 	NSFileHandleNotificationMonitorModes];
     }
-
-  e = (void*)(event ? (uintptr_t)event : (uintptr_t)descriptor);
-  t = event ? ET_HANDLE : ET_TRIGGER;
+  if (event == WSA_INVALID_EVENT)
+    {
+      e = (void*)(uintptr_t)descriptor;
+      t = ET_TRIGGER;
+    }
+  else
+    {
+      e = (void*)(uintptr_t)event;
+      t = ET_HANDLE;
+    }
 
   if (modes && [modes count])
     {
@@ -1809,8 +1831,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       modes=(NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
     }
 
-  e = (void*)(event ? (uintptr_t)event : (uintptr_t)descriptor);
-  t = event ? ET_HANDLE : ET_TRIGGER;
+  if (event == WSA_INVALID_EVENT)
+    {
+      e = (void*)(uintptr_t)descriptor;
+      t = ET_TRIGGER;
+    }
+  else
+    {
+      e = (void*)(uintptr_t)event;
+      t = ET_HANDLE;
+    }
 
   if (modes && [modes count])
     {
@@ -1847,8 +1877,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   l = [NSRunLoop currentRunLoop];
   [self setNonBlocking: YES];
 
-  e = (void*)(event ? (uintptr_t)event : (uintptr_t)descriptor);
-  t = event ? ET_HANDLE : ET_TRIGGER;
+  if (event == WSA_INVALID_EVENT)
+    {
+      e = (void*)(uintptr_t)descriptor;
+      t = ET_TRIGGER;
+    }
+  else
+    {
+      e = (void*)(uintptr_t)event;
+      t = ET_HANDLE;
+    }
 
   if (modes && [modes count])
     {
@@ -1890,8 +1928,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       [self setNonBlocking: YES];
 
-      e = (void*)(event ? (uintptr_t)event : (uintptr_t)descriptor);
-      t = event ? ET_HANDLE : ET_TRIGGER;
+      if (event == WSA_INVALID_EVENT)
+	{
+	  e = (void*)(uintptr_t)descriptor;
+	  t = ET_TRIGGER;
+	}
+      else
+	{
+	  e = (void*)(uintptr_t)event;
+	  t = ET_HANDLE;
+	}
 
       if (modes && [modes count])
 	{
@@ -1913,6 +1959,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      forMode: NSDefaultRunLoopMode];
 	}
     }
+  else
+    {
+    }
 }
 
 - (void) receivedEventRead
@@ -1924,7 +1973,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       struct sockaddr_in	buf;
       SOCKET		        desc;
-      int		blen = sizeof(buf);
+      int			blen = sizeof(buf);
 
       desc = accept((SOCKET)_get_osfhandle(descriptor),
 	(struct sockaddr*)&buf, &blen);
@@ -1941,7 +1990,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{ // Accept attempt completed.
 	  GSFileHandle		*h;
 	  struct sockaddr_in	sin;
-	  int		size = sizeof(sin);
+	  int			size = sizeof(sin);
 	  int			status;
 
 	  /*
@@ -1952,12 +2001,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    sizeof(status));
 
 	  h = [[[self class] alloc] initWithNativeHandle: (void*)desc
-						closeOnDealloc: YES];
+					  closeOnDealloc: YES];
 	  h->isSocket = YES;
 	  getpeername(desc, (struct sockaddr*)&sin, &size);
 	  [h setAddr: &sin];
 	  [readInfo setObject: h
-		   forKey: NSFileHandleNotificationFileHandleItem];
+		       forKey: NSFileHandleNotificationFileHandleItem];
 	  RELEASE(h);
 	}
       [self postReadNotification];
@@ -2118,16 +2167,29 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  WSANETWORKEVENTS ocurredEvents;
-
-  NSDebugMLLog(@"NSFileHandle", @"%@ event: %d", self, type);
+  NSDebugMLLog(@"NSFileHandle", @"%@ event: %lu type: %lu extra: %lu mode: %@",
+    self, (uintptr_t)data, (uintptr_t)type, (uintptr_t)extra, mode);
 
   if (isNonBlocking == NO)
     {
       [self setNonBlocking: YES];
     }
-  if (isSocket)
+  if (isSocket == YES)
     {
+      WSANETWORKEVENTS ocurredEvents;
+
+      if (type != ET_HANDLE)
+	{
+	  NSLog(@"Argh, TRIGGER on socket %lu %lu %@ with event %u desc %u",
+	    (uintptr_t)data, (uintptr_t)extra, mode, (uintptr_t)event,
+	    (uintptr_t)descriptor);
+/*
+	  [[NSRunLoop currentRunLoop] removeEvent: data
+					     type: type
+					  forMode: mode
+					      all: YES];
+*/
+	}
       if (WSAEnumNetworkEvents((SOCKET)_get_osfhandle(descriptor), 
 	event, &ocurredEvents) == SOCKET_ERROR)
 	{
@@ -2295,7 +2357,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   struct sockaddr_in sin;
   int	size = sizeof(sin);
 
-  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
+  if (getsockname((SOCKET)_get_osfhandle(descriptor),
+    (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
     {
       NSLog(@"unable to get socket name - %@", [NSError _last]);
     }
@@ -2312,7 +2375,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   struct sockaddr_in sin;
   int	size = sizeof(sin);
 
-  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
+  if (getsockname((SOCKET)_get_osfhandle(descriptor),
+    (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
     {
       NSLog(@"unable to get socket name - %@", [NSError _last]);
     }

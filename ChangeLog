@@ -1,3 +1,8 @@
+2009-08-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFilehandle.m: backport changes from trunk to fix
+	socket write in background on win32
+
 2009-08-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: handle empty key in xml property list.
