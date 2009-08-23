@@ -1,3 +1,12 @@
+2009-08-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandle.m: Fix for write in background on windows
+	if a write is not already in progress, do it immediately because
+	winsock won't tell us when we can write.  Also, improve the test to
+	see if a handle is a socket, as the previous code was not working for
+	incoming connections, resulting in a busy poll rather than a blocking
+	poll, and thus loading the system unnecessarily.
+
 2009-08-21 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Source/NSConnection.m: Joined split-line string constant
