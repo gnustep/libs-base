@@ -1005,10 +1005,16 @@ boolValue_c(GSStr self)
 
   for (i = 0; i < c; i++)
     {
-      if (strchr("123456789yYtT", self->_contents.c[i]) != 0)
+      char	c = self->_contents.c[i];
+
+      if (strchr("123456789yYtT", c) != 0)
         {
           return YES;
         }
+      if (!isspace(c) && c != '0' && c != '-' && c != '+')
+	{
+	  break;
+	}
     }
   return NO;
 }
@@ -1021,10 +1027,20 @@ boolValue_u(GSStr self)
 
   for (i = 0; i < c; i++)
     {
-      if (strchr("123456789yYtT", self->_contents.u[i]) != 0)
+      unichar	c = self->_contents.u[i];
+
+      if (c > 'y')
+	{
+	  break;
+	}
+      if (strchr("123456789yYtT", c) != 0)
         {
           return YES;
         }
+      if (!isspace(c) && c != '0' && c != '-' && c != '+')
+	{
+	  break;
+	}
     }
   return NO;
 }
