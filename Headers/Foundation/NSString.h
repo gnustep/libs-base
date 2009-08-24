@@ -709,6 +709,14 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 #endif
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
+/**
+ * Returns YES when scanning the receiver's text from left to right
+ * finds an initial digit in the range 1-9 or a letter in the set
+ * ('Y', 'y', 'T', 't').<br />
+ * Any trailing characters are ignored.<br />
+ * Any leading whitespace or zeros or signs are also ignored.<br />
+ * Returns NO if the above conditions are not met.
+ */
 - (BOOL) boolValue;
 - (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)separator;
 - (NSInteger) integerValue;

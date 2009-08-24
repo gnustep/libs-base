@@ -1,3 +1,11 @@
+2009-08-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m:
+	* Source/GSString.m:
+	* Headers/Foundation/NSString.h:
+	Tweak boolValue behavior to better match OSX and document exact
+	behavior.
+
 2009-08-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFileHandle.m: Fix for write in background on windows

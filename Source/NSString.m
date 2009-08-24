@@ -2784,27 +2784,33 @@ handle_printf_atsign (FILE *stream,
 
 // Getting Numeric Values
 
-// xxx Should we use NSScanner here ?
-
-/**
- * Returns YES when scanning the receiver's text from left to right finds a
- * digit in the range 1-9 or a letter in the set ('Y', 'y', 'T', 't').<br />
- * Any trailing characters are ignored.<br />
- * Any leading whitespace or zeros or signs are also ignored.<br />
- * Returns NO if the above conditions are not met.
- */
 - (BOOL) boolValue
 {
-  static NSCharacterSet *yes = nil;
+  unsigned	length = [self length];
 
-  if (yes == nil)
+  if (length > 0)
     {
-      yes = RETAIN([NSCharacterSet characterSetWithCharactersInString:
-      @"123456789yYtT"]);
-    }
-  if ([self rangeOfCharacterFromSet: yes].length > 0)
-    {
-      return YES;
+      unsigned	index;
+      SEL	sel = @selector(characterAtIndex:);
+      unichar	(*imp)() = (unichar (*)())[self methodForSelector: sel];
+
+      for (index = 0; index < length; index++)
+	{
+	  unichar	c = (*imp)(self, sel, index);
+
+	  if (c > 'y')
+	    {
+	      break;
+	    }
+          if (strchr("123456789yYtT", c) != 0)
+	    {
+	      return YES;
+	    }
+	  if (!isspace(c) && c != '0' && c != '-' && c != '+')
+	    {
+	      break;
+	    }
+	}
     }
   return NO;
 }
