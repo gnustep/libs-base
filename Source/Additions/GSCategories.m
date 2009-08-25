@@ -662,7 +662,7 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
  */
 - (BOOL) uudecodeInto: (NSMutableData*)decoded
 		 name: (NSString**)namePtr
-		 mode: (int*)modePtr
+		 mode: (NSInteger*)modePtr
 {
   const unsigned char	*bytes = (const unsigned char*)[self bytes];
   unsigned		length = [self length];
@@ -810,7 +810,7 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
  */
 - (BOOL) uuencodeInto: (NSMutableData*)encoded
 		 name: (NSString*)name
-		 mode: (int)mode
+		 mode: (NSInteger)mode
 {
   const unsigned char	*bytes = (const unsigned char*)[self bytes];
   int			length = [self length];

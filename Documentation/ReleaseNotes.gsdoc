@@ -29,6 +29,59 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
      <section>
+	<heading>Version 1.19.2</heading>
+        <p>This is a new unstable snapshot release of the base library.
+	It may contain minor binary incompatibilities with the previous
+	unstable release, but should generally work with software compiled
+	for that release.
+	</p>
+	<p>This is primarily intended as a bugfix release prior to major
+	rewrite of NSLock code by David Chisnall.  As such, most changes
+	are bugfixes and performance tweaks.  Some of the main ones are
+	listed below.
+	</p>
+	<deflist>
+	  <term>NSCalendarDate</term>
+          <desc>
+	    Add OSX compatible field widths in date formats.
+          </desc>
+	  <term>NSCharacterSet</term>
+          <desc>
+	    Uses a much more compact internal representation to decrease the
+	    memory footprint of applications which make extensive use of
+	    charactersets.
+          </desc>
+	  <term>NSFileHandle</term>
+          <desc>
+	    Fixes for socket connections on mswindows.
+          </desc>
+	  <term>NSRunLoop</term>
+          <desc>
+	    Adds OSX compatibility changes with timers acting like input
+	    sources for determining blocking.
+          </desc>
+	  <term>NSString</term>
+          <desc>
+	    Performance improvements converting between 8bit and 16bit
+	    character representations.
+          </desc>
+	  <term>NSURL</term>
+          <desc>
+	    Support file URLs on mswindows.  Include 'Host' header in requests
+	    to conform to W3C standards.
+          </desc>
+	  <term>NSUserDefaults</term>
+          <desc>
+	    Fixes for improved thread safety.
+	    Now stores to file in XML format.
+          </desc>
+	  <term>Key Value Coding/Observing</term>
+          <desc>
+	    Various improvements for OSX compatibility.
+          </desc>
+	</deflist>
+      </section>
+      <section>
 	<heading>Version 1.19.1</heading>
 	<p>A great deal of improvements have occured recently.  This includes
 	many improvements in garbage collection (first to get it working again).
@@ -52,7 +105,8 @@ notice and this notice are preserved.
           </desc>
 	  <term>Garbage Collection</term>
           <desc>
-	    Get GC working again. Fixes in various classes to work better with GC.
+	    Get GC working again. Fixes in various classes to work
+	    better with GC.
           </desc>
 	  <term>Mac OS X 10.5 Return Types</term>
           <desc>

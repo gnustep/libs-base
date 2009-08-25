@@ -664,7 +664,7 @@ wordData(NSString *word)
  * </p>
  * <p>If you need to parse faulty documents (eg where a faulty mail client
  *   has produced an email which does not conform to the MIME standards), you
- *   should look at the -setBuggyQotes: and -setDefaultCharset: methods, which
+ *   should look at the -setBuggyQuotes: and -setDefaultCharset: methods, which
  *   are designed to cope with the most common faults.
  * </p>
  */

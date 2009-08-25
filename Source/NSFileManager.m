@@ -2025,7 +2025,7 @@ static NSStringEncoding	defaultEncoding;
     (const GSNativeChar*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
 }
 - (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
-					  length: (unsigned int)len
+					  length: (NSUInteger)len
 {
   return [NSString stringWithCharacters: string length: len];
 }

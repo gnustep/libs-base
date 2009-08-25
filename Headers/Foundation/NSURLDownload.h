@@ -105,10 +105,11 @@ extern "C" {
 /**
  * Sets the path to which the file is downloaded.<br />
  * May be called (once only) after initialisation of the receiver or when the
- * delegate receives a -decideDestinationWithSuggestedFilename: message.<br />
+ * delegate receives a -download:decideDestinationWithSuggestedFilename:
+ * message.<br />
  * Appends a number to the filename if allowOverwrite is NO and a file
  * already exists at path.<br />
- * See -didCreateDestination: also.
+ * See -download:didCreateDestination: also.
  */
 - (void) setDestination: (NSString *)path allowOverwrite: (BOOL)allowOverwrite;
 
