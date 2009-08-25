@@ -132,44 +132,53 @@ typedef struct {
 
 - (void) downloadDidBegin: (NSURLDownload *)download
 {
+  return;
 }
 
 - (void) downloadDidFinish: (NSURLDownload *)download
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
  decideDestinationWithSuggestedFilename: (NSString *)filename
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didCreateDestination: (NSString *)path
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download didFailWithError: (NSError *)error
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didReceiveDataOfLength: (NSUInteger)length
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didReceiveResponse: (NSURLResponse *)response
 {
+  return;
 }
 
 - (BOOL) download: (NSURLDownload *)download
@@ -182,6 +191,7 @@ typedef struct {
   willResumeWithResponse: (NSURLResponse *)response
   fromByte: (long long)startingByte
 {
+  return;
 }
 
 - (NSURLRequest *) download: (NSURLDownload *)download
@@ -209,7 +219,7 @@ typedef struct {
 - (void) URLProtocol: (NSURLProtocol *)protocol
   cachedResponseIsValid: (NSCachedURLResponse *)cachedResponse
 {
-
+  return;
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
@@ -221,6 +231,7 @@ typedef struct {
 - (void) URLProtocol: (NSURLProtocol *)protocol
 	 didLoadData: (NSData *)data
 {
+  return;
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol

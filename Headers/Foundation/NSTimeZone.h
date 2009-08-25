@@ -43,6 +43,7 @@ enum {
   NSTimeZoneNameStyleShortDaylightSaving
 };
 typedef NSInteger NSTimeZoneNameStyle;
+GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 #endif
 
 @interface NSTimeZone : NSObject
@@ -98,8 +99,6 @@ typedef NSInteger NSTimeZoneNameStyle;
 
 - (NSString *)localizedName: (NSTimeZoneNameStyle)style
                      locale: (NSLocale *)locale;
-GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
-
 #endif
 
 #if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)

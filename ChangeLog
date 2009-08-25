@@ -1,3 +1,18 @@
+2009-08-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version: bump to 1.19.2
+	* Documentation/news.texi: update
+	* Documentation/ReleaseNotes.gsdoc: update
+	* Source/DocMakefile: Avoid warning about WINAPI
+	* Source/NSURLDownload.m: Documentation cleanups
+	* Source/NSFileManager.m: ditto
+	* Source/Additions/GSCategories.m: ditto
+	* Source/Additions/GSMime.m: ditto
+	* Source/NSURLConnection.m: ditto
+	* Headers/Foundation/NSTimeZone.h: ditto
+	* Headers/Foundation/NSURLDownload.h: ditto
+	Make 1.19.2 release
+
 2009-08-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m:

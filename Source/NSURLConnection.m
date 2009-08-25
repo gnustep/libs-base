@@ -263,15 +263,18 @@ typedef struct {
 - (void) connection: (NSURLConnection *)connection
   didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
+  return;
 }
 
 - (void) connection: (NSURLConnection *)connection
    didFailWithError: (NSError *)error
 {
+  return;
 }
 
 - (void) connectionDidFinishLoading: (NSURLConnection *)connection
 {
+  return;
 }
 
 - (void) connection: (NSURLConnection *)connection
@@ -284,11 +287,13 @@ typedef struct {
 - (void) connection: (NSURLConnection *)connection
      didReceiveData: (NSData *)data
 {
+  return;
 }
 
 - (void) connection: (NSURLConnection *)connection
  didReceiveResponse: (NSURLResponse *)response
 {
+  return;
 }
 
 - (NSCachedURLResponse *) connection: (NSURLConnection *)connection
