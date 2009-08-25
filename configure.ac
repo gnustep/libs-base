@@ -32,6 +32,12 @@ builtin(include, config/codeset.m4)dnl
 builtin(include, config/addlibrarypath.m4)dnl
 
 AC_INIT
+
+#--------------------------------------------------------------------
+# Use a .h file with #define's, instead of -D command-line switches
+#--------------------------------------------------------------------
+AC_CONFIG_HEADER(Headers/Additions/GNUstepBase/config.h)
+
 AC_CONFIG_SRCDIR([Source/NSArray.m])
 
 # If GNUSTEP_MAKEFILES is undefined, try to use gnustep-config to determine it.
@@ -66,11 +72,6 @@ CURRENT_GNUSTEP_MAKEFILES="$GNUSTEP_MAKEFILES"
 # Use config.guess, config.sub and install-sh provided by gnustep-make
 #--------------------------------------------------------------------
 AC_CONFIG_AUX_DIR($CURRENT_GNUSTEP_MAKEFILES)
-
-#--------------------------------------------------------------------
-# Use a .h file with #define's, instead of -D command-line switches
-#--------------------------------------------------------------------
-AC_CONFIG_HEADER(Headers/Additions/GNUstepBase/config.h)
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
