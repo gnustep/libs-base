@@ -331,6 +331,10 @@ typedef enum _NSGNUstepStringEncoding
 + (id)newLockAt:(id *)location;
 @end
 
+@interface NSURL (GSCategories)
+- (NSString*) fullPath;
+@end
+
 /* ------------------------------------------------------------------------
  * Functions
  */

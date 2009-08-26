@@ -1,3 +1,18 @@
+2009-08-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURL.h:
+	* Headers/Additions/GNUstepBase/GSCategories.h:
+	* Source/NSURL.m:
+	* Source/Additions/GSCategories.m:
+	Add new -fulPath method to do what -path used to do, because for OSX
+	compatibility the -path method now returns a path without any
+	trailing slash, making it impossible to reconsitute a URL string
+	from its individual parts :-(
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLProtocol.m:
+	Use the new -fullPath method to build the request line sent to the
+	remote web server.
+
 2009-08-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version: bump to 1.19.2

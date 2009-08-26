@@ -614,7 +614,7 @@ static NSURLProtocol	*placeholder = nil;
   /* Perform a redirect if the path is empty.
    * As per MacOs-X documentation.
    */
-  if ([[[this->request URL] path] length] == 0)
+  if ([[[this->request URL] fullPath] length] == 0)
     {
       NSString		*s = [[this->request URL] absoluteString];
       NSURL		*url;
@@ -1058,7 +1058,7 @@ static NSURLProtocol	*placeholder = nil;
 		      auth = [authentication
 			authorizationForAuthentication: hdr
 			method: [this->request HTTPMethod]
-			path: [url path]];
+			path: [url fullPath]];
 		    }
 
 		  if (auth == nil)
@@ -1274,7 +1274,7 @@ static NSURLProtocol	*placeholder = nil;
 	      [m appendString: [this->request HTTPMethod]];
 	      [m appendString: @" "];
 	      u = [this->request URL];
-	      s = [u path];
+	      s = [u fullPath];
 	      if ([s hasPrefix: @"/"] == NO)
 	        {
 		  [m appendString: @"/"];
@@ -1692,7 +1692,7 @@ static NSURLProtocol	*placeholder = nil;
   NSURLResponse	*r;
   NSData	*data = [NSData data];	// no data
 
-  // we could pass different content depending on the [url path]
+  // we could pass different content depending on the url path
   r = [[NSURLResponse alloc] initWithURL: [this->request URL]
 				MIMEType: @"text/html"
 		   expectedContentLength: 0

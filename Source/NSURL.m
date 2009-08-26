@@ -1242,6 +1242,92 @@ static unsigned	urlAlign;
   return fragment;
 }
 
+- (char*) _path: (char*)buf
+{
+  char		*ptr = buf;
+  char		*tmp = buf;
+
+  if (myData->pathIsAbsolute == YES)
+    {
+      if (myData->hasNoPath == NO)
+	{
+	  *tmp++ = '/';
+	}
+      strcpy(tmp, myData->path);
+    }
+  else if (_baseURL == nil)
+    {
+      strcpy(tmp, myData->path);
+    }
+  else if (*myData->path == 0)
+    {
+      if (baseData->hasNoPath == NO)
+	{
+	  *tmp++ = '/';
+	}
+      strcpy(tmp, baseData->path);
+    }
+  else
+    {
+      char	*start = baseData->path;
+      char	*end = strrchr(start, '/');
+
+      if (end != 0)
+	{
+	  *tmp++ = '/';
+	  strncpy(tmp, start, end - start);
+	  tmp += end - start;
+	}
+      *tmp++ = '/';
+      strcpy(tmp, myData->path);
+    }
+
+  unescape(buf, buf);
+
+#if	defined(__MINGW32__)
+  /* On windows a file URL path may be of the form C:\xxx (ie we should
+   * not insert the leading slash).
+   * Also the vertical bar symbol may have been used instead of the
+   * colon, so we need to convert that.
+   */
+  if (myData->isFile == YES)
+    {
+      if (ptr[1] && isalpha(ptr[1]))
+	{
+	  if (ptr[2] == ':' || ptr[2] == '|')
+	    {
+	      if (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\')
+		{
+		  ptr[2] = ':';
+		  ptr++;
+		}
+	    }
+	}
+    }
+#endif
+  return ptr;
+}
+
+- (NSString*) fullPath
+{
+  NSString	*path = nil;
+
+  /*
+   * If this scheme is from a URL without generic format, there is no path.
+   */
+  if (myData->isGeneric == YES)
+    {
+      unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
+	+ strlen(myData->path) + 3;
+      char		buf[len];
+      char		*ptr;
+
+      ptr = [self _path: buf];
+      path = [NSString stringWithUTF8String: ptr];
+    }
+  return path;
+}
+
 /**
  * Returns the host portion of the receiver or nil if there is no
  * host supplied in the URL.<br />
@@ -1412,74 +1498,19 @@ static unsigned	urlAlign;
       unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
 	+ strlen(myData->path) + 3;
       char		buf[len];
-      char		*ptr = buf;
-      char		*tmp = buf;
+      char		*ptr;
+      char		*tmp;
 
-      if (myData->pathIsAbsolute == YES)
-	{
-	  if (myData->hasNoPath == NO)
-	    {
-	      *tmp++ = '/';
-	    }
-	  strcpy(tmp, myData->path);
-	}
-      else if (_baseURL == nil)
-	{
-	  strcpy(tmp, myData->path);
-	}
-      else if (*myData->path == 0)
-	{
-	  if (baseData->hasNoPath == NO)
-	    {
-	      *tmp++ = '/';
-	    }
-	  strcpy(tmp, baseData->path);
-	}
-      else
-	{
-	  char	*start = baseData->path;
-	  char	*end = strrchr(start, '/');
+      ptr = [self _path: buf];
 
-	  if (end != 0)
-	    {
-	      *tmp++ = '/';
-	      strncpy(tmp, start, end - start);
-	      tmp += end - start;
-	    }
-	  *tmp++ = '/';
-	  strcpy(tmp, myData->path);
-	}
-
-      unescape(buf, buf);
       /* Remove any trailing '/' from the path for MacOS-X compatibility.
        */
-      tmp = buf + strlen(buf) - 1;
-      if (tmp > buf && *tmp == '/')
+      tmp = ptr + strlen(ptr) - 1;
+      if (tmp > ptr && *tmp == '/')
 	{
 	  *tmp = '\0';
 	}
 
-#if	defined(__MINGW32__)
-      /* On windows a file URL path may be of the form C:\xxx (ie we should
-       * not insert the leading slash).
-       * Also the vertical bar symbol may have been used instead of the
-       * colon, so we need to convert that.
-       */
-      if (myData->isFile == YES)
-	{
-          if (ptr[1] && isalpha(ptr[1]))
-	    {
-	      if (ptr[2] == ':' || ptr[2] == '|')
-		{
-		  if (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\')
-		    {
-		      ptr[2] = ':';
-		      ptr++;
-		    }
-		}
-	    }
-	}
-#endif
       path = [NSString stringWithUTF8String: ptr];
     }
   return path;
