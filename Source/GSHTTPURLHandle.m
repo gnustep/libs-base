@@ -511,7 +511,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 	  auth = [authentication authorizationForAuthentication: nil
 							 method: method
-							   path: [u path]];
+							   path: [u fullPath]];
 	  /* If authentication is nil then auth will also be nil
 	   */
 	  if (auth != nil)
@@ -728,7 +728,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
-		    path: [url path]];
+		    path: [url fullPath]];
 		  if (auth != nil)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
@@ -900,7 +900,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (debug)
     NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
 
-  path = [[u path] stringByTrimmingSpaces];
+  path = [[u fullPath] stringByTrimmingSpaces];
   if ([path length] == 0)
     {
       path = @"/";
@@ -1487,7 +1487,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      method = @"GET";
 	    }
 	}
-      path = [[u path] stringByTrimmingSpaces];
+      path = [[u fullPath] stringByTrimmingSpaces];
       if ([path length] == 0)
 	{
 	  path = @"/";

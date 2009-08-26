@@ -119,6 +119,12 @@ GS_EXPORT NSString* const NSURLFileScheme;
 
 #endif	/* GS_API_MACOSX */
 
+@interface NSURL (GSCategories)
+/** Returns the full path for this URL including any trailing slash.
+ */
+- (NSString*) fullPath;
+@end
+
 #if	defined(__cplusplus)
 }
 #endif
