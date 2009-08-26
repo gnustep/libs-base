@@ -1,3 +1,8 @@
+2009-08-20  Douglas Simons <doug.simons@testplant.com>
+
+	* Source/NSUserDefaults.m: Protect locks against being lost if an exception is raised. 
+	
+
 2009-04-18 10:15-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/GSURLPrivate.h: Addition of private method to NSURLProtocol 
