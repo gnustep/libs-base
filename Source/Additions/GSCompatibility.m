@@ -491,3 +491,26 @@ BOOL GSDebugSet(NSString *level)
 
 @end
 
+
+@implementation NSURL (GSCompatibility)
+- (NSString*) fullPath
+{
+  NSRange	r;
+  NSString	*s;
+
+  s = [self absoluteString];
+  if ((r = [s rangeOfString: @";"]).length > 0)
+    {
+      s = [s substringToIndex: r.location];
+    }
+  else if ((r = [s rangeOfString: @"?"]).length > 0)
+    {
+      s = [s substringToIndex: r.location];
+    }
+  r = [s rangeOfString: @"//"];
+  s = [s substringFromIndex: NSMaxRange(r)];
+  r = [s rangeOfString: @"/"];
+  s = [s substringFromIndex: r.location];
+  return s;
+}
+@end
