@@ -1605,26 +1605,3 @@ executablePath(NSFileManager *mgr, NSString *path)
   return nil;
 }
 @end
-
-@implementation NSURL (GSCategories)
-- (NSString*) fullPath
-{
-  NSRange	r;
-  NSString	*s;
-
-  s = [self absoluteString];
-  if ((r = [s rangeOfString: @";"]).length > 0)
-    {
-      s = [s substringFromIndex: r.location];
-    }
-  else if ((r = [s rangeOfString: @"?"]).length > 0)
-    {
-      s = [s substringFromIndex: r.location];
-    }
-  r = [s rangeOfString: @"//"];
-  s = [s substringFromIndex: NSMaxRange(r)];
-  r = [s rangeOfString: @"/"];
-  s = [s substringFromIndex: r.location];
-  return s;
-}
-@end

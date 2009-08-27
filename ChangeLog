@@ -1,5 +1,11 @@
 2009-08-27 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSCompatibility.m:
+	Move -fullPath to correct place to build on OSX
+
+2009-08-27 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSAttributedString.m: ([-string]) was returning proxy to
 	mutable string ... bad if calling code does not expect it.
 
