@@ -1126,10 +1126,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		{
 		  isSocket = YES;
 		}
-	      else
-		{
-		  NSLog(@"Named pipe");
-		}
 	    }
 	  else
 	    {
