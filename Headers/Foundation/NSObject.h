@@ -407,7 +407,38 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 	      afterDelay: (NSTimeInterval)seconds
 		 inModes: (NSArray*)modes;
 @end
-
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+/**
+ * The NSDiscardableContent protocol is used by objects which encapsulate data
+ * which may be discarded if resource constraints are exceeded.  These
+ * constraints are typically, but not always, related memory.  
+ */
+@protocol NSDiscardableContent
+/**
+ * This method is called before any access to the object.  It returns YES if
+ * the object's content is still valid.  The caller must call -endContentAccess
+ * once for every call to -beginContentAccess;
+ */
+- (BOOL)beginContentAccess;
+/**
+ * This method indicates that the caller has finished accessing the contents of
+ * the object adopting this protocol.  Every call to -beginContentAccess must
+ * be be paired with a call to this method after the caller has finished
+ * accessing the contents.
+ */
+- (void)endContentAccess;
+/**
+ * Discards the contents of the object if it is not currently being edited.
+ */
+- (void)discardContentIfPossible;
+/**
+ * Returns YES if the contents of the object have been discarded, either via a
+ * call to -discardContentIfPossible while the object is not in use, or by some
+ * implementation-dependent mechanism.  
+ */
+- (BOOL)isContentDiscarded;
+@end
+#endif
 #if	defined(__cplusplus)
 }
 #endif
