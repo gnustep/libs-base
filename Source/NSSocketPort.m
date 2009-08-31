@@ -1807,8 +1807,9 @@ static Class		tcpPortClass;
 
   names = [[NSSocketPortNameServer sharedInstance] namesForPort: self];
   desc = [NSString stringWithFormat:
-    @"NSSocketPort %p %@ on IP address: %@, port: %d",
-    self, (([names count] == 0) ? (id)@"<un-named>" : (id)names), host,
+    @"<%s %p %@ on IP %@,%d>",
+    GSClassNameFromObject(self), self,
+    (([names count] == 0) ? (id)@"(<un-named>)" : (id)names), host,
     ((address == nil) ? (id)@"any" : (id)address), portNum];
   return desc;
 }

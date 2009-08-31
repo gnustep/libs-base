@@ -800,8 +800,8 @@ static NSLock	*cached_proxies_gate = nil;
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"%@ recv: 0x%x send 0x%x",
-    [super description], (uintptr_t)[self receivePort], (uintptr_t)[self sendPort]];
+  return [NSString stringWithFormat: @"%@ recv: %@ send %@",
+    [super description], [self receivePort], [self sendPort]];
 }
 
 /**

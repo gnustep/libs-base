@@ -1339,8 +1339,9 @@ typedef	struct {
 
   names = [[NSMessagePortNameServer sharedInstance] namesForPort: self];
   desc = [NSString stringWithFormat:
-    @"NSMessagePort %p %@ with file name %s",
-    self, ([names count] == 0) ? (id)@"<un-named>" : (id)names, [name bytes]];
+    @"<%s %p %@ with file name %s>",
+    GSClassNameFromObject(self), self,
+    ([names count] == 0) ? (id)@"<un-named>" : (id)names, [name bytes]];
   return desc;
 }
 
