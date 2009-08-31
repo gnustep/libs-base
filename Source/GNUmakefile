@@ -177,6 +177,7 @@ NSAssertionHandler.m \
 NSAttributedString.m \
 NSAutoreleasePool.m \
 NSBundle.m \
+NSCache.m \
 NSCachedURLResponse.m \
 NSCalendarDate.m \
 NSCallBacks.m \
@@ -332,6 +333,7 @@ NSAttributedString.h \
 NSAutoreleasePool.h \
 NSBundle.h \
 NSByteOrder.h \
+NSCache.h\
 NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \

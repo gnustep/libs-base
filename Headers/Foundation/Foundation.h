@@ -43,6 +43,7 @@
 #import	<Foundation/NSAutoreleasePool.h>
 #import	<Foundation/NSBundle.h>
 #import	<Foundation/NSByteOrder.h>
+#import	<Foundation/NSCache.h>
 #import	<Foundation/NSCalendarDate.h>
 #import	<Foundation/NSCharacterSet.h>
 #import	<Foundation/NSClassDescription.h>
