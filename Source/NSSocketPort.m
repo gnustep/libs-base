@@ -1802,19 +1802,14 @@ static Class		tcpPortClass;
 
 - (NSString*) description
 {
-  NSMutableString	*desc;
+  NSString	*desc;
+  NSArray	*names;
 
-  desc = [NSMutableString stringWithFormat: @"NSPort on host with details -\n"
-    @"%@\n", host];
-  if (address == nil)
-    {
-      [desc appendFormat: @"  IP address - any\n"];
-    }
-  else
-    {
-      [desc appendFormat: @"  IP address - %@\n", address];
-    }
-  [desc appendFormat: @"  TCP port - %d\n", portNum];
+  names = [[NSSocketPortNameServer sharedInstance] namesForPort: self];
+  desc = [NSString stringWithFormat:
+    @"NSSocketPort %p %@ on IP address: %@, port: %d",
+    self, (([names count] == 0) ? (id)@"<un-named>" : (id)names), host,
+    ((address == nil) ? (id)@"any" : (id)address), portNum];
   return desc;
 }
 
