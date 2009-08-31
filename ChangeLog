@@ -1,3 +1,7 @@
+2009-08-31 David Chisnall <csdavec@swan.ac.uk>
+
+	Added NSCache implementation.
+
 2009-08-31 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePort.m:
