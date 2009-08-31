@@ -1,7 +1,14 @@
+2009-08-31 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Improve -description to include the registered names (if any) of ports.
+
 2009-08-30 David Chisnall <csdavec@swan.ac.uk>
 
 	* Headers/Foundation/NSObject.h: Added NSDicardableContent protocol from
 	Snow Leopard.
+
 2009-08-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSCategories.m:
