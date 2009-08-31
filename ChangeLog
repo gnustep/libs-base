@@ -2,7 +2,9 @@
 
 	* Source/NSMessagePort.m:
 	* Source/NSSocketPort.m:
+	* Source/NSConnection.m:
 	Improve -description to include the registered names (if any) of ports.
+	Include full port description in connection description.
 
 2009-08-30 David Chisnall <csdavec@swan.ac.uk>
 
