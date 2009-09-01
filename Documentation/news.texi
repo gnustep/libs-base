@@ -11,6 +11,14 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.19.3}
+
+@itemize @bullet
+@item Bugfix to work around OSX behavior of [NSURL-path]
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.19.2}
 
 @itemize @bullet
@@ -18,8 +26,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item String handling performance improvements.
 @item Several minor bugfixes.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.19.1}
 

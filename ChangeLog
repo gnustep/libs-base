@@ -1,5 +1,12 @@
 2009-09-01 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Version: bump to 1.19.3
+	* Documentation/news.texi: update
+	* Documentation/ReleaseNotes.gsdoc: update
+	Make 1.19.3 release.
+
+2009-09-01 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSCache.h:
 	* Source/NSCache.m:
 	Great additions... tweaked with whitespace changes to conform to

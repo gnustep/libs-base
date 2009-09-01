@@ -28,7 +28,19 @@ notice and this notice are preserved.
 	changes and other information that might help developers and users
 	migrate to using a newer version of the library.
       </p>
-     <section>
+      <section>
+	<heading>Version 1.19.3</heading>
+        <p>This is a new unstable snapshot release of the base library
+	almost identical to 1.19.2 but containing a bugfix for the
+	introduction of a change in the behavior of NSURL's -path
+	method to match OSX.  We add a new -fullPath method which
+	returns the actual path of the URL the way the old -path
+	implementaiton did.  This is necessary because the OSX behavior
+	is to strip any trailing '/' from a path so that it's no longer
+	possible to reliably build a URL string from its component parts.
+	</p>
+      </section>
+      <section>
 	<heading>Version 1.19.2</heading>
         <p>This is a new unstable snapshot release of the base library.
 	It may contain minor binary incompatibilities with the previous
