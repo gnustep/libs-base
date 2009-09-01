@@ -1,5 +1,18 @@
-2009-08-31 David Chisnall <csdavec@swan.ac.uk>
+2009-09-01 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSCache.h:
+	* Source/NSCache.m:
+	Great additions... tweaked with whitespace changes to conform to
+	coding standards, addition of copyright headers, addition of standard
+	prevention of multiple inclusion, include changes to build independant
+	of any existing installation.
+
+2009-08-31 David Chisnall <csdavec@swan.ac.uk>
+	
+	* Headers/Foundation/NSCache.h:
+	* Headers/Foundation/Foundation.h:
+	* Source/NSCache.m:
+	* Source/GNUmakefile:
 	Added NSCache implementation.
 
 2009-08-31 Richard Frith-Macdonald <rfm@gnu.org>
