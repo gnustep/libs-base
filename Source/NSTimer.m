@@ -97,6 +97,7 @@ static Class	NSDate_class;
     {
       ti = 0.0001;
     }
+  _interval = ti;
   if (fd == nil)
     {
       _date = [[NSDate_class allocWithZone: NSDefaultMallocZone()]
@@ -110,11 +111,7 @@ static Class	NSDate_class;
   _selector = selector;
   _info = RETAIN(info);
   _repeats = f;
-  if (_repeats == YES)
-    {
-      _interval = ti;
-    }
-  else
+  if (_repeats == NO)
     {
       _interval = 0.0;
     }
