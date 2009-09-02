@@ -48,7 +48,7 @@
 	if (EINVAL == err)\
 	{\
 		[NSException raise: NSLockException\
-					format: @"failed to unlock mutex"];\
+					format: @"failed to lock mutex"];\
 	}\
 	if (EDEADLK == err)\
 	{\
