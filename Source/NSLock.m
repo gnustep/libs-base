@@ -270,7 +270,6 @@ NSLOCKING_METHODS
 
 - (void) unlockWithCondition: (NSInteger)value
 {
-	[_condition lock];
 	_condition_value = value;
 	[_condition broadcast];
 	[_condition unlock];
