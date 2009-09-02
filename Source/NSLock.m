@@ -222,7 +222,7 @@ NSLOCKING_METHODS
 {
 	pthread_cond_signal(&_condition);
 }
-- (void)broadcast;
+- (void)broadcast
 {
 	pthread_cond_broadcast(&_condition);
 }
